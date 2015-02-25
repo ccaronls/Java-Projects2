@@ -1,0 +1,354 @@
+curPlayer=0
+dealer=0
+deck=cc.game.golf.core.Card 104
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+   cc.game.golf.core.Card {
+   }
+discardPile=java.util.Stack {
+   cc.game.golf.core.Card {
+      }
+   cc.game.golf.core.Card {
+      }
+   cc.game.golf.core.Card {
+      }
+   cc.game.golf.core.Card {
+      }
+   cc.game.golf.core.Card {
+      }
+   cc.game.golf.core.Card {
+      }
+   cc.game.golf.core.Card {
+      }
+   cc.game.golf.core.Card {
+      }
+   cc.game.golf.core.Card {
+      }
+   cc.game.golf.core.Card {
+      }
+   cc.game.golf.core.Card {
+      }
+   cc.game.golf.core.Card {
+      }
+   cc.game.golf.core.Card {
+      }
+   cc.game.golf.core.Card {
+      }
+   cc.game.golf.core.Card {
+      }
+   cc.game.golf.core.Card {
+      }
+   cc.game.golf.core.Card {
+      }
+   cc.game.golf.core.Card {
+      }
+   cc.game.golf.core.Card {
+      }
+   cc.game.golf.core.Card {
+      }
+   cc.game.golf.core.Card {
+      }
+   cc.game.golf.core.Card {
+      }
+   cc.game.golf.core.Card {
+      }
+   cc.game.golf.core.Card {
+      }
+   cc.game.golf.core.Card {
+      }
+   cc.game.golf.core.Card {
+      }
+   cc.game.golf.core.Card {
+      }
+   cc.game.golf.core.Card {
+      }
+   cc.game.golf.core.Card {
+      }
+   cc.game.golf.core.Card {
+      }
+   cc.game.golf.core.Card {
+      }
+   cc.game.golf.core.Card {
+      }
+   cc.game.golf.core.Card {
+      }
+   cc.game.golf.core.Card {
+      }
+   cc.game.golf.core.Card {
+      }
+   cc.game.golf.core.Card {
+      }
+}
+knocker=-1
+numDeckCards=50
+numRounds=0
+players=java.util.ArrayList {
+   cc.game.golf.ai.PlayerBot {
+         cards=cc.game.golf.core.Card[] 3
+            cc.game.golf.core.Card 3
+               cc.game.golf.core.Card {
+               }
+               cc.game.golf.core.Card {
+               }
+               cc.game.golf.core.Card {
+               }
+            cc.game.golf.core.Card 3
+               cc.game.golf.core.Card {
+               }
+               cc.game.golf.core.Card {
+               }
+               cc.game.golf.core.Card {
+               }
+            cc.game.golf.core.Card 3
+               cc.game.golf.core.Card {
+               }
+               cc.game.golf.core.Card {
+               }
+               cc.game.golf.core.Card {
+               }
+         points=0
+      }
+   cc.game.golf.ai.PlayerBot {
+         cards=cc.game.golf.core.Card[] 3
+            cc.game.golf.core.Card 3
+               cc.game.golf.core.Card {
+               }
+               cc.game.golf.core.Card {
+               }
+               cc.game.golf.core.Card {
+               }
+            cc.game.golf.core.Card 3
+               cc.game.golf.core.Card {
+               }
+               cc.game.golf.core.Card {
+               }
+               cc.game.golf.core.Card {
+               }
+            cc.game.golf.core.Card 3
+               cc.game.golf.core.Card {
+               }
+               cc.game.golf.core.Card {
+               }
+               cc.game.golf.core.Card {
+               }
+         points=0
+      }
+}
+rules=cc.game.golf.core.Rules {
+   fourOfAKindBonus=-20
+   gameType=NineCard
+   jokerValuePaired=-5
+   jokerValueUnpaired=-10
+   knockerBonusType=MinusNumberOfPlayers
+   knockerPenaltyType=EqualToHighestHand
+   numDecks=1
+   numHoles=18
+   numJokers=2
+   wildcard=OneEyedJacks
+}
+state=DISCARD_OR_PLAY
+winner=-1

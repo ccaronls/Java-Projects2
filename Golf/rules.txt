@@ -1,0 +1,58 @@
+The game of Golf
+
+Wiki: http://en.wikipedia.org/wiki/Golf_(card_game)
+
+DESCRIPTION
+
+Golf is a card game that supports between 2 and 8 players.  The deck consists of 2 complete 52 card decks
+as well as 8 Jokers.  The object of the game is to get the LEAST amount of points.  It is possible to have negative points.
+
+SETUP
+
+A dealer is chosen and 8 cards are dealt face down to each player starting with player to left of dealer.  All Cards remain face 
+down.   Players arrange their cards into 2 rows of 4 cards placed atop each other as shown in diagram 1.
+
+Diagram 1: Players card arrangement, kept face down.
+
+		+---+  +---+  +---+  +---+
+Row 1	|   |  |   |  |   |  |   |    
+		|   |  |   |  |   |  |   |
+		+---+  +---+  +---+  +---+
+		
+		+---+  +---+  +---+  +---+
+Row 2	|   |  |   |  |   |  |   |    
+		|   |  |   |  |   |  |   |
+		+---+  +---+  +---+  +---+
+		
+The remaining cards are placed stacked and placed in the center of table face down.  The top card is turned up and placed
+alongside the deck.
+
+GAME PLAY
+
+On the first turn, starting with the player to the left of the dealer, each player first turns over 2 of their cards, one 
+from each row.  They then
+
+
+
+SCORING
+
+Jokers are worth -5.  All Kings are worth 0.  Queens and Jacks are worth 10, all other cards are worth face value.  
+Paired cards of the same Rank are worth 0.
+
+Example: The following hand has value 0+0+3+0-5+10+6+5=18.  The twos cancel each other since they are paired, so they are worth 0.
+         Kings are always worth 0.  Jokers are always worth -5. 
+
+		+---+  +---+  +---+  +---+
+Row 1	|2  |  |3  |  |Jo |  |6  |    
+		|   |  |   |  |   |  |   |
+		+---+  +---+  +---+  +---+
+		
+		+---+  +---+  +---+  +---+
+Row 2	|2  |  |K  |  |10 |  |5  |    
+		|   |  |   |  |   |  |   |
+		+---+  +---+  +---+  +---+
+
+
+
+
+STRATEGY 

@@ -1,0 +1,10 @@
+fourOfAKindBonus=-30
+gameType=NineCard
+jokerValuePaired=-5
+jokerValueUnpaired=15
+knockerBonusType=ZeroOrLess
+knockerPenaltyType=Plus10
+numDecks=2
+numHoles=18
+numJokers=4
+wildcard=Dueces
