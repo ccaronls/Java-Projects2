@@ -1,0 +1,9 @@
+cc.game.soc.ai
+cc.game.soc.applet
+cc.game.soc.core
+cc.game.soc.model
+cc.game.soc.net
+cc.game.soc.netx
+cc.game.soc.service
+cc.game.soc.swing
+cc.game.soc.util

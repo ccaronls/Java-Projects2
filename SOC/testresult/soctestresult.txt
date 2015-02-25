@@ -1,0 +1,2820 @@
+mBoard=cc.game.soc.core.SOCBoard {
+   cells=java.util.Vector {
+      cc.game.soc.core.SOCCell {
+            adjVerts=int 6
+               0 1 2 3 4 5 
+            dieNum=6
+            islandNum=0
+            numAdj=6
+            resource=Sheep
+            type=DESERT
+            x=0.39285716
+            y=0.50000006
+         }
+      }
+      cc.game.soc.core.SOCCell {
+            adjVerts=int 6
+               2 6 7 8 9 3 
+            dieNum=4
+            islandNum=0
+            numAdj=6
+            resource=Ore
+            type=DESERT
+            x=0.5
+            y=0.4285715
+         }
+      }
+      cc.game.soc.core.SOCCell {
+            adjVerts=int 6
+               7 10 11 12 13 8 
+            dieNum=10
+            islandNum=0
+            numAdj=6
+            resource=Brick
+            type=RESOURCE
+            x=0.60714287
+            y=0.35714293
+         }
+      }
+      cc.game.soc.core.SOCCell {
+            adjVerts=int 6
+               11 14 15 16 17 12 
+            dieNum=6
+            islandNum=0
+            numAdj=6
+            resource=Wood
+            type=RESOURCE
+            x=0.71428573
+            y=0.28571436
+         }
+      }
+      cc.game.soc.core.SOCCell {
+            adjVerts=int 6
+               13 12 17 18 19 20 
+            dieNum=3
+            islandNum=0
+            numAdj=6
+            resource=Wheat
+            type=RESOURCE
+            x=0.71428573
+            y=0.4285715
+         }
+      }
+      cc.game.soc.core.SOCCell {
+            adjVerts=int 6
+               9 8 13 20 21 22 
+            dieNum=6
+            islandNum=0
+            numAdj=6
+            resource=Sheep
+            type=RESOURCE
+            x=0.60714287
+            y=0.50000006
+         }
+      }
+      cc.game.soc.core.SOCCell {
+            adjVerts=int 6
+               21 20 19 23 24 25 
+            dieNum=12
+            islandNum=0
+            numAdj=6
+            resource=Ore
+            type=RESOURCE
+            x=0.71428573
+            y=0.57142866
+         }
+      }
+      cc.game.soc.core.SOCCell {
+            adjVerts=int 6
+               4 3 9 22 26 27 
+            dieNum=3
+            islandNum=0
+            numAdj=6
+            resource=Brick
+            type=RESOURCE
+            x=0.5
+            y=0.57142866
+         }
+      }
+      cc.game.soc.core.SOCCell {
+            adjVerts=int 6
+               26 22 21 25 28 29 
+            dieNum=8
+            islandNum=0
+            numAdj=6
+            resource=Wood
+            type=RESOURCE
+            x=0.60714287
+            y=0.64285725
+         }
+      }
+      cc.game.soc.core.SOCCell {
+            adjVerts=int 6
+               28 25 24 30 31 32 
+            dieNum=2
+            islandNum=0
+            numAdj=6
+            resource=Wheat
+            type=RESOURCE
+            x=0.71428573
+            y=0.71428585
+         }
+      }
+      cc.game.soc.core.SOCCell {
+            adjVerts=int 6
+               33 34 35 1 0 36 
+            dieNum=11
+            islandNum=0
+            numAdj=6
+            resource=Sheep
+            type=RESOURCE
+            x=0.2857143
+            y=0.4285715
+         }
+      }
+      cc.game.soc.core.SOCCell {
+            adjVerts=int 6
+               37 38 39 34 33 40 
+            dieNum=8
+            islandNum=0
+            numAdj=6
+            resource=Ore
+            type=RESOURCE
+            x=0.17857145
+            y=0.35714293
+         }
+      }
+      cc.game.soc.core.SOCCell {
+            adjVerts=int 6
+               41 42 43 38 37 44 
+            dieNum=4
+            islandNum=0
+            numAdj=6
+            resource=Brick
+            type=RESOURCE
+            x=0.07142858
+            y=0.28571436
+         }
+      }
+      cc.game.soc.core.SOCCell {
+            adjVerts=int 6
+               45 44 37 40 46 47 
+            dieNum=11
+            islandNum=0
+            numAdj=6
+            resource=Wood
+            type=RESOURCE
+            x=0.07142858
+            y=0.4285715
+         }
+      }
+      cc.game.soc.core.SOCCell {
+            adjVerts=int 6
+               46 40 33 36 48 49 
+            dieNum=5
+            islandNum=0
+            numAdj=6
+            resource=Wheat
+            type=RESOURCE
+            x=0.17857145
+            y=0.50000006
+         }
+      }
+      cc.game.soc.core.SOCCell {
+            adjVerts=int 6
+               50 47 46 49 51 52 
+            dieNum=10
+            islandNum=0
+            numAdj=6
+            resource=Sheep
+            type=RESOURCE
+            x=0.07142858
+            y=0.57142866
+         }
+      }
+      cc.game.soc.core.SOCCell {
+            adjVerts=int 6
+               48 36 0 5 53 54 
+            dieNum=9
+            islandNum=0
+            numAdj=6
+            resource=Ore
+            type=RESOURCE
+            x=0.2857143
+            y=0.57142866
+         }
+      }
+      cc.game.soc.core.SOCCell {
+            adjVerts=int 6
+               51 49 48 54 55 56 
+            dieNum=8
+            islandNum=0
+            numAdj=6
+            resource=Brick
+            type=RESOURCE
+            x=0.17857145
+            y=0.64285725
+         }
+      }
+      cc.game.soc.core.SOCCell {
+            adjVerts=int 6
+               57 52 51 56 58 59 
+            dieNum=5
+            islandNum=0
+            numAdj=6
+            resource=Wood
+            type=RESOURCE
+            x=0.07142858
+            y=0.71428585
+         }
+      }
+      cc.game.soc.core.SOCCell {
+            adjVerts=int 6
+               35 60 61 6 2 1 
+            dieNum=8
+            islandNum=0
+            numAdj=6
+            resource=Wheat
+            type=RESOURCE
+            x=0.39285716
+            y=0.35714293
+         }
+      }
+      cc.game.soc.core.SOCCell {
+            adjVerts=int 6
+               62 63 64 65 61 60 
+            dieNum=10
+            islandNum=0
+            numAdj=6
+            resource=Sheep
+            type=RESOURCE
+            x=0.39285716
+            y=0.21428578
+         }
+      }
+      cc.game.soc.core.SOCCell {
+            adjVerts=int 6
+               66 67 68 69 64 63 
+            dieNum=4
+            islandNum=0
+            numAdj=6
+            resource=Ore
+            type=RESOURCE
+            x=0.39285716
+            y=0.07142863
+         }
+      }
+      cc.game.soc.core.SOCCell {
+            adjVerts=int 6
+               64 69 70 71 72 65 
+            dieNum=9
+            islandNum=0
+            numAdj=6
+            resource=Brick
+            type=RESOURCE
+            x=0.5
+            y=0.1428572
+         }
+      }
+      cc.game.soc.core.SOCCell {
+            adjVerts=int 6
+               73 74 66 63 62 75 
+            dieNum=5
+            islandNum=0
+            numAdj=6
+            resource=Wood
+            type=RESOURCE
+            x=0.2857143
+            y=0.1428572
+         }
+      }
+      cc.game.soc.core.SOCCell {
+            adjVerts=int 6
+               61 65 72 10 7 6 
+            dieNum=9
+            islandNum=0
+            numAdj=6
+            resource=Wheat
+            type=RESOURCE
+            x=0.5
+            y=0.28571436
+         }
+      }
+      cc.game.soc.core.SOCCell {
+            adjVerts=int 6
+               72 71 76 14 11 10 
+            dieNum=5
+            islandNum=0
+            numAdj=6
+            resource=Sheep
+            type=RESOURCE
+            x=0.60714287
+            y=0.21428579
+         }
+      }
+      cc.game.soc.core.SOCCell {
+            adjVerts=int 6
+               39 75 62 60 35 34 
+            dieNum=9
+            islandNum=0
+            numAdj=6
+            resource=Ore
+            type=RESOURCE
+            x=0.2857143
+            y=0.28571436
+         }
+      }
+      cc.game.soc.core.SOCCell {
+            adjVerts=int 6
+               43 77 73 75 39 38 
+            dieNum=6
+            islandNum=0
+            numAdj=6
+            resource=Brick
+            type=RESOURCE
+            x=0.17857145
+            y=0.21428579
+         }
+      }
+      cc.game.soc.core.SOCCell {
+            adjVerts=int 6
+               53 5 4 27 78 79 
+            dieNum=6
+            islandNum=0
+            numAdj=6
+            resource=Wood
+            type=RESOURCE
+            x=0.39285716
+            y=0.6428572
+         }
+      }
+      cc.game.soc.core.SOCCell {
+            adjVerts=int 6
+               80 79 78 81 82 83 
+            dieNum=4
+            islandNum=0
+            numAdj=6
+            resource=Wheat
+            type=RESOURCE
+            x=0.39285716
+            y=0.7857143
+         }
+      }
+      cc.game.soc.core.SOCCell {
+            adjVerts=int 6
+               84 83 82 85 86 87 
+            dieNum=10
+            islandNum=0
+            numAdj=6
+            resource=Sheep
+            type=RESOURCE
+            x=0.39285716
+            y=0.92857146
+         }
+      }
+      cc.game.soc.core.SOCCell {
+            adjVerts=int 6
+               82 81 88 89 90 85 
+            dieNum=6
+            islandNum=0
+            numAdj=6
+            resource=Ore
+            type=RESOURCE
+            x=0.5
+            y=0.8571429
+         }
+      }
+      cc.game.soc.core.SOCCell {
+            adjVerts=int 6
+               91 92 80 83 84 93 
+            dieNum=3
+            islandNum=0
+            numAdj=6
+            resource=Brick
+            type=RESOURCE
+            x=0.2857143
+            y=0.8571429
+         }
+      }
+      cc.game.soc.core.SOCCell {
+            adjVerts=int 6
+               78 27 26 29 88 81 
+            dieNum=6
+            islandNum=0
+            numAdj=6
+            resource=Wood
+            type=RESOURCE
+            x=0.5
+            y=0.7142858
+         }
+      }
+      cc.game.soc.core.SOCCell {
+            adjVerts=int 6
+               88 29 28 32 94 89 
+            dieNum=12
+            islandNum=0
+            numAdj=6
+            resource=Wheat
+            type=RESOURCE
+            x=0.60714287
+            y=0.7857144
+         }
+      }
+      cc.game.soc.core.SOCCell {
+            adjVerts=int 6
+               55 54 53 79 80 92 
+            dieNum=3
+            islandNum=0
+            numAdj=6
+            resource=Sheep
+            type=RESOURCE
+            x=0.2857143
+            y=0.7142858
+         }
+      }
+      cc.game.soc.core.SOCCell {
+            adjVerts=int 6
+               58 56 55 92 91 95 
+            dieNum=8
+            islandNum=0
+            numAdj=6
+            resource=Ore
+            type=RESOURCE
+            x=0.17857145
+            y=0.7857144
+         }
+      }
+   }
+   ch=0.14285715
+   cw=0.14285715
+   edges=java.util.Vector {
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=0
+            player=1
+            to=1
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=0
+            player=1
+            to=5
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=0
+            player=1
+            to=36
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=1
+            player=0
+            to=2
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=1
+            player=0
+            to=35
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=2
+            player=0
+            to=3
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=2
+            player=0
+            to=6
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=3
+            player=0
+            to=4
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=3
+            player=0
+            to=9
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=4
+            player=0
+            to=5
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=4
+            player=0
+            to=27
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=5
+            player=0
+            to=53
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=6
+            player=0
+            to=7
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=6
+            player=0
+            to=61
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=7
+            player=0
+            to=8
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=7
+            player=0
+            to=10
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=8
+            player=0
+            to=9
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=8
+            player=0
+            to=13
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=9
+            player=0
+            to=22
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=10
+            player=0
+            to=11
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=10
+            player=0
+            to=72
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=11
+            player=0
+            to=12
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=11
+            player=0
+            to=14
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=12
+            player=0
+            to=13
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=12
+            player=0
+            to=17
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=13
+            player=0
+            to=20
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=14
+            player=0
+            to=15
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=14
+            player=0
+            to=76
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=15
+            player=0
+            to=16
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=16
+            player=0
+            to=17
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=17
+            player=0
+            to=18
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=18
+            player=0
+            to=19
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=19
+            player=0
+            to=20
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=19
+            player=0
+            to=23
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=20
+            player=0
+            to=21
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=21
+            player=0
+            to=22
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=21
+            player=0
+            to=25
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=22
+            player=0
+            to=26
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=23
+            player=0
+            to=24
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=24
+            player=0
+            to=25
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=24
+            player=0
+            to=30
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=25
+            player=0
+            to=28
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=26
+            player=0
+            to=27
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=26
+            player=0
+            to=29
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=27
+            player=0
+            to=78
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=28
+            player=0
+            to=29
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=28
+            player=0
+            to=32
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=29
+            player=0
+            to=88
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=30
+            player=0
+            to=31
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=31
+            player=0
+            to=32
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=32
+            player=0
+            to=94
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=33
+            player=0
+            to=34
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=33
+            player=3
+            to=36
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=33
+            player=0
+            to=40
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=34
+            player=0
+            to=35
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=34
+            player=0
+            to=39
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=35
+            player=0
+            to=60
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=36
+            player=3
+            to=48
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=37
+            player=0
+            to=38
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=37
+            player=0
+            to=40
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=37
+            player=0
+            to=44
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=38
+            player=0
+            to=39
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=38
+            player=0
+            to=43
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=39
+            player=4
+            to=75
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=40
+            player=0
+            to=46
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=41
+            player=0
+            to=42
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=41
+            player=0
+            to=44
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=42
+            player=0
+            to=43
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=43
+            player=0
+            to=77
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=44
+            player=0
+            to=45
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=45
+            player=0
+            to=47
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=46
+            player=0
+            to=47
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=46
+            player=0
+            to=49
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=47
+            player=0
+            to=50
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=48
+            player=0
+            to=49
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=48
+            player=0
+            to=54
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=49
+            player=0
+            to=51
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=50
+            player=0
+            to=52
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=51
+            player=0
+            to=52
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=51
+            player=0
+            to=56
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=52
+            player=0
+            to=57
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=53
+            player=0
+            to=54
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=53
+            player=0
+            to=79
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=54
+            player=0
+            to=55
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=55
+            player=2
+            to=56
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=55
+            player=2
+            to=92
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=56
+            player=0
+            to=58
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=57
+            player=0
+            to=59
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=58
+            player=0
+            to=59
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=58
+            player=0
+            to=95
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=60
+            player=0
+            to=61
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=60
+            player=0
+            to=62
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=61
+            player=0
+            to=65
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=62
+            player=4
+            to=63
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=62
+            player=4
+            to=75
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=63
+            player=4
+            to=64
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=63
+            player=0
+            to=66
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=64
+            player=0
+            to=65
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=64
+            player=0
+            to=69
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=65
+            player=0
+            to=72
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=66
+            player=0
+            to=67
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=66
+            player=0
+            to=74
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=67
+            player=0
+            to=68
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=68
+            player=0
+            to=69
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=69
+            player=0
+            to=70
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=70
+            player=0
+            to=71
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=71
+            player=0
+            to=72
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=71
+            player=0
+            to=76
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=73
+            player=0
+            to=74
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=73
+            player=0
+            to=75
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=73
+            player=0
+            to=77
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=78
+            player=0
+            to=79
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=78
+            player=0
+            to=81
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=79
+            player=0
+            to=80
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=80
+            player=0
+            to=83
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=80
+            player=2
+            to=92
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=81
+            player=0
+            to=82
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=81
+            player=0
+            to=88
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=82
+            player=0
+            to=83
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=82
+            player=0
+            to=85
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=83
+            player=0
+            to=84
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=84
+            player=0
+            to=87
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=84
+            player=0
+            to=93
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=85
+            player=0
+            to=86
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=85
+            player=0
+            to=90
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=86
+            player=0
+            to=87
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=88
+            player=0
+            to=89
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=89
+            player=0
+            to=90
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=89
+            player=0
+            to=94
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=91
+            player=0
+            to=92
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=91
+            player=0
+            to=93
+         }
+      }
+      cc.game.soc.core.SOCEdge {
+            flags=1
+            from=91
+            player=0
+            to=95
+         }
+      }
+   }
+   name=""
+   pirateCell=-1
+   robberCell=19
+   verts=java.util.Vector {
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               1 5 36 
+            canPlaceStructure=true
+            cells=int 3
+               0 10 16 
+            isCity=false
+            numAdj=3
+            numCells=3
+            player=0
+            x=0.3214286
+            y=0.50000006
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               0 2 35 
+            canPlaceStructure=true
+            cells=int 3
+               0 10 19 
+            isCity=false
+            numAdj=3
+            numCells=3
+            player=1
+            x=0.35714287
+            y=0.4285715
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               1 3 6 
+            canPlaceStructure=true
+            cells=int 3
+               0 1 19 
+            isCity=false
+            numAdj=3
+            numCells=3
+            player=0
+            x=0.42857146
+            y=0.4285715
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               2 4 9 
+            canPlaceStructure=true
+            cells=int 3
+               0 1 7 
+            isCity=false
+            numAdj=3
+            numCells=3
+            player=0
+            x=0.46428573
+            y=0.50000006
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               3 5 27 
+            canPlaceStructure=true
+            cells=int 3
+               0 7 28 
+            isCity=false
+            numAdj=3
+            numCells=3
+            player=4
+            x=0.42857146
+            y=0.57142866
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               4 0 53 
+            canPlaceStructure=true
+            cells=int 3
+               0 16 28 
+            isCity=false
+            numAdj=3
+            numCells=3
+            player=0
+            x=0.35714287
+            y=0.57142866
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               2 7 61 
+            canPlaceStructure=true
+            cells=int 3
+               1 19 24 
+            isCity=false
+            numAdj=3
+            numCells=3
+            player=0
+            x=0.4642857
+            y=0.35714293
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               6 8 10 
+            canPlaceStructure=true
+            cells=int 3
+               1 2 24 
+            isCity=false
+            numAdj=3
+            numCells=3
+            player=0
+            x=0.53571427
+            y=0.35714293
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               7 9 13 
+            canPlaceStructure=true
+            cells=int 3
+               1 2 5 
+            isCity=false
+            numAdj=3
+            numCells=3
+            player=0
+            x=0.5714286
+            y=0.4285715
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               8 3 22 
+            canPlaceStructure=true
+            cells=int 3
+               1 5 7 
+            isCity=false
+            numAdj=3
+            numCells=3
+            player=0
+            x=0.53571427
+            y=0.50000006
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               7 11 72 
+            canPlaceStructure=true
+            cells=int 3
+               2 24 25 
+            isCity=false
+            numAdj=3
+            numCells=3
+            player=0
+            x=0.5714286
+            y=0.28571436
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               10 12 14 
+            canPlaceStructure=true
+            cells=int 3
+               2 3 25 
+            isCity=false
+            numAdj=3
+            numCells=3
+            player=3
+            x=0.64285713
+            y=0.28571436
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               11 13 17 
+            canPlaceStructure=true
+            cells=int 3
+               2 3 4 
+            isCity=false
+            numAdj=3
+            numCells=3
+            player=0
+            x=0.67857146
+            y=0.35714293
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               12 8 20 
+            canPlaceStructure=true
+            cells=int 3
+               2 4 5 
+            isCity=false
+            numAdj=3
+            numCells=3
+            player=0
+            x=0.64285713
+            y=0.4285715
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               11 15 76 
+            canPlaceStructure=true
+            cells=int 3
+               3 25 0 
+            isCity=false
+            numAdj=3
+            numCells=2
+            player=0
+            x=0.67857146
+            y=0.21428579
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               14 16 0 
+            canPlaceStructure=true
+            cells=int 3
+               3 0 0 
+            isCity=false
+            numAdj=2
+            numCells=1
+            player=0
+            x=0.75
+            y=0.21428579
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               15 17 0 
+            canPlaceStructure=true
+            cells=int 3
+               3 0 0 
+            isCity=false
+            numAdj=2
+            numCells=1
+            player=0
+            x=0.7857143
+            y=0.28571436
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               16 12 18 
+            canPlaceStructure=true
+            cells=int 3
+               3 4 0 
+            isCity=false
+            numAdj=3
+            numCells=2
+            player=0
+            x=0.75
+            y=0.35714293
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               17 19 0 
+            canPlaceStructure=true
+            cells=int 3
+               4 0 0 
+            isCity=false
+            numAdj=2
+            numCells=1
+            player=0
+            x=0.7857143
+            y=0.4285715
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               18 20 23 
+            canPlaceStructure=true
+            cells=int 3
+               4 6 0 
+            isCity=false
+            numAdj=3
+            numCells=2
+            player=0
+            x=0.75
+            y=0.50000006
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               19 13 21 
+            canPlaceStructure=true
+            cells=int 3
+               4 5 6 
+            isCity=false
+            numAdj=3
+            numCells=3
+            player=0
+            x=0.67857146
+            y=0.50000006
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               20 22 25 
+            canPlaceStructure=true
+            cells=int 3
+               5 6 8 
+            isCity=false
+            numAdj=3
+            numCells=3
+            player=0
+            x=0.64285713
+            y=0.57142866
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               21 9 26 
+            canPlaceStructure=true
+            cells=int 3
+               5 7 8 
+            isCity=false
+            numAdj=3
+            numCells=3
+            player=0
+            x=0.5714286
+            y=0.57142866
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               19 24 0 
+            canPlaceStructure=true
+            cells=int 3
+               6 0 0 
+            isCity=false
+            numAdj=2
+            numCells=1
+            player=0
+            x=0.7857143
+            y=0.57142866
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               23 25 30 
+            canPlaceStructure=true
+            cells=int 3
+               6 9 0 
+            isCity=false
+            numAdj=3
+            numCells=2
+            player=0
+            x=0.75
+            y=0.64285725
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               24 21 28 
+            canPlaceStructure=true
+            cells=int 3
+               6 8 9 
+            isCity=false
+            numAdj=3
+            numCells=3
+            player=0
+            x=0.67857146
+            y=0.64285725
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               22 27 29 
+            canPlaceStructure=true
+            cells=int 3
+               7 8 33 
+            isCity=false
+            numAdj=3
+            numCells=3
+            player=1
+            x=0.53571427
+            y=0.64285725
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               26 4 78 
+            canPlaceStructure=true
+            cells=int 3
+               7 28 33 
+            isCity=false
+            numAdj=3
+            numCells=3
+            player=0
+            x=0.4642857
+            y=0.64285725
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               25 29 32 
+            canPlaceStructure=true
+            cells=int 3
+               8 9 34 
+            isCity=false
+            numAdj=3
+            numCells=3
+            player=0
+            x=0.64285713
+            y=0.71428585
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               28 26 88 
+            canPlaceStructure=true
+            cells=int 3
+               8 33 34 
+            isCity=false
+            numAdj=3
+            numCells=3
+            player=0
+            x=0.5714286
+            y=0.71428585
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               24 31 0 
+            canPlaceStructure=true
+            cells=int 3
+               9 0 0 
+            isCity=false
+            numAdj=2
+            numCells=1
+            player=0
+            x=0.7857143
+            y=0.71428585
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               30 32 0 
+            canPlaceStructure=true
+            cells=int 3
+               9 0 0 
+            isCity=false
+            numAdj=2
+            numCells=1
+            player=0
+            x=0.75
+            y=0.78571445
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               31 28 94 
+            canPlaceStructure=true
+            cells=int 3
+               9 34 0 
+            isCity=false
+            numAdj=3
+            numCells=2
+            player=0
+            x=0.67857146
+            y=0.78571445
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               34 36 40 
+            canPlaceStructure=true
+            cells=int 3
+               10 11 14 
+            isCity=false
+            numAdj=3
+            numCells=3
+            player=3
+            x=0.21428573
+            y=0.4285715
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               33 35 39 
+            canPlaceStructure=true
+            cells=int 3
+               10 11 26 
+            isCity=false
+            numAdj=3
+            numCells=3
+            player=0
+            x=0.25
+            y=0.35714293
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               34 1 60 
+            canPlaceStructure=true
+            cells=int 3
+               10 19 26 
+            isCity=false
+            numAdj=3
+            numCells=3
+            player=0
+            x=0.3214286
+            y=0.35714293
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               0 33 48 
+            canPlaceStructure=true
+            cells=int 3
+               10 14 16 
+            isCity=false
+            numAdj=3
+            numCells=3
+            player=0
+            x=0.25
+            y=0.50000006
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               38 40 44 
+            canPlaceStructure=true
+            cells=int 3
+               11 12 13 
+            isCity=false
+            numAdj=3
+            numCells=3
+            player=0
+            x=0.10714287
+            y=0.35714293
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               37 39 43 
+            canPlaceStructure=true
+            cells=int 3
+               11 12 27 
+            isCity=false
+            numAdj=3
+            numCells=3
+            player=0
+            x=0.14285716
+            y=0.28571436
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               38 34 75 
+            canPlaceStructure=true
+            cells=int 3
+               11 26 27 
+            isCity=false
+            numAdj=3
+            numCells=3
+            player=4
+            x=0.21428573
+            y=0.28571436
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               33 37 46 
+            canPlaceStructure=true
+            cells=int 3
+               11 13 14 
+            isCity=false
+            numAdj=3
+            numCells=3
+            player=0
+            x=0.14285716
+            y=0.4285715
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               42 44 0 
+            canPlaceStructure=true
+            cells=int 3
+               12 0 0 
+            isCity=false
+            numAdj=2
+            numCells=1
+            player=0
+            x=7.4505806E-9
+            y=0.28571436
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               41 43 0 
+            canPlaceStructure=true
+            cells=int 3
+               12 0 0 
+            isCity=false
+            numAdj=2
+            numCells=1
+            player=0
+            x=0.035714295
+            y=0.21428579
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               42 38 77 
+            canPlaceStructure=true
+            cells=int 3
+               12 27 0 
+            isCity=false
+            numAdj=3
+            numCells=2
+            player=0
+            x=0.107142866
+            y=0.21428579
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               37 41 45 
+            canPlaceStructure=true
+            cells=int 3
+               12 13 0 
+            isCity=false
+            numAdj=3
+            numCells=2
+            player=0
+            x=0.035714295
+            y=0.35714293
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               44 47 0 
+            canPlaceStructure=true
+            cells=int 3
+               13 0 0 
+            isCity=false
+            numAdj=2
+            numCells=1
+            player=0
+            x=7.4505806E-9
+            y=0.4285715
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               40 47 49 
+            canPlaceStructure=true
+            cells=int 3
+               13 14 15 
+            isCity=false
+            numAdj=3
+            numCells=3
+            player=0
+            x=0.107142866
+            y=0.50000006
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               46 45 50 
+            canPlaceStructure=true
+            cells=int 3
+               13 15 0 
+            isCity=false
+            numAdj=3
+            numCells=2
+            player=0
+            x=0.035714295
+            y=0.50000006
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               36 49 54 
+            canPlaceStructure=true
+            cells=int 3
+               14 16 17 
+            isCity=false
+            numAdj=3
+            numCells=3
+            player=3
+            x=0.21428573
+            y=0.57142866
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               48 46 51 
+            canPlaceStructure=true
+            cells=int 3
+               14 15 17 
+            isCity=false
+            numAdj=3
+            numCells=3
+            player=0
+            x=0.14285716
+            y=0.57142866
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               47 52 0 
+            canPlaceStructure=true
+            cells=int 3
+               15 0 0 
+            isCity=false
+            numAdj=2
+            numCells=1
+            player=0
+            x=7.4505806E-9
+            y=0.57142866
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               49 52 56 
+            canPlaceStructure=true
+            cells=int 3
+               15 17 18 
+            isCity=false
+            numAdj=3
+            numCells=3
+            player=0
+            x=0.107142866
+            y=0.64285725
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               51 50 57 
+            canPlaceStructure=true
+            cells=int 3
+               15 18 0 
+            isCity=false
+            numAdj=3
+            numCells=2
+            player=0
+            x=0.035714295
+            y=0.64285725
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               5 54 79 
+            canPlaceStructure=true
+            cells=int 3
+               16 28 35 
+            isCity=false
+            numAdj=3
+            numCells=3
+            player=0
+            x=0.3214286
+            y=0.64285725
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               53 48 55 
+            canPlaceStructure=true
+            cells=int 3
+               16 17 35 
+            isCity=false
+            numAdj=3
+            numCells=3
+            player=0
+            x=0.25
+            y=0.64285725
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               54 56 92 
+            canPlaceStructure=true
+            cells=int 3
+               17 35 36 
+            isCity=false
+            numAdj=3
+            numCells=3
+            player=0
+            x=0.21428573
+            y=0.71428585
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               55 51 58 
+            canPlaceStructure=true
+            cells=int 3
+               17 18 36 
+            isCity=false
+            numAdj=3
+            numCells=3
+            player=2
+            x=0.14285716
+            y=0.71428585
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               52 59 0 
+            canPlaceStructure=true
+            cells=int 3
+               18 0 0 
+            isCity=false
+            numAdj=2
+            numCells=1
+            player=0
+            x=7.4505806E-9
+            y=0.71428585
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               56 59 95 
+            canPlaceStructure=true
+            cells=int 3
+               18 36 0 
+            isCity=false
+            numAdj=3
+            numCells=2
+            player=0
+            x=0.107142866
+            y=0.78571445
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               58 57 0 
+            canPlaceStructure=true
+            cells=int 3
+               18 0 0 
+            isCity=false
+            numAdj=2
+            numCells=1
+            player=0
+            x=0.035714295
+            y=0.78571445
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               35 61 62 
+            canPlaceStructure=true
+            cells=int 3
+               19 20 26 
+            isCity=false
+            numAdj=3
+            numCells=3
+            player=2
+            x=0.35714287
+            y=0.28571436
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               60 6 65 
+            canPlaceStructure=true
+            cells=int 3
+               19 20 24 
+            isCity=false
+            numAdj=3
+            numCells=3
+            player=0
+            x=0.42857146
+            y=0.28571436
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               63 60 75 
+            canPlaceStructure=true
+            cells=int 3
+               20 23 26 
+            isCity=false
+            numAdj=3
+            numCells=3
+            player=0
+            x=0.3214286
+            y=0.21428578
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               62 64 66 
+            canPlaceStructure=true
+            cells=int 3
+               20 21 23 
+            isCity=false
+            numAdj=3
+            numCells=3
+            player=0
+            x=0.35714287
+            y=0.1428572
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               63 65 69 
+            canPlaceStructure=true
+            cells=int 3
+               20 21 22 
+            isCity=false
+            numAdj=3
+            numCells=3
+            player=0
+            x=0.42857146
+            y=0.1428572
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               64 61 72 
+            canPlaceStructure=true
+            cells=int 3
+               20 22 24 
+            isCity=false
+            numAdj=3
+            numCells=3
+            player=0
+            x=0.46428573
+            y=0.21428578
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               67 63 74 
+            canPlaceStructure=true
+            cells=int 3
+               21 23 0 
+            isCity=false
+            numAdj=3
+            numCells=2
+            player=0
+            x=0.3214286
+            y=0.07142863
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               66 68 0 
+            canPlaceStructure=true
+            cells=int 3
+               21 0 0 
+            isCity=false
+            numAdj=2
+            numCells=1
+            player=0
+            x=0.35714287
+            y=5.2154064E-8
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               67 69 0 
+            canPlaceStructure=true
+            cells=int 3
+               21 0 0 
+            isCity=false
+            numAdj=2
+            numCells=1
+            player=0
+            x=0.42857146
+            y=5.2154064E-8
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               68 64 70 
+            canPlaceStructure=true
+            cells=int 3
+               21 22 0 
+            isCity=false
+            numAdj=3
+            numCells=2
+            player=0
+            x=0.46428573
+            y=0.07142863
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               69 71 0 
+            canPlaceStructure=true
+            cells=int 3
+               22 0 0 
+            isCity=false
+            numAdj=2
+            numCells=1
+            player=0
+            x=0.53571427
+            y=0.07142862
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               70 72 76 
+            canPlaceStructure=true
+            cells=int 3
+               22 25 0 
+            isCity=false
+            numAdj=3
+            numCells=2
+            player=0
+            x=0.5714286
+            y=0.1428572
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               71 65 10 
+            canPlaceStructure=true
+            cells=int 3
+               22 24 25 
+            isCity=false
+            numAdj=3
+            numCells=3
+            player=0
+            x=0.53571427
+            y=0.21428576
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               74 75 77 
+            canPlaceStructure=true
+            cells=int 3
+               23 27 0 
+            isCity=false
+            numAdj=3
+            numCells=2
+            player=0
+            x=0.21428573
+            y=0.1428572
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               73 66 0 
+            canPlaceStructure=true
+            cells=int 3
+               23 0 0 
+            isCity=false
+            numAdj=2
+            numCells=1
+            player=0
+            x=0.25
+            y=0.07142862
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               62 73 39 
+            canPlaceStructure=true
+            cells=int 3
+               23 26 27 
+            isCity=false
+            numAdj=3
+            numCells=3
+            player=0
+            x=0.25
+            y=0.21428576
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               71 14 0 
+            canPlaceStructure=true
+            cells=int 3
+               25 0 0 
+            isCity=false
+            numAdj=2
+            numCells=1
+            player=0
+            x=0.64285713
+            y=0.14285722
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               43 73 0 
+            canPlaceStructure=true
+            cells=int 3
+               27 0 0 
+            isCity=false
+            numAdj=2
+            numCells=1
+            player=0
+            x=0.14285716
+            y=0.14285722
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               27 79 81 
+            canPlaceStructure=true
+            cells=int 3
+               28 29 33 
+            isCity=false
+            numAdj=3
+            numCells=3
+            player=0
+            x=0.42857146
+            y=0.7142858
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               78 53 80 
+            canPlaceStructure=true
+            cells=int 3
+               28 29 35 
+            isCity=false
+            numAdj=3
+            numCells=3
+            player=0
+            x=0.35714287
+            y=0.7142858
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               79 83 92 
+            canPlaceStructure=true
+            cells=int 3
+               29 32 35 
+            isCity=false
+            numAdj=3
+            numCells=3
+            player=0
+            x=0.3214286
+            y=0.7857143
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               78 82 88 
+            canPlaceStructure=true
+            cells=int 3
+               29 31 33 
+            isCity=false
+            numAdj=3
+            numCells=3
+            player=0
+            x=0.46428573
+            y=0.7857143
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               81 83 85 
+            canPlaceStructure=true
+            cells=int 3
+               29 30 31 
+            isCity=false
+            numAdj=3
+            numCells=3
+            player=0
+            x=0.42857146
+            y=0.8571429
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               82 80 84 
+            canPlaceStructure=true
+            cells=int 3
+               29 30 32 
+            isCity=false
+            numAdj=3
+            numCells=3
+            player=0
+            x=0.35714287
+            y=0.8571429
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               83 87 93 
+            canPlaceStructure=true
+            cells=int 3
+               30 32 0 
+            isCity=false
+            numAdj=3
+            numCells=2
+            player=0
+            x=0.3214286
+            y=0.92857146
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               82 86 90 
+            canPlaceStructure=true
+            cells=int 3
+               30 31 0 
+            isCity=false
+            numAdj=3
+            numCells=2
+            player=0
+            x=0.46428573
+            y=0.92857146
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               85 87 0 
+            canPlaceStructure=true
+            cells=int 3
+               30 0 0 
+            isCity=false
+            numAdj=2
+            numCells=1
+            player=0
+            x=0.42857146
+            y=1.0
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               86 84 0 
+            canPlaceStructure=true
+            cells=int 3
+               30 0 0 
+            isCity=false
+            numAdj=2
+            numCells=1
+            player=0
+            x=0.35714287
+            y=1.0
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               81 89 29 
+            canPlaceStructure=true
+            cells=int 3
+               31 33 34 
+            isCity=false
+            numAdj=3
+            numCells=3
+            player=0
+            x=0.53571427
+            y=0.7857143
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               88 90 94 
+            canPlaceStructure=true
+            cells=int 3
+               31 34 0 
+            isCity=false
+            numAdj=3
+            numCells=2
+            player=0
+            x=0.5714286
+            y=0.8571429
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               89 85 0 
+            canPlaceStructure=true
+            cells=int 3
+               31 0 0 
+            isCity=false
+            numAdj=2
+            numCells=1
+            player=0
+            x=0.53571427
+            y=0.9285715
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               92 93 95 
+            canPlaceStructure=true
+            cells=int 3
+               32 36 0 
+            isCity=false
+            numAdj=3
+            numCells=2
+            player=0
+            x=0.21428573
+            y=0.8571429
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               91 80 55 
+            canPlaceStructure=true
+            cells=int 3
+               32 35 36 
+            isCity=false
+            numAdj=3
+            numCells=3
+            player=0
+            x=0.25
+            y=0.7857143
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               84 91 0 
+            canPlaceStructure=true
+            cells=int 3
+               32 0 0 
+            isCity=false
+            numAdj=2
+            numCells=1
+            player=0
+            x=0.25
+            y=0.9285715
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               32 89 0 
+            canPlaceStructure=true
+            cells=int 3
+               34 0 0 
+            isCity=false
+            numAdj=2
+            numCells=1
+            player=0
+            x=0.64285713
+            y=0.857143
+         }
+      }
+      cc.game.soc.core.SOCVertex {
+            adjacent=int 3
+               91 58 0 
+            canPlaceStructure=true
+            cells=int 3
+               36 0 0 
+            isCity=false
+            numAdj=2
+            numCells=1
+            player=0
+            x=0.14285716
+            y=0.857143
+         }
+      }
+   }
+}
+mCurrentPlayer=1
+mDeck=int 5
+   2 5 20 4 48 
+mDie1=6
+mDie2=5
+mLargestArmyPlayer=-1
+mLongestRoadPlayer=-1
+mNumPlayers=4
+mPlayers=cc.game.soc.core.SOCPlayer 8
+   cc.game.soc.ai.AIPlayer {
+   cards=java.util.Vector {
+      cc.game.soc.core.DevelopmentCard {
+            flag=4
+            type=Soldier
+         }
+      }
+   }
+   numCardsToSurrender=0
+   playerNum=1
+   points=2
+   resources=int 5
+      0 0 0 0 0 
+   roadLength=2
+   }
+   cc.game.soc.ai.AIPlayer {
+   cards=java.util.Vector {
+      cc.game.soc.core.DevelopmentCard {
+            flag=4
+            type=Soldier
+         }
+      }
+   }
+   numCardsToSurrender=0
+   playerNum=2
+   points=2
+   resources=int 5
+      0 0 0 0 0 
+   roadLength=3
+   }
+   cc.game.soc.ai.AIPlayer {
+   cards=java.util.Vector {
+   }
+   numCardsToSurrender=0
+   playerNum=3
+   points=3
+   resources=int 5
+      0 0 0 0 0 
+   roadLength=3
+   }
+   cc.game.soc.ai.AIPlayer {
+   cards=java.util.Vector {
+   }
+   numCardsToSurrender=0
+   playerNum=4
+   points=2
+   resources=int 5
+      0 0 3 0 1 
+   roadLength=4
+   }
+   null
+   null
+   null
+   null
+mRules=cc.game.soc.core.SOCRules {
+   deckOccurancesMonopoly=2
+   deckOccurancesRoadBuilding=20
+   deckOccurancesSoldier=50
+   deckOccurancesVictory=4
+   deckOccurancesYearOfPlenty=5
+   enableCitiesAndKnightsExpansion=false
+   enableRoadBlock=false
+   enableSeafarersExpansion=false
+   enableTradersAndBarbairiansExpansion=false
+   minHandSizeForGiveup=7
+   minLargestArmySize=3
+   minLongestLoadLen=5
+   numResourcesForCity=2
+   numResourcesForSettlement=1
+   pointsDiscovery=2
+   pointsForWinGame=10
+   pointsLargestArmy=2
+   pointsLongestRoad=2
+   pointsPerCity=2
+   pointsPerSettlement=1
+}
+mStateStack=java.util.ArrayList {
+   cc.game.soc.core.SOC.StackItem {
+         state=INIT_PLAYER_TURN
+      }
+   }
+   cc.game.soc.core.SOC.StackItem {
+         state=ROLL_DICE
+      }
+   }
+}

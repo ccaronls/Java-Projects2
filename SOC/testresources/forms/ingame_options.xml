@@ -1,0 +1,9 @@
+<form>
+	<label txt="OPTIONS"/>
+	<rowList id="LIST">
+		<sumit id="OP"/>
+	</rowList>
+	<textInput var="chat_text" minChars="1" maxChars="128" action="chat ${chat_text}"/>
+	<action txt="LEAVE" action="leave_confirm"/>
+
+</form>

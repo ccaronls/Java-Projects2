@@ -1,0 +1,7 @@
+<form>
+	<label txt="OPTIONS" hjust="CENTER"/>
+	<div/>
+	<submit txt="View Game" action="viewgames"/>
+	<submit txt="Create Game" action="creategame" id = "BUT_CG"/>
+	<submit 
+</form>

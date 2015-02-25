@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
+<log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/" debug="false">
+
+  <appender name="Console" class="org.apache.log4j.ConsoleAppender">
+    <param name="Threshold"   value="10"/>
+    <layout class="org.apache.log4j.PatternLayout">
+    <!--
+      <param name="ConversionPattern" value="%1p %c:%L\n     %m%n"/>
+      <param name="ConversionPattern" value="%c:%L\n     %m%n"/>
+      -->
+      <param name="ConversionPattern" value="%5L:%-10c{1} %m%n"/>
+    </layout>
+  </appender>
+<!-- 
+  <appender name="FILE" class="org.apache.log4j.RollingFileAppender">
+    <param name="Threshold"   value="10"/>
+    <param name="Append"      value="false"/>
+    <param name="MaxFileSize" value="500MB"/>
+    <param name="MaxBackupIndex" value = "100" />
+    <param name="File"        value="soc.log"/>
+    <layout class="org.apache.log4j.PatternLayout">
+      <param name="ConversionPattern" value="%d{DATE} %5p %c{1}:%L - %m%n"/>
+    </layout>
+  </appender>
+ -->
+ 
+  <root>
+    <priority value="debug"/>
+    <appender-ref ref="Console"/>
+  </root>
+<!-- 
+  <category name="cc.game.soc.core" additivity="false">
+    <priority value="DEBUG"/>
+    <appender-ref ref="Console"/>
+  </category>
+
+  <category name="cc.game.soc.net" additivity="false">
+    <priority value="DEBUG"/>
+    <appender-ref ref="Console"/>
+  </category>
+
+  <category name="cc.game.soc.swing" additivity="true">
+    <priority value="INFO"/>
+    <appender-ref ref="Console"/>
+  </category>
+ -->
+</log4j:configuration>

@@ -1,0 +1,425 @@
+	/*
+	// TODO: This has the logic but needs to be converted into a state machine so we can drive without blocking the thread
+	public static void processProgressCard(SOC soc, Board b, ProgressCardType type) {
+		
+		switch (type) {
+			case Bishop: {
+				Tile robberTile = soc.getCurPlayer().chooseTile(soc, computeRobberOptions(soc, b), TileChoice.ROBBER);
+				if (robberTile != null) {
+					b.setRobberTile(robberTile);
+				}
+				break;
+			}
+			case Crane: {
+				ArrayList<MoveType> options = new ArrayList<MoveType>();
+				DevelopmentArea areaSaved = null;
+				for (DevelopmentArea area : DevelopmentArea.values()) {
+					int devel = soc.getCurPlayer().getCityDevelopment(area);
+					int numCommodity = soc.getCurPlayer().getCardCount(area.commodity);
+					if (numCommodity >= devel) {
+						options.add(area.move);
+						areaSaved = area;
+					}
+				}
+				if (options.size() == 1) {
+					// just apply it automatically
+					soc.processCityImprovement(soc.getCurPlayer(), areaSaved);
+				} else if (options.size() > 1) {
+					soc.mOptions = options;
+					soc.pushStateFront(State.PLAYER_TURN);
+				}
+				break;
+			}
+			case Deserter: {
+				List<Integer> [] playerKnight = new ArrayList[soc.getNumPlayers()+1];
+				List<Integer> players = new ArrayList<Integer>();
+				for (int i=1; i<=soc.getNumPlayers(); i++) {
+					if (i == soc.getCurPlayerNum())
+						continue;
+					playerKnight[i] = b.getVertsOfType(i, VertexType.BASIC_KNIGHT_ACTIVE, VertexType.BASIC_KNIGHT_INACTIVE, VertexType.STRONG_KNIGHT_ACTIVE, VertexType.STRONG_KNIGHT_INACTIVE, VertexType.MIGHTY_KNIGHT_ACTIVE, VertexType.MIGHTY_KNIGHT_INACTIVE);
+					if (playerKnight[i].size() > 0) {
+						players.add(i);
+					}
+				}
+				if (players.size() == 1) {
+					// automatically pick
+					int player = players.get(0);
+					Vertex v = soc.getPlayerByPlayerNum(player).chooseVertex(soc, playerKnight[player], VertexChoice.KNIGHT_DESERTER);
+					if (v != null) {
+						v.setPlayer(soc.getCurPlayerNum());
+					}
+				}
+				break;
+			}
+			case Diplomat: {
+				List<Integer> allOpenRoutes = new ArrayList<Integer>();
+				for (int i=1; i<=soc.getNumPlayers(); i++) {
+					allOpenRoutes.addAll(computeOpenRoutes(soc.getCurPlayerNum(), b, true, true));
+				}
+				if (allOpenRoutes.size() > 0) {
+					Route r = soc.getCurPlayer().chooseRoute(soc, allOpenRoutes, RouteChoice.ROUTE_DIPLOMAT);
+					if (r != null) {
+						if (r.getPlayer() == soc.getCurPlayerNum()) {
+							if (r.isShip()) {
+								r.reset();
+								soc.getCurPlayer().chooseRoute(soc, computeShipOptions(soc.getCurPlayerNum(), b), RouteChoice.SHIP);
+							} else {
+								r.reset();
+								soc.getCurPlayer().chooseRoute(soc, computeRoadOptions(soc.getCurPlayerNum(), b), RouteChoice.ROAD);
+							}
+						} else {
+							r.reset();
+						}
+					}
+				}
+				break;
+			}
+			case Engineer: {
+				List<Integer> cities = SOC.computeCityWallOptions(soc.getCurPlayerNum(), b);
+				if (cities.size() > 0) {
+					Vertex v = soc.getCurPlayer().chooseVertex(soc, cities, VertexChoice.CITY_WALL);
+					if (v != null) {
+						v.setType(VertexType.WALLED_CITY);
+					}
+				}
+				break;
+			}
+			case Harbor: {
+				List<Card> myResources = soc.getCurPlayer().getCards(CardType.Resource);
+				if (myResources.size() > 0) {
+    				List<Player> playerOptions = new ArrayList<Player>();
+    				for (Player p : soc.getPlayers()) {
+    					if (p == soc.getCurPlayer())
+    						continue;
+    					if (p.getCardCount(CardType.Commodity) > 0) {
+    						playerOptions.add(p);
+    					}
+    				}
+    				if (playerOptions.size() > 0) {
+    					Player player = soc.getCurPlayer().choosePlayer(soc, playerOptions, PlayerChoice.PLAYER_TO_TAKE_CARD_FROM);
+    					if (player != null) {
+    						List<Card> cards = player.getCards(CardType.Commodity);
+    						Card card = player.chooseCard(soc, cards, CardChoice.GIVEUP_CARD);
+    						if (card != null) {
+    							Card resource = soc.getCurPlayer().chooseCard(soc, myResources, CardChoice.GIVEUP_CARD);
+    							if (resource != null) {
+    								player.removeCard(card);
+    								player.addCard(resource);
+    								soc.getCurPlayer().removeCard(resource);
+    								soc.getCurPlayer().addCard(card);
+    								// whew!
+    							}
+    						}
+    					}
+    				}
+				}
+				break;
+			}
+			case Intrigue: {
+				// displace an opponents knight that is on your road without moving your own knight
+				List<Integer> verts = new ArrayList<Integer>();
+				for (int vIndex=0; vIndex<b.getNumVerts(); vIndex++) {
+					Vertex v = b.getVertex(vIndex);
+					if (v.isKnight() && v.getPlayer() != soc.getCurPlayerNum() && b.isVertexAdjacentToPlayerRoute(vIndex, soc.getCurPlayerNum())) {
+						verts.add(vIndex);
+					}
+				}
+				if (verts.size() > 0) {
+					soc.printinfo("Player " + soc.getCurPlayer().getName() + " choose opponent knight to displace");
+					Vertex v = soc.getCurPlayer().chooseVertex(soc, verts, VertexChoice.OPPONENT_KNIGHT_TO_DISPLACE);
+					if (v != null) {
+						List<Integer> verts2 = computeDisplacedKnightVertexOptions(b.getVertexIndex(v), b);
+						if (verts2.size() > 0) {
+							Vertex v2 = soc.getPlayerByPlayerNum(v.getPlayer()).chooseVertex(soc, verts2, VertexChoice.KNIGHT_DISPLACED);
+							if (v2 != null) {
+								v2.setPlayer(v.getPlayer());
+								v2.setType(v.getType());
+							}
+						}
+						v.reset();//.setType(VertexType.OPEN);
+					}
+				}
+				break;
+			}
+			case Inventor: {
+				// switch tile tokens of users choice
+				int [] values = { 3,4,5,9,10,11 };
+				List<Integer> tiles = new ArrayList<Integer>();
+				for (int tIndex=0; tIndex<b.getNumTiles(); tIndex++) {
+					Tile t = b.getTile(tIndex);
+					if (Arrays.binarySearch(values, t.getDieNum()) >= 0) {
+						tiles.add(tIndex);
+					}
+				}
+				if (tiles.size() == 2) {
+					// just switch em
+					Tile t0 = b.getTile(tiles.get(0));
+					Tile t1 = b.getTile(tiles.get(1));
+					int t = t0.getDieNum();
+					t0.setDieNum(t1.getDieNum());
+					t1.setDieNum(t);
+				} else if (tiles.size() > 2) {
+					Tile t0 = soc.getCurPlayer().chooseTile(soc, tiles, TileChoice.INVENTOR);
+					if (t0 != null) {
+						tiles.remove(b.getTileIndex(t0));
+						Tile t1 = soc.getCurPlayer().chooseTile(soc, tiles, TileChoice.INVENTOR);
+						if (t1 != null) {
+							int t = t0.getDieNum();
+							t0.setDieNum(t1.getDieNum());
+							t1.setDieNum(t);
+						}
+					}
+				}
+				break;
+			}
+			case Irrigation: {
+				// player gets 2 wheat for each structure on a field
+				int numGained = 0;
+				for (Tile t : b.getTiles()) {
+					if (t.getType() != TileType.FIELDS)
+						continue;
+					for (Vertex v : b.getTileVertices(t)) {
+						if (v.isStructure() && v.getPlayer() == soc.getCurPlayerNum()) {
+							soc.getCurPlayer().incrementResource(ResourceType.Wheat, 2);
+							numGained += 2;
+						}
+					}
+				}
+				if (numGained > 0) {
+					soc.onDistributeResources(soc.getCurPlayer(), ResourceType.Wheat, numGained);
+				}
+				
+				break;
+			}
+			case MasterMerchant: {
+				// take 2 resource or commodity cards from another player who has more victory pts than you
+				List<Player> players = new ArrayList<Player>();
+				for (Player p : soc.getPlayers()) {
+					if (p == soc.getCurPlayer())
+						continue;
+					if (p.getPoints() > soc.getCurPlayer().getPoints()) {
+						players.add(p);
+					}
+				}
+				Player victim = null;
+				if (players.size() == 1) {
+					victim = players.get(0);
+				} else if (players.size() > 1) {
+					victim = soc.getCurPlayer().choosePlayer(soc, players, PlayerChoice.PLAYER_TO_TAKE_CARD_FROM);
+				}
+				if (victim != null) {
+    				List<Card> cards = new ArrayList<Card>();
+    				cards.addAll(victim.getCards(CardType.Resource));
+    				cards.addAll(victim.getCards(CardType.Commodity));
+    				for (int i=0; i<2; i++) {
+    					Card card = soc.getCurPlayer().chooseCard(soc, cards, CardChoice.OPPONENT_CARD);
+    					if (card != null) {
+    						soc.getCurPlayer().addCard(card);
+    						victim.removeCard(card);
+    					}
+    				}
+				}				
+				break;
+			}
+			case Medicine: {
+				Player p = soc.getCurPlayer();
+				if (p.getCardCount(ResourceType.Ore) >= 2 && p.getCardCount(ResourceType.Wheat) >= 1) {
+					List<Integer> settlements = b.getSettlementsForPlayer(p.getPlayerNum());
+					Vertex settlement = null;
+					if (settlements.size() == 1) {
+						settlement = b.getVertex(settlements.get(0));
+					} else if (settlements.size() > 1) {
+						settlement = p.chooseVertex(soc, settlements, VertexChoice.CITY);
+					}
+					
+					if (settlement != null) {
+						assert(settlement.getPlayer() == p.getPlayerNum());
+						assert(settlement.getType() == VertexType.SETTLEMENT);
+						settlement.setType(VertexType.CITY);
+						p.incrementResource(ResourceType.Ore, -2);
+						p.incrementResource(ResourceType.Wheat, -1);
+					}
+				}
+				break;
+			}
+			case Merchant: {
+				Tile merchantTile = soc.getCurPlayer().chooseTile(soc, computeMerchantOptions(soc, b), TileChoice.MERCHANT);
+				if (merchantTile != null) {
+					b.setMerchant(b.getTileIndex(merchantTile), soc.getCurPlayerNum());
+				}
+				break;
+			}
+			case MerchantFleet: {
+				// choose resource for 2:1 trade for 1 turn
+				// TODO
+				break;
+			}
+			case Mining:{
+				// player gets 2 ore for each structure on a field
+				int numGained = 0;
+				for (Tile t : b.getTiles()) {
+					if (t.getType() != TileType.MOUNTAINS)
+						continue;
+					for (Vertex v : b.getTileVertices(t)) {
+						if (v.isStructure() && v.getPlayer() == soc.getCurPlayerNum()) {
+							soc.getCurPlayer().incrementResource(ResourceType.Ore, 2);
+							numGained += 2;
+						}
+					}
+				}
+				if (numGained > 0) {
+					soc.onDistributeResources(soc.getCurPlayer(), ResourceType.Ore, numGained);
+				}
+				break;
+			}
+			case Constitution:
+			case Printer:
+				// these are played automatically 
+				throw new RuntimeException("Should not happen");
+
+			case ResourceMonopoly: {
+				int total = 0;
+				ResourceType resource = soc.getCurPlayer().chooseEnum(soc, ResourceType.values(), EnumChoice.RESOURCE);
+				if (resource != null) {
+					for (Player p : soc.getPlayers()) {
+						if (p == soc.getCurPlayer())
+							continue;
+						
+						int num = p.getCardCount(resource);
+						if (num > 0) {
+							if (num > 2) {
+								num = 2;
+							}
+							p.removeCards(resource, num);
+							soc.getCurPlayer().addCards(resource, num);
+							soc.printinfo("Player " + p.getName() + " loses " + num + " X " + resource);
+							soc.onDistributeResources(p, resource, -num);
+							total += num;
+						}
+					}
+				}
+				if (total > 0) {
+					soc.printinfo("Player " + soc.getCurPlayer().getName() + " gains " + total + " X " + resource);
+					soc.onDistributeResources(soc.getCurPlayer(), resource, total);
+				}
+				break;
+			}
+			case RoadBuilding:
+				// TODO
+				break;
+			case Saboteur: {
+				for (Player p : soc.getPlayers()) {
+					if (p == soc.getCurPlayer())
+						continue;
+					if (p.getPoints() < soc.getCurPlayer().getPoints())
+						continue;
+					List<Card> cards = p.getUnusedCards();
+					int num = (cards.size()+1) / 2;
+					for (int i=0; i<num; i++) {
+						
+						Card card = p.chooseCard(soc, cards, CardChoice.GIVEUP_CARD);
+						if (card != null) {
+							cards.remove(card);
+							p.removeCard(card);
+							soc.putCardBackInDeck(card);
+						}
+					}
+				}
+				break;
+			}
+			case Smith: {
+				List<Integer> knights = null;
+				if (soc.getCurPlayer().hasFortress()) {
+					knights = b.getVertsOfType(soc.getCurPlayerNum(), VertexType.BASIC_KNIGHT_ACTIVE, VertexType.BASIC_KNIGHT_INACTIVE, VertexType.STRONG_KNIGHT_ACTIVE, VertexType.STRONG_KNIGHT_INACTIVE);
+				} else {
+					knights = b.getVertsOfType(soc.getCurPlayerNum(), VertexType.BASIC_KNIGHT_ACTIVE, VertexType.BASIC_KNIGHT_INACTIVE);
+				}
+				if(knights.size() > 2) {
+					for (int i=0; i<2; i++) {
+						Vertex knight = soc.getCurPlayer().chooseVertex(soc, knights, VertexChoice.KNIGHT_TO_PROMOTE);
+						if (knight != null) {
+							knight.promoteKnight();knights.remove(knight);
+						}
+					}
+				} else {
+					for (int vIndex : knights) {
+						b.getVertex(vIndex).promoteKnight();
+					}
+				}
+				break;
+			}
+			case Spy: {
+				List<Player> players = new ArrayList<Player>();
+				for (Player p : soc.getPlayers()) {
+					int num = p.getUnusedCardCount();
+					if (num > 0) {
+						players.add(p);
+					}
+				}
+				Player giver = null;
+				if (players.size() == 1) {
+					giver = players.get(0);
+				} else if (players.size() > 1) {
+					giver = soc.getCurPlayer().choosePlayer(soc, players, PlayerChoice.PLAYER_TO_TAKE_CARD_FROM);
+				}
+				if (giver != null) {
+					List<Card> cards = giver.getCards(CardType.Progress);
+					if (cards.size() > 0) {
+						Card card = soc.getCurPlayer().chooseCard(soc, cards, CardChoice.OPPONENT_CARD);
+						if (card != null) {
+							soc.getCurPlayer().addCard(card);
+							giver.removeCard(card);
+							soc.onTakeOpponentCard(soc.getCurPlayer(), giver, card);
+						}
+					}
+				}
+				break;
+			}
+			case TradeMonopoly: {
+				CommodityType commodity = soc.getCurPlayer().chooseEnum(soc, CommodityType.values(), EnumChoice.COMMODITY);
+				if (commodity != null) {
+					for (Player p : soc.getPlayers()) {
+						if (p != soc.getCurPlayer()) {
+							int num = p.getCardCount(commodity);
+							if (num > 0) {
+								Card card = p.removeCard(commodity);
+								soc.getCurPlayer().addCard(card);
+								soc.onTakeOpponentCard(soc.getCurPlayer(), p, card);
+							}
+						}
+					}
+				}
+				break;
+			}
+			case Warlord: {
+				List<Integer> knights = b.getVertsOfType(soc.getCurPlayerNum(), VertexType.BASIC_KNIGHT_INACTIVE, VertexType.STRONG_KNIGHT_INACTIVE, VertexType.MIGHTY_KNIGHT_INACTIVE);
+				for (int vIndex : knights) {
+					b.getVertex(vIndex).activateKnight();
+				}
+				break;
+			}
+			case Wedding: {
+				// richer players gift current with 2 cards
+				for (Player p : soc.getPlayers()) {
+					if (p == soc.getCurPlayer())
+						continue;
+					if (p.getPoints() > soc.getCurPlayer().getPoints()) {
+						int numUnused = p.getUnusedCardCount();
+						for (int i=0; i<numUnused; i++) {
+    						Card card = p.chooseCard(soc, p.getUnusedCards(), CardChoice.GIVEUP_CARD);
+    						if (card != null) {
+    							p.removeCard(card);
+    							soc.getCurPlayer().addCard(card);
+    							soc.onTakeOpponentCard(soc.getCurPlayer(), p, card);
+    						}
+						}
+					}
+				}
+				break;
+			}
+			default:
+				throw new RuntimeException("Unhandled case '" + type + "'");
+			
+		}
+	}
+*/

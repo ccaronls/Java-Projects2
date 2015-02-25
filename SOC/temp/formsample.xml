@@ -1,0 +1,15 @@
+<SOCForm>
+	<Container type="list" orientation="vertical">
+		<Button id="A" type="toggle" text="null" enabled="false" />
+		<Button id="B" type="toggle" text="null" enabled="false" />
+		<Button id="C" type="choice" text="null">
+			<ButtonOption text="one" />
+			<ButtonOption text="two" />
+			<Container type="list" orientation="horizontal">
+				<Label text="Name" />
+				<TextInput id="D" minChars="4" maxChars="32" text="null" />
+			</Container>
+			<Button id="E" type="submit" text="null" />
+		</Button>
+	</Container>
+</SOCForm>

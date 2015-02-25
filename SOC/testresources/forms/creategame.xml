@@ -1,0 +1,37 @@
+<form type="POPUP">
+  <row>
+     <label txt="Create New Multiplayer Game"/>
+  </row>
+  <row>
+    <label txt="board"/>
+    <choicelist var="board_name">
+      <choice txt="current"/>
+      <choice txt="Default"/>
+      <choice txt="from file"/>
+    </choicelist>
+  </row>
+  <row>
+    <label txt="num players"/>
+    <choicelist var="max_players">
+      <choice txt="2"/>
+      <choice txt="3"/>
+      <choice txt="4"/>
+      <choice txt="5"/>
+      <choice txt="6"/>
+    </choicelist>
+  </row>
+  <row>
+    <label txt="min rank"/>
+    <choicelist var="min_rank">
+      <choice txt="*" value="1"/>
+      <choice txt="**" value="2"/>
+      <choice txt="***" value="3"/>
+      <choice txt="****" value="4"/>
+      <choice txt="*****" value="5"/>
+    </choicelist>
+  </row>
+  <row>
+    <submit txt="back" w="2" action="viewgames"/>
+    <submit txt="create" action="creategame ${max_players} ${min_rank} ${board_name}"/>
+  </row>
+</form>

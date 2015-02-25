@@ -1,0 +1,26 @@
+<users>
+  <User>
+    <id>0</id>
+    <userName>admin</userName>
+    <passWord>admin</passWord>
+  </User>
+  <User>
+    <id>1</id>
+    <userName>nopassword</userName>
+  </User>
+  <User>
+    <id>2</id>
+    <userName>inactive</userName>
+    <access>DISABLED</access>
+  </User>
+  <User>
+    <id>3</id>
+    <userName>basic</userName>
+    <access>BASIC</access>
+  </User>
+  <User>
+    <id>4</id>
+    <userName>manager</userName>
+    <access>MANAGER</access>
+  </User>
+</users>

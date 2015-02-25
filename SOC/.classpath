@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry excluding="cc/game/soc/service/|cc/game/soc/net/|cc/game/soc/netx/|cc/game/soc/nety/|cc/game/soc/model/|cc/game/soc/netz/|cc/game/soc/rmi/|cc/game/soc/core/cak/|cc/game/soc/ai/" kind="src" path="src"/>
+	<classpathentry excluding="cc/game/soc/base/|cc/game/soc/model/|cc/game/soc/service/" kind="src" path="test"/>
+	<classpathentry kind="src" path="images"/>
+	<classpathentry exported="true" kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry exported="true" kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/3"/>
+	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/MyLIbrary"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/ExternalLibs"/>
+	<classpathentry kind="lib" path="lib/log4j-1.2.17.jar"/>
+	<classpathentry kind="output" path="antbuild"/>
+</classpath>
