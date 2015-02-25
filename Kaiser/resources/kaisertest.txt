@@ -1,0 +1,761 @@
+cards=cc.game.kaiser.core.Card 32
+   cc.game.kaiser.core.Card {
+   rank=TEN
+   suit=HEARTS
+   }
+   cc.game.kaiser.core.Card {
+   rank=SEVEN
+   suit=DIAMONDS
+   }
+   cc.game.kaiser.core.Card {
+   rank=NINE
+   suit=CLUBS
+   }
+   cc.game.kaiser.core.Card {
+   rank=KING
+   suit=CLUBS
+   }
+   cc.game.kaiser.core.Card {
+   rank=KING
+   suit=SPADES
+   }
+   cc.game.kaiser.core.Card {
+   rank=JACK
+   suit=HEARTS
+   }
+   cc.game.kaiser.core.Card {
+   rank=EIGHT
+   suit=DIAMONDS
+   }
+   cc.game.kaiser.core.Card {
+   rank=ACE
+   suit=SPADES
+   }
+   cc.game.kaiser.core.Card {
+   rank=SEVEN
+   suit=SPADES
+   }
+   cc.game.kaiser.core.Card {
+   rank=JACK
+   suit=CLUBS
+   }
+   cc.game.kaiser.core.Card {
+   rank=EIGHT
+   suit=CLUBS
+   }
+   cc.game.kaiser.core.Card {
+   rank=JACK
+   suit=SPADES
+   }
+   cc.game.kaiser.core.Card {
+   rank=TEN
+   suit=CLUBS
+   }
+   cc.game.kaiser.core.Card {
+   rank=QUEEN
+   suit=DIAMONDS
+   }
+   cc.game.kaiser.core.Card {
+   rank=NINE
+   suit=DIAMONDS
+   }
+   cc.game.kaiser.core.Card {
+   rank=TEN
+   suit=SPADES
+   }
+   cc.game.kaiser.core.Card {
+   rank=ACE
+   suit=DIAMONDS
+   }
+   cc.game.kaiser.core.Card {
+   rank=QUEEN
+   suit=CLUBS
+   }
+   cc.game.kaiser.core.Card {
+   rank=KING
+   suit=HEARTS
+   }
+   cc.game.kaiser.core.Card {
+   rank=EIGHT
+   suit=HEARTS
+   }
+   cc.game.kaiser.core.Card {
+   rank=EIGHT
+   suit=SPADES
+   }
+   cc.game.kaiser.core.Card {
+   rank=NINE
+   suit=SPADES
+   }
+   cc.game.kaiser.core.Card {
+   rank=TEN
+   suit=DIAMONDS
+   }
+   cc.game.kaiser.core.Card {
+   rank=ACE
+   suit=HEARTS
+   }
+   cc.game.kaiser.core.Card {
+   rank=THREE
+   suit=CLUBS
+   }
+   cc.game.kaiser.core.Card {
+   rank=ACE
+   suit=CLUBS
+   }
+   cc.game.kaiser.core.Card {
+   rank=FIVE
+   suit=HEARTS
+   }
+   cc.game.kaiser.core.Card {
+   rank=NINE
+   suit=HEARTS
+   }
+   cc.game.kaiser.core.Card {
+   rank=JACK
+   suit=DIAMONDS
+   }
+   cc.game.kaiser.core.Card {
+   rank=QUEEN
+   suit=SPADES
+   }
+   cc.game.kaiser.core.Card {
+   rank=KING
+   suit=DIAMONDS
+   }
+   cc.game.kaiser.core.Card {
+   rank=QUEEN
+   suit=HEARTS
+   }
+curBidTeam=-1
+curPlayer=1
+dealer=0
+numCards=32
+numRounds=6
+numTricks=8
+players=cc.game.kaiser.core.Player 4
+   cc.game.kaiser.ai.PlayerBot {
+   mHand=cc.game.kaiser.core.Hand {
+      mCards=cc.game.kaiser.core.Card 8
+         cc.game.kaiser.core.Card {
+         rank=THREE
+         suit=CLUBS
+         }
+         cc.game.kaiser.core.Card {
+         rank=THREE
+         suit=CLUBS
+         }
+         cc.game.kaiser.core.Card {
+         rank=THREE
+         suit=CLUBS
+         }
+         cc.game.kaiser.core.Card {
+         rank=THREE
+         suit=CLUBS
+         }
+         cc.game.kaiser.core.Card {
+         rank=THREE
+         suit=CLUBS
+         }
+         cc.game.kaiser.core.Card {
+         rank=THREE
+         suit=CLUBS
+         }
+         cc.game.kaiser.core.Card {
+         rank=THREE
+         suit=CLUBS
+         }
+         cc.game.kaiser.core.Card {
+         rank=THREE
+         suit=CLUBS
+         }
+      mNumCards=0
+   }
+   mName="Joe Blow"
+   mNumTricks=2
+   mTeam=0
+   mTricks=cc.game.kaiser.core.Hand 8
+      cc.game.kaiser.core.Hand {
+      mCards=cc.game.kaiser.core.Card 8
+         cc.game.kaiser.core.Card {
+         rank=ACE
+         suit=DIAMONDS
+         }
+         cc.game.kaiser.core.Card {
+         rank=SEVEN
+         suit=DIAMONDS
+         }
+         cc.game.kaiser.core.Card {
+         rank=EIGHT
+         suit=DIAMONDS
+         }
+         cc.game.kaiser.core.Card {
+         rank=ACE
+         suit=SPADES
+         }
+         null
+         null
+         null
+         null
+      mNumCards=4
+      }
+      cc.game.kaiser.core.Hand {
+      mCards=cc.game.kaiser.core.Card 8
+         cc.game.kaiser.core.Card {
+         rank=KING
+         suit=SPADES
+         }
+         cc.game.kaiser.core.Card {
+         rank=NINE
+         suit=SPADES
+         }
+         cc.game.kaiser.core.Card {
+         rank=FIVE
+         suit=HEARTS
+         }
+         cc.game.kaiser.core.Card {
+         rank=TEN
+         suit=SPADES
+         }
+         null
+         null
+         null
+         null
+      mNumCards=4
+      }
+      cc.game.kaiser.core.Hand {
+      mCards=cc.game.kaiser.core.Card 8
+         cc.game.kaiser.core.Card {
+         rank=JACK
+         suit=CLUBS
+         }
+         cc.game.kaiser.core.Card {
+         rank=EIGHT
+         suit=CLUBS
+         }
+         cc.game.kaiser.core.Card {
+         rank=NINE
+         suit=CLUBS
+         }
+         cc.game.kaiser.core.Card {
+         rank=QUEEN
+         suit=DIAMONDS
+         }
+         null
+         null
+         null
+         null
+      mNumCards=4
+      }
+      cc.game.kaiser.core.Hand {
+      mCards=cc.game.kaiser.core.Card 8
+         cc.game.kaiser.core.Card {
+         rank=JACK
+         suit=DIAMONDS
+         }
+         cc.game.kaiser.core.Card {
+         rank=NINE
+         suit=SPADES
+         }
+         cc.game.kaiser.core.Card {
+         rank=QUEEN
+         suit=CLUBS
+         }
+         cc.game.kaiser.core.Card {
+         rank=TEN
+         suit=DIAMONDS
+         }
+         null
+         null
+         null
+         null
+      mNumCards=4
+      }
+      cc.game.kaiser.core.Hand {
+      mCards=cc.game.kaiser.core.Card 8
+         cc.game.kaiser.core.Card {
+         rank=EIGHT
+         suit=DIAMONDS
+         }
+         cc.game.kaiser.core.Card {
+         rank=NINE
+         suit=HEARTS
+         }
+         cc.game.kaiser.core.Card {
+         rank=QUEEN
+         suit=HEARTS
+         }
+         cc.game.kaiser.core.Card {
+         rank=JACK
+         suit=HEARTS
+         }
+         null
+         null
+         null
+         null
+      mNumCards=4
+      }
+      cc.game.kaiser.core.Hand {
+      mCards=cc.game.kaiser.core.Card 8
+         cc.game.kaiser.core.Card {
+         rank=JACK
+         suit=CLUBS
+         }
+         cc.game.kaiser.core.Card {
+         rank=JACK
+         suit=HEARTS
+         }
+         cc.game.kaiser.core.Card {
+         rank=JACK
+         suit=SPADES
+         }
+         cc.game.kaiser.core.Card {
+         rank=KING
+         suit=SPADES
+         }
+         null
+         null
+         null
+         null
+      mNumCards=4
+      }
+      cc.game.kaiser.core.Hand {
+      mCards=cc.game.kaiser.core.Card 8
+         cc.game.kaiser.core.Card {
+         rank=NINE
+         suit=CLUBS
+         }
+         cc.game.kaiser.core.Card {
+         rank=TEN
+         suit=SPADES
+         }
+         cc.game.kaiser.core.Card {
+         rank=QUEEN
+         suit=DIAMONDS
+         }
+         cc.game.kaiser.core.Card {
+         rank=QUEEN
+         suit=HEARTS
+         }
+         null
+         null
+         null
+         null
+      mNumCards=4
+      }
+      null
+   playerNum=0
+   }
+   cc.game.kaiser.ai.PlayerBot {
+   mHand=cc.game.kaiser.core.Hand {
+      mCards=cc.game.kaiser.core.Card 8
+         cc.game.kaiser.core.Card {
+         rank=JACK
+         suit=CLUBS
+         }
+         cc.game.kaiser.core.Card {
+         rank=JACK
+         suit=CLUBS
+         }
+         cc.game.kaiser.core.Card {
+         rank=JACK
+         suit=CLUBS
+         }
+         cc.game.kaiser.core.Card {
+         rank=JACK
+         suit=CLUBS
+         }
+         cc.game.kaiser.core.Card {
+         rank=JACK
+         suit=HEARTS
+         }
+         cc.game.kaiser.core.Card {
+         rank=JACK
+         suit=CLUBS
+         }
+         cc.game.kaiser.core.Card {
+         rank=NINE
+         suit=SPADES
+         }
+         cc.game.kaiser.core.Card {
+         rank=SEVEN
+         suit=DIAMONDS
+         }
+      mNumCards=0
+   }
+   mName="Pat Robertson"
+   mNumTricks=3
+   mTeam=1
+   mTricks=cc.game.kaiser.core.Hand 8
+      cc.game.kaiser.core.Hand {
+      mCards=cc.game.kaiser.core.Card 8
+         cc.game.kaiser.core.Card {
+         rank=TEN
+         suit=CLUBS
+         }
+         cc.game.kaiser.core.Card {
+         rank=QUEEN
+         suit=CLUBS
+         }
+         cc.game.kaiser.core.Card {
+         rank=NINE
+         suit=CLUBS
+         }
+         cc.game.kaiser.core.Card {
+         rank=QUEEN
+         suit=HEARTS
+         }
+         null
+         null
+         null
+         null
+      mNumCards=4
+      }
+      cc.game.kaiser.core.Hand {
+      mCards=cc.game.kaiser.core.Card 8
+         cc.game.kaiser.core.Card {
+         rank=EIGHT
+         suit=SPADES
+         }
+         cc.game.kaiser.core.Card {
+         rank=QUEEN
+         suit=SPADES
+         }
+         cc.game.kaiser.core.Card {
+         rank=NINE
+         suit=DIAMONDS
+         }
+         cc.game.kaiser.core.Card {
+         rank=JACK
+         suit=SPADES
+         }
+         null
+         null
+         null
+         null
+      mNumCards=4
+      }
+      cc.game.kaiser.core.Hand {
+      mCards=cc.game.kaiser.core.Card 8
+         cc.game.kaiser.core.Card {
+         rank=THREE
+         suit=CLUBS
+         }
+         cc.game.kaiser.core.Card {
+         rank=JACK
+         suit=CLUBS
+         }
+         cc.game.kaiser.core.Card {
+         rank=EIGHT
+         suit=CLUBS
+         }
+         cc.game.kaiser.core.Card {
+         rank=NINE
+         suit=HEARTS
+         }
+         null
+         null
+         null
+         null
+      mNumCards=4
+      }
+      null
+      null
+      null
+      null
+      null
+   playerNum=1
+   }
+   cc.game.kaiser.ai.PlayerBot {
+   mHand=cc.game.kaiser.core.Hand {
+      mCards=cc.game.kaiser.core.Card 8
+         cc.game.kaiser.core.Card {
+         rank=EIGHT
+         suit=CLUBS
+         }
+         cc.game.kaiser.core.Card {
+         rank=EIGHT
+         suit=CLUBS
+         }
+         cc.game.kaiser.core.Card {
+         rank=EIGHT
+         suit=CLUBS
+         }
+         cc.game.kaiser.core.Card {
+         rank=EIGHT
+         suit=CLUBS
+         }
+         cc.game.kaiser.core.Card {
+         rank=EIGHT
+         suit=CLUBS
+         }
+         cc.game.kaiser.core.Card {
+         rank=EIGHT
+         suit=CLUBS
+         }
+         cc.game.kaiser.core.Card {
+         rank=FIVE
+         suit=HEARTS
+         }
+         cc.game.kaiser.core.Card {
+         rank=FIVE
+         suit=HEARTS
+         }
+      mNumCards=0
+   }
+   mName="Bobbing for Apples"
+   mNumTricks=3
+   mTeam=0
+   mTricks=cc.game.kaiser.core.Hand 8
+      cc.game.kaiser.core.Hand {
+      mCards=cc.game.kaiser.core.Card 8
+         cc.game.kaiser.core.Card {
+         rank=JACK
+         suit=DIAMONDS
+         }
+         cc.game.kaiser.core.Card {
+         rank=QUEEN
+         suit=DIAMONDS
+         }
+         cc.game.kaiser.core.Card {
+         rank=KING
+         suit=DIAMONDS
+         }
+         cc.game.kaiser.core.Card {
+         rank=ACE
+         suit=HEARTS
+         }
+         null
+         null
+         null
+         null
+      mNumCards=4
+      }
+      cc.game.kaiser.core.Hand {
+      mCards=cc.game.kaiser.core.Card 8
+         cc.game.kaiser.core.Card {
+         rank=TEN
+         suit=HEARTS
+         }
+         cc.game.kaiser.core.Card {
+         rank=JACK
+         suit=HEARTS
+         }
+         cc.game.kaiser.core.Card {
+         rank=KING
+         suit=HEARTS
+         }
+         cc.game.kaiser.core.Card {
+         rank=EIGHT
+         suit=HEARTS
+         }
+         null
+         null
+         null
+         null
+      mNumCards=4
+      }
+      cc.game.kaiser.core.Hand {
+      mCards=cc.game.kaiser.core.Card 8
+         cc.game.kaiser.core.Card {
+         rank=SEVEN
+         suit=SPADES
+         }
+         cc.game.kaiser.core.Card {
+         rank=ACE
+         suit=CLUBS
+         }
+         cc.game.kaiser.core.Card {
+         rank=TEN
+         suit=DIAMONDS
+         }
+         cc.game.kaiser.core.Card {
+         rank=KING
+         suit=CLUBS
+         }
+         null
+         null
+         null
+         null
+      mNumCards=4
+      }
+      null
+      null
+      null
+      null
+      null
+   playerNum=2
+   }
+   cc.game.kaiser.ai.PlayerBot {
+   mHand=cc.game.kaiser.core.Hand {
+      mCards=cc.game.kaiser.core.Card 8
+         cc.game.kaiser.core.Card {
+         rank=NINE
+         suit=HEARTS
+         }
+         cc.game.kaiser.core.Card {
+         rank=NINE
+         suit=HEARTS
+         }
+         cc.game.kaiser.core.Card {
+         rank=NINE
+         suit=HEARTS
+         }
+         cc.game.kaiser.core.Card {
+         rank=NINE
+         suit=HEARTS
+         }
+         cc.game.kaiser.core.Card {
+         rank=EIGHT
+         suit=HEARTS
+         }
+         cc.game.kaiser.core.Card {
+         rank=EIGHT
+         suit=HEARTS
+         }
+         cc.game.kaiser.core.Card {
+         rank=EIGHT
+         suit=HEARTS
+         }
+         cc.game.kaiser.core.Card {
+         rank=EIGHT
+         suit=HEARTS
+         }
+      mNumCards=0
+   }
+   mName="Sam crow"
+   mNumTricks=0
+   mTeam=1
+   mTricks=cc.game.kaiser.core.Hand 8
+      cc.game.kaiser.core.Hand {
+      mCards=cc.game.kaiser.core.Card 8
+         cc.game.kaiser.core.Card {
+         rank=SEVEN
+         suit=SPADES
+         }
+         cc.game.kaiser.core.Card {
+         rank=EIGHT
+         suit=SPADES
+         }
+         cc.game.kaiser.core.Card {
+         rank=JACK
+         suit=SPADES
+         }
+         cc.game.kaiser.core.Card {
+         rank=ACE
+         suit=SPADES
+         }
+         null
+         null
+         null
+         null
+      mNumCards=4
+      }
+      cc.game.kaiser.core.Hand {
+      mCards=cc.game.kaiser.core.Card 8
+         cc.game.kaiser.core.Card {
+         rank=THREE
+         suit=CLUBS
+         }
+         cc.game.kaiser.core.Card {
+         rank=SEVEN
+         suit=DIAMONDS
+         }
+         cc.game.kaiser.core.Card {
+         rank=EIGHT
+         suit=DIAMONDS
+         }
+         cc.game.kaiser.core.Card {
+         rank=KING
+         suit=CLUBS
+         }
+         null
+         null
+         null
+         null
+      mNumCards=4
+      }
+      cc.game.kaiser.core.Hand {
+      mCards=cc.game.kaiser.core.Card 8
+         cc.game.kaiser.core.Card {
+         rank=ACE
+         suit=HEARTS
+         }
+         cc.game.kaiser.core.Card {
+         rank=EIGHT
+         suit=HEARTS
+         }
+         cc.game.kaiser.core.Card {
+         rank=QUEEN
+         suit=SPADES
+         }
+         cc.game.kaiser.core.Card {
+         rank=QUEEN
+         suit=CLUBS
+         }
+         null
+         null
+         null
+         null
+      mNumCards=4
+      }
+      cc.game.kaiser.core.Hand {
+      mCards=cc.game.kaiser.core.Card 8
+         cc.game.kaiser.core.Card {
+         rank=QUEEN
+         suit=HEARTS
+         }
+         cc.game.kaiser.core.Card {
+         rank=TEN
+         suit=DIAMONDS
+         }
+         cc.game.kaiser.core.Card {
+         rank=QUEEN
+         suit=DIAMONDS
+         }
+         cc.game.kaiser.core.Card {
+         rank=JACK
+         suit=CLUBS
+         }
+         null
+         null
+         null
+         null
+      mNumCards=4
+      }
+      null
+      null
+      null
+      null
+   playerNum=3
+   }
+startPlayer=1
+state=NEW_ROUND
+teams=cc.game.kaiser.core.Team 2
+   cc.game.kaiser.core.Team {
+   bid=cc.game.kaiser.core.Bid {
+      numTricks=0
+      trump=NOTRUMP
+   }
+   name="Pussies"
+   players=int 2
+      0 2 
+   roundPoints=10
+   totalPoints=28
+   }
+   cc.game.kaiser.core.Team {
+   bid=cc.game.kaiser.core.Bid {
+      numTricks=5
+      trump=HEARTS
+   }
+   name="Scrubs"
+   players=int 2
+      1 3 
+   roundPoints=0
+   totalPoints=13
+   }
+trick=cc.game.kaiser.core.Card 4
+   null
+   null
+   null
+   null

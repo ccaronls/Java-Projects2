@@ -1,0 +1,392 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<project name="kaiser" default="usage" basedir=".">
+    <!-- Enable Assertions -->
+    <assertions>
+        <enable />
+    </assertions>
+	
+	<property name="prettyname" value="Kaiser"/>
+    <property name="ant.enable.asserts" value="true"/>            
+    
+    <property name="app.name" value="${ant.project.name}"/>
+    
+    <!-- general directories -->
+    <property name="dir.src" location="${basedir}/src" />
+    <property name="dir.lib" location="${basedir}/lib" />
+    <property name="dir.test.lib" location="${basedir}/testlib" />
+    <property name="dir.dist" location="${basedir}/dist" />
+    <property name="dir.build" location="${basedir}/antbuild" />
+    <property name="dir.doc" location="${basedir}/javadoc" />
+    <property name="dir.test" location="${basedir}/test" />
+    <property name="dir.testresources" location="${basedir}/resources" />
+    <property name="dir.web" location="${basedir}/webapp" />
+    <property name="dir.hbm" location="${basedir}/hbm" />
+    <property name="dir.conf" location="${basedir}/conf" />
+    
+    <!-- properties for junit tests (unit tests for a unit test app!) -->
+    <property name="dir.junit" location="${basedir}/junit" />
+    <property name="dir.junit.xml" location="${dir.junit}/xml" />
+    <property name="dir.junit.report" location="${dir.junit}/report" />
+    <property name="file.jar" value="${dir.dist}/${app.name}.jar" />
+    <property name="file.war" value="${dir.dist}/${app.name}.war" />
+    <property name="file.zip" value="${basedir}/${app.name}.zip" />
+    <property name="gui.main.class" value="cc.game.kaiser.main.KaiserConsole"/>
+	
+    <!-- browser to use to open HTML reports.  Must be included in your PATH -->
+    <property name="browser" value="mozilla" />
+
+    <!-- sql properties 
+    <property name="sql.driver" value="org.sqlite.JDBC"/>
+    <property name="sql.url"    value="jdbc:sqlite:localhost:9000:dbtest"/>
+    <property name="sql.userid" value="db1"/>
+    <property name="sql.passwd" value="db1"/>
+    -->
+    <property name="dir.sql" location="${basedir}/sql"/>
+
+    <!-- build out the plugins     
+    <taskdef name="hibernatedoclet"
+        classname="xdoclet.modules.hibernate.HibernateDocletTask">
+        <classpath>
+            <fileset dir="${ant.home}/plugins/xdoclet-1.2.2">
+                <include name="*.jar"/>
+            </fileset>
+        </classpath>
+    </taskdef>
+-->
+    
+    <!-- build the CLASSPATH for included libs -->
+    <path id="project.classpath" path="${classpath}">
+        <fileset dir="${dir.lib}">
+            <patternset>
+                <include name="*.jar" />
+            </patternset>
+        </fileset>
+    </path>
+ 
+    <!-- build the CLASSPATH for junit libs -->      
+    <path id="project.test.classpath" path="${classpath}">
+        <fileset dir="${dir.lib}">
+            <patternset>
+                <include name="*.jar" />
+            </patternset>
+        </fileset>
+        <fileset dir="${dir.test.lib}">
+            <patternset>
+                <include name="*.jar" />
+            </patternset>
+        </fileset>
+    </path>
+
+
+    <!-- - - - - - - - - - - - - - - - - - 
+        target: init 
+        - - - - - - - - - - - - - - - - - -->
+    <target name="init">
+        <mkdir dir="${dir.dist}" />
+        <mkdir dir="${dir.build}" />
+        <mkdir dir="${dir.doc}" />
+        <mkdir dir="${dir.junit}" />
+        <mkdir dir="${dir.junit.xml}" />
+        <mkdir dir="${dir.junit.report}" />
+    	<!--
+        <mkdir dir="${dir.hbm}" />
+        -->
+    </target>
+
+    <!-- ================================= 
+        target: clean 
+        ================================= -->
+    <target name="clean" depends="">
+        <delete dir="${dir.dist}" />
+        <delete dir="${dir.build}" />
+        <delete dir="${dir.doc}" />
+        <delete dir="${dir.junit}" />
+        <delete dir="${dir.hbm}" />
+        <delete file="${file.zip}" />    
+        
+    </target>
+
+    <!-- ================================= 
+         target: hdoclet              
+         ================================= -->         
+    <target name="hdoclet" depends="" description="generate hibernate mappings">
+        <hibernatedoclet
+            destdir="${dir.hbm}"
+            excludedtags="@version,@author,@todo,@param,@return"
+            force="true"
+            verbose="true">
+
+            <fileset dir="${dir.src}">
+                <include name="cc/soc/model/*.java"/>
+            </fileset>
+
+            <hibernate version="2.0"/>
+
+        </hibernatedoclet>
+    </target>
+    
+    <!-- - - - - - - - - - - - - - - - - - 
+        target: compile - compile all class to build directory 
+        - - - - - - - - - - - - - - - - - -->
+    <target name="compile" depends="init">
+        <javac srcdir="${dir.src}" destdir="${dir.build}" debug="on" nowarn="off" source="1.5" target="1.5" deprecation="off" optimize="on">
+            <classpath refid="project.classpath" />
+        </javac>
+    </target>
+    
+    <!-- - - - - - - - - - - - - - - - - - 
+        target: junit compile - compile all class to build directory 
+        - - - - - - - - - - - - - - - - - -->
+    <target name="junit-compile" depends="init">
+        <javac srcdir="${dir.test}" destdir="${dir.build}" debug="on" nowarn="off" source="1.5" target="1.5" deprecation="off" optimize="on">
+            <classpath refid="project.test.classpath" />
+        </javac>
+    </target>
+
+    <!-- ================================= 
+         target: jar
+         ================================= -->
+    <target name="jar" depends="compile" description="create the jar distribution: ${file.jar}">
+        <jar destfile="${file.jar}" basedir="${dir.build}">
+            <fileset dir="${dir.build}" />
+            <!--   
+            <fileset dir="${basedir}/images" />
+            <fileset dir="${basedir}/resources" />
+            <fileset dir="${dir.hbm}" />   
+            <fileset dir="${dir.conf}" />   
+            -->
+            <manifest>
+                <!-- Who is building this jar? -->
+                <attribute name="Built-By" value="${user.name}" />
+                <!-- Information about the program itself -->
+                <attribute name="Implementation-Title" value="${prettyname}" />
+                <attribute name="Implementation-Version" value="1.0" />
+                <attribute name="Main-Class" value="${gui.main.class}" />
+            </manifest>
+        </jar>
+    </target>
+
+    <!-- ================================= 
+         target: gui
+         ================================= -->
+    <target name="gui" depends="jar" description="run the jar executable">
+        <java classname="${gui.main.class}" classpath="${file.jar}" classpathref="project.classpath" fork="true">
+            <jvmarg value="-ea"/>
+        </java>
+    </target>
+
+    <!-- ================================= 
+        target: javadoc 
+        ================================= -->
+    <target name="javadoc" depends="init">
+        <javadoc sourcepath="${dir.src}" destdir="${dir.doc}" packagenames="cc.game.*" doctitle="${prettyname}">
+            <classpath refid="project.classpath" />
+        </javadoc>
+    </target>
+
+    <!-- - - - - - - - - - - - - - - - - - 
+        target: showdoc 
+        - - - - - - - - - - - - - - - - - -->
+    <target name="showdoc">
+        <echo>Opening doc with ${browser}</echo>
+        <exec executable="${browser}" failifexecutionfails="false">
+            <arg line="file://${dir.doc}/index.html" />
+        </exec>
+    </target>
+
+    <!-- ================================= 
+        target: doc 
+        ================================= -->
+    <target name="doc" depends="javadoc, showdoc" description="alias for javadoc, showdoc">
+    </target>
+
+    <!-- ================================= 
+        target: junittest 
+        ================================= -->
+    <target name="junittest" depends="compile, junit-compile" description="run all unit tests">
+        <junit printsummary="yes" haltonfailure="no" showoutput="yes">
+            <!-- define the class path -->
+            <classpath>
+                <pathelement path="${classpath}" />
+                <fileset dir="${dir.lib}">
+                    <include name="**/*.jar" />
+                </fileset>
+                <pathelement location="${dir.build}" />
+            </classpath>
+            <!-- define the output type -->
+            <formatter type="xml" />
+            <!-- batch run all the tests under test -->
+            <batchtest todir="${dir.junit.xml}">
+                <fileset dir="${dir.test}">
+                    <include name="**/*Test.java" />
+                </fileset>
+            </batchtest>
+        </junit>
+    </target>
+
+    <!-- ================================= 
+        target: test 
+        ================================= -->
+    <target name="test" depends="junittest">
+        <!-- generate the HTML report -->
+        <junitreport todir="${dir.junit.report}">
+            <fileset dir="${dir.junit.xml}">
+                <include name="TEST-*.xml" />
+            </fileset>
+            <report format="frames" todir="${dir.junit.report}" />
+        </junitreport>
+        <exec executable="${browser}" failifexecutionfails="false">
+            <arg line="file://${dir.junit.report}/index.html" />
+        </exec>
+    </target>
+
+    <!-- - - - - - - - - - - - - - - - - - 
+        target: chkOS - do OS specific stuff
+        - - - - - - - - - - - - - - - - - -->
+    <target name="chkOS" description="if switch to set OS specivic settings">
+        <delete file="${dir.conf}/${app.name}.properties"/>
+        <delete file="${dir.web}/config/${app.name}.properties"/>
+        <condition property="isUnix">
+            <os family="unix" />
+        </condition>
+        <condition property="isWindows">
+            <os family="windows" />
+        </condition>
+        <antcall target="setUnixEnv" />
+        <antcall target="setWindowsEnv" />
+    </target>
+
+    <target name="setUnixEnv" if="isUnix">
+        <echo>This is an Unix machine.  Using ${dir.conf}/${app.name}.properties.linux</echo>
+        <!-- affects local scope only -->
+        <copy file="${dir.conf}/${app.name}.properties.linux" toFile="${dir.web}/config/${app.name}.properties" />
+        <copy file="${dir.conf}/${app.name}.properties.linux" toFile="${dir.conf}/${app.name}.properties" />
+    </target>
+
+    <target name="setWindowsEnv" if="isWindows">
+        <echo>This is a Windows machine.  Using ${dir.conf}/${app.name}.properties.windows</echo>
+        <!-- affects local scope only -->
+        <copy file="${dir.conf}/${app.name}.properties.windows" toFile="${dir.web}/config/${app.name}.properties" />
+        <copy file="${dir.conf}/${app.name}.properties.windows" toFile="${dir.conf}/${app.name}.properties" />
+    </target>
+    
+    <property file="testresources/${app.name}.properties"/>
+    
+    <!-- ================================= 
+          target: sqljunitcreate              
+         ================================= -->
+    <target name="sqljunitcreate" depends="init" description="--> create sql tables">
+        <sql 
+            driver="${db.driver}" 
+            url="jdbc:sqlite:db/sqlite/dbtest" 
+            userid="${db.user}" 
+            password="${db.pw}" 
+            onerror="continue"
+            autocommit="true">
+            <classpath refid="project.classpath"/>
+            <transaction src="${dir.sql}/drop.sql"/>
+            <transaction src="${dir.sql}/create.sql"/>
+        </sql>        
+    </target>
+
+    <!-- ================================= 
+          target: sqlcreate              
+         ================================= -->
+    <target name="sqlcreate" depends="" description="--> create sql tables">
+        <sql 
+            driver="${db.driver}" 
+            url="${db.url}" 
+            userid="${db.user}" 
+            password="${db.pw}" 
+            onerror="continue"
+            autocommit="true">
+            <classpath refid="project.classpath"/>
+            <transaction src="${dir.sql}/create.sql"/>
+        </sql>        
+    </target>
+
+    <!-- ================================= 
+          target: sqldrop
+         ================================= -->
+    <target name="sqldrop" depends="" description="--> drop sql tables">
+        <sql 
+            driver="${db.driver}" 
+            url="${db.url}" 
+            userid="${db.user}" 
+            password="${db.pw}" 
+            onerror="continue"
+            autocommit="true">
+            <classpath refid="project.classpath"/>
+            <transaction src="${dir.sql}/drop.sql"/>
+        </sql>        
+    </target>
+    
+    <!-- ================================= 
+        target: war 
+        ================================= -->
+    <target name="war" depends="compile, chkOS">
+        <war destfile="${file.war}" webxml="${dir.web}/WEB-INF/web.xml">
+            <!-- things that dont go into WEB-INF -->
+            <zipfileset dir="${dir.web}/pages" prefix="" />
+            <zipfileset dir="${dir.web}/images" prefix="images" />
+            <zipfileset dir="${dir.web}/css" prefix="css" />
+            <zipfileset dir="${dir.web}/includes" prefix="includes" />
+            <zipfileset dir="${dir.web}/tld" prefix="tld" />
+            <!-- things that DO go into WEB-INF -->
+            <lib dir="${dir.lib}" />
+            <lib dir="${dir.web}/lib" />
+            <classes dir="${dir.build}" />
+            <classes dir="${dir.web}/config" />
+            <webinf dir="${dir.web}/WEB-INF" />
+        </war>
+    </target>
+
+    <target name="zip">
+        <delete file="${app.name}.zip" />
+        <zip destfile="${app.name}.zip" basedir="${basedir}" excludes="build/**, dist/**, lib/**, testlib/**, antbuild/**, **/.*, .*/**, webapp/lib/**, oraclelib/**" />
+    </target>
+
+    <target name="deployUnixEnv" if="isUnix">
+        <copy toDir="/lsurf/resin/webapps" file="${file.war}"/>
+    </target>
+
+    <target name="deployWindowsEnv" if="isWindows">
+        <copy toDir="C:/resin/webapps" file="${file.war}"/>
+    </target>
+   
+    <!-- ================================= 
+          target: deploy              
+         ================================= -->
+    <target name="deploy" depends="war" description="--> deploy hot swappable">
+        <antcall target="deployUnixEnv" />
+        <antcall target="deployWindowsEnv" />
+    </target>
+
+    <target name="about">
+        <echo>
+   OS                    - ${os.name} ${os.arch}
+   User Name             - ${user.name}
+   Java Home             - ${java.home}
+   User Home             - ${user.home}
+   Java Version          - ${java.version}
+   Time Zone             - ${user.timezone}
+   Ant home              - ${ant.home}
+          
+      </echo>
+    </target>
+
+    <!-- ================================= target: usage ================================= -->
+    <target name="usage">
+        <echo>
+   war                   - create ${file.war} webapp distribution
+   jar                   - create ${file.jar} executable distribution
+   gui                   - run the GUI swing executable
+   zip                   - create ${file.zip} source distribution (minus jars)
+   test                  - execute and display all unit tests
+   doc                   - generate and display all java docs
+   deploy                - install web app ${file.war}         	
+   about                 - display relevant system properties
+          
+      </echo>
+    </target>
+</project>
