@@ -1,0 +1,18 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent" 
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <cc.lib.android.SpringSlider
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:background="#f60"
+        app:buttonColor="#f00f"
+        app:buttonIcon="@drawable/round_button"
+        app:buttonRadius="25dp"
+        app:buttonThickness="10dp"
+        app:horizontal="true" />
+    
+</RelativeLayout>

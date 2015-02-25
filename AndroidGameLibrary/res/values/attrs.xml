@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources>
+    
+    <declare-styleable name="SpringSlider">
+        
+        <attr name="buttonRadius"   format="dimension"        description="define the radius of the button"/>
+        <attr name="horizontal"     format="boolean"          description="Whether to render horizontally"/>
+        <attr name="buttonIcon"     format="reference"               description="Id of resource to use for button"/>
+        <attr name="buttonThickness"    format="dimension"    description="thickness of button (only used if buttonIcon not specified)"/>
+        <attr name="backgroundColor"    format="color"        description="color to use for back ground (only used if no background image specified)"/>
+        <attr name="buttonColor"        format="color"        description="color of button (only ised when buttonIcon not specified)"/>
+        
+    </declare-styleable>
+    
+    
+</resources>
