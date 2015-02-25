@@ -1,0 +1,146 @@
+sin(Z^C)-Z
+cos(Z^C)-Z
+acos(Z^C)-Z^2
+acos(Z^C)-Z
+acos(Z^C)-Z0
+acos(Z^C)-C
+acos(Z^1)-Z
+acos(Z^1.3)-Z
+acos(Z^0.0001)-Z
+acos(Z^0.01)-Z
+acos(Z^0.1)-Z
+acos(Z^0.5)-Z
+acos(Z^1.1)-Z
+acos(Z^1.2)-Z
+acos(Z^1.7)-Z
+acos(Z^2)-Z
+acos(Z^3)-Z
+acos(Z^3)-Z0
+acos(Z^2)-Z0
+acos(Z^5)-Z0
+acos(Z^5)-Z
+acos(Z^2)+Z
+acos(Z^5)+Z0
+acos(Z^4)+Z0
+acos(Z^3)+Z0
+acos(Z^2)+Z0
+acos(Z)+Z0
+acos(Z+Z0)
+ln(Z^C) - C
+ln(asin(Z)^C)
+ln(asin(Z)^5) - C
+ln(asin(Z)^2) - C
+ln(asin(Z)^3) - C
+ln(sin(Z)^3) - C
+ln(sin(Z^4)) - C
+ln(sin(Z^3)) - C
+ln(sin(Z)) - C
+ln(Z^C) - (C - 1)
+ln(Z^C) - (C+1)
+ln(Z^C) - 3.7
+ln(Z^C) - 3.6
+ln(Z^C) - 3.5
+ln(Z^C) - 2
+ln(Z^C) - 3
+ln(Z^3.85) - C
+ln(Z^2.85) - C
+ln(Z^2.85) + C
+ln(Z^2.75) + C
+ln(Z^2.5) + C
+ln(Z^2) + C
+ln(Z^3) + C
+ln(Z^3) + X
+acos(Z^6)-C
+Z^2+C
+acos(Z^3)+ -1
+sinh(Z^3)-C
+sinh(Z^3) + Z0
+Z^C + Z0
+Z^2+Z0
+Z^2-Z0
+Z^2-Z
+ln(Z^5)-C
+Z^1.9- C
+Z^(C+1)- C
+Z^C- C
+Z^2- C
+Z^2.2- C
+Z^2.3- C
+Z^2.1- C
+Z^C- 1
+Z^2 - C
+Z^2 + Z0
+Z^3 + Z0
+Z^2 + C
+Z^4 + Z0
+Z^3 - C
+Z^C + C^2
+Z^C - C^2
+Z^C - C
+Z^4 - C
+Z^2 + Z
+acos(Z^5)-C
+acos(Z^2)-C
+Z^Z0 + Z0
+Z^0 + Z0
+acos(Z^3)- C
+acos(Z^3)+ -C
+acos(Z^5)+ -1
+ln(Z^4)-C
+sinh(Z^4) + [-1,0.0]
+sinh(Z^7) + C
+sinh(Z^6) + C
+sinh(Z^5) + C
+sinh(Z^4) + C
+sinh(Z^4) - C
+sinh(Z^3) + C
+sinh(Z^4) + [-1,0.1]
+sinh(Z^4) + [-1,0.3]
+sinh(Z^4) + [-1,0.2]
+sinh(Z^4) + [-1,-1]
+sinh(Z^4) + [-1,1]
+sinh(Z^4) + [-1,0]
+sinh(Z^4) + -1
+sinh(Z^4) + -2
+acos(Z^5+0.1)+ -1
+exp(Z^2) - C
+exp(Z^3) - C
+exp(Z^3) + C
+exp(Z^2) + C
+cosh(ln(Z^2))-C
+cosh(ln(Z^3))-C
+cosh(ln(Z^3))-Z0
+cosh(ln(Z^2))-Z0
+asinh(Z^2) + C
+acos(Z^3)+ -2
+acos(Z^2)+ -2
+acos(Z^4)+ -2
+acos(Z^5)+ -2
+acos(Z^5+ -0.1)+ -1
+acos(Z^5+1)+ -1
+acosh(Z^2)-C
+asin(Z^2) + C
+asin(Z^2)-C
+asin(Z^3)-C
+asin(Z^4)-C
+asinh(Z^3)-C
+cosh(Z^2)-C
+cosh(ln(Z^3))-Z
+exp(Z^2) + C 
+exp(Z^3) + Z0
+ln(Z)-C
+ln(Z^2)+ -2
+ln(Z^2)-C
+ln(Z^3)
+ln(Z^3) + A
+ln(Z^3) + B
+ln(Z^3) + Y
+ln(Z^3) + Z0
+ln(Z^3) - C
+ln(Z^3)+ -2
+ln(Z^3)+2
+ln(Z^3)+C
+ln(Z^3)+Z
+ln(Z^3)-C
+sin(Z^2) + C
+sinh(Z^2) + C
