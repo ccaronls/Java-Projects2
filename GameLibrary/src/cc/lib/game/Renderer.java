@@ -1,0 +1,354 @@
+package cc.lib.game;
+
+import java.util.*;
+
+import cc.lib.math.Matrix3x3;
+import cc.lib.math.MutableVector2D;
+import cc.lib.math.Vector2D;
+
+/**
+ * Provides mechanism to manipulate vectors in a OpenGL type way
+ * 
+ * @author chriscaron
+ *
+ */
+public class Renderer {
+
+	public Renderer(Renderable window) {
+		this.window = window;		
+		pts = new MutableVector2D[MAX_VERTS];
+		names = new int[MAX_VERTS];
+		for (int i=0; i<MAX_VERTS; i++) {
+			pts[i] = new MutableVector2D();
+		}
+		m_stack = new Matrix3x3[8];
+		for (int i=0; i<m_stack.length; i++) {
+			m_stack[i] = new Matrix3x3();
+		}
+		m_stack_size = 1;
+		cur_mat = m_stack[0];
+		s_mat = new Matrix3x3();
+		t_mat = new Matrix3x3();
+		makeIdentity();
+	} 
+	
+	/**
+	 * multiply a translation matrix to the transform
+	 * @param tx
+	 * @param ty
+	 */
+	public final void translate(float tx, float ty) {
+		t_mat.setTranslate(tx, ty);
+		cur_mat.multiply(t_mat, s_mat);
+		cur_mat.copy(s_mat);
+	}
+
+	/**
+	 * multiply a rotation matrix to the transform
+	 * @param angle
+	 */
+	public final void rotate(float angle) {
+		t_mat.setRotation(angle);
+		cur_mat.multiply(t_mat, s_mat);
+		cur_mat.copy(s_mat);
+	}
+	
+	/**
+	 * Scale all components of current transform by a scalar
+	 * @param s
+	 */
+	public final void scale(float s) {
+		scale(s, s);
+	}
+
+	/**
+	 * multiply a scale matrix to the transform
+	 * @param sx
+	 * @param sy
+	 */
+	public final void scale(float sx, float sy) {
+		t_mat.setScale(sx, sy);
+		cur_mat.multiply(t_mat, s_mat);
+		cur_mat.copy(s_mat);
+	}
+	
+	/**
+	 * set the top matrix to the identity matrix
+	 */
+	public final void makeIdentity() {
+		cur_mat.identity();
+	}
+	
+	/**
+	 * Add a transformed vertex to the list
+	 * @param x
+	 * @param y
+	 */
+	public final void addVertex(float x, float y) {
+		transformXY(x, y, s_vec);
+		pts[num_pts].set(s_vec.X(), s_vec.Y());
+		names[num_pts++] = cur_name;
+	}
+    
+	/**
+	 * 
+	 * @param v
+	 */
+    public final void transformXY(MutableVector2D v) {
+        transformXY(v.X(), v.Y(), v);
+    }
+
+    /**
+     * 
+     * @param v
+     */
+    public final void transformXY(float [] v) {
+        transformXY(v[0], v[1], v);
+    }
+
+    /**
+     * 
+     * @param x
+     * @param y
+     * @param v
+     */
+    public final void transformXY(float x, float y, MutableVector2D v) {
+    	v.set(x,y);
+        cur_mat.transform(v);
+		min.minEq(v);
+		max.maxEq(v);
+        
+        float W = this.window.getViewportWidth();
+        float H = this.window.getViewportHeight();
+        
+        v.setX((v.X() - left) * (W / (right - left)));
+        v.setY(H - ((v.Y() - bottom) * H / (top - bottom)));
+    }
+    
+    /**
+     * Convert screen coods to viewport coords using projection only
+     * @param screenX
+     * @param screenY
+     * @return
+     */
+	public Vector2D untransform(float screenX, float screenY) {
+        float W = this.window.getViewportWidth();
+        float H = this.window.getViewportHeight();
+		
+		float x = left + screenX / (W / (right-left));
+		float y = bottom + (H - screenY)/(H / (top-bottom));
+		
+		MutableVector2D v = new MutableVector2D(x, y);
+		cur_mat.transform(v);
+		return v;
+	}
+
+	/**
+	 * 
+	 * @param v
+	 * @return
+	 */
+	public final MutableVector2D transformXY(IVector2D v) {
+		transformXY(v.getX(), v.getY(), s_vec);
+    	return new MutableVector2D(s_vec);
+	}
+
+	/**
+	 * 
+	 * @param x
+	 * @param y
+	 * @return
+	 */
+    public final MutableVector2D transformXY(float x, float y) {
+		transformXY(x, y, s_vec);
+    	return new MutableVector2D(s_vec);
+    }
+    /**
+     * 
+     * @param x
+     * @param y
+     * @param v
+     */
+    public final void transformXY(float x, float y, float [] v) {
+    	transformXY(x, y, s_vec);
+    	v[0] = s_vec.X(); v[1] = s_vec.Y();
+    }
+
+    /**
+     * 
+     * @param left
+     * @param right
+     * @param top
+     * @param bottom
+     */
+    public final void setOrtho(float left, float right, float top, float bottom) {
+        this.left = left;
+        this.right = right;
+        this.top = top;
+        this.bottom = bottom;
+    }
+        
+	/**
+	 * 
+	 * @param t
+	 */
+	public final void addVertex(IVector2D t) {
+		addVertex(t.getX(), t.getY());
+	}
+
+	/**
+	 * 
+	 * @param list a list of Transformable objects
+	 */
+	public final void addVertexList(Collection<IVector2D> list) {
+		Iterator<IVector2D> it = list.iterator();
+		while (it.hasNext()) {
+			addVertex(it.next());
+		}
+	}
+
+	/**
+	 * Push the matrix stack
+	 */
+	public final void pushMatrix() {
+		if (m_stack_size < m_stack.length)
+		{
+			m_stack[m_stack_size].copy(m_stack[m_stack_size-1]);
+			cur_mat = m_stack[m_stack_size];
+			m_stack_size++;
+		} else
+			throw new RuntimeException("Fixed stack size of [" + m_stack.length + "] for pushMatrix()");
+	}
+	
+	/**
+	 * pop off the matrix stack
+	 */
+	public final void popMatrix() {
+		if (m_stack_size > 1) {
+		    m_stack_size -= 1;
+			cur_mat = m_stack[m_stack_size-1];
+		}
+		else
+			throw new RuntimeException("too many pops");
+	}
+
+	/**
+	 * 
+	 * @param name
+	 */
+	public final void setName(int name) {
+		this.cur_name = name;
+	}
+	
+	/**
+	 * Return the top level matrix
+	 * @return
+	 */
+	public final Matrix3x3 getCurrentTransform() {
+		return new Matrix3x3(cur_mat);
+	}
+	
+	/**
+	 * 
+	 * @return
+	 */
+	public final int getNumVerts() {
+	    return num_pts;
+	}
+	
+	/**
+	 * 
+	 * @param index
+	 * @return
+	 */
+	public final float getX(int index) {
+		return pts[index].X();
+	}
+	
+	/**
+	 * 
+	 * @param index
+	 * @return
+	 */
+	public final float getY(int index) {
+		return pts[index].Y();
+	}
+	
+	/**
+	 * 
+	 * @param index
+	 * @return
+	 */
+	public final Vector2D getVertex(int index) {
+		return pts[index];
+	}
+	
+	/**
+	 * 
+	 * @param index
+	 * @return
+	 */
+	public final int getName(int index) {
+		return names[index];//.get(index);
+	}
+	
+	/**
+	 * 
+	 */
+    public final void clearVerts() {
+        num_pts = 0;
+    }
+
+    /**
+     * 
+     * @param r
+     */
+    public final void setWindow(Renderable r) {
+        this.window = r;
+    }
+    
+    /**
+     * Return the vector that is minimum bounding rect point
+     * @return
+     */
+    public final Vector2D getMin() {
+    	return min;
+    }
+    
+    /**
+     * Return the vector that is the maximum bounding rect point
+     * @return
+     */
+    public final Vector2D getMax() {
+    	return max;
+    }
+
+    /**
+     * 
+     */
+    public final void clearBoundingRect() {
+    	min.set(Float.MAX_VALUE, Float.MAX_VALUE);
+    	max.set(-Float.MAX_VALUE, -Float.MAX_VALUE);
+    }
+    
+	////////////////////////////////////////////////////
+	// PRIVATE STUFF ///////////////////////////////////
+	////////////////////////////////////////////////////
+	
+    private Renderable  window;
+    private MutableVector2D s_vec = new MutableVector2D();
+    private MutableVector2D min = new MutableVector2D();
+    private MutableVector2D max = new MutableVector2D();
+    private MutableVector2D [] pts;
+    private int             [] names;
+    private int			num_pts = 0; 
+	private int			cur_name = 0;
+	private Matrix3x3 []	m_stack;
+	private Matrix3x3		cur_mat;
+	private int			m_stack_size;
+	private Matrix3x3		s_mat; // working matrix
+	private Matrix3x3		t_mat; // working matrix
+	private float       left, right, top, bottom;
+	
+	private final int MAX_VERTS = 1024;
+}

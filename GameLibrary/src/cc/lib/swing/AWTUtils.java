@@ -1,0 +1,784 @@
+package cc.lib.swing;
+
+import java.util.List;
+import java.awt.*;
+import java.util.*;
+
+import cc.lib.game.Justify;
+import cc.lib.game.Utils;
+
+public class AWTUtils {
+    /**
+     * 
+     * @param r0
+     * @param r1
+     * @return
+     */
+    public static boolean isBoxesOverlapping(Rectangle r0, Rectangle r1) {
+        return Utils.isBoxesOverlapping(r0.x, r0.y, r0.width, r0.height, r1.x, r1.y, r1.width, r1.height);
+    }
+    
+    /**
+     * Return a Rectangle with the correct x,y,w,h params given the input points
+     * @param x0
+     * @param y0
+     * @param x1
+     * @param y1
+     * @return
+     */
+    public static Rectangle getBoundingRect(int x0, int y0, int x1, int y1) {
+        Rectangle result = new Rectangle();
+        getBoundingRect(x0, y0, x1, y1, result);
+        return result;
+    }
+    
+    /**
+     * Version takes Rectangle as a param too avoid new operation
+     * @param x0
+     * @param y0
+     * @param x1
+     * @param y1
+     * @param result
+     */
+    public static void getBoundingRect(int x0, int y0, int x1, int y1, Rectangle result) {
+        result.x = Math.min(x0,x1);
+        result.y = Math.min(y0,y1);
+        result.width = Math.abs(x0-x1);
+        result.height = Math.abs(y0-y1);
+    }
+
+    /**
+     * 
+     * @param g
+     * @param x0
+     * @param y0
+     * @param x1
+     * @param y1
+     * @param x2
+     * @param y2
+     */
+    public static void drawTriangle(Graphics g, int x0, int y0, int x1, int y1, int x2, int y2) {
+        int [] x_pts = { x0, x1, x2 };
+        int [] y_pts = { y0, y1, y2 }; 
+        g.drawPolygon(x_pts, y_pts, 3);
+    }
+
+    /**
+     * 
+     * @param g
+     * @param x0
+     * @param y0
+     * @param x1
+     * @param y1
+     * @param x2
+     * @param y2
+     */
+    public static void drawTrianglef(Graphics g, float x0, float y0, float x1, float y1, float x2, float y2) {
+        int [] x_pts = { Math.round(x0), Math.round(x1), Math.round(x2) };
+        int [] y_pts = { Math.round(y0), Math.round(y1), Math.round(y2) }; 
+        g.drawPolygon(x_pts, y_pts, 3);
+    }
+
+    /**
+     * 
+     * @param g
+     * @param x0
+     * @param y0
+     * @param x1
+     * @param y1
+     * @param x2
+     * @param y2
+     */
+    public static void fillTriangle(Graphics g, int x0, int y0, int x1, int y1, int x2, int y2) {
+        int [] x_pts = { x0, x1, x2 };
+        int [] y_pts = { y0, y1, y2 }; 
+        g.fillPolygon(x_pts, y_pts, 3);
+    }
+
+    /**
+     * 
+     * @param g
+     * @param x0
+     * @param y0
+     * @param x1
+     * @param y1
+     * @param x2
+     * @param y2
+     */
+    public static void fillTrianglef(Graphics g, float  x0, float  y0, float  x1, float  y1, float  x2, float  y2) {
+        int [] x_pts = { Math.round(x0), Math.round(x1), Math.round(x2) };
+        int [] y_pts = { Math.round(y0), Math.round(y1), Math.round(y2) }; 
+        g.fillPolygon(x_pts, y_pts, 3);
+    }   
+    
+    /**
+     * Draw a justified block text.  '\n' is a delimiter for seperate lines
+     * @param g
+     * @param x
+     * @param y
+     * @param hJust
+     * @param vJust
+     * @param text
+     * @return the total height of the text. 
+     */
+    public static int drawJustifiedString(Graphics g, int x, int y, Justify hJust, Justify vJust, String text) {
+        if (text.length() == 0)
+            return 0;
+        String [] lines = text.split("\n");
+        final int textHeight = g.getFontMetrics().getHeight();
+        switch (vJust) {
+        case TOP: 
+            break;
+        case CENTER: 
+            y -= (lines.length * (textHeight+textHeight/3)) / 2;
+            break;
+        case BOTTOM: 
+            y -= (lines.length+1) * textHeight; 
+            break;
+        default:
+            Utils.unhandledCase(vJust.ordinal());
+            break;
+        }
+        for (int i=0; i<lines.length; i++) {
+            y += textHeight;
+            priv_drawJustifiedString(g, x, y, hJust, lines[i]);
+        }
+        return lines.length * textHeight;
+    }
+
+    /**
+     * Draw a hJust/TOP justified line of text (no wrapping)
+     * @param g
+     * @param x
+     * @param y
+     * @param hJust
+     * @param text
+     */
+    private static void priv_drawJustifiedString(Graphics g, int x, int y, Justify hJust, String text) {
+        int x0 = x;
+        final int textWidth = g.getFontMetrics().stringWidth(text);
+        switch (hJust) {
+        case LEFT: 
+            break;
+        case CENTER: 
+            x0 = x - textWidth/2; 
+            break;
+        case RIGHT: 
+            x0 = x - textWidth; 
+            break;
+        default:
+            Utils.unhandledCase(hJust.ordinal());
+            break;
+        }
+        g.drawString(text, x0, y);
+    }
+    
+    /**
+     * 
+     * @param g
+     * @param x
+     * @param y
+     * @param maxWidth
+     * @param text
+     * @return
+     */
+    public static int drawWrapString(Graphics g, int x, int y, int maxWidth, String text) {
+        int endl = text.indexOf('\n');
+        if (endl >= 0) {
+            String t = text.substring(0, endl);
+            int width = getStringWidth(g, t);
+            if (width <= maxWidth) {
+                g.drawString(t, x, y);
+                return t.length();
+            }
+        }
+
+        // cant find an endl, see if text fits
+        int width = getStringWidth(g, text);
+        if (width <= maxWidth) {
+            g.drawString(text, x, y);
+            return text.length();
+        }
+
+        // try to find a space to break on
+        String t = text;
+        int spc = -1;
+        while (width > maxWidth) {
+            spc = text.lastIndexOf(' ');
+            if (spc >= 0) {
+                t = text.substring(0, spc).trim();
+                width = getStringWidth(g, t);
+            } else {
+                spc = -1;
+                break;
+            }
+        }
+        
+        if (spc >= 0) {
+            // found a space!
+            g.drawString(t, x, y);
+            return t.length();
+        }
+        
+        // made it here means we have to wrap on a whole word!
+        t = split(g, text, 0, text.length(), maxWidth);
+        g.drawString(t, x, y);
+        return t.length();
+    }
+    
+    /**
+     * 
+     * @param g
+     * @param x
+     * @param y
+     * @param maxWidth
+     * @param text
+     * @return
+     */
+    public static int drawWrapString3(Graphics g, int x, int y, int maxWidth, String text) {
+        String [] lines = generateWrappedLines(g, text, maxWidth);
+        for (int i=0; i<lines.length; i++) {
+            g.drawString(lines[i], x, y);
+            y += getFontHeight(g);
+        }
+        return y;
+    }
+    
+    /**
+     * 
+     * @param g
+     * @param str
+     * @param maxWidth
+     * @return
+     */
+    public static String [] generateWrappedLines(Graphics g, String str, int maxWidth) {
+        String text = str.trim();
+        List<String> lines = new ArrayList<String>(32);
+        while (text.length() > 0) {
+            int endl = text.indexOf('\n');
+            if (endl >= 0) {
+                String t = text.substring(0, endl).trim();
+                int width = getStringWidth(g, t);
+                if (width <= maxWidth) {
+                    lines.add(t);
+                    text = text.substring(endl+1);
+                    continue;
+                }
+            }
+            
+            // cant find an endl, see if text fits
+            int width = getStringWidth(g, text);
+            if (width <= maxWidth) {
+                lines.add(text);
+                break;
+            }
+            
+            // try to find a space to break on
+            int spc = -1;
+            String t = new String(text);
+            while (width > maxWidth) {
+                spc = t.lastIndexOf(' ');
+                if (spc >= 0) {
+                    t = t.substring(0, spc).trim();
+                    width = getStringWidth(g, t);
+                } else {
+                    spc = -1;
+                    break;
+                }
+            }
+            
+            if (spc >= 0) {
+                // found a space!
+                lines.add(t);
+                text = text.substring(spc+1).trim();
+                continue;
+            }
+            
+            // made it here means we have to wrap on a whole word!
+            if (text.length() <= 2) {
+            	lines.add(t);
+            	break;
+            }
+            t = split(g, text, 0, text.length(), maxWidth);
+            lines.add(t);
+            text = text.substring(t.length()).trim();
+        }
+
+        return lines.toArray(new String[lines.size()]);
+    }
+    
+    /**
+     * 
+     * @param g
+     * @param x
+     * @param y
+     * @param maxWidth
+     * @param text
+     * @return
+     */
+    public static int drawWrapString2(Graphics g, int x, int y, int maxWidth, String text) {
+        
+        int fontHeight = g.getFontMetrics().getHeight();
+        
+        text = text.trim();
+        while (text.length() > 0) {
+            int endl = text.indexOf('\n');
+            if (endl >= 0) {
+                String t = text.substring(0, endl);
+                int width = getStringWidth(g, t);
+                if (width <= maxWidth) {
+                    g.drawString(t, x, y);
+                    y += fontHeight;
+                    text = text.substring(endl+1).trim();
+                    continue;
+                }
+            }
+            
+            // cant find an endl, see if text fits
+            int width = getStringWidth(g, text);
+            if (width <= maxWidth) {
+                g.drawString(text, x, y);
+                y += fontHeight;
+                break;
+            }
+            
+            // try to find a space to break on
+            String t = text;
+            int spc = -1;
+            while (width > maxWidth) {
+                spc = text.lastIndexOf(' ');
+                if (spc >= 0) {
+                    t = text.substring(0, spc).trim();
+                    width = getStringWidth(g, t);
+                } else {
+                    spc = -1;
+                    break;
+                }
+            }
+            
+            if (spc >= 0) {
+                // found a space!
+                g.drawString(t, x, y);
+                y += fontHeight;
+                text = text.substring(spc+1).trim();
+                continue;
+            }
+            
+            // made it here means we have to wrap on a whole word!
+            t = split(g, text, 0, text.length(), maxWidth);
+            g.drawString(t, x, y);
+            y += fontHeight;
+            text = text.substring(t.length()).trim();           
+        }
+        
+        return y;
+    }
+    
+    /**
+     * Use binary search to find substring of s that has max chars up to maxWidth pixels wide.
+     * @param g
+     * @param s
+     * @param start
+     * @param end
+     * @param maxWidth
+     * @return
+     */
+    public static String split(Graphics g, String s, int start, int end, int maxWidth) {
+    	return splitR(g, s, start, end, maxWidth, 0);
+    }
+    
+    private static String splitR(Graphics g, String s, int start, int end, int maxWidth, int depth) {
+    	if (depth > 10) {
+    		return s;
+    	}
+    	if (maxWidth <=0)
+    		return s;
+        if (start >= end)
+            return s;
+        int mid = (start+end)/2;
+        String t = s.substring(start, mid);
+        if (t.length() == 0)
+        	return s;
+        int wid = getStringWidth(g, t);
+        if (wid < maxWidth)
+            return t + splitR(g, s, mid, end, maxWidth - wid, depth+1);
+        else
+            return splitR(g, s, start, mid, maxWidth, depth+1);
+    }
+    
+    /**
+     * 
+     * @param g
+     * @param text
+     * @return
+     */
+    public static int getStringWidth(Graphics g, String text) {
+        return g.getFontMetrics().stringWidth(text);
+    }
+    
+    /**
+     * 
+     * @param g
+     * @return
+     */
+    public static int getFontHeight(Graphics g) {
+        return g.getFontMetrics().getHeight();
+    }
+    
+    /**
+     * 
+     * @return
+     */
+    public static Font [] getAllFonts() {
+        return GraphicsEnvironment.getLocalGraphicsEnvironment().getAllFonts();
+    }
+    
+    /**
+     * 
+     * @return
+     */
+    public static String [] getAllFontFamilyNames() {
+        return GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
+    }
+    
+    /**
+     * 
+     * @param g
+     * @param name
+     * @param height
+     * @param width
+     * @param bold
+     * @param italic
+     * @param plain
+     * @return
+     */
+    public static Font deriveFont(Graphics g, String name, float height, float width, boolean bold, boolean italic, boolean plain) {
+        Font [] fonts = GraphicsEnvironment.getLocalGraphicsEnvironment().getAllFonts();
+        if (fonts == null || fonts.length == 0)
+            return null;
+        Font best = null;
+        
+        for (int i=0; i<fonts.length; i++) {
+            Font t = fonts[i];
+            if (t.getName().toLowerCase().startsWith(name.toLowerCase())) {
+                if (best == null) {
+                    best = t;
+                }
+                if (t.isItalic()) {
+                    if (!italic)
+                        continue;
+                } else {
+                    if (italic)
+                        continue;
+                }
+                // test for bold
+                if (t.isBold()) {
+                    if (!bold)
+                        continue;               
+                } else {
+                    if (bold)
+                        continue;
+                }
+                // test for underlined
+                if (t.isPlain()) {
+                    if (!plain)
+                        continue;
+                } else {
+                    if (plain)
+                        continue;
+                }
+                best = t;
+            }
+        }
+        
+        return best;
+    }
+    
+    /**
+     * Detemine the minimum rectangle to hold the given text.
+     * \n is a delim for each line.
+     * @param g
+     * @param txt
+     * @return
+     */
+    public static Dimension computeTextDimension(Graphics g, String txt) {
+        String [] lines = txt.split("\n");
+        int width = 0;
+        final int height = g.getFontMetrics().getHeight() * lines.length;
+        for (int i=0; i<lines.length; i++) {
+            int w = getStringWidth(g, lines[i]);
+            if (w > width)
+                width = w;
+        }
+        return new Dimension(width, height);
+    }
+    
+    /**
+     * 
+     * @param g
+     * @param x0
+     * @param y0
+     * @param x1
+     * @param y1
+     * @param x2
+     * @param y2
+     * @param x3
+     * @param y3
+     */
+    public static void fillQuad(Graphics g, int x0, int y0, int x1, int y1, int x2, int y2, int x3, int y3) {
+        int [] x = { x0, x1, x2, x3 };
+        int [] y = { y0, y1, y2, y3 };
+        g.fillPolygon(x,y,4);
+    }
+    
+    /**
+     * 
+     * @param g
+     * @param x0
+     * @param y0
+     * @param x1
+     * @param y1
+     * @param thickness
+     */
+    public static void drawLine(Graphics g, int x0, int y0, int x1, int y1, int thickness) {
+        if (thickness < 2) {
+            g.drawLine(x0, y0, x1, y1);
+        } else {
+            drawThickLine(g, x0, y0, x1, y1, thickness);
+        }       
+    }
+    
+    public static void drawLinef(Graphics g, float x0, float y0, float x1, float y1, int thickness) {
+        int ix0 = Math.round(x0);
+        int iy0 = Math.round(y0);
+        int ix1 = Math.round(x1);
+        int iy1 = Math.round(y1);
+        
+        drawLine(g, ix0, iy0, ix1, iy1, thickness);
+    }
+    
+    public static void drawDiskf(Graphics g, float cx, float cy, float radius) {
+        int x0 = Math.round(cx-radius);
+        int y0 = Math.round(cy-radius);
+        int r =  Math.round(radius*2);
+        g.fillOval(x0,y0,r,r);
+    }
+    
+    private static void drawThickLine(Graphics g, int x1, int y1, int x2, int y2, int thickness) {
+        int dX = x2 - x1;
+        int dY = y2 - y1;
+        // line length
+        double lineLength = Math.sqrt(dX * dX + dY * dY);
+
+        double scale = (double)(thickness) / (2 * lineLength);
+
+        // The x,y increments from an endpoint needed to create a rectangle...
+        double ddx = -scale * (double)dY;
+        double ddy = scale * (double)dX;
+        ddx += (ddx > 0) ? 0.5 : -0.5;
+        ddy += (ddy > 0) ? 0.5 : -0.5;
+        int dx = (int)Math.round(ddx);
+        int dy = (int)Math.round(ddy);
+
+        // Now we can compute the corner points...
+        int xPoints[] = new int[4];
+        int yPoints[] = new int[4];
+
+        xPoints[0] = x1 + dx; yPoints[0] = y1 + dy;
+        xPoints[1] = x1 - dx; yPoints[1] = y1 - dy;
+        xPoints[2] = x2 - dx; yPoints[2] = y2 - dy;
+        xPoints[3] = x2 + dx; yPoints[3] = y2 + dy;
+
+        g.fillPolygon(xPoints, yPoints, 4);     
+    }
+
+    /**
+     * 
+     * @param g
+     * @param points
+     * @param thickness
+     */
+    public static void drawLineStrip(Graphics g, int [] x_pts, int [] y_pts, int thickness) {
+        assert(x_pts.length == y_pts.length);
+        for (int i=0; i<x_pts.length-1; i++) {
+            drawLine(g, x_pts[i], y_pts[i], x_pts[i+1], y_pts[i+1], thickness);
+        }
+    }
+    
+    /**
+     * 
+     * @param g
+     * @param x
+     * @param y
+     * @param r
+     */
+    public static void fillCircle(Graphics g, int x, int y, int r) {
+        int r2 = r>>1;
+        g.fillOval(x-r2, y-r2, r, r);
+    }
+
+    /**
+     * 
+     * @param g
+     * @param x0
+     * @param y0
+     * @param x1
+     * @param y1
+     * @param thickness
+     * @param borderColor
+     */
+    public static void drawBorderedLine(Graphics g, int x0, int y0, int x1, int y1, int thickness, Color borderColor) {
+        Color curColor = g.getColor();
+        g.setColor(borderColor);
+        drawLine(g,x0,y0,x1,y1,thickness);
+        g.setColor(curColor);
+        drawLine(g,x0,y0,x1,y1,thickness-1);
+    }
+
+    /**
+     * 
+     * @param g
+     * @param x
+     * @param y
+     * @param w
+     * @param h
+     * @param thickness
+     */
+    public static void drawQuad(Graphics g, int x, int y, int w, int h, int thickness) {
+        drawLine(g, x, y, x+w, y, thickness);
+        drawLine(g, x+w, y, x+w, y+h, thickness);
+        drawLine(g, x, y+h, x+w, y+h, thickness);
+        drawLine(g, x, y, x, y+h, thickness);
+    }
+    
+    /**
+     * 
+     * @param g
+     * @param x
+     * @param y
+     * @param w
+     * @param h
+     * @param thickness
+     */
+    public static void drawRect(Graphics g, int x, int y, int w, int h, int thickness) {
+        if (thickness > 1) {
+            drawLine(g, x+0, y+0, x+w, y+0, thickness);
+            drawLine(g, x+0, y+0, x+0, y+h, thickness);
+            drawLine(g, x+w, y+0, x+w, y+h, thickness);
+            drawLine(g, x+0, y+h, x+w, y+h, thickness);
+        } else {
+            g.drawRect(x, y, w, h);
+        }
+    }
+
+    /**
+     * 
+     * @param color
+     * @return
+     */
+    public static int colorToInt(Color color) {
+        int a = color.getAlpha();
+        int r = color.getRed();
+        int g = color.getGreen();
+        int b = color.getBlue();
+        int d = (a << 24) | (r << 16) | (g << 8) | (b << 0);
+        return d;
+    }
+    
+    /**
+     * 
+     * @param c
+     * @return
+     */
+    public static Color intToColor(int c) {
+        int a = (c&0xff000000)>>24;
+        int r = (c&0x00ff0000)>>16;
+        int g = (c&0x0000ff00)>>8;
+        int b = (c&0x000000ff)>>0;
+        return new Color(r,g,b,a);
+    }
+
+    /**
+     * 
+     * @param color
+     * @param i
+     * @return
+     */
+    public static Color setAlpha(Color color, int i) {
+        return new Color(color.getRed(), color.getGreen(), color.getBlue(), i);
+    }
+
+    /**
+     * 
+     * @param color
+     * @param amount
+     * @return
+     */
+    public static Color darken(Color color, float amount) {
+        int R = Math.round(amount * color.getRed());
+        int G = Math.round(amount * color.getGreen());
+        int B = Math.round(amount * color.getBlue());
+        R = (int)Utils.clamp(color.getRed() - R, 0, 255);
+        G = (int)Utils.clamp(color.getGreen() - G, 0, 255);
+        B = (int)Utils.clamp(color.getBlue() - B, 0, 255);
+        return new Color(R,G,B,color.getAlpha());       
+    }
+
+    /**
+     * 
+     * @param color
+     * @param amount
+     * @return
+     */
+    public static Color lighten(Color color, float amount) {
+        int R = Math.round(amount * color.getRed());
+        int G = Math.round(amount * color.getGreen());
+        int B = Math.round(amount * color.getBlue());
+        R = Utils.clamp(color.getRed() + R, 0, 255);
+        G = Utils.clamp(color.getGreen() + G, 0, 255);
+        B = Utils.clamp(color.getBlue() + B, 0, 255);
+        return new Color(R,G,B,color.getAlpha());       
+    }
+    
+    /**
+     * Return a when aWeight == 1.0
+     * Return b when aWeight == 0.0
+     * @param a
+     * @param b
+     * @param aWeight
+     * @return
+     */
+    public static Color interpolate(Color a, Color b, float aWeight) {
+        if (aWeight > 0.99)
+            return a;
+        if (aWeight < 0.01)
+            return b;
+        float bWeight = 1.0f - aWeight;
+        int newAlpha = Math.round(aWeight * a.getAlpha() + bWeight * b.getAlpha());
+        int newRed   = Math.round(aWeight * a.getRed() + bWeight * b.getRed());
+        int newGreen = Math.round(aWeight * a.getGreen() + bWeight * b.getGreen());
+        int newBlue  = Math.round(aWeight * a.getBlue() + bWeight * b.getBlue());
+        return new Color(newRed,  newGreen, newBlue, newAlpha);
+    }    
+    
+    /**
+     * 
+     * @param line
+     * @return
+     */
+    public static Color stringToColor(String line) {
+		String [] parts = line.split(",");
+		return new Color(Integer.parseInt(parts[0]),
+						 Integer.parseInt(parts[1]), 
+						 Integer.parseInt(parts[2]));
+	}
+
+    /**
+     * 
+     * @param color
+     * @return
+     */
+	public static String colorToString(Color color) {
+	    return String.valueOf(color.getRed()) + "," + String.valueOf(color.getGreen()) + "," + String.valueOf(color.getBlue());
+	}
+}
