@@ -1,0 +1,45 @@
+black=marcos.game.stackmate.core.StackMatePlayerAI {
+   color=BLACK
+}
+red=marcos.game.stackmate.swing.StackMatePlayerSwingUser {
+   color=RED
+}
+redTurn=false
+sourceStack=-1
+stacks=cc.lib.crypt.BitVector 6
+   cc.lib.crypt.BitVector {
+   begin=0
+   buffer=int 32
+      83 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+   len=7
+   }
+   cc.lib.crypt.BitVector {
+   begin=0
+   buffer=int 32
+      35 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+   len=6
+   }
+   cc.lib.crypt.BitVector {
+   begin=0
+   buffer=int 32
+      3 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+   len=1
+   }
+   cc.lib.crypt.BitVector {
+   begin=0
+   buffer=int 32
+      12 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+   len=3
+   }
+   cc.lib.crypt.BitVector {
+   begin=0
+   buffer=int 32
+      12 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+   len=3
+   }
+   cc.lib.crypt.BitVector {
+   begin=0
+   buffer=int 32
+      12 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+   len=4
+   }
