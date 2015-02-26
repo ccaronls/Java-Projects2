@@ -1,0 +1,557 @@
+/* CSS Document */
+
+/*
+body {margin:0px;background-color:#fff;font-family:Arial, Helvetica, sans-serif;font-size:11px;color:#000;}
+img {border:none;}
+table {border:0px;}
+select {display:inline;font-size:11px;}
+textarea {font-size:11px;margin-left:0px;padding:0px;}
+form {margin-top:0px;margin-bottom:0px;}
+fieldset {border:0 solid #ccc;}
+legend {border-bottom:1px solid #000;font-family:Arial, Helvetica, sans-serif;font-size:14px;line-height:24px;font-weight:bold;color:#000;padding-top:20px;width:100%;}
+label {font-family: Arial, Helvetica, sans-serif;font-size: 11px;font-weight: bold;color: #000;text-align:right;}
+caption {text-align:left;}
+th {text-align:left;}
+*/
+
+input {font-size:11px;line-height:15px;}
+
+
+/* Tag Styles */
+html, body{
+background-color:#B9B9B9;
+text-align:center;
+font-family:Verdana, Arial, Helvetica, sans-serif;
+font-size:80%;
+color:#234;
+}
+
+a:link, a:visited {
+color:#455;
+text-decoration:none;
+font:80% Verdana, Arial, Helvetica, sans-serif;
+font-weight:bold;
+background-color:inherit;
+}
+a:hover, a:active {
+text-decoration:underline;
+color:#9AA;
+font-weight:bold;
+background-color:inherit;
+}
+
+p{
+font-family:Verdana, Arial, Helvetica, sans-serif;
+color:#234;
+font-size:80%;
+background-color:inherit;
+}
+
+a img{border:none;}
+
+img.left,img.center,img.right{padding:3px; border:none;}
+img.left{float:left; margin:0 10px 5px 0;}
+img.center{display:block; margin:0 auto 5px auto;}
+img.right{float:right; margin:0 0 5px 10px;}
+
+/* Page Styles */
+#container{
+border:2px solid #a0a0a0;
+background-color:#FFFFFF;
+padding:0px;
+margin:20px auto;
+width:95%;
+text-align:left;
+color:#234;
+}
+
+/* Header and Footer Styles */
+#header{
+/*background-color:#ABC;*/
+background-image:url(../images/headerGrad.png ); 
+/*background-image:url(../images/head); */
+background-repeat:repeat-x;
+padding:10px;
+margin:10px;
+height:auto;
+width:auto;
+color:#123;
+}
+
+#header h1 a{
+/*color:#456;   */
+color:#F60;   
+font-family:"Courier New", Courier, monospace;
+font-weight:bolder;
+font-size:100%;
+background-color:inherit;}
+
+#header h1{                
+color:#456;
+font-family:"Courier New", Courier, monospace;
+font-weight:bolder;
+padding:5px 0px 0px 20px;
+letter-spacing:1px;
+font-size:225%;
+background-color:inherit;
+}
+
+#header h2{
+color:#678;
+font-family:"Courier New", Courier, monospace;
+font-weight:bold;
+padding:0px 0px 0px 40px;
+letter-spacing:1px;
+font-size:167%;
+background-color:inherit;
+}
+
+#header #nav{
+text-align:right;
+padding-right:10px;
+}
+
+#logoutbar {
+float:right;
+align:right;
+font-size:150% !important;
+}
+
+#logoutbar a{
+color:#123;
+padding-left:4px;
+padding-right:4px;
+width:auto;
+border-left:thin solid #ABC;
+border-right:solid thin #ABC;
+font-family:"Courier New", Courier, monospace;
+font-weight:bold;
+text-decoration:none;
+background-color:inherit;
+margin:20px;
+}
+
+#logoutbar a:hover, #logoutbar a:active{
+color:#123; 
+background-color:inherit; 
+border-left:thin solid #F60; 
+border-right:solid thin #F60;
+}
+
+#header #nav a.selected{
+text-decoration:none; 
+border-left:thin #F60 solid; 
+border-right:solid thin #F60;
+}
+
+#footer{
+clear:both;
+text-align:center;
+width:auto;
+height:auto;
+padding:3px;
+margin:10px;
+/*background-color:#89A;*/
+background-image:url(../images/footGrad.png ); 
+/*background-image:url(../images/foot);*/
+background-repeat:repeat-x;
+color:#9AA;
+}
+
+#footer p{
+font:100% Verdana, Arial, Helvetica, sans-serif;
+color:#9AA;
+letter-spacing:-1px;
+background-color:inherit;
+}
+
+#footer a{
+font:100% Verdana, Arial, Helvetica, sans-serif;
+color:#787879;
+letter-spacing:-1px;
+text-decoration:none;
+background-color:inherit;
+}
+
+#footer a:hover, #footer a:active{
+text-decoration:underline; 
+color:#024; 
+background-color:inherit;
+}
+
+/* Content Style */
+#content{
+float:left;
+width:90%;
+height:auto;
+padding:0px 4px 4px 4px;
+margin-top:10px;
+margin-bottom:10px;
+margin-left:10px;
+margin-right:0;
+font-family:Verdana, Arial, Helvetica, sans-serif;
+color:#234;
+background-color:inherit;
+}
+
+#content h2{
+font-family:"Courier New", Courier, monospace;
+color:#567;
+background-color:inherit;
+font-weight:bold;
+font-size:150%;
+padding:0px 2px 3px 2px;
+line-height:3px;
+}
+
+#content h3{
+font-family:"Courier New", Courier, monospace;
+color:#567;
+background-color:inherit;
+font-weight:bold;
+font-size:175%;
+padding:0px 2px 3px 2px;
+line-height:3px;
+}
+
+#content h4{
+font-family:"Courier New", Courier, monospace;
+color:#567;
+background-color:inherit;
+font-weight:bold;
+font-size:130%;
+padding:0px 2px 3px 2px;
+line-height:3px;
+}
+
+#content h5{
+font-family:"Courier New", Courier, monospace;
+color:#567;
+background-color:inherit;
+font-weight:bold;
+font-size:110%;
+padding:0px 2px 3px 2px;
+line-height:2px;
+}
+
+#content p{
+color:#234;
+background-color:inherit;
+font-family:Verdana, Arial, Helvetica, sans-serif;
+font-size:112% !important;
+text-indent:6px;
+padding-left:10px;
+line-height:15px;
+}
+
+#content a{
+color:#567;
+background-color:inherit;
+font-family:Verdana, Arial, Helvetica, sans-serif;
+font-size:103%;
+font-weight:bold;
+line-height:15px;
+text-decoration:none;
+}
+
+#content #messages{
+color:#234;
+/*background-color: #EFEFEF;*/
+text-align:center;
+background-color:inherit;
+font-family:Verdana, Arial, Helvetica, sans-serif;
+font-size:112% !important;
+font-weight:bold;
+/*
+font-size:110%;
+*/
+text-indent:6px;
+padding-left:10px;
+padding-right:10px;
+padding-top:2px;
+padding-bottom:10px;
+line-height:15px;
+}
+
+#content #errorMessage{
+text-align:center;
+color:#FF0000;
+background-color:inherit;
+font-size:120% !important;
+text-indent:10px;
+padding-left:10px;
+line-height:20px;
+}
+
+#content pre{
+color:#234;
+background-color:inherit;
+/*
+font-family:Verdana, Arial, Helvetica, sans-serif;
+*/
+font-size:112% !important;
+text-indent:6px;
+padding-left:10px;
+line-height:15px;
+}
+
+#content a:hover, #content a:active{
+text-decoration:underline; 
+color:#012; 
+background-color:inherit;
+}
+
+#content ul, #content ol{
+margin:0 5px 10px 20px;
+}
+
+#content dl{
+margin:0 5px 10px 20px; 
+font-size:115%;
+}
+
+#content dt{
+font-weight:bold; 
+margin-bottom:5px;
+}
+
+#content dd{
+margin:0 0 10px 15px;
+}
+
+/* sideMenu Style */
+#sideMenu{
+float:left;
+text-align:left;
+width:22%;
+height:auto;
+margin:10px;
+border-right:thin dotted #123;
+border-top:thin dotted #123;
+border-bottom:thin dotted #123;
+font-size: 100%;
+font-weight: normal;
+text-decoration: none;
+border-width: 0px 1px 0px 0px;
+padding: 20px 0px 10px 5px;
+border-color: #CCCCCC;
+border-style: solid;
+}
+
+/*#sideMenu a.menuLink{*/
+#sideMenu a{
+color:#568;
+border-width: 0px 1px 0px 5px;
+border-color: #DEDEDE;
+border-style: solid;
+display: block;
+padding:0px 0px 3px 5px;
+line-height:20px;
+background-color:inherit;
+padding-bottom:0px; padding-right:2px;
+border-bottom:#FFF dotted thin;
+border-right:#FFF dotted thin;
+font-family:Verdana, Arial, Helvetica, sans-serif;
+font-size:130%;
+font-weight:normal;
+text-decoration:none;
+}
+
+#sideMenu a:hover, #sideMenu a.selected{
+border-color: #FF9900;
+background-color: #EFEFEF;
+border-bottom:dotted thin #EFEFEF;
+border-right:thin dotted #F60;
+text-decoration:none;
+}
+
+.button{
+border:thin #012 solid;
+background-color:#FAFAFA;
+color:#234;
+font-family:Verdana, Arial, Helvetica, sans-serif;
+font-size:90%;
+padding:2px;
+text-decoration:none;
+}
+
+.button:hover{
+font-weight:bold;
+}
+
+/* MISC STYLES */
+.important{color:#F00; background-color:#FFF; font-weight:bold;}
+.bold{font-weight:bold;}
+.big{font-size:160%;}
+.small{font-size:75%;}
+.underline{text-decoration:underline;}
+.blink{text-decoration:blink;}
+.hide{display:none;}
+.center{text-align:center;}
+.right{text-align:right;}
+.clear{clear:both;}
+.fade{color:#456;}
+
+#box{
+background-color:#FCFCFC;
+color:#234;
+border:thin solid #012;
+width:auto;
+height:auto;
+margin:3px;
+padding:3px;
+}
+
+#sideinfo{
+/*
+border-right:thin dotted #123;
+border-top:thin dotted #123;
+border-bottom:thin dotted #123;
+*/
+float:left;
+font-size:120%;
+margin-left:40px;
+font-weight:bold;
+border-color: #CCCCCC;
+border-style: solid;
+padding: 20px; /* 0px 10px 5px;*/
+}
+
+/************************************************
+
+   List Style
+   There is a caption, a header row and alternate
+   colored rows following (row1, row2)
+   
+*************************************************/
+
+.form {
+float:right;
+width:70%;
+text-align:right;
+font-size: 11px;
+font-weight: bold;
+}
+
+#formfields {
+margin-right:100px;
+}
+
+.formbutton {
+font-weight: bold; 
+font-size: 9pt; 
+color: #fff; 
+font-family: Arial; 
+border: 1px solid #000; 
+background-color: #336699;
+}
+
+.listcaption {
+background-color:#336600;
+color:#fff;
+font-weight:bold;
+font-size:12px;
+padding:3px;
+text-align:left;
+padding:5px;
+}
+
+.listheader, .listheader a, th.listheader a {
+background-color:#690;
+color:#fff;
+font-size:11px;
+line-height:15px;
+padding:0px;
+font-weight:normal;
+white-space:nowrap;
+}
+
+.listrow1 {
+background-color:#ddd;
+color:#000;
+font-size:11px;
+padding:3px;
+}
+
+.listrow2 {
+background-color:#eee;
+color:#000;
+font-size:11px;
+padding:3px;
+}
+
+.listrow1 a {
+color: #fff;
+font-weight:thin;
+text-decoration:underline;
+}
+
+/* Pagination */
+
+#pagination-top {
+float:right;
+padding-top:5px;
+padding-bottom:2px;
+width:100%;
+}
+
+#pagination-bottom {
+float:right;
+padding-top:7px;
+padding-bottom:5px;
+width:100%;
+}
+.pagination {
+color:#000;
+text-align:right;
+padding-right:10px;
+}
+#pagination-top a, #pagination-bottom a{
+color:#7a0;
+text-decoration:underline;
+}
+
+#formlist {
+float:left;
+margin-top:20px;
+}
+
+.formtable{
+width:100%;
+border:0;
+cellspacing:1;
+cellpadding:3;
+summary:list;
+}
+
+.formtextinput{
+width:150px;
+}
+
+.formselect{
+width:150px;
+}
+
+.info{
+width:100%;
+align:center;
+float:top;
+text-align:left;
+font-size:120%;
+font-weight:bold;
+border-color: #CCCCCC;
+/*
+border-right: thin dotted #123;
+border-left: thin dotted #123;
+border-top: thin dotted #123;
+*/
+border-bottom: thin dotted #123;
+padding: 20px; /* 0px 10px 5px;*/
+}
+
+/*
+.info{
+align:left;
+border:0 solid #ccc;
+}
+*/

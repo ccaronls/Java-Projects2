@@ -1,0 +1,111 @@
+// franchise definition
+
+<franchises>
+   <franchise>
+      <id></id>
+      <name></name>
+      <description></description>
+      <tracker></tracker>
+      <positions>
+         <position>
+            <name></name>
+            <longname></longname>
+            <stats>
+               <stat>
+                  <name></name>
+                  <description></description>
+               <stat>
+               ...
+            </stats>
+         </position>
+         ...
+      </positions>
+      <players>
+         <player>
+            <id></id>
+            <fname></fname>
+            <lname></lname>
+            <info></info>
+            <status></status>
+            <playerpositions>
+            	<PlayerPosition>
+            		<positionid></positionid>
+            		<playerpositionstats>
+            			<PlayerStat>
+            				<name></name>
+            				<value></value>
+            			</PlayerStat>
+            		</playerpositionstats>
+            		...
+            	</PlayerPosition>
+            	...
+            </playerstats>
+            <positionids>
+               <id></id>
+               ...
+            <positionids>
+         </player>
+         ...
+      </players>
+		<leagues>
+		   <league>
+		      <id></id>
+		      <name></name>
+		      <userid></userid>
+		      <entryfee></entryfee>
+		      <maxplayers></maxplayers>
+		      <created></created>
+		      <draft></draft>
+		      <updated></updated>
+		      <ending></ending>
+		      <players>
+		         <LeaguePlayer>
+		            <playerid></playerid>
+		            <points></points>
+		         </LeaguePlayer>
+		         ...
+		      </players>
+		      <stats>
+		         <LeagueStat>
+		            <positionid></positionid>
+		            <name></name>
+		            <multiplier></multiplier>
+		         </LeagueStat>
+		         ...
+		      </stats>
+		      <teams>
+		         <team>
+		            <name></name>
+		            <userid></userid>
+		            <players>
+		               <TeamPlayer>
+		                  <playerid></playerid>
+		                  <rank></rank>
+		               </TeamPlayer>
+		               ...
+		            <players>
+		         </team>
+		         ...
+		      </teams>
+		   </league>
+		   ...
+		</leagues>
+   </franchise>
+   ...
+</franchises>
+
+// leagues definition
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,1650 @@
+board=marcos.games.hexes.core.Board {
+   edges=java.util.ArrayList {
+      marcos.games.hexes.core.Edge {
+            from=0
+            n=2
+            p=int 2
+               0 1 
+            to=1
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=0
+            n=2
+            p=int 2
+               0 3 
+            to=2
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=0
+            n=2
+            p=int 2
+               1 5 
+            to=3
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=0
+            n=2
+            p=int 2
+               3 12 
+            to=5
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=0
+            n=2
+            p=int 2
+               5 9 
+            to=7
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=0
+            n=2
+            p=int 2
+               9 12 
+            to=11
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=1
+            n=2
+            p=int 2
+               0 2 
+            to=2
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=1
+            n=2
+            p=int 2
+               1 4 
+            to=3
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=1
+            n=2
+            p=int 2
+               2 11 
+            to=4
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=1
+            n=2
+            p=int 2
+               4 7 
+            to=6
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=1
+            n=2
+            p=int 2
+               7 11 
+            to=9
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=2
+            n=2
+            p=int 2
+               2 10 
+            to=4
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=2
+            n=2
+            p=int 2
+               3 20 
+            to=5
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=2
+            n=2
+            p=int 2
+               10 23 
+            to=12
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=2
+            n=2
+            p=int 2
+               20 23 
+            to=19
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=3
+            n=2
+            p=int 2
+               4 6 
+            to=6
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=3
+            n=2
+            p=int 2
+               5 8 
+            to=7
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=3
+            n=2
+            p=int 2
+               6 15 
+            to=8
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=3
+            n=2
+            p=int 2
+               8 15 
+            to=10
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=4
+            n=2
+            p=int 2
+               11 18 
+            to=9
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=4
+            n=2
+            p=int 2
+               10 31 
+            to=12
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=4
+            n=2
+            p=int 2
+               18 27 
+            to=17
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=4
+            n=2
+            p=int 2
+               27 31 
+            to=23
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=5
+            n=2
+            p=int 2
+               12 19 
+            to=11
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=5
+            n=2
+            p=int 2
+               19 26 
+            to=18
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=5
+            n=2
+            p=int 2
+               20 24 
+            to=19
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=5
+            n=2
+            p=int 2
+               24 26 
+            to=21
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=6
+            n=2
+            p=int 2
+               6 14 
+            to=8
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=6
+            n=2
+            p=int 2
+               7 17 
+            to=9
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=6
+            n=2
+            p=int 2
+               14 21 
+            to=14
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=6
+            n=2
+            p=int 2
+               17 21 
+            to=16
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=7
+            n=2
+            p=int 2
+               8 16 
+            to=10
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=7
+            n=2
+            p=int 2
+               9 13 
+            to=11
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=7
+            n=1
+            p=int 2
+               13 0 
+            to=13
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=7
+            n=1
+            p=int 2
+               16 0 
+            to=15
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=8
+            n=2
+            p=int 2
+               15 34 
+            to=10
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=8
+            n=2
+            p=int 2
+               14 44 
+            to=14
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=8
+            n=1
+            p=int 2
+               34 0 
+            to=28
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=8
+            n=1
+            p=int 2
+               44 0 
+            to=35
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=9
+            n=2
+            p=int 2
+               17 22 
+            to=16
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=9
+            n=2
+            p=int 2
+               18 28 
+            to=17
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=9
+            n=2
+            p=int 2
+               22 28 
+            to=20
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=10
+            n=1
+            p=int 2
+               16 0 
+            to=15
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=10
+            n=1
+            p=int 2
+               34 0 
+            to=28
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=11
+            n=1
+            p=int 2
+               13 0 
+            to=13
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=11
+            n=2
+            p=int 2
+               19 39 
+            to=18
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=11
+            n=1
+            p=int 2
+               39 0 
+            to=32
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=12
+            n=2
+            p=int 2
+               23 37 
+            to=19
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=12
+            n=2
+            p=int 2
+               31 33 
+            to=23
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=12
+            n=1
+            p=int 2
+               33 0 
+            to=27
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=12
+            n=1
+            p=int 2
+               37 0 
+            to=30
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=14
+            n=2
+            p=int 2
+               21 32 
+            to=16
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=14
+            n=2
+            p=int 2
+               32 50 
+            to=26
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=14
+            n=1
+            p=int 2
+               44 0 
+            to=35
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=14
+            n=1
+            p=int 2
+               50 0 
+            to=40
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=16
+            n=2
+            p=int 2
+               22 38 
+            to=20
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=16
+            n=2
+            p=int 2
+               32 40 
+            to=26
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=16
+            n=2
+            p=int 2
+               38 40 
+            to=31
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=17
+            n=2
+            p=int 2
+               28 29 
+            to=20
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=17
+            n=2
+            p=int 2
+               27 30 
+            to=23
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=17
+            n=2
+            p=int 2
+               29 36 
+            to=24
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=17
+            n=2
+            p=int 2
+               30 36 
+            to=25
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=18
+            n=2
+            p=int 2
+               26 48 
+            to=21
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=18
+            n=1
+            p=int 2
+               39 0 
+            to=32
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=18
+            n=1
+            p=int 2
+               48 0 
+            to=38
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=19
+            n=2
+            p=int 2
+               24 25 
+            to=21
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=19
+            n=2
+            p=int 2
+               25 51 
+            to=22
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=19
+            n=2
+            p=int 2
+               37 51 
+            to=30
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=20
+            n=2
+            p=int 2
+               29 46 
+            to=24
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=20
+            n=2
+            p=int 2
+               38 41 
+            to=31
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=20
+            n=2
+            p=int 2
+               41 46 
+            to=33
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=21
+            n=2
+            p=int 2
+               25 52 
+            to=22
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=21
+            n=2
+            p=int 2
+               48 54 
+            to=38
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=21
+            n=2
+            p=int 2
+               52 54 
+            to=41
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=22
+            n=1
+            p=int 2
+               51 0 
+            to=30
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=22
+            n=2
+            p=int 2
+               52 53 
+            to=41
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=22
+            n=1
+            p=int 2
+               53 0 
+            to=42
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=23
+            n=2
+            p=int 2
+               30 35 
+            to=25
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=23
+            n=2
+            p=int 2
+               33 43 
+            to=27
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=23
+            n=2
+            p=int 2
+               35 43 
+            to=29
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=24
+            n=2
+            p=int 2
+               36 45 
+            to=25
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=24
+            n=1
+            p=int 2
+               46 0 
+            to=33
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=24
+            n=1
+            p=int 2
+               45 0 
+            to=36
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=25
+            n=2
+            p=int 2
+               35 42 
+            to=29
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=25
+            n=1
+            p=int 2
+               42 0 
+            to=34
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=25
+            n=1
+            p=int 2
+               45 0 
+            to=36
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=26
+            n=2
+            p=int 2
+               40 49 
+            to=31
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=26
+            n=1
+            p=int 2
+               49 0 
+            to=39
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=26
+            n=1
+            p=int 2
+               50 0 
+            to=40
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=27
+            n=1
+            p=int 2
+               43 0 
+            to=29
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=29
+            n=1
+            p=int 2
+               42 0 
+            to=34
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=31
+            n=2
+            p=int 2
+               41 47 
+            to=33
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=31
+            n=1
+            p=int 2
+               47 0 
+            to=37
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=31
+            n=1
+            p=int 2
+               49 0 
+            to=39
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=33
+            n=1
+            p=int 2
+               47 0 
+            to=37
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=38
+            n=1
+            p=int 2
+               54 0 
+            to=41
+         }
+      }
+      marcos.games.hexes.core.Edge {
+            from=41
+            n=1
+            p=int 2
+               53 0 
+            to=42
+         }
+      }
+   }
+   gen=marcos.games.hexes.core.IdGenerator {
+      counter=11
+      removed=java.util.LinkedList {
+      }
+   }
+   highlightX=304
+   highlightY=290
+   maxX=9
+   maxY=8
+   minX=-4
+   minY=-6
+   pieces=java.util.ArrayList {
+      marcos.games.hexes.core.Piece {
+            groupId=4
+            groupShape=DIAMOND
+            player=1
+            type=HEXAGON
+            v=int 3
+               0 1 2 
+         }
+      }
+      marcos.games.hexes.core.Piece {
+            groupId=3
+            groupShape=TRIANGLE
+            player=2
+            type=TRIANGLE
+            v=int 3
+               0 1 3 
+         }
+      }
+      marcos.games.hexes.core.Piece {
+            groupId=4
+            groupShape=DIAMOND
+            player=1
+            type=DIAMOND
+            v=int 3
+               2 4 1 
+         }
+      }
+      marcos.games.hexes.core.Piece {
+            groupId=8
+            groupShape=DIAMOND
+            player=2
+            type=DIAMOND
+            v=int 3
+               5 2 0 
+         }
+      }
+      marcos.games.hexes.core.Piece {
+            groupId=9
+            groupShape=DIAMOND
+            player=1
+            type=DIAMOND
+            v=int 3
+               3 6 1 
+         }
+      }
+      marcos.games.hexes.core.Piece {
+            groupId=3
+            groupShape=TRIANGLE
+            player=2
+            type=HEXAGON
+            v=int 3
+               7 3 0 
+         }
+      }
+      marcos.games.hexes.core.Piece {
+            groupId=9
+            groupShape=DIAMOND
+            player=1
+            type=HEXAGON
+            v=int 3
+               3 6 8 
+         }
+      }
+      marcos.games.hexes.core.Piece {
+            groupId=6
+            groupShape=DIAMOND
+            player=1
+            type=HEXAGON
+            v=int 3
+               1 9 6 
+         }
+      }
+      marcos.games.hexes.core.Piece {
+            groupId=3
+            groupShape=TRIANGLE
+            player=2
+            type=TRIANGLE
+            v=int 3
+               7 3 10 
+         }
+      }
+      marcos.games.hexes.core.Piece {
+            groupId=3
+            groupShape=TRIANGLE
+            player=2
+            type=TRIANGLE
+            v=int 3
+               11 0 7 
+         }
+      }
+      marcos.games.hexes.core.Piece {
+            groupId=0
+            groupShape=NONE
+            player=2
+            type=HEXAGON
+            v=int 3
+               2 4 12 
+         }
+      }
+      marcos.games.hexes.core.Piece {
+            groupId=0
+            groupShape=NONE
+            player=2
+            type=TRIANGLE
+            v=int 3
+               1 9 4 
+         }
+      }
+      marcos.games.hexes.core.Piece {
+            groupId=2
+            groupShape=DIAMOND
+            player=1
+            type=HEXAGON
+            v=int 3
+               11 0 5 
+         }
+      }
+      marcos.games.hexes.core.Piece {
+            groupId=0
+            groupShape=NONE
+            player=0
+            type=NONE
+            v=int 3
+               13 7 11 
+         }
+      }
+      marcos.games.hexes.core.Piece {
+            groupId=0
+            groupShape=NONE
+            player=2
+            type=DIAMOND
+            v=int 3
+               8 14 6 
+         }
+      }
+      marcos.games.hexes.core.Piece {
+            groupId=0
+            groupShape=NONE
+            player=1
+            type=DIAMOND
+            v=int 3
+               10 8 3 
+         }
+      }
+      marcos.games.hexes.core.Piece {
+            groupId=0
+            groupShape=NONE
+            player=0
+            type=NONE
+            v=int 3
+               15 10 7 
+         }
+      }
+      marcos.games.hexes.core.Piece {
+            groupId=6
+            groupShape=DIAMOND
+            player=1
+            type=TRIANGLE
+            v=int 3
+               6 16 9 
+         }
+      }
+      marcos.games.hexes.core.Piece {
+            groupId=7
+            groupShape=TRIANGLE
+            player=2
+            type=DIAMOND
+            v=int 3
+               4 17 9 
+         }
+      }
+      marcos.games.hexes.core.Piece {
+            groupId=2
+            groupShape=DIAMOND
+            player=1
+            type=DIAMOND
+            v=int 3
+               18 5 11 
+         }
+      }
+      marcos.games.hexes.core.Piece {
+            groupId=8
+            groupShape=DIAMOND
+            player=2
+            type=HEXAGON
+            v=int 3
+               5 2 19 
+         }
+      }
+      marcos.games.hexes.core.Piece {
+            groupId=5
+            groupShape=DIAMOND
+            player=1
+            type=HEXAGON
+            v=int 3
+               6 16 14 
+         }
+      }
+      marcos.games.hexes.core.Piece {
+            groupId=1
+            groupShape=TRIANGLE
+            player=2
+            type=DIAMOND
+            v=int 3
+               9 20 16 
+         }
+      }
+      marcos.games.hexes.core.Piece {
+            groupId=0
+            groupShape=NONE
+            player=1
+            type=DIAMOND
+            v=int 3
+               19 12 2 
+         }
+      }
+      marcos.games.hexes.core.Piece {
+            groupId=10
+            groupShape=DIAMOND
+            player=1
+            type=DIAMOND
+            v=int 3
+               21 19 5 
+         }
+      }
+      marcos.games.hexes.core.Piece {
+            groupId=0
+            groupShape=NONE
+            player=2
+            type=HEXAGON
+            v=int 3
+               21 19 22 
+         }
+      }
+      marcos.games.hexes.core.Piece {
+            groupId=10
+            groupShape=DIAMOND
+            player=1
+            type=TRIANGLE
+            v=int 3
+               18 5 21 
+         }
+      }
+      marcos.games.hexes.core.Piece {
+            groupId=7
+            groupShape=TRIANGLE
+            player=2
+            type=HEXAGON
+            v=int 3
+               4 17 23 
+         }
+      }
+      marcos.games.hexes.core.Piece {
+            groupId=0
+            groupShape=NONE
+            player=1
+            type=HEXAGON
+            v=int 3
+               9 20 17 
+         }
+      }
+      marcos.games.hexes.core.Piece {
+            groupId=0
+            groupShape=NONE
+            player=0
+            type=NONE
+            v=int 3
+               17 24 20 
+         }
+      }
+      marcos.games.hexes.core.Piece {
+            groupId=7
+            groupShape=TRIANGLE
+            player=2
+            type=DIAMOND
+            v=int 3
+               23 25 17 
+         }
+      }
+      marcos.games.hexes.core.Piece {
+            groupId=7
+            groupShape=TRIANGLE
+            player=2
+            type=TRIANGLE
+            v=int 3
+               12 23 4 
+         }
+      }
+      marcos.games.hexes.core.Piece {
+            groupId=5
+            groupShape=DIAMOND
+            player=1
+            type=TRIANGLE
+            v=int 3
+               14 26 16 
+         }
+      }
+      marcos.games.hexes.core.Piece {
+            groupId=0
+            groupShape=NONE
+            player=0
+            type=NONE
+            v=int 3
+               12 23 27 
+         }
+      }
+      marcos.games.hexes.core.Piece {
+            groupId=0
+            groupShape=NONE
+            player=0
+            type=NONE
+            v=int 3
+               10 8 28 
+         }
+      }
+      marcos.games.hexes.core.Piece {
+            groupId=0
+            groupShape=NONE
+            player=1
+            type=TRIANGLE
+            v=int 3
+               23 25 29 
+         }
+      }
+      marcos.games.hexes.core.Piece {
+            groupId=0
+            groupShape=NONE
+            player=1
+            type=TRIANGLE
+            v=int 3
+               17 24 25 
+         }
+      }
+      marcos.games.hexes.core.Piece {
+            groupId=0
+            groupShape=NONE
+            player=0
+            type=NONE
+            v=int 3
+               19 12 30 
+         }
+      }
+      marcos.games.hexes.core.Piece {
+            groupId=1
+            groupShape=TRIANGLE
+            player=2
+            type=HEXAGON
+            v=int 3
+               16 31 20 
+         }
+      }
+      marcos.games.hexes.core.Piece {
+            groupId=0
+            groupShape=NONE
+            player=0
+            type=NONE
+            v=int 3
+               32 11 18 
+         }
+      }
+      marcos.games.hexes.core.Piece {
+            groupId=1
+            groupShape=TRIANGLE
+            player=2
+            type=DIAMOND
+            v=int 3
+               16 31 26 
+         }
+      }
+      marcos.games.hexes.core.Piece {
+            groupId=1
+            groupShape=TRIANGLE
+            player=2
+            type=TRIANGLE
+            v=int 3
+               20 33 31 
+         }
+      }
+      marcos.games.hexes.core.Piece {
+            groupId=0
+            groupShape=NONE
+            player=0
+            type=NONE
+            v=int 3
+               29 34 25 
+         }
+      }
+      marcos.games.hexes.core.Piece {
+            groupId=0
+            groupShape=NONE
+            player=0
+            type=NONE
+            v=int 3
+               27 29 23 
+         }
+      }
+      marcos.games.hexes.core.Piece {
+            groupId=0
+            groupShape=NONE
+            player=0
+            type=NONE
+            v=int 3
+               8 14 35 
+         }
+      }
+      marcos.games.hexes.core.Piece {
+            groupId=0
+            groupShape=NONE
+            player=0
+            type=NONE
+            v=int 3
+               25 36 24 
+         }
+      }
+      marcos.games.hexes.core.Piece {
+            groupId=0
+            groupShape=NONE
+            player=0
+            type=NONE
+            v=int 3
+               20 33 24 
+         }
+      }
+      marcos.games.hexes.core.Piece {
+            groupId=0
+            groupShape=NONE
+            player=0
+            type=NONE
+            v=int 3
+               31 37 33 
+         }
+      }
+      marcos.games.hexes.core.Piece {
+            groupId=0
+            groupShape=NONE
+            player=0
+            type=NONE
+            v=int 3
+               38 21 18 
+         }
+      }
+      marcos.games.hexes.core.Piece {
+            groupId=0
+            groupShape=NONE
+            player=0
+            type=NONE
+            v=int 3
+               26 39 31 
+         }
+      }
+      marcos.games.hexes.core.Piece {
+            groupId=0
+            groupShape=NONE
+            player=0
+            type=NONE
+            v=int 3
+               14 26 40 
+         }
+      }
+      marcos.games.hexes.core.Piece {
+            groupId=0
+            groupShape=NONE
+            player=0
+            type=NONE
+            v=int 3
+               22 30 19 
+         }
+      }
+      marcos.games.hexes.core.Piece {
+            groupId=0
+            groupShape=NONE
+            player=1
+            type=TRIANGLE
+            v=int 3
+               41 22 21 
+         }
+      }
+      marcos.games.hexes.core.Piece {
+            groupId=0
+            groupShape=NONE
+            player=0
+            type=NONE
+            v=int 3
+               41 22 42 
+         }
+      }
+      marcos.games.hexes.core.Piece {
+            groupId=0
+            groupShape=NONE
+            player=0
+            type=NONE
+            v=int 3
+               38 21 41 
+         }
+      }
+   }
+   verts=java.util.ArrayList {
+      marcos.games.hexes.core.Vertex {
+            n=6
+            p=int 6
+               0 1 3 5 9 12 
+            x=0
+            y=0
+         }
+      }
+      marcos.games.hexes.core.Vertex {
+            n=6
+            p=int 6
+               0 1 2 4 7 11 
+            x=2
+            y=0
+         }
+      }
+      marcos.games.hexes.core.Vertex {
+            n=6
+            p=int 6
+               0 2 3 10 20 23 
+            x=1
+            y=2
+         }
+      }
+      marcos.games.hexes.core.Vertex {
+            n=6
+            p=int 6
+               1 4 5 6 8 15 
+            x=1
+            y=-2
+         }
+      }
+      marcos.games.hexes.core.Vertex {
+            n=6
+            p=int 6
+               2 10 11 18 27 31 
+            x=3
+            y=2
+         }
+      }
+      marcos.games.hexes.core.Vertex {
+            n=6
+            p=int 6
+               3 12 19 20 24 26 
+            x=-1
+            y=2
+         }
+      }
+      marcos.games.hexes.core.Vertex {
+            n=6
+            p=int 6
+               4 6 7 14 17 21 
+            x=3
+            y=-2
+         }
+      }
+      marcos.games.hexes.core.Vertex {
+            n=5
+            p=int 6
+               5 8 9 13 16 0 
+            x=-1
+            y=-2
+         }
+      }
+      marcos.games.hexes.core.Vertex {
+            n=5
+            p=int 6
+               6 14 15 34 44 0 
+            x=2
+            y=-4
+         }
+      }
+      marcos.games.hexes.core.Vertex {
+            n=6
+            p=int 6
+               7 11 17 18 22 28 
+            x=4
+            y=0
+         }
+      }
+      marcos.games.hexes.core.Vertex {
+            n=4
+            p=int 6
+               8 15 16 34 0 0 
+            x=0
+            y=-4
+         }
+      }
+      marcos.games.hexes.core.Vertex {
+            n=5
+            p=int 6
+               9 12 13 19 39 0 
+            x=-2
+            y=0
+         }
+      }
+      marcos.games.hexes.core.Vertex {
+            n=5
+            p=int 6
+               10 23 31 33 37 0 
+            x=2
+            y=4
+         }
+      }
+      marcos.games.hexes.core.Vertex {
+            n=1
+            p=int 6
+               13 0 0 0 0 0 
+            x=-3
+            y=-2
+         }
+      }
+      marcos.games.hexes.core.Vertex {
+            n=5
+            p=int 6
+               14 21 32 44 50 0 
+            x=4
+            y=-4
+         }
+      }
+      marcos.games.hexes.core.Vertex {
+            n=1
+            p=int 6
+               16 0 0 0 0 0 
+            x=-2
+            y=-4
+         }
+      }
+      marcos.games.hexes.core.Vertex {
+            n=6
+            p=int 6
+               17 21 22 32 38 40 
+            x=5
+            y=-2
+         }
+      }
+      marcos.games.hexes.core.Vertex {
+            n=6
+            p=int 6
+               18 27 28 29 30 36 
+            x=5
+            y=2
+         }
+      }
+      marcos.games.hexes.core.Vertex {
+            n=4
+            p=int 6
+               19 26 39 48 0 0 
+            x=-3
+            y=2
+         }
+      }
+      marcos.games.hexes.core.Vertex {
+            n=6
+            p=int 6
+               20 23 24 25 37 51 
+            x=0
+            y=4
+         }
+      }
+      marcos.games.hexes.core.Vertex {
+            n=6
+            p=int 6
+               22 28 29 38 41 46 
+            x=6
+            y=0
+         }
+      }
+      marcos.games.hexes.core.Vertex {
+            n=6
+            p=int 6
+               24 25 26 48 52 54 
+            x=-2
+            y=4
+         }
+      }
+      marcos.games.hexes.core.Vertex {
+            n=4
+            p=int 6
+               25 51 52 53 0 0 
+            x=-1
+            y=6
+         }
+      }
+      marcos.games.hexes.core.Vertex {
+            n=6
+            p=int 6
+               27 30 31 33 35 43 
+            x=4
+            y=4
+         }
+      }
+      marcos.games.hexes.core.Vertex {
+            n=4
+            p=int 6
+               29 36 45 46 0 0 
+            x=7
+            y=2
+         }
+      }
+      marcos.games.hexes.core.Vertex {
+            n=5
+            p=int 6
+               30 35 36 42 45 0 
+            x=6
+            y=4
+         }
+      }
+      marcos.games.hexes.core.Vertex {
+            n=4
+            p=int 6
+               32 40 49 50 0 0 
+            x=6
+            y=-4
+         }
+      }
+      marcos.games.hexes.core.Vertex {
+            n=2
+            p=int 6
+               33 43 0 0 0 0 
+            x=3
+            y=6
+         }
+      }
+      marcos.games.hexes.core.Vertex {
+            n=1
+            p=int 6
+               34 0 0 0 0 0 
+            x=1
+            y=-6
+         }
+      }
+      marcos.games.hexes.core.Vertex {
+            n=3
+            p=int 6
+               35 42 43 0 0 0 
+            x=5
+            y=6
+         }
+      }
+      marcos.games.hexes.core.Vertex {
+            n=2
+            p=int 6
+               37 51 0 0 0 0 
+            x=1
+            y=6
+         }
+      }
+      marcos.games.hexes.core.Vertex {
+            n=5
+            p=int 6
+               38 40 41 47 49 0 
+            x=7
+            y=-2
+         }
+      }
+      marcos.games.hexes.core.Vertex {
+            n=1
+            p=int 6
+               39 0 0 0 0 0 
+            x=-4
+            y=0
+         }
+      }
+      marcos.games.hexes.core.Vertex {
+            n=3
+            p=int 6
+               41 46 47 0 0 0 
+            x=8
+            y=0
+         }
+      }
+      marcos.games.hexes.core.Vertex {
+            n=1
+            p=int 6
+               42 0 0 0 0 0 
+            x=7
+            y=6
+         }
+      }
+      marcos.games.hexes.core.Vertex {
+            n=1
+            p=int 6
+               44 0 0 0 0 0 
+            x=3
+            y=-6
+         }
+      }
+      marcos.games.hexes.core.Vertex {
+            n=1
+            p=int 6
+               45 0 0 0 0 0 
+            x=8
+            y=4
+         }
+      }
+      marcos.games.hexes.core.Vertex {
+            n=1
+            p=int 6
+               47 0 0 0 0 0 
+            x=9
+            y=-2
+         }
+      }
+      marcos.games.hexes.core.Vertex {
+            n=2
+            p=int 6
+               48 54 0 0 0 0 
+            x=-4
+            y=4
+         }
+      }
+      marcos.games.hexes.core.Vertex {
+            n=1
+            p=int 6
+               49 0 0 0 0 0 
+            x=8
+            y=-4
+         }
+      }
+      marcos.games.hexes.core.Vertex {
+            n=1
+            p=int 6
+               50 0 0 0 0 0 
+            x=5
+            y=-6
+         }
+      }
+      marcos.games.hexes.core.Vertex {
+            n=3
+            p=int 6
+               52 53 54 0 0 0 
+            x=-3
+            y=6
+         }
+      }
+      marcos.games.hexes.core.Vertex {
+            n=1
+            p=int 6
+               53 0 0 0 0 0 
+            x=-2
+            y=8
+         }
+      }
+   }
+}
+curPlayer=0
+numPlayers=2
+players=marcos.games.hexes.core.Player 4
+   marcos.games.hexes.core.Player {
+   pieces=int 4
+      0 0 0 0 
+   score=25
+   }
+   marcos.games.hexes.swing.SwingPlayer {
+   pieces=int 4
+      0 0 0 0 
+   score=50
+   }
+   null
+   null
+state=PLAYING

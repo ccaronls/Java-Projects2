@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+    <TextView
+        android:id="@+id/textView1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/mainheader"
+        android:textAppearance="?android:attr/textAppearanceLarge" 
+        android:layout_marginTop="100dp"/>
+
+    <Button
+        android:id="@+id/button1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/main_soc" 
+        android:onClick="playSOC"/>
+
+    <Button
+        android:id="@+id/Button01"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/main_robocraze" 
+        android:onClick="playRoboCrazy"/>
+<!-- 
+    <Button
+        android:id="@+id/Button02"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/main_robocraze_options" 
+        android:onClick="roboCrazyOptions"        
+        />
+ -->
+    <Button
+        android:id="@+id/Button03"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/playKaiser" 
+        android:onClick="playKaiser"        
+        />
+
+    <Button
+        android:id="@+id/Button04"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/playGolf" 
+        android:onClick="playGolf"        
+        />
+
+    <Button
+        android:id="@+id/Button02"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:onClick="playYahtzee"
+        android:text="@string/playYahtzee" />
+    
+    <Button
+        android:id="@+id/Button05"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/main_multiplayer" 
+        android:onClick="multiplayer"
+        />
+<!--  
+    <Button
+        android:id="@+id/Button04"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Datagram Test" 
+        android:onClick="datagramTest"
+        />
+-->
+</LinearLayout>

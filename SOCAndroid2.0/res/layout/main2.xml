@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+
+    <RelativeLayout
+        android:id="@+id/relativeLayout1"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginTop="50dp" >
+
+        <ImageButton
+            android:id="@+id/buttonSenators"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="bottom|center_vertical"
+            android:onClick="playSOC"
+            android:src="@drawable/robber" />
+
+        <ImageButton
+            android:id="@+id/buttonRobots"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true"
+            android:gravity="bottom|center_vertical"
+            android:onClick="playRoboCrazy"
+            android:src="@drawable/roboicon" />
+
+        <ImageButton
+            android:id="@+id/buttonKaiser"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBottom="@+id/buttonRobots"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentTop="true"
+            android:gravity="bottom|center_vertical"
+            android:onClick="playKaiser"
+            android:scaleType="centerInside"
+            android:src="@drawable/ace_clubs" />
+
+        <TextView
+            android:id="@+id/textView1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_alignRight="@+id/buttonSenators"
+            android:layout_below="@+id/buttonSenators"
+            android:gravity="center"
+            android:text="Senators" />
+
+        <TextView
+            android:id="@+id/TextView01"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignLeft="@+id/buttonRobots"
+            android:layout_alignRight="@+id/buttonRobots"
+            android:layout_below="@+id/buttonRobots"
+            android:gravity="center"
+            android:text="Robots" />
+
+        <TextView
+            android:id="@+id/TextView02"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignLeft="@+id/buttonKaiser"
+            android:layout_alignParentRight="true"
+            android:layout_below="@+id/buttonKaiser"
+            android:gravity="center"
+            android:text="Kaiser" />
+
+        <ImageButton
+            android:id="@+id/buttonYahtzee"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_alignRight="@+id/textView1"
+            android:layout_below="@+id/textView1"
+            android:adjustViewBounds="true"
+            android:gravity="bottom|center_vertical"
+            android:onClick="playYahtzee"
+            android:scaleType="centerInside"
+            android:src="@drawable/dice1" />
+
+        <ImageButton
+            android:id="@+id/buttonGolf"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBottom="@+id/buttonYahtzee"
+            android:layout_alignLeft="@+id/TextView01"
+            android:layout_alignRight="@+id/TextView01"
+            android:layout_below="@+id/TextView01"
+            android:gravity="bottom|center_vertical"
+            android:onClick="playGolf"
+            android:scaleType="centerInside"
+            android:src="@drawable/ace_clubs" />
+
+        <TextView
+            android:id="@+id/TextView05"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignLeft="@+id/buttonGolf"
+            android:layout_alignRight="@+id/TextView01"
+            android:layout_below="@+id/buttonGolf"
+            android:gravity="center"
+            android:text="Golf" />
+
+        <TextView
+            android:id="@+id/TextView03"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBaseline="@+id/TextView05"
+            android:layout_alignBottom="@+id/TextView05"
+            android:layout_alignParentLeft="true"
+            android:layout_alignRight="@+id/buttonYahtzee"
+            android:gravity="center"
+            android:text="Yahtzee" />
+
+    </RelativeLayout>
+
+</RelativeLayout>

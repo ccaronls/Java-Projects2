@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" 
+    android:id="@+id/roboLayout"
+    >
+    
+    <cc.game.android.robo.RoboView
+        android:id="@+id/roboView1"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_above="@+id/dPadRight"
+        android:layout_centerHorizontal="true"
+        android:layout_alignParentTop="true" />
+
+    <cc.lib.android.DPadView
+        android:id="@+id/dPadRight"
+        android:layout_height="100dp"
+        android:layout_width="100dp"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true"
+        android:src="@drawable/dpad" />
+
+    <cc.lib.android.DPadView
+        android:id="@+id/dPadLeft"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:src="@drawable/dpad" />
+    
+
+</RelativeLayout>

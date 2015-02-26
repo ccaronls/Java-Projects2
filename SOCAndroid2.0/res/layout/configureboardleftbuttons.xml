@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout 
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_height="match_parent" android:id="@+id/linearLayout1" android:layout_width="wrap_content" android:orientation="vertical">
+    <Button android:layout_height="wrap_content" android:layout_width="fill_parent" android:id="@+id/createNewBoard" android:text="@string/createNewBoard"></Button>
+    <Button android:layout_height="wrap_content" android:layout_width="fill_parent" android:id="@+id/loadDefaultBoard" android:text="@string/loadDefaultBoard"></Button>
+    <Button android:layout_height="wrap_content" android:layout_width="fill_parent" android:id="@+id/loadBoard" android:text="@string/loadBoard"></Button>
+    <Button android:layout_height="wrap_content" android:layout_width="fill_parent" android:id="@+id/saveAsNewBoard" android:text="@string/saveAsNewBoard"></Button>
+    <Button android:layout_height="wrap_content" android:layout_width="fill_parent" android:id="@+id/saveAsDefault" android:text="@string/saveAsDefaultBoard" ></Button>
+    <Button android:layout_height="wrap_content" android:layout_width="fill_parent" android:id="@+id/finalizeBoard" android:text="@string/finalizeBoard"></Button>
+
+    <Button
+        android:id="@+id/commitBoard"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/done" >
+</Button>
+</LinearLayout>

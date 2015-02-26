@@ -1,0 +1,2 @@
+-- example
+-- INSERT INTO FAN_USER_T (ID, USER_NAME, PASSWORD, ACCESS, ACTIVE) VALUES (0, 'ccaron', '1234', 'ADMIN', 'T');

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
+
+<!--
+===================================================================
+Application context definition for FantasyService.
+===================================================================
+-->
+
+<beans>         
+
+    <bean id="propertyConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="location">
+			<value>fantasy.properties</value>
+		</property>
+	</bean> 
+
+    <!-- 
+    ===================================================================
+    XML Service
+    =================================================================== 
+    -->    
+    <bean id="fantasyServiceXmlDao" class="cc.fantasy.xml.FantasyServiceXmlDB">
+        <constructor-arg index="0"><value>${fantasy.xml.db.dir}</value></constructor-arg>     
+    </bean>   
+
+</beans>

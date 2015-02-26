@@ -1,0 +1,9 @@
+package cc.game.football;
+
+public enum Strategy {
+	STRATEGY_RUN_PATTERN,
+	STRATEGY_BLOCK_RUSHER,
+	STRATEGY_DEF_MAN2MAN,
+	STRATEGY_DEF_ZONE,
+	STRATEGY_DEF_COVER_TWO,
+}

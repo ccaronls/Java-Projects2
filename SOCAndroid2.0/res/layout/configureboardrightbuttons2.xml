@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  android:layout_width="match_parent"
+  android:layout_height="match_parent">
+  	<ScrollView android:layout_width="match_parent" android:layout_height="fill_parent" android:clickable="true" android:isScrollContainer="true" android:paddingRight="10px">
+    <RadioGroup android:layout_width="wrap_content" android:layout_height="match_parent">
+        <RadioButton android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="true" android:text="@string/none" android:id="@+id/paintNone" android:textAppearance="@style/MyRadioButtonTextStyle"></RadioButton>
+        <RadioButton android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/paintWater" android:text="@string/water" android:textAppearance="@style/MyRadioButtonTextStyle"></RadioButton>
+        <RadioButton android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/paintRandomPort" android:text="@string/randomPort" android:textAppearance="@style/MyRadioButtonTextStyle"></RadioButton>
+        <RadioButton android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/paintRandomPortOrWater" android:text="@string/randomPortOrWater" android:textAppearance="@style/MyRadioButtonTextStyle"></RadioButton>
+        <RadioButton android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/paintRandomResource" android:text="@string/randomResource" android:textAppearance="@style/MyRadioButtonTextStyle"></RadioButton>
+        <RadioButton android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/paintRandomResourceOrDesert" android:text="@string/randomResourceOrDesert" android:textAppearance="@style/MyRadioButtonTextStyle"></RadioButton>
+        <RadioButton android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/paintWood" android:text="@string/wood" android:textAppearance="@style/MyRadioButtonTextStyle"></RadioButton>
+        <RadioButton android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/paintSheep" android:text="@string/sheep" android:textAppearance="@style/MyRadioButtonTextStyle"></RadioButton>
+        <RadioButton android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/paintOre" android:text="@string/ore" android:textAppearance="@style/MyRadioButtonTextStyle"></RadioButton>
+        <RadioButton android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/paintWheat" android:text="@string/wheat" android:textAppearance="@style/MyRadioButtonTextStyle"></RadioButton>
+        <RadioButton android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/paintBrick" android:text="@string/brick" android:textAppearance="@style/MyRadioButtonTextStyle"></RadioButton>
+        <RadioButton android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/paintDesert" android:text="@string/desert" android:textAppearance="@style/MyRadioButtonTextStyle"></RadioButton>
+    </RadioGroup>
+    </ScrollView>
+</LinearLayout>

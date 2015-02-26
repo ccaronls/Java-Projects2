@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+
+ <!DOCTYPE tiles-definitions PUBLIC
+       "-//Apache Software Foundation//DTD Tiles Configuration 1.1//EN"
+       "http://jakarta.apache.org/struts/dtds/tiles-config_1_1.dtd">
+
+<tiles-definitions>
+
+	<definition name=".template" path="/template.jsp"/>
+	
+	<!-- User -->
+	<definition name=".login" extends=".template">
+		<put name="sidemenu" value="/blank.jsp"/>
+		<put name="content" value="/login.jsp"/>
+		<put name="pageName" value="title.login"/>
+	</definition>
+
+	<definition name=".newuser" extends=".template">
+		<put name="sidemenu" value="/blank.jsp"/>
+		<put name="content" value="/useredit.jsp"/>
+		<put name="pageName" value="title.newuser"/>
+	</definition>
+
+	<definition name=".edituser" extends=".template">
+		<put name="sidemenu" value="/common/sidebar.jsp"/>
+		<put name="content" value="/useredit.jsp"/>
+		<put name="pageName" value="title.edituser"/>
+	</definition>
+
+	<definition name=".userslist" extends=".template">
+		<put name="sidemenu" value="/common/sidebar.jsp"/>
+		<put name="content" value="/userslist.jsp"/>
+		<put name="pageName" value="title.userslist"/>
+	</definition>
+
+	<!-- Franchise -->
+	<definition name=".franchiselist" extends=".template">
+		<put name="sidemenu" value="/common/sidebar.jsp"/>
+		<put name="content" value="/franchiselist.jsp"/>
+		<put name="pageName" value="title.franchiselist"/>
+	</definition>
+
+	<definition name=".newfranchise" extends=".template">
+		<put name="sidemenu" value="/common/sidebar.jsp"/>
+		<put name="content" value="/franchiseedit.jsp"/>
+		<put name="pageName" value="title.newfranchise"/>
+	</definition>
+
+	<definition name=".editfranchise" extends=".template">
+		<put name="sidemenu" value="/common/sidebar.jsp"/>
+		<put name="content" value="/franchiseedit.jsp"/>
+		<put name="pageName" value="title.editfranchise"/>
+	</definition>
+
+	<definition name=".franchiseimport" extends=".template">
+		<put name="sidemenu" value="/common/sidebar.jsp"/>
+		<put name="content" value="/franchiseimport.jsp"/>
+		<put name="pageName" value="title.franchiseimport"/>
+	</definition>
+
+	<!-- League -->
+    <definition name=".leaguelist" extends=".template">
+        <put name="sidemenu" value="/common/sidebar.jsp"/>
+        <put name="content" value="/leaguelist.jsp"/>
+        <put name="pageName" value="title.leaguelist"/>
+    </definition>
+
+    <definition name=".myleaguelist" extends=".template">
+        <put name="sidemenu" value="/common/sidebar.jsp"/>
+        <put name="content" value="/leaguelist.jsp"/>
+        <put name="pageName" value="title.myleaguelist"/>
+    </definition>
+
+    <definition name=".editleague" extends=".template">
+        <put name="sidemenu" value="/common/sidebar.jsp"/>
+        <put name="content" value="/leagueedit.jsp"/>
+        <put name="pageName" value="title.editleague"/>
+    </definition>
+
+    <definition name=".editleagueposition" extends=".template">
+        <put name="sidemenu" value="/common/sidebar.jsp"/>
+        <put name="content" value="/leaguepositionedit.jsp"/>
+        <put name="pageName" value="title.editleagueposition"/>
+    </definition>
+
+	<!-- Team -->
+    <definition name=".teamlist" extends=".template">
+        <put name="sidemenu" value="/common/sidebar.jsp"/>
+        <put name="content" value="/teamlist.jsp"/>
+        <put name="pageName" value="title.teamlist"/>
+    </definition>
+
+    <definition name=".myteamlist" extends=".template">
+        <put name="sidemenu" value="/common/sidebar.jsp"/>
+        <put name="content" value="/teamlist.jsp"/>
+        <put name="pageName" value="title.myteamlist"/>
+    </definition>
+
+    <definition name=".editteam" extends=".template">
+        <put name="sidemenu" value="/common/sidebar.jsp"/>
+        <put name="content" value="/teamedit.jsp"/>
+        <put name="pageName" value="title.editteam"/>
+    </definition>
+
+    <definition name=".editteamrank" extends=".template">
+        <put name="sidemenu" value="/common/sidebar.jsp"/>
+        <put name="content" value="/teamrankedit.jsp"/>
+        <put name="pageName" value="title.editteamrank"/>
+    </definition>
+
+    <definition name=".newteam" extends=".template">
+        <put name="sidemenu" value="/common/sidebar.jsp"/>
+        <put name="content" value="/teamedit.jsp"/>
+        <put name="pageName" value="title.newteam"/>
+    </definition>
+
+    <definition name=".teammonitor" extends=".template">
+        <put name="sidemenu" value="/common/sidebar.jsp"/>
+        <put name="content" value="/teammonitor.jsp"/>
+        <put name="pageName" value="title.newteam"/>
+    </definition>
+
+    <definition name=".joinleaguelist" extends=".template">
+        <put name="sidemenu" value="/common/sidebar.jsp"/>
+        <put name="content" value="/leaguejoin.jsp"/>
+        <put name="pageName" value="title.leaguejoin"/>
+    </definition>
+
+</tiles-definitions>

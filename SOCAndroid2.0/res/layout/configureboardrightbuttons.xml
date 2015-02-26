@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  android:layout_width="match_parent"
+  android:layout_height="match_parent">
+    <LinearLayout android:layout_height="match_parent" android:id="@+id/linearLayout2" android:layout_width="wrap_content" android:orientation="vertical">
+    	<ImageButton android:layout_height="wrap_content" android:id="@+id/waterImageButton" android:src="@drawable/water" android:layout_width="wrap_content"></ImageButton>
+    	<ImageButton android:layout_height="wrap_content" android:layout_width="wrap_content" android:id="@+id/desertImageButton" android:src="@drawable/desert"></ImageButton>
+    	<ImageButton android:layout_height="wrap_content" android:layout_width="wrap_content" android:id="@+id/woodImageButton" android:src="@drawable/wood"></ImageButton>
+    	<ImageButton android:layout_height="wrap_content" android:layout_width="wrap_content" android:id="@+id/wheatImageButton" android:src="@drawable/wheat"></ImageButton>
+    </LinearLayout>
+    <LinearLayout android:layout_height="match_parent" android:id="@+id/linearLayout2" android:layout_width="wrap_content" android:orientation="vertical">
+    	<ImageButton android:layout_height="wrap_content" android:layout_width="wrap_content" android:id="@+id/sheepImageButton" android:src="@drawable/sheep"></ImageButton>
+    	<ImageButton android:layout_height="wrap_content" android:layout_width="wrap_content" android:id="@+id/brickImageButton" android:src="@drawable/brick"></ImageButton>
+    	<ImageButton android:layout_height="wrap_content" android:layout_width="wrap_content" android:id="@+id/oreImageButton" android:src="@drawable/ore"></ImageButton>
+    </LinearLayout>  
+</LinearLayout>

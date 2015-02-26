@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<taglib xmlns="http://java.sun.com/xml/ns/j2ee"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-jsptaglibrary_2_0.xsd"
+    version="2.0">
+    
+  <description>Fantasy custom tags</description>
+  <display-name>Fantasy custom tags</display-name>
+  <tlib-version>1.0</tlib-version>
+  <short-name>f</short-name>
+  <uri></uri>
+
+  <tag>
+    <description>
+    Works the same as <a href="" except doesnt display the destination url for release builds
+    </description>
+    <name>href</name>
+    <tag-class>cc.fantasy.struts.tld.HrefTag</tag-class>
+    <body-content>JSP</body-content>
+    <attribute>
+        <description>
+The test condition that determines whether or
+not the body content should be processed.
+        </description>
+        <name>url</name>
+        <required>true</required>
+        <rtexprvalue>true</rtexprvalue>
+		<type>string</type>
+    </attribute>
+  </tag>
+  
+</taglib>

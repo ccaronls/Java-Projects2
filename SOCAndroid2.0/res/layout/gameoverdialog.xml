@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+ xmlns:android="http://schemas.android.com/apk/res/android"
+  android:layout_width="wrap_content"
+  android:layout_height="wrap_content"
+  android:minWidth="300px"
+  >
+	 <RelativeLayout
+	  xmlns:android="http://schemas.android.com/apk/res/android"
+	  android:id="@+id/dialogLayout" 
+	  android:layout_width="fill_parent"
+	  android:layout_height="fill_parent">
+	    <TextView android:id="@+id/textView1" android:text="@string/gameOverDialogMsg" android:textStyle="bold" android:layout_height="wrap_content" android:layout_centerInParent="true" android:layout_width="wrap_content" android:layout_alignParentTop="true" android:layout_marginTop="20px"></TextView>
+	    <Button android:layout_height="wrap_content" android:layout_alignParentBottom="true" android:layout_width="wrap_content" android:layout_centerInParent="true" android:text="@string/ok" android:id="@+id/ok_button"></Button>
+	    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="TextView" android:layout_above="@+id/ok_button" android:layout_marginBottom="20px" android:layout_centerInParent="true" android:id="@+id/dialogBodyText"></TextView>
+	</RelativeLayout>
+</LinearLayout>

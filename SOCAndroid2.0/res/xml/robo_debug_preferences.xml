@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" 
+    xmlns:cc="http://schemas.android.com/apk/res/cc.game.android"
+    >
+
+    <cc.game.android.PListPreference android:key="examplePreference"
+        android:title="Set Example" android:summary="Set Example"
+        cc:propertyEntries="exampleProperty"
+        android:defaultValue="unknown"/>
+        
+    <CheckBoxPreference android:key="showMazeInfo"
+        android:title="Show Maze Info" android:summary="show Maze Info"
+        android:defaultValue="false">
+    </CheckBoxPreference>
+    <CheckBoxPreference android:key="showPlayerInfo"
+        android:title="Show Player Info" android:summary="show Player Info"
+        android:defaultValue="false">
+    </CheckBoxPreference>
+        <CheckBoxPreference android:key="showEnemyInfo"
+        android:title="Show Enemy Info" android:summary="show Enemy Info"
+        android:defaultValue="false">
+    </CheckBoxPreference>
+        <CheckBoxPreference android:key="enableInvincible"
+        android:title="Enable Invincibiliy" android:summary="Enable Invincibility"
+        android:defaultValue="false">
+    </CheckBoxPreference>
+	<CheckBoxPreference android:key="enableGhost"
+        android:title="Enable Ghost" android:summary="Enable Ghost"
+        android:defaultValue="false">
+    </CheckBoxPreference>
+    <CheckBoxPreference android:key="enableBarrier"
+        android:title="Enable Barrier" android:summary="Enable Barrier"
+        android:defaultValue="false">
+    </CheckBoxPreference>
+    <CheckBoxPreference android:key="enableHulk"
+        android:title="Show Maze Info" android:summary="Enable Hulk"
+        android:defaultValue="false">
+    </CheckBoxPreference>
+            
+
+</PreferenceScreen>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  android:layout_width="match_parent"
+  android:layout_height="match_parent" android:orientation="vertical">
+    <Button android:text="@string/emptySlot" android:id="@+id/boardSlot1" android:layout_height="wrap_content" android:layout_width="fill_parent"></Button>
+    <Button android:text="@string/emptySlot" android:id="@+id/boardSlot2" android:layout_height="wrap_content" android:layout_width="fill_parent"></Button>
+    <Button android:text="@string/emptySlot" android:id="@+id/boardSlot3" android:layout_height="wrap_content" android:layout_width="fill_parent"></Button>
+    <Button android:text="@string/emptySlot" android:id="@+id/boardSlot4" android:layout_height="wrap_content" android:layout_width="fill_parent"></Button>
+    <Button android:text="@string/emptySlot" android:id="@+id/boardSlot5" android:layout_height="wrap_content" android:layout_width="fill_parent"></Button>
+    <Button android:text="@string/emptySlot" android:id="@+id/boardSlot6" android:layout_height="wrap_content" android:layout_width="fill_parent"></Button>
+</LinearLayout>

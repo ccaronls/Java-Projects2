@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="gen"/>
+	<classpathentry excluding="cc/game/android/wifi/" kind="src" path="src"/>
+	<classpathentry excluding="cc/game/soc/service/|cc/game/soc/netx/|cc/game/soc/nety/|cc/game/soc/swing/|cc/game/soc/applet/|cc/game/soc/ai/" kind="src" path="SOC"/>
+	<classpathentry kind="src" path="Golf"/>
+	<classpathentry kind="src" path="Kaiser"/>
+	<classpathentry kind="src" path="Yahtzee"/>
+	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/MyAndroidLibrary"/>
+	<classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.ANDROID_FRAMEWORK"/>
+	<classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.LIBRARIES"/>
+	<classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.DEPENDENCIES"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/MyLIbrary"/>
+	<classpathentry kind="output" path="bin/classes"/>
+</classpath>

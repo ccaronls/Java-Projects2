@@ -1,0 +1,10 @@
+Fantasy TODO List
+
+- Transition to hibernate JDBC
+- Make the app use the same DB as webapp, this will be easy when we ...
+- Consolodate configs between unit tests/webapp/and app, specifically:
+   - should be ONE fantasy-beans.xml
+   - remove fantasy-beans.properties.* instead use fantasy.properties for all proeprties
+- UNIT TESTS!!!!
+- Move strings used in multiple places to cc.fantasy.struts.util.Constants.java (success, error, user, ...)
+- Clean up all browser warnings / errors.

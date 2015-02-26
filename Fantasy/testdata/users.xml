@@ -1,0 +1,14 @@
+<users>
+  <User>
+    <id>0</id>
+    <firstName>a</firstName>
+    <lastName>b</lastName>
+    <email></email>
+    <userName>abcde</userName>
+    <passWord>1234</passWord>
+    <access>0</access>
+    <active>false</active>
+    <numTeams>0</numTeams>
+    <numLeagues>0</numLeagues>
+  </User>
+</users>

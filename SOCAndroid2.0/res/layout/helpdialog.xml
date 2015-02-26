@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView   xmlns:android="http://schemas.android.com/apk/res/android"
+  android:layout_width="match_parent"
+  android:layout_height="match_parent" >
+<LinearLayout
+  android:layout_width="match_parent"
+  android:layout_height="wrap_content" android:orientation="vertical">
+        <Button android:layout_width="fill_parent" android:id="@+id/helpWithTradesButton" android:layout_height="wrap_content" android:text="@string/helpwithTrades"></Button>
+        <Button android:layout_width="fill_parent" android:id="@+id/helpPointsButton" android:layout_height="wrap_content" android:text="@string/helpWithPoints"></Button>
+        <Button android:layout_width="fill_parent" android:id="@+id/helpWithResourcesButton" android:layout_height="wrap_content" android:text="@string/helpWithResources"></Button>
+        <Button android:layout_width="fill_parent" android:id="@+id/helpWithDevelopmentButton" android:layout_height="wrap_content" android:text="@string/helpWithDevelopment"></Button>
+        <Button android:layout_width="fill_parent" android:id="@+id/helpWithStructuresButton" android:layout_height="wrap_content" android:text="@string/helpWithStructures"></Button>
+        <Button android:layout_width="fill_parent" android:id="@+id/helpWithArmiesButton" android:layout_height="wrap_content" android:text="@string/helpWithArmies"></Button>
+        <Button android:layout_width="fill_parent" android:id="@+id/helpWithRoadsButton" android:layout_height="wrap_content" android:text="@string/helpwithRoads"></Button>
+</LinearLayout>
+</ScrollView>

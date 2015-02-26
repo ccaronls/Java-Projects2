@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="PListPreference">
+        <attr name="propertyEntries" format="string"/>
+	</declare-styleable>
+	
+    <declare-styleable name="BoardView">
+        <attr name="roadThickness" format="integer"/>
+        <attr name="textHeight" format="dimension"/>
+    </declare-styleable>
+</resources>  

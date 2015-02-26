@@ -1,0 +1,53 @@
+<users>
+  <User>
+    <userName>ccaron</userName>
+    <email>xyz</email>
+    <passWord>1234</passWord>
+    <id>0</id>
+    <access>ADMIN</access>
+    <active>true</active>
+    <lastLogin>2009-10-22 14:23:06.698 PDT</lastLogin>
+  </User>
+  <User>
+    <userName>awest</userName>
+    <firstName>adam</firstName>
+    <lastName>west</lastName>
+    <email></email>
+    <passWord>1234</passWord>
+    <id>1</id>
+    <access>LEAGUE</access>
+    <active>true</active>
+  </User>
+  <User>
+    <userName>guest</userName>
+    <firstName>abc</firstName>
+    <lastName>def</lastName>
+    <email></email>
+    <passWord>1234</passWord>
+    <id>2</id>
+    <access>LEAGUE</access>
+    <active>false</active>
+  </User>
+  <User>
+    <userName>playa</userName>
+    <firstName>bobby</firstName>
+    <lastName>magee</lastName>
+    <email></email>
+    <passWord>1234</passWord>
+    <id>3</id>
+    <access>TEAM</access>
+    <active>true</active>
+    <lastLogin>2009-09-28 08:35:56.125 PDT</lastLogin>
+  </User>
+  <User>
+    <userName>leaguemgr</userName>
+    <firstName>mr</firstName>
+    <lastName>magoo</lastName>
+    <email></email>
+    <passWord>1234</passWord>
+    <id>4</id>
+    <access>LEAGUE</access>
+    <active>true</active>
+    <lastLogin>2009-09-27 09:23:57.781 PDT</lastLogin>
+  </User>
+</users>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  android:layout_width="match_parent"
+  android:layout_height="match_parent"
+  android:orientation="vertical"
+  >
+
+    <Button android:text="@string/configureAccount" android:id="@+id/configureAccount" android:layout_height="wrap_content" android:layout_width="fill_parent" ></Button>
+    <Button android:text="@string/configureBoard" android:id="@+id/configureBoard" android:layout_height="wrap_content" android:layout_width="fill_parent" ></Button>
+    <Button android:text="@string/configureGame" android:id="@+id/configureGame" android:layout_height="wrap_content" android:layout_width="fill_parent" ></Button>
+
+</LinearLayout>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="src" path="test"/>
+	<classpathentry kind="src" path="testresources"/>
+	<classpathentry exported="true" kind="var" path="JUNIT_HOME/junit.jar" sourcepath="ECLIPSE_HOME/plugins/org.eclipse.jdt.source_3.1.1/src/org.junit_3.8.1/junitsrc.zip"/>
+	<classpathentry exported="true" kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="src" path="conf"/>
+	<classpathentry kind="src" path="hbm"/>
+	<classpathentry kind="output" path="build"/>
+</classpath>

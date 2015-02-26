@@ -1,0 +1,112 @@
+<?xml version="1.0"?>
+<!DOCTYPE web-app PUBLIC "-//Sun Microsystems, Inc.//DTD Web Application 2.2//EN" "http://java.sun.com/j2ee/dtds/web-app_2.2.dtd">
+<web-app>
+   <display-name>Fantasy</display-name>
+   <filter>
+      <filter-name>SessionFilter</filter-name>
+      <filter-class>cc.fantasy.struts.util.SessionFilter</filter-class>
+      <description></description>
+      <!-- These are the URI's that always passthrough -->
+      <init-param>
+         <param-name>LOGIN_URI</param-name>
+         <param-value>/login.do</param-value>
+      </init-param>
+      <init-param>
+         <param-name>REDIRECT_URI</param-name>
+         <param-value>/redirect.do</param-value>
+      </init-param>
+      <init-param>
+         <param-name>FORGET_PASSWORD_URI</param-name>
+         <param-value>/forgetPassword.do</param-value>
+      </init-param>
+      <init-param>
+         <param-name>NEW_USER_URI</param-name>
+         <param-value>/saveUser.do</param-value>
+      </init-param>
+      <init-param>
+         <param-name>GO_NEW_USER_URI</param-name>
+         <param-value>/newUser.do</param-value>
+      </init-param>
+   </filter>
+   
+   <filter-mapping>
+      <filter-name>SessionFilter</filter-name>
+      <url-pattern>*.do</url-pattern>
+   </filter-mapping>
+   
+   <!--
+   <listener>
+      <listener-class>cc.fantasy.struts.util.SessionListen</listener-class>
+   </listener>
+   -->
+   
+   <!-- Standard Action Servlet Configuration (with debugging) -->
+   <servlet>
+      <servlet-name>action</servlet-name>
+      <servlet-class>org.apache.struts.action.ActionServlet</servlet-class>
+      <init-param>
+         <param-name>config</param-name>
+         <param-value>/WEB-INF/struts-config.xml</param-value>
+      </init-param>
+      <init-param>
+         <param-name>debug</param-name>
+         <param-value>2</param-value>
+      </init-param>
+      <init-param>
+         <param-name>detail</param-name>
+         <param-value>2</param-value>
+      </init-param>
+      <!--
+      <init-param>
+         <param-name>log4j-init-file</param-name>
+         <param-value>WEB-INF/log4j.xml</param-value>
+      </init-param>
+      -->
+      <init-param>
+         <param-name>fantasy-init-file</param-name>
+         <param-value>WEB-INF/fantasy.properties</param-value>
+      </init-param>
+      <load-on-startup>2</load-on-startup>
+   </servlet>
+   
+   <!-- Standard Action Servlet Mapping -->
+   <servlet-mapping>
+      <servlet-name>action</servlet-name>
+      <url-pattern>*.do</url-pattern>
+   </servlet-mapping>
+   
+   <!-- The Usual Welcome File List -->
+   <welcome-file-list>
+      <welcome-file>index.jsp</welcome-file>
+   </welcome-file-list>
+   
+   <!-- Struts Tag Library Descriptors -->
+   <taglib>
+      <taglib-uri>/tags/struts-bean</taglib-uri>
+      <taglib-location>/tld/struts-bean.tld</taglib-location>
+   </taglib>
+   <taglib>
+      <taglib-uri>/tags/struts-html</taglib-uri>
+      <taglib-location>/tld/struts-html.tld</taglib-location>
+   </taglib>
+   <taglib>
+      <taglib-uri>/tags/struts-logic</taglib-uri>
+      <taglib-location>/tld/struts-logic.tld</taglib-location>
+   </taglib>
+   <taglib>
+      <taglib-uri>/tags/struts-nested</taglib-uri>
+      <taglib-location>/tld/struts-nested.tld</taglib-location>
+   </taglib>
+   <taglib>
+      <taglib-uri>/tags/struts-tiles</taglib-uri>
+      <taglib-location>/tld/struts-tiles.tld</taglib-location>
+   </taglib>
+   <taglib>
+      <taglib-uri>/tags/core</taglib-uri>
+      <taglib-location>/tld/c.tld</taglib-location>
+   </taglib>
+   <taglib>
+      <taglib-uri>/tags/fmt</taglib-uri>
+      <taglib-location>/tld/fmt.tld</taglib-location>
+   </taglib>
+</web-app>
