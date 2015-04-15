@@ -8,7 +8,6 @@ import cc.lib.android.BaseRenderer;
 import cc.lib.android.GL10Graphics;
 import cc.lib.android.SpringSlider;
 import cc.lib.android.SpringSlider.OnSliderChangedListener;
-import cc.lib.game.Utils;
 
 public class RocketManRenderer extends BaseRenderer implements OnClickListener, OnSliderChangedListener {
 
