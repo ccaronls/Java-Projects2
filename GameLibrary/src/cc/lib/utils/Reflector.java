@@ -434,10 +434,10 @@ public class Reflector<T> {
                 for (int i=0; i<len; i++) {
                     Collection<?> c = (Collection<?>)Array.get(arr, i);
                     if (c != null) {
-                        //out.println(indent + c.getClass().getCanonicalName() + " {");
+                        out.println(c.getClass().getCanonicalName() + " {");
                         serializeObject(c, out, true);
                         //o.serializeR(out, indent + INDENT);
-                        //out.println(indent + "}");
+                        //out.println("}");
                     }
                     else
                         out.println("null");
@@ -449,10 +449,12 @@ public class Reflector<T> {
         @Override
         public void deserializeArray(Object arr, BufferedReader in) throws Exception {
         	int len = Array.getLength(arr);
-    		String clazz = arr.getClass().getCanonicalName();
+    		//String clazz = arr.getClass().getCanonicalName();
     		// trim the [] off the end
-    		clazz = clazz.substring(0, clazz.length()-2);
+    		//clazz = clazz.substring(0, clazz.length()-2);
         	for (int i=0; i<len; i++) {
+        		String [] parts = readLineOrEOF(in).split(" ");
+        		String clazz = parts[0].trim();
         		Collection<?> c = (Collection<?>)Reflector.class.getClassLoader().loadClass(clazz).newInstance();
         		deserializeCollection(c, in);
         		Array.set(arr, i, c);

@@ -1510,6 +1510,10 @@ public class Utils {
 		}
 	}
 	
+	public static <T> T randItem(List<T> items) {
+		return items.get(rand() % items.size());
+	}
+	
 	/**
 	 * Return a random entry from an array
 	 * @param items
@@ -1549,7 +1553,7 @@ public class Utils {
         }
         return result;
     }
-
+	
 	//////////////////////////////////////////////////////////////////////////
     // PRIVATE STUFF /////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////

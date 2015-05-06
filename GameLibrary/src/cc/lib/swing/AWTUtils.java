@@ -6,6 +6,7 @@ import java.util.*;
 
 import cc.lib.game.Justify;
 import cc.lib.game.Utils;
+import cc.lib.utils.Reflector;
 
 public class AWTUtils {
     /**
@@ -781,4 +782,17 @@ public class AWTUtils {
 	public static String colorToString(Color color) {
 	    return String.valueOf(color.getRed()) + "," + String.valueOf(color.getGreen()) + "," + String.valueOf(color.getBlue());
 	}
+	
+	public static final Reflector.AArchiver COLOR_ARCHIVER = new Reflector.AArchiver() {
+		
+		@Override
+		public Object parse(String value) throws Exception {
+			return stringToColor(value);
+		}
+		
+		@Override
+		public String getStringValue(Object obj) {
+			return colorToString((Color)obj);
+		}
+	};
 }
