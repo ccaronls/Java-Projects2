@@ -1,0 +1,173 @@
+<text>
+   <ProgressCards>
+        <string name="Alchemist">
+        This is the only progress card you can play before you roll the dice.
+        It allows you to choose the results of both production dice. Then, roll the event die as normal and resolve the event.
+        When you play this card, take the red and yellow dice and turn them so the result you want is face up. 
+        You can even make the dice roll “7.” However, the event has to be resolved first. Then players receive their production as normal. You may not play this card after you roll the dice.
+        </string>
+        
+        <string name="Crane">
+        You can build a city improvement (abbey, town hall, etc.) for 1 commodity less than normal.
+        The Crane can only be used to reduce the cost of building one city improvement (turning over a page of your flip-chart). 
+        If you build a city, you must pay the normal resource costs. You may use a Crane to reduce the cost of a first-level improvement (to nothing). 
+        You may not combine 2 Crane cards for the same improvement.
+        </string>
+        
+        <string name="Engineer">
+        You may build one city wall for free.
+        Take a city wall and put it under one of your cities. 
+        A city wall increases the number of cards you can safely hold in your hand when a “7” is rolled, by 2 cards. 
+        Each city can only have 1 city wall, and you cannot have more than 3 city walls at a time.
+        </string>
+        
+        <string name="Inventor">
+        Switch two number tokens of your choice, but not 2, 12, 6, or 8.
+        You can improve your production! You may choose any two number tokens (except 2, 12 6 or 8) and switch their places
+        on the board. You do not have to have a settlement or city next to the hexes with the numbers you are swapping. 
+        If, for example, you choose a “9” and an “11”, take the “9” token and put it on the hex where the “11” token is. 
+        Take the “11” token and put it on the hex where the “9” token was. You can choose to exchange a token that is on the hex occupied by the robber.
+        </string>
+        
+        <string name="Irrigation">
+        Collect 2 grain cards for each fields hex adjacent to at least one of your settlements or cities.
+        You receive 2 grain cards for each fields hex next to any of your settlements and cities. Unlike normal production, cities do not increase this bonus.
+        Example: You have two cities next to a fields hex. You have a settlement next to a different field. If you play the Irrigation card, you will receive 4 grain cards.
+        </string>
+        
+        <string name="Medicine">
+        You may upgrade a settlement to a city for 2 ore and 1 grain.
+        When you play this card, you save 1 ore and 1 grain. You may not combine two of these cards for the same city.
+        </string>
+        
+        <string name="Mining">
+        Collect 2 ore cards for each mountains hex adjacent to at least one of your settlements or cities.
+        You receive 2 ore cards for each mountains hex next to any of your settlements and cities. Unlike normal production, cities do not increase this bonus.
+        Example: You have 2 settlements next to a mountains hex, and a city next to a different mountains hex. If you play the Mining card, you will receive 4 ore cards.
+        </string>
+        
+        <string name="Printer">
+        This card awards you 1 victory point.
+        You must play this card face
+        up in front of you immediately when you draw it, even if it is not your turn. You may not keep VP cards in your hand. It does not count toward your hand limit of 4 progress cards, and it may not be stolen by the Spy.
+        </string>
+        
+        <string name="RoadBuilding">
+        This card allows you to build 2 roads for free.
+        The roads you build do not have to be adjacent to each other. These roads cost you nothing to build. 
+        You must follow all the normal building rules. If you are also playing with the Seafarers expansion, you may build 2 roads, 1 road and 1 ship, or 2 ships when you play this card.
+        </string>
+        
+        <string name="Smith">
+        You may promote 2 of your knights 1 level each for free.
+        You may not promote “mighty” knights. You may promote a knight regardless
+        of whether he is active or inactive. The condition of the knight (active or inactive) does not change. 
+        You may only promote a “strong” knight (level 2) if you have built the “Fortress” city improvement (politics– blue). 
+        You may only promote a knight one level per turn.
+        </string>
+        
+        <string name="Bishop">
+        Move the robber, following the normal rules. Draw 1 random resource/commodity card from each player who has a settlement or city next to the robber’s new hex.
+        When you use this card to move the robber, you can steal 1 random card from each player who has a settlement or city
+        next to the hex that you move to, instead of stealing from only 1 player. If a player has more than 1 settlement or city there, you can still only steal one card from
+        that player.
+        </string>
+        
+        <string name="Constitution">
+        This card awards you 1 victory point. You must play this card face up in front of you immediately when you draw it, even if it is not your turn.
+        You may not keep Victory Point in your hand. It does not count toward your hand limit of
+        4 progress cards, and it may not be stolen by the Spy.
+        </string>
+        
+        <string name="Deserter">
+        Choose an opponent. He must remove 1 of his knights (his choice) from the board. You may then place 1 of your own knights, on the board. 
+        Its strength must equal to the knight removed (the normal rules for placing knights apply).
+        When you play this card, your opponent chooses which of his knights to remove from the board. If he chooses a knight that you do not have available 
+        (for example, if he removes a “strong” knight and both of your “strong” knights are already on the board), you may place a basic knight instead. 
+        If you cannot place any knights, your opponent must still remove one of his knights. You just lose the opportunity to place a knight for free. 
+        If your opponent removes a “mighty” knight, you may place one of your “mighty” knights even if you have not yet built the “Fortress” city improvement (politics—blue). 
+        The knight you place has the same status (active or inactive) as the knight your opponent removed.
+        </string>
+        
+        <string name="Diplomat">
+        You may remove an “open” road (without another road or other piece at one end). If you remove your own road, you may immediately place it somewhere else on the island 
+        (following all the normal building rules) for free.
+        An “open” road is a road at the beginning or end of a chain
+        of roads that does not have a knight, city, or settlement of the same color attached at one end. If you remove an opponent’s road, it returns to his supply. 
+        If you remove your own road, then you may place it immediately on the board, free of charge (following the normal building rules—connected to your own road or settlement/city). 
+        You may remove your own road and choose not to replace it.
+        </string>
+        
+        <string name="Intrigue">
+        You may displace an opponent’s knight. The knight must be on an intersection connected to at least one of your roads or shipping routes.
+        With this card you can displace an opponent’s knight without using a knight of your own. You can play this card even if you have no knights of your own. 
+        The displaced knight must be moved to an empty space. If he cannot, then remove him from the board (return it to its owner). 
+        After the knight is displaced, board), you may place a basic knight instead, following the normal rules.
+        </string>
+        
+        
+        <string name="Saboteur">
+        When you play this card, each player who has as many or more victory points than you must discard half (round down) of his cards to the bank (resource and/or commodity cards).
+        Your agents spread chaos in your opponents’ cities! Each of the other players who has at least as many victory points as you must discard half of his resource/ commodity cards. Each player chooses which of his cards
+        to discard.
+        </string>
+        
+        <string name="Spy">
+        Look at another player’s hand
+        of progress cards. You may choose 1 card to take and add to
+        your hand.
+        You may even steal another Spy and play it immediately or save it for later. Victory point cards cannot be stolen.
+        </string>
+        
+        <string name="Warlord">
+        You may activate all of your knights for free.
+        When you play this card, you can activate your knights without paying any grain. Remember that a knight may not perform any actions during the turn after he is activated, but you
+        can activate him after he has performed an action that turn.
+        </string>
+        
+        <string name="Wedding">
+        Each of your opponents who has more victory points than you must give you 2 resource/commodity cards of his choice.
+        If one of these players only has
+        1 card in his hand, he must
+        give you that card. If he has no cards, then he owes you nothing. Players with an equal number of points as you, or fewer, are not affected by this card.
+        </string>
+        
+        <string name="CommercialHarbor">
+        You may force each of the other players to make a special trade. You may offer each opponent any 1 resource card from your hand. He must exchange it for any 1 commodity card of his choice from his hand, if he has any.
+        You may use this ability at any point during the turn you play the card. However, you may only force each player to make this trade with you once that turn. Your opponent chooses which commodity card to give you if he has more than one. 
+        If you offer a resource to a player who has no commodity cards, then you take your card back and the trade is void. 
+        You do not have to give this player the resource card.
+        </string>
+        
+        <string name="MasterMerchant">
+        Choose another player who
+        has more victory points than you do. Look at the player’s hand of resource and commodity cards and choose 2 cards to take and add to your hand.
+        You can only play this card on an opponent who has more victory points than you. There is no defense against this “trade,” even if he only has 1 point more than you.
+        </string>
+        
+        <string name="Merchant">
+        Place the Merchant on any land hex next to 1 of your settlements or cities. You may exchange the resources produced by this type of hex with the supply at a 2:1 rate, as long as the merchant remains on that hex.
+        When you play this card, take the merchant and put him on any land hex next to one or more
+        of your settlements or cities. As long as the merchant remains here (under your control), you may trade the type of resource produced by this hex with the supply at a 2:1 rate (as is the case with a special harbor). 
+        As usual, you may also exchange these resources for commodities. If another player plays a merchant card, he takes control of the merchant and receives the trade advantage and the victory point. If you want to move the merchant to a different hex, you will have to play another merchant card. 
+        The robber does not affect the merchant. You also receive 1 victory point for as long as you control the merchant.
+        </string>
+        
+        <string name="MerchantFleet">
+        You may use one resource or commodity of your choice to make any number of 2:1 trades with the supply during the turn that you play this card.
+        For the rest of the turn, you may trade one resource or commodity of your choice at a 2:1 rate. You can make as many such trades as you wish. As usual, you may exchange commodities for resources and vice versa.
+        </string>
+        
+        <string name="ResourceMonopoly">
+        Name a resource. Each player must give you 2 of that type of resource if they have them.
+        You may name any of the resources (ore, grain, wool, lumber, or brick). Each player must give you 2 of the named resource if he has them. 
+        If a player only has 1 of that resource, he only gives you 1.
+        </string>
+        
+        <string name="TradeMonopoly">
+        Name a commodity. Each player must give you 1 commodity of that type if they have them.
+        You may name any of the
+        3 commodities (coin, paper,or cloth). Each player must give you 1 of the named commodity if he has them.
+        </string>
+     </ProgressCards>
+</text>
