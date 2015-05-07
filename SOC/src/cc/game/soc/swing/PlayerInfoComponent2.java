@@ -12,18 +12,10 @@ import cc.lib.game.Justify;
 import cc.lib.swing.AWTUtils;
 
 @SuppressWarnings("serial")
-public class PlayerInfoComponent2 extends JComponent {
+public class PlayerInfoComponent2 extends PlayerInfoComponent {
 
-    GUIPlayer player;
-    
     PlayerInfoComponent2(GUIPlayer player) {
-        super();
-        this.player = player;
-    }
-    
-    void setPlayer(GUIPlayer player) {
-        this.player = player;
-        repaint();
+        super(player);
     }
     
     private void drawCard(Graphics g, Color color, int x, int y, int w, int h, String txt) {
@@ -47,6 +39,7 @@ public class PlayerInfoComponent2 extends JComponent {
     
     @Override
     public void paint(Graphics g) {
+    	GUIPlayer player = getPlayer();
         if (player == null)
             return;
         Font bold = g.getFont().deriveFont(Font.BOLD);
@@ -188,7 +181,7 @@ public class PlayerInfoComponent2 extends JComponent {
                 if (used > 0 || notusable > 0 || usable > 0) {
                     y += ch;
                     g.setColor(player.getColor());
-                    if (d == DevelopmentCardType.Soldier && this.player.getPlayerNum() == GUI.instance.getSOC().getLargestArmyPlayerNum()) {
+                    if (d == DevelopmentCardType.Soldier && player.getPlayerNum() == GUI.instance.getSOC().getLargestArmyPlayerNum()) {
                         g.drawString(d.name()+ " +" + GUI.instance.getSOC().getPointsLargestArmy(), sx, y);
                     } else {
                         g.drawString(d.name(), sx, y);

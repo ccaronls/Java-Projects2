@@ -17,12 +17,15 @@ public abstract class Player extends Reflector<Player> {
 	}
 	
 	private final Vector<Card>		cards = new Vector<Card>();
-	private int						playerNum	= 0;
+	private int						playerNum	= 0; // player numbering starts at 1 
 	private int						roadLength	= 0;	
 	private int						points = 0;
 	private int []					cityDevelopment = new int[DevelopmentArea.values().length];
 	private Card					merchantFleetTradable;
 
+	public final static int MAX_CITY_IMPROVEMENT = 4;
+	public final static int MIN_METROPOLIS_IMPROVEMENT = 3;
+	
 	/**
 	 * 
 	 * @param num
@@ -37,7 +40,7 @@ public abstract class Player extends Reflector<Player> {
 	@Override
     public final String toString() {
         StringBuffer buf = new StringBuffer();
-        buf.append("Player ").append(getName());
+        buf.append(getName());
         buf.append(" cards:").append(cards);
         buf.append(" roadLen:").append(roadLength).append(" points:").append(points);
         for (DevelopmentArea area : DevelopmentArea.values()) {
@@ -91,7 +94,7 @@ public abstract class Player extends Reflector<Player> {
 		for (int i=0; i<num; i++)
 			addCard(new Card(type, CardStatus.USABLE));
 	}
-	
+
 	public final void removeCards(ICardType type, int num) {
 		for (int i=0; i<num; i++)
 			removeCard(type);
@@ -109,6 +112,20 @@ public abstract class Player extends Reflector<Player> {
 		addCard(new Card(type, CardStatus.USED));
 	}
 
+	public final List<Card> getUnusedProgressCards() {
+		return getUnusedCards(CardType.Progress);
+	}
+	
+	/**
+	 * Return list of unused resource and commodity cards
+	 * @return
+	 */
+	public final List<Card> getUnusedBuildingCards() {
+		List<Card> cards = getUnusedCards(CardType.Resource);
+		cards.addAll(getUnusedCards(CardType.Commodity));
+		return cards;
+	}
+	
 	/**
 	 * 
 	 * @param buildable
@@ -153,7 +170,17 @@ public abstract class Player extends Reflector<Player> {
 		}
 		return list;
 	}
-	
+
+	public final List<Card> getUsableCards(CardType type) {
+		List<Card> list = new ArrayList<Card>();
+		for (Card card : cards) {
+			if (card.isUsable() && card.equals(type)) {
+				list.add(card);
+			}
+		}
+		return list;
+	}
+
 	public final List<Card> getUnusedCards(CardType type) {
 		List<Card> list = new ArrayList<Card>();
 		for (Card card : cards) {
@@ -244,8 +271,26 @@ public abstract class Player extends Reflector<Player> {
 		}
 		return num;
 	}
-	
+
+	public final int getUsableCardCount(CardType type) {
+		int num = 0;
+		for (Card card : cards) {
+			if (card.equals(type) && card.isUsable())
+				num++;
+		}
+		return num;
+	}
+
 	public final int getUnusedCardCount(ICardType type) {
+		int num = 0;
+		for (Card card : cards) {
+			if (card.equals(type) && !card.isUsed())
+				num++;
+		}
+		return num;
+	}
+
+	public final int getUnusedCardCount(CardType type) {
 		int num = 0;
 		for (Card card : cards) {
 			if (card.equals(type) && !card.isUsed())
@@ -274,7 +319,13 @@ public abstract class Player extends Reflector<Player> {
 		}
 		throw new RuntimeException("Failed to remove random card");
 	}
-	
+
+	public final Card removeRandomUnusedCard(CardType type) {
+		List<Card> cards = getUnusedCards(type);
+		int n = Utils.rand() % cards.size();
+		return cards.remove(n);
+	}
+
 	/**
 	 * Convenience method to get count of all resource cards in hand.
 	 * @return
@@ -478,11 +529,31 @@ public abstract class Player extends Reflector<Player> {
 	 * @return
 	 */
 	public String getName() {
-		return String.valueOf(playerNum);
+		return "Player " + String.valueOf(playerNum);
 	}
 
+	/**
+	 * 
+	 * @return
+	 */
 	public final boolean hasFortress() {
 		return cityDevelopment[DevelopmentArea.Politics.ordinal()] >= 3;
+	}
+	
+	/**
+	 * 
+	 * @return
+	 */
+	public final boolean hasTradingHouse() {
+		return cityDevelopment[DevelopmentArea.Trade.ordinal()] >= 3;
+	}
+	
+	/**
+	 * 
+	 * @return
+	 */
+	public final boolean hasAqueduct() {
+		return cityDevelopment[DevelopmentArea.Science.ordinal()] >= 3;
 	}
 
 	/**
@@ -533,7 +604,8 @@ public abstract class Player extends Reflector<Player> {
 	public abstract RouteChoiceType chooseRouteType(SOC soc);
 	
 	public static enum TileChoice {
-		ROBBER, 
+		ROBBER,
+		PIRATE,
 		INVENTOR,
 		MERCHANT,
 	}

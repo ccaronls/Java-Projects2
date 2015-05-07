@@ -23,7 +23,7 @@ public class BotNodeVertex extends BotNode {
 
 	@Override
 	public String getDescription() {
-		String s = "" + index + " " + vertex.getType().name();
+		String s = "V(" + index + ") " + vertex.getType().name();
 		if (vertex.canPlaceStructure())
 			s += " STRUC";
 		if (vertex.isAdjacentToLand())

@@ -1,5 +1,5 @@
 barbarianStepsToAttack=7
-enableCitiesAndKnightsExpansion=false
+enableCitiesAndKnightsExpansion=true
 enableIslandSettlementsOnSetup=false
 enableRoadBlock=false
 enableSeafarersExpansion=true

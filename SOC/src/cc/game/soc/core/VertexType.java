@@ -3,7 +3,7 @@ package cc.game.soc.core;
 public enum VertexType {
 	OPEN(0, false, false),
 	
-	SETTLEMENT(0, false, true),
+	SETTLEMENT(0, false, true), // produce 
 	CITY(0, false, true),
 	WALLED_CITY(0, false, true),
 	

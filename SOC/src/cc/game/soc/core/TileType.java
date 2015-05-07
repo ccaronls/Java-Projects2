@@ -19,17 +19,17 @@ public enum TileType {
 	UNDISCOVERED(0, false, false, false, null, null),		// cell type is unknown until user reaches a vertex by road or ship (usually ship)
 
 	// used for random generation
-	RANDOM_RESOURCE_OR_DESERT(0, false, false, false, null, null), 	// randomly assign a desert or a resource 
-	RANDOM_RESOURCE(0, false, false, false, null, null),  			// randomly assign a resource
-	RANDOM_PORT_OR_WATER(0, false, false, false, null, null),  		// randomly assign a post or water
-	RANDOM_PORT(0, false, false, false, null, null), 				// randomly assign a port
+	RANDOM_RESOURCE_OR_DESERT	(0, false, false, false, null, null),	// randomly assign a desert or a resource 
+	RANDOM_RESOURCE				(0, false, false, false, null, null),	// randomly assign a resource
+	RANDOM_PORT_OR_WATER		(0, false, false, false, null, null),	// randomly assign a post or water
+	RANDOM_PORT					(0, false, false, false, null, null),	// randomly assign a port
 	
 	// Cites and Knights Extension
-	PASTURE(0, false, false, true, ResourceType.Sheep, CommodityType.Cloth), 		// 1 Sheep, 1 Cloth
-	HILLS(0, false, false, true, ResourceType.Brick, null), 						// 2 Brick
-	MOUNTAINS(0, false, false, true, ResourceType.Ore, CommodityType.Coin), 		// 1 Ore, 1 Coin
-	FIELDS(0, false, false, true, ResourceType.Wheat, null), 						// 2 Grain
-	FOREST(0, false, false, true, ResourceType.Wood, CommodityType.Paper), 			// 1 Wood, 1 Paper
+	PASTURE		(0, false, false, true, ResourceType.Sheep, CommodityType.Cloth), 	// 1 Sheep, 1 Cloth
+	HILLS		(0, false, false, true, ResourceType.Brick, null),					// 2 Brick
+	MOUNTAINS	(0, false, false, true, ResourceType.Ore, CommodityType.Coin),		// 1 Ore, 1 Coin
+	FIELDS		(0, false, false, true, ResourceType.Wheat, null),					// 2 Grain
+	FOREST		(0, false, false, true, ResourceType.Wood, CommodityType.Paper), 	// 1 Wood, 1 Paper
 	;
 	
 	final int chanceOnUndiscovered;

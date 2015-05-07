@@ -95,23 +95,23 @@ public class SOCGUI extends SOC {
                 case CL_NONE:
                     return; // skip animations
                 case CL_UPPER_LEFT:
-                    X = cardWidth/2 + cardWidth * cardsList.size();
+                    X = cardWidth/2 + cardWidth*2/3 * cardsList.size();
                     Y = cardHeight + 16;
                     break;
                 case CL_MIDDLE_LEFT:
-                    X = cardWidth/2 + cardWidth * cardsList.size();
+                    X = cardWidth/2 + cardWidth*2/3 * cardsList.size();
                     Y = cardHeight*2 + 16;
                     break;
                 case CL_UPPER_RIGHT:
-                    X = gui.getBoardComponent().getWidth() - cardWidth - cardWidth/2 - cardWidth*cardsList.size();
+                    X = gui.getBoardComponent().getWidth() - cardWidth - cardWidth/2 - cardWidth*2/3*cardsList.size();
                     Y = cardHeight + 16;
                     break;
                 case CL_MIDDLE_RIGHT:
-                    X = gui.getBoardComponent().getWidth() - cardWidth - cardWidth/2 - cardWidth*cardsList.size();
+                    X = gui.getBoardComponent().getWidth() - cardWidth - cardWidth/2 - cardWidth*2/3*cardsList.size();
                     Y = cardHeight*2 + 16;
                     break;
                 case CL_LOWER_RIGHT:
-                    X = gui.getBoardComponent().getWidth() - cardWidth - cardWidth/2 - cardWidth*cardsList.size();
+                    X = gui.getBoardComponent().getWidth() - cardWidth - cardWidth/2 - cardWidth*2/3*cardsList.size();
                     Y = cardHeight*3 + 16;
                     break;
                 default:
@@ -183,6 +183,11 @@ public class SOCGUI extends SOC {
         addCardAnimation(player, type.name() + "\nX " + amount);
     }
 
+    @Override
+    protected void onDistributeCommodity(final Player player, final CommodityType type, final int amount) {
+        addCardAnimation(player, type.name() + "\nX " + amount);
+    }
+
     @SuppressWarnings("serial")
     @Override
     protected void onGameOver(final Player winner) {
@@ -241,8 +246,15 @@ public class SOCGUI extends SOC {
         addCardAnimation(player, "Trade\n" + trade.getType() + "\n -" + trade.getAmount());
     }
     
-
     @Override
+	protected void onBarbariansAdvanced(int distanceAway) {
+	}
+
+	@Override
+	protected void onBarbariansAttack(int barbarianStrength, int catanStrength) {
+	}
+
+	@Override
 	protected void onDiceRolled(int... dice) {
     	gui.spinDice();
         gui.waitForReturnValue(true);

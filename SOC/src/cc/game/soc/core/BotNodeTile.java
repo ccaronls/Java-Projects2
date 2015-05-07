@@ -23,7 +23,7 @@ public class BotNodeTile extends BotNode {
 
 	@Override
 	public String getDescription() {
-		return "" + index + " " + tile.toString();
+		return "T(" + index + ") " + tile.toString();
 	}
 	
 	

@@ -1,14 +1,14 @@
 Apply these rules:
-- A player can only play a devel card once per turn. 
+- A player can only play a development card once per turn. 
   (DONE, untested) 
 
 - Victory cards are not played until the player has the winning points (so this means that victory cards can be stolen until the end of the game)
-  This should prob be an automatic thing. 
+  This should probably be an automatic thing. 
   (DONE, untested)  
 
 - Rules should have min/max players
 
-Seafares expansion
+Seafarers expansion
 - AI Needs to quantify the ships route
 - Add undiscovered tiles
   (DONE) 
@@ -19,8 +19,10 @@ Seafares expansion
   (DONE, use of Floyd-Marshall algorithm produces nice results)  
 - Looks like computeMaxRouteLengthForPlayer has a bug
   (FIXED, needed to track visited edges, not vertices)
-- When adding edges for the Walsh-Marshall argorithm, should consider edges owned by user as weight=0, this will simplify the min distance computation, we basically only consider
-  structures.  Also, structures on a coast line should be treated differently, or at least accounted for.  Roads vs Ships on a coastline are a problem. 
+- When adding edges for the Walsh-Marshall argorithm, should consider edges owned by user as weight=0, this will simplify the min distance computation, 
+  we basically only consider structures.  Also, structures on a coast line should be treated differently, or at least accounted for.  Roads vs Ships 
+  on a coastline are a problem.
+- Pirate should be able to move along a track on each turn instead of being moved by player.
   
 Core Game Improvements  
 - Should be able to define a 'game' as a board and a rule set to customize the experience.  Should be able to define the expansions as described in the seafarers pdf

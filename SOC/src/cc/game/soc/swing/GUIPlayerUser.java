@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import cc.game.soc.core.*;
+import cc.game.soc.swing.BoardComponent.PickMode;
 
 public class GUIPlayerUser extends GUIPlayer {
 	
@@ -27,41 +28,50 @@ public class GUIPlayerUser extends GUIPlayer {
 		Vertex v = null;
 		switch (mode) {
 			case CITY:
-				v = GUI.instance.getChooseCityVertex(vertexIndices);
+				v = GUI.instance.chooseVertex(vertexIndices, getPlayerNum(), PickMode.PM_CITY);//getChooseCityVertex(vertexIndices);
 				if (v != null) {
 					super.startCityAnimation(v);
 				}
 				break;
 			case CITY_WALL:
-				v = GUI.instance.getChooseCityWallVertex(vertexIndices);
+				v = GUI.instance.chooseVertex(vertexIndices, getPlayerNum(), PickMode.PM_WALLED_CITY);//getChooseCityWallVertex(vertexIndices);
 				if (v != null) {
 					super.startCityWallAnimation(v);
 				}
 				break;
 			case KNIGHT_DESERTER:
-				break;
 			case KNIGHT_DISPLACED:
-				break;
 			case KNIGHT_MOVE_POSITION:
-				break;
 			case KNIGHT_TO_ACTIVATE:
-				break;
 			case KNIGHT_TO_MOVE:
-				break;
 			case KNIGHT_TO_PROMOTE:
-				break;
 			case NEW_KNIGHT:
-				break;
 			case OPPONENT_KNIGHT_TO_DISPLACE:
+				v = GUI.instance.chooseVertex(vertexIndices, getPlayerNum(), PickMode.PM_KNIGHT);
+				if (v != null) {
+					super.startKnightAnimation(v);
+				}
 				break;
 			case POLITICS_METROPOLIS:
+				v = GUI.instance.chooseVertex(vertexIndices, getPlayerNum(), PickMode.PM_METROPOLIS_POLITICS);
+				if (v != null) {
+					//super.startKnightAnimation(v);
+				}
 				break;
 			case SCIENCE_METROPOLIS:
+				v = GUI.instance.chooseVertex(vertexIndices, getPlayerNum(), PickMode.PM_METROPOLIS_SCIENCE);
+				if (v != null) {
+					//super.startKnightAnimation(v);
+				}
 				break;
 			case TRADE_METROPOLIS:
+				v = GUI.instance.chooseVertex(vertexIndices, getPlayerNum(), PickMode.PM_METROPOLIS_TRADE);
+				if (v != null) {
+					//super.startKnightAnimation(v);
+				}
 				break;
 			case SETTLEMENT:
-				v = GUI.instance.getChooseSettlementVertex(vertexIndices);
+				v = GUI.instance.chooseVertex(vertexIndices, getPlayerNum(), PickMode.PM_SETTLEMENT);
 				if (v != null) {
 					super.startSettlementAnimation(v);
 				}
@@ -108,6 +118,7 @@ public class GUIPlayerUser extends GUIPlayer {
 				return GUI.instance.getChooseInventorTile(tileIndices);
 			case MERCHANT:
 				return GUI.instance.getChooseMerchantTile(tileIndices);			
+			case PIRATE:
 			case ROBBER:
 				return GUI.instance.getChooseRobberTile(tileIndices);
 		}

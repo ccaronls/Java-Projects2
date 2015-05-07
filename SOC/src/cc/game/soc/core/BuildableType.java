@@ -14,6 +14,7 @@ public enum BuildableType {
 	Development		(0, 1, 1, 1, 0),
 	Settlement		(1, 1, 0, 1, 1), 
 	City			(0, 0, 3, 2, 0), 
+	// cities and knights expansion
 	CityWall		(2, 0, 0, 0, 0),
 	Knight			(0, 1, 1, 0, 0),
 	PromoteKnight	(0, 1, 1, 0, 0),

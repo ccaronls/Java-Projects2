@@ -99,13 +99,20 @@ public final class Rules extends Reflector<Rules> {
 	private int numSafeCardsPerCityWall=2;
 	@RuleVariable(description="Points per Metropolis", minValue=3, maxValue=5)
 	private int pointsPerMetropolis=4;
-	
+	@RuleVariable(description="Points for Special abilities (Trading House/Fortress/Aqueduct)", minValue=2, maxValue=4)
+	private int pointsForSpecialAbility=3;
 	
 	public final int getPointsMetropolis() {
 		return pointsMetropolis;
 	}
 	public final void setPointsMetropolis(int pointsMetropolis) {
 		this.pointsMetropolis = pointsMetropolis;
+	}
+	public final int getPointsForSpecialAbility() {
+		return pointsForSpecialAbility;
+	}
+	public final void setPointsForSpecialAbility(int pointsForSpecialAbility) {
+		this.pointsForSpecialAbility = pointsForSpecialAbility;
 	}
 	public final int getBarbarianStepsToAttack() {
 		return barbarianStepsToAttack;

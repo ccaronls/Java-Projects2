@@ -23,7 +23,7 @@ public class BotNodeRoute extends BotNode {
 
 	@Override
 	public String getDescription() {
-		return "" + index + "  " + route.toString();
+		return "E(" + index + ") " + route.toString();
 	}
 
 	

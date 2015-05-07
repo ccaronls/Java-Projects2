@@ -21,7 +21,7 @@ public class BotNodePlayer extends BotNode {
 
 	@Override
 	public String getDescription() {
-		return "Player " + player.getName();
+		return player.getName();
 	}
 	
 	

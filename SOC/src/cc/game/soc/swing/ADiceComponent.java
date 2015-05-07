@@ -15,6 +15,7 @@ public abstract class ADiceComponent extends JComponent implements ChangeListene
 	ADiceComponent() {
 		setMinimumSize(new Dimension(30,30));
 		setPreferredSize(new Dimension(60, 30));
+		repaint();
 	}
 	
 	void setDie(int die) {

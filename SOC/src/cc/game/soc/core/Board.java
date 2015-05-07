@@ -366,6 +366,7 @@ public final class Board extends Reflector<Board> {
      * @return
      */
     public Iterable<Route> getTileRoutes(Tile tile) {
+    	
     	List<Route> edges = new ArrayList<Route>();
     	for (int i=0; i<tile.getNumAdj(); i++) {
     		int v0 = tile.getAdjVert(i);
@@ -1263,7 +1264,7 @@ public final class Board extends Reflector<Board> {
      * Count the number of vertices assigned to player that are cities.
      * @param player
      * @return
-     */
+     *
 	public int getNumCitiesForPlayer(int playerNum) {
 		return getNumVertsOfType(playerNum, VertexType.CITY, VertexType.WALLED_CITY);
 	}

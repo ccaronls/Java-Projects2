@@ -9,7 +9,6 @@ import cc.game.soc.core.*;
 import cc.lib.math.Vector2D;
 import cc.lib.swing.AWTRenderer;
 import cc.lib.swing.AWTUtils;
-import cc.lib.utils.Reflector;
 
 /**
  * 
@@ -20,18 +19,7 @@ import cc.lib.utils.Reflector;
 public class GUIPlayer extends PlayerBot {
 
 	static {
-		addField(GUIPlayer.class, "color", new Reflector.AArchiver() {
-			
-			@Override
-			public Object parse(String value) throws Exception {
-				return AWTUtils.stringToColor(value);
-			}
-			
-			@Override
-			public String getStringValue(Object obj) {
-				return AWTUtils.colorToString((Color)obj);
-			}
-		});
+		addField(GUIPlayer.class, "color", AWTUtils.COLOR_ARCHIVER);
 	}
 	
 	private Color color = Color.BLACK;
@@ -284,6 +272,43 @@ public class GUIPlayer extends PlayerBot {
             
         });
     }
+    
+    void startKnightAnimation(final Vertex vertex) {
+    	if (!animationEnabled || vertex == null)
+    		return;
+
+    	GUI.instance.getBoardComponent().addAnimation(new Animation(structureAnimTime, 0) {
+			
+			@Override
+			void draw(Graphics g, float position, float dt) {
+                g.setColor(getColor());
+                AWTRenderer render = GUI.instance.getBoardComponent().render;
+                render.pushMatrix();
+                //render.translate(-vertex.getX(), -vertex.getY());
+                render.translate(vertex);
+                render.scale(position, 1);
+                //render.translate(-vertex.getX(), -vertex.getY());
+                GUI.instance.getBoardComponent().drawKnight(g, 0, 0, getPlayerNum(), 1, false, false);
+                render.popMatrix();
+			}
+			
+			@Override
+            void onDone() {
+                synchronized (this) {
+                    notify();
+                }
+            }
+
+            @Override
+            void onStarted() {
+                synchronized (this) {
+                    try {
+                        wait(structureAnimTime);
+                    } catch (Exception e) {}
+                }
+            }
+		});
+    }
 
 	@Override
 	public Vertex chooseVertex(SOC soc, List<Integer> vertexIndices, VertexChoice mode) {
@@ -346,7 +371,24 @@ public class GUIPlayer extends PlayerBot {
 	}
 
 	@Override
-	protected float evaluateSOC(SOC soc, Player p, Board b) {
+	protected void evaluateVertices(BotNode node, SOC soc, Player p, Board b) {
+		refresh();
+		super.evaluateVertices(node, soc, p, b);
+	}
+
+	@Override
+	protected void evaluateEdges(BotNode node, SOC soc, Player p, Board b) {
+		refresh();
+		super.evaluateEdges(node, soc, p, b);
+	}
+
+	@Override
+	protected void evaluateTiles(BotNode node, SOC soc, Player p, Board b) {
+		refresh();
+		super.evaluateTiles(node, soc, p, b);
+	}
+
+	private void refresh() {
 		GUI.instance.getBoardComponent().repaint();
         try {
             synchronized (GUI.instance.getBoardComponent()) {
@@ -355,8 +397,6 @@ public class GUIPlayer extends PlayerBot {
         } catch (Exception e) {}
         synchronized (this) {
             notify(); // notify anyone waiting on this (see spinner)
-        }
-		return super.evaluateSOC(soc, p, b);
+        }		
 	}
-
 }

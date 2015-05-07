@@ -109,7 +109,15 @@ public final class Vertex extends Reflector<Vertex> implements IVector2D {
 	 * @return
 	 */
 	public boolean isCity() {
-		return type == VertexType.CITY || type == VertexType.WALLED_CITY;
+		switch (type) {
+			case CITY:
+			case WALLED_CITY:
+			case METROPOLIS_POLITICS:
+			case METROPOLIS_SCIENCE:
+			case METROPOLIS_TRADE:
+				return true;
+		}
+		return false;
 	}
 	
 	/**
@@ -188,6 +196,17 @@ public final class Vertex extends Reflector<Vertex> implements IVector2D {
 		return type.knightLevel > 0;
 	}
 	
+	public boolean isActiveKnight() {
+		switch (getType()) {
+			case BASIC_KNIGHT_ACTIVE:
+			case MIGHTY_KNIGHT_ACTIVE:
+			case STRONG_KNIGHT_ACTIVE:
+				return true;
+			default:
+				return false;
+		}
+	}
+	
 	public void activateKnight() {
 		switch (getType()) {
 			case BASIC_KNIGHT_INACTIVE:
@@ -200,7 +219,7 @@ public final class Vertex extends Reflector<Vertex> implements IVector2D {
 				setType(VertexType.STRONG_KNIGHT_ACTIVE);
 				break;
 			default:
-				throw new RuntimeException("Not an valid kight to activate");
+				throw new RuntimeException(getType() + " is not an valid kight to activate");
 		}
 	}
 
@@ -216,7 +235,7 @@ public final class Vertex extends Reflector<Vertex> implements IVector2D {
 				setType(VertexType.STRONG_KNIGHT_INACTIVE);
 				break;
 			default:
-				throw new RuntimeException("Not an valid kight to activate");
+				throw new RuntimeException(getType() + " not an valid kight to deactivate");
 		}
 	}
 	
@@ -235,7 +254,7 @@ public final class Vertex extends Reflector<Vertex> implements IVector2D {
 				setType(VertexType.MIGHTY_KNIGHT_INACTIVE);
 				break;
 			default:
-				throw new RuntimeException("Not a valid knight to promote");
+				throw new RuntimeException(getType() + " is not a valid knight to promote");
 		}
 	}
 	
@@ -258,7 +277,7 @@ public final class Vertex extends Reflector<Vertex> implements IVector2D {
 				setType(VertexType.STRONG_KNIGHT_INACTIVE);
 				break;
 			default:
-				throw new RuntimeException("Not a valid knight to promote");
+				throw new RuntimeException(getType() + " is not a valid knight to promote");
 		}
 	}
 	
