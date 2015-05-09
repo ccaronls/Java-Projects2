@@ -14,8 +14,8 @@ import cc.lib.swing.AWTUtils;
 @SuppressWarnings("serial")
 public class PlayerInfoComponent2 extends PlayerInfoComponent {
 
-    PlayerInfoComponent2(GUIPlayer player) {
-        super(player);
+    PlayerInfoComponent2(int playerNum) {
+        super(playerNum);
     }
     
     private void drawCard(Graphics g, Color color, int x, int y, int w, int h, String txt) {
@@ -63,7 +63,7 @@ public class PlayerInfoComponent2 extends PlayerInfoComponent {
         
         g.setColor(player.getColor());
         y += th;
-        g.drawString("Player " + player.getPlayerNum() + " " + player.getPoints() + " Points", sx, y);
+        g.drawString(player.getName() + " " + player.getPoints() + " Points", sx, y);
         
     	Color bk1 = Color.LIGHT_GRAY;
     	Color bk2 = Color.gray;

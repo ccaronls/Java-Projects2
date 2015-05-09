@@ -6,4 +6,6 @@ public interface ICardType {
 	int ordinal();
 	
 	String name();
+	
+	String helpText();
 }

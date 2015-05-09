@@ -10,6 +10,6 @@
 	<classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.ANDROID_FRAMEWORK"/>
 	<classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.LIBRARIES"/>
 	<classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.DEPENDENCIES"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/MyLIbrary"/>
+	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/MyLIbrary"/>
 	<classpathentry kind="output" path="bin/classes"/>
 </classpath>

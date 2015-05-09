@@ -23,7 +23,6 @@ import org.apache.log4j.Logger;
 import cc.game.soc.core.*;
 import cc.game.soc.core.Player.RouteChoiceType;
 import cc.game.soc.core.annotations.RuleVariable;
-//import cc.game.soc.net.SOCGameCommand;
 import cc.game.soc.swing.BoardComponent.PickMode;
 import cc.game.soc.swing.BoardComponent.RenderFlag;
 import cc.lib.game.Utils;
@@ -32,6 +31,7 @@ import cc.lib.swing.EZPanel;
 import cc.lib.swing.ImageMgr;
 import cc.lib.swing.JMultiColoredScrollConsole;
 import cc.lib.swing.JWrapLabel;
+import cc.lib.utils.FileUtils;
 
 public class GUI implements ActionListener, ComponentListener, WindowListener, Runnable, BoardComponent.BoardListener {
 
@@ -110,7 +110,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 	private ADiceComponent [] diceComps;// = new ADiceComponent[3];
 	private JSpinner [] diceChoosers;
 	private final GUIProperties props;
-	private final ImageMgr images;
+	final ImageMgr images;
 	
 	private Board board;
 
@@ -119,7 +119,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 	private boolean running;
 	private Object returnValue = null;
 	private Object waitObj = this;
-	private Container frame;
+	Container frame;
 	private JFrame popup;
 	private JPanel westBorderPanel = new JPanel();
 	private JPanel cntrBorderPanel = new JPanel();
@@ -223,9 +223,9 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
         westBorderPanel.setLayout(new BorderLayout());
         
         eastGridPanel.setLayout(new GridLayout(0,1));
-        eastGridPanel.setBorder(BorderFactory.createLineBorder(Color.CYAN, 2));
+        //eastGridPanel.setBorder(BorderFactory.createLineBorder(Color.CYAN, 2));
         westGridPanel.setLayout(new GridLayout(0,1));
-        westGridPanel.setBorder(BorderFactory.createLineBorder(Color.CYAN, 2));
+        //westGridPanel.setBorder(BorderFactory.createLineBorder(Color.CYAN, 2));
         
         JPanel boardPanel = new JPanel(new BorderLayout());
         boardPanel.add(boardComp, BorderLayout.CENTER);
@@ -308,11 +308,13 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
                 }
                 
                 if (soc.getRules().isEnableCitiesAndKnightsExpansion()) {
-                	westGridPanel.add(barbarianComp = new BarbarianComponent(images, soc));
-                	westGridPanel.add(new PlayerInfoComponentCAK(userPlayer));
+                	westGridPanel.add(barbarianComp = new BarbarianComponent());
+                	JScrollPane sp = new JScrollPane();
+                	sp.getViewport().add(new PlayerInfoComponentCAK(userPlayer.getPlayerNum()));
+                	westGridPanel.add(sp);
                 } else {
                 	barbarianComp = null;
-                	westGridPanel.add(new PlayerInfoComponent2(userPlayer));
+                	westGridPanel.add(new PlayerInfoComponent2(userPlayer.getPlayerNum()));
                 }
                 userPlayer.loc = GUIPlayer.CardLoc.CL_UPPER_LEFT;
                 
@@ -322,13 +324,12 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
                 for (int i=1; i<=soc.getNumPlayers(); i++) {
                 	if (i == userPlayer.getPlayerNum())
                 		continue;
-                	GUIPlayer p = getGUIPlayer(i);
                 	if (soc.getRules().isEnableCitiesAndKnightsExpansion()) {
-                		eastGridPanel.add(new PlayerInfoComponentCAK(p));
+                		eastGridPanel.add(new PlayerInfoComponentCAK(i));
                 	} else {
-                		eastGridPanel.add(new PlayerInfoComponent2(p));
+                		eastGridPanel.add(new PlayerInfoComponent2(i));
                 	}
-                	p.loc = locs[index++];
+                	getGUIPlayer(i).loc = locs[index++];
                 }
                 
                 JPanel helpMenuDice = new JPanel();
@@ -338,7 +339,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
                 	diceComps = new ADiceComponent [] {
                 			new SixSideDiceComponent(Color.red, Color.yellow),
                 			new SixSideDiceComponent(Color.yellow, Color.red),
-                			new EventDiceComponent(images, Color.white)
+                			new EventDiceComponent(Color.white)
                 	};
                 	diceChoosers = new JSpinner[2];
                 	
@@ -595,17 +596,23 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 				initMenu();
 				break;
 
-			case RESTORE:
-				if (soc.load(saveGameFileName)) {
-					board = soc.getBoard();
-					boardComp.setBoard(board);
-					menuStack.push(MenuState.MENU_PLAY_GAME);
-					initMenu();
-					new Thread(this).start();
-				} else {
+			case RESTORE: {
+				boolean success = false;
+				do {
+    				if (soc.load(saveGameFileName)) {
+    					board = soc.getBoard();
+    					boardComp.setBoard(board);
+    					menuStack.push(MenuState.MENU_PLAY_GAME);
+    					initMenu();
+    					new Thread(this).start();
+    					success = true;
+    				}
+				} while (!success && FileUtils.restoreFile(saveGameFileName));
+				if (!success) {
 					button.setEnabled(false);
 				}
 				break;
+			}
 
 			case CONFIG_BOARD:
 				menuStack.push(MenuState.MENU_CONFIG_BOARD);
@@ -757,6 +764,21 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 				boardComp.setPickMode(getCurPlayerNum(), (PickMode)button.extra, null);
 				break;
 
+			case REWIND_GAME: {
+				stopGameThread();
+				FileUtils.restoreFile(saveGameFileName);
+				if (soc.load(saveGameFileName)) {
+					board = soc.getBoard();
+					boardComp.setBoard(board);
+					new Thread(this).start();
+					frame.repaint();
+				} else {
+					button.setEnabled(false);
+				}
+				break;
+			}
+				
+				
 			case QUIT:
 				quitToMainMenu();
 				break;
@@ -911,8 +933,15 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
         frame.setVisible(true);
     }
     
+    private void stopGameThread() {
+    	running = false;
+    	synchronized (waitObj) {
+    		waitObj.notify();
+    	}
+    }
+    
     public void quitToMainMenu() {
-        running = false;
+        stopGameThread();
 //        soc.clear();
 //        board.reset();
         console.clear();
@@ -934,7 +963,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
     }
     
 	private OpButton getMenuOpButton(MenuOp op) {
-		return getMenuOpButton(op, op.txt, null);
+		return getMenuOpButton(op, op.txt, op.toolTipText);
 	}
 
 	public JMultiColoredScrollConsole getConsole() {
@@ -1035,6 +1064,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
     	    menu.add(new JLabel(""));
         }
 		menu.add(getMenuOpButton(MenuOp.BUILDABLES_POPUP));
+		menu.add(getMenuOpButton(MenuOp.REWIND_GAME));
 		menu.add(getMenuOpButton(MenuOp.QUIT));
 		helpText.setText("<html>" + soc.getHelpText() + "</html>");
         frame.validate();
@@ -1184,12 +1214,32 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 		return false;
 	}
 	
-	public Player getChoosePlayerToTakeCardFromMenu(List<Player> players) {
+	public Player getChoosePlayerToTakeCardFromMenu(List<Integer> players) {
 		menu.removeAll();
-		Iterator<Player> it = players.iterator();
-		while (it.hasNext()) {
-			Player player = it.next();
-			menu.add(getMenuOpButton(MenuOp.CHOOSE_PLAYER, "Player " + player.getPlayerNum() + " X " + player.getTotalCardsLeftInHand(), null, player));
+		for (int num : players) {
+			Player player = getGUIPlayer(num);
+			menu.add(getMenuOpButton(MenuOp.CHOOSE_PLAYER, player.getName() + " X " + player.getTotalCardsLeftInHand() + " Cards", null, player));
+		}
+		completeMenu();
+		return waitForReturnValue(null);
+	}
+	
+	public Player getChoosePlayerKnightForDesertion(List<Integer> players) {
+		menu.removeAll();
+		for (int num : players) {
+			Player player = getGUIPlayer(num);
+			int numKnights = board.getNumVertsOfType(player.getPlayerNum(), VertexType.BASIC_KNIGHT_ACTIVE, VertexType.BASIC_KNIGHT_INACTIVE, VertexType.STRONG_KNIGHT_ACTIVE, VertexType.STRONG_KNIGHT_INACTIVE, VertexType.MIGHTY_KNIGHT_ACTIVE, VertexType.MIGHTY_KNIGHT_INACTIVE);			menu.add(getMenuOpButton(MenuOp.CHOOSE_PLAYER, player.getName() + " X " + numKnights + " Knights", null, player));
+			menu.add(getMenuOpButton(MenuOp.CHOOSE_PLAYER, player.getName() + " X " + numKnights + " Knights", null, player));
+		}
+		completeMenu();
+		return waitForReturnValue(null);
+	}
+	
+	public Player getChoosePlayerToSpyOn(List<Integer> players) {
+		menu.removeAll();
+		for (int num : players) {
+			Player player = getGUIPlayer(num);
+			menu.add(getMenuOpButton(MenuOp.CHOOSE_PLAYER, player.getName() + " X " + player.getUnusedCardCount(CardType.Progress) + " Progress Cards", null, player));
 		}
 		completeMenu();
 		return waitForReturnValue(null);
@@ -1198,7 +1248,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 	public Card getChooseCardMenu(List<Card> cards) {
 		menu.removeAll();
 		for (Card type : cards) {
-			menu.add(getMenuOpButton(MenuOp.CHOOSE_CARD, type.getName(), null, type));
+			menu.add(getMenuOpButton(MenuOp.CHOOSE_CARD, type.getName(), type.getHelpText(), type));
 		}
 		completeMenu();
 		return waitForReturnValue(null);
@@ -1458,6 +1508,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
     private void initPickMode(PickMode mode) {
     	List<Integer> pickableIndices = null;
     	assert(menuStack.peek() == MenuState.MENU_DEBUGGING);
+    	if (false)
     	switch (mode) {
 			case PM_CELL:
 				break;
@@ -1686,7 +1737,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
                         case PM_METROPOLIS_POLITICS:
                         case PM_METROPOLIS_SCIENCE:
                         case PM_KNIGHT:
-//                        case PM_ACTIVATE_KNIGHT:
+                        case PM_ACTIVATE_KNIGHT:
 //                        case PM_MOVE_KNIGHT:
                         case PM_PROMOTE_KNIGHT:
                             returnValue = board.getVertex(pickedValue);
@@ -1741,7 +1792,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 	public void windowDeiconified(WindowEvent arg0) {}
 	public void windowIconified(WindowEvent arg0) {}
 	public void windowOpened(WindowEvent arg0) {}
-
+	
 	@Override
 	public void run() {
 		log.debug("Entering thread");
@@ -1750,8 +1801,9 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 		try {
 			while (running && soc != null) {
 				soc.runGame();
-				if (running && !soc.canCancel() && soc.getCurGuiPlayer() instanceof GUIPlayerUser)
+				if (running && soc.isGoodForSave() && soc.getCurGuiPlayer() instanceof GUIPlayerUser)
 					synchronized (soc) {
+						FileUtils.backupFile(saveGameFileName, 10);
 						soc.save(saveGameFileName);
 					}
 				frame.repaint();

@@ -22,9 +22,6 @@ public abstract class Player extends Reflector<Player> {
 	private int						points = 0;
 	private int []					cityDevelopment = new int[DevelopmentArea.values().length];
 	private Card					merchantFleetTradable;
-
-	public final static int MAX_CITY_IMPROVEMENT = 4;
-	public final static int MIN_METROPOLIS_IMPROVEMENT = 3;
 	
 	/**
 	 * 
@@ -275,7 +272,7 @@ public abstract class Player extends Reflector<Player> {
 	public final int getUsableCardCount(CardType type) {
 		int num = 0;
 		for (Card card : cards) {
-			if (card.equals(type) && card.isUsable())
+			if (card.getCardType() == type && card.isUsable())
 				num++;
 		}
 		return num;
@@ -293,7 +290,7 @@ public abstract class Player extends Reflector<Player> {
 	public final int getUnusedCardCount(CardType type) {
 		int num = 0;
 		for (Card card : cards) {
-			if (card.equals(type) && !card.isUsed())
+			if (card.getCardType() == (type) && !card.isUsed())
 				num++;
 		}
 		return num;
@@ -627,6 +624,7 @@ public abstract class Player extends Reflector<Player> {
 
 	public static enum PlayerChoice {
 		PLAYER_TO_TAKE_CARD_FROM,
+		PLAYER_TO_SPY_ON,
 		PLAYER_FOR_DESERTION,
 	};
 	
@@ -640,7 +638,7 @@ public abstract class Player extends Reflector<Player> {
 	 * @param numPlayerOptions
 	 * @return
 	 */
-	public abstract Player choosePlayer(SOC soc, List<Player> playerOptions, PlayerChoice mode);
+	public abstract Player choosePlayer(SOC soc, List<Integer> playerOptions, PlayerChoice mode);
 	
 	public static enum CardChoice {
 		RESOURCE_OR_COMMODITY,

@@ -18,6 +18,7 @@ enum State {
 	NEXT_PLAYER(false, ""),
 	PREV_PLAYER(false, ""),
 	START_ROUND(false, "Round starting."),
+	SETUP_GIVEUP_CARDS(false, "Computing each players cards to give up"),
 	GIVE_UP_CARD(false, "Discard one of your cards back to the deck."),
 	INIT_PLAYER_TURN(false, ""),
 	PLAYER_TURN_NOCANCEL(false, "Choose from one of your move options or Continue to allow next player to take a turn."),

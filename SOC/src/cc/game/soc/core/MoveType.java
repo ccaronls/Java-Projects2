@@ -54,6 +54,8 @@ public enum MoveType {
     IMPROVE_CITY_SCIENCE("Improve Science", "Exchange Paper to improve city science.  Upgrade to Aqueduct converts to a Metropolis if not taken."),
     IMPROVE_CITY_TRADE("Improve Trade", "Exchange Cloth to improve city trade.Upgrade to Merchant Guild converts to a Metropolis if not taken."),
     
+    // Science
+    
     // Special progress card can be played instead of roll dice
     ALCHEMIST_CARD("Alchemist", "Playable Prior to die roll.  Control outcome of 2 production dice"),
     INVENTOR_CARD("Inventor", "Switch 2 tile number tokens that have values: 3,4,5,9,10,11"),
@@ -65,15 +67,18 @@ public enum MoveType {
     MINING_CARD("Mining", "Collect 2 ore card for each structure adjacent to a ore tile"),
     //PRINTER_CARD("Printer", ProgressCardType.Printer.helpText),
 
+    // Politics
     DIPLOMAT_CARD("Diplomat", "Move one of your own open roads or remove one of your opponents open roads"),
     //CONSTITUTION_CARD("Constitution", ProgressCardType.Constitution.helpText),
+    BISHOP_CARD("Bishop", "Move robber or pirate to cell of players choice"),
     INTRIGUE_CARD("Intrigue", "Displace opponent knight that is on one of your roads"),
-    DESERTER_CARD("Deserter", "Remove an opponent knight to be replace with one of your own of equal strength"),
+    DESERTER_CARD("Deserter", "Remove an opponent knight to be replaced with one of your own of equal strength"),
     SABOTEUR_CARD("Saboteur", "Players with equal or higher victory points must discard half (rounded down) of their inhand cards"),
     SPY_CARD("Spy", "View and choose any one of a single opponents progress cards except victory cards"),
     WARLORD_CARD("Warlord", "Activate all your knights for free"),
     WEDDING_CARD("Wedding", "All players with more points give you any 2 commoditty or resource cards of their choice"),
     
+    // Trade
     HARBOR_CARD("Harbor", "Force each player to exchange a commodity card of their choice for a resource card.  If they have no commodity cards, then the trade is voided."),
     MASTER_MERCHANT_CARD("Master Merchant", "View and then take any 2 resource or commodity cards from another players hand"),
     MERCHANT_CARD("Merchant", "Place the merchant on a land tile to recieve the 2:1 trade bonus for that tile type for as long as the merchant is on the tile"),

@@ -1,6 +1,9 @@
 package cc.lib.game;
 
 import java.awt.Rectangle;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 
 import junit.framework.TestCase;
 
@@ -83,5 +86,5 @@ public class TestUtils extends TestCase {
         }
         
     }
-    
+   
 }

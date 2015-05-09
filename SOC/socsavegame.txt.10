@@ -10,7 +10,7 @@ mBoard=cc.game.soc.core.Board {
    pirateTile=-1
    playerRoadLenCache=int 16
       -1 5 4 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 
-   robberTile=17
+   robberTile=19
    routes=java.util.Vector {
       cc.game.soc.core.Route {
             flags=1
@@ -1833,7 +1833,7 @@ mBoard=cc.game.soc.core.Board {
             flags=5
             numAdj=3
             numCells=3
-            player=0
+            player=2
             type=MIGHTY_KNIGHT_ACTIVE
             x=0.25
             y=0.35714293
@@ -1847,8 +1847,8 @@ mBoard=cc.game.soc.core.Board {
             flags=1
             numAdj=3
             numCells=3
-            player=2
-            type=MIGHTY_KNIGHT_INACTIVE
+            player=0
+            type=OPEN
             x=0.3214286
             y=0.35714293
          }
@@ -2695,7 +2695,7 @@ mBoard=cc.game.soc.core.Board {
       }
    }
 }
-mCurrentPlayer=1
+mCurrentPlayer=0
 mDevelopmentCards=java.util.ArrayList {
 }
 mDice=int 3
@@ -2724,13 +2724,7 @@ mPlayers=cc.game.soc.core.Player 8
       cc.game.soc.core.Card {
             status=USABLE
             type=Resource
-            typeOrdinal=4
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Resource
-            typeOrdinal=4
+            typeOrdinal=3
          }
       }
       cc.game.soc.core.Card {
@@ -2760,7 +2754,7 @@ mPlayers=cc.game.soc.core.Player 8
       cc.game.soc.core.Card {
             status=USABLE
             type=Progress
-            typeOrdinal=17
+            typeOrdinal=15
          }
       }
    }
@@ -2777,13 +2771,13 @@ mPlayers=cc.game.soc.core.Player 8
       cc.game.soc.core.Card {
             status=USABLE
             type=Resource
-            typeOrdinal=3
+            typeOrdinal=4
          }
       }
       cc.game.soc.core.Card {
             status=USABLE
-            type=Commodity
-            typeOrdinal=2
+            type=Resource
+            typeOrdinal=4
          }
       }
       cc.game.soc.core.Card {
@@ -2801,7 +2795,7 @@ mPlayers=cc.game.soc.core.Player 8
       cc.game.soc.core.Card {
             status=USABLE
             type=Progress
-            typeOrdinal=13
+            typeOrdinal=14
          }
       }
       cc.game.soc.core.Card {
@@ -3050,6 +3044,18 @@ mProgressCards=java.util.List 3
       cc.game.soc.core.Card {
             status=USABLE
             type=Progress
+            typeOrdinal=17
+         }
+      }
+      cc.game.soc.core.Card {
+            status=USABLE
+            type=Progress
+            typeOrdinal=13
+         }
+      }
+      cc.game.soc.core.Card {
+            status=USABLE
+            type=Progress
             typeOrdinal=18
          }
       }
@@ -3111,12 +3117,6 @@ mProgressCards=java.util.List 3
             status=USABLE
             type=Progress
             typeOrdinal=10
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Progress
-            typeOrdinal=15
          }
       }
    }

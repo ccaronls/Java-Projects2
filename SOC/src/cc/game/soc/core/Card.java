@@ -91,6 +91,15 @@ public final class Card extends Reflector<Card> implements Comparable <Card> {
 		return typeOrdinal;
 	}
 	
+	public String getHelpText() {
+		return type.dereferenceOrdinal(typeOrdinal).helpText();
+	}
+	
+	/**
+	 * 
+	 * @param card
+	 * @return
+	 */
 	public boolean equals(ICardType card) {
 		return (card.getCardType() == getCardType() && card.ordinal() == getTypeOrdinal());
 	}

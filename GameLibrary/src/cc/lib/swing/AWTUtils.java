@@ -228,13 +228,13 @@ public class AWTUtils {
     }
     
     /**
-     * 
+     * Draw wrapped lines with each line no longer than maxWidth pixels.  Lines are wrapped on a newline first, then a space, then hyphenated as a last resort.
      * @param g
      * @param x
      * @param y
      * @param maxWidth
      * @param text
-     * @return
+     * @return total height of the text (textHeight * numLines)
      */
     public static int drawWrapString3(Graphics g, int x, int y, int maxWidth, String text) {
         String [] lines = generateWrappedLines(g, text, maxWidth);

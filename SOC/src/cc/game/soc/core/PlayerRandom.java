@@ -51,8 +51,8 @@ public class PlayerRandom extends Player {
 	}
 
 	@Override
-	public Player choosePlayer(SOC soc, List<Player> playerOptions, PlayerChoice mode) {
-		return pickRandom(playerOptions);
+	public Player choosePlayer(SOC soc, List<Integer> playerOptions, PlayerChoice mode) {
+		return soc.getPlayerByPlayerNum(pickRandom(playerOptions));
 	}
 
 	@Override

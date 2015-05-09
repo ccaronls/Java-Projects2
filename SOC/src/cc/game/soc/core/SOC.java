@@ -71,20 +71,6 @@ public class SOC extends Reflector<SOC> {
     static {
     	
     	addAllFields(SOC.class);
-    	removeField(SOC.class, "mOptions");
-    	/*
-    	, "mPlayers");
-    	addField(SOC.class, "mCurrentPlayer");
-    	addField(SOC.class, "mNumPlayers");
-    	addField(SOC.class, "mDie1");
-    	addField(SOC.class, "mDie2");
-    	addField(SOC.class, "mLongestRoadPlayer");
-    	addField(SOC.class, "mLargestArmyPlayer");
-    	addField(SOC.class, "mStateStack");
-    	addField(SOC.class, "mDeck");
-    	addField(SOC.class, "mBoard");
-    	addField(SOC.class, "mRules");
-    	addField(SOC.class, "mDice");*/
     }
     
 	private final Player[]   	mPlayers = new Player[MAX_PLAYERS];
@@ -535,10 +521,10 @@ public class SOC extends Reflector<SOC> {
 								resourceInfo[cell.getResource().ordinal()][vertex.getPlayer()] += 1;
 								p.incrementResource(cell.getResource(), 1);
 							}
+						} else if (vertex.isStructure()) {
+    						resourceInfo[cell.getResource().ordinal()][vertex.getPlayer()] += 1;
+    						p.incrementResource(cell.getResource(), 1);
 						}
-						resourceInfo[cell.getResource().ordinal()][vertex.getPlayer()] += 1;
-						p.incrementResource(cell.getResource(), 1);
-						
 					} else {
 						int num = vertex.isCity() ? getRules().getNumResourcesForCity() : getRules().getNumResourcesForSettlement();
 						resourceInfo[cell.getResource().ordinal()][vertex.getPlayer()] += num;
@@ -609,9 +595,6 @@ public class SOC extends Reflector<SOC> {
     		if (numPts + victoryPts >= soc.getRules().getPointsForWinGame()) {
     			numPts += victoryPts;
     		}
-		}
-		
-		if (!soc.getRules().isEnableCitiesAndKnightsExpansion()) {
     		if (player.getPlayerNum() == soc.getLargestArmyPlayerNum())
     			numPts += soc.getRules().getPointsLargestArmy();
 		}		
@@ -789,8 +772,8 @@ public class SOC extends Reflector<SOC> {
     	return cards;
     }
     
-    public static List<Player> computeHarborTradePlayers(Player trader, SOC soc) {
-    	List<Player> players = new ArrayList<Player>();
+    public static List<Integer> computeHarborTradePlayers(Player trader, SOC soc) {
+    	List<Integer> players = new ArrayList<Integer>();
     	int num = trader.getCardCount(CardType.Resource);
     	for (Player p : soc.getPlayers()) {
     		if (num == 0)
@@ -799,7 +782,7 @@ public class SOC extends Reflector<SOC> {
     			continue;
     		int numCommodity = p.getCardCount(CardType.Commodity);
     		if (numCommodity > 0) {
-    			players.add(p);
+    			players.add(p.getPlayerNum());
     			num -= 1;
     		}
     	}
@@ -1359,10 +1342,28 @@ public class SOC extends Reflector<SOC> {
 					}
 					break;
 				}
+				
+				case SETUP_GIVEUP_CARDS: {
+					popState();
+					pushStateFront(State.NEXT_PLAYER);
+					pushStateFront(State.SET_PLAYER, getCurPlayerNum(), null);
+					for (int ii=0; ii<mNumPlayers; ii++) {
+						Player cur = mPlayers[(ii + mCurrentPlayer) % mNumPlayers];
+						int numCards = cur.getTotalCardsLeftInHand();
+						if (numCards > getMinHandCardsForRobberDiscard(cur.getPlayerNum())) {
+							int numCardsToSurrender = numCards / 2;
+							printinfo(cur.getName() + " must give up " + numCardsToSurrender + " of " + numCards + " cards");
+							while (numCardsToSurrender > 0)
+								pushStateFront(State.GIVE_UP_CARD, numCardsToSurrender--, null);
+							pushStateFront(State.SET_PLAYER, cur.getPlayerNum(), null);
+						}
+					} 
+					break;
+				}
 
 				case GIVE_UP_CARD: { // wait state
 					if (mOptions == null) {
-						mOptions = computeGiveUpCards(getCurPlayer());
+						mOptions = getCurPlayer().getUnusedCards();
 					}
 					assert (mOptions != null);
 					Card card = getCurPlayer().chooseCard(this, mOptions, CardChoice.GIVEUP_CARD);
@@ -1395,7 +1396,6 @@ public class SOC extends Reflector<SOC> {
 					}
 					Card card = getCurPlayer().chooseCard(this, mOptions, CardChoice.RESOURCE_OR_COMMODITY);
 					if (card != null) {
-						//Card card = new Card(type, CardStatus.USABLE);
 						printinfo(getCurPlayer().getName() + " draws a " + card.getName() + " resource card");
 						getCurPlayer().addCard(card);
 						popState();
@@ -1404,11 +1404,6 @@ public class SOC extends Reflector<SOC> {
 					break;
 				}
 
-/*				case TRADE_COMPLETED:
-					onTradeCompleted(getCurPlayer(), (Trade)getStateData());
-					popState();
-					break;
-*/
 				case SET_PLAYER:
 					setCurrentPlayer((Integer)getStateData());
 					popState();
@@ -1420,20 +1415,7 @@ public class SOC extends Reflector<SOC> {
 					}
 					Vertex v = getCurPlayer().chooseVertex(this, mOptions, VertexChoice.KNIGHT_TO_ACTIVATE);
 					if (v != null) {
-						switch (v.getType()) {
-							case BASIC_KNIGHT_INACTIVE:
-								v.setType(VertexType.BASIC_KNIGHT_ACTIVE);
-								break;
-							case MIGHTY_KNIGHT_INACTIVE:
-								v.setType(VertexType.MIGHTY_KNIGHT_ACTIVE);
-								break;
-							case STRONG_KNIGHT_INACTIVE:
-								v.setType(VertexType.STRONG_KNIGHT_ACTIVE);
-								break;
-							default:
-								throw new RuntimeException("Vertex '" + v + "' is not an inactive knight");
-							
-						}
+						v.activateKnight();
 						resetOptions();
 						popState();
 					}
@@ -1448,23 +1430,7 @@ public class SOC extends Reflector<SOC> {
 					if (v != null) {
 						assert(v.isKnight());
 						assert(!v.isPromotedKnight());
-						switch (v.getType()) {
-							case BASIC_KNIGHT_INACTIVE:
-								v.setType(VertexType.STRONG_KNIGHT_INACTIVE);
-								break;
-							case BASIC_KNIGHT_ACTIVE:
-								v.setType(VertexType.STRONG_KNIGHT_ACTIVE);
-								break;
-							case STRONG_KNIGHT_INACTIVE:
-								v.setType(VertexType.MIGHTY_KNIGHT_INACTIVE);
-								break;
-							case STRONG_KNIGHT_ACTIVE:
-								v.setType(VertexType.MIGHTY_KNIGHT_ACTIVE);
-								break;
-							default:
-								throw new RuntimeException("Vertex '" + v + "' is not an inactive knight");
-							
-						}
+						v.setType(v.getType().promotedType());
 						v.setPromotedKnight(true);
 						resetOptions();
 						popState();
@@ -1480,12 +1446,10 @@ public class SOC extends Reflector<SOC> {
 						popState();
 						mOptions = computeKnightMoveVertexIndices(mBoard.getVertexIndex(v), mBoard);
 						v.setPlayer(0);
-						v.deactivateKnight();
 						pushStateFront(State.POSITION_KNIGHT_CANCEL, v.getType(), new UndoAction() {
 							@Override
 							public void undo() {
 								v.setPlayer(getCurPlayerNum());
-								v.activateKnight();
 							}
 						});
 					}
@@ -1504,11 +1468,8 @@ public class SOC extends Reflector<SOC> {
 					}
 					break;
 				}
-					// fallthrought
+
 				case POSITION_KNIGHT_CANCEL: {
-//					if (mOptions == null) {
-//						mOptions = computeNewKnightVertexIndices(getCurPlayerNum(), getBoard());
-//					}
 					assert(mOptions != null && mOptions.size() > 0);
 					VertexType knight = (VertexType)getStateData();
 					Vertex v = getCurPlayer().chooseVertex(this, mOptions, VertexChoice.KNIGHT_MOVE_POSITION);
@@ -1530,6 +1491,9 @@ public class SOC extends Reflector<SOC> {
 					
     					v.setPlayer(getCurPlayerNum());
     					v.setType(knight);
+    					if (v.isActiveKnight())
+    						v.deactivateKnight();
+
     					// see if we are chasing away the robber
     					for (int i=0; i<v.getNumTiles(); i++) {
     						int tIndex = v.getTile(i);
@@ -1587,9 +1551,10 @@ public class SOC extends Reflector<SOC> {
 					Player p = getCurPlayer().choosePlayer(this, mOptions, PlayerChoice.PLAYER_FOR_DESERTION);
 					if (p != null) {
 						popState();
-						List<Integer> knights = (List<Integer>)getStateData();
+						List<Integer> knights = getBoard().getVertsOfType(p.getPlayerNum(), VertexType.BASIC_KNIGHT_ACTIVE, VertexType.BASIC_KNIGHT_INACTIVE, VertexType.STRONG_KNIGHT_ACTIVE, VertexType.STRONG_KNIGHT_INACTIVE, VertexType.MIGHTY_KNIGHT_ACTIVE, VertexType.MIGHTY_KNIGHT_INACTIVE);
 						if (knights.size() == 1) {
 							mBoard.getVertex(knights.get(0)).setPlayer(getCurPlayerNum());
+							resetOptions();
 						} else if (knights.size() > 1) {
 							mOptions = knights;
 							pushStateFront(State.SET_PLAYER, getCurPlayerNum(), null);
@@ -1608,7 +1573,7 @@ public class SOC extends Reflector<SOC> {
 						if (r.getPlayer() == getCurPlayerNum()) {
 							mBoard.setPlayerForRoute(r, 0);
 							mOptions = computeRoadRouteIndices(getCurPlayerNum(), mBoard);
-							mOptions.remove(mBoard.getRouteIndex(r));
+							mOptions.remove((Object)mBoard.getRouteIndex(r));
 							final Card card = getCurPlayer().removeCard(ProgressCardType.Diplomat);
 							putCardBackInDeck(card);
 							pushStateFront(State.POSITION_ROAD_CANCEL, null, new UndoAction() {
@@ -1655,12 +1620,18 @@ public class SOC extends Reflector<SOC> {
 					if (v != null) {
 						int vIndex = mBoard.getVertexIndex(v);
 						mOptions = computeDisplacedKnightVertexIndices(vIndex, mBoard);
-						mOptions.remove(vIndex);
+						mOptions.remove((Object)vIndex);
 						putCardBackInDeck(getCurPlayer().removeCard(ProgressCardType.Intrigue));
 						popState();
-						pushStateFront(State.SET_PLAYER, getCurPlayerNum(), null);
-						pushStateFront(State.POSITION_DISPLACED_KNIGHT, v, null);
-						pushStateFront(State.SET_PLAYER, v.getPlayer(), null);
+						if (mOptions.size() > 0) {
+    						pushStateFront(State.SET_PLAYER, getCurPlayerNum(), null);
+    						pushStateFront(State.POSITION_DISPLACED_KNIGHT, v.getType(), null);
+    						pushStateFront(State.SET_PLAYER, v.getPlayer(), null);
+						} else {
+							v.setType(VertexType.OPEN);
+							v.setPlayer(0);
+							resetOptions();
+						}
 					}
 					break;
 				}
@@ -1779,6 +1750,7 @@ public class SOC extends Reflector<SOC> {
 						((Player)getStateData()).removeCard(c);
 						getCurPlayer().addCard(c);
 						popState();
+						resetOptions();
 					}
 					break;
 				}
@@ -1931,6 +1903,20 @@ public class SOC extends Reflector<SOC> {
         		break;
         	}
 
+        	case BISHOP_CARD: {
+        		final Card removed = getCurPlayer().removeCard(ProgressCardType.Bishop);
+        		putCardBackInDeck(removed);
+        		pushStateFront(getRules().isEnableSeafarersExpansion() ? State.POSITION_ROBBER_OR_PIRATE_CANCEL : State.POSITION_ROBBER_CANCEL, null, new UndoAction() {
+					
+					@Override
+					public void undo() {
+						removeCardFromDeck(removed);
+						getCurPlayer().addCard(removed);
+					}
+				});
+        		resetOptions();
+        		break;
+        	}
         	case SOLDIER_CARD: {
         		//final Card removed = getCurPlayer().removeCard(DevelopmentCardType.Soldier);
         		final Card used = getCurPlayer().getUsableCard(DevelopmentCardType.Soldier);
@@ -1942,9 +1928,9 @@ public class SOC extends Reflector<SOC> {
         				used.setUsed(false);
         				updateLargestArmyPlayer();
         				getCurPlayer().setCardsUsable(CardType.Development, true);
-        				popState();
         			}
         		});
+        		resetOptions();
         		break;
         	}
 
@@ -2003,7 +1989,6 @@ public class SOC extends Reflector<SOC> {
         		break;
         	}
         	case MOVE_KNIGHT: 
-        		popState();
         		pushStateFront(State.CHOOSE_KNIGHT_TO_MOVE);
         		mOptions = computeMovableKnightVertexIndices(getCurPlayerNum(), mBoard);
         		break;
@@ -2074,22 +2059,7 @@ public class SOC extends Reflector<SOC> {
 						players.add(i);
 					}
 				}
-				popState();
-				if (players.size() == 1) {
-					putCardBackInDeck(getCurPlayer().removeCard(ProgressCardType.Deserter));
-					// automatically pick
-					int player = players.get(0);
-					if (playerKnight[player].size() == 1) {
-						// automatically take the knight
-						Vertex knight = mBoard.getVertex(playerKnight[player].get(0));
-						knight.setPlayer(getCurPlayerNum());
-					} else {
-						pushStateFront(State.SET_PLAYER, getCurPlayerNum(), null);
-						pushStateFront(State.CHOOSE_KNIGHT_TO_DESERT, getCurPlayerNum(), null);
-						pushStateFront(State.SET_PLAYER, player, null);
-						mOptions = playerKnight[player];
-					}
-				} else if (players.size() > 1) {
+				if (players.size() > 0) {
 					mOptions = players;
 					pushStateFront(State.CHOOSE_PLAYER_FOR_DESERTION);
 				}
@@ -2097,7 +2067,6 @@ public class SOC extends Reflector<SOC> {
 			}
 			case DIPLOMAT_CARD: {
 				List<Integer> allOpenRoutes = computeDiplomatOpenRouteIndices(this, mBoard);
-				popState();
 				if (allOpenRoutes.size() > 0) {
 					mOptions = allOpenRoutes;
 					pushStateFront(State.CHOOSE_DIPLOMAT_ROUTE);
@@ -2126,8 +2095,8 @@ public class SOC extends Reflector<SOC> {
 				// 1 Commodity Card from his hand of his choice, if he has any.
 				// You must have a resource card to trade and they must have a commodity card to trade
 				// You can skip a player if you wish
-				for (Player p : computeHarborTradePlayers(getCurPlayer(), this)) {
-					pushStateFront(State.CHOOSE_HARBOR_RESOURCE, p, null);
+				for (int num  : computeHarborTradePlayers(getCurPlayer(), this)) {
+					pushStateFront(State.CHOOSE_HARBOR_RESOURCE, getPlayerByPlayerNum(num), null);
 				}
 				break;
 			}
@@ -2319,12 +2288,13 @@ public class SOC extends Reflector<SOC> {
 				break;
 			}
 			case WEDDING_CARD: {
-				boolean done = false;
 				pushStateFront(State.SET_PLAYER, getCurPlayerNum(), null);
-				for (Player p : computeWeddingOpponents(this, getCurPlayer())) {
+				for (int num : computeWeddingOpponents(this, getCurPlayer())) {
+					Player p = getPlayerByPlayerNum(num);
 					// automatically give
 					List<Card> cards = p.getCards(CardType.Commodity);
 					cards.addAll(p.getCards(CardType.Resource));
+					putCardBackInDeck(getCurPlayer().removeCard(ProgressCardType.Wedding));
 					if (cards.size() <= 2) {
 						// automatic
 						for (Card c : cards) {
@@ -2337,9 +2307,6 @@ public class SOC extends Reflector<SOC> {
 						pushStateFront(State.CHOOSE_GIFT_CARD, getCurPlayer(), null);
 						pushStateFront(State.SET_PLAYER, p.getPlayerNum(), null);
 					}
-				}
-				if (done) {
-					putCardBackInDeck(getCurPlayer().removeCard(ProgressCardType.Wedding));
 				}
 				break;
 			}
@@ -2462,6 +2429,14 @@ public class SOC extends Reflector<SOC> {
 	    return getState().canCancel;
 	}
 
+	/**
+	 * 
+	 * @return
+	 */
+	public boolean isGoodForSave() {
+		return !getState().canCancel && getStateData() == null;
+	}
+	
 	/**
 	 * Typically this operation causes the game to revert a state.
 	 *
@@ -3004,7 +2979,7 @@ public class SOC extends Reflector<SOC> {
 			Vertex v = b.getVertex(vIndex);
 			if (v.getType() == VertexType.OPEN)
 				verts.add(vIndex);
-			else if (v.getPlayer() != knight.getPlayer() && knight.getType().isKnightActive()) {
+			else if (v.isKnight() && v.getPlayer() != knight.getPlayer() && knight.getType().isKnightActive()) {
 				int kl = v.getType().getKnightLevel();
 				if (kl > 0 && kl < knight.getType().getKnightLevel()) {
 					verts.add(vIndex); // TODO: we can move to this vertex but not pass it?
@@ -3159,12 +3134,12 @@ public class SOC extends Reflector<SOC> {
 			if (numCities > 0 || numMetros > 0) {
 				for (DevelopmentArea area : DevelopmentArea.values()) {
 					int devel = p.getCityDevelopment(area);
-					assert(devel <= Player.MAX_CITY_IMPROVEMENT);
-					if (devel >= Player.MAX_CITY_IMPROVEMENT || p.getCardCount(area.commodity) <= devel) {
+					assert(devel <= DevelopmentArea.MAX_CITY_IMPROVEMENT);
+					if (devel >= DevelopmentArea.MAX_CITY_IMPROVEMENT || p.getCardCount(area.commodity) <= devel) {
 						continue;
 					}
 					
-					if (devel < Player.MIN_METROPOLIS_IMPROVEMENT-1) {
+					if (devel < DevelopmentArea.MIN_METROPOLIS_IMPROVEMENT-1) {
 						types.add(area.move);
 						continue;
 					}
@@ -3173,14 +3148,14 @@ public class SOC extends Reflector<SOC> {
 						continue;
 					}
 					
-					if (devel <= Player.MIN_METROPOLIS_IMPROVEMENT) {
+					if (devel <= DevelopmentArea.MIN_METROPOLIS_IMPROVEMENT) {
 						types.add(area.move);
 						continue;
 					}
 					
 					if (soc.mMetropolisPlayer[area.ordinal()] > 0) {
 						Player o = soc.getPlayerByPlayerNum(soc.mMetropolisPlayer[area.ordinal()]);
-						if (o.getCityDevelopment(area) >= Player.MAX_CITY_IMPROVEMENT)
+						if (o.getCityDevelopment(area) >= DevelopmentArea.MAX_CITY_IMPROVEMENT)
 							continue; // cant advance to level 5 if someone else already has (TODO: confirm this rule or make config)
 					}
 					
@@ -3282,19 +3257,6 @@ public class SOC extends Reflector<SOC> {
 				players.add(player.getPlayerNum());
 		}
 		return players;
-	}
-
-	/**
-	 * Return the list of unused resource and development cards a player can give up.
-	 * @param p
-	 * @return
-	 */
-	static public List<Card> computeGiveUpCards(Player p) {
-		List<Card> cards = new ArrayList<Card>();
-		cards.addAll(p.getUnusedCards(CardType.Resource));
-		cards.addAll(p.getUnusedCards(CardType.Development));
-		cards.addAll(p.getUnusedCards(CardType.Commodity));
-		return cards;
 	}
 
 	/**
@@ -3452,7 +3414,7 @@ public class SOC extends Reflector<SOC> {
 	 * @param b
 	 * @return
 	 */
-	public List<Player> computeTakeOpponentCardOptions(Player p, Board b, boolean pirate) {
+	public List<Integer> computeTakeOpponentCardOptions(Player p, Board b, boolean pirate) {
 	    return computeTakeOpponentCardPlayers(getAllPlayers(), p, b, pirate);
 	}
 	
@@ -3463,9 +3425,9 @@ public class SOC extends Reflector<SOC> {
 	 * @param b
 	 * @return
 	 */
-	static public List<Player> computeTakeOpponentCardPlayers(Player [] players, Player p, Board b, boolean pirate) {
+	static public List<Integer> computeTakeOpponentCardPlayers(Player [] players, Player p, Board b, boolean pirate) {
 		
-	    List<Player> choices = new ArrayList<Player>();
+	    List<Integer> choices = new ArrayList<Integer>();
 		boolean [] playerNums = new boolean[players.length];
 		
 		if (pirate) {
@@ -3495,7 +3457,7 @@ public class SOC extends Reflector<SOC> {
 		
 		for (int i=1; i<playerNums.length; i++)
 			if (playerNums[i])
-				choices.add(players[i]);
+				choices.add(players[i].getPlayerNum());
 		return choices;
 	}
 	
@@ -3515,15 +3477,15 @@ public class SOC extends Reflector<SOC> {
 	 * @param p
 	 * @return
 	 */
-	static public List<Player> computeWeddingOpponents(SOC soc, Player p) {
-		List<Player> players = new ArrayList<Player>();
+	static public List<Integer> computeWeddingOpponents(SOC soc, Player p) {
+		List<Integer> players = new ArrayList<Integer>();
 		for (Player player : soc.getPlayers()) {
 			if (player.getPlayerNum() == p.getPlayerNum())
 				continue;
 			if (player.getPoints() <= p.getPoints())
 				continue;
 			if (player.getUnusedCardCount(CardType.Commodity) > 0 || player.getUnusedCardCount(CardType.Resource) > 0)
-				players.add(player);
+				players.add(player.getPlayerNum());
 		}
 		return players;
 	}
@@ -3575,7 +3537,7 @@ public class SOC extends Reflector<SOC> {
 //		popState();
 		printinfo(p.getName() + " is improving their " + area);
 		int devel = p.getCityDevelopment(area);
-		assert(devel < Player.MAX_CITY_IMPROVEMENT);
+		assert(devel < DevelopmentArea.MAX_CITY_IMPROVEMENT);
 		devel++;
 		p.removeCards(area.commodity, devel);
 		p.setCityDevelopment(area, devel);
@@ -3586,20 +3548,8 @@ public class SOC extends Reflector<SOC> {
 		// roll the dice
 		if (getDiceNum() == 7) {
 			popState();
-			printinfo("Uh Oh, Player " + getCurPlayerNum() + " rolled a 7.");
-			pushStateFront(State.NEXT_PLAYER);
-			pushStateFront(State.SET_PLAYER, getCurPlayerNum(), null);
-			for (int ii=0; ii<mNumPlayers; ii++) {
-				Player cur = mPlayers[(ii + mCurrentPlayer) % mNumPlayers];
-				int numCards = cur.getTotalCardsLeftInHand();
-				if (numCards > getMinHandCardsForRobberDiscard(cur.getPlayerNum())) {
-					int numCardsToSurrender = numCards / 2;
-					printinfo(cur.getName() + " must give up " + numCardsToSurrender + " of " + numCards + " cards");
-					while (numCardsToSurrender > 0)
-						pushStateFront(State.GIVE_UP_CARD, numCardsToSurrender--, null);
-					pushStateFront(State.SET_PLAYER, cur.getPlayerNum(), null);
-				}
-			} 
+			printinfo("Uh Oh, " + getCurPlayer().getName()  + " rolled a 7.");
+			pushStateFront(State.SETUP_GIVEUP_CARDS);
 			if (getRules().isEnableSeafarersExpansion())
 				pushStateFront(State.POSITION_ROBBER_OR_PIRATE_NOCANCEL);
 			else
@@ -3646,7 +3596,7 @@ public class SOC extends Reflector<SOC> {
 	protected void onMetropolisStolen(int loser, int stealer, DevelopmentArea area) {}
 	
 	private void checkMetropolis(int devel, int playerNum, DevelopmentArea area) {
-		if (devel >= Player.MIN_METROPOLIS_IMPROVEMENT) {
+		if (devel >= DevelopmentArea.MIN_METROPOLIS_IMPROVEMENT) {
 			//List<Integer> metropolis = mBoard.getVertsOfType(0, area.vertexType);
 			final int metroPlayer = mMetropolisPlayer[area.ordinal()];
 			if (metroPlayer != playerNum) { // if we dont already own this metropolis
@@ -3661,7 +3611,7 @@ public class SOC extends Reflector<SOC> {
     				if (v.getPlayer() != getCurPlayerNum()) {
     					Player other = getPlayerByPlayerNum(metroPlayer);
     					final int otherDevel = other.getCityDevelopment(area);
-    					assert(otherDevel>=Player.MIN_METROPOLIS_IMPROVEMENT);
+    					assert(otherDevel>=DevelopmentArea.MIN_METROPOLIS_IMPROVEMENT);
     					if (otherDevel < devel) {
     						printinfo(other.getName() + " loses Metropolis " + area + " to " + getCurPlayer().getName());
     						v.setType(VertexType.CITY);
@@ -3674,8 +3624,8 @@ public class SOC extends Reflector<SOC> {
 		}		
 	}
 
-	protected void onProgressCardDistributed(int playerNum, ProgressCardType type) {}
-	protected void onSpecialVictoryCard(int playerNum, SpecialVictoryType type) {}
+	protected void onProgressCardDistributed(Player player, ProgressCardType type) {}
+	protected void onSpecialVictoryCard(Player player, SpecialVictoryType type) {}
 	
 	private void distributeProgressCard(DevelopmentArea area) {
 		for (Player p : getPlayers()) {
@@ -3688,14 +3638,14 @@ public class SOC extends Reflector<SOC> {
 				if (card.equals(ProgressCardType.Constitution)) {
 					card.setUsed(true);
 					p.addCard(SpecialVictoryType.Constitution);
-					onSpecialVictoryCard(p.getPlayerNum(), SpecialVictoryType.Constitution);
+					onSpecialVictoryCard(p, SpecialVictoryType.Constitution);
 				} else if (card.equals(ProgressCardType.Printer)) {
 					card.setUsed(true);
 					p.addCard(SpecialVictoryType.Printer);
-					onSpecialVictoryCard(p.getPlayerNum(), SpecialVictoryType.Printer);
+					onSpecialVictoryCard(p, SpecialVictoryType.Printer);
 				} else {
     				p.addCard(card);
-    				onProgressCardDistributed(p.getPlayerNum(), ProgressCardType.values()[card.getTypeOrdinal()]);
+    				onProgressCardDistributed(p, ProgressCardType.values()[card.getTypeOrdinal()]);
 				}
 			}
 		}
@@ -3712,7 +3662,7 @@ public class SOC extends Reflector<SOC> {
 	 * @param barbarianStrength
 	 * @param catanStrength
 	 */
-	protected void onBarbariansAttack(int barbarianStrength, int catanStrength) {}
+	protected void onBarbariansAttack(int catanStrength, int barbarianStrength) {}
 	
 	/**
 	 * Called when city is defended by a wall, but the wall is destroyed
@@ -3761,6 +3711,8 @@ public class SOC extends Reflector<SOC> {
 
 			int catanStrength = CMath.sum(playerStrength);
 			int barbarianStrength = computeBarbarianStrength(this, mBoard);
+			
+			onBarbariansAttack(catanStrength, barbarianStrength);
 			
 			if (catanStrength >= barbarianStrength) {
 				// find defender

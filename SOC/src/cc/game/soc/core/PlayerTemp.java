@@ -53,8 +53,7 @@ public class PlayerTemp extends Player {
 	}
 
 	@Override
-	public Player choosePlayer(SOC soc, List<Player> playerOptions,
-			PlayerChoice mode) {
+	public Player choosePlayer(SOC soc, List<Integer> playerOptions, PlayerChoice mode) {
 		// TODO Auto-generated method stub
 		return null;
 	}

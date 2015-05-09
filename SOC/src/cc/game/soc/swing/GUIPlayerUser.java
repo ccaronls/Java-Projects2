@@ -39,14 +39,20 @@ public class GUIPlayerUser extends GUIPlayer {
 					super.startCityWallAnimation(v);
 				}
 				break;
+			case KNIGHT_TO_ACTIVATE:
+				v = GUI.instance.chooseVertex(vertexIndices, getPlayerNum(), PickMode.PM_ACTIVATE_KNIGHT);
+				break;
+			case KNIGHT_TO_PROMOTE:
+				v = GUI.instance.chooseVertex(vertexIndices, getPlayerNum(), PickMode.PM_PROMOTE_KNIGHT);
+				break;
+			case OPPONENT_KNIGHT_TO_DISPLACE:
+			case KNIGHT_TO_MOVE:
 			case KNIGHT_DESERTER:
 			case KNIGHT_DISPLACED:
-			case KNIGHT_MOVE_POSITION:
-			case KNIGHT_TO_ACTIVATE:
-			case KNIGHT_TO_MOVE:
-			case KNIGHT_TO_PROMOTE:
+				v = GUI.instance.chooseVertex(vertexIndices, getPlayerNum(), PickMode.PM_KNIGHT);
+				break;
 			case NEW_KNIGHT:
-			case OPPONENT_KNIGHT_TO_DISPLACE:
+			case KNIGHT_MOVE_POSITION:
 				v = GUI.instance.chooseVertex(vertexIndices, getPlayerNum(), PickMode.PM_KNIGHT);
 				if (v != null) {
 					super.startKnightAnimation(v);
@@ -92,6 +98,7 @@ public class GUIPlayerUser extends GUIPlayer {
 				break;
 			
 			case ROUTE_DIPLOMAT:
+				r = GUI.instance.getChooseRoadEdge(routeIndices);
 				break;
 			case SHIP: 
 				r = GUI.instance.getChooseShipEdge(routeIndices);
@@ -133,9 +140,12 @@ public class GUIPlayerUser extends GUIPlayer {
 
 
 	@Override
-	public Player choosePlayer(SOC soc, List<Player> players, PlayerChoice mode) {
+	public Player choosePlayer(SOC soc, List<Integer> players, PlayerChoice mode) {
 		switch (mode) {
 			case PLAYER_FOR_DESERTION:
+				return GUI.instance.getChoosePlayerKnightForDesertion(players);
+			case PLAYER_TO_SPY_ON:
+				return GUI.instance.getChoosePlayerToSpyOn(players);
 			case PLAYER_TO_TAKE_CARD_FROM:
 				return GUI.instance.getChoosePlayerToTakeCardFromMenu(players);
 			

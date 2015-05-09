@@ -15,7 +15,7 @@ public enum ProgressCardType implements ICardType {
 	RoadBuilding	(DevelopmentArea.Science, MoveType.ROAD_BUILDING_CARD, 1),
 	
 	// Politics
-	Bishop			(DevelopmentArea.Politics, MoveType.SOLDIER_CARD, 2),
+	Bishop			(DevelopmentArea.Politics, MoveType.BISHOP_CARD, 2),
 	Diplomat		(DevelopmentArea.Politics, MoveType.DIPLOMAT_CARD, 2),
 	Constitution	(DevelopmentArea.Politics, null, 1),
 	Intrigue		(DevelopmentArea.Politics, MoveType.INTRIGUE_CARD, 2),
@@ -46,6 +46,10 @@ public enum ProgressCardType implements ICardType {
 		return CardType.Progress;
 	}
 
+	@Override
+	public String helpText() {
+		return moveType.helpText;
+	}
 
 	final DevelopmentArea type;
 	final int deckOccurances;

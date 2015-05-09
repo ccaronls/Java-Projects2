@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.swing.JOptionPane;
+
 import cc.game.soc.core.*;
 import cc.lib.game.*;
 import cc.lib.swing.*;
@@ -187,8 +189,18 @@ public class SOCGUI extends SOC {
     protected void onDistributeCommodity(final Player player, final CommodityType type, final int amount) {
         addCardAnimation(player, type.name() + "\nX " + amount);
     }
+    
+    @Override
+	protected void onProgressCardDistributed(Player player, ProgressCardType type) {
+    	addCardAnimation(player, type.name());
+	}
 
-    @SuppressWarnings("serial")
+	@Override
+	protected void onSpecialVictoryCard(Player player, SpecialVictoryType type) {
+    	addCardAnimation(player, type.name());
+	}
+
+	@SuppressWarnings("serial")
     @Override
     protected void onGameOver(final Player winner) {
         PopupButton button = new PopupButton("OK") {
@@ -252,6 +264,10 @@ public class SOCGUI extends SOC {
 
 	@Override
 	protected void onBarbariansAttack(int barbarianStrength, int catanStrength) {
+    	JOptionPane.showMessageDialog(gui.frame,
+    		    "Barbarian Strength " + barbarianStrength + "\nCatan Strength " + catanStrength,
+    		    "Barbarian Attack",
+    		    JOptionPane.PLAIN_MESSAGE);
 	}
 
 	@Override

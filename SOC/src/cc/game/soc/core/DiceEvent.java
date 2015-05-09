@@ -1,31 +1,26 @@
 package cc.game.soc.core;
 
 public enum DiceEvent {
-	AdvanceBarbarianShip(3),
-	ScienceCard(1),
-	TradeCard(1),
-	PoliticsCard(1),
+	AdvanceBarbarianShip,
+	ScienceCard,
+	TradeCard,
+	PoliticsCard,
 	;
-	
-	DiceEvent(int occurances) {
-		this.occurances = occurances;
-	}
-	
-	final int occurances;
-	
 	/**
 	 * Return thre event for a die num roll.  Valid range is [1-6] inclusive
 	 * @param num
 	 * @return
 	 */
 	public static DiceEvent fromDieNum(int num) {
-		num -= 1;
-		for (DiceEvent ev : values()) {
-			if (num >= ev.occurances) {
-				num -= ev.occurances;
-			} else {
-				return ev;
-			}
+		switch (num) {
+			case 1: case 2: case 3:
+				return DiceEvent.AdvanceBarbarianShip;
+			case 4:
+				return DiceEvent.PoliticsCard;
+			case 5:
+				return DiceEvent.ScienceCard;
+			case 6:
+				return DiceEvent.TradeCard;
 		}
 		return null;
 	}

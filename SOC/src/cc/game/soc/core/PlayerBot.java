@@ -445,6 +445,7 @@ public class PlayerBot extends Player {
 					buildRoutesTree(soc, p, b, root);
 					break;
 				}
+				case BISHOP_CARD:
 				case SOLDIER_CARD: {
 					int saveRobber = b.getRobberTile();
 					int savePirate = b.getPirateTile();
@@ -724,11 +725,12 @@ public class PlayerBot extends Player {
 				case HARBOR_CARD: {
 					p.removeCard(ProgressCardType.Harbor);
 					List<Card> resourceCards = p.getCards(CardType.Resource);
-					List<Player> harborPlayers = SOC.computeHarborTradePlayers(p, soc);
+					List<Integer> harborPlayers = SOC.computeHarborTradePlayers(p, soc);
 					for (Card c : resourceCards) {
 						p.removeCard(c);
 						BotNode n = root.attach(new BotNodeCard(c));
-						for (Player p2 : harborPlayers) {
+						for (int num: harborPlayers) {
+							Player p2 = soc.getPlayerByPlayerNum(num);
 							CommodityType comm = Utils.randItem(CommodityType.values());
 							p2.removeCard(comm);
 							p.addCard(comm);
@@ -953,8 +955,8 @@ public class PlayerBot extends Player {
 					p.removeCard(ProgressCardType.Spy);
 					evaluatePlayer(root, soc, p, b);
 					List<Integer> players = SOC.computeSpyOpponents(soc, p.getPlayerNum());
-					for (int pIndex: players) {
-						Player player = soc.getPlayerByPlayerNum(pIndex);
+					for (int num: players) {
+						Player player = soc.getPlayerByPlayerNum(num);
 						BotNode n = root.attach(new BotNodePlayer(player));
 						Card removed = player.removeRandomUnusedCard(CardType.Progress);
 						evaluateOpponents(n, soc, player, b);
@@ -998,7 +1000,8 @@ public class PlayerBot extends Player {
 				case WEDDING_CARD: {
 					p.removeCard(ProgressCardType.Wedding);
 					evaluatePlayer(root, soc, p, b);
-					for (Player player : SOC.computeWeddingOpponents(soc, p)) {
+					for (int num : SOC.computeWeddingOpponents(soc, p)) {
+						Player player = soc.getPlayerByPlayerNum(num);
 						List<Card> cards = SOC.computeGiftCards(soc, player);
 						if (cards.size() > 0) {
 							Card c = Utils.randItem(cards);
@@ -1220,20 +1223,21 @@ public class PlayerBot extends Player {
 	}
 
 	@Override
-	public Player choosePlayer(SOC soc, List<Player> playerOptions, PlayerChoice mode) {
+	public Player choosePlayer(SOC soc, List<Integer> playerOptions, PlayerChoice mode) {
 		if (movesPath != null) {
 			return detatchMove();
 		}
 		
 		if (playerOptions.size() == 1)
-			return playerOptions.get(0);
+			return soc.getPlayerByPlayerNum(playerOptions.get(0));
 		
 		Player p = this;
 		Board b = soc.getBoard();
 		
 		BotNode root = createNewTree();
 		
-		for (Player opponent : playerOptions) {
+		for (int num : playerOptions) {
+			Player opponent = soc.getPlayerByPlayerNum(num);
 			Card card = opponent.removeRandomUnusedCard();
 			p.addCard(card);
 			BotNode node = root.attach(new BotNodePlayer(opponent));

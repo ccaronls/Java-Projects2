@@ -45,6 +45,7 @@ public class BoardComponent extends JComponent implements KeyListener, MouseMoti
         PM_ROUTE,
         PM_ROUTE2,
         PM_KNIGHT,
+        PM_ACTIVATE_KNIGHT,
         PM_PROMOTE_KNIGHT,
         PM_METROPOLIS_TRADE,
         PM_METROPOLIS_POLITICS,
@@ -213,7 +214,8 @@ public class BoardComponent extends JComponent implements KeyListener, MouseMoti
 		final int   numVerts;
 		final int [] xVerts;
 		final int [] yVerts;
-
+		FaceType [] structures;
+		
 		Face(float darkenAmount, int ... verts) {
 			this.darkenAmount = darkenAmount;
 			this.numVerts = verts.length/2;
@@ -226,169 +228,181 @@ public class BoardComponent extends JComponent implements KeyListener, MouseMoti
 				index++;
 			}
 		}
+		
+		Face setFaceTypes(FaceType ... structures) {
+			this.structures = structures;
+			return this;
+		}
 	};
 	
 	private static final Face [] structureFaces = {
-		// 0. house front
-	    new Face(0.0f, 	0,0, 2,3, 4,0, 4,-4, 0,-4),
-	    // 1. house roof
-	    new Face(0.25f, 0,0, 2,3, 0,4, -2,1),
-	    // 2. house side
-	    new Face(0.45f, 0,0, -2,1, -2,-3, 0,-4),
-	    // 3. city front panel
-	    new Face(0.0f, 	0,0, -2,0, -2,-4, 0,-4),
-	    // 4. city side panel
-	    new Face(0.45f, -2,0,-4,1,-4,-3,-2,-4),
-	    // 5. city roof
-	    new Face(0.1f, 	0,0,-2,1,-4,1,-2,0),
+		// house front
+	    new Face(0.0f, 	0,0, 2,3, 4,0, 4,-4, 0,-4).setFaceTypes(FaceType.SETTLEMENT, FaceType.CITY, FaceType.CITY_WALL),
+	    // house roof
+	    new Face(0.25f, 0,0, 2,3, 0,4, -2,1).setFaceTypes(FaceType.SETTLEMENT, FaceType.CITY, FaceType.CITY_WALL),
+	    // house side
+	    new Face(0.45f, 0,0, -2,1, -2,-3, 0,-4).setFaceTypes(FaceType.SETTLEMENT, FaceType.CITY, FaceType.CITY_WALL),
+	    // city front panel
+	    new Face(0.0f, 	0,0, -2,0, -2,-4, 0,-4).setFaceTypes(FaceType.CITY, FaceType.CITY_WALL),
+	    // city side panel
+	    new Face(0.45f, -2,0,-4,1,-4,-3,-2,-4).setFaceTypes(FaceType.CITY, FaceType.CITY_WALL),
+	    // city roof
+	    new Face(0.1f, 	0,0,-2,1,-4,1,-2,0).setFaceTypes(FaceType.CITY, FaceType.CITY_WALL),
 	    // walled city
-	    // 6. wall right
-	    new Face(0.6f, 4,0, 6,-2, 4,-2),
-	    // 7. wall front
-	    new Face(0.1f, 6,-2, 6,-5, -3,-5, -3,-2),
-	    // 8. wall left
-	    new Face(0.5f, -5,0, -3,-2, -3,-5, -5,-3),
+	    // wall right
+	    new Face(0.6f, 4,0, 6,-2, 4,-2).setFaceTypes(FaceType.CITY_WALL),
+	    // wall front
+	    new Face(0.1f, 6,-2, 6,-5, -3,-5, -3,-2).setFaceTypes(FaceType.CITY_WALL),
+	    // wall left
+	    new Face(0.5f, -5,0, -3,-2, -3,-5, -5,-3).setFaceTypes(FaceType.CITY_WALL),
 	    
 	    // ship
 	    
-	    // 9. hull
-	    new Face(0.25f, -4,0, 4,0, 3,-2, -3,-2),
-	    // 10. sail 
-	    new Face(0.0f, 1,0,1,5,-1,4,-3,1,-1,0),
+	    // hull
+	    new Face(0.25f, -4,0, 4,0, 3,-2, -3,-2).setFaceTypes(FaceType.SHIP),
+	    // sail 
+	    new Face(0.0f, 1,0,1,5,-1,4,-3,1,-1,0).setFaceTypes(FaceType.SHIP),
 	    
 	    // shield
-	    
-	    // 11. top left
-	    new Face(0.0f, 0,1, 0,3, -3,3, -3,1),
-	    // 12. top right
-	    new Face(0.2f, 0,1, 0,3, 3,3, 3,1),
-	    // 13. bottom left
-	    new Face(0.5f, 0,1, -3,1, -3,-1, 0,-4),
-	    // 14. bottom right
-	    new Face(0.7f, 0,1, 3,1, 3,-1, 0,-4),
-	    
-	    // 15. Level 2 knight bar
-	    new Face(0.5f, -3,4, -3,5, 3,5, 3,4),
-	    
-	    // 16. Level 3 knight bar
-	    new Face(0.1f, -3,6, -3,7, 3,7, 3,6),
+	    // full (inactive)
+	    new Face(0.5f, 3,3, 3,-1, 0,-4, -3,-1, -3,3).setFaceTypes(FaceType.KNIGHT_INACTIVE_BASIC, FaceType.KNIGHT_INACTIVE_STRONG, FaceType.KNIGHT_INACTIVE_MIGHTY),
+	    // sectioned (active)
+	    // top left
+	    new Face(0.0f, 0,1, 0,3, -3,3, -3,1).setFaceTypes(FaceType.KNIGHT_ACTIVE_BASIC, FaceType.KNIGHT_ACTIVE_STRONG, FaceType.KNIGHT_ACTIVE_MIGHTY),
+	    // top right
+	    new Face(0.1f, 0,1, 0,3, 3,3, 3,1).setFaceTypes(FaceType.KNIGHT_ACTIVE_BASIC, FaceType.KNIGHT_ACTIVE_STRONG, FaceType.KNIGHT_ACTIVE_MIGHTY),
+	    // bottom left
+	    new Face(0.2f, 0,1, -3,1, -3,-1, 0,-4).setFaceTypes(FaceType.KNIGHT_ACTIVE_BASIC, FaceType.KNIGHT_ACTIVE_STRONG, FaceType.KNIGHT_ACTIVE_MIGHTY),
+	    // bottom right
+	    new Face(0.3f, 0,1, 3,1, 3,-1, 0,-4).setFaceTypes(FaceType.KNIGHT_ACTIVE_BASIC, FaceType.KNIGHT_ACTIVE_STRONG, FaceType.KNIGHT_ACTIVE_MIGHTY),
+	    // Level 2 knight bar
+	    new Face(0.5f, -3,4, -3,5, 3,5, 3,4).setFaceTypes(FaceType.KNIGHT_ACTIVE_STRONG, FaceType.KNIGHT_ACTIVE_MIGHTY, FaceType.KNIGHT_INACTIVE_STRONG, FaceType.KNIGHT_INACTIVE_MIGHTY),
+	    // Level 3 knight bar
+	    new Face(0.1f, -3,6, -3,7, 3,7, 3,6).setFaceTypes(FaceType.KNIGHT_ACTIVE_MIGHTY, FaceType.KNIGHT_INACTIVE_MIGHTY),
+
 	    // Merchant
+	    // Diamond
+	    new Face(0.5f, 5,0, 0,5, -5,0, 0,-5).setFaceTypes(FaceType.MERCHANT),
+	    // T
+	    new Face(0.0f, 1,1, 4,1, 2,3, -2,3, -4,1, -1,1, -1,-4, 1,-4).setFaceTypes(FaceType.MERCHANT),
 	    
-	    // 17. Diamond
-	    new Face(0.5f, 5,0, 0,5, -5,0, 0,-5),
-	    // 18. T
-	    new Face(0.0f, 1,1, 4,1, 2,3, -2,3, -4,1, -1,1, -1,-4, 1,-4),
-	    
-	    // 19-29 Trade Metropolis
+	    // Trade Metropolis
 	    // right most building
-	    new Face(0.2f, 2,-4, 5,-4, 5,4, 2,5),
-	    new Face(0.4f, 1,5,  2,4,  2,0, 1,0),
-	    new Face(0.0f,  2,4, 5,4, 4,5, 1,5),
+	    new Face(0.2f, 2,-4, 5,-4, 5,4, 2,5).setFaceTypes(FaceType.METRO_TRADE),
+	    new Face(0.4f, 1,5,  2,4,  2,0, 1,0).setFaceTypes(FaceType.METRO_TRADE),
+	    new Face(0.0f,  2,4, 5,4, 4,5, 1,5).setFaceTypes(FaceType.METRO_TRADE),
 	    // middle building
-	    new Face(0.0f, 3,0, 1,2, 1,0),
-	    new Face(0.2f, -2,4, 1,4, 1,0, -2,0),
-	    new Face(0.2f, -2,0, 3,0, 3,-5, -2,-5),
-	    new Face(0.4f, -2,4, -2,-5, -4,-3, -4,6),
-	    new Face(0.0f, -2,4, -4,6, -1,6, 1,4),
+	    new Face(0.0f, 3,0, 1,2, 1,0).setFaceTypes(FaceType.METRO_TRADE),
+	    new Face(0.2f, -2,4, 1,4, 1,0, -2,0).setFaceTypes(FaceType.METRO_TRADE),
+	    new Face(0.2f, -2,0, 3,0, 3,-5, -2,-5).setFaceTypes(FaceType.METRO_TRADE),
+	    new Face(0.4f, -2,4, -2,-5, -4,-3, -4,6).setFaceTypes(FaceType.METRO_TRADE),
+	    new Face(0.0f, -2,4, -4,6, -1,6, 1,4).setFaceTypes(FaceType.METRO_TRADE),
 	    // left most building
-	    new Face(0.2f, -3,1, -5,1, -5,-4, -3,-4),
-	    new Face(0.4f, -6,2, -5,1, -5,-4, -6,-3),
-	    new Face(0.0f, -3,1, -4,2, -6,2, -5,1),
+	    new Face(0.2f, -3,1, -5,1, -5,-4, -3,-4).setFaceTypes(FaceType.METRO_TRADE),
+	    new Face(0.4f, -6,2, -5,1, -5,-4, -6,-3).setFaceTypes(FaceType.METRO_TRADE),
+	    new Face(0.0f, -3,1, -4,2, -6,2, -5,1).setFaceTypes(FaceType.METRO_TRADE),
 	    
-	    // 30-37 Politics Metropolis
+	    // Politics Metropolis
 	    // roofs from right to left
-	    new Face(0.0f, 5,0, 7,-1, 4,-1, 2,0),
-	    new Face(0.1f, 1,3, -1,4, -3,3, -1,2),
-	    new Face(0.2f, -1,2, -2,0, -4,1, -3,3),
-	    new Face(0.3f, -2,0, -4,1, -4,0, -2,-1),
-	    new Face(0.0f, -4,0, -7,0, -5,-1, -2,-1),
+	    new Face(0.0f, 5,0, 7,-1, 4,-1, 2,0).setFaceTypes(FaceType.METRO_POLITICS),
+	    new Face(0.1f, 1,3, -1,4, -3,3, -1,2).setFaceTypes(FaceType.METRO_POLITICS),
+	    new Face(0.2f, -1,2, -2,0, -4,1, -3,3).setFaceTypes(FaceType.METRO_POLITICS),
+	    new Face(0.3f, -2,0, -4,1, -4,0, -2,-1).setFaceTypes(FaceType.METRO_POLITICS),
+	    new Face(0.0f, -4,0, -7,0, -5,-1, -2,-1).setFaceTypes(FaceType.METRO_POLITICS),
 	    // front
-	    new Face(0.5f, 1,3, 3,2, 4,0, 4,-1, 7,-1, 7,-4, -5,-4, -5,-1, -2,-1, -2,0, -1,2),
+	    new Face(0.5f, 1,3, 3,2, 4,0, 4,-1, -2,-1, -2,0, -1,2).setFaceTypes(FaceType.METRO_POLITICS),
+	    new Face(0.5f, 7,-1, 7,-4, -5,-4, -5,-1).setFaceTypes(FaceType.METRO_POLITICS),
 	    // left wall
-	    new Face(0.6f, -7,0, -5,-1, -5,-4, -7,-3),
+	    new Face(0.6f, -7,0, -5,-1, -5,-4, -7,-3).setFaceTypes(FaceType.METRO_POLITICS),
 	    // door
-	    new Face(1.0f, 0,0, 2,0, 2,-4, 0,-4),
+	    new Face(1.0f, 0,0, 2,0, 2,-4, 0,-4).setFaceTypes(FaceType.METRO_POLITICS),
 	    
-	    // 38-48 Science metropolis
+	    // Science metropolis
 	    // column sides
-	    new Face(0.8f, -3,3, 2,3, 2,-2, -3,-2),
+	    new Face(0.8f, -3,3, 2,3, 2,-2, -3,-2).setFaceTypes(FaceType.METRO_SCIENCE),
 	    // base top
-	    new Face(0.7f, 2,-1, 3,-2, -2,-2, -3,-1),
+	    new Face(0.7f, 2,-1, 3,-2, -2,-2, -3,-1).setFaceTypes(FaceType.METRO_SCIENCE),
 	    // base angled side
-	    new Face(0.2f, -3,-1, -2,-2, -3,-3, -4,-2),
+	    new Face(0.2f, -3,-1, -2,-2, -3,-3, -4,-2).setFaceTypes(FaceType.METRO_SCIENCE),
 	    // base side
-	    new Face(0.4f, -4,-2, -4,-3, -3,-4, -3,-3),
+	    new Face(0.4f, -4,-2, -4,-3, -3,-4, -3,-3).setFaceTypes(FaceType.METRO_SCIENCE),
 	    // base front
-	    new Face(0.5f, -2,-2, 3,-2, 4,-3, 4,-4, -3,-4, -3,-3),
+	    new Face(0.5f, -2,-2, 3,-2, 4,-3, 4,-4, -3,-4, -3,-3).setFaceTypes(FaceType.METRO_SCIENCE),
 	    // right column front
-	    new Face(0.5f, 2,2, 3,2, 3,-2, 2,-2),
+	    new Face(0.5f, 2,2, 3,2, 3,-2, 2,-2).setFaceTypes(FaceType.METRO_SCIENCE),
 	    // center column front
-	    new Face(0.5f, 0,2, 1,2, 1,-2, 0,-2),
+	    new Face(0.5f, 0,2, 1,2, 1,-2, 0,-2).setFaceTypes(FaceType.METRO_SCIENCE),
 	    // left column front
-	    new Face(0.5f, -2,2, -1,2, -1,-2, -2,-2),
+	    new Face(0.5f, -2,2, -1,2, -1,-2, -2,-2).setFaceTypes(FaceType.METRO_SCIENCE),
 	    // roof top
-	    new Face(0.0f, -2,5, 1,5, 2,4, -1,4),
+	    new Face(0.0f, -2,5, 1,5, 2,4, -1,4).setFaceTypes(FaceType.METRO_SCIENCE),
 	    // roof left 
-	    new Face(0.2f, -2,5, -1,4, -4,2, -5,3),
+	    new Face(0.2f, -2,5, -1,4, -4,2, -5,3).setFaceTypes(FaceType.METRO_SCIENCE),
 	    // roof front
-	    new Face(0.5f, -4,2, -1,4, 2,4, 5,2),
+	    new Face(0.5f, -4,2, -1,4, 2,4, 5,2).setFaceTypes(FaceType.METRO_SCIENCE),
 	    
 	    
 	    
 	};
 	    
-	private static final int settlementFaceIndex[] 		= { 0,1,2 };
-	private static final int cityFaceIndex[]       		= { 0,1,3,4,5 };
-	private static final int walledCityFaceIndex[] 		= { 6,0,1,3,4,5,7,8 }; 
-	private static final int shipFaceIndex[]       		= { 9, 10 };
-	private static final int knightFaceIndex1[]    		= { 11,12,13,14 };
-	private static final int knightFaceIndex2[]    		= { 11,12,13,14,15 };
-	private static final int knightFaceIndex3[]    		= { 11,12,13,14,15,16 };
-	private static final int merchantFaceIndex[]   		= { 17, 18 };
-	private static final int metroTradeFaceIndex[] 		= { 19,20,21,22,23,24,25,26,27,28,29 };
-	private static final int metroPoliticsFaceIndex[] 	= { 30,31,32,33,34,35,36,37 };
-	private static final int metroScienceFaceIndex[] 	= { 38,39,40,41,42,43,44,45,46,47,48 };
-
+	enum FaceType {
+		SETTLEMENT,
+		CITY,
+		CITY_WALL,
+		SHIP,
+		KNIGHT_ACTIVE_BASIC,
+		KNIGHT_ACTIVE_STRONG,
+		KNIGHT_ACTIVE_MIGHTY,
+		KNIGHT_INACTIVE_BASIC,
+		KNIGHT_INACTIVE_STRONG,
+		KNIGHT_INACTIVE_MIGHTY,
+		MERCHANT,
+		METRO_TRADE,
+		METRO_POLITICS,
+		METRO_SCIENCE
+	}
+	
+	
 	void drawSettlement(Graphics g, float x, float y, int playerNum, boolean outline) {
 		if (playerNum > 0)
 			g.setColor(listener.getPlayerColor(playerNum));
-		drawFaces(g, x, y, 0, board.getTileWidth()/6, settlementFaceIndex, outline);
+		drawFaces(g, x, y, 0, board.getTileWidth()/6, FaceType.SETTLEMENT, outline);
 	}
 	
 	void drawCity(Graphics g, float x, float y, int playerNum, boolean outline) {
 		if (playerNum > 0)
 			g.setColor(listener.getPlayerColor(playerNum));
-		drawFaces(g, x, y, 0, board.getTileWidth()/6, cityFaceIndex, outline);
+		drawFaces(g, x, y, 0, board.getTileWidth()/6, FaceType.CITY, outline);
 	}
 	
 	void drawWalledCity(Graphics g, float x, float y, int playerNum, boolean outline) {
 		if (playerNum > 0)
 			g.setColor(listener.getPlayerColor(playerNum));
-		drawFaces(g, x, y, 0, board.getTileWidth()/6, walledCityFaceIndex, outline);
+		drawFaces(g, x, y, 0, board.getTileWidth()/6, FaceType.CITY_WALL, outline);
 	}
 	
 	void drawMetropolisTrade(Graphics g, float x, float y, int playerNum, boolean outline) {
 		if (playerNum > 0)
 			g.setColor(listener.getPlayerColor(playerNum));
-		drawFaces(g, x, y, 0, board.getTileWidth()/6, metroTradeFaceIndex, outline);
+		drawFaces(g, x, y, 0, board.getTileWidth()/6, FaceType.METRO_TRADE, outline);
 	}
 
 	void drawMetropolisPolitics(Graphics g, float x, float y, int playerNum, boolean outline) {
 		if (playerNum > 0)
 			g.setColor(listener.getPlayerColor(playerNum));
-		drawFaces(g, x, y, 0, board.getTileWidth()/6, metroPoliticsFaceIndex, outline);
+		drawFaces(g, x, y, 0, board.getTileWidth()/6, FaceType.METRO_POLITICS, outline);
 	}
 
 	void drawMetropolisScience(Graphics g, float x, float y, int playerNum, boolean outline) {
 		if (playerNum > 0)
 			g.setColor(listener.getPlayerColor(playerNum));
-		drawFaces(g, x, y, 0, board.getTileWidth()/6, metroScienceFaceIndex, outline);
+		drawFaces(g, x, y, 0, board.getTileWidth()/6, FaceType.METRO_SCIENCE, outline);
 	}
 
 	void drawMerchant(Graphics g, Tile t, int playerNum) {
 		if (playerNum > 0)
 			g.setColor(listener.getPlayerColor(playerNum));
-		drawFaces(g, t.getX(), t.getY(), 0, board.getTileWidth()/7, merchantFaceIndex, false);
+		drawFaces(g, t.getX(), t.getY(), 0, board.getTileWidth()/7, FaceType.MERCHANT, false);
 	}
 
 	void drawKnight_image(Graphics g, float _x, float _y, int playerNum, int level, boolean active, boolean outline) {
@@ -406,33 +420,51 @@ public class BoardComponent extends JComponent implements KeyListener, MouseMoti
 		final float radius = board.getTileWidth()/8;
 		float xRad = 3;
 		float scale = radius / xRad;
-		int [] faces = null;
+		FaceType structure = null;
 		switch (level) {
-			case 1: faces = knightFaceIndex1; break;
-			case 2: faces = knightFaceIndex2; break;
-			case 3: faces = knightFaceIndex3; break;
+			case 0:
+			case 1: structure = active ? FaceType.KNIGHT_ACTIVE_BASIC : FaceType.KNIGHT_INACTIVE_BASIC; break;
+			case 2: structure = active ? FaceType.KNIGHT_ACTIVE_STRONG : FaceType.KNIGHT_INACTIVE_STRONG; break;
+			case 3: structure = active ? FaceType.KNIGHT_ACTIVE_MIGHTY : FaceType.KNIGHT_INACTIVE_MIGHTY; break;
 			default: assert(false); break;
 		}
-		drawFaces(g, x, y, 0, scale/2, scale, faces, outline);
+		drawFaces(g, x, y, 0, scale/2, scale, structure, outline);
 	}
 
-	void drawFaces(Graphics g, float x, float y, float angle, float radius, int [] faces, boolean outline) {
+	void drawFaces(Graphics g, float x, float y, float angle, float radius, FaceType structure, boolean outline) {
 	    final float xRad = 3; // actual radius as defined above
 		float scale = radius / xRad;
-		drawFaces(g, x, y, angle, scale, scale, faces, outline);
+		drawFaces(g, x, y, angle, scale, scale, structure, outline);
 	}
 
-	void drawFaces(Graphics g, float x, float y, float angle, float w, float h, int [] faces, boolean outline) {
+	private HashMap<FaceType, Face[]> faceMap = new HashMap<BoardComponent.FaceType, BoardComponent.Face[]>();
+	
+	Face [] getStructureFaces(FaceType s) {
+		Face [] faces = faceMap.get(s);
+		if (faces == null) {
+			ArrayList<Face> a = new ArrayList<Face>();
+			for (int i=0; i<structureFaces.length; i++) {
+				if (structureFaces[i].structures != null) {
+    				if (Arrays.binarySearch(structureFaces[i].structures, s) >= 0) {
+    					a.add(structureFaces[i]);
+    				}
+				}
+			}
+			faces = a.toArray(new Face[a.size()]);
+			faceMap.put(s, faces);
+		}
+		return faces;
+	}
+	
+	void drawFaces(Graphics g, float x, float y, float angle, float w, float h, FaceType structure, boolean outline) {
 		render.pushMatrix();
 		render.translate(x, y);
 		render.rotate(angle);
 		render.scale(w, -h);
-		Color structureColor = g.getColor();
+		Color saveColor = g.getColor();
 
-	    for (int f=0; f<faces.length; f++)
-	    {
-	    	Face face = structureFaces[faces[f]];	    	
-
+		Face [] faces = getStructureFaces(structure);
+	    for (Face face : faces) {
 		    render.clearVerts();
 	    	for (int i=0; i<face.numVerts; i++)
 	    		render.addVertex(face.xVerts[i], face.yVerts[i]);
@@ -442,10 +474,10 @@ public class BoardComponent extends JComponent implements KeyListener, MouseMoti
 	    	    render.drawLineLoop(g, 2);
 	    	}
 
-            g.setColor(AWTUtils.darken(structureColor, face.darkenAmount));
+            g.setColor(AWTUtils.darken(saveColor, face.darkenAmount));
             render.fillPolygon(g);
 	    }
-	    g.setColor(structureColor);
+	    g.setColor(saveColor);
 	    render.popMatrix();
 	}
 	
@@ -545,8 +577,8 @@ public class BoardComponent extends JComponent implements KeyListener, MouseMoti
 		render.addVertex(v1.getX(), v1.getY());
 	}
 
-	private void drawEdge(Graphics g, Route e, boolean outline) {
-		if (e.getPlayer() > 0) {
+	private void drawEdge(Graphics g, Route e, int playerNum, boolean outline) {
+		if (playerNum > 0) {
 			if (e.isShip())
 				drawShip(g, board.getRouteMidpoint(e), outline);
 			else
@@ -559,6 +591,43 @@ public class BoardComponent extends JComponent implements KeyListener, MouseMoti
 		}
 	}
 	
+	private void drawVertex(Graphics g, Vertex v, VertexType type, int playerNum, boolean outline) {
+		float x = v.getX();
+		float y = v.getY();
+		switch (type) {
+			case SETTLEMENT:
+				drawSettlement(g, x, y, playerNum, outline);
+				break;
+			case CITY:
+				drawCity(g, x, y, playerNum, outline);
+				break;
+			case WALLED_CITY:
+				drawWalledCity(g, x, y, playerNum, outline);
+				break;
+			case METROPOLIS_SCIENCE:
+				drawMetropolisScience(g, x, y, playerNum, outline);
+				break;
+			case METROPOLIS_POLITICS:
+				drawMetropolisPolitics(g, x, y, playerNum, outline);
+				break;
+			case METROPOLIS_TRADE:
+				drawMetropolisTrade(g, x, y, playerNum, outline);
+				break;
+			case BASIC_KNIGHT_ACTIVE:
+			case BASIC_KNIGHT_INACTIVE:
+			case STRONG_KNIGHT_ACTIVE:
+			case STRONG_KNIGHT_INACTIVE:
+			case MIGHTY_KNIGHT_ACTIVE:
+			case MIGHTY_KNIGHT_INACTIVE:
+				drawKnight(g, x, y, playerNum, type.getKnightLevel(), type.isKnightActive(), outline);
+				break;
+			default:
+				break;
+				
+			
+		}		
+	}
+	
 	private void drawRoad(Graphics g, Route e, boolean outline) {
 		render.clearVerts();
 	    if (outline) {
@@ -567,14 +636,13 @@ public class BoardComponent extends JComponent implements KeyListener, MouseMoti
             renderEdge(e);
             render.drawLines(g, roadLineThickness+2);
             g.setColor(old);
-            return;
 	    } 
 	    renderEdge(e);
 	    render.drawLines(g, roadLineThickness);
 	}
 	
 	void drawShip(Graphics g, IVector2D v, boolean outline) {
-		drawFaces(g, v.getX(), v.getY(), 0, board.getTileWidth()/8, shipFaceIndex, outline);
+		drawFaces(g, v.getX(), v.getY(), 0, board.getTileWidth()/8, FaceType.SHIP, outline);
 	}
 	
 	private void drawRobber(Graphics g, Tile cell) {
@@ -639,6 +707,37 @@ public class BoardComponent extends JComponent implements KeyListener, MouseMoti
 		repaint();
 	}
 
+	private void drawIslandOutlined(Graphics g, int tileIndex) {
+		Collection<Integer> islandEdges = board.findIslandShoreline(tileIndex);
+		render.clearVerts();
+    	for (int eIndex : islandEdges) {
+    		renderEdge(board.getRoute(eIndex));
+    	}
+    	render.drawLines(g, 5);
+
+    	Tile cell = board.getTile(tileIndex);
+    	if (cell.getIslandNum() > 0) {
+        	MutableVector2D midpoint = new MutableVector2D();
+        	int num = 0;
+        	for (int eIndex : islandEdges) {
+        		midpoint.addEq(board.getRouteMidpoint(board.getRoute(eIndex)));
+        		num++;
+        	}
+        	midpoint.scaleEq(1.0f / num);
+        	render.transformXY(midpoint);
+        	String txt = "ISLAND\n" + cell.getIslandNum();
+        	Dimension dim = AWTUtils.computeTextDimension(g, txt);
+        	g.setColor(new Color(0,0,0,0.5f));
+        	int x = midpoint.Xi() - (dim.width/2+5);
+        	int y = midpoint.Yi() - (dim.height/2+5);
+        	int w = dim.width + 10;
+        	int h = dim.height + 10;
+        	g.fillRect(x, y, w, h);
+        	g.setColor(Color.white);
+        	AWTUtils.drawJustifiedString(g, midpoint.Xi(), midpoint.Yi(), Justify.CENTER, Justify.CENTER, txt);
+    	}		
+	}
+	
     private void drawCellsOutlined(Graphics g) {
         Color outlineColor = GUI.instance.getProps().getColorProperty("board.outlineColor", Color.WHITE);
         Color textColor = GUI.instance.getProps().getColorProperty("board.textcolor", Color.CYAN);
@@ -902,207 +1001,50 @@ public class BoardComponent extends JComponent implements KeyListener, MouseMoti
                 drawCellsOutlined(g);
             }
 
-            int ignoreStructureVertex = -1;
-            
-            switch (pickMode) {
-            	case PM_ROAD: {
-                	if (pickIndices != null) {
-                		g.setColor(AWTUtils.setAlpha(listener.getPlayerColor(pickPlayerNum), PICKABLE_ELEM_ALPHA));
-                    	for (int eIndex : pickIndices) {
-                    		drawRoad(g, board.getRoute(eIndex), false);
-                    	}
-                	}
-                	
-                	if (pickedValue >= 0) {
-    //                	g.setColor(listener.getPlayerColor(pickPlayerNum));
-                        drawRoad(g, board.getRoute(pickedValue), true);
-                	}
-                	break;
-                }
-            	
-            
-            	case PM_SHIP: {
-                	if (pickIndices != null) {
-                    	g.setColor(AWTUtils.setAlpha(listener.getPlayerColor(pickPlayerNum), PICKABLE_ELEM_ALPHA));
-                    	for (int eIndex : pickIndices) {
-                    		drawShip(g, board.getRouteMidpoint(board.getRoute(eIndex)), false);
-                    	}
-                	}
-                	if (pickedValue >= 0) {
-    //                	g.setColor(listener.getPlayerColor(pickPlayerNum));
-                        drawShip(g, board.getRouteMidpoint(board.getRoute(pickedValue)), true);
-                	}
-                	break;
-                }
-            
-            	case PM_MOVABLE_SHIPS: {
-                	if (pickIndices != null) {
-                    	g.setColor(listener.getPlayerColor(pickPlayerNum));
-                    	for (int eIndex : pickIndices) {
-                    		drawShip(g, board.getRouteMidpoint(board.getRoute(eIndex)), true);
-                    	}
-                	}
-                	if (pickedValue >= 0) {
-                    	g.setColor(Color.YELLOW);
-                    	drawShip(g, board.getRouteMidpoint(board.getRoute(pickedValue)), true);
-                	}
-                	break;
-                }
-            
-            	case PM_SETTLEMENT: {
-        			if (pickIndices != null) {
-            			g.setColor(AWTUtils.setAlpha(listener.getPlayerColor(pickPlayerNum), PICKABLE_ELEM_ALPHA));
-                    	for (int vIndex : pickIndices) {
-            				Vertex v = board.getVertex(vIndex);
-            				float x = v.getX();
-            				float y = v.getY();
-            				drawSettlement(g, x, y, 0, false);
-                    	}
-        			}
-                	if (pickedValue >= 0) {
-        				Vertex v = board.getVertex(pickedValue);
-        				float x = v.getX();
-        				float y = v.getY();
-        				drawSettlement(g, x, y, pickPlayerNum, true);
-        				ignoreStructureVertex = pickedValue;
-        			}
-                	break;
-        		}
-    		
-            	case PM_CITY: {
-        			if (pickIndices != null) {
-            			g.setColor(AWTUtils.setAlpha(listener.getPlayerColor(pickPlayerNum), PICKABLE_ELEM_ALPHA));
-                    	for (int vIndex : pickIndices) {
-            				Vertex v = board.getVertex(vIndex);
-            				float x = v.getX();
-            				float y = v.getY();
-            				drawCity(g, x, y, 0, false);
-                    	}
-        			}
-                	if (pickedValue >= 0) {
-        				Vertex v = board.getVertex(pickedValue);
-        				float x = v.getX();
-        				float y = v.getY();
-        				drawCity(g, x, y, pickPlayerNum, true);
-        				ignoreStructureVertex = pickedValue;
-        			}
-                	break;
-        		}        
-    		
-            	case PM_WALLED_CITY: {
-        			if (pickIndices != null) {
-            			g.setColor(AWTUtils.setAlpha(listener.getPlayerColor(pickPlayerNum), PICKABLE_ELEM_ALPHA));
-                    	for (int vIndex : pickIndices) {
-            				Vertex v = board.getVertex(vIndex);
-            				float x = v.getX();
-            				float y = v.getY();
-            				drawWalledCity(g, x, y, 0, false);
-                    	}
-        			}
-                	if (pickedValue >= 0) {
-        				Vertex v = board.getVertex(pickedValue);
-        				float x = v.getX();
-        				float y = v.getY();
-        				drawWalledCity(g, x, y, pickPlayerNum, true);
-        				ignoreStructureVertex = pickedValue;
-        			}
-                	break;
-        		}
-            	
-            	case PM_METROPOLIS_TRADE: {
-        			if (pickIndices != null) {
-            			g.setColor(AWTUtils.setAlpha(listener.getPlayerColor(pickPlayerNum), PICKABLE_ELEM_ALPHA));
-                    	for (int vIndex : pickIndices) {
-            				Vertex v = board.getVertex(vIndex);
-            				float x = v.getX();
-            				float y = v.getY();
-            				drawMetropolisTrade(g, x, y, pickPlayerNum, false);
-                    	}
-        			}
-                	if (pickedValue >= 0) {
-        				Vertex v = board.getVertex(pickedValue);
-        				float x = v.getX();
-        				float y = v.getY();
-        				drawMetropolisTrade(g, x, y, pickPlayerNum, true);
-        				ignoreStructureVertex = pickedValue;
-        			}
-                	break;
+            for (int i=0; i<board.getNumTiles(); i++) {
+            	Tile t = board.getTile(i);
+            	switch (pickMode) {
+					case PM_MERCHANT:
+						if (pickIndices == null || pickIndices.contains(i)) {
+							g.setColor(AWTUtils.setAlpha(listener.getPlayerColor(pickPlayerNum), PICKABLE_ELEM_ALPHA));
+							drawMerchant(g, t, 0);
+						}
+						break;
+					case PM_CELL:
+					case PM_ROBBER:
+					default:
+						break;
+            		
             	}
-
-            	case PM_METROPOLIS_POLITICS: {
-        			if (pickIndices != null) {
-            			g.setColor(AWTUtils.setAlpha(listener.getPlayerColor(pickPlayerNum), PICKABLE_ELEM_ALPHA));
-                    	for (int vIndex : pickIndices) {
-            				Vertex v = board.getVertex(vIndex);
-            				float x = v.getX();
-            				float y = v.getY();
-            				drawMetropolisPolitics(g, x, y, pickPlayerNum, false);
-                    	}
-        			}
-                	if (pickedValue >= 0) {
-        				Vertex v = board.getVertex(pickedValue);
-        				float x = v.getX();
-        				float y = v.getY();
-        				drawMetropolisPolitics(g, x, y, pickPlayerNum, true);
-        				ignoreStructureVertex = pickedValue;
-        			}
-                	break;
-            	}
-
-            	case PM_METROPOLIS_SCIENCE: {
-        			if (pickIndices != null) {
-            			g.setColor(AWTUtils.setAlpha(listener.getPlayerColor(pickPlayerNum), PICKABLE_ELEM_ALPHA));
-                    	for (int vIndex : pickIndices) {
-            				Vertex v = board.getVertex(vIndex);
-            				float x = v.getX();
-            				float y = v.getY();
-            				drawMetropolisScience(g, x, y, pickPlayerNum, false);
-                    	}
-        			}
-                	if (pickedValue >= 0) {
-        				Vertex v = board.getVertex(pickedValue);
-        				float x = v.getX();
-        				float y = v.getY();
-        				drawMetropolisScience(g, x, y, pickPlayerNum, true);
-        				ignoreStructureVertex = pickedValue;
-        			}
-                	break;
-            	}
-
-            	case PM_PROMOTE_KNIGHT:
-            	case PM_KNIGHT: {
-        			if (pickIndices != null) {
-            			g.setColor(AWTUtils.setAlpha(listener.getPlayerColor(pickPlayerNum), PICKABLE_ELEM_ALPHA));
-                    	for (int vIndex : pickIndices) {
-            				Vertex v = board.getVertex(vIndex);
-            				float x = v.getX();
-            				float y = v.getY();
-            				drawKnight(g, x, y, pickPlayerNum, 1, false, false);
-                    	}
-        			}
-        			if (pickedValue >= 0) {
-        				Vertex v = board.getVertex(pickedValue);
-        				float x = v.getX();
-        				float y = v.getY();
-        				boolean active = false;
-        				if (v.isKnight()) {
-        					if (!v.isActiveKnight())
-        						active = true;
-        				}
-        				drawKnight(g, x, y, pickPlayerNum, 1, active, true);
-        			}
-        			break;
-        		}
             }
             
             if (!getRenderFlag(RenderFlag.DONT_DRAW_ROADS)) {
         		// draw the roads
         		for (int i=0; i<board.getNumRoutes(); i++) {
         			Route e = board.getRoute(i);
+        			switch (pickMode) {
+						case PM_EDGE:
+						case PM_ROAD:
+						case PM_MOVABLE_SHIPS:
+						case PM_SHIP:
+							if (pickIndices == null || pickIndices.contains(i)) {
+								g.setColor(AWTUtils.setAlpha(listener.getPlayerColor(pickPlayerNum), PICKABLE_ELEM_ALPHA));
+								drawEdge(g, e, 0, false);
+								continue;
+							}
+							break;
+						case PM_PATH:
+						case PM_ROUTE:
+						case PM_ROUTE2:
+							break;
+						default:
+							break;
+        				
+        			}
         			if (e.getPlayer() <= 0)
         				continue;
         			g.setColor(listener.getPlayerColor(e.getPlayer()));
-        			drawEdge(g, e, false);
+        			drawEdge(g, e, e.getPlayer(), false);
         		}
             }
             
@@ -1110,170 +1052,192 @@ public class BoardComponent extends JComponent implements KeyListener, MouseMoti
     		// draw the structures
             if (!getRenderFlag(RenderFlag.DONT_DRAW_STRUCTURES)) {
         		for (int i=0; i<board.getNumVerts(); i++) {
-        			if (i == ignoreStructureVertex)
-        				continue;
         			Vertex v = board.getVertex(i);
-        			if (v.getPlayer() <= 0)
-        				continue;
-        			float x = v.getX();
-        			float y = v.getY();
-        			switch (v.getType()) {
-        				case SETTLEMENT:
-        					drawSettlement(g, x, y, v.getPlayer(), false);
-        					break;
-        				case CITY:
-        					drawCity(g, x, y, v.getPlayer(), false);
-        					break;
-        				case WALLED_CITY:
-        					drawWalledCity(g, x, y, v.getPlayer(), false);
-        					break;
-						case METROPOLIS_SCIENCE:
+        			VertexType type = v.getType();
+        			boolean vertexPickMode = true;
+        			boolean pickIndex = pickIndices == null || pickIndices.contains(i);
+        			switch (pickMode) {
+						case PM_CITY:
+							type = VertexType.CITY;
 							break;
-						case METROPOLIS_POLITICS:
+						case PM_ACTIVATE_KNIGHT:
+							if (pickIndex)
+								type = type.activatedType();
 							break;
-						case METROPOLIS_TRADE:
+						case PM_KNIGHT:
+							if (pickIndex && type == VertexType.OPEN) {
+								type = VertexType.BASIC_KNIGHT_INACTIVE;
+							}
 							break;
-						case BASIC_KNIGHT_ACTIVE:
-							drawKnight(g, x, y, v.getPlayer(), 1, true, false);
+						case PM_PROMOTE_KNIGHT:
+							if (pickIndex)
+								type = type.promotedType();
 							break;
-						case BASIC_KNIGHT_INACTIVE:
-							drawKnight(g, x, y, v.getPlayer(), 1, false, false);
+						case PM_METROPOLIS_POLITICS:
+							type = VertexType.METROPOLIS_POLITICS;
 							break;
-						case STRONG_KNIGHT_ACTIVE:
-							drawKnight(g, x, y, v.getPlayer(), 2, true, false);
+						case PM_METROPOLIS_SCIENCE:
+							type = VertexType.METROPOLIS_SCIENCE;
 							break;
-						case STRONG_KNIGHT_INACTIVE:
-							drawKnight(g, x, y, v.getPlayer(), 2, false, false);
+						case PM_METROPOLIS_TRADE:
+							type = VertexType.METROPOLIS_TRADE;
 							break;
-						case MIGHTY_KNIGHT_ACTIVE:
-							drawKnight(g, x, y, v.getPlayer(), 3, true, false);
+						case PM_SETTLEMENT:
+							type = VertexType.SETTLEMENT;
 							break;
-						case MIGHTY_KNIGHT_INACTIVE:
-							drawKnight(g, x, y, v.getPlayer(), 3, false, false);
-							break;
-						case OPEN:
+						case PM_WALLED_CITY:
+							type = VertexType.WALLED_CITY;
 							break;
 						default:
+							vertexPickMode = false;
 							break;
-        					
         				
         			}
+        			
+        			if (vertexPickMode && pickIndex) {
+						g.setColor(AWTUtils.setAlpha(listener.getPlayerColor(pickPlayerNum), PICKABLE_ELEM_ALPHA));
+						drawVertex(g, v, type, 0, false);
+						continue;
+        			}
+
+        			if (v.getPlayer() <= 0)
+        				continue;
+        			drawVertex(g, v, v.getType(), v.getPlayer(), false);
         		}
             }
-    		
-    		if (pickMode == PickMode.PM_ISLAND && pickedValue >= 0) {
-            	Collection<Integer> islandEdges = board.findIslandShoreline(pickedValue);
-        		g.setColor(Color.YELLOW);
-        		render.clearVerts();
-            	for (int eIndex : islandEdges) {
-            		renderEdge(board.getRoute(eIndex));
-            	}
-            	render.drawLines(g, 5);
-
-            	Tile cell = board.getTile(pickedValue);
-            	if (cell.getIslandNum() > 0) {
-                	MutableVector2D midpoint = new MutableVector2D();
-                	int num = 0;
-                	for (int eIndex : islandEdges) {
-                		midpoint.addEq(board.getRouteMidpoint(board.getRoute(eIndex)));
-                		num++;
-                	}
-                	midpoint.scaleEq(1.0f / num);
-                	render.transformXY(midpoint);
-                	String txt = "ISLAND\n" + cell.getIslandNum();
-                	Dimension dim = AWTUtils.computeTextDimension(g, txt);
-                	g.setColor(new Color(0,0,0,0.5f));
-                	int x = midpoint.Xi() - (dim.width/2+5);
-                	int y = midpoint.Yi() - (dim.height/2+5);
-                	int w = dim.width + 10;
-                	int h = dim.height + 10;
-                	g.fillRect(x, y, w, h);
-                	g.setColor(Color.white);
-                	AWTUtils.drawJustifiedString(g, midpoint.Xi(), midpoint.Yi(), Justify.CENTER, Justify.CENTER, txt);
-            	}
-            }
-    		
-    		if (pickMode == PickMode.PM_EDGE && pickedValue >= 0) {
-            	g.setColor(Color.YELLOW);
-            	drawRoad(g, board.getRoute(pickedValue), false);
-            }
-
-            if (pickMode == PickMode.PM_CELL && pickedValue >= 0) {
-            	g.setColor(Color.YELLOW);
-            	drawCellOutline(g, board.getTile(pickedValue));
-            }
-            
-            if (pickMode == PickMode.PM_VERTEX && pickedValue >= 0) {
-            	g.setColor(Color.YELLOW);
-            	Vertex v = board.getVertex(pickedValue);
-            	render.clearVerts();
-            	render.addVertex(v);
-            	render.fillPoints(g, 8);
-            }    		
-            
-            if (pickMode == PickMode.PM_KNIGHT && pickedValue >= 0) {
-            	Vertex v = board.getVertex(pickedValue);
-            	int knightLevel = 0;
-            	switch (v.getType()) {
-            		case OPEN:
-					case BASIC_KNIGHT_ACTIVE:
-					case BASIC_KNIGHT_INACTIVE:
-						knightLevel = 1;
-						break;
-					case STRONG_KNIGHT_ACTIVE:
-					case STRONG_KNIGHT_INACTIVE:
-						knightLevel = 2;
-						break;
-					case MIGHTY_KNIGHT_ACTIVE:
-					case MIGHTY_KNIGHT_INACTIVE:
-						knightLevel = 3;
-						break;
-					default:
-						assert(false);
-						break;
-            	}
-            	drawKnight(g, v.getX(), v.getY(), pickPlayerNum, knightLevel, true, true);
-            }
-    		
-    		if (pickMode == PickMode.PM_PATH || pickMode == PickMode.PM_ROUTE || pickMode == PickMode.PM_ROUTE2) {
-        		g.setColor(Color.GREEN);
-        		render.clearVerts();
-            	if (pickedPathStart >= 0) {
-            		if (pickedValue >= 0) {
-            			List<Integer> path = board.findShortestRoute(pickedPathStart, pickedValue, pickPlayerNum);
-            			for (int vIndex : path) {
-            				render.addVertex(board.getVertex(vIndex));
-            			}
-            			render.drawLineStrip(g, 6);
-            		} else {
-                		render.addVertex(board.getVertex(pickedPathStart));
-                		render.fillPoints(g, 8);
-            		}
-            	} else if (pickedValue >= 0) {
-            		g.setColor(Color.RED);
-            		render.addVertex(board.getVertex(pickedValue));
-            		render.fillPoints(g, 8);
-            	}
-            }    		
     		
     		int robberTile = board.getRobberTile();
     		int pirateTile = board.getPirateTile();
     		int merchantTile = board.getMerchantTile();
     		int merchantPlayer = board.getMerchantPlayer();
-    		
-    		if (pickMode == PickMode.PM_ROBBER && pickedValue >= 0) {
-    			Tile cell = board.getTile(pickedValue);
-    			if (cell.isWater()) {
-    				pirateTile = pickedValue;
-    			} else {
-    				robberTile = pickedValue;
-    			}
-    		}
-    		
-    		if (pickMode == PickMode.PM_MERCHANT && pickedValue >= 0) {
-    			merchantTile = pickedValue;
-    			merchantPlayer = pickPlayerNum;
-    		}
+
+            if (pickedValue >= 0) {
+            	switch (pickMode) {
+            		case PM_ISLAND:
+            			g.setColor(Color.YELLOW);
+            			drawIslandOutlined(g, pickedValue);
+            			break;
+            			
+            		case PM_EDGE:
+                    	g.setColor(Color.YELLOW);
+                    	drawRoad(g, board.getRoute(pickedValue), false);
+                    	break;
+                    	
+            		case PM_CELL:
+                    	g.setColor(Color.YELLOW);
+                    	drawCellOutline(g, board.getTile(pickedValue));
+                    	break;
+                    	
+            		case PM_CELLPAINT:
+            			g.setColor(Color.RED);
+            			drawCellOutline(g, board.getTile(pickedValue));
+                		break;
+
+            		case PM_VERTEX: {
+                    	g.setColor(Color.YELLOW);
+                    	Vertex v = board.getVertex(pickedValue);
+                    	render.clearVerts();
+                    	render.addVertex(v);
+                    	render.fillPoints(g, 8);
+                    	break;
+            		}
+
+            		case PM_PATH: case PM_ROUTE: case PM_ROUTE2: {
+                		g.setColor(Color.GREEN);
+                		render.clearVerts();
+                    	if (pickedPathStart >= 0) {
+                    		if (pickedValue >= 0) {
+                    			List<Integer> path = board.findShortestRoute(pickedPathStart, pickedValue, pickPlayerNum);
+                    			for (int vIndex : path) {
+                    				render.addVertex(board.getVertex(vIndex));
+                    			}
+                    			render.drawLineStrip(g, 6);
+                    		} else {
+                        		render.addVertex(board.getVertex(pickedPathStart));
+                        		render.fillPoints(g, 8);
+                    		}
+                    	} else if (pickedValue >= 0) {
+                    		g.setColor(Color.RED);
+                    		render.addVertex(board.getVertex(pickedValue));
+                    		render.fillPoints(g, 8);
+                    	}
+            			break;
+            		}
+
+            		case PM_CITY: {
+                    	Vertex v = board.getVertex(pickedValue);
+                    	drawVertex(g, v, VertexType.CITY, pickPlayerNum, true);
+                    	break;
+            		}
+					case PM_METROPOLIS_POLITICS: {
+                    	Vertex v = board.getVertex(pickedValue);
+                    	drawVertex(g, v, VertexType.METROPOLIS_POLITICS, pickPlayerNum, true);
+                    	break;
+            		}
+					case PM_METROPOLIS_SCIENCE: {
+                    	Vertex v = board.getVertex(pickedValue);
+                    	drawVertex(g, v, VertexType.METROPOLIS_SCIENCE, pickPlayerNum, true);
+                    	break;
+            		}
+					case PM_METROPOLIS_TRADE: {
+                    	Vertex v = board.getVertex(pickedValue);
+                    	drawVertex(g, v, VertexType.METROPOLIS_TRADE, pickPlayerNum, true);
+                    	break;
+            		}
+					case PM_SETTLEMENT: {
+                    	Vertex v = board.getVertex(pickedValue);
+                    	drawVertex(g, v, VertexType.SETTLEMENT, pickPlayerNum, true);
+                    	break;
+            		}
+					case PM_WALLED_CITY: {
+                    	Vertex v = board.getVertex(pickedValue);
+                    	drawVertex(g, v, VertexType.WALLED_CITY, pickPlayerNum, true);
+                    	break;
+            		}
+            		case PM_KNIGHT: {
+                    	Vertex v = board.getVertex(pickedValue);
+                    	drawVertex(g, v, v.getType() == VertexType.OPEN ? VertexType.BASIC_KNIGHT_INACTIVE : v.getType(), pickPlayerNum, true);
+                    	break;
+            		}
+					case PM_PROMOTE_KNIGHT: {
+                    	Vertex v = board.getVertex(pickedValue);
+                    	drawVertex(g, v, v.getType().promotedType(), pickPlayerNum, true);
+                    	break;
+            		}
+					case PM_ACTIVATE_KNIGHT: {
+                    	Vertex v = board.getVertex(pickedValue);
+                    	drawVertex(g, v, v.getType().activatedType(), pickPlayerNum, true);
+                    	break;
+            		}
+					case PM_MOVABLE_SHIPS:
+					case PM_ROAD:
+					case PM_SHIP:
+						g.setColor(listener.getPlayerColor(pickPlayerNum));
+						drawEdge(g, board.getRoute(pickedValue), pickPlayerNum, true);
+						break;
+
+					case PM_NONE:
+						assert(false);
+						break;
+
+            		case PM_ROBBER: {
+            			Tile cell = board.getTile(pickedValue);
+            			if (cell.isWater()) {
+            				pirateTile = pickedValue;
+            			} else {
+            				robberTile = pickedValue;
+            			}
+            			break;
+            		}
+            		
+            		case PM_MERCHANT: {
+            			merchantTile = pickedValue;
+            			merchantPlayer = pickPlayerNum;
+            			break;
+            		}
+					
+            	}
+            }
     		
     		if (robberTile >= 0)
     		    drawRobber(g, board.getTile(robberTile));
@@ -1282,13 +1246,6 @@ public class BoardComponent extends JComponent implements KeyListener, MouseMoti
     		if (merchantTile >= 0)
     			drawMerchant(g, board.getTile(merchantTile), merchantPlayer);
     		
-    		if (pickMode == PickMode.PM_CELLPAINT) {
-    			if (pickedValue >= 0) {
-    				g.setColor(Color.RED);
-    				drawCellOutline(g, board.getTile(pickedValue));
-    			}
-    		}
-    
     		List<Animation> t = null;
     		synchronized (animations) {
     		    t = new ArrayList<Animation>(animations);
@@ -1343,10 +1300,6 @@ public class BoardComponent extends JComponent implements KeyListener, MouseMoti
     		    g.setColor(Color.yellow);
     		    for (int i=0; i<board.getNumRoutes(); i++) {
     		        Route e = board.getRoute(i);
-    		        //SOCVertex v0 = board.getVertex(e.getFrom());
-    		        //SOCVertex v1 = board.getVertex(e.getTo());
-    		        //float mx = (v0.getX() + v1.getX()) / 2;
-                    //float my = (v0.getY() + v1.getY()) / 2;
     		        MutableVector2D m = new MutableVector2D(board.getRouteMidpoint(e));
     		        render.transformXY(m);
     		        AWTUtils.drawJustifiedString(g, Math.round(m.getX()), Math.round(m.getY()), Justify.CENTER, Justify.TOP, String.valueOf(i));
@@ -1447,6 +1400,7 @@ public class BoardComponent extends JComponent implements KeyListener, MouseMoti
 			break;
 		case PM_VERTEX:
 		case PM_KNIGHT:
+		case PM_ACTIVATE_KNIGHT:
 		case PM_PROMOTE_KNIGHT:
 		    pickedValue = pickVertex(ev.getX(), ev.getY(), pickIndices);
 			break;
@@ -1505,6 +1459,7 @@ public class BoardComponent extends JComponent implements KeyListener, MouseMoti
                 case PM_MERCHANT:
                 case PM_ISLAND:
                 case PM_KNIGHT:
+                case PM_ACTIVATE_KNIGHT:
                 case PM_PROMOTE_KNIGHT:
 				case PM_CELL:
 				case PM_EDGE:

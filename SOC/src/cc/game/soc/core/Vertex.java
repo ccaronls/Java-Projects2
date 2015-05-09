@@ -193,92 +193,27 @@ public final class Vertex extends Reflector<Vertex> implements IVector2D {
 	}
 	
 	public boolean isKnight() {
-		return type.knightLevel > 0;
+		return type.isKnight();
 	}
 	
 	public boolean isActiveKnight() {
-		switch (getType()) {
-			case BASIC_KNIGHT_ACTIVE:
-			case MIGHTY_KNIGHT_ACTIVE:
-			case STRONG_KNIGHT_ACTIVE:
-				return true;
-			default:
-				return false;
-		}
+		return type.isKnightActive();
 	}
 	
 	public void activateKnight() {
-		switch (getType()) {
-			case BASIC_KNIGHT_INACTIVE:
-				setType(VertexType.BASIC_KNIGHT_ACTIVE);
-				break;
-			case MIGHTY_KNIGHT_INACTIVE:
-				setType(VertexType.MIGHTY_KNIGHT_ACTIVE);
-				break;
-			case STRONG_KNIGHT_INACTIVE:
-				setType(VertexType.STRONG_KNIGHT_ACTIVE);
-				break;
-			default:
-				throw new RuntimeException(getType() + " is not an valid kight to activate");
-		}
+		setType(type.activatedType());
 	}
 
 	public void deactivateKnight() {
-		switch (getType()) {
-			case BASIC_KNIGHT_ACTIVE:
-				setType(VertexType.BASIC_KNIGHT_INACTIVE);
-				break;
-			case MIGHTY_KNIGHT_ACTIVE:
-				setType(VertexType.MIGHTY_KNIGHT_INACTIVE);
-				break;
-			case STRONG_KNIGHT_ACTIVE:
-				setType(VertexType.STRONG_KNIGHT_INACTIVE);
-				break;
-			default:
-				throw new RuntimeException(getType() + " not an valid kight to deactivate");
-		}
+		setType(type.deActivatedType());
 	}
 	
 	public void promoteKnight() {
-		switch (getType()) {
-			case BASIC_KNIGHT_ACTIVE:
-				setType(VertexType.STRONG_KNIGHT_ACTIVE);
-				break;
-			case BASIC_KNIGHT_INACTIVE:
-				setType(VertexType.STRONG_KNIGHT_INACTIVE);
-				break;
-			case STRONG_KNIGHT_ACTIVE:
-				setType(VertexType.MIGHTY_KNIGHT_ACTIVE);
-				break;
-			case STRONG_KNIGHT_INACTIVE:
-				setType(VertexType.MIGHTY_KNIGHT_INACTIVE);
-				break;
-			default:
-				throw new RuntimeException(getType() + " is not a valid knight to promote");
-		}
+		setType(type.promotedType());
 	}
 	
 	public void demoteKnight() {
-		switch (getType()) {
-			case BASIC_KNIGHT_ACTIVE:
-			case BASIC_KNIGHT_INACTIVE:
-				// ignore
-				break;
-			case STRONG_KNIGHT_ACTIVE:
-				setType(VertexType.BASIC_KNIGHT_ACTIVE);
-				break;
-			case STRONG_KNIGHT_INACTIVE:
-				setType(VertexType.BASIC_KNIGHT_INACTIVE);
-				break;
-			case MIGHTY_KNIGHT_ACTIVE:
-				setType(VertexType.STRONG_KNIGHT_ACTIVE);
-				break;
-			case MIGHTY_KNIGHT_INACTIVE:
-				setType(VertexType.STRONG_KNIGHT_INACTIVE);
-				break;
-			default:
-				throw new RuntimeException(getType() + " is not a valid knight to promote");
-		}
+		setType(type.demotedType());
 	}
 	
 	public boolean isStructure() {
@@ -311,7 +246,9 @@ public final class Vertex extends Reflector<Vertex> implements IVector2D {
 	@Override
 	public boolean equals(Object o) {
 		Vertex v = (Vertex)o;
-		return v.getX() == getX() && v.getY() == getY();
+		float dx = Math.abs(v.getX() - getX());
+		float dy = Math.abs(v.getY() - getY());
+		return dx < 0.001 && dy < 0.001;
 	}
 	
 	@Override

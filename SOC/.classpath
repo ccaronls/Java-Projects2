@@ -8,5 +8,5 @@
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/MyLIbrary"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/ExternalLibs"/>
 	<classpathentry kind="lib" path="lib/log4j-1.2.17.jar"/>
-	<classpathentry kind="output" path="antbuild"/>
+	<classpathentry kind="output" path="build"/>
 </classpath>

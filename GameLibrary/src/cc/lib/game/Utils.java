@@ -1476,7 +1476,7 @@ public class Utils {
 	}
 	
 	public static <T> List<T> asList(T ... arr) {
-		return Arrays.asList(arr);
+		return new ArrayList<T>(Arrays.asList(arr));
 	}
 	
 	public static <T> void setElems(T [] arr, T ... elems) {
@@ -1553,7 +1553,7 @@ public class Utils {
         }
         return result;
     }
-	
+
 	//////////////////////////////////////////////////////////////////////////
     // PRIVATE STUFF /////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////

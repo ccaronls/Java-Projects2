@@ -18,6 +18,11 @@ public enum SpecialVictoryType implements ICardType {
 	public CardType getCardType() {
 		return CardType.SpecialVictory;
 	}
+
+	@Override
+	public String helpText() {
+		return description;
+	}
 	
 	
 	

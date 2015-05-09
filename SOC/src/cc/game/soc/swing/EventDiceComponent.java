@@ -14,11 +14,10 @@ public class EventDiceComponent extends ADiceComponent {
 	final int greenCityImageId;
 	final int blueCityImageId;
 	final Color diceColor;
-	final ImageMgr images;
 
-	EventDiceComponent(ImageMgr images, Color diceColor) {
+	EventDiceComponent(Color diceColor) {
 		this.diceColor = diceColor;
-		this.images = images;
+		ImageMgr images = GUI.instance.images;
 		shipImageId = images.loadImage("dicesideship2.GIF");
 		int cityId = images.loadImage("dicesidecity2.GIF");
 		redCityImageId = images.addImage(images.transform(images.getImage(cityId), new ImageColorFilter(Color.WHITE, Color.RED)));
@@ -32,6 +31,7 @@ public class EventDiceComponent extends ADiceComponent {
 	void drawDie(Graphics g, int x, int y, int dim, int num) {
 		g.setColor(diceColor);
 	    g.fillRect(x, y, dim, dim);
+	    ImageMgr images = GUI.instance.images;
 	    switch (DiceEvent.fromDieNum(num)) {
 			case AdvanceBarbarianShip:
 	    		images.drawImage(g, shipImageId, x, y, dim, dim);
