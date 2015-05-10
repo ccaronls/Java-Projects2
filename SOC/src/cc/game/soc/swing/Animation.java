@@ -2,6 +2,8 @@ package cc.game.soc.swing;
 
 import java.awt.Graphics;
 
+import cc.lib.game.Utils;
+
 abstract class Animation {
     
     long startTime;
@@ -15,12 +17,12 @@ abstract class Animation {
         assert(duration > 0);
         this.duration = duration;
         this.maxRepeats = maxRepeats;
-        this.lastTime = System.currentTimeMillis();
     }
     
     void start() {
-        startTime = System.currentTimeMillis();
+        lastTime = startTime = System.currentTimeMillis();
         position = 0;
+        done = false;
         onStarted();
     }
     
@@ -33,6 +35,7 @@ abstract class Animation {
         long repeats = (t-startTime) / duration;
         if (maxRepeats >= 0 && repeats > maxRepeats) {
             done = true;
+            Utils.println("animation done");
             onDone();
         } else {
             float delta = (t-startTime) % duration;

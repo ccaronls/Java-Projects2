@@ -22,7 +22,6 @@ enum State {
 	GIVE_UP_CARD(false, "Discard one of your cards back to the deck."),
 	INIT_PLAYER_TURN(false, ""),
 	PLAYER_TURN_NOCANCEL(false, "Choose from one of your move options or Continue to allow next player to take a turn."),
-	PLAYER_TURN_CANCEL(true, "Choose from one of your move options or Continue to allow next player to take a turn."),
 	POSITION_ROBBER_OR_PIRATE_CANCEL(true, "Pick a hexagon for the Robber or Pirate."),
 	POSITION_ROBBER_OR_PIRATE_NOCANCEL(false, "Pick a hexagon for the Robber or Pirate."),
 	POSITION_ROBBER_CANCEL(true, "Pick a land hexagon for the Robber."),

@@ -116,8 +116,9 @@ public final class Vertex extends Reflector<Vertex> implements IVector2D {
 			case METROPOLIS_SCIENCE:
 			case METROPOLIS_TRADE:
 				return true;
+			default:
+				return false;
 		}
-		return false;
 	}
 	
 	/**
@@ -125,6 +126,7 @@ public final class Vertex extends Reflector<Vertex> implements IVector2D {
 	 * @param isCity
 	 */
 	public void setType(VertexType type) {
+		assert(type != null);
 		this.type = type;
 	}
 
@@ -137,11 +139,20 @@ public final class Vertex extends Reflector<Vertex> implements IVector2D {
 	}
 	
 	/**
-	 * 
+	 * Dont use to unset player.  Use clear player
 	 * @param p
 	 */
 	public void setPlayer(int p) {
+		assert(p>0);
 		player = p;
+	}
+	
+	/**
+	 * 
+	 */
+	public void removePlayer() {
+		player = 0;
+		type = VertexType.OPEN;
 	}
 
 	/**

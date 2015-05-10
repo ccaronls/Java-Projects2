@@ -50,9 +50,9 @@ public enum MoveType {
     // CAK Moves
     BUILD_CITY_WALL("Build Wall", "Build a wall around one of your cities for cost of 2 Brick.  Wall be destroyed when barbarians win an attack but city is reserved."), // Available when the user has necessary resources and a city without a wall
     
-    IMPROVE_CITY_POLITICS("Improve Politics", "Exchange Coin to improve city Politics.  Upgrade to Fortress coverts to Metropolis if not taken."),
-    IMPROVE_CITY_SCIENCE("Improve Science", "Exchange Paper to improve city science.  Upgrade to Aqueduct converts to a Metropolis if not taken."),
-    IMPROVE_CITY_TRADE("Improve Trade", "Exchange Cloth to improve city trade.Upgrade to Merchant Guild converts to a Metropolis if not taken."),
+    IMPROVE_CITY_POLITICS("Improve Politics", "Exchange Coin to improve city Politics.  Upgrade to Cathedral coverts to Metropolis if not taken."),
+    IMPROVE_CITY_SCIENCE("Improve Science", "Exchange Paper to improve city science.  Upgrade to Theatre converts to a Metropolis if not taken."),
+    IMPROVE_CITY_TRADE("Improve Trade", "Exchange Cloth to improve city trade.Upgrade to Bank converts to a Metropolis if not taken."),
     
     // Science
     

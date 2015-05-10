@@ -668,7 +668,7 @@ public class PlayerBot extends Player {
 				}
 				case DESERTER_CARD: {
 					p.removeCard(ProgressCardType.Deserter);
-					List<Integer> knights = b.getVertsOfType(0, VertexType.BASIC_KNIGHT_ACTIVE, VertexType.BASIC_KNIGHT_INACTIVE, VertexType.STRONG_KNIGHT_ACTIVE, VertexType.STRONG_KNIGHT_INACTIVE, VertexType.MIGHTY_KNIGHT_ACTIVE, VertexType.MIGHTY_KNIGHT_INACTIVE);
+					List<Integer> knights = b.getKnightsForPlayer(0);//getVertsOfType(0, VertexType.BASIC_KNIGHT_ACTIVE, VertexType.BASIC_KNIGHT_INACTIVE, VertexType.STRONG_KNIGHT_ACTIVE, VertexType.STRONG_KNIGHT_INACTIVE, VertexType.MIGHTY_KNIGHT_ACTIVE, VertexType.MIGHTY_KNIGHT_INACTIVE);
 					for (int knightIndex : knights) {
 						Vertex knight = b.getVertex(knightIndex);
 						if (knight.getPlayer() != p.getPlayerNum()) {

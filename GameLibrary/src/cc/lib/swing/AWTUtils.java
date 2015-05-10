@@ -388,7 +388,28 @@ public class AWTUtils {
     	return splitR(g, s, start, end, maxWidth, 0);
     }
     
+    
     private static String splitR(Graphics g, String s, int start, int end, int maxWidth, int depth) {
+    	if (depth > 10) {
+    		return s;
+    	}
+    	if (start >= end-1)
+    		return s;
+    	if (maxWidth <= 2)
+    		return s;
+    	int mid = (start+end)/2;
+    	String r = s.substring(start, mid);
+    	if (r.length() <= 1)
+    		return r;
+    	int wid = getStringWidth(g, r);
+    	if (wid > maxWidth) {
+    		return splitR(g, r, 0, mid, maxWidth, depth+1);
+    	}
+    	return r + splitR(g, s.substring(mid, end), 0, end, maxWidth-wid, depth+1);
+    }
+    
+    
+    /*
     	if (depth > 10) {
     		return s;
     	}
@@ -401,8 +422,8 @@ public class AWTUtils {
         if (t.length() == 0)
         	return s;
         int wid = getStringWidth(g, t);
-        if (wid < maxWidth)
-            return t + splitR(g, s, mid, end, maxWidth - wid, depth+1);
+        if (wid > maxWidth)
+            return t + splitR(g, s.substring(mid), mid, end, maxWidth - wid, depth+1);
         else
             return splitR(g, s, start, mid, maxWidth, depth+1);
     }

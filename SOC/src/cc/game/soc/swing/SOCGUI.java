@@ -81,10 +81,10 @@ public class SOCGUI extends SOC {
     }
     
 
-    void addCardAnimation(final Player _player, final String text) {
+    void addCardAnimation(final Player player, final String text) {
         
-        final GUIPlayer player = (GUIPlayer)_player;
-        final List<Animation> cardsList = player.cardAnimations;
+    	PlayerInfoComponent comp = gui.playerComponents[player.getPlayerNum()];
+        final List<Animation> cardsList = comp.getCardAnimations();
 
         final int cardWidth = 64;
         final int cardHeight = 96;
@@ -93,7 +93,7 @@ public class SOCGUI extends SOC {
         int Y = player.getPlayerNum() * 64 + 16;
         
         if (true) { //gui.useNewLayoutType) {
-            switch (player.loc) {
+            switch (comp.getCardLoc()) {
                 case CL_NONE:
                     return; // skip animations
                 case CL_UPPER_LEFT:
@@ -128,7 +128,7 @@ public class SOCGUI extends SOC {
         
         gui.getBoardComponent().addAnimation(new Animation(animTime, 0) {
             void draw(Graphics g, float position, float dt) {
-                drawCard(player.getColor(), g, text, x, y, cardWidth, cardHeight);
+                drawCard(((GUIPlayer)player).getColor(), g, text, x, y, cardWidth, cardHeight);
             }
 
             @Override
@@ -235,8 +235,8 @@ public class SOCGUI extends SOC {
 
     @Override
     protected void onMonopolyCardApplied(final Player taker, final Player giver, final ICardType type, final int amount) {
-        addCardAnimation(giver, "Monopoly" + type.name() + "\n- " + amount);
-        addCardAnimation(taker, "Monopoly" + type.name() + "\n+ " + amount);
+        addCardAnimation(giver, type.name() + "\n- " + amount);
+        addCardAnimation(taker, type.name() + "\n+ " + amount);
     }
 
     @Override
@@ -263,9 +263,18 @@ public class SOCGUI extends SOC {
 	}
 
 	@Override
-	protected void onBarbariansAttack(int barbarianStrength, int catanStrength) {
+	protected void onBarbariansAttack(int catanStrength, int barbarianStrength, String [] playerStatus) {
+		gui.frame.repaint();
+    	StringBuffer str = new StringBuffer("Barbarian Attack!\n\nBarbarian Strength ")
+    		.append(barbarianStrength)
+    		.append("\nCatan Strength ")
+    		.append(catanStrength)
+    		.append("\n");
+		for (Player p : getPlayers()) {
+			str.append(p.getName()).append(" ").append(playerStatus[p.getPlayerNum()]).append("\n");
+		}
     	JOptionPane.showMessageDialog(gui.frame,
-    		    "Barbarian Strength " + barbarianStrength + "\nCatan Strength " + catanStrength,
+    		    str,
     		    "Barbarian Attack",
     		    JOptionPane.PLAIN_MESSAGE);
 	}

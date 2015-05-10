@@ -25,6 +25,7 @@ import cc.game.soc.core.Player.RouteChoiceType;
 import cc.game.soc.core.annotations.RuleVariable;
 import cc.game.soc.swing.BoardComponent.PickMode;
 import cc.game.soc.swing.BoardComponent.RenderFlag;
+import cc.game.soc.swing.PlayerInfoComponent.CardLoc;
 import cc.lib.game.Utils;
 import cc.lib.swing.AWTUtils;
 import cc.lib.swing.EZPanel;
@@ -112,7 +113,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 	private final GUIProperties props;
 	final ImageMgr images;
 	
-	private Board board;
+	//private Board board;
 
 	private Stack<MenuState> menuStack = new Stack<MenuState>();
 	private GUIPlayerUser localPlayer;
@@ -129,6 +130,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 	private JScrollPane consolePane;
 	private JSpinner playerChooser;
 	private JLabel helpText;
+	PlayerInfoComponent [] playerComponents = new PlayerInfoComponent[8];
 	
 	final static class ColorString {
 		final Color color;
@@ -148,8 +150,16 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
     
     private float diceSpinTimeSeconds;
     
-    private Rules rules;
+//    private Rules rules;
     private JLabel boardNameLabel = new JLabel("Untitled");
+    
+    Board getBoard() {
+    	return soc.getBoard();
+    }
+    
+    Rules getRules() {
+    	return soc.getRules();
+    }
     
 	public GUI(Container frame, final GUIProperties props) throws IOException {
 		instance = this;
@@ -158,8 +168,8 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 		this.props = props;
 		soc = new SOCGUI(this);
 		
-		board = soc.getBoard();
-		rules = soc.getRules();
+//		board = soc.getBoard();
+//		rules = soc.getRules();
         defaultBoardFileName = props.getProperty("gui.defaultBoardFilename", "soc_def_board.txt");
         saveGameFileName = props.getProperty("gui.saveGameFileName", "socsavegame.txt");
         saveRulesFileName = props.getProperty("gui.saveRulesFileName", "socrules.txt");
@@ -167,14 +177,14 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
         
         File ruleFile = new File(saveRulesFileName);
         if (ruleFile.exists()) {
-        	rules.loadFromFile(ruleFile);
+        	getRules().loadFromFile(ruleFile);
         }
         
         menuStack.push(MenuState.MENU_START);
 		if (!loadBoard(defaultBoardFileName)) {
 			//board.generateRectBoard(8);
-			board.generateDefaultBoard();
-			if (!board.isFinalized())
+			getBoard().generateDefaultBoard();
+			if (!getBoard().isFinalized())
 				menuStack.push(MenuState.MENU_CONFIG_BOARD);
 			else
 				saveBoard(defaultBoardFileName);
@@ -200,7 +210,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
     	images = new ImageMgr(frame);
 
 		// board component
-        boardComp = new BoardComponent(this, board, images);
+        boardComp = new BoardComponent(this, getBoard(), images);
         
         // console
         Color bkColor = props.getColorProperty("console.bkColor", Color.LIGHT_GRAY);
@@ -242,6 +252,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
         frame.add(westGridPanel, BorderLayout.WEST);
         cntrBorderPanel.add(consolePane, BorderLayout.SOUTH); 
         helpText = new JLabel();
+        helpText.setBorder(BorderFactory.createLineBorder(helpText.getBackground(), 5));
         //helpText.set
         
 		initMenu();
@@ -262,6 +273,8 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
         LAYOUT_INGAME,    // buttons on lower left, playerinfo on upper left, board upper center, console lower center 
         LAYOUT_CONFIGURE,  // 2 menus of buttons on left
     }
+    
+	List<Animation> cardAnimations = new ArrayList<Animation>();
     
     private LayoutType currentLayoutType = null;
     
@@ -310,32 +323,32 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
                 if (soc.getRules().isEnableCitiesAndKnightsExpansion()) {
                 	westGridPanel.add(barbarianComp = new BarbarianComponent());
                 	JScrollPane sp = new JScrollPane();
-                	sp.getViewport().add(new PlayerInfoComponentCAK(userPlayer.getPlayerNum()));
+                	int num = userPlayer.getPlayerNum();
+                	sp.getViewport().add(playerComponents[num] = new PlayerInfoComponentCAK(num, CardLoc.CL_UPPER_LEFT));
                 	westGridPanel.add(sp);
                 } else {
                 	barbarianComp = null;
-                	westGridPanel.add(new PlayerInfoComponent2(userPlayer.getPlayerNum()));
+                	int num = userPlayer.getPlayerNum();
+                	westGridPanel.add(playerComponents[num] = new PlayerInfoComponent2(num, CardLoc.CL_UPPER_LEFT));
                 }
-                userPlayer.loc = GUIPlayer.CardLoc.CL_UPPER_LEFT;
                 
-                GUIPlayer.CardLoc [] locs = { GUIPlayer.CardLoc.CL_UPPER_RIGHT, GUIPlayer.CardLoc.CL_MIDDLE_RIGHT, GUIPlayer.CardLoc.CL_LOWER_RIGHT };
+                CardLoc [] locs = { CardLoc.CL_UPPER_RIGHT, CardLoc.CL_MIDDLE_RIGHT, CardLoc.CL_LOWER_RIGHT };
 
                 int index = 0;
                 for (int i=1; i<=soc.getNumPlayers(); i++) {
                 	if (i == userPlayer.getPlayerNum())
                 		continue;
                 	if (soc.getRules().isEnableCitiesAndKnightsExpansion()) {
-                		eastGridPanel.add(new PlayerInfoComponentCAK(i));
+                		eastGridPanel.add(playerComponents[i] = new PlayerInfoComponentCAK(i, locs[index++]));
                 	} else {
-                		eastGridPanel.add(new PlayerInfoComponent2(i));
+                		eastGridPanel.add(playerComponents[i] = new PlayerInfoComponent2(i, locs[index++]));
                 	}
-                	getGUIPlayer(i).loc = locs[index++];
                 }
                 
                 JPanel helpMenuDice = new JPanel();
                 helpMenuDice.setLayout(new BorderLayout());
                 JPanel dicePanel = null;
-                if (rules.isEnableCitiesAndKnightsExpansion()) {
+                if (getRules().isEnableCitiesAndKnightsExpansion()) {
                 	diceComps = new ADiceComponent [] {
                 			new SixSideDiceComponent(Color.red, Color.yellow),
                 			new SixSideDiceComponent(Color.yellow, Color.red),
@@ -417,10 +430,10 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
     
 	@SuppressWarnings("serial")
     private void initMenu() {
-		if (board.getName().length() == 0) {
+		if (getBoard().getName().length() == 0) {
 			boardNameLabel.setText("Untitled");
 		} else {
-			boardNameLabel.setText(board.getName());
+			boardNameLabel.setText(getBoard().getName());
 		}
         log.debug("MenuStack: " + menuStack);
         //menu = new JPanel();
@@ -517,8 +530,8 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
     			menu.add(getMenuOpButton(MenuOp.GEN_RECT_BOARD));
     			menu.add(getMenuOpButton(MenuOp.FINALIZE_BOARD));
     			menu.add(getMenuOpButton(MenuOp.SAVE_BOARD_AS_DEFAULT));
-    			if (board.getName() != null) {
-    				if (new File(board.getName()).isFile())
+    			if (getBoard().getName() != null) {
+    				if (new File(getBoard().getName()).isFile())
     					menu.add(getMenuOpButton(MenuOp.SAVE_BOARD));
     			}
     			menu.add(getMenuOpButton(MenuOp.SAVE_BOARD_AS));
@@ -575,7 +588,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 			case DEBUG_BOARD:
 				menuStack.push(MenuState.MENU_DEBUGGING);
 				try {
-					board.load("debugboard.txt");
+					getBoard().load("debugboard.txt");
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -584,11 +597,11 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 				break;
 
 			case RESET_BOARD:
-				board.reset();
+				getBoard().reset();
 				break;
 
 			case RESET_BOARD_ISLANDS:
-				board.clearIslands();
+				getBoard().clearIslands();
 				break;
 
 			case NEW:
@@ -600,8 +613,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 				boolean success = false;
 				do {
     				if (soc.load(saveGameFileName)) {
-    					board = soc.getBoard();
-    					boardComp.setBoard(board);
+    					boardComp.setBoard(getBoard());
     					menuStack.push(MenuState.MENU_PLAY_GAME);
     					initMenu();
     					new Thread(this).start();
@@ -620,7 +632,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 				break;
 
 			case CONFIG_SETTINGS:
-				showConfigureGameSettingsPopup(rules.deepCopy());
+				showConfigureGameSettingsPopup(getRules().deepCopy());
 				break;
 
 			case CHOOSE_NUM_PLAYERS:
@@ -637,7 +649,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 				break;
 
 			case START:			
-				if (board.isFinalized()) {
+				if (getBoard().isFinalized()) {
 					menuStack.clear();
 					menuStack.push(MenuState.MENU_START);
 					menuStack.push(MenuState.MENU_PLAY_GAME);
@@ -652,19 +664,19 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 				break;
 
 			case GEN_HEX_BOARD_SMALL:
-				board.generateHexBoard(4);
+				getBoard().generateHexBoard(4);
 				menuStack.pop();
 				initMenu();
 				break;
 
 			case GEN_HEX_BOARD_MEDIUM:
-				board.generateHexBoard(5);
+				getBoard().generateHexBoard(5);
 				menuStack.pop();
 				initMenu();
 				break;
 
 			case GEN_HEX_BOARD_LARGE:
-				board.generateHexBoard(6);
+				getBoard().generateHexBoard(6);
 				menuStack.pop();
 				initMenu();
 				break;
@@ -675,25 +687,25 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 				break;
 
 			case GEN_RECT_BOARD_SMALL:
-				board.generateRectBoard(6);
+				getBoard().generateRectBoard(6);
 				menuStack.pop();
 				initMenu();
 				break;
 
 			case GEN_RECT_BOARD_MEDIUM:
-				board.generateRectBoard(8);
+				getBoard().generateRectBoard(8);
 				menuStack.pop();
 				initMenu();
 				break;
 
 			case GEN_RECT_BOARD_LARGE:
-				board.generateRectBoard(10);
+				getBoard().generateRectBoard(10);
 				menuStack.pop();
 				initMenu();
 				break;
 
 			case FINALIZE_BOARD:
-				board.finalizeBoard();
+				getBoard().finalizeBoard();
 				break;
 
 			case SAVE_BOARD_AS_DEFAULT:
@@ -707,7 +719,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 				break;
 
 			case SAVE_BOARD:
-				saveBoard(board.getName());
+				saveBoard(getBoard().getName());
 				break;
 
 			case SAVE_BOARD_AS: {		
@@ -768,8 +780,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 				stopGameThread();
 				FileUtils.restoreFile(saveGameFileName);
 				if (soc.load(saveGameFileName)) {
-					board = soc.getBoard();
-					boardComp.setBoard(board);
+					boardComp.setBoard(getBoard());
 					new Thread(this).start();
 					frame.repaint();
 				} else {
@@ -828,7 +839,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 
 			case SAVE_SCENARIO: {
 
-				String txt = board.getName();
+				String txt = getBoard().getName();
 				if (txt.length() == 0)
 					txt = "MyScenario";
 				final JTextField nameField = new JTextField(txt);
@@ -839,9 +850,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 							@Override
 							public boolean doAction() {
 								SOC soc = new SOC();
-								Board b = board.deepCopy();
-								b.setName(nameField.getText());
-								soc.setBoard(b);
+								getBoard().setName(nameField.getText());
 								JFileChooser chooser = new JFileChooser();
 								File scenarioDir = new File(props.getProperty("screnariosDirectory", "scenarios"));
 								if (!scenarioDir.exists()) {
@@ -894,8 +903,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 						File file = chooser.getSelectedFile();
 						try {
 							soc.loadFromFile(file);
-							board = soc.getBoard();
-							boardComp.setBoard(board);
+							boardComp.setBoard(getBoard());
 							newGame();
 							initMenu();
 						} catch (Exception e) {
@@ -956,7 +964,6 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
     
     private void newGame() {
     	soc.clear();
-		soc.setBoard(board);
 		menuStack.push(MenuState.MENU_GAME_SETUP);
 		menuStack.push(MenuState.MENU_CHOOSE_COLOR);
 		menuStack.push(MenuState.MENU_CHOOSE_NUM_PLAYERS);    	
@@ -1022,10 +1029,10 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 	
 	private boolean saveBoard(String fileName) {
 		try {
-			if (!board.isFinalized())
-				board.finalizeBoard();
-			board.setName(fileName);
-			board.save(fileName);
+			if (!getBoard().isFinalized())
+				getBoard().finalizeBoard();
+			getBoard().setName(fileName);
+			getBoard().save(fileName);
 			boardNameLabel.setText(fileName);
 			initMenu();
 		} catch (IOException e) {
@@ -1037,7 +1044,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 	
 	private boolean loadBoard(String fileName) {
 		try {
-			board.load(fileName);
+			getBoard().load(fileName);
 			boardNameLabel.setText(fileName);
 			return true;
 		} catch (Exception e) {
@@ -1228,7 +1235,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 		menu.removeAll();
 		for (int num : players) {
 			Player player = getGUIPlayer(num);
-			int numKnights = board.getNumVertsOfType(player.getPlayerNum(), VertexType.BASIC_KNIGHT_ACTIVE, VertexType.BASIC_KNIGHT_INACTIVE, VertexType.STRONG_KNIGHT_ACTIVE, VertexType.STRONG_KNIGHT_INACTIVE, VertexType.MIGHTY_KNIGHT_ACTIVE, VertexType.MIGHTY_KNIGHT_INACTIVE);			menu.add(getMenuOpButton(MenuOp.CHOOSE_PLAYER, player.getName() + " X " + numKnights + " Knights", null, player));
+			int numKnights = getBoard().getNumKnightsForPlayer(player.getPlayerNum());
 			menu.add(getMenuOpButton(MenuOp.CHOOSE_PLAYER, player.getName() + " X " + numKnights + " Knights", null, player));
 		}
 		completeMenu();
@@ -1467,7 +1474,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
                 		}
                 		
                 		rules.saveToFile(new File(saveRulesFileName));
-                		GUI.this.rules.copyFrom(rules);
+                		GUI.this.getRules().copyFrom(rules);
                 	} catch (Exception e) {
                 		e.printStackTrace();
                 	}
@@ -1515,63 +1522,63 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 			case PM_CELLPAINT:
 				break;
 			case PM_CITY:
-				pickableIndices = SOC.computeCityVertxIndices(getCurPlayerNum(), board);
-				pickableIndices.addAll(board.getCitiesForPlayer(getCurPlayerNum()));
+				pickableIndices = SOC.computeCityVertxIndices(getCurPlayerNum(), getBoard());
+				pickableIndices.addAll(getBoard().getCitiesForPlayer(getCurPlayerNum()));
 				break;
 			case PM_WALLED_CITY:
-				pickableIndices = SOC.computeCityWallVertexIndices(getCurPlayerNum(), board);
-				pickableIndices.addAll(board.getCitiesForPlayer(getCurPlayerNum()));
+				pickableIndices = SOC.computeCityWallVertexIndices(getCurPlayerNum(), getBoard());
+				pickableIndices.addAll(getBoard().getCitiesForPlayer(getCurPlayerNum()));
 				break;
 			case PM_EDGE:
 				break;
 			case PM_ISLAND:
 				break;
 			case PM_MOVABLE_SHIPS:
-				pickableIndices = SOC.computeOpenRouteIndices(getCurPlayerNum(), board, false, true);
+				pickableIndices = SOC.computeOpenRouteIndices(getCurPlayerNum(), getBoard(), false, true);
 				break;
 			case PM_NONE:
 				break;
 			case PM_ROAD:
-				pickableIndices = SOC.computeRoadRouteIndices(getCurPlayerNum(), board);
-				pickableIndices.addAll(board.getRoadsForPlayer(getCurPlayerNum()));
+				pickableIndices = SOC.computeRoadRouteIndices(getCurPlayerNum(), getBoard());
+				pickableIndices.addAll(getBoard().getRoadsForPlayer(getCurPlayerNum()));
 				break;
 			case PM_ROBBER:
 				break;
 			case PM_SETTLEMENT:
-				pickableIndices = SOC.computeSettlementVertexIndices(getSOC(), getCurPlayerNum(), board);
-				pickableIndices.addAll(board.getSettlementsForPlayer(getCurPlayerNum()));
+				pickableIndices = SOC.computeSettlementVertexIndices(getSOC(), getCurPlayerNum(), getBoard());
+				pickableIndices.addAll(getBoard().getSettlementsForPlayer(getCurPlayerNum()));
 				break;
 			case PM_SHIP:
-				pickableIndices = SOC.computeShipRouteIndices(getCurPlayerNum(), board);
-				pickableIndices.addAll(board.getShipsForPlayer(getCurPlayerNum()));
+				pickableIndices = SOC.computeShipRouteIndices(getCurPlayerNum(), getBoard());
+				pickableIndices.addAll(getBoard().getShipsForPlayer(getCurPlayerNum()));
 				break;
 			case PM_VERTEX:
 				break;
 			case PM_KNIGHT:
-				pickableIndices = SOC.computeNewKnightVertexIndices(getCurPlayerNum(), board);
-				pickableIndices.addAll(SOC.computeActivateKnightVertexIndices(getCurPlayerNum(), board));
-				pickableIndices.addAll(SOC.computeMovableKnightVertexIndices(getCurPlayerNum(), board));
+				pickableIndices = SOC.computeNewKnightVertexIndices(getCurPlayerNum(), getBoard());
+				pickableIndices.addAll(SOC.computeActivateKnightVertexIndices(getCurPlayerNum(), getBoard()));
+				pickableIndices.addAll(SOC.computeMovableKnightVertexIndices(getCurPlayerNum(), getBoard()));
 				break;
 				/*
 			case PM_ACTIVATE_KNIGHT:
 				if (menuStack.peek() == MenuState.MENU_DEBUGGING) {
-					pickableIndices = board.getVertsOfType(getCurPlayerNum(), VertexType.BASIC_KNIGHT_INACTIVE, VertexType.BASIC_KNIGHT_ACTIVE, VertexType.STRONG_KNIGHT_INACTIVE, VertexType.STRONG_KNIGHT_ACTIVE, VertexType.MIGHTY_KNIGHT_INACTIVE, VertexType.MIGHTY_KNIGHT_ACTIVE);
+					pickableIndices = getBoard().getVertsOfType(getCurPlayerNum(), VertexType.BASIC_KNIGHT_INACTIVE, VertexType.BASIC_KNIGHT_ACTIVE, VertexType.STRONG_KNIGHT_INACTIVE, VertexType.STRONG_KNIGHT_ACTIVE, VertexType.MIGHTY_KNIGHT_INACTIVE, VertexType.MIGHTY_KNIGHT_ACTIVE);
 				} else {
-					pickableIndices = SOC.computeActivateKnightVertexIndices(getCurPlayerNum(), board);
+					pickableIndices = SOC.computeActivateKnightVertexIndices(getCurPlayerNum(), getBoard());
 				}
 				break;
 			case PM_MOVE_KNIGHT:
-				pickableIndices = SOC.computeMovableKnightVertexIndices(getCurPlayerNum(), board);
+				pickableIndices = SOC.computeMovableKnightVertexIndices(getCurPlayerNum(), getBoard());
 				break;*/
 			case PM_PROMOTE_KNIGHT:
 				if (this.menuStack.peek() == MenuState.MENU_DEBUGGING) {
-					pickableIndices = board.getVertsOfType(getCurPlayerNum(), VertexType.BASIC_KNIGHT_ACTIVE, VertexType.STRONG_KNIGHT_ACTIVE, VertexType.MIGHTY_KNIGHT_ACTIVE, VertexType.BASIC_KNIGHT_INACTIVE, VertexType.STRONG_KNIGHT_INACTIVE, VertexType.MIGHTY_KNIGHT_INACTIVE);
+					pickableIndices = getBoard().getVertsOfType(getCurPlayerNum(), VertexType.BASIC_KNIGHT_ACTIVE, VertexType.STRONG_KNIGHT_ACTIVE, VertexType.MIGHTY_KNIGHT_ACTIVE, VertexType.BASIC_KNIGHT_INACTIVE, VertexType.STRONG_KNIGHT_INACTIVE, VertexType.MIGHTY_KNIGHT_INACTIVE);
 				} else {
-					pickableIndices = SOC.computePromoteKnightVertexIndices(getCurGUIPlayer(), board);
+					pickableIndices = SOC.computePromoteKnightVertexIndices(getCurGUIPlayer(), getBoard());
 				}
 				break;
 			case PM_MERCHANT:
-				pickableIndices = SOC.computeMerchantTileIndices(soc, getCurPlayerNum(), board);
+				pickableIndices = SOC.computeMerchantTileIndices(soc, getCurPlayerNum(), getBoard());
 				break;
     		
     	}
@@ -1586,39 +1593,39 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
                 case MENU_DEBUGGING:
                     switch (mode) {
                         case PM_ROAD: {
-                            Route edge = board.getRoute(pickedValue);
+                            Route edge = getBoard().getRoute(pickedValue);
                             if (edge.getPlayer() == getCurPlayerNum()) {
-                            	board.setPlayerForRoute(edge, 0);
+                            	getBoard().setPlayerForRoute(edge, 0);
                             } else {
-                            	board.setPlayerForRoute(edge, getCurPlayerNum());
+                            	getBoard().setPlayerForRoute(edge, getCurPlayerNum());
                             }
-                            console.addText(Color.BLACK, "Road Length: " + board.computeMaxRouteLengthForPlayer(getCurPlayerNum(), rules.isEnableRoadBlock()));
+                            console.addText(Color.BLACK, "Road Length: " + getBoard().computeMaxRouteLengthForPlayer(getCurPlayerNum(), getRules().isEnableRoadBlock()));
                             break;
                         }
 
                         case PM_MOVABLE_SHIPS:
                         case PM_SHIP: {
-                            Route edge = board.getRoute(pickedValue);
+                            Route edge = getBoard().getRoute(pickedValue);
                             if (edge.getPlayer() == getCurPlayerNum()) {
-                            	board.setPlayerForRoute(edge, 0);
+                            	getBoard().setPlayerForRoute(edge, 0);
                             	edge.setShip(false);
                             } else {
-                            	board.setPlayerForRoute(edge, getCurPlayerNum());
+                            	getBoard().setPlayerForRoute(edge, getCurPlayerNum());
                             	edge.setShip(true);
                             }
-                            console.addText(Color.BLACK, "Road Length: " + board.computeMaxRouteLengthForPlayer(getCurPlayerNum(), rules.isEnableRoadBlock()));
+                            console.addText(Color.BLACK, "Road Length: " + getBoard().computeMaxRouteLengthForPlayer(getCurPlayerNum(), getRules().isEnableRoadBlock()));
                             break;
                         }
                         
                         case PM_KNIGHT: {
-                        	Vertex vertex = board.getVertex(pickedValue);
+                        	Vertex vertex = getBoard().getVertex(pickedValue);
                         	vertex.setType(VertexType.BASIC_KNIGHT_INACTIVE);
                         	vertex.setPlayer(getCurPlayerNum());
                         	break;
                         }
                         /*
                         case PM_ACTIVATE_KNIGHT: {
-                        	Vertex vertex = board.getVertex(pickedValue);
+                        	Vertex vertex = getBoard().getVertex(pickedValue);
                         	if (vertex.isActiveKnight())
                         		vertex.deactivateKnight();
                         	else
@@ -1630,7 +1637,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
                         	break;
                         	*/
                         case PM_PROMOTE_KNIGHT: {
-                        	Vertex vertex = board.getVertex(pickedValue);
+                        	Vertex vertex = getBoard().getVertex(pickedValue);
                         	switch (vertex.getType()) {
                         		case BASIC_KNIGHT_INACTIVE:
                         			vertex.setType(VertexType.STRONG_KNIGHT_INACTIVE);
@@ -1659,7 +1666,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
                         case PM_METROPOLIS_TRADE:
                         case PM_METROPOLIS_POLITICS:
                         case PM_METROPOLIS_SCIENCE: {
-                            Vertex vertex = board.getVertex(pickedValue);
+                            Vertex vertex = getBoard().getVertex(pickedValue);
                             switch (vertex.getType()) {
                             	case OPEN:
                             		vertex.setPlayer(getCurPlayerNum());
@@ -1687,27 +1694,27 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 									break;
                             }
                             
-                            board.clearRouteLenCache();
-                            console.addText(Color.BLACK, "Road Length: " + board.computeMaxRouteLengthForPlayer(getCurPlayerNum(), rules.isEnableRoadBlock()));
+                            getBoard().clearRouteLenCache();
+                            console.addText(Color.BLACK, "Road Length: " + getBoard().computeMaxRouteLengthForPlayer(getCurPlayerNum(), getRules().isEnableRoadBlock()));
                             break;
                         }
                             
                         case PM_ROBBER: {
-                        	Tile cell = board.getTile(pickedValue);
+                        	Tile cell = getBoard().getTile(pickedValue);
                         	if (cell.isWater())
-                        		board.setPirate(pickedValue);
+                        		getBoard().setPirate(pickedValue);
                         	else
-                        		board.setRobber(pickedValue);
+                        		getBoard().setRobber(pickedValue);
                             break;
                         }
                         
                         case PM_MERCHANT:
-                        	board.setMerchant(pickedValue, getCurPlayerNum());
+                        	getBoard().setMerchant(pickedValue, getCurPlayerNum());
                         	break;
                     }
-                    board.findAllPairsShortestPathToDiscoverables(getCurPlayerNum());
+                    getBoard().findAllPairsShortestPathToDiscoverables(getCurPlayerNum());
                     initPickMode(mode);
-                    board.save("debugboard.txt");
+                    getBoard().save("debugboard.txt");
                     break;
                     
                 case MENU_CONFIG_BOARD:
@@ -1715,7 +1722,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
                 		case PM_CELLPAINT:
                 			break;
                 		case PM_ISLAND:
-                        	int islandNum = board.createIsland(pickedValue);
+                        	int islandNum = getBoard().createIsland(pickedValue);
                         	console.addText(Color.black, "Found island: " + islandNum);
                         	break;
                 	}
@@ -1725,9 +1732,9 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
                     returnValue = null;
                     switch (mode) {
                     	case PM_SHIP:
-                    		board.getRoute(pickedValue).setShip(true);
+                    		getBoard().getRoute(pickedValue).setShip(true);
                         case PM_ROAD:
-                            returnValue = board.getRoute(pickedValue);
+                            returnValue = getBoard().getRoute(pickedValue);
                             break;
                             
                         case PM_SETTLEMENT:
@@ -1740,12 +1747,12 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
                         case PM_ACTIVATE_KNIGHT:
 //                        case PM_MOVE_KNIGHT:
                         case PM_PROMOTE_KNIGHT:
-                            returnValue = board.getVertex(pickedValue);
+                            returnValue = getBoard().getVertex(pickedValue);
                             break;
                             
                         case PM_CELL:
                         case PM_ROBBER:
-                            returnValue = board.getTile(pickedValue);
+                            returnValue = getBoard().getTile(pickedValue);
                             break;
                             
                     }

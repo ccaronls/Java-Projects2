@@ -89,8 +89,6 @@ public final class Rules extends Reflector<Rules> {
 	// knight
 	@RuleVariable(description="Enable Cities and Knights", separator="Cities and Knights Expansion")
 	private boolean enableCitiesAndKnightsExpansion = false;
-	@RuleVariable(description="Point Metrololis", minValue=3, maxValue=6)
-	private int pointsMetropolis = 4;
 	@RuleVariable(description="Barbaian Steps to attack", minValue=5, maxValue=10)
 	private int barbarianStepsToAttack=7;
 	@RuleVariable(description="Max Progress Cards", minValue=3, maxValue=6)
@@ -102,12 +100,6 @@ public final class Rules extends Reflector<Rules> {
 	@RuleVariable(description="Points for Special abilities (Trading House/Fortress/Aqueduct)", minValue=2, maxValue=4)
 	private int pointsForSpecialAbility=3;
 	
-	public final int getPointsMetropolis() {
-		return pointsMetropolis;
-	}
-	public final void setPointsMetropolis(int pointsMetropolis) {
-		this.pointsMetropolis = pointsMetropolis;
-	}
 	public final int getPointsForSpecialAbility() {
 		return pointsForSpecialAbility;
 	}

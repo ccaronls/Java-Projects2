@@ -1,4 +1,4 @@
-mBarbarianDistance=1
+mBarbarianDistance=-1
 mBoard=cc.game.soc.core.Board {
    ch=0.09090909
    cw=0.09090909
@@ -9,8 +9,8 @@ mBoard=cc.game.soc.core.Board {
    name="/Users/chriscaron/Documents/workspace2/MyStuff/Java/SOC/boards/cak_advanced.txt"
    pirateTile=-1
    playerRoadLenCache=int 16
-      -1 2 3 4 3 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 
-   robberTile=3
+      -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 
+   robberTile=-1
    routes=java.util.Vector {
       cc.game.soc.core.Route {
             flags=1
@@ -281,14 +281,14 @@ mBoard=cc.game.soc.core.Board {
       cc.game.soc.core.Route {
             flags=1
             from=69
-            player=1
+            player=0
             to=70
          }
       }
       cc.game.soc.core.Route {
             flags=1
             from=69
-            player=1
+            player=0
             to=72
          }
       }
@@ -519,7 +519,7 @@ mBoard=cc.game.soc.core.Board {
       cc.game.soc.core.Route {
             flags=1
             from=91
-            player=4
+            player=0
             to=99
          }
       }
@@ -589,21 +589,21 @@ mBoard=cc.game.soc.core.Board {
       cc.game.soc.core.Route {
             flags=1
             from=98
-            player=3
+            player=0
             to=108
          }
       }
       cc.game.soc.core.Route {
             flags=1
             from=99
-            player=4
+            player=0
             to=100
          }
       }
       cc.game.soc.core.Route {
             flags=1
             from=100
-            player=4
+            player=0
             to=101
          }
       }
@@ -687,28 +687,28 @@ mBoard=cc.game.soc.core.Board {
       cc.game.soc.core.Route {
             flags=1
             from=108
-            player=3
+            player=0
             to=109
          }
       }
       cc.game.soc.core.Route {
             flags=1
             from=109
-            player=2
+            player=0
             to=110
          }
       }
       cc.game.soc.core.Route {
             flags=1
             from=109
-            player=3
+            player=0
             to=210
          }
       }
       cc.game.soc.core.Route {
             flags=1
             from=110
-            player=2
+            player=0
             to=111
          }
       }
@@ -722,7 +722,7 @@ mBoard=cc.game.soc.core.Board {
       cc.game.soc.core.Route {
             flags=3
             from=111
-            player=2
+            player=0
             to=212
          }
       }
@@ -1219,7 +1219,7 @@ mBoard=cc.game.soc.core.Board {
       cc.game.soc.core.Route {
             flags=1
             from=207
-            player=3
+            player=0
             to=210
          }
       }
@@ -1903,8 +1903,8 @@ mBoard=cc.game.soc.core.Board {
             flags=1
             numAdj=3
             numCells=3
-            player=3
-            type=METROPOLIS_POLITICS
+            player=0
+            type=OPEN
             x=0.36363634
             y=0.54545456
          }
@@ -2799,8 +2799,8 @@ mBoard=cc.game.soc.core.Board {
             flags=1
             numAdj=3
             numCells=3
-            player=1
-            type=STRONG_KNIGHT_ACTIVE
+            player=0
+            type=OPEN
             x=0.13636361
             y=0.3636363
          }
@@ -2813,8 +2813,8 @@ mBoard=cc.game.soc.core.Board {
             flags=1
             numAdj=3
             numCells=3
-            player=1
-            type=SETTLEMENT
+            player=0
+            type=OPEN
             x=0.15909088
             y=0.31818175
          }
@@ -2841,8 +2841,8 @@ mBoard=cc.game.soc.core.Board {
             flags=1
             numAdj=3
             numCells=3
-            player=1
-            type=SETTLEMENT
+            player=0
+            type=OPEN
             x=0.15909088
             y=0.40909088
          }
@@ -3177,8 +3177,8 @@ mBoard=cc.game.soc.core.Board {
             flags=1
             numAdj=3
             numCells=3
-            player=4
-            type=CITY
+            player=0
+            type=OPEN
             x=0.27272725
             y=0.54545456
          }
@@ -3219,8 +3219,8 @@ mBoard=cc.game.soc.core.Board {
             flags=1
             numAdj=3
             numCells=3
-            player=4
-            type=SETTLEMENT
+            player=0
+            type=OPEN
             x=0.15909088
             y=0.5909091
          }
@@ -3247,8 +3247,8 @@ mBoard=cc.game.soc.core.Board {
             flags=3
             numAdj=3
             numCells=3
-            player=4
-            type=SETTLEMENT
+            player=0
+            type=OPEN
             x=0.090909064
             y=0.6363637
          }
@@ -3345,8 +3345,8 @@ mBoard=cc.game.soc.core.Board {
             flags=1
             numAdj=3
             numCells=3
-            player=4
-            type=BASIC_KNIGHT_ACTIVE
+            player=0
+            type=OPEN
             x=0.22727269
             y=0.6363637
          }
@@ -3359,8 +3359,8 @@ mBoard=cc.game.soc.core.Board {
             flags=1
             numAdj=3
             numCells=3
-            player=2
-            type=METROPOLIS_TRADE
+            player=0
+            type=OPEN
             x=0.20454544
             y=0.68181825
          }
@@ -3373,8 +3373,8 @@ mBoard=cc.game.soc.core.Board {
             flags=1
             numAdj=3
             numCells=3
-            player=4
-            type=BASIC_KNIGHT_ACTIVE
+            player=0
+            type=OPEN
             x=0.15909088
             y=0.68181825
          }
@@ -3387,8 +3387,8 @@ mBoard=cc.game.soc.core.Board {
             flags=3
             numAdj=3
             numCells=3
-            player=2
-            type=SETTLEMENT
+            player=0
+            type=OPEN
             x=0.13636361
             y=0.7272728
          }
@@ -3485,8 +3485,8 @@ mBoard=cc.game.soc.core.Board {
             flags=1
             numAdj=3
             numCells=3
-            player=1
-            type=CITY
+            player=0
+            type=OPEN
             x=0.34090906
             y=0.3181818
          }
@@ -4731,8 +4731,8 @@ mBoard=cc.game.soc.core.Board {
             flags=1
             numAdj=3
             numCells=3
-            player=3
-            type=SETTLEMENT
+            player=0
+            type=OPEN
             x=0.27272725
             y=0.7272728
          }
@@ -4773,8 +4773,8 @@ mBoard=cc.game.soc.core.Board {
             flags=1
             numAdj=3
             numCells=3
-            player=4
-            type=BASIC_KNIGHT_ACTIVE
+            player=0
+            type=OPEN
             x=0.22727269
             y=0.7272728
          }
@@ -4854,590 +4854,23 @@ mBoard=cc.game.soc.core.Board {
 mCurrentPlayer=0
 mDevelopmentCards=java.util.ArrayList {
 }
-mDice=int 3
-   0 0 0 
-mLargestArmyPlayer=-1
-mLongestRoadPlayer=-1
+mDice=null
+mLargestArmyPlayer=0
+mLongestRoadPlayer=0
 mMetropolisPlayer=int 3
-   0 2 3 
-mNumPlayers=4
-mOptions=java.util.ArrayList {
-   cc.game.soc.core.MoveType {
-      ROLL_DICE
-   }
-}
+   0 0 0 
+mNumPlayers=0
+mOptions=null
 mPlayers=cc.game.soc.core.Player 8
-   cc.game.soc.swing.GUIPlayerUser {
-   cards=java.util.Vector {
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Resource
-            typeOrdinal=0
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Resource
-            typeOrdinal=1
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Resource
-            typeOrdinal=1
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Resource
-            typeOrdinal=1
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Resource
-            typeOrdinal=1
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Resource
-            typeOrdinal=3
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Resource
-            typeOrdinal=3
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Resource
-            typeOrdinal=3
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Resource
-            typeOrdinal=3
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Resource
-            typeOrdinal=3
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Resource
-            typeOrdinal=3
-         }
-      }
-   }
-   cityDevelopment=int 3
-      0 2 0 
-   color=0,0,255
-   merchantFleetTradable=null
-   playerNum=1
-   points=4
-   roadLength=2
-   }
-   cc.game.soc.swing.GUIPlayerUser {
-   cards=java.util.Vector {
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Commodity
-            typeOrdinal=1
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Commodity
-            typeOrdinal=1
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Commodity
-            typeOrdinal=1
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Progress
-            typeOrdinal=11
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Progress
-            typeOrdinal=14
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Progress
-            typeOrdinal=15
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Progress
-            typeOrdinal=18
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USED
-            type=SpecialVictory
-            typeOrdinal=2
-         }
-      }
-   }
-   cityDevelopment=int 3
-      0 4 1 
-   color=255,0,0
-   merchantFleetTradable=null
-   playerNum=2
-   points=6
-   roadLength=3
-   }
-   cc.game.soc.swing.GUIPlayerUser {
-   cards=java.util.Vector {
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Resource
-            typeOrdinal=1
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Resource
-            typeOrdinal=1
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Resource
-            typeOrdinal=1
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Resource
-            typeOrdinal=1
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Resource
-            typeOrdinal=1
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Resource
-            typeOrdinal=1
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Resource
-            typeOrdinal=4
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Commodity
-            typeOrdinal=2
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Commodity
-            typeOrdinal=2
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Commodity
-            typeOrdinal=2
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Commodity
-            typeOrdinal=2
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Commodity
-            typeOrdinal=2
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Commodity
-            typeOrdinal=2
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Progress
-            typeOrdinal=11
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Progress
-            typeOrdinal=15
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Progress
-            typeOrdinal=17
-         }
-      }
-   }
-   cityDevelopment=int 3
-      0 0 4 
-   color=0,127,0
-   merchantFleetTradable=null
-   playerNum=3
-   points=5
-   roadLength=4
-   }
-   cc.game.soc.swing.GUIPlayerUser {
-   cards=java.util.Vector {
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Resource
-            typeOrdinal=1
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Resource
-            typeOrdinal=4
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Resource
-            typeOrdinal=4
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Resource
-            typeOrdinal=4
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Resource
-            typeOrdinal=4
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Resource
-            typeOrdinal=4
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Commodity
-            typeOrdinal=2
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Commodity
-            typeOrdinal=2
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Progress
-            typeOrdinal=14
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Progress
-            typeOrdinal=16
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Progress
-            typeOrdinal=18
-         }
-      }
-   }
-   cityDevelopment=int 3
-      0 1 2 
-   color=229,180,0
-   merchantFleetTradable=null
-   playerNum=4
-   points=4
-   roadLength=3
-   }
    null
    null
    null
    null
-mProgressCards=java.util.List 3
-   java.util.ArrayList {
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Progress
-            typeOrdinal=5
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Progress
-            typeOrdinal=3
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Progress
-            typeOrdinal=1
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Progress
-            typeOrdinal=0
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Progress
-            typeOrdinal=9
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Progress
-            typeOrdinal=0
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Progress
-            typeOrdinal=4
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Progress
-            typeOrdinal=7
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Progress
-            typeOrdinal=5
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Progress
-            typeOrdinal=2
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Progress
-            typeOrdinal=3
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Progress
-            typeOrdinal=2
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Progress
-            typeOrdinal=7
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Progress
-            typeOrdinal=8
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Progress
-            typeOrdinal=6
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Progress
-            typeOrdinal=6
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Progress
-            typeOrdinal=1
-         }
-      }
-   }
-   java.util.ArrayList {
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Progress
-            typeOrdinal=21
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Progress
-            typeOrdinal=23
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Progress
-            typeOrdinal=21
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Progress
-            typeOrdinal=19
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Progress
-            typeOrdinal=20
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Progress
-            typeOrdinal=21
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Progress
-            typeOrdinal=24
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Progress
-            typeOrdinal=22
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Progress
-            typeOrdinal=24
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Progress
-            typeOrdinal=22
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Progress
-            typeOrdinal=20
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Progress
-            typeOrdinal=21
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Progress
-            typeOrdinal=23
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Progress
-            typeOrdinal=19
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Progress
-            typeOrdinal=23
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Progress
-            typeOrdinal=21
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Progress
-            typeOrdinal=21
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Progress
-            typeOrdinal=23
-         }
-      }
-   }
-   java.util.ArrayList {
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Progress
-            typeOrdinal=17
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Progress
-            typeOrdinal=16
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Progress
-            typeOrdinal=10
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Progress
-            typeOrdinal=10
-         }
-      }
-      cc.game.soc.core.Card {
-            status=USABLE
-            type=Progress
-            typeOrdinal=16
-         }
-      }
-   }
+   null
+   null
+   null
+   null
+mProgressCards=null
 mRules=cc.game.soc.core.Rules {
    barbarianStepsToAttack=7
    enableCitiesAndKnightsExpansion=true
@@ -5459,17 +4892,10 @@ mRules=cc.game.soc.core.Rules {
    pointsIslandDiscovery=2
    pointsLargestArmy=2
    pointsLongestRoad=2
+   pointsMetropolis=4
    pointsPerCity=2
    pointsPerMetropolis=4
    pointsPerSettlement=1
 }
 mStateStack=java.util.Stack {
-   cc.game.soc.core.SOC.StackItem {
-         state=START_ROUND
-      }
-   }
-   cc.game.soc.core.SOC.StackItem {
-         state=PLAYER_TURN_NOCANCEL
-      }
-   }
 }

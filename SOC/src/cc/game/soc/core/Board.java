@@ -1259,6 +1259,24 @@ public final class Board extends Reflector<Board> {
 		}
 		return verts;
 	}
+
+	/**
+	 * 
+	 * @param playerNum
+	 * @return
+	 */
+	public int getNumKnightsForPlayer(int playerNum) {
+		return getNumVertsOfType(playerNum, VertexType.BASIC_KNIGHT_ACTIVE, VertexType.BASIC_KNIGHT_INACTIVE, VertexType.STRONG_KNIGHT_ACTIVE, VertexType.STRONG_KNIGHT_INACTIVE, VertexType.MIGHTY_KNIGHT_ACTIVE, VertexType.MIGHTY_KNIGHT_INACTIVE);
+	}
+	
+	/**
+	 * 
+	 * @param playerNum
+	 * @return
+	 */
+	public List<Integer> getKnightsForPlayer(int playerNum) {
+		return getVertsOfType(playerNum, VertexType.BASIC_KNIGHT_ACTIVE, VertexType.BASIC_KNIGHT_INACTIVE, VertexType.STRONG_KNIGHT_ACTIVE, VertexType.STRONG_KNIGHT_INACTIVE, VertexType.MIGHTY_KNIGHT_ACTIVE, VertexType.MIGHTY_KNIGHT_INACTIVE);
+	}
 	
     /**
      * Count the number of vertices assigned to player that are cities.

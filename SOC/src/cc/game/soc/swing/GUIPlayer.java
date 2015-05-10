@@ -38,33 +38,22 @@ public class GUIPlayer extends PlayerBot {
 	    this.infoVisible = visible;
 	}
 	
-	enum CardLoc {
-	    CL_NONE,
-	    CL_UPPER_LEFT,
-	    CL_UPPER_RIGHT,
-	    CL_MIDDLE_LEFT,
-	    CL_MIDDLE_RIGHT,
-	    CL_LOWER_RIGHT
-	}
-	
-	List<Animation> cardAnimations = new ArrayList<Animation>();
-	CardLoc loc = CardLoc.CL_NONE;
-	
-	private long roadAnimTime = GUI.instance.getProps().getIntProperty("anim.road.ms", 3000);
-	private long structureAnimTime = GUI.instance.getProps().getIntProperty("anim.structure.ms", 3000);
-	private long shipAnimTime = GUI.instance.getProps().getIntProperty("anim.ship.ms", 3000);
     private boolean animationEnabled = true;
 	
     public boolean isInfoVisible() {
         return infoVisible;
     }
 
+	private long getAnimTime() {
+		return GUI.instance.getProps().getIntProperty("anim.ms", 3000);		
+	}
+	
     void startCityAnimation(final Vertex vertex) {
         if (!animationEnabled)
             return;
         if (vertex == null)
             return;
-        GUI.instance.getBoardComponent().addAnimation(new Animation(structureAnimTime, 0) {
+        GUI.instance.getBoardComponent().addAnimation(new Animation(getAnimTime(), 0) {
 
             @Override
             void draw(Graphics g, float position, float dt) {
@@ -92,7 +81,7 @@ public class GUIPlayer extends PlayerBot {
             void onStarted() { 
                 synchronized (this) {
                     try {
-                        wait(structureAnimTime);
+                        wait(getAnimTime());
                     } catch (Exception e) {}
                 }
             }
@@ -106,7 +95,7 @@ public class GUIPlayer extends PlayerBot {
             return;
         if (vertex == null)
             return;
-        GUI.instance.getBoardComponent().addAnimation(new Animation(structureAnimTime, 0) {
+        GUI.instance.getBoardComponent().addAnimation(new Animation(getAnimTime(), 0) {
 
             @Override
             void draw(Graphics g, float position, float dt) {
@@ -134,7 +123,7 @@ public class GUIPlayer extends PlayerBot {
             void onStarted() { 
                 synchronized (this) {
                     try {
-                        wait(structureAnimTime);
+                        wait(getAnimTime());
                     } catch (Exception e) {}
                 }
             }
@@ -152,7 +141,7 @@ public class GUIPlayer extends PlayerBot {
     	
     	final BoardComponent comp = GUI.instance.getBoardComponent();
     	final Vector2D mp = soc.getBoard().getRouteMidpoint(edge);
-        comp.addAnimation(new Animation(shipAnimTime,0) {
+        comp.addAnimation(new Animation(getAnimTime(),0) {
 			
 			@Override
 			void draw(Graphics g, float position, float dt) {
@@ -176,7 +165,7 @@ public class GUIPlayer extends PlayerBot {
             void onStarted() {
                 synchronized (this) {
                     try {
-                        wait(roadAnimTime);
+                        wait(getAnimTime());
                     } catch (Exception e) {}
                 }
             }
@@ -191,7 +180,7 @@ public class GUIPlayer extends PlayerBot {
             return;
         final BoardComponent comp = GUI.instance.getBoardComponent();
         if (edge != null) {
-            comp.addAnimation(new Animation(roadAnimTime,0) {
+            comp.addAnimation(new Animation(getAnimTime(),0) {
 
                 final Vertex A = soc.getBoard().getVertex(edge.getFrom());
                 final Vertex B = soc.getBoard().getVertex(edge.getTo());
@@ -224,7 +213,7 @@ public class GUIPlayer extends PlayerBot {
                 void onStarted() {
                     synchronized (this) {
                         try {
-                            wait(roadAnimTime);
+                            wait(getAnimTime());
                         } catch (Exception e) {}
                     }
                 }
@@ -239,7 +228,7 @@ public class GUIPlayer extends PlayerBot {
 
         if (vertex == null)
             return;
-        GUI.instance.getBoardComponent().addAnimation(new Animation(structureAnimTime, 0) {
+        GUI.instance.getBoardComponent().addAnimation(new Animation(getAnimTime(), 0) {
 
             @Override
             void draw(Graphics g, float position, float dt) {
@@ -265,7 +254,7 @@ public class GUIPlayer extends PlayerBot {
             void onStarted() {
                 synchronized (this) {
                     try {
-                        wait(structureAnimTime);
+                        wait(getAnimTime());
                     } catch (Exception e) {}
                 }
             }
@@ -277,7 +266,7 @@ public class GUIPlayer extends PlayerBot {
     	if (!animationEnabled || vertex == null)
     		return;
 
-    	GUI.instance.getBoardComponent().addAnimation(new Animation(structureAnimTime, 0) {
+    	GUI.instance.getBoardComponent().addAnimation(new Animation(getAnimTime(), 0) {
 			
 			@Override
 			void draw(Graphics g, float position, float dt) {
@@ -303,7 +292,7 @@ public class GUIPlayer extends PlayerBot {
             void onStarted() {
                 synchronized (this) {
                     try {
-                        wait(structureAnimTime);
+                        wait(getAnimTime());
                     } catch (Exception e) {}
                 }
             }
