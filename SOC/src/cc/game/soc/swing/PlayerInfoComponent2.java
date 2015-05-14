@@ -9,6 +9,7 @@ import javax.swing.JComponent;
 
 import cc.game.soc.core.*;
 import cc.lib.game.Justify;
+import cc.lib.game.Utils;
 import cc.lib.swing.AWTUtils;
 
 @SuppressWarnings("serial")
@@ -113,16 +114,13 @@ public class PlayerInfoComponent2 extends PlayerInfoComponent {
                 }
 
                 /*
-                int used      = player.getNumDevelopment(d, DevelopmentCard.USED);
-                int notusable = player.getNumDevelopment(d, DevelopmentCard.NOT_USABLE);
-                int usable    = player.getNumDevelopment(d, DevelopmentCard.USABLE);
                 if (notusable > 0 || usable > 0 || used > 0) {
                 	g.setColor(bk);
                 	g.fillRect(sx, y+3, getWidth(), ch);
                 	bk = bk == bk1 ? bk2 : bk1;
                     y += th;
                     g.setColor(player.getColor());
-                    if (d == DevelopmentCardType.Soldier && this.player.getPlayerNum() == GUI.instance.getSOC().getLargestArmyPlayerNum()) {
+                    if (d == DevelopmentCardType.Soldier && getPlayer().getPlayerNum() == GUI.instance.getSOC().getLargestArmyPlayer().getPlayerNum()) {
                         g.drawString(d.name()+ " +" + GUI.instance.getSOC().getRules().getPointsLargestArmy(), sx, y);
                     } else {
                         g.drawString(d.name(), sx, y);
@@ -181,11 +179,7 @@ public class PlayerInfoComponent2 extends PlayerInfoComponent {
                 if (used > 0 || notusable > 0 || usable > 0) {
                     y += ch;
                     g.setColor(player.getColor());
-                    if (d == DevelopmentCardType.Soldier && player.getPlayerNum() == GUI.instance.getSOC().getLargestArmyPlayerNum()) {
-                        g.drawString(d.name()+ " +" + GUI.instance.getSOC().getPointsLargestArmy(), sx, y);
-                    } else {
-                        g.drawString(d.name(), sx, y);
-                    }
+                    g.drawString(d.name(), sx, y);
                     int x = getWidth()-5;
                     for (int i=0; i<used; i++) {
                         String s = "";
@@ -206,6 +200,14 @@ public class PlayerInfoComponent2 extends PlayerInfoComponent {
                     }
                 }
             }
+            
+        }
+        {
+        	int x = getWidth()-5;
+            for (Card c : player.getCards(CardType.SpecialVictory)) {
+            	int pts = (Integer)c.getData();//SpecialVictoryType.values()[c.getTypeOrdinal()].points;
+            	drawCard(g, player.getColor(), x-cw, y, getWidth()-5-cw, ch, Utils.getSignedString(pts)); 
+            }
         }
     	g.setColor(bk);
     	g.fillRect(sx, y+3, getWidth(), ch);
@@ -214,6 +216,7 @@ public class PlayerInfoComponent2 extends PlayerInfoComponent {
         g.setColor(player.getColor());
         String s = "Route Length " + player.getRoadLength();
         g.drawString(s, sx, y);
+        /*
         if (GUI.instance.getSOC().getLongestRoadPlayerNum() == player.getPlayerNum()) {
             drawCard(g, player.getColor(), getWidth()-5-cw, y, cw, ch, "+"+ GUI.instance.getSOC().getPointsLongestRoad());
         }
@@ -227,7 +230,7 @@ public class PlayerInfoComponent2 extends PlayerInfoComponent {
             if (GUI.instance.getSOC().getLargestArmyPlayerNum() == player.getPlayerNum()) {
             	AWTUtils.drawJustifiedString(g, getWidth(), y, Justify.RIGHT, Justify.BOTTOM, "+" +GUI.instance.getSOC().getPointsLargestArmy());
             }
-        }
+        }*/
     }
 
 

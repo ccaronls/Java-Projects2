@@ -45,7 +45,7 @@ public class GUIPlayer extends PlayerBot {
     }
 
 	private long getAnimTime() {
-		return GUI.instance.getProps().getIntProperty("anim.ms", 3000);		
+		return GUI.instance.getProps().getIntProperty("anim.ms", 1500);		
 	}
 	
     void startCityAnimation(final Vertex vertex) {

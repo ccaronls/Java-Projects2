@@ -19,7 +19,7 @@ public class FixSaveFile extends TestCase {
 			for (Card c : p.getCards()) {
 				if (c.getCardType() == CardType.SpecialVictory) {
 					if (!c.isUsed()) {
-						c.setUsed(true);
+						c.setUsed();
 						System.out.println("Fixing " + p.getName() + "'s card : " + c);
 					}
 				}

@@ -38,7 +38,16 @@ public enum TileType {
 	public final boolean isDistribution;
 	public final ResourceType resource;
 	public final CommodityType commodity;
-	
+
+	private TileType(int chance, boolean isWater, boolean isPort, boolean isDistribution, ResourceType resource, CommodityType commodity) {
+		this.chanceOnUndiscovered = chance;
+		this.isDistribution = isDistribution;
+		this.isWater = isWater;
+		this.isPort = isPort;
+		this.resource = resource;
+		this.commodity = commodity;
+	}
+
 	public static TileType getResourceTileFromResource(ResourceType type) {
 		for (TileType t : values()) {
 			if (t.resource == type && !t.isPort)
@@ -55,13 +64,5 @@ public enum TileType {
 		return null;
 	}
 
-	private TileType(int chance, boolean isWater, boolean isPort, boolean isDistribution, ResourceType resource, CommodityType commodity) {
-		this.chanceOnUndiscovered = chance;
-		this.isDistribution = isDistribution;
-		this.isWater = isWater;
-		this.isPort = isPort;
-		this.resource = resource;
-		this.commodity = commodity;
-	}
 
 }

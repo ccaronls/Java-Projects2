@@ -245,6 +245,16 @@ public class AWTUtils {
         return y;
     }
     
+    public static int drawWrapJustifiedString(Graphics g, int x, int y, int maxWidth, Justify hJust, String text) {
+        String [] lines = generateWrappedLines(g, text, maxWidth);
+        for (int i=0; i<lines.length; i++) {
+            //g.drawString(lines[i], x, y);
+        	drawJustifiedString(g, x, y, hJust, Justify.TOP, lines[i]);
+            y += getFontHeight(g);
+        }
+        return y;
+    }
+    
     /**
      * 
      * @param g

@@ -22,13 +22,7 @@ public abstract class ADiceComponent extends JComponent implements ChangeListene
 		this.die = die;
 		repaint();
 	}
-/*
-	@Override
-	public Dimension getPreferredSize() {
-		// TODO Auto-generated method stub
-		return new Dimension(60,30);
-	}
-*/
+
 	int getDie() {
 		return die;
 	}
@@ -47,11 +41,11 @@ public abstract class ADiceComponent extends JComponent implements ChangeListene
 		int y = 0;
 		
 		if (die != 0) {
-			drawDie(g, x, y, dim, die);
+			drawDie(g, x, y, dim);
 		}
 	}
 
-	abstract void drawDie(Graphics g, int x, int y, int dim, int num);
+	abstract void drawDie(Graphics g, int x, int y, int dim);
 
 	@Override
 	public void stateChanged(ChangeEvent arg) {

@@ -77,11 +77,10 @@ public class SOC extends Reflector<SOC> {
 	private int					mCurrentPlayer;
 	private int					mNumPlayers;
 	private int []				mDice;
-	private int				    mLongestRoadPlayer;
-	private int				    mLargestArmyPlayer;
 	private Stack<StackItem>	mStateStack = new Stack<StackItem>();
 	private List<Card>			mDevelopmentCards = new ArrayList<Card>();
 	private List<Card>[]		mProgressCards;
+	private List<EventCard>		mEventCards;
 	private Board				mBoard;
 	private Rules				mRules;
 	private int					mBarbarianDistance = -1; // CAK
@@ -103,20 +102,33 @@ public class SOC extends Reflector<SOC> {
 	    return mStateStack.peek().action;
 	}
 	
+	private Player getSpecialVictoryPlayer(SpecialVictoryType card) {
+		Player player = null;
+		for (Player p : getPlayers()) {
+			int num = p.getCardCount(card);
+			assert(num == 0 || num == 1);
+			if (num > 0) {
+				assert(player == null);
+				player = p;
+			}
+		}
+		return player;
+	}
+	
 	/**
 	 * Get the playernum with the longest road
 	 * @return
 	 */
-	public int getLongestRoadPlayerNum() {
-		return mLongestRoadPlayer;
+	public Player getLongestRoadPlayer() {
+		return getSpecialVictoryPlayer(SpecialVictoryType.LongestRoad);
 	}
 
 	/**
 	 * Get the playernum with the largest ary
 	 * @return
 	 */
-	public int getLargestArmyPlayerNum() {
-		return mLargestArmyPlayer;
+	public Player getLargestArmyPlayer() {
+		return getSpecialVictoryPlayer(SpecialVictoryType.LargestArmy);
 	}
 
 	/**
@@ -132,6 +144,7 @@ public class SOC extends Reflector<SOC> {
 	 * @return
 	 */
 	public int getCurPlayerNum() {
+		assert(mCurrentPlayer >= 0);
 		if (mCurrentPlayer < 0)
 			return 0;
 		
@@ -163,8 +176,23 @@ public class SOC extends Reflector<SOC> {
 	 * Get sum of both 6 sided die 
 	 * @return
 	 */
-	public int getDiceNum() {
+	public int getProductionNum() {
+		EventCard card = getTopEventCard();
+		if (card != null) {
+			return card.production;
+		}
 		return mDice[0] + mDice[1];
+	}
+	
+	/**
+	 * 
+	 * @return
+	 */
+	public DiceEvent getDiceEvent() {
+		EventCard card = getTopEventCard();
+		if (card != null)
+			return DiceEvent.fromDieNum(card.cakEvent);
+		return DiceEvent.fromDieNum(mDice[2]);
 	}
 
 	/**
@@ -239,9 +267,9 @@ public class SOC extends Reflector<SOC> {
 	 * Resets game but keeps the players
 	 */
 	public void reset() {
-		mLongestRoadPlayer = -1;
-		mLargestArmyPlayer = -1;
-//		Utils.fillArray(mDice, 0);
+		for (int i=0; i<getNumPlayers(); i++) {
+			mPlayers[i].reset();
+		}
 		mBoard.reset();
 		mStateStack.clear();
 		resetOptions();
@@ -269,6 +297,8 @@ public class SOC extends Reflector<SOC> {
 			for (int i=0; i<NUM_DEVELOPMENT_AREA_TYPES; i++)
 				mProgressCards[i] = new ArrayList<Card>();
 			for (ProgressCardType p :  ProgressCardType.values()) {
+				if (getRules().isEnableEventCards() && p == ProgressCardType.Alchemist)
+					continue; // dont add alchemist cards for this kind of expansion
 				for (int i=0; i<p.deckOccurances; i++) {
 					mProgressCards[p.type.ordinal()].add(new Card(p, CardStatus.USABLE));
 				}
@@ -282,6 +312,22 @@ public class SOC extends Reflector<SOC> {
 			}
 			Utils.shuffle(mDevelopmentCards);
 		}
+		
+		if (getRules().isEnableEventCards()) {
+			mEventCards = new ArrayList<EventCard>();
+		} else {
+			mEventCards = null;
+		}
+	}
+	
+	private void initEventCards() {
+		mEventCards = new ArrayList<EventCard>();
+		for (EventCardType e : EventCardType.values()) {
+			for (int p : e.production) {
+				mEventCards.add(new EventCard(e, p, e.cakEvent));
+			}
+		}
+		Utils.shuffle(mEventCards);
 	}
 	
 	/**
@@ -389,6 +435,235 @@ public class SOC extends Reflector<SOC> {
 			printinfo("Die roll: " + mDice[0] + ", " + mDice[1] + ", " + DiceEvent.fromDieNum(mDice[2]));
 		}
 	}
+	
+	public final EventCard getTopEventCard() {
+		if (mEventCards.size() > 0) {
+			return mEventCards.get(0);
+		}
+		return null;
+	}
+	
+	private void processEventCard() {
+		EventCard next = getTopEventCard();
+		switch (next.getType()) {
+			case CalmSea: {
+				// player with most harbors get to pick a resource card
+				int most = 0;
+				Player withMost = null;
+				for (Player p : getPlayers()) {
+					int num = 0;
+					boolean [] used = new boolean[getBoard().getNumTiles()]; 
+					for (int vIndex : mBoard.getStructuresForPlayer(p.getPlayerNum())) {
+						Vertex v = getBoard().getVertex(vIndex);
+						for (int i=0; i<v.getNumTiles(); i++) {
+							int tIndex = v.getTile(i);
+							if (used[tIndex])
+								continue;
+							used[tIndex] = true;
+							Tile t = getBoard().getTile(tIndex);
+							switch (t.getType()) {
+								case PORT_BRICK:
+								case PORT_MULTI:
+								case PORT_ORE:
+								case PORT_SHEEP:
+								case PORT_WHEAT:
+								case PORT_WOOD:
+									num++;
+									break;
+								default:
+									break;
+								
+							}
+						}
+					}
+					if (num > most) {
+						most = num;
+						withMost = p;
+					}
+				}
+				if (withMost != null) {
+					printinfo(withMost.getName() + " has most harbors and gets to pick a resource card");
+					pushStateFront(State.SET_PLAYER, getCurPlayerNum(), null);
+					pushStateFront(State.DRAW_RESOURCE_NOCANCEL);
+					pushStateFront(State.SET_PLAYER, withMost.getPlayerNum(), null);
+				}
+				break;
+			}
+			case Conflict: {
+				Player LAP = getLargestArmyPlayer();
+				if (LAP == null) {
+					int [] armySize = new int[getNumPlayers()+1];
+					int maxSize = 0;
+					for (Player p : getPlayers()) {
+						int size = 0;
+						if (getRules().isEnableCitiesAndKnightsExpansion()) {
+							for (int kIndex : getBoard().getKnightsForPlayer(p.getPlayerNum())) {
+								size += getBoard().getVertex(kIndex).getType().getKnightLevel();
+							}
+						} else {
+							size = p.getArmySize();
+						}
+						armySize[p.getPlayerNum()] = size;
+						maxSize = Math.max(size, maxSize);
+					}
+					
+					for (int i=1; i<armySize.length; i++) {
+						if (armySize[i] == maxSize) {
+							if (LAP == null) 
+								LAP = getPlayerByPlayerNum(i);
+							else {
+								// there is a tie, s no event
+								LAP = null;
+								break;
+							}
+						}
+					}
+				}
+				if (LAP != null) {
+					printinfo(LAP.getName() + " Has largest army and gets to take a resource card from another");
+					pushStateFront(State.SET_PLAYER, getCurPlayerNum(), null);
+					pushStateFront(State.CHOOSE_OPPONENT_TO_TAKE_RESOURCE_FROM);
+					pushStateFront(State.SET_PLAYER, LAP.getPlayerNum(), null);
+					mOptions = computeOpponents(this, LAP.getPlayerNum());
+				} else {
+					printinfo("No single player with largest army so event cancelled");
+				}
+				break;
+			}
+			case Earthquake: {
+				for (Player p : getPlayers()) {
+					if (p.getCardCount(SpecialVictoryType.DamagedRoad) > 0)
+						continue;
+					p.addSpecialVictoryCard(SpecialVictoryType.DamagedRoad);
+					List<Integer> verts = computeSettlementVertexIndices(this, p.getPlayerNum(), getBoard());
+					if (verts.size() > 0) {
+						int vIndex = Utils.randItem(verts);
+						for (Route r : getBoard().getVertexRoutes(vIndex)) {
+							if (r.getPlayer() == p.getPlayerNum() && !r.isDamaged()) {
+								r.setDamaged(true);
+								break;
+							}
+						}
+					} else {
+						List<Integer> routes = getBoard().getRoadsForPlayer(p.getPlayerNum());
+						for (int rIndex : routes) {
+							Route r = getBoard().getRoute(rIndex);
+							if (!r.isDamaged()) {
+								r.setDamaged(true);
+							}
+						}
+					}
+				}
+				break;
+			}
+			case Epidemic: {
+				// cities only produce 1 resource.  handled in distribute resources
+				break;
+			}
+			case GoodNeighbor: {
+				// each player gives player to their left a resource or commodity
+				pushStateFront(State.SET_PLAYER, getCurPlayerNum(), null);
+				for (int i=1; i<=mNumPlayers; i++) {
+					int left = i+1;
+					if (left > mNumPlayers)
+						left=1;
+					
+					pushStateFront(State.CHOOSE_GIFT_CARD, getPlayerByPlayerNum(left), null);
+					pushStateFront(State.SET_PLAYER, i, null);
+				}
+				break;
+			}
+			case NeighborlyAssistance: {
+				// winning player gives up a resource to another
+				Player p = computePlayerWithMostVictoryPoints(this);
+				if (p != null) {
+					printinfo(p.getName() + " must give a resource card to another player of their choice");
+					pushStateFront(State.SET_PLAYER, getCurPlayerNum(), null);
+					pushStateFront(State.CHOOSE_OPPONENT_FOR_GIFT_CARD, getCurPlayer().getCards(CardType.Resource), null);
+					pushStateFront(State.SET_PLAYER, p.getPlayerNum(), null);
+					mOptions = computeOpponents(this, p.getPlayerNum());
+				}
+				break;
+			}
+			case NoEvent:
+				break;
+			case PlentifulYear: {
+				// each player draws a resource from pile
+				for (int i=0; i<getNumPlayers(); i++) {
+					pushStateFront(State.NEXT_PLAYER);
+					pushStateFront(State.DRAW_RESOURCE_NOCANCEL);
+				}
+				break;
+			}
+			case RobberAttack: {
+				// same as rolling a seven.  handled by processDice
+				break;
+			}
+			case RobberFlees: {
+				getBoard().setRobber(-1);
+				break;
+			}
+			case Tournament: { // TODO: verify non-cak rules
+				int [] numKnights = new int[getNumPlayers()+1];
+				int most = 0;
+				for (int i=1; i<=getNumPlayers(); i++) {
+					int num = 0;
+					if (getRules().isEnableCitiesAndKnightsExpansion())
+						num = getBoard().getNumKnightsForPlayer(i);
+					else
+						num = getPlayerByPlayerNum(i).getArmySize();
+					numKnights[i] = num;
+					if (num > most) {
+						most = num;
+					}
+				}
+				if (most > 0) {
+					pushStateFront(State.SET_PLAYER, getCurPlayerNum(), null);
+					for (int i=1; i<numKnights.length; i++) {
+						if (numKnights[i] == most) {
+    						pushStateFront(State.DRAW_RESOURCE_NOCANCEL);
+    						pushStateFront(State.SET_PLAYER, i, null);
+						}
+					}
+				}
+				break;
+			}
+			case TradeAdvantage: {
+				Player LRP = getLongestRoadPlayer();
+				if (LRP == null) {
+					int [] roadLength = new int[getNumPlayers()+1];
+					int maxSize = 0;
+					for (Player p : getPlayers()) {
+						int len = roadLength[p.getPlayerNum()] = p.getRoadLength();
+						maxSize = Math.max(len, maxSize);
+					}
+					
+					for (int i=1; i<roadLength.length; i++) {
+						if (roadLength[i] == maxSize) {
+							if (LRP == null) 
+								LRP = getPlayerByPlayerNum(i);
+							else {
+								// there is a tie, s no event
+								printinfo("No event when 2 or more players have the same size army");
+								LRP = null;
+								break;
+							}
+						}
+					}
+				}
+				if (LRP != null) {
+					printinfo(LRP.getName() + " has longest road and gets to take a card form another");
+					pushStateFront(State.SET_PLAYER, getCurPlayerNum(), null);
+					pushStateFront(State.CHOOSE_OPPONENT_TO_TAKE_RESOURCE_FROM);
+					pushStateFront(State.SET_PLAYER, LRP.getPlayerNum(), null);
+					mOptions = computeOpponents(this, LRP.getPlayerNum());
+				} else {
+					printinfo("No single player with the longest road to event cancelled");
+				}
+				break;
+			}
+		}
+	}
 /*
 	private void distributeCards(int dieRoll) {
 		printinfo("Dealing cards ...");
@@ -494,6 +769,10 @@ public class SOC extends Reflector<SOC> {
 			if (diceRoll > 0 && cell.getDieNum()!= diceRoll)
 				continue;
 
+			boolean epidemic = false;
+			if (getTopEventCard() != null) {
+				epidemic = getTopEventCard().getType() == EventCardType.Epidemic;
+			}
 			// visit each of the adjacent verts to this cell and
 			// add to any player at the vertex, some resource of
 			// type cell.resource
@@ -514,7 +793,7 @@ public class SOC extends Reflector<SOC> {
 					} else if (getRules().isEnableCitiesAndKnightsExpansion()) {
 						
 						if (vertex.isCity()) {
-							if (cell.getCommodity() != null) {
+							if (!epidemic && cell.getCommodity() != null) {
 								commodityInfo[cell.getCommodity().ordinal()][vertex.getPlayer()] += 1;
 								p.incrementResource(cell.getCommodity(), 1);
 							} else {
@@ -526,7 +805,9 @@ public class SOC extends Reflector<SOC> {
     						p.incrementResource(cell.getResource(), 1);
 						}
 					} else {
-						int num = vertex.isCity() ? getRules().getNumResourcesForCity() : getRules().getNumResourcesForSettlement();
+						int num = getRules().getNumResourcesForSettlement();
+						if (!epidemic && vertex.isCity()) 
+							num = getRules().getNumResourcesForCity();
 						resourceInfo[cell.getResource().ordinal()][vertex.getPlayer()] += num;
 						p.incrementResource(cell.getResource(), num);
 					}
@@ -558,7 +839,7 @@ public class SOC extends Reflector<SOC> {
 				printinfo(p.getName() + " applying Aqueduct ability");
 				pushStateFront(State.SET_PLAYER, getCurPlayerNum(), null);
 				pushStateFront(State.DRAW_RESOURCE_NOCANCEL);
-				pushStateFront(State.SET_PLAYER, p, null);
+				pushStateFront(State.SET_PLAYER, p.getPlayerNum(), null);
 			}
 		}
 	}
@@ -586,23 +867,17 @@ public class SOC extends Reflector<SOC> {
 	}
 	
 	static public int computePointsFromCards(Player player, SOC soc) {
-		int numPts = 0;
-		if (soc.getRules().isEnableCitiesAndKnightsExpansion()) {
-			numPts += player.getCardCount(CardType.SpecialVictory);
-		} else {
-    		int victoryPts = player.getUsableCardCount(DevelopmentCardType.Victory);
-    
-    		if (numPts + victoryPts >= soc.getRules().getPointsForWinGame()) {
-    			numPts += victoryPts;
-    		}
-    		if (player.getPlayerNum() == soc.getLargestArmyPlayerNum())
-    			numPts += soc.getRules().getPointsLargestArmy();
-		}		
+		int numPts = player.getSpecialVictoryPoints();
+		numPts += player.getCardCount(CardType.SpecialVictory);
+		
+		int victoryPts = player.getUsableCardCount(DevelopmentCardType.Victory);
+		if (numPts + victoryPts >= soc.getRules().getPointsForWinGame()) {
+			numPts += victoryPts;
+		}
 		return numPts;
 	}
 	
 	static public int computePointsFromBoard(Player player, Board board, SOC soc) {
-	    int longestRoadPlayer = soc.getLongestRoadPlayerNum();
 		int numPts = 0;
 		// count cities and settlements
 		boolean [] islands = new boolean[board.getNumIslands()+1];
@@ -617,10 +892,6 @@ public class SOC extends Reflector<SOC> {
 				}
 			}
 		}
-
-		if (player.getPlayerNum() == longestRoadPlayer)
-			numPts += soc.getRules().getPointsLongestRoad();
-
 		for (boolean b: islands) {
 			if (b) {
 				numPts += soc.getRules().getPointsIslandDiscovery();
@@ -668,7 +939,7 @@ public class SOC extends Reflector<SOC> {
 			initDeck();
 		}
 		Card picked = mDevelopmentCards.remove(0);
-		picked.setUsable(false);
+		picked.setUnusable();
 		getCurPlayer().addCard(picked);
 		printinfo(getCurPlayer().getName() + " picked a " + picked + " card");
 		this.onCardPicked(getCurPlayer(), picked);
@@ -704,17 +975,11 @@ public class SOC extends Reflector<SOC> {
         	mBarbarianDistance = -1;
         }
 
-        mLongestRoadPlayer = -1;
-        mLargestArmyPlayer = -1;
-        mStateStack.clear();
-        mBoard.reset();
-        mCurrentPlayer = 0;
-        for (int i=0; i<getNumPlayers(); i++) {
-            mPlayers[i].reset();
-        }
-        resetOptions();
+        reset();
         initDeck();
 
+        mCurrentPlayer = Utils.randRange(0, getNumPlayers()-1);
+        
         pushStateFront(State.START_ROUND);
         pushStateFront(State.DEAL_CARDS);
         
@@ -764,9 +1029,9 @@ public class SOC extends Reflector<SOC> {
         return false;
     }
     
-    public static List<Card> createCards(ICardType [] values, CardStatus status) {
+    public static List<Card> createCards(ICardType<?> [] values, CardStatus status) {
     	List<Card> cards = new ArrayList<Card>();
-    	for (ICardType c : values) {
+    	for (ICardType<?> c : values) {
     		cards.add(new Card(c, status));
     	}
     	return cards;
@@ -1174,12 +1439,15 @@ public class SOC extends Reflector<SOC> {
 				case START_ROUND: // transition state
 					assert(mStateStack.size() == 1); // this should always be the start
 					Arrays.fill(mDice, 0);
-					if (getCurPlayer().getCardCount(ProgressCardType.Alchemist) > 0) {
-						mOptions = Utils.asList(MoveType.ALCHEMIST_CARD, MoveType.ROLL_DICE);
+					if (getRules().isEnableEventCards()) {
+						mOptions = Utils.asList(MoveType.DEAL_EVENT_CARD);
 					} else {
-						mOptions = Utils.asList(MoveType.ROLL_DICE);
+    					if (getCurPlayer().getCardCount(ProgressCardType.Alchemist) > 0) {
+    						mOptions = Utils.asList(MoveType.ALCHEMIST_CARD, MoveType.ROLL_DICE);
+    					} else {
+    						mOptions = Utils.asList(MoveType.ROLL_DICE);
+    					}
 					}
-
 					pushStateFront(State.PLAYER_TURN_NOCANCEL);
 					break;
 
@@ -1268,16 +1536,18 @@ public class SOC extends Reflector<SOC> {
     					if (cell != null) {
     						popState();
     						int cellIndex = mBoard.getTileIndex(cell);
+    						resetOptions();
     						if (cell.isWater()) {
     							printinfo(getCurPlayer().getName() + " placing pirate on cell " + cellIndex);
     							mBoard.setPirate(cellIndex);
-    							pushStateFront(State.TAKE_OPPONENT_CARD, 1, null);
+    							pushStateFront(State.CHOOSE_OPPONENT_TO_TAKE_RESOURCE_FROM);
+    							mOptions = computeRobberTakeOpponentCardOptions(getCurPlayer(), getBoard(), true);
     						} else {
     							printinfo(getCurPlayer().getName() + " placing robber on cell " + cellIndex);
     							mBoard.setRobber(cellIndex);
-    							pushStateFront(State.TAKE_OPPONENT_CARD, 0, null);
+    							pushStateFront(State.CHOOSE_OPPONENT_TO_TAKE_RESOURCE_FROM);
+    							mOptions = computeRobberTakeOpponentCardOptions(getCurPlayer(), getBoard(), false);
     						}
-    						resetOptions();
     					}
 					}
 					break;
@@ -1293,25 +1563,23 @@ public class SOC extends Reflector<SOC> {
 					if (cell != null) {
 						popState();
 						int cellIndex = mBoard.getTileIndex(cell);
+						resetOptions();
 						if (cell.isWater()) {
 							printinfo(getCurPlayer().getName() + " placing pirate on cell " + cellIndex);
 							mBoard.setPirate(cellIndex);
-							pushStateFront(State.TAKE_OPPONENT_CARD, 1, null);
+							pushStateFront(State.CHOOSE_OPPONENT_TO_TAKE_RESOURCE_FROM);
+							mOptions = computeRobberTakeOpponentCardOptions(getCurPlayer(), getBoard(), true);
 						} else {
 							printinfo(getCurPlayer().getName() + " placing robber on cell " + cellIndex);
 							mBoard.setRobber(cellIndex);
-							pushStateFront(State.TAKE_OPPONENT_CARD, 0, null);
+							pushStateFront(State.CHOOSE_OPPONENT_TO_TAKE_RESOURCE_FROM);
+							mOptions = computeRobberTakeOpponentCardOptions(getCurPlayer(), getBoard(), false);
 						}
-						resetOptions();
 					}
 					break;
 				}
 
-				case TAKE_OPPONENT_CARD: // wait state
-					if (mOptions == null) {
-						int data = (Integer)getStateData();
-						mOptions = computeTakeOpponentCardPlayers(getAllPlayers(), getCurPlayer(), mBoard, data == 0 ? false : true);
-					}
+				case CHOOSE_OPPONENT_TO_TAKE_RESOURCE_FROM: // wait state
 					assert (mOptions != null);
 					if (mOptions.size() == 0) {
 						popState();
@@ -1325,6 +1593,17 @@ public class SOC extends Reflector<SOC> {
 							popState();
 							resetOptions();
 						}
+					}
+					break;
+					
+				case CHOOSE_OPPONENT_FOR_GIFT_CARD:
+					assert(mOptions != null);
+					Player player = getCurPlayer().choosePlayer(this, mOptions, PlayerChoice.PLAYER_TO_GIFT_CARD);
+					if (player != null) {
+						mOptions = (List<Card>)getStateData(); // must include the cards to gift
+						assert(mOptions != null && mOptions.size() > 0);
+						popState();
+						pushStateFront(State.CHOOSE_GIFT_CARD, player, null);
 					}
 					break;
 
@@ -1381,6 +1660,7 @@ public class SOC extends Reflector<SOC> {
 							mOptions.add(new Card(c, CardStatus.USABLE));
 						}
 					}
+					// fallthrough
 				case DRAW_RESOURCE_NOCANCEL:
 				case DRAW_RESOURCE_CANCEL: { // wait state
 					if (mOptions == null) {
@@ -1391,7 +1671,8 @@ public class SOC extends Reflector<SOC> {
 					}
 					Card card = getCurPlayer().chooseCard(this, mOptions, CardChoice.RESOURCE_OR_COMMODITY);
 					if (card != null) {
-						printinfo(getCurPlayer().getName() + " draws a " + card.getName() + " resource card");
+						printinfo(getCurPlayer().getName() + " draws a " + card.getName() + " card");
+						onCardPicked(getCurPlayer(), card);
 						getCurPlayer().addCard(card);
 						popState();
 						resetOptions();
@@ -1437,6 +1718,7 @@ public class SOC extends Reflector<SOC> {
 					assert(mOptions != null);
 					assert(mOptions.size() > 0);
 					final Vertex v = getCurPlayer().chooseVertex(this, mOptions, VertexChoice.KNIGHT_TO_MOVE);
+					final VertexType vt = v.getType();
 					if (v != null) {
 						popState();
 						mOptions = computeKnightMoveVertexIndices(mBoard.getVertexIndex(v), mBoard);
@@ -1444,6 +1726,7 @@ public class SOC extends Reflector<SOC> {
 							@Override
 							public void undo() {
 								v.setPlayer(getCurPlayerNum());
+								v.setType(vt);
 							}
 						});
 						v.removePlayer();
@@ -1548,10 +1831,8 @@ public class SOC extends Reflector<SOC> {
 					if (p != null) {
 						popState();
 						List<Integer> knights = getBoard().getKnightsForPlayer(p.getPlayerNum());
-						if (knights.size() == 1) {
-							mBoard.getVertex(knights.get(0)).setPlayer(getCurPlayerNum());
-							resetOptions();
-						} else if (knights.size() > 1) {
+						if (knights.size() > 0) {
+							putCardBackInDeck(getCurPlayer().removeCard(ProgressCardType.Deserter));
 							mOptions = knights;
 							pushStateFront(State.SET_PLAYER, getCurPlayerNum(), null);
 							pushStateFront(State.CHOOSE_KNIGHT_TO_DESERT, getCurPlayerNum(), null);
@@ -1723,7 +2004,7 @@ public class SOC extends Reflector<SOC> {
 					assert(mOptions.size() > 0);
 					Card c = getCurPlayer().chooseCard(this, mOptions, CardChoice.FLEET_TRADE);
 					if (c != null) {
-						getCurPlayer().getCard(ProgressCardType.MerchantFleet).setUsed(true);
+						getCurPlayer().getCard(ProgressCardType.MerchantFleet).setUsed();
 						getCurPlayer().setMerchantFleetTradable(c);
 						popState();
 					}
@@ -1775,13 +2056,18 @@ public class SOC extends Reflector<SOC> {
 				}
 				
 				case CHOOSE_GIFT_CARD: {
-					Card c = getCurPlayer().chooseCard(this, computeGiftCards(this, getCurPlayer()), CardChoice.GIVEUP_CARD);
+					if (mOptions == null) {
+						mOptions = computeGiftCards(this, getCurPlayer());
+					}
+					Card c = getCurPlayer().chooseCard(this, mOptions, CardChoice.GIVEUP_CARD);
 					if (c != null) {
 						Player taker = (Player)getStateData();
 						getCurPlayer().removeCard(c);
 						taker.addCard(c);
+						printinfo(getCurPlayer().getName() + " gives a " + c.getName() + " card to " + taker.getName());
 						onTakeOpponentCard(taker, getCurPlayer(), c);
 						popState();
+						resetOptions();
 					}
 					break;
 				}
@@ -1818,6 +2104,33 @@ public class SOC extends Reflector<SOC> {
         printinfo(getCurPlayer().getName() + " choose move " + move);
         resetOptions();
         switch (move) {
+        	case ROLL_DICE:
+        		rollDice();
+        		processDice();
+        		break;
+        		
+        	case DEAL_EVENT_CARD:
+        		if (mEventCards.size() > 1) {
+        			mEventCards.remove(0);
+        		} else {
+        			initEventCards();
+        		}
+        		processDice();
+        		processEventCard();
+        		break;
+        		
+        	case REPAIR_ROAD: {
+        		getCurPlayer().adjustResourcesForBuildable(BuildableType.Road, -1);
+        		getCurPlayer().removeCard(SpecialVictoryType.DamagedRoad);
+        		for (Route r : getBoard().getRoutesForPlayer(getCurPlayerNum())) {
+        			if (r.isDamaged()) {
+        				r.setDamaged(false);
+        				break;
+        			}
+        		}
+        		break;
+        	}
+        		
         	case BUILD_ROAD:
         		getCurPlayer().adjustResourcesForBuildable(BuildableType.Road, -1);
         		pushStateFront(State.POSITION_ROAD_CANCEL, null, new UndoAction() {
@@ -1931,12 +2244,12 @@ public class SOC extends Reflector<SOC> {
         	case SOLDIER_CARD: {
         		//final Card removed = getCurPlayer().removeCard(DevelopmentCardType.Soldier);
         		final Card used = getCurPlayer().getUsableCard(DevelopmentCardType.Soldier);
-        		used.setUsed(true);
+        		used.setUsed();
         		updateLargestArmyPlayer();
         		getCurPlayer().setCardsUsable(CardType.Development, false);
         		pushStateFront(getRules().isEnableSeafarersExpansion() ? State.POSITION_ROBBER_OR_PIRATE_CANCEL : State.POSITION_ROBBER_CANCEL, null, new UndoAction() {
         			public void undo() {
-        				used.setUsed(false);
+        				used.setUsable();
         				updateLargestArmyPlayer();
         				getCurPlayer().setCardsUsable(CardType.Development, true);
         			}
@@ -1945,11 +2258,6 @@ public class SOC extends Reflector<SOC> {
         		break;
         	}
 
-        	case ROLL_DICE:
-        		rollDice();
-        		processDice();
-        		break;
-        		
         	case ALCHEMIST_CARD: {
         		if (getCurPlayer().setDice(mDice, 2)) {
         			putCardBackInDeck(getCurPlayer().removeCard(ProgressCardType.Alchemist));
@@ -1989,19 +2297,27 @@ public class SOC extends Reflector<SOC> {
         		break;
         	}
         	case HIRE_KNIGHT:{
-        		getCurPlayer().adjustResourcesForBuildable(BuildableType.Knight, -1);
-        		pushStateFront(State.POSITION_KNIGHT_CANCEL, VertexType.BASIC_KNIGHT_INACTIVE, new UndoAction() {
-					@Override
-					public void undo() {
-						getCurPlayer().adjustResourcesForBuildable(BuildableType.Knight, 1);
-					}
-				});
         		mOptions = computeNewKnightVertexIndices(getCurPlayerNum(), mBoard);
+        		if (mOptions.size() > 0) {
+            		getCurPlayer().adjustResourcesForBuildable(BuildableType.Knight, -1);
+            		pushStateFront(State.POSITION_KNIGHT_CANCEL, VertexType.BASIC_KNIGHT_INACTIVE, new UndoAction() {
+    					@Override
+    					public void undo() {
+    						getCurPlayer().adjustResourcesForBuildable(BuildableType.Knight, 1);
+    					}
+    				});
+        		} else {
+        			resetOptions();
+        		}
         		break;
         	}
         	case MOVE_KNIGHT: 
-        		pushStateFront(State.CHOOSE_KNIGHT_TO_MOVE);
         		mOptions = computeMovableKnightVertexIndices(getCurPlayerNum(), mBoard);
+        		if (mOptions.size() > 0) {
+        			pushStateFront(State.CHOOSE_KNIGHT_TO_MOVE);
+        		} else {
+        			resetOptions();
+        		}
         		break;
         		
         	case PROMOTE_KNIGHT:{
@@ -2036,37 +2352,26 @@ public class SOC extends Reflector<SOC> {
         		
 			case CRANE_CARD: {
 				// build a city improvement for 1 commodity less than normal
-				ArrayList<MoveType> options = new ArrayList<MoveType>();
-				DevelopmentArea areaSaved = null;
-				for (DevelopmentArea area : DevelopmentArea.values()) {
-					int devel = getCurPlayer().getCityDevelopment(area);
-					int numCommodity = getCurPlayer().getCardCount(area.commodity);
-					if (numCommodity >= devel) {
-						options.add(area.move);
-						areaSaved = area;
-					}
-				}
-				popState();
-				if (options.size() == 1) {
-					// just apply it automatically
-					processCityImprovement(getCurPlayer(), areaSaved);
-				} else if (options.size() > 1) {
-					mOptions = options;
-					pushStateFront(State.CHOOSE_CITY_IMPROVEMENT);
+				List<MoveType> options = computeCraneCardImprovements(getCurPlayer());
+				if (options.size() > 0) {
+    				mOptions = options;
+    				final Card card = getCurPlayer().removeCard(ProgressCardType.Crane);
+    				putCardBackInDeck(card);
+    				pushStateFront(State.CHOOSE_CITY_IMPROVEMENT, null, new UndoAction() {
+						
+						@Override
+						public void undo() {
+							removeCardFromDeck(card);
+							getCurPlayer().addCard(card);
+						}
+					});
 				}
 				break;
 			}
 				
 			case DESERTER_CARD:{
 				// replace an opponents knight with one of your own
-				List<Integer> players = new ArrayList<Integer>();
-				for (int i=1; i<=getNumPlayers(); i++) {
-					if (i == getCurPlayerNum())
-						continue;
-					if (0 < mBoard.getNumKnightsForPlayer(i)) {
-						players.add(i);
-					}
-				}
+				List<Integer> players = computeDeserterPlayers(this, mBoard, getCurPlayer());
 				if (players.size() > 0) {
 					mOptions = players;
 					pushStateFront(State.CHOOSE_PLAYER_FOR_DESERTION);
@@ -2083,7 +2388,7 @@ public class SOC extends Reflector<SOC> {
 			}
 			case ENGINEER_CARD: {
 				// build a city wall for free
-				List<Integer> cities = SOC.computeCityWallVertexIndices(getCurPlayerNum(), mBoard);
+				List<Integer> cities = computeCityWallVertexIndices(getCurPlayerNum(), mBoard);
 				if (cities.size() > 0) {
 					final Card card = getCurPlayer().removeCard(ProgressCardType.Engineer);
 					putCardBackInDeck(card);
@@ -2103,8 +2408,13 @@ public class SOC extends Reflector<SOC> {
 				// 1 Commodity Card from his hand of his choice, if he has any.
 				// You must have a resource card to trade and they must have a commodity card to trade
 				// You can skip a player if you wish
-				for (int num  : computeHarborTradePlayers(getCurPlayer(), this)) {
-					pushStateFront(State.CHOOSE_HARBOR_RESOURCE, getPlayerByPlayerNum(num), null);
+				List<Integer> players = computeHarborTradePlayers(getCurPlayer(), this);
+				if (players.size() > 0) {
+					mOptions = players;
+					putCardBackInDeck(getCurPlayer().removeCard(ProgressCardType.Harbor));
+    				for (int num  : computeHarborTradePlayers(getCurPlayer(), this)) {
+    					pushStateFront(State.CHOOSE_HARBOR_RESOURCE, getPlayerByPlayerNum(num), null);
+    				}
 				}
 				break;
 			}
@@ -2170,21 +2480,7 @@ public class SOC extends Reflector<SOC> {
 				break;
 			}
 			case MERCHANT_FLEET_CARD: {
-				List<Card> tradableCards = new ArrayList<Card>();
-				for (ResourceType t : ResourceType.values()) {
-					List<Card> cards = getCurPlayer().getUsableCards(t);
-					if (cards.size() >= 2) {
-						tradableCards.addAll(cards);
-					}
-				}
-
-				for (CommodityType t : CommodityType.values()) {
-					List<Card> cards = getCurPlayer().getUsableCards(t);
-					if (cards.size() >= 2) {
-						tradableCards.addAll(cards);
-					}
-				}
-				
+				List<Card> tradableCards = computeMerchantFleetCards(getCurPlayer());
 				if (tradableCards.size() > 0) {
 					mOptions = tradableCards;
 					pushStateFront(State.CHOOSE_RESOURCE_FLEET);
@@ -2375,7 +2671,7 @@ public class SOC extends Reflector<SOC> {
 			case Commodity:
 			case Resource: // ignore, these are infinite
 				break;
-			case SpecialVictory:
+			default:
 				throw new RuntimeException("Should not happen");
 		}
 	}
@@ -2395,7 +2691,7 @@ public class SOC extends Reflector<SOC> {
 			case Resource: // ignore, these are infinite
 				success = true;
 				break;
-			case SpecialVictory:
+			default:
 				throw new RuntimeException("Should not happen");
 		}
 		assert(success);
@@ -2416,20 +2712,30 @@ public class SOC extends Reflector<SOC> {
 	 */
 	protected void onPlayerdiscoveredIsland(Player player, Island island) {}
 	
+	private void givePlayerSpecialVictoryCard(Player player, SpecialVictoryType card) {
+    	Player current = getSpecialVictoryPlayer(card);
+    	if (current != player) {
+    		if (current != null)
+    			current.removeCard(card);
+    		if (player != null)
+    			player.addCard(card);
+    	}
+	}
+	
     /**
      * Set the current largest army player
      * @param playerNum
      */
-    public void setLargestArmyPlayer(int playerNum) {
-        this.mLargestArmyPlayer = playerNum;
+    public void setLargestArmyPlayer(Player player) {
+    	givePlayerSpecialVictoryCard(player, SpecialVictoryType.LargestArmy);
     }
     
     /**
      * Set the current longest road player
      * @param playerNum
      */
-    public void setLongestRoadPlayer(int playerNum) {
-        this.mLongestRoadPlayer = playerNum;
+    public void setLongestRoadPlayer(Player player) {
+    	givePlayerSpecialVictoryCard(player, SpecialVictoryType.LongestRoad);
     }
 
 	/**
@@ -2531,42 +2837,6 @@ public class SOC extends Reflector<SOC> {
 	}
 	
 	/**
-     * Called when a player get the longest road or overtakes another player.
-     * default method does nothing
-     * @param oldPlayer null if newPlayer is the first to get the longest road
-     * @param newPlayer player that has the longest road
-     * @param armySize
-	 */
-	protected void onLongestRoadPlayerUpdated(Player oldPlayer, Player newPlayer, int maxRoadLen) {}
-	private void updateLongestRoutePlayer() {
-	    int pNum = computeLongestRoadPlayer(this);
-	    if (pNum < 1) {
-	        if (mLongestRoadPlayer > 0) {
-	            printinfo(getPlayerByPlayerNum(mLongestRoadPlayer).getName() + " is blocked and has lost the longest road!");
-	            onLongestRoadPlayerUpdated(getPlayerByPlayerNum(mLongestRoadPlayer), null, 0);
-	        }
-	        mLongestRoadPlayer = -1;
-	        return;
-	    }
-        if (pNum == mLongestRoadPlayer)
-            return;
-        final Player currentLongestRoadPlayer = getPlayerByPlayerNum(getLongestRoadPlayerNum());
-        final Player maxRoadLenPlayer = getPlayerByPlayerNum(pNum);
-        final int maxRoadLen = maxRoadLenPlayer.getRoadLength();
-        
-        if (mLongestRoadPlayer < 0) {
-            printinfo(maxRoadLenPlayer.getName() + " has gained the Longest Road!");
-            onLongestRoadPlayerUpdated(null, maxRoadLenPlayer, maxRoadLen);
-        } else if (maxRoadLenPlayer.getRoadLength() > currentLongestRoadPlayer.getRoadLength()) {
-            printinfo(maxRoadLenPlayer.getName() + " has overtaken Player " + getPlayerByPlayerNum(mLongestRoadPlayer).getName() + " with the Longest Road!");
-            onLongestRoadPlayerUpdated(currentLongestRoadPlayer, maxRoadLenPlayer, maxRoadLen);
-        }
-        
-        setLongestRoadPlayer(maxRoadLenPlayer.getPlayerNum());
-
-	}
-	
-	/**
 	 * Called when a player road becomes blocked, resulting is loss of road length.  Only used when Config.ENABLE_ROAD_BLOCK enabled.
 	 * @param player
 	 * @param road
@@ -2654,14 +2924,14 @@ public class SOC extends Reflector<SOC> {
 	 * @param soc
 	 * @return
 	 */
-	public static int computeLongestRoadPlayer(SOC soc) {
-		int maxRoadLen = soc.getRules().getMinLongestLoadLen() - 1;		
-		if (soc.getLongestRoadPlayerNum() > 0)
-		    maxRoadLen = Math.max(maxRoadLen, soc.getPlayerByPlayerNum(soc.getLongestRoadPlayerNum()).getRoadLength());
-		Player maxRoadLenPlayer = soc.getPlayerByPlayerNum(soc.getLongestRoadPlayerNum());
-		
-		for (int i=0; i<soc.mNumPlayers; i++) {
-			Player cur = soc.mPlayers[i];
+	public static Player computeLongestRoadPlayer(SOC soc) {
+		int maxRoadLen = soc.getRules().getMinLongestLoadLen() - 1;
+		Player curLRP = soc.getLongestRoadPlayer();
+		if (curLRP != null)
+		    maxRoadLen = Math.max(maxRoadLen, curLRP.getRoadLength());
+
+		Player maxRoadLenPlayer = curLRP;
+		for (Player cur : soc.getPlayers()) {
 			int len = cur.getRoadLength();
 			if (len > maxRoadLen) {
 				maxRoadLen = len;
@@ -2670,15 +2940,77 @@ public class SOC extends Reflector<SOC> {
 		} 
 
 		if (maxRoadLenPlayer == null)
-		    return -1;
-			//return soc.getLongestRoadPlayerNum();
+		    return null;
 		
 		if (maxRoadLenPlayer.getRoadLength() >= soc.getRules().getMinLongestLoadLen())
-			return maxRoadLenPlayer.getPlayerNum();
+			return maxRoadLenPlayer;
 		
-		return -1;
+		return null;
 	}
 
+	/**
+	 * compute the player who should have the largest army.
+	 * soc is not changed.
+	 * @param soc
+	 * @return
+	 */
+	public static Player computeLargestArmyPlayer(SOC soc) {
+		int maxArmySize = soc.getRules().getMinLargestArmySize() - 1;
+		Player curLAP = soc.getLargestArmyPlayer();
+		if (curLAP != null)
+		    maxArmySize = Math.max(maxArmySize, curLAP.getArmySize());
+		Player maxArmyPlayer = curLAP;
+		for (Player cur : soc.getPlayers()) {
+			if (cur.getArmySize() > maxArmySize) {
+				maxArmySize = cur.getArmySize();
+				maxArmyPlayer = cur;
+			}
+		}
+
+		if (maxArmyPlayer == null)
+			return null;
+		
+		if (maxArmyPlayer.getArmySize() >= soc.getRules().getMinLargestArmySize())
+		    return maxArmyPlayer;
+		
+		return null;
+	}	
+	
+	/**
+     * Called when a player get the longest road or overtakes another player.
+     * default method does nothing
+     * @param oldPlayer null if newPlayer is the first to get the longest road
+     * @param newPlayer player that has the longest road
+     * @param armySize
+	 */
+	protected void onLongestRoadPlayerUpdated(Player oldPlayer, Player newPlayer, int maxRoadLen) {}
+	private void updateLongestRoutePlayer() {
+	    Player maxRoadLenPlayer = computeLongestRoadPlayer(this);
+	    Player curLRP = getLongestRoadPlayer();
+	    if (maxRoadLenPlayer == null) {
+	        if (curLRP != null) {
+	            printinfo(curLRP.getName() + " is blocked and has lost the longest road!");
+	            setLongestRoadPlayer(null);
+	            onLongestRoadPlayerUpdated(curLRP, null, 0);
+	        }
+	        return;
+	    }
+        if (curLRP != null && maxRoadLenPlayer.getPlayerNum() == curLRP.getPlayerNum())
+            return;
+        final int maxRoadLen = maxRoadLenPlayer.getRoadLength();
+        
+        if (curLRP == null) {
+            printinfo(maxRoadLenPlayer.getName() + " has gained the Longest Road!");
+            onLongestRoadPlayerUpdated(null, maxRoadLenPlayer, maxRoadLen);
+        } else if (maxRoadLenPlayer.getRoadLength() > curLRP.getRoadLength()) {
+            printinfo(maxRoadLenPlayer.getName() + " has overtaken " + curLRP.getName() + " with the Longest Road!");
+            onLongestRoadPlayerUpdated(curLRP, maxRoadLenPlayer, maxRoadLen);
+        }
+        
+        setLongestRoadPlayer(maxRoadLenPlayer);
+
+	}
+		
 	/**
 	 * Called when a player get the largest army or overtakes another player.
 	 * default method does nothing
@@ -2688,56 +3020,27 @@ public class SOC extends Reflector<SOC> {
 	 */
 	protected void onLargestArmyPlayerUpdated(Player oldPlayer, Player newPlayer, int armySize) {}
 	private void updateLargestArmyPlayer() {
-	    int pNum = computeLargestArmyPlayer(this);
-	    if (pNum < 1) {
-	        mLargestArmyPlayer = -1;
+		Player largestArmyPlayer = computeLargestArmyPlayer(this);
+		Player curLAP = getLargestArmyPlayer();
+	    if (largestArmyPlayer == null) {
+	    	setLargestArmyPlayer(null);
 	        return;
 	    }
-	    if (pNum == this.mLargestArmyPlayer)
+	    if (curLAP != null && largestArmyPlayer.getPlayerNum() == curLAP.getPlayerNum())
 	        return;
 
-        Player maxArmyPlayer = getPlayerByPlayerNum(pNum);
-	    final int maxArmySize = maxArmyPlayer.getArmySize();
-        final Player currentLargestArmyPlayer = getPlayerByPlayerNum(mLargestArmyPlayer);
-	    if (mLargestArmyPlayer < 0) {
-	        printinfo(maxArmyPlayer.getName() + " has the largest army!");
-	        onLargestArmyPlayerUpdated(null, maxArmyPlayer, maxArmySize);
-	    } else if (maxArmyPlayer.getArmySize() > currentLargestArmyPlayer.getArmySize()) {
-	        printinfo(maxArmyPlayer.getName() + " takes overtakes Player " + getPlayerByPlayerNum(mLargestArmyPlayer).getName() + " for the largest Army!");
-	        onLargestArmyPlayerUpdated(currentLargestArmyPlayer, maxArmyPlayer, maxArmySize);
+	    final int maxArmySize = largestArmyPlayer.getArmySize();
+	    if (curLAP == null) {
+	        printinfo(largestArmyPlayer.getName() + " has the largest army!");
+	        onLargestArmyPlayerUpdated(null, largestArmyPlayer, maxArmySize);
+	    } else if (largestArmyPlayer.getArmySize() > curLAP.getArmySize()) {
+	        printinfo(largestArmyPlayer.getName() + " takes overtakes Player " + curLAP.getName() + " for the largest Army!");
+	        onLargestArmyPlayerUpdated(curLAP, largestArmyPlayer, maxArmySize);
 	    }
 
-	    setLargestArmyPlayer(maxArmyPlayer.getPlayerNum());
+	    setLargestArmyPlayer(largestArmyPlayer);
 	}
 	
-	/**
-	 * compute the player who should have the largest army.
-	 * soc is not changed.
-	 * @param soc
-	 * @return
-	 */
-	public static int computeLargestArmyPlayer(SOC soc) {
-		int maxArmySize = soc.getRules().getMinLargestArmySize() - 1;
-		if (soc.getLargestArmyPlayerNum() > 0)
-		    maxArmySize = soc.getPlayerByPlayerNum(soc.getLargestArmyPlayerNum()).getArmySize();
-		Player maxArmyPlayer = null;
-		for (int i=0; i<soc.mNumPlayers; i++) {
-			Player cur = soc.mPlayers[i];
-			if (cur.getArmySize() > maxArmySize) {
-				maxArmySize = cur.getArmySize();
-				maxArmyPlayer = cur;
-			}
-		}
-
-		if (maxArmyPlayer == null)
-			return soc.getLargestArmyPlayerNum();
-		
-		if (maxArmyPlayer.getArmySize() >= soc.getRules().getMinLargestArmySize())
-		    return maxArmyPlayer.getPlayerNum();
-		
-		return -1;
-	}
-
 	/**
 	 * Return a list of vertices available for a settlement given a player and board instance.
 	 * 
@@ -2779,6 +3082,10 @@ public class SOC extends Reflector<SOC> {
 					if (ie >= 0) {
 						Route e = b.getRoute(ie);
 						if (e.getPlayer() == playerNum) {
+							if (e.isDamaged()) {
+								canAdd = false;
+								break;
+							}
 							isOnRoute = true;
 						}
 					}
@@ -3068,13 +3375,16 @@ public class SOC extends Reflector<SOC> {
 		}
 
 		if (p.canBuild(BuildableType.Road)) {
-			for (int i=0; i<b.getNumRoutes(); i++) {
-				if (b.isRouteAvailableForRoad(i, p.getPlayerNum())) {
-					types.add(MoveType.BUILD_ROAD);
-					break;
-				}
+			if (p.getCardCount(SpecialVictoryType.DamagedRoad) > 0) {
+				types.add(MoveType.REPAIR_ROAD);
+			} else {
+    			for (int i=0; i<b.getNumRoutes(); i++) {
+    				if (b.isRouteAvailableForRoad(i, p.getPlayerNum())) {
+    					types.add(MoveType.BUILD_ROAD);
+    					break;
+    				}
+    			}
 			}
-			
 		}
 		
 		if (soc.getRules().isEnableSeafarersExpansion()) {
@@ -3155,7 +3465,7 @@ public class SOC extends Reflector<SOC> {
 						continue;
 					}
 					
-					if (numCities <= 0) {
+					if (soc.getMetropolisPlayer(area) != p.getPlayerNum() && numCities <= 0) {
 						continue;
 					}
 					
@@ -3167,7 +3477,7 @@ public class SOC extends Reflector<SOC> {
 					if (soc.mMetropolisPlayer[area.ordinal()] > 0) {
 						Player o = soc.getPlayerByPlayerNum(soc.mMetropolisPlayer[area.ordinal()]);
 						if (o.getCityDevelopment(area) >= DevelopmentArea.MAX_CITY_IMPROVEMENT)
-							continue; // cant advance to level 5 if someone else already has (TODO: confirm this rule or make config)
+							continue; // cant advance to max if someone else already has (TODO: confirm this rule or make config)
 					}
 					
 					types.add(area.move);
@@ -3215,6 +3525,10 @@ public class SOC extends Reflector<SOC> {
 				Vertex v = b.getVertex(cell.getAdjVert(vIndex));
 				if (v.getPlayer() > 0 && v.getPlayer() != soc.getCurPlayerNum()) {
 					if (v.isKnight()) {
+						addTile = false;
+						break;
+					}
+					if (soc.getPlayerByPlayerNum(v.getPlayer()).getSpecialVictoryPoints() < soc.getRules().getMinVictoryPointsForRobber()) {
 						addTile = false;
 						break;
 					}
@@ -3425,7 +3739,7 @@ public class SOC extends Reflector<SOC> {
 	 * @param b
 	 * @return
 	 */
-	public List<Integer> computeTakeOpponentCardOptions(Player p, Board b, boolean pirate) {
+	public List<Integer> computeRobberTakeOpponentCardOptions(Player p, Board b, boolean pirate) {
 	    return computeTakeOpponentCardPlayers(getAllPlayers(), p, b, pirate);
 	}
 	
@@ -3482,6 +3796,24 @@ public class SOC extends Reflector<SOC> {
 		return b.getVertsOfType(playerNum, VertexType.BASIC_KNIGHT_INACTIVE, VertexType.STRONG_KNIGHT_INACTIVE, VertexType.MIGHTY_KNIGHT_INACTIVE);
 	}
 	
+	static public List<Card> computeMerchantFleetCards(Player p) {
+		List<Card> tradableCards = new ArrayList<Card>();
+		for (ResourceType t : ResourceType.values()) {
+			List<Card> cards = p.getUsableCards(t);
+			if (cards.size() >= 2) {
+				tradableCards.addAll(cards);
+			}
+		}
+
+		for (CommodityType t : CommodityType.values()) {
+			List<Card> cards = p.getUsableCards(t);
+			if (cards.size() >= 2) {
+				tradableCards.addAll(cards);
+			}
+		}
+		return tradableCards;
+	}
+	
 	/**
 	 * Return list of players who are not p who have more points than p and who have at least 1 Commodity or Resource card in their hand.
 	 * @param soc
@@ -3499,6 +3831,71 @@ public class SOC extends Reflector<SOC> {
 				players.add(player.getPlayerNum());
 		}
 		return players;
+	}
+	
+	/**
+	 * Return a list of all the opponent players of playerNum
+	 * @param soc
+	 * @param playerNum
+	 * @return
+	 */
+	public static List<Integer> computeOpponents(SOC soc, int playerNum) {
+		List<Integer> p = new ArrayList<Integer>();
+		for (int i=1; i<=soc.getNumPlayers(); i++) {
+			if (i != playerNum) {
+				p.add(i);
+			}
+		}
+		return p;
+	}
+	
+	/**
+	 * Get the winningest player with most victory points
+	 * @param soc
+	 * @return
+	 */
+	static public Player computePlayerWithMostVictoryPoints(SOC soc) {
+		Player winning = null;
+		int most = 0;
+		for (Player p : soc.getPlayers()) {
+			int num = p.getSpecialVictoryPoints();
+			if (num > most) {
+				most = num;
+				winning = p;
+			}
+		}
+		return winning;
+	}
+	
+	/**
+	 * Return a list of players suitable for the deserter card
+	 * @param soc
+	 * @param b
+	 * @param p
+	 * @return
+	 */
+	static public List<Integer> computeDeserterPlayers(SOC soc, Board b, Player p) {
+		List<Integer> players = new ArrayList<Integer>();
+		for (int i=1; i<=soc.getNumPlayers(); i++) {
+			if (i == p.getPlayerNum())
+				continue;
+			if (0 < b.getNumKnightsForPlayer(i)) {
+				players.add(i);
+			}
+		}
+		return players;
+	}
+	
+	static public List<MoveType> computeCraneCardImprovements(Player p) {
+		ArrayList<MoveType> options = new ArrayList<MoveType>();
+		for (DevelopmentArea area : DevelopmentArea.values()) {
+			int devel = p.getCityDevelopment(area);
+			int numCommodity = p.getCardCount(area.commodity);
+			if (numCommodity >= devel) {
+				options.add(area.move);
+			}
+		}
+		return options;
 	}
 	
 	/**
@@ -3557,7 +3954,7 @@ public class SOC extends Reflector<SOC> {
 	
 	private void processDice() {
 		// roll the dice
-		if (getDiceNum() == 7) {
+		if (getProductionNum() == 7) {
 			popState();
 			printinfo("Uh Oh, " + getCurPlayer().getName()  + " rolled a 7.");
 			pushStateFront(State.SETUP_GIVEUP_CARDS);
@@ -3567,40 +3964,39 @@ public class SOC extends Reflector<SOC> {
 				pushStateFront(State.POSITION_ROBBER_NOCANCEL);
 		} else {
 
-			popState();
-			pushStateFront(State.NEXT_PLAYER);
-			
-			// after the last player takes a turn for this round need to advance 2 players
-			// so that the player after the player who rolled the dice gets to roll next
-			for (int i = 0; i < mNumPlayers; i++) {
-				if (i > 0)
-					pushStateFront(State.PLAYER_TURN_NOCANCEL);
-				pushStateFront(State.NEXT_PLAYER);
-			}
-			// reset the players ships/development cards usability etc.
-			pushStateFront(State.INIT_PLAYER_TURN);
-
-			// do this last so that any states that get pushed are on top
-			distributeResources(getDiceNum());
+    		popState();
+    		pushStateFront(State.NEXT_PLAYER);
+    		
+    		// after the last player takes a turn for this round need to advance 2 players
+    		// so that the player after the player who rolled the dice gets to roll next
+    		for (int i = 0; i < mNumPlayers; i++) {
+    			if (i > 0)
+    				pushStateFront(State.PLAYER_TURN_NOCANCEL);
+    			pushStateFront(State.NEXT_PLAYER);
+    		}
+    		// reset the players ships/development cards usability etc.
+    		pushStateFront(State.INIT_PLAYER_TURN);
+    
+    		// do this last so that any states that get pushed are on top
+    		distributeResources(getProductionNum());
+    		
+    		if (getRules().isEnableCitiesAndKnightsExpansion()) {
+    			switch (getDiceEvent()) {
+    				case AdvanceBarbarianShip:
+    					processBarbarianShip();
+    					break;
+    				case PoliticsCard:
+    					distributeProgressCard(DevelopmentArea.Politics);
+    					break;
+    				case ScienceCard:
+    					distributeProgressCard(DevelopmentArea.Science);
+    					break;
+    				case TradeCard:
+    					distributeProgressCard(DevelopmentArea.Trade);
+    					break;        				
+    			}
+    		}	
 		}
-		
-		if (getRules().isEnableCitiesAndKnightsExpansion()) {
-			DiceEvent ev = DiceEvent.fromDieNum(mDice[2]);
-			switch (ev) {
-				case AdvanceBarbarianShip:
-					processBarbarianShip();
-					break;
-				case PoliticsCard:
-					distributeProgressCard(DevelopmentArea.Politics);
-					break;
-				case ScienceCard:
-					distributeProgressCard(DevelopmentArea.Science);
-					break;
-				case TradeCard:
-					distributeProgressCard(DevelopmentArea.Trade);
-					break;        				
-			}
-		}		
 	}
 	
 	/**
@@ -3655,7 +4051,7 @@ public class SOC extends Reflector<SOC> {
 					p.addSpecialVictoryCard(SpecialVictoryType.Constitution);
 					onSpecialVictoryCard(p, SpecialVictoryType.Constitution);
 				} else if (card.equals(ProgressCardType.Printer)) {
-					card.setUsed(true);
+					card.setUsed();
 					p.addSpecialVictoryCard(SpecialVictoryType.Printer);
 					onSpecialVictoryCard(p, SpecialVictoryType.Printer);
 				} else {
@@ -3795,9 +4191,9 @@ public class SOC extends Reflector<SOC> {
 	 * @param type
 	 * @param amount
 	 */
-	protected void onMonopolyCardApplied(Player taker, Player giver, ICardType applied, int amount) {}
+	protected void onMonopolyCardApplied(Player taker, Player giver, ICardType<?> applied, int amount) {}
 	
-	private void processMonopoly(ICardType type) {
+	private void processMonopoly(ICardType<?> type) {
 		// take the specified resource from all other players
 		for (int i=1; i<mNumPlayers; i++) {
 			Player cur = mPlayers[(mCurrentPlayer+i) % mNumPlayers];
@@ -3845,18 +4241,6 @@ public class SOC extends Reflector<SOC> {
     	return false;
     }
 
-	public final boolean isRoadBlockEnabled() {
-		return getRules().isEnableRoadBlock();
-	}
-
-	public final int getPointsLargestArmy() {
-		return getRules().getPointsLargestArmy();
-	}
-	
-	public final int getPointsLongestRoad() {
-		return getRules().getPointsLongestRoad();
-	}
-	
 	public int getBarbarianDistance() {
 		return this.mBarbarianDistance;
 	}

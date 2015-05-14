@@ -196,7 +196,7 @@ public class BoardComponent extends JComponent implements KeyListener, MouseMoti
         anim.start();
     }
 
-	private void drawCellOutline(Graphics g, Tile cell) {
+	private void drawTileOutline(Graphics g, Tile cell) {
 	    render.clearVerts();
 		for (int i : cell.getAdjVerts()) {
 			Vertex v = board.getVertex(i);
@@ -276,9 +276,9 @@ public class BoardComponent extends JComponent implements KeyListener, MouseMoti
 	    // bottom right
 	    new Face(0.3f, 0,1, 3,1, 3,-1, 0,-4).setFaceTypes(FaceType.KNIGHT_ACTIVE_BASIC, FaceType.KNIGHT_ACTIVE_STRONG, FaceType.KNIGHT_ACTIVE_MIGHTY),
 	    // Level 2 knight bar
-	    new Face(0.5f, -3,4, -3,5, 3,5, 3,4).setFaceTypes(FaceType.KNIGHT_ACTIVE_STRONG, FaceType.KNIGHT_ACTIVE_MIGHTY, FaceType.KNIGHT_INACTIVE_STRONG, FaceType.KNIGHT_INACTIVE_MIGHTY),
+	    new Face(0.5f, -3,3, -3,5, 3,5, 3,3).setFaceTypes(FaceType.KNIGHT_ACTIVE_STRONG, FaceType.KNIGHT_ACTIVE_MIGHTY, FaceType.KNIGHT_INACTIVE_STRONG, FaceType.KNIGHT_INACTIVE_MIGHTY),
 	    // Level 3 knight bar
-	    new Face(0.1f, -3,6, -3,7, 3,7, 3,6).setFaceTypes(FaceType.KNIGHT_ACTIVE_MIGHTY, FaceType.KNIGHT_INACTIVE_MIGHTY),
+	    new Face(0.1f, -3,5, -3,7, 3,7, 3,5).setFaceTypes(FaceType.KNIGHT_ACTIVE_MIGHTY, FaceType.KNIGHT_INACTIVE_MIGHTY),
 
 	    // Merchant
 	    // Diamond
@@ -573,8 +573,17 @@ public class BoardComponent extends JComponent implements KeyListener, MouseMoti
 	private void renderEdge(Route e) {
 		Vertex v0 = board.getVertex(e.getFrom());
 		Vertex v1 = board.getVertex(e.getTo());
-		render.addVertex(v0.getX(), v0.getY());
-		render.addVertex(v1.getX(), v1.getY());
+		if (e.isDamaged()) {
+    		render.addVertex(v0);
+    		Vector2D v = board.getRouteMidpoint(e);
+    		Vector2D dv = Vector2D.newTemp(v1).subEq(v);
+    		dv = dv.norm().scaleEq(0.5f).addEq(v0);
+    		render.addVertex(dv);
+    		render.addVertex(v1);
+		} else {
+    		render.addVertex(v0);
+    		render.addVertex(v1);
+		}
 	}
 
 	private void drawEdge(Graphics g, Route e, int playerNum, boolean outline) {
@@ -738,7 +747,7 @@ public class BoardComponent extends JComponent implements KeyListener, MouseMoti
     	}		
 	}
 	
-    private void drawCellsOutlined(Graphics g) {
+    private void drawTilesOutlined(Graphics g) {
         Color outlineColor = GUI.instance.getProps().getColorProperty("board.outlineColor", Color.WHITE);
         Color textColor = GUI.instance.getProps().getColorProperty("board.textcolor", Color.CYAN);
         
@@ -750,7 +759,7 @@ public class BoardComponent extends JComponent implements KeyListener, MouseMoti
             int x = Math.round(v[0]);
             int y = Math.round(v[1]);
             g.setColor(outlineColor);
-            drawCellOutline(g, cell);
+            drawTileOutline(g, cell);
             g.setColor(textColor);
             switch (cell.getType()) {
                 case NONE:
@@ -803,11 +812,12 @@ public class BoardComponent extends JComponent implements KeyListener, MouseMoti
 
     private Font bold = null;
     
-    private void drawCellsTextured(Graphics g) {
+    private void drawTilesTextured(Graphics g) {
         float cellW = board.getTileWidth();
         float cellH = board.getTileHeight();
-        int w = Math.round(cellW / bw * (getWidth()-padding));
-        int h = Math.round(cellH / bh * (getHeight()-padding));
+        int dim = Math.min(getWidth(), getHeight());
+        int w = Math.round(cellW / bw * (dim-padding));
+        int h = Math.round(cellH / bh * (dim-padding));
         float [] v = {0,0};
 
         Color outlineColor = GUI.instance.getProps().getColorProperty("board.outlineColor", Color.WHITE);
@@ -824,7 +834,7 @@ public class BoardComponent extends JComponent implements KeyListener, MouseMoti
             switch (cell.getType()) {
             case NONE:
                 g.setColor(outlineColor);
-                drawCellOutline(g, cell);
+                drawTileOutline(g, cell);
                 //Utils.drawJustifiedString(g,x,y,Justify.CENTER,Justify.CENTER,"NONE");
                 break;
             case DESERT:
@@ -891,25 +901,25 @@ public class BoardComponent extends JComponent implements KeyListener, MouseMoti
             // used for random generation
             case RANDOM_RESOURCE_OR_DESERT:
                 g.setColor(outlineColor);
-                drawCellOutline(g, cell);
+                drawTileOutline(g, cell);
                 g.setColor(textColor);
                 AWTUtils.drawJustifiedString(g,x,y,Justify.CENTER,Justify.CENTER,"Random\nResourse or\nDesert");
                 break;
             case RANDOM_RESOURCE:
                 g.setColor(outlineColor);
-                drawCellOutline(g, cell);
+                drawTileOutline(g, cell);
                 g.setColor(textColor);
                 AWTUtils.drawJustifiedString(g,x,y,Justify.CENTER,Justify.CENTER,"Random\nResource");
                 break;
             case RANDOM_PORT_OR_WATER:
                 g.setColor(outlineColor);
-                drawCellOutline(g, cell);
+                drawTileOutline(g, cell);
                 g.setColor(textColor);
                 AWTUtils.drawJustifiedString(g,x,y,Justify.CENTER,Justify.CENTER,"Random Port\nor\nWater");
                 break;
             case RANDOM_PORT:
                 g.setColor(outlineColor);
-                drawCellOutline(g, cell);
+                drawTileOutline(g, cell);
                 g.setColor(textColor);
                 AWTUtils.drawJustifiedString(g,x,y,Justify.CENTER,Justify.CENTER,"Random\nPort");
                 break;
@@ -989,16 +999,18 @@ public class BoardComponent extends JComponent implements KeyListener, MouseMoti
     		render.setOrtho(0, getWidth(), 0, getHeight());
     		render.makeIdentity();
     		render.translate(padding, padding);
+    		float dim = Math.min(getWidth(),  getHeight()); // TODO: keep aspect ratio and center
+    		render.translate((getWidth()-dim)/2, (getHeight()-dim)/2);
     		render.scale(1f/bw, 1f/bh);
-    		render.scale(getWidth()-2*padding, getHeight()-2*padding);
+    		render.scale(dim-2*padding, dim-2*padding);
             render.translate(-bx, -by);
             //render.translate(bx, by);
             if (!getRenderFlag(RenderFlag.DONT_DRAW_TEXTURES)) {
-                this.drawCellsTextured(g);
+                this.drawTilesTextured(g);
             } 
             
             if (getRenderFlag(RenderFlag.DRAW_CELL_OUTLINES)) {
-                drawCellsOutlined(g);
+                drawTilesOutlined(g);
             }
 
             for (int i=0; i<board.getNumTiles(); i++) {
@@ -1125,12 +1137,12 @@ public class BoardComponent extends JComponent implements KeyListener, MouseMoti
                     	
             		case PM_CELL:
                     	g.setColor(Color.YELLOW);
-                    	drawCellOutline(g, board.getTile(pickedValue));
+                    	drawTileOutline(g, board.getTile(pickedValue));
                     	break;
                     	
             		case PM_CELLPAINT:
             			g.setColor(Color.RED);
-            			drawCellOutline(g, board.getTile(pickedValue));
+            			drawTileOutline(g, board.getTile(pickedValue));
                 		break;
 
             		case PM_VERTEX: {
@@ -1308,7 +1320,7 @@ public class BoardComponent extends JComponent implements KeyListener, MouseMoti
     		
     		if (getRenderFlag(RenderFlag.SHOW_CELL_INFO)) {
     		    if (cellInfoIndex >= 0) {
-    		        this.drawCellInfo(g, cellInfoIndex);
+    		        this.drawTileInfo(g, cellInfoIndex);
     		    }
     		}
     		
@@ -1583,7 +1595,7 @@ public class BoardComponent extends JComponent implements KeyListener, MouseMoti
         }
     }
     
-    private void drawCellInfo(Graphics g, int cellIndex) {
+    private void drawTileInfo(Graphics g, int cellIndex) {
         if (cellIndex < 0)
             return;
         Tile cell = board.getTile(cellIndex);

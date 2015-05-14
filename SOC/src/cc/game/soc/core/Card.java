@@ -2,7 +2,7 @@ package cc.game.soc.core;
 
 import cc.lib.utils.Reflector;
 
-public final class Card extends Reflector<Card> implements Comparable <Card> {
+public class Card extends Reflector<Card> implements Comparable <Card> {
 	
 	static {
 		addAllFields(Card.class);
@@ -12,6 +12,9 @@ public final class Card extends Reflector<Card> implements Comparable <Card> {
 	private final int typeOrdinal;
 	private CardStatus status;
 	
+	/**
+	 * Needed for Reflector
+	 */
 	public Card() {
 		this(null, 0, null);
 	}
@@ -19,12 +22,26 @@ public final class Card extends Reflector<Card> implements Comparable <Card> {
 	/**
 	 * 
 	 * @param type
+	 */
+	public Card(ICardType<?> type) {
+		this(type.getCardType(), type.ordinal(), CardStatus.USABLE);
+	}
+	
+	/**
+	 * 
+	 * @param type
 	 * @param flag
 	 */
-	public Card(ICardType type, CardStatus status) {
+	public Card(ICardType<?> type, CardStatus status) {
 		this(type.getCardType(), type.ordinal(), status);
 	}
 	
+	/**
+	 * 
+	 * @param type
+	 * @param ordinal
+	 * @param status
+	 */
 	public Card(CardType type, int ordinal, CardStatus status) {
 		this.type = type;
 		this.status = status;
@@ -35,43 +52,56 @@ public final class Card extends Reflector<Card> implements Comparable <Card> {
     public String toString() {
     	return type.dereferenceOrdinal(typeOrdinal).name() + " " + status;
     }
-    
-    public String getName() {
-    	switch (type) {
-			case Commodity:
-				return CommodityType.values()[typeOrdinal].name();
-			case Development:
-				return DevelopmentCardType.values()[typeOrdinal].name();
-			case Progress:
-				return ProgressCardType.values()[typeOrdinal].name();
-			case Resource:
-				return ResourceType.values()[typeOrdinal].name();
-			case SpecialVictory:
-				return SpecialVictoryType.values()[typeOrdinal].name();
-    	}
-    	throw new RuntimeException("Unhandled case");
+
+	/**
+	 * 
+	 * @return
+	 */
+    public final String getName() {
+    	return type.dereferenceOrdinal(typeOrdinal).name();
     }
     
-	public boolean isUsable() {
+    /**
+     * 
+     * @return
+     */
+	public final boolean isUsable() {
 		return status == CardStatus.USABLE;
 	}
 	
-	public void setUsable(boolean usable) {
-		status = usable ? CardStatus.USABLE : CardStatus.UNUSABLE;
+	/**
+	 * 
+	 */
+	public final void setUsable() {
+		status = CardStatus.USABLE;
 	}
 	
-	public boolean isUsed() {
+	/**
+	 * 
+	 * @return
+	 */
+	public final boolean isUsed() {
 		return status == CardStatus.USED;
 	}
 	
-	public void setUsed(boolean used) {
-		status = used ? CardStatus.USED : CardStatus.USABLE;
+	/**
+	 * 
+	 */
+	public final void setUsed() {
+		status = CardStatus.USED;
+	}
+	
+	/**
+	 * 
+	 */
+	public final void setUnusable() {
+		status = CardStatus.UNUSABLE;
 	}
 	
 	/**
 	 * @return Returns the type.
 	 */
-	public CardType getCardType() {
+	public final CardType getCardType() {
 		return type;
 	}
 	
@@ -79,7 +109,7 @@ public final class Card extends Reflector<Card> implements Comparable <Card> {
 	 * 
 	 * @return
 	 */
-	public CardStatus getCardStatus() {
+	public final CardStatus getCardStatus() {
 		return this.status;
 	}
 	
@@ -87,12 +117,24 @@ public final class Card extends Reflector<Card> implements Comparable <Card> {
 	 * An ordinal into the type of card this card represents (development or progress)
 	 * @return
 	 */
-	public int getTypeOrdinal() {
+	public final int getTypeOrdinal() {
 		return typeOrdinal;
 	}
 	
-	public String getHelpText() {
+	/**
+	 * 
+	 * @return
+	 */
+	public final String getHelpText() {
 		return type.dereferenceOrdinal(typeOrdinal).helpText();
+	}
+	
+	/**
+	 * 
+	 * @return
+	 */
+	public Object getData() {
+		return type.dereferenceOrdinal(typeOrdinal).getData();
 	}
 	
 	/**
@@ -100,7 +142,7 @@ public final class Card extends Reflector<Card> implements Comparable <Card> {
 	 * @param card
 	 * @return
 	 */
-	public boolean equals(ICardType card) {
+	public boolean equals(ICardType<?> card) {
 		return (card.getCardType() == getCardType() && card.ordinal() == getTypeOrdinal());
 	}
 	

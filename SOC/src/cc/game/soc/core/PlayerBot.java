@@ -849,7 +849,7 @@ public class PlayerBot extends Player {
 				}
 				case MERCHANT_FLEET_CARD: {
 					Card merchantFleetCard = p.getCard(ProgressCardType.MerchantFleet);
-					merchantFleetCard.setUsed(true);
+					merchantFleetCard.setUsed();
 					for (ResourceType r : ResourceType.values()) {
 						if (p.getCardCount(r) >= 2) {
 							Card tradable = new Card(r, CardStatus.USABLE);
@@ -1431,9 +1431,10 @@ public class PlayerBot extends Player {
 			int longestRoadValue = -1;
     		int len = b.computeMaxRouteLengthForPlayer(p.getPlayerNum(), soc.getRules().isEnableRoadBlock());
     		if (len >= soc.getRules().getMinLongestLoadLen()) {
-        		if (soc.getLongestRoadPlayerNum() <= 0 || 
-        			soc.getLongestRoadPlayerNum() == p.getPlayerNum() || 
-        			soc.getPlayerByPlayerNum(soc.getLongestRoadPlayerNum()).getRoadLength() < len) {
+    			Player cur = soc.getLongestRoadPlayer();
+        		if (cur == null || 
+        			cur.getPlayerNum() == p.getPlayerNum() || 
+        			cur.getRoadLength() < len) {
         			longestRoadValue = 1;
         		}
     		}

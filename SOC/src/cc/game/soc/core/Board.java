@@ -1299,7 +1299,11 @@ public final class Board extends Reflector<Board> {
 	public List<Integer> getSettlementsForPlayer(int playerNum) {
 		return getVertsOfType(playerNum, VertexType.SETTLEMENT);
 	}
-	
+
+	public List<Integer> getStructuresForPlayer(int playerNum) {
+		return getVertsOfType(playerNum, VertexType.SETTLEMENT, VertexType.CITY, VertexType.WALLED_CITY, VertexType.METROPOLIS_POLITICS, VertexType.METROPOLIS_SCIENCE, VertexType.METROPOLIS_TRADE);
+	}
+
 	public List<Integer> getRoadsForPlayer(int playerNum) {
 		List<Integer> roads = new ArrayList<Integer>();
 		for (int i=0; i<getNumRoutes(); i++) {
@@ -1369,7 +1373,16 @@ public final class Board extends Reflector<Board> {
 		 }
 
 		// if either vertex is a structure then ok to place
-		if (getVertex(edge.getFrom()).getPlayer() == playerNum || getVertex(edge.getTo()).getPlayer() == playerNum) {
+		Vertex v0 = getVertex(edge.getFrom());
+		Vertex v1 = getVertex(edge.getTo());
+		
+		if (v0.isKnight() && v0.getPlayer() != playerNum)
+			return false;
+		
+		if (v1.isKnight() && v1.getPlayer() != playerNum)
+			return false;
+		
+		if (v0.getPlayer() == playerNum || v1.getPlayer() == playerNum) {
 			return true;
 		}
 		

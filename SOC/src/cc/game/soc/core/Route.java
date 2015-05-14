@@ -16,6 +16,7 @@ public final class Route extends Reflector<Route> implements Comparable<Route> {
 	final static int EDGE_FLAG_ATTACKED			= 1<<3; // set when robber is placed on cell adjacent
 	final static int EDGE_FLAG_LOCKED			= 1<<4; // set when user positions the ship for first time, or for all a player's ships after they have moved a ship.  This is to support the move one ship per turn mandate. 
 	final static int EDGE_FLAG_BLOCKED			= 1<<5; // set that the edge is blocked by an opponent knight
+	final static int EDGE_FLAG_DAMAGED			= 1<<6; // road is damaged
 	
 	static {
 		addAllFields(Route.class);
@@ -67,6 +68,14 @@ public final class Route extends Reflector<Route> implements Comparable<Route> {
 		setFlag(EDGE_FLAG_WATER, isAdjacent);
 	}
 
+	void setDamaged(boolean damaged) {
+		setFlag(EDGE_FLAG_DAMAGED, damaged);
+	}
+	
+	public boolean isDamaged() {
+		return getFlag(EDGE_FLAG_DAMAGED);
+	}
+	
 	public String toString() {
 	    return "Route " + from + "->" + to + " player (" + player + ") Flags[" + getFlagsString() + "]";
 	}
@@ -83,6 +92,8 @@ public final class Route extends Reflector<Route> implements Comparable<Route> {
 			buf.append("ATT ");
 		if (isLocked())
 			buf.append("LCK ");
+		if (isDamaged())
+			buf.append("DAM ");
 		return buf.toString();
 	}
 
@@ -94,6 +105,7 @@ public final class Route extends Reflector<Route> implements Comparable<Route> {
 		setFlag(EDGE_FLAG_ATTACKED, false);
 		setFlag(EDGE_FLAG_LOCKED, false);
 		setFlag(EDGE_FLAG_SHIP, false);
+		setFlag(EDGE_FLAG_DAMAGED, false);
 	}
 
 	/**

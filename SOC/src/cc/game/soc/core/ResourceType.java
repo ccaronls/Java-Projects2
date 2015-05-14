@@ -5,7 +5,7 @@ package cc.game.soc.core;
  * @author Chris Caron
  *
  */
-public enum ResourceType implements ICardType {
+public enum ResourceType implements ICardType<Void> {
 
 	Wood("Produced by Forest Tiles"),
 	Sheep("Produced by Pasture Tiles"),
@@ -14,11 +14,11 @@ public enum ResourceType implements ICardType {
 	Brick("Produced by Hills Tiles"),
 	;
 
+	final String helpText;
+
 	ResourceType(String helpText) {
 		this.helpText = helpText;
 	}
-	
-	final String helpText;
 	
 	@Override
 	public CardType getCardType() {
@@ -28,6 +28,11 @@ public enum ResourceType implements ICardType {
 	@Override
 	public String helpText() {
 		return helpText;
+	}
+
+	@Override
+	public Void getData() {
+		return null;
 	}
 
 

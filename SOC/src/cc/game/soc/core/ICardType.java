@@ -1,6 +1,6 @@
 package cc.game.soc.core;
 
-public interface ICardType {
+public interface ICardType<T> {
 	CardType getCardType();
 	
 	int ordinal();
@@ -8,4 +8,6 @@ public interface ICardType {
 	String name();
 	
 	String helpText();
+	
+	T getData();
 }

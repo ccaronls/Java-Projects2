@@ -38,6 +38,9 @@ public enum MoveType {
     // Build a Road
     BUILD_ROAD("Build Road", "Position a new road for cost of 1 Wood and 1 Brick"),
 
+    // Repair damaged road due to earthquake
+    REPAIR_ROAD("Repair Road", "Repair your damaged road"),
+    
     // Build a Settlement
     BUILD_SETTLEMENT("Build Settlement", "Position a new Settlement for cost of 1 Wood, 1 Wheat, 1 Sheep and 1 Brick"),
 
@@ -46,6 +49,9 @@ public enum MoveType {
 
     // user rolls the dice.  For CAK, the user can roll the dice or play an Alchemist card of they have one, otherwise this move is always by itself.
     ROLL_DICE("Roll dice", ""),
+    
+    // used unstead of dice for TAB expansion
+    DEAL_EVENT_CARD("Deal Event", "Turn over the next event card"),
     
     // CAK Moves
     BUILD_CITY_WALL("Build Wall", "Build a wall around one of your cities for cost of 2 Brick.  Wall be destroyed when barbarians win an attack but city is reserved."), // Available when the user has necessary resources and a city without a wall

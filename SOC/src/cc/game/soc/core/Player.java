@@ -62,10 +62,10 @@ public abstract class Player extends Reflector<Player> {
 			if (card.getCardType() != type)
 				continue;
 			if (usable && !card.isUsable()) {
-				card.setUsable(true);
+				card.setUsable();
 				modified.add(card);
 			} else if (!usable && card.isUsable()) {
-				card.setUsable(true);
+				card.setUsable();
 				modified.add(card);
 			}
 		}
@@ -554,6 +554,22 @@ public abstract class Player extends Reflector<Player> {
 	}
 
 	/**
+	 * Special victory points are points for longest road, largest army, printer, constitution
+	 * @param rules
+	 * @return
+	 */
+	public final int getSpecialVictoryPoints() {
+		int pts = 0;
+		for (Card c : getCards()) {
+			if (c.getCardType() == CardType.SpecialVictory) {
+				SpecialVictoryType type = SpecialVictoryType.values()[c.getTypeOrdinal()];
+				pts += type.points;
+			}
+		}
+		return pts;
+	}
+	
+	/**
 	 * Return a move or null for not yet choosen.
 	 * Method will get called continuously until non-null value returned.
 	 * Cannot be cancelled.
@@ -626,6 +642,7 @@ public abstract class Player extends Reflector<Player> {
 		PLAYER_TO_TAKE_CARD_FROM,
 		PLAYER_TO_SPY_ON,
 		PLAYER_FOR_DESERTION,
+		PLAYER_TO_GIFT_CARD,
 	};
 	
 	/**

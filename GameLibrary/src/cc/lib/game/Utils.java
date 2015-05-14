@@ -29,6 +29,11 @@ public class Utils {
      * Convert from RADIANS to DEGREES
      */
     public static final float RAD_TO_DEG	= (float)(180.0 / Math.PI); // converts form radians to degress
+
+    // general working matricies, created once
+    private final static float [] 	m_matrix_2x2	= new float[4];
+    private final static float [] 	r_matrix_2x2	= new float[4];
+    private final static Random   	randGen = new Random(System.currentTimeMillis()); // random number generator
 	
     // FUCNTIONS
     
@@ -1554,14 +1559,16 @@ public class Utils {
         return result;
     }
 
-	//////////////////////////////////////////////////////////////////////////
-    // PRIVATE STUFF /////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////
-    
-    // general working matricies, created once
-    private final static float [] 	m_matrix_2x2	= new float[4];
-    private final static float [] 	r_matrix_2x2	= new float[4];
-    private final static Random   	randGen = new Random(System.currentTimeMillis()); // random number generator
+	/**
+	 * Return string value of a number and its sign (+ / -)
+	 * @param pts
+	 * @return
+	 */
+	public static String getSignedString(int n) {
+		if (n < 0)
+			return String.valueOf(n);
+		return "+" + n;
+	}
 
     
     

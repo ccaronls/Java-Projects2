@@ -148,7 +148,8 @@ public class GUIPlayerUser extends GUIPlayer {
 				return GUI.instance.getChoosePlayerToSpyOn(players);
 			case PLAYER_TO_TAKE_CARD_FROM:
 				return GUI.instance.getChoosePlayerToTakeCardFromMenu(players);
-			
+			case PLAYER_TO_GIFT_CARD:
+				return GUI.instance.getChoosePlayerToGiftCardToMenu(players);
 		}
 		assert(false);
 		return null;

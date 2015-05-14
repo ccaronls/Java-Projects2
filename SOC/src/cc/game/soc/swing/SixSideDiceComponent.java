@@ -23,7 +23,7 @@ public class SixSideDiceComponent extends ADiceComponent {
 	
 
 	@Override
-	void drawDie(Graphics g, int x, int y, int dim, int num)
+	void drawDie(Graphics g, int x, int y, int dim)
 	{
 	    g.setColor(dieColor);
 	    g.fillRect(x, y, dim, dim);
@@ -31,7 +31,7 @@ public class SixSideDiceComponent extends ADiceComponent {
 	    int dd2 = dim/2;
 	    int dd4 = dim/4;
 	    int dd34 = (dim*3)/4;
-	    switch (num) {
+	    switch (getDie()) {
 	    case 1:	    	
 	        drawDot(g, x+dd2, y+dd2);	    	
 	        break;

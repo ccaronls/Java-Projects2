@@ -1,6 +1,6 @@
 package cc.game.soc.core;
 
-public enum ProgressCardType implements ICardType {
+public enum ProgressCardType implements ICardType<DevelopmentArea> {
 
 	// Science
 	Alchemist		(DevelopmentArea.Science, null, 2),
@@ -34,7 +34,11 @@ public enum ProgressCardType implements ICardType {
 	TradeMonopoly	(DevelopmentArea.Trade, MoveType.TRADE_MONOPOLY_CARD, 2),
 	
 	;
-	
+
+	final DevelopmentArea type;
+	final int deckOccurances;
+	final MoveType moveType;
+
 	ProgressCardType(DevelopmentArea type, MoveType moveType, int deckOccurances) { 
 		this.type = type;
 		this.deckOccurances = deckOccurances;
@@ -51,7 +55,8 @@ public enum ProgressCardType implements ICardType {
 		return moveType.helpText;
 	}
 
-	final DevelopmentArea type;
-	final int deckOccurances;
-	final MoveType moveType;
+	@Override
+	public DevelopmentArea getData() {
+		return type;
+	}
 }

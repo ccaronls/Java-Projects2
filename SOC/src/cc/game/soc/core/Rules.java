@@ -60,10 +60,6 @@ public final class Rules extends Reflector<Rules> {
 	private int pointsPerCity = 2;
 	@RuleVariable(description="Points for Settlement", minValue=1, maxValue=3)
 	private int pointsPerSettlement = 1;
-	@RuleVariable(description="Points longest Road", minValue=1, maxValue=3)
-	private int pointsLongestRoad = 2;
-	@RuleVariable(description="Points largest Army", minValue=1, maxValue=3)
-	private int pointsLargestArmy = 2;
 	@RuleVariable(description="Min givup hand Cards", minValue=5, maxValue=10)
 	private int minHandSizeForGiveup = 7;
 	@RuleVariable(description="Min Longest Road Length", minValue=3, maxValue=7)
@@ -87,7 +83,7 @@ public final class Rules extends Reflector<Rules> {
 	private int numResourcesForDiscoveredTerritory = 1;
 	
 	// knight
-	@RuleVariable(description="Enable Cities and Knights", separator="Cities and Knights Expansion")
+	@RuleVariable(description="Enable Cities and Knights", separator="Cities & Knights Expansion")
 	private boolean enableCitiesAndKnightsExpansion = false;
 	@RuleVariable(description="Barbaian Steps to attack", minValue=5, maxValue=10)
 	private int barbarianStepsToAttack=7;
@@ -97,15 +93,13 @@ public final class Rules extends Reflector<Rules> {
 	private int numSafeCardsPerCityWall=2;
 	@RuleVariable(description="Points per Metropolis", minValue=3, maxValue=5)
 	private int pointsPerMetropolis=4;
-	@RuleVariable(description="Points for Special abilities (Trading House/Fortress/Aqueduct)", minValue=2, maxValue=4)
-	private int pointsForSpecialAbility=3;
 	
-	public final int getPointsForSpecialAbility() {
-		return pointsForSpecialAbility;
-	}
-	public final void setPointsForSpecialAbility(int pointsForSpecialAbility) {
-		this.pointsForSpecialAbility = pointsForSpecialAbility;
-	}
+	@RuleVariable(description="Use Event Cards instead of dice", separator="Traders & Barbarians expansion")
+	private boolean enableEventCards = false;
+	@RuleVariable(description="Friendly Robber", minValue=0, maxValue=3, valueStep=1)
+	private int minVictoryPointsForRobber = 0;
+	
+	
 	public final int getBarbarianStepsToAttack() {
 		return barbarianStepsToAttack;
 	}
@@ -155,18 +149,6 @@ public final class Rules extends Reflector<Rules> {
 	}
 	public final void setPointsPerSettlement(int pointsPerSettlement) {
 		this.pointsPerSettlement = pointsPerSettlement;
-	}
-	public final int getPointsLongestRoad() {
-		return pointsLongestRoad;
-	}
-	public final void setPointsLongestRoad(int pointsLongestRoad) {
-		this.pointsLongestRoad = pointsLongestRoad;
-	}
-	public final int getPointsLargestArmy() {
-		return pointsLargestArmy;
-	}
-	public final void setPointsLargestArmy(int pointsLargestArmy) {
-		this.pointsLargestArmy = pointsLargestArmy;
 	}
 	public final int getMinHandSizeForGiveup() {
 		return minHandSizeForGiveup;
@@ -240,6 +222,18 @@ public final class Rules extends Reflector<Rules> {
 	}
 	public final void setEnableTradersAndBarbairiansExpansion(boolean enableTradersAndBarbairiansExpansion) {
 		this.enableTradersAndBarbairiansExpansion = enableTradersAndBarbairiansExpansion;
+	}
+	public final int getMinVictoryPointsForRobber() {
+		return minVictoryPointsForRobber;
+	}
+	public final void setMinVictoryPointsForRobber(int minVictoryPointsForRobber) {
+		this.minVictoryPointsForRobber = minVictoryPointsForRobber;
+	}
+	public final boolean isEnableEventCards() {
+		return enableEventCards;
+	}
+	public final void setEnableEventCards(boolean enableEventCards) {
+		this.enableEventCards = enableEventCards;
 	}
 	
 	

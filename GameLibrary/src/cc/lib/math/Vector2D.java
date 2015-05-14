@@ -145,7 +145,7 @@ public class Vector2D extends Reflector<Vector2D> implements IVector2D, Serializ
     }
 
     /**
-     * Return a temp vector that is 90 rotated form this
+     * Return a temp vector that is 90 rotated from this
      * @return
      */
     public final MutableVector2D norm() {
@@ -164,6 +164,11 @@ public class Vector2D extends Reflector<Vector2D> implements IVector2D, Serializ
         return unitLength(newTemp());
     }
     
+    /**
+     * Return unit length vector
+     * @param out
+     * @return
+     */
     public final MutableVector2D normalized(MutableVector2D out) {
         float m = mag();
         if (m > Utils.EPSILON) {
@@ -172,6 +177,10 @@ public class Vector2D extends Reflector<Vector2D> implements IVector2D, Serializ
         return out.set(this);
     }
 
+    /**
+     * Return unit length vector
+     * @return
+     */
     public final MutableVector2D normalized() {
         return normalized(newTemp());
     }

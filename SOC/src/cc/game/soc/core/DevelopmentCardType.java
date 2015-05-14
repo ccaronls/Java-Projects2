@@ -5,7 +5,7 @@ package cc.game.soc.core;
  * @author Chris Caron
  * 
  */
-public enum DevelopmentCardType implements ICardType {
+public enum DevelopmentCardType implements ICardType<Void> {
 	// Take all of one resource
 	Monopoly(MoveType.MONOPOLY_CARD, 2, "force other players to give you resources of your choice"),
 	// take N of any resource
@@ -35,5 +35,11 @@ public enum DevelopmentCardType implements ICardType {
 	@Override
 	public String helpText() {
 		return helpText;
+	}
+
+	@Override
+	public Void getData() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }
