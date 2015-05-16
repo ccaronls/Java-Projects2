@@ -80,7 +80,7 @@ public class SOC extends Reflector<SOC> {
 	private Stack<StackItem>	mStateStack = new Stack<StackItem>();
 	private List<Card>			mDevelopmentCards = new ArrayList<Card>();
 	private List<Card>[]		mProgressCards;
-	private List<EventCard>		mEventCards;
+	private final List<EventCard> mEventCards = new ArrayList<EventCard>();
 	private Board				mBoard;
 	private Rules				mRules;
 	private int					mBarbarianDistance = -1; // CAK
@@ -313,15 +313,10 @@ public class SOC extends Reflector<SOC> {
 			Utils.shuffle(mDevelopmentCards);
 		}
 		
-		if (getRules().isEnableEventCards()) {
-			mEventCards = new ArrayList<EventCard>();
-		} else {
-			mEventCards = null;
-		}
 	}
 	
 	private void initEventCards() {
-		mEventCards = new ArrayList<EventCard>();
+		mEventCards.clear();
 		for (EventCardType e : EventCardType.values()) {
 			for (int p : e.production) {
 				mEventCards.add(new EventCard(e, p, e.cakEvent));
@@ -534,24 +529,11 @@ public class SOC extends Reflector<SOC> {
 				for (Player p : getPlayers()) {
 					if (p.getCardCount(SpecialVictoryType.DamagedRoad) > 0)
 						continue;
-					p.addSpecialVictoryCard(SpecialVictoryType.DamagedRoad);
-					List<Integer> verts = computeSettlementVertexIndices(this, p.getPlayerNum(), getBoard());
-					if (verts.size() > 0) {
-						int vIndex = Utils.randItem(verts);
-						for (Route r : getBoard().getVertexRoutes(vIndex)) {
-							if (r.getPlayer() == p.getPlayerNum() && !r.isDamaged()) {
-								r.setDamaged(true);
-								break;
-							}
-						}
-					} else {
-						List<Integer> routes = getBoard().getRoadsForPlayer(p.getPlayerNum());
-						for (int rIndex : routes) {
-							Route r = getBoard().getRoute(rIndex);
-							if (!r.isDamaged()) {
-								r.setDamaged(true);
-							}
-						}
+					List<Integer> routes = getBoard().getRoadsForPlayer(p.getPlayerNum());
+					if (routes.size() > 0) {
+						Route r = getBoard().getRoute(Utils.randItem(routes));
+						p.addSpecialVictoryCard(SpecialVictoryType.DamagedRoad);
+						r.setDamaged(true);
 					}
 				}
 				break;
@@ -600,7 +582,12 @@ public class SOC extends Reflector<SOC> {
 				break;
 			}
 			case RobberFlees: {
-				getBoard().setRobber(-1);
+				List<Integer> tiles = getBoard().getTilesOfType(TileType.DESERT);
+				if (tiles.size() > 0) {
+					getBoard().setRobber(tiles.get(0));
+				} else {
+					getBoard().setRobber(-1);
+				}
 				break;
 			}
 			case Tournament: { // TODO: verify non-cak rules
@@ -2718,7 +2705,7 @@ public class SOC extends Reflector<SOC> {
     		if (current != null)
     			current.removeCard(card);
     		if (player != null)
-    			player.addCard(card);
+    			player.addSpecialVictoryCard(card);
     	}
 	}
 	
@@ -2751,7 +2738,7 @@ public class SOC extends Reflector<SOC> {
 	 * @return
 	 */
 	public boolean isGoodForSave() {
-		return getState() == State.PLAYER_TURN_NOCANCEL;//!getState().canCancel && getStateData() == null;
+		return getState() == State.PLAYER_TURN_NOCANCEL || getState() == State.DEAL_CARDS;//!getState().canCancel && getStateData() == null;
 	}
 	
 	/**
@@ -2984,6 +2971,7 @@ public class SOC extends Reflector<SOC> {
      * @param armySize
 	 */
 	protected void onLongestRoadPlayerUpdated(Player oldPlayer, Player newPlayer, int maxRoadLen) {}
+	
 	private void updateLongestRoutePlayer() {
 	    Player maxRoadLenPlayer = computeLongestRoadPlayer(this);
 	    Player curLRP = getLongestRoadPlayer();
@@ -3019,6 +3007,7 @@ public class SOC extends Reflector<SOC> {
 	 * @param armySize current largest army size
 	 */
 	protected void onLargestArmyPlayerUpdated(Player oldPlayer, Player newPlayer, int armySize) {}
+	
 	private void updateLargestArmyPlayer() {
 		Player largestArmyPlayer = computeLargestArmyPlayer(this);
 		Player curLAP = getLargestArmyPlayer();

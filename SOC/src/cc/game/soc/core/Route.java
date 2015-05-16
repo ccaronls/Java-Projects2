@@ -68,7 +68,7 @@ public final class Route extends Reflector<Route> implements Comparable<Route> {
 		setFlag(EDGE_FLAG_WATER, isAdjacent);
 	}
 
-	void setDamaged(boolean damaged) {
+	public void setDamaged(boolean damaged) {
 		setFlag(EDGE_FLAG_DAMAGED, damaged);
 	}
 	

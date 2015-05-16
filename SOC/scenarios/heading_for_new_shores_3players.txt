@@ -4,174 +4,175 @@ mBoard=cc.game.soc.core.Board {
    cw=0.11111111
    islands=java.util.Vector {
       cc.game.soc.core.Island {
-            borderRoute=java.util.ArrayList {
-               java.lang.Integer {
-                  121
-               }
-               java.lang.Integer {
-                  122
-               }
-               java.lang.Integer {
-                  205
-               }
-               java.lang.Integer {
-                  206
-               }
-               java.lang.Integer {
-                  125
-               }
-               java.lang.Integer {
-                  113
-               }
-               java.lang.Integer {
-                  111
-               }
-               java.lang.Integer {
-                  112
-               }
-               java.lang.Integer {
-                  124
-               }
-               java.lang.Integer {
-                  116
-               }
-            }
-            discovered=boolean 16
-               false false false false false false false false false false false false false false false false 
-            num=1
-            tiles=java.util.ArrayList {
-               java.lang.Integer {
-                  59
-               }
-               java.lang.Integer {
-                  27
-               }
-            }
-         }
+        borderRoute=java.util.ArrayList {
+           java.lang.Integer {
+              121
+           }
+           java.lang.Integer {
+              122
+           }
+           java.lang.Integer {
+              205
+           }
+           java.lang.Integer {
+              206
+           }
+           java.lang.Integer {
+              125
+           }
+           java.lang.Integer {
+              113
+           }
+           java.lang.Integer {
+              111
+           }
+           java.lang.Integer {
+              112
+           }
+           java.lang.Integer {
+              124
+           }
+           java.lang.Integer {
+              116
+           }
+        }
+        discovered=boolean 16 {
+           false false false false false false false false false false false false false false false false 
+        }
+        num=1
+        tiles=java.util.ArrayList {
+           java.lang.Integer {
+              59
+           }
+           java.lang.Integer {
+              27
+           }
+        }
       }
       cc.game.soc.core.Island {
-            borderRoute=java.util.ArrayList {
-               java.lang.Integer {
-                  61
-               }
-               java.lang.Integer {
-                  59
-               }
-               java.lang.Integer {
-                  176
-               }
-               java.lang.Integer {
-                  172
-               }
-               java.lang.Integer {
-                  170
-               }
-               java.lang.Integer {
-                  175
-               }
-               java.lang.Integer {
-                  177
-               }
-               java.lang.Integer {
-                  173
-               }
-               java.lang.Integer {
-                  51
-               }
-               java.lang.Integer {
-                  49
-               }
-               java.lang.Integer {
-                  50
-               }
-               java.lang.Integer {
-                  54
-               }
-               java.lang.Integer {
-                  63
-               }
-               java.lang.Integer {
-                  67
-               }
-               java.lang.Integer {
-                  201
-               }
-               java.lang.Integer {
-                  200
-               }
-            }
-            discovered=boolean 16
-               false false false false false false false false false false false false false false false false 
-            num=2
-            tiles=java.util.ArrayList {
-               java.lang.Integer {
-                  55
-               }
-               java.lang.Integer {
-                  46
-               }
-               java.lang.Integer {
-                  12
-               }
-               java.lang.Integer {
-                  56
-               }
-            }
-         }
+        borderRoute=java.util.ArrayList {
+           java.lang.Integer {
+              61
+           }
+           java.lang.Integer {
+              59
+           }
+           java.lang.Integer {
+              176
+           }
+           java.lang.Integer {
+              172
+           }
+           java.lang.Integer {
+              170
+           }
+           java.lang.Integer {
+              175
+           }
+           java.lang.Integer {
+              177
+           }
+           java.lang.Integer {
+              173
+           }
+           java.lang.Integer {
+              51
+           }
+           java.lang.Integer {
+              49
+           }
+           java.lang.Integer {
+              50
+           }
+           java.lang.Integer {
+              54
+           }
+           java.lang.Integer {
+              63
+           }
+           java.lang.Integer {
+              67
+           }
+           java.lang.Integer {
+              201
+           }
+           java.lang.Integer {
+              200
+           }
+        }
+        discovered=boolean 16 {
+           false false false false false false false false false false false false false false false false 
+        }
+        num=2
+        tiles=java.util.ArrayList {
+           java.lang.Integer {
+              55
+           }
+           java.lang.Integer {
+              46
+           }
+           java.lang.Integer {
+              12
+           }
+           java.lang.Integer {
+              56
+           }
+        }
       }
       cc.game.soc.core.Island {
-            borderRoute=java.util.ArrayList {
-               java.lang.Integer {
-                  23
-               }
-               java.lang.Integer {
-                  32
-               }
-               java.lang.Integer {
-                  41
-               }
-               java.lang.Integer {
-                  42
-               }
-               java.lang.Integer {
-                  25
-               }
-               java.lang.Integer {
-                  22
-               }
-               java.lang.Integer {
-                  26
-               }
-               java.lang.Integer {
-                  28
-               }
-               java.lang.Integer {
-                  30
-               }
-               java.lang.Integer {
-                  21
-               }
-            }
-            discovered=boolean 16
-               false false false false false false false false false false false false false false false false 
-            num=3
-            tiles=java.util.ArrayList {
-               java.lang.Integer {
-                  6
-               }
-               java.lang.Integer {
-                  3
-               }
-            }
-         }
+        borderRoute=java.util.ArrayList {
+           java.lang.Integer {
+              23
+           }
+           java.lang.Integer {
+              32
+           }
+           java.lang.Integer {
+              41
+           }
+           java.lang.Integer {
+              42
+           }
+           java.lang.Integer {
+              25
+           }
+           java.lang.Integer {
+              22
+           }
+           java.lang.Integer {
+              26
+           }
+           java.lang.Integer {
+              28
+           }
+           java.lang.Integer {
+              30
+           }
+           java.lang.Integer {
+              21
+           }
+        }
+        discovered=boolean 16 {
+           false false false false false false false false false false false false false false false false 
+        }
+        num=3
+        tiles=java.util.ArrayList {
+           java.lang.Integer {
+              6
+           }
+           java.lang.Integer {
+              3
+           }
+        }
       }
    }
    merchantPlayer=0
    merchantTile=-1
    name="Heading For New Shores"
    pirateTile=-1
-   playerRoadLenCache=int 16
+   playerRoadLenCache=int 16 {
       -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 
+   }
    robberTile=-1
    routes=java.util.Vector {
       cc.game.soc.core.Route {
@@ -179,1470 +180,1470 @@ mBoard=cc.game.soc.core.Board {
             from=0
             player=0
             to=1
-         }
+
       }
       cc.game.soc.core.Route {
             flags=1
             from=0
             player=0
             to=5
-         }
+
       }
       cc.game.soc.core.Route {
             flags=1
             from=0
             player=0
             to=49
-         }
+
       }
       cc.game.soc.core.Route {
             flags=1
             from=1
             player=0
             to=2
-         }
+
       }
       cc.game.soc.core.Route {
             flags=1
             from=1
             player=0
             to=48
-         }
+
       }
       cc.game.soc.core.Route {
             flags=1
             from=2
             player=0
             to=3
-         }
+
       }
       cc.game.soc.core.Route {
             flags=1
             from=2
             player=0
             to=6
-         }
+
       }
       cc.game.soc.core.Route {
             flags=3
             from=3
             player=0
             to=4
-         }
+
       }
       cc.game.soc.core.Route {
             flags=3
             from=3
             player=0
             to=9
-         }
+
       }
       cc.game.soc.core.Route {
             flags=3
             from=4
             player=0
             to=5
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=4
             player=0
             to=38
-         }
+
       }
       cc.game.soc.core.Route {
             flags=3
             from=5
             player=0
             to=77
-         }
+
       }
       cc.game.soc.core.Route {
             flags=1
             from=6
             player=0
             to=7
-         }
+
       }
       cc.game.soc.core.Route {
             flags=1
             from=6
             player=0
             to=87
-         }
+
       }
       cc.game.soc.core.Route {
             flags=3
             from=7
             player=0
             to=8
-         }
+
       }
       cc.game.soc.core.Route {
             flags=3
             from=7
             player=0
             to=10
-         }
+
       }
       cc.game.soc.core.Route {
             flags=3
             from=8
             player=0
             to=9
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=8
             player=0
             to=13
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=9
             player=0
             to=31
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=10
             player=0
             to=11
-         }
+
       }
       cc.game.soc.core.Route {
             flags=3
             from=10
             player=0
             to=107
-         }
+
       }
       cc.game.soc.core.Route {
             flags=3
             from=11
             player=0
             to=12
-         }
+
       }
       cc.game.soc.core.Route {
             flags=3
             from=11
             player=0
             to=14
-         }
+
       }
       cc.game.soc.core.Route {
             flags=3
             from=12
             player=0
             to=13
-         }
+
       }
       cc.game.soc.core.Route {
             flags=1
             from=12
             player=0
             to=17
-         }
+
       }
       cc.game.soc.core.Route {
             flags=3
             from=13
             player=0
             to=26
-         }
+
       }
       cc.game.soc.core.Route {
             flags=3
             from=14
             player=0
             to=15
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=14
             player=0
             to=110
-         }
+
       }
       cc.game.soc.core.Route {
             flags=3
             from=15
             player=0
             to=16
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=15
             player=0
             to=18
-         }
+
       }
       cc.game.soc.core.Route {
             flags=3
             from=16
             player=0
             to=17
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=16
             player=0
             to=21
-         }
+
       }
       cc.game.soc.core.Route {
             flags=3
             from=17
             player=0
             to=24
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=18
             player=0
             to=19
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=18
             player=0
             to=116
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=19
             player=0
             to=20
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=20
             player=0
             to=21
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=21
             player=0
             to=22
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=22
             player=0
             to=23
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=23
             player=0
             to=24
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=23
             player=0
             to=27
-         }
+
       }
       cc.game.soc.core.Route {
             flags=3
             from=24
             player=0
             to=25
-         }
+
       }
       cc.game.soc.core.Route {
             flags=3
             from=25
             player=0
             to=26
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=25
             player=0
             to=29
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=26
             player=0
             to=30
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=27
             player=0
             to=28
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=28
             player=0
             to=29
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=28
             player=0
             to=34
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=29
             player=0
             to=32
-         }
+
       }
       cc.game.soc.core.Route {
             flags=3
             from=30
             player=0
             to=31
-         }
+
       }
       cc.game.soc.core.Route {
             flags=3
             from=30
             player=0
             to=33
-         }
+
       }
       cc.game.soc.core.Route {
             flags=3
             from=31
             player=0
             to=37
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=32
             player=0
             to=33
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=32
             player=0
             to=36
-         }
+
       }
       cc.game.soc.core.Route {
             flags=3
             from=33
             player=0
             to=39
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=34
             player=0
             to=35
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=35
             player=0
             to=36
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=35
             player=0
             to=43
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=36
             player=0
             to=41
-         }
+
       }
       cc.game.soc.core.Route {
             flags=3
             from=37
             player=0
             to=38
-         }
+
       }
       cc.game.soc.core.Route {
             flags=1
             from=37
             player=0
             to=40
-         }
+
       }
       cc.game.soc.core.Route {
             flags=3
             from=38
             player=0
             to=118
-         }
+
       }
       cc.game.soc.core.Route {
             flags=1
             from=39
             player=0
             to=40
-         }
+
       }
       cc.game.soc.core.Route {
             flags=3
             from=39
             player=0
             to=42
-         }
+
       }
       cc.game.soc.core.Route {
             flags=1
             from=40
             player=0
             to=138
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=41
             player=0
             to=42
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=41
             player=0
             to=45
-         }
+
       }
       cc.game.soc.core.Route {
             flags=3
             from=42
             player=0
             to=140
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=43
             player=0
             to=44
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=44
             player=0
             to=45
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=45
             player=0
             to=148
-         }
+
       }
       cc.game.soc.core.Route {
             flags=1
             from=46
             player=0
             to=47
-         }
+
       }
       cc.game.soc.core.Route {
             flags=1
             from=46
             player=0
             to=49
-         }
+
       }
       cc.game.soc.core.Route {
             flags=1
             from=46
             player=0
             to=53
-         }
+
       }
       cc.game.soc.core.Route {
             flags=1
             from=47
             player=0
             to=48
-         }
+
       }
       cc.game.soc.core.Route {
             flags=1
             from=47
             player=0
             to=52
-         }
+
       }
       cc.game.soc.core.Route {
             flags=1
             from=48
             player=0
             to=86
-         }
+
       }
       cc.game.soc.core.Route {
             flags=1
             from=49
             player=0
             to=70
-         }
+
       }
       cc.game.soc.core.Route {
             flags=1
             from=50
             player=0
             to=51
-         }
+
       }
       cc.game.soc.core.Route {
             flags=1
             from=50
             player=0
             to=53
-         }
+
       }
       cc.game.soc.core.Route {
             flags=1
             from=50
             player=0
             to=57
-         }
+
       }
       cc.game.soc.core.Route {
             flags=1
             from=51
             player=0
             to=52
-         }
+
       }
       cc.game.soc.core.Route {
             flags=1
             from=51
             player=0
             to=56
-         }
+
       }
       cc.game.soc.core.Route {
             flags=1
             from=52
             player=0
             to=112
-         }
+
       }
       cc.game.soc.core.Route {
             flags=1
             from=53
             player=0
             to=65
-         }
+
       }
       cc.game.soc.core.Route {
             flags=3
             from=54
             player=0
             to=55
-         }
+
       }
       cc.game.soc.core.Route {
             flags=3
             from=54
             player=0
             to=57
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=54
             player=0
             to=61
-         }
+
       }
       cc.game.soc.core.Route {
             flags=3
             from=55
             player=0
             to=56
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=55
             player=0
             to=60
-         }
+
       }
       cc.game.soc.core.Route {
             flags=3
             from=56
             player=0
             to=115
-         }
+
       }
       cc.game.soc.core.Route {
             flags=3
             from=57
             player=0
             to=63
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=58
             player=0
             to=59
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=58
             player=0
             to=61
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=59
             player=0
             to=60
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=60
             player=0
             to=117
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=61
             player=0
             to=62
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=62
             player=0
             to=64
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=63
             player=0
             to=64
-         }
+
       }
       cc.game.soc.core.Route {
             flags=3
             from=63
             player=0
             to=66
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=64
             player=0
             to=67
-         }
+
       }
       cc.game.soc.core.Route {
             flags=3
             from=65
             player=0
             to=66
-         }
+
       }
       cc.game.soc.core.Route {
             flags=3
             from=65
             player=0
             to=71
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=66
             player=0
             to=68
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=67
             player=0
             to=69
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=68
             player=0
             to=69
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=68
             player=0
             to=73
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=69
             player=0
             to=74
-         }
+
       }
       cc.game.soc.core.Route {
             flags=3
             from=70
             player=0
             to=71
-         }
+
       }
       cc.game.soc.core.Route {
             flags=3
             from=70
             player=0
             to=78
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=71
             player=0
             to=72
-         }
+
       }
       cc.game.soc.core.Route {
             flags=3
             from=72
             player=0
             to=73
-         }
+
       }
       cc.game.soc.core.Route {
             flags=3
             from=72
             player=0
             to=80
-         }
+
       }
       cc.game.soc.core.Route {
             flags=3
             from=73
             player=0
             to=75
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=74
             player=0
             to=76
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=75
             player=0
             to=76
-         }
+
       }
       cc.game.soc.core.Route {
             flags=3
             from=75
             player=0
             to=82
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=76
             player=0
             to=83
-         }
+
       }
       cc.game.soc.core.Route {
             flags=3
             from=77
             player=0
             to=78
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=77
             player=0
             to=119
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=78
             player=0
             to=79
-         }
+
       }
       cc.game.soc.core.Route {
             flags=3
             from=79
             player=0
             to=80
-         }
+
       }
       cc.game.soc.core.Route {
             flags=3
             from=79
             player=0
             to=144
-         }
+
       }
       cc.game.soc.core.Route {
             flags=1
             from=80
             player=0
             to=81
-         }
+
       }
       cc.game.soc.core.Route {
             flags=3
             from=81
             player=0
             to=82
-         }
+
       }
       cc.game.soc.core.Route {
             flags=3
             from=81
             player=0
             to=146
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=82
             player=0
             to=84
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=83
             player=0
             to=85
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=84
             player=0
             to=85
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=84
             player=0
             to=149
-         }
+
       }
       cc.game.soc.core.Route {
             flags=1
             from=86
             player=0
             to=87
-         }
+
       }
       cc.game.soc.core.Route {
             flags=1
             from=86
             player=0
             to=88
-         }
+
       }
       cc.game.soc.core.Route {
             flags=1
             from=87
             player=0
             to=91
-         }
+
       }
       cc.game.soc.core.Route {
             flags=1
             from=88
             player=0
             to=89
-         }
+
       }
       cc.game.soc.core.Route {
             flags=1
             from=88
             player=0
             to=112
-         }
+
       }
       cc.game.soc.core.Route {
             flags=3
             from=89
             player=0
             to=90
-         }
+
       }
       cc.game.soc.core.Route {
             flags=3
             from=89
             player=0
             to=92
-         }
+
       }
       cc.game.soc.core.Route {
             flags=3
             from=90
             player=0
             to=91
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=90
             player=0
             to=95
-         }
+
       }
       cc.game.soc.core.Route {
             flags=3
             from=91
             player=0
             to=107
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=92
             player=0
             to=93
-         }
+
       }
       cc.game.soc.core.Route {
             flags=3
             from=92
             player=0
             to=105
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=93
             player=0
             to=94
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=93
             player=0
             to=96
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=94
             player=0
             to=95
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=94
             player=0
             to=99
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=95
             player=0
             to=102
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=96
             player=0
             to=97
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=96
             player=0
             to=104
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=97
             player=0
             to=98
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=98
             player=0
             to=99
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=99
             player=0
             to=100
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=100
             player=0
             to=101
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=101
             player=0
             to=102
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=101
             player=0
             to=108
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=102
             player=0
             to=106
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=103
             player=0
             to=104
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=103
             player=0
             to=105
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=103
             player=0
             to=114
-         }
+
       }
       cc.game.soc.core.Route {
             flags=3
             from=105
             player=0
             to=111
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=106
             player=0
             to=107
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=106
             player=0
             to=110
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=108
             player=0
             to=109
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=109
             player=0
             to=110
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=109
             player=0
             to=116
-         }
+
       }
       cc.game.soc.core.Route {
             flags=1
             from=111
             player=0
             to=112
-         }
+
       }
       cc.game.soc.core.Route {
             flags=3
             from=111
             player=0
             to=115
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=113
             player=0
             to=114
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=113
             player=0
             to=115
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=113
             player=0
             to=117
-         }
+
       }
       cc.game.soc.core.Route {
             flags=3
             from=118
             player=0
             to=119
-         }
+
       }
       cc.game.soc.core.Route {
             flags=1
             from=118
             player=0
             to=121
-         }
+
       }
       cc.game.soc.core.Route {
             flags=3
             from=119
             player=0
             to=120
-         }
+
       }
       cc.game.soc.core.Route {
             flags=3
             from=120
             player=0
             to=123
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=120
             player=0
             to=144
-         }
+
       }
       cc.game.soc.core.Route {
             flags=3
             from=121
             player=0
             to=122
-         }
+
       }
       cc.game.soc.core.Route {
             flags=3
             from=121
             player=0
             to=138
-         }
+
       }
       cc.game.soc.core.Route {
             flags=3
             from=122
             player=0
             to=123
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=122
             player=0
             to=125
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=123
             player=0
             to=124
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=124
             player=0
             to=127
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=124
             player=0
             to=136
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=125
             player=0
             to=126
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=125
             player=0
             to=132
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=126
             player=0
             to=127
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=126
             player=0
             to=129
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=127
             player=0
             to=128
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=128
             player=0
             to=131
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=128
             player=0
             to=137
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=129
             player=0
             to=130
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=129
             player=0
             to=134
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=130
             player=0
             to=131
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=132
             player=0
             to=133
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=132
             player=0
             to=139
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=133
             player=0
             to=134
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=133
             player=0
             to=142
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=135
             player=0
             to=136
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=135
             player=0
             to=137
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=135
             player=0
             to=147
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=136
             player=0
             to=143
-         }
+
       }
       cc.game.soc.core.Route {
             flags=3
             from=138
             player=0
             to=139
-         }
+
       }
       cc.game.soc.core.Route {
             flags=3
             from=139
             player=0
             to=140
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=140
             player=0
             to=141
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=141
             player=0
             to=142
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=141
             player=0
             to=148
-         }
+
       }
       cc.game.soc.core.Route {
             flags=3
             from=143
             player=0
             to=144
-         }
+
       }
       cc.game.soc.core.Route {
             flags=3
             from=143
             player=0
             to=146
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=145
             player=0
             to=146
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=145
             player=0
             to=147
-         }
+
       }
       cc.game.soc.core.Route {
             flags=2
             from=145
             player=0
             to=149
-         }
+
       }
    }
    tiles=java.util.Vector {
@@ -1655,7 +1656,7 @@ mBoard=cc.game.soc.core.Board {
             type=FOREST
             x=0.3888889
             y=0.5
-         }
+
       }
       cc.game.soc.core.Tile {
             adjVerts=int 6
@@ -1666,7 +1667,7 @@ mBoard=cc.game.soc.core.Board {
             type=PASTURE
             x=0.47222224
             y=0.44444445
-         }
+
       }
       cc.game.soc.core.Tile {
             adjVerts=int 6
@@ -1677,7 +1678,7 @@ mBoard=cc.game.soc.core.Board {
             type=WATER
             x=0.5555556
             y=0.3888889
-         }
+
       }
       cc.game.soc.core.Tile {
             adjVerts=int 6
@@ -1688,7 +1689,7 @@ mBoard=cc.game.soc.core.Board {
             type=HILLS
             x=0.63888896
             y=0.33333334
-         }
+
       }
       cc.game.soc.core.Tile {
             adjVerts=int 6
@@ -1699,7 +1700,7 @@ mBoard=cc.game.soc.core.Board {
             type=WATER
             x=0.7222223
             y=0.2777778
-         }
+
       }
       cc.game.soc.core.Tile {
             adjVerts=int 6
@@ -1710,7 +1711,7 @@ mBoard=cc.game.soc.core.Board {
             type=WATER
             x=0.7222223
             y=0.3888889
-         }
+
       }
       cc.game.soc.core.Tile {
             adjVerts=int 6
@@ -1721,7 +1722,7 @@ mBoard=cc.game.soc.core.Board {
             type=GOLD
             x=0.63888896
             y=0.44444445
-         }
+
       }
       cc.game.soc.core.Tile {
             adjVerts=int 6
@@ -1732,7 +1733,7 @@ mBoard=cc.game.soc.core.Board {
             type=WATER
             x=0.7222223
             y=0.5
-         }
+
       }
       cc.game.soc.core.Tile {
             adjVerts=int 6
@@ -1743,7 +1744,7 @@ mBoard=cc.game.soc.core.Board {
             type=WATER
             x=0.5555556
             y=0.5
-         }
+
       }
       cc.game.soc.core.Tile {
             adjVerts=int 6
@@ -1754,7 +1755,7 @@ mBoard=cc.game.soc.core.Board {
             type=WATER
             x=0.63888896
             y=0.5555556
-         }
+
       }
       cc.game.soc.core.Tile {
             adjVerts=int 6
@@ -1765,7 +1766,7 @@ mBoard=cc.game.soc.core.Board {
             type=WATER
             x=0.7222223
             y=0.61111116
-         }
+
       }
       cc.game.soc.core.Tile {
             adjVerts=int 6
@@ -1776,7 +1777,7 @@ mBoard=cc.game.soc.core.Board {
             type=PORT_MULTI
             x=0.47222224
             y=0.5555556
-         }
+
       }
       cc.game.soc.core.Tile {
             adjVerts=int 6
@@ -1787,7 +1788,7 @@ mBoard=cc.game.soc.core.Board {
             type=PASTURE
             x=0.5555556
             y=0.61111116
-         }
+
       }
       cc.game.soc.core.Tile {
             adjVerts=int 6
@@ -1798,7 +1799,7 @@ mBoard=cc.game.soc.core.Board {
             type=WATER
             x=0.63888896
             y=0.66666675
-         }
+
       }
       cc.game.soc.core.Tile {
             adjVerts=int 6
@@ -1809,7 +1810,7 @@ mBoard=cc.game.soc.core.Board {
             type=WATER
             x=0.7222223
             y=0.7222223
-         }
+
       }
       cc.game.soc.core.Tile {
             adjVerts=int 6
@@ -1820,7 +1821,7 @@ mBoard=cc.game.soc.core.Board {
             type=PASTURE
             x=0.30555555
             y=0.44444445
-         }
+
       }
       cc.game.soc.core.Tile {
             adjVerts=int 6
@@ -1831,7 +1832,7 @@ mBoard=cc.game.soc.core.Board {
             type=MOUNTAINS
             x=0.22222222
             y=0.3888889
-         }
+
       }
       cc.game.soc.core.Tile {
             adjVerts=int 6
@@ -1842,7 +1843,7 @@ mBoard=cc.game.soc.core.Board {
             type=FIELDS
             x=0.1388889
             y=0.33333334
-         }
+
       }
       cc.game.soc.core.Tile {
             adjVerts=int 6
@@ -1853,7 +1854,7 @@ mBoard=cc.game.soc.core.Board {
             type=WATER
             x=0.055555567
             y=0.2777778
-         }
+
       }
       cc.game.soc.core.Tile {
             adjVerts=int 6
@@ -1864,7 +1865,7 @@ mBoard=cc.game.soc.core.Board {
             type=PORT_WOOD
             x=0.055555567
             y=0.3888889
-         }
+
       }
       cc.game.soc.core.Tile {
             adjVerts=int 6
@@ -1875,7 +1876,7 @@ mBoard=cc.game.soc.core.Board {
             type=FOREST
             x=0.1388889
             y=0.44444445
-         }
+
       }
       cc.game.soc.core.Tile {
             adjVerts=int 6
@@ -1886,7 +1887,7 @@ mBoard=cc.game.soc.core.Board {
             type=WATER
             x=0.055555567
             y=0.5
-         }
+
       }
       cc.game.soc.core.Tile {
             adjVerts=int 6
@@ -1897,7 +1898,7 @@ mBoard=cc.game.soc.core.Board {
             type=HILLS
             x=0.22222222
             y=0.5
-         }
+
       }
       cc.game.soc.core.Tile {
             adjVerts=int 6
@@ -1908,7 +1909,7 @@ mBoard=cc.game.soc.core.Board {
             type=PORT_MULTI
             x=0.1388889
             y=0.5555556
-         }
+
       }
       cc.game.soc.core.Tile {
             adjVerts=int 6
@@ -1919,7 +1920,7 @@ mBoard=cc.game.soc.core.Board {
             type=WATER
             x=0.055555567
             y=0.61111116
-         }
+
       }
       cc.game.soc.core.Tile {
             adjVerts=int 6
@@ -1930,7 +1931,7 @@ mBoard=cc.game.soc.core.Board {
             type=FOREST
             x=0.30555555
             y=0.5555556
-         }
+
       }
       cc.game.soc.core.Tile {
             adjVerts=int 6
@@ -1941,7 +1942,7 @@ mBoard=cc.game.soc.core.Board {
             type=WATER
             x=0.22222222
             y=0.61111116
-         }
+
       }
       cc.game.soc.core.Tile {
             adjVerts=int 6
@@ -1952,7 +1953,7 @@ mBoard=cc.game.soc.core.Board {
             type=HILLS
             x=0.1388889
             y=0.66666675
-         }
+
       }
       cc.game.soc.core.Tile {
             adjVerts=int 6
@@ -1963,7 +1964,7 @@ mBoard=cc.game.soc.core.Board {
             type=WATER
             x=0.055555567
             y=0.7222223
-         }
+
       }
       cc.game.soc.core.Tile {
             adjVerts=int 6
@@ -1974,7 +1975,7 @@ mBoard=cc.game.soc.core.Board {
             type=MOUNTAINS
             x=0.3888889
             y=0.3888889
-         }
+
       }
       cc.game.soc.core.Tile {
             adjVerts=int 6
@@ -1985,7 +1986,7 @@ mBoard=cc.game.soc.core.Board {
             type=PASTURE
             x=0.3888889
             y=0.2777778
-         }
+
       }
       cc.game.soc.core.Tile {
             adjVerts=int 6
@@ -1996,7 +1997,7 @@ mBoard=cc.game.soc.core.Board {
             type=PORT_ORE
             x=0.3888889
             y=0.16666669
-         }
+
       }
       cc.game.soc.core.Tile {
             adjVerts=int 6
@@ -2007,7 +2008,7 @@ mBoard=cc.game.soc.core.Board {
             type=WATER
             x=0.3888889
             y=0.055555575
-         }
+
       }
       cc.game.soc.core.Tile {
             adjVerts=int 6
@@ -2018,7 +2019,7 @@ mBoard=cc.game.soc.core.Board {
             type=WATER
             x=0.47222224
             y=0.111111134
-         }
+
       }
       cc.game.soc.core.Tile {
             adjVerts=int 6
@@ -2029,7 +2030,7 @@ mBoard=cc.game.soc.core.Board {
             type=WATER
             x=0.30555555
             y=0.111111134
-         }
+
       }
       cc.game.soc.core.Tile {
             adjVerts=int 6
@@ -2040,7 +2041,7 @@ mBoard=cc.game.soc.core.Board {
             type=PORT_WHEAT
             x=0.47222224
             y=0.22222224
-         }
+
       }
       cc.game.soc.core.Tile {
             adjVerts=int 6
@@ -2051,7 +2052,7 @@ mBoard=cc.game.soc.core.Board {
             type=WATER
             x=0.5555556
             y=0.16666669
-         }
+
       }
       cc.game.soc.core.Tile {
             adjVerts=int 6
@@ -2062,7 +2063,7 @@ mBoard=cc.game.soc.core.Board {
             type=HILLS
             x=0.30555555
             y=0.22222224
-         }
+
       }
       cc.game.soc.core.Tile {
             adjVerts=int 6
@@ -2073,7 +2074,7 @@ mBoard=cc.game.soc.core.Board {
             type=PORT_MULTI
             x=0.22222222
             y=0.16666669
-         }
+
       }
       cc.game.soc.core.Tile {
             adjVerts=int 6
@@ -2084,7 +2085,7 @@ mBoard=cc.game.soc.core.Board {
             type=FIELDS
             x=0.47222224
             y=0.33333334
-         }
+
       }
       cc.game.soc.core.Tile {
             adjVerts=int 6
@@ -2095,7 +2096,7 @@ mBoard=cc.game.soc.core.Board {
             type=WATER
             x=0.5555556
             y=0.2777778
-         }
+
       }
       cc.game.soc.core.Tile {
             adjVerts=int 6
@@ -2106,7 +2107,7 @@ mBoard=cc.game.soc.core.Board {
             type=WATER
             x=0.63888896
             y=0.22222224
-         }
+
       }
       cc.game.soc.core.Tile {
             adjVerts=int 6
@@ -2117,7 +2118,7 @@ mBoard=cc.game.soc.core.Board {
             type=PASTURE
             x=0.30555555
             y=0.33333334
-         }
+
       }
       cc.game.soc.core.Tile {
             adjVerts=int 6
@@ -2128,7 +2129,7 @@ mBoard=cc.game.soc.core.Board {
             type=FIELDS
             x=0.22222222
             y=0.2777778
-         }
+
       }
       cc.game.soc.core.Tile {
             adjVerts=int 6
@@ -2139,7 +2140,7 @@ mBoard=cc.game.soc.core.Board {
             type=PORT_BRICK
             x=0.1388889
             y=0.22222224
-         }
+
       }
       cc.game.soc.core.Tile {
             adjVerts=int 6
@@ -2150,7 +2151,7 @@ mBoard=cc.game.soc.core.Board {
             type=PORT_SHEEP
             x=0.3888889
             y=0.6111111
-         }
+
       }
       cc.game.soc.core.Tile {
             adjVerts=int 6
@@ -2161,7 +2162,7 @@ mBoard=cc.game.soc.core.Board {
             type=GOLD
             x=0.3888889
             y=0.7222222
-         }
+
       }
       cc.game.soc.core.Tile {
             adjVerts=int 6
@@ -2172,7 +2173,7 @@ mBoard=cc.game.soc.core.Board {
             type=WATER
             x=0.3888889
             y=0.8333333
-         }
+
       }
       cc.game.soc.core.Tile {
             adjVerts=int 6
@@ -2183,7 +2184,7 @@ mBoard=cc.game.soc.core.Board {
             type=WATER
             x=0.3888889
             y=0.9444444
-         }
+
       }
       cc.game.soc.core.Tile {
             adjVerts=int 6
@@ -2194,7 +2195,7 @@ mBoard=cc.game.soc.core.Board {
             type=WATER
             x=0.47222224
             y=0.8888889
-         }
+
       }
       cc.game.soc.core.Tile {
             adjVerts=int 6
@@ -2205,7 +2206,7 @@ mBoard=cc.game.soc.core.Board {
             type=WATER
             x=0.30555555
             y=0.8888889
-         }
+
       }
       cc.game.soc.core.Tile {
             adjVerts=int 6
@@ -2216,7 +2217,7 @@ mBoard=cc.game.soc.core.Board {
             type=WATER
             x=0.47222224
             y=0.7777778
-         }
+
       }
       cc.game.soc.core.Tile {
             adjVerts=int 6
@@ -2227,7 +2228,7 @@ mBoard=cc.game.soc.core.Board {
             type=WATER
             x=0.5555556
             y=0.8333334
-         }
+
       }
       cc.game.soc.core.Tile {
             adjVerts=int 6
@@ -2238,7 +2239,7 @@ mBoard=cc.game.soc.core.Board {
             type=WATER
             x=0.30555555
             y=0.7777778
-         }
+
       }
       cc.game.soc.core.Tile {
             adjVerts=int 6
@@ -2249,7 +2250,7 @@ mBoard=cc.game.soc.core.Board {
             type=WATER
             x=0.22222222
             y=0.8333334
-         }
+
       }
       cc.game.soc.core.Tile {
             adjVerts=int 6
@@ -2260,7 +2261,7 @@ mBoard=cc.game.soc.core.Board {
             type=FIELDS
             x=0.47222224
             y=0.6666667
-         }
+
       }
       cc.game.soc.core.Tile {
             adjVerts=int 6
@@ -2271,7 +2272,7 @@ mBoard=cc.game.soc.core.Board {
             type=MOUNTAINS
             x=0.5555556
             y=0.72222227
-         }
+
       }
       cc.game.soc.core.Tile {
             adjVerts=int 6
@@ -2282,7 +2283,7 @@ mBoard=cc.game.soc.core.Board {
             type=WATER
             x=0.63888896
             y=0.77777785
-         }
+
       }
       cc.game.soc.core.Tile {
             adjVerts=int 6
@@ -2293,7 +2294,7 @@ mBoard=cc.game.soc.core.Board {
             type=WATER
             x=0.30555555
             y=0.6666667
-         }
+
       }
       cc.game.soc.core.Tile {
             adjVerts=int 6
@@ -2304,7 +2305,7 @@ mBoard=cc.game.soc.core.Board {
             type=MOUNTAINS
             x=0.22222222
             y=0.72222227
-         }
+
       }
       cc.game.soc.core.Tile {
             adjVerts=int 6
@@ -2315,7 +2316,7 @@ mBoard=cc.game.soc.core.Board {
             type=WATER
             x=0.1388889
             y=0.77777785
-         }
+
       }
    }
    undiscoveredCells=java.util.ArrayList {
@@ -2333,7 +2334,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.33333334
             y=0.5
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -2347,7 +2348,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.3611111
             y=0.44444445
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -2361,7 +2362,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.4166667
             y=0.44444445
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -2375,7 +2376,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.44444445
             y=0.5
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -2389,7 +2390,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.4166667
             y=0.5555556
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -2403,7 +2404,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.3611111
             y=0.5555556
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -2417,7 +2418,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.44444445
             y=0.3888889
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -2431,7 +2432,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.5
             y=0.3888889
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -2445,7 +2446,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.5277778
             y=0.44444445
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -2459,7 +2460,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.5
             y=0.5
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -2473,7 +2474,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.5277778
             y=0.33333334
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -2487,7 +2488,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.5833334
             y=0.33333334
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -2501,7 +2502,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.61111116
             y=0.3888889
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -2515,7 +2516,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.5833334
             y=0.44444445
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -2529,7 +2530,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.61111116
             y=0.2777778
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -2543,7 +2544,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.66666675
             y=0.2777778
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -2557,7 +2558,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.69444454
             y=0.33333334
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -2571,7 +2572,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.66666675
             y=0.3888889
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -2585,7 +2586,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.69444454
             y=0.22222224
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -2599,7 +2600,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.7500001
             y=0.22222224
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -2613,7 +2614,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.7777779
             y=0.2777778
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -2627,7 +2628,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.7500001
             y=0.33333334
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -2641,7 +2642,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.7777779
             y=0.3888889
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -2655,7 +2656,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.7500001
             y=0.44444445
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -2669,7 +2670,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.69444454
             y=0.44444445
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -2683,7 +2684,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.66666675
             y=0.5
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -2697,7 +2698,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.61111116
             y=0.5
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -2711,7 +2712,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.7777779
             y=0.5
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -2725,7 +2726,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.7500001
             y=0.5555556
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -2739,7 +2740,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.69444454
             y=0.5555556
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -2753,7 +2754,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.5833334
             y=0.5555556
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -2767,7 +2768,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.5277778
             y=0.5555556
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -2781,7 +2782,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.66666675
             y=0.61111116
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -2795,7 +2796,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.61111116
             y=0.61111116
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -2809,7 +2810,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.7777779
             y=0.61111116
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -2823,7 +2824,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.7500001
             y=0.66666675
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -2837,7 +2838,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.69444454
             y=0.66666675
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -2851,7 +2852,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.5
             y=0.61111116
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -2865,7 +2866,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.44444445
             y=0.61111116
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -2879,7 +2880,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.5833334
             y=0.66666675
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -2893,7 +2894,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.5277778
             y=0.66666675
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -2907,7 +2908,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.66666675
             y=0.7222223
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -2921,7 +2922,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.61111116
             y=0.7222223
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -2935,7 +2936,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.7777779
             y=0.7222223
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -2949,7 +2950,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.7500001
             y=0.7777779
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -2963,7 +2964,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.69444454
             y=0.7777779
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -2977,7 +2978,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.25
             y=0.44444445
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -2991,7 +2992,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.27777776
             y=0.3888889
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -3005,7 +3006,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.33333334
             y=0.3888889
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -3019,7 +3020,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.27777776
             y=0.5
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -3033,7 +3034,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.16666667
             y=0.3888889
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -3047,7 +3048,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.19444445
             y=0.33333334
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -3061,7 +3062,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.25
             y=0.33333334
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -3075,7 +3076,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.19444445
             y=0.44444445
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -3089,7 +3090,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.08333334
             y=0.33333334
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -3103,7 +3104,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.11111112
             y=0.2777778
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -3117,7 +3118,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.16666667
             y=0.2777778
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -3131,7 +3132,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.11111112
             y=0.3888889
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -3145,7 +3146,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=1.1175871E-8
             y=0.2777778
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -3159,7 +3160,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.02777779
             y=0.22222224
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -3173,7 +3174,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.08333334
             y=0.22222224
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -3187,7 +3188,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.02777779
             y=0.33333334
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -3201,7 +3202,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=1.1175871E-8
             y=0.3888889
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -3215,7 +3216,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.08333334
             y=0.44444445
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -3229,7 +3230,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.02777779
             y=0.44444445
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -3243,7 +3244,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.16666667
             y=0.5
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -3257,7 +3258,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.11111112
             y=0.5
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -3271,7 +3272,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=1.1175871E-8
             y=0.5
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -3285,7 +3286,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.08333334
             y=0.5555556
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -3299,7 +3300,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.02777779
             y=0.5555556
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -3313,7 +3314,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.25
             y=0.5555556
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -3327,7 +3328,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.19444445
             y=0.5555556
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -3341,7 +3342,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.16666667
             y=0.61111116
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -3355,7 +3356,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.11111112
             y=0.61111116
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -3369,7 +3370,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=1.1175871E-8
             y=0.61111116
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -3383,7 +3384,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.08333334
             y=0.66666675
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -3397,7 +3398,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.02777779
             y=0.66666675
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -3411,7 +3412,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.33333334
             y=0.61111116
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -3425,7 +3426,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.27777776
             y=0.61111116
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -3439,7 +3440,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.25
             y=0.66666675
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -3453,7 +3454,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.19444445
             y=0.66666675
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -3467,7 +3468,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.16666667
             y=0.7222223
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -3481,7 +3482,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.11111112
             y=0.7222223
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -3495,7 +3496,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=1.1175871E-8
             y=0.7222223
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -3509,7 +3510,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.08333334
             y=0.7777779
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -3523,7 +3524,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.02777779
             y=0.7777779
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -3537,7 +3538,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.3611111
             y=0.33333334
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -3551,7 +3552,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.4166667
             y=0.33333334
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -3565,7 +3566,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.33333334
             y=0.2777778
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -3579,7 +3580,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.3611111
             y=0.22222224
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -3593,7 +3594,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.4166667
             y=0.22222224
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -3607,7 +3608,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.44444445
             y=0.2777778
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -3621,7 +3622,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.33333334
             y=0.16666669
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -3635,7 +3636,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.3611111
             y=0.111111134
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -3649,7 +3650,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.4166667
             y=0.111111134
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -3663,7 +3664,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.44444445
             y=0.16666669
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -3677,7 +3678,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.33333334
             y=0.055555575
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -3691,7 +3692,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.3611111
             y=1.8626451E-8
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -3705,7 +3706,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.4166667
             y=1.8626451E-8
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -3719,7 +3720,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.44444445
             y=0.055555575
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -3733,7 +3734,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.5
             y=0.05555558
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -3747,7 +3748,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.5277778
             y=0.111111134
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -3761,7 +3762,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.5
             y=0.16666669
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -3775,7 +3776,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.25
             y=0.111111134
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -3789,7 +3790,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.27777776
             y=0.05555558
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -3803,7 +3804,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.27777776
             y=0.16666669
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -3817,7 +3818,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.5277778
             y=0.22222224
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -3831,7 +3832,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.5
             y=0.2777778
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -3845,7 +3846,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.5833334
             y=0.111111134
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -3859,7 +3860,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.61111116
             y=0.16666669
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -3873,7 +3874,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.5833334
             y=0.22222224
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -3887,7 +3888,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.25
             y=0.22222224
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -3901,7 +3902,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.27777776
             y=0.2777778
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -3915,7 +3916,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.16666667
             y=0.16666669
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -3929,7 +3930,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.19444445
             y=0.111111134
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -3943,7 +3944,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.19444445
             y=0.22222224
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -3957,7 +3958,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.66666675
             y=0.16666669
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -3971,7 +3972,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.11111112
             y=0.16666669
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -3985,7 +3986,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.4166667
             y=0.6666667
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -3999,7 +4000,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.3611111
             y=0.6666667
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -4013,7 +4014,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.33333334
             y=0.7222222
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -4027,7 +4028,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.44444445
             y=0.7222222
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -4041,7 +4042,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.4166667
             y=0.7777778
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -4055,7 +4056,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.3611111
             y=0.7777778
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -4069,7 +4070,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.33333334
             y=0.8333333
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -4083,7 +4084,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.44444445
             y=0.8333333
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -4097,7 +4098,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.4166667
             y=0.8888889
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -4111,7 +4112,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.3611111
             y=0.8888889
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -4125,7 +4126,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.33333334
             y=0.9444444
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -4139,7 +4140,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.44444445
             y=0.9444444
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -4153,7 +4154,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.4166667
             y=1.0
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -4167,7 +4168,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.3611111
             y=1.0
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -4181,7 +4182,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.5
             y=0.8333333
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -4195,7 +4196,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.5277778
             y=0.8888889
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -4209,7 +4210,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.5
             y=0.9444445
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -4223,7 +4224,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.25
             y=0.8888889
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -4237,7 +4238,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.27777776
             y=0.8333333
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -4251,7 +4252,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.27777776
             y=0.9444445
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -4265,7 +4266,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.5
             y=0.7222222
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -4279,7 +4280,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.5277778
             y=0.7777778
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -4293,7 +4294,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.5833334
             y=0.7777778
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -4307,7 +4308,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.61111116
             y=0.8333334
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -4321,7 +4322,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.5833334
             y=0.88888896
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -4335,7 +4336,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.25
             y=0.7777778
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -4349,7 +4350,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.27777776
             y=0.7222222
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -4363,7 +4364,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.16666667
             y=0.8333334
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -4377,7 +4378,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.19444445
             y=0.7777778
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -4391,7 +4392,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.19444445
             y=0.88888896
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -4405,7 +4406,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.66666675
             y=0.83333343
-         }
+
       }
       cc.game.soc.core.Vertex {
             adjacent=int 3
@@ -4419,7 +4420,7 @@ mBoard=cc.game.soc.core.Board {
             type=OPEN
             x=0.11111112
             y=0.83333343
-         }
+
       }
    }
 }
@@ -4430,7 +4431,7 @@ mDice=null
 mLargestArmyPlayer=0
 mLongestRoadPlayer=0
 mNumPlayers=0
-mPlayers=cc.game.soc.core.Player 8
+mPlayers=cc.game.soc.core.Player 8 {
    null
    null
    null
@@ -4439,6 +4440,7 @@ mPlayers=cc.game.soc.core.Player 8
    null
    null
    null
+}
 mProgressCards=null
 mRules=cc.game.soc.core.Rules {
    barbarianStepsToAttack=7

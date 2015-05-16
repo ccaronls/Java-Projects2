@@ -21,9 +21,22 @@ public class TestStaticInheritence extends TestCase {
         }
     };
     
-    public void test() {
+    public void x_test() {
         new Super();
         new Super(); // static blocks not called again
+    }
+    
+    public void testByteClass() {
+    	System.out.println(byte.class);
+    	System.out.println(byte.class.getCanonicalName());
+    	System.out.println(byte.class.getName());
+    	System.out.println(byte[].class);
+    	System.out.println(byte[].class.getCanonicalName());
+    	System.out.println(byte[].class.getName());
+    	System.out.println(boolean[].class);
+    	System.out.println(boolean[].class.getCanonicalName());
+    	System.out.println(boolean[].class.getName());
+
     }
     
 }

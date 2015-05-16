@@ -520,7 +520,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
                 choiceButtons.setLayout(new BoxLayout(choiceButtons, BoxLayout.Y_AXIS));
                 MyRadioButtonGroup<PickMode> pickChoice = new MyRadioButtonGroup<PickMode>(choiceButtons) {
                     protected void onChange(PickMode mode) {
-                    	initPickMode(mode);
+                        boardComp.setPickMode(getCurPlayerNum(), mode, null);
                     }
                 };
                 //choiceButtons.add(new JLabel("PICK CHOICE"));
@@ -1472,7 +1472,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
         		}
         	}
         	
-        	PopupButton [] buttons = new PopupButton[3];
+        	PopupButton [] buttons = new PopupButton[4];
             buttons[0] = new PopupButton("View\nDefaults") {
                 public boolean doAction() {
                     new Thread(new Runnable() {
@@ -1508,7 +1508,32 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
                 }
             };
             
-            buttons[2] = new PopupButton("Cancel");
+            buttons[2] = new PopupButton("Keep") {
+            	public boolean doAction() {
+
+            		
+            		try {
+            			// TODO: fix cut-paste code
+                		for (JComponent c : components.keySet()) {
+                			Field f = components.get(c);
+                			if (c instanceof JToggleButton) {
+                				boolean value = ((JToggleButton)c).isSelected();
+                				f.setBoolean(rules, value);
+                			} else if (c instanceof JSpinner) {
+                				int value = (Integer)((JSpinner)c).getValue();
+                				f.setInt(rules, value);
+                			}
+                		}
+    
+                		getRules().copyFrom(rules);
+            		} catch (Exception e) {
+            			e.printStackTrace();
+            		}
+            		return true;
+            	}
+            };
+            
+            buttons[3] = new PopupButton("Cancel");
             
             this.showPopup("CONFIGURE GAME SETTINGS", panel, buttons);
         	
@@ -1534,213 +1559,14 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 		frame.repaint();
 	}
 	
-    /**
-     * Debug screen only
-     * @param mode
-     */
-    private void initPickMode(PickMode mode) {
-    	List<Integer> pickableIndices = null;
-    	assert(menuStack.peek() == MenuState.MENU_DEBUGGING);
-    	if (false)
-    	switch (mode) {
-			case PM_CELL:
-				break;
-			case PM_CELLPAINT:
-				break;
-			case PM_CITY:
-				pickableIndices = SOC.computeCityVertxIndices(getCurPlayerNum(), getBoard());
-				pickableIndices.addAll(getBoard().getCitiesForPlayer(getCurPlayerNum()));
-				break;
-			case PM_WALLED_CITY:
-				pickableIndices = SOC.computeCityWallVertexIndices(getCurPlayerNum(), getBoard());
-				pickableIndices.addAll(getBoard().getCitiesForPlayer(getCurPlayerNum()));
-				break;
-			case PM_EDGE:
-				break;
-			case PM_ISLAND:
-				break;
-			case PM_MOVABLE_SHIPS:
-				pickableIndices = SOC.computeOpenRouteIndices(getCurPlayerNum(), getBoard(), false, true);
-				break;
-			case PM_NONE:
-				break;
-			case PM_ROAD:
-				pickableIndices = SOC.computeRoadRouteIndices(getCurPlayerNum(), getBoard());
-				pickableIndices.addAll(getBoard().getRoadsForPlayer(getCurPlayerNum()));
-				break;
-			case PM_ROBBER:
-				break;
-			case PM_SETTLEMENT:
-				pickableIndices = SOC.computeSettlementVertexIndices(getSOC(), getCurPlayerNum(), getBoard());
-				pickableIndices.addAll(getBoard().getSettlementsForPlayer(getCurPlayerNum()));
-				break;
-			case PM_SHIP:
-				pickableIndices = SOC.computeShipRouteIndices(getCurPlayerNum(), getBoard());
-				pickableIndices.addAll(getBoard().getShipsForPlayer(getCurPlayerNum()));
-				break;
-			case PM_VERTEX:
-				break;
-			case PM_KNIGHT:
-				pickableIndices = SOC.computeNewKnightVertexIndices(getCurPlayerNum(), getBoard());
-				pickableIndices.addAll(SOC.computeActivateKnightVertexIndices(getCurPlayerNum(), getBoard()));
-				pickableIndices.addAll(SOC.computeMovableKnightVertexIndices(getCurPlayerNum(), getBoard()));
-				break;
-				/*
-			case PM_ACTIVATE_KNIGHT:
-				if (menuStack.peek() == MenuState.MENU_DEBUGGING) {
-					pickableIndices = getBoard().getVertsOfType(getCurPlayerNum(), VertexType.BASIC_KNIGHT_INACTIVE, VertexType.BASIC_KNIGHT_ACTIVE, VertexType.STRONG_KNIGHT_INACTIVE, VertexType.STRONG_KNIGHT_ACTIVE, VertexType.MIGHTY_KNIGHT_INACTIVE, VertexType.MIGHTY_KNIGHT_ACTIVE);
-				} else {
-					pickableIndices = SOC.computeActivateKnightVertexIndices(getCurPlayerNum(), getBoard());
-				}
-				break;
-			case PM_MOVE_KNIGHT:
-				pickableIndices = SOC.computeMovableKnightVertexIndices(getCurPlayerNum(), getBoard());
-				break;*/
-			case PM_PROMOTE_KNIGHT:
-				if (this.menuStack.peek() == MenuState.MENU_DEBUGGING) {
-					pickableIndices = getBoard().getVertsOfType(getCurPlayerNum(), VertexType.BASIC_KNIGHT_ACTIVE, VertexType.STRONG_KNIGHT_ACTIVE, VertexType.MIGHTY_KNIGHT_ACTIVE, VertexType.BASIC_KNIGHT_INACTIVE, VertexType.STRONG_KNIGHT_INACTIVE, VertexType.MIGHTY_KNIGHT_INACTIVE);
-				} else {
-					pickableIndices = SOC.computePromoteKnightVertexIndices(getCurGUIPlayer(), getBoard());
-				}
-				break;
-			case PM_MERCHANT:
-				pickableIndices = SOC.computeMerchantTileIndices(soc, getCurPlayerNum(), getBoard());
-				break;
-    		
-    	}
-        boardComp.setPickMode(getCurPlayerNum(), mode, pickableIndices);
-    }
-    
+
 	@Override
     public void onPick(PickMode mode, int pickedValue) {
         try {
             
             switch (this.menuStack.peek()) {
                 case MENU_DEBUGGING:
-                    switch (mode) {
-                        case PM_ROAD: {
-                            Route edge = getBoard().getRoute(pickedValue);
-                            if (edge.getPlayer() == getCurPlayerNum()) {
-                            	getBoard().setPlayerForRoute(edge, 0);
-                            } else {
-                            	getBoard().setPlayerForRoute(edge, getCurPlayerNum());
-                            }
-                            console.addText(Color.BLACK, "Road Length: " + getBoard().computeMaxRouteLengthForPlayer(getCurPlayerNum(), getRules().isEnableRoadBlock()));
-                            break;
-                        }
-
-                        case PM_MOVABLE_SHIPS:
-                        case PM_SHIP: {
-                            Route edge = getBoard().getRoute(pickedValue);
-                            if (edge.getPlayer() == getCurPlayerNum()) {
-                            	getBoard().setPlayerForRoute(edge, 0);
-                            	edge.setShip(false);
-                            } else {
-                            	getBoard().setPlayerForRoute(edge, getCurPlayerNum());
-                            	edge.setShip(true);
-                            }
-                            console.addText(Color.BLACK, "Road Length: " + getBoard().computeMaxRouteLengthForPlayer(getCurPlayerNum(), getRules().isEnableRoadBlock()));
-                            break;
-                        }
-                        
-                        case PM_KNIGHT: {
-                        	Vertex vertex = getBoard().getVertex(pickedValue);
-                        	vertex.setType(VertexType.BASIC_KNIGHT_INACTIVE);
-                        	vertex.setPlayer(getCurPlayerNum());
-                        	break;
-                        }
-                        /*
-                        case PM_ACTIVATE_KNIGHT: {
-                        	Vertex vertex = getBoard().getVertex(pickedValue);
-                        	if (vertex.isActiveKnight())
-                        		vertex.deactivateKnight();
-                        	else
-                        		vertex.activateKnight();
-                        	break;
-                        }
-
-                        case PM_MOVE_KNIGHT:
-                        	break;
-                        	*/
-                        case PM_PROMOTE_KNIGHT: {
-                        	Vertex vertex = getBoard().getVertex(pickedValue);
-                        	switch (vertex.getType()) {
-                        		case BASIC_KNIGHT_INACTIVE:
-                        			vertex.setType(VertexType.STRONG_KNIGHT_INACTIVE);
-                        			break;
-                        		case BASIC_KNIGHT_ACTIVE:
-                        			vertex.setType(VertexType.STRONG_KNIGHT_ACTIVE);
-                        			break;
-                        		case STRONG_KNIGHT_INACTIVE:
-                        			vertex.setType(VertexType.MIGHTY_KNIGHT_INACTIVE);
-                        			break;
-                        		case STRONG_KNIGHT_ACTIVE:
-                        			vertex.setType(VertexType.MIGHTY_KNIGHT_ACTIVE);
-                        			break;
-                        		case MIGHTY_KNIGHT_INACTIVE:
-                        			vertex.setType(VertexType.BASIC_KNIGHT_INACTIVE);
-                        			break;
-                        		case MIGHTY_KNIGHT_ACTIVE:
-                        			vertex.setType(VertexType.BASIC_KNIGHT_ACTIVE);
-                        			break;
-                        	}                        
-                        }
-                        
-                        case PM_SETTLEMENT:
-                        case PM_CITY:
-                        case PM_WALLED_CITY: 
-                        case PM_METROPOLIS_TRADE:
-                        case PM_METROPOLIS_POLITICS:
-                        case PM_METROPOLIS_SCIENCE: {
-                            Vertex vertex = getBoard().getVertex(pickedValue);
-                            switch (vertex.getType()) {
-                            	case OPEN:
-                            		vertex.setPlayer(getCurPlayerNum());
-                            		vertex.setType(VertexType.SETTLEMENT);
-                            		break;
-								case CITY:
-									vertex.setType(VertexType.WALLED_CITY);
-									break;
-								case SETTLEMENT:
-									vertex.setType(VertexType.CITY);
-									break;
-								case WALLED_CITY:
-									vertex.setType(VertexType.METROPOLIS_POLITICS);
-									break;
-								case METROPOLIS_POLITICS:
-									vertex.setType(VertexType.METROPOLIS_SCIENCE);
-									break;
-								case METROPOLIS_SCIENCE:
-									vertex.setType(VertexType.METROPOLIS_TRADE);
-									break;
-								case METROPOLIS_TRADE:
-									vertex.setPlayer(0);
-									vertex.setType(VertexType.OPEN);
-								default:
-									break;
-                            }
-                            
-                            getBoard().clearRouteLenCache();
-                            console.addText(Color.BLACK, "Road Length: " + getBoard().computeMaxRouteLengthForPlayer(getCurPlayerNum(), getRules().isEnableRoadBlock()));
-                            break;
-                        }
-                            
-                        case PM_ROBBER: {
-                        	Tile cell = getBoard().getTile(pickedValue);
-                        	if (cell.isWater())
-                        		getBoard().setPirate(pickedValue);
-                        	else
-                        		getBoard().setRobber(pickedValue);
-                            break;
-                        }
-                        
-                        case PM_MERCHANT:
-                        	getBoard().setMerchant(pickedValue, getCurPlayerNum());
-                        	break;
-                    }
-                    getBoard().findAllPairsShortestPathToDiscoverables(getCurPlayerNum());
-                    initPickMode(mode);
-                    getBoard().save("debugboard.txt");
+                	processDebugPick(mode, pickedValue);
                     break;
                     
                 case MENU_CONFIG_BOARD:
@@ -1880,5 +1706,301 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 			diceComps[i].setDie(die[i]);
 		}
 	}
+	
+	private void processDebugPick(PickMode mode, int pickedValue) {
+		Vertex v = null;
+		Tile t = null;
+		Route r = null;
+		switch (mode) {
+			case PM_ACTIVATE_KNIGHT:
+				v = getBoard().getVertex(pickedValue);
+				v.setPlayer(getCurPlayerNum());
+				if (v.getType().isKnight()) {
+					if (v.getType().isKnightActive())
+						v.setType(v.getType().deActivatedType());
+					else
+						v.setType(v.getType().activatedType());
+				} else {
+					v.setType(VertexType.BASIC_KNIGHT_ACTIVE);
+				}
+				break;
+			case PM_CELLPAINT:
+			case PM_CELL:
+				t = getBoard().getTile(pickedValue);
+				t.setType(Utils.incrementEnum(t.getType(), TileType.values()));
+				break;
+			case PM_CITY:
+				v = getBoard().getVertex(pickedValue);
+				v.setType(VertexType.CITY);
+				v.setPlayer(getCurPlayerNum());
+				break;
+			case PM_EDGE:
+				r = getBoard().getRoute(pickedValue);
+				getBoard().setPlayerForRoute(r, getCurPlayerNum());
+				if (!r.isShip()) {
+					if (r.isDamaged()) {
+						r.setShip(true);
+						r.setDamaged(false);
+					} else {
+						r.setDamaged(true);
+					}
+				} else {
+					r.setShip(true);
+				}
+				break;
+			case PM_ISLAND:
+				break;
+			case PM_KNIGHT:
+				v = getBoard().getVertex(pickedValue);
+				v.setPlayer(getCurPlayerNum());
+				switch (v.getType()) {
+					case BASIC_KNIGHT_INACTIVE:
+						v.setType(VertexType.BASIC_KNIGHT_ACTIVE);
+						break;
+					case BASIC_KNIGHT_ACTIVE:
+						v.setType(VertexType.BASIC_KNIGHT_INACTIVE);
+						break;
+					case STRONG_KNIGHT_INACTIVE:
+						v.setType(VertexType.STRONG_KNIGHT_ACTIVE);
+						break;
+					case STRONG_KNIGHT_ACTIVE:
+						v.setType(VertexType.STRONG_KNIGHT_INACTIVE);
+						break;
+					case MIGHTY_KNIGHT_INACTIVE:
+						v.setType(VertexType.MIGHTY_KNIGHT_ACTIVE);
+						break;
+					case MIGHTY_KNIGHT_ACTIVE:
+						v.setType(VertexType.MIGHTY_KNIGHT_INACTIVE);
+						break;
+					default:
+						v.setType(VertexType.BASIC_KNIGHT_INACTIVE);
+						break;
+				}
+				break;
+			case PM_MERCHANT:
+				getBoard().setMerchant(pickedValue, getCurPlayerNum());
+				break;
+			case PM_METROPOLIS_POLITICS:
+				v = getBoard().getVertex(pickedValue);
+				v.setPlayer(getCurPlayerNum());
+				v.setType(VertexType.METROPOLIS_POLITICS);
+				break;
+			case PM_METROPOLIS_SCIENCE:
+				v = getBoard().getVertex(pickedValue);
+				v.setPlayer(getCurPlayerNum());
+				v.setType(VertexType.METROPOLIS_SCIENCE);
+				break;
+			case PM_METROPOLIS_TRADE:
+				v = getBoard().getVertex(pickedValue);
+				v.setPlayer(getCurPlayerNum());
+				v.setType(VertexType.METROPOLIS_TRADE);
+				break;
+			case PM_NONE:
+				break;
+			case PM_PATH:
+				break;
+			case PM_PROMOTE_KNIGHT:
+				v = getBoard().getVertex(pickedValue);
+				v.setPlayer(getCurPlayerNum());
+				switch (v.getType()) {
+					case BASIC_KNIGHT_ACTIVE:
+						v.setType(VertexType.STRONG_KNIGHT_ACTIVE);
+						break;
+						
+					case BASIC_KNIGHT_INACTIVE:
+						v.setType(VertexType.STRONG_KNIGHT_INACTIVE);
+						break;
+						
+					case STRONG_KNIGHT_ACTIVE:
+						v.setType(VertexType.MIGHTY_KNIGHT_ACTIVE);
+						break;
+						
+					case STRONG_KNIGHT_INACTIVE:
+						v.setType(VertexType.MIGHTY_KNIGHT_INACTIVE);
+						break;
+					case MIGHTY_KNIGHT_ACTIVE:
+						v.setType(VertexType.BASIC_KNIGHT_ACTIVE);
+						break;
+					default:
+					case MIGHTY_KNIGHT_INACTIVE:
+						v.setType(VertexType.BASIC_KNIGHT_INACTIVE);
+						break;
+				}
+				break;
+			case PM_ROAD:
+				r = getBoard().getRoute(pickedValue);
+				if (r.getPlayer() > 0) {
+					getBoard().setPlayerForRoute(r, 0);
+					r.setShip(false);
+				} else {
+					getBoard().setPlayerForRoute(r, getCurPlayerNum());
+					r.setShip(false);
+				}
+				break;
+			case PM_ROBBER:
+				t = getBoard().getTile(pickedValue);
+            	if (t.isWater())
+            		getBoard().setPirate(pickedValue);
+            	else
+            		getBoard().setRobber(pickedValue);
+				break;
+			case PM_ROUTE:
+				break;
+			case PM_ROUTE2:
+				break;
+			case PM_SETTLEMENT:
+				v = getBoard().getVertex(pickedValue);
+				v.setPlayer(getCurPlayerNum());
+				v.setType(VertexType.SETTLEMENT);
+				break;
+			case PM_MOVABLE_SHIPS:
+			case PM_SHIP:
+				r = getBoard().getRoute(pickedValue);
+				if (r.getPlayer() > 0) {
+					getBoard().setPlayerForRoute(r, 0);
+					r.setShip(false);
+				} else {
+					getBoard().setPlayerForRoute(r, getCurPlayerNum());
+					r.setShip(true);
+				}
+				break;
+			case PM_VERTEX:
+				v = getBoard().getVertex(pickedValue);
+				v.setType(Utils.incrementEnum(v.getType(), VertexType.values()));
+				if (v.getType() == VertexType.OPEN) {
+					v.setPlayer(0);
+				} else {
+					v.setPlayer(getCurPlayerNum());
+				}
+				break;
+			case PM_WALLED_CITY:
+				v = getBoard().getVertex(pickedValue);
+				v.setPlayer(getCurPlayerNum());
+				v.setType(VertexType.WALLED_CITY);
+				break;
+		}
+		getBoard().clearRouteLenCache();
+        console.addText(Color.BLACK, "Road Length: " + getBoard().computeMaxRouteLengthForPlayer(getCurPlayerNum(), getRules().isEnableRoadBlock()));
+        getBoard().findAllPairsShortestPathToDiscoverables(getCurPlayerNum());
+        try {
+        	getBoard().save("debugboard.txt");
+        } catch (Exception e) {
+        	e.printStackTrace();
+        }
+	}
+	
+	/*
+                    switch (mode) {
+                        case PM_ROAD: {
+                            Route edge = getBoard().getRoute(pickedValue);
+                            if (edge.getPlayer() == getCurPlayerNum()) {
+                            	getBoard().setPlayerForRoute(edge, 0);
+                            } else {
+                            	getBoard().setPlayerForRoute(edge, getCurPlayerNum());
+                            }
+                            console.addText(Color.BLACK, "Road Length: " + getBoard().computeMaxRouteLengthForPlayer(getCurPlayerNum(), getRules().isEnableRoadBlock()));
+                            break;
+                        }
+
+                        case PM_MOVABLE_SHIPS:
+                        case PM_SHIP: {
+                            Route edge = getBoard().getRoute(pickedValue);
+                            if (edge.getPlayer() == getCurPlayerNum()) {
+                            	getBoard().setPlayerForRoute(edge, 0);
+                            	edge.setShip(false);
+                            } else {
+                            	getBoard().setPlayerForRoute(edge, getCurPlayerNum());
+                            	edge.setShip(true);
+                            }
+                            console.addText(Color.BLACK, "Road Length: " + getBoard().computeMaxRouteLengthForPlayer(getCurPlayerNum(), getRules().isEnableRoadBlock()));
+                            break;
+                        }
+                        
+                        case PM_KNIGHT: {
+                        	Vertex vertex = getBoard().getVertex(pickedValue);
+                        	vertex.setType(VertexType.BASIC_KNIGHT_INACTIVE);
+                        	vertex.setPlayer(getCurPlayerNum());
+                        	break;
+                        }
+                        
+                        case PM_PROMOTE_KNIGHT: {
+                        	Vertex vertex = getBoard().getVertex(pickedValue);
+                        	switch (vertex.getType()) {
+                        		case BASIC_KNIGHT_INACTIVE:
+                        			vertex.setType(VertexType.STRONG_KNIGHT_INACTIVE);
+                        			break;
+                        		case BASIC_KNIGHT_ACTIVE:
+                        			vertex.setType(VertexType.STRONG_KNIGHT_ACTIVE);
+                        			break;
+                        		case STRONG_KNIGHT_INACTIVE:
+                        			vertex.setType(VertexType.MIGHTY_KNIGHT_INACTIVE);
+                        			break;
+                        		case STRONG_KNIGHT_ACTIVE:
+                        			vertex.setType(VertexType.MIGHTY_KNIGHT_ACTIVE);
+                        			break;
+                        		case MIGHTY_KNIGHT_INACTIVE:
+                        			vertex.setType(VertexType.BASIC_KNIGHT_INACTIVE);
+                        			break;
+                        		case MIGHTY_KNIGHT_ACTIVE:
+                        			vertex.setType(VertexType.BASIC_KNIGHT_ACTIVE);
+                        			break;
+                        	}                        
+                        }
+                        
+                        case PM_SETTLEMENT:
+                        case PM_CITY:
+                        case PM_WALLED_CITY: 
+                        case PM_METROPOLIS_TRADE:
+                        case PM_METROPOLIS_POLITICS:
+                        case PM_METROPOLIS_SCIENCE: {
+                            Vertex vertex = getBoard().getVertex(pickedValue);
+                            switch (vertex.getType()) {
+                            	case OPEN:
+                            		vertex.setPlayer(getCurPlayerNum());
+                            		vertex.setType(VertexType.SETTLEMENT);
+                            		break;
+								case CITY:
+									vertex.setType(VertexType.WALLED_CITY);
+									break;
+								case SETTLEMENT:
+									vertex.setType(VertexType.CITY);
+									break;
+								case WALLED_CITY:
+									vertex.setType(VertexType.METROPOLIS_POLITICS);
+									break;
+								case METROPOLIS_POLITICS:
+									vertex.setType(VertexType.METROPOLIS_SCIENCE);
+									break;
+								case METROPOLIS_SCIENCE:
+									vertex.setType(VertexType.METROPOLIS_TRADE);
+									break;
+								case METROPOLIS_TRADE:
+									vertex.setPlayer(0);
+									vertex.setType(VertexType.OPEN);
+								default:
+									break;
+                            }
+                            
+                            getBoard().clearRouteLenCache();
+                            console.addText(Color.BLACK, "Road Length: " + getBoard().computeMaxRouteLengthForPlayer(getCurPlayerNum(), getRules().isEnableRoadBlock()));
+                            break;
+                        }
+                            
+                        case PM_ROBBER: {
+                        	Tile cell = getBoard().getTile(pickedValue);
+                        	if (cell.isWater())
+                        		getBoard().setPirate(pickedValue);
+                        	else
+                        		getBoard().setRobber(pickedValue);
+                            break;
+                        }
+                        
+                        case PM_MERCHANT:
+                        	getBoard().setMerchant(pickedValue, getCurPlayerNum());
+                        	break;
+                    }
+                    getBoard().findAllPairsShortestPathToDiscoverables(getCurPlayerNum());
+                    getBoard().save("debugboard.txt");
+	 */
 }
 

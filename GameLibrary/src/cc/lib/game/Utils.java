@@ -972,7 +972,7 @@ public class Utils {
 	}
 	
 	/**
-	 * Initialiize x_pts and y_pts arrays with coord to the beizer curve
+	 * Initialize x_pts and y_pts arrays with coordinate to the Beizer curve
 	 * formed by 4 control points.
 	 * 
 	 * @param x_pts
@@ -1570,6 +1570,26 @@ public class Utils {
 		return "+" + n;
 	}
 
-    
+	/**
+	 * Return the next enum occurrence wrapping if necessary.
+	 * 
+	 * Example:
+	 * 
+	 * enum X {
+	 *    A,B,C
+	 * }
+	 * 
+	 * X result = incrementEnum(X.C, X.values());
+	 * assert(result == X.A);
+	 * 
+	 * @param value
+	 * @param values
+	 * @return
+	 */
+    public static <T extends Enum<T>> T incrementEnum(T value, T [] values) {
+		int ordinal = value.ordinal()+1;
+		ordinal %= values.length;
+		return values[ordinal];
+	}
     
 }

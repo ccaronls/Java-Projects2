@@ -262,7 +262,7 @@ public class BoardComponent extends JComponent implements KeyListener, MouseMoti
 	    new Face(0.25f, -4,0, 4,0, 3,-2, -3,-2).setFaceTypes(FaceType.SHIP),
 	    // sail 
 	    new Face(0.0f, 1,0,1,5,-1,4,-3,1,-1,0).setFaceTypes(FaceType.SHIP),
-	    
+	    /*
 	    // shield
 	    // full (inactive)
 	    new Face(0.5f, 3,3, 3,-1, 0,-4, -3,-1, -3,3).setFaceTypes(FaceType.KNIGHT_INACTIVE_BASIC, FaceType.KNIGHT_INACTIVE_STRONG, FaceType.KNIGHT_INACTIVE_MIGHTY),
@@ -279,6 +279,55 @@ public class BoardComponent extends JComponent implements KeyListener, MouseMoti
 	    new Face(0.5f, -3,3, -3,5, 3,5, 3,3).setFaceTypes(FaceType.KNIGHT_ACTIVE_STRONG, FaceType.KNIGHT_ACTIVE_MIGHTY, FaceType.KNIGHT_INACTIVE_STRONG, FaceType.KNIGHT_INACTIVE_MIGHTY),
 	    // Level 3 knight bar
 	    new Face(0.1f, -3,5, -3,7, 3,7, 3,5).setFaceTypes(FaceType.KNIGHT_ACTIVE_MIGHTY, FaceType.KNIGHT_INACTIVE_MIGHTY),
+*/
+	    // 3D Shield
+	    // full darkened (inactive)
+	    new Face(0.7f, 4,5, 3,5, 0,4, 1,4).setFaceTypes(FaceType.KNIGHT_INACTIVE_BASIC, FaceType.KNIGHT_INACTIVE_STRONG, FaceType.KNIGHT_INACTIVE_MIGHTY),
+	    new Face(0.3f, -2,5, -3,5, -3,0, -2,-1).setFaceTypes(FaceType.KNIGHT_INACTIVE_BASIC, FaceType.KNIGHT_INACTIVE_STRONG, FaceType.KNIGHT_INACTIVE_MIGHTY),
+	    new Face(0.5f, 1,-4, 4,-1, 4,5, 1,4).setFaceTypes(FaceType.KNIGHT_INACTIVE_BASIC, FaceType.KNIGHT_INACTIVE_STRONG, FaceType.KNIGHT_INACTIVE_MIGHTY),
+	    new Face(0.5f, 1,-4, -2,-1, -2,5, 1,4).setFaceTypes(FaceType.KNIGHT_INACTIVE_BASIC, FaceType.KNIGHT_INACTIVE_STRONG, FaceType.KNIGHT_INACTIVE_MIGHTY),
+
+	    // SAA only lightened
+	    new Face(0.4f, 4,5, 3,5, 0,4, 1,4).setFaceTypes(FaceType.KNIGHT_ACTIVE_BASIC, FaceType.KNIGHT_ACTIVE_STRONG, FaceType.KNIGHT_ACTIVE_MIGHTY),
+	    new Face(0.2f, -2,5, -3,5, -3,0, -2,-1).setFaceTypes(FaceType.KNIGHT_ACTIVE_BASIC, FaceType.KNIGHT_ACTIVE_STRONG, FaceType.KNIGHT_ACTIVE_MIGHTY),
+	    new Face(0.3f, 1,-4, 4,-1, 4,5, 1,4).setFaceTypes(FaceType.KNIGHT_ACTIVE_BASIC, FaceType.KNIGHT_ACTIVE_STRONG, FaceType.KNIGHT_ACTIVE_MIGHTY),
+	    new Face(0.3f, 1,-4, -2,-1, -2,5, 1,4).setFaceTypes(FaceType.KNIGHT_ACTIVE_BASIC, FaceType.KNIGHT_ACTIVE_STRONG, FaceType.KNIGHT_ACTIVE_MIGHTY),
+	    
+	    // single sword, strong dark (inactive)
+	    // blade
+	    new Face(0.8f, 0,-4, 1,-6, 2,-4, 2,8, 0,8).setFaceTypes(FaceType.KNIGHT_INACTIVE_STRONG),
+	    // hilt
+	    new Face(0.8f, -2,5, 4,5, 4,4, -2,4).setFaceTypes(FaceType.KNIGHT_INACTIVE_STRONG),
+
+	    // SAA lightened for active
+	    // blade
+	    new Face(0.4f, 0,-4, 1,-6, 2,-4, 2,8, 0,8).setFaceTypes(FaceType.KNIGHT_ACTIVE_STRONG),
+	    // hilt
+	    new Face(0.6f, -2,5, 4,5, 4,4, -2,4).setFaceTypes(FaceType.KNIGHT_ACTIVE_STRONG),
+	    
+	    // double crossed sword mighty dark (inactive)
+	    // handle at top right
+	    // blade
+	    new Face(0.8f, 5,8, 7,7, -1,-5, -3,-6, -3,-4).setFaceTypes(FaceType.KNIGHT_INACTIVE_MIGHTY),
+	    // hilt
+	    new Face(0.8f, 3,7, 2,6, 6,3, 7,4).setFaceTypes(FaceType.KNIGHT_INACTIVE_MIGHTY),
+	    // handle at top left
+	    // blade
+	    new Face(0.8f, -6,7, -4,8, 4,-4, 4,-6, 2,-5).setFaceTypes(FaceType.KNIGHT_INACTIVE_MIGHTY),
+	    // hilt
+	    new Face(0.8f, -6,4, -5,3, -1,6, -2,7).setFaceTypes(FaceType.KNIGHT_INACTIVE_MIGHTY),
+
+	    // SAA lightened for active
+	    // handle at top right
+	    // blade
+	    new Face(0.4f, 5,8, 7,7, -1,-5, -3,-6, -3,-4).setFaceTypes(FaceType.KNIGHT_ACTIVE_MIGHTY),
+	    // hilt
+	    new Face(0.6f, 3,7, 2,6, 6,3, 7,4).setFaceTypes(FaceType.KNIGHT_ACTIVE_MIGHTY),
+	    // handle at top left
+	    // blade
+	    new Face(0.4f, -6,7, -4,8, 4,-4, 4,-6, 2,-5).setFaceTypes(FaceType.KNIGHT_ACTIVE_MIGHTY),
+	    // hilt
+	    new Face(0.6f, -6,4, -5,3, -1,6, -2,7).setFaceTypes(FaceType.KNIGHT_ACTIVE_MIGHTY),
 
 	    // Merchant
 	    // Diamond
@@ -533,42 +582,40 @@ public class BoardComponent extends JComponent implements KeyListener, MouseMoti
 		}
 		return render.pickPoints(mouseX, mouseY, dim);
 	}
-	
+	/*
 	private int pickRoad(int mouseX, int mouseY) {
 		render.clearVerts();
-		if (pickIndices == null) {
-			return pickEdge(mouseX, mouseY, SOC.computeRoadRouteIndices(pickPlayerNum, board));
-		}	
+//		if (pickIndices == null)
+//			return pickEdge(mouseX, mouseY, SOC.computeRoadRouteIndices(pickPlayerNum, board));
 		return pickEdge(mouseX, mouseY, pickIndices);
 	}
 	
 	private int pickShip(int mouseX, int mouseY) {
 		render.clearVerts();
-		if (pickIndices == null) {
-			return pickEdge(mouseX, mouseY, SOC.computeShipRouteIndices(pickPlayerNum, board));
-		}
+//		if (pickIndices == null)
+//			return pickEdge(mouseX, mouseY, SOC.computeShipRouteIndices(pickPlayerNum, board));
 		return pickEdge(mouseX, mouseY, pickIndices);
 	}
 	
 	private int pickMovableShip(int mouseX, int mouseY) {
 		render.clearVerts();
-		if (pickIndices == null) {
-			return pickEdge(mouseX, mouseY, SOC.computeOpenRouteIndices(pickPlayerNum, board, false, true));
-		}
+//		if (pickIndices == null) {
+//			return pickEdge(mouseX, mouseY, SOC.computeOpenRouteIndices(pickPlayerNum, board, false, true));
+//		}
 		return pickEdge(mouseX, mouseY, pickIndices);
 	}
 	
 	private int pickSettlement(int mouseX, int mouseY) {
-		if (pickIndices == null)
-			return pickVertex(mouseX, mouseY, SOC.computeSettlementVertexIndices(null, pickPlayerNum, board));
+//		if (pickIndices == null)
+//			return pickVertex(mouseX, mouseY, SOC.computeSettlementVertexIndices(null, pickPlayerNum, board));
 		return pickVertex(mouseX, mouseY, pickIndices);
 	}
 
 	private int pickCity(int mouseX, int mouseY) {
-		if (pickIndices == null)
-			return pickVertex(mouseX, mouseY, SOC.computeCityVertxIndices(pickPlayerNum, board));
+//		if (pickIndices == null)
+//			return pickVertex(mouseX, mouseY, SOC.computeCityVertxIndices(pickPlayerNum, board));
 		return pickVertex(mouseX, mouseY, pickIndices);
-	}
+	}*/
 	
 	private void renderEdge(Route e) {
 		Vertex v0 = board.getVertex(e.getFrom());
@@ -576,10 +623,9 @@ public class BoardComponent extends JComponent implements KeyListener, MouseMoti
 		if (e.isDamaged()) {
     		render.addVertex(v0);
     		Vector2D v = board.getRouteMidpoint(e);
-    		Vector2D dv = Vector2D.newTemp(v1).subEq(v);
-    		dv = dv.norm().scaleEq(0.5f).addEq(v0);
+    		render.addVertex(v);
+    		Vector2D dv = Vector2D.newTemp(v).subEq(v0).normEq().addEq(v);
     		render.addVertex(dv);
-    		render.addVertex(v1);
 		} else {
     		render.addVertex(v0);
     		render.addVertex(v1);
@@ -647,7 +693,7 @@ public class BoardComponent extends JComponent implements KeyListener, MouseMoti
             g.setColor(old);
 	    } 
 	    renderEdge(e);
-	    render.drawLines(g, roadLineThickness);
+	    render.drawLineStrip(g, roadLineThickness);
 	}
 	
 	void drawShip(Graphics g, IVector2D v, boolean outline) {
@@ -1034,24 +1080,26 @@ public class BoardComponent extends JComponent implements KeyListener, MouseMoti
         		// draw the roads
         		for (int i=0; i<board.getNumRoutes(); i++) {
         			Route e = board.getRoute(i);
-        			switch (pickMode) {
-						case PM_EDGE:
-						case PM_ROAD:
-						case PM_MOVABLE_SHIPS:
-						case PM_SHIP:
-							if (pickIndices == null || pickIndices.contains(i)) {
-								g.setColor(AWTUtils.setAlpha(listener.getPlayerColor(pickPlayerNum), PICKABLE_ELEM_ALPHA));
-								drawEdge(g, e, 0, false);
-								continue;
-							}
-							break;
-						case PM_PATH:
-						case PM_ROUTE:
-						case PM_ROUTE2:
-							break;
-						default:
-							break;
-        				
+        			if (pickedValue < 0) {
+            			switch (pickMode) {
+    						case PM_EDGE:
+    						case PM_ROAD:
+    						case PM_MOVABLE_SHIPS:
+    						case PM_SHIP:
+    							if (pickIndices == null || pickIndices.contains(i)) {
+    								g.setColor(AWTUtils.setAlpha(listener.getPlayerColor(pickPlayerNum), PICKABLE_ELEM_ALPHA));
+    								drawEdge(g, e, 0, false);
+    								continue;
+    							}
+    							break;
+    						case PM_PATH:
+    						case PM_ROUTE:
+    						case PM_ROUTE2:
+    							break;
+    						default:
+    							break;
+            				
+            			}
         			}
         			if (e.getPlayer() <= 0)
         				continue;
@@ -1068,44 +1116,45 @@ public class BoardComponent extends JComponent implements KeyListener, MouseMoti
         			VertexType type = v.getType();
         			boolean vertexPickMode = true;
         			boolean pickIndex = pickIndices == null || pickIndices.contains(i);
-        			switch (pickMode) {
-						case PM_CITY:
-							type = VertexType.CITY;
-							break;
-						case PM_ACTIVATE_KNIGHT:
-							if (pickIndex)
-								type = type.activatedType();
-							break;
-						case PM_KNIGHT:
-							if (pickIndex && type == VertexType.OPEN) {
-								type = VertexType.BASIC_KNIGHT_INACTIVE;
-							}
-							break;
-						case PM_PROMOTE_KNIGHT:
-							if (pickIndex)
-								type = type.promotedType();
-							break;
-						case PM_METROPOLIS_POLITICS:
-							type = VertexType.METROPOLIS_POLITICS;
-							break;
-						case PM_METROPOLIS_SCIENCE:
-							type = VertexType.METROPOLIS_SCIENCE;
-							break;
-						case PM_METROPOLIS_TRADE:
-							type = VertexType.METROPOLIS_TRADE;
-							break;
-						case PM_SETTLEMENT:
-							type = VertexType.SETTLEMENT;
-							break;
-						case PM_WALLED_CITY:
-							type = VertexType.WALLED_CITY;
-							break;
-						default:
-							vertexPickMode = false;
-							break;
-        				
+        			if (pickedValue < 0) {
+            			switch (pickMode) {
+    						case PM_CITY:
+    							type = VertexType.CITY;
+    							break;
+    						case PM_ACTIVATE_KNIGHT:
+    							if (pickIndex)
+    								type = type.activatedType();
+    							break;
+    						case PM_KNIGHT:
+    							if (pickIndex && type == VertexType.OPEN) {
+    								type = VertexType.BASIC_KNIGHT_INACTIVE;
+    							}
+    							break;
+    						case PM_PROMOTE_KNIGHT:
+    							if (pickIndex)
+    								type = type.promotedType();
+    							break;
+    						case PM_METROPOLIS_POLITICS:
+    							type = VertexType.METROPOLIS_POLITICS;
+    							break;
+    						case PM_METROPOLIS_SCIENCE:
+    							type = VertexType.METROPOLIS_SCIENCE;
+    							break;
+    						case PM_METROPOLIS_TRADE:
+    							type = VertexType.METROPOLIS_TRADE;
+    							break;
+    						case PM_SETTLEMENT:
+    							type = VertexType.SETTLEMENT;
+    							break;
+    						case PM_WALLED_CITY:
+    							type = VertexType.WALLED_CITY;
+    							break;
+    						default:
+    							vertexPickMode = false;
+    							break;
+            				
+            			}
         			}
-        			
         			if (vertexPickMode && pickIndex) {
 						g.setColor(AWTUtils.setAlpha(listener.getPlayerColor(pickPlayerNum), PICKABLE_ELEM_ALPHA));
 						drawVertex(g, v, type, 0, false);
@@ -1375,56 +1424,38 @@ public class BoardComponent extends JComponent implements KeyListener, MouseMoti
 	public void mouseMoved(MouseEvent ev) {
 		pickedValue = -1;
 		switch (pickMode) {
-		case PM_NONE: 
-		    break;
-		case PM_ROAD:
-			pickedValue = pickRoad(ev.getX(), ev.getY());
-			break;
-		case PM_SHIP:
-			pickedValue = pickShip(ev.getX(), ev.getY());
-			break;
-		case PM_EDGE:
-		    pickedValue = pickEdge(ev.getX(), ev.getY(), pickIndices);
-			break;
-		case PM_SETTLEMENT:
-			pickedValue = pickSettlement(ev.getX(), ev.getY());
-			break;
-		case PM_CITY: 
-			pickedValue = pickCity(ev.getX(), ev.getY());
-			break;
-		case PM_WALLED_CITY:
-			if (pickIndices == null)
-				pickIndices = board.getVertsOfType(pickPlayerNum, VertexType.CITY);
-		case PM_METROPOLIS_TRADE:
-		case PM_METROPOLIS_POLITICS:
-		case PM_METROPOLIS_SCIENCE:
-			if (pickIndices == null)
-				pickIndices = board.getVertsOfType(pickPlayerNum, VertexType.CITY, VertexType.WALLED_CITY);
-			pickedValue = pickCity(ev.getX(), ev.getY());
-			break;
-		case PM_MOVABLE_SHIPS:
-			pickedValue = pickMovableShip(ev.getX(), ev.getY());
-			break;
-		case PM_PATH:
-		case PM_ROUTE:
-		case PM_ROUTE2:
-			pickedValue = pickEdge(ev.getX(), ev.getY(), pickIndices);
-			break;
-		case PM_VERTEX:
-		case PM_KNIGHT:
-		case PM_ACTIVATE_KNIGHT:
-		case PM_PROMOTE_KNIGHT:
-		    pickedValue = pickVertex(ev.getX(), ev.getY(), pickIndices);
-			break;
-		case PM_CELLPAINT:
-		case PM_ROBBER:
-		case PM_CELL:
-		case PM_ISLAND:
-		case PM_MERCHANT:
-		    pickedValue = pickCell(ev.getX(), ev.getY(), pickIndices);
-			break;
-		default:
-		    assert(false); // unhandled case
+    		case PM_NONE: 
+    		    break;
+    		case PM_ROAD:
+    		case PM_MOVABLE_SHIPS:
+    		case PM_SHIP:
+    		case PM_EDGE:
+    		case PM_PATH:
+    		case PM_ROUTE:
+    		case PM_ROUTE2:
+    			pickedValue = pickEdge(ev.getX(), ev.getY(), pickIndices);
+    			break;
+    		case PM_SETTLEMENT:
+    		case PM_CITY: 
+    		case PM_WALLED_CITY:
+    		case PM_METROPOLIS_TRADE:
+    		case PM_METROPOLIS_POLITICS:
+    		case PM_METROPOLIS_SCIENCE:
+    		case PM_VERTEX:
+    		case PM_KNIGHT:
+    		case PM_ACTIVATE_KNIGHT:
+    		case PM_PROMOTE_KNIGHT:
+    		    pickedValue = pickVertex(ev.getX(), ev.getY(), pickIndices);
+    			break;
+    		case PM_CELLPAINT:
+    		case PM_ROBBER:
+    		case PM_CELL:
+    		case PM_ISLAND:
+    		case PM_MERCHANT:
+    		    pickedValue = pickCell(ev.getX(), ev.getY(), pickIndices);
+    			break;
+    		default:
+    		    assert(false); // unhandled case
 		}
 
         if (getRenderFlag(RenderFlag.SHOW_CELL_INFO)) {

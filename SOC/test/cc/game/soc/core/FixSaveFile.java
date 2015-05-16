@@ -1,10 +1,19 @@
 package cc.game.soc.core;
 
+import cc.lib.utils.Reflector;
 import junit.framework.TestCase;
 
 public class FixSaveFile extends TestCase {
 
 	public void test() {
+		Reflector.ENABLE_THROW_ON_UNKNOWN = true;
+		SOC soc = new SOC();
+		assertTrue(soc.load("scenarios/four_islands.txt"));
+		
+	}
+	
+	public void xtest() {
+		Reflector.ENABLE_THROW_ON_UNKNOWN = true;
 		SOC soc = new SOC();
 		assertTrue(soc.load("socsavegame.txt"));
 		Board b = soc.getBoard();
@@ -27,7 +36,8 @@ public class FixSaveFile extends TestCase {
 		}
 		
 		
-		soc.save("socsavegame.txt");
+		soc.save("socsavegame_FIXED.txt");
+		soc.load("socsavegame_FIXED.txt");
 	}
 	
 }

@@ -61,6 +61,8 @@ public class MyArchivable extends Reflector<MyArchivable> {
     Collection<String> myStringSet;// = new HashSet<String>();
     
     Collection [] collectionArray = null;
+    Collection [][] collectionArray2D = null;
+    Collection [][][] collectionArray3D = null;
     
     public MyArchivable() {
         /*

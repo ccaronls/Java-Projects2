@@ -17,10 +17,10 @@ public class OverridesSerialize extends Reflector<OverridesSerialize> {
         this.x = x;
     }
 
-//    @Override
-//    public void serialize(PrintWriter out) throws IOException {
-//        out.println(msg + " " + x);
-//    }
+    @Override
+    public void serialize(PrintWriter out) throws IOException {
+        out.println(msg + " " + x);
+    }
 
     @Override
     public void deserialize(BufferedReader in) throws IOException {
@@ -30,4 +30,11 @@ public class OverridesSerialize extends Reflector<OverridesSerialize> {
         x = Integer.parseInt(parts[1]);
     }
     
+    public boolean equals(Object o) {
+    	if (o == null || !(o instanceof OverridesSerialize))
+    		return false;
+    	
+    	OverridesSerialize os = (OverridesSerialize)o;
+    	return msg.equals(os.msg) && x == os.x;
+    }
 }

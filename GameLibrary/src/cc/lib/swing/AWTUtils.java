@@ -154,8 +154,9 @@ public class AWTUtils {
      * @param y
      * @param hJust
      * @param text
+     * @return width of the rendered string
      */
-    private static void priv_drawJustifiedString(Graphics g, int x, int y, Justify hJust, String text) {
+    private static int priv_drawJustifiedString(Graphics g, int x, int y, Justify hJust, String text) {
         int x0 = x;
         final int textWidth = g.getFontMetrics().stringWidth(text);
         switch (hJust) {
@@ -172,6 +173,7 @@ public class AWTUtils {
             break;
         }
         g.drawString(text, x0, y);
+        return textWidth;
     }
     
     /**
@@ -182,7 +184,7 @@ public class AWTUtils {
      * @param maxWidth
      * @param text
      * @return
-     */
+     *
     public static int drawWrapString(Graphics g, int x, int y, int maxWidth, String text) {
         int endl = text.indexOf('\n');
         if (endl >= 0) {
@@ -228,31 +230,96 @@ public class AWTUtils {
     }
     
     /**
-     * Draw wrapped lines with each line no longer than maxWidth pixels.  Lines are wrapped on a newline first, then a space, then hyphenated as a last resort.
+     * Draw top/left justified wrapped lines with each line no longer than maxWidth pixels.  
+     * Lines are wrapped on a newline first, then a space, then hyphenated as a last resort.
      * @param g
      * @param x
      * @param y
      * @param maxWidth
      * @param text
-     * @return total height of the text (textHeight * numLines)
+     * @return enclosing rectangle of text (x/y/w/h)
      */
-    public static int drawWrapString3(Graphics g, int x, int y, int maxWidth, String text) {
+    public static Rectangle drawWrapString(Graphics g, int x, int y, int maxWidth, String text) {
+    	return drawWrapJustifiedString(g, x, y, maxWidth, Justify.LEFT, text);
+    }
+
+    /**
+     * draw and wrap a string with both h/v justification.  Return enclosing rectangle.
+     * @param g
+     * @param x
+     * @param y
+     * @param maxWidth
+     * @param hJust
+     * @param vJust
+     * @param text
+     * @return
+     */
+    public static Rectangle drawWrapJustifiedString(Graphics g, int x, int y, int maxWidth, Justify hJust, Justify vJust, String text) {
         String [] lines = generateWrappedLines(g, text, maxWidth);
-        for (int i=0; i<lines.length; i++) {
-            g.drawString(lines[i], x, y);
-            y += getFontHeight(g);
-        }
-        return y;
+    	switch (vJust) {
+    		case TOP:
+    			return priv_drawWrapJustifiedString(g, x, y, maxWidth, hJust, lines);
+    		case CENTER:
+    			return priv_drawWrapJustifiedString(g, x, y-(lines.length*getFontHeight(g))/2, maxWidth, hJust, lines);
+    		case BOTTOM:
+    			return priv_drawWrapJustifiedString(g, x, y-(lines.length*getFontHeight(g)), maxWidth, hJust, lines);
+    		default:
+    			throw new AssertionError("Invalid vJust parameter '" + vJust + "'");
+    	}
     }
     
-    public static int drawWrapJustifiedString(Graphics g, int x, int y, int maxWidth, Justify hJust, String text) {
-        String [] lines = generateWrappedLines(g, text, maxWidth);
+    /**
+     * Draw top justified with user provide horizontal justified string no wider than maxWidth pixels wide.
+     * @param g
+     * @param x
+     * @param y
+     * @param maxWidth
+     * @param hJust
+     * @param text
+     * @return
+     */
+    public static Rectangle drawWrapJustifiedString(Graphics g, int x, int y, int maxWidth, Justify hJust, String text) {
+    	String [] lines = generateWrappedLines(g, text, maxWidth);
+    	return priv_drawWrapJustifiedString(g, x, y, maxWidth, hJust, lines);
+    }
+    
+    private static Rectangle priv_drawWrapJustifiedString(Graphics g, int x, int y, int maxWidth, Justify hJust, String [] lines) {
+        int tw = 0;
+        final int sy = y;
+        int th = 0 ;
+        final int fh = getFontHeight(g);
         for (int i=0; i<lines.length; i++) {
-            //g.drawString(lines[i], x, y);
-        	drawJustifiedString(g, x, y, hJust, Justify.TOP, lines[i]);
-            y += getFontHeight(g);
+        	int width = priv_drawJustifiedString(g, x, y+fh, hJust, lines[i]);
+        	if (width > tw)
+        		tw = width;
+        	y += fh;
+        	th += fh;
         }
-        return y;
+
+        y = y+fh-g.getFontMetrics().getMaxAscent();
+        th += g.getFontMetrics().getMaxDescent();
+        
+        Rectangle r = null;
+        switch (hJust) {
+			case CENTER:
+				r = new Rectangle(x-tw/2, sy, tw, th);
+				break;
+			case LEFT:
+				r = new Rectangle(x, sy, tw, th);
+				break;
+			case RIGHT:
+				r = new Rectangle(x-tw, sy, tw, th);
+				break;
+			default:
+				throw new AssertionError("Invalid jJust parameter '" + hJust + "'");
+        	
+        }
+
+        // TODO: remove debug rect
+        //if (Utils.DEBUG_ENABLED)
+        //	g.drawRect(r.x, r.y, r.width, r.height);
+        
+        return r;
     }
     
     /**
@@ -319,73 +386,6 @@ public class AWTUtils {
     }
     
     /**
-     * 
-     * @param g
-     * @param x
-     * @param y
-     * @param maxWidth
-     * @param text
-     * @return
-     */
-    public static int drawWrapString2(Graphics g, int x, int y, int maxWidth, String text) {
-        
-        int fontHeight = g.getFontMetrics().getHeight();
-        
-        text = text.trim();
-        while (text.length() > 0) {
-            int endl = text.indexOf('\n');
-            if (endl >= 0) {
-                String t = text.substring(0, endl);
-                int width = getStringWidth(g, t);
-                if (width <= maxWidth) {
-                    g.drawString(t, x, y);
-                    y += fontHeight;
-                    text = text.substring(endl+1).trim();
-                    continue;
-                }
-            }
-            
-            // cant find an endl, see if text fits
-            int width = getStringWidth(g, text);
-            if (width <= maxWidth) {
-                g.drawString(text, x, y);
-                y += fontHeight;
-                break;
-            }
-            
-            // try to find a space to break on
-            String t = text;
-            int spc = -1;
-            while (width > maxWidth) {
-                spc = text.lastIndexOf(' ');
-                if (spc >= 0) {
-                    t = text.substring(0, spc).trim();
-                    width = getStringWidth(g, t);
-                } else {
-                    spc = -1;
-                    break;
-                }
-            }
-            
-            if (spc >= 0) {
-                // found a space!
-                g.drawString(t, x, y);
-                y += fontHeight;
-                text = text.substring(spc+1).trim();
-                continue;
-            }
-            
-            // made it here means we have to wrap on a whole word!
-            t = split(g, text, 0, text.length(), maxWidth);
-            g.drawString(t, x, y);
-            y += fontHeight;
-            text = text.substring(t.length()).trim();           
-        }
-        
-        return y;
-    }
-    
-    /**
      * Use binary search to find substring of s that has max chars up to maxWidth pixels wide.
      * @param g
      * @param s
@@ -416,26 +416,6 @@ public class AWTUtils {
     		return splitR(g, r, 0, mid, maxWidth, depth+1);
     	}
     	return r + splitR(g, s.substring(mid, end), 0, end, maxWidth-wid, depth+1);
-    }
-    
-    
-    /*
-    	if (depth > 10) {
-    		return s;
-    	}
-    	if (maxWidth <=0)
-    		return s;
-        if (start >= end)
-            return s;
-        int mid = (start+end)/2;
-        String t = s.substring(start, mid);
-        if (t.length() == 0)
-        	return s;
-        int wid = getStringWidth(g, t);
-        if (wid > maxWidth)
-            return t + splitR(g, s.substring(mid), mid, end, maxWidth - wid, depth+1);
-        else
-            return splitR(g, s, start, mid, maxWidth, depth+1);
     }
     
     /**
@@ -692,15 +672,31 @@ public class AWTUtils {
      * @param h
      * @param thickness
      */
-    public static void drawRect(Graphics g, int x, int y, int w, int h, int thickness) {
+    public static void drawRect(Graphics g, int x, int y, int w, int h, int innerThickness, int outerThickness) {
+    	final int thickness = innerThickness + outerThickness;
         if (thickness > 1) {
-            drawLine(g, x+0, y+0, x+w, y+0, thickness);
-            drawLine(g, x+0, y+0, x+0, y+h, thickness);
-            drawLine(g, x+w, y+0, x+w, y+h, thickness);
-            drawLine(g, x+0, y+h, x+w, y+h, thickness);
+        	g.fillRect(x-outerThickness, y-outerThickness, w+thickness, thickness); // top
+        	g.fillRect(x-outerThickness, y-outerThickness, thickness, h+thickness); // left
+        	g.fillRect(x+w-innerThickness, y-outerThickness, thickness, h+thickness); // right
+        	g.fillRect(x-outerThickness, y+h-innerThickness, w+thickness, thickness); // bottom
+            //drawLine(g, x+0, y+0, x+w, y+0, thickness);
+            //drawLine(g, x+0, y+0, x+0, y+h, thickness);
+            //drawLine(g, x+w, y+0, x+w, y+h, thickness);
+            //drawLine(g, x+0, y+h, x+w, y+h, thickness);
         } else {
             g.drawRect(x, y, w, h);
         }
+    }
+    
+    /**
+     * convenience takes rectangle argument 
+     * @param g
+     * @param r
+     * @param innerThickness
+     * @param outerThickness
+     */
+    public static void drawRect(Graphics g, Rectangle r, int innerThickness, int outerThickness) {
+    	drawRect(g, r.x, r.y, r.width, r.height, innerThickness, outerThickness);
     }
 
     /**

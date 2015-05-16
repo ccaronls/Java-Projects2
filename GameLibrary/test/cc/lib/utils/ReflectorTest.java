@@ -3,6 +3,7 @@ package cc.lib.utils;
 import java.io.*;
 import java.util.*;
 
+import sun.net.idn.StringPrep;
 import junit.framework.TestCase;
 
 public class ReflectorTest extends TestCase {
@@ -84,7 +85,16 @@ public class ReflectorTest extends TestCase {
         t.collectionArray[3] = new ArrayList();
         t.collectionArray[0].addAll(Arrays.asList(new Integer[] { 0,1,2 }));
         t.collectionArray[2].addAll(Arrays.asList(new String[] { "Hello", "Goodbye" } ));
-        System.out.println(t);
+        String data = t.toString();
+        System.out.println(data);
+        MyArchivable s = new MyArchivable();
+        BufferedReader reader = new BufferedReader(new StringReader(data));
+        s.deserialize(reader);
+        assertEquals(t, s);
+        MyArchivable u = t.deepCopy();
+        assertEquals(u, t);
+        assertEquals(u, s);        
+        System.out.println(data);
     }
     
     void x() {
@@ -223,5 +233,32 @@ public class ReflectorTest extends TestCase {
     	assertEquals(b.b, "B");
     	
     	
+    }
+    
+    public static class MyCollection extends Reflector<MyCollection> {
+    	
+    	static {
+    		addAllFields(MyCollection.class);
+    	}
+    	
+    	List<SmallReflector> list = new ArrayList<SmallReflector>();
+
+    	void build() {
+    		for (int i=0; i<10; i++) {
+    			list.add(new SmallReflector());
+    		}
+    	}
+    }
+    
+    public void testCollection() throws Exception {
+    	MyCollection c = new MyCollection();
+    	c.build();
+    	String data = c.toString();
+        System.out.println(data);
+        BufferedReader reader = new BufferedReader(new StringReader(data));
+        MyCollection c2 = new MyCollection();
+        c2.deserialize(reader);
+        System.out.println(c2.toString());
+        assertEquals(c, c2);
     }
 }

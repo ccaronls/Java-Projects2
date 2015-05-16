@@ -3,6 +3,7 @@ package cc.game.soc.swing;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Rectangle;
 
 import javax.swing.JComponent;
 
@@ -58,7 +59,8 @@ public class ConsoleComponent extends JComponent {
 				//int B = Integer.parseInt(comps[2]);
 				//g.setColor(new Color(R,G,B));
 			}
-			int len = AWTUtils.drawWrapString(g, x, y, maxWidth, t);
+			Rectangle r = AWTUtils.drawWrapString(g, x, y, maxWidth, t);
+			int len = r.width;
 			totalUsed += len;
 			if (len >= t.length())
 				break;

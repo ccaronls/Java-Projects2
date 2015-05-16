@@ -324,10 +324,33 @@ public final class Board extends Reflector<Board> {
     	return islands.get(num-1);
     }
     
+    /**
+     * 
+     * @return
+     */
     public Iterable<Island> getIslands() {
     	return islands;
     }
+    
+    /**
+     * 
+     * @param playerNum
+     * @return
+     */
+    public int getNumPlayerDiscoveredIslands(int playerNum) {
+    	int num = 0;
+    	for (Island i : getIslands()) {
+    		if (i.isDiscoveredBy(playerNum))
+    			num++;
+    	}
+    	return num;
+    }
 
+    /**
+     * 
+     * @param startCellIndex
+     * @return
+     */
     public Collection<Integer> findIslandShoreline(int startCellIndex) {
     	Tile tile = getTile(startCellIndex);
     	if (tile.getIslandNum() > 0)
@@ -1045,6 +1068,20 @@ public final class Board extends Reflector<Board> {
         return this.tiles;
     }
     
+    /**
+     * 
+     * @param type
+     * @return
+     */
+    public List<Integer> getTilesOfType(TileType type) {
+    	List<Integer> tiles = new ArrayList<Integer>();
+    	for (int i=0; i<getNumTiles(); i++) {
+    		if(getTile(i).getType()==type) {
+    			tiles.add(i);
+    		}
+    	}
+    	return tiles;
+    }
     
     /**
      * Return whether the board has been initialized.

@@ -24,17 +24,11 @@ public class Reflector<T> {
      */
     public static boolean ENABLE_THROW_ON_UNKNOWN = false;
     
-    public interface IReader {
-        String readLine() throws IOException;
-    }
-    
-    public interface IWriter {
-        void writeLine(String line) throws IOException;
-    }
-    
     private static class MyBufferedReader extends BufferedReader {
 
+    	private int markedLineNum = 0;
         int lineNum = 0;
+        int depth = 0;
         
         public MyBufferedReader(Reader arg0) {
             super(arg0);
@@ -44,11 +38,40 @@ public class Reflector<T> {
         public String readLine() throws IOException {
             lineNum++;
             try {
-                return super.readLine();
+                String line = super.readLine();
+                if (line == null) {
+                	if (depth > 0)
+                		throw new EOFException();
+                	return null;
+                }
+                line = line.trim();
+                if (line.endsWith("{")) {
+                	depth++;
+                	return line.substring(0, line.length()-1).trim();
+                }
+                if (line.endsWith("}")) {
+                	depth--;
+                	return null;
+                }
+                return line;
             } catch (IOException e) {
                 throw new IOException("Error on line: " + lineNum, e);
             }
         }
+
+		@Override
+		public void mark(int readAheadLimit) throws IOException {
+			super.mark(readAheadLimit);
+			markedLineNum = lineNum;
+		}
+
+		@Override
+		public void reset() throws IOException {
+			super.reset();
+			lineNum = markedLineNum;
+		}
+        
+        
     }
     
     private static class MyPrintWriter extends PrintWriter {
@@ -102,14 +125,14 @@ public class Reflector<T> {
         String get(Field field, Reflector<?> a) throws Exception;
         void set(Field field, String value, Reflector<?> a) throws Exception;
         void serializeArray(Object arr, MyPrintWriter out) throws Exception;
-        void deserializeArray(Object arr, BufferedReader in) throws Exception;
+        void deserializeArray(Object arr, MyBufferedReader in) throws Exception;
     };
     
     private static String readLineOrEOF(BufferedReader in) throws IOException {
         while (true) {
             String line = in.readLine();
             if (line == null)
-                throw new EOFException();
+                return null;
             line = line.trim();
             if (line.length() == 0 || line.startsWith("#"))
                 continue;
@@ -147,14 +170,12 @@ public class Reflector<T> {
                 for (int i=0; i<len; i++) {
                     buf.append(Array.get(arr, i)).append(" ");
                 }
-                out.push();
                 out.println(buf.toString());
-                out.pop();
             }
         }
 
         @Override
-        public void deserializeArray(Object arr, BufferedReader in) throws Exception {
+        public void deserializeArray(Object arr, MyBufferedReader in) throws Exception {
             int len = Array.getLength(arr);
             if (len > 0) {
                 while (true) {
@@ -165,6 +186,10 @@ public class Reflector<T> {
                     for (int i=0; i<len; i++) {
                         Array.set(arr, i, parse(parts[i]));
                     }
+                    in.mark(256);
+                    if (readLineOrEOF(in) != null)
+                    	in.reset();
+                    	//throw new Exception("Line: " + in.lineNum +" expected closing '}'");
                     break;
                 }
             }
@@ -194,7 +219,6 @@ public class Reflector<T> {
         @Override
         public void serializeArray(Object arr, MyPrintWriter out) throws Exception {
             int num = Array.getLength(arr);
-            out.push();
             if (num > 0) {
                 StringBuffer buf = new StringBuffer();
                 for (int i=0; i<num; i++) {
@@ -206,18 +230,18 @@ public class Reflector<T> {
                 }
                 out.print(buf.toString());
             }
-            out.pop();
         }
 
         @Override
-        public void deserializeArray(Object arr, BufferedReader in) throws Exception {
+        public void deserializeArray(Object arr, MyBufferedReader in) throws Exception {
             int len = Array.getLength(arr);
             for (int i=0; i<len; i++) {
                 String line = readLineOrEOF(in);
                 if (!line.equals("null"))
                     Array.set(arr, i, line.substring(1, line.length()-1));
             }
-                
+            if (readLineOrEOF(in) != null)
+            	throw new Exception("Line: " + in.lineNum +" expected closing '}'");
         }
     };
 
@@ -302,7 +326,6 @@ public class Reflector<T> {
         @Override
         public void serializeArray(Object arr, MyPrintWriter out) throws Exception {
             int len = Array.getLength(arr);
-            out.push();
             if (len > 0) {
                 StringBuffer buf = new StringBuffer();
                 for (int i=0; i<len; i++) {
@@ -311,24 +334,23 @@ public class Reflector<T> {
                 }
                 out.println(buf.toString());
             }
-            out.pop();
         }
 
         @Override
-        public void deserializeArray(Object arr, BufferedReader in) throws Exception {
+        public void deserializeArray(Object arr, MyBufferedReader in) throws Exception {
             int len = Array.getLength(arr);
-            if (len > 0) {
-                while (true) {
-                    String line = readLineOrEOF(in);
-                    String [] parts = line.split(" ");
-                    if (parts.length != len)
-                        throw new Exception("Expected " + len + " parts but found " + parts.length);
-                    for (int i=0; i<len; i++) {
-                        Enum<?> enumEntry = findEnumEntry(arr.getClass().getComponentType(), parts[i]);
-                        Array.set(arr, i, enumEntry);
-                    }
-                    break;
+            while (true) {
+                String line = readLineOrEOF(in);
+                String [] parts = line.split(" ");
+                if (parts.length != len)
+                    throw new Exception("Expected " + len + " parts but found " + parts.length);
+                for (int i=0; i<len; i++) {
+                    Enum<?> enumEntry = findEnumEntry(arr.getClass().getComponentType(), parts[i]);
+                    Array.set(arr, i, enumEntry);
                 }
+                if (readLineOrEOF(in) != null)
+                	throw new Exception("Line: " + in.lineNum +" expected closing '}'");
+                break;
             }
         }
     };
@@ -372,37 +394,40 @@ public class Reflector<T> {
         @Override
         public void serializeArray(Object arr, MyPrintWriter out) throws Exception {
             int len = Array.getLength(arr);
-            //out.println();
-            out.push();
             if (len > 0) {
                 for (int i=0; i<len; i++) {
                     Reflector<?> o = (Reflector<?>)Array.get(arr, i);
                     if (o != null) {
                         out.println(o.getClass().getCanonicalName() + " {");
+                    	out.push();
                         o.serialize(out);
+                        out.pop();
                         out.println("}");
                     }
                     else
                         out.println("null");
                 }
             }
-            out.pop();
         }
 
         @Override
-        public void deserializeArray(Object arr, BufferedReader in) throws Exception {
+        public void deserializeArray(Object arr, MyBufferedReader in) throws Exception {
             int len = Array.getLength(arr);
             for (int i=0; i<len; i++) {
+                int depth = in.depth;
                 String line = readLineOrEOF(in);
                 if (line.equals("null"))
                     continue;
-                String [] parts = line.split(" ");
-                if (parts.length < 2)
-                    throw new Exception("Expected 2 parts in line '" + line + "'");
-                Reflector<?> a = (Reflector<?>)Reflector.class.getClassLoader().loadClass(parts[0]).newInstance();
+                Reflector<?> a = (Reflector<?>)Reflector.class.getClassLoader().loadClass(line).newInstance();
                 a.deserialize(in);
                 Array.set(arr, i, a);
+                if (in.depth > depth) {
+                	if (readLineOrEOF(in) != null)
+                		throw new Exception("Line: " + in.lineNum + " expected closing '}'");
+                }
             }
+            if (readLineOrEOF(in) != null)
+            	throw new Exception("Line: " + in.lineNum +" expected closing '}'");
         }
     };
 
@@ -418,47 +443,43 @@ public class Reflector<T> {
         @Override
         public void set(Field field, String value, Reflector<?> a) throws Exception {
             if (value != null && !value.equals("null")) {
-                String [] parts= value.split(" ");
-                if (parts.length < 2)
-                    throw new Exception("Expected at least 2 parts in " + value);
-                field.set(a, Reflector.class.getClassLoader().loadClass(parts[0]).newInstance());
+                field.set(a, Reflector.class.getClassLoader().loadClass(value).newInstance());
             }
         }
         
         @Override
         public void serializeArray(Object arr, MyPrintWriter out) throws Exception {
             int len = Array.getLength(arr);
-            //out.println();
-            out.push();
             if (len > 0) {
                 for (int i=0; i<len; i++) {
                     Collection<?> c = (Collection<?>)Array.get(arr, i);
                     if (c != null) {
                         out.println(c.getClass().getCanonicalName() + " {");
                         serializeObject(c, out, true);
-                        //o.serializeR(out, indent + INDENT);
-                        //out.println("}");
                     }
                     else
                         out.println("null");
                 }
             }
-            out.pop();
         }
 
         @Override
-        public void deserializeArray(Object arr, BufferedReader in) throws Exception {
+        public void deserializeArray(Object arr, MyBufferedReader in) throws Exception {
         	int len = Array.getLength(arr);
     		//String clazz = arr.getClass().getCanonicalName();
     		// trim the [] off the end
     		//clazz = clazz.substring(0, clazz.length()-2);
         	for (int i=0; i<len; i++) {
-        		String [] parts = readLineOrEOF(in).split(" ");
-        		String clazz = parts[0].trim();
-        		Collection<?> c = (Collection<?>)Reflector.class.getClassLoader().loadClass(clazz).newInstance();
-        		deserializeCollection(c, in);
-        		Array.set(arr, i, c);
+        		String clazz = readLineOrEOF(in);//.split(" ");
+        		//String clazz = parts[0].trim();
+        		if (!clazz.equals("null")) {
+            		Collection<?> c = (Collection<?>)Reflector.class.getClassLoader().loadClass(clazz).newInstance();
+            		deserializeCollection(c, in);
+            		Array.set(arr, i, c);
+        		}
         	}
+            if (readLineOrEOF(in) != null)
+            	throw new Exception("Line: " + in.lineNum +" expected closing '}'");
         }
     };
 
@@ -488,7 +509,7 @@ public class Reflector<T> {
 		}
 		
 		@Override
-		public void deserializeArray(Object arr, BufferedReader in)
+		public void deserializeArray(Object arr, MyBufferedReader in)
 				throws Exception {
 			// TODO Auto-generated method stub
 			throw new Exception("Not implemented");
@@ -498,34 +519,60 @@ public class Reflector<T> {
     private static Map<String, Class<?>> classMap = new HashMap<String, Class<?>>();
     
     // TODO: Support more than 3D arrays?
+    // TODO: byte?
     static {
-        classMap.put("int", int.class);
+    	
+    	classMap.put("byte", byte.class);
+    	classMap.put("byte[]", byte[].class);
+    	classMap.put("[B", byte[].class);
+    	classMap.put("byte[][]", byte[][].class);
+    	classMap.put("[[B", byte[][].class);
+    	classMap.put("byte[][][]", byte[][][].class);
+    	classMap.put("[[[B", byte[][][].class);
+
+    	classMap.put("int", int.class);
         classMap.put("int[]", int[].class);
         classMap.put("[I", int[].class);
         classMap.put("int[][]", int[][].class);
         classMap.put("[[I", int[][].class);
+        classMap.put("int[][][]", int[][].class);
+        classMap.put("[[[I", int[][].class);
+        
         classMap.put("float", float.class);
         classMap.put("float[]", float[].class);
         classMap.put("[F", float[].class);
         classMap.put("float[][]", float[][].class);
         classMap.put("[[F", float[][].class);
+        classMap.put("float[][][]", float[][][].class);
+        classMap.put("[[[F", float[][][].class);
+        
         classMap.put("long", long.class);
         classMap.put("long[]", long[].class);
         classMap.put("[L", long[].class);
         classMap.put("long[][]", long[][].class);
         classMap.put("[[L", long[][].class);
+        classMap.put("long[][][]", long[][][].class);
+        classMap.put("[[[L", long[][][].class);
+        
         classMap.put("double", double.class);
         classMap.put("double[]", double[].class);
         classMap.put("[D", double[].class);
         classMap.put("double[][]", double[][].class);
         classMap.put("[[D", double[][].class);
+        classMap.put("double[][][]", double[][][].class);
+        classMap.put("[[[D", double[][][].class);
+        
         classMap.put("boolean", boolean.class);
         classMap.put("boolean[]", boolean[].class);
-        classMap.put("[B", boolean[].class);
+        classMap.put("[Z", boolean[].class);
         classMap.put("boolean[][]", boolean[][].class);
-        classMap.put("[[B", boolean[][].class);
+        classMap.put("[[Z", boolean[][].class);
+        classMap.put("boolean[][][]", boolean[][][].class);
+        classMap.put("[[[Z", boolean[][][].class);
+        
         classMap.put("java.lang.String[]", String[].class);
         classMap.put("java.lang.String[][]", String[][].class);
+        classMap.put("java.lang.String[][][]", String[][][].class);
     }
     
     public static void registerEnum(Class<?> enumClazz) {
@@ -549,7 +596,7 @@ public class Reflector<T> {
         @Override
         public String get(Field field, Reflector<?> a) throws Exception {
             Object o = field.get(a);
-            String s = field.getType().getComponentType().getCanonicalName() + " " + Array.getLength(o);
+            String s = field.getType().getComponentType().getCanonicalName() + " " + Array.getLength(o) + " {";
             return s;
         }
 
@@ -571,7 +618,6 @@ public class Reflector<T> {
         @Override
         public void serializeArray(Object arr, MyPrintWriter out) throws Exception {
             int len = Array.getLength(arr);
-            out.push();
             if (len > 0) {
                 for (int i=0; i<len; i++) {
                     Archiver compArchiver = getArchiverForType(arr.getClass().getComponentType().getComponentType());
@@ -579,16 +625,18 @@ public class Reflector<T> {
                     if (obj == null) {
                         out.println("null");
                     } else {
-                        out.println(obj.getClass().getComponentType().getCanonicalName() + " " + Array.getLength(obj));
+                        out.println(obj.getClass().getComponentType().getCanonicalName() + " " + Array.getLength(obj) + " {");
+                        out.push();
                         compArchiver.serializeArray(Array.get(arr, i), out);
+                        out.pop();
+                        out.println("}");
                     }
                 }
             }
-            out.pop();
         }
 
         @Override
-        public void deserializeArray(Object arr, BufferedReader in) throws Exception {
+        public void deserializeArray(Object arr, MyBufferedReader in) throws Exception {
             int len = Array.getLength(arr);
             for (int i=0; i<len; i++) {
                 Archiver compArchiver = getArchiverForType(arr.getClass().getComponentType().getComponentType());
@@ -599,6 +647,9 @@ public class Reflector<T> {
                     compArchiver.deserializeArray(obj, in);
                 }
             }
+            if (readLineOrEOF(in) != null)
+            	throw new Exception("Line: " + in.lineNum +" expected closing '}'");
+
         }
     };
     
@@ -865,6 +916,21 @@ public class Reflector<T> {
      * 
      * @param obj
      * @param out
+     * @throws Exception
+     */
+    public static void serializeObject(Object obj, PrintWriter out) throws Exception {
+    	MyPrintWriter _out;
+        if (out instanceof MyPrintWriter)
+            _out = (MyPrintWriter)out;
+        else
+            _out = new MyPrintWriter(out);
+        serializeObject(obj, _out, false);
+    }
+    
+    /**
+     * 
+     * @param obj
+     * @param out
      * @param indent
      * @param printObjects
      * @throws Exception
@@ -882,10 +948,10 @@ public class Reflector<T> {
             out.push();
             for (Object o: c) {
                 out.println(o.getClass().getCanonicalName() + " {");
-                out.push();
+                //out.push();
                 serializeObject(o, out, true);
-                out.pop();
-                out.println("}");
+                //out.pop();
+                //out.println("}");
             }
             out.pop();
             out.println("}");
@@ -910,14 +976,20 @@ public class Reflector<T> {
             out.println("}");
         } else if (obj.getClass().isArray()) {
             Archiver compArchiver = getArchiverForType(obj.getClass().getComponentType());
+            out.push();
             compArchiver.serializeArray(obj, out);
+            out.pop();
+            out.println("}");
         }         
         else if (printObjects) {
-            out.println(obj);
+        	out.push();
+        	out.println(obj);
+        	out.pop();
+        	out.println("}");
         }
     }
     
-    public final void serialize(PrintWriter out_) throws IOException {
+    public void serialize(PrintWriter out_) throws IOException {
 //        Utils.println("Serializing %s", getClass().getName());
         MyPrintWriter out;
         if (out_ instanceof MyPrintWriter)
@@ -951,7 +1023,7 @@ public class Reflector<T> {
         serialize(pout);
     }
     
-    private static Object parse(Class<?> clazz, BufferedReader in) throws Exception {
+    private static Object parse(Class<?> clazz, MyBufferedReader in) throws Exception {
         if (clazz.isEnum())
             return findEnumEntry(clazz, readLineOrEOF(in));
         if (clazz.isArray())
@@ -981,56 +1053,64 @@ public class Reflector<T> {
     }
     
     @SuppressWarnings({ "unchecked", "rawtypes" })
-    private static void deserializeCollection(Collection c, BufferedReader in) throws Exception {
-        while (true) {
-        	String line = readLineOrEOF(in).trim();
+    private static void deserializeCollection(Collection c, MyBufferedReader in) throws Exception {
+        //String line = null;
+    	final int startDepth = in.depth;
+    	while (true) {
+    		String line = readLineOrEOF(in);
+    		if (line == null)
+    			break;
+    		/*
+    		if (line == null) {
+    			line = in.readLine();//OrEOF(in).trim();
+    			if (line == null)
+    				break;
+    			line = line.trim();
+    		}
             if (line.equals("}"))
                 break;
+                */
             Object entry = null;
-            if (line != null && !line.equals("null")) {
-	            String [] parts = line.split(" ");
-	            if (parts.length < 1)
-	                throw new Exception("Expected at least 1 parts in line: " + line);
-	            Class<?> clazz = getClassForName(parts[0]);
+            if (!line.equals("null")) {
+	            Class<?> clazz = getClassForName(line);
 	            entry = parse(clazz, in); 
-	        	line = readLineOrEOF(in).trim();
-	            if (!line.equals("}"))
-	            	throw new Exception("Expected '}' to close out collection entry");
+	            if (in.depth > startDepth)
+    	            if (readLineOrEOF(in) != null)
+    	            	throw new Exception("Line " + in.lineNum + " Expected closing '}'");
+//	            line = readLineOrEOF(in).trim();
+//	            if (line.equalsIgnoreCase("}")) {
+//	            	line = null;
+//	            }
+//    	            if (!line.equals("}"))
+//    	            	throw new Exception("Expected '}' to close out collection entry");
+	            
             }
             c.add(entry);
         }
     }
     
     @SuppressWarnings({ "unchecked", "rawtypes" })
-    private static void deserializeMap(Map c, BufferedReader in) throws Exception {
+    private static void deserializeMap(Map c, MyBufferedReader in) throws Exception {
     	while (true) {
         	String line = readLineOrEOF(in).trim();
-            if (line.equals("}"))
-                break;
             if (line == null || line.equals("null"))
                 break;
-            String [] parts = line.split(" ");
-            if (parts.length < 1)
-                throw new Exception("Expected at least 1 parts in line: " + line);
-            Class<?> clazz = getClassForName(parts[0]);
+            Class<?> clazz = getClassForName(line);
 	    	Object key = parse(clazz, in);
 	    	if (key == null)
 	    		throw new Exception("null key in map");
         	line = readLineOrEOF(in).trim();
-            if (!line.equals("}"))
+            if (line == null) // !line.equals("}"))
                 throw new Exception("Expected '}' to end the key");
         	line = readLineOrEOF(in).trim();
-            if (line.equals("}"))
+            if (line == null) //.equals("}"))
                 throw new Exception("Missing value from key/value pair in map");
             Object value = null;
             if (line != null && !line.equals("null")) {
-	            parts = line.split(" ");
-	            if (parts.length < 1)
-	                throw new Exception("Expected at least 1 parts in line: " + line);
-	            clazz = getClassForName(parts[0]);
+	            clazz = getClassForName(line);
 	            value = parse(clazz, in);
-	            line = readLineOrEOF(in).trim();
-	            if (!line.equals("}"))
+	            line = readLineOrEOF(in);
+	            if (line != null)
 	                throw new Exception("Expected '}' to end the value");
             }
 	    	c.put(key, value);
@@ -1038,13 +1118,11 @@ public class Reflector<T> {
     }
 
     public final void deserialize(String text) throws Exception {
-        BufferedReader in = new MyBufferedReader(new StringReader(text));
-        deserialize(in);
+        deserialize(new MyBufferedReader(new StringReader(text)));
     }
     
     public final void deserialize(InputStream in) throws Exception {
-        BufferedReader buf = new MyBufferedReader(new InputStreamReader(in));
-        deserialize(buf);
+        deserialize(new MyBufferedReader(new InputStreamReader(in)));
     }
     
     /**
@@ -1052,18 +1130,27 @@ public class Reflector<T> {
      * @param in
      * @throws Exception
      */
-    public void deserialize(BufferedReader in) throws Exception {
+    protected void deserialize(BufferedReader _in) throws Exception {
+    	MyBufferedReader in = null;
+    	if (_in instanceof MyBufferedReader)
+    		in = (MyBufferedReader)_in;
+    	else
+    		in = new MyBufferedReader(_in);
         Map<Field, Archiver> values = getValues(getClass(), false);
+    	final int depth = in.depth;
         while (true) {
+            if (in.depth > depth)
+            	if (in.readLine() != null)
+            		throw new Exception("Line: " + in.lineNum + " Expected closing '}");
             String line = in.readLine();
             //System.out.println("Parsing line: " + line);
             if (line == null)
                 break;
-            line = line.trim();
-            if (line.length() == 0 || line.startsWith("#"))
-                continue;
-            if (line.startsWith("}"))
-                break;
+//            line = line.trim();
+//            if (line.length() == 0 || line.startsWith("#"))
+//                continue;
+//            if (line.startsWith("}"))
+//                break;
             String [] parts = line.split("=");
             if (parts.length < 1)
                 throw new Exception("Mangled line should have at least 1 parts, instead has 0");
@@ -1078,16 +1165,16 @@ public class Reflector<T> {
                         Object obj = field.get(this);
                         if (obj != null) {
                             Archiver arrayArchiver = getArchiverForType(obj.getClass().getComponentType());
-                            arrayArchiver.deserializeArray(obj, in);
+                            arrayArchiver.deserializeArray(obj, (MyBufferedReader)in);
                         }
                     } else if (isSubclassOf(field.getType(), Collection.class)) {
                         Collection<?> collection = (Collection<?>)field.get(this);
                         if (collection != null)
-                            deserializeCollection(collection, in);
+                            deserializeCollection(collection, (MyBufferedReader)in);
                     } else if (isSubclassOf(field.getType(), Map.class)) {
                     	Map<?,?> map = (Map<?,?>)field.get(this);
                     	if (map != null) 
-                    		deserializeMap(map, in);
+                    		deserializeMap(map, (MyBufferedReader)in);
                     }
                     parts = null;
                     break;
@@ -1132,17 +1219,21 @@ public class Reflector<T> {
             return true;
         if (o == null)
             return false;
-        Map<Field, Archiver> values = getValues(getClass(), false);
-        Reflector<T> a = (Reflector<T>)o;
-        for (Field f : values.keySet()) {
-            try {
-                if (!isEqual(f.get(this), f.get(a)))
-                    return false;
-            } catch (Exception e) {
-                e.printStackTrace();
+        try {
+            Map<Field, Archiver> values = getValues(getClass(), false);
+            Reflector<T> a = (Reflector<T>)o;
+            for (Field f : values.keySet()) {
+                try {
+                    if (!isEqual(f.get(this), f.get(a)))
+                        return false;
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
+            return true;
+        } catch (Exception e) {
+        	return super.equals(o);
         }
-        return true;
     }
     
     @Override
@@ -1271,26 +1362,17 @@ public class Reflector<T> {
      */
     public final void loadFromFile(File file) throws IOException {
         Utils.println("Loading from file %s", file.getAbsolutePath());
-        FileInputStream in = null;
-        final int[] lineNum = new int[1];
+        MyBufferedReader reader = null;
         try {
-            in = new FileInputStream(file);
-            BufferedReader reader = new BufferedReader(new InputStreamReader(in)) {
-                @Override
-                public String readLine() throws IOException {
-                    String line = super.readLine();
-                    lineNum[0]++;
-                    return line;
-                }
-            };       
+            reader = new MyBufferedReader(new InputStreamReader(new FileInputStream(file)));    
             deserialize(reader);
         } catch (IOException e) {
-            throw new IOException("Error on line " + lineNum[0] + ": " + e.getMessage(), e);
+            throw new IOException("Error on line " + reader.lineNum + ": " + e.getMessage(), e);
         } catch (Exception e) {
-            throw new IOException("Error on line " + lineNum[0] + ": " + e.getMessage(), e);
+            throw new IOException("Error on line " + reader.lineNum + ": " + e.getMessage(), e);
         } finally {
-            if (in != null)
-                in.close();
+            if (reader != null)
+                reader.close();
         }
     }
 }
