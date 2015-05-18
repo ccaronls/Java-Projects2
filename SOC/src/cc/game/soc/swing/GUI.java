@@ -39,13 +39,24 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
     final Logger log = Logger.getLogger(GUI.class);
     
     static GUI instance;
+    static final File homeFolder = new File(System.getProperty("user.home") + "/.soc");
 
 	public static void main(String [] args)  {
 		JFrame frame = new JFrame();
 		try {
+			
+//			System.out.println(System.getProperties().toString().replace(",", "\n"));
+			
 			Utils.setDebugEnabled(true);
 			GUIProperties props = new GUIProperties();
-            props.load("gui.properties");
+			if (!homeFolder.exists()) {
+				if (!homeFolder.mkdir()) {
+					throw new RuntimeException("Cannot create home folder: " + homeFolder);
+				}
+			} else if (!homeFolder.isDirectory()) {
+				throw new RuntimeException("Not a directory: " + homeFolder);
+			}
+            props.load(new File(homeFolder, "gui.properties").getAbsolutePath());
 			GUI gui = new GUI(frame, props);
 			frame.addWindowListener(gui);
 			frame.addComponentListener(gui);
@@ -121,9 +132,9 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 	
 	private ColorString [] playerColors;
 
-    private String defaultBoardFileName;
-    private String saveGameFileName;
-    private String saveRulesFileName;
+    private final File defaultBoardFile;
+    private final File saveGameFile;
+    private final File saveRulesFile;
     
     private float diceSpinTimeSeconds;
     
@@ -151,24 +162,23 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 		
 //		board = soc.getBoard();
 //		rules = soc.getRules();
-        defaultBoardFileName = props.getProperty("gui.defaultBoardFilename", "soc_def_board.txt");
-        saveGameFileName = props.getProperty("gui.saveGameFileName", "socsavegame.txt");
-        saveRulesFileName = props.getProperty("gui.saveRulesFileName", "socrules.txt");
+        defaultBoardFile = new File(homeFolder, props.getProperty("gui.defaultBoardFilename", "soc_def_board.txt"));
+        saveGameFile = new File(homeFolder, props.getProperty("gui.saveGameFileName", "socsavegame.txt"));
+        saveRulesFile = new File(homeFolder, props.getProperty("gui.saveRulesFileName", "socrules.txt"));
         diceSpinTimeSeconds = props.getFloatProperty("gui.diceSpinTimeSeconds", 3);
         
-        File ruleFile = new File(saveRulesFileName);
-        if (ruleFile.exists()) {
-        	getRules().loadFromFile(ruleFile);
+        if (saveRulesFile.exists()) {
+        	getRules().loadFromFile(saveRulesFile);
         }
         
         menuStack.push(MenuState.MENU_START);
-		if (!loadBoard(defaultBoardFileName)) {
+		if (!loadBoard(defaultBoardFile.getAbsolutePath())) {
 			//board.generateRectBoard(8);
 			getBoard().generateDefaultBoard();
 			if (!getBoard().isFinalized())
 				menuStack.push(MenuState.MENU_CONFIG_BOARD);
 			else
-				saveBoard(defaultBoardFileName);
+				saveBoard(defaultBoardFile.getAbsolutePath());
 		}
         playerColors = new ColorString[] {
         		new ColorString(Color.RED, "Red"),
@@ -582,7 +592,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 			case DEBUG_BOARD:
 				menuStack.push(MenuState.MENU_DEBUGGING);
 				try {
-					getBoard().load("debugboard.txt");
+					getBoard().load(new File(homeFolder, "debugboard.txt").getAbsolutePath());
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -606,14 +616,14 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 			case RESTORE: {
 				boolean success = false;
 				do {
-    				if (soc.load(saveGameFileName)) {
+    				if (soc.load(saveGameFile.getAbsolutePath())) {
     					boardComp.setBoard(getBoard());
     					menuStack.push(MenuState.MENU_PLAY_GAME);
     					initMenu();
     					new Thread(this).start();
     					success = true;
     				}
-				} while (!success && FileUtils.restoreFile(saveGameFileName));
+				} while (!success && FileUtils.restoreFile(saveGameFile.getAbsolutePath()));
 				if (!success) {
 					button.setEnabled(false);
 				}
@@ -703,11 +713,11 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 				break;
 
 			case SAVE_BOARD_AS_DEFAULT:
-				saveBoard(defaultBoardFileName);
+				saveBoard(defaultBoardFile.getAbsolutePath());
 				break;
 
 			case LOAD_DEFAULT:
-				if (loadBoard(defaultBoardFileName)) {
+				if (loadBoard(defaultBoardFile.getAbsolutePath())) {
 					frame.repaint();
 				}
 				break;
@@ -772,8 +782,8 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 
 			case REWIND_GAME: {
 				stopGameThread();
-				FileUtils.restoreFile(saveGameFileName);
-				if (soc.load(saveGameFileName)) {
+				FileUtils.restoreFile(saveGameFile.getAbsolutePath());
+				if (soc.load(saveGameFile.getAbsolutePath())) {
 					boardComp.setBoard(getBoard());
 					new Thread(this).start();
 					frame.repaint();
@@ -1492,7 +1502,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
                 			}
                 		}
                 		
-                		rules.saveToFile(new File(saveRulesFileName));
+                		rules.saveToFile(saveRulesFile.getAbsoluteFile());
                 		GUI.this.getRules().copyFrom(rules);
                 	} catch (Exception e) {
                 		e.printStackTrace();
@@ -1655,8 +1665,8 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 				soc.runGame();
 				if (running && soc.isGoodForSave() && soc.getCurGuiPlayer() instanceof GUIPlayerUser)
 					synchronized (soc) {
-						FileUtils.backupFile(saveGameFileName, 10);
-						soc.save(saveGameFileName);
+						FileUtils.backupFile(saveGameFile.getAbsolutePath(), 10);
+						soc.save(saveGameFile.getAbsolutePath());
 					}
 				frame.repaint();
 			}
@@ -1877,7 +1887,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
         console.addText(Color.BLACK, "Road Length: " + getBoard().computeMaxRouteLengthForPlayer(getCurPlayerNum(), getRules().isEnableRoadBlock()));
         getBoard().findAllPairsShortestPathToDiscoverables(getCurPlayerNum());
         try {
-        	getBoard().save("debugboard.txt");
+        	getBoard().save(new File(homeFolder, "debugboard.txt").getAbsolutePath());
         } catch (Exception e) {
         	e.printStackTrace();
         }
