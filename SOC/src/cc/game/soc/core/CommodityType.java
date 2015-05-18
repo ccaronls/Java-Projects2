@@ -27,6 +27,10 @@ public enum CommodityType implements ICardType<DevelopmentArea> {
 	public DevelopmentArea getData() {
 		return area;
 	}
-	
+
+	@Override
+	public CardStatus defaultStatus() {
+		return CardStatus.USABLE;
+	}
 	
 }

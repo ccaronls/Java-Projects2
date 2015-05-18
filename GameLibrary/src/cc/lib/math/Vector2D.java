@@ -17,6 +17,8 @@ import cc.lib.utils.Reflector;
  */
 public class Vector2D extends Reflector<Vector2D> implements IVector2D, Serializable {
 
+	public static boolean USE_TEMPS = false;
+	
     static {
         addAllFields(Vector2D.class);
     }
@@ -217,7 +219,7 @@ public class Vector2D extends Reflector<Vector2D> implements IVector2D, Serializ
     }
     
     public final String toString() {
-        return String.format("<%4.1f, %4.1f>", x, y);
+        return String.format("<%6f, %6f>", x, y);
     }    
     
     private static MutableVector2D [] pool = new MutableVector2D[64];
@@ -229,9 +231,12 @@ public class Vector2D extends Reflector<Vector2D> implements IVector2D, Serializ
     }
     
     private static MutableVector2D getFromPool() {
-        MutableVector2D next = pool[poolIndex];
-        poolIndex = (poolIndex+1) % pool.length;
-        return next;
+    	if (USE_TEMPS) {
+            MutableVector2D next = pool[poolIndex];
+            poolIndex = (poolIndex+1) % pool.length;
+            return next;
+    	}
+    	return new MutableVector2D();
     }
     
     public static MutableVector2D newTemp() {

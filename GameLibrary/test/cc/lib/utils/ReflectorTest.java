@@ -241,9 +241,11 @@ public class ReflectorTest extends TestCase {
     		addAllFields(MyCollection.class);
     	}
     	
-    	List<SmallReflector> list = new ArrayList<SmallReflector>();
-
+    	List<SmallReflector> list = null;//new ArrayList<SmallReflector>();
+    	List<SmallReflector> other = new ArrayList<SmallReflector>();
+    	
     	void build() {
+    		list = new ArrayList<SmallReflector>();
     		for (int i=0; i<10; i++) {
     			list.add(new SmallReflector());
     		}
@@ -252,7 +254,7 @@ public class ReflectorTest extends TestCase {
     
     public void testCollection() throws Exception {
     	MyCollection c = new MyCollection();
-    	c.build();
+    	//c.build();
     	String data = c.toString();
         System.out.println(data);
         BufferedReader reader = new BufferedReader(new StringReader(data));

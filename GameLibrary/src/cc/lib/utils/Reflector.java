@@ -9,11 +9,53 @@ import cc.lib.game.Utils;
 /**
  * Derive from this class to handle copying, equals, serializing, etc.
  * 
- * Serialization of primitives, arrays and subclasses of Archivable are supported.
+ * Serialization of primitives, arrays and subclasses of Reflector are supported.
  * Also collections are supported if their data types are one of the afore mentioned
  * New types can be added if they implement an Archiver.
  * 
- * NOTE: Derived classes must support a public zero argument constructor for deserialization
+ * There are 3 ways to use this class:
+ * 1. Extend Reflector and Don't override serialize and deserialize, simple call addField within a static 
+ * block of your class for each field you want to be serialized.  There are convenience methods like 
+ * addAllFields and omitField to simplify this step.  The following types can be added using addField 
+ * with no work:
+ * primitives, primitive arrays, Object Arrays, enums, Collections, Maps, Reflectors.
+ * Fields of external types need to have an archiver attached like so:
+ * class A extends Reflector<A> {
+ *    java.awt.Color color;
+ *    static {
+ *       addField(A.class, "color", new Reflector.AArchiver() {
+ *   		
+ *   		@Override
+ *   		public Object parse(String value) throws Exception {
+ *   			return Utils.stringToColor(value);
+ *   		}
+ *   		
+ *   		@Override
+ *   		public String getStringValue(Object obj) {
+ *   			return Utils.colorToString((Color)obj);
+ *   		}
+ *   	};
+ *    }
+ * }
+ * 
+ * 2. Extend this class and override serialize/deserialize.  Use println/readLine to read pre trimmed strings
+ * from reader.  When reader returns null, there is no more input.  Example:
+ * class A extends Reflector<A> {
+ *    String a;
+ *    int b;
+ *    
+ *    public void serialize(PrintWriter out) {
+ *    	out.println(a);
+ *      out.println(b);
+ *    }
+ *    
+ *    public void deserialize(BufferedReader in) {
+ *      a = in.readLine();
+ *      b = Integer.parseInt(in.readLine());
+ *    }
+ * }
+ * 
+ * NOTE: Derived classes must support a public zero argument constructor for de-serialization
  * @author ccaron
  *
  */
@@ -95,7 +137,7 @@ public class Reflector<T> {
             super(out, true);
         }
 
-        int currentIndent = 0;
+        private int currentIndent = 0;
         
         void push() {
             if (currentIndent < indents.length - 1)
@@ -103,6 +145,7 @@ public class Reflector<T> {
         }
         
         void pop() {
+        	assert(currentIndent > 0);
             if (currentIndent > 0)
                 currentIndent--;
         }
@@ -444,6 +487,8 @@ public class Reflector<T> {
         public void set(Field field, String value, Reflector<?> a) throws Exception {
             if (value != null && !value.equals("null")) {
                 field.set(a, Reflector.class.getClassLoader().loadClass(value).newInstance());
+            } else {
+            	field.set(a, null);
             }
         }
         
@@ -466,12 +511,8 @@ public class Reflector<T> {
         @Override
         public void deserializeArray(Object arr, MyBufferedReader in) throws Exception {
         	int len = Array.getLength(arr);
-    		//String clazz = arr.getClass().getCanonicalName();
-    		// trim the [] off the end
-    		//clazz = clazz.substring(0, clazz.length()-2);
         	for (int i=0; i<len; i++) {
-        		String clazz = readLineOrEOF(in);//.split(" ");
-        		//String clazz = parts[0].trim();
+        		String clazz = readLineOrEOF(in);
         		if (!clazz.equals("null")) {
             		Collection<?> c = (Collection<?>)Reflector.class.getClassLoader().loadClass(clazz).newInstance();
             		deserializeCollection(c, in);
@@ -499,22 +540,103 @@ public class Reflector<T> {
 				if (parts.length < 2)
                     throw new Exception("Expected at least 2 parts in " + value);
                 field.set(a, Reflector.class.getClassLoader().loadClass(parts[0]).newInstance());
+			} else {
+				field.set(a, null);
 			}
 		}
 		
 		@Override
 		public void serializeArray(Object arr, MyPrintWriter out) throws Exception {
-			// TODO Auto-generated method stub
-			throw new Exception("Not implemented");
+			int len = Array.getLength(arr);
+            if (len > 0) {
+                for (int i=0; i<len; i++) {
+                    Map<?,?> m = (Map<?,?>)Array.get(arr, i);
+                    if (m != null) {
+                        out.println(m.getClass().getCanonicalName() + " {");
+                        serializeObject(m, out, true);
+                    }
+                    else
+                        out.println("null");
+                }
+            }		
 		}
 		
 		@Override
-		public void deserializeArray(Object arr, MyBufferedReader in)
-				throws Exception {
-			// TODO Auto-generated method stub
-			throw new Exception("Not implemented");
-		}
+		public void deserializeArray(Object arr, MyBufferedReader in) throws Exception {
+			int len = Array.getLength(arr);
+        	for (int i=0; i<len; i++) {
+        		String clazz = readLineOrEOF(in);
+        		if (!clazz.equals("null")) {
+            		Map<?,?> m = (Map<?,?>)Reflector.class.getClassLoader().loadClass(clazz).newInstance();
+            		deserializeMap(m, in);
+            		Array.set(arr, i, m);
+        		}
+        	}
+            if (readLineOrEOF(in) != null)
+            	throw new Exception("Line: " + in.lineNum +" expected closing '}'");		}
 	};
+	
+    private static Archiver arrayArchiver = new Archiver() {
+
+        @Override
+        public String get(Field field, Reflector<?> a) throws Exception {
+            Object o = field.get(a);
+            String s = field.getType().getComponentType().getCanonicalName() + " " + Array.getLength(o) + " {";
+            return s;
+        }
+
+        private Object createArray(String line) throws Exception {
+            String [] parts = line.split(" ");
+            if (parts.length < 2)
+                throw new Exception("Invalid array description '" + line + "' excepted < 2 parts");
+            Class<?> clazz =getClassForName(parts[0].trim());
+            return Array.newInstance(clazz, Integer.parseInt(parts[1].trim()));
+        }
+        
+        @Override
+        public void set(Field field, String value, Reflector<?> a) throws Exception {
+            if (value != null && !value.equals("null")) {
+                field.set(a, createArray(value));
+            }
+        }
+        
+        @Override
+        public void serializeArray(Object arr, MyPrintWriter out) throws Exception {
+            int len = Array.getLength(arr);
+            if (len > 0) {
+                for (int i=0; i<len; i++) {
+                    Archiver compArchiver = getArchiverForType(arr.getClass().getComponentType().getComponentType());
+                    Object obj = Array.get(arr, i);
+                    if (obj == null) {
+                        out.println("null");
+                    } else {
+                        out.println(obj.getClass().getComponentType().getCanonicalName() + " " + Array.getLength(obj) + " {");
+                        out.push();
+                        compArchiver.serializeArray(Array.get(arr, i), out);
+                        out.pop();
+                        out.println("}");
+                    }
+                }
+            }
+        }
+
+        @Override
+        public void deserializeArray(Object arr, MyBufferedReader in) throws Exception {
+            int len = Array.getLength(arr);
+            for (int i=0; i<len; i++) {
+                Archiver compArchiver = getArchiverForType(arr.getClass().getComponentType().getComponentType());
+                String line = readLineOrEOF(in);
+                if (line != null && !line.equals("null")) {
+                    Object obj = createArray(line);
+                    Array.set(arr, i, obj);
+                    compArchiver.deserializeArray(obj, in);
+                }
+            }
+            if (readLineOrEOF(in) != null)
+            	throw new Exception("Line: " + in.lineNum +" expected closing '}'");
+
+        }
+    };
     
     private static Map<String, Class<?>> classMap = new HashMap<String, Class<?>>();
     
@@ -586,77 +708,16 @@ public class Reflector<T> {
         try {
             return Class.forName(forName);
         } catch (ClassNotFoundException e) {
-            System.err.println("Failed to find class '" + forName + "' in map:\n" + classMap.toString().replaceAll(", ", "\n"));
+            System.err.println("Failed to find class '" + forName + "'");// in map:\n" + classMap.toString().replaceAll(", ", "\n"));
             throw e;
         }
     }
+
     
-    private static Archiver arrayArchiver = new Archiver() {
+    private final static Map<Class<?>, Set<String>> omitFields = new HashMap<Class<?>, Set<String>>();
+    private final static Map<Class<?>, Map<Field, Archiver>> classValues = new HashMap<Class<?>, Map<Field, Archiver>>();
 
-        @Override
-        public String get(Field field, Reflector<?> a) throws Exception {
-            Object o = field.get(a);
-            String s = field.getType().getComponentType().getCanonicalName() + " " + Array.getLength(o) + " {";
-            return s;
-        }
-
-        private Object createArray(String line) throws Exception {
-            String [] parts = line.split(" ");
-            if (parts.length < 2)
-                throw new Exception("Invalid array description '" + line + "' excepted < 2 parts");
-            Class<?> clazz =getClassForName(parts[0].trim());
-            return Array.newInstance(clazz, Integer.parseInt(parts[1].trim()));
-        }
-        
-        @Override
-        public void set(Field field, String value, Reflector<?> a) throws Exception {
-            if (value != null && !value.equals("null")) {
-                field.set(a, createArray(value));
-            }
-        }
-        
-        @Override
-        public void serializeArray(Object arr, MyPrintWriter out) throws Exception {
-            int len = Array.getLength(arr);
-            if (len > 0) {
-                for (int i=0; i<len; i++) {
-                    Archiver compArchiver = getArchiverForType(arr.getClass().getComponentType().getComponentType());
-                    Object obj = Array.get(arr, i);
-                    if (obj == null) {
-                        out.println("null");
-                    } else {
-                        out.println(obj.getClass().getComponentType().getCanonicalName() + " " + Array.getLength(obj) + " {");
-                        out.push();
-                        compArchiver.serializeArray(Array.get(arr, i), out);
-                        out.pop();
-                        out.println("}");
-                    }
-                }
-            }
-        }
-
-        @Override
-        public void deserializeArray(Object arr, MyBufferedReader in) throws Exception {
-            int len = Array.getLength(arr);
-            for (int i=0; i<len; i++) {
-                Archiver compArchiver = getArchiverForType(arr.getClass().getComponentType().getComponentType());
-                String line = readLineOrEOF(in);
-                if (line != null && !line.equals("null")) {
-                    Object obj = createArray(line);
-                    Array.set(arr, i, obj);
-                    compArchiver.deserializeArray(obj, in);
-                }
-            }
-            if (readLineOrEOF(in) != null)
-            	throw new Exception("Line: " + in.lineNum +" expected closing '}'");
-
-        }
-    };
-    
-    private static Map<Class<?>, Set<String>> omitFields = new HashMap<Class<?>, Set<String>>();
-    private static Map<Class<?>, Map<Field, Archiver>> classValues = new HashMap<Class<?>, Map<Field, Archiver>>();
-
-    private static Comparator<Field> fieldComparator = new Comparator<Field>() {
+    private static Comparator<Field> xfieldComparator = new Comparator<Field>() {
 
         @Override
         public int compare(Field arg0, Field arg1) {
@@ -664,6 +725,57 @@ public class Reflector<T> {
         }
         
     };
+    
+    private final static Comparator<Field> fieldComparator = new Comparator<Field>() {
+
+    	Class<?> [] clazzes = {
+    		boolean.class,
+    		byte.class,
+    		int.class,
+    		long.class,
+    		float.class,
+    		double.class,
+    		Boolean.class,
+    		Byte.class,
+    		Integer.class,
+    		Long.class,
+    		Float.class,
+    		Double.class,
+    		String.class,
+    		Enum.class,
+    		Reflector.class,
+    		Array.class,
+    		Collection.class,
+    		Map.class
+    	};
+    	
+    	
+    	private int getFieldNumber(Field f) {
+    		for (int i=0; i<clazzes.length; i++) {
+    			if (clazzes[i] == Array.class && f.getType().isArray())
+    				return i;
+    			if (f.getType() == clazzes[i] || f.getType().equals(clazzes[i]) || clazzes[i].isAssignableFrom(f.getType()) || isSubclassOf(clazzes[i], f.getType())) {
+    				return i;
+    			}
+    		}
+    		//System.err.println("Failed to categorize type '" + f.getType());// + "' into one of " + Arrays.toString(clazzes));
+    		return Integer.MAX_VALUE;
+    	}
+    	
+		@Override
+		public int compare(Field o1, Field o2) {
+
+			int n0 = getFieldNumber(o1);
+			int n1 = getFieldNumber(o2);
+			
+			if (n0 == n1) {
+				return o1.getName().compareTo(o2.getName());
+			}
+			
+			return n0-n1;
+		}
+    	
+	};
     
     private static void inheritValues(Class<?> clazz, Map<Field, Archiver> values) {
         if (clazz == null || clazz.equals(Archiver.class))
@@ -794,7 +906,7 @@ public class Reflector<T> {
     /**
      * Remove any locally omitted fields @see omitField(String)
      */
-    public final void clearLocalOmitFields() {
+    public final void ßLocalOmitFields() {
     	localOmitFields = null;
     }
     
@@ -948,10 +1060,7 @@ public class Reflector<T> {
             out.push();
             for (Object o: c) {
                 out.println(o.getClass().getCanonicalName() + " {");
-                //out.push();
                 serializeObject(o, out, true);
-                //out.pop();
-                //out.println("}");
             }
             out.pop();
             out.println("}");
@@ -1054,22 +1163,11 @@ public class Reflector<T> {
     
     @SuppressWarnings({ "unchecked", "rawtypes" })
     private static void deserializeCollection(Collection c, MyBufferedReader in) throws Exception {
-        //String line = null;
     	final int startDepth = in.depth;
     	while (true) {
     		String line = readLineOrEOF(in);
     		if (line == null)
     			break;
-    		/*
-    		if (line == null) {
-    			line = in.readLine();//OrEOF(in).trim();
-    			if (line == null)
-    				break;
-    			line = line.trim();
-    		}
-            if (line.equals("}"))
-                break;
-                */
             Object entry = null;
             if (!line.equals("null")) {
 	            Class<?> clazz = getClassForName(line);
@@ -1077,13 +1175,6 @@ public class Reflector<T> {
 	            if (in.depth > startDepth)
     	            if (readLineOrEOF(in) != null)
     	            	throw new Exception("Line " + in.lineNum + " Expected closing '}'");
-//	            line = readLineOrEOF(in).trim();
-//	            if (line.equalsIgnoreCase("}")) {
-//	            	line = null;
-//	            }
-//    	            if (!line.equals("}"))
-//    	            	throw new Exception("Expected '}' to close out collection entry");
-	            
             }
             c.add(entry);
         }
@@ -1142,18 +1233,12 @@ public class Reflector<T> {
             if (in.depth > depth)
             	if (in.readLine() != null)
             		throw new Exception("Line: " + in.lineNum + " Expected closing '}");
-            String line = in.readLine();
-            //System.out.println("Parsing line: " + line);
+            String line = readLineOrEOF(in);
             if (line == null)
                 break;
-//            line = line.trim();
-//            if (line.length() == 0 || line.startsWith("#"))
-//                continue;
-//            if (line.startsWith("}"))
-//                break;
             String [] parts = line.split("=");
-            if (parts.length < 1)
-                throw new Exception("Mangled line should have at least 1 parts, instead has 0");
+            if (parts.length < 2)
+                throw new Exception("Line '" + line + "' not of form 'name=value'");
             String name = parts[0].trim();
             for (Field field : values.keySet()) {
                 if (field.getName().equals(name)) {
@@ -1183,7 +1268,7 @@ public class Reflector<T> {
             if (parts != null) {
                 if (ENABLE_THROW_ON_UNKNOWN)
                     throw new Exception("Unknown field: " + name + " not in fields: " + values.keySet());
-                System.err.println("Unknown field: " + name + " not in fields: " + values.keySet());
+                System.err.println("Unknown field: " + name);// + " not in fields: " + values.keySet());
             }
         }
     }
@@ -1312,7 +1397,12 @@ public class Reflector<T> {
         }
     }
 
-    public final void copyFrom(T other) {
+    /**
+     * 
+     * @param other
+     */
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+	public final void copyFrom(T other) {
     	try {
             Map<Field, Archiver> values = getValues(getClass(), false);
             

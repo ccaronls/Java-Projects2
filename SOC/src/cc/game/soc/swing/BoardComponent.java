@@ -932,12 +932,6 @@ public class BoardComponent extends JComponent implements KeyListener, MouseMoti
                 */
             case GOLD:
             	images.drawImage(g, goldImage, x-w/2, y-h/2, w, h);
-            	if (cell.getDieNum() > 0) {
-                    g.setColor(Color.BLACK);
-                    AWTUtils.fillCircle(g, x, y+1, 20);
-                    g.setColor(textColor);
-                    AWTUtils.drawJustifiedString(g, x, y, Justify.CENTER, Justify.CENTER, String.valueOf(cell.getDieNum()));
-                }
             	break;
 
             case UNDISCOVERED:
@@ -987,14 +981,18 @@ public class BoardComponent extends JComponent implements KeyListener, MouseMoti
             }
             
             if (cell.getDieNum() > 0) {
-                g.setColor(Color.BLACK);
-                AWTUtils.fillCircle(g, x, y+1, 20);
-                g.setColor(textColor);
-                AWTUtils.drawJustifiedString(g, x, y, Justify.CENTER, Justify.CENTER, String.valueOf(cell.getDieNum()));
+            	drawCellProductionValue(g, x, y, cell.getDieNum());
             }
         }   
         
         
+    }
+
+    public void drawCellProductionValue(Graphics g, int x, int y, int num) {
+        g.setColor(Color.BLACK);
+        AWTUtils.fillCircle(g, x, y+1, 20);
+        g.setColor(Color.CYAN);
+        AWTUtils.drawJustifiedString(g, x, y, Justify.CENTER, Justify.CENTER, String.valueOf(num));
     }
     
     private void computeBoardRect() {

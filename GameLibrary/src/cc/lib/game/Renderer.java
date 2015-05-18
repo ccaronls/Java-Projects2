@@ -1,10 +1,6 @@
 package cc.lib.game;
 
-import java.util.*;
-
-import cc.lib.math.Matrix3x3;
-import cc.lib.math.MutableVector2D;
-import cc.lib.math.Vector2D;
+import cc.lib.math.*;
 
 /**
  * Provides mechanism to manipulate vectors in a OpenGL type way
@@ -200,13 +196,22 @@ public class Renderer {
 	 * 
 	 * @param list a list of Transformable objects
 	 */
-	public final void addVertexList(Collection<IVector2D> list) {
-		Iterator<IVector2D> it = list.iterator();
-		while (it.hasNext()) {
-			addVertex(it.next());
+	public final void addVertices(Iterable<IVector2D> list) {
+		for (IVector2D v : list) {
+			addVertex(v);
 		}
 	}
 
+	/**
+	 * 
+	 * @param list
+	 */
+	public final void addVertices(IVector2D ... list) {
+		for (IVector2D v : list) {
+			addVertex(v);
+		}
+	}
+	
 	/**
 	 * Push the matrix stack
 	 */

@@ -422,6 +422,14 @@ public class PlayerBot extends Player {
 					p.adjustResourcesForBuildable(BuildableType.CityWall, 1);
 					break;
 				}
+				case REPAIR_ROAD: {
+					p.adjustResourcesForBuildable(BuildableType.Road, -1);
+					p.removeCard(SpecialVictoryType.DamagedRoad);
+					
+					p.addCard(SpecialVictoryType.DamagedRoad);
+					p.adjustResourcesForBuildable(BuildableType.Road, 1);
+					break;
+				}
 				case BUILD_ROAD: {
 					List<Integer> roads = SOC.computeRoadRouteIndices(p.getPlayerNum(), b);
 					roads.removeAll(usedRoutes);

@@ -18,6 +18,7 @@ public enum DevelopmentArea {
 	
 	public final static int MAX_CITY_IMPROVEMENT = 5;
 	public final static int MIN_METROPOLIS_IMPROVEMENT = 4;
+	public final static int CITY_IMPROVEMENT_FOR_SPECIAL_ABILITY = 3;
 	
 	DevelopmentArea(MoveType move, CommodityType commodity, VertexType vertexType, Player.VertexChoice choice, String ... levelName) {
 		this.move = move;

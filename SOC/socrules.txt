@@ -1,10 +1,9 @@
-barbarianStepsToAttack=7
-enableCitiesAndKnightsExpansion=false
-enableEventCards=true
+enableCitiesAndKnightsExpansion=true
+enableEventCards=false
 enableIslandSettlementsOnSetup=false
 enableRoadBlock=false
 enableSeafarersExpansion=false
-enableTradersAndBarbairiansExpansion=false
+barbarianStepsToAttack=7
 maxProgressCards=4
 minHandSizeForGiveup=7
 minLargestArmySize=3

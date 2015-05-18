@@ -11,6 +11,8 @@ import javax.swing.JOptionPane;
 
 import cc.game.soc.core.*;
 import cc.lib.game.*;
+import cc.lib.math.MutableVector2D;
+import cc.lib.math.Vector2D;
 import cc.lib.swing.*;
 
 public class SOCGUI extends SOC {
@@ -234,7 +236,7 @@ public class SOCGUI extends SOC {
     }
 
     @Override
-    protected void onMonopolyCardApplied(final Player taker, final Player giver, final ICardType type, final int amount) {
+    protected void onMonopolyCardApplied(final Player taker, final Player giver, final ICardType<?> type, final int amount) {
         addCardAnimation(giver, type.name() + "\n- " + amount);
         addCardAnimation(taker, type.name() + "\n+ " + amount);
     }
@@ -281,30 +283,96 @@ public class SOCGUI extends SOC {
 
 	@Override
 	protected void onDiceRolled(int... dice) {
-    	gui.spinDice();
-        gui.waitForReturnValue(true);
+    	gui.spinDice(dice);
         gui.setDice(dice);
+	}
+
+	
+	@Override
+	protected void onEventCardDealt(EventCard card) {
+		gui.setDice(0, card.getCakEvent());
 	}
 
 	@Override
 	protected void onPlayerdiscoveredIsland(Player player, Island island) {
-		// TODO Auto-generated method stub
-		super.onPlayerdiscoveredIsland(player, island);
+		addCardAnimation(player, "Island " + island.getNum() + "\nDiscovered!");
 	}
 
 	@Override
 	protected void onDiscoverTerritory(Player player, Tile tile) {
-		// TODO Auto-generated method stub
-		super.onDiscoverTerritory(player, tile);
+		addCardAnimation(player, "Territory\nDiscovered");
+	}
+	
+	
+	@Override
+	protected void onMetropolisStolen(Player loser, Player stealer, DevelopmentArea area) {
+		addCardAnimation(loser, "Metropolis\n" + area.name() + "\nLost!");
+		addCardAnimation(stealer, "Metropolis\n" + area.name() + "\nStolen!");
 	}
 
 	@Override
-    protected Player instantiatePlayer(String className) throws Exception {
-        Class<?> clazz = getClass().getClassLoader().loadClass(className);
-        return (Player)clazz.getConstructor(GUI.class).newInstance(gui);
-    }
+	protected void onTilesInvented(Player player, final Tile tile0, final Tile tile1) {
+		final int t1 = tile1.getDieNum();
+		final int t0 = tile0.getDieNum();
+		final Vector2D [] pts0 = new Vector2D[31];
+		final Vector2D [] pts1 = new Vector2D[31];
+		final Vector2D mid = Vector2D.newTemp(tile0).add(tile1).scaleEq(0.5f);
+		final Vector2D d = Vector2D.newTemp(mid).sub(tile0).scaleEq(0.5f);
+		final Vector2D mid0 = Vector2D.newTemp(tile0).add(d);
+		final Vector2D mid1 = Vector2D.newTemp(tile1).sub(d);
+		final MutableVector2D dv = d.norm().scaleEq(0.7f);
+		Utils.computeBezierCurvePoints(pts0, 30, tile0, mid0.add(dv), mid1.add(dv), tile1);
+		pts0[30]=pts0[29];
+		Utils.computeBezierCurvePoints(pts1, 30, tile1, mid1.sub(dv), mid0.sub(dv), tile0);
+		pts1[30]=pts1[29];
+		final AWTRenderer render = gui.getBoardComponent().render;
+		gui.getBoardComponent().addAnimation(new Animation(3000, 0) {
+			
+			void drawChit(Graphics g, Vector2D [] pts, float position, int num) {
+				int index0 = (int)(position*28);
+				int index1 = index0+1;
+				float delta = ((position*28)-index0);
+				assert(position >= 0 && position <= 1);
+				Vector2D pos = pts[index0].scale(1.0f-delta).add(pts[index1].scale(delta));
+				Vector2D t = render.transformXY(pos);
+				int fh = AWTUtils.getFontHeight(g);
+				int x = Math.round(t.getX() - fh);
+				int y = Math.round(t.getY() - fh);
+				gui.getBoardComponent().drawCellProductionValue(g, x, y, num);
+			}
+			
+			@Override
+			void draw(Graphics g, float position, float dt) {
+				drawChit(g, pts0, position, t1);
+				drawChit(g, pts1, position, t0);
+			}
 
-    public GUIPlayer getCurGuiPlayer() {
+			@Override
+			void onDone() {
+				synchronized (SOCGUI.this) {
+					SOCGUI.this.notify();
+				}
+			}
+
+			@Override
+			void onStarted() {
+				tile0.setDieNum(0);
+				tile1.setDieNum(0);
+			}
+			
+		});
+		
+		// block until animation completes
+		synchronized (this) {
+			try {
+				wait(4000);
+			} catch (Exception e) {}
+		}
+		tile0.setDieNum(t0);
+		tile1.setDieNum(t1);
+	}
+
+	public GUIPlayer getCurGuiPlayer() {
         return (GUIPlayer)getCurPlayer();
     }
 

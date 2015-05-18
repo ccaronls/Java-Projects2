@@ -35,5 +35,9 @@ public enum ResourceType implements ICardType<Void> {
 		return null;
 	}
 
+	@Override
+	public CardStatus defaultStatus() {
+		return CardStatus.USABLE;
+	}
 
 }

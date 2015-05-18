@@ -118,8 +118,6 @@ public final class Rules extends Reflector<Rules> {
 	public final void setNumSafeCardsPerCityWall(int numSafeCardsPerCityWall) {
 		this.numSafeCardsPerCityWall = numSafeCardsPerCityWall;
 	}
-	private boolean enableTradersAndBarbairiansExpansion = false;
-	
 	public final int getNumStartSettlements() {
 		return numStartSettlements;
 	}
@@ -210,18 +208,11 @@ public final class Rules extends Reflector<Rules> {
 	public final void setEnableCitiesAndKnightsExpansion(boolean enableCitiesAndKnightsExpansion) {
 		this.enableCitiesAndKnightsExpansion = enableCitiesAndKnightsExpansion;
 	}
-	
 	public final int getPointsPerMetropolis() {
 		return pointsPerMetropolis;
 	}
 	public final void setPointsPerMetropolis(int pointsPerMetropolis) {
 		this.pointsPerMetropolis = pointsPerMetropolis;
-	}
-	public final boolean isEnableTradersAndBarbairiansExpansion() {
-		return enableTradersAndBarbairiansExpansion;
-	}
-	public final void setEnableTradersAndBarbairiansExpansion(boolean enableTradersAndBarbairiansExpansion) {
-		this.enableTradersAndBarbairiansExpansion = enableTradersAndBarbairiansExpansion;
 	}
 	public final int getMinVictoryPointsForRobber() {
 		return minVictoryPointsForRobber;

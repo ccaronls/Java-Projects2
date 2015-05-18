@@ -10,4 +10,6 @@ public interface ICardType<T> {
 	String helpText();
 	
 	T getData();
+	
+	CardStatus defaultStatus();
 }

@@ -42,4 +42,9 @@ public enum DevelopmentCardType implements ICardType<Void> {
 		// TODO Auto-generated method stub
 		return null;
 	}
+
+	@Override
+	public CardStatus defaultStatus() {
+		return CardStatus.UNUSABLE;
+	}
 }

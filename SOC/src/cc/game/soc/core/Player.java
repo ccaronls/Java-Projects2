@@ -82,33 +82,39 @@ public abstract class Player extends Reflector<Player> {
 		Collections.sort(cards);
 	}
 	
-	public final void addCard(ICardType type) {
-		cards.add(new Card(type, CardStatus.USABLE));
+	/**
+	 * 
+	 * @param type
+	 */
+	public final void addCard(ICardType<?> type) {
+		cards.add(new Card(type, type.defaultStatus()));//CardStatus.USABLE));
 		Collections.sort(cards);
 	}
 	
-	public final void addCards(ICardType type, int num) {
+	/**
+	 * 
+	 * @param type
+	 * @param num
+	 */
+	public final void addCards(ICardType<?> type, int num) {
 		for (int i=0; i<num; i++)
-			addCard(new Card(type, CardStatus.USABLE));
+			addCard(new Card(type, type.defaultStatus()));
 	}
 
-	public final void removeCards(ICardType type, int num) {
+	/**
+	 * 
+	 * @param type
+	 * @param num
+	 */
+	public final void removeCards(ICardType<?> type, int num) {
 		for (int i=0; i<num; i++)
 			removeCard(type);
 	}
-	
-	public final void addResourceCard(ResourceType type) {
-		addCard(new Card(type, CardStatus.USABLE));
-	}
 
-	public final void addProgressCard(ProgressCardType type) {
-		addCard(new Card(type, CardStatus.UNUSABLE));
-	}
-	
-	public final void addSpecialVictoryCard(SpecialVictoryType type) {
-		addCard(new Card(type, CardStatus.USED));
-	}
-
+	/**
+	 * 
+	 * @return
+	 */
 	public final List<Card> getUnusedProgressCards() {
 		return getUnusedCards(CardType.Progress);
 	}
@@ -144,10 +150,19 @@ public abstract class Player extends Reflector<Player> {
 		points = 0;
 	}
 	
+	/**
+	 * 
+	 * @return
+	 */
 	public final Iterable<Card> getCards() {
 		return cards;
 	}
 	
+	/**
+	 * 
+	 * @param type
+	 * @return
+	 */
 	public final List<Card> getCards(CardType type) {
 		List<Card> list = new ArrayList<Card>();
 		for (Card card : cards) {
@@ -158,7 +173,12 @@ public abstract class Player extends Reflector<Player> {
 		return list;
 	}
 	
-	public final List<Card> getUsableCards(ICardType type) {
+	/**
+	 * 
+	 * @param type
+	 * @return
+	 */
+	public final List<Card> getUsableCards(ICardType<?> type) {
 		List<Card> list = new ArrayList<Card>();
 		for (Card card : cards) {
 			if (card.isUsable() && card.equals(type)) {
@@ -168,6 +188,11 @@ public abstract class Player extends Reflector<Player> {
 		return list;
 	}
 
+	/**
+	 * 
+	 * @param type
+	 * @return
+	 */
 	public final List<Card> getUsableCards(CardType type) {
 		List<Card> list = new ArrayList<Card>();
 		for (Card card : cards) {
@@ -178,6 +203,11 @@ public abstract class Player extends Reflector<Player> {
 		return list;
 	}
 
+	/**
+	 * 
+	 * @param type
+	 * @return
+	 */
 	public final List<Card> getUnusedCards(CardType type) {
 		List<Card> list = new ArrayList<Card>();
 		for (Card card : cards) {
@@ -188,6 +218,10 @@ public abstract class Player extends Reflector<Player> {
 		return list;
 	}
 	
+	/**
+	 * 
+	 * @return
+	 */
 	public final List<Card> getUnusedCards() {
 		List<Card> list = new ArrayList<Card>();
 		for (Card card : cards) {
@@ -198,14 +232,27 @@ public abstract class Player extends Reflector<Player> {
 		return list;
 	}
 
+	/**
+	 * 
+	 * @return
+	 */
 	public final Card getMerchantFleetTradable() {
 		return merchantFleetTradable;
 	}
 
+	/**
+	 * 
+	 * @param merchantFleetTradable
+	 */
 	public final void setMerchantFleetTradable(Card merchantFleetTradable) {
 		this.merchantFleetTradable = merchantFleetTradable;
 	}
 
+	/**
+	 * 
+	 * @param type
+	 * @return
+	 */
 	public final int getCardCount(CardType type) {
 		int num = 0;
 		for (Card card : cards) {
@@ -215,6 +262,12 @@ public abstract class Player extends Reflector<Player> {
 		return num;
 	}
 
+	/**
+	 * 
+	 * @param type
+	 * @param status
+	 * @return
+	 */
 	public final int getCardCount(CardType type, CardStatus status) {
 		int num = 0;
 		for (Card card : cards) {
@@ -224,6 +277,11 @@ public abstract class Player extends Reflector<Player> {
 		return num;
 	}
 
+	/**
+	 * 
+	 * @param type
+	 * @return
+	 */
 	public final int getUnusableCardCount(CardType type) {
 		int num = 0;
 		for (Card card : cards) {
@@ -233,6 +291,11 @@ public abstract class Player extends Reflector<Player> {
 		return num;
 	}
 
+	/**
+	 * 
+	 * @param type
+	 * @return
+	 */
 	public final int getCardCount(Card type) {
 		int num = 0;
 		for (Card card : cards) {
@@ -242,7 +305,12 @@ public abstract class Player extends Reflector<Player> {
 		return num;
 	}
 	
-	public final int getCardCount(ICardType type) {
+	/**
+	 * 
+	 * @param type
+	 * @return
+	 */
+	public final int getCardCount(ICardType<?> type) {
 		int num = 0;
 		for (Card card : cards) {
 			if (card.equals(type))
@@ -251,7 +319,12 @@ public abstract class Player extends Reflector<Player> {
 		return num;
 	}
 
-	public final int getUsedCardCount(ICardType type) {
+	/**
+	 * 
+	 * @param type
+	 * @return
+	 */
+	public final int getUsedCardCount(ICardType<?> type) {
 		int num = 0;
 		for (Card card : cards) {
 			if (card.equals(type) && card.isUsed())
@@ -260,7 +333,12 @@ public abstract class Player extends Reflector<Player> {
 		return num;
 	}
 	
-	public final int getUsableCardCount(ICardType type) {
+	/**
+	 * 
+	 * @param type
+	 * @return
+	 */
+	public final int getUsableCardCount(ICardType<?> type) {
 		int num = 0;
 		for (Card card : cards) {
 			if (card.equals(type) && card.isUsable())
@@ -269,6 +347,11 @@ public abstract class Player extends Reflector<Player> {
 		return num;
 	}
 
+	/**
+	 * 
+	 * @param type
+	 * @return
+	 */
 	public final int getUsableCardCount(CardType type) {
 		int num = 0;
 		for (Card card : cards) {
@@ -278,7 +361,12 @@ public abstract class Player extends Reflector<Player> {
 		return num;
 	}
 
-	public final int getUnusedCardCount(ICardType type) {
+	/**
+	 * 
+	 * @param type
+	 * @return
+	 */
+	public final int getUnusedCardCount(ICardType<?> type) {
 		int num = 0;
 		for (Card card : cards) {
 			if (card.equals(type) && !card.isUsed())
@@ -287,6 +375,11 @@ public abstract class Player extends Reflector<Player> {
 		return num;
 	}
 
+	/**
+	 * 
+	 * @param type
+	 * @return
+	 */
 	public final int getUnusedCardCount(CardType type) {
 		int num = 0;
 		for (Card card : cards) {
@@ -296,6 +389,10 @@ public abstract class Player extends Reflector<Player> {
 		return num;
 	}
 	
+	/**
+	 * 
+	 * @return
+	 */
 	public final int getUnusedCardCount() {
 		int num = 0;
 		for (Card card : cards) {
@@ -305,6 +402,10 @@ public abstract class Player extends Reflector<Player> {
 		return num;
 	}
 	
+	/**
+	 * 
+	 * @return
+	 */
 	public final Card removeRandomUnusedCard() {
 		int r = Utils.rand() % getTotalCardsLeftInHand();
 		assert(r >= 0);
@@ -317,6 +418,11 @@ public abstract class Player extends Reflector<Player> {
 		throw new RuntimeException("Failed to remove random card");
 	}
 
+	/**
+	 * 
+	 * @param type
+	 * @return
+	 */
 	public final Card removeRandomUnusedCard(CardType type) {
 		List<Card> cards = getUnusedCards(type);
 		int n = Utils.rand() % cards.size();
@@ -331,7 +437,12 @@ public abstract class Player extends Reflector<Player> {
 		return getCardCount(CardType.Resource);
 	}
 
-	public final Card getCard(ICardType type) {
+	/**
+	 * 
+	 * @param type
+	 * @return
+	 */
+	public final Card getCard(ICardType<?> type) {
 		for (Card card : cards) {
 			if (card.equals(type))
 				return card;
@@ -344,7 +455,7 @@ public abstract class Player extends Reflector<Player> {
 	 * @param type
 	 * @return
 	 */
-	public final Card removeCard(ICardType type) {
+	public final Card removeCard(ICardType<?> type) {
 		for (Card card : cards) {
 			if (card.equals(type)) {
 				cards.remove(card);
@@ -368,7 +479,7 @@ public abstract class Player extends Reflector<Player> {
 	 * @param type
 	 * @return
 	 */
-	public final Card removeUsableCard(ICardType type) {
+	public final Card removeUsableCard(ICardType<?> type) {
 		for (Card card : cards) {
 			if (card.equals(type) && card.isUsable()) {
 				cards.remove(card);
@@ -383,7 +494,7 @@ public abstract class Player extends Reflector<Player> {
 	 * @param type
 	 * @return
 	 */
-	public final Card getUsableCard(ICardType type) {
+	public final Card getUsableCard(ICardType<?> type) {
 		for (Card card : cards) {
 			if (card.equals(type) && card.isUsable()) {
 				return card;
@@ -397,7 +508,7 @@ public abstract class Player extends Reflector<Player> {
 	 * @param type
 	 * @param amount
 	 */
-	public final void incrementResource(ICardType type, int amount) {
+	public final void incrementResource(ICardType<?> type, int amount) {
 		if (amount < 0)
 			removeCards(type, -amount);
 		else
@@ -534,7 +645,7 @@ public abstract class Player extends Reflector<Player> {
 	 * @return
 	 */
 	public final boolean hasFortress() {
-		return cityDevelopment[DevelopmentArea.Politics.ordinal()] >= 3;
+		return cityDevelopment[DevelopmentArea.Politics.ordinal()] >= DevelopmentArea.CITY_IMPROVEMENT_FOR_SPECIAL_ABILITY;
 	}
 	
 	/**
@@ -542,7 +653,7 @@ public abstract class Player extends Reflector<Player> {
 	 * @return
 	 */
 	public final boolean hasTradingHouse() {
-		return cityDevelopment[DevelopmentArea.Trade.ordinal()] >= 3;
+		return cityDevelopment[DevelopmentArea.Trade.ordinal()] >= DevelopmentArea.CITY_IMPROVEMENT_FOR_SPECIAL_ABILITY;
 	}
 	
 	/**
@@ -550,7 +661,7 @@ public abstract class Player extends Reflector<Player> {
 	 * @return
 	 */
 	public final boolean hasAqueduct() {
-		return cityDevelopment[DevelopmentArea.Science.ordinal()] >= 3;
+		return cityDevelopment[DevelopmentArea.Science.ordinal()] >= DevelopmentArea.CITY_IMPROVEMENT_FOR_SPECIAL_ABILITY;
 	}
 
 	/**

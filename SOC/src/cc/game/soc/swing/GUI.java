@@ -66,29 +66,6 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 		}
 	}
 
-	private class SpinDiceThread implements Runnable {
-	    public void run() {
-	        clearMenu();
-	        int delay = 10;
-	        long startTime = System.currentTimeMillis();
-	        while (true) {
-	            long curTime = System.currentTimeMillis();
-	            if (curTime - startTime > diceSpinTimeSeconds*1000)
-	                break;
-	            for (ADiceComponent comp : diceComps) {
-	            	comp.setDie(Utils.rand() % 6 + 1);
-	            }
-	            try {
-	                Thread.sleep(delay);
-	            } catch (Exception e) {}
-	            delay += 20;
-	        }
-	        synchronized (waitObj) {
-	            waitObj.notify();
-	        }
-	    }
-	}
-	
 	private enum MenuState {
 
 	    MENU_START,
@@ -1299,8 +1276,24 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 		return waitForReturnValue(null);
 	}
 	
-	public void spinDice() {
-	    new Thread(new SpinDiceThread()).start();
+	public void spinDice(int ... dieToSpin) {
+		clearMenu();
+		int delay = 10;
+		long startTime = System.currentTimeMillis();
+		while (true) {
+			long curTime = System.currentTimeMillis();
+			if (curTime - startTime > diceSpinTimeSeconds*1000)
+				break;
+			for (int i=0; i<dieToSpin.length; i++) {
+				if (dieToSpin[i] > 0) {
+					diceComps[i].setDie(Utils.rand() % 6 + 1);
+				}
+			}
+			try {
+				Thread.sleep(delay);
+			} catch (Exception e) {}
+			delay += 20;
+		}
 	}
 	
 	public void showCustomMenu(Component [] components) {
@@ -1703,7 +1696,8 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 
 	public void setDice(int ... die) {
 		for (int i=0; i<die.length; i++) {
-			diceComps[i].setDie(die[i]);
+			if (die[i] > 0)
+				diceComps[i].setDie(die[i]);
 		}
 	}
 	

@@ -15,7 +15,7 @@ public enum CardType {
 	
 	final Enum<?> [] typeValues;
 	
-	public ICardType dereferenceOrdinal(int typeOrdinal) {
-		return (ICardType)typeValues[typeOrdinal];
+	public ICardType<?> dereferenceOrdinal(int typeOrdinal) {
+		return (ICardType<?>)typeValues[typeOrdinal];
 	}
 }

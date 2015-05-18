@@ -179,22 +179,11 @@ public class SOC extends Reflector<SOC> {
 	public int getProductionNum() {
 		EventCard card = getTopEventCard();
 		if (card != null) {
-			return card.production;
+			return card.getProduction();
 		}
 		return mDice[0] + mDice[1];
 	}
 	
-	/**
-	 * 
-	 * @return
-	 */
-	public DiceEvent getDiceEvent() {
-		EventCard card = getTopEventCard();
-		if (card != null)
-			return DiceEvent.fromDieNum(card.cakEvent);
-		return DiceEvent.fromDieNum(mDice[2]);
-	}
-
 	/**
 	 * 
 	 * @return
@@ -220,16 +209,6 @@ public class SOC extends Reflector<SOC> {
 		return mMetropolisPlayer[area.ordinal()];
 	}
 	
-	/**
-	 * 
-	 * @param className
-	 * @return
-	 * @throws Exception
-	 */
-	protected Player instantiatePlayer(String className) throws Exception {
-	    return (Player)getClass().getClassLoader().loadClass(className).newInstance();
-	}
-
 	/**
 	 * 
 	 * @return
@@ -532,7 +511,7 @@ public class SOC extends Reflector<SOC> {
 					List<Integer> routes = getBoard().getRoadsForPlayer(p.getPlayerNum());
 					if (routes.size() > 0) {
 						Route r = getBoard().getRoute(Utils.randItem(routes));
-						p.addSpecialVictoryCard(SpecialVictoryType.DamagedRoad);
+						p.addCard(SpecialVictoryType.DamagedRoad);
 						r.setDamaged(true);
 					}
 				}
@@ -911,7 +890,17 @@ public class SOC extends Reflector<SOC> {
 		}
 	}
 
+	/**
+	 * Called immediately after a die roll.  Base method does nothing.
+	 * @param dice
+	 */
 	protected void onDiceRolled(int ... dice) {}
+	
+	/**
+	 * Called immediately after event card dealt.  Base method does nothing.
+	 * @param card
+	 */
+	protected void onEventCardDealt(EventCard card) {}
 	
 	/**
 	 * Called when a player picks a development card from the deck.
@@ -1919,7 +1908,7 @@ public class SOC extends Reflector<SOC> {
 							int t = firstTile.getDieNum();
 							firstTile.setDieNum(tile.getDieNum());
 							tile.setDieNum(t);
-							onTilesInvented(getCurPlayerNum(), firstTile, tile);
+							onTilesInvented(getCurPlayer(), firstTile, tile);
 							putCardBackInDeck(getCurPlayer().removeCard(ProgressCardType.Inventor));
 							resetOptions();
 						}
@@ -2102,6 +2091,11 @@ public class SOC extends Reflector<SOC> {
         		} else {
         			initEventCards();
         		}
+        		onEventCardDealt(getTopEventCard());
+        		if (getRules().isEnableCitiesAndKnightsExpansion()) {
+        			mDice[2] = Utils.rand() % 6 + 1;
+        			onDiceRolled(mDice);
+        		}
         		processDice();
         		processEventCard();
         		break;
@@ -2251,7 +2245,7 @@ public class SOC extends Reflector<SOC> {
         			mDice[0] = Utils.clamp(mDice[0], 1, 6);
         			mDice[1] = Utils.clamp(mDice[1], 1, 6);
         			mDice[2] = Utils.rand() % 6 + 1;
-        			//onDiceRolled(mDice);
+        			onDiceRolled(0, 0, mDice[2]);
         			printinfo(getCurPlayer().getName() + " applied Alchemist card on dice " +  mDice[0] + ", " + mDice[1] + ", " + DiceEvent.fromDieNum(mDice[2]));
             		processDice();
         		}
@@ -2705,7 +2699,7 @@ public class SOC extends Reflector<SOC> {
     		if (current != null)
     			current.removeCard(card);
     		if (player != null)
-    			player.addSpecialVictoryCard(card);
+    			player.addCard(card);
     	}
 	}
 	
@@ -3254,7 +3248,7 @@ public class SOC extends Reflector<SOC> {
 	}
 	
 	static public List<Integer> computeActivateKnightVertexIndices(int playerNum, Board b) {
-		return b.getVertsOfType(playerNum, VertexType.BASIC_KNIGHT_INACTIVE, VertexType.STRONG_KNIGHT_INACTIVE, VertexType.MIGHTY_KNIGHT_INACTIVE);		
+		return b.getVertsOfType(playerNum, VertexType.BASIC_KNIGHT_INACTIVE, VertexType.STRONG_KNIGHT_INACTIVE, VertexType.MIGHTY_KNIGHT_INACTIVE);
 	}
 	
 	static public List<Integer> computeDisplacedKnightVertexIndices(int displacedKnightVertex, Board b) {
@@ -3970,7 +3964,7 @@ public class SOC extends Reflector<SOC> {
     		distributeResources(getProductionNum());
     		
     		if (getRules().isEnableCitiesAndKnightsExpansion()) {
-    			switch (getDiceEvent()) {
+    			switch (DiceEvent.fromDieNum(mDice[2])) {
     				case AdvanceBarbarianShip:
     					processBarbarianShip();
     					break;
@@ -3994,7 +3988,7 @@ public class SOC extends Reflector<SOC> {
 	 * @param stealer
 	 * @param area
 	 */
-	protected void onMetropolisStolen(int loser, int stealer, DevelopmentArea area) {}
+	protected void onMetropolisStolen(Player loser, Player stealer, DevelopmentArea area) {}
 	
 	private void checkMetropolis(int devel, int playerNum, DevelopmentArea area) {
 		if (devel >= DevelopmentArea.MIN_METROPOLIS_IMPROVEMENT) {
@@ -4016,7 +4010,7 @@ public class SOC extends Reflector<SOC> {
     					if (otherDevel < devel) {
     						printinfo(other.getName() + " loses Metropolis " + area + " to " + getCurPlayer().getName());
     						v.setType(VertexType.CITY);
-    						onMetropolisStolen(v.getPlayer(), playerNum, area);
+    						onMetropolisStolen(getPlayerByPlayerNum(v.getPlayer()), getPlayerByPlayerNum(playerNum), area);
     						pushStateFront(State.CHOOSE_METROPOLIS, area, null);
     					}
     				}
@@ -4037,11 +4031,11 @@ public class SOC extends Reflector<SOC> {
 				Card card = mProgressCards[area.ordinal()].remove(0);
 				printinfo(p.getName() + " draws a " + area.name() + " Progress Card");
 				if (card.equals(ProgressCardType.Constitution)) {
-					p.addSpecialVictoryCard(SpecialVictoryType.Constitution);
+					p.addCard(SpecialVictoryType.Constitution);
 					onSpecialVictoryCard(p, SpecialVictoryType.Constitution);
 				} else if (card.equals(ProgressCardType.Printer)) {
 					card.setUsed();
-					p.addSpecialVictoryCard(SpecialVictoryType.Printer);
+					p.addCard(SpecialVictoryType.Printer);
 					onSpecialVictoryCard(p, SpecialVictoryType.Printer);
 				} else {
     				p.addCard(card);
@@ -4071,7 +4065,7 @@ public class SOC extends Reflector<SOC> {
 	 * @param tile0
 	 * @param tile1
 	 */
-	protected void onTilesInvented(int playerNum, Tile tile0, Tile tile1) {}
+	protected void onTilesInvented(Player player, Tile tile0, Tile tile1) {}
 	
 	private void processBarbarianShip() {
 		mBarbarianDistance -= 1;
@@ -4117,7 +4111,7 @@ public class SOC extends Reflector<SOC> {
 				assert(defenders.size() > 0);
 				if (defenders.size() == 1) {
 					Player defender = getPlayerByPlayerNum(defenders.get(0));
-					defender.addSpecialVictoryCard(SpecialVictoryType.DefenderOfCatan);
+					defender.addCard(SpecialVictoryType.DefenderOfCatan);
 					printinfo(defender.getName() + " receives the Defender of Catan card!");
 					for (Player p : getPlayers()) {
 						playerStatus[p.getPlayerNum()] = "[" + playerStrength[p.getPlayerNum()] + "]";
@@ -4235,9 +4229,13 @@ public class SOC extends Reflector<SOC> {
 	}
 
 	public int getMinHandCardsForRobberDiscard(int playerNum) {
-		return getRules().getMinHandSizeForGiveup() + 2 * mBoard.getNumVertsOfType(playerNum, VertexType.WALLED_CITY,
+		int num = getRules().getMinHandSizeForGiveup();
+		if (getRules().isEnableCitiesAndKnightsExpansion()) {
+			num += getRules().getNumSafeCardsPerCityWall() * mBoard.getNumVertsOfType(playerNum, VertexType.WALLED_CITY,
 				// From the rule book metros are not included in this computation but I think they should be so I am doing it so there
 				VertexType.METROPOLIS_POLITICS, VertexType.METROPOLIS_SCIENCE, VertexType.METROPOLIS_TRADE); 
+		}
+		return num;
 	}
 	
 	public String getHelpText() {

@@ -27,12 +27,12 @@ public final class Trade extends Reflector<Trade> {
 		this.amount = amount;
 	}
     
-	public Trade(ICardType type, int amount) {
+	public Trade(ICardType<?> type, int amount) {
 		this.type = new Card(type, CardStatus.USABLE);
 		this.amount = amount;
 	}
 
-	public ICardType getType() {
+	public ICardType<?> getType() {
 	    return type.getCardType().dereferenceOrdinal(type.getTypeOrdinal());
 	}
 	

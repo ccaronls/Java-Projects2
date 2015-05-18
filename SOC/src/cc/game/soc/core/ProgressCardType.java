@@ -59,4 +59,10 @@ public enum ProgressCardType implements ICardType<DevelopmentArea> {
 	public DevelopmentArea getData() {
 		return type;
 	}
+
+	@Override
+	public CardStatus defaultStatus() {
+		return CardStatus.UNUSABLE;
+	}
+
 }

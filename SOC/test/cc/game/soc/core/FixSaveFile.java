@@ -1,15 +1,17 @@
 package cc.game.soc.core;
 
+import java.io.PrintWriter;
+
 import cc.lib.utils.Reflector;
 import junit.framework.TestCase;
 
 public class FixSaveFile extends TestCase {
 
-	public void test() {
+	public void test() throws Exception {
 		Reflector.ENABLE_THROW_ON_UNKNOWN = true;
 		SOC soc = new SOC();
-		assertTrue(soc.load("scenarios/four_islands.txt"));
-		
+		assertTrue(soc.load("socsavegame.txt"));
+		soc.serialize(new PrintWriter(System.out));
 	}
 	
 	public void xtest() {

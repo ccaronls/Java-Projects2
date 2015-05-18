@@ -69,6 +69,10 @@ public enum SpecialVictoryType implements ICardType<Integer> {
 		return points;
 	}
 	
-	
+	@Override
+	public CardStatus defaultStatus() {
+		return CardStatus.USED;
+	}
+
 	
 }

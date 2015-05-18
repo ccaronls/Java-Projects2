@@ -14,7 +14,7 @@ public class BotNodeCard extends BotNode {
 		this.card = card;
 	}
 	
-	BotNodeCard(ICardType type) {
+	BotNodeCard(ICardType<?> type) {
 		this.card = new Card(type, CardStatus.USABLE);
 	}
 

@@ -1013,9 +1013,67 @@ public class Utils {
 		y_pts[pt] = Math.round(ctrl_y3);
 		
 		pt ++;
-		
 	}
 	
+	/**
+	 * 
+	 * @param out
+	 * @param start
+	 * @param num
+	 * @param ctrl0
+	 * @param ctrl1
+	 * @param ctrl2
+	 * @param ctrl3
+	 */
+	public static void computeBezierCurvePoints(Vector2D [] out, int start, int num, IVector2D ctrl0, IVector2D ctrl1, IVector2D ctrl2, IVector2D ctrl3) {
+		computeBezierCurvePoints(out, 0, out.length, ctrl0, ctrl1, ctrl2, ctrl3);
+	}
+	
+	/**
+	 * 
+	 * @param out
+	 * @param ctrl0
+	 * @param ctrl1
+	 * @param ctrl2
+	 * @param ctrl3
+	 */
+	public static void computeBezierCurvePoints(Vector2D [] out, IVector2D ctrl0, IVector2D ctrl1, IVector2D ctrl2, IVector2D ctrl3) {
+		computeBezierCurvePoints(out, out.length, ctrl0, ctrl1, ctrl2, ctrl3);
+	}
+	
+	/**
+	 * 
+	 * @param out
+	 * @param num
+	 * @param ctrl0
+	 * @param ctrl1
+	 * @param ctrl2
+	 * @param ctrl3
+	 */
+	public static void computeBezierCurvePoints(Vector2D [] out, int num, IVector2D ctrl0, IVector2D ctrl1, IVector2D ctrl2, IVector2D ctrl3) {
+		int steps = out.length - 1;
+		float step = 1.0f/steps;
+		int pt = 0;
+		for (float t=0; t<1.0f; t+=step) {
+	        float fW = 1 - t; 
+	        float fA = fW * fW * fW;
+	        float fB = 3 * t * fW * fW; 
+	        float fC = 3 * t * t * fW;
+	        float fD = t * t * t;
+	        float fX = fA * ctrl0.getX() + fB * ctrl1.getX() + fC * ctrl2.getX() + fD * ctrl3.getX(); 
+	        float fY = fA * ctrl0.getY() + fB * ctrl1.getY() + fC * ctrl2.getY() + fD * ctrl3.getY();
+	        out[pt] = new Vector2D(fX, fY);
+	        pt++;
+		}
+		out[pt] = new Vector2D(ctrl3);
+	}
+	
+	/**
+	 * 
+	 * @param g
+	 * @param divisions
+	 * @param controlPts
+	 */
 	public static void renderBSpline(VertexList g, int divisions, Vector2D ... controlPts) {
 	    
 	    if (controlPts.length < 4)

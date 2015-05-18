@@ -1,17 +1,53 @@
 package cc.game.soc.core;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.PrintWriter;
+
 import cc.lib.utils.Reflector;
 
 public class Card extends Reflector<Card> implements Comparable <Card> {
 	
-	static {
-		addAllFields(Card.class);
-	}
-	
-	private final CardType type;
-	private final int typeOrdinal;
+	private CardType type;
+	private int typeOrdinal;
 	private CardStatus status;
 	
+	@Override
+	public void serialize(PrintWriter out) throws IOException {
+		out.println(type);
+		out.println(status);
+		out.println(getName());
+	}
+
+	@Override
+	protected void deserialize(BufferedReader in) throws Exception {
+		type = CardType.valueOf(in.readLine());
+		status = CardStatus.valueOf(in.readLine());
+		switch (type) {
+			case Commodity:
+				typeOrdinal = CommodityType.valueOf(in.readLine()).ordinal();
+				break;
+			case Development:
+				typeOrdinal = DevelopmentCardType.valueOf(in.readLine()).ordinal();
+				break;
+			case Event:
+				typeOrdinal = EventCardType.valueOf(in.readLine()).ordinal();
+				break;
+			case Progress:
+				typeOrdinal = ProgressCardType.valueOf(in.readLine()).ordinal();
+				break;
+			case Resource:
+				typeOrdinal = ResourceType.valueOf(in.readLine()).ordinal();
+				break;
+			case SpecialVictory:
+				typeOrdinal = SpecialVictoryType.valueOf(in.readLine()).ordinal();
+				break;
+			default:
+				throw new AssertionError("Unhandled case");
+			
+		}
+	}
+
 	/**
 	 * Needed for Reflector
 	 */
