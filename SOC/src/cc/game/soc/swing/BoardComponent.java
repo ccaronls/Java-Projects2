@@ -1112,7 +1112,7 @@ public class BoardComponent extends JComponent implements KeyListener, MouseMoti
         		for (int i=0; i<board.getNumVerts(); i++) {
         			Vertex v = board.getVertex(i);
         			VertexType type = v.getType();
-        			boolean vertexPickMode = true;
+        			boolean vertexPickMode = pickedValue < 0;
         			boolean pickIndex = pickIndices == null || pickIndices.contains(i);
         			if (pickedValue < 0) {
             			switch (pickMode) {
