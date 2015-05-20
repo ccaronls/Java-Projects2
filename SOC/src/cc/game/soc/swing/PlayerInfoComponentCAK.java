@@ -6,15 +6,7 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Rectangle;
 
-import cc.game.soc.core.Card;
-import cc.game.soc.core.CardType;
-import cc.game.soc.core.CommodityType;
-import cc.game.soc.core.DevelopmentArea;
-import cc.game.soc.core.DevelopmentCardType;
-import cc.game.soc.core.ResourceType;
-import cc.game.soc.core.SOC;
-import cc.game.soc.core.SpecialVictoryType;
-import cc.game.soc.core.VertexType;
+import cc.game.soc.core.*;
 import cc.lib.game.Utils;
 import cc.lib.swing.AWTUtils;
 
@@ -33,17 +25,6 @@ public class PlayerInfoComponentCAK extends PlayerInfoComponent {
         SOC soc = GUI.instance.getSOC();
         Font bold = g.getFont().deriveFont(Font.BOLD);
         g.setFont(bold);
-        /*
-        g.setColor(getBackground());
-        g.fillRect(0, 0, getWidth(), getHeight());
-        
-        if (player.getPlayerNum() == GUI.instance.getSOC().getCurPlayerNum()) {
-        	// outline player when their turn
-            g.setColor(Color.BLACK);
-            g.drawRect(0, 0, getWidth()-1, getHeight()-1);
-        }*/
-        
-        // resources, commodities, progress, improvements, special victory pts, road length, points
         
     	StringBuffer str = new StringBuffer();
     	str.append(player.getName()).append(" ").append(player.getPoints()).append(" Points\n");
@@ -126,11 +107,10 @@ public class PlayerInfoComponentCAK extends PlayerInfoComponent {
         
         g.setColor(player.getColor());
         Rectangle r = AWTUtils.drawWrapString(g, 5, 5, getWidth(), str.toString());
-        int h = r.height;
+        int h = r.y + r.height + 5;
         int w = getWidth() - 1;
-        if (player.getPlayerNum() == GUI.instance.getSOC().getCurPlayerNum()) {
-        	g.setColor(Color.CYAN);
-        	AWTUtils.drawRect(g, r, 0, 3);
+        if (isCurrentPlayer()) {
+        	AWTUtils.drawRect(g, 0, 0, getWidth(), getHeight(), 3, 0);
         }
         setPreferredSize(new Dimension(w, h));
     }

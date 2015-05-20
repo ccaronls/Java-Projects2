@@ -1,19 +1,8 @@
 package cc.game.soc.swing;
 
 import java.awt.Color;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Properties;
+import java.io.*;
+import java.util.*;
 
 import org.apache.log4j.Logger;
 
@@ -196,14 +185,8 @@ public class GUIProperties extends Properties {
         }
     }
 
-    @SuppressWarnings("unchecked")
     public void addAll(Properties props) {
-        Iterator<String> it = (Iterator)props.keySet().iterator();
-        while (it.hasNext()) {
-            String key = it.next();
-            String value = props.getProperty(key);
-            setProperty(key, value);
-        }
+    	super.putAll(props);
         save();
     }
 

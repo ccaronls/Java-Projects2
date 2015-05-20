@@ -27,17 +27,11 @@ public class EventDiceComponent extends ADiceComponent {
 	
 	@Override
 	void drawDie(Graphics g, int x, int y, int dim) {
-		DiceEvent ev = DiceEvent.fromDieNum(getDie());
-		//GUI.instance.getSOC().getDiceEvent();
-	    if (ev == null) {
-	    	g.setColor(getBackground());
-	    	g.fillRect(0, y, getWidth(), getHeight());
-	    	return;
-	    }
 		g.setColor(Color.WHITE);
-	    g.fillRect(x, y, dim, dim);
+		int arc = dim/4;
+	    g.fillRoundRect(x, y, dim, dim, arc, arc);
 	    ImageMgr images = GUI.instance.images;
-	    switch (ev) {
+	    switch (DiceEvent.fromDieNum(getDie())) {
 			case AdvanceBarbarianShip:
 	    		images.drawImage(g, shipImageId, x, y, dim, dim);
 				break;

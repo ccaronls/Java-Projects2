@@ -5,8 +5,6 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
 
-import javax.swing.JComponent;
-
 import cc.game.soc.core.*;
 import cc.lib.game.Justify;
 import cc.lib.game.Utils;

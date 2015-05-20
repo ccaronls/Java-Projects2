@@ -98,6 +98,8 @@ public final class Rules extends Reflector<Rules> {
 	private boolean enableEventCards = false;
 	@RuleVariable(description="Friendly Robber", minValue=0, maxValue=3, valueStep=1)
 	private int minVictoryPointsForRobber = 0;
+	@RuleVariable(description="Player with most harbor points gets special victory points")
+	private boolean enableHarborMaster = false;
 	
 	
 	public final int getBarbarianStepsToAttack() {
@@ -225,6 +227,12 @@ public final class Rules extends Reflector<Rules> {
 	}
 	public final void setEnableEventCards(boolean enableEventCards) {
 		this.enableEventCards = enableEventCards;
+	}
+	public final boolean isEnableHarborMaster() {
+		return enableHarborMaster;
+	}
+	public final void setEnableHarborMaster(boolean enableHarborMaster) {
+		this.enableHarborMaster = enableHarborMaster;
 	}
 	
 	

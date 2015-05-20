@@ -226,16 +226,29 @@ public class SOCGUI extends SOC {
 
     @Override
     protected void onLargestArmyPlayerUpdated(final Player oldPlayer, final Player newPlayer, final int armySize) {
-        addCardAnimation(newPlayer, "Largest Army");
+    	if (newPlayer != null)
+    		addCardAnimation(newPlayer, "Largest Army");
+    	if (oldPlayer != null)
+    		addCardAnimation(oldPlayer, "Largest Army Lost!");
     }
 
     @Override
     protected void onLongestRoadPlayerUpdated(final Player oldPlayer, final Player newPlayer, final int maxRoadLen) {
     	if (newPlayer != null)
     		addCardAnimation(newPlayer, "Longest Road");
+    	if (oldPlayer != null)
+    		addCardAnimation(oldPlayer, "Longest Road Lost!");
     }
 
     @Override
+	protected void onHarborMasterPlayerUpdated(Player oldPlayer, Player newPlayer, int harborPts) {
+    	if (newPlayer != null)
+    		addCardAnimation(newPlayer, "Harbor Master");
+    	if (oldPlayer != null)
+    		addCardAnimation(oldPlayer, "Harbor Master Lost!");
+	}
+
+	@Override
     protected void onMonopolyCardApplied(final Player taker, final Player giver, final ICardType<?> type, final int amount) {
         addCardAnimation(giver, type.name() + "\n- " + amount);
         addCardAnimation(taker, type.name() + "\n+ " + amount);
@@ -290,7 +303,6 @@ public class SOCGUI extends SOC {
 	
 	@Override
 	protected void onEventCardDealt(EventCard card) {
-		gui.setDice(0, card.getCakEvent());
 	}
 
 	@Override

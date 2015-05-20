@@ -38,4 +38,8 @@ public abstract class PlayerInfoComponent extends JComponent {
     final List<Animation> getCardAnimations() {
     	return cardsList;
     }
+    
+    final boolean isCurrentPlayer() {
+    	return getPlayer().getPlayerNum() == GUI.instance.getSOC().getCurPlayerNum();	
+    }
 }

@@ -2,8 +2,7 @@ package cc.game.soc.swing;
 
 import java.awt.Color;
 import java.awt.Graphics;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import cc.game.soc.core.*;
 import cc.lib.math.Vector2D;
@@ -105,7 +104,8 @@ public class GUIPlayer extends PlayerBot {
                 render.pushMatrix();
                 //render.translate(-vertex.getX(), -vertex.getY());
                 render.translate(vertex);
-                render.scale(position, position);
+                //render.translate(0, -4*position);
+                render.scale(1, position);
                 //render.translate(-vertex.getX(), -vertex.getY());
                 GUI.instance.getBoardComponent().drawWalledCity(g, 0, 0, getPlayerNum(), false);
                 render.popMatrix();

@@ -301,9 +301,9 @@ public class BoardComponent extends JComponent implements KeyListener, MouseMoti
 
 	    // SAA lightened for active
 	    // blade
-	    new Face(0.4f, 0,-4, 1,-6, 2,-4, 2,8, 0,8).setFaceTypes(FaceType.KNIGHT_ACTIVE_STRONG),
+	    new Face(0.2f, 0,-4, 1,-6, 2,-4, 2,8, 0,8).setFaceTypes(FaceType.KNIGHT_ACTIVE_STRONG),
 	    // hilt
-	    new Face(0.6f, -2,5, 4,5, 4,4, -2,4).setFaceTypes(FaceType.KNIGHT_ACTIVE_STRONG),
+	    new Face(0.1f, -2,5, 4,5, 4,4, -2,4).setFaceTypes(FaceType.KNIGHT_ACTIVE_STRONG),
 	    
 	    // double crossed sword mighty dark (inactive)
 	    // handle at top right
@@ -320,14 +320,14 @@ public class BoardComponent extends JComponent implements KeyListener, MouseMoti
 	    // SAA lightened for active
 	    // handle at top right
 	    // blade
-	    new Face(0.4f, 5,8, 7,7, -1,-5, -3,-6, -3,-4).setFaceTypes(FaceType.KNIGHT_ACTIVE_MIGHTY),
+	    new Face(0.2f, 5,8, 7,7, -1,-5, -3,-6, -3,-4).setFaceTypes(FaceType.KNIGHT_ACTIVE_MIGHTY),
 	    // hilt
-	    new Face(0.6f, 3,7, 2,6, 6,3, 7,4).setFaceTypes(FaceType.KNIGHT_ACTIVE_MIGHTY),
+	    new Face(0.1f, 3,7, 2,6, 6,3, 7,4).setFaceTypes(FaceType.KNIGHT_ACTIVE_MIGHTY),
 	    // handle at top left
 	    // blade
-	    new Face(0.4f, -6,7, -4,8, 4,-4, 4,-6, 2,-5).setFaceTypes(FaceType.KNIGHT_ACTIVE_MIGHTY),
+	    new Face(0.2f, -6,7, -4,8, 4,-4, 4,-6, 2,-5).setFaceTypes(FaceType.KNIGHT_ACTIVE_MIGHTY),
 	    // hilt
-	    new Face(0.6f, -6,4, -5,3, -1,6, -2,7).setFaceTypes(FaceType.KNIGHT_ACTIVE_MIGHTY),
+	    new Face(0.1f, -6,4, -5,3, -1,6, -2,7).setFaceTypes(FaceType.KNIGHT_ACTIVE_MIGHTY),
 
 	    // Merchant
 	    // Diamond
@@ -477,7 +477,7 @@ public class BoardComponent extends JComponent implements KeyListener, MouseMoti
 			case 3: structure = active ? FaceType.KNIGHT_ACTIVE_MIGHTY : FaceType.KNIGHT_INACTIVE_MIGHTY; break;
 			default: assert(false); break;
 		}
-		drawFaces(g, x, y, 0, scale/2, scale, structure, outline);
+		drawFaces(g, x, y, 0, scale*2/3, scale*2/3, structure, outline);
 	}
 
 	void drawFaces(Graphics g, float x, float y, float angle, float radius, FaceType structure, boolean outline) {

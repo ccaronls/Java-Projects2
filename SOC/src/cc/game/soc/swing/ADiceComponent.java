@@ -10,30 +10,37 @@ import javax.swing.event.ChangeListener;
 
 public abstract class ADiceComponent extends JComponent implements ChangeListener {
 
+	public static interface DiceChangedListener {
+		void onDiceChanged(int numDieNum);
+	}
+	
 	private int die=0;
+	private DiceChangedListener listener;
 	
 	ADiceComponent() {
 		setMinimumSize(new Dimension(30,30));
 		setPreferredSize(new Dimension(60, 30));
-		repaint();
 	}
 	
 	void setDie(int die) {
 		this.die = die;
 		repaint();
+		if (listener != null)
+			listener.onDiceChanged(die);
 	}
 
 	int getDie() {
 		return die;
 	}
 	
+	public void setListener(DiceChangedListener listener) {
+		this.listener = listener;
+	}
+	
 	@Override
 	public void paint(Graphics g) {
 		int w = getWidth();
 		int h = getHeight();
-
-//		g.setColor(bkColor);
-//		g.fillRect(0,0,w,h);
 
 		final int spacing = 5;
 		final int dim = h - spacing;

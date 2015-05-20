@@ -20,6 +20,7 @@ public abstract class Player extends Reflector<Player> {
 	private int						playerNum	= 0; // player numbering starts at 1 
 	private int						roadLength	= 0;	
 	private int						points = 0;
+	private int						harborPoints = 0;
 	private int []					cityDevelopment = new int[DevelopmentArea.values().length];
 	private Card					merchantFleetTradable;
 	
@@ -39,7 +40,9 @@ public abstract class Player extends Reflector<Player> {
         StringBuffer buf = new StringBuffer();
         buf.append(getName());
         buf.append(" cards:").append(cards);
-        buf.append(" roadLen:").append(roadLength).append(" points:").append(points);
+        buf.append(" roadLen:").append(roadLength);
+        buf.append(" points:").append(points);
+        buf.append(" harbor pts:").append(harborPoints);
         for (DevelopmentArea area : DevelopmentArea.values()) {
         	if (cityDevelopment[area.ordinal()] > 0) {
         		buf.append(" " + area.name() + ":").append(cityDevelopment[area.ordinal()]);
@@ -148,6 +151,7 @@ public abstract class Player extends Reflector<Player> {
 		cards.clear();
 		roadLength=0;
 		points = 0;
+		harborPoints = 0;
 	}
 	
 	/**
@@ -591,7 +595,7 @@ public abstract class Player extends Reflector<Player> {
 	public final void setRoadLength(int len) {
 		roadLength = len;
 	}
-
+	
 	/**
 	 * 
 	 *
@@ -599,7 +603,23 @@ public abstract class Player extends Reflector<Player> {
 	public final int getRoadLength() {
 		return roadLength;
 	}
-	
+
+	/**
+	 * 
+	 * @return
+	 */
+	public final int getHarborPoints() {
+		return harborPoints;
+	}
+
+	/**
+	 * 
+	 * @param pts
+	 */
+	public final void setHarborPoints(int pts) {
+		this.harborPoints = pts;
+	}
+
 	/**
 	 * @return Returns the points.
 	 */
