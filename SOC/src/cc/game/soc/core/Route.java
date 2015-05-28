@@ -17,6 +17,7 @@ public final class Route extends Reflector<Route> implements Comparable<Route> {
 	final static int EDGE_FLAG_LOCKED			= 1<<4; // set when user positions the ship for first time, or for all a player's ships after they have moved a ship.  This is to support the move one ship per turn mandate. 
 	final static int EDGE_FLAG_BLOCKED			= 1<<5; // set that the edge is blocked by an opponent knight
 	final static int EDGE_FLAG_DAMAGED			= 1<<6; // road is damaged
+	final static int EDGE_FLAG_WARSHIP			= 1<<7; // ship upgrade
 	
 	static {
 		addAllFields(Route.class);
@@ -82,6 +83,8 @@ public final class Route extends Reflector<Route> implements Comparable<Route> {
 	
 	public String getFlagsString() {
 		StringBuffer buf = new StringBuffer();
+		if (isWarShip())
+			buf.append("WARSHIP");
 		if (isShip())
 			buf.append("SHIP ");
 		if (isAdjacentToLand())
@@ -106,6 +109,7 @@ public final class Route extends Reflector<Route> implements Comparable<Route> {
 		setFlag(EDGE_FLAG_LOCKED, false);
 		setFlag(EDGE_FLAG_SHIP, false);
 		setFlag(EDGE_FLAG_DAMAGED, false);
+		setFlag(EDGE_FLAG_WARSHIP, false);
 	}
 
 	/**
@@ -144,6 +148,14 @@ public final class Route extends Reflector<Route> implements Comparable<Route> {
 	public final boolean isShip() {
 		return getFlag(EDGE_FLAG_SHIP);
 	}
+	
+	/**
+	 * 
+	 * @return
+	 */
+	public final boolean isWarShip() {
+		return getFlag(EDGE_FLAG_WARSHIP);
+	}
 
 	/**
 	 * 
@@ -151,6 +163,14 @@ public final class Route extends Reflector<Route> implements Comparable<Route> {
 	 */
 	public final void setShip(boolean isShip) {
 		setFlag(EDGE_FLAG_SHIP, isShip);
+	}
+	
+	/**
+	 * 
+	 * @param warShip
+	 */
+	public final void setWarShip(boolean warShip) {
+		setFlag(EDGE_FLAG_WARSHIP, warShip);
 	}
 	
 	/**

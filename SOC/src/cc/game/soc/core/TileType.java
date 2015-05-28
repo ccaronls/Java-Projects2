@@ -21,8 +21,8 @@ public enum TileType {
 	// used for random generation
 	RANDOM_RESOURCE_OR_DESERT	(0, false, false, false, null, null),	// randomly assign a desert or a resource 
 	RANDOM_RESOURCE				(0, false, false, false, null, null),	// randomly assign a resource
-	RANDOM_PORT_OR_WATER		(0, false, false, false, null, null),	// randomly assign a post or water
-	RANDOM_PORT					(0, false, false, false, null, null),	// randomly assign a port
+	RANDOM_PORT_OR_WATER		(0, true, false, false, null, null),	// randomly assign a post or water
+	RANDOM_PORT					(0, true, true, false, null, null),	// randomly assign a port
 	
 	// Cites and Knights Extension
 	PASTURE		(0, false, false, true, ResourceType.Sheep, CommodityType.Cloth), 	// 1 Sheep, 1 Cloth

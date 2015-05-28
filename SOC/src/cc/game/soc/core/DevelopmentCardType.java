@@ -15,7 +15,12 @@ public enum DevelopmentCardType implements ICardType<Void> {
 	// get N points
 	Victory(null, 4, "Can be applied to your total points when the result wind=s you the game"),
 	// place the robber and add to your army
-	Soldier(MoveType.SOLDIER_CARD, 50, "Use to place the robber");
+	Soldier(MoveType.SOLDIER_CARD, 50, "Use to place the robber"),
+	// seafarers expansion pirate islands scenario
+	Warship(MoveType.WARSHIP_CARD, 50, "Convert a ship into a warship"),
+	
+	
+	;
 	
 	final int deckOccurances;
 	final MoveType moveType;

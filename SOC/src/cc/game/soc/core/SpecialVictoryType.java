@@ -10,12 +10,12 @@ public enum SpecialVictoryType implements ICardType<Integer> {
 	/**
 	 * first player with a road length of 3 gets this card.  Can be taken by another player who gains the longer road
 	 */
-	LargestArmy(2, "Given to player who has largest army"), // TODO
+	LargestArmy(2, "Given to player who has largest army"),
 	
 	/**
 	 * first player with 3 or more knights gets this card.  Taken by another who gain more.
 	 */
-	LongestRoad(2, "Given to player with the longest road"), // TODO
+	LongestRoad(2, "Given to player with the longest road"),
 	
 	DefenderOfCatan(1, "Awarded when a player single-handedly defends against Barbarians."),
 	Tradesman(1, "Given to the player who controls the Merchant."),  // TODO
@@ -26,7 +26,7 @@ public enum SpecialVictoryType implements ICardType<Integer> {
 	 * Given to first player to get to 3 harbor points  A settlement on a harbor is 1 pt.  A city is 2 points.
 	 * Can be taken by another player who gaion the most harbor points.
 	 */
-	HarborMaster(2, "Player who has most harbor points gets this card"), // TODO
+	HarborMaster(2, "Player who has most harbor points gets this card"),
 	
 	/**
 	 * Fisherman scenario.  Requires fish tokens, lake tile and fishing ground tiles.

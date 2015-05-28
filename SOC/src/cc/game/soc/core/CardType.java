@@ -7,6 +7,8 @@ public enum CardType {
 	Progress(ProgressCardType.values()),			// CAK
 	SpecialVictory(SpecialVictoryType.values()),	// CAK
 	Event(EventCardType.values()),				// No dice variation
+	BarbarianAttackDevelopment(BarbarianAttackDevelopmentCardType.values()),
+	
 	;
 
 	CardType(Enum<?> [] typeValues) {

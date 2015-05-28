@@ -19,6 +19,7 @@ public enum VertexType {
 	STRONG_KNIGHT_INACTIVE(2, false, false),
 	MIGHTY_KNIGHT_INACTIVE(3, false, false),
 
+	PIRATE_FORTRESS(0, false, true),
 	;
 	
 	VertexType(int knightLevel, boolean active, boolean isStructure) {

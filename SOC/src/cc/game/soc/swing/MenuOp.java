@@ -5,7 +5,7 @@ public enum MenuOp {
 	// common
 	BACK("Back", null),
 	EXIT("Exit", "Exit the Application"),
-	NEW("New Game", "Start a new game"),
+	NEW_GAME("New Game", "Start a new game"),
 	RESTORE("Restore", "Restore previously saved game"),
 	CONFIG_BOARD("Configure Board", "Open configure board mode"),
 	CONFIG_SETTINGS("Config Settings", "Configure game settings"),
@@ -20,7 +20,8 @@ public enum MenuOp {
 	GEN_RECT_BOARD_SMALL("Small", "Generate a small rectangular shaped board"),
 	GEN_RECT_BOARD_MEDIUM("Medium", "Generate a medium rectangular shaped board"),
 	GEN_RECT_BOARD_LARGE("Large", "Generate a large shaped board"),
-	FINALIZE_BOARD("Finalize Board", "Commit board"),
+	TRIM_BOARD("Trim Board", "Remove empty tiles"),
+//	FINALIZE_BOARD("Finalize Board", "Commit board"),
 	SAVE_BOARD_AS_DEFAULT("Save as Default", "Save current board as default board"),
 	LOAD_DEFAULT("Load Default", "Load the default board"),
 	SAVE_BOARD("Save", "Overwrite board changes"),

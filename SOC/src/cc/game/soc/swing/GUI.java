@@ -132,7 +132,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 	
 	private ColorString [] playerColors;
 
-    private final File defaultBoardFile;
+    private File defaultBoardFile;
     private final File saveGameFile;
     private final File saveRulesFile;
     
@@ -160,7 +160,11 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 		this.props = props;
 		soc = new SOCGUI(this);
 		
-        defaultBoardFile = new File(homeFolder, props.getProperty("gui.defaultBoardFilename", "soc_def_board.txt"));
+		String boardFilename = props.getProperty("gui.defaultBoardFilename", "soc_def_board.txt");
+        defaultBoardFile = new File(homeFolder, boardFilename);
+        if (!defaultBoardFile.exists()) {
+        	defaultBoardFile = new File(boardFilename);
+        }
         saveGameFile = new File(homeFolder, props.getProperty("gui.saveGameFileName", "socsavegame.txt"));
         saveRulesFile = new File(homeFolder, props.getProperty("gui.saveRulesFileName", "socrules.txt"));
         diceSpinTimeSeconds = props.getFloatProperty("gui.diceSpinTimeSeconds", 3);
@@ -173,9 +177,9 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 		if (!loadBoard(defaultBoardFile.getAbsolutePath())) {
 			//board.generateRectBoard(8);
 			getBoard().generateDefaultBoard();
-			if (!getBoard().isFinalized())
-				menuStack.push(MenuState.MENU_CONFIG_BOARD);
-			else
+//			if (!getBoard().isFinalized())
+//				menuStack.push(MenuState.MENU_CONFIG_BOARD);
+//			else
 				saveBoard(defaultBoardFile.getAbsolutePath());
 		}
         playerColors = new ColorString[] {
@@ -404,6 +408,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
                     grp.addButton(formatString(c.name()), c);
                 }
                 grp.addButton("Islands", PickMode.PM_ISLAND);
+                grp.addButton("Pirate Route", PickMode.PM_PIRATE_ROUTE);
                 westGridPanel.add(chooser);
                 westGridPanel.add(buttons);
                 //cntrBorderPanel.remove(console);
@@ -442,7 +447,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
     		switch (menuStack.peek()) {
     		case MENU_START:
     		    initLayout(LayoutType.LAYOUT_DEFAULT);
-    			menu.add(getMenuOpButton(MenuOp.NEW));
+    			menu.add(getMenuOpButton(MenuOp.NEW_GAME));
     			menu.add(getMenuOpButton(MenuOp.RESTORE));
     			menu.add(getMenuOpButton(MenuOp.CONFIG_BOARD));
                 menu.add(getMenuOpButton(MenuOp.CONFIG_SETTINGS));
@@ -526,7 +531,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
     			menu.add(getMenuOpButton(MenuOp.LOAD_BOARD));
     			menu.add(getMenuOpButton(MenuOp.GEN_HEX_BOARD));
     			menu.add(getMenuOpButton(MenuOp.GEN_RECT_BOARD));
-    			menu.add(getMenuOpButton(MenuOp.FINALIZE_BOARD));
+    			menu.add(getMenuOpButton(MenuOp.TRIM_BOARD));
     			menu.add(getMenuOpButton(MenuOp.SAVE_BOARD_AS_DEFAULT));
     			if (getBoard().getName() != null) {
     				if (new File(getBoard().getName()).isFile())
@@ -585,11 +590,11 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 
 			case DEBUG_BOARD:
 				menuStack.push(MenuState.MENU_DEBUGGING);
-				try {
-					getBoard().load(new File(homeFolder, "debugboard.txt").getAbsolutePath());
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
+//				try {
+//					getBoard().load(new File(homeFolder, "debugboard.txt").getAbsolutePath());
+//				} catch (Exception e) {
+//					e.printStackTrace();
+//				}
 				initMenu();
 				break;
 
@@ -601,7 +606,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 				getBoard().clearIslands();
 				break;
 
-			case NEW:
+			case NEW_GAME:
 				newGame();
 				initMenu();
 				break;
@@ -610,6 +615,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 				try {
 					menuStack.push(MenuState.MENU_PLAY_GAME);
 					loadGame(saveGameFile);
+					setDice(soc.getDice());
 					new Thread(this).start();
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -643,7 +649,8 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 				break;
 
 			case START:			
-				if (getBoard().isFinalized()) {
+				if (getBoard().isReady()) {
+					getBoard().assignRandom();
 					menuStack.clear();
 					menuStack.push(MenuState.MENU_START);
 					menuStack.push(MenuState.MENU_PLAY_GAME);
@@ -658,19 +665,19 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 				break;
 
 			case GEN_HEX_BOARD_SMALL:
-				getBoard().generateHexBoard(4);
+				getBoard().generateHexBoard(4, TileType.WATER);
 				menuStack.pop();
 				initMenu();
 				break;
 
 			case GEN_HEX_BOARD_MEDIUM:
-				getBoard().generateHexBoard(5);
+				getBoard().generateHexBoard(5, TileType.WATER);
 				menuStack.pop();
 				initMenu();
 				break;
 
 			case GEN_HEX_BOARD_LARGE:
-				getBoard().generateHexBoard(6);
+				getBoard().generateHexBoard(6, TileType.WATER);
 				menuStack.pop();
 				initMenu();
 				break;
@@ -681,25 +688,25 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 				break;
 
 			case GEN_RECT_BOARD_SMALL:
-				getBoard().generateRectBoard(6);
+				getBoard().generateRectBoard(6, TileType.WATER);
 				menuStack.pop();
 				initMenu();
 				break;
 
 			case GEN_RECT_BOARD_MEDIUM:
-				getBoard().generateRectBoard(8);
+				getBoard().generateRectBoard(8, TileType.WATER);
 				menuStack.pop();
 				initMenu();
 				break;
 
 			case GEN_RECT_BOARD_LARGE:
-				getBoard().generateRectBoard(10);
+				getBoard().generateRectBoard(10, TileType.WATER);
 				menuStack.pop();
 				initMenu();
 				break;
 
-			case FINALIZE_BOARD:
-				getBoard().finalizeBoard();
+			case TRIM_BOARD:
+				getBoard().trim();
 				break;
 
 			case SAVE_BOARD_AS_DEFAULT:
@@ -775,6 +782,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 				FileUtils.restoreFile(saveGameFile.getAbsolutePath());
 				try {
 					loadGame(saveGameFile);
+					setDice(soc.getDice());
 					new Thread(this).start();
 					frame.repaint();
 				} catch (Exception e) {
@@ -819,6 +827,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 						rowData[b.ordinal()][r.ordinal()+1] = b.getCost(r);
 				}
 				JTable table = new JTable(rowData, columnNames);
+				table.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
 				JScrollPane view = new JScrollPane(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 				view.getViewport().add(table);
 				this.showOkPopup("BUILDABLE", view);
@@ -833,7 +842,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 
 			case SAVE_SCENARIO: {
 
-				String txt = getBoard().getName();
+				String txt = FileUtils.stripExtension(new File(getBoard().getName()).getName());
 				if (txt.length() == 0)
 					txt = "MyScenario";
 				final JTextField nameField = new JTextField(txt);
@@ -843,7 +852,6 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 						new PopupButton("Save") {
 							@Override
 							public boolean doAction() {
-								SOC soc = new SOC();
 								getBoard().setName(nameField.getText());
 								JFileChooser chooser = new JFileChooser();
 								File scenarioDir = new File(props.getProperty("screnariosDirectory", "scenarios"));
@@ -856,6 +864,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 									showOkPopup("ERROR", "Not a directory '" + scenarioDir + "'");
 									return true;
 								}
+								chooser.setSelectedFile(new File(scenarioDir, nameField.getText()));
 								chooser.setCurrentDirectory(scenarioDir);
 								chooser.setDialogTitle("Save Scenario");
 								chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
@@ -924,7 +933,6 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 		soc.loadFromFile(file);
 		initMenu();
 		boardComp.setBoard(getBoard());
-		setDice(soc.getDice());
 	}
     
     public synchronized void closePopup() {
@@ -956,7 +964,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
     }
     
     private void newGame() {
-    	soc.clear();
+    	soc.reset();
 		menuStack.push(MenuState.MENU_GAME_SETUP);
 		menuStack.push(MenuState.MENU_CHOOSE_COLOR);
 		menuStack.push(MenuState.MENU_CHOOSE_NUM_PLAYERS);    	
@@ -1021,8 +1029,6 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 	
 	private boolean saveBoard(String fileName) {
 		try {
-			if (!getBoard().isFinalized())
-				getBoard().finalizeBoard();
 			getBoard().setName(fileName);
 			getBoard().save(fileName);
 			boardNameLabel.setText(fileName);
@@ -1036,7 +1042,9 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 	
 	private boolean loadBoard(String fileName) {
 		try {
-			getBoard().load(fileName);
+			Board b = new Board();
+			b.load(fileName);
+			getBoard().copyFrom(b);
 			boardNameLabel.setText(fileName);
 			return true;
 		} catch (Exception e) {
@@ -1525,10 +1533,17 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
                 	switch (mode) {
                 		case PM_CELLPAINT:
                 			break;
-                		case PM_ISLAND:
-                        	int islandNum = getBoard().createIsland(pickedValue);
-                        	console.addText(Color.black, "Found island: " + islandNum);
+                		case PM_ISLAND: {
+                			int islandNum = getBoard().getTile(pickedValue).getIslandNum();
+                			if (getBoard().getTile(pickedValue).getIslandNum() > 0) {
+                				// remove the island
+                				getBoard().removeIsland(islandNum);
+                			} else {
+                            	islandNum = getBoard().createIsland(pickedValue);
+                            	console.addText(Color.black, "Found island: " + islandNum);
+                			}
                         	break;
+                		}
                 	}
                     break;
                 default:

@@ -306,7 +306,7 @@ public class SOCGUI extends SOC {
 	}
 
 	@Override
-	protected void onPlayerdiscoveredIsland(Player player, Island island) {
+	protected void onPlayerDiscoveredIsland(Player player, Island island) {
 		addCardAnimation(player, "Island " + island.getNum() + "\nDiscovered!");
 	}
 

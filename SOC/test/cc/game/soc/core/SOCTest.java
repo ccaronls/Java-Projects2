@@ -54,11 +54,11 @@ public class SOCTest extends TestCase {
 			}
 		};
 		Board b = soc.getBoard();
-		b.generateHexBoard(4);
+		b.generateHexBoard(4, TileType.WATER);
 		for (int i=0; i<b.getNumTiles(); i++) {
 		    b.getTile(i).setType(TileType.RANDOM_RESOURCE_OR_DESERT);
 		}
-		b.finalizeBoard();
+		b.assignRandom();
 		for (int i=0; i<4; i++)
 			soc.addPlayer(new PlayerRandom());
 		//for (int i=0; i<100000; i++)
@@ -80,11 +80,11 @@ public class SOCTest extends TestCase {
     {
         SOC soc = new SOC();
         Board b = soc.getBoard();
-        b.generateHexBoard(4);
+        b.generateHexBoard(4, TileType.WATER);
         for (int i=0; i<b.getNumTiles(); i++) {
             b.getTile(i).setType(TileType.RANDOM_RESOURCE_OR_DESERT);
         }
-        b.finalizeBoard();
+        b.assignRandom();
         for (int i=0; i<4; i++)
             soc.addPlayer(new PlayerBot());
         //for (int i=0; i<100000; i++)

@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import cc.lib.game.IVector2D;
+import cc.lib.game.Utils;
 import cc.lib.utils.Reflector;
 
 
@@ -19,7 +20,7 @@ public final class Tile extends Reflector<Tile> implements IVector2D {
 	}
 	
 	//	 position of cell
-	private float	x, y;								
+	private float	x, y;
 
 	//	 indicies to vertices
 	// that are adjacent to
@@ -29,7 +30,8 @@ public final class Tile extends Reflector<Tile> implements IVector2D {
 	private int	dieNum;
 	private int islandNum;
 	private TileType type = TileType.NONE;
-
+	private int pirateRouteNext = -1; // When 
+	
 	public Tile() {}
 	
 	/**
@@ -37,9 +39,10 @@ public final class Tile extends Reflector<Tile> implements IVector2D {
 	 * @param x
 	 * @param y
 	 */
-	Tile(float x, float y) {
+	Tile(float x, float y, TileType type) {
 		this.x = x;
 		this.y = y;
+		this.type = type;
 	}
 
 	void reset() {
@@ -103,7 +106,7 @@ public final class Tile extends Reflector<Tile> implements IVector2D {
 	 * @return Returns the adjVerts.
 	 */
 	public List<Integer> getAdjVerts() {
-		return Arrays.asList(adjVerts[0], adjVerts[1], adjVerts[2], adjVerts[3], adjVerts[4], adjVerts[5]);
+		return Utils.asList(adjVerts, 0, numAdj);
 	}
 
 	/**
@@ -122,7 +125,7 @@ public final class Tile extends Reflector<Tile> implements IVector2D {
         this.adjVerts = adjVerts;
         this.numAdj = adjVerts.length;
     }
-
+    
     void setX(float x) {
     	this.x = x;
     }
@@ -175,5 +178,21 @@ public final class Tile extends Reflector<Tile> implements IVector2D {
 	public boolean equals(Object o) {
 		Tile t = (Tile)o;
 		return t.getX() == getX() && t.getY() == getY();
+	}
+
+	public final int getPirateRouteNext() {
+		return pirateRouteNext;
+	}
+
+	public final void setPirateRouteNext(int pirateRouteNext) {
+		this.pirateRouteNext = pirateRouteNext;
+	}
+
+	final void addPirateRoute(Board b, int tileIndex) {
+		if (pirateRouteNext < 0) {
+			pirateRouteNext = tileIndex;
+		} else {
+			b.getTile(pirateRouteNext).addPirateRoute(b, tileIndex);
+		}
 	}
 }

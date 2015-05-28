@@ -30,6 +30,7 @@ public class BoardComponent extends JComponent implements KeyListener, MouseMoti
         PM_NONE,
         PM_ROAD,
         PM_SHIP,
+        PM_WARSHIP,
         PM_MOVABLE_SHIPS,
         PM_SETTLEMENT,
         PM_CITY,
@@ -50,6 +51,7 @@ public class BoardComponent extends JComponent implements KeyListener, MouseMoti
         PM_METROPOLIS_TRADE,
         PM_METROPOLIS_POLITICS,
         PM_METROPOLIS_SCIENCE,
+        PM_PIRATE_ROUTE,
     }
     
     enum RenderFlag {
@@ -196,13 +198,13 @@ public class BoardComponent extends JComponent implements KeyListener, MouseMoti
         anim.start();
     }
 
-	private void drawTileOutline(Graphics g, Tile cell) {
+	private void drawTileOutline(Graphics g, Tile cell, int borderThickness) {
 	    render.clearVerts();
 		for (int i : cell.getAdjVerts()) {
 			Vertex v = board.getVertex(i);
 			render.addVertex(v.getX(), v.getY());
 		}
-		render.drawLineLoop(g, 2);
+		render.drawLineLoop(g, borderThickness);
 	}
 	
 //	private void setPlayerColor(Graphics g, int playerNum) {
@@ -257,11 +259,24 @@ public class BoardComponent extends JComponent implements KeyListener, MouseMoti
 	    new Face(0.5f, -5,0, -3,-2, -3,-5, -5,-3).setFaceTypes(FaceType.CITY_WALL),
 	    
 	    // ship
+	    // hull bottom
+	    new Face(0.5f, -4,0, 4,0, 3,-2, -3,-2).setFaceTypes(FaceType.SHIP, FaceType.WAR_SHIP),
+	    new Face(0.3f, -4,0, -2,1, 2,1, 4,0, 2,-1, -2,-1).setFaceTypes(FaceType.SHIP, FaceType.WAR_SHIP),
+	    
+	    // traingle sail (ship)
+	    new Face(0.1f, 1,0, 1,5, -2,0).setFaceTypes(FaceType.SHIP),
+	    
+	    // square sail (warship)
+	    new Face(0.2f, 2,2, 2,6, -2,4, -2,0).setFaceTypes(FaceType.WAR_SHIP),
+	    new Face(0.0f, 0,2, 1,3, 1,5, -1,4, -1,2).setFaceTypes(FaceType.WAR_SHIP),
+	    
+	    
+	    
 	    
 	    // hull
-	    new Face(0.25f, -4,0, 4,0, 3,-2, -3,-2).setFaceTypes(FaceType.SHIP),
+	    //new Face(0.25f, -4,0, 4,0, 3,-2, -3,-2).setFaceTypes(FaceType.SHIP),
 	    // sail 
-	    new Face(0.0f, 1,0,1,5,-1,4,-3,1,-1,0).setFaceTypes(FaceType.SHIP),
+	    //new Face(0.0f, 1,0, 1,5, -1,4, -3,1, -1,0).setFaceTypes(FaceType.SHIP),
 	    /*
 	    // shield
 	    // full (inactive)
@@ -399,6 +414,7 @@ public class BoardComponent extends JComponent implements KeyListener, MouseMoti
 		CITY,
 		CITY_WALL,
 		SHIP,
+		WAR_SHIP,
 		KNIGHT_ACTIVE_BASIC,
 		KNIGHT_ACTIVE_STRONG,
 		KNIGHT_ACTIVE_MIGHTY,
@@ -634,15 +650,17 @@ public class BoardComponent extends JComponent implements KeyListener, MouseMoti
 
 	private void drawEdge(Graphics g, Route e, int playerNum, boolean outline) {
 		if (playerNum > 0) {
-			if (e.isShip())
-				drawShip(g, board.getRouteMidpoint(e), outline);
+			if (e.isWarShip())
+				drawWarShip(g, e, outline);
+			else if (e.isShip())
+				drawShip(g, e, outline);
 			else
 				drawRoad(g, e, outline);
 		} else {
 			if (e.isAdjacentToLand())
 				drawRoad(g, e, outline);
 			if (e.isAdjacentToWater())
-				drawShip(g, board.getRouteMidpoint(e), outline);
+				drawShip(g, e, outline);
 		}
 	}
 	
@@ -696,8 +714,27 @@ public class BoardComponent extends JComponent implements KeyListener, MouseMoti
 	    render.drawLineStrip(g, roadLineThickness);
 	}
 	
-	void drawShip(Graphics g, IVector2D v, boolean outline) {
-		drawFaces(g, v.getX(), v.getY(), 0, board.getTileWidth()/8, FaceType.SHIP, outline);
+	private int getEdgeAngle(Route e) {
+		Vertex v0 = board.getVertex(e.getFrom());
+		Vertex v1 = board.getVertex(e.getTo());
+		if (v1.getX() < v0.getX()) {
+			Vertex t = v0;
+			v0 = v1;
+			v1 = t;
+		}
+		int ang = Math.round(Vector2D.newTemp(v1).sub(v0).angleOf());
+		// we want eight 60, 300 or 0
+		return ang;
+	}
+	
+	void drawShip(Graphics g, Route e, boolean outline) {
+		IVector2D mp = getBoard().getRouteMidpoint(e);
+		drawFaces(g, mp.getX(), mp.getY(), getEdgeAngle(e), board.getTileWidth()/8, FaceType.SHIP, outline);
+	}
+	
+	void drawWarShip(Graphics g, Route e, boolean outline) {
+		IVector2D mp = getBoard().getRouteMidpoint(e);
+		drawFaces(g, mp.getX(), mp.getY(), getEdgeAngle(e), board.getTileWidth()/8, FaceType.WAR_SHIP, outline);
 	}
 	
 	private void drawRobber(Graphics g, Tile cell) {
@@ -756,10 +793,37 @@ public class BoardComponent extends JComponent implements KeyListener, MouseMoti
 			this.pickPlayerNum = -pickPlayerNum;
 		else if (mode == PickMode.PM_PATH)
 			this.pickPlayerNum = 0;
+		else if (mode == PickMode.PM_PIRATE_ROUTE && indices == null) {
+			indices = computePirateRouteTiles();
+		}
 		this.pickMode = mode;
 		this.pickIndices = indices;
 		pickedValue = -1;
 		repaint();
+	}
+	
+	private List<Integer> computePirateRouteTiles() {
+		if (getBoard().getPirateRouteStartTile() < 0) {
+			return getBoard().getTilesOfType(TileType.WATER);
+		}
+		
+		int tile = getBoard().getPirateRouteStartTile();
+		while (getBoard().getTile(tile).getPirateRouteNext() >= 0) {
+			tile = getBoard().getTile(tile).getPirateRouteNext();
+			if (tile == getBoard().getPirateRouteStartTile()) {
+				// the route is in a loop, so no options
+				return Collections.EMPTY_LIST;
+			}
+		}
+		
+		Tile t = getBoard().getTile(tile);
+		List<Integer> result = new ArrayList<>();
+		for (int tIndex : getBoard().getTilesAdjacentToTile(t)) {
+			Tile tt = getBoard().getTile(tIndex);
+			if (tIndex == getBoard().getPirateRouteStartTile() || (tt.isWater() && tt.getPirateRouteNext() < 0))
+				result.add(getBoard().getTileIndex(tt));
+		}
+		return result;
 	}
 
 	private void drawIslandOutlined(Graphics g, int tileIndex) {
@@ -805,7 +869,7 @@ public class BoardComponent extends JComponent implements KeyListener, MouseMoti
             int x = Math.round(v[0]);
             int y = Math.round(v[1]);
             g.setColor(outlineColor);
-            drawTileOutline(g, cell);
+            drawTileOutline(g, cell, 2);
             g.setColor(textColor);
             switch (cell.getType()) {
                 case NONE:
@@ -880,7 +944,7 @@ public class BoardComponent extends JComponent implements KeyListener, MouseMoti
             switch (cell.getType()) {
             case NONE:
                 g.setColor(outlineColor);
-                drawTileOutline(g, cell);
+                drawTileOutline(g, cell, 2);
                 //Utils.drawJustifiedString(g,x,y,Justify.CENTER,Justify.CENTER,"NONE");
                 break;
             case DESERT:
@@ -941,25 +1005,25 @@ public class BoardComponent extends JComponent implements KeyListener, MouseMoti
             // used for random generation
             case RANDOM_RESOURCE_OR_DESERT:
                 g.setColor(outlineColor);
-                drawTileOutline(g, cell);
+                drawTileOutline(g, cell, 2);
                 g.setColor(textColor);
                 AWTUtils.drawJustifiedString(g,x,y,Justify.CENTER,Justify.CENTER,"Random\nResourse or\nDesert");
                 break;
             case RANDOM_RESOURCE:
                 g.setColor(outlineColor);
-                drawTileOutline(g, cell);
+                drawTileOutline(g, cell, 2);
                 g.setColor(textColor);
                 AWTUtils.drawJustifiedString(g,x,y,Justify.CENTER,Justify.CENTER,"Random\nResource");
                 break;
             case RANDOM_PORT_OR_WATER:
                 g.setColor(outlineColor);
-                drawTileOutline(g, cell);
+                drawTileOutline(g, cell, 2);
                 g.setColor(textColor);
                 AWTUtils.drawJustifiedString(g,x,y,Justify.CENTER,Justify.CENTER,"Random Port\nor\nWater");
                 break;
             case RANDOM_PORT:
                 g.setColor(outlineColor);
-                drawTileOutline(g, cell);
+                drawTileOutline(g, cell, 2);
                 g.setColor(textColor);
                 AWTUtils.drawJustifiedString(g,x,y,Justify.CENTER,Justify.CENTER,"Random\nPort");
                 break;
@@ -1050,7 +1114,7 @@ public class BoardComponent extends JComponent implements KeyListener, MouseMoti
             render.translate(-bx, -by);
             //render.translate(bx, by);
             if (!getRenderFlag(RenderFlag.DONT_DRAW_TEXTURES)) {
-                this.drawTilesTextured(g);
+                drawTilesTextured(g);
             } 
             
             if (getRenderFlag(RenderFlag.DRAW_CELL_OUTLINES)) {
@@ -1082,11 +1146,24 @@ public class BoardComponent extends JComponent implements KeyListener, MouseMoti
             			switch (pickMode) {
     						case PM_EDGE:
     						case PM_ROAD:
+    							if (pickIndices == null || pickIndices.contains(i)) {
+    								g.setColor(AWTUtils.setAlpha(listener.getPlayerColor(pickPlayerNum), PICKABLE_ELEM_ALPHA));
+    								drawRoad(g, e, false);
+    								continue;
+    							}
+    							break;
     						case PM_MOVABLE_SHIPS:
     						case PM_SHIP:
     							if (pickIndices == null || pickIndices.contains(i)) {
     								g.setColor(AWTUtils.setAlpha(listener.getPlayerColor(pickPlayerNum), PICKABLE_ELEM_ALPHA));
-    								drawEdge(g, e, 0, false);
+    								drawShip(g, e, false);
+    								continue;
+    							}
+    							break;
+    						case PM_WARSHIP:
+    							if (pickIndices == null || pickIndices.contains(i)) {
+    								g.setColor(AWTUtils.setAlpha(listener.getPlayerColor(pickPlayerNum), PICKABLE_ELEM_ALPHA));
+    								drawWarShip(g, e, false);
     								continue;
     							}
     							break;
@@ -1165,9 +1242,9 @@ public class BoardComponent extends JComponent implements KeyListener, MouseMoti
         		}
             }
     		
-    		int robberTile = board.getRobberTile();
-    		int pirateTile = board.getPirateTile();
-    		int merchantTile = board.getMerchantTile();
+    		int robberTile = board.getRobberTileIndex();
+    		int pirateTile = board.getPirateTileIndex();
+    		int merchantTile = board.getMerchantTileIndex();
     		int merchantPlayer = board.getMerchantPlayer();
 
             if (pickedValue >= 0) {
@@ -1184,12 +1261,12 @@ public class BoardComponent extends JComponent implements KeyListener, MouseMoti
                     	
             		case PM_CELL:
                     	g.setColor(Color.YELLOW);
-                    	drawTileOutline(g, board.getTile(pickedValue));
+                    	drawTileOutline(g, board.getTile(pickedValue), 2);
                     	break;
                     	
             		case PM_CELLPAINT:
             			g.setColor(Color.RED);
-            			drawTileOutline(g, board.getTile(pickedValue));
+            			drawTileOutline(g, board.getTile(pickedValue), 2);
                 		break;
 
             		case PM_VERTEX: {
@@ -1269,10 +1346,19 @@ public class BoardComponent extends JComponent implements KeyListener, MouseMoti
                     	break;
             		}
 					case PM_MOVABLE_SHIPS:
-					case PM_ROAD:
 					case PM_SHIP:
 						g.setColor(listener.getPlayerColor(pickPlayerNum));
-						drawEdge(g, board.getRoute(pickedValue), pickPlayerNum, true);
+						drawShip(g, board.getRoute(pickedValue), true);
+						break;
+
+					case PM_WARSHIP:
+						g.setColor(listener.getPlayerColor(pickPlayerNum));
+						drawWarShip(g, board.getRoute(pickedValue), true);
+						break;
+
+					case PM_ROAD:
+						g.setColor(listener.getPlayerColor(pickPlayerNum));
+						drawRoad(g, board.getRoute(pickedValue), true);
 						break;
 
 					case PM_NONE:
@@ -1294,10 +1380,33 @@ public class BoardComponent extends JComponent implements KeyListener, MouseMoti
             			merchantPlayer = pickPlayerNum;
             			break;
             		}
+            		
+            		case PM_PIRATE_ROUTE: {
+            			//getBoard().addPirateRoute(pickedValue);
+            			g.setColor(Color.BLACK);
+            			drawTileOutline(g, getBoard().getTile(pickedValue), 3);
+            			break;
+            		}
 					
             	}
             }
     		
+    		// draw pirate route when in pick mode
+    		if (pickMode == PickMode.PM_PIRATE_ROUTE) {
+    			g.setColor(Color.black);
+    			int t = getBoard().getPirateRouteStartTile();
+    			ArrayList<IVector2D> tiles = new ArrayList<>();
+    			while (t >= 0) {
+    				Tile tile = getBoard().getTile(t);
+    				tiles.add(tile);
+    				drawTileOutline(g, tile, 2);
+    				t = tile.getPirateRouteNext();
+    			}
+                render.clearVerts();
+                render.addVertices(tiles);
+                render.drawLineStrip(g, 2);
+    		}
+
     		if (robberTile >= 0)
     		    drawRobber(g, board.getTile(robberTile));
     		if (pirateTile >= 0)
@@ -1305,25 +1414,27 @@ public class BoardComponent extends JComponent implements KeyListener, MouseMoti
     		if (merchantTile >= 0)
     			drawMerchant(g, board.getTile(merchantTile), merchantPlayer);
     		
-    		List<Animation> t = null;
-    		synchronized (animations) {
-    		    t = new ArrayList<Animation>(animations);
-    		    animations.clear();
-    		}
+    		{
+        		List<Animation> t = null;
+        		synchronized (animations) {
+        		    t = new ArrayList<Animation>(animations);
+        		    animations.clear();
+        		}
     		
-    		// draw animations
-    		for (int i=0; i<t.size(); ) {
-    		    Animation anim = t.get(i);
-    		    if (anim.isDone()) {
-    		        t.remove(i);
-    		    } else {
-    		        anim.update(g);
-    		        i++;
-    		    }
-    		}
-    		
-    		synchronized (animations) {
-    		    animations.addAll(t);
+        		// draw animations
+        		for (int i=0; i<t.size(); ) {
+        		    Animation anim = t.get(i);
+        		    if (anim.isDone()) {
+        		        t.remove(i);
+        		    } else {
+        		        anim.update(g);
+        		        i++;
+        		    }
+        		}
+        		
+        		synchronized (animations) {
+        		    animations.addAll(t);
+        		}
     		}
     		
     		if (getRenderFlag(RenderFlag.DRAW_CELL_CENTERS)) {
@@ -1427,6 +1538,7 @@ public class BoardComponent extends JComponent implements KeyListener, MouseMoti
     		case PM_ROAD:
     		case PM_MOVABLE_SHIPS:
     		case PM_SHIP:
+    		case PM_WARSHIP:
     		case PM_EDGE:
     		case PM_PATH:
     		case PM_ROUTE:
@@ -1450,10 +1562,9 @@ public class BoardComponent extends JComponent implements KeyListener, MouseMoti
     		case PM_CELL:
     		case PM_ISLAND:
     		case PM_MERCHANT:
+    		case PM_PIRATE_ROUTE:
     		    pickedValue = pickCell(ev.getX(), ev.getY(), pickIndices);
     			break;
-    		default:
-    		    assert(false); // unhandled case
 		}
 
         if (getRenderFlag(RenderFlag.SHOW_CELL_INFO)) {
@@ -1489,6 +1600,7 @@ public class BoardComponent extends JComponent implements KeyListener, MouseMoti
                     break;
                 case PM_ROAD:
                 case PM_SHIP:
+                case PM_WARSHIP:
                 case PM_MOVABLE_SHIPS:
                 case PM_SETTLEMENT:
                 case PM_METROPOLIS_TRADE:
@@ -1506,7 +1618,6 @@ public class BoardComponent extends JComponent implements KeyListener, MouseMoti
 				case PM_EDGE:
 				case PM_VERTEX:
                     listener.onPick(pickMode, pickedValue);
-                    repaint();
                     break;
                 case PM_CELLPAINT:
                     break;
@@ -1519,7 +1630,12 @@ public class BoardComponent extends JComponent implements KeyListener, MouseMoti
 						pickedPathStart = pickedValue;
 					}
 					break;
+				case PM_PIRATE_ROUTE:
+					getBoard().addPirateRoute(pickedValue);
+					pickIndices = computePirateRouteTiles();
+					break;
             }
+            repaint();
         }
     }
 
@@ -1628,7 +1744,7 @@ public class BoardComponent extends JComponent implements KeyListener, MouseMoti
         if (cellIndex < 0)
             return;
         Tile cell = board.getTile(cellIndex);
-        String info = "CELL " + cellIndex + "\n  " + cell.getType();
+        String info = "CELL " + cellIndex + "\n  " + cell.getType() + "\nadj:" + cell.getAdjVerts();
         if (cell.getResource() != null) {
             info += "\n  " + cell.getResource();
         }
@@ -1652,6 +1768,7 @@ public class BoardComponent extends JComponent implements KeyListener, MouseMoti
         if (edge.getPlayer() > 0)
             info += "\n  Player " + edge.getPlayer();
         info += "\n  " + edge.getFlagsString();
+        info += "\n  ang=" + getEdgeAngle(edge);
         
         MutableVector2D m = new MutableVector2D(board.getRouteMidpoint(edge));
         render.transformXY(m);

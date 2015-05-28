@@ -66,7 +66,7 @@ public final class Rules extends Reflector<Rules> {
 	private int minLongestLoadLen = 5;
 	@RuleVariable(description="Min largest Army Size", minValue=2, maxValue=4)
 	private int minLargestArmySize = 3;
-	@RuleVariable(description="Point to Win", minValue=5, maxValue=50, valueStep=5)
+	@RuleVariable(description="Point to Win", minValue=5, maxValue=50, valueStep=1)
 	private int pointsForWinGame = 10;
 	@RuleVariable(description="Enable Road Block")
 	private boolean enableRoadBlock = false;
@@ -77,10 +77,12 @@ public final class Rules extends Reflector<Rules> {
 	private boolean enableSeafarersExpansion = false;
 	@RuleVariable(description="Enable Island Settlements on Startup")
 	private boolean enableIslandSettlementsOnSetup = false; // some scenarios allow starting on a island while others dont
-	@RuleVariable(description="Points for discovered Island", minValue=1, maxValue=4)
+	@RuleVariable(description="Points for discovered Island", minValue=0, maxValue=4)
 	private int pointsIslandDiscovery = 2;
 	@RuleVariable(description="Resources for Discovered Territory", minValue=1, maxValue=3)
 	private int numResourcesForDiscoveredTerritory = 1;
+	@RuleVariable(description="Disable Robber for some scenarios")
+	private boolean enableRobber = true;
 	
 	// knight
 	@RuleVariable(description="Enable Cities and Knights", separator="Cities & Knights Expansion")
@@ -96,7 +98,7 @@ public final class Rules extends Reflector<Rules> {
 	
 	@RuleVariable(description="Use Event Cards instead of dice", separator="Traders & Barbarians expansion")
 	private boolean enableEventCards = false;
-	@RuleVariable(description="Friendly Robber", minValue=0, maxValue=3, valueStep=1)
+	@RuleVariable(description="Min Victory Points for a player to\nhave Robber placed adjacent to them", minValue=0, maxValue=3, valueStep=1)
 	private int minVictoryPointsForRobber = 0;
 	@RuleVariable(description="Player with most harbor points gets special victory points")
 	private boolean enableHarborMaster = false;
@@ -203,6 +205,12 @@ public final class Rules extends Reflector<Rules> {
 	}
 	public final void setNumResourcesForDiscoveredTerritory(int numResourcesForDiscoveredTerritory) {
 		this.numResourcesForDiscoveredTerritory = numResourcesForDiscoveredTerritory;
+	}
+	public final boolean isEnableRobber() {
+		return enableRobber;
+	}
+	public final void setEnableRobber(boolean enableRobber) {
+		this.enableRobber = enableRobber;
 	}
 	public final boolean isEnableCitiesAndKnightsExpansion() {
 		return enableCitiesAndKnightsExpansion;

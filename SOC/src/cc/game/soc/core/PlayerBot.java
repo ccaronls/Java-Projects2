@@ -455,8 +455,8 @@ public class PlayerBot extends Player {
 				}
 				case BISHOP_CARD:
 				case SOLDIER_CARD: {
-					int saveRobber = b.getRobberTile();
-					int savePirate = b.getPirateTile();
+					int saveRobber = b.getRobberTileIndex();
+					int savePirate = b.getPirateTileIndex();
 					for (int tIndex : SOC.computeRobberTileIndices(soc, b)) {
 						Tile t = b.getTile(tIndex);
 						if (t.isWater())
@@ -844,7 +844,7 @@ public class PlayerBot extends Player {
 				case MERCHANT_CARD: {
 					p.removeCard(ProgressCardType.Merchant);
 					List<Integer> tiles = SOC.computeMerchantTileIndices(soc, p.getPlayerNum(), b);
-					int saveMerchantTile   = b.getMerchantTile();
+					int saveMerchantTile   = b.getMerchantTileIndex();
 					int saveMerchantPlayer = b.getMerchantPlayer();
 					for (int tIndex : tiles) {
 						Tile t = b.getTile(tIndex);
@@ -1201,8 +1201,8 @@ public class PlayerBot extends Player {
 		Board b = soc.getBoard();
 		
 		BotNode root = createNewTree();
-		int pirateSave = b.getPirateTile();
-		int robberSave = b.getRobberTile();
+		int pirateSave = b.getPirateTileIndex();
+		int robberSave = b.getRobberTileIndex();
 		for (int tIndex : tileIndices) {
 			Tile t = b.getTile(tIndex);
 			if (t.isWater()) {

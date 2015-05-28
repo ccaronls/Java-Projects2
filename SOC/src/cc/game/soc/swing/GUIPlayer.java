@@ -140,7 +140,6 @@ public class GUIPlayer extends PlayerBot {
     		return;
     	
     	final BoardComponent comp = GUI.instance.getBoardComponent();
-    	final Vector2D mp = soc.getBoard().getRouteMidpoint(edge);
         comp.addAnimation(new Animation(getAnimTime(),0) {
 			
 			@Override
@@ -148,9 +147,9 @@ public class GUIPlayer extends PlayerBot {
 				g.setColor(getColor());
                 AWTRenderer render = GUI.instance.getBoardComponent().render;
                 render.pushMatrix();
-                render.translate(mp);
+                //render.translate(mp);
                 render.scale(1, position);
-                GUI.instance.getBoardComponent().drawShip(g, Vector2D.ZERO, false);
+                GUI.instance.getBoardComponent().drawShip(g, edge, false);
                 render.popMatrix();				
 			}
 			

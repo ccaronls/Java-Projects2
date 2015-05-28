@@ -19,7 +19,7 @@ public class Island extends Reflector<Island> {
 		this.num = num;
 	}
 	
-	final private int num;
+	int num;
 	final List<Integer> tiles = new ArrayList<Integer>();
 	final List<Integer> borderRoute = new ArrayList<Integer>();
 	final boolean [] discovered = new boolean[16];

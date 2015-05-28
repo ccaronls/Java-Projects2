@@ -71,6 +71,7 @@ public class SOC extends Reflector<SOC> {
     static {
     	
     	addAllFields(SOC.class);
+    	omitField(SOC.class, "mOptions");
     }
     
 	private final Player[]   	mPlayers = new Player[MAX_PLAYERS];
@@ -222,7 +223,7 @@ public class SOC extends Reflector<SOC> {
 	 * @return
 	 */
 	public Tile getRobberCell() {
-		return getBoard().getTile(getBoard().getRobberTile());
+		return getBoard().getTile(getBoard().getRobberTileIndex());
 	}
 	
 	/**
@@ -295,8 +296,32 @@ public class SOC extends Reflector<SOC> {
 				Utils.shuffle(mProgressCards[i]);
 		} else {
 			for (DevelopmentCardType d : DevelopmentCardType.values()) {
-				for (int i=0; i<d.deckOccurances; i++)
-					mDevelopmentCards.add(new Card(d, CardStatus.USABLE));
+				switch (d) {
+					case Monopoly:
+					case RoadBuilding:
+					case YearOfPlenty:
+					case Victory: {
+						for (int i=0; i<d.deckOccurances; i++)
+							mDevelopmentCards.add(new Card(d, CardStatus.USABLE));
+						break;
+					}
+					case Soldier: {
+						if (getRules().isEnableRobber()) {
+							for (int i=0; i<d.deckOccurances; i++)
+								mDevelopmentCards.add(new Card(d, CardStatus.USABLE));
+						}
+						break;
+					}
+					case Warship: {
+						if (isPirateAttacksEnabled()) {
+							for (int i=0; i<d.deckOccurances; i++)
+								mDevelopmentCards.add(new Card(d, CardStatus.USABLE));
+						}
+						break;
+					}
+					default:
+						throw new AssertionError("Unhandled case " + d);
+				}
 			}
 			Utils.shuffle(mDevelopmentCards);
 		}
@@ -423,7 +448,7 @@ public class SOC extends Reflector<SOC> {
 		if (mEventCards.size() > 0) {
 			return mEventCards.get(0);
 		}
-		return null;//new EventCard(EventCardType.NewYear, 0);
+		return null;
 	}
 	
 	private void processEventCard() {
@@ -675,7 +700,7 @@ public class SOC extends Reflector<SOC> {
 			if (!cell.isDistributionTile())
 				continue;
 			assert(cell.getDieNum() != 0);
-			if (mBoard.getRobberTile() == i)
+			if (mBoard.getRobberTileIndex() == i)
 				continue; // apply the robber
 
 			if (diceRoll > 0 && cell.getDieNum()!= diceRoll)
@@ -854,6 +879,7 @@ public class SOC extends Reflector<SOC> {
 	 * @param card
 	 */
 	protected void onCardPicked(Player player, Card card) {}
+	
 	private void pickDevelopmentCardFromDeck() {
 		// add up the total chance
 		if (mDevelopmentCards.size() <= 0) {
@@ -899,6 +925,10 @@ public class SOC extends Reflector<SOC> {
         reset();
         initDeck();
 
+        if (isPirateAttacksEnabled()) {
+        	getBoard().setPirate(getBoard().getPirateRouteStartTile());
+        }
+        
         mCurrentPlayer = Utils.randRange(0, getNumPlayers()-1);
         
         pushStateFront(State.START_ROUND);
@@ -1018,7 +1048,7 @@ public class SOC extends Reflector<SOC> {
 			throw new RuntimeException("No board, cannot run game");
 		}
 
-		if (!mBoard.isFinalized()) {
+		if (!mBoard.isReady()) {
 			throw new RuntimeException("Board not initialized, cannot run game");
 		}
 
@@ -1386,12 +1416,12 @@ public class SOC extends Reflector<SOC> {
 					assert(mStateStack.size() == 1); // this should always be the start
 					Arrays.fill(mDice, 0);
 					if (getRules().isEnableEventCards()) {
-						mOptions = Utils.asList(MoveType.DEAL_EVENT_CARD);
+						mOptions = Arrays.asList(MoveType.DEAL_EVENT_CARD);
 					} else {
     					if (getCurPlayer().getCardCount(ProgressCardType.Alchemist) > 0) {
-    						mOptions = Utils.asList(MoveType.ALCHEMIST_CARD, MoveType.ROLL_DICE);
+    						mOptions = Arrays.asList(MoveType.ALCHEMIST_CARD, MoveType.ROLL_DICE);
     					} else {
-    						mOptions = Utils.asList(MoveType.ROLL_DICE);
+    						mOptions = Arrays.asList(MoveType.ROLL_DICE);
     					}
 					}
 					pushStateFront(State.PLAYER_TURN_NOCANCEL);
@@ -1722,10 +1752,10 @@ public class SOC extends Reflector<SOC> {
     					// see if we are chasing away the robber
     					for (int i=0; i<v.getNumTiles(); i++) {
     						int tIndex = v.getTile(i);
-    						if (tIndex == mBoard.getRobberTile()) {
+    						if (tIndex == mBoard.getRobberTileIndex()) {
     							printinfo(getCurPlayer().getName() + " has chased away the robber!");
     							pushStateFront(State.POSITION_ROBBER_NOCANCEL);
-    						} else if (tIndex == mBoard.getPirateTile()) {
+    						} else if (tIndex == mBoard.getPirateTileIndex()) {
     							printinfo(getCurPlayer().getName() + " has chased away the pirate!");
     							pushStateFront(State.POSITION_PIRATE_NOCANCEL);
     						}
@@ -2194,6 +2224,21 @@ public class SOC extends Reflector<SOC> {
         		resetOptions();
         		break;
         	}
+        	
+        	case WARSHIP_CARD: {
+        		final Card used = getCurPlayer().getUsableCard(DevelopmentCardType.Soldier);
+    			// set a random of the players route to a warship
+    			List<Integer> ships = getBoard().getShipsForPlayer(getCurPlayerNum(), false);
+    			if (ships.size() > 0) { // TODO: Allow player to choose ship to upgrade
+    				used.setUsed();
+    				Route r = getBoard().getRoute(ships.get(0));
+    				r.setWarShip(true);
+    				onPlayerShipUpgraded(getCurPlayer(), r);
+    			}
+        		resetOptions();
+        		break;
+        	}
+        	
         	case SOLDIER_CARD: {
         		//final Card removed = getCurPlayer().removeCard(DevelopmentCardType.Soldier);
         		final Card used = getCurPlayer().getUsableCard(DevelopmentCardType.Soldier);
@@ -2659,7 +2704,14 @@ public class SOC extends Reflector<SOC> {
 	 * @param player
 	 * @param island
 	 */
-	protected void onPlayerdiscoveredIsland(Player player, Island island) {}
+	protected void onPlayerDiscoveredIsland(Player player, Island island) {}
+	
+	/**
+	 * 
+	 * @param p
+	 * @param r
+	 */
+	protected void onPlayerShipUpgraded(Player p, Route r) {}
 	
 	private void givePlayerSpecialVictoryCard(Player player, SpecialVictoryType card) {
     	Player current = getSpecialVictoryPlayer(card);
@@ -2709,6 +2761,14 @@ public class SOC extends Reflector<SOC> {
 	 */
 	public boolean isGoodForSave() {
 		return getState() == State.PLAYER_TURN_NOCANCEL || getState() == State.DEAL_CARDS;//!getState().canCancel && getStateData() == null;
+	}
+	
+	/**
+	 * 
+	 * @return
+	 */
+	public boolean isPirateAttacksEnabled() {
+		return getRules().isEnableSeafarersExpansion() && getBoard().getPirateRouteStartTile() >= 0;
 	}
 	
 	/**
@@ -2787,7 +2847,7 @@ public class SOC extends Reflector<SOC> {
 				if (!mBoard.isIslandDiscovered(getCurPlayerNum(), t.getIslandNum())) {
 					mBoard.setIslandDiscovered(getCurPlayerNum(), t.getIslandNum(), true);
 					printinfo(getCurPlayer().getName() + " has discovered an island");
-					onPlayerdiscoveredIsland(getCurPlayer(), mBoard.getIsland(t.getIslandNum()));
+					onPlayerDiscoveredIsland(getCurPlayer(), mBoard.getIsland(t.getIslandNum()));
 				}
 			}
 		}
@@ -3071,14 +3131,19 @@ public class SOC extends Reflector<SOC> {
 			if (!v.canPlaceStructure())
 				continue;
 			boolean isOnIsland = false;
+			boolean canAdd = true;
 			for (Tile cell : b.getVertexTiles(i)) {
 				if (cell.getIslandNum() > 0) {
 					isOnIsland = true;
+				} else if (cell.getType() == TileType.UNDISCOVERED) {
+					canAdd = false;
 					break;
 				}
 			}
 			
-			boolean canAdd = true;
+			if (!canAdd)
+				continue;
+
 			boolean isOnRoute = false;
 			for (int ii = 0; ii < v.getNumAdjacent(); ii++) {
 				int iv = b.findAdjacentVertex(i, ii);
@@ -3356,7 +3421,7 @@ public class SOC extends Reflector<SOC> {
 	 * @return
 	 */
 	static public List<MoveType> computeMoves(Player p, Board b, SOC soc) {
-		List<MoveType> types = new ArrayList<MoveType>();
+		LinkedHashSet<MoveType> types = new LinkedHashSet<>();
         types.add(MoveType.CONTINUE);
 
 		if (p.canBuild(BuildableType.City) && b.getNumSettlementsForPlayer(p.getPlayerNum()) > 0)
@@ -3411,6 +3476,15 @@ public class SOC extends Reflector<SOC> {
 			// check for movable ships
 			if (computeOpenRouteIndices(p.getPlayerNum(), b, false, true).size() > 0) {
 				types.add(MoveType.MOVE_SHIP);
+			}
+			
+			for (int vIndex : b.getVertsOfType(0, VertexType.PIRATE_FORTRESS)) {
+				for (Route r : b.getVertexRoutes(vIndex)) {
+					if (r.isShip() && r.getPlayer() == p.getPlayerNum()) {
+						types.add(MoveType.ATTACK_PIRATE_FORTRESS);
+						break;
+					}
+				}
 			}
 		}
 		
@@ -3496,11 +3570,11 @@ public class SOC extends Reflector<SOC> {
 			}
 		}
 
-		return types;
+		return new ArrayList<MoveType>(types);
 	}
 
 	static public List<Integer> computePirateTileIndices(SOC soc, Board b) {
-		if (!soc.getRules().isEnableSeafarersExpansion())
+		if (soc.isPirateAttacksEnabled())
 			return Collections.emptyList();
 		List<Integer> cellIndices = new ArrayList<Integer>();
 		for (int i = 0; i < b.getNumTiles(); i++) {
@@ -3518,6 +3592,8 @@ public class SOC extends Reflector<SOC> {
 	 */
 	static public List<Integer> computeRobberTileIndices(SOC soc, Board b) {
 		List<Integer> cellIndices = new ArrayList<Integer>();
+		if (!soc.getRules().isEnableRobber())
+			return cellIndices;
 		boolean desertIncluded = false;
 		for (int i = 0; i < b.getNumTiles(); i++) {
 			Tile cell = b.getTile(i);
@@ -3562,7 +3638,7 @@ public class SOC extends Reflector<SOC> {
 	static public List<Integer> computeMerchantTileIndices(SOC soc, int playerNum, Board b) {
 		List<Integer> cellIndices = new ArrayList<Integer>();
 		for (int i = 0; i < b.getNumTiles(); i++) {
-			if (b.getRobberTile() == i)
+			if (b.getRobberTileIndex() == i)
 				continue;
 			Tile cell = b.getTile(i);
 			if (cell.isDistributionTile() && cell.getResource() != null) {
@@ -3663,8 +3739,13 @@ public class SOC extends Reflector<SOC> {
         			}
     			}
 			}
+    		
+    		// check tiles for ports, merchant
     		for (i = 0; i < b.getNumTiles(); i++) {
     			
+    			if (b.getPirateTileIndex() == i)
+    				continue;
+        			
         		if (trades.size() >= maxOptions)
         			return;
 
@@ -3673,7 +3754,7 @@ public class SOC extends Reflector<SOC> {
     			if (tile.getResource() == null)
     				continue;
     			
-    			if (b.getMerchantTile() == i && b.getMerchantPlayer() == p.getPlayerNum()) {
+    			if (b.getMerchantTileIndex() == i && b.getMerchantPlayer() == p.getPlayerNum()) {
     				if (p.getCardCount(tile.getResource()) < 2)
         				continue;
     			} else {
@@ -3768,7 +3849,7 @@ public class SOC extends Reflector<SOC> {
 		boolean [] playerNums = new boolean[players.length];
 		
 		if (pirate) {
-			for (int eIndex : b.getTileRouteIndices(b.getTile(b.getPirateTile()))){
+			for (int eIndex : b.getTileRouteIndices(b.getTile(b.getPirateTileIndex()))){
 				Route e = b.getRoute(eIndex);
 				if (e.getPlayer() == 0)
 					continue;
@@ -3779,7 +3860,7 @@ public class SOC extends Reflector<SOC> {
 				playerNums[e.getPlayer()] = true;
 			}
 		} else {
-    		Tile cell = b.getTile(b.getRobberTile());
+    		Tile cell = b.getTile(b.getRobberTileIndex());
     		for (int vIndex : cell.getAdjVerts()) {
     			Vertex v = b.getVertex(vIndex);
     			if (v.getPlayer() == 0)
@@ -3964,8 +4045,68 @@ public class SOC extends Reflector<SOC> {
 		checkMetropolis(devel, getCurPlayerNum(), area);
 	}
 	
+	protected void onPirateSailing(int fromTile, int toTile) {}
+	
+	protected void onCardLost(Player p, Card c) {}
+	
+	protected void onPirateAttack(Player p, int playerStrength, int pirateStrength) {}
+	
+	private void processPirateAttack() {
+		int min = Math.min(mDice[0], mDice[1]);
+		while (min-- > 0) {
+			int fromTile = getBoard().getPirateTileIndex();
+			Tile t = getBoard().getPirateTile();
+			int toTile = t.getPirateRouteNext();
+			if (toTile < 0)
+				toTile = getBoard().getPirateRouteStartTile();
+			getBoard().setPirate(-1);
+			onPirateSailing(fromTile, toTile);
+			getBoard().setPirate(toTile);
+		}
+		Tile t = getBoard().getPirateTile();
+		boolean [] attacked = new boolean[16];
+		pushStateFront(State.SET_PLAYER, getCurPlayerNum(), null);
+		for (int vIndex : t.getAdjVerts()) {
+			Vertex v = getBoard().getVertex(vIndex);
+			if (attacked[v.getPlayer()])
+				continue;
+			if (v.isStructure()) {
+				Player p = getPlayerByPlayerNum(v.getPlayer());
+				int playerPts = 0;
+				for (int rIndex : getBoard().getRoadsForPlayer(v.getPlayer())) {
+					Route r = getBoard().getRoute(rIndex);
+					if (r.isWarShip())
+						playerPts ++;
+				}
+				attacked[v.getPlayer()] = true;
+				printinfo("Pirate Attack!  " +p.getName() +  " strength " + playerPts + " pirate strength " + min);
+				onPirateAttack(p, playerPts, min);
+				if (min < playerPts) {
+					// player wins the attack
+					printinfo(p.getName() + " has defeated the pairates and take a resource card of their choice");
+					pushStateFront(State.DRAW_RESOURCE_NOCANCEL);
+					pushStateFront(State.SET_PLAYER, v.getPlayer(), null);
+				} else if (min > playerPts) {
+					printinfo("Pirates have defeated " + p.getName() + " so player loses 2 random resources cards");
+					int numResources = p.getCardCount(CardType.Resource);
+					for (int i=0; i<2 && numResources-- > 0; i++) {
+						Card c = p.removeRandomUnusedCard(CardType.Resource);
+						onCardLost(p, c);
+					}
+				} else {
+					printinfo("Pirate and " + p.getName() + " are of equals strength so nothing happens");
+				}
+			}
+		}
+	}
+	
 	private void processDice() {
 		// roll the dice
+		
+		if (isPirateAttacksEnabled()) {
+			processPirateAttack();
+		}
+		
 		if (getProductionNum() == 7) {
 			popState();
 			printinfo("Uh Oh, " + getCurPlayer().getName()  + " rolled a 7.");

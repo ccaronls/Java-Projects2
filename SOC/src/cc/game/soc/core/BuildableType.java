@@ -11,6 +11,7 @@ public enum BuildableType {
 	Road			(1, 0, 0, 0, 1), 
 	// Seafarers expansion
 	Ship			(1, 1, 0, 0, 0),
+	Warship			(0, 1, 1, 0, 0), // Not part of official game.  Warship only useful during pirate attacks, which only happen when pirate route in effect.
 	Development		(0, 1, 1, 1, 0),
 	Settlement		(1, 1, 0, 1, 1), 
 	City			(0, 0, 3, 2, 0), 

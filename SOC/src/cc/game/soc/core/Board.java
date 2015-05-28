@@ -42,6 +42,7 @@ public final class Board extends Reflector<Board> {
 
 	// optimization - To prevent excessive execution of the road len algorithm O(2^n) , we cache the result here.
 	private final int [] playerRoadLenCache = new int[16];
+	private int pirateRouteStartTile = -1; // when >= 0, then the pirate route starts at this tile.  each tile has a next index to form a route.
 	
 	/**
 	 * Create an empty board
@@ -50,42 +51,42 @@ public final class Board extends Reflector<Board> {
 		Utils.fillArray(playerRoadLenCache, -1);
 	}
 	
-	private void generateR2(float cx, float cy, float w, float h, float z, int depth, int dir, boolean allowDup) {
+	private void generateR2(float cx, float cy, float w, float h, float z, int depth, int dir, boolean allowDup, TileType type) {
 		if (depth <= 0)
 			return;
 
-		if (!makeTile(cx, cy, w, h, z) && !allowDup)
+		if (!makeTile(cx, cy, w, h, z, type) && !allowDup)
 			return; // duplicate, dont recurse
 		if ((dir & GD_N) != 0)
-			generateR2(cx, cy - h, w, h, z, depth - 1, dir, false);
+			generateR2(cx, cy - h, w, h, z, depth - 1, dir, false, type);
 		if ((dir & GD_S) != 0)
-			generateR2(cx, cy + h, w, h, z, depth - 1, dir, false);
+			generateR2(cx, cy + h, w, h, z, depth - 1, dir, false, type);
 		if ((dir & GD_NE) != 0)
-			generateR2(cx + w / 2 + z / 2, cy - h / 2, w, h, z, depth - 1, dir, false);
+			generateR2(cx + w / 2 + z / 2, cy - h / 2, w, h, z, depth - 1, dir, false, type);
 		if ((dir & GD_SE) != 0)
-			generateR2(cx + w / 2 + z / 2, cy + h / 2, w, h, z, depth - 1, dir, false);
+			generateR2(cx + w / 2 + z / 2, cy + h / 2, w, h, z, depth - 1, dir, false, type);
 		if ((dir & GD_NW) != 0)
-			generateR2(cx - w / 2 - z / 2, cy - h / 2, w, h, z, depth - 1, dir, false);
+			generateR2(cx - w / 2 - z / 2, cy - h / 2, w, h, z, depth - 1, dir, false, type);
 		if ((dir & GD_SW) != 0)
-			generateR2(cx - w / 2 - z / 2, cy + h / 2, w, h, z, depth - 1, dir, false);
+			generateR2(cx - w / 2 - z / 2, cy + h / 2, w, h, z, depth - 1, dir, false, type);
 	}
 
-	private void generateR(float cx, float cy, float w, float h, float z) {
+	private void generateR(float cx, float cy, float w, float h, float z, TileType type) {
 		if (cx - w / 2 < 0 || cx + w / 2 > 1)
 			return;
 		if (cy - h / 2 < 0 || cy + h / 2 > 1)
 			return;
-		if (!makeTile(cx, cy, w, h, z))
+		if (!makeTile(cx, cy, w, h, z, type))
 			return; // duplicate, dont recurse
-		generateR(cx, cy - h, w, h, z);
-		generateR(cx, cy + h, w, h, z);
-		generateR(cx + w / 2 + z / 2, cy - h / 2, w, h, z);
-		generateR(cx + w / 2 + z / 2, cy + h / 2, w, h, z);
-		generateR(cx - w / 2 - z / 2, cy - h / 2, w, h, z);
-		generateR(cx - w / 2 - z / 2, cy + h / 2, w, h, z);
+		generateR(cx, cy - h, w, h, z, type);
+		generateR(cx, cy + h, w, h, z, type);
+		generateR(cx + w / 2 + z / 2, cy - h / 2, w, h, z, type);
+		generateR(cx + w / 2 + z / 2, cy + h / 2, w, h, z, type);
+		generateR(cx - w / 2 - z / 2, cy - h / 2, w, h, z, type);
+		generateR(cx - w / 2 - z / 2, cy + h / 2, w, h, z, type);
 	}
 
-	private boolean makeTile(float cx, float cy, float w, float h, float z) {
+	private boolean makeTile(float cx, float cy, float w, float h, float z, TileType type) {
 		int a = addVertex(cx - w / 2, cy);
 		int b = addVertex(cx - z / 2, cy - h / 2);
 		int c = addVertex(cx + z / 2, cy - h / 2);
@@ -108,7 +109,7 @@ public final class Board extends Reflector<Board> {
 		if (!added)
 			return false;
 
-		Tile cell = new Tile(cx, cy);
+		Tile cell = new Tile(cx, cy, type);
 		tiles.add(cell);
 
 		int [] adjVerts = {a,b,c,d,e,f};
@@ -180,31 +181,17 @@ public final class Board extends Reflector<Board> {
     
     private void computeRoutes() {
     	routes.clear();
+    	islands.clear();
 		int ii;
 
 		for (int i = 0; i < tiles.size(); i++) {
 			Tile c = getTile(i);
-	        List<Integer> adjVerts = c.getAdjVerts();
-			switch (c.getType()) {
-
-			case DESERT:
-			case FIELDS:
-			case FOREST:
-			case HILLS:
-			case MOUNTAINS:
-			case PASTURE:
-			case GOLD:
-			case PORT_MULTI:
-    		case PORT_BRICK:
-    		case PORT_ORE:
-    		case PORT_SHEEP:
-    		case PORT_WHEAT:
-    		case PORT_WOOD:
-			case WATER:
+			c.setIslandNum(0);
+			if (c.getType() != TileType.NONE) {
 				for (ii = 0; ii < c.getNumAdj(); ii++) {
 					int i2 = (ii + 1) % c.getNumAdj();
-					int v0 = adjVerts.get(ii);
-					int v1 = adjVerts.get(i2);
+					int v0 = c.getAdjVert(ii);
+					int v1 = c.getAdjVert(i2);
 					if (c.isWater()) {
 						getVertex(v0).setAdjacentToWater(true);
 						getVertex(v1).setAdjacentToWater(true);
@@ -226,10 +213,6 @@ public final class Board extends Reflector<Board> {
 						edge.setAdjacentToLand(true);
 					}
 				}
-				break;
-				
-			default:
-				// ok
 			}
 		}
 		
@@ -237,6 +220,7 @@ public final class Board extends Reflector<Board> {
 		Collections.sort(routes);
 		
 		// make sure edges are unique and in ascending order
+		// TODO: do we need this sanity check anymore?
 		for (int i=1; i<routes.size(); i++) {
 			Route e0 = getRoute(i-1);
 			Route e1 = getRoute(i);
@@ -265,9 +249,9 @@ public final class Board extends Reflector<Board> {
     		return getIsland(t.getIslandNum()).tiles;
     	}
     	boolean [] visited = new boolean[tiles.size()];
-    	List<Integer> cells = new ArrayList<Integer>();
-    	computeIslandTilesDFS(startCellIndex, visited, cells);
-    	return cells;
+    	List<Integer> tiles = new ArrayList<Integer>();
+    	computeIslandTilesDFS(startCellIndex, visited, tiles);
+    	return tiles;
     }
     
     private void computeIslandTilesDFS(int start, boolean [] visited, List<Integer> cells) {
@@ -313,6 +297,24 @@ public final class Board extends Reflector<Board> {
     	}
     	islands.add(island);
     	return num;
+    }
+    
+    public void removeIsland(int islandNum) {
+    	if (islandNum < 0 || islandNum > islands.size())
+    		return;
+    	islands.remove(islandNum-1);
+    	int num = 1;
+    	for (Island i : islands) {
+    		i.num = num++;
+    	}
+    	for (Tile t : getTiles()) {
+    		num = t.getIslandNum();
+    		if (num == islandNum) {
+    			t.setIslandNum(0);
+    		} else if (num > islandNum) {
+    			t.setIslandNum(num-1);
+    		}
+    	}
     }
     
     /**
@@ -527,7 +529,7 @@ public final class Board extends Reflector<Board> {
 	 * Get the cell index the robber is assigned to
 	 * @return
 	 */
-	public int getRobberTile() {
+	public int getRobberTileIndex() {
 		return robberTile;
 	}
 	
@@ -535,7 +537,17 @@ public final class Board extends Reflector<Board> {
 	 * 
 	 * @return
 	 */
-	public int getPirateTile() {
+	public Tile getRobberTile() {
+		if (robberTile < 0)
+			return null;
+		return getTile(robberTile);
+	}
+	
+	/**
+	 * 
+	 * @return
+	 */
+	public int getPirateTileIndex() {
 		return pirateTile;
 	}
 
@@ -543,8 +555,28 @@ public final class Board extends Reflector<Board> {
 	 * 
 	 * @return
 	 */
-	public final int getMerchantTile() {
+	public Tile getPirateTile() {
+		if (pirateTile < 0)
+			return null;
+		return getTile(pirateTile);
+	}
+
+	/**
+	 * 
+	 * @return
+	 */
+	public final int getMerchantTileIndex() {
 		return merchantTile;
+	}
+
+	/**
+	 * 
+	 * @return
+	 */
+	public Tile getMerchantTile() {
+		if (merchantTile < 0)
+			return null;
+		return getTile(merchantTile);
 	}
 
 	/**
@@ -687,6 +719,7 @@ public final class Board extends Reflector<Board> {
 		pirateTile = -1;
 		cw = ch = 0;
 		clearRoutes();
+		clearPirateRoute();
 	}
 	
 	/**
@@ -695,6 +728,26 @@ public final class Board extends Reflector<Board> {
 	public void clearRoutes() {
 		routes.clear();
 		clearRouteLenCache();
+	}
+	
+	/**
+	 * Remove the pirate route chain.
+	 */
+	public void clearPirateRoute() {
+		while (pirateRouteStartTile >= 0) {
+			Tile t = getTile(pirateRouteStartTile);
+			pirateRouteStartTile = t.getPirateRouteNext();
+			t.setPirateRouteNext(-1);
+		}
+		pirateRouteStartTile = -1;
+	}
+	
+	public void addPirateRoute(int tileIndex) {
+		if (pirateRouteStartTile < 0) {
+			pirateRouteStartTile = tileIndex;
+		} else {
+			getTile(pirateRouteStartTile).addPirateRoute(this, tileIndex);
+		}
 	}
 
 	/**
@@ -712,14 +765,13 @@ public final class Board extends Reflector<Board> {
 		for (int tile : undiscoveredCells) {
 			getTile(tile).setType(TileType.UNDISCOVERED);
 		}
-		computeRoutes();
 	}
 
 	/**
 	 * Generate the original game play board
 	 */
 	public void generateDefaultBoard() {
-		generateHexBoard(4);
+		generateHexBoard(4, TileType.NONE);
 		// creating the board using this link:
 		//  http://www.lifeisbetterthanchocolate.com/blog/wp-content/uploads/2011/09/Sample-Setup.jpg
 		
@@ -795,7 +847,7 @@ public final class Board extends Reflector<Board> {
 		copyCells.get(35).setType(TileType.WATER);
 		copyCells.get(36).setType(TileType.PORT_MULTI);
 
-		finalizeBoard();
+		assignRandom();
 	}
 	
 	/**
@@ -803,7 +855,7 @@ public final class Board extends Reflector<Board> {
 	 * a board with 3 + 4 + 5 + 4 + 3 = 19 cells.  Recommended values for sideLen is between 4 and 6.
 	 * @param sideLen
 	 */
-	public void generateHexBoard(int sideLen) {
+	public void generateHexBoard(int sideLen, TileType fillType) {
 		clear();
 		float rows = 2*sideLen - 1;
 		ch = 1.0f / rows; 
@@ -812,17 +864,17 @@ public final class Board extends Reflector<Board> {
 		float zeta = cw / 2;
 		float cx = ch / 2 + (sideLen-1) * (zeta + ch/2 - zeta/2);
 		float cy = ch / 2 + ch * (sideLen - 1);
-		generateR2(cx, cy, cw, ch, zeta, sideLen, GD_NE | GD_SE, true);
-		generateR2(cx, cy, cw, ch, zeta, sideLen, GD_NW | GD_SW, true);
-		generateR2(cx, cy, cw, ch, zeta, sideLen, GD_N | GD_NE | GD_NW, true);
-		generateR2(cx, cy, cw, ch, zeta, sideLen, GD_S | GD_SE | GD_SW, true);
+		generateR2(cx, cy, cw, ch, zeta, sideLen, GD_NE | GD_SE, true, fillType);
+		generateR2(cx, cy, cw, ch, zeta, sideLen, GD_NW | GD_SW, true, fillType);
+		generateR2(cx, cy, cw, ch, zeta, sideLen, GD_N | GD_NE | GD_NW, true, fillType);
+		generateR2(cx, cy, cw, ch, zeta, sideLen, GD_S | GD_SE | GD_SW, true, fillType);
 	}
 
 	/**
 	 * Generate a rectangular board with dim*dim cells. 
 	 * @param rows
 	 */
-	public void generateRectBoard(int dim) {
+	public void generateRectBoard(int dim, TileType fillType) {
 		clear();
 		float cellDim = 1.0f / dim; 
 		float cx = cellDim / 2;
@@ -830,7 +882,7 @@ public final class Board extends Reflector<Board> {
 		cw = cellDim;
 		ch = cellDim;
 		float zeta = cellDim / 2;
-		generateR(cx, cy, cw, ch, zeta);
+		generateR(cx, cy, cw, ch, zeta, fillType);
 	}
 
 	private void shuffle(Object [] arr) {
@@ -843,10 +895,30 @@ public final class Board extends Reflector<Board> {
 	    }
 	}
 
+	/**
+	 * 
+	 */
+	public void trim() {
+		for (int i = 0; i < getNumTiles();) {
+			Tile cell = getTile(i);
+			if (cell.getType() == TileType.NONE) {
+				// delete
+				tiles.set(i, tiles.lastElement());
+				tiles.removeElementAt(tiles.size() - 1);
+			} else {
+				i++;
+			}
+		}
+		
+		fillFit();
+		computeVertexTiles();
+		computeRoutes();
+	}
+	
     /**
      * Visit all the cells and assign die values when necessary and apply cell types to random cell.
      */
-	public void finalizeBoard() {
+	public void assignRandom() {
 		// make sure a reasonable number of cells
 		if (getNumTiles() < 7)
 			return;
@@ -874,9 +946,16 @@ public final class Board extends Reflector<Board> {
 				TileType.FOREST,
 				TileType.HILLS,
 				TileType.MOUNTAINS,
-				TileType.PASTURE
+				TileType.PASTURE,
+				TileType.FIELDS,
+				TileType.FOREST,
+				TileType.HILLS,
+				TileType.MOUNTAINS,
+				TileType.PASTURE,
+				TileType.GOLD,
 		};
-		assert(resourceOptions.length == SOC.NUM_RESOURCE_TYPES);
+		if (resourceOptions.length != SOC.NUM_RESOURCE_TYPES)
+			throw new AssertionError();
 
 		TileType [] portOptions = {
 				TileType.PORT_BRICK,
@@ -884,13 +963,12 @@ public final class Board extends Reflector<Board> {
 				TileType.PORT_SHEEP,
 				TileType.PORT_WHEAT,
 				TileType.PORT_WOOD,
-				TileType.PORT_MULTI,
 		};
 		
 		shuffle(resourceOptions);
 		int curResourceOption = 0;
 		int curPortOption = 0;
-		final int minDeserts = 2; // make configurable
+		final int minDeserts = 1; // make configurable
 		int numDeserts = 0;
 		Vector<Integer> desertOptions = new Vector<Integer>();
 
@@ -899,71 +977,66 @@ public final class Board extends Reflector<Board> {
 		for (int i = 0; i < getNumTiles();) {
 			Tile cell = getTile(i);
 			switch (cell.getType()) {
-
-			case NONE:
-				// delete
-				tiles.set(i, tiles.lastElement());
-				tiles.removeElementAt(tiles.size() - 1);
-				continue;
-
-			// mark all edges as available for road
-			case DESERT:
-				//numActualCells++;
-				numDeserts++;
-				break;
-
-			// nothing to do
-			case WATER:
-			case PORT_MULTI:
-    		case PORT_ORE:
-    		case PORT_SHEEP:
-    		case PORT_WHEAT:
-    		case PORT_WOOD:
-    		case PORT_BRICK:
-    			break;
-
-			case RANDOM_RESOURCE_OR_DESERT:
-				desertOptions.add(i);
-			// fallthrough
-			case RANDOM_RESOURCE: {
-				cell.setType(resourceOptions[curResourceOption]);
-				curResourceOption = (curResourceOption + 1) % SOC.NUM_RESOURCE_TYPES;
-			}
-			// fallthrough
-
-			case GOLD:
-			case FOREST:
-			case PASTURE:
-			case FIELDS:
-			case HILLS:
-			case MOUNTAINS:
-				if (cell.getDieNum() == 0) {
-					cell.setDieNum(dieRolls[curDieRoll]);
-					curDieRoll = (curDieRoll + 1) % dieRolls.length;
-				}
-				break;
-
-			case RANDOM_PORT_OR_WATER:
-			case RANDOM_PORT:
-				switch (Utils.rand() % (cell.getType() == TileType.RANDOM_PORT_OR_WATER ? 3 : 2)) {
-				case 0:
-					cell.setType(TileType.PORT_MULTI);
+				case NONE:
 					break;
-
-				case 1:
-					cell.setType(portOptions[curPortOption]);
-					curPortOption = (curPortOption + 1) % portOptions.length;
-					break;
-
-				case 2:
-					cell.setType(TileType.WATER);
-					break;
-				}
-				break;
-				
-			case UNDISCOVERED:
-				undiscoveredCells.add(i);
-				break;
+    			// mark all edges as available for road
+    			case DESERT:
+    				//numActualCells++;
+    				numDeserts++;
+    				break;
+    
+    			// nothing to do
+    			case WATER:
+    			case PORT_MULTI:
+        		case PORT_ORE:
+        		case PORT_SHEEP:
+        		case PORT_WHEAT:
+        		case PORT_WOOD:
+        		case PORT_BRICK:
+        			break;
+    
+    			case RANDOM_RESOURCE_OR_DESERT:
+    				desertOptions.add(i);
+    			// fallthrough
+    			case RANDOM_RESOURCE: {
+    				cell.setType(resourceOptions[curResourceOption]);
+    				curResourceOption = (curResourceOption + 1) % resourceOptions.length;
+    			}
+    			// fallthrough
+    
+    			case GOLD:
+    			case FOREST:
+    			case PASTURE:
+    			case FIELDS:
+    			case HILLS:
+    			case MOUNTAINS:
+    				if (cell.getDieNum() == 0) {
+    					cell.setDieNum(dieRolls[curDieRoll]);
+    					curDieRoll = (curDieRoll + 1) % dieRolls.length;
+    				}
+    				break;
+    
+    			case RANDOM_PORT_OR_WATER:
+    			case RANDOM_PORT:
+    				switch (Utils.rand() % (cell.getType() == TileType.RANDOM_PORT_OR_WATER ? 2 : 1)) {
+    				case 0:
+    					if (curPortOption >= portOptions.length) {
+    						cell.setType(TileType.PORT_MULTI);
+    					} else {
+    						cell.setType(portOptions[curPortOption++]);
+    					}
+    					//curPortOption = (curPortOption + 1) % portOptions.length;
+    					break;
+    
+    				case 1:
+    					cell.setType(TileType.WATER);
+    					break;
+    				}
+    				break;
+    				
+    			case UNDISCOVERED:
+    				undiscoveredCells.add(i);
+    				break;
 			}
 			i++;
 		}
@@ -975,9 +1048,6 @@ public final class Board extends Reflector<Board> {
 				cell.setType(TileType.DESERT);
 			}
 		}
-
-		computeRoutes();
-		computeVertexTiles();
 	}
 
 	/**
@@ -1087,33 +1157,29 @@ public final class Board extends Reflector<Board> {
      * Return whether the board has been initialized.
      * @return
      */
-	public boolean isFinalized() {
+	public boolean isReady() {
 		if (routes.size() == 0)
 			return false;
 		
 		if (verts.size() == 0)
 			return false;
-		
+
 		int numCells = 0;
 		for (Tile cell : tiles) {
 			switch (cell.getType()) {
+				case NONE:
+					return false;
 				case GOLD:
     			case FOREST:
     			case FIELDS:
     			case HILLS:
     			case MOUNTAINS:
     			case PASTURE:
-    				numCells++;
-    				if (cell.getDieNum() == 0)
-    					return false;
-    				break;
     			case RANDOM_PORT:
     			case RANDOM_PORT_OR_WATER:
     			case RANDOM_RESOURCE:
     			case RANDOM_RESOURCE_OR_DESERT:
-    				return false;
 				case DESERT:
-				case NONE:
 				case PORT_MULTI:
 	    		case PORT_ORE:
 	    		case PORT_SHEEP:
@@ -1351,12 +1417,14 @@ public final class Board extends Reflector<Board> {
 		return roads;
 	}
 
-	public List<Integer> getShipsForPlayer(int playerNum) {
+	public List<Integer> getShipsForPlayer(int playerNum, boolean includeWarships) {
 		List<Integer> ships = new ArrayList<Integer>();
 		for (int i=0; i<getNumRoutes(); i++) {
 			Route e = getRoute(i);
-			if (e.getPlayer() == playerNum && e.isShip())
-				ships.add(i);
+			if (e.getPlayer() == playerNum && e.isShip()) {
+				if (includeWarships || !e.isWarShip())
+					ships.add(i);
+			}
 		}
 		return ships;
 	}
@@ -1810,6 +1878,36 @@ public final class Board extends Reflector<Board> {
 	}
 	
 	/**
+	 * 
+	 * @param v
+	 * @return
+	 */
+	public final Iterable<Integer> getTileIndicesAdjacentToVertex(Vertex v) {
+		ArrayList<Integer> a = new ArrayList<>();
+		for (int i=0; i<v.getNumTiles(); i++) {
+			a.add(v.getTile(i));
+		}
+		return a;
+	}
+	
+	/**
+	 * 
+	 * @param t
+	 * @return
+	 */
+	public final Iterable<Integer> getTilesAdjacentToTile(Tile t) {
+		HashSet<Integer> result = new HashSet<>();
+		for (int vIndex : t.getAdjVerts()) {
+			for (int tIndex : getTileIndicesAdjacentToVertex(getVertex(vIndex))) {
+				if (getTile(tIndex) == t)
+					continue;
+				result.add(tIndex);
+			}
+		}
+		return result;
+	}
+	
+	/**
      * Convenience method to get iterable over the cells adjacent to a vertex
      * @param v
      * @return
@@ -2140,6 +2238,16 @@ public final class Board extends Reflector<Board> {
 		}
 		return 0;
 	}
+
+	public final int getPirateRouteStartTile() {
+		return pirateRouteStartTile;
+	}
+
+	public final void setPirateRouteStartTile(int pirateRouteStartTile) {
+		this.pirateRouteStartTile = pirateRouteStartTile;
+	}
+	
+	
 }
 
 

@@ -14,6 +14,9 @@ public enum MoveType {
     // use a soldier
     SOLDIER_CARD("Soldier", "Move the robber or Pirate to cell of players choice"),
 
+    // seafarers scenario pirate islands
+    WARSHIP_CARD("Warship", "Turn one of your ships into a warship"),
+    
     // Use a monopoly card
     MONOPOLY_CARD("Monopoly", "Choose a Resource and all opponents give you that resource from their hand."),
 
@@ -35,6 +38,9 @@ public enum MoveType {
     // Build a ship
     BUILD_SHIP("Build Ship", "Position a new ship for cost of 1 Wood and 1 Sheep"),
 
+    // Roll dice and take a chance at converting the fortress to a settlement.  Must have a ship adjacent to the settlement.
+    ATTACK_PIRATE_FORTRESS("Attack Fortress", "Roll the dice and take a chance at converting the fortress to a new settlement.  Three wins converts the settlement.  A loss makes you lose the 2 ships adjacent to the fortress.  A win costs you 1 ship."),
+    
     // Build a Road
     BUILD_ROAD("Build Road", "Position a new road for cost of 1 Wood and 1 Brick"),
 
