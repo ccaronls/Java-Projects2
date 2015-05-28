@@ -1538,10 +1538,22 @@ public class Utils {
 		return copy;
 	}
 	
-	public static <T> List<T> asList(T ... arr) {
-		return new ArrayList<T>(Arrays.asList(arr));
+	public static <T> List<T> asList(T [] arr, int start, int num) {
+		List<T> list = new ArrayList<T>();
+		for (int i=0; i<num; i++) {
+			list.add(arr[start+i]);
+		}
+		return list;
 	}
-	
+
+	public static List<Integer> asList(int [] arr, int start, int num) {
+		List<Integer> list = new ArrayList<>();
+		for (int i=0; i<num; i++) {
+			list.add(arr[start+i]);
+		}
+		return list;
+	}
+
 	public static <T> void setElems(T [] arr, T ... elems) {
 		System.arraycopy(elems, 0, arr, 0, elems.length);
 	}

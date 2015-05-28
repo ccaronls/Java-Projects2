@@ -421,12 +421,12 @@ public class Reflector<T> {
                 value = value.split(" ")[0];
                 field.setAccessible(true);
                 try {
-                	field.set(a, Reflector.class.getClassLoader().loadClass(value).newInstance());
+                	field.set(a, getClassForName(value).newInstance());
                 } catch (ClassNotFoundException e) {
                 	int dot = value.lastIndexOf('.');
                 	if (dot > 0) {
                 		String altName = value.substring(0, dot) + "$" + value.substring(dot+1);
-                    	field.set(a, Reflector.class.getClassLoader().loadClass(altName).newInstance());
+                    	field.set(a, getClassForName(altName).newInstance());
                 	} else {
                 		throw e;
                 	}
@@ -461,7 +461,7 @@ public class Reflector<T> {
                 String line = readLineOrEOF(in);
                 if (line.equals("null"))
                     continue;
-                Reflector<?> a = (Reflector<?>)Reflector.class.getClassLoader().loadClass(line).newInstance();
+                Reflector<?> a = (Reflector<?>)getClassForName(line).newInstance();
                 a.deserialize(in);
                 Array.set(arr, i, a);
                 if (in.depth > depth) {
@@ -486,7 +486,7 @@ public class Reflector<T> {
         @Override
         public void set(Field field, String value, Reflector<?> a) throws Exception {
             if (value != null && !value.equals("null")) {
-                field.set(a, Reflector.class.getClassLoader().loadClass(value).newInstance());
+                field.set(a, getClassForName(value).newInstance());
             } else {
             	field.set(a, null);
             }
@@ -514,7 +514,7 @@ public class Reflector<T> {
         	for (int i=0; i<len; i++) {
         		String clazz = readLineOrEOF(in);
         		if (!clazz.equals("null")) {
-            		Collection<?> c = (Collection<?>)Reflector.class.getClassLoader().loadClass(clazz).newInstance();
+            		Collection<?> c = (Collection<?>)getClassForName(clazz).newInstance();
             		deserializeCollection(c, in);
             		Array.set(arr, i, c);
         		}
@@ -539,7 +539,7 @@ public class Reflector<T> {
 				String [] parts = value.split(" ");
 				if (parts.length < 2)
                     throw new Exception("Expected at least 2 parts in " + value);
-                field.set(a, Reflector.class.getClassLoader().loadClass(parts[0]).newInstance());
+                field.set(a, getClassForName(parts[0]).newInstance());
 			} else {
 				field.set(a, null);
 			}
@@ -567,7 +567,7 @@ public class Reflector<T> {
         	for (int i=0; i<len; i++) {
         		String clazz = readLineOrEOF(in);
         		if (!clazz.equals("null")) {
-            		Map<?,?> m = (Map<?,?>)Reflector.class.getClassLoader().loadClass(clazz).newInstance();
+            		Map<?,?> m = (Map<?,?>)getClassForName(clazz).newInstance();
             		deserializeMap(m, in);
             		Array.set(arr, i, m);
         		}
@@ -597,6 +597,8 @@ public class Reflector<T> {
         public void set(Field field, String value, Reflector<?> a) throws Exception {
             if (value != null && !value.equals("null")) {
                 field.set(a, createArray(value));
+            } else {
+            	field.set(a, null);
             }
         }
         
@@ -695,6 +697,8 @@ public class Reflector<T> {
         classMap.put("java.lang.String[]", String[].class);
         classMap.put("java.lang.String[][]", String[][].class);
         classMap.put("java.lang.String[][][]", String[][][].class);
+        
+        classMap.put("java.util.Arrays.ArrayList", ArrayList.class);
     }
     
     public static void registerEnum(Class<?> enumClazz) {
@@ -706,9 +710,9 @@ public class Reflector<T> {
         if (classMap.containsKey(forName))
             return classMap.get(forName);
         try {
-            return Class.forName(forName);
+            return Reflector.class.getClassLoader().loadClass(forName);
         } catch (ClassNotFoundException e) {
-            System.err.println("Failed to find class '" + forName + "'");// in map:\n" + classMap.toString().replaceAll(", ", "\n"));
+            System.err.println("Failed to find class '" + forName + "'");
             throw e;
         }
     }
@@ -906,7 +910,7 @@ public class Reflector<T> {
     /**
      * Remove any locally omitted fields @see omitField(String)
      */
-    public final void ßLocalOmitFields() {
+    public final void removeLocalOmitFields() {
     	localOmitFields = null;
     }
     

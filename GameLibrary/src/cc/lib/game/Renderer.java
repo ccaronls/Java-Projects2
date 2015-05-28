@@ -1,5 +1,7 @@
 package cc.lib.game;
 
+import java.util.Collection;
+
 import cc.lib.math.*;
 
 /**
@@ -200,6 +202,17 @@ public class Renderer {
 		for (IVector2D v : list) {
 			addVertex(v);
 		}
+	}
+	
+	/**
+	 * 
+	 * @param list
+	 */
+	public final void addVertices(Collection<IVector2D> list) {
+		for (IVector2D v : list) {
+			addVertex(v);
+		}
+		
 	}
 
 	/**

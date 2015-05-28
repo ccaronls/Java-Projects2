@@ -3,7 +3,6 @@ package cc.lib.utils;
 import java.io.*;
 import java.util.*;
 
-import sun.net.idn.StringPrep;
 import junit.framework.TestCase;
 
 public class ReflectorTest extends TestCase {

@@ -77,5 +77,18 @@ public class FileUtils {
 		return success;
 	}
 		
-	
+	public static String fileExtension(String fileName) {
+		int dot = fileName.lastIndexOf('.');
+		if (dot <= 0)
+			return "";
+		String ext = fileName.substring(dot);
+		return ext;
+	}
+
+	public static String stripExtension(String fileName) {
+		int dot = fileName.lastIndexOf('.');
+		if (dot <= 0)
+			return fileName;
+		return fileName.substring(0, dot);
+	}
 }
