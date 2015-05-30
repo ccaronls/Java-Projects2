@@ -1,6 +1,5 @@
 package cc.game.soc.core;
 
-import java.util.Arrays;
 import java.util.List;
 
 import cc.lib.game.IVector2D;
@@ -136,6 +135,10 @@ public final class Tile extends Reflector<Tile> implements IVector2D {
 
 	public boolean isWater() {
 		return type.isWater;
+	}
+	
+	public boolean isLand() {
+		return type.isLand;
 	}
 	
 	public ResourceType getResource() {

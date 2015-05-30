@@ -27,7 +27,6 @@ public enum MenuOp {
 	SAVE_BOARD("Save", "Overwrite board changes"),
 	SAVE_BOARD_AS("Save as New", "Save as a new board"),
 	LOAD_BOARD("Load Board", "Load a board"),
-	SET_PICKMODE("--", null),
     POPUPBUTTON("--", null),
     SAVE_SCENARIO("Save Scenario", "Save the current board and game configuration as a scenario"),
     LOAD_SCENARIO("Load Scenario", "Load a current scenario board and game configuration"),

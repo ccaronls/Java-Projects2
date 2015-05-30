@@ -1101,9 +1101,8 @@ public class SOC extends Reflector<SOC> {
 			switch (getState()) {
 
 				case DEAL_CARDS: // transition state
-					//dealCards();
-					distributeResources(0);
 					popState();
+					distributeResources(0);
 					break;
 
 				case POSITION_SETTLEMENT_CANCEL: // wait state
@@ -2834,7 +2833,7 @@ public class SOC extends Reflector<SOC> {
 				for (Route r : mBoard.getTileRoutes(tile)) {
 					if (tile.isWater())
 						r.setAdjacentToWater(true);
-					else
+					else if (tile.isLand())
 						r.setAdjacentToLand(true);
 				}
 			}

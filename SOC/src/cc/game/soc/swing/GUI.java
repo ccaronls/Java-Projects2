@@ -6,6 +6,7 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Graphics;
 import java.awt.GridLayout;
 import java.awt.Toolkit;
 import java.awt.event.*;
@@ -21,20 +22,21 @@ import javax.swing.event.ChangeListener;
 import org.apache.log4j.Logger;
 
 import cc.game.soc.core.*;
+import cc.game.soc.core.Player.RouteChoice;
 import cc.game.soc.core.Player.RouteChoiceType;
+import cc.game.soc.core.Player.TileChoice;
+import cc.game.soc.core.Player.VertexChoice;
 import cc.game.soc.core.annotations.RuleVariable;
+import cc.game.soc.swing.BoardComponent.PickHandler;
 import cc.game.soc.swing.BoardComponent.PickMode;
 import cc.game.soc.swing.BoardComponent.RenderFlag;
 import cc.game.soc.swing.PlayerInfoComponent.CardLoc;
+import cc.lib.game.IVector2D;
 import cc.lib.game.Utils;
-import cc.lib.swing.AWTUtils;
-import cc.lib.swing.EZPanel;
-import cc.lib.swing.ImageMgr;
-import cc.lib.swing.JMultiColoredScrollConsole;
-import cc.lib.swing.JWrapLabel;
+import cc.lib.swing.*;
 import cc.lib.utils.FileUtils;
 
-public class GUI implements ActionListener, ComponentListener, WindowListener, Runnable, BoardComponent.BoardListener {
+public class GUI implements ActionListener, ComponentListener, WindowListener, Runnable {
 
     final Logger log = Logger.getLogger(GUI.class);
     
@@ -203,7 +205,18 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
     	images = new ImageMgr(frame);
 
 		// board component
-        boardComp = new BoardComponent(this, getBoard(), images);
+        boardComp = new BoardComponent(getBoard(), images) {
+
+			@Override
+			protected GUIProperties getProperties() {
+				return props;
+			}
+
+			@Override
+			protected Color getPlayerColor(int playerNum) {
+				return GUI.this.getPlayerColor(playerNum);
+			}
+        };
         
         // console
         Color bkColor = props.getColorProperty("console.bkColor", Color.LIGHT_GRAY);
@@ -398,17 +411,163 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
                     @Override
                     protected void onChange(Object extra) {
                     	if (extra instanceof TileType) {
-                    		boardComp.setPaintMode((TileType)extra);
-                    	} else if (extra instanceof PickMode){
-                    		boardComp.setPickMode((Integer)playerChooser.getValue(), (PickMode)extra, null);
+                    		final TileType tt = (TileType)extra;
+                    		boardComp.setPickHandler(new PickHandler() {
+								
+                    			@Override
+                    			public PickMode getPickMode() {
+                    				return PickMode.PM_TILE;
+                    			}
+                    			
+								@Override
+								public void onPick(BoardComponent bc, int pickedValue) {
+									bc.getBoard().getTile(pickedValue).setType(tt);
+								}
+								
+								@Override
+								public void onHighlighted(BoardComponent bc, AWTRenderer r, Graphics g, int highlightedIndex) {
+									g.setColor(Color.YELLOW);
+									bc.drawTileOutline(g, getBoard().getTile(highlightedIndex), 2);
+								}
+								
+								@Override
+								public void onDrawPickable(BoardComponent bc, AWTRenderer r, Graphics g, int index) {
+									g.setColor(Color.YELLOW);
+									bc.drawTileOutline(g, getBoard().getTile(index), 2);
+								}
+								
+								@Override
+								public void onDrawOverlay(BoardComponent bc, AWTRenderer r, Graphics g) {}
+								
+								@Override
+								public boolean isPickableIndex(BoardComponent bc, int index) {
+									return true;
+								}
+							});
+                    	} else if (extra instanceof PickHandler){
+                    		boardComp.setPickHandler((PickHandler)extra);
                     	}
                     }
                 };
                 for (TileType c : TileType.values()) {
                     grp.addButton(formatString(c.name()), c);
                 }
-                grp.addButton("Islands", PickMode.PM_ISLAND);
-                grp.addButton("Pirate Route", PickMode.PM_PIRATE_ROUTE);
+                grp.addButton("Islands", new PickHandler() {
+					
+					@Override
+					public void onPick(BoardComponent bc, int pickedValue) {
+            			int islandNum = getBoard().getTile(pickedValue).getIslandNum();
+            			if (getBoard().getTile(pickedValue).getIslandNum() > 0) {
+            				getBoard().removeIsland(islandNum);
+            			} else {
+                        	islandNum = getBoard().createIsland(pickedValue);
+                        	console.addText(Color.black, "Found island: " + islandNum);
+            			}
+
+						
+					}
+					
+					@Override
+					public void onHighlighted(BoardComponent bc, AWTRenderer r, Graphics g, int highlightedIndex) {
+						bc.drawIslandOutlined(g, highlightedIndex);
+					}
+					
+					@Override
+					public void onDrawPickable(BoardComponent bc, AWTRenderer r, Graphics g, int index) {
+					}
+					
+					@Override
+					public void onDrawOverlay(BoardComponent bc, AWTRenderer r, Graphics g) {
+					}
+					
+					@Override
+					public boolean isPickableIndex(BoardComponent bc, int index) {
+						return !bc.getBoard().getTile(index).isWater();
+					}
+					
+					@Override
+					public PickMode getPickMode() {
+						return PickMode.PM_TILE;
+					}
+				});
+                grp.addButton("Pirate Route", new PickHandler() {
+					
+                	List<Integer> indices = computePirateRouteTiles();
+                	
+                	private List<Integer> computePirateRouteTiles() {
+                		if (getBoard().getPirateRouteStartTile() < 0) {
+                			return getBoard().getTilesOfType(TileType.WATER);
+                		}
+                		
+                		int tile = getBoard().getPirateRouteStartTile();
+                		while (getBoard().getTile(tile).getPirateRouteNext() >= 0) {
+                			tile = getBoard().getTile(tile).getPirateRouteNext();
+                			if (tile == getBoard().getPirateRouteStartTile()) {
+                				// the route is in a loop, so no options
+                				return Collections.EMPTY_LIST;
+                			}
+                		}
+                		
+                		Tile t = getBoard().getTile(tile);
+                		List<Integer> result = new ArrayList<>();
+                		for (int tIndex : getBoard().getTilesAdjacentToTile(t)) {
+                			Tile tt = getBoard().getTile(tIndex);
+                			if (tIndex == getBoard().getPirateRouteStartTile() || (tt.isWater() && tt.getPirateRouteNext() < 0))
+                				result.add(getBoard().getTileIndex(tt));
+                		}
+                		return result;
+                	}
+                	
+                	
+					@Override
+					public void onPick(BoardComponent bc, int pickedValue) {
+						bc.getBoard().addPirateRoute(pickedValue);
+						indices = computePirateRouteTiles();
+					}
+					
+					@Override
+					public void onHighlighted(BoardComponent bc, AWTRenderer r, Graphics g, int highlightedIndex) {
+						g.setColor(Color.BLACK);
+						bc.drawTileOutline(g, getBoard().getTile(highlightedIndex), 2);
+					}
+					
+					@Override
+					public void onDrawPickable(BoardComponent bc, AWTRenderer r, Graphics g, int index) {
+						g.setColor(Color.RED);
+						bc.drawTileOutline(g, getBoard().getTile(index), 2);
+					}
+					
+					@Override
+					public void onDrawOverlay(BoardComponent bc, AWTRenderer render, Graphics g) {
+						g.setColor(Color.black);
+		    			int t = getBoard().getPirateRouteStartTile();
+		    			ArrayList<IVector2D> tiles = new ArrayList<>();
+		    			while (t >= 0) {
+		    				Tile tile = getBoard().getTile(t);
+		    				tiles.add(tile);
+		    				bc.drawTileOutline(g, tile, 2);
+		    				t = tile.getPirateRouteNext();
+		    				if (t == getBoard().getPirateRouteStartTile()) {
+		    					tiles.add(getBoard().getTile(t));
+		    					break;
+		    				}
+		    			}
+		                render.clearVerts();
+		                render.addVertices(tiles);
+		                render.drawLineStrip(g, 2);
+					}
+					
+					@Override
+					public boolean isPickableIndex(BoardComponent bc, int index) {
+						return indices.contains(index);
+					}
+					
+					@Override
+					public PickMode getPickMode() {
+						indices = computePirateRouteTiles();
+						return PickMode.PM_TILE;
+					}
+				});
                 westGridPanel.add(chooser);
                 westGridPanel.add(buttons);
                 //cntrBorderPanel.remove(console);
@@ -430,6 +589,25 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
         }
         return formatted.trim();
     }
+    
+    enum DebugPick {
+    	SETTLEMENT(PickMode.PM_VERTEX),
+    	CITY(PickMode.PM_VERTEX),
+    	CITY_WALL(PickMode.PM_VERTEX),
+    	KNIGHT(PickMode.PM_VERTEX),
+    	ROAD(PickMode.PM_EDGE),
+    	SHIP(PickMode.PM_EDGE),
+    	WARSHIP(PickMode.PM_EDGE)
+    	;
+    	
+    	DebugPick(PickMode mode) {
+    		this.mode = mode;
+    	}
+    	
+    	final PickMode mode;
+    }
+    
+    
     
 	@SuppressWarnings("serial")
     private void initMenu() {
@@ -504,13 +682,99 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 
     		    JPanel choiceButtons = new JPanel();
                 choiceButtons.setLayout(new BoxLayout(choiceButtons, BoxLayout.Y_AXIS));
-                MyRadioButtonGroup<PickMode> pickChoice = new MyRadioButtonGroup<PickMode>(choiceButtons) {
-                    protected void onChange(PickMode mode) {
-                        boardComp.setPickMode(getCurPlayerNum(), mode, null);
+                MyRadioButtonGroup<DebugPick> pickChoice = new MyRadioButtonGroup<DebugPick>(choiceButtons) {
+                    protected void onChange(final DebugPick mode) {
+                        //boardComp.setPickMode(getCurPlayerNum(), mode, null);
+                    	boardComp.setPickHandler(new PickHandler() {
+							
+							@Override
+							public void onPick(BoardComponent bc, int pickedValue) {
+								switch (mode) {
+									case CITY:
+										getBoard().getVertex(pickedValue).setType(VertexType.CITY);
+										break;
+									case CITY_WALL:
+										getBoard().getVertex(pickedValue).setType(VertexType.WALLED_CITY);
+										break;
+									case KNIGHT:
+										getBoard().getVertex(pickedValue).setType(VertexType.BASIC_KNIGHT_INACTIVE);
+										break;
+									case ROAD:
+										break;
+									case SETTLEMENT:
+										getBoard().getVertex(pickedValue).setType(VertexType.CITY);
+										break;
+									case SHIP:
+										break;
+									case WARSHIP:
+										break;
+								}
+							}
+							
+							@Override
+							public void onHighlighted(BoardComponent bc, AWTRenderer r, Graphics g, int highlightedIndex) {
+								switch (mode.mode) {
+									case PM_EDGE: {
+										Route e = getBoard().getRoute(highlightedIndex);
+										bc.drawEdge(g, e, e.getPlayer(), true);
+										break;
+									}
+									case PM_TILE: {
+										g.setColor(Color.yellow);
+										bc.drawTileOutline(g, getBoard().getTile(highlightedIndex), 2);
+										break;
+									}
+									case PM_VERTEX: {
+										Vertex v = getBoard().getVertex(highlightedIndex);
+										bc.drawVertex(g, v, v.getType(), v.getPlayer(), true);
+										break;
+									}
+									case PM_NONE:
+										break;
+								}
+							}
+							
+							@Override
+							public void onDrawPickable(BoardComponent bc, AWTRenderer r, Graphics g, int index) {
+								switch (mode.mode) {
+									case PM_EDGE: {
+										Route e = getBoard().getRoute(index);
+										bc.drawEdge(g, e, e.getPlayer(), false);
+										break;
+									}
+									case PM_TILE: {
+										break;
+									}
+									case PM_VERTEX: {
+										Vertex v = getBoard().getVertex(index);
+										bc.drawVertex(g, v, v.getType(), v.getPlayer(), false);
+										break;
+									}
+									case PM_NONE:
+										break;
+								}
+							}
+							
+							@Override
+							public void onDrawOverlay(BoardComponent bc, AWTRenderer r, Graphics g) {
+								// TODO Auto-generated method stub
+								
+							}
+							
+							@Override
+							public boolean isPickableIndex(BoardComponent bc, int index) {
+								return true;
+							}
+							
+							@Override
+							public PickMode getPickMode() {
+								return mode.mode;
+							}
+						});
                     }
                 };
                 //choiceButtons.add(new JLabel("PICK CHOICE"));
-                for (PickMode pm : PickMode.values()) {
+                for (DebugPick pm : DebugPick.values()) {
                 	pickChoice.addButton(pm.name(), pm);
                 }
     		    
@@ -539,7 +803,6 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
     			}
     			menu.add(getMenuOpButton(MenuOp.SAVE_BOARD_AS));
     			menu.add(getMenuOpButton(MenuOp.BACK));
-    			boardComp.setPickMode(0, PickMode.PM_CELLPAINT, null);
     			break;
     			
     		case MENU_CHOOSE_DEFAULT_BOARD_SIZE:
@@ -579,7 +842,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 				} else {
 					button.setEnabled(false);
 				}
-				boardComp.setPickMode(0, PickMode.PM_NONE, null);
+				boardComp.setPickHandler(null);
 				break;
 
 			case EXIT:
@@ -773,10 +1036,6 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 				break;
 			}
 
-			case SET_PICKMODE:
-				boardComp.setPickMode(getCurPlayerNum(), (PickMode)button.extra, null);
-				break;
-
 			case REWIND_GAME: {
 				stopGameThread();
 				FileUtils.restoreFile(saveGameFile.getAbsolutePath());
@@ -797,7 +1056,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 				break;
 
 			case CANCEL:
-				boardComp.setPickMode(0, PickMode.PM_NONE, null);
+				boardComp.setPickHandler(null);
 				soc.cancel();
 				break;
 
@@ -957,7 +1216,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
     public void quitToMainMenu() {
         stopGameThread();
         console.clear();
-        boardComp.setPickMode(0, PickMode.PM_NONE, null);
+        boardComp.setPickHandler(null);
         menuStack.clear();
         menuStack.push(MenuState.MENU_START);
         initMenu();
@@ -1096,20 +1355,126 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
         return soc.getCurPlayerNum();
     }
 
-    public String getChooseColorMenu() {
+    public String chooseColorMenu() {
         menuStack.push(MenuState.MENU_CHOOSE_COLOR);
         initMenu();
         return waitForReturnValue(null);
     }
     
-    public Vertex chooseVertex(List<Integer> vertices, int playerNum, PickMode mode) {
+    public Vertex chooseVertex(final List<Integer> vertices, final int playerNum, final VertexChoice choice) {
 		clearMenu();
-		boardComp.setPickMode(playerNum, mode, vertices);
+		boardComp.setPickHandler(new PickHandler() {
+			
+			@Override
+			public void onPick(BoardComponent bc, int pickedValue) {
+				bc.setPickHandler(null);
+				setReturnValue(getBoard().getVertex(pickedValue));
+			}
+			
+			@Override
+			public void onHighlighted(BoardComponent bc, AWTRenderer r, Graphics g, int highlightedIndex) {
+				Vertex v = getBoard().getVertex(highlightedIndex);
+				g.setColor(getPlayerColor(getCurPlayerNum())); 
+				switch (choice) {
+					case SETTLEMENT:
+						bc.drawSettlement(g, v, v.getPlayer(), true);
+						break;
+					case CITY:
+						bc.drawCity(g, v, v.getPlayer(), true);
+						break;
+					case CITY_WALL:
+						bc.drawWalledCity(g, v, v.getPlayer(), true);
+						break;
+					case KNIGHT_DESERTER:
+					case KNIGHT_DISPLACED:
+					case KNIGHT_MOVE_POSITION:
+					case KNIGHT_TO_MOVE:
+					case OPPONENT_KNIGHT_TO_DISPLACE:
+						bc.drawKnight(g, v, v.getPlayer(), v.getType().getKnightLevel(), v.getType().isKnightActive(), true);
+						break;
+					case KNIGHT_TO_ACTIVATE:
+						bc.drawKnight(g, v, v.getPlayer(), v.getType().getKnightLevel(), true, true);
+						break;
+					case KNIGHT_TO_PROMOTE:
+						bc.drawKnight(g, v, v.getPlayer(), v.getType().getKnightLevel()+1, v.getType().isKnightActive(), true);
+						break;
+					case NEW_KNIGHT:
+						bc.drawKnight(g, v, v.getPlayer(), 1, false, true);
+						break;
+					case POLITICS_METROPOLIS:
+						bc.drawMetropolisPolitics(g, v, v.getPlayer(), true);
+						break;
+					case SCIENCE_METROPOLIS:
+						bc.drawMetropolisScience(g, v, v.getPlayer(), true);
+						break;
+					case TRADE_METROPOLIS:
+						bc.drawMetropolisTrade(g, v, v.getPlayer(), true);
+						break;
+				}
+
+			}
+			
+			@Override
+			public void onDrawPickable(BoardComponent bc, AWTRenderer r, Graphics g, int index) {
+				Vertex v = getBoard().getVertex(index);
+				g.setColor(AWTUtils.setAlpha(getPlayerColor(getCurPlayerNum()), 120));
+				switch (choice) {
+					case SETTLEMENT:
+						bc.drawSettlement(g, v, 0, false);
+						break;
+					case CITY:
+						bc.drawCity(g, v, 0, false);
+						break;
+					case CITY_WALL:
+						bc.drawWalledCity(g, v, 0, false);
+						break;
+					case KNIGHT_DESERTER:
+					case KNIGHT_DISPLACED:
+					case KNIGHT_MOVE_POSITION:
+					case KNIGHT_TO_MOVE:
+					case OPPONENT_KNIGHT_TO_DISPLACE:
+						bc.drawKnight(g, v, 0, v.getType().getKnightLevel(), v.getType().isKnightActive(), false);
+						break;
+					case KNIGHT_TO_ACTIVATE:
+						bc.drawKnight(g, v, 0, v.getType().getKnightLevel(), true, false);
+						break;
+					case KNIGHT_TO_PROMOTE:
+						bc.drawKnight(g, v, 0, v.getType().getKnightLevel()+1, v.getType().isKnightActive(), false);
+						break;
+					case NEW_KNIGHT:
+						bc.drawKnight(g, v, 0, 1, false, false);
+						break;
+					case POLITICS_METROPOLIS:
+						bc.drawMetropolisPolitics(g, v, 0, false);
+						break;
+					case SCIENCE_METROPOLIS:
+						bc.drawMetropolisScience(g, v, 0, false);
+						break;
+					case TRADE_METROPOLIS:
+						bc.drawMetropolisTrade(g, v, 0, false);
+						break;
+				}
+			}
+			
+			@Override
+			public void onDrawOverlay(BoardComponent bc, AWTRenderer r, Graphics g) {
+			}
+			
+			@Override
+			public boolean isPickableIndex(BoardComponent bc, int index) {
+				return vertices.contains(index);
+			}
+			
+			@Override
+			public PickMode getPickMode() {
+				return PickMode.PM_VERTEX;
+			}
+		});
 		completeMenu();
 		return waitForReturnValue(null);
     }
 	
-	public RouteChoiceType getChooseRouteType() {
+	public RouteChoiceType chooseRouteType() {
 		clearMenu();
 		menu.add(getMenuOpButton(MenuOp.CHOOSE_ROAD, "Roads", "View road options", RouteChoiceType.ROAD_CHOICE));
 		menu.add(getMenuOpButton(MenuOp.CHOOSE_SHIP, "Ships", "View ship options", RouteChoiceType.SHIP_CHOICE));
@@ -1117,43 +1482,126 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 		return waitForReturnValue(null);
 	}
 
-	public Route getChooseRoadEdge(List<Integer> edges) {
+	public Route chooseRoute(final List<Integer> edges, final RouteChoice choice) {
 		clearMenu();
-		boardComp.setPickMode(getCurPlayerNum(), PickMode.PM_ROAD, edges);
+		boardComp.setPickHandler(new PickHandler() {
+			
+			@Override
+			public void onPick(BoardComponent bc, int pickedValue) {
+				bc.setPickHandler(null);
+				setReturnValue(getBoard().getRoute(pickedValue));
+			}
+			
+			@Override
+			public void onHighlighted(BoardComponent bc, AWTRenderer r, Graphics g, int highlightedIndex) {
+				Route route = getBoard().getRoute(highlightedIndex);
+				g.setColor(getPlayerColor(getCurPlayerNum()));
+				switch (choice) {
+					case ROAD:
+					case ROUTE_DIPLOMAT:
+						bc.drawRoad(g, route, true);
+						break;
+					case SHIP:
+					case SHIP_TO_MOVE:
+						bc.drawShip(g, route, true);
+						break;
+				}
+			}
+			
+			@Override
+			public void onDrawPickable(BoardComponent bc, AWTRenderer r, Graphics g, int index) {
+				Route route = getBoard().getRoute(index);
+				g.setColor(AWTUtils.setAlpha(getPlayerColor(getCurPlayerNum()), 120));
+				switch (choice) {
+					case ROAD:
+					case ROUTE_DIPLOMAT:
+						bc.drawRoad(g, route, false);
+						break;
+					case SHIP:
+					case SHIP_TO_MOVE:
+						bc.drawShip(g, route, false);
+						break;
+				}
+			}
+			
+			@Override
+			public void onDrawOverlay(BoardComponent bc, AWTRenderer r, Graphics g) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public boolean isPickableIndex(BoardComponent bc, int index) {
+				return edges.contains(index);
+			}
+			
+			@Override
+			public PickMode getPickMode() {
+				return PickMode.PM_EDGE;
+			}
+		});
 		completeMenu();
 		return waitForReturnValue(null);
 	}
 	
-	public Route getChooseShipEdge(List<Integer> edges) {
+	public Tile chooseTile(final List<Integer> cells, final TileChoice choice) {
 		clearMenu();
-		boardComp.setPickMode(getCurPlayerNum(), PickMode.PM_SHIP, edges);
-		completeMenu();
-		return waitForReturnValue(null);
-	}	
-
-	public Tile getChooseRobberTile(List<Integer> cells) {
-		clearMenu();
-		boardComp.setPickMode(getCurPlayerNum(), PickMode.PM_ROBBER, cells);
-		completeMenu();
-		return waitForReturnValue(null);
-	}
-	
-	public Tile getChooseMerchantTile(List<Integer> tiles) {
-		clearMenu();
-		boardComp.setPickMode(getCurPlayerNum(), PickMode.PM_MERCHANT, tiles);
-		completeMenu();
-		return waitForReturnValue(null);
-	}
-
-	public Tile getChooseInventorTile(List<Integer> tiles) {
-		clearMenu();
-		boardComp.setPickMode(getCurPlayerNum(), PickMode.PM_CELL, tiles);
+		boardComp.setPickHandler(new PickHandler() {
+			
+			@Override
+			public void onPick(BoardComponent bc, int pickedValue) {
+				bc.setPickHandler(null);
+				setReturnValue(getBoard().getTile(pickedValue));
+			}
+			
+			@Override
+			public void onHighlighted(BoardComponent bc, AWTRenderer r, Graphics g, int highlightedIndex) {
+				Tile t = bc.getBoard().getTile(highlightedIndex);
+				switch (choice) {
+					case INVENTOR:
+						bc.drawTileOutline(g, t, 2);
+						break;
+					case MERCHANT:
+						bc.drawMerchant(g, t, getCurPlayerNum());
+						break;
+					case PIRATE:
+						bc.drawPirate(g, t);
+						break;
+					case ROBBER:
+						bc.drawRobber(g, t);
+						break;
+				}
+			}
+			
+			@Override
+			public void onDrawPickable(BoardComponent bc, AWTRenderer r, Graphics g, int index) {
+				Tile t = bc.getBoard().getTile(index);
+				g.setColor(Color.RED);
+				bc.drawTileOutline(g, t, 1);
+			}
+			
+			@Override
+			public void onDrawOverlay(BoardComponent bc, AWTRenderer r, Graphics g) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public boolean isPickableIndex(BoardComponent bc, int index) {
+				return cells.contains(index);
+			}
+			
+			@Override
+			public PickMode getPickMode() {
+				return PickMode.PM_TILE;
+			}
+		});
 		completeMenu();
 		return waitForReturnValue(null);
 	}
 	
 	// called from run thread
-	public MoveType getChooseMoveMenu(List<MoveType> moves) {
+	public MoveType chooseMoveMenu(List<MoveType> moves) {
 		clearMenu();
 		Iterator<MoveType> it = moves.iterator();
 		while (it.hasNext()) {
@@ -1167,7 +1615,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 	}
 	
 	// called from run thread
-	public <T extends Enum<T>> T getChooseEnum(List<T> choices) {
+	public <T extends Enum<T>> T chooseEnum(List<T> choices) {
 		clearMenu();
 		Iterator<T> it = choices.iterator();
 		while (it.hasNext()) {
@@ -1192,7 +1640,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 		return false;
 	}
 	
-	public Player getChoosePlayerToTakeCardFromMenu(List<Integer> players) {
+	public Player choosePlayerToTakeCardFromMenu(List<Integer> players) {
 		clearMenu();
 		for (int num : players) {
 			Player player = getGUIPlayer(num);
@@ -1202,7 +1650,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 		return waitForReturnValue(null);
 	}
 
-	public Player getChoosePlayerToGiftCardToMenu(List<Integer> players) {
+	public Player choosePlayerToGiftCardToMenu(List<Integer> players) {
 		clearMenu();
 		for (int num : players) {
 			Player player = getGUIPlayer(num);
@@ -1212,7 +1660,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 		return waitForReturnValue(null);
 	}
 	
-	public Player getChoosePlayerKnightForDesertion(List<Integer> players) {
+	public Player choosePlayerKnightForDesertion(List<Integer> players) {
 		clearMenu();
 		for (int num : players) {
 			Player player = getGUIPlayer(num);
@@ -1223,7 +1671,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 		return waitForReturnValue(null);
 	}
 	
-	public Player getChoosePlayerToSpyOn(List<Integer> players) {
+	public Player choosePlayerToSpyOn(List<Integer> players) {
 		clearMenu();
 		for (int num : players) {
 			Player player = getGUIPlayer(num);
@@ -1233,7 +1681,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 		return waitForReturnValue(null);
 	}
 	
-	public Card getChooseCardMenu(List<Card> cards) {
+	public Card chooseCardMenu(List<Card> cards) {
 		clearMenu();
 		for (Card type : cards) {
 			menu.add(getMenuOpButton(MenuOp.CHOOSE_CARD, type.getName(), type.getHelpText(), type));
@@ -1242,7 +1690,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 		return waitForReturnValue(null);
 	}
 	
-	public Trade getChooseTradeMenu(List<Trade> trades) {
+	public Trade chooseTradeMenu(List<Trade> trades) {
 		clearMenu();
 		Iterator<Trade> it = trades.iterator();
 		while (it.hasNext()) {
@@ -1279,6 +1727,13 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 		for (int i=0; i<components.length; i++)
 			menu.add(components[i]);
 		completeMenu();
+	}
+	
+	public void setReturnValue(Object o) {
+		returnValue = o;
+		synchronized (waitObj) {
+			waitObj.notify();
+		}
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -1519,7 +1974,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 		frame.repaint();
 	}
 	
-
+/*
 	@Override
     public void onPick(PickMode mode, int pickedValue) {
         try {
@@ -1586,7 +2041,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
             e.printStackTrace();
         }
     }
-
+*/
     public void componentHidden(ComponentEvent arg0) {}
 	public void componentMoved(ComponentEvent arg0) {
         Component comp = arg0.getComponent();
@@ -1676,7 +2131,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
     		}
 		}
 	}
-	
+	/*
 	private void processDebugPick(PickMode mode, int pickedValue) {
 		Vertex v = null;
 		Tile t = null;
@@ -1857,6 +2312,6 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
         } catch (Exception e) {
         	e.printStackTrace();
         }
-	}
+	}*/
 }
 

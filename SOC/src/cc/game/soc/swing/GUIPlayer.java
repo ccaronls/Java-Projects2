@@ -64,7 +64,7 @@ public class GUIPlayer extends PlayerBot {
                 render.translate(vertex);
                 render.scale(position, position);
                 //render.translate(-vertex.getX(), -vertex.getY());
-                GUI.instance.getBoardComponent().drawCity(g, 0, 0, getPlayerNum(), false);
+                GUI.instance.getBoardComponent().drawCity(g, Vector2D.ZERO, getPlayerNum(), false);
                 render.popMatrix();
             }
 
@@ -107,7 +107,7 @@ public class GUIPlayer extends PlayerBot {
                 //render.translate(0, -4*position);
                 render.scale(1, position);
                 //render.translate(-vertex.getX(), -vertex.getY());
-                GUI.instance.getBoardComponent().drawWalledCity(g, 0, 0, getPlayerNum(), false);
+                GUI.instance.getBoardComponent().drawWalledCity(g, Vector2D.ZERO, getPlayerNum(), false);
                 render.popMatrix();
             }
 
@@ -238,7 +238,7 @@ public class GUIPlayer extends PlayerBot {
                 render.translate(vertex);
                 render.scale(position, position);
                 //render.translate(-vertex.getX(), -vertex.getY());
-                GUI.instance.getBoardComponent().drawSettlement(g, 0, 0, getPlayerNum(), false);
+                GUI.instance.getBoardComponent().drawSettlement(g, Vector2D.ZERO, getPlayerNum(), false);
                 render.popMatrix();
             }
 
@@ -276,7 +276,7 @@ public class GUIPlayer extends PlayerBot {
                 render.translate(vertex);
                 render.scale(position, 1);
                 //render.translate(-vertex.getX(), -vertex.getY());
-                GUI.instance.getBoardComponent().drawKnight(g, 0, 0, getPlayerNum(), 1, false, false);
+                GUI.instance.getBoardComponent().drawKnight(g, Vector2D.ZERO, getPlayerNum(), 1, false, false);
                 render.popMatrix();
 			}
 			

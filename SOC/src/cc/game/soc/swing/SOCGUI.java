@@ -23,6 +23,10 @@ public class SOCGUI extends SOC {
 		this.gui = gui;
 	}
 	
+	public GUIPlayer getCurGuiPlayer() {
+        return (GUIPlayer)getCurPlayer();
+    }
+
 	/*
 	 *  (non-Javadoc)
 	 * @see cc.game.soc.core.SOC#printinfo(int, java.lang.String)
@@ -384,9 +388,40 @@ public class SOCGUI extends SOC {
 		tile1.setDieNum(t1);
 	}
 
-	public GUIPlayer getCurGuiPlayer() {
-        return (GUIPlayer)getCurPlayer();
-    }
+	@Override
+	protected void onPlayerShipUpgraded(Player p, Route r) {
+	}
+
+	@Override
+	protected void onPirateSailing(final int fromTile, final int toTile) {
+		gui.getBoardComponent().addAnimation(new Animation(1000, 0) {
+			
+			@Override
+			void draw(Graphics g, float position, float dt) {
+				Vector2D v = Vector2D.newTemp(getBoard().getTile(fromTile)).scale(1-position).add(Vector2D.newTemp(getBoard().getTile(toTile)).scale(position));
+				gui.getBoardComponent().drawPirate(g, v);
+			}
+		});
+	}
+
+	@Override
+	protected void onCardLost(Player p, Card c) {
+		addCardAnimation(p, c.getName() + "\n-1");
+	}
+
+	@Override
+	protected void onPirateAttack(Player p, int playerStrength, int pirateStrength) {
+		StringBuffer str = new StringBuffer("Pirates attack " + p.getName())
+			.append("\nPlayer Strength " + playerStrength)
+			.append("\nPirate Stength " + pirateStrength)
+			.append("\n");
+        	JOptionPane.showMessageDialog(gui.frame,
+        		    str,
+        		    "Pirate Attack",
+        		    JOptionPane.PLAIN_MESSAGE);	
+        	
+	}
+
 
     
 }

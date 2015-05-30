@@ -195,7 +195,7 @@ public final class Board extends Reflector<Board> {
 					if (c.isWater()) {
 						getVertex(v0).setAdjacentToWater(true);
 						getVertex(v1).setAdjacentToWater(true);
-					} else {
+					} else if (c.isLand()) {
 						getVertex(v0).setAdjacentToLand(true);
 						getVertex(v1).setAdjacentToLand(true);
 					}
@@ -954,8 +954,6 @@ public final class Board extends Reflector<Board> {
 				TileType.PASTURE,
 				TileType.GOLD,
 		};
-		if (resourceOptions.length != SOC.NUM_RESOURCE_TYPES)
-			throw new AssertionError();
 
 		TileType [] portOptions = {
 				TileType.PORT_BRICK,
