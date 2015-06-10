@@ -3,7 +3,7 @@ package cc.game.soc.core;
 public enum ProgressCardType implements ICardType<DevelopmentArea> {
 
 	// Science
-	Alchemist		(DevelopmentArea.Science, null, 2),
+	Alchemist		(DevelopmentArea.Science, "Can assign any values to the dice on your turn", 2),
 	Inventor		(DevelopmentArea.Science, MoveType.INVENTOR_CARD, 2),
 	Crane			(DevelopmentArea.Science, MoveType.CRANE_CARD, 2),
 	Irrigation		(DevelopmentArea.Science, MoveType.IRRIGATION_CARD, 2),
@@ -11,13 +11,13 @@ public enum ProgressCardType implements ICardType<DevelopmentArea> {
 	Medicine		(DevelopmentArea.Science, MoveType.MEDICINE_CARD, 2),
 	Smith			(DevelopmentArea.Science, MoveType.SMITH_CARD, 2),
 	Mining			(DevelopmentArea.Science, MoveType.MINING_CARD, 2),
-	Printer			(DevelopmentArea.Science, null, 1),//, "Collect 1 victory point played immediately upon drawing, cannot be taken."),
+	Printer			(DevelopmentArea.Science, "Collect 1 victory point played immediately upon drawing, cannot be taken.", 1),
 	RoadBuilding	(DevelopmentArea.Science, MoveType.ROAD_BUILDING_CARD, 1),
 	
 	// Politics
 	Bishop			(DevelopmentArea.Politics, MoveType.BISHOP_CARD, 2),
 	Diplomat		(DevelopmentArea.Politics, MoveType.DIPLOMAT_CARD, 2),
-	Constitution	(DevelopmentArea.Politics, null, 1),
+	Constitution	(DevelopmentArea.Politics, "Collect 1 victory point played immediately upon drawing, cannot be taken.", 1),
 	Intrigue		(DevelopmentArea.Politics, MoveType.INTRIGUE_CARD, 2),
 	Deserter		(DevelopmentArea.Politics, MoveType.DESERTER_CARD, 2),
 	Saboteur		(DevelopmentArea.Politics, MoveType.SABOTEUR_CARD, 2),
@@ -38,11 +38,20 @@ public enum ProgressCardType implements ICardType<DevelopmentArea> {
 	final DevelopmentArea type;
 	final int deckOccurances;
 	final MoveType moveType;
+	final String helpText;
 
+	ProgressCardType(DevelopmentArea type, String helpText, int deckOccurances) { 
+		this.type = type;
+		this.deckOccurances = deckOccurances;
+		this.moveType = null;
+		this.helpText = helpText;
+	}
+	
 	ProgressCardType(DevelopmentArea type, MoveType moveType, int deckOccurances) { 
 		this.type = type;
 		this.deckOccurances = deckOccurances;
 		this.moveType = moveType;
+		this.helpText = moveType.helpText;
 	}
 	
 	@Override

@@ -191,11 +191,4 @@ public final class Tile extends Reflector<Tile> implements IVector2D {
 		this.pirateRouteNext = pirateRouteNext;
 	}
 
-	final void addPirateRoute(Board b, int tileIndex) {
-		if (pirateRouteNext < 0) {
-			pirateRouteNext = tileIndex;
-		} else {
-			b.getTile(pirateRouteNext).addPirateRoute(b, tileIndex);
-		}
-	}
 }

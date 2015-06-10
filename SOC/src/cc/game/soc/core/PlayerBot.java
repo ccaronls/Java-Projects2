@@ -273,7 +273,7 @@ public class PlayerBot extends Player {
     			for (int shipIndex1 : ships1) {
     				b.setPlayerForEdge(shipIndex1, p.getPlayerNum());
     				Route ship = b.getRoute(shipIndex1);
-    				ship.setShip(true);
+    				ship.setType(RouteType.SHIP);
     				//ship.setLocked(true);
     				BotNode n = shipOptions.attach(new BotNodeRoute(ship, shipIndex1));
     				
@@ -284,22 +284,22 @@ public class PlayerBot extends Player {
     				for (int shipIndex2 : ships2) {
     					Route ship2 = b.getRoute(shipIndex2);
     					b.setPlayerForEdge(shipIndex2, p.getPlayerNum());
-    					ship2.setShip(true);
+    					ship2.setType(RouteType.SHIP);
     					//ship2.setLocked(true);
     					buildChooseMoveTreeR(soc, p, b, n.attach(new BotNodeRoute(ship2, shipIndex2)), SOC.computeMoves(p, b, soc));
     					b.setPlayerForEdge(shipIndex2, 0);
-    					ship2.setShip(false);
+    					ship2.setType(RouteType.OPEN);
     					//ship2.setLocked(false);
     				}
     				b.setPlayerForEdge(shipIndex1, 0);
-    				ship.setShip(false);
+    				ship.setType(RouteType.OPEN);
     			}
 			}
 		} else if (ships1.size() > 0) {
 			for (int shipIndex1 : ships1) {
 				b.setPlayerForEdge(shipIndex1, p.getPlayerNum());
 				Route ship = b.getRoute(shipIndex1);
-				ship.setShip(true);
+				ship.setType(RouteType.SHIP);
 				//ship.setLocked(true);
 				BotNode n = root.attach(new BotNodeRoute(ship, shipIndex1));
 
@@ -310,15 +310,15 @@ public class PlayerBot extends Player {
 				for (int shipIndex2 : ships2) {
 					Route ship2 = b.getRoute(shipIndex2);
 					b.setPlayerForEdge(shipIndex2, p.getPlayerNum());
-					ship2.setShip(true);
+					ship2.setType(RouteType.SHIP);
 					//ship2.setLocked(true);
 					buildChooseMoveTreeR(soc, p, b, n.attach(new BotNodeRoute(ship2, shipIndex2)), SOC.computeMoves(p, b, soc));
 					b.setPlayerForEdge(shipIndex2, 0);
-					ship2.setShip(false);
+					ship2.setType(RouteType.OPEN);
 					//ship2.setLocked(false);
 				}
 				b.setPlayerForEdge(shipIndex1, 0);
-				ship.setShip(false);
+				ship.setType(RouteType.OPEN);
 				//ship.setLocked(false);
 			}
 		} else if (roads1.size() > 0) {
@@ -346,7 +346,7 @@ public class PlayerBot extends Player {
 		}		
 	}
 	
-	private void buildChooseMoveTreeR(SOC soc, Player p, Board b, BotNode _root, List<MoveType> moves) {
+	private void buildChooseMoveTreeR(SOC soc, Player p, Board b, BotNode _root, Collection<MoveType> moves) {
 		//Collections.sort(moves);
 		for (MoveType move : moves) {
 			BotNode root = _root.attach(new BotNodeEnum(move));
@@ -494,13 +494,13 @@ public class PlayerBot extends Player {
 					for (int rIndex : ships) {
 						Route r = b.getRoute(rIndex);
 						b.setPlayerForRoute(r, p.getPlayerNum());
-						r.setShip(true);
+						r.setType(RouteType.SHIP);
 						//r.setLocked(true);
 						BotNode node = root.attach(new BotNodeRoute(r, rIndex));
 						evaluateEdges(node, soc, p, b);
 						buildChooseMoveTreeR(soc, p, b, node, SOC.computeMoves(p, b, soc));
 						b.setPlayerForRoute(r, 0);
-						r.setShip(false);
+						r.setType(RouteType.OPEN);
 						//r.setLocked(false);
 					}
 					p.adjustResourcesForBuildable(BuildableType.Ship, 1);
@@ -604,7 +604,7 @@ public class PlayerBot extends Player {
 					for (int shipIndex : shipVerts) {
 						Route shipToMove = b.getRoute(shipIndex);
 						b.setPlayerForRoute(shipToMove, 0);
-						shipToMove.setShip(false);
+						shipToMove.setType(RouteType.OPEN);
 						shipToMove.setLocked(true);
 						BotNode shipChoice = root.attach(new BotNodeRoute(shipToMove, shipIndex));
 						List<Integer> newPositions = SOC.computeShipRouteIndices(p.getPlayerNum(), b);
@@ -613,17 +613,17 @@ public class PlayerBot extends Player {
 								continue;
 							Route newPos = b.getRoute(moveIndex);
 							b.setPlayerForRoute(newPos, p.getPlayerNum());
-							newPos.setShip(true);
+							newPos.setType(RouteType.SHIP);
 							newPos.setLocked(true);
 							BotNode node = new BotNodeRoute(newPos, moveIndex);
 							evaluateEdges(node, soc, p, b);
 							buildChooseMoveTreeR(soc, p, b, shipChoice.attach(node), SOC.computeMoves(p, b, soc));
 							b.setPlayerForRoute(newPos, 0);
-							newPos.setShip(false);
+							newPos.setType(RouteType.OPEN);
 							newPos.setLocked(false);
 						}
 						b.setPlayerForRoute(shipToMove, p.getPlayerNum());
-						shipToMove.setShip(true);
+						shipToMove.setType(RouteType.SHIP);
 						shipToMove.setLocked(false);
 					}
 					break;
@@ -1030,13 +1030,13 @@ public class PlayerBot extends Player {
 	}
 	
 	@Override
-	public MoveType chooseMove(SOC soc, List<MoveType> moves) {
+	public MoveType chooseMove(SOC soc, Collection<MoveType> moves) {
 		if (movesPath != null) {
 			return detatchMove();
 		}
 		assert(moves.size() > 0);
 		if (moves.size() == 1)
-			return moves.get(0);
+			return moves.iterator().next();
 		
 		BotNode root = createNewTree();
 		Player p = new PlayerTemp(this);
@@ -1047,7 +1047,7 @@ public class PlayerBot extends Player {
 	}
 
 	@Override
-	public Vertex chooseVertex(SOC soc, List<Integer> vertexIndices, VertexChoice mode) {
+	public Vertex chooseVertex(SOC soc, Collection<Integer> vertexIndices, VertexChoice mode) {
 		if (movesPath != null) {
 			return detatchMove();
 		}
@@ -1120,7 +1120,7 @@ public class PlayerBot extends Player {
 	}
 
 	@Override
-	public Route chooseRoute(SOC soc, List<Integer> routeIndices, RouteChoice mode) {
+	public Route chooseRoute(SOC soc, Collection<Integer> routeIndices, RouteChoice mode) {
 		if (movesPath != null) {
 			return detatchMove();
 		}
@@ -1140,7 +1140,7 @@ public class PlayerBot extends Player {
 					break;
 				case SHIP:
 					b.setPlayerForRoute(r, p.getPlayerNum());
-					r.setShip(true);
+					r.setType(RouteType.SHIP);
 					break;
 				case SHIP_TO_MOVE:
 					break;
@@ -1180,11 +1180,11 @@ public class PlayerBot extends Player {
 		for (int rIndex : ships) {
 			Route r = b.getRoute(rIndex);
 			b.setPlayerForEdge(rIndex, p.getPlayerNum());
-			r.setShip(true);
+			r.setType(RouteType.SHIP);
 			BotNode node = n.attach(new BotNodeRoute(r, rIndex));
 			evaluateEdges(node, soc, p, b);
 			b.setPlayerForEdge(rIndex, 0);
-			r.setShip(false);
+			r.setType(RouteType.OPEN);
 		}
 
 		buildOptimalPath(root);
@@ -1192,7 +1192,7 @@ public class PlayerBot extends Player {
 	}
 
 	@Override
-	public Tile chooseTile(SOC soc, List<Integer> tileIndices, TileChoice mode) {
+	public Tile chooseTile(SOC soc, Collection<Integer> tileIndices, TileChoice mode) {
 		if (movesPath != null) {
 			return detatchMove();
 		}
@@ -1220,7 +1220,7 @@ public class PlayerBot extends Player {
 	}
 
 	@Override
-	public Trade chooseTradeOption(SOC soc, List<Trade> trades) {
+	public Trade chooseTradeOption(SOC soc, Collection<Trade> trades) {
 		if (movesPath != null) {
 			return detatchMove();
 		}
@@ -1231,13 +1231,13 @@ public class PlayerBot extends Player {
 	}
 
 	@Override
-	public Player choosePlayer(SOC soc, List<Integer> playerOptions, PlayerChoice mode) {
+	public Player choosePlayer(SOC soc, Collection<Integer> playerOptions, PlayerChoice mode) {
 		if (movesPath != null) {
 			return detatchMove();
 		}
 		
 		if (playerOptions.size() == 1)
-			return soc.getPlayerByPlayerNum(playerOptions.get(0));
+			return soc.getPlayerByPlayerNum(playerOptions.iterator().next());
 		
 		Player p = this;
 		Board b = soc.getBoard();
@@ -1259,7 +1259,7 @@ public class PlayerBot extends Player {
 	}
 
 	@Override
-	public Card chooseCard(SOC soc, List<Card> cards, CardChoice mode) {
+	public Card chooseCard(SOC soc, Collection<Card> cards, CardChoice mode) {
 		if (movesPath != null) {
 			return detatchMove();
 		}

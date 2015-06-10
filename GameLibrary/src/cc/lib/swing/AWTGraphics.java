@@ -8,6 +8,7 @@ import java.awt.Image;
 import java.awt.image.RGBImageFilter;
 
 import cc.lib.game.*;
+import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
 
 public final class AWTGraphics extends AGraphics {
@@ -102,6 +103,14 @@ public final class AWTGraphics extends AGraphics {
         r.transformXY(x, y, result);
     }
     
+    public final void transform(MutableVector2D v) {
+    	r.transformXY(v);
+    }
+    
+    public final MutableVector2D transform(IVector2D v) {
+    	return r.transformXY(v);
+    }
+    
     @Override
     public final Vector2D screenToViewport(int screenX, int screenY) {
     	return r.untransform(screenX, screenY);
@@ -121,10 +130,18 @@ public final class AWTGraphics extends AGraphics {
     public final  void drawLines() {
         r.drawLines(g, Math.round(mLineThickness));
     }
+
+    public final void drawLines(float thickness) {
+    	r.drawLines(g, Math.round(thickness));
+    }
     
     @Override
     public void drawLineStrip() {
         r.drawLineStrip(g, Math.round(mLineThickness));
+    }
+
+    public void drawLineStrip(float thickness) {
+        r.drawLineStrip(g, Math.round(thickness));
     }
 
     @Override
@@ -296,6 +313,34 @@ public final class AWTGraphics extends AGraphics {
 	@Override
 	public final Vector2D getMaxBoundingRect() {
 		return r.getMax();
+	}
+
+	public void setColor(Color c) {
+		g.setColor(c);
+	}
+
+	public Font getFont() {
+		return g.getFont();
+	}
+
+	public void drawLineLoop(int thickness) {
+		r.drawLineLoop(g, thickness);
+	}
+
+	public void fillPolygon() {
+		r.fillPolygon(g);
+	}
+
+	public void setName(int index) {
+		r.setName(index);
+	}
+
+	public int pickLines(int mouseX, int mouseY, int thickness) {
+		return r.pickLines(mouseX, mouseY, thickness);
+	}
+
+	public int pickPoints(int mouseX, int mouseY, int size) {
+		return r.pickPoints(mouseX, mouseY, size);
 	}
 	
 }

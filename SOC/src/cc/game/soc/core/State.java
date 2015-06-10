@@ -13,6 +13,7 @@ enum State {
 	POSITION_CITY_NOCANCEL(false, "Place a city on the board."),
 	CHOOSE_CITY_FOR_WALL(true, "Build a wall around one of your cites to protect against barbarian attack."),
 	POSITION_SHIP_CANCEL(true, "Place a ship on the board."),
+	UPGRADE_SHIP_CANCEL(true, "Choose a ship to upgrade to warship"),
 	POSITION_SHIP_NOCANCEL(false, "Place a ship on the board."),
 	CHOOSE_SHIP_TO_MOVE(true, "Choose from an open ended ship to reposition."),
 	NEXT_PLAYER(false, ""),
@@ -40,6 +41,7 @@ enum State {
 	SET_PLAYER(false, ""),
 	CHOOSE_KNIGHT_TO_ACTIVATE(true, "Choose form one of your knight to Activate.  This makes it possible to defend against Barbarians or reposition."),
 	POSITION_KNIGHT_CANCEL(true, "Place your knight on the board.  Active knights can displace an opponents knight or chase the Robber."),
+	POSITION_KNIGHT_NOCANCEL(false, "Place the deserted knight on the board."),
 	POSITION_DISPLACED_KNIGHT(false, "Place your displaced knight on the board."), // player's knight has been displaced
 	CHOOSE_KNIGHT_TO_MOVE(true, "Pick an Active knight to move."),
 	CHOOSE_KNIGHT_TO_PROMOTE(true, "Choose from one of your knights to Promote."),
@@ -50,6 +52,7 @@ enum State {
 	CHOOSE_PLAYER_FOR_DESERTION(true, "Choose from which player."),
 	CHOOSE_DIPLOMAT_ROUTE(true, "Pick a road.  If you pick an opponents road it will be removed from the board.  If you pick one of your one roads you will be allowed to reposition it."),
 	CHOOSE_HARBOR_RESOURCE(true, "Pick a resource for Harbor Trade."),
+	CHOOSE_HARBOR_PLAYER(true, "Choose a player with whom to force trade"),
 	EXCHANGE_CARD(false, "Pick a card form your hand to Exchange."),
 	CHOOSE_OPPONENT_KNIGHT_TO_DISPLACE(true, "Choose an opponents knight to displace."), // Intrigue
 	CHOOSE_TILE_INVENTOR(true, "Pick 2 tiles to switch their die numbers."),
@@ -61,6 +64,10 @@ enum State {
 	CHOOSE_OPPONENT_CARD(false, "Choose a Progress card to take into your hand."), // Spy
 	CHOOSE_TRADE_MONOPOLY(true, "Choose a Commodity to Monopolize.  All playres with that commodity in their hand will forfeit into your own."),
 	CHOOSE_GIFT_CARD(false, "Choose a card to give to the happy couple on their Wedding day."),
+    PROCESS_DICE(false, ""), // transition state
+    PROCESS_PIRATE_ATTACK(false, ""), // transition state 
+    CHOOSE_PIRATE_FORTRESS_TO_ATTACK(true, "Choose a pirate fortress to attack"),	
+
 	;
 	
 	private State(boolean canCancel, String helpText) {

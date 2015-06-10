@@ -131,6 +131,7 @@ public abstract class BoardComponent extends JComponent implements MouseMotionLi
 
     final int roadLineThickness;
 	final Color bkColor;
+	final Color outlineColor;
 
 	private PickMode pickMode = PickMode.PM_NONE;
 	private int pickedValue = -1;
@@ -154,6 +155,7 @@ public abstract class BoardComponent extends JComponent implements MouseMotionLi
         bkColor             = getProperties().getColorProperty("board.bkcolor", Color.LIGHT_GRAY);
         roadLineThickness   = getProperties().getIntProperty("board.roadLineThickness", 4);
         padding             = getProperties().getIntProperty("board.padding", 20);
+        outlineColor        = getProperties().getColorProperty("board.outline.color", Color.BLACK);
 		this.board = board;
         addMouseMotionListener(this);
         addMouseListener(this);
@@ -274,31 +276,6 @@ public abstract class BoardComponent extends JComponent implements MouseMotionLi
 	    new Face(0.2f, 2,2, 2,6, -2,4, -2,0).setFaceTypes(FaceType.WAR_SHIP),
 	    new Face(0.0f, 0,2, 1,3, 1,5, -1,4, -1,2).setFaceTypes(FaceType.WAR_SHIP),
 	    
-	    
-	    
-	    
-	    // hull
-	    //new Face(0.25f, -4,0, 4,0, 3,-2, -3,-2).setFaceTypes(FaceType.SHIP),
-	    // sail 
-	    //new Face(0.0f, 1,0, 1,5, -1,4, -3,1, -1,0).setFaceTypes(FaceType.SHIP),
-	    /*
-	    // shield
-	    // full (inactive)
-	    new Face(0.5f, 3,3, 3,-1, 0,-4, -3,-1, -3,3).setFaceTypes(FaceType.KNIGHT_INACTIVE_BASIC, FaceType.KNIGHT_INACTIVE_STRONG, FaceType.KNIGHT_INACTIVE_MIGHTY),
-	    // sectioned (active)
-	    // top left
-	    new Face(0.0f, 0,1, 0,3, -3,3, -3,1).setFaceTypes(FaceType.KNIGHT_ACTIVE_BASIC, FaceType.KNIGHT_ACTIVE_STRONG, FaceType.KNIGHT_ACTIVE_MIGHTY),
-	    // top right
-	    new Face(0.1f, 0,1, 0,3, 3,3, 3,1).setFaceTypes(FaceType.KNIGHT_ACTIVE_BASIC, FaceType.KNIGHT_ACTIVE_STRONG, FaceType.KNIGHT_ACTIVE_MIGHTY),
-	    // bottom left
-	    new Face(0.2f, 0,1, -3,1, -3,-1, 0,-4).setFaceTypes(FaceType.KNIGHT_ACTIVE_BASIC, FaceType.KNIGHT_ACTIVE_STRONG, FaceType.KNIGHT_ACTIVE_MIGHTY),
-	    // bottom right
-	    new Face(0.3f, 0,1, 3,1, 3,-1, 0,-4).setFaceTypes(FaceType.KNIGHT_ACTIVE_BASIC, FaceType.KNIGHT_ACTIVE_STRONG, FaceType.KNIGHT_ACTIVE_MIGHTY),
-	    // Level 2 knight bar
-	    new Face(0.5f, -3,3, -3,5, 3,5, 3,3).setFaceTypes(FaceType.KNIGHT_ACTIVE_STRONG, FaceType.KNIGHT_ACTIVE_MIGHTY, FaceType.KNIGHT_INACTIVE_STRONG, FaceType.KNIGHT_INACTIVE_MIGHTY),
-	    // Level 3 knight bar
-	    new Face(0.1f, -3,5, -3,7, 3,7, 3,5).setFaceTypes(FaceType.KNIGHT_ACTIVE_MIGHTY, FaceType.KNIGHT_INACTIVE_MIGHTY),
-*/
 	    // 3D Shield
 	    // full darkened (inactive)
 	    new Face(0.7f, 4,5, 3,5, 0,4, 1,4).setFaceTypes(FaceType.KNIGHT_INACTIVE_BASIC, FaceType.KNIGHT_INACTIVE_STRONG, FaceType.KNIGHT_INACTIVE_MIGHTY),
@@ -498,6 +475,24 @@ public abstract class BoardComponent extends JComponent implements MouseMotionLi
 		}
 		drawFaces(g, pos, 0, scale*2/3, scale*2/3, structure, outline);
 	}
+	
+	void drawPirateFortress(Graphics g, Vertex v, boolean outline) {
+		MutableVector2D mv = render.transformXY(v);
+		int x = mv.Xi()-10;
+		int y = mv.Yi()-10;
+		for (int i=0; i<v.getPirateHealth(); i++) {
+			int rw = 40;
+			int rh = 30;
+			g.setColor(Color.GRAY);
+			g.fillOval(x,y,rw,rh);
+			g.setColor(Color.RED);
+			g.drawOval(x,y,rw,rh);
+			x += 10;
+			y += 5;
+		}
+		g.setColor(Color.DARK_GRAY);
+		drawSettlement(g, v, 0, outline);
+	}
 
 	void drawFaces(Graphics g, IVector2D pos, float angle, float radius, FaceType structure, boolean outline) {
 	    final float xRad = 3; // actual radius as defined above
@@ -538,7 +533,7 @@ public abstract class BoardComponent extends JComponent implements MouseMotionLi
 	    		render.addVertex(face.xVerts[i], face.yVerts[i]);
 	    	
 	    	if (outline) {
-	    	    g.setColor(Color.BLACK);
+	    	    g.setColor(outlineColor);
 	    	    render.drawLineLoop(g, 2);
 	    	}
 
@@ -578,74 +573,66 @@ public abstract class BoardComponent extends JComponent implements MouseMotionLi
 		}
 		return render.pickPoints(mouseX, mouseY, dim);
 	}
-	/*
-	private int pickRoad(int mouseX, int mouseY) {
-		render.clearVerts();
-//		if (pickIndices == null)
-//			return pickEdge(mouseX, mouseY, SOC.computeRoadRouteIndices(pickPlayerNum, board));
-		return pickEdge(mouseX, mouseY, pickIndices);
-	}
-	
-	private int pickShip(int mouseX, int mouseY) {
-		render.clearVerts();
-//		if (pickIndices == null)
-//			return pickEdge(mouseX, mouseY, SOC.computeShipRouteIndices(pickPlayerNum, board));
-		return pickEdge(mouseX, mouseY, pickIndices);
-	}
-	
-	private int pickMovableShip(int mouseX, int mouseY) {
-		render.clearVerts();
-//		if (pickIndices == null) {
-//			return pickEdge(mouseX, mouseY, SOC.computeOpenRouteIndices(pickPlayerNum, board, false, true));
-//		}
-		return pickEdge(mouseX, mouseY, pickIndices);
-	}
-	
-	private int pickSettlement(int mouseX, int mouseY) {
-//		if (pickIndices == null)
-//			return pickVertex(mouseX, mouseY, SOC.computeSettlementVertexIndices(null, pickPlayerNum, board));
-		return pickVertex(mouseX, mouseY, pickIndices);
-	}
-
-	private int pickCity(int mouseX, int mouseY) {
-//		if (pickIndices == null)
-//			return pickVertex(mouseX, mouseY, SOC.computeCityVertxIndices(pickPlayerNum, board));
-		return pickVertex(mouseX, mouseY, pickIndices);
-	}*/
 	
 	private void renderEdge(Route e) {
 		Vertex v0 = board.getVertex(e.getFrom());
 		Vertex v1 = board.getVertex(e.getTo());
-		if (e.isDamaged()) {
-    		render.addVertex(v0);
-    		Vector2D v = board.getRouteMidpoint(e);
-    		render.addVertex(v);
-    		Vector2D dv = Vector2D.newTemp(v).subEq(v0).normEq().addEq(v);
-    		render.addVertex(dv);
-		} else {
-    		render.addVertex(v0);
-    		render.addVertex(v1);
-		}
+		render.addVertex(v0);
+		render.addVertex(v1);
+	}
+	
+	private void renderDamagedEdge(Route e) {
+		Vertex v0 = board.getVertex(e.getFrom());
+		Vertex v1 = board.getVertex(e.getTo());
+		render.clearVerts();
+		render.addVertex(v0);
+		Vector2D v = board.getRouteMidpoint(e);
+		render.addVertex(v);
+		Vector2D dv = Vector2D.newTemp(v).subEq(v0).normEq().addEq(v);
+		render.addVertex(dv);
+	}
+	
+	public void drawDamagedRoad(Graphics g, Route e, boolean outline) {
+		render.clearVerts();
+	    if (outline) {
+	        Color old = g.getColor();
+	        g.setColor(outlineColor);
+            renderDamagedEdge(e);
+            render.drawLines(g, roadLineThickness+2);
+            g.setColor(old);
+	    } 
+	    renderDamagedEdge(e);
+	    render.drawLineStrip(g, roadLineThickness);	
 	}
 
 	public void drawEdge(Graphics g, Route e, int playerNum, boolean outline) {
-		if (playerNum > 0) {
-			if (e.isWarShip())
+		if (playerNum > 0)
+			g.setColor(getPlayerColor(playerNum));
+		switch (e.getType()) {
+			case OPEN:
+				break;
+			case DAMAGED_ROAD:
+				drawDamagedRoad(g, e, outline);
+				break;
+			case ROAD:
+				drawRoad(g, e, outline);
+				break;
+			case SHIP:
+				drawShip(g, e, outline);
+				break;
+			case WARSHIP:
 				drawWarShip(g, e, outline);
-			else if (e.isShip())
-				drawShip(g, e, outline);
-			else
-				drawRoad(g, e, outline);
-		} else {
-			if (e.isAdjacentToLand())
-				drawRoad(g, e, outline);
-			if (e.isAdjacentToWater())
-				drawShip(g, e, outline);
+				break;
 		}
 	}
 	
 	public void drawVertex(Graphics g, Vertex v, VertexType type, int playerNum, boolean outline) {
 		switch (type) {
+			case OPEN:
+				break;
+			case PIRATE_FORTRESS:
+				drawPirateFortress(g, v, outline);
+				break;
 			case SETTLEMENT:
 				drawSettlement(g, v, playerNum, outline);
 				break;
@@ -672,10 +659,6 @@ public abstract class BoardComponent extends JComponent implements MouseMotionLi
 			case MIGHTY_KNIGHT_INACTIVE:
 				drawKnight(g, v, playerNum, type.getKnightLevel(), type.isKnightActive(), outline);
 				break;
-			default:
-				break;
-				
-			
 		}		
 	}
 	
@@ -683,7 +666,7 @@ public abstract class BoardComponent extends JComponent implements MouseMotionLi
 		render.clearVerts();
 	    if (outline) {
 	        Color old = g.getColor();
-	        g.setColor(Color.BLACK);
+	        g.setColor(outlineColor);
             renderEdge(e);
             render.drawLines(g, roadLineThickness+2);
             g.setColor(old);
@@ -916,33 +899,6 @@ public abstract class BoardComponent extends JComponent implements MouseMotionLi
                 g.setColor(textColor);
                 AWTUtils.drawJustifiedString(g,x,y,Justify.CENTER,Justify.CENTER,"3:1\n?");
                 break;
-                /*
-            case RESOURCE:
-                switch (cell.getResource()) {
-                case Wood:
-                    images.drawImage(g, woodImage, x-w/2, y-h/2, w, h);
-                    break;
-                case Sheep:
-                    images.drawImage(g, sheepImage, x-w/2, y-h/2, w, h);
-                    break;
-                case Ore:
-                    images.drawImage(g, oreImage, x-w/2, y-h/2, w, h);
-                    break;
-                case Wheat:
-                    images.drawImage(g, wheatImage, x-w/2, y-h/2, w, h);
-                    break;
-                case Brick:
-                    images.drawImage(g, brickImage, x-w/2, y-h/2, w, h);
-                    break;
-                }
-                if (cell.getDieNum() > 0) {
-                    g.setColor(Color.BLACK);
-                    AWTUtils.fillCircle(g, x, y+1, 20);
-                    g.setColor(textColor);
-                    AWTUtils.drawJustifiedString(g, x, y, Justify.CENTER, Justify.CENTER, String.valueOf(cell.getDieNum()));
-                }
-                break;
-                */
             case GOLD:
             	images.drawImage(g, goldImage, x-w/2, y-h/2, w, h);
             	break;
@@ -1064,57 +1020,32 @@ public abstract class BoardComponent extends JComponent implements MouseMotionLi
                 drawTilesOutlined(g);
             }
 
-            for (int i=0; i<board.getNumTiles(); i++) {
-            	Tile t = board.getTile(i);
-            	switch (pickMode) {
-					case PM_TILE: {
-						if (pickedValue < 0) {
-							if (pickHandler.isPickableIndex(this, i)) {
-								pickHandler.onDrawPickable(this, render, g, i);
-							}
-						} else if (pickedValue == i) {
-							if (pickHandler.isPickableIndex(this, i)) {
-								pickHandler.onHighlighted(this, render, g, i);
-							}
-						}
-						break;
-					}
-					case PM_EDGE:
-						break;
-					case PM_NONE:
-						break;
-					case PM_VERTEX:
-						break;
-            	}
+            if (pickMode == PickMode.PM_TILE) {
+                for (int i=0; i<board.getNumTiles(); i++) {
+                	if (pickHandler.isPickableIndex(this, i)) {
+                		if (i == pickedValue) {
+                			pickHandler.onHighlighted(this, render, g, i);
+                		} else {
+                			pickHandler.onDrawPickable(this, render, g, i);
+                		}
+                	} 
+                }
             }
             
             if (!getRenderFlag(RenderFlag.DONT_DRAW_ROADS)) {
         		// draw the roads
-        		for (int i=0; i<board.getNumRoutes(); i++) {
-        			Route e = board.getRoute(i);
-        			switch (pickMode) {
-						case PM_EDGE:
-							if (pickedValue < 0) {
-								if (pickHandler.isPickableIndex(this, i)) {
-									pickHandler.onDrawPickable(this, render, g, i);
-									continue;
-								}
-							} else if (pickedValue == i) {
-								if (pickHandler.isPickableIndex(this, i)) {
-									pickHandler.onHighlighted(this, render, g, i);
-									continue;
-								}
-							}
-							break;
-						case PM_NONE:
-							break;
-						case PM_TILE:
-							break;
-						case PM_VERTEX:
-							break;
-        			}
-        			if (e.getPlayer() <= 0)
-        				continue;
+                for (int i=0; i<board.getNumRoutes(); i++) {
+                	if (pickMode == PickMode.PM_EDGE) {
+                    	if (pickHandler.isPickableIndex(this, i)) {
+                    		if (i == pickedValue) {
+                    			pickHandler.onHighlighted(this, render, g, i);
+                    		} else {
+                    			pickHandler.onDrawPickable(this, render, g, i);
+                    		}
+                    		continue;
+                    	} 
+                    }
+                	Route e = board.getRoute(i);
         			g.setColor(getPlayerColor(e.getPlayer()));
         			drawEdge(g, e, e.getPlayer(), false);
         		}
@@ -1124,33 +1055,17 @@ public abstract class BoardComponent extends JComponent implements MouseMotionLi
     		// draw the structures
             if (!getRenderFlag(RenderFlag.DONT_DRAW_STRUCTURES)) {
         		for (int i=0; i<board.getNumVerts(); i++) {
+        			if (pickMode == PickMode.PM_VERTEX) {
+        				if (pickHandler.isPickableIndex(this, i)) {
+                    		if (i == pickedValue) {
+                    			pickHandler.onHighlighted(this, render, g, i);
+                    		} else {
+                    			pickHandler.onDrawPickable(this, render, g, i);
+                    		}
+                    		continue;
+        				}
+        			}
         			Vertex v = board.getVertex(i);
-        			if (pickedValue < 0) {
-        				
-        			}
-        			switch (pickMode) {
-						case PM_VERTEX:
-							if (pickedValue < 0) {
-								if (pickHandler.isPickableIndex(this, i)) {
-									pickHandler.onDrawPickable(this, render, g, i);
-									continue;
-								}
-							} else if (pickedValue == i) {
-								if (pickHandler.isPickableIndex(this, i)) {
-									pickHandler.onHighlighted(this, render, g, i);
-									continue;
-								}
-							}
-							break;
-						case PM_EDGE:
-							break;
-						case PM_NONE:
-							break;
-						case PM_TILE:
-							break;
-        			}
-        			if (v.getPlayer() <= 0)
-        				continue;
         			drawVertex(g, v, v.getType(), v.getPlayer(), false);
         		}
             }
@@ -1164,22 +1079,6 @@ public abstract class BoardComponent extends JComponent implements MouseMotionLi
             if (pickedValue >= 0) {
             	pickHandler.onHighlighted(this, render, g, pickedValue);
             }
-    		/*
-    		// draw pirate route when in pick mode
-    		if (pickMode == PickMode.PM_PIRATE_ROUTE) {
-    			g.setColor(Color.black);
-    			int t = getBoard().getPirateRouteStartTile();
-    			ArrayList<IVector2D> tiles = new ArrayList<>();
-    			while (t >= 0) {
-    				Tile tile = getBoard().getTile(t);
-    				tiles.add(tile);
-    				drawTileOutline(g, tile, 2);
-    				t = tile.getPirateRouteNext();
-    			}
-                render.clearVerts();
-                render.addVertices(tiles);
-                render.drawLineStrip(g, 2);
-    		}*/
 
     		if (robberTile >= 0)
     		    drawRobber(g, board.getTile(robberTile));
@@ -1297,8 +1196,9 @@ public abstract class BoardComponent extends JComponent implements MouseMotionLi
 	}
 
     @Override
-	public void mouseDragged(MouseEvent arg0) {
-		mouseMoved(arg0);	
+	public void mouseDragged(MouseEvent ev) {
+		mouseMoved(ev);
+		mouseClicked(ev);
 	}
 
 	@Override
@@ -1354,6 +1254,7 @@ public abstract class BoardComponent extends JComponent implements MouseMotionLi
         if (pickedValue >= 0) {
         	pickHandler.onPick(this, pickedValue);
             repaint();
+            pickedValue = -1;
         }
     }
 
@@ -1371,37 +1272,10 @@ public abstract class BoardComponent extends JComponent implements MouseMotionLi
     public void mousePressed(final MouseEvent arg0) {
     	grabFocus();
     	mouseDragged(arg0);
-    	/*
-        //System.out.println("mouse pressed");
-        mouseDownTime = System.currentTimeMillis();
-        new Thread(new Runnable() {
-            public void run() {
-                try {
-                    Thread.sleep(CLICK_TIME);
-                    synchronized (BoardComponent.this) {
-                        if (mouseDownTime > 0) // if we havnt release then
-                            mouseDragged(arg0);
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        }).start();*/
     }
 
     @Override
     public void mouseReleased(MouseEvent arg0) {
-    	/*
-        long t = System.currentTimeMillis();
-        synchronized (this) {
-            if (mouseDownTime - t < CLICK_TIME) {
-                doMouseClicked();
-            }
-        }
-        mouseDownTime = 0;
-        //System.out.println("mouse released");
-         
-         */
     }
 
     public void setBoard(Board board) {
@@ -1482,82 +1356,14 @@ public abstract class BoardComponent extends JComponent implements MouseMotionLi
                     "City +2" : 
                     "Settlement +1");
         else {
-            int numBlocked = board.checkForBlockingRoads(vertexIndex, 3);
-            info += "\n  Blocks " + numBlocked + " roads";
+            int pNum = board.checkForPlayerRouteBlocked(vertexIndex);
+            info += "\n  Blocks plater " + pNum + "'s roads";
         }
         float [] v = { vertex.getX(), vertex.getY() };
         render.transformXY(v);
         
         drawInfo(g, Math.round(v[0]), Math.round(v[1]), info);
     }
-	/*
-	private void scrollTileVertically(int cellIndex, int offset) {
-		Tile cell = board.getTile(cellIndex);
-		if (cell == null)
-			return;
-		if (cell.isDistributionTile()) {
-			int nextDie = cell.getDieNum() + offset;
-			if (nextDie > 12)
-				nextDie = 2;
-			else if (nextDie == 7)
-				nextDie += offset;
-			else if (nextDie < 2)
-				nextDie = 12;
-			cell.setDieNum(nextDie);
-		} else if (cell.isPort() && cell.getResource() != null) {
-			TileType [] portTypes = { TileType.PORT_BRICK, TileType.PORT_ORE, TileType.PORT_SHEEP, TileType.PORT_WHEAT, TileType.PORT_WOOD };
-			TileType type = portTypes[(cell.getResource().ordinal()+offset+SOC.NUM_RESOURCE_TYPES) % SOC.NUM_RESOURCE_TYPES];
-			cell.setType(type);			
-		}
-		repaint();
-	}
-	
-	private void scrollTileHorz(int cellIndex, int offset) {
-		Tile cell = board.getTile(cellIndex);
-		if (cell == null)
-			return;
-
-		TileType [] choices = null;
-		switch (cell.getType()) {
-			case UNDISCOVERED:
-			case DESERT:
-			case GOLD:
-			case NONE:
-				choices = new TileType [] { TileType.UNDISCOVERED, TileType.DESERT, TileType.GOLD, TileType.NONE };
-				break;
-			case WATER:
-			case PORT_MULTI:
-			case PORT_BRICK:
-			case PORT_ORE:
-			case PORT_SHEEP:
-			case PORT_WHEAT:
-			case PORT_WOOD:
-				choices = new TileType [] { TileType.WATER, TileType.PORT_MULTI, TileType.PORT_BRICK, TileType.PORT_ORE, TileType.PORT_SHEEP, TileType.PORT_WHEAT, TileType.PORT_WOOD };
-				break;
-			case RANDOM_PORT:
-			case RANDOM_PORT_OR_WATER:
-			case RANDOM_RESOURCE:
-			case RANDOM_RESOURCE_OR_DESERT:
-				choices = new TileType [] { TileType.RANDOM_PORT, TileType.RANDOM_PORT_OR_WATER, TileType.RANDOM_RESOURCE, TileType.RANDOM_RESOURCE_OR_DESERT };
-				break;
-			case PASTURE:
-			case FOREST:
-			case FIELDS:
-			case HILLS:
-			case MOUNTAINS:
-				choices = new TileType [] { TileType.PASTURE, TileType.FOREST, TileType.FIELDS, TileType.HILLS, TileType.MOUNTAINS };
-				break;
-		}
-
-		if (choices != null) {
-			Arrays.sort(choices);
-			int index = Arrays.binarySearch(choices, cell.getType());
-			index = (index+choices.length+offset) % choices.length;
-			cell.setType(choices[index]);
-		}
-
-		repaint();
-	}*/
 }
 
 

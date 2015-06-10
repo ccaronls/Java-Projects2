@@ -229,6 +229,19 @@ public final class Board extends Reflector<Board> {
 		}
 	}
     
+    public int [] computeTilesAdjacentToRoute(int routeIndex) {
+    	int [] result = new int[2];
+    	int rIndex = 0;
+    	Route r = getRoute(routeIndex);
+    	for (Tile t : getVertexTiles(r.getFrom())) {
+    		if (t.getAdjVerts().contains(r.getTo())) {
+    			result[rIndex++] = getTileIndex(t);
+    		}
+    	}
+    	return result;
+    }
+    
+    
     /**
      * Iterate over cells are count the number of islands
      * 
@@ -299,6 +312,10 @@ public final class Board extends Reflector<Board> {
     	return num;
     }
     
+    /**
+     * 
+     * @param islandNum
+     */
     public void removeIsland(int islandNum) {
     	if (islandNum < 0 || islandNum > islands.size())
     		return;
@@ -746,7 +763,16 @@ public final class Board extends Reflector<Board> {
 		if (pirateRouteStartTile < 0) {
 			pirateRouteStartTile = tileIndex;
 		} else {
-			getTile(pirateRouteStartTile).addPirateRoute(this, tileIndex);
+			int tIndex = pirateRouteStartTile;
+			while (true) {
+				int index = getTile(tIndex).getPirateRouteNext();
+				if (index < 0 || index == pirateRouteStartTile)
+					break;
+				tIndex = index;
+			}
+			if (tileIndex != tIndex) {
+				getTile(tIndex).setPirateRouteNext(tileIndex);
+			}
 		}
 	}
 
@@ -947,12 +973,14 @@ public final class Board extends Reflector<Board> {
 				TileType.HILLS,
 				TileType.MOUNTAINS,
 				TileType.PASTURE,
+				/*
 				TileType.FIELDS,
 				TileType.FOREST,
 				TileType.HILLS,
 				TileType.MOUNTAINS,
 				TileType.PASTURE,
 				TileType.GOLD,
+				*/
 		};
 
 		TileType [] portOptions = {
@@ -1138,6 +1166,59 @@ public final class Board extends Reflector<Board> {
     
     /**
      * 
+     * @param player
+     * @param rt
+     * @return
+     */
+    public List<Route> getRoutesOfType(int player, RouteType ... types) {
+    	List<Route> routes = new ArrayList<Route>();
+    	List<RouteType> arr = Arrays.asList(types);
+    	for (int i=0; i<getNumRoutes(); i++) {
+    		Route r = getRoute(i);
+    		if (arr.contains(r.getType()) && (player == 0 || r.getPlayer() == player)) {
+    			routes.add(r);
+    		}
+    	}
+    	return routes;
+    }
+
+    public List<Integer> getRoutesIndicesOfType(int player, RouteType ... types) {
+    	List<Integer> routes = new ArrayList<Integer>();
+    	List<RouteType> arr = Arrays.asList(types);
+    	for (int i=0; i<getNumRoutes(); i++) {
+    		Route r = getRoute(i);
+    		if (arr.contains(r.getType()) && (player == 0 || r.getPlayer() == player)) {
+    			routes.add(i);
+    		}
+    	}
+    	return routes;
+    }
+
+    /**
+     * Use BFS to find closest ships.  Ships must be adjacent to the vertex at vIndex.
+     * @param vIndex
+     * @param numShips
+     */
+    public void removeShipsClosestToVertex(int vIndex, int playerNum, int numShips) {
+    	Queue<Integer> Q = new LinkedList<Integer>();
+    	Q.add(vIndex);
+    	while (!Q.isEmpty() && numShips > 0) {
+        	vIndex = Q.remove();
+        	Vertex v = getVertex(vIndex);
+        	for (int v2 : v.getAdjacent()) {
+        		Route r = getRoute(vIndex, v2);
+        		if (r.getPlayer() == playerNum && r.getType().isVessel) {
+        			r.setType(RouteType.OPEN);
+        			setPlayerForRoute(r, 0);
+        			numShips -= 1;
+            		Q.add(v2);
+        		}
+        	}
+    	}
+    }
+    
+    /**
+     * 
      * @param type
      * @return
      */
@@ -1242,7 +1323,7 @@ public final class Board extends Reflector<Board> {
     	    int max = 0;
     	    for (int i=0; i<getNumVerts(); i++) {
     	        Vertex v = getVertex(i);
-    	        if (v.getPlayer() > 0)
+    	        if (v.getType() != VertexType.OPEN) // TOOD: should we check here for enableRoadBlock and only consider knights if true?
     	            continue; // skip past verts with settlements on them
     	        //Utils.fillArray(visited, false);
     	        Arrays.fill(visitedEdges, false);
@@ -1353,9 +1434,7 @@ public final class Board extends Reflector<Board> {
 		List<VertexType> arr = Arrays.asList(types);
 		for (int i = 0; i < getNumVerts(); i++) {
 			Vertex v = getVertex(i);
-			if (v.getPlayer() == 0 || (playerNum > 0 && playerNum != v.getPlayer()))
-				continue;
-			if (arr.contains(v.getType()))
+			if ((playerNum == 0 || playerNum == v.getPlayer()) && arr.contains(v.getType()))
 				verts.add(i);
 		}
 		return verts;
@@ -1405,38 +1484,6 @@ public final class Board extends Reflector<Board> {
 		return getVertsOfType(playerNum, VertexType.SETTLEMENT, VertexType.CITY, VertexType.WALLED_CITY, VertexType.METROPOLIS_POLITICS, VertexType.METROPOLIS_SCIENCE, VertexType.METROPOLIS_TRADE);
 	}
 
-	public List<Integer> getRoadsForPlayer(int playerNum) {
-		List<Integer> roads = new ArrayList<Integer>();
-		for (int i=0; i<getNumRoutes(); i++) {
-			Route e = getRoute(i);
-			if (e.getPlayer() == playerNum && !e.isShip())
-				roads.add(i);
-		}
-		return roads;
-	}
-
-	public List<Integer> getShipsForPlayer(int playerNum, boolean includeWarships) {
-		List<Integer> ships = new ArrayList<Integer>();
-		for (int i=0; i<getNumRoutes(); i++) {
-			Route e = getRoute(i);
-			if (e.getPlayer() == playerNum && e.isShip()) {
-				if (includeWarships || !e.isWarShip())
-					ships.add(i);
-			}
-		}
-		return ships;
-	}
-	
-	public List<Route> getShipRoutesForPlayer(int playerNum) {
-		List<Route> ships = new ArrayList<Route>();
-		for (int i=0; i<getNumRoutes(); i++) {
-			Route e = getRoute(i);
-			if (e.getPlayer() == playerNum && e.isShip())
-				ships.add(e);
-		}
-		return ships;
-	}
-
 	/**
 	 * Return true if a player has any structure adjacent to a given cell.
 	 * @param player
@@ -1471,7 +1518,7 @@ public final class Board extends Reflector<Board> {
 	 * @return
 	 */
 	public boolean isRouteAvailableForRoad(Route edge, int playerNum) {
-		if (edge.getPlayer() != 0 || !edge.isAdjacentToLand() || edge.isLocked()) {
+		if (edge.getPlayer() != 0 || !edge.isAdjacentToLand() || edge.isLocked() || edge.isClosed()) {
 			 return false;
 		 }
 
@@ -1504,7 +1551,7 @@ public final class Board extends Reflector<Board> {
 	 * @return
 	 */
 	public boolean isRouteAvailableForShip(Route edge, int playerNum) {
-		if (edge.getPlayer() != 0 || !edge.isAdjacentToWater() || edge.isAttacked() || edge.isLocked())
+		if (edge.getPlayer() != 0 || !edge.isAdjacentToWater() || edge.isAttacked() || edge.isLocked() || edge.isClosed())
 			return false;
 		
 		// check if the adjacent edges have one of our roads
@@ -1549,7 +1596,7 @@ public final class Board extends Reflector<Board> {
 				int ie = getRouteIndex(vIndex, v2);
 				if (ie >= 0) {
 					Route e = getRoute(ie);
-					if (getVertex(e.getFrom()).getPlayer() > 0 || getVertex(e.getTo()).getPlayer() > 0)
+					if (getVertex(e.getFrom()).isStructure() || getVertex(e.getTo()).isStructure())
 						return false;
 				}
 			}
@@ -1570,7 +1617,7 @@ public final class Board extends Reflector<Board> {
 				int ie = getRouteIndex(vIndex, v2);
 				if (ie >= 0) {
 					Route e = getRoute(ie);
-					int eFlag = e.isShip() ? Route.EDGE_FLAG_WATER : Route.EDGE_FLAG_LAND;
+					int eFlag = e.getType().isVessel ? Route.EDGE_FLAG_WATER : Route.EDGE_FLAG_LAND;
 					if (e.getPlayer() == playerNum && 0 != (flag & eFlag))
 						return true;
 				}
@@ -1602,8 +1649,18 @@ public final class Board extends Reflector<Board> {
         int num = 0;
         for (int i=0; i<getNumRoutes(); i++) {
             Route e = getRoute(i);
-            if (e.getPlayer() == playerNum)
-                num++;
+            if (e.getPlayer() == playerNum) {
+            	switch (e.getType()) {
+					case DAMAGED_ROAD:
+					case ROAD:
+						num++;
+						break;
+					case OPEN:
+					case SHIP:
+					case WARSHIP:
+						break;
+            	}
+            }
         }
         return num;
     }
@@ -1697,6 +1754,20 @@ public final class Board extends Reflector<Board> {
             }
         }
     }
+    
+    public int checkForPlayerRouteBlocked(int newStructureVertexIndex) {
+    	if (newStructureVertexIndex < 0)
+    		return 0;
+    	Vertex v = getVertex(newStructureVertexIndex);
+    	if (v.getPlayer() == 0)
+    		return 0;
+    	for (int i=0; i<v.getNumAdjacent(); i++) {
+    		Route r = getRoute(newStructureVertexIndex, v.getAdjacent()[i]);
+    		if (r.getType().isRoute && r.getPlayer() != v.getPlayer())
+    			return r.getPlayer();
+    	}
+    	return 0;
+    }
 
     /**
      * Algorithmically search the road tree and determine if any structure positioned
@@ -1704,9 +1775,9 @@ public final class Board extends Reflector<Board> {
      * support a special rule where a well placed structure can cause an opponents
      * roads to be lost if a road has no path back to a settlements.
      * @param vertexIndex
-     * @param blockingStructurePlayerNum
-     * @return
-     */
+     * @param blockingStructurePlayerNum player who has just placed a potentially blocking structure
+     * @return player num who was blocked
+     *
     public int checkForBlockingRoads(int vertexIndex, int blockingStructurePlayerNum) {
         if (vertexIndex < 0)
             return 0;
@@ -1739,10 +1810,12 @@ public final class Board extends Reflector<Board> {
             //System.out.print(getIndent(depth) + "visit: " + e);
             if (num == 0)
                 return false;
-            if (e.getPlayer() != playerNum) {
+            if (!e.getType().isRoute || e.getPlayer() != playerNum) {
                 //System.out.println(" a:return false (no road)" + num);
                 return false;
             }
+            Vertex v0 = getVertex(e.getFrom());
+            Vertex v1 = getVertex(e.getTo());
             if (getVertex(e.getFrom()).getPlayer() == playerNum || getVertex(e.getTo()).getPlayer() == playerNum) {
                 num = 0;
                 //System.out.println(" b:return false (structureFound) num=" + num);
@@ -1760,7 +1833,7 @@ public final class Board extends Reflector<Board> {
         public boolean canRecurse(int vertexIndex) {
             return (vertexIndex != startVertex);            
         }
-    }
+    }*/
 
 	public void load(String string) throws IOException {
 		loadFromFile(new File(string));
@@ -1941,7 +2014,7 @@ public final class Board extends Reflector<Board> {
 		for (int i=0; i<v.getNumAdjacent(); i++) {
 			Route e = getRoute(vIndex, v.getAdjacent()[i]);
 			if (e != null) {
-				if (e.isShip() && e.getPlayer() == playerNum)
+				if (e.getType().isVessel && e.getPlayer() == playerNum)
 					num++;
 			}
 		}

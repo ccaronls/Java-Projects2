@@ -52,7 +52,7 @@ public class GUIPlayer extends PlayerBot {
             return;
         if (vertex == null)
             return;
-        GUI.instance.getBoardComponent().addAnimation(new Animation(getAnimTime(), 0) {
+        GUI.instance.getBoardComponent().addAnimation(new BlockingAnimation(getAnimTime()) {
 
             @Override
             void draw(Graphics g, float position, float dt) {
@@ -67,24 +67,6 @@ public class GUIPlayer extends PlayerBot {
                 GUI.instance.getBoardComponent().drawCity(g, Vector2D.ZERO, getPlayerNum(), false);
                 render.popMatrix();
             }
-
-            @Override
-            void onDone() {
-                //vertex.setPlayer(getPlayerNum());
-                synchronized (this) {
-                    notify();
-                }
-            }
-
-            @Override
-            void onStarted() { 
-                synchronized (this) {
-                    try {
-                        wait(getAnimTime());
-                    } catch (Exception e) {}
-                }
-            }
-            
         });
         
     }
@@ -94,7 +76,7 @@ public class GUIPlayer extends PlayerBot {
             return;
         if (vertex == null)
             return;
-        GUI.instance.getBoardComponent().addAnimation(new Animation(getAnimTime(), 0) {
+        GUI.instance.getBoardComponent().addAnimation(new BlockingAnimation(getAnimTime()) {
 
             @Override
             void draw(Graphics g, float position, float dt) {
@@ -110,23 +92,6 @@ public class GUIPlayer extends PlayerBot {
                 GUI.instance.getBoardComponent().drawWalledCity(g, Vector2D.ZERO, getPlayerNum(), false);
                 render.popMatrix();
             }
-
-            @Override
-            void onDone() {
-                //vertex.setPlayer(getPlayerNum());
-                synchronized (this) {
-                    notify();
-                }
-            }
-
-            @Override
-            void onStarted() { 
-                synchronized (this) {
-                    try {
-                        wait(getAnimTime());
-                    } catch (Exception e) {}
-                }
-            }
             
         });
         
@@ -140,7 +105,7 @@ public class GUIPlayer extends PlayerBot {
     		return;
     	
     	final BoardComponent comp = GUI.instance.getBoardComponent();
-        comp.addAnimation(new Animation(getAnimTime(),0) {
+        comp.addAnimation(new BlockingAnimation(getAnimTime()) {
 			
 			@Override
 			void draw(Graphics g, float position, float dt) {
@@ -152,22 +117,34 @@ public class GUIPlayer extends PlayerBot {
                 GUI.instance.getBoardComponent().drawShip(g, edge, false);
                 render.popMatrix();				
 			}
+		});
+    }
+    
+    void startUpgradeShipAnimation(final Route ship) {
+    	if (!animationEnabled)
+    		return;
+    	
+    	if (ship == null)
+    		return;
+    	final BoardComponent comp = GUI.instance.getBoardComponent();
+    	comp.addAnimation(new BlockingAnimation(2000) {
 			
 			@Override
-            void onDone() {
-                synchronized (this) {
-                    notify();
-                }
-            }
-
-            @Override
-            void onStarted() {
-                synchronized (this) {
-                    try {
-                        wait(getAnimTime());
-                    } catch (Exception e) {}
-                }
-            }
+			void draw(Graphics g, float position, float dt) {
+				g.setColor(getColor());
+                AWTRenderer render = GUI.instance.getBoardComponent().render;
+                render.pushMatrix();
+                //render.translate(mp);
+                render.scale(1, 1.0f - position);
+                GUI.instance.getBoardComponent().drawShip(g, ship, false);
+                render.popMatrix();				
+			
+                render.pushMatrix();
+                //render.translate(mp);
+                render.scale(1, position);
+                GUI.instance.getBoardComponent().drawWarShip(g, ship, false);
+                render.popMatrix();
+			}
 		});
     }
     
@@ -179,7 +156,7 @@ public class GUIPlayer extends PlayerBot {
             return;
         final BoardComponent comp = GUI.instance.getBoardComponent();
         if (edge != null) {
-            comp.addAnimation(new Animation(getAnimTime(),0) {
+            comp.addAnimation(new BlockingAnimation(getAnimTime()) {
 
                 final Vertex A = soc.getBoard().getVertex(edge.getFrom());
                 final Vertex B = soc.getBoard().getVertex(edge.getTo());
@@ -200,23 +177,6 @@ public class GUIPlayer extends PlayerBot {
                     g.setColor(getColor());
                     comp.render.drawLines(g, comp.roadLineThickness);
                 }
-
-                @Override
-                void onDone() {
-                    synchronized (this) {
-                        notify();
-                    }
-                }
-
-                @Override
-                void onStarted() {
-                    synchronized (this) {
-                        try {
-                            wait(getAnimTime());
-                        } catch (Exception e) {}
-                    }
-                }
-                
             });
         }
     }
@@ -227,7 +187,7 @@ public class GUIPlayer extends PlayerBot {
 
         if (vertex == null)
             return;
-        GUI.instance.getBoardComponent().addAnimation(new Animation(getAnimTime(), 0) {
+        GUI.instance.getBoardComponent().addAnimation(new BlockingAnimation(getAnimTime()) {
 
             @Override
             void draw(Graphics g, float position, float dt) {
@@ -241,23 +201,6 @@ public class GUIPlayer extends PlayerBot {
                 GUI.instance.getBoardComponent().drawSettlement(g, Vector2D.ZERO, getPlayerNum(), false);
                 render.popMatrix();
             }
-
-            @Override
-            void onDone() {
-                synchronized (this) {
-                    notify();
-                }
-            }
-
-            @Override
-            void onStarted() {
-                synchronized (this) {
-                    try {
-                        wait(getAnimTime());
-                    } catch (Exception e) {}
-                }
-            }
-            
         });
     }
     
@@ -265,7 +208,7 @@ public class GUIPlayer extends PlayerBot {
     	if (!animationEnabled || vertex == null)
     		return;
 
-    	GUI.instance.getBoardComponent().addAnimation(new Animation(getAnimTime(), 0) {
+    	GUI.instance.getBoardComponent().addAnimation(new BlockingAnimation(getAnimTime()) {
 			
 			@Override
 			void draw(Graphics g, float position, float dt) {
@@ -279,27 +222,11 @@ public class GUIPlayer extends PlayerBot {
                 GUI.instance.getBoardComponent().drawKnight(g, Vector2D.ZERO, getPlayerNum(), 1, false, false);
                 render.popMatrix();
 			}
-			
-			@Override
-            void onDone() {
-                synchronized (this) {
-                    notify();
-                }
-            }
-
-            @Override
-            void onStarted() {
-                synchronized (this) {
-                    try {
-                        wait(getAnimTime());
-                    } catch (Exception e) {}
-                }
-            }
 		});
     }
 
 	@Override
-	public Vertex chooseVertex(SOC soc, List<Integer> vertexIndices, VertexChoice mode) {
+	public Vertex chooseVertex(SOC soc, Collection<Integer> vertexIndices, VertexChoice mode) {
 		Vertex v = super.chooseVertex(soc, vertexIndices, mode);
 		switch (mode) {
 			case CITY:
@@ -332,6 +259,8 @@ public class GUIPlayer extends PlayerBot {
 				break;
 			case TRADE_METROPOLIS:
 				break;
+			case PIRATE_FORTRESS:
+				break;
 		}
 		return v;
 	}
@@ -339,7 +268,7 @@ public class GUIPlayer extends PlayerBot {
 	
 
 	@Override
-	public Route chooseRoute(SOC soc, List<Integer> routeIndices, RouteChoice mode) {
+	public Route chooseRoute(SOC soc, Collection<Integer> routeIndices, RouteChoice mode) {
 		Route route = super.chooseRoute(soc, routeIndices, mode);
 		switch (mode)
 		{
@@ -352,6 +281,8 @@ public class GUIPlayer extends PlayerBot {
 				startShipAnimation(route, soc);
 				break;
 			case SHIP_TO_MOVE:
+				break;
+			case UPGRADE_SHIP:
 				break;
 		}
         

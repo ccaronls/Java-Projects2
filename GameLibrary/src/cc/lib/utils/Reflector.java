@@ -914,6 +914,11 @@ public class Reflector<T> {
     	localOmitFields = null;
     }
     
+    /**
+     * Should be called before add(All)Field(s)
+     * @param clazz
+     * @param fieldName
+     */
     public static void omitField(Class<?> clazz, String fieldName) {
     	Set<String> fields = null;
     	if (!omitFields.containsKey(clazz)) {

@@ -377,9 +377,15 @@ public class AWTUtils {
             	lines.add(t);
             	break;
             }
-            t = split(g, text, 0, text.length(), maxWidth);
-            lines.add(t);
-            text = text.substring(t.length()).trim();
+            try {
+            	t = split(g, text, 0, text.length(), maxWidth);
+                lines.add(t);
+                text = text.substring(t.length()).trim();
+            } catch (Exception e) {
+            	System.err.println("Problem splitting line '" + text + "'");
+            	e.printStackTrace();
+            	break;
+            }
         }
 
         return lines.toArray(new String[lines.size()]);
@@ -400,7 +406,7 @@ public class AWTUtils {
     
     
     private static String splitR(Graphics g, String s, int start, int end, int maxWidth, int depth) {
-    	if (depth > 10) {
+    	if (depth > 32) {
     		return s;
     	}
     	if (start >= end-1)
@@ -415,7 +421,7 @@ public class AWTUtils {
     	if (wid > maxWidth) {
     		return splitR(g, r, 0, mid, maxWidth, depth+1);
     	}
-    	return r + splitR(g, s.substring(mid, end), 0, end, maxWidth-wid, depth+1);
+    	return r + splitR(g, s.substring(mid, end), 0, end-mid, maxWidth-wid, depth+1);
     }
     
     /**
@@ -733,6 +739,8 @@ public class AWTUtils {
      * @return
      */
     public static Color setAlpha(Color color, int i) {
+    	if (color.getAlpha() == i)
+    		return color;
         return new Color(color.getRed(), color.getGreen(), color.getBlue(), i);
     }
 

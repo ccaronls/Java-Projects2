@@ -81,8 +81,10 @@ public final class Rules extends Reflector<Rules> {
 	private int pointsIslandDiscovery = 2;
 	@RuleVariable(description="Resources for Discovered Territory", minValue=1, maxValue=3)
 	private int numResourcesForDiscoveredTerritory = 1;
-	@RuleVariable(description="Disable Robber for some scenarios")
+	@RuleVariable(description="Robber enabled")
 	private boolean enableRobber = true;
+	@RuleVariable(description="Pirate Fortress Health", minValue=1, maxValue=5)
+	private int pirateFortressHealth = 3;
 	
 	// knight
 	@RuleVariable(description="Enable Cities and Knights", separator="Cities & Knights Expansion")
@@ -211,6 +213,12 @@ public final class Rules extends Reflector<Rules> {
 	}
 	public final void setEnableRobber(boolean enableRobber) {
 		this.enableRobber = enableRobber;
+	}
+	public final int getPirateFortressHealth() {
+		return pirateFortressHealth;
+	}
+	public final void setPirateFortressHealth(int pirateFortressHealth) {
+		this.pirateFortressHealth = pirateFortressHealth;
 	}
 	public final boolean isEnableCitiesAndKnightsExpansion() {
 		return enableCitiesAndKnightsExpansion;

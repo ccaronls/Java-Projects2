@@ -12,12 +12,13 @@ public final class Route extends Reflector<Route> implements Comparable<Route> {
 	
 	final static int EDGE_FLAG_LAND 			= 1<<0; // is the edge is adjacent to land
 	final static int EDGE_FLAG_WATER 			= 1<<1; // is the edge is adjacent to water
-	final static int EDGE_FLAG_SHIP 			= 1<<2; // set when this is a player owned ship
+//	final static int EDGE_FLAG_SHIP 			= 1<<2; // set when this is a player owned ship
 	final static int EDGE_FLAG_ATTACKED			= 1<<3; // set when robber is placed on cell adjacent
 	final static int EDGE_FLAG_LOCKED			= 1<<4; // set when user positions the ship for first time, or for all a player's ships after they have moved a ship.  This is to support the move one ship per turn mandate. 
 	final static int EDGE_FLAG_BLOCKED			= 1<<5; // set that the edge is blocked by an opponent knight
-	final static int EDGE_FLAG_DAMAGED			= 1<<6; // road is damaged
-	final static int EDGE_FLAG_WARSHIP			= 1<<7; // ship upgrade
+//	final static int EDGE_FLAG_DAMAGED			= 1<<6; // road is damaged
+//	final static int EDGE_FLAG_WARSHIP			= 1<<7; // ship upgrade
+	final static int EDGE_FLAG_CLOSED			= 1<<8; // edge cannot be used
 	
 	static {
 		addAllFields(Route.class);
@@ -26,6 +27,7 @@ public final class Route extends Reflector<Route> implements Comparable<Route> {
 	private final int from, to;
 	private int	player;	// 0 when unowned, otherwise this edge is a players road
 	private int flags;
+	private RouteType type = RouteType.OPEN;
 
 	public Route() {
 		from = to = -1;
@@ -69,24 +71,13 @@ public final class Route extends Reflector<Route> implements Comparable<Route> {
 		setFlag(EDGE_FLAG_WATER, isAdjacent);
 	}
 
-	public void setDamaged(boolean damaged) {
-		setFlag(EDGE_FLAG_DAMAGED, damaged);
-	}
-	
-	public boolean isDamaged() {
-		return getFlag(EDGE_FLAG_DAMAGED);
-	}
-	
 	public String toString() {
 	    return "Route " + from + "->" + to + " player (" + player + ") Flags[" + getFlagsString() + "]";
 	}
 	
 	public String getFlagsString() {
 		StringBuffer buf = new StringBuffer();
-		if (isWarShip())
-			buf.append("WARSHIP");
-		if (isShip())
-			buf.append("SHIP ");
+		buf.append(type.name());
 		if (isAdjacentToLand())
 			buf.append("+RD ");
 		if (isAdjacentToWater())
@@ -95,8 +86,8 @@ public final class Route extends Reflector<Route> implements Comparable<Route> {
 			buf.append("ATT ");
 		if (isLocked())
 			buf.append("LCK ");
-		if (isDamaged())
-			buf.append("DAM ");
+		if (isClosed())
+			buf.append("CLSD");
 		return buf.toString();
 	}
 
@@ -107,9 +98,6 @@ public final class Route extends Reflector<Route> implements Comparable<Route> {
 		player = 0;
 		setFlag(EDGE_FLAG_ATTACKED, false);
 		setFlag(EDGE_FLAG_LOCKED, false);
-		setFlag(EDGE_FLAG_SHIP, false);
-		setFlag(EDGE_FLAG_DAMAGED, false);
-		setFlag(EDGE_FLAG_WARSHIP, false);
 	}
 
 	/**
@@ -139,38 +127,6 @@ public final class Route extends Reflector<Route> implements Comparable<Route> {
 	 */
 	void setPlayerDoNotUse(int p) {
 		player = p;
-	}
-	
-	/**
-	 * 
-	 * @return
-	 */
-	public final boolean isShip() {
-		return getFlag(EDGE_FLAG_SHIP);
-	}
-	
-	/**
-	 * 
-	 * @return
-	 */
-	public final boolean isWarShip() {
-		return getFlag(EDGE_FLAG_WARSHIP);
-	}
-
-	/**
-	 * 
-	 * @param isShip
-	 */
-	public final void setShip(boolean isShip) {
-		setFlag(EDGE_FLAG_SHIP, isShip);
-	}
-	
-	/**
-	 * 
-	 * @param warShip
-	 */
-	public final void setWarShip(boolean warShip) {
-		setFlag(EDGE_FLAG_WARSHIP, warShip);
 	}
 	
 	/**
@@ -205,7 +161,23 @@ public final class Route extends Reflector<Route> implements Comparable<Route> {
 	public final void setLocked(boolean lock) {
 		setFlag(EDGE_FLAG_LOCKED, lock);
 	}
+
+	/**
+	 * And edge can be marked as closed by the board designed to prevent placing roads or ships at that location
+	 * @return
+	 */
+	public final boolean isClosed() {
+		return getFlag(EDGE_FLAG_CLOSED);
+	}
 	
+	/**
+	 * 
+	 * @param lock
+	 */
+	public final void setClosed(boolean closed) {
+		setFlag(EDGE_FLAG_CLOSED, closed);
+	}
+
 	/**
 	 * Return if this edge is adjacent to both land and water
 	 * @return
@@ -239,5 +211,13 @@ public final class Route extends Reflector<Route> implements Comparable<Route> {
 	public boolean equals(Object o) {
 		Route r = (Route)o;
 		return r.from == from && r.to == to;
+	}
+	
+	public RouteType getType() {
+		return type;
+	}
+	
+	public void setType(RouteType type) {
+		this.type = type;
 	}
 }

@@ -15,7 +15,7 @@ public enum TileType {
 	PORT_ORE	(1, true, false, true, false, ResourceType.Ore, null), 		// water with a resource icon
 	PORT_BRICK	(1, true, false, true, false, ResourceType.Brick, null), 		// water with a resource icon
 	PORT_MULTI	(1, true, false, true, false, null, null), 		// water with a ? icon
-	GOLD		(1, false, true, false, true, null, null),		// cell type gives out a resource of users choice
+	GOLD		(0, false, true, false, true, null, null),		// cell type gives out a resource of users choice
 	UNDISCOVERED(0, false, false, false, false, null, null),		// cell type is unknown until user reaches a vertex by road or ship (usually ship)
 
 	// used for random generation

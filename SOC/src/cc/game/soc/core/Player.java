@@ -430,7 +430,7 @@ public abstract class Player extends Reflector<Player> {
 	public final Card removeRandomUnusedCard(CardType type) {
 		List<Card> cards = getUnusedCards(type);
 		int n = Utils.rand() % cards.size();
-		return cards.remove(n);
+		return removeCard(cards.get(n));
 	}
 
 	/**
@@ -474,8 +474,10 @@ public abstract class Player extends Reflector<Player> {
 	 * @param card
 	 * @return
 	 */
-	public final boolean removeCard(Card card) {
-		return cards.remove(card);
+	public final Card removeCard(Card card) {
+		if (cards.remove(card))
+			return card;
+		return null;
 	}
 	
 	/**
@@ -710,7 +712,7 @@ public abstract class Player extends Reflector<Player> {
 	 * @param numMoves
 	 * @return
 	 */
-	public abstract MoveType chooseMove(SOC soc, List<MoveType> moves);
+	public abstract MoveType chooseMove(SOC soc, Collection<MoveType> moves);
 	
 	public static enum VertexChoice {
 		SETTLEMENT,
@@ -726,19 +728,21 @@ public abstract class Player extends Reflector<Player> {
 		OPPONENT_KNIGHT_TO_DISPLACE,
 		TRADE_METROPOLIS,
 		POLITICS_METROPOLIS,
-		SCIENCE_METROPOLIS
+		SCIENCE_METROPOLIS,
+		PIRATE_FORTRESS
 	};
 	
-	public abstract Vertex chooseVertex(SOC soc, List<Integer> vertexIndices, VertexChoice mode);
+	public abstract Vertex chooseVertex(SOC soc, Collection<Integer> vertexIndices, VertexChoice mode);
 
 	public static enum RouteChoice {
 		ROAD,
 		SHIP,
+		UPGRADE_SHIP,
 		SHIP_TO_MOVE,
 		ROUTE_DIPLOMAT, // player chooses from any open route.  If theirs, then they can move it, otherwise opponents are removed from the baord.
 	}
 	
-	public abstract Route chooseRoute(SOC soc, List<Integer> routeIndices, RouteChoice mode);
+	public abstract Route chooseRoute(SOC soc, Collection<Integer> routeIndices, RouteChoice mode);
 	
 	public static enum RouteChoiceType {
 		ROAD_CHOICE,
@@ -754,7 +758,7 @@ public abstract class Player extends Reflector<Player> {
 		MERCHANT,
 	}
 	
-	public abstract Tile chooseTile(SOC soc, List<Integer> tileIndices, TileChoice mode);
+	public abstract Tile chooseTile(SOC soc, Collection<Integer> tileIndices, TileChoice mode);
 	
 	
 	/**
@@ -767,13 +771,14 @@ public abstract class Player extends Reflector<Player> {
 	 * @param numTrades
 	 * @return
 	 */
-	public abstract Trade chooseTradeOption(SOC soc, List<Trade> trades);
+	public abstract Trade chooseTradeOption(SOC soc, Collection<Trade> trades);
 
 	public static enum PlayerChoice {
 		PLAYER_TO_TAKE_CARD_FROM,
 		PLAYER_TO_SPY_ON,
 		PLAYER_FOR_DESERTION,
 		PLAYER_TO_GIFT_CARD,
+		PLAYER_TO_FORCE_HARBOR_TRADE,
 	};
 	
 	/**
@@ -786,7 +791,7 @@ public abstract class Player extends Reflector<Player> {
 	 * @param numPlayerOptions
 	 * @return
 	 */
-	public abstract Player choosePlayer(SOC soc, List<Integer> playerOptions, PlayerChoice mode);
+	public abstract Player choosePlayer(SOC soc, Collection<Integer> playerOptions, PlayerChoice mode);
 	
 	public static enum CardChoice {
 		RESOURCE_OR_COMMODITY,
@@ -803,13 +808,12 @@ public abstract class Player extends Reflector<Player> {
 	 * @param cards
 	 * @return
 	 */
-	public abstract Card chooseCard(SOC soc, List<Card> cards, CardChoice mode);
+	public abstract Card chooseCard(SOC soc, Collection<Card> cards, CardChoice mode);
 	
 	public static enum EnumChoice {
 		MONOPOLY,
 		DRAW_DEVELOPMENT_CARD, 
 		DRAW_PROGRESS_CARD,
-		IMPROVE_DEVELOPMENT_AREA, // Trade/Science/Politics
 	}
 	
 	/**

@@ -27,7 +27,7 @@ public enum MoveType {
     TRADE("Trade", "View your trade options"),
 
     // Draw a card
-    DRAW_DEVELOPMENT("Development", "Draw random Development Card for cost of 1 Sheep, 1 Wheat and 1 Ore"),
+    DRAW_DEVELOPMENT("Development", "Draw random Development Card for cost of " + BuildableType.Development.getNiceString()),
 
     // player can move a ship that is not connected to a settlement or is not between 2 other ships and is not adjacent to the pirate
     MOVE_SHIP("Move Ship", "Reposition an opne ship"),
@@ -36,26 +36,28 @@ public enum MoveType {
     ROAD_BUILDING_CARD("Road Building", "Build two Routes for free"),
 
     // Build a ship
-    BUILD_SHIP("Build Ship", "Position a new ship for cost of 1 Wood and 1 Sheep"),
+    BUILD_SHIP("Build Ship", "Position a new ship for cost of " + BuildableType.Ship.getNiceString()),
 
+    BUILD_WARSHIP("Build Warship", "Upgrade an existing ship to a war ship for cost of " + BuildableType.Warship.getNiceString()),
+    
     // Roll dice and take a chance at converting the fortress to a settlement.  Must have a ship adjacent to the settlement.
     ATTACK_PIRATE_FORTRESS("Attack Fortress", "Roll the dice and take a chance at converting the fortress to a new settlement.  Three wins converts the settlement.  A loss makes you lose the 2 ships adjacent to the fortress.  A win costs you 1 ship."),
     
     // Build a Road
-    BUILD_ROAD("Build Road", "Position a new road for cost of 1 Wood and 1 Brick"),
+    BUILD_ROAD("Build Road", "Position a new road for cost of " + BuildableType.Road.getNiceString()),
 
     // Repair damaged road due to earthquake
-    REPAIR_ROAD("Repair Road", "Repair your damaged road"),
+    REPAIR_ROAD("Repair Road", "Repair your damaged road for cost of " + BuildableType.Road.getNiceString()),
     
     // Build a Settlement
-    BUILD_SETTLEMENT("Build Settlement", "Position a new Settlement for cost of 1 Wood, 1 Wheat, 1 Sheep and 1 Brick"),
+    BUILD_SETTLEMENT("Build Settlement", "Position a new Settlement for cost of " + BuildableType.Settlement.getNiceString()),
 
     // Build a City
-    BUILD_CITY("Build City", "Convert a settlement to a City for cost of 2 Wheat and 3 Ore"),
+    BUILD_CITY("Build City", "Convert a settlement to a City for cost of " + BuildableType.City.getNiceString()),
 
     // user rolls the dice.  For CAK, the user can roll the dice or play an Alchemist card of they have one, otherwise this move is always by itself.
     ROLL_DICE("Roll dice", ""),
-    
+   
     // used unstead of dice for TAB expansion
     DEAL_EVENT_CARD("Deal Event", "Turn over the next event card"),
     
@@ -99,12 +101,11 @@ public enum MoveType {
     TRADE_MONOPOLY_CARD("Trade Monopoly", "All players give you 1 commodity of your choice if they have it"),
 
     // Knight actions
-    HIRE_KNIGHT("Hire Knight", "Position new basic inactive knight for cost of 1 Wheat and 1 Ore"),
-    ACTIVATE_KNIGHT("Activate Knight", "Activate one of your knights for cost of 1 Wheat"),
-    PROMOTE_KNIGHT("Promote Knight", "Promote one of your knight for cost of 1 Wheat and 1 Ore"),
+    HIRE_KNIGHT("Hire Knight", "Position new basic inactive knight for cost of " + BuildableType.Knight.getNiceString()),
+    ACTIVATE_KNIGHT("Activate Knight", "Activate one of your knights for cost of " + BuildableType.ActivateKnight.getNiceString()),
+    PROMOTE_KNIGHT("Promote Knight", "Promote one of your knight for cost " + BuildableType.PromoteKnight.getNiceString()),
     MOVE_KNIGHT("Move Knight", "Move one of your active knights.  Position next to robber to reposition the robber.  Can displace another players knight of lesser rank."),
 
-    
     ;
     
     public final String niceText;

@@ -1,10 +1,8 @@
 package cc.game.soc.swing;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 import cc.game.soc.core.*;
-import cc.game.soc.swing.BoardComponent.PickMode;
 
 public class GUIPlayerUser extends GUIPlayer {
 	
@@ -13,7 +11,7 @@ public class GUIPlayerUser extends GUIPlayer {
 
 	
 	@Override
-	public MoveType chooseMove(SOC soc, List<MoveType> moves) {
+	public MoveType chooseMove(SOC soc, Collection<MoveType> moves) {
 		return GUI.instance.chooseMoveMenu(moves);
 	}
 
@@ -24,7 +22,7 @@ public class GUIPlayerUser extends GUIPlayer {
 	}
 
 	@Override
-	public Vertex chooseVertex(SOC soc, List<Integer> vertexIndices, VertexChoice mode) {
+	public Vertex chooseVertex(SOC soc, Collection<Integer> vertexIndices, VertexChoice mode) {
 		Vertex v = null;
 		switch (mode) {
 			case CITY:
@@ -82,73 +80,65 @@ public class GUIPlayerUser extends GUIPlayer {
 					super.startSettlementAnimation(v);
 				}
 				break;
+			case PIRATE_FORTRESS:
+				v = GUI.instance.chooseVertex(vertexIndices, getPlayerNum(), mode);
+				break;
 		}
 		return v;
 	}
 
 
 	@Override
-	public Route chooseRoute(SOC soc, List<Integer> routeIndices, RouteChoice mode) {
-		Route r = null;
-		switch (mode) {
-			case ROAD: r = GUI.instance.chooseRoute(routeIndices, mode);
-				if (r != null) {
-					super.startRoadAnimation(r, soc);
-				}
-				break;
-			
-			case ROUTE_DIPLOMAT:
-				r = GUI.instance.chooseRoute(routeIndices, mode);
-				break;
-			case SHIP: 
-				r = GUI.instance.chooseRoute(routeIndices, mode);
-				if (r != null) {
-					super.startShipAnimation(r, soc);
-				}
-				break;
-			
-			case SHIP_TO_MOVE: 
-				r = GUI.instance.chooseRoute(routeIndices, mode);
-				if (r != null) {
-					super.startShipAnimation(r, soc);
-				}
-				break;
+	public Route chooseRoute(SOC soc, Collection<Integer> routeIndices, RouteChoice mode) {
+		Route r = GUI.instance.chooseRoute(routeIndices, mode);
+		if (r != null) {
+    		switch (mode) {
+    			case ROAD: 
+    				startRoadAnimation(r, soc);
+    				break;
+    			
+    			case ROUTE_DIPLOMAT:
+    				break;
+    				
+    			case UPGRADE_SHIP:
+    				r.setType(RouteType.OPEN);
+    				startUpgradeShipAnimation(r);
+    				r.setType(RouteType.SHIP);
+    				break;
+    				
+    			case SHIP: 
+    				startShipAnimation(r, soc);
+    				break;
+    			
+    			case SHIP_TO_MOVE: 
+    				break;
+    				
+    		}
 		}
 		return r;
 	}
 
 
 	@Override
-	public Tile chooseTile(SOC soc, List<Integer> tileIndices, TileChoice mode) {
+	public Tile chooseTile(SOC soc, Collection<Integer> tileIndices, TileChoice mode) {
 		return GUI.instance.chooseTile(tileIndices, mode);
 	}
 
 
 	@Override
-	public Trade chooseTradeOption(SOC soc, List<Trade> trades) {
+	public Trade chooseTradeOption(SOC soc, Collection<Trade> trades) {
 		return GUI.instance.chooseTradeMenu(trades);
 	}
 
 
 	@Override
-	public Player choosePlayer(SOC soc, List<Integer> players, PlayerChoice mode) {
-		switch (mode) {
-			case PLAYER_FOR_DESERTION:
-				return GUI.instance.choosePlayerKnightForDesertion(players);
-			case PLAYER_TO_SPY_ON:
-				return GUI.instance.choosePlayerToSpyOn(players);
-			case PLAYER_TO_TAKE_CARD_FROM:
-				return GUI.instance.choosePlayerToTakeCardFromMenu(players);
-			case PLAYER_TO_GIFT_CARD:
-				return GUI.instance.choosePlayerToGiftCardToMenu(players);
-		}
-		assert(false);
-		return null;
+	public Player choosePlayer(SOC soc, Collection<Integer> players, PlayerChoice mode) {
+		return GUI.instance.choosePlayerMenu(players, mode);
 	}
 
 
 	@Override
-	public Card chooseCard(SOC soc, List<Card> cards, CardChoice mode) {
+	public Card chooseCard(SOC soc, Collection<Card> cards, CardChoice mode) {
 		Card card = GUI.instance.chooseCardMenu(cards);
 		switch (mode) {
 			case RESOURCE_OR_COMMODITY:
@@ -174,8 +164,6 @@ public class GUIPlayerUser extends GUIPlayer {
 			case DRAW_DEVELOPMENT_CARD:
 				break;
 			case DRAW_PROGRESS_CARD:
-				break;
-			case IMPROVE_DEVELOPMENT_AREA:
 				break;
 			case MONOPOLY:
 				break;

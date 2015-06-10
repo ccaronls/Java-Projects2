@@ -19,6 +19,10 @@ abstract class Animation {
         this.maxRepeats = maxRepeats;
     }
     
+    long getDuration() {
+    	return duration;
+    }
+    
     void start() {
         lastTime = startTime = System.currentTimeMillis();
         position = 0;

@@ -1,7 +1,7 @@
 package cc.game.soc.core;
 
 import java.util.Arrays;
-import java.util.List;
+import java.util.Collection;
 
 import cc.lib.game.Utils;
 
@@ -16,53 +16,53 @@ public class PlayerRandom extends Player {
     public PlayerRandom() {
     }
 
-    private <T> T pickRandom(List<T> options) {
-    	return options.get(Utils.rand() % options.size());
+    private Object pickRandom(Collection<?> options) {
+    	return options.toArray(new Object[options.size()])[Utils.rand() % options.size()];
     }
     
 	@Override
-	public MoveType chooseMove(SOC soc, List<MoveType> moves) {
-		return pickRandom(moves);
+	public MoveType chooseMove(SOC soc, Collection<MoveType> moves) {
+		return (MoveType)pickRandom(moves);
 	}
 
 	@Override
-	public Vertex chooseVertex(SOC soc, List<Integer> vertexIndices, VertexChoice mode) {
-		return soc.getBoard().getVertex(pickRandom(vertexIndices));
+	public Vertex chooseVertex(SOC soc, Collection<Integer> vertexIndices, VertexChoice mode) {
+		return soc.getBoard().getVertex((Integer)pickRandom(vertexIndices));
 	}
 
 	@Override
-	public Route chooseRoute(SOC soc, List<Integer> routeIndices, RouteChoice mode) {
-		return soc.getBoard().getRoute(pickRandom(routeIndices));
+	public Route chooseRoute(SOC soc, Collection<Integer> routeIndices, RouteChoice mode) {
+		return soc.getBoard().getRoute((Integer)pickRandom(routeIndices));
 	}
 
 	@Override
 	public RouteChoiceType chooseRouteType(SOC soc) {
-		return pickRandom(Arrays.asList(RouteChoiceType.values()));
+		return RouteChoiceType.values()[Utils.rand() % RouteChoiceType.values().length];
 	}
 
 	@Override
-	public Tile chooseTile(SOC soc, List<Integer> tileIndices, TileChoice mode) {
-		return soc.getBoard().getTile(pickRandom(tileIndices));
+	public Tile chooseTile(SOC soc, Collection<Integer> tileIndices, TileChoice mode) {
+		return soc.getBoard().getTile((Integer)pickRandom(tileIndices));
 	}
 
 	@Override
-	public Trade chooseTradeOption(SOC soc, List<Trade> trades) {
-		return pickRandom(trades);
+	public Trade chooseTradeOption(SOC soc, Collection<Trade> trades) {
+		return (Trade)pickRandom(trades);
 	}
 
 	@Override
-	public Player choosePlayer(SOC soc, List<Integer> playerOptions, PlayerChoice mode) {
-		return soc.getPlayerByPlayerNum(pickRandom(playerOptions));
+	public Player choosePlayer(SOC soc, Collection<Integer> playerOptions, PlayerChoice mode) {
+		return soc.getPlayerByPlayerNum((Integer)pickRandom(playerOptions));
 	}
 
 	@Override
-	public Card chooseCard(SOC soc, List<Card> cards, CardChoice mode) {
-		return pickRandom(cards);
+	public Card chooseCard(SOC soc, Collection<Card> cards, CardChoice mode) {
+		return (Card)pickRandom(cards);
 	}
 
 	@Override
 	public <T extends Enum<T>> T chooseEnum(SOC soc, EnumChoice mode, T ... values) {
-		return pickRandom(Arrays.asList(values));
+		return values[Utils.rand() % values.length];
 	}
 
 	@Override

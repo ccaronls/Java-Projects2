@@ -22,6 +22,7 @@ import javax.swing.event.ChangeListener;
 import org.apache.log4j.Logger;
 
 import cc.game.soc.core.*;
+import cc.game.soc.core.Player.PlayerChoice;
 import cc.game.soc.core.Player.RouteChoice;
 import cc.game.soc.core.Player.RouteChoiceType;
 import cc.game.soc.core.Player.TileChoice;
@@ -495,24 +496,26 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
                 	List<Integer> indices = computePirateRouteTiles();
                 	
                 	private List<Integer> computePirateRouteTiles() {
-                		if (getBoard().getPirateRouteStartTile() < 0) {
+                		int tIndex = getBoard().getPirateRouteStartTile();
+                		if (tIndex < 0) {
                 			return getBoard().getTilesOfType(TileType.WATER);
                 		}
                 		
-                		int tile = getBoard().getPirateRouteStartTile();
-                		while (getBoard().getTile(tile).getPirateRouteNext() >= 0) {
-                			tile = getBoard().getTile(tile).getPirateRouteNext();
-                			if (tile == getBoard().getPirateRouteStartTile()) {
+                		final Tile start = getBoard().getTile(tIndex); 
+                		Tile tile = start;
+                		
+                		while (tile.getPirateRouteNext() >= 0) {
+                			tile = getBoard().getTile(tile.getPirateRouteNext());
+                			if (tile == start) {
                 				// the route is in a loop, so no options
-                				return Collections.EMPTY_LIST;
+                				return Collections.emptyList();
                 			}
                 		}
                 		
-                		Tile t = getBoard().getTile(tile);
                 		List<Integer> result = new ArrayList<>();
-                		for (int tIndex : getBoard().getTilesAdjacentToTile(t)) {
-                			Tile tt = getBoard().getTile(tIndex);
-                			if (tIndex == getBoard().getPirateRouteStartTile() || (tt.isWater() && tt.getPirateRouteNext() < 0))
+                		for (int index : getBoard().getTilesAdjacentToTile(tile)) {
+                			Tile tt = getBoard().getTile(index);
+                			if (index == getBoard().getPirateRouteStartTile() || (tt.isWater() && tt.getPirateRouteNext() < 0))
                 				result.add(getBoard().getTileIndex(tt));
                 		}
                 		return result;
@@ -568,7 +571,109 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 						return PickMode.PM_TILE;
 					}
 				});
-                westGridPanel.add(chooser);
+                grp.addButton("Close routes", new PickHandler() {
+					
+					@Override
+					public void onPick(BoardComponent bc, int pickedValue) {
+						Route r = getBoard().getRoute(pickedValue);
+						if (r.isClosed()) {
+							r.setClosed(false);
+						} else {
+							r.setClosed(true);
+						}
+					}
+					
+					@Override
+					public void onHighlighted(BoardComponent bc, AWTRenderer r, Graphics g, int highlightedIndex) {
+						Route rt = getBoard().getRoute(highlightedIndex);
+						if (rt.isClosed())
+							g.setColor(Color.BLACK);
+						else
+							g.setColor(Color.WHITE);
+						bc.drawRoad(g, rt, true);
+					}
+					
+					@Override
+					public void onDrawPickable(BoardComponent bc, AWTRenderer r, Graphics g, int index) {
+						Route rt = getBoard().getRoute(index);
+						if (rt.isClosed())
+							g.setColor(AWTUtils.setAlpha(Color.BLACK, 120));
+						else
+							g.setColor(AWTUtils.setAlpha(Color.WHITE, 120));
+						bc.drawRoad(g, rt, false);
+					}
+					
+					@Override
+					public void onDrawOverlay(BoardComponent bc, AWTRenderer r, Graphics g) {
+						// TODO Auto-generated method stub
+						
+					}
+					
+					@Override
+					public boolean isPickableIndex(BoardComponent bc, int index) {
+						return true;
+					}
+					
+					@Override
+					public PickMode getPickMode() {
+						return PickMode.PM_EDGE;
+					}
+				});
+                grp.addButton("Pirate Fortress", new PickHandler() {
+					
+                	List<Integer> indices = new ArrayList<Integer>();
+                	
+					@Override
+					public void onPick(BoardComponent bc, int pickedValue) {
+						Vertex v = bc.getBoard().getVertex(pickedValue);
+						if (v.getType() == VertexType.OPEN) {
+							v.setType(VertexType.PIRATE_FORTRESS);
+						} else {
+							v.setType(VertexType.OPEN);
+						}
+					}
+					
+					@Override
+					public void onHighlighted(BoardComponent bc, AWTRenderer r, Graphics g, int highlightedIndex) {
+						Vertex v = getBoard().getVertex(highlightedIndex);
+						g.setColor(Color.black);
+						bc.drawSettlement(g, v, 0, true);
+					}
+					
+					@Override
+					public void onDrawPickable(BoardComponent bc, AWTRenderer r, Graphics g, int index) {
+						Vertex v = getBoard().getVertex(index);
+						if (v.getType() == VertexType.PIRATE_FORTRESS) {
+							g.setColor(Color.black);
+						} else {
+							g.setColor(AWTUtils.setAlpha(Color.black, 120));
+						}
+						bc.drawSettlement(g, v, 0, true);
+					}
+					
+					@Override
+					public void onDrawOverlay(BoardComponent bc, AWTRenderer r, Graphics g) {
+						
+					}
+					
+					@Override
+					public boolean isPickableIndex(BoardComponent bc, int index) {
+						return indices.contains(index);
+					}
+					
+					@Override
+					public PickMode getPickMode() {
+						indices.clear();
+						for (int i=0; i<getBoard().getNumVerts(); i++) {
+							Vertex v = getBoard().getVertex(i);
+							if (v.canPlaceStructure() && v.getType() == VertexType.OPEN) {
+								indices.add(i);
+							}
+						}
+						return PickMode.PM_VERTEX;
+					}
+				});
+                eastGridPanel.add(chooser);
                 westGridPanel.add(buttons);
                 //cntrBorderPanel.remove(console);
                 break;
@@ -900,6 +1005,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 
 			case CHOOSE_NUM_PLAYERS:
 				initPlayers(Integer.parseInt(button.getText()));
+		    	soc.initGame();
 				menuStack.pop();
 				initMenu();
 				break;
@@ -1223,7 +1329,6 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
     }
     
     private void newGame() {
-    	soc.reset();
 		menuStack.push(MenuState.MENU_GAME_SETUP);
 		menuStack.push(MenuState.MENU_CHOOSE_COLOR);
 		menuStack.push(MenuState.MENU_CHOOSE_NUM_PLAYERS);    	
@@ -1361,7 +1466,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
         return waitForReturnValue(null);
     }
     
-    public Vertex chooseVertex(final List<Integer> vertices, final int playerNum, final VertexChoice choice) {
+    public Vertex chooseVertex(final Collection<Integer> vertices, final int playerNum, final VertexChoice choice) {
 		clearMenu();
 		boardComp.setPickHandler(new PickHandler() {
 			
@@ -1410,6 +1515,9 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 					case TRADE_METROPOLIS:
 						bc.drawMetropolisTrade(g, v, v.getPlayer(), true);
 						break;
+					case PIRATE_FORTRESS:
+						bc.drawPirateFortress(g, v, true);
+						break;
 				}
 
 			}
@@ -1453,6 +1561,9 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 					case TRADE_METROPOLIS:
 						bc.drawMetropolisTrade(g, v, 0, false);
 						break;
+					case PIRATE_FORTRESS:
+						bc.drawPirateFortress(g, v, false);
+						break;
 				}
 			}
 			
@@ -1482,7 +1593,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 		return waitForReturnValue(null);
 	}
 
-	public Route chooseRoute(final List<Integer> edges, final RouteChoice choice) {
+	public Route chooseRoute(final Collection<Integer> edges, final RouteChoice choice) {
 		clearMenu();
 		boardComp.setPickHandler(new PickHandler() {
 			
@@ -1502,8 +1613,13 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 						bc.drawRoad(g, route, true);
 						break;
 					case SHIP:
-					case SHIP_TO_MOVE:
 						bc.drawShip(g, route, true);
+						break;
+					case SHIP_TO_MOVE:
+						bc.drawEdge(g, route, getCurPlayerNum(), true);
+						break;
+					case UPGRADE_SHIP:
+						bc.drawWarShip(g, route, true);
 						break;
 				}
 			}
@@ -1518,8 +1634,13 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 						bc.drawRoad(g, route, false);
 						break;
 					case SHIP:
-					case SHIP_TO_MOVE:
 						bc.drawShip(g, route, false);
+						break;
+					case SHIP_TO_MOVE:
+						bc.drawEdge(g, route, getCurPlayerNum(), false);
+						break;
+					case UPGRADE_SHIP:
+						bc.drawWarShip(g, route, false);
 						break;
 				}
 			}
@@ -1544,7 +1665,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 		return waitForReturnValue(null);
 	}
 	
-	public Tile chooseTile(final List<Integer> cells, final TileChoice choice) {
+	public Tile chooseTile(final Collection<Integer> cells, final TileChoice choice) {
 		clearMenu();
 		boardComp.setPickHandler(new PickHandler() {
 			
@@ -1601,7 +1722,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 	}
 	
 	// called from run thread
-	public MoveType chooseMoveMenu(List<MoveType> moves) {
+	public MoveType chooseMoveMenu(Collection<MoveType> moves) {
 		clearMenu();
 		Iterator<MoveType> it = moves.iterator();
 		while (it.hasNext()) {
@@ -1640,48 +1761,34 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 		return false;
 	}
 	
-	public Player choosePlayerToTakeCardFromMenu(List<Integer> players) {
+	public Player choosePlayerMenu(Collection<Integer> players, PlayerChoice mode) {
 		clearMenu();
 		for (int num : players) {
 			Player player = getGUIPlayer(num);
-			menu.add(getMenuOpButton(MenuOp.CHOOSE_PLAYER, player.getName() + " X " + player.getTotalCardsLeftInHand() + " Cards", null, player));
-		}
-		completeMenu();
-		return waitForReturnValue(null);
-	}
-
-	public Player choosePlayerToGiftCardToMenu(List<Integer> players) {
-		clearMenu();
-		for (int num : players) {
-			Player player = getGUIPlayer(num);
-			menu.add(getMenuOpButton(MenuOp.CHOOSE_PLAYER, player.getName() + " X " + player.getTotalCardsLeftInHand() + " Cards", null, player));
-		}
-		completeMenu();
-		return waitForReturnValue(null);
-	}
-	
-	public Player choosePlayerKnightForDesertion(List<Integer> players) {
-		clearMenu();
-		for (int num : players) {
-			Player player = getGUIPlayer(num);
-			int numKnights = getBoard().getNumKnightsForPlayer(player.getPlayerNum());
-			menu.add(getMenuOpButton(MenuOp.CHOOSE_PLAYER, player.getName() + " X " + numKnights + " Knights", null, player));
+			switch (mode) {
+				case PLAYER_FOR_DESERTION: {
+					int numKnights = getBoard().getNumKnightsForPlayer(player.getPlayerNum());
+					menu.add(getMenuOpButton(MenuOp.CHOOSE_PLAYER, player.getName() + " X " + numKnights + " Knights", null, player));
+					break;
+				}
+				case PLAYER_TO_SPY_ON:
+					menu.add(getMenuOpButton(MenuOp.CHOOSE_PLAYER, player.getName() + " X " + player.getUnusedCardCount(CardType.Progress) + " Progress Cards", null, player));
+					break;
+				default:
+					System.err.println("ERROR: Unhandled case '" + mode + "'");
+				case PLAYER_TO_FORCE_HARBOR_TRADE:
+				case PLAYER_TO_GIFT_CARD:
+				case PLAYER_TO_TAKE_CARD_FROM:
+					menu.add(getMenuOpButton(MenuOp.CHOOSE_PLAYER, player.getName() + " X " + player.getTotalCardsLeftInHand() + " Cards", null, player));
+					break;
+			}
 		}
 		completeMenu();
 		return waitForReturnValue(null);
 	}
 	
-	public Player choosePlayerToSpyOn(List<Integer> players) {
-		clearMenu();
-		for (int num : players) {
-			Player player = getGUIPlayer(num);
-			menu.add(getMenuOpButton(MenuOp.CHOOSE_PLAYER, player.getName() + " X " + player.getUnusedCardCount(CardType.Progress) + " Progress Cards", null, player));
-		}
-		completeMenu();
-		return waitForReturnValue(null);
-	}
 	
-	public Card chooseCardMenu(List<Card> cards) {
+	public Card chooseCardMenu(Collection<Card> cards) {
 		clearMenu();
 		for (Card type : cards) {
 			menu.add(getMenuOpButton(MenuOp.CHOOSE_CARD, type.getName(), type.getHelpText(), type));
@@ -1690,7 +1797,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 		return waitForReturnValue(null);
 	}
 	
-	public Trade chooseTradeMenu(List<Trade> trades) {
+	public Trade chooseTradeMenu(Collection<Trade> trades) {
 		clearMenu();
 		Iterator<Trade> it = trades.iterator();
 		while (it.hasNext()) {

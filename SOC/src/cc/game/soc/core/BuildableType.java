@@ -11,7 +11,7 @@ public enum BuildableType {
 	Road			(1, 0, 0, 0, 1), 
 	// Seafarers expansion
 	Ship			(1, 1, 0, 0, 0),
-	Warship			(0, 1, 1, 0, 0), // Not part of official game.  Warship only useful during pirate attacks, which only happen when pirate route in effect.
+	Warship			(1, 1, 1, 0, 0), // Not part of official game.  Warship only useful during pirate attacks, which only happen when pirate route in effect.
 	Development		(0, 1, 1, 1, 0),
 	Settlement		(1, 1, 0, 1, 1), 
 	City			(0, 0, 3, 2, 0), 
@@ -34,6 +34,25 @@ public enum BuildableType {
 	
 	public int getCost(ResourceType r) {
 	    return cost[r.ordinal()];
+	}
+	
+	public String getNiceString() {
+		int n = 0;
+		String s = "";
+		for (ResourceType r : ResourceType.values()) {
+			if (cost[r.ordinal()] > 0) {
+				s += String.valueOf(cost[r.ordinal()]) + " " + r.name() + ", ";
+				n++;
+			}
+		}
+		assert(n > 0);
+		if (n == 1) {
+			s = s.substring(0, s.indexOf(','));
+		} else {
+			int comma = s.lastIndexOf(',');
+			s = s.substring(0, comma) + "and" + s.substring(comma+1);
+		}
+		return s;
 	}
 
 }

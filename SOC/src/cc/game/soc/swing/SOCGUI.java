@@ -159,15 +159,9 @@ public class SOCGUI extends SOC {
     }
     
     private void drawCard(Color color, Graphics g, String txt, int x, int y, int cw, int ch) {
-        int fontHeight = AWTUtils.getFontHeight(g);
     	gui.getBoardComponent().images.drawImage(g, gui.getBoardComponent().cardFrameImage, x, y, cw, ch);
         g.setColor(color);
-        String [] lines = AWTUtils.generateWrappedLines(g, txt, cw-2);
-        y = y+ch/2 - (lines.length-1)*fontHeight;
-        for (String line : lines) {
-        	AWTUtils.drawJustifiedString(g, x+cw/2, y, Justify.CENTER, Justify.CENTER, line);
-        	y += fontHeight;
-        }
+        AWTUtils.drawWrapJustifiedString(g, x+cw/2, y+ch/2, cw-6, Justify.CENTER, Justify.CENTER, txt);
     }
 
     @Override
@@ -401,7 +395,23 @@ public class SOCGUI extends SOC {
 				Vector2D v = Vector2D.newTemp(getBoard().getTile(fromTile)).scale(1-position).add(Vector2D.newTemp(getBoard().getTile(toTile)).scale(position));
 				gui.getBoardComponent().drawPirate(g, v);
 			}
+
+			@Override
+			void onDone() {
+				super.onDone();
+				synchronized (gui) {
+					gui.notify();
+				}
+			}
+			
+			
 		});
+		
+		synchronized (gui) {
+			try {
+				gui.wait(1500);
+			} catch (Exception e) {}
+		}
 	}
 
 	@Override
@@ -422,6 +432,38 @@ public class SOCGUI extends SOC {
         	
 	}
 
+	@Override
+	protected void onPlayerConqueredPirateFortress(Player p, Vertex v) {
+		StringBuffer str = new StringBuffer("Player " + p.getName() + " has conquered the fortress!");
+    	JOptionPane.showMessageDialog(gui.frame,
+    		    str,
+    		    "Pirate Attack",
+    		    JOptionPane.PLAIN_MESSAGE);	
+	}
 
+	@Override
+	protected void onPlayerAttacksPirateFortress(Player p, int playerHealth, int pirateHealth) {
+		String result = null;
+		if (playerHealth > pirateHealth)
+			result = "Player damages the fortress";
+		else if (playerHealth < pirateHealth)
+			result = "Player loses battle and 2 ships";
+		else
+			result = "Battle is a draw.  Player lost a ship";
+		StringBuffer str = new StringBuffer(p.getName() + " attackes the pirate fortress!")
+		.append("\nPlayer Strength " + playerHealth)
+		.append("\nPirate Stength " + pirateHealth)
+		.append("\n")
+		.append("Result: " + result + "\n");
+    	JOptionPane.showMessageDialog(gui.frame,
+    		    str,
+    		    "Pirate Attack",
+    		    JOptionPane.PLAIN_MESSAGE);	
+	}
+
+	@Override
+	protected void onAqueduct(Player p) {
+		addCardAnimation(p, "Aqueduct Ability!");
+	}
     
 }

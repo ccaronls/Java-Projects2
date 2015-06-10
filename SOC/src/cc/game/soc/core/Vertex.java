@@ -16,7 +16,7 @@ public final class Vertex extends Reflector<Vertex> implements IVector2D {
 	
 	private final static int VERTEX_FLAG_ADJACENT_TO_LAND = 0x1 << 0;
 	private final static int VERTEX_FLAG_ADJACENT_TO_WATER = 0x1 << 1;
-	private final static int VERTEX_FLAG_PROMOTED_KNIGHT = 0x1 << 2;
+	//private final static int VERTEX_FLAG_PROMOTED_KNIGHT = 0x1 << 2;
 	
 	private float	x, y;						// position of this vertex
 	private int		player;						// 0 when unowned, otherwise index to the player
@@ -26,6 +26,7 @@ public final class Vertex extends Reflector<Vertex> implements IVector2D {
 	private int[]	adjacent = new int[3];		// indices of adjacent verts
 	private int		numAdj;						// number of adjacents verts (can be 2 or 3 for hexagons)
 	private int 	flags;						// true when this vertex is valid for placing a structure
+	private int		pirateHealth;				// meaningful only when type is PIRATE_FORTRESS
 
 	public Vertex() {}
 	
@@ -79,11 +80,15 @@ public final class Vertex extends Reflector<Vertex> implements IVector2D {
 	public void setAdjacentToWater(boolean adjacent) {
 		setFlag(VERTEX_FLAG_ADJACENT_TO_WATER, adjacent);
 	}
-	
+	/*
 	public void setPromotedKnight(boolean promoted) {
 		setFlag(VERTEX_FLAG_PROMOTED_KNIGHT, promoted);
 	}
-	
+
+	public boolean isPromotedKnight() {
+		return 0 != (flags & VERTEX_FLAG_PROMOTED_KNIGHT);
+	}*/
+
 	public boolean isAdjacentToLand() {
 		return 0 != (flags & VERTEX_FLAG_ADJACENT_TO_LAND);
 	}
@@ -92,9 +97,6 @@ public final class Vertex extends Reflector<Vertex> implements IVector2D {
 		return 0 != (flags & VERTEX_FLAG_ADJACENT_TO_WATER);
 	}
 	
-	public boolean isPromotedKnight() {
-		return 0 != (flags & VERTEX_FLAG_PROMOTED_KNIGHT);
-	}
 
 	private void setFlag(int flag, boolean on) {
 		if (on) {
@@ -230,6 +232,14 @@ public final class Vertex extends Reflector<Vertex> implements IVector2D {
 	public boolean isStructure() {
 		return type.isStructure;
 	}
+	
+	public final int getPirateHealth() {
+		return pirateHealth;
+	}
+
+	public final void setPirateHealth(int pirateHealth) {
+		this.pirateHealth = pirateHealth;
+	}
 
 	public int getPointsValue(Rules rules) {
 		switch (getType()) {
@@ -242,13 +252,14 @@ public final class Vertex extends Reflector<Vertex> implements IVector2D {
 			case METROPOLIS_SCIENCE:
 			case METROPOLIS_TRADE:
 				return rules.getPointsPerMetropolis();
+			case OPEN:
 			case BASIC_KNIGHT_ACTIVE:
 			case BASIC_KNIGHT_INACTIVE:
 			case MIGHTY_KNIGHT_ACTIVE:
 			case MIGHTY_KNIGHT_INACTIVE:
-			case OPEN:
 			case STRONG_KNIGHT_ACTIVE:
 			case STRONG_KNIGHT_INACTIVE:
+			case PIRATE_FORTRESS:
 				return 0;
 		}
 		throw new RuntimeException("Ungandled case '" + getType() + "'");
@@ -271,8 +282,10 @@ public final class Vertex extends Reflector<Vertex> implements IVector2D {
 			r+= " land";
 		if(isAdjacentToWater())
 			r+= " water";
-		if(isPromotedKnight())
-			r+= " promoted";
+//		if(isPromotedKnight())
+//			r+= " promoted";
+		if (pirateHealth > 0)
+			r += " pirate health=" + pirateHealth;
 		return r;
 	}
 }
