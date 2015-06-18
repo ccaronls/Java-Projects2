@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="match_parent" >
+
+    <SurfaceView
+        android:id="@+id/viewFinder"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true" />
+    
+    <ImageView
+        android:id="@+id/overlay"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
+        android:scaleType="fitCenter" />
+    
+    <Button
+        android:id="@+id/buttonPickPhoto"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:text="Choose\nPhoto" />
+
+    <SeekBar
+        android:id="@+id/seekBarTransparency"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@+id/buttonPickPhoto"
+        android:layout_toLeftOf="@+id/buttonCapture"
+        android:layout_toRightOf="@+id/buttonPickPhoto"
+        android:max="100"
+        android:progress="50" />
+
+    <TextView
+        android:id="@+id/textView1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/seekBarTransparency"
+        android:layout_centerHorizontal="true"
+        android:text="Transparency" />
+
+    <Button
+        android:id="@+id/buttonCapture"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignTop="@+id/seekBarTransparency"
+        android:text="Capture" />
+
+    <TextView
+        android:id="@+id/tvTimeStampLft"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:text="Tues, Sept 5, 2005\n3:15 AM"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+    <TextView
+        android:id="@+id/tvTimeStampRt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginLeft="28dp"
+        android:gravity="right"
+        android:text="Tues, Sept 5, 2005\n3:15 AM"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+</RelativeLayout>

@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+	<LinearLayout 
+	    android:layout_width="match_parent"
+	    android:layout_height="wrap_content"
+	    android:orientation="vertical" >
+	
+	    <Button
+	        android:layout_width="match_parent"
+	        android:layout_height="wrap_content"
+	        android:tag="previewSizes"
+	        android:onClick="showConfig"
+	        android:text="Preview Sizes" />
+
+	    <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:tag="pictureSizes"
+            android:onClick="showConfig"
+            android:text="Picture Sizes" />
+	    
+	    <Button
+	        android:layout_width="match_parent"
+	        android:layout_height="wrap_content"
+            android:tag="antiBanding"
+            android:onClick="showConfig"
+	        android:text="Anti Banding" />
+	
+	    <Button
+	        android:layout_width="match_parent"
+	        android:layout_height="wrap_content"
+            android:tag="colorEffects"
+            android:onClick="showConfig"
+	        android:text="Color Effects" />
+	
+	    <Button
+	        android:layout_width="match_parent"
+	        android:layout_height="wrap_content"
+            android:tag="flashModes"
+            android:onClick="showConfig"
+	        android:text="Flash Modes" />
+	
+	    <Button
+	        android:layout_width="match_parent"
+	        android:layout_height="wrap_content"
+            android:tag="focusModes"
+            android:onClick="showConfig"
+	        android:text="Focus Modes" />
+	
+	    <Button
+	        android:layout_width="match_parent"
+	        android:layout_height="wrap_content"
+            android:tag="sceneModes"
+            android:onClick="showConfig"
+	        android:text="Scene Modes" />
+	
+	    <Button
+	        android:layout_width="match_parent"
+	        android:layout_height="wrap_content"
+            android:tag="whiteBalance"
+            android:onClick="showConfig"
+	        android:text="White Balance" />
+
+	    <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:tag="pictureFormats"
+            android:onClick="showConfig"
+            android:text="Picture Formats" />
+	    
+	</LinearLayout>
+</ScrollView>
