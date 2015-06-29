@@ -1,33 +1,35 @@
 package cc.game.soc.core;
 
 public enum VertexType {
-	OPEN(0, false, false),
+	OPEN("Nothing", 0, false, false),
 	
-	SETTLEMENT(0, false, true), // produce 
-	CITY(0, false, true),
-	WALLED_CITY(0, false, true),
+	SETTLEMENT("Settlement", 0, false, true), // produce 
+	CITY("City", 0, false, true),
+	WALLED_CITY("Walled City", 0, false, true),
 	
-	METROPOLIS_TRADE(0, false, true),
-	METROPOLIS_POLITICS(0, false, true),
-	METROPOLIS_SCIENCE(0, false, true),
+	METROPOLIS_TRADE("Trade Metropolis", 0, false, true),
+	METROPOLIS_POLITICS("Politics Metropolis", 0, false, true),
+	METROPOLIS_SCIENCE("Science Metropolis", 0, false, true),
 	
-	BASIC_KNIGHT_ACTIVE(1, true, false),
-	STRONG_KNIGHT_ACTIVE(2, true, false),
-	MIGHTY_KNIGHT_ACTIVE(3, true, false),
+	BASIC_KNIGHT_ACTIVE("Basic Knight (A)", 1, true, false),
+	STRONG_KNIGHT_ACTIVE("Strong Knight (A)", 2, true, false),
+	MIGHTY_KNIGHT_ACTIVE("Mighty Knight (A)", 3, true, false),
 
-	BASIC_KNIGHT_INACTIVE(1, false, false),
-	STRONG_KNIGHT_INACTIVE(2, false, false),
-	MIGHTY_KNIGHT_INACTIVE(3, false, false),
+	BASIC_KNIGHT_INACTIVE("Basic Knight (IA)", 1, false, false),
+	STRONG_KNIGHT_INACTIVE("Strong Knight (IA)", 2, false, false),
+	MIGHTY_KNIGHT_INACTIVE("Mighty Knight (IA)", 3, false, false),
 
-	PIRATE_FORTRESS(0, false, true),
+	PIRATE_FORTRESS("Pirate Fortress", 0, false, true),
 	;
 	
-	VertexType(int knightLevel, boolean active, boolean isStructure) {
+	VertexType(String niceName, int knightLevel, boolean active, boolean isStructure) {
+		this.niceName = niceName;
 		this.knightLevel = knightLevel;
 		this.active = active;
 		this.isStructure = isStructure;
 	}
 	
+	final String niceName;
 	final int knightLevel;
 	final boolean active;
 	final boolean isStructure;
@@ -108,5 +110,9 @@ public enum VertexType {
 			default:
 				return false;
 		}
+	}
+	
+	public String getNiceName() {
+		return niceName;
 	}
 }

@@ -27,7 +27,9 @@ public class PlayerInfoComponentCAK extends PlayerInfoComponent {
         g.setFont(bold);
         
     	StringBuffer str = new StringBuffer();
-    	str.append(player.getName()).append(" ").append(player.getPoints()).append(" Points\n");
+    	str.append(player.getName()).append(" ").append(player.getPoints()).append(" Points Cards ")
+    			.append(player.getTotalCardsLeftInHand()).append( "(").append(soc.getMinHandCardsForRobberDiscard(player.getPlayerNum()))
+    			.append(")\n");
         if (player.isInfoVisible()) {
         	for (ResourceType t : ResourceType.values()) {
         		int num = player.getCardCount(t);

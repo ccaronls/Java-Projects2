@@ -4,6 +4,9 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -43,6 +46,7 @@ import android.graphics.PixelFormat;
 import android.hardware.Camera;
 import android.hardware.Camera.PictureCallback;
 import android.hardware.Camera.ShutterCallback;
+import android.hardware.Camera.Size;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
@@ -148,6 +152,13 @@ public class PhotoOverlay extends BaseActivity implements OnClickListener, Callb
         
 		// Acquire a reference to the system Location Manager
 		locationMgr = (LocationManager) this.getSystemService(LOCATION_SERVICE);
+		try{
+            camera = Camera.open();
+        }catch(RuntimeException e){
+        	Toast.makeText(this, "Failed to find a camera", Toast.LENGTH_LONG).show();
+        	finish();
+        }
+		
 	}
 	
 //	GoogleApiClient googleApiClient;
@@ -157,17 +168,22 @@ public class PhotoOverlay extends BaseActivity implements OnClickListener, Callb
 	
 	Runnable updateTimeStampRunner = new Runnable() {
 		public void run() {
-			boolean onRight = getPrefs().getBoolean("timeStampRight", false);
-			
-			String txt = timeStampFMT.format(new Date()) + "\n" + locationStr;
-			String extra = getPrefs().getString("location", "");
-			if (!extra.isEmpty())
-				txt += "\n" + extra;
-			if (onRight) {
-				timeStampRight.setText(txt);
-				timeStampLeft.setText("");
+			if (getPrefs().getBoolean("timeStampEnabled", true)) {
+    			boolean onRight = getPrefs().getBoolean("timeStampRight", false);
+    			
+    			String txt = timeStampFMT.format(new Date()) + "\n" + locationStr;
+    			String extra = getPrefs().getString("location", "");
+    			if (!extra.isEmpty())
+    				txt += "\n" + extra;
+    			if (onRight) {
+    				timeStampRight.setText(txt);
+    				timeStampLeft.setText("");
+    			} else {
+    				timeStampLeft.setText(txt);
+    				timeStampRight.setText("");
+    			}
 			} else {
-				timeStampLeft.setText(txt);
+				timeStampLeft.setText("");
 				timeStampRight.setText("");
 			}
 		}
@@ -255,15 +271,27 @@ public class PhotoOverlay extends BaseActivity implements OnClickListener, Callb
     			if (isPortrait()) {
     				m.postRotate(90);
     			}
-    			mutable = Bitmap.createBitmap(bm, 0, 0, bm.getWidth(), bm.getHeight(), m, true);//bm.copy(Config.RGB_565, true);
-    			bm.recycle();
+    			Bitmap bm2 = Bitmap.createBitmap(bm, 0, 0, bm.getWidth(), bm.getHeight(), m, true);
+    			if (bm != bm2)
+    				bm.recycle();
+    			mutable=  bm2.copy(Config.RGB_565, true);
+    			bm2.recycle();
     			Canvas c = new Canvas(mutable);
-    			if (getPrefs().getBoolean("timeStampRight", false)) {
-    				c.translate(mutable.getWidth()-timeStampRight.getWidth(), 0);
-    				timeStampRight.draw(c);
-    			} else {
-    				timeStampLeft.draw(c);
+    			
+    			
+    			TextView timeStamp = timeStampLeft;
+    			boolean onRight = getPrefs().getBoolean("timeStampRight", false);
+    			if (onRight) {
+    				timeStamp = timeStampRight;
     			}
+    			float device = (float)timeStamp.getHeight() / viewFinder.getHeight();
+    			float pic = (float)timeStamp.getHeight() / c.getHeight();
+    			float scale = device/pic;
+    			if (onRight) {
+    				c.translate(mutable.getWidth()-timeStamp.getWidth()*scale, 0);
+    			}
+    			c.scale(scale, scale);
+    			timeStamp.draw(c);
     			
     			File dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
     			Log.i(TAG, "dest folder is " + dir);
@@ -409,14 +437,15 @@ public class PhotoOverlay extends BaseActivity implements OnClickListener, Callb
     
 	@Override
 	public void surfaceCreated(SurfaceHolder holder) {
-		// TODO Auto-generated method stub
-		
+		if (camera != null) {
+			camera.stopPreview();
+		}
 	}
 
 	@Override
 	public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
 		Log.i(TAG, "surfacechanged format=" + format + " dim=" + width + "x" + height + " camera=" + camera);
-		if (camera == null) {
+		/*if (camera == null) {
     		try{
                 camera = Camera.open();
             }catch(RuntimeException e){
@@ -425,7 +454,7 @@ public class PhotoOverlay extends BaseActivity implements OnClickListener, Callb
             }
 		} else {
 			camera.stopPreview();
-		}
+		}*/
         Camera.Parameters param = camera.getParameters();
         processCameraParametersFromPreferences(param, width, height);
         param.setVideoStabilization(true); // tODO : Preference?
@@ -450,23 +479,37 @@ public class PhotoOverlay extends BaseActivity implements OnClickListener, Callb
         }		
 	}
 	
-	Camera.Size getSizeClosestTo(int width, int height, List<Camera.Size> options) {
-		final int actualArea = width*height;
+	Camera.Size getSizeClosestTo(int width, int height, Collection<Camera.Size> options_) {
+		
+		List<Camera.Size>options = new ArrayList<Camera.Size>();
+		options.addAll(options_);
+		// we want the largest size that is the closest aspect ratio.  
+		Collections.sort(options, new Comparator<Camera.Size>() {
+
+			@Override
+			public int compare(Size lhs, Size rhs) {
+				int lhsArea = lhs.width * lhs.height;
+				int rhsArea = rhs.width * rhs.height;
+				return rhsArea-lhsArea; // descending order
+			}
+			
+		});
+		
+		if (isPortrait()) {
+			int t = width;
+			width = height;
+			height = t;
+		}
 		Camera.Size best = null;
-        int bestDelta = 0;
+		final float actualAspect = (float)width / height;
+        float bestDelta = 0;
         for (Camera.Size size : options) {
-        	int area = size.height * size.height;
-        	if (best == null) {
-        		best = size;
-        		bestDelta = Math.abs(area - actualArea);
-        		continue;
-        	} 
-        	
-        	int delta = Math.abs(area - actualArea);
-        	if (delta < bestDelta) {
+        	float aspect = (float)size.width / size.height;
+        	float delta = Math.abs(aspect - actualAspect);
+        	if (best == null || delta < bestDelta) {
         		bestDelta = delta;
         		best = size;
-        	}
+        	} 
         }
         return best;
 	}
@@ -480,67 +523,70 @@ public class PhotoOverlay extends BaseActivity implements OnClickListener, Callb
     	allFormats.put(ImageFormat.YUV_420_888, "YUV 420 888");
     	allFormats.put(ImageFormat.YUY2, "YUV2");
     	allFormats.put(ImageFormat.YV12, "YV12");
-        final int VERSION = 3; // Increment when we add more params
+        final int VERSION = 1; // Increment when we add more params
+
         if (getPrefs().getInt("cameraParams", 0) != VERSION) {
-            List<String> previewSizesStr = new ArrayList<String>();
+            LinkedHashSet<String> previewSizesStr = new LinkedHashSet<String>();
             List<Camera.Size> previewSizes = param.getSupportedPreviewSizes();
             for (Camera.Size size : previewSizes) {
-            	previewSizesStr.add(size.width + " X " + size.height);
+            	previewSizesStr.add(sizeToString(size));
             }
-            List<String> pictureSizesStr = new ArrayList<String>();
-            List<Camera.Size> pictureSizes = param.getSupportedPreviewSizes();
+            LinkedHashSet<String> pictureSizesStr = new LinkedHashSet<String>();
+            List<Camera.Size> pictureSizes = param.getSupportedPictureSizes();
             for (Camera.Size size : pictureSizes) {
-            	pictureSizesStr.add(size.width + " X " + size.height);
+            	pictureSizesStr.add(sizeToString(size));
             }
-        	LinkedHashSet<String> pictureFormats = new LinkedHashSet<String>();
+
+        	LinkedHashSet<String> pictureFormatsStr = new LinkedHashSet<String>();
         	
         	for (int iFormat : param.getSupportedPictureFormats()) {
-        		pictureFormats.add(allFormats.get(iFormat));
+        		pictureFormatsStr.add(allFormats.get(iFormat));
         	}
             getPrefs().edit()
-            	.putStringSet("previewSizes", new LinkedHashSet<String>(previewSizesStr))
-            	.putStringSet("pictureSizes", new LinkedHashSet<String>(pictureSizesStr))
+            	.putStringSet("previewSizes", previewSizesStr)
+            	.putStringSet("pictureSizes", pictureSizesStr)
             	.putStringSet("antiBanding", new LinkedHashSet<String>(param.getSupportedAntibanding()))
             	.putStringSet("colorEffects", new LinkedHashSet<String>(param.getSupportedColorEffects()))
             	.putStringSet("flashModes", new LinkedHashSet<String>(param.getSupportedFlashModes()))
             	.putStringSet("focusModes", new LinkedHashSet<String>(param.getSupportedFocusModes()))
             	.putStringSet("sceneModes", new LinkedHashSet<String>(param.getSupportedSceneModes()))
             	.putStringSet("whiteBalance", new LinkedHashSet<String>(param.getSupportedWhiteBalance()))
-            	.putStringSet("pictureFormats", pictureFormats)
+            	.putStringSet("pictureFormats", pictureFormatsStr)
             	.putInt("cameraParams", VERSION)
             	.commit();
         }        	
         //modify parameter
 //        param.setPreviewFrameRate(20);
 //        param.setPictureFormat(format);
+        LinkedHashSet<Camera.Size> intersectionSizes = new LinkedHashSet<Camera.Size>();
+        intersectionSizes.addAll(param.getSupportedPictureSizes());
+        intersectionSizes.retainAll(param.getSupportedPreviewSizes());
+        Log.i(TAG, "Intersection count of preview and picture sizes is " + intersectionSizes.size());
+        
         String value = getPrefs().getString("previewSizesValue", null);
         if (value != null) {
         	try {
-        		String [] parts = value.split("[ xX]+");
-        		int w = Integer.parseInt(parts[0]);
-        		int h = Integer.parseInt(parts[1]);
-                param.setPreviewSize(w, h);
+        		int [] wh = stringToSize(value);
+                param.setPreviewSize(wh[0], wh[1]);
         	} catch (Exception e) {
         		e.printStackTrace();
         	}
         } else {
-            Camera.Size size = getSizeClosestTo(width, height, param.getSupportedPreviewSizes());
-        	getPrefs().edit().putString("previewSizesValue", size.width + " X " + size.height).commit();
+            Camera.Size size = getSizeClosestTo(width, height, intersectionSizes.size() > 0 ? intersectionSizes : param.getSupportedPreviewSizes());
+        	getPrefs().edit().putString("previewSizesValue", sizeToString(size)).commit();
             param.setPreviewSize(size.width, size.height);
         }
         value = getPrefs().getString("pictureSizesValue", null);
         if (value != null) {
         	try {
-        		String [] parts = value.split("[ xX]+");
-        		int w = Integer.parseInt(parts[0]);
-        		int h = Integer.parseInt(parts[1]);
-                param.setPictureSize(w, h);
+        		int [] wh = stringToSize(value);
+                param.setPictureSize(wh[0], wh[1]);
         	} catch (Exception e) {
         		e.printStackTrace();
         	}
         } else {
-            Camera.Size size = getSizeClosestTo(width, height, param.getSupportedPictureSizes());
-        	getPrefs().edit().putString("pictureSizesValue", size.width + " X " + size.height).commit();
+            Camera.Size size = getSizeClosestTo(width, height, intersectionSizes.size() > 0 ? intersectionSizes : param.getSupportedPictureSizes());
+        	getPrefs().edit().putString("pictureSizesValue", sizeToString(size)).commit();
             param.setPictureSize(size.width, size.height);
         }
         Log.i(TAG, "orientation=" + getResources().getConfiguration().orientation);
@@ -565,7 +611,7 @@ public class PhotoOverlay extends BaseActivity implements OnClickListener, Callb
         if (value != null)
         	param.setFocusMode(value);
         else
-        	getPrefs().edit().putString("focusModeValue", param.getFocusMode()).commit();
+        	getPrefs().edit().putString("focusModesValue", param.getFocusMode()).commit();
         //value = getPrefs().getString("sceneModesValues", null);
         //if (value != null)
         //	param.setSceneMode(value);
@@ -590,6 +636,16 @@ public class PhotoOverlay extends BaseActivity implements OnClickListener, Callb
 
 	}
 
+	private String sizeToString(Camera.Size size) {
+		return size.width + " X " + size.height;
+	}
+	
+	private int [] stringToSize(String size) {
+		String [] parts = size.split("[ Xx]+");
+		return new int[] { Integer.parseInt(parts[0]), Integer.parseInt(parts[1]) };
+	}
+	
+	
 	@Override
 	public void surfaceDestroyed(SurfaceHolder holder) {
 		surfaceReady = false;
@@ -621,7 +677,8 @@ public class PhotoOverlay extends BaseActivity implements OnClickListener, Callb
 						switch (which) {
 							case 0: { // enable / disable
 								boolean isEnabled = getPrefs().getBoolean("timeStampEnabled", true);
-								getPrefs().edit().putBoolean("timeStampEnabled", !isEnabled);
+								getPrefs().edit().putBoolean("timeStampEnabled", !isEnabled).commit();
+								runOnUiThread(updateTimeStampRunner);
 								break;
 							}
 							

@@ -16,13 +16,14 @@
     <uses-permission android:name="android.permission.CAMERA"/>
     <uses-permission android:name="android.permission.ACCESS_DOWNLOAD_MANAGER"/>
 
-    <application>
+    <application
+        android:label="Gauge Tool"
+        android:icon="@drawable/ic_launcher"
+        android:screenOrientation="sensor"
+        android:theme="@android:style/Theme.NoTitleBar.Fullscreen">
         
         <activity android:name=".PhotoOverlay"
-            android:label="Gauge Tool"
-            android:icon="@drawable/ic_launcher"
-            android:screenOrientation="sensor"
-            android:theme="@android:style/Theme.NoTitleBar.Fullscreen">
+            >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -30,7 +31,7 @@
             
         </activity>
         
-        <activity android:name=".Settings" android:screenOrientation="portrait"/>
+        <activity android:name=".Settings" android:screenOrientation="sensor"/>
         
         
     </application>

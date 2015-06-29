@@ -67,7 +67,8 @@ enum State {
     PROCESS_DICE(false, ""), // transition state
     PROCESS_PIRATE_ATTACK(false, ""), // transition state 
     CHOOSE_PIRATE_FORTRESS_TO_ATTACK(true, "Choose a pirate fortress to attack"),	
-
+    CHOOSE_ROAD_TO_ATTACK(true, "Pick a road for knight to attack"),
+    CHOOSE_STRUCTURE_TO_ATTACK(true, "Pick a structure for knight to attack"),
 	;
 	
 	private State(boolean canCancel, String helpText) {

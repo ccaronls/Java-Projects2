@@ -172,4 +172,19 @@ public class CMath {
         double stdDev = Math.sqrt(sum * 1.0f/(values.size()-1));
         return stdDev;
     }
+
+    /**
+     * 'Bell' Curve
+     * 
+     * f(x) = e^(-0.5x^2)
+     *        -----------
+     *         sqrt(2*PI)
+     *         
+     * @param x
+     * @param mean pivot value.  Curve is at its highest point when x == mean
+     * @return value between (0-1] of x where nd(mean, mean) == 1
+     */
+    public static double normalDistribution(double x, double mean) {
+    	return Math.pow(M_E, -0.5 * Math.pow(x - mean, 2)) / M_SQRT_2_PI;
+    }
 }

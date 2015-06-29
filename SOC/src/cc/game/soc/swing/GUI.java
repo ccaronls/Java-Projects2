@@ -100,7 +100,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 	private final BoardComponent boardComp;
 	BarbarianComponent barbarianComp;
 	private ADiceComponent [] diceComps;// = new ADiceComponent[3];
-	private JSpinner [] diceChoosers;
+	//private JSpinner [] diceChoosers;
 	private final GUIProperties props;
 	final ImageMgr images;
 	
@@ -138,6 +138,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
     private File defaultBoardFile;
     private final File saveGameFile;
     private final File saveRulesFile;
+    private final File debugBoard;
     
     private float diceSpinTimeSeconds;
     
@@ -170,6 +171,8 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
         }
         saveGameFile = new File(homeFolder, props.getProperty("gui.saveGameFileName", "socsavegame.txt"));
         saveRulesFile = new File(homeFolder, props.getProperty("gui.saveRulesFileName", "socrules.txt"));
+        debugBoard = new File("boards/debug_board.txt");
+        
         diceSpinTimeSeconds = props.getFloatProperty("gui.diceSpinTimeSeconds", 3);
         
         if (saveRulesFile.exists()) {
@@ -354,6 +357,19 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
                 JPanel helpMenuDice = new JPanel();
                 helpMenuDice.setLayout(new BorderLayout());
                 JPanel dicePanel = null;
+                
+                Dice [] dice = soc.getDice();
+                diceComps = new ADiceComponent[dice.length];
+                for (int i=0; i<diceComps.length; i++)
+                	diceComps[i] = new ADiceComponent();
+                
+                if (getRules().isEnableEventCards()) {
+                	dicePanel = new EZPanel(new FlowLayout(), new EventCardComponent(diceComps));
+                } else {
+                	dicePanel = new EZPanel(new FlowLayout(), diceComps);
+                }
+                
+                /*
                 if (getRules().isEnableCitiesAndKnightsExpansion()) {
                 	
                 	if (getRules().isEnableEventCards()) {
@@ -389,7 +405,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
                 	} else {
                         dicePanel = new EZPanel(new FlowLayout(), diceComps);
                 	}
-                }
+                }*/
                 //dicePanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 3));
                 helpMenuDice.add(dicePanel, BorderLayout.NORTH);
                 helpMenuDice.add(helpText, BorderLayout.CENTER);
@@ -422,7 +438,11 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
                     			
 								@Override
 								public void onPick(BoardComponent bc, int pickedValue) {
-									bc.getBoard().getTile(pickedValue).setType(tt);
+									Tile t = bc.getBoard().getTile(pickedValue);
+									t.setType(tt);
+									if (t.getResource() == null) {
+										t.setDieNum(0);
+									}
 								}
 								
 								@Override
@@ -696,20 +716,30 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
     }
     
     enum DebugPick {
-    	SETTLEMENT(PickMode.PM_VERTEX),
-    	CITY(PickMode.PM_VERTEX),
-    	CITY_WALL(PickMode.PM_VERTEX),
-    	KNIGHT(PickMode.PM_VERTEX),
-    	ROAD(PickMode.PM_EDGE),
-    	SHIP(PickMode.PM_EDGE),
-    	WARSHIP(PickMode.PM_EDGE)
+    	SETTLEMENT(PickMode.PM_VERTEX, VertexType.SETTLEMENT, null, null),
+    	CITY(PickMode.PM_VERTEX, VertexType.CITY, null, null),
+    	CITY_WALL(PickMode.PM_VERTEX, VertexType.WALLED_CITY, null, null),
+    	KNIGHT(PickMode.PM_VERTEX, VertexType.BASIC_KNIGHT_ACTIVE, null, null),
+    	ROAD(PickMode.PM_EDGE, null, RouteType.ROAD, null),
+    	SHIP(PickMode.PM_EDGE, null, RouteType.SHIP, null),
+    	WARSHIP(PickMode.PM_EDGE, null, RouteType.WARSHIP, null),
+    	MERCHANT(PickMode.PM_TILE, null, null, null),
+    	ROBBER(PickMode.PM_TILE, null, null, null),
+    	PIRATE(PickMode.PM_TILE, null, null, null),
+    	FORTRESS(PickMode.PM_VERTEX, VertexType.PIRATE_FORTRESS, null, null),
     	;
     	
-    	DebugPick(PickMode mode) {
+    	DebugPick(PickMode mode, VertexType vType, RouteType rType, TileType tType) {
     		this.mode = mode;
+    		this.vType = vType;
+    		this.rType = rType;
+    		this.tType = tType;
     	}
     	
     	final PickMode mode;
+    	final VertexType vType;
+    	final RouteType rType;
+    	final TileType tType;
     }
     
     
@@ -743,7 +773,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
     		case MENU_CHOOSE_NUM_PLAYERS:
                 initLayout(LayoutType.LAYOUT_DEFAULT);
     			for (int i=0; i<playerColors.length; i++) {
-    				menu.add(getMenuOpButton(MenuOp.CHOOSE_NUM_PLAYERS, String.valueOf(i+2), null));
+    				menu.add(getMenuOpButton(MenuOp.CHOOSE_NUM_PLAYERS, String.valueOf(i+2), null, i+2));
     			}
     			menu.add(getMenuOpButton(MenuOp.QUIT, "Back", "Go back to previous menu"));
     			break;
@@ -794,24 +824,76 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 							
 							@Override
 							public void onPick(BoardComponent bc, int pickedValue) {
+								Vertex v;
+								Route r;
 								switch (mode) {
 									case CITY:
-										getBoard().getVertex(pickedValue).setType(VertexType.CITY);
-										break;
 									case CITY_WALL:
-										getBoard().getVertex(pickedValue).setType(VertexType.WALLED_CITY);
+									case SETTLEMENT:
+										v = getBoard().getVertex(pickedValue);
+										if (v.getPlayer() == 0) {
+											v.setType(mode.vType);
+											v.setPlayer(getCurPlayerNum());
+										} else {
+											v.reset();
+										}
 										break;
 									case KNIGHT:
-										getBoard().getVertex(pickedValue).setType(VertexType.BASIC_KNIGHT_INACTIVE);
+										v = getBoard().getVertex(pickedValue);
+										v.setPlayer(getCurPlayerNum());
+										switch (v.getType()) {
+											default:
+												v.setType(VertexType.BASIC_KNIGHT_INACTIVE);
+												break;
+											case BASIC_KNIGHT_INACTIVE:
+												v.setType(VertexType.BASIC_KNIGHT_ACTIVE);
+												break;
+											case BASIC_KNIGHT_ACTIVE:
+												v.setType(VertexType.STRONG_KNIGHT_INACTIVE);
+												break;
+											case STRONG_KNIGHT_INACTIVE:
+												v.setType(VertexType.STRONG_KNIGHT_ACTIVE);
+												break;
+											case STRONG_KNIGHT_ACTIVE:
+												v.setType(VertexType.MIGHTY_KNIGHT_INACTIVE);
+												break;
+											case MIGHTY_KNIGHT_INACTIVE:
+												v.setType(VertexType.MIGHTY_KNIGHT_ACTIVE);
+												break;
+											case MIGHTY_KNIGHT_ACTIVE:
+												v.reset();
+												break;
+										}
 										break;
 									case ROAD:
-										break;
-									case SETTLEMENT:
-										getBoard().getVertex(pickedValue).setType(VertexType.CITY);
-										break;
 									case SHIP:
-										break;
 									case WARSHIP:
+										r = getBoard().getRoute(pickedValue);
+										if (r.getPlayer() == 0) {
+											r.setType(mode.rType);
+											getBoard().setPlayerForRoute(r, getCurPlayerNum());
+										} else {
+											getBoard().setPlayerForRoute(r, 0);
+										}
+										break;
+									case MERCHANT:
+										if (getBoard().getMerchantPlayer() == getCurPlayerNum() && getBoard().getMerchantTileIndex() == pickedValue) {
+											getBoard().setMerchant(-1, 0);
+										} else {
+											getBoard().setMerchant(pickedValue, getCurPlayerNum());
+										}
+										break;
+									case ROBBER:
+										if (getBoard().getRobberTileIndex() == pickedValue)
+											getBoard().setRobber(-1);
+										else
+											getBoard().setRobber(pickedValue);
+										break;
+									case PIRATE:
+										if (getBoard().getPirateTileIndex() == pickedValue)
+											getBoard().setPirate(-1);
+										else
+											getBoard().setPirate(pickedValue);
 										break;
 								}
 							}
@@ -820,8 +902,9 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 							public void onHighlighted(BoardComponent bc, AWTRenderer r, Graphics g, int highlightedIndex) {
 								switch (mode.mode) {
 									case PM_EDGE: {
+										g.setColor(getPlayerColor(getCurPlayerNum()));
 										Route e = getBoard().getRoute(highlightedIndex);
-										bc.drawEdge(g, e, e.getPlayer(), true);
+										bc.drawEdge(g, e, mode.rType, e.getPlayer(), true);
 										break;
 									}
 									case PM_TILE: {
@@ -830,8 +913,9 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 										break;
 									}
 									case PM_VERTEX: {
+										g.setColor(getPlayerColor(getCurPlayerNum()));
 										Vertex v = getBoard().getVertex(highlightedIndex);
-										bc.drawVertex(g, v, v.getType(), v.getPlayer(), true);
+										bc.drawVertex(g, v, mode.vType, v.getPlayer(), true);
 										break;
 									}
 									case PM_NONE:
@@ -843,16 +927,18 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 							public void onDrawPickable(BoardComponent bc, AWTRenderer r, Graphics g, int index) {
 								switch (mode.mode) {
 									case PM_EDGE: {
+										g.setColor(AWTUtils.setAlpha(getPlayerColor(getCurPlayerNum()), 100));
 										Route e = getBoard().getRoute(index);
-										bc.drawEdge(g, e, e.getPlayer(), false);
+										bc.drawEdge(g, e, e.getType(), e.getPlayer(), true);
 										break;
 									}
 									case PM_TILE: {
 										break;
 									}
 									case PM_VERTEX: {
+										g.setColor(AWTUtils.setAlpha(getPlayerColor(getCurPlayerNum()), 100));
 										Vertex v = getBoard().getVertex(index);
-										bc.drawVertex(g, v, v.getType(), v.getPlayer(), false);
+										bc.drawVertex(g, v, v.getType(), v.getPlayer(), true);
 										break;
 									}
 									case PM_NONE:
@@ -886,6 +972,10 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
                 choiceButtons.add(new EZPanel(new JLabel("Player:"), playerChooser));
                 choiceButtons.add(getMenuOpButton(MenuOp.RESET_BOARD));
                 choiceButtons.add(getMenuOpButton(MenuOp.RESET_BOARD_ISLANDS));
+                choiceButtons.add(getMenuOpButton(MenuOp.COMPUTE_DISTANCES));
+                choiceButtons.add(getMenuOpButton(MenuOp.EVALUATE_VERTICES));
+                choiceButtons.add(getMenuOpButton(MenuOp.LOAD_DEBUG));
+                choiceButtons.add(getMenuOpButton(MenuOp.SAVE_DEBUG));
                 eastGridPanel.removeAll();
                 //eastGridPanel.add(new JPanel());
                 eastGridPanel.add(choiceButtons);
@@ -901,6 +991,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
     			menu.add(getMenuOpButton(MenuOp.GEN_HEX_BOARD));
     			menu.add(getMenuOpButton(MenuOp.GEN_RECT_BOARD));
     			menu.add(getMenuOpButton(MenuOp.TRIM_BOARD));
+    			menu.add(getMenuOpButton(MenuOp.ASSIGN_RANDOM));
     			menu.add(getMenuOpButton(MenuOp.SAVE_BOARD_AS_DEFAULT));
     			if (getBoard().getName() != null) {
     				if (new File(getBoard().getName()).isFile())
@@ -1004,7 +1095,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 				break;
 
 			case CHOOSE_NUM_PLAYERS:
-				initPlayers(Integer.parseInt(button.getText()));
+				initPlayers((Integer)button.getExtra());
 		    	soc.initGame();
 				menuStack.pop();
 				initMenu();
@@ -1012,7 +1103,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 
 			case CHOOSE_COLOR:
 				returnValue = button.getText();
-				setPlayerColor((Color)button.extra);
+				setPlayerColor((Color)button.getExtra());
 				menuStack.pop();
 				initMenu();
 				break;
@@ -1076,6 +1167,10 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 
 			case TRIM_BOARD:
 				getBoard().trim();
+				break;
+				
+			case ASSIGN_RANDOM:
+				getBoard().assignRandom();
 				break;
 
 			case SAVE_BOARD_AS_DEFAULT:
@@ -1173,7 +1268,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 			case CHOOSE_TRADE:
 			case CHOOSE_ROAD:
 			case CHOOSE_SHIP:
-				returnValue = button.extra;
+				returnValue = button.getExtra();
 				break;
 
 			case BUILDABLES_POPUP:
@@ -1282,11 +1377,37 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 
 			case SET_DICE: {
 				returnValue = new int[] { diceComps[0].getDie(), diceComps[1].getDie() };
-				diceChoosers[0].setVisible(false);
-				diceChoosers[1].setVisible(false);
+				diceComps[0].setDicePickerEnabled(false);
+				diceComps[1].setDicePickerEnabled(false);
+//				diceChoosers[0].setVisible(false);
+//				diceChoosers[1].setVisible(false);
 				break;
 			}
 		
+			case COMPUTE_DISTANCES: {
+				long t = System.currentTimeMillis();
+				PlayerBot.Distances distances = PlayerBot.evaluateWaterwayDistances(getBoard(), getCurPlayerNum());
+				long dt = System.currentTimeMillis() - t;
+				System.out.println("got Distances in " + dt + " MSecs:\n" + distances);
+				break;
+			}
+			
+			case EVALUATE_VERTICES: {
+				long t = System.currentTimeMillis();
+				BotNodeRoot root = new BotNodeRoot();
+				PlayerBot.evaluateVertices(root, getRules(), getCurPlayerNum(), getBoard());
+				long dt = System.currentTimeMillis() - t;
+				System.out.println("---------------------------------\nVerts Evaluation in " + dt + " MSecs:\n" + root.debugDump());
+				break;
+			}
+			
+			case LOAD_DEBUG:
+				loadBoard(debugBoard.getAbsolutePath());
+				break;
+				
+			case SAVE_DEBUG:
+				saveBoard(debugBoard.getAbsolutePath());
+				break;
 		}
 
         synchronized (waitObj) {
@@ -1371,7 +1492,6 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
         	players[i].setPlayerNum(i+1);
         	soc.addPlayer(players[i]);
         }
-        soc.initGame();
 	}
 	
 	private void setPlayerColor(Color color) {
@@ -1518,6 +1638,9 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 					case PIRATE_FORTRESS:
 						bc.drawPirateFortress(g, v, true);
 						break;
+					case OPPONENT_STRUCTURE_TO_ATTACK:
+						bc.drawVertex(g, v, v.getType(), v.getPlayer(), true);
+						break;
 				}
 
 			}
@@ -1564,6 +1687,10 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 					case PIRATE_FORTRESS:
 						bc.drawPirateFortress(g, v, false);
 						break;
+					case OPPONENT_STRUCTURE_TO_ATTACK:
+						g.setColor(AWTUtils.setAlpha(getPlayerColor(v.getPlayer()), 120));
+						bc.drawVertex(g, v, v.getType(), 0, false);
+						break;
 				}
 			}
 			
@@ -1608,6 +1735,10 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 				Route route = getBoard().getRoute(highlightedIndex);
 				g.setColor(getPlayerColor(getCurPlayerNum()));
 				switch (choice) {
+					case OPPONENT_ROAD_TO_ATTACK:
+						g.setColor(getPlayerColor(route.getPlayer()));
+						bc.drawEdge(g, route, route.getType(), 0, true);
+						break;
 					case ROAD:
 					case ROUTE_DIPLOMAT:
 						bc.drawRoad(g, route, true);
@@ -1616,7 +1747,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 						bc.drawShip(g, route, true);
 						break;
 					case SHIP_TO_MOVE:
-						bc.drawEdge(g, route, getCurPlayerNum(), true);
+						bc.drawEdge(g, route, route.getType(), getCurPlayerNum(), true);
 						break;
 					case UPGRADE_SHIP:
 						bc.drawWarShip(g, route, true);
@@ -1629,6 +1760,10 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 				Route route = getBoard().getRoute(index);
 				g.setColor(AWTUtils.setAlpha(getPlayerColor(getCurPlayerNum()), 120));
 				switch (choice) {
+					case OPPONENT_ROAD_TO_ATTACK:
+						g.setColor(AWTUtils.setAlpha(getPlayerColor(route.getPlayer()), 120));
+						bc.drawEdge(g, route, route.getType(), 0, false);
+						break;
 					case ROAD:
 					case ROUTE_DIPLOMAT:
 						bc.drawRoad(g, route, false);
@@ -1637,7 +1772,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 						bc.drawShip(g, route, false);
 						break;
 					case SHIP_TO_MOVE:
-						bc.drawEdge(g, route, getCurPlayerNum(), false);
+						bc.drawEdge(g, route, route.getType(), getCurPlayerNum(), false);
 						break;
 					case UPGRADE_SHIP:
 						bc.drawWarShip(g, route, false);
@@ -1728,8 +1863,8 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 		while (it.hasNext()) {
 			MoveType move = it.next();
 			OpButton button = null;
-			menu.add(button = getMenuOpButton(MenuOp.CHOOSE_MOVE, move.niceText, move.helpText, move));
-			button.setToolTipText(move.helpText);
+			menu.add(button = getMenuOpButton(MenuOp.CHOOSE_MOVE, move.getNiceText(), move.getHelpText(getRules()), move));
+			button.setToolTipText(move.getHelpText(getRules()));
 		}
 		completeMenu();
 		return waitForReturnValue(null);
@@ -1747,15 +1882,19 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 		return waitForReturnValue(null);
 	}	
 	
-	public boolean getSetDiceMenu(int [] die, int num) {
+	public boolean getSetDiceMenu(Dice [] die, int num) {
 		clearMenu();
-		diceChoosers[0].setVisible(true);
-		diceChoosers[1].setVisible(true);
+		//diceChoosers[0].setVisible(true);
+		//diceChoosers[1].setVisible(true);
+		diceComps[0].setDicePickerEnabled(true);
+		diceComps[1].setDicePickerEnabled(true);
 		menu.add(getMenuOpButton(MenuOp.SET_DICE));
 		completeMenu();
 		int [] result = (int[])waitForReturnValue(null);
 		if (result != null) {
-			Utils.copyElems(die, result);
+			for (int i=0; i<result.length; i++) {
+				die[i].setNum(result[i]);
+			}
 			return true;
 		}
 		return false;
@@ -1791,7 +1930,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 	public Card chooseCardMenu(Collection<Card> cards) {
 		clearMenu();
 		for (Card type : cards) {
-			menu.add(getMenuOpButton(MenuOp.CHOOSE_CARD, type.getName(), type.getHelpText(), type));
+			menu.add(getMenuOpButton(MenuOp.CHOOSE_CARD, type.getName(), type.getHelpText(getRules()), type));
 		}
 		completeMenu();
 		return waitForReturnValue(null);
@@ -1809,7 +1948,24 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 		return waitForReturnValue(null);
 	}
 	
-	public void spinDice(int ... dieToSpin) {
+	/*
+	private ADiceComponent [] getDiceComps(Dice [] config) {
+		int wbIndex = 0;
+		if (config.length == diceComps.length)
+			return diceComps;
+		ADiceComponent [] comps = new ADiceComponent[config.length];
+		for (int i=0; i<config.length; i++) {
+			for (int ii=i; ii<diceComps.length; ii++) {
+				if (diceComps[ii].getType() == config[i].getType()) {
+					comps[i] = diceComps[ii];
+				}
+			}
+		}
+		return comps;
+	}*/
+	
+	
+	public void spinDice(Dice ... dieToSpin) {
 		clearMenu();
 		int delay = 10;
 		long startTime = System.currentTimeMillis();
@@ -1818,9 +1974,8 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 			if (curTime - startTime > diceSpinTimeSeconds*1000)
 				break;
 			for (int i=0; i<dieToSpin.length; i++) {
-				if (dieToSpin[i] > 0) {
-					diceComps[i].setDie(Utils.rand() % 6 + 1);
-				}
+				diceComps[i].setType(dieToSpin[i].getType());
+				diceComps[i].setDie(Utils.rand() % 6 + 1);
 			}
 			try {
 				Thread.sleep(delay);
@@ -1956,7 +2111,8 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
     public void showConfigureGameSettingsPopup(final Rules rules) {
         final JPanel view = new JPanel();
         JScrollPane panel = new JScrollPane();
-        panel.setMinimumSize(new Dimension(300, 300));
+        panel.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        panel.setPreferredSize(new Dimension(1000, 800));
         panel.getViewport().add(view);
         view.setLayout(new GridLayout(0, 2));
 
@@ -1973,7 +2129,9 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
         				RuleVariable ruleVar = (RuleVariable)a;
         				if (ruleVar.separator().length() > 0) {
         					view.add(new JLabel(ruleVar.separator()));
-        			        view.add(new JLabel());
+        					view.add(new JLabel());
+        			        view.add(new JSeparator());
+        			        view.add(new JSeparator());
         				}
         				
         				if (f.getType().equals(boolean.class)) {
@@ -1982,7 +2140,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
         			        view.add(button);
         			        components.put(button,  f);
         				} else if (f.getType().equals(int.class)) {
-        			        view.add(new JLabel(ruleVar.description()));
+        			        view.add(new JLabel("<html><body style='width: 400'/>" + ruleVar.description()));
         			        final JSpinner spinner = new JSpinner(new SpinnerNumberModel(f.getInt(rules), ruleVar.minValue(), ruleVar.maxValue(), ruleVar.valueStep()));
         			        view.add(spinner);
         			        components.put(spinner, f);
@@ -2230,12 +2388,10 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
     	return this.props;
     }
 
-	public void setDice(int ... die) {
-		if (diceComps != null) {
-    		for (int i=0; i<die.length; i++) {
-    			if (die[i] > 0)
-    				diceComps[i].setDie(die[i]);
-    		}
+	public void setDice(Dice ... dice) {
+		for (int i=0; i<dice.length; i++) {
+			diceComps[i].setType(dice[i].getType());
+			diceComps[i].setDie(dice[i].getNum());
 		}
 	}
 	/*

@@ -19,7 +19,7 @@ public enum CommodityType implements ICardType<DevelopmentArea> {
 	}
 
 	@Override
-	public String helpText() {
+	public String helpText(Rules rules) {
 		return helpText;
 	}
 

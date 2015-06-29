@@ -159,7 +159,7 @@ public class GUIPlayerUser extends GUIPlayer {
 	}
 
 	@Override
-	public <T extends Enum<T>> T chooseEnum(SOC soc, EnumChoice mode, T... values) {
+	public <T extends Enum<T>> T chooseEnum(SOC soc, EnumChoice mode, T [] values) {
 		switch (mode) {
 			case DRAW_DEVELOPMENT_CARD:
 				break;
@@ -172,7 +172,7 @@ public class GUIPlayerUser extends GUIPlayer {
 	}
 
 	@Override
-	public boolean setDice(int[] die, int num) {
+	public boolean setDice(Dice [] die, int num) {
 		return GUI.instance.getSetDiceMenu(die, num);
 	}
 

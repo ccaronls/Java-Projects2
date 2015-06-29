@@ -161,8 +161,8 @@ public class Card extends Reflector<Card> implements Comparable <Card> {
 	 * 
 	 * @return
 	 */
-	public final String getHelpText() {
-		return type.dereferenceOrdinal(typeOrdinal).helpText();
+	public final String getHelpText(Rules rules) {
+		return type.dereferenceOrdinal(typeOrdinal).helpText(rules);
 	}
 	
 	/**

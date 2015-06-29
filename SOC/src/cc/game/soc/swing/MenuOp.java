@@ -21,6 +21,7 @@ public enum MenuOp {
 	GEN_RECT_BOARD_MEDIUM("Medium", "Generate a medium rectangular shaped board"),
 	GEN_RECT_BOARD_LARGE("Large", "Generate a large shaped board"),
 	TRIM_BOARD("Trim Board", "Remove empty tiles"),
+	ASSIGN_RANDOM("Assign Random", "Assign values to the random tiles"),
 //	FINALIZE_BOARD("Finalize Board", "Commit board"),
 	SAVE_BOARD_AS_DEFAULT("Save as Default", "Save current board as default board"),
 	LOAD_DEFAULT("Load Default", "Load the default board"),
@@ -45,9 +46,14 @@ public enum MenuOp {
 	RESET_BOARD_ISLANDS("Reset Islands", "Remove island "),
 	CHOOSE_SHIP("Ships", "Show ship choices"),
 	CHOOSE_ROAD("Roads", "Show road choices"),
-	SET_DICE("Set Dice", null),
+	SET_DICE("Set Dice", "Click the dice to set value manually"),
     REWIND_GAME("Rewind Game", "Rewind the game to previous state"),
 	
+    // Debugging
+    COMPUTE_DISTANCES("Compute Distances", "Dump distance info to the console"),
+    LOAD_DEBUG("Load Debug", "Load the Debugging Board"),
+    SAVE_DEBUG("Save Debug", "Save existing board as Debug"),
+    EVALUATE_VERTICES("Eval Verts", "Dump PlayerBot evaluation info to console"),
 	;
 	
 	private MenuOp(String txt, String toolTipText) {

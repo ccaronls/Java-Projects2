@@ -284,34 +284,20 @@ public class GUIPlayer extends PlayerBot {
 				break;
 			case UPGRADE_SHIP:
 				break;
+			case OPPONENT_ROAD_TO_ATTACK:
+				break;
 		}
         
         return route;
 	}
 
 	@Override
-	protected void evaluateVertices(BotNode node, SOC soc, Player p, Board b) {
-		refresh();
-		super.evaluateVertices(node, soc, p, b);
-	}
-
-	@Override
-	protected void evaluateEdges(BotNode node, SOC soc, Player p, Board b) {
-		refresh();
-		super.evaluateEdges(node, soc, p, b);
-	}
-
-	@Override
-	protected void evaluateTiles(BotNode node, SOC soc, Player p, Board b) {
-		refresh();
-		super.evaluateTiles(node, soc, p, b);
-	}
-
-	private void refresh() {
-		GUI.instance.getBoardComponent().repaint();
+	protected void onBoardChanged() {
+		BoardComponent bc = GUI.instance.getBoardComponent();
+		bc.repaint();
         try {
-            synchronized (GUI.instance.getBoardComponent()) {
-                GUI.instance.getBoardComponent().wait(50);
+            synchronized (bc) {
+                bc.wait(50);
             }
         } catch (Exception e) {}
         synchronized (this) {

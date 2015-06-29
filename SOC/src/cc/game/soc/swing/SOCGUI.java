@@ -263,7 +263,11 @@ public class SOCGUI extends SOC {
     }
 
     @Override
-    protected void onPlayerRoadBlocked(Player player, Route road) {
+    protected void onPlayerRoadLengthChanged(Player p, int oldLen, int newLen) {
+    	if (oldLen > newLen)
+    		addCardAnimation(p, "Route Reduced!\n" + "-" + (oldLen - newLen));
+    	else
+    		addCardAnimation(p, "Route Increased!\n" + "+" + (newLen - oldLen));
     }
 
     @Override
@@ -293,7 +297,7 @@ public class SOCGUI extends SOC {
 	}
 
 	@Override
-	protected void onDiceRolled(int... dice) {
+	protected void onDiceRolled(Dice...  dice) {
     	gui.spinDice(dice);
         gui.setDice(dice);
 	}
@@ -465,5 +469,24 @@ public class SOCGUI extends SOC {
 	protected void onAqueduct(Player p) {
 		addCardAnimation(p, "Aqueduct Ability!");
 	}
+
+	@Override
+	protected void onPlayerAttackingOpponent(Player attacker, Player victim, String attackingWhat, int attackerScore, int victimScore) {
+		String message = attacker.getName() + " is attacking " + victim.getName() + "'s " + attackingWhat + "\n"
+				       + attacker.getName() + "'s score : " + attackerScore + "\n"
+				       + victim.getName() + "'s score : " + victimScore;
+		JOptionPane.showMessageDialog(gui.frame, message, "Player Attack!", JOptionPane.PLAIN_MESSAGE);
+	}
+
+	@Override
+	protected void onRoadDestroyed(Route r, Player destroyer, Player victim) {
+		addCardAnimation(victim, "Road Destroyed!");
+	}
+
+	@Override
+	protected void onStructureDestroyed(Vertex v, VertexType newType, Player destroyer, Player victim) {
+		addCardAnimation(victim, v.getType().getNiceName() + " Reduced to " + newType.getNiceName());
+	}
     
+	
 }

@@ -71,7 +71,7 @@ public class PlayerTemp extends Player {
 	}
 
 	@Override
-	public boolean setDice(int[] die, int num) {
+	public boolean setDice(Dice [] die, int num) {
 		// TODO Auto-generated method stub
 		return false;
 	}

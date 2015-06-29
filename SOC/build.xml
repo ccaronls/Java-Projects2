@@ -129,7 +129,7 @@
         target: compile - compile all class to build directory 
         - - - - - - - - - - - - - - - - - -->
     <target name="compile" depends="init">
-        <javac srcdir="${dir.src}" destdir="${dir.build}" debug="on" nowarn="off" source="1.5" target="1.5" deprecation="off" optimize="on">
+        <javac srcdir="${dir.src}" destdir="${dir.build}" debug="on" nowarn="off" source="1.7" target="1.7" deprecation="off" optimize="on">
             <classpath refid="project.classpath" />
         </javac>
     </target>
@@ -138,7 +138,7 @@
         target: junit compile - compile all class to build directory 
         - - - - - - - - - - - - - - - - - -->
     <target name="junit-compile" depends="init">
-        <javac srcdir="${dir.test}" destdir="${dir.build}" debug="on" nowarn="off" source="1.5" target="1.5" deprecation="off" optimize="on">
+        <javac srcdir="${dir.test}" destdir="${dir.build}" debug="on" nowarn="off" source="1.7" target="1.7" deprecation="off" optimize="on">
             <classpath refid="project.test.classpath" />
         </javac>
     </target>

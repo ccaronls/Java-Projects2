@@ -38,20 +38,17 @@ public enum ProgressCardType implements ICardType<DevelopmentArea> {
 	final DevelopmentArea type;
 	final int deckOccurances;
 	final MoveType moveType;
-	final String helpText;
 
 	ProgressCardType(DevelopmentArea type, String helpText, int deckOccurances) { 
 		this.type = type;
 		this.deckOccurances = deckOccurances;
 		this.moveType = null;
-		this.helpText = helpText;
 	}
 	
 	ProgressCardType(DevelopmentArea type, MoveType moveType, int deckOccurances) { 
 		this.type = type;
 		this.deckOccurances = deckOccurances;
 		this.moveType = moveType;
-		this.helpText = moveType.helpText;
 	}
 	
 	@Override
@@ -60,8 +57,8 @@ public enum ProgressCardType implements ICardType<DevelopmentArea> {
 	}
 
 	@Override
-	public String helpText() {
-		return moveType.helpText;
+	public String helpText(Rules rules) {
+		return moveType.getHelpText(rules);
 	}
 
 	@Override

@@ -7,7 +7,7 @@ public interface ICardType<T> {
 	
 	String name();
 	
-	String helpText();
+	String helpText(Rules rules);
 	
 	T getData();
 	

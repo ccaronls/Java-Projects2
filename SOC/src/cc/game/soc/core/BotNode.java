@@ -18,6 +18,7 @@ public abstract class BotNode extends Reflector<BotNode> implements Comparable<B
     private boolean optimal = false;
     private double value = 0;
     private int numProperties = 0;
+    float chance = 1.0f;
     BotNode next;
     final HashMap<String, Double> properties = new HashMap<String, Double>();
     
@@ -109,7 +110,19 @@ public abstract class BotNode extends Reflector<BotNode> implements Comparable<B
 
     public final void addValue(String name, double value) {
     	if (value != 0) {
-    		properties.put(name, value);
+    		properties.put(name, value*chance);
+    	} else {
+    		properties.remove(name);
     	}
+    	numProperties = 0;
+    }
+    
+    public String debugDump() {
+    	StringBuffer buf = new StringBuffer();
+    	for (String key : properties.keySet()) {
+    		buf.append(String.format("%-30s : %s\n", key, properties.get(key)));
+    	}
+    	buf.append("Value=" + getValue());
+    	return buf.toString();
     }
 }

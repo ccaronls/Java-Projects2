@@ -1,5 +1,7 @@
 package cc.game.soc.core;
 
+import java.util.Arrays;
+
 import cc.lib.utils.Reflector;
 
 
@@ -27,6 +29,7 @@ public final class Route extends Reflector<Route> implements Comparable<Route> {
 	private final int from, to;
 	private int	player;	// 0 when unowned, otherwise this edge is a players road
 	private int flags;
+	private final int [] tiles = { -1, -1 };
 	private RouteType type = RouteType.OPEN;
 
 	public Route() {
@@ -43,6 +46,24 @@ public final class Route extends Reflector<Route> implements Comparable<Route> {
 		this.from = from;
 		this.to = to;
 		player = 0;
+	}
+	
+	void addTile(int tIndex) {
+		if (tiles[0] < 0)
+			tiles[0] = tIndex;
+		else if (tiles[1] < 0)
+			tiles[1] = tIndex;
+		else
+			throw new AssertionError("Ropute already has 2 tiles");
+	}
+	
+	/**
+	 * 
+	 * @param index
+	 * @return
+	 */
+	public int getTile(int index) {
+		return tiles[index];
 	}
 	
 	/**
@@ -72,7 +93,7 @@ public final class Route extends Reflector<Route> implements Comparable<Route> {
 	}
 
 	public String toString() {
-	    return "Route " + from + "->" + to + " player (" + player + ") Flags[" + getFlagsString() + "]";
+	    return "Route " + from + "->" + to + " player (" + player + ") Flags[" + getFlagsString() + "] Tiles: " + Arrays.toString(tiles);
 	}
 	
 	public String getFlagsString() {

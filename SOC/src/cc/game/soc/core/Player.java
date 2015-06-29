@@ -703,7 +703,7 @@ public abstract class Player extends Reflector<Player> {
 	}
 	
 	/**
-	 * Return a move or null for not yet choosen.
+	 * Return a move or null for not yet chosen.
 	 * Method will get called continuously until non-null value returned.
 	 * Cannot be cancelled.
 	 * 
@@ -729,9 +729,16 @@ public abstract class Player extends Reflector<Player> {
 		TRADE_METROPOLIS,
 		POLITICS_METROPOLIS,
 		SCIENCE_METROPOLIS,
-		PIRATE_FORTRESS
+		PIRATE_FORTRESS,
+		OPPONENT_STRUCTURE_TO_ATTACK,
 	};
 	
+	/**
+	 * @param soc
+	 * @param vertexIndices
+	 * @param mode
+	 * @return
+	 */
 	public abstract Vertex chooseVertex(SOC soc, Collection<Integer> vertexIndices, VertexChoice mode);
 
 	public static enum RouteChoice {
@@ -740,15 +747,21 @@ public abstract class Player extends Reflector<Player> {
 		UPGRADE_SHIP,
 		SHIP_TO_MOVE,
 		ROUTE_DIPLOMAT, // player chooses from any open route.  If theirs, then they can move it, otherwise opponents are removed from the baord.
+		OPPONENT_ROAD_TO_ATTACK,
 	}
 	
 	public abstract Route chooseRoute(SOC soc, Collection<Integer> routeIndices, RouteChoice mode);
-	
+
 	public static enum RouteChoiceType {
 		ROAD_CHOICE,
 		SHIP_CHOICE
 	}
-	
+
+	/**
+	 * 
+	 * @param soc
+	 * @return
+	 */
 	public abstract RouteChoiceType chooseRouteType(SOC soc);
 	
 	public static enum TileChoice {
@@ -758,13 +771,20 @@ public abstract class Player extends Reflector<Player> {
 		MERCHANT,
 	}
 	
+	/**
+	 * 
+	 * @param soc
+	 * @param tileIndices
+	 * @param mode
+	 * @return
+	 */
 	public abstract Tile chooseTile(SOC soc, Collection<Integer> tileIndices, TileChoice mode);
 	
 	
 	/**
-	 * Return trade to make or null for not yet choosen.
+	 * Return trade to make or null for not yet chosen.
 	 * Method will get called continuously until non-null value returned.
-	 * This method can be canceld.
+	 * This method can be canceled.
 	 * 
 	 * @param soc
 	 * @param trades
@@ -782,7 +802,7 @@ public abstract class Player extends Reflector<Player> {
 	};
 	
 	/**
-	 * Return player to take card from or null for not yet choosen.
+	 * Return player to take card from or null for not yet chosen.
 	 * Method will get called continuously until non-null value returned.
 	 * Cannot be cancelled.
 	 * 
@@ -822,7 +842,7 @@ public abstract class Player extends Reflector<Player> {
 	 * @param values
 	 * @return
 	 */
-	public abstract <T extends Enum<T>> T chooseEnum(SOC soc, EnumChoice mode, T ... values);
+	public abstract <T extends Enum<T>> T chooseEnum(SOC soc, EnumChoice mode, T [] values);
 	
 	/**
 	 * Players sets the dice to values of their choice each in range [1-6] inclusive
@@ -830,6 +850,6 @@ public abstract class Player extends Reflector<Player> {
 	 * @param num length of array to set
 	 * @return true when player completed
 	 */
-	public abstract boolean setDice(int [] die, int num);
+	public abstract boolean setDice(Dice [] dice, int num);
 
 }

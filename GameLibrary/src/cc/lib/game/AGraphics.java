@@ -2,6 +2,7 @@ package cc.lib.game;
 
 import java.util.*;
 
+import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
 
 public abstract class AGraphics implements Utils.VertexList, Renderable {
@@ -106,6 +107,26 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param result
      */
     public abstract void transform(float x, float y, float [] result);
+    
+    /**
+     * 
+     * @param v
+     */
+    public final void transform(MutableVector2D v) {
+    	v.set(transform((IVector2D)v));
+    }
+    
+    /**
+     * 
+     * @param v
+     * @return
+     */
+	public final MutableVector2D transform(IVector2D v) {
+		float [] result = new float[2];
+		transform(v.getX(), v.getY(), result);
+		return new MutableVector2D(result[0], result[1]);
+	}
+
     
     /**
      * Convert screen coordinates (like from a mouse) to view port coordinates
@@ -363,6 +384,16 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * 
      */
     public abstract void drawPoints();
+    
+    /**
+     * 	
+     * @param pointSize
+     */
+    public final void drawPoints(float pointSize) {
+    	float old = setPointSize(pointSize);
+    	drawPoints();
+    	setPointSize(old);
+    }
 
     /**
      * 
@@ -371,14 +402,44 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     
     /**
      * 
+     * @param thickness
+     */
+    public final void drawLines(float thickness) {
+    	float old = setLineWidth(thickness);
+    	drawLines();
+    	setLineWidth(old);
+    }
+    
+    /**
+     * 
      */
     public abstract void drawLineStrip();
+
+    /**
+     * 
+     * @param thickness
+     */
+    public final void drawLineStrip(float thickness) {
+    	float old = setLineWidth(thickness);
+    	drawLineStrip();
+    	setLineWidth(old);
+    }
 
     /**
      * 
      */
     public abstract void drawLineLoop();
     
+    /**
+     * 
+     * @param thickness
+     */
+    public final void drawLineLoop(float thickness) {
+    	float old = setLineWidth(thickness);
+    	drawLineLoop();
+    	setLineWidth(old);
+    }
+
     /**
      * 
      */

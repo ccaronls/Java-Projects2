@@ -1,8 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-  xmlns:android="http://schemas.android.com/apk/res/android"
-  android:layout_width="match_parent"
-  android:layout_height="wrap_content">
-    <ImageView android:id="@+id/die1" android:layout_height="wrap_content" android:layout_width="wrap_content" android:src="@drawable/dice1"></ImageView>
-    <ImageView android:id="@+id/die2" android:layout_height="wrap_content" android:layout_width="wrap_content" android:src="@drawable/dice2"></ImageView>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app1="http://schemas.android.com/apk/res/cc.game.android"
+    android:layout_width="wrap_content"
+    android:layout_height="30dp" >
+
+    <cc.game.android.soc.DiceView 
+        android:id="@+id/die0"
+        style="@style/diceStyle"
+        app1:diceType="event"
+        app1:numDots="5"/>
+    <cc.game.android.soc.DiceView 
+        android:id="@+id/die1"
+        style="@style/diceStyle"
+        app1:diceType="redYellow"
+        app1:numDots="2"/>
+    
+    <cc.game.android.soc.DiceView
+        android:id="@+id/die2"
+        app1:diceType="yellowRed"
+        style="@style/diceStyle"/>
+
+
 </LinearLayout>

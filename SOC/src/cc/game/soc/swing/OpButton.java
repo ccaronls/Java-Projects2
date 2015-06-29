@@ -5,12 +5,16 @@ import javax.swing.JButton;
 @SuppressWarnings("serial")
 public class OpButton extends JButton {
 
-	final Object extra;
+	private final Object extra;
 	
 	OpButton(MenuOp op, String text, Object extra) {
 		super(text);
 		this.setActionCommand(op.name());
 		this.extra = extra;
+	}
+	
+	public Object getExtra() {
+		return extra;
 	}
 	
 }

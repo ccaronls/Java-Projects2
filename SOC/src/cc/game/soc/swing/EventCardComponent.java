@@ -65,7 +65,7 @@ public class EventCardComponent extends JComponent implements DiceChangedListene
 			EventCard card = GUI.instance.getSOC().getTopEventCard();
 			if (card != null) {
 				cardText = card.getType().getNiceString();
-				helpText = card.getHelpText();
+				helpText = card.getHelpText(GUI.instance.getRules());
 				production = card.getProduction();
 			}
 		}

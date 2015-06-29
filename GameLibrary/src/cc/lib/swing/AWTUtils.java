@@ -2,6 +2,7 @@ package cc.lib.swing;
 
 import java.util.List;
 import java.awt.*;
+import java.awt.font.GlyphVector;
 import java.util.*;
 
 import cc.lib.game.Justify;
@@ -122,6 +123,41 @@ public class AWTUtils {
      * @param text
      * @return the total height of the text. 
      */
+    public static int drawJustifiedOutlinedString(Graphics g, int x, int y, Justify hJust, Justify vJust, String text, Color outlineColor, int outlineThickness) {
+        if (text.length() == 0)
+            return 0;
+        String [] lines = text.split("\n");
+        final int textHeight = g.getFontMetrics().getHeight();
+        switch (vJust) {
+        case TOP: 
+            break;
+        case CENTER: 
+            y -= (lines.length * (textHeight+textHeight/3)) / 2;
+            break;
+        case BOTTOM: 
+            y -= (lines.length+1) * textHeight; 
+            break;
+        default:
+            Utils.unhandledCase(vJust.ordinal());
+            break;
+        }
+        for (int i=0; i<lines.length; i++) {
+            y += textHeight;
+            priv_drawJustifiedString(g, x, y, hJust, lines[i], outlineColor, outlineThickness);
+        }
+        return lines.length * textHeight;
+    }
+    
+    /**
+     * Draw a justified block text.  '\n' is a delimiter for seperate lines
+     * @param g
+     * @param x
+     * @param y
+     * @param hJust
+     * @param vJust
+     * @param text
+     * @return the total height of the text. 
+     */
     public static int drawJustifiedString(Graphics g, int x, int y, Justify hJust, Justify vJust, String text) {
         if (text.length() == 0)
             return 0;
@@ -142,12 +178,12 @@ public class AWTUtils {
         }
         for (int i=0; i<lines.length; i++) {
             y += textHeight;
-            priv_drawJustifiedString(g, x, y, hJust, lines[i]);
+            priv_drawJustifiedString(g, x, y, hJust, lines[i], null, 0);
         }
         return lines.length * textHeight;
     }
-
-    /**
+    
+    /*
      * Draw a hJust/TOP justified line of text (no wrapping)
      * @param g
      * @param x
@@ -156,7 +192,7 @@ public class AWTUtils {
      * @param text
      * @return width of the rendered string
      */
-    private static int priv_drawJustifiedString(Graphics g, int x, int y, Justify hJust, String text) {
+    private static int priv_drawJustifiedString(Graphics g, int x, int y, Justify hJust, String text, Color outlineColor, int outlineThickness) {
         int x0 = x;
         final int textWidth = g.getFontMetrics().stringWidth(text);
         switch (hJust) {
@@ -172,8 +208,34 @@ public class AWTUtils {
             Utils.unhandledCase(hJust.ordinal());
             break;
         }
+        
+        if (outlineColor != null && outlineThickness > 0) {
+        	Color save = g.getColor();
+        	g.setColor(outlineColor);
+        	drawOutlinedText(g, x0-1, y-1, text, outlineThickness+1);
+        	g.setColor(save);
+        } 
         g.drawString(text, x0, y);
         return textWidth;
+    }
+    
+    /**
+     * This will draw just the outlined text in the current color.
+     * 
+     * @param g
+     * @param x
+     * @param y
+     * @param text
+     * @param outlineThickness
+     */
+    public static void drawOutlinedText(Graphics g, int x, int y, String text, int outlineThickness) {
+    	Graphics2D g2d = ((Graphics2D)g);
+    	GlyphVector gv = g.getFont().createGlyphVector(g2d.getFontRenderContext(), text);
+    	Shape shape = gv.getOutline();
+    	g2d.setStroke(new BasicStroke(outlineThickness));
+    	g2d.translate(x, y);
+    	g2d.draw(shape);
+    	g2d.translate(-x,  -y);
     }
     
     /**
@@ -289,7 +351,7 @@ public class AWTUtils {
         int th = 0 ;
         final int fh = getFontHeight(g);
         for (int i=0; i<lines.length; i++) {
-        	int width = priv_drawJustifiedString(g, x, y+fh, hJust, lines[i]);
+        	int width = priv_drawJustifiedString(g, x, y+fh, hJust, lines[i], null, 0);
         	if (width > tw)
         		tw = width;
         	y += fh;

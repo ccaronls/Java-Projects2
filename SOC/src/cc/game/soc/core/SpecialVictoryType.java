@@ -21,6 +21,7 @@ public enum SpecialVictoryType implements ICardType<Integer> {
 	Tradesman(1, "Given to the player who controls the Merchant."),  // TODO
 	Constitution(1, "When this prgress card is picked it is emmediately played and cannot be taken."),
 	Printer(1, "When this progress card is picked it is emmediately played and cannot be taken."),
+	Merchant(1, "Given to last player who has placed the Merchant"),
 	
 	/**
 	 * Given to first player to get to 3 harbor points  A settlement on a harbor is 1 pt.  A city is 2 points.
@@ -62,7 +63,7 @@ public enum SpecialVictoryType implements ICardType<Integer> {
 	}
 
 	@Override
-	public String helpText() {
+	public String helpText(Rules rules) {
 		return description;
 	}
 

@@ -103,14 +103,6 @@ public final class AWTGraphics extends AGraphics {
         r.transformXY(x, y, result);
     }
     
-    public final void transform(MutableVector2D v) {
-    	r.transformXY(v);
-    }
-    
-    public final MutableVector2D transform(IVector2D v) {
-    	return r.transformXY(v);
-    }
-    
     @Override
     public final Vector2D screenToViewport(int screenX, int screenY) {
     	return r.untransform(screenX, screenY);
@@ -131,17 +123,9 @@ public final class AWTGraphics extends AGraphics {
         r.drawLines(g, Math.round(mLineThickness));
     }
 
-    public final void drawLines(float thickness) {
-    	r.drawLines(g, Math.round(thickness));
-    }
-    
     @Override
     public void drawLineStrip() {
         r.drawLineStrip(g, Math.round(mLineThickness));
-    }
-
-    public void drawLineStrip(float thickness) {
-        r.drawLineStrip(g, Math.round(thickness));
     }
 
     @Override

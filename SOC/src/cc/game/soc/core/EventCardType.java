@@ -38,7 +38,7 @@ public enum EventCardType implements ICardType<Void> {
 	}
 
 	@Override
-	public String helpText() {
+	public String helpText(Rules rules) {
 		return description;
 	}
 

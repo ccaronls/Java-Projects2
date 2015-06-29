@@ -18,8 +18,6 @@ public enum DevelopmentCardType implements ICardType<Void> {
 	Soldier(MoveType.SOLDIER_CARD, 50, "Use to place the robber"),
 	// seafarers expansion pirate islands scenario
 	Warship(MoveType.WARSHIP_CARD, 50, "Convert a ship into a warship"),
-	
-	
 	;
 	
 	final int deckOccurances;
@@ -38,7 +36,7 @@ public enum DevelopmentCardType implements ICardType<Void> {
 	}
 
 	@Override
-	public String helpText() {
+	public String helpText(Rules rules) {
 		return helpText;
 	}
 

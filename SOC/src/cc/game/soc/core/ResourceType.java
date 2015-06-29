@@ -26,7 +26,7 @@ public enum ResourceType implements ICardType<Void> {
 	}
 	
 	@Override
-	public String helpText() {
+	public String helpText(Rules rules) {
 		return helpText;
 	}
 

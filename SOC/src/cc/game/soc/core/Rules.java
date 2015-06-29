@@ -60,8 +60,8 @@ public final class Rules extends Reflector<Rules> {
 	private int pointsPerCity = 2;
 	@RuleVariable(description="Points for Settlement", minValue=1, maxValue=3)
 	private int pointsPerSettlement = 1;
-	@RuleVariable(description="Min givup hand Cards", minValue=5, maxValue=10)
-	private int minHandSizeForGiveup = 7;
+	@RuleVariable(description="Max number of safe cards in hand", minValue=5, maxValue=10)
+	private int maxSafeCards = 7;
 	@RuleVariable(description="Min Longest Road Length", minValue=3, maxValue=7)
 	private int minLongestLoadLen = 5;
 	@RuleVariable(description="Min largest Army Size", minValue=2, maxValue=4)
@@ -97,10 +97,22 @@ public final class Rules extends Reflector<Rules> {
 	private int numSafeCardsPerCityWall=2;
 	@RuleVariable(description="Points per Metropolis", minValue=3, maxValue=5)
 	private int pointsPerMetropolis=4;
+	@RuleVariable(description="Allow knights to venture off roads 1 unit at a time")
+	private boolean enableKnightExtendedMoves=false;
+	@RuleVariable(description="When non-zero enabled knights to attack opponent roads with die roll + knight level", minValue=0, maxValue=9)
+	private int knightScoreToDestroyRoad=0;
+	@RuleVariable(description="When non-zero enabled knights to attack opponent settlements with die roll + knight level", minValue=0, maxValue=9)
+	private int knightScoreToDestroySettlement=0;
+	@RuleVariable(description="When non-zero enabled knights to attack opponent cities with die roll + knight level", minValue=0, maxValue=9)
+	private int knightScoreToDestroyCity=0;
+	@RuleVariable(description="When non-zero enabled knights to attack opponent walled cities with die roll + knight level", minValue=0, maxValue=9)
+	private int knightScoreToDestroyWalledCity=0;
+	@RuleVariable(description="When non-zero enabled knights to attack opponent metropolis with die roll + knight level", minValue=0, maxValue=9)
+	private int knightScoreToDestroyMetropolis=0;
 	
 	@RuleVariable(description="Use Event Cards instead of dice", separator="Traders & Barbarians expansion")
 	private boolean enableEventCards = false;
-	@RuleVariable(description="Min Victory Points for a player to\nhave Robber placed adjacent to them", minValue=0, maxValue=3, valueStep=1)
+	@RuleVariable(description="Min Victory Points for a player to have Robber placed adjacent to them", minValue=0, maxValue=3, valueStep=1)
 	private int minVictoryPointsForRobber = 0;
 	@RuleVariable(description="Player with most harbor points gets special victory points")
 	private boolean enableHarborMaster = false;
@@ -154,11 +166,11 @@ public final class Rules extends Reflector<Rules> {
 	public final void setPointsPerSettlement(int pointsPerSettlement) {
 		this.pointsPerSettlement = pointsPerSettlement;
 	}
-	public final int getMinHandSizeForGiveup() {
-		return minHandSizeForGiveup;
+	public final int getMaxSafeCards() {
+		return maxSafeCards;
 	}
-	public final void setMinHandSizeForGiveup(int minHandSizeForGiveup) {
-		this.minHandSizeForGiveup = minHandSizeForGiveup;
+	public final void setMaxSafeCards(int maxSafeCards) {
+		this.maxSafeCards = maxSafeCards;
 	}
 	public final int getMinLongestLoadLen() {
 		return minLongestLoadLen;
@@ -231,6 +243,45 @@ public final class Rules extends Reflector<Rules> {
 	}
 	public final void setPointsPerMetropolis(int pointsPerMetropolis) {
 		this.pointsPerMetropolis = pointsPerMetropolis;
+	}
+	public final boolean isEnableKnightExtendedMoves() {
+		return enableKnightExtendedMoves;
+	}
+	public final void setEnableKnightExtendedMoves(boolean enableKnightExtendedMoves) {
+		this.enableKnightExtendedMoves = enableKnightExtendedMoves;
+	}
+	public final int getKnightScoreToDestroyRoad() {
+		return knightScoreToDestroyRoad;
+	}
+	public final void setKnightScoreToDestroyRoad(int knightScoreToDestroyRoad) {
+		this.knightScoreToDestroyRoad = knightScoreToDestroyRoad;
+	}
+	public final int getKnightScoreToDestroySettlement() {
+		return knightScoreToDestroySettlement;
+	}
+	public final void setKnightScoreToDestroySettlement(
+			int knightScoreToDestroySettlement) {
+		this.knightScoreToDestroySettlement = knightScoreToDestroySettlement;
+	}
+	public final int getKnightScoreToDestroyCity() {
+		return knightScoreToDestroyCity;
+	}
+	public final void setKnightScoreToDestroyCity(int knightScoreToDestroyCity) {
+		this.knightScoreToDestroyCity = knightScoreToDestroyCity;
+	}
+	public final int getKnightScoreToDestroyWalledCity() {
+		return knightScoreToDestroyWalledCity;
+	}
+	public final void setKnightScoreToDestroyWalledCity(
+			int knightScoreToDestroyWalledCity) {
+		this.knightScoreToDestroyWalledCity = knightScoreToDestroyWalledCity;
+	}
+	public final int getKnightScoreToDestroyMetropolis() {
+		return knightScoreToDestroyMetropolis;
+	}
+	public final void setKnightScoreToDestroyMetropolis(
+			int knightScoreToDestroyMetropolis) {
+		this.knightScoreToDestroyMetropolis = knightScoreToDestroyMetropolis;
 	}
 	public final int getMinVictoryPointsForRobber() {
 		return minVictoryPointsForRobber;

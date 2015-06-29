@@ -41,6 +41,7 @@ public abstract class BoardComponent extends JComponent implements MouseMotionLi
         SHOW_CELL_INFO,
         SHOW_EDGE_INFO,
         SHOW_VERTEX_INFO,
+        SHOW_ISLAND_INFO,
         
         ;
         RenderFlag() {
@@ -216,6 +217,25 @@ public abstract class BoardComponent extends JComponent implements MouseMotionLi
 		}
 		render.drawLineLoop(g, borderThickness);
 	}
+
+	enum FaceType {
+		SETTLEMENT,
+		CITY,
+		CITY_WALL,
+		SHIP,
+		WAR_SHIP,
+		KNIGHT_ACTIVE_BASIC,
+		KNIGHT_ACTIVE_STRONG,
+		KNIGHT_ACTIVE_MIGHTY,
+		KNIGHT_INACTIVE_BASIC,
+		KNIGHT_INACTIVE_STRONG,
+		KNIGHT_INACTIVE_MIGHTY,
+		METRO_TRADE,
+		METRO_POLITICS,
+		METRO_SCIENCE,
+		MERCHANT,
+		ROBBER,
+	}
 	
 	private static class Face {
 		final float darkenAmount;
@@ -325,12 +345,6 @@ public abstract class BoardComponent extends JComponent implements MouseMotionLi
 	    // hilt
 	    new Face(0.1f, -6,4, -5,3, -1,6, -2,7).setFaceTypes(FaceType.KNIGHT_ACTIVE_MIGHTY),
 
-	    // Merchant
-	    // Diamond
-	    new Face(0.5f, 5,0, 0,5, -5,0, 0,-5).setFaceTypes(FaceType.MERCHANT),
-	    // T
-	    new Face(0.0f, 1,1, 4,1, 2,3, -2,3, -4,1, -1,1, -1,-4, 1,-4).setFaceTypes(FaceType.MERCHANT),
-	    
 	    // Trade Metropolis
 	    // right most building
 	    new Face(0.2f, 2,-4, 5,-4, 5,4, 2,5).setFaceTypes(FaceType.METRO_TRADE),
@@ -385,28 +399,35 @@ public abstract class BoardComponent extends JComponent implements MouseMotionLi
 	    new Face(0.2f, -2,5, -1,4, -4,2, -5,3).setFaceTypes(FaceType.METRO_SCIENCE),
 	    // roof front
 	    new Face(0.5f, -4,2, -1,4, 2,4, 5,2).setFaceTypes(FaceType.METRO_SCIENCE),
+
+	    // Merchant
+	    // Dome
+	    new Face(0.0f, 1,3, 3,2, 4,0, 4,-4, -4,-4, -4,0, -3,2, -1,3).setFaceTypes(FaceType.MERCHANT),
+	    // door
+	    new Face(1.0f, 1,-1, 1,-4, -1,-4, -1,-1).setFaceTypes(FaceType.MERCHANT),
+	    // door flap
+	    new Face(0.2f, 1,-1, -1,-4, -2,-1).setFaceTypes(FaceType.MERCHANT),
+	    // flag
+	    new Face(0.0f, 0,3, 0,6, 3,4).setFaceTypes(FaceType.MERCHANT),
 	    
-	    
+	    // Robber
+	    // Head
+	    new Face(0.0f, 3,2, 3,-4, -3,-4, -3,2).setFaceTypes(FaceType.ROBBER),
+	    // Right Hat
+	    new Face(1.0f, 0,2, 4,2, 4,3, 2,3, 1,5, 0,4).setFaceTypes(FaceType.ROBBER),
+	    // Left Hat
+	    new Face(1.0f, 0,2, -4,2, -4,3, -2,3, -1,5, 0,4).setFaceTypes(FaceType.ROBBER),
+	    // Right Eye
+	    new Face(1.0f, 1,0, 1,1, 3,1, 3,0).setFaceTypes(FaceType.ROBBER),
+	    // Left Eye
+	    new Face(1.0f, -1,0, -1,1, -3,1, -3,0).setFaceTypes(FaceType.ROBBER),
+	    // Right Coat
+	    new Face(1.0f, 1,-2, 4,0, 4,-5, 1,-5).setFaceTypes(FaceType.ROBBER),
+	    // LeftCoat
+	    new Face(1.0f, -1,-2, -4,0, -4,-5, -1,-5).setFaceTypes(FaceType.ROBBER),
+
 	    
 	};
-	    
-	enum FaceType {
-		SETTLEMENT,
-		CITY,
-		CITY_WALL,
-		SHIP,
-		WAR_SHIP,
-		KNIGHT_ACTIVE_BASIC,
-		KNIGHT_ACTIVE_STRONG,
-		KNIGHT_ACTIVE_MIGHTY,
-		KNIGHT_INACTIVE_BASIC,
-		KNIGHT_INACTIVE_STRONG,
-		KNIGHT_INACTIVE_MIGHTY,
-		MERCHANT,
-		METRO_TRADE,
-		METRO_POLITICS,
-		METRO_SCIENCE
-	}
 	
 	void drawSettlement(Graphics g, IVector2D pos, int playerNum, boolean outline) {
 		if (playerNum > 0)
@@ -447,7 +468,12 @@ public abstract class BoardComponent extends JComponent implements MouseMotionLi
 	void drawMerchant(Graphics g, Tile t, int playerNum) {
 		if (playerNum > 0)
 			g.setColor(getPlayerColor(playerNum));
-		drawFaces(g, t, 0, board.getTileWidth()/7, FaceType.MERCHANT, false);
+		drawFaces(g, t, 0, board.getTileWidth()/6, FaceType.MERCHANT, false);
+		g.setColor(Color.WHITE);
+		String txt = "\n2:1\n" + t.getResource().name();
+		Vector2D v = render.transformXY(t);
+		
+		AWTUtils.drawJustifiedString(g, v.Xi()-2, v.Yi()-2-AWTUtils.getFontHeight(g)*2, Justify.CENTER, Justify.TOP, txt);
 	}
 
 	void drawKnight_image(Graphics g, float _x, float _y, int playerNum, int level, boolean active, boolean outline) {
@@ -605,10 +631,10 @@ public abstract class BoardComponent extends JComponent implements MouseMotionLi
 	    render.drawLineStrip(g, roadLineThickness);	
 	}
 
-	public void drawEdge(Graphics g, Route e, int playerNum, boolean outline) {
+	public void drawEdge(Graphics g, Route e, RouteType type, int playerNum, boolean outline) {
 		if (playerNum > 0)
 			g.setColor(getPlayerColor(playerNum));
-		switch (e.getType()) {
+		switch (type) {
 			case OPEN:
 				break;
 			case DAMAGED_ROAD:
@@ -699,6 +725,9 @@ public abstract class BoardComponent extends JComponent implements MouseMotionLi
 	}
 	
 	public void drawRobber(Graphics g, Tile cell) {
+		g.setColor(Color.LIGHT_GRAY);
+		drawFaces(g, cell, 0, getBoard().getTileWidth()/7, FaceType.ROBBER, false);
+		/*
 	    //float [] v = {0,0};
 	    //render.transformXY(board.getCellWidth(), board.getCellHeight(), v);
 		render.clearVerts();
@@ -717,10 +746,13 @@ public abstract class BoardComponent extends JComponent implements MouseMotionLi
         else {
             g.setColor(Color.BLACK);
             g.fillOval(x,y,w,h);
-        }
+        }*/
 	}
 	
 	public void drawPirate(Graphics g, IVector2D v) {
+		g.setColor(Color.BLACK);
+		drawFaces(g, v, 0, getBoard().getTileWidth()/7, FaceType.WAR_SHIP, false);
+		/*
 	    //float [] v = {0,0};
 	    //render.transformXY(board.getCellWidth(), board.getCellHeight(), v);
 		render.clearVerts();
@@ -738,7 +770,7 @@ public abstract class BoardComponent extends JComponent implements MouseMotionLi
         else {
             g.setColor(Color.BLACK);
             g.fillOval(x,y,w,h);
-        }
+        }*/
 	}
 
 	/**
@@ -768,25 +800,35 @@ public abstract class BoardComponent extends JComponent implements MouseMotionLi
 
     	Tile cell = board.getTile(tileIndex);
     	if (cell.getIslandNum() > 0) {
-        	MutableVector2D midpoint = new MutableVector2D();
-        	int num = 0;
-        	for (int eIndex : islandEdges) {
-        		midpoint.addEq(board.getRouteMidpoint(board.getRoute(eIndex)));
-        		num++;
-        	}
-        	midpoint.scaleEq(1.0f / num);
-        	render.transformXY(midpoint);
-        	String txt = "ISLAND\n" + cell.getIslandNum();
-        	Dimension dim = AWTUtils.computeTextDimension(g, txt);
-        	g.setColor(new Color(0,0,0,0.5f));
-        	int x = midpoint.Xi() - (dim.width/2+5);
-        	int y = midpoint.Yi() - (dim.height/2+5);
-        	int w = dim.width + 10;
-        	int h = dim.height + 10;
-        	g.fillRect(x, y, w, h);
-        	g.setColor(Color.white);
-        	AWTUtils.drawJustifiedString(g, midpoint.Xi(), midpoint.Yi(), Justify.CENTER, Justify.CENTER, txt);
-    	}		
+    		drawIslandInfo(g, getBoard().getIsland(cell.getIslandNum()));
+    	}
+	}
+	
+	public void drawIslandInfo(Graphics g, Island i) {
+		render.clearVerts();
+		g.setColor(Color.BLUE);
+    	for (int eIndex : i.getShoreline()) {
+    		renderEdge(board.getRoute(eIndex));
+    	}
+    	render.drawLines(g, 5);
+    	MutableVector2D midpoint = new MutableVector2D();
+    	int num = 0;
+    	for (int eIndex : i.getShoreline()) {
+    		midpoint.addEq(board.getRouteMidpoint(board.getRoute(eIndex)));
+    		num++;
+    	}
+    	midpoint.scaleEq(1.0f / num);
+    	render.transformXY(midpoint);
+    	String txt = "ISLAND\n" + i.getNum();
+    	Dimension dim = AWTUtils.computeTextDimension(g, txt);
+    	g.setColor(new Color(0,0,0,0.5f));
+    	int x = midpoint.Xi() - (dim.width/2+5);
+    	int y = midpoint.Yi() - (dim.height/2+5);
+    	int w = dim.width + 10;
+    	int h = dim.height + 10;
+    	g.fillRect(x, y, w, h);
+    	g.setColor(Color.white);
+    	AWTUtils.drawJustifiedString(g, midpoint.Xi(), midpoint.Yi(), Justify.CENTER, Justify.CENTER, txt);
 	}
 	
     private void drawTilesOutlined(Graphics g) {
@@ -1047,7 +1089,7 @@ public abstract class BoardComponent extends JComponent implements MouseMotionLi
                     }
                 	Route e = board.getRoute(i);
         			g.setColor(getPlayerColor(e.getPlayer()));
-        			drawEdge(g, e, e.getPlayer(), false);
+        			drawEdge(g, e, e.getType(), e.getPlayer(), false);
         		}
             }
             
@@ -1153,6 +1195,12 @@ public abstract class BoardComponent extends JComponent implements MouseMotionLi
     		    }
     		}
     		
+    		if (getRenderFlag(RenderFlag.SHOW_ISLAND_INFO)) {
+    			for (Island i : getBoard().getIslands()) {
+    				drawIslandInfo(g, i);
+    			}
+    		}
+
     		if (getRenderFlag(RenderFlag.SHOW_CELL_INFO)) {
     		    if (cellInfoIndex >= 0) {
     		        this.drawTileInfo(g, cellInfoIndex);
@@ -1170,7 +1218,7 @@ public abstract class BoardComponent extends JComponent implements MouseMotionLi
     		        this.drawVertexInfo(g, vertexInfoIndex);
     		    }
     		}
-    
+    		
     		if (animations.size() > 0) {
         		do {
         		    long exitTime = System.currentTimeMillis();
@@ -1181,7 +1229,7 @@ public abstract class BoardComponent extends JComponent implements MouseMotionLi
                 repaint();
     		}
     		
-    		// notify anyone wait on me
+    		// notify anyone waiting on me
     		synchronized (this) {
     		    notifyAll();
     		}
@@ -1339,6 +1387,7 @@ public abstract class BoardComponent extends JComponent implements MouseMotionLi
             info += "\n  Player " + edge.getPlayer();
         info += "\n  " + edge.getFlagsString();
         info += "\n  ang=" + getEdgeAngle(edge);
+        info += "\n  tiles=" + edge.getTile(0) + "/" + edge.getTile(1);
         
         MutableVector2D m = new MutableVector2D(board.getRouteMidpoint(edge));
         render.transformXY(m);
@@ -1351,13 +1400,17 @@ public abstract class BoardComponent extends JComponent implements MouseMotionLi
             return;
         Vertex vertex = board.getVertex(vertexIndex);
         String info = "VERTEX " + vertexIndex;
-        if (vertex.getPlayer() > 0)
+        if (vertex.isAdjacentToWater())
+        	info += " WAT";
+        if (vertex.isAdjacentToLand())
+        	info += " LND";
+        if (vertex.getPlayer() > 0) {
             info += "\n  Player " + vertex.getPlayer() + "\n  " + (vertex.isCity() ? 
                     "City +2" : 
                     "Settlement +1");
-        else {
+        } else {
             int pNum = board.checkForPlayerRouteBlocked(vertexIndex);
-            info += "\n  Blocks plater " + pNum + "'s roads";
+            info += "\n  Blocks player " + pNum + "'s roads";
         }
         float [] v = { vertex.getX(), vertex.getY() };
         render.transformXY(v);

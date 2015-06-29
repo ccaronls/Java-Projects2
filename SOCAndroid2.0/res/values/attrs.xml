@@ -8,4 +8,19 @@
         <attr name="roadThickness" format="integer"/>
         <attr name="textHeight" format="dimension"/>
     </declare-styleable>
+    
+    <declare-styleable name="DiceView">
+        <attr name="numDots"  format="integer"/>
+        <attr name="dotSize"  format="dimension" />
+        <attr name="buildingDrawable" format="reference"/>
+        <attr name="shipDrawable" format="reference"/>
+        <attr name="diceType" format="enum">
+            <enum name="none" value="0"/>
+            <enum name="whiteBlack" value="1"/>
+            <enum name="yellowRed" value="2"/>
+            <enum name="redYellow" value="3"/>
+            <enum name="event" value="4"/>
+        </attr>
+    </declare-styleable>
+    
 </resources>  

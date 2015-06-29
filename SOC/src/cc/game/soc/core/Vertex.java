@@ -44,7 +44,7 @@ public final class Vertex extends Reflector<Vertex> implements IVector2D {
 	 * 
 	 * 
 	 */
-	void reset() {
+	public void reset() {
 		player = 0;
 		type = VertexType.OPEN;
 	}

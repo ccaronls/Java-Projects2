@@ -66,9 +66,9 @@ public class PlayerRandom extends Player {
 	}
 
 	@Override
-	public boolean setDice(int[] die, int num) {
+	public boolean setDice(Dice [] die, int num) {
 		for (int i=0; i<num; i++) {
-			die[i] = 1 + Utils.rand() % 6;
+			die[i].roll();
 		}
 		return true;
 	}
