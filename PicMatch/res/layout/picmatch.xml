@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent" >
+    android:layout_height="match_parent" 
+    android:background="@android:color/white">
     
     <LinearLayout android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -12,10 +13,11 @@
             android:layout_height="0dp"
             android:layout_weight="1">
             <ImageView android:id="@+id/iv1"
-                style="@style/imageViewStyle"
+                style="@style/imageView"
                 android:src="@android:drawable/star_big_on"/>
+
             <ImageView android:id="@+id/iv2"
-                style="@style/imageViewStyle"
+                style="@style/imageView"
                 android:src="@android:drawable/star_big_on"/>
             
         </LinearLayout>
@@ -24,10 +26,10 @@
             android:layout_height="0dp"
             android:layout_weight="1">
             <ImageView android:id="@+id/iv3"
-                style="@style/imageViewStyle"
+                style="@style/imageView"
                 android:src="@android:drawable/star_big_on"/>
-            <ImageView android:id="@+id/ivQmark"
-                style="@style/imageViewStyle"
+            <ImageView android:id="@+id/iv4"
+                style="@style/imageView"
                 android:src="@drawable/qmark"/>
             
             
@@ -35,28 +37,37 @@
         
     </LinearLayout>
 
-    <ImageView android:id="@+id/ivChoice1"
-        style="@style/imageViewStyle"
+    <ImageButton
+        android:id="@+id/ivChoice1"
+        style="@style/imageView.Choice"
         android:layout_alignParentLeft="true"
         android:layout_alignParentTop="true"
-        android:src="@android:drawable/star_big_on"/>
+        android:src="@android:drawable/star_big_on" />
         
-    <ImageView android:id="@+id/ivChoice2"
-        style="@style/imageViewStyle"
+    <ImageButton android:id="@+id/ivChoice2"
+        style="@style/imageView.Choice"
         android:layout_alignParentRight="true"
         android:layout_alignParentTop="true"
         android:src="@android:drawable/star_big_on"/>
 
-    <ImageView android:id="@+id/ivChoice3"
-        style="@style/imageViewStyle"
+    <ImageButton android:id="@+id/ivChoice3"
+        style="@style/imageView.Choice"
         android:layout_alignParentLeft="true"
         android:layout_alignParentBottom="true"
         android:src="@android:drawable/star_big_on"/>
     
-    <ImageView android:id="@+id/ivChoice4"
-        style="@style/imageViewStyle"
+    <ImageButton android:id="@+id/ivChoice4"
+        style="@style/imageView.Choice"
         android:layout_alignParentRight="true"
         android:layout_alignParentBottom="true"
         android:src="@android:drawable/star_big_on"/>
+    
+    <ImageView android:id="@+id/overlay"
+        style="@style/imageView"
+        android:layout_centerInParent="true"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:background="@android:color/transparent"
+        android:visibility="gone"/>
     
 </RelativeLayout>

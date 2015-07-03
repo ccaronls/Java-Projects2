@@ -17,11 +17,15 @@
         <!-- All customizations that are NOT specific to a particular API-level can go here. -->
     </style>
     
-    <style name="imageViewStyle">
+    <style name="imageView">
         <item name="android:padding">10dp</item>
-        <item name="android:scaleType">centerInside</item>
+        <item name="android:scaleType">fitCenter</item>
         <item name="android:layout_width">120dp</item>
         <item name="android:layout_height">120dp</item>
+    </style>
+    
+    <style name="imageView.Choice">
+        <item name="android:background">@drawable/button_selector</item>
     </style>
 
 </resources>

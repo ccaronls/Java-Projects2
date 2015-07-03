@@ -13,8 +13,18 @@ int attr rowCount 0x7f010001
 int attr rowOrderPreserved 0x7f010005
 int attr useDefaultMargins 0x7f010003
 int dimen default_gap 0x7f050000
-int drawable ic_launcher 0x7f020000
-int drawable qmark 0x7f020001
+int drawable border 0x7f020000
+int drawable border_selected 0x7f020001
+int drawable button_selector 0x7f020002
+int drawable happy0 0x7f020003
+int drawable happy1 0x7f020004
+int drawable happy2 0x7f020005
+int drawable ic_launcher 0x7f020006
+int drawable qmark 0x7f020007
+int drawable qmark2 0x7f020008
+int drawable sad0 0x7f020009
+int drawable sad1 0x7f02000a
+int drawable sad2 0x7f02000b
 int id alignBounds 0x7f040002
 int id alignMargins 0x7f040003
 int id bottom 0x7f040005
@@ -31,12 +41,13 @@ int id horizontal 0x7f040000
 int id iv1 0x7f040012
 int id iv2 0x7f040013
 int id iv3 0x7f040014
+int id iv4 0x7f040015
 int id ivChoice1 0x7f040016
 int id ivChoice2 0x7f040017
 int id ivChoice3 0x7f040018
 int id ivChoice4 0x7f040019
-int id ivQmark 0x7f040015
 int id left 0x7f040006
+int id overlay 0x7f04001a
 int id right 0x7f040007
 int id start 0x7f040010
 int id top 0x7f040004
@@ -46,7 +57,8 @@ int layout picmatch 0x7f030001
 int string app_name 0x7f060000
 int style AppBaseTheme 0x7f070000
 int style AppTheme 0x7f070001
-int style imageViewStyle 0x7f070002
+int style imageView 0x7f070002
+int style imageView_Choice 0x7f070003
 int[] styleable GridLayout { 0x7f010000, 0x7f010001, 0x7f010002, 0x7f010003, 0x7f010004, 0x7f010005, 0x7f010006 }
 int styleable GridLayout_alignmentMode 4
 int styleable GridLayout_columnCount 2
