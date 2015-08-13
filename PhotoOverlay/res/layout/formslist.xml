@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+
+    <LinearLayout android:id="@+id/footer"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content">
+	    <Button
+	        android:id="@+id/buttonNewForm"
+	        android:layout_width="0dp"
+	        android:layout_height="wrap_content"
+	        android:layout_weight="1"
+	        android:text="New Verification" />
+
+        <Button
+            android:id="@+id/buttonOptions"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Options" />
+	    
+        
+    </LinearLayout>
+
+    <TextView android:id="@+id/tvFormCount"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:text="form count"/>
+
+    <cc.lib.android.SortButtonGroup
+        android:id="@+id/sortButtonGroup"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/tvFormCount"
+        android:orientation="horizontal" >
+
+        <cc.lib.android.SortButton
+            style="@style/sortButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:paddingLeft="10dp"
+            android:text="Date"
+            app:sortAscending="false"
+            app:sortField="EDIT_DATE" />
+        
+        <cc.lib.android.SortButton
+            style="@style/sortButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Address"
+            app:sortField="LOCATION" />
+        
+        <cc.lib.android.SortButton
+            style="@style/sortButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Customer"
+            app:sortField="CUSTOMER" />
+        
+        <cc.lib.android.SortButton
+            style="@style/sortButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Passed"
+            app:sortField="PASSED" />
+        
+    </cc.lib.android.SortButtonGroup>
+    
+    <ListView
+        android:id="@+id/formList"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_above="@id/footer"
+        android:layout_below="@id/sortButtonGroup"
+        android:layout_marginTop="10dp" />
+    
+</RelativeLayout>

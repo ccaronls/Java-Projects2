@@ -1547,7 +1547,7 @@ public class Utils {
 	}
 
 	public static List<Integer> asList(int [] arr, int start, int num) {
-		List<Integer> list = new ArrayList<>();
+		List<Integer> list = new ArrayList<Integer>();
 		for (int i=0; i<num; i++) {
 			list.add(arr[start+i]);
 		}
@@ -1662,4 +1662,16 @@ public class Utils {
 		return values[ordinal];
 	}
     
+    /**
+     * Convert enum array to string array
+     * @param values
+     * @return
+     */
+    public static <T extends Enum<T>> String [] toStringArray(T [] values) {
+    	String [] result = new String[values.length];
+    	for (int i=0; i<values.length; i++) {
+    		result[i] = values[i].name();
+    	}
+    	return result;
+    }
 }

@@ -13,5 +13,37 @@
         
     </declare-styleable>
     
+    <declare-styleable name="SortButton">
+        <attr name="sortAscending" format="boolean"/>
+        <attr name="sortField" format="string"/>
+    </declare-styleable>
+    
+    <declare-styleable name="StatusMeterView">
+        <attr name="direction" format="enum" description="direction to draw (default left-to-right)">
+            <enum name="left_to_right"     value="0"   description="display horizontally left to right"/>
+            <enum name="right_to_left"     value="1"   description="display horizontally right to left"/>
+            <enum name="top_to_bottom"     value="2"   description="display vertically top to bottom"/>
+            <enum name="bottom_to_top"     value="3"   description="display vertically bottom to top"/>
+        </attr>
+        <attr name="meterColor"         format="color|reference"    description="default bar color to render the bars when not part of the meter.  default black."/>
+        <attr name="meterTotal"         format="integer"            description="total number of bars in the meter.  default 8"/>
+        <attr name="meterPoor"          format="integer"            description="number of bars for low.  renders in poorColor.  default 1/3 of total."/>
+        <attr name="poorColor"          format="color|reference"    description="color to render when poor. default red"/>
+        <attr name="meterFair"          format="integer"            description="number of bars for fair.  renders in fairColor.  default 2/3 of total"/>
+        <attr name="fairColor"          format="color|reference"    description="color to render when fair.  default yellow"/>
+        <attr name="goodColor"          format="color|reference"    description="color to render when good (bars > fair).  default green"/>
+        <attr name="textView"           format="reference"          description="optional id to text view to show precise meter value"/>
+        <attr name="meterMaxValue"      format="float"              description="max value of meter.  default 1.0" />
+        <attr name="meterValue"         format="float"              description="initial value for the meter.  default 0"/>
+        <attr name="rounded"            format="boolean"            description="set to true to render bars with rounded edges.  default is false."/>
+        <attr name="drawable"           format="reference"          description="drawable to use for bars.  Overrides rounded.  default is none"/>
+        <attr name="meterThickness"     format="dimension"          description="thickness of a single meter bar"/>
+        <attr name="meterSpacing"       format="dimension"          description="Space inbetween bars"/>
+        <attr name="meterStyle"         format="enum">
+            <enum name="onecolor"       value="0"           description="All bars are rendered in the same color depending on meter value (default)"/>
+            <enum name="multicolor"     value="1"           description="Bar are rendered in their range color to support.  For instance sound meters."/>
+        </attr>
+        <attr name="animatePeaks"       format="boolean"            description="When true, peaks are animated, meaning they fall off gradually"/>
+    </declare-styleable>
     
 </resources>

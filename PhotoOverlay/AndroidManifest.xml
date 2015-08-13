@@ -22,17 +22,34 @@
         android:screenOrientation="sensor"
         android:theme="@android:style/Theme.NoTitleBar.Fullscreen">
         
+        <!--  Ridiculous way to hack around gmail not sending attachments that are not on the SDCard -->
+        <provider android:name="cc.lib.android.EmailHelper" android:authorities="@string/cached_file_provider_authority" android:exported="true"/>
+        
         <activity android:name=".PhotoOverlay"
             >
+            <!-- 
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter> 
+             -->
+        </activity>
+        
+        <activity android:name=".Settings" android:screenOrientation="sensor"/>
+        
+        <activity android:name=".Splash"
+            android:screenOrientation="portrait"
+            >
+        </activity>
+        
+        <activity android:name=".FormsList" android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter> 
             
         </activity>
-        
-        <activity android:name=".Settings" android:screenOrientation="sensor"/>
-        
+        <activity android:name=".FormEdit"/>
         
     </application>
 

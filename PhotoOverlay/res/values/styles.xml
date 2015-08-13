@@ -1,4 +1,4 @@
-<resources>
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
 
     <!--
         Base application theme, dependent on API level. This theme is replaced
@@ -17,4 +17,13 @@
         <!-- All customizations that are NOT specific to a particular API-level can go here. -->
     </style>
 
+    <style name="sortButton">
+       <item name="android:button">@null</item>
+       <item name="android:gravity">left|center_vertical</item>
+       <item name="android:drawableRight">@drawable/sort_arrow</item>
+       <item name="android:padding">5dp</item>
+       <item name="android:textSize">12sp</item>
+       <item name="android:background">@drawable/sort_button_bk</item>
+    </style>
+    
 </resources>

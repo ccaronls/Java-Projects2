@@ -2,4 +2,6 @@
 
     <string name="app_name">AndroidGameLibrary</string>
 
+    <string name="cached_file_provider_authority">cc.android.applications</string>
+    
 </resources>

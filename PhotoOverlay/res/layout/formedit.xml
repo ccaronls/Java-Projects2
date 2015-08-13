@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+	<ScrollView
+	    android:layout_width="match_parent"
+	    android:layout_height="wrap_content" >
+	
+		<RelativeLayout
+		    android:layout_width="match_parent"
+		    android:layout_height="wrap_content" >
+		
+		    <View
+		        android:id="@+id/anchor"
+		        android:layout_width="0dp"
+		        android:layout_height="0dp"
+		        android:layout_centerInParent="true" />
+		
+		    <TextView
+		        android:id="@+id/tvDate"
+		        android:layout_width="wrap_content"
+		        android:layout_height="wrap_content"
+		        android:layout_alignParentLeft="true"
+		        android:layout_alignParentTop="true"
+		        android:text="Tues 1/12/99 2:00 am"
+		        android:textAppearance="?android:attr/textAppearanceLarge" />
+		
+		    <EditText
+		        android:id="@+id/etCustomer"
+		        android:layout_width="fill_parent"
+		        android:layout_height="wrap_content"
+		        android:layout_below="@+id/tvDate"
+		        android:layout_centerHorizontal="true"
+		        android:ems="10"
+		        android:hint="Customer"
+		        android:nextFocusDown="@+id/etLocation" >
+		
+		        <requestFocus />
+		    </EditText>
+		
+		    <EditText
+		        android:id="@+id/etLocation"
+		        android:layout_width="fill_parent"
+		        android:layout_height="wrap_content"
+		        android:layout_alignParentLeft="true"
+		        android:layout_below="@+id/etCustomer"
+		        android:ems="10"
+		        android:hint="Location"
+		        android:nextFocusDown="@+id/etSystem" />
+		
+		    <EditText
+		        android:id="@+id/etSystem"
+		        android:layout_width="fill_parent"
+		        android:layout_height="wrap_content"
+		        android:layout_below="@+id/etLocation"
+		        android:layout_centerHorizontal="true"
+		        android:ems="10"
+		        android:hint="System"
+		        android:nextFocusDown="@+id/etPlain" />
+		
+		    <EditText
+		        android:id="@+id/etPlain"
+		        android:layout_width="wrap_content"
+		        android:layout_height="wrap_content"
+		        android:layout_alignParentLeft="true"
+		        android:layout_below="@+id/etSystem"
+		        android:layout_toLeftOf="@+id/anchor"
+		        android:ems="10"
+		        android:hint="Plain"
+		        android:nextFocusDown="@+id/etDetail" />
+		
+		    <EditText
+		        android:id="@+id/etDetail"
+		        android:layout_width="wrap_content"
+		        android:layout_height="wrap_content"
+		        android:layout_below="@+id/etPlain"
+		        android:layout_toLeftOf="@+id/anchor"
+		        android:layout_weight="1"
+		        android:ems="10"
+		        android:hint="Detail"
+		        android:nextFocusDown="@+id/etComments" />
+		
+		    <RadioGroup
+		        android:id="@+id/rgType"
+		        android:layout_width="wrap_content"
+		        android:layout_height="wrap_content"
+		        android:layout_alignParentRight="true"
+		        android:layout_alignTop="@+id/etPlain"
+		        android:layout_toRightOf="@+id/etPlain" >
+		
+		        <RadioButton
+		            android:id="@+id/rbMechanical"
+		            android:layout_width="wrap_content"
+		            android:layout_height="wrap_content"
+		            android:checked="true"
+		            android:text="Mechanical" />
+		
+		        <RadioButton
+		            android:id="@+id/rbPlumbing"
+		            android:layout_width="wrap_content"
+		            android:layout_height="wrap_content"
+		            android:text="Plumbing" />
+		
+		        <RadioButton
+		            android:id="@+id/rbProcess"
+		            android:layout_width="wrap_content"
+		            android:layout_height="wrap_content"
+		            android:text="Process" />
+		    </RadioGroup>
+		
+		    <ImageButton
+		        android:id="@+id/ibImage1"
+		        android:layout_width="180dp"
+		        android:layout_height="180dp"
+		        android:layout_alignParentLeft="true"
+		        android:layout_below="@+id/rgType"
+		        android:scaleType="fitCenter"
+		        android:src="@android:drawable/ic_menu_add" />
+		
+		    <ImageButton
+		        android:id="@+id/ibImage2"
+		        android:layout_width="180dp"
+		        android:layout_height="180dp"
+		        android:layout_alignParentRight="true"
+		        android:layout_below="@+id/rgType"
+		        android:scaleType="fitCenter"
+		        android:src="@android:drawable/ic_menu_add" />
+		
+		    <EditText
+		        android:id="@+id/etComments"
+		        android:layout_width="fill_parent"
+		        android:layout_height="wrap_content"
+		        android:layout_below="@+id/ibImage1"
+		        android:layout_centerHorizontal="true"
+		        android:ems="10"
+		        android:hint="Comments"
+		        android:inputType="textMultiLine"
+		        android:minLines="3" />
+		
+		    <CheckBox
+		        android:id="@+id/cbPassed"
+		        android:layout_width="wrap_content"
+		        android:layout_height="wrap_content"
+		        android:layout_above="@+id/ibImage1"
+		        android:layout_alignParentLeft="true"
+		        android:layout_alignRight="@+id/anchor"
+		        android:text="Passed" />
+		
+		</RelativeLayout>
+	</ScrollView>
+	<LinearLayout android:layout_width="fill_parent"
+	    android:layout_height="wrap_content"
+	    android:orientation="horizontal">
+	    
+	    <Button android:id="@+id/buttonSave"
+	        android:layout_width="0dp"
+	        android:layout_height="wrap_content"
+	        android:layout_weight="1"
+	        android:text="Save"/>
+        <Button android:id="@+id/buttonCancel"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Cancel"/>
+	    	    
+	</LinearLayout>
+</LinearLayout>
