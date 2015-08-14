@@ -204,7 +204,8 @@ public class EmailHelper extends ContentProvider {
      */
     public static void sendEmail(Context context, File attachmentInCacheDir, String to, String subject, String body) {
         Intent intent  = new Intent(Intent.ACTION_SEND);//TO, Uri.fromParts("mailto",to, null));
-        intent.setData(Uri.fromParts("mailto",to, null));
+        if (to != null)
+        	intent.setData(Uri.fromParts("mailto",to, null));
         intent.putExtra(Intent.EXTRA_EMAIL, new String[] { to });
         intent.putExtra(Intent.EXTRA_SUBJECT, subject);
         intent.putExtra(Intent.EXTRA_TEXT, body);

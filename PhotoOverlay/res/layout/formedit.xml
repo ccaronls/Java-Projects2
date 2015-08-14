@@ -27,7 +27,7 @@
 		        android:text="Tues 1/12/99 2:00 am"
 		        android:textAppearance="?android:attr/textAppearanceLarge" />
 		
-		    <EditText
+		    <AutoCompleteTextView
 		        android:id="@+id/etCustomer"
 		        android:layout_width="fill_parent"
 		        android:layout_height="wrap_content"
@@ -35,12 +35,10 @@
 		        android:layout_centerHorizontal="true"
 		        android:ems="10"
 		        android:hint="Customer"
-		        android:nextFocusDown="@+id/etLocation" >
+		        android:imeOptions="actionNext"
+		        android:singleLine="true" />
 		
-		        <requestFocus />
-		    </EditText>
-		
-		    <EditText
+		    <AutoCompleteTextView
 		        android:id="@+id/etLocation"
 		        android:layout_width="fill_parent"
 		        android:layout_height="wrap_content"
@@ -48,9 +46,10 @@
 		        android:layout_below="@+id/etCustomer"
 		        android:ems="10"
 		        android:hint="Location"
-		        android:nextFocusDown="@+id/etSystem" />
+		        android:imeOptions="actionNext"
+		        android:singleLine="true" />
 		
-		    <EditText
+		    <AutoCompleteTextView
 		        android:id="@+id/etSystem"
 		        android:layout_width="fill_parent"
 		        android:layout_height="wrap_content"
@@ -58,9 +57,10 @@
 		        android:layout_centerHorizontal="true"
 		        android:ems="10"
 		        android:hint="System"
-		        android:nextFocusDown="@+id/etPlain" />
+		        android:imeOptions="actionNext"
+		        android:singleLine="true" />
 		
-		    <EditText
+		    <AutoCompleteTextView
 		        android:id="@+id/etPlain"
 		        android:layout_width="wrap_content"
 		        android:layout_height="wrap_content"
@@ -69,9 +69,10 @@
 		        android:layout_toLeftOf="@+id/anchor"
 		        android:ems="10"
 		        android:hint="Plain"
-		        android:nextFocusDown="@+id/etDetail" />
+		        android:imeOptions="actionNext"
+		        android:singleLine="true" />
 		
-		    <EditText
+		    <AutoCompleteTextView
 		        android:id="@+id/etDetail"
 		        android:layout_width="wrap_content"
 		        android:layout_height="wrap_content"
@@ -80,7 +81,8 @@
 		        android:layout_weight="1"
 		        android:ems="10"
 		        android:hint="Detail"
-		        android:nextFocusDown="@+id/etComments" />
+		        android:imeOptions="actionDone"
+		        android:singleLine="true" />
 		
 		    <RadioGroup
 		        android:id="@+id/rgType"
@@ -117,7 +119,7 @@
 		        android:layout_alignParentLeft="true"
 		        android:layout_below="@+id/rgType"
 		        android:scaleType="fitCenter"
-		        android:src="@android:drawable/ic_menu_add" />
+		        android:background="@android:drawable/ic_menu_add" />
 		
 		    <ImageButton
 		        android:id="@+id/ibImage2"
@@ -126,7 +128,7 @@
 		        android:layout_alignParentRight="true"
 		        android:layout_below="@+id/rgType"
 		        android:scaleType="fitCenter"
-		        android:src="@android:drawable/ic_menu_add" />
+		        android:background="@android:drawable/ic_menu_add" />
 		
 		    <EditText
 		        android:id="@+id/etComments"

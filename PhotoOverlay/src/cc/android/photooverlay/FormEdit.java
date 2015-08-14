@@ -4,13 +4,9 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.util.Date;
 
-import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
-import android.database.DatabaseErrorHandler;
-import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.Matrix;
 import android.media.ThumbnailUtils;
@@ -19,7 +15,8 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
-import android.view.View.OnClickListener;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -32,11 +29,11 @@ public class FormEdit extends BaseActivity {
 	final static String INTENT_FORM = "FORM";
 	
 	TextView tvDate;
-	EditText etCustomer;
-	EditText etLocation;
-	EditText etSystem;
-	EditText etPlain;
-	EditText etDetail;
+	AutoCompleteTextView etCustomer;
+	AutoCompleteTextView etLocation;
+	AutoCompleteTextView etSystem;
+	AutoCompleteTextView etPlain;
+	AutoCompleteTextView etDetail;
 	EditText etComments;
 	
 	RadioGroup rgType;
@@ -46,17 +43,31 @@ public class FormEdit extends BaseActivity {
 	
 	Form form;
 	
+	private ArrayAdapter<String> getAutoCompleteAdapter(FormHelper.Column column) {
+		return new ArrayAdapter<String>(getActivity(), android.R.layout.simple_dropdown_item_1line, getFormHelper().getDistictValuesForColumn(column));
+	}
+	
 	@Override
 	public void onCreate(Bundle bundle) {
 		super.onCreate(bundle);
 		setContentView(R.layout.formedit);
 
 		tvDate = (TextView)findViewById(R.id.tvDate);
-		etCustomer = (EditText)findViewById(R.id.etCustomer);
-		etLocation = (EditText)findViewById(R.id.etLocation);
-		etSystem  = (EditText)findViewById(R.id.etSystem);
-		etPlain = (EditText)findViewById(R.id.etPlain);
-		etDetail = (EditText)findViewById(R.id.etDetail);
+		etCustomer = (AutoCompleteTextView)findViewById(R.id.etCustomer);
+		etCustomer.setAdapter(getAutoCompleteAdapter(FormHelper.Column.CUSTOMER));
+
+		etLocation = (AutoCompleteTextView)findViewById(R.id.etLocation);
+		etLocation.setAdapter(getAutoCompleteAdapter(FormHelper.Column.LOCATION));
+		
+		etSystem  = (AutoCompleteTextView)findViewById(R.id.etSystem);
+		etSystem.setAdapter(getAutoCompleteAdapter(FormHelper.Column.SYSTEM));
+		
+		etPlain = (AutoCompleteTextView)findViewById(R.id.etPlain);
+		etPlain.setAdapter(getAutoCompleteAdapter(FormHelper.Column.PLAIN));
+		
+		etDetail = (AutoCompleteTextView)findViewById(R.id.etDetail);
+		etDetail.setAdapter(getAutoCompleteAdapter(FormHelper.Column.DETAIL));
+		
 		etComments = (EditText)findViewById(R.id.etComments);
 		
 		rgType = (RadioGroup)findViewById(R.id.rgType);
@@ -132,20 +143,16 @@ public class FormEdit extends BaseActivity {
 				public void onClick(DialogInterface dialog, int which) {
 					switch (which) {
 						case 0: { // Enlarge
-							ImageView iv = new ImageView(getActivity());
+							View view = View.inflate(getActivity(), R.layout.popup_image_enlarge, null);
+							ImageView iv = (ImageView)view.findViewById(R.id.ivPhoto);
 							iv.setImageURI(Uri.fromFile(new File(getImagesPath(), form.imagePath[index])));
-							newDialogBuilder().setView(iv).setNegativeButton("Ok", null).show();
+							newDialogBuilder().setView(view).setNegativeButton("Ok", null).show();
 							break;
 						}
 						
 						case 1: { // Delete
-							File toDelete = new File(getImagesPath(), form.imagePath[index]);
-							if (toDelete.delete()) {
-								form.imagePath[index] = null;
-								ibImage[index].setImageBitmap(null);
-							} else {
-								Log.w(TAG, "Failed to delete: " + toDelete);
-							}
+							form.imagePath[index] = null;
+							ibImage[index].setImageBitmap(null);
 							break;
 						}
 						
@@ -204,14 +211,14 @@ public class FormEdit extends BaseActivity {
 	}
 	
 	@Override
-	public void onActivityResult(int requestCode, int resultCode, Intent data) {
-		int index = requestCode >> 1;
-		int id = requestCode & 0x1; 
+	public void onActivityResult(int requestCodeAndIndex, int resultCode, Intent data) {
+		int index = requestCodeAndIndex >> 1;
+		int requestCode = requestCodeAndIndex & 0x1; 
 						
     	if (data != null) {
     		Bitmap bitmap = null;
             int orientation = 0;
-            switch (id) {
+            switch (requestCode) {
             	case 0: {
         			Uri image = data.getData();
         			if (image != null) {
@@ -223,11 +230,11 @@ public class FormEdit extends BaseActivity {
                             Cursor cursor = getContentResolver().query(imageUri, columns, null, null, null);
                             if (cursor != null) {
                                 cursor.moveToFirst();
-                                int columnIndex = cursor.getColumnIndex(columns[0]);
+                                //int fileColumnIndex = cursor.getColumnIndex(columns[0]);
                                 int orientationColumnIndex = cursor.getColumnIndex(columns[1]);
-                                String filePath = cursor.getString(columnIndex);
+                                //String filePath = cursor.getString(fileColumnIndex);
                                 orientation = cursor.getInt(orientationColumnIndex);
-                                Log.d("FormEdit", "got image orientation "+orientation);
+                                Log.d(TAG, "got image orientation "+orientation);
                             }
     
         				} catch (Exception e) {
@@ -280,12 +287,5 @@ public class FormEdit extends BaseActivity {
 				//bitmap.recycle();
         	}
     	}
-	}
-
-	@Override
-	public void onCorruption(SQLiteDatabase dbObj) {
-		// TODO Auto-generated method stub
-			
-		
 	}
 }

@@ -1,28 +1,27 @@
 package cc.android.photooverlay;
 
+import java.io.File;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 
 import cc.lib.android.EmailHelper;
 import cc.lib.android.SortButtonGroup;
 import cc.lib.android.SortButtonGroup.OnSortButtonListener;
-import android.app.Activity;
+import cc.lib.utils.FileUtils;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.database.Cursor;
-import android.database.DatabaseErrorHandler;
-import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.View.OnClickListener;
 import android.widget.CompoundButton;
 import android.widget.CursorAdapter;
 import android.widget.ListView;
@@ -32,8 +31,6 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
 
 	final static String SORT_FIELD_STR = "SORT_FIELD";
 	final static String SORT_ASCENDING_BOOL = "SORT_ASCENDING";
-	
-	TextView tvFormCount;
 	
 	@Override
 	public void onCreate(Bundle bundle) {
@@ -50,7 +47,12 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
 		sg.setOnSortButtonListener(this);
 		
 		startActivity(new Intent(this, Splash.class));
-		tvFormCount = (TextView)findViewById(R.id.tvFormCount);
+
+		new Thread() {
+			public void run() {
+				cleanupUnusedImages();
+			}
+		}.start();
 	}
 
 	@Override
@@ -67,7 +69,8 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
 				String [] items = new String[] {
 						"About",
 						"Send Feedback",
-						"Reset all Forms"
+						"Export ZIP",
+						"Nuke"
 				};
 				newDialogBuilder().setTitle("Options").setItems(items, new DialogInterface.OnClickListener() {
 					
@@ -94,7 +97,23 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
 								break;
 							}
 							
-							case 2: { // reset
+							case 2: { // zip
+								List<File> files = new ArrayList<File>();
+								files.add(new File(getFormHelper().getReadableDatabase().getPath()));
+								String timeStamp = new SimpleDateFormat("mmddyy_hhmm").format(new Date());
+								File target = new File(getCacheDir(), "PressureValidationDB_" + timeStamp + ".zip");
+								files.addAll(Arrays.asList(getImagesPath().listFiles()));
+								try {
+									FileUtils.zipFiles(target, files);
+									EmailHelper.sendEmail(getActivity(), target, null, "Pressure Test Export", "Attached is a ZIP file with database and all images");
+								} catch (Exception e) {
+									e.printStackTrace();
+									newDialogBuilder().setTitle("ERROR").setMessage("Problem exporting database " + e.getMessage()).setNegativeButton("OK", null).show();
+								}
+								break;
+							}
+							
+							case 3: { // nuke
 								newDialogBuilder().setTitle("Confirm Reset").setMessage("Are you sure?  This will delete all application data.").setNegativeButton("Cancel", null)
 								.setPositiveButton("Reset", new DialogInterface.OnClickListener() {
 									
@@ -108,12 +127,15 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
 											protected void onPostExecute(Void result) {
 												spinner.dismiss();
 												refresh();
-												super.onPostExecute(result);
 											}
 
 											@Override
 											protected Void doInBackground(Void... params) {
-												getFormHelper().reset();
+												getActivity().deleteDatabase(getFormHelper().getDatabaseName());
+												for (File f : getImagesPath().listFiles()) {
+													f.delete();
+												}
+												getFormHelper().close();
 												return null;
 											}
 										}.execute();
@@ -135,7 +157,7 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
         			final int formId = (Integer)v.getTag();
         			String [] items = new String[] {
         					"Edit",
-        					"Duplication",
+        					"Duplicate",
         					"Delete",
         					"Export"
         			};
@@ -172,6 +194,9 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
             							break;
             						}
             						case 3: { // Export to email
+            							Intent i = new Intent(getActivity(), FormExport.class);
+            							i.putExtra(FormExport.INTENT_FORM, getFormHelper().getFormById(formId));
+            							startActivity(i);
             							break;
             						}
             					}
@@ -196,13 +221,17 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
 	
 	private void refresh() {
 		
-		tvFormCount.setText("Form Count: " + getFormHelper().getFormCount());
+		TextView tvEmptyList = (TextView)findViewById(R.id.tvEmptyList);
+		
+		((TextView)findViewById(R.id.tvFormCount)).setText("Form Count: " + getFormHelper().getFormCount());
 		ListView lv = (ListView)findViewById(R.id.formList);
 		
 		String sortField = getPrefs().getString(SORT_FIELD_STR, FormHelper.Column.EDIT_DATE.name());
 		boolean ascending = getPrefs().getBoolean(SORT_ASCENDING_BOOL, false);
 		
 		Cursor cursor = getFormHelper().listForms(sortField, ascending, 0, 100);
+		tvEmptyList.setVisibility(cursor.getCount() > 0 ? View.INVISIBLE : View.VISIBLE);
+		
 		lv.setAdapter(new CursorAdapter(this, cursor) {
 			
 			@Override

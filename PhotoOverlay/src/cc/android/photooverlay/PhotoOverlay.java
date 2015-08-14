@@ -1,35 +1,14 @@
 package cc.android.photooverlay;
 
-import java.io.File;
-import java.io.FileOutputStream;
+import java.io.*;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 
-import android.app.Activity;
-import android.app.ListActivity;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.MutableContextWrapper;
-import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
-import android.content.res.Configuration;
 import android.database.Cursor;
-import android.database.DataSetObserver;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.CompressFormat;
 import android.graphics.Bitmap.Config;
@@ -53,29 +32,20 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Looper;
-import android.os.Message;
-import android.preference.Preference;
-import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.text.InputType;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.SurfaceHolder;
-import android.view.ViewGroup;
 import android.view.SurfaceHolder.Callback;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.widget.Adapter;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
-import android.widget.EditText;
-import android.widget.Filter;
-import android.widget.Filterable;
 import android.widget.ImageView;
-import android.widget.ListAdapter;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -255,7 +225,7 @@ public class PhotoOverlay extends BaseActivity implements OnClickListener, Callb
 		protected String doInBackground(Void... params) {
 			
 			Bitmap mutable = null;
-			SimpleDateFormat fmt = new SimpleDateFormat("mmddyyyy_HHmmss");
+			SimpleDateFormat fmt = new SimpleDateFormat("MMddyyyy_hhmmss");
 			String fileName = String.format("GUAGE_%s.jpg", fmt.format(new Date()));
 			try {
 				synchronized (this) {

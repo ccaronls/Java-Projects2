@@ -1,5 +1,6 @@
 package cc.android.photooverlay;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -9,7 +10,6 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.DatabaseErrorHandler;
 import android.database.sqlite.*;
-import android.net.Uri;
 import android.util.Log;
 
 public class FormHelper extends SQLiteOpenHelper {
@@ -200,12 +200,7 @@ public class FormHelper extends SQLiteOpenHelper {
 	}
 
 	public Cursor listForms(String sortField, boolean ascending, int startIndex, int num) {
-		Cursor c = getWritableDatabase().rawQuery("SELECT * FROM " + TABLE_FORM + " ORDER BY " + sortField + " " + (ascending ? "" : " DESC"), null);
-		
-		List<Form> forms = getFormsFromCursor(c);
-		
-		
-		return c;
+		return getWritableDatabase().rawQuery("SELECT * FROM " + TABLE_FORM + " ORDER BY " + sortField + " " + (ascending ? "" : " DESC"), null);
 	}
 	
 	public List<Form> getFormsFromCursor(Cursor cursor) {
@@ -273,12 +268,4 @@ public class FormHelper extends SQLiteOpenHelper {
 		getDB().delete(TABLE_FORM, "_id == ?", new String [] { String.valueOf(id) });
 	}
 	
-	public void reset() {
-		// TODO
-		try {
-			Thread.sleep(4000);
-		} catch (Exception e) {
-			
-		}
-	}
 }

@@ -3,7 +3,6 @@ package cc.android.photooverlay;
 import java.util.HashSet;
 import java.util.Set;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.os.Bundle;

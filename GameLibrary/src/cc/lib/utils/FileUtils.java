@@ -4,6 +4,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Collection;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 public class FileUtils {
 
@@ -91,4 +94,48 @@ public class FileUtils {
 			return fileName;
 		return fileName.substring(0, dot);
 	}
+	
+    /**
+    *
+    * @param target
+    * @param files
+    * @throws IOException
+    */
+   public static void zipFiles(File target, Collection<File> files) throws IOException {
+       // Based on stackoverflow answer:
+       // http://stackoverflow.com/a/14350841/642160
+       ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(target));
+       try {
+           byte[] byteBuffer = new byte[1024];
+
+           for (File file : files) {
+               String name = file.getName();
+
+               ZipEntry entry = new ZipEntry(name);
+               zos.putNextEntry(entry);
+
+               FileInputStream fis = null;
+               try {
+                   fis = new FileInputStream(file);
+                   int bytesRead = -1;
+                   while ((bytesRead = fis.read(byteBuffer)) != -1) {
+                       zos.write(byteBuffer, 0, bytesRead);
+                   }
+                   zos.flush();
+               } finally {
+                   try {
+                       if (fis != null)
+                           fis.close();
+                   } catch (IOException e) {
+                       // Ignore. close shouldn't freaking throw exceptions!
+                   }
+               }
+               zos.closeEntry();
+           }
+
+           zos.flush();
+       } finally {
+           zos.close();
+       }
+   }
 }

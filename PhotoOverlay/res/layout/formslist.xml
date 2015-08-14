@@ -27,11 +27,13 @@
         
     </LinearLayout>
 
-    <TextView android:id="@+id/tvFormCount"
+    <TextView
+        android:id="@+id/tvFormCount"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
-        android:text="form count"/>
+        android:text="form count"
+        android:visibility="gone" />
 
     <cc.lib.android.SortButtonGroup
         android:id="@+id/sortButtonGroup"
@@ -83,5 +85,16 @@
         android:layout_above="@id/footer"
         android:layout_below="@id/sortButtonGroup"
         android:layout_marginTop="10dp" />
+    
+    <TextView
+        android:id="@+id/tvEmptyList"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_above="@id/footer"
+        android:layout_below="@id/sortButtonGroup"
+        android:layout_margin="20dp"
+        android:gravity="center"
+        android:text="You dont have any Forms!\n\nPlease choose &apos;New Verification&apos; to start a new form."
+        android:textSize="20sp" />
     
 </RelativeLayout>
