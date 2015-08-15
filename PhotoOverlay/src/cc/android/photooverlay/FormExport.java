@@ -4,18 +4,18 @@ import java.io.File;
 import java.io.InputStream;
 import java.text.DateFormat;
 
+import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LevelListDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.Html;
 import android.text.Html.ImageGetter;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 public class FormExport extends BaseActivity implements ImageGetter {
-	
-	public final static String INTENT_FORM = "FORM";
 	
 	private void replace(StringBuffer buffer, String toReplace, String with) {
 		int idx = buffer.indexOf(toReplace);
@@ -31,6 +31,7 @@ public class FormExport extends BaseActivity implements ImageGetter {
 	public void onCreate(Bundle bundle) {
 		super.onCreate(bundle);
 		setContentView(R.layout.formexport);
+		findViewById(R.id.buttonAddSignature).setOnClickListener(this);
 		Form form = (Form)getIntent().getParcelableExtra(INTENT_FORM);
 		
 		try {
@@ -47,7 +48,7 @@ public class FormExport extends BaseActivity implements ImageGetter {
 				replace(buf, "%%DATE%%", DateFormat.getDateInstance(DateFormat.SHORT).format(form.editDate));
 				replace(buf, "%%SYSTEM%%", form.system);
 				replace(buf, "%%STATUS%%", form.passed ? "PASSED" : "FAILED");
-				replace(buf, "%%PLAIN%%", form.plain);
+				replace(buf, "%%PLAIN%%", form.plan);
 				replace(buf, "%%DETAIL%%", form.detail);
 				replace(buf, "%%TYPE%%", form.type.name());
 				replace(buf, "%%IMAGE1%%", form.imagePath[0]);
@@ -80,4 +81,16 @@ public class FormExport extends BaseActivity implements ImageGetter {
         return d;
 	}
 
+	@Override
+	public void onClick(View v) {
+		switch (v.getId()) {
+			case R.id.buttonAddSignature:
+				startActivityForResult(new Intent(this, ESign.class), 1000);
+		}
+	}
+	
+	@Override
+	public void onActivityResult(int requestCode, int resultCode, Intent data) {
+		
+	}
 }

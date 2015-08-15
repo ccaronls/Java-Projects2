@@ -20,7 +20,7 @@
         android:label="Gauge Tool"
         android:icon="@drawable/ic_launcher"
         android:screenOrientation="sensor"
-        android:theme="@android:style/Theme.NoTitleBar.Fullscreen">
+        android:theme="@android:style/Theme.Black.NoTitleBar">
         
         <!--  Ridiculous way to hack around gmail not sending attachments that are not on the SDCard -->
         <provider android:name="cc.lib.android.EmailHelper" android:authorities="@string/cached_file_provider_authority" android:exported="true"/>
@@ -51,6 +51,8 @@
         </activity>
         <activity android:name=".FormEdit"/>
         <activity android:name=".FormExport" android:screenOrientation="portrait"/>
+        <activity android:name=".ESign" android:screenOrientation="sensorLandscape"/>
+        <activity android:name=".FormSign" android:screenOrientation="portrait"/>
         
     </application>
 

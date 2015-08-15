@@ -1,19 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical" 
     android:background="@android:color/white">
-    
-    <ScrollView
+
+    <Button android:id="@+id/buttonAddSignature"
         android:layout_width="fill_parent"
-        android:layout_height="fill_parent">
-	    <TextView android:id="@+id/tvHtmlForm"
-	        android:textColor="@android:color/black"
-	        android:layout_width="fill_parent"
-	        android:layout_height="wrap_content"
-	        android:text="Insert Html Here"/>
-    </ScrollView>
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:text="Add Signature"/>
+    
+    <TextView android:id="@+id/tvHtmlForm"
+        android:textColor="@android:color/black"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_above="@id/buttonAddSignature"
+        android:text="Insert Html Here"/>
+    
     <!-- 
     <TextView android:id="@+id/tvFormTop"
         android:textColor="@android:color/black"
@@ -50,4 +53,4 @@
         android:text="Bottom"/>
      -->
 
-</LinearLayout>
+</RelativeLayout>

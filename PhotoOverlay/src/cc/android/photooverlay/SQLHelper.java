@@ -1,9 +1,6 @@
 package cc.android.photooverlay;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -12,12 +9,12 @@ import android.database.DatabaseErrorHandler;
 import android.database.sqlite.*;
 import android.util.Log;
 
-public class FormHelper extends SQLiteOpenHelper {
+public class SQLHelper extends SQLiteOpenHelper {
 
 	private final static String TAG = "FormHelper";
 	public final static int VERSION = 1;
 	
-	public FormHelper(Context context, DatabaseErrorHandler errorHandler) {
+	public SQLHelper(Context context, DatabaseErrorHandler errorHandler) {
 		super(context, "formsDB", null, VERSION, errorHandler);
 	}
 	public static final String TABLE_FORM = "TForm";
@@ -32,14 +29,20 @@ public class FormHelper extends SQLiteOpenHelper {
 		LAT(1, "double default " + Double.MAX_VALUE),
 		LNG(1, "double default " + Double.MAX_VALUE),
 		SYSTEM(1, "text"),
-		PLAIN(1, "text"),
+		PLAN(2, "text"),
 		DETAIL(1, "text"),
 		TYPE(1, "text default " + Form.FormType.Mechanical),
 		IMAGE1(1, "text"),
 		IMAGE2(1, "text"),
+		IMAGE3(2, "text"),
+		IMAGE1_META(2, "text"),
+		IMAGE2_META(2, "text"),
+		IMAGE3_META(2, "text"),
 		PASSED(1, "int default 0"),
 		COMMENTS(1, "text"),
-		INSPECTOR(1, "text");
+		INSPECTOR(1, "text"),
+		PROJECT(1, "text")
+		;
 		
 		final int version;
 		final String createArgs;
@@ -48,6 +51,12 @@ public class FormHelper extends SQLiteOpenHelper {
 		Column(int version, String createArgs) {
 			this.version = version;
 			this.createArgs = createArgs;
+		}
+		
+		static void clearColumnCache() {
+			for (Column c : values()) {
+				c.columnIndex = -1;
+			}
 		}
 		
 		int getColumnIndex(Cursor c) {
@@ -86,6 +95,18 @@ public class FormHelper extends SQLiteOpenHelper {
 				case IMAGE2:
 					form.imagePath[1] = cursor.getString(getColumnIndex(cursor));
 					break;
+				case IMAGE3:
+					form.imagePath[2] = cursor.getString(getColumnIndex(cursor));
+					break;
+				case IMAGE1_META:
+					form.imageMeta[0] = cursor.getString(getColumnIndex(cursor));
+					break;
+				case IMAGE2_META:
+					form.imageMeta[1] = cursor.getString(getColumnIndex(cursor));
+					break;
+				case IMAGE3_META:
+					form.imageMeta[2] = cursor.getString(getColumnIndex(cursor));
+					break;
 				case INSPECTOR:
 					form.inspector = cursor.getString(getColumnIndex(cursor));
 					break;
@@ -98,8 +119,8 @@ public class FormHelper extends SQLiteOpenHelper {
 				case LOCATION:
 					form.location = cursor.getString(getColumnIndex(cursor));
 					break;
-				case PLAIN:
-					form.plain = cursor.getString(getColumnIndex(cursor));
+				case PLAN:
+					form.plan = cursor.getString(getColumnIndex(cursor));
 					break;
 				case PASSED:
 					form.passed = cursor.getInt(getColumnIndex(cursor)) != 0;
@@ -109,6 +130,9 @@ public class FormHelper extends SQLiteOpenHelper {
 					break;
 				case TYPE:
 					form.type = Form.FormType.valueOf(cursor.getString(getColumnIndex(cursor)));
+					break;
+				case PROJECT:
+					form.project = cursor.getString(getColumnIndex(cursor));
 					break;
 			}
 		}
@@ -143,6 +167,18 @@ public class FormHelper extends SQLiteOpenHelper {
 				case IMAGE2:
 					values.put(name(), form.imagePath[1]);
 					break;
+				case IMAGE3:
+					values.put(name(), form.imagePath[2]);
+					break;
+				case IMAGE1_META:
+					values.put(name(), form.imageMeta[0]);
+					break;
+				case IMAGE2_META:
+					values.put(name(), form.imageMeta[1]);
+					break;
+				case IMAGE3_META:
+					values.put(name(), form.imageMeta[2]);
+					break;
 				case INSPECTOR:
 					values.put(name(), form.inspector);
 					break;
@@ -155,8 +191,8 @@ public class FormHelper extends SQLiteOpenHelper {
 				case LOCATION:
 					values.put(name(), form.location);
 					break;
-				case PLAIN:
-					values.put(name(), form.plain);
+				case PLAN:
+					values.put(name(), form.plan);
 					break;
 				case PASSED:
 					values.put(name(), form.passed ? 1 : 0);
@@ -166,6 +202,9 @@ public class FormHelper extends SQLiteOpenHelper {
 					break;
 				case TYPE:
 					values.put(name(), form.type.name());
+					break;
+				case PROJECT:
+					values.put(name(), form.project);
 					break;
 			}
 		}
@@ -177,6 +216,7 @@ public class FormHelper extends SQLiteOpenHelper {
 	
 	@Override
 	public void onCreate(SQLiteDatabase db) {
+		Column.clearColumnCache();
 		StringBuffer buf = new StringBuffer("create table ");
 		buf.append(TABLE_FORM).append(" ( ");
 		for (Column c : Column.values()) {
@@ -191,13 +231,41 @@ public class FormHelper extends SQLiteOpenHelper {
 
 	@Override
 	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-		// TODO Auto-generated method stub
-		Log.w(TAG,
-		        "Upgrading database from version " + oldVersion + " to "
-		            + newVersion + ", which will destroy all old data");
-		    db.execSQL("DROP TABLE IF EXISTS " + TABLE_FORM);
-		    onCreate(db);
+
+		Column.clearColumnCache();
+		Log.i(TAG, "Upgrading database from version " + oldVersion + " to " + newVersion);
+		switch (oldVersion) {
+			/*
+			case 1: {
+				// add columns
+				db.execSQL("ALTER TABLE " + TABLE_FORM + " REMOVE COLUMN PLAIN");
+				
+				for (Column c : Column.values()) {
+					if (c.version == 2) {
+						db.execSQL("ALTER TABLE " + TABLE_FORM + " ADD COLUMN " + c.name() + " " + c.createArgs);
+					}
+				}
+				
+				
+			}
+			
+				break;
+				*/
+			default:
+				// default is to nuke
+        		Log.w(TAG, "Dont know how to update, so destroy all old data");
+        		db.execSQL("DROP TABLE IF EXISTS " + TABLE_FORM);
+        		onCreate(db);
+		}
 	}
+	/*
+	@Override
+	public void onDowngrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+		Column.clearColumnCache();
+		Log.w(TAG, "Downgrade: Dont know how to update from " + oldVersion + " to " + newVersion + ", so destroy all old data");
+		db.execSQL("DROP TABLE IF EXISTS " + TABLE_FORM);
+		onCreate(db);
+	}*/
 
 	public Cursor listForms(String sortField, boolean ascending, int startIndex, int num) {
 		return getWritableDatabase().rawQuery("SELECT * FROM " + TABLE_FORM + " ORDER BY " + sortField + " " + (ascending ? "" : " DESC"), null);
@@ -224,20 +292,26 @@ public class FormHelper extends SQLiteOpenHelper {
 	
 	public void addOrUpdateForm(Form form) {
 		SQLiteDatabase db = getWritableDatabase();
-		//db.beginTransaction();
-		ContentValues values = new ContentValues();
-		for (Column c : Column.values())
-			c.formToContentValues(form, values);
-		if (form.id == null) {
-			// add
-			long id = db.insert(TABLE_FORM, null, values);
-			Log.i(TAG,  "insert returned " + id);
-		} else {
-			// update
-			int result = db.update(TABLE_FORM, values, Column._id.name()+"="+form.id, null);
-			Log.i(TAG, "update table returned " + result);
+		db.beginTransaction();
+		try {
+    		ContentValues values = new ContentValues();
+    		for (Column c : Column.values())
+    			c.formToContentValues(form, values);
+    		if (form.id == null) {
+    			// add
+    			long id = db.insert(TABLE_FORM, null, values);
+    			Log.i(TAG,  "insert returned " + id);
+    			form.id = (int)id;
+    		} else {
+    			// update
+    			int result = db.update(TABLE_FORM, values, Column._id.name()+"="+form.id, null);
+    			Log.i(TAG, "update table returned " + result);
+    		}
+    		db.setTransactionSuccessful();
+		} finally {
+			db.endTransaction();
 		}
-		//db.endTransaction();
+		
 	}
 	
 	public Form getFormById(int id) {

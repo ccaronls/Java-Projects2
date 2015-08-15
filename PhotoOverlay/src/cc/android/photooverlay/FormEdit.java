@@ -26,24 +26,21 @@ import android.widget.TextView;
 
 public class FormEdit extends BaseActivity {
 
-	final static String INTENT_FORM = "FORM";
-	
 	TextView tvDate;
 	AutoCompleteTextView etCustomer;
 	AutoCompleteTextView etLocation;
 	AutoCompleteTextView etSystem;
-	AutoCompleteTextView etPlain;
+	AutoCompleteTextView etPlan;
 	AutoCompleteTextView etDetail;
 	EditText etComments;
-	
 	RadioGroup rgType;
 	CompoundButton cbPassed;
-	
-	ImageButton [] ibImage = new ImageButton[2];
+	ImageButton [] ibImage;
+	EditText [] etImageMeta;
 	
 	Form form;
 	
-	private ArrayAdapter<String> getAutoCompleteAdapter(FormHelper.Column column) {
+	private ArrayAdapter<String> getAutoCompleteAdapter(SQLHelper.Column column) {
 		return new ArrayAdapter<String>(getActivity(), android.R.layout.simple_dropdown_item_1line, getFormHelper().getDistictValuesForColumn(column));
 	}
 	
@@ -52,30 +49,43 @@ public class FormEdit extends BaseActivity {
 		super.onCreate(bundle);
 		setContentView(R.layout.formedit);
 
+		findViewById(R.id.buttonCancel).setOnClickListener(this);
+		findViewById(R.id.buttonSave).setOnClickListener(this);
+
 		tvDate = (TextView)findViewById(R.id.tvDate);
 		etCustomer = (AutoCompleteTextView)findViewById(R.id.etCustomer);
-		etCustomer.setAdapter(getAutoCompleteAdapter(FormHelper.Column.CUSTOMER));
+		etCustomer.setAdapter(getAutoCompleteAdapter(SQLHelper.Column.CUSTOMER));
 
 		etLocation = (AutoCompleteTextView)findViewById(R.id.etLocation);
-		etLocation.setAdapter(getAutoCompleteAdapter(FormHelper.Column.LOCATION));
+		etLocation.setAdapter(getAutoCompleteAdapter(SQLHelper.Column.LOCATION));
 		
 		etSystem  = (AutoCompleteTextView)findViewById(R.id.etSystem);
-		etSystem.setAdapter(getAutoCompleteAdapter(FormHelper.Column.SYSTEM));
+		etSystem.setAdapter(getAutoCompleteAdapter(SQLHelper.Column.SYSTEM));
 		
-		etPlain = (AutoCompleteTextView)findViewById(R.id.etPlain);
-		etPlain.setAdapter(getAutoCompleteAdapter(FormHelper.Column.PLAIN));
+		etPlan = (AutoCompleteTextView)findViewById(R.id.etPlan);
+		etPlan.setAdapter(getAutoCompleteAdapter(SQLHelper.Column.PLAN));
 		
 		etDetail = (AutoCompleteTextView)findViewById(R.id.etDetail);
-		etDetail.setAdapter(getAutoCompleteAdapter(FormHelper.Column.DETAIL));
+		etDetail.setAdapter(getAutoCompleteAdapter(SQLHelper.Column.DETAIL));
 		
 		etComments = (EditText)findViewById(R.id.etComments);
 		
 		rgType = (RadioGroup)findViewById(R.id.rgType);
 		cbPassed = (CompoundButton)findViewById(R.id.cbPassed);
 
-		ibImage[0] = (ImageButton)findViewById(R.id.ibImage1);
-		ibImage[1] = (ImageButton)findViewById(R.id.ibImage2);
-
+		ibImage = new ImageButton[] { 
+				(ImageButton)findViewById(R.id.ibImage1),
+				(ImageButton)findViewById(R.id.ibImage2),
+				(ImageButton)findViewById(R.id.ibImage2)
+		};
+		for (View v : ibImage) {
+			v.setOnClickListener(this);
+		}
+		etImageMeta = new EditText[] {
+				(EditText)findViewById(R.id.etImage1Meta),
+				(EditText)findViewById(R.id.etImage2Meta),
+				(EditText)findViewById(R.id.etImage3Meta)
+		};
 		// got the hoppity ....
 		
 		form = getIntent().getParcelableExtra(INTENT_FORM);
@@ -91,7 +101,7 @@ public class FormEdit extends BaseActivity {
 		etCustomer.setText(form.customer);
 		etLocation.setText(form.location);
 		etSystem.setText(form.system);
-		etPlain.setText(form.plain);
+		etPlan.setText(form.plan);
 		etDetail.setText(form.detail);
 		etComments.setText(form.comments);
 		rgType.check(form.type.radioButtonId);
@@ -107,17 +117,23 @@ public class FormEdit extends BaseActivity {
 				}
 			}
 		
-		findViewById(R.id.buttonCancel).setOnClickListener(this);
-		findViewById(R.id.buttonSave).setOnClickListener(this);
-		ibImage[0].setOnClickListener(this);
-		ibImage[1].setOnClickListener(this);
+		for (int i=0; i<etImageMeta.length; i++) {
+			etImageMeta[i].setText(form.imageMeta[i]);
+		}
 	}
 
+	@Override
+	public void onResume() {
+		super.onResume();
+		hideKeyboard();
+	}
+	
 	@Override
 	public void onClick(final View v) {
 		switch (v.getId()) {
 			case R.id.buttonSave:
 				save();
+				break;
 			case R.id.buttonCancel:
 				finish();
 				break;
@@ -130,40 +146,38 @@ public class FormEdit extends BaseActivity {
 		}
 	}
 	
+	@Override
+	public void onBackPressed() {
+		save();
+		super.onBackPressed();
+	}
+	
 	private void editImage(final int index) {
 		if (form.imagePath[index] != null) {
-			String [] items = new String[] {
-					"Enlarge",
-					"Delete",
-					"Change"
-			};
-			newDialogBuilder().setTitle("Image Options").setItems(items, new DialogInterface.OnClickListener() {
+			
+			View view = View.inflate(getActivity(), R.layout.popup_image_enlarge, null);
+			ImageView iv = (ImageView)view.findViewById(R.id.ivPhoto);
+			iv.setImageURI(Uri.fromFile(new File(getImagesPath(), form.imagePath[index])));
+			newDialogBuilder()
+				.setView(view)
+				.setNegativeButton("Cancel", null)
+				.setPositiveButton("Change", new DialogInterface.OnClickListener() {
 				
-				@Override
-				public void onClick(DialogInterface dialog, int which) {
-					switch (which) {
-						case 0: { // Enlarge
-							View view = View.inflate(getActivity(), R.layout.popup_image_enlarge, null);
-							ImageView iv = (ImageView)view.findViewById(R.id.ivPhoto);
-							iv.setImageURI(Uri.fromFile(new File(getImagesPath(), form.imagePath[index])));
-							newDialogBuilder().setView(view).setNegativeButton("Ok", null).show();
-							break;
-						}
-						
-						case 1: { // Delete
-							form.imagePath[index] = null;
-							ibImage[index].setImageBitmap(null);
-							break;
-						}
-						
-						case 2: { // Change
-							pickImage(index);
-							break;
-						}
+    				@Override
+    				public void onClick(DialogInterface dialog, int which) {
+    					pickImage(index);
+    				}
+    			})
+    			.setNeutralButton("Delete", new DialogInterface.OnClickListener() {
+					
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						form.imagePath[index] = null;
+						form.imageMeta[index] = null;
+						ibImage[index].setImageBitmap(null);
 					}
-				}
-			}).setNegativeButton("Cancel", null)
-			.show();
+				})
+    			.show();
 		} else {
 			pickImage(index);
 		}
@@ -176,7 +190,7 @@ public class FormEdit extends BaseActivity {
 		form.detail = etDetail.getText().toString().trim();
 		form.location = etLocation.getText().toString().trim();
 		form.passed = cbPassed.isChecked();
-		form.plain = etPlain.getText().toString().trim();
+		form.plan = etPlan.getText().toString().trim();
 		form.system = etSystem.getText().toString().trim();
 		for (Form.FormType t : Form.FormType.values()) {
 			if (t.radioButtonId == rgType.getCheckedRadioButtonId()) {
@@ -278,6 +292,11 @@ public class FormEdit extends BaseActivity {
 						bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
 						ibImage[index].setImageBitmap(bitmap);
 						form.imagePath[index] = destFile.getName();
+						if (form.imageMeta[index] == null) {
+							form.imageMeta[index] = getDateFormatter().format(new Date());
+							etImageMeta[index].setText(form.imageMeta[index]);
+						}
+
 					} finally {
 						out.close();
 					}

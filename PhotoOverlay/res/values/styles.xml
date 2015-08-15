@@ -4,7 +4,7 @@
         Base application theme, dependent on API level. This theme is replaced
         by AppBaseTheme from res/values-vXX/styles.xml on newer devices.
     -->
-    <style name="AppBaseTheme" parent="android:Theme.Light">
+    <style name="AppBaseTheme" parent="@android:style/Theme.Black.NoTitleBar">
         <!--
             Theme customizations available in newer API levels can go in
             res/values-vXX/styles.xml, while customizations related to
@@ -13,7 +13,7 @@
     </style>
 
     <!-- Application theme. -->
-    <style name="AppTheme" parent="AppBaseTheme">
+    <style name="AppTheme" parent="@style/AppBaseTheme">
         <!-- All customizations that are NOT specific to a particular API-level can go here. -->
     </style>
 
@@ -24,6 +24,17 @@
        <item name="android:padding">5dp</item>
        <item name="android:textSize">12sp</item>
        <item name="android:background">@drawable/sort_button_bk</item>
+    </style>
+    
+    <style name="formImage">
+        <item name="android:layout_width">120dp</item>
+        <item name="android:layout_height">120dp</item>
+        <item name="android:scaleType">fitCenter</item>
+        <item name="android:background">@android:drawable/ic_menu_add</item>
+    </style>
+
+    <style name="signform">
+        <item name="android:textColor">@android:color/black</item>
     </style>
     
 </resources>

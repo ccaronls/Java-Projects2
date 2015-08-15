@@ -39,7 +39,7 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
 		findViewById(R.id.buttonNewForm).setOnClickListener(this);
 		findViewById(R.id.buttonOptions).setOnClickListener(this);
 
-		String sortField = getPrefs().getString(SORT_FIELD_STR, FormHelper.Column.EDIT_DATE.name());
+		String sortField = getPrefs().getString(SORT_FIELD_STR, SQLHelper.Column.EDIT_DATE.name());
 		boolean ascending = getPrefs().getBoolean(SORT_ASCENDING_BOOL, false);
 		
 		SortButtonGroup sg = (SortButtonGroup)findViewById(R.id.sortButtonGroup);
@@ -159,7 +159,7 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
         					"Edit",
         					"Duplicate",
         					"Delete",
-        					"Export"
+        					"Sign and Email"
         			};
         			newDialogBuilder()
             			.setItems(items, new DialogInterface.OnClickListener() {
@@ -169,7 +169,7 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
             					switch (which) {
             						case 0: { // Edit
             							Intent i = new Intent(getActivity(), FormEdit.class);
-            							i.putExtra(FormEdit.INTENT_FORM, getFormHelper().getFormById(formId));
+            							i.putExtra(INTENT_FORM, getFormHelper().getFormById(formId));
             							startActivity(i);
             							break;
             						}
@@ -178,7 +178,7 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
             							form.id = null; // clear id and add to duplicate
             							form.createDate = form.editDate = new Date();
             							Intent i = new Intent(getActivity(), FormEdit.class);
-            							i.putExtra(FormEdit.INTENT_FORM, form);
+            							i.putExtra(INTENT_FORM, form);
             							startActivity(i); // let the edit activity save
             							break;
             						}
@@ -194,8 +194,8 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
             							break;
             						}
             						case 3: { // Export to email
-            							Intent i = new Intent(getActivity(), FormExport.class);
-            							i.putExtra(FormExport.INTENT_FORM, getFormHelper().getFormById(formId));
+            							Intent i = new Intent(getActivity(), FormSign.class);
+            							i.putExtra(INTENT_FORM, getFormHelper().getFormById(formId));
             							startActivity(i);
             							break;
             						}
@@ -226,7 +226,7 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
 		((TextView)findViewById(R.id.tvFormCount)).setText("Form Count: " + getFormHelper().getFormCount());
 		ListView lv = (ListView)findViewById(R.id.formList);
 		
-		String sortField = getPrefs().getString(SORT_FIELD_STR, FormHelper.Column.EDIT_DATE.name());
+		String sortField = getPrefs().getString(SORT_FIELD_STR, SQLHelper.Column.EDIT_DATE.name());
 		boolean ascending = getPrefs().getBoolean(SORT_ASCENDING_BOOL, false);
 		
 		Cursor cursor = getFormHelper().listForms(sortField, ascending, 0, 100);
@@ -236,7 +236,7 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
 			
 			@Override
 			public View newView(Context context, Cursor cursor, ViewGroup parent) {
-				View view = View.inflate(context, R.layout.listitem, null);
+				View view = View.inflate(context, R.layout.formlistitem, null);
 				bindView(view, context, cursor);
 				return view;
 			}
@@ -249,11 +249,11 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
 				TextView tvCustomer = (TextView)view.findViewById(R.id.tvCustomer);
 				CompoundButton cbPassed = (CompoundButton)view.findViewById(R.id.cbPassed);
 				
-				int id = cursor.getInt(FormHelper.Column._id.getColumnIndex(cursor));
-				Date date = new Date(cursor.getLong(FormHelper.Column.EDIT_DATE.getColumnIndex(cursor)));
-				String addr = cursor.getString(FormHelper.Column.LOCATION.getColumnIndex(cursor));
-				String customer = cursor.getString(FormHelper.Column.CUSTOMER.getColumnIndex(cursor));
-				boolean passed = cursor.getInt(FormHelper.Column.PASSED.getColumnIndex(cursor)) != 0;
+				int id = cursor.getInt(SQLHelper.Column._id.getColumnIndex(cursor));
+				Date date = new Date(cursor.getLong(SQLHelper.Column.EDIT_DATE.getColumnIndex(cursor)));
+				String addr = cursor.getString(SQLHelper.Column.LOCATION.getColumnIndex(cursor));
+				String customer = cursor.getString(SQLHelper.Column.CUSTOMER.getColumnIndex(cursor));
+				boolean passed = cursor.getInt(SQLHelper.Column.PASSED.getColumnIndex(cursor)) != 0;
 				
 				tvDate.setText(getDateFormatter().format(date));
 				tvAddress.setText(addr);

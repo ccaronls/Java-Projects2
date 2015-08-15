@@ -3,5 +3,12 @@
     <string name="app_name">Gauge Tool</string>
 
     <string name="app_email">ceccsolutions@gmail.com</string>
-    
+    <string name="popup_msg_how_esign_works">
+        <content>
+            E-Signing is a valid legal document according to the <a href="http://www.gpo.gov/fdsys/pkg/BILLS-106s761enr/pdf/BILLS-106s761enr.pdf">Federal ESIGN Act of 2000</a>.  In short, electronic documentation
+            is as good as old fashoned paper. The system we employ is fashoined like those you use at the grocery store or when accepting deliveries.
+            We take your signature for the purpose of constructing a image of the form and then emmediatly discard it.  The form as an image cannot be 
+            modified and it is easily printed out for your records.
+        </content>
+    </string>
 </resources>

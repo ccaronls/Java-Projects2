@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
@@ -61,14 +62,14 @@
 		        android:singleLine="true" />
 		
 		    <AutoCompleteTextView
-		        android:id="@+id/etPlain"
+		        android:id="@+id/etPlan"
 		        android:layout_width="wrap_content"
 		        android:layout_height="wrap_content"
 		        android:layout_alignParentLeft="true"
 		        android:layout_below="@+id/etSystem"
 		        android:layout_toLeftOf="@+id/anchor"
 		        android:ems="10"
-		        android:hint="Plain"
+		        android:hint="Plan"
 		        android:imeOptions="actionNext"
 		        android:singleLine="true" />
 		
@@ -76,7 +77,7 @@
 		        android:id="@+id/etDetail"
 		        android:layout_width="wrap_content"
 		        android:layout_height="wrap_content"
-		        android:layout_below="@+id/etPlain"
+		        android:layout_below="@id/etPlan"
 		        android:layout_toLeftOf="@+id/anchor"
 		        android:layout_weight="1"
 		        android:ems="10"
@@ -89,8 +90,8 @@
 		        android:layout_width="wrap_content"
 		        android:layout_height="wrap_content"
 		        android:layout_alignParentRight="true"
-		        android:layout_alignTop="@+id/etPlain"
-		        android:layout_toRightOf="@+id/etPlain" >
+		        android:layout_alignTop="@id/etPlan"
+		        android:layout_toRightOf="@id/etPlan" >
 		
 		        <RadioButton
 		            android:id="@+id/rbMechanical"
@@ -112,29 +113,60 @@
 		            android:text="Process" />
 		    </RadioGroup>
 		
-		    <ImageButton
-		        android:id="@+id/ibImage1"
-		        android:layout_width="180dp"
-		        android:layout_height="180dp"
-		        android:layout_alignParentLeft="true"
-		        android:layout_below="@+id/rgType"
-		        android:scaleType="fitCenter"
-		        android:background="@android:drawable/ic_menu_add" />
-		
-		    <ImageButton
-		        android:id="@+id/ibImage2"
-		        android:layout_width="180dp"
-		        android:layout_height="180dp"
-		        android:layout_alignParentRight="true"
-		        android:layout_below="@+id/rgType"
-		        android:scaleType="fitCenter"
-		        android:background="@android:drawable/ic_menu_add" />
-		
+		    <LinearLayout
+		        android:id="@+id/layoutImages" 
+		        android:layout_width="fill_parent"
+		        android:layout_height="wrap_content"
+		        android:layout_centerHorizontal="true"
+		        android:layout_below="@id/rgType">
+		    
+		        <LinearLayout android:layout_width="wrap_content"
+		            android:layout_height="wrap_content"
+		            android:orientation="vertical">
+				    <ImageButton
+				        android:id="@+id/ibImage1"
+				        style="@style/formImage"/>
+                    <EditText
+                        android:id="@+id/etImage1Meta"
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:minLines="2"
+                        android:hint="Meta"/>
+			    </LinearLayout>
+			
+                <LinearLayout android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+                    <ImageButton
+				        android:id="@+id/ibImage2"
+				        style="@style/formImage" />
+                    <EditText
+                        android:id="@+id/etImage2Meta"
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:minLines="2"
+                        android:hint="Meta"/>
+                </LinearLayout>			    
+                <LinearLayout android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+		        	<ImageButton
+	                    android:id="@+id/ibImage3"
+	                    style="@style/formImage" />
+                    <EditText
+                        android:id="@+id/etImage3Meta"
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:minLines="2"
+                        android:hint="Meta"/>
+                </LinearLayout>		        	
+            </LinearLayout>
+            		
 		    <EditText
 		        android:id="@+id/etComments"
 		        android:layout_width="fill_parent"
 		        android:layout_height="wrap_content"
-		        android:layout_below="@+id/ibImage1"
+		        android:layout_below="@id/layoutImages"
 		        android:layout_centerHorizontal="true"
 		        android:ems="10"
 		        android:hint="Comments"
@@ -145,7 +177,7 @@
 		        android:id="@+id/cbPassed"
 		        android:layout_width="wrap_content"
 		        android:layout_height="wrap_content"
-		        android:layout_above="@+id/ibImage1"
+		        android:layout_above="@id/layoutImages"
 		        android:layout_alignParentLeft="true"
 		        android:layout_alignRight="@+id/anchor"
 		        android:text="Passed" />

@@ -1,0 +1,374 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical">
+    
+    <LinearLayout 
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content">
+        <Button android:id="@+id/buttonAddSignature"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="2"
+            android:text="Add Signature"/>
+            
+        <Button android:id="@+id/buttonESignInfo"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="3"
+            android:text="How eSigning Works"/>
+        
+        <Button android:id="@+id/buttonEmail"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Email"/>
+        
+    </LinearLayout>
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" >
+
+		<RelativeLayout
+            android:id="@+id/layoutForm" 
+            android:background="@android:color/white"
+		    android:layout_width="match_parent"
+		    android:layout_height="match_parent"
+		    android:layout_marginLeft="10dp"
+		    android:layout_marginRight="10dp" 
+		    >
+		
+		    <View
+		        android:id="@+id/anchor"
+		        android:layout_width="0dp"
+		        android:layout_height="0dp"
+		        android:layout_centerInParent="true" />
+		
+		    <TextView
+		        style="@style/signform"
+		        android:id="@+id/tvHeader"
+		        android:layout_width="wrap_content"
+		        android:layout_height="wrap_content"
+		        android:layout_alignParentLeft="true"
+		        android:layout_alignParentRight="true"
+		        android:layout_alignParentTop="true"
+		        android:gravity="center"
+		        android:text="Pressure Test Certification"
+		        android:textAppearance="?android:attr/textAppearanceLarge" />
+            
+		    <LinearLayout
+		        android:id="@+id/layoutFields"
+		        android:layout_width="fill_parent"
+		        android:layout_height="wrap_content"
+		        android:layout_alignLeft="@id/tvHeader"
+		        android:layout_alignRight="@id/tvHeader"
+		        android:layout_below="@id/tvHeader"
+		        android:layout_marginTop="15dp"
+		        android:orientation="vertical" >
+		        
+		        <TextView
+		            style="@style/signform"
+		            android:id="@+id/tvDate"
+		            android:layout_width="fill_parent"
+		            android:layout_height="wrap_content"
+		            android:layout_margin="10dp"
+		            android:gravity="right"
+		            android:text="30/12/2002" />
+		        
+		        <LinearLayout 
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content">
+                    <TextView
+                        style="@style/signform"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:text="Inspector:"
+                        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+                    <TextView
+                        style="@style/signform"
+                        android:id="@+id/tvInspector"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:hint="inspector"
+                        />
+                                        
+                </LinearLayout>
+
+                <LinearLayout 
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content">
+                    <TextView
+                        style="@style/signform"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:text="Customer:"
+                        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+                    <TextView
+                        style="@style/signform"
+                        android:id="@+id/tvCustomer"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:hint="customer"
+                        />
+                </LinearLayout>		        
+
+                <LinearLayout 
+		            android:layout_width="fill_parent"
+		            android:layout_height="wrap_content">
+		            <TextView
+		                style="@style/signform"
+		                android:layout_width="0dp"
+		                android:layout_weight="1"
+		                android:layout_height="wrap_content"
+		                android:text="Project:"
+		                android:textAppearance="?android:attr/textAppearanceMedium" />
+
+		            <TextView
+		                style="@style/signform"
+		                android:id="@+id/tvProject"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:hint="project"
+                        />
+		            		            
+		        </LinearLayout>
+		        
+                <LinearLayout 
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content">
+                    <TextView
+                        style="@style/signform"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:text="Location:"
+                        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+                    <TextView
+                        style="@style/signform"
+                        android:id="@+id/tvLocation"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:hint="location"
+                        />
+                                        
+                </LinearLayout>
+                
+                <LinearLayout 
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content">
+                    <TextView
+                        style="@style/signform"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:text="System:"
+                        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+                    <TextView
+                        style="@style/signform"
+                        android:id="@+id/tvSystem"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:hint="system"
+                        />
+                                        
+                </LinearLayout>
+                
+                <LinearLayout 
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content">
+                    <TextView
+                        style="@style/signform"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:text="Plan:"
+                        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+                    <TextView
+                        style="@style/signform"
+                        android:id="@+id/tvPlan"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:hint="plan"
+                        />
+                    <TextView
+                        style="@style/signform"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:text="Detail:"
+                        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+                    <TextView
+                        style="@style/signform"
+                        android:id="@+id/tvDetail"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:hint="detail"
+                        />
+                    
+                </LinearLayout>
+		    </LinearLayout>
+		
+		    <LinearLayout
+		        android:id="@+id/layoutImages"
+		        android:layout_width="wrap_content"
+		        android:layout_height="wrap_content"
+		        android:layout_alignLeft="@id/layoutFields"
+		        android:layout_alignRight="@id/layoutFields"
+		        android:layout_below="@id/layoutFields"
+		        android:layout_marginTop="28dp"
+		        android:background="@drawable/round_rect" >
+		
+		        <ImageView
+		            android:id="@+id/ivGauge1"
+		            android:layout_width="100dp"
+		            android:layout_height="100dp"
+		            android:layout_margin="5dp"
+		            android:layout_weight="1"
+		            android:src="@android:drawable/ic_dialog_alert" />
+		
+		        <ImageView
+		            android:id="@+id/ivGauge2"
+		            android:layout_width="100dp"
+		            android:layout_height="100dp"
+		            android:layout_margin="5dp"
+		            android:layout_weight="1"
+		            android:src="@android:drawable/ic_dialog_alert" />
+		
+		        <ImageView
+		            android:id="@+id/ivGauge3"
+		            android:layout_width="100dp"
+		            android:layout_height="100dp"
+		            android:layout_margin="5dp"
+		            android:layout_weight="1"
+		            android:src="@android:drawable/ic_dialog_alert" />
+		    </LinearLayout>
+		    
+		    <LinearLayout
+		        android:id="@+id/layoutMeta"
+		        android:layout_width="fill_parent"
+		        android:layout_height="wrap_content"
+		        android:layout_below="@id/layoutImages"
+		        android:layout_alignLeft="@id/layoutImages"
+		        android:layout_alignRight="@id/layoutImages">
+		        
+		        <TextView
+		            style="@style/signform"
+		            android:id="@+id/tvImage1Meta"
+		            android:layout_width="0dp"
+		            android:layout_height="wrap_content"
+		            android:layout_weight="1"
+		            android:hint="Meta"/>
+                <TextView
+                    style="@style/signform"
+                    android:id="@+id/tvImage2Meta"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:hint="Meta"/>
+		        <TextView
+		            style="@style/signform"
+                    android:id="@+id/tvImage3Meta"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:hint="Meta"/>
+                		        
+		        
+		    </LinearLayout>
+		
+		    <TextView
+		        style="@style/signform"
+		        android:id="@+id/textView13"
+		        android:layout_width="wrap_content"
+		        android:layout_height="wrap_content"
+		        android:layout_alignLeft="@+d/layoutMeta"
+		        android:layout_below="@id/layoutMeta"
+		        android:layout_marginTop="23dp"
+		        android:text="System Type:"
+		        android:textAppearance="?android:attr/textAppearanceMedium" />
+		
+		    <TextView
+		        style="@style/signform"
+		        android:id="@+id/tvType"
+		        android:layout_width="wrap_content"
+		        android:layout_height="wrap_content"
+		        android:layout_alignBaseline="@+id/textView13"
+		        android:layout_alignBottom="@+id/textView13"
+		        android:layout_marginLeft="10dp"
+		        android:layout_toRightOf="@+id/textView13"
+		        android:hint="Mech/Plub/Process" />
+		
+		    <TextView
+		        style="@style/signform"
+		        android:id="@+id/textView15"
+		        android:layout_width="wrap_content"
+		        android:layout_height="wrap_content"
+		        android:layout_alignLeft="@id/layoutMeta"
+		        android:layout_below="@id/textView13"
+		        android:layout_marginTop="10dp"
+		        android:text="Comments"
+		        android:textAppearance="?android:attr/textAppearanceMedium" />
+		
+		    <TextView
+		        android:id="@+id/tvComments"
+		        style="@style/signform"
+		        android:layout_width="wrap_content"
+		        android:layout_height="wrap_content"
+		        android:layout_alignLeft="@+id/textView15"
+		        android:layout_alignRight="@+id/layoutImages"
+		        android:layout_below="@+id/textView15"
+		        android:background="@drawable/round_rect"
+		        android:hint="comments\ngo here"
+		        android:minLines="5"
+		        android:padding="5dp" />
+		
+		    <TextView
+		        style="@style/signform"
+		        android:id="@+id/textView17"
+		        android:layout_width="wrap_content"
+		        android:layout_height="wrap_content"
+		        android:layout_alignLeft="@+id/tvComments"
+		        android:layout_below="@+id/tvComments"
+		        android:layout_marginTop="17dp"
+		        android:text="Signatures"
+		        android:textAppearance="?android:attr/textAppearanceMedium" />
+		
+		    <TextView
+		        android:id="@+id/tvStatus"
+		        android:layout_width="wrap_content"
+		        android:layout_height="wrap_content"
+		        android:layout_alignBaseline="@+id/textView17"
+		        android:layout_alignBottom="@+id/textView17"
+		        android:layout_alignRight="@+id/tvComments"
+		        android:textAppearance="?android:attr/textAppearanceLarge"
+		        android:hint="Status" />
+		
+		    <LinearLayout
+		        android:id="@+id/layoutSignatures"
+		        android:layout_width="match_parent"
+		        android:layout_height="wrap_content"
+		        android:layout_below="@id/textView17"
+		        android:layout_centerHorizontal="true"
+		        android:orientation="vertical"
+		        android:layout_marginTop="12dp" />
+		
+		
+		</RelativeLayout>
+    </ScrollView>
+</LinearLayout>

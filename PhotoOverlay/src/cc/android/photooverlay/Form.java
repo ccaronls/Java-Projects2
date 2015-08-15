@@ -28,13 +28,15 @@ public class Form implements Parcelable {
 	double latitude;
 	double longitude;
 	String system;
-	String plain;
+	String plan;
 	String detail;
 	FormType type = FormType.Mechanical;
-	String [] imagePath = new String[2];
+	String [] imagePath = new String[3];
+	String [] imageMeta = new String[3];
 	boolean passed;
 	String comments;
 	String inspector;
+	String project;
 
 	public Form() {}
 	
@@ -66,8 +68,9 @@ public class Form implements Parcelable {
 		latitude = in.readDouble();
 		longitude = in.readDouble();
 		in.readStringArray(imagePath);
+		in.readStringArray(imageMeta);
 		system = in.readString();
-		plain = in.readString();
+		plan = in.readString();
 		detail = in.readString();
 		try {
 			type = FormType.valueOf(in.readString());
@@ -78,6 +81,7 @@ public class Form implements Parcelable {
 		passed = in.readInt() != 0;
 		comments = in.readString();
 		inspector = in.readString();
+		project = in.readString();
 	}
 	
 	@Override
@@ -94,13 +98,15 @@ public class Form implements Parcelable {
 		dest.writeDouble(latitude);
 		dest.writeDouble(longitude);
 		dest.writeStringArray(imagePath);
+		dest.writeStringArray(imageMeta);
 		dest.writeString(system);
-		dest.writeString(plain);
+		dest.writeString(plan);
 		dest.writeString(detail);
 		dest.writeString(type.name());
 		dest.writeInt(passed ? 1 : 0);
 		dest.writeString(comments);
 		dest.writeString(inspector);
+		dest.writeString(project);
 	}
 	
 	
