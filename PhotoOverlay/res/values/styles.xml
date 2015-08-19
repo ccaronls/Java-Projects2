@@ -37,4 +37,10 @@
         <item name="android:textColor">@android:color/black</item>
     </style>
     
+    
+    <style name="edittext" parent="@android:style/Widget.EditText">
+        <item name="android:maxLength">256</item>
+        
+    </style>
+    
 </resources>

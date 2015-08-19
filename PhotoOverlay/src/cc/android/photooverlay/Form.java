@@ -7,18 +7,6 @@ import android.os.Parcelable;
 
 public class Form implements Parcelable {
 
-	public enum FormType {
-		Mechanical(R.id.rbMechanical),
-		Plumbing(R.id.rbPlumbing),
-		Process(R.id.rbProcess);
-		
-		final int radioButtonId;
-		
-		FormType(int id) {
-			this.radioButtonId = id;
-		}
-	}
-	
 	Integer id; // null id mean a new form
 	Date createDate = new Date();
 	Date editDate = new Date();
@@ -30,7 +18,7 @@ public class Form implements Parcelable {
 	String system;
 	String plan;
 	String detail;
-	FormType type = FormType.Mechanical;
+	String type;
 	String [] imagePath = new String[3];
 	String [] imageMeta = new String[3];
 	boolean passed;
@@ -72,12 +60,7 @@ public class Form implements Parcelable {
 		system = in.readString();
 		plan = in.readString();
 		detail = in.readString();
-		try {
-			type = FormType.valueOf(in.readString());
-		} catch (IllegalArgumentException e) {
-			// enum has changed, use default
-			e.printStackTrace();
-		}
+		type = in.readString();
 		passed = in.readInt() != 0;
 		comments = in.readString();
 		inspector = in.readString();
@@ -102,7 +85,7 @@ public class Form implements Parcelable {
 		dest.writeString(system);
 		dest.writeString(plan);
 		dest.writeString(detail);
-		dest.writeString(type.name());
+		dest.writeString(type);
 		dest.writeInt(passed ? 1 : 0);
 		dest.writeString(comments);
 		dest.writeString(inspector);

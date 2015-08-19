@@ -7,7 +7,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Locale;
-
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -15,6 +15,11 @@ import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.database.DatabaseErrorHandler;
 import android.database.sqlite.SQLiteDatabase;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
@@ -22,7 +27,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.inputmethod.InputMethodManager;
 
-public class BaseActivity extends Activity implements OnClickListener, DatabaseErrorHandler {
+public class BaseActivity extends Activity implements OnClickListener {
 
 	final String TAG = getClass().getSimpleName();
 	
@@ -52,26 +57,94 @@ public class BaseActivity extends Activity implements OnClickListener, DatabaseE
 	final Activity getActivity() {
 		return this;
 	}
-
+/*
 	@Override
 	public void onCorruption(SQLiteDatabase dbObj) {
 		newDialogBuilder().setTitle("SQL Error").setMessage("DB Corruption Error").setNegativeButton("OK", null).show();
 	}
-
+*/
 	@Override
 	public void onClick(View v) {
 	}
 
+	private SensorManager ambientSensor;
+	private Sensor temp;
+	
+	public final int convertCelciusToFahrenheit(float celcius) {
+		return Math.round(celcius * 9f/5 + 32);
+	}
+	
+	class AmbientListener implements SensorEventListener, Runnable {
+
+		float degreesC = 0;
+		
+		@Override
+		public void run() {
+			onAmbientTemperature(degreesC, convertCelciusToFahrenheit(degreesC));
+		}
+
+		@Override
+		public void onSensorChanged(SensorEvent event) {
+			degreesC = event.values[0];
+			runOnUiThread(this);
+		}
+
+		@Override
+		public void onAccuracyChanged(Sensor sensor, int accuracy) {
+			// TODO Auto-generated method stub
+			
+		}
+		
+	}
+	
+	private final AmbientListener ambientListener = new AmbientListener();
+	
+	@Override
+	public void onCreate(Bundle bundle) {
+		super.onCreate(bundle);
+		ambientSensor = (SensorManager)getSystemService(SENSOR_SERVICE);
+		if (ambientSensor != null) {
+			temp = ambientSensor.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE);
+		}
+	}
+	
 	@Override
 	protected void onPause() {
 		super.onPause();
 		if (helper != null)
 			helper.close();
+		if (ambientSensor != null) {
+			ambientSensor.unregisterListener(ambientListener);
+		}
+	}
+	
+	
+	@Override
+	public void onResume() {
+		super.onResume();
+		if (ambientSensor != null) {
+    		ambientSensor.registerListener(ambientListener, temp, SensorManager.SENSOR_DELAY_NORMAL);
+		}		 
+	}
+	
+	/**
+	 * Called on ui thread when the ambient sensor reports.  base method does nothing.
+	 * @param celcius
+	 * @param farhenheit
+	 */
+	protected void onAmbientTemperature(float celcius, int farhenheit) {}
+	
+	public final boolean isAmbientTempAvailable() {
+		return ambientSensor != null;
+	}
+	
+	public final float getAmbientTempCelcius() {
+		return ambientListener.degreesC;
 	}
 	
 	public final SQLHelper getFormHelper() {
 		if (helper == null || !helper.getDB().isOpen())
-			helper = new SQLHelper(this, this);
+			helper = new SQLHelper(this);
 		return helper;
 	}
 	

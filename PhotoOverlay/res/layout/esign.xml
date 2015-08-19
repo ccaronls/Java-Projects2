@@ -11,7 +11,8 @@
         android:layout_alignParentRight="true"
         android:layout_alignParentTop="true"
         android:ems="10"
-        android:inputType="textPersonName"/>
+        android:hint="Type Full Name here and Sign Below"
+        android:inputType="textPersonName" />
 
     <LinearLayout
         android:id="@+id/layoutButtons"

@@ -155,7 +155,7 @@ public class PhotoOverlay extends BaseActivity implements OnClickListener, Callb
 	};
 	
 	@Override
-	protected void onResume() {
+	public void onResume() {
 		super.onResume();
 		String file = getPrefs().getString("filePath", null);
 		if (file != null) {

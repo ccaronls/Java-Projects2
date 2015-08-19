@@ -14,8 +14,8 @@ public class SQLHelper extends SQLiteOpenHelper {
 	private final static String TAG = "FormHelper";
 	public final static int VERSION = 1;
 	
-	public SQLHelper(Context context, DatabaseErrorHandler errorHandler) {
-		super(context, "formsDB", null, VERSION, errorHandler);
+	public SQLHelper(Context context) {
+		super(context, "formsDB", null, VERSION);
 	}
 	public static final String TABLE_FORM = "TForm";
 			
@@ -31,7 +31,7 @@ public class SQLHelper extends SQLiteOpenHelper {
 		SYSTEM(1, "text"),
 		PLAN(2, "text"),
 		DETAIL(1, "text"),
-		TYPE(1, "text default " + Form.FormType.Mechanical),
+		TYPE(1, "text"),
 		IMAGE1(1, "text"),
 		IMAGE2(1, "text"),
 		IMAGE3(2, "text"),
@@ -129,7 +129,7 @@ public class SQLHelper extends SQLiteOpenHelper {
 					form.system = cursor.getString(getColumnIndex(cursor));
 					break;
 				case TYPE:
-					form.type = Form.FormType.valueOf(cursor.getString(getColumnIndex(cursor)));
+					form.type = cursor.getString(getColumnIndex(cursor));
 					break;
 				case PROJECT:
 					form.project = cursor.getString(getColumnIndex(cursor));
@@ -201,7 +201,7 @@ public class SQLHelper extends SQLiteOpenHelper {
 					values.put(name(), form.system);
 					break;
 				case TYPE:
-					values.put(name(), form.type.name());
+					values.put(name(), form.type);
 					break;
 				case PROJECT:
 					values.put(name(), form.project);

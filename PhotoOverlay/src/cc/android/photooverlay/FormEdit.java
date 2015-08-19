@@ -15,6 +15,8 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
+import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.CompoundButton;
@@ -22,21 +24,25 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.RadioGroup;
+import android.widget.RadioGroup.OnCheckedChangeListener;
 import android.widget.TextView;
 
-public class FormEdit extends BaseActivity {
+public class FormEdit extends BaseActivity implements OnCheckedChangeListener {
 
 	TextView tvDate;
+	AutoCompleteTextView etInspector;
 	AutoCompleteTextView etCustomer;
 	AutoCompleteTextView etLocation;
 	AutoCompleteTextView etSystem;
 	AutoCompleteTextView etPlan;
 	AutoCompleteTextView etDetail;
+	AutoCompleteTextView etCustom;
+	
 	EditText etComments;
 	RadioGroup rgType;
 	CompoundButton cbPassed;
 	ImageButton [] ibImage;
-	EditText [] etImageMeta;
+	TextView [] tvImageMeta;
 	
 	Form form;
 	
@@ -53,6 +59,10 @@ public class FormEdit extends BaseActivity {
 		findViewById(R.id.buttonSave).setOnClickListener(this);
 
 		tvDate = (TextView)findViewById(R.id.tvDate);
+		
+		etInspector = (AutoCompleteTextView)findViewById(R.id.etInspector);
+		etInspector.setAdapter(getAutoCompleteAdapter(SQLHelper.Column.INSPECTOR));
+		
 		etCustomer = (AutoCompleteTextView)findViewById(R.id.etCustomer);
 		etCustomer.setAdapter(getAutoCompleteAdapter(SQLHelper.Column.CUSTOMER));
 
@@ -69,6 +79,8 @@ public class FormEdit extends BaseActivity {
 		etDetail.setAdapter(getAutoCompleteAdapter(SQLHelper.Column.DETAIL));
 		
 		etComments = (EditText)findViewById(R.id.etComments);
+		etCustom = (AutoCompleteTextView)findViewById(R.id.etCustom);
+		etCustom.setAdapter(getAutoCompleteAdapter(SQLHelper.Column.DETAIL));
 		
 		rgType = (RadioGroup)findViewById(R.id.rgType);
 		cbPassed = (CompoundButton)findViewById(R.id.cbPassed);
@@ -81,10 +93,10 @@ public class FormEdit extends BaseActivity {
 		for (View v : ibImage) {
 			v.setOnClickListener(this);
 		}
-		etImageMeta = new EditText[] {
-				(EditText)findViewById(R.id.etImage1Meta),
-				(EditText)findViewById(R.id.etImage2Meta),
-				(EditText)findViewById(R.id.etImage3Meta)
+		tvImageMeta = new TextView[] {
+				(TextView)findViewById(R.id.tvImage1Meta),
+				(TextView)findViewById(R.id.tvImage2Meta),
+				(TextView)findViewById(R.id.tvImage3Meta)
 		};
 		// got the hoppity ....
 		
@@ -98,13 +110,30 @@ public class FormEdit extends BaseActivity {
 		// got the soppity, populate it with the fillopitty
 		
 		tvDate.setText(getDateFormatter().format(form.createDate));
+		etInspector.setText(form.inspector);
 		etCustomer.setText(form.customer);
 		etLocation.setText(form.location);
 		etSystem.setText(form.system);
 		etPlan.setText(form.plan);
 		etDetail.setText(form.detail);
 		etComments.setText(form.comments);
-		rgType.check(form.type.radioButtonId);
+		if (form.type == null || form.type.length() == 0) {
+			rgType.check(R.id.rbMechanical);
+			etCustom.setEnabled(false);
+		} else if (form.type.equals("Plumbing")) {
+			rgType.check(R.id.rbPlumbing);
+			etCustom.setEnabled(false);
+		} else if (form.type.equals("Mechanical")) {
+			rgType.check(R.id.rbMechanical);
+			etCustom.setEnabled(false);
+		} else if (form.type.equals("Process")) {
+			rgType.check(R.id.rbProcess);
+			etCustom.setEnabled(false);
+		} else {
+			rgType.check(R.id.rbCustom);
+			etCustom.setEnabled(true);
+			etCustom.setText(form.type);
+		}
 		cbPassed.setChecked(form.passed);
 		for (int i=0; i<form.imagePath.length; i++)
 			if (form.imagePath[i] != null) {
@@ -117,15 +146,21 @@ public class FormEdit extends BaseActivity {
 				}
 			}
 		
-		for (int i=0; i<etImageMeta.length; i++) {
-			etImageMeta[i].setText(form.imageMeta[i]);
+		for (int i=0; i<tvImageMeta.length; i++) {
+			tvImageMeta[i].setText(form.imageMeta[i]);
 		}
+
+		// do this last so onCheckChanged listener does not get called while we are initing the view
+		rgType.setOnCheckedChangeListener(this);
+
+		getWindow().setSoftInputMode(
+			    WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN
+			);
 	}
 
 	@Override
 	public void onResume() {
 		super.onResume();
-		hideKeyboard();
 	}
 	
 	@Override
@@ -143,6 +178,9 @@ public class FormEdit extends BaseActivity {
 			case R.id.ibImage2:
 				editImage(1);
 				break;
+			case R.id.ibImage3:
+				editImage(2);
+				break;
 		}
 	}
 	
@@ -157,10 +195,19 @@ public class FormEdit extends BaseActivity {
 			
 			View view = View.inflate(getActivity(), R.layout.popup_image_enlarge, null);
 			ImageView iv = (ImageView)view.findViewById(R.id.ivPhoto);
+			final EditText et = (EditText)view.findViewById(R.id.etMeta);
+			et.setText(form.imageMeta[index]);
 			iv.setImageURI(Uri.fromFile(new File(getImagesPath(), form.imagePath[index])));
 			newDialogBuilder()
 				.setView(view)
-				.setNegativeButton("Cancel", null)
+				.setNegativeButton("Ok", new DialogInterface.OnClickListener() {
+					
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						form.imageMeta[index] = et.getText().toString();
+						tvImageMeta[index].setText(et.getText());
+					}
+				})
 				.setPositiveButton("Change", new DialogInterface.OnClickListener() {
 				
     				@Override
@@ -168,13 +215,14 @@ public class FormEdit extends BaseActivity {
     					pickImage(index);
     				}
     			})
-    			.setNeutralButton("Delete", new DialogInterface.OnClickListener() {
+    			.setNeutralButton("Remove", new DialogInterface.OnClickListener() {
 					
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
 						form.imagePath[index] = null;
 						form.imageMeta[index] = null;
 						ibImage[index].setImageBitmap(null);
+						tvImageMeta[index] = null;
 					}
 				})
     			.show();
@@ -184,6 +232,7 @@ public class FormEdit extends BaseActivity {
 	}
 	
 	public void save() {
+		form.inspector = etInspector.getText().toString().trim();
 		form.customer = etCustomer.getText().toString().trim();
 		form.editDate = new Date();
 		form.comments = etComments.getText().toString().trim();
@@ -192,11 +241,19 @@ public class FormEdit extends BaseActivity {
 		form.passed = cbPassed.isChecked();
 		form.plan = etPlan.getText().toString().trim();
 		form.system = etSystem.getText().toString().trim();
-		for (Form.FormType t : Form.FormType.values()) {
-			if (t.radioButtonId == rgType.getCheckedRadioButtonId()) {
-				form.type = t;
+		switch (rgType.getCheckedRadioButtonId()) {
+			case R.id.rbCustom:
+				form.type = etCustom.getText().toString();
 				break;
-			}
+			case R.id.rbPlumbing:
+				form.type = "Plumbing";
+				break;
+			case R.id.rbMechanical:
+				form.type = "Mechanical";
+				break;
+			case R.id.rbProcess:
+				form.type = "Process";
+				break;
 		}
 		getFormHelper().addOrUpdateForm(form);
 	}
@@ -294,9 +351,12 @@ public class FormEdit extends BaseActivity {
 						form.imagePath[index] = destFile.getName();
 						if (form.imageMeta[index] == null) {
 							form.imageMeta[index] = getDateFormatter().format(new Date());
-							etImageMeta[index].setText(form.imageMeta[index]);
+							if (isAmbientTempAvailable()) {
+								form.imageMeta[index] += " " + convertCelciusToFahrenheit(getAmbientTempCelcius()) + "\u00B0";
+							}
 						}
-
+						editImage(index);
+						
 					} finally {
 						out.close();
 					}
@@ -306,5 +366,27 @@ public class FormEdit extends BaseActivity {
 				//bitmap.recycle();
         	}
     	}
+	}
+
+	@Override
+	public void onCheckedChanged(RadioGroup group, int checkedId) {
+		switch (checkedId) {
+			case R.id.rbCustom:
+				etCustom.setEnabled(true);
+				form.type = etCustom.getText().toString();
+				break;
+			case R.id.rbMechanical:
+				etCustom.setEnabled(false);
+				form.type = "Mechanical";
+				break;
+			case R.id.rbPlumbing:
+				etCustom.setEnabled(false);
+				form.type = "Plumbing";
+				break;
+			case R.id.rbProcess:
+				etCustom.setEnabled(false);
+				form.type = "Process";
+				break;
+		}
 	}
 }

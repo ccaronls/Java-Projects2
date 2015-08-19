@@ -18,6 +18,8 @@ import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.database.Cursor;
+import android.hardware.Sensor;
+import android.hardware.SensorManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
@@ -31,7 +33,7 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
 
 	final static String SORT_FIELD_STR = "SORT_FIELD";
 	final static String SORT_ASCENDING_BOOL = "SORT_ASCENDING";
-	
+		
 	@Override
 	public void onCreate(Bundle bundle) {
 		super.onCreate(bundle);
@@ -45,7 +47,7 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
 		SortButtonGroup sg = (SortButtonGroup)findViewById(R.id.sortButtonGroup);
 		sg.setSelectedSortButton(sortField, ascending);
 		sg.setOnSortButtonListener(this);
-		
+
 		startActivity(new Intent(this, Splash.class));
 
 		new Thread() {
@@ -53,6 +55,12 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
 				cleanupUnusedImages();
 			}
 		}.start();
+	}
+	
+	@Override
+	protected void onAmbientTemperature(float celcius, int farhenheit) {
+		final TextView tvAmbient = (TextView)findViewById(R.id.tvAmbient);
+		tvAmbient.setText("Ambient Temperature " + farhenheit + "\u00B0 F.");
 	}
 
 	@Override
@@ -87,13 +95,13 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
 								} catch (NameNotFoundException e) {
 									e.printStackTrace();
 								}
-								newDialogBuilder().setTitle("About").setMessage("Pressure Test Verification Utility\n\nCECC Solutions\n\n" + email + "\nApplication Version: " + version)
+								newDialogBuilder().setTitle("About").setMessage("Pressure Test Certification Utility\n\nCECC Solutions\n\n" + email + "\nApplication Version: " + version)
 									.setNegativeButton("Ok", null).show();
 								break;
 							}
 							
 							case 1: { // feedback
-								EmailHelper.sendEmail(getActivity(), null, getResources().getString(R.string.app_email), "Pressure Test Verification Utility Feedback", "Let us know what you think!");
+								EmailHelper.sendEmail(getActivity(), null, getResources().getString(R.string.app_email), "Pressure Test Certification Utility Feedback", "Let us know what you think!");
 								break;
 							}
 							
@@ -131,7 +139,7 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
 
 											@Override
 											protected Void doInBackground(Void... params) {
-												getActivity().deleteDatabase(getFormHelper().getDatabaseName());
+												getActivity().deleteDatabase(getFormHelper().getDB().getPath());
 												for (File f : getImagesPath().listFiles()) {
 													f.delete();
 												}
@@ -223,7 +231,7 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
 		
 		TextView tvEmptyList = (TextView)findViewById(R.id.tvEmptyList);
 		
-		((TextView)findViewById(R.id.tvFormCount)).setText("Form Count: " + getFormHelper().getFormCount());
+//		((TextView)findViewById(R.id.tvFormCount)).setText("Form Count: " + getFormHelper().getFormCount());
 		ListView lv = (ListView)findViewById(R.id.formList);
 		
 		String sortField = getPrefs().getString(SORT_FIELD_STR, SQLHelper.Column.EDIT_DATE.name());

@@ -22,6 +22,7 @@ import android.os.Bundle;
 import android.text.format.DateFormat;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.WebView;
 import android.widget.BaseAdapter;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
@@ -62,7 +63,7 @@ public class FormSign extends BaseActivity {
 				meta[i].setText(form.imageMeta[i]);
 			}
 		}
-		((TextView)findViewById(R.id.tvType)).setText(form.type.name());
+		((TextView)findViewById(R.id.tvType)).setText(form.type);
 		((TextView)findViewById(R.id.tvComments)).setText(form.comments);
 		TextView tvStatus = (TextView)findViewById(R.id.tvStatus);
 		if (form.passed) {
@@ -82,7 +83,7 @@ public class FormSign extends BaseActivity {
 				break;
 			case R.id.buttonEmail: {
 				// generate an image of the form and send it off
-				final ProgressDialog dialog = ProgressDialog.show(getActivity(), "Generating", "Generating your form for email");
+				final ProgressDialog dialog = ProgressDialog.show(getActivity(), "Processing", "Please wait while we generate the image for email");
 				new AsyncTask<Void,Void,Void>() {
 
 					@Override
@@ -100,7 +101,7 @@ public class FormSign extends BaseActivity {
     						OutputStream out = new FileOutputStream(file);
     						try {
     							bm.compress(CompressFormat.JPEG, 90, out);
-    							EmailHelper.sendEmail(getActivity(), file, null, "Signed form on " + new Date(), "There is a signed form attached for interested parties.  Any disputes as to the validity of the attached document should be reported at once.");
+    							EmailHelper.sendEmail(getActivity(), file, null, "Signed PTC form", getString(R.string.email_body_signed_form));
     						} finally {
     							bm.recycle();
     							out.close();
@@ -122,7 +123,9 @@ public class FormSign extends BaseActivity {
 				break;
 			}
 			case R.id.buttonESignInfo: {
-				newDialogBuilder().setTitle("How eSigning Works").setMessage(R.string.popup_msg_how_esign_works).setNegativeButton("Ok", null).show();
+				WebView wv = new WebView(this);
+				wv.loadUrl("file:///android_asset/about_esigning.html");
+				newDialogBuilder().setTitle("How eSigning Works").setView(wv).setNegativeButton("Ok", null).show();
 				
 				break;
 			}

@@ -4,6 +4,28 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical" >
+    
+    <RelativeLayout
+        android:id="@+id/header"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content" >
+
+        <TextView
+            android:id="@+id/textView1"
+            style="@android:style/TextAppearance.DeviceDefault.Large"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Certifications" />
+
+        <TextView
+            android:id="@+id/tvAmbient"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBaseline="@+id/textView1"
+            android:layout_alignBottom="@+id/textView1"
+            android:layout_alignParentRight="true" />
+
+    </RelativeLayout>
 
     <LinearLayout android:id="@+id/footer"
         android:layout_alignParentBottom="true"
@@ -15,7 +37,7 @@
 	        android:layout_width="0dp"
 	        android:layout_height="wrap_content"
 	        android:layout_weight="1"
-	        android:text="New Verification" />
+	        android:text="New Certification" />
 
         <Button
             android:id="@+id/buttonOptions"
@@ -27,19 +49,11 @@
         
     </LinearLayout>
 
-    <TextView
-        android:id="@+id/tvFormCount"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:text="form count"
-        android:visibility="gone" />
-
     <cc.lib.android.SortButtonGroup
         android:id="@+id/sortButtonGroup"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/tvFormCount"
+        android:layout_below="@id/header"
         android:orientation="horizontal" >
 
         <cc.lib.android.SortButton
@@ -94,7 +108,7 @@
         android:layout_below="@id/sortButtonGroup"
         android:layout_margin="20dp"
         android:gravity="center"
-        android:text="You dont have any Forms!\n\nPlease choose &apos;New Verification&apos; to start a new form."
+        android:text="You dont have any Forms!\n\nPlease choose &apos;New Certification&apos; to start a new form."
         android:textSize="20sp" />
     
 </RelativeLayout>
