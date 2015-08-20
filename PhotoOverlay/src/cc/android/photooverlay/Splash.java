@@ -17,6 +17,7 @@ public class Splash extends Activity {
 			}
 		}, 4000);
 		
+		System.err.println("Form class=" + Form.class.getSimpleName());
 	}
 	
 }

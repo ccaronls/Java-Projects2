@@ -7,12 +7,10 @@ import java.text.DateFormat;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LevelListDrawable;
-import android.net.Uri;
 import android.os.Bundle;
 import android.text.Html;
 import android.text.Html.ImageGetter;
 import android.view.View;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 public class FormExport extends BaseActivity implements ImageGetter {

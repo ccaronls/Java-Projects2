@@ -55,9 +55,13 @@
     public static ** valueOf(java.lang.String);
 }
 
+-keepnames class * implements android.os.Parcelable {
+    public static final ** CREATOR;
+}
+
 -keepattributes Exceptions,InnerClasses
-#-keep class cc.android.photooverlay.SQLHelper.Column;
--keep class com.parse.*{ *; }
+#-keep class cc.android.photooverlay.SQLHelper.Column
+#-keep class com.parse.*{ *; }
 -dontwarn com.parse.**
 -dontwarn com.google.common.**
 -dontwarn org.hamcrest.**

@@ -1,19 +1,11 @@
 package cc.android.photooverlay;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.swing.RepaintManager;
-
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.Bitmap.Config;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Paint.Style;
 import android.graphics.Path;
-import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
