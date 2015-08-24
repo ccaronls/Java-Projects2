@@ -50,7 +50,7 @@
 		        android:ems="10"
 		        android:hint="Customer"
 		        android:imeOptions="actionNext"
-		        android:inputType="textPersonName"
+		        android:inputType="textCapWords"
 		        android:singleLine="true" />
 		
 		    <AutoCompleteTextView
@@ -62,20 +62,20 @@
 		        android:ems="10"
 		        android:hint="Location"
 		        android:imeOptions="actionNext"
-		        android:inputType="textPostalAddress"
+		        android:inputType="textCapWords|textPostalAddress"
 		        android:singleLine="true" />
 		
 		    <AutoCompleteTextView
-                android:id="@+id/etInspector"
-                style="@style/edittext"
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:layout_centerHorizontal="true"
-                android:ems="10"
-                android:hint="Inspector/Mechanic"
-                android:imeOptions="actionNext"
-                android:inputType="textCapWords"
-                android:singleLine="true" />
+		        android:id="@+id/etInspector"
+		        style="@style/edittext"
+		        android:layout_width="fill_parent"
+		        android:layout_height="wrap_content"
+		        android:layout_centerHorizontal="true"
+		        android:ems="10"
+		        android:hint="Inspector/Mechanic"
+		        android:imeOptions="actionNext"
+		        android:inputType="textCapWords|textPersonName"
+		        android:singleLine="true" />
 		    
 		    <AutoCompleteTextView
 		        android:id="@+id/etSystem"

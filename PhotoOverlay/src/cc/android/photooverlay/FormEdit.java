@@ -87,7 +87,7 @@ public class FormEdit extends BaseActivity implements OnCheckedChangeListener {
 		ibImage = new ImageButton[] { 
 				(ImageButton)findViewById(R.id.ibImage1),
 				(ImageButton)findViewById(R.id.ibImage2),
-				(ImageButton)findViewById(R.id.ibImage2)
+				(ImageButton)findViewById(R.id.ibImage3)
 		};
 		for (View v : ibImage) {
 			v.setOnClickListener(this);
@@ -167,6 +167,7 @@ public class FormEdit extends BaseActivity implements OnCheckedChangeListener {
 		switch (v.getId()) {
 			case R.id.buttonSave:
 				save();
+				finish();
 				break;
 			case R.id.buttonCancel:
 				finish();

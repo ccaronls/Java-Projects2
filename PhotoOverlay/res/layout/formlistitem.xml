@@ -21,6 +21,14 @@
         android:orientation="vertical">
 
         <TextView
+            android:id="@+id/tvCustomer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="Customer" />
+        
+        <TextView
             android:id="@+id/tvAddress"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -28,13 +36,6 @@
             android:maxLines="1"
             android:text="Address" />
 
-        <TextView
-            android:id="@+id/tvCustomer"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:ellipsize="end"
-            android:maxLines="1"
-            android:text="Customer" />
 
     </LinearLayout>
         
