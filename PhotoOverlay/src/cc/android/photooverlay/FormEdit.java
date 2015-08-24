@@ -32,6 +32,7 @@ public class FormEdit extends BaseActivity implements OnCheckedChangeListener {
 	AutoCompleteTextView etInspector;
 	AutoCompleteTextView etCustomer;
 	AutoCompleteTextView etLocation;
+	AutoCompleteTextView etProject;
 	AutoCompleteTextView etSystem;
 	AutoCompleteTextView etPlan;
 	AutoCompleteTextView etDetail;
@@ -68,6 +69,9 @@ public class FormEdit extends BaseActivity implements OnCheckedChangeListener {
 		etLocation = (AutoCompleteTextView)findViewById(R.id.etLocation);
 		etLocation.setAdapter(getAutoCompleteAdapter(SQLHelper.Column.LOCATION));
 		
+		etProject = (AutoCompleteTextView)findViewById(R.id.etProject);
+		etProject.setAdapter(getAutoCompleteAdapter(SQLHelper.Column.PROJECT));
+
 		etSystem  = (AutoCompleteTextView)findViewById(R.id.etSystem);
 		etSystem.setAdapter(getAutoCompleteAdapter(SQLHelper.Column.SYSTEM));
 		
@@ -112,6 +116,7 @@ public class FormEdit extends BaseActivity implements OnCheckedChangeListener {
 		etInspector.setText(form.inspector);
 		etCustomer.setText(form.customer);
 		etLocation.setText(form.location);
+		etProject.setText(form.project);
 		etSystem.setText(form.system);
 		etPlan.setText(form.plan);
 		etDetail.setText(form.detail);
@@ -238,6 +243,7 @@ public class FormEdit extends BaseActivity implements OnCheckedChangeListener {
 		form.comments = etComments.getText().toString().trim();
 		form.detail = etDetail.getText().toString().trim();
 		form.location = etLocation.getText().toString().trim();
+		form.project = etProject.getText().toString().trim();
 		form.passed = cbPassed.isChecked();
 		form.plan = etPlan.getText().toString().trim();
 		form.system = etSystem.getText().toString().trim();

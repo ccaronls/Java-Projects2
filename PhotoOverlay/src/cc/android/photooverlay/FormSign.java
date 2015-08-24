@@ -68,7 +68,7 @@ public class FormSign extends BaseActivity {
 			tvStatus.setTextColor(Color.RED);
 		}
 		newDialogBuilder().setTitle("Important")
-			.setMessage("All Signatures captured on this form will be discarded once leaving this page.  You must email the form for the signatures to be captured.  This is done in order to prevent mis use.  Your signature can never be re-used.")
+			.setMessage(R.string.popup_msg_signing_important)
 			.setNegativeButton("I Understand", null).show();
 	}
 	

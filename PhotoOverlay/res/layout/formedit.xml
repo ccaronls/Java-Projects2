@@ -65,7 +65,19 @@
 		        android:inputType="textCapWords|textPostalAddress"
 		        android:singleLine="true" />
 		
-		    <AutoCompleteTextView
+            <AutoCompleteTextView
+                android:id="@+id/etProject"
+                style="@style/edittext"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:ems="10"
+                android:hint="Project"
+                android:imeOptions="actionNext"
+                android:inputType="textCapWords|textPostalAddress"
+                android:singleLine="true" />
+		    
+            <AutoCompleteTextView
 		        android:id="@+id/etInspector"
 		        style="@style/edittext"
 		        android:layout_width="fill_parent"
