@@ -17,7 +17,7 @@ public class Form implements Parcelable {
 	double longitude;
 	String system;
 	String plan;
-	String detail;
+	String spec;
 	String type;
 	String [] imagePath = new String[3];
 	String [] imageMeta = new String[3];
@@ -59,7 +59,7 @@ public class Form implements Parcelable {
 		in.readStringArray(imageMeta);
 		system = in.readString();
 		plan = in.readString();
-		detail = in.readString();
+		spec = in.readString();
 		type = in.readString();
 		passed = in.readInt() != 0;
 		comments = in.readString();
@@ -84,7 +84,7 @@ public class Form implements Parcelable {
 		dest.writeStringArray(imageMeta);
 		dest.writeString(system);
 		dest.writeString(plan);
-		dest.writeString(detail);
+		dest.writeString(spec);
 		dest.writeString(type);
 		dest.writeInt(passed ? 1 : 0);
 		dest.writeString(comments);

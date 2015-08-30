@@ -204,22 +204,22 @@
                         android:layout_height="wrap_content"
                         android:hint="plan"
                         />
-                    <TextView
-                        style="@style/signform"
-                        android:layout_width="0dp"
-                        android:layout_weight="1"
-                        android:layout_height="wrap_content"
-                        android:text="Detail:"
-                        android:textAppearance="?android:attr/textAppearanceMedium" />
 
                     <TextView
                         style="@style/signform"
-                        android:id="@+id/tvDetail"
                         android:layout_width="0dp"
-                        android:layout_weight="1"
                         android:layout_height="wrap_content"
-                        android:hint="detail"
-                        />
+                        android:layout_weight="1"
+                        android:text="Spec:"
+                        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+                    <TextView
+                        android:id="@+id/tvSpec"
+                        style="@style/signform"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:hint="spec" />
                     
                 </LinearLayout>
 		    </LinearLayout>

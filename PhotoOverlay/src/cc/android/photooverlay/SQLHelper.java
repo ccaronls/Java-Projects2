@@ -11,7 +11,7 @@ import android.util.Log;
 public class SQLHelper extends SQLiteOpenHelper {
 
 	private final static String TAG = "FormHelper";
-	public final static int VERSION = 1;
+	public final static int VERSION = 2;
 	
 	public SQLHelper(Context context) {
 		super(context, "formsDB", null, VERSION);
@@ -28,15 +28,16 @@ public class SQLHelper extends SQLiteOpenHelper {
 		LAT(1, "double default " + Double.MAX_VALUE),
 		LNG(1, "double default " + Double.MAX_VALUE),
 		SYSTEM(1, "text"),
-		PLAN(2, "text"),
-		DETAIL(1, "text"),
+		PLAN(1, "text"),
+		//DETAIL(1, "text"),
+		SPEC(2, "text"),
 		TYPE(1, "text"),
 		IMAGE1(1, "text"),
 		IMAGE2(1, "text"),
-		IMAGE3(2, "text"),
-		IMAGE1_META(2, "text"),
-		IMAGE2_META(2, "text"),
-		IMAGE3_META(2, "text"),
+		IMAGE3(1, "text"),
+		IMAGE1_META(1, "text"),
+		IMAGE2_META(1, "text"),
+		IMAGE3_META(1, "text"),
 		PASSED(1, "int default 0"),
 		COMMENTS(1, "text"),
 		INSPECTOR(1, "text"),
@@ -79,8 +80,8 @@ public class SQLHelper extends SQLiteOpenHelper {
 				case CUSTOMER:
 					form.customer = cursor.getString(getColumnIndex(cursor));
 					break;
-				case DETAIL:
-					form.detail = cursor.getString(getColumnIndex(cursor));
+				case SPEC:
+					form.spec = cursor.getString(getColumnIndex(cursor));
 					break;
 				case EDIT_DATE:
 					form.editDate = new Date(cursor.getLong(getColumnIndex(cursor)));
@@ -150,8 +151,8 @@ public class SQLHelper extends SQLiteOpenHelper {
 				case CUSTOMER:
 					values.put(name(), form.customer);
 					break;
-				case DETAIL:
-					values.put(name(), form.detail);
+				case SPEC:
+					values.put(name(), form.spec);
 					break;
 				case EDIT_DATE:
 					values.put(name(), form.editDate.getTime());
@@ -250,6 +251,20 @@ public class SQLHelper extends SQLiteOpenHelper {
 			
 				break;
 				*/
+			
+			case 2:
+				db.execSQL("ALTER TABLE " + TABLE_FORM + " REMOVE COLUMN PLAN");
+				db.execSQL("ALTER TABLE " + TABLE_FORM + " ADD COLUMN " + Column.SPEC.name() + " " + Column.SPEC.createArgs);
+				
+				// other versions go here
+				
+				
+				
+				
+				
+				
+				break;
+			
 			default:
 				// default is to nuke
         		Log.w(TAG, "Dont know how to update, so destroy all old data");

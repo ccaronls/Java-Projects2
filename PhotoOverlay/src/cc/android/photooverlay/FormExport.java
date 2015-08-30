@@ -47,7 +47,7 @@ public class FormExport extends BaseActivity implements ImageGetter {
 				replace(buf, "%%SYSTEM%%", form.system);
 				replace(buf, "%%STATUS%%", form.passed ? "PASSED" : "FAILED");
 				replace(buf, "%%PLAIN%%", form.plan);
-				replace(buf, "%%DETAIL%%", form.detail);
+				replace(buf, "%%SPEC%%", form.spec);
 				replace(buf, "%%TYPE%%", form.type);
 				replace(buf, "%%IMAGE1%%", form.imagePath[0]);
 				replace(buf, "%%IMAGE2%%", form.imagePath[1]);

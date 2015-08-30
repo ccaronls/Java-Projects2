@@ -107,6 +107,7 @@
 		            android:layout_width="0dp"
 		            android:layout_height="0dp"
 		            android:layout_centerInParent="true"/>
+
 			    <AutoCompleteTextView
 			        android:id="@+id/etPlan"
 			        style="@style/edittext"
@@ -115,13 +116,13 @@
 			        android:layout_alignParentLeft="true"
 			        android:layout_toLeftOf="@+id/anchor"
 			        android:ems="10"
-			        android:hint="Plan"
+			        android:hint="Plan/Detail"
 			        android:imeOptions="actionNext"
 			        android:inputType="textCapWords"
 			        android:singleLine="true" />
 			
 			    <AutoCompleteTextView
-			        android:id="@+id/etDetail"
+			        android:id="@+id/etSpec"
 			        style="@style/edittext"
 			        android:layout_width="wrap_content"
 			        android:layout_height="wrap_content"
@@ -129,26 +130,17 @@
 			        android:layout_toLeftOf="@+id/anchor"
 			        android:layout_weight="1"
 			        android:ems="10"
-			        android:hint="Detail"
+			        android:hint="Spec"
 			        android:imeOptions="actionDone"
 			        android:inputType="textCapWords"
 			        android:singleLine="true" />
-			    
-			    <CheckBox
-	                android:id="@+id/cbPassed"
-	                android:layout_width="wrap_content"
-	                android:layout_height="wrap_content"
-	                android:layout_below="@id/etDetail"
-	                android:layout_alignParentLeft="true"
-	                android:layout_alignRight="@+id/anchor"
-	                android:text="Passed" />
 				    
                 <AutoCompleteTextView
                     android:id="@+id/etCustom"
                     style="@style/edittext"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_below="@id/cbPassed"
+                    android:layout_below="@+id/cbPassed"
                     android:layout_toLeftOf="@+id/anchor"
                     android:layout_weight="1"
                     android:ems="10"
@@ -189,6 +181,16 @@
                         android:layout_height="wrap_content"
                         android:text="Custom" />
 			        			    </RadioGroup>
+
+			    <CheckBox
+			        android:id="@+id/cbPassed"
+			        android:layout_width="wrap_content"
+			        android:layout_height="wrap_content"
+			        android:layout_alignParentLeft="true"
+			        android:layout_below="@+id/etSpec"
+			        android:layout_toLeftOf="@+id/rgType"
+			        android:text="Passed" />
+
             </RelativeLayout>		
 		    
 		    <LinearLayout
@@ -196,13 +198,22 @@
 		        android:layout_width="fill_parent"
 		        android:layout_height="wrap_content">
 		    
-		        <LinearLayout android:layout_width="wrap_content"
+		        <LinearLayout android:layout_width="0dp"
+		            android:layout_weight="1"
 		            android:layout_height="wrap_content"
 		            android:orientation="vertical">
-				    <ImageButton
-				        android:id="@+id/ibImage1"
-				        style="@style/formImage"/>
 
+		            <cc.lib.android.SquareLinearLayout 
+		                android:layout_width="fill_parent"
+		                android:layout_height="wrap_content"
+		                app:dominantSide="height_matches_width">
+
+					    <ImageButton
+					        android:id="@+id/ibImage1"
+					        style="@style/formImage"
+					        android:layout_marginLeft="3dp" />
+
+                    </cc.lib.android.SquareLinearLayout>
                     <TextView
                         android:id="@+id/tvImage1Meta"
                         android:layout_width="fill_parent"
@@ -213,13 +224,18 @@
 
 			    </LinearLayout>
 			
-                <LinearLayout android:layout_width="wrap_content"
+                <LinearLayout android:layout_width="0dp"
+                    android:layout_weight="1"
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
-                    <ImageButton
-				        android:id="@+id/ibImage2"
-				        style="@style/formImage" />
-
+                     <cc.lib.android.SquareLinearLayout 
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        app:dominantSide="height_matches_width">
+	                    <ImageButton
+					        android:id="@+id/ibImage2"
+					        style="@style/formImage" />
+                    </cc.lib.android.SquareLinearLayout>
                     <TextView
                         android:id="@+id/tvImage2Meta"
                         android:layout_width="fill_parent"
@@ -229,13 +245,18 @@
                         android:minLines="2" />
 
                 </LinearLayout>			    
-                <LinearLayout android:layout_width="wrap_content"
+                <LinearLayout android:layout_width="0dp"
+                    android:layout_weight="1"
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
-		        	<ImageButton
-	                    android:id="@+id/ibImage3"
-	                    style="@style/formImage" />
-
+                     <cc.lib.android.SquareLinearLayout 
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        app:dominantSide="height_matches_width">
+			        	<ImageButton
+		                    android:id="@+id/ibImage3"
+		                    style="@style/formImage" />
+                    </cc.lib.android.SquareLinearLayout>
                     <TextView
                         android:id="@+id/tvImage3Meta"
                         android:layout_width="fill_parent"
@@ -253,9 +274,9 @@
 		        android:layout_height="wrap_content"
 		        android:layout_below="@id/layoutImages"
 		        android:layout_centerHorizontal="true"
+		        android:inputType="textCapSentences|textImeMultiLine|textAutoCorrect|textLongMessage"
 		        android:ems="10"
 		        android:hint="Comments"
-		        android:inputType="textMultiLine|textLongMessage"
 		        android:minLines="3" />
 		    
 	   </LinearLayout>

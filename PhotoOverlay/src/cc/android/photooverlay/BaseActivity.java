@@ -33,7 +33,9 @@ public class BaseActivity extends Activity implements OnClickListener {
 	public final static String INTENT_ERROR = "iERROR";
 	
 	static SimpleDateFormat dateFormat = new SimpleDateFormat("E M/d/yy h:mm a", Locale.US); 
-	
+
+	private SQLHelper helper;
+
 	DateFormat getDateFormatter() {
 		return dateFormat;
 	}
@@ -131,7 +133,7 @@ public class BaseActivity extends Activity implements OnClickListener {
 	protected void onAmbientTemperature(float celcius, int farhenheit) {}
 	
 	public final boolean isAmbientTempAvailable() {
-		return ambientSensor != null;
+		return ambientSensor != null && temp != null;
 	}
 	
 	public final float getAmbientTempCelcius() {
@@ -165,25 +167,6 @@ public class BaseActivity extends Activity implements OnClickListener {
 				f.delete();
 			}
 		}
-		// check the cache.  
-		File [] files = getCacheDir().listFiles();
-		long size = 0;
-		for (File f : files) {
-			size += f.length();
-		}
-		
-		Arrays.sort(files, new Comparator<File>() {
-
-			@Override
-			public int compare(File o1, File o2) {
-				return (int)(o1.length() - o2.length());
-			}
-			
-		});
-		
-		while (size > 10*1024*1024) {
-			
-		}
 	}
 
 	public final void hideKeyboard() {
@@ -200,5 +183,4 @@ public class BaseActivity extends Activity implements OnClickListener {
 		return getWindow().getDecorView().findViewById(android.R.id.content);
 	}
 	
-	private SQLHelper helper;
 }

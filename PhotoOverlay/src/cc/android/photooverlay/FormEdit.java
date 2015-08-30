@@ -35,7 +35,7 @@ public class FormEdit extends BaseActivity implements OnCheckedChangeListener {
 	AutoCompleteTextView etProject;
 	AutoCompleteTextView etSystem;
 	AutoCompleteTextView etPlan;
-	AutoCompleteTextView etDetail;
+	AutoCompleteTextView etSpec;
 	AutoCompleteTextView etCustom;
 	
 	EditText etComments;
@@ -78,12 +78,12 @@ public class FormEdit extends BaseActivity implements OnCheckedChangeListener {
 		etPlan = (AutoCompleteTextView)findViewById(R.id.etPlan);
 		etPlan.setAdapter(getAutoCompleteAdapter(SQLHelper.Column.PLAN));
 		
-		etDetail = (AutoCompleteTextView)findViewById(R.id.etDetail);
-		etDetail.setAdapter(getAutoCompleteAdapter(SQLHelper.Column.DETAIL));
+		etSpec = (AutoCompleteTextView)findViewById(R.id.etSpec);
+		etSpec.setAdapter(getAutoCompleteAdapter(SQLHelper.Column.SPEC));
 		
 		etComments = (EditText)findViewById(R.id.etComments);
 		etCustom = (AutoCompleteTextView)findViewById(R.id.etCustom);
-		etCustom.setAdapter(getAutoCompleteAdapter(SQLHelper.Column.DETAIL));
+		etCustom.setAdapter(getAutoCompleteAdapter(SQLHelper.Column.TYPE));
 		
 		rgType = (RadioGroup)findViewById(R.id.rgType);
 		cbPassed = (CompoundButton)findViewById(R.id.cbPassed);
@@ -119,7 +119,7 @@ public class FormEdit extends BaseActivity implements OnCheckedChangeListener {
 		etProject.setText(form.project);
 		etSystem.setText(form.system);
 		etPlan.setText(form.plan);
-		etDetail.setText(form.detail);
+		etSpec.setText(form.spec);
 		etComments.setText(form.comments);
 		if (form.type == null || form.type.length() == 0) {
 			rgType.check(R.id.rbMechanical);
@@ -227,7 +227,7 @@ public class FormEdit extends BaseActivity implements OnCheckedChangeListener {
 						form.imagePath[index] = null;
 						form.imageMeta[index] = null;
 						ibImage[index].setImageBitmap(null);
-						tvImageMeta[index] = null;
+						tvImageMeta[index].setText("");
 					}
 				})
     			.show();
@@ -241,7 +241,7 @@ public class FormEdit extends BaseActivity implements OnCheckedChangeListener {
 		form.customer = etCustomer.getText().toString().trim();
 		form.editDate = new Date();
 		form.comments = etComments.getText().toString().trim();
-		form.detail = etDetail.getText().toString().trim();
+		form.spec = etSpec.getText().toString().trim();
 		form.location = etLocation.getText().toString().trim();
 		form.project = etProject.getText().toString().trim();
 		form.passed = cbPassed.isChecked();

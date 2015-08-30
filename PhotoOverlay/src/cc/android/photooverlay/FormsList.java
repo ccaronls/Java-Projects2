@@ -89,7 +89,7 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
 								String version = "???";
 								try {
 									pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
-									version = pInfo.versionName;
+									version = pInfo.versionName + "." + BuildNum.buildNum;
 								} catch (NameNotFoundException e) {
 									e.printStackTrace();
 								}

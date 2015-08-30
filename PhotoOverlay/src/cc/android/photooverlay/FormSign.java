@@ -40,7 +40,7 @@ public class FormSign extends BaseActivity {
 		((TextView)findViewById(R.id.tvLocation)).setText(form.location);
 		((TextView)findViewById(R.id.tvSystem)).setText(form.system);
 		((TextView)findViewById(R.id.tvPlan)).setText(form.plan);
-		((TextView)findViewById(R.id.tvDetail)).setText(form.detail);
+		((TextView)findViewById(R.id.tvSpec)).setText(form.spec);
 		ImageView [] images = new ImageView[] {
 				(ImageView)findViewById(R.id.ivGauge1),
 				(ImageView)findViewById(R.id.ivGauge2),
