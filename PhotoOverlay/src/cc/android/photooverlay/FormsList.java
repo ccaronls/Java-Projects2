@@ -251,18 +251,18 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
 			public void bindView(View view, Context context, Cursor cursor) {
 				
 				TextView tvDate = (TextView)view.findViewById(R.id.tvDate);
-				TextView tvAddress = (TextView)view.findViewById(R.id.tvAddress);
+				TextView tvSystem = (TextView)view.findViewById(R.id.tvSystem);
 				TextView tvCustomer = (TextView)view.findViewById(R.id.tvCustomer);
 				CompoundButton cbPassed = (CompoundButton)view.findViewById(R.id.cbPassed);
 				
 				int id = cursor.getInt(SQLHelper.Column._id.getColumnIndex(cursor));
 				Date date = new Date(cursor.getLong(SQLHelper.Column.EDIT_DATE.getColumnIndex(cursor)));
-				String addr = cursor.getString(SQLHelper.Column.LOCATION.getColumnIndex(cursor));
+				String system = cursor.getString(SQLHelper.Column.SYSTEM.getColumnIndex(cursor));
 				String customer = cursor.getString(SQLHelper.Column.CUSTOMER.getColumnIndex(cursor));
 				boolean passed = cursor.getInt(SQLHelper.Column.PASSED.getColumnIndex(cursor)) != 0;
 				
 				tvDate.setText(getDateFormatter().format(date));
-				tvAddress.setText(addr);
+				tvSystem.setText(system);
 				tvCustomer.setText(customer);
 				cbPassed.setChecked(passed);
 				

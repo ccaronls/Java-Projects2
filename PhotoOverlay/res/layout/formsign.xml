@@ -68,12 +68,12 @@
 		        android:orientation="vertical" >
 		        
 		        <TextView
-		            style="@style/signform"
 		            android:id="@+id/tvDate"
+		            style="@style/signform"
 		            android:layout_width="fill_parent"
 		            android:layout_height="wrap_content"
 		            android:layout_margin="10dp"
-		            android:gravity="right"
+		            android:gravity="center_horizontal"
 		            android:text="30/12/2002" />
 		        
 		        <LinearLayout 

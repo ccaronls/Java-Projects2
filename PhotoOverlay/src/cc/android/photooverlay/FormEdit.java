@@ -8,7 +8,11 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Matrix;
+import android.graphics.Paint;
+import android.graphics.Paint.Align;
 import android.media.ThumbnailUtils;
 import android.net.Uri;
 import android.os.Bundle;
@@ -265,6 +269,7 @@ public class FormEdit extends BaseActivity implements OnCheckedChangeListener {
 	}
 	
 	public void pickImage(final int id) {
+		/*
 		newDialogBuilder().setItems(new String[] {
 				"Choose Existing",
 				"Take Photo",
@@ -284,7 +289,8 @@ public class FormEdit extends BaseActivity implements OnCheckedChangeListener {
 						dialog.dismiss();
 				}
 			}
-		}).show();
+		}).show();*/
+		startActivityForResult(new Intent(MediaStore.ACTION_IMAGE_CAPTURE), (id << 1) | 1);
 	}
 	
 	@Override
@@ -347,6 +353,9 @@ public class FormEdit extends BaseActivity implements OnCheckedChangeListener {
 					bitmap.recycle();
 					bitmap = newBitmap;
 				}
+				
+				// watermark
+				watermark(bitmap, getDateFormatter().format(new Date()));
 
 				try {
 					File destFile = File.createTempFile("guage", ".png", getImagesPath());
@@ -356,9 +365,9 @@ public class FormEdit extends BaseActivity implements OnCheckedChangeListener {
 						ibImage[index].setImageBitmap(bitmap);
 						form.imagePath[index] = destFile.getName();
 						if (form.imageMeta[index] == null) {
-							form.imageMeta[index] = getDateFormatter().format(new Date());
+							//form.imageMeta[index] = getDateFormatter().format(new Date());
 							if (isAmbientTempAvailable()) {
-								form.imageMeta[index] += " " + convertCelciusToFahrenheit(getAmbientTempCelcius()) + "\u00B0";
+								form.imageMeta[index] = convertCelciusToFahrenheit(getAmbientTempCelcius()) + "\u00B0";
 							}
 						}
 						editImage(index);
@@ -372,6 +381,15 @@ public class FormEdit extends BaseActivity implements OnCheckedChangeListener {
 				//bitmap.recycle();
         	}
     	}
+	}
+	
+	private void watermark(Bitmap bitmap, String text) {
+		Canvas canvas = new Canvas(bitmap);
+		Paint paint = new Paint();
+		paint.setColor(Color.WHITE);
+		paint.setTextAlign(Align.LEFT);
+		paint.setTextSize(16);
+		canvas.drawText(text, 2, canvas.getHeight()-2, paint);
 	}
 
 	@Override
