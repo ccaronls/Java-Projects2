@@ -1,3 +1,8 @@
 /bin/
 /gen/
 /proguard/
+.DS_Store
+res/.DS_Store
+src/.DS_Store
+src/cc/.DS_Store
+src/cc/android/.DS_Store
