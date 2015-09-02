@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TableRow xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="50dp" >
+
+    <TextView style="@style/rowitem"
+        android:id="@+id/tvPurchaseSku"
+        android:layout_weight="2"
+        android:text="SKU" />
+
+    <View
+        android:layout_width="1dp"
+        android:layout_height="fill_parent"
+        android:background="@android:color/white" />
+    
+    <TextView style="@style/rowitem"
+        android:id="@+id/tvPurchaseId"
+        android:layout_weight="4"
+        android:text="ORDER ID" />
+
+    <View
+        android:layout_width="1dp"
+        android:layout_height="fill_parent"
+        android:background="@android:color/white" />
+
+    <TextView style="@style/rowitem"
+        android:id="@+id/tvPurchaseDate"
+        android:layout_weight="2"
+        android:text="DATE" />
+    
+    <View
+        android:layout_width="1dp"
+        android:layout_height="fill_parent"
+        android:background="@android:color/white" />
+
+    <TextView style="@style/rowitem" 
+        android:id="@+id/tvPurchaseState"
+        android:layout_weight="2"
+        android:text="STATE"/>
+    
+</TableRow>

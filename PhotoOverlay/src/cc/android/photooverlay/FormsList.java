@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
+import cc.android.photooverlay.BillingTask.Op;
 import cc.lib.android.EmailHelper;
 import cc.lib.android.SortButtonGroup;
 import cc.lib.android.SortButtonGroup.OnSortButtonListener;
@@ -57,103 +58,53 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
 	
 	@Override
 	protected void onAmbientTemperature(float celcius, int farhenheit) {
-		final TextView tvAmbient = (TextView)findViewById(R.id.tvAmbient);
-		tvAmbient.setText("Ambient Temperature " + farhenheit + "\u00B0 F.");
+		if (!showSubscription) {
+    		final TextView tvAmbient = (TextView)findViewById(R.id.tvAmbient);
+    		tvAmbient.setText("Ambient Temperature " + farhenheit + "\u00B0 F.");
+		}
 	}
 
 	@Override
 	public void onResume() {
 		super.onResume();
 		refresh();
+		if (isSubscription())
+			startPolling(5);
 	}
+	
+	private boolean showSubscription = false;
+	
+	@Override
+	protected void onPoll() {
+		showSubscription = !showSubscription;
+		if (showSubscription) {
+			final TextView tvAmbient = (TextView)findViewById(R.id.tvAmbient);
+			tvAmbient.setText("Subscription expires in " + getSubscriptionExpireTimeColloquial());
+		}
+	}
+	
+	/*
+	private void checkForPremiumPopup() {
+		if (!isPremiumEnabled()) {
+			newDialogBuilder().setTitle("Premium Upgrade")
+				.setMessage("Do you want to upgrade to premium to unlock all features?")
+				.setNegativeButton("Not yet", null)
+				.setPositiveButton("Show me options", new DialogInterface.OnClickListener() {
+					
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						new BillingTask(Op.QUERY_PURCHASABLES, getActivity()).execute();
+					}
+				}).show();
+		}
+	}*/
 	
 	@Override
 	public void onClick(View v) {
 		
 		switch (v.getId()) {
 			case R.id.buttonOptions: {
-				String [] items = new String[] {
-						"About",
-						"Send Feedback",
-						"Export ZIP",
-						"Nuke"
-				};
-				newDialogBuilder().setTitle("Options").setItems(items, new DialogInterface.OnClickListener() {
-					
-					@Override
-					public void onClick(DialogInterface dialog, int which) {
-						switch (which) {
-							case 0: { // about
-								String email = getResources().getString(R.string.app_email);
-								PackageInfo pInfo;
-								String version = "???";
-								try {
-									pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
-									version = pInfo.versionName + "." + BuildNum.buildNum;
-								} catch (NameNotFoundException e) {
-									e.printStackTrace();
-								}
-								newDialogBuilder().setTitle("About").setMessage("Pressure Test Certification Utility\n\nCECC Solutions\n\n" + email + "\nApplication Version: " + version)
-									.setNegativeButton("Ok", null).show();
-								break;
-							}
-							
-							case 1: { // feedback
-								EmailHelper.sendEmail(getActivity(), null, getResources().getString(R.string.app_email), "Pressure Test Certification Utility Feedback", "Let us know what you think!");
-								break;
-							}
-							
-							case 2: { // zip
-								List<File> files = new ArrayList<File>();
-								files.add(new File(getFormHelper().getReadableDatabase().getPath()));
-								String timeStamp = new SimpleDateFormat("mmddyy_hhmm").format(new Date());
-								File target = new File(getCacheDir(), "PressureValidationDB_" + timeStamp + ".zip");
-								files.addAll(Arrays.asList(getImagesPath().listFiles()));
-								try {
-									FileUtils.zipFiles(target, files);
-									EmailHelper.sendEmail(getActivity(), target, null, "Pressure Test Export", "Attached is a ZIP file with database and all images");
-								} catch (Exception e) {
-									e.printStackTrace();
-									newDialogBuilder().setTitle("ERROR").setMessage("Problem exporting database " + e.getMessage()).setNegativeButton("OK", null).show();
-								}
-								break;
-							}
-							
-							case 3: { // nuke
-								newDialogBuilder().setTitle("Confirm Reset").setMessage("Are you sure?  This will delete all application data.").setNegativeButton("Cancel", null)
-								.setPositiveButton("Reset", new DialogInterface.OnClickListener() {
-									
-									@Override
-									public void onClick(DialogInterface dialog, int which) {
-										final ProgressDialog spinner = new ProgressDialog(getActivity());
-										spinner.show();
-										new AsyncTask<Void,Void,Void>() {
-
-											@Override
-											protected void onPostExecute(Void result) {
-												spinner.dismiss();
-												refresh();
-											}
-
-											@Override
-											protected Void doInBackground(Void... params) {
-												getActivity().deleteDatabase(getFormHelper().getDB().getPath());
-												for (File f : getImagesPath().listFiles()) {
-													f.delete();
-												}
-												getFormHelper().close();
-												return null;
-											}
-										}.execute();
-										
-									}
-								}).show();
-								break;
-							}
-						}
-					}
-				}).setNegativeButton("Cancel", null).show();
-				
+				showOptionsDialog();
 				break;
 			}
 
@@ -180,12 +131,14 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
             							break;
             						}
             						case 1: { // Dup
-            							Form form = getFormHelper().getFormById(formId);
-            							form.id = null; // clear id and add to duplicate
-            							form.createDate = form.editDate = new Date();
-            							Intent i = new Intent(getActivity(), FormEdit.class);
-            							i.putExtra(INTENT_FORM, form);
-            							startActivity(i); // let the edit activity save
+            							if (isPremiumEnabled()) {
+                							Form form = getFormHelper().getFormById(formId);
+                							form.id = null; // clearing the id will cause a duplicate
+                							form.createDate = form.editDate = new Date();
+                							Intent i = new Intent(getActivity(), FormEdit.class);
+                							i.putExtra(INTENT_FORM, form);
+                							startActivity(i); // let the edit activity save
+            							}
             							break;
             						}
             						case 2: { // Delete
@@ -211,7 +164,8 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
             			.setNegativeButton("Cancel", null)
             			.show();
         		} else {
-        			startActivity(new Intent(this, FormEdit.class));
+        			if (getFormHelper().getFormCount() < 3 || isPremiumEnabled())
+        				startActivity(new Intent(this, FormEdit.class));
         		}
         		break;
 			}
@@ -270,5 +224,136 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
 				view.setOnClickListener(FormsList.this);
 			}
 		});
+	}
+	
+	private void showOptionsDialog() {
+		String [] items;
+		
+		if (isDebug()) {
+			items = new String[] {
+					"About",
+					"Send Feedback",
+					"Export ZIP",
+					"Nuke",
+					"Purchases",
+					"Upgrade",
+					"Purchases DEBUG",
+			};
+		} else if (isSubscription()) {
+			items = new String[] {
+					"About",
+					"Send Feedback",
+					"Export ZIP",
+					"Nuke",
+					"Purchases",
+					"Upgrade",
+			};
+		} else {
+			items = new String[] {
+					"About",
+					"Send Feedback",
+					"Export ZIP",
+					"Nuke",
+					"Purchases",
+			};
+		}
+		
+		newDialogBuilder().setTitle("Options").setItems(items, new DialogInterface.OnClickListener() {
+			
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				switch (which) {
+					case 0: { // about
+						String email = getResources().getString(R.string.app_email);
+						PackageInfo pInfo;
+						String version = "???";
+						String googlePlayVersion = "???";
+						try {
+							pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+							version = pInfo.versionName + "." + BuildNum.buildNum;
+							googlePlayVersion = getPackageManager().getPackageInfo("com.google.android.gms", 0 ).versionName;
+						} catch (NameNotFoundException e) {
+							e.printStackTrace();
+						}
+						newDialogBuilder().setTitle("About")
+							.setMessage("Pressure Test Certification Utility\n\nCECC Solutions\n\n" + email + 
+									"\nApplication Version: " + version +
+									"\n\nGoogle Play Version: " + googlePlayVersion)
+							.setNegativeButton("Ok", null).show();
+						break;
+					}
+					
+					case 1: { // feedback
+						EmailHelper.sendEmail(getActivity(), null, getResources().getString(R.string.app_email), "Pressure Test Certification Utility Feedback", "Let us know what you think!");
+						break;
+					}
+					
+					case 2: { // zip
+						if (isPremiumEnabled()) {
+    						List<File> files = new ArrayList<File>();
+    						files.add(new File(getFormHelper().getReadableDatabase().getPath()));
+    						String timeStamp = new SimpleDateFormat("mmddyy_hhmm").format(new Date());
+    						File target = new File(getCacheDir(), "PressureValidationDB_" + timeStamp + ".zip");
+    						files.addAll(Arrays.asList(getImagesPath().listFiles()));
+    						try {
+    							FileUtils.zipFiles(target, files);
+    							EmailHelper.sendEmail(getActivity(), target, null, "Pressure Test Export", "Attached is a ZIP file with database and all images");
+    						} catch (Exception e) {
+    							e.printStackTrace();
+    							newDialogBuilder().setTitle("ERROR").setMessage("Problem exporting database " + e.getMessage()).setNegativeButton("OK", null).show();
+    						}
+						}
+						break;
+					}
+					
+					case 3: { // nuke
+						newDialogBuilder().setTitle("Confirm Reset").setMessage("Are you sure?  This will delete all application data.").setNegativeButton("Cancel", null)
+						.setPositiveButton("Reset", new DialogInterface.OnClickListener() {
+							
+							@Override
+							public void onClick(DialogInterface dialog, int which) {
+								final ProgressDialog spinner = new ProgressDialog(getActivity());
+								spinner.show();
+								new AsyncTask<Void,Void,Void>() {
+
+									@Override
+									protected void onPostExecute(Void result) {
+										spinner.dismiss();
+										refresh();
+									}
+
+									@Override
+									protected Void doInBackground(Void... params) {
+										getActivity().deleteDatabase(getFormHelper().getDB().getPath());
+										for (File f : getImagesPath().listFiles()) {
+											f.delete();
+										}
+										getFormHelper().close();
+										return null;
+									}
+								}.execute();
+								
+							}
+						}).show();
+						break;
+					}
+					
+					case 4: { // Purchases
+						new BillingTask(Op.DISPLAY_PURCHASES, getActivity()).execute();
+						break;
+					}
+					
+					case 5: { // Upgrade
+						new BillingTask(Op.QUERY_PURCHASABLES, getActivity()).execute();
+						break;
+					}
+					
+					case 6: { // Purchases DEBUG
+						new BillingTask(Op.QUERY_PURCHASABLES_DEBUG, getActivity()).execute();
+						break;
+					}
+				}
+			}
+		}).setNegativeButton("Cancel", null).show();		
 	}
 }

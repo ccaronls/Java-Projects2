@@ -270,14 +270,18 @@
             		
 		    <EditText
 		        android:id="@+id/etComments"
+		        style="@style/edittext"
 		        android:layout_width="fill_parent"
-		        android:layout_height="wrap_content"
+		        android:layout_height="120dp"
 		        android:layout_below="@id/layoutImages"
 		        android:layout_centerHorizontal="true"
-		        android:inputType="textCapSentences|textImeMultiLine|textAutoCorrect|textLongMessage"
 		        android:ems="10"
 		        android:hint="Comments"
-		        android:minLines="3" />
+		        android:inputType="textCapSentences|textAutoCorrect|textMultiLine|textImeMultiLine|textLongMessage"
+		        android:lines="3"
+		        android:maxLines="3"
+		        android:minLines="3" 
+		        android:scrollHorizontally="false"/>
 		    
 	   </LinearLayout>
     </ScrollView>

@@ -1,10 +1,11 @@
 package cc.android.photooverlay;
 
+import cc.android.photooverlay.BillingTask.Op;
 import android.app.Activity;
 import android.os.Bundle;
 import android.view.View;
 
-public class Splash extends Activity {
+public class Splash extends BaseActivity {
 
 	@Override
 	public void onCreate(Bundle bundle) {
@@ -16,8 +17,11 @@ public class Splash extends Activity {
 				finish();
 			}
 		}, 4000);
-		
-		System.err.println("Form class=" + Form.class.getSimpleName());
+		/*
+		if (getPrefs().getBoolean("FIRST_LAUNCH_BOOL", true)) {
+			new BillingTask(Op.REFRESH_PURCHASED, getActivity()).execute();
+			getPrefs().edit().putBoolean("FIRST_LAUNCH_BOOL", false).commit();
+		}*/
 	}
 	
 }

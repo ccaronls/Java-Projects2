@@ -6,4 +6,11 @@
     <string name="email_body_signed_form">There is a signed form attached for interested parties.  Any concerns as to the validity of this document should be reported at once.</string>
     <string name="popup_msg_signing_important">Be aware that all signatures captured here must be emailed in order to be preserved.  All Signatures will be discarded once leaving this page.  This is done to prevent mis use and ensure that the signatures gathered here will never be re-used.  Please make sure all parties signing this form are included as recipients on the final email.</string>
     
+    <string name="popup_msg_billing_err_general">An error occurred.  Please try you request again or contact support</string>
+    <string name="popup_msg_billing_err_argument">Google billing returned error code %s Please contact support for more information</string>
+
+    <string name="popup_msg_premium_feature_locked">This premium feature is locked. Would you like to unlock all features?</string>
+    
+    <string name="popup_msg_subscription_activiated">Your susbscription is activated. Premium features will be unlocked until midnight %s.  You will have the option to unlock permanently at a reduced price if you do so before the subscription expires.</string>
+    <string name="popup_msg_premium_permanently_unlocked">Congratulations!  All features have been permanantly unlocked.</string>
 </resources>

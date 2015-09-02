@@ -188,7 +188,8 @@ public class FormEdit extends BaseActivity implements OnCheckedChangeListener {
 				editImage(1);
 				break;
 			case R.id.ibImage3:
-				editImage(2);
+				if (isPremiumEnabled())
+					editImage(2);
 				break;
 		}
 	}
@@ -269,6 +270,8 @@ public class FormEdit extends BaseActivity implements OnCheckedChangeListener {
 	}
 	
 	public void pickImage(final int id) {
+		try {
+
 		/*
 		newDialogBuilder().setItems(new String[] {
 				"Choose Existing",
@@ -290,19 +293,26 @@ public class FormEdit extends BaseActivity implements OnCheckedChangeListener {
 				}
 			}
 		}).show();*/
-		startActivityForResult(new Intent(MediaStore.ACTION_IMAGE_CAPTURE), (id << 1) | 1);
+			startActivityForResult(new Intent(MediaStore.ACTION_IMAGE_CAPTURE), (id << 1) | 1);
+		} catch (Exception e) {
+			newDialogBuilder().setTitle("Error").setMessage("Operation not supported on this device")
+				.setNegativeButton("Ok", null).show();
+		}
 	}
 	
 	@Override
 	public void onActivityResult(int requestCodeAndIndex, int resultCode, Intent data) {
 		int index = requestCodeAndIndex >> 1;
 		int requestCode = requestCodeAndIndex & 0x1; 
-						
-    	if (data != null) {
-    		Bitmap bitmap = null;
-            int orientation = 0;
-            switch (requestCode) {
-            	case 0: {
+		Bitmap bitmap = null;
+		int orientation = 0;
+		
+		switch (requestCode) {
+        	case 0: {
+
+            	if (data != null) {
+            		
+                    
         			Uri image = data.getData();
         			if (image != null) {
         				try {
@@ -324,62 +334,65 @@ public class FormEdit extends BaseActivity implements OnCheckedChangeListener {
         					e.printStackTrace();
         				}
         			}
-        			break;
             	} 
-            	
-            	
-            	case 1: {
-        			if (data.getExtras() != null) {
-            			bitmap = (Bitmap) data.getExtras().get("data");
-        			}
-        			break;
-            	}
-            }
-
-        	if (bitmap != null) {
-        		bitmap = ThumbnailUtils.extractThumbnail(bitmap, 256, 256);
-				Matrix matrix = new Matrix();
-				switch (orientation) {
-					case 90:
-					case 180:
-					case 270:
-						matrix.postRotate(orientation);
-						break;
-				}
-
-				Bitmap newBitmap;
-			    newBitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
-				if (newBitmap != null) {
-					bitmap.recycle();
-					bitmap = newBitmap;
-				}
-				
-				// watermark
-				watermark(bitmap, getDateFormatter().format(new Date()));
-
-				try {
-					File destFile = File.createTempFile("guage", ".png", getImagesPath());
-					FileOutputStream out = new FileOutputStream(destFile);
-					try {
-						bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
-						ibImage[index].setImageBitmap(bitmap);
-						form.imagePath[index] = destFile.getName();
-						if (form.imageMeta[index] == null) {
-							//form.imageMeta[index] = getDateFormatter().format(new Date());
-							if (isAmbientTempAvailable()) {
-								form.imageMeta[index] = convertCelciusToFahrenheit(getAmbientTempCelcius()) + "\u00B0";
-							}
-						}
-						editImage(index);
-						
-					} finally {
-						out.close();
-					}
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-				//bitmap.recycle();
+    			break;
         	}
+            	
+            case 1: {
+    			if (data != null && data.getExtras() != null) {
+        			bitmap = (Bitmap) data.getExtras().get("data");
+    			}
+    			break;
+            }
+            
+            default:
+            	super.onActivityResult(requestCode, resultCode, data);
+            	break;
+		}
+
+    	if (bitmap != null) {
+    		bitmap = ThumbnailUtils.extractThumbnail(bitmap, 256, 256);
+			Matrix matrix = new Matrix();
+			switch (orientation) {
+				case 90:
+				case 180:
+				case 270:
+					matrix.postRotate(orientation);
+					break;
+			}
+
+			Bitmap newBitmap;
+		    newBitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
+			if (newBitmap != null) {
+				bitmap.recycle();
+				bitmap = newBitmap;
+			}
+			
+			// watermark
+			watermark(bitmap, getDateFormatter().format(new Date()));
+
+			try {
+				File destFile = File.createTempFile("guage", ".png", getImagesPath());
+				FileOutputStream out = new FileOutputStream(destFile);
+				try {
+					bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
+					ibImage[index].setImageBitmap(bitmap);
+					form.imagePath[index] = destFile.getName();
+					if (form.imageMeta[index] == null) {
+						//form.imageMeta[index] = getDateFormatter().format(new Date());
+						if (isAmbientTempAvailable()) {
+							form.imageMeta[index] = convertCelciusToFahrenheit(getAmbientTempCelcius()) + "\u00B0";
+						}
+					}
+					editImage(index);
+					
+				} finally {
+					out.close();
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			//bitmap.recycle();
     	}
 	}
 	

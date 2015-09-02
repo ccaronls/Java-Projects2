@@ -11,7 +11,7 @@ import android.util.Log;
 public class SQLHelper extends SQLiteOpenHelper {
 
 	private final static String TAG = "FormHelper";
-	public final static int VERSION = 2;
+	public final static int VERSION = 3;
 	
 	public SQLHelper(Context context) {
 		super(context, "formsDB", null, VERSION);
@@ -29,7 +29,6 @@ public class SQLHelper extends SQLiteOpenHelper {
 		LNG(1, "double default " + Double.MAX_VALUE),
 		SYSTEM(1, "text"),
 		PLAN(1, "text"),
-		//DETAIL(1, "text"),
 		SPEC(2, "text"),
 		TYPE(1, "text"),
 		IMAGE1(1, "text"),
@@ -235,35 +234,6 @@ public class SQLHelper extends SQLiteOpenHelper {
 		Column.clearColumnCache();
 		Log.i(TAG, "Upgrading database from version " + oldVersion + " to " + newVersion);
 		switch (oldVersion) {
-			/*
-			case 1: {
-				// add columns
-				db.execSQL("ALTER TABLE " + TABLE_FORM + " REMOVE COLUMN PLAIN");
-				
-				for (Column c : Column.values()) {
-					if (c.version == 2) {
-						db.execSQL("ALTER TABLE " + TABLE_FORM + " ADD COLUMN " + c.name() + " " + c.createArgs);
-					}
-				}
-				
-				
-			}
-			
-				break;
-				*/
-			
-			case 2:
-				db.execSQL("ALTER TABLE " + TABLE_FORM + " REMOVE COLUMN PLAN");
-				db.execSQL("ALTER TABLE " + TABLE_FORM + " ADD COLUMN " + Column.SPEC.name() + " " + Column.SPEC.createArgs);
-				
-				// other versions go here
-				
-				
-				
-				
-				
-				
-				break;
 			
 			default:
 				// default is to nuke

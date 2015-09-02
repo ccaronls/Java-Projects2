@@ -79,43 +79,44 @@ public class FormSign extends BaseActivity {
 				startActivityForResult(new Intent(this, ESign.class), 0);
 				break;
 			case R.id.buttonEmail: {
-				// generate an image of the form and send it off
-				final ProgressDialog dialog = ProgressDialog.show(getActivity(), "Processing", "Please wait while we generate the image for email");
-				new AsyncTask<Void,Void,Void>() {
-
-					@Override
-					protected void onPreExecute() {
-					}
-					
-					
-					@Override
-					protected Void doInBackground(Void... params) {
-						try {
-							View form = findViewById(R.id.layoutForm);
-							Bitmap bm = Bitmap.createBitmap(form.getWidth(), form.getHeight(), Bitmap.Config.ARGB_8888);
-							form.draw(new Canvas(bm));
-    						File file = File.createTempFile("form", ".jpg", getCacheDir());
-    						OutputStream out = new FileOutputStream(file);
+				if (isPremiumEnabled()) {
+    				// generate an image of the form and send it off
+    				final ProgressDialog dialog = ProgressDialog.show(getActivity(), "Processing", "Please wait while we generate the image for email");
+    				new AsyncTask<Void,Void,Void>() {
+    
+    					@Override
+    					protected void onPreExecute() {
+    					}
+    					
+    					
+    					@Override
+    					protected Void doInBackground(Void... params) {
     						try {
-    							bm.compress(CompressFormat.JPEG, 90, out);
-    							EmailHelper.sendEmail(getActivity(), file, null, "Signed PTC form", getString(R.string.email_body_signed_form));
-    						} finally {
-    							bm.recycle();
-    							out.close();
+    							View form = findViewById(R.id.layoutForm);
+    							Bitmap bm = Bitmap.createBitmap(form.getWidth(), form.getHeight(), Bitmap.Config.ARGB_8888);
+    							form.draw(new Canvas(bm));
+        						File file = File.createTempFile("form", ".jpg", getCacheDir());
+        						OutputStream out = new FileOutputStream(file);
+        						try {
+        							bm.compress(CompressFormat.JPEG, 90, out);
+        							EmailHelper.sendEmail(getActivity(), file, null, "Signed PTC form", getString(R.string.email_body_signed_form));
+        						} finally {
+        							bm.recycle();
+        							out.close();
+        						}
+    						} catch (Exception e) {
+    							e.printStackTrace();
     						}
-						} catch (Exception e) {
-							e.printStackTrace();
-						}
-						return null;
-					}
-
-					@Override
-					protected void onPostExecute(Void result) {
-						dialog.dismiss();
-					}
-					
-				}.execute();
-				
+    						return null;
+    					}
+    
+    					@Override
+    					protected void onPostExecute(Void result) {
+    						dialog.dismiss();
+    					}
+    					
+    				}.execute();
+				}				
 				
 				break;
 			}
