@@ -17,11 +17,12 @@ public class Splash extends BaseActivity {
 				finish();
 			}
 		}, 4000);
-		/*
-		if (getPrefs().getBoolean("FIRST_LAUNCH_BOOL", true)) {
-			new BillingTask(Op.REFRESH_PURCHASED, getActivity()).execute();
-			getPrefs().edit().putBoolean("FIRST_LAUNCH_BOOL", false).commit();
-		}*/
+		if (!isDebug()) {
+    		if (getPrefs().getBoolean("FIRST_LAUNCH_BOOL", true)) {
+    			new BillingTask(Op.REFRESH_PURCHASED, getActivity()).execute();
+    			getPrefs().edit().putBoolean("FIRST_LAUNCH_BOOL", false).commit();
+    		}
+		}
 	}
 	
 }

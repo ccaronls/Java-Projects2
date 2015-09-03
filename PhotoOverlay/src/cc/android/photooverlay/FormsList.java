@@ -238,6 +238,7 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
 					"Purchases",
 					"Upgrade",
 					"Purchases DEBUG",
+					"Purchases Refresh"
 			};
 		} else if (isSubscription()) {
 			items = new String[] {
@@ -350,6 +351,11 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
 					
 					case 6: { // Purchases DEBUG
 						new BillingTask(Op.QUERY_PURCHASABLES_DEBUG, getActivity()).execute();
+						break;
+					}
+					
+					case 7: {
+						new BillingTask(Op.REFRESH_PURCHASED, getActivity()).execute();
 						break;
 					}
 				}

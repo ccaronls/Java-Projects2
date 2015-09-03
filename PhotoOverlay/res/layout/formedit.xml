@@ -272,7 +272,7 @@
 		        android:id="@+id/etComments"
 		        style="@style/edittext"
 		        android:layout_width="fill_parent"
-		        android:layout_height="120dp"
+		        android:layout_height="wrap_content"
 		        android:layout_below="@id/layoutImages"
 		        android:layout_centerHorizontal="true"
 		        android:ems="10"

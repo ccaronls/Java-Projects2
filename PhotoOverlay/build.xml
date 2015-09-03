@@ -96,6 +96,16 @@
         />
         
     </target>
+    
+    <target name="-parse-buildNo">
+        <xmlproperty file="AndroidManifest.xml" 
+                     prefix="themanifest" 
+                     collapseAttributes="true"/>
+        <property name="buildNo" value="${themanifest.manifest.android:versionCode}"/>
+        <echo>
+            Parsed versionCode: ${buildNo}
+        </echo>
+    </target>
 
     <target name="-compile-buildNo">
         <filter token="BUILDNUM" value="${buildNo}"/>
@@ -106,7 +116,7 @@
         <javac srcdir="/tmp/" destdir="bin/classes"/>
     </target>
     
-    <target name="-pre-build" depends="clean, -check-buildNo, -compile-buildNo">
+    <target name="-pre-build" depends="clean, -parse-buildNo, -check-buildNo, -compile-buildNo">
         <delete dir="${sdk.dir}/extras/google/google_play_services/libproject/google-play-services_lib/bin/res/crunch"/>
     </target>
     
