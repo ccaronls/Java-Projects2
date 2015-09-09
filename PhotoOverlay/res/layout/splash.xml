@@ -11,7 +11,7 @@
         android:layout_centerHorizontal="true"
         android:layout_marginTop="114dp"
         android:gravity="center"
-        android:text="Pressure Test\nCertification Tool"
+        android:text="@string/splash_tv_ptuheader"
         android:textAppearance="?android:attr/textAppearanceLarge" />
 
     <TextView
@@ -21,7 +21,7 @@
         android:layout_below="@+id/textView1"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="159dp"
-        android:text="CECC Solutions"
+        android:text="@string/splash_tv_ptumiddle"
         android:textAppearance="?android:attr/textAppearanceMedium" />
 
     <TextView
@@ -31,7 +31,7 @@
         android:layout_below="@+id/textView2"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="47dp"
-        android:text="Patent Pending"
+        android:text="@string/splash_tv_ptufooter"
         android:textAppearance="?android:attr/textAppearanceSmall" />
 
 </RelativeLayout>

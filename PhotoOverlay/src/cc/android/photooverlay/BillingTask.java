@@ -8,6 +8,8 @@ import java.util.List;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import cc.android.photooverlay.BaseActivity;
+import cc.android.photooverlay.R;
 import cc.lib.game.Utils;
 import android.app.Dialog;
 import android.app.PendingIntent;
@@ -21,10 +23,10 @@ import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.TableLayout;
 import android.widget.TextView;
+import android.widget.ViewSwitcher;
 
 /**
  * Wrapper task for the billing operations.
@@ -60,7 +62,9 @@ public class BillingTask extends AsyncTask<String,Integer,Object> implements OnC
 		PREMIUM("premium"),
 		PREMIUM_REDUCED("premium.reduced"), // available only while weekly or monthly subscription is active.
 		ONEMONTH("onemonth"),
-		ONEWEEK("oneweek");
+		ONEWEEK("oneweek"),
+		TENMINUTES("ten.mins.debug") // DEBUG ONLY
+		;
 		
 		public static Purchase getPurchaseFromSku(String sku) {
 			for (Purchase p : values()) {
@@ -152,6 +156,9 @@ public class BillingTask extends AsyncTask<String,Integer,Object> implements OnC
     					skus.add(Purchase.ONEWEEK.sku);
     					skus.add(Purchase.ONEMONTH.sku);
     					skus.add(Purchase.PREMIUM.sku);
+    					if (activity.isDebug()) {
+    						skus.add(Purchase.TENMINUTES.sku);
+    					}
     				}
     				skusBundle.putStringArrayList("ITEM_ID_LIST", skus);
     				return activity.getBilling().getSkuDetails(BILLING_API, getPackageName(), PURCHASE_TYPE_INAPP, skusBundle);
@@ -202,10 +209,6 @@ public class BillingTask extends AsyncTask<String,Integer,Object> implements OnC
 
 	@Override
 	protected void onPreExecute() {
-		dialog = new ProgressDialog(activity);
-		dialog.setTitle("Processing Billing Request");
-		dialog.setCancelable(false);
-		dialog.setCanceledOnTouchOutside(false);
 		switch (op) {
 			case CONSUME_SKU:
 			case CONSUME_TOKEN:
@@ -215,6 +218,10 @@ public class BillingTask extends AsyncTask<String,Integer,Object> implements OnC
 			case PURCHASE:
 			case QUERY_PURCHASABLES:
 			case QUERY_PURCHASABLES_DEBUG:
+				dialog = new ProgressDialog(activity);
+				dialog.setTitle("Processing Billing Request");
+				dialog.setCancelable(false);
+				dialog.setCanceledOnTouchOutside(false);
 				dialog.show();
 				break;
 		}
@@ -222,16 +229,14 @@ public class BillingTask extends AsyncTask<String,Integer,Object> implements OnC
 
 	@Override
 	protected void onPostExecute(Object result) {
-		dialog.dismiss();
+		if (dialog != null)
+			dialog.dismiss();
 		
 		try {
-			if (result == null) {}
-			if (result instanceof Exception) {
-				activity.newDialogBuilder()
-    				.setTitle("Error")
-    				.setMessage(R.string.popup_msg_billing_err_general)
-    				.setNegativeButton("Ok", null)
-    				.show();
+			if (result == null) {
+				// do nothing
+			} else if (result instanceof Exception) {
+				activity.showAlert(R.string.popup_title_error, R.string.popup_msg_billing_err_general);
 			} else if (result instanceof Bundle) {
 				Bundle bundle = (Bundle)result;
 				int response = bundle.getInt("RESPONSE_CODE");
@@ -240,20 +245,12 @@ public class BillingTask extends AsyncTask<String,Integer,Object> implements OnC
 				} else if (response == 1) {
 					// user cancelled at some point.  So dont do anything
 				} else {
-					activity.newDialogBuilder()
-					.setTitle("Error")
-					.setMessage(getString(R.string.popup_msg_billing_err_argument, getResponse(response)))
-					.setNegativeButton("Ok", null)
-					.show();
+					activity.showAlert(R.string.popup_title_error, R.string.popup_msg_billing_err_argument, getResponse(response));
 				}
 			} 
 		} catch (Exception e) {
 			e.printStackTrace();
-			activity.newDialogBuilder()
-    			.setTitle("Error")
-    			.setMessage(R.string.popup_msg_billing_err_general)
-    			.setNegativeButton("Ok", null)
-    			.show();
+			activity.showAlert(R.string.popup_title_error, R.string.popup_msg_billing_err_general);
 		}
 	}
 	
@@ -264,8 +261,8 @@ public class BillingTask extends AsyncTask<String,Integer,Object> implements OnC
 	// each row must have these strings in this order:
 	// 0   sku
 	// 1   orderId
-	// 2   purchaseTime
-	// 3   purchaseState
+	// 2   purchaseTime (UTC)
+	// 3   purchaseState (Purchased, Cancelled, Refunded)
 	private View buildPurchasesView(List<String[]> rows) {
 		View layout = View.inflate(activity, R.layout.popup_purchase, null);
 		TableLayout table = (TableLayout)layout.findViewById(R.id.layoutTable);
@@ -284,7 +281,6 @@ public class BillingTask extends AsyncTask<String,Integer,Object> implements OnC
 		};
 		
 		int colorIndex = 0;
-		
 		
 		for (String [] row : rows) {
 			View tRow = View.inflate(activity, R.layout.purchases_listitem, null);
@@ -318,14 +314,15 @@ public class BillingTask extends AsyncTask<String,Integer,Object> implements OnC
 		
 		int colorIndex = 0;
 		
-		
 		for (String [] row : rows) {
 			View tRow = View.inflate(activity, R.layout.purchasables_listitem, null);
+			ViewSwitcher flipper = (ViewSwitcher)tRow.findViewById(R.id.viewFlipper);
+			flipper.setDisplayedChild(1);
 			int color = rowColor[colorIndex++ % rowColor.length];
 			tRow.setBackgroundColor(color);
 			Button buy = (Button)tRow.findViewById(R.id.buttonBuy);
 			TextView tvDesc = (TextView)tRow.findViewById(R.id.tvDesc);
-			TextView tvPrice = (TextView)tRow.findViewById(R.id.tvPrice);
+			//TextView tvPrice = (TextView)tRow.findViewById(R.id.tvPrice);
 			
 
 			buy.setTag(row[0]);
@@ -333,7 +330,8 @@ public class BillingTask extends AsyncTask<String,Integer,Object> implements OnC
 			buy.setVisibility(View.VISIBLE);
 			
 			tvDesc.setText(row[1]);
-			tvPrice.setText(row[2]);
+			//tvPrice.setText(row[2]);
+			buy.setText(row[2]);
 			
 			table.addView(tRow);
 		}
@@ -365,25 +363,23 @@ public class BillingTask extends AsyncTask<String,Integer,Object> implements OnC
 					Log.d(TAG, "responseList=" + responseList);
 					for (String thisResponse : responseList) {
 						JSONObject object = new JSONObject(thisResponse);
+						Log.d(TAG, "JSON=" + object.toString(3));
 						String sku = object.getString("productId");
-						String type = object.getString("type");
+						//String type = object.getString("type");
 						String price = object.getString("price");
 						//String price_micros = object.getString("price_amount_micros");
-						String title = object.getString("title");
+						//String title = object.getString("title");
 						String desc = object.getString("description");
 						
 						rows.add(new String[] { sku, desc, price });
 					}
 					if (rows.size() > 0) {
-						dialog = activity.newDialogBuilder().setTitle("Purchase Options")
+						dialog = activity.newDialogBuilder().setTitle(R.string.popup_title_purchase_options)
 							.setView(buildPurchaseView(rows))
-							.setNegativeButton("Cancel", null)
+							.setNegativeButton(R.string.popup_button_cancel, null)
 							.show();
 					} else {
-						activity.newDialogBuilder().setTitle("Purchase Items")
-							.setMessage("There are no purchase items at this point.  Please try again when you subscription expires or conteact support.")
-							.setNegativeButton("Ok", null)
-							.show();
+						activity.showAlert(R.string.popup_title_purchase_options, R.string.popup_msg_no_purchases);
 					}
 					
 					break;
@@ -429,10 +425,12 @@ public class BillingTask extends AsyncTask<String,Integer,Object> implements OnC
 					}
 					
 					if (purchases.size() > 0) {
-						Dialog d = activity.newDialogBuilder().setTitle("Purchases")
+						activity.newDialogBuilder().setTitle(R.string.popup_title_purchases)
 							.setView(buildPurchasesView(purchases))
-							.setNegativeButton("Ok", null)
+							.setNegativeButton(R.string.popup_button_ok, null)
 							.show();
+					} else {
+						activity.showAlert(R.string.popup_title_purchases, R.string.popup_msg_empty_purchases);
 					}
 					
 					break;
@@ -451,7 +449,7 @@ public class BillingTask extends AsyncTask<String,Integer,Object> implements OnC
 					// if anything is a 'Premium' purchase, then they get it.  otherwise consume anything else
 					for (int i = 0; i < purchaseDataList.size(); ++i) {
 						String purchaseData = purchaseDataList.get(i);
-						String signature = signatureList.get(i);
+						//String signature = signatureList.get(i);
 						String sku = ownedSkus.get(i);
 						
 						if (skusToConsume.contains(sku)) {
@@ -474,7 +472,6 @@ public class BillingTask extends AsyncTask<String,Integer,Object> implements OnC
 					String continuationToken = b.getString("INAPP_CONTINUATION_TOKEN");
 					Log.d(TAG, "continuationToken=" + continuationToken);
 
-					// if anything is a 'Premium' purchase, then they get it.  otherwise consume anything else
 					for (int i = 0; i < purchaseDataList.size(); ++i) {
 						String purchaseData = purchaseDataList.get(i);
 						String signature = signatureList.get(i);
@@ -500,10 +497,7 @@ public class BillingTask extends AsyncTask<String,Integer,Object> implements OnC
 				}
 			}
 		} else if (response != 1) {
-			activity.newDialogBuilder().setTitle("Error")
-				.setMessage(R.string.popup_msg_billing_err_general)
-				.setNegativeButton("Ok", null)
-				.show();
+			activity.showAlert(R.string.popup_title_error, R.string.popup_msg_billing_err_general);
 		}
 	}
 

@@ -6,23 +6,26 @@
     android:orientation="vertical" >
 
     <LinearLayout
+        style="?android:attr/buttonBarStyle"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal" >
 
         <Button
+            style="?android:attr/buttonBarButtonStyle"
             android:id="@+id/buttonSave"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Save" />
+            android:text="@string/button_save"/>
 
         <Button
+            style="?android:attr/buttonBarButtonStyle"
             android:id="@+id/buttonCancel"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Cancel" />
+            android:text="@string/button_cancel" />
     </LinearLayout>
 
 	<ScrollView
@@ -48,7 +51,7 @@
 		        android:layout_height="wrap_content"
 		        android:layout_centerHorizontal="true"
 		        android:ems="10"
-		        android:hint="Customer"
+		        android:hint="@string/et_hint_customer"
 		        android:imeOptions="actionNext"
 		        android:inputType="textCapWords"
 		        android:singleLine="true" />
@@ -60,7 +63,7 @@
 		        android:layout_height="wrap_content"
 		        android:layout_alignParentLeft="true"
 		        android:ems="10"
-		        android:hint="Location"
+		        android:hint="@string/et_hint_location"
 		        android:imeOptions="actionNext"
 		        android:inputType="textCapWords|textPostalAddress"
 		        android:singleLine="true" />
@@ -72,7 +75,7 @@
                 android:layout_height="wrap_content"
                 android:layout_alignParentLeft="true"
                 android:ems="10"
-                android:hint="Project"
+                android:hint="@string/et_hint_project"
                 android:imeOptions="actionNext"
                 android:inputType="textCapWords|textPostalAddress"
                 android:singleLine="true" />
@@ -84,7 +87,7 @@
 		        android:layout_height="wrap_content"
 		        android:layout_centerHorizontal="true"
 		        android:ems="10"
-		        android:hint="Inspector/Mechanic"
+		        android:hint="@string/et_hint_inspecotr"
 		        android:imeOptions="actionNext"
 		        android:inputType="textCapWords|textPersonName"
 		        android:singleLine="true" />
@@ -95,7 +98,7 @@
 		        android:layout_width="fill_parent"
 		        android:layout_height="wrap_content"
 		        android:ems="10"
-		        android:hint="System"
+		        android:hint="@string/et_hint_system"
 		        android:imeOptions="actionNext"
 		        android:inputType="textCapWords"
 		        android:singleLine="true" />
@@ -116,7 +119,7 @@
 			        android:layout_alignParentLeft="true"
 			        android:layout_toLeftOf="@+id/anchor"
 			        android:ems="10"
-			        android:hint="Plan/Detail"
+			        android:hint="@string/et_hint_plan"
 			        android:imeOptions="actionNext"
 			        android:inputType="textCapWords"
 			        android:singleLine="true" />
@@ -130,7 +133,7 @@
 			        android:layout_toLeftOf="@+id/anchor"
 			        android:layout_weight="1"
 			        android:ems="10"
-			        android:hint="Spec"
+			        android:hint="@string/et_hint_spec"
 			        android:imeOptions="actionDone"
 			        android:inputType="textCapWords"
 			        android:singleLine="true" />
@@ -144,7 +147,7 @@
                     android:layout_toLeftOf="@+id/anchor"
                     android:layout_weight="1"
                     android:ems="10"
-                    android:hint="Custom"
+                    android:hint="@string/et_hint_custom"
                     android:imeOptions="actionDone"
                     android:inputType="textCapWords"
                     android:singleLine="true" />
@@ -162,25 +165,25 @@
 			            android:layout_width="wrap_content"
 			            android:layout_height="wrap_content"
 			            android:checked="true"
-			            android:text="Mechanical" />
+			            android:text="@string/rb_mechanical" />
 			
 			        <RadioButton
 			            android:id="@+id/rbPlumbing"
 			            android:layout_width="wrap_content"
 			            android:layout_height="wrap_content"
-			            android:text="Plumbing" />
+			            android:text="@string/rb_plumbing" />
 			
 			        <RadioButton
 			            android:id="@+id/rbProcess"
 			            android:layout_width="wrap_content"
 			            android:layout_height="wrap_content"
-			            android:text="Process" />
+			            android:text="@string/rb_process" />
                     <RadioButton
                         android:id="@+id/rbCustom"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Custom" />
-			        			    </RadioGroup>
+                        android:text="@string/rb_custom" />
+                    </RadioGroup>
 
 			    <CheckBox
 			        android:id="@+id/cbPassed"
@@ -189,7 +192,7 @@
 			        android:layout_alignParentLeft="true"
 			        android:layout_below="@+id/etSpec"
 			        android:layout_toLeftOf="@+id/rgType"
-			        android:text="Passed" />
+			        android:text="@string/cb_passed" />
 
             </RelativeLayout>		
 		    
@@ -219,7 +222,7 @@
                         android:layout_width="fill_parent"
                         android:layout_height="wrap_content"
                         android:gravity="center_horizontal"
-                        android:hint="Meta"
+                        android:hint="@string/tv_hint_meta"
                         android:minLines="2" />
 
 			    </LinearLayout>
@@ -241,7 +244,7 @@
                         android:layout_width="fill_parent"
                         android:layout_height="wrap_content"
                         android:gravity="center_horizontal"
-                        android:hint="Meta"
+                        android:hint="@string/tv_hint_meta"
                         android:minLines="2" />
 
                 </LinearLayout>			    
@@ -262,7 +265,7 @@
                         android:layout_width="fill_parent"
                         android:layout_height="wrap_content"
                         android:gravity="center_horizontal"
-                        android:hint="Meta"
+                        android:hint="@string/tv_hint_meta"
                         android:minLines="2" />
 
                 </LinearLayout>		        	
@@ -276,7 +279,7 @@
 		        android:layout_below="@id/layoutImages"
 		        android:layout_centerHorizontal="true"
 		        android:ems="10"
-		        android:hint="Comments"
+		        android:hint="@string/et_hint_comments"
 		        android:inputType="textCapSentences|textAutoCorrect|textMultiLine|textImeMultiLine|textLongMessage"
 		        android:lines="3"
 		        android:maxLines="3"

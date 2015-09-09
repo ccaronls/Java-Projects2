@@ -188,7 +188,7 @@ public class FormEdit extends BaseActivity implements OnCheckedChangeListener {
 				editImage(1);
 				break;
 			case R.id.ibImage3:
-				if (isPremiumEnabled())
+				if (isPremiumEnabled(true))
 					editImage(2);
 				break;
 		}
@@ -210,7 +210,7 @@ public class FormEdit extends BaseActivity implements OnCheckedChangeListener {
 			iv.setImageURI(Uri.fromFile(new File(getImagesPath(), form.imagePath[index])));
 			newDialogBuilder()
 				.setView(view)
-				.setNegativeButton("Ok", new DialogInterface.OnClickListener() {
+				.setNegativeButton(R.string.popup_button_ok, new DialogInterface.OnClickListener() {
 					
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
@@ -218,14 +218,14 @@ public class FormEdit extends BaseActivity implements OnCheckedChangeListener {
 						tvImageMeta[index].setText(et.getText());
 					}
 				})
-				.setPositiveButton("Change", new DialogInterface.OnClickListener() {
+				.setPositiveButton(R.string.popup_button_change, new DialogInterface.OnClickListener() {
 				
     				@Override
     				public void onClick(DialogInterface dialog, int which) {
     					pickImage(index);
     				}
     			})
-    			.setNeutralButton("Remove", new DialogInterface.OnClickListener() {
+    			.setNeutralButton(R.string.popup_button_remove, new DialogInterface.OnClickListener() {
 					
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
@@ -295,8 +295,7 @@ public class FormEdit extends BaseActivity implements OnCheckedChangeListener {
 		}).show();*/
 			startActivityForResult(new Intent(MediaStore.ACTION_IMAGE_CAPTURE), (id << 1) | 1);
 		} catch (Exception e) {
-			newDialogBuilder().setTitle("Error").setMessage("Operation not supported on this device")
-				.setNegativeButton("Ok", null).show();
+			showAlert(R.string.popup_title_error, R.string.popup_msg_operation_not_supported);
 		}
 	}
 	
@@ -351,7 +350,10 @@ public class FormEdit extends BaseActivity implements OnCheckedChangeListener {
 		}
 
     	if (bitmap != null) {
-    		bitmap = ThumbnailUtils.extractThumbnail(bitmap, 256, 256);
+    		if (isPremiumEnabled(false))
+    			bitmap = ThumbnailUtils.extractThumbnail(bitmap, 256, 256);
+    		else
+    			bitmap = ThumbnailUtils.extractThumbnail(bitmap, 64, 64);
 			Matrix matrix = new Matrix();
 			switch (orientation) {
 				case 90:
@@ -369,7 +371,8 @@ public class FormEdit extends BaseActivity implements OnCheckedChangeListener {
 			}
 			
 			// watermark
-			watermark(bitmap, getDateFormatter().format(new Date()));
+			if (isPremiumEnabled(false))
+				watermark(bitmap, getDateFormatter().format(new Date()));
 
 			try {
 				File destFile = File.createTempFile("guage", ".png", getImagesPath());

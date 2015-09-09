@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 import cc.android.photooverlay.BillingTask.Op;
 import cc.lib.android.EmailHelper;
@@ -68,36 +69,27 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
 	public void onResume() {
 		super.onResume();
 		refresh();
-		if (isSubscription())
-			startPolling(5);
+		startPolling(5);
 	}
 	
 	private boolean showSubscription = false;
 	
 	@Override
 	protected void onPoll() {
-		showSubscription = !showSubscription;
-		if (showSubscription) {
-			final TextView tvAmbient = (TextView)findViewById(R.id.tvAmbient);
-			tvAmbient.setText("Subscription expires in " + getSubscriptionExpireTimeColloquial());
+		final TextView tvAmbient = (TextView)findViewById(R.id.tvAmbient);
+		if (isSubscription()) {
+    		showSubscription = !showSubscription;
+    		if (showSubscription) {
+    			tvAmbient.setText("Subscription expires in " + getSubscriptionExpireTimeColloquial());
+    		}
+		} else {
+			if (showSubscription) {
+				showSubscription = false;
+				tvAmbient.setText("");
+			}
+			stopPolling();
 		}
 	}
-	
-	/*
-	private void checkForPremiumPopup() {
-		if (!isPremiumEnabled()) {
-			newDialogBuilder().setTitle("Premium Upgrade")
-				.setMessage("Do you want to upgrade to premium to unlock all features?")
-				.setNegativeButton("Not yet", null)
-				.setPositiveButton("Show me options", new DialogInterface.OnClickListener() {
-					
-					@Override
-					public void onClick(DialogInterface dialog, int which) {
-						new BillingTask(Op.QUERY_PURCHASABLES, getActivity()).execute();
-					}
-				}).show();
-		}
-	}*/
 	
 	@Override
 	public void onClick(View v) {
@@ -112,12 +104,7 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
 		
         		if (v.getTag() != null) {
         			final int formId = (Integer)v.getTag();
-        			String [] items = new String[] {
-        					"Edit",
-        					"Duplicate",
-        					"Delete",
-        					"Sign and Email"
-        			};
+        			String [] items = getResources().getStringArray(R.array.form_list_options); 
         			newDialogBuilder()
             			.setItems(items, new DialogInterface.OnClickListener() {
             				
@@ -131,7 +118,7 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
             							break;
             						}
             						case 1: { // Dup
-            							if (isPremiumEnabled()) {
+            							if (isPremiumEnabled(true)) {
                 							Form form = getFormHelper().getFormById(formId);
                 							form.id = null; // clearing the id will cause a duplicate
                 							form.createDate = form.editDate = new Date();
@@ -142,14 +129,18 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
             							break;
             						}
             						case 2: { // Delete
-            							newDialogBuilder().setTitle("Confirm").setMessage("Are you sure?").setNegativeButton("Cancel", null).setPositiveButton("Delete", new DialogInterface.OnClickListener() {
+            							newDialogBuilder().setTitle(R.string.popup_title_confirm)
+            								.setMessage(R.string.popup_msg_are_you_sure)
+            								.setNegativeButton(R.string.popup_button_cancel, null)
+            								.setPositiveButton(R.string.popup_button_delete, new DialogInterface.OnClickListener() {
         									
-        									@Override
-        									public void onClick(DialogInterface dialog, int which) {
-        										getFormHelper().deleteForm(formId);
-        										refresh();
-        									}
-        								}).show();
+            									@Override
+            									public void onClick(DialogInterface dialog, int which) {
+            										getFormHelper().deleteForm(formId);
+            										refresh();
+            									}
+            								})
+            								.show();
             							break;
             						}
             						case 3: { // Export to email
@@ -164,7 +155,7 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
             			.setNegativeButton("Cancel", null)
             			.show();
         		} else {
-        			if (getFormHelper().getFormCount() < 3 || isPremiumEnabled())
+        			if (getFormHelper().getFormCount() < 3 || isPremiumEnabled(true))
         				startActivity(new Intent(this, FormEdit.class));
         		}
         		break;
@@ -192,7 +183,7 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
 		Cursor cursor = getFormHelper().listForms(sortField, ascending, 0, 100);
 		tvEmptyList.setVisibility(cursor.getCount() > 0 ? View.INVISIBLE : View.VISIBLE);
 		
-		lv.setAdapter(new CursorAdapter(this, cursor) {
+		lv.setAdapter(new CursorAdapter(this, cursor, 0) {
 			
 			@Override
 			public View newView(Context context, Cursor cursor, ViewGroup parent) {
@@ -290,10 +281,10 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
 					}
 					
 					case 2: { // zip
-						if (isPremiumEnabled()) {
+						if (isPremiumEnabled(true)) {
     						List<File> files = new ArrayList<File>();
     						files.add(new File(getFormHelper().getReadableDatabase().getPath()));
-    						String timeStamp = new SimpleDateFormat("mmddyy_hhmm").format(new Date());
+    						String timeStamp = new SimpleDateFormat("mmddyy_hhmm", Locale.US).format(new Date());
     						File target = new File(getCacheDir(), "PressureValidationDB_" + timeStamp + ".zip");
     						files.addAll(Arrays.asList(getImagesPath().listFiles()));
     						try {
@@ -355,6 +346,7 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
 					}
 					
 					case 7: {
+						clearPurchaseData();
 						new BillingTask(Op.REFRESH_PURCHASED, getActivity()).execute();
 						break;
 					}

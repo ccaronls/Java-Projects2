@@ -11,7 +11,7 @@
         android:layout_gravity="clip_vertical"
         android:layout_marginLeft="10dp"
         android:layout_weight="1"
-        android:text="Date" />
+        android:text="@string/tv_date" />
 
     <LinearLayout
         android:layout_width="0dp"
@@ -26,7 +26,7 @@
             android:layout_height="wrap_content"
             android:ellipsize="end"
             android:maxLines="1"
-            android:text="Customer" />
+            android:text="@string/tv_customer" />
         
         <TextView
             android:id="@+id/tvSystem"
@@ -34,7 +34,7 @@
             android:layout_height="wrap_content"
             android:ellipsize="end"
             android:maxLines="1"
-            android:text="System" />
+            android:text="@string/tv_system" />
 
 
     </LinearLayout>

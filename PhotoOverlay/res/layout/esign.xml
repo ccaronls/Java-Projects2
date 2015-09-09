@@ -11,7 +11,7 @@
         android:layout_alignParentRight="true"
         android:layout_alignParentTop="true"
         android:ems="10"
-        android:hint="Type Full Name here and Sign Below"
+        android:hint="@string/et_hint_type_and_sign"
         android:inputType="textCapWords|textPersonName" />
 
     <LinearLayout
@@ -25,14 +25,14 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Accept"/>
+            android:text="@string/button_accept"/>
         
         <Button
             android:id="@+id/buttonRestart"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Restart"/>
+            android:text="@string/button_restart"/>
         </LinearLayout>
     
     <cc.android.photooverlay.ESignView

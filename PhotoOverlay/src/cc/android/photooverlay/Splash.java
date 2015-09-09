@@ -1,7 +1,6 @@
 package cc.android.photooverlay;
 
 import cc.android.photooverlay.BillingTask.Op;
-import android.app.Activity;
 import android.os.Bundle;
 import android.view.View;
 

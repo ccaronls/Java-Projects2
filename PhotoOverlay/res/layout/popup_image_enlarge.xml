@@ -17,6 +17,6 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:minLines="2"
-        android:hint="Image Meta Data"/>
+        android:hint="@string/labelImageMeta"/>
 
 </LinearLayout>

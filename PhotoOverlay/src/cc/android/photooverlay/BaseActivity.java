@@ -5,44 +5,36 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Locale;
-import java.util.Timer;
-import java.util.TimerTask;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import cc.android.photooverlay.BillingTask.Op;
 import cc.android.photooverlay.BillingTask.Purchase;
+import cc.lib.android.CCActivityBase;
 
 import com.android.vending.billing.IInAppBillingService;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
-import android.content.res.Configuration;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.inputmethod.InputMethodManager;
 
-public class BaseActivity extends Activity implements OnClickListener {
+public class BaseActivity extends CCActivityBase implements OnClickListener {
 
 	final String TAG = getClass().getSimpleName();
 	
@@ -59,16 +51,8 @@ public class BaseActivity extends Activity implements OnClickListener {
 		return dateFormat;
 	}
 	
-	final SharedPreferences getPrefs() {
-		return PreferenceManager.getDefaultSharedPreferences(this);
-	}
-
-	final boolean isPortrait() {
-		return getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT;
-	}
-	
 	final AlertDialog.Builder newDialogBuilder() {
-		return new AlertDialog.Builder(this); // TODO: Theme this mutha
+		return new AlertDialog.Builder(this, R.style.DialogTheme); // TODO: Theme this mutha
 	}
 	
 	final BaseActivity getActivity() {
@@ -87,47 +71,6 @@ public class BaseActivity extends Activity implements OnClickListener {
 	@Override
 	public void onClick(View v) {
 		Log.e(TAG, "Unhandled click");
-	}
-	
-	private Timer pollingTimer = null;
-	
-	/**
-	 * Start polling.  onPoll will be called on UI thread at regular intervals until the
-	 * activity is paused or user calls stopPolling.
-	 * 
-	 * @param intervalSeconds
-	 */
-	protected void startPolling(int intervalSeconds) {
-		if (pollingTimer == null) {
-			pollingTimer = new Timer();
-			pollingTimer.schedule(new TimerTask() {
-				
-				@Override
-				public void run() {
-					runOnUiThread(pollRunnable);
-				}
-			}, 1000, intervalSeconds * 1000);
-		}
-	}
-	
-	protected void stopPolling() {
-		if (pollingTimer != null) {
-			pollingTimer.cancel();
-			pollingTimer = null;
-		}
-	}
-	
-	private Runnable pollRunnable = new Runnable() {
-		public void run() {
-			onPoll();
-		}
-	};
-	
-	/**
-	 * Override this method to handle your polling needs.  Base method just logs to LogCat a warning.
-	 */
-	protected void onPoll() {
-		Log.w(TAG, "onPoll not handled");
 	}
 	
 
@@ -242,20 +185,6 @@ public class BaseActivity extends Activity implements OnClickListener {
 			}
 		}
 	}
-
-	public final void hideKeyboard() {
-        InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-        if (imm != null) {
-            View focused = getContentView().findFocus();
-            if (focused != null) {
-                imm.hideSoftInputFromWindow(focused.getWindowToken(), 0);
-            }
-        }
-    }
-	
-	public View getContentView() {
-		return getWindow().getDecorView().findViewById(android.R.id.content);
-	}
 	
 	private IInAppBillingService mBillingService;
 
@@ -341,19 +270,13 @@ public class BaseActivity extends Activity implements OnClickListener {
     	            if (savedRandom.equals(randomString))
     	            	finalizePurchase(sku, purchaseTime);
     	            else
-    	            	newDialogBuilder().setTitle("Error")
-    	            		.setMessage("There seems to ba a problem with your purchase.  Please try your request again")
-    	            		.setNegativeButton("Ok", null)
-    	            		.show();
+    		        	showAlert(R.string.popup_title_error, R.string.popup_msg_billing_err_general);
     	            getPrefs().edit().remove(PREF_PURCHASE_RANDOM_STRING).commit();
 	        	 }	            
 	          }
 	          catch (JSONException e) {
 	             //alert("Failed to parse purchase data.");
-	        	  newDialogBuilder().setTitle("Error")
-	        	  	.setMessage("There was an error parsing purchase data.  Please contact support")
-	        	  	.setNegativeButton("Ok", null)
-	        	  	.show();
+	        	  showAlert(R.string.popup_title_error, R.string.popup_msg_billing_err_general);
 	             e.printStackTrace();
 	          }
 	      }
@@ -365,20 +288,23 @@ public class BaseActivity extends Activity implements OnClickListener {
 	private final static String PREF_PURCHASE_SKU = "PREF_PURCHASE_SKU";
 	public final static String PREF_PURCHASE_RANDOM_STRING = "PREF_PURCHASE_RANDOM";
 	
+	public void clearPurchaseData() {
+		getPrefs().edit().remove(PREF_PREMIUM_UNLOCKED_BOOL)
+						.remove(PREF_PREMIUM_EXPIRE_TIME_LONG)
+						.remove(PREF_PURCHASE_SKU).commit();
+	}
+	
 	public void finalizePurchase(String sku, long purchaseTime) {
 		Calendar cal = Calendar.getInstance();
 		cal.setTimeInMillis(purchaseTime);
 		Log.d(TAG, "finalizePurchase sku=" + sku + " datePurchased = " + cal.getTime());
 		Purchase p = Purchase.getPurchaseFromSku(sku);
 		if (p != null) {
+			clearPurchaseData();
     		Editor edit = getPrefs().edit();
     		edit.putString(PREF_PURCHASE_SKU, sku);
     		edit.putBoolean(PREF_PREMIUM_UNLOCKED_BOOL, true);
     		Date expireTime = null;
-    		// set to midnight
-    		cal.set(Calendar.HOUR_OF_DAY, 23);
-    		cal.set(Calendar.MINUTE, 59);
-    		cal.set(Calendar.SECOND, 59); 
     		switch (p) {
     			case ONEMONTH:
     				cal.add(Calendar.MONTH, 1);
@@ -391,32 +317,36 @@ public class BaseActivity extends Activity implements OnClickListener {
     				cal.add(Calendar.WEEK_OF_YEAR, 1);
     				expireTime = cal.getTime();
     				break;
-    			default:
+    			case TENMINUTES:
+    				cal.setTimeInMillis(purchaseTime);
+    				cal.add(Calendar.MINUTE, 10);
+    				expireTime = cal.getTime();
     				break;
     		}
     		
-    		if (expireTime != null && expireTime.getTime() > System.currentTimeMillis()) {
-    			edit.putLong(PREF_PREMIUM_EXPIRE_TIME_LONG, expireTime.getTime());
-    			SimpleDateFormat fmt = new SimpleDateFormat("EEEE MMMM dd");
-    			newDialogBuilder().setTitle("Purchase Complete")
-    				.setMessage(getString(R.string.popup_msg_subscription_activiated, fmt.format(expireTime)))
-    				.setNegativeButton("Ok", null)
-    				.show();
+    		if (expireTime != null) {
+    			if (expireTime.getTime() > System.currentTimeMillis()) { 
+    				edit.putLong(PREF_PREMIUM_EXPIRE_TIME_LONG, expireTime.getTime());
+            		edit.commit();
+        			SimpleDateFormat fmt = new SimpleDateFormat("EEEE MMMM dd", Locale.US);
+        			showAlert(R.string.popup_title_purchase_complete, R.string.popup_msg_subscription_activiated, fmt.format(expireTime));
+    			}
     		} else {
     			edit.remove(PREF_PREMIUM_EXPIRE_TIME_LONG);
-    			newDialogBuilder().setTitle("Purchase Complete").setMessage(R.string.popup_msg_premium_permanently_unlocked)
-    				.setNegativeButton("Ok", null)
-    				.show();
+    			showAlert(R.string.popup_title_purchase_complete, R.string.popup_msg_premium_permanently_unlocked);
     		}
-    		edit.commit();
 		}
 	}
 
 	protected boolean isSubscription() {
-		return getPrefs().getLong(PREF_PREMIUM_EXPIRE_TIME_LONG, -1) > 0 && !isSubscriptionExpired();
+		
+		if (isDebug())
+			return false;
+		
+		return getPrefs().getLong(PREF_PREMIUM_EXPIRE_TIME_LONG, -1) > 0 && !isSubscriptionExpired(true);
 	}
 	
-	private boolean isSubscriptionExpired() {
+	private boolean isSubscriptionExpired(boolean showDialog) {
 		long expireTime = getPrefs().getLong(PREF_PREMIUM_EXPIRE_TIME_LONG, -1);
 		if (expireTime > 0) {
 			
@@ -427,16 +357,18 @@ public class BaseActivity extends Activity implements OnClickListener {
     				.remove(PREF_PREMIUM_EXPIRE_TIME_LONG)
     				.remove(PREF_PURCHASE_SKU).commit();
     			
-    			newDialogBuilder().setTitle("Subscription Expired")
-    				.setMessage("Your subscription has expired.  Would you like to re-activate it?")
-    				.setNegativeButton("Not now", null)
-    				.setPositiveButton("Purchase options", new DialogInterface.OnClickListener() {
-    					
-    					@Override
-    					public void onClick(DialogInterface dialog, int which) {
-    						new BillingTask(Op.QUERY_PURCHASABLES, getActivity()).execute();
-    					}
-    				}).show();
+    			if (showDialog) {
+        			newDialogBuilder().setTitle(R.string.popup_title_subs_expired)
+        				.setMessage(R.string.popup_msg_subs_expired)
+        				.setNegativeButton(R.string.popup_button_not_now, null)
+        				.setPositiveButton(R.string.popup_button_purchase_options, new DialogInterface.OnClickListener() {
+        					
+        					@Override
+        					public void onClick(DialogInterface dialog, int which) {
+        						new BillingTask(Op.QUERY_PURCHASABLES, getActivity()).execute();
+        					}
+        				}).show();
+    			}
     			return true;
 			}
 		}
@@ -451,26 +383,25 @@ public class BaseActivity extends Activity implements OnClickListener {
 		int hours = secsBetween / (60*60);
 		int mins = secsBetween / 60;
 		
-		if (days > 1)
-			return String.format("%d days", days);
-		if (days > 0)
-			return "1 day";
-		if (hours > 1)
-			return String.format("%d hours", hours);
-		if (hours > 0)
-			return "1 hour";
-		if (mins > 1)
-			return String.format("%d minutes", mins);
-		return "1 minute";
+		if (days >= 1)
+			return getResources().getQuantityString(R.plurals.plural_days, days, days);
+		if (hours >= 1)
+			return getResources().getQuantityString(R.plurals.plural_hours, hours, hours);
+		return getResources().getQuantityString(R.plurals.plural_mins, mins, mins);
 	}
 	
-	protected final boolean isPremiumEnabled() {
+	protected final boolean isPremiumEnabled(boolean showDialog) {
+		if (isDebug())
+			return true;
+		
+		
 		if (!getPrefs().getBoolean(PREF_PREMIUM_UNLOCKED_BOOL, false)) {
-			showPremiumLockedDialog();
+			if (showDialog)
+				showPremiumLockedDialog();
 			return false;
 		}
 		
-		if (isSubscriptionExpired()) {
+		if (isSubscriptionExpired(showDialog)) {
 			return false;
 		}
 		
@@ -478,10 +409,10 @@ public class BaseActivity extends Activity implements OnClickListener {
 	}
 	
 	protected void showPremiumLockedDialog() {
-		newDialogBuilder().setTitle("Premium upgrade")
+		newDialogBuilder().setTitle(R.string.popup_title_premium_upgrade)
 			.setMessage(R.string.popup_msg_premium_feature_locked)
-			.setNegativeButton("Not now", null)
-			.setPositiveButton("Purchase Options", new DialogInterface.OnClickListener() {
+			.setNegativeButton(R.string.popup_button_not_now, null)
+			.setPositiveButton(R.string.popup_button_purchase_options, new DialogInterface.OnClickListener() {
 				
 				@Override
 				public void onClick(DialogInterface dialog, int which) {
@@ -489,5 +420,9 @@ public class BaseActivity extends Activity implements OnClickListener {
 					new BillingTask(Op.QUERY_PURCHASABLES, BaseActivity.this).execute();
 				}
 			}).show();
+	}
+	
+	protected void showAlert(int titleResId, int messageResId, Object ... params) {
+		newDialogBuilder().setTitle(titleResId).setMessage(getString(messageResId, params)).setNegativeButton(R.string.popup_button_ok, null).show();
 	}
 }

@@ -15,7 +15,7 @@
             style="@android:style/TextAppearance.Large"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Certifications" />
+            android:text="@string/tv_certifications" />
 
         <TextView
             android:id="@+id/tvAmbient"
@@ -37,14 +37,14 @@
 	        android:layout_width="0dp"
 	        android:layout_height="wrap_content"
 	        android:layout_weight="1"
-	        android:text="New Certification" />
+	        android:text="@string/button_new_cert" />
 
         <Button
             android:id="@+id/buttonOptions"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Options" />
+            android:text="@string/button_options" />
 	    
         
     </LinearLayout>
@@ -62,7 +62,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:paddingLeft="10dp"
-            android:text="Date"
+            android:text="@string/sbutton_date"
             app:sortAscending="false"
             app:sortField="EDIT_DATE" />
         
@@ -71,7 +71,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="System"
+            android:text="@string/sbutton_system"
             app:sortField="SYSTEM" />
         
         <cc.lib.android.SortButton
@@ -79,7 +79,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Customer"
+            android:text="@string/sbutton_customer"
             app:sortField="CUSTOMER" />
         
         <cc.lib.android.SortButton
@@ -87,7 +87,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Passed"
+            android:text="@string/sbutton_passed"
             app:sortField="PASSED" />
         
     </cc.lib.android.SortButtonGroup>
@@ -108,7 +108,7 @@
         android:layout_below="@id/sortButtonGroup"
         android:layout_margin="20dp"
         android:gravity="center"
-        android:text="You dont have any Forms!\n\nPlease choose &apos;New Certification&apos; to start a new form."
+        android:text="@string/tv_empty_list"
         android:textSize="20sp" />
     
 </RelativeLayout>

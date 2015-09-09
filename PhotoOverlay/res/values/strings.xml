@@ -9,8 +9,131 @@
     <string name="popup_msg_billing_err_general">An error occurred.  Please try you request again or contact support</string>
     <string name="popup_msg_billing_err_argument">Google billing returned error code %s Please contact support for more information</string>
 
-    <string name="popup_msg_premium_feature_locked">This premium feature is locked. Would you like to unlock all features?</string>
+    <string name="popup_msg_premium_feature_locked">This premium feature is locked.\n\n
+        Premium Features Include:\n
+        - Unlimited forms\n
+        - Email signed forms\n
+        - Export Database\n
+        - Three image captures\n
+        - Higher resolution images\n
+        - Image date and time stamped\n\n
+        Would you like to unlock all features?
+    </string>
     
-    <string name="popup_msg_subscription_activiated">Your susbscription is activated. Premium features will be unlocked until midnight %s.  You will have the option to unlock permanently at a reduced price if you do so before the subscription expires.</string>
+    <string name="popup_msg_subscription_activiated">Your susbscription is activated. Premium features will be unlocked until %s.  You will have the option to unlock permanently at a reduced price if you do so before the subscription expires.</string>
     <string name="popup_msg_premium_permanently_unlocked">Congratulations!  All features have been permanantly unlocked.</string>
+    <string name="popup_msg_subs_expired">Your subscription has expired.  Would you like to re-activate it?</string>
+    <string name="popup_msg_no_purchases">There are no purchase items at this point.  Please try again when you subscription expires or conteact support.</string>
+    <string name="popup_msg_empty_purchases">You do not have any recorded purchases.</string>
+    <string name="popup_msg_operation_not_supported">Operation not supported on this device.</string>
+    <string name="popup_msg_are_you_sure">Are you Sure?</string>
+    <string name="popup_msg_processing_email">Please wait while we generate the image for email</string>
+    
+    <string name="popup_button_ok">OK</string>
+    <string name="popup_button_not_now">Not Now</string>
+    <string name="popup_button_purchase_options">Purchase Options</string>
+    <string name="popup_button_cancel">Cancel</string>
+    <string name="popup_button_change">Change</string>
+    <string name="popup_button_remove">Remove</string>
+    <string name="popup_button_iunderstand">I Understand</string>
+    <string name="popup_button_delete">Delete</string>
+    
+    <string name="popup_title_error">Error</string>
+    <string name="popup_title_premium_upgrade">Premium Upgrade</string>
+    <string name="popup_title_subs_expired">Subscription Expired</string>
+    <string name="popup_title_purchase_complete">Purchase Complete</string>
+    <string name="popup_title_purchase_options">Purchase Options</string>
+    <string name="popup_title_purchases">Purchases</string>
+    <string name="popup_title_how_esign_works">How eSigning Works</string>
+    <string name="popup_title_important">Important</string>
+    <string name="popup_title_confirm">Confirm</string>
+    <string name="popup_title_prcessing">Processing</string>
+    
+    <string-array name="form_list_options">
+        <item>Edit</item>
+        <item>Duplicate</item>
+        <item>Delete</item>
+        <item>Sign and Email</item>
+    </string-array>
+    
+    <string name="et_hint_type_and_sign">Type Full Name here and Sign Below</string>
+    <string name="button_accept">Accept</string>
+    <string name="button_restart">Restart</string>
+    <string name="button_save">Save</string>
+    <string name="button_cancel">Cancel</string>
+    <string name="et_hint_customer">Customer</string>
+    <string name="et_hint_location">Location</string>
+    <string name="et_hint_project">Project</string>
+    <string name="et_hint_inspecotr">Installer</string>
+    <string name="et_hint_system">System</string>
+    <string name="et_hint_plan">Plan/Detail</string>
+    <string name="et_hint_spec">Spec</string>
+    <string name="et_hint_custom">Custom</string>
+    <string name="rb_mechanical">Mechanical</string>
+    <string name="rb_plumbing">Plumbing</string>
+    <string name="rb_process">Process</string>
+    <string name="rb_custom">Custom</string>
+    <string name="cb_passed">Passed</string>
+    <string name="tv_hint_meta">Meta</string>
+    <string name="et_hint_comments">Comments</string>
+    <string name="tv_date">Date</string>
+    <string name="tv_customer">Customer</string>
+    <string name="tv_system">System</string>
+    <string name="tv_certifications">Certifications</string>
+    <string name="button_new_cert">New Certification</string>
+    <string name="button_options">Options</string>
+    <string name="sbutton_date">Date</string>
+    <string name="sbutton_system">System</string>
+    <string name="sbutton_customer">Customer</string>
+    <string name="sbutton_passed">Passed</string>
+    <string name="tv_empty_list">You dont have any Forms!\n\nPlease choose \'New Certification\' to start a new form.</string>
+    <string name="row_description">DESCRIPTION</string>
+    <string name="row_buy">BUY</string>
+    <string name="row_sku">SKU</string>
+    <string name="row_orderid">ORDER ID</string>
+    <string name="row_date">DATE</string>
+    <string name="row_state">STATE</string>
+    <string name="tv_fullname">Full Name</string>
+    
+    <string name="splash_tv_ptuheader">Pressure Test\nCertification Tool</string>
+    <string name="splash_tv_ptumiddle">CECC Solutions</string>
+    <string name="splash_tv_ptufooter">Patent Pending</string>
+    
+    <string name="buttonAddsignature">Add Signature</string>
+    <string name="buttonHowESignWorks">How eSigning Works</string>
+    <string name="buttonEmail">Email</string>
+    <string name="labelPTC">Pressure Test Certification</string>
+    <string name="labelCustomer">Customer:</string>
+    <string name="labelLocation">Location:</string>
+    <string name="labelProject">Project:</string>
+    <string name="labelInstaller">Installer:</string>
+    <string name="labelSystem">System:</string>
+    <string name="labelPlan">Plan:</string>
+    <string name="labelSpec">Spec:</string>
+    <string name="labelType">System Type:</string>
+    <string name="labelComments">Comments</string>
+    <string name="labelSignatures">Signatures</string>
+    <string name="labelStatus">Status</string>
+    
+    <string name="hintEmpty">empty</string>
+    <string name="labelPassed">PASSED</string>
+    <string name="labelFailed">FAILED</string>
+    
+    <string name="emailSubjectSignedPTCform">Signed PTC Form</string>
+    <string name="labelImageMeta">Image Meta Data</string>
+    
+    <plurals name="plural_days">
+        <item quantity="one">%d day</item>
+        <item quantity="other">%d days</item>
+    </plurals>
+
+    <plurals name="plural_hours">
+        <item quantity="one">%d hour</item>
+        <item quantity="other">%d hours</item>
+    </plurals>
+    
+    <plurals name="plural_mins">
+        <item quantity="one">%d minute</item>
+        <item quantity="other">%d minutes</item>
+    </plurals>
 </resources>

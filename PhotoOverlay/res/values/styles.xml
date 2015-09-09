@@ -16,6 +16,10 @@
     <style name="AppTheme" parent="@style/AppBaseTheme">
         <!-- All customizations that are NOT specific to a particular API-level can go here. -->
     </style>
+    
+    <style name="DialogTheme" parent="@android:style/Theme.Dialog">
+        
+    </style>
 
     <style name="sortButton">
        <item name="android:button">@null</item>
@@ -37,10 +41,19 @@
     <style name="signform">
         <item name="android:textColor">@android:color/black</item>
     </style>
-    
+
+    <style name="signform.print">
+        <item name="android:textSize">10dp</item>
+    </style>
     
     <style name="edittext" parent="@android:style/Widget.EditText">
         <item name="android:maxLength">256</item>
+        <item name="android:scrollHorizontally">false</item>
+    </style>
+    
+    <style name="tablerow">
+        <item name="android:paddingTop">5dp</item>
+        <item name="android:paddingBottom">5dp</item>
     </style>
     
     <style name="rowitem" parent="@android:style/Widget.TextView">

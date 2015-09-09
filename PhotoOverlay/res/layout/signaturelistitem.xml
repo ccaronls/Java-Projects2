@@ -10,7 +10,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
         android:layout_alignParentTop="true"
-        android:hint="Full Name"
+        android:hint="@string/tv_fullname"
         android:textAppearance="?android:attr/textAppearanceLarge" />
     
     <TextView
@@ -20,7 +20,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
         android:layout_alignParentTop="true"
-        android:hint="Date"
+        android:hint="@string/tv_date"
         android:textAppearance="?android:attr/textAppearanceMedium" />
 
     <ImageView
