@@ -22,6 +22,7 @@ import android.content.pm.PackageManager.NameNotFoundException;
 import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CompoundButton;
@@ -48,7 +49,7 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
 		sg.setSelectedSortButton(sortField, ascending);
 		sg.setOnSortButtonListener(this);
 
-		startActivity(new Intent(this, Splash.class));
+//		startActivity(new Intent(this, Splash.class));
 
 		new Thread() {
 			public void run() {
@@ -61,7 +62,7 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
 	protected void onAmbientTemperature(float celcius, int farhenheit) {
 		if (!showSubscription) {
     		final TextView tvAmbient = (TextView)findViewById(R.id.tvAmbient);
-    		tvAmbient.setText("Ambient Temperature " + farhenheit + "\u00B0 F.");
+    		tvAmbient.setText(getString(R.string.label_ambient_temp, farhenheit));
 		}
 	}
 
@@ -70,17 +71,32 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
 		super.onResume();
 		refresh();
 		startPolling(5);
+		if (getPrefs().getBoolean("FIRST_LAUNCH_BOOL", true)) {
+			getPrefs().edit().putBoolean("FIRST_LAUNCH_BOOL", false).commit();
+			if (!isPremiumEnabled(false))
+    			newDialogBuilder().setTitle(R.string.popup_title_welcome)
+    				.setMessage(R.string.popup_msg_welcome)
+    				.setNegativeButton(R.string.popup_button_ok, null)
+    				.setPositiveButton(R.string.popup_button_purchase_options, new DialogInterface.OnClickListener() {
+    					
+    					@Override
+    					public void onClick(DialogInterface dialog, int which) {
+    						new BillingTask(Op.QUERY_PURCHASABLES, getActivity()).execute();
+    					}
+    				}).show();
+		}
 	}
 	
 	private boolean showSubscription = false;
 	
 	@Override
 	protected void onPoll() {
+		Log.d(TAG, "onPoll");
 		final TextView tvAmbient = (TextView)findViewById(R.id.tvAmbient);
 		if (isSubscription()) {
     		showSubscription = !showSubscription;
     		if (showSubscription) {
-    			tvAmbient.setText("Subscription expires in " + getSubscriptionExpireTimeColloquial());
+    			tvAmbient.setText(getString(R.string.tvSubscriptionExpiresIn, getSubscriptionExpireTimeColloquial()));
     		}
 		} else {
 			if (showSubscription) {
@@ -104,7 +120,7 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
 		
         		if (v.getTag() != null) {
         			final int formId = (Integer)v.getTag();
-        			String [] items = getResources().getStringArray(R.array.form_list_options); 
+        			String [] items = getResources().getStringArray(R.array.form_item_options); 
         			newDialogBuilder()
             			.setItems(items, new DialogInterface.OnClickListener() {
             				
@@ -122,6 +138,8 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
                 							Form form = getFormHelper().getFormById(formId);
                 							form.id = null; // clearing the id will cause a duplicate
                 							form.createDate = form.editDate = new Date();
+                							Arrays.fill(form.imageMeta, null);
+                							Arrays.fill(form.imagePath, null);
                 							Intent i = new Intent(getActivity(), FormEdit.class);
                 							i.putExtra(INTENT_FORM, form);
                 							startActivity(i); // let the edit activity save
@@ -152,7 +170,7 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
             					}
             				}
             			})
-            			.setNegativeButton("Cancel", null)
+            			.setNegativeButton(R.string.popup_button_cancel, null)
             			.show();
         		} else {
         			if (getFormHelper().getFormCount() < 3 || isPremiumEnabled(true))
@@ -220,37 +238,15 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
 	private void showOptionsDialog() {
 		String [] items;
 		
-		if (isDebug()) {
-			items = new String[] {
-					"About",
-					"Send Feedback",
-					"Export ZIP",
-					"Nuke",
-					"Purchases",
-					"Upgrade",
-					"Purchases DEBUG",
-					"Purchases Refresh"
-			};
+		if (BuildConfig.DEBUG) {
+			items = getResources().getStringArray(R.array.form_list_options_debug);
 		} else if (isSubscription()) {
-			items = new String[] {
-					"About",
-					"Send Feedback",
-					"Export ZIP",
-					"Nuke",
-					"Purchases",
-					"Upgrade",
-			};
+			items = getResources().getStringArray(R.array.form_list_options_subscription);
 		} else {
-			items = new String[] {
-					"About",
-					"Send Feedback",
-					"Export ZIP",
-					"Nuke",
-					"Purchases",
-			};
+			items = getResources().getStringArray(R.array.form_list_options_unlocked);
 		}
 		
-		newDialogBuilder().setTitle("Options").setItems(items, new DialogInterface.OnClickListener() {
+		newDialogBuilder().setTitle(R.string.popup_title_options).setItems(items, new DialogInterface.OnClickListener() {
 			
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
@@ -262,21 +258,20 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
 						String googlePlayVersion = "???";
 						try {
 							pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
-							version = pInfo.versionName + "." + BuildNum.buildNum;
+							version = pInfo.versionName + "." + (BuildConfig.DEBUG ? "DEBUG" : pInfo.versionCode);
 							googlePlayVersion = getPackageManager().getPackageInfo("com.google.android.gms", 0 ).versionName;
 						} catch (NameNotFoundException e) {
 							e.printStackTrace();
 						}
-						newDialogBuilder().setTitle("About")
-							.setMessage("Pressure Test Certification Utility\n\nCECC Solutions\n\n" + email + 
-									"\nApplication Version: " + version +
-									"\n\nGoogle Play Version: " + googlePlayVersion)
-							.setNegativeButton("Ok", null).show();
+						newDialogBuilder().setTitle(R.string.popup_title_about)
+							.setMessage(getString(R.string.popup_msg_about, email, version, googlePlayVersion))
+							.setNegativeButton(R.string.popup_button_ok, null).show();
 						break;
 					}
 					
 					case 1: { // feedback
-						EmailHelper.sendEmail(getActivity(), null, getResources().getString(R.string.app_email), "Pressure Test Certification Utility Feedback", "Let us know what you think!");
+						EmailHelper.sendEmail(getActivity(), null, getResources().getString(R.string.app_email), 
+								getString(R.string.email_subject_feedback), getString(R.string.email_body_feedback));
 						break;
 					}
 					
@@ -289,18 +284,18 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
     						files.addAll(Arrays.asList(getImagesPath().listFiles()));
     						try {
     							FileUtils.zipFiles(target, files);
-    							EmailHelper.sendEmail(getActivity(), target, null, "Pressure Test Export", "Attached is a ZIP file with database and all images");
+    							EmailHelper.sendEmail(getActivity(), target, null, getString(R.string.email_subject_export), getString(R.string.email_body_export));
     						} catch (Exception e) {
     							e.printStackTrace();
-    							newDialogBuilder().setTitle("ERROR").setMessage("Problem exporting database " + e.getMessage()).setNegativeButton("OK", null).show();
+    							newDialogBuilder().setTitle(R.string.popup_title_error).setMessage(getString(R.string.popup_msg_dbexport_error, e.getMessage())).setNegativeButton(R.string.popup_button_ok, null).show();
     						}
 						}
 						break;
 					}
 					
 					case 3: { // nuke
-						newDialogBuilder().setTitle("Confirm Reset").setMessage("Are you sure?  This will delete all application data.").setNegativeButton("Cancel", null)
-						.setPositiveButton("Reset", new DialogInterface.OnClickListener() {
+						newDialogBuilder().setTitle(R.string.popup_title_confirm).setMessage(R.string.popup_msg_nuke).setNegativeButton(R.string.popup_button_cancel, null)
+						.setPositiveButton(R.string.popup_button_reset, new DialogInterface.OnClickListener() {
 							
 							@Override
 							public void onClick(DialogInterface dialog, int which) {
@@ -352,6 +347,6 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
 					}
 				}
 			}
-		}).setNegativeButton("Cancel", null).show();		
+		}).setNegativeButton(R.string.popup_button_cancel, null).show();		
 	}
 }

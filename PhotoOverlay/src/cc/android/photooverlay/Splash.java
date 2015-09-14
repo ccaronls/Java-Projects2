@@ -1,6 +1,7 @@
 package cc.android.photooverlay;
 
 import cc.android.photooverlay.BillingTask.Op;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 
@@ -13,15 +14,11 @@ public class Splash extends BaseActivity {
 		setContentView(v);
 		v.postDelayed(new Runnable() {
 			public void run() {
+				startActivity(new Intent(getActivity(), FormsList.class));
 				finish();
 			}
 		}, 4000);
-		if (!isDebug()) {
-    		if (getPrefs().getBoolean("FIRST_LAUNCH_BOOL", true)) {
-    			new BillingTask(Op.REFRESH_PURCHASED, getActivity()).execute();
-    			getPrefs().edit().putBoolean("FIRST_LAUNCH_BOOL", false).commit();
-    		}
-		}
+		new BillingTask(Op.REFRESH_PURCHASED, getActivity()).execute();
 	}
 	
 }

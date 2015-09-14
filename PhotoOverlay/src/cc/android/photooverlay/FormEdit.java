@@ -89,6 +89,8 @@ public class FormEdit extends BaseActivity implements OnCheckedChangeListener {
 		etCustom = (AutoCompleteTextView)findViewById(R.id.etCustom);
 		etCustom.setAdapter(getAutoCompleteAdapter(SQLHelper.Column.TYPE));
 		
+		etSpec.setNextFocusForwardId(etComments.getId());
+		
 		rgType = (RadioGroup)findViewById(R.id.rgType);
 		cbPassed = (CompoundButton)findViewById(R.id.cbPassed);
 
@@ -351,7 +353,7 @@ public class FormEdit extends BaseActivity implements OnCheckedChangeListener {
 
     	if (bitmap != null) {
     		if (isPremiumEnabled(false))
-    			bitmap = ThumbnailUtils.extractThumbnail(bitmap, 256, 256);
+    			bitmap = ThumbnailUtils.extractThumbnail(bitmap, 512, 512);
     		else
     			bitmap = ThumbnailUtils.extractThumbnail(bitmap, 64, 64);
 			Matrix matrix = new Matrix();
@@ -404,7 +406,7 @@ public class FormEdit extends BaseActivity implements OnCheckedChangeListener {
 		Paint paint = new Paint();
 		paint.setColor(Color.WHITE);
 		paint.setTextAlign(Align.LEFT);
-		paint.setTextSize(16);
+		paint.setTextSize(20);
 		canvas.drawText(text, 2, canvas.getHeight()-2, paint);
 	}
 

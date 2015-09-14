@@ -10,13 +10,11 @@ import java.util.HashSet;
 import java.util.Locale;
 import org.json.JSONException;
 import org.json.JSONObject;
-
 import cc.android.photooverlay.BillingTask.Op;
 import cc.android.photooverlay.BillingTask.Purchase;
 import cc.lib.android.CCActivityBase;
-
 import com.android.vending.billing.IInAppBillingService;
-
+import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.content.ComponentName;
 import android.content.Context;
@@ -28,6 +26,7 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
@@ -43,6 +42,9 @@ public class BaseActivity extends CCActivityBase implements OnClickListener {
 	public final static String INTENT_BITMAP_FILE = "iBITMAP_FILE";
 	public final static String INTENT_ERROR = "iERROR";
 	
+	private final static boolean INAPP_ENABLED = true;
+	
+	
 	static SimpleDateFormat dateFormat = new SimpleDateFormat("E M/d/yy h:mm a", Locale.US); 
 
 	private SQLHelper helper;
@@ -52,16 +54,13 @@ public class BaseActivity extends CCActivityBase implements OnClickListener {
 	}
 	
 	final AlertDialog.Builder newDialogBuilder() {
-		return new AlertDialog.Builder(this, R.style.DialogTheme); // TODO: Theme this mutha
+		return new AlertDialog.Builder(this, R.style.DialogTheme);
 	}
 	
 	final BaseActivity getActivity() {
 		return this;
 	}
 	
-	final boolean isDebug() {
-		return BuildNum.buildNum.equals("DEBUG");
-	}
 /*
 	@Override
 	public void onCorruption(SQLiteDatabase dbObj) {
@@ -106,6 +105,7 @@ public class BaseActivity extends CCActivityBase implements OnClickListener {
 	
 	private final AmbientListener ambientListener = new AmbientListener();
 	
+	@TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
 	@Override
 	public void onCreate(Bundle bundle) {
 		super.onCreate(bundle);
@@ -283,9 +283,9 @@ public class BaseActivity extends CCActivityBase implements OnClickListener {
 	   }
 	}
 	
-	private final static String PREF_PREMIUM_UNLOCKED_BOOL = "PREF_PREMIUM_UNLOCKED";
-	private final static String PREF_PREMIUM_EXPIRE_TIME_LONG = "PREF_PREMIUM_EXPIRE_TIME";
-	private final static String PREF_PURCHASE_SKU = "PREF_PURCHASE_SKU";
+	public final static String PREF_PREMIUM_UNLOCKED_BOOL = "PREF_PREMIUM_UNLOCKED";
+	public final static String PREF_PREMIUM_EXPIRE_TIME_LONG = "PREF_PREMIUM_EXPIRE_TIME";
+	public final static String PREF_PURCHASE_SKU = "PREF_PURCHASE_SKU";
 	public final static String PREF_PURCHASE_RANDOM_STRING = "PREF_PURCHASE_RANDOM";
 	
 	public void clearPurchaseData() {
@@ -300,6 +300,7 @@ public class BaseActivity extends CCActivityBase implements OnClickListener {
 		Log.d(TAG, "finalizePurchase sku=" + sku + " datePurchased = " + cal.getTime());
 		Purchase p = Purchase.getPurchaseFromSku(sku);
 		if (p != null) {
+			
 			clearPurchaseData();
     		Editor edit = getPrefs().edit();
     		edit.putString(PREF_PURCHASE_SKU, sku);
@@ -327,7 +328,6 @@ public class BaseActivity extends CCActivityBase implements OnClickListener {
     		if (expireTime != null) {
     			if (expireTime.getTime() > System.currentTimeMillis()) { 
     				edit.putLong(PREF_PREMIUM_EXPIRE_TIME_LONG, expireTime.getTime());
-            		edit.commit();
         			SimpleDateFormat fmt = new SimpleDateFormat("EEEE MMMM dd", Locale.US);
         			showAlert(R.string.popup_title_purchase_complete, R.string.popup_msg_subscription_activiated, fmt.format(expireTime));
     			}
@@ -335,12 +335,12 @@ public class BaseActivity extends CCActivityBase implements OnClickListener {
     			edit.remove(PREF_PREMIUM_EXPIRE_TIME_LONG);
     			showAlert(R.string.popup_title_purchase_complete, R.string.popup_msg_premium_permanently_unlocked);
     		}
+    		edit.commit();
 		}
 	}
 
 	protected boolean isSubscription() {
-		
-		if (isDebug())
+		if (!INAPP_ENABLED)
 			return false;
 		
 		return getPrefs().getLong(PREF_PREMIUM_EXPIRE_TIME_LONG, -1) > 0 && !isSubscriptionExpired(true);
@@ -391,9 +391,9 @@ public class BaseActivity extends CCActivityBase implements OnClickListener {
 	}
 	
 	protected final boolean isPremiumEnabled(boolean showDialog) {
-		if (isDebug())
-			return true;
 		
+		if (!INAPP_ENABLED)
+			return true;
 		
 		if (!getPrefs().getBoolean(PREF_PREMIUM_UNLOCKED_BOOL, false)) {
 			if (showDialog)

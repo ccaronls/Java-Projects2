@@ -261,14 +261,48 @@
 		            android:src="@android:drawable/ic_dialog_alert" />
 		    </LinearLayout>
 
+		    
+		    <LinearLayout
+		        android:id="@+id/layoutMeta"
+		        android:layout_width="fill_parent"
+		        android:layout_height="wrap_content"
+		        android:layout_below="@id/layoutImages"
+		        android:layout_alignLeft="@id/layoutImages"
+		        android:layout_alignRight="@id/layoutImages">
+		        
+		        <TextView
+		            style="@style/signform"
+		            android:id="@+id/tvImage1Meta"
+		            android:layout_width="0dp"
+		            android:layout_height="wrap_content"
+		            android:layout_weight="1"
+		            android:hint="Meta"/>
+                <TextView
+                    style="@style/signform"
+                    android:id="@+id/tvImage2Meta"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:hint="Meta"/>
+		        <TextView
+		            style="@style/signform"
+                    android:id="@+id/tvImage3Meta"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:hint="Meta"/>
+                		        
+		        
+		    </LinearLayout>
+	
 		    <TextView
 		        android:id="@+id/textView13"
 		        style="@style/signform"
 		        android:layout_width="wrap_content"
 		        android:layout_height="wrap_content"
 		        android:layout_alignLeft="@+d/layoutMeta"
-		        android:layout_below="@id/layoutImages"
-		        android:layout_marginTop="23dp"
+		        android:layout_below="@id/layoutMeta"
+		        android:layout_marginTop="10dp"
 		        android:text="@string/labelType"
 		        android:textAppearance="?android:attr/textAppearanceMedium" />
 

@@ -156,7 +156,7 @@ public class BillingTask extends AsyncTask<String,Integer,Object> implements OnC
     					skus.add(Purchase.ONEWEEK.sku);
     					skus.add(Purchase.ONEMONTH.sku);
     					skus.add(Purchase.PREMIUM.sku);
-    					if (activity.isDebug()) {
+    					if (BuildConfig.DEBUG) {
     						skus.add(Purchase.TENMINUTES.sku);
     					}
     				}
@@ -254,10 +254,6 @@ public class BillingTask extends AsyncTask<String,Integer,Object> implements OnC
 		}
 	}
 	
-	private String getString(int resId, Object ... args) {
-		return activity.getString(resId, args);
-	}
-
 	// each row must have these strings in this order:
 	// 0   sku
 	// 1   orderId
@@ -487,7 +483,8 @@ public class BillingTask extends AsyncTask<String,Integer,Object> implements OnC
 						String purchaseToken = o.getString("purchaseToken");
 						
 						if (state == PurchaseState.PURCHASED.ordinal()) {
-							activity.finalizePurchase(sku, purchaseTime);
+							if (!activity.getPrefs().getString(BaseActivity.PREF_PURCHASE_SKU, "").equals(sku))
+								activity.finalizePurchase(sku, purchaseTime);
 						} else {
 							new BillingTask(Op.CONSUME_TOKEN, activity).execute(purchaseToken);
 						}

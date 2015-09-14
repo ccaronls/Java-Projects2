@@ -1,10 +1,6 @@
 package cc.android.photooverlay;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 import java.util.*;
 
 import cc.lib.android.EmailHelper;
@@ -26,12 +22,10 @@ import android.os.Bundle;
 import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.View;
-import android.view.View.OnLayoutChangeListener;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver.OnGlobalLayoutListener;
 import android.webkit.WebView;
 import android.widget.ImageView;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 public class FormSign extends BaseActivity {
@@ -138,7 +132,7 @@ public class FormSign extends BaseActivity {
 	
 	private void generateImagePages() {
 		// generate an image of the form and send it off
-		final ProgressDialog dialog = ProgressDialog.show(getActivity(), getString(R.string.popup_title_prcessing), getString(R.string.popup_msg_processing_email));
+		final ProgressDialog dialog = ProgressDialog.show(getActivity(), getString(R.string.popup_title_processing), getString(R.string.popup_msg_processing_email));
 		new AsyncTask<Void,Integer,Void>() {
 
 			int numSignatures = 0;
@@ -161,6 +155,7 @@ public class FormSign extends BaseActivity {
 				
 				int [] ids = {
 						R.id.layoutImages,
+						R.id.layoutMeta,
 						R.id.textView13,
 						R.id.tvType,
 						R.id.textView15,
@@ -282,6 +277,7 @@ public class FormSign extends BaseActivity {
 				return null;
 			}
 
+			@SuppressWarnings("deprecation")
 			@Override
 			protected void onPostExecute(Void result) {
 				layoutForm.getViewTreeObserver().removeGlobalOnLayoutListener(listener);

@@ -134,7 +134,7 @@
 			        android:layout_weight="1"
 			        android:ems="10"
 			        android:hint="@string/et_hint_spec"
-			        android:imeOptions="actionDone"
+			        android:imeOptions="actionNext"
 			        android:inputType="textCapWords"
 			        android:singleLine="true" />
 				    
@@ -279,12 +279,13 @@
 		        android:layout_below="@id/layoutImages"
 		        android:layout_centerHorizontal="true"
 		        android:ems="10"
+		        android:gravity="left|top"
 		        android:hint="@string/et_hint_comments"
 		        android:inputType="textCapSentences|textAutoCorrect|textMultiLine|textImeMultiLine|textLongMessage"
-		        android:lines="3"
-		        android:maxLines="3"
-		        android:minLines="3" 
-		        android:scrollHorizontally="false"/>
+		        android:lines="5"
+		        android:maxLines="10"
+		        android:minLines="5"
+		        android:scrollHorizontally="false" />
 		    
 	   </LinearLayout>
     </ScrollView>

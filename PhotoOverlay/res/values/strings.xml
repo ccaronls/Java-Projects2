@@ -1,11 +1,17 @@
 <resources>
 
     <string name="app_name">Pressure Test\nUtility</string>
-
     <string name="app_email">ceccsolutions@gmail.com</string>
+
     <string name="email_body_signed_form">There is a signed form attached for interested parties.  Any concerns as to the validity of this document should be reported at once.</string>
-    <string name="popup_msg_signing_important">Be aware that all signatures captured here must be emailed in order to be preserved.  All Signatures will be discarded once leaving this page.  This is done to prevent mis use and ensure that the signatures gathered here will never be re-used.  Please make sure all parties signing this form are included as recipients on the final email.</string>
     
+    <string name="email_subject_feedback">Pressure Test Certification Utility Feedback</string>
+    <string name="email_body_feedback">Let us know what you think!</string>
+    
+    <string name="email_subject_export">Pressure Test Export</string>
+    <string name="email_body_export">Attached is a ZIP file with database and all images</string>
+    
+    <string name="popup_msg_signing_important">Be aware that all signatures captured here must be emailed in order to be preserved.  All Signatures will be discarded once leaving this page.  This is done to prevent mis use and ensure that the signatures gathered here will never be re-used.  Please make sure all parties signing this form are included as recipients on the final email.</string>
     <string name="popup_msg_billing_err_general">An error occurred.  Please try you request again or contact support</string>
     <string name="popup_msg_billing_err_argument">Google billing returned error code %s Please contact support for more information</string>
 
@@ -28,6 +34,10 @@
     <string name="popup_msg_operation_not_supported">Operation not supported on this device.</string>
     <string name="popup_msg_are_you_sure">Are you Sure?</string>
     <string name="popup_msg_processing_email">Please wait while we generate the image for email</string>
+    <string name="popup_msg_welcome">Thank you for downloading the Pressure Test Utility.  If you have already purchased the premium features then click \'Restore\'.  Otherwise you can try the basic features for as long as you like.  Later on if you want to try the premium features by subscription or permanantly, then choose \'Upgrade\'</string>
+    <string name="popup_msg_about">Pressure Test Certification Utility\n\nCECC Solutions\n\n%1$s\nApplication Version: %2$s\n\nGoogle Play Version: %3$s</string>
+    <string name="popup_msg_nuke">Are you sure?  This will delete all application data.</string>
+    <string name="popup_msg_dbexport_error">Problem exporting database %s</string>
     
     <string name="popup_button_ok">OK</string>
     <string name="popup_button_not_now">Not Now</string>
@@ -37,6 +47,8 @@
     <string name="popup_button_remove">Remove</string>
     <string name="popup_button_iunderstand">I Understand</string>
     <string name="popup_button_delete">Delete</string>
+    <string name="popup_button_restore">Restore Purchase</string>
+    <string name="popup_button_reset">Reset</string>
     
     <string name="popup_title_error">Error</string>
     <string name="popup_title_premium_upgrade">Premium Upgrade</string>
@@ -47,14 +59,47 @@
     <string name="popup_title_how_esign_works">How eSigning Works</string>
     <string name="popup_title_important">Important</string>
     <string name="popup_title_confirm">Confirm</string>
-    <string name="popup_title_prcessing">Processing</string>
+    <string name="popup_title_processing">Processing</string>
+    <string name="popup_title_welcome">Welcome!</string>
+    <string name="popup_title_options">Options</string>
+    <string name="popup_title_about">About</string>
     
-    <string-array name="form_list_options">
+    <string-array name="form_item_options">
         <item>Edit</item>
         <item>Duplicate</item>
         <item>Delete</item>
         <item>Sign and Email</item>
     </string-array>
+    
+    <string-array name="form_list_options_debug">
+        <item>About</item>
+        <item>Send Feedback</item>
+        <item>Export ZIP</item>
+        <item>Nuke</item>
+        <item>Purchases</item>
+        <item>Upgrade</item>
+        <item>Purchases DEBUG</item>
+        <item>Purchases Refresh</item>
+    </string-array>
+    
+    <string-array name="form_list_options_subscription">
+        <item>About</item>
+        <item>Send Feedback</item>
+        <item>Export ZIP</item>
+        <item>Nuke</item>
+        <item>Purchases</item>
+        <item>Upgrade</item>
+    </string-array>
+    
+    <string-array name="form_list_options_unlocked">
+        <item>About</item>
+        <item>Send Feedback</item>
+        <item>Export ZIP</item>
+        <item>Nuke</item>
+        <item>Purchases</item>
+    </string-array>
+    
+    <string name="tvSubscriptionExpiresIn">Subscription expires in %s</string>
     
     <string name="et_hint_type_and_sign">Type Full Name here and Sign Below</string>
     <string name="button_accept">Accept</string>
@@ -94,6 +139,7 @@
     <string name="row_date">DATE</string>
     <string name="row_state">STATE</string>
     <string name="tv_fullname">Full Name</string>
+    <string name="label_ambient_temp">Ambient Temperature %d&#xb0; F."</string>
     
     <string name="splash_tv_ptuheader">Pressure Test\nCertification Tool</string>
     <string name="splash_tv_ptumiddle">CECC Solutions</string>

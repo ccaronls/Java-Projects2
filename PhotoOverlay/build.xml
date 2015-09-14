@@ -108,12 +108,14 @@
     </target>
 
     <target name="-compile-buildNo">
+        <!--
         <filter token="BUILDNUM" value="${buildNo}"/>
         <copy todir="/tmp/" filtering="true">
             <fileset dir="srcrelease"/>
         </copy>
         <mkdir dir="bin/classes"/>
         <javac srcdir="/tmp/" destdir="bin/classes"/>
+         -->
     </target>
     
     <target name="-pre-build" depends="clean, -parse-buildNo, -check-buildNo, -compile-buildNo">
@@ -133,12 +135,12 @@
     
     <target name="help">
         <echo>
-This script is intented to build the project for release distribution.  Upon success a release APK is put into the release folder.
+This script is intented to build the project for release distribution.  Upon success a release APK is put into the releases folder.
 
 To build a release version use command:
-ant release -DbuildNo=xxx
+ant release.  
 
-where xxx is the number you want to append to the version specificed in the manifest.
+The version of the build will be versionName.versionCode from AndroidManifest.xml
 
         </echo>
     </target>
