@@ -17,7 +17,6 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.database.Cursor;
 import android.os.AsyncTask;
@@ -25,6 +24,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.WebView;
 import android.widget.CompoundButton;
 import android.widget.CursorAdapter;
 import android.widget.ListView;
@@ -34,6 +34,7 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
 
 	final static String SORT_FIELD_STR = "SORT_FIELD";
 	final static String SORT_ASCENDING_BOOL = "SORT_ASCENDING";
+	final static String EULA_ACCEPTED_BOOL = "EULA_ACCEPTED";
 		
 	@Override
 	public void onCreate(Bundle bundle) {
@@ -49,8 +50,35 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
 		sg.setSelectedSortButton(sortField, ascending);
 		sg.setOnSortButtonListener(this);
 
-//		startActivity(new Intent(this, Splash.class));
+		if (true || !BuildConfig.DEBUG) {
 
+			try {
+				final String version = getVersionString();
+        		if (!getPrefs().getBoolean(EULA_ACCEPTED_BOOL + version, false)) {
+        			WebView v = new WebView(getActivity());
+        			v.loadUrl("file:///android_asset/eula.html");
+        			newDialogBuilder().setView(v).setCancelable(false)
+        			.setNegativeButton(R.string.popup_button_eula_decline, new DialogInterface.OnClickListener() {
+        				@Override
+        				public void onClick(DialogInterface dialog, int which) {
+        					finish();
+        				}        				
+        			})
+        			.setPositiveButton(R.string.popup_button_eula_accept, new DialogInterface.OnClickListener() {
+        				
+        				@Override
+        				public void onClick(DialogInterface dialog, int which) {
+        					getPrefs().edit().putBoolean(EULA_ACCEPTED_BOOL + version, true).commit();
+        					dialog.dismiss();
+        					checkShowWelcome();
+        				}
+        			}).show();
+        		}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		
 		new Thread() {
 			public void run() {
 				cleanupUnusedImages();
@@ -71,6 +99,9 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
 		super.onResume();
 		refresh();
 		startPolling(5);
+	}
+	
+	private void checkShowWelcome() {
 		if (getPrefs().getBoolean("FIRST_LAUNCH_BOOL", true)) {
 			getPrefs().edit().putBoolean("FIRST_LAUNCH_BOOL", false).commit();
 			if (!isPremiumEnabled(false))
@@ -84,7 +115,7 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
     						new BillingTask(Op.QUERY_PURCHASABLES, getActivity()).execute();
     					}
     				}).show();
-		}
+		}		
 	}
 	
 	private boolean showSubscription = false;
@@ -253,12 +284,10 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
 				switch (which) {
 					case 0: { // about
 						String email = getResources().getString(R.string.app_email);
-						PackageInfo pInfo;
 						String version = "???";
 						String googlePlayVersion = "???";
 						try {
-							pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
-							version = pInfo.versionName + "." + (BuildConfig.DEBUG ? "DEBUG" : pInfo.versionCode);
+							version = getVersionString();
 							googlePlayVersion = getPackageManager().getPackageInfo("com.google.android.gms", 0 ).versionName;
 						} catch (NameNotFoundException e) {
 							e.printStackTrace();

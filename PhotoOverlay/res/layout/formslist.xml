@@ -33,6 +33,7 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content">
 	    <Button
+	        style="@style/button"
 	        android:id="@+id/buttonNewForm"
 	        android:layout_width="0dp"
 	        android:layout_height="wrap_content"
@@ -40,6 +41,7 @@
 	        android:text="@string/button_new_cert" />
 
         <Button
+            style="@style/button"
             android:id="@+id/buttonOptions"
             android:layout_width="0dp"
             android:layout_height="wrap_content"

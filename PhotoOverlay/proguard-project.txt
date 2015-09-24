@@ -27,7 +27,9 @@
 -verbose
 -repackageclasses ''
 -optimizations !code/simplification/arithmetic,!field/*,!class/merging/*,!code/simplification/cast,!code/allocation/variable
-
+-dontwarn android.support.**
+-dontwarn android.content.pm.**
+-dontwarn com.google.android.gms.**
 
 # Remove logging
 -assumenosideeffects class android.util.Log {

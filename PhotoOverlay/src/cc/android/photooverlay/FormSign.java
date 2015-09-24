@@ -40,7 +40,7 @@ public class FormSign extends BaseActivity {
 		findViewById(R.id.buttonEmail).setOnClickListener(this);
 		findViewById(R.id.buttonESignInfo).setOnClickListener(this);
 		form = (Form)getIntent().getParcelableExtra(INTENT_FORM);
-		((TextView)findViewById(R.id.tvDate)).setText("Certified on: " + getDateFormatter().format(form.editDate));
+		((TextView)findViewById(R.id.tvDate)).setText(getString(R.string.tvFormsignCertifiedOn, getDateFormatter().format(form.editDate)));
 		((TextView)findViewById(R.id.tvInspector)).setText(form.inspector);
 		((TextView)findViewById(R.id.tvCustomer)).setText(form.customer);
 		((TextView)findViewById(R.id.tvProject)).setText(form.project);

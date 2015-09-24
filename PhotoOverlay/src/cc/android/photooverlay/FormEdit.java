@@ -352,10 +352,10 @@ public class FormEdit extends BaseActivity implements OnCheckedChangeListener {
 		}
 
     	if (bitmap != null) {
-    		if (isPremiumEnabled(false))
+    		//if (isPremiumEnabled(false))
     			bitmap = ThumbnailUtils.extractThumbnail(bitmap, 512, 512);
-    		else
-    			bitmap = ThumbnailUtils.extractThumbnail(bitmap, 64, 64);
+    		//else
+    		//	bitmap = ThumbnailUtils.extractThumbnail(bitmap, 64, 64);
 			Matrix matrix = new Matrix();
 			switch (orientation) {
 				case 90:
@@ -373,8 +373,8 @@ public class FormEdit extends BaseActivity implements OnCheckedChangeListener {
 			}
 			
 			// watermark
-			if (isPremiumEnabled(false))
-				watermark(bitmap, getDateFormatter().format(new Date()));
+			//if (isPremiumEnabled(false))
+			watermark(bitmap, getDateFormatter().format(new Date()));
 
 			try {
 				File destFile = File.createTempFile("guage", ".png", getImagesPath());

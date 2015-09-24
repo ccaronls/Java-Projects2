@@ -49,6 +49,8 @@
     <string name="popup_button_delete">Delete</string>
     <string name="popup_button_restore">Restore Purchase</string>
     <string name="popup_button_reset">Reset</string>
+    <string name="popup_button_eula_accept">Accept</string>
+    <string name="popup_button_eula_decline">Decline</string>
     
     <string name="popup_title_error">Error</string>
     <string name="popup_title_premium_upgrade">Premium Upgrade</string>
@@ -167,6 +169,8 @@
     
     <string name="emailSubjectSignedPTCform">Signed PTC Form</string>
     <string name="labelImageMeta">Image Meta Data</string>
+    
+    <string name="tvFormsignCertifiedOn">Certified on: %s</string>
     
     <plurals name="plural_days">
         <item quantity="one">%d day</item>

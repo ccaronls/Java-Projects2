@@ -8,12 +8,16 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Locale;
+
 import org.json.JSONException;
 import org.json.JSONObject;
+
 import cc.android.photooverlay.BillingTask.Op;
 import cc.android.photooverlay.BillingTask.Purchase;
 import cc.lib.android.CCActivityBase;
+
 import com.android.vending.billing.IInAppBillingService;
+
 import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.content.ComponentName;
@@ -22,6 +26,8 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences.Editor;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -43,7 +49,6 @@ public class BaseActivity extends CCActivityBase implements OnClickListener {
 	public final static String INTENT_ERROR = "iERROR";
 	
 	private final static boolean INAPP_ENABLED = true;
-	
 	
 	static SimpleDateFormat dateFormat = new SimpleDateFormat("E M/d/yy h:mm a", Locale.US); 
 
@@ -424,5 +429,10 @@ public class BaseActivity extends CCActivityBase implements OnClickListener {
 	
 	protected void showAlert(int titleResId, int messageResId, Object ... params) {
 		newDialogBuilder().setTitle(titleResId).setMessage(getString(messageResId, params)).setNegativeButton(R.string.popup_button_ok, null).show();
+	}
+	
+	protected String getVersionString() throws NameNotFoundException {
+		PackageInfo pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+		return pInfo.versionName + "." + (BuildConfig.DEBUG ? "DEBUG" : pInfo.versionCode);
 	}
 }

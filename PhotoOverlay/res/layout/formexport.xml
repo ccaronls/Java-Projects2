@@ -4,7 +4,9 @@
     android:layout_height="match_parent"
     android:background="@android:color/white">
 
-    <Button android:id="@+id/buttonAddSignature"
+    <Button 
+        style="@style/button"
+        android:id="@+id/buttonAddSignature"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
