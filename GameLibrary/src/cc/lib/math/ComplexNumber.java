@@ -12,7 +12,7 @@ package cc.lib.math;
 public final class ComplexNumber {
 
     private double real, imag;
-
+    
     public ComplexNumber() {
         set(0,0);
     }
@@ -30,32 +30,31 @@ public final class ComplexNumber {
     }
     
     /**
-     * Return this + rhs
+     * 
      * @param rhs
-     * @param result
      * @return
      */
-    public ComplexNumber add(ComplexNumber rhs, ComplexNumber result) {
-        return result.set(real + rhs.real, imag + rhs.imag);
+    public ComplexNumber add(ComplexNumber rhs) {
+        return getTemp().set(real + rhs.real, imag + rhs.imag);
     }
 
+    
     /**
      * Modifier, return this + rhs
      * @param rhs
      * @return
      */
     public ComplexNumber addEq(ComplexNumber rhs) {
-        return set(real + rhs.real, imag + rhs.imag);
+    	return set(real + rhs.real, imag + rhs.imag);
     }
 
     /**
-     * Return this - rhs
+     * 
      * @param rhs
-     * @param result
      * @return
      */
-    public ComplexNumber sub(ComplexNumber rhs, ComplexNumber result) {
-        return result.set(real - rhs.real, imag - rhs.imag);
+    public ComplexNumber sub(ComplexNumber rhs) {
+        return getTemp().set(real - rhs.real, imag - rhs.imag);
     }
 
     /**
@@ -76,6 +75,10 @@ public final class ComplexNumber {
         return result.set(-real, -imag);
     }
 
+    public ComplexNumber negate() {
+        return getTemp().set(-real, -imag);
+    }
+
     /**
      * Modifier, return -this
      * @return
@@ -85,15 +88,14 @@ public final class ComplexNumber {
     }
 
     /**
-     * Return this scale by a double
+     * 
      * @param scalar
-     * @param result
      * @return
      */
-    public ComplexNumber scale(double scalar, ComplexNumber result) {
-        return result.set(real * scalar, imag * scalar);
+    public ComplexNumber scale(double scalar) {
+        return getTemp().set(real * scalar, imag * scalar);
     }
-    
+
     /**
      * Modifier, return this scaled by a double
      * @param scalar
@@ -104,15 +106,14 @@ public final class ComplexNumber {
     }
 
     /**
-     * Return [this.real*rhs.read - this.imag*rhs.imag, this.imag*rhs.real + this.real*rhs.imag] 
+     * 
      * @param rhs
-     * @param result
      * @return
      */
-    public ComplexNumber multiply(ComplexNumber rhs, ComplexNumber result) {
-        return result.set(real*rhs.real - imag*rhs.imag, imag*rhs.real + real*rhs.imag);
+    public ComplexNumber multiply(ComplexNumber rhs) {
+        return getTemp().set(real*rhs.real - imag*rhs.imag, imag*rhs.real + real*rhs.imag);
     }
-    
+
     /**
      * 
      * @param rhs
@@ -128,11 +129,11 @@ public final class ComplexNumber {
      * @param result
      * @return
      */
-    public ComplexNumber divide(ComplexNumber denom, ComplexNumber result) {
+    public ComplexNumber divide(ComplexNumber denom) {
         double den=Math.pow(denom.mod(),2);
-        return result.set((real*denom.real+imag*denom.imag)/den,(imag*denom.real-real*denom.imag)/den);    
+        return getTemp().set((real*denom.real+imag*denom.imag)/den,(imag*denom.real-real*denom.imag)/den);    
     }
-    
+
     /**
      * Synonym for mod
      * @return
@@ -172,8 +173,8 @@ public final class ComplexNumber {
      * @param result
      * @return
      */
-    public ComplexNumber conj(ComplexNumber result) {
-        return result.set(-imag, real);
+    public ComplexNumber conj() {
+        return getTemp().set(-imag, real);
     }
 
     /**
@@ -181,10 +182,10 @@ public final class ComplexNumber {
      * @param result
      * @return
      */
-    public ComplexNumber sqrt(ComplexNumber result) {
+    public ComplexNumber sqrt() {
         double r=Math.sqrt(mod());
         double theta=arg()/2;
-        return result.set(r*Math.cos(theta),r*Math.sin(theta));
+        return getTemp().set(r*Math.cos(theta),r*Math.sin(theta));
     }
     
     /**
@@ -193,10 +194,11 @@ public final class ComplexNumber {
      * @param result
      * @return
      */
-    public ComplexNumber powi(int power, ComplexNumber result) {
+    public ComplexNumber powi(int power) {
+    	ComplexNumber result = getTemp();
         result.set(1,0);
         for (int i=0; i<power; i++) {
-            multiply(result, result);
+            multiply(result);
         }
         return result;
     }
@@ -207,23 +209,24 @@ public final class ComplexNumber {
      * @param result
      * @return
      */
-    public ComplexNumber powd(double n, ComplexNumber result) {
+    public ComplexNumber powd(double n) {
+    	ComplexNumber result = getTemp();
         double real = n * Math.log(abs());
         double imag = n * arg();
         double scalar = Math.exp(real);
         return result.set(scalar * Math.cos(imag), scalar * Math.sin(imag));
     }
-    
+
     /**
      * Return [e^power.real * cos(power.imag), e^power.real * sin(power.imag)]
      * @param power
      * @param result
      * @return
      */
-    public ComplexNumber powc(ComplexNumber power, ComplexNumber result) {
-        return power.multiply(ln(getTemp()), getTemp()).exp(getTemp());
+    public ComplexNumber powc(ComplexNumber power) {
+        return power.multiply(ln()).exp();
     }
-    
+
     // Real cosh function (used to compute complex trig functions)
     private double cosh(double theta) {
         return (Math.exp(theta)+Math.exp(-theta))/2;
@@ -241,8 +244,8 @@ public final class ComplexNumber {
      * @param result
      * @return
      */
-    public ComplexNumber sine(ComplexNumber result) {
-        return result.set(cosh(imag)*Math.sin(real),sinh(imag)*Math.cos(real));
+    public ComplexNumber sine() {
+        return getTemp().set(cosh(imag)*Math.sin(real),sinh(imag)*Math.cos(real));
     }
 
     /**
@@ -252,8 +255,8 @@ public final class ComplexNumber {
      * @param result
      * @return
      */
-    public ComplexNumber sineh(ComplexNumber result) {
-        return result.set(sinh(real)*Math.cos(imag),cosh(real)*Math.sin(imag));
+    public ComplexNumber sineh() {
+        return getTemp().set(sinh(real)*Math.cos(imag),cosh(real)*Math.sin(imag));
     }
 
     /**
@@ -261,15 +264,15 @@ public final class ComplexNumber {
      * @param result
      * @return
      */
-    public ComplexNumber asine(ComplexNumber result) {
+    public ComplexNumber asine() {
         //return -I * ((this*I) + (1 - (this * this)).Sqrt()).Log();
         ComplexNumber negI = getTemp().set(0, -1);
-        ComplexNumber ttI = this.multiply(negI, getTemp());
-        ComplexNumber lhs = negI.multiply(ttI, getTemp());
-        ComplexNumber ttt = this.multiply(this, getTemp());
-        ComplexNumber omttt = getTemp().set(1, 0).sub(ttt, getTemp());
-        ComplexNumber  rhs = omttt.sqrt(getTemp()).ln(getTemp());
-        return lhs.add(rhs, result);
+        ComplexNumber ttI = this.multiply(negI);
+        ComplexNumber lhs = negI.multiply(ttI);
+        ComplexNumber ttt = this.multiply(this);
+        ComplexNumber omttt = getTemp().set(1, 0).sub(ttt);
+        ComplexNumber  rhs = omttt.sqrt().ln();
+        return lhs.add(rhs);
     }
     
     /**
@@ -278,16 +281,16 @@ public final class ComplexNumber {
      * @param result
      * @return
      */
-    public ComplexNumber asineh(ComplexNumber result) {
+    public ComplexNumber asineh() {
         //return (this + ((this*this) + 1).Sqrt()).Log();
-        ComplexNumber tttpo = this.multiply(this, getTemp());
+        ComplexNumber tttpo = this.multiply(this);
         tttpo.real += 1;
-        ComplexNumber rhs = tttpo.sqrt(getTemp()).ln(getTemp());
-        return add(rhs, result);
+        ComplexNumber rhs = tttpo.sqrt().ln();
+        return add(rhs);
     }
     
-    public ComplexNumber cosine(ComplexNumber result) {
-        return result.set(cosh(imag)*Math.cos(real),-sinh(imag)*Math.sin(real));
+    public ComplexNumber cosine() {
+        return getTemp().set(cosh(imag)*Math.cos(real),-sinh(imag)*Math.sin(real));
     }
 
     /**
@@ -295,8 +298,8 @@ public final class ComplexNumber {
      * @param result
      * @return
      */
-    public ComplexNumber cosineh(ComplexNumber result) {
-        return result.set(cosh(real)*Math.cos(imag),sinh(real)*Math.sin(imag));
+    public ComplexNumber cosineh() {
+        return getTemp().set(cosh(real)*Math.cos(imag),sinh(real)*Math.sin(imag));
     }
     
     /**
@@ -304,13 +307,13 @@ public final class ComplexNumber {
      * @param result
      * @return
      */
-    public ComplexNumber acosine(ComplexNumber result) {
+    public ComplexNumber acosine() {
         // return -I * (this + I * (1 - (this*this)).Sqrt()).Log();
         ComplexNumber negI = getTemp().set(0, -1);
-        ComplexNumber ttt = this.multiply(this, getTemp());
+        ComplexNumber ttt = this.multiply(this);
         ComplexNumber omttt = getTemp().set(1, 0).subEq(ttt);
-        ComplexNumber rhs = add(getTemp().set(0, 1).multiply(omttt.sqrt(getTemp()).ln(getTemp()), getTemp()), getTemp());
-        return negI.multiply(rhs, result);
+        ComplexNumber rhs = add(getTemp().set(0, 1).multiply(omttt.sqrt().ln()));
+        return negI.multiply(rhs);
     }
     
     /**
@@ -318,13 +321,13 @@ public final class ComplexNumber {
      * @param result
      * @return
      */
-    public ComplexNumber acosineh(ComplexNumber result) {
+    public ComplexNumber acosineh() {
         //return 2d * (((this+1d) / 2d).Sqrt() + ((this-1) / 2d).Sqrt()).Log();
         ComplexNumber tp1d2 = getTemp().set((real+1)/2, imag/2);
         ComplexNumber tm1d2 = getTemp().set((real-1)/2, imag/2);
-        ComplexNumber lhs = tp1d2.sqrt(getTemp()).scaleEq(2);
-        ComplexNumber rhs = tm1d2.sqrt(getTemp()).ln(getTemp());
-        return lhs.add(rhs, result);
+        ComplexNumber lhs = tp1d2.sqrt().scaleEq(2);
+        ComplexNumber rhs = tm1d2.sqrt().ln();
+        return lhs.add(rhs);
     }
     
     /**
@@ -332,41 +335,41 @@ public final class ComplexNumber {
      * @param result
      * @return
      */
-    public ComplexNumber tangent(ComplexNumber result) {
-        ComplexNumber x = sine(getTemp());
-        ComplexNumber y = cosine(getTemp());
-        return x.divide(y, result);        
+    public ComplexNumber tangent() {
+        ComplexNumber x = sine();
+        ComplexNumber y = cosine();
+        return x.divide(y);        
     }
     
-    public ComplexNumber tangenth(ComplexNumber result) {
-        ComplexNumber x = sineh(getTemp());
-        ComplexNumber y = cosineh(getTemp());
-        return x.divide(y, result);
+    public ComplexNumber tangenth() {
+        ComplexNumber x = sineh();
+        ComplexNumber y = cosineh();
+        return x.divide(y);
     }
     
-    public ComplexNumber atangent(ComplexNumber result) {
+    public ComplexNumber atangent() {
         //return -I/2 * ((I - this)/(I + this)).Log();
         ComplexNumber negI2 = getTemp().set(0, -0.5);
         ComplexNumber Imt = getTemp().set(0-real, 1-imag);
         ComplexNumber Ipt = getTemp().set(0+real, 1+imag);
-        ComplexNumber rhs = Imt.divide(Ipt, getTemp()).ln(getTemp());
-        return negI2.multiply(rhs, result);
+        ComplexNumber rhs = Imt.divide(Ipt).ln();
+        return negI2.multiply(rhs);
     }
     
-    public ComplexNumber atangenth(ComplexNumber result) {
+    public ComplexNumber atangenth() {
         // return ((1+this) / (1-this)).Log() / 2d;
         ComplexNumber opt = getTemp().set(real + 1, imag);
         ComplexNumber omt = getTemp().set(1 - real, imag);
-        return opt.divide(omt, getTemp()).ln(result).scaleEq(0.5);
+        return opt.divide(omt).ln().scaleEq(0.5);
     }
     
-    public ComplexNumber ln(ComplexNumber result) {
-        return result.set(Math.log(mod()),arg());
+    public ComplexNumber ln() {
+        return getTemp().set(Math.log(mod()),arg());
     }
 
-    public ComplexNumber exp(ComplexNumber result) {
+    public ComplexNumber exp() {
         double ex = Math.exp(real);
-        return result.set(ex*Math.cos(imag),ex*Math.sin(imag));
+        return getTemp().set(ex*Math.cos(imag),ex*Math.sin(imag));
     }
 
     public ComplexNumber set(double a, double b) {
@@ -405,11 +408,19 @@ public final class ComplexNumber {
     public boolean isReal() {
         return Math.abs(imag) <= 0.0000001;
     }
-    
-    private String formatDouble(double d) {
-        if (Math.abs(d) < 0.00000001)
-            return String.valueOf(d);
-        return String.format("%.5f", d);
+
+    // TODO: Move to Utils
+    public static String formatDouble(double d) {
+    	 String opt1 = String.valueOf(d);
+    	 String opt2 = String.format("%.6f", d);
+    	 while (opt2.length() > 2 && opt2.charAt(opt2.length()-1) == '0' && opt2.charAt(opt2.length()-2) != '.') {
+    		 opt2 = opt2.substring(0, opt2.length()-1);
+    	 }
+    	 
+    	 if (opt1.length() < opt2.length())
+    		 return opt1;
+    	 
+    	 return opt2;
     }
     
     public String toString() {
@@ -419,7 +430,6 @@ public final class ComplexNumber {
             return "INF";
         if (isReal())
             return formatDouble(real);
-        //return "[" + real + (imag >= 0 ? "+" : "") + imag + "i]";
         return "[" + formatDouble(real) + "," + formatDouble(imag) + "]";
     }
 

@@ -95,6 +95,14 @@ public final class ColorTable {
             colorTable[i] = darken(colorTable[i]);
         }
     }
+    
+    void rotateColors() {
+    	int t = colorTable[0];
+    	for (int i=0; i<this.colorTable.length-1; i++) {
+    		colorTable[i] = colorTable[i+1];
+    	}
+    	colorTable[colorTable.length-1] = t;
+    }
 
     int invert(int c) {     
         int r = 255 - ((c >> 16) & 0xff);
@@ -128,9 +136,12 @@ public final class ColorTable {
         int r = (c >> 16) & 0xff; 
         int g = (c >> 8) & 0xff; 
         int b = (c >> 0) & 0xff;
-        r += amount;
-        g += amount;
-        b += amount;
+        if (r > 0)
+        	r += amount;
+        if (g > 0)
+        	g += amount;
+        if (b > 0)
+        	b += amount;
         return redistributeRGB(r, g, b);
     }
     

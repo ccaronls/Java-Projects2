@@ -7,8 +7,6 @@ public abstract class AEvaluator {
     final ComplexNumber Z0 = new ComplexNumber();
     final ComplexNumber Zi = new ComplexNumber();
     final ComplexNumber C  = new ComplexNumber();
-    final ComplexNumber t0 = new ComplexNumber();
-//    private final ComplexNumber t1 = new ComplexNumber();
 
     Node root;
     String expression = "";
@@ -38,49 +36,49 @@ public abstract class AEvaluator {
     ComplexNumber evaluateR(Node n) {
         switch (n.type) {
         case TYPE_ADD:
-            return evaluateR(n.left).add(evaluateR(n.right), t0);
+            return evaluateR(n.left).add(evaluateR(n.right));
         case TYPE_SUB:
-            return evaluateR(n.left).sub(evaluateR(n.right), t0);
+            return evaluateR(n.left).sub(evaluateR(n.right));
         case TYPE_MULT:
-            return evaluateR(n.left).multiply(evaluateR(n.right), t0);
+            return evaluateR(n.left).multiply(evaluateR(n.right));
         case TYPE_DIV:
-            return evaluateR(n.left).divide(evaluateR(n.right), t0);
+            return evaluateR(n.left).divide(evaluateR(n.right));
         case TYPE_POWI:
-            return evaluateR(n.left).powi(n.right.numi, t0);
+            return evaluateR(n.left).powi(n.right.numi);
         case TYPE_POWD:
-            return evaluateR(n.left).powd(n.right.numd, t0);
+            return evaluateR(n.left).powd(n.right.numd);
         case TYPE_POWC:
-            return evaluateR(n.left).powc(evaluateR(n.right), t0);
+            return evaluateR(n.left).powc(evaluateR(n.right));
         case TYPE_SQRT:
-            return evaluateR(n.left).sqrt(t0);
+            return evaluateR(n.left).sqrt();
         case TYPE_SIN:
-            return evaluateR(n.left).sine(t0);
+            return evaluateR(n.left).sine();
         case TYPE_COS:
-            return evaluateR(n.left).cosine(t0);
+            return evaluateR(n.left).cosine();
         case TYPE_TAN:
-            return evaluateR(n.left).tangent(t0);
+            return evaluateR(n.left).tangent();
         case TYPE_SINH:
-            return evaluateR(n.left).sineh(t0);
+            return evaluateR(n.left).sineh();
         case TYPE_COSH:
-            return evaluateR(n.left).cosineh(t0);
+            return evaluateR(n.left).cosineh();
         case TYPE_TANH:
-            return evaluateR(n.left).tangenth(t0);
+            return evaluateR(n.left).tangenth();
         case TYPE_ASIN:
-            return evaluateR(n.left).asine(t0);
+            return evaluateR(n.left).asine();
         case TYPE_ACOS:
-            return evaluateR(n.left).acosine(t0);
+            return evaluateR(n.left).acosine();
         case TYPE_ATAN:
-            return evaluateR(n.left).atangent(t0);
+            return evaluateR(n.left).atangent();
         case TYPE_ASINH:
-            return evaluateR(n.left).asineh(t0);
+            return evaluateR(n.left).asineh();
         case TYPE_ACOSH:
-            return evaluateR(n.left).acosineh(t0);
+            return evaluateR(n.left).acosineh();
         case TYPE_ATANH:
-            return evaluateR(n.left).atangenth(t0);
+            return evaluateR(n.left).atangenth();
         case TYPE_LN:
-            return evaluateR(n.left).ln(t0);
+            return evaluateR(n.left).ln();
         case TYPE_EXP:
-            return evaluateR(n.left).exp(t0);
+            return evaluateR(n.left).exp();
         case TYPE_CONSTANT:
             return n.numc;
         case TYPE_Z0:
@@ -88,7 +86,7 @@ public abstract class AEvaluator {
         case TYPE_Zi:
             return Zi;
         case TYPE_NEGATE:
-            return evaluateR(n.left).negate(t0);
+            return evaluateR(n.left).negate();
         }
         throw new RuntimeException("Unhandled type");
     }
@@ -160,7 +158,7 @@ public abstract class AEvaluator {
             break;       
         case TYPE_CONSTANT:
             getCompiledExpressionR(buffer, n.left);
-            buffer.append(n.numc.toString());
+            buffer.append(n.stringValue);
             getCompiledExpressionR(buffer, n.right);
             break;
         case TYPE_POWI:
@@ -277,12 +275,18 @@ public abstract class AEvaluator {
             this.right = right;
         }
 
-        Node(double constant, String value) {
+        Node(double constant) {
             type = Type.TYPE_CONSTANT;
             constantType = CONSTANT_DOUBLE;
             numd = constant;
             numc = new ComplexNumber(numd, 0);
-            this.stringValue = value == null ? String.valueOf(numd) : value + " {" + numd + "}";
+            this.stringValue = ComplexNumber.formatDouble(numd);
+        }
+  
+        
+        Node(double constant, String value) {
+        	this(constant);
+            this.stringValue = value;
         }
   
         Node(String constant) {
@@ -292,11 +296,11 @@ public abstract class AEvaluator {
                numi = Integer.parseInt(constant);
                numd = numi;
                constantType = CONSTANT_INT;
-               stringValue += " {" + numi + "}";
+//               stringValue += " {" + numi + "}";
             } catch (NumberFormatException e) {
                numd = Double.parseDouble(constant);
                constantType = CONSTANT_DOUBLE;
-               stringValue += " {" + numd + "}";
+//               stringValue += " {" + numd + "}";
             }
             numc = new ComplexNumber(numd, 0);
         }
@@ -310,7 +314,7 @@ public abstract class AEvaluator {
             if (constant.isReal()) {
                 this.constantType = CONSTANT_DOUBLE;
                 this.numd = constant.getReal();
-                stringValue = "{" + numd + "}";
+                stringValue = ComplexNumber.formatDouble(numd);
             } else {
                 this.constantType = CONSTANT_COMPLEX;
                 stringValue = constant.toString();
@@ -323,7 +327,7 @@ public abstract class AEvaluator {
             if (constant.isReal()) {
                 this.constantType = CONSTANT_DOUBLE;
                 this.numd = constant.getReal();
-                stringValue = name + " {" + numd + "}";
+                stringValue = name;
                 
             } else {
                 this.constantType = CONSTANT_COMPLEX;

@@ -246,6 +246,7 @@ public class FractalComponent extends JComponent implements MouseListener, Mouse
         
         System.out.println("Generating " + fractal.getName());
         try {
+        	//ComplexNumber.resetCacheStats();
             generator.generating = true;
             FractalImage fi = getLastFractalImage();
             final double xStep = (fi.right - fi.left) / WIDTH;
@@ -265,6 +266,7 @@ public class FractalComponent extends JComponent implements MouseListener, Mouse
                 int progress = j * 100 / HEIGHT + 1;
                 fractalListener.onProgress(progress);
             }
+            //ComplexNumber.printCacheStats();
             fractalListener.onDone();
         } catch (Exception e) {
             System.err.println("Error: " + e.getClass().getSimpleName() + " " + e.getMessage());
@@ -314,7 +316,7 @@ public class FractalComponent extends JComponent implements MouseListener, Mouse
             g.drawImage(fractalImage, 0, 0, null);
         }
         synchronized (this) {
-            notify();
+            notifyAll();
         }
         if (dragging) {
             g.setColor(Color.WHITE);            
@@ -399,7 +401,12 @@ public class FractalComponent extends JComponent implements MouseListener, Mouse
         AWTGraphics G = new AWTGraphics(g, this);
 
         FractalImage f = getLastFractalImage();
-        String str = String.format("%s\nRect [%5.3f, %5.3f x %5.3f, %5.3f]", fractal.getDescription(), f.left, f.top, f.right, f.bottom);
+        String str = //String.format("%s\nRect [%5.3f, %5.3f x %5.3f, %5.3f]", fractal.getDescription(), f.left, f.top, f.right, f.bottom);
+        		String.format("%s\nRect [%s, %s x %s, %s]", fractal.getDescription(), 
+        				ComplexNumber.formatDouble(f.left), 
+        				ComplexNumber.formatDouble(f.top), 
+        				ComplexNumber.formatDouble(f.right), 
+        				ComplexNumber.formatDouble(f.bottom));
         //G.drawJustifiedString(G.getScreenHeight()-padding, G.getScreenWidth()-padding, Justify.RIGHT, Justify.BOTTOM, str);
         String [] lines = G.generateWrappedLines(str, G.getScreenWidth());
         int width = 0;
@@ -444,7 +451,7 @@ public class FractalComponent extends JComponent implements MouseListener, Mouse
         double bottom = -defaultZoom;
         for (int i=images.length-1; i>=0; i--) {
         	if (images[i]!=null) {
-        	    if (!resetZoom && i==numImages) {
+        	    if (!resetZoom && i==(numImages-1)) {
         	        left    = images[i].left;
                     right   = images[i].right;
                     top     = images[i].top;

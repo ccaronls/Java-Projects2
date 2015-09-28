@@ -27,7 +27,7 @@ public class AnimateThread implements Runnable {
         //frac.c.copy(start);
         ComplexNumber current = new ComplexNumber(start);
         fractal.setConstant(current);
-        ComplexNumber step = end.sub(start, new ComplexNumber()).scaleEq(1.0/frames);
+        ComplexNumber step = new ComplexNumber(end).subEq(start).scaleEq(1.0/frames);
         FractalListener copy = fractal.getFractalListener();
         fractal.setFractalListener(null);
         

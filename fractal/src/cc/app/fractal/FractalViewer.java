@@ -6,6 +6,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.io.*;
 import java.util.*;
 
@@ -53,6 +55,7 @@ public class FractalViewer extends EZFrame implements FractalComponent.FractalLi
         INVERT_COLORS("Invert"),
         BRIGHTEN_COLORS("Brighten"),
         DARKEN_COLORS("Darken"),
+        ROTATE_COLORS("Rotate"),
         MANDELBROT_SET("Mandelbrot Set"),
         JULIA_SET("Julia Set"),
         ANIM_CONSTANT_START("Start"),
@@ -153,6 +156,7 @@ public class FractalViewer extends EZFrame implements FractalComponent.FractalLi
         JComboBox combo = new JComboBox(formulas);
         combo.setEditable(true);
         combo.addActionListener(this);
+        combo.setMaximumSize(new Dimension(100, combo.getMaximumSize().height));
         combo.setActionCommand(Action.CUSTOM_SET_EXPRESSION.name());
         
         formulaExpression = combo;
@@ -203,9 +207,24 @@ public class FractalViewer extends EZFrame implements FractalComponent.FractalLi
         addButton(Action.INVERT_COLORS, rightButtons);
         addButton(Action.BRIGHTEN_COLORS, rightButtons);
         addButton(Action.DARKEN_COLORS, rightButtons);
-
+        //addButton(Action.ROTATE_COLORS, rightButtons);
+        {
+        	Button b = new Button("Rotate");
+        	b.addMouseListener(new MouseButtonListener() {
+				
+				@Override
+				protected void doAction() {
+					fractalComponent.getColorTable().rotateColors();
+                    fractalComponent.startNewFractal(true);
+				}
+			});
+            rightButtons.add(b, null);
+        }
+        
+        
         fractalComponent = new FractalComponent(colorTable, 2);
-
+        fractalComponent.setShowWatermark(showWatermarkButton.isSelected());
+        
         try {
             switch (fractalSet) {
                 case JULIA_SET: {
@@ -219,8 +238,15 @@ public class FractalViewer extends EZFrame implements FractalComponent.FractalLi
                     break;
                 }
                 case CUSTOM_SET: {
-                    evaluator.parse(constantExpression.getText());
-                    ComplexNumber constant = evaluator.evaluate();
+                	ComplexNumber constant = null;
+                	try {
+                		evaluator.parse(constantExpression.getText());
+                		constant = evaluator.evaluate();
+                	} catch (TokenMgrError e) {
+                		e.printStackTrace();
+                		constant = new ComplexNumber();
+                	}
+                    //ComplexNumber constant = evaluator.evaluate();
                     fractalComponent.setFractal(constant, new AFractal.Custom(getExpressionText()));
                     constantExpression.setEnabled(true);
                     formulaExpression.setEnabled(true);
@@ -378,7 +404,7 @@ public class FractalViewer extends EZFrame implements FractalComponent.FractalLi
     }
     
     @Override
-    public void actionPerformed(ActionEvent ac) {
+    public void actionPerformed(final ActionEvent ac) {
         try {
             String command = ac.getActionCommand();
             System.out.println("Process command: " + command);
@@ -428,8 +454,10 @@ public class FractalViewer extends EZFrame implements FractalComponent.FractalLi
                         }
                         
                         File file = new File(chooser.getCurrentDirectory(), fileName);
-                        props.setProperty(PROP_CURRENT_DIR, chooser.getCurrentDirectory().getAbsolutePath());
-                        fractalComponent.saveImage(file, format);
+                        if (!file.exists() || JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(this, "File Exists.  Overwrite?")) {
+                            props.setProperty(PROP_CURRENT_DIR, chooser.getCurrentDirectory().getAbsolutePath());
+                            fractalComponent.saveImage(file, format);
+                        } 
                     }
                     break;
                 }
@@ -457,6 +485,12 @@ public class FractalViewer extends EZFrame implements FractalComponent.FractalLi
                                 System.err.println("Cannot create directory: " + dir.getAbsolutePath());
                                 dir = null;
                             }
+                        } else {
+                        	// purse directory
+                        	File [] files = dir.listFiles();
+                        	for (File f : files) {
+                        		f.delete();
+                        	}
                         }
                         int numFrames = Integer.parseInt(animationNumFrames.getSelectedItem().toString());
                         System.out.println("Num frames = numFrames");
@@ -566,6 +600,10 @@ public class FractalViewer extends EZFrame implements FractalComponent.FractalLi
                 case DARKEN_COLORS:{
                     fractalComponent.getColorTable().darkenColors();
                     fractalComponent.startNewFractal(true);
+                    break;
+                }
+                
+                case ROTATE_COLORS: {
                     break;
                 }
                 

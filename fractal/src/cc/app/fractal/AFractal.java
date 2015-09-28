@@ -45,7 +45,7 @@ public abstract class AFractal {
 
         @Override
         public String getDescription() {
-            return "Mandelbrot Z^2 + " + c;
+            return "Mandelbrot Z^2 + Z0";
         }
         
         
