@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item android:drawable="@drawable/icon_ascending" android:state_checked="true"  app:sortAscending="true" />
+    <item android:drawable="@drawable/icon_descending" android:state_checked="true"  app:sortAscending="false" />
+    <!-- need an empty image for the 'dont draw anything' state  -->
+    <item android:drawable="@drawable/nothing" android:state_checked="false" />
+</selector>

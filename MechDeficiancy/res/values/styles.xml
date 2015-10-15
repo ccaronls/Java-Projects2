@@ -1,0 +1,68 @@
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Application theme. -->
+    <style name="AppTheme" parent="@android:style/Theme.NoTitleBar">
+        <!-- All customizations that are NOT specific to a particular API-level can go here. -->
+        <item name="android:windowBackground">@drawable/screen_background</item>
+        <!-- @drawable/screen_background_selector_dark</item>  -->
+    </style>
+    
+    <style name="DialogTheme" parent="@android:style/Theme.Dialog">
+        
+    </style>
+
+    <style name="sortButton">
+       <item name="android:button">@null</item>
+       <item name="android:gravity">left|center_vertical</item>
+       <item name="android:drawableRight">@drawable/sort_arrow</item>
+       <item name="android:padding">5dp</item>
+       <item name="android:textSize">12sp</item>
+       <item name="android:background">@drawable/sort_button_bk</item>
+    </style>
+    
+    <style name="button" parent="@android:style/Widget.Button.Inset">
+    </style>
+    
+    <style name="formImage">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:scaleType">fitCenter</item>
+        <item name="android:background">@drawable/gauge</item>
+        <item name="android:layout_marginRight">3dp</item>
+    </style>
+
+    <style name="signform">
+        <item name="android:textColor">@android:color/black</item>
+    </style>
+
+    <style name="signform.print">
+        <item name="android:textSize">10dp</item>
+    </style>
+    
+    <style name="edittext" parent="@android:style/Widget.EditText">
+        <item name="android:maxLength">256</item>
+        <item name="android:scrollHorizontally">false</item>
+    </style>
+    
+    <style name="tablerow">
+        <item name="android:paddingTop">5dp</item>
+        <item name="android:paddingBottom">5dp</item>
+    </style>
+    
+    <style name="rowitem" parent="@android:style/Widget.TextView">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:gravity">center_horizontal</item>
+        <item name="android:layout_marginLeft">2dp</item>
+        <item name="android:layout_marginRight">2dp</item>
+    </style>
+    
+    <style name="signform.imagemeta">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:hint">@string/tv_hint_meta</item>
+        <item name="android:gravity">top|center</item>
+    </style>
+    
+</resources>
