@@ -53,4 +53,8 @@
         </attr>
     </declare-styleable>
     
+    <declare-styleable name="MyScrollView">
+        <attr name="scrollY" format="integer"/>
+    </declare-styleable>
+    
 </resources>

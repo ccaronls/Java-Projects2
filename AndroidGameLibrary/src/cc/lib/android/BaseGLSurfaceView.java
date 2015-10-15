@@ -17,7 +17,7 @@ public abstract class BaseGLSurfaceView extends GLSurfaceView {
         if (DroidUtils.DEBUG_ENABLED)
             setDebugFlags(DEBUG_CHECK_GL_ERROR);// | DEBUG_LOG_GL_CALLS);
         setRenderMode(RENDERMODE_WHEN_DIRTY);
-        if (!(getContext() instanceof BaseActivity))
+        if (!(getContext() instanceof CCActivityBase))
             throw new RuntimeException("BaseGLSurfaceView have have BaseActivity as context");
     }
     
@@ -68,7 +68,7 @@ public abstract class BaseGLSurfaceView extends GLSurfaceView {
         this.fullScreenMode = fullscreen;
     }*/
 
-    public BaseActivity getActivity() {
-        return (BaseActivity)getContext();
+    public CCActivityBase getActivity() {
+        return (CCActivityBase)getContext();
     }
 }
