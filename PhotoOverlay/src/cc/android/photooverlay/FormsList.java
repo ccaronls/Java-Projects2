@@ -271,7 +271,7 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
 		
 		if (BuildConfig.DEBUG) {
 			items = getResources().getStringArray(R.array.form_list_options_debug);
-		} else if (isSubscription()) {
+		} else if (isSubscription() || !isPremiumEnabled(false)) {
 			items = getResources().getStringArray(R.array.form_list_options_subscription);
 		} else {
 			items = getResources().getStringArray(R.array.form_list_options_unlocked);
@@ -294,7 +294,20 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
 						}
 						newDialogBuilder().setTitle(R.string.popup_title_about)
 							.setMessage(getString(R.string.popup_msg_about, email, version, googlePlayVersion))
-							.setNegativeButton(R.string.popup_button_ok, null).show();
+							.setNegativeButton(R.string.popup_button_ok, null)
+							.setPositiveButton(R.string.popup_button_view_eula,new DialogInterface.OnClickListener() {
+								
+								@Override
+								public void onClick(DialogInterface dialog, int which) {
+									WebView v = new WebView(getActivity());
+				        			v.loadUrl("file:///android_asset/eula.html");
+				        			newDialogBuilder()
+				        				.setTitle(R.string.popup_title_eula)
+				        				.setView(v)
+    				        			.setNegativeButton(R.string.popup_button_ok, null)
+    				        			.show();
+								}
+							}).show();
 						break;
 					}
 					

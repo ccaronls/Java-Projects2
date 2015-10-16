@@ -51,6 +51,7 @@
     <string name="popup_button_reset">Reset</string>
     <string name="popup_button_eula_accept">Accept</string>
     <string name="popup_button_eula_decline">Decline</string>
+    <string name="popup_button_view_eula">View EULA</string>
     
     <string name="popup_title_error">Error</string>
     <string name="popup_title_premium_upgrade">Premium Upgrade</string>
@@ -65,6 +66,7 @@
     <string name="popup_title_welcome">Welcome!</string>
     <string name="popup_title_options">Options</string>
     <string name="popup_title_about">About</string>
+    <string name="popup_title_eula">End User License Agreement</string>
     
     <string-array name="form_item_options">
         <item>Edit</item>
