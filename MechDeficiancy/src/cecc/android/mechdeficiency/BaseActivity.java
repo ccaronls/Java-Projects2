@@ -3,11 +3,7 @@ package cecc.android.mechdeficiency;
 import java.io.File;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Locale;
+import java.util.*;
 
 import org.json.JSONException;
 import org.json.JSONObject;

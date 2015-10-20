@@ -64,19 +64,19 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="@string/sbutton_customer"
-            app:sortAscending="false"
-            app:sortField="CUSTOMER" />
-        
+            android:paddingLeft="10dp"
+            android:text="@string/sbutton_date"
+            app:sortField="EDIT_DATE" />
+
         <cc.lib.android.SortButton
             style="@style/sortButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:paddingLeft="10dp"
-            android:text="@string/sbutton_date"
-            app:sortField="EDIT_DATE" />
-        
+            android:text="@string/sbutton_customer"
+            app:sortAscending="false"
+            app:sortField="CUSTOMER" />
+
         <cc.lib.android.SortButton
             style="@style/sortButton"
             android:layout_width="wrap_content"

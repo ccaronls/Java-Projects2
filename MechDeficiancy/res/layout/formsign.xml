@@ -245,7 +245,7 @@
 		            android:layout_height="wrap_content">
 
 			        <ImageView
-			            android:id="@+id/ivGauge1"
+			            android:id="@+id/ivPhoto1"
 			            android:layout_width="100dp"
 			            android:layout_height="100dp"
 			            android:layout_margin="5dp"
@@ -253,7 +253,7 @@
 			            android:src="@android:drawable/ic_dialog_alert" />
 	
 			        <ImageView
-			            android:id="@+id/ivGauge2"
+			            android:id="@+id/ivPhoto2"
 			            android:layout_width="100dp"
 			            android:layout_height="100dp"
 			            android:layout_margin="5dp"
@@ -261,7 +261,7 @@
 			            android:src="@android:drawable/ic_dialog_alert" />
 	
 			        <ImageView
-			            android:id="@+id/ivGauge3"
+			            android:id="@+id/ivPhoto3"
 			            android:layout_width="100dp"
 			            android:layout_height="100dp"
 			            android:layout_margin="5dp"
@@ -277,13 +277,13 @@
 		                
 		                <TextView
 		                    style="@style/signform.imagemeta"
-		                    android:id="@+id/tvImage1Meta"/>
+		                    android:id="@+id/tvPhotoData1"/>
 		                <TextView
 		                    style="@style/signform.imagemeta"
-		                    android:id="@+id/tvImage2Meta"/>
+		                    android:id="@+id/tvPhotoData2"/>
 		                <TextView
 		                    style="@style/signform.imagemeta"
-		                    android:id="@+id/tvImage3Meta"/>
+		                    android:id="@+id/tvPhotoData3"/>
 		                                
 		                
 	             </LinearLayout>			     
@@ -292,7 +292,7 @@
                     android:layout_height="wrap_content">
 
                     <ImageView
-                        android:id="@+id/ivGauge4"
+                        android:id="@+id/ivPhoto4"
                         android:layout_width="100dp"
                         android:layout_height="100dp"
                         android:layout_margin="5dp"
@@ -300,7 +300,7 @@
                         android:src="@android:drawable/ic_dialog_alert" />
     
                     <ImageView
-                        android:id="@+id/ivGauge5"
+                        android:id="@+id/ivPhoto5"
                         android:layout_width="100dp"
                         android:layout_height="100dp"
                         android:layout_margin="5dp"
@@ -308,7 +308,7 @@
                         android:src="@android:drawable/ic_dialog_alert" />
     
                     <ImageView
-                        android:id="@+id/ivGauge6"
+                        android:id="@+id/ivPhoto6"
                         android:layout_width="100dp"
                         android:layout_height="100dp"
                         android:layout_margin="5dp"
@@ -321,13 +321,13 @@
                         
                         <TextView
                             style="@style/signform.imagemeta"
-                            android:id="@+id/tvImage4Meta"/>
+                            android:id="@+id/tvPhotoData4"/>
                         <TextView
                             style="@style/signform.imagemeta"
-                            android:id="@+id/tvImage5Meta"/>
+                            android:id="@+id/tvPhotoData5"/>
                         <TextView
                             style="@style/signform.imagemeta"
-                            android:id="@+id/tvImage6Meta"/>
+                            android:id="@+id/tvPhotoData6"/>
                                         
                         
                  </LinearLayout>

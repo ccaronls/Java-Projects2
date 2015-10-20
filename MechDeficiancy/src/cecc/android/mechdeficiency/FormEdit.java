@@ -20,6 +20,7 @@ import android.media.ThumbnailUtils;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.text.Html;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
@@ -30,8 +31,6 @@ import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.RadioGroup;
-import android.widget.RadioGroup.OnCheckedChangeListener;
 import android.widget.TextView;
 
 public class FormEdit extends BaseActivity {
@@ -139,7 +138,8 @@ public class FormEdit extends BaseActivity {
 			if (image != null) {
 				try {
 					ibImage[i].setImageURI(Uri.fromFile(new File(getImagesPath(), image.path)));
-					tvImageMeta[i].setText(image.data);
+					setImageData(tvImageMeta[i], image);
+//					tvImageMeta[i].setText(image.data);
 				} catch (Exception e) {
 					e.printStackTrace();
 					form.images.remove(image);
@@ -149,6 +149,13 @@ public class FormEdit extends BaseActivity {
 
 		getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
 	}
+	
+	private void setImageData(TextView tv, Image i) {
+		if (i != null && i.data != null) {
+			tv.setText(Html.fromHtml("<html></head><body>" + i.data + "</body></html"));
+		}
+	}
+	
 
 	@Override
 	public void onResume() {
@@ -212,7 +219,7 @@ public class FormEdit extends BaseActivity {
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
 						image.data = et.getText().toString();
-						tvImageMeta[index].setText(et.getText());
+						setImageData(tvImageMeta[index], image);
 					}
 				})
 				.setPositiveButton(R.string.popup_button_change, new DialogInterface.OnClickListener() {
@@ -371,7 +378,7 @@ public class FormEdit extends BaseActivity {
 					image.path = destFile.getName();
 					if (image.data == null) {
 						if (isAmbientTempAvailable()) {
-							image.data = convertCelciusToFahrenheit(getAmbientTempCelcius()) + "\u00B0";
+							image.data = convertCelciusToFahrenheit(getAmbientTempCelcius()) + "&deg;";//\u00B0";
 						}
 					}
 					editImage(index);

@@ -293,6 +293,7 @@ public class DBHelper extends SQLiteOpenHelper {
 	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 
 		FormColumn.clearColumnCache();
+		ImageColumn.clearColumnCache();
 		Log.i(TAG, "Upgrading database from version " + oldVersion + " to " + newVersion);
 		switch (oldVersion) {
 			
@@ -300,6 +301,7 @@ public class DBHelper extends SQLiteOpenHelper {
 				// default is to nuke
         		Log.w(TAG, "Dont know how to update, so destroy all old data");
         		db.execSQL("DROP TABLE IF EXISTS " + TABLE_FORM);
+        		db.execSQL("DROP TABLE IF EXISTS " + TABLE_IMAGE);
         		onCreate(db);
 		}
 	}
@@ -416,6 +418,7 @@ public class DBHelper extends SQLiteOpenHelper {
 	}
 	
 	public void deleteForm(int id) {
+		getDB().delete(TABLE_IMAGE, ImageColumn.FORM.name() + " == ?", new String [] { String.valueOf(id) });
 		getDB().delete(TABLE_FORM, "_id == ?", new String [] { String.valueOf(id) });
 	}
 

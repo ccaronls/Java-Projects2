@@ -41,6 +41,7 @@ public class Form implements Parcelable {
 		return 0;
 	}
 	
+	@SuppressWarnings("unchecked")
 	private Form(Parcel in) {
 		long id = in.readLong();
 		if (id >= 0) {

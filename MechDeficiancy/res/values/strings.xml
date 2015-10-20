@@ -36,8 +36,8 @@
     <string name="popup_msg_operation_not_supported">Operation not supported on this device.</string>
     <string name="popup_msg_are_you_sure">Are you Sure?</string>
     <string name="popup_msg_processing_email">Please wait while we generate the image for email</string>
-    <string name="popup_msg_welcome">Thank you for downloading the Mechanical Deficiency Utility.  If you have already purchased the premium features then click \'Restore\'.  Otherwise you can try the basic features for as long as you like.  Later on if you want to try the premium features by subscription or permanantly, then choose \'Upgrade\'</string>
-    <string name="popup_msg_about">Mechanical Deficiency Test Utility\n\nCECC Solutions\n\n%1$s\nApplication Version: %2$s\n\nGoogle Play Version: %3$s</string>
+    <string name="popup_msg_welcome">Thank you for downloading the Mechanical Deficiency Report Tool.  If you have already purchased the premium features then click \'Restore\'.  Otherwise you can try the basic features for as long as you like.  Later on if you want to try the premium features by subscription or permanantly, then choose \'Upgrade\'</string>
+    <string name="popup_msg_about">Mechanical Deficiency Report Tool\n\nCECC Solutions\n\n%1$s\nApplication Version: %2$s\n\nGoogle Play Version: %3$s</string>
     <string name="popup_msg_nuke">Are you sure?  This will delete all application data.</string>
     <string name="popup_msg_dbexport_error">Problem exporting database %s</string>
     
@@ -54,6 +54,7 @@
     <string name="popup_button_eula_accept">Accept</string>
     <string name="popup_button_eula_decline">Decline</string>
     <string name="popup_button_new">New</string>
+    <string name="popup_button_view_eula">View EULA</string>
     
     <string name="popup_title_error">Error</string>
     <string name="popup_title_premium_upgrade">Premium Upgrade</string>
@@ -70,6 +71,7 @@
     <string name="popup_title_about">About</string>
     <string name="popup_title_choose_type">Choose Type</string>
     <string name="popup_title_new_type">New Type</string>
+    <string name="popup_title_eula">End User License Agreement</string>
     
     <string-array name="form_item_options">
         <item>Edit</item>
@@ -97,7 +99,7 @@
         <item>Purchases</item>
         <item>Upgrade</item>
     </string-array>
-    
+
     <string-array name="form_list_options_unlocked">
         <item>About</item>
         <item>Send Feedback</item>
@@ -147,16 +149,16 @@
     <string name="row_date">DATE</string>
     <string name="row_state">STATE</string>
     <string name="tv_fullname">Full Name</string>
-    <string name="label_ambient_temp">Ambient Temperature %d&#xb0; F."</string>
+    <string name="label_ambient_temp">Ambient Temperature %d&#176; F."</string>
     
-    <string name="splash_tv_ptuheader">Mechanical Deficiency\nUtility</string>
+    <string name="splash_tv_ptuheader">Mechanical Deficiency\nReport</string>
     <string name="splash_tv_ptumiddle">CECC Solutions</string>
     <string name="splash_tv_ptufooter">Patent Pending</string>
     
     <string name="buttonAddsignature">Add Signature</string>
     <string name="buttonHowESignWorks">How eSigning Works</string>
     <string name="buttonEmail">Email</string>
-    <string name="labelPTC">Mechanical Deficiency Utility</string>
+    <string name="labelPTC">Mechanical Deficiency Report</string>
     <string name="labelCustomer">Customer:</string>
     <string name="labelLocation">Location:</string>
     <string name="labelProject">Project:</string>
