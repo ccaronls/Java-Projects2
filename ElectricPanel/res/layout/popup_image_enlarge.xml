@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical" >
+
+    <ImageView
+        android:id="@+id/ivPhoto"
+        android:layout_width="400dp"
+        android:layout_height="400dp"
+        android:scaleType="centerCrop"
+        android:src="@android:drawable/btn_minus" />
+    
+    <EditText
+        style="@style/edittext"
+        android:id="@+id/etMeta"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:minLines="2"
+        android:hint="@string/labelImageMeta"/>
+
+</LinearLayout>

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+
+    <EditText
+        style="@style/edittext"
+        android:id="@+id/etFullname"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true"
+        android:ems="10"
+        android:hint="@string/et_hint_type_and_sign"
+        android:inputType="textCapWords|textPersonName" />
+
+    <LinearLayout
+        android:id="@+id/layoutButtons"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true">
+    
+        <Button
+            style="@style/button"
+            android:id="@+id/buttonAccept"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/button_accept"/>
+        
+        <Button
+            style="@style/button"
+            android:id="@+id/buttonRestart"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/button_restart"/>
+        </LinearLayout>
+    
+    <cecc.android.lib.ESignView
+        android:id="@+id/eSign"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/etFullname"
+        android:layout_above="@id/layoutButtons"
+        android:layout_centerHorizontal="true"
+        android:background="@android:color/white" />
+
+</RelativeLayout>

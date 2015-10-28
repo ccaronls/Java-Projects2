@@ -1,0 +1,37 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="cecc.android.electricpanel"
+    android:versionCode="2"
+    android:versionName="1.0" >
+
+    <uses-sdk
+        android:minSdkVersion="11"
+        android:targetSdkVersion="19" />
+    
+    <uses-permission android:name="com.android.vending.BILLING" />
+ 
+    <application
+        android:label="@string/app_name"
+        android:icon="@drawable/ic_launcher"
+        android:screenOrientation="sensor"
+        android:theme="@style/AppTheme">
+        
+        <!--  Ridiculous way to hack around gmail not sending attachments that are not on the SDCard -->
+        <provider android:name="cc.lib.android.EmailHelper" android:authorities="@string/cached_file_provider_authority" android:exported="true"/>
+        
+        <activity android:name=".Splash" android:screenOrientation="portrait" android:launchMode="singleTask">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter> 
+            
+        </activity>
+        
+        <activity android:name=".FormsList" android:screenOrientation="portrait" android:launchMode="singleTop"/>
+        <activity android:name=".FormEdit"/>
+        <activity android:name=".FormExport" android:screenOrientation="portrait"/>
+        <activity android:name=".ESign" android:screenOrientation="sensorLandscape"/>
+        <activity android:name=".FormSign" android:screenOrientation="portrait"/>
+        
+    </application>
+
+</manifest>
