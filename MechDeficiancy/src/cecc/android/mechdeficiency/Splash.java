@@ -1,6 +1,6 @@
 package cecc.android.mechdeficiency;
 
-import cecc.android.mechdeficiency.BillingTask.Op;
+import cecc.android.lib.BillingTask;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -18,7 +18,7 @@ public class Splash extends BaseActivity {
 				finish();
 			}
 		}, 4000);
-		new BillingTask(Op.REFRESH_PURCHASED, getActivity()).execute();
+		new BillingTask(BillingTask.Op.REFRESH_PURCHASED, getActivity()).execute();
 	}
 	
 }

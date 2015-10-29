@@ -1,90 +1,126 @@
 package cc.android.photooverlay;
 
 import java.io.File;
-import java.io.InputStream;
-import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Locale;
 
-import android.content.Intent;
-import android.graphics.drawable.Drawable;
-import android.graphics.drawable.LevelListDrawable;
-import android.os.Bundle;
-import android.text.Html;
-import android.text.Html.ImageGetter;
-import android.view.View;
-import android.widget.TextView;
+import cc.lib.android.EmailHelper;
+import cecc.android.lib.PagedFormExporter;
+import android.net.Uri;
+import android.util.Log;
 
-public class FormExport extends BaseActivity implements ImageGetter {
+public class FormExport extends PagedFormExporter {
+
+	private final Form form;
+	private final SimpleDateFormat fmt = new SimpleDateFormat("EEEE MMMM d, yyyy", Locale.getDefault());
+	private boolean hasCommentsPage = false;
 	
-	private void replace(StringBuffer buffer, String toReplace, String with) {
-		int idx = buffer.indexOf(toReplace);
-		if (idx >= 0) {
-			if (with == null || with.trim().length() == 0)
-				with = "???";
-			buffer.replace(idx, idx+toReplace.length(), with);
+	FormExport(BaseActivity activity, Form form, Signature [] signatures) {
+		super(activity, signatures);
+		this.form = form;
+		int numPages = 1;
+		if (form.comments != null && form.comments.length() > 0) {
+			hasCommentsPage=true;
+			numPages++;
 		}
-	}
-	
-	
-	@Override
-	public void onCreate(Bundle bundle) {
-		super.onCreate(bundle);
-		setContentView(R.layout.formexport);
-		findViewById(R.id.buttonAddSignature).setOnClickListener(this);
-		Form form = (Form)getIntent().getParcelableExtra(INTENT_FORM);
-		
-		try {
-			InputStream in = getAssets().open("export.html");
-			try {
-				byte [] buffer = new byte[in.available()];
-				in.read(buffer);
-				
-				
-				StringBuffer buf = new StringBuffer(new String(buffer));
-				replace(buf, "%%CUSTOMER%%", form.customer);
-				replace(buf, "%%INSPECTOR%%", form.inspector);
-				replace(buf, "%%LOCATION%%", form.location);
-				replace(buf, "%%DATE%%", DateFormat.getDateInstance(DateFormat.SHORT).format(form.editDate));
-				replace(buf, "%%SYSTEM%%", form.system);
-				replace(buf, "%%STATUS%%", form.passed ? "PASSED" : "FAILED");
-				replace(buf, "%%PLAIN%%", form.plan);
-				replace(buf, "%%SPEC%%", form.spec);
-				replace(buf, "%%TYPE%%", form.type);
-				replace(buf, "%%IMAGE1%%", form.imagePath[0]);
-				replace(buf, "%%IMAGE2%%", form.imagePath[1]);
-				replace(buf, "%%COMMENTS%%", form.comments);
-				
-				((TextView)findViewById(R.id.tvHtmlForm)).setText(Html.fromHtml(buf.toString(), this, null));
-				
-			} finally {
-				in.close();
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
+		if (signatures.length > 0) {
+			numPages += (signatures.length-1) / 3 + 1;
 		}
- 
+		setNumPages(numPages);
 	}
 
 	@Override
-	public Drawable getDrawable(String source) {
-		File image = new File(getImagesPath(), source);
-		Drawable empty = null;
-		LevelListDrawable d = new LevelListDrawable();
-		if (image.exists()) {
-			empty = Drawable.createFromPath(image.getPath());
+	protected void genPage(int pageNum, Signature[] signatures) {
+		if (pageNum == 0) {
+			mainPage();
+		} else if (pageNum == 1 && hasCommentsPage) {
+			commentsPage();
 		} else {
-			empty =getResources().getDrawable(R.drawable.ic_launcher);
+			signaturesPage(signatures, (pageNum-(hasCommentsPage ? 2 : 1))*3, pageNum);
 		}
-        d.addLevel(0, 0, empty);
-        d.setBounds(0, 0, empty.getIntrinsicWidth(), empty.getIntrinsicHeight());
-        return d;
 	}
 
 	@Override
-	public void onClick(View v) {
-		switch (v.getId()) {
-			case R.id.buttonAddSignature:
-				startActivityForResult(new Intent(this, ESign.class), 1000);
-		}
+	protected void onEmailAttachmentReady(File attachment) {
+		EmailHelper.sendEmail(activity, attachment, null, activity.getString(R.string.emailSubjectSignedReport), activity.getString(R.string.email_body_signed_form));		
 	}
+	
+	private void header() {
+		header("Pressure Test Report");
+		entry("Date:", fmt.format(form.editDate));
+		entry("Cusomter:", form.customer);
+		entry("Project", form.project);
+		entry("System", form.system);
+		entry("Location", form.location);
+		entry("Inspector:", form.inspector);
+		entry("Plan:", form.plan, "Spec:", form.spec, "Type:", form.type);
+	}
+	
+	private void commentsPage() {
+		start();
+		header();
+		entry("Comments", "");
+		html.append("<br/><h3>Comments</h3>\n").append(form.comments).append("\n");
+		end();
+	}
+	
+	private void mainPage() {
+		start();
+		header();
+
+		if (form.passed) {
+			html.append("</br><b><font color=\"green\">PASSED</font></b>");
+		} else {
+			html.append("</br><b><font color=\"red\">FAILED</font></b>");
+		}
+		
+		html.append("<br/><table width=\"100%\">\n");
+		html.append("<tr>\n");
+		for (int i=0; i<3; i++) {
+			html.append("<td>\n");
+			if (form.imagePath[i] != null) {
+				Uri uri = Uri.fromFile(new File(((BaseActivity)activity).getImagesPath(), form.imagePath[i]));
+				html.append("<img width=\"170\" height=\"170\" src=\"").append(uri.toString()).append("\">\n");
+			} else {
+				html.append("<img width=\"170\" height=\"170\" src=\"\" alt=\"No Image\"/>\n");
+			}
+			html.append("</td>\n");
+		}
+		
+		html.append("</tr><tr>\n");
+		for (int i=0; i<3; i++) {
+			html.append("<td>\n");
+			if (form.imageMeta[i] != null) {
+				html.append(form.imageMeta[i]);
+			}
+			html.append("</td>\n");
+		}
+		html.append("</tr></table>\n");
+		end();
+		Log.d("HTML Page 1", html.toString());
+	}
+
+	private void signaturesPage(Signature [] signatures, int offset, int page) {
+		start();
+		header();
+		
+		int count = 0;
+		for (int i=offset; i<signatures.length; i++) {
+			if (count ++ == 3)
+				break;
+			Signature s = signatures[i];
+			html.append("</br><table width=\"100%\"><tr>\n");
+			html.append("<td width=\"50%\">");
+			html.append(s.fullName == null || s.fullName.isEmpty() ? "Not Specified" : s.fullName).append("</td>\n");
+			html.append("<td align=\"right\" width=\"50%\">").append(fmt.format(s.date)).append("</td>\n");
+			html.append("</tr></table>");
+//			html.append("</br>").append(s.fullName).append("     ").append(fmt.format(s.date));
+			Uri uri = Uri.fromFile(s.signatureFile);
+			html.append("</br><img width=\"512\" src=\"").append(uri.toString()).append("\">\n");
+		}
+		end();
+		Log.d("HTML Page " + page, html.toString());
+	}
+
 	
 }

@@ -112,7 +112,7 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
     					
     					@Override
     					public void onClick(DialogInterface dialog, int which) {
-    						new BillingTask(BillingTask.Op.QUERY_PURCHASABLES, getActivity()).execute();
+    						new BillingTask(BillingTask.Op.QUERY_PURCHASABLES, getActivity()).execute(getPurchasableSkus());
     					}
     				}).show();
 		}		
@@ -372,7 +372,7 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
 					}
 					
 					case 5: { // Upgrade
-						new BillingTask(BillingTask.Op.QUERY_PURCHASABLES, getActivity()).execute();
+						new BillingTask(BillingTask.Op.QUERY_PURCHASABLES, getActivity()).execute(getPurchasableSkus());
 						break;
 					}
 					

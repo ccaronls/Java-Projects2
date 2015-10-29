@@ -1,5 +1,7 @@
 <resources>
 
+    <string name="cached_file_provider_authority">cc.android.photooverlay</string>
+    
     <string name="app_name">Pressure Test\nUtility</string>
     <string name="app_email">ceccsolutions@gmail.com</string>
 
@@ -13,7 +15,8 @@
     
     <string name="popup_msg_signing_important">Be aware that all signatures captured here must be emailed in order to be preserved.  All Signatures will be discarded once leaving this page.  This is done to prevent mis use and ensure that the signatures gathered here will never be re-used.  Please make sure all parties signing this form are included as recipients on the final email.</string>
     <string name="popup_msg_billing_err_general">An error occurred.  Please try you request again or contact support</string>
-    <string name="popup_msg_billing_err_argument">Google billing returned error code %s Please contact support for more information</string>
+    <string name="popup_msg_billing_err_argument_debug">Google billing returned error code %s Please contact support for more information</string>
+    <string name="popup_msg_billing_err_argument">Google billing returned error.  Pleas emake sure you are connected to the internat or support for more information</string>
 
     <string name="popup_msg_premium_feature_locked">This premium feature is locked.\n\n
         Premium Features Include:\n
@@ -169,7 +172,7 @@
     <string name="labelPassed">PASSED</string>
     <string name="labelFailed">FAILED</string>
     
-    <string name="emailSubjectSignedPTCform">Signed PTC Form</string>
+    <string name="emailSubjectSignedReport">Completed Pressure Test Report</string>
     <string name="labelImageMeta">Image Meta Data</string>
     
     <string name="tvFormsignCertifiedOn">Certified on: %s</string>

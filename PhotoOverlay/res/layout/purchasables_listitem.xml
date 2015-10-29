@@ -29,7 +29,7 @@
            android:layout_width="match_parent"
 	       android:layout_height="wrap_content"
 	       android:layout_margin="4dp"
-	       android:background="@drawable/round_rect"
+	       android:background="@drawable/purchases_button"
 	       android:padding="4dp"
 	       android:text="$???"
 	       android:textColor="#ffffff"/>

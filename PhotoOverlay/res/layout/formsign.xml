@@ -234,7 +234,7 @@
 		        android:layout_alignRight="@id/layoutFields"
 		        android:layout_below="@id/layoutFields"
 		        android:layout_marginTop="28dp"
-		        android:background="@drawable/round_rect" >
+		        android:background="@drawable/purchases_button" >
 
 		        <ImageView
 		            android:id="@+id/ivGauge1"
@@ -336,7 +336,7 @@
 		        android:layout_alignLeft="@+id/textView15"
 		        android:layout_alignRight="@+id/layoutImages"
 		        android:layout_below="@+id/textView15"
-		        android:background="@drawable/round_rect"
+		        android:background="@drawable/purchases_button"
 		        android:hint="@string/hintEmpty"
 		        android:minLines="5"
 		        android:padding="5dp" />

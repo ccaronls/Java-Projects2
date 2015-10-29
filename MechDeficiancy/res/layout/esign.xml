@@ -38,7 +38,7 @@
             android:text="@string/button_restart"/>
         </LinearLayout>
     
-    <cecc.android.mechdeficiency.ESignView
+    <cecc.android.lib.ESignView
         android:id="@+id/eSign"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

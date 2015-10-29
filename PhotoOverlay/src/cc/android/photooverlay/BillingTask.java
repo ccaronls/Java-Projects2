@@ -245,7 +245,8 @@ public class BillingTask extends AsyncTask<String,Integer,Object> implements OnC
 				} else if (response == 1) {
 					// user cancelled at some point.  So dont do anything
 				} else {
-					activity.showAlert(R.string.popup_title_error, R.string.popup_msg_billing_err_argument, getResponse(response));
+					activity.showAlert(R.string.popup_title_error, 
+							BuildConfig.DEBUG ? R.string.popup_msg_billing_err_argument_debug : R.string.popup_msg_billing_err_argument, getResponse(response));
 				}
 			} 
 		} catch (Exception e) {

@@ -12,7 +12,7 @@ import cc.lib.android.EmailHelper;
 import cc.lib.android.SortButtonGroup;
 import cc.lib.android.SortButtonGroup.OnSortButtonListener;
 import cc.lib.utils.FileUtils;
-import cecc.android.mechdeficiency.BillingTask.Op;
+import cecc.android.lib.BillingTask;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -112,7 +112,7 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
     					
     					@Override
     					public void onClick(DialogInterface dialog, int which) {
-    						new BillingTask(Op.QUERY_PURCHASABLES, getActivity()).execute();
+    						new BillingTask(BillingTask.Op.QUERY_PURCHASABLES, getActivity()).execute(getPurchasableSkus());
     					}
     				}).show();
 		}		
@@ -370,23 +370,23 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
 					}
 					
 					case 4: { // Purchases
-						new BillingTask(Op.DISPLAY_PURCHASES, getActivity()).execute();
+						new BillingTask(BillingTask.Op.DISPLAY_PURCHASES, getActivity()).execute();
 						break;
 					}
 					
 					case 5: { // Upgrade
-						new BillingTask(Op.QUERY_PURCHASABLES, getActivity()).execute();
+						new BillingTask(BillingTask.Op.QUERY_PURCHASABLES, getActivity()).execute(getPurchasableSkus());
 						break;
 					}
 					
 					case 6: { // Purchases DEBUG
-						new BillingTask(Op.QUERY_PURCHASABLES_DEBUG, getActivity()).execute();
+						new BillingTask(BillingTask.Op.QUERY_PURCHASABLES_DEBUG, getActivity()).execute();
 						break;
 					}
 					
 					case 7: {
 						clearPurchaseData();
-						new BillingTask(Op.REFRESH_PURCHASED, getActivity()).execute();
+						new BillingTask(BillingTask.Op.REFRESH_PURCHASED, getActivity()).execute();
 						break;
 					}
 				}

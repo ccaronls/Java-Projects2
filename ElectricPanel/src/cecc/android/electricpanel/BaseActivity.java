@@ -7,7 +7,6 @@ import java.util.*;
 
 import cecc.android.lib.BillingActivity;
 import cecc.android.lib.BillingTask;
-
 import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -298,7 +297,7 @@ public class BaseActivity extends BillingActivity implements OnClickListener {
         					
         					@Override
         					public void onClick(DialogInterface dialog, int which) {
-        						new BillingTask(BillingTask.Op.QUERY_PURCHASABLES, getActivity()).execute();
+        						new BillingTask(BillingTask.Op.QUERY_PURCHASABLES, getActivity()).execute(getPurchasableSkus());
         					}
         				}).show();
     			}
@@ -341,6 +340,27 @@ public class BaseActivity extends BillingActivity implements OnClickListener {
 		return true;
 	}
 	
+	protected String [] getPurchasableSkus() {
+		String [] skus = null;
+		if (isSubscription()) {
+			skus = new String[] { Purchase.PREMIUM_REDUCED.sku };
+		} else if (BuildConfig.DEBUG){
+			skus = new String[] {
+					Purchase.ONEWEEK.sku,
+					Purchase.ONEMONTH.sku,
+					Purchase.PREMIUM.sku,
+					Purchase.TENMINUTES.sku
+			};
+		} else {
+			skus = new String[] {
+					Purchase.ONEWEEK.sku,
+					Purchase.ONEMONTH.sku,
+					Purchase.PREMIUM.sku,
+			};
+		}
+		return skus;
+	}
+	
 	protected void showPremiumLockedDialog() {
 		newDialogBuilder().setTitle(R.string.popup_title_premium_upgrade)
 			.setMessage(R.string.popup_msg_premium_feature_locked)
@@ -350,20 +370,7 @@ public class BaseActivity extends BillingActivity implements OnClickListener {
 				@Override
 				public void onClick(DialogInterface dialog, int which) {
 					dialog.dismiss();
-					String [] skus = null;
-					if (isSubscription()) {
-    					skus = new String[] { Purchase.PREMIUM_REDUCED.sku };
-    				} else {
-    					skus = new String[] {
-    							Purchase.ONEWEEK.sku,
-    							Purchase.ONEMONTH.sku,
-    							Purchase.PREMIUM.sku
-    					};
-//    					if (BuildConfig.DEBUG) {
-  //  						skus.add(Purchase.TENMINUTES.sku);
-    //					}
-    				}
-					new BillingTask(BillingTask.Op.QUERY_PURCHASABLES, BaseActivity.this).execute(skus);
+					new BillingTask(BillingTask.Op.QUERY_PURCHASABLES, BaseActivity.this).execute(getPurchasableSkus());
 				}
 			}).show();
 	}

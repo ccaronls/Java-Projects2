@@ -19,7 +19,7 @@ public class DBHelper extends SQLiteOpenHelper {
 	public static final String TABLE_FORM = "TForm";
 	public static final String TABLE_IMAGE = "TImage";
 			
-	static interface ITable<T> {
+	static interface IColumn<T> {
 		int getColumnIndex(Cursor c);
 		void setField(T t, Cursor cursor);
 		void toContentValues(T t, ContentValues values);
@@ -29,7 +29,7 @@ public class DBHelper extends SQLiteOpenHelper {
 		String name();
 	}
 	
-	enum ImageColumn implements ITable<Image> {
+	enum ImageColumn implements IColumn<Image> {
 		FORM(1, "integer not null"),
 		IDX(1, "integer not null"),
 		PATH(1, "text not null"),
@@ -108,7 +108,7 @@ public class DBHelper extends SQLiteOpenHelper {
 	
 	
 	
-	enum FormColumn implements ITable<Form> {
+	enum FormColumn implements IColumn<Form> {
 		_id(1, "integer primary key autoincrement"),
 		CREATE_DATE(1, "long not null"),
 		EDIT_DATE(1, "long not null"),
@@ -268,10 +268,10 @@ public class DBHelper extends SQLiteOpenHelper {
 		return getWritableDatabase();
 	}
 	
-	private <T> void createTable(SQLiteDatabase db, String name, ITable<T> [] values) {
+	private <T> void createTable(SQLiteDatabase db, String name, IColumn<T> [] values) {
 		StringBuffer buf = new StringBuffer("create table ");
 		buf.append(name).append(" ( ");
-		for (ITable<T> e : values) {
+		for (IColumn<T> e : values) {
 			if (e.ordinal() > 0)
 				buf.append(",");
 			buf.append(e.name()).append(" ").append(e.getCreateArgs());

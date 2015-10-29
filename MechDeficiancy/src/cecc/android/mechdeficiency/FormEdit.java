@@ -152,7 +152,7 @@ public class FormEdit extends BaseActivity {
 	
 	private void setImageData(TextView tv, Image i) {
 		if (i != null && i.data != null) {
-			tv.setText(Html.fromHtml("<html></head><body>" + i.data + "</body></html"));
+			tv.setText(Html.fromHtml(i.data));
 		}
 	}
 	
@@ -210,7 +210,7 @@ public class FormEdit extends BaseActivity {
 			View view = View.inflate(getActivity(), R.layout.popup_image_enlarge, null);
 			ImageView iv = (ImageView)view.findViewById(R.id.ivPhoto);
 			final EditText et = (EditText)view.findViewById(R.id.etMeta);
-			et.setText(image.data);
+			et.setText(Html.fromHtml(image.data));
 			iv.setImageURI(Uri.fromFile(new File(getImagesPath(), image.path)));
 			newDialogBuilder()
 				.setView(view)
@@ -218,7 +218,7 @@ public class FormEdit extends BaseActivity {
 					
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
-						image.data = et.getText().toString();
+						image.data = Html.toHtml(et.getText());
 						setImageData(tvImageMeta[index], image);
 					}
 				})
@@ -364,7 +364,7 @@ public class FormEdit extends BaseActivity {
 			watermark(bitmap, getDateFormatter().format(new Date()));
 
 			try {
-				File destFile = File.createTempFile("guage", ".png", getImagesPath());
+				File destFile = File.createTempFile("capture", ".png", getImagesPath());
 				FileOutputStream out = new FileOutputStream(destFile);
 				try {
 					bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);

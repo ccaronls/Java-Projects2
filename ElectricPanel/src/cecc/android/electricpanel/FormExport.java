@@ -24,7 +24,7 @@ public class FormExport extends PagedFormExporter {
 			numPages++;
 		}
 		if (signatures.length > 0) {
-			numPages += signatures.length / 3 + 1;
+			numPages += (signatures.length-1) / 3 + 1;
 		}
 		setNumPages(numPages);
 	}
@@ -39,7 +39,8 @@ public class FormExport extends PagedFormExporter {
 		entry("Representative:", form.representative);
 		entry("Plan:", form.plan, "Type:", form.type);
 		entry("Comments", "");
-		html.append("<p>").append(form.comments);
+		html.append("<br/><h3>Comments</h3>\n").append(form.comments).append("\n");
+		end();
 	}
 	
 	private void mainPage() {
@@ -92,7 +93,6 @@ public class FormExport extends PagedFormExporter {
     		html.append("</tr>\n");
 		}
 		html.append("</table>\n");
-		html.append("<br/><h3>Comments</h3>\n").append(form.comments).append("\n");
 		end();
 		Log.d("HTML Page 1", html.toString());
 	}
@@ -135,7 +135,7 @@ public class FormExport extends PagedFormExporter {
 		} else if (pageNum == 1 && hasCommentsPage) {
 			commentsPage();
 		} else {
-			signaturesPage(signatures, (pageNum-2)*3, pageNum);
+			signaturesPage(signatures, (pageNum-(hasCommentsPage ? 2 : 1))*3, pageNum);
 		}
 	}
 	

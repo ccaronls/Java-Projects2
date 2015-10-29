@@ -102,94 +102,6 @@
                 android:imeOptions="actionNext"
                 android:inputType="textCapWords|textPersonName"
                 android:singleLine="true" />
-            
-            
-            <!-- 
-		    <RelativeLayout 
-		        android:layout_width="fill_parent"
-		        android:layout_height="wrap_content">
-		        <View android:id="@+id/anchor"
-		            android:layout_width="0dp"
-		            android:layout_height="0dp"
-		            android:layout_centerInParent="true"/>
-
-			    <AutoCompleteTextView
-			        android:id="@+id/etPlan"
-			        style="@style/edittext"
-			        android:layout_width="wrap_content"
-			        android:layout_height="wrap_content"
-			        android:layout_alignParentLeft="true"
-			        android:layout_toLeftOf="@+id/anchor"
-			        android:ems="10"
-			        android:hint="@string/et_hint_plan"
-			        android:imeOptions="actionNext"
-			        android:inputType="textCapWords"
-			        android:singleLine="true" />
-				    
-                <AutoCompleteTextView
-                    android:id="@+id/etCustom"
-                    style="@style/edittext"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_below="@+id/cbPassed"
-                    android:layout_toLeftOf="@+id/anchor"
-                    android:layout_weight="1"
-                    android:ems="10"
-                    android:hint="@string/et_hint_custom"
-                    android:imeOptions="actionDone"
-                    android:inputType="textCapWords"
-                    android:singleLine="true" />
-                			
-			    <RadioGroup
-			        android:id="@+id/rgType"
-			        android:layout_width="wrap_content"
-			        android:layout_height="wrap_content"
-			        android:layout_alignParentRight="true"
-			        android:layout_alignTop="@id/etPlan"
-			        android:layout_toRightOf="@id/etPlan" >
-			
-                    <RadioButton
-                        android:id="@+id/rbPlumbing"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/rb_plumbing" />
-			        <RadioButton
-			            android:id="@+id/rbMechanical"
-			            android:layout_width="wrap_content"
-			            android:layout_height="wrap_content"
-			            android:checked="true"
-			            android:text="@string/rb_mechanical" />
-                    <RadioButton
-                        android:id="@+id/rbElectrical"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:checked="true"
-                        android:text="@string/rb_mechanical" />
-			        			
-			
-			        <RadioButton
-			            android:id="@+id/rbProcess"
-			            android:layout_width="wrap_content"
-			            android:layout_height="wrap_content"
-			            android:text="@string/rb_process" />
-                    <RadioButton
-                        android:id="@+id/rbCustom"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/rb_custom" />
-                </RadioGroup>
-
-			    <CheckBox
-			        android:id="@+id/cbFix"
-			        android:layout_width="wrap_content"
-			        android:layout_height="wrap_content"
-			        android:layout_alignParentLeft="true"
-			        android:layout_below="@+id/etSpec"
-			        android:layout_toLeftOf="@+id/rgType"
-			        android:text="@string/cb_passed" />
-
-            </RelativeLayout>		
-		    -->
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -207,6 +119,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
+                    android:gravity="center_vertical|start|bottom"
                     android:text="@string/cb_passed" />
 
                 <CheckBox
@@ -214,6 +127,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
+                    android:gravity="center_vertical|start|bottom"
                     android:text="@string/cb_torqued" />
 
             </LinearLayout>

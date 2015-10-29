@@ -5,22 +5,11 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import cc.lib.android.CCActivityBase;
-import cecc.android.mechdeficiency.BillingTask.Op;
-import cecc.android.mechdeficiency.BillingTask.Purchase;
-
-import com.android.vending.billing.IInAppBillingService;
-
+import cecc.android.lib.BillingActivity;
+import cecc.android.lib.BillingTask;
 import android.annotation.TargetApi;
 import android.app.AlertDialog;
-import android.content.ComponentName;
-import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.ServiceConnection;
 import android.content.SharedPreferences.Editor;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
@@ -30,12 +19,11 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 
-public class BaseActivity extends CCActivityBase implements OnClickListener {
+public class BaseActivity extends BillingActivity implements OnClickListener {
 
 	final String TAG = getClass().getSimpleName();
 	
@@ -54,7 +42,7 @@ public class BaseActivity extends CCActivityBase implements OnClickListener {
 		return dateFormat;
 	}
 	
-	final AlertDialog.Builder newDialogBuilder() {
+	protected final AlertDialog.Builder newDialogBuilder() {
 		return new AlertDialog.Builder(this, R.style.DialogTheme);
 	}
 	
@@ -130,7 +118,6 @@ public class BaseActivity extends CCActivityBase implements OnClickListener {
 		if (ambientSensor != null) {
 			ambientSensor.unregisterListener(ambientListener);
 		}
-		unbindFromBilling();
 		stopPolling();
 	}
 	
@@ -194,107 +181,33 @@ public class BaseActivity extends CCActivityBase implements OnClickListener {
 		}
 	}
 	
-	private IInAppBillingService mBillingService;
-
-	private final ServiceConnection mBillingServiceConn = new ServiceConnection() {
-	   @Override
-	   public void onServiceDisconnected(ComponentName name) {
-	       mBillingService = null;
-	   }
-
-	   @Override
-	   public void onServiceConnected(ComponentName name,
-	      IBinder service) {
-	       mBillingService = IInAppBillingService.Stub.asInterface(service);
-	       synchronized (this) {
-	    	   notify();
-	       }
-	   }
-	};
-	
-	private void bindToBilling() {
-		Intent serviceIntent = new Intent("com.android.vending.billing.InAppBillingService.BIND");
-		  serviceIntent.setPackage("com.android.vending");
-		  bindService(serviceIntent, mBillingServiceConn, Context.BIND_AUTO_CREATE);
-		  try {
-			  synchronized (mBillingServiceConn) {
-				  mBillingServiceConn.wait(5000);
-			  }
-		  } catch (Exception e) {
-			  e.printStackTrace();
-		  }
-	}
-	
-	private void unbindFromBilling() {
-		if (mBillingService != null) {
-	        unbindService(mBillingServiceConn);
-	        mBillingService = null;
-	    }		
-	}
-	
-	public IInAppBillingService getBilling() {
-		if (mBillingService == null) {
-			bindToBilling();
+	// TODO: Move this outside so that this class can be re-usable
+	public enum Purchase {
+		PREMIUM("premium"),
+		PREMIUM_REDUCED("premium.reduced"), // available only while weekly or monthly subscription is active.
+		ONEMONTH("onemonth"),
+		ONEWEEK("oneweek"),
+		TENMINUTES("ten.mins.debug") // DEBUG ONLY
+		;
+		
+		public static Purchase getPurchaseFromSku(String sku) {
+			for (Purchase p : values()) {
+				if (sku.equals(p.sku))
+					return p;
+			}
+			return null;
 		}
-		return mBillingService;
-	}
-	
-	public final static int REQUEST_PURCHASE = 1001;
-	
-	
-	@Override
-	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-		Log.d(TAG, "onActivityResult code=" + requestCode + " result=" + resultCode);
-	   if (requestCode == REQUEST_PURCHASE) {
-	      int responseCode = data.getIntExtra("RESPONSE_CODE", 0);
-	      String purchaseData = data.getStringExtra("INAPP_PURCHASE_DATA");
-	      String dataSignature = data.getStringExtra("INAPP_DATA_SIGNATURE");
+		
+		
+		private Purchase(String sku) {
+			this.sku = sku;
+		}
+		
+		final String sku;
+	}	
 
-	      Log.d(TAG, "purchaseData=" + purchaseData);
-	      Log.d(TAG, "dataSignature=" + dataSignature);
-	      
-	      /*
-	       * INAPP_PURCHASE_DATA
-            '{
-               "orderId":"12999763169054705758.1371079406387615",
-               "packageName":"com.example.app",
-               "productId":"exampleSku",
-               "purchaseTime":1345678900000,
-               "purchaseState":0,
-               "developerPayload":"bGoa+V7g/yqDXvKRqq+JTFn4uQZbPiQJo4pf9RzJ",
-               "purchaseToken":"opaque-token-up-to-1000-characters" <--- Used for consume
-             }'	       
-	       */
-	      if (resultCode == RESULT_OK && responseCode == 0) {
-	         try {
-	        	 if (purchaseData != null) {
-    	            JSONObject jo = new JSONObject(purchaseData);
-    	            Log.d(TAG, "purchase json=" + jo.toString(3));
-    	            String sku = jo.getString("productId");
-    	            String randomString = jo.getString("developerPayload");
-    	            String savedRandom = getPrefs().getString(PREF_PURCHASE_RANDOM_STRING, "");
-    	            long purchaseTime = jo.getLong("purchaseTime");
-    	            //String token = jo.getString("purchaseToken");
-    	            if (savedRandom.equals(randomString))
-    	            	finalizePurchase(sku, purchaseTime);
-    	            else
-    		        	showAlert(R.string.popup_title_error, R.string.popup_msg_billing_err_general);
-    	            getPrefs().edit().remove(PREF_PURCHASE_RANDOM_STRING).commit();
-	        	 }	            
-	          }
-	          catch (JSONException e) {
-	             //alert("Failed to parse purchase data.");
-	        	  showAlert(R.string.popup_title_error, R.string.popup_msg_billing_err_general);
-	             e.printStackTrace();
-	          }
-	      }
-	   }
-	}
-	
 	public final static String PREF_PREMIUM_UNLOCKED_BOOL = "PREF_PREMIUM_UNLOCKED";
 	public final static String PREF_PREMIUM_EXPIRE_TIME_LONG = "PREF_PREMIUM_EXPIRE_TIME";
-	public final static String PREF_PURCHASE_SKU = "PREF_PURCHASE_SKU";
-	public final static String PREF_PURCHASE_RANDOM_STRING = "PREF_PURCHASE_RANDOM";
 	
 	public void clearPurchaseData() {
 		getPrefs().edit().remove(PREF_PREMIUM_UNLOCKED_BOOL)
@@ -360,7 +273,7 @@ public class BaseActivity extends CCActivityBase implements OnClickListener {
 			
 			if (expireTime < System.currentTimeMillis()) {
     			String sku = getPrefs().getString(PREF_PURCHASE_SKU, "");
-    			new BillingTask(Op.CONSUME_SKU, getActivity()).execute(sku);
+    			new BillingTask(BillingTask.Op.CONSUME_SKU, getActivity()).execute(sku);
     			getPrefs().edit().remove(PREF_PREMIUM_UNLOCKED_BOOL)
     				.remove(PREF_PREMIUM_EXPIRE_TIME_LONG)
     				.remove(PREF_PURCHASE_SKU).commit();
@@ -373,7 +286,7 @@ public class BaseActivity extends CCActivityBase implements OnClickListener {
         					
         					@Override
         					public void onClick(DialogInterface dialog, int which) {
-        						new BillingTask(Op.QUERY_PURCHASABLES, getActivity()).execute();
+        						new BillingTask(BillingTask.Op.QUERY_PURCHASABLES, getActivity()).execute(getPurchasableSkus());
         					}
         				}).show();
     			}
@@ -416,6 +329,27 @@ public class BaseActivity extends CCActivityBase implements OnClickListener {
 		return true;
 	}
 	
+	protected String [] getPurchasableSkus() {
+		String [] skus = null;
+		if (isSubscription()) {
+			skus = new String[] { Purchase.PREMIUM_REDUCED.sku };
+		} else if (BuildConfig.DEBUG){
+			skus = new String[] {
+					Purchase.ONEWEEK.sku,
+					Purchase.ONEMONTH.sku,
+					Purchase.PREMIUM.sku,
+					Purchase.TENMINUTES.sku
+			};
+		} else {
+			skus = new String[] {
+					Purchase.ONEWEEK.sku,
+					Purchase.ONEMONTH.sku,
+					Purchase.PREMIUM.sku,
+			};
+		}
+		return skus;
+	}
+	
 	protected void showPremiumLockedDialog() {
 		newDialogBuilder().setTitle(R.string.popup_title_premium_upgrade)
 			.setMessage(R.string.popup_msg_premium_feature_locked)
@@ -425,7 +359,7 @@ public class BaseActivity extends CCActivityBase implements OnClickListener {
 				@Override
 				public void onClick(DialogInterface dialog, int which) {
 					dialog.dismiss();
-					new BillingTask(Op.QUERY_PURCHASABLES, BaseActivity.this).execute();
+					new BillingTask(BillingTask.Op.QUERY_PURCHASABLES, BaseActivity.this).execute(getPurchasableSkus());
 				}
 			}).show();
 	}

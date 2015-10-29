@@ -16,7 +16,7 @@ public class Form implements Parcelable {
 	double longitude;
 	String plan;
 	String type;
-	final List<Image> images = new ArrayList<>();
+	final List<Image> images = new ArrayList<Image>();
 	boolean passed;
 	boolean torqued;
 	String comments;

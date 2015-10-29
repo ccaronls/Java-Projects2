@@ -17,6 +17,7 @@ import android.media.ThumbnailUtils;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.text.Html;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
@@ -157,7 +158,8 @@ public class FormEdit extends BaseActivity implements OnCheckedChangeListener {
 			}
 		
 		for (int i=0; i<tvImageMeta.length; i++) {
-			tvImageMeta[i].setText(form.imageMeta[i]);
+			if (form.imageMeta[i] != null)
+				tvImageMeta[i].setText(Html.fromHtml(form.imageMeta[i]));
 		}
 
 		// do this last so onCheckChanged listener does not get called while we are initing the view
@@ -216,8 +218,8 @@ public class FormEdit extends BaseActivity implements OnCheckedChangeListener {
 					
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
-						form.imageMeta[index] = et.getText().toString();
-						tvImageMeta[index].setText(et.getText());
+						form.imageMeta[index] = Html.toHtml(et.getText());
+						tvImageMeta[index].setText(Html.fromHtml(et.getText().toString()));
 					}
 				})
 				.setPositiveButton(R.string.popup_button_change, new DialogInterface.OnClickListener() {
@@ -386,7 +388,7 @@ public class FormEdit extends BaseActivity implements OnCheckedChangeListener {
 					if (form.imageMeta[index] == null) {
 						//form.imageMeta[index] = getDateFormatter().format(new Date());
 						if (isAmbientTempAvailable()) {
-							form.imageMeta[index] = convertCelciusToFahrenheit(getAmbientTempCelcius()) + "\u00B0";
+							form.imageMeta[index] = convertCelciusToFahrenheit(getAmbientTempCelcius()) + "&deg;";
 						}
 					}
 					editImage(index);
