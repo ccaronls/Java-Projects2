@@ -12,7 +12,7 @@
     <string name="popup_msg_billing_err_general">An error occurred.  Please try you request again or contact support</string>
     <string name="popup_msg_billing_err_argument_debug">Google billing returned error code %s Please contact support for more information</string>
     <string name="popup_msg_billing_err_argument">Google billing returned error.  Pleas emake sure you are connected to the internat or support for more information</string>
-    <string name="popup_msg_no_purchases">There are no purchase items at this point.  Please try again when you subscription expires or conteact support.</string>
+    <string name="popup_msg_no_purchases">There are no purchase items at this point.  Please try again when you subscription expires or contact support.</string>
     <string name="popup_msg_empty_purchases">You do not have any recorded purchases.</string>
     
     <string name="popup_button_ok">OK</string>

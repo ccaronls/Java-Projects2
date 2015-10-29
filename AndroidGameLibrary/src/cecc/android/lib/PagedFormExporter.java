@@ -98,7 +98,7 @@ public abstract class PagedFormExporter extends AsyncTask<Void, String, File> im
 		for (int i=0; i<pairs.length; i+=2) {
 			String label = pairs[i];
 			String value = pairs[i+1];
-    		if (value != null) {
+    		if (value != null && !value.isEmpty()) {
     			if (!breaky) {
     				breaky=true;
     				html.append("<br/>");
@@ -140,7 +140,7 @@ public abstract class PagedFormExporter extends AsyncTask<Void, String, File> im
 			Bitmap bm = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565);
 			Canvas canvas = new Canvas(bm);
 			view.draw(canvas);
-			File file = File.createTempFile("form", ".jpg", activity.getCacheDir());
+			File file = new File(activity.getCacheDir(), "page" + curPage + ".jpg");
 			OutputStream out = new FileOutputStream(file);
 			try {
 				bm.compress(CompressFormat.JPEG, 90, out);
