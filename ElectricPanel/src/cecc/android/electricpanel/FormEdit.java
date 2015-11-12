@@ -2,11 +2,8 @@ package cecc.android.electricpanel;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.TreeSet;
+import java.util.*;
 
-import cecc.android.electricpanel.DBHelper.FormColumn;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
@@ -24,14 +21,7 @@ import android.text.Html;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.ArrayAdapter;
-import android.widget.AutoCompleteTextView;
-import android.widget.Button;
-import android.widget.CompoundButton;
-import android.widget.EditText;
-import android.widget.ImageButton;
-import android.widget.ImageView;
-import android.widget.TextView;
+import android.widget.*;
 
 public class FormEdit extends BaseActivity {
 
@@ -41,7 +31,7 @@ public class FormEdit extends BaseActivity {
 	AutoCompleteTextView etLocation;
 	AutoCompleteTextView etRepresentative;
 	AutoCompleteTextView etPlan;
-	Button bType;
+	AutoCompleteTextView etType;
 	
 	EditText etComments;
 	CompoundButton cbPassed, cbTorqued;
@@ -78,15 +68,15 @@ public class FormEdit extends BaseActivity {
 
 		etPlan = (AutoCompleteTextView)findViewById(R.id.etPlan);
 		etPlan.setAdapter(getAutoCompleteAdapter(DBHelper.FormColumn.PLAN));
-		
+
+		etType = (AutoCompleteTextView)findViewById(R.id.etType);
+		etType.setAdapter(getAutoCompleteAdapter(DBHelper.FormColumn.TYPE));
+
 		etComments = (EditText)findViewById(R.id.etComments);
-		etPlan.setNextFocusForwardId(etComments.getId());
+		etType.setNextFocusForwardId(etComments.getId());
 		
 		cbPassed = (CompoundButton)findViewById(R.id.cbPassed);
 		cbTorqued = (CompoundButton)findViewById(R.id.cbTorqued);
-
-		bType = (Button)findViewById(R.id.bShowTypePopupup);
-		bType.setOnClickListener(this);
 		
 		ibImage = new ImageButton[] { 
 				(ImageButton)findViewById(R.id.ibImage1),
@@ -125,11 +115,8 @@ public class FormEdit extends BaseActivity {
 		etProject.setText(form.project);
 		etPlan.setText(form.plan);
 		etComments.setText(form.comments);
-		if (form.type == null || form.type.length() == 0) {
-			bType.setText(getResources().getStringArray(R.array.popup_items_choose_type)[0]);
-		} else {
-			bType.setText(form.type);
-		}
+		etType.setText(form.type);
+
 		cbPassed.setChecked(form.passed);
 		cbTorqued.setChecked(form.torqued);
 
@@ -192,9 +179,6 @@ public class FormEdit extends BaseActivity {
 				if (isPremiumEnabled(true))
 					editImage(5);
 				break;
-			case R.id.bShowTypePopupup:
-				showChooseTypeDialog();
-				break;
 		}
 	}
 	
@@ -254,7 +238,7 @@ public class FormEdit extends BaseActivity {
 		form.passed = cbPassed.isChecked();
 		form.torqued = cbTorqued.isChecked();
 		form.plan = etPlan.getText().toString().trim();
-		form.type = bType.getText().toString().trim();
+		form.type = etType.getText().toString().trim();
 		getDBHelper().addOrUpdateForm(form);
 	}
 	
@@ -395,7 +379,7 @@ public class FormEdit extends BaseActivity {
 		paint.setTextSize(20);
 		canvas.drawText(text, 2, canvas.getHeight()-2, paint);
 	}
-
+/*
 	private void showChooseTypeDialog() {
 		
 		TreeSet<String> all = new TreeSet<String>();
@@ -431,5 +415,5 @@ public class FormEdit extends BaseActivity {
 					}).show();
 			}
 		}).show();
-	}
+	}*/
 }

@@ -270,8 +270,8 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
 		
 		if (BuildConfig.DEBUG) {
 			items = getResources().getStringArray(R.array.form_list_options_debug);
-		} else if (isSubscription() || !isPremiumEnabled(false)) {
-			items = getResources().getStringArray(R.array.form_list_options_subscription);
+		} else if (!isPremiumEnabled(false)) {
+			items = getResources().getStringArray(R.array.form_list_options_locked);
 		} else {
 			items = getResources().getStringArray(R.array.form_list_options_unlocked);
 		}

@@ -63,7 +63,7 @@
 		        android:layout_alignParentRight="true"
 		        android:layout_alignParentTop="true"
 		        android:gravity="center"
-		        android:text="@string/labelPTC"
+		        android:text="@string/labelTitle"
 		        android:textAppearance="?android:attr/textAppearanceLarge" />
 
 		    <LinearLayout

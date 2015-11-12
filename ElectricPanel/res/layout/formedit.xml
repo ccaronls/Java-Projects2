@@ -103,23 +103,28 @@
                 android:inputType="textCapWords|textPersonName"
                 android:singleLine="true" />
 
+            <AutoCompleteTextView
+                android:id="@+id/etType"
+                style="@style/edittext"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:ems="10"
+                android:hint="@string/et_hint_type"
+                android:imeOptions="actionNext"
+                android:inputType="textCapWords|textPersonName"
+                android:singleLine="true" />
+            
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" >
-
-                <Button
-                    android:id="@+id/bShowTypePopupup"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Button" />
 
                 <CheckBox
                     android:id="@+id/cbPassed"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
                     android:layout_weight="1"
-                    android:gravity="center_vertical|start|bottom"
                     android:text="@string/cb_passed" />
 
                 <CheckBox
@@ -127,7 +132,6 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:gravity="center_vertical|start|bottom"
                     android:text="@string/cb_torqued" />
 
             </LinearLayout>

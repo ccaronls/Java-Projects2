@@ -33,7 +33,7 @@ public class BaseActivity extends BillingActivity implements OnClickListener {
 	public final static String INTENT_BITMAP_FILE = "iBITMAP_FILE";
 	public final static String INTENT_ERROR = "iERROR";
 	
-	private final static boolean INAPP_ENABLED = !BuildConfig.DEBUG;
+	private final static boolean INAPP_ENABLED = true;//!BuildConfig.DEBUG;
 	
 	static SimpleDateFormat dateFormat = new SimpleDateFormat("E M/d/yy h:mm a", Locale.US); 
 
@@ -194,17 +194,21 @@ public class BaseActivity extends BillingActivity implements OnClickListener {
 	
 	public final static String PREF_PREMIUM_UNLOCKED_BOOL = "PREF_PREMIUM_UNLOCKED";
 	public final static String PREF_PREMIUM_EXPIRE_TIME_LONG = "PREF_PREMIUM_EXPIRE_TIME";
+	public final static String PREF_PREMIUM_OPTION_AVAILABLE_BOOL = "PREF_PREMIUM_OPTION_AVAILABLE";
+	
 	
 	public void clearPurchaseData() {
 		getPrefs().edit().remove(PREF_PREMIUM_UNLOCKED_BOOL)
 						.remove(PREF_PREMIUM_EXPIRE_TIME_LONG)
-						.remove(PREF_PURCHASE_SKU).commit();
+						.remove(PREF_PURCHASE_SKU)
+						.remove(PREF_PREMIUM_OPTION_AVAILABLE_BOOL).commit();
 	}
 	
 	// TODO: Move this outside so that this class can be re-usable
 	public enum Purchase {
 		PREMIUM("premium"),
 		PREMIUM_REDUCED("premium.reduced"), // available only while weekly or monthly subscription is active.
+		ONEYEAR("oneyear"),
 		ONEMONTH("onemonth"),
 		ONEWEEK("oneweek"),
 		TENMINUTES("ten.mins.debug") // DEBUG ONLY
@@ -261,7 +265,9 @@ public class BaseActivity extends BillingActivity implements OnClickListener {
     			if (expireTime.getTime() > System.currentTimeMillis()) { 
     				edit.putLong(PREF_PREMIUM_EXPIRE_TIME_LONG, expireTime.getTime());
         			SimpleDateFormat fmt = new SimpleDateFormat("EEEE MMMM dd", Locale.US);
-        			showAlert(R.string.popup_title_purchase_complete, R.string.popup_msg_subscription_activiated, fmt.format(expireTime));
+        			boolean premiumOption = getPrefs().getBoolean(PREF_PREMIUM_OPTION_AVAILABLE_BOOL, false);
+        			showAlert(R.string.popup_title_purchase_complete, 
+        					premiumOption ? R.string.popup_msg_subscription_activiated_premium_option : R.string.popup_msg_subscription_activiated, fmt.format(expireTime));
     			}
     		} else {
     			edit.remove(PREF_PREMIUM_EXPIRE_TIME_LONG);
@@ -348,6 +354,7 @@ public class BaseActivity extends BillingActivity implements OnClickListener {
 			skus = new String[] {
 					Purchase.ONEWEEK.sku,
 					Purchase.ONEMONTH.sku,
+					Purchase.ONEYEAR.sku,
 					Purchase.PREMIUM.sku,
 					Purchase.TENMINUTES.sku
 			};
@@ -356,6 +363,7 @@ public class BaseActivity extends BillingActivity implements OnClickListener {
 					Purchase.ONEWEEK.sku,
 					Purchase.ONEMONTH.sku,
 					Purchase.PREMIUM.sku,
+					Purchase.ONEYEAR.sku,
 			};
 		}
 		return skus;
@@ -370,7 +378,15 @@ public class BaseActivity extends BillingActivity implements OnClickListener {
 				@Override
 				public void onClick(DialogInterface dialog, int which) {
 					dialog.dismiss();
-					new BillingTask(BillingTask.Op.QUERY_PURCHASABLES, BaseActivity.this).execute(getPurchasableSkus());
+					new BillingTask(BillingTask.Op.QUERY_PURCHASABLES, BaseActivity.this) {
+						@Override
+						protected void onPurchaseOptions(List<String> skus) {
+							if (skus.contains(Purchase.PREMIUM_REDUCED.sku)) {
+								getPrefs().edit().putBoolean(PREF_PREMIUM_OPTION_AVAILABLE_BOOL, true).commit();
+							}
+						}
+
+					}.execute(getPurchasableSkus());
 				}
 			}).show();
 	}
