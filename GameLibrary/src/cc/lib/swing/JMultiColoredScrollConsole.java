@@ -1,13 +1,17 @@
 package cc.lib.swing;
 
 import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Font;
+import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.Rectangle;
 import java.util.LinkedList;
 
-import javax.swing.JPanel;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.ListCellRenderer;
+import javax.swing.ListModel;
+import javax.swing.event.ListDataEvent;
+import javax.swing.event.ListDataListener;
 
 /**
  * This class allows for a console swing component where each console line
@@ -18,10 +22,10 @@ import javax.swing.JPanel;
  *
  */
 @SuppressWarnings("serial")
-public class JMultiColoredScrollConsole extends JPanel
+public class JMultiColoredScrollConsole extends JList<JMultiColoredScrollConsole.Entry> implements ListCellRenderer<JMultiColoredScrollConsole.Entry>
 {
 
-    private class Entry {
+    public static class Entry {
         final Color color;
         final String text;
         Entry(Color color, String text) {
@@ -29,30 +33,77 @@ public class JMultiColoredScrollConsole extends JPanel
             this.text = text;
         }
     }
+    
     private LinkedList<Entry> lines = new LinkedList<Entry>();
     
     private int maxRecordLines = 150;
     private int textHeight = 16;
     private int visibleLines = 8;
-    //private int MIN_HEIGHT = textHeight * visibleLines;
+    private Color backgroundColor;
     
-    private Color bkColor = null;
-    
+    private ListDataListener listener;
+
     public JMultiColoredScrollConsole() {
-        bkColor = this.getBackground();
+        this(null);
     }
     
     public JMultiColoredScrollConsole(Color bkColor) {
-        this.bkColor = bkColor;
+    	this.backgroundColor = bkColor;
         this.setOpaque(true);
+        super.setVisibleRowCount(visibleLines);
+        super.setCellRenderer(this);
+        super.setModel(model);
     }
 
-    public Dimension getTextSize() {
-        Dimension d = super.getSize();
-        d.height = Math.max(visibleLines, lines.size()) * textHeight;
-        return d;
-    }
+    private ListModel<Entry> model = new ListModel<Entry>() {
+    
+        
+        @Override
+    	public Entry getElementAt(int index) {
+    		return lines.get(index);
+    	}
+    
+    	@Override
+    	public void addListDataListener(ListDataListener l) {
+    		assert(listener == null);
+    		listener = l;
+    	}
+    
+    	@Override
+    	public void removeListDataListener(ListDataListener l) {
+    		assert(listener == l);
+    		listener = null;
+    	}
 
+		@Override
+		public int getSize() {
+			return lines.size();
+		}
+    };
+    
+    
+	public synchronized void addText(Color color, String text) {
+        lines.addFirst(new Entry(color, text));
+        if (listener != null) {
+        	listener.contentsChanged(new ListDataEvent(this, ListDataEvent.INTERVAL_ADDED, 0, 0));
+        }
+        while (lines.size() > maxRecordLines) {
+            lines.removeLast();
+            if (listener != null) {
+            	listener.contentsChanged(new ListDataEvent(this, ListDataEvent.INTERVAL_REMOVED, lines.size()-1, lines.size()-1));
+            }
+        }
+        super.
+        revalidate();
+    }   
+    
+    /**
+     * Clear the console of all the lines of text
+     */
+    public void clear() {
+        lines.clear();
+    }
+    
     public int getMaxRecordLines() {
         return maxRecordLines;
     }
@@ -77,54 +128,24 @@ public class JMultiColoredScrollConsole extends JPanel
         this.visibleLines = visibleLines;
     }
 
-    @Override
-    public Dimension getPreferredSize() {
-        return getTextSize();
-    }
+	@Override
+	public Component getListCellRendererComponent(JList<? extends Entry> list,
+			Entry value, int index, boolean isSelected, boolean cellHasFocus) {
+		JLabel label = new JLabel();
+		label.setForeground(value.color);
+		label.setText(value.text);
+		return label;
+	}
 
-
-    @Override
+	@Override
     public synchronized void paintComponent(Graphics g) {
+		if (backgroundColor != null) {
+			Rectangle rect = getBounds();
+			g.setColor(backgroundColor);
+			g.fillRect(rect.x, rect.y, rect.width, rect.height);
+		}
         super.paintComponent(g);
-        if (lines.size() == 0)
-            return;
-        final int fontHeight = g.getFontMetrics().getHeight();
-        Font bold = g.getFont().deriveFont(Font.BOLD);
-        g.setFont(bold);
-        int x = getX();
-        g.setColor(bkColor);
-        g.fillRect(x, 0, getWidth(), getHeight());
-        Rectangle rect = this.getVisibleRect();
-        int startLine = rect.y  / fontHeight;
-        int y = (startLine + 1) * textHeight;
-        for (int i=0; i < visibleLines; i++) {
-            if (i + startLine >= lines.size())
-                break;
-            Entry line = lines.get(startLine + i);
-            g.setColor(line.color);
-            g.drawString(String.valueOf(startLine+i) + ":" + line.text, x, y);
-            y += fontHeight;
-        }
-    }
-
-    /**
-     * 
-     * @param color
-     * @param text
-     */
-    public synchronized void addText(Color color, String text) {
-        lines.addFirst(new Entry(color, text));
-        while (lines.size() > maxRecordLines)
-            lines.removeLast();
-        //setPreferredSize(getTextSize());
-        revalidate();
-        repaint();
-    }   
     
-    /**
-     * Clear the console of all the lines of text
-     */
-    public void clear() {
-        lines.clear();
-    }
+	}
+      
 }

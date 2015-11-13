@@ -162,15 +162,32 @@ public class AWTUtils {
         if (text.length() == 0)
             return 0;
         String [] lines = text.split("\n");
+        return drawJustifiedStringLines(g, x, y, hJust, vJust, lines);
+    }
+    
+    /**
+     * 
+     * @param g
+     * @param x
+     * @param y
+     * @param hJust
+     * @param vJust
+     * @param lines
+     * @return
+     */
+    public static int drawJustifiedStringLines(Graphics g, int x, int y, Justify hJust, Justify vJust, String [] lines) {
         final int textHeight = g.getFontMetrics().getHeight();
+        // adjust for natural bottom alignment of text
+        //y += textHeight; <-- TODO: Figure out why this line shift text down on SOC but is correct for FractalViewer
         switch (vJust) {
-        case TOP: 
+        case TOP:
+        	//y += textHeight; <-- this looks wrong on SOC
             break;
         case CENTER: 
             y -= (lines.length * (textHeight+textHeight/3)) / 2;
             break;
         case BOTTOM: 
-            y -= (lines.length+1) * textHeight; 
+            y -= (lines.length * textHeight); 
             break;
         default:
             Utils.unhandledCase(vJust.ordinal());
