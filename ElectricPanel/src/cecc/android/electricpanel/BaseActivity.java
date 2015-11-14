@@ -199,9 +199,9 @@ public class BaseActivity extends BillingActivity implements OnClickListener {
 	
 	public void clearPurchaseData() {
 		getPrefs().edit().remove(PREF_PREMIUM_UNLOCKED_BOOL)
-						.remove(PREF_PREMIUM_EXPIRE_TIME_LONG)
-						.remove(PREF_PURCHASE_SKU)
-						.remove(PREF_PREMIUM_OPTION_AVAILABLE_BOOL).commit();
+                		.remove(PREF_PREMIUM_EXPIRE_TIME_LONG)
+                		.remove(PREF_PURCHASE_SKU)
+                		.remove(PREF_PREMIUM_OPTION_AVAILABLE_BOOL).commit();
 	}
 	
 	// TODO: Move this outside so that this class can be re-usable
@@ -268,6 +268,8 @@ public class BaseActivity extends BillingActivity implements OnClickListener {
         			boolean premiumOption = getPrefs().getBoolean(PREF_PREMIUM_OPTION_AVAILABLE_BOOL, false);
         			showAlert(R.string.popup_title_purchase_complete, 
         					premiumOption ? R.string.popup_msg_subscription_activiated_premium_option : R.string.popup_msg_subscription_activiated, fmt.format(expireTime));
+    			} else {
+    				return; // dont commit!
     			}
     		} else {
     			edit.remove(PREF_PREMIUM_EXPIRE_TIME_LONG);
@@ -291,9 +293,7 @@ public class BaseActivity extends BillingActivity implements OnClickListener {
 			if (expireTime < System.currentTimeMillis()) {
     			String sku = getPrefs().getString(PREF_PURCHASE_SKU, "");
     			new BillingTask(BillingTask.Op.CONSUME_SKU, getActivity()).execute(sku);
-    			getPrefs().edit().remove(PREF_PREMIUM_UNLOCKED_BOOL)
-    				.remove(PREF_PREMIUM_EXPIRE_TIME_LONG)
-    				.remove(PREF_PURCHASE_SKU).commit();
+    			clearPurchaseData();
     			
     			if (showDialog) {
         			newDialogBuilder().setTitle(R.string.popup_title_subs_expired)
@@ -319,7 +319,7 @@ public class BaseActivity extends BillingActivity implements OnClickListener {
 		
 		int days = secsBetween / (24*60*60);
 		int hours = secsBetween / (60*60);
-		int mins = secsBetween / 60;
+		int mins = 1 + secsBetween / 60;
 		
 		if (days >= 1)
 			return getResources().getQuantityString(R.plurals.plural_days, days, days);

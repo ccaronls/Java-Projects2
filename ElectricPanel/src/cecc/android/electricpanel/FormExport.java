@@ -31,7 +31,7 @@ public class FormExport extends PagedFormExporter {
 	
 	private void commentsPage() {
 		start();
-		header("Electrical Panel Report");
+		header("Electrical Panel Certification");
 		entry("Date:", fmt.format(form.editDate));
 		entry("Cusomter:", form.customer);
 		entry("Project", form.project);
