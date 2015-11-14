@@ -32,7 +32,7 @@ public class BaseActivity extends BillingActivity implements OnClickListener {
 	public final static String INTENT_BITMAP_FILE = "iBITMAP_FILE";
 	public final static String INTENT_ERROR = "iERROR";
 	
-	private final static boolean INAPP_ENABLED = !BuildConfig.DEBUG;
+	private final static boolean INAPP_ENABLED = true;//!BuildConfig.DEBUG;
 	
 	static SimpleDateFormat dateFormat = new SimpleDateFormat("E M/d/yy h:mm a", Locale.US); 
 
@@ -187,6 +187,7 @@ public class BaseActivity extends BillingActivity implements OnClickListener {
 		PREMIUM_REDUCED("premium.reduced"), // available only while weekly or monthly subscription is active.
 		ONEMONTH("onemonth"),
 		ONEWEEK("oneweek"),
+		ONEYEAR("oneyear"),
 		TENMINUTES("ten.mins.debug") // DEBUG ONLY
 		;
 		
@@ -228,6 +229,10 @@ public class BaseActivity extends BillingActivity implements OnClickListener {
     		edit.putBoolean(PREF_PREMIUM_UNLOCKED_BOOL, true);
     		Date expireTime = null;
     		switch (p) {
+    			case ONEYEAR:
+    				cal.add(Calendar.YEAR, 1);
+    				expireTime = cal.getTime();
+    				break;
     			case ONEMONTH:
     				cal.add(Calendar.MONTH, 1);
     				expireTime = cal.getTime();
@@ -251,6 +256,8 @@ public class BaseActivity extends BillingActivity implements OnClickListener {
     				edit.putLong(PREF_PREMIUM_EXPIRE_TIME_LONG, expireTime.getTime());
         			SimpleDateFormat fmt = new SimpleDateFormat("EEEE MMMM dd", Locale.US);
         			showAlert(R.string.popup_title_purchase_complete, R.string.popup_msg_subscription_activiated, fmt.format(expireTime));
+    			} else {
+    				return; // dont commit!
     			}
     		} else {
     			edit.remove(PREF_PREMIUM_EXPIRE_TIME_LONG);
@@ -302,7 +309,7 @@ public class BaseActivity extends BillingActivity implements OnClickListener {
 		
 		int days = secsBetween / (24*60*60);
 		int hours = secsBetween / (60*60);
-		int mins = secsBetween / 60;
+		int mins = 1 + secsBetween / 60;
 		
 		if (days >= 1)
 			return getResources().getQuantityString(R.plurals.plural_days, days, days);
