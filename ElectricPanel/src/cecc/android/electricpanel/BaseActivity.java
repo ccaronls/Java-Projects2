@@ -33,7 +33,7 @@ public class BaseActivity extends BillingActivity implements OnClickListener {
 	public final static String INTENT_BITMAP_FILE = "iBITMAP_FILE";
 	public final static String INTENT_ERROR = "iERROR";
 	
-	private final static boolean INAPP_ENABLED = true;//!BuildConfig.DEBUG;
+	private final static boolean INAPP_ENABLED = !BuildConfig.DEBUG;
 	
 	static SimpleDateFormat dateFormat = new SimpleDateFormat("E M/d/yy h:mm a", Locale.US); 
 

@@ -376,7 +376,7 @@ public class FormEdit extends BaseActivity {
 		Paint paint = new Paint();
 		paint.setColor(Color.WHITE);
 		paint.setTextAlign(Align.LEFT);
-		paint.setTextSize(20);
+		paint.setTextSize(44);
 		canvas.drawText(text, 2, canvas.getHeight()-2, paint);
 	}
 /*
