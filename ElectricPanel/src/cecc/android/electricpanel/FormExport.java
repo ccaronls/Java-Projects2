@@ -29,29 +29,17 @@ public class FormExport extends PagedFormExporter {
 		setNumPages(numPages);
 	}
 	
-	private void commentsPage() {
-		start();
+	private void header() {
 		header("Electrical Panel Certification");
+		beginTable(70);
 		entry("Date:", fmt.format(form.editDate));
 		entry("Cusomter:", form.customer);
-		entry("Project", form.project);
-		entry("Location", form.location);
+		entry("Project:", form.project);
+		entry("Location:", form.location);
 		entry("Representative:", form.representative);
-		entry("Plan:", form.plan, "Type:", form.type);
-		entry("Comments", "");
-		html.append("<br/><h3>Comments</h3>\n").append(form.comments).append("\n");
-		end();
-	}
-	
-	private void mainPage() {
-		start();
-		header("Electrical Panel Report");
-		entry("Date:", fmt.format(form.editDate));
-		entry("Cusomter:", form.customer);
-		entry("Project", form.project);
-		entry("Location", form.location);
-		entry("Representative:", form.representative);
-		entry("Plan:", form.plan, "Type:", form.type);
+		entry("Plan:", form.plan);
+		entry("Type:", form.type);
+		endTable();
 		html.append("<br/><table width=\"100%\"><tr>");
 		if (form.passed) {
 			html.append("<td><font color=\"green\">").append("Passed").append("</font></td>\n");			
@@ -64,6 +52,19 @@ public class FormExport extends PagedFormExporter {
 			html.append("<td><font color=\"red\">").append("Not Torqued").append("</font></td>\n");
 		}
 		html.append("</tr></table>\n");
+	}
+	
+	private void commentsPage() {
+		start();
+		header();
+		entry("Comments", "");
+		html.append("<br/><h3>Comments</h3>\n").append(form.comments).append("\n");
+		end();
+	}
+	
+	private void mainPage() {
+		start();
+		header();
 		html.append("<br/><table width=\"100%\">\n");
 		html.append("<tr>\n");
 		for (int i=0; i<2; i++) {
@@ -99,12 +100,7 @@ public class FormExport extends PagedFormExporter {
 
 	private void signaturesPage(Signature [] signatures, int offset, int page) {
 		start();
-		header("Electrical Panel Report");
-		entry("Date:", fmt.format(form.editDate));
-		entry("Cusomter:", form.customer);
-		entry("Project:", form.project);
-		entry("Representative:", form.representative);
-		entry("Plan:", form.plan, "Type:", form.type);
+		header();
 		int count = 0;
 		for (int i=offset; i<signatures.length; i++) {
 			if (count ++ == 3)
