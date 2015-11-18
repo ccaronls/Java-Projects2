@@ -20,6 +20,8 @@ public abstract class BillingActivity extends CCActivityBase {
 
 	public final static String PREF_PURCHASE_SKU = "PREF_PURCHASE_SKU";
 	public final static String PREF_PURCHASE_RANDOM_STRING = "PREF_PURCHASE_RANDOM";
+	public final static String PREF_LAST_SUBSCRIPTION_CHECK_LONG = "PREF_LAST_SUBSCRIPTION_CHECK";
+	public final static String PREF_SUBSCRIPTION_ACTIVE_BOOL = "PREF_SUBSCRIPTION_ACTIVE";
 
 	private IInAppBillingService mBillingService;
 

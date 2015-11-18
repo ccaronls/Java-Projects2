@@ -28,7 +28,7 @@ public abstract class PagedFormExporter extends AsyncTask<Void, String, File> im
 	private final int width = 1600;
 	private final int height = 1600*22/17;
 	protected final Activity activity; 
-//	private final SimpleDateFormat fmt = new SimpleDateFormat("EEEE MMMM d, yyyy", Locale.getDefault());
+	SimpleDateFormat stamp = new SimpleDateFormat("mmddyyyy_HHmm", Locale.US);
 	protected final StringBuffer html = new StringBuffer();
 	private int numPages;
 	private final List<File> pages = new ArrayList<File>();
@@ -93,6 +93,22 @@ public abstract class PagedFormExporter extends AsyncTask<Void, String, File> im
 		return html;
 	}
 
+	private boolean tableMode = false;
+	
+	protected void beginTable(int width) {
+		if (!tableMode) {
+			html.append("<br/><table style=\"width:").append(width).append("%\">");
+			tableMode = true;
+		}
+	}
+	
+	protected void endTable() {
+		if (tableMode) {
+			html.append("</table>");
+			tableMode = false;
+		}
+	}
+	
 	protected final void entry(String ... pairs) {
 		boolean breaky = false;
 		for (int i=0; i<pairs.length; i+=2) {
@@ -101,10 +117,21 @@ public abstract class PagedFormExporter extends AsyncTask<Void, String, File> im
     		if (value != null && !value.isEmpty()) {
     			if (!breaky) {
     				breaky=true;
-    				html.append("<br/>");
+    				if (tableMode) {
+    					html.append("<tr>");
+    				} else {
+    					html.append("<br/>");
+    				}
     			}
-    			html.append("<b>").append(label).append("</b>").append(value).append("\n");
+    			if (tableMode) {
+    				html.append("<td><b>").append(label).append("</b></td><td>").append(value).append("</td>\n");
+    			} else {
+    				html.append("<b>").append(label).append("</b>").append(value).append("\n");
+    			}
     		}
+		}
+		if (tableMode && breaky) {
+			html.append("</tr>");
 		}
 	}
 	
@@ -140,7 +167,11 @@ public abstract class PagedFormExporter extends AsyncTask<Void, String, File> im
 			Bitmap bm = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565);
 			Canvas canvas = new Canvas(bm);
 			view.draw(canvas);
-			File file = new File(activity.getCacheDir(), "page" + curPage + ".jpg");
+			File file = null;
+			if (numPages > 1)
+				file = new File(activity.getCacheDir(), "page" + curPage + ".jpg");
+			else
+				file = new File(activity.getCacheDir(), "Report_" + stamp.format(new Date()) + ".jpg");
 			OutputStream out = new FileOutputStream(file);
 			try {
 				bm.compress(CompressFormat.JPEG, 90, out);
@@ -205,7 +236,6 @@ public abstract class PagedFormExporter extends AsyncTask<Void, String, File> im
 			
 			File file = null;
 			if (pages.size() > 1) {
-				SimpleDateFormat stamp = new SimpleDateFormat("mmddyyyy_HHmm", Locale.US);
     			file = new File(activity.getCacheDir(),"CompletedReport_" + stamp.format(new Date()) + ".zip");
     			FileUtils.zipFiles(file, pages);
 			} else {

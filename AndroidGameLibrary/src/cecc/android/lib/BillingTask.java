@@ -46,12 +46,15 @@ public class BillingTask extends AsyncTask<String,Integer,Object> implements OnC
 	private final static int RESULT_OK = 0;
 
 	private final String TAG;
+	private String purchaseType = null;
 	
 	public enum Op {
 		QUERY_PURCHASABLES,
 		QUERY_PURCHASABLES_DEBUG,
+		QUERY_PROMOTION,
 		REFRESH_PURCHASED,
 		DISPLAY_PURCHASES,
+		QUERY_SUBSCRIPTION,
 		PURCHASE, // Additional param is the SKU to purchase. @see enum Purchase.sku	
 		CONSUME_TOKEN, // Internal: Consume a purchase.  Parameter to execute is the token.  Use CONSUME_SKU
 		CONSUME_SKU, // Consume a purchase.  Parameter to execute is the sku of the purchase to consume.
@@ -95,7 +98,7 @@ public class BillingTask extends AsyncTask<String,Integer,Object> implements OnC
 	
 	
 	private final static String PURCHASE_TYPE_INAPP = "inapp";
-	//private final static String PURCHASE_TYPE_SUBSCRIPTION = "subs";
+	private final static String PURCHASE_TYPE_SUBSCRIPTION = "subs";
 	
 	private String getPackageName() {
 		return activity.getPackageName();
@@ -125,18 +128,6 @@ public class BillingTask extends AsyncTask<String,Integer,Object> implements OnC
     			case QUERY_PURCHASABLES: {
     				Bundle skusBundle = new Bundle();
     				ArrayList<String> skus = new ArrayList<String>(Arrays.asList(params));
-    				
-    				/*
-    				if (activity.isSubscription()) {
-    					skus.add(Purchase.PREMIUM_REDUCED.sku);
-    				} else {
-    					skus.add(Purchase.ONEWEEK.sku);
-    					skus.add(Purchase.ONEMONTH.sku);
-    					skus.add(Purchase.PREMIUM.sku);
-    					if (BuildConfig.DEBUG) {
-    						skus.add(Purchase.TENMINUTES.sku);
-    					}
-    				}*/
     				skusBundle.putStringArrayList("ITEM_ID_LIST", skus);
     				return activity.getBilling().getSkuDetails(BILLING_API, getPackageName(), PURCHASE_TYPE_INAPP, skusBundle);
     			}
@@ -153,6 +144,13 @@ public class BillingTask extends AsyncTask<String,Integer,Object> implements OnC
     				return activity.getBilling().getSkuDetails(BILLING_API, getPackageName(), PURCHASE_TYPE_INAPP, skusBundle);
     			}
     			
+    			case QUERY_PROMOTION: {
+    				Bundle skusBundle = new Bundle();
+    				ArrayList<String> skus = new ArrayList<String>(Arrays.asList(params));
+    				skusBundle.putStringArrayList("ITEM_ID_LIST", skus);
+    				return activity.getBilling().getSkuDetails(BILLING_API, getPackageName(), PURCHASE_TYPE_SUBSCRIPTION, skusBundle);
+    			}
+    			
     			case CONSUME_SKU:
     				skusToConsume.addAll(Arrays.asList(params));
     			case DISPLAY_PURCHASES:
@@ -160,10 +158,13 @@ public class BillingTask extends AsyncTask<String,Integer,Object> implements OnC
     				return activity.getBilling().getPurchases(BILLING_API, getPackageName(), PURCHASE_TYPE_INAPP, null);
     			}
     			
+    			case QUERY_SUBSCRIPTION:
+					return activity.getBilling().getPurchases(BILLING_API, getPackageName(), PURCHASE_TYPE_SUBSCRIPTION, null);
+    			
     			case PURCHASE: {
     				String randomStr = generateRandomString();
     				activity.getPrefs().edit().putString(BillingActivity.PREF_PURCHASE_RANDOM_STRING, randomStr).commit();
-    				return activity.getBilling().getBuyIntent(3, getPackageName(), params[0], PURCHASE_TYPE_INAPP, randomStr);
+    				return activity.getBilling().getBuyIntent(3, getPackageName(), params[0], params[1], randomStr);
     			}
     		}
 		} catch (Exception e) {
@@ -195,6 +196,7 @@ public class BillingTask extends AsyncTask<String,Integer,Object> implements OnC
 			case PURCHASE:
 			case QUERY_PURCHASABLES:
 			case QUERY_PURCHASABLES_DEBUG:
+			case QUERY_PROMOTION:
 				dialog = new ProgressDialog(activity);
 				dialog.setTitle("Processing Billing Request");
 				dialog.setCancelable(false);
@@ -225,7 +227,7 @@ public class BillingTask extends AsyncTask<String,Integer,Object> implements OnC
 					activity.showAlert(R.string.popup_title_error, 
 							BuildConfig.DEBUG ? R.string.popup_msg_billing_err_argument_debug : R.string.popup_msg_billing_err_argument, getResponse(response));
 				}
-			} 
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			activity.showAlert(R.string.popup_title_error, R.string.popup_msg_billing_err_general);
@@ -314,6 +316,13 @@ public class BillingTask extends AsyncTask<String,Integer,Object> implements OnC
 		return layout;
 	}
 	
+	/**
+	 * Handle this to do something based on available skus.  BAse method does nothing
+	 * 
+	 * @param skus
+	 */
+	protected void onPurchaseOptions(List<String> skus) {}
+	
 	private void processBundle(Bundle b) throws SendIntentException, JSONException {
 		
 		int response = b.getInt("RESPONSE_CODE");
@@ -331,8 +340,13 @@ public class BillingTask extends AsyncTask<String,Integer,Object> implements OnC
 					break;
 				}
 				case QUERY_PURCHASABLES_DEBUG:
-				case QUERY_PURCHASABLES: {
+				case QUERY_PURCHASABLES: 
+					purchaseType = PURCHASE_TYPE_INAPP;
+				case QUERY_PROMOTION: {
+					if (purchaseType == null)
+						purchaseType = PURCHASE_TYPE_SUBSCRIPTION;
 					List<String[]> rows = new ArrayList<String[]>();
+					List<String> skus = new ArrayList<String>();
 					ArrayList<String> responseList = b.getStringArrayList("DETAILS_LIST");
 					Log.d(TAG, "responseList=" + responseList);
 					for (String thisResponse : responseList) {
@@ -346,7 +360,9 @@ public class BillingTask extends AsyncTask<String,Integer,Object> implements OnC
 						String desc = object.getString("description");
 						
 						rows.add(new String[] { sku, desc, price });
+						skus.add(sku);
 					}
+					onPurchaseOptions(skus);
 					if (rows.size() > 0) {
 						dialog = activity.newDialogBuilder().setTitle(R.string.popup_title_purchase_options)
 							.setView(buildPurchaseView(rows))
@@ -476,6 +492,10 @@ public class BillingTask extends AsyncTask<String,Integer,Object> implements OnC
 					
 					break;
 				}
+				
+				case QUERY_SUBSCRIPTION: {
+					break;
+				}
 			}
 		} else if (response != 1) {
 			activity.showAlert(R.string.popup_title_error, R.string.popup_msg_billing_err_general);
@@ -492,7 +512,7 @@ public class BillingTask extends AsyncTask<String,Integer,Object> implements OnC
 	public void onClick(View v) {
 		if (v.getTag() != null && v.getTag() instanceof String) {
 			String sku = (String)v.getTag();
-			new BillingTask(Op.PURCHASE, activity).execute(sku);
+			new BillingTask(Op.PURCHASE, activity).execute(sku, purchaseType);
 		}
 		if (dialog != null) {
 			dialog.dismiss();
