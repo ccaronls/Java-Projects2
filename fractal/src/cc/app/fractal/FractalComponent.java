@@ -11,8 +11,10 @@ import javax.imageio.ImageIO;
 import javax.swing.JComponent;
 
 import cc.lib.game.Justify;
+import cc.lib.game.Utils;
 import cc.lib.math.ComplexNumber;
 import cc.lib.swing.AWTGraphics;
+import cc.lib.swing.AWTUtils;
 
 /**
  * Responsible for rendering, zooming, undo/redo, publishing fractal generation progress to a listener
@@ -119,7 +121,7 @@ public class FractalComponent extends JComponent implements MouseListener, Mouse
         this.defaultZoom = defaultZoom;
         
         images[numImages++] = new FractalImage(-defaultZoom, defaultZoom, -defaultZoom, defaultZoom, colorTable.currentScale);
-
+        setPreferredSize(dim);
     }
 
     boolean canUndo() {
@@ -289,7 +291,7 @@ public class FractalComponent extends JComponent implements MouseListener, Mouse
     public ComplexNumber getConstant() {
         return this.C;
     }
-    
+    /*
     public Dimension getMaximumSize() {
         return dim;
     }
@@ -303,24 +305,31 @@ public class FractalComponent extends JComponent implements MouseListener, Mouse
     public Dimension getPreferredSize() {
         return dim;
     }
-
+*/
     private Image fractalImage = null;
     
     @Override
     public void paint(Graphics g) {
+    	
+    	float scaleX = (float)getWidth() / (float)dim.width;
+    	float scaleY = (float)getHeight() / (float)dim.height;
+    	
         if (fractalImage == null) {
             if (generator != null)
                 generator.generating = false;
             generator = new GeneratorThread();
         } else {
-            g.drawImage(fractalImage, 0, 0, null);
+//        	System.out.println("fractalImage dim = " + fractalImage.getWidth(this) + "x" + fractalImage.getHeight(this));
+            //g.drawImage(fractalImage, 0, 0, null);
+        	g.drawImage(fractalImage, 0, 0, getWidth(), getHeight(), null);
+//        	Image i = fractalImage.getScaledInstance(getWidth(), getHeight(), Image.SCALE_SMOOTH);
         }
         synchronized (this) {
             notifyAll();
         }
         if (dragging) {
             g.setColor(Color.WHITE);            
-            g.drawRect(mx0, my0, mx1-mx0, my1-my0);
+            g.drawRect(Math.round(scaleX * mx0), Math.round(scaleY * my0), Math.round(scaleX*(mx1-mx0)), Math.round(scaleY*(my1-my0)));
         }
     }
 
@@ -334,8 +343,10 @@ public class FractalComponent extends JComponent implements MouseListener, Mouse
     }
 
     public void mousePressed(MouseEvent e) {
-        mx0 = mx1 = e.getX();
-        my0 = my1 = e.getY();
+    	float scaleX = (float)dim.width / (float)getWidth();
+    	float scaleY = (float)dim.height / (float)getHeight();
+        mx0 = mx1 = Math.round(scaleX * e.getX());
+        my0 = my1 = Math.round(scaleY * e.getY());
     }
 
     public void mouseReleased(MouseEvent e) {
@@ -367,8 +378,10 @@ public class FractalComponent extends JComponent implements MouseListener, Mouse
     public void mouseDragged(MouseEvent e) {
         if (numImages < images.length-1) {
             dragging = true;
-            mx1 = e.getX();
-            my1 = e.getY();
+        	float scaleX = (float)dim.width / (float)getWidth();
+        	float scaleY = (float)dim.height / (float)getHeight();
+            mx1 = Math.round(scaleX * e.getX());
+            my1 = Math.round(scaleY * e.getY());
             int minx = Math.min(mx0, mx1);
             int miny = Math.min(my0, my1);
             int maxx = Math.max(mx0, mx1);
@@ -398,30 +411,28 @@ public class FractalComponent extends JComponent implements MouseListener, Mouse
     	final int padding = 10;
     	
         Graphics g = im.getGraphics();
-        AWTGraphics G = new AWTGraphics(g, this);
-
+//        System.out.println("G dim = " + G.getScreenHeight() + "x" + G.getScreenHeight());
+        
         FractalImage f = getLastFractalImage();
-        String str = //String.format("%s\nRect [%5.3f, %5.3f x %5.3f, %5.3f]", fractal.getDescription(), f.left, f.top, f.right, f.bottom);
-        		String.format("%s\nRect [%s, %s x %s, %s]", fractal.getDescription(), 
+        String str = String.format("%s\nRect [%s, %s x %s, %s]", fractal.getDescription(), 
         				ComplexNumber.formatDouble(f.left), 
         				ComplexNumber.formatDouble(f.top), 
         				ComplexNumber.formatDouble(f.right), 
         				ComplexNumber.formatDouble(f.bottom));
-        //G.drawJustifiedString(G.getScreenHeight()-padding, G.getScreenWidth()-padding, Justify.RIGHT, Justify.BOTTOM, str);
-        String [] lines = G.generateWrappedLines(str, G.getScreenWidth());
+        
+
+        String [] lines = AWTUtils.generateWrappedLines(g, str, WIDTH-2*padding);
         int width = 0;
         for (String l : lines) {
-        	width = (int)Math.max(width, G.getTextWidth(l));
+        	width = (int)Math.max(width, AWTUtils.getStringWidth(g, l));
         }
         width += padding;
-        int height = lines.length*G.getTextHeight() + padding;
-        G.setColor(G.BLACK.setAlpha(0.5f));
-        G.drawFilledRect(G.getScreenWidth() -width -5, G.getScreenHeight() -height -2, width, height);
+        int height = lines.length*AWTUtils.getFontHeight(g) + padding;
+        g.setColor(AWTUtils.setAlpha(Color.BLACK, 128));
+        g.fillRect(WIDTH -width -5, HEIGHT -height -2, width, height);
 
-        G.setColor(G.WHITE);
-        G.drawJustifiedString(G.getScreenHeight()-padding, G.getScreenWidth()-padding, Justify.RIGHT, Justify.BOTTOM, str);
-
-        //g.drawString(String.format("Rect [%5.3f, %5.3f x %5.3f, %5.3f]", f.left, f.top, f.right, f.bottom), x, y);
+        g.setColor(Color.WHITE);
+        AWTUtils.drawJustifiedString(g, WIDTH-padding, HEIGHT-padding, Justify.RIGHT, Justify.BOTTOM, str);
     }
     
     /**

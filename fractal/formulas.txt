@@ -1,3 +1,34 @@
+exp(asinh(Z^C)) - Z0
+exp(acosh(Z^C)) - Z0
+exp(cosh(Z^C)) - Z0
+exp(acos(Z^C)) - Z0
+exp(cos(Z^C)) - Z0
+exp(sinh(Z^C)) - Z0
+exp(asin(Z^C)) - Z0
+exp(sin(Z^C)) - Z0
+exp(sin(Z^Z0)) - C
+exp(sin(Z^Z0)) + C
+acos(ln(Z^3)) + C
+cos(ln(Z^3)) + C
+sin(ln(Z^3)) + C
+sin(exp(Z^3)) + C
+ln(sin(Z^(Z0*C)))-C
+ln(sin(Z^(Z0+C)))-C
+ln(sin(Z^(Z0+C)))+C
+ln(sin(Z^Z0))+C
+ln(cos(Z^Z0))+C
+ln(cos(Z^3))+Z0
+cos(Z^3)+Z0
+cos(Z^3)+C
+cos(Z^Z0)+C
+acosh(Z^Z0)+C
+acosh(Z^2)+Z0
+cosh(Z^2)+Z0
+cosh(Z^2)-Z0
+acos(Z^Z0)-A
+acos(Z^Z0)-Y
+acos(Z^Z0)-C
+acos(Z^Z0)-X
 acos(Z^C)-Z
 acosh(Z^C)-Z
 acosh(Z^C)-Z0
@@ -74,7 +105,6 @@ sin(ln(Z^(3*C))) + Z0 - C
 sin(ln(Z^3)) + Z0 - C
 cos(ln(Z^3)) + Z0 - C
 cos(ln(Z^3)) + Z0 + C
-cos(ln(Z^3)) + C
 cos(ln(Z^3)) + Z0
 cos(ln(Z^2)) + Z0
 cos(ln(Z^4)) + Z0
