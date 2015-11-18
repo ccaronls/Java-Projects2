@@ -114,8 +114,8 @@
     <string name="rb_plumbing">Plumbing</string>
     <string name="rb_process">Process</string>
     <string name="rb_custom">Custom</string>
-    <string name="cb_fix">Needs Fix</string>
-    <string name="cb_fixed">Fix Done</string>
+    <string name="cb_fix">Needs\nRepair</string>
+    <string name="cb_fixed">Repair\nDone</string>
     <string name="tv_hint_meta">Details</string>
     <string name="et_hint_comments">Comments</string>
     <string name="tv_date">Date</string>
@@ -127,8 +127,8 @@
     <string name="sbutton_date">Date</string>
     <string name="sbutton_project">Project</string>
     <string name="sbutton_customer">Customer</string>
-    <string name="sbutton_fix">Fix\nNeeded</string>
-    <string name="sbutton_fixed">Fix\nDone</string>
+    <string name="sbutton_fix">Repair\nNeeded</string>
+    <string name="sbutton_fixed">Repair\nDone</string>
     <string name="tv_empty_list">You dont have any Forms!\n\nPlease choose \'New Certification\' to start a new form.</string>
     <string name="row_description">DESCRIPTION</string>
     <string name="row_buy">BUY</string>

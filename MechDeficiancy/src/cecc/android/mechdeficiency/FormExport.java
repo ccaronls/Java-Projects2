@@ -47,12 +47,14 @@ public class FormExport extends PagedFormExporter {
 	
 	private void header() {
 		header("Mechanical Deficiency Report");
+		beginTable(70);
 		entry("Date:", fmt.format(form.editDate));
 		entry("Cusomter:", form.customer);
-		entry("Project", form.project);
-		entry("Location", form.location);
+		entry("Project:", form.project);
+		entry("Location:", form.location);
 		entry("Representative:", form.representative);
 		entry("Plan:", form.plan, "Type:", form.type);
+		endTable();
 	}
 	
 	private void commentsPage() {

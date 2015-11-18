@@ -27,12 +27,14 @@ public class BaseActivity extends BillingActivity implements OnClickListener {
 
 	final String TAG = getClass().getSimpleName();
 	
+	public final static boolean SUBSCRIPTION_ONLY = true;
+	
 	public final static String INTENT_FORM = "iFORM";
 	public final static String INTENT_FULL_NAME_STRING = "iFULL_NAME";
 	public final static String INTENT_BITMAP_FILE = "iBITMAP_FILE";
 	public final static String INTENT_ERROR = "iERROR";
 	
-	private final static boolean INAPP_ENABLED = true;//!BuildConfig.DEBUG;
+	private final static boolean INAPP_ENABLED = !BuildConfig.DEBUG;
 	
 	static SimpleDateFormat dateFormat = new SimpleDateFormat("E M/d/yy h:mm a", Locale.US); 
 
@@ -245,7 +247,6 @@ public class BaseActivity extends BillingActivity implements OnClickListener {
     				expireTime = cal.getTime();
     				break;
     			case TENMINUTES:
-    				cal.setTimeInMillis(purchaseTime);
     				cal.add(Calendar.MINUTE, 10);
     				expireTime = cal.getTime();
     				break;
@@ -337,22 +338,42 @@ public class BaseActivity extends BillingActivity implements OnClickListener {
 	}
 	
 	protected String [] getPurchasableSkus() {
-		String [] skus = null;
-		if (isSubscription()) {
-			skus = new String[] { Purchase.PREMIUM_REDUCED.sku };
-		} else if (BuildConfig.DEBUG){
-			skus = new String[] {
-					Purchase.ONEWEEK.sku,
-					Purchase.ONEMONTH.sku,
-					Purchase.PREMIUM.sku,
-					Purchase.TENMINUTES.sku
-			};
+		String [] skus = new String[0];
+		if (SUBSCRIPTION_ONLY) {
+			if (BuildConfig.DEBUG){
+    			skus = new String[] {
+    					Purchase.ONEWEEK.sku,
+    					Purchase.ONEMONTH.sku,
+    					Purchase.ONEYEAR.sku,
+    					Purchase.TENMINUTES.sku
+    			};
+    		} else {
+    			skus = new String[] {
+    					Purchase.ONEWEEK.sku,
+    					Purchase.ONEMONTH.sku,
+    					Purchase.ONEYEAR.sku,
+    			};
+    		}
+			
 		} else {
-			skus = new String[] {
-					Purchase.ONEWEEK.sku,
-					Purchase.ONEMONTH.sku,
-					Purchase.PREMIUM.sku,
-			};
+    		if (isSubscription()) {
+    			skus = new String[] { Purchase.PREMIUM_REDUCED.sku };
+    		} else if (BuildConfig.DEBUG){
+    			skus = new String[] {
+    					Purchase.ONEWEEK.sku,
+    					Purchase.ONEMONTH.sku,
+    					Purchase.ONEYEAR.sku,
+    					Purchase.PREMIUM.sku,
+    					Purchase.TENMINUTES.sku
+    			};
+    		} else {
+    			skus = new String[] {
+    					Purchase.ONEWEEK.sku,
+    					Purchase.ONEMONTH.sku,
+    					Purchase.ONEYEAR.sku,
+    					Purchase.PREMIUM.sku,
+    			};
+    		}
 		}
 		return skus;
 	}

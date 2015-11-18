@@ -396,12 +396,14 @@ public class DBHelper extends SQLiteOpenHelper {
 		Cursor c = getReadableDatabase().rawQuery("SELECT * FROM " + TABLE_IMAGE + " WHERE " + ImageColumn.FORM.name() + " = ?", new String[] { String.valueOf(form.id) });
 		Log.d(TAG, "loaded " + c.getCount() + " images for form " + form.id);
 		if (c.moveToFirst()) {
-			Image image = new Image();
-			for (ImageColumn col : ImageColumn.values()) {
-				col.setField(image, c);
-			}
-			Log.d(TAG, "loaded image: " + image);
-			form.images.add(image);
+			do {
+    			Image image = new Image();
+    			for (ImageColumn col : ImageColumn.values()) {
+    				col.setField(image, c);
+    			}
+    			Log.d(TAG, "loaded image: " + image);
+    			form.images.add(image);
+			} while (c.moveToNext());
 		}
 	}
 	
