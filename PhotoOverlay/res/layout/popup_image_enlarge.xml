@@ -1,22 +1,65 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="wrap_content"
+<LinearLayout android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:orientation="vertical" >
+    android:orientation="vertical" 
+    xmlns:cc="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <ImageView
-        android:id="@+id/ivPhoto"
-        android:layout_width="400dp"
-        android:layout_height="400dp"
-        android:scaleType="centerCrop"
-        android:src="@android:drawable/btn_minus" />
-    
-    <EditText
-        style="@style/edittext"
-        android:id="@+id/etMeta"
+    <cc.lib.android.SquareLinearLayout
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:minLines="2"
-        android:hint="@string/labelImageMeta"/>
+        cc:dominantSide="height_matches_width">
+        
+	    <ImageView
+	        android:id="@+id/ivPhoto"
+	        android:layout_width="fill_parent"
+	        android:layout_height="fill_parent"
+	        android:scaleType="centerCrop"
+	        android:src="@android:drawable/btn_minus" />
+    </cc.lib.android.SquareLinearLayout>    
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="70dp" >
+
+        <EditText
+            android:id="@+id/etMetaDegrees"
+            style="@style/edittext"
+            android:layout_width="wrap_content"
+            android:layout_height="fill_parent"
+            android:hint="70"
+            android:inputType="none"
+            android:clickable="false" 
+            android:cursorVisible="false" 
+            android:focusable="false" 
+            android:focusableInTouchMode="false"/>
+        
+        <LinearLayout
+            android:id="@+id/layoutTempAdjustment"
+            android:layout_width="wrap_content"
+            android:layout_height="fill_parent"
+            android:orientation="vertical">
+            <Button
+                android:layout_width="40dp"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:id="@+id/buttonTempUp"
+                android:text="+"/>
+            <Button
+                android:layout_width="40dp"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:id="@+id/buttonTempDown"
+                android:text="-"/>
+        </LinearLayout>
+        
+	    <EditText
+	        android:id="@+id/etMeta"
+	        style="@style/edittext"
+	        android:layout_width="fill_parent"
+	        android:layout_height="fill_parent"
+	        android:layout_gravity="top"
+	        android:hint="@string/labelImageMeta" />
+    
+    </LinearLayout>
 
 </LinearLayout>

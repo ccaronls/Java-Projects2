@@ -1,4 +1,4 @@
-package cc.android.photooverlay;
+	package cc.android.photooverlay;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -8,11 +8,11 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-import cc.android.photooverlay.BillingTask.Op;
 import cc.lib.android.EmailHelper;
 import cc.lib.android.SortButtonGroup;
 import cc.lib.android.SortButtonGroup.OnSortButtonListener;
 import cc.lib.utils.FileUtils;
+import cecc.android.lib.BillingTask;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -21,12 +21,14 @@ import android.content.pm.PackageManager.NameNotFoundException;
 import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.text.InputFilter;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebView;
 import android.widget.CompoundButton;
 import android.widget.CursorAdapter;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -112,7 +114,7 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
     					
     					@Override
     					public void onClick(DialogInterface dialog, int which) {
-    						new BillingTask(Op.QUERY_PURCHASABLES, getActivity()).execute();
+    						new BillingTask(BillingTask.Op.QUERY_PURCHASABLES, getActivity()).execute(getPurchasableSkus());
     					}
     				}).show();
 		}		
@@ -368,23 +370,40 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
 					}
 					
 					case 4: { // Purchases
-						new BillingTask(Op.DISPLAY_PURCHASES, getActivity()).execute();
+						new BillingTask(BillingTask.Op.DISPLAY_PURCHASES, getActivity()).execute();
 						break;
 					}
 					
 					case 5: { // Upgrade
-						new BillingTask(Op.QUERY_PURCHASABLES, getActivity()).execute();
+						new BillingTask(BillingTask.Op.QUERY_PURCHASABLES, getActivity()).execute(getPurchasableSkus());
 						break;
 					}
 					
-					case 6: { // Purchases DEBUG
-						new BillingTask(Op.QUERY_PURCHASABLES_DEBUG, getActivity()).execute();
+					case 6: { // Redeem
+						final EditText et = new EditText(getActivity());
+						InputFilter [] filters = {
+								new InputFilter.LengthFilter(32)
+						};
+						et.setFilters(filters);
+						newDialogBuilder().setTitle(R.string.popup_title_redeem).setView(et).setNegativeButton(R.string.popup_button_cancel, null)
+							.setPositiveButton(R.string.popup_button_redeem, new DialogInterface.OnClickListener() {
+								
+								@Override
+								public void onClick(DialogInterface dialog, int which) {
+									new BillingTask(BillingTask.Op.QUERY_PROMOTION, getActivity()).execute(et.getText().toString().trim());
+								}
+							}).show();
 						break;
 					}
 					
-					case 7: {
+					case 7: { // Purchases DEBUG
+						new BillingTask(BillingTask.Op.QUERY_PURCHASABLES_DEBUG, getActivity()).execute();
+						break;
+					}
+					
+					case 8: {
 						clearPurchaseData();
-						new BillingTask(Op.REFRESH_PURCHASED, getActivity()).execute();
+						new BillingTask(BillingTask.Op.REFRESH_PURCHASED, getActivity()).execute();
 						break;
 					}
 				}

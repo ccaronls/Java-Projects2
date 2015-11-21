@@ -3,6 +3,8 @@ package cc.android.photooverlay;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.util.Date;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -18,11 +20,14 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.text.Html;
+import android.text.SpannedString;
 import android.util.Log;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
+import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -186,14 +191,14 @@ public class FormEdit extends BaseActivity implements OnCheckedChangeListener {
 				finish();
 				break;
 			case R.id.ibImage1:
-				editImage(0);
+				editImage(0, false);
 				break;
 			case R.id.ibImage2:
-				editImage(1);
+				editImage(1, false);
 				break;
 			case R.id.ibImage3:
 				if (isPremiumEnabled(true))
-					editImage(2);
+					editImage(2, false);
 				break;
 		}
 	}
@@ -204,13 +209,58 @@ public class FormEdit extends BaseActivity implements OnCheckedChangeListener {
 		super.onBackPressed();
 	}
 	
-	private void editImage(final int index) {
+	private void editImage(final int index, boolean tempEditable) {
 		if (form.imagePath[index] != null) {
 			
 			View view = View.inflate(getActivity(), R.layout.popup_image_enlarge, null);
 			ImageView iv = (ImageView)view.findViewById(R.id.ivPhoto);
-			final EditText et = (EditText)view.findViewById(R.id.etMeta);
-			et.setText(form.imageMeta[index]);
+			final EditText etNotes = (EditText)view.findViewById(R.id.etMeta);
+			final EditText etTemp = (EditText)view.findViewById(R.id.etMetaDegrees);
+			String notes = form.imageMeta[index];
+			String temp = "70";
+			
+			if (notes != null) {
+				Pattern p = Pattern.compile("^\\-?[0-9]+");
+				String s = Html.fromHtml(notes).toString();
+				Matcher m = p.matcher(s);
+				if (m.find()) {
+					temp = m.group();
+				}
+			}
+			
+			if (tempEditable) {
+				if (isAmbientTempAvailable()) {
+					temp = String.valueOf(convertCelciusToFahrenheit(getAmbientTempCelcius()));
+				}
+				final int [] tempInt = new int[] { Integer.parseInt(temp) };
+    			view.findViewById(R.id.buttonTempUp).setOnClickListener(new OnClickListener() {
+					@Override
+					public void onClick(View v) {
+						tempInt[0]++;
+						etTemp.setText(Html.fromHtml("" + tempInt[0] + "&deg;"));
+					}
+				});
+    			view.findViewById(R.id.buttonTempDown).setOnClickListener(new OnClickListener() {
+					@Override
+					public void onClick(View v) {
+						tempInt[0]--;
+						etTemp.setText(Html.fromHtml("" + tempInt[0] + "&deg;"));
+					}
+				});
+			} else {
+				view.findViewById(R.id.layoutTempAdjustment).setVisibility(View.GONE);
+			}
+			
+			etTemp.setText(Html.fromHtml(temp + "&deg;"));
+			if (notes != null) {
+				String s = Html.fromHtml(notes).toString();
+				int spc = s.indexOf(' ');
+				if (spc > 0) {
+					String note = s.substring(spc+1);
+					etNotes.setText(note);
+				}
+			}
+
 			iv.setImageURI(Uri.fromFile(new File(getImagesPath(), form.imagePath[index])));
 			newDialogBuilder()
 				.setView(view)
@@ -218,8 +268,9 @@ public class FormEdit extends BaseActivity implements OnCheckedChangeListener {
 					
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
-						form.imageMeta[index] = Html.toHtml(et.getText());
-						tvImageMeta[index].setText(Html.fromHtml(et.getText().toString()));
+						SpannedString str = new SpannedString(etTemp.getText() + " " + etNotes.getText());
+						form.imageMeta[index] = Html.toHtml(str);
+						tvImageMeta[index].setText(Html.fromHtml(str.toString()));
 					}
 				})
 				.setPositiveButton(R.string.popup_button_change, new DialogInterface.OnClickListener() {
@@ -385,13 +436,7 @@ public class FormEdit extends BaseActivity implements OnCheckedChangeListener {
 					bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
 					ibImage[index].setImageBitmap(bitmap);
 					form.imagePath[index] = destFile.getName();
-					if (form.imageMeta[index] == null) {
-						//form.imageMeta[index] = getDateFormatter().format(new Date());
-						if (isAmbientTempAvailable()) {
-							form.imageMeta[index] = convertCelciusToFahrenheit(getAmbientTempCelcius()) + "&deg;";
-						}
-					}
-					editImage(index);
+					editImage(index, true);
 					
 				} finally {
 					out.close();
@@ -408,7 +453,7 @@ public class FormEdit extends BaseActivity implements OnCheckedChangeListener {
 		Paint paint = new Paint();
 		paint.setColor(Color.WHITE);
 		paint.setTextAlign(Align.LEFT);
-		paint.setTextSize(20);
+		paint.setTextSize(48);
 		canvas.drawText(text, 2, canvas.getHeight()-2, paint);
 	}
 

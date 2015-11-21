@@ -12,9 +12,9 @@ import java.util.Locale;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import cc.android.photooverlay.BillingTask.Op;
-import cc.android.photooverlay.BillingTask.Purchase;
 import cc.lib.android.CCActivityBase;
+import cecc.android.lib.BillingActivity;
+import cecc.android.lib.BillingTask;
 
 import com.android.vending.billing.IInAppBillingService;
 
@@ -39,8 +39,10 @@ import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 
-public class BaseActivity extends CCActivityBase implements OnClickListener {
+public class BaseActivity extends BillingActivity implements OnClickListener {
 
+	public final static boolean SUBSCRIPTION_ONLY = true;
+	
 	final String TAG = getClass().getSimpleName();
 	
 	public final static String INTENT_FORM = "iFORM";
@@ -58,7 +60,8 @@ public class BaseActivity extends CCActivityBase implements OnClickListener {
 		return dateFormat;
 	}
 	
-	final AlertDialog.Builder newDialogBuilder() {
+	@Override
+	public final AlertDialog.Builder newDialogBuilder() {
 		return new AlertDialog.Builder(this, R.style.DialogTheme);
 	}
 	
@@ -299,6 +302,72 @@ public class BaseActivity extends CCActivityBase implements OnClickListener {
 						.remove(PREF_PURCHASE_SKU).commit();
 	}
 	
+	public enum Purchase {
+		PREMIUM("premium"),
+		PREMIUM_REDUCED("premium.reduced"), // available only while weekly or monthly subscription is active.
+		ONEMONTH("onemonth"),
+		ONEWEEK("oneweek"),
+		ONEYEAR("oneyear"),
+		TENMINUTES("ten.mins.debug") // DEBUG ONLY
+		;
+		
+		public static Purchase getPurchaseFromSku(String sku) {
+			for (Purchase p : values()) {
+				if (sku.equals(p.sku))
+					return p;
+			}
+			return null;
+		}
+		
+		
+		private Purchase(String sku) {
+			this.sku = sku;
+		}
+		
+		final String sku;
+	}	
+	
+	protected String [] getPurchasableSkus() {
+		String [] skus = new String[0];
+		if (SUBSCRIPTION_ONLY) {
+			if (BuildConfig.DEBUG){
+    			skus = new String[] {
+    					Purchase.ONEWEEK.sku,
+    					Purchase.ONEMONTH.sku,
+    					Purchase.ONEYEAR.sku,
+    					Purchase.TENMINUTES.sku
+    			};
+    		} else {
+    			skus = new String[] {
+    					Purchase.ONEWEEK.sku,
+    					Purchase.ONEMONTH.sku,
+    					Purchase.ONEYEAR.sku,
+    			};
+    		}
+			
+		} else {
+    		if (isSubscription()) {
+    			skus = new String[] { Purchase.PREMIUM_REDUCED.sku };
+    		} else if (BuildConfig.DEBUG){
+    			skus = new String[] {
+    					Purchase.ONEWEEK.sku,
+    					Purchase.ONEMONTH.sku,
+    					Purchase.ONEYEAR.sku,
+    					Purchase.PREMIUM.sku,
+    					Purchase.TENMINUTES.sku
+    			};
+    		} else {
+    			skus = new String[] {
+    					Purchase.ONEWEEK.sku,
+    					Purchase.ONEMONTH.sku,
+    					Purchase.ONEYEAR.sku,
+    					Purchase.PREMIUM.sku,
+    			};
+    		}
+		}
+		return skus;
+	}
+		
 	public void finalizePurchase(String sku, long purchaseTime) {
 		Calendar cal = Calendar.getInstance();
 		cal.setTimeInMillis(purchaseTime);
@@ -324,7 +393,6 @@ public class BaseActivity extends CCActivityBase implements OnClickListener {
     				expireTime = cal.getTime();
     				break;
     			case TENMINUTES:
-    				cal.setTimeInMillis(purchaseTime);
     				cal.add(Calendar.MINUTE, 10);
     				expireTime = cal.getTime();
     				break;
@@ -335,12 +403,17 @@ public class BaseActivity extends CCActivityBase implements OnClickListener {
     				edit.putLong(PREF_PREMIUM_EXPIRE_TIME_LONG, expireTime.getTime());
         			SimpleDateFormat fmt = new SimpleDateFormat("EEEE MMMM dd", Locale.US);
         			showAlert(R.string.popup_title_purchase_complete, R.string.popup_msg_subscription_activiated, fmt.format(expireTime));
+    			} else {
+    				return;
     			}
     		} else {
     			edit.remove(PREF_PREMIUM_EXPIRE_TIME_LONG);
     			showAlert(R.string.popup_title_purchase_complete, R.string.popup_msg_premium_permanently_unlocked);
     		}
     		edit.commit();
+		} else {
+			// this is a promo
+			
 		}
 	}
 
@@ -357,7 +430,7 @@ public class BaseActivity extends CCActivityBase implements OnClickListener {
 			
 			if (expireTime < System.currentTimeMillis()) {
     			String sku = getPrefs().getString(PREF_PURCHASE_SKU, "");
-    			new BillingTask(Op.CONSUME_SKU, getActivity()).execute(sku);
+    			new BillingTask(BillingTask.Op.CONSUME_SKU, getActivity()).execute(sku);
     			getPrefs().edit().remove(PREF_PREMIUM_UNLOCKED_BOOL)
     				.remove(PREF_PREMIUM_EXPIRE_TIME_LONG)
     				.remove(PREF_PURCHASE_SKU).commit();
@@ -370,7 +443,7 @@ public class BaseActivity extends CCActivityBase implements OnClickListener {
         					
         					@Override
         					public void onClick(DialogInterface dialog, int which) {
-        						new BillingTask(Op.QUERY_PURCHASABLES, getActivity()).execute();
+        						new BillingTask(BillingTask.Op.QUERY_PURCHASABLES, getActivity()).execute(getPurchasableSkus());
         					}
         				}).show();
     			}
@@ -422,7 +495,7 @@ public class BaseActivity extends CCActivityBase implements OnClickListener {
 				@Override
 				public void onClick(DialogInterface dialog, int which) {
 					dialog.dismiss();
-					new BillingTask(Op.QUERY_PURCHASABLES, BaseActivity.this).execute();
+					new BillingTask(BillingTask.Op.QUERY_PURCHASABLES, BaseActivity.this).execute(getPurchasableSkus());
 				}
 			}).show();
 	}

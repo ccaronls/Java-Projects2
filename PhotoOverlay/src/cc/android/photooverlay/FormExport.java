@@ -36,8 +36,9 @@ public class FormExport extends PagedFormExporter {
 		} else if (pageNum == 1 && hasCommentsPage) {
 			commentsPage();
 		} else {
-			signaturesPage(signatures, (pageNum-(hasCommentsPage ? 2 : 1))*3, pageNum);
+			signaturesPage(signatures, (pageNum-(hasCommentsPage ? 2 : 1))*3);
 		}
+		Log.d("HTML Page " + pageNum, html.toString());
 	}
 
 	@Override
@@ -47,13 +48,15 @@ public class FormExport extends PagedFormExporter {
 	
 	private void header() {
 		header("Pressure Test Report");
+		beginTable(70);
 		entry("Date:", fmt.format(form.editDate));
 		entry("Cusomter:", form.customer);
-		entry("Project", form.project);
-		entry("System", form.system);
-		entry("Location", form.location);
+		entry("Project:", form.project);
+		entry("System:", form.system);
+		entry("Location:", form.location);
 		entry("Inspector:", form.inspector);
 		entry("Plan:", form.plan, "Spec:", form.spec, "Type:", form.type);
+		endTable();
 	}
 	
 	private void commentsPage() {
@@ -97,10 +100,9 @@ public class FormExport extends PagedFormExporter {
 		}
 		html.append("</tr></table>\n");
 		end();
-		Log.d("HTML Page 1", html.toString());
 	}
 
-	private void signaturesPage(Signature [] signatures, int offset, int page) {
+	private void signaturesPage(Signature [] signatures, int offset) {
 		start();
 		header();
 		
@@ -119,7 +121,6 @@ public class FormExport extends PagedFormExporter {
 			html.append("</br><img width=\"512\" src=\"").append(uri.toString()).append("\">\n");
 		}
 		end();
-		Log.d("HTML Page " + page, html.toString());
 	}
 
 	
