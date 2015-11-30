@@ -4,6 +4,7 @@ import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+import cc.lib.android.R;
 import cc.lib.utils.FileUtils;
 import android.app.Activity;
 import android.app.ProgressDialog;
@@ -14,7 +15,12 @@ import android.graphics.Canvas;
 import android.graphics.Bitmap.CompressFormat;
 import android.graphics.Picture;
 import android.os.AsyncTask;
+import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.View;
+import android.view.View.MeasureSpec;
+import android.webkit.WebSettings.LayoutAlgorithm;
+import android.webkit.WebSettings.ZoomDensity;
 import android.webkit.WebView;
 import android.webkit.WebView.PictureListener;
 import android.webkit.WebViewClient;
@@ -25,10 +31,10 @@ public abstract class PagedFormExporter extends AsyncTask<Void, String, File> im
 	
 	private final String TAG = getClass().getSimpleName();
 	
-	private final int width = 1600;
-	private final int height = 1600*22/17;
-	protected final Activity activity; 
-	SimpleDateFormat stamp = new SimpleDateFormat("mmddyyyy_HHmm", Locale.US);
+	private final int width = 1600;//R.dimen.paged_webview_width;
+	private final int height = width * 22 / 17; // height uses aspect ratio 8.5 x 11
+	private final Activity activity; 
+	private final SimpleDateFormat stamp = new SimpleDateFormat("mmddyyyy_HHmm", Locale.US);
 	protected final StringBuffer html = new StringBuffer();
 	private int numPages;
 	private final List<File> pages = new ArrayList<File>();
@@ -63,17 +69,31 @@ public abstract class PagedFormExporter extends AsyncTask<Void, String, File> im
     		if (state == 1)
     			state = 2;
     	}
+
+		@Override
+		public void onScaleChanged(WebView view, float oldScale, float newScale) {
+			Log.d(TAG, "scale changed from " + oldScale + " too " + newScale);
+			super.onScaleChanged(view, oldScale, newScale);
+		}
+    	
+    	
 	};
 
 	public PagedFormExporter(Activity activity, Signature [] signatures) {
 		this.activity = activity;
 		this.signatures = signatures;
+		//View v = View.inflate(activity, R.layout.paged_form_webview, null);
 		wv = new WebView(activity);
-		LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(width, height);
-		wv.setLayoutParams(params);
-		wv.layout(0, 0, width, height);
 		wv.setWebViewClient(webClient);
+		//wv.setScaleX(1);
+		//wv.setScaleY(1);
 		wv.setPictureListener(this);
+		wv.getSettings().setLayoutAlgorithm(LayoutAlgorithm.NORMAL);
+		wv.getSettings().setUseWideViewPort(true);
+		wv.getSettings().setSupportZoom(false);
+		wv.setAnimation(null);
+		wv.setInitialScale(Math.round(activity.getResources().getDisplayMetrics().density * 100));
+		wv.getSettings().setTextZoom(Math.round(100f / activity.getResources().getDisplayMetrics().density));
 	}
 
 	protected final void setNumPages(int numPages) {
@@ -81,8 +101,25 @@ public abstract class PagedFormExporter extends AsyncTask<Void, String, File> im
 	}
 	
 	protected final void start() {
+		DisplayMetrics dm = activity.getResources().getDisplayMetrics();
+		Log.d(TAG, "display metrics density=" + dm.density + " dpi=" + dm.densityDpi + " hgt=" + dm.heightPixels + " scaled=" + dm.scaledDensity + " width=" + dm.widthPixels + " xdpi=" + dm.xdpi + " ydpi=" + dm.ydpi);
 		html.setLength(0);
-		html.append("<html><head></head><body>\n");
+		html.append(
+				"<html>\n" +
+				"<head>\n" +
+				"<meta name=\"viewport\" content=\"width=" + width + ", initial-scale=1\">\n" + 
+				"<style>\n" +
+				"body { font-size:36px; }\n" +
+				"h1 { text-align:center; white-space: nowrap; font-size:72px; }\n" +
+				"h2 { font-size:60px; }\n" +
+				"h3 { font-size:48px; }\n" +
+				"h4 { font-size:48px; }\n" +
+				"td { font-size:48px; white-space: nowrap; }\n" +
+				"table { table-layout:auto; }\n" +
+				"</style>\n" +
+				"</head>\n" +
+				"<body>\n"
+				);
 	}
 	
 	protected final void end() {
@@ -97,14 +134,18 @@ public abstract class PagedFormExporter extends AsyncTask<Void, String, File> im
 	
 	protected void beginTable(int width) {
 		if (!tableMode) {
-			html.append("<br/><table style=\"width:").append(width).append("%\">");
+			if (width > 0) {
+				html.append("<br/>\n<table style=\"width:").append(width).append("%\">\n");
+			} else {
+				html.append("<br/>\n<table>\n");
+			}
 			tableMode = true;
 		}
 	}
 	
 	protected void endTable() {
 		if (tableMode) {
-			html.append("</table>");
+			html.append("</table>\n");
 			tableMode = false;
 		}
 	}
@@ -136,9 +177,9 @@ public abstract class PagedFormExporter extends AsyncTask<Void, String, File> im
 	}
 	
 	protected final void header(String title) {
-		html.append("<h1>").append(title).append("</h1>");
+		html.append("<h1>").append(title).append("</h1>\n");
 		if (numPages > 1) {
-			html.append("</br>Page ").append(curPage).append(" of ").append(numPages);
+			html.append("</br>Page ").append(curPage).append(" of ").append(numPages).append("\n");
 		}
 	}
 	
@@ -156,6 +197,53 @@ public abstract class PagedFormExporter extends AsyncTask<Void, String, File> im
 		htmlFile.delete();
 	}
 	
+	/**
+     * Draw the view into a bitmap.
+     */
+    private Bitmap getViewBitmap(View v) {
+    	
+		int specWidth = MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY);
+		int specHeight = MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY);
+		wv.measure(specWidth, specHeight);
+		wv.layout(0, 0, width, height);
+
+		Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565);
+		Canvas canvas = new Canvas(bitmap);
+		wv.draw(canvas);
+/*		
+        v.clearFocus();
+        v.setPressed(false);
+
+        boolean willNotCache = v.willNotCacheDrawing();
+        v.setWillNotCacheDrawing(false);
+
+        // Reset the drawing cache background color to fully transparent
+        // for the duration of this operation
+        int color = v.getDrawingCacheBackgroundColor();
+        v.setDrawingCacheBackgroundColor(0);
+
+        if (color != 0) {
+            v.destroyDrawingCache();
+        }
+        v.buildDrawingCache();
+        Bitmap cacheBitmap = v.getDrawingCache();
+        if (cacheBitmap == null) {
+            Log.e(TAG, "failed getViewBitmap(" + v + ")", new RuntimeException());
+            return null;
+        }
+
+        Bitmap bitmap = Bitmap.createBitmap(cacheBitmap);
+
+        // Restore the view
+        v.destroyDrawingCache();
+        v.setWillNotCacheDrawing(willNotCache);
+        v.setDrawingCacheBackgroundColor(color);
+*/
+        Log.d(TAG, "Bitmap dim out= "+ bitmap.getWidth() + "x" + bitmap.getHeight());
+        
+        return bitmap;
+    }
+    
 	@Override
 	public final void onNewPicture(WebView view, Picture picture) {
 		if (state != 2)
@@ -164,9 +252,11 @@ public abstract class PagedFormExporter extends AsyncTask<Void, String, File> im
 		long t = System.currentTimeMillis();
 		Log.d(TAG, "Generating page image");
 		try {
-			Bitmap bm = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565);
-			Canvas canvas = new Canvas(bm);
-			view.draw(canvas);
+			//Bitmap bm = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565);
+			//Canvas canvas = new Canvas(bm);
+			//view.draw(canvas);
+			Bitmap bm = getViewBitmap(wv);
+			Log.d(TAG, "bitmap dim = " + bm.getWidth() + " x " + bm.getHeight());
 			File file = null;
 			if (numPages > 1)
 				file = new File(activity.getCacheDir(), "page" + curPage + ".jpg");
@@ -206,7 +296,6 @@ public abstract class PagedFormExporter extends AsyncTask<Void, String, File> im
 	protected final void onPostExecute(File result) {
 		dialog.dismiss();
 		if (result != null) {
-    		//EmailHelper.sendEmail(activity, result, null, activity.getString(R.string.emailSubjectSignedPTCform), activity.getString(R.string.email_body_signed_form));
 			onEmailAttachmentReady(result);
 		}
 	}
@@ -254,5 +343,17 @@ public abstract class PagedFormExporter extends AsyncTask<Void, String, File> im
 	public final void onCancel(DialogInterface dialog) {
 		this.cancel(true);
 		dialog.dismiss();
+	}
+	
+	protected final Activity getActivity() {
+		return activity;
+	}
+	
+	protected final int getWidth() {
+		return width;
+	}
+	
+	protected final int getHeight() {
+		return height;
 	}
 }
