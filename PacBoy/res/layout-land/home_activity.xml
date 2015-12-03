@@ -23,6 +23,7 @@
 	        android:orientation="vertical">
 	        
 	        <Button
+                style="@style/HomeButtonStyle"
 	            android:id="@+id/buttonSmallEasy" 
 	            android:layout_width="fill_parent"
 	            android:layout_weight="1"
@@ -30,6 +31,7 @@
 	            android:text="Small\nEasy"/>
 	        
 	        <Button
+	            style="@style/HomeButtonStyle"
 	            android:id="@+id/buttonSmallHard" 
                 android:layout_width="fill_parent"
                 android:layout_weight="1"
@@ -45,6 +47,7 @@
             android:orientation="vertical">
 	        
 	        <Button
+                style="@style/HomeButtonStyle"
 	            android:id="@+id/buttonMedEasy" 
                 android:layout_width="fill_parent"
                 android:layout_weight="1"
@@ -52,6 +55,7 @@
 	            android:text="Medium\nEasy"/>
 	        
 	        <Button
+                style="@style/HomeButtonStyle"
 	            android:id="@+id/buttonMedHard"
                 android:layout_width="fill_parent"
                 android:layout_weight="1"
@@ -67,6 +71,7 @@
             android:orientation="vertical">
 	        
 	        <Button
+                style="@style/HomeButtonStyle"
 	            android:id="@+id/buttonLargeEasy" 
                 android:layout_width="fill_parent"
                 android:layout_weight="1"
@@ -74,6 +79,7 @@
 	            android:text="Large\nEasy"/>
 	        
 	        <Button
+                style="@style/HomeButtonStyle"
 	            android:id="@+id/buttonLargeHard" 
                 android:layout_width="fill_parent"
                 android:layout_weight="1"

@@ -40,34 +40,34 @@ public class HomeActivity extends CCActivityBase implements OnClickListener {
 		Intent i = new Intent(this, PacBoyActivity.class);
 		switch (v.getId()) {
 			case R.id.buttonSmallEasy:
-				i.putExtra("width", 6);
-				i.putExtra("height", 4);
-				i.putExtra("hard", false);
+				i.putExtra(PacBoyActivity.INTENT_EXTRA_INT_WIDTH, 6);
+				i.putExtra(PacBoyActivity.INTENT_EXTRA_INT_HEIGHT, 4);
+				i.putExtra(PacBoyActivity.INTENT_EXTRA_INT_DIFFUCULTY, 0);
 				break;
 			case R.id.buttonSmallHard:
-				i.putExtra("width", 6);
-				i.putExtra("height", 4);
-				i.putExtra("hard", true);
+				i.putExtra(PacBoyActivity.INTENT_EXTRA_INT_WIDTH, 6);
+				i.putExtra(PacBoyActivity.INTENT_EXTRA_INT_HEIGHT, 4);
+				i.putExtra(PacBoyActivity.INTENT_EXTRA_INT_DIFFUCULTY, 1);
 				break;
 			case R.id.buttonMedEasy:
-				i.putExtra("width", 10);
-				i.putExtra("height", 6);
-				i.putExtra("hard", false);
+				i.putExtra(PacBoyActivity.INTENT_EXTRA_INT_WIDTH, 10);
+				i.putExtra(PacBoyActivity.INTENT_EXTRA_INT_HEIGHT, 6);
+				i.putExtra(PacBoyActivity.INTENT_EXTRA_INT_DIFFUCULTY, 0);
 				break;
 			case R.id.buttonMedHard:
-				i.putExtra("width", 10);
-				i.putExtra("height", 6);
-				i.putExtra("hard", true);
+				i.putExtra(PacBoyActivity.INTENT_EXTRA_INT_WIDTH, 10);
+				i.putExtra(PacBoyActivity.INTENT_EXTRA_INT_HEIGHT, 6);
+				i.putExtra(PacBoyActivity.INTENT_EXTRA_INT_DIFFUCULTY, 1);
 				break;
 			case R.id.buttonLargeEasy:
-				i.putExtra("width", 16);
-				i.putExtra("height", 10);
-				i.putExtra("hard", false);
+				i.putExtra(PacBoyActivity.INTENT_EXTRA_INT_WIDTH, 16);
+				i.putExtra(PacBoyActivity.INTENT_EXTRA_INT_HEIGHT, 10);
+				i.putExtra(PacBoyActivity.INTENT_EXTRA_INT_DIFFUCULTY, 0);
 				break;
 			case R.id.buttonLargeHard:
-				i.putExtra("width", 16);
-				i.putExtra("height", 10);
-				i.putExtra("hard", true);
+				i.putExtra(PacBoyActivity.INTENT_EXTRA_INT_WIDTH, 16);
+				i.putExtra(PacBoyActivity.INTENT_EXTRA_INT_HEIGHT, 10);
+				i.putExtra(PacBoyActivity.INTENT_EXTRA_INT_DIFFUCULTY, 0);
 				break;
 		}
 		startActivity(i);

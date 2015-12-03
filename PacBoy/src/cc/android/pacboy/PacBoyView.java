@@ -9,7 +9,7 @@ import android.view.SurfaceHolder;
 public class PacBoyView extends GLSurfaceView {
 
 	private PacBoyRenderer pb;
-	
+
 	private void initView() {
 		if (!isInEditMode()) {
 			setRenderer(pb = new PacBoyRenderer(this));
@@ -42,9 +42,17 @@ public class PacBoyView extends GLSurfaceView {
 		pb.setPaused(paused);
     }
 
-	public void initMaze(int width, int height, boolean hard) {
-		pb.newMaze(width, height, hard);
+	public void initMaze(int width, int height, int difficulty) {
+		pb.newMaze(width, height, difficulty);
 	}
 
+	public int getScore() {
+		return pb.getScore();
+	}
+	
+	@Override
+	public boolean performClick() {
+		return super.performClick();
+	}
 	
 }
