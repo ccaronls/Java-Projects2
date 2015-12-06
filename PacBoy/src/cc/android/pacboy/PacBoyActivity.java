@@ -1,6 +1,7 @@
 package cc.android.pacboy;
 
 import android.os.Bundle;
+import android.view.View;
 import android.widget.TextView;
 import cc.lib.android.CCActivityBase;
 
@@ -24,15 +25,15 @@ public class PacBoyActivity extends CCActivityBase {
 		pbv = (PacBoyView)findViewById(R.id.pacBoyView);
 		tvScore = (TextView)findViewById(R.id.textViewScore);
 		tvHighScore = (TextView)findViewById(R.id.textViewHighScore);
-		int width = getIntent().getIntExtra(INTENT_EXTRA_INT_WIDTH, 10);
-		int height = getIntent().getIntExtra(INTENT_EXTRA_INT_HEIGHT, 10);
-		int difficulty = getIntent().getIntExtra(INTENT_EXTRA_INT_DIFFUCULTY, 0);
-		pbv.initMaze(width, height, difficulty);
 	}
 
 	@Override
 	protected void onResume() {
 		super.onResume();
+		int width = getIntent().getIntExtra(INTENT_EXTRA_INT_WIDTH, 10);
+		int height = getIntent().getIntExtra(INTENT_EXTRA_INT_HEIGHT, 10);
+		int difficulty = getIntent().getIntExtra(INTENT_EXTRA_INT_DIFFUCULTY, 0);
+		pbv.initMaze(width, height, difficulty);
 		pbv.setPaused(false);
 		highScore = getPrefs().getInt(PREF_HIGH_SCORE_INT, 0);
 		tvHighScore.setText("" + highScore);
@@ -59,7 +60,21 @@ public class PacBoyActivity extends CCActivityBase {
 			highScore = score;
 			tvHighScore.setText("" + score);
 		}
+		if (pbv.getDifficulty() < PacBoyRenderer.DIFFICULTY_NO_CHASE) {
+			tvHighScore.setVisibility(View.INVISIBLE);
+			tvScore.setVisibility(View.INVISIBLE);
+		} else {
+			tvHighScore.setVisibility(View.INVISIBLE);
+			tvScore.setVisibility(View.INVISIBLE);
+		}
 	}
 
+	@Override
+	public void onBackPressed() {
+		
+		super.onBackPressed();
+	}
+
+	
 	
 }

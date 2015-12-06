@@ -18,12 +18,16 @@ class PacBoyRenderer extends BaseRenderer implements View.OnTouchListener {
 
 	final String TAG = "PacBoy";
 	
-	private final int STATE_READY = 0;
-	private final int STATE_PLAYING = 1;
-	private final int STATE_CHASING = 2;
-	private final int STATE_EATEN = 3;
-	private final int STATE_SOLVED = 4;
-	private final int STATE_GAME_OVER = 5;
+	public static final int DIFFICULTY_NO_CHASE = 9;
+	public static final int DIFFICULTY_INCREASE_MAZE_SIZE_MOD = 5;	
+
+	private final int STATE_READY = 0; // waiting for use to touch near the start
+	private final int STATE_PLAYING = 1; // user laying their path
+	private final int STATE_CHASING = 10; // pacboy shasing the user
+	private final int STATE_EATEN = 11; // pacboy has caught the user
+	private final int STATE_SOLVED = 12; // user has solved the maze
+	private final int STATE_GAME_OVER = 13; // user has no more lives
+	private final int STATE_INTRO = 100;
 	
 	private Maze maze;
 	private LinkedList<IVector2D> path = new LinkedList<IVector2D>();
@@ -36,18 +40,57 @@ class PacBoyRenderer extends BaseRenderer implements View.OnTouchListener {
 	private final PacBoy pb = new PacBoy();
 	private int difficulty = 0;
 	
-	private int lives = 3;
+	private int lives = 0;
 	private int score = 0;
 	private int state = STATE_READY;
 	private int frame = 0;
 	private int startChasePts = 10;
 	
+	private List<Maze.Compass> solution = null;
+	
 	public PacBoyRenderer(GLSurfaceView parent) {
 		super(parent);
 	}
 	
+	private int findClosestPathIndex(float x, float y, boolean useTooClose) {
+		IVector2D closest = null;
+		int closestIndex = -1;
+		float minD = 0;
+		float d = 0;
+		boolean tooClose = false;
+		boolean tooFar = true;
+		for (int i=path.size()-1; i>=0; i--) {
+			IVector2D vv = path.get(i);
+			d=Utils.distSqPointPoint(vv.getX(), vv.getY(), x, y);
+			if (useTooClose && d<= 0.3f) {
+				tooClose = true;
+				break;
+			}
+			if (d<=1) {
+				tooFar = false;
+				if (closest == null || d < minD) {
+					closest = vv;
+					closestIndex = i;
+					minD = d;
+				} 
+			}
+		}
+		
+		if (closest != null && !tooClose && !tooFar) {
+			int x0 = (int)closest.getX();
+			int y0 = (int)closest.getY();
+			int x1 = (int)x;
+			int y1 = (int)y;
+			
+			if (maze.isOpen(x0,y0,x1,y1)) {
+				return closestIndex;
+			}
+		}
+		return -1;
+	}
+	
 	@Override
-	public boolean onTouch(View v, MotionEvent event) {
+	public synchronized boolean onTouch(View v, MotionEvent event) {
 		
 		if (maze == null || getGraphics() == null)
 			return false;
@@ -61,66 +104,93 @@ class PacBoyRenderer extends BaseRenderer implements View.OnTouchListener {
 		float x = tx;
 		float y = ty;
 		
-		switch (event.getAction()) {
-			case MotionEvent.ACTION_DOWN:
-				v.performClick();
-			case MotionEvent.ACTION_MOVE: {
-				if (state < STATE_EATEN && x > 0 && y > 0 && x < maze.getWidth() && y < maze.getHeight()) {
-					float d = 0;
-    				if (path.size() == 0) {
-    					//if ((d = Utils.distSqPointPoint(x, y, ix, iy)) < 0.5) {
-    					if (maze.getStartX() == (int)x && maze.getStartY() == (int)y) {
-    						addPath(x,y);
-    						setState(STATE_PLAYING);
-    						repaint();
-    					}
-    					Log.d("Dist", "d=" + d);
-    				} else {
-    					//IVector2D top = path.get(path.size()-1);
-    					IVector2D closest = null;
-    					float minD = 0;
-    					boolean tooClose = false;
-    					boolean tooFar = true;
-    					for (int i=path.size()-1; i>=0; i--) {
-    						IVector2D vv = path.get(i);
-    						d=Utils.distSqPointPoint(vv.getX(), vv.getY(), x, y);
-    						if (d<= 0.3f) {
-    							tooClose = true;
-    							break;
-    						}
-    						if (d<=1) {
-    							tooFar = false;
-    							if (closest == null || d < minD) {
-    								closest = vv;
-    								minD = d;
-    							} 
-    						}
-    					}
-    					
-    					if (closest != null && !tooClose && !tooFar) {
-    						int x0 = (int)closest.getX();
-    						int y0 = (int)closest.getY();
-    						int x1 = (int)x;
-    						int y1 = (int)y;
-    						
-    						if (maze.isOpen(x0,y0,x1,y1)) {
+		if (x>0 && y>0 && x<maze.getWidth() && y<maze.getHeight()) {
+    		switch (event.getAction()) {
+    			case MotionEvent.ACTION_DOWN:
+    				v.performClick();
+					synchronized (path) {
+						if (path.size() > 0) {
+        					// find the point we are closest too and remove all in front
+        					int index = findClosestPathIndex(x, y, false);
+        					if (index > 0) {
+            					while (path.size() > 0 && index < path.size())
+            						path.removeLast();
+        					}
+        					repaint();
+						}
+    				}
+    				break;
+    			case MotionEvent.ACTION_MOVE: {
+    				if (state < STATE_EATEN) {
+    					float d = 0;
+        				if (path.size() == 0) {
+        					//if ((d = Utils.distSqPointPoint(x, y, ix, iy)) < 0.5) {
+        					if (maze.getStartX() == (int)x && maze.getStartY() == (int)y) {
+        						addPath(x,y);
+        						setState(STATE_PLAYING);
+        						repaint();
+        					}
+        					Log.d("Dist", "d=" + d);
+        				} else {
+        					/*
+        					//IVector2D top = path.get(path.size()-1);
+        					IVector2D closest = null;
+        					float minD = 0;
+        					boolean tooClose = false;
+        					boolean tooFar = true;
+        					for (int i=path.size()-1; i>=0; i--) {
+        						IVector2D vv = path.get(i);
+        						d=Utils.distSqPointPoint(vv.getX(), vv.getY(), x, y);
+        						if (d<= 0.3f) {
+        							tooClose = true;
+        							break;
+        						}
+        						if (d<=1) {
+        							tooFar = false;
+        							if (closest == null || d < minD) {
+        								closest = vv;
+        								minD = d;
+        							} 
+        						}
+        					}
+        					
+        					if (closest != null && !tooClose && !tooFar) {
+        						int x0 = (int)closest.getX();
+        						int y0 = (int)closest.getY();
+        						int x1 = (int)x;
+        						int y1 = (int)y;
+        						
+        						if (maze.isOpen(x0,y0,x1,y1)) {
+            						addPath(x,y);
+            						//if ((d=Utils.distSqPointPoint(ex, ey, x, y)) < 1) {
+                					if (maze.getEndX() == (int)x && maze.getEndY() == (int)y) {
+                						setState(STATE_SOLVED);
+                					}
+                					repaint();
+                					break;
+        						}
+    
+        					}*/
+        					int index = findClosestPathIndex(x, y, true);
+        					if (index >= 0) {
         						addPath(x,y);
         						//if ((d=Utils.distSqPointPoint(ex, ey, x, y)) < 1) {
             					if (maze.getEndX() == (int)x && maze.getEndY() == (int)y) {
-            						setState(STATE_SOLVED);
+            						if (difficulty <= DIFFICULTY_NO_CHASE) {
+            							loadNextLevel();
+            						} else {
+            							setState(STATE_SOLVED);
+            						}
             					}
             					repaint();
-            					break;
-    						}
-
-    					}
+        					}
+        				}
     				}
-				}
-			}
-		}
-		
-		//repaint();
-		
+    				break;
+    			}
+    		}
+		}	
+
 		return true;
 	}
 	
@@ -128,7 +198,7 @@ class PacBoyRenderer extends BaseRenderer implements View.OnTouchListener {
 		synchronized (path) {
 			path.addLast(new Vector2D(x, y));
 		}
-		if (state == STATE_PLAYING && path.size() > 10) {
+		if (state == STATE_PLAYING && difficulty > DIFFICULTY_NO_CHASE && path.size() < 10) {
 			setState(STATE_CHASING);
 		}
 	}
@@ -160,16 +230,22 @@ class PacBoyRenderer extends BaseRenderer implements View.OnTouchListener {
 			case STATE_GAME_OVER:
 				drawGameOver(g);
 				break;
+			case STATE_INTRO:
+				setTargetFPS(20);
+				drawIntro(g);
+				break;
 		}
 		g.popMatrix();
 		frame++;
-		g.setColor(g.RED);
-		float x = 15;
-		float y = g.getViewportHeight()- 15;
-		
-		for (int i=0; i<lives; i++) {
-			g.drawDisk(x, y, 10, 16);
-			x += 30;
+		if (difficulty > DIFFICULTY_NO_CHASE) {
+    		g.setColor(g.RED);
+    		float x = 15;
+    		float y = g.getViewportHeight()- 15;
+    		
+    		for (int i=0; i<lives; i++) {
+    			g.drawDisk(x, y, 10, 16);
+    			x += 30;
+    		}
 		}
 	}
 	
@@ -199,6 +275,20 @@ class PacBoyRenderer extends BaseRenderer implements View.OnTouchListener {
 		g.end();
 	}
 	
+	private void drawPath(GL10Graphics g, List<Maze.Compass> path) {
+		int sx = maze.getStartX();
+		int sy = maze.getStartY();
+		g.begin();
+		g.setColor(g.MAGENTA);
+		g.vertex(sx, sy);
+		for (Maze.Compass c : path) {
+			sx += c.dx;
+			sy += c.dy;
+			g.vertex(sx, sy);
+		}
+		g.drawLineStrip(5);
+	}
+	
 	float [] pulse = {0, 1, 2, 3, 2, 1, 0};
 	
 	void drawReady(GL10Graphics g) {
@@ -216,6 +306,7 @@ class PacBoyRenderer extends BaseRenderer implements View.OnTouchListener {
 		g.setColor(g.RED);
 		g.drawDisk(ex, ey, 0.3f + 0.01f * pulse[frame%pulse.length], 32);
 		drawDots(g, 8);
+		//drawPath(g, solution);
 	}
 	
 	private void drawChasing(GL10Graphics g) {
@@ -310,6 +401,31 @@ class PacBoyRenderer extends BaseRenderer implements View.OnTouchListener {
 		}
 	}
 	
+	private void drawCleanup(GL10Graphics g)
+	{
+		drawPlaying(g);
+		g.setColor(g.BLACK);
+		pb.draw(g);
+		if (path.size() > 0) {
+			synchronized (path) {
+				if (pb.moveTo(path.getFirst())) {
+					path.removeFirst();
+				}
+			}
+		} else {
+			loadNextLevel();
+		}
+	}
+	
+	private void loadNextLevel() {
+		if (0 == (difficulty % DIFFICULTY_INCREASE_MAZE_SIZE_MOD)) {
+			int width = maze.getWidth() + 2;
+			int height = maze.getHeight() + 1;
+			maze.resize(width, height);
+		} 
+		newMaze();
+	}
+	
 	private void drawSolved(GL10Graphics g) {
 		drawPlaying(g);
 		g.setColor(g.RED);
@@ -329,7 +445,7 @@ class PacBoyRenderer extends BaseRenderer implements View.OnTouchListener {
 		g.end();
 		drawFace(g, x, y, r, path.size() <= 10);
 		if (path.size() == 0) {
-			newMaze();
+			loadNextLevel();
 		} else {
 			synchronized (path) {
 				score += path.size();
@@ -356,6 +472,32 @@ class PacBoyRenderer extends BaseRenderer implements View.OnTouchListener {
 			drawFace(g, x, y, r, false);
 		}
 	}
+	
+	void drawIntro(GL10Graphics g) {
+		float wid = g.getViewportWidth();
+		float hgt = g.getViewportHeight();
+		if (frame == 0) {
+			pb.radius = hgt/6; 
+			pb.pos.set(-pb.radius, hgt/2);
+		}
+		int secondsToCenter = 3;
+		int framesToCenter = secondsToCenter * getTargetFPS();
+		float speed = (wid/2+pb.radius) / framesToCenter;
+		g.clearScreen(g.YELLOW);
+		g.setColor(g.BLACK);
+		if (frame >= framesToCenter && frame < framesToCenter + getTargetFPS()*3) {
+			if (frame < framesToCenter + getTargetFPS()) {
+				drawFace(g, pb.pos.getX(), pb.pos.getY(), pb.radius, false);
+			} else if (frame < framesToCenter + getTargetFPS()*2) {
+				drawFace(g, pb.pos.getX(), pb.pos.getY(), pb.radius, true);
+			} else {
+				drawFace(g, pb.pos.getX(), pb.pos.getY(), pb.radius, false);
+			}
+		} else {
+			pb.pos.addEq(speed, 0);
+			pb.draw(g);
+		}
+	}
 
 	@Override
 	protected void init(GL10Graphics g) {
@@ -368,6 +510,7 @@ class PacBoyRenderer extends BaseRenderer implements View.OnTouchListener {
 	}
 
 	void newMaze(int width, int height, int difficulty) {
+		frame = 0;
 		this.difficulty = difficulty;
 		this.lives = 3;
 		this.score = 0;
@@ -379,31 +522,23 @@ class PacBoyRenderer extends BaseRenderer implements View.OnTouchListener {
 
 			@Override
 			protected int nextIndex(int size) {
-				switch (PacBoyRenderer.this.difficulty % 3) {
-					//case 1:
-						//return 0;
-					case 2:
-						return size-1;
-					case 3:
-						return Utils.flipCoin() ? 0 : size-1;
-				}
-				return super.nextIndex(size);
+				return size-1;
 			}
 
 			@Override
-			protected void directionHeuristic(Integer [] d, int x1, int y1, int x2, int y2) {
+			protected void directionHeuristic(Compass [] d, int x1, int y1, int x2, int y2) {
 				Float [] t = { 0.5f, 0.5f, 0.5f, 0.5f };
-				switch (PacBoyRenderer.this.difficulty % 3) {
-					case 0: case 1: {
+				switch (PacBoyRenderer.this.difficulty % 2) {
+					case 1: {
 						if (y1 < y2) // tend to move north
-				            t[0] += Utils.randFloat(0.4f) - 0.1f;
+				            t[0] += Utils.randFloat(0.5f) - 0.1f;
 				        else if (y1 > y2) // tend to move south
-				            t[2] += Utils.randFloat(0.4f) - 0.1f;
+				            t[2] += Utils.randFloat(0.5f) - 0.1f;
 				        
 				        if (x1 < x2) // tend to move west
-				            t[3] += Utils.randFloat(0.4f) - 0.1f;
+				            t[3] += Utils.randFloat(0.5f) - 0.1f;
 				        else if (x1 > x2) // tend to move east
-				            t[1] += Utils.randFloat(0.4f) - 0.1f;
+				            t[1] += Utils.randFloat(0.5f) - 0.1f;
 				        Utils.bubbleSort(t, d);
 						break;
 					}
@@ -429,9 +564,21 @@ class PacBoyRenderer extends BaseRenderer implements View.OnTouchListener {
 			startChasePts --;
 		difficulty++;
 		pb.reset();
+		//solution = maze.findSolution();
+	}
+	
+	void setupIntro() {
+		state = STATE_INTRO;
+		pb.reset();
+		sx = sy = 1;
+		frame = 0;
 	}
 
 	int getScore() {
 		return score;
+	}
+	
+	int getDifficulty() {
+		return this.difficulty;
 	}
 }

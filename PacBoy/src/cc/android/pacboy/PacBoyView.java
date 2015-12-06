@@ -45,6 +45,10 @@ public class PacBoyView extends GLSurfaceView {
 	public void initMaze(int width, int height, int difficulty) {
 		pb.newMaze(width, height, difficulty);
 	}
+	
+	public void initIntro() {
+		pb.setupIntro();
+	}
 
 	public int getScore() {
 		return pb.getScore();
@@ -53,6 +57,10 @@ public class PacBoyView extends GLSurfaceView {
 	@Override
 	public boolean performClick() {
 		return super.performClick();
+	}
+	
+	public int getDifficulty() {
+		return pb.getDifficulty();
 	}
 	
 }

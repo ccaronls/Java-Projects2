@@ -11,9 +11,14 @@
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen" >
+        android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen"
+        android:name=".PacBoyApplication"
+        >
         
-        <activity android:name=".HomeActivity" android:launchMode="singleTask">
+        <meta-data android:name="com.google.android.gms.games.APP_ID" android:value="@string/app_id" />
+        <meta-data android:name="com.google.android.gms.version" android:value="@integer/google_play_services_version"/>
+        
+        <activity android:name=".SplashActivity" android:launchMode="singleTask" android:screenOrientation="sensorLandscape">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -21,7 +26,9 @@
             
         </activity>
 
-        <activity android:name=".PacBoyActivity" android:screenOrientation="landscape" android:launchMode="singleTask"/>
+        <activity android:name=".HomeActivity" android:launchMode="singleTask" android:screenOrientation="sensorLandscape"/>
+        
+        <activity android:name=".PacBoyActivity" android:launchMode="singleTask" android:screenOrientation="sensorLandscape"/>
         
     </application>
 
