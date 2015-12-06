@@ -4,7 +4,6 @@ import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-import cc.lib.android.R;
 import cc.lib.utils.FileUtils;
 import android.app.Activity;
 import android.app.ProgressDialog;
@@ -20,11 +19,9 @@ import android.util.Log;
 import android.view.View;
 import android.view.View.MeasureSpec;
 import android.webkit.WebSettings.LayoutAlgorithm;
-import android.webkit.WebSettings.ZoomDensity;
 import android.webkit.WebView;
 import android.webkit.WebView.PictureListener;
 import android.webkit.WebViewClient;
-import android.widget.LinearLayout;
 
 @SuppressWarnings("deprecation")
 public abstract class PagedFormExporter extends AsyncTask<Void, String, File> implements PictureListener, OnCancelListener {
@@ -82,22 +79,24 @@ public abstract class PagedFormExporter extends AsyncTask<Void, String, File> im
 	public PagedFormExporter(Activity activity, Signature [] signatures) {
 		this.activity = activity;
 		this.signatures = signatures;
-		//View v = View.inflate(activity, R.layout.paged_form_webview, null);
 		wv = new WebView(activity);
 		wv.setWebViewClient(webClient);
-		//wv.setScaleX(1);
-		//wv.setScaleY(1);
 		wv.setPictureListener(this);
 		wv.getSettings().setLayoutAlgorithm(LayoutAlgorithm.NORMAL);
 		wv.getSettings().setUseWideViewPort(true);
 		wv.getSettings().setSupportZoom(false);
 		wv.setAnimation(null);
-		wv.setInitialScale(Math.round(activity.getResources().getDisplayMetrics().density * 100));
-		wv.getSettings().setTextZoom(Math.round(100f / activity.getResources().getDisplayMetrics().density));
+		wv.setInitialScale(Math.round(getDensity() * 100));
+		wv.getSettings().setTextZoom(Math.round(100f / getDensity()));
 	}
 
 	protected final void setNumPages(int numPages) {
 		this.numPages = numPages;
+	}
+	
+	private float getDensity() {
+		DisplayMetrics dm = activity.getResources().getDisplayMetrics();
+		return dm.density;
 	}
 	
 	protected final void start() {
@@ -108,12 +107,12 @@ public abstract class PagedFormExporter extends AsyncTask<Void, String, File> im
 				"<html>\n" +
 				"<head>\n" +
 				"<meta name=\"viewport\" content=\"width=" + width + ", initial-scale=1\">\n" + 
-				"<style>\n" +
+				"<style type=\"text/css\">\n" +
 				"body { font-size:36px; }\n" +
-				"h1 { text-align:center; white-space: nowrap; font-size:72px; }\n" +
+				"h1 { white-space: nowrap; font-size:72px; text-align:center; }\n" +
 				"h2 { font-size:60px; }\n" +
-				"h3 { font-size:48px; }\n" +
-				"h4 { font-size:48px; }\n" +
+				"h3 { font-size:48px; text-align:center; white-space: nowrap; }\n" +
+				"h4 { font-size:42px; text-align:center; white-space: nowrap; }\n" +
 				"td { font-size:48px; white-space: nowrap; }\n" +
 				"table { table-layout:auto; }\n" +
 				"</style>\n" +
@@ -135,7 +134,8 @@ public abstract class PagedFormExporter extends AsyncTask<Void, String, File> im
 	protected void beginTable(int width) {
 		if (!tableMode) {
 			if (width > 0) {
-				html.append("<br/>\n<table style=\"width:").append(width).append("%\">\n");
+				int w = Math.round((float)this.width * width / (100 * getDensity()));
+				html.append("<br/>\n<table style=\"width:").append(w).append("px\">\n");
 			} else {
 				html.append("<br/>\n<table>\n");
 			}
@@ -176,8 +176,11 @@ public abstract class PagedFormExporter extends AsyncTask<Void, String, File> im
 		}
 	}
 	
-	protected final void header(String title) {
-		html.append("<h1>").append(title).append("</h1>\n");
+	protected final void header(String title, String date) {
+		beginTable(100);
+		html.append("<tr><td><h1>").append(title).append("</h1></td></tr>\n");
+		html.append("<tr><td><h4>").append(date).append("</h4></td></tr>");
+		endTable();
 		if (numPages > 1) {
 			html.append("</br>Page ").append(curPage).append(" of ").append(numPages).append("\n");
 		}
@@ -189,7 +192,6 @@ public abstract class PagedFormExporter extends AsyncTask<Void, String, File> im
 		File htmlFile = new File(activity.getCacheDir(), "htmlFile.html");
 		FileUtils.stringToFile(html.toString(), htmlFile);
 		final String url = "file:///" + activity.getCacheDir().getAbsolutePath() + "/" + htmlFile.getName();
-		//done = false;
 		publishProgress(url);
 		synchronized (this) {
 			wait(2000);
@@ -210,35 +212,7 @@ public abstract class PagedFormExporter extends AsyncTask<Void, String, File> im
 		Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565);
 		Canvas canvas = new Canvas(bitmap);
 		wv.draw(canvas);
-/*		
-        v.clearFocus();
-        v.setPressed(false);
 
-        boolean willNotCache = v.willNotCacheDrawing();
-        v.setWillNotCacheDrawing(false);
-
-        // Reset the drawing cache background color to fully transparent
-        // for the duration of this operation
-        int color = v.getDrawingCacheBackgroundColor();
-        v.setDrawingCacheBackgroundColor(0);
-
-        if (color != 0) {
-            v.destroyDrawingCache();
-        }
-        v.buildDrawingCache();
-        Bitmap cacheBitmap = v.getDrawingCache();
-        if (cacheBitmap == null) {
-            Log.e(TAG, "failed getViewBitmap(" + v + ")", new RuntimeException());
-            return null;
-        }
-
-        Bitmap bitmap = Bitmap.createBitmap(cacheBitmap);
-
-        // Restore the view
-        v.destroyDrawingCache();
-        v.setWillNotCacheDrawing(willNotCache);
-        v.setDrawingCacheBackgroundColor(color);
-*/
         Log.d(TAG, "Bitmap dim out= "+ bitmap.getWidth() + "x" + bitmap.getHeight());
         
         return bitmap;
@@ -252,9 +226,6 @@ public abstract class PagedFormExporter extends AsyncTask<Void, String, File> im
 		long t = System.currentTimeMillis();
 		Log.d(TAG, "Generating page image");
 		try {
-			//Bitmap bm = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565);
-			//Canvas canvas = new Canvas(bm);
-			//view.draw(canvas);
 			Bitmap bm = getViewBitmap(wv);
 			Log.d(TAG, "bitmap dim = " + bm.getWidth() + " x " + bm.getHeight());
 			File file = null;

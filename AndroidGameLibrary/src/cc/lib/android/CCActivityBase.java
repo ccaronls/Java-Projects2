@@ -92,6 +92,9 @@ public class CCActivityBase extends Activity {
 		}
 	}
 	
+	/**
+	 * This is visible because there are cases when we want to stop polling even when not paused.
+	 */
 	protected final void stopPolling() {
 		if (pollingTimer != null) {
 			pollingTimer.cancel();

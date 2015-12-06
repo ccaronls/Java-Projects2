@@ -32,6 +32,8 @@ public abstract class BaseRenderer implements GLSurfaceView.Renderer {
 
     @Override
     public final void onDrawFrame(GL10 arg0) {
+    	if (g == null)
+    		return;
     	synchronized (this) {
             final long enterTime = getSystemClock();
             try {
@@ -64,18 +66,20 @@ public abstract class BaseRenderer implements GLSurfaceView.Renderer {
                 
                 g.endScene();
                 long delta = getSystemClock() - enterTime;
-                int targetDelta = 1000 / targetFPS;
-                if (!paused) {
-                    if (delta < targetDelta) {
-                        synchronized (this) {
-                        	long dt = targetDelta - delta;
-                        	if (dt > 500)
-                        		dt = 500;
-                        	if (dt > 0)
-                        		wait(dt);
+                if (targetFPS > 0) {
+                    int targetDelta = 1000 / targetFPS;
+                    if (!paused) {
+                        if (delta < targetDelta) {
+                            synchronized (this) {
+                            	long dt = targetDelta - delta;
+                            	if (dt > 500)
+                            		dt = 500;
+                            	if (dt > 0)
+                            		wait(dt);
+                            }
                         }
+                    	repaint();
                     }
-                	repaint();
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -132,8 +136,14 @@ public abstract class BaseRenderer implements GLSurfaceView.Renderer {
      * @param targetFPS
      */
     public final void setTargetFPS(int targetFPS) {
-        this.targetFPS = targetFPS;
-        repaint();
+    	if (targetFPS != this.targetFPS) {
+            this.targetFPS = targetFPS;
+            repaint();
+    	}
+    }
+    
+    public final int getTargetFPS() {
+    	return this.targetFPS;
     }
     
     public final int getFPS() {
@@ -173,11 +183,13 @@ public abstract class BaseRenderer implements GLSurfaceView.Renderer {
     }
     
     public final void shutDown() {
-        setPaused(true);
-        if (g != null) {
-            g.shutDown();
-            g = null;
-        }
+    	synchronized (this) {
+            setPaused(true);
+            if (g != null) {
+                g.shutDown();
+                g = null;
+            }
+    	}
     }
     
     public final Context getContext() {
@@ -190,6 +202,10 @@ public abstract class BaseRenderer implements GLSurfaceView.Renderer {
     
     public final int getHeight() {
     	return g.getViewportHeight();
+    }
+    
+    public final GL10Graphics getGraphics() {
+    	return g;
     }
     
     private GL10Graphics g;
