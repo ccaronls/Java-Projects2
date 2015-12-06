@@ -4,13 +4,22 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Collection;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import cc.lib.game.Utils;
+
 public class FileUtils {
 
+	/**
+	 * 
+	 * @param s
+	 * @param dest
+	 * @throws IOException
+	 */
 	public static void stringToFile(String s, File dest) throws IOException {
 		if (dest.isDirectory())
 			throw new IOException("stringToFile writing to an existing directory '" + dest + "'");
@@ -24,8 +33,13 @@ public class FileUtils {
     	}
 	}
 	
-	public static String fileToString(File file) throws IOException {
-		FileInputStream in = new FileInputStream(file);
+	/**
+	 * 
+	 * @param in
+	 * @return
+	 * @throws IOException
+	 */
+	public static String inputStreamToString(InputStream in) throws IOException {
 		try {
 			byte [] buffer = new byte[in.available()];
 			in.read(buffer);
@@ -33,54 +47,98 @@ public class FileUtils {
 		} finally {
 			in.close();
 		}
+		
+	}
+	
+	/**
+	 * 
+	 * @param file
+	 * @return
+	 * @throws IOException
+	 */
+	public static String fileToString(File file) throws IOException {
+		return inputStreamToString(new FileInputStream(file));
 	}
 
+	/**
+	 * This is a recursive function with stack depth <= to maxNum
+	 * rename a file such that the file of form root.ext is copied too root.num.ext when num is integer between 0 and maxNum.
+	 * All other files of form root.num+1.ext are renamed accordingly with the file falling off when backups exceed maxNum
+	 * 
+	 * @param fileName
+	 * @param maxNum
+	 * @return true if the file exists and was successfully renamed
+	 */
 	public static boolean backupFile(String fileName, int maxNum) {
+		String root = stripExtension(fileName);
+		String extension = fileExtension(fileName);
+		return backupFileR(fileName, root, extension, maxNum);
+	}
+	
+	private static boolean backupFileR(String fileName, String root, String extension, int maxNum) {
 
 		File file = new File(fileName);
-		if (file.exists()) {
-    		int index = fileName.lastIndexOf('.');
+		if ( file.exists() ) {
+    		int index = root.lastIndexOf('.');
     		try {
-    			int num= Integer.valueOf(fileName.substring(index+1));
+    			int num= Integer.valueOf(root.substring(index+1));
     			if (num++ < maxNum) {
-    				String newName = fileName.substring(0, index) + "." + num;
-    				backupFile(newName, maxNum);
+    				root = root.substring(0, index) + "." + num;
+    				String newName = root + extension;
+    				backupFileR(newName, root, extension, maxNum);
     				return file.renameTo(new File(newName));
     			}
     		} catch (NumberFormatException e) {
-    			String newName = fileName + ".0";
-    			backupFile(newName, maxNum);
+    			root += ".0";
+    			String newName = root + extension;
+    			backupFileR(newName, root, extension, maxNum);
     			return file.renameTo(new File(newName));
     		} 
-		}		
+		}
 		return false;
 	}
 	
+	/**
+	 * Reverse operation from restoreFile.  For filename of form root.ext, if there exists a file of form
+	 * root.0.ext, then it will be renamed to fileName.  For all other files of form root.n.ext they will
+	 * be renamed too root.n-1.ext.
+	 */
 	public static boolean restoreFile(String fileName) {
-		System.err.println("restore file " + fileName);
+		String root = stripExtension(fileName);
+		String ext = fileExtension(fileName);
+		return restoreFileR(fileName, root, ext);
+	}
+	
+	private static boolean restoreFileR(String fileName, String root, String ext) {
+		Utils.println("restore file " + fileName);
 		File file = new File(fileName);
-		int index = fileName.lastIndexOf('.');
+		int index = root.lastIndexOf('.');
 		int num = 0;
-		String fileNamePrefix = fileName;
+		String fileNamePrefix = root;
 		try {
-			num= Integer.valueOf(fileName.substring(index+1));
-			fileNamePrefix = fileName.substring(0, index);
+			num= Integer.valueOf(root.substring(index+1));
+			fileNamePrefix = root.substring(0, index);
 			num ++;
 		} catch (NumberFormatException e) {
 			
 		}
-		String copiedName = fileNamePrefix + "." + num;
+		String copiedName = fileNamePrefix + "." + num + ext;
 		File copiedFile = new File(copiedName);
 		boolean success = false;
 		if (copiedFile.exists()) {
 			file.delete();
 			success = copiedFile.renameTo(file);
-			System.err.println("Renaming " + copiedFile + " too " + fileName + " returns " + success);
-			restoreFile(copiedName);
+			Utils.println("Renaming " + copiedFile + " too " + fileName + " returns " + success);
+			restoreFileR(copiedName, fileNamePrefix + "." + num, ext);
 		}
 		return success;
 	}
 		
+	/**
+	 * Return the string extension from a file including the dot '.' or empty string when no extension exists
+	 * @param fileName
+	 * @return
+	 */
 	public static String fileExtension(String fileName) {
 		int dot = fileName.lastIndexOf('.');
 		if (dot <= 0)
@@ -89,6 +147,12 @@ public class FileUtils {
 		return ext;
 	}
 
+	/**
+	 * Return the filename minus the extension including dot '.'
+	 * dot must be beyond the front of the filename to omit empty extension hidden files from getting whole filename stripped.
+	 * @param fileName
+	 * @return
+	 */
 	public static String stripExtension(String fileName) {
 		int dot = fileName.lastIndexOf('.');
 		if (dot <= 0)
@@ -96,7 +160,21 @@ public class FileUtils {
 		return fileName.substring(0, dot);
 	}
 	
-    /**
+	/**
+	 * 
+	 * @param dir
+	 */
+	public static void deleteDirContents(File dir) throws IOException {
+		for (File f : dir.listFiles()) {
+			if (f.isDirectory()) {
+				deleteDirContents(f);
+			}
+			if (!f.delete())
+				throw new IOException("Failed to delete file '" + f.getAbsolutePath() + "'");
+		}
+	}
+
+   /**
     *
     * @param target
     * @param files
@@ -139,5 +217,5 @@ public class FileUtils {
            zos.close();
        }
    }
-   
+
 }

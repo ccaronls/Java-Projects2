@@ -19,6 +19,152 @@ public class CMath {
 	public static final double M_SQRT1_2  = 0.707106781186547524401f;
 	public static final double M_SQRT_2_PI = 2.506628274631000502415765284811f;
 	
+	/**
+	 * defien a small num
+	 */
+	public static float EPSILON      	= 0.00001f;
+    public static final float DEG_TO_RAD 	= (float)(Math.PI / 180.0); // converts from degrees to radians
+    public static final float RAD_TO_DEG	= (float)(180.0 / Math.PI); // converts form radians to degress
+
+	/**
+     * 
+     * @param mat
+     * @param vx
+     * @param vy
+     * @param result_v
+     */
+    public static void  mult2x2MatrixVector(float [] mat, float vx, float vy, float [] result_v) {
+        result_v[0] = mat[0]*vx + mat[1]*vy;
+        result_v[1] = mat[2]*vx + mat[3]*vy;
+    }
+
+    /**
+     * 
+     * @param a
+     * @param b
+     * @param c
+     * @param d
+     * @param vx
+     * @param vy
+     * @param result_v
+     */
+    public static void  mult2x2MatrixVector(float a, float b, float c, float d, float vx, float vy, float [] result_v) {
+        result_v[0] = a*vx + b*vy;
+        result_v[1] = c*vx + d*vy;
+    }
+
+    /**
+     * 
+     * @param mat1
+     * @param mat2
+     * @param result
+     */
+    public static void  mult2x2Matricies(float [] mat1, float [] mat2, float [] result) {
+        result[0] = mat1[0]*mat2[0]+mat1[1]*mat2[2];
+        result[1] = mat1[0]*mat2[1]+mat1[1]*mat2[3];
+        result[2] = mat1[2]*mat2[0]+mat1[3]*mat2[2];
+        result[3] = mat1[2]*mat2[1]+mat1[3]*mat2[3];
+    }
+
+    /**
+     * 
+     * @param vector
+     * @param degrees
+     */
+    public static void  rotateVector(float [] vector, float degrees) {
+    	rotateVector(vector, vector, degrees);
+    }       
+
+    /**
+     * 
+     * @param vector
+     * @param degrees
+     */
+    public static void  rotateVector(final float [] vector, float [] result, float degrees) {
+    	degrees *= DEG_TO_RAD;
+    	float cosd = (float)Math.cos(degrees);
+    	float sind = (float)Math.sin(degrees);
+    	
+        float x = vector[0] * cosd - vector[1] * sind;
+        float y = vector[0] * sind + vector[1] * cosd;
+        result[0] = x;
+        result[1] = y;
+    }     
+    
+    /**
+     * Return true if difference between to floats is less than EPSILON
+     * @param a
+     * @param b
+     * @return
+     */
+    public static boolean isAlmostEqual(float a, float b) {
+    	return Math.abs(a-b) < EPSILON;
+    }
+
+    /**
+     * Return determinant of 2x2 matrix
+     * 
+     * @param mat
+     * @return
+     */
+    public static float determinant2x2Matrix(float [] mat) {
+        return (mat[0]*mat[3]-mat[1]*mat[2]);
+    }
+
+    /**
+     * Invert a matrix
+     * 
+     * @param source
+     * @param dest
+     * @return
+     */
+    public static boolean invert2x2Matrix(float [] source, float [] dest) {    
+        float det = (source[0]*source[3] - source[1]*source[2]);
+        if (Math.abs(det) < EPSILON)
+            return false;
+        dest[0] =  source[3] / det;
+        dest[1] = -source[1] / det;
+        dest[2] = -source[2] / det;
+        dest[3] =  source[0] / det;
+        return true;
+    }
+    
+    /**
+	 * 
+	 * @param degrees
+	 * @return
+	 */
+	public static float sine(float degrees) {
+		return (float)Math.sin(degrees*DEG_TO_RAD);
+	}
+	
+	/**
+	 * 
+	 * @param degrees
+	 * @return
+	 */
+	public static float cosine(float degrees) {
+		return (float)Math.cos(degrees*DEG_TO_RAD);
+	}
+	
+	/**
+     * Return the anle of a vector
+     * @param x
+     * @param y
+     * @return
+     */
+    public static int angle(float x, float y) {
+        if (Math.abs(x) < EPSILON)
+            return (y > 0 ? 90 : 270);
+        int r = (int)Math.round(Math.atan(y/x) * RAD_TO_DEG);
+        return (x < 0 ? 180 + r : r < 0 ? 360 + r : r);
+    }
+    
+    /**
+     * 
+     * @param n
+     * @return
+     */
 	public static int factorial(int n) {
 		int r = 1;
 		for (int i=1; i<=n; i++) {
@@ -27,6 +173,23 @@ public class CMath {
 		return r;
 	}
 	
+	/**
+     * Return the angle in degrees between 2 vectors
+     * 
+     * @param dx
+     * @param dy
+     * @param vx
+     * @param vy
+     * @return
+     */
+    public static float computeDegrees(float dx, float dy, float vx, float vy) {
+        double magA = Math.sqrt(dx*dx + dy*dy);
+        double magB = Math.sqrt(vx*vx + vy*vy);
+        double AdotB = dx*vx + dy*vy;
+        double acos = Math.acos(AdotB / (magA * magB));
+        return (float)(acos * RAD_TO_DEG);
+    }
+    
 	/**
 	 *                     n!
 	 * N choose R means --------
@@ -186,5 +349,14 @@ public class CMath {
      */
     public static double normalDistribution(double x, double mean) {
     	return Math.pow(M_E, -0.5 * Math.pow(x - mean, 2)) / M_SQRT_2_PI;
+    }
+    
+    /**
+     * Return -1 if n < 0, 1 otherwise
+     * @param n
+     * @return
+     */
+    public static int signOf(float n) {
+    	return n < 0 ? -1 : 1;
     }
 }

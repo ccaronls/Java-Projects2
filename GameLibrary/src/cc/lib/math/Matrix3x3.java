@@ -375,7 +375,7 @@ public final class Matrix3x3 extends Reflector<Matrix3x3> {
 	}
 
 	public void setRotation(float degrees) {
-		double rads  = degrees * Utils.DEG_TO_RAD;
+		double rads  = degrees * CMath.DEG_TO_RAD;
 		double cos	= Math.cos(rads);
 		double sin	= Math.sin(rads);
 		//assign(cos, sin, 0, -sin, cos, 0, 0, 0, 1);

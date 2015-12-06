@@ -4,6 +4,7 @@ import java.awt.Rectangle;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Arrays;
 
 import junit.framework.TestCase;
 
@@ -64,27 +65,14 @@ public class TestUtils extends TestCase {
         
     }
     
-    public void test_RotateVector() {
-        
-        final float [] v0 = { 1,0 };
-        float [] r0 = {0,0};
-        
-        float [][] results = {
-                { 0, 1, 0 },
-                { 90, 0, 1 },
-                { 180, -1, 0},
-                { 270, 0, -1}
-        };
-        
-        for (int i=0; i<results.length; i++) {
-            float deg = results[i][0];
-            float newx = results[i][1];
-            float newy = results[i][2];
-            Utils.rotateVector(v0, r0, deg);
-            System.out.println("testing deg[" + deg + "] v0[" + v0[0] + "," + v0[1] + "] r0 [" + r0[0] + "," + r0[1] + "]");
-            assertTrue(Utils.isAlmostEqual(newx, r0[0]) && Utils.isAlmostEqual(newy, r0[1]));
-        }
-        
+    public void testBubblesort() {
+    	Integer [] sortable = {  4,   2,   1,   6,   2,   8,   0 };
+    	String [] letters =   { "D", "C", "B", "E", "C", "G", "A" };
+    	
+    	Utils.bubbleSort(sortable, letters);
+    	
+    	System.out.println(Arrays.toString(sortable));
+    	System.out.println(Arrays.toString(letters));
     }
-   
+    
 }

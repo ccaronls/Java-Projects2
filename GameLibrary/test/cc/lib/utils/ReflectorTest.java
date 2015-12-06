@@ -262,4 +262,35 @@ public class ReflectorTest extends TestCase {
         System.out.println(c2.toString());
         assertEquals(c, c2);
     }
+    
+    
+    
+    public void testCollectionOfArrays() throws Exception {
+    	String s = new TestListOfArrays().toString();
+    	System.out.println(s);
+    	TestListOfArrays t = new TestListOfArrays();
+    	t.deserialize(s);
+    	System.out.println(t);
+    }
+    
+    public static class TestListOfArrays extends Reflector<TestListOfArrays> {
+    	static {
+    		addAllFields(TestListOfArrays.class);
+    	}
+    	List<SmallReflector[]> objects = new ArrayList<SmallReflector[]>();
+    	List<SmallReflector[][]> objects2 = new ArrayList<SmallReflector[][]>();
+    	
+    	public TestListOfArrays() {
+    		SmallReflector [] arr = {
+    			new SmallReflector(),
+    		};
+        	objects.add(arr);
+        	
+        	SmallReflector [][] arr2 = {
+        			arr,
+        			arr,
+        	};
+        	objects2.add(arr2);
+    	}
+    }
 }

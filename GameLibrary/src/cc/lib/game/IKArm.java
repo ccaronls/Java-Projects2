@@ -3,6 +3,7 @@ package cc.lib.game;
 import java.util.ArrayList;
 import java.util.List;
 
+import cc.lib.math.CMath;
 import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
 import cc.lib.utils.Reflector;
@@ -127,7 +128,7 @@ public final class IKArm extends Reflector<IKArm> {
     	if (s.angle == 0) {
     		float dx = getX(section) - getX(section-1);
     		float dy = getY(section) - getY(section-1);
-    		s.angle = Utils.RAD_TO_DEG * (float)Math.atan2(dy, dx);
+    		s.angle = CMath.RAD_TO_DEG * (float)Math.atan2(dy, dx);
     	}
     	return s.angle;
     }

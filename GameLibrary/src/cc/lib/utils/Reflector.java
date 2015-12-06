@@ -1022,6 +1022,7 @@ public class Reflector<T> {
      * @param clazz
      */
     public static void addAllFields(Class<?> clazz) {
+    	addArrayTypes(clazz);
         try {
             Field [] fields = clazz.getDeclaredFields();
             for (Field f : fields) {
@@ -1068,7 +1069,12 @@ public class Reflector<T> {
             Collection<?> c = (Collection<?>)obj;
             out.push();
             for (Object o: c) {
-                out.println(o.getClass().getCanonicalName() + " {");
+            	if (o != null && o.getClass().isArray()) {
+            		int len = Array.getLength(o);
+            		out.println(o.getClass().getComponentType().getName() + " " + len + " {");
+            	} else {
+            		out.println(o.getClass().getCanonicalName() + " {");
+            	}
                 serializeObject(o, out, true);
             }
             out.pop();
@@ -1144,8 +1150,9 @@ public class Reflector<T> {
     private static Object parse(Class<?> clazz, MyBufferedReader in) throws Exception {
         if (clazz.isEnum())
             return findEnumEntry(clazz, readLineOrEOF(in));
-        if (clazz.isArray())
-            return Array.newInstance(clazz, Integer.parseInt(readLineOrEOF(in)));
+        if (clazz.isArray()) {
+            throw new Exception("This method not to be called for array types");
+        }
         if (isSubclassOf(clazz, Integer.class))
             return Integer.parseInt(readLineOrEOF(in));
         if (isSubclassOf(clazz, Float.class))
@@ -1179,8 +1186,14 @@ public class Reflector<T> {
     			break;
             Object entry = null;
             if (!line.equals("null")) {
-	            Class<?> clazz = getClassForName(line);
-	            entry = parse(clazz, in); 
+            	String [] parts = line.split(" ");
+	            Class<?> clazz = getClassForName(parts[0]);
+	            if (parts.length > 1) {
+	            	int num = Integer.parseInt(parts[1]);
+	            	entry = Array.newInstance(clazz, num);
+	                getArchiverForType(clazz).deserializeArray(entry, in);
+	            } else
+	            	entry = parse(clazz, in); 
 	            if (in.depth > startDepth)
     	            if (readLineOrEOF(in) != null)
     	            	throw new Exception("Line " + in.lineNum + " Expected closing '}'");

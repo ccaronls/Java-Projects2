@@ -2,6 +2,7 @@ package cc.lib.game;
 
 import java.util.*;
 
+import cc.lib.math.CMath;
 import cc.lib.math.Vector2D;
 
 public class Utils {
@@ -14,21 +15,6 @@ public class Utils {
 	public static boolean DEBUG_ENABLED = false;
 	
 	// CONSTANTS
-
-	/**
-	 * defien a small num
-	 */
-	public static float EPSILON      	= 0.00001f;
-
-	/**
-	 * convert from DEGREES to RADIANS
-	 */
-    public static final float DEG_TO_RAD 	= (float)(Math.PI / 180.0); // converts from degrees to radians
-    
-    /**
-     * Convert from RADIANS to DEGREES
-     */
-    public static final float RAD_TO_DEG	= (float)(180.0 / Math.PI); // converts form radians to degress
 
     // general working matricies, created once
     private final static float [] 	m_matrix_2x2	= new float[4];
@@ -124,109 +110,6 @@ public class Utils {
             System.out.println(String.format(msg, args));
         }
     }
-
-    /**
-     * 
-     * @param mat
-     * @param vx
-     * @param vy
-     * @param result_v
-     */
-    public static void  mult2x2MatrixVector(float [] mat, float vx, float vy, float [] result_v) {
-        result_v[0] = mat[0]*vx + mat[1]*vy;
-        result_v[1] = mat[2]*vx + mat[3]*vy;
-    }
-
-    /**
-     * 
-     * @param a
-     * @param b
-     * @param c
-     * @param d
-     * @param vx
-     * @param vy
-     * @param result_v
-     */
-    public static void  mult2x2MatrixVector(float a, float b, float c, float d, float vx, float vy, float [] result_v) {
-        result_v[0] = a*vx + b*vy;
-        result_v[1] = c*vx + d*vy;
-    }
-
-    /**
-     * 
-     * @param mat1
-     * @param mat2
-     * @param result
-     */
-    public static void  mult2x2Matricies(float [] mat1, float [] mat2, float [] result) {
-        result[0] = mat1[0]*mat2[0]+mat1[1]*mat2[2];
-        result[1] = mat1[0]*mat2[1]+mat1[1]*mat2[3];
-        result[2] = mat1[2]*mat2[0]+mat1[3]*mat2[2];
-        result[3] = mat1[2]*mat2[1]+mat1[3]*mat2[3];
-    }
-
-    /**
-     * 
-     * @param vector
-     * @param degrees
-     */
-    public static void  rotateVector(float [] vector, float degrees) {
-    	rotateVector(vector, vector, degrees);
-    }       
-
-    /**
-     * 
-     * @param vector
-     * @param degrees
-     */
-    public static void  rotateVector(final float [] vector, float [] result, float degrees) {
-    	degrees *= DEG_TO_RAD;
-    	float cosd = (float)Math.cos(degrees);
-    	float sind = (float)Math.sin(degrees);
-    	
-        float x = vector[0] * cosd - vector[1] * sind;
-        float y = vector[0] * sind + vector[1] * cosd;
-        result[0] = x;
-        result[1] = y;
-    }     
-    
-    /**
-     * Return true if difference between to floats is less than EPSILON
-     * @param a
-     * @param b
-     * @return
-     */
-    public static boolean isAlmostEqual(float a, float b) {
-    	return Math.abs(a-b) < EPSILON;
-    }
-
-    /**
-     * Return determinant of 2x2 matrix
-     * 
-     * @param mat
-     * @return
-     */
-    public static float determinant2x2Matrix(float [] mat) {
-        return (mat[0]*mat[3]-mat[1]*mat[2]);
-    }
-
-    /**
-     * Invert a matrix
-     * 
-     * @param source
-     * @param dest
-     * @return
-     */
-    public static boolean invert2x2Matrix(float [] source, float [] dest) {    
-        float det = (source[0]*source[3] - source[1]*source[2]);
-        if (Math.abs(det) < EPSILON)
-            return false;
-        dest[0] =  source[3] / det;
-        dest[1] = -source[1] / det;
-        dest[2] = -source[2] / det;
-        dest[3] =  source[0] / det;
-        return true;
-    }
     
     /**
      * 
@@ -247,23 +130,6 @@ public class Utils {
     	return false;
     }
     
-    /**
-     * Return the angle in degrees between 2 vectors
-     * 
-     * @param dx
-     * @param dy
-     * @param vx
-     * @param vy
-     * @return
-     */
-    public static float computeDegrees(float dx, float dy, float vx, float vy) {
-        double magA = Math.sqrt(dx*dx + dy*dy);
-        double magB = Math.sqrt(vx*vx + vy*vy);
-        double AdotB = dx*vx + dy*vy;
-        double acos = Math.acos(AdotB / (magA * magB));
-        return (float)(acos * RAD_TO_DEG);
-    }
-
     public static boolean isLineSegsIntersecting(
             int x0, int y0, int x1, int y1, // line segment 1
             int x2, int y2, int x3, int y3) // line segment 2
@@ -297,7 +163,7 @@ public class Utils {
         m_matrix_2x2[2] = (y1 - y0);
         m_matrix_2x2[3] = (y2 - y3);
 
-        if (!invert2x2Matrix(m_matrix_2x2, r_matrix_2x2)) {
+        if (!CMath.invert2x2Matrix(m_matrix_2x2, r_matrix_2x2)) {
             float cx0 = (x0+x1)/2; // center x of seg0
             float cy0 = (y0+y1)/2;
                         
@@ -309,7 +175,7 @@ public class Utils {
             
             // dot product of normal to delta and one of the line segs
             float dot = -dy*(x1-x0) + dx*(y1-y0);
-            if (Math.abs(dot) > EPSILON)
+            if (Math.abs(dot) > CMath.EPSILON)
                 return 0; // if the delta is not near parallel, then this is not intersecting
 
             float d   = Math.abs((dx*dx) + (dy*dy)); // len^2 of delta
@@ -366,7 +232,7 @@ public class Utils {
         m_matrix_2x2[2] = (y1 - y0);
         m_matrix_2x2[3] = (y2 - y3);
 
-        if (!invert2x2Matrix(m_matrix_2x2, r_matrix_2x2)) {
+        if (!CMath.invert2x2Matrix(m_matrix_2x2, r_matrix_2x2)) {
         	float cx0 = (x0+x1)/2; // center x of seg0
         	float cy0 = (y0+y1)/2;
         	        	
@@ -378,7 +244,7 @@ public class Utils {
         	
         	// dot product of normal to delta and one of the line segs
         	float dot = dx*(y1-y0) - dy*(x1-x0);
-        	if (Math.abs(dot) > EPSILON)
+        	if (Math.abs(dot) > CMath.EPSILON)
         	    return 0; // if the delta is not near parallel, then this is not intersecting
 
         	float d   = Math.abs((dx*dx) + (dy*dy)); // len^2 of delta
@@ -497,7 +363,7 @@ public class Utils {
             
             float dot = nx*dx + ny*dy;
             
-            if (Math.abs(dot) < EPSILON) {
+            if (Math.abs(dot) < CMath.EPSILON) {
                 // ignore since this is 'on' the segment
             }
             else if (dot < 0) {
@@ -545,7 +411,7 @@ public class Utils {
             
             float dot = nx*dx + ny*dy;
             
-            if (Math.abs(dot) < EPSILON) {
+            if (Math.abs(dot) < CMath.EPSILON) {
                 // ignore since this is 'on' the segment
             }
             else if (dot < 0) {
@@ -599,24 +465,6 @@ public class Utils {
 		float d2 = r0+r1;
 		d2 *= d2;
 		return d < d2;
-	}
-
-	/**
-	 * 
-	 * @param degrees
-	 * @return
-	 */
-	public static float sine(float degrees) {
-		return (float)Math.sin(degrees*DEG_TO_RAD);
-	}
-	
-	/**
-	 * 
-	 * @param degrees
-	 * @return
-	 */
-	public static float cosine(float degrees) {
-		return (float)Math.cos(degrees*DEG_TO_RAD);
 	}
 
     /**
@@ -713,19 +561,6 @@ public class Utils {
         float ret = (x+y-(mn/2)-(mn/4)+(mn/16));
         return ret;
     }
-
-    /**
-     * Return the anle of a vector
-     * @param x
-     * @param y
-     * @return
-     */
-    public static int angle(float x, float y) {
-        if (Math.abs(x) < EPSILON)
-            return (y > 0 ? 90 : 270);
-        int r = (int)Math.round(Math.atan(y/x) * RAD_TO_DEG);
-        return (x < 0 ? 180 + r : r < 0 ? 360 + r : r);
-    }
     
     /**
      * 
@@ -756,7 +591,7 @@ public class Utils {
         // get the normal (N) to the line
         float nx = -(y1 - y0);
         float ny = (x1 - x0);
-        if (Math.abs(nx) < EPSILON && Math.abs(ny) < EPSILON) {
+        if (Math.abs(nx) < CMath.EPSILON && Math.abs(ny) < CMath.EPSILON) {
         	throw new RuntimeException("Degenerate Vector");
         	// TODO: treat this is a point?
         }
@@ -1674,4 +1509,46 @@ public class Utils {
     	}
     	return result;
     }
+    
+    /**
+     * Sort a secondary array based on a primary array
+     * @param source
+     * @param target
+     */
+    public static <T,S> void bubbleSort(T [] primary, S [] target, Comparator<T> comp) {
+    	assert(target.length >= primary.length);
+    	boolean swapped = false;
+    	int n = primary.length;
+    	do {
+    		swapped = false;
+    		for (int ii=1; ii<n; ii++) {
+    			int c = comp.compare(primary[ii-1], primary[ii]);
+    			if (c < 0) {
+    				swapElems(primary, ii-1, ii);
+    				swapElems(target, ii-1, ii);
+    				swapped = true;
+    			}
+    		}
+    		n--;
+    	} while (swapped);
+    }
+    
+    public static <T extends Comparable<T>,S> void bubbleSort(T [] primary, S [] target) {
+    	assert(target.length >= primary.length);
+    	boolean swapped = false;
+    	int n = primary.length;
+    	do {
+    		swapped = false;
+    		for (int ii=1; ii<n; ii++) {
+    			int c = primary[ii-1].compareTo(primary[ii]);
+    			if (c > 0) {
+    				swapElems(primary, ii-1, ii);
+    				swapElems(target, ii-1, ii);
+    				swapped = true;
+    			}
+    		}
+    		n--;
+    	} while (swapped);
+    }
+
 }

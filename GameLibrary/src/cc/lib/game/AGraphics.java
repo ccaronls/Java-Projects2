@@ -2,6 +2,7 @@ package cc.lib.game;
 
 import java.util.*;
 
+import cc.lib.math.CMath;
 import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
 
@@ -686,13 +687,13 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param radius
      */
     public final void drawRoundedRect(float x, float y, float w, float h, float thickness, float radius) {
-    	drawArc(x+radius, y+radius, radius, thickness, 180f, 90f);
+    	drawArc(x+radius, y+radius, radius, thickness, 180f, 90f, 6);
     	drawLine(x+radius, y, x+w-radius, y, thickness);
-    	drawArc(x+w-radius,y+radius,radius,thickness,270f,90f);
+    	drawArc(x+w-radius,y+radius,radius,thickness,270f,90f, 6);
     	drawLine(x+w,y+radius,x+w,y+h-radius,thickness);
-    	drawArc(x+w-radius,y+h-radius,radius,thickness,0f,90f);
+    	drawArc(x+w-radius,y+h-radius,radius,thickness,0f,90f, 6);
     	drawLine(x+radius,y+h,x+w-radius,y+h,thickness);
-    	drawArc(x+radius,y+h-radius,radius,thickness,90f,90f);
+    	drawArc(x+radius,y+h-radius,radius,thickness,90f,90f, 6);
     	drawLine(x,y+radius,x,y+h-radius,thickness);
     }
 
@@ -705,13 +706,13 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      */
     public final void drawFilledRoundedRect(float x, float y, float w, float h, float radius) {
     	float r2 = radius*2;
-    	drawFilledWedge(x+radius, y+radius, radius, 180f, 90f);
+    	drawFilledWedge(x+radius, y+radius, radius, 180f, 90f, 6);
     	drawFilledRectf(x+radius,y,w-r2,radius);
-    	drawFilledWedge(x+w-radius,y+radius,radius,270f,90f);
+    	drawFilledWedge(x+w-radius,y+radius,radius,270f,90f, 6);
     	drawFilledRectf(x,y+radius,w,h-r2);
-    	drawFilledWedge(x+w-radius,y+h-radius,radius,0,90);
+    	drawFilledWedge(x+w-radius,y+h-radius,radius,0,90, 6);
     	drawFilledRectf(x+radius,y+h-radius,w-r2,radius);
-    	drawFilledWedge(x+radius,y+h-radius,radius,90f,90f);
+    	drawFilledWedge(x+radius,y+h-radius,radius,90f,90f, 6);
     }
     
     /**
@@ -765,38 +766,38 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     }
 
     // return whether points added for quads or lines (true == quads)
-    private final boolean circlePoints(float innerRadius, float outerRadius, float startAngle, float sweep) {
+    private final boolean circlePoints(float innerRadius, float outerRadius, float startAngle, float sweep, int sections) {
     	float radius = (innerRadius + outerRadius)/2;
-        float sections = radius * sweep/180;
-        if (sections > 32)
-            sections = 32;
-        else if (sections < 8)
-            sections = 8;
+        //float sections = radius * sweep/180;
+        //if (sections > 32)
+        //    sections = 32;
+        //else if (sections < 8)
+        //    sections = 8;
         float step = sweep / sections;
         float angle = startAngle;
         float endAngle = startAngle + sweep;
         
         if (outerRadius-innerRadius>1) {
 	        for (int i=0; i<sections && angle < endAngle; i++) {
-	            float x = Utils.cosine(angle);
-	            float y = Utils.sine(angle);
+	            float x = CMath.cosine(angle);
+	            float y = CMath.sine(angle);
 	            vertex(x*outerRadius, y*outerRadius);
 	            vertex(x*innerRadius, y*innerRadius);
 	            angle += step;
 	        }
-            float x = Utils.cosine(endAngle);
-            float y = Utils.sine(endAngle);
+            float x = CMath.cosine(endAngle);
+            float y = CMath.sine(endAngle);
             vertex(x*outerRadius, y*outerRadius);
             vertex(x*innerRadius, y*outerRadius);
         	return true;
         } else {
 	        for (int i=0; i<sections; i++) {
-	            float x = Utils.cosine(angle) * radius;
-	            float y = Utils.sine(angle) * radius;
+	            float x = CMath.cosine(angle) * radius;
+	            float y = CMath.sine(angle) * radius;
 	            vertex(x, y);
 	            angle += step;
 	        }
-	        vertex(Utils.cosine(endAngle) * radius, Utils.sine(endAngle) * radius);
+	        vertex(CMath.cosine(endAngle) * radius, CMath.sine(endAngle) * radius);
 	        return false;
         }
     }
@@ -808,11 +809,23 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param radius
      */
     public final void drawDisk(float x, float y, float radius) {
+    	int sections = Utils.clamp(Math.round(radius * 4), 8, 32);
+        drawDisk(x, y, radius, sections);
+    }
+    
+    /**
+     * 
+     * @param x
+     * @param y
+     * @param radius
+     * @param int sections
+     */
+    public final void drawDisk(float x, float y, float radius, int sections) {
         pushMatrix();
         translate(x, y);
         begin();
         vertex(0, 0);
-        circlePoints(radius, radius, 0, 360);
+        circlePoints(radius, radius, 0, 360, sections);
         drawTriangleFan();
         popMatrix();
     }
@@ -825,12 +838,12 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param startDegrees
      * @param sweepDegrees
      */
-    public final void drawFilledWedge(float cx, float cy, float radius, float startDegrees, float sweepDegrees) {
+    public final void drawFilledWedge(float cx, float cy, float radius, float startDegrees, float sweepDegrees, int sections) {
         pushMatrix();
         translate(cx, cy);
         begin();
         vertex(0, 0);
-        circlePoints(radius, radius, startDegrees, sweepDegrees);
+        circlePoints(radius, radius, startDegrees, sweepDegrees, sections);
         drawTriangleFan();
         popMatrix();
     }
@@ -841,12 +854,12 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param y
      * @param radius
      */
-    public final void drawCircle(float x, float y, float radius, float thickness) {
+    public final void drawCircle(float x, float y, float radius, float thickness, int sections) {
         float saveThickness = setLineWidth(thickness);
         pushMatrix();
         translate(x, y);
         begin();
-        if (circlePoints(radius-thickness/2, radius+thickness/2, 0, 360)) {
+        if (circlePoints(radius-thickness/2, radius+thickness/2, 0, 360, sections)) {
         	drawQuadStrip();
         } else {
         	drawLineLoop();
@@ -864,12 +877,12 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param startDegrees
      * @param sweepDegrees
      */
-    public final void drawArc(float x, float y, float radius, float thickness, float startDegrees, float sweepDegrees) {
+    public final void drawArc(float x, float y, float radius, float thickness, float startDegrees, float sweepDegrees, int sections) {
         float saveThickness = setLineWidth(thickness);
         pushMatrix();
         translate(x, y);
         begin();
-        if (circlePoints(radius-thickness/2, radius+thickness/2, startDegrees, sweepDegrees)) {
+        if (circlePoints(radius-thickness/2, radius+thickness/2, startDegrees, sweepDegrees, sections)) {
         	drawQuadStrip();
         } else {
         	drawLineStrip();
@@ -879,13 +892,25 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     }
 
     /**
-     * Convenience.  Thickness defaults to 1
+     * 
      * @param x
      * @param y
      * @param radius
      */
     public final void drawCircle(float x, float y, float radius) {
-        drawCircle(x, y, radius, 1);
+    	int sections = Math.round(radius * 4);
+    	sections = Utils.clamp(sections,  8,  32);
+    	drawCircle(x, y, radius, sections);
+    }
+    /**
+     * Convenience.  Thickness defaults to 1
+     * @param x
+     * @param y
+     * @param radius
+     * @param sections
+     */
+    public final void drawCircle(float x, float y, float radius, int sections) {
+        drawCircle(x, y, radius, 1, sections);
     }
 
     /**
@@ -895,7 +920,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param w
      * @param h
      */
-    public final void drawOval(float x, float y, float w, float h, float thickness) {
+    public final void drawOval(float x, float y, float w, float h, float thickness, int sections) {
         float saveThickness = setLineWidth(thickness);
         pushMatrix();
         float X = x + w/2;
@@ -910,7 +935,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
             radius = w;
         }
         begin();
-        if (circlePoints(radius-thickness/2, radius+thickness/2, 0, 360)) {
+        if (circlePoints(radius-thickness/2, radius+thickness/2, 0, 360, sections)) {
         	drawQuadStrip();
         } else {
         	drawLineLoop();
@@ -920,14 +945,32 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     }
 
     /**
-     * Convenience.  thickness default to 1
+     * 
      * @param x
      * @param y
      * @param w
      * @param h
      */
     public final void drawOval(float x, float y, float w, float h) {
-        drawOval(x, y, w, h, 1);
+    	float radius = Math.max(w/2, h/2);
+        int sections = Math.round(radius * 2);
+        if (sections > 32)
+            sections = 32;
+        else if (sections < 8)
+            sections = 8;
+    	drawOval(x, y, w, h, sections);
+    }
+    
+    /**
+     * Convenience.  thickness default to 1
+     * @param x
+     * @param y
+     * @param w
+     * @param h
+     * @param sections
+     */
+    public final void drawOval(float x, float y, float w, float h, int sections) {
+        drawOval(x, y, w, h, 1, sections);
     }
     
     /**
@@ -952,12 +995,12 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
         translate(x+w/2,y+h/2);
         vertex(0, 0);
         for (int i=0; i<sections; i++) {
-            float x0 = Utils.cosine(angle) * w/2;
-            float y0 = Utils.sine(angle) * h/2;
+            float x0 = CMath.cosine(angle) * w/2;
+            float y0 = CMath.sine(angle) * h/2;
             vertex(x0, y0);
             angle += step;
         }
-        vertex(Utils.cosine(endAngle) * w/2, Utils.sine(endAngle) * h/2);
+        vertex(CMath.cosine(endAngle) * w/2, CMath.sine(endAngle) * h/2);
         drawTriangleFan();
         popMatrix();
     }

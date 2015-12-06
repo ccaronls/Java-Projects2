@@ -156,7 +156,7 @@ public class Vector2D extends Reflector<Vector2D> implements IVector2D, Serializ
 
     public final MutableVector2D unitLength(MutableVector2D out) {
         float m = mag();
-        if (m > Utils.EPSILON) {
+        if (m > CMath.EPSILON) {
             return out.set(x/m, y/m);
         }
         return out.set(x,y);
@@ -173,7 +173,7 @@ public class Vector2D extends Reflector<Vector2D> implements IVector2D, Serializ
      */
     public final MutableVector2D normalized(MutableVector2D out) {
         float m = mag();
-        if (m > Utils.EPSILON) {
+        if (m > CMath.EPSILON) {
             return out.set(x/m, y/m);
         }
         return out.set(this);
@@ -196,7 +196,7 @@ public class Vector2D extends Reflector<Vector2D> implements IVector2D, Serializ
     }
     
     public final MutableVector2D rotate(float degrees, MutableVector2D out) {
-        degrees *= Utils.DEG_TO_RAD;
+        degrees *= CMath.DEG_TO_RAD;
         float cosd = (float)Math.cos(degrees);
         float sind = (float)Math.sin(degrees);
         return out.set(x*cosd - y*sind, x*sind + y*cosd);
@@ -208,13 +208,13 @@ public class Vector2D extends Reflector<Vector2D> implements IVector2D, Serializ
 
     public final float angleBetween(IVector2D v) {
         float dv = dot(v);
-        return (float)Math.acos(dv / (mag() * mag(v))) * Utils.RAD_TO_DEG;
+        return (float)Math.acos(dv / (mag() * mag(v))) * CMath.RAD_TO_DEG;
     }
     
     public final float angleOf() {
-        if (Math.abs(x) < Utils.EPSILON)
+        if (Math.abs(x) < CMath.EPSILON)
             return (y > 0 ? 90 : 270);
-        int r = (int)Math.round(Math.atan(y/x) * Utils.RAD_TO_DEG);
+        int r = (int)Math.round(Math.atan(y/x) * CMath.RAD_TO_DEG);
         return (x < 0 ? 180 + r : r < 0 ? 360 + r : r);
     }
     
@@ -259,7 +259,7 @@ public class Vector2D extends Reflector<Vector2D> implements IVector2D, Serializ
         Vector2D v = (Vector2D)o;
         float dx = x-v.x;
         float dy = y-v.y;
-        return (Math.abs(dx) < Utils.EPSILON && Math.abs(dy) < Utils.EPSILON);
+        return (Math.abs(dx) < CMath.EPSILON && Math.abs(dy) < CMath.EPSILON);
     }
 
     protected void writeObject(ObjectOutputStream out) throws IOException {

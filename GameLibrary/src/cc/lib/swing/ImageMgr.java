@@ -22,6 +22,7 @@ import java.util.Vector;
 import javax.swing.ImageIcon;
 
 import cc.lib.game.Utils;
+import cc.lib.math.CMath;
 
 public class ImageMgr {
 
@@ -404,8 +405,8 @@ public class ImageMgr {
 	    
 	    final float x0 = srcWid / 2;
 	    final float y0 = srcHgt / 2;
-	    final float cosa = Utils.cosine(degrees);
-	    final float sina = Utils.sine(degrees);
+	    final float cosa = CMath.cosine(degrees);
+	    final float sina = CMath.sine(degrees);
 	    
 	    for (int x1=0; x1<srcWid; x1++) {
 	        for (int y1=0; y1<srcHgt; y1++) {
