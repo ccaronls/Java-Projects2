@@ -32,6 +32,7 @@ public final class Board extends Reflector<Board> {
 	private String			name		= "";
 	private float           cw, ch;
 	private final List<Integer>	undiscoveredCells = new ArrayList<Integer>(); // this is here so we can reset the board to original state
+	private final List<Integer> pirateFortresses = new ArrayList<Integer>();
 	
 	private final static int GD_N		= 1;
 	private final static int GD_NE		= 2;
@@ -262,7 +263,7 @@ public final class Board extends Reflector<Board> {
 					
 					@Override
 					public boolean hasNext() {
-						return r.getTile(index) >= 0;
+						return index < 2 && r.getTile(index) >= 0;
 					}
 				};
 			}
@@ -811,14 +812,22 @@ public final class Board extends Reflector<Board> {
 	public void reset() {
 		robberTile = -1;
 		pirateTile = -1;
+		clearRouteLenCache();
 		for (Tile c : tiles) {
 			c.reset();
 		}
 		for (Vertex v : verts) {
 			v.reset();
 		}
+		for (Route r : routes) {
+			r.reset();
+		}
 		for (int tile : undiscoveredCells) {
 			getTile(tile).setType(TileType.UNDISCOVERED);
+			getTile(tile).setDieNum(0);
+		}
+		for (int vertex : pirateFortresses) {
+			getVertex(vertex).setType(VertexType.PIRATE_FORTRESS);
 		}
 	}
 
@@ -1021,6 +1030,7 @@ public final class Board extends Reflector<Board> {
 		};
 		
 		shuffle(resourceOptions);
+		shuffle(portOptions);
 		int curResourceOption = 0;
 		int curPortOption = 0;
 		final int minDeserts = 1; // make configurable
@@ -1097,10 +1107,11 @@ public final class Board extends Reflector<Board> {
 		}
 		// assign the deserts
 		if (desertOptions.size() > 0) {
-			// Utils.shuffle(desertOptions);
+			Utils.shuffle(desertOptions);
 			while (numDeserts < minDeserts && numDeserts < desertOptions.size()) {
 				Tile cell = getTile(desertOptions.get(numDeserts++));
 				cell.setType(TileType.DESERT);
+				cell.setDieNum(0);
 			}
 		}
 	}
@@ -1380,13 +1391,14 @@ public final class Board extends Reflector<Board> {
 			return playerRoadLenCache[playerNum];
 		}
 		
+		//System.out.println("Recompute road length");
 	    //if (Profiler.ENABLED) Profiler.push("SOCBoard::computeMaxRoadLengthForPlayer");
 	    try {
     	    boolean [] visitedEdges = new boolean[getNumRoutes()];
     	    int max = 0;
     	    for (int i=0; i<getNumVerts(); i++) {
     	        Vertex v = getVertex(i);
-    	        if (v.getType() != VertexType.OPEN) // TOOD: should we check here for enableRoadBlock and only consider knights if true?
+    	        if (v.getType() != VertexType.OPEN && !v.isKnight()) // TOOD: should we check here for enableRoadBlock and only consider knights if true?
     	            continue; // skip past verts with settlements on them
     	        //Utils.fillArray(visited, false);
     	        Arrays.fill(visitedEdges, false);
@@ -1402,7 +1414,9 @@ public final class Board extends Reflector<Board> {
     	            Route e = getRoute(eIndex);
     	            if (e.getPlayer() != playerNum)
     	                continue;
+    	            //System.out.println("traverse path starting at edge " + eIndex);
     	            len[ii] = traversePath(i, v1, visitedEdges, playerNum, 1, enableRoadBlock);
+    	            //System.out.println("Road len from vertex " + i + " = " + len[ii]);
     	        }
     	        int a = len[0] + len[1];
     	        int b = len[1] + len[2];
@@ -1415,6 +1429,7 @@ public final class Board extends Reflector<Board> {
     	        }
     	    }
     
+    	    //System.out.println("Computed max road len for player " + playerNum + " = " + max);
     	    playerRoadLenCache[playerNum] = max;
     	    return max;
 	    } finally {

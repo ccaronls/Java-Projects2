@@ -25,6 +25,8 @@ public class SOCTest extends TestCase {
 	    System.out.println("Begin TEST: " + getName());
         System.out.println("----------------------------------------------");
         Profiler.ENABLED = true;
+        PlayerBot.DEBUG_ENABLED = true;
+        Utils.DEBUG_ENABLED = true;
     }
 
 
@@ -58,6 +60,7 @@ public class SOCTest extends TestCase {
 		for (int i=0; i<b.getNumTiles(); i++) {
 		    b.getTile(i).setType(TileType.RANDOM_RESOURCE_OR_DESERT);
 		}
+		b.trim();
 		b.assignRandom();
 		for (int i=0; i<4; i++)
 			soc.addPlayer(new PlayerRandom());
@@ -84,8 +87,9 @@ public class SOCTest extends TestCase {
         for (int i=0; i<b.getNumTiles(); i++) {
             b.getTile(i).setType(TileType.RANDOM_RESOURCE_OR_DESERT);
         }
+        b.trim();
         b.assignRandom();
-        for (int i=0; i<4; i++)
+        for (int i=0; i<2; i++)
             soc.addPlayer(new PlayerBot());
         //for (int i=0; i<100000; i++)
         for (int i=0; i<10000 && !soc.isGameOver(); i++)

@@ -75,7 +75,8 @@ public class SOC extends Reflector<SOC> {
 	private final Player[]   	mPlayers = new Player[MAX_PLAYERS];
 	private int					mCurrentPlayer;
 	private int					mNumPlayers;
-	private Dice []				mDice;
+	private LinkedList<Dice[]>	mDice = new LinkedList<Dice[]>(); // compute the next 10 die rolls to support rewind with consistent die rolls
+	private DiceType[]			mDiceConfig = null;
 	private Stack<StackItem>	mStateStack = new Stack<StackItem>();
 	private List<Card>			mDevelopmentCards = new ArrayList<Card>();
 	private List<Card>[]		mProgressCards;
@@ -180,31 +181,10 @@ public class SOC extends Reflector<SOC> {
 	 * @return
 	 */
 	public Dice [] getDice() {
-		return mDice;
+		initDice();
+		return mDice.getFirst();
 	}
 	
-	/**
-	 * Return the dice configuration as an array of types.  The array os the same length as the dice array.
-	 * @return
-	 *
-	public DiceType [] getDiceConfig() {
-		//return mDiceConfig;
-		if (getRules().isEnableCitiesAndKnightsExpansion()) {
-			if (getRules().isEnableEventCards()) {
-				return new DiceType[] { DiceType.RedYellow, DiceType.Event };
-			} else {
-				return new DiceType[] { DiceType.YellowRed, DiceType.RedYellow, DiceType.Event };
-				
-			}
-		} else {
-			if (getRules().isEnableEventCards()) {
-				return new DiceType[] { DiceType.WhiteBlack };
-			} else {
-				return new DiceType[] { DiceType.WhiteBlack, DiceType.WhiteBlack };
-			}
-		}
-	}
-
 	/**
 	 * Get sum of both 6 sided die 
 	 * @return
@@ -214,7 +194,8 @@ public class SOC extends Reflector<SOC> {
 		if (card != null) {
 			return card.getProduction();
 		}
-		return mDice[0].getNum() + mDice[1].getNum();
+		Dice [] dice = getDice();
+		return dice[0].getNum() + dice[1].getNum();
 	}
 	
 	/**
@@ -285,6 +266,8 @@ public class SOC extends Reflector<SOC> {
 		//mBoard.reset();
 		mStateStack.clear();
 		mEventCards.clear();
+		mDice.clear();
+		mDiceConfig = null;
 		resetOptions();
 	}
 
@@ -447,6 +430,17 @@ public class SOC extends Reflector<SOC> {
 		mCurrentPlayer = nextPlayer;
 	}
 
+	private void dumpStateStack() {
+		if (mStateStack.size() == 0) {
+			Utils.println("State Stack Empty");
+		} else {
+			for (StackItem s : mStateStack) {
+				Utils.print(s.state + ", ");
+			}
+			Utils.println();
+		}
+	}
+	
 	/*
 	 * 
 	 */
@@ -454,12 +448,29 @@ public class SOC extends Reflector<SOC> {
 		logDebug("Popping state " + getState());
 		assert (mStateStack.size() > 0);
 		mStateStack.pop();
-		logDebug("Setting state to " + (getState()));
+//		logDebug("Setting state to " + (getState()));
 	}
 
 	// package access for unit tests
 	void setDice(Dice [] dice) {
-		Utils.copyElems(mDice, dice);
+		Utils.copyElems(getDice(), dice);
+	}
+	
+	private void initDice() {
+		while (mDice.size() < 10) {
+			Dice [] dice = new Dice[mDiceConfig.length];
+			for (int i=0; i<mDiceConfig.length; i++) {
+				dice[i] = new Dice(mDiceConfig[i]);
+				dice[i].roll();
+			}
+			mDice.addLast(dice);
+		}
+	}
+	
+	private Dice [] nextDice() {
+		mDice.removeFirst();
+		initDice();
+		return getDice();
 	}
 	
 	/**
@@ -467,13 +478,12 @@ public class SOC extends Reflector<SOC> {
 	 * @param r
 	 */
 	public void rollDice() {
-		for (int i=0; i<mDice.length; i++)
-			mDice[i].roll();
-		onDiceRolled(mDice);
-		if (mDice.length == 2) {
-			printinfo("Die roll: " + mDice[0] + ", " + mDice[1]);
+		Dice [] dice = nextDice();
+		onDiceRolled(dice);
+		if (mDiceConfig.length == 2) {
+			printinfo("Die roll: " + dice[0].getNum() + ", " + dice[1].getNum());
 		} else {
-			printinfo("Die roll: " + mDice[0] + ", " + mDice[1] + ", " + DiceEvent.fromDieNum(mDice[2].getNum()));
+			printinfo("Die roll: " + dice[0].getNum() + ", " + dice[1].getNum() + ", " + DiceEvent.fromDieNum(dice[2].getNum()));
 		}
 	}
 	
@@ -843,17 +853,14 @@ public class SOC extends Reflector<SOC> {
 		printinfo(getCurPlayerNum(), txt);
 	}
 
-	static public int computePointsFromCards(Player player, SOC soc) {
+	/**
+	 * Compute the point the player should have based on the board and relevant SOC values.
+	 * The player's point field is not changed. 
+	 * @param player
+	 * @return
+	 */
+	static public int computePointsForPlayer(Player player, Board board, SOC soc) {
 		int numPts = player.getSpecialVictoryPoints();
-		int victoryPts = player.getUsableCardCount(DevelopmentCardType.Victory);
-		if (numPts + victoryPts >= soc.getRules().getPointsForWinGame()) {
-			numPts += victoryPts;
-		}
-		return numPts;
-	}
-	
-	static public int computePointsFromBoard(Player player, Board board, SOC soc) {
-		int numPts = 0;
 		// count cities and settlements
 		boolean [] islands = new boolean[board.getNumIslands()+1];
 		for (int i = 0; i < board.getNumVerts(); i++) {
@@ -873,18 +880,11 @@ public class SOC extends Reflector<SOC> {
 			}
 		}
 
-		return numPts;
-	}
-
-	/**
-	 * Compute the point the player should have based on the board and relevant SOC values.
-	 * The player's point field is not changed. 
-	 * @param player
-	 * @return
-	 */
-	static public int computePointsForPlayer(Player player, Board board, SOC soc) {
-		return computePointsFromCards(player, soc) + computePointsFromBoard(player, board, soc);
-	}
+		int victoryPts = player.getUsableCardCount(DevelopmentCardType.Victory);
+		if (numPts + victoryPts >= soc.getRules().getPointsForWinGame()) {
+			numPts += victoryPts;
+		}
+		return numPts;	}
 
 	/**
 	 * Called when a players point change (for better or worse).  default method does nothing.
@@ -957,21 +957,24 @@ public class SOC extends Reflector<SOC> {
         assert (mNumPlayers > 1);
         assert (mPlayers != null);
         assert (mBoard != null);
-        
+
+        getBoard().reset();
+        reset();
+
         if (getRules().isEnableCitiesAndKnightsExpansion()) {
         	
         	if (getRules().isEnableEventCards()) {
-        		mDice = new Dice[] { new Dice(DiceType.None), new Dice(DiceType.RedYellow), new Dice(DiceType.Event) };
+        		mDiceConfig = new DiceType[] { DiceType.None, DiceType.RedYellow, DiceType.Event };
         	} else {
-        		mDice = new Dice[] { new Dice(DiceType.YellowRed), new Dice(DiceType.RedYellow), new Dice(DiceType.Event) };
+        		mDiceConfig = new DiceType[] { DiceType.YellowRed, DiceType.RedYellow, DiceType.Event };
         	}
         	mBarbarianDistance = getRules().getBarbarianStepsToAttack();
         } else {
-        	mDice = new Dice[] { new Dice(DiceType.WhiteBlack), new Dice(DiceType.WhiteBlack) };
+        	mDiceConfig = new DiceType [] { DiceType.WhiteBlack, DiceType.WhiteBlack };
         	mBarbarianDistance = -1;
         }
         
-        reset();
+        initDice();
         initDeck();
 
         if (isPirateAttacksEnabled()) {
@@ -1122,11 +1125,6 @@ public class SOC extends Reflector<SOC> {
 			initGame();
 		
 		assert(!mStateStack.isEmpty());
-		if (isDebugEnabled()) {
-			List<StackItem> stack = new LinkedList<StackItem>(mStateStack);
-			Collections.reverse(stack);			
-			logDebug("Stack Before: " + stack);
-		}
 		
     	updatePlayerPoints();
 		if (isGameOver()) {
@@ -1149,6 +1147,8 @@ public class SOC extends Reflector<SOC> {
 		
 		if (!runGameCheck())
 			return;
+		
+		dumpStateStack();
 		
 		logDebug("Processing state : " + getState());
 		
@@ -1501,8 +1501,10 @@ public class SOC extends Reflector<SOC> {
 
 				case START_ROUND: // transition state
 					assert(mStateStack.size() == 1); // this should always be the start
-					for (Dice d : mDice)
-						d.setNum(0);
+		//			Dice [] dice = getDice();
+//					for (Dice d : mDice)
+	//					d.setNum(0);
+					onShouldSaveGame();
 					if (getRules().isEnableEventCards()) {
 						mOptions = Arrays.asList(MoveType.DEAL_EVENT_CARD);
 					} else {
@@ -1767,10 +1769,8 @@ public class SOC extends Reflector<SOC> {
 				}
 
 				case CHOOSE_KNIGHT_TO_PROMOTE: {
-					if (mOptions == null) {
-						mOptions = computePromoteKnightVertexIndices(getCurPlayer(), mBoard);
-					}
-					Vertex v = getCurPlayer().chooseVertex(this, mOptions, VertexChoice.KNIGHT_TO_PROMOTE);
+					List<Integer> knights = computePromoteKnightVertexIndices(getCurPlayer(), mBoard);
+					Vertex v = getCurPlayer().chooseVertex(this, knights, VertexChoice.KNIGHT_TO_PROMOTE);
 					if (v != null) {
 						assert(v.isKnight());
 						//assert(!v.isPromotedKnight());
@@ -1880,30 +1880,11 @@ public class SOC extends Reflector<SOC> {
 				// Crane Card
 				case CHOOSE_CITY_IMPROVEMENT: {
 					assert(mOptions != null && mOptions.size() > 0);
-					MoveType mv = getCurPlayer().chooseMove(this, mOptions);
-					if (mv != null) {
-						
-						switch (mv) {
-				        	case IMPROVE_CITY_POLITICS: {
-				        		processCityImprovement(getCurPlayer(), DevelopmentArea.Politics, 1);
-				        		break;
-				        	}
-				        	
-				        	case IMPROVE_CITY_SCIENCE:{
-				        		processCityImprovement(getCurPlayer(), DevelopmentArea.Science, 1);
-				        		break;
-				        	}
-				        	
-				        	case IMPROVE_CITY_TRADE:{
-				        		processCityImprovement(getCurPlayer(), DevelopmentArea.Trade, 1);
-				        		break;
-				        	}
-							default:
-								throw new AssertionError("Unhandled case '" + mv +"' should not happen");
-						}
-						
-						
+					DevelopmentArea [] areas = ((Collection<DevelopmentArea>)mOptions).toArray(new DevelopmentArea[mOptions.size()]);
+					DevelopmentArea area = getCurPlayer().chooseEnum(this, EnumChoice.CRANE_CARD_DEVELOPEMENT, areas);
+					if (area != null) {
 						popState();
+						processCityImprovement(getCurPlayer(), area, 1);
 						resetOptions();
 					}
 					break;
@@ -2000,7 +1981,13 @@ public class SOC extends Reflector<SOC> {
 						Player exchanging = (Player)getStateData();
 						popState();
 						clearUndoAction();
-						exchanging.addCard(getCurPlayer().removeCard(card));
+						
+						Card exchanged = getCurPlayer().removeCard(card);
+						onCardLost(getCurPlayer(), exchanged);
+						
+						exchanging.addCard(exchanged);
+						onCardPicked(exchanging, exchanged);
+						
 						pushStateFront(State.SET_PLAYER, getCurPlayerNum(), null);
 						mOptions = exchanging.getCards(CardType.Commodity);
 						pushStateFront(State.EXCHANGE_CARD, getCurPlayer(), null);
@@ -2012,8 +1999,11 @@ public class SOC extends Reflector<SOC> {
 				case EXCHANGE_CARD: {
 					Card card = getCurPlayer().chooseCard(this, mOptions, CardChoice.EXCHANGE_CARD);
 					if (card != null) {
+						getCurPlayer().removeCard(card);
+						onCardLost(getCurPlayer(), card);
 						Player exchanging = (Player)getStateData();
 						exchanging.addCard(card);
+						onCardPicked(exchanging, card);
 						popState();
 						resetOptions();
 					}
@@ -2065,30 +2055,14 @@ public class SOC extends Reflector<SOC> {
 				
 				case CHOOSE_PLAYER_MASTER_MERCHANT: {
 					assert(mOptions != null && mOptions.size() > 0);
-					Player p = null;
-					if (mOptions.size() == 1) {
-						p = getPlayerByPlayerNum((Integer)mOptions.iterator().next());
-					} else {
-						p = getCurPlayer().choosePlayer(this, mOptions, PlayerChoice.PLAYER_TO_TAKE_CARD_FROM);
-					}
+					Player p = getCurPlayer().choosePlayer(this, mOptions, PlayerChoice.PLAYER_TO_TAKE_CARD_FROM);
 					if (p != null) {
 						putCardBackInDeck(getCurPlayer().removeCard(ProgressCardType.MasterMerchant));
 						List<Card> cards = p.getCards(CardType.Commodity);
 						cards.addAll(p.getCards(CardType.Resource));
-						int num = cards.size();
-						if (num <= 2) {
-							// just take em all
-							for (Card c : cards) {
-								p.removeCard(c);
-								getCurPlayer().addCard(c);
-								onTakeOpponentCard(getCurPlayer(), p, c);
-							}
-						} else {
-        					if (num > 2)
-        						num = 2;
-        					popState();
-        					resetOptions();
-        					pushStateFront(State.TAKE_CARD_FROM_OPPONENT, p, null);
+    					popState();
+    					resetOptions();
+						for (int i=0; i<Math.min(2, cards.size()); i++) {
         					pushStateFront(State.TAKE_CARD_FROM_OPPONENT, p, null);
 						}
 					}
@@ -2269,11 +2243,6 @@ public class SOC extends Reflector<SOC> {
 				}
 			}
     			
-    		if (isDebugEnabled()) {
-    			List<StackItem> stack = new LinkedList<StackItem>(mStateStack);
-    			Collections.reverse(stack);
-    			logDebug("Stack After: " + stack);
-    		}
 	    } finally {
 	        //if (Profiler.ENABLED) Profiler.pop("SOC::runGame[" + state + "]");
             //if (Profiler.ENABLED) Profiler.pop("SOC::runGame");
@@ -2516,9 +2485,11 @@ public class SOC extends Reflector<SOC> {
         		}
         		onEventCardDealt(getTopEventCard());
         		if (getRules().isEnableCitiesAndKnightsExpansion()) {
-        			mDice[1].roll();
-        			mDice[2].roll();
-        			onDiceRolled(mDice[1], mDice[2]);
+        			Dice [] dice = mDice.removeFirst();
+        			initDice();
+        			dice[1].roll();
+        			dice[2].roll();
+        			onDiceRolled(dice[1], dice[2]);
         		}
         		popState();
         		processDice();
@@ -2711,13 +2682,14 @@ public class SOC extends Reflector<SOC> {
         	}
 
         	case ALCHEMIST_CARD: {
-        		if (getCurPlayer().setDice(mDice, 2)) {
+        		Dice [] dice = nextDice();
+        		if (getCurPlayer().setDice(dice, 2)) {
         			putCardBackInDeck(getCurPlayer().removeCard(ProgressCardType.Alchemist));
-        			mDice[0].setNum(Utils.clamp(mDice[0].getNum(), 1, 6));
-        			mDice[1].setNum(Utils.clamp(mDice[1].getNum(), 1, 6));
-        			mDice[2].roll();
-        			onDiceRolled(mDice[2]);
-        			printinfo(getCurPlayer().getName() + " applied Alchemist card on dice " +  mDice[0] + ", " + mDice[1] + ", " + DiceEvent.fromDieNum(mDice[2].getNum()));
+        			dice[0].setNum(Utils.clamp(dice[0].getNum(), 1, 6));
+        			dice[1].setNum(Utils.clamp(dice[1].getNum(), 1, 6));
+        			dice[2].roll();
+        			onDiceRolled(dice[2]);
+        			printinfo(getCurPlayer().getName() + " applied Alchemist card on dice " +  dice[0] + ", " + dice[1] + ", " + DiceEvent.fromDieNum(dice[2].getNum()));
             		processDice();
         		}
         		break;
@@ -2799,7 +2771,7 @@ public class SOC extends Reflector<SOC> {
         		
 			case CRANE_CARD: {
 				// build a city improvement for 1 commodity less than normal
-				List<MoveType> options = computeCraneCardImprovements(getCurPlayer());
+				List<DevelopmentArea> options = computeCraneCardImprovements(getCurPlayer());
 				if (options.size() > 0) {
     				mOptions = options;
     				final Card card = getCurPlayer().removeCard(ProgressCardType.Crane);
@@ -3054,18 +3026,11 @@ public class SOC extends Reflector<SOC> {
     					// automatically give
     					List<Card> cards = p.getCards(CardType.Commodity);
     					cards.addAll(p.getCards(CardType.Resource));
-    					if (cards.size() <= 2) {
-    						// automatic
-    						for (Card c : cards) {
-    							p.removeCard(c);
-    							getCurPlayer().addCard(c);
-    							onTakeOpponentCard(getCurPlayer(), p, c);
-    						}
-    					} else {
+    					pushStateFront(State.CHOOSE_GIFT_CARD, getCurPlayer(), null);
+    					if (cards.size() > 1) 
     						pushStateFront(State.CHOOSE_GIFT_CARD, getCurPlayer(), null);
-    						pushStateFront(State.CHOOSE_GIFT_CARD, getCurPlayer(), null);
-    						pushStateFront(State.SET_PLAYER, p.getPlayerNum(), null);
-    					}
+    					pushStateFront(State.SET_PLAYER, p.getPlayerNum(), null);
+    					
     				}
 				}
 				break;
@@ -3117,7 +3082,8 @@ public class SOC extends Reflector<SOC> {
 			if (p.getPlayerNum() == player.getPlayerNum())
 				continue;
 			if (p.getPoints() > player.getPoints()) {
-				players.add(p.getPlayerNum());
+				if (p.getCardCount(CardType.Commodity) > 0 || p.getCardCount(CardType.Resource) > 0)
+					players.add(p.getPlayerNum());
 			}
 		}
 		return players;
@@ -3178,6 +3144,11 @@ public class SOC extends Reflector<SOC> {
 	protected void onPlayerDiscoveredIsland(Player player, Island island) {}
 	
 	/**
+	 * Executed when game is in a good state for saving.
+	 */
+	protected void onShouldSaveGame() {}
+	
+	/**
 	 * 
 	 * @param p
 	 * @param r
@@ -3228,10 +3199,10 @@ public class SOC extends Reflector<SOC> {
 
 	/**
 	 * 
-	 * @return
-	 */
+	 * @return true if current state (pre-run) is good for saving
+	 *
 	public boolean isGoodForSave() {
-		return getState() == State.PLAYER_TURN_NOCANCEL || getState() == State.DEAL_CARDS;//!getState().canCancel && getStateData() == null;
+		return getState() == State.START_ROUND;//PLAYER_TURN_NOCANCEL || getState() == State.DEAL_CARDS || !getState().canCancel && getStateData() == null;
 	}
 	
 	/**
@@ -3335,7 +3306,6 @@ public class SOC extends Reflector<SOC> {
 	private void updatePlayerRoadsBlocked(int vIndex) {
 		if (getRules().isEnableRoadBlock()) {
 			
-			Vertex v = getBoard().getVertex(vIndex);
 			int pNum =  getBoard().checkForPlayerRouteBlocked(vIndex);	
 			if  (pNum > 0) {
 				mBoard.clearRouteLenCache();
@@ -4441,13 +4411,13 @@ public class SOC extends Reflector<SOC> {
 		return players;
 	}
 	
-	static public List<MoveType> computeCraneCardImprovements(Player p) {
-		ArrayList<MoveType> options = new ArrayList<MoveType>();
+	static public List<DevelopmentArea> computeCraneCardImprovements(Player p) {
+		ArrayList<DevelopmentArea> options = new ArrayList<DevelopmentArea>();
 		for (DevelopmentArea area : DevelopmentArea.values()) {
 			int devel = p.getCityDevelopment(area);
 			int numCommodity = p.getCardCount(area.commodity);
 			if (numCommodity >= devel) {
-				options.add(area.move);
+				options.add(area);
 			}
 		}
 		return options;
@@ -4513,7 +4483,8 @@ public class SOC extends Reflector<SOC> {
 	protected void onPirateAttack(Player p, int playerStrength, int pirateStrength) {}
 	
 	private void processPirateAttack() {
-		final int pirateStrength = Math.min(mDice[0].getNum(), mDice[1].getNum());
+		Dice [] dice = getDice();
+		final int pirateStrength = Math.min(dice[0].getNum(), dice[1].getNum());
 		{
 			int min = pirateStrength;
     		while (min-- > 0) {
@@ -4578,16 +4549,8 @@ public class SOC extends Reflector<SOC> {
 			}
 		} else {
 
-    		/*
-    		pushStateFront(State.NEXT_PLAYER);
-    		
     		// after the last player takes a turn for this round need to advance 2 players
     		// so that the player after the player who rolled the dice gets to roll next
-    		for (int i = 0; i < mNumPlayers; i++) {
-    			if (i > 0)
-    				pushStateFront(State.PLAYER_TURN_NOCANCEL);
-    			pushStateFront(State.NEXT_PLAYER);
-    		}*/
     		pushStateFront(State.NEXT_PLAYER);
     		pushStateFront(State.NEXT_PLAYER);
 
@@ -4603,7 +4566,7 @@ public class SOC extends Reflector<SOC> {
     		distributeResources(getProductionNum());
     		
     		if (getRules().isEnableCitiesAndKnightsExpansion()) {
-    			switch (DiceEvent.fromDieNum(mDice[2].getNum())) {
+    			switch (DiceEvent.fromDieNum(getDice()[2].getNum())) {
     				case AdvanceBarbarianShip:
     					processBarbarianShip();
     					break;
@@ -4663,10 +4626,11 @@ public class SOC extends Reflector<SOC> {
 	
 	private void distributeProgressCard(DevelopmentArea area) {
 		for (Player p : getPlayers()) {
+			Dice [] dice = getDice();
 			if (mProgressCards[area.ordinal()].size() > 0 
 					&& p.getCardCount(CardType.Progress) < getRules().getMaxProgressCards() 
 					&& p.getCityDevelopment(area) > 0 
-					&& p.getCityDevelopment(area) >= mDice[1].getNum()-1) {
+					&& p.getCityDevelopment(area) >= dice[1].getNum()-1) {
 				Card card = mProgressCards[area.ordinal()].remove(0);
 				printinfo(p.getName() + " draws a " + area.name() + " Progress Card");
 				if (card.equals(ProgressCardType.Constitution)) {

@@ -1,9 +1,13 @@
 package cc.game.soc.swing;
 
+import java.awt.Color;
 import java.awt.Graphics;
 
 import javax.swing.JComponent;
 
+import cc.game.soc.core.SOC;
+import cc.lib.game.Justify;
+import cc.lib.swing.AWTUtils;
 import cc.lib.swing.ImageMgr;
 
 public class BarbarianComponent extends JComponent {
@@ -22,11 +26,18 @@ public class BarbarianComponent extends JComponent {
 	
 	@Override
 	public void paint(Graphics g) {
-		int numStepsAway = GUI.instance.getSOC().getBarbarianDistance();
+		SOC soc = GUI.instance.getSOC();
+		
+		int numStepsAway = soc.getBarbarianDistance();
 		int image = imageDefault;
 		if (numStepsAway >= 0 && numStepsAway < images.length) {
 			image = images[numStepsAway];
 		}
 		GUI.instance.images.drawImage(g, image, 0, 0, getWidth(), getHeight());
+		
+		String text = "Barbarians: " + SOC.computeBarbarianStrength(soc, soc.getBoard())
+				    + "\nCatan: " + SOC.computeCatanStrength(soc, soc.getBoard());
+		g.setColor(Color.BLACK);
+		AWTUtils.drawJustifiedString(g, 10, 10, Justify.LEFT, Justify.TOP, text);
 	}
 }

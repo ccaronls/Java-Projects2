@@ -83,6 +83,12 @@ public class GUIPlayerUser extends GUIPlayer {
 			case PIRATE_FORTRESS:
 				v = GUI.instance.chooseVertex(vertexIndices, getPlayerNum(), mode);
 				break;
+			case OPPONENT_STRUCTURE_TO_ATTACK:
+				v = GUI.instance.chooseVertex(vertexIndices, getPlayerNum(), mode);
+				// TODO: Attack Animations!
+				break;
+			default:
+				break;
 		}
 		return v;
 	}
@@ -112,7 +118,8 @@ public class GUIPlayerUser extends GUIPlayer {
     			
     			case SHIP_TO_MOVE: 
     				break;
-    				
+				case OPPONENT_ROAD_TO_ATTACK:
+					break;
     		}
 		}
 		return r;

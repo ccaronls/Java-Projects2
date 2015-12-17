@@ -1,0 +1,135 @@
+Player 3 place settlement
+Player 3 placed a settlement on vertex 36
+Player 3 place road
+Player 3 placing a road on edge 57
+Player 4 place settlement
+Player 4 placed a settlement on vertex 3
+Player 4 place road
+Player 4 placing a road on edge 8
+Player 1 place settlement
+Player 1 placed a settlement on vertex 95
+Player 1 place road
+Player 1 placing a road on edge 131
+Player 2 place settlement
+Player 2 placed a settlement on vertex 5
+Player 2 place road
+Player 2 placing a road on edge 1
+Player 2 place settlement
+Player 2 placed a settlement on vertex 50
+Player 2 place road
+Player 2 placing a road on edge 0
+Player 1 place settlement
+Player 1 placed a settlement on vertex 30
+Player 1 place road
+Player 1 placing a road on edge 129
+Player 4 place settlement
+Player 4 placed a settlement on vertex 81
+Player 4 place road
+Player 4 placing a road on edge 116
+Player 3 place settlement
+Player 3 placed a settlement on vertex 44
+Player 3 place road
+Player 3 placing a road on edge 69
+Player 1 gets 1 X Wheat, 1 X Brick
+Player 2 gets 1 X Wood, 1 X Sheep, 1 X Brick
+Player 3 gets 1 X Wood, 1 X Sheep, 1 X Ore, 1 X Wheat, 1 X Brick
+Player 4 gets 1 X Sheep, 1 X Ore, 1 X Wheat, 2 X Brick
+Player 3 choose move ROLL_DICE
+Die roll: num=1
+type=WhiteBlack
+, num=1
+type=WhiteBlack
+
+Distributing resources for num 2
+Player 3 choose move
+Player 3 choose move CONTINUE
+Player 4 choose move
+Player 4 choose move CONTINUE
+Player 1 choose move
+Player 1 choose move CONTINUE
+Player 2 choose move
+Player 2 choose move BUILD_ROAD
+Player 2 place road
+Player 2 placing a road on edge 77
+Player 2 choose move
+Player 2 choose move CONTINUE
+Player 4 choose move ROLL_DICE
+Die roll: num=6
+type=WhiteBlack
+, num=1
+type=WhiteBlack
+
+Uh Oh, Player 4 rolled a 7.
+Player 4 place robber
+Player 4 placing robber on cell 28
+Player 4 taking a Sheep card from Player Player 2
+Player 1 choose move ROLL_DICE
+Die roll: num=5
+type=WhiteBlack
+, num=3
+type=WhiteBlack
+
+Distributing resources for num 8
+Player 3 gets 1 X Ore, 1 X Wheat
+Player 1 choose move
+Player 1 choose move CONTINUE
+Player 2 choose move
+Player 2 choose move CONTINUE
+Player 3 choose move
+Player 3 choose move CONTINUE
+Player 4 choose move
+Player 4 choose move CONTINUE
+Player 2 choose move ROLL_DICE
+Die roll: num=4
+type=WhiteBlack
+, num=1
+type=WhiteBlack
+
+Distributing resources for num 5
+Player 2 gets 1 X Wood
+Player 3 gets 1 X Sheep
+Player 2 choose move
+Player 2 choose move CONTINUE
+Player 3 choose move
+Player 3 choose move BUILD_ROAD
+Player 3 place road
+Player 3 placing a road on edge 52
+Player 3 choose move
+Player 3 choose move CONTINUE
+Player 4 choose move
+Player 4 choose move CONTINUE
+Player 1 choose move
+Player 1 choose move CONTINUE
+Player 3 choose move ROLL_DICE
+Die roll: num=2
+type=WhiteBlack
+, num=5
+type=WhiteBlack
+
+Uh Oh, Player 3 rolled a 7.
+Player 3 place robber
+Player 3 placing robber on cell 9
+Player 3 taking a Wheat card from Player Player 1
+Player 4 choose move ROLL_DICE
+Die roll: num=3
+type=WhiteBlack
+, num=2
+type=WhiteBlack
+
+Distributing resources for num 5
+Player 2 gets 1 X Wood
+Player 3 gets 1 X Sheep
+Player 4 choose move
+Player 4 choose move CONTINUE
+Player 1 choose move
+Player 1 choose move CONTINUE
+Player 2 choose move
+Player 2 choose move CONTINUE
+Player 3 choose move
+Player 3 choose move DRAW_DEVELOPMENT
+Player 3 picked a Soldier UNUSABLE card
+Player 3 choose move
+Player 3 choose move DRAW_DEVELOPMENT
+Player 3 picked a RoadBuilding UNUSABLE card
+Player 3 choose move
+Player 3 choose move CONTINUE

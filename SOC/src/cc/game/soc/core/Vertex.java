@@ -145,7 +145,7 @@ public final class Vertex extends Reflector<Vertex> implements IVector2D {
 	 * @param p
 	 */
 	public void setPlayer(int p) {
-		assert(p>0);
+		assert(p>=0);
 		player = p;
 	}
 	

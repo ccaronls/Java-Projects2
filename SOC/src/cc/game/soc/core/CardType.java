@@ -20,4 +20,12 @@ public enum CardType {
 	public ICardType<?> dereferenceOrdinal(int typeOrdinal) {
 		return (ICardType<?>)typeValues[typeOrdinal];
 	}
+	
+	/**
+	 * Return number of unique values for this type
+	 * @return
+	 */
+	public int getCount() {
+		return typeValues.length;
+	}
 }

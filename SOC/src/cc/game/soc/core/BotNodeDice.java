@@ -22,7 +22,7 @@ public class BotNodeDice extends BotNode {
 
 	@Override
 	public String getDescription() {
-		return "Dice [" + dice[0] + ", " + dice[1] + "]";
+		return "Dice [" + dice[0] + " " + dice[1] + "]";
 	}
 	
 	

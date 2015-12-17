@@ -177,6 +177,18 @@ public abstract class Player extends Reflector<Player> {
 		return list;
 	}
 	
+	public final List<Card> getUniqueCards(CardType type) {
+		boolean [] found = new boolean[type.getCount()];
+		List<Card> list = new ArrayList<Card>();
+		for (Card card : cards) {
+			if (card.getCardType() == type && !found[card.getTypeOrdinal()]) {
+				list.add(card);
+				found[card.getTypeOrdinal()] = true;
+			}
+		}
+		return list;
+	}
+	
 	/**
 	 * 
 	 * @param type
@@ -834,6 +846,7 @@ public abstract class Player extends Reflector<Player> {
 		MONOPOLY,
 		DRAW_DEVELOPMENT_CARD, 
 		DRAW_PROGRESS_CARD,
+		CRANE_CARD_DEVELOPEMENT,
 	}
 	
 	/**

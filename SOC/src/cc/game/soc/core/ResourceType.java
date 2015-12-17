@@ -7,11 +7,11 @@ package cc.game.soc.core;
  */
 public enum ResourceType implements ICardType<Void> {
 
-	Wood("Produced by Forest Tiles"),
-	Sheep("Produced by Pasture Tiles"),
-	Ore("Produced by Mountains Tiles"),
-	Wheat("Produced by Fields Tiles"),
-	Brick("Produced by Hills Tiles"),
+	Wood	("Produced by Forest Tiles"),
+	Sheep	("Produced by Pasture Tiles"),
+	Ore		("Produced by Mountains Tiles"),
+	Wheat	("Produced by Fields Tiles"),
+	Brick	("Produced by Hills Tiles"),
 	;
 
 	final String helpText;

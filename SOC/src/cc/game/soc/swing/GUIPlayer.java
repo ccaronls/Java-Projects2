@@ -261,6 +261,8 @@ public class GUIPlayer extends PlayerBot {
 				break;
 			case PIRATE_FORTRESS:
 				break;
+			case OPPONENT_STRUCTURE_TO_ATTACK:
+				break;
 		}
 		return v;
 	}
@@ -297,7 +299,7 @@ public class GUIPlayer extends PlayerBot {
 		bc.repaint();
         try {
             synchronized (bc) {
-                bc.wait(50);
+                bc.wait(100);
             }
         } catch (Exception e) {}
         synchronized (this) {

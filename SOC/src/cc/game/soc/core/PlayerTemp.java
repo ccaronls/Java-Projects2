@@ -65,7 +65,7 @@ public class PlayerTemp extends Player {
 	}
 
 	@Override
-	public <T extends Enum<T>> T chooseEnum(SOC soc, EnumChoice mode, T ... values) {
+	public <T extends Enum<T>> T chooseEnum(SOC soc, EnumChoice mode, T [] values) {
 		// TODO Auto-generated method stub
 		return null;
 	}

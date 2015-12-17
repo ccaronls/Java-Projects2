@@ -47,7 +47,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 	public static void main(String [] args)  {
 		JFrame frame = new JFrame();
 		try {
-			
+			PlayerBot.DEBUG_ENABLED = true;
 //			System.out.println(System.getProperties().toString().replace(",", "\n"));
 			
 			Utils.setDebugEnabled(true);
@@ -136,7 +136,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 	private ColorString [] playerColors;
 
     private File defaultBoardFile;
-    private final File saveGameFile;
+    final File saveGameFile;
     private final File saveRulesFile;
     private final File debugBoard;
     
@@ -231,10 +231,10 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
         consolePane = new JScrollPane();
         consolePane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
         consolePane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-        consolePane.getViewport().add(console);
         consolePane.getVerticalScrollBar().setBlockIncrement(console.getTextHeight());
         consolePane.getVerticalScrollBar().setUnitIncrement(console.getTextHeight());
-        consolePane.setPreferredSize(console.getMinimumSize());
+        consolePane.setPreferredSize(console.getPreferredSize());
+        consolePane.setViewportView(console);
 
         // menu
         menu.setLayout(new GridLayout(0 ,1));
@@ -865,6 +865,18 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 												break;
 										}
 										break;
+									case FORTRESS:
+										v = getBoard().getVertex(pickedValue);
+										if (v.getType() == VertexType.PIRATE_FORTRESS) {
+											v.setPirateHealth(v.getPirateHealth()-1);
+											if (v.getPirateHealth() <= 0)
+												v.setType(VertexType.OPEN);
+										} else {
+											v.reset();
+											v.setType(VertexType.PIRATE_FORTRESS);
+											v.setPirateHealth(3);
+										}
+										break;
 									case ROAD:
 									case SHIP:
 									case WARSHIP:
@@ -895,6 +907,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 										else
 											getBoard().setPirate(pickedValue);
 										break;
+									
 								}
 							}
 							
@@ -1116,7 +1129,9 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 					menuStack.push(MenuState.MENU_PLAY_GAME);
 					initMenu();
 					new Thread(this).start();
-				} 
+				} else {
+					logError("Board not ready");
+				}
 				break;
 
 			case GEN_HEX_BOARD:
@@ -1239,8 +1254,8 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 
 			case REWIND_GAME: {
 				stopGameThread();
-				FileUtils.restoreFile(saveGameFile.getAbsolutePath());
 				try {
+					FileUtils.restoreFile(saveGameFile.getAbsolutePath());
 					loadGame(saveGameFile);
 					setDice(soc.getDice());
 					new Thread(this).start();
@@ -1273,21 +1288,24 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 
 			case BUILDABLES_POPUP:
 			{
-				ArrayList<String> columnNamesList = new ArrayList<String>();
-				columnNamesList.add("Buildable");
+				Vector<String> columnNames = new Vector<String>();
+				columnNames.add("Buildable");
 				for (ResourceType r : ResourceType.values()) {
-					columnNamesList.add(r.name());
+					columnNames.add(r.name());
+					
 				}
-				String [] columnNames = columnNamesList.toArray(new String[columnNamesList.size()]);
-				Object [][] rowData = new Object[BuildableType.values().length][];
+				Vector<Vector<Object>> rowData = new Vector<Vector<Object>>();
 				for (BuildableType b : BuildableType.values()) {
-					rowData[b.ordinal()] = new Object[columnNames.length];
-					rowData[b.ordinal()][0] = b.name();
-					for (ResourceType r: ResourceType.values())
-						rowData[b.ordinal()][r.ordinal()+1] = b.getCost(r);
+					if (b.isAvailable(getSOC())) {
+    					Vector<Object> row = new Vector<Object>();
+    					row.add(b.name());
+    					for (ResourceType r: ResourceType.values())
+    						row.add(String.valueOf(b.getCost(r)));
+    					rowData.add(row);
+					}
 				}
 				JTable table = new JTable(rowData, columnNames);
-				table.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+				table.getColumnModel().getColumn(0).setMinWidth(100);
 				JScrollPane view = new JScrollPane(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 				view.getViewport().add(table);
 				this.showOkPopup("BUILDABLE", view);
@@ -1481,7 +1499,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
         players[0] = localPlayer = new GUIPlayerUser();
         localPlayer.setColor(playerColors[0].color);
         for (int i=1; i<numPlayers; i++) {
-			GUIPlayer p = new GUIPlayerUser();
+			GUIPlayer p = new GUIPlayer();
 			p.setColor(playerColors[i].color);
 			p.setPlayerNum(i+1);
             players[i] = p;			
@@ -1772,7 +1790,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 						bc.drawShip(g, route, false);
 						break;
 					case SHIP_TO_MOVE:
-						bc.drawEdge(g, route, route.getType(), getCurPlayerNum(), false);
+						bc.drawEdge(g, route, route.getType(), getCurPlayerNum(), true);
 						break;
 					case UPGRADE_SHIP:
 						bc.drawWarShip(g, route, false);
@@ -1820,11 +1838,12 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 					case MERCHANT:
 						bc.drawMerchant(g, t, getCurPlayerNum());
 						break;
-					case PIRATE:
-						bc.drawPirate(g, t);
-						break;
 					case ROBBER:
-						bc.drawRobber(g, t);
+					case PIRATE:
+						if (t.isWater())
+							bc.drawPirate(g, t);
+						else
+							bc.drawRobber(g, t);
 						break;
 				}
 			}
@@ -2346,12 +2365,16 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 		running = true;
 		try {
 			while (running && soc != null) {
+				/*
 				soc.runGame();
-				if (running && soc.isGoodForSave() && soc.getCurGuiPlayer() instanceof GUIPlayerUser)
+				if (running && soc.isGoodForSave()) { // && soc.getCurGuiPlayer() instanceof GUIPlayerUser)
 					synchronized (soc) {
 						FileUtils.backupFile(saveGameFile.getAbsolutePath(), 10);
 						soc.save(saveGameFile.getAbsolutePath());
 					}
+				}*/
+				
+				soc.runGame();
 				frame.repaint();
 			}
 		} catch (Throwable e) {

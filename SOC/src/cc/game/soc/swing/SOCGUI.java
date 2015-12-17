@@ -14,6 +14,7 @@ import cc.lib.game.*;
 import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
 import cc.lib.swing.*;
+import cc.lib.utils.FileUtils;
 
 public class SOCGUI extends SOC {
 
@@ -300,6 +301,13 @@ public class SOCGUI extends SOC {
 	protected void onDiceRolled(Dice...  dice) {
     	gui.spinDice(dice);
         gui.setDice(dice);
+        /*
+        try {
+			FileUtils.backupFile(gui.saveGameFile.getAbsolutePath(), 10);
+			save(gui.saveGameFile.getAbsolutePath());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}*/
 	}
 
 	
@@ -488,5 +496,9 @@ public class SOCGUI extends SOC {
 		addCardAnimation(victim, v.getType().getNiceName() + " Reduced to " + newType.getNiceName());
 	}
     
-	
+	@Override
+	protected void onShouldSaveGame() {
+		FileUtils.backupFile(gui.saveGameFile.getAbsolutePath(), 10);
+		save(gui.saveGameFile.getAbsolutePath());
+	}
 }

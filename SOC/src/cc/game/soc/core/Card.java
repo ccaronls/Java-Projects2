@@ -8,6 +8,10 @@ import cc.lib.utils.Reflector;
 
 public class Card extends Reflector<Card> implements Comparable <Card> {
 	
+	static {
+		addAllFields(Card.class);
+	}
+	
 	private CardType type;
 	private int typeOrdinal;
 	private CardStatus status;

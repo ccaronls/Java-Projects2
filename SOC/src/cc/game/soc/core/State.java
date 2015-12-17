@@ -49,7 +49,7 @@ enum State {
 	CHOOSE_METROPOLIS(false, "Choose from one of your Cities to upgrade to a Metropolis.  Metropolis cannot be pilledged by Barbarians."),
 	CHOOSE_CITY_IMPROVEMENT(true, "Choose from one of the City Improvment options."),
 	CHOOSE_KNIGHT_TO_DESERT(false, "Choose from one of your one knights to desert into your opponents ranks."),
-	CHOOSE_PLAYER_FOR_DESERTION(true, "Choose from which player."),
+	CHOOSE_PLAYER_FOR_DESERTION(true, "Choose a player.  They must choose a knight for desertion.  You then can place a knight of equal strength."),
 	CHOOSE_DIPLOMAT_ROUTE(true, "Pick a road.  If you pick an opponents road it will be removed from the board.  If you pick one of your one roads you will be allowed to reposition it."),
 	CHOOSE_HARBOR_RESOURCE(true, "Pick a resource for Harbor Trade."),
 	CHOOSE_HARBOR_PLAYER(true, "Choose a player with whom to force trade"),
@@ -62,7 +62,7 @@ enum State {
 	CHOOSE_RESOURCE_FLEET(true, "Choose any Resource to use for a 2:1 trade for the duration of your turn."), // Merchant Fleet
 	CHOOSE_PLAYER_TO_SPY_ON(true, "Choose an Opponent to Spy on.  You can pick any one of their Progress cards into your hand."), // Spy
 	CHOOSE_OPPONENT_CARD(false, "Choose a Progress card to take into your hand."), // Spy
-	CHOOSE_TRADE_MONOPOLY(true, "Choose a Commodity to Monopolize.  All playres with that commodity in their hand will forfeit into your own."),
+	CHOOSE_TRADE_MONOPOLY(true, "Choose a Commodity to Monopolize.  All players with that commodity in their hand will forfeit into your own."),
 	CHOOSE_GIFT_CARD(false, "Choose a card to give to the happy couple on their Wedding day."),
     PROCESS_DICE(false, ""), // transition state
     PROCESS_PIRATE_ATTACK(false, ""), // transition state 

@@ -171,7 +171,7 @@ public final class Tile extends Reflector<Tile> implements IVector2D {
 		if (isPort())
 			r += " Port";
 		if (islandNum > 0)
-			r +=  "isle[" + islandNum + "]";
+			r +=  "Isle[" + islandNum + "]";
 		if (dieNum > 0)
 			r += " Die[" + dieNum + "]";
 		return r;

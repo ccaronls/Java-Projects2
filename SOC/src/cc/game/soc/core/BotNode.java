@@ -104,8 +104,17 @@ public abstract class BotNode extends Reflector<BotNode> implements Comparable<B
     }
 
     @Override
-    public final int compareTo(BotNode arg0) {
-        return arg0.getValue() - getValue() >= 0 ? 1 : -1; 
+    public final int compareTo(BotNode arg) {
+    	double value = getValue();
+    	double argValue = arg.getValue();
+    	
+    	if (value < argValue)
+    		return -1;
+    	
+    	if (value > argValue)
+    		return 1;
+    	
+    	return 0;
     }
 
     public final void addValue(String name, double value) {

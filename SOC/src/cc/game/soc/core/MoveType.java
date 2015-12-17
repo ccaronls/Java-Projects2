@@ -101,7 +101,7 @@ public enum MoveType implements Comparable<MoveType>{
     
     // Trade
     HARBOR_CARD(true, 0, "Harbor", "Force each player to exchange a commodity card of their choice for a resource card.  If they have no commodity cards, then the trade is voided."),
-    MASTER_MERCHANT_CARD(true, 0, "Master Merchant", "View and then take any 2 resource or commodity cards from another players hand"),
+    MASTER_MERCHANT_CARD(true, 0, "Master Merchant", "View and then take any 2 resource or commodity cards from another players hand who has more points."),
     MERCHANT_CARD(true, 0, "Merchant", "Place the merchant on a land tile to recieve the 2:1 trade bonus for that tile type for as long as the merchant is on the tile"),
     MERCHANT_FLEET_CARD(true, 0, "Merchant Fleet", "Choose one resource or commodity to get a 2:1 trade bonus for that turn"),
     RESOURCE_MONOPOLY_CARD(true, 0, "Resource Monopoly", "All players give you 2 resources of your choice if they have it"),

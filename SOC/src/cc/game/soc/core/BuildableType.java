@@ -55,4 +55,25 @@ public enum BuildableType {
 		return s;
 	}
 
+	public boolean isAvailable(SOC soc) {
+		switch (this) {
+			case Road:
+			case Settlement:
+			case City:
+				return true;
+			case Development:
+				return !soc.getRules().isEnableCitiesAndKnightsExpansion();
+			case CityWall:
+			case ActivateKnight:
+			case Knight:
+			case PromoteKnight:
+				return soc.getRules().isEnableCitiesAndKnightsExpansion();
+			case Ship:
+				return soc.getRules().isEnableSeafarersExpansion();
+			case Warship:
+				return soc.getRules().isEnableCitiesAndKnightsExpansion() && soc.getBoard().getPirateRouteStartTile() >= 0;
+		}
+		assert(false);
+		return false;
+	}
 }
