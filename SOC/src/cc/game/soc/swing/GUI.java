@@ -369,49 +369,11 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
                 	dicePanel = new EZPanel(new FlowLayout(), diceComps);
                 }
                 
-                /*
-                if (getRules().isEnableCitiesAndKnightsExpansion()) {
-                	
-                	if (getRules().isEnableEventCards()) {
-                		diceComps = new ADiceComponent[] {
-                				null,
-                    			new SixSideDiceComponent(Color.red, Color.yellow),
-                    			new EventDiceComponent(),
-                		};
-                		dicePanel = new EZPanel(new FlowLayout(), new EventCardComponent(diceComps[1], diceComps[2]));
-                	} else {
-                    	diceComps = new ADiceComponent [] {
-                    			new SixSideDiceComponent(Color.yellow, Color.red),
-                    			new SixSideDiceComponent(Color.red, Color.yellow),
-                    			new EventDiceComponent()
-                    	};
-                    	diceChoosers = new JSpinner[2];
-                    	
-                    	diceChoosers[0] = new JSpinner(new SpinnerNumberModel(1, 1, 6, 1));
-                    	diceChoosers[1] = new JSpinner(new SpinnerNumberModel(1, 1, 6, 1));
-                    	diceChoosers[0].addChangeListener(diceComps[0]);
-                    	diceChoosers[1].addChangeListener(diceComps[1]);
-                    	diceChoosers[0].setVisible(false);
-                    	diceChoosers[1].setVisible(false);
-                    	dicePanel = new EZPanel(new FlowLayout(), diceComps[0], diceChoosers[0], diceComps[1], diceChoosers[1], diceComps[2]);
-                	}
-                } else {
-                    diceComps = new ADiceComponent[] {
-                    		new SixSideDiceComponent(Color.white, Color.black),
-                    		new SixSideDiceComponent(Color.white, Color.black)
-                    };
-                	if (getRules().isEnableEventCards()) {
-                		dicePanel = new EZPanel(new EventCardComponent());
-                	} else {
-                        dicePanel = new EZPanel(new FlowLayout(), diceComps);
-                	}
-                }*/
-                //dicePanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 3));
                 helpMenuDice.add(dicePanel, BorderLayout.NORTH);
                 helpMenuDice.add(helpText, BorderLayout.CENTER);
                 westGridPanel.add(helpMenuDice);
                 JScrollPane menuPanel = new JScrollPane();
-                menuPanel.setLayout(new ScrollPaneLayout());// BoxLayout(menuPanel, BoxLayout.Y_AXIS));
+                menuPanel.setLayout(new ScrollPaneLayout());
                 menuPanel.getViewport().add(menu);
                 westGridPanel.add(menuPanel);
                 break;
@@ -883,9 +845,9 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 										r = getBoard().getRoute(pickedValue);
 										if (r.getPlayer() == 0) {
 											r.setType(mode.rType);
-											getBoard().setPlayerForRoute(r, getCurPlayerNum());
+											getBoard().setPlayerForRoute(r, getCurPlayerNum(), mode.rType);
 										} else {
-											getBoard().setPlayerForRoute(r, 0);
+											getBoard().setRouteOpen(r);
 										}
 										break;
 									case MERCHANT:

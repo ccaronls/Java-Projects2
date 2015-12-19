@@ -10,6 +10,7 @@ import java.util.Arrays;
 
 import javax.swing.JComponent;
 
+import cc.game.soc.core.DiceType;
 import cc.game.soc.core.EventCard;
 import cc.game.soc.core.EventCardType;
 import cc.game.soc.swing.ADiceComponent.DiceChangedListener;
@@ -30,12 +31,12 @@ public class EventCardComponent extends JComponent implements DiceChangedListene
 	}
 	
 	@Override
-	public void onDiceChanged(int numDieNum) {
+	public synchronized void onDiceChanged(int numDieNum) {
 		repaint();
 	}
 
 	@Override
-	public void paint(Graphics g) {
+	public synchronized void paint(Graphics g) {
 		if (BOLD == null) {
 			BOLD = g.getFont().deriveFont(Font.BOLD);
 		}

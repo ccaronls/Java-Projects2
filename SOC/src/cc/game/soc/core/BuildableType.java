@@ -16,7 +16,7 @@ public enum BuildableType {
 	Settlement		(1, 1, 0, 1, 1), 
 	City			(0, 0, 3, 2, 0), 
 	// cities and knights expansion
-	CityWall		(2, 0, 0, 0, 0),
+	CityWall		(0, 0, 0, 0, 2),
 	Knight			(0, 1, 1, 0, 0),
 	PromoteKnight	(0, 1, 1, 0, 0),
 	ActivateKnight	(0, 0, 0, 1, 0),
@@ -25,11 +25,11 @@ public enum BuildableType {
 	private final int[]	cost	= new int[ResourceType.values().length];
 
 	private BuildableType(int costWood, int costSheep, int costOre, int costWheat, int costBrick) {
-		cost[ResourceType.Brick.ordinal()] = costBrick;
-		cost[ResourceType.Ore.ordinal()] = costOre;
-		cost[ResourceType.Sheep.ordinal()] = costSheep;
-		cost[ResourceType.Wheat.ordinal()] = costWheat;
-		cost[ResourceType.Wood.ordinal()] = costWood;
+		cost[ResourceType.Wood.ordinal()] 	= costWood;
+		cost[ResourceType.Sheep.ordinal()] 	= costSheep;
+		cost[ResourceType.Ore.ordinal()] 	= costOre;
+		cost[ResourceType.Wheat.ordinal()] 	= costWheat;
+		cost[ResourceType.Brick.ordinal()] 	= costBrick;
 	}
 	
 	public int getCost(ResourceType r) {

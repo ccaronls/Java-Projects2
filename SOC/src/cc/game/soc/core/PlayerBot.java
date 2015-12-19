@@ -352,8 +352,8 @@ prop2
 			{
     			BotNode roadOptions = root.attach(new BotNodeEnum(RouteChoiceType.ROAD_CHOICE));
     			for (int roadIndex1 : roads1) {
-    				b.setPlayerForEdge(roadIndex1, p.getPlayerNum());
     				Route r = b.getRoute(roadIndex1);
+    				b.setPlayerForRoute(r, p.getPlayerNum(), RouteType.ROAD);
     				//r.setLocked(true);
     				BotNode n = roadOptions.attach(new BotNodeRoute(r, roadIndex1));
     				
@@ -363,24 +363,23 @@ prop2
     				
     				for (int roadIndex2 : roads2) {
     					Route r2 = b.getRoute(roadIndex2);
-    					b.setPlayerForEdge(roadIndex2, p.getPlayerNum());
+    					b.setPlayerForRoute(r2, p.getPlayerNum(), RouteType.ROAD);
     					//r2.setLocked(true);
     					BotNode n2 = n.attach(new BotNodeRoute(r2, roadIndex2));
     					evaluateEdges(n2, soc, p, b);
     					buildChooseMoveTreeR(soc, p, b, n2, SOC.computeMoves(p, b, soc));
-    					b.setPlayerForEdge(roadIndex2, 0);
+    					b.setRouteOpen(r2);
     					//r2.setLocked(false);
     				}
-    				b.setPlayerForEdge(roadIndex1, 0);
+    				b.setRouteOpen(r);
     				//r.setLocked(false);
     			}
 			}
 			{
     			BotNode shipOptions = root.attach(new BotNodeEnum(RouteChoiceType.SHIP_CHOICE));
     			for (int shipIndex1 : ships1) {
-    				b.setPlayerForEdge(shipIndex1, p.getPlayerNum());
     				Route ship = b.getRoute(shipIndex1);
-    				ship.setType(RouteType.SHIP);
+    				b.setPlayerForRoute(ship, p.getPlayerNum(), RouteType.SHIP);
     				//ship.setLocked(true);
     				BotNode n = shipOptions.attach(new BotNodeRoute(ship, shipIndex1));
     				
@@ -390,25 +389,21 @@ prop2
     				
     				for (int shipIndex2 : ships2) {
     					Route ship2 = b.getRoute(shipIndex2);
-    					b.setPlayerForEdge(shipIndex2, p.getPlayerNum());
-    					ship2.setType(RouteType.SHIP);
+    					b.setPlayerForRoute(ship2, p.getPlayerNum(), RouteType.SHIP);
     					//ship2.setLocked(true);
     					BotNode n2 = n.attach(new BotNodeRoute(ship2, shipIndex2));
     					evaluateEdges(n2, soc, p, b);
     					buildChooseMoveTreeR(soc, p, b, n2, SOC.computeMoves(p, b, soc));
-    					b.setPlayerForEdge(shipIndex2, 0);
-    					ship2.setType(RouteType.OPEN);
+    					b.setRouteOpen(ship2);
     					//ship2.setLocked(false);
     				}
-    				b.setPlayerForEdge(shipIndex1, 0);
-    				ship.setType(RouteType.OPEN);
+    				b.setRouteOpen(ship);
     			}
 			}
 		} else if (ships1.size() > 0) {
 			for (int shipIndex1 : ships1) {
-				b.setPlayerForEdge(shipIndex1, p.getPlayerNum());
 				Route ship = b.getRoute(shipIndex1);
-				ship.setType(RouteType.SHIP);
+				b.setPlayerForRoute(ship, p.getPlayerNum(), RouteType.SHIP);
 				//ship.setLocked(true);
 				BotNode n = root.attach(new BotNodeRoute(ship, shipIndex1));
 
@@ -418,24 +413,21 @@ prop2
 				
 				for (int shipIndex2 : ships2) {
 					Route ship2 = b.getRoute(shipIndex2);
-					b.setPlayerForEdge(shipIndex2, p.getPlayerNum());
-					ship2.setType(RouteType.SHIP);
+					b.setPlayerForRoute(ship2, p.getPlayerNum(), RouteType.SHIP);
 					//ship2.setLocked(true);
 					BotNode n2 = n.attach(new BotNodeRoute(ship2, shipIndex2));
 					evaluateEdges(n2, soc, p, b);
 					buildChooseMoveTreeR(soc, p, b, n2, SOC.computeMoves(p, b, soc));
-					b.setPlayerForEdge(shipIndex2, 0);
-					ship2.setType(RouteType.OPEN);
+					b.setRouteOpen(ship2);
 					//ship2.setLocked(false);
 				}
-				b.setPlayerForEdge(shipIndex1, 0);
-				ship.setType(RouteType.OPEN);
+				b.setRouteOpen(ship);
 				//ship.setLocked(false);
 			}
 		} else if (roads1.size() > 0) {
 			for (int roadIndex1 : roads1) {
-				b.setPlayerForEdge(roadIndex1, p.getPlayerNum());
 				Route r = b.getRoute(roadIndex1);
+				b.setPlayerForRoute(r, p.getPlayerNum(), RouteType.ROAD);
 				//r.setLocked(true);
 				BotNode n = root.attach(new BotNodeRoute(r, roadIndex1));
 
@@ -446,14 +438,14 @@ prop2
 				for (int roadIndex2 : roads2) {
 					Route r2 = b.getRoute(roadIndex2);
 					//r2.setLocked(true);
-					b.setPlayerForEdge(roadIndex2, p.getPlayerNum());
+					b.setPlayerForRoute(r2, p.getPlayerNum(), RouteType.ROAD);
 					BotNode n2 = n.attach(new BotNodeRoute(r2, roadIndex2));
 					evaluateEdges(n2, soc, p, b);
 					buildChooseMoveTreeR(soc, p, b, n2, SOC.computeMoves(p, b, soc));
-					b.setPlayerForEdge(roadIndex2, 0);
+					b.setRouteOpen(r2);
 					//r2.setLocked(false);
 				}
-				b.setPlayerForEdge(roadIndex1, 0);
+				b.setRouteOpen(r);
 				//r.setLocked(false);
 			}
 		}		
@@ -566,13 +558,13 @@ prop2
 					for (int rIndex : roads) {
 						Route r = b.getRoute(rIndex);
 						//r.setLocked(true);
-						b.setPlayerForRoute(r, p.getPlayerNum());
+						b.setPlayerForRoute(r, p.getPlayerNum(), RouteType.ROAD);
 						onBoardChanged();
 						BotNode node = root.attach(new BotNodeRoute(r, rIndex));
 						evaluateEdges(node, soc, p, b);
 						buildChooseMoveTreeR(soc, p, b, node, SOC.computeMoves(p, b, soc));
 						//r.setLocked(false);
-						b.setPlayerForRoute(r, 0);
+						b.setRouteOpen(r);
 					}
 					p.adjustResourcesForBuildable(BuildableType.Road, 1);
 					break;
@@ -625,15 +617,13 @@ prop2
 					p.adjustResourcesForBuildable(BuildableType.Ship, -1);
 					for (int rIndex : ships) {
 						Route r = b.getRoute(rIndex);
-						b.setPlayerForRoute(r, p.getPlayerNum());
-						r.setType(RouteType.SHIP);
+						b.setPlayerForRoute(r, p.getPlayerNum(), RouteType.SHIP);
 						//r.setLocked(true);
 						BotNode node = root.attach(new BotNodeRoute(r, rIndex));
 						onBoardChanged();
 						evaluateEdges(node, soc, p, b);
 						buildChooseMoveTreeR(soc, p, b, node, SOC.computeMoves(p, b, soc));
-						b.setPlayerForRoute(r, 0);
-						r.setType(RouteType.OPEN);
+						b.setRouteOpen(r);
 						//r.setLocked(false);
 					}
 					p.adjustResourcesForBuildable(BuildableType.Ship, 1);
@@ -739,8 +729,7 @@ prop2
 					List<Integer> shipVerts = SOC.computeOpenRouteIndices(p.getPlayerNum(), b, false, true);
 					for (int shipIndex : shipVerts) {
 						Route shipToMove = b.getRoute(shipIndex);
-						b.setPlayerForRoute(shipToMove, 0);
-						shipToMove.setType(RouteType.OPEN);
+						b.setRouteOpen(shipToMove);
 						shipToMove.setLocked(true);
 						BotNode shipChoice = root.attach(new BotNodeRoute(shipToMove, shipIndex));
 						List<Integer> newPositions = SOC.computeShipRouteIndices(p.getPlayerNum(), b);
@@ -748,19 +737,16 @@ prop2
 							if (moveIndex == shipIndex)
 								continue;
 							Route newPos = b.getRoute(moveIndex);
-							b.setPlayerForRoute(newPos, p.getPlayerNum());
-							newPos.setType(RouteType.SHIP);
+							b.setPlayerForRoute(newPos, p.getPlayerNum(), RouteType.SHIP);
 							newPos.setLocked(true);
 							BotNode node = new BotNodeRoute(newPos, moveIndex);
 							onBoardChanged();
 							evaluateEdges(node, soc, p, b);
 							buildChooseMoveTreeR(soc, p, b, shipChoice.attach(node), SOC.computeMoves(p, b, soc));
-							b.setPlayerForRoute(newPos, 0);
-							newPos.setType(RouteType.OPEN);
+							b.setRouteOpen(newPos);
 							newPos.setLocked(false);
 						}
-						b.setPlayerForRoute(shipToMove, p.getPlayerNum());
-						shipToMove.setType(RouteType.SHIP);
+						b.setPlayerForRoute(shipToMove, p.getPlayerNum(), RouteType.SHIP);
 						shipToMove.setLocked(false);
 					}
 					break;
@@ -855,25 +841,25 @@ prop2
 					for (int rIndex1 : allOpenRoutes) {
 						Route r = b.getRoute(rIndex1);
 						int savePlayer = r.getPlayer();
-						b.setPlayerForRoute(r, 0);
+						b.setRouteOpen(r);
 						BotNode n = root.attach(new BotNodeRoute(r, rIndex1));
 						if (savePlayer == p.getPlayerNum()) {
 							List<Integer> newPos = SOC.computeRoadRouteIndices(p.getPlayerNum(), b);
 							for (int rIndex2 : newPos) {
 								Route r2 = b.getRoute(rIndex2);
-								b.setPlayerForRoute(r2, p.getPlayerNum());
+								b.setPlayerForRoute(r2, p.getPlayerNum(), RouteType.ROAD);
 								BotNode node = n.attach(new BotNodeRoute(r2, rIndex2));
 								onBoardChanged();
 								evaluateEdges(node, soc, p, b);
 								buildChooseMoveTreeR(soc, p, b, node, SOC.computeMoves(p, b, soc));
-								b.setPlayerForRoute(r2, 0);
+								b.setRouteOpen(r2);
 							}
 						} else {
 							onBoardChanged();
 							evaluateEdges(n, soc, p, b);
 							buildChooseMoveTreeR(soc, p, b, n, SOC.computeMoves(p, b, soc));
 						}
-						b.setPlayerForRoute(r, savePlayer);
+						b.setPlayerForRoute(r, savePlayer, RouteType.ROAD);
 					}
 //					p.addCard(ProgressCardType.Diplomat);
 					break;
@@ -1091,13 +1077,8 @@ prop2
 							totalCardsToSabotage += (1+p.getUnusedCardCount()) / 2;
 						}
 					}
-					if (totalCardsToSabotage > 0) {
-						p.removeCard(ProgressCardType.Saboteur);
-						evaluatePlayer(root, soc, p, b);
-						//doEvaluate(root, soc, p, b, 1);
-						//evaluateSabotage(p, totalCardsToSabotage);
-						p.addCard(ProgressCardType.Saboteur);
-					}
+					
+					root.addValue("sabotagedCards", 0.1 * totalCardsToSabotage);
 					break;
 				}
 				case SMITH_CARD: {
@@ -1233,7 +1214,7 @@ prop2
 						float chance = 1.0f*score / soc.getRules().getKnightScoreToDestroyRoad();
 						BotNode node = root.attach(new BotNodeRoute(route, rIndex));
 						node.chance = chance;
-						copy.setPlayerForRoute(route, 0);
+						copy.setRouteOpen(route);
 						evaluateEdges(node, soc, p, b);
 						evaluateVertices(node, soc.getRules(), p.getPlayerNum(), b);
 					}
@@ -1401,12 +1382,10 @@ prop2
 			Route save = r.deepCopy();
 			switch (mode) {
 				case ROAD:
-					b.setPlayerForRoute(r, p.getPlayerNum());
-					r.setType(RouteType.ROAD);
+					b.setPlayerForRoute(r, p.getPlayerNum(), RouteType.ROAD);
 					break;
 				case SHIP:
-					b.setPlayerForRoute(r, p.getPlayerNum());
-					r.setType(RouteType.SHIP);
+					b.setPlayerForRoute(r, p.getPlayerNum(), RouteType.SHIP);
 					break;
 				case SHIP_TO_MOVE:
 				case ROUTE_DIPLOMAT:
@@ -1439,21 +1418,19 @@ prop2
 		BotNode n = root.attach(new BotNodeEnum(RouteChoiceType.ROAD_CHOICE));
 		for (int rIndex : roads) {
 			Route r = b.getRoute(rIndex);
-			b.setPlayerForEdge(rIndex, p.getPlayerNum());
+			b.setPlayerForRoute(r, p.getPlayerNum(), RouteType.ROAD);
 			BotNode node = n.attach(new BotNodeRoute(r, rIndex));
 			evaluateEdges(node, soc, p, b);
-			b.setPlayerForEdge(rIndex, 0);
+			b.setRouteOpen(r);
 		}
 
 		n = root.attach(new BotNodeEnum(RouteChoiceType.SHIP_CHOICE));
 		for (int rIndex : ships) {
 			Route r = b.getRoute(rIndex);
-			b.setPlayerForEdge(rIndex, p.getPlayerNum());
-			r.setType(RouteType.SHIP);
+			b.setPlayerForRoute(r, p.getPlayerNum(), RouteType.SHIP);
 			BotNode node = n.attach(new BotNodeRoute(r, rIndex));
 			evaluateEdges(node, soc, p, b);
-			b.setPlayerForEdge(rIndex, 0);
-			r.setType(RouteType.OPEN);
+			b.setRouteOpen(r);
 		}
 
 		buildOptimalPath(root);

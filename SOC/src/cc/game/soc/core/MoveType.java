@@ -93,7 +93,7 @@ public enum MoveType implements Comparable<MoveType>{
     //CONSTITUTION_CARD("Constitution", ProgressCardType.Constitution.helpText),
     BISHOP_CARD(true, 50, "Bishop", "Move robber or pirate to cell of players choice"),
     INTRIGUE_CARD(true, 50, "Intrigue", "Displace opponent knight that is on one of your roads"),
-    DESERTER_CARD(true, 50, "Deserter", "Remove an opponent knight to be replaced with one of your own of equal strength"),
+    DESERTER_CARD(true, 50, "Deserter", "Choose an opponent to remove one of their knights, then place one of equal strength."),
     SABOTEUR_CARD(true, 0, "Saboteur", "Players with equal or higher victory points must discard half (rounded down) of their inhand cards"),
     SPY_CARD(true, 0, "Spy", "View and choose any one of a single opponents progress cards except victory cards"),
     WARLORD_CARD(true, 50, "Warlord", "Activate all your knights for free"),

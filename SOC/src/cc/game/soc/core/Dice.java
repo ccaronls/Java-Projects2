@@ -10,7 +10,7 @@ public final class Dice extends Reflector<Dice> {
 	}
 	
 	private int num = 0;
-	private DiceType type = DiceType.None;
+	private DiceType type = DiceType.WhiteBlack;
 	
 	public Dice() {}
 
@@ -42,4 +42,5 @@ public final class Dice extends Reflector<Dice> {
 	void roll() {
 		num = Utils.rand() % 6 + 1;
 	}
+	
 }

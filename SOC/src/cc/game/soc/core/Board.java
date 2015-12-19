@@ -494,20 +494,27 @@ public final class Board extends Reflector<Board> {
 		return tiles.indexOf(c);
 	}
 	
+	public final void setRouteOpen(Route r) {
+		setPlayerForRoute(r, 0, RouteType.OPEN);
+	}
+	
 	/**
 	 * 
 	 * @param edge
 	 * @param playerNum
 	 */
-	public final void setPlayerForRoute(Route edge, int playerNum) {
+	public final void setPlayerForRoute(Route edge, int playerNum, RouteType type) {
 		if (edge.getPlayer() != playerNum) {
 			if (playerNum == 0) {
+				assert(type == RouteType.OPEN);
 				playerRoadLenCache[edge.getPlayer()] = -1;
-				edge.setType(RouteType.OPEN);
 			}
-			else
+			else {
+				assert(type != RouteType.OPEN);
 				playerRoadLenCache[playerNum] = -1;
+			}
 			edge.setPlayerDoNotUse(playerNum);
+			edge.setType(type);
 		}
 	}
 	
@@ -515,7 +522,7 @@ public final class Board extends Reflector<Board> {
 	 * 
 	 * @param edgeIndex
 	 * @param playerNum
-	 */
+	 *
 	public final Route setPlayerForEdge(int edgeIndex, int playerNum) {
 		Route route = getRoute(edgeIndex);
 		setPlayerForRoute(route, playerNum);
@@ -1282,8 +1289,7 @@ public final class Board extends Reflector<Board> {
         	for (int v2 : v.getAdjacent()) {
         		Route r = getRoute(vIndex, v2);
         		if (r.getPlayer() == playerNum && r.getType().isVessel) {
-        			r.setType(RouteType.OPEN);
-        			setPlayerForRoute(r, 0);
+        			setRouteOpen(r);
         			numShips -= 1;
             		Q.add(v2);
         		}
@@ -1966,7 +1972,7 @@ public final class Board extends Reflector<Board> {
      */
     public final void resetRoutes() {
     	for (Route e : routes) {
-    		setPlayerForRoute(e, 0);
+    		setRouteOpen(e);
     	}
     }
     

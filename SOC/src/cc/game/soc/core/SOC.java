@@ -195,7 +195,20 @@ public class SOC extends Reflector<SOC> {
 			return card.getProduction();
 		}
 		Dice [] dice = getDice();
-		return dice[0].getNum() + dice[1].getNum();
+		int num = 0;
+		for (Dice d : dice) {
+			switch (d.getType()) {
+				case Event:
+					break;
+				case RedYellow:
+				case WhiteBlack:
+				case YellowRed:
+					num += d.getNum();
+					break;
+			}
+		}
+		
+		return num;
 	}
 	
 	/**
@@ -468,7 +481,8 @@ public class SOC extends Reflector<SOC> {
 	}
 	
 	private Dice [] nextDice() {
-		mDice.removeFirst();
+		if (mDice.size() > 0)
+			mDice.removeFirst();
 		initDice();
 		return getDice();
 	}
@@ -479,12 +493,7 @@ public class SOC extends Reflector<SOC> {
 	 */
 	public void rollDice() {
 		Dice [] dice = nextDice();
-		onDiceRolled(dice);
-		if (mDiceConfig.length == 2) {
-			printinfo("Die roll: " + dice[0].getNum() + ", " + dice[1].getNum());
-		} else {
-			printinfo("Die roll: " + dice[0].getNum() + ", " + dice[1].getNum() + ", " + DiceEvent.fromDieNum(dice[2].getNum()));
-		}
+		onDiceRolledPrivate(dice);
 	}
 	
 	public final EventCard getTopEventCard() {
@@ -499,8 +508,8 @@ public class SOC extends Reflector<SOC> {
 		switch (next.getType()) {
 			case CalmSea: {
 				// player with most harbors get to pick a resource card
+				int [] harborCount = new int[MAX_PLAYERS+1];
 				int most = 0;
-				Player withMost = null;
 				for (Player p : getPlayers()) {
 					int num = 0;
 					boolean [] used = new boolean[getBoard().getNumTiles()]; 
@@ -527,16 +536,21 @@ public class SOC extends Reflector<SOC> {
 							}
 						}
 					}
+					harborCount[p.getPlayerNum()] = num;
+					printinfo(p.getName() + " has " + num + " harbors");
 					if (num > most) {
 						most = num;
-						withMost = p;
 					}
 				}
-				if (withMost != null) {
-					printinfo(withMost.getName() + " has most harbors and gets to pick a resource card");
-					pushStateFront(State.SET_PLAYER, getCurPlayerNum(), null);
-					pushStateFront(State.DRAW_RESOURCE_NOCANCEL);
-					pushStateFront(State.SET_PLAYER, withMost.getPlayerNum(), null);
+				if (most > 0) {
+					for (int i=1; i<getNumPlayers()+1; i++) {
+						if (harborCount[i] == most) {
+							printinfo(getPlayerByPlayerNum(i).getName() + " has most harbors and gets to pick a resource card");
+							pushStateFront(State.SET_PLAYER, getCurPlayerNum(), null);
+							pushStateFront(State.DRAW_RESOURCE_NOCANCEL);
+							pushStateFront(State.SET_PLAYER, i, null);
+						}
+					}
 				}
 				break;
 			}
@@ -904,6 +918,28 @@ public class SOC extends Reflector<SOC> {
 		}
 	}
 
+	private void onDiceRolledPrivate(Dice ... dice) {
+		onDiceRolled(dice);
+		String rolled = "";
+		for (Dice d : dice) {
+			switch (d.getType()) {
+				case Event:
+					if (rolled.length() > 0)
+						rolled += ", ";
+					rolled += DiceEvent.fromDieNum(d.getNum());
+					break;
+				case RedYellow:
+				case WhiteBlack:
+				case YellowRed:
+					if (rolled.length() > 0)
+						rolled += ", ";
+					rolled += String.valueOf(d.getNum()); 
+					break;
+			}
+		}
+		printinfo("Rolled " + rolled);
+	}
+	
 	/**
 	 * Called immediately after a die roll.  Base method does nothing.
 	 * @param dice
@@ -964,7 +1000,7 @@ public class SOC extends Reflector<SOC> {
         if (getRules().isEnableCitiesAndKnightsExpansion()) {
         	
         	if (getRules().isEnableEventCards()) {
-        		mDiceConfig = new DiceType[] { DiceType.None, DiceType.RedYellow, DiceType.Event };
+        		mDiceConfig = new DiceType[] { DiceType.RedYellow, DiceType.Event };
         	} else {
         		mDiceConfig = new DiceType[] { DiceType.YellowRed, DiceType.RedYellow, DiceType.Event };
         	}
@@ -1319,8 +1355,7 @@ public class SOC extends Reflector<SOC> {
 						assert(edge.isAdjacentToLand());
 						int eIndex = mBoard.getRouteIndex(edge);
 						printinfo(getCurPlayer().getName() + " placing a road on edge " + eIndex);
-						edge.setType(RouteType.ROAD);
-						getBoard().setPlayerForRoute(edge, getCurPlayerNum());
+						getBoard().setPlayerForRoute(edge, getCurPlayerNum(), RouteType.ROAD);
 						processRouteChange(getCurPlayer(), edge);
 						resetOptions();
 						popState();
@@ -1340,11 +1375,10 @@ public class SOC extends Reflector<SOC> {
 					if (edge != null) {
 						assert(edge.getPlayer()==0);
 						assert(edge.isAdjacentToWater());
-						edge.setType(RouteType.SHIP);
 						edge.setLocked(true);
 						int eIndex = mBoard.getRouteIndex(edge);
 						printinfo(getCurPlayer().getName() + " placing a ship on edge " + eIndex);
-						getBoard().setPlayerForRoute(edge, getCurPlayerNum());
+						getBoard().setPlayerForRoute(edge, getCurPlayerNum(), RouteType.SHIP);
 						processRouteChange(getCurPlayer(), edge);
 						resetOptions();
 						popState();
@@ -1380,9 +1414,8 @@ public class SOC extends Reflector<SOC> {
 					if (ship != null) {
 						assert(ship.getType().isVessel);
 						assert(ship.getPlayer() == getCurPlayerNum());
-						mBoard.setPlayerForRoute(ship, 0);
 						final RouteType saveType = ship.getType();
-						ship.setType(RouteType.OPEN);
+						mBoard.setRouteOpen(ship);
 						popState();
 						for (Route toLock : mBoard.getRoutesOfType(getCurPlayerNum(), RouteType.SHIP, RouteType.WARSHIP)) {
 							toLock.setLocked(true);
@@ -1390,8 +1423,7 @@ public class SOC extends Reflector<SOC> {
 						pushStateFront(State.POSITION_SHIP_CANCEL, null, new UndoAction() {
 							@Override
 							public void undo() {
-								mBoard.setPlayerForRoute(ship, getCurPlayerNum());
-								ship.setType(saveType);
+								mBoard.setPlayerForRoute(ship, getCurPlayerNum(), saveType);
 								for (Route toLock : mBoard.getRoutesOfType(getCurPlayerNum(), RouteType.SHIP, RouteType.WARSHIP))
 									toLock.setLocked(false);
 							}
@@ -1912,12 +1944,11 @@ public class SOC extends Reflector<SOC> {
 					if (p != null) {
 						popState();
 						List<Integer> knights = getBoard().getKnightsForPlayer(p.getPlayerNum());
-						if (knights.size() > 0) {
-							putCardBackInDeck(getCurPlayer().removeCard(ProgressCardType.Deserter));
-							mOptions = knights;
-							pushStateFront(State.CHOOSE_KNIGHT_TO_DESERT, getCurPlayerNum(), null);
-							pushStateFront(State.SET_PLAYER, p.getPlayerNum(), null);
-						}
+						assert(knights.size() > 0);
+						putCardBackInDeck(getCurPlayer().removeCard(ProgressCardType.Deserter));
+						mOptions = knights;
+						pushStateFront(State.CHOOSE_KNIGHT_TO_DESERT, getCurPlayerNum(), null);
+						pushStateFront(State.SET_PLAYER, p.getPlayerNum(), null);
 					}
 					break;
 				}
@@ -1931,13 +1962,13 @@ public class SOC extends Reflector<SOC> {
 						final Card card = getCurPlayer().removeCard(ProgressCardType.Diplomat);
 						putCardBackInDeck(card);
 						if (r.getPlayer() == getCurPlayerNum()) {
-							mBoard.setPlayerForRoute(r, 0);
+							mBoard.setRouteOpen(r);
 							mOptions = computeRoadRouteIndices(getCurPlayerNum(), mBoard);
-							mOptions.remove((Object)mBoard.getRouteIndex(r));
+							mOptions.remove((Object)mBoard.getRouteIndex(r)); // remove the edge we just removed
 							pushStateFront(State.POSITION_ROAD_CANCEL, null, new UndoAction() {
 								@Override
 								public void undo() {
-									mBoard.setPlayerForRoute(r, getCurPlayerNum());
+									mBoard.setPlayerForRoute(r, getCurPlayerNum(), RouteType.ROAD);
 									processRouteChange(getCurPlayer(), r);
 									removeCardFromDeck(card);
 									getCurPlayer().addCard(card);
@@ -1945,8 +1976,7 @@ public class SOC extends Reflector<SOC> {
 							});
 						} else {
 							int playerNum = r.getPlayer();
-							mBoard.setPlayerForRoute(r, 0);
-							r.setType(RouteType.OPEN);
+							mBoard.setRouteOpen(r);
 							processRouteChange(getPlayerByPlayerNum(playerNum), r);
 						}
 					}
@@ -2193,7 +2223,7 @@ public class SOC extends Reflector<SOC> {
 						Player victim = getPlayerByPlayerNum(r.getPlayer());
 						popState();
 						int score = Utils.rand() % 6;
-						onDiceRolled(new Dice(score, DiceType.WhiteBlack));
+						onDiceRolledPrivate(new Dice(score, DiceType.WhiteBlack));
 						score += computeAttackerScoreAgainstRoad(r, getCurPlayerNum(), getBoard());
 						printinfo(getCurPlayer().getName() + " is attacking " + victim.getName() + "'s road");
 						onPlayerAttackingOpponent(getCurPlayer(), victim, "Road" , score, getRules().getKnightScoreToDestroyRoad());
@@ -2201,7 +2231,7 @@ public class SOC extends Reflector<SOC> {
 							printinfo(getCurPlayer().getName() + " has destoryed the road");
 							onRoadDestroyed(r, getCurPlayer(), victim);
 							r.setType(RouteType.OPEN);
-							getBoard().setPlayerForRoute(r, 0);
+							getBoard().setRouteOpen(r);
 							updateLongestRoutePlayer();
 						} else {
 							printinfo(getCurPlayer().getName() + " failed to destroy the road");
@@ -2426,7 +2456,7 @@ public class SOC extends Reflector<SOC> {
 		int playerHealth = getBoard().getRoutesOfType(getCurPlayerNum(), RouteType.WARSHIP).size();
 		Dice pirateHealth = new Dice(getDice()[0].getType());
 		pirateHealth.roll();
-		onDiceRolled(pirateHealth);
+		onDiceRolledPrivate(pirateHealth);
 		onPlayerAttacksPirateFortress(p, playerHealth, pirateHealth.getNum());
 		if (playerHealth > pirateHealth.getNum()) {
 			// player wins
@@ -2485,11 +2515,11 @@ public class SOC extends Reflector<SOC> {
         		}
         		onEventCardDealt(getTopEventCard());
         		if (getRules().isEnableCitiesAndKnightsExpansion()) {
-        			Dice [] dice = mDice.removeFirst();
-        			initDice();
-        			dice[1].roll();
-        			dice[2].roll();
-        			onDiceRolled(dice[1], dice[2]);
+        			Dice [] dice = nextDice();
+        			for (Dice d : dice) {
+        				d.roll();
+        			}
+        			onDiceRolledPrivate(dice);
         		}
         		popState();
         		processDice();
@@ -2685,11 +2715,14 @@ public class SOC extends Reflector<SOC> {
         		Dice [] dice = nextDice();
         		if (getCurPlayer().setDice(dice, 2)) {
         			putCardBackInDeck(getCurPlayer().removeCard(ProgressCardType.Alchemist));
-        			dice[0].setNum(Utils.clamp(dice[0].getNum(), 1, 6));
-        			dice[1].setNum(Utils.clamp(dice[1].getNum(), 1, 6));
-        			dice[2].roll();
-        			onDiceRolled(dice[2]);
-        			printinfo(getCurPlayer().getName() + " applied Alchemist card on dice " +  dice[0] + ", " + dice[1] + ", " + DiceEvent.fromDieNum(dice[2].getNum()));
+        			Dice ry = getDiceOfType(DiceType.YellowRed, dice);
+        			Dice yr = getDiceOfType(DiceType.RedYellow, dice);
+        			Dice ev = getDiceOfType(DiceType.Event, dice);
+        			ry.setNum(Utils.clamp(ry.getNum(), 1, 6));
+        			yr.setNum(Utils.clamp(yr.getNum(), 1, 6));
+        			ev.roll();
+        			onDiceRolledPrivate(ev);
+        			printinfo(getCurPlayer().getName() + " applied Alchemist card on dice " +  ry.getNum() + ", " + yr.getNum() + ", " + DiceEvent.fromDieNum(ev.getNum()));
             		processDice();
         		}
         		break;
@@ -4484,9 +4517,21 @@ public class SOC extends Reflector<SOC> {
 	
 	private void processPirateAttack() {
 		Dice [] dice = getDice();
-		final int pirateStrength = Math.min(dice[0].getNum(), dice[1].getNum());
+		int min = 7;
+		for (Dice d : dice) {
+			switch (d.getType()) {
+				case Event:
+					break;
+				case RedYellow:
+				case WhiteBlack:
+				case YellowRed:
+					min = Math.min(min, d.getNum());
+					break;
+			}
+		}
+		
+		final int pirateStrength = min;
 		{
-			int min = pirateStrength;
     		while (min-- > 0) {
     			int fromTile = getBoard().getPirateTileIndex();
     			Tile t = getBoard().getPirateTile();
@@ -4566,7 +4611,7 @@ public class SOC extends Reflector<SOC> {
     		distributeResources(getProductionNum());
     		
     		if (getRules().isEnableCitiesAndKnightsExpansion()) {
-    			switch (DiceEvent.fromDieNum(getDice()[2].getNum())) {
+    			switch (DiceEvent.fromDieNum(getDiceOfType(DiceType.Event, getDice()).getNum())) {
     				case AdvanceBarbarianShip:
     					processBarbarianShip();
     					break;
@@ -4624,13 +4669,21 @@ public class SOC extends Reflector<SOC> {
 	protected void onProgressCardDistributed(Player player, ProgressCardType type) {}
 	protected void onSpecialVictoryCard(Player player, SpecialVictoryType type) {}
 	
+	private static Dice getDiceOfType(DiceType type, Dice ... dice) {
+		for (Dice d : dice) {
+			if (d.getType() == type)
+				return d;
+		}
+		throw new AssertionError("No dice of type '" + type + "' in: " + Arrays.toString(dice));
+	}
+	
 	private void distributeProgressCard(DevelopmentArea area) {
 		for (Player p : getPlayers()) {
 			Dice [] dice = getDice();
 			if (mProgressCards[area.ordinal()].size() > 0 
 					&& p.getCardCount(CardType.Progress) < getRules().getMaxProgressCards() 
 					&& p.getCityDevelopment(area) > 0 
-					&& p.getCityDevelopment(area) >= dice[1].getNum()-1) {
+					&& p.getCityDevelopment(area) >= getDiceOfType(DiceType.RedYellow, dice).getNum()-1) {
 				Card card = mProgressCards[area.ordinal()].remove(0);
 				printinfo(p.getName() + " draws a " + area.name() + " Progress Card");
 				if (card.equals(ProgressCardType.Constitution)) {

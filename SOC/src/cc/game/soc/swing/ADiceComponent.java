@@ -49,7 +49,7 @@ public final class ADiceComponent extends JComponent implements ChangeListener, 
 	ADiceComponent() {
 		setMinimumSize(new Dimension(30,30));
 		setPreferredSize(new Dimension(60, 30));
-		this.type = DiceType.None;
+		this.type = DiceType.WhiteBlack;
         this.dotSize  = GUI.instance.getProps().getIntProperty("dice.dotsize", 4);
 	}
 	
@@ -105,8 +105,6 @@ public final class ADiceComponent extends JComponent implements ChangeListener, 
 				break;
 			case YellowRed:
 				drawDie(g, x, y, dim, dotSize, Color.YELLOW, Color.RED, getDie());
-				break;
-			case None:
 				break;
 		}
 	}
