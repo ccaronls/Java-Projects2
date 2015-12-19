@@ -183,15 +183,12 @@ prop2
 				//PrintStream out = new PrintStream(new File("/tmp/playerAI" + getPlayerNum()));
 				//dumpAllPaths(leafs, out);
 				//out.close();
-				String fileName = System.getenv("HOME") + "/Documents/playerAI" + getPlayerNum() + ".csv";
+				String fileName = System.getenv("HOME") + "/.soc/playerAI" + getPlayerNum() + ".csv";
 				FileUtils.backupFile(fileName, 10);
 				dumpAllPathsAsCSV(leafs, new File(fileName));
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			
-			
-			
 		}
 		while (child.parent != null && child.parent.getData() != null) {
 			child.parent.next = child;
@@ -1168,19 +1165,11 @@ prop2
 				case WEDDING_CARD: {
 					p.removeCard(ProgressCardType.Wedding);
 					evaluatePlayer(root, soc, p, b);
-					for (int num : SOC.computeWeddingOpponents(soc, p)) {
-						Player player = soc.getPlayerByPlayerNum(num);
-						List<Card> cards = SOC.computeGiftCards(soc, player);
-						if (cards.size() > 0) {
-							Card c = Utils.randItem(cards);
-							p.addCard(c);
-							player.removeCard(c);
-							//BotNode node = root.attach(new BotNodeCard(c));
-							evaluatePlayer(root, soc, player, b);
-							evaluateOpponent(root, soc, player, b);
-							player.addCard(c);
-							p.removeCard(c);
-						}
+					List<Integer> weddingPlayers = SOC.computeWeddingOpponents(soc, p);
+					if ( weddingPlayers.size() == 0)
+						root.invalidate();
+					else {
+						root.addValue("wedding", 0.1 * weddingPlayers.size());
 					}
 					//p.addCard(ProgressCardType.Wedding);
 					break;
@@ -1808,7 +1797,10 @@ prop2
 		for (Route r : b.getRoutesForPlayer(p.getPlayerNum())) {
 			for (Tile t : b.getRouteTiles(r)) {
 				if (t.getResource() != null)
-					value += getDiePossibility(t.getDieNum(),  soc.getRules());
+					value += getDiePossibility(t.getDieNum(), soc.getRules());
+				else if (t.getType() == TileType.GOLD) {
+					value += 2 * getDiePossibility(t.getDieNum(), soc.getRules());
+				}
 			}
 		}
 		

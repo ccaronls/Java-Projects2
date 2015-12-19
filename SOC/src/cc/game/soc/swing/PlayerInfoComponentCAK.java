@@ -11,8 +11,8 @@ import cc.lib.swing.AWTUtils;
 
 public class PlayerInfoComponentCAK extends PlayerInfoComponent {
 
-    public PlayerInfoComponentCAK(int playerNum, CardLoc loc) {
-		super(playerNum, loc);
+    public PlayerInfoComponentCAK(int playerNum) {
+		super(playerNum);
 	}
 
 	@Override

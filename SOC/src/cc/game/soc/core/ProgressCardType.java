@@ -71,4 +71,61 @@ public enum ProgressCardType implements ICardType<DevelopmentArea> {
 		return CardStatus.UNUSABLE;
 	}
 
+	public boolean isEnabled(Rules rules) {
+		switch (this) {
+			case Alchemist:
+				return !rules.isEnableEventCards();
+
+			case Bishop:
+				return rules.isEnableRobber();
+
+			case Constitution:
+				break;
+			case Crane:
+				break;
+			case Deserter:
+				break;
+			case Diplomat:
+				break;
+			case Engineer:
+				break;
+			case Harbor:
+				break;
+			case Intrigue:
+				break;
+			case Inventor:
+				break;
+			case Irrigation:
+				break;
+			case MasterMerchant:
+				break;
+			case Medicine:
+				break;
+			case Merchant:
+				break;
+			case MerchantFleet:
+				break;
+			case Mining:
+				break;
+			case Printer:
+				break;
+			case ResourceMonopoly:
+				break;
+			case RoadBuilding:
+				break;
+			case Saboteur:
+				break;
+			case Smith:
+				break;
+			case Spy:
+				break;
+			case TradeMonopoly:
+				break;
+			case Warlord:
+				break;
+			case Wedding:
+				break;
+		}
+		return true;
+	}
 }

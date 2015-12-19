@@ -67,6 +67,7 @@ public abstract class BotNode extends Reflector<BotNode> implements Comparable<B
 
     public final BotNode attach(BotNode child)
     {
+    	assert(value != Double.NEGATIVE_INFINITY);
     	children.add(child);
         child.parent = this;
         child.properties.putAll(properties);
@@ -134,4 +135,10 @@ public abstract class BotNode extends Reflector<BotNode> implements Comparable<B
     	buf.append("Value=" + getValue());
     	return buf.toString();
     }
+
+	public void invalidate() {
+		properties.clear();
+		numProperties = 0;
+		value = Double.NEGATIVE_INFINITY;
+	}
 }

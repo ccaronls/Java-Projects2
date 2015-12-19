@@ -39,7 +39,7 @@ abstract class Animation {
         long repeats = (t-startTime) / duration;
         if (maxRepeats >= 0 && repeats > maxRepeats) {
             done = true;
-            Utils.println("animation done");
+//            Utils.println("animation done");
             onDone();
         } else {
             float delta = (t-startTime) % duration;

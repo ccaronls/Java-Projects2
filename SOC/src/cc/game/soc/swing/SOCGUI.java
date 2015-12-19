@@ -2,6 +2,7 @@ package cc.game.soc.swing;
 
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -90,47 +91,27 @@ public class SOCGUI extends SOC {
 
     void addCardAnimation(final Player player, final String text) {
         
-    	PlayerInfoComponent comp = gui.playerComponents[player.getPlayerNum()];
+    	final PlayerInfoComponent comp = gui.playerComponents[player.getPlayerNum()];
         final List<Animation> cardsList = comp.getCardAnimations();
+        final BoardComponent board = GUI.instance.getBoardComponent();
 
         final int cardWidth = 64;
         final int cardHeight = 96;
 
-        int X = cardWidth/2 + cardWidth * cardsList.size(); 
-        int Y = player.getPlayerNum() * 64 + 16;
+//        int X = cardWidth/2 + cardWidth * cardsList.size(); 
+//        int Y = player.getPlayerNum() * 64 + 16;
         
-        if (true) { //gui.useNewLayoutType) {
-            switch (comp.getCardLoc()) {
-                case CL_NONE:
-                    return; // skip animations
-                case CL_UPPER_LEFT:
-                    X = cardWidth/2 + cardWidth*2/3 * cardsList.size();
-                    Y = cardHeight + 16;
-                    break;
-                case CL_MIDDLE_LEFT:
-                    X = cardWidth/2 + cardWidth*2/3 * cardsList.size();
-                    Y = cardHeight*2 + 16;
-                    break;
-                case CL_UPPER_RIGHT:
-                    X = gui.getBoardComponent().getWidth() - cardWidth - cardWidth/2 - cardWidth*2/3*cardsList.size();
-                    Y = cardHeight + 16;
-                    break;
-                case CL_MIDDLE_RIGHT:
-                    X = gui.getBoardComponent().getWidth() - cardWidth - cardWidth/2 - cardWidth*2/3*cardsList.size();
-                    Y = cardHeight*2 + 16;
-                    break;
-                case CL_LOWER_RIGHT:
-                    X = gui.getBoardComponent().getWidth() - cardWidth - cardWidth/2 - cardWidth*2/3*cardsList.size();
-                    Y = cardHeight*3 + 16;
-                    break;
-                default:
-                    assert(false);
-                
-            }
-        }
+        
+        final Point compPt = comp.getLocationOnScreen();
+        final Point boardPt = board.getLocationOnScreen();
 
-        final int x = X;
-        final int y = Y;
+        final int dx = compPt.x - boardPt.x;
+        final int dy = compPt.y - boardPt.y;
+        
+        final int y = board.getY() + dy; // duh
+        final int W = cardsList.size() * cardWidth + (cardsList.size()+1) * cardWidth/3;
+        final int x = board.getX() + dx > 0 ? board.getWidth() - W - cardWidth : W;
+
         final int animTime = GUI.instance.getProps().getIntProperty("anim.card.tm", 3000);
         
         gui.getBoardComponent().addAnimation(new Animation(animTime, 0) {

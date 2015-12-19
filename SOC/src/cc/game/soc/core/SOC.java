@@ -312,8 +312,8 @@ public class SOC extends Reflector<SOC> {
 			for (int i=0; i<NUM_DEVELOPMENT_AREA_TYPES; i++)
 				mProgressCards[i] = new ArrayList<Card>();
 			for (ProgressCardType p :  ProgressCardType.values()) {
-				if (getRules().isEnableEventCards() && p == ProgressCardType.Alchemist)
-					continue; // dont add alchemist cards for this kind of expansion
+				if (!p.isEnabled(getRules()))
+					continue;
 				for (int i=0; i<p.deckOccurances; i++) {
 					mProgressCards[p.type.ordinal()].add(new Card(p, CardStatus.USABLE));
 				}
@@ -1627,6 +1627,7 @@ public class SOC extends Reflector<SOC> {
 					if (mOptions.size() == 0) {
 						mBoard.setRobber(-1);
 						mBoard.setPirate(-1);
+						resetOptions();
 						popState();
 					} else {
     					Tile cell = getCurPlayer().chooseTile(this, mOptions, TileChoice.ROBBER);

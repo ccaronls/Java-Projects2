@@ -31,7 +31,6 @@ import cc.game.soc.core.annotations.RuleVariable;
 import cc.game.soc.swing.BoardComponent.PickHandler;
 import cc.game.soc.swing.BoardComponent.PickMode;
 import cc.game.soc.swing.BoardComponent.RenderFlag;
-import cc.game.soc.swing.PlayerInfoComponent.CardLoc;
 import cc.lib.game.IVector2D;
 import cc.lib.game.Utils;
 import cc.lib.swing.*;
@@ -333,24 +332,21 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
                 	westGridPanel.add(barbarianComp = new BarbarianComponent());
                 	JScrollPane sp = new JScrollPane();
                 	int num = userPlayer.getPlayerNum();
-                	sp.getViewport().add(playerComponents[num] = new PlayerInfoComponentCAK(num, CardLoc.CL_UPPER_LEFT));
+                	sp.getViewport().add(playerComponents[num] = new PlayerInfoComponentCAK(num));
                 	westGridPanel.add(sp);
                 } else {
                 	barbarianComp = null;
                 	int num = userPlayer.getPlayerNum();
-                	westGridPanel.add(playerComponents[num] = new PlayerInfoComponentCAK(num, CardLoc.CL_UPPER_LEFT));
+                	westGridPanel.add(playerComponents[num] = new PlayerInfoComponentCAK(num));
                 }
                 
-                CardLoc [] locs = { CardLoc.CL_UPPER_RIGHT, CardLoc.CL_MIDDLE_RIGHT, CardLoc.CL_LOWER_RIGHT };
-
-                int index = 0;
                 for (int i=1; i<=soc.getNumPlayers(); i++) {
                 	if (i == userPlayer.getPlayerNum())
                 		continue;
                 	if (soc.getRules().isEnableCitiesAndKnightsExpansion()) {
-                		eastGridPanel.add(playerComponents[i] = new PlayerInfoComponentCAK(i, locs[index++]));
+                		eastGridPanel.add(playerComponents[i] = new PlayerInfoComponentCAK(i));
                 	} else {
-                		eastGridPanel.add(playerComponents[i] = new PlayerInfoComponentCAK(i, locs[index++]));
+                		eastGridPanel.add(playerComponents[i] = new PlayerInfoComponentCAK(i));
                 	}
                 }
                 

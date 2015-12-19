@@ -13,8 +13,8 @@ import cc.lib.swing.AWTUtils;
 @SuppressWarnings("serial")
 public class PlayerInfoComponent2 extends PlayerInfoComponent {
 
-    PlayerInfoComponent2(int playerNum, CardLoc loc) {
-        super(playerNum, loc);
+    PlayerInfoComponent2(int playerNum) {
+        super(playerNum);
     }
     
     private void drawCard(Graphics g, Color color, int x, int y, int w, int h, String txt) {
