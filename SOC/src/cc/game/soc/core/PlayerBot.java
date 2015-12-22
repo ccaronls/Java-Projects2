@@ -495,14 +495,12 @@ prop2
 					p.adjustResourcesForBuildable(BuildableType.Settlement, -1);
 					for (int vIndex : verts) {
 						Vertex v = b.getVertex(vIndex);
-						v.setType(VertexType.SETTLEMENT);
-						v.setPlayer(p.getPlayerNum());
+						v.setPlayerAndType(p.getPlayerNum(), VertexType.SETTLEMENT);
 						onBoardChanged();
 						BotNode node = root.attach(new BotNodeVertex(v, vIndex));
 						evaluateVertices(node, soc.getRules(), p.getPlayerNum(), b);
 						buildChooseMoveTreeR(soc, p, b, node, SOC.computeMoves(p, b, soc));
-						v.setPlayer(0);
-						v.setType(VertexType.OPEN);
+						v.setOpen();
 					}
 					p.adjustResourcesForBuildable(BuildableType.Settlement, 1);
 					break;
@@ -512,27 +510,27 @@ prop2
 					p.adjustResourcesForBuildable(BuildableType.City, -1);
 					for (int vIndex : verts) {
 						Vertex v = b.getVertex(vIndex);
-						v.setType(VertexType.CITY);
+						v.setPlayerAndType(p.getPlayerNum(), VertexType.CITY);
 						onBoardChanged();
 						BotNode node = root.attach(new BotNodeVertex(v, vIndex));
 						evaluateVertices(node, soc.getRules(), p.getPlayerNum(), b);
 						buildChooseMoveTreeR(soc, p, b, node, SOC.computeMoves(p, b, soc));
-						v.setType(VertexType.SETTLEMENT);
+						v.setPlayerAndType(p.getPlayerNum(), VertexType.SETTLEMENT);
 					}
 					p.adjustResourcesForBuildable(BuildableType.City, 1);
 					break;
 				}
 				case BUILD_CITY_WALL:{
-					List<Integer> verts = SOC.computeCityVertxIndices(p.getPlayerNum(), b);
+					List<Integer> verts = SOC.computeCityWallVertexIndices(p.getPlayerNum(), b);
 					p.adjustResourcesForBuildable(BuildableType.CityWall, -1);
 					for (int vIndex : verts) {
 						Vertex v = b.getVertex(vIndex);
-						v.setType(VertexType.WALLED_CITY);
+						v.setPlayerAndType(p.getPlayerNum(), VertexType.WALLED_CITY);
 						onBoardChanged();
 						BotNode node = root.attach(new BotNodeVertex(v, vIndex));
 						evaluateVertices(node, soc.getRules(), p.getPlayerNum(), b);
 						buildChooseMoveTreeR(soc, p, b, node, SOC.computeMoves(p, b, soc));
-						v.setType(VertexType.CITY);
+						v.setPlayerAndType(p.getPlayerNum(), VertexType.CITY);
 					}
 					p.adjustResourcesForBuildable(BuildableType.CityWall, 1);
 					break;
@@ -641,14 +639,12 @@ prop2
 					List<Integer> verts = SOC.computeNewKnightVertexIndices(p.getPlayerNum(), b);
 					for (int vIndex : verts) {
 						Vertex v = b.getVertex(vIndex);
-						v.setPlayer(p.getPlayerNum());
-						v.setType(VertexType.BASIC_KNIGHT_INACTIVE);
+						v.setPlayerAndType(p.getPlayerNum(), VertexType.BASIC_KNIGHT_INACTIVE);
 						BotNode node = root.attach(new BotNodeVertex(v, vIndex));
 						onBoardChanged();
 						evaluateVertices(node, soc.getRules(), p.getPlayerNum(), b);
-						buildChooseMoveTreeR(soc, p, b, node, SOC.computeMoves(p, b, soc));
-						v.setPlayer(0);
-						v.setType(VertexType.OPEN);
+						//buildChooseMoveTreeR(soc, p, b, node, SOC.computeMoves(p, b, soc));
+						v.setOpen();
 					}
 					p.adjustResourcesForBuildable(BuildableType.Knight, 1);
 					break;
@@ -706,7 +702,8 @@ prop2
 						BotNode knightChoice = root.attach(new BotNodeVertex(knight, knightIndex)); 
 						List<Integer> knightMoves = SOC.computeKnightMoveVertexIndices(soc, knightIndex, b);
 						VertexType saveType = knight.getType();
-						knight.setType(VertexType.OPEN);
+						int savePlayer = knight.getPlayer();
+						knight.setOpen();
 						for (int moveIndex : knightMoves) {
 							Vertex knightMove = b.getVertex(moveIndex);
 							VertexType saveType2 = knightMove.getType();
@@ -714,11 +711,13 @@ prop2
 							onBoardChanged();
 							evaluateVertices(knightMoveChoice, soc.getRules(), p.getPlayerNum(), b);
 							if (saveType2 == VertexType.OPEN) {
-								buildChooseMoveTreeR(soc, p, b, knightMoveChoice, SOC.computeMoves(p, b, soc));
+								//buildChooseMoveTreeR(soc, p, b, knightMoveChoice, SOC.computeMoves(p, b, soc));
+								knightMove.setOpen();
+							} else {
+								knightMove.setPlayerAndType(p.getPlayerNum(), saveType2);
 							}
-							knightMove.setType(saveType2);
 						}
-						knight.setType(saveType);
+						knight.setPlayerAndType(savePlayer, saveType);
 					}
 					break;
 				}
@@ -797,39 +796,26 @@ prop2
 				case DESERTER_CARD: {
 					p.removeCard(ProgressCardType.Deserter);
 					List<Integer> knightOptions = SOC.computeNewKnightVertexIndices(getPlayerNum(), b);
-					for (int pIndex : SOC.computeDeserterPlayers(soc, b, p)) {
+					if (knightOptions.size() == 0) {
+						root.invalidate();
+					} else for (int pIndex : SOC.computeDeserterPlayers(soc, b, p)) {
 						BotNode node = root.attach(new BotNodePlayer(soc.getPlayerByPlayerNum(pIndex)));
 						int oIndex = b.getKnightsForPlayer(pIndex).get(0);
 						Vertex oVertex = b.getVertex(oIndex);
 						VertexType oType = oVertex.getType();
-						oVertex.setType(VertexType.OPEN);
+						oVertex.setOpen();
 						for (int kIndex : knightOptions) {
 							Vertex v = b.getVertex(kIndex);
-							v.setType(oType);
+							assert(v.getType() == VertexType.OPEN);
+							v.setPlayerAndType(p.getPlayerNum(), oType);
 							onBoardChanged();
 							BotNode b2 = node.attach(new BotNodeVertex(v, kIndex));
 							evaluateVertices(b2, soc.getRules(), p.getPlayerNum(), b);
 							// dont recurse since this step is a bit random
-							v.setType(VertexType.OPEN);
+							v.setOpen();
 						}
-						oVertex.setType(oType);
+						oVertex.setPlayerAndType(pIndex, oType);
 					}
-					
-					/*
-					List<Integer> knights = SOC.computeKnightsForDesertion(soc, b, p);
-					for (int knightIndex : knights) {
-						Vertex knight = b.getVertex(knightIndex);
-						assert(knight.getPlayer() != p.getPlayerNum());
-						int savePlayer = knight.getPlayer();
-						knight.setPlayer(p.getPlayerNum());
-						BotNode node = root.attach(new BotNodeVertex(knight, knightIndex));
-						onBoardChanged();
-						evaluateVertices(node, soc.getRules(), p.getPlayerNum(), b);
-						buildChooseMoveTreeR(soc, p, b, node, SOC.computeMoves(p, b, soc));
-						knight.setPlayer(savePlayer);
-					}
-					*/
-//					p.addCard(ProgressCardType.Deserter);
 					break;
 				}
 				case DIPLOMAT_CARD: {
@@ -863,13 +849,15 @@ prop2
 				}
 				case ENGINEER_CARD: {
 					p.removeCard(ProgressCardType.Engineer);
-					List<Integer> cities = b.getCitiesForPlayer(p.getPlayerNum());
+					List<Integer> cities = SOC.computeCityWallVertexIndices(p.getPlayerNum(), b);
 					for (int cIndex : cities) {
 						Vertex city = b.getVertex(cIndex);
-						city.setType(VertexType.WALLED_CITY);
+						city.setPlayerAndType(p.getPlayerNum(), VertexType.WALLED_CITY);
 						onBoardChanged();
-						buildChooseMoveTreeR(soc, p, b, root.attach(new BotNodeVertex(city, cIndex)), SOC.computeMoves(p, b, soc));
-						city.setType(VertexType.CITY);
+						BotNode node = root.attach(new BotNodeVertex(city, cIndex));
+						evaluateVertices(node, soc.getRules(), p.getPlayerNum(), b);
+						buildChooseMoveTreeR(soc, p, b, node, SOC.computeMoves(p, b, soc));
+						city.setPlayerAndType(p.getPlayerNum(), VertexType.CITY);
 					}
 					//p.addCard(ProgressCardType.Engineer);
 					break;
@@ -901,12 +889,13 @@ prop2
 					for (int vIndex : intrigueKnights) {
 						Vertex v = b.getVertex(vIndex);
 						int savePlayer = v.getPlayer();
-						v.setPlayer(0);
+						VertexType saveType = v.getType();
+						v.setOpen();
 						// since we dont know where the opponent will position the displaced knight, we evaluate here
 						BotNode node = root.attach(new BotNodeVertex(v, vIndex));
 						onBoardChanged();
 						evaluateVertices(node, soc.getRules(), p.getPlayerNum(), b);
-						v.setPlayer(savePlayer);
+						v.setPlayerAndType(savePlayer, saveType);
 					}
 					//p.addCard(ProgressCardType.Intrigue);
 					break;
@@ -982,14 +971,15 @@ prop2
 						p.incrementResource(ResourceType.Wheat, -1);
 						List<Integer> settlements = b.getSettlementsForPlayer(p.getPlayerNum());
 						if (settlements.size() > 0) {
-							p.removeCard(ProgressCardType.Medicine);
 							for (int vIndex : settlements) {
     							Vertex v = b.getVertex(vIndex);
-    							v.setType(VertexType.CITY);
-    							buildChooseMoveTreeR(soc, p, b, root.attach(new BotNodeVertex(v, vIndex)), SOC.computeMoves(p, b, soc));
-    							v.setType(VertexType.SETTLEMENT);
+    							v.setPlayerAndType(p.getPlayerNum(), VertexType.CITY);
+    							onBoardChanged();
+    							BotNode node = root.attach(new BotNodeVertex(v, vIndex));
+    							evaluateVertices(node, soc.getRules(), p.getPlayerNum(), b);
+    							buildChooseMoveTreeR(soc, p, b, node, SOC.computeMoves(p, b, soc));
+    							v.setPlayerAndType(p.getPlayerNum(), VertexType.SETTLEMENT);
     						}
-//							p.addCard(ProgressCardType.Medicine);
 						}
 						p.incrementResource(ResourceType.Ore, 2);
 						p.incrementResource(ResourceType.Wheat, 1);
@@ -1006,9 +996,10 @@ prop2
 						b.setMerchant(tIndex, p.getPlayerNum());
 						BotNode node = root.attach(new BotNodeTile(t, tIndex));
 						evaluateVertices(node, soc.getRules(), p.getPlayerNum(), b);
+						evaluateTiles(node, soc, p, b);
 						buildChooseMoveTreeR(soc, p, b, node, SOC.computeMoves(p, b, soc));
+						b.setMerchant(saveMerchantTile, saveMerchantPlayer);
 					}
-					b.setMerchant(saveMerchantTile, saveMerchantPlayer);
 //					p.addCard(ProgressCardType.Merchant);
 					break;
 				}
@@ -1030,7 +1021,6 @@ prop2
 					p.removeCard(ProgressCardType.Mining);
 					int numGained = SOC.computeNumStructuresAdjacentToTileType(p.getPlayerNum(), b, TileType.MOUNTAINS);
 					if (numGained > 0) {
-						p.removeCard(ProgressCardType.Mining);
 						p.incrementResource(ResourceType.Ore, numGained);
 						buildChooseMoveTreeR(soc, p, b, root, SOC.computeMoves(p, b, soc));
 						p.incrementResource(ResourceType.Ore, -numGained);
@@ -1082,7 +1072,6 @@ prop2
 					p.removeCard(ProgressCardType.Smith);
 					List<Integer> promotableKnights = SOC.computePromoteKnightVertexIndices(p, b);
 					if (promotableKnights.size() > 0) {
-						p.removeCard(ProgressCardType.Smith);
     					if (promotableKnights.size() == 1) {
     						// promotion is automatic
     						int kIndex = promotableKnights.get(0);
@@ -1179,11 +1168,13 @@ prop2
 						Vertex v = b.getVertex(vIndex);
 						int score = b.getRoutesOfType(getPlayerNum(), RouteType.WARSHIP).size();
 						float chance = 1f * score / 6f;
-						v.setPlayer(getPlayerNum());
+						assert(v.getType() == VertexType.PIRATE_FORTRESS);
+						assert(v.getPlayer() == 0);
+						v.setPlayerAndType(getPlayerNum(), VertexType.SETTLEMENT);
 						BotNode node = root.attach(new BotNodeVertex(v, vIndex));
 						node.chance = chance;
 						evaluateVertices(node, soc.getRules(), p.getPlayerNum(), b);
-						v.setPlayer(0);
+						v.setPirateFortress();
 					}
 					break;
 				}
@@ -1213,12 +1204,14 @@ prop2
 					for (int vIndex : SOC.computeAttackableStructures(soc, getPlayerNum(), b)) {
 						Board copy = b.deepCopy();
 						Vertex v = copy.getVertex(vIndex);
+						assert(v.getPlayer() > 0);
+						assert(v.getPlayer() != getPlayerNum());
 						int score = SOC.computeAttackerScoreAgainstStructure(v, getPlayerNum(), copy);
 						VertexType [] result = new VertexType[1];
 						float chance = 1.0f*score / SOC.getKnightScoreToAttackStructure(v, result, soc.getRules());
 						BotNode node = root.attach(new BotNodeVertex(v, vIndex));
 						node.chance = chance;
-						v.setType(result[0]);
+						v.setPlayerAndType(v.getPlayer(), result[0]);
 						evaluateEdges(node, soc, p, b);
 						evaluateVertices(node, soc.getRules(), p.getPlayerNum(), b);
 					}
@@ -1302,47 +1295,35 @@ prop2
 				discovered = b.isIslandDiscovered(p.getPlayerNum(), islandNum);
 			switch (mode) {
 				case CITY:
-					v.setPlayer(p.getPlayerNum());
-					v.setType(VertexType.CITY);
+					v.setPlayerAndType(p.getPlayerNum(), VertexType.CITY);
 					break;
 				case CITY_WALL:
-					v.setPlayer(p.getPlayerNum());
-					v.setType(VertexType.WALLED_CITY);
+					v.setPlayerAndType(p.getPlayerNum(), VertexType.WALLED_CITY);
 					break;
 				case KNIGHT_DESERTER:
-					
+					v.setOpen();
 					break;
 				case KNIGHT_DISPLACED:
-					break;
 				case KNIGHT_MOVE_POSITION:
-					break;
 				case KNIGHT_TO_ACTIVATE:
-					break;
 				case KNIGHT_TO_MOVE:
-					break;
 				case KNIGHT_TO_PROMOTE:
-					break;
 				case NEW_KNIGHT:
-					break;
 				case OPPONENT_KNIGHT_TO_DISPLACE:
-					break;
 				case POLITICS_METROPOLIS:
 				case SCIENCE_METROPOLIS:
 				case TRADE_METROPOLIS:
+				case PIRATE_FORTRESS:
+				case OPPONENT_STRUCTURE_TO_ATTACK:
 					assert(false);
 					break;
 				case SETTLEMENT: {
-					v.setPlayer(p.getPlayerNum());
-					v.setType(VertexType.SETTLEMENT);
+					v.setPlayerAndType(p.getPlayerNum(), VertexType.SETTLEMENT);
 					if (islandNum > 0 && !discovered) {
 						b.setIslandDiscovered(p.getPlayerNum(), islandNum, true);
 					}
 					break;
 				}
-				case PIRATE_FORTRESS:
-					break;
-				case OPPONENT_STRUCTURE_TO_ATTACK:
-					break;
 			}
 			onBoardChanged();
 			BotNode node = root.attach(new BotNodeVertex(v, vIndex));
@@ -1520,43 +1501,6 @@ prop2
 		}
 		buildOptimalPath(root);
 		return detatchMove();
-/*
-		switch (mode) {
-			case EXCHANGE_CARD:
-				break;
-			case FLEET_TRADE:
-				break;
-			case RESOURCE_OR_COMMODITY: {
-				BotNode root = createNewTree();
-				for (Card c : cards) {
-					addCard(c);
-					BotNode node = root.attach(new BotNodeCard(c));
-					evaluatePlayer(node, soc, this, soc.getBoard());
-					removeCard(c);
-				}
-				buildOptimalPath(root);
-				return detatchMove();
-			}
-			case GIVEUP_CARD: {
-				BotNode root = createNewTree();
-				for (Card c : cards) {
-					removeCard(c);
-					BotNode node = root.attach(new BotNodeCard(c));
-					evaluatePlayer(node, soc, this, soc.getBoard());
-					addCard(c);
-				}
-				buildOptimalPath(root);
-				return detatchMove();
-			}
-			case OPPONENT_CARD:
-				break;
-			case PROGRESS_CARD:
-				break;
-		}
-		
-		// TODO Auto-generated method stub
-		assert(false);
-		return null;*/
 	}
 	
 	@Override
@@ -1564,9 +1508,18 @@ prop2
 		if (movesPath != null) {
 			return detatchMove();
 		}
-		// TODO Auto-generated method stub
-		assert(false);
-		return null;
+		
+		switch (mode) {
+			case CRANE_CARD_DEVELOPEMENT:
+				break;
+			case DRAW_DEVELOPMENT_CARD:
+			case DRAW_PROGRESS_CARD:
+				return Utils.randItem(values);
+
+			case MONOPOLY:
+				break;
+		}
+		throw new AssertionError("Dont know how to handle this");
 	}
 
 	@Override

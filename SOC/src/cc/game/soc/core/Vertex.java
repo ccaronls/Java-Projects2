@@ -127,9 +127,25 @@ public final class Vertex extends Reflector<Vertex> implements IVector2D {
 	 * 
 	 * @param isCity
 	 */
-	public void setType(VertexType type) {
+	public void setPlayerAndType(int playerNum, VertexType type) {
 		assert(type != null);
+		assert(playerNum > 0);
+		assert(type != VertexType.OPEN);
+		this.player = playerNum;
 		this.type = type;
+	}
+	
+	/**
+	 * 
+	 */
+	public void setOpen() {
+		player = 0;
+		type = VertexType.OPEN;
+	}
+	
+	public void setPirateFortress() {
+		player = 0;
+		type = VertexType.PIRATE_FORTRESS;
 	}
 
 	/**
@@ -143,7 +159,7 @@ public final class Vertex extends Reflector<Vertex> implements IVector2D {
 	/**
 	 * Dont use to unset player.  Use clear player
 	 * @param p
-	 */
+	 *
 	public void setPlayer(int p) {
 		assert(p>=0);
 		player = p;
@@ -214,19 +230,19 @@ public final class Vertex extends Reflector<Vertex> implements IVector2D {
 	}
 	
 	public void activateKnight() {
-		setType(type.activatedType());
+		type = (type.activatedType());
 	}
 
 	public void deactivateKnight() {
-		setType(type.deActivatedType());
+		type = (type.deActivatedType());
 	}
 	
 	public void promoteKnight() {
-		setType(type.promotedType());
+		type = (type.promotedType());
 	}
 	
 	public void demoteKnight() {
-		setType(type.demotedType());
+		type = (type.demotedType());
 	}
 	
 	public boolean isStructure() {

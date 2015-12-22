@@ -1117,11 +1117,11 @@ public class SOC extends Reflector<SOC> {
     }
     
     public static List<Integer> computeInventorTileIndices(Board b) {
-    	int [] values = { 3,4,5,9,10,11 };
+    	int [] values = { 3,4,5,9,10,11 }; // SORTED!
 		List<Integer> tiles = new ArrayList<Integer>();
 		for (int tIndex=0; tIndex<b.getNumTiles(); tIndex++) {
 			Tile t = b.getTile(tIndex);
-			if (Arrays.binarySearch(values, t.getDieNum()) >= 0) {
+			if (t.isLand() && t.isDistributionTile() && Arrays.binarySearch(values, t.getDieNum()) >= 0) {
 				tiles.add(tIndex);
 			}
 		}    	
@@ -1225,15 +1225,14 @@ public class SOC extends Reflector<SOC> {
 						mOptions = computeSettlementVertexIndices(this, getCurPlayerNum(), mBoard);
 					}
 
-					assert (mOptions != null);
+					assert (mOptions != null && mOptions.size() > 0);
 					Vertex v = getCurPlayer().chooseVertex(this, mOptions, VertexChoice.SETTLEMENT);
 
 					if (v != null) {
 						int vIndex = mBoard.getVertexIndex(v);
 						printinfo(getCurPlayer().getName() + " placed a settlement on vertex " + vIndex);
 						assert (v.getPlayer() == 0);
-						v.setPlayer(getCurPlayerNum());
-						v.setType(VertexType.SETTLEMENT);
+						v.setPlayerAndType(getCurPlayerNum(), VertexType.SETTLEMENT);
 						updatePlayerRoadsBlocked(vIndex);
 
 						// need to re-eval the road lengths for all players that the new settlement
@@ -1273,6 +1272,8 @@ public class SOC extends Reflector<SOC> {
 						}
 						resetOptions();
 						popState();
+						
+						checkForOpeningStructure(vIndex);
 					}
 					break;
 				}
@@ -1450,7 +1451,7 @@ public class SOC extends Reflector<SOC> {
 						if (!getRules().isEnableCitiesAndKnightsExpansion()) {
 							assert (v.getPlayer() == getCurPlayerNum());
 						}
-						v.setPlayer(getCurPlayerNum());
+						v.setPlayerAndType(getCurPlayerNum(), VertexType.CITY);
 						int vIndex = mBoard.getVertexIndex(v);
 						printinfo(getCurPlayer().getName() + " placing a city at vertex " + vIndex);
 						if (getRules().isEnableHarborMaster()) {
@@ -1466,9 +1467,10 @@ public class SOC extends Reflector<SOC> {
 								updateHarborMasterPlayer();
 							}
 						}
-						v.setType(VertexType.CITY);
 						resetOptions();
 						popState();
+						
+						checkForOpeningStructure(vIndex);
 					}
 					break;
 				}
@@ -1487,7 +1489,7 @@ public class SOC extends Reflector<SOC> {
 						int vIndex = mBoard.getVertexIndex(v);
 						printinfo(getCurPlayer().getName() + " placing a city at vertex " + vIndex);
 						assert (v.getType() == VertexType.CITY);
-						v.setType(VertexType.WALLED_CITY);
+						v.setPlayerAndType(getCurPlayerNum(), VertexType.WALLED_CITY);
 						resetOptions();
 						popState();
 					}
@@ -1514,7 +1516,7 @@ public class SOC extends Reflector<SOC> {
 						assert(v.isCity());
 						mMetropolisPlayer[area.ordinal()] = getCurPlayerNum();
 						printinfo(getCurPlayer().getName() + " is building a " + area + " Metrololis");
-						v.setType(area.vertexType);
+						v.setPlayerAndType(getCurPlayerNum(), area.vertexType);
 						resetOptions();
 						popState();
 					}
@@ -1807,7 +1809,7 @@ public class SOC extends Reflector<SOC> {
 					if (v != null) {
 						assert(v.isKnight());
 						//assert(!v.isPromotedKnight());
-						v.setType(v.getType().promotedType());
+						v.setPlayerAndType(getCurPlayerNum(), v.getType().promotedType());
 						//v.setPromotedKnight(true);
 						resetOptions();
 						popState();
@@ -1830,8 +1832,7 @@ public class SOC extends Reflector<SOC> {
 						pushStateFront(State.POSITION_KNIGHT_CANCEL, type, new UndoAction() {
 							@Override
 							public void undo() {
-								v.setPlayer(getCurPlayerNum());
-								v.setType(vt);
+								v.setPlayerAndType(getCurPlayerNum(), vt);
 							}
 						});
 						v.removePlayer();
@@ -1846,7 +1847,7 @@ public class SOC extends Reflector<SOC> {
 					Vertex v = getCurPlayer().chooseVertex(this, mOptions, VertexChoice.KNIGHT_DISPLACED);
 					if (v != null) {
 						assert(v.getType() == VertexType.OPEN);
-						v.setType(displacedKnight);
+						v.setPlayerAndType(getCurPlayerNum(), displacedKnight);
 						resetOptions();
 					}
 					break;
@@ -1891,8 +1892,7 @@ public class SOC extends Reflector<SOC> {
 							assert(v.getType() == VertexType.OPEN);
 						}
 
-    					v.setPlayer(getCurPlayerNum());
-    					v.setType(knight);
+    					v.setPlayerAndType(getCurPlayerNum(), knight);
 
     					updatePlayerRoadsBlocked(vIndex);
 					}
@@ -2260,7 +2260,7 @@ public class SOC extends Reflector<SOC> {
 						if (score >= minScore) {
 							printinfo(getCurPlayer().getName() + " has destoryed the " + v.getType().getNiceName());
 							onStructureDestroyed(v, result[0], getCurPlayer(), victim);
-							v.setType(result[0]);
+							v.setPlayerAndType(victim.getPlayerNum(), result[0]);
 							if (result[0] == VertexType.OPEN) {
 								v.reset();
 								updatePlayerRoadsBlocked(getBoard().getVertexIndex(v));
@@ -2280,8 +2280,38 @@ public class SOC extends Reflector<SOC> {
 	    }
 	}
 	
+	private void checkForOpeningStructure(int vIndex) {
+		// if this is an opening city, then there are no roads attached to it, so the road options are just those that extend from this vertex
+		if (getState() == State.POSITION_ROAD_OR_SHIP_NOCANCEL) {
+			Vertex v = mBoard.getVertex(vIndex);
+			boolean hasRoute = false;
+			List<Integer> vertexRoutes = new ArrayList<Integer>();
+			for (int i=0; i<v.getNumAdjacent(); i++) {
+				int rIndex = mBoard.getRouteIndex(vIndex, v.getAdjacent()[i]);
+				assert(rIndex >= 0);
+				Route r = mBoard.getRoute(rIndex);
+				if (r.getType() != RouteType.OPEN) {
+					hasRoute = true;
+					break;
+				}
+				vertexRoutes.add(rIndex);
+			}
+			if (!hasRoute) {
+				mOptions = vertexRoutes;
+			}
+		}		
+	}
+	
+	/**
+	 * 
+	 * @param v
+	 * @param result the resulting vertex type after the attack
+	 * @param rules
+	 * @return
+	 */
 	public static int getKnightScoreToAttackStructure(Vertex v, VertexType [] result, Rules rules) {
 		int minScore = 0;
+		result[0] = v.getType();
 		switch (v.getType()) {
 			case WALLED_CITY:
 				minScore = rules.getKnightScoreToDestroyWalledCity();
@@ -2466,10 +2496,9 @@ public class SOC extends Reflector<SOC> {
 			v.setPirateHealth(h);
 			if (h <= 0) {
 				printinfo(p.getName() + " has conquered a pirate fortress!");
-				v.setType(VertexType.OPEN);
+				v.setOpen();
 				onPlayerConqueredPirateFortress(getCurPlayer(), v);
-				v.setType(VertexType.SETTLEMENT);
-				v.setPlayer(getCurPlayerNum());
+				v.setPlayerAndType(getCurPlayerNum(), VertexType.SETTLEMENT);
 				p.addCard(SpecialVictoryType.CapturePirateFortress);
 			} else {
 				printinfo(p.getName() + " has won reduced the fortress health to " + h);
@@ -3946,6 +3975,9 @@ public class SOC extends Reflector<SOC> {
 				if (b.getOpenKnightVertsForPlayer(p.getPlayerNum()).size() > 0) {
 					types.add(MoveType.HIRE_KNIGHT);
 				}
+			}
+			
+			if (p.canBuild(BuildableType.PromoteKnight)) {
 				if (computePromoteKnightVertexIndices(p, b).size() > 0)
 					types.add(MoveType.PROMOTE_KNIGHT);
 			}
@@ -4129,9 +4161,16 @@ public class SOC extends Reflector<SOC> {
 	}
 	
 	static public int computeCatanStrength(SOC soc, Board b) {
-		return b.getNumVertsOfType(0, VertexType.BASIC_KNIGHT_ACTIVE) +
-			   b.getNumVertsOfType(0, VertexType.STRONG_KNIGHT_ACTIVE) * 2 +
-			   b.getNumVertsOfType(0, VertexType.MIGHTY_KNIGHT_ACTIVE) * 3;
+		
+		int [] s = new int[soc.getNumPlayers()+1];
+		
+		for (int i=1; i<s.length; i++) {
+			s[i] = b.getNumVertsOfType(i, VertexType.BASIC_KNIGHT_ACTIVE) * VertexType.BASIC_KNIGHT_ACTIVE.getKnightLevel() +
+			   b.getNumVertsOfType(i, VertexType.STRONG_KNIGHT_ACTIVE) * VertexType.STRONG_KNIGHT_ACTIVE.getKnightLevel()  +
+			   b.getNumVertsOfType(i, VertexType.MIGHTY_KNIGHT_ACTIVE) * VertexType.MIGHTY_KNIGHT_ACTIVE.getKnightLevel();
+		}
+		
+		return CMath.sum(s);
 	}
 	
 	static public int computeBarbarianStrength(SOC soc, Board b) {
@@ -4657,7 +4696,7 @@ public class SOC extends Reflector<SOC> {
     					assert(otherDevel>=DevelopmentArea.MIN_METROPOLIS_IMPROVEMENT);
     					if (otherDevel < devel) {
     						printinfo(other.getName() + " loses Metropolis " + area + " to " + getCurPlayer().getName());
-    						v.setType(VertexType.CITY);
+    						v.setPlayerAndType(other.getPlayerNum(), VertexType.CITY);
     						onMetropolisStolen(getPlayerByPlayerNum(v.getPlayer()), getPlayerByPlayerNum(playerNum), area);
     						pushStateFront(State.CHOOSE_METROPOLIS, area, null);
     					}
@@ -4802,7 +4841,7 @@ public class SOC extends Reflector<SOC> {
 						int cityIndex = Utils.randItem(cities);
 						playerStatus[playerNum] += " Defended by wall";
 						Vertex v = mBoard.getVertex(cityIndex);
-						v.setType(VertexType.CITY);
+						v.setPlayerAndType(playerNum, VertexType.CITY);
 					} else {
 						cities = mBoard.getVertsOfType(playerNum, VertexType.CITY);
 						if (cities.size() > 0) {
@@ -4810,7 +4849,7 @@ public class SOC extends Reflector<SOC> {
 							int cityIndex = Utils.randItem(cities);
 							playerStatus[playerNum] +=" City piledged";
 							Vertex v = mBoard.getVertex(cityIndex);
-							v.setType(VertexType.SETTLEMENT);
+							v.setPlayerAndType(playerNum, VertexType.SETTLEMENT);
 						}
 					}
 				}

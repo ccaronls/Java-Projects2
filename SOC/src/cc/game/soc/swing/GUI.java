@@ -605,9 +605,9 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 					public void onPick(BoardComponent bc, int pickedValue) {
 						Vertex v = bc.getBoard().getVertex(pickedValue);
 						if (v.getType() == VertexType.OPEN) {
-							v.setType(VertexType.PIRATE_FORTRESS);
+							v.setPirateFortress();
 						} else {
-							v.setType(VertexType.OPEN);
+							v.setOpen();
 						}
 					}
 					
@@ -710,8 +710,6 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 			boardNameLabel.setText(getBoard().getName());
 		}
         log.debug("MenuStack: " + menuStack);
-        //menu = new JPanel();
-        //menu.setLayout(new GridLayout(0 ,1));
         clearMenu();
 		
 		if (menuStack.size() > 0) {
@@ -790,33 +788,31 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 									case SETTLEMENT:
 										v = getBoard().getVertex(pickedValue);
 										if (v.getPlayer() == 0) {
-											v.setType(mode.vType);
-											v.setPlayer(getCurPlayerNum());
+											v.setPlayerAndType(getCurPlayerNum(), mode.vType);
 										} else {
 											v.reset();
 										}
 										break;
 									case KNIGHT:
 										v = getBoard().getVertex(pickedValue);
-										v.setPlayer(getCurPlayerNum());
 										switch (v.getType()) {
 											default:
-												v.setType(VertexType.BASIC_KNIGHT_INACTIVE);
+												v.setPlayerAndType(getCurPlayerNum(), VertexType.BASIC_KNIGHT_INACTIVE);
 												break;
 											case BASIC_KNIGHT_INACTIVE:
-												v.setType(VertexType.BASIC_KNIGHT_ACTIVE);
+												v.setPlayerAndType(getCurPlayerNum(), VertexType.BASIC_KNIGHT_ACTIVE);
 												break;
 											case BASIC_KNIGHT_ACTIVE:
-												v.setType(VertexType.STRONG_KNIGHT_INACTIVE);
+												v.setPlayerAndType(getCurPlayerNum(), VertexType.STRONG_KNIGHT_INACTIVE);
 												break;
 											case STRONG_KNIGHT_INACTIVE:
-												v.setType(VertexType.STRONG_KNIGHT_ACTIVE);
+												v.setPlayerAndType(getCurPlayerNum(), VertexType.STRONG_KNIGHT_ACTIVE);
 												break;
 											case STRONG_KNIGHT_ACTIVE:
-												v.setType(VertexType.MIGHTY_KNIGHT_INACTIVE);
+												v.setPlayerAndType(getCurPlayerNum(), VertexType.MIGHTY_KNIGHT_INACTIVE);
 												break;
 											case MIGHTY_KNIGHT_INACTIVE:
-												v.setType(VertexType.MIGHTY_KNIGHT_ACTIVE);
+												v.setPlayerAndType(getCurPlayerNum(), VertexType.MIGHTY_KNIGHT_ACTIVE);
 												break;
 											case MIGHTY_KNIGHT_ACTIVE:
 												v.reset();
@@ -828,10 +824,10 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 										if (v.getType() == VertexType.PIRATE_FORTRESS) {
 											v.setPirateHealth(v.getPirateHealth()-1);
 											if (v.getPirateHealth() <= 0)
-												v.setType(VertexType.OPEN);
+												v.setOpen();
 										} else {
 											v.reset();
-											v.setType(VertexType.PIRATE_FORTRESS);
+											v.setPirateFortress();
 											v.setPirateHealth(3);
 										}
 										break;
@@ -1000,7 +996,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 	
 	@SuppressWarnings("serial")
     private void processOp(MenuOp op, OpButton button) {
-		
+
 		switch (op) {
 			case BACK:
 				if (menuStack.size()>0) {
@@ -1241,6 +1237,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 			case CHOOSE_TRADE:
 			case CHOOSE_ROAD:
 			case CHOOSE_SHIP:
+				clearMenu();
 				returnValue = button.getExtra();
 				break;
 

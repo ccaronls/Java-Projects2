@@ -169,7 +169,7 @@ public final class Board extends Reflector<Board> {
     private void computeVertexTiles() {
     	for (Vertex v : verts) {
     		v.setNumCells(0);
-    		v.setType(VertexType.OPEN);
+    		v.setOpen();
     	}
         for (int i=0; i<getNumTiles(); i++) {
             Tile c = getTile(i);
@@ -834,7 +834,7 @@ public final class Board extends Reflector<Board> {
 			getTile(tile).setDieNum(0);
 		}
 		for (int vertex : pirateFortresses) {
-			getVertex(vertex).setType(VertexType.PIRATE_FORTRESS);
+			getVertex(vertex).setPirateFortress();
 		}
 	}
 
@@ -1496,12 +1496,10 @@ public final class Board extends Reflector<Board> {
 	public int getNumVertsOfType(int playerNum, VertexType ... types) {
 		int num = 0;
 		List<VertexType> arr = Arrays.asList(types);
-		for (int i = 0; i < getNumVerts(); i++) {
-			Vertex v = getVertex(i);
-			if (v.getPlayer() == 0 || (playerNum > 0 && playerNum != v.getPlayer()))
-				continue;
-			if (arr.contains(v.getType()))
+		for (Vertex v : verts) {
+			if ((playerNum == 0 || playerNum == v.getPlayer()) && arr.contains(v.getType())) {
 				num++;
+			}
 		}
 		return num;
 	}
@@ -1981,8 +1979,7 @@ public final class Board extends Reflector<Board> {
      */
     public final void resetStructures() {
     	for (Vertex v : verts) {
-    		v.setPlayer(0);
-    		v.setType(VertexType.OPEN);
+    		v.setOpen();
     	}
     }
     

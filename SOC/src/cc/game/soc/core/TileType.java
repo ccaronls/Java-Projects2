@@ -15,7 +15,7 @@ public enum TileType {
 	PORT_ORE	(1, true, false, true, false, ResourceType.Ore, null), 		// water with a resource icon
 	PORT_BRICK	(1, true, false, true, false, ResourceType.Brick, null), 		// water with a resource icon
 	PORT_MULTI	(1, true, false, true, false, null, null), 		// water with a ? icon
-	GOLD		(0, false, true, false, true, null, null),		// cell type gives out a resource of users choice
+	GOLD		(1, false, true, false, true, null, null),		// cell type gives out a resource of users choice
 	UNDISCOVERED(0, false, false, false, false, null, null),		// cell type is unknown until user reaches a vertex by road or ship (usually ship)
 
 	// used for random generation
@@ -25,11 +25,11 @@ public enum TileType {
 	RANDOM_PORT					(0, true, false, true, false, null, null),	// randomly assign a port
 	
 	// Cites and Knights Extension
-	PASTURE		(2, false, true, false, true, ResourceType.Sheep, CommodityType.Cloth), 	// 1 Sheep, 1 Cloth
-	HILLS		(2, false, true, false, true, ResourceType.Brick, null),					// 2 Brick
-	MOUNTAINS	(2, false, true, false, true, ResourceType.Ore, CommodityType.Coin),		// 1 Ore, 1 Coin
-	FIELDS		(2, false, true, false, true, ResourceType.Wheat, null),					// 2 Grain
-	FOREST		(2, false, true, false, true, ResourceType.Wood, CommodityType.Paper), 	// 1 Wood, 1 Paper
+	PASTURE		(3, false, true, false, true, ResourceType.Sheep, CommodityType.Cloth), 	// 1 Sheep, 1 Cloth
+	HILLS		(3, false, true, false, true, ResourceType.Brick, null),					// 2 Brick
+	MOUNTAINS	(3, false, true, false, true, ResourceType.Ore, CommodityType.Coin),		// 1 Ore, 1 Coin
+	FIELDS		(3, false, true, false, true, ResourceType.Wheat, null),					// 2 Grain
+	FOREST		(3, false, true, false, true, ResourceType.Wood, CommodityType.Paper), 	// 1 Wood, 1 Paper
 	;
 	
 	final int chanceOnUndiscovered;

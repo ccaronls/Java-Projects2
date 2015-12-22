@@ -200,7 +200,7 @@ public class SOCGUI extends SOC {
                 button.wait();
             }        
         } catch (Exception e) {
-            gui.quitToMainMenu();
+            //gui.quitToMainMenu();
         }
     }
 

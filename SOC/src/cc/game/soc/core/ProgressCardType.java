@@ -75,10 +75,8 @@ public enum ProgressCardType implements ICardType<DevelopmentArea> {
 		switch (this) {
 			case Alchemist:
 				return !rules.isEnableEventCards();
-
 			case Bishop:
 				return rules.isEnableRobber();
-
 			case Constitution:
 				break;
 			case Crane:
@@ -94,7 +92,7 @@ public enum ProgressCardType implements ICardType<DevelopmentArea> {
 			case Intrigue:
 				break;
 			case Inventor:
-				break;
+				return !rules.isEnableEventCards();
 			case Irrigation:
 				break;
 			case MasterMerchant:
