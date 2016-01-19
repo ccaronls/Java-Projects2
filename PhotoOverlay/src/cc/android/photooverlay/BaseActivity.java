@@ -42,6 +42,7 @@ import android.view.View.OnClickListener;
 public class BaseActivity extends BillingActivity implements OnClickListener {
 
 	public final static boolean SUBSCRIPTION_ONLY = true;
+	public final static int IMAGE_CAPUTE_DIM = 512;
 	
 	final String TAG = getClass().getSimpleName();
 	

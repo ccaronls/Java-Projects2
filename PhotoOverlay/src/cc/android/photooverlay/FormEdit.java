@@ -231,6 +231,7 @@ public class FormEdit extends BaseActivity implements OnCheckedChangeListener {
 			if (tempEditable) {
 				if (isAmbientTempAvailable()) {
 					temp = String.valueOf(convertCelciusToFahrenheit(getAmbientTempCelcius()));
+					newDialogBuilder().setTitle(R.string.popup_title_important).setMessage(R.string.popup_msg_tempinfo).setNegativeButton(R.string.popup_button_ok, null).show();
 				}
 				final int [] tempInt = new int[] { Integer.parseInt(temp) };
     			view.findViewById(R.id.buttonTempUp).setOnClickListener(new OnClickListener() {
@@ -406,7 +407,7 @@ public class FormEdit extends BaseActivity implements OnCheckedChangeListener {
 
     	if (bitmap != null) {
     		//if (isPremiumEnabled(false))
-    			bitmap = ThumbnailUtils.extractThumbnail(bitmap, 512, 512);
+    			bitmap = ThumbnailUtils.extractThumbnail(bitmap, IMAGE_CAPUTE_DIM, IMAGE_CAPUTE_DIM);
     		//else
     		//	bitmap = ThumbnailUtils.extractThumbnail(bitmap, 64, 64);
 			Matrix matrix = new Matrix();

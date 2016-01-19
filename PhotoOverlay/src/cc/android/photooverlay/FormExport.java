@@ -8,6 +8,7 @@ import cc.lib.android.EmailHelper;
 import cecc.android.lib.PagedFormExporter;
 import android.net.Uri;
 import android.util.Log;
+import android.widget.ImageView;
 
 public class FormExport extends PagedFormExporter {
 
@@ -43,18 +44,24 @@ public class FormExport extends PagedFormExporter {
 
 	@Override
 	protected void onEmailAttachmentReady(File attachment) {
-		EmailHelper.sendEmail(activity, attachment, null, activity.getString(R.string.emailSubjectSignedReport), activity.getString(R.string.email_body_signed_form));		
+		if (BuildConfig.DEBUG && attachment.getAbsolutePath().endsWith(".jpg")) {
+			ImageView iv = new ImageView(getActivity());
+			iv.setImageURI(Uri.fromFile(attachment));
+			((BaseActivity)getActivity()).newDialogBuilder().setTitle("Preview").setView(iv).show();
+		} else
+			EmailHelper.sendEmail(getActivity(), attachment, null, getActivity().getString(R.string.emailSubjectSignedReport), getActivity().getString(R.string.email_body_signed_form));		
 	}
 	
 	private void header() {
-		header("Pressure Test Report");
-		beginTable(70);
-		entry("Date:", fmt.format(form.editDate));
+		header("Pressure Test Report", fmt.format(form.editDate));
+		beginTable(0);
 		entry("Cusomter:", form.customer);
 		entry("Project:", form.project);
 		entry("System:", form.system);
 		entry("Location:", form.location);
 		entry("Inspector:", form.inspector);
+		endTable();
+		beginTable(100);
 		entry("Plan:", form.plan, "Spec:", form.spec, "Type:", form.type);
 		endTable();
 	}
@@ -71,21 +78,26 @@ public class FormExport extends PagedFormExporter {
 		start();
 		header();
 
+		BaseActivity activity = (BaseActivity)getActivity();
 		if (form.passed) {
-			html.append("</br><b><font color=\"green\">PASSED</font></b>");
+			html.append("</br><b><font color=\"green\">PASSED</font></b>\n");
 		} else {
-			html.append("</br><b><font color=\"red\">FAILED</font></b>");
+			html.append("</br><b><font color=\"red\">FAILED</font></b>\n");
 		}
 		
 		html.append("<br/><table width=\"100%\">\n");
 		html.append("<tr>\n");
+		final int dim = Math.round((float)BaseActivity.IMAGE_CAPUTE_DIM / activity.getResources().getDisplayMetrics().density);
+
 		for (int i=0; i<3; i++) {
 			html.append("<td>\n");
 			if (form.imagePath[i] != null) {
-				Uri uri = Uri.fromFile(new File(((BaseActivity)activity).getImagesPath(), form.imagePath[i]));
-				html.append("<img width=\"170\" height=\"170\" src=\"").append(uri.toString()).append("\">\n");
+				Uri uri = Uri.fromFile(new File(activity.getImagesPath(), form.imagePath[i]));
+				html.append(String.format("<img width=\"%d\" height=\"%d\" src=\"%s\">\n", dim, dim, uri.toString()));//.append("\">\n");
+				//html.append(String.format("<img src=\"%s\">\n", uri.toString()));//.append("\">\n");
 			} else {
-				html.append("<img width=\"170\" height=\"170\" src=\"\" alt=\"No Image\"/>\n");
+				html.append(String.format("<img width=\"%d\" height=\"%d\" src=\"\" alt=\"No Image\"/>\n", dim, dim));
+				//html.append("<img src=\"\" alt=\"No Image\"/>\n");
 			}
 			html.append("</td>\n");
 		}
@@ -118,7 +130,8 @@ public class FormExport extends PagedFormExporter {
 			html.append("</tr></table>");
 //			html.append("</br>").append(s.fullName).append("     ").append(fmt.format(s.date));
 			Uri uri = Uri.fromFile(s.signatureFile);
-			html.append("</br><img width=\"512\" src=\"").append(uri.toString()).append("\">\n");
+			int imgWid = Math.round((float)getWidth() / getActivity().getResources().getDisplayMetrics().density);
+			html.append("</br><img width=\"" + imgWid + "\" src=\"").append(uri.toString()).append("\">\n");
 		}
 		end();
 	}
