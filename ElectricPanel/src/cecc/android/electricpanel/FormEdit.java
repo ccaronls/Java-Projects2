@@ -348,7 +348,7 @@ public class FormEdit extends BaseActivity {
 			watermark(bitmap, getDateFormatter().format(new Date()));
 
 			try {
-				File destFile = File.createTempFile("capture", ".png", getImagesPath());
+				File destFile = File.createTempFile(IMAGE_PREFIX, ".png", getImagesPath());
 				FileOutputStream out = new FileOutputStream(destFile);
 				try {
 					bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);

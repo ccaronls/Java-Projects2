@@ -32,6 +32,7 @@ public class BaseActivity extends BillingActivity implements OnClickListener {
 	public final static String INTENT_FULL_NAME_STRING = "iFULL_NAME";
 	public final static String INTENT_BITMAP_FILE = "iBITMAP_FILE";
 	public final static String INTENT_ERROR = "iERROR";
+	public final static String IMAGE_PREFIX = "capture";
 	
 	private final static boolean INAPP_ENABLED = !BuildConfig.DEBUG;
 	
@@ -162,23 +163,10 @@ public class BaseActivity extends BillingActivity implements OnClickListener {
 	}
 	
 	void cleanupUnusedImages() {
-		/*
-		HashSet<String> usedImages = new HashSet<String>();
-		usedImages.addAll(Arrays.asList(getFormHelper().getDistictValuesForColumn(SQLHelper.FormColumn.IMAGE1)));
-		usedImages.addAll(Arrays.asList(getFormHelper().getDistictValuesForColumn(SQLHelper.FormColumn.IMAGE2)));
-		usedImages.addAll(Arrays.asList(getFormHelper().getDistictValuesForColumn(SQLHelper.FormColumn.IMAGE3)));
 		File [] images = getImagesPath().listFiles();
 		for (File f : images) {
-			if (!usedImages.contains(f.getName())) {
-				Log.i(TAG, "Deleting unused image " + f);
+			if (!f.getName().startsWith(IMAGE_PREFIX))
 				f.delete();
-			}
-		}*/
-		File [] images = getImagesPath().listFiles();
-		for (File f : images) {
-			if (getDBHelper().getImageByPath(f.getName()) == null) {
-				f.delete();
-			}
 		}
 	}
 	

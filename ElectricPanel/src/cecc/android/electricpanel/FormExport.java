@@ -6,6 +6,7 @@ import java.util.*;
 
 import cc.lib.android.EmailHelper;
 import cecc.android.lib.PagedFormExporter;
+import android.app.Activity;
 import android.net.Uri;
 import android.util.Log;
 
@@ -30,9 +31,8 @@ public class FormExport extends PagedFormExporter {
 	}
 	
 	private void header() {
-		header("Electrical Panel Certification");
-		beginTable(70);
-		entry("Date:", fmt.format(form.editDate));
+		header("Electrical Panel Certification", fmt.format(form.editDate));
+		beginTable(0);
 		entry("Cusomter:", form.customer);
 		entry("Project:", form.project);
 		entry("Location:", form.location);
@@ -74,7 +74,7 @@ public class FormExport extends PagedFormExporter {
     			int index = (i*3) + ii;
     			Image image = form.getImageForIndex(index);
     			if (image != null) {
-    				Uri uri = Uri.fromFile(new File(((BaseActivity)activity).getImagesPath(), image.path));
+    				Uri uri = Uri.fromFile(new File(((BaseActivity)getActivity()).getImagesPath(), image.path));
     				html.append("<img width=\"170\" height=\"170\" src=\"").append(uri.toString()).append("\">\n");
     			} else {
     				html.append("<img width=\"170\" height=\"170\" src=\"\" alt=\"No Image\"/>\n");
@@ -121,6 +121,7 @@ public class FormExport extends PagedFormExporter {
 
 	@Override
 	protected void onEmailAttachmentReady(File attachment) {
+		Activity activity = getActivity();
 		EmailHelper.sendEmail(activity, attachment, null, activity.getString(R.string.emailSubjectSignedReport), activity.getString(R.string.email_body_signed_form));		
 	}
 
