@@ -3,16 +3,21 @@ package cecc.android.lib;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.os.Build;
 import android.os.IBinder;
+import android.provider.Settings;
 import android.util.Log;
 
 import com.android.vending.billing.IInAppBillingService;
 
+import cc.lib.android.BuildConfig;
 import cc.lib.android.CCActivityBase;
 import cc.lib.android.R;
 
@@ -25,6 +30,12 @@ public abstract class BillingActivity extends CCActivityBase {
 
 	private IInAppBillingService mBillingService;
 
+	@Override
+	protected void onResume() {
+		super.onResume();
+		isAutoClockEnabled(true);
+	}
+	
 	@Override
 	protected void onPause() {
 		super.onPause();
@@ -140,4 +151,44 @@ public abstract class BillingActivity extends CCActivityBase {
 	protected abstract void finalizePurchase(String sku, long purchaseTime);
 	
 	protected abstract AlertDialog.Builder newDialogBuilder();
+	
+	private static AlertDialog settingsDialog = null;
+	
+	protected boolean isAutoClockEnabled(boolean showBlockingPopupIfItsNot) {
+		
+		boolean enabled =false;
+		if (android.os.Build.VERSION.SDK_INT >= 17) {
+			enabled = isAutoClockEnabledAPI17AndHigher();
+		} else {
+			enabled = isAutoClockEnabledAPI16AndLower();
+		}
+		if (!enabled && showBlockingPopupIfItsNot) {
+			if (settingsDialog == null) {
+    			settingsDialog = newDialogBuilder()
+    				.setCancelable(false)
+    				.setTitle("Auto Clock Disabled")
+    				.setMessage("This app requires automatic date and time to be enabled in order to work correctly.  Please enable auto clock to continue.")
+    				.setPositiveButton("Open Settings", new DialogInterface.OnClickListener() {
+    					
+    					@Override
+    					public void onClick(DialogInterface dialog, int which) {
+    						settingsDialog = null;
+    						startActivity(new Intent(Settings.ACTION_DATE_SETTINGS));
+    					}
+    				}).show();
+			}
+		}
+		return enabled;
+	}
+	
+	@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
+	private boolean isAutoClockEnabledAPI17AndHigher() {
+		return android.provider.Settings.Global.getInt(getContentResolver(), android.provider.Settings.Global.AUTO_TIME, 0) != 0;
+	}
+
+	@SuppressWarnings("deprecation")
+	private boolean isAutoClockEnabledAPI16AndLower() {
+		return android.provider.Settings.System.getInt(getContentResolver(), android.provider.Settings.System.AUTO_TIME, 0) != 0;
+	}
+
 }

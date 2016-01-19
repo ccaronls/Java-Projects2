@@ -197,6 +197,7 @@ public class BillingTask extends AsyncTask<String,Integer,Object> implements OnC
 			case QUERY_PURCHASABLES:
 			case QUERY_PURCHASABLES_DEBUG:
 			case QUERY_PROMOTION:
+			case QUERY_SUBSCRIPTION:
 				dialog = new ProgressDialog(activity);
 				dialog.setTitle("Processing Billing Request");
 				dialog.setCancelable(false);
