@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="cecc.android.mechdeficiency"
-    android:versionCode="3"
+    android:versionCode="4"
     android:versionName="1.0" >
 
     <uses-sdk
@@ -27,7 +27,7 @@
         </activity>
         
         <activity android:name=".FormsList" android:screenOrientation="portrait" android:launchMode="singleTop"/>
-        <activity android:name=".FormEdit"/>
+        <activity android:name=".FormEdit" android:configChanges="orientation|screenSize"/>
         <activity android:name=".FormExport" android:screenOrientation="portrait"/>
         <activity android:name=".ESign" android:screenOrientation="sensorLandscape"/>
         <activity android:name=".FormSign" android:screenOrientation="portrait"/>

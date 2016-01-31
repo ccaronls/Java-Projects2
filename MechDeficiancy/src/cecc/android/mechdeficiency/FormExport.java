@@ -4,6 +4,7 @@ import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+import android.app.Activity;
 import android.net.Uri;
 import android.util.Log;
 import cc.lib.android.EmailHelper;
@@ -42,13 +43,13 @@ public class FormExport extends PagedFormExporter {
 
 	@Override
 	protected void onEmailAttachmentReady(File attachment) {
+		Activity activity = getActivity();
 		EmailHelper.sendEmail(activity, attachment, null, activity.getString(R.string.emailSubjectSignedReport), activity.getString(R.string.email_body_signed_form));		
 	}
 	
 	private void header() {
-		header("Mechanical Deficiency Report");
-		beginTable(70);
-		entry("Date:", fmt.format(form.editDate));
+		header("Mechanical Deficiency Report", fmt.format(form.editDate));
+		beginTable(0);
 		entry("Cusomter:", form.customer);
 		entry("Project:", form.project);
 		entry("Location:", form.location);
@@ -76,6 +77,8 @@ public class FormExport extends PagedFormExporter {
 		
 		html.append("<br/><table width=\"100%\">\n");
 		html.append("<tr>\n");
+		final int dim = Math.round((float)BaseActivity.IMAGE_CAPTURE_DIM / getActivity().getResources().getDisplayMetrics().density);
+
 		for (int i=0; i<2; i++) {
 			html.append("<tr>");
     		for (int ii=0; ii<3; ii++) {
@@ -83,10 +86,10 @@ public class FormExport extends PagedFormExporter {
     			int index = (i*3) + ii;
     			Image image = form.getImageForIndex(index);
     			if (image != null) {
-    				Uri uri = Uri.fromFile(new File(((BaseActivity)activity).getImagesPath(), image.path));
-    				html.append("<img width=\"170\" height=\"170\" src=\"").append(uri.toString()).append("\">\n");
+    				Uri uri = Uri.fromFile(new File(((BaseActivity)getActivity()).getImagesPath(), image.path));
+    				html.append(String.format("<img width=\"%d\" height=\"%d\" src=\"", dim, dim)).append(uri.toString()).append("\">\n");
     			} else {
-    				html.append("<img width=\"170\" height=\"170\" src=\"\" alt=\"No Image\"/>\n");
+    				html.append(String.format("<img width=\"%d\" height=\"%d\" src=\"\" alt=\"No Image\"/>\n", dim, dim));
     			}
     			html.append("</td>\n");
     		}
@@ -123,7 +126,8 @@ public class FormExport extends PagedFormExporter {
 			html.append("</tr></table>");
 //			html.append("</br>").append(s.fullName).append("     ").append(fmt.format(s.date));
 			Uri uri = Uri.fromFile(s.signatureFile);
-			html.append("</br><img width=\"512\" src=\"").append(uri.toString()).append("\">\n");
+			int imgWid = Math.round((float)getWidth() / getActivity().getResources().getDisplayMetrics().density);
+			html.append(String.format("</br><img width=\"%d\" src=\"", imgWid)).append(uri.toString()).append("\">\n");
 		}
 		end();
 		Log.d("HTML Page " + page, html.toString());

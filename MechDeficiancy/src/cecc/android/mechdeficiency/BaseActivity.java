@@ -36,6 +36,9 @@ public class BaseActivity extends BillingActivity implements OnClickListener {
 	
 	private final static boolean INAPP_ENABLED = !BuildConfig.DEBUG;
 	
+	public final static String IMAGE_PREFIX = "capture";
+	public final static int IMAGE_CAPTURE_DIM = 512;
+	
 	static SimpleDateFormat dateFormat = new SimpleDateFormat("E M/d/yy h:mm a", Locale.US); 
 
 	private DBHelper helper;
@@ -163,21 +166,10 @@ public class BaseActivity extends BillingActivity implements OnClickListener {
 	}
 	
 	void cleanupUnusedImages() {
-		/*
-		HashSet<String> usedImages = new HashSet<String>();
-		usedImages.addAll(Arrays.asList(getFormHelper().getDistictValuesForColumn(SQLHelper.FormColumn.IMAGE1)));
-		usedImages.addAll(Arrays.asList(getFormHelper().getDistictValuesForColumn(SQLHelper.FormColumn.IMAGE2)));
-		usedImages.addAll(Arrays.asList(getFormHelper().getDistictValuesForColumn(SQLHelper.FormColumn.IMAGE3)));
 		File [] images = getImagesPath().listFiles();
 		for (File f : images) {
-			if (!usedImages.contains(f.getName())) {
-				Log.i(TAG, "Deleting unused image " + f);
-				f.delete();
-			}
-		}*/
-		File [] images = getImagesPath().listFiles();
-		for (File f : images) {
-			if (getDBHelper().getImageByPath(f.getName()) == null) {
+			//if (getDBHelper().getImageByPath(f.getName()) == null) {
+			if (!f.getName().startsWith(IMAGE_PREFIX)) {
 				f.delete();
 			}
 		}
@@ -190,6 +182,7 @@ public class BaseActivity extends BillingActivity implements OnClickListener {
 		ONEMONTH("onemonth"),
 		ONEWEEK("oneweek"),
 		ONEYEAR("oneyear"),
+		SIXMONTH("sixmonth"),
 		TENMINUTES("ten.mins.debug") // DEBUG ONLY
 		;
 		
@@ -233,6 +226,10 @@ public class BaseActivity extends BillingActivity implements OnClickListener {
     		switch (p) {
     			case ONEYEAR:
     				cal.add(Calendar.YEAR, 1);
+    				expireTime = cal.getTime();
+    				break;
+    			case SIXMONTH:
+    				cal.add(Calendar.MONTH, 6);
     				expireTime = cal.getTime();
     				break;
     			case ONEMONTH:
