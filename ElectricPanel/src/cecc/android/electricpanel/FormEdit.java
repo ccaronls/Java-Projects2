@@ -274,7 +274,7 @@ public class FormEdit extends BaseActivity {
 	
 	@Override
 	public void onActivityResult(int requestCodeAndIndex, int resultCode, Intent data) {
-		int index = requestCodeAndIndex >> 1;
+		final int index = requestCodeAndIndex >> 1;
 		int requestCode = requestCodeAndIndex & 0x1; 
 		Bitmap bitmap = null;
 		int orientation = 0;
@@ -360,7 +360,13 @@ public class FormEdit extends BaseActivity {
 						form.images.add(image);
 					}
 					image.path = destFile.getName();
-					editImage(index);
+					runOnUiThread(new Runnable() {
+						
+						@Override
+						public void run() {
+							editImage(index);
+						}
+					});
 					
 				} finally {
 					out.close();

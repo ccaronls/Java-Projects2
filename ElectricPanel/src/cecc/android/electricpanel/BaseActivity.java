@@ -33,6 +33,7 @@ public class BaseActivity extends BillingActivity implements OnClickListener {
 	public final static String INTENT_BITMAP_FILE = "iBITMAP_FILE";
 	public final static String INTENT_ERROR = "iERROR";
 	public final static String IMAGE_PREFIX = "capture";
+	public final static int    IMAGE_CAPTURE_DIM = 512;
 	
 	private final static boolean INAPP_ENABLED = !BuildConfig.DEBUG;
 	
@@ -197,6 +198,7 @@ public class BaseActivity extends BillingActivity implements OnClickListener {
 		PREMIUM("premium"),
 		PREMIUM_REDUCED("premium.reduced"), // available only while weekly or monthly subscription is active.
 		ONEYEAR("oneyear"),
+		SIXMONTH("sixmonth"),
 		ONEMONTH("onemonth"),
 		ONEWEEK("oneweek"),
 		TENMINUTES("ten.mins.debug") // DEBUG ONLY
@@ -233,6 +235,14 @@ public class BaseActivity extends BillingActivity implements OnClickListener {
     		switch (p) {
     			case ONEMONTH:
     				cal.add(Calendar.MONTH, 1);
+    				expireTime = cal.getTime();
+    				break;
+    			case ONEYEAR:
+    				cal.add(Calendar.YEAR, 1);
+    				expireTime = cal.getTime();
+    				break;
+    			case SIXMONTH:
+    				cal.add(Calendar.MONTH, 6);
     				expireTime = cal.getTime();
     				break;
     			case PREMIUM:
@@ -337,20 +347,20 @@ public class BaseActivity extends BillingActivity implements OnClickListener {
 	protected String [] getPurchasableSkus() {
 		String [] skus = null;
 		if (isSubscription()) {
-			skus = new String[] { Purchase.PREMIUM_REDUCED.sku };
+			skus = new String[] { } ;//Purchase.PREMIUM_REDUCED.sku };
 		} else if (BuildConfig.DEBUG){
 			skus = new String[] {
 					Purchase.ONEWEEK.sku,
 					Purchase.ONEMONTH.sku,
 					Purchase.ONEYEAR.sku,
-					Purchase.PREMIUM.sku,
+//					Purchase.PREMIUM.sku,
 					Purchase.TENMINUTES.sku
 			};
 		} else {
 			skus = new String[] {
 					Purchase.ONEWEEK.sku,
 					Purchase.ONEMONTH.sku,
-					Purchase.PREMIUM.sku,
+	//				Purchase.PREMIUM.sku,
 					Purchase.ONEYEAR.sku,
 			};
 		}
