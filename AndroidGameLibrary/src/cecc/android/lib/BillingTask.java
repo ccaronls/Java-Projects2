@@ -51,7 +51,6 @@ public class BillingTask extends AsyncTask<String,Integer,Object> implements OnC
 	public enum Op {
 		QUERY_PURCHASABLES,
 		QUERY_PURCHASABLES_DEBUG,
-		QUERY_PROMOTION,
 		REFRESH_PURCHASED,
 		DISPLAY_PURCHASES,
 		QUERY_SUBSCRIPTION,
@@ -144,13 +143,6 @@ public class BillingTask extends AsyncTask<String,Integer,Object> implements OnC
     				return activity.getBilling().getSkuDetails(BILLING_API, getPackageName(), PURCHASE_TYPE_INAPP, skusBundle);
     			}
     			
-    			case QUERY_PROMOTION: {
-    				Bundle skusBundle = new Bundle();
-    				ArrayList<String> skus = new ArrayList<String>(Arrays.asList(params));
-    				skusBundle.putStringArrayList("ITEM_ID_LIST", skus);
-    				return activity.getBilling().getSkuDetails(BILLING_API, getPackageName(), PURCHASE_TYPE_SUBSCRIPTION, skusBundle);
-    			}
-    			
     			case CONSUME_SKU:
     				skusToConsume.addAll(Arrays.asList(params));
     			case DISPLAY_PURCHASES:
@@ -196,7 +188,6 @@ public class BillingTask extends AsyncTask<String,Integer,Object> implements OnC
 			case PURCHASE:
 			case QUERY_PURCHASABLES:
 			case QUERY_PURCHASABLES_DEBUG:
-			case QUERY_PROMOTION:
 			case QUERY_SUBSCRIPTION:
 				dialog = new ProgressDialog(activity);
 				dialog.setTitle("Processing Billing Request");
@@ -225,8 +216,7 @@ public class BillingTask extends AsyncTask<String,Integer,Object> implements OnC
 				} else if (response == 1) {
 					// user cancelled at some point.  So dont do anything
 				} else {
-					activity.showAlert(R.string.popup_title_error, 
-							BuildConfig.DEBUG ? R.string.popup_msg_billing_err_argument_debug : R.string.popup_msg_billing_err_argument, getResponse(response));
+					activity.showAlert(R.string.popup_title_error, R.string.popup_msg_billing_err_argument, getResponse(response));
 				}
 			}
 		} catch (Exception e) {
@@ -341,11 +331,8 @@ public class BillingTask extends AsyncTask<String,Integer,Object> implements OnC
 					break;
 				}
 				case QUERY_PURCHASABLES_DEBUG:
-				case QUERY_PURCHASABLES: 
+				case QUERY_PURCHASABLES:  {
 					purchaseType = PURCHASE_TYPE_INAPP;
-				case QUERY_PROMOTION: {
-					if (purchaseType == null)
-						purchaseType = PURCHASE_TYPE_SUBSCRIPTION;
 					List<String[]> rows = new ArrayList<String[]>();
 					List<String> skus = new ArrayList<String>();
 					ArrayList<String> responseList = b.getStringArrayList("DETAILS_LIST");

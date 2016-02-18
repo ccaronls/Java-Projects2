@@ -12,6 +12,9 @@ import android.content.DialogInterface.OnCancelListener;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Bitmap.CompressFormat;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.Paint.Align;
 import android.graphics.Picture;
 import android.os.AsyncTask;
 import android.util.DisplayMetrics;
@@ -103,18 +106,20 @@ public abstract class PagedFormExporter extends AsyncTask<Void, String, File> im
 		DisplayMetrics dm = activity.getResources().getDisplayMetrics();
 		Log.d(TAG, "display metrics density=" + dm.density + " dpi=" + dm.densityDpi + " hgt=" + dm.heightPixels + " scaled=" + dm.scaledDensity + " width=" + dm.widthPixels + " xdpi=" + dm.xdpi + " ydpi=" + dm.ydpi);
 		html.setLength(0);
+		int h = Math.round(height / getDensity());
 		html.append(
 				"<html>\n" +
 				"<head>\n" +
 				"<meta name=\"viewport\" content=\"width=" + width + ", initial-scale=1\">\n" + 
 				"<style type=\"text/css\">\n" +
-				"body { font-size:36px; }\n" +
+				"body { font-size:36px; height:" + h + "px;}\n" +
 				"h1 { white-space: nowrap; font-size:72px; text-align:center; }\n" +
 				"h2 { font-size:60px; }\n" +
 				"h3 { font-size:48px; text-align:center; white-space: nowrap; }\n" +
 				"h4 { font-size:42px; text-align:center; white-space: nowrap; }\n" +
 				"td { font-size:48px; white-space: nowrap; }\n" +
 				"table { table-layout:auto; }\n" +
+				".footer { position: fixed; bottom:0; width:" + width + "px; }\n" +
 				"</style>\n" +
 				"</head>\n" +
 				"<body>\n"
@@ -186,6 +191,12 @@ public abstract class PagedFormExporter extends AsyncTask<Void, String, File> im
 		}
 	}
 	
+	//protected final void footer(String txt) {
+//		html.append("<p><div id=\"footer\">").append(txt).append("</div></p>\n");
+	//}
+	
+	protected String getFooter() { return ""; }
+	
 	protected abstract void genPage(int pageNum, Signature [] signatures);
 	
 	private void makePage() throws Exception {
@@ -212,6 +223,11 @@ public abstract class PagedFormExporter extends AsyncTask<Void, String, File> im
 		Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565);
 		Canvas canvas = new Canvas(bitmap);
 		wv.draw(canvas);
+		Paint p = new Paint();
+		p.setColor(Color.BLACK);
+		p.setTextAlign(Align.CENTER);
+		p.setTextSize(24);
+		canvas.drawText(getFooter(), width/2, height-p.getTextSize()-5, p);
 
         Log.d(TAG, "Bitmap dim out= "+ bitmap.getWidth() + "x" + bitmap.getHeight());
         

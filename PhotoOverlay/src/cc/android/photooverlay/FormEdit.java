@@ -25,18 +25,9 @@ import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.WindowManager;
-import android.widget.ArrayAdapter;
-import android.widget.AutoCompleteTextView;
-import android.widget.Button;
-import android.widget.CompoundButton;
-import android.widget.EditText;
-import android.widget.ImageButton;
-import android.widget.ImageView;
-import android.widget.RadioGroup;
-import android.widget.RadioGroup.OnCheckedChangeListener;
-import android.widget.TextView;
+import android.widget.*;
 
-public class FormEdit extends BaseActivity implements OnCheckedChangeListener {
+public class FormEdit extends BaseActivity implements RadioGroup.OnCheckedChangeListener {
 
 	TextView tvDate;
 	AutoCompleteTextView etInspector;

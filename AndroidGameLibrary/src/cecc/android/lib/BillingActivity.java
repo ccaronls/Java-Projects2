@@ -78,7 +78,7 @@ public abstract class BillingActivity extends CCActivityBase {
 	    }		
 	}
 	
-	public IInAppBillingService getBilling() {
+	public final IInAppBillingService getBilling() {
 		if (mBillingService == null) {
 			bindToBilling();
 		}

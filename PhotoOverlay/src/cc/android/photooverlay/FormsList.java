@@ -21,14 +21,12 @@ import android.content.pm.PackageManager.NameNotFoundException;
 import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.text.InputFilter;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebView;
 import android.widget.CompoundButton;
 import android.widget.CursorAdapter;
-import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -52,7 +50,7 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
 		sg.setSelectedSortButton(sortField, ascending);
 		sg.setOnSortButtonListener(this);
 
-		if (true || !BuildConfig.DEBUG) {
+		if (true) { // || !BuildConfig.DEBUG) {
 
 			try {
 				final String version = getVersionString();
@@ -129,7 +127,7 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
 		if (isSubscription()) {
     		showSubscription = !showSubscription;
     		if (showSubscription) {
-    			tvAmbient.setText(getString(R.string.tvSubscriptionExpiresIn, getSubscriptionExpireTimeColloquial()));
+    			tvAmbient.setText(getSubscriptionExpireTimeColloquial());
     		}
 		} else {
 			if (showSubscription) {
@@ -187,17 +185,32 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
         									
             									@Override
             									public void onClick(DialogInterface dialog, int which) {
-            										getFormHelper().deleteForm(formId);
-            										refresh();
+            										Form form = getFormHelper().getFormById(formId);
+            										if (form != null) {
+            											for (int i=0; i<form.imagePath.length; i++) {
+            												if (form.imagePath != null) {
+            													String path = getImagesPath() + "/" + form.imagePath[i];
+            													if (!new File(path).delete()) {
+            														Log.e(TAG, "Failed to delete file: " + path);
+            													} else {
+            														Log.d(TAG, "Deleted file: " + path);
+            													}
+            												}
+            											}
+                										getFormHelper().deleteForm(formId);
+                										refresh();
+            										}
             									}
             								})
             								.show();
             							break;
             						}
             						case 3: { // Export to email
-            							Intent i = new Intent(getActivity(), FormSign.class);
-            							i.putExtra(INTENT_FORM, getFormHelper().getFormById(formId));
-            							startActivity(i);
+            							if (isPremiumEnabled(true)) {
+                							Intent i = new Intent(getActivity(), FormSign.class);
+                							i.putExtra(INTENT_FORM, getFormHelper().getFormById(formId));
+                							startActivity(i);
+            							}
             							break;
             						}
             					}
@@ -273,8 +286,8 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
 		
 		if (BuildConfig.DEBUG) {
 			items = getResources().getStringArray(R.array.form_list_options_debug);
-		} else if (isSubscription() || !isPremiumEnabled(false)) {
-			items = getResources().getStringArray(R.array.form_list_options_subscription);
+		} else if (!isPremiumEnabled(false) || isPremiumOptionAvailable()) {
+			items = getResources().getStringArray(R.array.form_list_options_locked);
 		} else {
 			items = getResources().getStringArray(R.array.form_list_options_unlocked);
 		}
@@ -379,31 +392,14 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
 						break;
 					}
 					
-					case 6: { // Redeem
-						final EditText et = new EditText(getActivity());
-						InputFilter [] filters = {
-								new InputFilter.LengthFilter(32)
-						};
-						et.setFilters(filters);
-						newDialogBuilder().setTitle(R.string.popup_title_redeem).setView(et).setNegativeButton(R.string.popup_button_cancel, null)
-							.setPositiveButton(R.string.popup_button_redeem, new DialogInterface.OnClickListener() {
-								
-								@Override
-								public void onClick(DialogInterface dialog, int which) {
-									new BillingTask(BillingTask.Op.QUERY_PROMOTION, getActivity()).execute(et.getText().toString().trim());
-								}
-							}).show();
+					case 6: {
+						clearPurchaseData();
+						new BillingTask(BillingTask.Op.REFRESH_PURCHASED, getActivity()).execute();
 						break;
 					}
 					
 					case 7: { // Purchases DEBUG
 						new BillingTask(BillingTask.Op.QUERY_PURCHASABLES_DEBUG, getActivity()).execute();
-						break;
-					}
-					
-					case 8: {
-						clearPurchaseData();
-						new BillingTask(BillingTask.Op.REFRESH_PURCHASED, getActivity()).execute();
 						break;
 					}
 				}

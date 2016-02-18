@@ -127,7 +127,7 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
 		if (isSubscription()) {
     		showSubscription = !showSubscription;
     		if (showSubscription) {
-    			tvAmbient.setText(getString(R.string.tvSubscriptionExpiresIn, getSubscriptionExpireTimeColloquial()));
+    			tvAmbient.setText(getSubscriptionExpireTimeColloquial());
     		}
 		} else {
 			if (showSubscription) {
@@ -192,9 +192,11 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
             							break;
             						}
             						case 3: { // Export to email
-            							Intent i = new Intent(getActivity(), FormSign.class);
-            							i.putExtra(INTENT_FORM, getDBHelper().getFormById(formId));
-            							startActivity(i);
+            							if (isPremiumEnabled(true)) {
+                							Intent i = new Intent(getActivity(), FormSign.class);
+                							i.putExtra(INTENT_FORM, getDBHelper().getFormById(formId));
+                							startActivity(i);
+            							}
             							break;
             						}
             					}
@@ -270,7 +272,7 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
 		
 		if (BuildConfig.DEBUG) {
 			items = getResources().getStringArray(R.array.form_list_options_debug);
-		} else if (!isPremiumEnabled(false)) {
+		} else if (!isPremiumEnabled(false) || isPremiumOptionAvailable()) {
 			items = getResources().getStringArray(R.array.form_list_options_locked);
 		} else {
 			items = getResources().getStringArray(R.array.form_list_options_unlocked);

@@ -14,34 +14,13 @@
     <string name="email_body_export">Attached is a ZIP file with database and all images</string>
     
     <string name="popup_msg_signing_important">Be aware that all signatures captured here must be emailed in order to be preserved.  All Signatures will be discarded once leaving this page.  This is done to prevent mis use and ensure that the signatures gathered here will never be re-used.  Please make sure all parties signing this form are included as recipients on the final email.</string>
-    <string name="popup_msg_billing_err_general">An error occurred.  Please try you request again or contact support</string>
-    <string name="popup_msg_billing_err_argument_debug">Google billing returned error code %s Please contact support for more information</string>
-    <string name="popup_msg_billing_err_argument">Google billing returned error.  Pleas emake sure you are connected to the internat or support for more information</string>
-
-    <string name="popup_msg_premium_feature_locked">This premium feature is locked.\n\n
-        Premium Features Include:\n
-        - Unlimited forms\n
-        - Email signed forms\n
-        - Export Database\n
-        - Three image captures\n
-        - Higher resolution images\n
-        - Image date and time stamped\n\n
-        Would you like to unlock all features?
-    </string>
-    
-    <string name="popup_msg_subscription_activiated">Your susbscription is activated. Premium features will be unlocked until %s.  You will have the option to unlock permanently at a reduced price if you do so before the subscription expires.</string>
-    <string name="popup_msg_premium_permanently_unlocked">Congratulations!  All features have been permanantly unlocked.</string>
-    <string name="popup_msg_subs_expired">Your subscription has expired.  Would you like to re-activate it?</string>
-    <string name="popup_msg_no_purchases">There are no purchase items at this point.  Please try again when you subscription expires or conteact support.</string>
-    <string name="popup_msg_empty_purchases">You do not have any recorded purchases.</string>
-    <string name="popup_msg_operation_not_supported">Operation not supported on this device.</string>
     <string name="popup_msg_are_you_sure">Are you Sure?</string>
     <string name="popup_msg_processing_email">Please wait while we generate the image for email</string>
     <string name="popup_msg_welcome">Thank you for downloading the Pressure Test Utility.  If you have already purchased the premium features then click \'Restore\'.  Otherwise you can try the basic features for as long as you like.  Later on if you want to try the premium features by subscription or permanantly, then choose \'Upgrade\'</string>
     <string name="popup_msg_about">Pressure Test Certification Utility\n\nCECC Solutions\n\n%1$s\nApplication Version: %2$s\n\nGoogle Play Version: %3$s</string>
     <string name="popup_msg_nuke">Are you sure?  This will delete all application data.</string>
     <string name="popup_msg_dbexport_error">Problem exporting database %s</string>
-    <string name="popup_msg_tempinfo">Your device has a built-in ambient temperature guage.  This value is used to populate the temperautre field.  Because accuracy can vary between devices it is recommened to verify its accuracy with a secondary reader.</string>
+    <string name="popup_msg_tempinfo">Your device has a built-in ambient temperature gauge.  This value is used to populate the temperautre field.  Because accuracy can vary between devices it is recommened to verify its accuracy with a secondary reader.</string>
     
     <string name="popup_button_ok">OK</string>
     <string name="popup_button_not_now">Not Now</string>
@@ -56,14 +35,7 @@
     <string name="popup_button_eula_accept">Accept</string>
     <string name="popup_button_eula_decline">Decline</string>
     <string name="popup_button_view_eula">View EULA</string>
-    <string name="popup_button_redeem">Redeem</string>
     
-    <string name="popup_title_error">Error</string>
-    <string name="popup_title_premium_upgrade">Premium Upgrade</string>
-    <string name="popup_title_subs_expired">Subscription Expired</string>
-    <string name="popup_title_purchase_complete">Purchase Complete</string>
-    <string name="popup_title_purchase_options">Purchase Options</string>
-    <string name="popup_title_purchases">Purchases</string>
     <string name="popup_title_how_esign_works">How eSigning Works</string>
     <string name="popup_title_important">Important</string>
     <string name="popup_title_confirm">Confirm</string>
@@ -88,21 +60,17 @@
         <item>Nuke</item>
         <item>Purchases</item>
         <item>Upgrade</item>
-        <item>Redeem</item>
-        <item>Purchases DEBUG</item>
         <item>Purchases Refresh</item>
+        <item>Purchases DEBUG</item>
     </string-array>
     
-    <string-array name="form_list_options_subscription">
+    <string-array name="form_list_options_locked">
         <item>About</item>
         <item>Send Feedback</item>
         <item>Export ZIP</item>
         <item>Nuke</item>
         <item>Purchases</item>
         <item>Upgrade</item>
-        <!--
-        <item>Redeem</item>
-        -->
     </string-array>
     
     <string-array name="form_list_options_unlocked">
@@ -112,8 +80,6 @@
         <item>Nuke</item>
         <item>Purchases</item>
     </string-array>
-    
-    <string name="tvSubscriptionExpiresIn">Subscription expires in %s</string>
     
     <string name="et_hint_type_and_sign">Type Full Name here and Sign Below</string>
     <string name="button_accept">Accept</string>

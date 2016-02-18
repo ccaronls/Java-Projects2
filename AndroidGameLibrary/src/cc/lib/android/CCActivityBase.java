@@ -88,7 +88,7 @@ public class CCActivityBase extends Activity {
 				public void run() {
 					runOnUiThread(pollRunnable);
 				}
-			}, 1000, intervalSeconds * 1000);
+			}, intervalSeconds * 1000, intervalSeconds * 1000);
 		}
 	}
 	

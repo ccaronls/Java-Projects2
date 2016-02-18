@@ -16,6 +16,10 @@
     <style name="AppTheme" parent="AppBaseTheme">
         <!-- All customizations that are NOT specific to a particular API-level can go here. -->
     </style>
+    
+    <style name="DialogTheme" parent="@android:style/Theme.Dialog">
+        
+    </style>
 
     <style name="billing_purchases_tablerow">
         <item name="android:paddingTop">5dp</item>

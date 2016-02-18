@@ -24,9 +24,6 @@
         Would you like to unlock all features?
     </string>
     
-    <string name="popup_msg_subscription_activiated">Your susbscription is activated. Premium features will be unlocked until %s.</string>
-    <string name="popup_msg_subscription_activiated_premium_option">Your susbscription is activated. Premium features will be unlocked until %s.  You will have the option to unlock permanently at a reduced price if you do so before the subscription expires.</string>
-    
     <string name="popup_msg_premium_permanently_unlocked">Congratulations!  All features have been permanantly unlocked.</string>
     <string name="popup_msg_subs_expired">Your subscription has expired.  Would you like to re-activate it?</string>
     <string name="popup_msg_operation_not_supported">Operation not supported on this device.</string>
@@ -36,9 +33,6 @@
     <string name="popup_msg_nuke">Are you sure?  This will delete all application data.</string>
     <string name="popup_msg_dbexport_error">Problem exporting database %s</string>
     
-    <string name="popup_button_ok">OK</string>
-    <string name="popup_button_not_now">Not Now</string>
-    <string name="popup_button_purchase_options">Purchase Options</string>
     <string name="popup_button_cancel">Cancel</string>
     <string name="popup_button_change">Change</string>
     <string name="popup_button_remove">Remove</string>
@@ -52,7 +46,6 @@
     
     <string name="popup_title_error">Error</string>
     <string name="popup_title_premium_upgrade">Premium Upgrade</string>
-    <string name="popup_title_subs_expired">Subscription Expired</string>
     <string name="popup_title_purchase_complete">Purchase Complete</string>
     <string name="popup_title_how_esign_works">How eSigning Works</string>
     <string name="popup_title_important">Important</string>
@@ -98,8 +91,6 @@
         <item>Nuke</item>
         <item>Purchases</item>
     </string-array>
-    
-    <string name="tvSubscriptionExpiresIn">Subscription expires in %s</string>
     
     <string name="et_hint_type_and_sign">Type Full Name here and Sign Below</string>
     <string name="button_accept">Accept</string>
@@ -163,22 +154,7 @@
     <string name="labelImageMeta">Image Meta Data</string>
     
     <string name="tvFormsignCertifiedOn">Completed on: %s</string>
-    
-    <plurals name="plural_days">
-        <item quantity="one">%d day</item>
-        <item quantity="other">%d days</item>
-    </plurals>
 
-    <plurals name="plural_hours">
-        <item quantity="one">%d hour</item>
-        <item quantity="other">%d hours</item>
-    </plurals>
-    
-    <plurals name="plural_mins">
-        <item quantity="one">%d minute</item>
-        <item quantity="other">%d minutes</item>
-    </plurals>
-    
     <string-array name="popup_items_choose_type">
         <item>Fuse</item>
         <item>Circuit Breaker</item>
