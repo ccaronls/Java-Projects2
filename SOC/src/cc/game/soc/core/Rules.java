@@ -109,6 +109,8 @@ public final class Rules extends Reflector<Rules> {
 	private int knightScoreToDestroyWalledCity=0;
 	@RuleVariable(description="When non-zero enabled knights to attack opponent metropolis with die roll + knight level", minValue=0, maxValue=9)
 	private int knightScoreToDestroyMetropolis=0;
+	@RuleVariable(description="When true, inventor can swap any tiles, otherwise 2,6,8 and 12 cannot be swapped")
+	private boolean unlimitedInventorTiles=false;
 	
 	@RuleVariable(description="Use Event Cards instead of dice", separator="Traders & Barbarians expansion")
 	private boolean enableEventCards = false;
@@ -282,6 +284,12 @@ public final class Rules extends Reflector<Rules> {
 	public final void setKnightScoreToDestroyMetropolis(
 			int knightScoreToDestroyMetropolis) {
 		this.knightScoreToDestroyMetropolis = knightScoreToDestroyMetropolis;
+	}
+	public final boolean isUnlimitedInventorTiles() {
+		return unlimitedInventorTiles;
+	}
+	public final void setUnlimitedInventorTiles(boolean unlimitedInventorTiles) {
+		this.unlimitedInventorTiles = unlimitedInventorTiles;
 	}
 	public final int getMinVictoryPointsForRobber() {
 		return minVictoryPointsForRobber;

@@ -31,6 +31,7 @@
     <string name="popup_button_eula_decline">Decline</string>
     <string name="popup_button_new">New</string>
     <string name="popup_button_view_eula">View EULA</string>
+    <string name="popup_button_user_manual">User Manual</string>
     
     <string name="popup_title_how_esign_works">How eSigning Works</string>
     <string name="popup_title_important">Important</string>

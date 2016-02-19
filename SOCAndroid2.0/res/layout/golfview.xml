@@ -42,9 +42,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/golfbuttonrules" />
-
+        
     </LinearLayout>
-
     <TextView
         android:id="@+id/golfTextView"
         android:layout_width="wrap_content"
@@ -53,8 +52,7 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentRight="true"
         android:layout_below="@+id/golfButtonsLayout"
-        android:textAppearance="?android:attr/textAppearanceMedium" />
-
+        android:textAppearance="?android:attr/textAppearanceMedium" />
     <TextView
         android:id="@+id/golfmessages"
         android:layout_width="wrap_content"

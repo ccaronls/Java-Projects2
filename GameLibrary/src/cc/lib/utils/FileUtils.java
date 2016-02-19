@@ -1,14 +1,8 @@
 package cc.lib.utils;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Collection;
-import java.util.List;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
+import java.io.*;
+import java.util.*;
+import java.util.zip.*;
 
 import cc.lib.game.Utils;
 
@@ -217,5 +211,24 @@ public class FileUtils {
            zos.close();
        }
    }
+
+   public static void copy(InputStream in, OutputStream out) throws IOException {
+	   byte [] buffer = new byte[1024];
+	   while (true) {
+		   int len = in.read(buffer);
+		   if (len < 0)
+			   break;
+		   out.write(buffer, 0, len);
+	   }
+   }
+   
+    public static void copy(InputStream in, File cache) throws IOException {
+    	OutputStream out = new FileOutputStream(cache);
+    	try {
+    		copy(in, out);
+    	} finally {
+    		out.close();
+    	}
+    }
 
 }

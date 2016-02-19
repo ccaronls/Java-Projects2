@@ -12,14 +12,18 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.view.animation.LinearInterpolator;
+import android.view.animation.ScaleAnimation;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.TextView;
 
-public class PicMatchActivity extends Activity implements OnTouchListener {
+public class PicMatchActivity extends Activity implements OnTouchListener, OnClickListener {
 
 	final String TAG = "PickMatch";
 	ImageView [] images;
@@ -30,6 +34,9 @@ public class PicMatchActivity extends Activity implements OnTouchListener {
 	ImageButton current = null;
 	float startX, startY;
 	float touchX, touchY;
+	int score = 0;
+	TextView tvScore;
+	TextView tvLevel;
 	
 	final int [] happy = {
 		R.drawable.happy0,
@@ -72,6 +79,10 @@ public class PicMatchActivity extends Activity implements OnTouchListener {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		
+		findViewById(R.id.buttonHome).setOnClickListener(this);
+		tvLevel = (TextView)findViewById(R.id.tvLevel);
+		tvScore = (TextView)findViewById(R.id.tvScore);
 	}
 	
 	@Override
@@ -132,6 +143,22 @@ public class PicMatchActivity extends Activity implements OnTouchListener {
 		Log.i(TAG, "Counts=" + dumpMapInfo(counts));
 	}
 	
+	private void updateText() {
+		tvScore.setText(String.valueOf(score));
+		tvLevel.setText("Level " + getLevel());
+	}
+	
+	private int getLevel() {
+		if (score < 1000) {
+			return 1;
+		} else if (score < 3000) {
+			return 2;
+		} else if (score < 10000) {
+			return 3;
+		}
+		return 4;
+	}
+	
 	private String dumpMapInfo(Map<String, List<String>> map) {
 		StringBuffer buf = new StringBuffer();
 		for (String key : map.keySet()) {
@@ -159,6 +186,16 @@ public class PicMatchActivity extends Activity implements OnTouchListener {
 		return blinkanimation;
 	}
 	
+	Animation newPulseAnimation(long delay) {
+		ScaleAnimation anim = new ScaleAnimation(1f, 1.1f, 1f, 1.1f);
+		anim.setDuration(800);
+		anim.setInterpolator(new LinearInterpolator());
+		anim.setRepeatCount(3);
+		anim.setRepeatMode(Animation.REVERSE);
+		anim.setStartTime(AnimationUtils.currentAnimationTimeMillis() + delay);
+		return anim;
+	}
+	
 	void generateLevel() {
 		
 		final List<String> validKeys = new ArrayList<String>();
@@ -166,7 +203,7 @@ public class PicMatchActivity extends Activity implements OnTouchListener {
 
 		Map<String, List<String>> assets = null;
 		
-		switch (currentMT) {
+		switch (MatchType.values()[rand.nextInt(getLevel())]) {
 			case CATEGORY:
 				assets = categories;
 				break;
@@ -221,13 +258,17 @@ public class PicMatchActivity extends Activity implements OnTouchListener {
 		}
 		
 		shuffle(choices);
+		long delay = 3000;
 		for (int i=0; i<3; i++) {
 			choices[i].setImageBitmap(getBitmapFromAssets(arr[i]));
 			choices[i].setTag(null);
 			choices[i].setPressed(false);
+			choices[i].setAnimation(newPulseAnimation(delay));
+			delay += 800;
 		}
 		choices[3].setImageBitmap(getBitmapFromAssets(arr2[3]));
 		choices[3].setTag(arr2[3]);
+		choices[3].setAnimation(newPulseAnimation(delay));
 		
 		qmark.setImageResource(R.drawable.qmark2);
 		qmark.setAnimation(newAlphaAnim());
@@ -315,10 +356,13 @@ public class PicMatchActivity extends Activity implements OnTouchListener {
 							//iv.setImageBitmap(getBitmapFromAssets("faces/happy" + rand.nextInt(3) + ".jpg"));
 							overlay.setImageResource(happy[rand.nextInt(happy.length)]);
 							qmark.setImageBitmap(getBitmapFromAssets((String)current.getTag()));
+							score += 100;
 						} else {
 							//iv.setImageBitmap(getBitmapFromAssets("faces/sad" + rand.nextInt(3) + ".jpg"));
 							overlay.setImageResource(sad[rand.nextInt(sad.length)]);
+							score -= 50;
 						}
+						updateText();
 //						final AlertDialog d = b.show();
 						v.postDelayed(new Runnable() {
 							public void run() {
@@ -354,6 +398,13 @@ public class PicMatchActivity extends Activity implements OnTouchListener {
 		float dy = Math.abs(ay-by);
 		//Log.d(TAG, "dx=" + dx + " dy=" + dy + " minW=" + minWidth + " minHeight=" + minHeight);
 		return dx <= minWidth && dy <= minHeight;
+	}
+
+	@Override
+	public void onClick(View v) {
+		if (v.getId() == R.id.buttonHome) {
+			
+		}
 	}
 	
 }

@@ -20,11 +20,12 @@ class PacBoyRenderer extends BaseRenderer implements View.OnTouchListener {
 	
 	public static final int DIFFICULTY_NO_CHASE = 9;
 	public static final int DIFFICULTY_INCREASE_MAZE_SIZE_MOD = 5;	
+	public static final int DIFFICULTY_INCREASE_PACBOY_MAX_SPEED_MOD = 3;	
 
-	private final int STATE_READY = 0; // waiting for use to touch near the start
-	private final int STATE_PLAYING = 1; // user laying their path
-	private final int STATE_CHASING = 10; // pacboy shasing the user
-	private final int STATE_EATEN = 11; // pacboy has caught the user
+	private final int STATE_READY = 0; 		// waiting for use to touch near the start
+	private final int STATE_PLAYING = 1;	// user laying their path
+	private final int STATE_CHASING = 10;	// pacboy shasing the user
+	private final int STATE_EATEN = 11;		// pacboy has caught the user
 	private final int STATE_SOLVED = 12; // user has solved the maze
 	private final int STATE_GAME_OVER = 13; // user has no more lives
 	private final int STATE_INTRO = 100;
@@ -33,7 +34,7 @@ class PacBoyRenderer extends BaseRenderer implements View.OnTouchListener {
 	private LinkedList<IVector2D> path = new LinkedList<IVector2D>();
 	
 	private float tx, ty; // touch point
-	private float sx, sy; // scale
+	private float scalex, scaley; // scale
 	private float ix, iy; // starting cell
 	private float ex, ey; // ending cell
 	
@@ -98,8 +99,8 @@ class PacBoyRenderer extends BaseRenderer implements View.OnTouchListener {
 		tx = event.getX();
 		ty = event.getY();
 		
-		tx /= sx;
-		ty /= sy;
+		tx /= scalex;
+		ty /= scaley;
 		
 		float x = tx;
 		float y = ty;
@@ -205,8 +206,13 @@ class PacBoyRenderer extends BaseRenderer implements View.OnTouchListener {
 
 	@Override
 	protected void drawFrame(GL10Graphics g) {
+		if (maze != null) {
+    		scalex = g.getViewportWidth()/maze.getWidth();
+    		scaley = g.getViewportHeight()/maze.getHeight();
+		}
+		
 		g.pushMatrix();
-		g.scale(sx, sy);
+		g.scale(scalex, scaley);
 		switch (state) {
 			case STATE_READY:
 				setTargetFPS(30);
@@ -423,6 +429,10 @@ class PacBoyRenderer extends BaseRenderer implements View.OnTouchListener {
 			int height = maze.getHeight() + 1;
 			maze.resize(width, height);
 		} 
+		
+		if (DIFFICULTY_NO_CHASE > DIFFICULTY_NO_CHASE && difficulty % DIFFICULTY_INCREASE_PACBOY_MAX_SPEED_MOD == 0) {
+			pb.maxSpeed += 0.1f;
+		}
 		newMaze();
 	}
 	
@@ -504,8 +514,8 @@ class PacBoyRenderer extends BaseRenderer implements View.OnTouchListener {
 		g.ortho();
 		setDrawFPS(false);
 		if (maze != null) {
-			sx = getGraphics().getViewportWidth()/maze.getWidth();
-			sy = getGraphics().getViewportHeight()/maze.getHeight();
+			scalex = getGraphics().getViewportWidth()/maze.getWidth();
+			scaley = getGraphics().getViewportHeight()/maze.getHeight();
 		}
 	}
 
@@ -518,42 +528,23 @@ class PacBoyRenderer extends BaseRenderer implements View.OnTouchListener {
 			startChasePts = 20;
 		}
 		Log.d(TAG, "difficulty = " + difficulty);
-		maze = new Maze(width, height) {
-
-			@Override
-			protected int nextIndex(int size) {
-				return size-1;
-			}
-
-			@Override
-			protected void directionHeuristic(Compass [] d, int x1, int y1, int x2, int y2) {
-				Float [] t = { 0.5f, 0.5f, 0.5f, 0.5f };
-				switch (PacBoyRenderer.this.difficulty % 2) {
-					case 1: {
-						if (y1 < y2) // tend to move north
-				            t[0] += Utils.randFloat(0.5f) - 0.1f;
-				        else if (y1 > y2) // tend to move south
-				            t[2] += Utils.randFloat(0.5f) - 0.1f;
-				        
-				        if (x1 < x2) // tend to move west
-				            t[3] += Utils.randFloat(0.5f) - 0.1f;
-				        else if (x1 > x2) // tend to move east
-				            t[1] += Utils.randFloat(0.5f) - 0.1f;
-				        Utils.bubbleSort(t, d);
-						break;
-					}
-					default:
-						super.directionHeuristic(d, x1, y1, x2, y2);
-				}
-			}
-			
-		};
+		maze = new Maze(width, height);
 		newMaze();
 	}
 	
 	void newMaze() {
 		Log.d(TAG, "newMaze");
-		maze.generate();
+		if (1 == (difficulty % 2)) {
+			maze.generateDFS();
+		} else {
+			maze.generateBFS();
+		}
+		if (difficulty > 5) {
+			maze.setStartEndToLongestPath();
+		} else {
+			maze.setStart(0, Utils.rand() % maze.getHeight());
+			maze.setEnd(maze.getWidth()-1, Utils.rand() % maze.getHeight());
+		}
 		path.clear();
 		state = STATE_READY;
 		ix = 0.5f + maze.getStartX();
@@ -570,7 +561,7 @@ class PacBoyRenderer extends BaseRenderer implements View.OnTouchListener {
 	void setupIntro() {
 		state = STATE_INTRO;
 		pb.reset();
-		sx = sy = 1;
+		scalex = scaley = 1;
 		frame = 0;
 	}
 

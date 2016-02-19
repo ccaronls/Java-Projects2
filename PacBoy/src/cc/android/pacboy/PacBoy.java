@@ -16,6 +16,7 @@ public class PacBoy {
 	float speed;
 	int frame;
 	float radius = 0.5f;
+	float maxSpeed = 0.15f;
 	
 	PacBoy() {
 		this.pos = new MutableVector2D();
@@ -72,7 +73,6 @@ public class PacBoy {
 			degrees -= 360;
 		}*/
 		float d = dv.mag();
-		float maxSpeed = 0.20f;
 		if (d < speed) {
 			pos.set(v);
 			speed = Utils.clamp(speed+0.01f, 0, maxSpeed);

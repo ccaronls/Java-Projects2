@@ -4,6 +4,8 @@
 
     <string name="cached_file_provider_authority">cc.android.applications</string>
     
+    <string name="url_marketplace_pdfviewer">market://details?id=com.adobe.reader</string>
+    
     <string name="popup_title_purchase_complete">Purchase Complete</string>
     <string name="popup_title_purchase_options">Purchase Options</string>
     <string name="popup_title_purchases">Purchases</string>

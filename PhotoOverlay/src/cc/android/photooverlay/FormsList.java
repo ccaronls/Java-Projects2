@@ -1,4 +1,4 @@
-	package cc.android.photooverlay;
+package cc.android.photooverlay;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -322,7 +322,16 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
     				        			.setNegativeButton(R.string.popup_button_ok, null)
     				        			.show();
 								}
-							}).show();
+							}).setNeutralButton(R.string.popup_button_user_manual, new DialogInterface.OnClickListener() {
+								
+								@Override
+								public void onClick(DialogInterface dialog, int which) {
+									openUserManual();
+								}
+							})
+							
+							
+							.show();
 						break;
 					}
 					

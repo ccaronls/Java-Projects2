@@ -1551,4 +1551,12 @@ public class Utils {
     	} while (swapped);
     }
 
+    public static <T extends Comparable<T>> int linearSearch(T [] arr, T key) {
+    	for (int i=0; i<arr.length; i++) {
+    		int x = arr[i].compareTo(key);
+    		if (x == 0)
+    			return i;
+    	}
+    	return -1;
+    }
 }

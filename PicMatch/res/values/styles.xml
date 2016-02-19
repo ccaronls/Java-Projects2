@@ -4,7 +4,7 @@
         Base application theme, dependent on API level. This theme is replaced
         by AppBaseTheme from res/values-vXX/styles.xml on newer devices.
     -->
-    <style name="AppBaseTheme" parent="android:Theme.Light">
+    <style name="AppBaseTheme" parent="android:Theme.Light.NoTitleBar">
         <!--
             Theme customizations available in newer API levels can go in
             res/values-vXX/styles.xml, while customizations related to
@@ -18,14 +18,17 @@
     </style>
     
     <style name="imageView">
-        <item name="android:padding">10dp</item>
+        <item name="android:padding">5dp</item>
         <item name="android:scaleType">fitCenter</item>
         <item name="android:layout_width">120dp</item>
         <item name="android:layout_height">120dp</item>
     </style>
+
     
     <style name="imageView.Choice">
         <item name="android:background">@drawable/button_selector</item>
+        <item name="android:layout_margin">10dp</item>
     </style>
 
+    
 </resources>

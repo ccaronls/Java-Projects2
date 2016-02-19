@@ -902,7 +902,7 @@ prop2
 				}
 				case INVENTOR_CARD: {
 					p.removeCard(ProgressCardType.Inventor);
-					List<Integer> tiles = SOC.computeInventorTileIndices(b);
+					List<Integer> tiles = SOC.computeInventorTileIndices(b, soc);
 					for (int i=0; i<tiles.size()-1; i++) {
 						for (int ii=i+1; ii<tiles.size(); ii++) {
 							Tile t0 = b.getTile(i);

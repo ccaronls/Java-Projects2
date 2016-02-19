@@ -10,6 +10,8 @@ import java.util.*;
  *
  */
 public class Maze {
+	
+	public static boolean DEBUG = false;
 
 	// wall flags organized in CCW order, this is important DO NOT
     // REORGANIZE!
@@ -29,11 +31,14 @@ public class Maze {
 		public final int dx, dy;
 		
 		public Compass opposite() {
-			return values()[((ordinal() + values().length/2) % values().length)];
+			final int len = values().length;
+			return values()[((ordinal() + len/2) % len)];
 		}
 	}
 	
 	private final int COMPASS_LEN = Compass.values().length;
+	
+	private final int UNVISITED = ((1<<COMPASS_LEN)-1); // all directions walled
     
 	private int width, height;
 	
@@ -48,6 +53,11 @@ public class Maze {
 		resize(width, height);
 	}
 	
+	/**
+	 * Resets the maze to a new dimension.  The maze will not be generated.
+	 * @param newWidth
+	 * @param newHeight
+	 */
 	public void resize(int newWidth, int newHeight) {
 		if (newWidth < 2 || newHeight < 2)
 			throw new RuntimeException("Illegal sized maze " + newWidth + "x" + newHeight);
@@ -56,15 +66,99 @@ public class Maze {
 		maze = new int[width][height];
 	}
 	
-	public final void generate() {
+	/**
+	 * Mark all cells as UNVISITED.  Called prior to generate automatically.
+	 */
+	public void clear() {
+		this.solution = null;
+		for (int i=0; i<width; i++) {
+			for (int ii=0; ii<height; ii++) {
+				maze[i][ii] = UNVISITED;
+			}
+		}
+	}
+	
+	/**
+	 * Generate a random path using recursive DFS search.  This form tend to generate mazes with a long path and not alot of branches.
+	 */
+	public final void generateDFS() {
 		clear();
-		//generate(0, Utils.rand() % height, width-1, Utils.rand() % height);
-		
 		generateR(Utils.rand() % width, Utils.rand() % height);
+	}
+	
+	private final void generateR(int x, int y) {
+		Compass [] dir = Compass.values();
+		Utils.shuffle(dir);
+		for (Compass c : dir) {
+			int nx = x+c.dx;
+			int ny = y+c.dy;
+			if (nx < 0 || ny < 0 || nx >= width || ny >= height)
+				continue;
+			if (maze[nx][ny] == UNVISITED) {
+				breakWall(x, y, c);
+				breakWall(nx, ny, c.opposite());
+				generateR(nx, ny);
+			}
+		}
+	}
+
+	public final void generateBFS() {
+		clear();
+		ArrayList<int[]> Q = new ArrayList<int[]>();
+		ArrayList<Integer> min = new ArrayList<Integer>();
+		Q.add(new int[] { Utils.rand() % width, Utils.rand() % height, 1 });
+		
+		while (!Q.isEmpty()) {
+			min.clear();
+			int m = Integer.MAX_VALUE;
+			for (int i=0; i<Q.size(); i++) {
+				int [] q = Q.get(i);
+				if (q[2] > m) {
+					continue;
+				}
+				if (q[2] < m) {
+					m = q[2];
+					min.clear();
+				}
+				min.add(i);
+			}
+			
+			int index = min.get(Utils.rand() % min.size());
+			int [] xy = Q.remove(index);
+			int x = xy[0];
+			int y = xy[1];
+			int l = xy[2];
+			Compass [] dir = Compass.values();
+			Utils.shuffle(dir);
+			int num = Utils.rand() % 3 + 1;
+			for (Compass c : dir) {
+				int nx = x + c.dx;
+				int ny = y + c.dy;
+				
+				if (nx < 0 || ny < 0 || nx >= width || ny >= height)
+					continue;
+
+				if (maze[nx][ny] != UNVISITED)
+					continue;
+				
+				breakWall(x,y,c);
+				breakWall(nx,ny,c.opposite());
+				
+				Q.add(new int[] { nx,ny, l+1 });
+				if (--num == 0)
+					break;
+			}
+		}
+	}
+	
+	/**
+	 * Search all dead ends and set start/end to the ends that result in the longest path
+	 */
+	public void setStartEndToLongestPath() {
 		List<int[]> ends = new ArrayList<int[]>();
 		for (int i=0; i<width; i++) {
 			for (int ii=0; ii<height; ii++) {
-				if (isEndingCell(i, ii)) {
+				if (isDeadEnd(i, ii)) {
 					ends.add(new int[] { i, ii });
 				}
 			}
@@ -94,81 +188,6 @@ public class Maze {
 		solution = findSolution();
 	}
 	
-	public void clear() {
-		this.solution = null;
-		for (int i=0; i<width; i++) {
-			for (int ii=0; ii<height; ii++) {
-				maze[i][ii] = UNVISITED;
-			}
-		}
-	}
-	
-	private final int UNVISITED = ((1<<COMPASS_LEN)-1);
-	
-	private final void generateR(int x, int y) {
-		Compass [] dir = Compass.values();
-		Utils.shuffle(dir);
-		for (Compass c : dir) {
-			int nx = x+c.dx;
-			int ny = y+c.dy;
-			if (nx < 0 || ny < 0 || nx >= width || ny >= height)
-				continue;
-			if (maze[nx][ny] == UNVISITED) {
-				breakWall(x, y, c);
-				breakWall(nx, ny, c.opposite());
-				generateR(nx, ny);
-			}
-		}
-	}
-
-	public final void generate(int sx, int sy, int ex, int ey) {
-		this.sx = sx;
-		this.sy = sy;
-		this.ex = ex;
-		this.ey = ey;
-
-		clear();
-		ArrayList<int[]> Q = new ArrayList<int[]>();
-		Q.add(new int[] { Utils.rand() % width, Utils.rand() % height });
-		Compass [] dir = Arrays.copyOf(Compass.values(), COMPASS_LEN);
-		while (!Q.isEmpty()) {
-			int index = nextIndex(Q.size());
-			int [] xy = Q.remove(index);
-			int x = xy[0];
-			int y = xy[1];
-			System.arraycopy(Compass.values(), 0, dir, 0, COMPASS_LEN);
-			directionHeuristic(dir, x, y, ex, ey);
-			for (Compass c : dir) {
-				int nx = x + c.dx;
-				int ny = y + c.dy;
-				
-				if (nx < 0 || ny < 0 || nx >= width || ny >= height)
-					continue;
-
-				if (maze[nx][ny] != UNVISITED)
-					continue;
-				
-				breakWall(x,y,c);
-				breakWall(nx,ny,Compass.values()[(c.ordinal()+COMPASS_LEN/2)%COMPASS_LEN]);
-				
-				Q.add(new int[] { nx,ny });
-			}
-		}
-	}
-	
-	/**
-	 * This affects the maze generation DFS search.  Always choosing 0 results in a BFS type maze (short paths).
-	 * Always choosing size-1 results in a DFS type maze (longer paths)
-	 * Choosing randomly results in a more mixed type maze.
-	 * 
-	 * Default behavior id random
-	 * @param size
-	 * @return
-	 */
-	protected int nextIndex(int size) {
-		return Utils.rand() % size;
-	}
-	
 	/**
 	 * Break the wall at xy and x+dx, y+dy where dx/dy is derived form dir.  dir = 0,1,2,3 for NORTH,EAST,SOUTH,WEST.
 	 * 
@@ -181,11 +200,25 @@ public class Maze {
         maze[x][y] &= ~(dir.flag);
 	}
 	
+	/**
+	 * Return true iff there is a wall at x,y pointing in direction d
+	 * @param x
+	 * @param y
+	 * @param dir
+	 * @return
+	 */
 	public boolean isWall(int x, int y, Compass dir) {
 		return 0 != (maze[x][y] & dir.flag);
 	}
 	
-	public boolean isEndingCell(int x, int y) {
+	/**
+	 * Return true if the cell at x,y has 3 walls
+	 * 
+	 * @param x
+	 * @param y
+	 * @return
+	 */
+	public boolean isDeadEnd(int x, int y) {
 		int mask = maze[x][y];
 		for (int i=0; i<COMPASS_LEN; i++) {
 			int m = (~(1<<i)) & UNVISITED;
@@ -194,66 +227,6 @@ public class Maze {
 		}
 		return false;
 	}
-	
-	/**
-	 * This affects how the maze is generated.  The array must have the values 0,1,2,3 provided in any order.
-	 * @param x1
-	 * @param y1
-	 * @param x2
-	 * @param y2
-	 * @return
-	 */
-    protected void directionHeuristic(Compass [] d, int x1, int y1, int x2, int y2) {
-    	Utils.shuffle(d);
-    }
-    
-    /*
-        // resulting list
-        int[] d = new int[4];
-        
-        // Use the transform array (normally used to render) to keep our weights
-        // (trying to save mem)
-        for (int i = 0; i < 4; i++) {
-            d[i] = i;
-            transform[i] = 0.5f;
-        }
-        
-        if (y1 < y2) // tend to move north
-            transform[0] += Utils.randFloat(0.4f) - 0.1f;
-        else if (y1 > y2) // tend to move south
-            transform[2] += Utils.randFloat(0.4f) - 0.1f;
-        
-        if (x1 < x2) // tend to move west
-            transform[3] += Utils.randFloat(0.4f) - 0.1f;
-        else if (x1 > x2) // tend to move east
-            transform[1] += Utils.randFloat(0.4f) - 0.1f;
-        
-        // Now bubble sort the list (descending) using our weights to determine order.
-        // Elems that have the same weight will be determined by a coin flip
-        
-        // temporaries
-        float t_f;
-        int t_i;
-        
-        // bubblesort
-        for (int i = 0; i < 3; i++) {
-            for (int j = i; j < 4; j++) {
-                if (transform[i] < transform[j] || (transform[i] == transform[j] && Utils.flipCoin())) {
-                    // swap elems in BOTH arrays
-                    t_f = transform[i];
-                    transform[i] = transform[j];
-                    transform[j] = t_f;
-                    
-                    t_i = d[i];
-                    d[i] = d[j];
-                    d[j] = t_i;
-                }
-            }
-        }
-        
-        return d;
-    }*/
-    
     
     public void draw(AGraphics g, float lineThickness) {
     	for (int i=0; i<width; i++) {
@@ -277,13 +250,15 @@ public class Maze {
     				g.vertex(i, ii+1);
     			}
         		g.drawLines(lineThickness);
-        		//if (isEndingCell(i, ii)) {
-        		//	g.drawCircle(0.5f+i, 0.5f+ii, 0.4f);
-        		//}
+        		if (DEBUG) {
+        			if (isDeadEnd(i, ii)) {
+        				g.drawCircle(0.5f+i, 0.5f+ii, 0.4f);
+        			}
+        		}
     		}
     	}
-    	/*
-    	if (solution != null) {
+    	
+    	if (DEBUG && solution != null) {
     		g.begin();
     		float x = 0.5f + sx;
     		float y = 0.5f + sy;
@@ -294,7 +269,7 @@ public class Maze {
     			g.vertex(x,y);
     		}
     		g.drawLineStrip();
-    	}*/
+    	}
     }
 
 	public final int getWidth() {
@@ -316,6 +291,16 @@ public class Maze {
 	}
 	public final int getEndY() {
 		return ey;
+	}
+	
+	public void setStart(int x, int y) {
+		this.sx = Utils.clamp(x, 0, width-1);
+		this.sy = Utils.clamp(y, 0, height-1);
+	}
+	
+	public void setEnd(int x, int y) {
+		this.ex = Utils.clamp(x, 0, width-1);
+		this.ey = Utils.clamp(y, 0, height-1);
 	}
 	
 	/**
@@ -371,38 +356,6 @@ public class Maze {
 		return false;
 	}
 	
-/*		
-		
-		if (x0 >= 0 && y0 >= 0 && x1 >=0 && y1 >= 0
-				&& x0 < width && y0 < height && x1 < width && y1 < height) {
-			int dx = x1-x0;
-			int dy = y1-y0;
-			
-			//System.out.println("dx=" + dx + " dy=" + dy);
-
-			if (dx == 0 && dy == 0)
-				return true;
-			
-			int mask = 0;
-
-			if (dy == -1) {
-				mask |= NORTH;
-			} else if (dy == 1){
-				mask |= SOUTH;
-			}
-
-			if (dx == -1) {
-				mask |= WEST;
-			} else if (dx == 1){
-				mask |= EAST;
-			}
-			
-			return mask > 0 && 0 == (maze[x0][y0] & mask);
-		}
-		
-		return false;
-	}*/
-
 	/**
 	 * Return a list of DIRECTION flags.
 	 * 
@@ -419,6 +372,10 @@ public class Maze {
 		return path;
 	}
 	
+	/**
+	 * 
+	 * @return
+	 */
 	public List<Compass> findSolution() {
 		return findPath(sx, sy, ex, ey);
 	}

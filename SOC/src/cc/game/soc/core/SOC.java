@@ -1116,8 +1116,13 @@ public class SOC extends Reflector<SOC> {
 		return verts;
     }
     
-    public static List<Integer> computeInventorTileIndices(Board b) {
-    	int [] values = { 3,4,5,9,10,11 }; // SORTED!
+    public static List<Integer> computeInventorTileIndices(Board b, SOC soc) {
+    	int [] values = null;
+    	if (soc.getRules().isUnlimitedInventorTiles()) {
+    		values = new int[] { 2,3,4,5,7,8,9,10,11,12 };
+    	} else {
+    		values = new int[] { 3,4,5,9,10,11 };
+    	};
 		List<Integer> tiles = new ArrayList<Integer>();
 		for (int tIndex=0; tIndex<b.getNumTiles(); tIndex++) {
 			Tile t = b.getTile(tIndex);
@@ -2921,7 +2926,7 @@ public class SOC extends Reflector<SOC> {
 			}
 			case INVENTOR_CARD: {
 				// switch tile tokens of users choice
-				mOptions = computeInventorTileIndices(mBoard);
+				mOptions = computeInventorTileIndices(mBoard, this);
 				pushStateFront(State.CHOOSE_TILE_INVENTOR);
 				break;
 			}
