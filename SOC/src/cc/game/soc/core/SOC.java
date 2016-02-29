@@ -633,7 +633,7 @@ public class SOC extends Reflector<SOC> {
 					pushStateFront(State.SET_PLAYER, getCurPlayerNum(), null);
 					pushStateFront(State.CHOOSE_OPPONENT_FOR_GIFT_CARD, getCurPlayer().getCards(CardType.Resource), null);
 					pushStateFront(State.SET_PLAYER, p.getPlayerNum(), null);
-					mOptions = computeOpponents(this, p.getPlayerNum());
+					mOptions = computeOpponentsWithCardsInHand(this, p.getPlayerNum());
 				}
 				break;
 			}
@@ -2933,10 +2933,10 @@ public class SOC extends Reflector<SOC> {
 			case IRRIGATION_CARD: {
 				// player gets 2 wheat for each structure on a field
 				int numGained = 2 * computeNumStructuresAdjacentToTileType(getCurPlayerNum(), mBoard, TileType.FIELDS);
+				putCardBackInDeck(getCurPlayer().removeCard(ProgressCardType.Irrigation));
 				if (numGained > 0) {
 					getCurPlayer().incrementResource(ResourceType.Wheat, numGained);
 					onDistributeResources(getCurPlayer(), ResourceType.Wheat, numGained);
-					putCardBackInDeck(getCurPlayer().removeCard(ProgressCardType.Irrigation));
 				}
 				break;
 			}
@@ -4447,6 +4447,23 @@ public class SOC extends Reflector<SOC> {
 		for (int i=1; i<=soc.getNumPlayers(); i++) {
 			if (i != playerNum) {
 				p.add(i);
+			}
+		}
+		return p;
+	}
+
+	/**
+	 * Return a list of all opponents with at leat 1 card in their hand
+	 * @param soc
+	 * @param playerNum
+	 * @return
+	 */
+	public static List<Integer> computeOpponentsWithCardsInHand(SOC soc, int playerNum) {
+		List<Integer> p = new ArrayList<Integer>();
+		for (int i=1; i<=soc.getNumPlayers(); i++) {
+			if (i != playerNum) {
+				if (soc.getPlayerByPlayerNum(i).getTotalCardsLeftInHand() > 0)
+					p.add(i);
 			}
 		}
 		return p;
