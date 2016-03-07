@@ -7,7 +7,6 @@ import java.io.ObjectStreamException;
 import java.io.Serializable;
 
 import cc.lib.game.IVector2D;
-import cc.lib.game.Utils;
 import cc.lib.utils.Reflector;
 
 /**

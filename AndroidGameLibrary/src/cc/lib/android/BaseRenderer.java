@@ -10,9 +10,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.opengl.GLSurfaceView;
 import android.os.SystemClock;
-import android.util.DisplayMetrics;
-import android.util.TypedValue;
-import android.view.WindowManager;
 
 public abstract class BaseRenderer implements GLSurfaceView.Renderer {
 

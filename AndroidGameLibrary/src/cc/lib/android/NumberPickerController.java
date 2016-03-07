@@ -1,14 +1,8 @@
 package cc.lib.android;
 
 import android.app.Activity;
-import android.content.Context;
-import android.util.AttributeSet;
-import android.view.MotionEvent;
-import android.view.VelocityTracker;
 import android.view.View;
-import android.view.ViewConfiguration;
 import android.widget.NumberPicker;
-import android.widget.NumberPicker.OnScrollListener;
 import android.widget.NumberPicker.OnValueChangeListener;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;

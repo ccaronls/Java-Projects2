@@ -2,7 +2,6 @@ package cc.lib.android;
 
 import android.content.Context;
 import android.content.res.TypedArray;
-import android.graphics.Canvas;
 import android.util.AttributeSet;
 import android.widget.ScrollView;
 

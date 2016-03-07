@@ -56,11 +56,12 @@ public class JMultiColoredScrollConsole extends JList<JMultiColoredScrollConsole
     }
 
     private ListModel<Entry> model = new ListModel<Entry>() {
-    
         
         @Override
     	public Entry getElementAt(int index) {
-    		return lines.get(index);
+        	synchronized (lines) {
+        		return lines.get(index);
+        	}
     	}
     
     	@Override
@@ -77,24 +78,25 @@ public class JMultiColoredScrollConsole extends JList<JMultiColoredScrollConsole
 
 		@Override
 		public int getSize() {
-			return lines.size();
+			synchronized (lines) {
+				return lines.size();
+			}
 		}
     };
     
     
 	public synchronized void addText(Color color, String text) {
         lines.addFirst(new Entry(color, text));
-        if (listener != null) {
-        	listener.contentsChanged(new ListDataEvent(this, ListDataEvent.INTERVAL_ADDED, 0, 0));
-        }
         while (lines.size() > maxRecordLines) {
             lines.removeLast();
             if (listener != null) {
             	listener.contentsChanged(new ListDataEvent(this, ListDataEvent.INTERVAL_REMOVED, lines.size()-1, lines.size()-1));
             }
         }
-        super.
-        revalidate();
+        if (listener != null) {
+        	listener.contentsChanged(new ListDataEvent(this, ListDataEvent.INTERVAL_ADDED, 0, 0));
+        }
+        super.revalidate();
     }   
     
     /**

@@ -73,7 +73,8 @@ public class ConfigDialogBuilder {
             return position;
         }
 
-        private <T> T increment(T currentValue, T ... options) {
+        @SafeVarargs
+        private final <T> T increment(T currentValue, T ... options) {
             int index = 0;
             for ( ; index < options.length; index++) {
                 if (currentValue == options[index])

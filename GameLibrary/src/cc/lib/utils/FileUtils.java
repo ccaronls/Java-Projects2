@@ -2,6 +2,8 @@ package cc.lib.utils;
 
 import java.io.*;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.zip.*;
 
 import cc.lib.game.Utils;
@@ -159,15 +161,25 @@ public class FileUtils {
 	 * @param dir
 	 */
 	public static void deleteDirContents(File dir) throws IOException {
-		for (File f : dir.listFiles()) {
-			if (f.isDirectory()) {
-				deleteDirContents(f);
-			}
-			if (!f.delete())
-				throw new IOException("Failed to delete file '" + f.getAbsolutePath() + "'");
-		}
+		deleteDirContents(dir, "*");
+	}
+	
+	public static void deleteDirContents(File dir, String matching) throws IOException {
+		deleteDirContents(dir, Pattern.compile(matching.replace("*", ".*")));
 	}
 
+	public static void deleteDirContents(File dir, Pattern pattern) throws IOException {
+		for (File f : dir.listFiles()) {
+			if (f.isDirectory()) {
+				deleteDirContents(f, pattern);
+			} else if (pattern.matcher(f.getName()).matches()) {
+				System.out.println("Deleting '" + f.getAbsolutePath() + "'");
+    			if (!f.delete())
+    				throw new IOException("Failed to delete file '" + f.getAbsolutePath() + "'");
+			}
+		}
+	}
+	
    /**
     *
     * @param target

@@ -1317,7 +1317,8 @@ public class Utils {
         return b;
     }
 
-    public static <T extends Number> T max(T t0, T t1, T ... args) {
+    @SafeVarargs
+	public static <T extends Number> T max(T t0, T t1, T ... args) {
         T max = max2(t0, t1);
         for (T t : args) {
             max = max2(max, t);
@@ -1325,7 +1326,8 @@ public class Utils {
         return max;
     }
 
-    public static <T extends Number> T min(T t0, T t1, T ... args) {
+    @SafeVarargs
+	public static <T extends Number> T min(T t0, T t1, T ... args) {
         T max = min2(t0, t1);
         for (T t : args) {
             max = min2(max, t);
@@ -1389,6 +1391,7 @@ public class Utils {
 		return list;
 	}
 
+	@SafeVarargs
 	public static <T> void setElems(T [] arr, T ... elems) {
 		System.arraycopy(elems, 0, arr, 0, elems.length);
 	}
