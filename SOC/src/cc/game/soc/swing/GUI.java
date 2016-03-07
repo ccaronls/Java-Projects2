@@ -192,7 +192,8 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
         		new ColorString(AWTUtils.darken(Color.GREEN, 0.5f), "Green"),
         		new ColorString(Color.BLUE,"Blue"),
         		new ColorString(AWTUtils.darken(Color.ORANGE, 0.1f), "Orange"),
-        		new ColorString(Color.MAGENTA, "Magenta")
+        		new ColorString(Color.MAGENTA, "Magenta"),
+        		new ColorString(Color.PINK, "Pink")
         };
 
         playerChooser = new JSpinner(new SpinnerNumberModel(props.getIntProperty("debug.playerNum",  1), 1, playerColors.length, 1));
@@ -685,6 +686,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
     	ROBBER(PickMode.PM_TILE, null, null, null),
     	PIRATE(PickMode.PM_TILE, null, null, null),
     	FORTRESS(PickMode.PM_VERTEX, VertexType.PIRATE_FORTRESS, null, null),
+    	PATH(PickMode.PM_VERTEX, VertexType.OPEN, null, null),
     	;
     	
     	DebugPick(PickMode mode, VertexType vType, RouteType rType, TileType tType) {
@@ -728,8 +730,9 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
     			
     		case MENU_CHOOSE_NUM_PLAYERS:
                 initLayout(LayoutType.LAYOUT_DEFAULT);
-    			for (int i=0; i<playerColors.length; i++) {
-    				menu.add(getMenuOpButton(MenuOp.CHOOSE_NUM_PLAYERS, String.valueOf(i+2), null, i+2));
+                for (int i=getRules().getMinPlayers(); i<=getRules().getMaxPlayers(); i++) {
+//    			for (int i=0; i<playerColors.length; i++) {
+    				menu.add(getMenuOpButton(MenuOp.CHOOSE_NUM_PLAYERS, String.valueOf(i), null, i));
     			}
     			menu.add(getMenuOpButton(MenuOp.QUIT, "Back", "Go back to previous menu"));
     			break;
@@ -778,6 +781,10 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
                         //boardComp.setPickMode(getCurPlayerNum(), mode, null);
                     	boardComp.setPickHandler(new PickHandler() {
 							
+                    		int vertex0 = -1;
+                    		int vertex1 = -1;
+                    		PlayerBot.Distances d = null;
+                    		
 							@Override
 							public void onPick(BoardComponent bc, int pickedValue) {
 								Vertex v;
@@ -862,6 +869,18 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 											getBoard().setPirate(pickedValue);
 										break;
 									
+									case PATH: {
+										if (pickedValue == vertex0) {
+											vertex0 = -1;
+										} else if (pickedValue == vertex1) {
+											vertex1 = -1;
+										} else if (vertex0 < 0) {
+											vertex0 = pickedValue;
+										} else {
+											vertex1 = pickedValue;
+										}
+										break;
+									}
 								}
 							}
 							
@@ -880,9 +899,16 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 										break;
 									}
 									case PM_VERTEX: {
-										g.setColor(getPlayerColor(getCurPlayerNum()));
 										Vertex v = getBoard().getVertex(highlightedIndex);
-										bc.drawVertex(g, v, mode.vType, v.getPlayer(), true);
+										if (mode == DebugPick.PATH) {
+											g.setColor(Color.BLACK);
+											r.clearVerts();
+											r.addVertex(v);
+											r.fillPoints(g, 10);
+										} else {
+											g.setColor(getPlayerColor(getCurPlayerNum()));
+											bc.drawVertex(g, v, mode.vType, v.getPlayer(), true);
+										}
 										break;
 									}
 									case PM_NONE:
@@ -915,8 +941,27 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 							
 							@Override
 							public void onDrawOverlay(BoardComponent bc, AWTRenderer r, Graphics g) {
-								// TODO Auto-generated method stub
-								
+								g.setColor(Color.BLACK);
+								r.clearVerts();
+								if (vertex0 >= 0) {
+									r.addVertex(getBoard().getVertex(vertex0));
+								}
+								if (vertex1 >= 0) {
+									r.addVertex(getBoard().getVertex(vertex1));
+								}
+								r.fillPoints(g, 10);
+								if (vertex0 >= 0 && vertex1 >= 0) {
+									r.clearVerts();
+									if (d == null) {
+										d = PlayerBot.computeWaterwayDistances(getRules(), getBoard(), getCurPlayerNum());
+									}
+									console.addText(Color.BLACK, "Dist form " + vertex0 + "->" + vertex1 + " = " + d.getDist(vertex0, vertex1));
+									List<Integer> path = d.getShortestPath(vertex0, vertex1);
+									for (int i=0; i<path.size(); i++) {
+										r.addVertex(getBoard().getVertex(path.get(i)));
+									}
+									r.drawLineStrip(g, 3);
+								}
 							}
 							
 							@Override
@@ -1058,7 +1103,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 				break;
 
 			case CONFIG_SETTINGS:
-				showConfigureGameSettingsPopup(getRules().deepCopy());
+				showConfigureGameSettingsPopup(getRules().deepCopy(), true);
 				break;
 
 			case CHOOSE_NUM_PLAYERS:
@@ -1082,6 +1127,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 					menuStack.push(MenuState.MENU_START);
 					menuStack.push(MenuState.MENU_PLAY_GAME);
 					initMenu();
+					clearSaves();
 					new Thread(this).start();
 				} else {
 					logError("Board not ready");
@@ -1219,7 +1265,11 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 				}
 				break;
 			}
-				
+			
+			case SHOW_RULES: {
+				showConfigureGameSettingsPopup(getRules(), false);
+				break;
+			}
 				
 			case QUIT:
 				quitToMainMenu();
@@ -1359,7 +1409,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 		
 			case COMPUTE_DISTANCES: {
 				long t = System.currentTimeMillis();
-				PlayerBot.Distances distances = PlayerBot.evaluateWaterwayDistances(getBoard(), getCurPlayerNum());
+				PlayerBot.Distances distances = PlayerBot.computeWaterwayDistances(getRules(), getBoard(), getCurPlayerNum());
 				long dt = System.currentTimeMillis() - t;
 				System.out.println("got Distances in " + dt + " MSecs:\n" + distances);
 				break;
@@ -1425,7 +1475,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
     private void newGame() {
 		menuStack.push(MenuState.MENU_GAME_SETUP);
 		menuStack.push(MenuState.MENU_CHOOSE_COLOR);
-		menuStack.push(MenuState.MENU_CHOOSE_NUM_PLAYERS);    	
+		menuStack.push(MenuState.MENU_CHOOSE_NUM_PLAYERS);
     }
     
 	private OpButton getMenuOpButton(MenuOp op) {
@@ -1527,6 +1577,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
         } else {
     	    menu.add(new JLabel(""));
         }
+		menu.add(getMenuOpButton(MenuOp.SHOW_RULES));
 		menu.add(getMenuOpButton(MenuOp.BUILDABLES_POPUP));
 		menu.add(getMenuOpButton(MenuOp.REWIND_GAME));
 		menu.add(getMenuOpButton(MenuOp.QUIT));
@@ -1858,8 +1909,6 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 	
 	public boolean getSetDiceMenu(Dice [] die, int num) {
 		clearMenu();
-		//diceChoosers[0].setVisible(true);
-		//diceChoosers[1].setVisible(true);
 		diceComps[0].setDicePickerEnabled(true);
 		diceComps[1].setDicePickerEnabled(true);
 		menu.add(getMenuOpButton(MenuOp.SET_DICE));
@@ -1921,23 +1970,6 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 		completeMenu();
 		return waitForReturnValue(null);
 	}
-	
-	/*
-	private ADiceComponent [] getDiceComps(Dice [] config) {
-		int wbIndex = 0;
-		if (config.length == diceComps.length)
-			return diceComps;
-		ADiceComponent [] comps = new ADiceComponent[config.length];
-		for (int i=0; i<config.length; i++) {
-			for (int ii=i; ii<diceComps.length; ii++) {
-				if (diceComps[ii].getType() == config[i].getType()) {
-					comps[i] = diceComps[ii];
-				}
-			}
-		}
-		return comps;
-	}*/
-	
 	
 	public void spinDice(Dice ... dieToSpin) {
 		clearMenu();
@@ -2082,10 +2114,10 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
         showPopup(name, msg, button);
     }
 
-    public void showConfigureGameSettingsPopup(final Rules rules) {
+    public void showConfigureGameSettingsPopup(final Rules rules, boolean editable) {
         final JPanel view = new JPanel();
         JScrollPane panel = new JScrollPane();
-        panel.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        //panel.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         panel.setPreferredSize(new Dimension(1000, 800));
         panel.getViewport().add(view);
         view.setLayout(new GridLayout(0, 2));
@@ -2108,16 +2140,23 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
         			        view.add(new JSeparator());
         				}
         				
+    			        view.add(new JLabel("<html><body style='width: 400'/>" + ruleVar.description()));
         				if (f.getType().equals(boolean.class)) {
-        					view.add(new JLabel());
-        			        JToggleButton button = new JToggleButton(ruleVar.description(), f.getBoolean(rules));
-        			        view.add(button);
-        			        components.put(button,  f);
+        					if (editable) {
+            			        JToggleButton button = new JToggleButton("Enabled", f.getBoolean(rules));
+            			        view.add(button);
+            			        components.put(button,  f);
+        					} else {
+        						view.add(new JLabel(f.getBoolean(rules) ? "Enable" : "Disabled"));
+        					}
         				} else if (f.getType().equals(int.class)) {
-        			        view.add(new JLabel("<html><body style='width: 400'/>" + ruleVar.description()));
-        			        final JSpinner spinner = new JSpinner(new SpinnerNumberModel(f.getInt(rules), ruleVar.minValue(), ruleVar.maxValue(), ruleVar.valueStep()));
-        			        view.add(spinner);
-        			        components.put(spinner, f);
+        					if (editable) {
+            			        final JSpinner spinner = new JSpinner(new SpinnerNumberModel(f.getInt(rules), ruleVar.minValue(), ruleVar.maxValue(), ruleVar.valueStep()));
+            			        view.add(spinner);
+            			        components.put(spinner, f);
+        					} else {
+        						view.add(new JLabel("" + f.getInt(rules)));
+        					}
         				} else {
         					System.err.println("Dont know how to handle field type:" + f.getType());
         				}
@@ -2131,7 +2170,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
                 public boolean doAction() {
                     new Thread(new Runnable() {
                         public void run() {
-                            showConfigureGameSettingsPopup(new Rules());
+                            showConfigureGameSettingsPopup(new Rules(), true);
                         }
                     }).start();
                     return false;
@@ -2213,74 +2252,6 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 		frame.repaint();
 	}
 	
-/*
-	@Override
-    public void onPick(PickMode mode, int pickedValue) {
-        try {
-            
-            switch (this.menuStack.peek()) {
-                case MENU_DEBUGGING:
-                	processDebugPick(mode, pickedValue);
-                    break;
-                    
-                case MENU_CONFIG_BOARD:
-                	switch (mode) {
-                		case PM_CELLPAINT:
-                			break;
-                		case PM_ISLAND: {
-                			int islandNum = getBoard().getTile(pickedValue).getIslandNum();
-                			if (getBoard().getTile(pickedValue).getIslandNum() > 0) {
-                				// remove the island
-                				getBoard().removeIsland(islandNum);
-                			} else {
-                            	islandNum = getBoard().createIsland(pickedValue);
-                            	console.addText(Color.black, "Found island: " + islandNum);
-                			}
-                        	break;
-                		}
-                	}
-                    break;
-                default:
-            
-                    returnValue = null;
-                    switch (mode) {
-                    	case PM_SHIP:
-                    		getBoard().getRoute(pickedValue).setShip(true);
-                        case PM_ROAD:
-                            returnValue = getBoard().getRoute(pickedValue);
-                            break;
-                            
-                        case PM_SETTLEMENT:
-                        case PM_CITY:
-                        case PM_WALLED_CITY:
-                        case PM_METROPOLIS_TRADE:
-                        case PM_METROPOLIS_POLITICS:
-                        case PM_METROPOLIS_SCIENCE:
-                        case PM_KNIGHT:
-                        case PM_ACTIVATE_KNIGHT:
-                        case PM_PROMOTE_KNIGHT:
-                            returnValue = getBoard().getVertex(pickedValue);
-                            break;
-                            
-                        case PM_CELL:
-                        case PM_ROBBER:
-                        case PM_MERCHANT:
-                            returnValue = getBoard().getTile(pickedValue);
-                            break;
-                            
-                    }
-                    
-                    boardComp.setPickMode(0, PickMode.PM_NONE, null);
-                    synchronized (waitObj) {
-                        waitObj.notify();
-                    }
-                    break;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-*/
     public void componentHidden(ComponentEvent arg0) {}
 	public void componentMoved(ComponentEvent arg0) {
         Component comp = arg0.getComponent();
@@ -2320,15 +2291,6 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 		running = true;
 		try {
 			while (running && soc != null) {
-				/*
-				soc.runGame();
-				if (running && soc.isGoodForSave()) { // && soc.getCurGuiPlayer() instanceof GUIPlayerUser)
-					synchronized (soc) {
-						FileUtils.backupFile(saveGameFile.getAbsolutePath(), 10);
-						soc.save(saveGameFile.getAbsolutePath());
-					}
-				}*/
-				
 				soc.runGame();
 				frame.repaint();
 			}
@@ -2372,187 +2334,14 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 			diceComps[i].setDie(dice[i].getNum());
 		}
 	}
-	/*
-	private void processDebugPick(PickMode mode, int pickedValue) {
-		Vertex v = null;
-		Tile t = null;
-		Route r = null;
-		switch (mode) {
-			case PM_ACTIVATE_KNIGHT:
-				v = getBoard().getVertex(pickedValue);
-				v.setPlayer(getCurPlayerNum());
-				if (v.getType().isKnight()) {
-					if (v.getType().isKnightActive())
-						v.setType(v.getType().deActivatedType());
-					else
-						v.setType(v.getType().activatedType());
-				} else {
-					v.setType(VertexType.BASIC_KNIGHT_ACTIVE);
-				}
-				break;
-			case PM_CELLPAINT:
-			case PM_CELL:
-				t = getBoard().getTile(pickedValue);
-				t.setType(Utils.incrementEnum(t.getType(), TileType.values()));
-				break;
-			case PM_CITY:
-				v = getBoard().getVertex(pickedValue);
-				v.setType(VertexType.CITY);
-				v.setPlayer(getCurPlayerNum());
-				break;
-			case PM_EDGE:
-				r = getBoard().getRoute(pickedValue);
-				getBoard().setPlayerForRoute(r, getCurPlayerNum());
-				if (!r.isShip()) {
-					if (r.isDamaged()) {
-						r.setShip(true);
-						r.setDamaged(false);
-					} else {
-						r.setDamaged(true);
-					}
-				} else {
-					r.setShip(true);
-				}
-				break;
-			case PM_ISLAND:
-				break;
-			case PM_KNIGHT:
-				v = getBoard().getVertex(pickedValue);
-				v.setPlayer(getCurPlayerNum());
-				switch (v.getType()) {
-					case BASIC_KNIGHT_INACTIVE:
-						v.setType(VertexType.BASIC_KNIGHT_ACTIVE);
-						break;
-					case BASIC_KNIGHT_ACTIVE:
-						v.setType(VertexType.BASIC_KNIGHT_INACTIVE);
-						break;
-					case STRONG_KNIGHT_INACTIVE:
-						v.setType(VertexType.STRONG_KNIGHT_ACTIVE);
-						break;
-					case STRONG_KNIGHT_ACTIVE:
-						v.setType(VertexType.STRONG_KNIGHT_INACTIVE);
-						break;
-					case MIGHTY_KNIGHT_INACTIVE:
-						v.setType(VertexType.MIGHTY_KNIGHT_ACTIVE);
-						break;
-					case MIGHTY_KNIGHT_ACTIVE:
-						v.setType(VertexType.MIGHTY_KNIGHT_INACTIVE);
-						break;
-					default:
-						v.setType(VertexType.BASIC_KNIGHT_INACTIVE);
-						break;
-				}
-				break;
-			case PM_MERCHANT:
-				getBoard().setMerchant(pickedValue, getCurPlayerNum());
-				break;
-			case PM_METROPOLIS_POLITICS:
-				v = getBoard().getVertex(pickedValue);
-				v.setPlayer(getCurPlayerNum());
-				v.setType(VertexType.METROPOLIS_POLITICS);
-				break;
-			case PM_METROPOLIS_SCIENCE:
-				v = getBoard().getVertex(pickedValue);
-				v.setPlayer(getCurPlayerNum());
-				v.setType(VertexType.METROPOLIS_SCIENCE);
-				break;
-			case PM_METROPOLIS_TRADE:
-				v = getBoard().getVertex(pickedValue);
-				v.setPlayer(getCurPlayerNum());
-				v.setType(VertexType.METROPOLIS_TRADE);
-				break;
-			case PM_NONE:
-				break;
-			case PM_PATH:
-				break;
-			case PM_PROMOTE_KNIGHT:
-				v = getBoard().getVertex(pickedValue);
-				v.setPlayer(getCurPlayerNum());
-				switch (v.getType()) {
-					case BASIC_KNIGHT_ACTIVE:
-						v.setType(VertexType.STRONG_KNIGHT_ACTIVE);
-						break;
-						
-					case BASIC_KNIGHT_INACTIVE:
-						v.setType(VertexType.STRONG_KNIGHT_INACTIVE);
-						break;
-						
-					case STRONG_KNIGHT_ACTIVE:
-						v.setType(VertexType.MIGHTY_KNIGHT_ACTIVE);
-						break;
-						
-					case STRONG_KNIGHT_INACTIVE:
-						v.setType(VertexType.MIGHTY_KNIGHT_INACTIVE);
-						break;
-					case MIGHTY_KNIGHT_ACTIVE:
-						v.setType(VertexType.BASIC_KNIGHT_ACTIVE);
-						break;
-					default:
-					case MIGHTY_KNIGHT_INACTIVE:
-						v.setType(VertexType.BASIC_KNIGHT_INACTIVE);
-						break;
-				}
-				break;
-			case PM_ROAD:
-				r = getBoard().getRoute(pickedValue);
-				if (r.getPlayer() > 0) {
-					getBoard().setPlayerForRoute(r, 0);
-					r.setShip(false);
-				} else {
-					getBoard().setPlayerForRoute(r, getCurPlayerNum());
-					r.setShip(false);
-				}
-				break;
-			case PM_ROBBER:
-				t = getBoard().getTile(pickedValue);
-            	if (t.isWater())
-            		getBoard().setPirate(pickedValue);
-            	else
-            		getBoard().setRobber(pickedValue);
-				break;
-			case PM_ROUTE:
-				break;
-			case PM_ROUTE2:
-				break;
-			case PM_SETTLEMENT:
-				v = getBoard().getVertex(pickedValue);
-				v.setPlayer(getCurPlayerNum());
-				v.setType(VertexType.SETTLEMENT);
-				break;
-			case PM_MOVABLE_SHIPS:
-			case PM_SHIP:
-				r = getBoard().getRoute(pickedValue);
-				if (r.getPlayer() > 0) {
-					getBoard().setPlayerForRoute(r, 0);
-					r.setShip(false);
-				} else {
-					getBoard().setPlayerForRoute(r, getCurPlayerNum());
-					r.setShip(true);
-				}
-				break;
-			case PM_VERTEX:
-				v = getBoard().getVertex(pickedValue);
-				v.setType(Utils.incrementEnum(v.getType(), VertexType.values()));
-				if (v.getType() == VertexType.OPEN) {
-					v.setPlayer(0);
-				} else {
-					v.setPlayer(getCurPlayerNum());
-				}
-				break;
-			case PM_WALLED_CITY:
-				v = getBoard().getVertex(pickedValue);
-				v.setPlayer(getCurPlayerNum());
-				v.setType(VertexType.WALLED_CITY);
-				break;
+	
+	private void clearSaves() {
+		try {
+    		FileUtils.deleteDirContents(homeFolder, "playerAI*");
+    		FileUtils.deleteDirContents(homeFolder, "soc_save*");
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
-		getBoard().clearRouteLenCache();
-        console.addText(Color.BLACK, "Road Length: " + getBoard().computeMaxRouteLengthForPlayer(getCurPlayerNum(), getRules().isEnableRoadBlock()));
-        getBoard().findAllPairsShortestPathToDiscoverables(getCurPlayerNum());
-        try {
-        	getBoard().save(new File(homeFolder, "debugboard.txt").getAbsolutePath());
-        } catch (Exception e) {
-        	e.printStackTrace();
-        }
-	}*/
+	}
 }
 

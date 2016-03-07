@@ -1289,7 +1289,7 @@ public class SOC extends Reflector<SOC> {
 					if (getRules().isEnableSeafarersExpansion()) {
 					
     					// this state reserved for choosing between roads or ships to place
-    					List<Integer> shipOptions = computeShipRouteIndices(getCurPlayerNum(), mBoard);
+    					List<Integer> shipOptions = computeShipRouteIndices(this, getCurPlayerNum(), mBoard);
     					List<Integer> roadOptions = computeRoadRouteIndices(getCurPlayerNum(), mBoard);
     					if (shipOptions.size() > 0 && roadOptions.size() > 0) {
     						RouteChoiceType type = getCurPlayer().chooseRouteType(this);
@@ -1373,7 +1373,7 @@ public class SOC extends Reflector<SOC> {
 				case POSITION_SHIP_CANCEL: {
 					if (mOptions == null) {
 						printinfo(getCurPlayer().getName() + " place ship");
-						mOptions = computeShipRouteIndices(getCurPlayerNum(), mBoard);
+						mOptions = computeShipRouteIndices(this, getCurPlayerNum(), mBoard);
 					}
 
 					assert(mOptions != null);
@@ -1540,9 +1540,6 @@ public class SOC extends Reflector<SOC> {
 
 				case START_ROUND: // transition state
 					assert(mStateStack.size() == 1); // this should always be the start
-		//			Dice [] dice = getDice();
-//					for (Dice d : mDice)
-	//					d.setNum(0);
 					onShouldSaveGame();
 					if (getRules().isEnableEventCards()) {
 						mOptions = Arrays.asList(MoveType.DEAL_EVENT_CARD);
@@ -1565,13 +1562,11 @@ public class SOC extends Reflector<SOC> {
 					
 					getCurPlayer().setCardsUsable(CardType.Development, true);
 
-					// unlock the players routes
+					// lock all player routes that are not open ended.  
+					// If we dont do this the AI will find too many move ship choices.
 					for (Route r : mBoard.getRoutesForPlayer(getCurPlayerNum())) {
-						r.setLocked(false);
+						r.setLocked(!mBoard.isRouteOpenEnded(r));
 					}
-//					for (int vIndex : mBoard.getVertsOfType(getCurPlayerNum(), VertexType.STRONG_KNIGHT_ACTIVE, VertexType.STRONG_KNIGHT_INACTIVE)) {
-//						mBoard.getVertex(vIndex).setPromotedKnight(false);
-//					}
 					popState();
 					pushStateFront(State.PLAYER_TURN_NOCANCEL);
 					break;
@@ -1587,7 +1582,6 @@ public class SOC extends Reflector<SOC> {
 					MoveType move = getCurPlayer().chooseMove(this, mOptions);
 					if (move != null) {
 						processMove(move);
-						//resetOptions();
 					}
 					break;
 
@@ -1605,7 +1599,6 @@ public class SOC extends Reflector<SOC> {
 						UndoAction action = new UndoAction() {
 							public void undo() {
 								getCurPlayer().incrementResource(trade.getType(), trade.getAmount());
-								//popState();
 							}
 						};
 						if (getRules().isEnableCitiesAndKnightsExpansion()) {
@@ -1813,9 +1806,7 @@ public class SOC extends Reflector<SOC> {
 					Vertex v = getCurPlayer().chooseVertex(this, knights, VertexChoice.KNIGHT_TO_PROMOTE);
 					if (v != null) {
 						assert(v.isKnight());
-						//assert(!v.isPromotedKnight());
 						v.setPlayerAndType(getCurPlayerNum(), v.getType().promotedType());
-						//v.setPromotedKnight(true);
 						resetOptions();
 						popState();
 					}
@@ -3656,13 +3647,13 @@ public class SOC extends Reflector<SOC> {
         }
 	}
 
-	static public List<Integer> computeShipRouteIndices(int playerNum, Board b) {
+	static public List<Integer> computeShipRouteIndices(SOC soc, int playerNum, Board b) {
 		//if (Profiler.ENABLED) Profiler.push("SOC::computeRoadOptions");
         try {
     	    
     	    List<Integer> edges = new ArrayList<Integer>();
     		for (int i = 0; i < b.getNumRoutes(); i++) {
-    			if (b.isRouteAvailableForShip(i, playerNum))
+    			if (b.isRouteAvailableForShip(soc.getRules(), i, playerNum))
     				edges.add(i);
     		}
     		return edges;
@@ -3934,7 +3925,7 @@ public class SOC extends Reflector<SOC> {
 		if (soc.getRules().isEnableSeafarersExpansion()) {
 			if (p.canBuild(BuildableType.Ship)) {
 				for (int i=0; i<b.getNumRoutes(); i++) {
-					if (b.isRouteAvailableForShip(i, p.getPlayerNum())) {
+					if (b.isRouteAvailableForShip(soc.getRules(), i, p.getPlayerNum())) {
 						types.add(MoveType.BUILD_SHIP);
 						break;
 					}

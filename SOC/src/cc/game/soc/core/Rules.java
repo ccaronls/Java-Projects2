@@ -70,6 +70,10 @@ public final class Rules extends Reflector<Rules> {
 	private int pointsForWinGame = 10;
 	@RuleVariable(description="Enable Road Block")
 	private boolean enableRoadBlock = false;
+	@RuleVariable(description="Minimum players", minValue=2, maxValue=4, valueStep=1)
+	private int minPlayers = 2;
+	@RuleVariable(description="Maximum players", minValue=3, maxValue=6, valueStep=1)
+	private int maxPlayers = 6;
 	
 	// Extensions
 	
@@ -85,6 +89,8 @@ public final class Rules extends Reflector<Rules> {
 	private boolean enableRobber = true;
 	@RuleVariable(description="Pirate Fortress Health", minValue=1, maxValue=5)
 	private int pirateFortressHealth = 3;
+	@RuleVariable(description="Ships can be built from any port regardless if there is a settlement.")
+	private boolean enableBuildShipsFromPort = false;
 	
 	// knight
 	@RuleVariable(description="Enable Cities and Knights", separator="Cities & Knights Expansion")
@@ -234,6 +240,12 @@ public final class Rules extends Reflector<Rules> {
 	public final void setPirateFortressHealth(int pirateFortressHealth) {
 		this.pirateFortressHealth = pirateFortressHealth;
 	}
+	public final boolean isEnableBuildShipsFromPort() {
+		return enableBuildShipsFromPort;
+	}
+	public final void setEnableBuildShipsFromPort(boolean enableBuildShipsFromPort) {
+		this.enableBuildShipsFromPort = enableBuildShipsFromPort;
+	}
 	public final boolean isEnableCitiesAndKnightsExpansion() {
 		return enableCitiesAndKnightsExpansion;
 	}
@@ -309,8 +321,17 @@ public final class Rules extends Reflector<Rules> {
 	public final void setEnableHarborMaster(boolean enableHarborMaster) {
 		this.enableHarborMaster = enableHarborMaster;
 	}
-	
-	
-	
+	public final int getMinPlayers() {
+		return minPlayers;
+	}
+	public final void setMinPlayers(int minPlayers) {
+		this.minPlayers = minPlayers;
+	}
+	public final int getMaxPlayers() {
+		return maxPlayers;
+	}
+	public final void setMaxPlayers(int maxPlayers) {
+		this.maxPlayers = maxPlayers;
+	}
 	
 }

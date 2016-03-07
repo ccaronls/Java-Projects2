@@ -31,16 +31,10 @@ public class GUIPlayer extends PlayerBot {
 		return color;
 	}
 	
-	private boolean infoVisible = true;
-	
-	void setInfoVisible(boolean visible) {
-	    this.infoVisible = visible;
-	}
-	
     private boolean animationEnabled = true;
 	
     public boolean isInfoVisible() {
-        return infoVisible;
+        return false;
     }
 
 	private long getAnimTime() {
@@ -96,8 +90,37 @@ public class GUIPlayer extends PlayerBot {
         });
         
     }    
+
+    void startMoveShipAnimation(final Route source, final Route target, final SOC soc) {
+    	if (!animationEnabled)
+    		return;
+    	if (source == null || target == null || soc == null)
+    		return;
+    	final BoardComponent comp = GUI.instance.getBoardComponent();
+        comp.addAnimation(new BlockingAnimation(getAnimTime()) {
+			
+			@Override
+			void draw(Graphics g, float position, float dt) {
+				g.setColor(getColor());
+                AWTRenderer render = comp.render;
+                render.pushMatrix();
+                //render.translate(mp);
+                //render.scale(1, position);
+                Vector2D startV = comp.getBoard().getRouteMidpoint(source);
+                Vector2D endV   = comp.getBoard().getRouteMidpoint(target);
+                Vector2D curV   = startV.add(endV.sub(startV).scale(position));
+                
+                float startAng  = comp.getEdgeAngle(source);
+                float endAng    = comp.getEdgeAngle(target);
+                float curAng    = startAng + (endAng - startAng) * position;
+                
+                GUI.instance.getBoardComponent().drawShip(g, curV, curAng, false);
+                render.popMatrix();				
+			}
+		});
+    }
     
-    void startShipAnimation(final Route edge, final SOC soc) {
+    void startBuildShipAnimation(final Route edge, final SOC soc) {
     	if (!animationEnabled)
     		return;
     	
@@ -228,25 +251,33 @@ public class GUIPlayer extends PlayerBot {
 	@Override
 	public Vertex chooseVertex(SOC soc, Collection<Integer> vertexIndices, VertexChoice mode) {
 		Vertex v = super.chooseVertex(soc, vertexIndices, mode);
+		doVertexAnimation(soc, mode, v);
+		return v;
+	}
+	
+	protected final void doVertexAnimation(SOC soc, VertexChoice mode, Vertex v) {
+		if (v == null)
+			return;
 		switch (mode) {
 			case CITY:
 				startCityAnimation(v);
 				break;
 			case CITY_WALL:
+				startCityWallAnimation(v);
 				break;
 			case KNIGHT_DESERTER:
 				break;
 			case KNIGHT_DISPLACED:
 				break;
+			case NEW_KNIGHT:
 			case KNIGHT_MOVE_POSITION:
+				startKnightAnimation(v);
 				break;
 			case KNIGHT_TO_ACTIVATE:
 				break;
 			case KNIGHT_TO_MOVE:
 				break;
 			case KNIGHT_TO_PROMOTE:
-				break;
-			case NEW_KNIGHT:
 				break;
 			case OPPONENT_KNIGHT_TO_DISPLACE:
 				break;
@@ -264,14 +295,18 @@ public class GUIPlayer extends PlayerBot {
 			case OPPONENT_STRUCTURE_TO_ATTACK:
 				break;
 		}
-		return v;
 	}
 
-	
+	private Route moveShipSource = null;
 
 	@Override
 	public Route chooseRoute(SOC soc, Collection<Integer> routeIndices, RouteChoice mode) {
 		Route route = super.chooseRoute(soc, routeIndices, mode);
+		doRouteAnimation(soc, mode, route);
+		return route;
+	}
+	
+	protected final void doRouteAnimation(SOC soc, RouteChoice mode, Route route) {
 		switch (mode)
 		{
 			case ROAD:
@@ -280,17 +315,22 @@ public class GUIPlayer extends PlayerBot {
 			case ROUTE_DIPLOMAT:
 				break;
 			case SHIP:
-				startShipAnimation(route, soc);
+				if (moveShipSource != null) {
+					startMoveShipAnimation(moveShipSource, route, soc);
+				} else {
+					startBuildShipAnimation(route, soc);
+				}
+				moveShipSource = null;
 				break;
 			case SHIP_TO_MOVE:
+				moveShipSource = route;
 				break;
 			case UPGRADE_SHIP:
+				startUpgradeShipAnimation(route);
 				break;
 			case OPPONENT_ROAD_TO_ATTACK:
 				break;
 		}
-        
-        return route;
 	}
 
 	@Override

@@ -48,6 +48,7 @@ public enum MenuOp {
 	CHOOSE_ROAD("Roads", "Show road choices"),
 	SET_DICE("Set Dice", "Click the dice to set value manually"),
     REWIND_GAME("Rewind Game", "Rewind the game to previous state"),
+    SHOW_RULES("Rules", "Display the Rules"),
 	
     // Debugging
     COMPUTE_DISTANCES("Compute Distances", "Dump distance info to the console"),

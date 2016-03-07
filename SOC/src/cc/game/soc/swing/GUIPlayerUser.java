@@ -23,73 +23,8 @@ public class GUIPlayerUser extends GUIPlayer {
 
 	@Override
 	public Vertex chooseVertex(SOC soc, Collection<Integer> vertexIndices, VertexChoice mode) {
-		Vertex v = null;
-		switch (mode) {
-			case CITY:
-				v = GUI.instance.chooseVertex(vertexIndices, getPlayerNum(), mode);
-				if (v != null) {
-					super.startCityAnimation(v);
-				}
-				break;
-			case CITY_WALL:
-				v = GUI.instance.chooseVertex(vertexIndices, getPlayerNum(), mode);
-				if (v != null) {
-					super.startCityWallAnimation(v);
-				}
-				break;
-			case KNIGHT_TO_ACTIVATE:
-				v = GUI.instance.chooseVertex(vertexIndices, getPlayerNum(), mode);
-				break;
-			case KNIGHT_TO_PROMOTE:
-				v = GUI.instance.chooseVertex(vertexIndices, getPlayerNum(), mode);
-				break;
-			case OPPONENT_KNIGHT_TO_DISPLACE:
-			case KNIGHT_TO_MOVE:
-			case KNIGHT_DESERTER:
-			case KNIGHT_DISPLACED:
-				v = GUI.instance.chooseVertex(vertexIndices, getPlayerNum(), mode);
-				break;
-			case NEW_KNIGHT:
-			case KNIGHT_MOVE_POSITION:
-				v = GUI.instance.chooseVertex(vertexIndices, getPlayerNum(), mode);
-				if (v != null) {
-					super.startKnightAnimation(v);
-				}
-				break;
-			case POLITICS_METROPOLIS:
-				v = GUI.instance.chooseVertex(vertexIndices, getPlayerNum(), mode);
-				if (v != null) {
-					//super.startKnightAnimation(v);
-				}
-				break;
-			case SCIENCE_METROPOLIS:
-				v = GUI.instance.chooseVertex(vertexIndices, getPlayerNum(), mode);
-				if (v != null) {
-					//super.startKnightAnimation(v);
-				}
-				break;
-			case TRADE_METROPOLIS:
-				v = GUI.instance.chooseVertex(vertexIndices, getPlayerNum(), mode);
-				if (v != null) {
-					//super.startKnightAnimation(v);
-				}
-				break;
-			case SETTLEMENT:
-				v = GUI.instance.chooseVertex(vertexIndices, getPlayerNum(), mode);
-				if (v != null) {
-					super.startSettlementAnimation(v);
-				}
-				break;
-			case PIRATE_FORTRESS:
-				v = GUI.instance.chooseVertex(vertexIndices, getPlayerNum(), mode);
-				break;
-			case OPPONENT_STRUCTURE_TO_ATTACK:
-				v = GUI.instance.chooseVertex(vertexIndices, getPlayerNum(), mode);
-				// TODO: Attack Animations!
-				break;
-			default:
-				break;
-		}
+		Vertex v = GUI.instance.chooseVertex(vertexIndices, getPlayerNum(), mode);
+		doVertexAnimation(soc, mode, v);
 		return v;
 	}
 
@@ -97,34 +32,9 @@ public class GUIPlayerUser extends GUIPlayer {
 	@Override
 	public Route chooseRoute(SOC soc, Collection<Integer> routeIndices, RouteChoice mode) {
 		Route r = GUI.instance.chooseRoute(routeIndices, mode);
-		if (r != null) {
-    		switch (mode) {
-    			case ROAD: 
-    				startRoadAnimation(r, soc);
-    				break;
-    			
-    			case ROUTE_DIPLOMAT:
-    				break;
-    				
-    			case UPGRADE_SHIP:
-    				r.setType(RouteType.OPEN);
-    				startUpgradeShipAnimation(r);
-    				r.setType(RouteType.SHIP);
-    				break;
-    				
-    			case SHIP: 
-    				startShipAnimation(r, soc);
-    				break;
-    			
-    			case SHIP_TO_MOVE: 
-    				break;
-				case OPPONENT_ROAD_TO_ATTACK:
-					break;
-    		}
-		}
+		doRouteAnimation(soc, mode, r);
 		return r;
 	}
-
 
 	@Override
 	public Tile chooseTile(SOC soc, Collection<Integer> tileIndices, TileChoice mode) {
@@ -173,6 +83,8 @@ public class GUIPlayerUser extends GUIPlayer {
 			case DRAW_PROGRESS_CARD:
 				break;
 			case MONOPOLY:
+				break;
+			case CRANE_CARD_DEVELOPEMENT:
 				break;
 		}
 		return GUI.instance.chooseEnum(Arrays.asList(values));

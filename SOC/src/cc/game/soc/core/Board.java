@@ -494,6 +494,10 @@ public final class Board extends Reflector<Board> {
 		return tiles.indexOf(c);
 	}
 	
+	/**
+	 * Use this to remove a player from a route
+	 * @param r
+	 */
 	public final void setRouteOpen(Route r) {
 		setPlayerForRoute(r, 0, RouteType.OPEN);
 	}
@@ -516,17 +520,6 @@ public final class Board extends Reflector<Board> {
 			edge.setPlayerDoNotUse(playerNum);
 			edge.setType(type);
 		}
-	}
-	
-	/**
-	 * 
-	 * @param edgeIndex
-	 * @param playerNum
-	 *
-	public final Route setPlayerForEdge(int edgeIndex, int playerNum) {
-		Route route = getRoute(edgeIndex);
-		setPlayerForRoute(route, playerNum);
-		return route;
 	}
 	
 	/**
@@ -744,6 +737,35 @@ public final class Board extends Reflector<Board> {
 
 		return false;
 
+	}
+	
+	public boolean isRouteOpenEnded(Route r) {
+		assert(r.getPlayer() != 0);
+		Vertex v = getVertex(r.getFrom());
+		if (v.isStructure() && v.getPlayer() == r.getPlayer())
+			return false;
+		for (int i=0; i<v.getNumAdjacent(); i++) {
+			int v2 = v.getAdjacent()[i];
+			if (v2 != r.getTo()) {
+				Route r2 = getRoute(r.getFrom(), v2);
+				if (r2 != null && r2.getPlayer() == r.getPlayer()) {
+					return false;
+				}
+			}
+		}
+		v = getVertex(r.getTo());
+		if (v.isStructure() && v.getPlayer() == r.getPlayer())
+			return false;
+		for (int i=0; i<v.getNumAdjacent(); i++) {
+			int v2 = v.getAdjacent()[i];
+			if (v2 != r.getFrom()) {
+				Route r2 = getRoute(r.getTo(), v2);
+				if (r2 != null && r2.getPlayer() == r.getPlayer()) {
+					return false;
+				}
+			}
+		}
+		return true;
 	}
 
 	/**
@@ -1646,11 +1668,11 @@ public final class Board extends Reflector<Board> {
 	 * @param playerNum
 	 * @return
 	 */
-	public boolean isRouteAvailableForShip(Route edge, int playerNum) {
+	public boolean isRouteAvailableForShip(Rules rules, Route edge, int playerNum) {
 		if (edge.getPlayer() != 0 || !edge.isAdjacentToWater() || edge.isAttacked() || edge.isLocked() || edge.isClosed())
 			return false;
 		
-		// check if the adjacent edges have one of our roads
+		// check if the adjacent edges have one of our ships
 		if (isVertexAdjacentToPlayerShip(edge.getFrom(), playerNum) || isVertexAdjacentToPlayerShip(edge.getTo(), playerNum)) {
 			return true;
 		}
@@ -1663,6 +1685,13 @@ public final class Board extends Reflector<Board> {
 		if (v.getPlayer() == playerNum && isVertexAdjacentToWater(v))
 			return true;
 		
+		if (rules.isEnableBuildShipsFromPort()) {
+			for (Tile t : getRouteTiles(edge)) {
+				if (t.isPort())
+					return true;
+			}
+		}
+		
 		return false;
 	}
 
@@ -1672,8 +1701,8 @@ public final class Board extends Reflector<Board> {
 	 * @param playerNum
 	 * @return
 	 */
-	public boolean isRouteAvailableForShip(int edgeIndex, int playerNum) {
-		return isRouteAvailableForShip(getRoute(edgeIndex), playerNum);
+	public boolean isRouteAvailableForShip(Rules rules, int edgeIndex, int playerNum) {
+		return isRouteAvailableForShip(rules, getRoute(edgeIndex), playerNum);
 	}
 	
 	/**

@@ -9,59 +9,13 @@ mBoard=cc.game.soc.core.Board {
    robberTile=-1
    ch=0.11111111
    cw=0.14285712
-   name="heading_for_new_shores_3_players"
+   name="Heading For New Shores"
    playerRoadLenCache=int 16 {
       -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 
    }
    islands=java.util.Vector {
       cc.game.soc.core.Island {
          num=1
-         discovered=boolean 16 {
-            false false false false false false false false false false false false false false false false 
-         }
-         borderRoute=java.util.ArrayList {
-            java.lang.Integer {
-               113
-            }
-            java.lang.Integer {
-               111
-            }
-            java.lang.Integer {
-               112
-            }
-            java.lang.Integer {
-               124
-            }
-            java.lang.Integer {
-               116
-            }
-            java.lang.Integer {
-               121
-            }
-            java.lang.Integer {
-               122
-            }
-            java.lang.Integer {
-               205
-            }
-            java.lang.Integer {
-               206
-            }
-            java.lang.Integer {
-               125
-            }
-         }
-         tiles=java.util.ArrayList {
-            java.lang.Integer {
-               27
-            }
-            java.lang.Integer {
-               59
-            }
-         }
-      }
-      cc.game.soc.core.Island {
-         num=2
          discovered=boolean 16 {
             false false false false false false false false false false false false false false false false 
          }
@@ -131,26 +85,57 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Island {
-         num=3
+         num=2
          discovered=boolean 16 {
             false false false false false false false false false false false false false false false false 
          }
          borderRoute=java.util.ArrayList {
             java.lang.Integer {
-               22
+               113
             }
             java.lang.Integer {
-               26
+               111
             }
             java.lang.Integer {
-               28
+               112
             }
             java.lang.Integer {
-               30
+               124
             }
             java.lang.Integer {
-               21
+               116
             }
+            java.lang.Integer {
+               121
+            }
+            java.lang.Integer {
+               122
+            }
+            java.lang.Integer {
+               205
+            }
+            java.lang.Integer {
+               206
+            }
+            java.lang.Integer {
+               125
+            }
+         }
+         tiles=java.util.ArrayList {
+            java.lang.Integer {
+               27
+            }
+            java.lang.Integer {
+               59
+            }
+         }
+      }
+      cc.game.soc.core.Island {
+         num=3
+         discovered=boolean 16 {
+            false false false false false false false false false false false false false false false false 
+         }
+         borderRoute=java.util.ArrayList {
             java.lang.Integer {
                23
             }
@@ -166,18 +151,2135 @@ mBoard=cc.game.soc.core.Board {
             java.lang.Integer {
                25
             }
+            java.lang.Integer {
+               22
+            }
+            java.lang.Integer {
+               26
+            }
+            java.lang.Integer {
+               28
+            }
+            java.lang.Integer {
+               30
+            }
+            java.lang.Integer {
+               21
+            }
          }
          tiles=java.util.ArrayList {
             java.lang.Integer {
-               3
+               6
             }
             java.lang.Integer {
-               6
+               3
             }
          }
       }
    }
+   pirateFortresses=java.util.ArrayList {
+   }
    routes=java.util.Vector {
+      cc.game.soc.core.Route {
+         flags=1
+         from=0
+         player=0
+         to=1
+         type=OPEN
+         tiles=int 2 {
+            0 15 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=1
+         from=0
+         player=0
+         to=5
+         type=OPEN
+         tiles=int 2 {
+            0 25 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=1
+         from=0
+         player=0
+         to=49
+         type=OPEN
+         tiles=int 2 {
+            15 25 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=1
+         from=1
+         player=0
+         to=2
+         type=OPEN
+         tiles=int 2 {
+            0 29 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=1
+         from=1
+         player=0
+         to=48
+         type=OPEN
+         tiles=int 2 {
+            15 29 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=1
+         from=2
+         player=0
+         to=3
+         type=OPEN
+         tiles=int 2 {
+            0 1 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=1
+         from=2
+         player=0
+         to=6
+         type=OPEN
+         tiles=int 2 {
+            1 29 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=3
+         from=3
+         player=0
+         to=4
+         type=OPEN
+         tiles=int 2 {
+            0 11 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=3
+         from=3
+         player=0
+         to=9
+         type=OPEN
+         tiles=int 2 {
+            1 11 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=3
+         from=4
+         player=0
+         to=5
+         type=OPEN
+         tiles=int 2 {
+            0 45 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=4
+         player=0
+         to=38
+         type=OPEN
+         tiles=int 2 {
+            11 45 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=3
+         from=5
+         player=0
+         to=77
+         type=OPEN
+         tiles=int 2 {
+            25 45 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=1
+         from=6
+         player=0
+         to=7
+         type=OPEN
+         tiles=int 2 {
+            1 39 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=1
+         from=6
+         player=0
+         to=87
+         type=OPEN
+         tiles=int 2 {
+            29 39 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=3
+         from=7
+         player=0
+         to=8
+         type=OPEN
+         tiles=int 2 {
+            1 2 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=3
+         from=7
+         player=0
+         to=10
+         type=OPEN
+         tiles=int 2 {
+            2 39 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=3
+         from=8
+         player=0
+         to=9
+         type=OPEN
+         tiles=int 2 {
+            1 8 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=8
+         player=0
+         to=13
+         type=OPEN
+         tiles=int 2 {
+            2 8 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=9
+         player=0
+         to=31
+         type=OPEN
+         tiles=int 2 {
+            8 11 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=10
+         player=0
+         to=11
+         type=OPEN
+         tiles=int 2 {
+            2 40 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=3
+         from=10
+         player=0
+         to=107
+         type=OPEN
+         tiles=int 2 {
+            39 40 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=3
+         from=11
+         player=0
+         to=12
+         type=OPEN
+         tiles=int 2 {
+            2 3 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=3
+         from=11
+         player=0
+         to=14
+         type=OPEN
+         tiles=int 2 {
+            3 40 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=3
+         from=12
+         player=0
+         to=13
+         type=OPEN
+         tiles=int 2 {
+            2 6 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=1
+         from=12
+         player=0
+         to=17
+         type=OPEN
+         tiles=int 2 {
+            3 6 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=3
+         from=13
+         player=0
+         to=26
+         type=OPEN
+         tiles=int 2 {
+            6 8 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=3
+         from=14
+         player=0
+         to=15
+         type=OPEN
+         tiles=int 2 {
+            3 41 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=14
+         player=0
+         to=110
+         type=OPEN
+         tiles=int 2 {
+            40 41 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=3
+         from=15
+         player=0
+         to=16
+         type=OPEN
+         tiles=int 2 {
+            3 4 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=15
+         player=0
+         to=18
+         type=OPEN
+         tiles=int 2 {
+            4 41 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=3
+         from=16
+         player=0
+         to=17
+         type=OPEN
+         tiles=int 2 {
+            3 5 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=16
+         player=0
+         to=21
+         type=OPEN
+         tiles=int 2 {
+            4 5 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=3
+         from=17
+         player=0
+         to=24
+         type=OPEN
+         tiles=int 2 {
+            5 6 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=18
+         player=0
+         to=19
+         type=OPEN
+         tiles=int 2 {
+            4 -1 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=18
+         player=0
+         to=116
+         type=OPEN
+         tiles=int 2 {
+            41 -1 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=19
+         player=0
+         to=20
+         type=OPEN
+         tiles=int 2 {
+            4 -1 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=20
+         player=0
+         to=21
+         type=OPEN
+         tiles=int 2 {
+            4 -1 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=21
+         player=0
+         to=22
+         type=OPEN
+         tiles=int 2 {
+            5 -1 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=22
+         player=0
+         to=23
+         type=OPEN
+         tiles=int 2 {
+            5 -1 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=23
+         player=0
+         to=24
+         type=OPEN
+         tiles=int 2 {
+            5 7 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=23
+         player=0
+         to=27
+         type=OPEN
+         tiles=int 2 {
+            7 -1 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=3
+         from=24
+         player=0
+         to=25
+         type=OPEN
+         tiles=int 2 {
+            6 7 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=3
+         from=25
+         player=0
+         to=26
+         type=OPEN
+         tiles=int 2 {
+            6 9 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=25
+         player=0
+         to=29
+         type=OPEN
+         tiles=int 2 {
+            7 9 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=26
+         player=0
+         to=30
+         type=OPEN
+         tiles=int 2 {
+            8 9 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=27
+         player=0
+         to=28
+         type=OPEN
+         tiles=int 2 {
+            7 -1 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=28
+         player=0
+         to=29
+         type=OPEN
+         tiles=int 2 {
+            7 10 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=28
+         player=0
+         to=34
+         type=OPEN
+         tiles=int 2 {
+            10 -1 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=29
+         player=0
+         to=32
+         type=OPEN
+         tiles=int 2 {
+            9 10 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=3
+         from=30
+         player=0
+         to=31
+         type=OPEN
+         tiles=int 2 {
+            8 12 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=3
+         from=30
+         player=0
+         to=33
+         type=OPEN
+         tiles=int 2 {
+            9 12 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=3
+         from=31
+         player=0
+         to=37
+         type=OPEN
+         tiles=int 2 {
+            11 12 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=32
+         player=0
+         to=33
+         type=OPEN
+         tiles=int 2 {
+            9 13 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=32
+         player=0
+         to=36
+         type=OPEN
+         tiles=int 2 {
+            10 13 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=3
+         from=33
+         player=0
+         to=39
+         type=OPEN
+         tiles=int 2 {
+            12 13 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=34
+         player=0
+         to=35
+         type=OPEN
+         tiles=int 2 {
+            10 -1 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=35
+         player=0
+         to=36
+         type=OPEN
+         tiles=int 2 {
+            10 14 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=35
+         player=0
+         to=43
+         type=OPEN
+         tiles=int 2 {
+            14 -1 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=36
+         player=0
+         to=41
+         type=OPEN
+         tiles=int 2 {
+            13 14 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=3
+         from=37
+         player=0
+         to=38
+         type=OPEN
+         tiles=int 2 {
+            11 55 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=1
+         from=37
+         player=0
+         to=40
+         type=OPEN
+         tiles=int 2 {
+            12 55 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=3
+         from=38
+         player=0
+         to=118
+         type=OPEN
+         tiles=int 2 {
+            45 55 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=1
+         from=39
+         player=0
+         to=40
+         type=OPEN
+         tiles=int 2 {
+            12 56 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=3
+         from=39
+         player=0
+         to=42
+         type=OPEN
+         tiles=int 2 {
+            13 56 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=1
+         from=40
+         player=0
+         to=138
+         type=OPEN
+         tiles=int 2 {
+            55 56 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=41
+         player=0
+         to=42
+         type=OPEN
+         tiles=int 2 {
+            13 57 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=41
+         player=0
+         to=45
+         type=OPEN
+         tiles=int 2 {
+            14 57 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=3
+         from=42
+         player=0
+         to=140
+         type=OPEN
+         tiles=int 2 {
+            56 57 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=43
+         player=0
+         to=44
+         type=OPEN
+         tiles=int 2 {
+            14 -1 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=44
+         player=0
+         to=45
+         type=OPEN
+         tiles=int 2 {
+            14 -1 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=45
+         player=0
+         to=148
+         type=OPEN
+         tiles=int 2 {
+            57 -1 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=1
+         from=46
+         player=0
+         to=47
+         type=OPEN
+         tiles=int 2 {
+            15 16 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=1
+         from=46
+         player=0
+         to=49
+         type=OPEN
+         tiles=int 2 {
+            15 22 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=1
+         from=46
+         player=0
+         to=53
+         type=OPEN
+         tiles=int 2 {
+            16 22 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=1
+         from=47
+         player=0
+         to=48
+         type=OPEN
+         tiles=int 2 {
+            15 42 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=1
+         from=47
+         player=0
+         to=52
+         type=OPEN
+         tiles=int 2 {
+            16 42 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=1
+         from=48
+         player=0
+         to=86
+         type=OPEN
+         tiles=int 2 {
+            29 42 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=1
+         from=49
+         player=0
+         to=70
+         type=OPEN
+         tiles=int 2 {
+            22 25 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=1
+         from=50
+         player=0
+         to=51
+         type=OPEN
+         tiles=int 2 {
+            16 17 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=1
+         from=50
+         player=0
+         to=53
+         type=OPEN
+         tiles=int 2 {
+            16 20 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=1
+         from=50
+         player=0
+         to=57
+         type=OPEN
+         tiles=int 2 {
+            17 20 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=1
+         from=51
+         player=0
+         to=52
+         type=OPEN
+         tiles=int 2 {
+            16 43 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=1
+         from=51
+         player=0
+         to=56
+         type=OPEN
+         tiles=int 2 {
+            17 43 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=1
+         from=52
+         player=0
+         to=112
+         type=OPEN
+         tiles=int 2 {
+            42 43 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=1
+         from=53
+         player=0
+         to=65
+         type=OPEN
+         tiles=int 2 {
+            20 22 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=3
+         from=54
+         player=0
+         to=55
+         type=OPEN
+         tiles=int 2 {
+            17 18 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=3
+         from=54
+         player=0
+         to=57
+         type=OPEN
+         tiles=int 2 {
+            17 19 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=54
+         player=0
+         to=61
+         type=OPEN
+         tiles=int 2 {
+            18 19 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=3
+         from=55
+         player=0
+         to=56
+         type=OPEN
+         tiles=int 2 {
+            17 44 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=55
+         player=0
+         to=60
+         type=OPEN
+         tiles=int 2 {
+            18 44 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=3
+         from=56
+         player=0
+         to=115
+         type=OPEN
+         tiles=int 2 {
+            43 44 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=3
+         from=57
+         player=0
+         to=63
+         type=OPEN
+         tiles=int 2 {
+            19 20 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=58
+         player=0
+         to=59
+         type=OPEN
+         tiles=int 2 {
+            18 -1 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=58
+         player=0
+         to=61
+         type=OPEN
+         tiles=int 2 {
+            18 -1 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=59
+         player=0
+         to=60
+         type=OPEN
+         tiles=int 2 {
+            18 -1 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=60
+         player=0
+         to=117
+         type=OPEN
+         tiles=int 2 {
+            44 -1 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=61
+         player=0
+         to=62
+         type=OPEN
+         tiles=int 2 {
+            19 -1 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=62
+         player=0
+         to=64
+         type=OPEN
+         tiles=int 2 {
+            19 -1 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=63
+         player=0
+         to=64
+         type=OPEN
+         tiles=int 2 {
+            19 21 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=3
+         from=63
+         player=0
+         to=66
+         type=OPEN
+         tiles=int 2 {
+            20 21 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=64
+         player=0
+         to=67
+         type=OPEN
+         tiles=int 2 {
+            21 -1 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=3
+         from=65
+         player=0
+         to=66
+         type=OPEN
+         tiles=int 2 {
+            20 23 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=3
+         from=65
+         player=0
+         to=71
+         type=OPEN
+         tiles=int 2 {
+            22 23 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=66
+         player=0
+         to=68
+         type=OPEN
+         tiles=int 2 {
+            21 23 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=67
+         player=0
+         to=69
+         type=OPEN
+         tiles=int 2 {
+            21 -1 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=68
+         player=0
+         to=69
+         type=OPEN
+         tiles=int 2 {
+            21 24 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=68
+         player=0
+         to=73
+         type=OPEN
+         tiles=int 2 {
+            23 24 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=69
+         player=0
+         to=74
+         type=OPEN
+         tiles=int 2 {
+            24 -1 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=3
+         from=70
+         player=0
+         to=71
+         type=OPEN
+         tiles=int 2 {
+            22 26 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=3
+         from=70
+         player=0
+         to=78
+         type=OPEN
+         tiles=int 2 {
+            25 26 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=71
+         player=0
+         to=72
+         type=OPEN
+         tiles=int 2 {
+            23 26 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=3
+         from=72
+         player=0
+         to=73
+         type=OPEN
+         tiles=int 2 {
+            23 27 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=3
+         from=72
+         player=0
+         to=80
+         type=OPEN
+         tiles=int 2 {
+            26 27 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=3
+         from=73
+         player=0
+         to=75
+         type=OPEN
+         tiles=int 2 {
+            24 27 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=74
+         player=0
+         to=76
+         type=OPEN
+         tiles=int 2 {
+            24 -1 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=75
+         player=0
+         to=76
+         type=OPEN
+         tiles=int 2 {
+            24 28 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=3
+         from=75
+         player=0
+         to=82
+         type=OPEN
+         tiles=int 2 {
+            27 28 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=76
+         player=0
+         to=83
+         type=OPEN
+         tiles=int 2 {
+            28 -1 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=3
+         from=77
+         player=0
+         to=78
+         type=OPEN
+         tiles=int 2 {
+            25 58 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=77
+         player=0
+         to=119
+         type=OPEN
+         tiles=int 2 {
+            45 58 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=78
+         player=0
+         to=79
+         type=OPEN
+         tiles=int 2 {
+            26 58 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=3
+         from=79
+         player=0
+         to=80
+         type=OPEN
+         tiles=int 2 {
+            26 59 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=3
+         from=79
+         player=0
+         to=144
+         type=OPEN
+         tiles=int 2 {
+            58 59 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=1
+         from=80
+         player=0
+         to=81
+         type=OPEN
+         tiles=int 2 {
+            27 59 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=3
+         from=81
+         player=0
+         to=82
+         type=OPEN
+         tiles=int 2 {
+            27 60 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=3
+         from=81
+         player=0
+         to=146
+         type=OPEN
+         tiles=int 2 {
+            59 60 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=82
+         player=0
+         to=84
+         type=OPEN
+         tiles=int 2 {
+            28 60 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=83
+         player=0
+         to=85
+         type=OPEN
+         tiles=int 2 {
+            28 -1 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=84
+         player=0
+         to=85
+         type=OPEN
+         tiles=int 2 {
+            28 -1 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=84
+         player=0
+         to=149
+         type=OPEN
+         tiles=int 2 {
+            60 -1 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=1
+         from=86
+         player=0
+         to=87
+         type=OPEN
+         tiles=int 2 {
+            29 30 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=1
+         from=86
+         player=0
+         to=88
+         type=OPEN
+         tiles=int 2 {
+            30 42 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=1
+         from=87
+         player=0
+         to=91
+         type=OPEN
+         tiles=int 2 {
+            30 39 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=1
+         from=88
+         player=0
+         to=89
+         type=OPEN
+         tiles=int 2 {
+            30 37 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=1
+         from=88
+         player=0
+         to=112
+         type=OPEN
+         tiles=int 2 {
+            37 42 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=3
+         from=89
+         player=0
+         to=90
+         type=OPEN
+         tiles=int 2 {
+            30 31 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=3
+         from=89
+         player=0
+         to=92
+         type=OPEN
+         tiles=int 2 {
+            31 37 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=3
+         from=90
+         player=0
+         to=91
+         type=OPEN
+         tiles=int 2 {
+            30 35 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=90
+         player=0
+         to=95
+         type=OPEN
+         tiles=int 2 {
+            31 35 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=3
+         from=91
+         player=0
+         to=107
+         type=OPEN
+         tiles=int 2 {
+            35 39 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=92
+         player=0
+         to=93
+         type=OPEN
+         tiles=int 2 {
+            31 34 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=3
+         from=92
+         player=0
+         to=105
+         type=OPEN
+         tiles=int 2 {
+            34 37 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=93
+         player=0
+         to=94
+         type=OPEN
+         tiles=int 2 {
+            31 32 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=93
+         player=0
+         to=96
+         type=OPEN
+         tiles=int 2 {
+            32 34 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=94
+         player=0
+         to=95
+         type=OPEN
+         tiles=int 2 {
+            31 33 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=94
+         player=0
+         to=99
+         type=OPEN
+         tiles=int 2 {
+            32 33 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=95
+         player=0
+         to=102
+         type=OPEN
+         tiles=int 2 {
+            33 35 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=96
+         player=0
+         to=97
+         type=OPEN
+         tiles=int 2 {
+            32 -1 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=96
+         player=0
+         to=104
+         type=OPEN
+         tiles=int 2 {
+            34 -1 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=97
+         player=0
+         to=98
+         type=OPEN
+         tiles=int 2 {
+            32 -1 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=98
+         player=0
+         to=99
+         type=OPEN
+         tiles=int 2 {
+            32 -1 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=99
+         player=0
+         to=100
+         type=OPEN
+         tiles=int 2 {
+            33 -1 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=100
+         player=0
+         to=101
+         type=OPEN
+         tiles=int 2 {
+            33 -1 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=101
+         player=0
+         to=102
+         type=OPEN
+         tiles=int 2 {
+            33 36 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=101
+         player=0
+         to=108
+         type=OPEN
+         tiles=int 2 {
+            36 -1 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=102
+         player=0
+         to=106
+         type=OPEN
+         tiles=int 2 {
+            35 36 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=103
+         player=0
+         to=104
+         type=OPEN
+         tiles=int 2 {
+            34 -1 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=103
+         player=0
+         to=105
+         type=OPEN
+         tiles=int 2 {
+            34 38 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=103
+         player=0
+         to=114
+         type=OPEN
+         tiles=int 2 {
+            38 -1 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=3
+         from=105
+         player=0
+         to=111
+         type=OPEN
+         tiles=int 2 {
+            37 38 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=106
+         player=0
+         to=107
+         type=OPEN
+         tiles=int 2 {
+            35 40 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=106
+         player=0
+         to=110
+         type=OPEN
+         tiles=int 2 {
+            36 40 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=108
+         player=0
+         to=109
+         type=OPEN
+         tiles=int 2 {
+            36 -1 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=109
+         player=0
+         to=110
+         type=OPEN
+         tiles=int 2 {
+            36 41 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=109
+         player=0
+         to=116
+         type=OPEN
+         tiles=int 2 {
+            41 -1 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=1
+         from=111
+         player=0
+         to=112
+         type=OPEN
+         tiles=int 2 {
+            37 43 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=3
+         from=111
+         player=0
+         to=115
+         type=OPEN
+         tiles=int 2 {
+            38 43 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=113
+         player=0
+         to=114
+         type=OPEN
+         tiles=int 2 {
+            38 -1 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=113
+         player=0
+         to=115
+         type=OPEN
+         tiles=int 2 {
+            38 44 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=113
+         player=0
+         to=117
+         type=OPEN
+         tiles=int 2 {
+            44 -1 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=3
+         from=118
+         player=0
+         to=119
+         type=OPEN
+         tiles=int 2 {
+            45 46 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=1
+         from=118
+         player=0
+         to=121
+         type=OPEN
+         tiles=int 2 {
+            46 55 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=3
+         from=119
+         player=0
+         to=120
+         type=OPEN
+         tiles=int 2 {
+            46 58 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=3
+         from=120
+         player=0
+         to=123
+         type=OPEN
+         tiles=int 2 {
+            46 53 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=120
+         player=0
+         to=144
+         type=OPEN
+         tiles=int 2 {
+            53 58 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=3
+         from=121
+         player=0
+         to=122
+         type=OPEN
+         tiles=int 2 {
+            46 51 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=3
+         from=121
+         player=0
+         to=138
+         type=OPEN
+         tiles=int 2 {
+            51 55 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=3
+         from=122
+         player=0
+         to=123
+         type=OPEN
+         tiles=int 2 {
+            46 47 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=122
+         player=0
+         to=125
+         type=OPEN
+         tiles=int 2 {
+            47 51 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=123
+         player=0
+         to=124
+         type=OPEN
+         tiles=int 2 {
+            47 53 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=124
+         player=0
+         to=127
+         type=OPEN
+         tiles=int 2 {
+            47 50 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=124
+         player=0
+         to=136
+         type=OPEN
+         tiles=int 2 {
+            50 53 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=125
+         player=0
+         to=126
+         type=OPEN
+         tiles=int 2 {
+            47 49 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=125
+         player=0
+         to=132
+         type=OPEN
+         tiles=int 2 {
+            49 51 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=126
+         player=0
+         to=127
+         type=OPEN
+         tiles=int 2 {
+            47 48 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=126
+         player=0
+         to=129
+         type=OPEN
+         tiles=int 2 {
+            48 49 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=127
+         player=0
+         to=128
+         type=OPEN
+         tiles=int 2 {
+            48 50 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=128
+         player=0
+         to=131
+         type=OPEN
+         tiles=int 2 {
+            48 -1 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=128
+         player=0
+         to=137
+         type=OPEN
+         tiles=int 2 {
+            50 -1 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=129
+         player=0
+         to=130
+         type=OPEN
+         tiles=int 2 {
+            48 -1 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=129
+         player=0
+         to=134
+         type=OPEN
+         tiles=int 2 {
+            49 -1 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=130
+         player=0
+         to=131
+         type=OPEN
+         tiles=int 2 {
+            48 -1 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=132
+         player=0
+         to=133
+         type=OPEN
+         tiles=int 2 {
+            49 52 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=132
+         player=0
+         to=139
+         type=OPEN
+         tiles=int 2 {
+            51 52 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=133
+         player=0
+         to=134
+         type=OPEN
+         tiles=int 2 {
+            49 -1 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=133
+         player=0
+         to=142
+         type=OPEN
+         tiles=int 2 {
+            52 -1 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=135
+         player=0
+         to=136
+         type=OPEN
+         tiles=int 2 {
+            50 54 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=135
+         player=0
+         to=137
+         type=OPEN
+         tiles=int 2 {
+            50 -1 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=135
+         player=0
+         to=147
+         type=OPEN
+         tiles=int 2 {
+            54 -1 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=136
+         player=0
+         to=143
+         type=OPEN
+         tiles=int 2 {
+            53 54 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=3
+         from=138
+         player=0
+         to=139
+         type=OPEN
+         tiles=int 2 {
+            51 56 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=3
+         from=139
+         player=0
+         to=140
+         type=OPEN
+         tiles=int 2 {
+            52 56 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=140
+         player=0
+         to=141
+         type=OPEN
+         tiles=int 2 {
+            52 57 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=141
+         player=0
+         to=142
+         type=OPEN
+         tiles=int 2 {
+            52 -1 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=141
+         player=0
+         to=148
+         type=OPEN
+         tiles=int 2 {
+            57 -1 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=3
+         from=143
+         player=0
+         to=144
+         type=OPEN
+         tiles=int 2 {
+            53 59 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=3
+         from=143
+         player=0
+         to=146
+         type=OPEN
+         tiles=int 2 {
+            54 59 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=145
+         player=0
+         to=146
+         type=OPEN
+         tiles=int 2 {
+            54 60 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=145
+         player=0
+         to=147
+         type=OPEN
+         tiles=int 2 {
+            54 -1 
+         }
+      }
+      cc.game.soc.core.Route {
+         flags=2
+         from=145
+         player=0
+         to=149
+         type=OPEN
+         tiles=int 2 {
+            60 -1 
+         }
+      }
    }
    tiles=java.util.Vector {
       cc.game.soc.core.Tile {
@@ -259,7 +2361,7 @@ mBoard=cc.game.soc.core.Board {
          pirateRouteNext=-1
          x=0.82142854
          y=0.44444445
-         type=GOLD
+         type=RANDOM_RESOURCE
          adjVerts=int 6 {
             13 12 17 24 25 26 
          }
@@ -326,7 +2428,7 @@ mBoard=cc.game.soc.core.Board {
       }
       cc.game.soc.core.Tile {
          dieNum=0
-         islandNum=2
+         islandNum=1
          numAdj=6
          pirateRouteNext=-1
          x=0.7142856
@@ -403,7 +2505,7 @@ mBoard=cc.game.soc.core.Board {
          pirateRouteNext=-1
          x=0.0714286
          y=0.2777778
-         type=RANDOM_PORT_OR_WATER
+         type=WATER
          adjVerts=int 6 {
             58 59 60 55 54 61 
          }
@@ -415,7 +2517,7 @@ mBoard=cc.game.soc.core.Board {
          pirateRouteNext=-1
          x=0.0714286
          y=0.3888889
-         type=RANDOM_PORT_OR_WATER
+         type=WATER
          adjVerts=int 6 {
             62 61 54 57 63 64 
          }
@@ -439,7 +2541,7 @@ mBoard=cc.game.soc.core.Board {
          pirateRouteNext=-1
          x=0.0714286
          y=0.5
-         type=RANDOM_PORT_OR_WATER
+         type=WATER
          adjVerts=int 6 {
             67 64 63 66 68 69 
          }
@@ -506,7 +2608,7 @@ mBoard=cc.game.soc.core.Board {
       }
       cc.game.soc.core.Tile {
          dieNum=0
-         islandNum=1
+         islandNum=2
          numAdj=6
          pirateRouteNext=-1
          x=0.1785714
@@ -643,7 +2745,7 @@ mBoard=cc.game.soc.core.Board {
          pirateRouteNext=-1
          x=0.28571424
          y=0.16666669
-         type=RANDOM_PORT_OR_WATER
+         type=RANDOM_PORT
          adjVerts=int 6 {
             113 114 103 105 111 115 
          }
@@ -715,7 +2817,7 @@ mBoard=cc.game.soc.core.Board {
          pirateRouteNext=-1
          x=0.1785714
          y=0.22222224
-         type=RANDOM_PORT_OR_WATER
+         type=RANDOM_PORT
          adjVerts=int 6 {
             60 117 113 115 56 55 
          }
@@ -734,7 +2836,7 @@ mBoard=cc.game.soc.core.Board {
       }
       cc.game.soc.core.Tile {
          dieNum=0
-         islandNum=2
+         islandNum=1
          numAdj=6
          pirateRouteNext=-1
          x=0.4999999
@@ -842,7 +2944,7 @@ mBoard=cc.game.soc.core.Board {
       }
       cc.game.soc.core.Tile {
          dieNum=0
-         islandNum=2
+         islandNum=1
          numAdj=6
          pirateRouteNext=-1
          x=0.60714275
@@ -854,7 +2956,7 @@ mBoard=cc.game.soc.core.Board {
       }
       cc.game.soc.core.Tile {
          dieNum=0
-         islandNum=2
+         islandNum=1
          numAdj=6
          pirateRouteNext=-1
          x=0.7142856
@@ -890,12 +2992,12 @@ mBoard=cc.game.soc.core.Board {
       }
       cc.game.soc.core.Tile {
          dieNum=0
-         islandNum=1
+         islandNum=2
          numAdj=6
          pirateRouteNext=-1
          x=0.28571424
          y=0.72222227
-         type=GOLD
+         type=RANDOM_RESOURCE
          adjVerts=int 6 {
             81 80 79 144 143 146 
          }
@@ -3319,18 +5421,28 @@ mBoard=cc.game.soc.core.Board {
    }
 }
 mRules=cc.game.soc.core.Rules {
+   enableBuildShipsFromPort=false
    enableCitiesAndKnightsExpansion=false
    enableEventCards=false
    enableHarborMaster=false
    enableIslandSettlementsOnSetup=false
+   enableKnightExtendedMoves=false
    enableRoadBlock=false
    enableRobber=true
    enableSeafarersExpansion=true
+   unlimitedInventorTiles=false
    barbarianStepsToAttack=7
+   knightScoreToDestroyCity=0
+   knightScoreToDestroyMetropolis=0
+   knightScoreToDestroyRoad=0
+   knightScoreToDestroySettlement=0
+   knightScoreToDestroyWalledCity=0
+   maxPlayers=3
    maxProgressCards=4
-   minHandSizeForGiveup=7
+   maxSafeCards=7
    minLargestArmySize=3
    minLongestLoadLen=5
+   minPlayers=3
    minVictoryPointsForRobber=0
    numResourcesForCity=2
    numResourcesForDiscoveredTerritory=1
@@ -3338,13 +5450,13 @@ mRules=cc.game.soc.core.Rules {
    numSafeCardsPerCityWall=2
    numStartSettlements=2
    pirateFortressHealth=3
-   pointsForWinGame=12
+   pointsForWinGame=10
    pointsIslandDiscovery=2
    pointsPerCity=2
    pointsPerMetropolis=4
    pointsPerSettlement=1
 }
-mDice=null
+mDiceConfig=null
 mMetropolisPlayer=int 3 {
    0 0 0 
 }
@@ -3361,8 +5473,9 @@ mPlayers=cc.game.soc.core.Player 8 {
 mProgressCards=null
 mDevelopmentCards=java.util.ArrayList {
 }
+mDice=java.util.LinkedList {
+}
 mEventCards=java.util.ArrayList {
 }
-mOptions=null
 mStateStack=java.util.Stack {
 }

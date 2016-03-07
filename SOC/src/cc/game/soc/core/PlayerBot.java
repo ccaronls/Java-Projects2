@@ -3,7 +3,6 @@ package cc.game.soc.core;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.io.ObjectInputStream.GetField;
 import java.util.*;
 
 import cc.lib.game.Utils;
@@ -39,39 +38,6 @@ public class PlayerBot extends Player {
 		movesPath = movesPath.next;
 		return (T)front.getData();
 	}
-	/*
-	private void findChangingProperties(BotNode leaf, HashSet<String> changes) {
-		HashMap<String,List<Double>> all = new HashMap<String, List<Double>>();
-		while (leaf != null) {
-    		for (Map.Entry<String, Double> e : leaf.properties.entrySet()) {
-    			if (!all.containsKey(e.getKey())) {
-    				all.put(e.getKey(), new ArrayList<Double>());
-    			}
-    			all.get(e.getKey()).add(e.getValue());
-    		}
-    		leaf = leaf.parent;
-		}
-		for (Map.Entry<String, List<Double>> e : all.entrySet()) {
-			if (e.getValue().size()>1) {
-				changes.add(e.getKey());
-			}
-		}
-	}*/
-	
-	/*
-
-FORMAT:
-
-moves:    ROOT       BUILD_ROAD E(n)   TRADE BrickX2  DRAW Wood BUILD
-prop0     prop0val
-prop1
-prop2
-...
-
-
-
-
-	 */
 	
 	private void dumpAllPathsAsCSV(List<BotNode> leafs, File outFile) throws IOException {
 		PrintStream out = new PrintStream(outFile);
@@ -98,7 +64,7 @@ prop2
         			out.println();
     			}
     			
-    			List<String> properties = isolateChangingProperties(leaf);
+    			Collection<String> properties = leaf.properties.keySet();//isolateChangingProperties(leaf);
     			for (String key :  properties) {
     				out.print(key);
     				for (BotNode n : moves) {
@@ -113,7 +79,7 @@ prop2
 		}
 	}
 	
-	
+	/*
 	private void dumpAllPaths(List<BotNode> leafs, PrintStream out) {
 		// print out all move paths such that the optimal is printed last
 		Collections.sort(leafs);
@@ -154,7 +120,7 @@ prop2
     			out.println();
 			}
 		}
-	}
+	}*/
 	
 	private List<String> isolateChangingProperties(BotNode leaf) {
 		List<String> props = new ArrayList<String>();
@@ -335,117 +301,52 @@ prop2
 		evaluatedNodes.add(node);
 	}*/
 	
-	private void buildRoutesTree(SOC soc, Player p, Board b, BotNode root) {
-		List<Integer> roads1 = SOC.computeRoadRouteIndices(p.getPlayerNum(), b);
-		List<Integer> ships1 = Collections.emptyList();
-		if (soc.getRules().isEnableSeafarersExpansion()) {
-			ships1 = SOC.computeShipRouteIndices(p.getPlayerNum(), b);
+	private void addRouteBuildingMovesR(SOC soc, Player p, Board b, BotNode root, boolean allowRoads, boolean allowShips, int depth, boolean recurseMoves) {
+		
+		if (depth <= 0) {
+			if (recurseMoves)
+				buildChooseMoveTreeR(soc, p, b, root, SOC.computeMoves(p, b, soc));
+			else {
+				evaluateEdges(root, soc, p, b);
+				evaluateSeafarers(root, soc.getRules(), b, getPlayerNum());
+			}
+				
+			return;
 		}
 		
-		usedRoadRoutes.addAll(roads1);
-		usedShipRoutes.addAll(ships1);
+		@SuppressWarnings("unchecked")
+		List<Integer> roads = allowRoads ? SOC.computeRoadRouteIndices(p.getPlayerNum(), b) : Collections.EMPTY_LIST;
+		@SuppressWarnings("unchecked")
+		List<Integer> ships = allowShips ? SOC.computeShipRouteIndices(soc, p.getPlayerNum(), b) : Collections.EMPTY_LIST;
 		
-		if (ships1.size() > 0 && roads1.size() > 0) {
-			{
-    			BotNode roadOptions = root.attach(new BotNodeEnum(RouteChoiceType.ROAD_CHOICE));
-    			for (int roadIndex1 : roads1) {
-    				Route r = b.getRoute(roadIndex1);
-    				b.setPlayerForRoute(r, p.getPlayerNum(), RouteType.ROAD);
-    				//r.setLocked(true);
-    				BotNode n = roadOptions.attach(new BotNodeRoute(r, roadIndex1));
-    				
-    				List<Integer> roads2 = SOC.computeRoadRouteIndices(p.getPlayerNum(), b);
-    				roads2.removeAll(usedRoadRoutes);
-    				usedRoadRoutes.addAll(roads2);
-    				
-    				for (int roadIndex2 : roads2) {
-    					Route r2 = b.getRoute(roadIndex2);
-    					b.setPlayerForRoute(r2, p.getPlayerNum(), RouteType.ROAD);
-    					//r2.setLocked(true);
-    					BotNode n2 = n.attach(new BotNodeRoute(r2, roadIndex2));
-    					evaluateEdges(n2, soc, p, b);
-    					buildChooseMoveTreeR(soc, p, b, n2, SOC.computeMoves(p, b, soc));
-    					b.setRouteOpen(r2);
-    					//r2.setLocked(false);
-    				}
-    				b.setRouteOpen(r);
-    				//r.setLocked(false);
-    			}
-			}
-			{
-    			BotNode shipOptions = root.attach(new BotNodeEnum(RouteChoiceType.SHIP_CHOICE));
-    			for (int shipIndex1 : ships1) {
-    				Route ship = b.getRoute(shipIndex1);
-    				b.setPlayerForRoute(ship, p.getPlayerNum(), RouteType.SHIP);
-    				//ship.setLocked(true);
-    				BotNode n = shipOptions.attach(new BotNodeRoute(ship, shipIndex1));
-    				
-    				List<Integer> ships2 = SOC.computeShipRouteIndices(p.getPlayerNum(), b);
-    				ships2.removeAll(usedShipRoutes);
-    				usedShipRoutes.addAll(ships2);
-    				
-    				for (int shipIndex2 : ships2) {
-    					Route ship2 = b.getRoute(shipIndex2);
-    					b.setPlayerForRoute(ship2, p.getPlayerNum(), RouteType.SHIP);
-    					//ship2.setLocked(true);
-    					BotNode n2 = n.attach(new BotNodeRoute(ship2, shipIndex2));
-    					evaluateEdges(n2, soc, p, b);
-    					buildChooseMoveTreeR(soc, p, b, n2, SOC.computeMoves(p, b, soc));
-    					b.setRouteOpen(ship2);
-    					//ship2.setLocked(false);
-    				}
-    				b.setRouteOpen(ship);
-    			}
-			}
-		} else if (ships1.size() > 0) {
-			for (int shipIndex1 : ships1) {
-				Route ship = b.getRoute(shipIndex1);
-				b.setPlayerForRoute(ship, p.getPlayerNum(), RouteType.SHIP);
-				//ship.setLocked(true);
-				BotNode n = root.attach(new BotNodeRoute(ship, shipIndex1));
-
-				List<Integer> ships2 = SOC.computeShipRouteIndices(p.getPlayerNum(), b);
-				ships2.removeAll(usedShipRoutes);
-				usedShipRoutes.addAll(ships2);
-				
-				for (int shipIndex2 : ships2) {
-					Route ship2 = b.getRoute(shipIndex2);
-					b.setPlayerForRoute(ship2, p.getPlayerNum(), RouteType.SHIP);
-					//ship2.setLocked(true);
-					BotNode n2 = n.attach(new BotNodeRoute(ship2, shipIndex2));
-					evaluateEdges(n2, soc, p, b);
-					buildChooseMoveTreeR(soc, p, b, n2, SOC.computeMoves(p, b, soc));
-					b.setRouteOpen(ship2);
-					//ship2.setLocked(false);
-				}
-				b.setRouteOpen(ship);
-				//ship.setLocked(false);
-			}
-		} else if (roads1.size() > 0) {
-			for (int roadIndex1 : roads1) {
-				Route r = b.getRoute(roadIndex1);
+		roads.removeAll(usedRoadRoutes);
+		ships.removeAll(usedShipRoutes);
+		
+		usedRoadRoutes.addAll(roads);
+		usedShipRoutes.addAll(ships);
+		
+		if (roads.size() > 0) {
+			BotNode roadOptions = root.attach(new BotNodeEnum(RouteChoiceType.ROAD_CHOICE));
+			for (int roadIndex : roads) {
+				Route r = b.getRoute(roadIndex);
 				b.setPlayerForRoute(r, p.getPlayerNum(), RouteType.ROAD);
-				//r.setLocked(true);
-				BotNode n = root.attach(new BotNodeRoute(r, roadIndex1));
-
-				List<Integer> roads2 = SOC.computeRoadRouteIndices(p.getPlayerNum(), b);
-				roads2.removeAll(usedRoadRoutes);
-				usedRoadRoutes.addAll(roads2);
-				
-				for (int roadIndex2 : roads2) {
-					Route r2 = b.getRoute(roadIndex2);
-					//r2.setLocked(true);
-					b.setPlayerForRoute(r2, p.getPlayerNum(), RouteType.ROAD);
-					BotNode n2 = n.attach(new BotNodeRoute(r2, roadIndex2));
-					evaluateEdges(n2, soc, p, b);
-					buildChooseMoveTreeR(soc, p, b, n2, SOC.computeMoves(p, b, soc));
-					b.setRouteOpen(r2);
-					//r2.setLocked(false);
-				}
+				BotNode n = roadOptions.attach(new BotNodeRoute(r, roadIndex));
+				addRouteBuildingMovesR(soc, p, b, n, allowRoads, allowShips, depth-1, recurseMoves);
 				b.setRouteOpen(r);
-				//r.setLocked(false);
 			}
-		}		
+		}
+		
+		if (ships.size() > 0) {
+			BotNode shipOptions = root.attach(new BotNodeEnum(RouteChoiceType.SHIP_CHOICE));
+			for (int shipIndex : ships) {
+				Route r = b.getRoute(shipIndex);
+				b.setPlayerForRoute(r, p.getPlayerNum(), RouteType.SHIP);
+				BotNode n = shipOptions.attach(new BotNodeRoute(r, shipIndex));
+				addRouteBuildingMovesR(soc, p, b, n, allowRoads, allowShips, depth-1, recurseMoves);
+				b.setRouteOpen(r);
+			}
+		}
+		
 	}
 	
 	private void buildChooseMoveTreeR(SOC soc, Player p, Board b, BotNode _root, Collection<MoveType> _moves) {
@@ -545,27 +446,13 @@ prop2
 					break;
 				}
 				case BUILD_ROAD: {
-					List<Integer> roads = SOC.computeRoadRouteIndices(p.getPlayerNum(), b);
-					roads.removeAll(usedRoadRoutes);
-					usedRoadRoutes.addAll(roads);
-
 					p.adjustResourcesForBuildable(BuildableType.Road, -1);
-					for (int rIndex : roads) {
-						Route r = b.getRoute(rIndex);
-						//r.setLocked(true);
-						b.setPlayerForRoute(r, p.getPlayerNum(), RouteType.ROAD);
-						onBoardChanged();
-						BotNode node = root.attach(new BotNodeRoute(r, rIndex));
-						evaluateEdges(node, soc, p, b);
-						buildChooseMoveTreeR(soc, p, b, node, SOC.computeMoves(p, b, soc));
-						//r.setLocked(false);
-						b.setRouteOpen(r);
-					}
+					addRouteBuildingMovesR(soc, p, b, root, true, false, 2, true);
 					p.adjustResourcesForBuildable(BuildableType.Road, 1);
 					break;
 				}
 				case ROAD_BUILDING_CARD: {
-					buildRoutesTree(soc, p, b, root);
+					addRouteBuildingMovesR(soc, p, b, root, true, soc.getRules().isEnableSeafarersExpansion(), 2, true);
 					break;
 				}
 				case BISHOP_CARD:
@@ -605,22 +492,8 @@ prop2
 					break;
 				}
 				case BUILD_SHIP:{
-					List<Integer> ships = SOC.computeShipRouteIndices(p.getPlayerNum(), b);
-					ships.removeAll(usedShipRoutes);
-					usedShipRoutes.addAll(ships);
-					
 					p.adjustResourcesForBuildable(BuildableType.Ship, -1);
-					for (int rIndex : ships) {
-						Route r = b.getRoute(rIndex);
-						b.setPlayerForRoute(r, p.getPlayerNum(), RouteType.SHIP);
-						//r.setLocked(true);
-						BotNode node = root.attach(new BotNodeRoute(r, rIndex));
-						onBoardChanged();
-						evaluateEdges(node, soc, p, b);
-						buildChooseMoveTreeR(soc, p, b, node, SOC.computeMoves(p, b, soc));
-						b.setRouteOpen(r);
-						//r.setLocked(false);
-					}
+					addRouteBuildingMovesR(soc, p, b, root, false, true, 1, true);
 					p.adjustResourcesForBuildable(BuildableType.Ship, 1);
 					break;
 				}
@@ -728,7 +601,7 @@ prop2
 						b.setRouteOpen(shipToMove);
 						shipToMove.setLocked(true);
 						BotNode shipChoice = root.attach(new BotNodeRoute(shipToMove, shipIndex));
-						List<Integer> newPositions = SOC.computeShipRouteIndices(p.getPlayerNum(), b);
+						List<Integer> newPositions = SOC.computeShipRouteIndices(soc, p.getPlayerNum(), b);
 						for (int moveIndex : newPositions) {
 							if (moveIndex == shipIndex)
 								continue;
@@ -1328,6 +1201,7 @@ prop2
 			onBoardChanged();
 			BotNode node = root.attach(new BotNodeVertex(v, vIndex));
 			evaluateVertices(node, soc.getRules(), p.getPlayerNum(), b);
+			evaluateSeafarers(node, soc.getRules(), b, getPlayerNum());
 			v.copyFrom(save);
 			if (islandNum > 0 && !discovered) {
 				b.setIslandDiscovered(p.getPlayerNum(), islandNum, false);
@@ -1366,6 +1240,7 @@ prop2
 			onBoardChanged();
 			BotNode node = root.attach(new BotNodeRoute(r, rIndex));
 			evaluateEdges(node, soc, p, b);
+			evaluateSeafarers(node, soc.getRules(), b, getPlayerNum());
 			r.copyFrom(save);
 		}
 		buildOptimalPath(root);
@@ -1382,26 +1257,7 @@ prop2
 		Player p = new PlayerTemp(this);
 		Board b = soc.getBoard();
 		
-		List<Integer> roads = SOC.computeRoadRouteIndices(p.getPlayerNum(), b);
-		List<Integer> ships = SOC.computeShipRouteIndices(p.getPlayerNum(), b);
-		
-		BotNode n = root.attach(new BotNodeEnum(RouteChoiceType.ROAD_CHOICE));
-		for (int rIndex : roads) {
-			Route r = b.getRoute(rIndex);
-			b.setPlayerForRoute(r, p.getPlayerNum(), RouteType.ROAD);
-			BotNode node = n.attach(new BotNodeRoute(r, rIndex));
-			evaluateEdges(node, soc, p, b);
-			b.setRouteOpen(r);
-		}
-
-		n = root.attach(new BotNodeEnum(RouteChoiceType.SHIP_CHOICE));
-		for (int rIndex : ships) {
-			Route r = b.getRoute(rIndex);
-			b.setPlayerForRoute(r, p.getPlayerNum(), RouteType.SHIP);
-			BotNode node = n.attach(new BotNodeRoute(r, rIndex));
-			evaluateEdges(node, soc, p, b);
-			b.setRouteOpen(r);
-		}
+		addRouteBuildingMovesR(soc, p, b, root, true, true, 1, false);
 
 		buildOptimalPath(root);
 		return detatchMove();
@@ -1703,21 +1559,6 @@ prop2
 		
 		float multiPortValue = 0.1f * (numMultiPorts > 0 ? 1.0f / numMultiPorts : 0);
 		
-		if (rules.isEnableSeafarersExpansion()) {
-			Distances d = evaluateWaterwayDistances(b, playerNum);
-			node.addValue("shortestDistanceToAPirateFortress", 1 / (1+d.shortesDistanceToAPirateFortress));
-			node.addValue("shortestDistanceToUndiscoveredTile", 1 / (1+d.shortestDistanceToUndiscoveredTile));
-			if (b.getNumIslands() > 0) {
-    			float minDistToUndiscoveredIsland = 1000;
-    			for (int i=0; i<b.getNumIslands(); i++) {
-    				if (d.shortestDistanceToUndiscoveredIslands[i] < minDistToUndiscoveredIsland) {
-    					minDistToUndiscoveredIsland = d.shortestDistanceToUndiscoveredIslands[i];
-    				}
-    			}
-    			node.addValue("shortestDistanceToUndiscoveredIslands", 1 / (1+minDistToUndiscoveredIsland));
-			}
-		}
-		
 		node.addValue("Resource distribution", resourceDistribution);
 		node.addValue("Resource Port Prob", resourcePortProb);
 		node.addValue("Multi Ports", multiPortValue);
@@ -1729,22 +1570,6 @@ prop2
 
 	public static void evaluateEdges(BotNode node, SOC soc, Player p, final Board b) {
 
-		if (soc.getRules().isEnableSeafarersExpansion()) {
-			Distances d = evaluateWaterwayDistances(b, p.getPlayerNum());
-			node.addValue("shortestDistanceToAPirateFortress", 1 / (1+d.shortesDistanceToAPirateFortress));
-			node.addValue("shortestDistanceToUndiscoveredTile", 1 / (1+d.shortestDistanceToUndiscoveredTile));
-			if (b.getNumIslands() > 0) {
-    			float minDistToUndiscoveredIsland = 1000;
-    			for (int i=0; i<b.getNumIslands(); i++) {
-    				if (d.shortestDistanceToUndiscoveredIslands[i] < minDistToUndiscoveredIsland) {
-    					minDistToUndiscoveredIsland = d.shortestDistanceToUndiscoveredIslands[i];
-    				}
-    			}
-    			node.addValue("shortestDistanceToUndiscoveredIslands", 1 / (1+minDistToUndiscoveredIsland));
-			}
-		}
-		
-		
 		float value = 0;
 		// evaluate 
 		for (Route r : b.getRoutesForPlayer(p.getPlayerNum())) {
@@ -1827,61 +1652,162 @@ prop2
 		node.addValue("potentialSettlementResourceProb", potentialSettlementResourceProb);
 	}
 	
+	private final static int DISTANCE_INFINITY = 100;
+	
 	public static class Distances extends Reflector<Distances> {
 		
 		static {
+			omitField(Distances.class, "dist");
+			omitField(Distances.class, "next");
 			addAllFields(Distances.class);
 		}
 		
 		public Distances() {
-			this(0,null,0);
+			this(0,null,0, new int[0][0], new int[0][0]);
 		}
 		
 		public final float shortesDistanceToAPirateFortress;
 		public final float [] shortestDistanceToUndiscoveredIslands;
 		public final float shortestDistanceToUndiscoveredTile;
+		private final int [][] dist;
+		private final int [][] next;
+		
 		public Distances(float shortesDistanceToAPirateFortress,
 				float[] shortestDistanceToUndiscoveredIslands,
-				float shortestDistanceToUndiscoveredTile) {
+				float shortestDistanceToUndiscoveredTile,
+				int [][] dist, int [][] next) {
 			super();
 			this.shortesDistanceToAPirateFortress = shortesDistanceToAPirateFortress;
 			this.shortestDistanceToUndiscoveredIslands = shortestDistanceToUndiscoveredIslands;
 			this.shortestDistanceToUndiscoveredTile = shortestDistanceToUndiscoveredTile;
+			this.dist = dist;
+			this.next = next;
 		}
 		
+		public List<Integer> getShortestPath(int fromVertex, int toVertex) {
+			List<Integer> path = new ArrayList<Integer>();
+			if (dist[fromVertex][toVertex] == DISTANCE_INFINITY)
+				return path;
+			
+			path.add(fromVertex);
+			while (fromVertex != toVertex) {
+				fromVertex = next[fromVertex][toVertex];
+				path.add(fromVertex);
+			}
+			
+			return path;
+		}
 		
+		public int getDist(int from, int to) {
+			return dist[from][to];
+		}
 	}
 	
-	public static Distances evaluateWaterwayDistances(final Board b, final int playerNum) {
-		final int [][] matrix = new int[b.getNumVerts()][b.getNumVerts()];
-		
-		for (int i=0; i<matrix.length; i++) {
-			for (int ii=0; ii<matrix.length; ii++) {
-				matrix[i][ii] = 1000;
-			}
-			matrix[i][i] = 0;
-		}
-		
-		for (Route r: b.getRoutes()) {
-			if (r.isAdjacentToWater()) {
-    			if (r.getPlayer() == playerNum && r.isVessel()) {
-    				matrix[r.getFrom()][r.getTo()] = 0;
-    				matrix[r.getTo()][r.getFrom()] = 0;
-    			} else if (r.getPlayer() == 0 && !r.isAttacked() && !r.isClosed()) {
-					matrix[r.getFrom()][r.getTo()] = 1;
-					matrix[r.getTo()][r.getFrom()] = 1;
+	public static void evaluateSeafarers(BotNode node, final Rules rules, final Board b, final int playerNum) {
+		if (rules.isEnableSeafarersExpansion()) {
+			Distances d = computeWaterwayDistances(rules, b, playerNum);
+			node.addValue("shortestDistanceToAPirateFortress", 1.0 / (1.0+d.shortesDistanceToAPirateFortress));
+			node.addValue("shortestDistanceToUndiscoveredTile", 1.0 / (1.0+d.shortestDistanceToUndiscoveredTile));
+			if (b.getNumIslands() > 0) {
+    			float minDistToUndiscoveredIsland = DISTANCE_INFINITY;
+    			for (int i=1; i<=b.getNumIslands(); i++) {
+    				if (d.shortestDistanceToUndiscoveredIslands[i] < minDistToUndiscoveredIsland) {
+    					minDistToUndiscoveredIsland = d.shortestDistanceToUndiscoveredIslands[i];
+    				}
     			}
+    			node.addValue("shortestDistanceToUndiscoveredIslands", 1.0 / (1.0+minDistToUndiscoveredIsland));
 			}
+		}		
+	}
+	
+	public static Distances computeWaterwayDistances(final Rules rules, final Board b, final int playerNum) {
+		
+		final int [][] dist = new int[b.getNumVerts()][b.getNumVerts()];
+		final int [][] next = new int[b.getNumVerts()][b.getNumVerts()];
+		
+		for (int i=0; i<dist.length; i++) {
+			for (int ii=0; ii<dist.length; ii++) {
+				dist[i][ii] = DISTANCE_INFINITY;
+				next[i][ii] = ii;
+			}
+			dist[i][i] = 0;
+		}
+
+		// Assign distances to edges
+		for (Route r: b.getRoutes()) {
+			if (r.getPlayer() == playerNum) {
+				dist[r.getFrom()][r.getTo()] = dist[r.getTo()][r.getFrom()] = 0;
+				continue;
+			}
+			
+			if (r.isAttacked() || r.isClosed() || r.getPlayer() != 0) {
+				continue;
+			}
+			
+			if (r.isAdjacentToLand()) {
+				// any land is 1 unit
+				dist[r.getFrom()][r.getTo()] = dist[r.getTo()][r.getFrom()] = 1;
+			} else {
+				// in the water.  If one of verts is a land vert, then can only transition on
+				// a port (if rules apply) or settlement
+				// only if settlement (or port when rules apply) can build a ship
+				Vertex v0 = b.getVertex(r.getFrom());
+				Vertex v1 = b.getVertex(r.getTo());
+				
+				if (!v0.isAdjacentToLand() && !v1.isAdjacentToLand()) {
+					dist[r.getFrom()][r.getTo()] = dist[r.getTo()][r.getFrom()] = 1;
+					continue;
+				}
+				
+				if (rules.isEnableBuildShipsFromPort()) {
+					boolean done = false;
+					for (Tile t : b.getVertexTiles(v0)) {
+						if (t.isPort()) {
+							dist[r.getFrom()][r.getTo()] = dist[r.getTo()][r.getFrom()] = 1;
+							done = true;
+							break;
+						}
+					}
+					
+					if (done)
+						continue;
+					for (Tile t : b.getVertexTiles(v1)) {
+						if (t.isPort()) {
+							dist[r.getFrom()][r.getTo()] = dist[r.getTo()][r.getFrom()] = 1;
+							done = true;
+							break;
+						}
+					}
+					if (done)
+						continue;
+				}
+				
+				if (v0.isAdjacentToLand() && v0.isStructure() && v0.getPlayer() == playerNum) {
+					dist[r.getFrom()][r.getTo()] = dist[r.getTo()][r.getFrom()] = 1;
+					continue;
+				}
+
+				if (v1.isAdjacentToLand() && v1.isStructure() && v1.getPlayer() == playerNum) {
+					dist[r.getFrom()][r.getTo()] = dist[r.getTo()][r.getFrom()] = 1;
+					continue;
+				}
+				
+				// 2 moves includes the move to build a structure (more?)
+				//   should we consider whether the player can build a settlement?
+				dist[r.getFrom()][r.getTo()] = dist[r.getTo()][r.getFrom()] = 2;
+			} 
 		}
 		
 		// All-Pairs shortest paths [Floyd-Marshall O(|V|^3)] algorithm.  This is a good choice for dense graphs like ours
-		// where every vertex has 2 or 3 edges.  The memory usage of a Dijkstra's would make it less
-		// desirable.  Also, this method gives us all pairs, not just 
-		for (int k=0; k<matrix.length; k++) {
-			for (int i=0; i<matrix.length; i++) {
-				for (int j=0; j<matrix.length; j++) {
-					int sum = matrix[i][k] + matrix[k][j];
-					matrix[i][j] = Math.min(matrix[i][j],  sum);
+		// where every vertex has 2 or 3 edges.  The memory usage and complexity of a Dijkstra's make it less desirable.  
+		for (int k=0; k<dist.length; k++) {
+			for (int i=0; i<dist.length; i++) {
+				for (int j=0; j<dist.length; j++) {
+					int sum = dist[i][k] + dist[k][j];
+					if (sum < dist[i][j]) {
+						dist[i][j] = sum;
+						next[i][j] = next[i][k];
+					}
 				}
 			}
 		}
@@ -1894,38 +1820,34 @@ prop2
 		for (int i=0; i<matrix.length; i++) {
 			Utils.print("%-4d|", i);
 			for (int ii=0; ii<matrix.length; ii++) {
-				Utils.print("%-4s|", matrix[i][ii] < 1000 ? String.valueOf(matrix[i][ii]) : "INF");
+				Utils.print("%-4s|", matrix[i][ii] < DISTANCE_INFINITY ? String.valueOf(matrix[i][ii]) : "INF");
 			}
 			Utils.println();
 		}*/
 
-		float shortestDistanceToAPirateFortress = 1000;
+		float shortestDistanceToAPirateFortress = DISTANCE_INFINITY;
 		float [] shortestDistanceToUnDiscoveredIsland = new float[b.getNumIslands()+1]; 
-		float shortestDistanceToUndiscoveredTile = 1000;
+		float shortestDistanceToUndiscoveredTile = DISTANCE_INFINITY;
 
 		Iterable<Integer> pirateFortresses = b.getVertsOfType(0, VertexType.PIRATE_FORTRESS); 
 		Iterable<Integer> undiscoveredTiles = b.getTilesOfType(TileType.UNDISCOVERED);
 		
-		// in order to consider islands
-		// we only consider routes the originate from ports
+		// get the minimum distances to things 
 		for (int vIndex : b.getStructuresForPlayer(playerNum)) {
-			Vertex v = b.getVertex(vIndex);
-			if (!v.isAdjacentToWater())
-				continue;
 
 			// check pirate fortress.  We want the smallest possible distance to the nearest fortress
 			for (int v2 : pirateFortresses) {
-				shortestDistanceToAPirateFortress = Math.min(shortestDistanceToAPirateFortress, matrix[vIndex][v2]);
+				shortestDistanceToAPirateFortress = Math.min(shortestDistanceToAPirateFortress, dist[vIndex][v2]);
 			}
 		
     		// we want to consider the distance from any of our structures to any undiscovered tile, pirate fortress
     		for (Island i : b.getIslands()) {
-    			shortestDistanceToUnDiscoveredIsland[i.getNum()] = 1000;
+    			shortestDistanceToUnDiscoveredIsland[i.getNum()] = DISTANCE_INFINITY;
     			if (!i.isDiscoveredBy(playerNum)) {
 					for (int rIndex : i.borderRoute) {
 						Route r = b.getRoute(rIndex);
-						shortestDistanceToUnDiscoveredIsland[i.getNum()] = Math.min(shortestDistanceToUnDiscoveredIsland[i.getNum()], matrix[vIndex][r.getFrom()]);
-						shortestDistanceToUnDiscoveredIsland[i.getNum()] = Math.min(shortestDistanceToUnDiscoveredIsland[i.getNum()], matrix[vIndex][r.getTo()]);
+						shortestDistanceToUnDiscoveredIsland[i.getNum()] = Math.min(shortestDistanceToUnDiscoveredIsland[i.getNum()], dist[vIndex][r.getFrom()]);
+						shortestDistanceToUnDiscoveredIsland[i.getNum()] = Math.min(shortestDistanceToUnDiscoveredIsland[i.getNum()], dist[vIndex][r.getTo()]);
 					}
     			} else {
     				shortestDistanceToUnDiscoveredIsland[i.getNum()] = 0;
@@ -1935,12 +1857,12 @@ prop2
     		for (int tIndex : undiscoveredTiles) {
     			Tile t = b.getTile(tIndex);
     			for (int tv:  t.getAdjVerts()) {
-    				shortestDistanceToUndiscoveredTile = Math.min(shortestDistanceToUndiscoveredTile, matrix[tv][vIndex]);
+    				shortestDistanceToUndiscoveredTile = Math.min(shortestDistanceToUndiscoveredTile, dist[tv][vIndex]);
     			}
 			}
 		}
 		
-		return new Distances(shortestDistanceToAPirateFortress, shortestDistanceToUnDiscoveredIsland, shortestDistanceToUndiscoveredTile);
+		return new Distances(shortestDistanceToAPirateFortress, shortestDistanceToUnDiscoveredIsland, shortestDistanceToUndiscoveredTile, dist, next);
 	}
 	
 	public static void evaluateTiles(BotNode node, SOC soc, Player p, Board b) {
@@ -2027,7 +1949,7 @@ prop2
 		// number of progress cards (less is better)
 		value = p.getCardCount(CardType.Progress);
 		if (value > 0) {
-			node.addValue("ProgressCardCount", 1.0f / value);
+			node.addValue("ProgressCardCount", 1.0 / value);
 		}
 		
 		// total cards near the max but not over

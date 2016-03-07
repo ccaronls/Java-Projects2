@@ -123,14 +123,14 @@ public final class Route extends Reflector<Route> implements Comparable<Route> {
 	}
 
 	/**
-	 * @return Returns the from.
+	 * @return Returns the first of 2 vertex indices
 	 */
 	public int getFrom() {
 		return from;
 	}
 
 	/**
-	 * @return Returns the to.
+	 * @return Returns the second of 2 vertex indices
 	 */
 	public int getTo() {
 		return to;
@@ -144,7 +144,7 @@ public final class Route extends Reflector<Route> implements Comparable<Route> {
 	}
 
 	/**
-	 * 
+	 * DO NOT CALL THIS METHOD!  USE Board.setPlayerForRoute
 	 * @param p
 	 */
 	void setPlayerDoNotUse(int p) {
@@ -161,15 +161,14 @@ public final class Route extends Reflector<Route> implements Comparable<Route> {
 	
 	/**
 	 * 
-	 * @param isImmobile
+	 * @param attacked
 	 */
-	public final void setAttacked(boolean isImmobile) {
-		setFlag(EDGE_FLAG_ATTACKED, isImmobile);
+	public final void setAttacked(boolean attacked) {
+		setFlag(EDGE_FLAG_ATTACKED, attacked);
 	}
 
 	/**
-	 * An edge is locked when it is first positioned by player as a ship or after a ship has moved.  
-	 * All a players ships are unlocked at the beginning of their turn
+	 * When an ship is locked it is not available as a move option
 	 * @return
 	 */
 	public final boolean isLocked() {
