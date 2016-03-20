@@ -1,5 +1,8 @@
 package cc.game.soc.core;
 
+import cc.lib.game.IVector2D;
+import cc.lib.math.Vector2D;
+
 public class BotNodeTile extends BotNode {
 
 	static {
@@ -26,5 +29,9 @@ public class BotNodeTile extends BotNode {
 		return "T(" + index + ") " + tile.toString();
 	}
 	
+	public IVector2D getBoardPosition(Board b) {
+    	return tile;
+    }
+
 	
 }

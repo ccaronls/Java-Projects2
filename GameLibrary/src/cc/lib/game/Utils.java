@@ -1562,4 +1562,14 @@ public class Utils {
     	}
     	return -1;
     }
+    
+    /**
+     * Return var args list as an array
+     * @param arr
+     * @return
+     */
+    @SafeVarargs
+	public static <T> T [] toArray(T ... arr) {
+    	return arr;
+    }
 }

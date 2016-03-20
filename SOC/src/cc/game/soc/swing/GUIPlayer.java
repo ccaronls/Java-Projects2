@@ -34,7 +34,7 @@ public class GUIPlayer extends PlayerBot {
     private boolean animationEnabled = true;
 	
     public boolean isInfoVisible() {
-        return false;
+        return GUI.instance.getProps().getBooleanProperty(GUI.PROP_AI_TUNING_ENABLED, false);
     }
 
 	private long getAnimTime() {
@@ -114,7 +114,7 @@ public class GUIPlayer extends PlayerBot {
                 float endAng    = comp.getEdgeAngle(target);
                 float curAng    = startAng + (endAng - startAng) * position;
                 
-                GUI.instance.getBoardComponent().drawShip(g, curV, curAng, false);
+                GUI.instance.getBoardComponent().drawShip(g, curV, Math.round(curAng), false);
                 render.popMatrix();				
 			}
 		});
@@ -346,4 +346,10 @@ public class GUIPlayer extends PlayerBot {
             notify(); // notify anyone waiting on this (see spinner)
         }		
 	}
+
+	@Override
+	protected BotNode onOptimalPath(BotNode optimal, List<BotNode> leafs) {
+		return GUI.instance.chooseOptimalPath(optimal, leafs);
+	}
+	
 }

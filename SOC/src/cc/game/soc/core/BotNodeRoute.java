@@ -1,5 +1,8 @@
 package cc.game.soc.core;
 
+import cc.lib.game.IVector2D;
+import cc.lib.math.Vector2D;
+
 public class BotNodeRoute extends BotNode {
 
 	static {
@@ -26,5 +29,8 @@ public class BotNodeRoute extends BotNode {
 		return "E(" + index + ") " + route.toString();
 	}
 
-	
+	public IVector2D getBoardPosition(Board b) {
+    	return b.getRouteMidpoint(route);
+    }
+
 }

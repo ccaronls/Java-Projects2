@@ -1723,7 +1723,7 @@ public class SOC extends Reflector<SOC> {
 					for (int ii=0; ii<mNumPlayers; ii++) {
 						Player cur = mPlayers[(ii + mCurrentPlayer) % mNumPlayers];
 						int numCards = cur.getTotalCardsLeftInHand();
-						if (numCards > getMinHandCardsForRobberDiscard(cur.getPlayerNum())) {
+						if (numCards > mRules.getMaxSafeCardsForPlayer(cur.getPlayerNum(), mBoard)) {
 							int numCardsToSurrender = numCards / 2;
 							printinfo(cur.getName() + " must give up " + numCardsToSurrender + " of " + numCards + " cards");
 							while (numCardsToSurrender > 0)
@@ -4936,16 +4936,6 @@ public class SOC extends Reflector<SOC> {
 	public int getBarbarianDistance() {
 		return this.mBarbarianDistance;
 	}
-
-	public int getMinHandCardsForRobberDiscard(int playerNum) {
-		int num = getRules().getMaxSafeCards();
-		if (getRules().isEnableCitiesAndKnightsExpansion()) {
-			num += getRules().getNumSafeCardsPerCityWall() * mBoard.getNumVertsOfType(playerNum, VertexType.WALLED_CITY,
-				// From the rule book metros are not included in this computation but I think they should be so I am doing it so there
-				VertexType.METROPOLIS_POLITICS, VertexType.METROPOLIS_SCIENCE, VertexType.METROPOLIS_TRADE); 
-		}
-		return num;
-	}
 	
 	public String getHelpText() {
 		if (mStateStack.peek() == null) {
@@ -4954,4 +4944,5 @@ public class SOC extends Reflector<SOC> {
 		
 		return mStateStack.peek().state.helpText;
 	}
+	
 }

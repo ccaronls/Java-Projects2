@@ -27,6 +27,7 @@ public abstract class BoardComponent extends JComponent implements MouseMotionLi
     	PM_EDGE,
     	PM_TILE,
     	PM_VERTEX,
+    	PM_CUSTOM, // CUSTOM must be associated with a CustomPickHandler
     }
     
     enum RenderFlag {
@@ -94,6 +95,33 @@ public abstract class BoardComponent extends JComponent implements MouseMotionLi
     	 * @return
     	 */
     	boolean isPickableIndex(BoardComponent bc, int index);
+    }
+    
+    public static interface CustomPickHandler extends PickHandler {
+
+    	/**
+    	 * Return number of custom pickable elements 
+    	 * @return
+    	 */
+		int getNumElements();
+
+		/**
+		 * Pick a custom element
+		 * 
+		 * Example:
+		 *   for (int i : getNumElements())
+		 *      render.setName(i)
+		 *      render.addVertex(...)
+		 *      
+		 *   return r.pickPoints(10);
+		 *   
+		 * @param render
+		 * @param x
+		 * @param y
+		 * @return
+		 */
+		int pickElement(AWTRenderer render, int x, int y);
+    	
     }
 
     private Board board;
@@ -616,7 +644,7 @@ public abstract class BoardComponent extends JComponent implements MouseMotionLi
 	
 	private void renderDamagedEdge(Route e) {
 		Vertex v0 = board.getVertex(e.getFrom());
-		//Vertex v1 = board.getVertex(e.getTo());
+		Vertex v1 = board.getVertex(e.getTo());
 		render.clearVerts();
 		render.addVertex(v0);
 		Vector2D v = board.getRouteMidpoint(e);
@@ -722,11 +750,12 @@ public abstract class BoardComponent extends JComponent implements MouseMotionLi
 	}
 	
 	void drawShip(Graphics g, Route e, boolean outline) {
-		drawShip(g, getBoard().getRouteMidpoint(e), getEdgeAngle(e), outline);
+		IVector2D mp = getBoard().getRouteMidpoint(e);
+		drawFaces(g, mp, getEdgeAngle(e), board.getTileWidth()/8, FaceType.SHIP, outline);
 	}
 	
-	void drawShip(Graphics g, IVector2D mp, float angle, boolean outline) {
-		drawFaces(g, mp, angle, board.getTileWidth()/8, FaceType.SHIP, outline);
+	void drawShip(Graphics g, IVector2D v, int angle, boolean outline) {
+		drawFaces(g, v, angle, board.getTileWidth()/8, FaceType.SHIP, outline);
 	}
 	
 	void drawWarShip(Graphics g, Route e, boolean outline) {
@@ -737,11 +766,50 @@ public abstract class BoardComponent extends JComponent implements MouseMotionLi
 	public void drawRobber(Graphics g, Tile cell) {
 		g.setColor(Color.LIGHT_GRAY);
 		drawFaces(g, cell, 0, getBoard().getTileWidth()/7, FaceType.ROBBER, false);
+		/*
+	    //float [] v = {0,0};
+	    //render.transformXY(board.getCellWidth(), board.getCellHeight(), v);
+		render.clearVerts();
+	    float sx = board.getTileWidth() / bw * (getWidth()-padding);
+	    float sy = board.getTileHeight() / bh * (getHeight()-padding);
+	    float [] v = {0,0};
+        int w = Math.round(sx) / 2;
+        int h = Math.round(sy) / 2;
+        render.transformXY(cell.getX(), cell.getY(), v);
+        int x = Math.round(v[0]) - w/2;
+        int y = Math.round(v[1]) - h/2;
+        //int x = Math.round(sx * cell.getX()) - w/2;
+        //int y = Math.round(sy * cell.getY()) - h/2;
+        if (!getRenderFlag(RenderFlag.DONT_DRAW_TEXTURES))
+            images.drawImage(g, robberImage, x, y, w,h);
+        else {
+            g.setColor(Color.BLACK);
+            g.fillOval(x,y,w,h);
+        }*/
 	}
 	
 	public void drawPirate(Graphics g, IVector2D v) {
 		g.setColor(Color.BLACK);
 		drawFaces(g, v, 0, getBoard().getTileWidth()/7, FaceType.WAR_SHIP, false);
+		/*
+	    //float [] v = {0,0};
+	    //render.transformXY(board.getCellWidth(), board.getCellHeight(), v);
+		render.clearVerts();
+	    float sx = board.getTileWidth() / bw * (getWidth()-padding);
+	    float sy = board.getTileHeight() / bh * (getHeight()-padding);
+        int w = Math.round(sx) / 2;
+        int h = Math.round(sy) / 2;
+        MutableVector2D V = render.transformXY(v);
+        int x = Math.round(V.X()) - w/2;
+        int y = Math.round(V.Y()) - h/2;
+        //int x = Math.round(sx * cell.getX()) - w/2;
+        //int y = Math.round(sy * cell.getY()) - h/2;
+        if (!getRenderFlag(RenderFlag.DONT_DRAW_TEXTURES))
+            images.drawImage(g, pirateImage, x, y, w,h);
+        else {
+            g.setColor(Color.BLACK);
+            g.fillOval(x,y,w,h);
+        }*/
 	}
 
 	/**
@@ -890,6 +958,7 @@ public abstract class BoardComponent extends JComponent implements MouseMotionLi
             case NONE:
                 g.setColor(outlineColor);
                 drawTileOutline(g, cell, 2);
+                //Utils.drawJustifiedString(g,x,y,Justify.CENTER,Justify.CENTER,"NONE");
                 break;
             case DESERT:
                 images.drawImage(g, desertImage, x-w/2, y-h/2, w, h);
@@ -1013,6 +1082,8 @@ public abstract class BoardComponent extends JComponent implements MouseMotionLi
     	    computeBoardRect();
     		g.setColor(bkColor);
     		g.fillRect(0,0,getWidth(),getHeight());
+    		//float xs = (float)getWidth();
+    		//float ys = (float)getHeight();
     		render.setOrtho(0, getWidth(), 0, getHeight());
     		render.makeIdentity();
     		render.translate(padding, padding);
@@ -1021,6 +1092,7 @@ public abstract class BoardComponent extends JComponent implements MouseMotionLi
     		render.scale(1f/bw, 1f/bh);
     		render.scale(dim-2*padding, dim-2*padding);
             render.translate(-bx, -by);
+            //render.translate(bx, by);
             if (!getRenderFlag(RenderFlag.DONT_DRAW_TEXTURES)) {
                 drawTilesTextured(g);
             } 
@@ -1059,7 +1131,6 @@ public abstract class BoardComponent extends JComponent implements MouseMotionLi
         			drawEdge(g, e, e.getType(), e.getPlayer(), false);
         		}
             }
-            
     		
     		// draw the structures
             if (!getRenderFlag(RenderFlag.DONT_DRAW_STRUCTURES)) {
@@ -1078,12 +1149,22 @@ public abstract class BoardComponent extends JComponent implements MouseMotionLi
         			drawVertex(g, v, v.getType(), v.getPlayer(), false);
         		}
             }
+            
+            if (pickMode == PickMode.PM_CUSTOM) {
+            	CustomPickHandler handler = (CustomPickHandler)pickHandler;
+            	for (int i=0; i<handler.getNumElements(); i++) {
+            		if (i == pickedValue) {
+            			handler.onHighlighted(this, render, g, i);
+            		} else {
+            			handler.onDrawPickable(this, render, g, i);
+            		}
+            	}
+            }
     		
     		int robberTile = board.getRobberTileIndex();
     		int pirateTile = board.getPirateTileIndex();
     		int merchantTile = board.getMerchantTileIndex();
     		int merchantPlayer = board.getMerchantPlayer();
-
     		
             if (pickedValue >= 0) {
             	pickHandler.onHighlighted(this, render, g, pickedValue);
@@ -1230,6 +1311,9 @@ public abstract class BoardComponent extends JComponent implements MouseMotionLi
     			break;
     		case PM_TILE:
     		    index = pickTile(ev.getX(), ev.getY());
+    			break;
+    		case PM_CUSTOM:
+    			index = ((CustomPickHandler)pickHandler).pickElement(render, ev.getX(), ev.getY());
     			break;
 		}
 		
@@ -1385,3 +1469,7 @@ public abstract class BoardComponent extends JComponent implements MouseMotionLi
         drawInfo(g, Math.round(v[0]), Math.round(v[1]), info);
     }
 }
+
+
+
+

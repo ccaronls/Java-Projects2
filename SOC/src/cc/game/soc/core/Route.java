@@ -93,7 +93,7 @@ public final class Route extends Reflector<Route> implements Comparable<Route> {
 	}
 
 	public String toString() {
-	    return "Route " + from + "->" + to + " player (" + player + ") Flags[" + getFlagsString() + "] Tiles: " + Arrays.toString(tiles);
+	    return "Route " + from + "->" + to + " player (" + player + ") Flags[" + getFlagsString() + "] Tiles: " + tiles[0]+"/"+tiles[1];//Arrays.toString(tiles);
 	}
 	
 	public String getFlagsString() {

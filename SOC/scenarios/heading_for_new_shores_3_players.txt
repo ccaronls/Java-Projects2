@@ -2313,7 +2313,7 @@ mBoard=cc.game.soc.core.Board {
          pirateRouteNext=-1
          x=0.7142856
          y=0.3888889
-         type=RANDOM_PORT_OR_WATER
+         type=RANDOM_PORT
          adjVerts=int 6 {
             7 10 11 12 13 8 
          }
@@ -2385,7 +2385,7 @@ mBoard=cc.game.soc.core.Board {
          pirateRouteNext=-1
          x=0.7142856
          y=0.5
-         type=RANDOM_PORT_OR_WATER
+         type=WATER
          adjVerts=int 6 {
             9 8 13 26 30 31 
          }
@@ -2421,7 +2421,7 @@ mBoard=cc.game.soc.core.Board {
          pirateRouteNext=-1
          x=0.60714275
          y=0.5555556
-         type=RANDOM_PORT_OR_WATER
+         type=RANDOM_PORT
          adjVerts=int 6 {
             4 3 9 31 37 38 
          }
@@ -2565,7 +2565,7 @@ mBoard=cc.game.soc.core.Board {
          pirateRouteNext=-1
          x=0.1785714
          y=0.5555556
-         type=RANDOM_PORT_OR_WATER
+         type=RANDOM_PORT
          adjVerts=int 6 {
             68 66 65 71 72 73 
          }
@@ -2601,7 +2601,7 @@ mBoard=cc.game.soc.core.Board {
          pirateRouteNext=-1
          x=0.28571424
          y=0.61111116
-         type=RANDOM_PORT_OR_WATER
+         type=WATER
          adjVerts=int 6 {
             72 71 70 78 79 80 
          }
@@ -2661,7 +2661,7 @@ mBoard=cc.game.soc.core.Board {
          pirateRouteNext=-1
          x=0.4999999
          y=0.16666669
-         type=RANDOM_PORT_OR_WATER
+         type=WATER
          adjVerts=int 6 {
             92 93 94 95 90 89 
          }
@@ -2697,7 +2697,7 @@ mBoard=cc.game.soc.core.Board {
          pirateRouteNext=-1
          x=0.39285707
          y=0.111111134
-         type=RANDOM_PORT_OR_WATER
+         type=RANDOM_PORT
          adjVerts=int 6 {
             103 104 96 93 92 105 
          }
@@ -2709,7 +2709,7 @@ mBoard=cc.game.soc.core.Board {
          pirateRouteNext=-1
          x=0.60714275
          y=0.22222224
-         type=RANDOM_PORT_OR_WATER
+         type=RANDOM_PORT
          adjVerts=int 6 {
             90 95 102 106 107 91 
          }
@@ -2745,7 +2745,7 @@ mBoard=cc.game.soc.core.Board {
          pirateRouteNext=-1
          x=0.28571424
          y=0.16666669
-         type=RANDOM_PORT
+         type=WATER
          adjVerts=int 6 {
             113 114 103 105 111 115 
          }
@@ -2769,7 +2769,7 @@ mBoard=cc.game.soc.core.Board {
          pirateRouteNext=-1
          x=0.7142856
          y=0.2777778
-         type=RANDOM_PORT_OR_WATER
+         type=WATER
          adjVerts=int 6 {
             107 106 110 14 11 10 
          }
@@ -2829,7 +2829,7 @@ mBoard=cc.game.soc.core.Board {
          pirateRouteNext=-1
          x=0.4999999
          y=0.6111111
-         type=RANDOM_PORT_OR_WATER
+         type=WATER
          adjVerts=int 6 {
             77 5 4 38 118 119 
          }
@@ -2985,7 +2985,7 @@ mBoard=cc.game.soc.core.Board {
          pirateRouteNext=-1
          x=0.39285707
          y=0.6666667
-         type=RANDOM_PORT_OR_WATER
+         type=RANDOM_PORT
          adjVerts=int 6 {
             79 78 77 119 120 144 
          }

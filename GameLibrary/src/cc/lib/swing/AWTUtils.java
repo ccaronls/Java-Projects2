@@ -10,6 +10,11 @@ import cc.lib.game.Utils;
 import cc.lib.utils.Reflector;
 
 public class AWTUtils {
+	
+	public final static Color TRANSPARENT = new Color(0,0,0,0);
+	
+	public final static Color TRANSLUSCENT_BLACK = setAlpha(Color.BLACK, 128);
+	
     /**
      * 
      * @param r0
@@ -211,7 +216,7 @@ public class AWTUtils {
      */
     private static int priv_drawJustifiedString(Graphics g, int x, int y, Justify hJust, String text, Color outlineColor, int outlineThickness) {
         int x0 = x;
-        final int textWidth = g.getFontMetrics().stringWidth(text);
+        final int textWidth = getStringWidth(g, text);
         switch (hJust) {
         case LEFT: 
             break;
@@ -457,7 +462,7 @@ public class AWTUtils {
             	break;
             }
             try {
-            	t = split(g, text, 0, text.length(), maxWidth);
+            	t = splitR(g, text, 0, text.length(), maxWidth, 0);
                 lines.add(t);
                 text = text.substring(t.length()).trim();
             } catch (Exception e) {
@@ -510,7 +515,11 @@ public class AWTUtils {
      * @return
      */
     public static int getStringWidth(Graphics g, String text) {
-        return g.getFontMetrics().stringWidth(text);
+    	if (g == null)
+    		return text.length();
+        return g.getFontMetrics().stringWidth(text) + 2; // https://docs.oracle.com/javase/tutorial/2d/text/measuringtext.html
+        //(int)(0.5 + g.getFontMetrics().getStringBounds(text.toCharArray(), 0, text.length(), g).getWidth());
+        		//.stringWidth(text);
     }
     
     /**
@@ -645,6 +654,15 @@ public class AWTUtils {
         }       
     }
     
+    /**
+     * 
+     * @param g
+     * @param x0
+     * @param y0
+     * @param x1
+     * @param y1
+     * @param thickness
+     */
     public static void drawLinef(Graphics g, float x0, float y0, float x1, float y1, int thickness) {
         int ix0 = Math.round(x0);
         int iy0 = Math.round(y0);
@@ -654,6 +672,13 @@ public class AWTUtils {
         drawLine(g, ix0, iy0, ix1, iy1, thickness);
     }
     
+    /**
+     * 
+     * @param g
+     * @param cx
+     * @param cy
+     * @param radius
+     */
     public static void drawDiskf(Graphics g, float cx, float cy, float radius) {
         int x0 = Math.round(cx-radius);
         int y0 = Math.round(cy-radius);
@@ -883,9 +908,15 @@ public class AWTUtils {
      */
     public static Color stringToColor(String line) {
 		String [] parts = line.split(",");
-		return new Color(Integer.parseInt(parts[0]),
+		if (parts.length == 3)
+			return new Color(Integer.parseInt(parts[0]),
 						 Integer.parseInt(parts[1]), 
 						 Integer.parseInt(parts[2]));
+		else 
+			return new Color(Integer.parseInt(parts[0]),
+					 Integer.parseInt(parts[1]), 
+					 Integer.parseInt(parts[2]),
+					 Integer.parseInt(parts[3]));
 	}
 
     /**
@@ -897,6 +928,9 @@ public class AWTUtils {
 	    return String.valueOf(color.getRed()) + "," + String.valueOf(color.getGreen()) + "," + String.valueOf(color.getBlue());
 	}
 	
+	/**
+	 * 
+	 */
 	public static final Reflector.AArchiver COLOR_ARCHIVER = new Reflector.AArchiver() {
 		
 		@Override
@@ -909,4 +943,35 @@ public class AWTUtils {
 			return colorToString((Color)obj);
 		}
 	};
+
+	/**
+	 * 
+	 * @param g
+	 * @param rect
+	 * @param border
+	 */
+	public static void fillRect(Graphics g, Rectangle rect, int border) {
+		g.fillRect(rect.x-border, rect.y-border, rect.width+border*2, rect.height+border*2);
+	}
+
+	/**
+	 * 
+	 * @param x
+	 * @param y
+	 * @param r
+	 * @return
+	 */
+	public static boolean isInsideRect(int x, int y, Rectangle r) {
+		return x > r.x && x < r.x+r.width && y > r.y && y < r.y+r.height;
+	}
+	
+	public static void drawWrapJustifiedStringOnBackground(Graphics g, int x, int y, int maxWidth, int padding, Justify hJust, Justify vJust, String txt, Color bkColor) {
+		Color cur = g.getColor();
+		g.setColor(AWTUtils.TRANSPARENT);
+		Rectangle rect = AWTUtils.drawWrapJustifiedString(g, x, y, maxWidth, hJust, vJust, txt);
+		g.setColor(bkColor);
+		AWTUtils.fillRect(g, rect, padding);
+		g.setColor(cur);
+		AWTUtils.drawWrapJustifiedString(g, x, y, maxWidth, hJust, vJust, txt);
+	}
 }

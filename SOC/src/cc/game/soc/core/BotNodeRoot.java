@@ -2,6 +2,12 @@ package cc.game.soc.core;
 
 public class BotNodeRoot extends BotNode {
 
+	private final String desc;
+	
+	BotNodeRoot(String desc) {
+		this.desc = desc;
+	}
+	
 	@Override
 	public Object getData() {
 		return null;
@@ -9,7 +15,7 @@ public class BotNodeRoot extends BotNode {
 
 	@Override
 	public String getDescription() {
-		return "ROOT";
+		return desc;
 	}
 
 	

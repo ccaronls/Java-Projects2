@@ -1,12 +1,10 @@
 package cc.game.soc.core;
 
 import java.io.PrintStream;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map.Entry;
+import java.util.*;
 
+import cc.lib.game.IVector2D;
+import cc.lib.math.Vector2D;
 import cc.lib.utils.Reflector;
 
 public abstract class BotNode extends Reflector<BotNode> implements Comparable<BotNode> {
@@ -20,7 +18,7 @@ public abstract class BotNode extends Reflector<BotNode> implements Comparable<B
     private int numProperties = 0;
     float chance = 1.0f;
     BotNode next;
-    final HashMap<String, Double> properties = new HashMap<String, Double>();
+    final Map<String, Double> properties = new TreeMap<String, Double>();
     
     List<BotNode> children = new LinkedList<BotNode>();
     BotNode parent = null;
@@ -84,16 +82,24 @@ public abstract class BotNode extends Reflector<BotNode> implements Comparable<B
     public abstract Object getData();
     
     public abstract String getDescription();
+    
+    public IVector2D getBoardPosition(Board b) {
+    	return Vector2D.ZERO;
+    }
 
     public final double getValue() {
     	if (numProperties != properties.size()) {
     		value = 0;
-    		for (Entry<String, Double> e : properties.entrySet()) {
-    			value += e.getValue();
+    		for (Map.Entry<String, Double> e : properties.entrySet()) {
+    			value += AITuning.getInstance().getScalingFactor(e.getKey()) * e.getValue();
     		}
     		numProperties = properties.size();
     	}
         return value;
+    }
+    
+    public final void resetCache() {
+    	numProperties = 0;
     }
     
     public final List<BotNode> getChildren() {
@@ -109,22 +115,32 @@ public abstract class BotNode extends Reflector<BotNode> implements Comparable<B
     	double value = getValue();
     	double argValue = arg.getValue();
     	
+    	// descending order
     	if (value < argValue)
-    		return -1;
+    		return 1;
     	
     	if (value > argValue)
-    		return 1;
+    		return -1;
     	
     	return 0;
     }
-
+    
     public final void addValue(String name, double value) {
+    	name = name.replace(' ', '_').trim();
     	if (value != 0) {
     		properties.put(name, value*chance);
     	} else {
     		properties.remove(name);
     	}
     	numProperties = 0;
+    }
+    
+    public final Set<String> getKeys() {
+    	return properties.keySet();
+    }
+    
+    public final Double getValue(String key) {
+    	return properties.get(key);
     }
     
     public String debugDump() {
@@ -136,7 +152,7 @@ public abstract class BotNode extends Reflector<BotNode> implements Comparable<B
     	return buf.toString();
     }
 
-	public void invalidate() {
+	public void clear() {
 		properties.clear();
 		numProperties = 0;
 		value = Double.NEGATIVE_INFINITY;

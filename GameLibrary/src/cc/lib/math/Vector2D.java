@@ -252,6 +252,9 @@ public class Vector2D extends Reflector<Vector2D> implements IVector2D, Serializ
 
     @Override
     public final boolean equals(Object o) {
+    	if (this == o)
+    		return true;
+    	
         if (!(o instanceof Vector2D))
             return false;
         
@@ -259,6 +262,29 @@ public class Vector2D extends Reflector<Vector2D> implements IVector2D, Serializ
         float dx = x-v.x;
         float dy = y-v.y;
         return (Math.abs(dx) < CMath.EPSILON && Math.abs(dy) < CMath.EPSILON);
+    }
+    
+    /**
+     * Get a hashCode for the 2D vector.
+     * <p>
+     * All NaN values have the same hash code.</p>
+     *
+     * @return a hash code value for this object
+     */
+    @Override
+    public int hashCode() {
+        if (isNaN()) {
+            return 542;
+        }
+        return 122 * (76 * Float.valueOf(x).hashCode() +  Float.valueOf(y).hashCode());
+    }
+    
+    public boolean isZero() {
+    	return equals(ZERO);
+    }
+    
+    public boolean isNaN() {
+    	return Float.isNaN(x) || Float.isNaN(y);
     }
 
     protected void writeObject(ObjectOutputStream out) throws IOException {

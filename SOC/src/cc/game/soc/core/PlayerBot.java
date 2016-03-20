@@ -20,8 +20,8 @@ public class PlayerBot extends Player {
 	private Set<Integer> usedShipRoutes = new HashSet<Integer>();
 	private Set<MoveType> usedMoves = new HashSet<MoveType>();
 
-	private BotNode createNewTree() {
-		BotNode node = new BotNodeRoot();
+	private BotNode createNewTree(String desc) {
+		BotNode node = new BotNodeRoot(desc);
 		
 	//	leafNodes.clear();
 		usedRoadRoutes.clear();
@@ -44,8 +44,21 @@ public class PlayerBot extends Player {
 		
 		try {
     		Collections.sort(leafs);
-    		Collections.reverse(leafs);
     		out.print("MOVES");
+    		
+    		Collection<String> properties = isolateChangingLeafProperties(leafs);
+    		
+    		HashMap<String,Double> maxValues = new HashMap<>();
+    		for (BotNode n : leafs) {
+    			for (String key : n.properties.keySet()) {
+    				Double v = n.properties.get(key);
+    				if (!maxValues.containsKey(key)) {
+    					maxValues.put(key, v);
+    				} else {
+    					maxValues.put(key, Math.max(v, maxValues.get(key)));
+    				}
+    			}
+    		}
     		
     		for (BotNode leaf : leafs) {
     			LinkedList<BotNode> moves = new LinkedList<BotNode>();
@@ -55,22 +68,37 @@ public class PlayerBot extends Player {
     			
     			{
         			for (BotNode n : moves) {
-        				out.print(String.format(",%s(%4f)", n.getDescription(), n.getValue()));
+        				out.print(String.format(",%s(%4s)", n.getDescription(), n.getValue()));
         				//out.print(String.format("%-" + maxWidth + "s(%4f)", n.getDescription(), n.getValue()));
         			}
         			if (leaf.isOptimal()) {
-        				out.print("** OPTIMAL **");
+        				out.print(",** OPTIMAL **");
         			}
         			out.println();
     			}
+
+    			double total = 0;
+    			for (String key : properties) {
+    				if (leaf.properties.containsKey(key)) {
+    					total += leaf.properties.get(key);
+    				} else {
+    					leaf.properties.put(key, 0.0);
+    				}
+    			}
     			
-    			Collection<String> properties = leaf.properties.keySet();//isolateChangingProperties(leaf);
     			for (String key :  properties) {
     				out.print(key);
+    				Double val = null;
     				for (BotNode n : moves) {
-    					Object val = n.properties.get(key);
-    					out.print(String.format(",%s", val == null ? "null" : val));
+    					val = n.properties.get(key);
+    					out.print(String.format(",%s", val == null ? "0" : val));
     				}
+
+    				double max = maxValues.get(key);
+					int maxPercent = (int)(100 * val / max);
+					int maxTotal = (int)(100 * val / total);
+					out.print(String.format(",%d%% of max - %d%% of total", maxPercent, maxTotal));
+    				
         			out.println();
     			}
     		}
@@ -83,7 +111,6 @@ public class PlayerBot extends Player {
 	private void dumpAllPaths(List<BotNode> leafs, PrintStream out) {
 		// print out all move paths such that the optimal is printed last
 		Collections.sort(leafs);
-		//Collections.reverse(leafs);
 
 		for (BotNode leaf : leafs) {
 			//HashSet<String> changes = new HashSet<String>();
@@ -122,6 +149,54 @@ public class PlayerBot extends Player {
 		}
 	}*/
 	
+	private void stripUnchangingProperties(List<BotNode> nodes) {
+		HashMap<String, Double> values = new HashMap<>();
+		for (BotNode n : nodes) {
+			values.putAll(n.properties);
+		}
+		HashSet<String> changing = new HashSet<>();
+		for (BotNode n : nodes) {
+			for (String k : values.keySet()) { //n.properties.keySet()) {
+				if (n.properties.containsKey(k)) {
+    				double value = n.properties.get(k);
+    				if (value != values.get(k)) {
+    					changing.add(k);
+    				}
+				} else {
+					n.properties.put(k, 0.0);
+					changing.add(k);
+				}
+			}
+		}
+		for (BotNode n : nodes) {
+			for (String k : changing) {
+				if (!n.properties.containsKey(k)) {
+					n.properties.put(k, 0.0);
+				}
+				n.properties.keySet().retainAll(changing);
+			}
+		}
+	}
+	
+	private Collection<String> isolateChangingLeafProperties(List<BotNode> leafs) {
+		Set<String> keepers = new HashSet<String>();
+		HashMap<String, Double> values = new HashMap<>();
+		for (BotNode n : leafs) {
+			values.putAll(n.properties);
+		}
+		for (BotNode n : leafs) {
+			for (String key: n.properties.keySet()) {
+				if (keepers.contains(key))
+					continue;
+				if (!values.get(key).equals(n.properties.get(key))) {
+					keepers.add(key);
+					break;
+				}
+			}
+		}
+		return keepers;
+	}
+
 	private List<String> isolateChangingProperties(BotNode leaf) {
 		List<String> props = new ArrayList<String>();
 		for (String key : leaf.properties.keySet()) {
@@ -133,17 +208,39 @@ public class PlayerBot extends Player {
 					props.add(key);
 					break;
 				}
+				val = val2;
 				p = p.parent;
 			}
 		}
 		return props;
 	}
+
+	/**
+	 * Use this method as an option to return a different node for optimal.  Must be one of the nodes in the leafs.
+	 * @param optimal
+	 * @param leafs
+	 * @return
+	 */
+	protected BotNode onOptimalPath(BotNode optimal, List<BotNode> leafs) { return optimal; }
 	
 	private void buildOptimalPath(BotNode root) {
 		ArrayList<BotNode> leafs = new ArrayList<BotNode>();
 		BotNode child = buildOptimalPathR(root, leafs);
+		stripUnchangingProperties(leafs);
+		Collections.sort(leafs);
+		child = onOptimalPath(child, leafs);
+		while (child == null) {
+			for (BotNode l : leafs) {
+				l.resetCache();
+			}
+			Collections.sort(leafs);
+			child = onOptimalPath(null, leafs);
+		}
+		
+		assert(leafs.contains(child));
 		child.setOptimal(true);
-		if(DEBUG_ENABLED) {
+		
+		if(false && DEBUG_ENABLED) {
 //			root.printTree(System.out);
 			try {
 				//PrintStream out = new PrintStream(new File("/tmp/playerAI" + getPlayerNum()));
@@ -160,9 +257,16 @@ public class PlayerBot extends Player {
 			child.parent.next = child;
 			child = child.parent;
 		}
+
 		movesPath = child;
-		
-		
+
+		Utils.print("Path: ");
+		for (BotNode n = movesPath; n!=null; n=n.next) {
+			Utils.print(n.getDescription());
+			if (n.next != null)
+				Utils.print("==>>");
+		}
+		Utils.println();
 		
 		/*
 		if (Utils.DEBUG_ENABLED) {
@@ -307,8 +411,8 @@ public class PlayerBot extends Player {
 			if (recurseMoves)
 				buildChooseMoveTreeR(soc, p, b, root, SOC.computeMoves(p, b, soc));
 			else {
-				evaluateEdges(root, soc, p, b);
-				evaluateSeafarers(root, soc.getRules(), b, getPlayerNum());
+				
+				doEvaluateAll(root, soc, p, b);
 			}
 				
 			return;
@@ -319,30 +423,39 @@ public class PlayerBot extends Player {
 		@SuppressWarnings("unchecked")
 		List<Integer> ships = allowShips ? SOC.computeShipRouteIndices(soc, p.getPlayerNum(), b) : Collections.EMPTY_LIST;
 		
-		roads.removeAll(usedRoadRoutes);
-		ships.removeAll(usedShipRoutes);
+		int numRoads = roads.size();
+		int numShips = ships.size();
 		
-		usedRoadRoutes.addAll(roads);
-		usedShipRoutes.addAll(ships);
+		//roads.removeAll(usedRoadRoutes);
+		//ships.removeAll(usedShipRoutes);
 		
-		if (roads.size() > 0) {
-			BotNode roadOptions = root.attach(new BotNodeEnum(RouteChoiceType.ROAD_CHOICE));
+		//usedRoadRoutes.addAll(roads);
+		//usedShipRoutes.addAll(ships);
+		
+		if (numRoads > 0) {
+			BotNode n = root;
+			if (numShips > 0)
+				n = root.attach(new BotNodeEnum(RouteChoiceType.ROAD_CHOICE));
 			for (int roadIndex : roads) {
 				Route r = b.getRoute(roadIndex);
 				b.setPlayerForRoute(r, p.getPlayerNum(), RouteType.ROAD);
-				BotNode n = roadOptions.attach(new BotNodeRoute(r, roadIndex));
-				addRouteBuildingMovesR(soc, p, b, n, allowRoads, allowShips, depth-1, recurseMoves);
+				r.setLocked(true);
+				addRouteBuildingMovesR(soc, p, b, n.attach(new BotNodeRoute(r, roadIndex)), allowRoads, allowShips, depth-1, recurseMoves);
+				r.setLocked(false);
 				b.setRouteOpen(r);
 			}
 		}
 		
-		if (ships.size() > 0) {
-			BotNode shipOptions = root.attach(new BotNodeEnum(RouteChoiceType.SHIP_CHOICE));
+		if (numShips > 0) {
+			BotNode n = root;
+			if (numRoads > 0)
+				n = root.attach(new BotNodeEnum(RouteChoiceType.SHIP_CHOICE));
 			for (int shipIndex : ships) {
 				Route r = b.getRoute(shipIndex);
 				b.setPlayerForRoute(r, p.getPlayerNum(), RouteType.SHIP);
-				BotNode n = shipOptions.attach(new BotNodeRoute(r, shipIndex));
-				addRouteBuildingMovesR(soc, p, b, n, allowRoads, allowShips, depth-1, recurseMoves);
+				r.setLocked(true);
+				addRouteBuildingMovesR(soc, p, b, n.attach(new BotNodeRoute(r, shipIndex)), allowRoads, allowShips, depth-1, recurseMoves);
+				r.setLocked(false);
 				b.setRouteOpen(r);
 			}
 		}
@@ -363,6 +476,7 @@ public class PlayerBot extends Player {
 				case CONTINUE:
 					//doEvaluate(root, soc, p, b, 1);
 					// nothing to evaluate since we inherit all values from our parent
+					doEvaluateAll(root, soc, p, b);
 					break;
 				case TRADE: {
 					List<Trade> trades = SOC.computeTrades(p, b);
@@ -374,7 +488,7 @@ public class PlayerBot extends Player {
 								continue; // 
 							p.addCard(r);
 							BotNode node = n.attach(new BotNodeCard(r));
-							evaluatePlayer(node, soc, p, b);
+							//evaluatePlayer(node, soc, p, b);
 							buildChooseMoveTreeR(soc, p, b, node, SOC.computeMoves(p, b, soc));
 							p.removeCard(r);
 						}
@@ -399,7 +513,7 @@ public class PlayerBot extends Player {
 						v.setPlayerAndType(p.getPlayerNum(), VertexType.SETTLEMENT);
 						onBoardChanged();
 						BotNode node = root.attach(new BotNodeVertex(v, vIndex));
-						evaluateVertices(node, soc.getRules(), p.getPlayerNum(), b);
+						//evaluateVertices(node, soc.getRules(), p.getPlayerNum(), b);
 						buildChooseMoveTreeR(soc, p, b, node, SOC.computeMoves(p, b, soc));
 						v.setOpen();
 					}
@@ -414,7 +528,7 @@ public class PlayerBot extends Player {
 						v.setPlayerAndType(p.getPlayerNum(), VertexType.CITY);
 						onBoardChanged();
 						BotNode node = root.attach(new BotNodeVertex(v, vIndex));
-						evaluateVertices(node, soc.getRules(), p.getPlayerNum(), b);
+						//evaluateVertices(node, soc.getRules(), p.getPlayerNum(), b);
 						buildChooseMoveTreeR(soc, p, b, node, SOC.computeMoves(p, b, soc));
 						v.setPlayerAndType(p.getPlayerNum(), VertexType.SETTLEMENT);
 					}
@@ -429,7 +543,7 @@ public class PlayerBot extends Player {
 						v.setPlayerAndType(p.getPlayerNum(), VertexType.WALLED_CITY);
 						onBoardChanged();
 						BotNode node = root.attach(new BotNodeVertex(v, vIndex));
-						evaluateVertices(node, soc.getRules(), p.getPlayerNum(), b);
+						//evaluateVertices(node, soc.getRules(), p.getPlayerNum(), b);
 						buildChooseMoveTreeR(soc, p, b, node, SOC.computeMoves(p, b, soc));
 						v.setPlayerAndType(p.getPlayerNum(), VertexType.CITY);
 					}
@@ -439,7 +553,7 @@ public class PlayerBot extends Player {
 				case REPAIR_ROAD: {
 					p.adjustResourcesForBuildable(BuildableType.Road, -1);
 					p.removeCard(SpecialVictoryType.DamagedRoad);
-					evaluatePlayer(root, soc, p, b);
+					//evaluatePlayer(root, soc, p, b);
 					buildChooseMoveTreeR(soc, p, b, root, SOC.computeMoves(p, b, soc));
 					p.addCard(SpecialVictoryType.DamagedRoad);
 					p.adjustResourcesForBuildable(BuildableType.Road, 1);
@@ -447,7 +561,7 @@ public class PlayerBot extends Player {
 				}
 				case BUILD_ROAD: {
 					p.adjustResourcesForBuildable(BuildableType.Road, -1);
-					addRouteBuildingMovesR(soc, p, b, root, true, false, 2, true);
+					addRouteBuildingMovesR(soc, p, b, root, true, false, 1, true);
 					p.adjustResourcesForBuildable(BuildableType.Road, 1);
 					break;
 				}
@@ -467,7 +581,7 @@ public class PlayerBot extends Player {
 							b.setRobber(tIndex);
 						onBoardChanged();
 						BotNode node = root.attach(new BotNodeTile(t, tIndex));
-						evaluateTiles(node, soc, p, b);
+						doEvaluateAll(node, soc, p, b);
 					}
 					b.setRobber(saveRobber);
 					b.setPirate(savePirate);
@@ -483,7 +597,7 @@ public class PlayerBot extends Player {
 							ResourceType r2 = ResourceType.values()[ii];
 							p.incrementResource(r2, 1);
 							BotNode node = n.attach(new BotNodeCard(r2));
-							evaluatePlayer(node, soc, p, b);
+							//evaluatePlayer(node, soc, p, b);
 							buildChooseMoveTreeR(soc, p, b, node, SOC.computeMoves(p, b, soc));
 							p.incrementResource(r2, -1);
 						}
@@ -501,7 +615,7 @@ public class PlayerBot extends Player {
 					p.adjustResourcesForBuildable(BuildableType.Development, -1);
 					Card temp = new Card(DevelopmentCardType.Soldier, CardStatus.UNUSABLE);
 					p.addCard(temp);
-					evaluatePlayer(root, soc, p, b);
+					doEvaluateAll(root, soc, p, b);
 					root.addValue("randomness", Utils.randFloatX(1));
 					p.removeCard(temp);
 					p.adjustResourcesForBuildable(BuildableType.Development, 1);
@@ -515,7 +629,7 @@ public class PlayerBot extends Player {
 						v.setPlayerAndType(p.getPlayerNum(), VertexType.BASIC_KNIGHT_INACTIVE);
 						BotNode node = root.attach(new BotNodeVertex(v, vIndex));
 						onBoardChanged();
-						evaluateVertices(node, soc.getRules(), p.getPlayerNum(), b);
+						doEvaluateAll(node, soc, p, b);
 						//buildChooseMoveTreeR(soc, p, b, node, SOC.computeMoves(p, b, soc));
 						v.setOpen();
 					}
@@ -540,7 +654,7 @@ public class PlayerBot extends Player {
 					int commodity = p.getCityDevelopment(area);
 					p.setCityDevelopment(area, commodity+1);
 					p.incrementResource(area.commodity, -(commodity+1));
-					evaluatePlayer(root, soc, p, b);
+					//evaluatePlayer(root, soc, p, b);
 					buildChooseMoveTreeR(soc, p, b, root, SOC.computeMoves(p, b, soc));
 					p.setCityDevelopment(area, commodity);
 					p.incrementResource(area.commodity, commodity+1);
@@ -551,7 +665,7 @@ public class PlayerBot extends Player {
 					int commodity = p.getCityDevelopment(area);
 					p.setCityDevelopment(area, commodity+1);
 					p.incrementResource(area.commodity, -(commodity+1));
-					evaluatePlayer(root, soc, p, b);
+					//evaluatePlayer(root, soc, p, b);
 					buildChooseMoveTreeR(soc, p, b, root, SOC.computeMoves(p, b, soc));
 					p.setCityDevelopment(area, commodity);
 					p.incrementResource(area.commodity, commodity+1);
@@ -562,7 +676,7 @@ public class PlayerBot extends Player {
 					int commodity = p.getCityDevelopment(area);
 					p.setCityDevelopment(area, commodity+1);
 					p.incrementResource(area.commodity, -(commodity+1));
-					evaluatePlayer(root, soc, p, b);
+					//evaluatePlayer(root, soc, p, b);
 					buildChooseMoveTreeR(soc, p, b, root, SOC.computeMoves(p, b, soc));
 					p.setCityDevelopment(area, commodity);
 					p.incrementResource(area.commodity, commodity+1);
@@ -582,7 +696,7 @@ public class PlayerBot extends Player {
 							VertexType saveType2 = knightMove.getType();
 							BotNode knightMoveChoice = knightChoice.attach(new BotNodeVertex(knightMove, moveIndex));
 							onBoardChanged();
-							evaluateVertices(knightMoveChoice, soc.getRules(), p.getPlayerNum(), b);
+							doEvaluateAll(knightMoveChoice, soc, p, b);
 							if (saveType2 == VertexType.OPEN) {
 								//buildChooseMoveTreeR(soc, p, b, knightMoveChoice, SOC.computeMoves(p, b, soc));
 								knightMove.setOpen();
@@ -610,7 +724,7 @@ public class PlayerBot extends Player {
 							newPos.setLocked(true);
 							BotNode node = new BotNodeRoute(newPos, moveIndex);
 							onBoardChanged();
-							evaluateEdges(node, soc, p, b);
+							//evaluateEdges(node, soc, p, b);
 							buildChooseMoveTreeR(soc, p, b, shipChoice.attach(node), SOC.computeMoves(p, b, soc));
 							b.setRouteOpen(newPos);
 							newPos.setLocked(false);
@@ -623,13 +737,13 @@ public class PlayerBot extends Player {
 				case PROMOTE_KNIGHT: {
 					List<Integer> promotable = SOC.computePromoteKnightVertexIndices(p, b);
 					p.adjustResourcesForBuildable(BuildableType.PromoteKnight, -1);
-					evaluatePlayer(root, soc, p, b);
+					doEvaluateAll(root, soc, p, b);
 					for (int knightIndex : promotable) {
 						Vertex knight = b.getVertex(knightIndex);
 						knight.promoteKnight();
 						BotNode node = root.attach(new BotNodeVertex(knight, knightIndex));
 						onBoardChanged();
-						evaluateVertices(node, soc.getRules(), p.getPlayerNum(), b);
+						//evaluateVertices(node, soc.getRules(), p.getPlayerNum(), b);
 						buildChooseMoveTreeR(soc, p, b, node, SOC.computeMoves(p, b, soc));
 						knight.demoteKnight();
 					}
@@ -658,7 +772,7 @@ public class PlayerBot extends Player {
 						p.incrementResource(area.commodity, -count);
 						p.setCityDevelopment(area, count+1);
 						BotNode node = root.attach(new BotNodeEnum(area));
-						evaluatePlayer(node, soc, p, b);
+						//evaluatePlayer(node, soc, p, b);
 						buildChooseMoveTreeR(soc, p, b, node, SOC.computeMoves(p, b, soc));
 						p.setCityDevelopment(area, count);
 						p.incrementResource(area.commodity, count);
@@ -670,7 +784,7 @@ public class PlayerBot extends Player {
 					p.removeCard(ProgressCardType.Deserter);
 					List<Integer> knightOptions = SOC.computeNewKnightVertexIndices(getPlayerNum(), b);
 					if (knightOptions.size() == 0) {
-						root.invalidate();
+						root.clear();
 					} else for (int pIndex : SOC.computeDeserterPlayers(soc, b, p)) {
 						BotNode node = root.attach(new BotNodePlayer(soc.getPlayerByPlayerNum(pIndex)));
 						int oIndex = b.getKnightsForPlayer(pIndex).get(0);
@@ -683,7 +797,7 @@ public class PlayerBot extends Player {
 							v.setPlayerAndType(p.getPlayerNum(), oType);
 							onBoardChanged();
 							BotNode b2 = node.attach(new BotNodeVertex(v, kIndex));
-							evaluateVertices(b2, soc.getRules(), p.getPlayerNum(), b);
+							doEvaluateAll(b2, soc, p, b);
 							// dont recurse since this step is a bit random
 							v.setOpen();
 						}
@@ -706,13 +820,13 @@ public class PlayerBot extends Player {
 								b.setPlayerForRoute(r2, p.getPlayerNum(), RouteType.ROAD);
 								BotNode node = n.attach(new BotNodeRoute(r2, rIndex2));
 								onBoardChanged();
-								evaluateEdges(node, soc, p, b);
+								//evaluateEdges(node, soc, p, b);
 								buildChooseMoveTreeR(soc, p, b, node, SOC.computeMoves(p, b, soc));
 								b.setRouteOpen(r2);
 							}
 						} else {
 							onBoardChanged();
-							evaluateEdges(n, soc, p, b);
+							//evaluateEdges(n, soc, p, b);
 							buildChooseMoveTreeR(soc, p, b, n, SOC.computeMoves(p, b, soc));
 						}
 						b.setPlayerForRoute(r, savePlayer, RouteType.ROAD);
@@ -728,7 +842,7 @@ public class PlayerBot extends Player {
 						city.setPlayerAndType(p.getPlayerNum(), VertexType.WALLED_CITY);
 						onBoardChanged();
 						BotNode node = root.attach(new BotNodeVertex(city, cIndex));
-						evaluateVertices(node, soc.getRules(), p.getPlayerNum(), b);
+						//evaluateVertices(node, soc.getRules(), p.getPlayerNum(), b);
 						buildChooseMoveTreeR(soc, p, b, node, SOC.computeMoves(p, b, soc));
 						city.setPlayerAndType(p.getPlayerNum(), VertexType.CITY);
 					}
@@ -747,7 +861,7 @@ public class PlayerBot extends Player {
 							p.addCard(comm);
 							BotNode node = n.attach(new BotNodeCard(c));
 							evaluateOpponent(node, soc, p, b);
-							evaluatePlayer(node, soc, p, b);
+							doEvaluateAll(node, soc, p, b);
 							p.removeCard(comm);
 							p2.addCard(comm);
 							p.addCard(c);
@@ -767,7 +881,7 @@ public class PlayerBot extends Player {
 						// since we dont know where the opponent will position the displaced knight, we evaluate here
 						BotNode node = root.attach(new BotNodeVertex(v, vIndex));
 						onBoardChanged();
-						evaluateVertices(node, soc.getRules(), p.getPlayerNum(), b);
+						doEvaluateAll(node, soc, p, b);
 						v.setPlayerAndType(savePlayer, saveType);
 					}
 					//p.addCard(ProgressCardType.Intrigue);
@@ -788,7 +902,7 @@ public class PlayerBot extends Player {
 							t1.setDieNum(die0);
 							BotNode node = root.attach(new BotNodeTile(t0, i)).attach(new BotNodeTile(t1, ii));
 							onBoardChanged();
-							evaluateVertices(node, soc.getRules(), p.getPlayerNum(), b);
+							doEvaluateAll(node, soc, p, b);
 							t0.setDieNum(die0);
 							t1.setDieNum(die1);
 						}
@@ -799,10 +913,10 @@ public class PlayerBot extends Player {
 				case IRRIGATION_CARD: {
 					int numGained = SOC.computeNumStructuresAdjacentToTileType(p.getPlayerNum(), b, TileType.FIELDS);
 					p.removeCard(ProgressCardType.Irrigation);
-					evaluatePlayer(root, soc, p, b);
+					doEvaluateAll(root, soc, p, b);
 					if (numGained > 0) {
 						p.incrementResource(ResourceType.Wheat, numGained);
-						evaluatePlayer(root, soc, p, b);
+						//evaluatePlayer(root, soc, p, b);
 						buildChooseMoveTreeR(soc, p, b, root, SOC.computeMoves(p, b, soc));
 						p.incrementResource(ResourceType.Wheat, -numGained);
 					}
@@ -828,7 +942,7 @@ public class PlayerBot extends Player {
 							cards[i] = Utils.randItem(ResourceType.values());
 							p.addCard(cards[i]);
 						}
-						evaluatePlayer(node, soc, p, b);
+						doEvaluateAll(node, soc, p, b);
 //						evaluateOpponent(node, soc, p, b);
 						for (int i=0; i<num; i++) {
 							p.removeCard(cards[i]);
@@ -849,7 +963,7 @@ public class PlayerBot extends Player {
     							v.setPlayerAndType(p.getPlayerNum(), VertexType.CITY);
     							onBoardChanged();
     							BotNode node = root.attach(new BotNodeVertex(v, vIndex));
-    							evaluateVertices(node, soc.getRules(), p.getPlayerNum(), b);
+    							//evaluateVertices(node, soc.getRules(), p.getPlayerNum(), b);
     							buildChooseMoveTreeR(soc, p, b, node, SOC.computeMoves(p, b, soc));
     							v.setPlayerAndType(p.getPlayerNum(), VertexType.SETTLEMENT);
     						}
@@ -868,8 +982,8 @@ public class PlayerBot extends Player {
 						Tile t = b.getTile(tIndex);
 						b.setMerchant(tIndex, p.getPlayerNum());
 						BotNode node = root.attach(new BotNodeTile(t, tIndex));
-						evaluateVertices(node, soc.getRules(), p.getPlayerNum(), b);
-						evaluateTiles(node, soc, p, b);
+						//evaluateVertices(node, soc.getRules(), p.getPlayerNum(), b);
+						//evaluateTiles(node, soc, p, b);
 						buildChooseMoveTreeR(soc, p, b, node, SOC.computeMoves(p, b, soc));
 						b.setMerchant(saveMerchantTile, saveMerchantPlayer);
 					}
@@ -907,7 +1021,7 @@ public class PlayerBot extends Player {
 					for (ResourceType t : ResourceType.values()) {
 						BotNode n = root.attach(new BotNodeEnum(t));
 						p.incrementResource(t, soc.getNumPlayers()-1);
-						evaluatePlayer(n, soc, p, b);
+						doEvaluateAll(n, soc, p, b);
 						// for random things we need to add some extra randomness
 						n.addValue("randomness", Utils.randFloatX(1));
 						p.incrementResource(t, -(soc.getNumPlayers()-1));
@@ -916,12 +1030,12 @@ public class PlayerBot extends Player {
 					break;
 				case RESOURCE_MONOPOLY_CARD: {
 					p.removeCard(ProgressCardType.ResourceMonopoly);
-					evaluatePlayer(root, soc, p, b);
+//					evaluatePlayer(root, soc, p, b);
 					int num = 2*(soc.getNumPlayers()-1);
 					for (ResourceType t : ResourceType.values()) {
 						BotNode n = root.attach(new BotNodeEnum(t));
 						p.incrementResource(t, num);
-						evaluatePlayer(n, soc, p, b);
+						doEvaluateAll(n, soc, p, b);
 						p.incrementResource(t, -num);
 					}
 					//p.addCard(ProgressCardType.ResourceMonopoly);
@@ -984,7 +1098,7 @@ public class PlayerBot extends Player {
 				}
 				case SPY_CARD: {
 					p.removeCard(ProgressCardType.Spy);
-					evaluatePlayer(root, soc, p, b);
+					doEvaluateAll(root, soc, p, b);
 					List<Integer> players = SOC.computeSpyOpponents(soc, p.getPlayerNum());
 					for (int num: players) {
 						Player player = soc.getPlayerByPlayerNum(num);
@@ -1001,7 +1115,7 @@ public class PlayerBot extends Player {
 					for (CommodityType t : CommodityType.values()) {
 						BotNode node = root.attach(new BotNodeEnum(t));
 						p.addCards(t, 2);
-						evaluatePlayer(node, soc, p, b);
+						doEvaluateAll(node, soc, p, b);
 						//buildChooseMoveTreeR(soc, p, b, node, SOC.computeMoves(p, b, soc));
 						p.removeCards(t, 2);
 					}
@@ -1015,7 +1129,7 @@ public class PlayerBot extends Player {
 						for (int vIndex : verts) {
 							b.getVertex(vIndex).activateKnight();
 						}
-						evaluateVertices(root, soc.getRules(), p.getPlayerNum(), b);
+						//evaluateVertices(root, soc.getRules(), p.getPlayerNum(), b);
 						buildChooseMoveTreeR(soc, p, b, root, SOC.computeMoves(p, b, soc));
 						for (int vIndex : verts) {
 							b.getVertex(vIndex).deactivateKnight();
@@ -1026,10 +1140,10 @@ public class PlayerBot extends Player {
 				}
 				case WEDDING_CARD: {
 					p.removeCard(ProgressCardType.Wedding);
-					evaluatePlayer(root, soc, p, b);
+					doEvaluateAll(root, soc, p, b);
 					List<Integer> weddingPlayers = SOC.computeWeddingOpponents(soc, p);
 					if ( weddingPlayers.size() == 0)
-						root.invalidate();
+						root.clear();
 					else {
 						root.addValue("wedding", 0.1 * weddingPlayers.size());
 					}
@@ -1046,7 +1160,7 @@ public class PlayerBot extends Player {
 						v.setPlayerAndType(getPlayerNum(), VertexType.SETTLEMENT);
 						BotNode node = root.attach(new BotNodeVertex(v, vIndex));
 						node.chance = chance;
-						evaluateVertices(node, soc.getRules(), p.getPlayerNum(), b);
+						doEvaluateAll(node, soc, p, b);
 						v.setPirateFortress();
 					}
 					break;
@@ -1055,7 +1169,7 @@ public class PlayerBot extends Player {
 					for (int rIndex : b.getRoutesIndicesOfType(getPlayerNum(), RouteType.SHIP)) {
 						Route r = b.getRoute(rIndex);
 						r.setType(RouteType.WARSHIP);
-						evaluateEdges(root.attach(new BotNodeRoute(r, rIndex))	, soc, p, b);
+						doEvaluateAll(root.attach(new BotNodeRoute(r, rIndex))	, soc, p, b);
 						r.setType(RouteType.SHIP);
 					}
 					break;
@@ -1068,8 +1182,7 @@ public class PlayerBot extends Player {
 						BotNode node = root.attach(new BotNodeRoute(route, rIndex));
 						node.chance = chance;
 						copy.setRouteOpen(route);
-						evaluateEdges(node, soc, p, b);
-						evaluateVertices(node, soc.getRules(), p.getPlayerNum(), b);
+						doEvaluateAll(node, soc, p, b);
 					}
 					break;
 				}
@@ -1085,8 +1198,7 @@ public class PlayerBot extends Player {
 						BotNode node = root.attach(new BotNodeVertex(v, vIndex));
 						node.chance = chance;
 						v.setPlayerAndType(v.getPlayer(), result[0]);
-						evaluateEdges(node, soc, p, b);
-						evaluateVertices(node, soc.getRules(), p.getPlayerNum(), b);
+						doEvaluateAll(node, soc, p, b);
 					}
 					break;
 				}
@@ -1094,7 +1206,7 @@ public class PlayerBot extends Player {
 					for (int rIndex : b.getRoutesIndicesOfType(getPlayerNum(), RouteType.SHIP)) {
 						Route r = b.getRoute(rIndex);
 						r.setType(RouteType.WARSHIP);
-						evaluateEdges(root.attach(new BotNodeRoute(r, rIndex)), soc, p, b);
+						doEvaluateAll(root.attach(new BotNodeRoute(r, rIndex)), soc, p, b);
 						r.setType(RouteType.SHIP);
 					}
 					break;
@@ -1116,11 +1228,13 @@ public class PlayerBot extends Player {
 		if (moves.size() == 1)
 			return moves.iterator().next();
 		
-		BotNode root = createNewTree();
-		evaluateEdges(root, soc, this, soc.getBoard());
-		evaluatePlayer(root, soc, this, soc.getBoard());
-		evaluateTiles(root, soc, this, soc.getBoard());
-		evaluateVertices(root, soc.getRules(), getPlayerNum(), soc.getBoard());
+		BotNode root = createNewTree("Choose Move");
+//		evaluateEdges(root, soc, this, soc.getBoard());
+//		evaluatePlayer(root, soc, this, soc.getBoard());
+//		evaluateTiles(root, soc, this, soc.getBoard());
+//		evaluateVertices(root, soc, this, soc.getBoard());
+//		evaluateSeafarers(root, soc,this, soc.getBoard());
+//		evalu
 		Player p = new PlayerTemp(this);
 		p.setCardsUsable(CardType.Development, false); // prevent generating development card moves on subsequent calls
 		buildChooseMoveTreeR(soc, p, soc.getBoard(), root, moves);
@@ -1150,14 +1264,12 @@ public class PlayerBot extends Player {
 			default:
 		}
 		
-		
-		
 		if (movesPath != null) {
 			return detatchMove();
 		}
 		Board b = soc.getBoard();
 		Player p = this;
-		BotNode root = createNewTree();
+		BotNode root = createNewTree("Choose Vertex");
 		
 		for (int vIndex : vertexIndices) {
 			Vertex v = b.getVertex(vIndex);
@@ -1200,8 +1312,7 @@ public class PlayerBot extends Player {
 			}
 			onBoardChanged();
 			BotNode node = root.attach(new BotNodeVertex(v, vIndex));
-			evaluateVertices(node, soc.getRules(), p.getPlayerNum(), b);
-			evaluateSeafarers(node, soc.getRules(), b, getPlayerNum());
+			doEvaluateAll(node, soc, p, b);
 			v.copyFrom(save);
 			if (islandNum > 0 && !discovered) {
 				b.setIslandDiscovered(p.getPlayerNum(), islandNum, false);
@@ -1217,7 +1328,7 @@ public class PlayerBot extends Player {
 			return detatchMove();
 		}
 
-		BotNode root = createNewTree();
+		BotNode root = createNewTree("Choose Route");
 		Board b = soc.getBoard();
 		Player p = this;
 		
@@ -1239,8 +1350,7 @@ public class PlayerBot extends Player {
 			}
 			onBoardChanged();
 			BotNode node = root.attach(new BotNodeRoute(r, rIndex));
-			evaluateEdges(node, soc, p, b);
-			evaluateSeafarers(node, soc.getRules(), b, getPlayerNum());
+			doEvaluateAll(node, soc, p, b);
 			r.copyFrom(save);
 		}
 		buildOptimalPath(root);
@@ -1253,7 +1363,7 @@ public class PlayerBot extends Player {
 			return detatchMove();
 		}
 		
-		BotNode root = createNewTree();
+		BotNode root = createNewTree("Choose Route Type");
 		Player p = new PlayerTemp(this);
 		Board b = soc.getBoard();
 		
@@ -1272,7 +1382,7 @@ public class PlayerBot extends Player {
 		Player p = this;
 		Board b = soc.getBoard();
 		
-		BotNode root = createNewTree();
+		BotNode root = createNewTree("Choose Tile");
 		switch (mode) {
 			case INVENTOR:
 			case MERCHANT:
@@ -1290,7 +1400,7 @@ public class PlayerBot extends Player {
 						b.setRobber(tIndex);
 					}
 					BotNode node = root.attach(new BotNodeTile(t, tIndex));
-					evaluateTiles(node, soc, p, b);
+					doEvaluateAll(node, soc, p, b);
 					b.setPirate(pirateSave);
 					b.setRobber(robberSave);
 				}
@@ -1326,7 +1436,7 @@ public class PlayerBot extends Player {
 		Player p = this;
 		Board b = soc.getBoard();
 		
-		BotNode root = createNewTree();
+		BotNode root = createNewTree("Choose Player");
 		
 		for (int num : playerOptions) {
 			Player opponent = soc.getPlayerByPlayerNum(num);
@@ -1348,11 +1458,11 @@ public class PlayerBot extends Player {
 			return detatchMove();
 		}
 
-		BotNode root = createNewTree();
+		BotNode root = createNewTree("Choose Card");
 		for (Card c : cards) {
 			addCard(c);
 			BotNode node = root.attach(new BotNodeCard(c));
-			evaluatePlayer(node, soc, this, soc.getBoard());
+			doEvaluateAll(node, soc, this, soc.getBoard());
 			removeCard(c);
 		}
 		buildOptimalPath(root);
@@ -1410,8 +1520,18 @@ public class PlayerBot extends Player {
     	return diePossibility_usegetter[dieNum];
     }
 	
-	public static void evaluateVertices(BotNode node, Rules rules, int playerNum, Board b) {
+    private static void doEvaluateAll(BotNode node, SOC soc, Player p, Board b) {
+    	doEvaluateEdges(node, soc, p, b);
+    	doEvaluatePlayer(node, soc, p, b);
+    	doEvaluateSeafarers(node, soc, p, b);
+    	doEvaluateTiles(node, soc, p, b);
+    	doEvaluateVertices(node, soc, p, b);
+    }
+    
+	private static void doEvaluateVertices(BotNode node, SOC soc, Player p, Board b) {
 		
+		////////////////////////////////////////////////////////////////////////////////////////////////////////////
+		//
 		// things to consider:
 		// score from structures:
 		//   settlement +1
@@ -1434,13 +1554,24 @@ public class PlayerBot extends Player {
 		//
 		// Value from ports:
 		//   
+		////////////////////////////////////////////////////////////////////////////////////////////////////////////
+		
+		int playerNum = p.getPlayerNum();
+		Rules rules = soc.getRules();
+		
 		HashSet<Integer> tilesAdjacent = new HashSet<Integer>();
 		HashSet<Integer> tilesProtected  = new HashSet<Integer>();
 		
 		double [] resourceProb = new double[SOC.NUM_RESOURCE_TYPES];
 		final int [] resourcePorts = new int[SOC.NUM_RESOURCE_TYPES];
-		float numMultiPorts = 0;
+		double [] resourceTradeFactor = new double[SOC.NUM_RESOURCE_TYPES];
 		
+		for (int i=0; i<resourceTradeFactor.length; i++) {
+			resourceTradeFactor[i] = 4; // default is 4:1 trade
+		}
+		
+		float numMultiPorts = 0;
+
 		if (b.getMerchantTile() != null && b.getMerchantPlayer() == playerNum) {
 			Tile t = b.getMerchantTile();
 			resourcePorts[t.getResource().ordinal()] ++;
@@ -1511,9 +1642,12 @@ public class PlayerBot extends Player {
 						case PORT_WHEAT:
 						case PORT_WOOD:
 							resourcePorts[cell.getResource().ordinal()]++;
+							resourceTradeFactor[cell.getResource().ordinal()] = 2;
 							break;
 						case PORT_MULTI:
 							numMultiPorts++;
+							for (int i=0; i<resourceTradeFactor.length; i++)
+								resourceTradeFactor[i] = Math.min(resourceTradeFactor[i], 3);
 							break;
 						case DESERT:
 							break;
@@ -1539,13 +1673,27 @@ public class PlayerBot extends Player {
 			}
 		}
 
-		double resourceProbValue = 0.5 * CMath.sum(resourceProb);
+		for (int i=0; i<resourceProb.length; i++) {
+			resourceProb[i] /= resourceTradeFactor[i]; // scale a resource differently when it has a trade option
+		}
+		
+		double resourceProbValue = 4 * CMath.sum(resourceProb);
 		//resourceProbValue *= 2;
+		
+		double portValue = 0;
+		for (int i=0; i<SOC.NUM_RESOURCE_TYPES; i++) {
+			if (resourcePorts[i] > 0)
+				portValue += 0.02;
+			else if (numMultiPorts > 0)
+				portValue += 0.01;
+		}		
+		
+		/*
 		double resourcePortProb = 0;
 		for (int i=0; i<SOC.NUM_RESOURCE_TYPES; i++) {
 			if (resourcePorts[i] > 0)
 				resourcePortProb += resourceProb[i];
-		}
+		}*/
 
 		tilesAdjacent.retainAll(tilesProtected);
 		float covered = 0;
@@ -1557,18 +1705,15 @@ public class PlayerBot extends Player {
 		double stdDev = 0.1 * Math.abs(CMath.stdDev(resourceProb, ave));
 		double resourceDistribution = ave - stdDev;
 		
-		float multiPortValue = 0.1f * (numMultiPorts > 0 ? 1.0f / numMultiPorts : 0);
-		
 		node.addValue("Resource distribution", resourceDistribution);
-		node.addValue("Resource Port Prob", resourcePortProb);
-		node.addValue("Multi Ports", multiPortValue);
+		node.addValue("Port value", portValue);
 		node.addValue("Resource Prob", resourceProbValue);
 		node.addValue("Structures", structureValue);
 		node.addValue("tiles protected", covered);
 		node.addValue("knights", knightValue);
 	}
 
-	public static void evaluateEdges(BotNode node, SOC soc, Player p, final Board b) {
+	private static void doEvaluateEdges(BotNode node, SOC soc, Player p, final Board b) {
 
 		float value = 0;
 		// evaluate 
@@ -1599,9 +1744,11 @@ public class PlayerBot extends Player {
 		
 		// evaluate potential settlements
 		int numPotential = 0;
+		boolean [] usedPorts = new boolean[SOC.NUM_RESOURCE_TYPES];
+		boolean usedMulti = false;
 		double [] resourceProb = new double[SOC.NUM_RESOURCE_TYPES];
 		for (int vIndex=0; vIndex<b.getNumVerts(); vIndex++) {
-			if (b.isVertexAdjacentToPlayerRoad(vIndex, p.getPlayerNum()) && b.isVertexAvailbleForSettlement(vIndex)) {
+			if (b.isVertexAdjacentToPlayerRoute(vIndex, p.getPlayerNum()) && b.isVertexAvailbleForSettlement(vIndex)) {
 				numPotential ++;
 				Vertex v = b.getVertex(vIndex);
 				for (Tile cell : b.getTilesAdjacentToVertex(v)) {
@@ -1622,8 +1769,10 @@ public class PlayerBot extends Player {
 						case PORT_SHEEP:
 						case PORT_WHEAT:
 						case PORT_WOOD:
+							usedPorts[cell.getResource().ordinal()] = true;
 							break;
 						case PORT_MULTI:
+							usedMulti = true;
 							break;
 						case DESERT:
 							break;
@@ -1646,10 +1795,17 @@ public class PlayerBot extends Player {
 			}
 		}
 		
-		double potentialSettlementResourceProb = 0.5f * CMath.sum(resourceProb);
+		for (int i=0; i<SOC.NUM_RESOURCE_TYPES; i++) {
+			if (usedPorts[i])
+				resourceProb[i] *= 1.25;
+			else if (usedMulti)
+				resourceProb[i] *= 1.1;
+		}
 		
-		node.addValue("potentialSettlements", 0.1f * numPotential);
-		node.addValue("potentialSettlementResourceProb", potentialSettlementResourceProb);
+		double potentialSettlementResourceProb = CMath.sum(resourceProb);
+		
+		node.addValue("potentialSettlements", numPotential);
+		node.addValue("potentialResourceProb", potentialSettlementResourceProb);
 	}
 	
 	private final static int DISTANCE_INFINITY = 100;
@@ -1684,6 +1840,13 @@ public class PlayerBot extends Player {
 			this.next = next;
 		}
 		
+		@Override
+		public String toString() {
+			return "shortestDistanceToPirateFortress=" + shortesDistanceToAPirateFortress
+				 + "\nshortestDistanceToUndiscoveredIslands=" + Arrays.toString(shortestDistanceToUndiscoveredIslands)
+				 + "\nshortestDistanceToUndiscoveredTile=" + shortestDistanceToUndiscoveredTile;
+		}
+		
 		public List<Integer> getShortestPath(int fromVertex, int toVertex) {
 			List<Integer> path = new ArrayList<Integer>();
 			if (dist[fromVertex][toVertex] == DISTANCE_INFINITY)
@@ -1703,27 +1866,38 @@ public class PlayerBot extends Player {
 		}
 	}
 	
-	public static void evaluateSeafarers(BotNode node, final Rules rules, final Board b, final int playerNum) {
-		if (rules.isEnableSeafarersExpansion()) {
-			Distances d = computeWaterwayDistances(rules, b, playerNum);
-			node.addValue("shortestDistanceToAPirateFortress", 1.0 / (1.0+d.shortesDistanceToAPirateFortress));
-			node.addValue("shortestDistanceToUndiscoveredTile", 1.0 / (1.0+d.shortestDistanceToUndiscoveredTile));
+	private static void doEvaluateSeafarers(BotNode node, SOC soc, Player p, Board b) {
+		if (soc.getRules().isEnableSeafarersExpansion()) {
+			Distances d = computeWaterwayDistances(soc.getRules(), b, p.getPlayerNum());
+			node.addValue("minDistPirate", 1f / (1.0+d.shortesDistanceToAPirateFortress));
+			node.addValue("minDistNewTile", 1f / (1.0+d.shortestDistanceToUndiscoveredTile));
 			if (b.getNumIslands() > 0) {
     			float minDistToUndiscoveredIsland = DISTANCE_INFINITY;
+    			float aveDist = 0;
+    			int numIslands = 0;
     			for (int i=1; i<=b.getNumIslands(); i++) {
     				if (d.shortestDistanceToUndiscoveredIslands[i] < minDistToUndiscoveredIsland) {
     					minDistToUndiscoveredIsland = d.shortestDistanceToUndiscoveredIslands[i];
     				}
+    				if (!b.isIslandDiscovered(p.getPlayerNum(), i)) {
+    					aveDist += d.shortestDistanceToUndiscoveredIslands[i];
+    					numIslands++;
+    				}
     			}
-    			node.addValue("shortestDistanceToUndiscoveredIslands", 1.0 / (1.0+minDistToUndiscoveredIsland));
+    			node.addValue("minDistToNewIslands", 1f / (1.0+minDistToUndiscoveredIsland));
+    			if (numIslands > 0) {
+    				aveDist /= numIslands;
+    				node.addValue("aveDistToNewIslands", 1f / (1.0+aveDist));
+    			}
 			}
 		}		
 	}
 	
 	public static Distances computeWaterwayDistances(final Rules rules, final Board b, final int playerNum) {
 		
-		final int [][] dist = new int[b.getNumVerts()][b.getNumVerts()];
-		final int [][] next = new int[b.getNumVerts()][b.getNumVerts()];
+		final int numV = b.getNumVerts();
+		final int [][] dist = new int[numV][numV];
+		final int [][] next = new int[numV][numV];
 		
 		for (int i=0; i<dist.length; i++) {
 			for (int ii=0; ii<dist.length; ii++) {
@@ -1732,7 +1906,7 @@ public class PlayerBot extends Player {
 			}
 			dist[i][i] = 0;
 		}
-
+		
 		// Assign distances to edges
 		for (Route r: b.getRoutes()) {
 			if (r.getPlayer() == playerNum) {
@@ -1744,7 +1918,7 @@ public class PlayerBot extends Player {
 				continue;
 			}
 			
-			if (r.isAdjacentToLand()) {
+			if (!r.isAdjacentToWater()) {
 				// any land is 1 unit
 				dist[r.getFrom()][r.getTo()] = dist[r.getTo()][r.getFrom()] = 1;
 			} else {
@@ -1754,6 +1928,7 @@ public class PlayerBot extends Player {
 				Vertex v0 = b.getVertex(r.getFrom());
 				Vertex v1 = b.getVertex(r.getTo());
 				
+				// water only routes are just 1 unit
 				if (!v0.isAdjacentToLand() && !v1.isAdjacentToLand()) {
 					dist[r.getFrom()][r.getTo()] = dist[r.getTo()][r.getFrom()] = 1;
 					continue;
@@ -1780,8 +1955,20 @@ public class PlayerBot extends Player {
 					}
 					if (done)
 						continue;
+				} else {
+					// water routes extending from land must be adjacent to player's ship, settlement or potential settlement
+					if (v0.getPlayer() != playerNum && 
+							v1.getPlayer() != playerNum &&
+							!b.isVertexAdjacentToPlayerShip(r.getFrom(), playerNum) &&
+							!b.isVertexAdjacentToPlayerShip(r.getTo(), playerNum) &&
+							!b.isVertexAvailbleForSettlement(r.getFrom()) &&
+							!b.isVertexAvailbleForSettlement(r.getTo()))
+						continue; // these stay at infinity
 				}
 				
+				dist[r.getFrom()][r.getTo()] = dist[r.getTo()][r.getFrom()] = 1;
+
+				/*
 				if (v0.isAdjacentToLand() && v0.isStructure() && v0.getPlayer() == playerNum) {
 					dist[r.getFrom()][r.getTo()] = dist[r.getTo()][r.getFrom()] = 1;
 					continue;
@@ -1792,9 +1979,34 @@ public class PlayerBot extends Player {
 					continue;
 				}
 				
+				boolean done = false;
+				for (Route r2 : b.getVertexRoutes(r.getFrom())) {
+					if (r2 != r) {
+						if (r2.isVessel()) {
+							dist[r.getFrom()][r.getTo()] = dist[r.getTo()][r.getFrom()] = 1;
+							done = true;
+							break;
+						}
+					}
+				}
+				
+				if (!done) {
+					for (Route r2 : b.getVertexRoutes(r.getTo())) {
+						if (r2 != r) {
+							if (r2.isVessel()) {
+								dist[r.getFrom()][r.getTo()] = dist[r.getTo()][r.getFrom()] = 1;
+								done = true;
+								break;
+							}
+						}
+					}
+				}
+				
 				// 2 moves includes the move to build a structure (more?)
 				//   should we consider whether the player can build a settlement?
-				dist[r.getFrom()][r.getTo()] = dist[r.getTo()][r.getFrom()] = 2;
+				if (!done)
+					dist[r.getFrom()][r.getTo()] = dist[r.getTo()][r.getFrom()] = 2;
+					*/
 			} 
 		}
 		
@@ -1829,6 +2041,9 @@ public class PlayerBot extends Player {
 		float [] shortestDistanceToUnDiscoveredIsland = new float[b.getNumIslands()+1]; 
 		float shortestDistanceToUndiscoveredTile = DISTANCE_INFINITY;
 
+		for (int i=1; i<shortestDistanceToUnDiscoveredIsland.length; i++)
+			shortestDistanceToUnDiscoveredIsland[i] = DISTANCE_INFINITY;
+		
 		Iterable<Integer> pirateFortresses = b.getVertsOfType(0, VertexType.PIRATE_FORTRESS); 
 		Iterable<Integer> undiscoveredTiles = b.getTilesOfType(TileType.UNDISCOVERED);
 		
@@ -1842,7 +2057,6 @@ public class PlayerBot extends Player {
 		
     		// we want to consider the distance from any of our structures to any undiscovered tile, pirate fortress
     		for (Island i : b.getIslands()) {
-    			shortestDistanceToUnDiscoveredIsland[i.getNum()] = DISTANCE_INFINITY;
     			if (!i.isDiscoveredBy(playerNum)) {
 					for (int rIndex : i.borderRoute) {
 						Route r = b.getRoute(rIndex);
@@ -1865,7 +2079,7 @@ public class PlayerBot extends Player {
 		return new Distances(shortestDistanceToAPirateFortress, shortestDistanceToUnDiscoveredIsland, shortestDistanceToUndiscoveredTile, dist, next);
 	}
 	
-	public static void evaluateTiles(BotNode node, SOC soc, Player p, Board b) {
+	private static void doEvaluateTiles(BotNode node, SOC soc, Player p, Board b) {
 		
 		// Robber
 		if (b.getRobberTileIndex() >= 0) {
@@ -1910,6 +2124,46 @@ public class PlayerBot extends Player {
 		// Pirate
 		if (b.getPirateTile() != null) {
 			Tile t = b.getPirateTile();
+			float scale = 1;
+			switch (t.getType()) {
+				case DESERT:
+					break;
+				case FIELDS:
+				case FOREST:
+				case HILLS:
+				case MOUNTAINS:
+				case PASTURE:
+					break;
+				case PORT_MULTI:
+					scale = 1.2f;
+					break;
+				case PORT_BRICK:
+				case PORT_ORE:
+				case PORT_SHEEP:
+				case PORT_WHEAT:
+				case PORT_WOOD:
+					scale = 1.3f;
+					break;
+				case GOLD:
+					break;
+				case NONE:
+					break;
+				case RANDOM_PORT:
+					break;
+				case RANDOM_PORT_OR_WATER:
+					break;
+				case RANDOM_RESOURCE:
+					break;
+				case RANDOM_RESOURCE_OR_DESERT:
+					break;
+				case UNDISCOVERED:
+					break;
+				case WATER:
+					break;
+				default:
+					break;
+				
+			}
 			float pirateValue = 0;
 			for (Route r : b.getTileRoutes(t)) {
 				switch (r.getType()) {
@@ -1927,7 +2181,7 @@ public class PlayerBot extends Player {
 						break;
 				}
 			}
-			node.addValue("pirateTile", pirateValue);
+			node.addValue("pirateTile", scale * pirateValue);
 		}
 		
 		// Merchant
@@ -1937,26 +2191,35 @@ public class PlayerBot extends Player {
 		
 	}
 	
-	public static void evaluatePlayer(BotNode node, SOC soc, Player p, Board b) {
+	private static void doEvaluatePlayer(BotNode node, SOC soc, Player p, Board b) {
 		
 		// Special Victory Cards
 		float value = 0;
 		for (SpecialVictoryType c : SpecialVictoryType.values()) {
 			value += c.getData() * p.getCardCount(c);
 		}
-		node.addValue("SpecialVictoryCards", value);
+		node.addValue("specialVictoryCards", value);
 		
 		// number of progress cards (less is better)
 		value = p.getCardCount(CardType.Progress);
 		if (value > 0) {
-			node.addValue("ProgressCardCount", 1.0 / value);
+			node.addValue("progressCardCount", 1.0 / value);
 		}
 		
 		// total cards near the max but not over
 		// we want the highest value to be half of the max
 		//node.addValue("cardsInHand", CMath.normalDistribution(p.getTotalCardsLeftInHand(), soc.getRules().getMaxSafeCards()));
 		
-		node.addValue("cardsInHand", p.getTotalCardsLeftInHand() > soc.getRules().getMaxSafeCards() ? 0 : 1);
+		int cardsInHand = 0;
+		final int maxCards = soc.getRules().getMaxSafeCardsForPlayer(p.getPlayerNum(), b);
+		if (p.getTotalCardsLeftInHand() <= maxCards) {
+			cardsInHand = maxCards;
+		} else {
+			cardsInHand = maxCards - 2 * (p.getTotalCardsLeftInHand() - maxCards);
+		}
+		
+//		int cardsInHand = p.getTotalCardsLeftInHand() > soc.getRules().getMaxSafeCards() ? 0 : 1;
+		node.addValue("cardsInHand", 0.1 * cardsInHand);
 		
 		// city development
 		float sum = 0;
@@ -1970,7 +2233,7 @@ public class PlayerBot extends Player {
 				buildableValue += (t.ordinal()+1);
 			}
 		}
-		node.addValue("buildability", 0.02f * buildableValue);
+		node.addValue("buildability", buildableValue);
 		if (soc.getRules().isEnableCitiesAndKnightsExpansion()) {
 			float developmentValue = 0;
 			for (DevelopmentArea a : DevelopmentArea.values()) {
@@ -1980,11 +2243,11 @@ public class PlayerBot extends Player {
 					developmentValue += cur+1;
 				}
 			}
-			node.addValue("cityDevelValue", 0.2f * 	developmentValue);
+			node.addValue("cityDevelValue", developmentValue);
 		}
 	}
 	
-	public static void evaluateDice(BotNode node, int die1, int die2, SOC soc, Player p, Board b) {
+	private static void evaluateDice(BotNode node, int die1, int die2, SOC soc, Player p, Board b) {
 		// which die combe gives us the best results?
 		
 		// if CAK enabled, then die2 should be a value that gives us the best opportunity for a progress card
@@ -2031,7 +2294,7 @@ public class PlayerBot extends Player {
 	 * @param opponent
 	 * @param b
 	 */
-	public static void evaluateOpponent(BotNode node, SOC soc, Player opponent, Board b) {
+	private static void evaluateOpponent(BotNode node, SOC soc, Player opponent, Board b) {
 		int numProgress = opponent.getCardCount(CardType.Progress);
 		int numPoints   = opponent.getPoints();
 		int numCards    = opponent.getTotalCardsLeftInHand();

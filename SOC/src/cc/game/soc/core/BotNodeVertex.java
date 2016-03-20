@@ -1,5 +1,8 @@
 package cc.game.soc.core;
 
+import cc.lib.game.IVector2D;
+import cc.lib.math.Vector2D;
+
 public class BotNodeVertex extends BotNode {
 
 	static {
@@ -33,4 +36,8 @@ public class BotNodeVertex extends BotNode {
 		return s;
 	}
 	
+	public IVector2D getBoardPosition(Board b) {
+    	return vertex;
+    }
+
 }

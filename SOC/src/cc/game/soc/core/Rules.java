@@ -334,4 +334,14 @@ public final class Rules extends Reflector<Rules> {
 		this.maxPlayers = maxPlayers;
 	}
 	
+	public int getMaxSafeCardsForPlayer(int playerNum, Board b) {
+		int num = getMaxSafeCards();
+		if (isEnableCitiesAndKnightsExpansion()) {
+			num += getNumSafeCardsPerCityWall() * b.getNumVertsOfType(playerNum, VertexType.WALLED_CITY,
+				// From the rule book metros are not included in this computation but I think they should be so I am doing it so there
+				VertexType.METROPOLIS_POLITICS, VertexType.METROPOLIS_SCIENCE, VertexType.METROPOLIS_TRADE); 
+		}
+		return num;
+	}
+
 }

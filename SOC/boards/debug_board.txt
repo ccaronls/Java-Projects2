@@ -4,12 +4,176 @@ pirateRouteStartTile=-1
 pirateTile=-1
 robberTile=-1
 ch=0.11111111
-cw=0.14285713
+cw=0.14285712
 name="/Users/chriscaron/Documents/workspace2/MyStuff/Java/SOC/boards/debug_board.txt"
 playerRoadLenCache=int 16 {
    -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 
 }
 islands=java.util.Vector {
+   cc.game.soc.core.Island {
+      num=1
+      discovered=boolean 16 {
+         false false false false false false false false false false false false false false false false 
+      }
+      borderRoute=java.util.ArrayList {
+         java.lang.Integer {
+            61
+         }
+         java.lang.Integer {
+            59
+         }
+         java.lang.Integer {
+            176
+         }
+         java.lang.Integer {
+            172
+         }
+         java.lang.Integer {
+            170
+         }
+         java.lang.Integer {
+            175
+         }
+         java.lang.Integer {
+            177
+         }
+         java.lang.Integer {
+            173
+         }
+         java.lang.Integer {
+            51
+         }
+         java.lang.Integer {
+            49
+         }
+         java.lang.Integer {
+            50
+         }
+         java.lang.Integer {
+            54
+         }
+         java.lang.Integer {
+            63
+         }
+         java.lang.Integer {
+            67
+         }
+         java.lang.Integer {
+            201
+         }
+         java.lang.Integer {
+            200
+         }
+      }
+      tiles=java.util.ArrayList {
+         java.lang.Integer {
+            55
+         }
+         java.lang.Integer {
+            46
+         }
+         java.lang.Integer {
+            12
+         }
+         java.lang.Integer {
+            56
+         }
+      }
+   }
+   cc.game.soc.core.Island {
+      num=2
+      discovered=boolean 16 {
+         false false false false false false false false false false false false false false false false 
+      }
+      borderRoute=java.util.ArrayList {
+         java.lang.Integer {
+            113
+         }
+         java.lang.Integer {
+            111
+         }
+         java.lang.Integer {
+            112
+         }
+         java.lang.Integer {
+            124
+         }
+         java.lang.Integer {
+            116
+         }
+         java.lang.Integer {
+            121
+         }
+         java.lang.Integer {
+            122
+         }
+         java.lang.Integer {
+            205
+         }
+         java.lang.Integer {
+            206
+         }
+         java.lang.Integer {
+            125
+         }
+      }
+      tiles=java.util.ArrayList {
+         java.lang.Integer {
+            27
+         }
+         java.lang.Integer {
+            59
+         }
+      }
+   }
+   cc.game.soc.core.Island {
+      num=3
+      discovered=boolean 16 {
+         false false false false false false false false false false false false false false false false 
+      }
+      borderRoute=java.util.ArrayList {
+         java.lang.Integer {
+            23
+         }
+         java.lang.Integer {
+            32
+         }
+         java.lang.Integer {
+            41
+         }
+         java.lang.Integer {
+            42
+         }
+         java.lang.Integer {
+            25
+         }
+         java.lang.Integer {
+            22
+         }
+         java.lang.Integer {
+            26
+         }
+         java.lang.Integer {
+            28
+         }
+         java.lang.Integer {
+            30
+         }
+         java.lang.Integer {
+            21
+         }
+      }
+      tiles=java.util.ArrayList {
+         java.lang.Integer {
+            6
+         }
+         java.lang.Integer {
+            3
+         }
+      }
+   }
+}
+pirateFortresses=java.util.ArrayList {
 }
 routes=java.util.Vector {
    cc.game.soc.core.Route {
@@ -19,7 +183,7 @@ routes=java.util.Vector {
       to=1
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         0 15 
       }
    }
    cc.game.soc.core.Route {
@@ -29,7 +193,7 @@ routes=java.util.Vector {
       to=5
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         0 25 
       }
    }
    cc.game.soc.core.Route {
@@ -39,7 +203,7 @@ routes=java.util.Vector {
       to=49
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         15 25 
       }
    }
    cc.game.soc.core.Route {
@@ -49,7 +213,7 @@ routes=java.util.Vector {
       to=2
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         0 29 
       }
    }
    cc.game.soc.core.Route {
@@ -59,7 +223,7 @@ routes=java.util.Vector {
       to=48
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         15 29 
       }
    }
    cc.game.soc.core.Route {
@@ -69,7 +233,7 @@ routes=java.util.Vector {
       to=3
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         0 1 
       }
    }
    cc.game.soc.core.Route {
@@ -79,57 +243,57 @@ routes=java.util.Vector {
       to=6
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         1 29 
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=3
       from=3
       player=0
       to=4
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         0 11 
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=3
       from=3
       player=0
       to=9
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         1 11 
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=3
       from=4
       player=0
       to=5
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         0 45 
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=2
       from=4
       player=0
       to=38
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         11 45 
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=3
       from=5
       player=0
       to=77
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         25 45 
       }
    }
    cc.game.soc.core.Route {
@@ -139,7 +303,7 @@ routes=java.util.Vector {
       to=7
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         1 39 
       }
    }
    cc.game.soc.core.Route {
@@ -149,107 +313,107 @@ routes=java.util.Vector {
       to=87
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         29 39 
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=3
       from=7
       player=0
       to=8
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         1 2 
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=3
       from=7
       player=0
       to=10
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         2 39 
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=3
       from=8
       player=0
       to=9
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         1 8 
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=2
       from=8
       player=0
       to=13
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         2 8 
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=2
       from=9
       player=0
       to=31
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         8 11 
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=2
       from=10
       player=0
       to=11
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         2 40 
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=3
       from=10
       player=0
       to=107
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         39 40 
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=3
       from=11
       player=0
       to=12
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         2 3 
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=3
       from=11
       player=0
       to=14
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         3 40 
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=3
       from=12
       player=0
       to=13
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         2 6 
       }
    }
    cc.game.soc.core.Route {
@@ -259,17 +423,17 @@ routes=java.util.Vector {
       to=17
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         3 6 
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=3
       from=13
       player=0
       to=26
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         6 8 
       }
    }
    cc.game.soc.core.Route {
@@ -279,17 +443,17 @@ routes=java.util.Vector {
       to=15
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         3 41 
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=2
       from=14
       player=0
       to=110
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         40 41 
       }
    }
    cc.game.soc.core.Route {
@@ -299,7 +463,7 @@ routes=java.util.Vector {
       to=16
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         3 4 
       }
    }
    cc.game.soc.core.Route {
@@ -309,7 +473,7 @@ routes=java.util.Vector {
       to=18
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         4 41 
       }
    }
    cc.game.soc.core.Route {
@@ -319,7 +483,7 @@ routes=java.util.Vector {
       to=17
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         3 5 
       }
    }
    cc.game.soc.core.Route {
@@ -329,7 +493,7 @@ routes=java.util.Vector {
       to=21
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         4 5 
       }
    }
    cc.game.soc.core.Route {
@@ -339,7 +503,7 @@ routes=java.util.Vector {
       to=24
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         5 6 
       }
    }
    cc.game.soc.core.Route {
@@ -349,7 +513,7 @@ routes=java.util.Vector {
       to=19
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         4 -1 
       }
    }
    cc.game.soc.core.Route {
@@ -359,7 +523,7 @@ routes=java.util.Vector {
       to=116
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         41 -1 
       }
    }
    cc.game.soc.core.Route {
@@ -369,7 +533,7 @@ routes=java.util.Vector {
       to=20
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         4 -1 
       }
    }
    cc.game.soc.core.Route {
@@ -379,7 +543,7 @@ routes=java.util.Vector {
       to=21
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         4 -1 
       }
    }
    cc.game.soc.core.Route {
@@ -389,7 +553,7 @@ routes=java.util.Vector {
       to=22
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         5 -1 
       }
    }
    cc.game.soc.core.Route {
@@ -399,7 +563,7 @@ routes=java.util.Vector {
       to=23
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         5 -1 
       }
    }
    cc.game.soc.core.Route {
@@ -409,7 +573,7 @@ routes=java.util.Vector {
       to=24
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         5 7 
       }
    }
    cc.game.soc.core.Route {
@@ -419,7 +583,7 @@ routes=java.util.Vector {
       to=27
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         7 -1 
       }
    }
    cc.game.soc.core.Route {
@@ -429,37 +593,37 @@ routes=java.util.Vector {
       to=25
       type=OPEN
       tiles=int 2 {
-         -1 -1 
-      }
-   }
-   cc.game.soc.core.Route {
-      flags=1
-      from=25
-      player=0
-      to=26
-      type=OPEN
-      tiles=int 2 {
-         -1 -1 
+         6 7 
       }
    }
    cc.game.soc.core.Route {
       flags=3
       from=25
       player=0
-      to=29
+      to=26
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         6 9 
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=2
+      from=25
+      player=0
+      to=29
+      type=OPEN
+      tiles=int 2 {
+         7 9 
+      }
+   }
+   cc.game.soc.core.Route {
+      flags=2
       from=26
       player=0
       to=30
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         8 9 
       }
    }
    cc.game.soc.core.Route {
@@ -469,7 +633,7 @@ routes=java.util.Vector {
       to=28
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         7 -1 
       }
    }
    cc.game.soc.core.Route {
@@ -479,7 +643,7 @@ routes=java.util.Vector {
       to=29
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         7 10 
       }
    }
    cc.game.soc.core.Route {
@@ -489,77 +653,77 @@ routes=java.util.Vector {
       to=34
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         10 -1 
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=2
       from=29
       player=0
       to=32
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         9 10 
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=3
       from=30
       player=0
       to=31
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         8 12 
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=3
       from=30
       player=0
       to=33
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         9 12 
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=3
       from=31
       player=0
       to=37
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         11 12 
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=2
       from=32
       player=0
       to=33
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         9 13 
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=2
       from=32
       player=0
       to=36
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         10 13 
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=3
       from=33
       player=0
       to=39
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         12 13 
       }
    }
    cc.game.soc.core.Route {
@@ -569,7 +733,7 @@ routes=java.util.Vector {
       to=35
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         10 -1 
       }
    }
    cc.game.soc.core.Route {
@@ -579,7 +743,7 @@ routes=java.util.Vector {
       to=36
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         10 14 
       }
    }
    cc.game.soc.core.Route {
@@ -589,27 +753,27 @@ routes=java.util.Vector {
       to=43
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         14 -1 
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=2
       from=36
       player=0
       to=41
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         13 14 
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=3
       from=37
       player=0
       to=38
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         11 55 
       }
    }
    cc.game.soc.core.Route {
@@ -619,17 +783,17 @@ routes=java.util.Vector {
       to=40
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         12 55 
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=3
       from=38
       player=0
       to=118
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         45 55 
       }
    }
    cc.game.soc.core.Route {
@@ -639,17 +803,17 @@ routes=java.util.Vector {
       to=40
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         12 56 
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=3
       from=39
       player=0
       to=42
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         13 56 
       }
    }
    cc.game.soc.core.Route {
@@ -659,17 +823,17 @@ routes=java.util.Vector {
       to=138
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         55 56 
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=2
       from=41
       player=0
       to=42
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         13 57 
       }
    }
    cc.game.soc.core.Route {
@@ -679,7 +843,7 @@ routes=java.util.Vector {
       to=45
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         14 57 
       }
    }
    cc.game.soc.core.Route {
@@ -689,7 +853,7 @@ routes=java.util.Vector {
       to=140
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         56 57 
       }
    }
    cc.game.soc.core.Route {
@@ -699,7 +863,7 @@ routes=java.util.Vector {
       to=44
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         14 -1 
       }
    }
    cc.game.soc.core.Route {
@@ -709,7 +873,7 @@ routes=java.util.Vector {
       to=45
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         14 -1 
       }
    }
    cc.game.soc.core.Route {
@@ -719,7 +883,7 @@ routes=java.util.Vector {
       to=148
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         57 -1 
       }
    }
    cc.game.soc.core.Route {
@@ -729,7 +893,7 @@ routes=java.util.Vector {
       to=47
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         15 16 
       }
    }
    cc.game.soc.core.Route {
@@ -739,7 +903,7 @@ routes=java.util.Vector {
       to=49
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         15 22 
       }
    }
    cc.game.soc.core.Route {
@@ -749,7 +913,7 @@ routes=java.util.Vector {
       to=53
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         16 22 
       }
    }
    cc.game.soc.core.Route {
@@ -759,7 +923,7 @@ routes=java.util.Vector {
       to=48
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         15 42 
       }
    }
    cc.game.soc.core.Route {
@@ -769,7 +933,7 @@ routes=java.util.Vector {
       to=52
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         16 42 
       }
    }
    cc.game.soc.core.Route {
@@ -779,7 +943,7 @@ routes=java.util.Vector {
       to=86
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         29 42 
       }
    }
    cc.game.soc.core.Route {
@@ -789,7 +953,7 @@ routes=java.util.Vector {
       to=70
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         22 25 
       }
    }
    cc.game.soc.core.Route {
@@ -799,7 +963,7 @@ routes=java.util.Vector {
       to=51
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         16 17 
       }
    }
    cc.game.soc.core.Route {
@@ -809,7 +973,7 @@ routes=java.util.Vector {
       to=53
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         16 20 
       }
    }
    cc.game.soc.core.Route {
@@ -819,7 +983,7 @@ routes=java.util.Vector {
       to=57
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         17 20 
       }
    }
    cc.game.soc.core.Route {
@@ -829,7 +993,7 @@ routes=java.util.Vector {
       to=52
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         16 43 
       }
    }
    cc.game.soc.core.Route {
@@ -839,7 +1003,7 @@ routes=java.util.Vector {
       to=56
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         17 43 
       }
    }
    cc.game.soc.core.Route {
@@ -849,7 +1013,7 @@ routes=java.util.Vector {
       to=112
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         42 43 
       }
    }
    cc.game.soc.core.Route {
@@ -859,7 +1023,7 @@ routes=java.util.Vector {
       to=65
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         20 22 
       }
    }
    cc.game.soc.core.Route {
@@ -869,7 +1033,7 @@ routes=java.util.Vector {
       to=55
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         17 18 
       }
    }
    cc.game.soc.core.Route {
@@ -879,7 +1043,7 @@ routes=java.util.Vector {
       to=57
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         17 19 
       }
    }
    cc.game.soc.core.Route {
@@ -889,7 +1053,7 @@ routes=java.util.Vector {
       to=61
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         18 19 
       }
    }
    cc.game.soc.core.Route {
@@ -899,7 +1063,7 @@ routes=java.util.Vector {
       to=56
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         17 44 
       }
    }
    cc.game.soc.core.Route {
@@ -909,7 +1073,7 @@ routes=java.util.Vector {
       to=60
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         18 44 
       }
    }
    cc.game.soc.core.Route {
@@ -919,7 +1083,7 @@ routes=java.util.Vector {
       to=115
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         43 44 
       }
    }
    cc.game.soc.core.Route {
@@ -929,7 +1093,7 @@ routes=java.util.Vector {
       to=63
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         19 20 
       }
    }
    cc.game.soc.core.Route {
@@ -939,7 +1103,7 @@ routes=java.util.Vector {
       to=59
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         18 -1 
       }
    }
    cc.game.soc.core.Route {
@@ -949,7 +1113,7 @@ routes=java.util.Vector {
       to=61
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         18 -1 
       }
    }
    cc.game.soc.core.Route {
@@ -959,7 +1123,7 @@ routes=java.util.Vector {
       to=60
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         18 -1 
       }
    }
    cc.game.soc.core.Route {
@@ -969,7 +1133,7 @@ routes=java.util.Vector {
       to=117
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         44 -1 
       }
    }
    cc.game.soc.core.Route {
@@ -979,7 +1143,7 @@ routes=java.util.Vector {
       to=62
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         19 -1 
       }
    }
    cc.game.soc.core.Route {
@@ -989,7 +1153,7 @@ routes=java.util.Vector {
       to=64
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         19 -1 
       }
    }
    cc.game.soc.core.Route {
@@ -999,7 +1163,7 @@ routes=java.util.Vector {
       to=64
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         19 21 
       }
    }
    cc.game.soc.core.Route {
@@ -1009,7 +1173,7 @@ routes=java.util.Vector {
       to=66
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         20 21 
       }
    }
    cc.game.soc.core.Route {
@@ -1019,37 +1183,37 @@ routes=java.util.Vector {
       to=67
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         21 -1 
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=3
       from=65
       player=0
       to=66
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         20 23 
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=3
       from=65
       player=0
       to=71
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         22 23 
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=2
       from=66
       player=0
       to=68
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         21 23 
       }
    }
    cc.game.soc.core.Route {
@@ -1059,7 +1223,7 @@ routes=java.util.Vector {
       to=69
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         21 -1 
       }
    }
    cc.game.soc.core.Route {
@@ -1069,17 +1233,17 @@ routes=java.util.Vector {
       to=69
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         21 24 
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=2
       from=68
       player=0
       to=73
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         23 24 
       }
    }
    cc.game.soc.core.Route {
@@ -1089,57 +1253,57 @@ routes=java.util.Vector {
       to=74
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         24 -1 
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=3
       from=70
       player=0
       to=71
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         22 26 
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=3
       from=70
       player=0
       to=78
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         25 26 
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=2
       from=71
       player=0
       to=72
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         23 26 
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=3
       from=72
       player=0
       to=73
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         23 27 
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=3
       from=72
       player=0
       to=80
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         26 27 
       }
    }
    cc.game.soc.core.Route {
@@ -1149,7 +1313,7 @@ routes=java.util.Vector {
       to=75
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         24 27 
       }
    }
    cc.game.soc.core.Route {
@@ -1159,7 +1323,7 @@ routes=java.util.Vector {
       to=76
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         24 -1 
       }
    }
    cc.game.soc.core.Route {
@@ -1169,7 +1333,7 @@ routes=java.util.Vector {
       to=76
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         24 28 
       }
    }
    cc.game.soc.core.Route {
@@ -1179,7 +1343,7 @@ routes=java.util.Vector {
       to=82
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         27 28 
       }
    }
    cc.game.soc.core.Route {
@@ -1189,57 +1353,57 @@ routes=java.util.Vector {
       to=83
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         28 -1 
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=3
       from=77
       player=0
       to=78
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         25 58 
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=2
       from=77
       player=0
       to=119
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         45 58 
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=2
       from=78
       player=0
       to=79
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         26 58 
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=3
       from=79
       player=0
       to=80
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         26 59 
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=3
       from=79
       player=0
       to=144
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         58 59 
       }
    }
    cc.game.soc.core.Route {
@@ -1249,7 +1413,7 @@ routes=java.util.Vector {
       to=81
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         27 59 
       }
    }
    cc.game.soc.core.Route {
@@ -1259,7 +1423,7 @@ routes=java.util.Vector {
       to=82
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         27 60 
       }
    }
    cc.game.soc.core.Route {
@@ -1269,7 +1433,7 @@ routes=java.util.Vector {
       to=146
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         59 60 
       }
    }
    cc.game.soc.core.Route {
@@ -1279,7 +1443,7 @@ routes=java.util.Vector {
       to=84
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         28 60 
       }
    }
    cc.game.soc.core.Route {
@@ -1289,7 +1453,7 @@ routes=java.util.Vector {
       to=85
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         28 -1 
       }
    }
    cc.game.soc.core.Route {
@@ -1299,7 +1463,7 @@ routes=java.util.Vector {
       to=85
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         28 -1 
       }
    }
    cc.game.soc.core.Route {
@@ -1309,7 +1473,7 @@ routes=java.util.Vector {
       to=149
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         60 -1 
       }
    }
    cc.game.soc.core.Route {
@@ -1319,7 +1483,7 @@ routes=java.util.Vector {
       to=87
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         29 30 
       }
    }
    cc.game.soc.core.Route {
@@ -1329,7 +1493,7 @@ routes=java.util.Vector {
       to=88
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         30 42 
       }
    }
    cc.game.soc.core.Route {
@@ -1339,7 +1503,7 @@ routes=java.util.Vector {
       to=91
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         30 39 
       }
    }
    cc.game.soc.core.Route {
@@ -1349,7 +1513,7 @@ routes=java.util.Vector {
       to=89
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         30 37 
       }
    }
    cc.game.soc.core.Route {
@@ -1359,67 +1523,67 @@ routes=java.util.Vector {
       to=112
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         37 42 
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=3
       from=89
       player=0
       to=90
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         30 31 
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=3
       from=89
       player=0
       to=92
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         31 37 
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=3
       from=90
       player=0
       to=91
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         30 35 
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=2
       from=90
       player=0
       to=95
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         31 35 
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=3
       from=91
       player=0
       to=107
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         35 39 
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=2
       from=92
       player=0
       to=93
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         31 34 
       }
    }
    cc.game.soc.core.Route {
@@ -1429,17 +1593,17 @@ routes=java.util.Vector {
       to=105
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         34 37 
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=2
       from=93
       player=0
       to=94
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         31 32 
       }
    }
    cc.game.soc.core.Route {
@@ -1449,17 +1613,17 @@ routes=java.util.Vector {
       to=96
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         32 34 
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=2
       from=94
       player=0
       to=95
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         31 33 
       }
    }
    cc.game.soc.core.Route {
@@ -1469,17 +1633,17 @@ routes=java.util.Vector {
       to=99
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         32 33 
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=2
       from=95
       player=0
       to=102
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         33 35 
       }
    }
    cc.game.soc.core.Route {
@@ -1489,7 +1653,7 @@ routes=java.util.Vector {
       to=97
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         32 -1 
       }
    }
    cc.game.soc.core.Route {
@@ -1499,7 +1663,7 @@ routes=java.util.Vector {
       to=104
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         34 -1 
       }
    }
    cc.game.soc.core.Route {
@@ -1509,7 +1673,7 @@ routes=java.util.Vector {
       to=98
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         32 -1 
       }
    }
    cc.game.soc.core.Route {
@@ -1519,7 +1683,7 @@ routes=java.util.Vector {
       to=99
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         32 -1 
       }
    }
    cc.game.soc.core.Route {
@@ -1529,7 +1693,7 @@ routes=java.util.Vector {
       to=100
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         33 -1 
       }
    }
    cc.game.soc.core.Route {
@@ -1539,7 +1703,7 @@ routes=java.util.Vector {
       to=101
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         33 -1 
       }
    }
    cc.game.soc.core.Route {
@@ -1549,7 +1713,7 @@ routes=java.util.Vector {
       to=102
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         33 36 
       }
    }
    cc.game.soc.core.Route {
@@ -1559,17 +1723,17 @@ routes=java.util.Vector {
       to=108
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         36 -1 
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=2
       from=102
       player=0
       to=106
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         35 36 
       }
    }
    cc.game.soc.core.Route {
@@ -1579,7 +1743,7 @@ routes=java.util.Vector {
       to=104
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         34 -1 
       }
    }
    cc.game.soc.core.Route {
@@ -1589,7 +1753,7 @@ routes=java.util.Vector {
       to=105
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         34 38 
       }
    }
    cc.game.soc.core.Route {
@@ -1599,7 +1763,7 @@ routes=java.util.Vector {
       to=114
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         38 -1 
       }
    }
    cc.game.soc.core.Route {
@@ -1609,27 +1773,27 @@ routes=java.util.Vector {
       to=111
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         37 38 
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=2
       from=106
       player=0
       to=107
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         35 40 
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=2
       from=106
       player=0
       to=110
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         36 40 
       }
    }
    cc.game.soc.core.Route {
@@ -1639,7 +1803,7 @@ routes=java.util.Vector {
       to=109
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         36 -1 
       }
    }
    cc.game.soc.core.Route {
@@ -1649,7 +1813,7 @@ routes=java.util.Vector {
       to=110
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         36 41 
       }
    }
    cc.game.soc.core.Route {
@@ -1659,7 +1823,7 @@ routes=java.util.Vector {
       to=116
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         41 -1 
       }
    }
    cc.game.soc.core.Route {
@@ -1669,7 +1833,7 @@ routes=java.util.Vector {
       to=112
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         37 43 
       }
    }
    cc.game.soc.core.Route {
@@ -1679,7 +1843,7 @@ routes=java.util.Vector {
       to=115
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         38 43 
       }
    }
    cc.game.soc.core.Route {
@@ -1689,7 +1853,7 @@ routes=java.util.Vector {
       to=114
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         38 -1 
       }
    }
    cc.game.soc.core.Route {
@@ -1699,7 +1863,7 @@ routes=java.util.Vector {
       to=115
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         38 44 
       }
    }
    cc.game.soc.core.Route {
@@ -1709,17 +1873,17 @@ routes=java.util.Vector {
       to=117
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         44 -1 
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=3
       from=118
       player=0
       to=119
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         45 46 
       }
    }
    cc.game.soc.core.Route {
@@ -1729,137 +1893,137 @@ routes=java.util.Vector {
       to=121
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         46 55 
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=3
       from=119
       player=0
       to=120
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         46 58 
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=3
       from=120
       player=0
       to=123
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         46 53 
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=2
       from=120
       player=0
       to=144
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         53 58 
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=3
       from=121
       player=0
       to=122
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         46 51 
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=3
       from=121
       player=0
       to=138
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         51 55 
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=3
       from=122
       player=0
       to=123
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         46 47 
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=2
       from=122
       player=0
       to=125
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         47 51 
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=2
       from=123
       player=0
       to=124
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         47 53 
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=2
       from=124
       player=0
       to=127
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         47 50 
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=2
       from=124
       player=0
       to=136
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         50 53 
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=2
       from=125
       player=0
       to=126
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         47 49 
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=2
       from=125
       player=0
       to=132
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         49 51 
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=2
       from=126
       player=0
       to=127
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         47 48 
       }
    }
    cc.game.soc.core.Route {
@@ -1869,7 +2033,7 @@ routes=java.util.Vector {
       to=129
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         48 49 
       }
    }
    cc.game.soc.core.Route {
@@ -1879,7 +2043,7 @@ routes=java.util.Vector {
       to=128
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         48 50 
       }
    }
    cc.game.soc.core.Route {
@@ -1889,7 +2053,7 @@ routes=java.util.Vector {
       to=131
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         48 -1 
       }
    }
    cc.game.soc.core.Route {
@@ -1899,7 +2063,7 @@ routes=java.util.Vector {
       to=137
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         50 -1 
       }
    }
    cc.game.soc.core.Route {
@@ -1909,7 +2073,7 @@ routes=java.util.Vector {
       to=130
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         48 -1 
       }
    }
    cc.game.soc.core.Route {
@@ -1919,7 +2083,7 @@ routes=java.util.Vector {
       to=134
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         49 -1 
       }
    }
    cc.game.soc.core.Route {
@@ -1929,7 +2093,7 @@ routes=java.util.Vector {
       to=131
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         48 -1 
       }
    }
    cc.game.soc.core.Route {
@@ -1939,17 +2103,17 @@ routes=java.util.Vector {
       to=133
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         49 52 
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=2
       from=132
       player=0
       to=139
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         51 52 
       }
    }
    cc.game.soc.core.Route {
@@ -1959,7 +2123,7 @@ routes=java.util.Vector {
       to=134
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         49 -1 
       }
    }
    cc.game.soc.core.Route {
@@ -1969,7 +2133,7 @@ routes=java.util.Vector {
       to=142
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         52 -1 
       }
    }
    cc.game.soc.core.Route {
@@ -1979,7 +2143,7 @@ routes=java.util.Vector {
       to=136
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         50 54 
       }
    }
    cc.game.soc.core.Route {
@@ -1989,7 +2153,7 @@ routes=java.util.Vector {
       to=137
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         50 -1 
       }
    }
    cc.game.soc.core.Route {
@@ -1999,27 +2163,27 @@ routes=java.util.Vector {
       to=147
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         54 -1 
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=2
       from=136
       player=0
       to=143
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         53 54 
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=3
       from=138
       player=0
       to=139
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         51 56 
       }
    }
    cc.game.soc.core.Route {
@@ -2029,7 +2193,7 @@ routes=java.util.Vector {
       to=140
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         52 56 
       }
    }
    cc.game.soc.core.Route {
@@ -2039,7 +2203,7 @@ routes=java.util.Vector {
       to=141
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         52 57 
       }
    }
    cc.game.soc.core.Route {
@@ -2049,7 +2213,7 @@ routes=java.util.Vector {
       to=142
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         52 -1 
       }
    }
    cc.game.soc.core.Route {
@@ -2059,17 +2223,17 @@ routes=java.util.Vector {
       to=148
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         57 -1 
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=3
       from=143
       player=0
       to=144
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         53 59 
       }
    }
    cc.game.soc.core.Route {
@@ -2079,7 +2243,7 @@ routes=java.util.Vector {
       to=146
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         54 59 
       }
    }
    cc.game.soc.core.Route {
@@ -2089,7 +2253,7 @@ routes=java.util.Vector {
       to=146
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         54 60 
       }
    }
    cc.game.soc.core.Route {
@@ -2099,7 +2263,7 @@ routes=java.util.Vector {
       to=147
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         54 -1 
       }
    }
    cc.game.soc.core.Route {
@@ -2109,55 +2273,55 @@ routes=java.util.Vector {
       to=149
       type=OPEN
       tiles=int 2 {
-         -1 -1 
+         60 -1 
       }
    }
 }
 tiles=java.util.Vector {
    cc.game.soc.core.Tile {
-      dieNum=11
+      dieNum=0
       islandNum=0
       numAdj=6
       pirateRouteNext=-1
       x=0.4999999
       y=0.5
-      type=GOLD
+      type=DESERT
       adjVerts=int 6 {
          0 1 2 3 4 5 
       }
    }
    cc.game.soc.core.Tile {
-      dieNum=6
+      dieNum=0
       islandNum=0
       numAdj=6
       pirateRouteNext=-1
       x=0.60714275
       y=0.44444445
-      type=HILLS
+      type=DESERT
       adjVerts=int 6 {
          2 6 7 8 9 3 
       }
    }
    cc.game.soc.core.Tile {
-      dieNum=8
+      dieNum=0
       islandNum=0
       numAdj=6
       pirateRouteNext=-1
       x=0.7142856
       y=0.3888889
-      type=FOREST
+      type=WATER
       adjVerts=int 6 {
          7 10 11 12 13 8 
       }
    }
    cc.game.soc.core.Tile {
-      dieNum=11
-      islandNum=0
+      dieNum=0
+      islandNum=3
       numAdj=6
       pirateRouteNext=-1
       x=0.82142854
       y=0.33333334
-      type=MOUNTAINS
+      type=DESERT
       adjVerts=int 6 {
          11 14 15 16 17 12 
       }
@@ -2167,7 +2331,7 @@ tiles=java.util.Vector {
       islandNum=0
       numAdj=6
       pirateRouteNext=-1
-      x=0.92857146
+      x=0.9285714
       y=0.2777778
       type=WATER
       adjVerts=int 6 {
@@ -2179,21 +2343,21 @@ tiles=java.util.Vector {
       islandNum=0
       numAdj=6
       pirateRouteNext=-1
-      x=0.92857146
+      x=0.9285714
       y=0.3888889
-      type=PORT_BRICK
+      type=WATER
       adjVerts=int 6 {
          17 16 21 22 23 24 
       }
    }
    cc.game.soc.core.Tile {
-      dieNum=9
-      islandNum=0
+      dieNum=0
+      islandNum=3
       numAdj=6
       pirateRouteNext=-1
       x=0.82142854
       y=0.44444445
-      type=FIELDS
+      type=DESERT
       adjVerts=int 6 {
          13 12 17 24 25 26 
       }
@@ -2203,7 +2367,7 @@ tiles=java.util.Vector {
       islandNum=0
       numAdj=6
       pirateRouteNext=-1
-      x=0.92857146
+      x=0.9285714
       y=0.5
       type=WATER
       adjVerts=int 6 {
@@ -2211,25 +2375,25 @@ tiles=java.util.Vector {
       }
    }
    cc.game.soc.core.Tile {
-      dieNum=8
+      dieNum=0
       islandNum=0
       numAdj=6
       pirateRouteNext=-1
       x=0.7142856
       y=0.5
-      type=PASTURE
+      type=WATER
       adjVerts=int 6 {
          9 8 13 26 30 31 
       }
    }
    cc.game.soc.core.Tile {
-      dieNum=8
+      dieNum=0
       islandNum=0
       numAdj=6
       pirateRouteNext=-1
       x=0.82142854
       y=0.5555556
-      type=HILLS
+      type=WATER
       adjVerts=int 6 {
          30 26 25 29 32 33 
       }
@@ -2239,45 +2403,45 @@ tiles=java.util.Vector {
       islandNum=0
       numAdj=6
       pirateRouteNext=-1
-      x=0.92857146
+      x=0.9285714
       y=0.61111116
-      type=PORT_ORE
+      type=WATER
       adjVerts=int 6 {
          32 29 28 34 35 36 
       }
    }
    cc.game.soc.core.Tile {
-      dieNum=9
+      dieNum=0
       islandNum=0
       numAdj=6
       pirateRouteNext=-1
       x=0.60714275
       y=0.5555556
-      type=FOREST
+      type=WATER
       adjVerts=int 6 {
          4 3 9 31 37 38 
       }
    }
    cc.game.soc.core.Tile {
-      dieNum=10
-      islandNum=0
+      dieNum=0
+      islandNum=1
       numAdj=6
       pirateRouteNext=-1
       x=0.7142856
       y=0.61111116
-      type=MOUNTAINS
+      type=DESERT
       adjVerts=int 6 {
          37 31 30 33 39 40 
       }
    }
    cc.game.soc.core.Tile {
-      dieNum=3
+      dieNum=0
       islandNum=0
       numAdj=6
       pirateRouteNext=-1
       x=0.82142854
       y=0.66666675
-      type=FIELDS
+      type=WATER
       adjVerts=int 6 {
          39 33 32 36 41 42 
       }
@@ -2287,7 +2451,7 @@ tiles=java.util.Vector {
       islandNum=0
       numAdj=6
       pirateRouteNext=-1
-      x=0.92857146
+      x=0.9285714
       y=0.7222223
       type=WATER
       adjVerts=int 6 {
@@ -2295,7 +2459,7 @@ tiles=java.util.Vector {
       }
    }
    cc.game.soc.core.Tile {
-      dieNum=2
+      dieNum=0
       islandNum=0
       numAdj=6
       pirateRouteNext=-1
@@ -2307,25 +2471,25 @@ tiles=java.util.Vector {
       }
    }
    cc.game.soc.core.Tile {
-      dieNum=10
+      dieNum=0
       islandNum=0
       numAdj=6
       pirateRouteNext=-1
-      x=0.2857142
+      x=0.28571424
       y=0.3888889
-      type=HILLS
+      type=DESERT
       adjVerts=int 6 {
          50 51 52 47 46 53 
       }
    }
    cc.game.soc.core.Tile {
-      dieNum=6
+      dieNum=0
       islandNum=0
       numAdj=6
       pirateRouteNext=-1
-      x=0.17857137
+      x=0.1785714
       y=0.33333334
-      type=FOREST
+      type=DESERT
       adjVerts=int 6 {
          54 55 56 51 50 57 
       }
@@ -2335,7 +2499,7 @@ tiles=java.util.Vector {
       islandNum=0
       numAdj=6
       pirateRouteNext=-1
-      x=0.07142854
+      x=0.0714286
       y=0.2777778
       type=WATER
       adjVerts=int 6 {
@@ -2347,21 +2511,21 @@ tiles=java.util.Vector {
       islandNum=0
       numAdj=6
       pirateRouteNext=-1
-      x=0.07142854
+      x=0.0714286
       y=0.3888889
-      type=PORT_SHEEP
+      type=WATER
       adjVerts=int 6 {
          62 61 54 57 63 64 
       }
    }
    cc.game.soc.core.Tile {
-      dieNum=6
+      dieNum=0
       islandNum=0
       numAdj=6
       pirateRouteNext=-1
-      x=0.17857137
+      x=0.1785714
       y=0.44444445
-      type=MOUNTAINS
+      type=DESERT
       adjVerts=int 6 {
          63 57 50 53 65 66 
       }
@@ -2371,7 +2535,7 @@ tiles=java.util.Vector {
       islandNum=0
       numAdj=6
       pirateRouteNext=-1
-      x=0.07142854
+      x=0.0714286
       y=0.5
       type=WATER
       adjVerts=int 6 {
@@ -2379,25 +2543,25 @@ tiles=java.util.Vector {
       }
    }
    cc.game.soc.core.Tile {
-      dieNum=10
+      dieNum=0
       islandNum=0
       numAdj=6
       pirateRouteNext=-1
-      x=0.2857142
+      x=0.28571424
       y=0.5
-      type=FIELDS
+      type=DESERT
       adjVerts=int 6 {
          65 53 46 49 70 71 
       }
    }
    cc.game.soc.core.Tile {
-      dieNum=5
+      dieNum=0
       islandNum=0
       numAdj=6
       pirateRouteNext=-1
-      x=0.17857137
+      x=0.1785714
       y=0.5555556
-      type=PASTURE
+      type=WATER
       adjVerts=int 6 {
          68 66 65 71 72 73 
       }
@@ -2407,45 +2571,45 @@ tiles=java.util.Vector {
       islandNum=0
       numAdj=6
       pirateRouteNext=-1
-      x=0.07142854
+      x=0.0714286
       y=0.61111116
-      type=PORT_WHEAT
+      type=WATER
       adjVerts=int 6 {
          74 69 68 73 75 76 
       }
    }
    cc.game.soc.core.Tile {
-      dieNum=8
+      dieNum=0
       islandNum=0
       numAdj=6
       pirateRouteNext=-1
       x=0.39285707
       y=0.5555556
-      type=HILLS
+      type=DESERT
       adjVerts=int 6 {
          70 49 0 5 77 78 
       }
    }
    cc.game.soc.core.Tile {
-      dieNum=9
+      dieNum=0
       islandNum=0
       numAdj=6
       pirateRouteNext=-1
-      x=0.2857142
+      x=0.28571424
       y=0.61111116
-      type=FOREST
+      type=WATER
       adjVerts=int 6 {
          72 71 70 78 79 80 
       }
    }
    cc.game.soc.core.Tile {
-      dieNum=3
-      islandNum=0
+      dieNum=0
+      islandNum=2
       numAdj=6
       pirateRouteNext=-1
-      x=0.17857137
+      x=0.1785714
       y=0.66666675
-      type=MOUNTAINS
+      type=DESERT
       adjVerts=int 6 {
          75 73 72 80 81 82 
       }
@@ -2455,7 +2619,7 @@ tiles=java.util.Vector {
       islandNum=0
       numAdj=6
       pirateRouteNext=-1
-      x=0.07142854
+      x=0.0714286
       y=0.7222223
       type=WATER
       adjVerts=int 6 {
@@ -2463,7 +2627,7 @@ tiles=java.util.Vector {
       }
    }
    cc.game.soc.core.Tile {
-      dieNum=5
+      dieNum=0
       islandNum=0
       numAdj=6
       pirateRouteNext=-1
@@ -2475,25 +2639,25 @@ tiles=java.util.Vector {
       }
    }
    cc.game.soc.core.Tile {
-      dieNum=5
+      dieNum=0
       islandNum=0
       numAdj=6
       pirateRouteNext=-1
       x=0.4999999
       y=0.2777778
-      type=PASTURE
+      type=DESERT
       adjVerts=int 6 {
          88 89 90 91 87 86 
       }
    }
    cc.game.soc.core.Tile {
-      dieNum=4
+      dieNum=0
       islandNum=0
       numAdj=6
       pirateRouteNext=-1
       x=0.4999999
       y=0.16666669
-      type=HILLS
+      type=WATER
       adjVerts=int 6 {
          92 93 94 95 90 89 
       }
@@ -2517,7 +2681,7 @@ tiles=java.util.Vector {
       pirateRouteNext=-1
       x=0.60714275
       y=0.111111134
-      type=PORT_WOOD
+      type=WATER
       adjVerts=int 6 {
          94 99 100 101 102 95 
       }
@@ -2529,19 +2693,19 @@ tiles=java.util.Vector {
       pirateRouteNext=-1
       x=0.39285707
       y=0.111111134
-      type=PORT_MULTI
+      type=WATER
       adjVerts=int 6 {
          103 104 96 93 92 105 
       }
    }
    cc.game.soc.core.Tile {
-      dieNum=12
+      dieNum=0
       islandNum=0
       numAdj=6
       pirateRouteNext=-1
       x=0.60714275
       y=0.22222224
-      type=FOREST
+      type=DESERT
       adjVerts=int 6 {
          90 95 102 106 107 91 
       }
@@ -2559,13 +2723,13 @@ tiles=java.util.Vector {
       }
    }
    cc.game.soc.core.Tile {
-      dieNum=9
+      dieNum=0
       islandNum=0
       numAdj=6
       pirateRouteNext=-1
       x=0.39285707
       y=0.22222224
-      type=MOUNTAINS
+      type=DESERT
       adjVerts=int 6 {
          111 105 92 89 88 112 
       }
@@ -2575,7 +2739,7 @@ tiles=java.util.Vector {
       islandNum=0
       numAdj=6
       pirateRouteNext=-1
-      x=0.2857142
+      x=0.28571424
       y=0.16666669
       type=WATER
       adjVerts=int 6 {
@@ -2583,25 +2747,25 @@ tiles=java.util.Vector {
       }
    }
    cc.game.soc.core.Tile {
-      dieNum=6
+      dieNum=0
       islandNum=0
       numAdj=6
       pirateRouteNext=-1
       x=0.60714275
       y=0.33333334
-      type=FIELDS
+      type=DESERT
       adjVerts=int 6 {
          87 91 107 10 7 6 
       }
    }
    cc.game.soc.core.Tile {
-      dieNum=4
+      dieNum=0
       islandNum=0
       numAdj=6
       pirateRouteNext=-1
       x=0.7142856
       y=0.2777778
-      type=PASTURE
+      type=WATER
       adjVerts=int 6 {
          107 106 110 14 11 10 
       }
@@ -2613,13 +2777,13 @@ tiles=java.util.Vector {
       pirateRouteNext=-1
       x=0.82142854
       y=0.22222224
-      type=PORT_MULTI
+      type=WATER
       adjVerts=int 6 {
          110 109 116 18 15 14 
       }
    }
    cc.game.soc.core.Tile {
-      dieNum=4
+      dieNum=0
       islandNum=0
       numAdj=6
       pirateRouteNext=-1
@@ -2631,13 +2795,13 @@ tiles=java.util.Vector {
       }
    }
    cc.game.soc.core.Tile {
-      dieNum=5
+      dieNum=0
       islandNum=0
       numAdj=6
       pirateRouteNext=-1
-      x=0.2857142
+      x=0.28571424
       y=0.2777778
-      type=FOREST
+      type=DESERT
       adjVerts=int 6 {
          56 115 111 112 52 51 
       }
@@ -2647,45 +2811,45 @@ tiles=java.util.Vector {
       islandNum=0
       numAdj=6
       pirateRouteNext=-1
-      x=0.17857137
+      x=0.1785714
       y=0.22222224
-      type=PORT_MULTI
+      type=WATER
       adjVerts=int 6 {
          60 117 113 115 56 55 
       }
    }
    cc.game.soc.core.Tile {
-      dieNum=11
+      dieNum=0
       islandNum=0
       numAdj=6
       pirateRouteNext=-1
       x=0.4999999
       y=0.6111111
-      type=MOUNTAINS
+      type=WATER
       adjVerts=int 6 {
          77 5 4 38 118 119 
       }
    }
    cc.game.soc.core.Tile {
-      dieNum=6
-      islandNum=0
+      dieNum=0
+      islandNum=1
       numAdj=6
       pirateRouteNext=-1
       x=0.4999999
       y=0.7222222
-      type=FIELDS
+      type=DESERT
       adjVerts=int 6 {
          120 119 118 121 122 123 
       }
    }
    cc.game.soc.core.Tile {
-      dieNum=8
+      dieNum=0
       islandNum=0
       numAdj=6
       pirateRouteNext=-1
       x=0.4999999
       y=0.8333333
-      type=PASTURE
+      type=WATER
       adjVerts=int 6 {
          124 123 122 125 126 127 
       }
@@ -2709,7 +2873,7 @@ tiles=java.util.Vector {
       pirateRouteNext=-1
       x=0.60714275
       y=0.8888889
-      type=PORT_MULTI
+      type=WATER
       adjVerts=int 6 {
          126 125 132 133 134 129 
       }
@@ -2721,19 +2885,19 @@ tiles=java.util.Vector {
       pirateRouteNext=-1
       x=0.39285707
       y=0.8888889
-      type=PORT_MULTI
+      type=WATER
       adjVerts=int 6 {
          135 136 124 127 128 137 
       }
    }
    cc.game.soc.core.Tile {
-      dieNum=11
+      dieNum=0
       islandNum=0
       numAdj=6
       pirateRouteNext=-1
       x=0.60714275
       y=0.7777778
-      type=HILLS
+      type=WATER
       adjVerts=int 6 {
          122 121 138 139 132 125 
       }
@@ -2751,13 +2915,13 @@ tiles=java.util.Vector {
       }
    }
    cc.game.soc.core.Tile {
-      dieNum=9
+      dieNum=0
       islandNum=0
       numAdj=6
       pirateRouteNext=-1
       x=0.39285707
       y=0.7777778
-      type=FOREST
+      type=WATER
       adjVerts=int 6 {
          143 144 120 123 124 136 
       }
@@ -2767,7 +2931,7 @@ tiles=java.util.Vector {
       islandNum=0
       numAdj=6
       pirateRouteNext=-1
-      x=0.2857142
+      x=0.28571424
       y=0.8333334
       type=WATER
       adjVerts=int 6 {
@@ -2775,25 +2939,25 @@ tiles=java.util.Vector {
       }
    }
    cc.game.soc.core.Tile {
-      dieNum=8
-      islandNum=0
+      dieNum=0
+      islandNum=1
       numAdj=6
       pirateRouteNext=-1
       x=0.60714275
       y=0.6666667
-      type=MOUNTAINS
+      type=DESERT
       adjVerts=int 6 {
          118 38 37 40 138 121 
       }
    }
    cc.game.soc.core.Tile {
-      dieNum=8
-      islandNum=0
+      dieNum=0
+      islandNum=1
       numAdj=6
       pirateRouteNext=-1
       x=0.7142856
       y=0.72222227
-      type=FIELDS
+      type=DESERT
       adjVerts=int 6 {
          138 40 39 42 140 139 
       }
@@ -2805,31 +2969,31 @@ tiles=java.util.Vector {
       pirateRouteNext=-1
       x=0.82142854
       y=0.77777785
-      type=PORT_MULTI
+      type=WATER
       adjVerts=int 6 {
          140 42 41 45 148 141 
       }
    }
    cc.game.soc.core.Tile {
-      dieNum=9
+      dieNum=0
       islandNum=0
       numAdj=6
       pirateRouteNext=-1
       x=0.39285707
       y=0.6666667
-      type=PASTURE
+      type=WATER
       adjVerts=int 6 {
          79 78 77 119 120 144 
       }
    }
    cc.game.soc.core.Tile {
-      dieNum=10
-      islandNum=0
+      dieNum=0
+      islandNum=2
       numAdj=6
       pirateRouteNext=-1
-      x=0.2857142
+      x=0.28571424
       y=0.72222227
-      type=HILLS
+      type=DESERT
       adjVerts=int 6 {
          81 80 79 144 143 146 
       }
@@ -2839,9 +3003,9 @@ tiles=java.util.Vector {
       islandNum=0
       numAdj=6
       pirateRouteNext=-1
-      x=0.17857137
+      x=0.1785714
       y=0.77777785
-      type=PORT_MULTI
+      type=WATER
       adjVerts=int 6 {
          84 82 81 146 145 149 
       }
@@ -2855,10 +3019,10 @@ verts=java.util.Vector {
       numAdj=3
       numCells=3
       pirateHealth=0
-      player=2
+      player=0
       x=0.42857137
       y=0.5
-      type=BASIC_KNIGHT_INACTIVE
+      type=OPEN
       adjacent=int 3 {
          1 5 49 
       }
@@ -2899,7 +3063,7 @@ verts=java.util.Vector {
       }
    }
    cc.game.soc.core.Vertex {
-      flags=1
+      flags=3
       numAdj=3
       numCells=3
       pirateHealth=0
@@ -2915,7 +3079,7 @@ verts=java.util.Vector {
       }
    }
    cc.game.soc.core.Vertex {
-      flags=1
+      flags=3
       numAdj=3
       numCells=3
       pirateHealth=0
@@ -2931,7 +3095,7 @@ verts=java.util.Vector {
       }
    }
    cc.game.soc.core.Vertex {
-      flags=1
+      flags=3
       numAdj=3
       numCells=3
       pirateHealth=0
@@ -2951,10 +3115,10 @@ verts=java.util.Vector {
       numAdj=3
       numCells=3
       pirateHealth=0
-      player=0
+      player=2
       x=0.5714285
       y=0.3888889
-      type=OPEN
+      type=SETTLEMENT
       adjacent=int 3 {
          2 7 87 
       }
@@ -2963,7 +3127,7 @@ verts=java.util.Vector {
       }
    }
    cc.game.soc.core.Vertex {
-      flags=1
+      flags=3
       numAdj=3
       numCells=3
       pirateHealth=0
@@ -2979,7 +3143,7 @@ verts=java.util.Vector {
       }
    }
    cc.game.soc.core.Vertex {
-      flags=1
+      flags=3
       numAdj=3
       numCells=3
       pirateHealth=0
@@ -2995,14 +3159,14 @@ verts=java.util.Vector {
       }
    }
    cc.game.soc.core.Vertex {
-      flags=1
+      flags=3
       numAdj=3
       numCells=3
       pirateHealth=0
-      player=2
+      player=0
       x=0.642857
       y=0.5
-      type=BASIC_KNIGHT_INACTIVE
+      type=OPEN
       adjacent=int 3 {
          8 3 31 
       }
@@ -3011,7 +3175,7 @@ verts=java.util.Vector {
       }
    }
    cc.game.soc.core.Vertex {
-      flags=1
+      flags=3
       numAdj=3
       numCells=3
       pirateHealth=0
@@ -3027,7 +3191,7 @@ verts=java.util.Vector {
       }
    }
    cc.game.soc.core.Vertex {
-      flags=1
+      flags=3
       numAdj=3
       numCells=3
       pirateHealth=0
@@ -3043,12 +3207,12 @@ verts=java.util.Vector {
       }
    }
    cc.game.soc.core.Vertex {
-      flags=1
+      flags=3
       numAdj=3
       numCells=3
       pirateHealth=0
       player=0
-      x=0.78571427
+      x=0.7857142
       y=0.3888889
       type=OPEN
       adjacent=int 3 {
@@ -3059,7 +3223,7 @@ verts=java.util.Vector {
       }
    }
    cc.game.soc.core.Vertex {
-      flags=1
+      flags=3
       numAdj=3
       numCells=3
       pirateHealth=0
@@ -3080,7 +3244,7 @@ verts=java.util.Vector {
       numCells=3
       pirateHealth=0
       player=0
-      x=0.78571427
+      x=0.7857142
       y=0.2777778
       type=OPEN
       adjacent=int 3 {
@@ -3112,7 +3276,7 @@ verts=java.util.Vector {
       numCells=3
       pirateHealth=0
       player=0
-      x=0.89285713
+      x=0.8928571
       y=0.33333334
       type=OPEN
       adjacent=int 3 {
@@ -3144,7 +3308,7 @@ verts=java.util.Vector {
       numCells=2
       pirateHealth=0
       player=0
-      x=0.89285713
+      x=0.8928571
       y=0.22222224
       type=OPEN
       adjacent=int 3 {
@@ -3160,7 +3324,7 @@ verts=java.util.Vector {
       numCells=1
       pirateHealth=0
       player=0
-      x=0.9642858
+      x=0.96428573
       y=0.22222224
       type=OPEN
       adjacent=int 3 {
@@ -3192,7 +3356,7 @@ verts=java.util.Vector {
       numCells=2
       pirateHealth=0
       player=0
-      x=0.9642858
+      x=0.96428573
       y=0.33333334
       type=OPEN
       adjacent=int 3 {
@@ -3224,7 +3388,7 @@ verts=java.util.Vector {
       numCells=2
       pirateHealth=0
       player=0
-      x=0.9642858
+      x=0.96428573
       y=0.44444445
       type=OPEN
       adjacent=int 3 {
@@ -3240,7 +3404,7 @@ verts=java.util.Vector {
       numCells=3
       pirateHealth=0
       player=0
-      x=0.89285713
+      x=0.8928571
       y=0.44444445
       type=OPEN
       adjacent=int 3 {
@@ -3267,12 +3431,12 @@ verts=java.util.Vector {
       }
    }
    cc.game.soc.core.Vertex {
-      flags=1
+      flags=3
       numAdj=3
       numCells=3
       pirateHealth=0
       player=0
-      x=0.78571427
+      x=0.7857142
       y=0.5
       type=OPEN
       adjacent=int 3 {
@@ -3304,7 +3468,7 @@ verts=java.util.Vector {
       numCells=2
       pirateHealth=0
       player=0
-      x=0.9642858
+      x=0.96428573
       y=0.5555556
       type=OPEN
       adjacent=int 3 {
@@ -3315,12 +3479,12 @@ verts=java.util.Vector {
       }
    }
    cc.game.soc.core.Vertex {
-      flags=3
+      flags=2
       numAdj=3
       numCells=3
       pirateHealth=0
       player=0
-      x=0.89285713
+      x=0.8928571
       y=0.5555556
       type=OPEN
       adjacent=int 3 {
@@ -3331,7 +3495,7 @@ verts=java.util.Vector {
       }
    }
    cc.game.soc.core.Vertex {
-      flags=1
+      flags=3
       numAdj=3
       numCells=3
       pirateHealth=0
@@ -3347,7 +3511,7 @@ verts=java.util.Vector {
       }
    }
    cc.game.soc.core.Vertex {
-      flags=1
+      flags=3
       numAdj=3
       numCells=3
       pirateHealth=0
@@ -3363,7 +3527,7 @@ verts=java.util.Vector {
       }
    }
    cc.game.soc.core.Vertex {
-      flags=3
+      flags=2
       numAdj=3
       numCells=3
       pirateHealth=0
@@ -3379,12 +3543,12 @@ verts=java.util.Vector {
       }
    }
    cc.game.soc.core.Vertex {
-      flags=1
+      flags=3
       numAdj=3
       numCells=3
       pirateHealth=0
       player=0
-      x=0.78571427
+      x=0.7857142
       y=0.61111116
       type=OPEN
       adjacent=int 3 {
@@ -3416,7 +3580,7 @@ verts=java.util.Vector {
       numCells=2
       pirateHealth=0
       player=0
-      x=0.9642858
+      x=0.96428573
       y=0.66666675
       type=OPEN
       adjacent=int 3 {
@@ -3427,12 +3591,12 @@ verts=java.util.Vector {
       }
    }
    cc.game.soc.core.Vertex {
-      flags=3
+      flags=2
       numAdj=3
       numCells=3
       pirateHealth=0
       player=0
-      x=0.89285713
+      x=0.8928571
       y=0.66666675
       type=OPEN
       adjacent=int 3 {
@@ -3443,7 +3607,7 @@ verts=java.util.Vector {
       }
    }
    cc.game.soc.core.Vertex {
-      flags=1
+      flags=3
       numAdj=3
       numCells=3
       pirateHealth=0
@@ -3459,7 +3623,7 @@ verts=java.util.Vector {
       }
    }
    cc.game.soc.core.Vertex {
-      flags=1
+      flags=3
       numAdj=3
       numCells=3
       pirateHealth=0
@@ -3475,7 +3639,7 @@ verts=java.util.Vector {
       }
    }
    cc.game.soc.core.Vertex {
-      flags=1
+      flags=3
       numAdj=3
       numCells=3
       pirateHealth=0
@@ -3507,7 +3671,7 @@ verts=java.util.Vector {
       }
    }
    cc.game.soc.core.Vertex {
-      flags=3
+      flags=2
       numAdj=3
       numCells=3
       pirateHealth=0
@@ -3528,7 +3692,7 @@ verts=java.util.Vector {
       numCells=3
       pirateHealth=0
       player=0
-      x=0.78571427
+      x=0.7857142
       y=0.7222223
       type=OPEN
       adjacent=int 3 {
@@ -3560,7 +3724,7 @@ verts=java.util.Vector {
       numCells=1
       pirateHealth=0
       player=0
-      x=0.9642858
+      x=0.96428573
       y=0.7777779
       type=OPEN
       adjacent=int 3 {
@@ -3576,7 +3740,7 @@ verts=java.util.Vector {
       numCells=2
       pirateHealth=0
       player=0
-      x=0.89285713
+      x=0.8928571
       y=0.7777779
       type=OPEN
       adjacent=int 3 {
@@ -3591,10 +3755,10 @@ verts=java.util.Vector {
       numAdj=3
       numCells=3
       pirateHealth=0
-      player=0
+      player=2
       x=0.32142854
       y=0.44444445
-      type=OPEN
+      type=SETTLEMENT
       adjacent=int 3 {
          47 49 53 
       }
@@ -3608,7 +3772,7 @@ verts=java.util.Vector {
       numCells=3
       pirateHealth=0
       player=0
-      x=0.35714275
+      x=0.35714278
       y=0.3888889
       type=OPEN
       adjacent=int 3 {
@@ -3640,7 +3804,7 @@ verts=java.util.Vector {
       numCells=3
       pirateHealth=0
       player=0
-      x=0.35714275
+      x=0.35714278
       y=0.5
       type=OPEN
       adjacent=int 3 {
@@ -3656,7 +3820,7 @@ verts=java.util.Vector {
       numCells=3
       pirateHealth=0
       player=0
-      x=0.21428567
+      x=0.2142857
       y=0.3888889
       type=OPEN
       adjacent=int 3 {
@@ -3671,10 +3835,10 @@ verts=java.util.Vector {
       numAdj=3
       numCells=3
       pirateHealth=0
-      player=2
-      x=0.24999994
+      player=0
+      x=0.24999997
       y=0.33333334
-      type=SETTLEMENT
+      type=OPEN
       adjacent=int 3 {
          50 52 56 
       }
@@ -3703,10 +3867,10 @@ verts=java.util.Vector {
       numAdj=3
       numCells=3
       pirateHealth=0
-      player=2
-      x=0.24999994
+      player=0
+      x=0.24999997
       y=0.44444445
-      type=BASIC_KNIGHT_INACTIVE
+      type=OPEN
       adjacent=int 3 {
          46 50 65 
       }
@@ -3720,7 +3884,7 @@ verts=java.util.Vector {
       numCells=3
       pirateHealth=0
       player=0
-      x=0.107142806
+      x=0.107142866
       y=0.33333334
       type=OPEN
       adjacent=int 3 {
@@ -3736,7 +3900,7 @@ verts=java.util.Vector {
       numCells=3
       pirateHealth=0
       player=0
-      x=0.1428571
+      x=0.14285713
       y=0.2777778
       type=OPEN
       adjacent=int 3 {
@@ -3752,7 +3916,7 @@ verts=java.util.Vector {
       numCells=3
       pirateHealth=0
       player=0
-      x=0.21428567
+      x=0.2142857
       y=0.2777778
       type=OPEN
       adjacent=int 3 {
@@ -3767,10 +3931,10 @@ verts=java.util.Vector {
       numAdj=3
       numCells=3
       pirateHealth=0
-      player=2
-      x=0.1428571
+      player=0
+      x=0.14285713
       y=0.3888889
-      type=BASIC_KNIGHT_INACTIVE
+      type=OPEN
       adjacent=int 3 {
          50 54 63 
       }
@@ -3784,7 +3948,7 @@ verts=java.util.Vector {
       numCells=1
       pirateHealth=0
       player=0
-      x=-5.9604645E-8
+      x=0.0
       y=0.2777778
       type=OPEN
       adjacent=int 3 {
@@ -3800,7 +3964,7 @@ verts=java.util.Vector {
       numCells=1
       pirateHealth=0
       player=0
-      x=0.03571424
+      x=0.0357143
       y=0.22222224
       type=OPEN
       adjacent=int 3 {
@@ -3816,7 +3980,7 @@ verts=java.util.Vector {
       numCells=2
       pirateHealth=0
       player=0
-      x=0.107142806
+      x=0.107142866
       y=0.22222224
       type=OPEN
       adjacent=int 3 {
@@ -3832,7 +3996,7 @@ verts=java.util.Vector {
       numCells=2
       pirateHealth=0
       player=0
-      x=0.03571424
+      x=0.0357143
       y=0.33333334
       type=OPEN
       adjacent=int 3 {
@@ -3848,7 +4012,7 @@ verts=java.util.Vector {
       numCells=1
       pirateHealth=0
       player=0
-      x=-5.9604645E-8
+      x=0.0
       y=0.3888889
       type=OPEN
       adjacent=int 3 {
@@ -3864,7 +4028,7 @@ verts=java.util.Vector {
       numCells=3
       pirateHealth=0
       player=0
-      x=0.107142806
+      x=0.107142866
       y=0.44444445
       type=OPEN
       adjacent=int 3 {
@@ -3880,7 +4044,7 @@ verts=java.util.Vector {
       numCells=2
       pirateHealth=0
       player=0
-      x=0.03571424
+      x=0.0357143
       y=0.44444445
       type=OPEN
       adjacent=int 3 {
@@ -3891,12 +4055,12 @@ verts=java.util.Vector {
       }
    }
    cc.game.soc.core.Vertex {
-      flags=1
+      flags=3
       numAdj=3
       numCells=3
       pirateHealth=0
       player=0
-      x=0.21428567
+      x=0.2142857
       y=0.5
       type=OPEN
       adjacent=int 3 {
@@ -3912,7 +4076,7 @@ verts=java.util.Vector {
       numCells=3
       pirateHealth=0
       player=0
-      x=0.1428571
+      x=0.14285713
       y=0.5
       type=OPEN
       adjacent=int 3 {
@@ -3928,7 +4092,7 @@ verts=java.util.Vector {
       numCells=1
       pirateHealth=0
       player=0
-      x=-5.9604645E-8
+      x=0.0
       y=0.5
       type=OPEN
       adjacent=int 3 {
@@ -3939,12 +4103,12 @@ verts=java.util.Vector {
       }
    }
    cc.game.soc.core.Vertex {
-      flags=3
+      flags=2
       numAdj=3
       numCells=3
       pirateHealth=0
       player=0
-      x=0.107142806
+      x=0.107142866
       y=0.5555556
       type=OPEN
       adjacent=int 3 {
@@ -3960,7 +4124,7 @@ verts=java.util.Vector {
       numCells=2
       pirateHealth=0
       player=0
-      x=0.03571424
+      x=0.0357143
       y=0.5555556
       type=OPEN
       adjacent=int 3 {
@@ -3971,14 +4135,14 @@ verts=java.util.Vector {
       }
    }
    cc.game.soc.core.Vertex {
-      flags=1
+      flags=3
       numAdj=3
       numCells=3
       pirateHealth=0
-      player=2
+      player=0
       x=0.32142854
       y=0.5555556
-      type=SETTLEMENT
+      type=OPEN
       adjacent=int 3 {
          49 71 78 
       }
@@ -3987,12 +4151,12 @@ verts=java.util.Vector {
       }
    }
    cc.game.soc.core.Vertex {
-      flags=1
+      flags=3
       numAdj=3
       numCells=3
       pirateHealth=0
       player=0
-      x=0.24999994
+      x=0.24999997
       y=0.5555556
       type=OPEN
       adjacent=int 3 {
@@ -4003,12 +4167,12 @@ verts=java.util.Vector {
       }
    }
    cc.game.soc.core.Vertex {
-      flags=1
+      flags=3
       numAdj=3
       numCells=3
       pirateHealth=0
       player=0
-      x=0.21428567
+      x=0.2142857
       y=0.61111116
       type=OPEN
       adjacent=int 3 {
@@ -4024,7 +4188,7 @@ verts=java.util.Vector {
       numCells=3
       pirateHealth=0
       player=0
-      x=0.1428571
+      x=0.14285713
       y=0.61111116
       type=OPEN
       adjacent=int 3 {
@@ -4040,7 +4204,7 @@ verts=java.util.Vector {
       numCells=1
       pirateHealth=0
       player=0
-      x=-5.9604645E-8
+      x=0.0
       y=0.61111116
       type=OPEN
       adjacent=int 3 {
@@ -4056,7 +4220,7 @@ verts=java.util.Vector {
       numCells=3
       pirateHealth=0
       player=0
-      x=0.107142806
+      x=0.107142866
       y=0.66666675
       type=OPEN
       adjacent=int 3 {
@@ -4072,7 +4236,7 @@ verts=java.util.Vector {
       numCells=2
       pirateHealth=0
       player=0
-      x=0.03571424
+      x=0.0357143
       y=0.66666675
       type=OPEN
       adjacent=int 3 {
@@ -4083,7 +4247,7 @@ verts=java.util.Vector {
       }
    }
    cc.game.soc.core.Vertex {
-      flags=1
+      flags=3
       numAdj=3
       numCells=3
       pirateHealth=0
@@ -4099,12 +4263,12 @@ verts=java.util.Vector {
       }
    }
    cc.game.soc.core.Vertex {
-      flags=1
+      flags=3
       numAdj=3
       numCells=3
       pirateHealth=0
       player=0
-      x=0.35714275
+      x=0.35714278
       y=0.61111116
       type=OPEN
       adjacent=int 3 {
@@ -4115,14 +4279,14 @@ verts=java.util.Vector {
       }
    }
    cc.game.soc.core.Vertex {
-      flags=1
+      flags=3
       numAdj=3
       numCells=3
       pirateHealth=0
-      player=2
+      player=0
       x=0.32142854
       y=0.66666675
-      type=BASIC_KNIGHT_INACTIVE
+      type=OPEN
       adjacent=int 3 {
          78 80 144 
       }
@@ -4131,12 +4295,12 @@ verts=java.util.Vector {
       }
    }
    cc.game.soc.core.Vertex {
-      flags=1
+      flags=3
       numAdj=3
       numCells=3
       pirateHealth=0
       player=0
-      x=0.24999994
+      x=0.24999997
       y=0.66666675
       type=OPEN
       adjacent=int 3 {
@@ -4152,7 +4316,7 @@ verts=java.util.Vector {
       numCells=3
       pirateHealth=0
       player=0
-      x=0.21428567
+      x=0.2142857
       y=0.7222223
       type=OPEN
       adjacent=int 3 {
@@ -4168,7 +4332,7 @@ verts=java.util.Vector {
       numCells=3
       pirateHealth=0
       player=0
-      x=0.1428571
+      x=0.14285713
       y=0.7222223
       type=OPEN
       adjacent=int 3 {
@@ -4184,7 +4348,7 @@ verts=java.util.Vector {
       numCells=1
       pirateHealth=0
       player=0
-      x=-5.9604645E-8
+      x=0.0
       y=0.7222223
       type=OPEN
       adjacent=int 3 {
@@ -4200,7 +4364,7 @@ verts=java.util.Vector {
       numCells=2
       pirateHealth=0
       player=0
-      x=0.107142806
+      x=0.107142866
       y=0.7777779
       type=OPEN
       adjacent=int 3 {
@@ -4216,7 +4380,7 @@ verts=java.util.Vector {
       numCells=1
       pirateHealth=0
       player=0
-      x=0.03571424
+      x=0.0357143
       y=0.7777779
       type=OPEN
       adjacent=int 3 {
@@ -4275,7 +4439,7 @@ verts=java.util.Vector {
       }
    }
    cc.game.soc.core.Vertex {
-      flags=1
+      flags=3
       numAdj=3
       numCells=3
       pirateHealth=0
@@ -4291,7 +4455,7 @@ verts=java.util.Vector {
       }
    }
    cc.game.soc.core.Vertex {
-      flags=1
+      flags=3
       numAdj=3
       numCells=3
       pirateHealth=0
@@ -4307,7 +4471,7 @@ verts=java.util.Vector {
       }
    }
    cc.game.soc.core.Vertex {
-      flags=1
+      flags=3
       numAdj=3
       numCells=3
       pirateHealth=0
@@ -4339,7 +4503,7 @@ verts=java.util.Vector {
       }
    }
    cc.game.soc.core.Vertex {
-      flags=3
+      flags=2
       numAdj=3
       numCells=3
       pirateHealth=0
@@ -4355,7 +4519,7 @@ verts=java.util.Vector {
       }
    }
    cc.game.soc.core.Vertex {
-      flags=3
+      flags=2
       numAdj=3
       numCells=3
       pirateHealth=0
@@ -4371,7 +4535,7 @@ verts=java.util.Vector {
       }
    }
    cc.game.soc.core.Vertex {
-      flags=3
+      flags=2
       numAdj=3
       numCells=3
       pirateHealth=0
@@ -4483,7 +4647,7 @@ verts=java.util.Vector {
       }
    }
    cc.game.soc.core.Vertex {
-      flags=3
+      flags=2
       numAdj=3
       numCells=3
       pirateHealth=0
@@ -4520,7 +4684,7 @@ verts=java.util.Vector {
       numCells=1
       pirateHealth=0
       player=0
-      x=0.35714275
+      x=0.35714278
       y=0.055555582
       type=OPEN
       adjacent=int 3 {
@@ -4536,7 +4700,7 @@ verts=java.util.Vector {
       numCells=3
       pirateHealth=0
       player=0
-      x=0.35714275
+      x=0.35714278
       y=0.16666669
       type=OPEN
       adjacent=int 3 {
@@ -4547,7 +4711,7 @@ verts=java.util.Vector {
       }
    }
    cc.game.soc.core.Vertex {
-      flags=3
+      flags=2
       numAdj=3
       numCells=3
       pirateHealth=0
@@ -4563,7 +4727,7 @@ verts=java.util.Vector {
       }
    }
    cc.game.soc.core.Vertex {
-      flags=1
+      flags=3
       numAdj=3
       numCells=3
       pirateHealth=0
@@ -4600,7 +4764,7 @@ verts=java.util.Vector {
       numCells=2
       pirateHealth=0
       player=0
-      x=0.78571427
+      x=0.7857142
       y=0.16666669
       type=OPEN
       adjacent=int 3 {
@@ -4611,7 +4775,7 @@ verts=java.util.Vector {
       }
    }
    cc.game.soc.core.Vertex {
-      flags=3
+      flags=2
       numAdj=3
       numCells=3
       pirateHealth=0
@@ -4647,10 +4811,10 @@ verts=java.util.Vector {
       numAdj=3
       numCells=3
       pirateHealth=0
-      player=2
-      x=0.35714275
+      player=0
+      x=0.35714278
       y=0.2777778
-      type=BASIC_KNIGHT_INACTIVE
+      type=OPEN
       adjacent=int 3 {
          88 111 52 
       }
@@ -4664,7 +4828,7 @@ verts=java.util.Vector {
       numCells=2
       pirateHealth=0
       player=0
-      x=0.21428567
+      x=0.2142857
       y=0.16666669
       type=OPEN
       adjacent=int 3 {
@@ -4680,7 +4844,7 @@ verts=java.util.Vector {
       numCells=1
       pirateHealth=0
       player=0
-      x=0.24999994
+      x=0.24999997
       y=0.111111134
       type=OPEN
       adjacent=int 3 {
@@ -4696,7 +4860,7 @@ verts=java.util.Vector {
       numCells=3
       pirateHealth=0
       player=0
-      x=0.24999994
+      x=0.24999997
       y=0.22222224
       type=OPEN
       adjacent=int 3 {
@@ -4728,7 +4892,7 @@ verts=java.util.Vector {
       numCells=1
       pirateHealth=0
       player=0
-      x=0.1428571
+      x=0.14285713
       y=0.16666669
       type=OPEN
       adjacent=int 3 {
@@ -4739,7 +4903,7 @@ verts=java.util.Vector {
       }
    }
    cc.game.soc.core.Vertex {
-      flags=1
+      flags=3
       numAdj=3
       numCells=3
       pirateHealth=0
@@ -4755,7 +4919,7 @@ verts=java.util.Vector {
       }
    }
    cc.game.soc.core.Vertex {
-      flags=1
+      flags=3
       numAdj=3
       numCells=3
       pirateHealth=0
@@ -4771,7 +4935,7 @@ verts=java.util.Vector {
       }
    }
    cc.game.soc.core.Vertex {
-      flags=1
+      flags=3
       numAdj=3
       numCells=3
       pirateHealth=0
@@ -4787,7 +4951,7 @@ verts=java.util.Vector {
       }
    }
    cc.game.soc.core.Vertex {
-      flags=1
+      flags=3
       numAdj=3
       numCells=3
       pirateHealth=0
@@ -4803,7 +4967,7 @@ verts=java.util.Vector {
       }
    }
    cc.game.soc.core.Vertex {
-      flags=1
+      flags=3
       numAdj=3
       numCells=3
       pirateHealth=0
@@ -4819,7 +4983,7 @@ verts=java.util.Vector {
       }
    }
    cc.game.soc.core.Vertex {
-      flags=1
+      flags=3
       numAdj=3
       numCells=3
       pirateHealth=0
@@ -4835,7 +4999,7 @@ verts=java.util.Vector {
       }
    }
    cc.game.soc.core.Vertex {
-      flags=3
+      flags=2
       numAdj=3
       numCells=3
       pirateHealth=0
@@ -4851,7 +5015,7 @@ verts=java.util.Vector {
       }
    }
    cc.game.soc.core.Vertex {
-      flags=3
+      flags=2
       numAdj=3
       numCells=3
       pirateHealth=0
@@ -4867,7 +5031,7 @@ verts=java.util.Vector {
       }
    }
    cc.game.soc.core.Vertex {
-      flags=3
+      flags=2
       numAdj=3
       numCells=3
       pirateHealth=0
@@ -4883,7 +5047,7 @@ verts=java.util.Vector {
       }
    }
    cc.game.soc.core.Vertex {
-      flags=3
+      flags=2
       numAdj=3
       numCells=3
       pirateHealth=0
@@ -4963,7 +5127,7 @@ verts=java.util.Vector {
       }
    }
    cc.game.soc.core.Vertex {
-      flags=3
+      flags=2
       numAdj=3
       numCells=3
       pirateHealth=0
@@ -5027,12 +5191,12 @@ verts=java.util.Vector {
       }
    }
    cc.game.soc.core.Vertex {
-      flags=3
+      flags=2
       numAdj=3
       numCells=3
       pirateHealth=0
       player=0
-      x=0.35714275
+      x=0.35714278
       y=0.8333333
       type=OPEN
       adjacent=int 3 {
@@ -5048,7 +5212,7 @@ verts=java.util.Vector {
       numCells=1
       pirateHealth=0
       player=0
-      x=0.35714275
+      x=0.35714278
       y=0.9444445
       type=OPEN
       adjacent=int 3 {
@@ -5059,7 +5223,7 @@ verts=java.util.Vector {
       }
    }
    cc.game.soc.core.Vertex {
-      flags=1
+      flags=3
       numAdj=3
       numCells=3
       pirateHealth=0
@@ -5112,7 +5276,7 @@ verts=java.util.Vector {
       numCells=2
       pirateHealth=0
       player=0
-      x=0.78571427
+      x=0.7857142
       y=0.8333334
       type=OPEN
       adjacent=int 3 {
@@ -5155,12 +5319,12 @@ verts=java.util.Vector {
       }
    }
    cc.game.soc.core.Vertex {
-      flags=1
+      flags=3
       numAdj=3
       numCells=3
       pirateHealth=0
       player=0
-      x=0.35714275
+      x=0.35714278
       y=0.7222222
       type=OPEN
       adjacent=int 3 {
@@ -5176,7 +5340,7 @@ verts=java.util.Vector {
       numCells=2
       pirateHealth=0
       player=0
-      x=0.21428567
+      x=0.2142857
       y=0.8333334
       type=OPEN
       adjacent=int 3 {
@@ -5192,7 +5356,7 @@ verts=java.util.Vector {
       numCells=3
       pirateHealth=0
       player=0
-      x=0.24999994
+      x=0.24999997
       y=0.7777778
       type=OPEN
       adjacent=int 3 {
@@ -5208,7 +5372,7 @@ verts=java.util.Vector {
       numCells=1
       pirateHealth=0
       player=0
-      x=0.24999994
+      x=0.24999997
       y=0.88888896
       type=OPEN
       adjacent=int 3 {
@@ -5240,7 +5404,7 @@ verts=java.util.Vector {
       numCells=1
       pirateHealth=0
       player=0
-      x=0.1428571
+      x=0.14285713
       y=0.83333343
       type=OPEN
       adjacent=int 3 {

@@ -10,6 +10,7 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.ListCellRenderer;
 import javax.swing.ListModel;
+import javax.swing.UIManager;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 
@@ -84,9 +85,10 @@ public class JMultiColoredScrollConsole extends JList<JMultiColoredScrollConsole
 		}
     };
     
-    
 	public synchronized void addText(Color color, String text) {
-        lines.addFirst(new Entry(color, text));
+		String [] l = AWTUtils.generateWrappedLines(getGraphics(), text, getWidth() - 20);
+		for (int i=l.length-1; i>=0; i--)
+			lines.addFirst(new Entry(color, l[i]));
         while (lines.size() > maxRecordLines) {
             lines.removeLast();
             if (listener != null) {

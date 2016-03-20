@@ -6,8 +6,11 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.GridLayout;
+import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.event.*;
 import java.io.*;
@@ -22,26 +25,25 @@ import javax.swing.event.ChangeListener;
 import org.apache.log4j.Logger;
 
 import cc.game.soc.core.*;
-import cc.game.soc.core.Player.PlayerChoice;
-import cc.game.soc.core.Player.RouteChoice;
-import cc.game.soc.core.Player.RouteChoiceType;
-import cc.game.soc.core.Player.TileChoice;
-import cc.game.soc.core.Player.VertexChoice;
+import cc.game.soc.core.Player.*;
+import cc.game.soc.core.PlayerBot.Distances;
 import cc.game.soc.core.annotations.RuleVariable;
-import cc.game.soc.swing.BoardComponent.PickHandler;
-import cc.game.soc.swing.BoardComponent.PickMode;
-import cc.game.soc.swing.BoardComponent.RenderFlag;
-import cc.lib.game.IVector2D;
-import cc.lib.game.Utils;
+import cc.game.soc.swing.BoardComponent.*;
+import cc.lib.game.*;
+import cc.lib.math.*;
 import cc.lib.swing.*;
 import cc.lib.utils.FileUtils;
 
 public class GUI implements ActionListener, ComponentListener, WindowListener, Runnable {
 
+	final static String PROP_AI_TUNING_ENABLED = "aituning.enable";
+	final static String PROP_SCENARIOS_DIR = "scenariosDirectory";
+	
     final Logger log = Logger.getLogger(GUI.class);
     
     static GUI instance;
-    static final File homeFolder = new File(System.getProperty("user.home") + "/.soc");
+    static final File HOME_FOLDER = new File(System.getProperty("user.home") + "/.soc");
+    static final File AI_TUNING_FILE = new File(HOME_FOLDER, "aituning.properties");
 
 	public static void main(String [] args)  {
 		JFrame frame = new JFrame();
@@ -51,14 +53,14 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 			
 			Utils.setDebugEnabled(true);
 			GUIProperties props = new GUIProperties();
-			if (!homeFolder.exists()) {
-				if (!homeFolder.mkdir()) {
-					throw new RuntimeException("Cannot create home folder: " + homeFolder);
+			if (!HOME_FOLDER.exists()) {
+				if (!HOME_FOLDER.mkdir()) {
+					throw new RuntimeException("Cannot create home folder: " + HOME_FOLDER);
 				}
-			} else if (!homeFolder.isDirectory()) {
-				throw new RuntimeException("Not a directory: " + homeFolder);
+			} else if (!HOME_FOLDER.isDirectory()) {
+				throw new RuntimeException("Not a directory: " + HOME_FOLDER);
 			}
-            props.load(new File(homeFolder, "gui.properties").getAbsolutePath());
+            props.load(new File(HOME_FOLDER, "gui.properties").getAbsolutePath());
 			GUI gui = new GUI(frame, props);
 			frame.addWindowListener(gui);
 			frame.addComponentListener(gui);
@@ -119,8 +121,10 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 	private JPanel westGridPanel = new JPanel();
 	private JScrollPane consolePane;
 	private JSpinner playerChooser;
-	private JLabel helpText;
-	PlayerInfoComponent [] playerComponents = new PlayerInfoComponent[8];
+	private final JPanelStack middleLeftPanel = new JPanelStack();
+	private final JWrapLabel helpText = new JWrapLabel();
+	final PlayerInfoComponent [] playerComponents = new PlayerInfoComponent[8];
+    private final Properties aiTuning = new Properties();
 	
 	final static class ColorString {
 		final Color color;
@@ -164,12 +168,12 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 		soc = new SOCGUI(this);
 		
 		String boardFilename = props.getProperty("gui.defaultBoardFilename", "soc_def_board.txt");
-        defaultBoardFile = new File(homeFolder, boardFilename);
+        defaultBoardFile = new File(HOME_FOLDER, boardFilename);
         if (!defaultBoardFile.exists()) {
         	defaultBoardFile = new File(boardFilename);
         }
-        saveGameFile = new File(homeFolder, props.getProperty("gui.saveGameFileName", "socsavegame.txt"));
-        saveRulesFile = new File(homeFolder, props.getProperty("gui.saveRulesFileName", "socrules.txt"));
+        saveGameFile = new File(HOME_FOLDER, props.getProperty("gui.saveGameFileName", "socsavegame.txt"));
+        saveRulesFile = new File(HOME_FOLDER, props.getProperty("gui.saveRulesFileName", "socrules.txt"));
         debugBoard = new File("boards/debug_board.txt");
         
         diceSpinTimeSeconds = props.getFloatProperty("gui.diceSpinTimeSeconds", 3);
@@ -222,6 +226,40 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 			}
         };
         
+        String scenario = getProps().getProperty("scenario");
+        if (scenario != null) {
+        	try {
+        		loadGame(new File(scenario));
+        	} catch (Exception e) {
+        		e.printStackTrace();
+        	}
+        }
+        
+        
+        try {
+        	FileInputStream in = new FileInputStream(AI_TUNING_FILE);
+        	try {
+        		aiTuning.load(in);
+        	} finally {
+        		in.close();
+        	}
+        } catch (Exception e) {
+        	e.printStackTrace();
+        }
+        
+        AITuning.setInstance(new AITuning() {
+			
+			@Override
+			public double getScalingFactor(String property) {
+				if (!aiTuning.containsKey(property)) {
+					aiTuning.setProperty(property, "1.0");
+					return 1.0;
+				}
+				
+				return Double.valueOf(aiTuning.getProperty(property));
+			}
+		});
+        
         // console
         Color bkColor = props.getColorProperty("console.bkColor", Color.LIGHT_GRAY);
         if (bkColor == null)
@@ -261,7 +299,6 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
         frame.add(eastGridPanel, BorderLayout.EAST);
         frame.add(westGridPanel, BorderLayout.WEST);
         cntrBorderPanel.add(consolePane, BorderLayout.SOUTH); 
-        helpText = new JLabel();
         helpText.setBorder(BorderFactory.createLineBorder(helpText.getBackground(), 5));
         //helpText.set
         
@@ -351,8 +388,9 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
                 	}
                 }
                 
-                JPanel helpMenuDice = new JPanel();
-                helpMenuDice.setLayout(new BorderLayout());
+                middleLeftPanel.removeAll();
+                JPanel diceHelpPanel = middleLeftPanel.push();
+                diceHelpPanel.setLayout(new BorderLayout());
                 JPanel dicePanel = null;
                 
                 Dice [] dice = soc.getDice();
@@ -366,9 +404,9 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
                 	dicePanel = new EZPanel(new FlowLayout(), diceComps);
                 }
                 
-                helpMenuDice.add(dicePanel, BorderLayout.NORTH);
-                helpMenuDice.add(helpText, BorderLayout.CENTER);
-                westGridPanel.add(helpMenuDice);
+                diceHelpPanel.add(dicePanel, BorderLayout.NORTH);
+                diceHelpPanel.add(helpText, BorderLayout.CENTER);
+                westGridPanel.add(middleLeftPanel);
                 JScrollPane menuPanel = new JScrollPane();
                 menuPanel.setLayout(new ScrollPaneLayout());
                 menuPanel.getViewport().add(menu);
@@ -911,6 +949,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 										}
 										break;
 									}
+									case PM_CUSTOM:
 									case PM_NONE:
 										break;
 								}
@@ -934,6 +973,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 										bc.drawVertex(g, v, v.getType(), v.getPlayer(), true);
 										break;
 									}
+									case PM_CUSTOM:
 									case PM_NONE:
 										break;
 								}
@@ -985,7 +1025,6 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
                 choiceButtons.add(getMenuOpButton(MenuOp.RESET_BOARD));
                 choiceButtons.add(getMenuOpButton(MenuOp.RESET_BOARD_ISLANDS));
                 choiceButtons.add(getMenuOpButton(MenuOp.COMPUTE_DISTANCES));
-                choiceButtons.add(getMenuOpButton(MenuOp.EVALUATE_VERTICES));
                 choiceButtons.add(getMenuOpButton(MenuOp.LOAD_DEBUG));
                 choiceButtons.add(getMenuOpButton(MenuOp.SAVE_DEBUG));
                 eastGridPanel.removeAll();
@@ -1337,7 +1376,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 							public boolean doAction() {
 								getBoard().setName(nameField.getText());
 								JFileChooser chooser = new JFileChooser();
-								File scenarioDir = new File(props.getProperty("screnariosDirectory", "scenarios"));
+								File scenarioDir = new File(props.getProperty(PROP_SCENARIOS_DIR, "scenarios"));
 								if (!scenarioDir.exists()) {
 									if (!scenarioDir.mkdirs()) {
 										showOkPopup("ERROR", "Failed to create directory '" + scenarioDir + "'");
@@ -1375,7 +1414,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 			}
 			
 			case LOAD_SCENARIO: {
-				File scenariosDir = new File(props.getProperty("scenariosDirectory", "scenarios"));
+				File scenariosDir = new File(props.getProperty(PROP_SCENARIOS_DIR, "scenarios"));
 				if (!scenariosDir.isDirectory()) {
 					showOkPopup("ERROR", "Cant find scenarios directory '" + scenariosDir + "'");
 				} else {
@@ -1389,6 +1428,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 						File file = chooser.getSelectedFile();
 						try {
 							loadGame(file);
+							getProps().setProperty("scenario", file.getAbsolutePath());
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
@@ -1415,15 +1455,6 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 				break;
 			}
 			
-			case EVALUATE_VERTICES: {
-				long t = System.currentTimeMillis();
-				BotNodeRoot root = new BotNodeRoot();
-				PlayerBot.evaluateVertices(root, getRules(), getCurPlayerNum(), getBoard());
-				long dt = System.currentTimeMillis() - t;
-				System.out.println("---------------------------------\nVerts Evaluation in " + dt + " MSecs:\n" + root.debugDump());
-				break;
-			}
-			
 			case LOAD_DEBUG:
 				loadBoard(debugBoard.getAbsolutePath());
 				break;
@@ -1431,6 +1462,35 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 			case SAVE_DEBUG:
 				saveBoard(debugBoard.getAbsolutePath());
 				break;
+			case AITUNING_NEXT_OPTIMAL_INDEX:
+				optimalIndex = (optimalIndex+1) % optimalOptions.size();
+				break;
+			case AITUNING_PREV_OPTIMAL_INDEX:
+				optimalIndex = (optimalOptions.size()+optimalIndex-1) % optimalOptions.size();
+				break;
+			case AITUNING_ACCEPT_OPTIMAL:
+				setReturnValue(optimalOptions.get(optimalIndex));
+				break;
+			case AITUNING_REFRESH: {
+				try {
+    				JTextArea area = (JTextArea)(middleLeftPanel.top().getComponent(0));
+    				String txt = area.getText();
+    				String [] lines = txt.split("[\n]");
+    				for (int i=1; i<lines.length; i++) {
+    					String line = lines[i];
+    					String [] parts = line.split("[ ]+");
+    					aiTuning.setProperty(parts[0], parts[1]);
+    				}
+    				FileOutputStream out = new FileOutputStream(AI_TUNING_FILE);
+    				try {
+    					aiTuning.store(out, "Generated by SOC Swing Utility");
+    				} finally {
+    					out.close();
+    				}
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
 		}
 
         synchronized (waitObj) {
@@ -1577,11 +1637,22 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
         } else {
     	    menu.add(new JLabel(""));
         }
+		boolean aiTuningEnabled = getProps().getBooleanProperty(PROP_AI_TUNING_ENABLED, false);
+		JToggleButton tuneAI = new JToggleButton("AI Tuning");
+		tuneAI.setSelected(aiTuningEnabled);
+		tuneAI.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				getProps().setProperty(PROP_AI_TUNING_ENABLED, ((JToggleButton)e.getSource()).isSelected());
+			}
+		});
+		menu.add(tuneAI);
 		menu.add(getMenuOpButton(MenuOp.SHOW_RULES));
 		menu.add(getMenuOpButton(MenuOp.BUILDABLES_POPUP));
 		menu.add(getMenuOpButton(MenuOp.REWIND_GAME));
 		menu.add(getMenuOpButton(MenuOp.QUIT));
-		helpText.setText("<html>" + soc.getHelpText() + "</html>");
+		helpText.setText(soc.getHelpText());
         frame.validate();
 	}
 	
@@ -1742,6 +1813,216 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 		menu.add(getMenuOpButton(MenuOp.CHOOSE_SHIP, "Ships", "View ship options", RouteChoiceType.SHIP_CHOICE));
 		completeMenu();
 		return waitForReturnValue(null);
+	}
+	
+	private int optimalIndex = 0;
+	private List<BotNode> optimalOptions = null;
+	
+	private String getBotNodeDetails(BotNode node, int maxKeyWidth, Map<String,Double> maxValues) {
+		StringBuffer info = new StringBuffer();
+		info.append(String.format("%-" + maxKeyWidth + "s FACTOR  VALUE MAX TOT\n", "PROPERTY"));
+		for (String key : node.getKeys()) {
+			double factor = AITuning.getInstance().getScalingFactor(key);
+			double value =  node.getValue(key);
+			int percentMax = (int)(100 * value / maxValues.get(key));
+			int percentTot = (int)(100 * factor * value / node.getValue());
+			info.append(String.format("%-" + maxKeyWidth + "s %1.4f %1.4f %3d %3d\n", key, factor, value, percentMax, percentTot));
+		}		
+		return info.toString();
+	}
+			
+	static final class NodeRect {
+		final Rectangle r;
+		final String s;
+
+		public NodeRect(Rectangle r, String s) {
+			this.r = r;
+			this.s = s;
+		}
+	}
+	
+	
+	public BotNode chooseOptimalPath(BotNode optimal, final List<BotNode> leafs) {
+		
+		if (getProps().getBooleanProperty(PROP_AI_TUNING_ENABLED, false) == false)
+			return optimal;
+		
+		final HashMap<String, Double> maxValues= new HashMap<String, Double>();
+		int maxKeyWidth = 0;
+		for (BotNode n : leafs) {
+			for (String key : n.getKeys()) {
+				maxKeyWidth = Math.max(maxKeyWidth, key.length());
+				double v = n.getValue(key);
+				if (maxValues.containsKey(key)) {
+					maxValues.put(key, Math.max(v, maxValues.get(key)));
+				} else {
+					maxValues.put(key,  v);
+				}
+			}
+		}
+		
+		clearMenu();
+		
+		//menu.add(getMenuOpButton(MenuOp.NEXT_OPTIMAL_INDEX));
+		//menu.add(getMenuOpButton(MenuOp.PREV_OPTIMAL_INDEX));
+		menu.add(getMenuOpButton(MenuOp.AITUNING_ACCEPT_OPTIMAL));
+		final OpButton refresh = getMenuOpButton(MenuOp.AITUNING_REFRESH);
+		menu.add(refresh);
+		
+		if (optimal != null)
+			optimalIndex = leafs.indexOf(optimal);
+		else
+			optimal = leafs.get(optimalIndex);
+		optimalOptions = leafs;
+		
+		int ypos = 0;
+		int index = 0;
+		final FontMetrics fm = boardComp.getGraphics().getFontMetrics();
+		final int fontHeight = fm.getHeight();
+		final Rectangle [] nodeRects = new Rectangle[leafs.size()];
+		final String [] nodeStrs = new String[leafs.size()];
+		final int padding = 2;
+		for (BotNode n : leafs) {
+			MutableVector2D v = new MutableVector2D(n.getBoardPosition(getBoard()));
+			if (v.isZero()) {
+				nodeStrs[index] = String.valueOf(index+1) +  " " + n.getDescription();
+				nodeRects[index] = new Rectangle(padding, ypos, AWTUtils.getStringWidth(boardComp.getGraphics(), nodeStrs[index]), fontHeight);
+				ypos += fontHeight+padding*2+1;
+				
+			} else {
+				boardComp.render.transformXY(v);
+				nodeStrs[index] = String.valueOf(index+1);
+				int width = fm.stringWidth(nodeStrs[index]);
+				Rectangle r = new Rectangle(v.Xi() - width/2, v.Yi() - fontHeight/2, width, fontHeight);
+				for (int i=0; i<index; i++) {
+					if (AWTUtils.isBoxesOverlapping(nodeRects[i], r)) {
+						r.x = nodeRects[i].x;
+						r.y = nodeRects[i].y + nodeRects[i].height + padding;
+						break;
+					}
+				}
+				nodeRects[index] = r;
+			}
+			index++;
+		}
+
+		final int maxKeyWidthf = maxKeyWidth;
+		String optimalInfo = getBotNodeDetails(optimal, maxKeyWidth, maxValues);
+		final JTextArea nodeArea = new JTextArea();
+		nodeArea.setLineWrap(true);
+		nodeArea.addKeyListener(new KeyListener() {
+			
+			@Override
+			public void keyTyped(KeyEvent e) {}
+			
+			@Override
+			public void keyReleased(KeyEvent e) {}
+			
+			@Override
+			public void keyPressed(KeyEvent e) {
+				if (e.getKeyChar() == KeyEvent.VK_ENTER) {
+					refresh.doClick();
+					e.consume();
+				}
+			}
+		});
+		middleLeftPanel.push().add(nodeArea);
+		
+		nodeArea.setFont(Font.decode("courier-plain-10"));
+		nodeArea.setText(optimalInfo.toString());
+		completeMenu();
+		
+		boardComp.setPickHandler(new CustomPickHandler() {
+			
+			@Override
+			public void onPick(BoardComponent bc, int pickedValue) {
+				BotNode n = leafs.get(pickedValue);
+				
+				if (n.getData() instanceof Vertex) {
+					Vertex v = (Vertex)n.getData();
+					v.setPlayerAndType(getCurPlayerNum(), VertexType.SETTLEMENT);
+					Distances d = PlayerBot.computeWaterwayDistances(getRules(), getBoard(), getCurPlayerNum());
+					console.addText(Color.BLACK, d.toString());
+					v.setOpen();
+				}
+				
+				String text = "" + pickedValue + ": " + n.getDescription();
+				while (n.getParent() != null) {
+					n = n.getParent();
+					text = n.getDescription() + "==>>" + text;
+				}
+				
+				console.addText(Color.BLACK, text);
+				
+				BotNode node = leafs.get(pickedValue);
+				String info = getBotNodeDetails(node, maxKeyWidthf, maxValues);
+				nodeArea.setText(info);
+			}
+			
+			@Override
+			public void onHighlighted(BoardComponent bc, AWTRenderer r, Graphics g, int highlightedIndex) {
+				BotNode node = leafs.get(highlightedIndex);
+				onDrawPickable(bc, r, g, highlightedIndex);
+				Rectangle r1 = nodeRects[highlightedIndex];
+				String info = String.format("%.6f", node.getValue());
+				g.setColor(Color.YELLOW);
+				AWTUtils.drawWrapJustifiedStringOnBackground(g, r1.x+r1.width+padding+5, r1.y, 100, padding, Justify.LEFT, Justify.TOP, info, AWTUtils.TRANSLUSCENT_BLACK);
+				
+				g.setColor(Color.BLACK);
+				MutableVector2D v = new MutableVector2D();
+				r.clearVerts();
+				while (node.getParent() != null) {
+					v.set(node.getBoardPosition(getBoard()));
+					if (!v.isZero()) {
+						r.addVertex(v);
+					}
+					node = node.getParent();
+				}
+				r.fillPoints(g, 15);
+			}
+			
+			@Override
+			public void onDrawPickable(BoardComponent bc, AWTRenderer r, Graphics g, int index) {
+				Rectangle rect = nodeRects[index];
+				g.setColor(AWTUtils.TRANSLUSCENT_BLACK);
+				AWTUtils.fillRect(g, rect, padding);
+				g.setColor(Color.YELLOW);
+				AWTUtils.drawJustifiedString(g, rect.x, rect.y, Justify.LEFT, Justify.TOP, nodeStrs[index]);
+			}
+			
+			@Override
+			public void onDrawOverlay(BoardComponent bc, AWTRenderer r, Graphics g) {}
+			
+			@Override
+			public boolean isPickableIndex(BoardComponent bc, int index) {
+				return true;
+			}
+
+			@Override
+			public PickMode getPickMode() {
+				return PickMode.PM_CUSTOM;
+			}
+
+			@Override
+			public int getNumElements() {
+				return nodeRects.length;
+			}
+
+			@Override
+			public int pickElement(AWTRenderer render, int x, int y) {
+				for (int i=0; i<nodeRects.length; i++) {
+					if (AWTUtils.isInsideRect(x, y, nodeRects[i]))
+						return i;
+				}
+				return -1;
+			}
+			
+		});
+		
+		BotNode result = waitForReturnValue(null);
+		middleLeftPanel.pop();
+		boardComp.setPickHandler(null);
+		return result;
 	}
 
 	public Route chooseRoute(final Collection<Integer> edges, final RouteChoice choice) {
@@ -2063,7 +2344,8 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
         JFrame frame = new JFrame();
         frame.setAlwaysOnTop(true);
         frame.setTitle(name);
-        JLabel label = new JWrapLabel(msg);
+        JTextArea label = new JTextArea(msg);
+        label.setLineWrap(true);
 
         JPanel container = new JPanel();
         container.setBorder(BorderFactory.createLineBorder(Color.BLACK, 3));
@@ -2337,11 +2619,12 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 	
 	private void clearSaves() {
 		try {
-    		FileUtils.deleteDirContents(homeFolder, "playerAI*");
-    		FileUtils.deleteDirContents(homeFolder, "soc_save*");
+    		FileUtils.deleteDirContents(HOME_FOLDER, "playerAI*");
+    		FileUtils.deleteDirContents(HOME_FOLDER, "socsave*");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
+
 }
 

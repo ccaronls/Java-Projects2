@@ -54,8 +54,11 @@ public enum MenuOp {
     COMPUTE_DISTANCES("Compute Distances", "Dump distance info to the console"),
     LOAD_DEBUG("Load Debug", "Load the Debugging Board"),
     SAVE_DEBUG("Save Debug", "Save existing board as Debug"),
-    EVALUATE_VERTICES("Eval Verts", "Dump PlayerBot evaluation info to console"),
-	;
+    AITUNING_NEXT_OPTIMAL_INDEX("Next Path", "Select the next path for the optimal path"),
+    AITUNING_PREV_OPTIMAL_INDEX("Prev Path", "Select the previous path for the optimal path"),
+	AITUNING_ACCEPT_OPTIMAL("Accept", "Accept the current path"),
+	AITUNING_REFRESH("Refresh", "Refresh aiTuning properties form test area"),
+    ;
 	
 	private MenuOp(String txt, String toolTipText) {
 		this.txt = txt;

@@ -170,12 +170,12 @@ public abstract class CECCBaseActivity extends BillingActivity {
 
 	public enum Purchase {
 		THREEMONTH		("threemonth",		true, false, true),
-		ONEWEEK			("oneweek", 		true, false, true),
-		ONEMONTH		("onemonth", 		true, false, true),
+		ONEWEEK			("oneweek", 		true, false, false),
+		ONEMONTH		("onemonth", 		true, false, false),
 		SIXMONTH		("sixmonth", 		true, false, true),
 		ONEYEAR			("oneyear", 		true, false, true),
-		PREMIUM			("premium", 		true, false, true),
-		PREMIUM_REDUCED	("premium.reduced", false, true, true), // available only while weekly or monthly subscription is active.
+		PREMIUM			("premium", 		true, false, false),
+		PREMIUM_REDUCED	("premium.reduced", false, true, false), // available only while weekly or monthly subscription is active.
 		TENMINUTES		("ten.mins.debug", 	true, false, false) // DEBUG ONLY
 		;
 		

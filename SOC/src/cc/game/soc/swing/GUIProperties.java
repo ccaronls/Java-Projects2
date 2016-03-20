@@ -103,6 +103,10 @@ public class GUIProperties extends Properties {
         return defaultValue;
     }
     
+	public void setProperty(String key, boolean selected) {
+		setProperty(key, selected ? "true" : "false");
+	}
+    
     public float getFloatProperty(String key, float defaultValue) {
         try {
             return Float.parseFloat(getProperty(key, String.valueOf(defaultValue)));
@@ -189,6 +193,7 @@ public class GUIProperties extends Properties {
     	super.putAll(props);
         save();
     }
+
 
     
 }

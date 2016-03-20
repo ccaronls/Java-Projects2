@@ -1478,6 +1478,8 @@ public class Reflector<T> {
         try {
             reader = new MyBufferedReader(new InputStreamReader(new FileInputStream(file)));    
             deserialize(reader);
+        } catch (FileNotFoundException e) {
+        	throw e;
         } catch (IOException e) {
             throw new IOException("Error on line " + reader.lineNum + ": " + e.getMessage(), e);
         } catch (Exception e) {
