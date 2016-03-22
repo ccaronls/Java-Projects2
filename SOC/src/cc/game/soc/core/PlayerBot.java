@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.*;
 
+import javax.swing.text.Position;
+
 import cc.lib.game.Utils;
 import cc.lib.math.CMath;
 import cc.lib.utils.FileUtils;
@@ -611,6 +613,32 @@ public class PlayerBot extends Player {
 					p.adjustResourcesForBuildable(BuildableType.Ship, 1);
 					break;
 				}
+				case BUILD_WARSHIP:
+					p.adjustResourcesForBuildable(BuildableType.Warship, -1);
+					for (int rIndex : b.getRoutesIndicesOfType(getPlayerNum(), RouteType.SHIP)) {
+						Route r = b.getRoute(rIndex);
+						r.setType(RouteType.WARSHIP);
+						boolean movePirate = false;
+						BotNode node = root.attach(new BotNodeRoute(r, rIndex));
+						for (Tile t : b.getRouteTiles(r)) {
+							if (b.getPirateTile() == t) {
+								for (int tIndex: SOC.computePirateTileIndices(soc, b)) {
+									b.setPirate(tIndex);
+									doEvaluateAll(node.attach(new BotNodeTile(b.getTile(tIndex), tIndex)), soc, p, b);
+								}
+								movePirate = true;
+								b.setPirateTile(t);
+								break;
+							}
+						} 
+
+						if (!movePirate) {
+							buildChooseMoveTreeR(soc, p, b, node, SOC.computeMoves(p, b, soc));
+						}
+						r.setType(RouteType.SHIP);
+					}
+					p.adjustResourcesForBuildable(BuildableType.Warship, 1);
+					break;
 				case DRAW_DEVELOPMENT: {
 					p.adjustResourcesForBuildable(BuildableType.Development, -1);
 					Card temp = new Card(DevelopmentCardType.Soldier, CardStatus.UNUSABLE);
@@ -1165,14 +1193,6 @@ public class PlayerBot extends Player {
 					}
 					break;
 				}
-				case BUILD_WARSHIP:
-					for (int rIndex : b.getRoutesIndicesOfType(getPlayerNum(), RouteType.SHIP)) {
-						Route r = b.getRoute(rIndex);
-						r.setType(RouteType.WARSHIP);
-						doEvaluateAll(root.attach(new BotNodeRoute(r, rIndex))	, soc, p, b);
-						r.setType(RouteType.SHIP);
-					}
-					break;
 				case KNIGHT_ATTACK_ROAD: {
 					for (int rIndex : SOC.computeAttackableRoads(soc, getPlayerNum(), b)) {
 						Board copy = b.deepCopy();
@@ -1910,7 +1930,10 @@ public class PlayerBot extends Player {
 		// Assign distances to edges
 		for (Route r: b.getRoutes()) {
 			if (r.getPlayer() == playerNum) {
-				dist[r.getFrom()][r.getTo()] = dist[r.getTo()][r.getFrom()] = 0;
+				if (!r.isAdjacentToWater() || !r.isAdjacentToLand())
+					dist[r.getFrom()][r.getTo()] = dist[r.getTo()][r.getFrom()] = 0;
+				else if (r.isVessel())
+					dist[r.getFrom()][r.getTo()] = dist[r.getTo()][r.getFrom()] = 0;
 				continue;
 			}
 			
@@ -2135,14 +2158,12 @@ public class PlayerBot extends Player {
 				case PASTURE:
 					break;
 				case PORT_MULTI:
-					scale = 1.2f;
-					break;
 				case PORT_BRICK:
 				case PORT_ORE:
 				case PORT_SHEEP:
 				case PORT_WHEAT:
 				case PORT_WOOD:
-					scale = 1.3f;
+					scale = 2f;
 					break;
 				case GOLD:
 					break;
@@ -2174,9 +2195,9 @@ public class PlayerBot extends Player {
 					case SHIP:
 					case WARSHIP:
 						if (r.getPlayer() == p.getPlayerNum()) {
-							pirateValue -= 2;
+							pirateValue -= 3;
 						} else {
-							pirateValue += 1;
+							pirateValue += 0.5;
 						}
 						break;
 				}
@@ -2210,10 +2231,11 @@ public class PlayerBot extends Player {
 		// we want the highest value to be half of the max
 		//node.addValue("cardsInHand", CMath.normalDistribution(p.getTotalCardsLeftInHand(), soc.getRules().getMaxSafeCards()));
 		
-		int cardsInHand = 0;
+		float cardsInHand = 0;
 		final int maxCards = soc.getRules().getMaxSafeCardsForPlayer(p.getPlayerNum(), b);
 		if (p.getTotalCardsLeftInHand() <= maxCards) {
-			cardsInHand = maxCards;
+			cardsInHand = p.getTotalCardsLeftInHand()
+					+ p.getCardCount(CardType.Development);
 		} else {
 			cardsInHand = maxCards - 2 * (p.getTotalCardsLeftInHand() - maxCards);
 		}
@@ -2245,6 +2267,7 @@ public class PlayerBot extends Player {
 			}
 			node.addValue("cityDevelValue", developmentValue);
 		}
+		node.addValue("points", SOC.computePointsForPlayer(p, b, soc));
 	}
 	
 	private static void evaluateDice(BotNode node, int die1, int die2, SOC soc, Player p, Board b) {

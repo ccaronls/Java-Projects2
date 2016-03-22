@@ -1831,6 +1831,8 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 		return info.toString();
 	}
 			
+	static interface MyCustomPickHandler extends CustomPickHandler, MouseWheelListener {};
+
 	static final class NodeRect {
 		final Rectangle r;
 		final String s;
@@ -1841,11 +1843,43 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 		}
 	}
 	
+	private void initNodeRectsArray(Collection<BotNode> leafs, NodeRect [] nodeRects, int ypos) {
+		int index = 0;
+		final FontMetrics fm = boardComp.getGraphics().getFontMetrics();
+		final int fontHeight = fm.getHeight();
+		final int padding = 2;
+		for (BotNode n : leafs) {
+			MutableVector2D v = new MutableVector2D(n.getBoardPosition(getBoard()));
+			if (v.isZero()) {
+				String s = String.valueOf(index+1) +  " " + n.getDescription();
+				Rectangle r = new Rectangle(padding, ypos, AWTUtils.getStringWidth(boardComp.getGraphics(), s), fontHeight);
+				nodeRects[index] = new NodeRect(r, s);
+				ypos += fontHeight+padding*2+1;
+				
+			} else {
+				boardComp.render.transformXY(v);
+				String s = String.valueOf(index+1);
+				int width = fm.stringWidth(s);
+				Rectangle r = new Rectangle(v.Xi() - width/2, v.Yi() - fontHeight/2, width, fontHeight);
+				for (int i=0; i<index; i++) {
+					if (AWTUtils.isBoxesOverlapping(nodeRects[i].r, r)) {
+						r.x = nodeRects[i].r.x;
+						r.y = nodeRects[i].r.y + nodeRects[i].r.height + padding;
+						break;
+					}
+				}
+				nodeRects[index] = new NodeRect(r, s);
+			}
+			index++;
+		}
+	}
 	
 	public BotNode chooseOptimalPath(BotNode optimal, final List<BotNode> leafs) {
 		
 		if (getProps().getBooleanProperty(PROP_AI_TUNING_ENABLED, false) == false)
 			return optimal;
+
+		final int [] leftPanelOffset = new int[1];
 		
 		final HashMap<String, Double> maxValues= new HashMap<String, Double>();
 		int maxKeyWidth = 0;
@@ -1875,37 +1909,18 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 			optimal = leafs.get(optimalIndex);
 		optimalOptions = leafs;
 		
-		int ypos = 0;
+		/*
 		int index = 0;
+		*/
+		
 		final FontMetrics fm = boardComp.getGraphics().getFontMetrics();
 		final int fontHeight = fm.getHeight();
-		final Rectangle [] nodeRects = new Rectangle[leafs.size()];
-		final String [] nodeStrs = new String[leafs.size()];
+		int ypos = -leftPanelOffset[0] * fontHeight;
+		final NodeRect [] nodeRects = new NodeRect[leafs.size()];
+		initNodeRectsArray(leafs, nodeRects, ypos);
+		
 		final int padding = 2;
-		for (BotNode n : leafs) {
-			MutableVector2D v = new MutableVector2D(n.getBoardPosition(getBoard()));
-			if (v.isZero()) {
-				nodeStrs[index] = String.valueOf(index+1) +  " " + n.getDescription();
-				nodeRects[index] = new Rectangle(padding, ypos, AWTUtils.getStringWidth(boardComp.getGraphics(), nodeStrs[index]), fontHeight);
-				ypos += fontHeight+padding*2+1;
-				
-			} else {
-				boardComp.render.transformXY(v);
-				nodeStrs[index] = String.valueOf(index+1);
-				int width = fm.stringWidth(nodeStrs[index]);
-				Rectangle r = new Rectangle(v.Xi() - width/2, v.Yi() - fontHeight/2, width, fontHeight);
-				for (int i=0; i<index; i++) {
-					if (AWTUtils.isBoxesOverlapping(nodeRects[i], r)) {
-						r.x = nodeRects[i].x;
-						r.y = nodeRects[i].y + nodeRects[i].height + padding;
-						break;
-					}
-				}
-				nodeRects[index] = r;
-			}
-			index++;
-		}
-
+		
 		final int maxKeyWidthf = maxKeyWidth;
 		String optimalInfo = getBotNodeDetails(optimal, maxKeyWidth, maxValues);
 		final JTextArea nodeArea = new JTextArea();
@@ -1932,7 +1947,17 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 		nodeArea.setText(optimalInfo.toString());
 		completeMenu();
 		
-		boardComp.setPickHandler(new CustomPickHandler() {
+		MyCustomPickHandler handler = new MyCustomPickHandler() {
+			
+			int lastHighlighted = -1;
+			
+			public void mouseWheelMoved(MouseWheelEvent e) {
+				int clicks = e.getWheelRotation();
+				leftPanelOffset[0] = Math.max(0, leftPanelOffset[0]+clicks);
+				int ypos = -leftPanelOffset[0] * fontHeight;
+				initNodeRectsArray(leafs, nodeRects, ypos);
+				boardComp.repaint();
+			}
 			
 			@Override
 			public void onPick(BoardComponent bc, int pickedValue) {
@@ -1945,28 +1970,43 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 					console.addText(Color.BLACK, d.toString());
 					v.setOpen();
 				}
-				
-				String text = "" + pickedValue + ": " + n.getDescription();
-				while (n.getParent() != null) {
-					n = n.getParent();
-					text = n.getDescription() + "==>>" + text;
+
+				if (n.getData() instanceof Route) {
+					Route r = (Route)n.getData();
+					//r.setType(RouteType.SHIP);
+					getBoard().setPlayerForRoute(r, getCurPlayerNum(), RouteType.SHIP);
+					Distances d = PlayerBot.computeWaterwayDistances(getRules(), getBoard(), getCurPlayerNum());
+					console.addText(Color.BLACK, d.toString());
+					getBoard().setRouteOpen(r);
 				}
 				
-				console.addText(Color.BLACK, text);
-				
-				BotNode node = leafs.get(pickedValue);
-				String info = getBotNodeDetails(node, maxKeyWidthf, maxValues);
-				nodeArea.setText(info);
 			}
 			
 			@Override
 			public void onHighlighted(BoardComponent bc, AWTRenderer r, Graphics g, int highlightedIndex) {
+				
+				if (lastHighlighted != highlightedIndex) {
+					BotNode node = leafs.get(highlightedIndex);
+					String info = getBotNodeDetails(node, maxKeyWidthf, maxValues);
+					nodeArea.setText(info);
+					
+					String text = node.getDescription();
+					while (node.getParent() != null) {
+						node = node.getParent();
+						text = node.getDescription() + "==>>" + text;
+					}
+					text = "" + highlightedIndex + ": " + text;
+					console.addText(Color.BLACK, text);
+				}
+				
+				lastHighlighted = highlightedIndex;
+				
 				BotNode node = leafs.get(highlightedIndex);
 				onDrawPickable(bc, r, g, highlightedIndex);
-				Rectangle r1 = nodeRects[highlightedIndex];
+				NodeRect nr = nodeRects[highlightedIndex];
 				String info = String.format("%.6f", node.getValue());
 				g.setColor(Color.YELLOW);
-				AWTUtils.drawWrapJustifiedStringOnBackground(g, r1.x+r1.width+padding+5, r1.y, 100, padding, Justify.LEFT, Justify.TOP, info, AWTUtils.TRANSLUSCENT_BLACK);
+				AWTUtils.drawWrapJustifiedStringOnBackground(g, nr.r.x+nr.r.width+padding+5, nr.r.y, 100, padding, Justify.LEFT, Justify.TOP, info, AWTUtils.TRANSLUSCENT_BLACK);
 				
 				g.setColor(Color.BLACK);
 				MutableVector2D v = new MutableVector2D();
@@ -1983,11 +2023,11 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 			
 			@Override
 			public void onDrawPickable(BoardComponent bc, AWTRenderer r, Graphics g, int index) {
-				Rectangle rect = nodeRects[index];
+				NodeRect nr = nodeRects[index];
 				g.setColor(AWTUtils.TRANSLUSCENT_BLACK);
-				AWTUtils.fillRect(g, rect, padding);
+				AWTUtils.fillRect(g, nr.r, padding);
 				g.setColor(Color.YELLOW);
-				AWTUtils.drawJustifiedString(g, rect.x, rect.y, Justify.LEFT, Justify.TOP, nodeStrs[index]);
+				AWTUtils.drawJustifiedString(g, nr.r.x, nr.r.y, Justify.LEFT, Justify.TOP, nr.s);
 			}
 			
 			@Override
@@ -2011,20 +2051,24 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 			@Override
 			public int pickElement(AWTRenderer render, int x, int y) {
 				for (int i=0; i<nodeRects.length; i++) {
-					if (AWTUtils.isInsideRect(x, y, nodeRects[i]))
+					int dy = i * AWTUtils.getFontHeight(boardComp.getGraphics());
+					NodeRect nr = nodeRects[i];
+					if (AWTUtils.isInsideRect(x, y, nodeRects[i].r))
 						return i;
 				}
 				return -1;
 			}
 			
-		});
-		
+		};
+		boardComp.setPickHandler(handler);
+		boardComp.addMouseWheelListener(handler);
 		BotNode result = waitForReturnValue(null);
 		middleLeftPanel.pop();
 		boardComp.setPickHandler(null);
+		boardComp.removeMouseWheelListener(handler);
 		return result;
 	}
-
+	
 	public Route chooseRoute(final Collection<Integer> edges, final RouteChoice choice) {
 		clearMenu();
 		boardComp.setPickHandler(new PickHandler() {

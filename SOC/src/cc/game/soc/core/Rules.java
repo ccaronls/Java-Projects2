@@ -91,6 +91,8 @@ public final class Rules extends Reflector<Rules> {
 	private int pirateFortressHealth = 3;
 	@RuleVariable(description="Ships can be built from any port regardless if there is a settlement.")
 	private boolean enableBuildShipsFromPort = false;
+	@RuleVariable(description="Warship can chase away pirate and attack opponents normal ships.")
+	private boolean enableWarShip = false;
 	
 	// knight
 	@RuleVariable(description="Enable Cities and Knights", separator="Cities & Knights Expansion")
@@ -342,6 +344,12 @@ public final class Rules extends Reflector<Rules> {
 				VertexType.METROPOLIS_POLITICS, VertexType.METROPOLIS_SCIENCE, VertexType.METROPOLIS_TRADE); 
 		}
 		return num;
+	}
+	public final boolean isEnableWarShip() {
+		return enableWarShip;
+	}
+	public final void setEnableWarShip(boolean enableWarShip) {
+		this.enableWarShip = enableWarShip;
 	}
 
 }

@@ -449,6 +449,21 @@ public final class Board extends Reflector<Board> {
     	return edges;
     }
     
+    public List<Route> getTileRoutesOfType(Tile tile, RouteType type) {
+    	List<Route> edges = new ArrayList<Route>();
+    	for (int i=0; i<tile.getNumAdj(); i++) {
+    		int v0 = tile.getAdjVert(i);
+    		int v1 = tile.getAdjVert((i+1) % tile.getNumAdj());
+    		int eIndex = getRouteIndex(v0, v1);
+    		if (eIndex >= 0) {
+    			Route r = getRoute(eIndex);
+    			if (r.getType() == type)
+    				edges.add(getRoute(eIndex));
+    		}
+    	}
+    	return edges;
+    }
+    
     /**
      * 
      * @param tile
@@ -744,12 +759,14 @@ public final class Board extends Reflector<Board> {
 		Vertex v = getVertex(r.getFrom());
 		if (v.isStructure() && v.getPlayer() == r.getPlayer())
 			return false;
+		int numEnds = 0;
 		for (int i=0; i<v.getNumAdjacent(); i++) {
 			int v2 = v.getAdjacent()[i];
 			if (v2 != r.getTo()) {
 				Route r2 = getRoute(r.getFrom(), v2);
 				if (r2 != null && r2.getPlayer() == r.getPlayer()) {
-					return false;
+					numEnds++;
+					break;
 				}
 			}
 		}
@@ -761,11 +778,12 @@ public final class Board extends Reflector<Board> {
 			if (v2 != r.getFrom()) {
 				Route r2 = getRoute(r.getTo(), v2);
 				if (r2 != null && r2.getPlayer() == r.getPlayer()) {
-					return false;
+					numEnds++;
+					break;
 				}
 			}
 		}
-		return true;
+		return numEnds < 2;
 	}
 
 	/**
@@ -857,6 +875,9 @@ public final class Board extends Reflector<Board> {
 		}
 		for (int vertex : pirateFortresses) {
 			getVertex(vertex).setPirateFortress();
+		}
+		for (Island i : islands) {
+			Arrays.fill(i.discovered, false);
 		}
 	}
 

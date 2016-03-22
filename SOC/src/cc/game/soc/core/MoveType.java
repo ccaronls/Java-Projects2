@@ -16,7 +16,7 @@ public enum MoveType implements Comparable<MoveType>{
 	// Alchemist
 	// roll die/event
 	
-    CONTINUE(false, 100, "Continue", "End your turn."),
+    CONTINUE(false, 100, "Continue", "End your turn"),
 
     // use a soldier
     SOLDIER_CARD(true, 50, "Soldier", "Move the robber or Pirate to cell of players choice"),
@@ -25,7 +25,7 @@ public enum MoveType implements Comparable<MoveType>{
     WARSHIP_CARD(false, 50, "Warship", "Turn one of your ships into a warship"),
     
     // Use a monopoly card
-    MONOPOLY_CARD(true, 50, "Monopoly", "Choose a Resource and all opponents give you that resource from their hand."),
+    MONOPOLY_CARD(true, 50, "Monopoly", "Choose a Resource and all opponents give you that resource from their hand"),
 
     // Use a year of plenty card
     YEAR_OF_PLENTY_CARD(true, 0, "Year of Plenty", "Choose 2 Resources to add to your hand"),
@@ -37,7 +37,7 @@ public enum MoveType implements Comparable<MoveType>{
     DRAW_DEVELOPMENT(false, 50, "Development", "Draw random Development Card for cost of " + BuildableType.Development.getNiceString()),
 
     // player can move a ship that is not connected to a settlement or is not between 2 other ships and is not adjacent to the pirate
-    MOVE_SHIP(false, 5, "Move Ship", "Reposition an opne ship"),
+    MOVE_SHIP(false, 5, "Move Ship", "Reposition an open ended ship"),
 
     // use a road building card
     ROAD_BUILDING_CARD(true, 10, "Road Building", "Build two Routes for free"),
@@ -45,10 +45,12 @@ public enum MoveType implements Comparable<MoveType>{
     // Build a ship
     BUILD_SHIP(false, 5, "Build Ship", "Position a new ship for cost of " + BuildableType.Ship.getNiceString()),
 
-    BUILD_WARSHIP(false, 50, "Build Warship", "Upgrade an existing ship to a war ship for cost of " + BuildableType.Warship.getNiceString()),
+    BUILD_WARSHIP(false, 50, "Build Warship", "Upgrade an existing ship to a war ship for cost of " + BuildableType.Warship.getNiceString() + ". Warships can chase away the pirate."),
+    
+    ATTACK_SHIP(true, 1, "Attack a ship", "Your warship can attack an opponents normal ship. On a win, opponent ship is removed. On a lose warship is removed."),
     
     // Roll dice and take a chance at converting the fortress to a settlement.  Must have a ship adjacent to the settlement.
-    ATTACK_PIRATE_FORTRESS(true, 50, "Attack Fortress", "Roll the dice and take a chance at converting the fortress to a new settlement.  Three wins converts the settlement.  A loss makes you lose the 2 ships adjacent to the fortress.  A win costs you 1 ship."),
+    ATTACK_PIRATE_FORTRESS(true, 50, "Attack Fortress", "Roll the dice and take a chance at converting the fortress to a new settlement. Three wins converts the settlement. A loss makes you lose the 2 ships adjacent to the fortress. A win costs you 1 ship"),
     
     // Build a Road
     BUILD_ROAD(false, 5, "Build Road", "Position a new road for cost of " + BuildableType.Road.getNiceString()),
@@ -69,16 +71,16 @@ public enum MoveType implements Comparable<MoveType>{
     DEAL_EVENT_CARD(false, 100, "Deal Event", "Turn over the next event card"),
     
     // CAK Moves
-    BUILD_CITY_WALL(false, 50, "Build Wall", "Build a wall around one of your cities for cost of 2 Brick.  Wall be destroyed when barbarians win an attack but city is reserved."), // Available when the user has necessary resources and a city without a wall
+    BUILD_CITY_WALL(false, 50, "Build Wall", "Build a wall around one of your cities for cost of 2 Brick. Wall be destroyed when barbarians win an attack but city is reserved"), // Available when the user has necessary resources and a city without a wall
     
-    IMPROVE_CITY_POLITICS(false, 0, "Improve Politics", "Exchange Coin to improve city Politics.  Upgrade to Cathedral coverts to Metropolis if not taken."),
-    IMPROVE_CITY_SCIENCE(false, 0, "Improve Science", "Exchange Paper to improve city science.  Upgrade to Theatre converts to a Metropolis if not taken."),
-    IMPROVE_CITY_TRADE(false, 0, "Improve Trade", "Exchange Cloth to improve city trade.Upgrade to Bank converts to a Metropolis if not taken."),
+    IMPROVE_CITY_POLITICS(false, 0, "Improve Politics", "Exchange Coin to improve city Politics. Upgrade to Cathedral coverts to Metropolis if not taken"),
+    IMPROVE_CITY_SCIENCE(false, 0, "Improve Science", "Exchange Paper to improve city science. Upgrade to Theatre converts to a Metropolis if not taken"),
+    IMPROVE_CITY_TRADE(false, 0, "Improve Trade", "Exchange Cloth to improve city trade.Upgrade to Bank converts to a Metropolis if not taken"),
     
     // Science
     
     // Special progress card can be played instead of roll dice
-    ALCHEMIST_CARD(false, 0, "Alchemist", "Playable Prior to die roll.  Control outcome of 2 production dice"),
+    ALCHEMIST_CARD(false, 0, "Alchemist", "Playable Prior to die roll. Control outcome of 2 production dice"),
     INVENTOR_CARD(true, 0, "Inventor", "Switch 2 tile number tokens that have values: 3,4,5,9,10,11"),
     CRANE_CARD(true, 50, "Crane", "Build a city improvement for 1 commodity card less than normal"),
     IRRIGATION_CARD(true, 5, "Irrigation", "Collect 2 wheat cards for each structure next to a wheat tile"),
@@ -100,8 +102,8 @@ public enum MoveType implements Comparable<MoveType>{
     WEDDING_CARD(true, 0, "Wedding", "All players with more points give you any 2 commoditty or resource cards of their choice"),
     
     // Trade
-    HARBOR_CARD(true, 0, "Harbor", "Force each player to exchange a commodity card of their choice for a resource card.  If they have no commodity cards, then the trade is voided."),
-    MASTER_MERCHANT_CARD(true, 0, "Master Merchant", "View and then take any 2 resource or commodity cards from another players hand who has more points."),
+    HARBOR_CARD(true, 0, "Harbor", "Force each player to exchange a commodity card of their choice for a resource card. If they have no commodity cards, then the trade is voided"),
+    MASTER_MERCHANT_CARD(true, 0, "Master Merchant", "View and then take any 2 resource or commodity cards from another players hand who has more points"),
     MERCHANT_CARD(true, 0, "Merchant", "Place the merchant on a land tile to recieve the 2:1 trade bonus for that tile type for as long as the merchant is on the tile"),
     MERCHANT_FLEET_CARD(true, 0, "Merchant Fleet", "Choose one resource or commodity to get a 2:1 trade bonus for that turn"),
     RESOURCE_MONOPOLY_CARD(true, 0, "Resource Monopoly", "All players give you 2 resources of your choice if they have it"),
@@ -111,16 +113,16 @@ public enum MoveType implements Comparable<MoveType>{
     HIRE_KNIGHT(false, 10, "Hire Knight", "Position new basic inactive knight for cost of " + BuildableType.Knight.getNiceString()),
     ACTIVATE_KNIGHT(false, 50, "Activate Knight", "Activate one of your knights for cost of " + BuildableType.ActivateKnight.getNiceString()),
     PROMOTE_KNIGHT(false, 40, "Promote Knight", "Promote one of your knight for cost " + BuildableType.PromoteKnight.getNiceString()),
-    MOVE_KNIGHT(false, 5, "Move Knight", "Move one of your active knights.  Position next to robber to reposition the robber.  Can displace another players knight of lesser rank."),
+    MOVE_KNIGHT(false, 5, "Move Knight", "Move one of your active knights. Position next to robber to reposition the robber. Can displace another players knight of lesser rank"),
 
     KNIGHT_ATTACK_ROAD(true, 50, "Attack Road", null) {
     	public String getHelpText(Rules rules) {
-    		return String.format("Pick a road adjacent to the knight and roll the dice.  If the die roll+knight level is greater than or equal to %d then the road is removed form the board", rules.getKnightScoreToDestroyRoad());
+    		return String.format("Pick a road adjacent to the knight and roll the dice. If the die roll+knight level is greater than or equal to %d then the road is removed form the board", rules.getKnightScoreToDestroyRoad());
     	}
     },
     KNIGHT_ATTACK_STRUCTURE(true, 50, "Attack Structure", null) {
     	public String getHelpText(Rules rules) {
-    		String txt = "Pick a structure 1 unit adjacent to the knight and roll the dice.";
+    		String txt = "Pick a structure 1 unit adjacent to the knight and roll the dice";
     		if (rules.getKnightScoreToDestroySettlement() > 0) {
     			txt += String.format("\nknight level+die roll >= %d, then settlement removed", rules.getKnightScoreToDestroySettlement());
     		}

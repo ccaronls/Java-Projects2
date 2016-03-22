@@ -898,7 +898,8 @@ public class SOC extends Reflector<SOC> {
 		if (numPts + victoryPts >= soc.getRules().getPointsForWinGame()) {
 			numPts += victoryPts;
 		}
-		return numPts;	}
+		return numPts;	
+	}
 
 	/**
 	 * Called when a players point change (for better or worse).  default method does nothing.
@@ -1405,6 +1406,11 @@ public class SOC extends Reflector<SOC> {
 						edge.setType(RouteType.WARSHIP);
 						resetOptions();
 						popState();
+						for (Tile t : getBoard().getRouteTiles(edge)) {
+							if (t == getBoard().getPirateTile()) {
+								pushStateFront(State.POSITION_PIRATE_NOCANCEL);
+							}
+						}
 					}
 					break;
 				}
@@ -3932,7 +3938,7 @@ public class SOC extends Reflector<SOC> {
 				}
 			}
 			
-			if (soc.isPirateAttacksEnabled()) {
+			if (soc.isPirateAttacksEnabled() || soc.getRules().isEnableWarShip()) {
     			if (p.canBuild(BuildableType.Warship) && b.getRoutesOfType(p.getPlayerNum(), RouteType.SHIP).size() > 0) {
     				types.add(MoveType.BUILD_WARSHIP);
     			}
@@ -4052,8 +4058,14 @@ public class SOC extends Reflector<SOC> {
 		List<Integer> cellIndices = new ArrayList<Integer>();
 		for (int i = 0; i < b.getNumTiles(); i++) {
 			Tile cell = b.getTile(i);
-			if (cell.isWater())
-				cellIndices.add(i);
+			if (cell.isWater()) {
+				if (soc.getRules().isEnableWarShip()) {
+					if (b.getTileRoutesOfType(cell, RouteType.WARSHIP).size() == 0)
+						cellIndices.add(i);
+				} else {
+					cellIndices.add(i);
+				}
+			}
 		}
 		return cellIndices;
 	}
