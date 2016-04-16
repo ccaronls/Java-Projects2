@@ -3,7 +3,7 @@ package cc.android.photooverlay;
 import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
-
+import android.annotation.TargetApi;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -98,7 +98,7 @@ public class PhotoOverlay extends BaseActivity implements OnClickListener, Callb
 			
 			@Override
 			public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-				getPrefs().edit().putInt("transparency", progress).commit();
+				getPrefs().edit().putInt("transparency", progress).apply();
 				overlay.setAlpha(0.01f * progress);
 				
 			}
@@ -373,7 +373,7 @@ public class PhotoOverlay extends BaseActivity implements OnClickListener, Callb
                             Editor edit = getPrefs().edit();
                             edit.putString("filePath", filePath);
                             edit.putInt("orientation", orientation);
-                            edit.commit();
+                            edit.apply();
                             setOverlay(bitmap, orientation);
                         }
 
@@ -407,6 +407,7 @@ public class PhotoOverlay extends BaseActivity implements OnClickListener, Callb
 		}
 	}
 
+	@TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH_MR1)
 	@Override
 	public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
 		Log.i(TAG, "surfacechanged format=" + format + " dim=" + width + "x" + height + " camera=" + camera);
@@ -422,7 +423,8 @@ public class PhotoOverlay extends BaseActivity implements OnClickListener, Callb
 		}*/
         Camera.Parameters param = camera.getParameters();
         processCameraParametersFromPreferences(param, width, height);
-        param.setVideoStabilization(true); // tODO : Preference?
+        if (Build.VERSION.SDK_INT >= 15)
+        	param.setVideoStabilization(true); 
         if (isPortrait()) {
         	camera.setDisplayOrientation(90);
         	param.setRotation(90);
@@ -440,7 +442,7 @@ public class PhotoOverlay extends BaseActivity implements OnClickListener, Callb
         } catch (Throwable e) {
             Log.e(TAG, "init_camera: " + e);
             // clear data
-            getPrefs().edit().clear().commit();
+            getPrefs().edit().clear().apply();
         }		
 	}
 	
@@ -518,7 +520,7 @@ public class PhotoOverlay extends BaseActivity implements OnClickListener, Callb
             	.putStringSet("whiteBalance", new LinkedHashSet<String>(param.getSupportedWhiteBalance()))
             	.putStringSet("pictureFormats", pictureFormatsStr)
             	.putInt("cameraParams", VERSION)
-            	.commit();
+            	.apply();
         }        	
         //modify parameter
 //        param.setPreviewFrameRate(20);
@@ -538,7 +540,7 @@ public class PhotoOverlay extends BaseActivity implements OnClickListener, Callb
         	}
         } else {
             Camera.Size size = getSizeClosestTo(width, height, intersectionSizes.size() > 0 ? intersectionSizes : param.getSupportedPreviewSizes());
-        	getPrefs().edit().putString("previewSizesValue", sizeToString(size)).commit();
+        	getPrefs().edit().putString("previewSizesValue", sizeToString(size)).apply();
             param.setPreviewSize(size.width, size.height);
         }
         value = getPrefs().getString("pictureSizesValue", null);
@@ -551,7 +553,7 @@ public class PhotoOverlay extends BaseActivity implements OnClickListener, Callb
         	}
         } else {
             Camera.Size size = getSizeClosestTo(width, height, intersectionSizes.size() > 0 ? intersectionSizes : param.getSupportedPictureSizes());
-        	getPrefs().edit().putString("pictureSizesValue", sizeToString(size)).commit();
+        	getPrefs().edit().putString("pictureSizesValue", sizeToString(size)).apply();
             param.setPictureSize(size.width, size.height);
         }
         Log.i(TAG, "orientation=" + getResources().getConfiguration().orientation);
@@ -560,23 +562,23 @@ public class PhotoOverlay extends BaseActivity implements OnClickListener, Callb
         if (value != null)
         	param.setAntibanding(value);
         else
-        	getPrefs().edit().putString("antiBandingValue", param.getAntibanding()).commit();
+        	getPrefs().edit().putString("antiBandingValue", param.getAntibanding()).apply();
         value = getPrefs().getString("colorEffectsValue", null);
         if(value != null)
         	param.setColorEffect(value);
         else
-        	getPrefs().edit().putString("colorEffectsValue", param.getColorEffect()).commit();
+        	getPrefs().edit().putString("colorEffectsValue", param.getColorEffect()).apply();
         	
         value = getPrefs().getString("flashModesValue", null);
         if (value != null)
         	param.setFlashMode(value);
         else
-        	getPrefs().edit().putString("flashModesValue", param.getFlashMode()).commit();
+        	getPrefs().edit().putString("flashModesValue", param.getFlashMode()).apply();
         value = getPrefs().getString("focusModesValue", null);
         if (value != null)
         	param.setFocusMode(value);
         else
-        	getPrefs().edit().putString("focusModesValue", param.getFocusMode()).commit();
+        	getPrefs().edit().putString("focusModesValue", param.getFocusMode()).apply();
         //value = getPrefs().getString("sceneModesValues", null);
         //if (value != null)
         //	param.setSceneMode(value);
@@ -584,7 +586,7 @@ public class PhotoOverlay extends BaseActivity implements OnClickListener, Callb
         if (value != null)
         	param.setWhiteBalance(value);
         else
-        	getPrefs().edit().putString("whiteBalanceValue", param.getWhiteBalance()).commit();
+        	getPrefs().edit().putString("whiteBalanceValue", param.getWhiteBalance()).apply();
         value = getPrefs().getString("pictureFormatsValue", null);
         int pictureFormat = param.getSupportedPictureFormats().get(0);
         if (value != null) {
@@ -595,7 +597,7 @@ public class PhotoOverlay extends BaseActivity implements OnClickListener, Callb
         		}
         	}
         } else {
-        	getPrefs().edit().putString("pictureFormatsValue", allFormats.get(pictureFormat)).commit();
+        	getPrefs().edit().putString("pictureFormatsValue", allFormats.get(pictureFormat)).apply();
         }
         param.setPictureFormat(pictureFormat);
 
@@ -642,7 +644,7 @@ public class PhotoOverlay extends BaseActivity implements OnClickListener, Callb
 						switch (which) {
 							case 0: { // enable / disable
 								boolean isEnabled = getPrefs().getBoolean("timeStampEnabled", true);
-								getPrefs().edit().putBoolean("timeStampEnabled", !isEnabled).commit();
+								getPrefs().edit().putBoolean("timeStampEnabled", !isEnabled).apply();
 								runOnUiThread(updateTimeStampRunner);
 								break;
 							}
@@ -665,9 +667,9 @@ public class PhotoOverlay extends BaseActivity implements OnClickListener, Callb
 										String txt = et.getText().toString().trim();
 										if (txt.length() > 3) {
 											knownLocations.add(txt);
-											getPrefs().edit().putStringSet("knownLocations", knownLocations).commit();
+											getPrefs().edit().putStringSet("knownLocations", knownLocations).apply();
 										}
-										getPrefs().edit().putString("location", txt).commit();
+										getPrefs().edit().putString("location", txt).apply();
 										runOnUiThread(updateTimeStampRunner);
 									}
 								}).setNegativeButton("Cancel", null)
@@ -676,14 +678,14 @@ public class PhotoOverlay extends BaseActivity implements OnClickListener, Callb
 							}
 							
 							case 2: {
-								getPrefs().edit().remove("location").commit();
+								getPrefs().edit().remove("location").apply();
 								runOnUiThread(updateTimeStampRunner);
 								break;
 							}
 							
 							case 3: {
 								boolean onRight = getPrefs().getBoolean("timeStampRight", false);
-								getPrefs().edit().putBoolean("timeStampRight", !onRight).commit();
+								getPrefs().edit().putBoolean("timeStampRight", !onRight).apply();
 								runOnUiThread(updateTimeStampRunner);
 								break;
 							}

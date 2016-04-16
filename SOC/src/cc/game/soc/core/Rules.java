@@ -92,7 +92,7 @@ public final class Rules extends Reflector<Rules> {
 	@RuleVariable(description="Ships can be built from any port regardless if there is a settlement.")
 	private boolean enableBuildShipsFromPort = false;
 	@RuleVariable(description="Warship can chase away pirate and attack opponents normal ships.")
-	private boolean enableWarShip = false;
+	private boolean enableWarShipBuildable = false;
 	
 	// knight
 	@RuleVariable(description="Enable Cities and Knights", separator="Cities & Knights Expansion")
@@ -345,11 +345,11 @@ public final class Rules extends Reflector<Rules> {
 		}
 		return num;
 	}
-	public final boolean isEnableWarShip() {
-		return enableWarShip;
+	public final boolean isEnableWarShipBuildable() {
+		return enableWarShipBuildable;
 	}
-	public final void setEnableWarShip(boolean enableWarShip) {
-		this.enableWarShip = enableWarShip;
+	public final void setEnableWarShipBuildable(boolean enableWarShipBuildable) {
+		this.enableWarShipBuildable = enableWarShipBuildable;
 	}
 
 }

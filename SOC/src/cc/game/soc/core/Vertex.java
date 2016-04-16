@@ -136,6 +136,16 @@ public final class Vertex extends Reflector<Vertex> implements IVector2D {
 	}
 	
 	/**
+	 * An open settlement is initialized on game startup to a random player.  There should be same number of open
+	 * settlements as there are players.  If there are more open settlements than players, then extras are returned to open.
+	 * If there are not enough for players then game will fail initialization.
+	 */
+	public void setOpenSettlement() {
+		this.player = 0;
+		this.type = VertexType.SETTLEMENT;
+	}
+	
+	/**
 	 * 
 	 */
 	public void setOpen() {

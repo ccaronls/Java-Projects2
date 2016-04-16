@@ -8,6 +8,8 @@ import java.util.List;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.android.vending.billing.IInAppBillingService;
+
 import cc.lib.android.BuildConfig;
 import cc.lib.android.R;
 import cc.lib.game.Utils;
@@ -147,7 +149,8 @@ public class BillingTask extends AsyncTask<String,Integer,Object> implements OnC
     				skusToConsume.addAll(Arrays.asList(params));
     			case DISPLAY_PURCHASES:
     			case REFRESH_PURCHASED: {
-    				return activity.getBilling().getPurchases(BILLING_API, getPackageName(), PURCHASE_TYPE_INAPP, null);
+    				IInAppBillingService billing = activity.getBilling();
+    				return billing.getPurchases(BILLING_API, getPackageName(), PURCHASE_TYPE_INAPP, null);
     			}
     			
     			case QUERY_SUBSCRIPTION:
@@ -164,7 +167,6 @@ public class BillingTask extends AsyncTask<String,Integer,Object> implements OnC
 			return e;
 		}
 		
-		// TODO Auto-generated method stub
 		return null;
 	}
 	

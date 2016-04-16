@@ -59,6 +59,7 @@
         <item>Send Feedback</item>
         <item>Export ZIP</item>
         <item>Nuke</item>
+        <item>Units</item>
         <item>Purchases</item>
         <item>Upgrade</item>
         <item>Purchases Refresh</item>
@@ -70,6 +71,7 @@
         <item>Send Feedback</item>
         <item>Export ZIP</item>
         <item>Nuke</item>
+        <item>Units</item>
         <item>Purchases</item>
         <item>Upgrade</item>
     </string-array>
@@ -79,6 +81,7 @@
         <item>Send Feedback</item>
         <item>Export ZIP</item>
         <item>Nuke</item>
+        <item>Units</item>
         <item>Purchases</item>
     </string-array>
     
@@ -120,7 +123,6 @@
     <string name="row_date">DATE</string>
     <string name="row_state">STATE</string>
     <string name="tv_fullname">Full Name</string>
-    <string name="label_ambient_temp">Ambient Temperature %d&#xb0; F."</string>
     
     <string name="splash_tv_ptuheader">Pressure Test\nCertification Tool</string>
     <string name="splash_tv_ptumiddle">CECC Solutions</string>

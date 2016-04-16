@@ -5,8 +5,6 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.*;
 
-import javax.swing.text.Position;
-
 import cc.lib.game.Utils;
 import cc.lib.math.CMath;
 import cc.lib.utils.FileUtils;
@@ -21,7 +19,8 @@ public class PlayerBot extends Player {
 	private Set<Integer> usedRoadRoutes = new HashSet<Integer>();
 	private Set<Integer> usedShipRoutes = new HashSet<Integer>();
 	private Set<MoveType> usedMoves = new HashSet<MoveType>();
-
+	private int numLeafs = 0;
+	
 	private BotNode createNewTree(String desc) {
 		BotNode node = new BotNodeRoot(desc);
 		
@@ -29,6 +28,7 @@ public class PlayerBot extends Player {
 		usedRoadRoutes.clear();
 		usedShipRoutes.clear();
 		usedMoves.clear();
+		numLeafs = 0;
 		// populate with ALL evaluations that will propogate throughout tree
 		
 		return node;
@@ -428,11 +428,11 @@ public class PlayerBot extends Player {
 		int numRoads = roads.size();
 		int numShips = ships.size();
 		
-		//roads.removeAll(usedRoadRoutes);
-		//ships.removeAll(usedShipRoutes);
+		roads.removeAll(usedRoadRoutes);
+		ships.removeAll(usedShipRoutes);
 		
-		//usedRoadRoutes.addAll(roads);
-		//usedShipRoutes.addAll(ships);
+		usedRoadRoutes.addAll(roads);
+		usedShipRoutes.addAll(ships);
 		
 		if (numRoads > 0) {
 			BotNode n = root;
@@ -461,18 +461,20 @@ public class PlayerBot extends Player {
 				b.setRouteOpen(r);
 			}
 		}
-		
+
+		usedRoadRoutes.removeAll(roads);
+		usedShipRoutes.removeAll(ships);
 	}
 	
-	private void buildChooseMoveTreeR(SOC soc, Player p, Board b, BotNode _root, Collection<MoveType> _moves) {
-		MoveType [] moves = _moves.toArray(new MoveType[_moves.size()]);
-		Arrays.sort(moves);
+	private void buildChooseMoveTreeR(SOC soc, Player p, Board b, BotNode _root, Collection<MoveType> moves) {
 		for (MoveType move : moves) {
 			if (move.aiUseOnce) {
 				if (usedMoves.contains(move))
 					continue;
 				usedMoves.add(move);
 			}
+			if (numLeafs > 500)
+				break;
 			BotNode root = _root.attach(new BotNodeEnum(move));
 			switch (move) {
 				case CONTINUE:
@@ -620,18 +622,20 @@ public class PlayerBot extends Player {
 						r.setType(RouteType.WARSHIP);
 						boolean movePirate = false;
 						BotNode node = root.attach(new BotNodeRoute(r, rIndex));
-						for (Tile t : b.getRouteTiles(r)) {
-							if (b.getPirateTile() == t) {
-								for (int tIndex: SOC.computePirateTileIndices(soc, b)) {
-									b.setPirate(tIndex);
-									doEvaluateAll(node.attach(new BotNodeTile(b.getTile(tIndex), tIndex)), soc, p, b);
-								}
-								movePirate = true;
-								b.setPirateTile(t);
-								break;
-							}
-						} 
-
+						if (!soc.isPirateAttacksEnabled()) {
+    						for (Tile t : b.getRouteTiles(r)) {
+    							if (b.getPirateTile() == t) {
+    								for (int tIndex: SOC.computePirateTileIndices(soc, b)) {
+    									b.setPirate(tIndex);
+    									doEvaluateAll(node.attach(new BotNodeTile(b.getTile(tIndex), tIndex)), soc, p, b);
+    								}
+    								movePirate = true;
+    								b.setPirateTile(t);
+    								break;
+    							}
+    						} 
+						}
+						
 						if (!movePirate) {
 							buildChooseMoveTreeR(soc, p, b, node, SOC.computeMoves(p, b, soc));
 						}
@@ -639,6 +643,9 @@ public class PlayerBot extends Player {
 					}
 					p.adjustResourcesForBuildable(BuildableType.Warship, 1);
 					break;
+				case ATTACK_SHIP: {
+					break;
+				}
 				case DRAW_DEVELOPMENT: {
 					p.adjustResourcesForBuildable(BuildableType.Development, -1);
 					Card temp = new Card(DevelopmentCardType.Soldier, CardStatus.UNUSABLE);
@@ -1079,8 +1086,8 @@ public class PlayerBot extends Player {
 							totalCardsToSabotage += (1+p.getUnusedCardCount()) / 2;
 						}
 					}
-					
-					root.addValue("sabotagedCards", 0.1 * totalCardsToSabotage);
+					doEvaluateAll(root	, soc, p, b);
+					root.addValue("sabotagedCards", totalCardsToSabotage);
 					break;
 				}
 				case SMITH_CARD: {
@@ -1540,12 +1547,13 @@ public class PlayerBot extends Player {
     	return diePossibility_usegetter[dieNum];
     }
 	
-    private static void doEvaluateAll(BotNode node, SOC soc, Player p, Board b) {
+    private void doEvaluateAll(BotNode node, SOC soc, Player p, Board b) {
     	doEvaluateEdges(node, soc, p, b);
     	doEvaluatePlayer(node, soc, p, b);
     	doEvaluateSeafarers(node, soc, p, b);
     	doEvaluateTiles(node, soc, p, b);
     	doEvaluateVertices(node, soc, p, b);
+    	numLeafs ++;
     }
     
 	private static void doEvaluateVertices(BotNode node, SOC soc, Player p, Board b) {
@@ -1582,13 +1590,8 @@ public class PlayerBot extends Player {
 		HashSet<Integer> tilesAdjacent = new HashSet<Integer>();
 		HashSet<Integer> tilesProtected  = new HashSet<Integer>();
 		
-		double [] resourceProb = new double[SOC.NUM_RESOURCE_TYPES];
+		final double [] resourceProb = new double[SOC.NUM_RESOURCE_TYPES];
 		final int [] resourcePorts = new int[SOC.NUM_RESOURCE_TYPES];
-		double [] resourceTradeFactor = new double[SOC.NUM_RESOURCE_TYPES];
-		
-		for (int i=0; i<resourceTradeFactor.length; i++) {
-			resourceTradeFactor[i] = 4; // default is 4:1 trade
-		}
 		
 		float numMultiPorts = 0;
 
@@ -1615,8 +1618,10 @@ public class PlayerBot extends Player {
 				case METROPOLIS_SCIENCE:
 				case METROPOLIS_TRADE:
 					structureValue += 2;
+					break;
 				case WALLED_CITY:
-					structureValue += 1; 
+					structureValue += 1;
+					break;
 				case CITY:
 					scale = rules.getNumResourcesForCity();
 					structureValue += 2;
@@ -1662,12 +1667,9 @@ public class PlayerBot extends Player {
 						case PORT_WHEAT:
 						case PORT_WOOD:
 							resourcePorts[cell.getResource().ordinal()]++;
-							resourceTradeFactor[cell.getResource().ordinal()] = 2;
 							break;
 						case PORT_MULTI:
 							numMultiPorts++;
-							for (int i=0; i<resourceTradeFactor.length; i++)
-								resourceTradeFactor[i] = Math.min(resourceTradeFactor[i], 3);
 							break;
 						case DESERT:
 							break;
@@ -1693,28 +1695,17 @@ public class PlayerBot extends Player {
 			}
 		}
 
-		for (int i=0; i<resourceProb.length; i++) {
-			resourceProb[i] /= resourceTradeFactor[i]; // scale a resource differently when it has a trade option
-		}
-		
 		double resourceProbValue = 4 * CMath.sum(resourceProb);
 		//resourceProbValue *= 2;
 		
 		double portValue = 0;
 		for (int i=0; i<SOC.NUM_RESOURCE_TYPES; i++) {
 			if (resourcePorts[i] > 0)
-				portValue += 0.02;
+				portValue += resourceProb[i] * 2;
 			else if (numMultiPorts > 0)
-				portValue += 0.01;
+				portValue += resourceProb[i];
 		}		
 		
-		/*
-		double resourcePortProb = 0;
-		for (int i=0; i<SOC.NUM_RESOURCE_TYPES; i++) {
-			if (resourcePorts[i] > 0)
-				resourcePortProb += resourceProb[i];
-		}*/
-
 		tilesAdjacent.retainAll(tilesProtected);
 		float covered = 0;
 		for (int tIndex : tilesAdjacent) {
@@ -1731,6 +1722,7 @@ public class PlayerBot extends Player {
 		node.addValue("Structures", structureValue);
 		node.addValue("tiles protected", covered);
 		node.addValue("knights", knightValue);
+		
 	}
 
 	private static void doEvaluateEdges(BotNode node, SOC soc, Player p, final Board b) {
@@ -1749,17 +1741,13 @@ public class PlayerBot extends Player {
 		
 		node.addValue("routeValue", value);
 		
-		int longestRoadValue = -1;
-		int len = b.computeMaxRouteLengthForPlayer(p.getPlayerNum(), soc.getRules().isEnableRoadBlock());
+		float longestRoadValue = 0;
+		float len = b.computeMaxRouteLengthForPlayer(p.getPlayerNum(), soc.getRules().isEnableRoadBlock());
 		
 		Player cur = soc.getLongestRoadPlayer();
-		if (cur != null) {
-			if (cur.getPlayerNum() == p.getPlayerNum() || cur.getRoadLength() < len) {
-				longestRoadValue = 1;
-			}
-		} else {
-			longestRoadValue = len;
-		}
+		if (cur != null && (cur.getPlayerNum() == p.getPlayerNum() || cur.getRoadLength() < len)) {
+			longestRoadValue = 1;
+		} 
 		node.addValue("longestRoad", longestRoadValue);
 		
 		// evaluate potential settlements
@@ -2222,10 +2210,12 @@ public class PlayerBot extends Player {
 		node.addValue("specialVictoryCards", value);
 		
 		// number of progress cards (less is better)
-		value = p.getCardCount(CardType.Progress);
-		if (value > 0) {
-			node.addValue("progressCardCount", 1.0 / value);
-		}
+		value = 0;
+		int count = p.getCardCount(CardType.Progress);
+		int max = soc.getRules().getMaxProgressCards();
+		if (count < max)
+			value = 0.1f * count;
+		node.addValue("progressCardCount", value);
 		
 		// total cards near the max but not over
 		// we want the highest value to be half of the max
@@ -2256,6 +2246,8 @@ public class PlayerBot extends Player {
 			}
 		}
 		node.addValue("buildability", buildableValue);
+		
+		// this seems stoopid
 		if (soc.getRules().isEnableCitiesAndKnightsExpansion()) {
 			float developmentValue = 0;
 			for (DevelopmentArea a : DevelopmentArea.values()) {

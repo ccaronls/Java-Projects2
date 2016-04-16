@@ -33,32 +33,14 @@
             android:focusable="false" 
             android:focusableInTouchMode="false"/>
         
-        <LinearLayout
-            android:id="@+id/layoutTempAdjustment"
-            android:layout_width="wrap_content"
-            android:layout_height="fill_parent"
-            android:orientation="vertical">
-            <Button
-                android:layout_width="40dp"
-                android:layout_height="0dp"
-                android:layout_weight="1"
-                android:id="@+id/buttonTempUp"
-                android:text="+"/>
-            <Button
-                android:layout_width="40dp"
-                android:layout_height="0dp"
-                android:layout_weight="1"
-                android:id="@+id/buttonTempDown"
-                android:text="-"/>
-        </LinearLayout>
-        
-	    <EditText
+	    <cc.lib.android.CCEditTextMultiLineIMEDone
 	        android:id="@+id/etMeta"
 	        style="@style/edittext"
 	        android:layout_width="fill_parent"
 	        android:layout_height="fill_parent"
 	        android:layout_gravity="top"
-	        android:hint="@string/labelImageMeta" />
+	        android:hint="@string/labelImageMeta"
+	        android:imeOptions="actionDone" />
     
     </LinearLayout>
 

@@ -378,7 +378,7 @@ public class FormEdit extends BaseActivity {
 					image.path = destFile.getName();
 					if (image.data == null) {
 						if (isAmbientTempAvailable()) {
-							image.data = convertCelciusToFahrenheit(getAmbientTempCelcius()) + "&deg;";//\u00B0";
+							image.data = getTemperatureString(getAmbientTempCelcius());
 						}
 					}
 					editImage(index);

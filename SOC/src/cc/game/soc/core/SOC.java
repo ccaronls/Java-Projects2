@@ -1371,6 +1371,7 @@ public class SOC extends Reflector<SOC> {
 				}
 
 				case POSITION_SHIP_NOCANCEL:
+				case POSITION_SHIP_AND_LOCK_CANCEL:
 				case POSITION_SHIP_CANCEL: {
 					if (mOptions == null) {
 						printinfo(getCurPlayer().getName() + " place ship");
@@ -1388,6 +1389,11 @@ public class SOC extends Reflector<SOC> {
 						getBoard().setPlayerForRoute(edge, getCurPlayerNum(), RouteType.SHIP);
 						processRouteChange(getCurPlayer(), edge);
 						resetOptions();
+						if (getState() == State.POSITION_SHIP_AND_LOCK_CANCEL) {
+							for (Route toLock : getBoard().getRoutesOfType(getCurPlayerNum(), RouteType.SHIP, RouteType.WARSHIP)) {
+								toLock.setLocked(true);
+							}
+						}
 						popState();
 					}
 					break;
@@ -1429,15 +1435,10 @@ public class SOC extends Reflector<SOC> {
 						final RouteType saveType = ship.getType();
 						mBoard.setRouteOpen(ship);
 						popState();
-						for (Route toLock : mBoard.getRoutesOfType(getCurPlayerNum(), RouteType.SHIP, RouteType.WARSHIP)) {
-							toLock.setLocked(true);
-						}
-						pushStateFront(State.POSITION_SHIP_CANCEL, null, new UndoAction() {
+						pushStateFront(State.POSITION_SHIP_AND_LOCK_CANCEL, null, new UndoAction() {
 							@Override
 							public void undo() {
 								mBoard.setPlayerForRoute(ship, getCurPlayerNum(), saveType);
-								for (Route toLock : mBoard.getRoutesOfType(getCurPlayerNum(), RouteType.SHIP, RouteType.WARSHIP))
-									toLock.setLocked(false);
 							}
 						});
 						resetOptions();
@@ -1745,6 +1746,7 @@ public class SOC extends Reflector<SOC> {
 						mOptions = getCurPlayer().getUnusedCards();
 					}
 					assert (mOptions != null);
+					printinfo("Give up one of " + mOptions.size() + " cards");
 					Card card = getCurPlayer().chooseCard(this, mOptions, CardChoice.GIVEUP_CARD);
 					if (card != null) {
 						getCurPlayer().removeCard(card);
@@ -3938,7 +3940,7 @@ public class SOC extends Reflector<SOC> {
 				}
 			}
 			
-			if (soc.isPirateAttacksEnabled() || soc.getRules().isEnableWarShip()) {
+			if (soc.getRules().isEnableWarShipBuildable()) {
     			if (p.canBuild(BuildableType.Warship) && b.getRoutesOfType(p.getPlayerNum(), RouteType.SHIP).size() > 0) {
     				types.add(MoveType.BUILD_WARSHIP);
     			}
@@ -4049,7 +4051,17 @@ public class SOC extends Reflector<SOC> {
 			}
 		}
 
-		return new ArrayList<MoveType>(types);
+		ArrayList<MoveType> moves =  new ArrayList<MoveType>(types);
+		Collections.sort(moves, new Comparator<MoveType>() {
+
+			@Override
+			public int compare(MoveType o1, MoveType o2) {
+				return o1.priority - o2.priority;
+			}
+			
+		});
+		Utils.println("Moves: " + moves);
+		return moves;
 	}
 
 	static public List<Integer> computePirateTileIndices(SOC soc, Board b) {
@@ -4059,7 +4071,7 @@ public class SOC extends Reflector<SOC> {
 		for (int i = 0; i < b.getNumTiles(); i++) {
 			Tile cell = b.getTile(i);
 			if (cell.isWater()) {
-				if (soc.getRules().isEnableWarShip()) {
+				if (soc.getRules().isEnableWarShipBuildable() && b.getPirateRouteStartTile() < 0) {
 					if (b.getTileRoutesOfType(cell, RouteType.WARSHIP).size() == 0)
 						cellIndices.add(i);
 				} else {

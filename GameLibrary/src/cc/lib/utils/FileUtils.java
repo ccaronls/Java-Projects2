@@ -242,5 +242,22 @@ public class FileUtils {
     		out.close();
     	}
     }
+    
+    public static void copyFile(File source, File dest) throws IOException {
+    	InputStream in = new FileInputStream(source);
+    	if (dest.isDirectory()) {
+    		dest = new File(dest, source.getName());
+    	}
+    	try {
+    		OutputStream out = new FileOutputStream(dest);
+    		try {
+    			copy(in, out);
+    		} finally {
+    			out.close();
+    		}
+    	} finally {
+    		in.close();
+    	}
+    }
 
 }

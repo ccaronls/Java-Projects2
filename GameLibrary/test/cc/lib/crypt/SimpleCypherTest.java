@@ -119,7 +119,10 @@ public class SimpleCypherTest extends TestCase {
     public void testTextFile() throws Exception {
         
         String file = loadFile("resources/cyphertest.txt").toString();
-        
+        processTextFile(file);
+    }
+    
+    protected void processTextFile(String file) throws Exception {
         ByteArrayOutputStream bytes = new ByteArrayOutputStream();
         OutputStream out = new EncryptionOutputStream(bytes, getCypher());
         out.write(file.getBytes());

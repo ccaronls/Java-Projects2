@@ -5,7 +5,7 @@ package cc.game.soc.core;
  * @author Chris Caron
  *
  */
-public enum MoveType implements Comparable<MoveType>{
+public enum MoveType {
 
 	// The priority value is for sorting of moves for the PlayerBot.  Here is the priorities from highest to lowest:
 	// Trades 
@@ -16,7 +16,7 @@ public enum MoveType implements Comparable<MoveType>{
 	// Alchemist
 	// roll die/event
 	
-    CONTINUE(false, 100, "Continue", "End your turn"),
+    CONTINUE(false, 0, "Continue", "End your turn"),
 
     // use a soldier
     SOLDIER_CARD(true, 50, "Soldier", "Move the robber or Pirate to cell of players choice"),
@@ -31,23 +31,23 @@ public enum MoveType implements Comparable<MoveType>{
     YEAR_OF_PLENTY_CARD(true, 0, "Year of Plenty", "Choose 2 Resources to add to your hand"),
 
     // view trade options
-    TRADE(false, 0, "Trade", "View your trade options"),
+    TRADE(false, 1, "Trade", "View your trade options"),
 
     // Draw a card
     DRAW_DEVELOPMENT(false, 50, "Development", "Draw random Development Card for cost of " + BuildableType.Development.getNiceString()),
 
     // player can move a ship that is not connected to a settlement or is not between 2 other ships and is not adjacent to the pirate
-    MOVE_SHIP(false, 5, "Move Ship", "Reposition an open ended ship"),
+    MOVE_SHIP(true, 5, "Move Ship", "Reposition an open ended ship"),
 
     // use a road building card
-    ROAD_BUILDING_CARD(true, 10, "Road Building", "Build two Routes for free"),
+    ROAD_BUILDING_CARD(true, 3, "Road Building", "Build two Routes for free"),
 
     // Build a ship
     BUILD_SHIP(false, 5, "Build Ship", "Position a new ship for cost of " + BuildableType.Ship.getNiceString()),
 
     BUILD_WARSHIP(false, 50, "Build Warship", "Upgrade an existing ship to a war ship for cost of " + BuildableType.Warship.getNiceString() + ". Warships can chase away the pirate."),
     
-    ATTACK_SHIP(true, 1, "Attack a ship", "Your warship can attack an opponents normal ship. On a win, opponent ship is removed. On a lose warship is removed."),
+    ATTACK_SHIP(true, 0, "Attack a ship", "Your warship can attack an opponent's ship. Roll a die. If 1,2,3 then opponent wins and you lose your warship.  On a 4,5,6 you win and opponent ship becomes yours.  The midpoint of the die is shifted based on the difference in number of cities posessed be each player."),
     
     // Roll dice and take a chance at converting the fortress to a settlement.  Must have a ship adjacent to the settlement.
     ATTACK_PIRATE_FORTRESS(true, 50, "Attack Fortress", "Roll the dice and take a chance at converting the fortress to a new settlement. Three wins converts the settlement. A loss makes you lose the 2 ships adjacent to the fortress. A win costs you 1 ship"),
@@ -59,10 +59,10 @@ public enum MoveType implements Comparable<MoveType>{
     REPAIR_ROAD(true, 0, "Repair Road", "Repair your damaged road for cost of " + BuildableType.Road.getNiceString()),
     
     // Build a Settlement
-    BUILD_SETTLEMENT(false, 20, "Build Settlement", "Position a new Settlement for cost of " + BuildableType.Settlement.getNiceString()),
+    BUILD_SETTLEMENT(false, 0, "Build Settlement", "Position a new Settlement for cost of " + BuildableType.Settlement.getNiceString()),
 
     // Build a City
-    BUILD_CITY(false, 50, "Build City", "Convert a settlement to a City for cost of " + BuildableType.City.getNiceString()),
+    BUILD_CITY(false, 0, "Build City", "Convert a settlement to a City for cost of " + BuildableType.City.getNiceString()),
 
     // user rolls the dice.  For CAK, the user can roll the dice or play an Alchemist card of they have one, otherwise this move is always by itself.
     ROLL_DICE(false, 100, "Roll dice", ""),
@@ -71,7 +71,7 @@ public enum MoveType implements Comparable<MoveType>{
     DEAL_EVENT_CARD(false, 100, "Deal Event", "Turn over the next event card"),
     
     // CAK Moves
-    BUILD_CITY_WALL(false, 50, "Build Wall", "Build a wall around one of your cities for cost of 2 Brick. Wall be destroyed when barbarians win an attack but city is reserved"), // Available when the user has necessary resources and a city without a wall
+    BUILD_CITY_WALL(false, 10, "Build Wall", "Build a wall around one of your cities for cost of 2 Brick. Wall be destroyed when barbarians win an attack but city is reserved"), // Available when the user has necessary resources and a city without a wall
     
     IMPROVE_CITY_POLITICS(false, 0, "Improve Politics", "Exchange Coin to improve city Politics. Upgrade to Cathedral coverts to Metropolis if not taken"),
     IMPROVE_CITY_SCIENCE(false, 0, "Improve Science", "Exchange Paper to improve city science. Upgrade to Theatre converts to a Metropolis if not taken"),
@@ -83,7 +83,7 @@ public enum MoveType implements Comparable<MoveType>{
     ALCHEMIST_CARD(false, 0, "Alchemist", "Playable Prior to die roll. Control outcome of 2 production dice"),
     INVENTOR_CARD(true, 0, "Inventor", "Switch 2 tile number tokens that have values: 3,4,5,9,10,11"),
     CRANE_CARD(true, 50, "Crane", "Build a city improvement for 1 commodity card less than normal"),
-    IRRIGATION_CARD(true, 5, "Irrigation", "Collect 2 wheat cards for each structure next to a wheat tile"),
+    IRRIGATION_CARD(true, 0, "Irrigation", "Collect 2 wheat cards for each structure next to a wheat tile"),
     ENGINEER_CARD(true, 50, "Engineer", "Build 1 city wall for free"),
     MEDICINE_CARD(true, 50, "Medicine", "Upgrade settlement to city for 2 ore and 1 wheat"),
     SMITH_CARD(true, 50, "Smith", "Promote 2 knights for free"),
@@ -142,7 +142,7 @@ public enum MoveType implements Comparable<MoveType>{
     
     private final String niceText;
     private final String helpText;
-    private final int priority;
+    final int priority;
     final boolean aiUseOnce; // used by PlayerBot tree generation
     
     MoveType(boolean aiUseOnce, int priority, String niceText, String helpText) {
@@ -159,8 +159,6 @@ public enum MoveType implements Comparable<MoveType>{
     public String getHelpText(Rules rules) {
     	return helpText;
     }
+
     
-    public int compare(MoveType m) {
-    	return priority - m.priority;
-    }
 }

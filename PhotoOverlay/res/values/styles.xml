@@ -8,6 +8,14 @@
         <!-- @drawable/screen_background_selector_dark</item>  -->
     </style>
     
+    <style name="DialogTheme" parent="@android:style/Theme.Dialog">
+        <item name="android:windowBackground">@android:color/transparent</item>
+    </style>
+    <!--
+    <style name="ptu_bk">
+        <item name="android:background">@android:color/black</item>
+    </style>
+    -->
     <style name="sortButton">
        <item name="android:button">@null</item>
        <item name="android:gravity">left|center_vertical</item>
@@ -33,12 +41,17 @@
     </style>
 
     <style name="signform.print">
-        <item name="android:textSize">10dp</item>
+        <item name="android:textSize">10sp</item>
     </style>
     
     <style name="edittext" parent="@android:style/Widget.EditText">
         <item name="android:maxLength">256</item>
         <item name="android:scrollHorizontally">false</item>
+        <!-- 
+        <item name="android:background">@drawable/edit_text_round_bk_white</item>
+        <item name="android:textColor">@android:color/black</item>
+        <item name="android:layout_marginLeft">3dp</item>
+         -->
     </style>
     
     <style name="tablerow">

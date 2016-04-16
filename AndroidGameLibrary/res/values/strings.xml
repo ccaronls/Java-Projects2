@@ -34,9 +34,10 @@
     <string name="popup_msg_premium_feature_locked">This premium feature is locked.\n\n
         Premium Features Include:\n
         - Unlimited forms\n
+        - Attach E-Signatures to forms
         - Email signed forms\n
         - Export Database\n
-        - Duplicate Form
+        - Duplicate Form\n
         Would you like to unlock all features?
     </string>
     
@@ -46,8 +47,6 @@
     <string name="popup_msg_operation_not_supported">Operation not supported on this device.</string>
 
     <string name="colloqial_subscription_expire_time">Subscription expires in under %s</string>
-    
-    
     
     <plurals name="plural_days">
         <item quantity="one">%d day</item>
@@ -64,4 +63,16 @@
         <item quantity="other">%d minutes</item>
     </plurals>
 
+    <string name="ambient_temp">Ambient Temperature</string>
+    
+    <string name="popup_cb_dont_show_again">Don\'t show again</string>
+    <!-- 
+    <string name="degrees_fahrenheit">%d&#xb0;F"</string>
+    <string name="degrees_celcius">%.1f&#xb0;C"</string>
+     -->
+     
+     <string name="switch_units_metric">Switch to Metric Units</string>
+     <string name="switch_units_imperial">Switch to Imperial Units</string>
+     
+     <string name="generate_page_error_msg">Failed to generate the report.  You may not have enough memory to perform this action.  If you think this is a bug, please screenshot this error and include in an bug report email through send feedback channel.</string>
 </resources>

@@ -13,6 +13,8 @@ enum State {
 	POSITION_CITY_NOCANCEL(false, "Place a city on the board."),
 	CHOOSE_CITY_FOR_WALL(true, "Build a wall around one of your cites to protect against barbarian attack."),
 	POSITION_SHIP_CANCEL(true, "Place a ship on the board."),
+	// Player is position a moved ship.  Only one allowed per turn
+	POSITION_SHIP_AND_LOCK_CANCEL(true, "Position the ship on the board."),
 	UPGRADE_SHIP_CANCEL(true, "Choose a ship to upgrade to warship"),
 	POSITION_SHIP_NOCANCEL(false, "Place a ship on the board."),
 	CHOOSE_SHIP_TO_MOVE(true, "Choose from an open ended ship to reposition."),

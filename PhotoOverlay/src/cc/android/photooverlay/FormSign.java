@@ -63,9 +63,7 @@ public class FormSign extends BaseActivity {
 			tvStatus.setText(R.string.labelFailed);
 			tvStatus.setTextColor(Color.RED);
 		}
-		newDialogBuilder().setTitle(R.string.popup_title_important)
-			.setMessage(R.string.popup_msg_signing_important)
-			.setNegativeButton(R.string.popup_button_iunderstand, null).show();
+		showInfoDialogBuilderWithDontShowAgainCB(R.string.popup_title_important, R.string.popup_msg_signing_important, "PREF_HOW_E_SIGN_WORKS_DONT_SHOW_AGAIN_BOOL");
 	}
 	
 	@Override

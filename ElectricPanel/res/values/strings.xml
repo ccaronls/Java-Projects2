@@ -15,15 +15,6 @@
     
     <string name="popup_msg_signing_important">Be aware that all signatures captured here must be emailed in order to be preserved.  All Signatures will be discarded once leaving this page.  This is done to prevent mis use and ensure that the signatures gathered here will never be re-used.  Please make sure all parties signing this form are included as recipients on the final email.</string>
     
-    <string name="popup_msg_premium_feature_locked">This premium feature is locked.\n\n
-        Premium Features Include:\n
-        - Unlimited forms\n
-        - Email signed forms\n
-        - Export Database\n
-        - Three image captures\n
-        Would you like to unlock all features?
-    </string>
-    
     <string name="popup_msg_premium_permanently_unlocked">Congratulations!  All features have been permanantly unlocked.</string>
     <string name="popup_msg_subs_expired">Your subscription has expired.  Would you like to re-activate it?</string>
     <string name="popup_msg_operation_not_supported">Operation not supported on this device.</string>
@@ -125,7 +116,6 @@
     <string name="sbutton_passed">Passed</string>
     <string name="tv_empty_list">You dont have any Certifications!\n\nPlease choose \'New Certification\' to start.</string>
     <string name="tv_fullname">Full Name</string>
-    <string name="label_ambient_temp">Ambient Temperature %d&#176; F."</string>
     
     <string name="splash_tv_ptuheader">Electric Panel\nCertification Utility</string>
     <string name="splash_tv_ptumiddle">CECC Solutions</string>

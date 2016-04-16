@@ -55,6 +55,7 @@
         <item>Send Feedback</item>
         <item>Export ZIP</item>
         <item>Nuke</item>
+        <item>Preferences</item>
         <item>Purchases</item>
         <item>Upgrade</item>
         <item>Purchases DEBUG</item>
@@ -66,6 +67,7 @@
         <item>Send Feedback</item>
         <item>Export ZIP</item>
         <item>Nuke</item>
+        <item>Preferences</item>
         <item>Purchases</item>
         <item>Upgrade</item>
     </string-array>
@@ -75,6 +77,7 @@
         <item>Send Feedback</item>
         <item>Export ZIP</item>
         <item>Nuke</item>
+        <item>Toggle Units</item>
         <item>Purchases</item>
     </string-array>
     

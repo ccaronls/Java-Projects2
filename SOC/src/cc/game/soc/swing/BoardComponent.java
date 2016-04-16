@@ -271,13 +271,19 @@ public abstract class BoardComponent extends JComponent implements MouseMotionLi
 		final int   numVerts;
 		final int [] xVerts;
 		final int [] yVerts;
+		final Color added;
 		FaceType [] structures;
 		
 		Face(float darkenAmount, int ... verts) {
+			this(AWTUtils.TRANSPARENT, darkenAmount, verts);
+		}
+		
+		Face(Color added, float darkenAmount, int ... verts) {
 			this.darkenAmount = darkenAmount;
 			this.numVerts = verts.length/2;
 			this.xVerts = new int[numVerts];
 			this.yVerts = new int[numVerts];
+			this.added = added;
 			int index=0;
 			for (int i=0; i<numVerts*2; i+=2) {
 				xVerts[index] = verts[i];
@@ -346,15 +352,15 @@ public abstract class BoardComponent extends JComponent implements MouseMotionLi
 	    
 	    // single sword, strong dark (inactive)
 	    // blade
-	    new Face(0.8f, 0,-4, 1,-6, 2,-4, 2,8, 0,8).setFaceTypes(FaceType.KNIGHT_INACTIVE_STRONG),
+	    new Face(new Color(255,255,255,0), 0.8f, 0,-4, 1,-6, 2,-4, 2,8, 0,8).setFaceTypes(FaceType.KNIGHT_INACTIVE_STRONG),
 	    // hilt
-	    new Face(0.8f, -2,5, 4,5, 4,4, -2,4).setFaceTypes(FaceType.KNIGHT_INACTIVE_STRONG),
+	    new Face(new Color(255,255,255,0), 0.8f, -2,5, 4,5, 4,4, -2,4).setFaceTypes(FaceType.KNIGHT_INACTIVE_STRONG),
 
 	    // SAA lightened for active
 	    // blade
-	    new Face(0.1f, 0,-4, 1,-6, 2,-4, 2,8, 0,8).setFaceTypes(FaceType.KNIGHT_ACTIVE_STRONG),
+	    new Face(new Color(160,160,160,0), 0.1f, 0,-4, 1,-6, 2,-4, 2,8, 0,8).setFaceTypes(FaceType.KNIGHT_ACTIVE_STRONG),
 	    // hilt
-	    new Face(0.1f, -2,5, 4,5, 4,4, -2,4).setFaceTypes(FaceType.KNIGHT_ACTIVE_STRONG),
+	    new Face(new Color(100,100,100,0), 0.1f, -2,5, 4,5, 4,4, -2,4).setFaceTypes(FaceType.KNIGHT_ACTIVE_STRONG),
 	    
 	    // double crossed sword mighty dark (inactive)
 	    // handle at top right
@@ -598,7 +604,8 @@ public abstract class BoardComponent extends JComponent implements MouseMotionLi
 	    	    render.drawLineLoop(g, 2);
 	    	}
 
-            g.setColor(AWTUtils.darken(saveColor, face.darkenAmount));
+	    	Color c = AWTUtils.addColors(face.added, AWTUtils.darken(saveColor, face.darkenAmount));
+            g.setColor(c);
             render.fillPolygon(g);
 	    }
 	    g.setColor(saveColor);

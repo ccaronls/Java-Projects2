@@ -60,7 +60,14 @@ public class HuffmanTest extends SimpleCypherTest {
         super.testDataStream();
     }
 
-    
+    public void testSOCFile() throws Exception {
+    	String txt = loadFile("resources/socsavegame.txt").toString();
+        HuffmanEncoding encoding = new HuffmanEncoding();
+        encoding.importCounts(new File("resources/socsavegame.txt"));
+        encoding.generate(true);
+        cypher = encoding;
+    	processTextFile(txt);
+    }
     
     
 }

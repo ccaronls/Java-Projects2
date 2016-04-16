@@ -7,10 +7,6 @@
         <!-- @drawable/screen_background_selector_dark</item>  -->
     </style>
     
-    <style name="DialogTheme" parent="@android:style/Theme.Dialog">
-        
-    </style>
-
     <style name="sortButton">
        <item name="android:button">@null</item>
        <item name="android:gravity">left|center_vertical</item>

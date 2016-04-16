@@ -28,6 +28,7 @@ import cc.game.soc.core.*;
 import cc.game.soc.core.Player.*;
 import cc.game.soc.core.PlayerBot.Distances;
 import cc.game.soc.core.annotations.RuleVariable;
+import cc.game.soc.swing.BoardComponent.PickMode;
 import cc.game.soc.swing.BoardComponent.*;
 import cc.lib.game.*;
 import cc.lib.math.*;
@@ -690,6 +691,59 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 						return PickMode.PM_VERTEX;
 					}
 				});
+                grp.addButton("Settlements", new PickHandler() {
+
+					@Override
+					public PickMode getPickMode() {
+						return PickMode.PM_VERTEX;
+					}
+
+					@Override
+					public void onPick(BoardComponent bc, int pickedValue) {
+						Vertex v = bc.getBoard().getVertex(pickedValue);
+						if (v.getType() == VertexType.OPEN) {
+							v.setOpenSettlement();
+						} else {
+							v.setOpen();
+						}
+					}
+
+					@Override
+					public void onDrawPickable(BoardComponent bc, AWTRenderer r, Graphics g, int index) {
+						Vertex v= bc.getBoard().getVertex(index);
+						g.setColor(AWTUtils.TRANSLUSCENT_BLACK);
+						bc.drawSettlement(g, v, 0, false);
+					}
+
+					@Override
+					public void onDrawOverlay(BoardComponent bc, AWTRenderer r, Graphics g) {
+						int index = 1;
+						for (int vIndex : bc.getBoard().getVertsOfType(0, VertexType.SETTLEMENT)) {
+							Vertex v = bc.getBoard().getVertex(vIndex);
+							g.setColor(Color.LIGHT_GRAY);
+							bc.drawSettlement(g, v, 0, false);
+							MutableVector2D mv = r.transformXY(v);
+							g.setColor(Color.YELLOW);
+							AWTUtils.drawWrapJustifiedStringOnBackground(g, mv.Xi(), mv.Yi(), -1, 3, Justify.CENTER, Justify.CENTER, String.valueOf(index++), Color.BLACK);
+						}
+					}
+
+					@Override
+					public void onHighlighted(BoardComponent bc, AWTRenderer r, Graphics g, int highlightedIndex) {
+						Vertex v= bc.getBoard().getVertex(highlightedIndex);
+						bc.drawSettlement(g, v, 0, true);
+					}
+
+					@Override
+					public boolean isPickableIndex(BoardComponent bc, int index) {
+						Vertex v = bc.getBoard().getVertex(index);
+						if (v.getType() != VertexType.OPEN && v.getType() != VertexType.SETTLEMENT)
+							return false;
+						// TODO Auto-generated method stub
+						return v.getPlayer() == 0 && v.canPlaceStructure();
+					}
+                	
+                });
                 eastGridPanel.add(chooser);
                 westGridPanel.add(buttons);
                 //cntrBorderPanel.remove(console);
@@ -1518,9 +1572,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
     
     private void stopGameThread() {
     	running = false;
-    	synchronized (waitObj) {
-    		waitObj.notifyAll();
-    	}
+    	setReturnValue(null);
     }
     
     public void quitToMainMenu() {
@@ -1879,6 +1931,9 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 		if (getProps().getBooleanProperty(PROP_AI_TUNING_ENABLED, false) == false)
 			return optimal;
 
+		if (!running)
+			return optimal;
+		
 		final int [] leftPanelOffset = new int[1];
 		
 		final HashMap<String, Double> maxValues= new HashMap<String, Double>();

@@ -11,7 +11,9 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Build;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.provider.Settings;
 import android.util.Log;
 
@@ -126,7 +128,7 @@ public abstract class BillingActivity extends CCActivityBase {
     							finalizePurchase(sku, purchaseTime);
     						else
     							showAlert(R.string.popup_title_error, R.string.popup_msg_billing_err_general);
-    						getPrefs().edit().remove(PREF_PURCHASE_RANDOM_STRING).commit();
+    						getPrefs().edit().remove(PREF_PURCHASE_RANDOM_STRING).apply();
     					}	            
     				}
     				catch (JSONException e) {
@@ -144,10 +146,18 @@ public abstract class BillingActivity extends CCActivityBase {
 		}
 	}
 
-	protected void showAlert(int titleResId, int messageResId, Object ... params) {
-		newDialogBuilder().setTitle(titleResId).setMessage(getString(messageResId, params)).setNegativeButton(R.string.popup_button_ok, null).show();
+	protected void showAlert(final int titleResId, final int messageResId, final Object ... params) {
+		if (Build.VERSION.SDK_INT < 11) {
+			new Handler(Looper.getMainLooper()).post(new Runnable() {
+				public void run() {
+					newDialogBuilder().setTitle(titleResId).setMessage(getString(messageResId, params)).setNegativeButton(R.string.popup_button_ok, null).show();
+				}
+			});
+		} else {
+			newDialogBuilder().setTitle(titleResId).setMessage(getString(messageResId, params)).setNegativeButton(R.string.popup_button_ok, null).show();
+		}
 	}
-
+	
 	protected abstract void finalizePurchase(String sku, long purchaseTime);
 	
 	protected abstract AlertDialog.Builder newDialogBuilder();

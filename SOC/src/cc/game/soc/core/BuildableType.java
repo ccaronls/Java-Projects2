@@ -71,7 +71,7 @@ public enum BuildableType {
 			case Ship:
 				return soc.getRules().isEnableSeafarersExpansion();
 			case Warship:
-				return soc.getRules().isEnableCitiesAndKnightsExpansion() && soc.getBoard().getPirateRouteStartTile() >= 0;
+				return soc.getRules().isEnableSeafarersExpansion() && soc.getRules().isEnableWarShipBuildable(); 
 		}
 		assert(false);
 		return false;

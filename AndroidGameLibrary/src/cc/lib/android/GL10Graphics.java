@@ -817,7 +817,6 @@ for (int pix : pixels) {
      */
     public final void pushMatrix() {
         sGl.glPushMatrix();
-        assert(pushDepth < viewportScale.length-1);
         viewportScale[pushDepth+1][0] = getViewportScaleX();
         viewportScale[pushDepth+1][1] = getViewportScaleY();
         pushDepth++;
@@ -829,7 +828,7 @@ for (int pix : pixels) {
     public final void popMatrix() {
         sGl.glPopMatrix();
         pushDepth--;
-        assert(pushDepth>=0);
+        DroidUtils.debugAssert(pushDepth>=0, "pushDepth invalid: " + pushDepth);
     }
     
     /**

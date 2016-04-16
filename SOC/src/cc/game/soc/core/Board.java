@@ -859,6 +859,8 @@ public final class Board extends Reflector<Board> {
 	public void reset() {
 		robberTile = -1;
 		pirateTile = -1;
+		merchantTile = -1;
+		merchantPlayer = -1;
 		clearRouteLenCache();
 		for (Tile c : tiles) {
 			c.reset();

@@ -1,7 +1,10 @@
 package cc.lib.android;
 
+import java.util.*;
+
 import android.content.Context;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 import android.widget.RadioGroup;
 
@@ -63,11 +66,12 @@ public final class SortButtonGroup extends RadioGroup{
 		 * @param sortField the sort field attached to the sort button (will default to the sort button text if this is not set)
 		 * @param ascending sort button 3rd state
 		 */
-		void sortButtonChanged(SortButtonGroup group, int checkedId, String sortField, boolean ascending);
+		void sortButtonChanged(SortButtonGroup group, int checkedId, SortButton ... buttonsHistory);
 	}
 	
 	private OnSortButtonListener sortListener;
-	private SortButton previousButton; 
+	private final LinkedList<SortButton> sortHistory = new LinkedList<SortButton>();
+	private int maxSortFields = 1;
 	
 	private void init(Context context, AttributeSet attrs) {
 	}
@@ -96,14 +100,11 @@ public final class SortButtonGroup extends RadioGroup{
 
 	// package access since used only by SortButton
 	void triggerSort(SortButton button) {
+		pushSortHistory(button);
 		if (sortListener != null) {
-			sortListener.sortButtonChanged(this, button.getId(), button.getSortField(), button.isSortAscending());
+			SortButton [] buttons = sortHistory.toArray(new SortButton[sortHistory.size()]);
+			sortListener.sortButtonChanged(this, button.getId(), buttons);
 		}
-		previousButton = button;
-	}
-	
-	SortButton getPreviousButton() {
-		return this.previousButton;
 	}
 	
 	public void setSelectedSortButton(int id, boolean ascending) {
@@ -111,6 +112,21 @@ public final class SortButtonGroup extends RadioGroup{
 		SortButton button = (SortButton)findViewById(id);
 		if (button != null) {
 			button.setSortAscending(ascending);
+		}
+	}
+	
+	private void pushSortHistory(SortButton button) {
+		if (button == null)
+			return;
+		if (sortHistory.size() == 0 || sortHistory.get(0) != button) {
+    		sortHistory.addFirst(button);
+    		Log.d("sortButtonGroup", "Added: " + button.getSortSQL());
+    		while (sortHistory.size() > maxSortFields) {
+    			String removed = sortHistory.removeLast().getSortSQL();
+    			Log.d("SortButtonGroup", "removing : " + removed);
+    		}
+		} else {
+			Log.d("SortButtonGroup", "Ignored: " + button);
 		}
 	}
 
@@ -122,11 +138,22 @@ public final class SortButtonGroup extends RadioGroup{
 				if (button.getSortField() != null && button.getSortField().equals(sortField)) {
 					check(button.getId());
 					button.setSortAscending(ascending);
-					previousButton = button;
+					pushSortHistory(button);
 					break;
 				}
 			}
 		}
 	}
+
+	SortButton getPreviousButton() {
+		return sortHistory.size() > 0 ? sortHistory.getFirst() : null;
+	}
+
+	public final void setMaxSortFields(int max) {
+		if (max < 1 || max > 32)
+			throw new IllegalArgumentException("max must be between [1-32] inclusive");
+		this.maxSortFields = max;
+	}
+
 
 }

@@ -6,6 +6,8 @@ import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import cc.lib.utils.Convert;
+import cecc.android.lib.TemperatureChooserView;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
@@ -208,22 +210,44 @@ public class FormEdit extends BaseActivity implements RadioGroup.OnCheckedChange
 			final EditText etNotes = (EditText)view.findViewById(R.id.etMeta);
 			final EditText etTemp = (EditText)view.findViewById(R.id.etMetaDegrees);
 			String notes = form.imageMeta[index];
-			String temp = "70";
+			
+			String tempStr = getTemperatureString(Convert.degreesToCelcius(70));
+			float tempCelcius = Convert.degreesToCelcius(70); 
 			
 			if (notes != null) {
-				Pattern p = Pattern.compile("^\\-?[0-9]+");
+				Pattern p = Pattern.compile("^\\-?[0-9]+(\\.[0-9])?");
 				String s = Html.fromHtml(notes).toString();
 				Matcher m = p.matcher(s);
 				if (m.find()) {
-					temp = m.group();
+					tempCelcius = Float.parseFloat(m.group());
+					if (!isMetricUnits()) {
+						tempCelcius = Convert.degreesToCelcius(Math.round(tempCelcius));
+					}
 				}
 			}
 			
 			if (tempEditable) {
 				if (isAmbientTempAvailable()) {
-					temp = String.valueOf(convertCelciusToFahrenheit(getAmbientTempCelcius()));
-					newDialogBuilder().setTitle(R.string.popup_title_important).setMessage(R.string.popup_msg_tempinfo).setNegativeButton(R.string.popup_button_ok, null).show();
+					tempStr = getTemperatureString(getAmbientTempCelcius());
+					tempCelcius = getAmbientTempCelcius();
+					showInfoDialogBuilderWithDontShowAgainCB(R.string.popup_title_important, R.string.popup_msg_tempinfo, "PREF_TEMP_INFO_DONT_SHOW_AGAIN_BOOL");
 				}
+				
+				final float tempCelciusf = tempCelcius;
+				etTemp.setOnClickListener(new OnClickListener() {
+					
+					@Override
+					public void onClick(View v) {
+						new TemperatureChooserView(FormEdit.this, tempCelciusf) {
+							
+							@Override
+							protected void onTemperature(float temp) {
+								etTemp.setText(Html.fromHtml(getTemperatureString(temp)));
+							}
+						};
+					}
+				});
+				/*
 				final int [] tempInt = new int[] { Integer.parseInt(temp) };
     			view.findViewById(R.id.buttonTempUp).setOnClickListener(new OnClickListener() {
 					@Override
@@ -238,12 +262,10 @@ public class FormEdit extends BaseActivity implements RadioGroup.OnCheckedChange
 						tempInt[0]--;
 						etTemp.setText(Html.fromHtml("" + tempInt[0] + "&deg;"));
 					}
-				});
-			} else {
-				view.findViewById(R.id.layoutTempAdjustment).setVisibility(View.GONE);
-			}
+				});*/
+			} 
 			
-			etTemp.setText(Html.fromHtml(temp + "&deg;"));
+			etTemp.setText(Html.fromHtml(tempStr));
 			if (notes != null) {
 				String s = Html.fromHtml(notes).toString();
 				int spc = s.indexOf(' ');

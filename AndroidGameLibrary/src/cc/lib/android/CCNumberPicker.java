@@ -1,6 +1,8 @@
 package cc.lib.android;
 
+import android.annotation.TargetApi;
 import android.content.Context;
+import android.os.Build;
 import android.text.InputFilter;
 import android.util.AttributeSet;
 import android.view.View;
@@ -26,11 +28,13 @@ public class CCNumberPicker extends NumberPicker {
 		return false;
 	}
 	
+	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
 	private void init() {
 		if (findET(this)) {
 			et.setFilters(new InputFilter[0]);
 		}
-		setDescendantFocusability(NumberPicker.FOCUS_BLOCK_DESCENDANTS);
+		if (Build.VERSION.SDK_INT >= 11)
+			setDescendantFocusability(NumberPicker.FOCUS_BLOCK_DESCENDANTS);
 	}
 	
 	public CCNumberPicker(Context context, AttributeSet attrs, int defStyle) {

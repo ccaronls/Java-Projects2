@@ -55,6 +55,10 @@ public final class SortButton extends RadioButton implements View.OnClickListene
 			return getText().toString();
 		return sortField;
 	}
+	
+	public String getSortSQL() {
+		return getSortField() + (isSortAscending() ? " ASC" : " DESC");
+	}
 
 	public void setSortField(String sortField) {
 		this.sortField = sortField;
@@ -69,7 +73,7 @@ public final class SortButton extends RadioButton implements View.OnClickListene
 	}
 
 	@Override
-	public void onClick(View v) {
+	public final void onClick(View v) {
 		SortButtonGroup parent = ((SortButtonGroup)getParent());
 		if (parent.getPreviousButton() == this) {
 			sortAscending = !sortAscending;

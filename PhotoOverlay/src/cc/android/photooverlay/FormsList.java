@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Locale;
 
 import cc.lib.android.EmailHelper;
+import cc.lib.android.SortButton;
 import cc.lib.android.SortButtonGroup;
 import cc.lib.android.SortButtonGroup.OnSortButtonListener;
 import cc.lib.utils.FileUtils;
@@ -21,6 +22,7 @@ import android.content.pm.PackageManager.NameNotFoundException;
 import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.text.Html;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -32,9 +34,10 @@ import android.widget.TextView;
 
 public class FormsList extends BaseActivity implements OnSortButtonListener {
 
-	final static String SORT_FIELD_STR = "SORT_FIELD";
-	final static String SORT_ASCENDING_BOOL = "SORT_ASCENDING";
-	final static String EULA_ACCEPTED_BOOL = "EULA_ACCEPTED";
+	final static String SORT_FIELDS_SQL_STR 		= "SORT_FIELDS_SQL";
+	final static String SORT_FIELD_STR 				= "SORT_FIELD";
+	final static String SORT_ASCENDING_BOOL 		= "SORT_ASCENDING";
+	final static String EULA_ACCEPTED_BOOL 			= "EULA_ACCEPTED";
 		
 	@Override
 	public void onCreate(Bundle bundle) {
@@ -48,6 +51,7 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
 		
 		SortButtonGroup sg = (SortButtonGroup)findViewById(R.id.sortButtonGroup);
 		sg.setSelectedSortButton(sortField, ascending);
+//		sg.setMaxSortFields(max);
 		sg.setOnSortButtonListener(this);
 
 		if (true) { // || !BuildConfig.DEBUG) {
@@ -87,10 +91,10 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
 	}
 	
 	@Override
-	protected void onAmbientTemperature(float celcius, int farhenheit) {
+	protected void onAmbientTemperature(float celcius) {
 		if (!showSubscription) {
     		final TextView tvAmbient = (TextView)findViewById(R.id.tvAmbient);
-    		tvAmbient.setText(getString(R.string.label_ambient_temp, farhenheit));
+    		tvAmbient.setText(getString(R.string.ambient_temp) + " " + Html.fromHtml(getTemperatureString(celcius)));
 		}
 	}
 
@@ -227,9 +231,18 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
 		}
 	}
 	
-	public void sortButtonChanged(SortButtonGroup group, int checkedId, String sortField, boolean ascending) {
-		getPrefs().edit().putString(SORT_FIELD_STR, sortField)
-			.putBoolean(SORT_ASCENDING_BOOL, ascending)
+	@Override
+	public void sortButtonChanged(SortButtonGroup group, int checkedId, SortButton ... sortHistory) {
+		
+		String sortField = sortHistory[0].getSortSQL();
+		
+		for (int i=1; i<sortHistory.length; i++) {
+			sortField += ", " + sortHistory[i].getSortSQL();
+		}
+		getPrefs().edit()
+			.putString(SORT_FIELD_STR, sortHistory[0].getSortField())
+			.putString(SORT_FIELDS_SQL_STR, sortField)
+			.putBoolean(SORT_ASCENDING_BOOL, sortHistory[0].isSortAscending())
 			.commit();
 		refresh();
 	}
@@ -241,13 +254,12 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
 //		((TextView)findViewById(R.id.tvFormCount)).setText("Form Count: " + getFormHelper().getFormCount());
 		ListView lv = (ListView)findViewById(R.id.formList);
 		
-		String sortField = getPrefs().getString(SORT_FIELD_STR, SQLHelper.Column.EDIT_DATE.name());
-		boolean ascending = getPrefs().getBoolean(SORT_ASCENDING_BOOL, false);
+		String sortField = getPrefs().getString(SORT_FIELDS_SQL_STR, SQLHelper.Column.EDIT_DATE.name());
 		
-		Cursor cursor = getFormHelper().listForms(sortField, ascending, 0, 100);
+		Cursor cursor = getFormHelper().listForms(sortField, true, 0, 100);
 		tvEmptyList.setVisibility(cursor.getCount() > 0 ? View.INVISIBLE : View.VISIBLE);
 		
-		lv.setAdapter(new CursorAdapter(this, cursor, 0) {
+		lv.setAdapter(new CursorAdapter(this, cursor) {
 			
 			@Override
 			public View newView(Context context, Cursor cursor, ViewGroup parent) {
@@ -292,6 +304,8 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
 			items = getResources().getStringArray(R.array.form_list_options_unlocked);
 		}
 		
+		items[4] = isMetricUnits() ? getString(R.string.switch_units_imperial) : getString(R.string.switch_units_metric);
+
 		newDialogBuilder().setTitle(R.string.popup_title_options).setItems(items, new DialogInterface.OnClickListener() {
 			
 			@Override
@@ -391,23 +405,28 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
 						break;
 					}
 					
-					case 4: { // Purchases
+					case 4: { // Units
+						toggleUnits();
+						break;
+					}
+					
+					case 5: { // Purchases
 						new BillingTask(BillingTask.Op.DISPLAY_PURCHASES, getActivity()).execute();
 						break;
 					}
 					
-					case 5: { // Upgrade
+					case 6: { // Upgrade
 						new BillingTask(BillingTask.Op.QUERY_PURCHASABLES, getActivity()).execute(getPurchasableSkus());
 						break;
 					}
 					
-					case 6: {
+					case 7: {
 						clearPurchaseData();
 						new BillingTask(BillingTask.Op.REFRESH_PURCHASED, getActivity()).execute();
 						break;
 					}
 					
-					case 7: { // Purchases DEBUG
+					case 8: { // Purchases DEBUG
 						new BillingTask(BillingTask.Op.QUERY_PURCHASABLES_DEBUG, getActivity()).execute();
 						break;
 					}

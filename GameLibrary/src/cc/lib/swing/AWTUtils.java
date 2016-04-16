@@ -163,9 +163,9 @@ public class AWTUtils {
      * @param text
      * @return the total height of the text. 
      */
-    public static int drawJustifiedString(Graphics g, int x, int y, Justify hJust, Justify vJust, String text) {
+    public static Rectangle drawJustifiedString(Graphics g, int x, int y, Justify hJust, Justify vJust, String text) {
         if (text.length() == 0)
-            return 0;
+            return new Rectangle(0,0);
         String [] lines = text.split("\n");
         return drawJustifiedStringLines(g, x, y, hJust, vJust, lines);
     }
@@ -178,12 +178,13 @@ public class AWTUtils {
      * @param hJust
      * @param vJust
      * @param lines
-     * @return
+     * @return the bounding rectangle of the text
      */
-    public static int drawJustifiedStringLines(Graphics g, int x, int y, Justify hJust, Justify vJust, String [] lines) {
+    public static Rectangle drawJustifiedStringLines(Graphics g, int x, int y, Justify hJust, Justify vJust, String [] lines) {
         final int textHeight = g.getFontMetrics().getHeight();
         // adjust for natural bottom alignment of text
         //y += textHeight; <-- TODO: Figure out why this line shift text down on SOC but is correct for FractalViewer
+        int width = 0;
         switch (vJust) {
         case TOP:
         	//y += textHeight; <-- this looks wrong on SOC
@@ -200,9 +201,9 @@ public class AWTUtils {
         }
         for (int i=0; i<lines.length; i++) {
             y += textHeight;
-            priv_drawJustifiedString(g, x, y, hJust, lines[i], null, 0);
+            width = Math.max(width, priv_drawJustifiedString(g, x, y, hJust, lines[i], null, 0));
         }
-        return lines.length * textHeight;
+        return new Rectangle(width, lines.length * textHeight);
     }
     
     /*
@@ -968,10 +969,17 @@ public class AWTUtils {
 	public static void drawWrapJustifiedStringOnBackground(Graphics g, int x, int y, int maxWidth, int padding, Justify hJust, Justify vJust, String txt, Color bkColor) {
 		Color cur = g.getColor();
 		g.setColor(AWTUtils.TRANSPARENT);
-		Rectangle rect = AWTUtils.drawWrapJustifiedString(g, x, y, maxWidth, hJust, vJust, txt);
+		Rectangle rect = maxWidth > 0 ? drawWrapJustifiedString(g, x, y, maxWidth, hJust, vJust, txt) : drawJustifiedString(g, maxWidth, y, hJust, vJust, txt);
 		g.setColor(bkColor);
 		AWTUtils.fillRect(g, rect, padding);
 		g.setColor(cur);
 		AWTUtils.drawWrapJustifiedString(g, x, y, maxWidth, hJust, vJust, txt);
+	}
+	
+	public static Color addColors(Color a, Color b) {
+		return new Color(Math.min(255, a.getRed() + b.getRed()),
+				Math.min(255, a.getGreen() + b.getGreen()),
+				Math.min(255, a.getBlue() + b.getBlue()),
+				Math.min(255, a.getAlpha() + b.getAlpha()));
 	}
 }

@@ -27,14 +27,14 @@ import android.webkit.WebView.PictureListener;
 import android.webkit.WebViewClient;
 
 @SuppressWarnings("deprecation")
-public abstract class PagedFormExporter extends AsyncTask<Void, String, File> implements PictureListener, OnCancelListener {
+public abstract class PagedFormExporter extends AsyncTask<Void, String, Object> implements PictureListener, OnCancelListener {
 	
 	private final String TAG = getClass().getSimpleName();
 	
 	private final int width = 1600;//R.dimen.paged_webview_width;
 	private final int height = width * 22 / 17; // height uses aspect ratio 8.5 x 11
 	private final Activity activity; 
-	private final SimpleDateFormat stamp = new SimpleDateFormat("mmddyyyy_HHmm", Locale.US);
+	private final SimpleDateFormat stamp = new SimpleDateFormat("MMddyyyy_HHmm", Locale.US);
 	protected final StringBuffer html = new StringBuffer();
 	private int numPages;
 	private final List<File> pages = new ArrayList<File>();
@@ -205,8 +205,12 @@ public abstract class PagedFormExporter extends AsyncTask<Void, String, File> im
 		final String url = "file:///" + activity.getCacheDir().getAbsolutePath() + "/" + htmlFile.getName();
 		publishProgress(url);
 		synchronized (this) {
-			wait(2000);
+			for (int i=0; i<10 && state != 3; i++) {
+				wait(2000);
+			}
 		}
+		if (state != 3)
+			throw new Exception();
 		htmlFile.delete();
 	}
 	
@@ -280,15 +284,24 @@ public abstract class PagedFormExporter extends AsyncTask<Void, String, File> im
 	}
 
 	@Override
-	protected final void onPostExecute(File result) {
+	protected final void onPostExecute(Object result) {
 		dialog.dismiss();
 		if (result != null) {
-			onEmailAttachmentReady(result);
+			if (result instanceof File)
+				onEmailAttachmentReady((File)result);
+			else if (result instanceof Exception)
+				onError((Exception)result);
+			else
+				onError(new Exception("Unknown result: " + result.getClass().getSimpleName()));
+		} else {
+			onError(new Exception("null result"));
 		}
 	}
 	
 	protected abstract void onEmailAttachmentReady(File attachment);
 
+	protected abstract void onError(Exception e);
+	
 	@Override
 	protected final void onProgressUpdate(String... values) {
 		state = 0;
@@ -296,7 +309,7 @@ public abstract class PagedFormExporter extends AsyncTask<Void, String, File> im
 	}
 
 	@Override
-	protected final File doInBackground(Void... params) {
+	protected final Object doInBackground(Void... params) {
 		try {
     		
 			for (int i=0; i<numPages; i++) {
@@ -321,7 +334,7 @@ public abstract class PagedFormExporter extends AsyncTask<Void, String, File> im
 			return file;
 		} catch (Exception e) {
 			e.printStackTrace();
-			return null; // Error
+			return e; // Error
 		}
 	
 	}

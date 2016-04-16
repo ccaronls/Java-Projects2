@@ -4,9 +4,14 @@ import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
 
+import cc.android.photooverlay.R.color;
 import cc.lib.android.EmailHelper;
+import cc.lib.utils.FileUtils;
+import cc.lib.utils.HtmlUtils;
+import cecc.android.lib.CECCBaseActivity;
 import cecc.android.lib.PagedFormExporter;
 import android.net.Uri;
+import android.os.Environment;
 import android.util.Log;
 import android.widget.ImageView;
 
@@ -16,7 +21,7 @@ public class FormExport extends PagedFormExporter {
 	private final SimpleDateFormat fmt = new SimpleDateFormat("EEEE MMMM d, yyyy", Locale.getDefault());
 	private boolean hasCommentsPage = false;
 	
-	FormExport(BaseActivity activity, Form form, Signature [] signatures) {
+	FormExport(CECCBaseActivity activity, Form form, Signature [] signatures) {
 		super(activity, signatures);
 		this.form = form;
 		int numPages = 1;
@@ -47,6 +52,11 @@ public class FormExport extends PagedFormExporter {
 		if (BuildConfig.DEBUG && attachment.getAbsolutePath().endsWith(".jpg")) {
 			ImageView iv = new ImageView(getActivity());
 			iv.setImageURI(Uri.fromFile(attachment));
+			try {
+				FileUtils.copyFile(attachment, Environment.getExternalStorageDirectory());
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 			((BaseActivity)getActivity()).newDialogBuilder().setTitle("Preview").setView(iv).show();
 		} else
 			EmailHelper.sendEmail(getActivity(), attachment, null, getActivity().getString(R.string.emailSubjectSignedReport), getActivity().getString(R.string.email_body_signed_form));		
@@ -61,7 +71,7 @@ public class FormExport extends PagedFormExporter {
 		entry("Location:", form.location);
 		entry("Installer:", form.inspector);
 		endTable();
-		beginTable(100);
+		beginTable(0);
 		entry("Plan:", form.plan, "Spec:", form.spec, "Type:", form.type);
 		endTable();
 	}
@@ -90,7 +100,8 @@ public class FormExport extends PagedFormExporter {
 			html.append("</br><b><font color=\"red\">FAILED</font></b>\n");
 		}
 		
-		html.append("<br/><table width=\"100%\">\n");
+		//html.append("<br/><table width=\"100%\">\n");
+		beginTable(0);
 		html.append("<tr>\n");
 		final int dim = Math.round((float)BaseActivity.IMAGE_CAPUTE_DIM / activity.getResources().getDisplayMetrics().density);
 
@@ -98,24 +109,28 @@ public class FormExport extends PagedFormExporter {
 			html.append("<td>\n");
 			if (form.imagePath[i] != null) {
 				Uri uri = Uri.fromFile(new File(activity.getImagesPath(), form.imagePath[i]));
-				html.append(String.format("<img width=\"%d\" height=\"%d\" src=\"%s\">\n", dim, dim, uri.toString()));//.append("\">\n");
-				//html.append(String.format("<img src=\"%s\">\n", uri.toString()));//.append("\">\n");
+				html.append(String.format("<img width=\"%d\" height=\"%d\" src=\"%s\">\n", dim, dim, uri.toString()));
 			} else {
 				html.append(String.format("<img width=\"%d\" height=\"%d\" src=\"\" alt=\"No Image\"/>\n", dim, dim));
-				//html.append("<img src=\"\" alt=\"No Image\"/>\n");
 			}
 			html.append("</td>\n");
 		}
 		
 		html.append("</tr><tr>\n");
 		for (int i=0; i<3; i++) {
-			html.append("<td>\n");
+			html.append("<td>");
 			if (form.imageMeta[i] != null) {
-				html.append(form.imageMeta[i]);
+				String [] lines = HtmlUtils.wrapText(form.imageMeta[i], 20);
+				for (int ii=0; ii<lines.length; ii++) {
+					html.append(lines[ii]);
+					if (ii < lines.length-1)
+						html.append("<br/>");
+				}
 			}
 			html.append("</td>\n");
 		}
-		html.append("</tr></table>\n");
+		//html.append("</tr></table>\n");
+		endTable();
 		end();
 	}
 
@@ -139,6 +154,12 @@ public class FormExport extends PagedFormExporter {
 			html.append("</br><img width=\"" + imgWid + "\" src=\"").append(uri.toString()).append("\">\n");
 		}
 		end();
+	}
+
+	@Override
+	protected void onError(Exception e) {
+		((CECCBaseActivity)getActivity()).newDialogBuilder().setTitle(R.string.popup_title_error)
+			.setMessage(getActivity().getString(R.string.generate_page_error_msg) + "\n\nERROR:" + e.getMessage()).show();
 	}
 
 	

@@ -8,6 +8,7 @@ import java.util.*;
 
 import android.annotation.TargetApi;
 import android.app.AlertDialog;
+import android.app.AlertDialog.Builder;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences.Editor;
@@ -21,9 +22,10 @@ import android.hardware.SensorManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.provider.OpenableColumns;
 import android.util.Log;
-import android.webkit.WebView;
+import android.view.View;
+import android.widget.CheckBox;
+import android.widget.TextView;
 import cc.lib.android.BuildConfig;
 import cc.lib.android.EmailHelper;
 import cc.lib.android.R;
@@ -37,11 +39,12 @@ public abstract class CECCBaseActivity extends BillingActivity {
 	public final static String INTENT_FULL_NAME_STRING = "iFULL_NAME";
 	public final static String INTENT_BITMAP_FILE = "iBITMAP_FILE";
 	public final static String INTENT_ERROR = "iERROR";
+	public final static String PREF_IS_METRIC_UNITS_BOOL = "IS_METRIC_UNITS";
 	
 	public final static String MIME_TYPE_PDF =  "application/pdf";
-	public final String GOOGLE_PDF_VIEWER_URL = "https://docs.google.com/gview?embedded=true&url=";
+	public final static String GOOGLE_PDF_VIEWER_URL = "https://docs.google.com/gview?embedded=true&url=";
 	
-	private final static boolean INAPP_ENABLED = true;//!BuildConfig.DEBUG;
+	private final static boolean INAPP_ENABLED = !BuildConfig.DEBUG;
 	
 	static SimpleDateFormat dateFormat = new SimpleDateFormat("E M/d/yy h:mm a", Locale.US); 
 
@@ -51,14 +54,55 @@ public abstract class CECCBaseActivity extends BillingActivity {
 	
 	@Override
 	public final AlertDialog.Builder newDialogBuilder() {
-		return new AlertDialog.Builder(this, R.style.DialogTheme);
+		if (Build.VERSION.SDK_INT > 10)
+			return new AlertDialog.Builder(this, R.style.DialogTheme);
+		else
+			return new AlertDialog.Builder(this);
+	}
+	
+	public final void showInfoDialogBuilderWithDontShowAgainCB(int titleId, int msgId, final String boolPrefToNotShowAgain) {
+		if (getPrefs().getBoolean(boolPrefToNotShowAgain, true)) {
+ 		
+			final View v = View.inflate(this, R.layout.popup_message_info, null);
+			((TextView)v.findViewById(R.id.tvMessage)).setText(msgId);
+			final CheckBox cbDontShowAgain = (CheckBox)v.findViewById(R.id.cbDontShowAgain);
+			newDialogBuilder()
+    			.setTitle(titleId)
+    			.setView(v)
+        		.setNegativeButton(R.string.popup_button_ok, new DialogInterface.OnClickListener() {
+    				
+    				@Override
+    				public void onClick(DialogInterface dialog, int which) {
+    					if (cbDontShowAgain.isChecked()) {
+    						getPrefs().edit().putBoolean(boolPrefToNotShowAgain, false).commit();
+    					}
+    				}
+    			}).show();
+		}
 	}
 	
 	private SensorManager ambientSensor;
 	private Sensor temp;
 	
-	public final int convertCelciusToFahrenheit(float celcius) {
-		return Math.round(celcius * 9f/5 + 32);
+	public final boolean isMetricUnits() {
+		return getPrefs().getBoolean(PREF_IS_METRIC_UNITS_BOOL, getResources().getInteger(R.integer.units_metric_int) != 0);
+	}
+	
+	public final void toggleUnits() {
+		boolean isMetric = isMetricUnits();
+		getPrefs().edit().putBoolean(PREF_IS_METRIC_UNITS_BOOL, !isMetric).commit();
+	}
+
+	public final void setUnitsMetric(boolean metric) {
+		getPrefs().edit().putBoolean(PREF_IS_METRIC_UNITS_BOOL, metric).commit();
+	}
+
+	public final String getTemperatureString(float degreesCelcius) {
+		if (isMetricUnits()) {
+			return String.format("%.1f&deg;C", degreesCelcius);
+		} else {
+			return String.format("%d&deg;F", Math.round(degreesCelcius * 9f/5 + 32));
+		}
 	}
 	
 	class AmbientListener implements SensorEventListener, Runnable {
@@ -67,7 +111,7 @@ public abstract class CECCBaseActivity extends BillingActivity {
 		
 		@Override
 		public void run() {
-			onAmbientTemperature(degreesC, convertCelciusToFahrenheit(degreesC));
+			onAmbientTemperature(degreesC);
 		}
 
 		@Override
@@ -81,7 +125,6 @@ public abstract class CECCBaseActivity extends BillingActivity {
 			// TODO Auto-generated method stub
 			
 		}
-		
 	}
 	
 	private final AmbientListener ambientListener = new AmbientListener();
@@ -124,7 +167,7 @@ public abstract class CECCBaseActivity extends BillingActivity {
 	 * @param celcius
 	 * @param farhenheit
 	 */
-	protected void onAmbientTemperature(float celcius, int farhenheit) {}
+	protected void onAmbientTemperature(float celcius) {}
 	
 	/**
 	 * Return whether this device supports temp

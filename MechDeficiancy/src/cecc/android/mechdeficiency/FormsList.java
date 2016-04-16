@@ -21,6 +21,7 @@ import android.content.pm.PackageManager.NameNotFoundException;
 import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.text.Html;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -68,7 +69,7 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
         				
         				@Override
         				public void onClick(DialogInterface dialog, int which) {
-        					getPrefs().edit().putBoolean(EULA_ACCEPTED_BOOL + version, true).commit();
+        					getPrefs().edit().putBoolean(EULA_ACCEPTED_BOOL + version, true).apply();
         					dialog.dismiss();
         					checkShowWelcome();
         				}
@@ -87,10 +88,10 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
 	}
 	
 	@Override
-	protected void onAmbientTemperature(float celcius, int farhenheit) {
+	protected void onAmbientTemperature(float celcius) {
 		if (!showSubscription) {
     		final TextView tvAmbient = (TextView)findViewById(R.id.tvAmbient);
-    		tvAmbient.setText(getString(R.string.label_ambient_temp, farhenheit));
+    		tvAmbient.setText(getString(R.string.ambient_temp) + " " + Html.fromHtml(getTemperatureString(celcius)));
 		}
 	}
 
@@ -103,7 +104,7 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
 	
 	private void checkShowWelcome() {
 		if (getPrefs().getBoolean("FIRST_LAUNCH_BOOL", true)) {
-			getPrefs().edit().putBoolean("FIRST_LAUNCH_BOOL", false).commit();
+			getPrefs().edit().putBoolean("FIRST_LAUNCH_BOOL", false).apply();
 			if (!isPremiumEnabled(false))
     			newDialogBuilder().setTitle(R.string.popup_title_welcome)
     				.setMessage(R.string.popup_msg_welcome)
@@ -216,7 +217,7 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
 	public void sortButtonChanged(SortButtonGroup group, int checkedId, String sortField, boolean ascending) {
 		getPrefs().edit().putString(SORT_FIELD_STR, sortField)
 			.putBoolean(SORT_ASCENDING_BOOL, ascending)
-			.commit();
+			.apply();
 		refresh();
 	}
 	
@@ -275,11 +276,13 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
 		
 		if (BuildConfig.DEBUG) {
 			items = getResources().getStringArray(R.array.form_list_options_debug);
-		} else if (isPremiumOptionAvailable() && (isSubscription() || !isPremiumEnabled(false))) {
+		} else if (!isPremiumEnabled(false) || isPremiumOptionAvailable()) {
 			items = getResources().getStringArray(R.array.form_list_options_locked);
 		} else {
 			items = getResources().getStringArray(R.array.form_list_options_unlocked);
 		}
+		
+		items[4] = isMetricUnits() ? "Imperial Units" : "Metric Units";
 		
 		newDialogBuilder().setTitle(R.string.popup_title_options).setItems(items, new DialogInterface.OnClickListener() {
 			
@@ -380,22 +383,26 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
 						break;
 					}
 					
-					case 4: { // Purchases
+					case 4: { // Toggle Units
+						break;
+					}
+					
+					case 5: { // Purchases
 						new BillingTask(BillingTask.Op.DISPLAY_PURCHASES, getActivity()).execute();
 						break;
 					}
 					
-					case 5: { // Upgrade
+					case 6: { // Upgrade
 						new BillingTask(BillingTask.Op.QUERY_PURCHASABLES, getActivity()).execute(getPurchasableSkus());
 						break;
 					}
 					
-					case 6: { // Purchases DEBUG
+					case 7: { // Purchases DEBUG
 						new BillingTask(BillingTask.Op.QUERY_PURCHASABLES_DEBUG, getActivity()).execute();
 						break;
 					}
 					
-					case 7: {
+					case 8: {
 						clearPurchaseData();
 						new BillingTask(BillingTask.Op.REFRESH_PURCHASED, getActivity()).execute();
 						break;

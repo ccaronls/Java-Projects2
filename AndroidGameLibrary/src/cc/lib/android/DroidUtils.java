@@ -58,6 +58,9 @@ public class DroidUtils extends Utils {
     	glVertex4[3] = x*glMatrix16[3] + y*glMatrix16[7] + z*glMatrix16[11] + w*glMatrix16[15];
     }
 
-    
+    public static void debugAssert(boolean expression, String message) {
+    	if (BuildConfig.DEBUG && !expression)
+    		throw new AssertionError(message);
+    }
     
 }
