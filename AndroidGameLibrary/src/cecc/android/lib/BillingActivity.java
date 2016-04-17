@@ -84,6 +84,8 @@ public abstract class BillingActivity extends CCActivityBase {
 		if (mBillingService == null) {
 			bindToBilling();
 		}
+		if (mBillingService == null)
+			throw new BillingNotAvailableException();
 		return mBillingService;
 	}
 	

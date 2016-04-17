@@ -52,4 +52,15 @@ public class HtmlUtils {
 		wrapTextR(txt, maxChars, lines);
 	}
 	
+	public static String wrapTextForTD(String txt, int maxChars) {
+		StringBuffer buf = new StringBuffer();
+		String [] lines = HtmlUtils.wrapText(txt, maxChars);
+		for (int ii=0; ii<lines.length; ii++) {
+			buf.append(lines[ii]);
+			if (ii < lines.length-1)
+				buf.append("<br/>");
+		}
+		return buf.toString();
+	}
+	
 }

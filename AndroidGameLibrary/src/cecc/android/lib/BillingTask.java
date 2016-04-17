@@ -208,8 +208,11 @@ public class BillingTask extends AsyncTask<String,Integer,Object> implements OnC
 		try {
 			if (result == null) {
 				// do nothing
+			} else if (result instanceof BillingNotAvailableException) {
+				activity.showAlert(R.string.popup_title_error, R.string.popup_msg_billing_err_not_available);
 			} else if (result instanceof Exception) {
-				activity.showAlert(R.string.popup_title_error, R.string.popup_msg_billing_err_general);
+				String msg = ((Exception)result).getMessage();
+				activity.showAlert(R.string.popup_title_error, R.string.popup_msg_billing_err_general, msg);
 			} else if (result instanceof Bundle) {
 				Bundle bundle = (Bundle)result;
 				int response = bundle.getInt("RESPONSE_CODE");

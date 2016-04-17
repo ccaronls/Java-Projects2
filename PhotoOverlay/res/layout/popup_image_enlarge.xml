@@ -14,24 +14,17 @@
 	        android:id="@+id/ivPhoto"
 	        android:layout_width="fill_parent"
 	        android:layout_height="fill_parent"
-	        android:scaleType="centerCrop"
 	        android:src="@android:drawable/btn_minus" />
     </cc.lib.android.SquareLinearLayout>    
     <LinearLayout
         android:layout_width="fill_parent"
         android:layout_height="70dp" >
 
-        <EditText
-            android:id="@+id/etMetaDegrees"
-            style="@style/edittext"
+        <Button
+            android:id="@+id/buttonTemp"
             android:layout_width="wrap_content"
             android:layout_height="fill_parent"
-            android:hint="70"
-            android:inputType="none"
-            android:clickable="false" 
-            android:cursorVisible="false" 
-            android:focusable="false" 
-            android:focusableInTouchMode="false"/>
+            android:text="70"/>
         
 	    <cc.lib.android.CCEditTextMultiLineIMEDone
 	        android:id="@+id/etMeta"

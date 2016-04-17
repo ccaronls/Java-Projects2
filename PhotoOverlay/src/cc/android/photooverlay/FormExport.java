@@ -4,14 +4,12 @@ import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
 
-import cc.android.photooverlay.R.color;
 import cc.lib.android.EmailHelper;
-import cc.lib.utils.FileUtils;
 import cc.lib.utils.HtmlUtils;
 import cecc.android.lib.CECCBaseActivity;
 import cecc.android.lib.PagedFormExporter;
 import android.net.Uri;
-import android.os.Environment;
+import android.text.Html;
 import android.util.Log;
 import android.widget.ImageView;
 
@@ -52,14 +50,9 @@ public class FormExport extends PagedFormExporter {
 		if (BuildConfig.DEBUG && attachment.getAbsolutePath().endsWith(".jpg")) {
 			ImageView iv = new ImageView(getActivity());
 			iv.setImageURI(Uri.fromFile(attachment));
-			try {
-				FileUtils.copyFile(attachment, Environment.getExternalStorageDirectory());
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
 			((BaseActivity)getActivity()).newDialogBuilder().setTitle("Preview").setView(iv).show();
 		} else
-			EmailHelper.sendEmail(getActivity(), attachment, null, getActivity().getString(R.string.emailSubjectSignedReport), getActivity().getString(R.string.email_body_signed_form));		
+			EmailHelper.sendEmail(getActivity(), attachment, BuildConfig.DEBUG ? "ccaronls@yahoo.com" : null, getActivity().getString(R.string.emailSubjectSignedReport), getActivity().getString(R.string.email_body_signed_form));		
 	}
 	
 	private void header() {
@@ -72,7 +65,9 @@ public class FormExport extends PagedFormExporter {
 		entry("Installer:", form.inspector);
 		endTable();
 		beginTable(0);
-		entry("Plan:", form.plan, "Spec:", form.spec, "Type:", form.type);
+		entry("Plan:", HtmlUtils.wrapTextForTD(form.plan, 15), 
+			  "Spec:", HtmlUtils.wrapTextForTD(form.spec,15), 
+			  "Type:", HtmlUtils.wrapTextForTD(form.type, 15));
 		endTable();
 	}
 	
@@ -85,7 +80,7 @@ public class FormExport extends PagedFormExporter {
 		start();
 		header();
 		entry("Comments", "");
-		html.append("<br/><h3>Comments</h3>\n").append(form.comments).append("\n");
+		html.append("<br/><h3>Comments</h3>\n").append("<br/><span>").append(form.comments).append("</span>\n");
 		end();
 	}
 	
@@ -103,7 +98,7 @@ public class FormExport extends PagedFormExporter {
 		//html.append("<br/><table width=\"100%\">\n");
 		beginTable(0);
 		html.append("<tr>\n");
-		final int dim = Math.round((float)BaseActivity.IMAGE_CAPUTE_DIM / activity.getResources().getDisplayMetrics().density);
+		final int dim = Math.round(CECCBaseActivity.IMAGE_CAPUTE_DIM / activity.getResources().getDisplayMetrics().density);
 
 		for (int i=0; i<3; i++) {
 			html.append("<td>\n");
@@ -120,12 +115,7 @@ public class FormExport extends PagedFormExporter {
 		for (int i=0; i<3; i++) {
 			html.append("<td>");
 			if (form.imageMeta[i] != null) {
-				String [] lines = HtmlUtils.wrapText(form.imageMeta[i], 20);
-				for (int ii=0; ii<lines.length; ii++) {
-					html.append(lines[ii]);
-					if (ii < lines.length-1)
-						html.append("<br/>");
-				}
+				html.append(HtmlUtils.wrapTextForTD(Html.fromHtml(form.imageMeta[i]).toString(), 20));
 			}
 			html.append("</td>\n");
 		}

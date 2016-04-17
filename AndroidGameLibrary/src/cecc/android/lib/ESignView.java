@@ -1,5 +1,6 @@
 package cecc.android.lib;
 
+import cc.lib.android.R;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -17,7 +18,7 @@ public class ESignView extends View {
 		paint.setStyle(Style.STROKE);
 		paint.setColor(Color.BLACK);
 		paint.setStrokeCap(Cap.ROUND);
-		paint.setStrokeWidth(10);
+		paint.setStrokeWidth(getResources().getDimension(R.dimen.esign_signature_width));
 	}
 	
 	

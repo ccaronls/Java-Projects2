@@ -3,29 +3,29 @@ package cecc.android.lib;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.view.View;
+import android.widget.CompoundButton;
+import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.NumberPicker;
 import android.widget.NumberPicker.Formatter;
-import android.widget.NumberPicker.OnValueChangeListener;
+import android.widget.ToggleButton;
 import cc.lib.android.R;
 import cc.lib.utils.Convert;
 
-public abstract class TemperatureChooserView implements OnClickListener, OnValueChangeListener, Formatter {
+public abstract class TemperatureChooserView implements OnClickListener, Formatter, OnCheckedChangeListener {
 
 	private final CECCBaseActivity context;
 	private final NumberPicker npDegrees;
 	private final NumberPicker npCelcius;
 	private final NumberPicker npCelciusDec;
-	private final NumberPicker npUnits;
-	private final View tvDot;
+	private final ToggleButton tbUnits;
 	
-	public TemperatureChooserView(CECCBaseActivity context, float tempCelcius) {
+	public TemperatureChooserView(CECCBaseActivity context) {
 		this.context = context;
 		View v = View.inflate(context, R.layout.popup_temp_picker, null);
 		npDegrees = (NumberPicker)v.findViewById(R.id.numberPickerDegrees);
 		npCelcius = (NumberPicker)v.findViewById(R.id.numberPickerCelcius);
 		npCelciusDec = (NumberPicker)v.findViewById(R.id.numberPickerCelciusDecimal);
-		npUnits = (NumberPicker)v.findViewById(R.id.numberPickerUnits);
-		tvDot = v.findViewById(R.id.tvDot);
+		tbUnits = (ToggleButton)v.findViewById(R.id.tbUnits);
 		
 		npDegrees.setMinValue(30);
 		npDegrees.setMaxValue(100);
@@ -33,39 +33,35 @@ public abstract class TemperatureChooserView implements OnClickListener, OnValue
 		npCelcius.setMinValue(0);
 		npCelcius.setMaxValue(40);
 		npCelcius.setWrapSelectorWheel(false);
-		npCelcius.setFormatter(this);
 		npCelciusDec.setMinValue(0);
 		npCelciusDec.setMaxValue(9);
-		npCelciusDec.setWrapSelectorWheel(false);
+		npCelciusDec.setWrapSelectorWheel(true);
+		npCelciusDec.setFormatter(this);
 		
-		npUnits.setDisplayedValues(new String [] { "C", "F" });
-		npUnits.setMinValue(0);
-		npUnits.setMaxValue(1);
-		
-		npUnits.setOnValueChangedListener(this);
+		tbUnits.setChecked(context.isMetricUnits());
+		tbUnits.setOnCheckedChangeListener(this);
 		
 		context.newDialogBuilder().setView(v).setNegativeButton(R.string.popup_button_cancel, null)
 			.setPositiveButton(R.string.popup_button_ok, this).show();
 		
-		setTempPickers(tempCelcius);
+		setTempPickers(getInitialTempCelcius());
 	}
+	
+	protected abstract float getInitialTempCelcius();
 	
 	private void setTempPickers(float tempCelcius) {
 		int tempDegrees = Convert.celciusToDegrees(tempCelcius);
 		int tempCelciusHigh = (int)tempCelcius;
 		int tempCelciusLow  = (int)(10f * (tempCelcius - tempCelciusHigh));
-		npUnits.setValue(context.isMetricUnits() ? 0 : 1);
 		
-		if (context.isMetricUnits()) {
+		if (tbUnits.isChecked()) {
 			npDegrees.setVisibility(View.GONE);
 			npCelcius.setVisibility(View.VISIBLE);
 			npCelciusDec.setVisibility(View.VISIBLE);
-			tvDot.setVisibility(View.VISIBLE);
 		} else {
 			npDegrees.setVisibility(View.VISIBLE);
 			npCelcius.setVisibility(View.GONE);
 			npCelciusDec.setVisibility(View.GONE);
-			tvDot.setVisibility(View.GONE);
 		}
 		
 		npDegrees.setValue(tempDegrees);
@@ -74,34 +70,46 @@ public abstract class TemperatureChooserView implements OnClickListener, OnValue
 
 	}
 	
-	public float getTemp() {
+	public final float getTemp() {
 		if (context.isMetricUnits()) {
 			return 0.1f * npCelciusDec.getValue() + npCelcius.getValue();
 		} else {
 			return npDegrees.getValue();
 		}
 	}
-
-	@Override
-	public String format(int value) {
-		return String.valueOf(value);
+	
+	public final float getTempCelcius() {
+		float temp = getTemp();
+		if (context.isMetricUnits())
+			return temp;
+		return Convert.degreesToCelcius(temp);
 	}
 
 	@Override
-	public void onClick(DialogInterface dialog, int which) {
+	public final String format(int value) {
+		return "." + String.valueOf(value);
+	}
+
+	@Override
+	public final void onClick(DialogInterface dialog, int which) {
 		onTemperature(getTemp());
 	}
 	
 	@Override
-	public void onValueChange(NumberPicker picker, int oldVal, int newVal) {
+	public final void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
 		float celcius = context.isMetricUnits() ? getTemp() : Convert.degreesToCelcius(getTemp());
-		if (newVal == 0) {
+		if (isChecked) {
 			context.setUnitsMetric(true);
 		} else {
 			context.setUnitsMetric(false);
 		}
 		setTempPickers(celcius);
 	}
-	
-	protected abstract void onTemperature(float temp);
+
+	/**
+	 * Returns temperature in the desired units
+	 * 
+	 * @param temp
+	 */
+	protected abstract void onTemperature(float tempCelcius);
 }

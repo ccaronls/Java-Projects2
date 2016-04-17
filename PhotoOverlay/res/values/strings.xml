@@ -103,7 +103,7 @@
     <string name="rb_process">Process</string>
     <string name="rb_custom">Custom</string>
     <string name="cb_passed">Passed</string>
-    <string name="tv_hint_meta">Meta</string>
+    <string name="tv_hint_meta">Notes</string>
     <string name="et_hint_comments">Comments</string>
     <string name="tv_date">Date</string>
     <string name="tv_customer">Customer</string>
@@ -149,7 +149,7 @@
     <string name="labelFailed">FAILED</string>
     
     <string name="emailSubjectSignedReport">Completed Pressure Test Report</string>
-    <string name="labelImageMeta">Image Meta Data</string>
+    <string name="labelImageMeta">Notes</string>
     
     <string name="tvFormsignCertifiedOn">Certified on: %s</string>
     

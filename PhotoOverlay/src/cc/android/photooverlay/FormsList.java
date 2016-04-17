@@ -22,6 +22,8 @@ import android.content.pm.PackageManager.NameNotFoundException;
 import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.Html;
 import android.util.Log;
 import android.view.View;
@@ -88,6 +90,11 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
 				cleanupUnusedImages();
 			}
 		}.start();
+		new Handler(Looper.getMainLooper()).post(new Runnable() {
+			public void run() {
+				new BillingTask(BillingTask.Op.REFRESH_PURCHASED, getActivity()).execute();
+			}
+		});
 	}
 	
 	@Override

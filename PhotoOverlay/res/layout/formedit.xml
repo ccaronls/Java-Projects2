@@ -129,6 +129,8 @@
 			        style="@style/edittext"
 			        android:layout_width="wrap_content"
 			        android:layout_height="wrap_content"
+			        android:layout_alignParentLeft="true"
+			        android:layout_alignRight="@id/etPlan"
 			        android:layout_below="@id/etPlan"
 			        android:layout_toLeftOf="@+id/anchor"
 			        android:layout_weight="1"
@@ -143,6 +145,8 @@
                     style="@style/edittext"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_alignLeft="@id/etPlan"
+                    android:layout_alignParentLeft="true"
                     android:layout_below="@+id/cbPassed"
                     android:layout_toLeftOf="@+id/anchor"
                     android:layout_weight="1"
@@ -282,9 +286,10 @@
 		        android:gravity="left|top"
 		        android:hint="@string/et_hint_comments"
 		        android:inputType="textCapSentences|textAutoCorrect|textMultiLine|textImeMultiLine|textLongMessage"
-		        android:lines="5"
+		        android:lines="6"
+		        android:maxLength="2048"
 		        android:maxLines="10"
-		        android:minLines="5"
+		        android:minLines="6"
 		        android:scrollHorizontally="false" />
 		    
 	   </LinearLayout>

@@ -113,11 +113,16 @@ public abstract class PagedFormExporter extends AsyncTask<Void, String, Object> 
 				"<meta name=\"viewport\" content=\"width=" + width + ", initial-scale=1\">\n" + 
 				"<style type=\"text/css\">\n" +
 				"body { font-size:36px; height:" + h + "px;}\n" +
+				// title
 				"h1 { white-space: nowrap; font-size:72px; text-align:center; }\n" +
 				"h2 { font-size:60px; }\n" +
-				"h3 { font-size:48px; text-align:center; white-space: nowrap; }\n" +
-				"h4 { font-size:42px; text-align:center; white-space: nowrap; }\n" +
-				"td { font-size:48px; white-space: nowrap; }\n" +
+				// Comments
+				"h3 { font-size:48px; white-space: nowrap; }\n" +
+				// Date below the title
+				"h4 { font-size:42px; white-space: nowrap; text-align:center; }\n" +
+				"td { font-size:48px; white-space: nowrap; text-align:left; vertical-align:top; }\n" +
+				// comments body
+				"span { width:" + width + "; word-wrap:break-word; }\n" +
 				"table { table-layout:auto; }\n" +
 				".footer { position: fixed; bottom:0; width:" + width + "px; }\n" +
 				"</style>\n" +
@@ -187,7 +192,7 @@ public abstract class PagedFormExporter extends AsyncTask<Void, String, Object> 
 		html.append("<tr><td><h4>").append(date).append("</h4></td></tr>");
 		endTable();
 		if (numPages > 1) {
-			html.append("</br>Page ").append(curPage).append(" of ").append(numPages).append("\n");
+			html.append("</br><pre>Page ").append(curPage).append(" of ").append(numPages).append("</pre>\n");
 		}
 	}
 	
@@ -200,15 +205,19 @@ public abstract class PagedFormExporter extends AsyncTask<Void, String, Object> 
 	protected abstract void genPage(int pageNum, Signature [] signatures);
 	
 	private void makePage() throws Exception {
+		Log.d(TAG, "makePage begein: state=" + state);
 		File htmlFile = new File(activity.getCacheDir(), "htmlFile.html");
 		FileUtils.stringToFile(html.toString(), htmlFile);
 		final String url = "file:///" + activity.getCacheDir().getAbsolutePath() + "/" + htmlFile.getName();
+		state = 0;
 		publishProgress(url);
 		synchronized (this) {
-			for (int i=0; i<10 && state != 3; i++) {
+			for (int i=0; i<10 && state < 3; i++) {
+				Log.d(TAG, "makePage waiting for state to settle");
 				wait(2000);
 			}
 		}
+		Log.d(TAG, "makePage state changed to " + state);
 		if (state != 3)
 			throw new Exception();
 		htmlFile.delete();
@@ -240,9 +249,9 @@ public abstract class PagedFormExporter extends AsyncTask<Void, String, Object> 
     
 	@Override
 	public final void onNewPicture(WebView view, Picture picture) {
+		Log.d(TAG, "onNewPicture state=" + state);
 		if (state != 2)
 			return;
-		state = 3;
 		long t = System.currentTimeMillis();
 		Log.d(TAG, "Generating page image");
 		try {
@@ -263,7 +272,10 @@ public abstract class PagedFormExporter extends AsyncTask<Void, String, Object> 
 			pages.add(file);
 			long dt = System.currentTimeMillis() - t;
 			Log.d(TAG, "generated file in " + dt/1000 + " seconds: " + file);
+			state = 3;
 		} catch (Exception e) {
+			Log.e(TAG, "onNewPicture Error: " + e.getMessage());
+			state = 4; // error
 			e.printStackTrace();
 		}
 		
@@ -285,6 +297,7 @@ public abstract class PagedFormExporter extends AsyncTask<Void, String, Object> 
 
 	@Override
 	protected final void onPostExecute(Object result) {
+		Log.d(TAG, "onPostExecute result=" + result);
 		dialog.dismiss();
 		if (result != null) {
 			if (result instanceof File)
@@ -304,16 +317,17 @@ public abstract class PagedFormExporter extends AsyncTask<Void, String, Object> 
 	
 	@Override
 	protected final void onProgressUpdate(String... values) {
-		state = 0;
+		Log.d(TAG, "onProgressUpdate: " + values[0]);
 		wv.loadUrl(values[0]);
 	}
 
 	@Override
 	protected final Object doInBackground(Void... params) {
 		try {
-    		
+    		Log.d(TAG, "Starting to make " + numPages);
 			for (int i=0; i<numPages; i++) {
 				html.setLength(0);
+				Log.d(TAG, "genPage " + i);
 				genPage(i, signatures);
 				if (isCancelled())
 					return null;

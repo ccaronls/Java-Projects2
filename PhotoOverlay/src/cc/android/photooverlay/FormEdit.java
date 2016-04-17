@@ -202,70 +202,67 @@ public class FormEdit extends BaseActivity implements RadioGroup.OnCheckedChange
 		super.onBackPressed();
 	}
 	
-	private void editImage(final int index, boolean tempEditable) {
+	private void editImage(final int index, final boolean tempEditable) {
 		if (form.imagePath[index] != null) {
 			
 			View view = View.inflate(getActivity(), R.layout.popup_image_enlarge, null);
 			ImageView iv = (ImageView)view.findViewById(R.id.ivPhoto);
 			final EditText etNotes = (EditText)view.findViewById(R.id.etMeta);
-			final EditText etTemp = (EditText)view.findViewById(R.id.etMetaDegrees);
+			//final EditText etTemp = (EditText)view.findViewById(R.id.etMetaDegrees);
+			final Button buttonTemp = (Button)view.findViewById(R.id.buttonTemp);
+			
 			String notes = form.imageMeta[index];
 			
 			String tempStr = getTemperatureString(Convert.degreesToCelcius(70));
-			float tempCelcius = Convert.degreesToCelcius(70); 
+			final float [] tempCelcius = new float[] { Convert.degreesToCelcius(70) }; 
 			
 			if (notes != null) {
 				Pattern p = Pattern.compile("^\\-?[0-9]+(\\.[0-9])?");
 				String s = Html.fromHtml(notes).toString();
 				Matcher m = p.matcher(s);
 				if (m.find()) {
-					tempCelcius = Float.parseFloat(m.group());
+					tempCelcius[0] = Float.parseFloat(m.group());
 					if (!isMetricUnits()) {
-						tempCelcius = Convert.degreesToCelcius(Math.round(tempCelcius));
+						tempCelcius[0] = Convert.degreesToCelcius(Math.round(tempCelcius[0]));
 					}
+					tempStr = getTemperatureString(tempCelcius[0]);
 				}
 			}
 			
 			if (tempEditable) {
 				if (isAmbientTempAvailable()) {
 					tempStr = getTemperatureString(getAmbientTempCelcius());
-					tempCelcius = getAmbientTempCelcius();
+					tempCelcius[0] = getAmbientTempCelcius();
 					showInfoDialogBuilderWithDontShowAgainCB(R.string.popup_title_important, R.string.popup_msg_tempinfo, "PREF_TEMP_INFO_DONT_SHOW_AGAIN_BOOL");
 				}
+			}
 				
-				final float tempCelciusf = tempCelcius;
-				etTemp.setOnClickListener(new OnClickListener() {
-					
-					@Override
-					public void onClick(View v) {
-						new TemperatureChooserView(FormEdit.this, tempCelciusf) {
+			buttonTemp.setOnClickListener(new OnClickListener() {
+				
+				@Override
+				public void onClick(View v) {
+					if (tempEditable) {
+						new TemperatureChooserView(FormEdit.this) {
 							
 							@Override
+							protected float getInitialTempCelcius() {
+								return tempCelcius[0];
+							}
+
+							@Override
 							protected void onTemperature(float temp) {
-								etTemp.setText(Html.fromHtml(getTemperatureString(temp)));
+								tempCelcius[0] = getTempCelcius();
+								buttonTemp.setText(Html.fromHtml(getTemperatureString(getTempCelcius())));
 							}
 						};
+					} else {
+						newDialogBuilder().setTitle(R.string.popup_title_temp_locked).setMessage(R.string.popup_msg_temp_locked)
+							.setNegativeButton(R.string.popup_button_ok, null).show();
 					}
-				});
-				/*
-				final int [] tempInt = new int[] { Integer.parseInt(temp) };
-    			view.findViewById(R.id.buttonTempUp).setOnClickListener(new OnClickListener() {
-					@Override
-					public void onClick(View v) {
-						tempInt[0]++;
-						etTemp.setText(Html.fromHtml("" + tempInt[0] + "&deg;"));
-					}
-				});
-    			view.findViewById(R.id.buttonTempDown).setOnClickListener(new OnClickListener() {
-					@Override
-					public void onClick(View v) {
-						tempInt[0]--;
-						etTemp.setText(Html.fromHtml("" + tempInt[0] + "&deg;"));
-					}
-				});*/
-			} 
+				}
+			});
 			
-			etTemp.setText(Html.fromHtml(tempStr));
+			buttonTemp.setText(Html.fromHtml(tempStr));
 			if (notes != null) {
 				String s = Html.fromHtml(notes).toString();
 				int spc = s.indexOf(' ');
@@ -282,7 +279,7 @@ public class FormEdit extends BaseActivity implements RadioGroup.OnCheckedChange
 					
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
-						SpannedString str = new SpannedString(etTemp.getText() + " " + etNotes.getText());
+						SpannedString str = new SpannedString(buttonTemp.getText() + " " + etNotes.getText());
 						form.imageMeta[index] = Html.toHtml(str);
 						tvImageMeta[index].setText(Html.fromHtml(str.toString()));
 					}
@@ -376,10 +373,11 @@ public class FormEdit extends BaseActivity implements RadioGroup.OnCheckedChange
 		int orientation = 0;
 		
 		switch (requestCode) {
-        	case 0: {
+        	case 0: 
+        	case 1:
+        	{
 
             	if (data != null) {
-            		
                     
         			Uri image = data.getData();
         			if (image != null) {
@@ -406,13 +404,6 @@ public class FormEdit extends BaseActivity implements RadioGroup.OnCheckedChange
     			break;
         	}
             	
-            case 1: {
-    			if (data != null && data.getExtras() != null) {
-        			bitmap = (Bitmap) data.getExtras().get("data");
-    			}
-    			break;
-            }
-            
             default:
             	super.onActivityResult(requestCode, resultCode, data);
             	break;
@@ -432,8 +423,7 @@ public class FormEdit extends BaseActivity implements RadioGroup.OnCheckedChange
 					break;
 			}
 
-			Bitmap newBitmap;
-		    newBitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
+			Bitmap newBitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, false);
 			if (newBitmap != null) {
 				bitmap.recycle();
 				bitmap = newBitmap;
@@ -444,10 +434,10 @@ public class FormEdit extends BaseActivity implements RadioGroup.OnCheckedChange
 			watermark(bitmap, getDateFormatter().format(new Date()));
 
 			try {
-				File destFile = File.createTempFile("guage", ".png", getImagesPath());
+				File destFile = File.createTempFile("guage", ".jpg", getImagesPath());
 				FileOutputStream out = new FileOutputStream(destFile);
 				try {
-					bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
+					bitmap.compress(Bitmap.CompressFormat.JPEG, 90, out);
 					ibImage[index].setImageBitmap(bitmap);
 					form.imagePath[index] = destFile.getName();
 					editImage(index, true);

@@ -12,12 +12,15 @@
     <string name="popup_title_error">Error</string>
     <string name="popup_title_premium_upgrade">Premium Upgrade</string>
     <string name="popup_title_subs_expired">Subscription Expired</string>
+    <string name="popup_title_temp_locked">Temperature Locked</string>
 
     <string name="popup_msg_subscription_activiated_premium_option">Your susbscription is activated. Premium features will be unlocked until %s.  You will have the option to unlock permanently at a reduced price if you do so before the subscription expires.</string>
-    <string name="popup_msg_billing_err_general">An error occurred.  Please try you request again or contact support</string>
+    <string name="popup_msg_billing_err_general">An error occurred.  Please try you request again or contact support.  The error reported is:\n%s</string>
+    <string name="popup_msg_billing_err_not_available">Google Billing service not available.  Make sure you have a Google play account and an internet connection to make purchases.</string>
     <string name="popup_msg_billing_err_argument">Google billing returned error code %s. Make sure you are connected to the internet or contact support for more information</string>
     <string name="popup_msg_no_purchases">There are no purchase items at this point.  Please try again when you subscription expires or contact support.</string>
     <string name="popup_msg_empty_purchases">You do not have any recorded purchases.</string>
+    <string name="popup_msg_temp_locked">The temperature can only be set once. The completed form has more value when customers know there is no chance of altering critical data after the fact.</string>
     
     <string name="popup_button_ok">OK</string>
     <string name="popup_button_cancel">Cancel</string>
@@ -34,7 +37,7 @@
     <string name="popup_msg_premium_feature_locked">This premium feature is locked.\n\n
         Premium Features Include:\n
         - Unlimited forms\n
-        - Attach E-Signatures to forms
+        - Attach E-Signatures to forms\n
         - Email signed forms\n
         - Export Database\n
         - Duplicate Form\n
