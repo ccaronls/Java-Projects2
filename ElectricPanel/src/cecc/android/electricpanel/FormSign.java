@@ -27,10 +27,9 @@ public class FormSign extends BaseActivity {
 		setContentView(R.layout.formsign);
 		findViewById(R.id.buttonAddSignature).setOnClickListener(this);
 		findViewById(R.id.buttonEmail).setOnClickListener(this);
-		findViewById(R.id.buttonESignInfo).setOnClickListener(this);
 		form = (Form)getIntent().getParcelableExtra(INTENT_FORM);
 		((TextView)findViewById(R.id.tvDate)).setText(getString(R.string.tvFormsignCertifiedOn, getDateFormatter().format(form.editDate)));
-		//((TextView)findViewById(R.id.tvInspector)).setText(form.inspector);
+		((TextView)findViewById(R.id.tvRepresentative)).setText(form.representative);
 		((TextView)findViewById(R.id.tvCustomer)).setText(form.customer);
 		((TextView)findViewById(R.id.tvProject)).setText(form.project);
 		((TextView)findViewById(R.id.tvLocation)).setText(form.location);
@@ -69,9 +68,7 @@ public class FormSign extends BaseActivity {
 		tvTorqued.setText(form.torqued ? R.string.labelTorqued : R.string.labelNotTorqued);
 		tvTorqued.setTextColor(form.torqued ? Color.GREEN : Color.RED);
 		
-		newDialogBuilder().setTitle(R.string.popup_title_important)
-			.setMessage(R.string.popup_msg_signing_important)
-			.setNegativeButton(R.string.popup_button_iunderstand, null).show();
+		showInfoDialogBuilderWithDontShowAgainCB(R.string.popup_title_important, R.string.popup_msg_signing_important, "PREF_HOW_E_SIGN_WORKS_DONT_SHOW_AGAIN_BOOL");
 	}
 	
 	@Override
@@ -85,12 +82,6 @@ public class FormSign extends BaseActivity {
 					new FormExport(this, form, signatures.toArray(new FormExport.Signature[this.signatures.size()])).execute();
 				}				
 				
-				break;
-			}
-			case R.id.buttonESignInfo: {
-				WebView wv = new WebView(this);
-				wv.loadUrl("file:///android_asset/about_esigning.html");
-				newDialogBuilder().setTitle(R.string.popup_title_how_esign_works).setView(wv).setNegativeButton(R.string.popup_button_ok, null).show();
 				break;
 			}
 		}

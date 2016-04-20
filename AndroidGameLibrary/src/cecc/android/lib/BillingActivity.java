@@ -193,7 +193,7 @@ public abstract class BillingActivity extends CCActivityBase {
 		return enabled;
 	}
 	
-	@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
+	@TargetApi(17)
 	private boolean isAutoClockEnabledAPI17AndHigher() {
 		return android.provider.Settings.Global.getInt(getContentResolver(), android.provider.Settings.Global.AUTO_TIME, 0) != 0;
 	}

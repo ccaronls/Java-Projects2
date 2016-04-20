@@ -8,12 +8,12 @@ import android.database.Cursor;
 import android.database.sqlite.*;
 import android.util.Log;
 
-public class SQLHelper extends SQLiteOpenHelper {
+public class DBHelper extends SQLiteOpenHelper {
 
 	private final static String TAG = "FormHelper";
 	public final static int VERSION = 3;
 	
-	public SQLHelper(Context context) {
+	public DBHelper(Context context) {
 		super(context, "formsDB", null, VERSION);
 	}
 	public static final String TABLE_FORM = "TForm";

@@ -38,7 +38,7 @@ public class FormEdit extends BaseActivity implements RadioGroup.OnCheckedChange
 	
 	Form form;
 	
-	private ArrayAdapter<String> getAutoCompleteAdapter(SQLHelper.Column column) {
+	private ArrayAdapter<String> getAutoCompleteAdapter(DBHelper.Column column) {
 		return new ArrayAdapter<String>(getActivity(), android.R.layout.simple_dropdown_item_1line, getFormHelper().getDistictValuesForColumn(column));
 	}
 	
@@ -53,29 +53,29 @@ public class FormEdit extends BaseActivity implements RadioGroup.OnCheckedChange
 		tvDate = (TextView)findViewById(R.id.tvDate);
 		
 		etInspector = (AutoCompleteTextView)findViewById(R.id.etInspector);
-		etInspector.setAdapter(getAutoCompleteAdapter(SQLHelper.Column.INSPECTOR));
+		etInspector.setAdapter(getAutoCompleteAdapter(DBHelper.Column.INSPECTOR));
 		
 		etCustomer = (AutoCompleteTextView)findViewById(R.id.etCustomer);
-		etCustomer.setAdapter(getAutoCompleteAdapter(SQLHelper.Column.CUSTOMER));
+		etCustomer.setAdapter(getAutoCompleteAdapter(DBHelper.Column.CUSTOMER));
 
 		etLocation = (AutoCompleteTextView)findViewById(R.id.etLocation);
-		etLocation.setAdapter(getAutoCompleteAdapter(SQLHelper.Column.LOCATION));
+		etLocation.setAdapter(getAutoCompleteAdapter(DBHelper.Column.LOCATION));
 		
 		etProject = (AutoCompleteTextView)findViewById(R.id.etProject);
-		etProject.setAdapter(getAutoCompleteAdapter(SQLHelper.Column.PROJECT));
+		etProject.setAdapter(getAutoCompleteAdapter(DBHelper.Column.PROJECT));
 
 		etSystem  = (AutoCompleteTextView)findViewById(R.id.etSystem);
-		etSystem.setAdapter(getAutoCompleteAdapter(SQLHelper.Column.SYSTEM));
+		etSystem.setAdapter(getAutoCompleteAdapter(DBHelper.Column.SYSTEM));
 		
 		etPlan = (AutoCompleteTextView)findViewById(R.id.etPlan);
-		etPlan.setAdapter(getAutoCompleteAdapter(SQLHelper.Column.PLAN));
+		etPlan.setAdapter(getAutoCompleteAdapter(DBHelper.Column.PLAN));
 		
 		etSpec = (AutoCompleteTextView)findViewById(R.id.etSpec);
-		etSpec.setAdapter(getAutoCompleteAdapter(SQLHelper.Column.SPEC));
+		etSpec.setAdapter(getAutoCompleteAdapter(DBHelper.Column.SPEC));
 		
 		etComments = (EditText)findViewById(R.id.etComments);
 		etCustom = (AutoCompleteTextView)findViewById(R.id.etCustom);
-		etCustom.setAdapter(getAutoCompleteAdapter(SQLHelper.Column.TYPE));
+		etCustom.setAdapter(getAutoCompleteAdapter(DBHelper.Column.TYPE));
 		
 		etSpec.setNextFocusForwardId(etComments.getId());
 		

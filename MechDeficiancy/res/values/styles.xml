@@ -16,7 +16,7 @@
        <item name="android:gravity">left|center_vertical</item>
        <item name="android:drawableRight">@drawable/sort_arrow</item>
        <item name="android:padding">5dp</item>
-       <item name="android:textSize">12sp</item>
+       <item name="android:textSize">10sp</item>
        <item name="android:background">@drawable/sort_button_bk</item>
     </style>
     

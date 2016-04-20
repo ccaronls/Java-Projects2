@@ -44,7 +44,7 @@ import cc.lib.utils.FileUtils;
 
 public abstract class CECCBaseActivity extends BillingActivity {
 
-	public final static int IMAGE_CAPUTE_DIM = 512;
+	public final static int IMAGE_CAPURTE_DIM = 512;
 	
 	public final static String INTENT_FORM = "iFORM";
 	public final static String INTENT_FULL_NAME_STRING = "iFULL_NAME";
@@ -510,7 +510,7 @@ public abstract class CECCBaseActivity extends BillingActivity {
 
         	if (bitmap != null) {
         		//if (isPremiumEnabled(false))
-        			bitmap = ThumbnailUtils.extractThumbnail(bitmap, IMAGE_CAPUTE_DIM, IMAGE_CAPUTE_DIM);
+        			bitmap = ThumbnailUtils.extractThumbnail(bitmap, IMAGE_CAPURTE_DIM, IMAGE_CAPURTE_DIM);
         		//else
         		//	bitmap = ThumbnailUtils.extractThumbnail(bitmap, 64, 64);
     			Matrix matrix = new Matrix();
@@ -533,7 +533,7 @@ public abstract class CECCBaseActivity extends BillingActivity {
     			watermark(bitmap, getDateFormatter().format(new Date()));
     
     			try {
-    				File destFile = File.createTempFile("guage", ".jpg", getImagesPath());
+    				File destFile = File.createTempFile(getPhotoPrefix(), ".jpg", getImagesPath());
     				FileOutputStream out = new FileOutputStream(destFile);
     				try {
     					bitmap.compress(Bitmap.CompressFormat.JPEG, 90, out);
@@ -558,5 +558,7 @@ public abstract class CECCBaseActivity extends BillingActivity {
 		paint.setTextSize(48);
 		canvas.drawText(text, 2, canvas.getHeight()-2, paint);
 	}
+	
+	protected abstract String getPhotoPrefix();
 
 }

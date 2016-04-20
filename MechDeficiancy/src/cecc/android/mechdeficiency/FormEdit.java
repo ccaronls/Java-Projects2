@@ -4,13 +4,18 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.TreeSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import cc.lib.utils.Convert;
+import cecc.android.lib.TemperatureChooserView;
 import cecc.android.mechdeficiency.DBHelper.FormColumn;
 import android.content.DialogInterface;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.Html;
+import android.text.SpannedString;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ArrayAdapter;
@@ -162,24 +167,24 @@ public class FormEdit extends BaseActivity {
 				finish();
 				break;
 			case R.id.ibImage1:
-				editImage(0);
+				editImage(0, true);
 				break;
 			case R.id.ibImage2:
-				editImage(1);
+				editImage(1, true);
 				break;
 			case R.id.ibImage3:
 				if (isPremiumEnabled(true))
-					editImage(2);
+					editImage(2, true);
 				break;
 			case R.id.ibImage4:
-				editImage(3);
+				editImage(3, true);
 				break;
 			case R.id.ibImage5:
-				editImage(4);
+				editImage(4, true);
 				break;
 			case R.id.ibImage6:
 				if (isPremiumEnabled(true))
-					editImage(5);
+					editImage(5, true);
 				break;
 			case R.id.bShowTypePopupup:
 				showChooseTypeDialog();
@@ -193,13 +198,79 @@ public class FormEdit extends BaseActivity {
 		super.onBackPressed();
 	}
 	
-	private void editImage(final int index) {
+	private void editImage(final int index, final boolean tempEditable) {
 		final Image image = form.getImageForIndex(index);
 		if (image != null) {
 			View view = View.inflate(getActivity(), R.layout.popup_image_enlarge, null);
 			ImageView iv = (ImageView)view.findViewById(R.id.ivPhoto);
 			final EditText et = (EditText)view.findViewById(R.id.etMeta);
-			et.setText(Html.fromHtml(image.data));
+			if (image.data != null)
+				et.setText(Html.fromHtml(image.data));
+			
+			final Button buttonTemp = (Button)view.findViewById(R.id.buttonTemp);
+			
+			String notes = image.data;
+			
+			String tempStr = getTemperatureString(Convert.degreesToCelcius(70));
+			final float [] tempCelcius = new float[] { Convert.degreesToCelcius(70) }; 
+			
+			if (notes != null) {
+				Pattern p = Pattern.compile("^\\-?[0-9]+(\\.[0-9])?");
+				String s = Html.fromHtml(notes).toString();
+				Matcher m = p.matcher(s);
+				if (m.find()) {
+					tempCelcius[0] = Float.parseFloat(m.group());
+					if (!isMetricUnits()) {
+						tempCelcius[0] = Convert.degreesToCelcius(Math.round(tempCelcius[0]));
+					}
+					tempStr = getTemperatureString(tempCelcius[0]);
+				}
+			}
+			
+			if (tempEditable) {
+				if (isAmbientTempAvailable()) {
+					tempStr = getTemperatureString(getAmbientTempCelcius());
+					tempCelcius[0] = getAmbientTempCelcius();
+					showInfoDialogBuilderWithDontShowAgainCB(R.string.popup_title_important, R.string.popup_msg_tempinfo, "PREF_TEMP_INFO_DONT_SHOW_AGAIN_BOOL");
+				}
+			}
+				
+			buttonTemp.setOnClickListener(new View.OnClickListener() {
+				
+				@Override
+				public void onClick(View v) {
+					if (tempEditable) {
+						new TemperatureChooserView(FormEdit.this) {
+							
+							@Override
+							protected float getInitialTempCelcius() {
+								return tempCelcius[0];
+							}
+
+							@Override
+							protected void onTemperature(float temp) {
+								tempCelcius[0] = getTempCelcius();
+								buttonTemp.setText(Html.fromHtml(getTemperatureString(getTempCelcius())));
+							}
+						};
+					} else {
+						newDialogBuilder().setTitle(R.string.popup_title_temp_locked).setMessage(R.string.popup_msg_temp_locked)
+							.setNegativeButton(R.string.popup_button_ok, null).show();
+					}
+				}
+			});
+			
+			buttonTemp.setText(Html.fromHtml(tempStr));
+			if (notes != null) {
+				String s = Html.fromHtml(notes).toString();
+				int spc = s.indexOf(' ');
+				if (spc > 0) {
+					String note = s.substring(spc+1);
+					et.setText(note);
+				}
+			}
+
+			
 			iv.setImageURI(Uri.fromFile(new File(getImagesPath(), image.path)));
 			newDialogBuilder()
 				.setView(view)
@@ -207,7 +278,8 @@ public class FormEdit extends BaseActivity {
 					
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
-						image.data = Html.toHtml(et.getText());
+						SpannedString str = new SpannedString(buttonTemp.getText() + " " + et.getText());
+						image.data = Html.toHtml(str);
 						setImageData(tvImageMeta[index], image);
 					}
 				})
@@ -272,7 +344,7 @@ public class FormEdit extends BaseActivity {
 				image.data = getTemperatureString(getAmbientTempCelcius());
 			}
 		}
-		editImage(index);
+		editImage(index, true);
 		
 	}
 
