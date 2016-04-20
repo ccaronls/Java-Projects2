@@ -373,6 +373,7 @@
 	                </LinearLayout>                 
 	            </LinearLayout>
             </LinearLayout>
+
 		    <EditText
 		        android:id="@+id/etComments"
 		        style="@style/edittext"
@@ -385,6 +386,7 @@
 		        android:hint="@string/et_hint_comments"
 		        android:inputType="textCapSentences|textAutoCorrect|textMultiLine|textImeMultiLine|textLongMessage"
 		        android:lines="5"
+		        android:maxLength="1024"
 		        android:maxLines="10"
 		        android:minLines="5"
 		        android:scrollHorizontally="false" />

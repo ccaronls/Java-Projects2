@@ -71,7 +71,7 @@ public final class SortButtonGroup extends RadioGroup{
 	
 	private OnSortButtonListener sortListener;
 	private final LinkedList<SortButton> sortHistory = new LinkedList<SortButton>();
-	private int maxSortFields = 1;
+	private int maxSortFields = 2;
 	
 	private void init(Context context, AttributeSet attrs) {
 	}

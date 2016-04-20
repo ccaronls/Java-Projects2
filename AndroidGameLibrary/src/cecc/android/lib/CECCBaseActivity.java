@@ -1,12 +1,14 @@
 package cecc.android.lib;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
 import android.annotation.TargetApi;
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.AlertDialog.Builder;
 import android.content.DialogInterface;
@@ -15,13 +17,22 @@ import android.content.SharedPreferences.Editor;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Matrix;
+import android.graphics.Paint;
+import android.graphics.Paint.Align;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.media.ThumbnailUtils;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
 import android.widget.CheckBox;
@@ -458,4 +469,94 @@ public abstract class CECCBaseActivity extends BillingActivity {
 				}).show();
 		}
 	}
+	
+	public final void startTakePictureActivity(int resultIndex) {
+		Intent i = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+		startActivityForResult(i, resultIndex);
+	}
+
+	protected void onPictureTaken(Bitmap bitmap, File bitmapFile, int resultIndex) {
+		throw new AssertionError("Not handled");
+	}
+	
+	@Override
+	protected void onActivityResult(int resultIndex, int resultCode, Intent data) {
+		Bitmap bitmap = null;
+		int orientation = 0;
+
+		if (resultCode == Activity.RESULT_OK && data != null)
+		{
+			Uri image = data.getData();
+			if (image != null) {
+				try {
+					bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), image);
+					final Uri imageUri = data.getData();
+
+                    String[] columns = { MediaStore.Images.Media.DATA, MediaStore.Images.Media.ORIENTATION };
+                    Cursor cursor = getContentResolver().query(imageUri, columns, null, null, null);
+                    if (cursor != null) {
+                        cursor.moveToFirst();
+                        //int fileColumnIndex = cursor.getColumnIndex(columns[0]);
+                        int orientationColumnIndex = cursor.getColumnIndex(columns[1]);
+                        //String filePath = cursor.getString(fileColumnIndex);
+                        orientation = cursor.getInt(orientationColumnIndex);
+                        Log.d(TAG, "got image orientation "+orientation);
+                    }
+
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+    		}
+
+        	if (bitmap != null) {
+        		//if (isPremiumEnabled(false))
+        			bitmap = ThumbnailUtils.extractThumbnail(bitmap, IMAGE_CAPUTE_DIM, IMAGE_CAPUTE_DIM);
+        		//else
+        		//	bitmap = ThumbnailUtils.extractThumbnail(bitmap, 64, 64);
+    			Matrix matrix = new Matrix();
+    			switch (orientation) {
+    				case 90:
+    				case 180:
+    				case 270:
+    					matrix.postRotate(orientation);
+    					break;
+    			}
+    
+    			Bitmap newBitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, false);
+    			if (newBitmap != null) {
+    				bitmap.recycle();
+    				bitmap = newBitmap;
+    			}
+    			
+    			// watermark
+    			//if (isPremiumEnabled(false))
+    			watermark(bitmap, getDateFormatter().format(new Date()));
+    
+    			try {
+    				File destFile = File.createTempFile("guage", ".jpg", getImagesPath());
+    				FileOutputStream out = new FileOutputStream(destFile);
+    				try {
+    					bitmap.compress(Bitmap.CompressFormat.JPEG, 90, out);
+    					onPictureTaken(bitmap, destFile, resultIndex);
+    					
+    				} finally {
+    					out.close();
+    				}
+    			} catch (Exception e) {
+    				e.printStackTrace();
+    			}
+    			//bitmap.recycle();
+        	}
+		}
+	}
+	
+	private void watermark(Bitmap bitmap, String text) {
+		Canvas canvas = new Canvas(bitmap);
+		Paint paint = new Paint();
+		paint.setColor(Color.WHITE);
+		paint.setTextAlign(Align.LEFT);
+		paint.setTextSize(48);
+		canvas.drawText(text, 2, canvas.getHeight()-2, paint);
+	}
+
 }

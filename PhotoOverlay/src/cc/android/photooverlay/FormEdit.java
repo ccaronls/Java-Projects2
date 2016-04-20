@@ -1,7 +1,6 @@
 package cc.android.photooverlay;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -9,21 +8,11 @@ import java.util.regex.Pattern;
 import cc.lib.utils.Convert;
 import cecc.android.lib.TemperatureChooserView;
 import android.content.DialogInterface;
-import android.content.Intent;
-import android.database.Cursor;
 import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Matrix;
-import android.graphics.Paint;
-import android.graphics.Paint.Align;
-import android.media.ThumbnailUtils;
 import android.net.Uri;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.text.Html;
 import android.text.SpannedString;
-import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.WindowManager;
@@ -168,11 +157,6 @@ public class FormEdit extends BaseActivity implements RadioGroup.OnCheckedChange
 			);
 	}
 
-	@Override
-	public void onResume() {
-		super.onResume();
-	}
-	
 	@Override
 	public void onClick(final View v) {
 		switch (v.getId()) {
@@ -337,128 +321,17 @@ public class FormEdit extends BaseActivity implements RadioGroup.OnCheckedChange
 	
 	public void pickImage(final int id) {
 		try {
-
-		/*
-		newDialogBuilder().setItems(new String[] {
-				"Choose Existing",
-				"Take Photo",
-				"Cancel"
-		}, new DialogInterface.OnClickListener() {
-			
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				switch (which) {
-					case 0: // choose existing
-						startActivityForResult(new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI) , id << 1);
-						break;
-					case 1: // take a photo
-						startActivityForResult(new Intent(MediaStore.ACTION_IMAGE_CAPTURE), (id << 1) | 1);
-						break;
-					default: // cancel
-						dialog.dismiss();
-				}
-			}
-		}).show();*/
-			startActivityForResult(new Intent(MediaStore.ACTION_IMAGE_CAPTURE), (id << 1) | 1);
+			startTakePictureActivity(id);
 		} catch (Exception e) {
 			showAlert(R.string.popup_title_error, R.string.popup_msg_operation_not_supported);
 		}
 	}
 	
 	@Override
-	public void onActivityResult(int requestCodeAndIndex, int resultCode, Intent data) {
-		int index = requestCodeAndIndex >> 1;
-		int requestCode = requestCodeAndIndex & 0x1; 
-		Bitmap bitmap = null;
-		int orientation = 0;
-		
-		switch (requestCode) {
-        	case 0: 
-        	case 1:
-        	{
-
-            	if (data != null) {
-                    
-        			Uri image = data.getData();
-        			if (image != null) {
-        				try {
-        					bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), image);
-        					final Uri imageUri = data.getData();
-    
-                            String[] columns = { MediaStore.Images.Media.DATA, MediaStore.Images.Media.ORIENTATION };
-                            Cursor cursor = getContentResolver().query(imageUri, columns, null, null, null);
-                            if (cursor != null) {
-                                cursor.moveToFirst();
-                                //int fileColumnIndex = cursor.getColumnIndex(columns[0]);
-                                int orientationColumnIndex = cursor.getColumnIndex(columns[1]);
-                                //String filePath = cursor.getString(fileColumnIndex);
-                                orientation = cursor.getInt(orientationColumnIndex);
-                                Log.d(TAG, "got image orientation "+orientation);
-                            }
-    
-        				} catch (Exception e) {
-        					e.printStackTrace();
-        				}
-        			}
-            	} 
-    			break;
-        	}
-            	
-            default:
-            	super.onActivityResult(requestCode, resultCode, data);
-            	break;
-		}
-
-    	if (bitmap != null) {
-    		//if (isPremiumEnabled(false))
-    			bitmap = ThumbnailUtils.extractThumbnail(bitmap, IMAGE_CAPUTE_DIM, IMAGE_CAPUTE_DIM);
-    		//else
-    		//	bitmap = ThumbnailUtils.extractThumbnail(bitmap, 64, 64);
-			Matrix matrix = new Matrix();
-			switch (orientation) {
-				case 90:
-				case 180:
-				case 270:
-					matrix.postRotate(orientation);
-					break;
-			}
-
-			Bitmap newBitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, false);
-			if (newBitmap != null) {
-				bitmap.recycle();
-				bitmap = newBitmap;
-			}
-			
-			// watermark
-			//if (isPremiumEnabled(false))
-			watermark(bitmap, getDateFormatter().format(new Date()));
-
-			try {
-				File destFile = File.createTempFile("guage", ".jpg", getImagesPath());
-				FileOutputStream out = new FileOutputStream(destFile);
-				try {
-					bitmap.compress(Bitmap.CompressFormat.JPEG, 90, out);
-					ibImage[index].setImageBitmap(bitmap);
-					form.imagePath[index] = destFile.getName();
-					editImage(index, true);
-					
-				} finally {
-					out.close();
-				}
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-			//bitmap.recycle();
-    	}
-	}
-	
-	private void watermark(Bitmap bitmap, String text) {
-		Canvas canvas = new Canvas(bitmap);
-		Paint paint = new Paint();
-		paint.setColor(Color.WHITE);
-		paint.setTextAlign(Align.LEFT);
-		paint.setTextSize(48);
-		canvas.drawText(text, 2, canvas.getHeight()-2, paint);
+	protected void onPictureTaken(Bitmap bitmap, File bitmapFile, int index) {
+		ibImage[index].setImageBitmap(bitmap);
+		form.imagePath[index] = bitmapFile.getName();
+		editImage(index, true);
 	}
 
 	@Override

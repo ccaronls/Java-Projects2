@@ -266,7 +266,7 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
 		Cursor cursor = getFormHelper().listForms(sortField, true, 0, 100);
 		tvEmptyList.setVisibility(cursor.getCount() > 0 ? View.INVISIBLE : View.VISIBLE);
 		
-		lv.setAdapter(new CursorAdapter(this, cursor) {
+		lv.setAdapter(new CursorAdapter(this, cursor, 0) {
 			
 			@Override
 			public View newView(Context context, Cursor cursor, ViewGroup parent) {

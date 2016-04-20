@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Locale;
 
 import cc.lib.android.EmailHelper;
+import cc.lib.android.SortButton;
 import cc.lib.android.SortButtonGroup;
 import cc.lib.android.SortButtonGroup.OnSortButtonListener;
 import cc.lib.utils.FileUtils;
@@ -21,6 +22,8 @@ import android.content.pm.PackageManager.NameNotFoundException;
 import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.Html;
 import android.util.Log;
 import android.view.View;
@@ -33,9 +36,10 @@ import android.widget.TextView;
 
 public class FormsList extends BaseActivity implements OnSortButtonListener {
 
-	final static String SORT_FIELD_STR = "SORT_FIELD";
-	final static String SORT_ASCENDING_BOOL = "SORT_ASCENDING";
-	final static String EULA_ACCEPTED_BOOL = "EULA_ACCEPTED";
+	final static String SORT_FIELDS_SQL_STR 		= "SORT_FIELDS_SQL";
+	final static String SORT_FIELD_STR 				= "SORT_FIELD";
+	final static String SORT_ASCENDING_BOOL 		= "SORT_ASCENDING";
+	final static String EULA_ACCEPTED_BOOL 			= "EULA_ACCEPTED";
 		
 	@Override
 	public void onCreate(Bundle bundle) {
@@ -49,6 +53,7 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
 		
 		SortButtonGroup sg = (SortButtonGroup)findViewById(R.id.sortButtonGroup);
 		sg.setSelectedSortButton(sortField, ascending);
+//		sg.setMaxSortFields(max);
 		sg.setOnSortButtonListener(this);
 
 		if (!BuildConfig.DEBUG) {
@@ -69,7 +74,7 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
         				
         				@Override
         				public void onClick(DialogInterface dialog, int which) {
-        					getPrefs().edit().putBoolean(EULA_ACCEPTED_BOOL + version, true).apply();
+        					getPrefs().edit().putBoolean(EULA_ACCEPTED_BOOL + version, true).commit();
         					dialog.dismiss();
         					checkShowWelcome();
         				}
@@ -85,6 +90,11 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
 				cleanupUnusedImages();
 			}
 		}.start();
+		new Handler(Looper.getMainLooper()).post(new Runnable() {
+			public void run() {
+				new BillingTask(BillingTask.Op.REFRESH_PURCHASED, getActivity()).execute();
+			}
+		});
 	}
 	
 	@Override
@@ -104,7 +114,7 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
 	
 	private void checkShowWelcome() {
 		if (getPrefs().getBoolean("FIRST_LAUNCH_BOOL", true)) {
-			getPrefs().edit().putBoolean("FIRST_LAUNCH_BOOL", false).apply();
+			getPrefs().edit().putBoolean("FIRST_LAUNCH_BOOL", false).commit();
 			if (!isPremiumEnabled(false))
     			newDialogBuilder().setTitle(R.string.popup_title_welcome)
     				.setMessage(R.string.popup_msg_welcome)
@@ -214,10 +224,19 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
 		}
 	}
 	
-	public void sortButtonChanged(SortButtonGroup group, int checkedId, String sortField, boolean ascending) {
-		getPrefs().edit().putString(SORT_FIELD_STR, sortField)
-			.putBoolean(SORT_ASCENDING_BOOL, ascending)
-			.apply();
+	@Override
+	public void sortButtonChanged(SortButtonGroup group, int checkedId, SortButton ... sortHistory) {
+		
+		String sortField = sortHistory[0].getSortSQL();
+		
+		for (int i=1; i<sortHistory.length; i++) {
+			sortField += ", " + sortHistory[i].getSortSQL();
+		}
+		getPrefs().edit()
+			.putString(SORT_FIELD_STR, sortHistory[0].getSortField())
+			.putString(SORT_FIELDS_SQL_STR, sortField)
+			.putBoolean(SORT_ASCENDING_BOOL, sortHistory[0].isSortAscending())
+			.commit();
 		refresh();
 	}
 	
@@ -228,10 +247,10 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
 //		((TextView)findViewById(R.id.tvFormCount)).setText("Form Count: " + getFormHelper().getFormCount());
 		ListView lv = (ListView)findViewById(R.id.formList);
 		
-		String sortField = getPrefs().getString(SORT_FIELD_STR, DBHelper.FormColumn.EDIT_DATE.name());
+		String sortField = getPrefs().getString(SORT_FIELDS_SQL_STR, DBHelper.FormColumn.EDIT_DATE.name());
 		boolean ascending = getPrefs().getBoolean(SORT_ASCENDING_BOOL, false);
 		
-		Cursor cursor = getDBHelper().listForms(sortField, ascending);
+		Cursor cursor = getDBHelper().listForms(sortField, true);
 		tvEmptyList.setVisibility(cursor.getCount() > 0 ? View.INVISIBLE : View.VISIBLE);
 		
 		lv.setAdapter(new CursorAdapter(this, cursor, 0) {
@@ -282,8 +301,8 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
 			items = getResources().getStringArray(R.array.form_list_options_unlocked);
 		}
 		
-		items[4] = isMetricUnits() ? "Imperial Units" : "Metric Units";
-		
+		items[4] = isMetricUnits() ? getString(R.string.switch_units_imperial) : getString(R.string.switch_units_metric);
+
 		newDialogBuilder().setTitle(R.string.popup_title_options).setItems(items, new DialogInterface.OnClickListener() {
 			
 			@Override
@@ -383,7 +402,8 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
 						break;
 					}
 					
-					case 4: { // Toggle Units
+					case 4: { // Units
+						toggleUnits();
 						break;
 					}
 					

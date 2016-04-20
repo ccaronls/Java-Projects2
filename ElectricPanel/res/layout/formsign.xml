@@ -3,6 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
+    android:background="@android:color/white"
     android:orientation="vertical">
     
     <LinearLayout 
@@ -18,13 +19,6 @@
             android:layout_weight="2"
             android:text="@string/buttonAddsignature" />
             
-        <Button
-            style="?android:attr/buttonBarButtonStyle"
-            android:id="@+id/buttonESignInfo"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="3"
-            android:text="@string/buttonHowESignWorks" />
         
         <Button
             style="?android:attr/buttonBarButtonStyle"
@@ -171,28 +165,6 @@
 
 		        <LinearLayout
 		            android:layout_width="fill_parent"
-		            android:layout_height="wrap_content"
-		            android:visibility="gone" >
-
-		            <TextView
-		                style="@style/signform"
-		                android:layout_width="0dp"
-		                android:layout_height="wrap_content"
-		                android:layout_weight="1"
-		                android:text="@string/labelSystem"
-		                android:textAppearance="?android:attr/textAppearanceMedium" />
-
-		            <TextView
-		                android:id="@+id/tvSystem"
-		                style="@style/signform"
-		                android:layout_width="0dp"
-		                android:layout_height="wrap_content"
-		                android:layout_weight="1"
-		                android:hint="@string/hintEmpty" />
-		        </LinearLayout>
-
-		        <LinearLayout
-		            android:layout_width="fill_parent"
 		            android:layout_height="wrap_content" >
 
 		            <TextView
@@ -212,7 +184,7 @@
 		                android:hint="@string/hintEmpty" />
 
 		        </LinearLayout>
-		        <LinearLayout
+		    <LinearLayout
                     android:layout_width="fill_parent"
                     android:layout_height="wrap_content" >
 
@@ -234,7 +206,7 @@
 
                 </LinearLayout>
                 
-		        <LinearLayout
+	        <LinearLayout
                     android:layout_width="fill_parent"
                     android:layout_height="wrap_content" >
                     

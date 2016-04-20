@@ -5,7 +5,7 @@
     <string name="app_name">Pressure Test\nUtility</string>
     <string name="app_email">ceccsolutions@gmail.com</string>
 
-    <string name="email_body_signed_form">There is a signed form attached for interested parties.  Any concerns as to the validity of this document should be reported at once.</string>
+    <string name="email_body_signed_form">There is a signed form attached for interested parties.</string>
     
     <string name="email_subject_feedback">Pressure Test Certification Utility Feedback</string>
     <string name="email_body_feedback">Let us know what you think!</string>

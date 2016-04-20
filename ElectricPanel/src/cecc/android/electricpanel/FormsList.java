@@ -87,7 +87,11 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
 				cleanupUnusedImages();
 			}
 		}.start();
-	}
+		new Handler(Looper.getMainLooper()).post(new Runnable() {
+			public void run() {
+				new BillingTask(BillingTask.Op.REFRESH_PURCHASED, getActivity()).execute();
+			}
+		});	}
 	
 	@Override
 	protected void onAmbientTemperature(float celcius) {

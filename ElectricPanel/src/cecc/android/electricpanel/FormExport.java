@@ -94,7 +94,7 @@ public class FormExport extends PagedFormExporter {
     			int index = (i*3) + ii;
     			Image image = form.getImageForIndex(index);
     			if (image != null && image.data != null) {
-    				html.append(image.data);
+    				html.append(HtmlUtils.wrapTextForTD(Html.fromHtml(image.data).toString(), 20));
     			}    			
     			html.append("</td>\n");
     		}
@@ -130,7 +130,7 @@ public class FormExport extends PagedFormExporter {
 	@Override
 	protected void onEmailAttachmentReady(File attachment) {
 		Activity activity = getActivity();
-		EmailHelper.sendEmail(activity, attachment, null, activity.getString(R.string.emailSubjectSignedReport), activity.getString(R.string.email_body_signed_form));		
+		EmailHelper.sendEmail(activity, attachment, BuildConfig.DEBUG ? "ccaronls@yahoo.com" : null, activity.getString(R.string.emailSubjectSignedReport), activity.getString(R.string.email_body_signed_form));		
 	}
 
 	@Override
@@ -145,6 +145,11 @@ public class FormExport extends PagedFormExporter {
 	}
 	
 	
+	@Override
+	protected void onError(Exception e) {
+		((CECCBaseActivity)getActivity()).newDialogBuilder().setTitle(R.string.popup_title_error)
+			.setMessage(getActivity().getString(R.string.generate_page_error_msg) + "\n\nERROR:" + e.getMessage()).show();
+	}
 	
 	
 	

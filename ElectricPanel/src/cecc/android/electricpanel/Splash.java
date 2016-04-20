@@ -18,7 +18,7 @@ public class Splash extends BaseActivity {
 				finish();
 			}
 		}, 4000);
-		new BillingTask(BillingTask.Op.REFRESH_PURCHASED, getActivity()).execute();
+//		new BillingTask(BillingTask.Op.REFRESH_PURCHASED, getActivity()).execute();
 	}
 	
 }

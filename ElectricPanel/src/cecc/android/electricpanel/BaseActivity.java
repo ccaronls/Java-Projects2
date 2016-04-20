@@ -8,10 +8,7 @@ import android.view.View.OnClickListener;
 
 public class BaseActivity extends CECCBaseActivity implements OnClickListener {
 
-	final String TAG = getClass().getSimpleName();
-	
 	public final static String IMAGE_PREFIX = "capture";
-	public final static int    IMAGE_CAPTURE_DIM = 512;
 	
 	private DBHelper helper;
 
@@ -48,6 +45,7 @@ public class BaseActivity extends CECCBaseActivity implements OnClickListener {
 		File [] images = getImagesPath().listFiles();
 		for (File f : images) {
 			if (!f.getName().startsWith(IMAGE_PREFIX))
+				Log.i(TAG, "Deleting unused image " + f);
 				f.delete();
 		}
 	}
