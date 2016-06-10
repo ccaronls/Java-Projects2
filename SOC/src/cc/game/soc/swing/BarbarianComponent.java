@@ -35,9 +35,16 @@ public class BarbarianComponent extends JComponent {
 		}
 		GUI.instance.images.drawImage(g, image, 0, 0, getWidth(), getHeight());
 		
-		String text = "Barbarians: " + SOC.computeBarbarianStrength(soc, soc.getBoard())
-				    + "\nCatan: " + SOC.computeCatanStrength(soc, soc.getBoard());
-		g.setColor(Color.BLACK);
-		AWTUtils.drawJustifiedString(g, 10, 10, Justify.LEFT, Justify.TOP, text);
+		int barbStr = SOC.computeBarbarianStrength(soc, soc.getBoard());
+		int catanStr = SOC.computeCatanStrength(soc, soc.getBoard());
+		
+		String text = "Barbarians: " + barbStr
+				    + "\nCatan: " + catanStr;
+		if (catanStr >= barbStr)
+			g.setColor(Color.GREEN);
+		else
+			g.setColor(Color.RED);
+		
+		AWTUtils.drawWrapJustifiedStringOnBackground(g, 3, 3, getWidth(), 3, Justify.LEFT, Justify.TOP, text, AWTUtils.TRANSLUSCENT_BLACK);
 	}
 }

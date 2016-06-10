@@ -562,9 +562,7 @@ public class SOC extends Reflector<SOC> {
 					for (Player p : getPlayers()) {
 						int size = 0;
 						if (getRules().isEnableCitiesAndKnightsExpansion()) {
-							for (int kIndex : getBoard().getKnightsForPlayer(p.getPlayerNum())) {
-								size += getBoard().getVertex(kIndex).getType().getKnightLevel();
-							}
+							size = mBoard.getKnightLevelForPlayer(p.getPlayerNum(), true, false);
 						} else {
 							size = p.getArmySize();
 						}
@@ -2857,10 +2855,13 @@ public class SOC extends Reflector<SOC> {
 				
 			case DESERTER_CARD:{
 				// replace an opponents knight with one of your own
-				List<Integer> players = computeDeserterPlayers(this, mBoard, getCurPlayer());
-				if (players.size() > 0) {
-					mOptions = players;
-					pushStateFront(State.CHOOSE_PLAYER_FOR_DESERTION);
+				List<Integer> knightOptions = SOC.computeNewKnightVertexIndices(getCurPlayerNum(), mBoard);
+				if (knightOptions.size() > 0) {
+    				List<Integer> players = computeDeserterPlayers(this, mBoard, getCurPlayer());
+    				if (players.size() > 0) {
+    					mOptions = players;
+    					pushStateFront(State.CHOOSE_PLAYER_FOR_DESERTION);
+    				}
 				}
 				break;
 			}
@@ -3754,11 +3755,11 @@ public class SOC extends Reflector<SOC> {
 			Vertex v0 = b.getVertex(e.getFrom());
 			Vertex v1 = b.getVertex(e.getTo());
 			
-			if (v0.isStructure() && v0.getPlayer() == playerNum)
+			if (v0.getType() != VertexType.OPEN && v0.getPlayer() == playerNum)
 				continue;
-			if (v1.isStructure() && v1.getPlayer() == playerNum)
+			if (v1.getType() != VertexType.OPEN && v1.getPlayer() == playerNum)
 				continue;
-			// if there is a route from either end, then not open
+			// if there is a route on EACH end, then not open
 			int numConnected = 0;
 			for (Route ee : b.getVertexRoutes(e.getFrom())) {
 				if (ee != e && ee.getPlayer() == playerNum) {
@@ -4182,15 +4183,13 @@ public class SOC extends Reflector<SOC> {
 	
 	static public int computeCatanStrength(SOC soc, Board b) {
 		
-		int [] s = new int[soc.getNumPlayers()+1];
-		
-		for (int i=1; i<s.length; i++) {
-			s[i] = b.getNumVertsOfType(i, VertexType.BASIC_KNIGHT_ACTIVE) * VertexType.BASIC_KNIGHT_ACTIVE.getKnightLevel() +
-			   b.getNumVertsOfType(i, VertexType.STRONG_KNIGHT_ACTIVE) * VertexType.STRONG_KNIGHT_ACTIVE.getKnightLevel()  +
-			   b.getNumVertsOfType(i, VertexType.MIGHTY_KNIGHT_ACTIVE) * VertexType.MIGHTY_KNIGHT_ACTIVE.getKnightLevel();
+		int str = 0;
+
+		for (int i=1; i<=soc.getNumPlayers(); i++) {
+			str += b.getKnightLevelForPlayer(i, true, false);
 		}
 		
-		return CMath.sum(s);
+		return str;
 	}
 	
 	static public int computeBarbarianStrength(SOC soc, Board b) {

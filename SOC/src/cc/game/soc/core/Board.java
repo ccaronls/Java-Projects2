@@ -2395,6 +2395,18 @@ public final class Board extends Reflector<Board> {
 		}
 		return new ArrayList<Integer>(verts);
 	}
+	
+	public int getKnightLevelForPlayer(int playerNum, boolean active, boolean inactive) {
+		int level = 0;
+		for (int kIndex : getKnightsForPlayer(playerNum)) {
+			VertexType type = getVertex(kIndex).getType();
+			if (type.isKnightActive() && active)
+				level += getVertex(kIndex).getType().getKnightLevel();
+			else if (!type.isKnightActive() && inactive)
+				level += getVertex(kIndex).getType().getKnightLevel();
+		}
+		return level;
+	}
 
 	public List<Vertex> getTileVertices(Tile t) {
 		List<Vertex> verts = new ArrayList<Vertex>();
@@ -2427,6 +2439,7 @@ public final class Board extends Reflector<Board> {
 	public final void setPirateRouteStartTile(int pirateRouteStartTile) {
 		this.pirateRouteStartTile = pirateRouteStartTile;
 	}
+
 	
 	
 }

@@ -63,18 +63,25 @@ public class PlayerInfoComponentCAK extends PlayerInfoComponent {
         int numSettlements = soc.getBoard().getNumVertsOfType(player.getPlayerNum(), VertexType.SETTLEMENT);
         int numCities      = soc.getBoard().getNumVertsOfType(player.getPlayerNum(), VertexType.CITY, VertexType.WALLED_CITY);
         int numMetros      = soc.getBoard().getNumVertsOfType(player.getPlayerNum(), VertexType.METROPOLIS_POLITICS, VertexType.METROPOLIS_SCIENCE, VertexType.METROPOLIS_TRADE);
-
+        int numKnights     = soc.getBoard().getNumKnightsForPlayer(player.getPlayerNum());
+        int knightLevel    = soc.getBoard().getKnightLevelForPlayer(player.getPlayerNum(), true, false);
+        int maxKnightLevel = soc.getBoard().getKnightLevelForPlayer(player.getPlayerNum(), true, true);
+/*
         str.append(" S X ").append(numSettlements).append(" +").append(numSettlements * soc.getRules().getPointsPerSettlement())
-           .append(" C X ").append(numCities).append(" +").append(numCities * soc.getRules().getPointsPerCity());
+           .append(" C X ").append(numCities).append(" +").append(numCities * soc.getRules().getPointsPerCity())
+           .append(" KL X ").append(knightLevel).append("/").append(maxKnightLevel);
         
         if (soc.getRules().isEnableCitiesAndKnightsExpansion()) {
         	str.append(" M X ").append(numMetros).append(" +").append(numMetros * soc.getRules().getPointsPerMetropolis());
         }
         str.append("\n");
-        
+  */      
 		int size = player.getArmySize();
 		if (size > 0) {
 			str.append("Army X ").append(size).append("\n");
+		}
+		if (numKnights > 0) {
+			str.append("Knights ").append(knightLevel).append("/").append(maxKnightLevel).append("\n");
 		}
         str.append("Road Length ").append(player.getRoadLength());
         str.append("\n");
