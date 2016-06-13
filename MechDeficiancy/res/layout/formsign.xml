@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<LinearLayout xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    android:orientation="vertical">
+    android:background="@android:color/white"
+    android:orientation="vertical" xmlns:android="http://schemas.android.com/apk/res/android">
     
     <LinearLayout 
         style="?android:attr/buttonBarStyle"
@@ -11,20 +11,21 @@
         android:layout_height="wrap_content">
 
         <Button
-            style="?android:attr/buttonBarButtonStyle"
             android:id="@+id/buttonAddSignature"
+            style="?android:attr/buttonBarButtonStyle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="2"
+            android:layout_weight="1"
             android:text="@string/buttonAddsignature" />
             
         <Button
-            style="?android:attr/buttonBarButtonStyle"
             android:id="@+id/buttonESignInfo"
+            style="?android:attr/buttonBarButtonStyle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="3"
-            android:text="@string/buttonHowESignWorks" />
+            android:text="@string/buttonHowESignWorks"
+            android:visibility="gone" />
         
         <Button
             style="?android:attr/buttonBarButtonStyle"
@@ -38,7 +39,7 @@
     <cc.lib.android.MyScollView
         android:layout_width="match_parent"
         android:layout_height="match_parent" 
-        app:scrollY="1000">
+        app:scrollY="0">
 
 		<RelativeLayout
 		    android:id="@+id/layoutForm"
@@ -234,7 +235,7 @@
 
 		    <LinearLayout
 		        android:id="@+id/layoutImages"
-		        android:layout_width="wrap_content"
+		        android:layout_width="fill_parent"
 		        android:layout_height="wrap_content"
 		        android:layout_below="@id/layoutFields"
 		        android:layout_marginTop="28dp"
@@ -244,29 +245,51 @@
 		            android:layout_width="fill_parent"
 		            android:layout_height="wrap_content">
 
-			        <ImageView
-			            android:id="@+id/ivPhoto1"
-			            android:layout_width="100dp"
-			            android:layout_height="100dp"
-			            android:layout_margin="5dp"
-			            android:layout_weight="1"
-			            android:src="@android:drawable/ic_dialog_alert" />
-	
-			        <ImageView
-			            android:id="@+id/ivPhoto2"
-			            android:layout_width="100dp"
-			            android:layout_height="100dp"
-			            android:layout_margin="5dp"
-			            android:layout_weight="1"
-			            android:src="@android:drawable/ic_dialog_alert" />
-	
-			        <ImageView
-			            android:id="@+id/ivPhoto3"
-			            android:layout_width="100dp"
-			            android:layout_height="100dp"
-			            android:layout_margin="5dp"
-			            android:layout_weight="1"
-			            android:src="@android:drawable/ic_dialog_alert" />
+			        <cc.lib.android.SquareLinearLayout
+	                    android:layout_width="0dp"
+	                    android:layout_height="wrap_content"
+	                    android:layout_weight="1"
+	                    app:dominantSide="height_matches_width">
+	                    
+				        <ImageView
+				            android:id="@+id/ivPhoto1"
+				            android:layout_width="wrap_content"
+				            android:layout_height="wrap_content"
+				            android:layout_margin="5dp"
+				            android:layout_weight="1"
+				            android:scaleType="fitStart"
+				            android:src="@android:drawable/ic_dialog_alert" />
+	                </cc.lib.android.SquareLinearLayout>
+	                <cc.lib.android.SquareLinearLayout
+	                    android:layout_width="0dp"
+	                    android:layout_height="wrap_content"
+	                    android:layout_weight="1"
+	                    app:dominantSide="height_matches_width">
+	                    
+	                    <ImageView
+	                        android:id="@+id/ivPhoto2"
+	                        android:layout_width="wrap_content"
+	                        android:layout_height="wrap_content"
+	                        android:layout_margin="5dp"
+	                        android:layout_weight="1"
+	                        android:scaleType="fitStart"
+	                        android:src="@android:drawable/ic_dialog_alert" />
+	                </cc.lib.android.SquareLinearLayout>
+	                <cc.lib.android.SquareLinearLayout
+	                    android:layout_width="0dp"
+	                    android:layout_height="wrap_content"
+	                    android:layout_weight="1"
+	                    app:dominantSide="height_matches_width">
+	                    
+	                    <ImageView
+	                        android:id="@+id/ivPhoto3"
+	                        android:layout_width="wrap_content"
+	                        android:layout_height="wrap_content"
+	                        android:layout_margin="5dp"
+	                        android:layout_weight="1"
+	                        android:scaleType="fitStart"
+	                        android:src="@android:drawable/ic_dialog_alert" />
+	                </cc.lib.android.SquareLinearLayout>
 			     </LinearLayout>
                  <LinearLayout
 		                android:layout_width="fill_parent"
@@ -291,29 +314,51 @@
                     android:layout_width="fill_parent"
                     android:layout_height="wrap_content">
 
-                    <ImageView
-                        android:id="@+id/ivPhoto4"
-                        android:layout_width="100dp"
-                        android:layout_height="100dp"
-                        android:layout_margin="5dp"
-                        android:layout_weight="1"
-                        android:src="@android:drawable/ic_dialog_alert" />
-    
-                    <ImageView
-                        android:id="@+id/ivPhoto5"
-                        android:layout_width="100dp"
-                        android:layout_height="100dp"
-                        android:layout_margin="5dp"
-                        android:layout_weight="1"
-                        android:src="@android:drawable/ic_dialog_alert" />
-    
-                    <ImageView
-                        android:id="@+id/ivPhoto6"
-                        android:layout_width="100dp"
-                        android:layout_height="100dp"
-                        android:layout_margin="5dp"
-                        android:layout_weight="1"
-                        android:src="@android:drawable/ic_dialog_alert" />
+                    <cc.lib.android.SquareLinearLayout
+	                    android:layout_width="0dp"
+	                    android:layout_height="wrap_content"
+	                    android:layout_weight="1"
+	                    app:dominantSide="height_matches_width">
+	                    
+				        <ImageView
+				            android:id="@+id/ivPhoto4"
+				            android:layout_width="wrap_content"
+				            android:layout_height="wrap_content"
+				            android:layout_margin="5dp"
+				            android:layout_weight="1"
+				            android:scaleType="fitStart"
+				            android:src="@android:drawable/ic_dialog_alert" />
+	                </cc.lib.android.SquareLinearLayout>
+	                <cc.lib.android.SquareLinearLayout
+	                    android:layout_width="0dp"
+	                    android:layout_height="wrap_content"
+	                    android:layout_weight="1"
+	                    app:dominantSide="height_matches_width">
+	                    
+	                    <ImageView
+	                        android:id="@+id/ivPhoto5"
+	                        android:layout_width="wrap_content"
+	                        android:layout_height="wrap_content"
+	                        android:layout_margin="5dp"
+	                        android:layout_weight="1"
+	                        android:scaleType="fitStart"
+	                        android:src="@android:drawable/ic_dialog_alert" />
+	                </cc.lib.android.SquareLinearLayout>
+	                <cc.lib.android.SquareLinearLayout
+	                    android:layout_width="0dp"
+	                    android:layout_height="wrap_content"
+	                    android:layout_weight="1"
+	                    app:dominantSide="height_matches_width">
+	                    
+	                    <ImageView
+	                        android:id="@+id/ivPhoto6"
+	                        android:layout_width="wrap_content"
+	                        android:layout_height="wrap_content"
+	                        android:layout_margin="5dp"
+	                        android:layout_weight="1"
+	                        android:scaleType="fitStart"
+	                        android:src="@android:drawable/ic_dialog_alert" />
+	                </cc.lib.android.SquareLinearLayout>
                  </LinearLayout>		
                  <LinearLayout
                         android:layout_width="fill_parent"

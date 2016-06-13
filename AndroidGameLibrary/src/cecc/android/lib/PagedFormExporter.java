@@ -112,15 +112,15 @@ public abstract class PagedFormExporter extends AsyncTask<Void, String, Object> 
 				"<head>\n" +
 				"<meta name=\"viewport\" content=\"width=" + width + ", initial-scale=1\">\n" + 
 				"<style type=\"text/css\">\n" +
-				"body { font-size:36px; height:" + h + "px;}\n" +
+				"body { font-size:24px; height:" + h + "px;}\n" +
 				// title
-				"h1 { white-space: nowrap; font-size:72px; text-align:center; }\n" +
-				"h2 { font-size:60px; }\n" +
+				"h1 { white-space: nowrap; font-size:50px; text-align:center; }\n" +
+				"h2 { font-size:40px; }\n" +
 				// Comments
-				"h3 { font-size:48px; white-space: nowrap; }\n" +
+				"h3 { font-size:40px; white-space: nowrap; }\n" +
 				// Date below the title
-				"h4 { font-size:42px; white-space: nowrap; text-align:center; }\n" +
-				"td { font-size:48px; white-space: nowrap; text-align:left; vertical-align:top; }\n" +
+				"h4 { font-size:32px; white-space: nowrap; text-align:center; }\n" +
+				"td { font-size:32px; white-space: nowrap; text-align:left; vertical-align:top; }\n" +
 				// comments body
 				"span { width:" + width + "; word-wrap:break-word; }\n" +
 				"table { table-layout:auto; }\n" +
@@ -192,7 +192,7 @@ public abstract class PagedFormExporter extends AsyncTask<Void, String, Object> 
 		html.append("<tr><td><h4>").append(date).append("</h4></td></tr>");
 		endTable();
 		if (numPages > 1) {
-			html.append("</br><pre>Page ").append(curPage).append(" of ").append(numPages).append("</pre>\n");
+			html.append("<pre>Page ").append(curPage).append(" of ").append(numPages).append("</pre>\n");
 		}
 	}
 	

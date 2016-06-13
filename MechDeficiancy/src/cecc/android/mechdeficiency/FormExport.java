@@ -66,8 +66,8 @@ public class FormExport extends PagedFormExporter {
 		entry("Representative:", form.representative);
 		endTable();
 		beginTable(0);
-		entry("Plan:", HtmlUtils.wrapTextForTD(form.plan, 15), 
-			  "Type:", HtmlUtils.wrapTextForTD(form.type, 15));
+		entry("Plan:", HtmlUtils.wrapTextForTD(form.plan, 30), 
+			  "Type:", HtmlUtils.wrapTextForTD(form.type, 30));
 		endTable();
 	}
 	
@@ -116,7 +116,7 @@ public class FormExport extends PagedFormExporter {
     			int index = (i*3) + ii;
     			Image image = form.getImageForIndex(index);
     			if (image != null && image.data != null) {
-    				html.append(HtmlUtils.wrapTextForTD(Html.fromHtml(image.data).toString(), 20));
+    				html.append(HtmlUtils.wrapTextForTD(Html.fromHtml(image.data).toString(), 32));
     			}    			
     			html.append("</td>\n");
     		}

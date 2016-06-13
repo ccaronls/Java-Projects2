@@ -53,6 +53,7 @@
         
     </LinearLayout>
 
+    
     <cc.lib.android.SortButtonGroup
         android:id="@+id/sortButtonGroup"
         android:layout_width="fill_parent"

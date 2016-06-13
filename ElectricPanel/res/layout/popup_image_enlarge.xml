@@ -22,6 +22,8 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:minLines="2"
-        android:hint="@string/labelImageMeta"/>
+        android:hint="@string/labelImageMeta"
+        android:maxLength="64"
+        />
 
 </LinearLayout>

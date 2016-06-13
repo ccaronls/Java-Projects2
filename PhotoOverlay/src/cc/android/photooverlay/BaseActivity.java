@@ -1,8 +1,8 @@
 package cc.android.photooverlay;
 
 import java.io.File;
-import cecc.android.lib.CECCBaseActivity;
 
+import cecc.android.lib.CECCBaseActivity;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -10,7 +10,7 @@ import android.view.View.OnClickListener;
 public class BaseActivity extends CECCBaseActivity implements OnClickListener {
 
 	public final static String IMAGE_PREFIX = "guage";
-	private SQLHelper helper;
+	private DBHelper helper;
 
 	final BaseActivity getActivity() {
 		return this;
@@ -28,9 +28,9 @@ public class BaseActivity extends CECCBaseActivity implements OnClickListener {
 			helper.close();
 	}
 	
-	public final SQLHelper getFormHelper() {
+	public final DBHelper getFormHelper() {
 		if (helper == null || !helper.getDB().isOpen())
-			helper = new SQLHelper(this);
+			helper = new DBHelper(this);
 		return helper;
 	}
 
@@ -43,5 +43,12 @@ public class BaseActivity extends CECCBaseActivity implements OnClickListener {
 			}
 		}
 	}
+
+	@Override
+	protected String getPhotoPrefix() {
+		return IMAGE_PREFIX;
+	}
+	
+	
 	
 }

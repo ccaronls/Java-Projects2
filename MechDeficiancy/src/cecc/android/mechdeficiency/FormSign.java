@@ -67,9 +67,7 @@ public class FormSign extends BaseActivity {
 		TextView tvFixed = (TextView)findViewById(R.id.tvFixed);
 		tvFixed.setText(form.fixed ? R.string.labelFixDoneYes : R.string.labelFixDoneNo);
 		
-		newDialogBuilder().setTitle(R.string.popup_title_important)
-			.setMessage(R.string.popup_msg_signing_important)
-			.setNegativeButton(R.string.popup_button_iunderstand, null).show();
+		showInfoDialogBuilderWithDontShowAgainCB(R.string.popup_title_important, R.string.popup_msg_signing_important, "PREF_HOW_E_SIGN_WORKS_DONT_SHOW_AGAIN_BOOL");
 	}
 	
 	@Override

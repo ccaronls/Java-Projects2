@@ -21,6 +21,7 @@
     <string name="popup_msg_no_purchases">There are no purchase items at this point.  Please try again when you subscription expires or contact support.</string>
     <string name="popup_msg_empty_purchases">You do not have any recorded purchases.</string>
     <string name="popup_msg_temp_locked">The temperature can only be set once. The completed form has more value when customers know there is no chance of altering critical data after the fact.</string>
+    <string name="popup_msg_tempinfo">Your device has a built-in ambient temperature gauge.  This value is used to populate the temperautre field.  Because accuracy can vary between devices it is recommened to verify its accuracy with a secondary reader.</string>
     
     <string name="popup_button_ok">OK</string>
     <string name="popup_button_cancel">Cancel</string>

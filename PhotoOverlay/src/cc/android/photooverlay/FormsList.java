@@ -48,7 +48,7 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
 		findViewById(R.id.buttonNewForm).setOnClickListener(this);
 		findViewById(R.id.buttonOptions).setOnClickListener(this);
 
-		String sortField = getPrefs().getString(SORT_FIELD_STR, SQLHelper.Column.EDIT_DATE.name());
+		String sortField = getPrefs().getString(SORT_FIELD_STR, DBHelper.Column.EDIT_DATE.name());
 		boolean ascending = getPrefs().getBoolean(SORT_ASCENDING_BOOL, false);
 		
 		SortButtonGroup sg = (SortButtonGroup)findViewById(R.id.sortButtonGroup);
@@ -261,7 +261,7 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
 //		((TextView)findViewById(R.id.tvFormCount)).setText("Form Count: " + getFormHelper().getFormCount());
 		ListView lv = (ListView)findViewById(R.id.formList);
 		
-		String sortField = getPrefs().getString(SORT_FIELDS_SQL_STR, SQLHelper.Column.EDIT_DATE.name());
+		String sortField = getPrefs().getString(SORT_FIELDS_SQL_STR, DBHelper.Column.EDIT_DATE.name());
 		
 		Cursor cursor = getFormHelper().listForms(sortField, true, 0, 100);
 		tvEmptyList.setVisibility(cursor.getCount() > 0 ? View.INVISIBLE : View.VISIBLE);
@@ -283,11 +283,11 @@ public class FormsList extends BaseActivity implements OnSortButtonListener {
 				TextView tvCustomer = (TextView)view.findViewById(R.id.tvCustomer);
 				CompoundButton cbPassed = (CompoundButton)view.findViewById(R.id.cbPassed);
 				
-				int id = cursor.getInt(SQLHelper.Column._id.getColumnIndex(cursor));
-				Date date = new Date(cursor.getLong(SQLHelper.Column.EDIT_DATE.getColumnIndex(cursor)));
-				String system = cursor.getString(SQLHelper.Column.SYSTEM.getColumnIndex(cursor));
-				String customer = cursor.getString(SQLHelper.Column.CUSTOMER.getColumnIndex(cursor));
-				boolean passed = cursor.getInt(SQLHelper.Column.PASSED.getColumnIndex(cursor)) != 0;
+				int id = cursor.getInt(DBHelper.Column._id.getColumnIndex(cursor));
+				Date date = new Date(cursor.getLong(DBHelper.Column.EDIT_DATE.getColumnIndex(cursor)));
+				String system = cursor.getString(DBHelper.Column.SYSTEM.getColumnIndex(cursor));
+				String customer = cursor.getString(DBHelper.Column.CUSTOMER.getColumnIndex(cursor));
+				boolean passed = cursor.getInt(DBHelper.Column.PASSED.getColumnIndex(cursor)) != 0;
 				
 				tvDate.setText(getDateFormatter().format(date));
 				tvSystem.setText(system);

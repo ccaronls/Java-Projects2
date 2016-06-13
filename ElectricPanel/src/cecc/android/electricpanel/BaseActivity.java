@@ -1,6 +1,7 @@
 package cecc.android.electricpanel;
 
 import java.io.File;
+
 import cecc.android.lib.CECCBaseActivity;
 import android.util.Log;
 import android.view.View;
@@ -44,10 +45,17 @@ public class BaseActivity extends CECCBaseActivity implements OnClickListener {
 	void cleanupUnusedImages() {
 		File [] images = getImagesPath().listFiles();
 		for (File f : images) {
-			if (!f.getName().startsWith(IMAGE_PREFIX))
+			if (!f.getName().startsWith(IMAGE_PREFIX)) {
 				Log.i(TAG, "Deleting unused image " + f);
 				f.delete();
+			}
 		}
 	}
+
+	@Override
+	protected String getPhotoPrefix() {
+		return IMAGE_PREFIX;
+	}
+	
 	
 }

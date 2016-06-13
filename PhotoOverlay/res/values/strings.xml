@@ -20,7 +20,6 @@
     <string name="popup_msg_about">Pressure Test Certification Utility\n\nCECC Solutions\n\n%1$s\nApplication Version: %2$s\n\nGoogle Play Version: %3$s</string>
     <string name="popup_msg_nuke">Are you sure?  This will delete all application data.</string>
     <string name="popup_msg_dbexport_error">Problem exporting database %s</string>
-    <string name="popup_msg_tempinfo">Your device has a built-in ambient temperature gauge.  This value is used to populate the temperautre field.  Because accuracy can vary between devices it is recommened to verify its accuracy with a secondary reader.</string>
     
     <string name="popup_button_ok">OK</string>
     <string name="popup_button_not_now">Not Now</string>

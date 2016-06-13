@@ -1,6 +1,7 @@
 package cecc.android.mechdeficiency;
 
 import java.io.File;
+
 import cecc.android.lib.CECCBaseActivity;
 import android.util.Log;
 import android.view.View;
@@ -46,5 +47,11 @@ public class BaseActivity extends CECCBaseActivity implements OnClickListener {
 			}
 		}
 	}
+
+	@Override
+	protected String getPhotoPrefix() {
+		return IMAGE_PREFIX;
+	}
+	
 	
 }

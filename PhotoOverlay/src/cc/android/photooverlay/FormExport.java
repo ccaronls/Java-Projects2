@@ -98,7 +98,7 @@ public class FormExport extends PagedFormExporter {
 		//html.append("<br/><table width=\"100%\">\n");
 		beginTable(0);
 		html.append("<tr>\n");
-		final int dim = Math.round(CECCBaseActivity.IMAGE_CAPUTE_DIM / activity.getResources().getDisplayMetrics().density);
+		final int dim = Math.round(CECCBaseActivity.IMAGE_CAPURTE_DIM / activity.getResources().getDisplayMetrics().density);
 
 		for (int i=0; i<3; i++) {
 			html.append("<td>\n");
