@@ -5,11 +5,15 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
 import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
 import com.google.android.gms.games.Games;
+import com.google.android.gms.games.multiplayer.turnbased.TurnBasedMatchConfig;
 
+import android.app.AlertDialog;
 import android.app.Application;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.util.Log;
+import android.widget.Toast;
 
 public class SOCApplication extends Application implements ConnectionCallbacks, OnConnectionFailedListener {
 
@@ -21,7 +25,7 @@ public class SOCApplication extends Application implements ConnectionCallbacks, 
 		super.onCreate();
 		application = this;
 		prefs = PreferenceManager.getDefaultSharedPreferences(this);
-		if (prefs.getBoolean(AUTO_GOOGLE_SIGNIN, false))
+		if (prefs.getBoolean(PREF_AUTO_GOOGLE_SIGNIN, false))
 			signInGooglePlay();
 	}
 
@@ -55,25 +59,32 @@ public class SOCApplication extends Application implements ConnectionCallbacks, 
 	public void signOutGooglePlay() {
 		mGAPI.disconnect();
 		mGAPI = null;
-		prefs.edit().putBoolean(AUTO_GOOGLE_SIGNIN, false).apply();
+		prefs.edit().putBoolean(PREF_AUTO_GOOGLE_SIGNIN, false).apply();
 	}
-
+	
 	@Override
 	public void onConnectionFailed(ConnectionResult result) {
 		// TODO Auto-generated method stub
-		
+		Toast.makeText(this, R.string.toast_connection_to_google_play_failed, Toast.LENGTH_LONG).show();
+		Log.i(TAG, "Connection to Google Play Failed: " + result);
 	}
 
 	@Override
 	public void onConnected(Bundle connectionHint) {
-		prefs.edit().putBoolean(AUTO_GOOGLE_SIGNIN, true).apply();
+		prefs.edit().putBoolean(PREF_AUTO_GOOGLE_SIGNIN, true).apply();
+		Toast.makeText(this, R.string.toast_connected_to_google_play, Toast.LENGTH_LONG).show();
 	}
 
 	@Override
 	public void onConnectionSuspended(int cause) {
 		// TODO Auto-generated method stub
-		
+		Toast.makeText(this, R.string.toast_connection_to_google_play_suspended, Toast.LENGTH_LONG).show();
+		Log.i(TAG, "Connection to Google Play Suspended: " + cause);
 	}
 	
-	private static final String AUTO_GOOGLE_SIGNIN = "AUTO_GOOGLE_SIGNIN";
+	public 
+	
+	private final static String TAG = SOCApplication.class.getSimpleName();
+	
+	private final static String PREF_AUTO_GOOGLE_SIGNIN = "AUTO_GOOGLE_SIGNIN";
 }

@@ -1,5 +1,14 @@
 <resources>
 
     <string name="app_name">Senators of Caron</string>
-
+    
+    <string name="button_signin">Sign in to Google Play</string>
+    <string name="button_sign_out">Sign out of Google Play</string>
+    <string name="button_start_single_player">Start Single Player</string>
+    <string name="button_start_multiplayer">Start Multiplayer</string>
+    
+    <string name="toast_connected_to_google_play">Connected to Google Play</string>
+    <string name="toast_connection_to_google_play_failed">Connected to Google Play Failed</string>
+    <string name="toast_connection_to_google_play_suspended">Connected to Google Play Suspended</string>
+    
 </resources>
