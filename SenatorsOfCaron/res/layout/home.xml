@@ -1,31 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ListView  xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/listview"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical" >
-
-    <Button
-        android:id="@+id/buttonSignin"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/button_signin" />
-
-    <Button
-        android:id="@+id/buttonSignOut"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/button_sign_out" />
-
-    <Button
-        android:id="@+id/buttonSinglePlayer"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/button_start_single_player" />
-
-    <Button
-        android:id="@+id/buttonMultiplayer"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/button_start_multiplayer" />
     
-</LinearLayout>
+</ListView>

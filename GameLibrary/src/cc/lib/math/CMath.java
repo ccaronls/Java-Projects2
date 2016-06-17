@@ -2,6 +2,9 @@ package cc.lib.math;
 
 import java.util.Collection;
 
+import cc.lib.game.IVector2D;
+import cc.lib.game.Utils;
+
 public class CMath {
 
 	public static final double M_E        = 2.71828182845904523536f;
@@ -358,5 +361,16 @@ public class CMath {
      */
     public static int signOf(float n) {
     	return n < 0 ? -1 : 1;
+    }
+    
+    /**
+     * 
+     * @param pt
+     * @param l0
+     * @param l1
+     * @return
+     */
+    public static float distSqPointLine(IVector2D pt, IVector2D l0, IVector2D l1) {
+    	return Utils.distSqPointLine(pt.getX(), pt.getY(), l0.getX(), l0.getY(), l1.getX(), l1.getY());
     }
 }

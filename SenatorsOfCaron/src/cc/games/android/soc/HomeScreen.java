@@ -5,46 +5,53 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.BaseAdapter;
+import android.widget.ListView;
 
 public class HomeScreen extends AScreen {
 
-	@Override
-	public void onCreate(Bundle savedInstanceState) {
-		// TODO Auto-generated method stub
-		super.onCreate(savedInstanceState);
-	}
-
-	private View si, so, mp;
+	private ListView lv;
+	private ButtonsAdapter ba;
 	
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		
 		View root = inflater.inflate(R.layout.home, container, false);
 		
-		si = root.findViewById(R.id.buttonSignin); si.setOnClickListener(this);
-		so = root.findViewById(R.id.buttonSignOut); so.setOnClickListener(this);
-		mp = root.findViewById(R.id.buttonMultiplayer); mp.setOnClickListener(this);
-		root.findViewById(R.id.buttonSinglePlayer).setOnClickListener(this);
+		lv = (ListView)root.findViewById(R.id.listview);
+		ba = new ButtonsAdapter(lv) {
+			
+			@Override
+			protected void onButton(int stringResId) {
+				switch (stringResId) {
+					case R.string.button_sign_out:
+					case R.string.button_signin:
+					case R.string.button_start_multiplayer:
+					case R.string.button_start_single_player:
+				}
+			}
+		};
+
+		onGooglePlayStateChange(isGooglePlayConnected() ? GoogleState.CONNECTED : GoogleState.DISCONNECTED);
 		
 		return root;
 	}
 
 	protected void onGooglePlayStateChange(GoogleState state) {
+		ba.clear();
 		switch (state) {
 			case CONNECTED:
-				si.setVisibility(View.GONE);
-				so.setVisibility(View.VISIBLE);
-				mp.setEnabled(true);
+				ba.addButton(R.string.button_sign_out);
+				ba.addButton(R.string.button_start_multiplayer);
+				ba.addButton(R.string.button_start_single_player);
 				break;
 			case DISCONNECTED:
-				si.setVisibility(View.VISIBLE);
-				so.setVisibility(View.GONE);
-				mp.setEnabled(false);
+				ba.addButton(R.string.button_signin);
+				ba.addButton(R.string.button_start_single_player);
 				break;
 			case SUSPENDED:
-				si.setVisibility(View.GONE);
-				so.setVisibility(View.GONE);
-				mp.setEnabled(false);
+				ba.addButton(R.string.button_sign_out);
+				ba.addButton(R.string.button_start_single_player);
 				break;
 		}
 	}
@@ -60,16 +67,6 @@ public class HomeScreen extends AScreen {
 	public void onResume() {
 		// TODO Auto-generated method stub
 		super.onResume();
-	}
-
-	@Override
-	public void onClick(View v) {
-		switch (v.getId()) {
-			case R.id.buttonMultiplayer:
-			case R.id.buttonSignin:
-			case R.id.buttonSignOut:
-			case R.id.buttonSinglePlayer:
-		}
 	}
 
 }

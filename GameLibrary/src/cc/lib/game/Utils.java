@@ -618,7 +618,7 @@ public class Utils {
      * @param pts
      * @return
      */
-    public static float distSqPointLine(float p_x, float p_y, float [] pts) {
+    public static float distSqPointLine(float p_x, float p_y, float ... pts) {
     	return distSqPointLine(p_x, p_y, pts[0], pts[1], pts[2], pts[3]);
     }
 

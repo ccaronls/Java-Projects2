@@ -302,6 +302,27 @@ public final class AWTGraphics extends AGraphics {
 	public void setColor(Color c) {
 		g.setColor(c);
 	}
+	
+	public void setColorARGB(int argb) {
+		int a = (argb >> 24) & 0xff;
+		int r = (argb >> 16) & 0xff;
+		int g = (argb >>  8) & 0xff;
+		int b = (argb >>  0) & 0xff;
+		this.g.setColor(new Color(r, g, b, a));
+	}
+	
+	public void setColorRGBA(int rgba) {
+		int r = (rgba >> 24) & 0xff;
+		int g = (rgba >> 16) & 0xff;
+		int b = (rgba >>  8) & 0xff;
+		int a = (rgba >>  0) & 0xff;
+		this.g.setColor(new Color(r, g, b, a));
+	}
+	
+	public void setColor(int r, int g, int b, int a) {
+		this.g.setColor(new Color(r, g, b, a));
+	}
+	
 
 	public Font getFont() {
 		return g.getFont();

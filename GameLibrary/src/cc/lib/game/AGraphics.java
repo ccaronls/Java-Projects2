@@ -37,6 +37,16 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     
     /**
      * 
+     * @param outlineColorARGB
+     */
+	public abstract void setColorARGB(int argb);
+	
+	public abstract void setColorRGBA(int rgba);
+	
+	public abstract void setColor(int r, int g, int b, int a);
+	
+    /**
+     * 
      * @return
      */
     public abstract AColor getColor();
@@ -1007,6 +1017,16 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
 
     /**
      * 
+     * @param x
+     * @param y
+     * @param r
+     */
+	public final void drawFilledCircle(int x, int y, int r) {
+		drawFilledOval(x-r, y-r, r*2, r*2);
+	}
+
+    /**
+     * 
      * @param brain_pts_x
      * @param brain_pts_y
      * @param length
@@ -1155,6 +1175,22 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      */
     public AColor makeColori(int r, int g, int b, int a) {
         return makeColor((float)r/ 255, (float)g/255, (float)b/255, (float)a/255);
+    }
+    
+    public AColor makeColorRGBA(int rgba) {
+    	int r = (rgba >>> 24) & 0xff;
+        int g = (rgba >> 16) & 0xff;
+        int b = (rgba >> 8) & 0xff;
+    	int a = (rgba >> 0) & 0xff;
+    	return makeColor(r, g, b, a);
+    }
+
+    public AColor makeColorARGB(int argb) {
+    	int a = (argb >>> 24) & 0xff;
+    	int r = (argb >> 16) & 0xff;
+        int g = (argb >> 8) & 0xff;
+        int b = (argb >> 0) & 0xff;
+    	return makeColor(r, g, b, a);
     }
 
     /**

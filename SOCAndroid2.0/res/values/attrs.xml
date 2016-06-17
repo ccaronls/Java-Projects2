@@ -15,11 +15,10 @@
         <attr name="buildingDrawable" format="reference"/>
         <attr name="shipDrawable" format="reference"/>
         <attr name="diceType" format="enum">
-            <enum name="none" value="0"/>
-            <enum name="whiteBlack" value="1"/>
-            <enum name="yellowRed" value="2"/>
-            <enum name="redYellow" value="3"/>
-            <enum name="event" value="4"/>
+            <enum name="whiteBlack" value="0"/>
+            <enum name="yellowRed" value="1"/>
+            <enum name="redYellow" value="2"/>
+            <enum name="event" value="3"/>
         </attr>
     </declare-styleable>
     

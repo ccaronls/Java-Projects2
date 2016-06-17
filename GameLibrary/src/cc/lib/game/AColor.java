@@ -127,4 +127,18 @@ public abstract class AColor extends Reflector<AColor> {
     }
 
 	public abstract AColor setAlpha(float alpha);
+
+	/**
+	 * return a color with its components summed.
+	 * 
+	 * @param g
+	 * @param other
+	 * @return
+	 */
+	public final AColor add(AGraphics g, AColor other) {
+		return g.makeColor(Math.min(1, getRed() + other.getRed()),
+    		Math.min(1, getGreen() + other.getGreen()),
+    		Math.min(1, getBlue() + other.getBlue()),
+    		Math.min(1, getAlpha() + other.getAlpha()));
+	}
 }

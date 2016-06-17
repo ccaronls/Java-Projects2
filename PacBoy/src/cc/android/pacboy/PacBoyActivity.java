@@ -64,17 +64,9 @@ public class PacBoyActivity extends CCActivityBase {
 			tvHighScore.setVisibility(View.INVISIBLE);
 			tvScore.setVisibility(View.INVISIBLE);
 		} else {
-			tvHighScore.setVisibility(View.INVISIBLE);
-			tvScore.setVisibility(View.INVISIBLE);
+			tvHighScore.setVisibility(View.VISIBLE);
+			tvScore.setVisibility(View.VISIBLE);
 		}
 	}
-
-	@Override
-	public void onBackPressed() {
-		
-		super.onBackPressed();
-	}
-
-	
 	
 }

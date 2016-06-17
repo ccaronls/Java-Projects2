@@ -1,5 +1,7 @@
 package cc.lib.android;
 
+import cc.lib.game.AGraphics;
+import cc.lib.game.GDimension;
 import cc.lib.game.Utils;
 
 public class DroidUtils extends Utils {
@@ -63,4 +65,23 @@ public class DroidUtils extends Utils {
     		throw new AssertionError(message);
     }
     
+    /*
+/**
+     * Detemine the minimum rectangle to hold the given text.
+     * \n is a delim for each line.
+     * @param g
+     * @param txt
+     * @return
+     */
+    public static GDimension computeTextDimension(AGraphics g, String txt) {
+        String [] lines = txt.split("\n");
+        int width = 0;
+        final int height = g.getTextHeight() * lines.length;
+        for (int i=0; i<lines.length; i++) {
+            int w = Math.round(g.getTextWidth(lines[i]));
+            if (w > width)
+                width = w;
+        }
+        return new GDimension(width, height);
+    }    
 }

@@ -82,8 +82,6 @@ public class SOCApplication extends Application implements ConnectionCallbacks, 
 		Log.i(TAG, "Connection to Google Play Suspended: " + cause);
 	}
 	
-	public 
-	
 	private final static String TAG = SOCApplication.class.getSimpleName();
 	
 	private final static String PREF_AUTO_GOOGLE_SIGNIN = "AUTO_GOOGLE_SIGNIN";
