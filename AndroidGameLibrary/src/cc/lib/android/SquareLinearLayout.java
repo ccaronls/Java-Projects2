@@ -5,6 +5,15 @@ import android.content.res.TypedArray;
 import android.util.AttributeSet;
 import android.widget.LinearLayout;
 
+/**
+ * 
+ * @author chriscaron
+ *
+ * In XML Use:
+ * 
+ * dominantSide: one of height_matches_width or width_matches_height
+ *
+ */
 public class SquareLinearLayout extends LinearLayout {
 
 	public enum DominantSide {
