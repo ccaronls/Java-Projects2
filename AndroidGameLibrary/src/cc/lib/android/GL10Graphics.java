@@ -17,6 +17,7 @@ import android.graphics.Paint;
 import android.graphics.Bitmap.Config;
 import android.graphics.Paint.Align;
 import android.opengl.GLUtils;
+import android.os.SystemClock;
 import android.util.Log;
 
 public class GL10Graphics extends AGraphics {
@@ -763,14 +764,19 @@ for (int pix : pixels) {
     }
 
     public final int loadImage(String assetPath, AColor transparent) {
-        Log.d(TAG, "loadImage: " + assetPath + ", transparent = " + transparent);
-        Bitmap bitmap = loadBitmap(assetPath);
-        if (bitmap == null)
-            return 0;
-        if (transparent != null)
-            bitmap = setTransparency(bitmap, transparent);
-        
-        return bindBitmap(bitmap);
+    	long startTime = SystemClock.uptimeMillis();
+    	try {
+            Log.d(TAG, "loadImage: " + assetPath + ", transparent = " + transparent);
+            Bitmap bitmap = loadBitmap(assetPath);
+            if (bitmap == null)
+                return 0;
+            if (transparent != null)
+                bitmap = setTransparency(bitmap, transparent);
+            
+            return bindBitmap(bitmap);
+    	} finally {
+    		Log.d(TAG, "loaded in: " + (SystemClock.uptimeMillis() - startTime) + " msecs");
+    	}
     }
 
     /**
