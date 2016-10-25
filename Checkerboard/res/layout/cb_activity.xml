@@ -7,9 +7,9 @@
 
     <cc.lib.android.SquareLinearLayout
         android:layout_centerInParent="true"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        cc:dominantSide="height_matches_width">
+        android:layout_width="wrap_content"
+        android:layout_height="fill_parent"
+        cc:dominantSide="width_matches_height">
     
 	    <cc.android.checkerboard.CheckerboardView
 	        android:id="@+id/cbView"

@@ -24,7 +24,9 @@ public class Checkers {
 		final int captureRank, captureCol;
 		final boolean hasCapture;
 		final boolean isJump;
-		public Move(int startRank, int startCol, int dRank, int dCol, int captureRank, int captureCol, boolean hasCapture, boolean isJump) {
+		final Move parent; // provide a way to unwind.  also differentiate if this is an 'extra' move
+		
+		public Move(int startRank, int startCol, int dRank, int dCol, int captureRank, int captureCol, boolean hasCapture, boolean isJump, Move parent) {
 			this.startRank = startRank;
 			this.startCol = startCol;
 			this.dRank = dRank;
@@ -33,6 +35,7 @@ public class Checkers {
 			this.captureCol = captureCol;
 			this.hasCapture = hasCapture;
 			this.isJump = isJump;
+			this.parent = parent;
 		}
 		
 		
@@ -109,7 +112,11 @@ public class Checkers {
 		return board[rank][col];
 	}
 	
-	List<Move> computeMovesForSquare(int rank, int col, boolean onlyJumps) {
+	public List<Move> computeMovesForSquare(int rank, int col) {
+		return computeMovesForSquare(rank, col, null);
+	}
+	
+	private List<Move> computeMovesForSquare(int rank, int col, Move parent) {
 		List<Move> moves = new ArrayList<>();
 		
 		Piece p = board[rank][col];
@@ -138,8 +145,8 @@ public class Checkers {
 				continue;
 			Piece t = board[rank+dr[i]][col+dc[i]];
 			if (t == Piece.EMPTY) {
-				if (!onlyJumps)
-					moves.add(new Move(rank, col, dr[i], dc[i], 0, 0, false, false));
+				if (parent == null)
+					moves.add(new Move(rank, col, dr[i], dc[i], 0, 0, false, false, null));
 			} else {
 				// check for jump
 				if (isOnBoard(rank+dr[i]*2, col+dc[i]*2)) {
@@ -148,10 +155,10 @@ public class Checkers {
 						// we can jump to here
 						if (t.color == getTurnColor()) {
 							// we are jumping ourself, no capture
-							moves.add(new Move(rank, col, dr[i]*2, dc[i]*2, 0, 0, false, true));
+							moves.add(new Move(rank, col, dr[i]*2, dc[i]*2, 0, 0, false, true, null));
 						} else {
 							// jump with capture
-							moves.add(new Move(rank, col, dr[i]*2, dc[i]*2, rank+dr[i], col+dc[i], true, true));
+							moves.add(new Move(rank, col, dr[i]*2, dc[i]*2, rank+dr[i], col+dc[i], true, true, null));
 						}
 					}
 				}
@@ -185,7 +192,7 @@ public class Checkers {
 			endTurn();
 			return Collections.EMPTY_LIST;
 		}
-		List<Move> nextMoves = computeMovesForSquare(move.startRank+move.dRank, move.startCol+move.dCol, true);
+		List<Move> nextMoves = computeMovesForSquare(move.startRank+move.dRank, move.startCol+move.dCol, move);
 		if (nextMoves.size() == 0) {
 			endTurn();
 		}

@@ -25,7 +25,6 @@ import cc.lib.game.Utils;
 import cc.lib.math.Vector2D;
 
 class CheckerboardRenderer extends BaseRenderer implements View.OnTouchListener {
-
 	
 	public CheckerboardRenderer(GLSurfaceView parent) {
 		super(parent);
@@ -37,6 +36,7 @@ class CheckerboardRenderer extends BaseRenderer implements View.OnTouchListener 
 	float touchX = -1, touchY = -1;
 	int touchRank, touchColumn;
 	long downTime = 0;
+	long frameCount = 0;
 	
 	@Override
 	public boolean onTouch(View v, MotionEvent event) {
@@ -50,7 +50,7 @@ class CheckerboardRenderer extends BaseRenderer implements View.OnTouchListener 
 				touchColumn = (int)(touchX * 8 / getGraphics().getViewportWidth());
 				break;
 			case MotionEvent.ACTION_UP:
-				if (System.currentTimeMillis() - downTime < 600) {
+				if (System.currentTimeMillis() - downTime < 3000) {
 					onTap();
 				}
 				touchX = touchY = -1;
@@ -64,7 +64,7 @@ class CheckerboardRenderer extends BaseRenderer implements View.OnTouchListener 
 	void onTap() {
 		if (checkers.isOnBoard(touchColumn, touchColumn)) {
 			if (moves.size() == 0)
-				moves = checkers.computeMovesForSquare(touchRank, touchColumn, false);
+				moves = checkers.computeMovesForSquare(touchRank, touchColumn);
 			else {
 				for (Move m : moves) {
 					int tr = m.startRank + m.dRank;
@@ -112,8 +112,12 @@ class CheckerboardRenderer extends BaseRenderer implements View.OnTouchListener 
     			int rx = col*w8;
     			int ry = rank*h8;
 				if (touchRank == rank && touchColumn == col) {
-    				g.setColor(g.GREEN);
-    				g.drawFilledRect(rx, ry, w8, h8);
+					float fadeSecs = 3;
+					float alpha = (1.0f / (fadeSecs * 1000)) * (System.currentTimeMillis() - downTime);
+    				if (alpha > 0) {
+    					g.setColor(g.makeColor(0, 1, 0, alpha));
+        				g.drawFilledRect(rx, ry, w8, h8);
+    				}
 				}
 				
 				Piece p = checkers.getBoard(rank, col);
@@ -128,12 +132,14 @@ class CheckerboardRenderer extends BaseRenderer implements View.OnTouchListener 
 			int col  = m.startCol  + m.dCol;
 			int x = col * w8;
 			int y = rank * h8;
-			g.setColor(g.YELLOW);
+			g.setLineWidth(3 + (frameCount / 10) % 5);
+//			float alpha = System.currentTimeMillis() - downTime;
+			g.setColor(g.GREEN);//.setAlpha(alpha));
 			g.drawRect(x,  y, w8, h8);
 		}
 
 		
-		g.setColor(g.CYAN);
+		g.setColor(getPieceColor(checkers.getTurnColor(), g));
 		if (checkers.getTurnColor() == PieceColor.BLACK) {
 			g.drawFilledRect(0, h-10, w, 10);
 		} else {
@@ -141,25 +147,31 @@ class CheckerboardRenderer extends BaseRenderer implements View.OnTouchListener 
 		}
 		
 		g.popMatrix();
+		frameCount ++;
+	}
+	
+	AColor getPieceColor(PieceColor p, AGraphics g) {
+		switch (p) {
+			case BLACK:
+				return g.BLUE;
+			case RED:
+				return g.RED;
+			
+		}
+		return g.TRANSPARENT;
 	}
 	
 	void drawChecker(AGraphics g, Piece p, int x, int y, int rad) {
-		switch (p) {
-			case BLACK_KING:
-				drawChecker(g, g.BLUE, g.BLUE.darkened(0.5f), x, y, rad);
-				y += rad/4;
-			case BLACK_SINGLE:
-				drawChecker(g, g.BLUE, g.BLUE.darkened(0.5f), x, y, rad);
-				break;
-			case RED_KING:
-				drawChecker(g, g.RED, g.RED.darkened(0.5f), x, y, rad);
-				y += rad/4;
-			case RED_SINGLE:
-				drawChecker(g, g.RED, g.RED.darkened(0.5f), x, y, rad);
-				break;
-			case EMPTY:
-				break;
-		}	}
+		if (p == Piece.EMPTY)
+			return;
+		AColor high = getPieceColor(p.color, g);
+		AColor dark = high.darkened(0.5f);
+		if (p.isKing) {
+			drawChecker(g, high, dark, x, y, rad);
+			y += rad/4;
+		}
+		drawChecker(g, high, dark, x, y, rad);
+	}
 	
 	void drawChecker(AGraphics g, AColor colorTop, AColor color, int x, int y, int r) {
 		g.setColor(color);
