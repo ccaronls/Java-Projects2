@@ -2,19 +2,22 @@ package cc.android.checkerboard;
 
 import android.os.Bundle;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.widget.TextView;
 import cc.lib.android.CCActivityBase;
 
-public class CheckerboardActivity extends CCActivityBase {
+public class CheckerboardActivity extends CCActivityBase implements OnClickListener {
 
 	private CheckerboardView pbv;
-	private final Checkers checkers = new Checkers();
+	public static final ICheckerboard game = new Checkers();
 	
 	@Override
 	protected void onCreate(Bundle bundle) {
 		super.onCreate(bundle);
 		setContentView(R.layout.cb_activity);
 		pbv = (CheckerboardView)findViewById(R.id.cbView);
+		findViewById(R.id.buttonNewGame).setOnClickListener(this);
+		findViewById(R.id.buttonEndTurn).setOnClickListener(this);
 	}
 
 	@Override
@@ -31,6 +34,15 @@ public class CheckerboardActivity extends CCActivityBase {
 
 	@Override
 	protected void onPoll() {
+	}
+
+	@Override
+	public void onClick(View v) {
+		if (v.getId() == R.id.buttonEndTurn) {
+			game.endTurn();
+		} else if (v.getId() == R.id.buttonNewGame) {
+			game.newGame();
+		}
 	}
 	
 }

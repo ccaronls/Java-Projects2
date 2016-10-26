@@ -5,6 +5,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import cc.android.checkerboard.ICheckerboard.Move;
+import cc.android.checkerboard.ICheckerboard.Piece;
 import cc.lib.game.*;
 import cc.lib.math.*;
 
@@ -13,11 +15,16 @@ import cc.lib.math.*;
  * @author chriscaron
  *
  */
-public class Checkers {
+public class Checkers implements ICheckerboard {
 
 	private final Piece [][] board = new Piece[8][8]; // rank major
-	private PieceColor turn = null;
+	private int turn = -1;
 
+	private final static int BLACK = 0;
+	private final static int RED   = 1;
+	
+	
+/*
 	static class Move {
 		final int startRank, startCol;
 		final int dRank, dCol;
@@ -60,60 +67,68 @@ public class Checkers {
 		
 		final PieceColor color;
 		final boolean isKing;
-	}
+	}*/
 	
-	void setup() {
+	@Override
+	public void newGame() {
 		for (int i=0; i<board.length; i++) {
-			Arrays.fill(board[i], Piece.EMPTY);
+			Arrays.fill(board[i], new Piece(-1, 0));
 			for (int ii=i%2; ii<board[0].length; ii+=2) {
 				switch (i) {
 					case 0: case 1: case 2:
-						board[i][ii] = Piece.RED_SINGLE; break;
+						board[i][ii] = new Piece(RED, 1); break;
 					case 5: case 6: case 7:
-						board[i][ii] = Piece.BLACK_SINGLE; break;
+						board[i][ii] = new Piece(BLACK, 1); break;
 					
 				}
 			}
 		}
-		turn = Utils.flipCoin() ? PieceColor.BLACK : PieceColor.RED; 
+		turn = Utils.flipCoin() ? 0 : 1; 		
 	}
-	
-	PieceColor getWinner() {
-		int numRed = 0;
-		int numBlack = 0;
-		for (int i=0; i<8; i++) {
-			for (int ii=0; ii<8; ii++) {
-				switch (board[i][ii]) {
-					case BLACK_KING:
-					case BLACK_SINGLE:
-						numBlack ++;
-						break;
-					case EMPTY:
-						break;
-					case RED_KING:
-					case RED_SINGLE:
-						numRed ++;
-						break;
-				}
-			}
-		}
-		if (numRed == 0)
-			return PieceColor.BLACK;
-		else if (numBlack == 0)
-			return PieceColor.RED;
-		return PieceColor.NONE;
+
+	@Override
+	public Piece getPiece(int rank, int column) {
+		return board[rank][column];
 	}
-	
-	PieceColor getTurnColor() {
+
+	@Override
+	public int getRanks() {
+		return 8;
+	}
+
+	@Override
+	public int getColumns() {
+		return 8;
+	}
+
+	@Override
+	public int getNumPlayers() {
+		return 2;
+	}
+
+	@Override
+	public int getCurPlayerNum() {
 		return turn;
 	}
-	
-	Piece getBoard(int rank, int col) {
-		return board[rank][col];
-	}
-	
-	public List<Move> computeMovesForSquare(int rank, int col) {
+
+	@Override
+	public List<Move> computeMoves(int rank, int col) {
 		return computeMovesForSquare(rank, col, null);
+	}
+
+	@Override
+	public int getWinner() {
+		int [] count = { 0, 0 };
+		for (int i=0; i<8; i++) {
+			for (int ii=0; ii<8; ii++) {
+				if (board[i][ii].stacks > 0)
+					count[board[i][ii].playerNum]++;
+			}
+		}
+		if (count[0] != 0 && count[1] != 0)
+			return -1;
+		
+		return count[0] == 0? 1 : 0;
 	}
 	
 	private List<Move> computeMovesForSquare(int rank, int col, Move parent) {
@@ -121,16 +136,16 @@ public class Checkers {
 		
 		Piece p = board[rank][col];
 		
-		if (p == Piece.EMPTY || p.color != getTurnColor()) {
+		if (p.stacks == 0 || p.playerNum != getCurPlayerNum()) {
 			return moves;
 		}
 
 		int [] dr, dc;
 		
-		if (p.isKing) {
+		if (p.stacks > 1) {
 			dr = new int[] { 1, 1, -1, -1 };
 			dc = new int[] { -1, 1, -1, 1 };
-		} else if (p.color == PieceColor.BLACK) {
+		} else if (p.playerNum == BLACK) {
 			// negative
 			dr = new int [] { -1, -1 };
 			dc = new int [] { -1, 1 };
@@ -141,24 +156,30 @@ public class Checkers {
 		}
 		
 		for (int i=0; i<dr.length; i++) {
-			if (!isOnBoard(rank+dr[i], col+dc[i]))
+			final int rdr = rank+dr[i];
+			final int cdc = col+dc[i];
+			final int rdr2 = rank+dr[i]*2;
+			final int cdc2 = col+dc[i]*2;
+			
+			if (!isOnBoard(rdr, cdc))
 				continue;
-			Piece t = board[rank+dr[i]][col+dc[i]];
-			if (t == Piece.EMPTY) {
+			// t is piece one unit away in this direction
+			Piece t = board[rdr][cdc];
+			if (t.stacks == 0) {
 				if (parent == null)
-					moves.add(new Move(rank, col, dr[i], dc[i], 0, 0, false, false, null));
+					moves.add(new Move(MoveType.SLIDE, rank, col, rdr, cdc, 0, 0, turn));
 			} else {
 				// check for jump
-				if (isOnBoard(rank+dr[i]*2, col+dc[i]*2)) {
-					Piece j = board[rank+dr[i]*2][col+dc[i]*2];
-					if (j == Piece.EMPTY) {
+				if (isOnBoard(rdr2, cdc2)) {
+					Piece j = board[rdr2][cdc2];
+					if (j.stacks == 0) {
 						// we can jump to here
-						if (t.color == getTurnColor()) {
+						if (t.playerNum == getCurPlayerNum()) {
 							// we are jumping ourself, no capture
-							moves.add(new Move(rank, col, dr[i]*2, dc[i]*2, 0, 0, false, true, null));
+							moves.add(new Move(MoveType.JUMP, rank, col, rdr2, cdc2, 0, 0, turn));
 						} else {
 							// jump with capture
-							moves.add(new Move(rank, col, dr[i]*2, dc[i]*2, rank+dr[i], col+dc[i], true, true, null));
+							moves.add(new Move(MoveType.JUMP_CAPTURE, rank, col, rdr2, cdc2, rdr, cdc, turn));
 						}
 					}
 				}
@@ -168,124 +189,55 @@ public class Checkers {
 		return moves;
 	}
 
-	void endTurn() {
-		turn = turn == PieceColor.BLACK ? PieceColor.RED : PieceColor.BLACK;
+	
+	@Override
+	public void endTurn() {
+		turn = (turn+1) % 2;
 	}
 	
-	List<Move> executeMove(Move move) {
-		Piece t = board[move.startRank][move.startCol];
-		board[move.startRank][move.startCol] = Piece.EMPTY;
+	@Override
+	public List<Move> executeMove(Move move) {
+		final Piece t = board[move.startRank][move.startCol];
+		board[move.startRank][move.startCol] = new Piece(0,0);
 		// check for king
-		int rank = move.startRank + move.dRank;
-		if (rank == 0 && t.color == PieceColor.BLACK) {
-			t = Piece.BLACK_KING;
-		} else if (rank == board.length-1 && t.color == PieceColor.RED) {
-			t = Piece.RED_KING;
+		boolean isKinged = false;
+		int rank = move.endRank;// + move.dRank;
+		if (rank == 0 && t.stacks == 1 && t.playerNum == BLACK) {
+			isKinged = true;
+		} else if (rank == board.length-1 && t.stacks == 1 && t.playerNum== RED) {
+			isKinged = true;
+		}
+
+		if (isKinged) {
+			t.stacks=2;
 		}
 		
-		board[move.startRank + move.dRank][move.startCol + move.dCol] = t;
-		if (move.hasCapture) {
-			board[move.captureRank][move.captureCol] = Piece.EMPTY;
-		} else if (move.isJump) {
-			// do nothing
-		} else {
-			endTurn();
-			return Collections.EMPTY_LIST;
+		board[move.endRank][move.endCol] = t;
+		
+		switch (move.type) {
+			case JUMP_CAPTURE:
+				board[move.captureRank][move.captureCol].stacks = 0;
+			case JUMP:
+				if (!isKinged)
+					break; // recursive compute next move
+			case SLIDE:
+				endTurn();
+				return Collections.EMPTY_LIST;
+			case STACK:
+			default:
+				throw new AssertionError();
 		}
-		List<Move> nextMoves = computeMovesForSquare(move.startRank+move.dRank, move.startCol+move.dCol, move);
+		
+		
+		List<Move> nextMoves = computeMovesForSquare(move.endRank, move.endCol, move);
 		if (nextMoves.size() == 0) {
 			endTurn();
 		}
 		return nextMoves;
 	}
 	
-	
-	/*
-	private int buildJumpTree(Move move) {
-		int [] num = { 0 };
-		buildJumpTreeR(move.fromRank, move.fromCol, move.jumpTree, num);
-		return num[0];
-	}
-
-	private void buildJumpTreeR(int sr, int sc, Jump parent, int [] num) {
-		
-		int color = board[sr][sc];
-		// color is also the direction of movement
-
-		for (int i=0; i<4; i++) {
-			if (!canMoveInDirection(sr, sc, i))
-				continue;
-			int r = sr + dr[i];
-			int c = sc + dc[i];
-			if (isOnBoard(r, c)) {
-				if (board[r][c] < 0 && color > 0 || board[r][c] > 0 && color < 0) {
-					// we can jump over this piece
-					int captureR = r;
-					int captureC = c;
-					// this is where we will land
-					int jumpR = r + dr[i];
-					int jumpC = c + dc[i];
-					if (isOnBoard(jumpR, jumpC)) {
-						num[0] ++;
-						parent.children[i] = new Jump(jumpR, jumpC, captureR, captureC);
-						int t = board[captureR][captureC];
-						board[captureR][captureC] = 0;
-						buildJumpTreeR(jumpR, jumpC, parent.children[i], num);
-						board[captureR][captureC] = t;
-					}
-				}
-			}
-		}
-	}
-	
-
-	static class Jump {
-		int jumpR, jumpC;
-		int captureR, captureC;
-		
-		public Jump(int jumpR, int jumpC, int captureR, int captureC) {
-			super();
-			this.jumpR = jumpR;
-			this.jumpC = jumpC;
-			this.captureR = captureR;
-			this.captureC = captureC;
-		}
-
-
-
-		Jump [] children = new Jump[4];
-	}
-	
-	/**
-	 * Return null if game over
-	 * @return
-	 *
-	void computMoves(MoveTree [][] moves) {
-		for (int r=0; r<board.length; r++) {
-			for (int c=0; c<board[0].length; c++) {
-				Piece p = board[r][c];
-				MoveTree root = new MoveTree();
-				buildMoveTree(r, c, root);
-			}
-		}
-	}
-	
-	void buildMoveTree(int r, int c, final MoveTree root) {
-		final Piece p = board[r][c];
-		for (MoveType t : p.moveTypes) {
-			int nr = r+t.dRank;
-			int nc = c+t.dColumn;
-			if (!isOnBoard(nr, nc))
-				continue;
-			final Piece s = board[nr][nc];
-			if (s == Piece.EMPTY) {
-				
-			}
-		}
-
-	}*/
-	
-	boolean isOnBoard(int r, int c) {
+	@Override
+	public boolean isOnBoard(int r, int c) {
 		return r>=0 && c>=0 && r<board.length && c<board[0].length;
 	}
 }
