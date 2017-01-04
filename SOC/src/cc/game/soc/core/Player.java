@@ -759,7 +759,8 @@ public abstract class Player extends Reflector<Player> {
 		UPGRADE_SHIP,
 		SHIP_TO_MOVE,
 		ROUTE_DIPLOMAT, // player chooses from any open route.  If theirs, then they can move it, otherwise opponents are removed from the baord.
-		OPPONENT_ROAD_TO_ATTACK,
+		OPPONENT_ROAD_TO_ATTACK, 
+		OPPONENT_SHIP_TO_ATTACK, // player chooses an opponent ship adjacent to one of they're warships
 	}
 	
 	public abstract Route chooseRoute(SOC soc, Collection<Integer> routeIndices, RouteChoice mode);

@@ -1,6 +1,7 @@
 package cc.game.soc.swing;
 
 import java.awt.BorderLayout;
+
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
@@ -9,6 +10,9 @@ import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
+import java.awt.GridBagConstraints;
+import static java.awt.GridBagConstraints.*;
+import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
@@ -2501,10 +2505,11 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
         //panel.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         panel.setPreferredSize(new Dimension(1000, 800));
         panel.getViewport().add(view);
-        view.setLayout(new GridLayout(0, 2));
+        view.setLayout(new GridBagLayout());
+        GridBagConstraints cons = new GridBagConstraints();
 
         final HashMap<JComponent, Field> components = new HashMap<JComponent, Field>();
-        
+        final int numCols = 10;
         try {
         	
         	Field [] fields = Rules.class.getDeclaredFields();
@@ -2512,35 +2517,44 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
         		Annotation [] anno = f.getAnnotations();
         		for (Annotation a : anno) {
         			if (a.annotationType().equals(RuleVariable.class)) {
+    					cons.gridx=0;
         				f.setAccessible(true);
         				RuleVariable ruleVar = (RuleVariable)a;
         				if (ruleVar.separator().length() > 0) {
-        					view.add(new JLabel(ruleVar.separator()));
-        					view.add(new JLabel());
-        			        view.add(new JSeparator());
-        			        view.add(new JSeparator());
+        					cons.fill=HORIZONTAL;
+        					cons.gridwidth=numCols;
+        					view.add(new JLabel(ruleVar.separator()), cons);
+        					cons.gridy++;
+        					view.add(new JSeparator(), cons);
+        					cons.gridy++;
+        					cons.fill=NONE;
         				}
         				
-    			        view.add(new JLabel("<html><body style='width: 400'/>" + ruleVar.description()));
+        				cons.gridx=0;
+        				cons.gridwidth=1;
         				if (f.getType().equals(boolean.class)) {
         					if (editable) {
-            			        JToggleButton button = new JToggleButton("Enabled", f.getBoolean(rules));
-            			        view.add(button);
+        						JCheckBox button = new JCheckBox("Enabled", f.getBoolean(rules));
+            			        view.add(button, cons);
             			        components.put(button,  f);
         					} else {
-        						view.add(new JLabel(f.getBoolean(rules) ? "Enable" : "Disabled"));
+        						view.add(new JLabel(f.getBoolean(rules) ? "Enable" : "Disabled"), cons);
         					}
         				} else if (f.getType().equals(int.class)) {
         					if (editable) {
             			        final JSpinner spinner = new JSpinner(new SpinnerNumberModel(f.getInt(rules), ruleVar.minValue(), ruleVar.maxValue(), ruleVar.valueStep()));
-            			        view.add(spinner);
+            			        view.add(spinner, cons);
             			        components.put(spinner, f);
         					} else {
-        						view.add(new JLabel("" + f.getInt(rules)));
+        						view.add(new JLabel("" + f.getInt(rules)), cons);
         					}
         				} else {
         					System.err.println("Dont know how to handle field type:" + f.getType());
         				}
+        				cons.gridx=1;
+        				cons.gridwidth = numCols-1;
+    			        view.add(new JLabel(ruleVar.description()), cons);
+    			        cons.gridy++;
         				break;
         			}
         		}

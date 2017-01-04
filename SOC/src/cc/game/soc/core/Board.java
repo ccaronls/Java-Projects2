@@ -1252,6 +1252,17 @@ public final class Board extends Reflector<Board> {
 		}
 		return routes;
 	}
+	
+	/**
+	 * Convenience method to get routes adjacent and a specific route
+	 * @param rIndex
+	 * @return
+	 */
+	public Iterable<Integer> getRouteIndicesAdjacentToRoute(Route r) {
+		List<Integer> routes = (List<Integer>)getRouteIndicesAdjacentToVertex(r.getFrom());
+		routes.addAll((List<Integer>)getRouteIndicesAdjacentToVertex(r.getTo()));
+		return routes;
+	}
 
 	/**
 	 * Get the edge between 2 vertices null when DNE.

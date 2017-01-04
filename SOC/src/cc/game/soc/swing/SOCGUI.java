@@ -473,7 +473,7 @@ public class SOCGUI extends SOC {
 	}
 
 	@Override
-	protected void onStructureDestroyed(Vertex v, VertexType newType, Player destroyer, Player victim) {
+	protected void onStructureDemoted(Vertex v, VertexType newType, Player destroyer, Player victim) {
 		addCardAnimation(victim, v.getType().getNiceName() + " Reduced to " + newType.getNiceName());
 	}
     

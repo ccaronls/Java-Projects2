@@ -50,7 +50,7 @@ public class PlayerBot extends Player {
     		
     		Collection<String> properties = isolateChangingLeafProperties(leafs);
     		
-    		HashMap<String,Double> maxValues = new HashMap<>();
+    		HashMap<String,Double> maxValues = new HashMap<String,Double>();
     		for (BotNode n : leafs) {
     			for (String key : n.properties.keySet()) {
     				Double v = n.properties.get(key);
@@ -152,11 +152,11 @@ public class PlayerBot extends Player {
 	}*/
 	
 	private void stripUnchangingProperties(List<BotNode> nodes) {
-		HashMap<String, Double> values = new HashMap<>();
+		HashMap<String, Double> values = new HashMap<String,Double>();
 		for (BotNode n : nodes) {
 			values.putAll(n.properties);
 		}
-		HashSet<String> changing = new HashSet<>();
+		HashSet<String> changing = new HashSet<String>();
 		for (BotNode n : nodes) {
 			for (String k : values.keySet()) { //n.properties.keySet()) {
 				if (n.properties.containsKey(k)) {
@@ -182,7 +182,7 @@ public class PlayerBot extends Player {
 	
 	private Collection<String> isolateChangingLeafProperties(List<BotNode> leafs) {
 		Set<String> keepers = new HashSet<String>();
-		HashMap<String, Double> values = new HashMap<>();
+		HashMap<String, Double> values = new HashMap<String,Double>();
 		for (BotNode n : leafs) {
 			values.putAll(n.properties);
 		}
@@ -1219,7 +1219,7 @@ public class PlayerBot extends Player {
 						Vertex v = copy.getVertex(vIndex);
 						assert(v.getPlayer() > 0);
 						assert(v.getPlayer() != getPlayerNum());
-						int score = SOC.computeAttackerScoreAgainstStructure(v, getPlayerNum(), copy);
+						int score = SOC.doAttackStructure(v, getPlayerNum(), copy);
 						VertexType [] result = new VertexType[1];
 						float chance = 1.0f*score / SOC.getKnightScoreToAttackStructure(v, result, soc.getRules());
 						BotNode node = root.attach(new BotNodeVertex(v, vIndex));

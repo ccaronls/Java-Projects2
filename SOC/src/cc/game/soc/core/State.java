@@ -15,13 +15,13 @@ enum State {
 	POSITION_SHIP_CANCEL(true, "Place a ship on the board."),
 	// Player is position a moved ship.  Only one allowed per turn
 	POSITION_SHIP_AND_LOCK_CANCEL(true, "Position the ship on the board."),
-	UPGRADE_SHIP_CANCEL(true, "Choose a ship to upgrade to warship"),
+	UPGRADE_SHIP_CANCEL(true, "Choose a ship to upgrade to warship."),
 	POSITION_SHIP_NOCANCEL(false, "Place a ship on the board."),
 	CHOOSE_SHIP_TO_MOVE(true, "Choose from an open ended ship to reposition."),
 	NEXT_PLAYER(false, ""),
 	PREV_PLAYER(false, ""),
 	START_ROUND(false, "Round starting."),
-	SETUP_GIVEUP_CARDS(false, "Computing each players cards to give up"),
+	SETUP_GIVEUP_CARDS(false, "Computing each players cards to give up."),
 	GIVE_UP_CARD(false, "Discard one of your cards back to the deck."),
 	INIT_PLAYER_TURN(false, ""),
 	PLAYER_TURN_NOCANCEL(false, "Choose from one of your move options or Continue to allow next player to take a turn."),
@@ -36,7 +36,7 @@ enum State {
 	DRAW_RESOURCE_CANCEL(true, "Pick a Resource Card to take into your hand."),
 	DRAW_RESOURCE_NOCANCEL(false, "Pick a Resource Card to take into your hand."),
 	CHOOSE_OPPONENT_TO_TAKE_RESOURCE_FROM(false, "Pick an opponent to take a card from."),
-	CHOOSE_OPPONENT_FOR_GIFT_CARD(false, "Pick an opponent to give a resource of your choice"),
+	CHOOSE_OPPONENT_FOR_GIFT_CARD(false, "Pick an opponent to give a resource of your choice."),
 	CHOOSE_RESOURCE_MONOPOLY(true, "Choose a Resource to monopolize (collect all from all opponents hands.)"),
 	SHOW_TRADE_OPTIONS(true, "Display your trade options."), 
 //	TRADE_COMPLETED(false),
@@ -54,13 +54,13 @@ enum State {
 	CHOOSE_PLAYER_FOR_DESERTION(true, "Choose a player.  They must choose a knight for desertion.  You then can place a knight of equal strength."),
 	CHOOSE_DIPLOMAT_ROUTE(true, "Pick a road.  If you pick an opponents road it will be removed from the board.  If you pick one of your one roads you will be allowed to reposition it."),
 	CHOOSE_HARBOR_RESOURCE(true, "Pick a resource for Harbor Trade."),
-	CHOOSE_HARBOR_PLAYER(true, "Choose a player with whom to force trade"),
+	CHOOSE_HARBOR_PLAYER(true, "Choose a player with whom to force trade."),
 	EXCHANGE_CARD(false, "Pick a card form your hand to Exchange."),
 	CHOOSE_OPPONENT_KNIGHT_TO_DISPLACE(true, "Choose an opponents knight to displace."), // Intrigue
 	CHOOSE_TILE_INVENTOR(true, "Pick 2 tiles to switch their die numbers."),
 	CHOOSE_PLAYER_MASTER_MERCHANT(true, "Choose from one of your opponents.  You can take any 2 resource or commodity cards form thier hand if they have it."),
 	TAKE_CARD_FROM_OPPONENT(false, "Choose from one of your opponents cards to take into your hand."),
-	POSITION_MERCHANT(true, "Place the merchant on the board.  Whatever resource the Merchant is on, you will be allowed a 2:1 trade for the Resource until the Merchant is moved again"),
+	POSITION_MERCHANT(true, "Place the merchant on the board.  Whatever resource the Merchant is on, you will be allowed a 2:1 trade for the Resource until the Merchant is moved again."),
 	CHOOSE_RESOURCE_FLEET(true, "Choose any Resource to use for a 2:1 trade for the duration of your turn."), // Merchant Fleet
 	CHOOSE_PLAYER_TO_SPY_ON(true, "Choose an Opponent to Spy on.  You can pick any one of their Progress cards into your hand."), // Spy
 	CHOOSE_OPPONENT_CARD(false, "Choose a Progress card to take into your hand."), // Spy
@@ -70,7 +70,11 @@ enum State {
     PROCESS_PIRATE_ATTACK(false, ""), // transition state 
     CHOOSE_PIRATE_FORTRESS_TO_ATTACK(true, "Choose a pirate fortress to attack"),	
     CHOOSE_ROAD_TO_ATTACK(true, "Pick a road for knight to attack"),
-    CHOOSE_STRUCTURE_TO_ATTACK(true, "Pick a structure for knight to attack"),
+    ROLL_DICE_ATTACK_ROAD(false, "Roll dice to attack opponents road."),
+    CHOOSE_STRUCTURE_TO_ATTACK(true, "Pick a structure for knight to attack."),
+    ROLL_DICE_ATTACK_STRUCTURE(false, "Roll dice to attack opponents structure."),
+    CHOOSE_SHIP_TO_ATTACK(true, "Pick a ship to be attacked by a warship."),
+    ROLL_DICE_ATTACK_SHIP(false, "Roll dice to attack youe opponents ship.")
 	;
 	
 	private State(boolean canCancel, String helpText) {

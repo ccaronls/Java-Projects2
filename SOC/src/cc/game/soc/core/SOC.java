@@ -75,8 +75,8 @@ public class SOC extends Reflector<SOC> {
 	private final Player[]   	mPlayers = new Player[MAX_PLAYERS];
 	private int					mCurrentPlayer;
 	private int					mNumPlayers;
-	private LinkedList<Dice[]>	mDice = new LinkedList<Dice[]>(); // compute the next 10 die rolls to support rewind with consistent die rolls
-	private DiceType[]			mDiceConfig = null;
+	private LinkedList<Integer>	mDice = new LinkedList<Integer>(); // compute the next 100 die rolls to support rewind with consistent die rolls
+	private Stack<DiceType[]>	mDiceConfigStack = new Stack<DiceType[]>(); 
 	private Stack<StackItem>	mStateStack = new Stack<StackItem>();
 	private List<Card>			mDevelopmentCards = new ArrayList<Card>();
 	private List<Card>[]		mProgressCards;
@@ -87,15 +87,15 @@ public class SOC extends Reflector<SOC> {
 	private int []				mMetropolisPlayer = new int[NUM_DEVELOPMENT_AREA_TYPES];
 	
     @SuppressWarnings("rawtypes")
-    private Collection			mOptions;	
+    private List			mOptions;	
 	//private Trade            	mSaveTrade;
 	
 	public final State getState() {
 		return mStateStack.peek().state;
 	}
 	
-	private final Object getStateData() {
-		return mStateStack.peek().data;
+	private final <T> T getStateData() {
+		return (T)mStateStack.peek().data;
 	}
 	
 	private UndoAction getUndoAction() {
@@ -182,7 +182,24 @@ public class SOC extends Reflector<SOC> {
 	 */
 	public Dice [] getDice() {
 		initDice();
-		return mDice.getFirst();
+		DiceType[] types = getDiceConfig();
+		Dice [] die = new Dice[types.length];
+		for (int i=0; i<die.length; i++) {
+			die[i] = new Dice(mDice.get(i), types[i]);
+		}
+		return die;
+	}
+	
+	private DiceType[] getDiceConfig() {
+		return mDiceConfigStack.peek();
+	}
+	
+	private void pushDiceConfig(DiceType ... types) {
+		mDiceConfigStack.add(types);
+	}
+	
+	private void popDiceConfig() {
+		mDiceConfigStack.pop();
 	}
 	
 	/**
@@ -280,7 +297,7 @@ public class SOC extends Reflector<SOC> {
 		mStateStack.clear();
 		mEventCards.clear();
 		mDice.clear();
-		mDiceConfig = null;
+		mDiceConfigStack.clear();
 		resetOptions();
 	}
 
@@ -470,13 +487,8 @@ public class SOC extends Reflector<SOC> {
 	}
 	
 	private void initDice() {
-		while (mDice.size() < 10) {
-			Dice [] dice = new Dice[mDiceConfig.length];
-			for (int i=0; i<mDiceConfig.length; i++) {
-				dice[i] = new Dice(mDiceConfig[i]);
-				dice[i].roll();
-			}
-			mDice.addLast(dice);
+		while (mDice.size() < 100) {
+			mDice.addLast(Utils.rand() % 6 + 1);
 		}
 	}
 	
@@ -999,13 +1011,13 @@ public class SOC extends Reflector<SOC> {
         if (getRules().isEnableCitiesAndKnightsExpansion()) {
         	
         	if (getRules().isEnableEventCards()) {
-        		mDiceConfig = new DiceType[] { DiceType.RedYellow, DiceType.Event };
+        		pushDiceConfig(DiceType.RedYellow, DiceType.Event);
         	} else {
-        		mDiceConfig = new DiceType[] { DiceType.YellowRed, DiceType.RedYellow, DiceType.Event };
+        		pushDiceConfig(DiceType.YellowRed, DiceType.RedYellow, DiceType.Event);
         	}
         	mBarbarianDistance = getRules().getBarbarianStepsToAttack();
         } else {
-        	mDiceConfig = new DiceType [] { DiceType.WhiteBlack, DiceType.WhiteBlack };
+        	pushDiceConfig(DiceType.WhiteBlack, DiceType.WhiteBlack);
         	mBarbarianDistance = -1;
         }
         
@@ -1578,7 +1590,7 @@ public class SOC extends Reflector<SOC> {
 				}
 
 				case PLAYER_TURN_NOCANCEL: // wait state
-					if (mOptions == null) {
+					if (mOptions == null || mOptions.size() == 0 || !(mOptions.get(0) instanceof MoveType)) {
 						printinfo(getCurPlayer().getName() + " choose move");
 						mOptions = computeMoves(getCurPlayer(), mBoard, this);
 					}
@@ -2223,24 +2235,34 @@ public class SOC extends Reflector<SOC> {
 					if (r != null) {
 						assert(r.getPlayer() > 0);
 						assert(r.getType().isRoad);
-						Player victim = getPlayerByPlayerNum(r.getPlayer());
 						popState();
-						int score = Utils.rand() % 6;
-						onDiceRolledPrivate(new Dice(score, DiceType.WhiteBlack));
-						score += computeAttackerScoreAgainstRoad(r, getCurPlayerNum(), getBoard());
-						printinfo(getCurPlayer().getName() + " is attacking " + victim.getName() + "'s road");
-						onPlayerAttackingOpponent(getCurPlayer(), victim, "Road" , score, getRules().getKnightScoreToDestroyRoad());
-						if (score >= getRules().getKnightScoreToDestroyRoad()) {
-							printinfo(getCurPlayer().getName() + " has destoryed the road");
-							onRoadDestroyed(r, getCurPlayer(), victim);
-							r.setType(RouteType.OPEN);
-							getBoard().setRouteOpen(r);
-							updateLongestRoutePlayer();
-						} else {
-							printinfo(getCurPlayer().getName() + " failed to destroy the road");
-						}
-						resetOptions();
+						pushStateFront(State.ROLL_DICE_ATTACK_ROAD, r, null);
 					}
+					break;
+				}
+				
+				case ROLL_DICE_ATTACK_ROAD: {
+					Route r = (Route)getStateData();
+					assert(r != null);
+					Player victim = getPlayerByPlayerNum(r.getPlayer());
+					pushDiceConfig(DiceType.WhiteBlack);
+					rollDice();
+					int score = getDice()[0].getNum();
+					score += computeAttackerScoreAgainstRoad(r, getCurPlayerNum(), getBoard());
+					printinfo(getCurPlayer().getName() + " is attacking " + victim.getName() + "'s road");
+					onPlayerAttackingOpponent(getCurPlayer(), victim, "Road" , score, getRules().getKnightScoreToDestroyRoad());
+					if (score >= getRules().getKnightScoreToDestroyRoad()) {
+						printinfo(getCurPlayer().getName() + " has destoryed the road");
+						onRoadDestroyed(r, getCurPlayer(), victim);
+						r.setType(RouteType.OPEN);
+						getBoard().setRouteOpen(r);
+						updateLongestRoutePlayer();
+					} else {
+						printinfo(getCurPlayer().getName() + " failed to destroy the road");
+					}
+					popDiceConfig();
+					popState();
+					resetOptions();
 					break;
 				}
 				
@@ -2250,28 +2272,86 @@ public class SOC extends Reflector<SOC> {
 					}
 					Vertex v = getCurPlayer().chooseVertex(this, mOptions, VertexChoice.OPPONENT_STRUCTURE_TO_ATTACK);
 					if (v != null) {
-						Player victim = getPlayerByPlayerNum(v.getPlayer());
 						popState();
-						
-    					int score = Utils.rand() % 6 + computeAttackerScoreAgainstStructure(v, getCurPlayerNum(), getBoard());
-    					VertexType [] result = new VertexType[1];
-    					int minScore = getKnightScoreToAttackStructure(v, result, getRules());
-    					assert(minScore > 0);
-    					printinfo(getCurPlayer().getName() + " is attacking "+ victim.getName() + "'s " + v.getType().getNiceName());
-    					onPlayerAttackingOpponent(getCurPlayer(), victim, v.getType().getNiceName() , score, minScore);
-						if (score >= minScore) {
-							printinfo(getCurPlayer().getName() + " has destoryed the " + v.getType().getNiceName());
-							onStructureDestroyed(v, result[0], getCurPlayer(), victim);
-							v.setPlayerAndType(victim.getPlayerNum(), result[0]);
-							if (result[0] == VertexType.OPEN) {
-								v.reset();
-								updatePlayerRoadsBlocked(getBoard().getVertexIndex(v));
-							}
-						} else {
-							printinfo(getCurPlayer().getName() + " failed to destroy the " + v.getType().getNiceName());
-						}
-						resetOptions();
+						pushStateFront(State.ROLL_DICE_ATTACK_STRUCTURE, v, null);
 					}
+					break;
+				}
+				case ROLL_DICE_ATTACK_STRUCTURE: {
+					Vertex v = (Vertex)getStateData();
+					assert(v != null);
+					Player victim = getPlayerByPlayerNum(v.getPlayer());
+					pushDiceConfig(DiceType.WhiteBlack);
+					rollDice();
+					
+					int score = getDice()[0].getNum() - 1 + doAttackStructure(v, getCurPlayerNum(), getBoard());
+					VertexType [] result = new VertexType[1];
+					int minScore = getKnightScoreToAttackStructure(v, result, getRules());
+					assert(minScore > 0);
+					printinfo(getCurPlayer().getName() + " is attacking "+ victim.getName() + "'s " + v.getType().getNiceName());
+					onPlayerAttackingOpponent(getCurPlayer(), victim, v.getType().getNiceName() , score, minScore);
+					if (score >= minScore) {
+						printinfo(getCurPlayer().getName() + " has destoryed the " + v.getType().getNiceName());
+						onStructureDemoted(v, result[0], getCurPlayer(), victim);
+						v.setPlayerAndType(victim.getPlayerNum(), result[0]);
+						if (result[0] == VertexType.OPEN) {
+							v.reset();
+							updatePlayerRoadsBlocked(getBoard().getVertexIndex(v));
+						}
+					} else {
+						printinfo(getCurPlayer().getName() + " failed to destroy the " + v.getType().getNiceName());
+					}
+					popDiceConfig();
+					popState();
+					resetOptions();
+					break;
+				}
+				
+				case CHOOSE_SHIP_TO_ATTACK: {
+					if (mOptions==null) {
+						mOptions = computeAttackableShips(this, getCurPlayerNum(), getBoard());
+					}
+					Route r = getCurPlayer().chooseRoute(this, mOptions, RouteChoice.OPPONENT_SHIP_TO_ATTACK);
+					if (r != null) {
+						popState();
+						pushStateFront(State.ROLL_DICE_ATTACK_SHIP, r, null);
+					}
+					break;
+				}
+				
+				case ROLL_DICE_ATTACK_SHIP: {
+					Route attacking = getStateData();
+					assert(attacking != null);
+					pushDiceConfig(DiceType.WhiteBlack);
+					Player victim = getPlayerByPlayerNum(attacking.getPlayer());
+					rollDice();
+					// if roll is 1,2,3 then attacker last and loses their ship
+					// if roll is 4,5,6 then attacker won and the attacked ship becomes property of attacker
+					// the midpoint is shifted by the difference in the number of cities of each player
+					int attackingCities = mBoard.getCitiesForPlayer(getCurPlayerNum()).size();
+					int attackedCities = mBoard.getCitiesForPlayer(attacking.getPlayer()).size();
+					int dieToWin = (4-(attackingCities-attackedCities));
+					printinfo(getCurPlayer().getName() + " needs a " + dieToWin + " or better to win.");
+					int score = getDice()[0].getNum();
+					onPlayerAttackingOpponent(getCurPlayer(), victim, "Ship" , score, dieToWin-1);
+					if (score >= dieToWin) {
+						printinfo(getCurPlayer().getName() + " has attcked " + getPlayerByPlayerNum(attacking.getPlayer()).getName() + " and comandeered their ship!");
+						onPlayerShipComandeered(getCurPlayer(), attacking);
+						mBoard.setPlayerForRoute(attacking, getCurPlayerNum(), attacking.getType());
+					} else {
+						for (int i : mBoard.getRouteIndicesAdjacentToRoute(attacking)) {
+							Route r = mBoard.getRoute(i);
+							if (r.getPlayer() == getCurPlayerNum() && r.getType() == RouteType.WARSHIP) {
+								printinfo(getPlayerByPlayerNum(attacking.getPlayer()).getName() + " has defended their ship from " + getCurPlayer().getName() + "'s attack.  Warship destroyed.");
+								onPlayerShipDestroyed(r);
+								mBoard.setRouteOpen(r);
+								break;
+							}
+						}
+					}
+					popDiceConfig();
+					popState();
+					resetOptions();
 					break;
 				}
 			}
@@ -2347,13 +2427,41 @@ public class SOC extends Reflector<SOC> {
 		return minScore;
 	}
 	
+	/**
+	 * 
+	 * @param attacker
+	 * @param victim
+	 * @param attackingWhat
+	 * @param attackerScore
+	 * @param victimScore
+	 */
 	protected void onPlayerAttackingOpponent(Player attacker, Player victim, String attackingWhat, int attackerScore, int victimScore) {}
 	
+	/**
+	 * 
+	 * @param r
+	 * @param destroyer
+	 * @param victim
+	 */
 	protected void onRoadDestroyed(Route r, Player destroyer, Player victim) {}
 	
-	protected void onStructureDestroyed(Vertex v, VertexType newType, Player destroyer, Player victim) {}
+	/**
+	 * Called when a player structure has been attacked and as a result has lost a level.  Settlements get demoted to open vertex.
+	 * @param v
+	 * @param newType
+	 * @param destroyer
+	 * @param victim
+	 */
+	protected void onStructureDemoted(Vertex v, VertexType newType, Player destroyer, Player victim) {}
 	
-	public static Collection<Integer> computeAttackableRoads(SOC soc, int playerNum, Board b) {
+	/**
+	 * 
+	 * @param soc
+	 * @param playerNum
+	 * @param b
+	 * @return
+	 */
+	public static List<Integer> computeAttackableRoads(SOC soc, int playerNum, Board b) {
 		if (soc.getRules().getKnightScoreToDestroyRoad() <= 0)
 			return Collections.emptyList();
 		HashSet<Integer> edges = new HashSet<Integer>();
@@ -2365,9 +2473,37 @@ public class SOC extends Reflector<SOC> {
 				}
 			}
 		}
-		return edges;
+		return new ArrayList<Integer>(edges);
 	}
 	
+	/**
+	 * 
+	 * @param soc
+	 * @param playerNum
+	 * @param b
+	 * @return
+	 */
+	public static List<Integer> computeAttackableShips(SOC soc, int playerNum, Board b) {
+		HashSet<Integer> ships = new HashSet<Integer>();
+		for (Route r : b.getRoutesOfType(playerNum, RouteType.WARSHIP)) {
+			for (int rIndex : b.getRouteIndicesAdjacentToVertex(r.getFrom())) {
+				Route rr = b.getRoute(rIndex);
+				if (rr.getPlayer() != playerNum && rr.getPlayer() > 0 && rr.getType() == RouteType.SHIP) {
+					// attackable ship
+					ships.add(rIndex);
+				}
+			}
+		}
+		return new ArrayList<Integer>(ships);
+	}
+	
+	/**
+	 * 
+	 * @param r
+	 * @param attackerNum
+	 * @param board
+	 * @return
+	 */
 	public static int computeAttackerScoreAgainstRoad(Route r, int attackerNum, Board board) {
 		int score = 0;
 		Vertex v0 = board.getVertex(r.getFrom());
@@ -2383,7 +2519,14 @@ public class SOC extends Reflector<SOC> {
 		return score;
 	}
 
-	public static Collection<Integer> computeAttackableStructures(SOC soc, int playerNum, Board b) {
+	/**
+	 * 
+	 * @param soc
+	 * @param playerNum
+	 * @param b
+	 * @return
+	 */
+	public static List<Integer> computeAttackableStructures(SOC soc, int playerNum, Board b) {
 		HashSet<Integer> verts = new HashSet<Integer>();
 		for (int vIndex : b.getVertsOfType(playerNum, VertexType.BASIC_KNIGHT_ACTIVE, VertexType.STRONG_KNIGHT_ACTIVE, VertexType.MIGHTY_KNIGHT_ACTIVE)) {
 			Vertex v = b.getVertex(vIndex);
@@ -2418,10 +2561,10 @@ public class SOC extends Reflector<SOC> {
 				}
 			}
 		}
-		return verts;
+		return new ArrayList<Integer>(verts);
 	}
 	
-	public static int computeAttackerScoreAgainstStructure(Vertex v, int attackerNum, Board b) {
+	static int doAttackStructure(Vertex v, int attackerNum, Board b) {
 		int score = 0;
 		for (int i=0; i<v.getNumAdjacent(); i++) {
 			int vIndex = v.getAdjacent()[i];
@@ -2434,41 +2577,6 @@ public class SOC extends Reflector<SOC> {
 		return score;
 	}
 	
-	public static void processStructureAttack(SOC soc, Vertex v) {
-		int minScore = 0;
-		VertexType result = null;
-		switch (v.getType()) {
-			case WALLED_CITY:
-				minScore = soc.getRules().getKnightScoreToDestroyWalledCity();
-				result = VertexType.CITY;
-				break;
-			case METROPOLIS_POLITICS:
-			case METROPOLIS_SCIENCE:
-			case METROPOLIS_TRADE:
-				minScore = soc.getRules().getKnightScoreToDestroyMetropolis();
-				result = VertexType.CITY;
-				break;
-			case SETTLEMENT:
-				minScore = soc.getRules().getKnightScoreToDestroySettlement();
-				result = VertexType.OPEN;
-				break;
-			case CITY:
-				minScore = soc.getRules().getKnightScoreToDestroyCity();
-				result = VertexType.SETTLEMENT;
-				break;
-			case BASIC_KNIGHT_ACTIVE:
-			case BASIC_KNIGHT_INACTIVE:
-			case MIGHTY_KNIGHT_ACTIVE:
-			case MIGHTY_KNIGHT_INACTIVE:
-			case OPEN:
-			case PIRATE_FORTRESS:
-			case STRONG_KNIGHT_ACTIVE:
-			case STRONG_KNIGHT_INACTIVE:
-				throw new AssertionError("Unhandled case '" + v.getType() + "'");
-			
-		}		
-	}
-	
 	private void processRouteChange(Player p, Route edge) {
 		int len = mBoard.computeMaxRouteLengthForPlayer(p.getPlayerNum(), getRules().isEnableRoadBlock());
 		p.setRoadLength(len);
@@ -2479,8 +2587,19 @@ public class SOC extends Reflector<SOC> {
 		}		
 	}
 	
+	/**
+	 * 
+	 * @param p
+	 * @param v
+	 */
 	protected void onPlayerConqueredPirateFortress(Player p, Vertex v) {}
 	
+	/**
+	 * 
+	 * @param p
+	 * @param playerHealth
+	 * @param pirateHealth
+	 */
 	protected void onPlayerAttacksPirateFortress(Player p, int playerHealth, int pirateHealth) {}
 	
 	private void processPlayerAttacksPirateFortress(Player p, int vIndex) {
@@ -3115,6 +3234,12 @@ public class SOC extends Reflector<SOC> {
 				resetOptions();
 				break;
 			}
+			
+			case ATTACK_SHIP: {
+				pushStateFront(State.CHOOSE_SHIP_TO_ATTACK);
+				resetOptions();
+				break;
+			}
 		}
 	}
 	
@@ -3222,6 +3347,21 @@ public class SOC extends Reflector<SOC> {
 	 * @param r
 	 */
 	protected void onPlayerShipUpgraded(Player p, Route r) {}
+	
+	/**
+	 * Called when a players ship get taken over by another
+	 *  
+	 * @param taker
+	 * @param shipTaken
+	 */
+	protected void onPlayerShipComandeered(Player taker, Route shipTaken) {}
+	
+	/**
+	 * Called when a player ship is destroyed during an attack.
+	 * 
+	 * @param r
+	 */
+	protected void onPlayerShipDestroyed(Route r) {}
 	
 	private void givePlayerSpecialVictoryCard(Player player, SpecialVictoryType card) {
     	Player current = getSpecialVictoryPlayer(card);
@@ -3945,6 +4085,9 @@ public class SOC extends Reflector<SOC> {
     			if (p.canBuild(BuildableType.Warship) && b.getRoutesOfType(p.getPlayerNum(), RouteType.SHIP).size() > 0) {
     				types.add(MoveType.BUILD_WARSHIP);
     			}
+    			if (SOC.computeAttackableShips(soc, p.getPlayerNum(), b).size() > 0) {
+    				types.add(MoveType.ATTACK_SHIP);
+    			}
 			}
 			
 			// check for movable ships
@@ -4435,7 +4578,7 @@ public class SOC extends Reflector<SOC> {
 	 * @param p
 	 * @return
 	 */
-	static public Collection<Integer> computeAttackablePirateFortresses(Board b, Player p) {
+	static public List<Integer> computeAttackablePirateFortresses(Board b, Player p) {
 		HashSet<Integer> verts = new HashSet<Integer>();
 		for (int vIndex : b.getVertsOfType(0, VertexType.PIRATE_FORTRESS)) {
 			Vertex v = b.getVertex(vIndex);
@@ -4447,7 +4590,7 @@ public class SOC extends Reflector<SOC> {
 				}
 			}
 		}
-		return verts;
+		return new ArrayList<Integer>(verts);
 	}
 	
 	/**

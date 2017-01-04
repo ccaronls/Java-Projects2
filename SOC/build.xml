@@ -125,11 +125,24 @@
         </hibernatedoclet>
     </target>
     
+    <target name="libcompile">
+         <mkdir dir="${dest.dir}"/>
+         <javac destdir="${dest.dir}"
+             source="1.6"
+             target="1.6">
+             <src path="../GameLibrary/src"/>
+             <exclude name="**/swing/**.java"/>
+             <exclude name="**/skunkworks/**.java"/>
+         </javac>
+    </target>
+
+
     <!-- - - - - - - - - - - - - - - - - - 
         target: compile - compile all class to build directory 
         - - - - - - - - - - - - - - - - - -->
-    <target name="compile" depends="init">
+    <target name="compile" depends="init,libcompile">
         <javac srcdir="${dir.src}" destdir="${dir.build}" debug="on" nowarn="off" source="1.7" target="1.7" deprecation="off" optimize="on">
+            <exclude name="**/AIEvaluator.java"/>
             <classpath refid="project.classpath" />
         </javac>
     </target>
