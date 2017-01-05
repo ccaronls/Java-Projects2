@@ -37,20 +37,17 @@ public enum BuildableType {
 	}
 	
 	public String getNiceString() {
-		int n = 0;
 		String s = "";
 		for (ResourceType r : ResourceType.values()) {
 			if (cost[r.ordinal()] > 0) {
-				s += String.valueOf(cost[r.ordinal()]) + " " + r.name() + ", ";
-				n++;
+				if (s.length() > 0)
+					 s += ", ";
+				s += String.valueOf(cost[r.ordinal()]) + " " + r.name();
 			}
 		}
-		assert(n > 0);
-		if (n == 1) {
-			s = s.substring(0, s.indexOf(','));
-		} else {
-			int comma = s.lastIndexOf(',');
-			s = s.substring(0, comma) + "and" + s.substring(comma+1);
+		int comma = s.lastIndexOf(',');
+		if (comma > 0) {
+			s = s.substring(0, comma) + " and" + s.substring(comma+1);
 		}
 		return s;
 	}

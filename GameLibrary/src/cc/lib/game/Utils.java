@@ -1,5 +1,6 @@
 package cc.lib.game;
 
+import java.lang.reflect.Array;
 import java.util.*;
 
 import cc.lib.math.CMath;
@@ -1572,4 +1573,26 @@ public class Utils {
 	public static <T> T [] toArray(T ... arr) {
     	return arr;
     }
+    
+    /**
+     * Returns true if object is null or 'empty'.
+     * If o is a string, then empty means at least 1 non whitespace char.
+     * If o is a collection then empty means sie() == 0
+     * If o is an array then empty means length == 0
+     * otherwise not empty
+     * 
+     * @param o
+     * @return
+     */
+    public static boolean isEmpty(Object o) {
+		if (o == null)
+			return true;
+		if ((o instanceof String) && ((String)o).trim().length() == 0)
+			return true;
+		if ((o instanceof Collection) && ((Collection)o).size() == 0)
+			return true;
+		if (o.getClass().isArray() && Array.getLength(o) == 0)
+			return true;
+		return false;
+	}
 }
