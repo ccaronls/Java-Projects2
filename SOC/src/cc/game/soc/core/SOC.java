@@ -3487,6 +3487,13 @@ public class SOC extends Reflector<SOC> {
 					else if (tile.isLand())
 						r.setAdjacentToLand(true);
 				}
+				
+				for (Vertex v : mBoard.getTileVertices(tile)) {
+					if (tile.isWater())
+						v.setAdjacentToWater(true);
+					if (tile.isLand())
+						v.setAdjacentToLand(true);
+				}
 			}
 		}
 	}
