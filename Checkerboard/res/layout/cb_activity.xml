@@ -1,21 +1,45 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-     xmlns:cc="http://schemas.android.com/apk/res-auto"
+    xmlns:cc="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#888">
+    android:background="#888" >
 
     <cc.lib.android.SquareLinearLayout
+        android:id="@+id/layoutCheckerboard"
+        android:layout_width="wrap_content"
+        android:layout_height="fill_parent"
         android:layout_centerInParent="true"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        cc:dominantSide="height_matches_width">
-    
-	    <cc.android.checkerboard.CheckerboardView
-	        android:id="@+id/cbView"
-	        android:layout_width="fill_parent"
-	        android:layout_height="fill_parent"
-	        />
+        cc:dominantSide="width_matches_height" >
+
+        <cc.android.checkerboard.CheckerboardView
+            android:id="@+id/cbView"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent" />
     </cc.lib.android.SquareLinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="false"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="false"
+        android:layout_centerVertical="true"
+        android:layout_toLeftOf="@+id/layoutCheckerboard"
+        android:orientation="vertical" >
+
+        <Button
+            android:id="@+id/buttonNewGame"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="New Game" />
+
+        <Button
+            android:id="@+id/buttonEndTurn"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="End Turn" />
+
+    </LinearLayout>
 
 </RelativeLayout>
