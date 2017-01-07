@@ -39,15 +39,6 @@ public final class Vertex extends Reflector<Vertex> implements IVector2D {
 		this.x = x;
 		this.y = y;
 	}
-	
-	/**
-	 * 
-	 * 
-	 */
-	public void reset() {
-		player = 0;
-		type = VertexType.OPEN;
-	}
 
 	/**
 	 * 
@@ -166,23 +157,6 @@ public final class Vertex extends Reflector<Vertex> implements IVector2D {
 		return player;
 	}
 	
-	/**
-	 * Dont use to unset player.  Use clear player
-	 * @param p
-	 *
-	public void setPlayer(int p) {
-		assert(p>=0);
-		player = p;
-	}
-	
-	/**
-	 * 
-	 */
-	public void removePlayer() {
-		player = 0;
-		type = VertexType.OPEN;
-	}
-
 	/**
 	 * 
 	 * @return

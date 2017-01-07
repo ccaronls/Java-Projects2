@@ -21,7 +21,7 @@ public class FixSaveFile extends TestCase {
 		Board b = soc.getBoard();
 		for (Vertex v : b.getVerticies()) {
 			if (v.getPlayer()==0) {
-				v.removePlayer();
+				v.setOpen();
 				System.out.println("fixing board vertex : " + v);
 			}
 		}

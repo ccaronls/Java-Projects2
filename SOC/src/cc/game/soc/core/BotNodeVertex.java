@@ -1,7 +1,6 @@
 package cc.game.soc.core;
 
 import cc.lib.game.IVector2D;
-import cc.lib.math.Vector2D;
 
 public class BotNodeVertex extends BotNode {
 

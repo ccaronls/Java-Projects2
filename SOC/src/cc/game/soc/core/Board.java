@@ -866,7 +866,7 @@ public final class Board extends Reflector<Board> {
 			c.reset();
 		}
 		for (Vertex v : verts) {
-			v.reset();
+			v.setOpen();
 		}
 		for (Route r : routes) {
 			r.reset();
@@ -1643,7 +1643,7 @@ public final class Board extends Reflector<Board> {
 		//assert (cell.numAdj > 0 && cell.numAdj <= 6);
 		for (int vIndex : cell.getAdjVerts()) {
 			Vertex vertex = getVertex(vIndex);
-			if (vertex.getPlayer() == playerNum)
+			if (vertex.isStructure() && vertex.getPlayer() == playerNum)
 				return true;
 		}
 		return false;

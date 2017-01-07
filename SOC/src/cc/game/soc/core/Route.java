@@ -1,7 +1,5 @@
 package cc.game.soc.core;
 
-import java.util.Arrays;
-
 import cc.lib.utils.Reflector;
 
 

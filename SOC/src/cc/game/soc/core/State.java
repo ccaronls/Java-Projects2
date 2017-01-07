@@ -41,6 +41,7 @@ enum State {
 	SHOW_TRADE_OPTIONS(true, "Display your trade options."), 
 //	TRADE_COMPLETED(false),
 	SET_PLAYER(false, ""),
+	SET_VERTEX_TYPE(false, ""),
 	CHOOSE_KNIGHT_TO_ACTIVATE(true, "Choose form one of your knight to Activate.  This makes it possible to defend against Barbarians or reposition."),
 	POSITION_KNIGHT_CANCEL(true, "Place your knight on the board.  Active knights can displace an opponents knight or chase the Robber."),
 	POSITION_KNIGHT_NOCANCEL(false, "Place the deserted knight on the board."),
@@ -63,7 +64,7 @@ enum State {
 	POSITION_MERCHANT(true, "Place the merchant on the board.  Whatever resource the Merchant is on, you will be allowed a 2:1 trade for the Resource until the Merchant is moved again."),
 	CHOOSE_RESOURCE_FLEET(true, "Choose any Resource to use for a 2:1 trade for the duration of your turn."), // Merchant Fleet
 	CHOOSE_PLAYER_TO_SPY_ON(true, "Choose an Opponent to Spy on.  You can pick any one of their Progress cards into your hand."), // Spy
-	CHOOSE_OPPONENT_CARD(false, "Choose a Progress card to take into your hand."), // Spy
+//	CHOOSE_OPPONENT_CARD(false, "Choose a Progress card to take into your hand."), // Spy - redundant with TAKE_CARD_FOMR_OPPONENT
 	CHOOSE_TRADE_MONOPOLY(true, "Choose a Commodity to Monopolize.  All players with that commodity in their hand will forfeit into your own."),
 	CHOOSE_GIFT_CARD(false, "Choose a card to give to the happy couple on their Wedding day."),
     PROCESS_DICE(false, ""), // transition state

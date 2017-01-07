@@ -1,6 +1,5 @@
 package cc.game.soc.core;
 
-import java.util.Arrays;
 import java.util.Collection;
 
 import cc.lib.game.Utils;
@@ -26,7 +25,7 @@ public class PlayerRandom extends Player {
 	}
 
 	@Override
-	public Vertex chooseVertex(SOC soc, Collection<Integer> vertexIndices, VertexChoice mode) {
+	public Vertex chooseVertex(SOC soc, Collection<Integer> vertexIndices, VertexChoice mode, Vertex knightToMove) {
 		return soc.getBoard().getVertex((Integer)pickRandom(vertexIndices));
 	}
 
@@ -61,7 +60,7 @@ public class PlayerRandom extends Player {
 	}
 
 	@Override
-	public <T extends Enum<T>> T chooseEnum(SOC soc, EnumChoice mode, T ... values) {
+	public <T extends Enum<T>> T chooseEnum(SOC soc, EnumChoice mode, T [] values) {
 		return values[Utils.rand() % values.length];
 	}
 

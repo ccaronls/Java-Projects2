@@ -803,14 +803,14 @@ public class PlayerBot extends Player {
 				case CRANE_CARD: {
 					p.removeCard(ProgressCardType.Crane);
 					for (DevelopmentArea area : SOC.computeCraneCardImprovements(p)) {
-						int count = p.getCardCount(area.commodity);
-						p.incrementResource(area.commodity, -count);
-						p.setCityDevelopment(area, count+1);
+						int level = p.getCityDevelopment(area);
+						p.incrementResource(area.commodity, -level);
+						p.setCityDevelopment(area, level+1);
 						BotNode node = root.attach(new BotNodeEnum(area));
 						//evaluatePlayer(node, soc, p, b);
 						buildChooseMoveTreeR(soc, p, b, node, SOC.computeMoves(p, b, soc));
-						p.setCityDevelopment(area, count);
-						p.incrementResource(area.commodity, count);
+						p.setCityDevelopment(area, level);
+						p.incrementResource(area.commodity, level);
 					}
 					//p.addCard(ProgressCardType.Crane);
 					break;
@@ -1281,13 +1281,15 @@ public class PlayerBot extends Player {
 	}
 
 	@Override
-	public Vertex chooseVertex(SOC soc, Collection<Integer> vertexIndices, VertexChoice mode) {
+	public Vertex chooseVertex(SOC soc, Collection<Integer> vertexIndices, VertexChoice mode, Vertex knightToMove) {
 		
+		// TODO: OMG not true
 		switch (mode) {
 			case POLITICS_METROPOLIS:
 			case SCIENCE_METROPOLIS:
 			case TRADE_METROPOLIS:
 				return soc.getBoard().getVertex(Utils.randItem(new ArrayList<Integer>(vertexIndices))); // special case where it does not matter which vertex we choose
+				// TODO: NOT TRUE! A city can be pillaged so picking a city to be upgraded should be evaluated!!!!!!
 			default:
 		}
 		
@@ -1301,6 +1303,10 @@ public class PlayerBot extends Player {
 		for (int vIndex : vertexIndices) {
 			Vertex v = b.getVertex(vIndex);
 			Vertex save = v.deepCopy();
+			Vertex save2 = null;
+			if (knightToMove != null) {
+				save2 = knightToMove.deepCopy();
+			}
 			int islandNum = b.getIslandAdjacentToVertex(v);
 			boolean discovered = false;
 			if (islandNum > 0)
@@ -1316,6 +1322,11 @@ public class PlayerBot extends Player {
 					v.setOpen();
 					break;
 				case KNIGHT_DISPLACED:
+					assert(knightToMove != null);
+					assert(knightToMove.isKnight());
+					v.setPlayerAndType(p.getPlayerNum(), knightToMove.getType());
+					knightToMove.setOpen();
+					break;
 				case KNIGHT_MOVE_POSITION:
 				case KNIGHT_TO_ACTIVATE:
 				case KNIGHT_TO_MOVE:
@@ -1341,6 +1352,9 @@ public class PlayerBot extends Player {
 			BotNode node = root.attach(new BotNodeVertex(v, vIndex));
 			doEvaluateAll(node, soc, p, b);
 			v.copyFrom(save);
+			if (save2 != null) {
+				knightToMove.copyFrom(save2);
+			}
 			if (islandNum > 0 && !discovered) {
 				b.setIslandDiscovered(p.getPlayerNum(), islandNum, false);
 			}
@@ -1373,6 +1387,7 @@ public class PlayerBot extends Player {
 				case ROUTE_DIPLOMAT:
 				case UPGRADE_SHIP:
 				case OPPONENT_ROAD_TO_ATTACK:
+				case OPPONENT_SHIP_TO_ATTACK:
 					throw new AssertionError("unhandled case " + mode);
 			}
 			onBoardChanged();

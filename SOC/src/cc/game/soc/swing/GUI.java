@@ -893,7 +893,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 										if (v.getPlayer() == 0) {
 											v.setPlayerAndType(getCurPlayerNum(), mode.vType);
 										} else {
-											v.reset();
+											v.setOpen();
 										}
 										break;
 									case KNIGHT:
@@ -918,7 +918,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 												v.setPlayerAndType(getCurPlayerNum(), VertexType.MIGHTY_KNIGHT_ACTIVE);
 												break;
 											case MIGHTY_KNIGHT_ACTIVE:
-												v.reset();
+												v.setOpen();
 												break;
 										}
 										break;
@@ -929,7 +929,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 											if (v.getPirateHealth() <= 0)
 												v.setOpen();
 										} else {
-											v.reset();
+											v.setOpen();
 											v.setPirateFortress();
 											v.setPirateHealth(3);
 										}

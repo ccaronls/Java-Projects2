@@ -5,6 +5,7 @@ import java.awt.Graphics;
 import java.util.*;
 
 import cc.game.soc.core.*;
+import cc.lib.game.IVector2D;
 import cc.lib.math.Vector2D;
 import cc.lib.swing.AWTRenderer;
 import cc.lib.swing.AWTUtils;
@@ -247,15 +248,34 @@ public class GUIPlayer extends PlayerBot {
 			}
 		});
     }
+    
+    void startMoveKnightAnimation(final Vertex fromVertex, final Vertex toVertex) {
+    	if (!animationEnabled || fromVertex == null || toVertex == null)
+    		return;
+
+    	GUI.instance.getBoardComponent().addAnimation(new BlockingAnimation(getAnimTime()) {
+			
+			@Override
+			void draw(Graphics g, float position, float dt) {
+                g.setColor(getColor());
+                AWTRenderer render = GUI.instance.getBoardComponent().render;
+                render.pushMatrix();
+                IVector2D pos = Vector2D.newTemp(fromVertex).add(Vector2D.newTemp(toVertex).sub(fromVertex).scale(position));
+                render.translate(pos);
+                GUI.instance.getBoardComponent().drawKnight(g, Vector2D.ZERO, getPlayerNum(), fromVertex.getType().getKnightLevel(), fromVertex.getType().isKnightActive(), false);
+                render.popMatrix();
+			}
+		});
+    }
 
 	@Override
-	public Vertex chooseVertex(SOC soc, Collection<Integer> vertexIndices, VertexChoice mode) {
-		Vertex v = super.chooseVertex(soc, vertexIndices, mode);
-		doVertexAnimation(soc, mode, v);
+	public Vertex chooseVertex(SOC soc, Collection<Integer> vertexIndices, VertexChoice mode, Vertex knightToMove) {
+		Vertex v = super.chooseVertex(soc, vertexIndices, mode, knightToMove);
+		doVertexAnimation(soc, mode, v, knightToMove);
 		return v;
 	}
 	
-	protected final void doVertexAnimation(SOC soc, VertexChoice mode, Vertex v) {
+	protected final void doVertexAnimation(SOC soc, VertexChoice mode, Vertex v, Vertex v2) {
 		if (v == null)
 			return;
 		switch (mode) {
@@ -268,9 +288,11 @@ public class GUIPlayer extends PlayerBot {
 			case KNIGHT_DESERTER:
 				break;
 			case KNIGHT_DISPLACED:
+			case KNIGHT_MOVE_POSITION:
+				if (v2 != null)
+					startMoveKnightAnimation(v2, v);
 				break;
 			case NEW_KNIGHT:
-			case KNIGHT_MOVE_POSITION:
 				startKnightAnimation(v);
 				break;
 			case KNIGHT_TO_ACTIVATE:

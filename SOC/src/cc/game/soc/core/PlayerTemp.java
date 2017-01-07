@@ -21,8 +21,7 @@ public class PlayerTemp extends Player {
 	}
 
 	@Override
-	public Vertex chooseVertex(SOC soc, Collection<Integer> vertexIndices,
-			VertexChoice mode) {
+	public Vertex chooseVertex(SOC soc, Collection<Integer> vertexIndices, VertexChoice mode, Vertex knightToMove) {
 		// TODO Auto-generated method stub
 		return null;
 	}

@@ -22,9 +22,9 @@ public class GUIPlayerUser extends GUIPlayer {
 	}
 
 	@Override
-	public Vertex chooseVertex(SOC soc, Collection<Integer> vertexIndices, VertexChoice mode) {
+	public Vertex chooseVertex(SOC soc, Collection<Integer> vertexIndices, VertexChoice mode, Vertex knightToMove) {
 		Vertex v = GUI.instance.chooseVertex(vertexIndices, getPlayerNum(), mode);
-		doVertexAnimation(soc, mode, v);
+		doVertexAnimation(soc, mode, v, knightToMove);
 		return v;
 	}
 

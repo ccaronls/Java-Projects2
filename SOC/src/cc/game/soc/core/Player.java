@@ -749,9 +749,10 @@ public abstract class Player extends Reflector<Player> {
 	 * @param soc
 	 * @param vertexIndices
 	 * @param mode
+	 * @param knightToMove null unless mode is KNIGHT_DISPLACED
 	 * @return
 	 */
-	public abstract Vertex chooseVertex(SOC soc, Collection<Integer> vertexIndices, VertexChoice mode);
+	public abstract Vertex chooseVertex(SOC soc, Collection<Integer> vertexIndices, VertexChoice mode, Vertex knightToMove);
 
 	public static enum RouteChoice {
 		ROAD,
