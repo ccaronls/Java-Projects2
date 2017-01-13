@@ -516,6 +516,12 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     public final int loadImage(String assetPath) {
         return loadImage(assetPath, null);
     }
+    
+    /**
+     * 
+     * @param id
+     */
+    public abstract void deleteImage(int id);
 
     /**
      * 

@@ -398,6 +398,17 @@ public class PlayerBot extends Player {
 			return best;
 		}
 	}
+	
+	private Tile checkDiscoveredTerritories(Player p, Route r, Board b) {
+		for (Tile t : b.getRouteTiles(r)) {
+			if (t.getType() == TileType.UNDISCOVERED) {
+				t.setType(TileType.NONE);
+				p.incrementDiscoveredTerritory(1);
+				return t;
+			}
+		}
+		return null;
+	}
 /*	
 	private void doEvaluate(BotNode node, SOC soc, Player p, Board b) {
 		properties = node.properties;
@@ -442,7 +453,12 @@ public class PlayerBot extends Player {
 				Route r = b.getRoute(roadIndex);
 				b.setPlayerForRoute(r, p.getPlayerNum(), RouteType.ROAD);
 				r.setLocked(true);
+				Tile t = checkDiscoveredTerritories(p, r, b);
 				addRouteBuildingMovesR(soc, p, b, n.attach(new BotNodeRoute(r, roadIndex)), allowRoads, allowShips, depth-1, recurseMoves);
+				if (t != null) {
+					p.incrementDiscoveredTerritory(-1);
+					t.setType(TileType.UNDISCOVERED);
+				}
 				r.setLocked(false);
 				b.setRouteOpen(r);
 			}
@@ -456,7 +472,12 @@ public class PlayerBot extends Player {
 				Route r = b.getRoute(shipIndex);
 				b.setPlayerForRoute(r, p.getPlayerNum(), RouteType.SHIP);
 				r.setLocked(true);
+				Tile t = checkDiscoveredTerritories(p, r, b);
 				addRouteBuildingMovesR(soc, p, b, n.attach(new BotNodeRoute(r, shipIndex)), allowRoads, allowShips, depth-1, recurseMoves);
+				if (t != null) {
+					p.incrementDiscoveredTerritory(-1);
+					t.setType(TileType.UNDISCOVERED);
+				}
 				r.setLocked(false);
 				b.setRouteOpen(r);
 			}
@@ -1189,7 +1210,7 @@ public class PlayerBot extends Player {
 					for (int vIndex : SOC.computeAttackablePirateFortresses(b, p)) {
 						Vertex v = b.getVertex(vIndex);
 						int score = b.getRoutesOfType(getPlayerNum(), RouteType.WARSHIP).size();
-						float chance = 1f * score / 6f;
+						float chance = (6.0f - Math.max(0, Math.min(score, 6))) / 6f;//1f * score / 6f;
 						assert(v.getType() == VertexType.PIRATE_FORTRESS);
 						assert(v.getPlayer() == 0);
 						v.setPlayerAndType(getPlayerNum(), VertexType.SETTLEMENT);
@@ -1202,30 +1223,32 @@ public class PlayerBot extends Player {
 				}
 				case KNIGHT_ATTACK_ROAD: {
 					for (int rIndex : SOC.computeAttackableRoads(soc, getPlayerNum(), b)) {
-						Board copy = b.deepCopy();
-						Route route = copy.getRoute(rIndex);
-						int score = SOC.computeAttackerScoreAgainstRoad(route, getPlayerNum(), copy);
-						float chance = 1.0f*score / soc.getRules().getKnightScoreToDestroyRoad();
+						SOC.AttackInfo<RouteType> info = SOC.computeAttackRoad(rIndex, soc, b, getPlayerNum());
+						Route route = b.getRoute(rIndex);
+						Route copy = route.deepCopy();
 						BotNode node = root.attach(new BotNodeRoute(route, rIndex));
-						node.chance = chance;
-						copy.setRouteOpen(route);
+						node.chance = (6.0f - Math.max(0, Math.min(info.minScore - info.knightStrength, 6))) / 6f;
 						doEvaluateAll(node, soc, p, b);
+						route.copyFrom(copy);
+						for (Vertex k : info.attackingKnights) {
+							k.activateKnight();
+						}
 					}
 					break;
 				}
 				case KNIGHT_ATTACK_STRUCTURE: {
 					for (int vIndex : SOC.computeAttackableStructures(soc, getPlayerNum(), b)) {
-						Board copy = b.deepCopy();
-						Vertex v = copy.getVertex(vIndex);
-						assert(v.getPlayer() > 0);
-						assert(v.getPlayer() != getPlayerNum());
-						int score = SOC.doAttackStructure(v, getPlayerNum(), copy);
-						VertexType [] result = new VertexType[1];
-						float chance = 1.0f*score / SOC.getKnightScoreToAttackStructure(v, result, soc.getRules());
+						SOC.AttackInfo<VertexType> info = SOC.computeStructureAttack(vIndex, soc, b, getPlayerNum());
+						Vertex v = b.getVertex(vIndex);
 						BotNode node = root.attach(new BotNodeVertex(v, vIndex));
-						node.chance = chance;
-						v.setPlayerAndType(v.getPlayer(), result[0]);
+						node.chance = (6.0f - Math.max(0, Math.min(info.minScore - info.knightStrength, 6))) / 6f;
+						Vertex copy = v.deepCopy();
+						v.setType(info.destroyedType);
 						doEvaluateAll(node, soc, p, b);
+						v.copyFrom(copy);
+						for (Vertex k : info.attackingKnights) {
+							k.activateKnight();
+						}
 					}
 					break;
 				}
@@ -1238,6 +1261,7 @@ public class PlayerBot extends Player {
 					}
 					break;
 				}
+				
 			} // end switch
 			
 			
@@ -1390,10 +1414,15 @@ public class PlayerBot extends Player {
 				case OPPONENT_SHIP_TO_ATTACK:
 					throw new AssertionError("unhandled case " + mode);
 			}
+			Tile t = checkDiscoveredTerritories(p, r, b);
 			onBoardChanged();
 			BotNode node = root.attach(new BotNodeRoute(r, rIndex));
 			doEvaluateAll(node, soc, p, b);
 			r.copyFrom(save);
+			if (t != null) {
+				p.incrementDiscoveredTerritory(-1);
+				t.setType(TileType.UNDISCOVERED);
+			}
 		}
 		buildOptimalPath(root);
 		return detatchMove();
@@ -1829,6 +1858,8 @@ public class PlayerBot extends Player {
 		
 		node.addValue("potentialSettlements", numPotential);
 		node.addValue("potentialResourceProb", potentialSettlementResourceProb);
+		
+		node.addValue("numDiscoveredTerritories", 0.05f * p.getNumDiscoveredTerritories());
 	}
 	
 	private final static int DISTANCE_INFINITY = 100;

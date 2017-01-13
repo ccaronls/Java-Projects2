@@ -315,7 +315,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=2
       from=23
       player=0
       to=24
@@ -345,7 +345,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=2
       from=24
       player=0
       to=27
@@ -375,7 +375,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=2
       from=27
       player=0
       to=28
@@ -385,7 +385,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=0
       from=27
       player=0
       to=41
@@ -405,7 +405,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=2
       from=28
       player=0
       to=31
@@ -435,7 +435,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=2
       from=31
       player=0
       to=32
@@ -445,7 +445,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=0
       from=31
       player=0
       to=38
@@ -465,7 +465,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=2
       from=32
       player=0
       to=35
@@ -505,7 +505,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=2
       from=35
       player=0
       to=40
@@ -535,7 +535,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=0
       from=38
       player=0
       to=39
@@ -545,7 +545,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=0
       from=38
       player=0
       to=42
@@ -555,7 +555,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=2
       from=39
       player=0
       to=40
@@ -565,7 +565,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=2
       from=39
       player=0
       to=72
@@ -585,7 +585,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=0
       from=41
       player=0
       to=42
@@ -595,7 +595,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=0
       from=41
       player=0
       to=44
@@ -605,7 +605,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=0
       from=42
       player=0
       to=70
@@ -615,7 +615,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=0
       from=43
       player=0
       to=44
@@ -635,7 +635,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=0
       from=44
       player=0
       to=68
@@ -955,7 +955,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=2
       from=66
       player=0
       to=67
@@ -965,7 +965,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=0
       from=67
       player=0
       to=68
@@ -975,7 +975,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=2
       from=67
       player=0
       to=81
@@ -985,7 +985,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=0
       from=68
       player=0
       to=69
@@ -995,7 +995,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=0
       from=69
       player=0
       to=70
@@ -1005,7 +1005,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=0
       from=69
       player=0
       to=79
@@ -1015,7 +1015,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=0
       from=70
       player=0
       to=71
@@ -1025,7 +1025,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=0
       from=71
       player=0
       to=72
@@ -1035,7 +1035,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=0
       from=71
       player=0
       to=76
@@ -1045,7 +1045,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=2
       from=72
       player=0
       to=73
@@ -1065,7 +1065,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=2
       from=73
       player=0
       to=78
@@ -1105,7 +1105,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=0
       from=76
       player=0
       to=77
@@ -1115,7 +1115,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=0
       from=76
       player=0
       to=80
@@ -1125,7 +1125,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=2
       from=77
       player=0
       to=78
@@ -1135,7 +1135,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=2
       from=77
       player=0
       to=110
@@ -1155,7 +1155,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=0
       from=79
       player=0
       to=80
@@ -1165,7 +1165,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=0
       from=79
       player=0
       to=82
@@ -1175,7 +1175,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=0
       from=80
       player=0
       to=108
@@ -1185,7 +1185,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=0
       from=81
       player=0
       to=82
@@ -1195,7 +1195,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=2
       from=81
       player=0
       to=84
@@ -1205,7 +1205,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=0
       from=82
       player=0
       to=106
@@ -1215,7 +1215,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=2
       from=83
       player=0
       to=84
@@ -1235,7 +1235,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=0
       from=84
       player=0
       to=104
@@ -1495,7 +1495,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=0
       from=102
       player=0
       to=103
@@ -1505,7 +1505,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=0
       from=103
       player=0
       to=104
@@ -1515,7 +1515,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=0
       from=103
       player=0
       to=121
@@ -1525,7 +1525,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=0
       from=104
       player=0
       to=105
@@ -1535,7 +1535,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=0
       from=105
       player=0
       to=106
@@ -1545,7 +1545,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=0
       from=105
       player=0
       to=119
@@ -1555,7 +1555,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=0
       from=106
       player=0
       to=107
@@ -1565,7 +1565,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=2
       from=107
       player=0
       to=108
@@ -1575,7 +1575,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=2
       from=107
       player=0
       to=117
@@ -1585,7 +1585,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=2
       from=108
       player=0
       to=109
@@ -1595,7 +1595,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=0
       from=109
       player=0
       to=110
@@ -1605,7 +1605,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=2
       from=109
       player=0
       to=114
@@ -1615,7 +1615,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=2
       from=110
       player=0
       to=111
@@ -1635,7 +1635,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=2
       from=111
       player=0
       to=116
@@ -1695,7 +1695,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=2
       from=115
       player=0
       to=116
@@ -1755,7 +1755,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=0
       from=119
       player=0
       to=120
@@ -1765,7 +1765,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=0
       from=119
       player=0
       to=122
@@ -1785,7 +1785,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=0
       from=121
       player=0
       to=122
@@ -1795,7 +1795,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=0
       from=121
       player=0
       to=124
@@ -1805,7 +1805,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=0
       from=122
       player=0
       to=142
@@ -1815,7 +1815,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=2
       from=123
       player=0
       to=124
@@ -1835,7 +1835,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=2
       from=124
       player=0
       to=140
@@ -2035,7 +2035,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=2
       from=138
       player=0
       to=139
@@ -2045,7 +2045,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=2
       from=139
       player=0
       to=140
@@ -2055,7 +2055,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=0
       from=139
       player=0
       to=161
@@ -2065,7 +2065,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=0
       from=140
       player=0
       to=141
@@ -2075,7 +2075,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=0
       from=141
       player=0
       to=142
@@ -2085,7 +2085,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=0
       from=141
       player=0
       to=159
@@ -2095,7 +2095,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=0
       from=142
       player=0
       to=143
@@ -2335,7 +2335,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=0
       from=157
       player=0
       to=160
@@ -2355,7 +2355,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=0
       from=159
       player=0
       to=160
@@ -2365,7 +2365,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=0
       from=159
       player=0
       to=162
@@ -2375,7 +2375,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=0
       from=160
       player=0
       to=180
@@ -2385,7 +2385,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=0
       from=161
       player=0
       to=162
@@ -2395,7 +2395,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=0
       from=161
       player=0
       to=164
@@ -2405,7 +2405,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=0
       from=162
       player=0
       to=178
@@ -2415,7 +2415,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=0
       from=163
       player=0
       to=164
@@ -2435,7 +2435,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=0
       from=164
       player=0
       to=176
@@ -2455,7 +2455,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=2
       from=165
       player=0
       to=168
@@ -2465,7 +2465,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=0
       from=166
       player=0
       to=174
@@ -2495,7 +2495,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=2
       from=168
       player=0
       to=172
@@ -2545,7 +2545,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=2
       from=172
       player=0
       to=173
@@ -2555,7 +2555,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=0
       from=173
       player=0
       to=174
@@ -2565,7 +2565,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=2
       from=173
       player=0
       to=203
@@ -2575,7 +2575,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=0
       from=174
       player=0
       to=175
@@ -2585,7 +2585,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=0
       from=175
       player=0
       to=176
@@ -2595,7 +2595,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=0
       from=175
       player=0
       to=201
@@ -2605,7 +2605,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=0
       from=176
       player=0
       to=177
@@ -2615,7 +2615,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=0
       from=177
       player=0
       to=178
@@ -2625,7 +2625,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=0
       from=177
       player=0
       to=199
@@ -2635,7 +2635,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=0
       from=178
       player=0
       to=179
@@ -2645,7 +2645,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=0
       from=179
       player=0
       to=180
@@ -2655,7 +2655,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=0
       from=179
       player=0
       to=197
@@ -2665,7 +2665,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=0
       from=180
       player=0
       to=181
@@ -2955,7 +2955,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=2
       from=199
       player=0
       to=200
@@ -2965,7 +2965,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=2
       from=199
       player=0
       to=202
@@ -2985,7 +2985,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=0
       from=201
       player=0
       to=202
@@ -2995,7 +2995,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=0
       from=201
       player=0
       to=204
@@ -3005,7 +3005,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=2
       from=202
       player=0
       to=214
@@ -3015,7 +3015,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=0
       from=203
       player=0
       to=204
@@ -3025,7 +3025,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=2
       from=203
       player=0
       to=206
@@ -3035,7 +3035,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=0
       from=204
       player=0
       to=212
@@ -3065,7 +3065,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=2
       from=206
       player=0
       to=210
@@ -3115,7 +3115,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=2
       from=210
       player=0
       to=211
@@ -3125,7 +3125,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=0
       from=211
       player=0
       to=212
@@ -3135,7 +3135,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=2
       from=211
       player=0
       to=241
@@ -3145,7 +3145,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=0
       from=212
       player=0
       to=213
@@ -3155,7 +3155,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=0
       from=213
       player=0
       to=214
@@ -3165,7 +3165,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=1
+      flags=0
       from=213
       player=0
       to=239
@@ -3175,7 +3175,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=2
       from=214
       player=0
       to=215
@@ -3535,7 +3535,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=2
       from=237
       player=0
       to=240
@@ -3555,7 +3555,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=2
       from=239
       player=0
       to=240
@@ -3565,7 +3565,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=2
       from=239
       player=0
       to=242
@@ -3585,7 +3585,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=2
       from=241
       player=0
       to=242

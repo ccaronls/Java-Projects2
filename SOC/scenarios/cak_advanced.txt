@@ -5911,9 +5911,6 @@ mRules=cc.game.soc.core.Rules {
    pointsPerMetropolis=4
    pointsPerSettlement=1
 }
-mDiceConfig=cc.game.soc.core.DiceType 3 {
-   YellowRed RedYellow Event 
-}
 mMetropolisPlayer=int 3 {
    0 0 0 
 }

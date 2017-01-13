@@ -30,8 +30,8 @@ public class SOCBoardTest extends TestCase {
         b.loadFromFile(new File("boards/testBoard3.txt"));
         for (int i=0; i<b.getNumVerts(); i++) {
             Vertex v = b.getVertex(i);
-            for (int ii=0; ii<v.getNumAdjacent(); ii++) {
-                Vertex vv = b.getVertex(v.getAdjacent()[ii]);
+            for (int ii=0; ii<v.getNumAdjacentVerts(); ii++) {
+                Vertex vv = b.getVertex(v.getAdjacentVerts()[ii]);
                 assertNotNull(vv);
             }
         }

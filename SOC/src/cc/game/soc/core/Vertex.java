@@ -44,7 +44,7 @@ public final class Vertex extends Reflector<Vertex> implements IVector2D {
 	 * 
 	 * @return
 	 */
-	public final int[] getAdjacent() {
+	public final int[] getAdjacentVerts() {
 		return adjacent;
 	}
 
@@ -52,7 +52,7 @@ public final class Vertex extends Reflector<Vertex> implements IVector2D {
 	 * 
 	 * @return
 	 */
-	public int getNumAdjacent() {
+	public int getNumAdjacentVerts() {
 		return numAdj;
 	}
 
@@ -124,6 +124,14 @@ public final class Vertex extends Reflector<Vertex> implements IVector2D {
 		assert(type != VertexType.OPEN);
 		this.player = playerNum;
 		this.type = type;
+	}
+	
+	void setType(VertexType type) {
+		if (type == VertexType.OPEN) {
+			setOpen();
+		} else {
+			setPlayerAndType(player, type);
+		}
 	}
 	
 	/**

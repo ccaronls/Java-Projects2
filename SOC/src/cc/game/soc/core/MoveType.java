@@ -88,11 +88,9 @@ public enum MoveType {
     MEDICINE_CARD(true, 50, "Medicine", "Upgrade settlement to city for 2 ore and 1 wheat"),
     SMITH_CARD(true, 50, "Smith", "Promote 2 knights for free"),
     MINING_CARD(true, 50, "Mining", "Collect 2 ore card for each structure adjacent to a ore tile"),
-    //PRINTER_CARD("Printer", ProgressCardType.Printer.helpText),
 
     // Politics
     DIPLOMAT_CARD(true, 5, "Diplomat", "Move one of your own open roads or remove one of your opponents open roads"),
-    //CONSTITUTION_CARD("Constitution", ProgressCardType.Constitution.helpText),
     BISHOP_CARD(true, 50, "Bishop", "Move robber or pirate to cell of players choice"),
     INTRIGUE_CARD(true, 50, "Intrigue", "Displace opponent knight that is on one of your roads"),
     DESERTER_CARD(true, 50, "Deserter", "Choose an opponent to remove one of their knights, then place one of equal strength."),
@@ -117,12 +115,12 @@ public enum MoveType {
 
     KNIGHT_ATTACK_ROAD(true, 50, "Attack Road", null) {
     	public String getHelpText(Rules rules) {
-    		return String.format("Pick a road adjacent to the knight and roll the dice. If the die roll+knight level is greater than or equal to %d then the road is removed form the board", rules.getKnightScoreToDestroyRoad());
+    		return String.format("Pick a road adjacent to the knight and roll a die. If the die roll+knight level is greater than or equal to %d then the road is removed form the board", rules.getKnightScoreToDestroyRoad());
     	}
     },
     KNIGHT_ATTACK_STRUCTURE(true, 50, "Attack Structure", null) {
     	public String getHelpText(Rules rules) {
-    		String txt = "Pick a structure 1 unit adjacent to the knight and roll the dice";
+    		String txt = "Pick a structure 1 unit adjacent to the knight and roll a die";
     		if (rules.getKnightScoreToDestroySettlement() > 0) {
     			txt += String.format("\nknight level+die roll >= %d, then settlement removed", rules.getKnightScoreToDestroySettlement());
     		}

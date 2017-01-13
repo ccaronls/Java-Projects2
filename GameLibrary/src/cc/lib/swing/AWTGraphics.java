@@ -164,6 +164,11 @@ public final class AWTGraphics extends AGraphics {
     }
 
     @Override
+	public void deleteImage(int id) {
+    	images.deleteImage(id);
+	}
+
+	@Override
     public final  AImage getImage(int id) {
         return new AWTImage(images.getImage(id), comp);
     }

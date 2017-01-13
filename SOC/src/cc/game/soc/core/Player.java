@@ -21,6 +21,7 @@ public abstract class Player extends Reflector<Player> {
 	private int						roadLength	= 0;	
 	private int						points = 0;
 	private int						harborPoints = 0;
+	private int						numDiscoveredTerritories = 0;
 	private int []					cityDevelopment = new int[DevelopmentArea.values().length];
 	private Card					merchantFleetTradable;
 	
@@ -43,6 +44,7 @@ public abstract class Player extends Reflector<Player> {
         buf.append(" roadLen:").append(roadLength);
         buf.append(" points:").append(points);
         buf.append(" harbor pts:").append(harborPoints);
+        buf.append(" num discovered territories").append(numDiscoveredTerritories);
         for (DevelopmentArea area : DevelopmentArea.values()) {
         	if (cityDevelopment[area.ordinal()] > 0) {
         		buf.append(" " + area.name() + ":").append(cityDevelopment[area.ordinal()]);
@@ -152,6 +154,9 @@ public abstract class Player extends Reflector<Player> {
 		roadLength=0;
 		points = 0;
 		harborPoints = 0;
+		numDiscoveredTerritories = 0;
+		merchantFleetTradable = null;
+		Utils.fillArray(cityDevelopment, 0);
 	}
 	
 	/**
@@ -715,6 +720,22 @@ public abstract class Player extends Reflector<Player> {
 	}
 	
 	/**
+	 * 
+	 * @return
+	 */
+	public final int getNumDiscoveredTerritories() {
+		return numDiscoveredTerritories;
+	}
+	
+	/*
+	 * 
+	 */
+	final void incrementDiscoveredTerritory(int amount) {
+		numDiscoveredTerritories+=amount;
+	}
+
+	
+	/**
 	 * Return a move or null for not yet chosen.
 	 * Method will get called continuously until non-null value returned.
 	 * Cannot be cancelled.
@@ -749,7 +770,7 @@ public abstract class Player extends Reflector<Player> {
 	 * @param soc
 	 * @param vertexIndices
 	 * @param mode
-	 * @param knightToMove null unless mode is KNIGHT_DISPLACED
+	 * @param knightToMove null unless mode is KNIGHT_DISPLACED or KNIGHT_TO_MOVE
 	 * @return
 	 */
 	public abstract Vertex chooseVertex(SOC soc, Collection<Integer> vertexIndices, VertexChoice mode, Vertex knightToMove);
@@ -866,5 +887,6 @@ public abstract class Player extends Reflector<Player> {
 	 * @return true when player completed
 	 */
 	public abstract boolean setDice(Dice [] dice, int num);
+
 
 }

@@ -141,8 +141,8 @@ public final class Board extends Reflector<Board> {
 
 	private boolean addAdjacent(int from, int to) {
 		Vertex v = getVertex(from);
-		for (int i = 0; i < v.getNumAdjacent(); i++) {
-			if (v.getAdjacent()[i] == to)
+		for (int i = 0; i < v.getNumAdjacentVerts(); i++) {
+			if (v.getAdjacentVerts()[i] == to)
 				return false;
 		}
 		v.addAdjacentVertex(to);
@@ -217,7 +217,7 @@ public final class Board extends Reflector<Board> {
 					edge.addTile(i);
 					if (c.isWater()) {
 						edge.setAdjacentToWater(true);
-					} else {
+					} else if (c.isLand()) {
 						edge.setAdjacentToLand(true);
 					}
 				}
@@ -729,8 +729,8 @@ public final class Board extends Reflector<Board> {
 	 */
 	public int findAdjacentVertex(int vert, int num) {
 		Vertex v = getVertex(vert);
-		if (num < v.getNumAdjacent() && num >= 0)
-			return v.getAdjacent()[num];
+		if (num < v.getNumAdjacentVerts() && num >= 0)
+			return v.getAdjacentVerts()[num];
 		return -1;
 	}
 
@@ -760,8 +760,8 @@ public final class Board extends Reflector<Board> {
 		if (v.isStructure() && v.getPlayer() == r.getPlayer())
 			return false;
 		int numEnds = 0;
-		for (int i=0; i<v.getNumAdjacent(); i++) {
-			int v2 = v.getAdjacent()[i];
+		for (int i=0; i<v.getNumAdjacentVerts(); i++) {
+			int v2 = v.getAdjacentVerts()[i];
 			if (v2 != r.getTo()) {
 				Route r2 = getRoute(r.getFrom(), v2);
 				if (r2 != null && r2.getPlayer() == r.getPlayer()) {
@@ -773,8 +773,8 @@ public final class Board extends Reflector<Board> {
 		v = getVertex(r.getTo());
 		if (v.isStructure() && v.getPlayer() == r.getPlayer())
 			return false;
-		for (int i=0; i<v.getNumAdjacent(); i++) {
-			int v2 = v.getAdjacent()[i];
+		for (int i=0; i<v.getNumAdjacentVerts(); i++) {
+			int v2 = v.getAdjacentVerts()[i];
 			if (v2 != r.getFrom()) {
 				Route r2 = getRoute(r.getTo(), v2);
 				if (r2 != null && r2.getPlayer() == r.getPlayer()) {
@@ -1227,8 +1227,8 @@ public final class Board extends Reflector<Board> {
 	public Iterable<Route> getRoutesAdjacentToVertex(int vIndex) {
 		Vertex v = getVertex(vIndex);
 		List<Route> routes = new ArrayList<Route>(3);
-		for (int i=0; i<v.getNumAdjacent(); i++) {
-			int v2 = v.getAdjacent()[i];
+		for (int i=0; i<v.getNumAdjacentVerts(); i++) {
+			int v2 = v.getAdjacentVerts()[i];
 			Route r = getRoute(vIndex, v2);
 			if (r != null)
 				routes.add(r);
@@ -1244,8 +1244,8 @@ public final class Board extends Reflector<Board> {
 	public Iterable<Integer> getRouteIndicesAdjacentToVertex(int vIndex) {
 		Vertex v = getVertex(vIndex);
 		List<Integer> routes = new ArrayList<Integer>(3);
-		for (int i=0; i<v.getNumAdjacent(); i++) {
-			int v2 = v.getAdjacent()[i];
+		for (int i=0; i<v.getNumAdjacentVerts(); i++) {
+			int v2 = v.getAdjacentVerts()[i];
 			int r = getRouteIndex(vIndex, v2);
 			if (r >= 0)
 				routes.add(r);
@@ -1342,7 +1342,7 @@ public final class Board extends Reflector<Board> {
     	while (!Q.isEmpty() && numShips > 0) {
         	vIndex = Q.remove();
         	Vertex v = getVertex(vIndex);
-        	for (int v2 : v.getAdjacent()) {
+        	for (int v2 : v.getAdjacentVerts()) {
         		Route r = getRoute(vIndex, v2);
         		if (r.getPlayer() == playerNum && r.getType().isVessel) {
         			setRouteOpen(r);
@@ -1417,8 +1417,8 @@ public final class Board extends Reflector<Board> {
 	    if (enableRoadBlock && v.getPlayer() > 0 && v.getPlayer() != playerNum)
 	    	return depth;
 	    int max = depth;
-	    for (int i=0; i<v.getNumAdjacent(); i++) {
-	        int v1 = v.getAdjacent()[i];
+	    for (int i=0; i<v.getNumAdjacentVerts(); i++) {
+	        int v1 = v.getAdjacentVerts()[i];
 	        if (v1 == from) {
 	            continue;
 	        }
@@ -1465,8 +1465,8 @@ public final class Board extends Reflector<Board> {
     	        //Utils.fillArray(visited, false);
     	        Arrays.fill(visitedEdges, false);
     	        int [] len = {0,0,0};
-    	        for (int ii=0; ii<v.getNumAdjacent(); ii++) {
-    	            int v1 = v.getAdjacent()[ii];
+    	        for (int ii=0; ii<v.getNumAdjacentVerts(); ii++) {
+    	            int v1 = v.getAdjacentVerts()[ii];
     	            int eIndex = getRouteIndex(i, v1);
     	            if (eIndex < 0)
     	                continue;
@@ -1749,7 +1749,7 @@ public final class Board extends Reflector<Board> {
 		if (v.getPlayer() > 0 || !v.canPlaceStructure())
 			return false;
 
-		for (int i = 0; i < v.getNumAdjacent(); i++) {
+		for (int i = 0; i < v.getNumAdjacentVerts(); i++) {
 			int v2 = findAdjacentVertex(vIndex, i);
 			if (v2 >= 0) {
 				int ie = getRouteIndex(vIndex, v2);
@@ -1915,8 +1915,8 @@ public final class Board extends Reflector<Board> {
     private void walkRouteTreeR(int startVertex, IVisitor visitor, boolean [] usedEdges, int depth) {
         assert(startVertex >= 0);
         Vertex vertex = getVertex(startVertex);
-        for (int i=0; i<vertex.getNumAdjacent(); i++) {
-            int toVertexIndex = vertex.getAdjacent()[i];
+        for (int i=0; i<vertex.getNumAdjacentVerts(); i++) {
+            int toVertexIndex = vertex.getAdjacentVerts()[i];
             if (toVertexIndex != startVertex) {
                 int edgeIndex = getRouteIndex(startVertex, toVertexIndex);
                 if (usedEdges[edgeIndex])
@@ -1945,8 +1945,8 @@ public final class Board extends Reflector<Board> {
     		return 0;
     	Vertex v = getVertex(vIndex);
     	int playerNum = 0;
-    	for (int i=0; i<v.getNumAdjacent(); i++) {
-    		Route r = getRoute(vIndex, v.getAdjacent()[i]);
+    	for (int i=0; i<v.getNumAdjacentVerts(); i++) {
+    		Route r = getRoute(vIndex, v.getAdjacentVerts()[i]);
     		if (r.getType().isRoute && r.getPlayer() != v.getPlayer()) {
     			if (playerNum == 0)
     				playerNum = r.getPlayer();
@@ -2132,8 +2132,8 @@ public final class Board extends Reflector<Board> {
 	public int getNumShipsAdjacentTo(int vIndex, int playerNum) {
 		int num = 0;
 		Vertex v = getVertex(vIndex);
-		for (int i=0; i<v.getNumAdjacent(); i++) {
-			Route e = getRoute(vIndex, v.getAdjacent()[i]);
+		for (int i=0; i<v.getNumAdjacentVerts(); i++) {
+			Route e = getRoute(vIndex, v.getAdjacentVerts()[i]);
 			if (e != null) {
 				if (e.getType().isVessel && e.getPlayer() == playerNum)
 					num++;
@@ -2163,8 +2163,8 @@ public final class Board extends Reflector<Board> {
 	public Iterable<Route> getVertexRoutes(int vIndex) {
 		List<Route> edges = new ArrayList<Route>(3);
 		Vertex v = getVertex(vIndex);
-		for (int i=0; i<v.getNumAdjacent(); i++) {
-			Route e = getRoute(vIndex, v.getAdjacent()[i]);
+		for (int i=0; i<v.getNumAdjacentVerts(); i++) {
+			Route e = getRoute(vIndex, v.getAdjacentVerts()[i]);
 			if (e != null)
 				edges.add(e);
 		}
@@ -2285,8 +2285,8 @@ public final class Board extends Reflector<Board> {
 		int [] indices = new int[3];
 		int numEdges = 0;
 		
-		for (int i=0; i<v0.getNumAdjacent(); i++) {
-			int vIndex = v0.getAdjacent()[i];
+		for (int i=0; i<v0.getNumAdjacentVerts(); i++) {
+			int vIndex = v0.getAdjacentVerts()[i];
 			if (visited[vIndex])
 				continue;
 

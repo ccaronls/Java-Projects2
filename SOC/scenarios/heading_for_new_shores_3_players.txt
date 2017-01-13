@@ -5456,7 +5456,6 @@ mRules=cc.game.soc.core.Rules {
    pointsPerMetropolis=4
    pointsPerSettlement=1
 }
-mDiceConfig=null
 mMetropolisPlayer=int 3 {
    0 0 0 
 }

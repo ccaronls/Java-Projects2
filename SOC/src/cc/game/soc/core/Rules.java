@@ -32,7 +32,9 @@ import cc.lib.utils.Reflector;
  * One scenario of seafarers includes the notion of exploration where tiles start face down until a structure is built on it.  Player to build
  *   on unexplored land gets 1 resource once revealed.  A region is unexplored if it is surrounded by water and there are initially no structures on it.
  *   
+ * CITIES AND KNIGHTS
  * 
+ * TRADERS AND BARBARIANS
  *   
  * 
  * 
@@ -93,6 +95,8 @@ public final class Rules extends Reflector<Rules> {
 	private boolean enableBuildShipsFromPort = false;
 	@RuleVariable(description="Warship can chase away pirate and attack opponents normal ships.")
 	private boolean enableWarShipBuildable = false;
+	@RuleVariable(description="Minimum discovered territories for victory points.  Set to 0 to disable feature.")
+	private int minMostDiscoveredTerritories=0;
 	
 	// knight
 	@RuleVariable(description="Enable Cities and Knights", separator="Cities & Knights Expansion")
@@ -107,15 +111,15 @@ public final class Rules extends Reflector<Rules> {
 	private int pointsPerMetropolis=4;
 	@RuleVariable(description="Allow knights to venture off roads 1 unit at a time")
 	private boolean enableKnightExtendedMoves=false;
-	@RuleVariable(description="When non-zero enabled knights to attack opponent roads with die roll + knight level", minValue=0, maxValue=9)
+	@RuleVariable(description="Indicate the min die roll (offset by knight level) needed to destroy a road.  Set to 0 to disable.", minValue=0, maxValue=11)
 	private int knightScoreToDestroyRoad=0;
-	@RuleVariable(description="When non-zero enabled knights to attack opponent settlements with die roll + knight level", minValue=0, maxValue=9)
+	@RuleVariable(description="Indicate the min die roll (offset by knight level) needed to destroy a settlement.  Set to 0 to disable.", minValue=0, maxValue=14)
 	private int knightScoreToDestroySettlement=0;
-	@RuleVariable(description="When non-zero enabled knights to attack opponent cities with die roll + knight level", minValue=0, maxValue=9)
+	@RuleVariable(description="Indicate the min die roll (offset by knight level) needed to destroy a city.  Set to 0 to disable.", minValue=0, maxValue=14)
 	private int knightScoreToDestroyCity=0;
-	@RuleVariable(description="When non-zero enabled knights to attack opponent walled cities with die roll + knight level", minValue=0, maxValue=9)
+	@RuleVariable(description="Indicate the min die roll (offset by knight level) needed to destroy a walled city.  Set to 0 to disable.", minValue=0, maxValue=14)
 	private int knightScoreToDestroyWalledCity=0;
-	@RuleVariable(description="When non-zero enabled knights to attack opponent metropolis with die roll + knight level", minValue=0, maxValue=9)
+	@RuleVariable(description="Indicate the min die roll (offset by knight level) needed to destroy a metropolis.  Set to 0 to disable.", minValue=0, maxValue=14)
 	private int knightScoreToDestroyMetropolis=0;
 	@RuleVariable(description="When true, inventor can swap any tiles, otherwise 2,6,8 and 12 cannot be swapped")
 	private boolean unlimitedInventorTiles=false;
@@ -351,5 +355,12 @@ public final class Rules extends Reflector<Rules> {
 	public final void setEnableWarShipBuildable(boolean enableWarShipBuildable) {
 		this.enableWarShipBuildable = enableWarShipBuildable;
 	}
+	public final int getMinMostDiscoveredTerritories() {
+		return minMostDiscoveredTerritories;
+	}
+	public final void setMinMostDiscoveredTerritories(int minMostDiscoveredTerritories) {
+		this.minMostDiscoveredTerritories = minMostDiscoveredTerritories;
+	}
 
+	
 }
