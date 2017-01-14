@@ -1180,7 +1180,7 @@ public class PlayerBot extends Player {
 				}
 				case WARLORD_CARD: {
 					p.removeCard(ProgressCardType.Warlord);
-					List<Integer> verts = b.getVertsOfType(p.getPlayerNum(), VertexType.BASIC_KNIGHT_INACTIVE, VertexType.STRONG_KNIGHT_INACTIVE, VertexType.MIGHTY_KNIGHT_INACTIVE);
+					List<Integer> verts = b.getVertIndicesOfType(p.getPlayerNum(), VertexType.BASIC_KNIGHT_INACTIVE, VertexType.STRONG_KNIGHT_INACTIVE, VertexType.MIGHTY_KNIGHT_INACTIVE);
 					if (verts.size() > 0) {
 						for (int vIndex : verts) {
 							b.getVertex(vIndex).activateKnight();
@@ -1597,6 +1597,7 @@ public class PlayerBot extends Player {
     	doEvaluateSeafarers(node, soc, p, b);
     	doEvaluateTiles(node, soc, p, b);
     	doEvaluateVertices(node, soc, p, b);
+    	doEvaluateDifferentials(node, soc, p, b);
     	numLeafs ++;
     }
     
@@ -1767,6 +1768,74 @@ public class PlayerBot extends Player {
 		node.addValue("tiles protected", covered);
 		node.addValue("knights", knightValue);
 		
+	}
+
+	private static void doEvaluateDifferentials(BotNode node, SOC soc, Player p, final Board b) {
+		float myRoutesValue = 0;
+		float theirRoutesValue = 0;
+		for (Route r : b.getRoutesOfType(p.getPlayerNum(), RouteType.ROAD, RouteType.SHIP, RouteType.WARSHIP)) {
+			switch (r.getType()) {
+				case ROAD:
+					if (r.getPlayer() == p.getPlayerNum())
+						myRoutesValue += 1;
+					else
+						theirRoutesValue += 1;
+					break;
+				case SHIP:
+					if (r.getPlayer() == p.getPlayerNum())
+						myRoutesValue += 2;
+					else
+						theirRoutesValue += 2;
+					break;
+				case WARSHIP:
+					if (r.getPlayer() == p.getPlayerNum())
+						myRoutesValue += 2;
+					else
+						theirRoutesValue += 2;
+					break;
+				default:
+					assert(false);
+			}
+		}
+		float myStructuresValue = 0;
+		float theirStructuresValue = 0;
+		for (Vertex v : b.getVertsOfType(p.getPlayerNum(), VertexType.METROPOLIS_POLITICS, VertexType.METROPOLIS_SCIENCE, VertexType.SETTLEMENT, VertexType.WALLED_CITY, VertexType.CITY)) {
+			switch (v.getType()) {
+				case CITY:
+					if (v.getPlayer() == p.getPlayerNum())
+						myStructuresValue += 2;
+					else
+						theirStructuresValue += 2;
+					break;
+				case METROPOLIS_POLITICS:
+				case METROPOLIS_SCIENCE:
+				case METROPOLIS_TRADE:
+					if (v.getPlayer() == p.getPlayerNum())
+						myStructuresValue += 4;
+					else
+						theirStructuresValue += 4;
+					break;
+				case SETTLEMENT:
+					if (v.getPlayer() == p.getPlayerNum())
+						myStructuresValue += 1;
+					else
+						theirStructuresValue += 1;
+					break;
+				case WALLED_CITY:
+					if (v.getPlayer() == p.getPlayerNum())
+						myStructuresValue += 3;
+					else
+						theirStructuresValue += 3;
+					break;
+				default:
+					assert(false);
+			}
+		}
+		
+		if (theirRoutesValue > 0)
+			node.addValue("routesDifferential", myRoutesValue / theirRoutesValue);
+		if (theirStructuresValue > 0)
+			node.addValue("structuresDifferential", myStructuresValue / theirStructuresValue);
 	}
 
 	private static void doEvaluateEdges(BotNode node, SOC soc, Player p, final Board b) {
@@ -2101,7 +2170,7 @@ public class PlayerBot extends Player {
 		for (int i=1; i<shortestDistanceToUnDiscoveredIsland.length; i++)
 			shortestDistanceToUnDiscoveredIsland[i] = DISTANCE_INFINITY;
 		
-		Iterable<Integer> pirateFortresses = b.getVertsOfType(0, VertexType.PIRATE_FORTRESS); 
+		Iterable<Integer> pirateFortresses = b.getVertIndicesOfType(0, VertexType.PIRATE_FORTRESS); 
 		Iterable<Integer> undiscoveredTiles = b.getTilesOfType(TileType.UNDISCOVERED);
 		
 		// get the minimum distances to things 
@@ -2306,6 +2375,7 @@ public class PlayerBot extends Player {
 			node.addValue("cityDevelValue", developmentValue);
 		}
 		node.addValue("points", SOC.computePointsForPlayer(p, b, soc));
+		node.addValue("discoveredTiles", 0.01f * p.getNumDiscoveredTerritories());
 	}
 	
 	private static void evaluateDice(BotNode node, int die1, int die2, SOC soc, Player p, Board b) {

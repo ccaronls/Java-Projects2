@@ -532,8 +532,12 @@ public final class Board extends Reflector<Board> {
 				assert(type != RouteType.OPEN);
 				playerRoadLenCache[playerNum] = -1;
 			}
-			edge.setPlayerDoNotUse(playerNum);
-			edge.setType(type);
+			if (type == RouteType.OPEN) {
+				edge.reset();
+			} else {
+    			edge.setPlayerDoNotUse(playerNum);
+    			edge.setType(type);
+			}
 		}
 	}
 	
@@ -1567,13 +1571,30 @@ public final class Board extends Reflector<Board> {
 	 * @param types
 	 * @return
 	 */
-	public List<Integer> getVertsOfType(int playerNum, VertexType ... types) {
+	public List<Integer> getVertIndicesOfType(int playerNum, VertexType ... types) {
 		List<Integer> verts = new ArrayList<Integer>();
 		List<VertexType> arr = Arrays.asList(types);
 		for (int i = 0; i < getNumVerts(); i++) {
 			Vertex v = getVertex(i);
 			if ((playerNum == 0 || playerNum == v.getPlayer()) && arr.contains(v.getType()))
 				verts.add(i);
+		}
+		return verts;
+	}
+
+	/**
+	 * 
+	 * @param playerNum
+	 * @param types
+	 * @return
+	 */
+	public List<Vertex> getVertsOfType(int playerNum, VertexType ... types) {
+		List<Vertex> verts = new ArrayList<Vertex>();
+		List<VertexType> arr = Arrays.asList(types);
+		for (int i = 0; i < getNumVerts(); i++) {
+			Vertex v = getVertex(i);
+			if ((playerNum == 0 || playerNum == v.getPlayer()) && arr.contains(v.getType()))
+				verts.add(v);
 		}
 		return verts;
 	}
@@ -1593,7 +1614,7 @@ public final class Board extends Reflector<Board> {
 	 * @return
 	 */
 	public List<Integer> getKnightsForPlayer(int playerNum) {
-		return getVertsOfType(playerNum, VertexType.BASIC_KNIGHT_ACTIVE, VertexType.BASIC_KNIGHT_INACTIVE, VertexType.STRONG_KNIGHT_ACTIVE, VertexType.STRONG_KNIGHT_INACTIVE, VertexType.MIGHTY_KNIGHT_ACTIVE, VertexType.MIGHTY_KNIGHT_INACTIVE);
+		return getVertIndicesOfType(playerNum, VertexType.BASIC_KNIGHT_ACTIVE, VertexType.BASIC_KNIGHT_INACTIVE, VertexType.STRONG_KNIGHT_ACTIVE, VertexType.STRONG_KNIGHT_INACTIVE, VertexType.MIGHTY_KNIGHT_ACTIVE, VertexType.MIGHTY_KNIGHT_INACTIVE);
 	}
 	
     /**
@@ -1611,7 +1632,7 @@ public final class Board extends Reflector<Board> {
 	 * @return
 	 */
 	public List<Integer> getCitiesForPlayer(int playerNum) {
-		return getVertsOfType(playerNum, VertexType.CITY, VertexType.WALLED_CITY);
+		return getVertIndicesOfType(playerNum, VertexType.CITY, VertexType.WALLED_CITY);
 	}
 
 	/**
@@ -1620,7 +1641,7 @@ public final class Board extends Reflector<Board> {
 	 * @return
 	 */
 	public List<Integer> getSettlementsForPlayer(int playerNum) {
-		return getVertsOfType(playerNum, VertexType.SETTLEMENT);
+		return getVertIndicesOfType(playerNum, VertexType.SETTLEMENT);
 	}
 
 	/**
@@ -1629,7 +1650,7 @@ public final class Board extends Reflector<Board> {
 	 * @return
 	 */
 	public List<Integer> getStructuresForPlayer(int playerNum) {
-		return getVertsOfType(playerNum, VertexType.SETTLEMENT, VertexType.CITY, VertexType.WALLED_CITY, VertexType.METROPOLIS_POLITICS, VertexType.METROPOLIS_SCIENCE, VertexType.METROPOLIS_TRADE);
+		return getVertIndicesOfType(playerNum, VertexType.SETTLEMENT, VertexType.CITY, VertexType.WALLED_CITY, VertexType.METROPOLIS_POLITICS, VertexType.METROPOLIS_SCIENCE, VertexType.METROPOLIS_TRADE);
 	}
 
 	/**

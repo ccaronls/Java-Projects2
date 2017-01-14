@@ -722,7 +722,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 					@Override
 					public void onDrawOverlay(BoardComponent bc, AWTRenderer r, Graphics g) {
 						int index = 1;
-						for (int vIndex : bc.getBoard().getVertsOfType(0, VertexType.SETTLEMENT)) {
+						for (int vIndex : bc.getBoard().getVertIndicesOfType(0, VertexType.SETTLEMENT)) {
 							Vertex v = bc.getBoard().getVertex(vIndex);
 							g.setColor(Color.LIGHT_GRAY);
 							bc.drawSettlement(g, v, 0, false);

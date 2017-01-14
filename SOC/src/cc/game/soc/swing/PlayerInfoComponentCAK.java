@@ -66,6 +66,7 @@ public class PlayerInfoComponentCAK extends PlayerInfoComponent {
         int numKnights     = soc.getBoard().getNumKnightsForPlayer(player.getPlayerNum());
         int knightLevel    = soc.getBoard().getKnightLevelForPlayer(player.getPlayerNum(), true, false);
         int maxKnightLevel = soc.getBoard().getKnightLevelForPlayer(player.getPlayerNum(), true, true);
+        int numDiscoveredTiles = player.getNumDiscoveredTerritories();
 /*
         str.append(" S X ").append(numSettlements).append(" +").append(numSettlements * soc.getRules().getPointsPerSettlement())
            .append(" C X ").append(numCities).append(" +").append(numCities * soc.getRules().getPointsPerCity())
@@ -120,9 +121,13 @@ public class PlayerInfoComponentCAK extends PlayerInfoComponent {
         	}
         }
         
+        if (numDiscoveredTiles > 0) {
+        	str.append("Discovered Tiles X " + numDiscoveredTiles).append("\n");
+        }
+        
         g.setColor(player.getColor());
         Rectangle r = AWTUtils.drawWrapString(g, 5, 5, getWidth(), str.toString());
-        int h = r.y + r.height + 5;
+        int h = r.y + r.height + 10;
         int w = getWidth() - 1;
         if (isCurrentPlayer()) {
         	AWTUtils.drawRect(g, 0, 0, getWidth(), getHeight(), 3, 0);
