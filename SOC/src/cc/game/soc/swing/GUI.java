@@ -48,7 +48,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
     
     static GUI instance;
     static final File HOME_FOLDER = new File(System.getProperty("user.home") + "/.soc");
-    static final File AI_TUNING_FILE = new File(HOME_FOLDER, "aituning.properties");
+    static final File AI_TUNING_FILE = new File("aituning.properties");//new File(HOME_FOLDER, "aituning.properties");
 
 	public static void main(String [] args)  {
 		JFrame frame = new JFrame();
@@ -248,6 +248,8 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
         	} finally {
         		in.close();
         	}
+        } catch (FileNotFoundException e) {
+        	AI_TUNING_FILE.createNewFile();
         } catch (Exception e) {
         	e.printStackTrace();
         }
