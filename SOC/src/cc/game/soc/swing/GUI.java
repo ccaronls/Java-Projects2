@@ -1531,7 +1531,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 				break;
 			case AITUNING_REFRESH: {
 				try {
-    				JTextArea area = (JTextArea)(middleLeftPanel.top().getComponent(0));
+    				JTextArea area = (JTextArea)(((JScrollPane)middleLeftPanel.top().getComponent(0)).getViewport().getView());
     				String txt = area.getText();
     				String [] lines = txt.split("[\n]");
     				for (int i=1; i<lines.length; i++) {
@@ -1876,7 +1876,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 	
 	private String getBotNodeDetails(BotNode node, int maxKeyWidth, Map<String,Double> maxValues) {
 		StringBuffer info = new StringBuffer();
-		info.append(String.format("%-" + maxKeyWidth + "s FACTOR  VALUE MAX TOT\n", "PROPERTY"));
+		info.append(String.format("%-" + Math.max(5, maxKeyWidth) + "s FACTOR  VALUE MAX TOT\n", "PROPERTY"));
 		for (String key : node.getKeys()) {
 			double factor = AITuning.getInstance().getScalingFactor(key);
 			double value =  node.getValue(key);
@@ -1983,7 +1983,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 		final int maxKeyWidthf = maxKeyWidth;
 		String optimalInfo = getBotNodeDetails(optimal, maxKeyWidth, maxValues);
 		final JTextArea nodeArea = new JTextArea();
-		nodeArea.setLineWrap(true);
+//		nodeArea.setLineWrap(true);
 		nodeArea.addKeyListener(new KeyListener() {
 			
 			@Override
@@ -2000,7 +2000,10 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 				}
 			}
 		});
-		middleLeftPanel.push().add(nodeArea);
+		JPanel area = middleLeftPanel.push();
+		JScrollPane pane = new JScrollPane();
+		pane.getViewport().add(nodeArea);
+		area.add(pane);
 		
 		nodeArea.setFont(Font.decode("courier-plain-10"));
 		nodeArea.setText(optimalInfo.toString());

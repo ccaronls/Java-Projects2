@@ -4,6 +4,7 @@ import java.io.PrintStream;
 import java.util.*;
 
 import cc.lib.game.IVector2D;
+import cc.lib.game.Utils;
 import cc.lib.math.Vector2D;
 import cc.lib.utils.Reflector;
 
@@ -128,7 +129,7 @@ public abstract class BotNode extends Reflector<BotNode> implements Comparable<B
     public final void addValue(String name, double value) {
     	name = name.replace(' ', '_').trim();
     	if (value != 0) {
-    		properties.put(name, value*chance);
+    		properties.put(name, value*Utils.clamp(chance, 0, 1));
     	} else {
     		properties.remove(name);
     	}

@@ -415,6 +415,64 @@ public class AWTUtils {
      * @return
      */
     public static String [] generateWrappedLines(Graphics g, String str, int maxWidth) {
+    	List<String> lines = new ArrayList<String>();
+    	while (str.length() > 0) {
+    		int endl = str.indexOf('\n');
+    		if (endl >= 0) {
+    			wrapString(g, str.substring(0, endl), lines, maxWidth);
+    			if (endl >= str.length())
+    				break;
+    			str = str.substring(endl+1, str.length());
+    		} else {
+    			wrapString(g, str, lines, maxWidth);
+    			break;
+    		}
+    	}
+    	return lines.toArray(new String[lines.size()]);
+    }
+    
+    private static void wrapString(Graphics g, String str, List<String> target, int maxWidth) {
+    	
+		int width = getStringWidth(g, str);
+		while (width > maxWidth) {
+			int spc = findSpaceToWrapString(g, str, maxWidth);
+			if (spc < 0) {
+    			String s = split(g, str, 0, str.length(), maxWidth);
+    			target.add(s);
+    			str = str.substring(s.length());
+			} else {
+				target.add(str.substring(0, spc));
+				if (spc >= str.length()-1)
+					return;
+				str = str.substring(spc+1);
+			}
+    		width = getStringWidth(g, str);
+		}
+		if (str.length() > 0)
+			target.add(str);
+    }
+    
+    private static int findSpaceToWrapString(Graphics g, String str, int maxWidth) {
+    	int spc = str.indexOf(' ');
+    	if (spc < 0)
+    		return -1;
+    	int width = getStringWidth(g, str.substring(0, spc));
+    	if (width > maxWidth)
+    		return -1;
+    	while (true) {
+    		int spc2 = str.indexOf(' ', spc+1);
+    		if (spc2 < 0)
+    			return spc;
+    		width = getStringWidth(g, str.substring(0, spc2));
+    		if (width < maxWidth)
+    			spc = spc2;
+    		else
+    			break;
+    	}
+    	return spc;
+    }
+    
+    /*
         String text = str.trim();
         List<String> lines = new ArrayList<String>(32);
         while (text.length() > 0) {
@@ -491,7 +549,8 @@ public class AWTUtils {
     
     
     private static String splitR(Graphics g, String s, int start, int end, int maxWidth, int depth) {
-    	if (depth > 32) {
+    	if (depth > 128) {
+    		System.err.println("Unable to split string '" + s + "'");
     		return s;
     	}
     	if (start >= end-1)

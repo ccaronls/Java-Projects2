@@ -65,7 +65,8 @@ public class ImageMgr {
 			return null;
 		} finally {
 			try {
-				in.close();
+				if (in != null)
+					in.close();
 			} catch (Exception e) {}
 		}
 	}

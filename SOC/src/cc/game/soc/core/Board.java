@@ -1733,11 +1733,11 @@ public final class Board extends Reflector<Board> {
 		}
 
 		Vertex v = getVertex(edge.getFrom());
-		if (v.getPlayer() == playerNum && isVertexAdjacentToWater(v))
+		if (v.isStructure() && v.getPlayer() == playerNum && isVertexAdjacentToWater(v))
 			return true;
 		
 		v = getVertex(edge.getTo());
-		if (v.getPlayer() == playerNum && isVertexAdjacentToWater(v))
+		if (v.isStructure() && v.getPlayer() == playerNum && isVertexAdjacentToWater(v))
 			return true;
 		
 		if (rules.isEnableBuildShipsFromPort()) {
@@ -2213,7 +2213,6 @@ public final class Board extends Reflector<Board> {
 		}
 		return options;
 	}
-
 
 	public boolean isIslandDiscovered(int playerNum, int islandNum) {
 		return getIsland(islandNum).discovered[playerNum];

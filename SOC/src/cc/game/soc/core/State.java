@@ -65,7 +65,7 @@ enum State {
 	CHOOSE_RESOURCE_FLEET(true, "Choose any Resource to use for a 2:1 trade for the duration of your turn."), // Merchant Fleet
 	CHOOSE_PLAYER_TO_SPY_ON(true, "Choose an Opponent to Spy on.  You can pick any one of their Progress cards into your hand."), // Spy
 //	CHOOSE_OPPONENT_CARD(false, "Choose a Progress card to take into your hand."), // Spy - redundant with TAKE_CARD_FOMR_OPPONENT
-	CHOOSE_TRADE_MONOPOLY(true, "Choose a Commodity to Monopolize.  All players with that commodity in their hand will forfeit into your own."),
+	CHOOSE_TRADE_MONOPOLY(true, "Choose a Commodity to Monopolize.  All players with that commodity in their hand forfeit one to you."),
 	CHOOSE_GIFT_CARD(false, "Choose a card to give to the happy couple on their Wedding day."),
     PROCESS_DICE(false, ""), // transition state
     PROCESS_PIRATE_ATTACK(false, ""), // transition state 

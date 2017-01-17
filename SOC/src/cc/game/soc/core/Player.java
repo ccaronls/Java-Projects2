@@ -852,7 +852,6 @@ public abstract class Player extends Reflector<Player> {
 		RESOURCE_OR_COMMODITY,
 		GIVEUP_CARD, // cards are lost 
 		OPPONENT_CARD, // choose from an opponents cards
-		PROGRESS_CARD, // choose a progress card
 		EXCHANGE_CARD, // exchange for another players card
 		FLEET_TRADE, // any num of 2:1 trades of a single resource or commodity for 1 turn 
 	}
@@ -866,8 +865,8 @@ public abstract class Player extends Reflector<Player> {
 	public abstract Card chooseCard(SOC soc, Collection<Card> cards, CardChoice mode);
 	
 	public static enum EnumChoice {
-		MONOPOLY,
-		DRAW_DEVELOPMENT_CARD, 
+		COMMODITY_MONOPOLY,
+		RESOURCE_MONOPOLY,
 		DRAW_PROGRESS_CARD,
 		CRANE_CARD_DEVELOPEMENT,
 	}

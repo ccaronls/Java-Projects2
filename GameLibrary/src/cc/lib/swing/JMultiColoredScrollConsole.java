@@ -86,7 +86,11 @@ public class JMultiColoredScrollConsole extends JList<JMultiColoredScrollConsole
     };
     
 	public synchronized void addText(Color color, String text) {
-		String [] l = AWTUtils.generateWrappedLines(getGraphics(), text, getWidth() - 20);
+		int width = getBounds().width;
+		int scrollBarSize = ((Integer)UIManager.get("ScrollBar.width")).intValue();
+		setFixedCellWidth(width);
+//		System.out.println("width = " + width);
+		String [] l = AWTUtils.generateWrappedLines(getGraphics(), text, width - scrollBarSize - 5);
 		for (int i=l.length-1; i>=0; i--)
 			lines.addFirst(new Entry(color, l[i]));
         while (lines.size() > maxRecordLines) {
@@ -152,4 +156,5 @@ public class JMultiColoredScrollConsole extends JList<JMultiColoredScrollConsole
     
 	}
       
+	
 }

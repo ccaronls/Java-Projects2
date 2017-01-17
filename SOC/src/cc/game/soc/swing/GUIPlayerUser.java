@@ -56,37 +56,11 @@ public class GUIPlayerUser extends GUIPlayer {
 
 	@Override
 	public Card chooseCard(SOC soc, Collection<Card> cards, CardChoice mode) {
-		Card card = GUI.instance.chooseCardMenu(cards);
-		switch (mode) {
-			case RESOURCE_OR_COMMODITY:
-				break;
-			case EXCHANGE_CARD:
-				break;
-			case FLEET_TRADE:
-				break;
-			case GIVEUP_CARD:
-				break;
-			case OPPONENT_CARD:
-				break;
-			case PROGRESS_CARD:
-				break;
-			
-		}
-		return card;
+		return GUI.instance.chooseCardMenu(cards);
 	}
 
 	@Override
 	public <T extends Enum<T>> T chooseEnum(SOC soc, EnumChoice mode, T [] values) {
-		switch (mode) {
-			case DRAW_DEVELOPMENT_CARD:
-				break;
-			case DRAW_PROGRESS_CARD:
-				break;
-			case MONOPOLY:
-				break;
-			case CRANE_CARD_DEVELOPEMENT:
-				break;
-		}
 		return GUI.instance.chooseEnum(Arrays.asList(values));
 	}
 

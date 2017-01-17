@@ -29,7 +29,7 @@ public class SOC extends Reflector<SOC> {
 	
 	public static final int	NUM_RESOURCE_TYPES			= ResourceType.values().length;
 	public static final int	NUM_DEVELOPMENT_CARD_TYPES	= DevelopmentCardType.values().length;
-	public static final int NUM_DEVELOPMENT_AREA_TYPES	= DevelopmentArea.values().length;
+	public static final int NUM_DEVELOPMENT_AREA_TYPES	= DevelopmentArea.values().length; // DONT REMOVE. I know this is redundant, but it prevents a null ptr in DevelopementArea.commodity
 	public static final int NUM_COMMODITY_TYPES			= CommodityType.values().length;
 	public static final int NUM_DEVELOPMENT_AREAS		= DevelopmentArea.values().length;
 	
@@ -1726,7 +1726,7 @@ public class SOC extends Reflector<SOC> {
 
 				case CHOOSE_RESOURCE_MONOPOLY: { // wait state
 					printinfo(getCurPlayer().getName() + " choose resource to monopolize");
-					ResourceType type = getCurPlayer().chooseEnum(this, EnumChoice.MONOPOLY, ResourceType.values());
+					ResourceType type = getCurPlayer().chooseEnum(this, EnumChoice.RESOURCE_MONOPOLY, ResourceType.values());
 					if (type != null) {
 						processMonopoly(type);
 						popState();
@@ -1744,8 +1744,8 @@ public class SOC extends Reflector<SOC> {
 						if (numCards > mRules.getMaxSafeCardsForPlayer(cur.getPlayerNum(), mBoard)) {
 							int numCardsToSurrender = numCards / 2;
 							printinfo(cur.getName() + " must give up " + numCardsToSurrender + " of " + numCards + " cards");
-							while (numCardsToSurrender > 0)
-								pushStateFront(State.GIVE_UP_CARD, numCardsToSurrender--);
+							for (int i=0; i<numCardsToSurrender; i++)// (numCardsToSurrender > 0)
+								pushStateFront(State.GIVE_UP_CARD, numCardsToSurrender);
 							pushStateFront(State.SET_PLAYER, cur.getPlayerNum());
 						}
 					} 
@@ -1753,12 +1753,13 @@ public class SOC extends Reflector<SOC> {
 				}
 				
 				case GIVE_UP_CARD: { // wait state
+					int numToGiveUp = getStateData();
 					cards = getStateExtraOptions();
 					if (cards == null) {
 						cards = getCurPlayer().getUnusedCards();
 					}
 					assert (!Utils.isEmpty(cards));
-					printinfo("Give up one of " + cards.size() + " cards");
+					printinfo("Give up one of " + numToGiveUp + " cards");
 					Card card = getCurPlayer().chooseCard(this, cards, CardChoice.GIVEUP_CARD);
 					if (card != null) {
 						getCurPlayer().removeCard(card);
@@ -1839,7 +1840,6 @@ public class SOC extends Reflector<SOC> {
 					Vertex v = getCurPlayer().chooseVertex(this, options, VertexChoice.KNIGHT_TO_PROMOTE, null);
 					if (v != null) {
 						assert(v.isKnight());
-						options.remove(v);
 						v.setPlayerAndType(getCurPlayerNum(), v.getType().promotedType());
 						popState();
 					}
@@ -1968,12 +1968,14 @@ public class SOC extends Reflector<SOC> {
 					if (v != null) {
 						VertexType knightType = v.getType();
 						assert(knightType.isKnight());
-						v.setOpen();
+						Vertex copy = v.deepCopy();
 						int newPlayerNum = getStateData();
+						copy.setPlayerAndType(newPlayerNum, knightType);
+						v.setOpen();
 						popState();
 						options = computeNewKnightVertexIndices(newPlayerNum, getBoard());
 						if (options.size() > 0) {
-    						pushStateFront(State.POSITION_KNIGHT_NOCANCEL, knightType, options);
+    						pushStateFront(State.POSITION_KNIGHT_NOCANCEL, copy, options);
 						}
 						pushStateFront(State.SET_PLAYER, newPlayerNum);
 					}
@@ -2228,7 +2230,7 @@ public class SOC extends Reflector<SOC> {
 				
 				case CHOOSE_TRADE_MONOPOLY: {
 					printinfo(getCurPlayer().getName() + " choose commodity for monopoly");
-					CommodityType c = getCurPlayer().chooseEnum(this, EnumChoice.MONOPOLY, CommodityType.values());
+					CommodityType c = getCurPlayer().chooseEnum(this, EnumChoice.COMMODITY_MONOPOLY, CommodityType.values());
 					if (c != null) {
 						popState();
 						putCardBackInDeck(getCurPlayer().removeCard(ProgressCardType.TradeMonopoly));
@@ -3267,7 +3269,7 @@ public class SOC extends Reflector<SOC> {
 					if (num > 0) {
 						done = true;
     					for (int i=0; i<num; i++) {
-    						pushStateFront(State.GIVE_UP_CARD);
+    						pushStateFront(State.GIVE_UP_CARD, num);
     					}
     					pushStateFront(State.SET_PLAYER, pNum);
 					}
@@ -3292,7 +3294,7 @@ public class SOC extends Reflector<SOC> {
 						}
 					});
 					if (knights.size()>1) {
-    					pushStateFront(State.CHOOSE_KNIGHT_TO_PROMOTE, null, knights, new UndoAction() {
+    					pushStateFront(State.CHOOSE_KNIGHT_TO_PROMOTE, null, null, new UndoAction() {
 							
 							@Override
 							public void undo() {
@@ -4082,9 +4084,9 @@ public class SOC extends Reflector<SOC> {
 			Vertex v0 = b.getVertex(e.getFrom());
 			Vertex v1 = b.getVertex(e.getTo());
 			
-			if (v0.getType() != VertexType.OPEN && v0.getPlayer() == playerNum)
+			if (v0.getType().isStructure && v0.getPlayer() == playerNum)
 				continue;
-			if (v1.getType() != VertexType.OPEN && v1.getPlayer() == playerNum)
+			if (v1.getType().isStructure && v1.getPlayer() == playerNum)
 				continue;
 			// if there is a route on EACH end, then not open
 			int numConnected = 0;
