@@ -1679,23 +1679,17 @@ public class PlayerBot extends Player {
 		if (movesPath != null) {
 			return detatchMove();
 		}
-		/*
 		switch (mode) {
-			case DRAW_DEVELOPMENT_CARD:
-				// weight the progress types we have LESS chance of aver getting
-				int [] weights = new int[SOC.NUM_DEVELOPMENT_AREAS];
+			case DRAW_PROGRESS_CARD: {
+				int [] chance = new int[values.length];
 				for (DevelopmentArea a : DevelopmentArea.values()) {
-					weights[a.ordinal()] = DevelopmentArea.MAX_CITY_IMPROVEMENT - getCityDevelopment(a);
+					chance[a.ordinal()] = 1 + (DevelopmentArea.MAX_CITY_IMPROVEMENT - getCityDevelopment(a));
 				}
-				return Utils.chooseRandomFromSet(weights)
-				
-				
-			case DRAW_PROGRESS_CARD:
-				return Utils.randItem(values);
+				// choose the card we are least likely to get
+				return values[Utils.chooseRandomFromSet(chance)];
+			}
 
-			case CRANE_CARD_DEVELOPEMENT:
-			case MONOPOLY:
-		}*/
+		}
 		throw new AssertionError("Dont know how to handle this");
 	}
 
