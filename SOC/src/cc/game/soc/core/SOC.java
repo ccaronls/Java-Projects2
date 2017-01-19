@@ -808,30 +808,38 @@ public class SOC extends Reflector<SOC> {
 						} else {
 							pushStateFront(State.DRAW_RESOURCE_NOCANCEL);
 						}
+						if (vertex.isCity()) {
+							pushStateFront(State.DRAW_RESOURCE_NOCANCEL);
+						}
 						playerDidRecieveResources[p.getPlayerNum()] = true;
 						// set to player that needs choose a resource
 						pushStateFront(State.SET_PLAYER, vertex.getPlayer());
 					} else if (getRules().isEnableCitiesAndKnightsExpansion()) {
 						
+						int numPerCity = getRules().getNumResourcesForCity();
+						int numPerSet =  getRules().getNumResourcesForSettlement();
+						
 						if (vertex.isCity()) {
 							
 							if (epidemic) {
-								resourceInfo[cell.getResource().ordinal()][vertex.getPlayer()] += 1;
-								p.incrementResource(cell.getResource(), 1);
+								resourceInfo[cell.getResource().ordinal()][vertex.getPlayer()] += numPerCity/2;
+								p.incrementResource(cell.getResource(), numPerCity/2);
 							} else {
 								if (cell.getCommodity() == null) {
-									resourceInfo[cell.getResource().ordinal()][vertex.getPlayer()] += 2;
-									p.incrementResource(cell.getResource(), 2);	
+									resourceInfo[cell.getResource().ordinal()][vertex.getPlayer()] += numPerCity;
+									p.incrementResource(cell.getResource(), numPerCity);	
 								} else {
-									resourceInfo[cell.getResource().ordinal()][vertex.getPlayer()] += 1;
-    								p.incrementResource(cell.getResource(), 1);
-    								commodityInfo[cell.getCommodity().ordinal()][vertex.getPlayer()] += 1;
-    								p.incrementResource(cell.getCommodity(), 1);
+									int numComm = numPerCity/2;
+									int numRes = numPerCity - numComm;
+									resourceInfo[cell.getResource().ordinal()][vertex.getPlayer()] += numRes;
+    								p.incrementResource(cell.getResource(), numRes);
+    								commodityInfo[cell.getCommodity().ordinal()][vertex.getPlayer()] += numComm;
+    								p.incrementResource(cell.getCommodity(), numComm);
 								}
 							}
 						} else if (vertex.isStructure()) {
-    						resourceInfo[cell.getResource().ordinal()][vertex.getPlayer()] += 1;
-    						p.incrementResource(cell.getResource(), 1);
+    						resourceInfo[cell.getResource().ordinal()][vertex.getPlayer()] += numPerSet;
+    						p.incrementResource(cell.getResource(), numPerSet);
 						}
 					} else {
 						int num = getRules().getNumResourcesForSettlement();
@@ -1218,7 +1226,18 @@ public class SOC extends Reflector<SOC> {
 		
 		dumpStateStack();
 		
-		logDebug("Processing state : " + getState());
+		String msg = "Processing state : " + getState();
+		if (getStateData() != null) {
+			msg += " data=" + getStateData();
+		}
+		if (getStateOptions() != null) {
+			msg += " options=" + getStateOptions();
+		}
+		if (getStateExtraOptions() != null) {
+			msg += " xtraOpts=" + getStateExtraOptions();
+		}
+		
+		logDebug("Processing state : " + getState() + " data=" + getStateData() + " ");
 		
 		try {
 

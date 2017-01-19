@@ -1206,9 +1206,9 @@ public class PlayerBot extends Player {
 					for (int num: players) {
 						Player player = soc.getPlayerByPlayerNum(num);
 						BotNode n = root.attach(new BotNodePlayer(player));
-						Card removed = player.removeRandomUnusedCard(CardType.Progress);
+						//Card removed = player.removeRandomUnusedCard(CardType.Progress);
 						evaluateOpponent(n, soc, player, b);
-						player.addCard(removed);
+						//player.addCard(removed);
 					}
 					//p.addCard(ProgressCardType.Spy);
 					break;
@@ -2568,6 +2568,12 @@ public class PlayerBot extends Player {
 		
 		node.addValue("cards buildability", 0.02f * buildableValue);
 		node.addValue("cards city development", 02f * develValue);
+		
+		float cardsValue = 0;
+		for (Card c : p.getCards()) {
+			cardsValue += c.getCardType().ordinal();
+		}
+		node.addValue("cardsValue", 0.02f * cardsValue);
 	}
 	
 	/**

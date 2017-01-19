@@ -56,7 +56,7 @@ public class SOCBoardTest extends TestCase {
     	assertEquals(sum, b.getNumVertsOfType(0, values));
     	
     	for (VertexType v : VertexType.values()) {
-    		assertEquals(counts[v.ordinal()], b.getVertsOfType(0, v).size());
+    		assertEquals(counts[v.ordinal()], b.getVertIndicesOfType(0, v).size());
     		assertEquals(counts[v.ordinal()], b.getNumVertsOfType(0, v));
     	}
     	
@@ -78,7 +78,7 @@ public class SOCBoardTest extends TestCase {
 
     		System.out.println("Types=" + Arrays.toString(v) + " num=" + sum);
 
-    		assertEquals(sum, b.getVertsOfType(0, v).size());
+    		assertEquals(sum, b.getVertIndicesOfType(0, v).size());
     		assertEquals(sum, b.getNumVertsOfType(0, v));
     	}
     	
@@ -89,7 +89,7 @@ public class SOCBoardTest extends TestCase {
         			v[ii] = Utils.randItem(VertexType.values());
         		}
         		
-        		int num = b.getVertsOfType(iii, v).size();
+        		int num = b.getVertIndicesOfType(iii, v).size();
         		System.out.println("Player " + iii + " types=" + Arrays.toString(v) + " num=" + num);
         		
         		assertEquals(num, b.getNumVertsOfType(iii, v));
