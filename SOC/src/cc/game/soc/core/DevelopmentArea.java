@@ -26,6 +26,7 @@ public enum DevelopmentArea {
 		this.vertexType = vertexType;
 		this.choice = choice;
 		this.levelName = levelName;
+		commodity.area = this;
 	}
 	
 	public final CommodityType commodity;

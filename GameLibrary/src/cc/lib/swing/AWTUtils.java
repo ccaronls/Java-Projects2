@@ -556,7 +556,7 @@ public class AWTUtils {
     	if (start >= end-1)
     		return s;
     	if (maxWidth <= 2)
-    		return s;
+    		return "";
     	int mid = (start+end)/2;
     	String r = s.substring(start, mid);
     	if (r.length() <= 1)
