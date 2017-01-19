@@ -1,7 +1,6 @@
 package cc.game.soc.swing;
 
 import java.awt.BorderLayout;
-
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
@@ -11,7 +10,9 @@ import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.GridBagConstraints;
+
 import static java.awt.GridBagConstraints.*;
+
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Rectangle;
@@ -1768,7 +1769,9 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 					case KNIGHT_MOVE_POSITION:
 					case KNIGHT_TO_MOVE:
 					case OPPONENT_KNIGHT_TO_DISPLACE:
-						bc.drawKnight(g, v, v.getPlayer(), v.getType().getKnightLevel(), v.getType().isKnightActive(), true);
+						bc.drawKnight(g, v, v.getPlayer(), v.getType().getKnightLevel(), v.getType().isKnightActive(), false);
+						g.setColor(Color.RED);
+						bc.drawCircle(g, v);
 						break;
 					case KNIGHT_TO_ACTIVATE:
 						bc.drawKnight(g, v, v.getPlayer(), v.getType().getKnightLevel(), true, true);
@@ -1801,7 +1804,8 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 			@Override
 			public void onDrawPickable(BoardComponent bc, AWTRenderer r, Graphics g, int index) {
 				Vertex v = getBoard().getVertex(index);
-				g.setColor(AWTUtils.setAlpha(getPlayerColor(getCurPlayerNum()), 120));
+				Color color = AWTUtils.setAlpha(getPlayerColor(getCurPlayerNum()), 120);
+				g.setColor(color);
 				switch (choice) {
 					case SETTLEMENT:
 						bc.drawSettlement(g, v, 0, false);
@@ -1818,6 +1822,9 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 					case KNIGHT_TO_MOVE:
 					case OPPONENT_KNIGHT_TO_DISPLACE:
 						bc.drawKnight(g, v, 0, v.getType().getKnightLevel(), v.getType().isKnightActive(), false);
+						g.setColor(Color.YELLOW);
+						bc.drawCircle(g, v);
+						g.setColor(color);
 						break;
 					case KNIGHT_TO_ACTIVATE:
 						bc.drawKnight(g, v, 0, v.getType().getKnightLevel(), true, false);
@@ -2215,11 +2222,18 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 	
 	public Tile chooseTile(final Collection<Integer> cells, final TileChoice choice) {
 		clearMenu();
+		final Tile robberTile = getBoard().getRobberTile();
+		final int merchantTileIndex = getBoard().getMerchantTileIndex();
+		final int merchantTilePlayer = getBoard().getMerchantPlayer();
+		getBoard().setRobber(-1);
+		getBoard().setMerchant(-1, 0);
 		boardComp.setPickHandler(new PickHandler() {
 			
 			@Override
 			public void onPick(BoardComponent bc, int pickedValue) {
 				bc.setPickHandler(null);
+				bc.getBoard().setRobberTile(robberTile);
+				bc.getBoard().setMerchant(merchantTileIndex, merchantTilePlayer);
 				setReturnValue(getBoard().getTile(pickedValue));
 			}
 			
@@ -2228,7 +2242,8 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 				Tile t = bc.getBoard().getTile(highlightedIndex);
 				switch (choice) {
 					case INVENTOR:
-						bc.drawTileOutline(g, t, 2);
+						g.setColor(Color.YELLOW);
+						bc.drawTileOutline(g, t, 4);
 						break;
 					case MERCHANT:
 						bc.drawMerchant(g, t, getCurPlayerNum());
@@ -2246,8 +2261,12 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 			@Override
 			public void onDrawPickable(BoardComponent bc, AWTRenderer r, Graphics g, int index) {
 				Tile t = bc.getBoard().getTile(index);
+				//g.setColor(Color.RED);
+				//bc.drawTileOutline(g, t, 1)
+				MutableVector2D v = r.transformXY(t);
 				g.setColor(Color.RED);
-				bc.drawTileOutline(g, t, 1);
+				AWTUtils.fillCircle(g, v.Xi(), v.Yi(), BoardComponent.TILE_CELL_NUM_RADIUS+10);
+				bc.drawCellProductionValue(g, v.Xi(), v.Yi(), t.getDieNum(), BoardComponent.TILE_CELL_NUM_RADIUS);//drawTileOutline(g, cell, borderThickness);
 			}
 			
 			@Override
@@ -2369,6 +2388,8 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 			if (curTime - startTime > diceSpinTimeSeconds*1000)
 				break;
 			for (int i=0; i<dieToSpin.length; i++) {
+				if (dieToSpin[i] == null)
+					continue;
 				diceComps[i].setType(dieToSpin[i].getType());
 				diceComps[i].setDie(Utils.rand() % 6 + 1);
 			}
@@ -2730,6 +2751,8 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 
 	public void setDice(Dice ... dice) {
 		for (int i=0; i<dice.length; i++) {
+			if (dice[i] == null)
+				continue;
 			diceComps[i].setType(dice[i].getType());
 			diceComps[i].setDie(dice[i].getNum());
 		}

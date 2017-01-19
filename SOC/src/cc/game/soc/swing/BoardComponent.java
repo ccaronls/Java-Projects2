@@ -543,6 +543,22 @@ public abstract class BoardComponent extends JComponent implements MouseMotionLi
 		drawFaces(g, pos, 0, scale*2/3, scale*2/3, structure, outline);
 	}
 	
+	void drawCircle(Graphics g, IVector2D pos) {
+		render.pushMatrix();
+		render.clearVerts();
+		render.translate(pos);
+		int angle = 0;
+		float rad = board.getTileWidth()/5;
+		render.scale(rad, rad);
+		int pts = 10;
+		for (int i=0; i<pts; i++) {
+			render.addVertex(CMath.cosine(angle), CMath.sine(angle));
+			angle += 360/pts;
+		}
+		render.drawLineLoop(g, 2);
+		render.popMatrix();
+	}
+	
 	void drawPirateFortress(Graphics g, Vertex v, boolean outline) {
 		MutableVector2D mv = render.transformXY(v);
 		int x = mv.Xi()-10;
@@ -942,6 +958,8 @@ public abstract class BoardComponent extends JComponent implements MouseMotionLi
 
     private Font bold = null;
     
+    public final static int TILE_CELL_NUM_RADIUS = 20;
+    
     private void drawTilesTextured(Graphics g) {
         float cellW = board.getTileWidth();
         float cellH = board.getTileHeight();
@@ -1038,16 +1056,16 @@ public abstract class BoardComponent extends JComponent implements MouseMotionLi
             }
             
             if (cell.getDieNum() > 0) {
-            	drawCellProductionValue(g, x, y, cell.getDieNum());
+            	drawCellProductionValue(g, x, y, cell.getDieNum(), TILE_CELL_NUM_RADIUS);
             }
         }   
         
         
     }
 
-    public void drawCellProductionValue(Graphics g, int x, int y, int num) {
+    public void drawCellProductionValue(Graphics g, int x, int y, int num, int radius) {
         g.setColor(Color.BLACK);
-        AWTUtils.fillCircle(g, x, y+1, 20);
+        AWTUtils.fillCircle(g, x, y+1, radius);
         g.setColor(Color.CYAN);
         AWTUtils.drawJustifiedString(g, x, y, Justify.CENTER, Justify.CENTER, String.valueOf(num));
     }

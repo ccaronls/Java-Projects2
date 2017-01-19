@@ -958,6 +958,8 @@ public class SOC extends Reflector<SOC> {
 		onDiceRolled(dice);
 		String rolled = "";
 		for (Dice d : dice) {
+			if (d == null)
+				continue;
 			switch (d.getType()) {
 				case Event:
 					if (rolled.length() > 0)
@@ -1155,15 +1157,26 @@ public class SOC extends Reflector<SOC> {
     public static List<Integer> computeInventorTileIndices(Board b, SOC soc) {
     	int [] values = null;
     	if (soc.getRules().isUnlimitedInventorTiles()) {
-    		values = new int[] { 2,3,4,5,7,8,9,10,11,12 };
+    		values = new int[] { 2,3,4,5,6,8,9,10,11,12 };
     	} else {
     		values = new int[] { 3,4,5,9,10,11 };
     	};
 		List<Integer> tiles = new ArrayList<Integer>();
 		for (int tIndex=0; tIndex<b.getNumTiles(); tIndex++) {
 			Tile t = b.getTile(tIndex);
-			if (t.isLand() && t.isDistributionTile() && Arrays.binarySearch(values, t.getDieNum()) >= 0) {
-				tiles.add(tIndex);
+			switch (t.getType()) {
+				case FIELDS:
+				case FOREST:
+				case GOLD:
+				case HILLS:
+				case MOUNTAINS:
+				case PASTURE:
+					if (Arrays.binarySearch(values, t.getDieNum()) >= 0) {
+						tiles.add(tIndex);
+					}
+					break;
+				default:
+					// 
 			}
 		}    	
 		return tiles;
@@ -2806,7 +2819,8 @@ public class SOC extends Reflector<SOC> {
 		Vertex v = getBoard().getVertex(vIndex);
 		printinfo(p.getName() + " is attacking a pirate fortress");
 		int playerHealth = getBoard().getRoutesOfType(getCurPlayerNum(), RouteType.WARSHIP).size();
-		Dice pirateHealth = new Dice(getDice()[0].getType());
+		pushDiceConfig(DiceType.WhiteBlack);
+		Dice pirateHealth = getDice()[0];
 		pirateHealth.roll();
 		onDiceRolledPrivate(pirateHealth);
 		onPlayerAttacksPirateFortress(p, playerHealth, pirateHealth.getNum());
@@ -2835,6 +2849,7 @@ public class SOC extends Reflector<SOC> {
 			getBoard().removeShipsClosestToVertex(vIndex, p.getPlayerNum(), 2);
 			processRouteChange(p, null);
 		}
+		popDiceConfig();
 	}
 	
 	/**
@@ -3049,7 +3064,8 @@ public class SOC extends Reflector<SOC> {
         			ry.setNum(Utils.clamp(ry.getNum(), 1, 6));
         			yr.setNum(Utils.clamp(yr.getNum(), 1, 6));
         			ev.roll();
-        			onDiceRolledPrivate(ev);
+            		popState();
+        			onDiceRolledPrivate(null, null, ev);
         			printinfo(getCurPlayer().getName() + " applied Alchemist card on dice " +  ry.getNum() + ", " + yr.getNum() + ", " + DiceEvent.fromDieNum(ev.getNum()));
             		processDice();
         		}

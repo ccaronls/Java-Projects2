@@ -118,7 +118,8 @@ public final class ADiceComponent extends JComponent implements ChangeListener, 
 
 	@Override
 	public void mouseClicked(MouseEvent e) {
-		die = (die+1)%6+1;
+		if (++die > 6)
+			die = 1;
 		repaint();
 	}
 

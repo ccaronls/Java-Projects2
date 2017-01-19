@@ -341,7 +341,7 @@ public class SOCGUI extends SOC {
 				int fh = AWTUtils.getFontHeight(g);
 				int x = Math.round(t.getX() - fh);
 				int y = Math.round(t.getY() - fh);
-				gui.getBoardComponent().drawCellProductionValue(g, x, y, num);
+				gui.getBoardComponent().drawCellProductionValue(g, x, y, num, BoardComponent.TILE_CELL_NUM_RADIUS);
 			}
 			
 			@Override
