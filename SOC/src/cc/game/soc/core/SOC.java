@@ -1418,8 +1418,8 @@ public class SOC extends Reflector<SOC> {
 						int eIndex = mBoard.getRouteIndex(edge);
 						printinfo(getCurPlayer().getName() + " placing a road on edge " + eIndex);
 						getBoard().setPlayerForRoute(edge, getCurPlayerNum(), RouteType.ROAD);
-						processRouteChange(getCurPlayer(), edge);
 						popState();
+						processRouteChange(getCurPlayer(), edge);
 					}
 					break;
 				}
@@ -2086,7 +2086,7 @@ public class SOC extends Reflector<SOC> {
 					if (card != null) {
 						Player exchanging = getStateData();
 						popState();
-						
+						printinfo(getCurPlayer().getName() + " gives a " + card.getName() + " to " + exchanging.getName());
 						Card exchanged = getCurPlayer().removeCard(card);
 						onCardLost(getCurPlayer(), exchanged);
 						
