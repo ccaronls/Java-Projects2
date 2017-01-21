@@ -2337,6 +2337,7 @@ public class SOC extends Reflector<SOC> {
 								printinfo(getCurPlayer().getName() + " has destoryed the road");
 								onRoadDestroyed(r, getCurPlayer(), victim);
 								getBoard().setRouteOpen(r);
+								processRouteChange(victim, r);
 								break;
 							default:
 								assert(false);
