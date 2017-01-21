@@ -2337,6 +2337,7 @@ public class SOC extends Reflector<SOC> {
 								printinfo(getCurPlayer().getName() + " has destoryed the road");
 								onRoadDestroyed(r, getCurPlayer(), victim);
 								getBoard().setRouteOpen(r);
+								processRouteChange(victim, r);
 								break;
 							default:
 								assert(false);
@@ -2394,11 +2395,13 @@ public class SOC extends Reflector<SOC> {
 							switch (k.getType()) {
 								case BASIC_KNIGHT_INACTIVE:
 									printinfo(getCurPlayer().getName() + "'s knight lost!");
+									onPlayerKnightDestroyed(k);
 									k.setOpen();
 									break;
 								case MIGHTY_KNIGHT_INACTIVE:
 								case STRONG_KNIGHT_INACTIVE:
 									printinfo(getCurPlayer().getName() + "'s knight demoted!");
+									onPlayerKnightDemoted(k);
 									k.demoteKnight();
 									break;
 								default:
@@ -5170,7 +5173,7 @@ public class SOC extends Reflector<SOC> {
 								  + mBoard.getNumVertsOfType(i, VertexType.MIGHTY_KNIGHT_ACTIVE) * VertexType.MIGHTY_KNIGHT_ACTIVE.getKnightLevel();
 				int numCities = mBoard.getNumVertsOfType(i, VertexType.CITY, VertexType.WALLED_CITY);//, VertexType.METROPOLIS_POLITICS, VertexType.METROPOLIS_SCIENCE, VertexType.METROPOLIS_TRADE);
 				if (numCities == 0)
-					minStrength = Integer.MAX_VALUE; // dont count players who have no pillidgable cities
+					{}//minStrength = Integer.MAX_VALUE; // dont count players who have no pillidgable cities
 				else
 					minStrength = Math.min(minStrength, playerStrength[i]);
 				maxStrength = Math.max(maxStrength, playerStrength[i]);
@@ -5227,7 +5230,7 @@ public class SOC extends Reflector<SOC> {
 						pilledged.add(i);
 					}
 				}
-				assert(pilledged.size() > 0);
+//				assert(pilledged.size() > 0);
 				for (int playerNum : pilledged) {
 					List<Integer> cities = mBoard.getVertIndicesOfType(playerNum, VertexType.WALLED_CITY);
 					if (cities.size() > 0) {
@@ -5326,4 +5329,7 @@ public class SOC extends Reflector<SOC> {
 		return mStateStack.peek().state.helpText;
 	}
 	
+	protected void onPlayerKnightDestroyed(Vertex knight) {}
+	
+	protected void onPlayerKnightDemoted(Vertex knight) {}
 }
