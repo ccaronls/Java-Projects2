@@ -797,8 +797,9 @@ public class SOC extends Reflector<SOC> {
 			// type cell.resource
 			for (int vIndex: cell.getAdjVerts()) {
 				Vertex vertex = mBoard.getVertex(vIndex);
-				if (vertex.isStructure()) {
+				if (vertex.getPlayer() > 0 && vertex.isStructure()) {
 					Player p = getPlayerByPlayerNum(vertex.getPlayer()); 
+					assert(p != null);
 					if (cell.getType() == TileType.GOLD) {
 						// set to original player
 						printinfo(p.getName() + " has struck Gold!");
@@ -1082,6 +1083,8 @@ public class SOC extends Reflector<SOC> {
             	pushStateFront(State.POSITION_SETTLEMENT_NOCANCEL);
         }
 
+        pushStateFront(State.CLEAR_FORCED_SETTLEMENTS);
+        
         // the last player picks again
         pushStateFront(State.POSITION_ROAD_OR_SHIP_NOCANCEL);
         pushStateFront(State.POSITION_SETTLEMENT_NOCANCEL);
@@ -1250,14 +1253,15 @@ public class SOC extends Reflector<SOC> {
 			msg += " xtraOpts=" + getStateExtraOptions();
 		}
 		
-		logDebug("Processing state : " + getState() + " data=" + getStateData() + " ");
+		logDebug(msg);
 		
 		try {
 
 			Collection<Integer> options = getStateOptions();
 			Collection<Card> cards = null;
 			
-			switch (getState()) {
+			final State state = getState();
+			switch (state) {
 
 				case DEAL_CARDS: // transition state
 					popState();
@@ -1279,6 +1283,8 @@ public class SOC extends Reflector<SOC> {
 	        		Vertex v = getCurPlayer().chooseVertex(this, options, VertexChoice.PIRATE_FORTRESS, null);
 	        		if (v != null) {
 	        			popState();
+	        			if (getRules().isAttackPirateFortressEndTurn())
+	        				popState();
 	        			processPlayerAttacksPirateFortress(getCurPlayer(), getBoard().getVertexIndex(v));
 	        		}
 	        		break;
@@ -1872,6 +1878,7 @@ public class SOC extends Reflector<SOC> {
 					Vertex v = getCurPlayer().chooseVertex(this, options, VertexChoice.KNIGHT_TO_PROMOTE, null);
 					if (v != null) {
 						assert(v.isKnight());
+						onPlayerKnightPromoted(getCurPlayer(), v);
 						v.setPlayerAndType(getCurPlayerNum(), v.getType().promotedType());
 						popState();
 					}
@@ -1916,6 +1923,7 @@ public class SOC extends Reflector<SOC> {
 					break;
 				}
 
+				case POSITION_NEW_KNIGHT_CANCEL:
 				case POSITION_KNIGHT_NOCANCEL:
 				case POSITION_KNIGHT_CANCEL: {
 					printinfo(getCurPlayer().getName() + " position knight");
@@ -1929,7 +1937,8 @@ public class SOC extends Reflector<SOC> {
 						knight = getStateData();
 					}
 					assert(knight.isKnight());
-					Vertex v = getCurPlayer().chooseVertex(this, options, VertexChoice.KNIGHT_MOVE_POSITION, knightToMove);
+					Vertex v = getCurPlayer().chooseVertex(this, options, 
+							state == State.POSITION_NEW_KNIGHT_CANCEL ? VertexChoice.NEW_KNIGHT : VertexChoice.KNIGHT_MOVE_POSITION, knightToMove);
 					if (v != null) {
 						popState();
 						int vIndex = mBoard.getVertexIndex(v);
@@ -2395,13 +2404,13 @@ public class SOC extends Reflector<SOC> {
 							switch (k.getType()) {
 								case BASIC_KNIGHT_INACTIVE:
 									printinfo(getCurPlayer().getName() + "'s knight lost!");
-									onPlayerKnightDestroyed(k);
+									onPlayerKnightDestroyed(getCurPlayer(), k);
 									k.setOpen();
 									break;
 								case MIGHTY_KNIGHT_INACTIVE:
 								case STRONG_KNIGHT_INACTIVE:
 									printinfo(getCurPlayer().getName() + "'s knight demoted!");
-									onPlayerKnightDemoted(k);
+									onPlayerKnightDemoted(getCurPlayer(), k);
 									k.demoteKnight();
 									break;
 								default:
@@ -2458,6 +2467,14 @@ public class SOC extends Reflector<SOC> {
 						}
 					}
 					popDiceConfig();
+					popState();
+					break;
+				}
+				
+				case CLEAR_FORCED_SETTLEMENTS: {
+					for (int vIndex : mBoard.getVertIndicesOfType(0, VertexType.OPEN_SETTLEMENT))
+						mBoard.getVertex(vIndex).setOpen();
+					
 					popState();
 					break;
 				}
@@ -3099,7 +3116,7 @@ public class SOC extends Reflector<SOC> {
         		Collection<Integer> options = computeNewKnightVertexIndices(getCurPlayerNum(), mBoard);
         		if (options.size() > 0) {
             		getCurPlayer().adjustResourcesForBuildable(BuildableType.Knight, -1);
-            		pushStateFront(State.POSITION_KNIGHT_CANCEL, VertexType.BASIC_KNIGHT_INACTIVE, options, new UndoAction() {
+            		pushStateFront(State.POSITION_NEW_KNIGHT_CANCEL, VertexType.BASIC_KNIGHT_INACTIVE, options, new UndoAction() {
     					@Override
     					public void undo() {
     						getCurPlayer().adjustResourcesForBuildable(BuildableType.Knight, 1);
@@ -3941,9 +3958,13 @@ public class SOC extends Reflector<SOC> {
 	 */
 	static public List<Integer> computeSettlementVertexIndices(SOC soc, int playerNum, Board b) {
 
+		// un-owned settlements must be chosen first (pirate islands)
+		List<Integer> vertices = b.getVertIndicesOfType(0, VertexType.OPEN_SETTLEMENT);
+		if (vertices.size() > 0)
+			return vertices;
+		
 		// build an array of vertices legal for the current player
 		// to place a settlement.
-		List<Integer> vertices = new ArrayList<Integer>();
 		for (int i = 0; i < b.getNumVerts(); i++) {
 			Vertex v = b.getVertex(i);
 			if (v.getType() != VertexType.OPEN)
@@ -4322,13 +4343,15 @@ public class SOC extends Reflector<SOC> {
 				types.add(MoveType.MOVE_SHIP);
 			}
 			
-			for (int vIndex : b.getVertIndicesOfType(0, VertexType.PIRATE_FORTRESS)) {
-				for (Route r : b.getVertexRoutes(vIndex)) {
-					if (r.getType().isVessel && r.getPlayer() == p.getPlayerNum()) {
-						types.add(MoveType.ATTACK_PIRATE_FORTRESS);
-						break;
-					}
-				}
+			if (b.getRoutesOfType(p.getPlayerNum(), RouteType.WARSHIP).size() > 1) {
+    			for (int vIndex : b.getVertIndicesOfType(0, VertexType.PIRATE_FORTRESS)) {
+    				for (Route r : b.getVertexRoutes(vIndex)) {
+    					if (r.getType().isVessel && r.getPlayer() == p.getPlayerNum()) {
+    						types.add(MoveType.ATTACK_PIRATE_FORTRESS);
+    						break;
+    					}
+    				}
+    			}
 			}
 		}
 		
@@ -4944,6 +4967,7 @@ public class SOC extends Reflector<SOC> {
 		devel++;
 		p.removeCards(area.commodity, devel-craneAdjust);
 		p.setCityDevelopment(area, devel);
+		onPlayerCityDeveloped(p, area);
 		checkMetropolis(devel, getCurPlayerNum(), area);
 	}
 	
@@ -5329,7 +5353,11 @@ public class SOC extends Reflector<SOC> {
 		return mStateStack.peek().state.helpText;
 	}
 	
-	protected void onPlayerKnightDestroyed(Vertex knight) {}
+	protected void onPlayerKnightDestroyed(Player p, Vertex knight) {}
 	
-	protected void onPlayerKnightDemoted(Vertex knight) {}
+	protected void onPlayerKnightDemoted(Player p, Vertex knight) {}
+
+	protected void onPlayerKnightPromoted(Player p, Vertex knight) {}
+	
+	protected void onPlayerCityDeveloped(Player p, DevelopmentArea area) {}
 }

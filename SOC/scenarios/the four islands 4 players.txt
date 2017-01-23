@@ -9,7 +9,7 @@ mBoard=cc.game.soc.core.Board {
    robberTile=-1
    ch=0.11111111
    cw=0.14285712
-   name="heading for new shores 3 players"
+   name="the four islands 4 players"
    playerRoadLenCache=int 16 {
       -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 
    }
@@ -21,42 +21,78 @@ mBoard=cc.game.soc.core.Board {
          }
          borderRoute=java.util.ArrayList {
             java.lang.Integer {
-               121
+               90
             }
             java.lang.Integer {
-               122
+               166
             }
             java.lang.Integer {
-               205
+               85
             }
             java.lang.Integer {
-               206
+               88
             }
             java.lang.Integer {
-               125
+               80
             }
             java.lang.Integer {
-               113
+               86
             }
             java.lang.Integer {
-               111
+               73
             }
             java.lang.Integer {
-               112
+               79
             }
             java.lang.Integer {
-               124
+               131
             }
             java.lang.Integer {
-               116
+               76
+            }
+            java.lang.Integer {
+               159
+            }
+            java.lang.Integer {
+               141
+            }
+            java.lang.Integer {
+               136
+            }
+            java.lang.Integer {
+               133
+            }
+            java.lang.Integer {
+               4
+            }
+            java.lang.Integer {
+               0
+            }
+            java.lang.Integer {
+               2
+            }
+            java.lang.Integer {
+               72
             }
          }
          tiles=java.util.ArrayList {
             java.lang.Integer {
-               59
+               43
             }
             java.lang.Integer {
-               27
+               17
+            }
+            java.lang.Integer {
+               16
+            }
+            java.lang.Integer {
+               42
+            }
+            java.lang.Integer {
+               37
+            }
+            java.lang.Integer {
+               15
             }
          }
       }
@@ -67,69 +103,60 @@ mBoard=cc.game.soc.core.Board {
          }
          borderRoute=java.util.ArrayList {
             java.lang.Integer {
-               61
+               118
             }
             java.lang.Integer {
-               59
+               119
             }
             java.lang.Integer {
                172
             }
             java.lang.Integer {
-               170
+               110
             }
             java.lang.Integer {
-               177
+               108
+            }
+            java.lang.Integer {
+               109
+            }
+            java.lang.Integer {
+               112
+            }
+            java.lang.Integer {
+               123
+            }
+            java.lang.Integer {
+               206
+            }
+            java.lang.Integer {
+               125
             }
             java.lang.Integer {
                173
             }
             java.lang.Integer {
-               193
+               179
             }
             java.lang.Integer {
-               183
+               181
             }
             java.lang.Integer {
-               178
-            }
-            java.lang.Integer {
-               63
-            }
-            java.lang.Integer {
-               67
-            }
-            java.lang.Integer {
-               201
-            }
-            java.lang.Integer {
-               51
-            }
-            java.lang.Integer {
-               49
-            }
-            java.lang.Integer {
-               50
-            }
-            java.lang.Integer {
-               54
+               199
             }
          }
          tiles=java.util.ArrayList {
             java.lang.Integer {
-               55
+               58
             }
             java.lang.Integer {
-               46
+               26
             }
             java.lang.Integer {
-               51
+               59
             }
             java.lang.Integer {
-               56
-            }
-            java.lang.Integer {
-               12
+               53
             }
          }
       }
@@ -140,42 +167,142 @@ mBoard=cc.game.soc.core.Board {
          }
          borderRoute=java.util.ArrayList {
             java.lang.Integer {
-               23
+               132
             }
             java.lang.Integer {
-               32
+               12
             }
             java.lang.Integer {
-               41
+               13
             }
             java.lang.Integer {
-               42
+               138
             }
             java.lang.Integer {
-               25
+               146
+            }
+            java.lang.Integer {
+               155
+            }
+            java.lang.Integer {
+               137
+            }
+            java.lang.Integer {
+               161
+            }
+            java.lang.Integer {
+               27
             }
             java.lang.Integer {
                22
             }
             java.lang.Integer {
-               26
-            }
-            java.lang.Integer {
-               28
-            }
-            java.lang.Integer {
-               30
-            }
-            java.lang.Integer {
                21
+            }
+            java.lang.Integer {
+               23
+            }
+            java.lang.Integer {
+               17
+            }
+            java.lang.Integer {
+               14
             }
          }
          tiles=java.util.ArrayList {
             java.lang.Integer {
-               6
+               39
             }
             java.lang.Integer {
-               3
+               35
+            }
+            java.lang.Integer {
+               40
+            }
+            java.lang.Integer {
+               2
+            }
+         }
+      }
+      cc.game.soc.core.Island {
+         num=4
+         discovered=boolean 16 {
+            false false false false false false false false false false false false false false false false 
+         }
+         borderRoute=java.util.ArrayList {
+            java.lang.Integer {
+               49
+            }
+            java.lang.Integer {
+               7
+            }
+            java.lang.Integer {
+               8
+            }
+            java.lang.Integer {
+               18
+            }
+            java.lang.Integer {
+               10
+            }
+            java.lang.Integer {
+               61
+            }
+            java.lang.Integer {
+               176
+            }
+            java.lang.Integer {
+               171
+            }
+            java.lang.Integer {
+               67
+            }
+            java.lang.Integer {
+               201
+            }
+            java.lang.Integer {
+               200
+            }
+            java.lang.Integer {
+               53
+            }
+            java.lang.Integer {
+               58
+            }
+            java.lang.Integer {
+               65
+            }
+            java.lang.Integer {
+               44
+            }
+            java.lang.Integer {
+               42
+            }
+            java.lang.Integer {
+               43
+            }
+            java.lang.Integer {
+               48
+            }
+         }
+         tiles=java.util.ArrayList {
+            java.lang.Integer {
+               12
+            }
+            java.lang.Integer {
+               11
+            }
+            java.lang.Integer {
+               55
+            }
+            java.lang.Integer {
+               56
+            }
+            java.lang.Integer {
+               13
+            }
+            java.lang.Integer {
+               9
             }
          }
       }
@@ -184,7 +311,7 @@ mBoard=cc.game.soc.core.Board {
    }
    routes=java.util.Vector {
       cc.game.soc.core.Route {
-         flags=1
+         flags=3
          from=0
          player=0
          to=1
@@ -194,7 +321,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=1
+         flags=2
          from=0
          player=0
          to=5
@@ -204,7 +331,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=1
+         flags=3
          from=0
          player=0
          to=49
@@ -214,7 +341,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=1
+         flags=2
          from=1
          player=0
          to=2
@@ -224,7 +351,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=1
+         flags=3
          from=1
          player=0
          to=48
@@ -234,7 +361,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=1
+         flags=2
          from=2
          player=0
          to=3
@@ -244,7 +371,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=1
+         flags=2
          from=2
          player=0
          to=6
@@ -274,7 +401,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=3
+         flags=2
          from=4
          player=0
          to=5
@@ -284,7 +411,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=2
+         flags=3
          from=4
          player=0
          to=38
@@ -294,7 +421,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=3
+         flags=2
          from=5
          player=0
          to=77
@@ -304,7 +431,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=1
+         flags=3
          from=6
          player=0
          to=7
@@ -314,7 +441,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=1
+         flags=3
          from=6
          player=0
          to=87
@@ -334,7 +461,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=3
+         flags=1
          from=7
          player=0
          to=10
@@ -344,7 +471,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=3
+         flags=2
          from=8
          player=0
          to=9
@@ -354,7 +481,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=2
+         flags=3
          from=8
          player=0
          to=13
@@ -364,7 +491,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=2
+         flags=3
          from=9
          player=0
          to=31
@@ -374,7 +501,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=2
+         flags=1
          from=10
          player=0
          to=11
@@ -384,7 +511,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=3
+         flags=1
          from=10
          player=0
          to=107
@@ -424,7 +551,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=1
+         flags=2
          from=12
          player=0
          to=17
@@ -434,7 +561,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=3
+         flags=2
          from=13
          player=0
          to=26
@@ -444,7 +571,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=3
+         flags=2
          from=14
          player=0
          to=15
@@ -454,7 +581,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=2
+         flags=3
          from=14
          player=0
          to=110
@@ -464,7 +591,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=3
+         flags=2
          from=15
          player=0
          to=16
@@ -484,7 +611,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=3
+         flags=2
          from=16
          player=0
          to=17
@@ -504,7 +631,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=3
+         flags=2
          from=17
          player=0
          to=24
@@ -594,7 +721,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=3
+         flags=2
          from=24
          player=0
          to=25
@@ -614,7 +741,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=2
+         flags=3
          from=25
          player=0
          to=29
@@ -624,7 +751,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=2
+         flags=3
          from=26
          player=0
          to=30
@@ -664,7 +791,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=2
+         flags=3
          from=29
          player=0
          to=32
@@ -684,7 +811,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=3
+         flags=1
          from=30
          player=0
          to=33
@@ -694,7 +821,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=3
+         flags=1
          from=31
          player=0
          to=37
@@ -704,7 +831,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=2
+         flags=1
          from=32
          player=0
          to=33
@@ -714,7 +841,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=2
+         flags=3
          from=32
          player=0
          to=36
@@ -724,7 +851,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=3
+         flags=1
          from=33
          player=0
          to=39
@@ -764,7 +891,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=2
+         flags=3
          from=36
          player=0
          to=41
@@ -774,7 +901,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=3
+         flags=1
          from=37
          player=0
          to=38
@@ -814,7 +941,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=3
+         flags=1
          from=39
          player=0
          to=42
@@ -834,7 +961,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=2
+         flags=3
          from=41
          player=0
          to=42
@@ -904,7 +1031,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=1
+         flags=3
          from=46
          player=0
          to=49
@@ -914,7 +1041,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=1
+         flags=3
          from=46
          player=0
          to=53
@@ -944,7 +1071,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=1
+         flags=3
          from=48
          player=0
          to=86
@@ -954,7 +1081,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=1
+         flags=2
          from=49
          player=0
          to=70
@@ -974,7 +1101,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=1
+         flags=3
          from=50
          player=0
          to=53
@@ -984,7 +1111,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=1
+         flags=3
          from=50
          player=0
          to=57
@@ -1024,7 +1151,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=1
+         flags=2
          from=53
          player=0
          to=65
@@ -1094,7 +1221,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=3
+         flags=2
          from=57
          player=0
          to=63
@@ -1174,7 +1301,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=3
+         flags=2
          from=63
          player=0
          to=66
@@ -1194,7 +1321,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=3
+         flags=2
          from=65
          player=0
          to=66
@@ -1204,7 +1331,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=3
+         flags=2
          from=65
          player=0
          to=71
@@ -1284,7 +1411,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=2
+         flags=3
          from=71
          player=0
          to=72
@@ -1294,7 +1421,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=3
+         flags=2
          from=72
          player=0
          to=73
@@ -1314,7 +1441,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=3
+         flags=2
          from=73
          player=0
          to=75
@@ -1344,7 +1471,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=3
+         flags=2
          from=75
          player=0
          to=82
@@ -1374,7 +1501,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=2
+         flags=3
          from=77
          player=0
          to=119
@@ -1384,7 +1511,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=2
+         flags=1
          from=78
          player=0
          to=79
@@ -1394,7 +1521,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=3
+         flags=1
          from=79
          player=0
          to=80
@@ -1404,7 +1531,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=3
+         flags=1
          from=79
          player=0
          to=144
@@ -1414,7 +1541,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=1
+         flags=3
          from=80
          player=0
          to=81
@@ -1424,7 +1551,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=3
+         flags=2
          from=81
          player=0
          to=82
@@ -1484,7 +1611,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=1
+         flags=2
          from=86
          player=0
          to=87
@@ -1494,7 +1621,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=1
+         flags=3
          from=86
          player=0
          to=88
@@ -1504,7 +1631,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=1
+         flags=3
          from=87
          player=0
          to=91
@@ -1514,7 +1641,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=1
+         flags=3
          from=88
          player=0
          to=89
@@ -1534,7 +1661,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=3
+         flags=2
          from=89
          player=0
          to=90
@@ -1564,7 +1691,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=2
+         flags=3
          from=90
          player=0
          to=95
@@ -1574,7 +1701,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=3
+         flags=1
          from=91
          player=0
          to=107
@@ -1644,7 +1771,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=2
+         flags=3
          from=95
          player=0
          to=102
@@ -1734,7 +1861,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=2
+         flags=3
          from=102
          player=0
          to=106
@@ -1784,7 +1911,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=2
+         flags=1
          from=106
          player=0
          to=107
@@ -1794,7 +1921,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=2
+         flags=3
          from=106
          player=0
          to=110
@@ -1884,7 +2011,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=3
+         flags=2
          from=118
          player=0
          to=119
@@ -1894,7 +2021,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=1
+         flags=3
          from=118
          player=0
          to=121
@@ -1924,7 +2051,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=2
+         flags=1
          from=120
          player=0
          to=144
@@ -1934,7 +2061,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=1
+         flags=2
          from=121
          player=0
          to=122
@@ -1944,7 +2071,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=1
+         flags=3
          from=121
          player=0
          to=138
@@ -1954,7 +2081,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=3
+         flags=2
          from=122
          player=0
          to=123
@@ -1964,7 +2091,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=3
+         flags=2
          from=122
          player=0
          to=125
@@ -1974,7 +2101,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=2
+         flags=3
          from=123
          player=0
          to=124
@@ -1994,7 +2121,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=2
+         flags=3
          from=124
          player=0
          to=136
@@ -2014,7 +2141,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=3
+         flags=2
          from=125
          player=0
          to=132
@@ -2114,7 +2241,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=3
+         flags=2
          from=132
          player=0
          to=139
@@ -2174,7 +2301,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=2
+         flags=3
          from=136
          player=0
          to=143
@@ -2184,7 +2311,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=1
+         flags=3
          from=138
          player=0
          to=139
@@ -2234,7 +2361,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=3
+         flags=1
          from=143
          player=0
          to=144
@@ -2292,7 +2419,7 @@ mBoard=cc.game.soc.core.Board {
          pirateRouteNext=-1
          x=0.4999999
          y=0.5
-         type=RANDOM_RESOURCE
+         type=WATER
          adjVerts=int 6 {
             0 1 2 3 4 5 
          }
@@ -2304,21 +2431,9 @@ mBoard=cc.game.soc.core.Board {
          pirateRouteNext=-1
          x=0.60714275
          y=0.44444445
-         type=RANDOM_RESOURCE
+         type=RANDOM_PORT
          adjVerts=int 6 {
             2 6 7 8 9 3 
-         }
-      }
-      cc.game.soc.core.Tile {
-         dieNum=0
-         islandNum=0
-         numAdj=6
-         pirateRouteNext=-1
-         x=0.7142856
-         y=0.3888889
-         type=WATER
-         adjVerts=int 6 {
-            7 10 11 12 13 8 
          }
       }
       cc.game.soc.core.Tile {
@@ -2326,9 +2441,21 @@ mBoard=cc.game.soc.core.Board {
          islandNum=3
          numAdj=6
          pirateRouteNext=-1
+         x=0.7142856
+         y=0.3888889
+         type=RANDOM_RESOURCE
+         adjVerts=int 6 {
+            7 10 11 12 13 8 
+         }
+      }
+      cc.game.soc.core.Tile {
+         dieNum=0
+         islandNum=0
+         numAdj=6
+         pirateRouteNext=-1
          x=0.82142854
          y=0.33333334
-         type=RANDOM_RESOURCE
+         type=WATER
          adjVerts=int 6 {
             11 14 15 16 17 12 
          }
@@ -2359,12 +2486,12 @@ mBoard=cc.game.soc.core.Board {
       }
       cc.game.soc.core.Tile {
          dieNum=0
-         islandNum=3
+         islandNum=0
          numAdj=6
          pirateRouteNext=-1
          x=0.82142854
          y=0.44444445
-         type=GOLD
+         type=WATER
          adjVerts=int 6 {
             13 12 17 24 25 26 
          }
@@ -2395,12 +2522,12 @@ mBoard=cc.game.soc.core.Board {
       }
       cc.game.soc.core.Tile {
          dieNum=0
-         islandNum=0
+         islandNum=4
          numAdj=6
          pirateRouteNext=-1
          x=0.82142854
          y=0.5555556
-         type=WATER
+         type=RANDOM_RESOURCE
          adjVerts=int 6 {
             30 26 25 29 32 33 
          }
@@ -2419,19 +2546,19 @@ mBoard=cc.game.soc.core.Board {
       }
       cc.game.soc.core.Tile {
          dieNum=0
-         islandNum=0
+         islandNum=4
          numAdj=6
          pirateRouteNext=-1
          x=0.60714275
          y=0.5555556
-         type=RANDOM_PORT
+         type=RANDOM_RESOURCE
          adjVerts=int 6 {
             4 3 9 31 37 38 
          }
       }
       cc.game.soc.core.Tile {
          dieNum=0
-         islandNum=2
+         islandNum=4
          numAdj=6
          pirateRouteNext=-1
          x=0.7142856
@@ -2443,12 +2570,12 @@ mBoard=cc.game.soc.core.Board {
       }
       cc.game.soc.core.Tile {
          dieNum=0
-         islandNum=0
+         islandNum=4
          numAdj=6
          pirateRouteNext=-1
          x=0.82142854
          y=0.66666675
-         type=WATER
+         type=RANDOM_RESOURCE
          adjVerts=int 6 {
             39 33 32 36 41 42 
          }
@@ -2467,7 +2594,7 @@ mBoard=cc.game.soc.core.Board {
       }
       cc.game.soc.core.Tile {
          dieNum=0
-         islandNum=0
+         islandNum=1
          numAdj=6
          pirateRouteNext=-1
          x=0.39285707
@@ -2479,7 +2606,7 @@ mBoard=cc.game.soc.core.Board {
       }
       cc.game.soc.core.Tile {
          dieNum=0
-         islandNum=0
+         islandNum=1
          numAdj=6
          pirateRouteNext=-1
          x=0.28571424
@@ -2491,7 +2618,7 @@ mBoard=cc.game.soc.core.Board {
       }
       cc.game.soc.core.Tile {
          dieNum=0
-         islandNum=0
+         islandNum=1
          numAdj=6
          pirateRouteNext=-1
          x=0.1785714
@@ -2532,7 +2659,7 @@ mBoard=cc.game.soc.core.Board {
          pirateRouteNext=-1
          x=0.1785714
          y=0.44444445
-         type=RANDOM_RESOURCE
+         type=RANDOM_PORT
          adjVerts=int 6 {
             63 57 50 53 65 66 
          }
@@ -2544,7 +2671,7 @@ mBoard=cc.game.soc.core.Board {
          pirateRouteNext=-1
          x=0.0714286
          y=0.5
-         type=RANDOM_PORT
+         type=WATER
          adjVerts=int 6 {
             67 64 63 66 68 69 
          }
@@ -2556,7 +2683,7 @@ mBoard=cc.game.soc.core.Board {
          pirateRouteNext=-1
          x=0.28571424
          y=0.5
-         type=RANDOM_RESOURCE
+         type=WATER
          adjVerts=int 6 {
             65 53 46 49 70 71 
          }
@@ -2568,7 +2695,7 @@ mBoard=cc.game.soc.core.Board {
          pirateRouteNext=-1
          x=0.1785714
          y=0.5555556
-         type=RANDOM_PORT
+         type=WATER
          adjVerts=int 6 {
             68 66 65 71 72 73 
          }
@@ -2592,9 +2719,21 @@ mBoard=cc.game.soc.core.Board {
          pirateRouteNext=-1
          x=0.39285707
          y=0.5555556
-         type=RANDOM_RESOURCE
+         type=RANDOM_PORT
          adjVerts=int 6 {
             70 49 0 5 77 78 
+         }
+      }
+      cc.game.soc.core.Tile {
+         dieNum=0
+         islandNum=2
+         numAdj=6
+         pirateRouteNext=-1
+         x=0.28571424
+         y=0.61111116
+         type=RANDOM_RESOURCE
+         adjVerts=int 6 {
+            72 71 70 78 79 80 
          }
       }
       cc.game.soc.core.Tile {
@@ -2602,21 +2741,9 @@ mBoard=cc.game.soc.core.Board {
          islandNum=0
          numAdj=6
          pirateRouteNext=-1
-         x=0.28571424
-         y=0.61111116
-         type=WATER
-         adjVerts=int 6 {
-            72 71 70 78 79 80 
-         }
-      }
-      cc.game.soc.core.Tile {
-         dieNum=0
-         islandNum=1
-         numAdj=6
-         pirateRouteNext=-1
          x=0.1785714
          y=0.66666675
-         type=RANDOM_RESOURCE
+         type=WATER
          adjVerts=int 6 {
             75 73 72 80 81 82 
          }
@@ -2640,7 +2767,7 @@ mBoard=cc.game.soc.core.Board {
          pirateRouteNext=-1
          x=0.4999999
          y=0.3888889
-         type=RANDOM_RESOURCE
+         type=WATER
          adjVerts=int 6 {
             48 86 87 6 2 1 
          }
@@ -2652,7 +2779,7 @@ mBoard=cc.game.soc.core.Board {
          pirateRouteNext=-1
          x=0.4999999
          y=0.2777778
-         type=RANDOM_RESOURCE
+         type=RANDOM_PORT
          adjVerts=int 6 {
             88 89 90 91 87 86 
          }
@@ -2664,7 +2791,7 @@ mBoard=cc.game.soc.core.Board {
          pirateRouteNext=-1
          x=0.4999999
          y=0.16666669
-         type=RANDOM_PORT
+         type=WATER
          adjVerts=int 6 {
             92 93 94 95 90 89 
          }
@@ -2707,12 +2834,12 @@ mBoard=cc.game.soc.core.Board {
       }
       cc.game.soc.core.Tile {
          dieNum=0
-         islandNum=0
+         islandNum=3
          numAdj=6
          pirateRouteNext=-1
          x=0.60714275
          y=0.22222224
-         type=RANDOM_PORT
+         type=RANDOM_RESOURCE
          adjVerts=int 6 {
             90 95 102 106 107 91 
          }
@@ -2724,14 +2851,14 @@ mBoard=cc.game.soc.core.Board {
          pirateRouteNext=-1
          x=0.7142856
          y=0.16666669
-         type=WATER
+         type=RANDOM_PORT
          adjVerts=int 6 {
             102 101 108 109 110 106 
          }
       }
       cc.game.soc.core.Tile {
          dieNum=0
-         islandNum=0
+         islandNum=1
          numAdj=6
          pirateRouteNext=-1
          x=0.39285707
@@ -2755,7 +2882,7 @@ mBoard=cc.game.soc.core.Board {
       }
       cc.game.soc.core.Tile {
          dieNum=0
-         islandNum=0
+         islandNum=3
          numAdj=6
          pirateRouteNext=-1
          x=0.60714275
@@ -2767,12 +2894,12 @@ mBoard=cc.game.soc.core.Board {
       }
       cc.game.soc.core.Tile {
          dieNum=0
-         islandNum=0
+         islandNum=3
          numAdj=6
          pirateRouteNext=-1
          x=0.7142856
          y=0.2777778
-         type=WATER
+         type=RANDOM_RESOURCE
          adjVerts=int 6 {
             107 106 110 14 11 10 
          }
@@ -2791,7 +2918,7 @@ mBoard=cc.game.soc.core.Board {
       }
       cc.game.soc.core.Tile {
          dieNum=0
-         islandNum=0
+         islandNum=1
          numAdj=6
          pirateRouteNext=-1
          x=0.39285707
@@ -2803,7 +2930,7 @@ mBoard=cc.game.soc.core.Board {
       }
       cc.game.soc.core.Tile {
          dieNum=0
-         islandNum=0
+         islandNum=1
          numAdj=6
          pirateRouteNext=-1
          x=0.28571424
@@ -2820,7 +2947,7 @@ mBoard=cc.game.soc.core.Board {
          pirateRouteNext=-1
          x=0.1785714
          y=0.22222224
-         type=RANDOM_PORT
+         type=WATER
          adjVerts=int 6 {
             60 117 113 115 56 55 
          }
@@ -2839,12 +2966,12 @@ mBoard=cc.game.soc.core.Board {
       }
       cc.game.soc.core.Tile {
          dieNum=0
-         islandNum=2
+         islandNum=0
          numAdj=6
          pirateRouteNext=-1
          x=0.4999999
          y=0.7222222
-         type=RANDOM_RESOURCE
+         type=WATER
          adjVerts=int 6 {
             120 119 118 121 122 123 
          }
@@ -2899,12 +3026,12 @@ mBoard=cc.game.soc.core.Board {
       }
       cc.game.soc.core.Tile {
          dieNum=0
-         islandNum=2
+         islandNum=0
          numAdj=6
          pirateRouteNext=-1
          x=0.60714275
          y=0.7777778
-         type=RANDOM_RESOURCE
+         type=WATER
          adjVerts=int 6 {
             122 121 138 139 132 125 
          }
@@ -2923,12 +3050,12 @@ mBoard=cc.game.soc.core.Board {
       }
       cc.game.soc.core.Tile {
          dieNum=0
-         islandNum=0
+         islandNum=2
          numAdj=6
          pirateRouteNext=-1
          x=0.39285707
          y=0.7777778
-         type=WATER
+         type=RANDOM_RESOURCE
          adjVerts=int 6 {
             143 144 120 123 124 136 
          }
@@ -2940,14 +3067,14 @@ mBoard=cc.game.soc.core.Board {
          pirateRouteNext=-1
          x=0.28571424
          y=0.8333334
-         type=WATER
+         type=RANDOM_PORT
          adjVerts=int 6 {
             145 146 143 136 135 147 
          }
       }
       cc.game.soc.core.Tile {
          dieNum=0
-         islandNum=2
+         islandNum=4
          numAdj=6
          pirateRouteNext=-1
          x=0.60714275
@@ -2959,7 +3086,7 @@ mBoard=cc.game.soc.core.Board {
       }
       cc.game.soc.core.Tile {
          dieNum=0
-         islandNum=2
+         islandNum=4
          numAdj=6
          pirateRouteNext=-1
          x=0.7142856
@@ -2976,31 +3103,31 @@ mBoard=cc.game.soc.core.Board {
          pirateRouteNext=-1
          x=0.82142854
          y=0.77777785
-         type=WATER
+         type=RANDOM_PORT
          adjVerts=int 6 {
             140 42 41 45 148 141 
          }
       }
       cc.game.soc.core.Tile {
          dieNum=0
-         islandNum=0
+         islandNum=2
          numAdj=6
          pirateRouteNext=-1
          x=0.39285707
          y=0.6666667
-         type=WATER
+         type=RANDOM_RESOURCE
          adjVerts=int 6 {
             79 78 77 119 120 144 
          }
       }
       cc.game.soc.core.Tile {
          dieNum=0
-         islandNum=1
+         islandNum=2
          numAdj=6
          pirateRouteNext=-1
          x=0.28571424
          y=0.72222227
-         type=GOLD
+         type=RANDOM_RESOURCE
          adjVerts=int 6 {
             81 80 79 144 143 146 
          }
@@ -3022,7 +3149,7 @@ mBoard=cc.game.soc.core.Board {
    }
    verts=java.util.Vector {
       cc.game.soc.core.Vertex {
-         flags=1
+         flags=3
          numAdj=3
          numCells=3
          pirateHealth=0
@@ -3038,7 +3165,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Vertex {
-         flags=1
+         flags=3
          numAdj=3
          numCells=3
          pirateHealth=0
@@ -3054,7 +3181,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Vertex {
-         flags=1
+         flags=2
          numAdj=3
          numCells=3
          pirateHealth=0
@@ -3102,7 +3229,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Vertex {
-         flags=3
+         flags=2
          numAdj=3
          numCells=3
          pirateHealth=0
@@ -3118,7 +3245,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Vertex {
-         flags=1
+         flags=3
          numAdj=3
          numCells=3
          pirateHealth=0
@@ -3182,7 +3309,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Vertex {
-         flags=3
+         flags=1
          numAdj=3
          numCells=3
          pirateHealth=0
@@ -3262,7 +3389,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Vertex {
-         flags=3
+         flags=2
          numAdj=3
          numCells=3
          pirateHealth=0
@@ -3278,7 +3405,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Vertex {
-         flags=3
+         flags=2
          numAdj=3
          numCells=3
          pirateHealth=0
@@ -3294,7 +3421,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Vertex {
-         flags=3
+         flags=2
          numAdj=3
          numCells=3
          pirateHealth=0
@@ -3406,7 +3533,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Vertex {
-         flags=3
+         flags=2
          numAdj=3
          numCells=3
          pirateHealth=0
@@ -3486,7 +3613,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Vertex {
-         flags=2
+         flags=3
          numAdj=3
          numCells=3
          pirateHealth=0
@@ -3534,7 +3661,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Vertex {
-         flags=2
+         flags=3
          numAdj=3
          numCells=3
          pirateHealth=0
@@ -3550,7 +3677,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Vertex {
-         flags=3
+         flags=1
          numAdj=3
          numCells=3
          pirateHealth=0
@@ -3598,7 +3725,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Vertex {
-         flags=2
+         flags=3
          numAdj=3
          numCells=3
          pirateHealth=0
@@ -3614,7 +3741,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Vertex {
-         flags=3
+         flags=1
          numAdj=3
          numCells=3
          pirateHealth=0
@@ -3646,7 +3773,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Vertex {
-         flags=3
+         flags=1
          numAdj=3
          numCells=3
          pirateHealth=0
@@ -3678,7 +3805,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Vertex {
-         flags=2
+         flags=3
          numAdj=3
          numCells=3
          pirateHealth=0
@@ -3758,7 +3885,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Vertex {
-         flags=1
+         flags=3
          numAdj=3
          numCells=3
          pirateHealth=0
@@ -3790,7 +3917,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Vertex {
-         flags=1
+         flags=3
          numAdj=3
          numCells=3
          pirateHealth=0
@@ -3806,7 +3933,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Vertex {
-         flags=1
+         flags=3
          numAdj=3
          numCells=3
          pirateHealth=0
@@ -3822,7 +3949,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Vertex {
-         flags=1
+         flags=3
          numAdj=3
          numCells=3
          pirateHealth=0
@@ -3870,7 +3997,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Vertex {
-         flags=1
+         flags=3
          numAdj=3
          numCells=3
          pirateHealth=0
@@ -4030,7 +4157,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Vertex {
-         flags=3
+         flags=2
          numAdj=3
          numCells=3
          pirateHealth=0
@@ -4062,7 +4189,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Vertex {
-         flags=3
+         flags=2
          numAdj=3
          numCells=3
          pirateHealth=0
@@ -4078,7 +4205,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Vertex {
-         flags=3
+         flags=2
          numAdj=3
          numCells=3
          pirateHealth=0
@@ -4190,7 +4317,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Vertex {
-         flags=3
+         flags=2
          numAdj=3
          numCells=3
          pirateHealth=0
@@ -4222,7 +4349,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Vertex {
-         flags=3
+         flags=2
          numAdj=3
          numCells=3
          pirateHealth=0
@@ -4286,7 +4413,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Vertex {
-         flags=3
+         flags=1
          numAdj=3
          numCells=3
          pirateHealth=0
@@ -4334,7 +4461,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Vertex {
-         flags=3
+         flags=2
          numAdj=3
          numCells=3
          pirateHealth=0
@@ -4398,7 +4525,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Vertex {
-         flags=1
+         flags=3
          numAdj=3
          numCells=3
          pirateHealth=0
@@ -4414,7 +4541,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Vertex {
-         flags=1
+         flags=3
          numAdj=3
          numCells=3
          pirateHealth=0
@@ -4430,7 +4557,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Vertex {
-         flags=1
+         flags=3
          numAdj=3
          numCells=3
          pirateHealth=0
@@ -4542,7 +4669,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Vertex {
-         flags=2
+         flags=3
          numAdj=3
          numCells=3
          pirateHealth=0
@@ -4654,7 +4781,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Vertex {
-         flags=2
+         flags=3
          numAdj=3
          numCells=3
          pirateHealth=0
@@ -4718,7 +4845,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Vertex {
-         flags=2
+         flags=3
          numAdj=3
          numCells=3
          pirateHealth=0
@@ -4734,7 +4861,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Vertex {
-         flags=3
+         flags=1
          numAdj=3
          numCells=3
          pirateHealth=0
@@ -4782,7 +4909,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Vertex {
-         flags=2
+         flags=3
          numAdj=3
          numCells=3
          pirateHealth=0
@@ -4958,7 +5085,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Vertex {
-         flags=1
+         flags=3
          numAdj=3
          numCells=3
          pirateHealth=0
@@ -4974,7 +5101,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Vertex {
-         flags=3
+         flags=2
          numAdj=3
          numCells=3
          pirateHealth=0
@@ -5006,7 +5133,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Vertex {
-         flags=2
+         flags=3
          numAdj=3
          numCells=3
          pirateHealth=0
@@ -5022,7 +5149,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Vertex {
-         flags=3
+         flags=2
          numAdj=3
          numCells=3
          pirateHealth=0
@@ -5134,7 +5261,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Vertex {
-         flags=3
+         flags=2
          numAdj=3
          numCells=3
          pirateHealth=0
@@ -5198,7 +5325,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Vertex {
-         flags=2
+         flags=3
          numAdj=3
          numCells=3
          pirateHealth=0
@@ -5230,7 +5357,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Vertex {
-         flags=1
+         flags=3
          numAdj=3
          numCells=3
          pirateHealth=0
@@ -5326,7 +5453,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Vertex {
-         flags=3
+         flags=1
          numAdj=3
          numCells=3
          pirateHealth=0
@@ -5428,7 +5555,7 @@ mRules=cc.game.soc.core.Rules {
    enableCitiesAndKnightsExpansion=false
    enableEventCards=false
    enableHarborMaster=false
-   enableIslandSettlementsOnSetup=false
+   enableIslandSettlementsOnSetup=true
    enableKnightExtendedMoves=false
    enableRoadBlock=false
    enableRobber=true
@@ -5441,13 +5568,13 @@ mRules=cc.game.soc.core.Rules {
    knightScoreToDestroyRoad=3
    knightScoreToDestroySettlement=4
    knightScoreToDestroyWalledCity=6
-   maxPlayers=3
+   maxPlayers=4
    maxProgressCards=4
    maxSafeCards=7
    minLargestArmySize=3
    minLongestLoadLen=5
    minMostDiscoveredTerritories=0
-   minPlayers=3
+   minPlayers=4
    minVictoryPointsForRobber=1
    numResourcesForCity=2
    numResourcesForDiscoveredTerritory=1
@@ -5455,7 +5582,7 @@ mRules=cc.game.soc.core.Rules {
    numSafeCardsPerCityWall=2
    numStartSettlements=2
    pirateFortressHealth=3
-   pointsForWinGame=14
+   pointsForWinGame=12
    pointsIslandDiscovery=2
    pointsPerCity=2
    pointsPerMetropolis=4

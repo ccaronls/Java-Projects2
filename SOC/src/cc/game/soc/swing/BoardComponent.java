@@ -470,46 +470,50 @@ public abstract class BoardComponent extends JComponent implements MouseMotionLi
 	    
 	};
 	
+	float getStructureRadius() {
+		return board.getTileWidth()/(6*3);
+	}
+	
 	void drawSettlement(Graphics g, IVector2D pos, int playerNum, boolean outline) {
 		if (playerNum > 0)
 			g.setColor(getPlayerColor(playerNum));
-		drawFaces(g, pos, 0, board.getTileWidth()/6, FaceType.SETTLEMENT, outline);
+		drawFaces(g, pos, 0, getStructureRadius(), FaceType.SETTLEMENT, outline);
 	}
 	
 	void drawCity(Graphics g, IVector2D pos, int playerNum, boolean outline) {
 		if (playerNum > 0)
 			g.setColor(getPlayerColor(playerNum));
-		drawFaces(g, pos, 0, board.getTileWidth()/6, FaceType.CITY, outline);
+		drawFaces(g, pos, 0, getStructureRadius(), FaceType.CITY, outline);
 	}
 	
 	void drawWalledCity(Graphics g, IVector2D pos, int playerNum, boolean outline) {
 		if (playerNum > 0)
 			g.setColor(getPlayerColor(playerNum));
-		drawFaces(g, pos, 0, board.getTileWidth()/6, FaceType.CITY_WALL, outline);
+		drawFaces(g, pos, 0, getStructureRadius(), FaceType.CITY_WALL, outline);
 	}
 	
 	void drawMetropolisTrade(Graphics g, IVector2D pos, int playerNum, boolean outline) {
 		if (playerNum > 0)
 			g.setColor(getPlayerColor(playerNum));
-		drawFaces(g, pos, 0, board.getTileWidth()/6, FaceType.METRO_TRADE, outline);
+		drawFaces(g, pos, 0, getStructureRadius(), FaceType.METRO_TRADE, outline);
 	}
 
 	void drawMetropolisPolitics(Graphics g, IVector2D pos, int playerNum, boolean outline) {
 		if (playerNum > 0)
 			g.setColor(getPlayerColor(playerNum));
-		drawFaces(g, pos, 0, board.getTileWidth()/6, FaceType.METRO_POLITICS, outline);
+		drawFaces(g, pos, 0, getStructureRadius(), FaceType.METRO_POLITICS, outline);
 	}
 
 	void drawMetropolisScience(Graphics g, IVector2D pos, int playerNum, boolean outline) {
 		if (playerNum > 0)
 			g.setColor(getPlayerColor(playerNum));
-		drawFaces(g, pos, 0, board.getTileWidth()/6, FaceType.METRO_SCIENCE, outline);
+		drawFaces(g, pos, 0, getStructureRadius(), FaceType.METRO_SCIENCE, outline);
 	}
 
 	void drawMerchant(Graphics g, Tile t, int playerNum) {
 		if (playerNum > 0)
 			g.setColor(getPlayerColor(playerNum));
-		drawFaces(g, t, 0, board.getTileWidth()/6, FaceType.MERCHANT, false);
+		drawFaces(g, t, 0, getStructureRadius(), FaceType.MERCHANT, false);
 		g.setColor(Color.WHITE);
 		String txt = "\n2:1\n" + t.getResource().name();
 		Vector2D v = render.transformXY(t);
@@ -526,12 +530,14 @@ public abstract class BoardComponent extends JComponent implements MouseMotionLi
 		g.drawOval(x-r2/2, y-r2/2, r2, r2);
 		images.drawImage(g, knightImages[index], x-r/2, y-r/2, r, r);
 	}
+	
+	float getKnightRadius() {
+		return board.getTileWidth()*2/(8*3*3);
+	}
+	
 	void drawKnight(Graphics g, IVector2D pos, int playerNum, int level, boolean active, boolean outline) {
 		if (playerNum > 0)
 			g.setColor(getPlayerColor(playerNum));
-		final float radius = board.getTileWidth()/8;
-		float xRad = 3;
-		float scale = radius / xRad;
 		FaceType structure = null;
 		switch (level) {
 			case 0:
@@ -540,7 +546,8 @@ public abstract class BoardComponent extends JComponent implements MouseMotionLi
 			case 3: structure = active ? FaceType.KNIGHT_ACTIVE_MIGHTY : FaceType.KNIGHT_INACTIVE_MIGHTY; break;
 			default: assert(false); break;
 		}
-		drawFaces(g, pos, 0, scale*2/3, scale*2/3, structure, outline);
+		float radius = getKnightRadius();
+		drawFaces(g, pos, 0, radius, structure, outline);
 	}
 	
 	void drawCircle(Graphics g, IVector2D pos) {
@@ -574,13 +581,13 @@ public abstract class BoardComponent extends JComponent implements MouseMotionLi
 			y += 5;
 		}
 		g.setColor(Color.GRAY);
-		drawFaces(g, v, 0, board.getTileWidth()/6, FaceType.PIRATE_FORTRESS, outline);
+		drawFaces(g, v, 0, getStructureRadius(), FaceType.PIRATE_FORTRESS, outline);
 	}
 
 	void drawFaces(Graphics g, IVector2D pos, float angle, float radius, FaceType structure, boolean outline) {
-	    final float xRad = 3; // actual radius as defined above
-		float scale = radius / xRad;
-		drawFaces(g, pos, angle, scale, scale, structure, outline);
+	    //final float xRad = 3; // actual radius as defined above
+		//float scale = radius / xRad;
+		drawFaces(g, pos, angle, radius, radius, structure, outline);
 	}
 
 	private HashMap<FaceType, Face[]> faceMap = new HashMap<BoardComponent.FaceType, BoardComponent.Face[]>();
@@ -717,6 +724,8 @@ public abstract class BoardComponent extends JComponent implements MouseMotionLi
 			case PIRATE_FORTRESS:
 				drawPirateFortress(g, v, outline);
 				break;
+			case OPEN_SETTLEMENT:
+				g.setColor(Color.LIGHT_GRAY);
 			case SETTLEMENT:
 				drawSettlement(g, v, playerNum, outline);
 				break;
@@ -772,67 +781,36 @@ public abstract class BoardComponent extends JComponent implements MouseMotionLi
 		return ang;
 	}
 	
+	float getShipRadius() {
+		return board.getTileWidth()/(8*3);
+	}
+	
+	float getRobberRadius() {
+		return getBoard().getTileWidth()/(7*3);
+	}
+	
 	void drawShip(Graphics g, Route e, boolean outline) {
 		IVector2D mp = getBoard().getRouteMidpoint(e);
-		drawFaces(g, mp, getEdgeAngle(e), board.getTileWidth()/8, FaceType.SHIP, outline);
+		drawFaces(g, mp, getEdgeAngle(e), getShipRadius(), FaceType.SHIP, outline);
 	}
 	
 	void drawShip(Graphics g, IVector2D v, int angle, boolean outline) {
-		drawFaces(g, v, angle, board.getTileWidth()/8, FaceType.SHIP, outline);
+		drawFaces(g, v, angle, getShipRadius(), FaceType.SHIP, outline);
 	}
 	
 	void drawWarShip(Graphics g, Route e, boolean outline) {
 		IVector2D mp = getBoard().getRouteMidpoint(e);
-		drawFaces(g, mp, getEdgeAngle(e), board.getTileWidth()/8, FaceType.WAR_SHIP, outline);
+		drawFaces(g, mp, getEdgeAngle(e), getShipRadius(), FaceType.WAR_SHIP, outline);
 	}
 	
 	public void drawRobber(Graphics g, Tile cell) {
 		g.setColor(Color.LIGHT_GRAY);
-		drawFaces(g, cell, 0, getBoard().getTileWidth()/7, FaceType.ROBBER, false);
-		/*
-	    //float [] v = {0,0};
-	    //render.transformXY(board.getCellWidth(), board.getCellHeight(), v);
-		render.clearVerts();
-	    float sx = board.getTileWidth() / bw * (getWidth()-padding);
-	    float sy = board.getTileHeight() / bh * (getHeight()-padding);
-	    float [] v = {0,0};
-        int w = Math.round(sx) / 2;
-        int h = Math.round(sy) / 2;
-        render.transformXY(cell.getX(), cell.getY(), v);
-        int x = Math.round(v[0]) - w/2;
-        int y = Math.round(v[1]) - h/2;
-        //int x = Math.round(sx * cell.getX()) - w/2;
-        //int y = Math.round(sy * cell.getY()) - h/2;
-        if (!getRenderFlag(RenderFlag.DONT_DRAW_TEXTURES))
-            images.drawImage(g, robberImage, x, y, w,h);
-        else {
-            g.setColor(Color.BLACK);
-            g.fillOval(x,y,w,h);
-        }*/
+		drawFaces(g, cell, 0, getRobberRadius(), FaceType.ROBBER, false);
 	}
 	
 	public void drawPirate(Graphics g, IVector2D v) {
 		g.setColor(Color.BLACK);
-		drawFaces(g, v, 0, getBoard().getTileWidth()/7, FaceType.WAR_SHIP, false);
-		/*
-	    //float [] v = {0,0};
-	    //render.transformXY(board.getCellWidth(), board.getCellHeight(), v);
-		render.clearVerts();
-	    float sx = board.getTileWidth() / bw * (getWidth()-padding);
-	    float sy = board.getTileHeight() / bh * (getHeight()-padding);
-        int w = Math.round(sx) / 2;
-        int h = Math.round(sy) / 2;
-        MutableVector2D V = render.transformXY(v);
-        int x = Math.round(V.X()) - w/2;
-        int y = Math.round(V.Y()) - h/2;
-        //int x = Math.round(sx * cell.getX()) - w/2;
-        //int y = Math.round(sy * cell.getY()) - h/2;
-        if (!getRenderFlag(RenderFlag.DONT_DRAW_TEXTURES))
-            images.drawImage(g, pirateImage, x, y, w,h);
-        else {
-            g.setColor(Color.BLACK);
-            g.fillOval(x,y,w,h);
-        }*/
+		drawFaces(g, v, 0, getRobberRadius(), FaceType.WAR_SHIP, false);
 	}
 
 	/**

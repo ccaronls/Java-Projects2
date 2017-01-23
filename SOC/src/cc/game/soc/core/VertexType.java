@@ -4,6 +4,7 @@ public enum VertexType {
 	OPEN("Nothing", 0, false, false),
 	
 	SETTLEMENT("Settlement", 0, false, true), // produce 
+	OPEN_SETTLEMENT("Settlement", 0, false, true), // used to setup 'pirate island' games
 	CITY("City", 0, false, true),
 	WALLED_CITY("Walled City", 0, false, true),
 	

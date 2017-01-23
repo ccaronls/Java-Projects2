@@ -381,30 +381,15 @@ public class SOCGUI extends SOC {
 
 	@Override
 	protected void onPirateSailing(final int fromTile, final int toTile) {
-		gui.getBoardComponent().addAnimation(new Animation(1000, 0) {
+		gui.getBoardComponent().addAnimation(new BlockingAnimation(1500) {
 			
 			@Override
 			void draw(Graphics g, float position, float dt) {
 				Vector2D v = Vector2D.newTemp(getBoard().getTile(fromTile)).scale(1-position).add(Vector2D.newTemp(getBoard().getTile(toTile)).scale(position));
 				gui.getBoardComponent().drawPirate(g, v);
 			}
-
-			@Override
-			void onDone() {
-				super.onDone();
-				synchronized (gui) {
-					gui.notify();
-				}
-			}
-			
 			
 		});
-		
-		synchronized (gui) {
-			try {
-				gui.wait(1500);
-			} catch (Exception e) {}
-		}
 	}
 
 	@Override
@@ -482,4 +467,52 @@ public class SOCGUI extends SOC {
 		FileUtils.backupFile(gui.saveGameFile.getAbsolutePath(), 10);
 		save(gui.saveGameFile.getAbsolutePath());
 	}
+
+	@Override
+	protected void onExplorerPlayerUpdated(Player oldPlayer, Player newPlayer, int harborPts) {
+		addCardAnimation(oldPlayer, "Explorer Lost!");
+		addCardAnimation(newPlayer, "Explorer Gained!");
+	}
+
+	@Override
+	protected void onPlayerKnightDestroyed(Player player, Vertex knight) {
+		addFloatingTextAnimation((GUIPlayer)player, knight, "Knight\nDestroyed");
+	}
+
+	@Override
+	protected void onPlayerKnightDemoted(Player player, Vertex knight) {
+		addFloatingTextAnimation((GUIPlayer)player, knight, "Demoted to\n" + knight.getType().getNiceName());
+	}
+
+	void addFloatingTextAnimation(final GUIPlayer player, final IVector2D v, final String txt) {
+		GUI.instance.getBoardComponent().addAnimation(new BlockingAnimation(2000) {
+			
+			@Override
+			void draw(Graphics g, float position, float dt) {
+				g.setColor(player.getColor());
+				AWTRenderer r = GUI.instance.getBoardComponent().render;
+				r.pushMatrix();
+				 r.translate(v);
+				 r.translate(0, -GUI.instance.getBoardComponent().getKnightRadius()*5);
+				 r.translate(0, -GUI.instance.getBoardComponent().getKnightRadius()*10*position);
+				 MutableVector2D mv = new MutableVector2D();
+				 r.transformXY(mv);
+				 AWTUtils.drawJustifiedString(g, mv.Xi(), mv.Yi(), Justify.CENTER, Justify.CENTER, txt);
+				r.popMatrix();
+			}
+		});
+		
+	}
+	
+	@Override
+	protected void onPlayerKnightPromoted(Player player, final Vertex knight) {
+		addFloatingTextAnimation((GUIPlayer)player, knight, "Promoted to\n" + knight.getType().getNiceName());
+	}
+
+	@Override
+	protected void onPlayerCityDeveloped(Player p, DevelopmentArea area) {
+		addCardAnimation(p, area.name() + "\n\n" + area.levelName[p.getCityDevelopment(area)]);
+	}
+	
+	
 }

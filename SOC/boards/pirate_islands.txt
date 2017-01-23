@@ -1,6 +1,6 @@
 merchantPlayer=0
 merchantTile=-1
-pirateRouteStartTile=33
+pirateRouteStartTile=29
 pirateTile=-1
 robberTile=-1
 ch=0.090909086
@@ -45,7 +45,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=2
+      flags=258
       from=1
       player=0
       to=2
@@ -95,7 +95,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=259
       from=3
       player=0
       to=9
@@ -105,7 +105,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=259
       from=4
       player=0
       to=5
@@ -135,7 +135,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=259
       from=6
       player=0
       to=7
@@ -185,7 +185,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=259
       from=8
       player=0
       to=13
@@ -205,7 +205,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=2
+      flags=258
       from=10
       player=0
       to=11
@@ -535,7 +535,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=259
       from=41
       player=0
       to=42
@@ -665,7 +665,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=259
       from=52
       player=0
       to=53
@@ -785,7 +785,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=259
       from=61
       player=0
       to=68
@@ -795,7 +795,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=259
       from=62
       player=0
       to=63
@@ -865,7 +865,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=2
+      flags=258
       from=66
       player=0
       to=67
@@ -1165,7 +1165,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=259
       from=96
       player=0
       to=97
@@ -1295,7 +1295,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=259
       from=107
       player=0
       to=108
@@ -1395,7 +1395,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=259
       from=116
       player=0
       to=117
@@ -1435,7 +1435,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=2
+      flags=258
       from=118
       player=0
       to=158
@@ -1445,7 +1445,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=259
       from=119
       player=0
       to=120
@@ -1485,7 +1485,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=2
+      flags=258
       from=121
       player=0
       to=151
@@ -1515,7 +1515,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=2
+      flags=258
       from=123
       player=0
       to=124
@@ -1585,7 +1585,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=2
+      flags=258
       from=127
       player=0
       to=128
@@ -1915,7 +1915,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=259
       from=150
       player=0
       to=153
@@ -1985,7 +1985,7 @@ routes=java.util.Vector {
       }
    }
    cc.game.soc.core.Route {
-      flags=3
+      flags=259
       from=157
       player=0
       to=160
@@ -2871,7 +2871,7 @@ tiles=java.util.Vector {
       pirateRouteNext=-1
       x=0.9285714
       y=0.59090906
-      type=WATER
+      type=RANDOM_PORT
       adjVerts=int 6 {
          43 37 36 40 45 46 
       }
@@ -3207,7 +3207,7 @@ tiles=java.util.Vector {
       pirateRouteNext=-1
       x=0.5
       y=0.31818175
-      type=GOLD
+      type=RANDOM_RESOURCE
       adjVerts=int 6 {
          118 119 120 121 117 116 
       }
@@ -3944,7 +3944,7 @@ verts=java.util.Vector {
       player=0
       x=0.8928572
       y=0.27272716
-      type=OPEN
+      type=PIRATE_FORTRESS
       adjacent=int 3 {
          15 19 156 
       }
@@ -4856,7 +4856,7 @@ verts=java.util.Vector {
       player=0
       x=0.107142836
       y=0.27272716
-      type=OPEN
+      type=PIRATE_FORTRESS
       adjacent=int 3 {
          74 70 163 
       }
@@ -5912,7 +5912,7 @@ verts=java.util.Vector {
       player=0
       x=0.6428572
       y=0.22727269
-      type=OPEN
+      type=PIRATE_FORTRESS
       adjacent=int 3 {
          140 125 150 
       }
@@ -5992,7 +5992,7 @@ verts=java.util.Vector {
       player=0
       x=0.3571428
       y=0.22727269
-      type=OPEN
+      type=PIRATE_FORTRESS
       adjacent=int 3 {
          122 145 157 
       }

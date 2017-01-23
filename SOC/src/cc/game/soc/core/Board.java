@@ -866,6 +866,9 @@ public final class Board extends Reflector<Board> {
 		merchantTile = -1;
 		merchantPlayer = -1;
 		clearRouteLenCache();
+	}
+	
+	/*
 		for (Tile c : tiles) {
 			c.reset();
 		}
@@ -882,6 +885,9 @@ public final class Board extends Reflector<Board> {
 		for (int vertex : pirateFortresses) {
 			getVertex(vertex).setPirateFortress();
 		}
+	}*/
+	
+	public void clearIslaned() {
 		for (Island i : islands) {
 			Arrays.fill(i.discovered, false);
 		}
@@ -1033,6 +1039,10 @@ public final class Board extends Reflector<Board> {
 		fillFit();
 		computeVertexTiles();
 		computeRoutes();
+		
+		Utils.println("Tiles : " + tiles.size());
+		Utils.println("Verts : " + verts.size());
+		Utils.println("routes: " + routes.size());
 	}
 	
     /**
@@ -1581,7 +1591,7 @@ public final class Board extends Reflector<Board> {
 		}
 		return verts;
 	}
-
+	
 	/**
 	 * 
 	 * @param playerNum
@@ -2470,6 +2480,7 @@ public final class Board extends Reflector<Board> {
 	public final void setPirateRouteStartTile(int pirateRouteStartTile) {
 		this.pirateRouteStartTile = pirateRouteStartTile;
 	}
+
 
 	
 	

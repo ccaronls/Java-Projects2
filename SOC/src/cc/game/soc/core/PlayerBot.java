@@ -5,8 +5,6 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.*;
 
-import javax.swing.plaf.basic.BasicInternalFrameTitlePane.MaximizeAction;
-
 import cc.lib.game.Utils;
 import cc.lib.math.CMath;
 import cc.lib.utils.FileUtils;
@@ -1261,11 +1259,16 @@ public class PlayerBot extends Player {
 						float chance = (6.0f - Math.max(0, Math.min(score, 6))) / 6f;//1f * score / 6f;
 						assert(v.getType() == VertexType.PIRATE_FORTRESS);
 						assert(v.getPlayer() == 0);
-						v.setPlayerAndType(getPlayerNum(), VertexType.SETTLEMENT);
+						int health = v.getPirateHealth();
+						if (health <= 1)
+							v.setPlayerAndType(getPlayerNum(), VertexType.SETTLEMENT);
+						else
+							v.setPirateHealth(health-1);
 						BotNode node = root.attach(new BotNodeVertex(v, vIndex));
 						node.chance = chance;
 						doEvaluateAll(node, soc, p, b);
 						v.setPirateFortress();
+						v.setPirateHealth(health);
 					}
 					break;
 				}
@@ -1822,6 +1825,7 @@ public class PlayerBot extends Player {
 					}
 					knightValue += v.getType().getKnightLevel();
 					break;
+				case OPEN_SETTLEMENT:
 				case PIRATE_FORTRESS:
 					break;
 			}
@@ -1976,18 +1980,24 @@ public class PlayerBot extends Player {
 	private static void doEvaluateEdges(BotNode node, SOC soc, Player p, final Board b) {
 
 		float value = 0;
+		float warShipValue = 0;
 		// evaluate 
 		for (Route r : b.getRoutesForPlayer(p.getPlayerNum())) {
-			for (Tile t : b.getRouteTiles(r)) {
-				if (t.getResource() != null)
-					value += getDiePossibility(t.getDieNum(), soc.getRules());
-				else if (t.getType() == TileType.GOLD) {
-					value += 2 * getDiePossibility(t.getDieNum(), soc.getRules());
-				}
+			if (r.getType() == RouteType.ROAD) {
+    			for (Tile t : b.getRouteTiles(r)) {
+    				if (t.getResource() != null)
+    					value += getDiePossibility(t.getDieNum(), soc.getRules());
+    				else if (t.getType() == TileType.GOLD) {
+    					value += 2 * getDiePossibility(t.getDieNum(), soc.getRules());
+    				}
+    			}
+			} else if (r.getType() == RouteType.WARSHIP) {
+				warShipValue += 1;
 			}
 		}
 		
 		node.addValue("routeValue", value);
+		node.addValue("warships", Math.log1p(warShipValue)); // use logarithmic so the value decreases as count increases
 		
 		float longestRoadValue = 0;
 		float len = b.computeMaxRouteLengthForPlayer(p.getPlayerNum(), soc.getRules().isEnableRoadBlock());
@@ -2142,10 +2152,10 @@ public class PlayerBot extends Player {
     					numIslands++;
     				}
     			}
-    			node.addValue("minDistToNewIslands", 1f / (1.0+minDistToUndiscoveredIsland));
+    			node.addValue("minDistToNewIslands", 1f * soc.getRules().getPointsIslandDiscovery() / (1.0+minDistToUndiscoveredIsland));
     			if (numIslands > 0) {
     				aveDist /= numIslands;
-    				node.addValue("aveDistToNewIslands", 1f / (1.0+aveDist));
+    				node.addValue("aveDistToNewIslands", 1f * soc.getRules().getPointsIslandDiscovery()/ (1.0+aveDist));
     			}
 			}
 		}		
@@ -2374,7 +2384,7 @@ public class PlayerBot extends Player {
 						}
 						break;
 					case OPEN:
-						break;
+					case OPEN_SETTLEMENT:
 					case PIRATE_FORTRESS:
 						break;
 				}

@@ -141,7 +141,7 @@ public final class Vertex extends Reflector<Vertex> implements IVector2D {
 	 */
 	public void setOpenSettlement() {
 		this.player = 0;
-		this.type = VertexType.SETTLEMENT;
+		this.type = VertexType.OPEN_SETTLEMENT;
 	}
 	
 	/**

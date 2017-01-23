@@ -6,6 +6,7 @@ import java.util.*;
 
 import cc.game.soc.core.*;
 import cc.lib.game.IVector2D;
+import cc.lib.math.CMath;
 import cc.lib.math.Vector2D;
 import cc.lib.swing.AWTRenderer;
 import cc.lib.swing.AWTUtils;
@@ -41,7 +42,31 @@ public class GUIPlayer extends PlayerBot {
 	private long getAnimTime() {
 		return GUI.instance.getProps().getIntProperty("anim.ms", 1500);		
 	}
+	/*
+    void startSettlementAnimation(final Vertex vertex) {
+        if (!animationEnabled)
+            return;
+
+        if (vertex == null)
+            return;
+        GUI.instance.getBoardComponent().addAnimation(new BlockingAnimation(getAnimTime()) {
+
+            @Override
+            void draw(Graphics g, float position, float dt) {
+                g.setColor(getColor());
+                AWTRenderer render = GUI.instance.getBoardComponent().render;
+                render.pushMatrix();
+                //render.translate(-vertex.getX(), -vertex.getY());
+                render.translate(vertex);
+                render.scale(position, position);
+                //render.translate(-vertex.getX(), -vertex.getY());
+                GUI.instance.getBoardComponent().drawSettlement(g, Vector2D.ZERO, getPlayerNum(), false);
+                render.popMatrix();
+            }
+        });
+    }	
 	
+	/*
     void startCityAnimation(final Vertex vertex) {
         if (!animationEnabled)
             return;
@@ -64,8 +89,53 @@ public class GUIPlayer extends PlayerBot {
             }
         });
         
-    }
+    }*/
     
+    void startStructureAnimation(final Vertex vertex, final VertexType type) {
+        if (!animationEnabled)
+            return;
+        if (vertex == null)
+            return;
+        GUI.instance.getBoardComponent().addAnimation(new BlockingAnimation(getAnimTime()) {
+
+            @Override
+            void draw(Graphics g, float position, float dt) {
+                //vertex.setPlayer(0);
+                g.setColor(getColor());
+                AWTRenderer render = GUI.instance.getBoardComponent().render;
+                render.pushMatrix();
+                render.translate(vertex);
+                render.translate(0, (1-position)*GUI.instance.getBoardComponent().getStructureRadius()*5);
+                render.scale(1, position);
+                switch (type) {
+                	case SETTLEMENT:
+                		GUI.instance.getBoardComponent().drawSettlement(g, Vector2D.ZERO, getPlayerNum(), false);
+                		break;
+                	case CITY:
+                		GUI.instance.getBoardComponent().drawCity(g, Vector2D.ZERO, getPlayerNum(), false);
+                		break;
+                	case WALLED_CITY:
+                		GUI.instance.getBoardComponent().drawWalledCity(g, Vector2D.ZERO, getPlayerNum(), false);
+                		break;
+                	case METROPOLIS_POLITICS:
+                        GUI.instance.getBoardComponent().drawMetropolisPolitics(g, Vector2D.ZERO, getPlayerNum(), false);
+                        break;
+                	case METROPOLIS_SCIENCE:
+                        GUI.instance.getBoardComponent().drawMetropolisScience(g, Vector2D.ZERO, getPlayerNum(), false);
+                        break;
+                	case METROPOLIS_TRADE:
+                        GUI.instance.getBoardComponent().drawMetropolisTrade(g, Vector2D.ZERO, getPlayerNum(), false);
+                        break;
+                }
+                render.popMatrix();
+            }
+        });
+        
+    }    
+    /*
+    
+    
+    // 'grow' animation
     void startCityWallAnimation(final Vertex vertex) {
         if (!animationEnabled)
             return;
@@ -90,7 +160,7 @@ public class GUIPlayer extends PlayerBot {
             
         });
         
-    }    
+    }    */
 
     void startMoveShipAnimation(final Route source, final Route target, final SOC soc) {
     	if (!animationEnabled)
@@ -205,29 +275,6 @@ public class GUIPlayer extends PlayerBot {
         }
     }
     
-    void startSettlementAnimation(final Vertex vertex) {
-        if (!animationEnabled)
-            return;
-
-        if (vertex == null)
-            return;
-        GUI.instance.getBoardComponent().addAnimation(new BlockingAnimation(getAnimTime()) {
-
-            @Override
-            void draw(Graphics g, float position, float dt) {
-                g.setColor(getColor());
-                AWTRenderer render = GUI.instance.getBoardComponent().render;
-                render.pushMatrix();
-                //render.translate(-vertex.getX(), -vertex.getY());
-                render.translate(vertex);
-                render.scale(position, position);
-                //render.translate(-vertex.getX(), -vertex.getY());
-                GUI.instance.getBoardComponent().drawSettlement(g, Vector2D.ZERO, getPlayerNum(), false);
-                render.popMatrix();
-            }
-        });
-    }
-    
     void startKnightAnimation(final Vertex vertex) {
     	if (!animationEnabled || vertex == null)
     		return;
@@ -239,11 +286,10 @@ public class GUIPlayer extends PlayerBot {
                 g.setColor(getColor());
                 AWTRenderer render = GUI.instance.getBoardComponent().render;
                 render.pushMatrix();
-                //render.translate(-vertex.getX(), -vertex.getY());
-                render.translate(vertex);
-                render.scale(position, 1);
-                //render.translate(-vertex.getX(), -vertex.getY());
-                GUI.instance.getBoardComponent().drawKnight(g, Vector2D.ZERO, getPlayerNum(), 1, false, false);
+                render.translate(vertex.getX(), position * (vertex.getY()));
+                render.scale((2f-position) * (float)Math.cos((1-position)*20), (2f-position));
+                GUI.instance.getBoardComponent().drawKnight(g, Vector2D.ZERO
+                		, getPlayerNum(), 1, false, false);
                 render.popMatrix();
 			}
 		});
@@ -280,10 +326,10 @@ public class GUIPlayer extends PlayerBot {
 			return;
 		switch (mode) {
 			case CITY:
-				startCityAnimation(v);
+				startStructureAnimation(v, VertexType.CITY);
 				break;
 			case CITY_WALL:
-				startCityWallAnimation(v);
+				startStructureAnimation(v, VertexType.WALLED_CITY);
 				break;
 			case KNIGHT_DESERTER:
 				break;
@@ -304,13 +350,16 @@ public class GUIPlayer extends PlayerBot {
 			case OPPONENT_KNIGHT_TO_DISPLACE:
 				break;
 			case POLITICS_METROPOLIS:
+				startStructureAnimation(v, VertexType.METROPOLIS_POLITICS);
 				break;
 			case SCIENCE_METROPOLIS:
+				startStructureAnimation(v, VertexType.METROPOLIS_SCIENCE);
 				break;
 			case SETTLEMENT:
-				startSettlementAnimation(v);
+				startStructureAnimation(v, VertexType.SETTLEMENT);
 				break;
 			case TRADE_METROPOLIS:
+				startStructureAnimation(v, VertexType.METROPOLIS_TRADE);
 				break;
 			case PIRATE_FORTRESS:
 				break;

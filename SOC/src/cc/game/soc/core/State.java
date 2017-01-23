@@ -43,6 +43,7 @@ enum State {
 	SET_PLAYER(false, ""),
 	SET_VERTEX_TYPE(false, ""),
 	CHOOSE_KNIGHT_TO_ACTIVATE(true, "Choose form one of your knight to Activate.  This makes it possible to defend against Barbarians or reposition."),
+	POSITION_NEW_KNIGHT_CANCEL(true, "Place your new knight on the board."),
 	POSITION_KNIGHT_CANCEL(true, "Place your knight on the board.  Active knights can displace an opponents knight or chase the Robber."),
 	POSITION_KNIGHT_NOCANCEL(false, "Place the deserted knight on the board."),
 	POSITION_DISPLACED_KNIGHT(false, "Place your displaced knight on the board."), // player's knight has been displaced
@@ -75,7 +76,9 @@ enum State {
     CHOOSE_STRUCTURE_TO_ATTACK(true, "Pick a structure for knight to attack."),
     ROLL_DICE_ATTACK_STRUCTURE(false, "Roll dice to attack opponents structure."),
     CHOOSE_SHIP_TO_ATTACK(true, "Pick a ship to be attacked by a warship."),
-    ROLL_DICE_ATTACK_SHIP(false, "Roll dice to attack youe opponents ship.")
+    ROLL_DICE_ATTACK_SHIP(false, "Roll dice to attack youe opponents ship."),
+    
+    CLEAR_FORCED_SETTLEMENTS(false, ""), // transition state
 	;
 	
 	private State(boolean canCancel, String helpText) {
