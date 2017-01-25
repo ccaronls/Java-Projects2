@@ -1283,7 +1283,7 @@ public class SOC extends Reflector<SOC> {
 	        		Vertex v = getCurPlayer().chooseVertex(this, options, VertexChoice.PIRATE_FORTRESS, null);
 	        		if (v != null) {
 	        			popState();
-	        			if (getRules().isAttackPirateFortressEndTurn())
+	        			if (getRules().isAttackPirateFortressEndsTurn())
 	        				popState();
 	        			processPlayerAttacksPirateFortress(getCurPlayer(), getBoard().getVertexIndex(v));
 	        		}
@@ -1471,7 +1471,9 @@ public class SOC extends Reflector<SOC> {
 						popState();
 						for (Tile t : getBoard().getRouteTiles(edge)) {
 							if (t == getBoard().getPirateTile()) {
-								pushStateFront(State.POSITION_PIRATE_NOCANCEL);
+								List<Integer> opts = computePirateTileIndices(this, mBoard);
+								if (opts.size() > 0)
+									pushStateFront(State.POSITION_PIRATE_NOCANCEL, null, opts);
 							}
 						}
 					}
@@ -1716,6 +1718,7 @@ public class SOC extends Reflector<SOC> {
 					if (options == null) {
 						options = computePirateTileIndices(this, mBoard);
 					}
+					assert(!Utils.isEmpty(options));
 					Tile cell = getCurPlayer().chooseTile(this, options, TileChoice.PIRATE);
 
 					if (cell != null) {
@@ -4120,14 +4123,12 @@ public class SOC extends Reflector<SOC> {
 	
 	static public List<Integer> computeOpenRouteIndices(int playerNum, Board b, boolean checkRoads, boolean checkShips) {
 		Set<Integer> options = new HashSet<Integer>();
-		for (int eIndex=0; eIndex<b.getNumRoutes(); eIndex++) {
+		for (int eIndex : b.getRouteIndicesForPlayer(playerNum)) {
 			Route e = b.getRoute(eIndex);
 			// check the obvious
 			if (e.isClosed())
 				continue;
 			if (e.isLocked())
-				continue;
-			if (e.getPlayer() != playerNum)
 				continue;
 			if (e.getType().isVessel) {
 				if (!checkShips)

@@ -31,8 +31,6 @@ public final class Board extends Reflector<Board> {
 	private int				merchantPlayer = 0; // player num who last placed the merchant or 0 is not played
 	private String			name		= "";
 	private float           cw, ch;
-	private final List<Integer>	undiscoveredCells = new ArrayList<Integer>(); // this is here so we can reset the board to original state
-	private final List<Integer> pirateFortresses = new ArrayList<Integer>();
 	
 	private final static int GD_N		= 1;
 	private final static int GD_NE		= 2;
@@ -169,7 +167,6 @@ public final class Board extends Reflector<Board> {
     private void computeVertexTiles() {
     	for (Vertex v : verts) {
     		v.setNumCells(0);
-    		v.setOpen();
     	}
         for (int i=0; i<getNumTiles(); i++) {
             Tile c = getTile(i);
@@ -234,6 +231,19 @@ public final class Board extends Reflector<Board> {
 			Route e1 = getRoute(i);
 			if (e1.compareTo(e0)<=0)
 				throw new RuntimeException("Edges out of order or not unique");
+		}
+		
+		//visit all vertices and remove adjacencies that dont exist
+		for (int vIndex=0; vIndex<getNumVerts(); vIndex++) {
+			Vertex v = getVertex(vIndex);
+			for (int i=0; i<v.getNumAdjacentVerts(); ) {
+				Route r = getRoute(vIndex, v.getAdjacentVerts()[i]);
+				if (r == null) {
+					v.removeAdjacency(i);
+				} else {
+					i++;
+				}
+			}
 		}
 	}
 
@@ -760,6 +770,7 @@ public final class Board extends Reflector<Board> {
 	
 	public boolean isRouteOpenEnded(Route r) {
 		assert(r.getPlayer() != 0);
+//		int index = getRouteIndex(r);
 		Vertex v = getVertex(r.getFrom());
 		if (v.isStructure() && v.getPlayer() == r.getPlayer())
 			return false;
@@ -768,6 +779,8 @@ public final class Board extends Reflector<Board> {
 			int v2 = v.getAdjacentVerts()[i];
 			if (v2 != r.getTo()) {
 				Route r2 = getRoute(r.getFrom(), v2);
+				if ((r.isVessel() && !r2.isVessel()) || (!r.isVessel() && r2.isVessel()))
+					continue;
 				if (r2 != null && r2.getPlayer() == r.getPlayer()) {
 					numEnds++;
 					break;
@@ -781,6 +794,8 @@ public final class Board extends Reflector<Board> {
 			int v2 = v.getAdjacentVerts()[i];
 			if (v2 != r.getFrom()) {
 				Route r2 = getRoute(r.getTo(), v2);
+				if ((r.isVessel() && !r2.isVessel()) || (!r.isVessel() && r2.isVessel()))
+					continue;
 				if (r2 != null && r2.getPlayer() == r.getPlayer()) {
 					numEnds++;
 					break;
@@ -1108,6 +1123,7 @@ public final class Board extends Reflector<Board> {
 		for (int i = 0; i < getNumTiles();) {
 			Tile cell = getTile(i);
 			switch (cell.getType()) {
+				case UNDISCOVERED:
 				case NONE:
 					break;
     			// mark all edges as available for road
@@ -1165,9 +1181,6 @@ public final class Board extends Reflector<Board> {
     				}
     				break;
     				
-    			case UNDISCOVERED:
-    				undiscoveredCells.add(i);
-    				break;
 			}
 			i++;
 		}
@@ -2481,8 +2494,106 @@ public final class Board extends Reflector<Board> {
 		this.pirateRouteStartTile = pirateRouteStartTile;
 	}
 
+	/**
+	 * Return a structure that can compute the distance/path between any 2 vertices.  
+	 * When transitioning from land to water, these routes must pass through a structure and/or port depending on rules.
+	 * 
+	 * @param rules
+	 * @param playerNum
+	 * @return
+	 */
+	public Distances computeDistances(final Rules rules, final int playerNum) {
+		
+		final int numV = getNumVerts();
+		final int [][] distLand = new int[numV][numV];
+		final int [][] distAqua = new int[numV][numV];
+		final int [][] nextLand = new int[numV][numV];
+		final int [][] nextAqua = new int[numV][numV];
+		
+		for (int i=0; i<numV; i++) {
+			for (int ii=0; ii<numV; ii++) {
+				distLand[i][ii] = Distances.DISTANCE_INFINITY;
+				distAqua[i][ii] = Distances.DISTANCE_INFINITY;
+				nextLand[i][ii] = ii;
+				nextAqua[i][ii] = ii;
+			}
+			distLand[i][i] = 0;
+			distAqua[i][i] = 0;
+		}
+		
+		// Assign distances to edges
+		for (Route r: getRoutes()) {
 
-	
+			final int v0 = r.getFrom();
+			final int v1 = r.getTo();
+			
+			if (r.getPlayer() == 0) {
+				if (r.isAdjacentToLand()) {
+					distLand[v0][v1] = distLand[v1][v0] = 1;
+				}
+				if (r.isAdjacentToWater()) {
+					distAqua[v0][v1] = distAqua[v1][v0] = 1;
+				}
+			} else if (r.getPlayer() == playerNum) {
+				switch (r.getType()) {
+					case DAMAGED_ROAD:
+					case ROAD:
+						distLand[v0][v1] = distLand[v1][v0] = 0;
+						break;
+					case SHIP:
+					case WARSHIP:
+						distAqua[v0][v1] = distAqua[v1][v0] = 0;
+						break;
+					case OPEN:
+					default:
+						assert(false);
+					
+				}
+			}
+			
+		}
+		
+		// All-Pairs shortest paths [Floyd-Marshall O(|V|^3)] algorithm.  This is a good choice for dense graphs like ours
+		// where every vertex has 2 or 3 edges.  The memory usage and complexity of a Dijkstra's make it less desirable.  
+		for (int k=0; k<numV; k++) {
+			for (int i=0; i<numV; i++) {
+				for (int j=0; j<numV; j++) {
+					int sum = distLand[i][k] + distLand[k][j];
+					if (sum < distLand[i][j]) {
+						distLand[i][j] = sum;
+						nextLand[i][j] = nextLand[i][k];
+					}
+					sum = distAqua[i][k] + distAqua[k][j];
+					if (sum < distAqua[i][j]) {
+						distAqua[i][j] = sum;
+						nextAqua[i][j] = nextAqua[i][k];
+					}
+				}
+			}
+		}
+		
+		List<Integer> launchVerts = new ArrayList<Integer>();
+		
+		// find all vertices where we can launch a ship from
+		for (int vIndex=0; vIndex<getNumVerts(); vIndex++) {
+			Vertex v = getVertex(vIndex);
+			if (v.isAdjacentToWater()) {
+    			if (v.isStructure() && v.getPlayer() == playerNum) {
+    				launchVerts.add(vIndex);
+    			} else if (v.getPlayer() == 0 && rules.isEnableBuildShipsFromPort()) {
+    				for (Tile t : getVertexTiles(vIndex)) {
+    					if (t.getType().isPort) {
+    						launchVerts.add(vIndex);
+    						break;
+    					}
+    				}
+    			}
+			}
+			
+		}
+		
+		return new Distances(distLand, nextLand, distAqua, nextAqua, launchVerts);
+	}
 	
 }
 

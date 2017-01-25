@@ -381,7 +381,7 @@ public class SOCGUI extends SOC {
 
 	@Override
 	protected void onPirateSailing(final int fromTile, final int toTile) {
-		gui.getBoardComponent().addAnimation(new BlockingAnimation(1500) {
+		gui.getBoardComponent().addAnimation(new BlockingAnimation(800) {
 			
 			@Override
 			void draw(Graphics g, float position, float dt) {

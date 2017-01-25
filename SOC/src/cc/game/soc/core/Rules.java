@@ -97,6 +97,8 @@ public final class Rules extends Reflector<Rules> {
 	private boolean enableWarShipBuildable = false;
 	@RuleVariable(description="Minimum discovered territories for victory points.  Set to 0 to disable feature.")
 	private int minMostDiscoveredTerritories=0;
+	@RuleVariable(description="Attacking a Pirate fortress ends turn flag. Default is tru based on original rule set.")
+	private boolean attackPirateFortressEndsTurn = true;
 	
 	// knight
 	@RuleVariable(description="Enable Cities and Knights", separator="Cities & Knights Expansion")
@@ -361,6 +363,12 @@ public final class Rules extends Reflector<Rules> {
 	public final void setMinMostDiscoveredTerritories(int minMostDiscoveredTerritories) {
 		this.minMostDiscoveredTerritories = minMostDiscoveredTerritories;
 	}
-
+	public final boolean isAttackPirateFortressEndsTurn() {
+		return attackPirateFortressEndsTurn;
+	}
+	public final void setAttackPirateFortressEndsTurn(
+			boolean attackPirateFortressEndsTunr) {
+		this.attackPirateFortressEndsTurn = attackPirateFortressEndsTunr;
+	}
 	
 }

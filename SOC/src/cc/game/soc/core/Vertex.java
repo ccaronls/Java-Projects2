@@ -296,4 +296,8 @@ public final class Vertex extends Reflector<Vertex> implements IVector2D {
 			r += " pirate health=" + pirateHealth;
 		return r;
 	}
+
+	void removeAdjacency(int index) {
+		adjacent[index] = adjacent[--numAdj];
+	}
 }

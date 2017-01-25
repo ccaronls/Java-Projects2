@@ -31,7 +31,6 @@ import org.apache.log4j.Logger;
 
 import cc.game.soc.core.*;
 import cc.game.soc.core.Player.*;
-import cc.game.soc.core.PlayerBot.Distances;
 import cc.game.soc.core.annotations.RuleVariable;
 import cc.game.soc.swing.BoardComponent.PickMode;
 import cc.game.soc.swing.BoardComponent.*;
@@ -778,6 +777,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
     }
     
     enum DebugPick {
+    	OPEN_SETTLEMENT(PickMode.PM_VERTEX, VertexType.OPEN_SETTLEMENT, null, null),
     	SETTLEMENT(PickMode.PM_VERTEX, VertexType.SETTLEMENT, null, null),
     	CITY(PickMode.PM_VERTEX, VertexType.CITY, null, null),
     	CITY_WALL(PickMode.PM_VERTEX, VertexType.WALLED_CITY, null, null),
@@ -934,7 +934,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 					
             		int vertex0 = -1;
             		int vertex1 = -1;
-            		PlayerBot.Distances d = null;
+            		Distances d = null;
             		
 					@Override
 					public void onPick(BoardComponent bc, int pickedValue) {
@@ -949,6 +949,14 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 									v.setPlayerAndType(getCurPlayerNum(), mode.vType);
 								} else {
 									v.setOpen();
+								}
+								break;
+							case OPEN_SETTLEMENT:
+								v = getBoard().getVertex(pickedValue);
+								if (v.getType() == VertexType.OPEN_SETTLEMENT) {
+									v.setOpen();
+								} else {
+									v.setOpenSettlement();
 								}
 								break;
 							case KNIGHT:
@@ -1106,7 +1114,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 						if (vertex0 >= 0 && vertex1 >= 0) {
 							r.clearVerts();
 							if (d == null) {
-								d = PlayerBot.computeWaterwayDistances(getRules(), getBoard(), getCurPlayerNum());
+								d = getBoard().computeDistances(getRules(), getCurPlayerNum());
 							}
 							console.addText(Color.BLACK, "Dist form " + vertex0 + "->" + vertex1 + " = " + d.getDist(vertex0, vertex1));
 							List<Integer> path = d.getShortestPath(vertex0, vertex1);
@@ -1518,7 +1526,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 		
 			case COMPUTE_DISTANCES: {
 				long t = System.currentTimeMillis();
-				PlayerBot.Distances distances = PlayerBot.computeWaterwayDistances(getRules(), getBoard(), getCurPlayerNum());
+				Distances distances = getBoard().computeDistances(getRules(), getCurPlayerNum());
 				long dt = System.currentTimeMillis() - t;
 				System.out.println("got Distances in " + dt + " MSecs:\n" + distances);
 				break;
@@ -1565,7 +1573,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
         synchronized (waitObj) {
             waitObj.notify();
         }
-	}	
+	}
 	
 	private void loadGame(File file) throws IOException {
 		soc.loadFromFile(file);
@@ -2050,7 +2058,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 				if (n.getData() instanceof Vertex) {
 					Vertex v = (Vertex)n.getData();
 					v.setPlayerAndType(getCurPlayerNum(), VertexType.SETTLEMENT);
-					Distances d = PlayerBot.computeWaterwayDistances(getRules(), getBoard(), getCurPlayerNum());
+					Distances d = getBoard().computeDistances(getRules(), getCurPlayerNum());
 					console.addText(Color.BLACK, d.toString());
 					v.setOpen();
 				}
@@ -2059,11 +2067,22 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 					Route r = (Route)n.getData();
 					//r.setType(RouteType.SHIP);
 					getBoard().setPlayerForRoute(r, getCurPlayerNum(), RouteType.SHIP);
-					Distances d = PlayerBot.computeWaterwayDistances(getRules(), getBoard(), getCurPlayerNum());
+					Distances d = getBoard().computeDistances(getRules(), getCurPlayerNum());
 					console.addText(Color.BLACK, d.toString());
 					getBoard().setRouteOpen(r);
 				}
 				
+				// rewrite the aituning properties (to the text pane, user must visually inspect and commit) such that the picked botnode becomes the most dominant
+				BotNode best = leafs.get(0);
+				for (String key : best.getKeys()) {
+					double b = best.getValue(key);
+					double t = n.getValue(key);
+					if (b > t) {
+						// get percent difference
+						double dt = b-t;
+						double per = dt/b;
+					}
+				}
 			}
 			
 			@Override
