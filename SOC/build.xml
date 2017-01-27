@@ -1,422 +1,149 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<project name="soc" default="usage" basedir=".">
-    <!-- Enable Assertions -->
-    <assertions>
-        <enable />
-    </assertions>
-	
-	<property name="prettyname" value="Senators of Caron"/>
-    <property name="ant.enable.asserts" value="true"/>            
-    
-    <property name="app.name" value="soc"/>
-    
-    <!-- general directories -->
-    <property name="dir.src" location="${basedir}/src" />
-    <property name="dir.lib" location="${basedir}/lib" />
-    <property name="dir.test.lib" location="${basedir}/testlib" />
-    <property name="dir.dist" location="${basedir}/dist" />
-    <property name="dir.build" location="${basedir}/antbuild" />
-    <property name="dir.doc" location="${basedir}/javadoc" />
-    <property name="dir.test" location="${basedir}/test" />
-    <property name="dir.testresources" location="${basedir}/testresources" />
-    <property name="dir.web" location="${basedir}/webapp" />
-    <property name="dir.hbm" location="${basedir}/hbm" />
-    <property name="dir.conf" location="${basedir}/conf" />
-    
-    <!-- properties for junit tests (unit tests for a unit test app!) -->
-    <property name="dir.junit" location="${basedir}/junit" />
-    <property name="dir.junit.xml" location="${dir.junit}/xml" />
-    <property name="dir.junit.report" location="${dir.junit}/report" />
-    <property name="file.jar" value="${dir.dist}/${app.name}.jar" />
-    <property name="file.war" value="${dir.dist}/${app.name}.war" />
-    <property name="file.zip" value="${basedir}/${app.name}.zip" />
-    <property name="gui.main.class" value="cc.game.soc.swing.GUI"/>
-    <property name="server.main.class" value="cc.game.soc.net.StandaloneServer"/>
-    <property name="server2.main.class" value="cc.game.soc.net2.server.MainServer"/>
-	
-    <!-- browser to use to open HTML reports.  Must be included in your PATH -->
-    <property name="browser" value="mozilla" />
-
-    <!-- sql properties 
-    <property name="sql.driver" value="org.sqlite.JDBC"/>
-    <property name="sql.url"    value="jdbc:sqlite:localhost:9000:dbtest"/>
-    <property name="sql.userid" value="db1"/>
-    <property name="sql.passwd" value="db1"/>
-    -->
-    <property name="dir.sql" location="${basedir}/sql"/>
-
-    <!-- build out the plugins     
-    <taskdef name="hibernatedoclet"
-        classname="xdoclet.modules.hibernate.HibernateDocletTask">
-        <classpath>
-            <fileset dir="${ant.home}/plugins/xdoclet-1.2.2">
-                <include name="*.jar"/>
-            </fileset>
-        </classpath>
-    </taskdef>
--->
-    
-    <!-- build the CLASSPATH for included libs -->
-    <path id="project.classpath" path="${classpath}">
-        <fileset dir="${dir.lib}">
-            <patternset>
-                <include name="*.jar" />
-            </patternset>
-        </fileset>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- WARNING: Eclipse auto-generated file.
+              Any modifications will be overwritten.
+              To include a user specific buildfile here, simply create one in the same
+              directory with the processing instruction <?eclipse.ant.import?>
+              as the first entry and export the buildfile again. --><project basedir="." default="build" name="SOC">
+    <property environment="env"/>
+    <property name="JUNIT_HOME" value="../../../../../eclipse/plugins/org.junit_4.11.0.v201303080030/"/>
+    <property name="SenatorsOfCaronAndroid.location" value="../SenatorsOfCaron"/>
+    <property name="junit.output.dir" value="junit"/>
+    <property name="MyLIbrary.location" value="../GameLibrary"/>
+    <property name="debuglevel" value="source,lines,vars"/>
+    <property name="target" value="1.7"/>
+    <property name="source" value="1.7"/>
+    <path id="JUnit 3.libraryclasspath">
+        <pathelement location="../../../../../eclipse/plugins/org.junit_4.11.0.v201303080030/junit.jar"/>
     </path>
- 
-    <!-- build the CLASSPATH for junit libs -->      
-    <path id="project.test.classpath" path="${classpath}">
-        <fileset dir="${dir.lib}">
-            <patternset>
-                <include name="*.jar" />
-            </patternset>
-        </fileset>
-        <fileset dir="${dir.test.lib}">
-            <patternset>
-                <include name="*.jar" />
-            </patternset>
-        </fileset>
+    <path id="MyLIbrary.classpath">
+        <pathelement location="${MyLIbrary.location}/build"/>
+        <pathelement location="${JUNIT_HOME}/junit.jar"/>
     </path>
-
-
-    <!-- - - - - - - - - - - - - - - - - - 
-        target: init 
-        - - - - - - - - - - - - - - - - - -->
+    <path id="ExternalLibs.userclasspath"/>
+    <path id="SOC.classpath">
+        <pathelement location="build"/>
+        <path refid="JUnit 3.libraryclasspath"/>
+        <path refid="MyLIbrary.classpath"/>
+        <path refid="ExternalLibs.userclasspath"/>
+        <pathelement location="lib/log4j-1.2.17.jar"/>
+    </path>
     <target name="init">
-        <mkdir dir="${dir.dist}" />
-        <mkdir dir="${dir.build}" />
-        <mkdir dir="${dir.doc}" />
-        <mkdir dir="${dir.junit}" />
-        <mkdir dir="${dir.junit.xml}" />
-        <mkdir dir="${dir.junit.report}" />
-        <mkdir dir="${dir.hbm}" />
-    </target>
-
-    <!-- ================================= 
-        target: clean 
-        ================================= -->
-    <target name="clean" depends="">
-        <delete dir="${dir.dist}" />
-        <delete dir="${dir.build}" />
-        <delete dir="${dir.doc}" />
-        <delete dir="${dir.junit}" />
-        <delete dir="${dir.hbm}" />
-        <delete file="${file.zip}" />    
-        
-    </target>
-
-    <!-- ================================= 
-         target: hdoclet              
-         ================================= -->         
-    <target name="hdoclet" depends="" description="generate hibernate mappings">
-        <hibernatedoclet
-            destdir="${dir.hbm}"
-            excludedtags="@version,@author,@todo,@param,@return"
-            force="true"
-            verbose="true">
-
-            <fileset dir="${dir.src}">
-                <include name="cc/soc/model/*.java"/>
+        <mkdir dir="build"/>
+        <copy includeemptydirs="false" todir="build">
+            <fileset dir="src">
+                <exclude name="**/*.java"/>
+                <exclude name="cc/game/soc/service/"/>
+                <exclude name="cc/game/soc/net/"/>
+                <exclude name="cc/game/soc/netx/"/>
+                <exclude name="cc/game/soc/nety/"/>
+                <exclude name="cc/game/soc/model/"/>
+                <exclude name="cc/game/soc/netz/"/>
+                <exclude name="cc/game/soc/rmi/"/>
+                <exclude name="cc/game/soc/core/cak/"/>
+                <exclude name="cc/game/soc/ai/"/>
             </fileset>
-
-            <hibernate version="2.0"/>
-
-        </hibernatedoclet>
+        </copy>
+        <copy includeemptydirs="false" todir="build">
+            <fileset dir="test">
+                <exclude name="**/*.java"/>
+                <exclude name="cc/game/soc/base/"/>
+                <exclude name="cc/game/soc/model/"/>
+                <exclude name="cc/game/soc/service/"/>
+            </fileset>
+        </copy>
+        <copy includeemptydirs="false" todir="build">
+            <fileset dir="images">
+                <exclude name="**/*.java"/>
+            </fileset>
+        </copy>
     </target>
-    
-    <target name="libcompile">
-         <mkdir dir="${dest.dir}"/>
-         <javac destdir="${dest.dir}"
-             source="1.6"
-             target="1.6">
-             <src path="../GameLibrary/src"/>
-             <exclude name="**/swing/**.java"/>
-             <exclude name="**/skunkworks/**.java"/>
-         </javac>
+    <target name="clean">
+        <delete dir="build"/>
     </target>
-
-
-    <!-- - - - - - - - - - - - - - - - - - 
-        target: compile - compile all class to build directory 
-        - - - - - - - - - - - - - - - - - -->
-    <target name="compile" depends="init,libcompile">
-        <javac srcdir="${dir.src}" destdir="${dir.build}" debug="on" nowarn="off" source="1.7" target="1.7" deprecation="off" optimize="on">
-            <exclude name="**/AIEvaluator.java"/>
-            <classpath refid="project.classpath" />
+    <target depends="clean" name="cleanall">
+        <ant antfile="build.xml" dir="${MyLIbrary.location}" inheritAll="false" target="clean"/>
+    </target>
+    <target depends="build-subprojects,build-project" name="build"/>
+    <target name="build-subprojects">
+        <ant antfile="build.xml" dir="${MyLIbrary.location}" inheritAll="false" target="build-project"/>
+    </target>
+    <target depends="init" name="build-project">
+        <echo message="${ant.project.name}: ${ant.file}"/>
+        <javac debug="true" debuglevel="${debuglevel}" destdir="build" includeantruntime="false" source="${source}" target="${target}">
+            <src path="src"/>
+            <src path="test"/>
+            <src path="images"/>
+            <exclude name="cc/game/soc/service/"/>
+            <exclude name="cc/game/soc/net/"/>
+            <exclude name="cc/game/soc/netx/"/>
+            <exclude name="cc/game/soc/nety/"/>
+            <exclude name="cc/game/soc/model/"/>
+            <exclude name="cc/game/soc/netz/"/>
+            <exclude name="cc/game/soc/rmi/"/>
+            <exclude name="cc/game/soc/core/cak/"/>
+            <exclude name="cc/game/soc/ai/"/>
+            <exclude name="cc/game/soc/base/"/>
+            <exclude name="cc/game/soc/model/"/>
+            <exclude name="cc/game/soc/service/"/>
+            <classpath refid="SOC.classpath"/>
         </javac>
     </target>
-    
-    <!-- - - - - - - - - - - - - - - - - - 
-        target: junit compile - compile all class to build directory 
-        - - - - - - - - - - - - - - - - - -->
-    <target name="junit-compile" depends="init">
-        <javac srcdir="${dir.test}" destdir="${dir.build}" debug="on" nowarn="off" source="1.7" target="1.7" deprecation="off" optimize="on">
-            <classpath refid="project.test.classpath" />
-        </javac>
+    <target description="Build all projects which reference this project. Useful to propagate changes." name="build-refprojects">
+        <ant antfile="build.xml" dir="${SenatorsOfCaronAndroid.location}" inheritAll="false" target="clean"/>
+        <ant antfile="build.xml" dir="${SenatorsOfCaronAndroid.location}" inheritAll="false" target="build"/>
     </target>
-
-    <!-- ================================= 
-         target: jar
-         ================================= -->
-    <target name="jar" depends="compile" description="create the jar distribution: ${file.jar}">
-        <jar destfile="${file.jar}" basedir="${dir.build}">
-            <fileset dir="${dir.build}" />
-            <fileset dir="${basedir}/images" />
-            <fileset dir="${basedir}/resources" />
-         <!--   
-            <fileset dir="${dir.hbm}" />   
-            <fileset dir="${dir.conf}" />   
-            -->
-            <manifest>
-                <!-- Who is building this jar? -->
-                <attribute name="Built-By" value="${user.name}" />
-                <!-- Information about the program itself -->
-                <attribute name="Implementation-Title" value="${prettyname}" />
-                <attribute name="Implementation-Version" value="1.0" />
-                <attribute name="Main-Class" value="${gui.main.class}" />
-            </manifest>
-        </jar>
-    </target>
-
-    <!-- ================================= 
-         target: gui
-         ================================= -->
-    <target name="gui" depends="jar" description="run the jar executable">
-        <java classname="${gui.main.class}" classpath="${file.jar}" classpathref="project.classpath" fork="true">
-            <jvmarg value="-ea"/>
-        </java>
-    </target>
-
-    <!-- ================================= 
-         target: server
-         ================================= -->
-    <target name="server" depends="jar" description="run the jar executable">
-        <java classname="${server.main.class}" classpath="${file.jar}" classpathref="project.classpath" fork="true">
-        </java>
-    </target>
-
-    <!-- ================================= 
-         target: server
-         ================================= -->
-    <target name="server2" depends="jar" description="run the jar executable">
-        <java classname="${server2.main.class}" classpath="${file.jar}" classpathref="project.classpath" fork="true">
-        </java>
-    </target>
-
-    <!-- ================================= 
-        target: javadoc 
-        ================================= -->
-    <target name="javadoc" depends="init">
-        <javadoc sourcepath="${dir.src}" destdir="${dir.doc}" packagenames="cc.game.soc.*" doctitle="${prettyname}">
-            <classpath refid="project.classpath" />
-        </javadoc>
-    </target>
-
-    <!-- - - - - - - - - - - - - - - - - - 
-        target: showdoc 
-        - - - - - - - - - - - - - - - - - -->
-    <target name="showdoc">
-        <echo>Opening doc with ${browser}</echo>
-        <exec executable="${browser}" failifexecutionfails="false">
-            <arg line="file://${dir.doc}/index.html" />
-        </exec>
-    </target>
-
-    <!-- ================================= 
-        target: doc 
-        ================================= -->
-    <target name="doc" depends="javadoc, showdoc" description="alias for javadoc, showdoc">
-    </target>
-
-    <!-- ================================= 
-        target: junittest 
-        ================================= -->
-    <target name="junittest" depends="compile, junit-compile" description="run all unit tests">
-        <junit printsummary="yes" haltonfailure="no" showoutput="yes">
-            <!-- define the class path -->
-            <classpath>
-                <pathelement path="${classpath}" />
-                <fileset dir="${dir.lib}">
-                    <include name="**/*.jar" />
-                </fileset>
-                <pathelement location="${dir.build}" />
-            </classpath>
-            <!-- define the output type -->
-            <formatter type="xml" />
-            <!-- batch run all the tests under test -->
-            <batchtest todir="${dir.junit.xml}">
-                <fileset dir="${dir.test}">
-                    <include name="**/*Test.java" />
-                </fileset>
-            </batchtest>
+    <target name="FixSaveFile">
+        <mkdir dir="${junit.output.dir}"/>
+        <junit fork="yes" printsummary="withOutAndErr">
+            <formatter type="xml"/>
+            <test name="cc.game.soc.core.FixSaveFile" todir="${junit.output.dir}"/>
+            <classpath refid="SOC.classpath"/>
         </junit>
     </target>
-
-    <!-- ================================= 
-        target: test 
-        ================================= -->
-    <target name="test" depends="junittest">
-        <!-- generate the HTML report -->
-        <junitreport todir="${dir.junit.report}">
-            <fileset dir="${dir.junit.xml}">
-                <include name="TEST-*.xml" />
+    <target name="GUI" depends="build">
+        <java classname="cc.game.soc.swing.GUI" failonerror="true" fork="yes">
+            <jvmarg line="-ea"/>
+            <classpath refid="SOC.classpath"/>
+        </java>
+    </target>
+    <target name="ScenariosTest">
+        <mkdir dir="${junit.output.dir}"/>
+        <junit fork="yes" printsummary="withOutAndErr">
+            <formatter type="xml"/>
+            <test name="cc.game.soc.swing.ScenariosTest" todir="${junit.output.dir}"/>
+            <classpath refid="SOC.classpath"/>
+        </junit>
+    </target>
+    <target name="SOCBoardTest">
+        <mkdir dir="${junit.output.dir}"/>
+        <junit fork="yes" printsummary="withOutAndErr">
+            <formatter type="xml"/>
+            <test name="cc.game.soc.core.SOCBoardTest" todir="${junit.output.dir}"/>
+            <classpath refid="SOC.classpath"/>
+        </junit>
+    </target>
+    <target name="SOCTest">
+        <mkdir dir="${junit.output.dir}"/>
+        <junit fork="yes" printsummary="withOutAndErr">
+            <formatter type="xml"/>
+            <test name="cc.game.soc.core.SOCTest" todir="${junit.output.dir}"/>
+            <classpath refid="SOC.classpath"/>
+        </junit>
+    </target>
+    <target name="StaticTest">
+        <mkdir dir="${junit.output.dir}"/>
+        <junit fork="yes" printsummary="withOutAndErr">
+            <formatter type="xml"/>
+            <test name="cc.game.soc.core.StaticTest" todir="${junit.output.dir}"/>
+            <classpath refid="SOC.classpath"/>
+        </junit>
+    </target>
+    <target name="junitreport">
+        <junitreport todir="${junit.output.dir}">
+            <fileset dir="${junit.output.dir}">
+                <include name="TEST-*.xml"/>
             </fileset>
-            <report format="frames" todir="${dir.junit.report}" />
+            <report format="frames" todir="${junit.output.dir}"/>
         </junitreport>
-        <exec executable="${browser}" failifexecutionfails="false">
-            <arg line="file://${dir.junit.report}/index.html" />
-        </exec>
-    </target>
-
-    <!-- - - - - - - - - - - - - - - - - - 
-        target: chkOS - do OS specific stuff
-        - - - - - - - - - - - - - - - - - -->
-    <target name="chkOS" description="if switch to set OS specivic settings">
-        <delete file="${dir.conf}/${app.name}.properties"/>
-        <delete file="${dir.web}/config/${app.name}.properties"/>
-        <condition property="isUnix">
-            <os family="unix" />
-        </condition>
-        <condition property="isWindows">
-            <os family="windows" />
-        </condition>
-        <antcall target="setUnixEnv" />
-        <antcall target="setWindowsEnv" />
-    </target>
-
-    <target name="setUnixEnv" if="isUnix">
-        <echo>This is an Unix machine.  Using ${dir.conf}/${app.name}.properties.linux</echo>
-        <!-- affects local scope only -->
-        <copy file="${dir.conf}/${app.name}.properties.linux" toFile="${dir.web}/config/${app.name}.properties" />
-        <copy file="${dir.conf}/${app.name}.properties.linux" toFile="${dir.conf}/${app.name}.properties" />
-    </target>
-
-    <target name="setWindowsEnv" if="isWindows">
-        <echo>This is a Windows machine.  Using ${dir.conf}/${app.name}.properties.windows</echo>
-        <!-- affects local scope only -->
-        <copy file="${dir.conf}/${app.name}.properties.windows" toFile="${dir.web}/config/${app.name}.properties" />
-        <copy file="${dir.conf}/${app.name}.properties.windows" toFile="${dir.conf}/${app.name}.properties" />
-    </target>
-    
-    <property file="testresources/${app.name}.properties"/>
-    
-    <!-- ================================= 
-          target: sqljunitcreate              
-         ================================= -->
-    <target name="sqljunitcreate" depends="init" description="--> create sql tables">
-        <sql 
-            driver="${db.driver}" 
-            url="jdbc:sqlite:db/sqlite/dbtest" 
-            userid="${db.user}" 
-            password="${db.pw}" 
-            onerror="continue"
-            autocommit="true">
-            <classpath refid="project.classpath"/>
-            <transaction src="${dir.sql}/drop.sql"/>
-            <transaction src="${dir.sql}/create.sql"/>
-        </sql>        
-    </target>
-
-    <!-- ================================= 
-          target: sqlcreate              
-         ================================= -->
-    <target name="sqlcreate" depends="" description="--> create sql tables">
-        <sql 
-            driver="${db.driver}" 
-            url="${db.url}" 
-            userid="${db.user}" 
-            password="${db.pw}" 
-            onerror="continue"
-            autocommit="true">
-            <classpath refid="project.classpath"/>
-            <transaction src="${dir.sql}/create.sql"/>
-        </sql>        
-    </target>
-
-    <!-- ================================= 
-          target: sqldrop
-         ================================= -->
-    <target name="sqldrop" depends="" description="--> drop sql tables">
-        <sql 
-            driver="${db.driver}" 
-            url="${db.url}" 
-            userid="${db.user}" 
-            password="${db.pw}" 
-            onerror="continue"
-            autocommit="true">
-            <classpath refid="project.classpath"/>
-            <transaction src="${dir.sql}/drop.sql"/>
-        </sql>        
-    </target>
-    
-    <!-- ================================= 
-        target: war 
-        ================================= -->
-    <target name="war" depends="compile, chkOS">
-        <war destfile="${file.war}" webxml="${dir.web}/WEB-INF/web.xml">
-            <!-- things that dont go into WEB-INF -->
-            <zipfileset dir="${dir.web}/pages" prefix="" />
-            <zipfileset dir="${dir.web}/images" prefix="images" />
-            <zipfileset dir="${dir.web}/css" prefix="css" />
-            <zipfileset dir="${dir.web}/includes" prefix="includes" />
-            <zipfileset dir="${dir.web}/tld" prefix="tld" />
-            <!-- things that DO go into WEB-INF -->
-            <lib dir="${dir.lib}" />
-            <lib dir="${dir.web}/lib" />
-            <classes dir="${dir.build}" />
-            <classes dir="${dir.web}/config" />
-            <webinf dir="${dir.web}/WEB-INF" />
-        </war>
-    </target>
-
-    <target name="zip">
-        <delete file="${app.name}.zip" />
-        <zip destfile="${app.name}.zip" basedir="${basedir}" excludes="build/**, dist/**, lib/**, testlib/**, antbuild/**, **/.*, .*/**, webapp/lib/**, oraclelib/**" />
-    </target>
-
-    <target name="deployUnixEnv" if="isUnix">
-        <copy toDir="/lsurf/resin/webapps" file="${file.war}"/>
-    </target>
-
-    <target name="deployWindowsEnv" if="isWindows">
-        <copy toDir="C:/resin/webapps" file="${file.war}"/>
-    </target>
-   
-    <!-- ================================= 
-          target: deploy              
-         ================================= -->
-    <target name="deploy" depends="war" description="--> deploy hot swappable">
-        <antcall target="deployUnixEnv" />
-        <antcall target="deployWindowsEnv" />
-    </target>
-
-    <target name="about">
-        <echo>
-   OS                    - ${os.name} ${os.arch}
-   User Name             - ${user.name}
-   Java Home             - ${java.home}
-   User Home             - ${user.home}
-   Java Version          - ${java.version}
-   Time Zone             - ${user.timezone}
-   Ant home              - ${ant.home}
-          
-      </echo>
-    </target>
-
-    <!-- ================================= target: usage ================================= -->
-    <target name="usage">
-        <echo>
-   war                   - create ${file.war} webapp distribution
-   jar                   - create ${file.jar} executable distribution
-   gui                   - run the GUI swing executable
-   server                - run the stand alone server
-   server2				 - run the multi server w/console
-   zip                   - create ${file.zip} source distribution (minus jars)
-   test                  - execute and display all unit tests
-   doc                   - generate and display all java docs
-   about                 - display relevant system properties
-          
-      </echo>
     </target>
 </project>

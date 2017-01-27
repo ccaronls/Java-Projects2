@@ -1784,7 +1784,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=259
+         flags=3
          from=122
          player=0
          to=146
@@ -1834,7 +1834,7 @@ mBoard=cc.game.soc.core.Board {
          }
       }
       cc.game.soc.core.Route {
-         flags=259
+         flags=3
          from=125
          player=0
          to=141
@@ -7386,6 +7386,7 @@ mBoard=cc.game.soc.core.Board {
    }
 }
 mRules=cc.game.soc.core.Rules {
+   attackPirateFortressEndsTurn=true
    enableBuildShipsFromPort=false
    enableCitiesAndKnightsExpansion=false
    enableEventCards=false

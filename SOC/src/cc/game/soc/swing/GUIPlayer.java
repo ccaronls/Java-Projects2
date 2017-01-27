@@ -42,54 +42,6 @@ public class GUIPlayer extends PlayerBot {
 	private long getAnimTime() {
 		return GUI.instance.getProps().getIntProperty("anim.ms", 1500);		
 	}
-	/*
-    void startSettlementAnimation(final Vertex vertex) {
-        if (!animationEnabled)
-            return;
-
-        if (vertex == null)
-            return;
-        GUI.instance.getBoardComponent().addAnimation(new BlockingAnimation(getAnimTime()) {
-
-            @Override
-            void draw(Graphics g, float position, float dt) {
-                g.setColor(getColor());
-                AWTRenderer render = GUI.instance.getBoardComponent().render;
-                render.pushMatrix();
-                //render.translate(-vertex.getX(), -vertex.getY());
-                render.translate(vertex);
-                render.scale(position, position);
-                //render.translate(-vertex.getX(), -vertex.getY());
-                GUI.instance.getBoardComponent().drawSettlement(g, Vector2D.ZERO, getPlayerNum(), false);
-                render.popMatrix();
-            }
-        });
-    }	
-	
-	/*
-    void startCityAnimation(final Vertex vertex) {
-        if (!animationEnabled)
-            return;
-        if (vertex == null)
-            return;
-        GUI.instance.getBoardComponent().addAnimation(new BlockingAnimation(getAnimTime()) {
-
-            @Override
-            void draw(Graphics g, float position, float dt) {
-                //vertex.setPlayer(0);
-                g.setColor(getColor());
-                AWTRenderer render = GUI.instance.getBoardComponent().render;
-                render.pushMatrix();
-                //render.translate(-vertex.getX(), -vertex.getY());
-                render.translate(vertex);
-                render.scale(position, position);
-                //render.translate(-vertex.getX(), -vertex.getY());
-                GUI.instance.getBoardComponent().drawCity(g, Vector2D.ZERO, getPlayerNum(), false);
-                render.popMatrix();
-            }
-        });
-        
-    }*/
     
     void startStructureAnimation(final Vertex vertex, final VertexType type) {
         if (!animationEnabled)
@@ -132,35 +84,6 @@ public class GUIPlayer extends PlayerBot {
         });
         
     }    
-    /*
-    
-    
-    // 'grow' animation
-    void startCityWallAnimation(final Vertex vertex) {
-        if (!animationEnabled)
-            return;
-        if (vertex == null)
-            return;
-        GUI.instance.getBoardComponent().addAnimation(new BlockingAnimation(getAnimTime()) {
-
-            @Override
-            void draw(Graphics g, float position, float dt) {
-                //vertex.setPlayer(0);
-                g.setColor(getColor());
-                AWTRenderer render = GUI.instance.getBoardComponent().render;
-                render.pushMatrix();
-                //render.translate(-vertex.getX(), -vertex.getY());
-                render.translate(vertex);
-                //render.translate(0, -4*position);
-                render.scale(1, position);
-                //render.translate(-vertex.getX(), -vertex.getY());
-                GUI.instance.getBoardComponent().drawWalledCity(g, Vector2D.ZERO, getPlayerNum(), false);
-                render.popMatrix();
-            }
-            
-        });
-        
-    }    */
 
     void startMoveShipAnimation(final Route source, final Route target, final SOC soc) {
     	if (!animationEnabled)
@@ -400,6 +323,7 @@ public class GUIPlayer extends PlayerBot {
 				startUpgradeShipAnimation(route);
 				break;
 			case OPPONENT_ROAD_TO_ATTACK:
+			case OPPONENT_SHIP_TO_ATTACK:
 				break;
 		}
 	}

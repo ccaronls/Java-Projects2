@@ -46,7 +46,7 @@ public enum SpecialVictoryType implements ICardType<Integer> {
 	DiscoveredIsland(2, "One given for each discovered island"),
 	DamagedRoad(0, "One of users roads is damaged"),
 	
-	CapturePirateFortress(1, "Given for each pirate fortress conquered"),
+	CapturePirateFortress(0, "Given for each pirate fortress conquered"),
 	Explorer(1, "Given to player who has discovered most territories"),
 	;
 

@@ -89,18 +89,13 @@ public class PlayerInfoComponentCAK extends PlayerInfoComponent {
         for (SpecialVictoryType sv : SpecialVictoryType.values()) {
         	int num = player.getCardCount(sv);
         	if (num > 0) {
-        		str.append(sv.name()).append(Utils.getSignedString(num*sv.points)).append("\n");
+        		str.append(sv.name());
+        		if (sv.points != 0)
+        			str.append(Utils.getSignedString(num*sv.points));
+        		str.append("\n");
         	}
         }
-        /*
-        for (Card c : player.getCards(CardType.SpecialVictory)) {
-        	int pts = (Integer)c.getData();//c.getSpecialVictoryType.values()[c.getTypeOrdinal()].points;
-        	str.append(c.getName());
-        	if (pts != 0) {
-        		str.append(Utils.getSignedString(pts));
-        	}
-        	str.append("\n");
-        }*/
+        
         for (DevelopmentArea d : DevelopmentArea.values()) {
         	if (player.getCityDevelopment(d) > 0) {
         		str.append(d.name()).append(" ").append(d.levelName[player.getCityDevelopment(d)]).append(" (").append(player.getCityDevelopment(d)).append(") ");

@@ -930,9 +930,12 @@ public class SOC extends Reflector<SOC> {
 			}
 		}
 
-		int victoryPts = player.getUsableCardCount(DevelopmentCardType.Victory);
-		if (numPts + victoryPts >= soc.getRules().getPointsForWinGame()) {
-			numPts += victoryPts;
+		if (board.getNumVertsOfType(0, VertexType.PIRATE_FORTRESS) == 0 ||
+				player.getCardCount(SpecialVictoryType.CapturePirateFortress) > 0) {
+    		int victoryPts = player.getUsableCardCount(DevelopmentCardType.Victory);
+    		if (numPts + victoryPts >= soc.getRules().getPointsForWinGame()) {
+    			numPts += victoryPts;
+    		}
 		}
 		return numPts;	
 	}
@@ -1106,9 +1109,11 @@ public class SOC extends Reflector<SOC> {
             Player player = getPlayerByPlayerNum(i);
             int pts = player.getPoints();
             assert(pts == player.getPoints());
-            if (player.getPoints() >= getRules().getPointsForWinGame()) {
-                onGameOver(player);
-                return true;
+            if (mBoard.getNumVertsOfType(0, VertexType.PIRATE_FORTRESS) == 0 || player.getCardCount(SpecialVictoryType.CapturePirateFortress) > 0) {
+                if (player.getPoints() >= getRules().getPointsForWinGame()) {
+                    onGameOver(player);
+                    return true;
+                }
             }
         }
         return false;
