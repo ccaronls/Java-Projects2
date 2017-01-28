@@ -933,7 +933,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 					
             		int vertex0 = -1;
             		int vertex1 = -1;
-            		Distances d = null;
+            		IDistances d = null;
             		
 					@Override
 					public void onPick(BoardComponent bc, int pickedValue) {
@@ -1525,7 +1525,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 		
 			case COMPUTE_DISTANCES: {
 				long t = System.currentTimeMillis();
-				Distances distances = getBoard().computeDistances(getRules(), getCurPlayerNum());
+				IDistances distances = getBoard().computeDistances(getRules(), getCurPlayerNum());
 				long dt = System.currentTimeMillis() - t;
 				System.out.println("got Distances in " + dt + " MSecs:\n" + distances);
 				break;
@@ -2057,7 +2057,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 				if (n.getData() instanceof Vertex) {
 					Vertex v = (Vertex)n.getData();
 					v.setPlayerAndType(getCurPlayerNum(), VertexType.SETTLEMENT);
-					Distances d = getBoard().computeDistances(getRules(), getCurPlayerNum());
+					IDistances d = getBoard().computeDistances(getRules(), getCurPlayerNum());
 					console.addText(Color.BLACK, d.toString());
 					v.setOpen();
 				}
@@ -2066,7 +2066,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 					Route r = (Route)n.getData();
 					//r.setType(RouteType.SHIP);
 					getBoard().setPlayerForRoute(r, getCurPlayerNum(), RouteType.SHIP);
-					Distances d = getBoard().computeDistances(getRules(), getCurPlayerNum());
+					IDistances d = getBoard().computeDistances(getRules(), getCurPlayerNum());
 					console.addText(Color.BLACK, d.toString());
 					getBoard().setRouteOpen(r);
 				}
@@ -2113,7 +2113,6 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
                 				} finally {
                 					out.close();
                 				}
-                				refresh.doClick();
     						} catch (Exception e) {
     							e.printStackTrace();
     						}

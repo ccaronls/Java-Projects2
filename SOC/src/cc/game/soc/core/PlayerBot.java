@@ -2077,9 +2077,76 @@ public class PlayerBot extends Player {
 		
 	}
 	
+	private static void doEvaluateDistances(BotNode node, SOC soc, Player p, Board b) {
+		IDistances d = b.computeDistances(soc.getRules(), p.getPlayerNum());
+		
+		// visit the vertices and assign a value to each.
+		float [] vertexValue = new float[b.getNumVerts()];
+		
+		for (int vIndex=0; vIndex<b.getNumVerts(); vIndex++) {
+			Vertex v = b.getVertex(vIndex);
+			if (v.getPlayer() == p.getPlayerNum()) {
+				vertexValue[vIndex] = 1; // give max value to this vertex since we own it
+				continue;
+			}
+			
+			// things to consider:
+			// vertexType
+			// tiles adjacent (undiscovered, resource distribution)
+			// road blocking? (This might already be covered)
+			// attacking (if enabled, choose structures to attack) 
+			
+			
+			// Ultimately we want to be as close as possible to the most important things and reasonably close
+			
+			switch (v.getType()) {
+				case BASIC_KNIGHT_ACTIVE:
+					break;
+				case BASIC_KNIGHT_INACTIVE:
+					break;
+				case CITY:
+					break;
+				case METROPOLIS_POLITICS:
+					break;
+				case METROPOLIS_SCIENCE:
+					break;
+				case METROPOLIS_TRADE:
+					break;
+				case MIGHTY_KNIGHT_ACTIVE:
+					break;
+				case MIGHTY_KNIGHT_INACTIVE:
+					break;
+				case OPEN:
+					break;
+				case OPEN_SETTLEMENT:
+					break;
+				case PIRATE_FORTRESS:
+					break;
+				case SETTLEMENT:
+					break;
+				case STRONG_KNIGHT_ACTIVE:
+					break;
+				case STRONG_KNIGHT_INACTIVE:
+					break;
+				case WALLED_CITY:
+					break;
+				default:
+					break;
+				
+			}
+			
+			
+			for (Tile t : b.getVertexTiles(v)) {
+				if (t.isDistributionTile())
+					vertexValue[vIndex] += getDiePossibility(t.getDieNum(), soc.getRules());
+			}
+		}
+		
+	}
+	
 	private static void doEvaluateSeafarers(BotNode node, SOC soc, Player p, Board b) {
 		if (soc.getRules().isEnableSeafarersExpansion()) {
-			Distances d = b.computeDistances(soc.getRules(), p.getPlayerNum());
+			IDistances d = b.computeDistances(soc.getRules(), p.getPlayerNum());
 			
 			List<Integer> pirateFortresses = new ArrayList<Integer>();
 			Set<Integer> undiscoveredVerts = new HashSet<Integer>();
@@ -2120,9 +2187,9 @@ public class PlayerBot extends Player {
     			}
 			}			
 
-			int minDistToFortress = Distances.DISTANCE_INFINITY;
-			int minDistToUndiscovered = Distances.DISTANCE_INFINITY;
-			int minDistToIsland = Distances.DISTANCE_INFINITY;
+			int minDistToFortress = DistancesLandWater.DISTANCE_INFINITY;
+			int minDistToUndiscovered = DistancesLandWater.DISTANCE_INFINITY;
+			int minDistToIsland = DistancesLandWater.DISTANCE_INFINITY;
 			float aveDistToIsland = 0;
 			
 			for (int sIndex : playerStructures) {

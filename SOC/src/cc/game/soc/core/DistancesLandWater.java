@@ -3,11 +3,9 @@ package cc.game.soc.core;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Distances {
+public class DistancesLandWater implements IDistances {
 	
-	public final static int DISTANCE_INFINITY = 100;
-
-	public Distances() {
+	public DistancesLandWater() {
 		this(new int[0][0], new int[0][0], new int[0][0], new int[0][0], null);
 	}
 	
@@ -17,7 +15,7 @@ public class Distances {
 	private final int [][] nextAqua;
 	private final List<Integer> launchVerts;
 	
-	public Distances(
+	public DistancesLandWater(
 			int [][] distLand, int [][] nextLand, 
 			int [][] distAqua, int [][] nextAqua,
 			List<Integer> launchVerts) {
@@ -67,13 +65,16 @@ public class Distances {
 			getShortestPath(fromVertex, toVertex, path, distAqua, nextAqua);
 		} else if ((index=nearestShorelineIndex(fromVertex, distLand, copyVerts)) >= 0) {
 			//land->shore->?
-			getShortestPath(fromVertex, index, path, distLand, nextLand);
-			getShortestPathR(index, toVertex, path);
-			
+			if (distLand[fromVertex][index] != DISTANCE_INFINITY) {
+    			getShortestPath(fromVertex, index, path, distLand, nextLand);
+    			getShortestPathR(index, toVertex, path);
+			}
 		} else if ((index=nearestShorelineIndex(fromVertex, distAqua, copyVerts)) >= 0) {
 			//water->shore->?
-			getShortestPath(fromVertex, index, path, distAqua, nextAqua);
-			getShortestPathR(index, toVertex, path);
+			if (distAqua[fromVertex][index] != DISTANCE_INFINITY) {
+    			getShortestPath(fromVertex, index, path, distAqua, nextAqua);
+    			getShortestPathR(index, toVertex, path);
+			}
 		}
 	}
 	

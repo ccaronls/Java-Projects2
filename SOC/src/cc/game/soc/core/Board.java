@@ -824,6 +824,7 @@ public final class Board extends Reflector<Board> {
 	 * Clear the board of all data.  There will be no tiles, hence the board will be unplayable.
 	 */
 	public void clear() {
+		clearPirateRoute();
 		verts.clear();
 		tiles.clear();
 		islands.clear();
@@ -832,7 +833,6 @@ public final class Board extends Reflector<Board> {
 		pirateTile = -1;
 		cw = ch = 0;
 		clearRoutes();
-		clearPirateRoute();
 	}
 	
 	/**
@@ -2502,7 +2502,67 @@ public final class Board extends Reflector<Board> {
 	 * @param playerNum
 	 * @return
 	 */
-	public Distances computeDistances(final Rules rules, final int playerNum) {
+	public IDistances computeDistances(final Rules rules, final int playerNum) {
+		
+		if (rules.isEnableSeafarersExpansion()) {
+			return computeDistancesLandWater(rules, playerNum);
+		} else {
+			final int numV = getNumVerts();
+			final int [][] dist = new int[numV][numV];
+			final int [][] next = new int[numV][numV];
+			
+			for (int i=0; i<numV; i++) {
+				for (int ii=0; ii<numV; ii++) {
+					dist[i][ii] = DistancesLandWater.DISTANCE_INFINITY;
+					next[i][ii] = ii;
+				}
+				dist[i][i] = 0;
+			}
+			
+			// Assign distances to edges
+			for (Route r: getRoutes()) {
+
+				final int v0 = r.getFrom();
+				final int v1 = r.getTo();
+				
+				if (r.getPlayer() == 0) {
+					dist[v0][v1] = dist[v1][v0] = 1;
+				} else if (r.getPlayer() == playerNum) {
+					switch (r.getType()) {
+						case DAMAGED_ROAD:
+						case ROAD:
+							dist[v0][v1] = dist[v1][v0] = 0;
+							break;
+						case SHIP:
+						case WARSHIP:
+						case OPEN:
+						default:
+							assert(false);
+						
+					}
+				}
+				
+			}
+			
+			// All-Pairs shortest paths [Floyd-Marshall O(|V|^3)] algorithm.  This is a good choice for dense graphs like ours
+			// where every vertex has 2 or 3 edges.  The memory usage and complexity of a Dijkstra's make it less desirable.  
+			for (int k=0; k<numV; k++) {
+				for (int i=0; i<numV; i++) {
+					for (int j=0; j<numV; j++) {
+						int sum = dist[i][k] + dist[k][j];
+						if (sum < dist[i][j]) {
+							dist[i][j] = sum;
+							next[i][j] = next[i][k];
+						}
+					}
+				}
+			}		
+			
+			return new DistancesLand(dist, next);
+		}
+	}
+	
+	private DistancesLandWater computeDistancesLandWater(final Rules rules, int playerNum) {
 		
 		final int numV = getNumVerts();
 		final int [][] distLand = new int[numV][numV];
@@ -2512,8 +2572,8 @@ public final class Board extends Reflector<Board> {
 		
 		for (int i=0; i<numV; i++) {
 			for (int ii=0; ii<numV; ii++) {
-				distLand[i][ii] = Distances.DISTANCE_INFINITY;
-				distAqua[i][ii] = Distances.DISTANCE_INFINITY;
+				distLand[i][ii] = DistancesLandWater.DISTANCE_INFINITY;
+				distAqua[i][ii] = DistancesLandWater.DISTANCE_INFINITY;
 				nextLand[i][ii] = ii;
 				nextAqua[i][ii] = ii;
 			}
@@ -2592,7 +2652,7 @@ public final class Board extends Reflector<Board> {
 			
 		}
 		
-		return new Distances(distLand, nextLand, distAqua, nextAqua, launchVerts);
+		return new DistancesLandWater(distLand, nextLand, distAqua, nextAqua, launchVerts);
 	}
 	
 }
