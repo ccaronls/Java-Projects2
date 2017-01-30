@@ -290,8 +290,6 @@ mBoard=cc.game.soc.core.Board {
          }
       }
    }
-   pirateFortresses=java.util.ArrayList {
-   }
    routes=java.util.Vector {
       cc.game.soc.core.Route {
          flags=3
@@ -3923,8 +3921,6 @@ mBoard=cc.game.soc.core.Board {
             190 201 202 203 192 191 
          }
       }
-   }
-   undiscoveredCells=java.util.ArrayList {
    }
    verts=java.util.Vector {
       cc.game.soc.core.Vertex {

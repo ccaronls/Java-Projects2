@@ -1731,7 +1731,8 @@ public class PlayerBot extends Player {
     private void doEvaluateAll(BotNode node, SOC soc, Player p, Board b) {
     	doEvaluateEdges(node, soc, p, b);
     	doEvaluatePlayer(node, soc, p, b);
-    	doEvaluateSeafarers(node, soc, p, b);
+    	//doEvaluateSeafarers(node, soc, p, b);
+    	doEvaluateDistances(node, soc, p, b);
     	doEvaluateTiles(node, soc, p, b);
     	doEvaluateVertices(node, soc, p, b);
     	doEvaluateDifferentials(node, soc, p, b);
@@ -1979,25 +1980,34 @@ public class PlayerBot extends Player {
 
 	private static void doEvaluateEdges(BotNode node, SOC soc, Player p, final Board b) {
 
-		float value = 0;
-		float warShipValue = 0;
+		float warShipCount = 0;
+		float roadCount  = 0;
+		float shipCount = 0;
 		// evaluate 
 		for (Route r : b.getRoutesForPlayer(p.getPlayerNum())) {
-			if (r.getType() == RouteType.ROAD) {
-    			for (Tile t : b.getRouteTiles(r)) {
-    				if (t.getResource() != null)
-    					value += getDiePossibility(t.getDieNum(), soc.getRules());
-    				else if (t.getType() == TileType.GOLD) {
-    					value += 2 * getDiePossibility(t.getDieNum(), soc.getRules());
-    				}
-    			}
-			} else if (r.getType() == RouteType.WARSHIP) {
-				warShipValue += 1;
+			switch (r.getType()) {
+				
+				case ROAD: {
+					roadCount += 1;
+        			break;
+				}
+    			
+    			case WARSHIP:
+    				warShipCount += 1;
+    			case SHIP:
+    				shipCount += 1;
+    				break;
+				case DAMAGED_ROAD:
+					break;
+				case OPEN:
+					break;
 			}
 		}
 		
-		node.addValue("routeValue", value);
-		node.addValue("warships", Math.log1p(warShipValue)); // use logarithmic so the value decreases as count increases
+		node.addValue("warshipCount", Math.log1p(warShipCount)); // use logarithmic so the value decreases as count increases
+		node.addValue("shipCount", Math.log1p(shipCount)); // use logarithmic so the value decreases as count increases
+		node.addValue("roadCount", Math.log1p(roadCount)); // use logarithmic so the value decreases as count increases
+		
 		
 		float longestRoadValue = 0;
 		float len = b.computeMaxRouteLengthForPlayer(p.getPlayerNum(), soc.getRules().isEnableRoadBlock());
@@ -2081,12 +2091,15 @@ public class PlayerBot extends Player {
 		IDistances d = b.computeDistances(soc.getRules(), p.getPlayerNum());
 		
 		// visit the vertices and assign a value to each.
-		float [] vertexValue = new float[b.getNumVerts()];
+		double [] vertexValue = new double[b.getNumVerts()];
+		
+		List<Integer> structures = new ArrayList<Integer>();
 		
 		for (int vIndex=0; vIndex<b.getNumVerts(); vIndex++) {
 			Vertex v = b.getVertex(vIndex);
 			if (v.getPlayer() == p.getPlayerNum()) {
-				vertexValue[vIndex] = 1; // give max value to this vertex since we own it
+				if (v.isStructure())
+					structures.add(vIndex);
 				continue;
 			}
 			
@@ -2098,6 +2111,71 @@ public class PlayerBot extends Player {
 			
 			
 			// Ultimately we want to be as close as possible to the most important things and reasonably close
+			Iterable<Tile> tiles = b.getVertexTiles(v);
+			if (v.canPlaceStructure() && v.getPlayer() == 0 && v.getType() == VertexType.OPEN) {
+				boolean open = true;
+				for (int i=0; i<v.getNumAdjacentVerts(); i++) {
+					int v2Index = v.getAdjacentVerts()[i];
+					Vertex v2 = b.getVertex(v2Index);
+					if (v2.isStructure()) {
+						open = false;
+						break;
+					}
+				}
+				if (open) {
+					for (Tile t : tiles) {
+						if (t.isDistributionTile())
+							vertexValue[vIndex] += getDiePossibility(t.getDieNum(), soc.getRules());
+					}
+				}
+			}
+
+			for (Tile t : tiles) {
+				switch (t.getType()){
+					case WATER:
+					case DESERT:
+//						vertexValue[vIndex] -= 0.02;
+						break;
+					case FIELDS:
+					case FOREST:
+						break;
+					case GOLD:
+						vertexValue[vIndex] += 1;
+						break;
+					case HILLS:
+						break;
+					case MOUNTAINS:
+						break;
+					case NONE:
+						break;
+					case PASTURE:
+						break;
+					case PORT_MULTI:
+						vertexValue[vIndex] += 0.2f;
+						break;
+					case PORT_BRICK:
+					case PORT_ORE:
+					case PORT_SHEEP:
+					case PORT_WHEAT:
+					case PORT_WOOD:
+						vertexValue[vIndex] += 0.5f;
+						break;
+					case RANDOM_PORT:
+						break;
+					case RANDOM_PORT_OR_WATER:
+						break;
+					case RANDOM_RESOURCE:
+						break;
+					case RANDOM_RESOURCE_OR_DESERT:
+						break;
+					case UNDISCOVERED:
+						vertexValue[vIndex] += 1.5f;
+						break;
+					
+				}
+			}
+			
+			
 			
 			switch (v.getType()) {
 				case BASIC_KNIGHT_ACTIVE:
@@ -2105,30 +2183,23 @@ public class PlayerBot extends Player {
 				case BASIC_KNIGHT_INACTIVE:
 					break;
 				case CITY:
-					break;
 				case METROPOLIS_POLITICS:
-					break;
 				case METROPOLIS_SCIENCE:
-					break;
 				case METROPOLIS_TRADE:
-					break;
 				case MIGHTY_KNIGHT_ACTIVE:
-					break;
 				case MIGHTY_KNIGHT_INACTIVE:
-					break;
-				case OPEN:
+				case SETTLEMENT:
+				case WALLED_CITY:
 					break;
 				case OPEN_SETTLEMENT:
+				case OPEN:
 					break;
 				case PIRATE_FORTRESS:
-					break;
-				case SETTLEMENT:
+					vertexValue[vIndex] = 2; // heavy weight this so we try to get to it?
 					break;
 				case STRONG_KNIGHT_ACTIVE:
 					break;
 				case STRONG_KNIGHT_INACTIVE:
-					break;
-				case WALLED_CITY:
 					break;
 				default:
 					break;
@@ -2136,14 +2207,27 @@ public class PlayerBot extends Player {
 			}
 			
 			
-			for (Tile t : b.getVertexTiles(v)) {
-				if (t.isDistributionTile())
-					vertexValue[vIndex] += getDiePossibility(t.getDieNum(), soc.getRules());
-			}
 		}
-		
+
+		double distValue = 0;
+		int num=0;
+		for (int i=0; i<vertexValue.length; i++) {
+			if (vertexValue[i] == 0)
+				continue;
+			int minDist = 100;
+    		for (int vIndex : structures) {
+    			int dist = d.getDist(vIndex, i);
+    			minDist = Math.min(minDist, dist);
+    		}
+    		assert(minDist >= 0);
+			vertexValue[i] /= (1+minDist);
+		}
+		if (num > 0) {
+			distValue /= num;
+		}
+		node.addValue("distValue", distValue);
 	}
-	
+	/*
 	private static void doEvaluateSeafarers(BotNode node, SOC soc, Player p, Board b) {
 		if (soc.getRules().isEnableSeafarersExpansion()) {
 			IDistances d = b.computeDistances(soc.getRules(), p.getPlayerNum());
@@ -2217,7 +2301,7 @@ public class PlayerBot extends Player {
 			node.addValue("aveDistToIsland", soc.getRules().getPointsIslandDiscovery() * 1.0f / (1 + aveDistToIsland));
 			node.addValue("warShipValue", 0.1f * b.getRoutesOfType(p.getPlayerNum(), RouteType.WARSHIP).size());
 		}		
-	}
+	}*/
 	
 	
 	

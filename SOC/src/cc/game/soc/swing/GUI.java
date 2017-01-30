@@ -2121,6 +2121,10 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
     					console.addText(Color.BLACK, "Node has no max values");
     				}
 				}
+				
+				synchronized (waitObj) {
+		            waitObj.notify();
+		        }
 			}
 			
 			@Override

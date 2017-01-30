@@ -1,6 +1,7 @@
 package cc.game.soc.core;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public class DistancesLandWater implements IDistances {
@@ -13,12 +14,12 @@ public class DistancesLandWater implements IDistances {
 	private final int [][] nextLand;
 	private final int [][] distAqua;
 	private final int [][] nextAqua;
-	private final List<Integer> launchVerts;
+	private final Collection<Integer> launchVerts;
 	
 	public DistancesLandWater(
 			int [][] distLand, int [][] nextLand, 
 			int [][] distAqua, int [][] nextAqua,
-			List<Integer> launchVerts) {
+			Collection<Integer> launchVerts) {
 		super();
 		this.distAqua = distAqua;
 		this.nextAqua = nextAqua;
@@ -27,7 +28,7 @@ public class DistancesLandWater implements IDistances {
 		this.launchVerts = launchVerts;
 	}
 	
-	private static int nearestShorelineIndex(int from, int [][] dist, List<Integer> launchVerts) {
+	private static int nearestShorelineIndex(int from, int [][] dist, Collection<Integer> launchVerts) {
 		int d = DISTANCE_INFINITY;
 		int index = -1;
 		for (int vIndex : launchVerts) {

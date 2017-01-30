@@ -2632,7 +2632,7 @@ public final class Board extends Reflector<Board> {
 			}
 		}
 		
-		List<Integer> launchVerts = new ArrayList<Integer>();
+		Set<Integer> launchVerts = new HashSet<Integer>();
 		
 		// find all vertices where we can launch a ship from
 		for (int vIndex=0; vIndex<getNumVerts(); vIndex++) {
