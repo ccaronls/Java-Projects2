@@ -1731,8 +1731,8 @@ public class PlayerBot extends Player {
     private void doEvaluateAll(BotNode node, SOC soc, Player p, Board b) {
     	doEvaluateEdges(node, soc, p, b);
     	doEvaluatePlayer(node, soc, p, b);
-    	//doEvaluateSeafarers(node, soc, p, b);
-    	doEvaluateDistances(node, soc, p, b);
+    	doEvaluateSeafarers(node, soc, p, b);
+    	//doEvaluateDistances(node, soc, p, b);
     	doEvaluateTiles(node, soc, p, b);
     	doEvaluateVertices(node, soc, p, b);
     	doEvaluateDifferentials(node, soc, p, b);
@@ -1980,35 +1980,6 @@ public class PlayerBot extends Player {
 
 	private static void doEvaluateEdges(BotNode node, SOC soc, Player p, final Board b) {
 
-		float warShipCount = 0;
-		float roadCount  = 0;
-		float shipCount = 0;
-		// evaluate 
-		for (Route r : b.getRoutesForPlayer(p.getPlayerNum())) {
-			switch (r.getType()) {
-				
-				case ROAD: {
-					roadCount += 1;
-        			break;
-				}
-    			
-    			case WARSHIP:
-    				warShipCount += 1;
-    			case SHIP:
-    				shipCount += 1;
-    				break;
-				case DAMAGED_ROAD:
-					break;
-				case OPEN:
-					break;
-			}
-		}
-		
-		node.addValue("warshipCount", Math.log1p(warShipCount)); // use logarithmic so the value decreases as count increases
-		node.addValue("shipCount", Math.log1p(shipCount)); // use logarithmic so the value decreases as count increases
-		node.addValue("roadCount", Math.log1p(roadCount)); // use logarithmic so the value decreases as count increases
-		
-		
 		float longestRoadValue = 0;
 		float len = b.computeMaxRouteLengthForPlayer(p.getPlayerNum(), soc.getRules().isEnableRoadBlock());
 		
@@ -2020,6 +1991,38 @@ public class PlayerBot extends Player {
 		if (len > 0)
 			node.addValue("roadLength", 3f * Math.log(len)); // have value taper off at the length grows.  Factor of 3 chosen b/c: 3ln(5)==5  
 		
+		double routeTileResourceProb=0;
+		double routeExpabability=0;
+		
+		Set<Integer> tiles = new HashSet<Integer>();
+		Set<Integer> routes = new HashSet<Integer>();
+		
+		for (Route r : b.getRoutesForPlayer(p.getPlayerNum())) {
+			tiles.addAll(b.getVertex(r.getFrom()).getTiles());
+			tiles.addAll(b.getVertex(r.getTo()).getTiles());
+			
+			routes.addAll(b.getVertexRouteIndices(r.getFrom()));
+			routes.addAll(b.getVertexRouteIndices(r.getTo()));
+		}
+		
+		for (int tIndex : tiles) {
+			Tile t = b.getTile(tIndex);
+			if (t.isDistributionTile()) {
+				routeTileResourceProb += getDiePossibility(t.getDieNum(), soc.getRules());
+			}
+		}
+		
+		for (int rIndex : routes) {
+			Route r = b.getRoute(rIndex);
+			if (r.getPlayer() == 0 && !r.isLocked() && !r.isClosed()) {
+				routeExpabability += 1;
+			}
+		}
+		
+		node.addValue("routeTileResourceProb", routeTileResourceProb);
+		node.addValue("routeExpandability", 0.1 * routeExpabability);
+		
+		/*		
 		// evaluate potential settlements
 		int numPotential = 0;
 		boolean [] usedPorts = new boolean[SOC.NUM_RESOURCE_TYPES];
@@ -2084,7 +2087,7 @@ public class PlayerBot extends Player {
 		
 		//node.addValue("potentialSettlements", numPotential); // I think the below covers this case better
 		node.addValue("potentialResourceProb", potentialSettlementResourceProb);
-		
+		*/
 	}
 	
 	private static void doEvaluateDistances(BotNode node, SOC soc, Player p, Board b) {
@@ -2227,83 +2230,79 @@ public class PlayerBot extends Player {
 		}
 		node.addValue("distValue", distValue);
 	}
-	/*
+	
 	private static void doEvaluateSeafarers(BotNode node, SOC soc, Player p, Board b) {
-		if (soc.getRules().isEnableSeafarersExpansion()) {
-			IDistances d = b.computeDistances(soc.getRules(), p.getPlayerNum());
-			
-			List<Integer> pirateFortresses = new ArrayList<Integer>();
-			Set<Integer> undiscoveredVerts = new HashSet<Integer>();
-			List<Integer> playerStructures = new ArrayList<Integer>();
-			Set<Integer> islandShorelines = new HashSet<Integer>();
+		IDistances d = b.computeDistances(soc.getRules(), p.getPlayerNum());
+		
+		List<Integer> pirateFortresses = new ArrayList<Integer>();
+		Set<Integer> undiscoveredVerts = new HashSet<Integer>();
+		List<Integer> playerStructures = new ArrayList<Integer>();
+		Set<Integer> islandShorelines = new HashSet<Integer>();
 
-			int numUndiscoverdIslands = 0;
-			for (int i=0; i<b.getNumIslands(); i++) {
-				if (!b.isIslandDiscovered(p.getPlayerNum(), i+1)) {
-					numUndiscoverdIslands++;
+		int numUndiscoverdIslands = 0;
+		for (int i=0; i<b.getNumIslands(); i++) {
+			if (!b.isIslandDiscovered(p.getPlayerNum(), i+1)) {
+				numUndiscoverdIslands++;
+			}
+		}
+		
+		for (int vIndex=0; vIndex<b.getNumVerts(); vIndex++) {
+			Vertex v = b.getVertex(vIndex);
+		
+			if (v.getType() == VertexType.PIRATE_FORTRESS) {
+				pirateFortresses.add(vIndex);
+			}
+			
+			for (Tile t : b.getVertexTiles(vIndex)) {
+				if (t.getType() == TileType.UNDISCOVERED) {
+					undiscoveredVerts.add(vIndex);
+				}
+				
+				if (numUndiscoverdIslands > 0 && t.getIslandNum() > 0 && !b.isIslandDiscovered(p.getPlayerNum(), t.getIslandNum())) {
+					for (int vv : t.getAdjVerts()) {
+						Vertex vert = b.getVertex(vv);
+						if (vert.isAdjacentToWater()) {
+							islandShorelines.add(vv);
+						}
+					}
 				}
 			}
 			
-			for (int vIndex=0; vIndex<b.getNumVerts(); vIndex++) {
-				Vertex v = b.getVertex(vIndex);
-			
-    			if (v.getType() == VertexType.PIRATE_FORTRESS) {
-    				pirateFortresses.add(vIndex);
-    			}
-    			
-    			for (Tile t : b.getVertexTiles(vIndex)) {
-    				if (t.getType() == TileType.UNDISCOVERED) {
-    					undiscoveredVerts.add(vIndex);
-    				}
-    				
-    				if (numUndiscoverdIslands > 0 && t.getIslandNum() > 0 && !b.isIslandDiscovered(p.getPlayerNum(), t.getIslandNum())) {
-    					for (int vv : t.getAdjVerts()) {
-    						Vertex vert = b.getVertex(vv);
-    						if (vert.isAdjacentToWater()) {
-    							islandShorelines.add(vv);
-    						}
-    					}
-    				}
-    			}
-    			
-    			if (v.getPlayer() == p.getPlayerNum() && v.isStructure()) {
-    				playerStructures.add(vIndex);
-    			}
-			}			
-
-			int minDistToFortress = DistancesLandWater.DISTANCE_INFINITY;
-			int minDistToUndiscovered = DistancesLandWater.DISTANCE_INFINITY;
-			int minDistToIsland = DistancesLandWater.DISTANCE_INFINITY;
-			float aveDistToIsland = 0;
-			
-			for (int sIndex : playerStructures) {
-				for (int pIndex : pirateFortresses) {
-					minDistToFortress = Math.min(minDistToFortress, d.getDist(sIndex, pIndex));
-				}
-				for (int uIndex : undiscoveredVerts) {
-					minDistToUndiscovered = Math.min(minDistToUndiscovered, d.getDist(sIndex, uIndex));
-				}
-				if (numUndiscoverdIslands == 0)
-					continue;
-				
-				for (int iIndex : islandShorelines) {
-					int dist = d.getDist(sIndex, iIndex);
-					minDistToIsland = Math.min(minDistToIsland, dist);
-					aveDistToIsland += dist;
-				}
-				
-				aveDistToIsland /= numUndiscoverdIslands;
+			if (v.getPlayer() == p.getPlayerNum() && v.isStructure()) {
+				playerStructures.add(vIndex);
 			}
+		}			
 
-			node.addValue("minDistToFortress", 1.0f / (minDistToFortress+1));
-			node.addValue("minDistToUndiscov", soc.getRules().getMinMostDiscoveredTerritories() * 1.0f / (1 + minDistToUndiscovered));
-			node.addValue("minDistToIsland",  soc.getRules().getPointsIslandDiscovery() * 1.0f / (1 + minDistToIsland));
-			node.addValue("aveDistToIsland", soc.getRules().getPointsIslandDiscovery() * 1.0f / (1 + aveDistToIsland));
-			node.addValue("warShipValue", 0.1f * b.getRoutesOfType(p.getPlayerNum(), RouteType.WARSHIP).size());
-		}		
-	}*/
-	
-	
+		int minDistToFortress = DistancesLandWater.DISTANCE_INFINITY;
+		int minDistToUndiscovered = DistancesLandWater.DISTANCE_INFINITY;
+		int minDistToIsland = DistancesLandWater.DISTANCE_INFINITY;
+		float aveDistToIsland = 0;
+		
+		for (int sIndex : playerStructures) {
+			for (int pIndex : pirateFortresses) {
+				minDistToFortress = Math.min(minDistToFortress, d.getDist(sIndex, pIndex));
+			}
+			for (int uIndex : undiscoveredVerts) {
+				minDistToUndiscovered = Math.min(minDistToUndiscovered, d.getDist(sIndex, uIndex));
+			}
+			if (numUndiscoverdIslands == 0)
+				continue;
+			
+			for (int iIndex : islandShorelines) {
+				int dist = d.getDist(sIndex, iIndex);
+				minDistToIsland = Math.min(minDistToIsland, dist);
+				aveDistToIsland += dist;
+			}
+			
+			aveDistToIsland /= numUndiscoverdIslands;
+		}
+
+		node.addValue("minDistToFortress", 1.0f / (minDistToFortress+1));
+		node.addValue("minDistToUndiscov", soc.getRules().getMinMostDiscoveredTerritories() * 1.0f / (1 + minDistToUndiscovered));
+		node.addValue("minDistToIsland",  soc.getRules().getPointsIslandDiscovery() * 1.0f / (1 + minDistToIsland));
+		node.addValue("aveDistToIsland", soc.getRules().getPointsIslandDiscovery() * 1.0f / (1 + aveDistToIsland));
+		node.addValue("warShipValue", 0.1f * b.getRoutesOfType(p.getPlayerNum(), RouteType.WARSHIP).size());
+	}
 	
 	private static void doEvaluateTiles(BotNode node, SOC soc, Player p, Board b) {
 		

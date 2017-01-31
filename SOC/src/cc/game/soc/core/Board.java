@@ -385,7 +385,7 @@ public final class Board extends Reflector<Board> {
      * 
      * @return
      */
-    public Iterable<Island> getIslands() {
+    public Collection<Island> getIslands() {
     	return islands;
     }
     
@@ -445,7 +445,7 @@ public final class Board extends Reflector<Board> {
      * @param tile
      * @return
      */
-    public Iterable<Route> getTileRoutes(Tile tile) {
+    public Collection<Route> getTileRoutes(Tile tile) {
     	
     	List<Route> edges = new ArrayList<Route>();
     	for (int i=0; i<tile.getNumAdj(); i++) {
@@ -479,7 +479,7 @@ public final class Board extends Reflector<Board> {
      * @param tile
      * @return
      */
-    public Iterable<Integer> getTileRouteIndices(Tile tile) {
+    public Collection<Integer> getTileRouteIndices(Tile tile) {
     	List<Integer> edges = new ArrayList<Integer>();
     	for (int i=0; i<tile.getNumAdj(); i++) {
     		int v0 = tile.getAdjVert(i);
@@ -1251,7 +1251,7 @@ public final class Board extends Reflector<Board> {
 	 * @param vIndex
 	 * @return
 	 */
-	public Iterable<Route> getRoutesAdjacentToVertex(int vIndex) {
+	public Collection<Route> getRoutesAdjacentToVertex(int vIndex) {
 		Vertex v = getVertex(vIndex);
 		List<Route> routes = new ArrayList<Route>(3);
 		for (int i=0; i<v.getNumAdjacentVerts(); i++) {
@@ -2204,7 +2204,7 @@ public final class Board extends Reflector<Board> {
 	 * @param vIndex
 	 * @return
 	 */
-	public Iterable<Route> getVertexRoutes(int vIndex) {
+	public Collection<Route> getVertexRoutes(int vIndex) {
 		List<Route> edges = new ArrayList<Route>(3);
 		Vertex v = getVertex(vIndex);
 		for (int i=0; i<v.getNumAdjacentVerts(); i++) {
@@ -2216,20 +2216,36 @@ public final class Board extends Reflector<Board> {
 	}
 
 	/**
-	 * Convenience to get the cells adjacent to a vertex
+	 * Return the list of edges adjacent to a vertex
 	 * @param vIndex
 	 * @return
 	 */
-	public Iterable<Tile> getVertexTiles(int vIndex) {
-		return getVertexTiles(getVertex(vIndex));
+	public Collection<Integer> getVertexRouteIndices(int vIndex) {
+		List<Integer> edges = new ArrayList<Integer>(3);
+		Vertex v = getVertex(vIndex);
+		for (int i=0; i<v.getNumAdjacentVerts(); i++) {
+			int rIndex = getRouteIndex(vIndex, v.getAdjacentVerts()[i]);
+			if (rIndex >= 0)
+				edges.add(rIndex);
+		}
+		return edges;
 	}
-	
+
 	/**
 	 * Convenience to get the cells adjacent to a vertex
 	 * @param vIndex
 	 * @return
 	 */
-	public Iterable<Tile> getVertexTiles(Vertex v) {
+	public Collection<Tile> getVertexTiles(int vIndex) {
+		return getVertexTiles(getVertex(vIndex));
+	}
+
+	/**
+	 * Convenience to get the cells adjacent to a vertex
+	 * @param vIndex
+	 * @return
+	 */
+	public Collection<Tile> getVertexTiles(Vertex v) {
 		List<Tile> options = new ArrayList<Tile>(3);
 		for (int i=0; i<v.getNumTiles(); i++) {
 			options.add(getTile(v.getTile(i)));

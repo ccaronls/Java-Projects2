@@ -1,6 +1,9 @@
 package cc.game.soc.core;
 
+import java.util.Collection;
+
 import cc.lib.game.IVector2D;
+import cc.lib.game.Utils;
 import cc.lib.utils.Reflector;
 
 /**
@@ -184,7 +187,11 @@ public final class Vertex extends Reflector<Vertex> implements IVector2D {
 	public int getTile(int index) {
 	    return cells[index];
 	}
-	
+
+	public Collection<Integer> getTiles() {
+	    return Utils.asList(cells, 0, numCells);
+	}
+
 	public int getNumTiles() {
 	    return numCells;
 	}
