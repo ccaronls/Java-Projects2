@@ -314,7 +314,7 @@ for (int pix : pixels) {
             paint.setAntiAlias(true);
             paint.setTextAlign(Align.LEFT);
             //paint.setTypeface(Typeface.MONOSPACE);
-            int [] textSizes = { 8, 10, 12, 16, 20, 24, 32, 40, 48, 56, 64, 72, 80 };
+            int [] textSizes = { 8, 10, 12, 16, 20, 24, 32 };//, 40, 48, 56, 64, 72, 80 };
             info.sizes = textSizes;
             // compute all the widths
             String text = "";
@@ -1027,8 +1027,13 @@ for (int pix : pixels) {
     public final AImage getImage(int id) {
         return images.get(id);
     }
-
+    
     @Override
+	public void deleteImage(int id) {
+        throw new RuntimeException("Not implemented");
+	}
+
+	@Override
     public final AImage getImage(int id, int width, int height) {
         throw new RuntimeException("Not implemented");
     }
