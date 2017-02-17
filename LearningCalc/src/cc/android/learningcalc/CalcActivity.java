@@ -3,12 +3,24 @@ package cc.android.learningcalc;
 import java.math.BigInteger;
 
 import android.app.Activity;
+import android.content.Context;
+import android.media.AudioManager;
 import android.os.Bundle;
+import android.speech.tts.TextToSpeech;
+import android.speech.tts.TextToSpeech.OnInitListener;
+import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.EditText;
 
-public class LearningCalcActivity extends Activity implements OnClickListener {
+public class CalcActivity extends Activity implements OnClickListener, OnInitListener {
+
+	private BigInteger num1, num2;
+	private Op op;
+	private State state;
+	private EditText et;
+	private TextToSpeech tts = null;
 
 	@Override
 	protected void onCreate(Bundle b) {
@@ -36,8 +48,71 @@ public class LearningCalcActivity extends Activity implements OnClickListener {
 		findViewById(R.id.button_div).setOnClickListener(this);
 		
 		reset();
+		if (b != null) {
+			et.setText(b.getString("text", ""));
+			clearEquation();
+		}
+	}
+	
+	@Override
+	protected void onSaveInstanceState(Bundle outState) {
+		super.onSaveInstanceState(outState);
+		outState.putString("text", et.getText().toString());
+	}
+	
+	protected void onDestroy() {
+		super.onDestroy();
+		if (tts != null) {
+			tts.shutdown();
+			tts = null;
+		}
 	}
 
+	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+		AudioManager audio = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
+		if (audio == null) {
+			return false;
+		}
+		
+		int type = AudioManager.STREAM_MUSIC;
+		int vol = audio.getStreamVolume(type);
+		int max = audio.getStreamMaxVolume(type);
+		int step = max/10;
+		
+		switch (keyCode) {
+			case KeyEvent.KEYCODE_VOLUME_UP:
+				vol = Math.min(max, vol+step);
+				audio.setStreamVolume(type, vol, AudioManager.FLAG_SHOW_UI);
+				break;
+			case KeyEvent.KEYCODE_VOLUME_DOWN:
+				vol = Math.max(0, vol-step);
+				audio.setStreamVolume(type, vol, AudioManager.FLAG_SHOW_UI);
+				break;
+			case KeyEvent.KEYCODE_VOLUME_MUTE:
+				audio.setStreamVolume(type, 0, AudioManager.FLAG_SHOW_UI);
+				break;
+			default:
+				return super.onKeyDown(keyCode, event);
+		}
+		say("Hello");
+		return true; // we handled the event
+	}
+
+	void say(String txt) {
+		if (tts != null) {
+			tts.stop();
+			tts.speak(txt, TextToSpeech.QUEUE_ADD, null);
+		}
+	}
+	
+	@Override
+	public void onResume() {
+		super.onResume();
+		tts = new TextToSpeech(this, this);
+		tts.setLanguage(getResources().getConfiguration().locale);
+	}
+	
 	@Override
 	public void onClick(View v) {
 		switch (v.getId()) {
@@ -69,6 +144,7 @@ public class LearningCalcActivity extends Activity implements OnClickListener {
 				trySetOp(Op.MULT); break;
 				
 			case R.id.button_c:
+				say("clear");
 				reset();
 				clearEquation();
 				break;
@@ -85,27 +161,30 @@ public class LearningCalcActivity extends Activity implements OnClickListener {
 	void tryAddNumber(int num) {
 		switch (state) {
 			case NUM1:
-				if (num1 == null)
-					num1 = BigInteger.valueOf(num);
-				else {
-					num1 = num1.multiply(BigInteger.TEN);
-					num1 = num1.add(BigInteger.valueOf(num));
-				}
+				num1 = addNumber(num, num1);
 				resetEquation();
 				break;
 			case NUM2:
-				if (num2 == null) {
-					num2 = BigInteger.valueOf(num);
-				} else {
-					num2 = num2.multiply(BigInteger.TEN);
-					num2 = num2.add(BigInteger.valueOf(num));
-				}
+				num2 = addNumber(num, num2);
 				resetEquation();
 				break;
 		}
 	}
 	
+	BigInteger addNumber(int num, BigInteger target) {
+		if (target == null) {
+			target = BigInteger.valueOf(num);
+		} else {
+			target = target.multiply(BigInteger.TEN);
+			target = target.add(BigInteger.valueOf(num));
+		}
+//		if (target.compareTo(BigInteger.valueOf(10000)) < 0)
+		say(target.toString());
+		return target;
+	}
+	
 	void trySetOp(Op op) {
+		say(op.tts());
 		if (state == State.NUM1 && num1 != null) {
 			this.op = op;
 			resetEquation();
@@ -119,6 +198,8 @@ public class LearningCalcActivity extends Activity implements OnClickListener {
 		if (endl > 0) {
 			line = line.substring(endl);
 			et.setText(line);
+		} else {
+			et.setText("");
 		}
 	}
 	
@@ -136,7 +217,7 @@ public class LearningCalcActivity extends Activity implements OnClickListener {
 		}
 		if (op != null) {
 			line += " ";
-			line += op.sign();
+			line += op.sign(this);
 		}
 		if (num2 != null) {
 			line += " ";
@@ -151,6 +232,7 @@ public class LearningCalcActivity extends Activity implements OnClickListener {
 		if (state == State.NUM2 && num2 != null) {
 			BigInteger n = op.solve(num1, num2);
 			if (n != null) {
+				say("equals " + n.toString());
 				reset();
 				append(n.toString());
 				num1 = n;
@@ -164,11 +246,6 @@ public class LearningCalcActivity extends Activity implements OnClickListener {
 		String line = et.getText().toString();
 		et.setText(s + "\n" + line);
 	}
-	
-	BigInteger num1, num2;
-	Op op;
-	State state;
-	EditText et;
 	
 	void reset() {
 		num1=num2=null;
@@ -194,12 +271,12 @@ public class LearningCalcActivity extends Activity implements OnClickListener {
 			return null;
 		}
 		
-		String sign() {
+		String sign(Context c) {
 			switch (this) {
 				case ADD:
 					return "+";
 				case DIV:
-					return "/";
+					return c.getString(R.string.div_symbol);
 				case MULT:
 					return "X";
 				case SUB:
@@ -207,11 +284,38 @@ public class LearningCalcActivity extends Activity implements OnClickListener {
 			}
 			return "?";
 		}
+		
+		String tts() {
+			switch (this) {
+				case ADD:
+					return "plus";
+				case DIV:
+					return "divided by";
+				case MULT:
+					return "times";
+				case SUB:
+					return "minus";
+			}
+			return "um";
+		}
 	}
 	
 	enum State {
 		NUM1,
 		NUM2,
+	}
+
+	@Override
+	public void onInit(int status) {
+		switch (status) {
+			case TextToSpeech.SUCCESS:
+				say("Hi Sebastian!");
+				break;
+				
+			default:
+				Log.e("TTS", "Failed to init.  status=" + status);
+		}
+		
 	}
 	
 }
