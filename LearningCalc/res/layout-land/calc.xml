@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" 
+    android:orientation="horizontal">
+
+    <LinearLayout
+        android:layout_height="match_parent"
+        android:layout_width="0dp"
+        android:layout_weight="4"
+        android:orientation="vertical">
+	    <LinearLayout
+	        android:layout_width="match_parent"
+	        android:layout_height="0dp"
+	        android:layout_weight="1" >
+	
+	        <Button
+	            android:id="@+id/button1"
+	            style="@style/keypad"
+	            android:text="1" />
+	
+	        <Button
+	            android:id="@+id/button2"
+	            style="@style/keypad"
+	            android:text="2" />
+	
+	        <Button
+	            android:id="@+id/button3"
+	            style="@style/keypad"
+	            android:text="3" />
+	
+	        <Button
+	            android:id="@+id/button_plus"
+	            style="@style/keypad"
+	            android:text="+" />
+	
+	    </LinearLayout>
+	
+	    <LinearLayout
+	        android:layout_width="match_parent"
+	        android:layout_height="0dp"
+	        android:layout_weight="1" >
+	
+	        <Button
+	            android:id="@+id/button4"
+	            style="@style/keypad"
+	            android:text="4" />
+	
+	        <Button
+	            android:id="@+id/button5"
+	            style="@style/keypad"
+	            android:text="5" />
+	
+	        <Button
+	            android:id="@+id/button6"
+	            style="@style/keypad"
+	            android:text="6" />
+	
+	        <Button
+	            android:id="@+id/button_minus"
+	            style="@style/keypad"
+	            android:text="-" />
+	
+	    </LinearLayout>
+	    
+	    <LinearLayout
+	        android:layout_width="match_parent"
+	        android:layout_height="0dp"
+	        android:layout_weight="1" >
+	
+	        <Button
+	            android:id="@+id/button7"
+	            style="@style/keypad"
+	            android:text="7" />
+	
+	        <Button
+	            android:id="@+id/button8"
+	            style="@style/keypad"
+	            android:text="8" />
+	
+	        <Button
+	            android:id="@+id/button9"
+	            style="@style/keypad"
+	            android:text="9" />
+	
+	        <Button
+	            android:id="@+id/button_mult"
+	            style="@style/keypad"
+	            android:text="X"
+	            android:textStyle="bold"
+	            android:typeface="monospace" />
+	
+	    </LinearLayout>
+	    <LinearLayout
+	        android:layout_width="match_parent"
+	        android:layout_height="0dp"
+	        android:layout_weight="1" >
+	
+	        <Button
+	            android:id="@+id/button_c"
+	            style="@style/keypad"
+	            android:text="C" />
+	
+	        <Button
+	            android:id="@+id/button0"
+	            style="@style/keypad"
+	            android:text="0" />
+	
+	        <Button
+	            android:id="@+id/button_eq"
+	            style="@style/keypad"
+	            android:text="=" />
+	
+	        <Button
+	            android:id="@+id/button_div"
+	            style="@style/keypad"
+	            android:text="@string/div_symbol" />
+	
+	    </LinearLayout>
+    </LinearLayout>
+    <RelativeLayout 
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="2">
+        <EditText
+            android:id="@+id/editText1"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:editable="false"
+            android:ems="10"
+            android:gravity="top|right"
+            android:hint="\? + ? = ?"
+            android:inputType="none"
+            android:textSize="48dp" >
+    
+        </EditText>
+        <TextView android:id="@+id/tvScore"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="5dp"
+            android:textSize="12dip"
+            android:textColor="#0f00ffff"/>
+    </RelativeLayout>
+    
+</LinearLayout>

@@ -230,7 +230,31 @@ public class CMath {
 	public static int sum(final int [] items) {
 		return sum(items, items.length);
 	}
-	
+
+	/**
+	 * 
+	 * @param items
+	 * @param num
+	 * @return
+	 */
+	public static float sum(final float [] items, int num)
+    {
+        assert(num>0);
+        int sum=0;
+        for (int i=0; i<num; i++)
+            sum += items[i];
+        return sum;
+    }
+
+	/**
+	 * 
+	 * @param items
+	 * @return
+	 */
+	public static float sum(final float [] items) {
+		return sum(items, items.length);
+	}
+
 	/**
 	 * 
 	 * @param items
