@@ -340,6 +340,11 @@ public class AWTUtils {
      * @return
      */
     public static Rectangle drawWrapJustifiedString(Graphics g, int x, int y, int maxWidth, Justify hJust, Justify vJust, String text) {
+    	
+    	if (maxWidth < 0) {
+    		return drawJustifiedString(g, x, y, hJust, vJust, text);
+    	}
+    	
         String [] lines = generateWrappedLines(g, text, maxWidth);
     	switch (vJust) {
     		case TOP:
@@ -1028,7 +1033,7 @@ public class AWTUtils {
 	public static void drawWrapJustifiedStringOnBackground(Graphics g, int x, int y, int maxWidth, int padding, Justify hJust, Justify vJust, String txt, Color bkColor) {
 		Color cur = g.getColor();
 		g.setColor(AWTUtils.TRANSPARENT);
-		Rectangle rect = maxWidth > 0 ? drawWrapJustifiedString(g, x, y, maxWidth, hJust, vJust, txt) : drawJustifiedString(g, maxWidth, y, hJust, vJust, txt);
+		Rectangle rect = drawWrapJustifiedString(g, x, y, maxWidth, hJust, vJust, txt);
 		g.setColor(bkColor);
 		AWTUtils.fillRect(g, rect, padding);
 		g.setColor(cur);

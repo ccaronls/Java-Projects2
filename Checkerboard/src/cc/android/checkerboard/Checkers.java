@@ -5,10 +5,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import cc.android.checkerboard.ICheckerboard.Move;
-import cc.android.checkerboard.ICheckerboard.Piece;
 import cc.lib.game.*;
-import cc.lib.math.*;
 
 /**
  * Red is positive and black is negative
@@ -22,52 +19,6 @@ public class Checkers implements ICheckerboard {
 
 	private final static int BLACK = 0;
 	private final static int RED   = 1;
-	
-	
-/*
-	static class Move {
-		final int startRank, startCol;
-		final int dRank, dCol;
-		final int captureRank, captureCol;
-		final boolean hasCapture;
-		final boolean isJump;
-		final Move parent; // provide a way to unwind.  also differentiate if this is an 'extra' move
-		
-		public Move(int startRank, int startCol, int dRank, int dCol, int captureRank, int captureCol, boolean hasCapture, boolean isJump, Move parent) {
-			this.startRank = startRank;
-			this.startCol = startCol;
-			this.dRank = dRank;
-			this.dCol = dCol;
-			this.captureRank = captureRank;
-			this.captureCol = captureCol;
-			this.hasCapture = hasCapture;
-			this.isJump = isJump;
-			this.parent = parent;
-		}
-		
-		
-	}
-	
-	enum PieceColor {
-		NONE, RED, BLACK
-	}
-	
-	enum Piece {
-		EMPTY		(PieceColor.NONE, false),
-		BLACK_SINGLE(PieceColor.BLACK, false),
-		BLACK_KING	(PieceColor.BLACK, true),
-		RED_SINGLE	(PieceColor.RED, false),
-		RED_KING	(PieceColor.RED, true)
-		;
-		
-		private Piece(PieceColor color, boolean isKing) {
-			this.color = color;
-			this.isKing = isKing;
-		}
-		
-		final PieceColor color;
-		final boolean isKing;
-	}*/
 	
 	@Override
 	public void newGame() {
@@ -197,41 +148,45 @@ public class Checkers implements ICheckerboard {
 	
 	@Override
 	public List<Move> executeMove(Move move) {
-		final Piece t = board[move.startRank][move.startCol];
-		board[move.startRank][move.startCol] = new Piece(0,0);
-		// check for king
 		boolean isKinged = false;
-		int rank = move.endRank;// + move.dRank;
-		if (rank == 0 && t.stacks == 1 && t.playerNum == BLACK) {
-			isKinged = true;
-		} else if (rank == board.length-1 && t.stacks == 1 && t.playerNum== RED) {
-			isKinged = true;
+		final Piece p = board[move.startRank][move.startCol];
+		if (move.startCol != move.endCol && move.startRank != move.endRank) {
+    		board[move.startRank][move.startCol] = new Piece(-1,0);
+    		// check for king
+    		int rank = move.endRank;// + move.dRank;
+    		if (rank == 0 && p.stacks == 1 && p.playerNum == BLACK) {
+    			isKinged = true;
+    		} else if (rank == board.length-1 && p.stacks == 1 && p.playerNum== RED) {
+    			isKinged = true;
+    		}
+    		board[move.endRank][move.endCol] = p;
 		}
-
-		if (isKinged) {
-			t.stacks=2;
-		}
-		
-		board[move.endRank][move.endCol] = t;
 		
 		switch (move.type) {
+			case END:
+				endTurn();
+				return Collections.emptyList();
 			case JUMP_CAPTURE:
 				board[move.captureRank][move.captureCol].stacks = 0;
 			case JUMP:
-				if (!isKinged)
-					break; // recursive compute next move
-			case SLIDE:
-				endTurn();
-				return Collections.EMPTY_LIST;
+				if (isKinged) {
+					ArrayList<Move> stack = new ArrayList<>();
+					stack.add(new Move(MoveType.STACK, move.endRank, move.endCol, move.endRank, move.endCol, 0, 0, move.playerNum));
+					return stack;
+				}
+				break; // recursive compute next move
 			case STACK:
-			default:
-				throw new AssertionError();
+				p.stacks ++;
+			case SLIDE:
+				return Arrays.asList(new Move(MoveType.END, 0, 0, 0, 0, 0, 0, move.playerNum));
 		}
 		
 		
 		List<Move> nextMoves = computeMovesForSquare(move.endRank, move.endCol, move);
 		if (nextMoves.size() == 0) {
 			endTurn();
+		} else {
+			nextMoves.add(new Move(MoveType.END, 0, 0, 0, 0, 0, 0, move.playerNum));
 		}
 		return nextMoves;
 	}

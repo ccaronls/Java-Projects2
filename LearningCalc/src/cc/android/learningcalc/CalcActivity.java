@@ -6,6 +6,7 @@ import cc.lib.android.GLColor;
 import cc.lib.game.Utils;
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Color;
 import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.Handler;
@@ -13,6 +14,10 @@ import android.os.Message;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.TextToSpeech.OnInitListener;
 import android.text.Html;
+import android.text.Spannable;
+import android.text.SpannableString;
+import android.text.SpannedString;
+import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -27,11 +32,12 @@ import android.widget.TextView;
 
 public class CalcActivity extends Activity implements OnClickListener, OnInitListener {
 
-	static final int TRIGGER_NUMBERS_ANIM = -100;
-	static final int TRIGGER_OPERATIONS_ANIM = -101;
-	static final int TRIGGER_QUIZ = -102;
-	static final int TRIGGER_QUIZ_PULSE = -103;
-	static final int TRIGGER_SAY_REPEAT = -104;
+	static final int TRIGGER_NUMBERS_ANIM 		= -100;
+	static final int TRIGGER_OPERATIONS_ANIM 	= -101;
+	static final int TRIGGER_QUIZ 				= -102;
+	static final int TRIGGER_QUIZ_PULSE 		= -103;
+	static final int TRIGGER_SAY_REPEAT 		= -104;
+	static final int TRIGGER_INACTIVITY 		= -105;
 	
 	static int QUIZ_SCORE_STEP = 10;
 
@@ -41,9 +47,13 @@ public class CalcActivity extends Activity implements OnClickListener, OnInitLis
 	private BigInteger num1, num2;
 	private Op op;
 	private EditText et;
+	private TextView tvScore;
 	private TextToSpeech tts = null;
-	private Handler handler = new Handler() {
-
+	private Spannable quizGoodET;
+	private String quizGoodSay;
+	
+	private class MyHandler extends Handler {
+	
 		@Override
 		public void handleMessage(Message msg) {
 			switch (msg.what) {
@@ -57,21 +67,29 @@ public class CalcActivity extends Activity implements OnClickListener, OnInitLis
 					break;
 				case TRIGGER_QUIZ:
 					//say("I'm the Quiz! I the Quiz and nobody beats me!");
-					say("pop quiz hot shot");
-					// say("quiz time")
-					quiz = Quiz.generate(CalcActivity.this, score);
-					sendEmptyMessage(TRIGGER_QUIZ_PULSE);
+					sayNow("pop quiz hot shot");
+					// sayNow("quiz time")
+					generate();
+					handler2.sendEmptyMessage(TRIGGER_QUIZ_PULSE);
 					break;
 				case TRIGGER_QUIZ_PULSE: {
 					if (quiz != null) {
-						et.setText(Html.fromHtml(quiz.getHtml()));
+						et.setText(quiz.getSpanned());//Html.fromHtml(quiz.getHtml()));
 						sendEmptyMessageDelayed(TRIGGER_QUIZ_PULSE, 30);
 					}
 					break;
 				}
 				case TRIGGER_SAY_REPEAT: {
-					say(msg.obj.toString(), true);
+					sayQ(msg.obj.toString());
 					sendMessageDelayed(obtainMessage(TRIGGER_SAY_REPEAT, msg.obj), 5*1000);
+					break;
+				}
+				case TRIGGER_INACTIVITY: {
+					int sol = Utils.randRange(10, 99*score);
+					sayNow("Can you type the number " + sol);
+					quizGoodSay = "Great job!";
+					quiz = new Quiz(String.format("%d", sol), sol, 0, String.valueOf(sol).length());
+					handler2.sendEmptyMessage(TRIGGER_QUIZ_PULSE);
 					break;
 				}
 				default:
@@ -81,6 +99,9 @@ public class CalcActivity extends Activity implements OnClickListener, OnInitLis
 		}
 		
 	};
+	
+	private Handler handler = new MyHandler();
+	private Handler handler2 = new MyHandler();
 
 	int buttons[] = {
 			R.id.button1,
@@ -109,8 +130,11 @@ public class CalcActivity extends Activity implements OnClickListener, OnInitLis
 		super.onCreate(b);
 		setContentView(R.layout.calc);
 		et = (EditText)findViewById(R.id.editText1);
+		tvScore = (TextView)findViewById(R.id.tvScore);
 		for (int i : buttons) {
-			findViewById(i).setOnClickListener(this);
+			TextView button = (TextView)findViewById(i);
+			button.setOnClickListener(this);
+			//button.setText(new AnimatingSpannableString(button));
 		}
 		
 		reset();
@@ -118,6 +142,8 @@ public class CalcActivity extends Activity implements OnClickListener, OnInitLis
 			et.setText(b.getString("text", ""));
 			clearEquation();
 		}
+		
+		findViewById(R.id.buttonInfo).setOnClickListener(this);
 	}
 	
 	@Override
@@ -161,18 +187,19 @@ public class CalcActivity extends Activity implements OnClickListener, OnInitLis
 			default:
 				return super.onKeyDown(keyCode, event);
 		}
-		say("Hello");
+		sayNow("Hello");
 		return true; // we handled the event
 	}
 
-	void say(String txt) {
-		say(txt, false);
+	void sayNow(String txt) {
+		if (tts != null && txt != null) {
+			tts.stop();
+			tts.speak(txt, TextToSpeech.QUEUE_ADD, null);
+		}
 	}
 	
-	void say(String txt, boolean queue) {
-		if (tts != null) {
-			if (!queue)
-				tts.stop();
+	void sayQ(String txt) {
+		if (tts != null && txt != null) {
 			tts.speak(txt, TextToSpeech.QUEUE_ADD, null);
 		}
 	}
@@ -209,29 +236,45 @@ public class CalcActivity extends Activity implements OnClickListener, OnInitLis
 	void endQuiz() {
 		quiz = null;
 		handler.removeCallbacksAndMessages(null);
+		handler2.removeCallbacksAndMessages(null);
+		handler.sendEmptyMessageDelayed(TRIGGER_INACTIVITY, 20*1000);
+		
 		et.setText("");
 	}
 	
 	@Override
 	public void onClick(View v) {
 		
+		if (v.getId() == R.id.buttonInfo) {
+			showInfoDialog();
+			return;
+		}
+		
+		handler.removeCallbacksAndMessages(null);
+		handler.sendEmptyMessageDelayed(TRIGGER_INACTIVITY, 20*1000);
+		if (v instanceof TextView) {
+			TextView tv = (TextView)v;
+			tv.setText(new AnimatingSpannableString(tv, 1000, 1, true));
+		}
+		
 		if (quiz != null) {
 			switch (quiz.test(v.getId())) {
 				case GOOD:
-					say("great job.");
-					score ++;
+					et.setText(quizGoodET);
+					sayNow(quizGoodSay);
+					incrementScore(1);
 					nextQuizScore += QUIZ_SCORE_STEP;
 					endQuiz();
 					break;
 				case KEEP_GOING:
-					say("Keep going");
+					sayNow("Keep going");
 					break;
 				case TRY_AGAIN:
-					say("Try again");
+					sayNow("Try again");
 					break;
 				case WRONG:
-					say("no");
-					score-=3;
+					sayNow("incorrect");
+					incrementScore(-3);
 					endQuiz();
 					break;
 			}
@@ -267,7 +310,7 @@ public class CalcActivity extends Activity implements OnClickListener, OnInitLis
 				trySetOp(Op.MULT); break;
 				
 			case R.id.button_c:
-				say("clear");
+				sayNow("clear");
 				reset();
 				clearEquation();
 				break;
@@ -280,9 +323,6 @@ public class CalcActivity extends Activity implements OnClickListener, OnInitLis
 
 		}
 		
-		if (score > 0) {
-			((TextView)findViewById(R.id.tvScore)).setText("" + score);
-		}
 
 	}
 	
@@ -302,12 +342,12 @@ public class CalcActivity extends Activity implements OnClickListener, OnInitLis
 			target = target.multiply(BigInteger.TEN);
 			target = target.add(BigInteger.valueOf(num));
 		}
-		say(target.toString());
+		sayNow(target.toString());
 		return target;
 	}
 	
 	void trySetOp(Op op) {
-		say(op.tts());
+		sayNow(op.tts());
 		if (num1 != null) {
 			this.op = op;
 			resetEquation();
@@ -354,18 +394,15 @@ public class CalcActivity extends Activity implements OnClickListener, OnInitLis
 		if (num2 != null) {
 			BigInteger n = op.solve(num1, num2);
 			if (n != null) {
-				say("equals " + n.toString());
-				score += op.ordinal() + 1;
-				if (score >= nextQuizScore) {
-					handler.sendEmptyMessageDelayed(TRIGGER_QUIZ, 1000);
-				}
+				sayNow("equals " + n.toString());
+				incrementScore(op.ordinal() + 1);
 				reset();
 				append(n.toString());
 				num1 = n;
 			} else {
 				reset();
 				append("NAN");
-				say("Not a number");
+				sayNow("Not a number");
 			}
 		}
 	}
@@ -382,75 +419,11 @@ public class CalcActivity extends Activity implements OnClickListener, OnInitLis
 		op = null;
 	}
 	
-	enum Op {
-		ADD,SUB,MULT,DIV;
-		
-		int solve(int a, int b) {
-			switch (this) {
-				case ADD:
-					return a+b;
-				case DIV:
-					return a/b;
-				case MULT:
-					return a*b;
-				case SUB:
-					return a-b;
-			}
-			return 0;
-		}
-		
-		BigInteger solve(BigInteger a, BigInteger b) {
-			try {
-    			switch (this) {
-    				case ADD:
-    					return a.add(b);
-    				case DIV:
-    					return a.divide(b);
-    				case MULT:
-    					return a.multiply(b);
-    				case SUB:
-    					return a.subtract(b);
-    				
-    			}
-			} catch (ArithmeticException e) {
-			}
-			return null;
-		}
-		
-		String sign(Context c) {
-			switch (this) {
-				case ADD:
-					return "+";
-				case DIV:
-					return c.getString(R.string.div_symbol);
-				case MULT:
-					return "X";
-				case SUB:
-					return "-";
-			}
-			return "?";
-		}
-		
-		String tts() {
-			switch (this) {
-				case ADD:
-					return "plus";
-				case DIV:
-					return "divided by";
-				case MULT:
-					return "times";
-				case SUB:
-					return "minus";
-			}
-			return "um";
-		}
-	}
-	
 	@Override
 	public void onInit(int status) {
 		switch (status) {
 			case TextToSpeech.SUCCESS:
-				say("Hi Sebastian!");
+				sayNow("Hi Sebastian!");
 				break;
 				
 			default:
@@ -469,28 +442,42 @@ public class CalcActivity extends Activity implements OnClickListener, OnInitLis
 		anim.setAnimationListener(listener);
 		return anim;
 	}
-	/*
-	void generateQuiz() {
-		handler.removeCallbacksAndMessages(null);
+	
+	void generateBasic(int n1, int n2, Op op) {
+		int s  = op.solve(n1, n2);
+		String neg = "";
+		if (s < 0) {
+			neg="-";
+			s = -s;
+		}
+		sayQ(String.format("%d %s %d equals what", n1, op.tts(), n2));
+		quiz = new Quiz(String.format("QUIZ TIME\n%d %s %d = %s%s", n1, op.sign(this), n2, neg, Utils.getRepeatingChars('?', String.valueOf(s).length())), s);
+		quizGoodSay = String.format("%d %s %s equals %d. Great job.");
+		quizGoodET = new SpannableString(String.format("%d %s %d = %d", n1, op.sign(this), n2, s));
+		quizGoodET.setSpan(new ForegroundColorSpan(Color.GREEN), 0, quizGoodET.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+	}
+	
+	void generate() {
 		if (score < 20) {
-			// (1-3) + (1-3) = ?
-			int n1 = Utils.randRange(1, 3);
-			int n2 = Utils.randRange(1, 3);
-			int s  = n1+n2;
-			handler.sendMessage(handler.obtainMessage(TRIGGER_SAY_REPEAT, "" + n1 + " plus " + n2 + " equals"));
-			this.quiz = new Quiz("<b>QUIZ TIME<br/>" + n1 + " + " + n2 + " = <font color=\"#%s\">?</font>", s);
+			generateBasic(Utils.randRange(1, 3), Utils.randRange(1, 3), Op.ADD);
 		} else if (score < 30) {
 			// (2-5) + (2-5) = ?
+			generateBasic(Utils.randRange(2,5), Utils.randRange(2,5), Op.ADD);
 		} else if (score < 40) {
 			// (2-4) - (1-3) = ?
+			generateBasic(Utils.randRange(3,4), Utils.randRange(1,2), Op.SUB);
 		} else if (score < 50) {
 			// (3-6) - (2-6) = ?
+			generateBasic(Utils.randRange(3,6), Utils.randRange(2,6), Op.SUB);
 		} else if (score < 60) {
 			// (2-8) +/- (2-8) = ?
+			generateBasic(Utils.randRange(2,8), Utils.randRange(2,8), Utils.flipCoin() ? Op.SUB : Op.ADD);
 		} else if (score < 70) {
 			// (1-3) * (1-3) = ?
+			generateBasic(Utils.randRange(1,3), Utils.randRange(1,3), Op.MULT);
 		} else if (score < 80) {
 			// (2-5) * (2-5) = ?
+			generateBasic(Utils.randRange(2,5), Utils.randRange(2,5), Op.MULT);
 		} else if (score < 90) {
 			// ? + (1-3) = (3-5)
 		} else if (score < 100) {
@@ -510,5 +497,31 @@ public class CalcActivity extends Activity implements OnClickListener, OnInitLis
 		} else {
 			
 		}
-	}*/
+		generateBasic(Utils.randRange(5, 10), Utils.randRange(5, 10), Utils.randItem(Op.values()));
+	}
+	
+	private void incrementScore(int amt) {
+		//TextView tv = ((TextView)findViewById(R.id.tvScore)).setText("" + score);
+		score = Math.max(0, score += amt);
+		if (score >= nextQuizScore) {
+			handler.sendEmptyMessageDelayed(TRIGGER_QUIZ, 1000);
+		} else if (score < nextQuizScore-QUIZ_SCORE_STEP){
+			nextQuizScore -= QUIZ_SCORE_STEP;
+		}
+		
+		if (score > 0) {
+			tvScore.setText(String.format("%d (%d)", score, nextQuizScore));
+		} else {
+			tvScore.setText("");
+		}
+	}
+	
+	void showInfoDialog() {
+		// open tts settings
+		
+		// app description/features
+		
+		
+	}
+
 }

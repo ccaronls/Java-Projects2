@@ -140,6 +140,16 @@
             android:layout_margin="5dp"
             android:textSize="12dip"
             android:textColor="#0f00ffff"/>
+
+        <ImageButton
+            android:id="@+id/buttonInfo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentLeft="true"
+            android:layout_margin="5dp"
+            android:src="@android:drawable/ic_dialog_info" />
+
     </RelativeLayout>
     
 </LinearLayout>

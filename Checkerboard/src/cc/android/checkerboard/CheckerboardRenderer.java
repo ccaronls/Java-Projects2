@@ -2,12 +2,14 @@ package cc.android.checkerboard;
 
 import java.util.*;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.opengl.GLSurfaceView;
 import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.View;
 import android.view.WindowManager;
+import cc.android.checkerboard.ICheckerboard.Piece;
 import cc.android.checkerboard.ICheckerboard.*;
 import cc.lib.android.BaseRenderer;
 import cc.lib.android.GL10Graphics;
@@ -16,8 +18,8 @@ import cc.lib.game.AColor;
 import cc.lib.game.AGraphics;
 import cc.lib.game.IVector2D;
 import cc.lib.game.Justify;
-import cc.lib.game.Utils;
 import cc.lib.math.Bezier;
+import cc.lib.math.CMath;
 import cc.lib.math.Vector2D;
 
 class CheckerboardRenderer extends BaseRenderer implements View.OnTouchListener {
@@ -26,17 +28,29 @@ class CheckerboardRenderer extends BaseRenderer implements View.OnTouchListener 
 		super(parent);
 	}
 
+	ICheckerboard getGame() {
+		return CheckerboardActivity.game;
+	}
+
 	final String TAG = "CheckerboardRenderer";
 
+	/*
 	float touchX = -1, touchY = -1;
+	float grabRank = -1, grabColumn = -1;
 	int touchRank, touchColumn;
-	long downTime = 0;
+	long downTime = 0;*/
 	long frameCount = 0;
-
-	LinkedList<AAnimation> animations = new LinkedList<AAnimation>();
+	final List<Move> moves = new ArrayList<Move>();
 	
-	int DIR_BLACK = -1;
-	int DIR_RED   = 1;
+	int glWidth = 0;
+	int glHeight = 0;
+	int glCellWidth = 0;
+	int glCellHeight = 0;
+	int glPieceRad = 0;
+
+
+	final int DIR_BLACK = -1;
+	final int DIR_RED   = 1;
 	
 	int getDir(int playerNum) {
 		switch (playerNum) {
@@ -47,225 +61,117 @@ class CheckerboardRenderer extends BaseRenderer implements View.OnTouchListener 
 		}
 		return 0;
 	}
+
+	// these are animations initiated by 
+	LinkedList<ACBAnimation> blockingAnimations = new LinkedList<ACBAnimation>();
+
+	private void addBlockingAnimation(ACBAnimation a) {
+		synchronized (blockingAnimations) {
+			blockingAnimations.add(a);
+		}
+		a.start();
+	}
+
+	private <T extends AAnimation>void renderAnimations(AGraphics g, Collection<T> animations) {
+		if (animations.size() > 0) {
+			synchronized (animations) {
+    			Iterator<T> it = animations.iterator();
+    			while (it.hasNext()) {
+    				AAnimation a = it.next();
+    				if (a.update(g)) {
+    					it.remove();
+    				}
+    			}
+			}
+		} 
+	}
+	
+	int grabRank = -1, grabColumn = -1;
+	int touchX=0, touchY=0;
+	int touchRank = -1, touchColumn = -1;
+	boolean touching = false;
 	
 	@Override
 	public boolean onTouch(View v, MotionEvent event) {
 		
-		if (animations.size() > 0)
+		if (blockingAnimations.size() > 0)
 			return false;
+
+		touchX = (int)event.getX();
+		touchY = (int)event.getY();
+		touchRank = Math.round(event.getY() / glCellHeight);
+		touchColumn = Math.round(event.getX() / glCellWidth);
 		
-		ICheckerboard checkers = CheckerboardActivity.game;
-		if (checkers == null)
-			return false;
 		switch (event.getAction()) {
-			case MotionEvent.ACTION_DOWN:
-				downTime = System.currentTimeMillis();
-			case MotionEvent.ACTION_MOVE:
-				touchX = event.getX();
-				touchY = event.getY();
-				touchRank = (int)(touchY * 8 / getGraphics().getViewportHeight());
-				touchColumn = (int)(touchX * 8 / getGraphics().getViewportWidth());
-				break;
-			case MotionEvent.ACTION_UP:
-				if (System.currentTimeMillis() - downTime < 3000) {
-					onTap();
-				}
-				touchX = touchY = -1;
-				break;
-		}
-		return true;
-	}
-
-	List<Move> moves = new ArrayList<>();
-	
-	IVector2D [] computeJumpPoints(Move move) {
-		
-		float sx = glCellWidth * move.startCol + glCellWidth/2;
-		float sy = glCellWidth * move.startRank + glCellHeight/2;
-		float ex = glCellHeight * move.endCol + glCellWidth/2;
-		float ey = glCellHeight * move.endRank + glCellHeight/2;
-		
-		float midx1 = sx + ((ex-sx) / 3);
-		float midx2 = sx + ((ex-sx) * 2 / 3);
-		float midy1 = sy + ((ey-sy) / 3);
-		float midy2 = sy + ((ey-sy) * 2 / 3);
-		float dist = glCellHeight * getDir(move.playerNum);
-		IVector2D [] v = {
-				new Vector2D(sx, sy),
-				new Vector2D(midx1, midy1+dist),
-				new Vector2D(midx2, midy2+dist),
-				new Vector2D(ex, ey),
-		};
-		return v;
-	}
-	
-	class StackAnim extends AAnimation {
-		final Move move;
-		final int stacks;
-		final int playerNum;
-		
-		public StackAnim(long duration, int maxRepeats, Move move, int playerNum) {
-			super(duration, maxRepeats);
-			this.move = move;
-			this.playerNum = playerNum;
-			stacks = CheckerboardActivity.game.getPiece(move.startRank, move.startCol).stacks;
-		}
-
-		@Override
-		protected void onDone() {
-			Piece p = CheckerboardActivity.game.getPiece(move.startRank, move.startCol);
-			p.stacks = stacks;
-			moves = CheckerboardActivity.game.executeMove(move);
-		}
-
-		@Override
-		protected void onStarted() {
-			//Piece p = CheckerboardActivity.game.getPiece(move.startRank, move.startCol);
-			//p.stacks = 0;
-		}
-
-		@Override
-		public void draw(AGraphics g, float position, float dt) {
-			float sx = glCellWidth * move.startCol + glCellWidth/2;
-			float sy = 0;//glCellHeight * move.startRank + glCellHeight/2;
-			float ex = glCellWidth * move.startCol + glCellWidth/2;
-			float ey = glCellHeight * move.startRank + glCellHeight/2;
-			float scale = 1 + (1-position);
-			int x = Math.round(sx + (ex-sx) * position);
-			int y = Math.round(sy + (ey-sy) * position);
-			Piece p = CheckerboardActivity.game.getPiece(move.startRank, move.startCol);
-			g.pushMatrix();
-			g.translate(x, y);
-			g.scale(scale);
-			drawChecker(g, 0, 0, glPieceRad, stacks, playerNum, getPieceColor(playerNum, g));
-			g.popMatrix();
-		}
-
-	}
-
-	
-	class SlideAnim extends AAnimation {
-		final Move move;
-		final int stacks;
-		final int playerNum;
-		
-		public SlideAnim(long duration, int maxRepeats, Move move, int playerNum) {
-			super(duration, maxRepeats);
-			this.move = move;
-			this.playerNum = playerNum;
-			stacks = CheckerboardActivity.game.getPiece(move.startRank, move.startCol).stacks;
-		}
-
-		@Override
-		protected void onDone() {
-			Piece p = CheckerboardActivity.game.getPiece(move.startRank, move.startCol);
-			p.stacks = stacks;
-			moves = CheckerboardActivity.game.executeMove(move);
-		}
-
-		@Override
-		protected void onStarted() {
-			Piece p = CheckerboardActivity.game.getPiece(move.startRank, move.startCol);
-			p.stacks = 0;
-		}
-
-		@Override
-		public void draw(AGraphics g, float position, float dt) {
-			float sx = glCellWidth * move.startCol + glCellWidth/2;
-			float sy = glCellHeight * move.startRank + glCellHeight/2;
-			float ex = glCellWidth * move.endCol + glCellWidth/2;
-			float ey = glCellHeight * move.endRank + glCellHeight/2;
-			int x = Math.round(sx + (ex-sx) * position);
-			int y = Math.round(sy + (ey-sy) * position);
-			Piece p = CheckerboardActivity.game.getPiece(move.startRank, move.startCol);
-			drawChecker(g, x, y, glPieceRad, stacks, playerNum, getPieceColor(playerNum, g));
-		}
-
-	}
-	
-	class JumpAnim extends AAnimation {
-
-		final Bezier curve;
-		final Move move;
-		final int stacks;
-		final int playerNum;
-		
-		public JumpAnim(long duration, int maxRepeats, Move move, int playerNum) {
-			super(duration, maxRepeats);
-			this.move = move;
-			this.playerNum = playerNum;
-			curve = new Bezier(computeJumpPoints(move));
-			stacks = CheckerboardActivity.game.getPiece(move.startRank, move.startCol).stacks;
-		}
-
-		@Override
-		protected void onDone() {
-			Piece p = CheckerboardActivity.game.getPiece(move.startRank, move.startCol);
-			p.stacks = stacks;
-			moves = CheckerboardActivity.game.executeMove(move);
-		}
-
-		@Override
-		protected void onStarted() {
-			Piece p = CheckerboardActivity.game.getPiece(move.startRank, move.startCol);
-			p.stacks = 0;
-		}
-
-		@Override
-		public void draw(AGraphics g, float position, float dt) {
-			Vector2D v = curve.getPointAt(position);
-			Piece p = CheckerboardActivity.game.getPiece(move.startRank, move.startCol);
-			drawChecker(g, v.Xi(), v.Yi(), glPieceRad, stacks, playerNum, getPieceColor(playerNum, g));
-		}
-		
-	};
-	
-	void onTap() {
-		ICheckerboard checkers = CheckerboardActivity.game;
-		if (checkers.isOnBoard(touchColumn, touchColumn)) {
-			if (moves.size() == 0)
-				moves = checkers.computeMoves(touchRank, touchColumn);
-			else {
-				for (Move m : moves) {
-					int tr = m.endRank;
-					int tc = m.endCol;
-					if (tr == touchRank && tc == touchColumn) {
-						switch (m.type) {
-							case JUMP:
-							case JUMP_CAPTURE:
-								addAnimation(new JumpAnim(1000, 0, m, checkers.getCurPlayerNum()));
-								break;
-							case SLIDE:
-								addAnimation(new SlideAnim(500, 0, m, checkers.getCurPlayerNum()));
-								break;
-							case STACK:
-								addAnimation(new StackAnim(800, 0, m, checkers.getCurPlayerNum()));
-								break;
-						}
-						return;
+			case MotionEvent.ACTION_DOWN: {
+				if (getGame().isOnBoard(touchRank, touchColumn) && moves.size() == 0) {
+					moves.addAll(getGame().computeMoves(touchRank, touchColumn));
+					if (moves.size() > 0) {
+						touching = true;
+						grabRank = touchRank;
+						grabColumn = touchColumn;
+						Piece p = getGame().getPiece(grabRank, grabColumn);
+						p.data = new CheckerRenderer() {
+							
+							@Override
+							public void render(AGraphics g, int rank, int col, Piece p) {
+								if (!touching) {
+									p.data = null;
+									return;
+								}
+								for (Move m : moves) {
+									if (m.endRank == touchRank && m.endCol == touchColumn) {
+										drawChecker(g, p, touchRank, touchColumn);
+										return;
+									}
+								}
+								
+								drawChecker(g, p, touchX, touchY, glPieceRad, getPieceColor(p.playerNum, g));
+							}
+						};
+					} else {
+						touching = false;
 					}
 				}
-				moves.clear();
+				break;
+			}
+			case MotionEvent.ACTION_MOVE: {
+				break;
+			}
+			case MotionEvent.ACTION_UP: {
+				if (touching) {
+					for (Move m : moves) {
+						if (m.endRank == touchRank && m.endCol == touchColumn) {
+							switch (m.type) {
+								case JUMP:
+								case JUMP_CAPTURE:
+									addBlockingAnimation(new JumpAnim(800, 0, m));
+									break;
+								case SLIDE:
+									addBlockingAnimation(new SlideAnim(400, 0, m));
+									break;
+								case STACK:
+									addBlockingAnimation(new StackAnim(900, 0, m));
+									break;
+							}
+						}
+					}
+				}
+				touching = false;
+				break;
 			}
 		}
-	}
-	
-	private void addAnimation(AAnimation a) {
-		synchronized (animations) {
-			animations.add(a);
-		}
-		a.start();
-	}
-	
-	int glWidth = 0;
-	int glHeight = 0;
-	int glCellWidth = 0;
-	int glCellHeight = 0;
-	int glPieceRad = 0;
+		
+		return true;
+	};
+
 	
 	@Override
 	protected void drawFrame(GL10Graphics g) {
-		ICheckerboard checkers = CheckerboardActivity.game;
+		ICheckerboard checkers = getGame();
+		
+		final int w = g.getViewportWidth();
+		final int h = g.getViewportHeight();
 		
 		final int RANKS = checkers.getRanks();
 		final int COLUMNS = checkers.getColumns();
@@ -278,52 +184,36 @@ class CheckerboardRenderer extends BaseRenderer implements View.OnTouchListener 
 		glCellWidth = glWidth/COLUMNS;
 		glCellHeight = glHeight/RANKS;
 		glPieceRad = Math.min(glCellHeight/3, glCellHeight/3);
+		// render the checkerboard
 		for (int rank=0; rank<RANKS; rank++) {
 			g.setColor(g.ORANGE);
 			for (int col=rank%2; col<COLUMNS; col+=2) {
 				g.drawFilledRect(col*glCellWidth, rank*glCellHeight, glCellWidth, glCellHeight);
 			}
+		}
+		for (int rank=0; rank<RANKS; rank++) {
 			for (int col=0; col<COLUMNS; col++) {
-
-    			int rx = col*glCellWidth;
-    			int ry = rank*glCellHeight;
-				if (touchRank == rank && touchColumn == col) {
-					float fadeSecs = 3;
-					float alpha = (1.0f / (fadeSecs * 1000)) * (System.currentTimeMillis() - downTime);
-    				if (alpha > 0) {
-    					g.setColor(g.makeColor(0, 1, 0, alpha));
-        				g.drawFilledRect(rx, ry, glCellWidth, glCellHeight);
-    				}
-				}
-				
+    			final int cx = col*glCellWidth;
+    			final int cy = rank*glCellHeight;
 				Piece p = checkers.getPiece(rank, col);
-				drawChecker(g, p, rank, col);
+				
+				if (p.data != null && p.data instanceof CheckerRenderer) {
+					((CheckerRenderer)p.data).render(g, rank, col, p);
+				} else if (p.stacks > 0) {
+					drawChecker(g, p, rank, col);
+				} else if (moves.size() > 0) {
+					for (Move m : moves) {
+						if (m.endCol == col && m.endRank == rank) {
+							g.setColor(g.GREEN);
+							g.setLineWidth(2 + frameCount % 10);
+							g.drawRect(cx, cy, glCellWidth, glCellHeight);
+						}
+					}
+				}
 			}
 		}
-		
-		if (animations.size() > 0) {
-			synchronized (animations) {
-    			Iterator<AAnimation> it = animations.iterator();
-    			while (it.hasNext()) {
-    				AAnimation a = it.next();
-    				if (a.update(g)) {
-    					it.remove();
-    				}
-    			}
-			}
-		} else {
-		
-    		for (Move m : moves) {
-    			int rank = m.endRank;
-    			int col  = m.endCol;
-    			int x = col * glCellWidth;
-    			int y = rank * glCellHeight;
-    			g.setLineWidth(3 + (frameCount / 10) % 5);
-    //			float alpha = System.currentTimeMillis() - downTime;
-    			g.setColor(g.GREEN);//.setAlpha(alpha));
-    			g.drawRect(x,  y, glCellWidth, glCellHeight);
-    		}
-		}
+
+		renderAnimations(g, blockingAnimations);
 		
 		// Draw an indicator bar on side of the player whose turn it is.
 		g.setColor(getPieceColor(checkers.getCurPlayerNum(), g));
@@ -333,15 +223,13 @@ class CheckerboardRenderer extends BaseRenderer implements View.OnTouchListener 
 			g.drawFilledRect(0, 0, glWidth, 10);
 		}
 		
-		if (animations == null)
-		
 		g.setColor(g.YELLOW);
 		switch (checkers.getWinner()) {
 			case 0: // BLACK
-				//g.drawJustifiedString(w/2, h/2, Justify.CENTER, "BLACK WINS");
+				g.drawJustifiedString(w/2, h/2, Justify.CENTER, "BLACK WINS");
 				break;
 			case 1: // RED
-				//g.drawJustifiedString(w/2, h/2, Justify.CENTER, "RED WINS");
+				g.drawJustifiedString(w/2, h/2, Justify.CENTER, "RED WINS");
 				break;
 		}
 		
@@ -359,25 +247,34 @@ class CheckerboardRenderer extends BaseRenderer implements View.OnTouchListener 
 		}
 		return g.TRANSPARENT;
 	}
-	
+
 	void drawChecker(AGraphics g, Piece p, int rank, int col) {
-		int cx = col*glCellWidth + glCellWidth/2;
-		int cy = rank*glCellHeight + glCellHeight/2;
-		drawChecker(g, p, cx, cy, glPieceRad);
+		drawChecker(g, p, rank, col, getPieceColor(p.playerNum, g));
 	}
 	
-	void drawChecker(AGraphics g, Piece p, int x, int y, int rad) {
+	void drawChecker(AGraphics g, Piece p, int rank, int col, AColor color) {
+		int cx = col*glCellWidth + glCellWidth/2;
+		int cy = rank*glCellHeight + glCellHeight/2;
+		drawChecker(g, p, cx, cy, glPieceRad, color);
+	}
+	
+	void drawChecker(AGraphics g, Piece p, int x, int y, int rad, AColor color) {
 		if (p.stacks == 0)
 			return;
 		for (int i=0; i<p.stacks; i++) {
-			drawChecker(g, x, y, rad, p.stacks, p.playerNum, getPieceColor(p.playerNum, g));
-			y -= rad/4;
+			drawChecker(g, x, y, rad, p.playerNum, color);
+			y += rad/4 * getDir(p.playerNum);
 		}
 	}
+
+	void drawChecker(AGraphics g, int playerNum, int rank, int col, AColor color, int stackIndex) {
+		int cx = col*glCellWidth + glCellWidth/2;
+		int cy = rank*glCellHeight + glCellHeight/2;
+		cy += stackIndex * (glPieceRad/4 * getDir(playerNum));
+		drawChecker(g, cx, cy, glPieceRad, playerNum, color);
+	}
 	
-	void drawChecker(AGraphics g, int x, int y, int rad, int stacks, int playerNum, AColor color) {
-		if (stacks <= 0)
-			return;
+	void drawChecker(AGraphics g, int x, int y, int rad, int playerNum, AColor color) {
 		AColor dark = color.darkened(0.5f);
 		g.setColor(dark);
 		final int step = rad/20 * getDir(playerNum);
@@ -387,7 +284,6 @@ class CheckerboardRenderer extends BaseRenderer implements View.OnTouchListener 
 		}
 		g.setColor(color);
 		g.drawDisk(x/*+num*step*/, y+num*step, rad);
-		
 	}
 	/*
 	void drawChecker(AGraphics g, AColor colorTop, AColor color, int x, int y, int r) {
@@ -405,7 +301,7 @@ class CheckerboardRenderer extends BaseRenderer implements View.OnTouchListener 
 	protected void init(GL10Graphics g) {
 		g.ortho();
 		setDrawFPS(false);
-		CheckerboardActivity.game.newGame();
+		getGame().newGame();
 	}
 	
 	public int getRotation(){
@@ -420,6 +316,165 @@ class CheckerboardRenderer extends BaseRenderer implements View.OnTouchListener 
 			default:
 				return 270;
 		}
+	}
+	
+	interface CheckerRenderer {
+		void render(AGraphics g, int rank, int col, Piece p);
+	}
+	
+	abstract class ACBAnimation extends AAnimation implements CheckerRenderer {
+
+		final Move move;
+		final Piece p;
+		final int rank, column;
+		private final boolean executeMoveWhenDone;
+		
+		public ACBAnimation(long duration, int maxRepeats, Move move, boolean executeMoveWhenDone) {
+			super(duration, maxRepeats);
+			this.executeMoveWhenDone = executeMoveWhenDone;
+			this.move = move;
+			this.rank = move.startRank;
+			this.column = move.startCol;
+			this.p = getGame().getPiece(rank, column);
+		}
+		
+		@Override
+		protected final void onDone() {
+			if (executeMoveWhenDone) {
+				moves.clear();
+				moves.addAll(getGame().executeMove(move));
+			}
+			p.data = null;
+		}
+
+		@Override
+		protected final void onStarted() {
+			p.data = this;
+		}
+
+		@Override
+		public final void render(AGraphics g, int rank, int col, Piece p) {
+			// we will call update from renderAnimations method
+		}
+		
+	}
+	
+	class GlowAnim extends ACBAnimation {
+
+		public GlowAnim(long duration, int maxRepeats, Move move) {
+			super(duration, maxRepeats, move, false);
+		}
+
+		@Override
+		public void draw(AGraphics g, float position, float dt) {
+
+			AColor glowColor = getPieceColor(p.playerNum, g);
+			glowColor.setAlpha(0.5f + (float)(Math.signum(position * CMath.M_PI * 2) * 0.25));
+			drawChecker(g, p, rank, column, glowColor);
+		}
+
+	}
+
+	
+	class PulseAnim extends ACBAnimation {
+
+		public PulseAnim(long duration, int maxRepeats, Move move) {
+			super(duration, maxRepeats, move, false);
+		}
+
+		@Override
+		public void draw(AGraphics g, float position, float dt) {
+			
+			float pulseScaleX = 1.0f + (float)(Math.sin(position * CMath.M_PI * 2) * 0.1);
+			float pulseScaleY = 1.0f + (float)(Math.cos(position * CMath.M_PI * 2) * 0.1);
+			
+			float sx = glCellWidth * column + glCellWidth/2;
+			float sy = glCellHeight * rank + glCellHeight/2;
+			g.pushMatrix();
+			g.translate(sx, sy);
+			g.scale(pulseScaleX, pulseScaleY);
+			drawChecker(g, 0, 0, glPieceRad, p.playerNum, getPieceColor(p.playerNum, g));
+			g.popMatrix();
+		}
+
+	}
+	
+	
+	class StackAnim extends ACBAnimation {
+		
+		public StackAnim(long duration, int maxRepeats, Move move) {
+			super(duration, maxRepeats, move, true);
+		}
+
+		@Override
+		public void draw(AGraphics g, float position, float dt) {
+			float sx = glCellWidth * move.startCol + glCellWidth/2;
+			float sy = 0;//glCellHeight * move.startRank + glCellHeight/2;
+			float ex = glCellWidth * move.startCol + glCellWidth/2;
+			float ey = glCellHeight * move.startRank + glCellHeight/2;
+			float scale = 1 + (1-position);
+			int x = Math.round(sx + (ex-sx) * position);
+			int y = Math.round(sy + (ey-sy) * position);
+			g.pushMatrix();
+			g.translate(x, y);
+			g.scale(scale);
+			drawChecker(g, 0, 0, glPieceRad, p.playerNum, getPieceColor(p.playerNum, g));
+			g.popMatrix();
+		}
+
+	}
+
+	
+	class SlideAnim extends ACBAnimation {
+		
+		public SlideAnim(long duration, int maxRepeats, Move move) {
+			super(duration, maxRepeats, move, true);
+		}
+
+		@Override
+		public void draw(AGraphics g, float position, float dt) {
+			float sx = glCellWidth * move.startCol + glCellWidth/2;
+			float sy = glCellHeight * move.startRank + glCellHeight/2;
+			float ex = glCellWidth * move.endCol + glCellWidth/2;
+			float ey = glCellHeight * move.endRank + glCellHeight/2;
+			int x = Math.round(sx + (ex-sx) * position);
+			int y = Math.round(sy + (ey-sy) * position);
+			drawChecker(g, x, y, glPieceRad, p.playerNum, getPieceColor(p.playerNum, g));
+		}
+
+	}
+	
+	class JumpAnim extends ACBAnimation {
+
+		final Bezier curve;
+		
+		public JumpAnim(long duration, int maxRepeats, Move move) {
+			super(duration, maxRepeats, move, true);
+			float sx = glCellWidth * move.startCol + glCellWidth/2;
+			float sy = glCellWidth * move.startRank + glCellHeight/2;
+			float ex = glCellHeight * move.endCol + glCellWidth/2;
+			float ey = glCellHeight * move.endRank + glCellHeight/2;
+			
+			float midx1 = sx + ((ex-sx) / 3);
+			float midx2 = sx + ((ex-sx) * 2 / 3);
+			float midy1 = sy + ((ey-sy) / 3);
+			float midy2 = sy + ((ey-sy) * 2 / 3);
+			float dist = glCellHeight * getDir(move.playerNum);
+			IVector2D [] v = {
+					new Vector2D(sx, sy),
+					new Vector2D(midx1, midy1+dist),
+					new Vector2D(midx2, midy2+dist),
+					new Vector2D(ex, ey),
+			};
+			curve = new Bezier(v);
+		}
+
+		@Override
+		public void draw(AGraphics g, float position, float dt) {
+			Vector2D v = curve.getPointAt(position);
+			drawChecker(g, v.Xi(), v.Yi(), glPieceRad, p.playerNum, getPieceColor(p.playerNum, g));
+		}
+		
 	}
 	
 }
