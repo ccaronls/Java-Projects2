@@ -4156,13 +4156,13 @@ public class SOC extends Reflector<SOC> {
 			// if there is a route on EACH end, then not open
 			int numConnected = 0;
 			for (Route ee : b.getVertexRoutes(e.getFrom())) {
-				if (ee != e && ee.isVessel() && ee.getPlayer() == playerNum) {
+				if (ee != e && (!checkShips || ee.isVessel()) && ee.getPlayer() == playerNum) {
 					numConnected++;
 					break;
 				}
 			}
 			for (Route ee : b.getVertexRoutes(e.getTo())) {
-				if (ee != e && ee.isVessel() && ee.getPlayer() == playerNum) {
+				if (ee != e && (!checkShips || ee.isVessel()) && ee.getPlayer() == playerNum) {
 					numConnected++;
 					break;
 				}
