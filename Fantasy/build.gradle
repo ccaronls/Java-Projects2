@@ -1,0 +1,7 @@
+apply plugin: 'java'
+sourceSets {
+    main.java.srcDirs = ['src','test','testresources','conf','hbm']
+    main.resources.srcDirs = ['src','test','testresources','conf','hbm']
+    test.java.srcDirs = ['tests/java']
+    test.resources.srcDirs = ['tests/resources']
+}

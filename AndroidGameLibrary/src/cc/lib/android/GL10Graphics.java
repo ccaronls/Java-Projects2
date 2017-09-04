@@ -894,6 +894,12 @@ for (int pix : pixels) {
         return bindBitmap(subimage);
     }
 
+	@Override
+	public void deleteImage(int id) {
+		sGl.glDeleteTextures(1, new int [] {id}, 0);
+		
+	}
+
     /**
      * 
      * @param source
@@ -1188,6 +1194,7 @@ for (int pix : pixels) {
 	public Vector2D getMaxBoundingRect() {
 		throw new RuntimeException("not implemented: getMaxBoundingRect");
 	}
+
 
     
 }
