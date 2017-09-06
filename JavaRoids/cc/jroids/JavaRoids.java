@@ -1,5 +1,6 @@
 package cc.jroids;
 
+import cc.lib.math.CMath;
 import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
 import cc.lib.swing.AWTGraphics;
@@ -207,7 +208,7 @@ public class JavaRoids extends KeyboardAnimationApplet
 		Vector2D [] pts = new Vector2D[num_pts];
 		for (int i=0; i<num_pts; i++)
 		{
-			float angle = Math.round(angles[i] * Utils.DEG_TO_RAD);
+			float angle = Math.round(angles[i] * CMath.DEG_TO_RAD);
 			
 			float x = (float)Math.cos(angle);
 			float y = (float)Math.sin(angle);

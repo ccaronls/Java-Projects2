@@ -39,7 +39,7 @@ public class Roids {
         float deg = 0;
         for (int i=0; i<numVerts; i++) {
             float l = Utils.randFloatX(radius/2) + radius/2; 
-            verts[i] = new MutableVector2D(Utils.cosine(deg) * l, Utils.sine(deg) * l);
+            verts[i] = new MutableVector2D(CMath.cosine(deg) * l, CMath.sine(deg) * l);
             deg += (360 / numVerts) + Utils.randRange(-10, 10);
         }
         
@@ -61,7 +61,7 @@ public class Roids {
 
         somethingMoved = false;
         this.numHighlighed = 0;
-        Utils.EPSILON = 0.01f;
+        CMath.EPSILON = 0.01f;
         for (Thingy t: things) {
             t.update(this, (float)curTime/1000, (float)deltaTime/1000);
         }
@@ -220,7 +220,7 @@ public class Roids {
         for (Thingy t : things) {
             t.draw(g);
             //energy.addEq(t.getVelocity());
-            energy += t.getVelocity().mag() + Math.abs(t.getAngVelocity() * Utils.DEG_TO_RAD);
+            energy += t.getVelocity().mag() + Math.abs(t.getAngVelocity() * CMath.DEG_TO_RAD);
         }
         
         for (Collision c: collisions) {
@@ -311,8 +311,8 @@ public class Roids {
         
         // Vpi is the relative velocity at the point of collision given both linear and angular velocities
         // Vpi = Vi + Wi X Ri
-        Vector2D Vp1 = R1.cross(t1.getAngVelocity()*Utils.DEG_TO_RAD, c.Vp1).scaleEq(-1).addEq(t1.getVelocity());
-        Vector2D Vp2 = R2.cross(t2.getAngVelocity()*Utils.DEG_TO_RAD, c.Vp2).scaleEq(-1).addEq(t2.getVelocity());
+        Vector2D Vp1 = R1.cross(t1.getAngVelocity()*CMath.DEG_TO_RAD, c.Vp1).scaleEq(-1).addEq(t1.getVelocity());
+        Vector2D Vp2 = R2.cross(t2.getAngVelocity()*CMath.DEG_TO_RAD, c.Vp2).scaleEq(-1).addEq(t2.getVelocity());
         // Vr = Vp2 - Vp1
         Vector2D Vr = Vp2.sub(Vp1, Vector2D.newTemp());
         // Step 1.
@@ -361,11 +361,11 @@ public class Roids {
         //float newAng1 = t1.getAngVelocity()*Utils.DEG_TO_RAD - t1.getInvInertia() * R1.cross(Jr);
         //float newAng2 = t2.getAngVelocity()*Utils.DEG_TO_RAD + t2.getInvInertia() * R2.cross(Jr);
 
-        float newAng1 = t1.getAngVelocity()*Utils.DEG_TO_RAD - jr*t1.getInvInertia() * R1.cross(N);
-        float newAng2 = t2.getAngVelocity()*Utils.DEG_TO_RAD + jr*t2.getInvInertia() * R2.cross(N);
+        float newAng1 = t1.getAngVelocity()*CMath.DEG_TO_RAD - jr*t1.getInvInertia() * R1.cross(N);
+        float newAng2 = t2.getAngVelocity()*CMath.DEG_TO_RAD + jr*t2.getInvInertia() * R2.cross(N);
         
-        t1.setAngVelocity(Utils.clamp(newAng1 * Utils.RAD_TO_DEG, -MAX_ANG_VELOCITY, MAX_ANG_VELOCITY));
-        t2.setAngVelocity(Utils.clamp(newAng2 * Utils.RAD_TO_DEG, -MAX_ANG_VELOCITY, MAX_ANG_VELOCITY));
+        t1.setAngVelocity(Utils.clamp(newAng1 * CMath.RAD_TO_DEG, -MAX_ANG_VELOCITY, MAX_ANG_VELOCITY));
+        t2.setAngVelocity(Utils.clamp(newAng2 * CMath.RAD_TO_DEG, -MAX_ANG_VELOCITY, MAX_ANG_VELOCITY));
         
         System.out.println("Post collision:" + "\n   src v=" + (t1.getVelocity()) + " av=" + t1.getAngVelocity()
                 + "\n   tgt v=" + (t2.getVelocity()) + " av=" + t2.getAngVelocity());
@@ -464,7 +464,7 @@ public class Roids {
         for (int i=0; i<numVerts; i++) {
             float deg = (360f / numVerts) * i + Utils.randRange(-10, 10);
             float l = Utils.randFloat(radius/2) + radius/2; 
-            verts[i] = new MutableVector2D(Utils.cosine(deg) * l, Utils.sine(deg) * l);
+            verts[i] = new MutableVector2D(CMath.cosine(deg) * l, CMath.sine(deg) * l);
         }
         p.setVertices(verts);
         p.setOrientation(Utils.randFloat(359));

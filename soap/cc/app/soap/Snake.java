@@ -5,6 +5,7 @@ import java.awt.Graphics;
 
 import cc.lib.game.AGraphics;
 import cc.lib.game.Utils;
+import cc.lib.math.CMath;
 
 public class Snake {
 
@@ -36,8 +37,8 @@ public class Snake {
         ldy = new float[MAX_SECTIONS];
         int ang = Utils.rand() % 360;
         for (int i=0; i<numSections; i++) {
-            ldx[i] = Utils.cosine(ang) * LEN;
-            ldy[i] = Utils.sine(ang) * LEN;
+            ldx[i] = CMath.cosine(ang) * LEN;
+            ldy[i] = CMath.sine(ang) * LEN;
             headX += ldx[i];
             headY += ldy[i];
             ang += Utils.rand() % 10 + 10;

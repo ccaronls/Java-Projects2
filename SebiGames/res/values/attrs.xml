@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="TTTView">
+        <attr name="color" format="color"/>
+        <attr name="shape" format="enum">
+            <enum name="none"   value="0"/>
+            <enum name="X"   value="1"/>
+            <enum name="O"   value="2"/>
+        </attr>
+        <attr name="strokeWidth" format="dimension"/>
+        <attr name="insets" format="dimension"/>
+    </declare-styleable>
+</resources>

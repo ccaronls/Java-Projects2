@@ -6,7 +6,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import cc.lib.game.*;
-
+import cc.lib.math.CMath;
 import static java.lang.System.*;
 
 // Independent transferable 
@@ -544,9 +544,9 @@ public class Robotron {
     // TODO: Why cant I increase this number w/out wierd results?
     private final int   STATIC_FIELD_SECTIONS = 8;
     
-    private final float STATIC_FIELD_COS_T = Utils.cosine(360.0f / STATIC_FIELD_SECTIONS);
+    private final float STATIC_FIELD_COS_T = CMath.cosine(360.0f / STATIC_FIELD_SECTIONS);
     
-    private final float STATIC_FIELD_SIN_T = Utils.sine(360.0f / STATIC_FIELD_SECTIONS);
+    private final float STATIC_FIELD_SIN_T = CMath.sine(360.0f / STATIC_FIELD_SECTIONS);
     
     // number of repeated shots from megagun required to break wall
     private final int WALL_NORMAL_HEALTH = 30;
@@ -2063,8 +2063,8 @@ public class Robotron {
                 float ry = rad*0.5f;
                 
                 float deg = p.angle;
-                int tx = Math.round(px + rx * Utils.cosine(deg));
-                int ty = Math.round(py + ry * Utils.sine(deg));
+                int tx = Math.round(px + rx * CMath.cosine(deg));
+                int ty = Math.round(py + ry * CMath.sine(deg));
                 p.angle += 25;
                 
                 String star = particle_stars[p.star];
@@ -2490,8 +2490,8 @@ public class Robotron {
     // -----------------------------------------------------------------------------------------------
     private void drawTankGen(AGraphics g, int x0, int y0) {
         float degrees = (getFrameNumber() % 360);
-        int dx = Math.round(5.0f * Utils.cosine(degrees));
-        int dy = Math.round(5.0f * Utils.sine(degrees));
+        int dx = Math.round(5.0f * CMath.cosine(degrees));
+        int dy = Math.round(5.0f * CMath.sine(degrees));
         
         g.setColor(g.GREEN);
         g.drawRect(x0 - ENEMY_TANK_GEN_RADIUS + dx, y0 - ENEMY_TANK_GEN_RADIUS + dy, ENEMY_TANK_GEN_RADIUS * 2, ENEMY_TANK_GEN_RADIUS * 2);
@@ -3176,7 +3176,7 @@ public class Robotron {
                         float [] f_array = { int_array[0], int_array[1] };
                         
                         float degrees = bounceVariation * (Utils.flipCoin() ? -1 : 1); 
-                        Utils.rotateVector(f_array, degrees);
+                        CMath.rotateVector(f_array, degrees);
                         m.dx = Math.round(f_array[0]);
                         m.dy = Math.round(f_array[1]);
                     } else {
@@ -4761,7 +4761,7 @@ public class Robotron {
             g.drawLine(x0, y0, x1, y1, thickness); 
         } else {
         
-            float factor = Utils.sine(getFrameNumber()*50) * frequency;
+            float factor = CMath.sine(getFrameNumber()*50) * frequency;
             
             nx = -vy*factor;
             ny =  vx*factor;
@@ -5013,10 +5013,10 @@ public class Robotron {
                         vec[0] *= 10 / mag;
                         vec[1] *= 10 / mag;
                         
-                        Utils.rotateVector(vec, 150);
+                        CMath.rotateVector(vec, 150);
                         g.drawLine(x1, y1, x1 + Math.round(vec[0]), y1 + Math.round(vec[1]), MAZE_WALL_THICKNESS);
                         
-                        Utils.rotateVector(vec, 60);
+                        CMath.rotateVector(vec, 60);
                         int x2 = x1 + Math.round(vec[0]);
                         int y2 = y1 + Math.round(vec[1]);
                         g.drawLine(x1, y1, x2, y2, MAZE_WALL_THICKNESS);

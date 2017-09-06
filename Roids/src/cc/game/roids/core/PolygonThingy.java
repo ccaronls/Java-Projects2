@@ -275,7 +275,7 @@ public abstract class PolygonThingy extends Thingy {
             
             float dot = dv0.dot(n);
             
-            if (Math.abs(dot) < Utils.EPSILON) {
+            if (Math.abs(dot) < CMath.EPSILON) {
                 // ignore since this is 'on' the segment
             }
             else if (dot < 0) {

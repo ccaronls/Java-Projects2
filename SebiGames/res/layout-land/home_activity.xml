@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+
+    <LinearLayout 
+	    android:layout_width="match_parent"
+	    android:layout_height="match_parent"
+	    android:orientation="vertical" >
+	    <LinearLayout 
+	        android:layout_width="fill_parent"
+	        android:layout_height="0dp"
+	        android:layout_weight="1">
+	        
+	        <Button
+	            android:id="@+id/buttonPacboy"
+	            style="@style/HomeButtonStyle"
+	            android:layout_width="0dp"
+	            android:layout_height="fill_parent"
+	            android:layout_weight="1"
+	            android:background="@drawable/pacboy_icon"
+	            android:text="Pac Boy" />
+	        
+	        <Button
+	            style="@style/HomeButtonStyle"
+	            android:id="@+id/buttonCalculator" 
+	            android:layout_width="0dp"
+	            android:layout_weight="1"
+	            android:layout_height="fill_parent"
+	            android:text="Calculator"/>
+	        
+	        <Button
+                style="@style/HomeButtonStyle"
+                android:id="@+id/buttonSnakes" 
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="fill_parent"
+                android:text="Snakes"/>
+            
+	        
+	    </LinearLayout>
+	    
+	    <LinearLayout 
+	        android:layout_width="fill_parent"
+	        android:layout_height="0dp"
+	        android:layout_weight="1">
+	        
+	        <Button
+	            style="@style/HomeButtonStyle"
+	            android:id="@+id/buttonPicmatch"
+	            android:layout_width="0dp"
+	            android:layout_height="fill_parent"
+	            android:layout_weight="1"
+	            android:text="Pic Match" />
+	        
+            <Button
+                android:id="@+id/buttonTicTacToe"
+                style="@style/HomeButtonStyle"
+                android:layout_width="0dp"
+                android:layout_height="fill_parent"
+                android:layout_weight="1"
+                android:background="@drawable/tictactoe_icon"
+                android:text="Tic Tac Toe" />
+            
+            <Button
+                style="@style/HomeButtonStyle"
+                android:id="@+id/buttonCheckers" 
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="fill_parent"
+                android:background="@drawable/checkers_icon"
+                android:text="Checkers"/>	        
+	        
+	    </LinearLayout>
+	    
+	</LinearLayout>
+</LinearLayout>

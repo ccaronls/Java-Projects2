@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res/cc.android.pacboy"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#fff">
+    
+    <cc.lib.android.SquareLinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_centerInParent="true"
+        android:background="@drawable/tictactoe_grid2"
+        android:orientation="vertical" >
+            
+        <LinearLayout 
+            android:layout_width="fill_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+
+            <cc.android.sebigames.tictactoe.TTTView
+                android:id="@+id/buttonTopLeft"
+                style="@style/ttt_cell"/>
+            
+            <cc.android.sebigames.tictactoe.TTTView
+                android:id="@+id/buttonTopMiddle"
+                style="@style/ttt_cell" />
+            
+            <cc.android.sebigames.tictactoe.TTTView
+                android:id="@+id/buttonTopRight"
+                style="@style/ttt_cell" />
+
+           </LinearLayout>
+            
+        <LinearLayout 
+            android:layout_width="fill_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+
+            <cc.android.sebigames.tictactoe.TTTView
+                android:id="@+id/buttonMiddleLeft"
+                style="@style/ttt_cell" />
+            
+            <cc.android.sebigames.tictactoe.TTTView
+                android:id="@+id/buttonMiddle"
+                style="@style/ttt_cell" />
+            
+            <cc.android.sebigames.tictactoe.TTTView
+                android:id="@+id/buttonMiddleRight"
+                style="@style/ttt_cell"/>
+
+        </LinearLayout>     
+            
+        <LinearLayout 
+            android:layout_width="fill_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+
+            <cc.android.sebigames.tictactoe.TTTView
+                android:id="@+id/buttonBottomLeft"
+                style="@style/ttt_cell" />
+            
+            <cc.android.sebigames.tictactoe.TTTView
+                android:id="@+id/buttonBottomMiddle"
+                style="@style/ttt_cell" />
+            
+            <cc.android.sebigames.tictactoe.TTTView
+                android:id="@+id/buttonBottomRight"
+                style="@style/ttt_cell" />
+
+        </LinearLayout>           
+        
+    </cc.lib.android.SquareLinearLayout>
+
+</RelativeLayout>
