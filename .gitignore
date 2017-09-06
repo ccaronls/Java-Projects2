@@ -6,4 +6,6 @@
 **/*.class
 **/.idea
 **/.recommenders
-**/.metatdata
+**/.metadata
+
+
