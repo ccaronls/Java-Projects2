@@ -95,6 +95,14 @@ public abstract class AColor extends Reflector<AColor> {
         return (((int)getAlpha()*255)<<24) | (((int)getRed()*255) << 16) | (((int)getGreen()*255)<<8) | (((int)getBlue()*255) << 0);
     }
 
+    /**
+     * 
+     * @return
+     */
+    public final int toRGB() {
+        return (((int)getRed()*255) << 16) | (((int)getGreen()*255)<<8) | (((int)getBlue()*255) << 0);
+    }
+
     public abstract AColor darkened(float amount);
     
     public abstract AColor lightened(float amount);

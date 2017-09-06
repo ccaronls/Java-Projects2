@@ -1596,4 +1596,11 @@ public class Utils {
 		return false;
 	}
 
+	public static Object getRepeatingChars(char c, int length) {
+		String s = "";
+		for (int i=0; i<length; i++)
+			s += c;
+		return s;
+	}
+
 }

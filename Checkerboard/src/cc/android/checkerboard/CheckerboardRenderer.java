@@ -306,8 +306,7 @@ class CheckerboardRenderer extends BaseRenderer implements View.OnTouchListener 
     			Iterator<AAnimation> it = animations.iterator();
     			while (it.hasNext()) {
     				AAnimation a = it.next();
-    				a.update(g);
-    				if (a.isDone()) {
+    				if (a.update(g)) {
     					it.remove();
     				}
     			}

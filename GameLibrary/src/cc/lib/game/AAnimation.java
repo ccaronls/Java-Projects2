@@ -1,11 +1,17 @@
 package cc.lib.game;
 
+/**
+ * Convenience class for managing an animation in a rendering pipeline
+ * 
+ * @author chriscaron
+ *
+ */
 public abstract class AAnimation {
     private long startTime;
     private long lastTime;
     private final long duration;
     private final int maxRepeats;
-    private float position;
+    private float position = 0;
     private boolean done;
     private boolean started = false;
     
@@ -19,37 +25,53 @@ public abstract class AAnimation {
     public final void start(long delay) {
     	if (delay < 0)
     		delay = 0;
-        startTime = System.currentTimeMillis() + delay;
+        lastTime = startTime = System.currentTimeMillis() + delay;
         position = 0;
     }
 
-    public final void start() {
+    public final AAnimation start() {
     	start(0);
+    	return this;
     }
     
     public final boolean isDone() {
         return done;
     }
     
-    public final void update(AGraphics g) {
+    /**
+     * Rendering loop calls this repeatedly and checks 'isDone' for removal
+     * 
+     * @param g
+     * returns true when isDone
+     */
+    public final boolean update(AGraphics g) {
         long t = System.currentTimeMillis();
         if (t < startTime) {
-            draw(g, position, 0);
-            return;
+            return false;
         } else if (!started) {
         	started = true;
+        	lastTime = t;
         	onStarted();
         }
+
+        float delta = (t-startTime) % duration;
+        position = delta / duration;
         long repeats = (t-startTime) / duration;
+        boolean isDone = false;
         if (maxRepeats >= 0 && repeats > maxRepeats) {
-            done = true;
-            onDone();
-        } else {
-            float delta = (t-startTime) % duration;
-            position = delta / duration;
-            draw(g, position, t-lastTime);
-            lastTime = t;
+        	position = 1;
+        	onDone();
+        	isDone = true;
         }
+        draw(g, position, t-lastTime);
+        lastTime = t;
+        return isDone;
+    }
+    
+    public void stop() {
+    	if (started) {
+    		onDone();
+    	}
     }
     
     /**
