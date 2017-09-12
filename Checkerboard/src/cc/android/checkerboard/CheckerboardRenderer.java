@@ -137,7 +137,7 @@ class CheckerboardRenderer extends BaseRenderer implements View.OnTouchListener 
 			g.pushMatrix();
 			g.translate(x, y);
 			g.scale(scale);
-			drawChecker(g, 0, 0, glPieceRad, stacks, playerNum, getPieceColor(playerNum, g));
+			drawChecker(g, 0, 0, glPieceRad, stacks, playerNum, getPieceColor(playerNum, g), null);
 			g.popMatrix();
 		}
 
@@ -178,7 +178,7 @@ class CheckerboardRenderer extends BaseRenderer implements View.OnTouchListener 
 			int x = Math.round(sx + (ex-sx) * position);
 			int y = Math.round(sy + (ey-sy) * position);
 			Piece p = CheckerboardActivity.game.getPiece(move.startRank, move.startCol);
-			drawChecker(g, x, y, glPieceRad, stacks, playerNum, getPieceColor(playerNum, g));
+			drawChecker(g, x, y, glPieceRad, stacks, playerNum, getPieceColor(playerNum, g), null);
 		}
 
 	}
@@ -215,7 +215,7 @@ class CheckerboardRenderer extends BaseRenderer implements View.OnTouchListener 
 		public void draw(AGraphics g, float position, float dt) {
 			Vector2D v = curve.getPointAt(position);
 			Piece p = CheckerboardActivity.game.getPiece(move.startRank, move.startCol);
-			drawChecker(g, v.Xi(), v.Yi(), glPieceRad, stacks, playerNum, getPieceColor(playerNum, g));
+			drawChecker(g, v.Xi(), v.Yi(), glPieceRad, stacks, playerNum, getPieceColor(playerNum, g), null);
 		}
 		
 	};
@@ -297,7 +297,8 @@ class CheckerboardRenderer extends BaseRenderer implements View.OnTouchListener 
 				}
 				
 				Piece p = checkers.getPiece(rank, col);
-				drawChecker(g, p, rank, col);
+                boolean outlined = checkers.computeMoves(rank, col).size() > 0;
+				drawChecker(g, p, rank, col, outlined);
 			}
 		}
 		
@@ -326,14 +327,14 @@ class CheckerboardRenderer extends BaseRenderer implements View.OnTouchListener 
 		}
 		
 		// Draw an indicator bar on side of the player whose turn it is.
-		g.setColor(getPieceColor(checkers.getCurPlayerNum(), g));
+        float alpha = ((float)Math.sin(0.02*(frameCount % 50))+1)/2;
+		g.setColor(getPieceColor(checkers.getCurPlayerNum(), g).setAlpha(alpha));
+        int thickness = 20;
 		if (checkers.getCurPlayerNum() == 0) {
-			g.drawFilledRect(0, glHeight-10, glWidth, 10);
+			g.drawFilledRect(0, glHeight-thickness, glWidth, thickness);
 		} else {
-			g.drawFilledRect(0, 0, glWidth, 10);
+			g.drawFilledRect(0, 0, glWidth, thickness);
 		}
-		
-		if (animations == null)
 		
 		g.setColor(g.YELLOW);
 		switch (checkers.getWinner()) {
@@ -360,22 +361,22 @@ class CheckerboardRenderer extends BaseRenderer implements View.OnTouchListener 
 		return g.TRANSPARENT;
 	}
 	
-	void drawChecker(AGraphics g, Piece p, int rank, int col) {
+	void drawChecker(AGraphics g, Piece p, int rank, int col, boolean outlined) {
 		int cx = col*glCellWidth + glCellWidth/2;
 		int cy = rank*glCellHeight + glCellHeight/2;
-		drawChecker(g, p, cx, cy, glPieceRad);
+		drawChecker(g, p, cx, cy, glPieceRad, outlined);
 	}
 	
-	void drawChecker(AGraphics g, Piece p, int x, int y, int rad) {
+	void drawChecker(AGraphics g, Piece p, int x, int y, int rad, boolean outlined) {
 		if (p.stacks == 0)
 			return;
 		for (int i=0; i<p.stacks; i++) {
-			drawChecker(g, x, y, rad, p.stacks, p.playerNum, getPieceColor(p.playerNum, g));
+			drawChecker(g, x, y, rad, p.stacks, p.playerNum, getPieceColor(p.playerNum, g), outlined ? g.YELLOW : null);
 			y -= rad/4;
 		}
 	}
 	
-	void drawChecker(AGraphics g, int x, int y, int rad, int stacks, int playerNum, AColor color) {
+	void drawChecker(AGraphics g, int x, int y, int rad, int stacks, int playerNum, AColor color, AColor outlineColor) {
 		if (stacks <= 0)
 			return;
 		AColor dark = color.darkened(0.5f);
@@ -387,7 +388,10 @@ class CheckerboardRenderer extends BaseRenderer implements View.OnTouchListener 
 		}
 		g.setColor(color);
 		g.drawDisk(x/*+num*step*/, y+num*step, rad);
-		
+        if (outlineColor != null) {
+            g.setColor(outlineColor);
+            g.drawCircleWithThickness(x, y+num*step, rad, 2);
+        }
 	}
 	/*
 	void drawChecker(AGraphics g, AColor colorTop, AColor color, int x, int y, int r) {

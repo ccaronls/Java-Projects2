@@ -161,8 +161,9 @@ public class Checkers implements ICheckerboard {
     		}
     		board[move.endRank][move.endCol] = p;
 		}
-		
+
 		switch (move.type) {
+            case SLIDE:
 			case END:
 				endTurn();
 				return Collections.emptyList();
@@ -177,8 +178,8 @@ public class Checkers implements ICheckerboard {
 				break; // recursive compute next move
 			case STACK:
 				p.stacks ++;
-			case SLIDE:
-				return Utils.asList(new Move(MoveType.END, 0, 0, 0, 0, 0, 0, move.playerNum));
+                break;
+				//return Utils.asList(new Move(MoveType.END, 0, 0, 0, 0, 0, 0, move.playerNum));
 		}
 		
 		

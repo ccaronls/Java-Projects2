@@ -834,7 +834,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param x
      * @param y
      * @param radius
-     * @param int sections
+     * @param sections
      */
     public final void drawDisk(float x, float y, float radius, int sections) {
         pushMatrix();
@@ -927,6 +927,19 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      */
     public final void drawCircle(float x, float y, float radius, int sections) {
         drawCircle(x, y, radius, 1, sections);
+    }
+
+    /**
+     *
+     * @param x
+     * @param y
+     * @param radius
+     * @param thickness
+     */
+    public final void drawCircleWithThickness(float x, float y, float radius, int thickness) {
+        int sections = Math.round(radius * 4);
+        sections = Utils.clamp(sections,  8,  32);
+        drawCircle(x, y, radius, thickness, sections);
     }
 
     /**

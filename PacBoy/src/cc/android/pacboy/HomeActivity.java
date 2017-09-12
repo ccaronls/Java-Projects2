@@ -190,10 +190,8 @@ public class HomeActivity extends CCActivityBase implements OnClickListener, Goo
 	}
 
 	@Override
-	public void onConnectionSuspended(int cause) {
-		//mGAPI.reconnect();
-	}
-	
+    public void onDisconnected() {}
+
 	final int RC_GET_ALL_LEADERBOARDS = 10030;
 	final int RC_GAME_RESULT = 10031;
 	final int RC_RESOLUTION_RESULT = 10032;
