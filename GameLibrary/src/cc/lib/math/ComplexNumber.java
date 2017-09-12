@@ -126,7 +126,6 @@ public final class ComplexNumber {
     /**
      * Return this / denom
      * @param denom
-     * @param result
      * @return
      */
     public ComplexNumber divide(ComplexNumber denom) {
@@ -170,7 +169,6 @@ public final class ComplexNumber {
     
     /**
      * Return [-this.imag, this.real]
-     * @param result
      * @return
      */
     public ComplexNumber conj() {
@@ -179,7 +177,6 @@ public final class ComplexNumber {
 
     /**
      * Return sqrt(this)
-     * @param result
      * @return
      */
     public ComplexNumber sqrt() {
@@ -191,7 +188,6 @@ public final class ComplexNumber {
     /**
      * Return this ^ int
      * @param power
-     * @param result
      * @return
      */
     public ComplexNumber powi(int power) {
@@ -206,7 +202,6 @@ public final class ComplexNumber {
     /**
      * Return this ^ double
      * @param n
-     * @param result
      * @return
      */
     public ComplexNumber powd(double n) {
@@ -220,7 +215,6 @@ public final class ComplexNumber {
     /**
      * Return [e^power.real * cos(power.imag), e^power.real * sin(power.imag)]
      * @param power
-     * @param result
      * @return
      */
     public ComplexNumber powc(ComplexNumber power) {
@@ -241,7 +235,6 @@ public final class ComplexNumber {
      * Return [fc(this.imag) * sin(this.real), fs(this.imag)*cos(this.real)]
      *   where fs(x) = (e^x - e^-x)/2
      *   and   fc(x) = (e^x + e^-x)/2
-     * @param result
      * @return
      */
     public ComplexNumber sine() {
@@ -252,7 +245,6 @@ public final class ComplexNumber {
      * Return [fs(this.real) * cos.(this.imag), fc(this.real)*sin(this.imag)]
      *   where fs(x) = (e^x - e^-x)/2
      *   and   fc(x) = (e^x + e^-x)/2
-     * @param result
      * @return
      */
     public ComplexNumber sineh() {
@@ -261,7 +253,6 @@ public final class ComplexNumber {
 
     /**
      * Return -I * ln((this*I) + sqrt(1-this^2))
-     * @param result
      * @return
      */
     public ComplexNumber asine() {
@@ -278,7 +269,6 @@ public final class ComplexNumber {
     /**
      * return ln(this + sqrt((this^2)+1))
      * 
-     * @param result
      * @return
      */
     public ComplexNumber asineh() {
@@ -295,7 +285,6 @@ public final class ComplexNumber {
 
     /**
      * 
-     * @param result
      * @return
      */
     public ComplexNumber cosineh() {
@@ -304,7 +293,6 @@ public final class ComplexNumber {
     
     /**
      * Return -I * ln(this+I * sqrt(1-(this^2))
-     * @param result
      * @return
      */
     public ComplexNumber acosine() {
@@ -318,7 +306,6 @@ public final class ComplexNumber {
     
     /**
      * Return 2 * ln(sqrt((this+1)/2) + sqrt(((this-1)/2))
-     * @param result
      * @return
      */
     public ComplexNumber acosineh() {
@@ -332,7 +319,6 @@ public final class ComplexNumber {
     
     /**
      * Return sin(this) / cosine(this)
-     * @param result
      * @return
      */
     public ComplexNumber tangent() {

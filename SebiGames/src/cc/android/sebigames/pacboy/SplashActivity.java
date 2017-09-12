@@ -3,7 +3,7 @@ package cc.android.sebigames.pacboy;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-import cc.android.pacboy.BuildConfig;
+import cc.android.sebigames.BuildConfig;
 import cc.android.sebigames.HomeActivity;
 import cc.lib.android.CCActivityBase;
 

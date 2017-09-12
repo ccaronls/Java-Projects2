@@ -178,7 +178,7 @@ public class Checkers implements ICheckerboard {
 			case STACK:
 				p.stacks ++;
 			case SLIDE:
-				return Arrays.asList(new Move(MoveType.END, 0, 0, 0, 0, 0, 0, move.playerNum));
+				return Utils.asList(new Move(MoveType.END, 0, 0, 0, 0, 0, 0, move.playerNum));
 		}
 		
 		

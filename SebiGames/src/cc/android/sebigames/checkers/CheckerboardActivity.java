@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.TextView;
+import cc.android.sebigames.R;
 import cc.lib.android.CCActivityBase;
 
 public class CheckerboardActivity extends CCActivityBase implements OnClickListener {
@@ -15,7 +16,7 @@ public class CheckerboardActivity extends CCActivityBase implements OnClickListe
 	protected void onCreate(Bundle bundle) {
 		super.onCreate(bundle);
 		setContentView(R.layout.cb_activity);
-		pbv = (CheckerboardView)findViewById(R.id.cbView);
+		pbv = findViewById(R.id.cbView);
 		findViewById(R.id.buttonNewGame).setOnClickListener(this);
 		findViewById(R.id.buttonEndTurn).setOnClickListener(this);
 	}

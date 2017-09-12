@@ -91,19 +91,126 @@ public abstract class PolygonThingy extends Thingy {
         for (int i=0; i<this.boundingVerts.length; i++) {
         	MutableVector2D v = boundingVerts[i].rotate(orientation, Vector2D.newTemp()).addEq(position);
             if (target.isPointInsidePolygon(v)) {
+            	System.out.println("Point " + i + " is inside");
                 // collect collision info
                 info.source = this;
                 info.target = target;
-                info.sourcePos.set(getPosition());
-                info.targetPos.set(target.getPosition());
+                //info.sourcePos.set(getPosition());
+                //info.targetPos.set(target.getPosition());
                 info.collisionPoint.set(v);
                 return computeBounceVectors(i, target, info);
             }
         }
         return false;
     }
-    
-    private boolean computeBounceVectors(int collisionPointIndex, PolygonThingy target, Collision info) {
+
+    /**
+     * My point index is inside the target somewhere
+     * 
+     * case 1 collision:
+     * 
+     *   1 pt and 2 edges of this are intersecting target. The bounce vector is the normal to the plane of the single edge we hit
+     *   
+     *   
+     * case 2 collision:
+     * 
+     *   1 pt and 2 edges of each polygon are intersecting each other. The bounce vector is the normal to the points
+     * 
+     * 
+     * @param collisionPointIndex
+     * @param target
+     * @param info
+     * @return
+     */
+    private boolean computeBounceVectors(int ptIndex, PolygonThingy target, Collision info) {
+    	// compare edges against each other until we figure out the type of collision
+    	
+        // create 2 matricies
+        Matrix3x3 srcM = new Matrix3x3();
+        Matrix3x3 tarM = new Matrix3x3();
+        
+        srcM.setTranslate(info.source.position);
+        srcM.rotateEq(getOrientation());
+        
+        tarM.setTranslate(info.target.position);
+        tarM.rotateEq(target.getOrientation());
+
+        MutableVector2D [] s = new MutableVector2D[3];
+        int index = (ptIndex-1+boundingVerts.length) % boundingVerts.length;
+        for (int i=0; i<3; i++) {
+        	s[i] = new MutableVector2D(boundingVerts[index]);
+        	srcM.transform(s[i]);
+        	index = (index+1)%boundingVerts.length;
+        }
+        
+        // dont need to cache this
+        MutableVector2D [] t = new MutableVector2D[target.boundingVerts.length];
+        for (int i=0; i<t.length; i++) {
+        	t[i] = new MutableVector2D(target.boundingVerts[i]);
+        	tarM.transform(t[i]);
+        }
+
+        // find the first edge we intersect with
+        int targetEdge = -1;
+        for (int i=0; i<t.length; i++) {
+        	int ii = (i+1)%t.length;
+
+        	int r = Utils.isLineSegsIntersecting(t[i],  t[ii], s[0], s[1]);
+        	
+        	if (r == 1) {
+                info.addSegment(s[0], s[1], 0);
+                info.addSegment(t[i], t[ii], 0);
+        		targetEdge = i;
+        		break;
+        	}
+        }
+
+        if (targetEdge < 0) {
+            System.out.println("Cannot determine collision");
+        	return false;
+        }
+        
+        // check our second edge against collision
+        
+        Vector2D t1 = t[targetEdge];
+        Vector2D t2 = t[(targetEdge+1)%t.length];
+        switch (Utils.isLineSegsIntersecting(s[1], s[2], t1, t2)) {
+        	case 0:
+        		// this must be a case 2 situation!
+        		// in the case of a pt 2 pt intersection, there is a highly likely situation where
+        		// the polygons can become stuck together.
+        		
+        		// So, reject a collision if the 2 points are already moving away from each other
+        		//Vector2D sptv = info.source.velocity.add(s[1].norm().scaleEq(info.source.angVelocity));
+        		//Vector2D tptv = info.target.velocity.add(t1.norm().scaleEq(info.target.angVelocity));
+        		//if (sptv.dot(tptv) > 0)
+        		//	return false;
+        		
+        		// update the collisionPt to be midway between target and source pts
+        		s[1].add(t1, info.collisionPoint).scaleEq(0.5f); 
+        		
+        		info.addSegment(s[1], s[2], 1);
+        		info.addSegment(t1, t[(targetEdge-1+t.length)%t.length], 1);
+        		s[1].sub(t1, info.planeNormal).normEq().unitLengthEq();
+        		//info.target.position.sub(info.collisionPoint, info.planeNormal).unitLengthEq();
+        		//info.source.position.sub(info.target.position, info.planeNormal).unitLengthEq();
+        		//s[1].sub(t1, info.planeNormal).normEq().unitLengthEq();
+        		System.out.println("Case 2 collision");
+        		return true;
+        		
+        	case 1: {
+        		info.addSegment(s[1], s[2], 0);
+        		t2.sub(t1, info.planeNormal).normEq().unitLengthEq();
+        		System.out.println("Case 1 collision");
+        		return true;
+        	}
+        }
+        
+        System.out.println("Cannot determine collision");
+        return false;
+    }
+
+    private boolean computeBounceVectors_x(int collisionPointIndex, PolygonThingy target, Collision info) {
      // we want to determine the type of collision:
         // edge/edge, edge/point, point/point
         
@@ -114,10 +221,10 @@ public abstract class PolygonThingy extends Thingy {
         Matrix3x3 m1 = new Matrix3x3();
         
         m0.setRotation(getOrientation());
-        m0.translate(info.sourcePos);
+        m0.translate(info.source.position);
         
         m1.setRotation(target.getOrientation());
-        m1.translate(info.targetPos);
+        m1.translate(info.target.position);
 
         // precompute all the points we need.  
         
@@ -139,46 +246,42 @@ public abstract class PolygonThingy extends Thingy {
         
         int collisionIndex0 = -1;
 
-        MutableVector2D e0= Vector2D.newTemp();
-        MutableVector2D e1= Vector2D.newTemp();
+        //MutableVector2D e0= Vector2D.newTemp();
+        //MutableVector2D e1= Vector2D.newTemp();
         
         // see if the next point is also in the target
         if (target.isPointInsidePolygon(src[2])) {
             // here is a special case that is essentially and edge 2 edge collision
             System.out.println("Case S");
+            MutableVector2D e0= Vector2D.newTemp();
             src[1].sub(src[2], e0); // get the edge
             e0.norm(info.planeNormal).unitLengthEq();
             info.collisionPoint.addEq(e0.scaleEq(-0.5f));
             return true;
         }
         
+        int segColorIndex=0;
         for (int i=0; i<src.length-1; i++) {
             // get the edge to test
-            src[i+1].sub(src[i], e0);
             float x0 = src[i].getX();
             float y0 = src[i].getY();
-            float x1 = src[i].getX() + e0.getX();
-            float y1 = src[i].getY() + e0.getY();
-            //int x0 = Math.round(src[i].getX());
-            //int y0 = Math.round(src[i].getY());
-            //int x1 = Math.round(src[i].getX() + e0.getX());
-            //int y1 = Math.round(src[i].getY() + e0.getY());
-            for (int ii=0; ii<dst.length; ii++) {
-                int iii=(ii+1)%dst.length;
-                dst[iii].sub(dst[ii], e1);
+            float x1 = src[i+1].getX();
+            float y1 = src[i+1].getY();
+
+            for (int ii=0; ii<dst.length-1; ii++) {
                 float x2 = dst[ii].getX();
                 float y2 = dst[ii].getY();
-                float x3 = dst[ii].getX() + e1.getX();
-                float y3 = dst[ii].getY() + e1.getY();
-                //int x2 = Math.round(dst[ii].getX());
-                //int y2 = Math.round(dst[ii].getY());
-                //int x3 = Math.round(dst[ii].getX() + e1.getX());
-                //int y3 = Math.round(dst[ii].getY() + e1.getY());
+                float x3 = dst[ii+1].getX();
+                float y3 = dst[ii+1].getY();
+
                 switch (Utils.isLineSegsIntersecting(x0, y0, x1, y1, x2, y2, x3, y3)) {
                     case 0: break;
                     case 1: // intersecting
-                        info.addSegment(Vector2D.newTemp(x0, y0).add(info.sourcePos), Vector2D.newTemp(x1, y1).add(info.sourcePos));
-                        info.addSegment(Vector2D.newTemp(x2, y2).add(info.targetPos), Vector2D.newTemp(x3, y3).add(info.targetPos));
+                    	
+//                    	System.out.println("source edge " + i + "->" + ()+ " intercets with target " + ii + "->" + iii);
+                    	
+                        info.addSegment(Vector2D.newTemp(x0, y0).add(info.source.position), Vector2D.newTemp(x1, y1).add(info.source.position), segColorIndex);
+                        info.addSegment(Vector2D.newTemp(x2, y2).add(info.target.position), Vector2D.newTemp(x3, y3).add(info.target.position), segColorIndex++);
                         if (collisionIndex0 < 0) {
                             // found 1 set of intersections
                             System.out.print("Case A->");
@@ -186,7 +289,8 @@ public abstract class PolygonThingy extends Thingy {
                         } else if (ii == collisionIndex0) {
                             // 2 of my edges are intersecting a single edge of target
                             System.out.println("1B");
-                            
+                            MutableVector2D e1= Vector2D.newTemp();
+                            e1.set(x3, y3).subEq(x2, y2);
                             e1.unitLengthEq();
                             e1.norm(info.planeNormal);
                             return true;
@@ -194,7 +298,7 @@ public abstract class PolygonThingy extends Thingy {
                             System.out.println("1C");
                             
                             // this is a point to point collision, so the normal is just the normalized vector between the objects centers
-                            info.targetPos.sub(info.sourcePos, info.planeNormal).unitLengthEq();                            
+                            info.target.position.sub(info.source.position, info.planeNormal).unitLengthEq();                            
                             /*
                             Vector2D c0 = Vector2D.newTemp(x0, y0);
                             Vector2D c1 = Vector2D.newTemp(x3, y3);
@@ -221,11 +325,13 @@ public abstract class PolygonThingy extends Thingy {
                         // bounce vector is the sum of the edges of the point
                         break;
                     case 2: {
-                        info.addSegment(Vector2D.newTemp(x0, y0).add(info.sourcePos), Vector2D.newTemp(x1, y1).add(info.sourcePos));
+                        info.addSegment(Vector2D.newTemp(x0, y0).add(info.source.position), Vector2D.newTemp(x1, y1).add(info.source.position), segColorIndex);
                         System.out.println("Case 2");
                         // parallel and coincident
                         // here the bounce vectors are the normal to the edge (either).  Then we stop searching 
-                        info.addSegment(Vector2D.newTemp(x2, y2).add(info.targetPos), Vector2D.newTemp(x3, y3).add(info.targetPos));
+                        info.addSegment(Vector2D.newTemp(x2, y2).add(info.target.position), Vector2D.newTemp(x3, y3).add(info.target.position), segColorIndex++);
+                        MutableVector2D e0= Vector2D.newTemp();
+                        e0.set(x1, y1).subEq(x0,  y0);
                         info.planeNormal.set(e0.normEq().unitLengthEq());
                         return true;
                     }

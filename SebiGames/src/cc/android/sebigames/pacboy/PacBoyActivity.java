@@ -3,7 +3,7 @@ package cc.android.sebigames.pacboy;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
-import cc.android.pacboy.R;
+import cc.android.sebigames.R;
 import cc.lib.android.CCActivityBase;
 
 public class PacBoyActivity extends CCActivityBase {

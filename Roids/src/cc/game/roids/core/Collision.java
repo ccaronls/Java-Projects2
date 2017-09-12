@@ -3,6 +3,7 @@ package cc.game.roids.core;
 import java.util.ArrayList;
 import java.util.List;
 
+import cc.lib.game.AColor;
 import cc.lib.game.AGraphics;
 import cc.lib.math.*;
 
@@ -15,8 +16,8 @@ import cc.lib.math.*;
 public class Collision {
 
     Thingy source, target;
-    MutableVector2D sourcePos = new MutableVector2D();
-    MutableVector2D targetPos = new MutableVector2D();
+    //MutableVector2D sourcePos = new MutableVector2D();
+    //MutableVector2D targetPos = new MutableVector2D();
     MutableVector2D collisionPoint = new MutableVector2D(); // collision point
     MutableVector2D planeNormal = new MutableVector2D(); // unit length normal to plane of collision
 
@@ -29,18 +30,38 @@ public class Collision {
     
     
     // for debugging
-    List<Vector2D []> segments = new ArrayList();
+    class Segment {
+    	final Vector2D A, B;
+    	final int index;
+		public Segment(Vector2D a, Vector2D b, int index) {
+			super();
+			A = a;
+			B = b;
+			this.index = index;
+		}
+    	
+    }
+    List<Segment> segments = new ArrayList<>();
     
     public void draw(AGraphics g) {
-        g.setColor(g.YELLOW);
-        for (Vector2D [] segment: segments)
-            g.drawLine(segment[0].X(), segment[0].Y(), segment[1].X(), segment[1].Y(), 2);
+    	
+    	AColor [] segColors = {
+    			g.YELLOW,
+    			g.MAGENTA,
+    			g.DARK_GRAY
+    	};
+    	
+        for (Segment segment: segments) {
+        	g.setColor(segColors[segment.index % segColors.length]);
+            g.drawLine(segment.A.X(), segment.A.Y(), segment.B.X(), segment.B.Y(), 2);
+        }
         g.setColor(g.WHITE);
         g.drawCircle(collisionPoint.getX(), collisionPoint.getY(), 2);
         g.drawCircle(collisionPoint.getX(), collisionPoint.getY(), 5);
-        g.setColor(g.MAGENTA);
+        g.setColor(g.ORANGE);
         final float arrowLen = 10;
-        g.drawLine(collisionPoint.getX(), collisionPoint.getY(), collisionPoint.getX()+planeNormal.getX()*arrowLen, collisionPoint.getY()+planeNormal.getY()*arrowLen, 2);
+        Vector2D pt = collisionPoint;
+        g.drawLine(pt.getX(), pt.getY(), pt.getX()+planeNormal.getX()*arrowLen, pt.getY()+planeNormal.getY()*arrowLen, 2);
         //g.drawLine(source.getX(), source.getY(), source.getX()+sourceBounce.getX()*arrowLen, source.getY()+sourceBounce.getY()*arrowLen);
         //g.drawLine(target.getX(), target.getY(), target.getX()+targetBounce.getX()*arrowLen, target.getY()+targetBounce.getY()*arrowLen);
         g.drawString("SRC", source.getX(), source.getY());
@@ -65,8 +86,8 @@ public class Collision {
         g.end();
     }
 
-    void addSegment(Vector2D v0, Vector2D v1) {
-        segments.add(new Vector2D[] { v0, v1 });
+    void addSegment(Vector2D v0, Vector2D v1, int colorIndex) {
+        segments.add(new Segment(v0, v1, colorIndex));
     }
     
     public String toString() {

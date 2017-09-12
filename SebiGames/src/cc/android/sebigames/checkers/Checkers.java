@@ -5,8 +5,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import cc.android.checkerboard.ICheckerboard.Move;
-import cc.android.checkerboard.ICheckerboard.Piece;
 import cc.lib.game.*;
 import cc.lib.math.*;
 

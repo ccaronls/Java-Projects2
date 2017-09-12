@@ -66,7 +66,7 @@ public class Roids {
             t.update(this, (float)curTime/1000, (float)deltaTime/1000);
         }
         
-        if (!pressed && !paused) {
+        if (!pressed && !isPaused()) {
             accumulator += (float)deltaTime/1000;
             
             while (accumulator >= PHYSICS_TIME_STEP) {
@@ -301,13 +301,13 @@ public class Roids {
         Vector2D N = c.planeNormal; 
         // From: http://en.wikipedia.org/wiki/Collision_response
         
-        System.out.println("Pre collision:" + "\n   src p=" + (c.sourcePos) + " v=" + (t1.getVelocity()) + " av=" + t1.getAngVelocity()
-                                            + "\n   tgt p=" + (c.targetPos) + " v=" + (t2.getVelocity()) + " av=" + t2.getAngVelocity());
+        System.out.println("Pre collision:" + "\n   src p=" + (c.source.position) + " v=" + (t1.getVelocity()) + " av=" + t1.getAngVelocity()
+                                            + "\n   tgt p=" + (c.target.position) + " v=" + (t2.getVelocity()) + " av=" + t2.getAngVelocity());
         
         
         // Ri is the radius vector from ti to point of collision
-        Vector2D R1 = P.sub(c.sourcePos, c.R1);//Vector2D.newTemp());
-        Vector2D R2 = P.sub(c.targetPos, c.R2);//Vector2D.newTemp());
+        Vector2D R1 = P.sub(c.source.position, c.R1);//Vector2D.newTemp());
+        Vector2D R2 = P.sub(c.target.position, c.R2);//Vector2D.newTemp());
         
         // Vpi is the relative velocity at the point of collision given both linear and angular velocities
         // Vpi = Vi + Wi X Ri
@@ -322,8 +322,8 @@ public class Roids {
 
         float numer = Vr.dot(N) * -(1.0f + COEFF_RESTITUTION);
         
-        MutableVector2D A = R1.cross(R1.cross(N), Vector2D.newTemp()).scaleEq(t1.getInvInertia());
-        MutableVector2D B = R2.cross(R2.cross(N), Vector2D.newTemp()).scaleEq(t2.getInvInertia());
+        MutableVector2D A = R1.cross(R1.cross(N)).scaleEq(t1.getInvInertia());
+        MutableVector2D B = R2.cross(R2.cross(N)).scaleEq(t2.getInvInertia());
         
         float denom = t1.getInvMass() + t2.getInvMass() + (A.addEq(B)).dot(N); 
         
@@ -479,7 +479,7 @@ public class Roids {
     }
 
     public DragMode dragMode = DragMode.POSITION;
-    public boolean pauseOnCollision = false;
+    public boolean pauseOnCollision = true;
     
     public void togglePause() {
         paused = !paused;

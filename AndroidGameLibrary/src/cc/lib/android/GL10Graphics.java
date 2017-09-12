@@ -1034,11 +1034,6 @@ for (int pix : pixels) {
         return images.get(id);
     }
     
-    @Override
-	public void deleteImage(int id) {
-        throw new RuntimeException("Not implemented");
-	}
-
 	@Override
     public final AImage getImage(int id, int width, int height) {
         throw new RuntimeException("Not implemented");

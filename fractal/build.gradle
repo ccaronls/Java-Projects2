@@ -1,7 +1,15 @@
 apply plugin: 'java'
+
 sourceSets {
-    main.java.srcDirs = ['src','test']
-    main.resources.srcDirs = ['src','test']
-    test.java.srcDirs = ['tests/java']
-    test.resources.srcDirs = ['tests/resources']
+    main {
+        java {
+            srcDirs = ['src', '../GameLibrary/src']
+            //exclude '**/swing/**'
+            exclude '**/skunkworks/**'
+        }
+    }
 }
+
+//dependencies {
+//    compile project ':GameLibrary'
+//}

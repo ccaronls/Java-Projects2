@@ -1,5 +1,7 @@
 <resources>
 
-    <string name="app_name">PacBoy</string>
+    <string name="app_name">Sebi\'s Games</string>
     <string name="app_id">1021762720043</string>
+    <string name="div_symbol">&#xf7;</string>
+    
 </resources>

@@ -3,7 +3,6 @@ package cc.android.checkerboard;
 import java.util.ArrayList;
 import java.util.List;
 
-import cc.android.checkerboard.CheckerboardRenderer.ACBAnimation;
 import cc.android.checkerboard.CheckerboardRenderer.JumpAnim;
 import cc.android.checkerboard.CheckerboardRenderer.SlideAnim;
 import cc.android.checkerboard.CheckerboardRenderer.StackAnim;

@@ -1,17 +1,5 @@
 package cc.android.sebigames.pacboy;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.PendingResult;
-import com.google.android.gms.common.api.ResultCallback;
-import com.google.android.gms.common.api.Status;
-import com.google.android.gms.games.Games;
-import com.google.android.gms.games.GamesStatusCodes;
-import com.google.android.gms.games.leaderboard.LeaderboardVariant;
-import com.google.android.gms.games.leaderboard.ScoreSubmissionData;
-import com.google.android.gms.games.leaderboard.Leaderboards.SubmitScoreResult;
-import com.google.android.gms.games.leaderboard.ScoreSubmissionData.Result;
-
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
@@ -20,10 +8,10 @@ import android.os.Message;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Toast;
-import cc.android.pacboy.R;
+import cc.android.sebigames.R;
 import cc.lib.android.CCActivityBase;
 
-public class PacboySetupActivity extends CCActivityBase implements OnClickListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+public class PacboySetupActivity extends CCActivityBase implements OnClickListener {
 
 	//private GoogleApiClient mGAPI;
 	
@@ -182,26 +170,6 @@ public class PacboySetupActivity extends CCActivityBase implements OnClickListen
 		}
 		
 	};
-
-	@Override
-	public void onConnectionFailed(ConnectionResult result) {
-		try {
-			result.startResolutionForResult(this, RC_RESOLUTION_RESULT);
-		} catch (Exception e) {
-			e.printStackTrace();
-			handler.sendEmptyMessage(MSG_SIGNIN_FAILED);
-		}
-	}
-
-	@Override
-	public void onConnected(Bundle connectionHint) {
-		handler.sendEmptyMessage(MSG_SIGNIN_SUCCESS);
-	}
-
-	@Override
-	public void onConnectionSuspended(int cause) {
-		//mGAPI.reconnect();
-	}
 	
 	final int RC_GET_ALL_LEADERBOARDS = 10030;
 	final int RC_GAME_RESULT = 10031;

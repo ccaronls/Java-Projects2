@@ -1,6 +1,6 @@
 package cc.android.sebigames.tictactoe;
 
-import cc.android.pacboy.R;
+import cc.android.sebigames.R;
 import cc.lib.game.Utils;
 import android.animation.Animator;
 import android.animation.AnimatorSet;

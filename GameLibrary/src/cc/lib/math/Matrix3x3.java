@@ -1,5 +1,6 @@
 package cc.lib.math;
 
+import cc.lib.game.IVector2D;
 import cc.lib.utils.Reflector;
 
 
@@ -360,6 +361,10 @@ public final class Matrix3x3 extends Reflector<Matrix3x3> {
 	public final double fnorm() {
 		return Math.sqrt(  a11*a11 + a12*a12 + a13*a13  + a21*a21 + a22*a22  + a23*a23  + a31*a31 + a32*a32 + a33*a33 ); 
 	}
+	
+	public final void setTranslate(IVector2D v) {
+		setTranslate(v.getX(), v.getY());
+	}
 
 	public final void setTranslate(float tx, float ty) {
 		this.assign(1, 0, tx, 0, 1, ty, 0, 0, 1);
@@ -398,7 +403,13 @@ public final class Matrix3x3 extends Reflector<Matrix3x3> {
 	public Matrix3x3 translate(Vector2D v) {
 		Matrix3x3 T = new Matrix3x3();
 		T.setTranslate(v.X(), v.Y());
-		multiply(T);
+		return multiply(T);
+	}
+	
+	public Matrix3x3 rotateEq(float degrees) {
+		Matrix3x3 T = new Matrix3x3();
+		T.setRotation(degrees);
+		assign(multiply(T));
 		return this;
 	}
 }

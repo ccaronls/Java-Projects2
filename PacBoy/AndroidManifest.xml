@@ -4,8 +4,8 @@
     android:versionName="1.0" >
 
     <uses-sdk
-        android:minSdkVersion="11"
-        android:targetSdkVersion="21" />
+        android:minSdkVersion="21"
+        android:targetSdkVersion="26" />
 
     <application
         android:allowBackup="true"
@@ -16,8 +16,7 @@
         >
         
         <meta-data android:name="com.google.android.gms.games.APP_ID" android:value="@string/app_id" />
-        <meta-data android:name="com.google.android.gms.version" android:value="@integer/google_play_services_version"/>
-        
+
         <activity android:name=".SplashActivity" android:launchMode="singleTask" android:screenOrientation="sensorLandscape">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

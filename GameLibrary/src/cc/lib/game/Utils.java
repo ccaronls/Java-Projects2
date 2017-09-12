@@ -210,6 +210,12 @@ public class Utils {
         return 1;
     }
     
+    public static int isLineSegsIntersecting(IVector2D p0, IVector2D p1, IVector2D p2, IVector2D p3) {
+    	return isLineSegsIntersecting(p0.getX(), p0.getY(), 
+    			p1.getX(), p1.getY(),
+    			p2.getX(), p2.getY(),
+    			p3.getX(), p3.getY());
+    }
 
     /**
      * 
@@ -1384,6 +1390,14 @@ public class Utils {
 		return list;
 	}
 
+	public static <T> List<T> asList(T ... items) {
+        List<T> list = new ArrayList<T>();
+        for (T i : items) {
+            list.add(i);
+        }
+        return list;
+    }
+
 	public static List<Integer> asList(int [] arr, int start, int num) {
 		List<Integer> list = new ArrayList<Integer>();
 		for (int i=0; i<num; i++) {
@@ -1513,11 +1527,14 @@ public class Utils {
     	}
     	return result;
     }
-    
+
     /**
      * Sort a secondary array based on a primary array
-     * @param source
+     * @param primary
      * @param target
+     * @param comp
+     * @param <T>
+     * @param <S>
      */
     public static <T,S> void bubbleSort(T [] primary, S [] target, Comparator<T> comp) {
     	assert(target.length >= primary.length);

@@ -168,11 +168,14 @@ public class RoidsApplet extends KeyboardAnimationApplet {
     }
 
     @Override
-    public synchronized void focusLost(FocusEvent evt) {
-        // TODO Auto-generated method stub
-        super.focusLost(evt);
+    public synchronized void onPauseChanged(boolean paused) {
         if (sw != null) {
-            sw.pause();
+        	if (paused) {
+        		sw.pause();
+        		roids.paused = true;
+        	}
+        	else
+        		sw.unpause();
         }
     }
 

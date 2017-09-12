@@ -141,7 +141,7 @@ public final class BitVector extends Reflector<BitVector> {
     
     /**
      * 
-     * @param numBits
+     * @param numBytes
      */
     public BitVector(int numBytes) {
         buffer = new int [numBytes];

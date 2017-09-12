@@ -1,4 +1,4 @@
-package cc.android.learningcalc;
+package cc.android.sebigames.calc;
 
 import android.content.Context;
 import android.util.AttributeSet;

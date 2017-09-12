@@ -1,16 +1,8 @@
 package cc.android.pacboy;
 
 import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.PendingResult;
-import com.google.android.gms.common.api.ResultCallback;
-import com.google.android.gms.common.api.Status;
-import com.google.android.gms.games.Games;
-import com.google.android.gms.games.GamesStatusCodes;
+import com.google.android.gms.common.GooglePlayServicesClient;
 import com.google.android.gms.games.leaderboard.LeaderboardVariant;
-import com.google.android.gms.games.leaderboard.ScoreSubmissionData;
-import com.google.android.gms.games.leaderboard.Leaderboards.SubmitScoreResult;
-import com.google.android.gms.games.leaderboard.ScoreSubmissionData.Result;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -22,7 +14,7 @@ import android.view.View.OnClickListener;
 import android.widget.Toast;
 import cc.lib.android.CCActivityBase;
 
-public class HomeActivity extends CCActivityBase implements OnClickListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+public class HomeActivity extends CCActivityBase implements OnClickListener, GooglePlayServicesClient.ConnectionCallbacks, GooglePlayServicesClient.OnConnectionFailedListener {
 
 	//private GoogleApiClient mGAPI;
 	

@@ -1,17 +1,5 @@
 package cc.android.sebigames;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.PendingResult;
-import com.google.android.gms.common.api.ResultCallback;
-import com.google.android.gms.common.api.Status;
-import com.google.android.gms.games.Games;
-import com.google.android.gms.games.GamesStatusCodes;
-import com.google.android.gms.games.leaderboard.LeaderboardVariant;
-import com.google.android.gms.games.leaderboard.ScoreSubmissionData;
-import com.google.android.gms.games.leaderboard.Leaderboards.SubmitScoreResult;
-import com.google.android.gms.games.leaderboard.ScoreSubmissionData.Result;
-
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
@@ -20,11 +8,14 @@ import android.os.Message;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Toast;
-import cc.android.pacboy.R;
+import cc.android.sebigames.calc.CalcActivity;
+import cc.android.sebigames.checkers.CheckerboardActivity;
+import cc.android.sebigames.checkers.Checkers;
+import cc.android.sebigames.pacboy.PacBoyActivity;
 import cc.android.sebigames.tictactoe.TicTacToeActivity;
 import cc.lib.android.CCActivityBase;
 
-public class HomeActivity extends CCActivityBase implements OnClickListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+public class HomeActivity extends CCActivityBase implements OnClickListener {
 
 	//private GoogleApiClient mGAPI;
 	
@@ -37,6 +28,7 @@ public class HomeActivity extends CCActivityBase implements OnClickListener, Goo
 		findViewById(R.id.buttonSnakes).setOnClickListener(this);
 		findViewById(R.id.buttonCalculator).setOnClickListener(this);
 		findViewById(R.id.buttonTicTacToe).setOnClickListener(this);
+        findViewById(R.id.buttonCheckers).setOnClickListener(this);
 		/*
 		mGAPI = new GoogleApiClient.Builder(this)
 				.addConnectionCallbacks(this)
@@ -78,13 +70,20 @@ public class HomeActivity extends CCActivityBase implements OnClickListener, Goo
 	public void onClick(View v) {
 		switch (v.getId()) {
 			case R.id.buttonCalculator:
+				startActivity(new Intent(this, CalcActivity.class));
+				break;
 			case R.id.buttonPacboy:
+				startActivity(new Intent(this, PacBoyActivity.class));
+				break;
 			case R.id.buttonPicmatch:
 			case R.id.buttonSnakes:
 				break;
 			case R.id.buttonTicTacToe:
 				startActivity(new Intent(this, TicTacToeActivity.class));
 				break;
+            case R.id.buttonCheckers:
+                startActivity(new Intent(this, CheckerboardActivity.class));
+                break;
 		}
 	}
 
@@ -116,6 +115,7 @@ public class HomeActivity extends CCActivityBase implements OnClickListener, Goo
 		
 	};
 
+	/*
 	@Override
 	public void onConnectionFailed(ConnectionResult result) {
 		try {
@@ -134,7 +134,7 @@ public class HomeActivity extends CCActivityBase implements OnClickListener, Goo
 	@Override
 	public void onConnectionSuspended(int cause) {
 		//mGAPI.reconnect();
-	}
+	}*/
 	
 	final int RC_GET_ALL_LEADERBOARDS = 10030;
 	final int RC_GAME_RESULT = 10031;

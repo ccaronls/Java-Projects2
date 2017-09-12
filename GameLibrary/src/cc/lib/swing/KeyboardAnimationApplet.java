@@ -541,13 +541,14 @@ public abstract class KeyboardAnimationApplet extends JApplet implements
 		// Also, if both (focussed && status == GO), the animation will start,
 		// so we have to restart the timing utility by setting startTime = -1;
 		grabFocus();
+		onPauseChanged(false);
 	}
 
 	/*
 	 *  (non-Javadoc)
 	 * @see java.awt.event.FocusListener#focusLost(java.awt.event.FocusEvent)
 	 */
-	synchronized public void focusLost(FocusEvent evt) {
+	synchronized public final void focusLost(FocusEvent evt) {
         System.out.println("focusLost");
 		// The applet has lostthe input focus. Set focussed = false and repaint.
 		// Also, if both (focussed && status == GO) were previously true, then
@@ -559,6 +560,11 @@ public abstract class KeyboardAnimationApplet extends JApplet implements
         synchronized (runLock) {
             runLock.notify();
         }
+        onPauseChanged(true);
+	}
+	
+	protected void onPauseChanged(boolean paused) {
+		
 	}
 
 	private int eventToInt(int evtButton) {

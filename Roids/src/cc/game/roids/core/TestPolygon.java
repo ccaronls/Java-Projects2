@@ -105,46 +105,49 @@ public class TestPolygon extends PolygonThingy {
         g.setColor(g.GREEN);
         super.draw(g);
         g.pushMatrix();
-        g.translate(position);
-        g.rotate(getOrientation());
-        g.scale(1.1f, 1.1f);
-        if (this.circleHighlighed) {
-            g.setColor(g.RED);
-        } else {
-            g.setColor(g.YELLOW);
-        }
-        g.drawCircle(0, 0, getRadius());
-        //g.setLineWidth(2);
-        if (this.highlighted) {
-            g.setColor(g.RED);
-        } else {
-            g.setColor(g.BLUE);
-        }
-        renderBoundingVerts(g);
-        g.setColor(g.WHITE);
-        g.popMatrix();
+	        g.translate(position);
+	        g.rotate(getOrientation());
+	        g.scale(1.1f, 1.1f);
+	        if (this.circleHighlighed) {
+	            g.setColor(g.RED);
+	        } else {
+	            g.setColor(g.YELLOW);
+	        }
+	        g.drawCircle(0, 0, getRadius());
+	        //g.setLineWidth(2);
+	        if (this.highlighted) {
+	            g.setColor(g.RED);
+	        } else {
+	            g.setColor(g.BLUE);
+	        }
+	        renderBoundingVerts(g);
+	        g.setColor(g.WHITE);
+	    g.popMatrix();
         g.pushMatrix();
-        g.translate(position);
-        g.begin();
-        g.vertex(0,0);
-        g.vertex(velocity);
-        g.drawLines();
-        g.end();
-        //g.setLineWidth(2);
-        //g.setColor(g.WHITE);
-        //g.begin();
-        //g.vertex(0,0);
-        //g.vertex(getXVert(getPrimaryVert()), getYVert(getPrimaryVert()));
-        //g.drawLines();
-        //g.end();
-        //g.setLineWidth(1);
-        //*
-        g.setColor(g.WHITE);
-        for (int i=0; i<getNumBoundingVerts(); i++) {
-            g.drawString("" + i, getXBoundingVert(i), getYBoundingVert(i));
-        }
-        //	*/
-        g.popMatrix();
+	        g.translate(position);
+	        g.begin();
+	        g.vertex(0,0);
+	        g.vertex(velocity);
+	        g.drawLines();
+	        g.end();
+	        //g.setLineWidth(2);
+	        //g.setColor(g.WHITE);
+	        //g.begin();
+	        //g.vertex(0,0);
+	        //g.vertex(getXVert(getPrimaryVert()), getYVert(getPrimaryVert()));
+	        //g.drawLines();
+	        //g.end();
+	        //g.setLineWidth(1);
+	        //*
+	        g.setColor(g.WHITE);
+	        g.pushMatrix();
+		        g.rotate(getOrientation());
+		        for (int i=0; i<getNumBoundingVerts(); i++) {
+		            g.drawString("" + i, getXBoundingVert(i), getYBoundingVert(i));
+		        }
+	        //	*/
+	        g.popMatrix();
+	    g.popMatrix();
         
 
         if (highlighted) {

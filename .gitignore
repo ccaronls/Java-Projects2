@@ -7,5 +7,10 @@
 **/.idea
 **/.recommenders
 **/.metadata
+**/*.iml
+**/build
+**/.gradle
+**/gradlew*
+**/gradle/
 
 
