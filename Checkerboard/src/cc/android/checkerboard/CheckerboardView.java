@@ -1,14 +1,5 @@
 package cc.android.checkerboard;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import cc.android.checkerboard.CheckerboardRenderer.JumpAnim;
-import cc.android.checkerboard.CheckerboardRenderer.SlideAnim;
-import cc.android.checkerboard.CheckerboardRenderer.StackAnim;
-import cc.android.checkerboard.ICheckerboard.Move;
-import cc.android.checkerboard.ICheckerboard.Piece;
-import cc.lib.game.Utils;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.opengl.GLSurfaceView;
@@ -18,6 +9,8 @@ import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.View;
+
+import cc.lib.game.Utils;
 
 /**
  * This handles events form system like user input, pause, resume etc.
@@ -65,7 +58,8 @@ public class CheckerboardView extends GLSurfaceView implements View.OnTouchListe
 	}
 	
 	public void setPaused(boolean paused) {
-		cbRenderer.setPaused(paused);
+        if (cbRenderer != null)
+		    cbRenderer.setPaused(paused);
 		Log.d("CBV", "W=" + getWidth() + " x H=" + getHeight());
     }
 

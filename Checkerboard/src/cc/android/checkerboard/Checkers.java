@@ -6,16 +6,22 @@ import java.util.Collections;
 import java.util.List;
 
 import cc.lib.game.*;
+import cc.lib.utils.Reflector;
 
 /**
  * Red is positive and black is negative
  * @author chriscaron
  *
  */
-public class Checkers implements ICheckerboard {
+public class Checkers extends Reflector<Checkers> implements ICheckerboard {
+
+    static {
+        addAllFields(Checkers.class);
+    }
 
 	private final Piece [][] board = new Piece[8][8]; // rank major
 	private int turn = -1;
+    private Piece lock = null;
 
 	private final static int BLACK = 0;
 	private final static int RED   = 1;
@@ -86,6 +92,9 @@ public class Checkers implements ICheckerboard {
 		List<Move> moves = new ArrayList<>();
 		
 		Piece p = board[rank][col];
+
+        if (lock != null && p != lock)
+            return moves;
 		
 		if (p.stacks == 0 || p.playerNum != getCurPlayerNum()) {
 			return moves;
@@ -144,6 +153,7 @@ public class Checkers implements ICheckerboard {
 	@Override
 	public void endTurn() {
 		turn = (turn+1) % 2;
+        lock = null;
 	}
 	
 	@Override
@@ -164,15 +174,22 @@ public class Checkers implements ICheckerboard {
 
 		switch (move.type) {
             case SLIDE:
+                if (isKinged) {
+                    ArrayList<Move> stack = new ArrayList<>();
+                    stack.add(new Move(MoveType.STACK, move.endRank, move.endCol, move.endRank, move.endCol, 0, 0, move.playerNum));
+                    lock = p;
+                    return stack;
+                }
 			case END:
 				endTurn();
 				return Collections.emptyList();
 			case JUMP_CAPTURE:
 				board[move.captureRank][move.captureCol].stacks = 0;
 			case JUMP:
-				if (isKinged) {
+  				if (isKinged) {
 					ArrayList<Move> stack = new ArrayList<>();
 					stack.add(new Move(MoveType.STACK, move.endRank, move.endCol, move.endRank, move.endCol, 0, 0, move.playerNum));
+                    lock = p;
 					return stack;
 				}
 				break; // recursive compute next move
@@ -188,6 +205,7 @@ public class Checkers implements ICheckerboard {
 			endTurn();
 		} else {
 			nextMoves.add(new Move(MoveType.END, 0, 0, 0, 0, 0, 0, move.playerNum));
+            lock = p;
 		}
 		return nextMoves;
 	}

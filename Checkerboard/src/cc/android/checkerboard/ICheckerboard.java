@@ -2,13 +2,19 @@ package cc.android.checkerboard;
 
 import java.util.List;
 
+import cc.lib.utils.Reflector;
+
 public interface ICheckerboard {
 
-	public static class Piece {
+	class Piece extends Reflector<Piece> {
+
+        static {
+            addAllFields(Piece.class);
+        }
+
 		public int playerNum;
 		public int stacks;
-		public Object data;
-		
+
 		public Piece(int playerNum, int stacks) {
 			this.playerNum = playerNum;
 			this.stacks = stacks;
@@ -20,7 +26,12 @@ public interface ICheckerboard {
 	}
 	
 	
-	public static class Move {
+	class Move extends Reflector<Move> {
+
+        static {
+            addAllFields(Move.class);
+        }
+
 		public final MoveType type;
 		public final int startRank, startCol;
 		public final int endRank, endCol;

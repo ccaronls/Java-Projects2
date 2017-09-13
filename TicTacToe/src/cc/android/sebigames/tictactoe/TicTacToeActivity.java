@@ -1,6 +1,5 @@
 package cc.android.sebigames.tictactoe;
 
-import cc.lib.game.Utils;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -11,10 +10,10 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
-import android.view.animation.AnimationSet;
 import android.view.animation.LinearInterpolator;
 import android.view.animation.ScaleAnimation;
-import android.view.animation.TranslateAnimation;
+
+import cc.lib.game.Utils;
 
 public class TicTacToeActivity extends Activity implements OnClickListener, DialogInterface.OnCancelListener {
 
@@ -51,7 +50,7 @@ public class TicTacToeActivity extends Activity implements OnClickListener, Dial
     			public void onClick(DialogInterface dialog, int which) {
     				numPlayers = which+1;
     				if (numPlayers == 1) {
-    					new AlertDialog.Builder(TicTacToeActivity.this).setTitle("DIFFICULTY").setItems(new String [] { "Easy", "Hard" }, new DialogInterface.OnClickListener() {
+    					new AlertDialog.Builder(TicTacToeActivity.this).setTitle("DIFFICULTY").setItems(new String [] { "Easy", "Hard", "Very Hard" }, new DialogInterface.OnClickListener() {
     						
     						@Override
     						public void onClick(DialogInterface dialog, int which) {
@@ -148,10 +147,41 @@ public class TicTacToeActivity extends Activity implements OnClickListener, Dial
 			{ 2,1,2 }
 	};
 	
-	int [][][] diff = {
-			weightsEasy, weightsHard
-	};
-	
+//	int [][][] diff = {
+//			weightsEasy, weightsHard
+//	};
+
+	interface IDiff {
+        int [][] getWeights();
+    }
+
+    IDiff [] diff = new IDiff[] {
+            new IDiff() {
+                @Override
+                public int[][] getWeights() {
+                    return weightsEasy;
+                }
+            },
+            new IDiff() {
+                @Override
+                public int[][] getWeights() {
+                    return weightsHard;
+                }
+            },
+            new IDiff() {
+                @Override
+                public int[][] getWeights() {
+                    int [][] w = new int[3][3];
+                    for (int i=0; i<3; i++) {
+                        for (int ii=0; ii<3; ii++) {
+
+                        }
+                    }
+
+                }
+            }
+    };
+
 	@Override
 	public void onClick(View v) {
 		if (turn == 0)
@@ -273,7 +303,7 @@ public class TicTacToeActivity extends Activity implements OnClickListener, Dial
 			return;
 		if (numPlayers == 1) {
 			// pick a random
-			int [][] w = diff[difficulty];
+			int [][] w = diff[difficulty].getWeights();
 			int [] weights = new int[9];
 			for (int i=0; i<9; i++) {
 				TTTView t = grid[i%3][i/3];

@@ -8,9 +8,9 @@
 **/.recommenders
 **/.metadata
 **/*.iml
-**/build
+**/build/
 **/.gradle
 **/gradlew*
 **/gradle/
-
+local.properties
 
