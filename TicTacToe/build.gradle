@@ -7,8 +7,8 @@ dependencies {
 }
 
 android {
-    compileSdkVersion 26
-    buildToolsVersion '26.0.1'
+    compileSdkVersion project.myCompileSdkVersion.toInteger()
+    buildToolsVersion project.myBuildToolsVersion
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_7

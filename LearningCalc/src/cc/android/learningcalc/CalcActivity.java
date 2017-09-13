@@ -1,9 +1,5 @@
 package cc.android.learningcalc;
 
-import java.math.BigInteger;
-
-import cc.lib.android.GLColor;
-import cc.lib.game.Utils;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
@@ -13,10 +9,8 @@ import android.os.Handler;
 import android.os.Message;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.TextToSpeech.OnInitListener;
-import android.text.Html;
 import android.text.Spannable;
 import android.text.SpannableString;
-import android.text.SpannedString;
 import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -29,6 +23,10 @@ import android.view.animation.LinearInterpolator;
 import android.view.animation.ScaleAnimation;
 import android.widget.EditText;
 import android.widget.TextView;
+
+import java.math.BigInteger;
+
+import cc.lib.game.Utils;
 
 public class CalcActivity extends Activity implements OnClickListener, OnInitListener {
 
@@ -328,6 +326,10 @@ public class CalcActivity extends Activity implements OnClickListener, OnInitLis
 	
 	void tryAddNumber(int num) {
 		if (op == null) {
+            if (clearOnNumber) {
+                num1 = BigInteger.valueOf(0);
+                clearOnNumber = false;
+            }
 			num1 = addNumber(num, num1);
 		} else {
 			num2 = addNumber(num, num2);
@@ -389,6 +391,8 @@ public class CalcActivity extends Activity implements OnClickListener, OnInitLis
 			et.setText(line + text);
 		}
 	}
+
+	boolean clearOnNumber = false;
 	
 	void trySolve() {
 		if (num2 != null) {
@@ -404,6 +408,7 @@ public class CalcActivity extends Activity implements OnClickListener, OnInitLis
 				append("NAN");
 				sayNow("Not a number");
 			}
+			clearOnNumber = true;
 		}
 	}
 	
@@ -450,10 +455,10 @@ public class CalcActivity extends Activity implements OnClickListener, OnInitLis
 			neg="-";
 			s = -s;
 		}
-		sayQ(String.format("%d %s %d equals what", n1, op.tts(), n2));
+		sayQ(String.format("%s %s %s equals what", n1, op.tts(), n2));
 		quiz = new Quiz(String.format("QUIZ TIME\n%d %s %d = %s%s", n1, op.sign(this), n2, neg, Utils.getRepeatingChars('?', String.valueOf(s).length())), s);
-		quizGoodSay = String.format("%d %s %s equals %d. Great job.");
-		quizGoodET = new SpannableString(String.format("%d %s %d = %d", n1, op.sign(this), n2, s));
+		quizGoodSay = String.format("%s %s %s equals %s. Great job.", n1, op.sign(this), n2, op.solve(n1, n2));
+		quizGoodET = new SpannableString(String.format("%s %s %s = %s", n1, op.sign(this), n2, s));
 		quizGoodET.setSpan(new ForegroundColorSpan(Color.GREEN), 0, quizGoodET.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 	}
 	

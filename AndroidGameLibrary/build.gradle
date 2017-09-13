@@ -18,7 +18,7 @@ android {
     }
 
     defaultConfig {
-	    minSdkVersion project.myMinSdkVersion
+	    minSdkVersion project.myMinSdkVersion.toInteger()
         targetSdkVersion project.myTargetSdkVersion
         versionCode 1
 	    versionName '1.0.0'

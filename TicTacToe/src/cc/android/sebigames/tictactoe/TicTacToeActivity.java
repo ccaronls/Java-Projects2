@@ -1,9 +1,6 @@
 package cc.android.sebigames.tictactoe;
 
-import cc.android.sebigames.R;
 import cc.lib.game.Utils;
-import android.animation.Animator;
-import android.animation.AnimatorSet;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;

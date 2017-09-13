@@ -18,10 +18,6 @@
         <!-- All customizations that are NOT specific to a particular API-level can go here. -->
     </style>
     
-    <style name="HomeButtonStyle" parent="@android:style/Widget.Button.Inset">
-        <item name="android:layout_margin">5dp</item>
-    </style>
-    
     <style name="textViewScore" parent="@android:style/Widget.TextView">
         <item name="android:textColor">#f00</item>
         <item name="android:background">#4000</item>
@@ -37,12 +33,4 @@
         <item name="android:layout_weight">1</item>
     </style>
     
-    <style name="keypad" parent="@android:style/Widget.Button.Inset">
-        <item name="android:textSize">38dp</item>
-        <item name="android:layout_width">0dp</item>
-        <item name="android:layout_weight">1</item>
-        <item name="android:layout_height">match_parent</item>
-        <item name="android:gravity">center</item>
-        <item name="android:textStyle">bold</item>
-    </style>
 </resources>

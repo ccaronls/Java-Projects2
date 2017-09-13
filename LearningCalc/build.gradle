@@ -2,6 +2,8 @@ apply plugin: 'com.android.application'
 
 dependencies {
     compile project(':AndroidGameLibrary')
+    //compile project(':android-sdks:extras:google:google_play_services_froyo:libproject:google-play-services_lib')
+    compile 'com.google.android.gms:play-services:4.0.30'
 }
 
 android {
