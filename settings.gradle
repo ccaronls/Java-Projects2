@@ -17,12 +17,17 @@ include 'services:webservice'
 */
 
 //include ':GameLibrary'
+
+// Android
 include ':AndroidGameLibrary'
 include ':TicTacToe'
-include ':fractal'
 //include ':GameLibrary'
 include ':PacBoy'
 include ':LearningCalc'
 include ':PicMatch'
 include ':Checkerboard'
 
+// Swing Applications
+include ':fractal'
+//include ':JavaRoids'
+include ':Roids'

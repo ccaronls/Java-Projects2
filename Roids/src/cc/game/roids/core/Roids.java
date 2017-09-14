@@ -107,7 +107,6 @@ public class Roids {
     void computeCollisions() {
         if (somethingMoved) {
             // collision tests
-            Collision c = new Collision();
             this.collisions.clear();
             for (int i=0; i<things.size()-1; i++) {
             //for (Thingy t : things) {
@@ -115,16 +114,14 @@ public class Roids {
                 Thingy t = things.get(i);
                 for (int ii=i+1; ii<things.size(); ii++) {
                     Thingy tt = things.get(ii);
-                    if (collisionDetect(t, tt, c)) {
-                        collisions.add(c);
-                        c = new Collision();
+                    if (collisionDetect(t, tt, collisions)) {
                     }
                 }
             }
         }
     }
     
-    public boolean collisionDetectObjectSpecific(Thingy a, Thingy b, Collision c) {
+    public boolean collisionDetectObjectSpecific(Thingy a, Thingy b, List<Collision> c) {
 
         float d0 = a.getPosition().sub(b.getPosition(), MutableVector2D.newTemp()).magSquared();
         float d1 = a.getRadius() + b.getRadius();
@@ -141,10 +138,10 @@ public class Roids {
         return false;
     }
     
-    public boolean collisionDetect(Thingy a, Thingy b, Collision c) {
+    public boolean collisionDetect(Thingy a, Thingy b, List<Collision> collisions) {
         boolean collided = false;
         if (a != b) {
-            if (collisionDetectObjectSpecific(a, b, c))
+            if (collisionDetectObjectSpecific(a, b, collisions))
                 return true;
             
             // since we are wrapping in the world, we have to see if we are on an edge and therefore overlapping against the 
@@ -173,7 +170,7 @@ public class Roids {
                 }
                 
                 if (changed) {
-                    if (collided = collisionDetectObjectSpecific(a, b, c))
+                    if (collided = collisionDetectObjectSpecific(a, b, collisions))
                         break;
                     
                 }
@@ -197,7 +194,7 @@ public class Roids {
                 }
                 
                 if (changed) {
-                    if (collided = collisionDetectObjectSpecific(a, b, c))
+                    if (collided = collisionDetectObjectSpecific(a, b, collisions))
                         break;
                 }
 

@@ -146,7 +146,13 @@ public class TicTacToeActivity extends Activity implements OnClickListener, Dial
 			{ 1,4,1 },
 			{ 2,1,2 }
 	};
-	
+
+    int [][] weightsVeryHard = {
+            { 2,1,2 },
+            { 1,20,1 },
+            { 2,1,2 }
+    };
+
 //	int [][][] diff = {
 //			weightsEasy, weightsHard
 //	};
@@ -172,12 +178,39 @@ public class TicTacToeActivity extends Activity implements OnClickListener, Dial
                 @Override
                 public int[][] getWeights() {
                     int [][] w = new int[3][3];
+                    // see if a move will make me win
                     for (int i=0; i<3; i++) {
                         for (int ii=0; ii<3; ii++) {
-
+                            if (grid[i][ii].getShape() == 0) {
+                                grid[i][ii].setShape(2);
+                                try {
+                                    if (checkWinner(2, true)) {
+                                        w[i][ii] = 10;
+                                        return w;
+                                    }
+                                } finally {
+                                    grid[i][ii].setShape(0);
+                                }
+                            }
                         }
                     }
-
+                    // see if I need to block
+                    for (int i=0; i<3; i++) {
+                        for (int ii=0; ii<3; ii++) {
+                            if (grid[i][ii].getShape() == 0) {
+                                grid[i][ii].setShape(1);
+                                try {
+                                    if (checkWinner(1, true)) {
+                                        w[i][ii] = 10;
+                                        return w;
+                                    }
+                                } finally {
+                                    grid[i][ii].setShape(0);
+                                }
+                            }
+                        }
+                    }
+                    return weightsVeryHard;
                 }
             }
     };
@@ -212,7 +245,7 @@ public class TicTacToeActivity extends Activity implements OnClickListener, Dial
 					turnAnim.setAnimationListener(null);
 					tv.setAnimation(null);
 					turn = saveTurn;
-					checkWinner(turn);
+					checkWinner(turn, false);
 					checkTie();
 					checkRobot();
 				}
@@ -238,7 +271,7 @@ public class TicTacToeActivity extends Activity implements OnClickListener, Dial
 			{ 2, 1, 0 },
 
 	};
-	int [][] winy = { 
+	int [][] winy = {
 			// horz
 			{ 0, 0, 0 },
 			{ 1, 1, 1 },
@@ -254,29 +287,32 @@ public class TicTacToeActivity extends Activity implements OnClickListener, Dial
 			{ 0, 1, 2 },
 	};
 	
-	void checkWinner(int shape) {
+	boolean checkWinner(int shape, boolean testOnly) {
 		if (turn == 0)
-			return;
+			return false;
 		for (int i=0; i<winx.length; i++) {
 			TTTView [] winner = new TTTView[3];
 			for (int ii=0; ii<3; ii++) {
 				if ((winner[ii] = grid[winx[i][ii]][winy[i][ii]]).getShape() != shape)
 					break;
 				if (ii == 2) {
-					// we have a winner!
-					for (int iii=0; iii<3; iii++) {
-						winner[iii].startAnimation(glowAnim);
-					}
-					grid[0][0].postDelayed(new Runnable() {
-						public void run() {
-							newGame();
-						}
-					}, GLOW_DURATION_MSECS);
-					turn = 0;
-					return;
+                    if (!testOnly) {
+                        // we have a winner!
+                        for (int iii = 0; iii < 3; iii++) {
+                            winner[iii].startAnimation(glowAnim);
+                        }
+                        grid[0][0].postDelayed(new Runnable() {
+                            public void run() {
+                                newGame();
+                            }
+                        }, GLOW_DURATION_MSECS);
+                        turn = 0;
+                    }
+					return true;
 				}
 			}
 		}
+		return false;
 	}
 	
 	void checkTie() {
@@ -336,7 +372,7 @@ public class TicTacToeActivity extends Activity implements OnClickListener, Dial
 					animation.setAnimationListener(null);
 					t.setAnimation(null);
 					turn = 1;
-					checkWinner(2);
+					checkWinner(2, false);
 					checkTie();
 				}
 			});

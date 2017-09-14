@@ -1,11 +1,11 @@
 apply plugin: 'java'
-
+apply plugin: 'application'
 
 sourceSets {
     main {
         java {
             srcDirs = [ 'src' ]
-            excludes ['**/skunkworks/**']
+            exclude '**/skunkworks/**'
         }
     }
 }

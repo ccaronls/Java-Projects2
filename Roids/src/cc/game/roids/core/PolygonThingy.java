@@ -117,7 +117,7 @@ public abstract class PolygonThingy extends Thingy {
      *   1 pt and 2 edges of each polygon are intersecting each other. The bounce vector is the normal to the points
      * 
      * 
-     * @param collisionPointIndex
+     * @param ptIndex
      * @param target
      * @param info
      * @return
@@ -174,6 +174,12 @@ public abstract class PolygonThingy extends Thingy {
         
         Vector2D t1 = t[targetEdge];
         Vector2D t2 = t[(targetEdge+1)%t.length];
+
+        info.addSegment(s[1], s[2], 0);
+        t2.sub(t1, info.planeNormal).normEq().unitLengthEq();
+        System.out.println("Case 1 collision");
+        return true;
+        /*
         switch (Utils.isLineSegsIntersecting(s[1], s[2], t1, t2)) {
         	case 0:
         		// this must be a case 2 situation!
@@ -207,7 +213,7 @@ public abstract class PolygonThingy extends Thingy {
         }
         
         System.out.println("Cannot determine collision");
-        return false;
+        return false;*/
     }
 
     private boolean computeBounceVectors_x(int collisionPointIndex, PolygonThingy target, Collision info) {
@@ -346,8 +352,18 @@ public abstract class PolygonThingy extends Thingy {
         return false;
     }
     
-    static boolean collisionDetect(PolygonThingy a, PolygonThingy b, Collision info) {
-        return a.collisionTest(b, info) || b.collisionTest(a, info);        
+    static boolean collisionDetect(PolygonThingy a, PolygonThingy b, List<Collision> collisions) {
+        Collision info = new Collision();
+        boolean b0 = a.collisionTest(b, info);
+        if (b0) {
+            collisions.add(info);
+        }
+        info = new Collision();
+        boolean b1 = b.collisionTest(a, info);
+        if (b1) {
+            collisions.add(info);
+        }
+        return b0 || b1;
     }
 
     boolean isPointInsidePolygon(float x, float y) {

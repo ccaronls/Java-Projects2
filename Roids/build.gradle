@@ -1,7 +1,18 @@
 apply plugin: 'java'
+apply plugin: 'application'
+
 sourceSets {
-    main.java.srcDirs = ['src']
-    main.resources.srcDirs = ['src']
-    test.java.srcDirs = ['tests/java']
-    test.resources.srcDirs = ['tests/resources']
+    main {
+        java {
+            srcDirs = ['src', '../GameLibrary/src']
+            //exclude '**/swing/**'
+            exclude '**/skunkworks/**'
+        }
+    }
+}
+
+mainClassName = 'cc.game.roids.applet.RoidsApplet'
+
+repositories {
+    mavenCentral()
 }

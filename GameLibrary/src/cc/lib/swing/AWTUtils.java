@@ -1,6 +1,8 @@
 package cc.lib.swing;
 
 import java.util.List;
+import java.awt.*;
+import java.awt.font.GlyphVector;
 import java.util.*;
 
 import cc.lib.game.Justify;
