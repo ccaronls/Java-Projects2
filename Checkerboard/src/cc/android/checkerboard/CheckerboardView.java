@@ -7,7 +7,6 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
-import android.view.SurfaceHolder;
 import android.view.View;
 
 import cc.lib.game.Utils;
@@ -30,7 +29,7 @@ public class CheckerboardView extends GLSurfaceView implements View.OnTouchListe
 
 	private void initView() {
 		if (!isInEditMode()) {
-			setRenderer(cbRenderer = new CheckerboardRenderer(this));
+            setRenderer(cbRenderer = new CheckerboardRenderer(this));
 			if (Utils.DEBUG_ENABLED)
                 setDebugFlags(DEBUG_CHECK_GL_ERROR);// | DEBUG_LOG_GL_CALLS);
             setRenderMode(RENDERMODE_WHEN_DIRTY);
@@ -41,23 +40,15 @@ public class CheckerboardView extends GLSurfaceView implements View.OnTouchListe
 	
 	public CheckerboardView(Context context) {
 		super(context);
-		initView();
+        initView();
 	}
 
 	public CheckerboardView(Context context, AttributeSet attrs) {
 		super(context, attrs);
-		initView();
+        initView();
 	}
 	
-	@Override
-    public void surfaceDestroyed(SurfaceHolder holder) {
-		if (cbRenderer != null) {
-			cbRenderer.shutDown();
-			cbRenderer = null;
-		}
-	}
-	
-	public void setPaused(boolean paused) {
+    public void setPaused(boolean paused) {
         if (cbRenderer != null)
 		    cbRenderer.setPaused(paused);
 		Log.d("CBV", "W=" + getWidth() + " x H=" + getHeight());

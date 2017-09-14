@@ -16,12 +16,13 @@ import cc.lib.utils.Reflector;
 public class Checkers extends Reflector<Checkers> implements ICheckerboard {
 
     static {
-        addAllFields(Checkers.class);
+        //addAllFields(Checkers.class);
     }
 
 	private final Piece [][] board = new Piece[8][8]; // rank major
 	private int turn = -1;
     private Piece lock = null;
+    private final List<Move> lockedMoves = new ArrayList<>();
 
 	private final static int BLACK = 0;
 	private final static int RED   = 1;
@@ -93,9 +94,12 @@ public class Checkers extends Reflector<Checkers> implements ICheckerboard {
 		
 		Piece p = board[rank][col];
 
-        if (lock != null && p != lock)
-            return moves;
-		
+        if (lock != null) {
+            if (p != lock)
+                return moves;
+            return lockedMoves;
+        }
+
 		if (p.stacks == 0 || p.playerNum != getCurPlayerNum()) {
 			return moves;
 		}
@@ -154,6 +158,7 @@ public class Checkers extends Reflector<Checkers> implements ICheckerboard {
 	public void endTurn() {
 		turn = (turn+1) % 2;
         lock = null;
+        lockedMoves.clear();
 	}
 	
 	@Override
@@ -178,6 +183,8 @@ public class Checkers extends Reflector<Checkers> implements ICheckerboard {
                     ArrayList<Move> stack = new ArrayList<>();
                     stack.add(new Move(MoveType.STACK, move.endRank, move.endCol, move.endRank, move.endCol, 0, 0, move.playerNum));
                     lock = p;
+                    lockedMoves.clear();
+                    lockedMoves.addAll(stack);
                     return stack;
                 }
 			case END:
@@ -190,6 +197,8 @@ public class Checkers extends Reflector<Checkers> implements ICheckerboard {
 					ArrayList<Move> stack = new ArrayList<>();
 					stack.add(new Move(MoveType.STACK, move.endRank, move.endCol, move.endRank, move.endCol, 0, 0, move.playerNum));
                     lock = p;
+                    lockedMoves.clear();
+                    lockedMoves.addAll(stack);
 					return stack;
 				}
 				break; // recursive compute next move
@@ -206,7 +215,9 @@ public class Checkers extends Reflector<Checkers> implements ICheckerboard {
 		} else {
 			nextMoves.add(new Move(MoveType.END, 0, 0, 0, 0, 0, 0, move.playerNum));
             lock = p;
-		}
+            lockedMoves.clear();
+            lockedMoves.addAll(nextMoves);
+        }
 		return nextMoves;
 	}
 	

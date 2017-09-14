@@ -9,7 +9,7 @@ public interface ICheckerboard {
 	class Piece extends Reflector<Piece> {
 
         static {
-            addAllFields(Piece.class);
+//            addAllFields(Piece.class);
         }
 
 		public int playerNum;
@@ -29,7 +29,7 @@ public interface ICheckerboard {
 	class Move extends Reflector<Move> {
 
         static {
-            addAllFields(Move.class);
+  //          addAllFields(Move.class);
         }
 
 		public final MoveType type;

@@ -57,6 +57,11 @@ public class TicTacToeActivity extends Activity implements OnClickListener, Dial
     							// TODO Auto-generated method stub
     							turn = 1;
     							difficulty = which;
+                                if (difficulty > 1) {
+                                    if (Utils.flipCoin()) {
+                                        checkRobot();
+                                    }
+                                }
     						}
     					}).setOnCancelListener(TicTacToeActivity.this).show();
     				} else {

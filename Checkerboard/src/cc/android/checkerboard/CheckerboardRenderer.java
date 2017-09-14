@@ -1,22 +1,25 @@
 package cc.android.checkerboard;
 
-import java.util.*;
-
 import android.content.Context;
 import android.opengl.GLSurfaceView;
 import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.View;
 import android.view.WindowManager;
-import cc.android.checkerboard.ICheckerboard.*;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+
+import cc.android.checkerboard.ICheckerboard.Move;
+import cc.android.checkerboard.ICheckerboard.Piece;
 import cc.lib.android.BaseRenderer;
 import cc.lib.android.GL10Graphics;
 import cc.lib.game.AAnimation;
 import cc.lib.game.AColor;
 import cc.lib.game.AGraphics;
 import cc.lib.game.IVector2D;
-import cc.lib.game.Justify;
-import cc.lib.game.Utils;
 import cc.lib.math.Bezier;
 import cc.lib.math.Vector2D;
 
@@ -47,7 +50,9 @@ class CheckerboardRenderer extends BaseRenderer implements View.OnTouchListener 
 		}
 		return 0;
 	}
-	
+
+	final int TAP_TIME_MS = 800; //
+
 	@Override
 	public boolean onTouch(View v, MotionEvent event) {
 		
@@ -65,11 +70,15 @@ class CheckerboardRenderer extends BaseRenderer implements View.OnTouchListener 
 				touchY = event.getY();
 				touchRank = (int)(touchY * 8 / getGraphics().getViewportHeight());
 				touchColumn = (int)(touchX * 8 / getGraphics().getViewportWidth());
+                if (System.currentTimeMillis() - downTime > 200)
+                    onDrag();
 				break;
 			case MotionEvent.ACTION_UP:
-				if (System.currentTimeMillis() - downTime < 3000) {
+				if (dragRank < 0 && dragCol < 0 && System.currentTimeMillis() - downTime < TAP_TIME_MS) {
 					onTap();
-				}
+				} else {
+                    onDragReleased();
+                }
 				touchX = touchY = -1;
 				break;
 		}
@@ -219,7 +228,54 @@ class CheckerboardRenderer extends BaseRenderer implements View.OnTouchListener 
 		}
 		
 	};
-	
+
+	int dragRank=-1, dragCol=-1;
+
+	void onDrag() {
+        ICheckerboard checkers = CheckerboardActivity.game;
+        if (!checkers.isOnBoard(touchColumn, touchColumn))
+            return;
+
+        if (dragRank < 0 || dragCol < 0) {
+            if (moves.size() == 0)
+                moves = checkers.computeMoves(touchRank, touchColumn);
+            if (moves.size() == 0)
+                return;
+            dragRank = touchRank;
+            dragCol = touchColumn;
+        }
+    }
+
+    void onDragReleased() {
+        if (dragRank < 0 || dragCol < 0)
+            return;
+
+        for (Move m : moves) {
+            if (touchColumn == m.endCol && touchRank == m.endRank) {
+                doMove(CheckerboardActivity.game, m);
+                break;
+            }
+        }
+
+        dragRank = dragCol = -1;
+        moves.clear();
+    }
+
+    void doMove(ICheckerboard checkers, Move m) {
+        switch (m.type) {
+            case JUMP:
+            case JUMP_CAPTURE:
+                addAnimation(new JumpAnim(1000, 0, m, checkers.getCurPlayerNum()));
+                break;
+            case SLIDE:
+                addAnimation(new SlideAnim(500, 0, m, checkers.getCurPlayerNum()));
+                break;
+            case STACK:
+                addAnimation(new StackAnim(800, 0, m, checkers.getCurPlayerNum()));
+                break;
+        }
+    }
+
 	void onTap() {
 		ICheckerboard checkers = CheckerboardActivity.game;
 		if (checkers.isOnBoard(touchColumn, touchColumn)) {
@@ -230,22 +286,12 @@ class CheckerboardRenderer extends BaseRenderer implements View.OnTouchListener 
 					int tr = m.endRank;
 					int tc = m.endCol;
 					if (tr == touchRank && tc == touchColumn) {
-						switch (m.type) {
-							case JUMP:
-							case JUMP_CAPTURE:
-								addAnimation(new JumpAnim(1000, 0, m, checkers.getCurPlayerNum()));
-								break;
-							case SLIDE:
-								addAnimation(new SlideAnim(500, 0, m, checkers.getCurPlayerNum()));
-								break;
-							case STACK:
-								addAnimation(new StackAnim(800, 0, m, checkers.getCurPlayerNum()));
-								break;
-						}
-						return;
+                        doMove(checkers, m);
+                        moves.clear();
+                        return;
 					}
 				}
-				moves.clear();
+                moves = checkers.computeMoves(touchRank, touchColumn);
 			}
 		}
 	}
@@ -284,7 +330,7 @@ class CheckerboardRenderer extends BaseRenderer implements View.OnTouchListener 
 				g.drawFilledRect(col*glCellWidth, rank*glCellHeight, glCellWidth, glCellHeight);
 			}
 			for (int col=0; col<COLUMNS; col++) {
-
+/*
     			int rx = col*glCellWidth;
     			int ry = rank*glCellHeight;
 				if (touchRank == rank && touchColumn == col) {
@@ -295,10 +341,14 @@ class CheckerboardRenderer extends BaseRenderer implements View.OnTouchListener 
         				g.drawFilledRect(rx, ry, glCellWidth, glCellHeight);
     				}
 				}
-				
-				Piece p = checkers.getPiece(rank, col);
-                boolean outlined = checkers.computeMoves(rank, col).size() > 0;
-				drawChecker(g, p, rank, col, outlined);
+*/
+                Piece p = checkers.getPiece(rank, col);
+                if (rank == dragRank && col == dragCol) {
+                    drawChecker(g, p, touchX, touchY, glPieceRad, false);
+                } else {
+                    boolean outlined = checkers.computeMoves(rank, col).size() > 0;
+                    drawChecker(g, p, rank, col, outlined);
+                }
 			}
 		}
 		
@@ -367,7 +417,7 @@ class CheckerboardRenderer extends BaseRenderer implements View.OnTouchListener 
 		drawChecker(g, p, cx, cy, glPieceRad, outlined);
 	}
 	
-	void drawChecker(AGraphics g, Piece p, int x, int y, int rad, boolean outlined) {
+	void drawChecker(AGraphics g, Piece p, float x, float y, int rad, boolean outlined) {
 		if (p.stacks == 0)
 			return;
 		for (int i=0; i<p.stacks; i++) {
@@ -376,7 +426,7 @@ class CheckerboardRenderer extends BaseRenderer implements View.OnTouchListener 
 		}
 	}
 	
-	void drawChecker(AGraphics g, int x, int y, int rad, int stacks, int playerNum, AColor color, AColor outlineColor) {
+	void drawChecker(AGraphics g, float x, float y, int rad, int stacks, int playerNum, AColor color, AColor outlineColor) {
 		if (stacks <= 0)
 			return;
 		AColor dark = color.darkened(0.5f);

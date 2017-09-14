@@ -1,15 +1,16 @@
 package cc.lib.android;
 
+import android.app.Activity;
+import android.content.Context;
+import android.opengl.GLSurfaceView;
+import android.os.SystemClock;
+
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 import javax.microedition.khronos.opengles.GL11;
 
 import cc.lib.game.AColor;
 import cc.lib.game.Justify;
-import android.app.Activity;
-import android.content.Context;
-import android.opengl.GLSurfaceView;
-import android.os.SystemClock;
 
 public abstract class BaseRenderer implements GLSurfaceView.Renderer {
 
@@ -29,8 +30,8 @@ public abstract class BaseRenderer implements GLSurfaceView.Renderer {
 
     @Override
     public final void onDrawFrame(GL10 arg0) {
-    	if (g == null)
-    		return;
+        if (g == null)
+            return;
     	synchronized (this) {
             final long enterTime = getSystemClock();
             try {
@@ -122,9 +123,10 @@ public abstract class BaseRenderer implements GLSurfaceView.Renderer {
         gl.glHint(GL10.GL_PERSPECTIVE_CORRECTION_HINT, GL10.GL_FASTEST);
         gl.glEnable(GL10.GL_BLEND);
         gl.glBlendFunc(GL10.GL_ONE, GL10.GL_ONE_MINUS_SRC_ALPHA);
-        if (g != null)
+        if (g != null) {
             g.shutDown();
-        g = null;
+            onSurfaceChanged(gl, g.getViewportWidth(), g.getViewportHeight());
+        }
     }
     
     /**
@@ -184,7 +186,6 @@ public abstract class BaseRenderer implements GLSurfaceView.Renderer {
             setPaused(true);
             if (g != null) {
                 g.shutDown();
-                g = null;
             }
     	}
     }
