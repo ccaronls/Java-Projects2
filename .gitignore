@@ -13,4 +13,5 @@
 **/gradlew*
 **/gradle/
 local.properties
+fractal.properties
 

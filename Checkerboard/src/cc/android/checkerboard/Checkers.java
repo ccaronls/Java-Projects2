@@ -16,7 +16,7 @@ import cc.lib.utils.Reflector;
 public class Checkers extends Reflector<Checkers> implements ICheckerboard {
 
     static {
-        //addAllFields(Checkers.class);
+        addAllFields(Checkers.class);
     }
 
 	private final Piece [][] board = new Piece[8][8]; // rank major
@@ -41,7 +41,9 @@ public class Checkers extends Reflector<Checkers> implements ICheckerboard {
 				}
 			}
 		}
-		turn = Utils.flipCoin() ? 0 : 1; 		
+		turn = Utils.flipCoin() ? 0 : 1;
+        lock = null;
+        lockedMoves.clear();
 	}
 
 	@Override
@@ -163,6 +165,8 @@ public class Checkers extends Reflector<Checkers> implements ICheckerboard {
 	
 	@Override
 	public List<Move> executeMove(Move move) {
+        lock = null;
+        lockedMoves.clear();
 		boolean isKinged = false;
 		final Piece p = board[move.startRank][move.startCol];
 		if (move.startCol != move.endCol && move.startRank != move.endRank) {
@@ -183,7 +187,6 @@ public class Checkers extends Reflector<Checkers> implements ICheckerboard {
                     ArrayList<Move> stack = new ArrayList<>();
                     stack.add(new Move(MoveType.STACK, move.endRank, move.endCol, move.endRank, move.endCol, 0, 0, move.playerNum));
                     lock = p;
-                    lockedMoves.clear();
                     lockedMoves.addAll(stack);
                     return stack;
                 }
@@ -197,7 +200,6 @@ public class Checkers extends Reflector<Checkers> implements ICheckerboard {
 					ArrayList<Move> stack = new ArrayList<>();
 					stack.add(new Move(MoveType.STACK, move.endRank, move.endCol, move.endRank, move.endCol, 0, 0, move.playerNum));
                     lock = p;
-                    lockedMoves.clear();
                     lockedMoves.addAll(stack);
 					return stack;
 				}
@@ -215,7 +217,6 @@ public class Checkers extends Reflector<Checkers> implements ICheckerboard {
 		} else {
 			nextMoves.add(new Move(MoveType.END, 0, 0, 0, 0, 0, 0, move.playerNum));
             lock = p;
-            lockedMoves.clear();
             lockedMoves.addAll(nextMoves);
         }
 		return nextMoves;

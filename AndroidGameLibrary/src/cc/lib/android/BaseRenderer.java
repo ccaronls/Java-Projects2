@@ -101,13 +101,22 @@ public abstract class BaseRenderer implements GLSurfaceView.Renderer {
     @Override
     public final void onSurfaceChanged(GL10 gl, int w, int h) {
         try {
-        	if (gl instanceof GL11) {
-                g = new GL11Graphics((GL11)gl, parent.getContext());
-        	} else {
-                g = new GL10Graphics(gl, parent.getContext());
-        	}
+            boolean doInit = false;
+            // be aware that a new surface always will have the same gl context associated
+            if (g == null || g.getGl10() != gl) {
+                if (g != null) {
+                    g.shutDown();
+                }
+                if (gl instanceof GL11) {
+                    g = new GL11Graphics((GL11)gl, parent.getContext());
+                } else {
+                    g = new GL10Graphics(gl, parent.getContext());
+                }
+                doInit = true;
+            }
             g.initViewport(w, h);
-            init(g);
+            if (doInit)
+                init(g);
         } catch (Exception e) {
             e.printStackTrace();
             setPaused(true);
@@ -123,10 +132,12 @@ public abstract class BaseRenderer implements GLSurfaceView.Renderer {
         gl.glHint(GL10.GL_PERSPECTIVE_CORRECTION_HINT, GL10.GL_FASTEST);
         gl.glEnable(GL10.GL_BLEND);
         gl.glBlendFunc(GL10.GL_ONE, GL10.GL_ONE_MINUS_SRC_ALPHA);
-        if (g != null) {
+        /*
+        if (g != null && g.getGl10() != gl) {
             g.shutDown();
-            onSurfaceChanged(gl, g.getViewportWidth(), g.getViewportHeight());
-        }
+            g = null;
+//            onSurfaceChanged(gl, g.getViewportWidth(), g.getViewportHeight());
+        }*/
     }
     
     /**
@@ -186,6 +197,7 @@ public abstract class BaseRenderer implements GLSurfaceView.Renderer {
             setPaused(true);
             if (g != null) {
                 g.shutDown();
+                g = null;
             }
     	}
     }

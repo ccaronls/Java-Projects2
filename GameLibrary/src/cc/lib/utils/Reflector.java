@@ -806,8 +806,12 @@ public class Reflector<T> {
                 if (clazz.isAnonymousClass() || clazz.isSynthetic())
                     throw new Exception("Synthetic and anonymous classes not supported");
                 // test newInstance works for this clazz
-                if (!Modifier.isAbstract(clazz.getModifiers()))
+                if (!Modifier.isAbstract(clazz.getModifiers())) {
+                    if (clazz.isArray()) {
+                        System.out.println("array?");
+                    }
                     clazz.newInstance();
+                }
                 values = new TreeMap<Field, Archiver>(fieldComparator);
                 // now inherit any values in base classes that were added
                 inheritValues(clazz.getSuperclass(), values);

@@ -12,8 +12,6 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-import cc.android.checkerboard.ICheckerboard.Move;
-import cc.android.checkerboard.ICheckerboard.Piece;
 import cc.lib.android.BaseRenderer;
 import cc.lib.android.GL10Graphics;
 import cc.lib.game.AAnimation;
@@ -136,7 +134,7 @@ class CheckerboardRenderer extends BaseRenderer implements View.OnTouchListener 
 		@Override
 		public void draw(AGraphics g, float position, float dt) {
 			float sx = glCellWidth * move.startCol + glCellWidth/2;
-			float sy = 0;//glCellHeight * move.startRank + glCellHeight/2;
+			float sy = move.startRank == 0 ? 0 : getHeight();//0;//glCellHeight * move.startRank + glCellHeight/2;
 			float ex = glCellWidth * move.startCol + glCellWidth/2;
 			float ey = glCellHeight * move.startRank + glCellHeight/2;
 			float scale = 1 + (1-position);
@@ -330,18 +328,6 @@ class CheckerboardRenderer extends BaseRenderer implements View.OnTouchListener 
 				g.drawFilledRect(col*glCellWidth, rank*glCellHeight, glCellWidth, glCellHeight);
 			}
 			for (int col=0; col<COLUMNS; col++) {
-/*
-    			int rx = col*glCellWidth;
-    			int ry = rank*glCellHeight;
-				if (touchRank == rank && touchColumn == col) {
-					float fadeSecs = 3;
-					float alpha = (1.0f / (fadeSecs * 1000)) * (System.currentTimeMillis() - downTime);
-    				if (alpha > 0) {
-    					g.setColor(g.makeColor(0, 1, 0, alpha));
-        				g.drawFilledRect(rx, ry, glCellWidth, glCellHeight);
-    				}
-				}
-*/
                 Piece p = checkers.getPiece(rank, col);
                 if (rank == dragRank && col == dragCol) {
                     drawChecker(g, p, touchX, touchY, glPieceRad, false);
@@ -459,7 +445,6 @@ class CheckerboardRenderer extends BaseRenderer implements View.OnTouchListener 
 	protected void init(GL10Graphics g) {
 		g.ortho();
 		setDrawFPS(false);
-		CheckerboardActivity.game.newGame();
 	}
 	
 	public int getRotation(){

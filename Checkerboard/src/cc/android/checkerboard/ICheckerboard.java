@@ -6,50 +6,10 @@ import cc.lib.utils.Reflector;
 
 public interface ICheckerboard {
 
-	class Piece extends Reflector<Piece> {
-
-        static {
-//            addAllFields(Piece.class);
-        }
-
-		public int playerNum;
-		public int stacks;
-
-		public Piece(int playerNum, int stacks) {
-			this.playerNum = playerNum;
-			this.stacks = stacks;
-		}
-	}
-
 	enum MoveType {
 		END, SLIDE, JUMP, JUMP_CAPTURE, STACK
 	}
-	
-	
-	class Move extends Reflector<Move> {
 
-        static {
-  //          addAllFields(Move.class);
-        }
-
-		public final MoveType type;
-		public final int startRank, startCol;
-		public final int endRank, endCol;
-		public final int captureRank, captureCol;
-		public final int playerNum;
-
-		public Move(MoveType type, int startRack, int startCol, int endRank, int endCol, int captureRank, int captureCol, int playerNum) {
-			this.type = type;
-			this.startRank = startRack;
-			this.startCol = startCol;
-			this.endRank = endRank;
-			this.endCol = endCol;
-			this.captureCol = captureCol;
-			this.captureRank = captureRank;
-			this.playerNum = playerNum;
-		}
-	}
-	
 	/**
 	 * initialize the game
 	 * 

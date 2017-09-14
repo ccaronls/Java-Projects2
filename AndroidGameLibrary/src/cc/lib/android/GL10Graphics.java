@@ -133,7 +133,7 @@ public class GL10Graphics extends AGraphics {
     
     /**
      * 
-     * @param string
+     * @param text
      * @return
      */
     public final float getTextWidth(String text) {        
@@ -161,7 +161,7 @@ public class GL10Graphics extends AGraphics {
     
     /**
      * Draw a justified block text.  '\n' is a delimiter for seperate lines
-     * @param g
+     *
      * @param x
      * @param y
      * @param hJust
@@ -935,7 +935,7 @@ for (int pix : pixels) {
     
     /**
      * Convenience method
-     * @param file
+     * @param fileName
      * @param width
      * @param height
      * @param num_cells_x
