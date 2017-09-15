@@ -19,7 +19,7 @@ include 'services:webservice'
 //include ':GameLibrary'
 
 // Android
-include ':AndroidGameLibrary'
+include ':AndroidGameLibrary', ':YahtzeeAndroid'
 include ':TicTacToe'
 //include ':GameLibrary'
 include ':PacBoy'
@@ -31,3 +31,4 @@ include ':Checkerboard'
 include ':fractal'
 //include ':JavaRoids'
 include ':Roids'
+include ':YahzeeActivity'
