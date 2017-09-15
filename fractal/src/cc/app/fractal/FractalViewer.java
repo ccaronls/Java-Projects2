@@ -103,8 +103,8 @@ public class FractalViewer extends EZFrame implements FractalComponent.FractalLi
     Properties props = new Properties();
     Vector<String> formulas = new Vector<String>();
     
-    final String PROPS_FILE = "./fractal.properties";
-    final String FORMULAS_FILE = "./formulas.txt";
+    final String PROPS_FILE = "./fractal/fractal.properties";
+    final String FORMULAS_FILE = "./fractal/formulas.txt";
     
     FractalViewer() {
         /*

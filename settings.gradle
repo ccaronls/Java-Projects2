@@ -21,7 +21,7 @@ include 'services:webservice'
 // Android
 include ':AndroidGameLibrary', ':YahtzeeAndroid'
 include ':TicTacToe'
-//include ':GameLibrary'
+include ':GameLibrary'
 include ':PacBoy'
 include ':LearningCalc'
 include ':PicMatch'

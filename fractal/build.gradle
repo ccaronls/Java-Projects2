@@ -4,9 +4,7 @@ apply plugin: 'application'
 sourceSets {
     main {
         java {
-            srcDirs = ['src', '../GameLibrary/src']
-            //exclude '**/swing/**'
-            exclude '**/skunkworks/**'
+            srcDirs = ['src']
         }
     }
 }
@@ -14,10 +12,7 @@ sourceSets {
 mainClassName = 'cc.app.fractal.FractalViewer'
 
 dependencies {
-//    compile 'com.google.guava:guava:21.0'
-//    compile 'org.jdesktop:appframework:1.0.3'
-//    compile project(':GameLibrary')
-//    testCompile group: 'junit', name: 'junit', version: '4.11'
+    compile project(':GameLibrary')
 }
 
 repositories {
