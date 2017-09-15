@@ -827,7 +827,7 @@ public class Reflector<T> {
         } catch (RuntimeException e) {
         	throw e;
         } catch (Exception e) {
-            throw new RuntimeException("class " + clazz.getCanonicalName() + " does not appear to support a zero argument constructor.", e);
+            throw new RuntimeException("Cannot instantiate " + clazz.getCanonicalName() + ". Is it public? Does it have a public 0 argument constructor?", e);
         }
     }
     
@@ -1057,7 +1057,6 @@ public class Reflector<T> {
      * 
      * @param obj
      * @param out
-     * @param indent
      * @param printObjects
      * @throws Exception
      */
@@ -1244,7 +1243,7 @@ public class Reflector<T> {
     
     /**
      * initialize fields of this object there are explicitly added by addField for this class type.
-     * @param in
+     * @param _in
      * @throws Exception
      */
     protected void deserialize(BufferedReader _in) throws Exception {

@@ -26,7 +26,11 @@ public class Checkers extends Reflector<Checkers> implements ICheckerboard {
 
 	private final static int BLACK = 0;
 	private final static int RED   = 1;
-	
+
+    public Checkers() {
+        newGame();
+    }
+
 	@Override
 	public void newGame() {
 		for (int i=0; i<board.length; i++) {

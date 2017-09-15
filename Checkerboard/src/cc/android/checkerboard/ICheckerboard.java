@@ -2,8 +2,6 @@ package cc.android.checkerboard;
 
 import java.util.List;
 
-import cc.lib.utils.Reflector;
-
 public interface ICheckerboard {
 
 	enum MoveType {

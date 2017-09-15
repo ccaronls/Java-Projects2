@@ -6,7 +6,7 @@ import cc.lib.utils.Reflector;
  * Created by chriscaron on 9/14/17.
  */
 
-class Move extends Reflector<Move> {
+public class Move extends Reflector<Move> {
 
     static {
         addAllFields(Move.class);

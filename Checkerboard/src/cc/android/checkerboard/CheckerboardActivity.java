@@ -4,22 +4,22 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.widget.TextView;
 
 import java.io.File;
 
 import cc.lib.android.CCActivityBase;
+import cc.lib.utils.FileUtils;
 
 public class CheckerboardActivity extends CCActivityBase implements OnClickListener {
 
 	private CheckerboardView pbv;
-	public static final Checkers game = new Checkers();
+	public static Checkers game;
 	
 	@Override
 	protected void onCreate(Bundle bundle) {
 		super.onCreate(bundle);
+        game = new Checkers();
 		setContentView(R.layout.cb_activity);
-        game.newGame();
 		pbv = (CheckerboardView)findViewById(R.id.cbView);
 		findViewById(R.id.buttonNewGame).setOnClickListener(this);
 		findViewById(R.id.buttonEndTurn).setOnClickListener(this);
@@ -30,6 +30,7 @@ public class CheckerboardActivity extends CCActivityBase implements OnClickListe
 		super.onResume();
         try {
             game.loadFromFile(getSaveFile());
+            FileUtils.copyFile(getSaveFile(), Environment.getExternalStorageDirectory());
         } catch (Exception e) {
             e.printStackTrace();
         }
