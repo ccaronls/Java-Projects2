@@ -1,5 +1,8 @@
 package cc.android.checkerboard;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import cc.lib.utils.Reflector;
 
 /**
@@ -12,7 +15,7 @@ public class Move extends Reflector<Move> {
         addAllFields(Move.class);
     }
 
-    public final ICheckerboard.MoveType type;
+    public final Checkers.MoveType type;
     public final int startRank, startCol;
     public final int endRank, endCol;
     public final int captureRank, captureCol;
@@ -22,7 +25,7 @@ public class Move extends Reflector<Move> {
         this(null, 0, 0, 0, 0, 0, 0, 0);
     }
 
-    public Move(ICheckerboard.MoveType type, int startRack, int startCol, int endRank, int endCol, int captureRank, int captureCol, int playerNum) {
+    public Move(Checkers.MoveType type, int startRack, int startCol, int endRank, int endCol, int captureRank, int captureCol, int playerNum) {
         this.type = type;
         this.startRank = startRack;
         this.startCol = startCol;

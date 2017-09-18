@@ -4,37 +4,32 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.widget.Button;
 
 import java.io.File;
 
 import cc.lib.android.CCActivityBase;
 import cc.lib.utils.FileUtils;
+import cc.lib.utils.Reflector;
 
-public class CheckerboardActivity extends CCActivityBase implements OnClickListener {
+public class CheckerboardActivity extends CCActivityBase {
 
 	private CheckerboardView pbv;
-	public static Checkers game;
+    private Button bEndTurn;
 	
 	@Override
 	protected void onCreate(Bundle bundle) {
 		super.onCreate(bundle);
-        game = new Checkers();
 		setContentView(R.layout.cb_activity);
-		pbv = (CheckerboardView)findViewById(R.id.cbView);
-		findViewById(R.id.buttonNewGame).setOnClickListener(this);
-		findViewById(R.id.buttonEndTurn).setOnClickListener(this);
+		pbv = findViewById(R.id.cbView);
+		findViewById(R.id.buttonNewGame).setOnClickListener(pbv);
+        (bEndTurn = findViewById(R.id.buttonEndTurn)).setOnClickListener(pbv);
 	}
 
 	@Override
 	protected void onResume() {
 		super.onResume();
-        try {
-            game.loadFromFile(getSaveFile());
-            FileUtils.copyFile(getSaveFile(), Environment.getExternalStorageDirectory());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-		pbv.onResume();
+		pbv.resume(getSaveFile());
 	}
 
 	private File getSaveFile() {
@@ -44,25 +39,16 @@ public class CheckerboardActivity extends CCActivityBase implements OnClickListe
 	@Override
 	protected void onPause() {
 		super.onPause();
-		pbv.onPause();
-        try {
-            game.saveToFile(getSaveFile());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        pbv.pause(getSaveFile());
 	}
 
 	@Override
 	protected void onPoll() {
 	}
 
-	@Override
-	public void onClick(View v) {
-		if (v.getId() == R.id.buttonEndTurn) {
-			game.endTurn();
-		} else if (v.getId() == R.id.buttonNewGame) {
-			game.newGame();
-		}
-	}
-	
+
+    @Override
+    public void onBackPressed() {
+        // eat this since it is too easy to press and close the game.
+    }
 }

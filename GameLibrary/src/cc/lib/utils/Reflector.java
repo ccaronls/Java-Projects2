@@ -61,10 +61,28 @@ import cc.lib.game.Utils;
  */
 public class Reflector<T> {
 
+    public static final class VersionTooOldException extends IOException {
+        private VersionTooOldException(int current, int min) {
+            super("Version of deserialized object is " + current + " which older than min specified " + min);
+        }
+    }
+
     /**
      * Turn this on to throw exceptions on any unknown fields.  Default is off.
      */
     public static boolean ENABLE_THROW_ON_UNKNOWN = false;
+
+    private int version = 0;
+
+    /**
+     * Derived classes override this to provide a min loadable version.
+     * For instance, if the version loaded is '1' and theis method returns 2, then an exception
+     * is thrown
+     * @return
+     */
+    protected int getMinVersion() {
+        return 0;
+    }
     
     private static class MyBufferedReader extends BufferedReader {
 
@@ -1116,7 +1134,7 @@ public class Reflector<T> {
         }
     }
     
-    public void serialize(PrintWriter out_) throws IOException {
+    private final void serialize(PrintWriter out_) throws IOException {
 //        Utils.println("Serializing %s", getClass().getName());
         MyPrintWriter out;
         if (out_ instanceof MyPrintWriter)
@@ -1144,10 +1162,14 @@ public class Reflector<T> {
             throw new IOException(e.getMessage(), e);
         }
     }
-    
-    public final void serialize(OutputStream out) throws IOException {
-        PrintWriter pout = new MyPrintWriter(out);
-        serialize(pout);
+
+    /**
+     * Override this to do extra handling. Derived should call super.
+     * @param out
+     * @throws IOException
+     */
+    public void serialize(OutputStream out) throws IOException {
+        serialize(new MyPrintWriter(out));
     }
     
     private static Object parse(Class<?> clazz, MyBufferedReader in) throws Exception {
@@ -1233,12 +1255,31 @@ public class Reflector<T> {
     	}
     }
 
+    /**
+     *
+     * @param text
+     * @throws Exception
+     */
     public final void deserialize(String text) throws Exception {
         deserialize(new MyBufferedReader(new StringReader(text)));
     }
-    
-    public final void deserialize(InputStream in) throws Exception {
-        deserialize(new MyBufferedReader(new InputStreamReader(in)));
+
+    /**
+     *
+     * @param in
+     * @throws Exception
+     */
+    public void deserialize(InputStream in) throws IOException {
+        MyBufferedReader reader = new MyBufferedReader(new InputStreamReader(in));
+        try {
+            deserialize(new MyBufferedReader(new InputStreamReader(in)));
+        } catch (VersionTooOldException e) {
+            throw e;
+        } catch (IOException e) {
+            throw new IOException("Error on line " + reader.lineNum + ": " + e.getMessage(), e);
+        } catch (Exception e) {
+            throw new IOException("Error on line " + reader.lineNum + ": " + e.getMessage(), e);
+        }
     }
     
     /**
@@ -1246,7 +1287,7 @@ public class Reflector<T> {
      * @param _in
      * @throws Exception
      */
-    protected void deserialize(BufferedReader _in) throws Exception {
+    private void deserialize(BufferedReader _in) throws Exception {
     	MyBufferedReader in = null;
     	if (_in instanceof MyBufferedReader)
     		in = (MyBufferedReader)_in;
@@ -1270,21 +1311,22 @@ public class Reflector<T> {
                     Archiver archiver = values.get(field);
                     archiver.set(field, parts[1], this);
                     if (field.get(Reflector.this) instanceof Reflector) {
-                        ((Reflector<?>)field.get(Reflector.this)).deserialize(in);
+                        Reflector<T> ref = (Reflector<T>)field.get(Reflector.this);
+                        ref.deserialize(in);
                     } else if (field.getType().isArray()) {
                         Object obj = field.get(this);
                         if (obj != null) {
                             Archiver arrayArchiver = getArchiverForType(obj.getClass().getComponentType());
-                            arrayArchiver.deserializeArray(obj, (MyBufferedReader)in);
+                            arrayArchiver.deserializeArray(obj, in);
                         }
                     } else if (isSubclassOf(field.getType(), Collection.class)) {
                         Collection<?> collection = (Collection<?>)field.get(this);
                         if (collection != null)
-                            deserializeCollection(collection, (MyBufferedReader)in);
+                            deserializeCollection(collection, in);
                     } else if (isSubclassOf(field.getType(), Map.class)) {
                     	Map<?,?> map = (Map<?,?>)field.get(this);
                     	if (map != null) 
-                    		deserializeMap(map, (MyBufferedReader)in);
+                    		deserializeMap(map, in);
                     }
                     parts = null;
                     break;
@@ -1295,6 +1337,9 @@ public class Reflector<T> {
                     throw new Exception("Unknown field: " + name + " not in fields: " + values.keySet());
                 System.err.println("Unknown field: " + name);// + " not in fields: " + values.keySet());
             }
+        }
+        if (version < getMinVersion()) {
+            throw new VersionTooOldException(version, getMinVersion());
         }
     }
     
@@ -1427,7 +1472,7 @@ public class Reflector<T> {
      * @param other
      */
     @SuppressWarnings({ "unchecked", "rawtypes" })
-	public final void copyFrom(T other) {
+	public final void copyFrom(Reflector<T> other) {
     	try {
             Map<Field, Archiver> values = getValues(getClass(), false);
             
@@ -1435,7 +1480,7 @@ public class Reflector<T> {
             	f.setAccessible(true);
             	Object o = f.get(this);
             	if (o != null && o instanceof Reflector) {
-            		((Reflector)o).copyFrom(f.get(other));
+            		((Reflector<T>)o).copyFrom((Reflector<T>)f.get(other));
             	} else {
             		f.set(this, deepCopy(f.get(other)));
             	}
@@ -1454,18 +1499,8 @@ public class Reflector<T> {
      */
     public final void saveToFile(File file) throws IOException {
         Utils.println("saving to file %s", file.getAbsolutePath());
-        FileOutputStream out = null;
-        out = new FileOutputStream(file);
-        try {
-            MyPrintWriter writer = new MyPrintWriter(out);
-            serialize(writer);
-            writer.flush();
-        } catch (IOException e) {
-        	throw e;
-        } catch (Exception e) {
-            throw new IOException(e.getMessage(), e);
-        } finally {
-        	out.close();
+        try (FileOutputStream out = new FileOutputStream(file)) {
+            serialize(out);
         }
     }
 
@@ -1477,19 +1512,12 @@ public class Reflector<T> {
      */
     public final void loadFromFile(File file) throws IOException {
         Utils.println("Loading from file %s", file.getAbsolutePath());
-        MyBufferedReader reader = null;
-        try {
-            reader = new MyBufferedReader(new InputStreamReader(new FileInputStream(file)));    
-            deserialize(reader);
-        } catch (FileNotFoundException e) {
-        	throw e;
-        } catch (IOException e) {
-            throw new IOException("Error on line " + reader.lineNum + ": " + e.getMessage(), e);
-        } catch (Exception e) {
-            throw new IOException("Error on line " + reader.lineNum + ": " + e.getMessage(), e);
-        } finally {
-            if (reader != null)
-                reader.close();
+        try (InputStream in = new FileInputStream(file)) {
+            Reflector r = getClass().newInstance();
+            r.deserialize(in);
+            copyFrom(r);
+        } catch (IllegalAccessException | InstantiationException e) {
+            throw new IOException("Cannot create temp object to deserialize into", e);
         }
     }
 }

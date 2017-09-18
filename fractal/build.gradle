@@ -1,5 +1,15 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath group: 'ca.coglinc', name: 'javacc-gradle-plugin', version: '2.4.0'
+    }
+}
+
 apply plugin: 'java'
 apply plugin: 'application'
+apply plugin: 'ca.coglinc.javacc'
 
 sourceSets {
     main {
@@ -9,13 +19,15 @@ sourceSets {
     }
 }
 
+compileJavacc {
+    inputDirectory = file('java/cc/app/fractal/evaluator')
+    outputDirectory = file('test_javacc_out')
+}
+
 mainClassName = 'cc.app.fractal.FractalViewer'
 
 dependencies {
     compile project(':GameLibrary')
 }
 
-repositories {
-    mavenCentral()
-}
 

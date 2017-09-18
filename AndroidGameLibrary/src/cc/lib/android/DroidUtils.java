@@ -1,10 +1,14 @@
 package cc.lib.android;
 
+import android.graphics.Color;
+
 import cc.lib.game.AGraphics;
 import cc.lib.game.GDimension;
 import cc.lib.game.Utils;
 
 public class DroidUtils extends Utils {
+
+    public final static int ORANGE = 0xffffa500;
 
     /**
      * 
@@ -48,7 +52,39 @@ public class DroidUtils extends Utils {
                 ((b << 0)  & 0x000000ff);
         return d;
     }
-    
+
+    public static int darken(int color, float amount) {
+        int r = Color.red(color);
+        int g = Color.green(color);
+        int b = Color.blue(color);
+        int a = Color.alpha(color);
+
+        float R = amount * r;
+        float G = amount * g;
+        float B = amount * b;
+        R = Utils.clamp(r - R, 0, 255);
+        G = Utils.clamp(g - G, 0, 255);
+        B = Utils.clamp(b - B, 0, 255);
+
+        return Color.argb(a, (int)R, (int)G, (int)B);
+    }
+
+    public static int lighten(int color, float amount) {
+        int r = Color.red(color);
+        int g = Color.green(color);
+        int b = Color.blue(color);
+        int a = Color.alpha(color);
+
+        float R = amount * r;
+        float G = amount * g;
+        float B = amount * b;
+        R = Utils.clamp(r + R, 0, 255);
+        G = Utils.clamp(g + G, 0, 255);
+        B = Utils.clamp(b + B, 0, 255);
+
+        return Color.argb(a, R, G, B);
+    }
+
     public static void multiply(float [] glMatrix16, float [] glVertex4) {
     	float x = glVertex4[0];
     	float y = glVertex4[1];

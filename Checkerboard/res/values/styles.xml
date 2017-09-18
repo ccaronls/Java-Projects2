@@ -27,4 +27,8 @@
         <item name="android:padding">5dp</item>
     </style>
 
+    <declare-styleable name="CheckerboardView">
+        <attr name="outlineThickness" format="dimension"/>
+    </declare-styleable>
+
 </resources>

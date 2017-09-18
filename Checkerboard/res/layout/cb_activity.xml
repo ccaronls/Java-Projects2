@@ -15,7 +15,8 @@
         <cc.android.checkerboard.CheckerboardView
             android:id="@+id/cbView"
             android:layout_width="fill_parent"
-            android:layout_height="fill_parent" />
+            android:layout_height="fill_parent"
+            cc:outlineThickness="3dp"/>
     </cc.lib.android.SquareLinearLayout>
 
     <LinearLayout
