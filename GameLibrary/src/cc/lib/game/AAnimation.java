@@ -6,7 +6,7 @@ package cc.lib.game;
  * @author chriscaron
  *
  */
-public abstract class AAnimation {
+public abstract class AAnimation<T> {
     private long startTime;
     private long lastTime;
     private final long duration;
@@ -29,7 +29,7 @@ public abstract class AAnimation {
         position = 0;
     }
 
-    public final AAnimation start() {
+    public final AAnimation<T> start() {
     	start(0);
     	return this;
     }
@@ -44,7 +44,7 @@ public abstract class AAnimation {
      * @param g
      * returns true when isDone
      */
-    public final boolean update(AGraphics g) {
+    public final boolean update(T g) {
         long t = System.currentTimeMillis();
         if (t < startTime) {
             return false;
@@ -79,7 +79,7 @@ public abstract class AAnimation {
      * @param g
      * @param position
      */
-    public abstract void draw(AGraphics g, float position, float dt);
+    public abstract void draw(T g, float position, float dt);
     
     /**
      * Called from update thread when animation ended.

@@ -6,21 +6,19 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
-import android.opengl.GLSurfaceView;
 import android.os.Environment;
 import android.os.SystemClock;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
-import android.view.SurfaceHolder;
 import android.view.View;
 
 import java.io.File;
-import java.util.List;
 
 import cc.lib.android.DroidUtils;
-import cc.lib.android.GLColor;
-import cc.lib.game.Utils;
-import cc.lib.net.FormElem;
+import cc.lib.game.AAnimation;
+import cc.lib.game.IVector2D;
+import cc.lib.math.Bezier;
+import cc.lib.math.Vector2D;
 import cc.lib.utils.FileUtils;
 import cc.lib.utils.Reflector;
 
@@ -65,7 +63,7 @@ public class CheckerboardView extends View implements View.OnClickListener {
     @Override
     public boolean onTouchEvent(MotionEvent event) {
 
-        if (game == null)
+        if (game == null || animation != null)
             return false;
 
         float touchX = event.getX();
@@ -110,6 +108,127 @@ public class CheckerboardView extends View implements View.OnClickListener {
         return true;
     }
 
+    private AAnimation<Canvas> animation = null;
+
+    private abstract class BaseAnim extends AAnimation<Canvas> {
+        final Move move;
+        final int stacks;
+        final int playerNum;
+
+        BaseAnim(long duration, int maxRepeats, Move move, int playerNum) {
+            super(duration, maxRepeats);
+            this.move = move;
+            this.playerNum = playerNum;
+            this.stacks = game.getPiece(move.startRank, move.startCol).stacks;
+        }
+
+        @Override
+        protected final void onDone() {
+            game.getPiece(move.startRank, move.startCol).stacks = stacks;
+            game.executeMove(move);
+            animation = null;
+        }
+    }
+
+    IVector2D[] computeJumpPoints(Move move) {
+
+        float sx = cellW * move.startCol + cellW/2;
+        float sy = cellW * move.startRank + cellH/2;
+        float ex = cellH * move.endCol + cellW/2;
+        float ey = cellH * move.endRank + cellH/2;
+
+        float midx1 = sx + ((ex-sx) / 3);
+        float midx2 = sx + ((ex-sx) * 2 / 3);
+        float midy1 = sy + ((ey-sy) / 3);
+        float midy2 = sy + ((ey-sy) * 2 / 3);
+        float dist = cellH * getDir(move.playerNum);
+        IVector2D [] v = {
+                new Vector2D(sx, sy),
+                new Vector2D(midx1, midy1+dist),
+                new Vector2D(midx2, midy2+dist),
+                new Vector2D(ex, ey),
+        };
+        return v;
+    }
+
+    class StackAnim extends BaseAnim {
+        public StackAnim(Move move, int playerNum) {
+            super(2000, 0, move, playerNum);
+        }
+
+        @Override
+        protected void onStarted() {
+            //Piece p = CheckerboardActivity.game.getPiece(move.startRank, move.startCol);
+            //p.stacks = 0;
+        }
+
+        @Override
+        public void draw(Canvas g, float position, float dt) {
+            float sx = cellW * move.startCol + cellW/2;
+            float sy = move.startRank == 0 ? 0 : getHeight();//0;//cellH * move.startRank + cellH/2;
+            float ex = cellW * move.startCol + cellW/2;
+            float ey = cellH * move.startRank + cellH/2;
+            float scale = 1 + (1-position);
+            int x = Math.round(sx + (ex-sx) * position);
+            int y = Math.round(sy + (ey-sy) * position);
+            Piece p = game.getPiece(move.startRank, move.startCol);
+            g.save();
+            g.translate(x, y);
+            g.scale(scale, scale);
+            drawChecker(g, 0, 0, pcRad, stacks, playerNum, getPcColor(p), 0);
+            g.restore();
+        }
+
+    }
+
+    class SlideAnim extends BaseAnim {
+
+        public SlideAnim(Move move, int playerNum) {
+            super(1000, 0, move, playerNum);
+        }
+
+        @Override
+        protected void onStarted() {
+            Piece p = game.getPiece(move.startRank, move.startCol);
+            p.stacks = 0;
+        }
+
+        @Override
+        public void draw(Canvas g, float position, float dt) {
+            float sx = cellW * move.startCol + cellW/2;
+            float sy = cellH * move.startRank + cellH/2;
+            float ex = cellW * move.endCol + cellW/2;
+            float ey = cellH * move.endRank + cellH/2;
+            int x = Math.round(sx + (ex-sx) * position);
+            int y = Math.round(sy + (ey-sy) * position);
+            Piece p = game.getPiece(move.startRank, move.startCol);
+            drawChecker(g, x, y, pcRad, stacks, playerNum, getPcColor(p), 0);
+        }
+    }
+
+    class JumpAnim extends BaseAnim {
+
+        final Bezier curve;
+
+        public JumpAnim(Move move, int playerNum) {
+            super(2000, 0, move, playerNum);
+            curve = new Bezier(computeJumpPoints(move));
+        }
+
+        @Override
+        protected void onStarted() {
+            Piece p = game.getPiece(move.startRank, move.startCol);
+            p.stacks = 0;
+        }
+
+        @Override
+        public void draw(Canvas g, float position, float dt) {
+            Vector2D v = curve.getPointAt(position);
+            Piece p = game.getPiece(move.startRank, move.startCol);
+            drawChecker(g, v.Xi(), v.Yi(), pcRad, stacks, playerNum, getPcColor(p), 0);
+        }
+
+    };
     private void doTap(int curRank, int curCol) {
         if (tapped == null) {
             tapped = game.getPiece(curRank, curCol);
@@ -118,8 +237,21 @@ public class CheckerboardView extends View implements View.OnClickListener {
         } else {
             for (Move m : tapped.moves) {
                 if (m.endRank==curRank && m.endCol == curCol) {
-                    // TODO: start anims here
-                    game.executeMove(m);
+                    switch (m.type) {
+                        case SLIDE:
+                            animation = new SlideAnim(m, game.getCurPlayerNum()).start();
+                            break;
+                        case JUMP:
+                        case JUMP_CAPTURE:
+                            animation = new JumpAnim(m, game.getCurPlayerNum()).start();
+                            break;
+                        case STACK:
+                            animation = new StackAnim(m, game.getCurPlayerNum()).start();
+                            break;
+                        default:
+                            game.executeMove(m);
+                            break;
+                    }
                     tapped = null;
                     return;
                 }
@@ -187,6 +319,13 @@ public class CheckerboardView extends View implements View.OnClickListener {
                 }
             }
         }
+
+        if (animation != null) {
+            animation.update(canvas);
+            invalidate();
+            return;
+        }
+
         if (numMvs == 1 && mainMv != null && mainMv.type == Checkers.MoveType.STACK) {
             tapped = game.getPiece(mainMv.startRank, mainMv.startCol);
             dragging = null;
@@ -312,7 +451,7 @@ public class CheckerboardView extends View implements View.OnClickListener {
     void resume(File saveFile) {
         try {
             if (saveFile.exists()) {
-                //game.loadFromFile(saveFile);
+                game.loadFromFile(saveFile);
                 FileUtils.copyFile(saveFile, Environment.getExternalStorageDirectory());
             }
         } catch (Reflector.VersionTooOldException e) {
