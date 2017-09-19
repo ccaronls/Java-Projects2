@@ -20,6 +20,8 @@ public class Move extends Reflector<Move> {
     public final int endRank, endCol;
     public final int captureRank, captureCol;
     public final int playerNum;
+    boolean isEndTurn = false;
+    Piece captured = null;
 
     public Move() {
         this(null, 0, 0, 0, 0, 0, 0, 0);

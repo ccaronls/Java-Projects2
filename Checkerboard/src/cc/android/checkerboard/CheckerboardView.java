@@ -1,18 +1,24 @@
 package cc.android.checkerboard;
 
+import android.app.Application;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
+import android.os.AsyncTask;
 import android.os.Environment;
 import android.os.SystemClock;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
 import java.io.File;
+import java.io.FileFilter;
+import java.util.Arrays;
+import java.util.Comparator;
 
 import cc.lib.android.DroidUtils;
 import cc.lib.game.AAnimation;
@@ -82,7 +88,7 @@ public class CheckerboardView extends View implements View.OnClickListener {
                 touchColumn = curColumn;
                 break;
             case MotionEvent.ACTION_MOVE:
-                if (tapped == null && game.isOnBoard(touchRank, touchColumn)) {
+                if (dt > 200 && game.isOnBoard(touchRank, touchColumn)) {
                     dragX = touchX;
                     dragY = touchY;
                     dragging = game.getPiece(touchRank, touchColumn);
@@ -153,7 +159,7 @@ public class CheckerboardView extends View implements View.OnClickListener {
 
     class StackAnim extends BaseAnim {
         public StackAnim(Move move, int playerNum) {
-            super(2000, 0, move, playerNum);
+            super(1600, 0, move, playerNum);
         }
 
         @Override
@@ -184,7 +190,7 @@ public class CheckerboardView extends View implements View.OnClickListener {
     class SlideAnim extends BaseAnim {
 
         public SlideAnim(Move move, int playerNum) {
-            super(1000, 0, move, playerNum);
+            super(800, 0, move, playerNum);
         }
 
         @Override
@@ -211,7 +217,7 @@ public class CheckerboardView extends View implements View.OnClickListener {
         final Bezier curve;
 
         public JumpAnim(Move move, int playerNum) {
-            super(2000, 0, move, playerNum);
+            super(1200, 0, move, playerNum);
             curve = new Bezier(computeJumpPoints(move));
         }
 
@@ -301,8 +307,8 @@ public class CheckerboardView extends View implements View.OnClickListener {
         if (game == null)
             return;
 
-        int numMvs = 0;
-        Move mainMv = null;
+        Piece mainPc = null;
+        int numMvblePcs = 0;
         for (int i=0; i<game.COLUMNS; i++) {
             for (int ii=0; ii<game.RANKS; ii++) {
                 if (dragging != null && touchColumn == i && touchRank == ii)
@@ -312,9 +318,12 @@ public class CheckerboardView extends View implements View.OnClickListener {
                     boolean outline = dragging == null && tapped == null && pc.moves.size() > 0;
                     drawChecker(canvas, pc, ii, i, outline);
                     if (pc.moves.size() > 0) {
-                        if (pc.moves.size() == 1)
-                            mainMv = pc.moves.get(0);
-                        numMvs += pc.moves.size();
+                        numMvblePcs++;
+                        if (numMvblePcs == 1) {
+                            mainPc = pc;
+                        } else {
+                            mainPc = null;
+                        }
                     }
                 }
             }
@@ -326,9 +335,8 @@ public class CheckerboardView extends View implements View.OnClickListener {
             return;
         }
 
-        if (numMvs == 1 && mainMv != null && mainMv.type == Checkers.MoveType.STACK) {
-            tapped = game.getPiece(mainMv.startRank, mainMv.startCol);
-            dragging = null;
+        if (mainPc != null) {
+            tapped = mainPc;
         }
 
         if (dragging != null) {
@@ -439,28 +447,6 @@ public class CheckerboardView extends View implements View.OnClickListener {
         c.drawOval(rf, p);
     }
 
-    void pause(File saveFile) {
-        try {
-            game.saveToFile(saveFile);
-            FileUtils.copyFile(saveFile, Environment.getExternalStorageDirectory());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    void resume(File saveFile) {
-        try {
-            if (saveFile.exists()) {
-                game.loadFromFile(saveFile);
-                FileUtils.copyFile(saveFile, Environment.getExternalStorageDirectory());
-            }
-        } catch (Reflector.VersionTooOldException e) {
-            saveFile.delete();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
     @Override
     public void onClick(View v) {
         if (v.getId() == R.id.buttonEndTurn) {
@@ -471,4 +457,12 @@ public class CheckerboardView extends View implements View.OnClickListener {
         invalidate();
     }
 
+    public final boolean canEndTurn() {
+        if (tapped == null)
+            return false;
+        for (Move m : tapped.moves)
+            if (m.type == Checkers.MoveType.END)
+                return true;
+        return false;
+    }
 }

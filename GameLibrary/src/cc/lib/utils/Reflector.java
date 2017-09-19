@@ -71,19 +71,10 @@ public class Reflector<T> {
      * Turn this on to throw exceptions on any unknown fields.  Default is off.
      */
     public static boolean ENABLE_THROW_ON_UNKNOWN = false;
+    private final static Map<Class<?>, Set<String>> omitFields = new HashMap<Class<?>, Set<String>>();
+    private final static Map<Class<?>, Map<Field, Archiver>> classValues = new HashMap<Class<?>, Map<Field, Archiver>>();
+    private final static Map<String, Class<?>> classMap = new HashMap<String, Class<?>>();
 
-    private int version = 0;
-
-    /**
-     * Derived classes override this to provide a min loadable version.
-     * For instance, if the version loaded is '1' and theis method returns 2, then an exception
-     * is thrown
-     * @return
-     */
-    protected int getMinVersion() {
-        return 0;
-    }
-    
     private static class MyBufferedReader extends BufferedReader {
 
     	private int markedLineNum = 0;
@@ -658,8 +649,6 @@ public class Reflector<T> {
         }
     };
     
-    private static Map<String, Class<?>> classMap = new HashMap<String, Class<?>>();
-    
     // TODO: Support more than 3D arrays?
     // TODO: byte?
     static {
@@ -734,10 +723,6 @@ public class Reflector<T> {
             throw e;
         }
     }
-
-    
-    private final static Map<Class<?>, Set<String>> omitFields = new HashMap<Class<?>, Set<String>>();
-    private final static Map<Class<?>, Map<Field, Archiver>> classValues = new HashMap<Class<?>, Map<Field, Archiver>>();
 
     private static Comparator<Field> xfieldComparator = new Comparator<Field>() {
 
@@ -890,7 +875,7 @@ public class Reflector<T> {
             throw new RuntimeException("No reflector available for class: " + clazz);
         }        
     }
-    
+
     private static void addArrayTypes(Class<?> clazz) {
     	String nm = clazz.getName();
     	if (classMap.containsKey(nm))
@@ -1146,6 +1131,9 @@ public class Reflector<T> {
             for (Field field : values.keySet()) {
             	if (localOmitFields != null && localOmitFields.contains(field.getName()))
             		continue;
+                if (getMinVersion() == 0 && field.getName().equals("__reflector_version")) {
+                    continue;
+                }
                 Archiver archiver = values.get(field);
                 field.setAccessible(true);
                 Object obj = field.get(Reflector.this);
@@ -1338,8 +1326,8 @@ public class Reflector<T> {
                 System.err.println("Unknown field: " + name);// + " not in fields: " + values.keySet());
             }
         }
-        if (version < getMinVersion()) {
-            throw new VersionTooOldException(version, getMinVersion());
+        if (__reflector_version < getMinVersion()) {
+            throw new VersionTooOldException(__reflector_version, getMinVersion());
         }
     }
     
@@ -1520,4 +1508,23 @@ public class Reflector<T> {
             throw new IOException("Cannot create temp object to deserialize into", e);
         }
     }
+
+
+
+    private int __reflector_version = getMinVersion();
+
+    static {
+        addField(Reflector.class, "__reflector_version");
+    }
+
+    /**
+     * Derived classes override this to provide a min loadable version.
+     * For instance, if the version loaded is '1' and theis method returns 2, then an exception
+     * is thrown
+     * @return
+     */
+    protected int getMinVersion() {
+        return 0;
+    }
+
 }

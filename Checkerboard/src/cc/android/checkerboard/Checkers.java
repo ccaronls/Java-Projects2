@@ -5,7 +5,9 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Stack;
 
 import cc.lib.game.Utils;
 import cc.lib.utils.Reflector;
@@ -35,6 +37,8 @@ public class Checkers extends Reflector<Checkers> { //implements ICheckerboard {
 
 	private final static int BLACK = 0;
 	private final static int RED   = 1;
+
+    private final Stack<Move> undoStack = new Stack<>();
 
     public Checkers() {
         this(8,8);
@@ -158,10 +162,34 @@ public class Checkers extends Reflector<Checkers> { //implements ICheckerboard {
             onGameOver();
         }
 	}
+
+	private void reverseMove(Move m) {
+        switch (m.type) {
+
+            case END:
+                break;
+            case JUMP_CAPTURE:
+                board[m.captureRank][m.captureCol] = m.captured;
+            case SLIDE:
+            case JUMP:
+                board[m.startRank][m.startCol] = board[m.endRank][m.endCol];
+                board[m.endRank][m.endCol] = new Piece();
+                break;
+            case STACK:
+                getPiece(m.startRank, m.startCol).stacks --;
+                break;
+        }
+
+        if (m.isEndTurn) {
+            turn = (turn+1) % 2;
+        }
+
+    }
 	
 	public void executeMove(Move move) {
         lock = null;
 		boolean isKinged = false;
+        move.isEndTurn = false;
 		final Piece p = board[move.startRank][move.startCol];
         // clear everyone all moves
         for (int i=0; i<RANKS; i++) {
@@ -181,37 +209,44 @@ public class Checkers extends Reflector<Checkers> { //implements ICheckerboard {
             board[move.startRank][move.startCol] = new Piece();
 		}
 
-		switch (move.type) {
-            case SLIDE:
-                if (isKinged) {
-                    p.moves.add(new Move(MoveType.STACK, move.endRank, move.endCol, move.endRank, move.endCol, 0, 0, move.playerNum));
-                    lock = p;
+		try {
+            switch (move.type) {
+                case SLIDE:
+                    if (isKinged) {
+                        p.moves.add(new Move(MoveType.STACK, move.endRank, move.endCol, move.endRank, move.endCol, 0, 0, move.playerNum));
+                        lock = p;
+                        return;
+                    }
+                case END:
+                    move.isEndTurn = true;
+                    endTurn();
                     return;
-                }
-			case END:
-				endTurn();
-				return;
-			case JUMP_CAPTURE:
-				board[move.captureRank][move.captureCol].stacks = 0;
-			case JUMP:
-  				if (isKinged) {
-					p.moves.add(new Move(MoveType.STACK, move.endRank, move.endCol, move.endRank, move.endCol, 0, 0, move.playerNum));
-                    lock = p;
-					return;
-				}
-				break;
-			case STACK:
-				p.stacks ++;
-                break;
-		}
+                case JUMP_CAPTURE:
+                    move.captured = board[move.captureRank][move.captureCol];
+                    board[move.captureRank][move.captureCol] = new Piece();
+                case JUMP:
+                    if (isKinged) {
+                        p.moves.add(new Move(MoveType.STACK, move.endRank, move.endCol, move.endRank, move.endCol, 0, 0, move.playerNum));
+                        lock = p;
+                        return;
+                    }
+                    break;
+                case STACK:
+                    p.stacks++;
+                    break;
+            }
 
-        // recursive compute next move if possible after a jump
-		computeMovesForSquare(move.endRank, move.endCol, move);
-		if (p.moves.size() == 0) {
-			endTurn();
-		} else {
-			p.moves.add(new Move(MoveType.END, 0, 0, 0, 0, 0, 0, move.playerNum));
-            lock = p;
+            // recursive compute next move if possible after a jump
+            computeMovesForSquare(move.endRank, move.endCol, move);
+            if (p.moves.size() == 0) {
+                move.isEndTurn = true;
+                endTurn();
+            } else {
+                p.moves.add(new Move(MoveType.END, 0, 0, 0, 0, 0, 0, move.playerNum));
+                lock = p;
+            }
+        } finally {
+            undoStack.push(move);
         }
 	}
 	
@@ -225,5 +260,16 @@ public class Checkers extends Reflector<Checkers> { //implements ICheckerboard {
      */
 	protected void onGameOver() {
         newGame();
+    }
+
+    public boolean canUndo() {
+        return undoStack.size() > 0;
+    }
+
+    public void undo() {
+        if (undoStack.size() > 0) {
+            Move m = undoStack.pop();
+            reverseMove(m);
+        }
     }
 }
