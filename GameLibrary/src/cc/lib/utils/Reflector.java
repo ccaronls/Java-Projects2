@@ -1493,6 +1493,18 @@ public class Reflector<T> {
     }
 
     /**
+     * Convenience method to attempt a save to file and fail silently on error
+     * @param file
+     */
+    public final void trySaveToFile(File file) {
+        try {
+            saveToFile(file);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
      * Convenience method
      * 
      * @param file
@@ -1509,7 +1521,19 @@ public class Reflector<T> {
         }
     }
 
-
+    /**
+     * Convenience method to load from file and fail silently
+     * @param file
+     */
+    public final void tryLoadFromFile(File file) {
+        try {
+            loadFromFile(file);
+        } catch (FileNotFoundException e) {
+            // meh
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     private int __reflector_version = getMinVersion();
 

@@ -20,7 +20,6 @@ public class Move extends Reflector<Move> {
     public final int endRank, endCol;
     public final int captureRank, captureCol;
     public final int playerNum;
-    boolean isEndTurn = false;
     Piece captured = null;
 
     public Move() {
@@ -36,5 +35,11 @@ public class Move extends Reflector<Move> {
         this.captureCol = captureCol;
         this.captureRank = captureRank;
         this.playerNum = playerNum;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        Move m = (Move)other;
+        return endCol == m.endCol && endRank == m.endRank;
     }
 }

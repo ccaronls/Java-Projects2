@@ -1,32 +1,21 @@
 package cc.android.checkerboard;
 
-import android.app.Application;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
-import android.os.AsyncTask;
-import android.os.Environment;
 import android.os.SystemClock;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
-
-import java.io.File;
-import java.io.FileFilter;
-import java.util.Arrays;
-import java.util.Comparator;
 
 import cc.lib.android.DroidUtils;
 import cc.lib.game.AAnimation;
 import cc.lib.game.IVector2D;
 import cc.lib.math.Bezier;
 import cc.lib.math.Vector2D;
-import cc.lib.utils.FileUtils;
-import cc.lib.utils.Reflector;
 
 /**
  * This handles events form system like user input, pause, resume etc.
@@ -114,14 +103,18 @@ public class CheckerboardView extends View implements View.OnClickListener {
         return true;
     }
 
+    public Checkers getGame() {
+        return game;
+    }
+
     private AAnimation<Canvas> animation = null;
 
-    private abstract class BaseAnim extends AAnimation<Canvas> {
+    private abstract class MoveAnim extends AAnimation<Canvas> {
         final Move move;
         final int stacks;
         final int playerNum;
 
-        BaseAnim(long duration, int maxRepeats, Move move, int playerNum) {
+        MoveAnim(long duration, int maxRepeats, Move move, int playerNum) {
             super(duration, maxRepeats);
             this.move = move;
             this.playerNum = playerNum;
@@ -157,7 +150,7 @@ public class CheckerboardView extends View implements View.OnClickListener {
         return v;
     }
 
-    class StackAnim extends BaseAnim {
+    class StackAnim extends MoveAnim {
         public StackAnim(Move move, int playerNum) {
             super(1600, 0, move, playerNum);
         }
@@ -187,7 +180,7 @@ public class CheckerboardView extends View implements View.OnClickListener {
 
     }
 
-    class SlideAnim extends BaseAnim {
+    class SlideAnim extends MoveAnim {
 
         public SlideAnim(Move move, int playerNum) {
             super(800, 0, move, playerNum);
@@ -212,7 +205,7 @@ public class CheckerboardView extends View implements View.OnClickListener {
         }
     }
 
-    class JumpAnim extends BaseAnim {
+    class JumpAnim extends MoveAnim {
 
         final Bezier curve;
 

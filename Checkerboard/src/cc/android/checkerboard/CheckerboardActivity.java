@@ -32,6 +32,22 @@ public class CheckerboardActivity extends CCActivityBase implements OnClickListe
         bEndTurn.setVisibility(View.GONE);
 	}
 
+	private File getSaveFile() {
+        return new File(getFilesDir(), "checkers.save");
+    }
+
+	@Override
+    public void onPause() {
+        super.onPause();
+        pbv.getGame().trySaveToFile(getSaveFile());
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        pbv.getGame().tryLoadFromFile(getSaveFile());
+    }
+
 	@Override
 	protected void onPoll() {
 	}
@@ -44,6 +60,12 @@ public class CheckerboardActivity extends CCActivityBase implements OnClickListe
 
     @Override
     public void onBackPressed() {
+        if (pbv.getGame().canUndo()) {
+            pbv.getGame().undo();
+            pbv.invalidate();
+        } else {
+            super.onBackPressed();
+        }
     }
 
 

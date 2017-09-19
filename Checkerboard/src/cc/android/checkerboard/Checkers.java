@@ -67,6 +67,7 @@ public class Checkers extends Reflector<Checkers> { //implements ICheckerboard {
 		turn = Utils.flipCoin() ? 0 : 1;
         lock = null;
         computeMoves();
+        undoStack.clear();
 	}
 
     @Override
@@ -106,7 +107,6 @@ public class Checkers extends Reflector<Checkers> { //implements ICheckerboard {
 		}
 
 		int [] dr, dc;
-		
 		if (p.stacks > 1) {
 			dr = new int[] { 1, 1, -1, -1 };
 			dc = new int[] { -1, 1, -1, 1 };
@@ -156,7 +156,7 @@ public class Checkers extends Reflector<Checkers> { //implements ICheckerboard {
 	}
 
 	public void endTurn() {
-		turn = (turn+1) % 2;
+		turn = (turn+1) % NUM_PLAYERS;
         lock = null;
         if (computeMoves()==0) {
             onGameOver();
@@ -165,8 +165,8 @@ public class Checkers extends Reflector<Checkers> { //implements ICheckerboard {
 
 	private void reverseMove(Move m) {
         switch (m.type) {
-
             case END:
+                turn = (turn+NUM_PLAYERS-1)%NUM_PLAYERS;
                 break;
             case JUMP_CAPTURE:
                 board[m.captureRank][m.captureCol] = m.captured;
@@ -180,23 +180,28 @@ public class Checkers extends Reflector<Checkers> { //implements ICheckerboard {
                 break;
         }
 
-        if (m.isEndTurn) {
-            turn = (turn+1) % 2;
+        if (lock == null) {
+            turn = (turn+NUM_PLAYERS-1) % NUM_PLAYERS;
+            computeMoves();
+        } else {
+            lock.moves.add(m);
         }
-
     }
-	
-	public void executeMove(Move move) {
-        lock = null;
-		boolean isKinged = false;
-        move.isEndTurn = false;
-		final Piece p = board[move.startRank][move.startCol];
-        // clear everyone all moves
+
+    private void clearMoves() {
         for (int i=0; i<RANKS; i++) {
             for (int ii=0; ii<COLUMNS; ii++) {
                 getPiece(i, ii).moves.clear();
             }
         }
+    }
+
+	public void executeMove(Move move) {
+        lock = null;
+		boolean isKinged = false;
+		final Piece p = board[move.startRank][move.startCol];
+        // clear everyone all moves
+        clearMoves();
 		if (move.startCol != move.endCol && move.startRank != move.endRank) {
     		// check for king
     		int rank = move.endRank;// + move.dRank;
@@ -209,44 +214,41 @@ public class Checkers extends Reflector<Checkers> { //implements ICheckerboard {
             board[move.startRank][move.startCol] = new Piece();
 		}
 
-		try {
-            switch (move.type) {
-                case SLIDE:
-                    if (isKinged) {
-                        p.moves.add(new Move(MoveType.STACK, move.endRank, move.endCol, move.endRank, move.endCol, 0, 0, move.playerNum));
-                        lock = p;
-                        return;
-                    }
-                case END:
-                    move.isEndTurn = true;
-                    endTurn();
-                    return;
-                case JUMP_CAPTURE:
-                    move.captured = board[move.captureRank][move.captureCol];
-                    board[move.captureRank][move.captureCol] = new Piece();
-                case JUMP:
-                    if (isKinged) {
-                        p.moves.add(new Move(MoveType.STACK, move.endRank, move.endCol, move.endRank, move.endCol, 0, 0, move.playerNum));
-                        lock = p;
-                        return;
-                    }
-                    break;
-                case STACK:
-                    p.stacks++;
-                    break;
-            }
+        undoStack.push(move);
 
+        switch (move.type) {
+            case SLIDE:
+                if (isKinged) {
+                    p.moves.add(new Move(MoveType.STACK, move.endRank, move.endCol, move.endRank, move.endCol, 0, 0, move.playerNum));
+                    lock = p;
+                    break;
+                }
+            case END:
+                endTurn();
+                return; // dont want to make undoable this move?
+            case JUMP_CAPTURE:
+                move.captured = board[move.captureRank][move.captureCol];
+                board[move.captureRank][move.captureCol] = new Piece();
+            case JUMP:
+                if (isKinged) {
+                    p.moves.add(new Move(MoveType.STACK, move.endRank, move.endCol, move.endRank, move.endCol, 0, 0, move.playerNum));
+                    lock = p;
+                }
+                break;
+            case STACK:
+                p.stacks++;
+                break;
+        }
+
+        if (!isKinged) {
             // recursive compute next move if possible after a jump
             computeMovesForSquare(move.endRank, move.endCol, move);
             if (p.moves.size() == 0) {
-                move.isEndTurn = true;
                 endTurn();
             } else {
                 p.moves.add(new Move(MoveType.END, 0, 0, 0, 0, 0, 0, move.playerNum));
                 lock = p;
             }
-        } finally {
-            undoStack.push(move);
         }
 	}
 	
