@@ -3,7 +3,9 @@ package cc.android.checkerboard;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.SystemClock;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -17,18 +19,30 @@ import cc.lib.android.CCActivityBase;
 import cc.lib.utils.FileUtils;
 import cc.lib.utils.Reflector;
 
-public class CheckerboardActivity extends CCActivityBase implements OnClickListener {
+public class CheckerboardActivity extends CCActivityBase {
 
 	private CheckerboardView pbv;
     private Button bEndTurn;
-	
+    private Checkers game;
+
+    class MyCheckers extends Checkers {
+        @Override
+        public void executeMove(Move move) {
+            super.executeMove(move);
+            bEndTurn.setVisibility(pbv.canEndTurn() ? View.VISIBLE : View.GONE);
+        }
+    }
+
 	@Override
 	protected void onCreate(Bundle bundle) {
 		super.onCreate(bundle);
+        game = new MyCheckers();
+        game.newGame();
 		setContentView(R.layout.cb_activity);
 		pbv = findViewById(R.id.cbView);
+        pbv.game = game;
 		findViewById(R.id.buttonNewGame).setOnClickListener(pbv);
-        (bEndTurn = findViewById(R.id.buttonEndTurn)).setOnClickListener(this);
+        (bEndTurn = findViewById(R.id.buttonEndTurn)).setOnClickListener(pbv);
         bEndTurn.setVisibility(View.GONE);
 	}
 
@@ -39,13 +53,13 @@ public class CheckerboardActivity extends CCActivityBase implements OnClickListe
 	@Override
     public void onPause() {
         super.onPause();
-        pbv.getGame().trySaveToFile(getSaveFile());
+        game.trySaveToFile(getSaveFile());
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        pbv.getGame().tryLoadFromFile(getSaveFile());
+        game.tryLoadFromFile(getSaveFile());
     }
 
 	@Override
@@ -53,20 +67,15 @@ public class CheckerboardActivity extends CCActivityBase implements OnClickListe
 	}
 
     @Override
-    public void onClick(View view) {
-        pbv.onClick(view);
-        bEndTurn.setVisibility(pbv.canEndTurn() ? View.VISIBLE : View.GONE);
-    }
-
-    @Override
     public void onBackPressed() {
-        if (pbv.getGame().canUndo()) {
-            pbv.getGame().undo();
+        if (game.canUndo()) {
+            game.undo();
             pbv.invalidate();
         } else {
             super.onBackPressed();
         }
     }
+
 
 
 }

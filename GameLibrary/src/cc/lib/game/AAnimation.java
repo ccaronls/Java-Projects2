@@ -12,8 +12,9 @@ public abstract class AAnimation<T> {
     private final long duration;
     private final int maxRepeats;
     private float position = 0;
-    private boolean done;
     private boolean started = false;
+    private boolean done = false;
+    private boolean reverse = false; // 1 for forward, -1 for reversed
     
     public AAnimation(long duration, int maxRepeats) {
         assert(duration > 0);
@@ -32,6 +33,17 @@ public abstract class AAnimation<T> {
     public final AAnimation<T> start() {
     	start(0);
     	return this;
+    }
+
+    public final AAnimation<T> startReverse(long delay) {
+        start(delay);
+        position = 1;
+        reverse = true;
+        return this;
+    }
+
+    public final AAnimation<T> startReverse() {
+        return startReverse(0);
     }
     
     public final boolean isDone() {
@@ -55,17 +67,20 @@ public abstract class AAnimation<T> {
         }
 
         float delta = (t-startTime) % duration;
-        position = delta / duration;
+        if (reverse) {
+            position = 1 - (delta/duration);
+        } else {
+            position = delta / duration;
+        }
         long repeats = (t-startTime) / duration;
-        boolean isDone = false;
         if (maxRepeats >= 0 && repeats > maxRepeats) {
-        	position = 1;
+        	position = reverse ? 0 : 1;
         	onDone();
-        	isDone = true;
+        	done = true;
         }
         draw(g, position, t-lastTime);
         lastTime = t;
-        return isDone;
+        return done;
     }
     
     public void stop() {

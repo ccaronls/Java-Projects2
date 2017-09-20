@@ -166,13 +166,13 @@ public class Checkers extends Reflector<Checkers> { //implements ICheckerboard {
 	private void reverseMove(Move m) {
         switch (m.type) {
             case END:
-                turn = (turn+NUM_PLAYERS-1)%NUM_PLAYERS;
                 break;
             case JUMP_CAPTURE:
                 board[m.captureRank][m.captureCol] = m.captured;
             case SLIDE:
             case JUMP:
                 board[m.startRank][m.startCol] = board[m.endRank][m.endCol];
+                board[m.endRank][m.endCol].moves.remove(m);
                 board[m.endRank][m.endCol] = new Piece();
                 break;
             case STACK:
@@ -180,11 +180,12 @@ public class Checkers extends Reflector<Checkers> { //implements ICheckerboard {
                 break;
         }
 
+        turn = m.playerNum;
         if (lock == null) {
-            turn = (turn+NUM_PLAYERS-1) % NUM_PLAYERS;
             computeMoves();
         } else {
-            lock.moves.add(m);
+            //lock.moves.add(m);
+            computeMovesForSquare(m.startRank, m.startCol, undoStack.peek());
         }
     }
 
