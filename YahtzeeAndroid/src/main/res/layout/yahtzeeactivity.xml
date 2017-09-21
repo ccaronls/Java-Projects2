@@ -8,7 +8,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
-        android:background="#00f" >
+        android:background="@color/colorBackground" >
 
         <RelativeLayout
             android:layout_width="0dp"
@@ -300,12 +300,19 @@
         </LinearLayout>
     </LinearLayout>
 
+    <View
+        android:id="@+id/divider"
+        android:layout_width="fill_parent"
+        android:layout_height="3dp"
+        android:layout_below="@+id/linearLayout2"
+        android:background="#f00"/>
+
     <ListView
         android:id="@+id/listViewYahtzeeSlots"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_above="@+id/buttonRollDice"
-        android:layout_below="@+id/linearLayout2"
+        android:layout_below="@+id/divider"
         android:layout_centerHorizontal="true"
         android:layout_marginBottom="5dp"
         android:background="#006" >
@@ -314,12 +321,12 @@
 
     <Button
         android:id="@+id/buttonRollDice"
-        style="@style/yahtzeeStyle"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
         android:layout_weight="1"
-        android:text="Roll" />
+        android:text="Roll"
+        android:textStyle="bold"/>
 
 </RelativeLayout>

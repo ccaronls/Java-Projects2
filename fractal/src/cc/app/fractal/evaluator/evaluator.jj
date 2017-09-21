@@ -31,6 +31,9 @@ public class Evaluator extends AEvaluator {
         debugDump();
     }
 
+    public void sayHello() {
+        debugDump();
+    }
 }
 
 PARSER_END(Evaluator)

@@ -15,8 +15,7 @@ import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import cc.app.fractal.FractalComponent.FractalImage;
-import cc.app.fractal.evaluator.Evaluator;
-import cc.app.fractal.evaluator.TokenMgrError;
+import cc.app.fractal.evaluator.*;
 import cc.lib.math.ComplexNumber;
 import cc.lib.swing.EZFrame;
 
@@ -98,13 +97,14 @@ public class FractalViewer extends EZFrame implements FractalComponent.FractalLi
     JTextField animEndField;
     AnimateThread animation;
 //    final HashMap<String, ComplexNumber> vars = new HashMap<String, ComplexNumber>();
-    final Evaluator evaluator = new Evaluator();
+    final AEvaluator evaluator = new Evaluator();
     
     Properties props = new Properties();
     Vector<String> formulas = new Vector<String>();
-    
-    final String PROPS_FILE = "./fractal/fractal.properties";
-    final String FORMULAS_FILE = "./fractal/formulas.txt";
+
+    final String USER_HOME = System.getProperty("user.home");
+    final String PROPS_FILE =  USER_HOME + "/fractal.properties";
+    final String FORMULAS_FILE = USER_HOME + "/formulas.txt";
     
     FractalViewer() {
         /*

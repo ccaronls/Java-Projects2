@@ -6,6 +6,7 @@
     </style>
 
     <style name="yahtzeeStyle">
+        <item name="android:textColor">#fff</item>
         <item name="android:textStyle">bold</item>
         <item name="android:textSize">18sp</item>
     </style>

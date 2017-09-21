@@ -172,7 +172,7 @@ public class Checkers extends Reflector<Checkers> { //implements ICheckerboard {
             case SLIDE:
             case JUMP:
                 board[m.startRank][m.startCol] = board[m.endRank][m.endCol];
-                board[m.endRank][m.endCol].moves.remove(m);
+                board[m.startRank][m.startCol].moves.remove(m);
                 board[m.endRank][m.endCol] = new Piece();
                 break;
             case STACK:
@@ -185,7 +185,14 @@ public class Checkers extends Reflector<Checkers> { //implements ICheckerboard {
             computeMoves();
         } else {
             //lock.moves.add(m);
-            computeMovesForSquare(m.startRank, m.startCol, undoStack.peek());
+            Move parent = null;
+            if (undoStack.size() > 0) {
+                parent = undoStack.peek();
+                if (parent.playerNum != m.playerNum)
+                    parent = null;
+            }
+            getPiece(m.startRank, m.startCol).moves.clear();
+            computeMovesForSquare(m.startRank, m.startCol, parent);
         }
     }
 
@@ -265,14 +272,20 @@ public class Checkers extends Reflector<Checkers> { //implements ICheckerboard {
         newGame();
     }
 
-    public boolean canUndo() {
+    public final boolean canUndo() {
         return undoStack.size() > 0;
     }
 
-    public void undo() {
+    public final Move undo() {
         if (undoStack.size() > 0) {
             Move m = undoStack.pop();
             reverseMove(m);
+            return m;
         }
+        return null;
+    }
+
+    public final Piece getLocked() {
+        return lock;
     }
 }

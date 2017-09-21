@@ -22,24 +22,16 @@ import cc.lib.utils.Reflector;
 public class CheckerboardActivity extends CCActivityBase {
 
 	private CheckerboardView pbv;
-    private Button bEndTurn;
+    private View bEndTurn;
     private Checkers game;
-
-    class MyCheckers extends Checkers {
-        @Override
-        public void executeMove(Move move) {
-            super.executeMove(move);
-            bEndTurn.setVisibility(pbv.canEndTurn() ? View.VISIBLE : View.GONE);
-        }
-    }
 
 	@Override
 	protected void onCreate(Bundle bundle) {
 		super.onCreate(bundle);
-        game = new MyCheckers();
+        game = new Checkers();
         game.newGame();
 		setContentView(R.layout.cb_activity);
-		pbv = findViewById(R.id.cbView);
+		pbv = (CheckerboardView)findViewById(R.id.cbView);
         pbv.game = game;
 		findViewById(R.id.buttonNewGame).setOnClickListener(pbv);
         (bEndTurn = findViewById(R.id.buttonEndTurn)).setOnClickListener(pbv);
@@ -69,8 +61,7 @@ public class CheckerboardActivity extends CCActivityBase {
     @Override
     public void onBackPressed() {
         if (game.canUndo()) {
-            game.undo();
-            pbv.invalidate();
+            pbv.undo();
         } else {
             super.onBackPressed();
         }

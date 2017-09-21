@@ -37,8 +37,11 @@ public class DroidUtils extends Utils {
     }
 
     /**
-     * 
-     * @param color
+     *
+     * @param red
+     * @param green
+     * @param blue
+     * @param alpha
      * @return
      */
     public static int colorToARGB(float red, float green, float blue, float alpha) {
@@ -62,11 +65,11 @@ public class DroidUtils extends Utils {
         float R = amount * r;
         float G = amount * g;
         float B = amount * b;
-        R = Utils.clamp(r - R, 0, 255);
-        G = Utils.clamp(g - G, 0, 255);
-        B = Utils.clamp(b - B, 0, 255);
+        r = Utils.clamp(Math.round(R-r), 0, 255);
+        g = Utils.clamp(Math.round(G-g), 0, 255);
+        b = Utils.clamp(Math.round(B-b), 0, 255);
 
-        return Color.argb(a, (int)R, (int)G, (int)B);
+        return Color.argb(a, r, g, b);
     }
 
     public static int lighten(int color, float amount) {
@@ -78,11 +81,11 @@ public class DroidUtils extends Utils {
         float R = amount * r;
         float G = amount * g;
         float B = amount * b;
-        R = Utils.clamp(r + R, 0, 255);
-        G = Utils.clamp(g + G, 0, 255);
-        B = Utils.clamp(b + B, 0, 255);
+        r = Utils.clamp(Math.round(R+r), 0, 255);
+        g = Utils.clamp(Math.round(G+g), 0, 255);
+        b = Utils.clamp(Math.round(B+b), 0, 255);
 
-        return Color.argb(a, R, G, B);
+        return Color.argb(a, r, g, b);
     }
 
     public static void multiply(float [] glMatrix16, float [] glVertex4) {

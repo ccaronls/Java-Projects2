@@ -42,4 +42,9 @@ public class Move extends Reflector<Move> {
         Move m = (Move)other;
         return endCol == m.endCol && endRank == m.endRank;
     }
+
+    @Override
+    public final String toString() {
+        return type.name()   + "[" + startRank + "x" + startCol + "]->[" + endRank + "x" + endCol + "] pn:" + playerNum;
+    }
 }
