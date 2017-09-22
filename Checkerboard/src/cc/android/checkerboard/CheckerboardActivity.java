@@ -36,6 +36,7 @@ public class CheckerboardActivity extends CCActivityBase {
 		findViewById(R.id.buttonNewGame).setOnClickListener(pbv);
         (bEndTurn = findViewById(R.id.buttonEndTurn)).setOnClickListener(pbv);
         bEndTurn.setVisibility(View.GONE);
+        pbv.bEndTurn = bEndTurn;
 	}
 
 	private File getSaveFile() {

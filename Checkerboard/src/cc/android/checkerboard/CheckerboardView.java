@@ -36,6 +36,7 @@ public class CheckerboardView extends View implements View.OnClickListener {
     private final Paint pStroke = new Paint();
     private final RectF rf = new RectF();
     Checkers game = null;
+    View bEndTurn = null;
 
     public CheckerboardView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
@@ -114,19 +115,23 @@ public class CheckerboardView extends View implements View.OnClickListener {
     private abstract class MoveAnim extends AAnimation<Canvas> {
         final Move move;
         boolean executeOnDone = true;
+        final List<Piece> hiders;
 
         MoveAnim(long duration, Move move, Piece ... toHide) {
             super(duration, 0);
             this.move = move;
-            hidden.addAll(Arrays.asList(toHide));
+            this.hiders = Arrays.asList(toHide);
+            hidden.addAll(hiders);
         }
 
         @Override
         protected final void onDone() {
             if (move != null && executeOnDone) {
                 game.executeMove(move);
+                checkEndTurnButton();
             }
             animations.remove(this);
+            hidden.removeAll(hiders);
         }
 
         public MoveAnim dontExecute() {
@@ -137,6 +142,7 @@ public class CheckerboardView extends View implements View.OnClickListener {
 
     class StackAnim extends MoveAnim {
         final int rank, col, stacks, playerNum;
+
         public StackAnim(Move move, int playerNum, int rank, int col, int stacks) {
             super(1600, move, game.getPiece(rank, col));
             this.rank = rank;
@@ -238,7 +244,7 @@ public class CheckerboardView extends View implements View.OnClickListener {
                             break;
                         case JUMP_CAPTURE: {
                             Piece capture = game.getPiece(m.captureRank, m.captureCol);
-                            animations.add(new StackAnim(m, capture.playerNum, m.captureRank, m.captureCol, capture.stacks).startReverse());
+                            animations.add(new StackAnim(m, capture.playerNum, m.captureRank, m.captureCol, capture.stacks).dontExecute().startReverse());
                         }
                         case JUMP:
                             animations.add(new JumpAnim(m).start());
@@ -248,6 +254,7 @@ public class CheckerboardView extends View implements View.OnClickListener {
                             break;
                         default:
                             game.executeMove(m);
+                            checkEndTurnButton();
                             break;
                     }
                     tapped = null;
@@ -266,7 +273,14 @@ public class CheckerboardView extends View implements View.OnClickListener {
     private void doDragEnd(int curRank, int curCol) {
         for (Move m : dragging.moves) {
             if (m.endRank == curRank && m.endCol == curCol) {
+                switch (m.type) {
+                    case JUMP_CAPTURE:
+                        Piece captured = game.getPiece(m.captureRank, m.captureCol);
+                        animations.add(new StackAnim(m, captured.playerNum, m.captureRank, m.captureCol, captured.stacks).dontExecute().startReverse());
+                        break;
+                }
                 game.executeMove(m);
+                checkEndTurnButton();
                 break;
             }
         }
@@ -403,10 +417,13 @@ public class CheckerboardView extends View implements View.OnClickListener {
         return 0;
     }
 
+    int [] playerColors = {
+            Color.RED,
+            Color.rgb(0xf, 0xf, 0xff)
+    };
+
     int getPcColor(int playerNum) {
-        if (playerNum == 0)
-            return Color.RED;
-        return Color.BLUE;
+        return playerColors[playerNum];
     }
 
     void drawChecker(Canvas g, Piece pc, int rank, int col, boolean outlined) {
@@ -454,16 +471,9 @@ public class CheckerboardView extends View implements View.OnClickListener {
         } else if (v.getId() == R.id.buttonNewGame) {
             game.newGame();
         }
+        this.bEndTurn.setVisibility(View.GONE);
+        this.dragging = this.tapped = null;
         invalidate();
-    }
-
-    public final boolean canEndTurn() {
-        if (tapped == null)
-            return false;
-        for (Move m : tapped.moves)
-            if (m.type == Checkers.MoveType.END)
-                return true;
-        return false;
     }
 
     public final void undo() {
@@ -473,7 +483,7 @@ public class CheckerboardView extends View implements View.OnClickListener {
         if (m != null) {
             switch (m.type) {
                 case JUMP_CAPTURE:
-                    animations.add(new StackAnim(m, m.captured.playerNum, m.captureRank, m.captureCol, m.captured.stacks).startReverse());
+                    animations.add(new StackAnim(m, m.captured.playerNum, m.captureRank, m.captureCol, m.captured.stacks).dontExecute().start());
                 case JUMP:
                     animations.add(new JumpAnim(m).dontExecute().startReverse());
                     break;
@@ -485,8 +495,22 @@ public class CheckerboardView extends View implements View.OnClickListener {
                     break;
             }
         }
+        checkEndTurnButton();
         tapped = null;
         dragging = null;
         invalidate();
+    }
+
+    private void checkEndTurnButton() {
+        Piece lock = game.getLocked();
+        bEndTurn.setVisibility(View.GONE);
+        if (lock != null) {
+            for (Move m : lock.moves) {
+                if (m.type == Checkers.MoveType.END) {
+                    bEndTurn.setVisibility(View.VISIBLE);
+                    break;
+                }
+            }
+        }
     }
 }

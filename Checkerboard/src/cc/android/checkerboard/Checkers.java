@@ -166,13 +166,15 @@ public class Checkers extends Reflector<Checkers> { //implements ICheckerboard {
 	private void reverseMove(Move m) {
         switch (m.type) {
             case END:
+                turn = m.playerNum;
+                getPiece(m.s)
                 break;
             case JUMP_CAPTURE:
                 board[m.captureRank][m.captureCol] = m.captured;
             case SLIDE:
             case JUMP:
                 board[m.startRank][m.startCol] = board[m.endRank][m.endCol];
-                board[m.startRank][m.startCol].moves.remove(m);
+                board[m.startRank][m.startCol].moves.clear();
                 board[m.endRank][m.endCol] = new Piece();
                 break;
             case STACK:
@@ -181,18 +183,22 @@ public class Checkers extends Reflector<Checkers> { //implements ICheckerboard {
         }
 
         turn = m.playerNum;
-        if (lock == null) {
+        //lock.moves.add(m);
+        Move parent = null;
+        if (undoStack.size() > 0) {
+            parent = undoStack.peek();
+            if (parent.playerNum != m.playerNum) {
+                parent = null;
+            }
+        }
+        if (parent == null) {
+            lock = null;
             computeMoves();
         } else {
-            //lock.moves.add(m);
-            Move parent = null;
-            if (undoStack.size() > 0) {
-                parent = undoStack.peek();
-                if (parent.playerNum != m.playerNum)
-                    parent = null;
-            }
-            getPiece(m.startRank, m.startCol).moves.clear();
+            Piece p = getPiece(m.startRank, m.startCol);
+            p.moves.clear();
             computeMovesForSquare(m.startRank, m.startCol, parent);
+            p.moves.add(new Move(MoveType.END, m.startRank, m.startCol, 0, 0, 0, 0, m.playerNum));
         }
     }
 
@@ -233,7 +239,7 @@ public class Checkers extends Reflector<Checkers> { //implements ICheckerboard {
                 }
             case END:
                 endTurn();
-                return; // dont want to make undoable this move?
+                return;
             case JUMP_CAPTURE:
                 move.captured = board[move.captureRank][move.captureCol];
                 board[move.captureRank][move.captureCol] = new Piece();
@@ -254,7 +260,7 @@ public class Checkers extends Reflector<Checkers> { //implements ICheckerboard {
             if (p.moves.size() == 0) {
                 endTurn();
             } else {
-                p.moves.add(new Move(MoveType.END, 0, 0, 0, 0, 0, 0, move.playerNum));
+                p.moves.add(new Move(MoveType.END, move.startRank, move.startCol, 0, 0, 0, 0, move.playerNum));
                 lock = p;
             }
         }
