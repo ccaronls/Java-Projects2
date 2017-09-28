@@ -238,25 +238,7 @@ public class CheckerboardView extends View implements View.OnClickListener {
         } else {
             for (Move m : tapped.moves) {
                 if (m.endRank==curRank && m.endCol == curCol) {
-                    switch (m.type) {
-                        case SLIDE:
-                            animations.add(new SlideAnim(m).start());
-                            break;
-                        case JUMP_CAPTURE: {
-                            Piece capture = game.getPiece(m.captureRank, m.captureCol);
-                            animations.add(new StackAnim(m, capture.playerNum, m.captureRank, m.captureCol, capture.stacks).dontExecute().startReverse());
-                        }
-                        case JUMP:
-                            animations.add(new JumpAnim(m).start());
-                            break;
-                        case STACK:
-                            animations.add(new StackAnim(m, m.playerNum, m.startRank, m.startCol, 1).start());
-                            break;
-                        default:
-                            game.executeMove(m);
-                            checkEndTurnButton();
-                            break;
-                    }
+                    animateAndExecuteMove(m);
                     tapped = null;
                     return;
                 }
@@ -268,6 +250,29 @@ public class CheckerboardView extends View implements View.OnClickListener {
                 tapped = null;
             }
         }
+    }
+
+    public void animateAndExecuteMove(Move m) {
+        switch (m.type) {
+            case SLIDE:
+                animations.add(new SlideAnim(m).start());
+                break;
+            case JUMP_CAPTURE: {
+                Piece capture = game.getPiece(m.captureRank, m.captureCol);
+                animations.add(new StackAnim(m, capture.playerNum, m.captureRank, m.captureCol, capture.stacks).dontExecute().startReverse());
+            }
+            case JUMP:
+                animations.add(new JumpAnim(m).start());
+                break;
+            case STACK:
+                animations.add(new StackAnim(m, m.playerNum, m.startRank, m.startCol, 1).start());
+                break;
+            default:
+                game.executeMove(m);
+                checkEndTurnButton();
+                break;
+        }
+        invalidate();
     }
 
     private void doDragEnd(int curRank, int curCol) {
@@ -315,7 +320,9 @@ public class CheckerboardView extends View implements View.OnClickListener {
         if (game == null)
             return;
 
-        if (animations.size() == 0) {
+        ArrayList<AAnimation<Canvas>> anims = new ArrayList<>(animations);
+
+        if (anims.size() == 0) {
             hidden.clear();
         }
 
@@ -341,8 +348,8 @@ public class CheckerboardView extends View implements View.OnClickListener {
             }
         }
 
-        if (animations.size() > 0) {
-            for (AAnimation<Canvas> a : animations)
+        if (anims.size() > 0) {
+            for (AAnimation<Canvas> a : anims)
                 a.update(canvas);
             invalidate();
             return;
@@ -350,6 +357,31 @@ public class CheckerboardView extends View implements View.OnClickListener {
 
         if (mainPc != null) {
             tapped = mainPc;
+        }
+
+        if (tapped != null) {
+            for (Move m : tapped.moves) {
+                Log.d("CB", "Tapped move: " + m);
+                float sx = m.startCol*cellW;
+                float sy = m.startRank*cellH;
+                float ex = m.endCol*cellW;
+                float ey = m.endRank*cellH;
+                switch (m.type) {
+                    case END:
+                        break;
+                    case JUMP:
+                    case JUMP_CAPTURE:
+                    case SLIDE:
+                        pStroke.setColor(Color.GREEN);
+                        canvas.drawRect(sx, sy, sx+cellW, sy+cellH, pStroke);
+                        pStroke.setColor(Color.YELLOW);
+                        canvas.drawRect(ex, ey, ex+cellW, ey+cellH, pStroke);
+                        break;
+                    case STACK:
+                        pStroke.setColor(Color.GREEN);
+                        drawDisk(canvas, pStroke, sx+cellW/2, sy+cellH/2, pcRad);
+                }
+            }
         }
 
         if (dragging != null) {
@@ -378,33 +410,9 @@ public class CheckerboardView extends View implements View.OnClickListener {
             }
         }
 
-        if (tapped != null) {
-            for (Move m : tapped.moves) {
-                Log.d("CB", "Tapped move: " + m);
-                float sx = m.startCol*cellW;
-                float sy = m.startRank*cellH;
-                float ex = m.endCol*cellW;
-                float ey = m.endRank*cellH;
-                switch (m.type) {
-                    case END:
-                        break;
-                    case JUMP:
-                    case JUMP_CAPTURE:
-                    case SLIDE:
-                        pStroke.setColor(Color.GREEN);
-                        canvas.drawRect(sx, sy, sx+cellW, sy+cellH, pStroke);
-                        pStroke.setColor(Color.YELLOW);
-                        canvas.drawRect(ex, ey, ex+cellW, ey+cellH, pStroke);
-                        break;
-                    case STACK:
-                        pStroke.setColor(Color.GREEN);
-                        drawDisk(canvas, pStroke, sx+cellW/2, sy+cellH/2, pcRad);
-                }
-            }
-        }
     }
 
-    int DIR_BLACK = -1;
+    int DIR_BLACK = 1;
     int DIR_RED   = 1;
 
     int getDir(int playerNum) {
@@ -419,11 +427,13 @@ public class CheckerboardView extends View implements View.OnClickListener {
 
     int [] playerColors = {
             Color.RED,
-            Color.rgb(0xf, 0xf, 0xff)
+            Color.rgb(64, 64, 255)
     };
 
     int getPcColor(int playerNum) {
-        return playerColors[playerNum];
+        if (playerNum >= 0)
+            return playerColors[playerNum];
+        return 0;
     }
 
     void drawChecker(Canvas g, Piece pc, int rank, int col, boolean outlined) {

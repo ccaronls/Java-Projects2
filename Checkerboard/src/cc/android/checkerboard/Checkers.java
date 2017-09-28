@@ -1,12 +1,5 @@
 package cc.android.checkerboard;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Stack;
 
 import cc.lib.game.Utils;
@@ -27,6 +20,10 @@ public class Checkers extends Reflector<Checkers> { //implements ICheckerboard {
         END, SLIDE, JUMP, JUMP_CAPTURE, STACK
     }
 
+    enum RobotType {
+        RANDOM, STOOPID, SMART
+    }
+
     public final int RANKS;
     public final int COLUMNS;
     public final int NUM_PLAYERS = 2;
@@ -39,6 +36,8 @@ public class Checkers extends Reflector<Checkers> { //implements ICheckerboard {
 	private final static int RED   = 1;
 
     private final Stack<Move> undoStack = new Stack<>();
+    private RobotType robot = RobotType.RANDOM;
+    private int robotPlayer = -1;
 
     public Checkers() {
         this(8,8);
@@ -68,7 +67,14 @@ public class Checkers extends Reflector<Checkers> { //implements ICheckerboard {
         lock = null;
         computeMoves();
         undoStack.clear();
+        robotPlayer = -1;
 	}
+
+	public final void newSinglePlayerGame(int difficulty) {
+        this.robotPlayer = 1;//Utils.rand() % 2;
+        this.robot = RobotType.values()[difficulty];
+        checkRobot(computeMoves());
+    }
 
     @Override
     protected final int getMinVersion() {
@@ -83,6 +89,12 @@ public class Checkers extends Reflector<Checkers> { //implements ICheckerboard {
 		return turn;
 	}
 
+	/*
+	This should be safe to call repeatedly.
+	If there is a locked piece then the move set is just the moves associated
+	with the locked piece, and it will be unchanged.
+	Otherwise the complete move set is recomputed
+	 */
 	private final int computeMoves() {
         if (lock == null) {
             int num = 0;
@@ -156,18 +168,34 @@ public class Checkers extends Reflector<Checkers> { //implements ICheckerboard {
 	}
 
 	public void endTurn() {
+        if (lock != null) {
+            for (Move m : lock.moves) {
+                if (m.type == MoveType.END) {
+                    undoStack.push(m);
+                    break;
+                }
+            }
+        }
+        endTurnPrivate();
+    }
+
+    private void endTurnPrivate() {
 		turn = (turn+1) % NUM_PLAYERS;
         lock = null;
-        if (computeMoves()==0) {
+        int n;
+        if ((n=computeMoves())==0) {
+            robotPlayer = -1;
             onGameOver();
+        } else {
+            checkRobot(n);
         }
 	}
 
 	private void reverseMove(Move m) {
         switch (m.type) {
             case END:
-                turn = m.playerNum;
-                getPiece(m.s)
+//                turn = m.playerNum;
+//                getPiece(m.startRank, m.startCol).moves.add(m);
                 break;
             case JUMP_CAPTURE:
                 board[m.captureRank][m.captureCol] = m.captured;
@@ -195,10 +223,11 @@ public class Checkers extends Reflector<Checkers> { //implements ICheckerboard {
             lock = null;
             computeMoves();
         } else {
+            clearMoves();
             Piece p = getPiece(m.startRank, m.startCol);
-            p.moves.clear();
             computeMovesForSquare(m.startRank, m.startCol, parent);
             p.moves.add(new Move(MoveType.END, m.startRank, m.startCol, 0, 0, 0, 0, m.playerNum));
+            lock = p;
         }
     }
 
@@ -233,19 +262,19 @@ public class Checkers extends Reflector<Checkers> { //implements ICheckerboard {
         switch (move.type) {
             case SLIDE:
                 if (isKinged) {
-                    p.moves.add(new Move(MoveType.STACK, move.endRank, move.endCol, move.endRank, move.endCol, 0, 0, move.playerNum));
+                    p.moves.add(new Move(MoveType.STACK, move.endRank, move.endCol, move.endRank, move.endCol, -1, -1, move.playerNum));
                     lock = p;
                     break;
                 }
             case END:
-                endTurn();
+                endTurnPrivate();
                 return;
             case JUMP_CAPTURE:
                 move.captured = board[move.captureRank][move.captureCol];
                 board[move.captureRank][move.captureCol] = new Piece();
             case JUMP:
                 if (isKinged) {
-                    p.moves.add(new Move(MoveType.STACK, move.endRank, move.endCol, move.endRank, move.endCol, 0, 0, move.playerNum));
+                    p.moves.add(new Move(MoveType.STACK, move.endRank, move.endCol, move.endRank, move.endCol, -1, -1, move.playerNum));
                     lock = p;
                 }
                 break;
@@ -258,15 +287,48 @@ public class Checkers extends Reflector<Checkers> { //implements ICheckerboard {
             // recursive compute next move if possible after a jump
             computeMovesForSquare(move.endRank, move.endCol, move);
             if (p.moves.size() == 0) {
-                endTurn();
+                endTurnPrivate();
             } else {
-                p.moves.add(new Move(MoveType.END, move.startRank, move.startCol, 0, 0, 0, 0, move.playerNum));
+                p.moves.add(new Move(MoveType.END, move.endRank, move.endCol, move.endRank, move.endCol, -1, -1, move.playerNum));
                 lock = p;
+                checkRobot(p.moves.size());
             }
+        } else {
+            checkRobot(computeMoves());
         }
 	}
-	
-	public final boolean isOnBoard(int r, int c) {
+
+	private void checkRobot(int n) {
+        if (robotPlayer == getCurPlayerNum()) {
+            switch (robot) {
+                case RANDOM:
+                    doRandomRobot(n);
+                    break;
+                case STOOPID:
+                case SMART:
+                    // TODO: Something here
+            }
+        }
+    }
+
+    private void doRandomRobot(int n) {
+        if (n > 0) {
+            int mvNum = Utils.rand() % n;
+            Piece p;
+            for (int i = 0; i < RANKS; i++) {
+                for (int ii = 0; ii < COLUMNS; ii++) {
+                    if ((p = getPiece(i, ii)).moves.size() > mvNum) {
+                        onRobotMoved(p.moves.get(mvNum));
+                        return;
+                    } else {
+                        mvNum -= p.moves.size();
+                    }
+                }
+            }
+        }
+    }
+
+    public final boolean isOnBoard(int r, int c) {
 		return r>=0 && c>=0 && r<RANKS && c<COLUMNS;
 	}
 
@@ -276,6 +338,15 @@ public class Checkers extends Reflector<Checkers> { //implements ICheckerboard {
      */
 	protected void onGameOver() {
         newGame();
+    }
+
+    /**
+     * Called when the AI can done something. Will be called at the end of 'executeMove'
+     * Not calling super.onRobotMoved means that caller will have to call executeMove(...) to advance the game.
+     * @param move
+     */
+    protected void onRobotMoved(Move move) {
+
     }
 
     public final boolean canUndo() {
