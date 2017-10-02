@@ -1,5 +1,6 @@
 package cc.android.checkerboard;
 
+import java.util.List;
 import java.util.Stack;
 
 import cc.lib.game.Utils;
@@ -16,11 +17,11 @@ public class Checkers extends Reflector<Checkers> { //implements ICheckerboard {
         addAllFields(Checkers.class);
     }
 
-    enum MoveType {
+    public enum MoveType {
         END, SLIDE, JUMP, JUMP_CAPTURE, STACK
     }
 
-    enum RobotType {
+    public enum RobotType {
         RANDOM, STOOPID, SMART
     }
 
@@ -305,8 +306,12 @@ public class Checkers extends Reflector<Checkers> { //implements ICheckerboard {
                     doRandomRobot(n);
                     break;
                 case STOOPID:
+                    doStoopidRobot(n);
+                    break;
                 case SMART:
-                    // TODO: Something here
+                    doSmartRobot(n, 5);
+                    break;
+                    // TODO: Extend stoopid to perform a min-max descision tree
             }
         }
     }
@@ -326,6 +331,93 @@ public class Checkers extends Reflector<Checkers> { //implements ICheckerboard {
                 }
             }
         }
+    }
+
+    private void doStoopidRobot(int n) {
+        if (n > 0) {
+            Piece p;
+            double bestBoardValue = 0;
+            Move bestMove = null;
+            for (int i = 0; i < RANKS; i++) {
+                for (int ii = 0; ii < COLUMNS; ii++) {
+                    if ((p = getPiece(i, ii)).moves.size() > 0) {
+                        //onRobotMoved(p.moves.get(mvNum));
+                        //return;
+                        for (Move m : p.moves) {
+                            Checkers bd = new Checkers();
+                            bd.copyFrom(this);
+                            bd.executeMove(m);
+                            double d = evaluateBoard(bd.board);
+                            if (bestMove == null || d > bestBoardValue) {
+                                bestMove = m;
+                                bestBoardValue = d;
+                            }
+                        }
+                    }
+                }
+            }
+            onRobotMoved(bestMove);
+        }
+    }
+
+    private double doSmartRobot(int n, int depth) {
+        double bestBoardValue = 0;
+        if (n > 0) {
+            Piece p;
+            Move bestMove = null;
+            for (int i = 0; i < RANKS; i++) {
+                for (int ii = 0; ii < COLUMNS; ii++) {
+                    if ((p = getPiece(i, ii)).moves.size() > 0) {
+                        //onRobotMoved(p.moves.get(mvNum));
+                        //return;
+                        for (Move m : p.moves) {
+                            Checkers bd = new Checkers();
+                            bd.copyFrom(this);
+                            bd.robotPlayer = -1; // make so robot doesnt kick in
+                            bd.executeMove(m);
+                            double d = evaluateBoard(bd.board);
+                            if (bd.getCurPlayerNum() != getCurPlayerNum()) {
+                                d = -d; // when evaluating as opponent, then this is negative as our perceived value.
+                            }
+                            if (depth-- > 0) {
+                                d = Math.max(d, bd.doSmartRobot(bd.computeMoves(), depth));
+                            }
+                            if (bestMove == null || d > bestBoardValue) {
+                                bestMove = m;
+                                bestBoardValue = d;
+                            }
+                        }
+                    }
+                }
+            }
+            onRobotMoved(bestMove);
+        }
+        return bestBoardValue;
+    }
+
+
+    /**
+     * Returns a number between -1 and 1
+     *
+     * @param board
+     * @return
+     */
+    protected double evaluateBoard(Piece [][] board) {
+
+        int mine = 0;
+        int theirs = 0;
+
+        for (Piece [] a : board) {
+            for (Piece p : a) {
+                if (p.playerNum == getCurPlayerNum()) {
+                    mine += p.stacks;
+                } else if (p.playerNum >= 0) {
+                    theirs += p.stacks;
+                }
+            }
+        }
+
+        return 0.01 * (mine - theirs);
     }
 
     public final boolean isOnBoard(int r, int c) {

@@ -8,12 +8,14 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.view.View;
+import android.widget.ProgressBar;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 
 import cc.lib.android.CCActivityBase;
+import cc.lib.game.Utils;
 import cc.lib.utils.FileUtils;
 
 public class CheckerboardActivity extends CCActivityBase implements View.OnClickListener {
@@ -22,17 +24,67 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
     private View bEndTurn;
     private MyCheckers game;
 
-    public static class MyCheckers extends Checkers {
+    public static class MyCheckers extends Checkers implements Runnable, DialogInterface.OnCancelListener {
         CheckerboardActivity ctxt;
+        private Dialog dialog = null;
+        private boolean inAsync = false;
 
         @Override
-        protected void onGameOver() {
-            ctxt.choosePlayers();
+        public void onCancel(DialogInterface dialog) {
+
+        }
+
+        public void run() {
+            dialog.show();
         }
 
         @Override
-        protected void onRobotMoved(Move move) {
-            ctxt.pbv.animateAndExecuteMove(move);
+        public void executeMove(Move move) {
+            if (inAsync) {
+                super.executeMove(move);
+                return;
+            }
+            inAsync = true;
+            if (dialog == null) {
+                dialog = new AlertDialog.Builder(ctxt).setTitle("Thinking").setView(new ProgressBar(ctxt)).setOnCancelListener(this).create();
+            }
+            new AsyncTask<Move, Integer, Object>() {
+                @Override
+                protected void onPreExecute() {
+                    ctxt.pbv.postDelayed(MyCheckers.this, 1000);
+                }
+
+                @Override
+                protected void onPostExecute(Object o) {
+                    ctxt.pbv.removeCallbacks(MyCheckers.this);
+                    dialog.dismiss();
+                    inAsync = false;
+                }
+
+                @Override
+                protected Object doInBackground(Move... params) {
+                    MyCheckers.super.executeMove(params[0]);
+                    return null;
+                }
+            }.execute(move);
+        }
+
+        @Override
+        protected void onGameOver() {
+            ctxt.runOnUiThread(new Runnable() {
+               public void run() {
+                   ctxt.choosePlayers();
+               }
+            });
+        }
+
+        @Override
+        protected void onRobotMoved(final Move move) {
+            ctxt.runOnUiThread(new Runnable() {
+                public void run() {
+                    ctxt.pbv.animateAndExecuteMove(move);
+                }
+            });
         }
     }
 
@@ -47,9 +99,14 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
             public void onClick(DialogInterface dialog, int which) {
                 switch (which) {
                     case 0:
-                        // one player
-                        game.newGame();
-                        game.newSinglePlayerGame(0);
+                        new AlertDialog.Builder(CheckerboardActivity.this).setItems(Utils.toStringArray(Checkers.RobotType.values()), new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                // one player
+                                game.newGame();
+                                game.newSinglePlayerGame(which);
+                            }
+                        }).setCancelable(false).show();
                         break;
                     case 1:
                         game.newGame();
