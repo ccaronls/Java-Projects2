@@ -27,28 +27,30 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
     public static class MyCheckers extends Checkers implements Runnable, DialogInterface.OnCancelListener {
         CheckerboardActivity ctxt;
         private Dialog dialog = null;
-        private boolean inAsync = false;
+        private AsyncTask task = null;
 
         @Override
         public void onCancel(DialogInterface dialog) {
-
+            if (task != null) {
+                task.cancel(true);
+                undo();
+            }
         }
 
         public void run() {
             dialog.show();
         }
 
-        @Override
-        public void executeMove(Move move) {
-            if (inAsync) {
+        //@Override
+        public void xexecuteMove(Move move) {
+            if (task != null) {
                 super.executeMove(move);
                 return;
             }
-            inAsync = true;
             if (dialog == null) {
                 dialog = new AlertDialog.Builder(ctxt).setTitle("Thinking").setView(new ProgressBar(ctxt)).setOnCancelListener(this).create();
             }
-            new AsyncTask<Move, Integer, Object>() {
+            task = new AsyncTask<Move, Integer, Object>() {
                 @Override
                 protected void onPreExecute() {
                     ctxt.pbv.postDelayed(MyCheckers.this, 1000);
@@ -58,7 +60,8 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
                 protected void onPostExecute(Object o) {
                     ctxt.pbv.removeCallbacks(MyCheckers.this);
                     dialog.dismiss();
-                    inAsync = false;
+                    task = null;
+                    ctxt.pbv.invalidate();
                 }
 
                 @Override
@@ -66,6 +69,7 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
                     MyCheckers.super.executeMove(params[0]);
                     return null;
                 }
+
             }.execute(move);
         }
 
@@ -106,9 +110,14 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
                                 game.newGame();
                                 game.newSinglePlayerGame(which);
                             }
-                        }).setCancelable(false).show();
+                        }).setOnCancelListener(new DialogInterface.OnCancelListener() {
+                            @Override
+                            public void onCancel(DialogInterface dialog) {
+                                choosePlayers();
+                            }
+                        }).show();
                         break;
-                    case 1:
+                    case 1: // 2 players
                         game.newGame();
                         break;
 
@@ -117,7 +126,12 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
                         break;
                 }
             }
-        }).setCancelable(false).show();
+        }).setOnCancelListener(new DialogInterface.OnCancelListener() {
+            @Override
+            public void onCancel(DialogInterface dialog) {
+                finish();
+            }
+        }).show();
 
     }
 
