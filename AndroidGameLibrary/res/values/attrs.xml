@@ -50,6 +50,7 @@
         <attr name="dominantSide" format="enum" description="choose how to compute the square">
             <enum name="height_matches_width"   value="0"   description="make the height conform to the width.  width computed in usual way"/>
             <enum name="width_matches_height"   value="1"   description="make the width conform to the height.  height computed in usual way"/>
+            <enum name="fill_fit"               value="2"   description="Choose the min of width, height"/>
         </attr>
     </declare-styleable>
     

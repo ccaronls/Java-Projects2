@@ -18,10 +18,11 @@ public class SquareLinearLayout extends LinearLayout {
 
 	public enum DominantSide {
 		HEIGHT_MATCHES_WIDTH,
-		WIDTH_MATCHES_HEIGHT
+		WIDTH_MATCHES_HEIGHT,
+        FILL_FIT
 	}
 	
-	private DominantSide dominantSide = DominantSide.HEIGHT_MATCHES_WIDTH;
+	private DominantSide dominantSide = DominantSide.FILL_FIT;
 	
 	private void init(Context context, AttributeSet attrs) {
 		TypedArray a = context.obtainStyledAttributes( attrs, R.styleable.SquareLinearLayout );
@@ -56,6 +57,10 @@ public class SquareLinearLayout extends LinearLayout {
 			case WIDTH_MATCHES_HEIGHT:
 				size = height;
 				break;
+            case FILL_FIT: {
+                size = Math.min(width, height);
+                break;
+            }
 	    }
 	    super.onMeasure(MeasureSpec.makeMeasureSpec(size, MeasureSpec.EXACTLY),
 	            MeasureSpec.makeMeasureSpec(size, MeasureSpec.EXACTLY));	    

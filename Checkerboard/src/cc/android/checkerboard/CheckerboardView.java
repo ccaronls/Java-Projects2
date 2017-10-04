@@ -10,6 +10,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
+import android.graphics.Typeface;
 import android.os.AsyncTask;
 import android.os.SystemClock;
 import android.util.AttributeSet;
@@ -40,9 +41,10 @@ public class CheckerboardView extends View implements View.OnClickListener {
 
     private final Paint pFill = new Paint();
     private final Paint pStroke = new Paint();
+    private final Paint pText = new Paint();
     private final RectF rf = new RectF();
-    Checkers game = null;
-    View bEndTurn = null;
+
+    private Checkers game = null;
 
     public CheckerboardView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
@@ -54,12 +56,24 @@ public class CheckerboardView extends View implements View.OnClickListener {
         init(context, attrs);
     }
 
+    public final void setGame(Checkers game) {
+        this.game = game;
+        invalidate();
+    }
+
+    public final Checkers getGame() {
+        return this.game;
+    }
+
     private void init(Context context, AttributeSet attrs) {
         pFill.setStyle(Paint.Style.FILL);
         pStroke.setStyle(Paint.Style.STROKE);
         TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.CheckerboardView);
         pStroke.setStrokeWidth(a.getDimension(R.styleable.CheckerboardView_outlineThickness, 5));
         a.recycle();
+        pText.setColor(Color.WHITE);
+        pText.setTextSize(getResources().getDisplayMetrics().density * 12);
+        pText.setTypeface(Typeface.DEFAULT_BOLD);
     }
 
     private long downTime = 0;
@@ -67,6 +81,7 @@ public class CheckerboardView extends View implements View.OnClickListener {
     private float dragX, dragY;
     private Piece dragging = null, tapped = null;
     private float cellW, cellH, pcRad;
+    private Move highlightMove = null;
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
@@ -134,7 +149,6 @@ public class CheckerboardView extends View implements View.OnClickListener {
         protected final void onDone() {
             if (move != null && executeOnDone) {
                 game.executeMove(move);
-                checkEndTurnButton();
             }
             animations.remove(this);
             hidden.removeAll(hiders);
@@ -275,7 +289,6 @@ public class CheckerboardView extends View implements View.OnClickListener {
                 break;
             default:
                 game.executeMove(m);
-                checkEndTurnButton();
                 break;
         }
         invalidate();
@@ -291,7 +304,6 @@ public class CheckerboardView extends View implements View.OnClickListener {
                         break;
                 }
                 game.executeMove(m);
-                checkEndTurnButton();
                 break;
             }
         }
@@ -306,21 +318,39 @@ public class CheckerboardView extends View implements View.OnClickListener {
         float width = getWidth();
         float height = getHeight();
 
-        cellW = width / game.COLUMNS;
-        cellH = height / game.RANKS;
+        int COLUMNS=8;
+        int RANKS=8;
+
+        if (game != null) {
+            COLUMNS=game.COLUMNS;
+            RANKS =game.RANKS;
+        }
+
+        cellW = width / COLUMNS;
+        cellH = height / RANKS;
         pcRad = Math.min(cellW/3, cellH/3);
 
-        pFill.setColor(Color.DKGRAY);
+        pFill.setColor(Color.BLACK);
         canvas.drawRect(0f, 0f, width, height, pFill);
 
         pFill.setColor(DroidUtils.ORANGE);
 
-        for (int i=0; i<game.COLUMNS; i++) {
-            for (int ii=i%2; ii<game.RANKS; ii+=2) {
+        for (int i=0; i<COLUMNS; i++) {
+            for (int ii=i%2; ii<RANKS; ii+=2) {
                 float x = i*cellW;
                 float y = ii*cellH;
                 canvas.drawRect(x, y, x+cellW, y+cellH, pFill);
             }
+        }
+
+        for (int i=0; i<COLUMNS; i++) {
+            String txt = String.valueOf(i);
+            canvas.drawText(txt, 0, txt.length(), 5+i*cellW, cellH - 5, pText);
+        }
+
+        for (int i=1; i<RANKS; i++) {
+            String txt = String.valueOf(i);
+            canvas.drawText(txt, 0, txt.length(), 5, cellH-5+i*cellH, pText);
         }
 
         if (game == null)
@@ -334,8 +364,8 @@ public class CheckerboardView extends View implements View.OnClickListener {
 
         Piece mainPc = null;
         int numMvblePcs = 0;
-        for (int i=0; i<game.COLUMNS; i++) {
-            for (int ii=0; ii<game.RANKS; ii++) {
+        for (int i=0; i<COLUMNS; i++) {
+            for (int ii=0; ii<RANKS; ii++) {
                 if (dragging != null && touchColumn == i && touchRank == ii)
                     continue;
                 Piece pc = game.getPiece(ii, i);
@@ -361,7 +391,30 @@ public class CheckerboardView extends View implements View.OnClickListener {
             return;
         }
 
-        if (mainPc != null) {
+        if (highlightMove != null) {
+            float sx = highlightMove.startCol*cellW;
+            float sy = highlightMove.startRank*cellH;
+            float ex = highlightMove.endCol*cellW;
+            float ey = highlightMove.endRank*cellH;
+            switch (highlightMove.type) {
+                case JUMP:
+                case JUMP_CAPTURE:
+                case SLIDE:
+                    pStroke.setColor(Color.RED);
+                    canvas.drawRect(sx, sy, sx+cellW, sy+cellH, pStroke);
+                    pStroke.setColor(Color.GREEN);
+                    canvas.drawRect(ex, ey, ex+cellW, ey+cellH, pStroke);
+                    break;
+                case END:
+                    pStroke.setColor(Color.YELLOW);
+                    canvas.drawRect(sx, sy, sx+cellW, sy+cellH, pStroke);
+                    break;
+                case STACK:
+                    pStroke.setColor(Color.BLUE);
+                    canvas.drawRect(sx, sy, sx+cellW, sy+cellH, pStroke);
+                    break;
+            }
+        } else if (mainPc != null) {
             tapped = mainPc;
         }
 
@@ -419,7 +472,7 @@ public class CheckerboardView extends View implements View.OnClickListener {
     }
 
     int DIR_BLACK = 1;
-    int DIR_RED   = 1;
+    int DIR_RED   = -1;
 
     int getDir(int playerNum) {
         switch (playerNum) {
@@ -432,8 +485,8 @@ public class CheckerboardView extends View implements View.OnClickListener {
     }
 
     int [] playerColors = {
-            Color.RED,
-            Color.rgb(64, 64, 255)
+            Color.rgb(64, 64, 64),//BLACK,
+            Color.RED,//rgb(64, 64, 255)
     };
 
     int getPcColor(int playerNum) {
@@ -487,7 +540,7 @@ public class CheckerboardView extends View implements View.OnClickListener {
         } else if (v.getId() == R.id.buttonNewGame) {
             game.newGame();
         }
-        this.bEndTurn.setVisibility(View.GONE);
+//        this.bEndTurn.setVisibility(View.GONE);
         this.dragging = this.tapped = null;
         invalidate();
     }
@@ -511,22 +564,27 @@ public class CheckerboardView extends View implements View.OnClickListener {
                     break;
             }
         }
-        checkEndTurnButton();
         tapped = null;
         dragging = null;
         invalidate();
     }
 
-    private void checkEndTurnButton() {
+    public boolean isEndTurnButtonAvailable() {
         Piece lock = game.getLocked();
-        bEndTurn.setVisibility(View.GONE);
-        if (lock != null) {
+        if (lock != null && !game.isCurPlayerRobot()) {
+            if (lock.playerNum != game.getCurPlayerNum())
+                throw new AssertionError();
             for (Move m : lock.moves) {
                 if (m.type == Checkers.MoveType.END) {
-                    bEndTurn.setVisibility(View.VISIBLE);
-                    break;
+                    return true;
                 }
             }
         }
+        return false;
+    }
+
+    public void highlightMove(Move m) {
+        this.highlightMove = m;
+        this.tapped = null;
     }
 }
