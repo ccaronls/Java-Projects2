@@ -135,36 +135,33 @@ public class CheckerboardView extends View implements View.OnClickListener {
 
     private abstract class MoveAnim extends AAnimation<Canvas> {
         final Move move;
-        boolean executeOnDone = true;
         final List<Piece> hiders;
+        final Runnable whenDone;
 
-        MoveAnim(long duration, Move move, Piece ... toHide) {
+        MoveAnim(long duration, Move move, Runnable whenDone, Piece ... toHide) {
             super(duration, 0);
             this.move = move;
+            this.whenDone = whenDone;
             this.hiders = Arrays.asList(toHide);
             hidden.addAll(hiders);
         }
 
         @Override
         protected final void onDone() {
-            if (move != null && executeOnDone) {
-                game.executeMove(move);
-            }
             animations.remove(this);
             hidden.removeAll(hiders);
+            if (whenDone != null) {
+                whenDone.run();
+            }
         }
 
-        public MoveAnim dontExecute() {
-            executeOnDone = false;
-            return this;
-        }
     }
 
     class StackAnim extends MoveAnim {
         final int rank, col, stacks, playerNum;
 
-        public StackAnim(Move move, int playerNum, int rank, int col, int stacks) {
-            super(1600, move, game.getPiece(rank, col));
+        public StackAnim(Move move, Runnable whenDone, int playerNum, int rank, int col, int stacks) {
+            super(1600, move, whenDone, game.getPiece(rank, col));
             this.rank = rank;
             this.col = col;
             this.stacks = stacks;
@@ -195,8 +192,8 @@ public class CheckerboardView extends View implements View.OnClickListener {
 
     class SlideAnim extends MoveAnim {
 
-        public SlideAnim(Move move) {
-            super(800, move, game.getPiece(move.startRank, move.startCol));
+        public SlideAnim(Move move, Runnable whenDone) {
+            super(800, move, whenDone, game.getPiece(move.startRank, move.startCol));
         }
 
         @Override
@@ -237,8 +234,8 @@ public class CheckerboardView extends View implements View.OnClickListener {
             return v;
         }
 
-        public JumpAnim(Move move) {
-            super(1200, move, game.getPiece(move.startRank, move.startCol));
+        public JumpAnim(Move move, Runnable whenDone) {
+            super(1200, move, whenDone, game.getPiece(move.startRank, move.startCol));
             curve = new Bezier(computeJumpPoints(move));
         }
 
@@ -257,7 +254,7 @@ public class CheckerboardView extends View implements View.OnClickListener {
                 tapped = null;
         } else {
             for (Move m : tapped.moves) {
-                if (m.endRank==curRank && m.endCol == curCol) {
+                if (m.endRank==curRank && m.endCol == curCol && m.type != Checkers.MoveType.END) {
                     animateAndExecuteMove(m);
                     tapped = null;
                     return;
@@ -272,23 +269,34 @@ public class CheckerboardView extends View implements View.OnClickListener {
         }
     }
 
-    public void animateAndExecuteMove(Move m) {
+    public void animateAndExecuteMove(final Move m) {
+        animateMoveAndThen(m, new Runnable() {
+            public void run() {
+                game.executeMove(m);
+            }
+        });
+    }
+
+    public void animateMoveAndThen(Move m, Runnable onDone) {
         switch (m.type) {
             case SLIDE:
-                animations.add(new SlideAnim(m).start());
+                animations.add(new SlideAnim(m, onDone).start());
                 break;
             case JUMP_CAPTURE: {
                 Piece capture = game.getPiece(m.captureRank, m.captureCol);
-                animations.add(new StackAnim(m, capture.playerNum, m.captureRank, m.captureCol, capture.stacks).dontExecute().startReverse());
+                animations.add(new StackAnim(m, null, capture.playerNum, m.captureRank, m.captureCol, capture.stacks).startReverse());
             }
             case JUMP:
-                animations.add(new JumpAnim(m).start());
+                animations.add(new JumpAnim(m, onDone).start());
                 break;
             case STACK:
-                animations.add(new StackAnim(m, m.playerNum, m.startRank, m.startCol, 1).start());
+                animations.add(new StackAnim(m, onDone, m.playerNum, m.startRank, m.startCol, 1).start());
                 break;
             default:
-                game.executeMove(m);
+                if (onDone != null) {
+                    post(onDone);
+                    postInvalidate();
+                }
                 break;
         }
         invalidate();
@@ -300,7 +308,7 @@ public class CheckerboardView extends View implements View.OnClickListener {
                 switch (m.type) {
                     case JUMP_CAPTURE:
                         Piece captured = game.getPiece(m.captureRank, m.captureCol);
-                        animations.add(new StackAnim(m, captured.playerNum, m.captureRank, m.captureCol, captured.stacks).dontExecute().startReverse());
+                        animations.add(new StackAnim(m, null, captured.playerNum, m.captureRank, m.captureCol, captured.stacks).startReverse());
                         break;
                 }
                 game.executeMove(m);
@@ -456,8 +464,6 @@ public class CheckerboardView extends View implements View.OnClickListener {
                     case JUMP:
                     case JUMP_CAPTURE:
                     case SLIDE:
-                        //pStroke.setColor(Color.GREEN);
-                        //canvas.drawRect(sx, sy, sx+cellW, sy+cellH, pStroke);
                         pStroke.setColor(Color.YELLOW);
                         canvas.drawRect(ex, ey, ex+cellW, ey+cellH, pStroke);
                         break;
@@ -515,7 +521,7 @@ public class CheckerboardView extends View implements View.OnClickListener {
             return;
         int dark = DroidUtils.darken(color, 0.5f);
         pFill.setColor(dark);
-        final int step = (int)(rad/20 * getDir(playerNum));
+        final int step = (int)(rad/20 * -1);
         final int num = 5;
         for (int i=0; i<num; i++) {
             drawDisk(g, pFill, x/*+i*step*/, y+i*step, rad);
@@ -540,7 +546,6 @@ public class CheckerboardView extends View implements View.OnClickListener {
         } else if (v.getId() == R.id.buttonNewGame) {
             game.newGame();
         }
-//        this.bEndTurn.setVisibility(View.GONE);
         this.dragging = this.tapped = null;
         invalidate();
     }
@@ -552,15 +557,15 @@ public class CheckerboardView extends View implements View.OnClickListener {
         if (m != null) {
             switch (m.type) {
                 case JUMP_CAPTURE:
-                    animations.add(new StackAnim(m, m.captured.playerNum, m.captureRank, m.captureCol, m.captured.stacks).dontExecute().start());
+                    animations.add(new StackAnim(m, null, m.captured.playerNum, m.captureRank, m.captureCol, m.captured.stacks).start());
                 case JUMP:
-                    animations.add(new JumpAnim(m).dontExecute().startReverse());
+                    animations.add(new JumpAnim(m, null).startReverse());
                     break;
                 case SLIDE:
-                    animations.add(new SlideAnim(m).dontExecute().startReverse());
+                    animations.add(new SlideAnim(m, null).startReverse());
                     break;
                 case STACK:
-                    animations.add(new StackAnim(m, m.playerNum, m.startRank, m.startCol, 1).dontExecute().startReverse());
+                    animations.add(new StackAnim(m, null, m.playerNum, m.startRank, m.startCol, 1).startReverse());
                     break;
             }
         }
@@ -571,7 +576,7 @@ public class CheckerboardView extends View implements View.OnClickListener {
 
     public boolean isEndTurnButtonAvailable() {
         Piece lock = game.getLocked();
-        if (lock != null && !game.isCurPlayerRobot()) {
+        if (lock != null) {
             if (lock.playerNum != game.getCurPlayerNum())
                 throw new AssertionError();
             for (Move m : lock.moves) {

@@ -1,8 +1,8 @@
 package cc.android.checkerboard;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Stack;
 
@@ -14,9 +14,7 @@ import cc.lib.utils.Reflector;
  * @author chriscaron
  *
  */
-public class Checkers extends Reflector<Checkers> { //implements ICheckerboard {
-
-    public final static int SMART_SEARCH_DEPTH = 2;
+public class Checkers extends Reflector<Checkers> {
 
     static {
         addAllFields(Checkers.class);
@@ -26,24 +24,19 @@ public class Checkers extends Reflector<Checkers> { //implements ICheckerboard {
         END, SLIDE, JUMP, JUMP_CAPTURE, STACK
     }
 
-    public enum RobotType {
-        RANDOM, STOOPID, SMART
-    }
-
     public final int RANKS;
     public final int COLUMNS;
     public final int NUM_PLAYERS = 2;
 
 	private final Piece [][] board; // rank major
 	private int turn = -1;
+    private int computedMoves = 0; // optimization so that multiple calls to compute moves doesnt cause complete rescan unless neccessary
     private Piece lock = null;
 
 	private final static int BLACK = 0;
 	private final static int RED   = 1;
 
     private final Stack<Move> undoStack = new Stack<>();
-    private RobotType robot = RobotType.RANDOM;
-    private int robotPlayer = -1;
 
     public Checkers() {
         this(8,8);
@@ -71,16 +64,9 @@ public class Checkers extends Reflector<Checkers> { //implements ICheckerboard {
 		}
 		turn = Utils.flipCoin() ? 0 : 1;
         lock = null;
-        computeMoves();
+        computeMoves(true);
         undoStack.clear();
-        robotPlayer = -1;
 	}
-
-	public final void newSinglePlayerGame(int difficulty) {
-        this.robotPlayer = 1;//Utils.rand() % 2;
-        this.robot = RobotType.values()[difficulty];
-        checkRobot(computeMoves());
-    }
 
     @Override
     protected final int getMinVersion() {
@@ -101,8 +87,14 @@ public class Checkers extends Reflector<Checkers> { //implements ICheckerboard {
 	with the locked piece, and it will be unchanged.
 	Otherwise the complete move set is recomputed
 	 */
-	private final int computeMoves() {
+    public final int computeMoves() {
+        return computeMoves(false);
+    }
+
+	private final int computeMoves(boolean refresh) {
         if (lock == null) {
+            if (computedMoves > 0 && !refresh)
+                return computedMoves;
             int num = 0;
             for (int rank = 0; rank < RANKS; rank++) {
                 for (int col = 0; col < COLUMNS; col++) {
@@ -112,7 +104,7 @@ public class Checkers extends Reflector<Checkers> { //implements ICheckerboard {
                     num += p.moves.size();
                 }
             }
-            return num;
+            return computedMoves = num;
         } else {
             return lock.moves.size();
         }
@@ -188,12 +180,8 @@ public class Checkers extends Reflector<Checkers> { //implements ICheckerboard {
     private void endTurnPrivate() {
 		turn = (turn+1) % NUM_PLAYERS;
         lock = null;
-        int n;
-        if ((n=computeMoves())==0) {
-            robotPlayer = -1;
+        if (computeMoves(true)==0) {
             onGameOver();
-        } else {
-            checkRobot(n);
         }
 	}
 
@@ -217,7 +205,6 @@ public class Checkers extends Reflector<Checkers> { //implements ICheckerboard {
         }
 
         turn = m.playerNum;
-        //lock.moves.add(m);
         Move parent = null;
         if (undoStack.size() > 0) {
             parent = undoStack.peek();
@@ -227,7 +214,7 @@ public class Checkers extends Reflector<Checkers> { //implements ICheckerboard {
         }
         if (parent == null) {
             lock = null;
-            computeMoves();
+            computeMoves(true);
         } else {
             clearMoves();
             Piece p = getPiece(m.startRank, m.startCol);
@@ -243,6 +230,7 @@ public class Checkers extends Reflector<Checkers> { //implements ICheckerboard {
                 getPiece(i, ii).moves.clear();
             }
         }
+        computedMoves = 0;
     }
 
     public final int getRankForKingCurrent() {
@@ -276,8 +264,8 @@ public class Checkers extends Reflector<Checkers> { //implements ICheckerboard {
         // clear everyone all moves
         clearMoves();
 		if (move.startCol != move.endCol && move.startRank != move.endRank) {
-            int rank = move.endRank;// + move.dRank;
-            isKinged = (getRankForKingCurrent() == rank);
+            int rank = move.endRank;
+            isKinged = (p.stacks == 1 && getRankForKingCurrent() == rank);
     		board[move.endRank][move.endCol] = p;
             board[move.startRank][move.startCol] = new Piece();
 		}
@@ -316,276 +304,9 @@ public class Checkers extends Reflector<Checkers> { //implements ICheckerboard {
             } else {
                 p.moves.add(new Move(MoveType.END, move.endRank, move.endCol, move.endRank, move.endCol, -1, -1, move.playerNum));
                 lock = p;
-                checkRobot(p.moves.size());
             }
-        } else {
-            checkRobot(computeMoves());
         }
 	}
-
-	private void checkRobot(int n) {
-        if (robotPlayer == getCurPlayerNum()) {
-            switch (robot) {
-                case RANDOM:
-                    doRandomRobot(n);
-                    break;
-                case STOOPID:
-                    doStoopidRobot(n);
-                    break;
-                case SMART:
-                    doSmartRobot(n, SMART_SEARCH_DEPTH, getRoot());
-                    break;
-            }
-        }
-    }
-
-    /**
-     * Override to get a descision tree result from executeMove
-     * @return
-     */
-    protected DescisionTree getRoot() {
-        return null;
-    }
-
-    private void doRandomRobot(int n) {
-        if (n > 0) {
-            int mvNum = Utils.rand() % n;
-            Piece p;
-            for (int i = 0; i < RANKS; i++) {
-                for (int ii = 0; ii < COLUMNS; ii++) {
-                    if ((p = getPiece(i, ii)).moves.size() > mvNum) {
-                        onRobotMoved(p.moves.get(mvNum));
-                        return;
-                    } else {
-                        mvNum -= p.moves.size();
-                    }
-                }
-            }
-        }
-    }
-
-    private void doStoopidRobot(int n) {
-        if (n > 0) {
-            Piece p;
-            double bestBoardValue = 0;
-            Move bestMove = null;
-            for (int i = 0; i < RANKS; i++) {
-                for (int ii = 0; ii < COLUMNS; ii++) {
-                    if ((p = getPiece(i, ii)).moves.size() > 0) {
-                        for (Move m : p.moves) {
-                            Checkers bd = new Checkers();
-                            bd.copyFrom(this);
-                            bd.executeMove(m);
-                            double d = evaluateBoard(bd.board, null);
-                            if (bestMove == null || d > bestBoardValue) {
-                                bestMove = m;
-                                bestBoardValue = d;
-                            }
-                        }
-                    }
-                }
-            }
-            onRobotMoved(bestMove);
-        }
-    }
-
-    public final static class DescisionTree implements Comparable<DescisionTree> {
-        private DescisionTree parent, first, last, next, prev;
-        private double value = 0;
-        public final Checkers game;
-        public final Move move;
-        public String meta = ""; // anything extra to display to the user
-
-
-        public DescisionTree(Checkers game) {
-            this(game, null);
-        }
-
-        private DescisionTree(Checkers game, Move move) {
-            this.game = game;
-            this.move = move;
-        }
-
-        @Override
-        public int compareTo(DescisionTree o) {
-            if (value < o.value)
-                return 1;
-            return -1;
-        }
-
-        private void addChild(DescisionTree child) {
-            child.next = child.prev = null;
-            if (first == null) {
-                // nodes == 0
-                first = last = child;
-            } else {
-                child.prev = last;
-                last.next = child;
-                last = child;
-            }
-            child.parent=this;
-        }
-        public void clear() {
-            first=last=null;
-        }
-
-        public final DescisionTree getParent() {
-            return parent;
-        }
-
-        public final DescisionTree getFirst() {
-            return first;
-        }
-
-        public final DescisionTree getLast() {
-            return last;
-        }
-
-        public final DescisionTree getNext() {
-            return next;
-        }
-
-        public final DescisionTree getPrev() {
-            return prev;
-        }
-
-        public final Checkers getGame() {
-            return game;
-        }
-
-        public final Move getMove() {
-            return move;
-        }
-
-        public final String getMeta() {
-            return meta;
-        }
-        public final double getValue() {
-            return value;
-        }
-
-        private final void sortChildren() {
-            List<DescisionTree> list = new ArrayList<>();
-            for (DescisionTree t = first; t != null; t = t.next) {
-                list.add(t);
-            }
-            Collections.sort(list);
-            first = last = null;
-            for (DescisionTree t : list) {
-                addChild(t);
-            }
-        }
-    }
-
-    private double doSmartRobot(int n, int depth, DescisionTree root) {
-        double bestBoardValue = 0;
-        Piece p;
-        Move bestMove = null;
-        if (n > 0) {
-            for (int i = 0; i < RANKS; i++) {
-                for (int ii = 0; ii < COLUMNS; ii++) {
-                    if ((p = getPiece(i, ii)).moves.size() > 0) {
-                        for (Move m : p.moves) {
-                            Checkers bd = new Checkers();
-                            bd.copyFrom(this);
-                            bd.robotPlayer = -1; // make so robot doesnt kick in
-                            bd.executeMove(m);
-                            DescisionTree next = null;
-                            if (root != null) {
-                                root.addChild(next = new DescisionTree(bd, m));
-                            }
-                            double d = evaluateBoard(bd.board, next);
-                            if (bd.getCurPlayerNum() != getCurPlayerNum()) {
-                                d = -d;
-                            }
-                            if (next != null) {
-                                next.value = d;
-                            }
-
-                            // TODO: Make so we sort the children and then just pick the first 3 so we can have deeper trees
-
-                            if (depth > 0) {
-                                d = Math.max(d, bd.doSmartRobot(bd.computeMoves(), depth - 1, next));
-                            }
-                            if (bestMove == null || d > bestBoardValue) {
-                                bestMove = m;
-                                bestBoardValue = d;
-                            }
-                        }
-                        if (root != null) {
-                            root.value = bestBoardValue;
-                            // sort the children so that the 'best route is always root.first.first.first...
-                            root.sortChildren();
-                        }
-                    }
-                }
-            }
-            onRobotMoved(bestMove);
-        }
-        return bestBoardValue;
-    }
-
-
-    /**
-     * Returns a number between -1 and 1
-     *
-     * @param board
-     * @return
-     */
-    protected double evaluateBoard(Piece [][] board, DescisionTree node) {
-        int mine = 0;
-        int theirs = 0;
-
-        int mineKings=0;
-        int theirKings=0;
-
-        int mineAdvance = 0;
-        int theirAdvance = 0;
-
-        for (int rank=0; rank<RANKS; rank++) {
-            for (Piece p : board[rank]) {
-                if (p.playerNum == getCurPlayerNum()) {
-                    if (p.stacks == 1) {
-                        mine++;
-                        mineAdvance += getAdvancement(rank, p.playerNum);
-                    } else if (p.stacks == 2)
-                        mineKings++;
-
-                } else if (p.playerNum >= 0) {
-                    if (p.stacks == 1) {
-                        theirs++;
-                        theirAdvance += getAdvancement(rank, p.playerNum);
-                    } else if (p.stacks == 2)
-                        theirKings ++;
-                }
-            }
-        }
-
-        double d = 0.01 * (mine - theirs) + 0.1 * (mineKings - theirKings) + 0.02 * (mineAdvance - theirAdvance);
-        if (node != null) {
-            node.meta += String.format(
-                      "%1$20s:%2$d (%3$f)\n"
-                    + "%4$20s:%5$d\n"
-                    + "%6$20s:%7$d\n"
-                    + "%8$20s:%9$d\n"
-                    + "%10$20s:%11$d\n"
-                    + "%12$20s:%13$d\n"
-                    + "%14$20s:%15$d\n",
-                    "Player", getCurPlayerNum(), d,
-                    "Mine Pcs", mine,
-                    "Theirs Pcs", theirs,
-                    "Mine Kings", mineKings,
-                    "Their Kings", theirKings,
-                    "Mine Adv", mineAdvance,
-                    "Their Adv", theirAdvance
-            );
-        }
-
-        d += 0.000001 * (Utils.rand() % 100 - 50); // add a fudge factor to keep AI from doing same move over and over
-
-        //Log.d("AI", "Board evaluates too: " + d);
-        return d;
-    }
 
     public final boolean isOnBoard(int r, int c) {
 		return r>=0 && c>=0 && r<RANKS && c<COLUMNS;
@@ -597,15 +318,6 @@ public class Checkers extends Reflector<Checkers> { //implements ICheckerboard {
      */
 	protected void onGameOver() {
         newGame();
-    }
-
-    /**
-     * Called when the AI can done something. Will be called at the end of 'executeMove'
-     * Not calling super.onRobotMoved means that caller will have to call executeMove(...) to advance the game.
-     * @param moves
-     */
-    protected void onRobotMoved(Move ... moves) {
-
     }
 
     public final boolean canUndo() {
@@ -629,7 +341,34 @@ public class Checkers extends Reflector<Checkers> { //implements ICheckerboard {
         return lock;
     }
 
-    public final boolean isCurPlayerRobot() {
-        return robotPlayer == getCurPlayerNum();
+    public Iterable<Piece> getPieces() {
+
+        return new Iterable<Piece>() {
+            @Override
+            public Iterator<Piece> iterator() {
+                return new PieceIterator();
+            }
+        };
+    }
+
+    public class PieceIterator implements Iterator<Piece> {
+
+        int rank=0;
+        int col=0;
+
+        @Override
+        public boolean hasNext() {
+            return rank < RANKS && col < COLUMNS;
+        }
+
+        @Override
+        public Piece next() {
+            Piece p = board[rank][col];
+            if (++col >= COLUMNS) {
+                col=0;
+                rank++;
+            }
+            return p;
+        }
     }
 }
