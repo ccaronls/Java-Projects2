@@ -88,8 +88,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
+        android:background="#afff"
         android:text=""
-        android:textColor="#0ff"
+        android:textColor="#f00"
         android:textSize="16dp"
         android:textStyle="bold"
         tools:text="Debug Text\nFor your Review"/>

@@ -1467,8 +1467,12 @@ public class Reflector<T> {
             for (Field f: values.keySet()) {
             	f.setAccessible(true);
             	Object o = f.get(this);
-            	if (o != null && o instanceof Reflector) {
-            		((Reflector<T>)o).copyFrom((Reflector<T>)f.get(other));
+                if (o != null && o instanceof Reflector) {
+                    Reflector<T> n = (Reflector<T>)f.get(other);
+                    if (n != null)
+            		    ((Reflector<T>)o).copyFrom(n);
+                    else
+                        f.set(this, null);
             	} else {
             		f.set(this, deepCopy(f.get(other)));
             	}
@@ -1513,11 +1517,7 @@ public class Reflector<T> {
     public final void loadFromFile(File file) throws IOException {
         Utils.println("Loading from file %s", file.getAbsolutePath());
         try (InputStream in = new FileInputStream(file)) {
-            Reflector r = getClass().newInstance();
-            r.deserialize(in);
-            copyFrom(r);
-        } catch (IllegalAccessException | InstantiationException e) {
-            throw new IOException("Cannot create temp object to deserialize into", e);
+            deserialize(in);
         }
     }
 

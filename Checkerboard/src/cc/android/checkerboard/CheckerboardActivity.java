@@ -101,7 +101,7 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
         public void executeMove(Move move) {
             super.executeMove(move);
             pbv.postInvalidate();
-            bEndTurn.setEnabled(pbv.isEndTurnButtonAvailable() && robot == null);
+            updateButtons();
             checkForRobotTurn();
         }
     }
@@ -110,13 +110,18 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
 
     void checkForRobotTurn() {
         if (robot != null && pbv.getGame().getCurPlayerNum() == 1) {
-            new RobotTask().execute(pbv.getGame());
+            new RobotTask(1).execute(pbv.getGame());
         }
     }
 
-    class RobotTask extends AsyncTask<Checkers,Move,Void> implements DialogInterface.OnCancelListener, Runnable {
+    class RobotTask extends AsyncTask<Checkers,CheckTree,Void> implements DialogInterface.OnCancelListener, Runnable {
 
         boolean debugMode = tbDebug.isChecked();
+        final int robotPlayerNum;
+
+        RobotTask(int robotPlayerNum) {
+            this.robotPlayerNum = robotPlayerNum;
+        }
 
         @Override
         protected void onPreExecute() {
@@ -134,6 +139,8 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
         protected void onPostExecute(Void aVoid) {
             pbv.removeCallbacks(this);
             thinking.dismiss();
+            if (!debugMode)
+                root = null;
         }
 
         @Override
@@ -144,10 +151,13 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
         }
 
         @Override
-        protected void onProgressUpdate(Move... move) {
+        protected void onProgressUpdate(CheckTree... root) {
             pbv.removeCallbacks(this);
             thinking.dismiss();
-            pbv.animateMoveAndThen(move[0], new Runnable() {
+            Move move = root[0].getMove();
+            if (debugMode) {
+                updateButtons();
+            } else pbv.animateMoveAndThen(move, new Runnable() {
                 public void run() {
                     synchronized (RobotTask.this) {
                         RobotTask.this.notifyAll();
@@ -158,13 +168,15 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
 
         @Override
         protected Void doInBackground(Checkers... params) {
-            Checkers game = params[0];
+            Checkers game = new Checkers();
+            game.copyFrom(params[0]);
             CheckTree t = robot.doRobot(game);
             if (debugMode) {
-
+                root = t;
+                publishProgress(t);
             } else {
                 if (t.getFirst() == null) {
-                    publishProgress(t.getMove());
+                    publishProgress(t);
                     synchronized (this) {
                         try {
                             wait(10000);
@@ -172,11 +184,12 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
                         }
                     }
                     game.executeMove(t.getMove());
+                    params[0].copyFrom(game);
                 } else {
-                    while (t.getFirst() != null && t.getMove().playerNum == game.getCurPlayerNum()) {
+                    while (t.getFirst() != null && t.getFirst().getMove().playerNum == robotPlayerNum) {
                         t.sortChildren(Integer.MAX_VALUE);
                         t = t.getFirst();
-                        publishProgress(t.getMove());
+                        publishProgress(t);
                         synchronized (this) {
                             try {
                                 wait(10000);
@@ -184,6 +197,7 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
                             }
                         }
                         game.executeMove(t.getMove());
+                        params[0].copyFrom(game);
                     }
                 }
             }
@@ -197,6 +211,7 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
     }
 
     void showChoosePlayersDialog(final  boolean finishOnCancel) {
+        tbDebug.setVisibility(View.GONE);
         ArrayList<String> list = new ArrayList<>();
         list.add("One Player");
         list.add("Two Players");
@@ -207,6 +222,7 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
             public void onClick(DialogInterface dialog, int which) {
                 switch (which) {
                     case 0: {
+                        tbDebug.setVisibility(View.VISIBLE);
                         new AlertDialog.Builder(CheckerboardActivity.this).setItems(Utils.toStringArray(Robot.RobotType.values()), new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, final int which) {
@@ -331,7 +347,7 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
     }
 
     void updateButtons() {
-        bEndTurn.setEnabled(robot == null && pbv.isEndTurnButtonAvailable());
+        bEndTurn.setEnabled(pbv.getGame().getCurPlayerNum() == 0 && pbv.isEndTurnButtonAvailable());
         if (root != null) {
             bUp.setEnabled(root.getParent() != null);
             bLeft.setEnabled(root.getPrev() != null);
@@ -355,30 +371,31 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
 
         } else if (v.getId() == R.id.buttonUp) {
             root = root.getParent();
-            pbv.getGame().undo();
+            root.getGame().undo();
+            pbv.getGame().copyFrom(root.getGame());
         } else if (v.getId() == R.id.buttonLeft) {
-            pbv.getGame().undo();
+            root.getGame().undo();
             root = root.getPrev();
-            pbv.getGame().executeMove(root.getMove());
+            root.getGame().executeMove(root.getMove());
+            pbv.getGame().copyFrom(root.getGame());
         } else if (v.getId() == R.id.buttonRight) {
-            pbv.getGame().undo();
+            root.getGame().undo();
             root = root.getNext();
-            pbv.getGame().executeMove(root.getMove());
+            root.getGame().executeMove(root.getMove());
+            pbv.getGame().copyFrom(root.getGame());
         } else if (v.getId() == R.id.buttonDown) {
             root = root.getFirst();
-            pbv.getGame().executeMove(root.getMove());
+            root.getGame().executeMove(root.getMove());
+            pbv.getGame().copyFrom(root.getGame());
         }
         updateButtons();
+        pbv.invalidate();
     }
 
     @Override
     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
         setDebugMode(isChecked);
-        if (!isChecked && root != null && root.getFirst() != null) {
-            CheckTree t = root.getFirst();
-            root = null;
-            t.game.executeMove(t.getMove());
-            pbv.setGame(t.game);
-        }
+        root = null;
+        checkForRobotTurn();
     }
 }

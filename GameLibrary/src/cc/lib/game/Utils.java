@@ -397,8 +397,7 @@ public class Utils {
      * 
      * @param px
      * @param py
-     * @param xpts
-     * @param ypts
+     * @param pts
      * @return
      */
     public static boolean isPointInsidePolygon(float px, float py, IVector2D [] pts, int numPts) {
@@ -720,7 +719,7 @@ public class Utils {
 	/**
 	 * Return a value in the range: [0 - counts.length) where the weight of
 	 * each values weight is in weights[]  
-	 * @param counts
+	 * @param weights
 	 * @return
 	 */
 	public static int chooseRandomFromSet(int [] weights) {
@@ -1098,7 +1097,6 @@ public class Utils {
 
 	/**
 	 * 
-	 * @param <T>
 	 * @param dest
 	 * @param value
 	 * @param start
@@ -1111,7 +1109,6 @@ public class Utils {
 
 	/**
 	 * 
-	 * @param <T>
 	 * @param dest
 	 * @param value
 	 */
@@ -1134,7 +1131,6 @@ public class Utils {
 
 	/**
 	 * 
-	 * @param <T>
 	 * @param dest
 	 * @param value
 	 */
@@ -1284,10 +1280,13 @@ public class Utils {
 		buf.append(array[i]).append("]");
 		return buf.toString();
 	}
-	
-	/**
-     * 
-     * @param color
+
+    /**
+     *
+     * @param r
+     * @param g
+     * @param b
+     * @param a
      * @return
      */
     public static int rgbaToInt(int r, int g, int b, int a) {
@@ -1484,7 +1483,8 @@ public class Utils {
 
 	/**
 	 * Return string value of a number and its sign (+ / -)
-	 * @param pts
+     *
+	 * @param n
 	 * @return
 	 */
 	public static String getSignedString(int n) {
@@ -1610,6 +1610,7 @@ public class Utils {
 			return true;
 		if (o.getClass().isArray() && Array.getLength(o) == 0)
 			return true;
+        System.err.println("isEmpty does not know about class " + o.getClass());
 		return false;
 	}
 

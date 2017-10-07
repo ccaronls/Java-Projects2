@@ -427,7 +427,7 @@ public class CheckerboardView extends View implements View.OnClickListener {
         }
 
         if (tapped != null) {
-            for (Move m : tapped.moves) {
+            for (Move m : new ArrayList<>(tapped.moves)) {
                 Log.d("CB", "Tapped move: " + m);
                 float sx = m.startCol*cellW;
                 float sy = m.startRank*cellH;

@@ -1,5 +1,7 @@
 package cc.android.checkerboard;
 
+import java.util.ArrayList;
+
 import cc.lib.game.Utils;
 
 /**
@@ -19,19 +21,17 @@ public class Robot {
     }
 
     CheckTree doRobot(Checkers game) {
-        Checkers copy = new Checkers();
-        copy.copyFrom(game);
-        CheckTree root = new CheckTree(copy);
+        CheckTree root = new CheckTree(game);
         switch (type) {
             case RANDOM:
                 doRandomRobot(root);
                 break;
             case MINIMAX_BOT1: {
-                doMinimaxRobot(copy, root, 1, 1);
+                doMinimaxRobot(game, root, 1, 1);
                 break;
             }
             case MINIMAX_BOT4: {
-                doMinimaxRobot(copy, root, 4, 1);
+                doMinimaxRobot(game, root, 4, 1);
                 break;
             }
         }
@@ -55,7 +55,7 @@ public class Robot {
         if (game.computeMoves() > 0) {
             final int playerNum = game.getCurPlayerNum();
             for (Piece p : game.getPieces()) {
-                for (Move m : p.moves) {
+                for (Move m : new ArrayList<>(p.moves)) {
                     game.executeMove(m);
                     CheckTree next = new CheckTree(game, m);
                     root.addChild(next);
@@ -63,11 +63,10 @@ public class Robot {
                     if (game.getCurPlayerNum() == playerNum) {
                         v = doMinimaxRobot(game, next, depth, scale);
                     } else if (depth > 0) {
-                        v = doMinimaxRobot(game, next, depth, scale * -1);
+                        v = doMinimaxRobot(game, next, depth-1, scale * -1);
                     } else {
                         v = evaluateBoard(game, next) * scale;
                         next.setValue(v);
-                        break;
                     }
                     d = Math.max(v, d);
                     game.undo();
@@ -76,6 +75,7 @@ public class Robot {
             root.sortChildren();
         }
         root.setValue(d);
+        root.appendMeta("Value=" + d);
         return d;
     }
 
@@ -121,7 +121,7 @@ public class Robot {
                 + 0.1 * (mineKings - theirKings)
                 + 0.001 * (mineAdvance - theirAdvance);
         if (node != null) {
-            node.meta += String.format(
+            node.appendMeta(String.format(
                     "%1$20s:%2$d (%3$f)\n"
                             + "%4$20s:%5$d\n"
                             + "%6$20s:%7$d\n"
@@ -137,7 +137,7 @@ public class Robot {
                     "Their Kings", theirKings,
                     "Mine Adv", mineAdvance,
                     "Their Adv", theirAdvance
-            );
+            ));
         }
 
         d += 0.000001 * (Utils.rand() % 100 - 50); // add a fudge factor to keep AI from doing same move over and over

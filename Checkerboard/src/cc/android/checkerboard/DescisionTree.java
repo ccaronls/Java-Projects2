@@ -18,10 +18,11 @@ public class DescisionTree<G,M> implements Comparable<DescisionTree> {
 
     public final G game;
     private M move = null;
-    public String meta = ""; // anything extra to display to the user
+    private String meta = ""; // anything extra to display to the user
 
     public DescisionTree(G game) {
         this(game, null);
+        meta += "ROOT";
     }
 
     protected DescisionTree(G game, M move) {
@@ -96,6 +97,12 @@ public class DescisionTree<G,M> implements Comparable<DescisionTree> {
 
     public final String getMeta() {
         return meta;
+    }
+
+    public final void appendMeta(String s) {
+        if (meta.length() > 0 && !s.startsWith("\n"))
+            meta += "\n";
+        meta += s;
     }
 
     public final double getValue() {
