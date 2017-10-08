@@ -1,23 +1,17 @@
 package cc.android.checkerboard;
 
-import android.app.AlertDialog;
-import android.app.Dialog;
-import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.graphics.Typeface;
-import android.os.AsyncTask;
 import android.os.SystemClock;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.ProgressBar;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -447,6 +441,7 @@ public class CheckerboardView extends View implements View.OnClickListener {
                     case STACK:
                         pStroke.setColor(Color.GREEN);
                         drawDisk(canvas, pStroke, sx+cellW/2, sy+cellH/2, pcRad);
+                        break;
                 }
             }
         }
@@ -495,10 +490,26 @@ public class CheckerboardView extends View implements View.OnClickListener {
             Color.RED,//rgb(64, 64, 255)
     };
 
+    String [] names = {
+            "BLACK",
+            "RED",
+    };
+
     int getPcColor(int playerNum) {
         if (playerNum >= 0)
             return playerColors[playerNum];
         return 0;
+    }
+
+    String getPcColorName(int playerNum) {
+        int c = getPcColor(playerNum);
+        int index=0;
+        for (int pc : playerColors) {
+            if (pc == c)
+                return names[index];
+            index++;
+        }
+        throw new AssertionError();
     }
 
     void drawChecker(Canvas g, Piece pc, int rank, int col, boolean outlined) {

@@ -6,8 +6,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import cc.lib.game.Utils;
-
 /**
  * Created by chriscaron on 10/5/17.
  */
@@ -99,10 +97,10 @@ public class DescisionTree<G,M> implements Comparable<DescisionTree> {
         return meta;
     }
 
-    public final void appendMeta(String s) {
+    public final void appendMeta(String s, Object ... args) {
         if (meta.length() > 0 && !s.startsWith("\n"))
             meta += "\n";
-        meta += s;
+        meta += String.format(s, args);
     }
 
     public final double getValue() {
@@ -152,7 +150,7 @@ public class DescisionTree<G,M> implements Comparable<DescisionTree> {
     private void dumpTree(DescisionTree<G,M> root, String indent) {
         if (root == null)
             return;
-        Log.d("Tree", String.format("%sVal: %f\n", indent, root.getValue()));
+        Log.d("Tree", indent+root.getMeta().replace('\n', ','));
         dumpTree(root.getFirst(), indent+"   ");
         dumpTree(root.getNext(), indent);
     }

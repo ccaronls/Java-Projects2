@@ -1,9 +1,6 @@
 package cc.android.checkerboard;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Stack;
 
 import cc.lib.game.Utils;
@@ -313,11 +310,10 @@ public class Checkers extends Reflector<Checkers> {
 	}
 
     /**
-     * Called when current player has no turns. Default is to start a new game.
-     * Override to intersect this event.
+     * Called when current player has no turns. Default does nothing. Need to call newGame to rest everytihng.
      */
 	protected void onGameOver() {
-        newGame();
+
     }
 
     public final boolean canUndo() {

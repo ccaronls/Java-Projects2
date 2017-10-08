@@ -3,12 +3,17 @@ package cc.android.checkerboard;
 import java.util.ArrayList;
 
 import cc.lib.game.Utils;
+import cc.lib.utils.Reflector;
 
 /**
  * Created by chriscaron on 10/5/17.
  */
 
-public class Robot {
+public class Robot extends Reflector<Robot> {
+
+    static {
+        addField(Robot.class, "type");
+    }
 
     public enum RobotType {
         RANDOM, MINIMAX_BOT1, MINIMAX_BOT4,
@@ -16,12 +21,13 @@ public class Robot {
 
     private final RobotType type;
 
+    public Robot() { type = RobotType.MINIMAX_BOT1; }
+
     Robot(int difficulty) {
         this.type = RobotType.values()[difficulty];
     }
 
-    CheckTree doRobot(Checkers game) {
-        CheckTree root = new CheckTree(game);
+    void doRobot(Checkers game, CheckTree root) {
         switch (type) {
             case RANDOM:
                 doRandomRobot(root);
@@ -35,7 +41,6 @@ public class Robot {
                 break;
             }
         }
-        return root;
     }
 
     /**
@@ -50,35 +55,61 @@ public class Robot {
      * @param game
      * @param root
      */
-    private double doMinimaxRobot(Checkers game, CheckTree root, int depth, int scale) {
-        double d = Double.MIN_VALUE;
+    private long doMinimaxRobot(Checkers game, CheckTree root, int depth, int scale) {
+        long d = scale < 0 ? Long.MAX_VALUE : Long.MIN_VALUE;
         if (game.computeMoves() > 0) {
-            final int playerNum = game.getCurPlayerNum();
             for (Piece p : game.getPieces()) {
                 for (Move m : new ArrayList<>(p.moves)) {
                     game.executeMove(m);
                     CheckTree next = new CheckTree(game, m);
+                    next.appendMeta("playerNum=%d, scale=%d, depth=%d", m.playerNum, scale, depth);
                     root.addChild(next);
-                    double v;
-                    if (game.getCurPlayerNum() == playerNum) {
+                    long v;
+                    if (game.getCurPlayerNum() == m.playerNum) {
+                        // this means we have more move options
                         v = doMinimaxRobot(game, next, depth, scale);
                     } else if (depth > 0) {
                         v = doMinimaxRobot(game, next, depth-1, scale * -1);
                     } else {
-                        v = evaluateBoard(game, next) * scale;
-                        next.setValue(v);
+                        v = evaluateBoard(game, next, m.playerNum) * scale;
                     }
-                    d = Math.max(v, d);
+                    next.setValue(v);
+                    next.appendMeta("%s:%s", m.type, v);
+                    //d = Math.max(v, d);
+                    if (scale < 0)
+                        d = Math.min(d, v);
+                    else
+                        d = Math.max(d, v);
                     game.undo();
                 }
             }
             root.sortChildren();
         }
-        root.setValue(d);
-        root.appendMeta("Value=" + d);
         return d;
     }
+/*
+    final int [][] jumpable = {
+            {0,0,0,0,0,0,0,0},
+            {0,4,4,4,4,4,4,0},
+            {0,4,4,4,4,4,4,0},
+            {0,4,4,4,4,4,4,0},
+            {0,4,4,4,4,4,4,0},
+            {0,4,4,4,4,4,4,0},
+            {0,4,4,4,4,4,4,0},
+            {0,0,0,0,0,0,0,0},
+    };
 
+    int getJumpIndex(Checkers game, int rank, int cols) {
+        int value = 0;
+        if (game.isOnBoard(rank, cols)) {
+            Piece p = game.getPiece(rank, cols);
+            value = -jumpable[rank][cols];
+            // check if jumpable from ur->ll by normal piece
+
+            // space can be open, a jumper or a blocker
+
+        }
+    }
 
     /**
      * Returns a number between -1 and 1.
@@ -86,61 +117,55 @@ public class Robot {
      *
      * @return
      */
-    protected double evaluateBoard(Checkers game, CheckTree node) {
-        int mine = 0;
-        int theirs = 0;
+    protected long evaluateBoard(Checkers game, CheckTree node, int playerNum) {
 
-        int mineKings=0;
-        int theirKings=0;
-
-        int mineAdvance = 0;
-        int theirAdvance = 0;
+        int dPc=0;
+        int dKing=0;
+        int dAdv=0;
 
         for (int rank=0; rank<game.RANKS; rank++) {
             for (int col=0; col<game.COLUMNS; col++) {
             //for (Piece p : game..getBoard[rank]) {
                 Piece p = game.getPiece(rank, col);
-                if (p.playerNum == game.getCurPlayerNum()) {
+
+                if (p.playerNum == playerNum) {
                     if (p.stacks == 1) {
-                        mine++;
-                        mineAdvance += game.getAdvancement(rank, p.playerNum);
+                        dPc++;
+                        //dAdv += game.getAdvancement(rank, p.playerNum);
                     } else if (p.stacks == 2)
-                        mineKings++;
+                        dKing++;
 
                 } else if (p.playerNum >= 0) {
                     if (p.stacks == 1) {
-                        theirs++;
-                        theirAdvance += game.getAdvancement(rank, p.playerNum);
+                        dPc--;
+                        //dAdv -= game.getAdvancement(rank, p.playerNum);
                     } else if (p.stacks == 2)
-                        theirKings ++;
+                        dKing--;
                 }
             }
         }
 
-        double d = 0.01 * (mine - theirs)
-                + 0.1 * (mineKings - theirKings)
-                + 0.001 * (mineAdvance - theirAdvance);
+        long d = 100*dPc + 10000*dKing + dAdv;
+
         if (node != null) {
             node.appendMeta(String.format(
-                    "%1$20s:%2$d (%3$f)\n"
-                            + "%4$20s:%5$d\n"
-                            + "%6$20s:%7$d\n"
-                            + "%8$20s:%9$d\n"
-                            + "%10$20s:%11$d\n"
-                            + "%12$20s:%13$d\n"
-                            + "%14$20s:%15$d\n"
+                              //"%1$20s:%2$d
+                              "(%3$d)\n"
+                            + "%4$s:%5$d\n"
+                            + "%6$s:%7$d\n"
+                            + "%8$s:%9$d\n"
+//                            + "%10$20s:%11$d\n"
+//                            + "%12$20s:%13$d\n"
+//                            + "%14$20s:%15$d\n"
                     ,
                     "Player", game.getCurPlayerNum(), d,
-                    "Mine Pcs", mine,
-                    "Theirs Pcs", theirs,
-                    "Mine Kings", mineKings,
-                    "Their Kings", theirKings,
-                    "Mine Adv", mineAdvance,
-                    "Their Adv", theirAdvance
+                    "dPcs  ", dPc,
+                    "dKings", dKing,
+                    "dAdv  ", dAdv
             ));
         }
 
-        d += 0.000001 * (Utils.rand() % 100 - 50); // add a fudge factor to keep AI from doing same move over and over
+        //d += (Utils.rand() % 10 - 5); // add a fudge factor to keep AI from doing same move over and over
 
         //Log.d("AI", "Board evaluates too: " + d);
         return d;
