@@ -137,7 +137,7 @@ public class Checkers extends Reflector<Checkers> {
 				continue;
 			// t is piece one unit away in this direction
 			Piece t = board[rdr][cdc];
-			if (t.stacks == 0) {
+			if (t.stacks <= 0) {
 				if (parent == null)
 					p.moves.add(new Move(MoveType.SLIDE, rank, col, rdr, cdc, 0, 0, turn));
 			} else {
@@ -147,7 +147,7 @@ public class Checkers extends Reflector<Checkers> {
                         continue;
                     }
 					Piece j = board[rdr2][cdc2];
-					if (j.stacks == 0) {
+					if (j.stacks <= 0) {
 						// we can jump to here
 						if (t.playerNum == getCurPlayerNum()) {
 							// we are jumping ourself, no capture
@@ -197,7 +197,8 @@ public class Checkers extends Reflector<Checkers> {
                 board[m.endRank][m.endCol] = new Piece();
                 break;
             case STACK:
-                getPiece(m.startRank, m.startCol).stacks --;
+                if (0 > --getPiece(m.startRank, m.startCol).stacks)
+                    throw new AssertionError();
                 break;
         }
 

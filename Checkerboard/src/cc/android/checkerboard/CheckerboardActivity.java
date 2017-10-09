@@ -17,6 +17,7 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 
+import cc.lib.android.AndroidLogWriter;
 import cc.lib.android.CCActivityBase;
 import cc.lib.game.Utils;
 import cc.lib.utils.FileUtils;
@@ -192,7 +193,7 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
             root = new CheckTree(game);
             robot.doRobot(game, root);
             if (debugMode) {
-                root.dumpTree();
+                root.dumpTree(new AndroidLogWriter("Robot"));
                 publishProgress(root);
             } else {
                 for (CheckTree p : getPath()) {

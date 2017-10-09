@@ -16,7 +16,7 @@ public class Robot extends Reflector<Robot> {
     }
 
     public enum RobotType {
-        RANDOM, MINIMAX_BOT1, MINIMAX_BOT4,
+        RANDOM, MINIMAX_BOT1, MINIMAX_BOT2,
     }
 
     private final RobotType type;
@@ -36,8 +36,8 @@ public class Robot extends Reflector<Robot> {
                 doMinimaxRobot(game, root, 1, 1);
                 break;
             }
-            case MINIMAX_BOT4: {
-                doMinimaxRobot(game, root, 4, 1);
+            case MINIMAX_BOT2: {
+                doMinimaxRobot(game, root, 2, 1);
                 break;
             }
         }

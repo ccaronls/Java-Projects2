@@ -1,7 +1,7 @@
-package cc.android.checkerboard;
+package cc.lib.game;
 
-import android.util.Log;
-
+import java.io.IOException;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -143,16 +143,18 @@ public class DescisionTree<G,M> implements Comparable<DescisionTree> {
         return root;
     }
 
-    public void dumpTree() {
-        dumpTree(this, "");
+    public void dumpTree(Writer out) {
+        try {
+            dumpTree(out, this, "");
+        } catch (Exception e) {}
     }
 
-    private void dumpTree(DescisionTree<G,M> root, String indent) {
+    private void dumpTree(Writer out, DescisionTree<G,M> root, String indent) throws IOException {
         if (root == null)
             return;
-        Log.d("Tree", indent+root.getMeta().replace('\n', ','));
-        dumpTree(root.getFirst(), indent+"   ");
-        dumpTree(root.getNext(), indent);
+        out.write(indent+root.getMeta().replace('\n', ',') + "\n");
+        dumpTree(out, root.getFirst(), indent+"   ");
+        dumpTree(out, root.getNext(), indent);
     }
 
 

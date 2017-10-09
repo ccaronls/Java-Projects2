@@ -1,5 +1,7 @@
 package cc.android.checkerboard;
 
+import cc.lib.game.DescisionTree;
+
 /**
  * Created by chriscaron on 10/5/17.
  */

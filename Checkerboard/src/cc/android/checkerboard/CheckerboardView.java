@@ -416,7 +416,7 @@ public class CheckerboardView extends View implements View.OnClickListener {
                     canvas.drawRect(sx, sy, sx+cellW, sy+cellH, pStroke);
                     break;
             }
-        } else if (mainPc != null) {
+        } else if (mainPc != null && mainPc.playerNum == game.getCurPlayerNum()) {
             tapped = mainPc;
         }
 
