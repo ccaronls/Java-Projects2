@@ -19,36 +19,36 @@ import android.widget.RadioGroup;
  * query statement.  
  * 
  * Example XML:
-    <com.fullpower.widget.SortButtonGroup
+    <SortButtonGroup
         android:id="@+id/layoutSortButtons"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:checkedButton="@+id/buttonSortByDate"
         android:orientation="horizontal" >
 
-        <com.fullpower.widget.SortButton
+        <SortButton
             android:id="@+id/buttonSortByDate"
             android:text="Date" 
             app:sortAscending="false"
             app:sortField="SORT_FIELD_DATE"
             />
-        <com.fullpower.widget.SortButton
+        <SortButton
             android:id="@+id/buttonSortByTime"
             android:text="Time" 
             app:sortField="SORT_FIELD_DURATION"
             />
-        <com.fullpower.widget.SortButton
+        <SortButton
             android:id="@+id/buttonSortByName"
             android:text="Name" 
             app:sortField="SORT_FIELD_NAME"
             />
-        <com.fullpower.widget.SortButton
+        <SortButton
             android:id="@+id/buttonSortByDistance"
             android:text="Distance" 
             app:sortField="SORT_FIELD_DISTANCE"
             />
         
-    </com.fullpower.widget.SortButtonGroup>
+    </SortButtonGroup>
     
  
  * 
@@ -63,8 +63,7 @@ public final class SortButtonGroup extends RadioGroup{
 		 * Executed when a sort button is pressed.  
 		 * @param group the parent sort button group of the button that was pressed
 		 * @param checkedId the id of the button that was pressed
-		 * @param sortField the sort field attached to the sort button (will default to the sort button text if this is not set)
-		 * @param ascending sort button 3rd state
+		 * @param buttonsHistory the sort field attached to the sort button (will default to the sort button text if this is not set)
 		 */
 		void sortButtonChanged(SortButtonGroup group, int checkedId, SortButton ... buttonsHistory);
 	}
