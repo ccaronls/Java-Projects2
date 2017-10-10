@@ -1,8 +1,14 @@
 package cc.android.checkerboard;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Stack;
 
+import cc.lib.game.IGame;
+import cc.lib.game.MiniMaxTree;
 import cc.lib.game.Utils;
 import cc.lib.utils.Reflector;
 
@@ -11,7 +17,7 @@ import cc.lib.utils.Reflector;
  * @author chriscaron
  *
  */
-public class Checkers extends Reflector<Checkers> {
+public class Checkers extends Reflector<Checkers> implements IGame<Move> {
 
     static {
         addAllFields(Checkers.class);
@@ -74,6 +80,7 @@ public class Checkers extends Reflector<Checkers> {
         return board[rank][column];
     }
 
+    @Override
 	public final int getCurPlayerNum() {
 		return turn;
 	}
@@ -222,7 +229,7 @@ public class Checkers extends Reflector<Checkers> {
         }
     }
 
-    private void clearMoves() {
+    public void clearMoves() {
         for (int i=0; i<RANKS; i++) {
             for (int ii=0; ii<COLUMNS; ii++) {
                 getPiece(i, ii).moves.clear();
@@ -255,6 +262,7 @@ public class Checkers extends Reflector<Checkers> {
         return -1;
     }
 
+    @Override
 	public void executeMove(Move move) {
         lock = null;
 		boolean isKinged = false;
@@ -325,6 +333,7 @@ public class Checkers extends Reflector<Checkers> {
      * Need to call super to complete the undo.
      * @return the move that was reversed
      */
+    @Override
     public Move undo() {
         if (undoStack.size() > 0) {
             Move m = undoStack.pop();
@@ -367,5 +376,27 @@ public class Checkers extends Reflector<Checkers> {
             }
             return p;
         }
+    }
+
+    @Override
+    public Iterable<Move> getMoves() {
+        // order the moves such that those the pieces with fewer moves are earliest
+        List<Move> moves = new ArrayList<>();
+        final List<Piece> pieces = new ArrayList<>();
+        for (Piece p : getPieces()) {
+            if (p.moves.size() > 0)
+                pieces.add(p);
+        }
+        Collections.sort(pieces, new Comparator<Piece>() {
+            @Override
+            public int compare(Piece p0, Piece p1) {
+                return p0.moves.size() - p1.moves.size();
+            }
+        });
+        for (Piece p : pieces) {
+            for (Move m : p.moves)
+                moves.add(m);
+        }
+        return moves;
     }
 }

@@ -2,6 +2,8 @@ package cc.android.checkerboard;
 
 import java.util.ArrayList;
 
+import cc.lib.game.MiniMaxTree;
+import cc.lib.game.MiniMaxTree.*;
 import cc.lib.game.Utils;
 import cc.lib.utils.Reflector;
 
@@ -27,17 +29,27 @@ public class Robot extends Reflector<Robot> {
         this.type = RobotType.values()[difficulty];
     }
 
-    void doRobot(Checkers game, CheckTree root) {
+    final MiniMaxTree mmt = new MiniMaxTree<Checkers>() {
+
+        @Override
+        protected long evaluate(Checkers game, MMTreeNode t, int playerNum) {
+            return Robot.this.evaluateBoard((Checkers)game, t, playerNum);
+        }
+    };
+
+    void doRobot(Checkers game, MMTreeNode<Move, Checkers> root) {
         switch (type) {
             case RANDOM:
                 doRandomRobot(root);
                 break;
             case MINIMAX_BOT1: {
-                doMinimaxRobot(game, root, 1, 1);
+                //doMinimaxRobot(game, root, 1, 1);
+                mmt.buildTree(game, root, 1);
                 break;
             }
             case MINIMAX_BOT2: {
-                doMinimaxRobot(game, root, 2, 1);
+                //doMinimaxRobot(game, root, 2, 1);
+                mmt.buildTree(game, root, 2);
                 break;
             }
         }
@@ -54,14 +66,14 @@ public class Robot extends Reflector<Robot> {
      *
      * @param game
      * @param root
-     */
-    private long doMinimaxRobot(Checkers game, CheckTree root, int depth, int scale) {
+     *
+    private long doMinimaxRobot(Checkers game, MMTreeNode root, int depth, int scale) {
         long d = scale < 0 ? Long.MAX_VALUE : Long.MIN_VALUE;
         if (game.computeMoves() > 0) {
             for (Piece p : game.getPieces()) {
                 for (Move m : new ArrayList<>(p.moves)) {
                     game.executeMove(m);
-                    CheckTree next = new CheckTree(game, m);
+                    MMTreeNode next = new MMTreeNode(game, m);
                     next.appendMeta("playerNum=%d, scale=%d, depth=%d", m.playerNum, scale, depth);
                     root.addChild(next);
                     long v;
@@ -117,7 +129,7 @@ public class Robot extends Reflector<Robot> {
      *
      * @return
      */
-    protected long evaluateBoard(Checkers game, CheckTree node, int playerNum) {
+    protected long evaluateBoard(Checkers game, MMTreeNode node, int playerNum) {
 
         int dPc=0;
         int dKing=0;
@@ -165,13 +177,13 @@ public class Robot extends Reflector<Robot> {
             ));
         }
 
-        //d += (Utils.rand() % 10 - 5); // add a fudge factor to keep AI from doing same move over and over
+        d += (Utils.rand() % 10 - 5); // add a fudge factor to keep AI from doing same move over and over
 
         //Log.d("AI", "Board evaluates too: " + d);
         return d;
     }
 
-    private void doRandomRobot(CheckTree tree) {
+    private void doRandomRobot(MMTreeNode<Move, Checkers> tree) {
         Checkers game = tree.getGame();
         int n = game.computeMoves();
         if (n > 0) {

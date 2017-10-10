@@ -420,7 +420,7 @@ public class CheckerboardView extends View implements View.OnClickListener {
             tapped = mainPc;
         }
 
-        if (tapped != null) {
+        if (tapped != null && tapped.playerNum == game.getCurPlayerNum()) {
             for (Move m : new ArrayList<>(tapped.moves)) {
                 Log.d("CB", "Tapped move: " + m);
                 float sx = m.startCol*cellW;
@@ -562,8 +562,10 @@ public class CheckerboardView extends View implements View.OnClickListener {
     }
 
     public final void undo() {
-        if (animations.size() > 0)
-            return;
+        for (AAnimation<Canvas> a : animations) {
+            a.stop();
+        }
+        animations.clear();
         Move m = game.undo();
         if (m != null) {
             switch (m.type) {
