@@ -56,74 +56,6 @@ public class Robot extends Reflector<Robot> {
     }
 
     /**
-     * This version will try each move I can make (including multiple steps) then check all of the next players move to analyze the board for myself
-     *
-     * After some research I realize a minimax descision tree will choose a path that minimizes the risk for each move.
-     * In other words, the possible moves of the opponent after I have moved have the highest minimum.
-     *
-     * In checkers a 'move' is potentially several steps (chain). So, when there a chain detected (the playerNum has not changed)
-     * then the 'depth' does not increment
-     *
-     * @param game
-     * @param root
-     *
-    private long doMinimaxRobot(Checkers game, MMTreeNode root, int depth, int scale) {
-        long d = scale < 0 ? Long.MAX_VALUE : Long.MIN_VALUE;
-        if (game.computeMoves() > 0) {
-            for (Piece p : game.getPieces()) {
-                for (Move m : new ArrayList<>(p.moves)) {
-                    game.executeMove(m);
-                    MMTreeNode next = new MMTreeNode(game, m);
-                    next.appendMeta("playerNum=%d, scale=%d, depth=%d", m.playerNum, scale, depth);
-                    root.addChild(next);
-                    long v;
-                    if (game.getCurPlayerNum() == m.playerNum) {
-                        // this means we have more move options
-                        v = doMinimaxRobot(game, next, depth, scale);
-                    } else if (depth > 0) {
-                        v = doMinimaxRobot(game, next, depth-1, scale * -1);
-                    } else {
-                        v = evaluateBoard(game, next, m.playerNum) * scale;
-                    }
-                    next.setValue(v);
-                    next.appendMeta("%s:%s", m.type, v);
-                    //d = Math.max(v, d);
-                    if (scale < 0)
-                        d = Math.min(d, v);
-                    else
-                        d = Math.max(d, v);
-                    game.undo();
-                }
-            }
-            root.sortChildren();
-        }
-        return d;
-    }
-/*
-    final int [][] jumpable = {
-            {0,0,0,0,0,0,0,0},
-            {0,4,4,4,4,4,4,0},
-            {0,4,4,4,4,4,4,0},
-            {0,4,4,4,4,4,4,0},
-            {0,4,4,4,4,4,4,0},
-            {0,4,4,4,4,4,4,0},
-            {0,4,4,4,4,4,4,0},
-            {0,0,0,0,0,0,0,0},
-    };
-
-    int getJumpIndex(Checkers game, int rank, int cols) {
-        int value = 0;
-        if (game.isOnBoard(rank, cols)) {
-            Piece p = game.getPiece(rank, cols);
-            value = -jumpable[rank][cols];
-            // check if jumpable from ur->ll by normal piece
-
-            // space can be open, a jumper or a blocker
-
-        }
-    }
-
-    /**
      * Returns a number between -1 and 1.
      * The value returned must reflect the whole board, not just one side
      *
@@ -141,18 +73,20 @@ public class Robot extends Reflector<Robot> {
                 Piece p = game.getPiece(rank, col);
 
                 if (p.playerNum == playerNum) {
-                    if (p.stacks == 1) {
-                        dPc++;
-                        //dAdv += game.getAdvancement(rank, p.playerNum);
-                    } else if (p.stacks == 2)
-                        dKing++;
+                    switch (p.type) {
+                        case CHECKER:
+                            dPc++; break;
+                        case KING:
+                            dKing++; break;
+                    }
 
                 } else if (p.playerNum >= 0) {
-                    if (p.stacks == 1) {
-                        dPc--;
-                        //dAdv -= game.getAdvancement(rank, p.playerNum);
-                    } else if (p.stacks == 2)
-                        dKing--;
+                    switch (p.type) {
+                        case CHECKER:
+                            dPc--; break;
+                        case KING:
+                            dKing--; break;
+                    }
                 }
             }
         }

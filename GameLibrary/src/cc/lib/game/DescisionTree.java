@@ -90,7 +90,7 @@ public class DescisionTree<G,M> implements Comparable<DescisionTree> {
     }
 
     public final M getMove() {
-        return move;
+        return (M)move;
     }
 
     public final String getMeta() {

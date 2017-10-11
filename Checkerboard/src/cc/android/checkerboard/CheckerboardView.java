@@ -152,14 +152,15 @@ public class CheckerboardView extends View implements View.OnClickListener {
     }
 
     class StackAnim extends MoveAnim {
-        final int rank, col, stacks, playerNum;
+        final int rank, col, playerNum;
+        final PieceType type;
 
-        public StackAnim(Move move, Runnable whenDone, int playerNum, int rank, int col, int stacks) {
+        public StackAnim(Move move, Runnable whenDone, int playerNum, int rank, int col, PieceType pt) {
             super(1600, move, whenDone, game.getPiece(rank, col));
             this.rank = rank;
             this.col = col;
-            this.stacks = stacks;
             this.playerNum = playerNum;
+            this.type = pt;
         }
 
         @Override
@@ -171,14 +172,15 @@ public class CheckerboardView extends View implements View.OnClickListener {
             float scale = 1 + (1-position);
             int x = Math.round(sx + (ex-sx) * position);
             int y = Math.round(sy + (ey-sy) * position);
-            Piece p = game.getPiece(rank, col);
-            if (p.stacks - stacks > 0) {
-                drawChecker(g, sx, sy, pcRad, p.stacks - stacks, playerNum, getPcColor(playerNum), 0);
-            }
+            //Piece p = game.getPiece(rank, col);
+            //drawPiece(g, p, rank, col, false);
+            //if (p.type == PieceType.KING)
+            //    drawChecker(g, sx, sy, pcRad, 1, playerNum, getPcColor(playerNum), 0);
             g.save();
             g.translate(x, y);
             g.scale(scale, scale);
-            drawChecker(g, 0, 0, pcRad, stacks, playerNum, getPcColor(playerNum), 0);
+            //drawChecker(g, 0, 0, pcRad, stacks, playerNum, getPcColor(playerNum), 0);
+            drawPieceAt(g, type, getPcColor(playerNum), 0f, 0f, false);
             g.restore();
         }
 
@@ -199,7 +201,7 @@ public class CheckerboardView extends View implements View.OnClickListener {
             int x = Math.round(sx + (ex-sx) * position);
             int y = Math.round(sy + (ey-sy) * position);
             Piece p = game.getPiece(move.startRank, move.startCol);
-            drawChecker(g, x, y, pcRad, p.stacks, move.playerNum, getPcColor(move.playerNum), 0);
+            drawPieceAt(g, p.type, getPcColor(p.playerNum), x, y, false);
         }
     }
 
@@ -237,7 +239,7 @@ public class CheckerboardView extends View implements View.OnClickListener {
         public void draw(Canvas g, float position, float dt) {
             Vector2D v = curve.getPointAt(position);
             Piece p = game.getPiece(move.startRank, move.startCol);
-            drawChecker(g, v.Xi(), v.Yi(), pcRad, p.stacks, p.playerNum, getPcColor(p.playerNum), 0);
+            drawPieceAt(g, p.type, getPcColor(p.playerNum), v.X(), v.Y(), false);
         }
 
     };
@@ -248,7 +250,7 @@ public class CheckerboardView extends View implements View.OnClickListener {
                 tapped = null;
         } else {
             for (Move m : tapped.moves) {
-                if (m.endRank==curRank && m.endCol == curCol && m.type != Checkers.MoveType.END) {
+                if (m.endRank==curRank && m.endCol == curCol && m.type != MoveType.END) {
                     animateAndExecuteMove(m);
                     tapped = null;
                     return;
@@ -278,13 +280,13 @@ public class CheckerboardView extends View implements View.OnClickListener {
                 break;
             case JUMP_CAPTURE: {
                 Piece capture = game.getPiece(m.captureRank, m.captureCol);
-                animations.add(new StackAnim(m, null, capture.playerNum, m.captureRank, m.captureCol, capture.stacks).startReverse());
+                animations.add(new StackAnim(m, null, capture.playerNum, m.captureRank, m.captureCol, capture.type).startReverse());
             }
             case JUMP:
                 animations.add(new JumpAnim(m, onDone).start());
                 break;
             case STACK:
-                animations.add(new StackAnim(m, onDone, m.playerNum, m.startRank, m.startCol, 1).start());
+                animations.add(new StackAnim(m, onDone, m.playerNum, m.startRank, m.startCol, PieceType.CHECKER).start());
                 break;
             default:
                 if (onDone != null) {
@@ -302,7 +304,7 @@ public class CheckerboardView extends View implements View.OnClickListener {
                 switch (m.type) {
                     case JUMP_CAPTURE:
                         Piece captured = game.getPiece(m.captureRank, m.captureCol);
-                        animations.add(new StackAnim(m, null, captured.playerNum, m.captureRank, m.captureCol, captured.stacks).startReverse());
+                        animations.add(new StackAnim(m, null, captured.playerNum, m.captureRank, m.captureCol, captured.type).startReverse());
                         break;
                 }
                 game.executeMove(m);
@@ -371,9 +373,9 @@ public class CheckerboardView extends View implements View.OnClickListener {
                 if (dragging != null && touchColumn == i && touchRank == ii)
                     continue;
                 Piece pc = game.getPiece(ii, i);
-                if (pc != null && pc.stacks > 0 && !hidden.contains(pc)) {
+                if (pc.type != PieceType.EMPTY && !hidden.contains(pc)) {
                     boolean outline = dragging == null && tapped == null && pc.moves.size() > 0;
-                    drawChecker(canvas, pc, ii, i, outline);
+                    drawPiece(canvas, pc, ii, i, outline);
                     if (pc.moves.size() > 0) {
                         numMvblePcs++;
                         if (numMvblePcs == 1) {
@@ -400,7 +402,6 @@ public class CheckerboardView extends View implements View.OnClickListener {
             float ey = highlightMove.endRank*cellH;
             switch (highlightMove.type) {
                 case JUMP:
-                case JUMP_CAPTURE:
                 case SLIDE:
                     pStroke.setColor(Color.RED);
                     canvas.drawRect(sx, sy, sx+cellW, sy+cellH, pStroke);
@@ -431,7 +432,6 @@ public class CheckerboardView extends View implements View.OnClickListener {
                     case END:
                         break;
                     case JUMP:
-                    case JUMP_CAPTURE:
                     case SLIDE:
                         pStroke.setColor(Color.GREEN);
                         canvas.drawRect(sx, sy, sx+cellW, sy+cellH, pStroke);
@@ -447,7 +447,7 @@ public class CheckerboardView extends View implements View.OnClickListener {
         }
 
         if (dragging != null) {
-            drawChecker(canvas, dragging, dragX, dragY, false);
+            drawPieceAt(canvas, dragging.type, getPcColor(dragging.playerNum), dragX, dragY, false);
             for (Move m : dragging.moves) {
                 float sx = m.startCol*cellW;
                 float sy = m.startRank*cellH;
@@ -457,7 +457,6 @@ public class CheckerboardView extends View implements View.OnClickListener {
                     case END:
                         break;
                     case JUMP:
-                    case JUMP_CAPTURE:
                     case SLIDE:
                         pStroke.setColor(Color.YELLOW);
                         canvas.drawRect(ex, ey, ex+cellW, ey+cellH, pStroke);
@@ -512,6 +511,25 @@ public class CheckerboardView extends View implements View.OnClickListener {
         throw new AssertionError();
     }
 
+    void drawPiece(Canvas g, Piece pc, int rank, int col, boolean outlined) {
+        float cx = col * cellW + cellW / 2;
+        float cy = rank * cellH + cellH / 2;
+        drawPieceAt(g, pc.type, getPcColor(pc.playerNum), cx, cy, outlined);
+    }
+
+    void drawPieceAt(Canvas g, PieceType type, int color, float cx, float cy, boolean outlined) {
+        switch (type) {
+            case KING:
+                drawChecker(g, cx, cy, pcRad, color, 0);
+                cy -= pcRad/4;
+                // fall through
+            case CHECKER:
+                drawChecker(g, cx, cy, pcRad, color, outlined ? Color.YELLOW : 0);
+                break;
+        }
+    }
+
+    /*
     void drawChecker(Canvas g, Piece pc, int rank, int col, boolean outlined) {
         float cx = col*cellW + cellW/2;
         float cy = rank*cellH + cellH/2;
@@ -525,11 +543,9 @@ public class CheckerboardView extends View implements View.OnClickListener {
             drawChecker(g, x, y, pcRad, pc.stacks, pc.playerNum, getPcColor(pc.playerNum), outlined ? Color.YELLOW : 0);
             y -= pcRad/4;
         }
-    }
+    }*/
 
-    void drawChecker(Canvas g, float x, float y, float rad, int stacks, int playerNum, int color, int outlineColor) {
-        if (stacks <= 0)
-            return;
+    void drawChecker(Canvas g, float x, float y, float rad, int color, int outlineColor) {
         int dark = DroidUtils.darken(color, 0.5f);
         pFill.setColor(dark);
         final int step = (int)(rad/20 * -1);
@@ -545,8 +561,16 @@ public class CheckerboardView extends View implements View.OnClickListener {
         }
     }
 
-    void drawDisk(Canvas c, Paint p, float x, float y, float rad) {
-        rf.set(x-rad, y-rad, x+rad, y+rad);
+    /**
+     * Draw disk centered at cx, cy with given radius
+     * @param c
+     * @param p
+     * @param cx
+     * @param cy
+     * @param rad
+     */
+    void drawDisk(Canvas c, Paint p, float cx, float cy, float rad) {
+        rf.set(cx-rad, cy-rad, cx+rad, cy+rad);
         c.drawOval(rf, p);
     }
 
@@ -570,7 +594,7 @@ public class CheckerboardView extends View implements View.OnClickListener {
         if (m != null) {
             switch (m.type) {
                 case JUMP_CAPTURE:
-                    animations.add(new StackAnim(m, null, m.captured.playerNum, m.captureRank, m.captureCol, m.captured.stacks).start());
+                    animations.add(new StackAnim(m, null, m.captured.playerNum, m.captureRank, m.captureCol, m.captured.type).start());
                 case JUMP:
                     animations.add(new JumpAnim(m, null).startReverse());
                     break;
@@ -578,7 +602,7 @@ public class CheckerboardView extends View implements View.OnClickListener {
                     animations.add(new SlideAnim(m, null).startReverse());
                     break;
                 case STACK:
-                    animations.add(new StackAnim(m, null, m.playerNum, m.startRank, m.startCol, 1).startReverse());
+                    animations.add(new StackAnim(m, null, m.playerNum, m.startRank, m.startCol, PieceType.CHECKER).startReverse());
                     break;
             }
         }
@@ -593,7 +617,7 @@ public class CheckerboardView extends View implements View.OnClickListener {
             if (lock.playerNum != game.getCurPlayerNum())
                 throw new AssertionError();
             for (Move m : lock.moves) {
-                if (m.type == Checkers.MoveType.END) {
+                if (m.type == MoveType.END) {
                     return true;
                 }
             }

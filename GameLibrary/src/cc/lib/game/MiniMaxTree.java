@@ -6,25 +6,14 @@ import java.util.List;
  * Created by chriscaron on 10/7/17.
  */
 
-public abstract class MiniMaxTree {
+public abstract class MiniMaxTree<G extends IGame> {
 
-    public interface IGame {
-        void executeMove(IMove move);
-        void undo();
-        List<IMove> getMoves();
-        int getCurPlayerNum();
-    }
-
-    public interface IMove {
-        int getPlayerNum();
-    }
-
-    public static class MMTreeNode extends DescisionTree<IGame, IMove> {
-        public MMTreeNode(IGame game) {
+    public static class MMTreeNode<M extends IMove, G extends IGame<M>> extends DescisionTree<G, M> {
+        public MMTreeNode(G game) {
             super(game);
         }
 
-        public MMTreeNode(IGame game, IMove move) {
+        public MMTreeNode(G game, M move) {
             super(game, move);
         }
     };
@@ -37,13 +26,11 @@ public abstract class MiniMaxTree {
      * @param depth
      * @return
      */
-    public MMTreeNode buildTree(IGame game, int depth) {
-        MMTreeNode root = new MMTreeNode(game);
+    public void buildTree(IGame game, MMTreeNode root, int depth) {
         double d = buildTree(game, root, depth, 1);
         synchronized (this) {
             notifyAll();
         }
-        return root;
     }
 
     private boolean kill = false;
@@ -63,10 +50,10 @@ public abstract class MiniMaxTree {
         this.kill = true;
     }
 
-    private <M> long buildTree(IGame game, MMTreeNode root, int depth, int scale) {
+    private <M extends IMove> long buildTree(IGame<M> game, MMTreeNode root, int depth, int scale) {
 
         long d = scale < 0 ? Long.MAX_VALUE : Long.MIN_VALUE;
-        for (IMove m : game.getMoves()) {
+        for (M m : game.getMoves()) {
             game.executeMove(m);
             MMTreeNode next = new MMTreeNode(game, m);
             //next.appendMeta("playerNum=%d, scale=%d, depth=%d", m.playerNum, scale, depth);
@@ -78,7 +65,7 @@ public abstract class MiniMaxTree {
             } else if (depth > 0) {
                 v = buildTree(game, next, depth-1, scale * -1);
             } else {
-                v = evauate(game, next, m.getPlayerNum()) * scale;
+                v = evaluate((G)game, next, m.getPlayerNum()) * scale;
             }
             next.setValue(v);
             //next.appendMeta("%s:%s", m.type, v);
@@ -107,6 +94,6 @@ public abstract class MiniMaxTree {
      * @param playerNum the player for whom the evaluation is considered.
      * @return
      */
-    protected abstract long evauate(IGame game, MMTreeNode t, int playerNum);
+    protected abstract long evaluate(G game, MMTreeNode t, int playerNum);
 
 }

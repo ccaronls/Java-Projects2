@@ -402,7 +402,10 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
     }
 
     void updateButtons() {
-        bEndTurn.setEnabled(pbv.getGame().getCurPlayerNum() == 0 && pbv.isEndTurnButtonAvailable());
+        if (robot != null && pbv.getGame().getCurPlayerNum() == 1)
+            bEndTurn.setEnabled(false);
+        else
+            bEndTurn.setEnabled(pbv.isEndTurnButtonAvailable());
         if (root != null) {
             bUp.setEnabled(root.getParent() != null);
             bLeft.setEnabled(root.getPrev() != null);

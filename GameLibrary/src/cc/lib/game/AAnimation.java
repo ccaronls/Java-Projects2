@@ -25,10 +25,13 @@ public abstract class AAnimation<T> {
     private final long duration;
     private final int maxRepeats;
     private float position = 0;
-    private boolean started = false;
-    private boolean done = false;
+    private State state = State.IDLE;
     private boolean reverse = false; // 1 for forward, -1 for reversed
     private final boolean oscilateOnRepeat;
+
+    enum State {
+        IDLE, STARTED, STOPPED, DONE
+    };
 
     /**
      * Create an animation that plays for a fixed time without repeats
@@ -109,7 +112,7 @@ public abstract class AAnimation<T> {
      * @return
      */
     public final boolean isDone() {
-        return done;
+        return state==State.DONE;
     }
     
     /**
@@ -119,13 +122,13 @@ public abstract class AAnimation<T> {
      * returns true when isDone
      */
     public synchronized final boolean update(T g) {
-        if (done)
+        if (isDone())
             return true;
         long t = getCurrentTimeMSecs();
         if (t < startTime) {
             return false;
-        } else if (!started) {
-        	started = true;
+        } else if (state == State.IDLE) {
+        	state = State.STARTED;
         	lastTime = t;
         	onStarted();
         }
@@ -150,14 +153,16 @@ public abstract class AAnimation<T> {
         }
         draw(g, position, t-lastTime);
         lastTime = t;
-        return done;
+        if (state == State.STOPPED) {
+            state = State.DONE;
+            onDone();
+        }
+        return isDone();
     }
     
     public synchronized void stop() {
-        if (!done) {
-            done = true;
-    		onDone();
-    	}
+        if (state != State.DONE)
+            state = state.STOPPED;
     }
 
     /**

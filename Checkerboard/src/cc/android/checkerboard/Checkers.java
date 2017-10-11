@@ -17,38 +17,14 @@ import cc.lib.utils.Reflector;
  * @author chriscaron
  *
  */
-public class Checkers extends Reflector<Checkers> implements IGame<Move> {
+public class Checkers extends ACheckboardGame  {
 
     static {
         addAllFields(Checkers.class);
     }
 
-    public enum MoveType {
-        END, SLIDE, JUMP, JUMP_CAPTURE, STACK
-    }
-
-    public final int RANKS;
-    public final int COLUMNS;
-    public final int NUM_PLAYERS = 2;
-
-	private final Piece [][] board; // rank major
-	private int turn = -1;
-    private int computedMoves = 0; // optimization so that multiple calls to compute moves doesnt cause complete rescan unless neccessary
-    private Piece lock = null;
-
-	private final static int BLACK = 0;
-	private final static int RED   = 1;
-
-    private final Stack<Move> undoStack = new Stack<>();
-
     public Checkers() {
-        this(8,8);
-    }
-
-    public Checkers(int ranks, int columns) {
-        this.RANKS = ranks;
-        this.COLUMNS = columns;
-        board = new Piece[RANKS][COLUMNS];
+        super(8,8,2);
     }
 
 	public final void newGame() {
@@ -58,17 +34,14 @@ public class Checkers extends Reflector<Checkers> implements IGame<Move> {
             for (int ii=i%2; ii<COLUMNS; ii+=2) {
 				switch (i) {
 					case 0: case 1: case 2:
-						board[i][ii] = new Piece(RED, 1); break;
+						board[i][ii] = new Piece(RED, PieceType.CHECKER); break;
 					case 5: case 6: case 7:
-						board[i][ii] = new Piece(BLACK, 1); break;
+						board[i][ii] = new Piece(BLACK, PieceType.CHECKER); break;
 					
 				}
 			}
 		}
-		turn = Utils.flipCoin() ? 0 : 1;
-        lock = null;
-        computeMoves(true);
-        undoStack.clear();
+		super.newGame();
 	}
 
     @Override
@@ -76,52 +49,15 @@ public class Checkers extends Reflector<Checkers> implements IGame<Move> {
         return 1;
     }
 
-	public final Piece getPiece(int rank, int column) {
-        return board[rank][column];
-    }
-
     @Override
-	public final int getCurPlayerNum() {
-		return turn;
-	}
-
-	/*
-	This should be safe to call repeatedly.
-	If there is a locked piece then the move set is just the moves associated
-	with the locked piece, and it will be unchanged.
-	Otherwise the complete move set is recomputed
-	 */
-    public final int computeMoves() {
-        return computeMoves(false);
-    }
-
-	private final int computeMoves(boolean refresh) {
-        if (lock == null) {
-            if (computedMoves > 0 && !refresh)
-                return computedMoves;
-            int num = 0;
-            for (int rank = 0; rank < RANKS; rank++) {
-                for (int col = 0; col < COLUMNS; col++) {
-                    Piece p = getPiece(rank, col);
-                    p.moves.clear();
-                    computeMovesForSquare(rank, col, null);
-                    num += p.moves.size();
-                }
-            }
-            return computedMoves = num;
-        } else {
-            return lock.moves.size();
-        }
-	}
-
-	private void computeMovesForSquare(int rank, int col, Move parent) {
+	protected void computeMovesForSquare(int rank, int col, Move parent) {
 		Piece p = board[rank][col];
-		if (p.stacks == 0 || p.playerNum != getCurPlayerNum()) {
+		if (p.type == PieceType.EMPTY || p.playerNum != getCurPlayerNum()) {
 			return;
 		}
 
 		int [] dr, dc;
-		if (p.stacks > 1) {
+		if (p.type == PieceType.KING) {
 			dr = new int[] { 1, 1, -1, -1 };
 			dc = new int[] { -1, 1, -1, 1 };
 		} else if (p.playerNum == BLACK) {
@@ -144,9 +80,9 @@ public class Checkers extends Reflector<Checkers> implements IGame<Move> {
 				continue;
 			// t is piece one unit away in this direction
 			Piece t = board[rdr][cdc];
-			if (t.stacks <= 0) {
+			if (t.type == PieceType.EMPTY) {
 				if (parent == null)
-					p.moves.add(new Move(MoveType.SLIDE, rank, col, rdr, cdc, 0, 0, turn));
+					p.moves.add(new Move(MoveType.SLIDE, rank, col, rdr, cdc, getTurn()));
 			} else {
 				// check for jump
 				if (isOnBoard(rdr2, cdc2)) {
@@ -154,14 +90,14 @@ public class Checkers extends Reflector<Checkers> implements IGame<Move> {
                         continue;
                     }
 					Piece j = board[rdr2][cdc2];
-					if (j.stacks <= 0) {
+					if (j.type == PieceType.EMPTY) {
 						// we can jump to here
 						if (t.playerNum == getCurPlayerNum()) {
 							// we are jumping ourself, no capture
-							p.moves.add(new Move(MoveType.JUMP, rank, col, rdr2, cdc2, 0, 0, turn));
+							p.moves.add(new Move(MoveType.JUMP, rank, col, rdr2, cdc2, getTurn()));
 						} else {
 							// jump with capture
-							p.moves.add(new Move(MoveType.JUMP_CAPTURE, rank, col, rdr2, cdc2, rdr, cdc, turn));
+							p.moves.add(new Move(MoveType.JUMP_CAPTURE, rank, col, rdr2, cdc2, rdr, cdc, getTurn(), t));
 						}
 					}
 				}
@@ -182,14 +118,15 @@ public class Checkers extends Reflector<Checkers> implements IGame<Move> {
     }
 
     private void endTurnPrivate() {
-		turn = (turn+1) % NUM_PLAYERS;
+        setTurn((getTurn()+1) % NUM_PLAYERS);
         lock = null;
         if (computeMoves(true)==0) {
             onGameOver();
         }
 	}
 
-	private void reverseMove(Move m) {
+	@Override
+	protected void reverseMove(Move m) {
         switch (m.type) {
             case END:
 //                turn = m.playerNum;
@@ -203,13 +140,16 @@ public class Checkers extends Reflector<Checkers> implements IGame<Move> {
                 board[m.startRank][m.startCol].moves.clear();
                 board[m.endRank][m.endCol] = new Piece();
                 break;
-            case STACK:
-                if (0 > --getPiece(m.startRank, m.startCol).stacks)
-                    throw new AssertionError();
+            case STACK: {
+                Piece p = getPiece(m.startRank, m.startCol);
+                if (p.type == PieceType.KING) {
+                    board[m.startRank][m.startCol] = new Piece(p.playerNum, PieceType.CHECKER);
+                }
                 break;
+            }
         }
 
-        turn = m.playerNum;
+        setTurn(m.playerNum);
         Move parent = null;
         if (undoStack.size() > 0) {
             parent = undoStack.peek();
@@ -224,42 +164,9 @@ public class Checkers extends Reflector<Checkers> implements IGame<Move> {
             clearMoves();
             Piece p = getPiece(m.startRank, m.startCol);
             computeMovesForSquare(m.startRank, m.startCol, parent);
-            p.moves.add(new Move(MoveType.END, m.startRank, m.startCol, 0, 0, 0, 0, m.playerNum));
+            p.moves.add(new Move(MoveType.END, m.startRank, m.startCol, 0, 0, m.playerNum));
             lock = p;
         }
-    }
-
-    public void clearMoves() {
-        for (int i=0; i<RANKS; i++) {
-            for (int ii=0; ii<COLUMNS; ii++) {
-                getPiece(i, ii).moves.clear();
-            }
-        }
-        computedMoves = 0;
-    }
-
-    public final int getRankForKingCurrent() {
-        return getRankForKing(getCurPlayerNum());
-    }
-
-    public final int getAdvancement(int rank, int playerNum) {
-        switch (playerNum) {
-            case BLACK:
-                return board.length-1-rank;
-            case RED:
-                return rank;
-        }
-        return -1;
-    }
-
-    public final int getRankForKing(int playerNum) {
-        switch (playerNum) {
-            case BLACK:
-                return 0;
-            case RED:
-                return board.length-1;
-        }
-        return -1;
     }
 
     @Override
@@ -271,7 +178,7 @@ public class Checkers extends Reflector<Checkers> implements IGame<Move> {
         clearMoves();
 		if (move.startCol != move.endCol && move.startRank != move.endRank) {
             int rank = move.endRank;
-            isKinged = (p.stacks == 1 && getRankForKingCurrent() == rank);
+            isKinged = (p.type == PieceType.CHECKER && getRankForKingCurrent() == rank);
     		board[move.endRank][move.endCol] = p;
             board[move.startRank][move.startCol] = new Piece();
 		}
@@ -281,7 +188,7 @@ public class Checkers extends Reflector<Checkers> implements IGame<Move> {
         switch (move.type) {
             case SLIDE:
                 if (isKinged) {
-                    p.moves.add(new Move(MoveType.STACK, move.endRank, move.endCol, move.endRank, move.endCol, -1, -1, move.playerNum));
+                    p.moves.add(new Move(MoveType.STACK, move.endRank, move.endCol, move.endRank, move.endCol, move.playerNum));
                     lock = p;
                     break;
                 }
@@ -289,16 +196,15 @@ public class Checkers extends Reflector<Checkers> implements IGame<Move> {
                 endTurnPrivate();
                 return;
             case JUMP_CAPTURE:
-                move.captured = board[move.captureRank][move.captureCol];
                 board[move.captureRank][move.captureCol] = new Piece();
             case JUMP:
                 if (isKinged) {
-                    p.moves.add(new Move(MoveType.STACK, move.endRank, move.endCol, move.endRank, move.endCol, -1, -1, move.playerNum));
+                    p.moves.add(new Move(MoveType.STACK, move.endRank, move.endCol, move.endRank, move.endCol, move.playerNum));
                     lock = p;
                 }
                 break;
             case STACK:
-                p.stacks++;
+                board[move.startRank][move.startCol].type = PieceType.KING;
                 break;
         }
 
@@ -308,14 +214,10 @@ public class Checkers extends Reflector<Checkers> implements IGame<Move> {
             if (p.moves.size() == 0) {
                 endTurnPrivate();
             } else {
-                p.moves.add(new Move(MoveType.END, move.endRank, move.endCol, move.endRank, move.endCol, -1, -1, move.playerNum));
+                p.moves.add(new Move(MoveType.END, move.endRank, move.endCol, move.endRank, move.endCol, move.playerNum));
                 lock = p;
             }
         }
-	}
-
-    public final boolean isOnBoard(int r, int c) {
-		return r>=0 && c>=0 && r<RANKS && c<COLUMNS;
 	}
 
     /**
@@ -325,78 +227,5 @@ public class Checkers extends Reflector<Checkers> implements IGame<Move> {
 
     }
 
-    public final boolean canUndo() {
-        return undoStack.size() > 0;
-    }
 
-    /**
-     * Need to call super to complete the undo.
-     * @return the move that was reversed
-     */
-    @Override
-    public Move undo() {
-        if (undoStack.size() > 0) {
-            Move m = undoStack.pop();
-            reverseMove(m);
-            return m;
-        }
-        return null;
-    }
-
-    public final Piece getLocked() {
-        return lock;
-    }
-
-    public Iterable<Piece> getPieces() {
-
-        return new Iterable<Piece>() {
-            @Override
-            public Iterator<Piece> iterator() {
-                return new PieceIterator();
-            }
-        };
-    }
-
-    public class PieceIterator implements Iterator<Piece> {
-
-        int rank=0;
-        int col=0;
-
-        @Override
-        public boolean hasNext() {
-            return rank < RANKS && col < COLUMNS;
-        }
-
-        @Override
-        public Piece next() {
-            Piece p = board[rank][col];
-            if (++col >= COLUMNS) {
-                col=0;
-                rank++;
-            }
-            return p;
-        }
-    }
-
-    @Override
-    public Iterable<Move> getMoves() {
-        // order the moves such that those the pieces with fewer moves are earliest
-        List<Move> moves = new ArrayList<>();
-        final List<Piece> pieces = new ArrayList<>();
-        for (Piece p : getPieces()) {
-            if (p.moves.size() > 0)
-                pieces.add(p);
-        }
-        Collections.sort(pieces, new Comparator<Piece>() {
-            @Override
-            public int compare(Piece p0, Piece p1) {
-                return p0.moves.size() - p1.moves.size();
-            }
-        });
-        for (Piece p : pieces) {
-            for (Move m : p.moves)
-                moves.add(m);
-        }
-        return moves;
-    }
 }
