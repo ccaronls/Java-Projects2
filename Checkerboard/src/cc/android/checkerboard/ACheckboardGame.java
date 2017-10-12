@@ -33,9 +33,7 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
     protected Piece lock = null;
     protected final Stack<Move> undoStack = new Stack<>();
 
-    protected final Piece [][] board; // rank major
-
-
+    private final Piece [][] board; // rank major
 
     protected ACheckboardGame(int ranks, int columns, int numPlayers) {
         this.RANKS = ranks;
@@ -47,11 +45,49 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
     private final static Piece OFF_BOARD = new Piece(-1, PieceType.UNAVAILABLE);
 
     public final Piece getPiece(int rank, int column) {
-        if (isOnBoard(rank, column))
-            return board[rank][column];
+        if (isOnBoard(rank, column)) {
+            Piece p = board[rank][column];
+            if (p == null)
+                throw new AssertionError("null piece at " + rank + ", " + column);
+            return p;
+        }
         return OFF_BOARD;
     }
 
+    public final void movePiece(Move m) {
+        Piece p = getPiece(m.endRank, m.endCol);
+        board[m.endRank][m.endCol] = board[m.startRank][m.startCol];
+        board[m.startRank][m.startCol] = new Piece();
+    }
+
+    public final void clearPiece(int rank, int col) {
+        board[rank][col] = new Piece();
+    }
+
+    public final void setPieceType(int rank, int col, PieceType t) {
+        getPiece(rank, col).type = t;
+    }
+
+    /**
+     * return 2 elem array containing the rank and column of the first occurance of t
+     * or null if not found
+     * @param playerNum
+     * @param t
+     * @return
+     */
+    public final int[] findPiecePosition(int playerNum, PieceType t) {
+        for (int rank=0; rank<RANKS; rank++) {
+            for (int col =0; col<COLUMNS; col++) {
+                if (board[rank][col].playerNum == playerNum && board[rank][col].type == t)
+                    return new int[]{ rank, col };
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Should be called after all the pieces have been setup
+     */
     public void newGame() {
         turn = Utils.flipCoin() ? 0 : 1;
         lock = null;
@@ -59,19 +95,25 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
         undoStack.clear();
     }
 
-    public final int computeMoves(boolean refresh) {
+    protected int recomputeMoves() {
+        int num = 0;
+        for (int rank = 0; rank < RANKS; rank++) {
+            for (int col = 0; col < COLUMNS; col++) {
+                Piece p = getPiece(rank, col);
+                p.moves.clear();
+                if (p.playerNum == getCurPlayerNum())
+                    computeMovesForSquare(rank, col, null);
+                num += p.moves.size();
+            }
+        }
+        return num;
+    }
+
+    private final int computeMoves(boolean refresh) {
         if (lock == null) {
             if (computedMoves >= 0 && !refresh)
                 return computedMoves;
-            int num = 0;
-            for (int rank = 0; rank < RANKS; rank++) {
-                for (int col = 0; col < COLUMNS; col++) {
-                    Piece p = getPiece(rank, col);
-                    p.moves.clear();
-                    computeMovesForSquare(rank, col, null);
-                    num += p.moves.size();
-                }
-            }
+            int num = recomputeMoves();
             return computedMoves = num;
         } else {
             return lock.moves.size();
@@ -99,8 +141,13 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
         return turn;
     }
 
-    protected void setTurn(int turn) {
+    protected final void setTurn(int turn) {
         this.turn = turn;
+    }
+
+    protected final void nextTurn() {
+        turn = (turn+1) % NUM_PLAYERS;
+        clearMoves();
     }
 
     public final void clearMoves() {
@@ -110,6 +157,16 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
             }
         }
         computedMoves = -1;
+    }
+
+    public final int getForward(int playerNum) {
+        switch (playerNum) {
+            case BLACK:
+                return 1;
+            case RED:
+                return -1;
+        }
+        throw new AssertionError();
     }
 
     public final int getAdvancement(int rank, int playerNum) {
@@ -158,10 +215,63 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
         return null;
     }
 
-    protected abstract void reverseMove(Move m);
+//    protected abstract void reverseMove(Move m);
+
+    protected void reverseMove(Move m) {
+        switch (m.type) {
+            case END:
+//                turn = m.playerNum;
+//                getPiece(m.startRank, m.startCol).moves.add(m);
+                break;
+            case JUMP_CAPTURE:
+            case SLIDE:
+            case JUMP:
+                board[m.startRank][m.startCol] = board[m.endRank][m.endCol];
+                //board[m.startRank][m.startCol].moves.clear();
+                board[m.endRank][m.endCol] = new Piece();
+                if (m.captured != null)
+                    board[m.captureRank][m.captureCol] = m.captured;
+                break;
+            case STACK: {
+                Piece p = getPiece(m.startRank, m.startCol);
+                if (p.type == PieceType.KING) {
+                    board[m.startRank][m.startCol] = new Piece(p.playerNum, PieceType.CHECKER);
+                }
+                break;
+            }
+        }
+
+        setTurn(m.playerNum);
+        Move parent = null;
+        if (undoStack.size() > 0) {
+            parent = undoStack.peek();
+            if (parent.playerNum != m.playerNum) {
+                parent = null;
+            }
+        }
+        if (parent == null) {
+            lock = null;
+            computeMoves(true);
+        } else {
+            clearMoves();
+            Piece p = getPiece(m.startRank, m.startCol);
+            computeMovesForSquare(m.startRank, m.startCol, parent);
+            p.moves.add(new Move(MoveType.END, m.startRank, m.startCol, 0, 0, m.playerNum));
+            lock = p;
+        }
+    }
 
     public final Piece getLocked() {
         return lock;
+    }
+
+    public final Iterable<Piece> getPieces(int playerNum) {
+        List<Piece> all = new ArrayList<>();
+        for (Piece p : getPieces()) {
+            if (p.playerNum == playerNum)
+                all.add(p);
+        }
+        return all;
     }
 
     public final Iterable<Piece> getPieces() {
@@ -174,7 +284,8 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
         };
     }
 
-    public class PieceIterator implements Iterator<Piece> {
+    // TODO: Optimmize not doing full 64 square search. Keeping track of only movable pieces in separate collection.
+    final public class PieceIterator implements Iterator<Piece> {
 
         int rank=0;
         int col=0;
@@ -220,11 +331,25 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
         return moves;
     }
 
-    public int getOpponent(int player) {
+    public final int getOpponent(int player) {
         if (player == BLACK)
             return RED;
-        if (player == BLACK)
-            return RED;
+        if (player == RED)
+            return BLACK;
         throw new AssertionError();
     }
+
+    protected void initRank(int rank, int player, PieceType...pieces) {
+        for (int i=0; i<8; i++) {
+            Piece p = board[rank][i] = new Piece(player, pieces[i]);
+            switch (p.type) {
+                case EMPTY:
+                case UNAVAILABLE:
+                    p.playerNum = -1;
+                    break;
+            }
+        }
+    }
+
+    public void onGameOver() {}
 }

@@ -29,7 +29,7 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
 
 	private CheckerboardView pbv;
     private View bEndTurn;
-    private MMTreeNode<Move, Checkers> root = null;
+    private MMTreeNode<Move, ACheckboardGame> root = null;
     private TextView tvDebug;
     private View bUp, bDown, bLeft, bRight;
     private View bRobot;
@@ -39,12 +39,9 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
     @Override
     protected void onCreate(Bundle bundle) {
         super.onCreate(bundle);
-        Checkers game = new MyCheckers();
-        game.newGame();
         setContentView(R.layout.cb_activity);
         pbv = (CheckerboardView)findViewById(R.id.cbView);
         tvDebug = (TextView)findViewById(R.id.tvDebug);
-        pbv.setGame(game);
         findViewById(R.id.buttonNewGame).setOnClickListener(this);
         (bEndTurn = findViewById(R.id.buttonEndTurn)).setOnClickListener(pbv);
         (bUp = findViewById(R.id.buttonUp)).setOnClickListener(this);
@@ -59,7 +56,7 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
 
         bEndTurn.setEnabled(false);
         setDebugMode(false);
-        showChoosePlayersDialog(true);
+        showChooseGameDialog();//PlayersDialog(true);
     }
 
     private void setDebugMode(boolean on) {
@@ -95,7 +92,7 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
         }
 
         @Override
-        protected void onGameOver() {
+        public void onGameOver() {
             pbv.post(new Runnable() {
                 public void run() {
                     showWinnerDialog();
@@ -108,10 +105,10 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
             super.executeMove(move);
             pbv.invalidate();
             updateButtons();
-            new AsyncTask<Checkers,Void,Void>() {
+            new AsyncTask<ACheckboardGame,Void,Void>() {
                 @Override
-                protected Void doInBackground(Checkers... params) {
-                    params[0].trySaveToFile(getSaveFile());
+                protected Void doInBackground(ACheckboardGame... params) {
+                    params[0].trySaveToFile(getSaveFile(params[0]));
                     return null;
                 }
             }.execute(pbv.getGame());
@@ -134,7 +131,7 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
         }
     }
 
-    class RobotTask extends AsyncTask<Checkers,MMTreeNode<Move,Checkers>,Void> implements DialogInterface.OnCancelListener, Runnable {
+    class RobotTask extends AsyncTask<ACheckboardGame,MMTreeNode<Move,ACheckboardGame>,Void> implements DialogInterface.OnCancelListener, Runnable {
 
         boolean debugMode = tbDebug.isChecked();
 
@@ -174,7 +171,7 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
         }
 
         @Override
-        protected void onProgressUpdate(MMTreeNode<Move, Checkers>... root) {
+        protected void onProgressUpdate(MMTreeNode<Move, ACheckboardGame>... root) {
             pbv.removeCallbacks(this);
             thinking.dismiss();
             Move move = root[0].getMove();
@@ -192,7 +189,7 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
         }
 
         @Override
-        protected Void doInBackground(Checkers... params) {
+        protected Void doInBackground(ACheckboardGame... params) {
             Checkers game = new Checkers();
             game.copyFrom(params[0]);
             root = new MMTreeNode(game);
@@ -200,14 +197,8 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
             if (debugMode) {
                 root.dumpTree(new AndroidLogWriter("Robot"));
                 publishProgress(root);
-            } else if (game.computeMoves() == 0) {
-                pbv.post(new Runnable() {
-                    public void run() {
-                        showWinnerDialog();
-                    }
-                });
-            } else {
-                for (MMTreeNode<Move,Checkers> p : getPath()) {
+            } else if (game.computeMoves() > 0) {
+                for (MMTreeNode<Move,ACheckboardGame> p : getPath()) {
                     publishProgress(p);
                     synchronized (this) {
                         try {
@@ -229,14 +220,14 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
         }
     }
 
-    List<MMTreeNode<Move,Checkers>> getPath() {
-        List<MMTreeNode<Move,Checkers>> list = new ArrayList<>();
+    List<MMTreeNode<Move,ACheckboardGame>> getPath() {
+        List<MMTreeNode<Move,ACheckboardGame>> list = new ArrayList<>();
         if (root.getFirst()==null) {
             if (root.getMove() != null)
                 list.add(root);
         } else {
             int playerNum = root.getFirst().getMove().playerNum;
-            for (MMTreeNode<Move,Checkers> t = root.getFirst(); t != null; t = t.getFirst()) {
+            for (MMTreeNode<Move,ACheckboardGame> t = root.getFirst(); t != null; t = t.getFirst()) {
                 if (t.getMove().getPlayerNum() != playerNum)
                     break;
                 list.add(t);
@@ -247,10 +238,17 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
 
     void showWinnerDialog() {
         new AlertDialog.Builder(this).setMessage(pbv.getPcColorName(pbv.getGame().getCurPlayerNum()) + " Lost")
-                .setPositiveButton("New Game", new DialogInterface.OnClickListener() {
+                .setPositiveButton("Play again", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        showChoosePlayersDialog(true);
+                        showChoosePlayersDialog(true, pbv.getGame());
+                    }
+                })
+                .setNeutralButton("Home Menu", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                        showChooseGameDialog();
                     }
                 }).setCancelable(false).show();
     }
@@ -266,12 +264,31 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
         }).show();
     }
 
-    void showChoosePlayersDialog(final  boolean finishOnCancel) {
+
+
+    void showChooseGameDialog() {
+        String [] items = {"Checkers", "Chess", "Clear Chess Flag" };
+        new AlertDialog.Builder(this).setItems(items, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                switch (which) {
+                    case 0:
+                        showChoosePlayersDialog(false, new Checkers());
+                        break;
+                    case 1:
+                        showChoosePlayersDialog(false, new Chess());
+                        break;
+                }
+            }
+        }).show();
+    }
+
+    void showChoosePlayersDialog(final  boolean finishOnCancel, final ACheckboardGame game) {
         tbDebug.setVisibility(View.GONE);
         ArrayList<String> list = new ArrayList<>();
         list.add("One Player");
         list.add("Two Players");
-        if (getSaveFile().exists())
+        if (getSaveFile(game).exists())
             list.add("Resume");
         new AlertDialog.Builder(this).setItems(list.toArray(new String[list.size()]), new DialogInterface.OnClickListener() {
             @Override
@@ -282,7 +299,8 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
                         new AlertDialog.Builder(CheckerboardActivity.this).setItems(Utils.toStringArray(Robot.RobotType.values()), new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, final int which) {
-                                pbv.getGame().newGame();
+                                game.newGame();
+                                pbv.setGame(game);
                                 pbv.invalidate();
                                 robot = new Robot(which);
                                 updateButtons();
@@ -291,20 +309,21 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
                         }).setOnCancelListener(!finishOnCancel ? null : new DialogInterface.OnCancelListener() {
                             @Override
                             public void onCancel(DialogInterface dialog) {
-                                showChoosePlayersDialog(finishOnCancel);
+                                showChoosePlayersDialog(finishOnCancel, game);
                             }
                         }).show();
                         break;
                     }
                     case 1: {// 2 players
                         robot = null;
-                        pbv.getGame().newGame();
+                        game.newGame();
+                        pbv.setGame(game);
                         pbv.invalidate();
                         updateButtons();
                         break;
                     }
                     case 2:
-                        loadAsync();
+                        loadAsync(game);
                         break;
                 }
             }
@@ -317,15 +336,22 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
 
     }
 
-	private File getSaveFile() {
-        return new File(getFilesDir(), "checkers.save");
+	private File getSaveFile(ACheckboardGame game) {
+        if (game instanceof Checkers)
+            return new File(getFilesDir(), SAVEFILE_CHECKERS);
+        return new File(getFilesDir(), SAVEFILE_CHESS);
     }
+
+    public final String SAVEFILE_CHECKERS = "checkers.save";
+    public final String SAVEFILE_CHESS    = "chess.save";
+
+
 
 	@Override
     public void onPause() {
         super.onPause();
         if (pbv != null && pbv.getGame() != null)
-            pbv.getGame().trySaveToFile(getSaveFile());
+            pbv.getGame().trySaveToFile(getSaveFile(pbv.getGame()));
     }
 
     @Override
@@ -333,9 +359,9 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
         super.onResume();
     }
 
-    private void loadAsync() {
+    private void loadAsync(final ACheckboardGame game) {
         final Dialog d = new ProgressDialog.Builder(this).setCancelable(true).setMessage("Loading...").show();
-        new AsyncTask<Checkers, Void, Exception>() {
+        new AsyncTask<Void, Void, Exception>() {
 
             @Override
             protected void onPreExecute() {
@@ -356,6 +382,8 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
                             .setMessage(e.getClass().getSimpleName() + " : " + e.getMessage())
                             .setNegativeButton("Ok", null)
                             .show();
+                } else {
+                    pbv.setGame(game);
                 }
                 robot = null; //  TODO: Save robot or difficulty on the checkers object
                 pbv.invalidate();
@@ -368,12 +396,11 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
             }
 
             @Override
-            protected Exception doInBackground(Checkers... params) {
+            protected Exception doInBackground(Void... params) {
                 try {
-                    FileUtils.copyFile(getSaveFile(), Environment.getExternalStorageDirectory());
-                    Checkers game = new Checkers();
-                    game.loadFromFile(getSaveFile());
-                    params[0].copyFrom(game);
+                    File file = getSaveFile(game);
+                    FileUtils.copyFile(file, Environment.getExternalStorageDirectory());
+                    game.loadFromFile(file);
                 } catch (FileNotFoundException e) {
                     return e;
                 } catch (Exception e) {
@@ -383,7 +410,7 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
                 return null;
             }
 
-        }.execute(pbv.getGame());
+        }.execute();
 
     }
 
@@ -402,10 +429,22 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
     }
 
     void updateButtons() {
+        bEndTurn.setEnabled(false);
+        bEndTurn.setTag(null);
         if (robot != null && pbv.getGame().getCurPlayerNum() == 1)
-            bEndTurn.setEnabled(false);
-        else
-            bEndTurn.setEnabled(pbv.isEndTurnButtonAvailable());
+        {} else {
+            Piece lock = pbv.getGame().getLocked();
+            if (lock != null) {
+                if (lock.playerNum != pbv.getGame().getCurPlayerNum())
+                    throw new AssertionError();
+                for (Move m : lock.moves) {
+                    if (m.type == MoveType.END) {
+                        bEndTurn.setTag(m);
+                        bEndTurn.setEnabled(true);
+                    }
+                }
+            }
+        }
         if (root != null) {
             bUp.setEnabled(root.getParent() != null);
             bLeft.setEnabled(root.getPrev() != null);
@@ -421,11 +460,21 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
     @Override
     public void onClick(final View v) {
         if (v.getId() == R.id.buttonNewGame) {
-            new AlertDialog.Builder(this).setMessage("Start a new game?").setNegativeButton("Cancel", null).setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+            if (pbv.getGame()==null)
+                showChooseGameDialog();
+            else new AlertDialog.Builder(this).setMessage("Start a " + pbv.getGame().getClass().getSimpleName() + " game?")
+                    .setNegativeButton("Cancel", null)
+                    .setNeutralButton("Home Menu", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            pbv.setGame(null);
+                            showChooseGameDialog();
+                        }
+                    }).setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             pbv.onClick(v);
-                            showChoosePlayersDialog(false);
+                            showChoosePlayersDialog(false, pbv.getGame());
                         }
                     }).show();
 

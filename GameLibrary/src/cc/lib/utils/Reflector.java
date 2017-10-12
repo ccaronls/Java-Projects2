@@ -1,6 +1,10 @@
 package cc.lib.utils;
 
 import java.io.*;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import java.lang.reflect.*;
 import java.util.*;
 
@@ -71,7 +75,6 @@ public class Reflector<T> {
      * Turn this on to throw exceptions on any unknown fields.  Default is off.
      */
     public static boolean ENABLE_THROW_ON_UNKNOWN = false;
-    private final static Map<Class<?>, Set<String>> omitFields = new HashMap<Class<?>, Set<String>>();
     private final static Map<Class<?>, Map<Field, Archiver>> classValues = new HashMap<Class<?>, Map<Field, Archiver>>();
     private final static Map<String, Class<?>> classMap = new HashMap<String, Class<?>>();
 
@@ -899,50 +902,28 @@ public class Reflector<T> {
     	}
     }
 
-    private HashSet<String> localOmitFields = null;
-    
     /**
-     * Adds a field local to this object that won't be serialized out.
-     * 
-     * @param fieldName
-     * @throws Exception
+     * Use this annotation to Omit field for usage by Reflector
+     *
+     * If a class extends Reflector, and that class has called:
+     * static {
+     *     addAllFields(...)
+     * }
+     *
+     * then this annotation is the same as:
+     *
+     * int myField;
+     *
+     * static {
+     *     omitField("myField");
+     * }
+     *
+     * @author chriscaron
+     *
      */
-    public final void omitField(String fieldName) throws Exception {
-    	if (localOmitFields == null) {
-    		localOmitFields = new HashSet<String>();
-    	}
-    	localOmitFields.add(fieldName);
-    }
-    
-    /**
-     * Remove any locally omitted fields @see omitField(String)
-     */
-    public final void removeLocalOmitFields() {
-    	localOmitFields = null;
-    }
-    
-    /**
-     * Should be called before add(All)Field(s)
-     * @param clazz
-     * @param fieldName
-     */
-    public static void omitField(Class<?> clazz, String fieldName) {
-    	Set<String> fields = null;
-    	if (!omitFields.containsKey(clazz)) {
-    		fields = new HashSet<String>();
-    		omitFields.put(clazz, fields);
-    	} else {
-    		fields = omitFields.get(clazz);
-    	}
-    	fields.add(fieldName);
-    }
-    
-    private static boolean isFieldOmitted(Class<?> clazz, String fieldName) {
-    	Set<String> fields = omitFields.get(clazz);
-    	if (fields == null)
-    		return false;
-    	return fields.contains(fieldName);
-    }
+    @Target(value = ElementType.FIELD)
+    @Retention(value = RetentionPolicy.RUNTIME)
+    public @interface Omit {}
     
     /**
      * Add a field of a specific class to be included in the archivable handler.
@@ -960,11 +941,10 @@ public class Reflector<T> {
      */
     public static void addField(Class<?> clazz, String name) {
         try {
-        	if (isFieldOmitted(clazz, name)) {
-        		Utils.println("Skipping omitted field '" + name + "'");
-        		return;
-        	}
             Field field = clazz.getDeclaredField(name);
+            if (field.getAnnotation(Omit.class) != null) {
+                throw new RuntimeException("This field has been omitted using Omit annotation.");
+            }
             if (Modifier.isStatic(field.getModifiers()))
                 throw new RuntimeException("Cannot add static fields");
             field.setAccessible(true);
@@ -1033,6 +1013,8 @@ public class Reflector<T> {
         try {
             Field [] fields = clazz.getDeclaredFields();
             for (Field f : fields) {
+                if (f.getAnnotation(Omit.class) != null)
+                    continue;
                 if (!Modifier.isStatic(f.getModifiers()))
                     addField(clazz, f.getName());
             }
@@ -1129,8 +1111,6 @@ public class Reflector<T> {
         try {
             Map<Field, Archiver> values = getValues(getClass(), false);
             for (Field field : values.keySet()) {
-            	if (localOmitFields != null && localOmitFields.contains(field.getName()))
-            		continue;
                 if (getMinVersion() == 0 && field.getName().equals("__reflector_version")) {
                     continue;
                 }

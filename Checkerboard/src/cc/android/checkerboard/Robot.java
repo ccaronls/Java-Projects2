@@ -1,9 +1,7 @@
 package cc.android.checkerboard;
 
-import java.util.ArrayList;
-
 import cc.lib.game.MiniMaxTree;
-import cc.lib.game.MiniMaxTree.*;
+import cc.lib.game.MiniMaxTree.MMTreeNode;
 import cc.lib.game.Utils;
 import cc.lib.utils.Reflector;
 
@@ -29,15 +27,29 @@ public class Robot extends Reflector<Robot> {
         this.type = RobotType.values()[difficulty];
     }
 
-    final MiniMaxTree mmt = new MiniMaxTree<Checkers>() {
+    final MiniMaxTree mmtCheckers = new MiniMaxTree<Checkers>() {
 
         @Override
         protected long evaluate(Checkers game, MMTreeNode t, int playerNum) {
-            return Robot.this.evaluateBoard((Checkers)game, t, playerNum);
+            return Robot.this.evaluateCheckersBoard(game, t, playerNum);
         }
     };
 
-    void doRobot(Checkers game, MMTreeNode<Move, Checkers> root) {
+    final MiniMaxTree mmtChess = new MiniMaxTree<Chess>() {
+
+        @Override
+        protected long evaluate(Chess game, MMTreeNode t, int playerNum) {
+            return Robot.this.evaluateChessBoard(game, t, playerNum);
+        }
+    };
+
+    void doRobot(ACheckboardGame game, MMTreeNode<Move, ACheckboardGame> root) {
+        MiniMaxTree mmt;
+        if (game instanceof Checkers)
+            mmt = mmtCheckers;
+        else
+            mmt = mmtChess;
+
         switch (type) {
             case RANDOM:
                 doRandomRobot(root);
@@ -55,13 +67,17 @@ public class Robot extends Reflector<Robot> {
         }
     }
 
+    protected long evaluateChessBoard(Chess game, MMTreeNode node, int playerNum) {
+        return 0;
+    }
+
     /**
      * Returns a number between -1 and 1.
      * The value returned must reflect the whole board, not just one side
      *
      * @return
      */
-    protected long evaluateBoard(Checkers game, MMTreeNode node, int playerNum) {
+    protected long evaluateCheckersBoard(Checkers game, MMTreeNode node, int playerNum) {
 
         int dPc=0;
         int dKing=0;
@@ -117,8 +133,8 @@ public class Robot extends Reflector<Robot> {
         return d;
     }
 
-    private void doRandomRobot(MMTreeNode<Move, Checkers> tree) {
-        Checkers game = tree.getGame();
+    private void doRandomRobot(MMTreeNode<Move, ACheckboardGame> tree) {
+        ACheckboardGame game = tree.getGame();
         int n = game.computeMoves();
         if (n > 0) {
             int mvNum = Utils.rand() % n;

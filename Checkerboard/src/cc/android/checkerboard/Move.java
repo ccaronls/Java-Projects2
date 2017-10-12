@@ -1,7 +1,6 @@
 package cc.android.checkerboard;
 
 import cc.lib.game.IMove;
-import cc.lib.game.MiniMaxTree;
 import cc.lib.utils.Reflector;
 
 /**
@@ -21,6 +20,7 @@ public class Move extends Reflector<Move> implements IMove {
     public final int playerNum;
     public final Piece captured;
     public final PieceType swapped;
+    public boolean willCheckOpponentKing;
 
     public Move() {
         this(null, 0, 0, 0, 0, 0);
