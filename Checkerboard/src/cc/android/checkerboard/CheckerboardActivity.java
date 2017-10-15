@@ -56,7 +56,7 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
 
         bEndTurn.setEnabled(false);
         setDebugMode(false);
-        showChooseGameDialog();//PlayersDialog(true);
+        showChooseGameDialog();
     }
 
     private void setDebugMode(boolean on) {
@@ -126,7 +126,7 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
     Dialog thinking = null;
 
     void checkForRobotTurn() {
-        if (robot != null && pbv.getGame().getCurPlayerNum() == 1) {
+        if (robot != null && pbv.getGame().getTurn() == 1) {
             new RobotTask().execute(pbv.getGame());
         }
     }
@@ -237,7 +237,7 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
     }
 
     void showWinnerDialog() {
-        new AlertDialog.Builder(this).setMessage(pbv.getPcColorName(pbv.getGame().getCurPlayerNum()) + " Lost")
+        new AlertDialog.Builder(this).setMessage(pbv.getPcColorName(pbv.getGame().getTurn()) + " Lost")
                 .setPositiveButton("Play again", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
@@ -273,7 +273,7 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
             public void onClick(DialogInterface dialog, int which) {
                 switch (which) {
                     case 0:
-                        showChoosePlayersDialog(false, new Checkers());
+                        showChoosePlayersDialog(false, new MyCheckers());
                         break;
                     case 1:
                         showChoosePlayersDialog(false, new Chess());
@@ -431,16 +431,20 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
     void updateButtons() {
         bEndTurn.setEnabled(false);
         bEndTurn.setTag(null);
-        if (robot != null && pbv.getGame().getCurPlayerNum() == 1)
+        if (robot != null && pbv.getGame().getTurn() == 1)
         {} else {
             Piece lock = pbv.getGame().getLocked();
             if (lock != null) {
-                if (lock.playerNum != pbv.getGame().getCurPlayerNum())
+                if (lock.playerNum != pbv.getGame().getTurn())
                     throw new AssertionError();
                 for (Move m : lock.moves) {
-                    if (m.type == MoveType.END) {
-                        bEndTurn.setTag(m);
-                        bEndTurn.setEnabled(true);
+                    switch (m.type) {
+                        case SWAP:
+                            if (pbv.getGame().getPiece(m.getStart()).type == PieceType.PAWN_TOSWAP)
+                                break; // falthrough if we have been tapped on View.
+                        case END:
+                            bEndTurn.setTag(m);
+                            bEndTurn.setEnabled(true);
                     }
                 }
             }

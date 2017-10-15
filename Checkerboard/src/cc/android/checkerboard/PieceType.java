@@ -13,9 +13,12 @@ public enum PieceType {
     BISHOP,
     KNIGHT,
     ROOK,
+    ROOK_IDLE, // only an idle rook can castle
     QUEEN,
     CHECKED_KING, // chess only, flag the king as checked
+    CHECKED_KING_IDLE, // a king that has not moved and so is
     UNCHECKED_KING, // chess only
+    UNCHECKED_KING_IDLE, // only an unchecked idle king can castle
     KING, // checkers king, not chess
     CHECKER,
     UNAVAILABLE, // this means off board

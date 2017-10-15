@@ -1271,7 +1271,7 @@ public class Utils {
 	public static void setRandomSeed(long seed) {
 		randGen.setSeed(seed);
 	}
-	
+
 	public static String toString(int [] array) {
 		StringBuffer buf = new StringBuffer("[");
 		int i = 0;
@@ -1280,6 +1280,20 @@ public class Utils {
 		buf.append(array[i]).append("]");
 		return buf.toString();
 	}
+
+    /**
+     *
+     * @param array
+     * @return
+     */
+    public static String toString(int [][] array) {
+        StringBuffer buf = new StringBuffer("{");
+        int i = 0;
+        for (; i<array.length-1; i++)
+            buf.append(toString(array[i])).append(", ");
+        buf.append(array[i]).append("}");
+        return buf.toString();
+    }
 
     /**
      *

@@ -1,6 +1,7 @@
 package cc.android.checkerboard;
 
 import cc.lib.game.IMove;
+import cc.lib.game.Utils;
 import cc.lib.utils.Reflector;
 
 /**
@@ -14,50 +15,58 @@ public class Move extends Reflector<Move> implements IMove {
     }
 
     public final MoveType type;
-    public final int startRank, startCol;
-    public final int endRank, endCol;
-    public final int captureRank, captureCol;
+//    public final int startRank, startCol;
+//    public final int endRank, endCol;
+//    public final int captureRank, captureCol;
     public final int playerNum;
+
+    public final int [][] squares;
+
     public final Piece captured;
-    public final PieceType swapped;
-    public boolean willCheckOpponentKing;
+    public PieceType nextType;
+
+    public Move(MoveType t, int playerNum, Piece captured, PieceType nextType, int ... positions) {
+        this.type = t;
+        this.captured = captured;
+        this.nextType = nextType;
+        this.playerNum = playerNum;
+        squares = new int[positions.length/2][];
+        for (int i=0; i<positions.length; i+=2) {
+            int sr = positions[i];
+            int er = positions[i+1];
+            squares[i/2] = new int[] { sr, er };
+        }
+    }
 
     public Move() {
-        this(null, 0, 0, 0, 0, 0);
+        this(null, -1, null, null);
     }
 
-    public Move(MoveType type, int startRank, int startCol, int endRank, int endCol, int playerNum) {
-        this(type, startRank, startCol, endRank, endCol, -1, -1, playerNum, null, null);
-    }
-    public Move(MoveType type, int startRank, int startCol, int endRank, int endCol, int captureRank, int captureCol, int playerNum, Piece captured) {
-        this(type, startRank, startCol, endRank, endCol, captureRank, captureCol, playerNum, captured, null);
-    }
-    public Move(MoveType type, int startRank, int startCol, int endRank, int endCol, int captureRank, int captureCol, int playerNum, PieceType swapped) {
-        this(type, startRank, startCol, endRank, endCol, captureRank, captureCol, playerNum, null, swapped);
+    public final int [] getStart() {
+        return squares[0];
     }
 
-    private Move(MoveType type, int startRank, int startCol, int endRank, int endCol, int captureRank, int captureCol, int playerNum, Piece captured, PieceType swapped) {
-        this.type = type;
-        this.startRank = startRank;
-        this.startCol = startCol;
-        this.endRank = endRank;
-        this.endCol = endCol;
-        this.captureCol = captureCol;
-        this.captureRank = captureRank;
-        this.playerNum = playerNum;
-        this.captured = captured;
-        this.swapped = swapped;
+    public final int [] getEnd() {
+        return squares[1];
     }
 
-    @Override
-    public boolean equals(Object other) {
-        Move m = (Move)other;
-        return endCol == m.endCol && endRank == m.endRank;
+    public final int [] getCaptured() {
+        return squares[2];
+    }
+
+    public final int [] getCastleRookStart() {
+        return squares[2];
+    }
+
+    public final int [] getCastleRookEnd() {
+        return squares[3];
     }
 
     @Override
     public final String toString() {
-        return type.name()   + "[" + startRank + "x" + startCol + "]->[" + endRank + "x" + endCol + "] pn:" + playerNum;
+        return type.name() + Utils.toString(squares) + " pn:" + playerNum + " nt: " + nextType + " cap:"
+                + (captured == null ? "null" : captured.type.name() + "[" + captured.playerNum + "]")
+                ;
     }
 
     @Override

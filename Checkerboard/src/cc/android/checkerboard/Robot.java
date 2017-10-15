@@ -120,7 +120,7 @@ public class Robot extends Reflector<Robot> {
 //                            + "%12$20s:%13$d\n"
 //                            + "%14$20s:%15$d\n"
                     ,
-                    "Player", game.getCurPlayerNum(), d,
+                    "Player", game.getTurn(), d,
                     "dPcs  ", dPc,
                     "dKings", dKing,
                     "dAdv  ", dAdv

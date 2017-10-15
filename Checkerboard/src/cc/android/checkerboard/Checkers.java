@@ -38,7 +38,7 @@ public class Checkers extends ACheckboardGame  {
     @Override
 	protected void computeMovesForSquare(int rank, int col, Move parent) {
 		Piece p = getPiece(rank, col);
-        if (p.playerNum != getCurPlayerNum())
+        if (p.playerNum != getTurn())
             throw new AssertionError();
 
 		int [] dr, dc;
@@ -67,22 +67,23 @@ public class Checkers extends ACheckboardGame  {
 			Piece t = getPiece(rdr, cdc);
 			if (t.type == EMPTY) {
 				if (parent == null)
-					p.moves.add(new Move(MoveType.SLIDE, rank, col, rdr, cdc, getTurn()));
+					p.moves.add(new Move(MoveType.SLIDE, getTurn(), null, null, rank, col, rdr, cdc));
+					        //new Move(MoveType.SLIDE, rank, col, rdr, cdc, getTurn()));
 			} else {
 				// check for jump
 				if (isOnBoard(rdr2, cdc2)) {
-                    if (parent != null && parent.startCol == cdc2 && parent.startRank == rdr2) {
+                    if (parent != null && parent.getStart()[1] == cdc2 && parent.getStart()[0] == rdr2) {
                         continue; // dont allow to jump back to a place we just came from
                     }
 					Piece j = getPiece(rdr2, cdc2);
 					if (j.type == EMPTY) {
 						// we can jump to here
-						if (t.playerNum == getCurPlayerNum()) {
+						if (t.playerNum == getTurn()) {
 							// we are jumping ourself, no capture
-							p.moves.add(new Move(MoveType.JUMP, rank, col, rdr2, cdc2, getTurn()));
+							p.moves.add(new Move(MoveType.JUMP, getTurn(), null, null, rank, col, rdr2, cdc2));
 						} else {
 							// jump with capture
-							p.moves.add(new Move(MoveType.JUMP_CAPTURE, rank, col, rdr2, cdc2, rdr, cdc, getTurn(), t));
+							p.moves.add(new Move(MoveType.JUMP, getTurn(), t, null, rank, col, rdr2, cdc2, rdr, cdc));
 						}
 					}
 				}
@@ -115,11 +116,11 @@ public class Checkers extends ACheckboardGame  {
 	public void executeMove(Move move) {
         lock = null;
 		boolean isKinged = false;
-		final Piece p = getPiece(move.startRank, move.startCol);
+		final Piece p = getPiece(move.getStart());//move.startRank, move.startCol);
         // clear everyone all moves
         clearMoves();
-		if (move.startCol != move.endCol && move.startRank != move.endRank) {
-            int rank = move.endRank;
+		if (move.squares.length > 1) {
+            int rank = move.getEnd()[0];
             isKinged = (p.type == CHECKER && getRankForKingCurrent() == rank);
             movePiece(move);
 		}
@@ -129,33 +130,35 @@ public class Checkers extends ACheckboardGame  {
         switch (move.type) {
             case SLIDE:
                 if (isKinged) {
-                    p.moves.add(new Move(MoveType.STACK, move.endRank, move.endCol, move.endRank, move.endCol, move.playerNum));
+                    p.moves.add(new Move(MoveType.STACK, move.playerNum, null, null, move.getEnd()));
                     lock = p;
                     break;
                 }
             case END:
                 endTurnPrivate();
                 return;
-            case JUMP_CAPTURE:
-                clearPiece(move.captureRank, move.captureCol);
             case JUMP:
+                if (move.captured != null) {
+                    //setPieceType(move.getCaptured(), new Piece(EMPTY));
+                    clearPiece(move.getCaptured());//.captureRank, move.captureCol);
+                }
                 if (isKinged) {
-                    p.moves.add(new Move(MoveType.STACK, move.endRank, move.endCol, move.endRank, move.endCol, move.playerNum));
+                    p.moves.add(new Move(MoveType.STACK, move.playerNum, null, PieceType.KING, move.getEnd()));
                     lock = p;
                 }
                 break;
             case STACK:
-                setPieceType(move.startRank, move.startCol, KING);
+                setPieceType(move.getStart(), KING);
                 break;
         }
 
         if (!isKinged) {
             // recursive compute next move if possible after a jump
-            computeMovesForSquare(move.endRank, move.endCol, move);
+            computeMovesForSquare(move.getEnd()[0], move.getEnd()[1], move);
             if (p.moves.size() == 0) {
                 endTurnPrivate();
             } else {
-                p.moves.add(new Move(MoveType.END, move.endRank, move.endCol, move.endRank, move.endCol, move.playerNum));
+                p.moves.add(new Move(MoveType.END, move.playerNum, null, null, move.getEnd()));
                 lock = p;
             }
         }

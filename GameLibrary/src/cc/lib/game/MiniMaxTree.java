@@ -1,7 +1,5 @@
 package cc.lib.game;
 
-import java.util.List;
-
 /**
  * Created by chriscaron on 10/7/17.
  */
@@ -59,7 +57,7 @@ public abstract class MiniMaxTree<G extends IGame> {
             //next.appendMeta("playerNum=%d, scale=%d, depth=%d", m.playerNum, scale, depth);
             root.addChild(next);
             long v;
-            if (game.getCurPlayerNum() == m.getPlayerNum()) {
+            if (game.getTurn() == m.getPlayerNum()) {
                 // this means we have more move options
                 v = buildTree(game, next, depth, scale);
             } else if (depth > 0) {

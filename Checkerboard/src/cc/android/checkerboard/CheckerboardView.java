@@ -44,6 +44,7 @@ public class CheckerboardView extends View implements View.OnClickListener {
     private final Paint pStroke = new Paint();
     private final Paint pText = new Paint();
     private final RectF rf = new RectF();
+    private final Paint glow = new Paint(Paint.ANTI_ALIAS_FLAG);
 
     private ACheckboardGame game = null;
 
@@ -62,16 +63,6 @@ public class CheckerboardView extends View implements View.OnClickListener {
         invalidate();
     }
 
-    @Override
-    protected void onAttachedToWindow() {
-        super.onAttachedToWindow();
-    }
-
-    @Override
-    protected void onDetachedFromWindow() {
-        super.onDetachedFromWindow();
-    }
-
     public final ACheckboardGame getGame() {
         return this.game;
     }
@@ -85,6 +76,16 @@ public class CheckerboardView extends View implements View.OnClickListener {
         pText.setColor(Color.WHITE);
         pText.setTextSize(getResources().getDisplayMetrics().density * 12);
         pText.setTypeface(Typeface.DEFAULT_BOLD);
+        ColorFilter filter = new PorterDuffColorFilter(0xFFFF0000, PorterDuff.Mode.SRC_IN);
+        BlurMaskFilter blur = new BlurMaskFilter(300, BlurMaskFilter.Blur.OUTER);
+
+        glow.setColorFilter(filter);
+        glow.setMaskFilter(blur);
+
+        if (isInEditMode()) {
+            game = new Chess();
+            game.newGame();
+        }
     }
 
     private long downTime = 0;
@@ -126,9 +127,9 @@ public class CheckerboardView extends View implements View.OnClickListener {
                 break;
             case MotionEvent.ACTION_UP:
                 if (dt < 500 && curColumn == touchColumn && curRank == touchRank) {
-                    doTap(curRank, curColumn);
+                    onTap(curRank, curColumn);
                 } else if (dragging != null) {
-                    doDragEnd(curRank, curColumn);
+                    onDragEnd(curRank, curColumn);
                     tapped = null;
                 }
                 dragging = null;
@@ -206,18 +207,18 @@ public class CheckerboardView extends View implements View.OnClickListener {
     class SlideAnim extends MoveAnim {
 
         public SlideAnim(Move move, Runnable whenDone) {
-            super(800, move, whenDone, game.getPiece(move.startRank, move.startCol));
+            super(800, move, whenDone, game.getPiece(move.getStart()));//.startRank, move.startCol));
         }
 
         @Override
         public void draw(Canvas g, float position, float dt) {
-            float sx = cellW * move.startCol + cellW/2;
-            float sy = cellH * move.startRank + cellH/2;
-            float ex = cellW * move.endCol + cellW/2;
-            float ey = cellH * move.endRank + cellH/2;
+            float sx = cellW * move.getStart()[1] + cellW/2;
+            float sy = cellH * move.getStart()[0] + cellH/2;
+            float ex = cellW * move.getEnd()[1] + cellW/2;
+            float ey = cellH * move.getEnd()[0] + + cellH/2;
             int x = Math.round(sx + (ex-sx) * position);
             int y = Math.round(sy + (ey-sy) * position);
-            Piece p = game.getPiece(move.startRank, move.startCol);
+            Piece p = game.getPiece(move.getStart());//.startRank, move.startCol);
             drawPieceAt(g, p, x, y, false);
         }
     }
@@ -226,18 +227,18 @@ public class CheckerboardView extends View implements View.OnClickListener {
 
         final Bezier curve;
 
-        private IVector2D[] computeJumpPoints(Move move) {
+        private IVector2D[] computeJumpPoints(int [] start, int [] end, int playerNum) {
 
-            float sx = cellW * move.startCol + cellW/2;
-            float sy = cellW * move.startRank + cellH/2;
-            float ex = cellH * move.endCol + cellW/2;
-            float ey = cellH * move.endRank + cellH/2;
+            float sx = cellW * start[1] + cellW/2;
+            float sy = cellW * start[0] + cellH/2;
+            float ex = cellH * end[1]   + cellW/2;
+            float ey = cellH * end[0]   + cellH/2;
 
             float midx1 = sx + ((ex-sx) / 3);
             float midx2 = sx + ((ex-sx) * 2 / 3);
             float midy1 = sy + ((ey-sy) / 3);
             float midy2 = sy + ((ey-sy) * 2 / 3);
-            float dist = cellH * getDir(move.playerNum);
+            float dist = cellH * getDir(playerNum);
             IVector2D [] v = {
                     new Vector2D(sx, sy),
                     new Vector2D(midx1, midy1+dist),
@@ -247,27 +248,47 @@ public class CheckerboardView extends View implements View.OnClickListener {
             return v;
         }
 
+        public JumpAnim(int [] start, int [] end, int playerNum, Runnable whenDone) {
+            super(1200, null, whenDone, game.getPiece(start));
+            curve = new Bezier(computeJumpPoints(start, end, playerNum));
+        }
+
         public JumpAnim(Move move, Runnable whenDone) {
-            super(1200, move, whenDone, game.getPiece(move.startRank, move.startCol));
-            curve = new Bezier(computeJumpPoints(move));
+            super(1200, move, whenDone, game.getPiece(move.getStart()));//.startRank, move.startCol));
+            curve = new Bezier(computeJumpPoints(move.getStart(), move.getEnd(), move.playerNum));
         }
 
         @Override
         public void draw(Canvas g, float position, float dt) {
             Vector2D v = curve.getPointAt(position);
-            Piece p = game.getPiece(move.startRank, move.startCol);
+            Piece p = game.getPiece(move.getStart());//.startRank, move.startCol);
             drawPieceAt(g, p, v.X(), v.Y(), false);
         }
 
     };
-    private void doTap(int curRank, int curCol) {
+
+    // TODO: Another way would be to pull up a picker from a (long?) touch but how to cancel?
+    private void onTap(int curRank, int curCol) {
         if (tapped == null) {
             tapped = game.getPiece(curRank, curCol);
             if (tapped.moves.size() == 0)
                 tapped = null;
+        } else if (tapped.type == PieceType.PAWN_TOSWAP) {
+            Piece p = game.getPiece(curRank, curCol);
+            for (int i=0; i<p.moves.size(); i++) {
+                Move m = p.moves.get(i);
+                if (m.nextType == p.type) {
+                    int ii = (i+1)%p.moves.size();
+                    p.type = p.moves.get(ii).nextType;
+                    return;
+                }
+            }
+            p.type = p.moves.get(0).nextType;
         } else {
             for (Move m : tapped.moves) {
-                if (m.endRank==curRank && m.endCol == curCol && m.type != MoveType.END) {
+                if (m.type == MoveType.END)
+                    continue; // ignore since the ui button will handle
+                if (m.squares.length > 1 && m.getEnd()[0]==curRank && m.getEnd()[1] == curCol) {
                     animateAndExecuteMove(m);
                     tapped = null;
                     return;
@@ -292,19 +313,22 @@ public class CheckerboardView extends View implements View.OnClickListener {
 
     public void animateMoveAndThen(Move m, Runnable onDone) {
         switch (m.type) {
+            case CASTLE: {
+                animations.add(new JumpAnim(m.getCastleRookStart(), m.getCastleRookEnd(), m.playerNum, null));
+            }
+
             case SLIDE:
                 animations.add(new SlideAnim(m, onDone).start());
                 break;
-            case JUMP_CAPTURE: {
-                Piece capture = game.getPiece(m.captureRank, m.captureCol);
-                animations.add(new StackAnim(m, null, capture.playerNum, m.captureRank, m.captureCol, capture.type).startReverse());
-            }
             case JUMP:
+                if (m.captured != null)
+                    animations.add(new StackAnim(m, null, m.captured.playerNum, m.getCaptured()[0], m.getCaptured()[1], m.captured.type).startReverse());
                 animations.add(new JumpAnim(m, onDone).start());
                 break;
             case STACK:
-                animations.add(new StackAnim(m, onDone, m.playerNum, m.startRank, m.startCol, PieceType.CHECKER).start());
+                animations.add(new StackAnim(m, onDone, m.playerNum, m.getStart()[0], m.getStart()[1], PieceType.CHECKER).start());
                 break;
+            case SWAP:
             default:
                 if (onDone != null) {
                     post(onDone);
@@ -315,14 +339,16 @@ public class CheckerboardView extends View implements View.OnClickListener {
         invalidate();
     }
 
-    private void doDragEnd(int curRank, int curCol) {
+    private void onDragEnd(int curRank, int curCol) {
         for (Move m : dragging.moves) {
-            if (m.endRank == curRank && m.endCol == curCol) {
+            if (m.squares.length > 1 && m.getEnd()[0] == curRank && m.getEnd()[1] == curCol) {
                 switch (m.type) {
-                    case JUMP_CAPTURE:
-                        Piece captured = game.getPiece(m.captureRank, m.captureCol);
-                        animations.add(new StackAnim(m, null, captured.playerNum, m.captureRank, m.captureCol, captured.type).startReverse());
+                    case SLIDE:
+                    case JUMP: {
+                        if (m.captured != null)
+                            animations.add(new StackAnim(m, null, m.captured.playerNum, m.getCaptured()[0], m.getCaptured()[1], m.captured.type).startReverse());
                         break;
+                    }
                     case END:
                         continue;
                 }
@@ -415,10 +441,10 @@ public class CheckerboardView extends View implements View.OnClickListener {
         }
 
         if (highlightMove != null) {
-            float sx = highlightMove.startCol*cellW;
-            float sy = highlightMove.startRank*cellH;
-            float ex = highlightMove.endCol*cellW;
-            float ey = highlightMove.endRank*cellH;
+            float sx = highlightMove.getStart()[1]*cellW;
+            float sy = highlightMove.getStart()[0]*cellH;
+            float ex = highlightMove.getEnd()[1]*cellW;
+            float ey = highlightMove.getEnd()[0]*cellH;
             switch (highlightMove.type) {
                 case JUMP:
                 case SLIDE:
@@ -436,31 +462,41 @@ public class CheckerboardView extends View implements View.OnClickListener {
                     canvas.drawRect(sx, sy, sx+cellW, sy+cellH, pStroke);
                     break;
             }
-        } else if (mainPc != null && mainPc.playerNum == game.getCurPlayerNum()) {
+        } else if (mainPc != null && mainPc.playerNum == game.getTurn()) {
             tapped = mainPc;
         }
 
-        if (tapped != null && tapped.playerNum == game.getCurPlayerNum()) {
+        if (tapped != null && tapped.playerNum == game.getTurn()) {
             for (Move m : new ArrayList<>(tapped.moves)) {
                 Log.d("CB", "Tapped move: " + m);
-                float sx = m.startCol*cellW;
-                float sy = m.startRank*cellH;
-                float ex = m.endCol*cellW;
-                float ey = m.endRank*cellH;
+                float sx = m.getStart()[1]*cellW;
+                float sy = m.getStart()[0]*cellH;
+                float ex=0, ey=0;
                 switch (m.type) {
                     case END:
                         break;
-                    case JUMP_CAPTURE:
+                    case CASTLE:
+                        pStroke.setColor(Color.YELLOW);
+                        ex = m.getCastleRookStart()[1] * cellW;
+                        ey = m.getCastleRookStart()[0] * cellH;
+                        canvas.drawRect(ex, ey, ex + cellW, ey + cellH, pStroke);
+                        ex = m.getCastleRookStart()[1] * cellW;
+                        ey = m.getCastleRookStart()[0] * cellH;
+                        canvas.drawRect(ex, ey, ex + cellW, ey + cellH, pStroke);
+
                     case JUMP:
                     case SLIDE:
+                        ex = m.getEnd()[1] * cellW;
+                        ey = m.getEnd()[0] * cellH;
                         pStroke.setColor(Color.GREEN);
-                        canvas.drawRect(sx, sy, sx+cellW, sy+cellH, pStroke);
+                        canvas.drawRect(sx, sy, sx + cellW, sy + cellH, pStroke);
                         pStroke.setColor(Color.YELLOW);
-                        canvas.drawRect(ex, ey, ex+cellW, ey+cellH, pStroke);
+                        canvas.drawRect(ex, ey, ex + cellW, ey + cellH, pStroke);
                         break;
+                    case SWAP:
                     case STACK:
                         pStroke.setColor(Color.GREEN);
-                        drawDisk(canvas, pStroke, sx+cellW/2, sy+cellH/2, pcRad);
+                        drawDisk(canvas, pStroke, sx + cellW / 2, sy + cellH / 2, pcRad);
                         break;
                 }
             }
@@ -469,16 +505,16 @@ public class CheckerboardView extends View implements View.OnClickListener {
         if (dragging != null) {
             drawPieceAt(canvas, dragging, dragX, dragY, false);
             for (Move m : dragging.moves) {
-                float sx = m.startCol*cellW;
-                float sy = m.startRank*cellH;
-                float ex = m.endCol*cellW;
-                float ey = m.endRank*cellH;
+                float sx = m.getStart()[1]*cellW;
+                float sy = m.getStart()[0]*cellH;
                 switch (m.type) {
                     case END:
                         break;
                     case JUMP:
                     case SLIDE:
                         pStroke.setColor(Color.YELLOW);
+                        float ex = m.getEnd()[1]*cellW;
+                        float ey = m.getEnd()[0]*cellH;
                         canvas.drawRect(ex, ey, ex+cellW, ey+cellH, pStroke);
                         break;
                     case STACK:
@@ -531,10 +567,21 @@ public class CheckerboardView extends View implements View.OnClickListener {
         throw new AssertionError();
     }
 
+    boolean isSquareBlack(int rank, int col) {
+        if (rank % 2 == 0) {
+            return col % 2 == 1;
+        }
+        return col % 2 == 0;
+    }
+
     void drawPiece(Canvas g, Piece pc, int rank, int col, boolean outlined) {
         float cx = col * cellW + cellW / 2;
         float cy = rank * cellH + cellH / 2;
         drawPieceAt(g, pc, cx, cy, outlined);
+        if (isSquareBlack(rank, col))
+            g.drawText(pc.type.name(), cellW * col, cellH * rank + cellH - 5, pText);
+        else
+            g.drawText(pc.type.name(), cellW * col, cellH * rank + pText.getTextSize() + 5, pText);
     }
 
     void drawPieceAt(Canvas g, Piece pc, float cx, float cy, boolean outlined) {
@@ -562,6 +609,7 @@ public class CheckerboardView extends View implements View.OnClickListener {
                 else
                     d = getResources().getDrawable(R.drawable.wt_knight);
                 break;
+            case ROOK_IDLE:
             case ROOK:
                 if (pc.playerNum == ACheckboardGame.BLACK)
                     d = getResources().getDrawable(R.drawable.bk_rook);
@@ -575,7 +623,9 @@ public class CheckerboardView extends View implements View.OnClickListener {
                     d = getResources().getDrawable(R.drawable.wt_queen);
                 break;
             case CHECKED_KING:
+            case CHECKED_KING_IDLE:
             case UNCHECKED_KING:
+            case UNCHECKED_KING_IDLE:
                 if (pc.playerNum == ACheckboardGame.BLACK)
                     d = getResources().getDrawable(R.drawable.bk_king);
                 else
@@ -590,6 +640,7 @@ public class CheckerboardView extends View implements View.OnClickListener {
                 break;
         }
         if (d != null) {
+            // do aspect fit of bitmap onto cell
             BitmapDrawable bd = (BitmapDrawable)d;
             float dw = d.getIntrinsicHeight();
             float dh = d.getIntrinsicWidth();
@@ -608,23 +659,11 @@ public class CheckerboardView extends View implements View.OnClickListener {
 
             Rect dest = new Rect(Math.round(cx - w / 2), Math.round(cy - h / 2), Math.round(cx + w / 2), Math.round(cy + h / 2));
             if (outlined) {
-
-                ColorFilter filter = new PorterDuffColorFilter(0xFFFF0000, PorterDuff.Mode.SRC_IN);
-                BlurMaskFilter blur = new BlurMaskFilter(dest.width(), BlurMaskFilter.Blur.OUTER);
-
-                Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-                paint.setColorFilter(filter);
-                paint.setMaskFilter(blur);
-
                 g.save();
                 g.scale(1.2f, 1.1f, cx, cy);
-                g.drawBitmap(bd.getBitmap(), null, dest, paint);
+                g.drawBitmap(bd.getBitmap(), null, dest, glow);
                 g.restore();
             }
-            //canvas.drawBitmap(image, imageX, imageY, null);
-
-
-//            d.setBounds(Math.round(cx-w/2), Math.round(cy-h/2), Math.round(cx+w/2), Math.round(cy+h/2));
             d.setBounds(dest);
             d.draw(g);
         }
@@ -681,16 +720,16 @@ public class CheckerboardView extends View implements View.OnClickListener {
         Move m = game.undo();
         if (m != null) {
             switch (m.type) {
-                case JUMP_CAPTURE:
-                    animations.add(new StackAnim(m, null, m.captured.playerNum, m.captureRank, m.captureCol, m.captured.type).start());
                 case JUMP:
+                    if (m.captured != null)
+                        animations.add(new StackAnim(m, null, m.captured.playerNum, m.getCaptured()[0], m.getCaptured()[1], m.captured.type).start());
                     animations.add(new JumpAnim(m, null).startReverse());
                     break;
                 case SLIDE:
                     animations.add(new SlideAnim(m, null).startReverse());
                     break;
                 case STACK:
-                    animations.add(new StackAnim(m, null, m.playerNum, m.startRank, m.startCol, PieceType.CHECKER).startReverse());
+                    animations.add(new StackAnim(m, null, m.playerNum, m.getStart()[0], m.getStart()[1], PieceType.CHECKER).startReverse());
                     break;
             }
         }
@@ -702,7 +741,7 @@ public class CheckerboardView extends View implements View.OnClickListener {
     public boolean isEndTurnButtonAvailable() {
         Piece lock = game.getLocked();
         if (lock != null) {
-            if (lock.playerNum != game.getCurPlayerNum())
+            if (lock.playerNum != game.getTurn())
                 throw new AssertionError();
             for (Move m : lock.moves) {
                 if (m.type == MoveType.END) {
