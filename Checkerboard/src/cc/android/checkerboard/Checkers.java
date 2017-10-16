@@ -31,11 +31,6 @@ public class Checkers extends ACheckboardGame  {
 	}
 
     @Override
-    protected final int getMinVersion() {
-        return 1;
-    }
-
-    @Override
 	protected void computeMovesForSquare(int rank, int col, Move parent) {
 		Piece p = getPiece(rank, col);
         if (p.playerNum != getTurn())

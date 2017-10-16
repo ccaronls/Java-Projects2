@@ -42,6 +42,11 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
         board = new Piece[RANKS][COLUMNS];
     }
 
+    @Override
+    public int getMinVersion() {
+        return 2;
+    }
+
     private final static Piece OFF_BOARD = new Piece(-1, PieceType.UNAVAILABLE);
 
     public final Piece getPiece(int [] pos) {
@@ -236,42 +241,41 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
         return null;
     }
 
-//    protected abstract void reverseMove(Move m);
     protected final void reverseMove(Move m) {
         reverseMove(m, false);
     }
 
-
     private final void reverseMove(Move m, boolean recompute) {
+        Piece p;
         switch (m.type) {
             case END:
-//                turn = m.playerNum;
-//                getPiece(m.startRank, m.startCol).moves.add(m);
                 break;
+            case CASTLE:
+                p = getPiece(m.getCastleRookEnd());
+                Utils.assertTrue(p.type == PieceType.ROOK);
+                p.type = PieceType.ROOK_IDLE;
+                p.playerNum = m.playerNum;
+                setBoard(m.getCastleRookStart(), p);
+                clearPiece(m.getCastleRookEnd());
             case SLIDE:
             case JUMP:
                 setBoard(m.getStart(), getPiece(m.getEnd()));
-                //board[m.startRank][m.startCol] = board[m.endRank][m.endCol];
-                //board[m.startRank][m.startCol].moves.clear();
-                //board[m.endRank][m.endCol] = new Piece();
-                setBoard(m.getEnd(), new Piece());
+                clearPiece(m.getEnd());
                 if (m.captured != null)
-                    setBoard(m.getCaptured(), m.captured);//board[m.captureRank][m.captureCol] = m.captured;
+                    setBoard(m.getCaptured(), m.captured);
                 break;
             case STACK: {
-                Piece p = getPiece(m.getStart());//.startRank, m.startCol);
+                p = getPiece(m.getStart());
                 if (p.type == PieceType.KING) {
                     setBoard(m.getStart(), new Piece(p.playerNum, PieceType.CHECKER));
-//                    board[m.startRank][m.startCol] = new Piece(p.playerNum, PieceType.CHECKER);
                 }
                 break;
             }
         }
 
         if (m.nextType != null) {
-            PieceType t = getPiece(m.getStart()).type;//board[m.startRank][m.startCol].type;
+            PieceType t = getPiece(m.getStart()).type;
             getPiece(m.getStart()).type = m.nextType;
-//            board[m.startRank][m.startCol].type = m.nextType;
             m.nextType = t;
         }
 
@@ -291,7 +295,7 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
             computeMoves(true);
         } else {
             clearMoves();
-            Piece p = getPiece(m.getStart());//.startRank, m.startCol);
+            p = getPiece(m.getStart());//.startRank, m.startCol);
             computeMovesForSquare(m.getStart()[0], m.getStart()[1], parent);
             p.moves.add(new Move(MoveType.END, m.playerNum, null, null, m.getStart()));
             lock = p;

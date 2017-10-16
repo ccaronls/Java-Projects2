@@ -924,7 +924,7 @@ public class Reflector<T> {
     @Target(value = ElementType.FIELD)
     @Retention(value = RetentionPolicy.RUNTIME)
     public @interface Omit {}
-    
+
     /**
      * Add a field of a specific class to be included in the archivable handler.
      * Supported Type:

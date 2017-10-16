@@ -72,6 +72,53 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
         pbv.highlightMove(null);
     }
 
+    public class MyChess extends Chess implements Runnable, DialogInterface.OnCancelListener {
+        private Dialog dialog = null;
+        private AsyncTask task = null;
+
+        @Override
+        public void onCancel(DialogInterface dialog) {
+            if (task != null) {
+                task.cancel(true);
+                //undo();
+                if (root != null && root.getFirst() != null) {
+                    pbv.animateAndExecuteMove(root.getFirst().getMove());
+                }
+            }
+        }
+
+        public void run() {
+            dialog.show();
+        }
+
+        @Override
+        public void onGameOver() {
+            pbv.post(new Runnable() {
+                public void run() {
+                    showWinnerDialog();
+                }
+            });
+        }
+
+        @Override
+        public void executeMove(Move move) {
+            super.executeMove(move);
+            pbv.invalidate();
+            updateButtons();
+            new AsyncTask<ACheckboardGame,Void,Void>() {
+                @Override
+                protected Void doInBackground(ACheckboardGame... params) {
+                    params[0].trySaveToFile(getSaveFile(params[0]));
+                    return null;
+                }
+            }.execute(pbv.getGame());
+
+            checkForRobotTurn();
+        }
+
+    }
+
+
     public class MyCheckers extends Checkers implements Runnable, DialogInterface.OnCancelListener {
         private Dialog dialog = null;
         private AsyncTask task = null;
@@ -126,7 +173,7 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
     Dialog thinking = null;
 
     void checkForRobotTurn() {
-        if (robot != null && pbv.getGame().getTurn() == 1) {
+        if (robot != null && pbv.getGame().getTurn() == ROBOT_PLAYER_NUM) {
             new RobotTask().execute(pbv.getGame());
         }
     }
@@ -267,7 +314,7 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
 
 
     void showChooseGameDialog() {
-        String [] items = {"Checkers", "Chess", "Clear Chess Flag" };
+        String [] items = {"Checkers", "Chess" };
         new AlertDialog.Builder(this).setItems(items, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
@@ -276,7 +323,7 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
                         showChoosePlayersDialog(false, new MyCheckers());
                         break;
                     case 1:
-                        showChoosePlayersDialog(false, new Chess());
+                        showChoosePlayersDialog(false, new MyChess());
                         break;
                 }
             }
@@ -428,11 +475,13 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
         }
     }
 
+    private static final int ROBOT_PLAYER_NUM = 1;
+
     void updateButtons() {
         bEndTurn.setEnabled(false);
         bEndTurn.setTag(null);
-        if (robot != null && pbv.getGame().getTurn() == 1)
-        {} else {
+        if (robot != null && pbv.getGame().getTurn() == ROBOT_PLAYER_NUM)
+        {} else if (pbv.getGame()!=null) {
             Piece lock = pbv.getGame().getLocked();
             if (lock != null) {
                 if (lock.playerNum != pbv.getGame().getTurn())

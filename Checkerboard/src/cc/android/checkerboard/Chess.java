@@ -47,12 +47,15 @@ public class Chess extends ACheckboardGame {
                 case SWAP:
                     setPieceType(move.getStart(), move.nextType);
                     break;
-                case CASTLE:
-                    setBoard(move.getEnd(), getPiece(move.getStart()));
-                    setBoard(move.getCastleRookEnd(), getPiece(move.getCastleRookStart()));
-                    clearPiece(move.getStart());
+                case CASTLE: {
+                    movePiece(move);
+                    p = getPiece(move.getCastleRookStart());
+                    Utils.assertTrue(p.type == ROOK_IDLE);
+                    p.type = ROOK;
+                    setBoard(move.getCastleRookEnd(), p);
                     clearPiece(move.getCastleRookStart());
                     break;
+                }
                 default:
                     throw new AssertionError();
             }
@@ -165,30 +168,26 @@ public class Chess extends ACheckboardGame {
         int rookEndCol;
         int opponent = getOpponent(getTurn());
         if (rookCol > kingCol) {
-            for (int i=kingCol+1; i<rookCol; i++)
+            for (int i=kingCol+1; i<rookCol; i++) {
                 if (getPiece(rank, i).type != EMPTY)
                     return;
-            // short side castle
-            if (isSquareAttacked(rank, kingCol+1, opponent))
-                return;
-            if (isSquareAttacked(rank, kingCol+2, opponent))
-                return;
+                if (isSquareAttacked(rank, i, opponent))
+                    return;
+            }
             kingEndCol = kingCol+2;
-            rookEndCol = kingCol-1;
+            rookEndCol = kingEndCol-1;
         } else {
             // long side castle
-            for (int i=0; i<kingCol; i++)
+            for (int i=rookCol+1; i<kingCol; i++) {
                 if (getPiece(rank, i).type != EMPTY)
                     return;
-            // short side castle
-            if (isSquareAttacked(rank, kingCol-1, opponent))
-                return;
-            if (isSquareAttacked(rank, kingCol-2, opponent))
-                return;
+                if (isSquareAttacked(rank, i, opponent))
+                    return;
+            }
             kingEndCol=kingCol-2;
-            rookEndCol=kingCol+1;
+            rookEndCol=kingEndCol+1;
         }
-        king.moves.add(new Move(MoveType.CASTLE, king.playerNum, null, null, rank, kingCol, rank, kingEndCol, rank, rookCol, rank, rookEndCol));
+        king.moves.add(new Move(MoveType.CASTLE, king.playerNum, null, UNCHECKED_KING, rank, kingCol, rank, kingEndCol, rank, rookCol, rank, rookEndCol));
     }
 
     @Override
