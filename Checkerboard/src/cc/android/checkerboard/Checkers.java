@@ -1,5 +1,7 @@
 package cc.android.checkerboard;
 
+import cc.lib.game.Utils;
+
 import static cc.android.checkerboard.PieceType.*;
 
 /**
@@ -18,16 +20,17 @@ public class Checkers extends ACheckboardGame  {
     }
 
 	public final void newGame() {
-        initRank(0, RED, CHECKER, EMPTY, CHECKER, EMPTY, CHECKER, EMPTY, CHECKER, EMPTY);
-        initRank(1, RED, EMPTY, CHECKER, EMPTY, CHECKER, EMPTY, CHECKER, EMPTY, CHECKER);
-        initRank(2, RED, CHECKER, EMPTY, CHECKER, EMPTY, CHECKER, EMPTY, CHECKER, EMPTY);
+        super.newGame();
+        initRank(0, FAR, CHECKER, EMPTY, CHECKER, EMPTY, CHECKER, EMPTY, CHECKER, EMPTY);
+        initRank(1, FAR, EMPTY, CHECKER, EMPTY, CHECKER, EMPTY, CHECKER, EMPTY, CHECKER);
+        initRank(2, FAR, CHECKER, EMPTY, CHECKER, EMPTY, CHECKER, EMPTY, CHECKER, EMPTY);
         initRank(3, -1, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY);
         initRank(4, -1, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY);
-        initRank(5, BLACK, EMPTY, CHECKER, EMPTY, CHECKER, EMPTY, CHECKER, EMPTY, CHECKER);
-        initRank(6, BLACK, CHECKER, EMPTY, CHECKER, EMPTY, CHECKER, EMPTY, CHECKER, EMPTY);
-        initRank(7, BLACK, EMPTY, CHECKER, EMPTY, CHECKER, EMPTY, CHECKER, EMPTY, CHECKER);
-
-		super.newGame();
+        initRank(5, NEAR, EMPTY, CHECKER, EMPTY, CHECKER, EMPTY, CHECKER, EMPTY, CHECKER);
+        initRank(6, NEAR, CHECKER, EMPTY, CHECKER, EMPTY, CHECKER, EMPTY, CHECKER, EMPTY);
+        initRank(7, NEAR, EMPTY, CHECKER, EMPTY, CHECKER, EMPTY, CHECKER, EMPTY, CHECKER);
+        setTurn(Utils.flipCoin() ? FAR : NEAR);
+        computeMoves();
 	}
 
     @Override
@@ -40,7 +43,7 @@ public class Checkers extends ACheckboardGame  {
 		if (p.type == KING) {
 			dr = new int[] { 1, 1, -1, -1 };
 			dc = new int[] { -1, 1, -1, 1 };
-		} else if (p.playerNum == BLACK) {
+		} else if (p.playerNum == NEAR) {
 			// negative
 			dr = new int [] { -1, -1 };
 			dc = new int [] { -1, 1 };
@@ -116,7 +119,7 @@ public class Checkers extends ACheckboardGame  {
         clearMoves();
 		if (move.hasEnd()) {
             int rank = move.getEnd()[0];
-            isKinged = (p.type == CHECKER && getRankForKingCurrent() == rank);
+            isKinged = (p.type == CHECKER && getStartRank(getOpponent()) == rank);
             movePiece(move);
 		}
 
@@ -160,4 +163,15 @@ public class Checkers extends ACheckboardGame  {
         }
 	}
 
+    @Override
+    public Color getPlayerColor(int side) {
+        switch (side) {
+            case FAR:
+                return Color.RED;
+            case NEAR:
+                return Color.BLACK;
+        }
+        Utils.assertTrue(false);
+        return null;
+    }
 }

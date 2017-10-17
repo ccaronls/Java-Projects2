@@ -122,36 +122,38 @@ public abstract class AAnimation<T> {
      * returns true when isDone
      */
     public synchronized final boolean update(T g) {
-        if (isDone())
-            return true;
+        long dt = duration;
         long t = getCurrentTimeMSecs();
-        if (t < startTime) {
-            return false;
-        } else if (state == State.IDLE) {
-        	state = State.STARTED;
-        	lastTime = t;
-        	onStarted();
-        }
-
-        float delta = (t-startTime) % duration;
-        long repeats = (t-startTime) / duration;
-        if (oscilateOnRepeat) {
-            if (repeats % 2 == 1) {
-                reverse = !startDirectionReverse;
-            } else {
-                reverse = startDirectionReverse;
+        if (!isDone()) {
+            if (t < startTime) {
+                return false;
+            } else if (state == State.IDLE) {
+                state = State.STARTED;
+                lastTime = t;
+                onStarted();
             }
+
+            float delta = (t - startTime) % duration;
+            long repeats = (t - startTime) / duration;
+            if (oscilateOnRepeat) {
+                if (repeats % 2 == 1) {
+                    reverse = !startDirectionReverse;
+                } else {
+                    reverse = startDirectionReverse;
+                }
+            }
+            if (reverse) {
+                position = 1 - (delta / duration);
+            } else {
+                position = delta / duration;
+            }
+            if (maxRepeats >= 0 && repeats > maxRepeats) {
+                position = reverse ? 0 : 1;
+                stop();
+            }
+            dt = t-lastTime;
         }
-        if (reverse) {
-            position = 1 - (delta/duration);
-        } else {
-            position = delta / duration;
-        }
-        if (maxRepeats >= 0 && repeats > maxRepeats) {
-        	position = reverse ? 0 : 1;
-        	stop();
-        }
-        draw(g, position, t-lastTime);
+        draw(g, position, dt);
         lastTime = t;
         if (state == State.STOPPED) {
             state = State.DONE;

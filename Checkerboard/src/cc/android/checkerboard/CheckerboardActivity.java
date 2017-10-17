@@ -309,7 +309,7 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
         if (winnerDialog != null && winnerDialog.isShowing())
             return;
 
-        winnerDialog = new AlertDialog.Builder(this).setMessage(pbv.getPcColorName(pbv.getGame().getTurn()) + " Lost")
+        winnerDialog = new AlertDialog.Builder(this).setMessage(pbv.getGame().getPlayerColor(pbv.getGame().getTurn()).name() + " Lost")
                 .setPositiveButton("Play again", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
@@ -557,7 +557,6 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
                     }).setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            CheckerboardActivity.this.onClick(v);
                             showChoosePlayersDialog(false, pbv.getGame());
                         }
                     }).show();

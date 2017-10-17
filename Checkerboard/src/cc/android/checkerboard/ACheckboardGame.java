@@ -21,8 +21,10 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
         addAllFields(ACheckboardGame.class);
     }
 
-    public final static int BLACK = 0;
-    public final static int RED   = 1;
+    // the player positions are on the far side of board (rank == 0)
+    // or NEAR side closest to user.
+    public final static int NEAR = 0;
+    public final static int FAR  = 1;
 
     public final int RANKS;
     public final int COLUMNS;
@@ -119,9 +121,7 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
      * Should be called after all the pieces have been setup
      */
     public void newGame() {
-        turn = Utils.flipCoin() ? 0 : 1;
         lock = null;
-        computeMoves(true);
         undoStack.clear();
     }
 
@@ -185,48 +185,37 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
         computedMoves = -1;
     }
 
-    public final int getForward(int playerNum) {
-        switch (playerNum) {
-            case BLACK:
+    /**
+     * This is the rank closest to the given side
+     *
+     * @param side
+     * @return
+     */
+    public final int getStartRank(int side) {
+        switch (side) {
+            case FAR:
+                return 0;
+            case NEAR:
+                return RANKS-1;
+        }
+        Utils.assertTrue(false, "Unexpected side " + side);
+        return -1;
+    }
+
+    /**
+     * This is the rank increment based on side
+     * @param side
+     * @return
+     */
+    public final int getAdvanceDir(int side) {
+        switch (side) {
+            case FAR:
                 return 1;
-            case RED:
+            case NEAR:
                 return -1;
         }
-        throw new AssertionError();
-    }
-
-    public final int getAdvancement(int rank, int playerNum) {
-        switch (playerNum) {
-            case BLACK:
-                return board.length-1-rank;
-            case RED:
-                return rank;
-        }
-        return -1;
-    }
-
-    public final int getRankForKingCurrent() {
-        return getRankForKing(getTurn());
-    }
-
-    public final int getRankForKing(int playerNum) {
-        switch (playerNum) {
-            case BLACK:
-                return 0;
-            case RED:
-                return board.length-1;
-        }
-        return -1;
-    }
-
-    public final int getRankForSwapPawn(int playerNum) {
-        switch (playerNum) {
-            case RED:
-                return 0;
-            case BLACK:
-                return board.length-1;
-        }
-        return -1;
+        Utils.assertTrue(false, "Unexpected side " + side);
+        return 0;
     }
 
     public final boolean isOnBoard(int r, int c) {
@@ -255,7 +244,7 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
         reverseMove(m, false);
     }
 
-    private final void reverseMove(Move m, boolean recompute) {
+    protected void reverseMove(Move m, boolean recompute) {
         Piece p;
         switch (m.type) {
             case END:
@@ -384,10 +373,10 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
     }
 
     public final int getOpponent(int player) {
-        if (player == BLACK)
-            return RED;
-        if (player == RED)
-            return BLACK;
+        if (player == NEAR)
+            return FAR;
+        if (player == FAR)
+            return NEAR;
         throw new AssertionError();
     }
 
@@ -404,4 +393,10 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
     }
 
     public void onGameOver() {}
+
+    enum Color {
+        RED, WHITE, BLACK
+    } ;
+
+    public abstract Color getPlayerColor(int side);
 }

@@ -155,8 +155,6 @@ public class CheckerboardView extends View { //implements View.OnClickListener {
     private List<AAnimation<Canvas>> animations = new ArrayList<>();
 
     private abstract class MoveAnim extends AAnimation<Canvas> {
-        //final Move move;
-        final List<Piece> hiders;
         final Runnable whenDone;
         final int [] start;
         final int [] end;
@@ -168,8 +166,7 @@ public class CheckerboardView extends View { //implements View.OnClickListener {
             this.end = end;
             this.playerNum = playerNum;
             this.whenDone = whenDone;
-            this.hiders = Arrays.asList(toHide);
-            hidden.addAll(hiders);
+            hidden.addAll(Arrays.asList(toHide));
         }
 
         MoveAnim(long duration, Move move, Runnable whenDone, Piece ... toHide) {
@@ -178,8 +175,7 @@ public class CheckerboardView extends View { //implements View.OnClickListener {
 
         @Override
         protected final void onDone() {
-            animations.remove(this);
-            hidden.removeAll(hiders);
+//            animations.remove(this);
             if (whenDone != null) {
                 whenDone.run();
             }
@@ -251,7 +247,7 @@ public class CheckerboardView extends View { //implements View.OnClickListener {
             float midx2 = sx + ((ex-sx) * 2 / 3);
             float midy1 = sy + ((ey-sy) / 3);
             float midy2 = sy + ((ey-sy) * 2 / 3);
-            float dist = cellH * getDir(playerNum);
+            float dist = cellH * -1;//getDir(playerNum);
             IVector2D [] v = {
                     new Vector2D(sx, sy),
                     new Vector2D(midx1, midy1+dist),
@@ -364,7 +360,9 @@ public class CheckerboardView extends View { //implements View.OnClickListener {
     public void animateMoveAndThen(Move m, Runnable onDone) {
         switch (m.type) {
             case CASTLE:
-                animations.add(new JumpAnim(m.getCastleRookStart(), m.getCastleRookEnd(), m.playerNum, null));
+                animations.add(new JumpAnim(m.getCastleRookStart(), m.getCastleRookEnd(), m.playerNum, onDone).start());
+                animations.add(new SlideAnim(m, null).start());
+                break;
             case SLIDE:
                 animations.add(new SlideAnim(m, onDone).start());
                 break;
@@ -454,12 +452,6 @@ public class CheckerboardView extends View { //implements View.OnClickListener {
         if (game == null)
             return;
 
-        ArrayList<AAnimation<Canvas>> anims = new ArrayList<>(animations);
-
-        if (anims.size() == 0) {
-            hidden.clear();
-        }
-
         Piece mainPc = null;
         int numMvblePcs = 0;
         for (int i=0; i<COLUMNS; i++) {
@@ -485,12 +477,21 @@ public class CheckerboardView extends View { //implements View.OnClickListener {
             }
         }
 
+        ArrayList<AAnimation<Canvas>> anims = new ArrayList<>(animations);
+
         if (anims.size() > 0) {
-            for (AAnimation<Canvas> a : anims)
-                a.update(canvas);
+            boolean allDone = true;
+            for (AAnimation<Canvas> a : anims) {
+                if (!a.update(canvas))
+                    allDone = false;
+            }
             invalidate();
-            return;
+            if (!allDone)
+                return;
         }
+
+        anims.clear();
+        hidden.clear();
 
         if (highlightMove != null) {
             highlightMove(canvas, highlightMove);
@@ -509,76 +510,21 @@ public class CheckerboardView extends View { //implements View.OnClickListener {
             drawPieceAt(canvas, dragging, dragX, dragY, OUTLINE_NONE);
             for (Move m : dragging.moves) {
                 highlightMove(canvas, m);
-                /*
-                float sx = m.getStart()[1]*cellW;
-                float sy = m.getStart()[0]*cellH;
-                float ex, ey;
-                switch (m.type) {
-                    case END:
-                        break;
-                    case CASTLE:
-                        pStroke.setColor(Color.WHITE);
-                        ex = m.getCastleRookStart()[1] * cellW;
-                        ey = m.getCastleRookStart()[0] * cellH;
-                        canvas.drawRect(ex, ey, ex + cellW, ey + cellH, pStroke);
-                        ex = m.getCastleRookStart()[1] * cellW;
-                        ey = m.getCastleRookStart()[0] * cellH;
-                        canvas.drawRect(ex, ey, ex + cellW, ey + cellH, pStroke);
-                    case JUMP:
-                    case SLIDE:
-                        pStroke.setColor(Color.YELLOW);
-                        ex = m.getEnd()[1]*cellW;
-                        ey = m.getEnd()[0]*cellH;
-                        canvas.drawRect(ex, ey, ex+cellW, ey+cellH, pStroke);
-                        break;
-                    case STACK:
-                        pStroke.setColor(Color.GREEN);
-                        drawDisk(canvas, pStroke, sx+cellW/2, sy+cellH/2, pcRad);
-                        break;
-                }*/
             }
         }
 
     }
 
-    int DIR_BLACK = 1;
-    int DIR_RED   = -1;
-
-    int getDir(int playerNum) {
-        switch (playerNum) {
-            case 0:
-                return DIR_BLACK;
-            case 1:
-                return DIR_RED;
-        }
-        return 0;
-    }
-
-    int [] playerColors = {
-            Color.rgb(64, 64, 64),//BLACK,
-            Color.RED,//rgb(64, 64, 255)
-    };
-
-    String [] names = {
-            "BLACK",
-            "RED",
-    };
-
     int getPcColor(int playerNum) {
-        if (playerNum >= 0)
-            return playerColors[playerNum];
-        return 0;
-    }
-
-    String getPcColorName(int playerNum) {
-        int c = getPcColor(playerNum);
-        int index=0;
-        for (int pc : playerColors) {
-            if (pc == c)
-                return names[index];
-            index++;
+        switch (game.getPlayerColor(playerNum)) {
+            case BLACK:
+                return Color.rgb(64, 64, 64);
+            case RED:
+                return Color.RED;
+            case WHITE:
+                return Color.WHITE;
         }
-        throw new AssertionError();
+        return 0;
     }
 
     private void highlightMove(Canvas canvas, Move m) {
@@ -649,37 +595,38 @@ public class CheckerboardView extends View { //implements View.OnClickListener {
     void drawPieceAt(Canvas g, Piece pc, float cx, float cy, int outline) {
 
         Drawable d = null;
+        boolean isBlack = game.getPlayerColor(pc.playerNum) == ACheckboardGame.Color.BLACK;
         switch (pc.type) {
             case PAWN:
             case PAWN_IDLE:
             case PAWN_ENPASSANT:
             case PAWN_TOSWAP:
-                if (pc.playerNum == ACheckboardGame.BLACK)
+                if (isBlack)
                     d = getResources().getDrawable(R.drawable.bk_pawn);
                 else
                     d = getResources().getDrawable(R.drawable.wt_pawn);
                 break;
             case BISHOP:
-                if (pc.playerNum == ACheckboardGame.BLACK)
+                if (isBlack)
                     d = getResources().getDrawable(R.drawable.bk_bishop);
                 else
                     d = getResources().getDrawable(R.drawable.wt_bishop);
                 break;
             case KNIGHT:
-                if (pc.playerNum == ACheckboardGame.BLACK)
+                if (isBlack)
                     d = getResources().getDrawable(R.drawable.bk_knight);
                 else
                     d = getResources().getDrawable(R.drawable.wt_knight);
                 break;
             case ROOK_IDLE:
             case ROOK:
-                if (pc.playerNum == ACheckboardGame.BLACK)
+                if (isBlack)
                     d = getResources().getDrawable(R.drawable.bk_rook);
                 else
                     d = getResources().getDrawable(R.drawable.wt_rook);
                 break;
             case QUEEN:
-                if (pc.playerNum == ACheckboardGame.BLACK)
+                if (isBlack)
                     d = getResources().getDrawable(R.drawable.bk_queen);
                 else
                     d = getResources().getDrawable(R.drawable.wt_queen);
@@ -689,7 +636,7 @@ public class CheckerboardView extends View { //implements View.OnClickListener {
                 outline = OUTLINE_RED;
             case UNCHECKED_KING:
             case UNCHECKED_KING_IDLE:
-                if (pc.playerNum == ACheckboardGame.BLACK)
+                if (isBlack)
                     d = getResources().getDrawable(R.drawable.bk_king);
                 else
                     d = getResources().getDrawable(R.drawable.wt_king);

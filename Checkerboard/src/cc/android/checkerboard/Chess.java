@@ -12,20 +12,37 @@ import static cc.android.checkerboard.PieceType.*;
 
 public class Chess extends ACheckboardGame {
 
+    static {
+        addAllFields(Chess.class);
+    }
+
+    private int whiteSide = -1;
+
     public Chess() {
         super(8,8,2);
     }
 
     public void newGame() {
-        initRank(0, BLACK, ROOK_IDLE, KNIGHT, BISHOP, QUEEN, UNCHECKED_KING_IDLE, BISHOP, KNIGHT, ROOK_IDLE);
-        initRank(1, BLACK, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE);
-        initRank(2, -1   , EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY);
-        initRank(3, -1   , EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY);
-        initRank(4, -1   , EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY);
-        initRank(5, -1   , EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY);
-        initRank(6, RED  , PAWN_IDLE, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE);
-        initRank(7, RED  , ROOK_IDLE, KNIGHT, BISHOP, QUEEN, UNCHECKED_KING_IDLE, BISHOP, KNIGHT, ROOK_IDLE);
         super.newGame();
+        whiteSide = Utils.flipCoin() ? FAR : NEAR;
+        setTurn(whiteSide);
+        // this is to enforce the 'quenn on her own color square' rule
+        PieceType left = PieceType.QUEEN;
+        PieceType right = PieceType.UNCHECKED_KING_IDLE;
+        if (whiteSide == FAR) {
+            right = PieceType.QUEEN;
+            left = PieceType.UNCHECKED_KING_IDLE;
+        }
+
+        initRank(0, FAR, ROOK_IDLE, KNIGHT, BISHOP, left, right, BISHOP, KNIGHT, ROOK_IDLE);
+        initRank(1, FAR, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE);
+        initRank(2, -1  , EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY);
+        initRank(3, -1  , EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY);
+        initRank(4, -1  , EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY);
+        initRank(5, -1  , EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY);
+        initRank(6, NEAR, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE);
+        initRank(7, NEAR, ROOK_IDLE, KNIGHT, BISHOP, left, right, BISHOP, KNIGHT, ROOK_IDLE);
+        computeMoves();
     }
 
     @Override
@@ -65,30 +82,7 @@ public class Chess extends ACheckboardGame {
                 default:
                     throw new AssertionError();
             }
-
-            // see if we are checking the opponent
-            int [] opponentKing = findPiecePosition(getOpponent(), CHECKED_KING, CHECKED_KING_IDLE, UNCHECKED_KING, UNCHECKED_KING_IDLE);
-            Piece king = getPiece(opponentKing);
-            boolean checked = isSquareAttacked(opponentKing[0], opponentKing[1], getTurn());
-            switch (king.type) {
-                case CHECKED_KING_IDLE:
-                    if (!checked)
-                        king.type = UNCHECKED_KING_IDLE;
-                    break;
-                case CHECKED_KING:
-                    if (!checked)
-                        king.type = UNCHECKED_KING;
-                    break;
-                case UNCHECKED_KING_IDLE:
-                    if (checked)
-                        king.type = CHECKED_KING_IDLE;
-                    break;
-                case UNCHECKED_KING:
-                    if (checked)
-                        king.type = CHECKED_KING;
-                    break;
-            }
-
+            updateOpponentKingCheckedState();
         }
 
         if (lock == null) {
@@ -101,9 +95,41 @@ public class Chess extends ACheckboardGame {
         // check for game over
     }
 
+    private void updateOpponentKingCheckedState() {
+        // see if we are checking the opponent
+        int [] opponentKing = findPiecePosition(getOpponent(), CHECKED_KING, CHECKED_KING_IDLE, UNCHECKED_KING, UNCHECKED_KING_IDLE);
+        Piece king = getPiece(opponentKing);
+        boolean checked = isSquareAttacked(opponentKing[0], opponentKing[1], getTurn());
+        switch (king.type) {
+            case CHECKED_KING_IDLE:
+                if (!checked)
+                    king.type = UNCHECKED_KING_IDLE;
+                break;
+            case CHECKED_KING:
+                if (!checked)
+                    king.type = UNCHECKED_KING;
+                break;
+            case UNCHECKED_KING_IDLE:
+                if (checked)
+                    king.type = CHECKED_KING_IDLE;
+                break;
+            case UNCHECKED_KING:
+                if (checked)
+                    king.type = CHECKED_KING;
+                break;
+        }
+
+    }
+
+    @Override
+    protected void reverseMove(Move m, boolean recompute) {
+        super.reverseMove(m, recompute);
+        updateOpponentKingCheckedState();
+    }
+
     /*
-    Return true if p.type is on set of types and p.playerNum equals playerNum
-     */
+        Return true if p.type is on set of types and p.playerNum equals playerNum
+         */
     private boolean testPiece(Piece p, int playerNum, PieceType ... types) {
         for (PieceType t : types) {
             if (p.playerNum == playerNum && p.type == t)
@@ -130,10 +156,11 @@ public class Chess extends ACheckboardGame {
             }
         }
 
+        final int adv = getAdvanceDir(getOpponent(playerNum));
         // look for pawns
-        if (testPiece(getPiece(rank +getForward(playerNum), col +1), playerNum, PAWN, PAWN_ENPASSANT, PAWN_IDLE))
+        if (testPiece(getPiece(rank +adv, col +1), playerNum, PAWN, PAWN_ENPASSANT, PAWN_IDLE))
             return true;
-        if (testPiece(getPiece(rank +getForward(playerNum), col -1), playerNum, PAWN, PAWN_ENPASSANT, PAWN_IDLE))
+        if (testPiece(getPiece(rank +adv, col -1), playerNum, PAWN, PAWN_ENPASSANT, PAWN_IDLE))
             return true;
 
         // fan out in all eight directions looking for a opponent king
@@ -225,15 +252,15 @@ public class Chess extends ACheckboardGame {
             case PAWN_IDLE:
             case PAWN: {
                 // check in front of us 1 space
-                tr=rank + p.getForward();
+                tr=rank + getAdvanceDir(p.playerNum);
                 tc=col;
                 PieceType nextPawn = PAWN;
-                if (tr == getRankForSwapPawn(p.playerNum))
+                if (tr == getStartRank(getOpponent(p.playerNum)))
                     nextPawn = PAWN_TOSWAP;
                 if (getPiece(tr, col).type == EMPTY) {
                     p.moves.add(new Move(MoveType.SLIDE, p.playerNum, null, nextPawn, rank, col, tr, tc));
                     if (p.type == PAWN_IDLE) {
-                        int tr2 = rank + p.getForward()*2;
+                        int tr2 = rank + getAdvanceDir(p.playerNum)*2;
                         // if we have not moved yet then we may be able move 2 squares
                         if (getPiece(tr2, col).type == EMPTY) {
                             p.moves.add(new Move(MoveType.SLIDE, p.playerNum, null, PAWN_ENPASSANT, rank, col, tr2, tc));
@@ -253,10 +280,10 @@ public class Chess extends ACheckboardGame {
                 // check en passant
                 tr = rank;
                 if ((tp=getPiece(tr, (tc=col+1))).playerNum == opponent && tp.type == PAWN_ENPASSANT) {
-                    p.moves.add(new Move(MoveType.SLIDE, p.playerNum, tp, nextPawn, rank, col, tr+getForward(p.playerNum), tc, tr, tc));
+                    p.moves.add(new Move(MoveType.SLIDE, p.playerNum, tp, nextPawn, rank, col, tr+getAdvanceDir(p.playerNum), tc, tr, tc));
                 }
                 if ((tp=getPiece(tr, (tc=col-1))).playerNum == opponent && tp.type == PAWN_ENPASSANT) {
-                    p.moves.add(new Move(MoveType.SLIDE, p.playerNum, tp, nextPawn, rank, col, tr+getForward(p.playerNum), tc, tr, tc));
+                    p.moves.add(new Move(MoveType.SLIDE, p.playerNum, tp, nextPawn, rank, col, tr+getAdvanceDir(p.playerNum), tc, tr, tc));
                 }
                 break;
             }
@@ -288,8 +315,9 @@ public class Chess extends ACheckboardGame {
             case UNCHECKED_KING:
             case CHECKED_KING:
                 checkForCastle(rank, col, 0);
-                checkForCastle(rank, col, 7);
+                checkForCastle(rank, col, COLUMNS-1);
                 d=1;
+                /*
                 boolean attacked = isSquareAttacked(rank, col, opponent);
                 switch (p.type) {
                     case CHECKED_KING:
@@ -308,7 +336,7 @@ public class Chess extends ACheckboardGame {
                         if (attacked)
                             p.type = CHECKED_KING_IDLE;
                         break;
-                }
+                }*/
             case QUEEN:
                 dr = NSEW_DIAG_DELTAS[0];
                 dc = NSEW_DIAG_DELTAS[1];
@@ -321,18 +349,17 @@ public class Chess extends ACheckboardGame {
         }
 
         if (dr != null) {
-            if (dr.length != dc.length)
-                throw new AssertionError();
+            Utils.assertTrue(dr.length == dc.length);
             for (int i=0; i<dr.length; i++) {
                 // search max d units in a specific direction
                 for (int ii=1; ii<=d; ii++) {
                     tr=rank+dr[i]*ii;
                     tc=col +dc[i]*ii;
                     tp = getPiece(tr, tc);
-                    if (tp.playerNum == opponent) {
+                    if (tp.playerNum == opponent) { // look for capture
                         p.moves.add(new Move(mt, p.playerNum, tp, nextType, rank, col, tr, tc, tr, tc));
                         break; // can no longer search along this path
-                    } else if (tp.type == EMPTY) {
+                    } else if (tp.type == EMPTY) { // look for open
                         p.moves.add(new Move(mt, p.playerNum, null, nextType, rank, col, tr, tc));
                     } else {
                         break; // can no longer search along this path
@@ -379,4 +406,10 @@ public class Chess extends ACheckboardGame {
             {0, 1, 0, -1, -1, 1, -1, 1}
     };
 
+    @Override
+    public Color getPlayerColor(int side) {
+        if (whiteSide == side)
+            return Color.WHITE;
+        return Color.BLACK;
+    }
 }
