@@ -60,7 +60,7 @@ public abstract class MiniMaxTree<G extends IGame> {
             if (game.getTurn() == m.getPlayerNum()) {
                 // this means we have more move options
                 v = buildTree(game, next, depth, scale);
-            } else if (depth > 0) {
+            } else if (depth > 0 && !kill) {
                 v = buildTree(game, next, depth-1, scale * -1);
             } else {
                 v = evaluate((G)game, next, m.getPlayerNum()) * scale;
@@ -84,8 +84,7 @@ public abstract class MiniMaxTree<G extends IGame> {
      * Implement a valuation method with the following properties
      *
      * If eval(player A) = x then eval(player B) = -x
-     *
-     * If moves == 0 then the game is over with value -INF
+     * If moves re zero then value is automatically (+/-) INF
      *
      * @param game
      * @param t

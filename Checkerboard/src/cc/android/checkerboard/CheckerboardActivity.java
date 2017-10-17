@@ -257,8 +257,9 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
 
         @Override
         protected Void doInBackground(ACheckboardGame... params) {
-            Checkers game = new Checkers();
-            game.copyFrom(params[0]);
+            ACheckboardGame pbvGame = params[0];
+            ACheckboardGame game = (pbvGame instanceof Checkers) ? new Checkers() : new Chess();
+            game.copyFrom(pbvGame);
             root = new MMTreeNode(game);
             robot.doRobot(game, root);
             if (debugMode) {
@@ -274,7 +275,7 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
                         }
                     }
                     game.executeMove(p.getMove());
-                    params[0].copyFrom(game);
+                    pbvGame.copyFrom(game);
                     pbv.postInvalidate();
                 }
             }

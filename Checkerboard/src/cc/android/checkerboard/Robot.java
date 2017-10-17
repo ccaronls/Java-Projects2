@@ -55,12 +55,10 @@ public class Robot extends Reflector<Robot> {
                 doRandomRobot(root);
                 break;
             case MINIMAX_BOT1: {
-                //doMinimaxRobot(game, root, 1, 1);
                 mmt.buildTree(game, root, 1);
                 break;
             }
             case MINIMAX_BOT2: {
-                //doMinimaxRobot(game, root, 2, 1);
                 mmt.buildTree(game, root, 2);
                 break;
             }
@@ -68,12 +66,87 @@ public class Robot extends Reflector<Robot> {
     }
 
     protected long evaluateChessBoard(Chess game, MMTreeNode node, int playerNum) {
-        return 0;
+
+        int dPcCount = 0;
+        int dPcValue = 0;
+        int dPawnAdv = 0;
+
+        for (int rank=0; rank<game.RANKS; rank++) {
+            for (int col=0; col<game.COLUMNS; col++) {
+                //for (Piece p : game..getBoard[rank]) {
+                Piece p = game.getPiece(rank, col);
+                if (p.playerNum < 0)
+                    continue;
+
+                final int scale = p.playerNum == playerNum ? 1 : -1;
+                int value = 0;
+
+                switch (p.type) {
+                    case PAWN:
+                        dPawnAdv += scale * Math.abs(rank-game.getStartRank(p.playerNum));
+                        value = 1; break;
+                    case PAWN_IDLE:
+                        dPawnAdv += scale * Math.abs(rank-game.getStartRank(p.playerNum));
+                        value = 2; break;
+                    case PAWN_ENPASSANT:
+                        dPawnAdv += scale * Math.abs(rank-game.getStartRank(p.playerNum));
+                        value = 4; break;
+                    case PAWN_TOSWAP:
+                        dPawnAdv += scale * Math.abs(rank-game.getStartRank(p.playerNum));
+                        value = 1000; break;
+                    case BISHOP:
+                        value = 3; break;
+                    case KNIGHT:
+                        value = 3; break;
+                    case ROOK:
+                        value = 5; break;
+                    case ROOK_IDLE:
+                        value = 6; break;
+                    case QUEEN:
+                        value = 8; break;
+                    case CHECKED_KING:
+                        value = -100; break;
+                    case CHECKED_KING_IDLE:
+                        value = -99; break;
+                    case UNCHECKED_KING:
+                        value = 100; break;
+                    case UNCHECKED_KING_IDLE:
+                        value = 100; break;
+                    default:
+                        continue;
+                }
+
+                dPcCount += scale;
+                dPcValue += scale * value;
+            }
+        }
+
+        long d = dPawnAdv * 100 + dPcCount * 1000 + dPcValue * 10000;
+        if (node != null) {
+            node.appendMeta(String.format(
+                    //"%1$20s:%2$d
+                    "(%3$d)\n"
+                            + "%4$s:%5$d\n"
+                            + "%6$s:%7$d\n"
+                            + "%8$s:%9$d\n"
+//                            + "%10$20s:%11$d\n"
+//                            + "%12$20s:%13$d\n"
+//                            + "%14$20s:%15$d\n"
+                    ,
+                    "Player", game.getTurn(), d,
+                    "dPcCount ", dPcCount,
+                    "dPcValue ", dPcValue,
+                    "dPawnAdv ", dPawnAdv
+            ));
+        }
+        return d + (Utils.rand() % 10 - 5); // add some noise to resolve dups
     }
 
     /**
-     * Returns a number between -1 and 1.
-     * The value returned must reflect the whole board, not just one side
+     * Returns a number in INF to -INF range. -INF would be game over 'I lost'
+     * The value returned must reflect the whole board, not just one side.
+     *
+     * So eval(P) = -eval(opponent(P))
      *
      * @return
      */

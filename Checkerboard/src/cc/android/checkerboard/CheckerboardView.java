@@ -159,18 +159,20 @@ public class CheckerboardView extends View { //implements View.OnClickListener {
         final int [] start;
         final int [] end;
         final int playerNum;
+        final PieceType pType;
 
-        MoveAnim(long duration, int [] start, int [] end, int playerNum, Runnable whenDone, Piece ... toHide) {
+        MoveAnim(long duration, int [] start, int [] end, int playerNum, PieceType pType, Runnable whenDone, Piece ... toHide) {
             super(duration, 0);
             this.start = start;
             this.end = end;
             this.playerNum = playerNum;
+            this.pType = pType;
             this.whenDone = whenDone;
             hidden.addAll(Arrays.asList(toHide));
         }
 
         MoveAnim(long duration, Move move, Runnable whenDone, Piece ... toHide) {
-            this(duration, move.getStart(), move.hasEnd() ? move.getEnd() : move.getStart(), move.playerNum, whenDone, toHide);
+            this(duration, move.getStart(), move.hasEnd() ? move.getEnd() : move.getStart(), move.playerNum, game.getPiece(move.getStart()).type, whenDone, toHide);
         }
 
         @Override
@@ -185,14 +187,12 @@ public class CheckerboardView extends View { //implements View.OnClickListener {
 
     class StackAnim extends MoveAnim {
         final int rank, col, playerNum;
-        final PieceType type;
 
         public StackAnim(Move move, Runnable whenDone, int playerNum, int rank, int col, PieceType pt) {
-            super(1600, move, whenDone, game.getPiece(rank, col));
+            super(1200, move, whenDone, game.getPiece(rank, col));
             this.rank = rank;
             this.col = col;
             this.playerNum = playerNum;
-            this.type = pt;
         }
 
         @Override
@@ -207,7 +207,7 @@ public class CheckerboardView extends View { //implements View.OnClickListener {
             g.save();
             g.translate(x, y);
             g.scale(scale, scale);
-            drawPieceAt(g, new Piece(playerNum, type), 0f, 0f, OUTLINE_NONE);
+            drawPieceAt(g, new Piece(playerNum, pType), 0f, 0f, OUTLINE_NONE);
             g.restore();
         }
 
@@ -216,7 +216,11 @@ public class CheckerboardView extends View { //implements View.OnClickListener {
     class SlideAnim extends MoveAnim {
 
         public SlideAnim(Move move, Runnable whenDone) {
-            super(800, move, whenDone, game.getPiece(move.getStart()));
+            this(move.getStart(), move.getEnd(), move.playerNum, game.getPiece(move.getStart()).type, whenDone);
+        }
+
+        public SlideAnim(int[] start, int []end, int playerNum, PieceType pt, Runnable whenDone) {
+            super(800, start, end, playerNum, pt, whenDone, game.getPiece(start));
         }
 
         @Override
@@ -227,7 +231,7 @@ public class CheckerboardView extends View { //implements View.OnClickListener {
             float ey = cellH * end[0] + cellH/2;
             int x = Math.round(sx + (ex-sx) * position);
             int y = Math.round(sy + (ey-sy) * position);
-            Piece p = game.getPiece(start);
+            Piece p = new Piece(playerNum, pType);
             drawPieceAt(g, p, x, y, OUTLINE_NONE);
         }
     }
@@ -257,8 +261,8 @@ public class CheckerboardView extends View { //implements View.OnClickListener {
             return v;
         }
 
-        public JumpAnim(int [] start, int [] end, int playerNum, Runnable whenDone) {
-            super(1200, start, end, playerNum, whenDone, game.getPiece(start));
+        public JumpAnim(int [] start, int [] end, int playerNum, PieceType pt, Runnable whenDone) {
+            super(1200, start, end, playerNum, pt, whenDone, game.getPiece(start));
             curve = new Bezier(computeJumpPoints(start, end, playerNum));
         }
 
@@ -270,7 +274,7 @@ public class CheckerboardView extends View { //implements View.OnClickListener {
         @Override
         public void draw(Canvas g, float position, float dt) {
             Vector2D v = curve.getPointAt(position);
-            Piece p = game.getPiece(start);
+            Piece p = new Piece(playerNum, pType);
             drawPieceAt(g, p, v.X(), v.Y(), OUTLINE_NONE);
         }
 
@@ -360,7 +364,7 @@ public class CheckerboardView extends View { //implements View.OnClickListener {
     public void animateMoveAndThen(Move m, Runnable onDone) {
         switch (m.type) {
             case CASTLE:
-                animations.add(new JumpAnim(m.getCastleRookStart(), m.getCastleRookEnd(), m.playerNum, onDone).start());
+                animations.add(new JumpAnim(m.getCastleRookStart(), m.getCastleRookEnd(), m.playerNum, PieceType.ROOK, onDone).start());
                 animations.add(new SlideAnim(m, null).start());
                 break;
             case SLIDE:
@@ -395,6 +399,9 @@ public class CheckerboardView extends View { //implements View.OnClickListener {
                             animations.add(new StackAnim(m, null, m.captured.playerNum, m.getCaptured()[0], m.getCaptured()[1], m.captured.type).startReverse());
                         break;
                     }
+                    case CASTLE:
+                        animations.add(new JumpAnim(m.getCastleRookStart(), m.getCastleRookEnd(), m.getPlayerNum(), PieceType.ROOK, null).start());
+                        break;
                     case END:
                         continue;
                 }
@@ -452,6 +459,9 @@ public class CheckerboardView extends View { //implements View.OnClickListener {
         if (game == null)
             return;
 
+        if (tapped != null && tapped.playerNum != game.getTurn())
+            tapped = null;
+
         Piece mainPc = null;
         int numMvblePcs = 0;
         for (int i=0; i<COLUMNS; i++) {
@@ -490,7 +500,7 @@ public class CheckerboardView extends View { //implements View.OnClickListener {
                 return;
         }
 
-        anims.clear();
+        animations.clear();
         hidden.clear();
 
         if (highlightMove != null) {
@@ -707,21 +717,7 @@ public class CheckerboardView extends View { //implements View.OnClickListener {
         rf.set(cx-rad, cy-rad, cx+rad, cy+rad);
         c.drawOval(rf, p);
     }
-/*
-    @Override
-    public void onClick(View v) {
-        if (v.getId() == R.id.buttonEndTurn) {
-            Move move = (Move)v.getTag();
-            if (move == null)
-                throw new AssertionError();
-            game.executeMove(move);
-        } else if (v.getId() == R.id.buttonNewGame) {
-            game.newGame();
-        }
-        this.dragging = this.tapped = null;
-        invalidate();
-    }
-*/
+
     public final void undo() {
         for (AAnimation<Canvas> a : animations) {
             a.stop();
@@ -740,6 +736,10 @@ public class CheckerboardView extends View { //implements View.OnClickListener {
                     break;
                 case STACK:
                     animations.add(new StackAnim(m, null, m.playerNum, m.getStart()[0], m.getStart()[1], PieceType.CHECKER).startReverse());
+                    break;
+                case CASTLE:
+                    animations.add(new JumpAnim(m, null).startReverse());
+                    animations.add(new SlideAnim(m.getCastleRookStart(), m.getCastleRookEnd(), m.getPlayerNum(), PieceType.ROOK, null).startReverse());
                     break;
             }
         }

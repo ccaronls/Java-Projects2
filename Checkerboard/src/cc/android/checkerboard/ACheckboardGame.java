@@ -121,6 +121,8 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
      * Should be called after all the pieces have been setup
      */
     public void newGame() {
+        if (board[0][0] != null)
+            clearMoves();
         lock = null;
         undoStack.clear();
     }
@@ -177,8 +179,8 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
     }
 
     public final void clearMoves() {
-        for (int i=0; i<RANKS; i++) {
-            for (int ii=0; ii<COLUMNS; ii++) {
+        for (int i = 0; i < RANKS; i++) {
+            for (int ii = 0; ii < COLUMNS; ii++) {
                 getPiece(i, ii).moves.clear();
             }
         }
