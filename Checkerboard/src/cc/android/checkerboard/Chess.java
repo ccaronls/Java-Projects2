@@ -16,15 +16,21 @@ public class Chess extends ACheckboardGame {
         super(8,8,2);
     }
 
+    public void newGame() {
+        initRank(0, BLACK, ROOK_IDLE, KNIGHT, BISHOP, QUEEN, UNCHECKED_KING_IDLE, BISHOP, KNIGHT, ROOK_IDLE);
+        initRank(1, BLACK, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE);
+        initRank(2, -1   , EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY);
+        initRank(3, -1   , EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY);
+        initRank(4, -1   , EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY);
+        initRank(5, -1   , EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY);
+        initRank(6, RED  , PAWN_IDLE, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE);
+        initRank(7, RED  , ROOK_IDLE, KNIGHT, BISHOP, QUEEN, UNCHECKED_KING_IDLE, BISHOP, KNIGHT, ROOK_IDLE);
+        super.newGame();
+    }
+
     @Override
     public void executeMove(Move move) {
-        // perform operation
-        // visit all enpassant pawns and make them normal pawns
-        //for (Piece p : getPieces(getTurn())) {
-        //    if (p.type == PAWN_ENPASSANT) {
-        //        p.type = PAWN;
-        //    }
-        //}
+        lock = null;
         clearMoves();
         undoStack.push(move);
         {
@@ -33,9 +39,9 @@ public class Chess extends ACheckboardGame {
                 case JUMP:
                 case SLIDE:
                     if (move.captured != null) {
-                        clearPiece(move.getCaptured());//.captureRank, move.captureCol);
+                        clearPiece(move.getCaptured());
                     }
-                    p = getPiece(move.getStart());//startRank, move.startCol);
+                    p = getPiece(move.getStart());
                     movePiece(move);
                     // check for pawn advancing
                     if (p.type == PAWN_TOSWAP) {
@@ -69,15 +75,6 @@ public class Chess extends ACheckboardGame {
         }
 
         // check for game over
-    }
-
-    @Omit
-    boolean isInCheck = false; //
-
-    protected void onRecomputeMovesBegin() {
-    }
-
-    protected void onRecomputeMovesEnd() {
     }
 
     private boolean testPiece(Piece p, int playerNum, PieceType ... types) {
@@ -142,20 +139,7 @@ public class Chess extends ACheckboardGame {
 
         return false;
     }
-/*
-    private Move testCheckingOpponent(Move move) {
-        movePiece(move);
-        computeMovesForSquare(move.endRank, move.endCol, move);
-        for (Move m : getPiece(move.endRank, move.endCol).moves) {
-            if (m.captured != null && (m.captured.type == UNCHECKED_KING || m.captured.type == UNCHECKED_KING_IDLE)) {
-                m.willCheckOpponentKing = true;
-                break;
-            }
-        }
-        reverseMove(move);
-        return move;
-    }
-*/
+
     private void checkForCastle(int rank, int kingCol, int rookCol) {
         Piece king = getPiece(rank, kingCol);
         Piece rook = getPiece(rank, rookCol);
@@ -210,7 +194,7 @@ public class Chess extends ACheckboardGame {
                 tr=rank + p.getForward();
                 tc=col;
                 PieceType nextPawn = PAWN;
-                if (tr == getRankForKing(getTurn()))
+                if (tr == getRankForSwapPawn(p.playerNum))
                     nextPawn = PAWN_TOSWAP;
                 if (getPiece(tr, col).type == EMPTY) {
                     p.moves.add(new Move(MoveType.SLIDE, p.playerNum, null, nextPawn, rank, col, tr, tc));
@@ -327,7 +311,7 @@ public class Chess extends ACheckboardGame {
         Iterator<Move> it = p.moves.iterator();
         while (it.hasNext()) {
             Move m = it.next();
-            if (m.squares.length < 2)
+            if (!m.hasEnd())
                 continue;
             movePiece(m);
             int [] kingPos = findPiecePosition(getTurn(), UNCHECKED_KING_IDLE, UNCHECKED_KING, CHECKED_KING, CHECKED_KING_IDLE);
@@ -355,17 +339,5 @@ public class Chess extends ACheckboardGame {
             {1, 0, -1, 0, -1, -1, 1, 1},
             {0, 1, 0, -1, -1, 1, -1, 1}
     };
-
-    public void newGame() {
-        initRank(0, BLACK, ROOK_IDLE, KNIGHT, BISHOP, QUEEN, UNCHECKED_KING_IDLE, BISHOP, KNIGHT, ROOK_IDLE);
-        initRank(1, BLACK, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE);
-        initRank(2, -1   , EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY);
-        initRank(3, -1   , EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY);
-        initRank(4, -1   , EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY);
-        initRank(5, -1   , EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY);
-        initRank(6, RED  , PAWN_IDLE, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE);
-        initRank(7, RED  , ROOK_IDLE, KNIGHT, BISHOP, QUEEN, UNCHECKED_KING_IDLE, BISHOP, KNIGHT, ROOK_IDLE);
-        super.newGame();
-    }
 
 }

@@ -30,6 +30,7 @@ public class Piece extends Reflector<Piece> {
         this.type = type;
     }
 
+    // TODO: this needs to be based on player side of board (NEAR/FAR)
     public int getForward() {
         if (playerNum == ACheckboardGame.BLACK)
             return 1;

@@ -111,10 +111,10 @@ public class Checkers extends ACheckboardGame  {
 	public void executeMove(Move move) {
         lock = null;
 		boolean isKinged = false;
-		final Piece p = getPiece(move.getStart());//move.startRank, move.startCol);
+		final Piece p = getPiece(move.getStart());
         // clear everyone all moves
         clearMoves();
-		if (move.squares.length > 1) {
+		if (move.hasEnd()) {
             int rank = move.getEnd()[0];
             isKinged = (p.type == CHECKER && getRankForKingCurrent() == rank);
             movePiece(move);
@@ -125,7 +125,7 @@ public class Checkers extends ACheckboardGame  {
         switch (move.type) {
             case SLIDE:
                 if (isKinged) {
-                    p.moves.add(new Move(MoveType.STACK, move.playerNum, null, null, move.getEnd()));
+                    p.moves.add(new Move(MoveType.STACK, move.playerNum, null, PieceType.KING, move.getEnd()));
                     lock = p;
                     break;
                 }
@@ -134,8 +134,7 @@ public class Checkers extends ACheckboardGame  {
                 return;
             case JUMP:
                 if (move.captured != null) {
-                    //setPieceType(move.getCaptured(), new Piece(EMPTY));
-                    clearPiece(move.getCaptured());//.captureRank, move.captureCol);
+                    clearPiece(move.getCaptured());
                 }
                 if (isKinged) {
                     p.moves.add(new Move(MoveType.STACK, move.playerNum, null, PieceType.KING, move.getEnd()));
@@ -143,13 +142,15 @@ public class Checkers extends ACheckboardGame  {
                 }
                 break;
             case STACK:
+                move.nextType = p.type;
                 setPieceType(move.getStart(), KING);
                 break;
         }
 
         if (!isKinged) {
             // recursive compute next move if possible after a jump
-            computeMovesForSquare(move.getEnd()[0], move.getEnd()[1], move);
+            if (move.hasEnd())
+                computeMovesForSquare(move.getEnd()[0], move.getEnd()[1], move);
             if (p.moves.size() == 0) {
                 endTurnPrivate();
             } else {

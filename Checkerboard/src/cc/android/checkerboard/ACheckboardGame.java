@@ -219,6 +219,16 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
         return -1;
     }
 
+    public final int getRankForSwapPawn(int playerNum) {
+        switch (playerNum) {
+            case RED:
+                return 0;
+            case BLACK:
+                return board.length-1;
+        }
+        return -1;
+    }
+
     public final boolean isOnBoard(int r, int c) {
         return r>=0 && c>=0 && r<RANKS && c<COLUMNS;
     }
@@ -252,25 +262,22 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
                 break;
             case CASTLE:
                 p = getPiece(m.getCastleRookEnd());
-                Utils.assertTrue(p.type == PieceType.ROOK);
+                Utils.assertTrue(p.type == PieceType.ROOK, "Expected ROOK was " + p.type);
                 p.type = PieceType.ROOK_IDLE;
                 p.playerNum = m.playerNum;
                 setBoard(m.getCastleRookStart(), p);
                 clearPiece(m.getCastleRookEnd());
+                // fallthrough
             case SLIDE:
             case JUMP:
                 setBoard(m.getStart(), getPiece(m.getEnd()));
                 clearPiece(m.getEnd());
                 if (m.captured != null)
                     setBoard(m.getCaptured(), m.captured);
+                //fallthrough
+            case SWAP:
+            case STACK:
                 break;
-            case STACK: {
-                p = getPiece(m.getStart());
-                if (p.type == PieceType.KING) {
-                    setBoard(m.getStart(), new Piece(p.playerNum, PieceType.CHECKER));
-                }
-                break;
-            }
         }
 
         if (m.nextType != null) {

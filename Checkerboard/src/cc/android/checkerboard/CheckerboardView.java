@@ -14,6 +14,7 @@ import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.os.SystemClock;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -38,7 +39,7 @@ import cc.lib.math.Vector2D;
  * @author chriscaron
  *
  */
-public class CheckerboardView extends View implements View.OnClickListener {
+public class CheckerboardView extends View { //implements View.OnClickListener {
 
     private final Paint pFill = new Paint();
     private final Paint pStroke = new Paint();
@@ -46,6 +47,7 @@ public class CheckerboardView extends View implements View.OnClickListener {
     private final RectF rf = new RectF();
     private final Paint glowYellow = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint glowRed = new Paint(Paint.ANTI_ALIAS_FLAG);
+    boolean drawDebugInfo = false;
 
     private ACheckboardGame game = null;
 
@@ -171,7 +173,7 @@ public class CheckerboardView extends View implements View.OnClickListener {
         }
 
         MoveAnim(long duration, Move move, Runnable whenDone, Piece ... toHide) {
-            this(duration, move.getStart(), move.getEnd(), move.playerNum, whenDone, toHide);
+            this(duration, move.getStart(), move.hasEnd() ? move.getEnd() : move.getStart(), move.playerNum, whenDone, toHide);
         }
 
         @Override
@@ -284,35 +286,72 @@ public class CheckerboardView extends View implements View.OnClickListener {
             tapped = game.getPiece(curRank, curCol);
             if (tapped.moves.size() == 0)
                 tapped = null;
-        } else if (tapped.type == PieceType.PAWN_TOSWAP) {
-            Piece p = game.getPiece(curRank, curCol);
-            for (int i=0; i<p.moves.size(); i++) {
-                Move m = p.moves.get(i);
-                if (m.nextType == p.type) {
-                    int ii = (i+1)%p.moves.size();
-                    p.type = p.moves.get(ii).nextType;
-                    return;
-                }
-            }
-            p.type = p.moves.get(0).nextType;
         } else {
+            Piece swappy = null;
             for (Move m : tapped.moves) {
-                if (m.type == MoveType.END)
-                    continue; // ignore since the ui button will handle
-                if (m.squares.length > 1 && m.getEnd()[0]==curRank && m.getEnd()[1] == curCol) {
-                    animateAndExecuteMove(m);
-                    tapped = null;
-                    return;
+                switch (m.type) {
+                    case END:
+                        continue;
+                    case CASTLE:
+                    case SLIDE:
+                    case JUMP:
+                        if (m.getEnd()[0]==curRank && m.getEnd()[1] == curCol) {
+                            animateAndExecuteMove(m);
+                            tapped = null;
+                            return;
+                        }
+                        break;
+                    case SWAP: {
+                        if (m.getStart()[0]==curRank && m.getStart()[1]==curCol) {
+                            Piece p = game.getPiece(curRank, curCol);
+                            swappy = p;
+                            if (p.type == PieceType.PAWN_TOSWAP) {
+                                p.type = m.nextType;
+                            } else if (p.type == m.nextType) {
+                                p.type = PieceType.PAWN_TOSWAP; // this makes so next iteration will
+                            }
+                        }
+                        break;
+                    }
+                    case STACK:
+                        if (m.getStart()[0]==curRank && m.getStart()[1]==curCol) {
+                            animateAndExecuteMove(m);
+                            tapped = null;
+                            return;
+                        }
+                        break;
                 }
             }
-            Piece p = game.getPiece(curRank, curCol);
-            if (p.moves.size() > 0) {
-                tapped = p;
+            if (swappy != null) {
+                if (swappy.type == PieceType.PAWN_TOSWAP) {
+                    swappy.type = swappy.moves.get(0).nextType;
+                }
             } else {
-                tapped = null;
+                Piece p = game.getPiece(curRank, curCol);
+                if (p.moves.size() > 0) {
+                    tapped = p;
+                } else {
+                    tapped = null;
+                }
+            }
+            if (Build.VERSION.SDK_INT >= 15)
+                callOnClick();
+
+            if (taps == 0) {
+                postDelayed(new Runnable() {
+                    public void run() {
+                        taps = 0;
+                    }
+                }, 2000);
+            }
+
+            if (++taps == 5) {
+                drawDebugInfo = !drawDebugInfo;
             }
         }
     }
+
+    int taps = 0;
 
     public void animateAndExecuteMove(final Move m) {
         animateMoveAndThen(m, new Runnable() {
@@ -350,7 +389,7 @@ public class CheckerboardView extends View implements View.OnClickListener {
 
     private void onDragEnd(int curRank, int curCol) {
         for (Move m : dragging.moves) {
-            if (m.squares.length > 1 && m.getEnd()[0] == curRank && m.getEnd()[1] == curCol) {
+            if (m.hasEnd() && m.getEnd()[0] == curRank && m.getEnd()[1] == curCol) {
                 switch (m.type) {
                     case SLIDE:
                     case JUMP: {
@@ -401,16 +440,17 @@ public class CheckerboardView extends View implements View.OnClickListener {
             }
         }
 
-        for (int i=0; i<COLUMNS; i++) {
-            String txt = String.valueOf(i);
-            canvas.drawText(txt, 0, txt.length(), 5+i*cellW, cellH - 5, pText);
-        }
+        if (drawDebugInfo) {
+            for (int i = 0; i < COLUMNS; i++) {
+                String txt = String.valueOf(i);
+                canvas.drawText(txt, 0, txt.length(), 5 + i * cellW, cellH - 5, pText);
+            }
 
-        for (int i=1; i<RANKS; i++) {
-            String txt = String.valueOf(i);
-            canvas.drawText(txt, 0, txt.length(), 5, cellH-5+i*cellH, pText);
+            for (int i = 1; i < RANKS; i++) {
+                String txt = String.valueOf(i);
+                canvas.drawText(txt, 0, txt.length(), 5, cellH - 5 + i * cellH, pText);
+            }
         }
-
         if (game == null)
             return;
 
@@ -570,40 +610,17 @@ public class CheckerboardView extends View implements View.OnClickListener {
                 canvas.drawRect(sx, sy, sx+cellW, sy+cellH, pStroke);
                 break;
         }
-
-        /*
-                        float sx = m.getStart()[1]*cellW;
-                float sy = m.getStart()[0]*cellH;
-                float ex=0, ey=0;
-                switch (m.type) {
-                    case END:
-                        break;
-                    case CASTLE:
-                        pStroke.setColor(Color.WHITE);
-                        ex = m.getCastleRookStart()[1] * cellW;
-                        ey = m.getCastleRookStart()[0] * cellH;
-                        canvas.drawRect(ex, ey, ex + cellW, ey + cellH, pStroke);
-                        ex = m.getCastleRookStart()[1] * cellW;
-                        ey = m.getCastleRookStart()[0] * cellH;
-                        canvas.drawRect(ex, ey, ex + cellW, ey + cellH, pStroke);
-
-                    case JUMP:
-                    case SLIDE:
-                        ex = m.getEnd()[1] * cellW;
-                        ey = m.getEnd()[0] * cellH;
-                        pStroke.setColor(Color.GREEN);
-                        canvas.drawRect(sx, sy, sx + cellW, sy + cellH, pStroke);
-                        pStroke.setColor(Color.YELLOW);
-                        canvas.drawRect(ex, ey, ex + cellW, ey + cellH, pStroke);
-                        break;
-                    case SWAP:
-                    case STACK:
-                        pStroke.setColor(Color.GREEN);
-                        drawDisk(canvas, pStroke, sx + cellW / 2, sy + cellH / 2, pcRad);
-                        break;
+        if (m.hasEnd()) {
+            cx = m.getEnd()[1]*cellW;
+            cy = m.getEnd()[0]*cellH + cellH/2;
+            if (drawDebugInfo) {
+                canvas.drawText(m.nextType == null ? "null" : m.nextType.name(), cx, cy, pText);
+                if (m.captured != null) {
+                    cy += pText.getTextSize();
+                    canvas.drawText(m.captured.type.name() + " " + m.getCaptured()[0] + "x" + m.getCaptured()[1], cx, cy, pText);
                 }
-
-         */
+            }
+        }
     }
 
     boolean isSquareBlack(int rank, int col) {
@@ -621,10 +638,12 @@ public class CheckerboardView extends View implements View.OnClickListener {
         float cx = col * cellW + cellW / 2;
         float cy = rank * cellH + cellH / 2;
         drawPieceAt(g, pc, cx, cy, outline);
-        if (isSquareBlack(rank, col))
-            g.drawText(pc.type.name(), cellW * col, cellH * rank + cellH - 5, pText);
-        else
-            g.drawText(pc.type.name(), cellW * col, cellH * rank + pText.getTextSize() + 5, pText);
+        if (drawDebugInfo) {
+            if (isSquareBlack(rank, col))
+                g.drawText(pc.type.name(), cellW * col, cellH * rank + cellH - 5, pText);
+            else
+                g.drawText(pc.type.name(), cellW * col, cellH * rank + pText.getTextSize() + 5, pText);
+        }
     }
 
     void drawPieceAt(Canvas g, Piece pc, float cx, float cy, int outline) {
@@ -741,7 +760,7 @@ public class CheckerboardView extends View implements View.OnClickListener {
         rf.set(cx-rad, cy-rad, cx+rad, cy+rad);
         c.drawOval(rf, p);
     }
-
+/*
     @Override
     public void onClick(View v) {
         if (v.getId() == R.id.buttonEndTurn) {
@@ -755,7 +774,7 @@ public class CheckerboardView extends View implements View.OnClickListener {
         this.dragging = this.tapped = null;
         invalidate();
     }
-
+*/
     public final void undo() {
         for (AAnimation<Canvas> a : animations) {
             a.stop();

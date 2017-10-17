@@ -20,7 +20,7 @@ public class Move extends Reflector<Move> implements IMove {
 //    public final int captureRank, captureCol;
     public final int playerNum;
 
-    public final int [][] squares;
+    private final int [][] squares;
 
     public final Piece captured;
     public PieceType nextType;
@@ -48,6 +48,10 @@ public class Move extends Reflector<Move> implements IMove {
 
     public final int [] getEnd() {
         return squares[1];
+    }
+
+    public final boolean hasEnd() {
+        return squares.length >= 2;
     }
 
     public final int [] getCaptured() {
