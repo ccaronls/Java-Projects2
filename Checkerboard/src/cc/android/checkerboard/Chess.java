@@ -65,6 +65,30 @@ public class Chess extends ACheckboardGame {
                 default:
                     throw new AssertionError();
             }
+
+            // see if we are checking the opponent
+            int [] opponentKing = findPiecePosition(getOpponent(), CHECKED_KING, CHECKED_KING_IDLE, UNCHECKED_KING, UNCHECKED_KING_IDLE);
+            Piece king = getPiece(opponentKing);
+            boolean checked = isSquareAttacked(opponentKing[0], opponentKing[1], getTurn());
+            switch (king.type) {
+                case CHECKED_KING_IDLE:
+                    if (!checked)
+                        king.type = UNCHECKED_KING_IDLE;
+                    break;
+                case CHECKED_KING:
+                    if (!checked)
+                        king.type = UNCHECKED_KING;
+                    break;
+                case UNCHECKED_KING_IDLE:
+                    if (checked)
+                        king.type = CHECKED_KING_IDLE;
+                    break;
+                case UNCHECKED_KING:
+                    if (checked)
+                        king.type = CHECKED_KING;
+                    break;
+            }
+
         }
 
         if (lock == null) {
@@ -77,6 +101,9 @@ public class Chess extends ACheckboardGame {
         // check for game over
     }
 
+    /*
+    Return true if p.type is on set of types and p.playerNum equals playerNum
+     */
     private boolean testPiece(Piece p, int playerNum, PieceType ... types) {
         for (PieceType t : types) {
             if (p.playerNum == playerNum && p.type == t)
@@ -85,6 +112,13 @@ public class Chess extends ACheckboardGame {
         return false;
     }
 
+    /**
+     * Return true if playerNum is attacking the position
+     * @param rank
+     * @param col
+     * @param playerNum
+     * @return
+     */
     final boolean isSquareAttacked(int rank, int col, int playerNum) {
         // search in the eight directions and knights whom can
         int [] dr = KNIGHT_DELTAS[0];
@@ -311,6 +345,11 @@ public class Chess extends ACheckboardGame {
         Iterator<Move> it = p.moves.iterator();
         while (it.hasNext()) {
             Move m = it.next();
+            switch (m.type) {
+                case CASTLE:
+                case SWAP:
+                    continue;
+            }
             if (!m.hasEnd())
                 continue;
             movePiece(m);

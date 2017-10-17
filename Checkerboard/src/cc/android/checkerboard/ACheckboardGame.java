@@ -379,6 +379,10 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
         return moves;
     }
 
+    public final int getOpponent() {
+        return getOpponent(getTurn());
+    }
+
     public final int getOpponent(int player) {
         if (player == BLACK)
             return RED;
