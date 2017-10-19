@@ -186,17 +186,15 @@ public class CheckerboardView extends View { //implements View.OnClickListener {
     }
 
     class StackAnim extends MoveAnim {
-        final int rank, col, playerNum;
 
-        public StackAnim(Move move, Runnable whenDone, int playerNum, int rank, int col, PieceType pt) {
-            super(1200, move, whenDone, game.getPiece(rank, col));
-            this.rank = rank;
-            this.col = col;
-            this.playerNum = playerNum;
+        public StackAnim(int [] pos, int playerNum, PieceType pt, Runnable whenDone) {
+            super(1200, pos, null, playerNum, pt, whenDone, game.getPiece(pos));
         }
 
         @Override
         public void draw(Canvas g, float position, float dt) {
+            int rank = start[0];
+            int col = start[1];
             float sx = cellW * col + cellW/2;
             float sy = rank == 0 ? 0 : getHeight();//0;//cellH * move.startRank + cellH/2;
             float ex = cellW * col + cellW/2;
@@ -372,11 +370,11 @@ public class CheckerboardView extends View { //implements View.OnClickListener {
                 break;
             case JUMP:
                 if (m.captured != null)
-                    animations.add(new StackAnim(m, null, m.captured.playerNum, m.getCaptured()[0], m.getCaptured()[1], m.captured.type).startReverse());
+                    animations.add(new StackAnim(m.getCaptured(), m.captured.playerNum, m.captured.type, onDone).startReverse());
                 animations.add(new JumpAnim(m, onDone).start());
                 break;
             case STACK:
-                animations.add(new StackAnim(m, onDone, m.playerNum, m.getStart()[0], m.getStart()[1], PieceType.CHECKER).start());
+                animations.add(new StackAnim(m.getStart(), m.playerNum, PieceType.CHECKER, onDone).start());
                 break;
             case SWAP:
             default:
@@ -396,7 +394,7 @@ public class CheckerboardView extends View { //implements View.OnClickListener {
                     case SLIDE:
                     case JUMP: {
                         if (m.captured != null)
-                            animations.add(new StackAnim(m, null, m.captured.playerNum, m.getCaptured()[0], m.getCaptured()[1], m.captured.type).startReverse());
+                            animations.add(new StackAnim(m.getCaptured(), m.captured.playerNum, m.captured.type, null).startReverse());
                         break;
                     }
                     case CASTLE:
@@ -432,7 +430,7 @@ public class CheckerboardView extends View { //implements View.OnClickListener {
         cellH = height / RANKS;
         pcRad = Math.min(cellW/3, cellH/3);
 
-        pFill.setColor(Color.BLACK);
+        pFill.setColor(Color.GRAY);
         canvas.drawRect(0f, 0f, width, height, pFill);
 
         pFill.setColor(DroidUtils.ORANGE);
@@ -728,14 +726,14 @@ public class CheckerboardView extends View { //implements View.OnClickListener {
             switch (m.type) {
                 case JUMP:
                     if (m.captured != null)
-                        animations.add(new StackAnim(m, null, m.captured.playerNum, m.getCaptured()[0], m.getCaptured()[1], m.captured.type).start());
+                        animations.add(new StackAnim(m.getCaptured(), m.captured.playerNum, m.captured.type, null).start());
                     animations.add(new JumpAnim(m, null).startReverse());
                     break;
                 case SLIDE:
                     animations.add(new SlideAnim(m, null).startReverse());
                     break;
                 case STACK:
-                    animations.add(new StackAnim(m, null, m.playerNum, m.getStart()[0], m.getStart()[1], PieceType.CHECKER).startReverse());
+                    animations.add(new StackAnim(m.getStart(), m.playerNum, PieceType.CHECKER, null).startReverse());
                     break;
                 case CASTLE:
                     animations.add(new JumpAnim(m, null).startReverse());

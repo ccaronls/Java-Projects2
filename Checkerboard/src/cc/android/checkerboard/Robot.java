@@ -38,8 +38,21 @@ public class Robot extends Reflector<Robot> {
     final MiniMaxTree mmtChess = new MiniMaxTree<Chess>() {
 
         @Override
+        protected void onNewNode(MMTreeNode node) {
+            Move m = (Move)node.getMove();
+            Piece p = ((Chess) node.getGame()).getPiece(m.getStart());
+            if (m.hasEnd()) {
+                node.appendMeta("%s->%dx%d", p.type.abbrev, m.getEnd()[0], m.getEnd()[1]);
+            } else {
+                node.appendMeta("%s %s", m.type.name(), p.type.abbrev);
+            }
+        }
+
+        @Override
         protected long evaluate(Chess game, MMTreeNode t, int playerNum) {
             return Robot.this.evaluateChessBoard(game, t, playerNum);
+
+
         }
     };
 
@@ -65,63 +78,99 @@ public class Robot extends Reflector<Robot> {
         }
     }
 
+
+
     protected long evaluateChessBoard(Chess game, MMTreeNode node, int playerNum) {
 
         int dPcCount = 0;
         int dPcValue = 0;
         int dPawnAdv = 0;
 
+        final int [][] bValue = new int[8][8];
+
         for (int rank=0; rank<game.RANKS; rank++) {
             for (int col=0; col<game.COLUMNS; col++) {
-                //for (Piece p : game..getBoard[rank]) {
                 Piece p = game.getPiece(rank, col);
+
                 if (p.playerNum < 0)
                     continue;
 
                 final int scale = p.playerNum == playerNum ? 1 : -1;
+
                 int value = 0;
 
                 switch (p.type) {
                     case PAWN:
                         dPawnAdv += scale * Math.abs(rank-game.getStartRank(p.playerNum));
-                        value = 1; break;
+                        value = 1;
+                        break;
                     case PAWN_IDLE:
                         dPawnAdv += scale * Math.abs(rank-game.getStartRank(p.playerNum));
-                        value = 2; break;
+                        value = 1;
+                        break;
                     case PAWN_ENPASSANT:
                         dPawnAdv += scale * Math.abs(rank-game.getStartRank(p.playerNum));
-                        value = 4; break;
+                        value = 1;
+                        break;
                     case PAWN_TOSWAP:
                         dPawnAdv += scale * Math.abs(rank-game.getStartRank(p.playerNum));
-                        value = 1000; break;
+                        value = 1000;
+                        break;
                     case BISHOP:
-                        value = 3; break;
+                        value = 3;
+                        break;
                     case KNIGHT:
-                        value = 3; break;
+                        value = 3;
+                        break;
                     case ROOK:
-                        value = 5; break;
+                        value = 5;
+                        break;
                     case ROOK_IDLE:
-                        value = 6; break;
+                        value = 5;
+                        break;
                     case QUEEN:
-                        value = 8; break;
+                        value = 8;
+                        break;
                     case CHECKED_KING:
-                        value = -100; break;
+                        value = -2;
+                        break;
                     case CHECKED_KING_IDLE:
-                        value = -99; break;
+                        value = -1;
+                        break;
                     case UNCHECKED_KING:
-                        value = 100; break;
+                        value = 0;
+                        break;
                     case UNCHECKED_KING_IDLE:
-                        value = 100; break;
+                        value = 1;
+                        break;
                     default:
+                        Utils.assertTrue(false);
                         continue;
                 }
 
                 dPcCount += scale;
                 dPcValue += scale * value;
+
+                if (game.isSquareAttacked(rank, col, p.playerNum)) {
+                    bValue[rank][col] += value;
+                }
+                if (game.isSquareAttacked(rank, col, game.getOpponent(p.playerNum))) {
+                    bValue[rank][col] -= value;
+                }
+
+
             }
         }
 
-        long d = dPawnAdv * 100 + dPcCount * 1000 + dPcValue * 10000;
+        long dAttackMatrix = 0;
+        for (int i=0; i<8; i++) {
+            dAttackMatrix += Utils.sum(bValue[i]);
+        }
+        long d  = dPawnAdv * 100
+                //+dPcCount * 1000
+                 +dPcValue * 10000
+                 //+dAttackMatrix * 10
+                ;
         if (node != null) {
             node.appendMeta(String.format(
                     //"%1$20s:%2$d
@@ -129,14 +178,14 @@ public class Robot extends Reflector<Robot> {
                             + "%4$s:%5$d\n"
                             + "%6$s:%7$d\n"
                             + "%8$s:%9$d\n"
-//                            + "%10$20s:%11$d\n"
+                            + "%10$20s:%11$d\n"
 //                            + "%12$20s:%13$d\n"
 //                            + "%14$20s:%15$d\n"
-                    ,
-                    "Player", game.getTurn(), d,
-                    "dPcCount ", dPcCount,
-                    "dPcValue ", dPcValue,
-                    "dPawnAdv ", dPawnAdv
+                    ,"Player", game.getTurn(), d
+                    ,"dPcCount ", dPcCount
+                    ,"dPcValue ", dPcValue
+                    ,"dPawnAdv ", dPawnAdv
+                    ,"dAttackMatrix", dAttackMatrix
             ));
         }
         return d + (Utils.rand() % 10 - 5); // add some noise to resolve dups

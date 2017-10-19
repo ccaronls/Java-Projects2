@@ -55,9 +55,11 @@ public abstract class MiniMaxTree<G extends IGame> {
             game.executeMove(m);
             MMTreeNode next = new MMTreeNode(game, m);
             //next.appendMeta("playerNum=%d, scale=%d, depth=%d", m.playerNum, scale, depth);
+            next.appendMeta("pn(%d)depth(%d)scale(%d)", m.getPlayerNum(), depth, scale);
+            onNewNode(next);
             root.addChild(next);
             long v;
-            if (game.getTurn() == m.getPlayerNum()) {
+            if (game.getTurn() == m.getPlayerNum() && !kill) {
                 // this means we have more move options
                 v = buildTree(game, next, depth, scale);
             } else if (depth > 0 && !kill) {
@@ -66,12 +68,11 @@ public abstract class MiniMaxTree<G extends IGame> {
                 v = evaluate((G)game, next, m.getPlayerNum()) * scale;
             }
             next.setValue(v);
-            //next.appendMeta("%s:%s", m.type, v);
-            //d = Math.max(v, d);
-            if (scale < 0)
+            if (scale < 0) {
                 d = Math.min(d, v);
-            else
+            } else {
                 d = Math.max(d, v);
+            }
             game.undo();
             if (kill)
                 break;
@@ -92,5 +93,11 @@ public abstract class MiniMaxTree<G extends IGame> {
      * @return
      */
     protected abstract long evaluate(G game, MMTreeNode t, int playerNum);
+
+    /**
+     * Callback for this event. base method does nothing.
+     * @param node
+     */
+    protected void onNewNode(MMTreeNode node) {}
 
 }

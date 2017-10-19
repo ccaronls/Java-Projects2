@@ -127,9 +127,7 @@ public class Chess extends ACheckboardGame {
         updateOpponentKingCheckedState();
     }
 
-    /*
-        Return true if p.type is on set of types and p.playerNum equals playerNum
-         */
+    // Return true if p.type is on set of types and p.playerNum equals playerNum
     private boolean testPiece(Piece p, int playerNum, PieceType ... types) {
         for (PieceType t : types) {
             if (p.playerNum == playerNum && p.type == t)
@@ -317,26 +315,6 @@ public class Chess extends ACheckboardGame {
                 checkForCastle(rank, col, 0);
                 checkForCastle(rank, col, COLUMNS-1);
                 d=1;
-                /*
-                boolean attacked = isSquareAttacked(rank, col, opponent);
-                switch (p.type) {
-                    case CHECKED_KING:
-                        if (!attacked)
-                            p.type = UNCHECKED_KING;
-                        break;
-                    case CHECKED_KING_IDLE:
-                        if (!attacked)
-                            p.type = UNCHECKED_KING_IDLE;
-                        break;
-                    case UNCHECKED_KING:
-                        if (attacked)
-                            p.type = CHECKED_KING;
-                        break;
-                    case UNCHECKED_KING_IDLE:
-                        if (attacked)
-                            p.type = CHECKED_KING_IDLE;
-                        break;
-                }*/
             case QUEEN:
                 dr = NSEW_DIAG_DELTAS[0];
                 dc = NSEW_DIAG_DELTAS[1];

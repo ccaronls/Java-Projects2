@@ -179,12 +179,14 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
     }
 
     public final void clearMoves() {
-        for (int i = 0; i < RANKS; i++) {
-            for (int ii = 0; ii < COLUMNS; ii++) {
-                getPiece(i, ii).moves.clear();
+        if (computedMoves >= 0) {
+            for (int i = 0; i < RANKS; i++) {
+                for (int ii = 0; ii < COLUMNS; ii++) {
+                    getPiece(i, ii).moves.clear();
+                }
             }
+            computedMoves = -1;
         }
-        computedMoves = -1;
     }
 
     /**
@@ -293,7 +295,7 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
             computeMoves(true);
         } else {
             clearMoves();
-            p = getPiece(m.getStart());//.startRank, m.startCol);
+            p = getPiece(m.getStart());
             computeMovesForSquare(m.getStart()[0], m.getStart()[1], parent);
             p.moves.add(new Move(MoveType.END, m.playerNum, null, null, m.getStart()));
             lock = p;
@@ -350,7 +352,7 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
         if (lock != null)
             return new ArrayList<>(lock.moves);
 
-        // order the moves such that those the pieces with fewer moves are earliest
+        // order the moves such that those pieces with fewer moves are earliest
         List<Move> moves = new ArrayList<>();
         final List<Piece> pieces = new ArrayList<>();
         for (Piece p : getPieces()) {

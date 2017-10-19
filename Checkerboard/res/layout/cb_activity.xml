@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:cc="http://schemas.android.com/apk/res-auto"
+                xmlns:cc="http://schemas.android.com/apk/res-auto"
                 xmlns:tools="http://schemas.android.com/tools"
                 android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="#888" >
+                android:layout_height="match_parent"
+                android:background="@android:color/black">
 
     <cc.lib.android.SquareLinearLayout
         android:id="@+id/layoutCheckerboard"
         android:layout_width="wrap_content"
         android:layout_height="fill_parent"
         android:layout_centerInParent="true"
-        cc:dominantSide="fill_fit" >
+        cc:dominantSide="fill_fit">
 
         <cc.android.checkerboard.CheckerboardView
             android:id="@+id/cbView"
@@ -28,25 +28,25 @@
         android:layout_alignParentTop="false"
         android:layout_centerVertical="true"
         android:layout_toLeftOf="@+id/layoutCheckerboard"
-        android:orientation="vertical" >
+        android:orientation="vertical">
 
         <Button
             android:id="@+id/buttonNewGame"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:text="New Game" />
+            android:text="New Game"/>
 
         <Button
             android:id="@+id/buttonEndTurn"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:text="End Turn" />
+            android:text="End Turn"/>
 
         <Button
             android:id="@+id/buttonRobot"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:text="Robot" />
+            android:text="Robot"/>
 
         <ToggleButton
             android:id="@+id/toggleButtonDebug"
@@ -69,14 +69,15 @@
             <ImageButton
                 android:id="@+id/buttonLeft"
                 android:layout_width="0dp"
-                android:layout_weight="1"
                 android:layout_height="fill_parent"
+                android:layout_weight="1"
                 android:src="@android:drawable/ic_media_previous"/>
+
             <ImageButton
                 android:id="@+id/buttonRight"
                 android:layout_width="0dp"
-                android:layout_weight="1"
                 android:layout_height="fill_parent"
+                android:layout_weight="1"
                 android:src="@android:drawable/ic_media_next"/>
 
         </LinearLayout>

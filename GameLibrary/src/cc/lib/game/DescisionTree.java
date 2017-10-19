@@ -32,6 +32,8 @@ public class DescisionTree<G,M> implements Comparable<DescisionTree> {
     public int compareTo(DescisionTree o) {
         if (value < o.value)
             return 1; // descending order
+        if (value == o.value)
+            return 0;
         return -1;
     }
 
@@ -44,6 +46,9 @@ public class DescisionTree<G,M> implements Comparable<DescisionTree> {
             child.prev = last;
             last.next = child;
             last = child;
+            // make circular list for items > 1
+            child.next = first;
+            first.prev = child;
         }
         child.parent=this;
     }
@@ -97,6 +102,10 @@ public class DescisionTree<G,M> implements Comparable<DescisionTree> {
         return meta;
     }
 
+    public final void setMeta(String txt) {
+        this.meta = txt;
+    }
+
     public final void appendMeta(String s, Object ... args) {
         if (meta.length() > 0 && !s.startsWith("\n"))
             meta += "\n";
@@ -118,9 +127,13 @@ public class DescisionTree<G,M> implements Comparable<DescisionTree> {
     }
 
     public final void sortChildren(int maxChildren) {
+        if (first == null || first.next == null)
+            return; // 0 or 1 items. no sort
         List<DescisionTree> list = new ArrayList<>();
-        for (DescisionTree t = first; t != null; t = t.next) {
+        for (DescisionTree t = first; ; t = t.next) {
             list.add(t);
+            if (t == last)
+                break;
         }
         Collections.sort(list);
         first = last = null;
@@ -154,7 +167,8 @@ public class DescisionTree<G,M> implements Comparable<DescisionTree> {
             return;
         out.write(indent+root.getMeta().replace('\n', ',') + "\n");
         dumpTree(out, root.getFirst(), indent+"   ");
-        dumpTree(out, root.getNext(), indent);
+        if (root.next != null && root.next != parent.first)
+            dumpTree(out, root.getNext(), indent);
     }
 
 
