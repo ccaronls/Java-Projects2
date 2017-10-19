@@ -39,7 +39,7 @@ import cc.lib.math.Vector2D;
  * @author chriscaron
  *
  */
-public class CheckerboardView extends View { //implements View.OnClickListener {
+public class CheckerboardView extends View {
 
     private final Paint pFill = new Paint();
     private final Paint pStroke = new Paint();

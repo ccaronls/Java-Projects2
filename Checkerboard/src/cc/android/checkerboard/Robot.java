@@ -19,7 +19,7 @@ public class Robot extends Reflector<Robot> {
         RANDOM, MINIMAX_BOT1, MINIMAX_BOT2,
     }
 
-    private final RobotType type;
+    final RobotType type;
 
     public Robot() { type = RobotType.MINIMAX_BOT1; }
 

@@ -142,7 +142,7 @@ public class GL10Graphics extends AGraphics {
         float size = getTextHeight();
         float textWidth = 0;
         int widthRow = -1;
-        for (int i=0; i<info.sizes.length-1; i++) {
+        for (int i=0; i<info.sizes.length; i++) {
             if (size <= info.sizes[i]) {
                 widthRow = i;
                 size = info.sizes[i]; // set to actual size

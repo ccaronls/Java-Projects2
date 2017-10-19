@@ -20,13 +20,14 @@ include 'services:webservice'
 
 // Android
 include ':AndroidGameLibrary'
-include ':YahtzeeAndroid'
-include ':TicTacToe'
+//include ':YahtzeeAndroid'
+//include ':TicTacToe'
 include ':GameLibrary'
-include ':PacBoy'
-include ':LearningCalc'
-include ':PicMatch'
+//include ':PacBoy'
+//include ':LearningCalc'
+//include ':PicMatch'
 include ':Checkerboard'
+include ':Robots'
 
 // Swing Applications
 include ':fractal'

@@ -35,27 +35,27 @@ public class IKFigure extends Reflector<IKFigure> {
 	float footThickness = 0.6f;
 	
 	public void build() {
-		rightArm.addSection(0, 0, true);
-		rightArm.addSection(0, -bodyThickness/2, false);
-		rightArm.addSection(upperArmLength, 0, false);
-		rightArm.addSection(lowerArmLength, 0, false);
+		rightArm.addSection(0, 0, new IKArm.FixedConstraint());
+		rightArm.addSection(0, -bodyThickness/2);
+		rightArm.addSection(upperArmLength, 0);
+		rightArm.addSection(lowerArmLength, 0);
 
-		leftArm.addSection(0, 0, true);
-		leftArm.addSection(0, -bodyThickness/2, false);
-		leftArm.addSection(upperArmLength, 0, false);
-		leftArm.addSection(lowerArmLength, 0, false);
+		leftArm.addSection(0, 0, new IKArm.FixedConstraint());
+		leftArm.addSection(0, -bodyThickness/2);
+		leftArm.addSection(upperArmLength, 0);
+		leftArm.addSection(lowerArmLength, 0);
 
-		rightLeg.addSection(0, 0, true);
-		rightLeg.addSection(0, bodyThickness/2, false);
-		rightLeg.addSection(0, upperLegLength, false);
-		rightLeg.addSection(0, lowerLegLength, false);
-		rightLeg.addSection(footLength,  0, false);
+		rightLeg.addSection(0, 0, new IKArm.FixedConstraint());
+		rightLeg.addSection(0, bodyThickness/2);
+		rightLeg.addSection(0, upperLegLength);
+		rightLeg.addSection(0, lowerLegLength);
+		rightLeg.addSection(footLength,  0);
 
-		leftLeg.addSection(0, 0, true);
-		leftLeg.addSection(0, bodyThickness/2, false);
-		leftLeg.addSection(0, upperLegLength, false);
-		leftLeg.addSection(0, lowerLegLength, false);
-		leftLeg.addSection(footLength,  0, false);
+		leftLeg.addSection(0, 0, new IKArm.FixedConstraint());
+		leftLeg.addSection(0, bodyThickness/2);
+		leftLeg.addSection(0, upperLegLength);
+		leftLeg.addSection(0, lowerLegLength);
+		leftLeg.addSection(footLength,  0);
 
 	}
 	

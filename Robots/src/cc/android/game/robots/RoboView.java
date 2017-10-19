@@ -142,7 +142,7 @@ public class RoboView extends GLSurfaceView {
             robotron.setDebugEnabled(Robotron.Debug.DRAW_PLAYER_INFO, debugShowPlayerInfo);
             */
             robotron.initGame(g);
-            g.ortho(0, w, 0, h);
+            g.ortho(-w/2, w/2, -h/2, h/2);
             setTargetFPS(FPS);
             /*
             final RoboActivity activity = (RoboActivity)getActivity();

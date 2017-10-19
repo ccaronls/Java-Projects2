@@ -61,10 +61,10 @@ public class Vector2D extends Reflector<Vector2D> implements IVector2D, Serializ
         return y;
     }
 
-    public final float degrees() {
+    public final float radians() {
         return (float)Math.atan2(y, x);
     }
-    
+
     public final MutableVector2D min(IVector2D v, MutableVector2D out) {
         return out.set(Math.min(x, v.getX()), Math.min(y, v.getY()));
     }
