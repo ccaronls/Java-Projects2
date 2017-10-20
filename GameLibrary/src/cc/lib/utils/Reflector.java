@@ -251,7 +251,9 @@ public class Reflector<T> {
         }        
     }
     
-    private static Archiver stringArchiver = new Archiver() {
+    private static Archiver stringArchiver = new StringArchiver();
+
+    private final static class StringArchiver implements Archiver {
         
         @Override
         public String get(Field field, Reflector<?> a)  throws Exception{
@@ -300,7 +302,9 @@ public class Reflector<T> {
         }
     };
 
-    private static Archiver byteArchiver = new AArchiver() {
+    private static Archiver byteArchiver = new ByteArchiver();
+
+    private final static class ByteArchiver extends AArchiver {
 
         @Override
         public Object parse(String s) {
@@ -309,7 +313,9 @@ public class Reflector<T> {
         
     };
     
-    private static Archiver integerArchiver = new AArchiver() {
+    private static Archiver integerArchiver = new IntArchiver();
+
+    private final static class IntArchiver extends AArchiver {
 
         @Override
         public Object parse(String s) {
@@ -318,7 +324,9 @@ public class Reflector<T> {
         
     };
 
-    private static Archiver longArchiver = new AArchiver() {
+    private static Archiver longArchiver = new LongArchiver();
+
+    private final static class LongArchiver extends AArchiver {
 
         @Override
 		public Object parse(String s) {
@@ -327,7 +335,9 @@ public class Reflector<T> {
         
     };
     
-    private static Archiver floatArchiver = new AArchiver() {
+    private static Archiver floatArchiver = new FloatArchiver();
+
+    private final static class FloatArchiver extends AArchiver {
 
         @Override
 		public Object parse(String s) {
@@ -336,7 +346,9 @@ public class Reflector<T> {
         
     };    
     
-    private static Archiver doubleArchiver = new AArchiver() {
+    private static Archiver doubleArchiver = new DoubleArchiver();
+
+    private final static class DoubleArchiver extends AArchiver{
 
         @Override
 		public Object parse(String s) {
@@ -345,7 +357,9 @@ public class Reflector<T> {
     
     };
 
-    private static Archiver booleanArchiver = new AArchiver() {
+    private static Archiver booleanArchiver = new BooleanArchiver();
+
+    private final static class BooleanArchiver extends AArchiver {
 
         @Override
         public Object parse(String s) {
@@ -367,7 +381,9 @@ public class Reflector<T> {
         throw new Exception("Failed to find enum value: '" + value + "' in available constants: " + Arrays.asList(constants));
     }
     
-    private static Archiver enumArchiver = new Archiver() {
+    private static Archiver enumArchiver = new EnumArchiver();
+
+    private final static class EnumArchiver implements Archiver {
         @Override
         public String get(Field field, Reflector<?> a) throws Exception {
             return ((Enum<?>)field.get(a)).name();
@@ -409,8 +425,24 @@ public class Reflector<T> {
             }
         }
     };
-    
-    private static Archiver archivableArchiver = new Archiver() {
+
+    private final static Map<Class, String> caconicalNameCash = new HashMap<>();
+
+    private final static String getCanonicalName(Class clazz) {
+        String name;
+        if ((name = caconicalNameCash.get(clazz)) != null) {
+            return name;
+        }
+        name = clazz.getCanonicalName();
+        caconicalNameCash.put(clazz, name);
+        return name;
+    }
+
+
+
+    private static Archiver archivableArchiver = new ArchivableArchiver();;
+
+    private final static class ArchivableArchiver implements Archiver {
 
         @Override
         public String get(Field field, Reflector<?> a) throws Exception {
@@ -420,9 +452,9 @@ public class Reflector<T> {
             Class<?> clazz = o.getClass();
             String className = null;// = o.getClass().getCanonicalName();
             if (clazz.isAnonymousClass())
-                className = clazz.getSuperclass().getCanonicalName();
+                className = getCanonicalName(clazz.getSuperclass());
             else
-                className = clazz.getCanonicalName();
+                className = getCanonicalName(clazz);
             Utils.assertTrue(className != null, "Failed to get className for class %s", clazz);
             return className + " {";
         }
@@ -453,7 +485,7 @@ public class Reflector<T> {
                 for (int i=0; i<len; i++) {
                     Reflector<?> o = (Reflector<?>)Array.get(arr, i);
                     if (o != null) {
-                        out.println(o.getClass().getCanonicalName() + " {");
+                        out.println(getCanonicalName(o.getClass()) + " {");
                     	out.push();
                         o.serialize(out);
                         out.pop();
@@ -486,12 +518,14 @@ public class Reflector<T> {
         }
     };
 
-    private static Archiver collectionArchiver = new Archiver() {
+    private static Archiver collectionArchiver = new CollectionArchiver();
+
+    private final static class CollectionArchiver implements Archiver {
 
         @Override
         public String get(Field field, Reflector<?> a) throws Exception {
             Collection<?> c = (Collection<?>)field.get(a);
-            String s = c.getClass().getCanonicalName() + " {";
+            String s = getCanonicalName(c.getClass()) + " {";
             return s;
         }
 
@@ -511,7 +545,7 @@ public class Reflector<T> {
                 for (int i=0; i<len; i++) {
                     Collection<?> c = (Collection<?>)Array.get(arr, i);
                     if (c != null) {
-                        out.println(c.getClass().getCanonicalName() + " {");
+                        out.println(getCanonicalName(c.getClass()) + " {");
                         serializeObject(c, out, true);
                     }
                     else
@@ -536,12 +570,14 @@ public class Reflector<T> {
         }
     };
 
-    private static Archiver mapArchiver = new Archiver() {
+    private static Archiver mapArchiver = new MapArchiver();
+
+    private final static class MapArchiver implements Archiver {
 
 		@Override
 		public String get(Field field, Reflector<?> a) throws Exception {
 			Map<?, ?> m = (Map<?,?>)field.get(a);
-			String s = m.getClass().getCanonicalName() + " {";
+			String s = getCanonicalName(m.getClass()) + " {";
 			return s;
 		}
 
@@ -564,7 +600,7 @@ public class Reflector<T> {
                 for (int i=0; i<len; i++) {
                     Map<?,?> m = (Map<?,?>)Array.get(arr, i);
                     if (m != null) {
-                        out.println(m.getClass().getCanonicalName() + " {");
+                        out.println(getCanonicalName(m.getClass()) + " {");
                         serializeObject(m, out, true);
                     }
                     else
@@ -588,12 +624,14 @@ public class Reflector<T> {
             	throw new Exception("Line: " + in.lineNum +" expected closing '}'");		}
 	};
 	
-    private static Archiver arrayArchiver = new Archiver() {
+    private static Archiver arrayArchiver = new ArrayArchiver();
+
+    private final static class ArrayArchiver implements Archiver {
 
         @Override
         public String get(Field field, Reflector<?> a) throws Exception {
             Object o = field.get(a);
-            String s = field.getType().getComponentType().getCanonicalName() + " " + Array.getLength(o) + " {";
+            String s = getCanonicalName(field.getType().getComponentType()) + " " + Array.getLength(o) + " {";
             return s;
         }
 
@@ -624,7 +662,7 @@ public class Reflector<T> {
                     if (obj == null) {
                         out.println("null");
                     } else {
-                        out.println(obj.getClass().getComponentType().getCanonicalName() + " " + Array.getLength(obj) + " {");
+                        out.println(getCanonicalName(obj.getClass().getComponentType()) + " " + Array.getLength(obj) + " {");
                         out.push();
                         compArchiver.serializeArray(Array.get(arr, i), out);
                         out.pop();
@@ -712,7 +750,7 @@ public class Reflector<T> {
     }
     
     public static void registerEnum(Class<?> enumClazz) {
-    	String clazz = enumClazz.getCanonicalName();
+    	String clazz = getCanonicalName(enumClazz);
     	classMap.put(clazz, enumClazz);
     }
     
@@ -727,7 +765,9 @@ public class Reflector<T> {
         }
     }
 
-    private static Comparator<Field> xfieldComparator = new Comparator<Field>() {
+    private static Comparator<Field> xfieldComparator = new XFieldComparator();
+
+    private final static class XFieldComparator implements Comparator<Field> {
 
         @Override
         public int compare(Field arg0, Field arg1) {
@@ -736,7 +776,9 @@ public class Reflector<T> {
         
     };
     
-    private final static Comparator<Field> fieldComparator = new Comparator<Field>() {
+    private final static Comparator<Field> fieldComparator = new FieldComparator();
+
+    private final static class FieldComparator implements Comparator<Field> {
 
     	Class<?> [] clazzes = {
     		boolean.class,
@@ -798,7 +840,7 @@ public class Reflector<T> {
     
     private static Map<Field, Archiver> getValues(Class<?> clazz, boolean createIfDNE) {
         try {
-            if (clazz.getCanonicalName() == null) {
+            if (getCanonicalName(clazz) == null) {
                 if (clazz.getSuperclass() != null)
                     clazz = clazz.getSuperclass();
                 else
@@ -818,12 +860,12 @@ public class Reflector<T> {
                     }
                     clazz.newInstance();
                 }
-                values = new TreeMap<Field, Archiver>(fieldComparator);
+                values = new HashMap<Field, Archiver>();//TreeMap<Field, Archiver>(fieldComparator);
                 // now inherit any values in base classes that were added
                 inheritValues(clazz.getSuperclass(), values);
                 classValues.put(clazz,  values);
-                classMap.put(clazz.getCanonicalName()+"[]", Array.newInstance(clazz, 0).getClass());
-                classMap.put(clazz.getCanonicalName()+"[][]", Array.newInstance(Array.newInstance(clazz, 0).getClass(), 0).getClass());
+                classMap.put(getCanonicalName(clazz)+"[]", Array.newInstance(clazz, 0).getClass());
+                classMap.put(getCanonicalName(clazz)+"[][]", Array.newInstance(Array.newInstance(clazz, 0).getClass(), 0).getClass());
             } else if (clazz.getSuperclass() == null) {
             	throw new RuntimeException("Cannot find any fields to archive (did you add an addField(...) method in your class?)");
             } else {
@@ -833,18 +875,31 @@ public class Reflector<T> {
         } catch (RuntimeException e) {
         	throw e;
         } catch (Exception e) {
-            throw new RuntimeException("Cannot instantiate " + clazz.getCanonicalName() + ". Is it public? Does it have a public 0 argument constructor?", e);
+            throw new RuntimeException("Cannot instantiate " + getCanonicalName(clazz) + ". Is it public? Does it have a public 0 argument constructor?", e);
         }
     }
-    
+
+    private final static Map<Class, Map<Class, Boolean>> subclassOfCache = new HashMap<>();
+
     private static boolean isSubclassOf(Class<?> subClass, Class<?> baseClass) {
-        if (subClass== null || subClass.equals(Object.class) || subClass.getCanonicalName().equals(Object.class.getCanonicalName()))
-            return false;
-        if (subClass == baseClass || subClass.equals(baseClass) || subClass.getCanonicalName().equals(baseClass.getCanonicalName()))
-            return true;
-        if (baseClass.isAssignableFrom(subClass))
-            return true;
-        return isSubclassOf(subClass.getSuperclass(), baseClass);
+        Boolean result;
+        Map<Class, Boolean> baseCache = subclassOfCache.get(subClass);
+        if (baseCache == null) {
+            subclassOfCache.put(subClass, baseCache = new HashMap());
+        } else {
+            if ((result = baseCache.get(baseClass)) != null)
+                return result;
+        }
+
+        if (subClass== null || subClass.equals(Object.class) || getCanonicalName(subClass).equals(getCanonicalName(Object.class)))
+            result = false;
+        else if (subClass == baseClass || subClass.equals(baseClass) || getCanonicalName(subClass).equals(getCanonicalName(baseClass)))
+            result = true;
+        else if (baseClass.isAssignableFrom(subClass))
+            result = true;
+        else result = isSubclassOf(subClass.getSuperclass(), baseClass);
+        baseCache.put(baseClass, result);
+        return result;
     }
     
     private static Archiver getArchiverForType(Class<?> clazz) {
@@ -951,7 +1006,7 @@ public class Reflector<T> {
             Archiver archiver = getArchiverForType(field.getType());
             Map<Field, Archiver> values = getValues(clazz, true);
             if (values.containsKey(field))
-                throw new RuntimeException("Duplicate field.  Field '" + name + "' has already been included for class: " + clazz.getCanonicalName());
+                throw new RuntimeException("Duplicate field.  Field '" + name + "' has already been included for class: " + getCanonicalName(clazz));
             values.put(field, archiver);
             classMap.put(clazz.getName().replace('$', '.'), clazz);
             Utils.println("Added field '" + name + "' for " + clazz);
@@ -995,7 +1050,7 @@ public class Reflector<T> {
             Field field = clazz.getDeclaredField(name);
             Map<Field, Archiver> values = getValues(clazz, true);
             if (values.containsKey(field))
-                throw new RuntimeException("Duplicate field.  Field '" + name + "' has already been included for class: " + clazz.getCanonicalName());
+                throw new RuntimeException("Duplicate field.  Field '" + name + "' has already been included for class: " + getCanonicalName(clazz));
             values.put(field, archiver);
         } catch (RuntimeException e) {
             throw e;
@@ -1061,7 +1116,7 @@ public class Reflector<T> {
             		int len = Array.getLength(o);
             		out.println(o.getClass().getComponentType().getName() + " " + len + " {");
             	} else {
-            		out.println(o.getClass().getCanonicalName() + " {");
+            		out.println(getCanonicalName(o.getClass()) + " {");
             	}
                 serializeObject(o, out, true);
             }
@@ -1072,13 +1127,13 @@ public class Reflector<T> {
         	out.push();
         	for (Map.Entry<?, ?> entry : m.entrySet()) {
         		Object o = entry.getKey();
-                out.println(o.getClass().getCanonicalName() + " {");
+                out.println(getCanonicalName(o.getClass()) + " {");
                 out.push();
                 serializeObject(o, out, true);
                 out.pop();
                 out.println("}");
                 o = entry.getValue();
-                out.println(o.getClass().getCanonicalName() + " {");
+                out.println(getCanonicalName(o.getClass()) + " {");
                 out.push();
                 serializeObject(o, out, true);
                 out.pop();

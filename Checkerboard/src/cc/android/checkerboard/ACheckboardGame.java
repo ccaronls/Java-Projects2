@@ -179,13 +179,13 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
     }
 
     public final void clearMoves() {
-        if (computedMoves >= 0) {
-            for (int i = 0; i < RANKS; i++) {
-                for (int ii = 0; ii < COLUMNS; ii++) {
-                    getPiece(i, ii).moves.clear();
-                }
+        computedMoves = -1;
+        if (board[0][0] == null)
+            return;
+        for (int i = 0; i < RANKS; i++) {
+            for (int ii = 0; ii < COLUMNS; ii++) {
+                getPiece(i, ii).moves.clear();
             }
-            computedMoves = -1;
         }
     }
 

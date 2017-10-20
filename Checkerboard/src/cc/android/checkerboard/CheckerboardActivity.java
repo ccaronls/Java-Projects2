@@ -4,11 +4,9 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
-import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
-import android.preference.PreferenceManager;
 import android.view.View;
 import android.widget.CompoundButton;
 import android.widget.ProgressBar;
@@ -18,13 +16,12 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.prefs.Preferences;
 
 import cc.lib.android.AndroidLogWriter;
 import cc.lib.android.CCActivityBase;
+import cc.lib.game.MiniMaxTree.MMTreeNode;
 import cc.lib.game.Utils;
 import cc.lib.utils.FileUtils;
-import cc.lib.game.MiniMaxTree.*;
 
 public class CheckerboardActivity extends CCActivityBase implements View.OnClickListener, CompoundButton.OnCheckedChangeListener {
 
@@ -116,8 +113,14 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
                 }
 
                 @Override
+                protected void onProgressUpdate(Void... values) {
+                    pbv.invalidate();
+                }
+
+                @Override
                 protected Void doInBackground(ACheckboardGame... params) {
                     MyChess.super.executeMove(move);
+                    publishProgress();
                     File file = getSaveFile(params[0]);
                     params[0].trySaveToFile(file);
                     try {
