@@ -12,7 +12,11 @@ import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
 
-import cc.lib.game.IKArm;
+import cc.lib.ik.AngleConstraint;
+import cc.lib.ik.FixedConstraint;
+import cc.lib.ik.IKArm;
+import cc.lib.ik.IKConstraint;
+import cc.lib.ik.IKHinge;
 import cc.lib.math.Vector2D;
 
 /**
@@ -25,6 +29,7 @@ public class RobotnixView extends View {
 
     final Paint pFill = new Paint();
     final Paint pStroke = new Paint();
+    final Paint pStrokeThin = new Paint();
     final Paint pText = new Paint();
     final Path path = new Path();
 
@@ -36,6 +41,9 @@ public class RobotnixView extends View {
         pStroke.setStyle(Paint.Style.STROKE);
         pStroke.setColor(Color.RED);
         pText.setColor(Color.BLUE);
+        pStrokeThin.setStyle(Paint.Style.STROKE);
+        pStrokeThin.setStrokeWidth(3);
+        pStrokeThin.setColor(Color.RED);
 
         TypedArray arr = context.obtainStyledAttributes(attrs, R.styleable.RobotnixView);
         pText.setTextSize(arr.getDimension(R.styleable.RobotnixView_textSize, 32));
@@ -55,9 +63,10 @@ public class RobotnixView extends View {
         init(context, attrs);
     }
 
-    private long downTime = 0;
-    private float dragX, dragY;
-    private int draggingIndex = -1;
+    long downTime = 0;
+    float dragX, dragY;
+    int draggingIndex = -1;
+    int tappedIndex = -1;
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
@@ -69,6 +78,7 @@ public class RobotnixView extends View {
 
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
+                tappedIndex = -1;
                 downTime = SystemClock.uptimeMillis();
                 postDelayed(new Runnable() {
                     public void run() {
@@ -110,8 +120,8 @@ public class RobotnixView extends View {
         dragY = y;
         if (draggingIndex < 0) {
             Vector2D v = new Vector2D(dragX, dragY);
-            for (int i=0; i<arm.getNumSections(); i++) {
-                IKArm.Section s = arm.getSection(i);
+            for (int i=0; i<arm.getNumHinges(); i++) {
+                IKHinge s = arm.getHinge(i);
                 if (s.v.sub(v).magSquared() < hingeRadius*2) {
                     draggingIndex = i;
                     break;
@@ -119,16 +129,17 @@ public class RobotnixView extends View {
             }
         }
         if (draggingIndex >= 0) {
-            arm.moveSectionTo(draggingIndex, dragX, dragY);
+            arm.moveHingeTo(draggingIndex, dragX, dragY);
         }
         invalidate();
     }
 
     private void onTap(float x, float y) {
-        if (arm.getNumSections() == 0) {
-            arm.addSection(x, y, new IKArm.FixedConstraint());
-        } else {
-            arm.addSection(x, y, new IKArm.AngleConstraint(90, 270));
+        if (arm.getNumHinges() == 0) {
+            arm.addHinge(x, y, new AngleConstraint(180), new FixedConstraint());
+        } else if ((tappedIndex =arm.findHinge(x, y, hingeRadius)) < 0){
+            tappedIndex = arm.getNumHinges();
+            arm.addHinge(x, y, new AngleConstraint(120));
         }
     }
 
@@ -138,18 +149,18 @@ public class RobotnixView extends View {
 
     @Override
     protected void onDraw(Canvas canvas) {
-        if (isInEditMode() && arm.getNumSections() == 0) {
-            arm.addSection(20, canvas.getHeight()/2);
-            arm.addSection(150, canvas.getHeight()*2/3);
-            arm.addSection(300, canvas.getHeight()/3);
+        if (isInEditMode() && arm.getNumHinges() == 0) {
+            arm.addHinge(20, canvas.getHeight()/2);
+            arm.addHinge(150, canvas.getHeight()*2/3);
+            arm.addHinge(300, canvas.getHeight()/3);
         }
 
         pFill.setColor(Color.GRAY);
         canvas.drawRect(0, getWidth(), 0, getHeight(), pFill);
         //canvas.save();
-        IKArm.Section last = null;
+        IKHinge last = null;
         //path.reset();
-        for (IKArm.Section s : arm.getSections()) {
+        for (IKHinge s : arm.getHinges()) {
             if (last != null) {
                 //path.lineTo(s.v.X(), s.v.Y());
                 canvas.drawLine(last.v.X(), last.v.Y(), s.v.X(), s.v.Y(), pStroke);
@@ -162,28 +173,34 @@ public class RobotnixView extends View {
         canvas.drawPath(path, pStroke);
         pFill.setColor(Color.YELLOW);
         int idx = 0;
-        for (IKArm.Section s : arm.getSections()) {
+        for (IKHinge s : arm.getHinges()) {
             canvas.drawCircle(s.v.X(), s.v.Y(), hingeRadius, pFill);
             drawConstraints(canvas, s);
             canvas.drawText(String.valueOf(arm.getAngle(idx++)), s.v.X(), s.v.Y(), pText);
         }
         if (draggingIndex >= 0) {
-            IKArm.Section s = arm.getSection(draggingIndex);
+            IKHinge s = arm.getHinge(draggingIndex);
             pFill.setColor(Color.RED);
             canvas.drawCircle(s.v.X(), s.v.Y(), hingeRadius, pFill);
         }
+        if (tappedIndex >= 0) {
+            IKHinge s = arm.getHinge(tappedIndex);
+            pStrokeThin.setColor(Color.RED);
+            canvas.drawCircle(s.v.X(), s.v.Y(), hingeRadius*2, pStrokeThin);
+
+        }
     }
 
-    private void drawConstraints(Canvas canvas, IKArm.Section s) {
-        for (IKArm.AConstraint cons : s.constraints) {
-            if (cons instanceof IKArm.FixedConstraint) {
+    private void drawConstraints(Canvas canvas, IKHinge s) {
+        for (IKConstraint cons : s.constraints) {
+            if (cons instanceof FixedConstraint) {
                 pFill.setColor(Color.RED);
                 canvas.drawCircle(s.v.X(), s.v.Y(), hingeRadius / 2, pFill);
-            } else if (cons instanceof IKArm.AngleConstraint) {
-                IKArm.AngleConstraint ac = (IKArm.AngleConstraint) cons;
-                rectF.set(s.v.X() - hingeRadius * 2, s.v.Y() + hingeRadius * 2, s.v.Y() - hingeRadius * 2, s.v.Y() + hingeRadius * 2);
+            } else if (cons instanceof AngleConstraint) {
+                AngleConstraint ac = (AngleConstraint) cons;
+                rectF.set(s.v.X() - hingeRadius * 2, s.v.Y() - hingeRadius * 2, s.v.X() + hingeRadius * 2, s.v.Y() + hingeRadius * 2);
                 pFill.setColor(Color.GREEN);
-                canvas.drawArc(rectF, ac.lastMinAngle, ac.lastMaxAngle, true, pFill);
+                canvas.drawArc(rectF, ac.lastStartAngle, ac.getSweep(), true, pFill);
             }
         }
     }

@@ -582,6 +582,10 @@ public class Utils {
     	float d2 = dx*dx + dy*dy;
     	return d2;
     }
+
+    public static float distSqPointPoint(IVector2D v0, IVector2D v1) {
+        return distSqPointPoint(v0.getX(), v0.getY(), v1.getX(), v1.getY());
+    }
     
     /**
      * 

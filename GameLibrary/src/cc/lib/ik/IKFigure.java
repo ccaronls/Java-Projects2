@@ -1,5 +1,6 @@
-package cc.lib.game;
+package cc.lib.ik;
 
+import cc.lib.game.AGraphics;
 import cc.lib.utils.Reflector;
 
 public class IKFigure extends Reflector<IKFigure> {
@@ -35,27 +36,27 @@ public class IKFigure extends Reflector<IKFigure> {
 	float footThickness = 0.6f;
 	
 	public void build() {
-		rightArm.addSection(0, 0, new IKArm.FixedConstraint());
-		rightArm.addSection(0, -bodyThickness/2);
-		rightArm.addSection(upperArmLength, 0);
-		rightArm.addSection(lowerArmLength, 0);
+		rightArm.addHinge(0, 0, new FixedConstraint());
+		rightArm.addHinge(0, -bodyThickness/2);
+		rightArm.addHinge(upperArmLength, 0);
+		rightArm.addHinge(lowerArmLength, 0);
 
-		leftArm.addSection(0, 0, new IKArm.FixedConstraint());
-		leftArm.addSection(0, -bodyThickness/2);
-		leftArm.addSection(upperArmLength, 0);
-		leftArm.addSection(lowerArmLength, 0);
+		leftArm.addHinge(0, 0, new FixedConstraint());
+		leftArm.addHinge(0, -bodyThickness/2);
+		leftArm.addHinge(upperArmLength, 0);
+		leftArm.addHinge(lowerArmLength, 0);
 
-		rightLeg.addSection(0, 0, new IKArm.FixedConstraint());
-		rightLeg.addSection(0, bodyThickness/2);
-		rightLeg.addSection(0, upperLegLength);
-		rightLeg.addSection(0, lowerLegLength);
-		rightLeg.addSection(footLength,  0);
+		rightLeg.addHinge(0, 0, new FixedConstraint());
+		rightLeg.addHinge(0, bodyThickness/2);
+		rightLeg.addHinge(0, upperLegLength);
+		rightLeg.addHinge(0, lowerLegLength);
+		rightLeg.addHinge(footLength,  0);
 
-		leftLeg.addSection(0, 0, new IKArm.FixedConstraint());
-		leftLeg.addSection(0, bodyThickness/2);
-		leftLeg.addSection(0, upperLegLength);
-		leftLeg.addSection(0, lowerLegLength);
-		leftLeg.addSection(footLength,  0);
+		leftLeg.addHinge(0, 0, new FixedConstraint());
+		leftLeg.addHinge(0, bodyThickness/2);
+		leftLeg.addHinge(0, upperLegLength);
+		leftLeg.addHinge(0, lowerLegLength);
+		leftLeg.addHinge(footLength,  0);
 
 	}
 	
@@ -69,7 +70,7 @@ public class IKFigure extends Reflector<IKFigure> {
 		g.setColor(g.WHITE);
 		g.setLineWidth(3);
 		g.begin();
-		for (int i=0; i<arm.getNumSections(); i++) {
+		for (int i=0; i<arm.getNumHinges(); i++) {
 			g.vertex(arm.getV(i));
 		}
 		g.drawLineStrip();
@@ -85,7 +86,7 @@ public class IKFigure extends Reflector<IKFigure> {
     	// draw legs
     	
     	g.pushMatrix();
-    	for (int i=0; i<leftArm.getNumSections(); i++) {
+    	for (int i=0; i<leftArm.getNumHinges(); i++) {
     		g.translate(leftArm.getV(i));
     		g.rotate(leftArm.getAngle(i));
     		if (i == 2) {
@@ -97,7 +98,7 @@ public class IKFigure extends Reflector<IKFigure> {
     	g.popMatrix();
     	debugDrawArm(g, leftArm);
     	g.pushMatrix();
-    	for (int i=0; i<leftLeg.getNumSections(); i++) {
+    	for (int i=0; i<leftLeg.getNumHinges(); i++) {
     		g.translate(leftLeg.getV(i));
     		g.rotate(leftLeg.getAngle(i));
     		if (i == 2) {
@@ -113,7 +114,7 @@ public class IKFigure extends Reflector<IKFigure> {
     	g.popMatrix();
     	drawBody(g, bodyLength, bodyThickness);
     	g.pushMatrix();
-    	for (int i=0; i<rightArm.getNumSections(); i++) {
+    	for (int i=0; i<rightArm.getNumHinges(); i++) {
     		g.translate(rightArm.getV(i));
     		g.rotate(rightArm.getAngle(i));
     		if (i == 2) {
@@ -124,7 +125,7 @@ public class IKFigure extends Reflector<IKFigure> {
     	}
     	g.popMatrix();
     	g.pushMatrix();
-    	for (int i=0; i<rightLeg.getNumSections(); i++) {
+    	for (int i=0; i<rightLeg.getNumHinges(); i++) {
     		g.translate(rightLeg.getV(i));
     		g.rotate(rightLeg.getAngle(i));
     		if (i == 2) {
@@ -166,14 +167,14 @@ public class IKFigure extends Reflector<IKFigure> {
 	
 	private void moveSection(IKArm from, IKArm to, float t, IKArm result) {
 		float omt = (1.0f - t);
-		int num = rightArm.getNumSections();
+		int num = rightArm.getNumHinges();
 		float x0 = from.getX(num-1);
 		float y0 = from.getY(num-1);
 		float x1 = to.getX(num-1);
 		float y1 = to.getY(num-1);
 		float x = omt*x0 + t*x1;
 		float y = omt*y0 + t*y1;
-		result.moveSectionTo(num-1, x, y); 
+		result.moveHingeTo(num-1, x, y);
 		
 	}
 	

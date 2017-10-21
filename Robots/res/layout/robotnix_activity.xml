@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:cc="http://schemas.android.com/apk/res-auto"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent">
+
+    <cc.android.game.robots.RobotnixView
+        android:id="@+id/vRobotnix"
+        android:layout_width="wrap_content"
+        android:layout_height="fill_parent"
+        android:layout_toLeftOf="@+id/lButtons"
+        android:layout_alignParentLeft="true"
+        cc:textSize="16dp"
+        cc:armThickness="10dp"
+        />
+
+    <LinearLayout
+        android:id="@+id/lButtons"
+        android:layout_width="100dp"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:orientation="vertical">
+
+        <Button
+            android:id="@+id/bClear"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="Clear"/>
+
+        <ImageButton
+            android:id="@+id/bUp"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:src="@android:drawable/arrow_up_float"/>
+
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1">
+
+            <ImageButton
+                android:id="@+id/bLeft"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:src="@android:drawable/ic_media_previous"/>
+
+            <ImageButton
+                android:id="@+id/bRight"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:src="@android:drawable/ic_media_next"/>
+
+        </LinearLayout>
+
+        <ImageButton
+            android:id="@+id/bDown"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:src="@android:drawable/arrow_down_float"/>
+
+
+    </LinearLayout>
+
+</RelativeLayout>

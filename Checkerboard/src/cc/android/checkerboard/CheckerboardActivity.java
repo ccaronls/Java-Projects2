@@ -95,11 +95,11 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
 
         @Override
         public void onGameOver() {
-            pbv.post(new Runnable() {
-                public void run() {
-                    showWinnerDialog();
-                }
-            });
+            //pbv.post(new Runnable() {
+            //    public void run() {
+            //        showWinnerDialog();
+            //    }
+            //});
         }
 
         @Override
