@@ -1639,4 +1639,28 @@ public class Utils {
 		return s;
 	}
 
+	public static int [] getARGB(int argb) {
+        return new int[] {
+                (argb >>> 24) & 0xff,
+                (argb >> 16) & 0xff,
+                (argb >> 8) & 0xff,
+                (argb >> 0) & 0xff
+        };
+    }
+
+	public static int interpolateColor(int argb0, int argb1, float factor) {
+
+        int [] argb0A = getARGB(argb0);
+        int [] argb1A = getARGB(argb1);
+
+        int c = 0;
+
+        for (int i=0; i<4; i++) {
+            float comp = argb0A[i] * factor + argb1A[i] * (1.0f - factor);
+            c |= Math.round(comp) << (8*(3-i));
+        }
+
+        return c;
+    }
+
 }

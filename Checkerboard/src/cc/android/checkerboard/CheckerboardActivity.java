@@ -95,11 +95,7 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
 
         @Override
         public void onGameOver() {
-            //pbv.post(new Runnable() {
-            //    public void run() {
-            //        showWinnerDialog();
-            //    }
-            //});
+            pbv.startCheckmatedAnimation();
         }
 
         @Override
@@ -385,7 +381,6 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
                             public void onClick(DialogInterface dialog, final int which) {
                                 game.newGame();
                                 pbv.setGame(game);
-                                pbv.invalidate();
                                 robot = new Robot(which);
                                 updateButtons();
                                 checkForRobotTurn();
@@ -402,7 +397,6 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
                         robot = null;
                         game.newGame();
                         pbv.setGame(game);
-                        pbv.invalidate();
                         updateButtons();
                         break;
                     }

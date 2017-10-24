@@ -117,6 +117,15 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
         return null;
     }
 
+    public final List<Piece> getCapturedPieces() {
+        List<Piece> captured = new ArrayList<>();
+        for (Move m : undoStack) {
+            if (m.captured != null)
+                captured.add(m.captured);
+        }
+        return captured;
+    }
+
     /**
      * Should be called after all the pieces have been setup
      */

@@ -3,92 +3,87 @@
                 xmlns:cc="http://schemas.android.com/apk/res-auto"
                 xmlns:tools="http://schemas.android.com/tools"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="@android:color/black">
-
-    <cc.lib.android.SquareLinearLayout
-        android:id="@+id/layoutCheckerboard"
-        android:layout_width="wrap_content"
-        android:layout_height="fill_parent"
-        android:layout_centerInParent="true"
-        cc:dominantSide="fill_fit">
-
-        <cc.android.checkerboard.CheckerboardView
-            android:id="@+id/cbView"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
-            cc:outlineThickness="3dp"/>
-    </cc.lib.android.SquareLinearLayout>
+                android:layout_height="match_parent">
 
     <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="false"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentTop="false"
-        android:layout_centerVertical="true"
-        android:layout_toLeftOf="@+id/layoutCheckerboard"
-        android:orientation="vertical">
-
-        <Button
-            android:id="@+id/buttonNewGame"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:text="New Game"/>
-
-        <Button
-            android:id="@+id/buttonEndTurn"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:text="End Turn"/>
-
-        <Button
-            android:id="@+id/buttonRobot"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:text="Robot"/>
-
-        <ToggleButton
-            android:id="@+id/toggleButtonDebug"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:textOff="Debug Off"
-            android:textOn="Debug On"/>
-
-
-        <ImageButton
-            android:id="@+id/buttonUp"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:src="@android:drawable/arrow_up_float"/>
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
         <LinearLayout
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <Button
+                android:id="@+id/buttonNewGame"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:text="New Game"/>
+
+            <Button
+                android:id="@+id/buttonEndTurn"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:text="End Turn"/>
+
+            <Button
+                android:id="@+id/buttonRobot"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:text="Robot"/>
+
+            <ToggleButton
+                android:id="@+id/toggleButtonDebug"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:textOff="Debug Off"
+                android:textOn="Debug On"/>
+
 
             <ImageButton
-                android:id="@+id/buttonLeft"
-                android:layout_width="0dp"
-                android:layout_height="fill_parent"
-                android:layout_weight="1"
-                android:src="@android:drawable/ic_media_previous"/>
+                android:id="@+id/buttonUp"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:src="@android:drawable/arrow_up_float"/>
+
+            <LinearLayout
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content">
+
+                <ImageButton
+                    android:id="@+id/buttonLeft"
+                    android:layout_width="0dp"
+                    android:layout_height="fill_parent"
+                    android:layout_weight="1"
+                    android:src="@android:drawable/ic_media_previous"/>
+
+                <ImageButton
+                    android:id="@+id/buttonRight"
+                    android:layout_width="0dp"
+                    android:layout_height="fill_parent"
+                    android:layout_weight="1"
+                    android:src="@android:drawable/ic_media_next"/>
+
+            </LinearLayout>
 
             <ImageButton
-                android:id="@+id/buttonRight"
-                android:layout_width="0dp"
-                android:layout_height="fill_parent"
-                android:layout_weight="1"
-                android:src="@android:drawable/ic_media_next"/>
+                android:id="@+id/buttonDown"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:src="@android:drawable/arrow_down_float"/>
 
         </LinearLayout>
 
-        <ImageButton
-            android:id="@+id/buttonDown"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:src="@android:drawable/arrow_down_float"/>
-
+        <cc.android.checkerboard.CheckerboardView
+            android:id="@+id/cbView"
+            android:layout_width="0dp"
+            android:layout_height="fill_parent"
+            android:layout_weight="4"
+            android:background="#0d0"
+            cc:outlineThickness="3dp"/>
     </LinearLayout>
+
 
     <TextView
         android:id="@+id/tvDebug"
