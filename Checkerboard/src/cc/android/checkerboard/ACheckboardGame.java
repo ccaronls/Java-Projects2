@@ -232,7 +232,10 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
     }
 
     public final boolean isOnBoard(int r, int c) {
-        return r>=0 && c>=0 && r<RANKS && c<COLUMNS;
+        if (r < 0 || c < 0 || r >= RANKS || c >= COLUMNS)
+            return false;
+        return true;
+        //return r>=0 && c>=0 && r<RANKS && c<COLUMNS;
     }
 
     public final boolean canUndo() {

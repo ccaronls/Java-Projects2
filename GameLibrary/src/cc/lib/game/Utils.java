@@ -1295,7 +1295,7 @@ public class Utils {
         int i = 0;
         for (; i<array.length-1; i++)
             buf.append(toString(array[i])).append(", ");
-        buf.append(array[i]).append("}");
+        buf.append(toString(array[i])).append("}");
         return buf.toString();
     }
 

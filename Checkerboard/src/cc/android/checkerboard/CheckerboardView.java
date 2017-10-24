@@ -35,7 +35,7 @@ import cc.lib.math.Bezier;
 import cc.lib.math.Vector2D;
 
 /**
- * This handles events form system like user input, pause, resume etc.
+ * This class renders the game and handles touch events on the board.
  * 
  * @author chriscaron
  *
@@ -227,7 +227,7 @@ public class CheckerboardView extends View {
             super(1200, cellDim * pos[1] + cellDim/2,
                     pos[1] == 0 ? 0 : getHeight(),
                     cellDim * pos[1] + cellDim/2,
-                    cellDim * pos[0] + cellDim/2, playerNum, pt, whenDone, game.getPiece(pos));
+                    cellDim * pos[0] + cellDim/2, playerNum, pt, whenDone);//, game.getPiece(pos));
         }
 
         @Override
@@ -838,11 +838,11 @@ public class CheckerboardView extends View {
                     d = getResources().getDrawable(R.drawable.wt_king);
                 break;
             case KING:
-                drawChecker(g, cx, cy, pcRad, getPcColor(pc.playerNum), 0);
+                drawChecker(g, cx, cy, pcRad, pc.playerNum, 0);
                 cy -= pcRad/4;
                 // fall through
             case CHECKER:
-                drawChecker(g, cx, cy, pcRad, getPcColor(pc.playerNum), outline);
+                drawChecker(g, cx, cy, pcRad, pc.playerNum, outline);
                 break;
         }
         if (d != null) {
@@ -897,7 +897,21 @@ public class CheckerboardView extends View {
         d.draw(g);
     }
 
-    void drawChecker(Canvas g, float x, float y, float rad, int color, int outlineColor) {
+    void drawChecker(Canvas g, float x, float y, float rad, int playerNum, int outlineColor) {
+        Drawable d;
+        if (game.getPlayerColor(playerNum) == ACheckboardGame.Color.BLACK) {
+           d = getResources().getDrawable(R.drawable.blk_checker);
+        } else {
+            d = getResources().getDrawable(R.drawable.red_checker);
+        }
+
+        drawBitmap(g, x, y, d, 0.75f, outlineColor);
+
+
+        //Drawable d = getResources().getDrawable(color == )
+
+    }
+    void drawChecker_old(Canvas g, float x, float y, float rad, int color, int outlineColor) {
         int dark = DroidUtils.darken(color, 0.5f);
         pFill.setColor(dark);
         final int step = (int)(rad/20 * -1);
