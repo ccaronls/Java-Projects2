@@ -14,4 +14,4 @@
 **/gradle/
 local.properties
 fractal.properties
-
+captures

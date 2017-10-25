@@ -51,6 +51,7 @@ public class CheckerboardView extends View {
     boolean drawDebugInfo = false;
 
     private ACheckboardGame game = null;
+    private float boardPadding = 0;
 
     public CheckerboardView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
@@ -116,9 +117,9 @@ public class CheckerboardView extends View {
         float touchY = event.getY();
 
         int dim = Math.min(getWidth(), getHeight());
-        int curRank = (int)(touchY * 8 / dim);
-        int curColumn = (int)(touchX * 8 / dim);
-
+        dim -= boardPadding*2;
+        int curRank = (int)((touchY-boardPadding) * 8 / dim);
+        int curColumn = (int)((touchX-boardPadding) * 8 / dim);
 
         long dt = (int)(SystemClock.uptimeMillis() - downTime);
 
@@ -130,8 +131,8 @@ public class CheckerboardView extends View {
                 break;
             case MotionEvent.ACTION_MOVE:
                 if (dt > 200 && game.isOnBoard(touchRank, touchColumn)) {
-                    dragX = touchX;
-                    dragY = touchY;
+                    dragX = touchX - boardPadding;
+                    dragY = touchY - boardPadding;
                     dragging = game.getPiece(touchRank, touchColumn);
                     if (dragging.moves.size() == 0)
                         dragging = null;
@@ -608,11 +609,11 @@ public class CheckerboardView extends View {
 
         // the dawable is 530x530. The wood trim is 30px
         float ratio = 25f/545;
-        float dx = dim*ratio;
+        boardPadding = dim*ratio;
         canvas.save();
         try {
-            canvas.translate(dx, dx - 5);
-            dim -= dx * 2;
+            canvas.translate(boardPadding, boardPadding - 5);
+            dim -= boardPadding * 2;
 
             // debug outline the playable part of the
             //canvas.drawRect(0, 0, dim, dim, pStroke);
