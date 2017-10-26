@@ -1,7 +1,23 @@
 apply plugin: 'java'
+apply plugin: 'application'
+
+dependencies {
+    compile project(':GameLibrary')
+}
+
 sourceSets {
-    main.java.srcDirs = ['']
-    main.resources.srcDirs = ['']
-    test.java.srcDirs = ['tests/java']
-    test.resources.srcDirs = ['tests/resources']
+    main {
+        java {
+            srcDirs = ['src']
+            //, '../GameLibrary/src']
+            //exclude '**/swing/**'
+            //exclude '**/skunkworks/**'
+        }
+    }
+}
+
+mainClassName = 'cc.app.soap.SnakesOnAPlane'
+
+repositories {
+    mavenCentral()
 }

@@ -1,7 +1,27 @@
 apply plugin: 'java'
+apply plugin: 'application'
+
+dependencies {
+    compile project(':GameLibrary')
+}
+
 sourceSets {
-    main.java.srcDirs = ['src','test','png']
-    main.resources.srcDirs = ['src','test','png']
-    test.java.srcDirs = ['tests/java']
-    test.resources.srcDirs = ['tests/resources']
+    main {
+        java {
+            srcDirs = ['src']
+            //, '../GameLibrary/src']
+            //exclude '**/swing/**'
+            //exclude '**/skunkworks/**'
+        }
+
+        resources {
+            srcDirs = ['png']
+        }
+    }
+}
+
+mainClassName = 'cc.game.kaiser.swing.KaiserApplet'
+
+repositories {
+    mavenCentral()
 }
