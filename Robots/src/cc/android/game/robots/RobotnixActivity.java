@@ -67,26 +67,8 @@ public class RobotnixActivity extends CCActivityBase implements View.OnClickList
         }
 
         if (robo.tappedIndex >= 0) {
-            v.post(new Runnable() {
-                @Override
-                public void run() {
-                    if (robo.tappedIndex >= 0) {
-                        robo.arm.moveHinge(robo.tappedIndex, deltaPerSec[0], deltaPerSec[1]);
-                        v.postDelayed(this, 1000);
-                        robo.invalidate();
-                    }
-                }
-            });
-
-            v.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-                @Override
-                public void onFocusChange(View v, boolean hasFocus) {
-                    if (!hasFocus) {
-                        v.setOnFocusChangeListener(null);
-                        v.removeCallbacks(null);
-                    }
-                }
-            });
+            robo.arm.moveHinge(robo.tappedIndex, deltaPerSec[0], deltaPerSec[1]);
+            robo.invalidate();
         }
     }
 }

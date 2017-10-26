@@ -19,5 +19,5 @@ public abstract class IKConstraint extends Reflector<IKConstraint> {
      * @param dv
      * @return
      */
-    abstract boolean constrain(IKArm arm, int index, MutableVector2D dv);
+    abstract boolean move(IKArm arm, int index, MutableVector2D dv);
 }

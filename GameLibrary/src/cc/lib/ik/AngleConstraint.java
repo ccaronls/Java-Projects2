@@ -38,13 +38,14 @@ public class AngleConstraint extends IKConstraint {
     }
 
     @Override
-    boolean constrain(IKArm arm, int index, MutableVector2D dv) {
+    boolean move(IKArm arm, int index, MutableVector2D dv) {
         if (index >= arm.getNumHinges()-1)
             return false;
-        IKHinge s0 = arm.getHinge(index);
-        IKHinge n0  = arm.getHinge(index+1);
-        Vector2D tv = n0.v.sub(s0.v);
-        float angle = tv.angleOf();
+        IKHinge i = arm.getHinge(index); // this hinge
+        IKHinge n  = arm.getHinge(index+1); // next hinge
+        Vector2D a = n.v.sub(i.v.add(dv)); // a is the vector that will result once applying dv
+
+        float angle = a.angleOf();
 
         if (startAngle < 0) {
             startAngle = angle - sweep/2;
@@ -54,10 +55,11 @@ public class AngleConstraint extends IKConstraint {
 
         float st = startAngle;
 
+        // adjust for the previous point if it exists, otherwise this is a hard angle
         if (index > 0) {
             //float r2 = arm.getAngle(index-1);
-            IKHinge p0 = arm.getHinge(index-1);
-            float pAng = s0.v.sub(p0).angleOf();
+            IKHinge p = arm.getHinge(index-1);
+            float pAng = i.v.sub(p).angleOf();
             st += pAng;
             if (st > 360)
                 st -= 360;
@@ -75,16 +77,32 @@ public class AngleConstraint extends IKConstraint {
                 return false;
         }
 
-        System.out.println("AngleConstraint idx("+index+") dv(" + dv + ")");
+        float dMax= Math.abs(maxAngle-angle);
+        if (dMax > 180)
+            dMax=Math.abs(dMax - 360);
 
-        float rads = angle < st ? st * CMath.DEG_TO_RAD : maxAngle * CMath.DEG_TO_RAD;
+        float dSt = Math.abs(st-angle);
+        if (dSt > 180)
+            dSt=Math.abs(dSt-360);
+
+        float ang = dSt < dMax ? st : maxAngle;
+        float rads = CMath.DEG_TO_RAD * ang;
+
+        System.out.println("AngleConstraint Hit idx("+index+") dv(" + dv + ")");
+
         float cosx = (float) Math.cos(rads);
         float sinx = (float) Math.sin(rads);
-        Vector2D nv = new Vector2D(n0.v.X()-cosx*s0.nmag, n0.v.Y()-sinx*s0.nmag);
+        Vector2D a2 = new Vector2D(cosx*i.nmag, sinx*i.nmag);
+        // add too dv the difference between a and a2
+        //dv.addEq(a2.sub(a));
+        i.v.set(n.v.sub(a2));
+        return true;
+
+        /*
         dv.set(nv.sub(s0));
         System.out.println("                               nextDv(" + dv + ")");
-        s0.v.set(nv);
-        return true;
+        i.v.set(nv);
+        return true;*/
     }
 
     public final float getSweep() {

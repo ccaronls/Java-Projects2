@@ -4,7 +4,7 @@ import cc.lib.math.MutableVector2D;
 
 public class FixedConstraint extends IKConstraint {
     @Override
-    boolean constrain(IKArm arm, int index, MutableVector2D dv) {
+    boolean move(IKArm arm, int index, MutableVector2D dv) {
         if (dv.magSquared() > 0.001) {
             return true;
         }

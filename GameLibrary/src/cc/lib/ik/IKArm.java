@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import cc.lib.game.Utils;
-import cc.lib.math.CMath;
 import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
 import cc.lib.utils.Reflector;
@@ -21,8 +20,6 @@ public final class IKArm extends Reflector<IKArm> {
 		addAllFields(IKArm.class);
 	}
 
-	
-    
     private List<IKHinge> sections = new ArrayList<IKHinge>(); 
     
     public IKArm() {}
@@ -52,7 +49,7 @@ public final class IKArm extends Reflector<IKArm> {
         IKHinge s = getHinge(index);
         boolean result = false;
         for (IKConstraint c : s.constraints) {
-            if (c.constrain(this, index, dv)) {
+            if (c.move(this, index, dv)) {
                 result = true;
             }
         }
@@ -76,7 +73,7 @@ public final class IKArm extends Reflector<IKArm> {
             if (!moveIKHingeR(index, dv, 1, depth)) {
                 IKHinge s = sections.get(index);
                 s.v.subEq(dx, dy);
-                moveIKHingeR(index, dv, -1, depth);
+                moveIKHingeR(index-1, dv, -1, depth);
             }
         }
     }
@@ -92,13 +89,12 @@ public final class IKArm extends Reflector<IKArm> {
         if (index < 0 || index >= sections.size() || depth<0)
             return false;
         if (checkConstraints(index, dv)) {
-            if (index > 0) {
-                moveIKHingeR(index-1, dv.scaleEq(-1), -1, depth-1);
+            if (index == 0) {
+                return moveIKHingeR(1, dv.scaleEq(-1), 1, depth-1);
             }
-            if (index < sections.size()-1) {
-                moveIKHingeR(index+1, dv.scaleEq(-1), 1, depth-1);
+            if (index == sections.size()-1) {
+                return moveIKHingeR(index-1, dv.scaleEq(-1), -1, depth-1);
             }
-            return true;
         }
         IKHinge s = getHinge(index);
         // check for endpoints
@@ -125,7 +121,7 @@ public final class IKArm extends Reflector<IKArm> {
         s.v.set(tx, ty);
         //s.angle = Float.POSITIVE_INFINITY;
         dv.set(vx, vy);
-        return moveIKHingeR(index+inc, dv,inc, depth);
+        return moveIKHingeR(index+inc, dv,inc, depth-1);
     }
     
     public Vector2D getV(int section) {

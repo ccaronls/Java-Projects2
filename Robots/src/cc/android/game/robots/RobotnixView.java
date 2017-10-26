@@ -122,7 +122,7 @@ public class RobotnixView extends View {
             Vector2D v = new Vector2D(dragX, dragY);
             for (int i=0; i<arm.getNumHinges(); i++) {
                 IKHinge s = arm.getHinge(i);
-                if (s.v.sub(v).magSquared() < hingeRadius*2) {
+                if (s.v.sub(v).magSquared() < hingeRadius*hingeRadius) {
                     draggingIndex = i;
                     break;
                 }
@@ -136,7 +136,7 @@ public class RobotnixView extends View {
 
     private void onTap(float x, float y) {
         if (arm.getNumHinges() == 0) {
-            arm.addHinge(x, y, new AngleConstraint(180), new FixedConstraint());
+            arm.addHinge(x, y, new AngleConstraint(180));//, new FixedConstraint());
         } else if ((tappedIndex =arm.findHinge(x, y, hingeRadius)) < 0){
             tappedIndex = arm.getNumHinges();
             arm.addHinge(x, y, new AngleConstraint(120));
