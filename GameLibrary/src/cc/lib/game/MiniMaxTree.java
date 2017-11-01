@@ -50,7 +50,7 @@ public abstract class MiniMaxTree<G extends IGame> {
 
     private <M extends IMove> long buildTree(IGame<M> game, MMTreeNode root, int depth, int scale) {
 
-        long d = scale < 0 ? Long.MAX_VALUE : Long.MIN_VALUE;
+        long d = getZeroMovesValue((G)game) * scale;// < 0 ? Long.MAX_VALUE : Long.MIN_VALUE;
         for (M m : game.getMoves()) {
             game.executeMove(m);
             MMTreeNode next = new MMTreeNode(game, m);
@@ -100,4 +100,7 @@ public abstract class MiniMaxTree<G extends IGame> {
      */
     protected void onNewNode(MMTreeNode node) {}
 
+    protected long getZeroMovesValue(G game) {
+        return Long.MIN_VALUE;
+    }
 }

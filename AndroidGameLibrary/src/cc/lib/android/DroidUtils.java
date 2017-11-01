@@ -1,6 +1,9 @@
 package cc.lib.android;
 
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.Rect;
 
 import cc.lib.game.AGraphics;
 import cc.lib.game.GDimension;
@@ -104,8 +107,7 @@ public class DroidUtils extends Utils {
     		throw new AssertionError(message);
     }
     
-    /*
-/**
+    /**
      * Detemine the minimum rectangle to hold the given text.
      * \n is a delim for each line.
      * @param g
@@ -122,5 +124,37 @@ public class DroidUtils extends Utils {
                 width = w;
         }
         return new GDimension(width, height);
-    }    
+    }
+
+    public final static int JUSTIY_LEFT = 0;
+    public final static int JUSTIY_TOP  = 0;
+    public final static int JUSTIY_CENTER = 1;
+    public final static int JUSTIY_RIGHT = 2;
+    public final static int JUSTIY_BOTTOM = 2;
+
+    public static void drawJustifiedTextCanvas(Canvas c, CharSequence txt, float tx, float ty, int hJustify, int vJustify, Paint p) {
+        Rect bounds = new Rect();
+        p.getTextBounds(txt.toString(), 0, txt.length(), bounds);
+
+        final float w = bounds.right - bounds.left;
+        final float h = bounds.bottom - bounds.top;
+
+        switch (hJustify) {
+            case JUSTIY_LEFT: break;
+            case JUSTIY_CENTER:
+                tx -= w/2; break;
+            case JUSTIY_RIGHT:
+                tx -= w;
+                break;
+        }
+        switch (vJustify) {
+            case JUSTIY_TOP: break;
+            case JUSTIY_CENTER:
+                ty -= h/2; break;
+            case JUSTIY_BOTTOM:
+                ty -= h; break;
+        }
+
+        c.drawText(txt, 0, txt.length(), tx, ty, p);
+    }
 }

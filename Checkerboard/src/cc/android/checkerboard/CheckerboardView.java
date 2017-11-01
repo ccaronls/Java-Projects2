@@ -390,38 +390,87 @@ public class CheckerboardView extends View {
         });
     }
 
-    public void startCheckmatedAnimation() {
-        final int [] pos = game.findPiecePosition(game.getTurn(), PieceType.CHECKED_KING, PieceType.CHECKED_KING_IDLE);
-        hidden.add(game.getPiece(pos[0], pos[1]));
-        final int drawable = game.getPlayerColor(game.getTurn()) == ACheckboardGame.Color.BLACK ? R.drawable.bk_king : R.drawable.wt_king;
+    private void startDrawGameAnimation() {
+        animations.add(new AAnimation<Canvas>(2000, 10, true) {
 
-        animations.add(new AAnimation<Canvas>(2000) {
+            Paint p = new Paint();
+
             @Override
             protected void draw(Canvas g, float position, float dt) {
 
-                float cx = pos[1] * cellDim + cellDim / 2;
-                float cy = pos[0] * cellDim + cellDim / 2;
+                int startColor = Color.RED;
+                int endColor = Color.CYAN;
 
-                BitmapDrawable d = (BitmapDrawable)getResources().getDrawable(drawable);
-                float [] dim = getBitmapRect(d, 1);
+                float minSize = cellDim / 3;
+                float maxSize = cellDim * 2 / 3;
 
-                g.save();
-                g.translate(cx, cy);
-                g.translate(dim[0]/2, dim[1]/2);
-                g.rotate(90f * position);
-                g.translate(-dim[0]/2, -dim[1]/2);
-                drawBitmap(g, 0, 0, d, 1, OUTLINE_NONE);
-                g.restore();
+                p.setColor(Utils.interpolateColor(startColor, endColor, position));
+                p.setTextSize(minSize + (maxSize - minSize) * position);
 
-            }
+                float dim = Math.min(getWidth(), getHeight());
 
-            @Override
-            public boolean isDone() {
-                return false;
+                DroidUtils.drawJustifiedTextCanvas(g, "DRAW GAME", dim / 2, dim / 2, DroidUtils.JUSTIY_CENTER, DroidUtils.JUSTIY_CENTER, p);
+
             }
         }.start());
+        postInvalidate();//invalidate();
+    }
+
+    public void startEndgameAnimation() {
+        final int [] pos = game.findPiecePosition(game.getTurn(), PieceType.CHECKED_KING, PieceType.CHECKED_KING_IDLE);
+        if (pos == null) {
+            // then we are in a draw game.
+            startDrawGameAnimation();
+            return;
+        }
+
+
+        hidden.add(game.getPiece(pos[0], pos[1]));
+        final int drawable = game.getPlayerColor(game.getTurn()) == ACheckboardGame.Color.BLACK ? R.drawable.bk_king : R.drawable.wt_king;
+
+        animations.add(new CheckmateAnim(pos, drawable, true).start());
 
         //animations.add(new GlowAnim(glowRed, Color.RED, Color.argb(0, 0xff, 0, 0)).start());
+    }
+
+    private class CheckmateAnim extends AAnimation<Canvas>{
+
+        final int [] pos;
+        final int drawable;
+        final boolean neverEnds;
+
+        CheckmateAnim(int [] pos, int d, boolean neverEnds) {
+            super(2000);
+            this.pos = pos;
+            this.drawable = d;
+            this.neverEnds = neverEnds;
+        }
+
+        @Override
+        protected void draw(Canvas g, float position, float dt) {
+
+            float cx = pos[1] * cellDim + cellDim / 2;
+            float cy = pos[0] * cellDim + cellDim / 2;
+
+            BitmapDrawable d = (BitmapDrawable)getResources().getDrawable(drawable);
+            float [] dim = getBitmapRect(d, 1);
+
+            g.save();
+            g.translate(cx, cy);
+            g.translate(dim[0]/2, dim[1]/2);
+            g.rotate(90f * position);
+            g.translate(-dim[0]/2, -dim[1]/2);
+            drawBitmap(g, 0, 0, d, 1, OUTLINE_NONE);
+            g.restore();
+
+        }
+
+        @Override
+        public boolean isDone() {
+            if (neverEnds)
+                return false;
+            return super.isDone();
+        }
     }
 
     private void startCapturedAnimation(Move m, Runnable whenDone) {
@@ -447,7 +496,7 @@ public class CheckerboardView extends View {
             a.startReverse();
         else
             a.start();
-        this.hidden.add(game.getPiece(m.getCaptured()));
+        this.hidden.add(m.captured);//game.getPiece(m.getCaptured()));
     }
 
     public void animateMoveAndThen(Move m, Runnable onDone) {
@@ -490,12 +539,8 @@ public class CheckerboardView extends View {
                     case SLIDE:
                     case JUMP: {
                         if (m.captured != null) {
-                            startCapturedAnimation(m, new Runnable() {
-                                @Override
-                                public void run() {
-                                    game.executeMove(m);
-                                }
-                            });
+                            game.executeMove(m);
+                            startCapturedAnimation(m, null);
                             return; // pause execution until this animation ends
                         }
                         break;
@@ -547,6 +592,7 @@ public class CheckerboardView extends View {
             pFill.setColor(Color.GREEN);
             canvas.drawRect(0f, 0f, width, height, pFill);
         }
+        // draw simple checkerboard
 /*
         pFill.setColor(Color.GRAY);
         canvas.drawRect(0f, 0f, dim, dim, pFill);
@@ -561,6 +607,7 @@ public class CheckerboardView extends View {
             }
         }*/
 
+        // Draw cb from bitmap resource
         Drawable board = getResources().getDrawable(R.drawable.wood_checkerboard);
         int iDim = Math.round(dim);
         board.setBounds(0, 0, iDim, iDim);
@@ -575,18 +622,19 @@ public class CheckerboardView extends View {
             final float padding = cellDim / 8;
             nextNearCaptureY = height - iDim / 2 + cellDim / 2 + padding;
             nextFarCaptureY = cellDim / 2 + padding;
-            float xnearpacing = padding * 2;
-            float xfarspacing = padding * 2;
-            float sxnear = iDim + padding + cellDim / 2;
+            float xnearpacing = padding;
+            float xfarspacing = padding;
+            float sxnear = iDim + cellDim / 2;
             float sxfar = sxnear;
             nextNearCaptureX = sxnear;
             nextFarCaptureX = nextNearCaptureX;
+            final float maxX = width - cellDim/4;
             for (Piece p : captured) {
                 switch (p.playerNum) {
                     case ACheckboardGame.FAR:
                         drawPieceAt(canvas, p, nextNearCaptureX, nextNearCaptureY, OUTLINE_NONE);
-                        nextNearCaptureX += padding * 4;
-                        if (nextNearCaptureX > width - cellDim) {
+                        nextNearCaptureX += padding*2;
+                        if (nextNearCaptureX > maxX) {
                             sxnear += xnearpacing;
                             xnearpacing *= -1;
                             nextNearCaptureX = sxnear;
@@ -595,8 +643,8 @@ public class CheckerboardView extends View {
                         break;
                     case ACheckboardGame.NEAR:
                         drawPieceAt(canvas, p, nextFarCaptureX, nextFarCaptureY, OUTLINE_NONE);
-                        nextFarCaptureX += padding * 4;
-                        if (nextFarCaptureX > width - cellDim) {
+                        nextFarCaptureX += padding*2;
+                        if (nextFarCaptureX > maxX) {
                             sxfar += xfarspacing;
                             xfarspacing *= -1;
                             nextFarCaptureX = sxfar;
@@ -942,11 +990,19 @@ public class CheckerboardView extends View {
     }
 
     public final void undo() {
+        CheckmateAnim cm = null;
         for (AAnimation<Canvas> a : animations) {
+            if (a instanceof CheckmateAnim)
+                cm = (CheckmateAnim)a;
             a.stop();
         }
         animations.clear();
         final Move m = game.undo();
+
+        if (cm != null) {
+            animations.add(new CheckmateAnim(cm.pos, cm.drawable, false).startReverse());
+        }
+
         if (m != null) {
             if (m.captured != null) {
                 // start un-capture animation on next frame so the nextNear/FarCapturedX/Y are reflect updated state

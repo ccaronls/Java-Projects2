@@ -51,8 +51,13 @@ public class Robot extends Reflector<Robot> {
         @Override
         protected long evaluate(Chess game, MMTreeNode t, int playerNum) {
             return Robot.this.evaluateChessBoard(game, t, playerNum);
+        }
 
-
+        @Override
+        protected long getZeroMovesValue(Chess game) {
+            if (null != game.findPiece(game.getTurn(), PieceType.CHECKED_KING_IDLE, PieceType.CHECKED_KING))
+                return super.getZeroMovesValue(game);
+            return 0; // if we have no moves and our king is not in check then this is a draw
         }
     };
 

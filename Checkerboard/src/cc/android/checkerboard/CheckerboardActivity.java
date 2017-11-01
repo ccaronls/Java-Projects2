@@ -95,7 +95,8 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
 
         @Override
         public void onGameOver() {
-            pbv.startCheckmatedAnimation();
+            // check for a draw game
+            pbv.startEndgameAnimation();
         }
 
         @Override
@@ -315,11 +316,11 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
         if (winnerDialog != null && winnerDialog.isShowing())
             return;
 
-        winnerDialog = newDialogBuilder().setMessage(pbv.getGame().getPlayerColor(pbv.getGame().getTurn()).name() + " Lost")
+        winnerDialog = newDialogBuilder(true).setMessage(pbv.getGame().getPlayerColor(pbv.getGame().getTurn()).name() + " Lost")
                 .setPositiveButton("Play again", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        showChoosePlayersDialog(true, pbv.getGame());
+                        showChoosePlayersDialog(pbv.getGame());
                     }
                 })
                 .setNeutralButton("Home Menu", new DialogInterface.OnClickListener() {
@@ -332,51 +333,56 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
     }
 
     void showDifficultyDialog() {
-        newDialogBuilder().setItems(Utils.toStringArray(Robot.RobotType.values()), new DialogInterface.OnClickListener() {
+        newDialogBuilder(true).setItems(Utils.toStringArray(Robot.RobotType.values()), new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, final int which) {
                 robot = new Robot(which);
                 updateButtons();
                 checkForRobotTurn();
             }
+        }).setOnCancelListener(new DialogInterface.OnCancelListener() {
+            @Override
+            public void onCancel(DialogInterface dialog) {
+                showChoosePlayersDialog(pbv.getGame());
+            }
         }).show();
     }
 
-    private AlertDialog.Builder newDialogBuilder() {
-        return new AlertDialog.Builder(this, R.style.DialogTheme).setCancelable(false);
+    private AlertDialog.Builder newDialogBuilder(boolean cancelable) {
+        return new AlertDialog.Builder(this, R.style.DialogTheme).setCancelable(cancelable);
     }
 
     void showChooseGameDialog() {
         String [] items = {"Checkers", "Chess" };
-        newDialogBuilder().setItems(items, new DialogInterface.OnClickListener() {
+        newDialogBuilder(false).setItems(items, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 switch (which) {
                     case 0:
-                        showChoosePlayersDialog(false, new MyCheckers());
+                        showChoosePlayersDialog(new MyCheckers());
                         break;
                     case 1:
-                        showChoosePlayersDialog(false, new MyChess());
+                        showChoosePlayersDialog(new MyChess());
                         break;
                 }
             }
         }).show();
     }
 
-    void showChoosePlayersDialog(final  boolean finishOnCancel, final ACheckboardGame game) {
+    void showChoosePlayersDialog(final ACheckboardGame game) {
         tbDebug.setVisibility(View.GONE);
         ArrayList<String> list = new ArrayList<>();
         list.add("One Player");
         list.add("Two Players");
         if (getSaveFile(game).exists())
             list.add("Resume");
-        newDialogBuilder().setItems(list.toArray(new String[list.size()]), new DialogInterface.OnClickListener() {
+        newDialogBuilder(true).setItems(list.toArray(new String[list.size()]), new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 switch (which) {
                     case 0: {
                         tbDebug.setVisibility(View.VISIBLE);
-                        newDialogBuilder().setItems(Utils.toStringArray(Robot.RobotType.values()), new DialogInterface.OnClickListener() {
+                        newDialogBuilder(true).setItems(Utils.toStringArray(Robot.RobotType.values()), new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, final int which) {
                                 game.newGame();
@@ -385,10 +391,10 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
                                 updateButtons();
                                 checkForRobotTurn();
                             }
-                        }).setOnCancelListener(!finishOnCancel ? null : new DialogInterface.OnCancelListener() {
+                        }).setOnCancelListener(new DialogInterface.OnCancelListener() {
                             @Override
                             public void onCancel(DialogInterface dialog) {
-                                showChoosePlayersDialog(finishOnCancel, game);
+                                showChoosePlayersDialog(game);
                             }
                         }).show();
                         break;
@@ -408,7 +414,7 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
         }).setOnCancelListener(new DialogInterface.OnCancelListener() {
             @Override
             public void onCancel(DialogInterface dialog) {
-                finish();
+                //finish();
             }
         }).show();
 
@@ -455,7 +461,7 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
             protected void onPostExecute(Exception e) {
                 d.dismiss();
                 if (e != null) {
-                    newDialogBuilder()
+                    newDialogBuilder(true)
                             .setTitle("Error")
                             .setMessage(e.getClass().getSimpleName() + " : " + e.getMessage())
                             .setNegativeButton("Ok", null)
@@ -552,7 +558,7 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
         if (v.getId() == R.id.buttonNewGame) {
             if (pbv.getGame()==null)
                 showChooseGameDialog();
-            else newDialogBuilder().setMessage("Start a " + pbv.getGame().getClass().getSimpleName() + " game?")
+            else newDialogBuilder(true).setMessage("Start a " + pbv.getGame().getClass().getSimpleName() + " game?")
                     .setNegativeButton("Cancel", null)
                     .setNeutralButton("Home Menu", new DialogInterface.OnClickListener() {
                         @Override
@@ -563,7 +569,7 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
                     }).setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            showChoosePlayersDialog(false, pbv.getGame());
+                            showChoosePlayersDialog(pbv.getGame());
                         }
                     }).show();
 

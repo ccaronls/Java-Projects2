@@ -18,7 +18,6 @@
     </style>
 
     <style name="DialogTheme" parent="@android:style/Theme.Dialog">
-        <item name="android:windowCloseOnTouchOutside">false</item>
     </style>
 
     <style name="HomeButtonStyle" parent="@android:style/Widget.Button.Inset">

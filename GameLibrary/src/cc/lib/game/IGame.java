@@ -28,5 +28,6 @@ public interface IGame<M extends IMove> {
      * @return
      */
     int getTurn();
+
 }
 
