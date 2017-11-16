@@ -172,12 +172,6 @@ public class RobotnixView extends View {
         }
         canvas.drawPath(path, pStroke);
         pFill.setColor(Color.YELLOW);
-        int idx = 0;
-        for (IKHinge s : arm.getHinges()) {
-            canvas.drawCircle(s.v.X(), s.v.Y(), hingeRadius, pFill);
-            drawConstraints(canvas, s);
-            canvas.drawText(String.valueOf(arm.getAngle(idx++)), s.v.X(), s.v.Y(), pText);
-        }
         if (draggingIndex >= 0) {
             IKHinge s = arm.getHinge(draggingIndex);
             pFill.setColor(Color.RED);
@@ -187,7 +181,12 @@ public class RobotnixView extends View {
             IKHinge s = arm.getHinge(tappedIndex);
             pStrokeThin.setColor(Color.RED);
             canvas.drawCircle(s.v.X(), s.v.Y(), hingeRadius*2, pStrokeThin);
-
+        }
+        int idx = 0;
+        for (IKHinge s : arm.getHinges()) {
+            canvas.drawCircle(s.v.X(), s.v.Y(), hingeRadius, pFill);
+            drawConstraints(canvas, s);
+            canvas.drawText(String.format("%d:%3.2f", idx, arm.getAngle(idx++)), s.v.X(), s.v.Y(), pText);
         }
     }
 

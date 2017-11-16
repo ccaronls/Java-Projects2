@@ -96,7 +96,7 @@ public abstract class KeyboardAnimationApplet extends JApplet implements
 	 * are output.
 	 * 
 	 */
-	protected abstract void drawFrame(AWTGraphics g);
+	protected abstract void drawFrame(AGraphics g);
 
 	/**
 	 * This function is called when the dimension changes
@@ -583,13 +583,16 @@ public abstract class KeyboardAnimationApplet extends JApplet implements
 	 *  (non-Javadoc)
 	 * @see java.awt.event.MouseListener#mousePressed(java.awt.event.MouseEvent)
 	 */
-	public void mousePressed(MouseEvent evt) {
+	public final void mousePressed(MouseEvent evt) {
 		requestFocus();
 		if (evt.isControlDown() && evt.getButton() == MouseEvent.BUTTON1)
 			mouseButtons[eventToInt(MouseEvent.BUTTON3)] = 1;
 		else
 			mouseButtons[eventToInt(evt.getButton())] = 1;
+		onMousePressed(evt);
 	}
+
+	protected void onMousePressed(MouseEvent ev) {}
 
 	public void mouseEntered(MouseEvent evt) {
 	} 

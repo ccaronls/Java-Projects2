@@ -3,35 +3,21 @@ package cc.jroids;
 import cc.lib.math.CMath;
 import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
-import cc.lib.swing.AWTGraphics;
-import cc.lib.swing.EZFrame;
-import cc.lib.swing.KeyboardAnimationApplet;
 import cc.lib.game.AColor;
 import cc.lib.game.AGraphics;
 import cc.lib.game.Justify;
 import cc.lib.game.Polygon2D;
 import cc.lib.game.Utils;
 
-import java.awt.event.*;
 import java.util.Arrays;
 
-public class JavaRoids extends KeyboardAnimationApplet 
+public abstract class JavaRoids
 {
-	static final long serialVersionUID = 0;
+	public abstract int getFrameNumber();
+	public abstract int getScreenWidth();
+	public abstract int getScreenHeight();
 
-	public static void main(String [] args) {
-		Utils.DEBUG_ENABLED = true;
-		EZFrame frame = new EZFrame("JavaRoids Debug Mode");
-		KeyboardAnimationApplet app = new JavaRoids();
-		frame.add(app);
-		app.init();
-        //frame.centerToScreen(620, 620);
-		frame.finalizeToBounds(2244, 301, 620, 620);
-		app.start();
-		app.setMillisecondsPerFrame(33);
-	}	
-	
-	// General purpose shape	
+	// General purpose shape
 	private static class Obj
 	{
 		final MutableVector2D position = new MutableVector2D();
@@ -84,11 +70,11 @@ public class JavaRoids extends KeyboardAnimationApplet
 	final int		PLAYER_ROTATE_SPEED		= 8;
 	final float		PLAYER_THRUST_POWER		= 0.25f;
 	final int		PLAYER_SHOOT_RATE		= 10;
-	final int		PLAYER_BUTTON_RIGHT		= 1;
-	final int		PLAYER_BUTTON_LEFT		= 2;
-	final int		PLAYER_BUTTON_THRUST	= 4;
-	final int		PLAYER_BUTTON_SHOOT		= 8;
-	final int		PLAYER_BUTTON_SHIELD	= 16;
+	public static final int		PLAYER_BUTTON_RIGHT		= 1;
+    public static final int		PLAYER_BUTTON_LEFT		= 2;
+    public static final int		PLAYER_BUTTON_THRUST	= 4;
+    public static final int		PLAYER_BUTTON_SHOOT		= 8;
+    public static final int		PLAYER_BUTTON_SHIELD	= 16;
 
 	final int		PLAYER_MISSLE_DURATION	= 100;
 	final float		PLAYER_MISSLE_SPEED		= 10.0f;
@@ -112,14 +98,14 @@ public class JavaRoids extends KeyboardAnimationApplet
 	//int			screen_x 			= 0;
 	//int			screen_y 			= 0;
 	
-	int			mouse_x				= 0;
-	int			mouse_y				= 0;
-	int			mouse_dx			= 0;
-	int			mouse_dy			= 0;
+	//int			mouse_x				= 0;
+	//int			mouse_y				= 0;
+	//int			mouse_dx			= 0;
+	//int			mouse_dy			= 0;
 
-	final MutableVector2D	player_p = new MutableVector2D();
-	final MutableVector2D	player_v = new MutableVector2D();
-	final MutableVector2D   screen_p = new MutableVector2D();
+	public final MutableVector2D	player_p = new MutableVector2D();
+	public final MutableVector2D	player_v = new MutableVector2D();
+	public final MutableVector2D   screen_p = new MutableVector2D();
 	float		player_angle		= 0;
 	int			player_missle_next_fire_frame; // used to space out missles
 	
@@ -164,18 +150,24 @@ public class JavaRoids extends KeyboardAnimationApplet
         	w = w.darken(g, 1.0f/NUM_STAR_TYPES);
         }
     }	
-	
+
+    public void pressButton(int button) {
+        player_button_flag |= button;
+    }
+
+    public void releaseButton(int button) {
+        player_button_flag &= ~button;
+
+        if (button == PLAYER_BUTTON_SHOOT) {
+            player_missle_next_fire_frame = 0;
+        }
+    }
+
 	/////////////////////////////////////////////////////////////////
 	// OVERRIDDEN FUNCTIONS - Called when window is resized
 	
 	//---------------------------------------------------------------
 	
-	@Override
-	protected void onDimensionsChanged(AGraphics g, int width, int height) {
-	    initGraphics(g);
-	    //g.ortho();
-	    g.ortho(-width/2, width/2, height/2, -height/2);
-	}
 
 	//---------------------------------------------------------------
 	Polygon2D makePlayerShape() {
@@ -252,7 +244,7 @@ public class JavaRoids extends KeyboardAnimationApplet
 	//---------------------------------------------------------------
 	// called once at beginning af app
 	// do all allocation here, NOT during game
-	protected void doInitialization() {
+	public void doInitialization() {
 		// alloc all objects
         // allocate all the objects
         for (int i=0; i<MAX_OBJECTS; i++)
@@ -269,7 +261,7 @@ public class JavaRoids extends KeyboardAnimationApplet
 		}
 	}
 	
-	protected void initGraphics(AGraphics g) {
+	public void initGraphics(AGraphics g) {
         initColors(g);
 		initShapes(g);
 		initStars(g);
@@ -278,8 +270,7 @@ public class JavaRoids extends KeyboardAnimationApplet
 	
 	//---------------------------------------------------------------
 	// called once per frame
-	@Override
-	protected void drawFrame(AWTGraphics g) {
+	public void drawFrame(AGraphics g) {
 
 	    if (this.PLAYER_COLOR == null) {
 	        initGraphics(g);
@@ -307,7 +298,7 @@ public class JavaRoids extends KeyboardAnimationApplet
 		}
 		
 		// reset the mouse deltas at the end of the frame
-		mouse_dx = mouse_dy = 0;
+		//mouse_dx = mouse_dy = 0;
 	}
 	
 	// FUNCTIONS
@@ -698,24 +689,7 @@ public class JavaRoids extends KeyboardAnimationApplet
 	//---------------------------------------------------------------
 	void drawGameOver(AGraphics g) {
 	}
-	
-	//---------------------------------------------------------------
-	void drawButton(AGraphics g, int x, int y, int w, int h, String text) {
-		if (isMouseInRect(x,y,w,h))
-		{
 
-		}
-		else
-		{
-			g.drawFilledRect(x,y,w,h);
-		}
-	}
-	
-	//---------------------------------------------------------------
-	boolean isMouseInRect(int x, int y, int w, int h) {
-		return Utils.isPointInsideRect(mouse_x, mouse_y, x, y, w, h);
-	}
-	
 	//---------------------------------------------------------------
 	// return a ptr to an unused object, or null of none are available
 	Obj findUnusedObject() {
@@ -755,149 +729,5 @@ public class JavaRoids extends KeyboardAnimationApplet
 		obj.shape_index	= Utils.randRange(SHAPE_ROCK_I, SHAPE_ROCK_IV);
 	}	
 	
-	//---------------------------------------------------------------
-	public void keyTyped(KeyEvent e) {
-		int key=e.getKeyCode();
-		switch (key){
-		case KeyEvent.VK_SPACE:
-			//hyperspace();
-			break;
-			
-		case KeyEvent.VK_S: // stop the player dead
-			player_v.set(0,0);
-			break;
-		}
-	}
-	
-	//---------------------------------------------------------------
-	public void keyPressed(KeyEvent e) {
-		int key = e.getKeyCode();
-		
-		switch (key) {
-		case KeyEvent.VK_LEFT:
-			player_button_flag |= PLAYER_BUTTON_LEFT;
-			break;
-			
-		case KeyEvent.VK_RIGHT:
-			player_button_flag |= PLAYER_BUTTON_RIGHT;
-			break;
-			
-		case KeyEvent.VK_UP:
-			player_button_flag |= PLAYER_BUTTON_THRUST;
-			break;
-			
-		case KeyEvent.VK_DOWN:
-			break;
-			
-		case KeyEvent.VK_SHIFT:
-			player_button_flag |= PLAYER_BUTTON_SHIELD;
-			break;
-			
-		case KeyEvent.VK_Z:
-		case KeyEvent.VK_SPACE:
-			player_button_flag |= PLAYER_BUTTON_SHOOT;
-			break;
-			
-		case KeyEvent.VK_ALT:
-			break;
-			
-		case KeyEvent.VK_S:
-			player_v.zero();
-		}
-	}
 
-	
-	//---------------------------------------------------------------
-	public void keyReleased(KeyEvent e) {
-		int key = e.getKeyCode();
-		
-		switch (key) {
-		case KeyEvent.VK_LEFT:
-			player_button_flag &= ~PLAYER_BUTTON_LEFT;
-			break;
-			
-		case KeyEvent.VK_RIGHT:
-			player_button_flag &= ~PLAYER_BUTTON_RIGHT;
-			break;
-			
-		case KeyEvent.VK_UP:
-			player_button_flag &= ~PLAYER_BUTTON_THRUST;
-			break;
-			
-		case KeyEvent.VK_DOWN:
-			break;
-			
-		case KeyEvent.VK_SHIFT:
-			player_button_flag &= ~PLAYER_BUTTON_SHIELD;
-			break;
-			
-		case KeyEvent.VK_Z:
-		case KeyEvent.VK_SPACE:
-			player_missle_next_fire_frame = 0;
-			player_button_flag &= ~PLAYER_BUTTON_SHOOT;
-			break;
-			
-		case KeyEvent.VK_ALT:
-			break;
-		}
-	}
-	
-	//---------------------------------------------------------------
-	public void mouseMoved(MouseEvent e) {
-		int x = e.getX();
-		int y = e.getY();
-		mouse_dx = mouse_x - x;
-		mouse_dy = mouse_y - y;
-		mouse_x = x;
-		mouse_y = y;
-	}
-	
-	//---------------------------------------------------------------
-	public void mouseDragged(MouseEvent e) {
-		mouseMoved(e);
-	}
-
-	//---------------------------------------------------------------
-	public void mousePressed(MouseEvent e) {
-		int button=e.getButton();
-		switch (button) {
-		case MouseEvent.BUTTON1:
-			switch (game_state) {
-			case STATE_INTRO:
-				break;
-				
-			case STATE_PLAY:
-				break;
-			}
-			break;
-			
-		case MouseEvent.BUTTON2:
-			break;
-			
-		case MouseEvent.BUTTON3:
-			if (game_state == STATE_PLAY)
-			{
-			
-			}
-			break;
-		}
-	}
-
-	//---------------------------------------------------------------
-	public void mouseReleased(MouseEvent e) {
-		if (game_state != STATE_PLAY)
-			return;
-		
-		int button=e.getButton();
-		switch (button) {
-		case MouseEvent.BUTTON1:
-			break;
-			
-		case MouseEvent.BUTTON2:
-			break;
-			
-		case MouseEvent.BUTTON3:
-			break;
-		}
-	}
 }

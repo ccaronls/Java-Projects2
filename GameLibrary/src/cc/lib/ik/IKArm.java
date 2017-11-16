@@ -72,7 +72,7 @@ public final class IKArm extends Reflector<IKArm> {
             // starting somewhere in the middle
             if (!moveIKHingeR(index, dv, 1, depth)) {
                 IKHinge s = sections.get(index);
-                s.v.subEq(dx, dy);
+                s.v.addEq(dx, dy);
                 moveIKHingeR(index-1, dv, -1, depth);
             }
         }

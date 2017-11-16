@@ -13,10 +13,14 @@ sourceSets {
             //exclude '**/swing/**'
             //exclude '**/skunkworks/**'
         }
+
+        resources {
+            srcDirs = ['resources'];
+        }
     }
 }
 
-mainClassName = 'cc.misslecommand.MissleCommand'
+mainClassName = 'cc.misslecommand.swing.MCApplet'
 
 repositories {
     mavenCentral()

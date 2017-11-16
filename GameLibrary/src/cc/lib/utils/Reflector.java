@@ -1156,7 +1156,7 @@ public class Reflector<T> {
         }
     }
     
-    private final void serialize(PrintWriter out_) throws IOException {
+    protected void serialize(PrintWriter out_) throws IOException {
 //        Utils.println("Serializing %s", getClass().getName());
         MyPrintWriter out;
         if (out_ instanceof MyPrintWriter)
@@ -1191,7 +1191,7 @@ public class Reflector<T> {
      * @param out
      * @throws IOException
      */
-    public void serialize(OutputStream out) throws IOException {
+    public final void serialize(OutputStream out) throws IOException {
         serialize(new MyPrintWriter(out));
     }
     
@@ -1292,10 +1292,10 @@ public class Reflector<T> {
      * @param in
      * @throws Exception
      */
-    public void deserialize(InputStream in) throws IOException {
+    public final void deserialize(InputStream in) throws IOException {
         MyBufferedReader reader = new MyBufferedReader(new InputStreamReader(in));
         try {
-            deserialize(new MyBufferedReader(new InputStreamReader(in)));
+            deserialize(reader);
         } catch (VersionTooOldException e) {
             throw e;
         } catch (IOException e) {
@@ -1310,7 +1310,7 @@ public class Reflector<T> {
      * @param _in
      * @throws Exception
      */
-    private void deserialize(BufferedReader _in) throws Exception {
+    protected void deserialize(BufferedReader _in) throws Exception {
     	MyBufferedReader in = null;
     	if (_in instanceof MyBufferedReader)
     		in = (MyBufferedReader)_in;

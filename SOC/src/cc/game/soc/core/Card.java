@@ -15,7 +15,7 @@ public class Card extends Reflector<Card> implements Comparable <Card> {
 	private CardType type;
 	private int typeOrdinal;
 	private CardStatus status;
-	
+
 	@Override
 	public void serialize(PrintWriter out) throws IOException {
 		out.println(type);
@@ -70,7 +70,7 @@ public class Card extends Reflector<Card> implements Comparable <Card> {
 	/**
 	 * 
 	 * @param type
-	 * @param flag
+	 * @param status
 	 */
 	public Card(ICardType<?> type, CardStatus status) {
 		this(type.getCardType(), type.ordinal(), status);

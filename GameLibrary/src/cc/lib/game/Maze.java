@@ -102,6 +102,9 @@ public class Maze {
 		}
 	}
 
+    /**
+     * Generate a random path user recursize BFS search. This form tends to
+     */
 	public final void generateBFS() {
 		clear();
 		ArrayList<int[]> Q = new ArrayList<int[]>();

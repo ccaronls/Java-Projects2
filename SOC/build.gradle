@@ -1,7 +1,25 @@
 apply plugin: 'java'
+apply plugin: 'application'
+
+dependencies {
+    compile project(':GameLibrary')
+    compile fileTree(dir: 'lib', include: '*.jar')
+}
+
 sourceSets {
-    main.java.srcDirs = ['src','test','images']
-    main.resources.srcDirs = ['src','test','images']
-    test.java.srcDirs = ['tests/java']
-    test.resources.srcDirs = ['tests/resources']
+    main {
+        java {
+            srcDirs = ['src']
+        }
+
+        resources {
+            srcDirs = ['images'];
+        }
+    }
+}
+
+mainClassName = 'cc.game.soc.swing.GUI'
+
+repositories {
+    mavenCentral()
 }

@@ -3565,7 +3565,7 @@ public class SOC extends Reflector<SOC> {
 	
     /**
      * Set the current largest army player
-     * @param playerNum
+     * @param player
      */
     public void setLargestArmyPlayer(Player player) {
     	givePlayerSpecialVictoryCard(player, SpecialVictoryType.LargestArmy);
@@ -3573,7 +3573,7 @@ public class SOC extends Reflector<SOC> {
     
     /**
      * Set the current longest road player
-     * @param playerNum
+     * @param player
      */
     public void setLongestRoadPlayer(Player player) {
     	givePlayerSpecialVictoryCard(player, SpecialVictoryType.LongestRoad);
@@ -3712,7 +3712,8 @@ public class SOC extends Reflector<SOC> {
 	/**
 	 * Called when a player road becomes blocked, resulting is loss of road length.  Only used when Config.ENABLE_ROAD_BLOCK enabled.
 	 * @param player
-	 * @param road
+	 * @param oldLen
+     * @param newLen
 	 */
 	protected void onPlayerRoadLengthChanged(Player player, int oldLen, int newLen) {}
 	
@@ -3840,7 +3841,7 @@ public class SOC extends Reflector<SOC> {
      * default method does nothing
      * @param oldPlayer null if newPlayer is the first to get the longest road
      * @param newPlayer player that has the longest road
-     * @param armySize
+     * @param maxRoadLen
 	 */
 	protected void onLongestRoadPlayerUpdated(Player oldPlayer, Player newPlayer, int maxRoadLen) {}
 	

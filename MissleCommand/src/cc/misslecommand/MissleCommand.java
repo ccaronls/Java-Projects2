@@ -1,35 +1,20 @@
 package cc.misslecommand;
 
-import java.awt.event.KeyEvent;
-
-import cc.lib.swing.AWTGraphics;
-import cc.lib.swing.EZFrame;
-import cc.lib.swing.ImageMgr;
-import cc.lib.swing.KeyboardAnimationApplet;
 import cc.lib.game.*;
 
-public class MissleCommand extends KeyboardAnimationApplet {
+public abstract class MissleCommand {
 
-	
-	// --------------------------------------------------------------
-	// MAIN - DEBUGGING ENABLED
-	// In Applet mode, debugging is off by default
-	// --------------------------------------------------------------
-	
-	public static void main(String [] args) {
-		Utils.DEBUG_ENABLED = true;
-		EZFrame frame = new EZFrame("Missle Command DEBUG MODE");
-		MissleCommand mc = new MissleCommand();
-		frame.add(mc);
-		frame.centerToScreen(820, 620);
-		mc.init();
-		mc.start();
-	}
-	
-	
 	// --------------------------------------------------------------
 	// INHERITED METHODS
 	// --------------------------------------------------------------
+
+    public abstract int getScreenWidth();
+    public abstract int getScreenHeight();
+    public abstract int getPointerX();
+    public abstract int getPointerY();
+    public abstract int getFrameNumber();
+    public abstract void checkPlayerInput();
+    public abstract void setFrameNumber(int frameNum);
 
 	public void doInitialization() {
 		Utils.initTable(enemyMissles, Missle.class);
@@ -41,11 +26,11 @@ public class MissleCommand extends KeyboardAnimationApplet {
 	
 	public void initGraphics(AGraphics g) {
 	    initColors(g);
+        initImages(g);
 		initGameStateGetReady(getScreenWidth(), getScreenHeight());
 	}
 	
-	@Override
-	public void drawFrame(AWTGraphics g) {
+	public void drawFrame(AGraphics g) {
 
 	    if (colors == null) {
 	        initGraphics(g);
@@ -91,42 +76,12 @@ public class MissleCommand extends KeyboardAnimationApplet {
 		}
 		if (Utils.DEBUG_ENABLED) {
 			g.setColor(this.getEnemyMissleColor());
-			fillCircle(g, getMouseX(), this.getLandHeight(width, getMouseX()), 3);			
+			fillCircle(g, getPointerX(), this.getLandHeight(width, getPointerX()), 3);
 		}
 	}
 	
-	private boolean qPressed = false;
-	public void keyPressed(KeyEvent ev) {
-		// make so 2 consecutive Q presses quit the game
-		if (ev.getKeyCode() == KeyEvent.VK_Q) {
-			if (qPressed)
-				System.exit(0);
-			else {
-				qPressed = true;
-				return;
-			}
-		}
-		qPressed = false;
 
-		// look for:
-		// R restart level
-		// L launch wave
-		// A,S,D fire missle
-		if (ev.getKeyCode() == KeyEvent.VK_R) {}
-			//this.initGameStateGetReady(g, getScreenWidth(), getScreenHeight());
-		else if (ev.getKeyCode() == KeyEvent.VK_L)
-			this.startMissleWave();
-		
-		int [] cityKeys = { KeyEvent.VK_A, KeyEvent.VK_S, KeyEvent.VK_D };
-		
-		for (int i=0; i<cityKeys.length; i++) {
-			if (ev.getKeyCode() == cityKeys[i] && getMissleCity(i).numMissles > 0) {
-				this.startPlayerMissle(this.getMissleCity(i));
-			}
-		}
-		
-	}
-	
+
 	public void onDimensionsChanged(AGraphics g, int width, int height) {
 		initCities(width, false);
 	}
@@ -135,7 +90,7 @@ public class MissleCommand extends KeyboardAnimationApplet {
 	// METHODS
 	// --------------------------------------------------------------
 	
-	City getMissleCity(int num) {
+	public City getMissleCity(int num) {
 		switch (num) {
 		case 0: return cities[0];
 		case 1: return cities[2];
@@ -145,19 +100,7 @@ public class MissleCommand extends KeyboardAnimationApplet {
 		return null;
 	}
 	
-	void checkPlayerInput() {
-		City mc = null;
-		for (int i=0; i<3; i++) {
-			if (getMouseButtonClicked(i) && getMissleCity(i).numMissles > 0) {
-				mc = getMissleCity(i);
-			}
-		}
-		if (mc != null) {
-			startPlayerMissle(mc);
-		}
-	}
-	
-	// init 
+	// init
 	void initGameStateGetReady(int width, int height) {
 		gameState = GAME_STATE_GET_READY;
 		setFrameNumber(0);
@@ -220,13 +163,13 @@ public class MissleCommand extends KeyboardAnimationApplet {
 		}
 	}
 	
-	void startPlayerMissle(City mc) {
+	public void startPlayerMissle(City mc) {
 		assert(mc != null && mc.numMissles > 0);
 		mc.numMissles --;
-		this.addMissle(playerMissles, mc.x, mc.y, this.getMouseX(), getMouseY(), getPlayerMissleSpeed());
+		this.addMissle(playerMissles, mc.x, mc.y, this.getPointerX(), getPointerY(), getPlayerMissleSpeed());
 	}
 	
-	void startMissleWave() {
+	public void startMissleWave() {
 		int numStartMissles = Utils.randRange(5+currentLevel, 10+currentLevel*2);
 		for (int i=0; i<numStartMissles; i++) {
 			int sx = Utils.randRange(10, getScreenWidth()-10);
@@ -604,6 +547,10 @@ public class MissleCommand extends KeyboardAnimationApplet {
 	public static class City {
 		int x, y;
 		int numMissles=0;
+
+		public int getNumMissles() {
+		    return numMissles;
+        }
 	};
 	
 	// --------------------------------------------------------------

@@ -13,8 +13,6 @@ import cc.lib.utils.Reflector;
 public class Board extends Reflector<Board> {
 
 	static {
-		omitField(Board.class, "outlines");
-		omitField(Board.class, "pieceChoices");
 		addAllFields(Board.class);
 	}
 	
@@ -24,6 +22,7 @@ public class Board extends Reflector<Board> {
 	private int minX, minY, maxX, maxY;
 	private int highlightX, highlightY;
 	private final IdGenerator gen = new IdGenerator();
+	@Omit
 	private List<Integer> pieceChoices = null;
 
 	private static class Outline {
@@ -33,6 +32,7 @@ public class Board extends Reflector<Board> {
 		Shape shape;
 	}
 
+	@Omit
 	private List<Outline> outlines = new ArrayList<Outline>();
 	
 	public synchronized void init() {

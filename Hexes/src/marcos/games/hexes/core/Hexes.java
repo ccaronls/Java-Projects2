@@ -12,7 +12,6 @@ public class Hexes extends Reflector<Hexes> {
 	}
 
 	static {
-		omitField(Hexes.class, "playerChoice");
 		addAllFields(Hexes.class);
 	}
 	
@@ -48,7 +47,8 @@ public class Hexes extends Reflector<Hexes> {
 		for (int i=0; i<numPlayers; i++)
 			players[i].init();
 	}
-	
+
+	@Omit
 	private int playerChoice = -1;
 	public final void runGame() {
 		if (isGameOver()) {
