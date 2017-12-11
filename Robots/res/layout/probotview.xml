@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:app="http://schemas.android.com/apk/res-auto"
+                xmlns:tools="http://schemas.android.com/tools"
+                android:layout_width="match_parent"
+              android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_alignParentLeft="true"
+        android:layout_toLeftOf="@+id/layoutProbot"
+        android:orientation="vertical">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <ImageButton
+                android:id="@+id/ibPlay"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@android:drawable/ic_media_play"/>
+            <ImageButton
+                android:id="@+id/ibClear"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@android:drawable/ic_menu_close_clear_cancel"/>
+        </LinearLayout>
+        <ListView
+            android:id="@+id/lvProgram"
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:background="#888"
+            />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/lvProgram"
+            android:layout_alignRight="@id/lvProgram">
+
+            <ImageView
+                android:id="@+id/ivArrowForward"
+                android:layout_width="@dimen/icon_dim"
+                android:layout_height="@dimen/icon_dim"
+                android:src="@drawable/arrow_forward"/>
+
+            <ImageView
+                android:id="@+id/ivArrowRight"
+                android:layout_width="@dimen/icon_dim"
+                android:layout_height="@dimen/icon_dim"
+                android:src="@drawable/arrow_right"/>
+
+            <ImageView
+                android:id="@+id/ivArrowLeft"
+                android:layout_width="@dimen/icon_dim"
+                android:layout_height="@dimen/icon_dim"
+                android:src="@drawable/arrow_left"/>
+
+        </LinearLayout>
+    </LinearLayout>
+
+    <cc.lib.android.SquareLinearLayout
+        android:id="@+id/layoutProbot"
+        android:layout_width="wrap_content"
+        android:layout_height="fill_parent"
+        app:dominantSide="width_matches_height"
+        android:layout_alignParentRight="true">
+        <cc.android.game.robots.ProbotView
+            android:id="@+id/probotView"
+            android:layout_height="fill_parent"
+            android:layout_width="fill_parent"/>
+    </cc.lib.android.SquareLinearLayout>
+</RelativeLayout>

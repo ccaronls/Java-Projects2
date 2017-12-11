@@ -1,0 +1,4 @@
+<resources>
+    <dimen name="icon_dim">64dp</dimen>
+    <dimen name="icon_dim_sm">48dp</dimen>
+</resources>
