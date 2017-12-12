@@ -2,7 +2,15 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
               xmlns:tools="http://schemas.android.com/tools"
               android:layout_width="match_parent"
+              android:id="@+id/grabLayout"
               android:layout_height="@dimen/icon_dim_sm">
+
+    <ImageView
+        android:id="@+id/ivPlay"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:src="@android:drawable/ic_media_play"/>
+
     <TextView
         android:id="@+id/tvLineNum"
         android:layout_width="20dp"

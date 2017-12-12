@@ -64,7 +64,9 @@ public class Probot extends Reflector<Probot> {
     public final void runProgram() {
         copy = new Probot();
         copy.copyFrom(this);
+        int line = 0;
         for (Command c : program) {
+            onCommand(line++);
             switch (c) {
 
                 case Advance:
@@ -94,22 +96,39 @@ public class Probot extends Reflector<Probot> {
         onSuccess();
     }
 
+    public final void init(int [][] matrix) {
+        coins = matrix;
+        program.clear();
+        for (int i=0; i<coins.length; i++) {
+            for (int ii=0; ii<coins[i].length; ii++) {
+                if (coins[i][ii] > 1) {
+                    posx = ii;
+                    posy = i;
+                    dir = Direction.values()[coins[i][ii]-2];
+                    coins[i][ii] = 0;
+                    return;
+                }
+            }
+        }
+        throw new AssertionError();
+    }
+
     // return false if failed
     private boolean advance() {
         int nx = posx + dir.dx;
         int ny = posy + dir.dy;
 
-        if (nx < 0 || ny < 0 || nx >= coins.length || ny >= coins[0].length) {
+        if (nx < 0 || ny < 0 || ny >= coins.length || nx >= coins[ny].length) {
             onFailed();
             return false;
-        } else if (coins[nx][ny] == 0) {
+        } else if (coins[ny][nx] == 0) {
             onFailed();
             return false;
         } else {
             onAdvanced();
             posx = nx;
             posy = ny;
-            coins[posx][posy] = 0;
+            coins[posy][posx] = 0;
         }
         return true;
     }
@@ -127,6 +146,8 @@ public class Probot extends Reflector<Probot> {
             copyFrom(copy);
         }
     }
+
+    protected void onCommand(int line) {}
 
     protected void onFailed() {}
 

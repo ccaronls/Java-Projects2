@@ -27,6 +27,7 @@ public class ProbotActivity extends Activity implements View.OnClickListener, Vi
     View actionRight;
     View actionLeft;
     BaseAdapter adapter = null;
+    int programLineNum = -1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -94,6 +95,10 @@ public class ProbotActivity extends Activity implements View.OnClickListener, Vi
                         iv.setImageResource(R.drawable.arrow_left);
                         break;
                 }
+
+                iv = (ImageView)convertView.findViewById(R.id.ivPlay);
+                iv.setVisibility(position == programLineNum ? View.VISIBLE : View.INVISIBLE);
+
                 return convertView;
             }
         };
@@ -109,6 +114,7 @@ public class ProbotActivity extends Activity implements View.OnClickListener, Vi
                         Probot.Command cmd = (Probot.Command) event.getLocalState();
                         pv.probot.program.add(cmd);
                         adapter.notifyDataSetChanged();
+                        lv.setSelection(pv.probot.program.size()-1);
                     }
                     //case DragEvent.ACTION_DRAG_STARTED:
                     //case DragEvent.ACTION_DRAG_ENDED:
@@ -125,6 +131,8 @@ public class ProbotActivity extends Activity implements View.OnClickListener, Vi
                 return false;
             }
         });
+
+        pv.nextLevel();
     }
 
     @Override
@@ -149,5 +157,15 @@ public class ProbotActivity extends Activity implements View.OnClickListener, Vi
                 }.start();
                 break;
         }
+    }
+
+    public void setProgramLineNum(int lineNum) {
+        this.programLineNum = lineNum;
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                adapter.notifyDataSetChanged();
+            }
+        });
     }
 }

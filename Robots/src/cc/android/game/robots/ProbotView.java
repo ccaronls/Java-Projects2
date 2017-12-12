@@ -6,6 +6,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
 import android.view.View;
 
@@ -19,7 +20,15 @@ import cc.lib.game.AAnimation;
 
 public class ProbotView extends View {
 
+    int level = 0;
+
     Probot probot = new Probot() {
+
+        @Override
+        protected void onCommand(int line) {
+            ((ProbotActivity)getContext()).setProgramLineNum(line);
+        }
+
         @Override
         protected void onFailed() {
             startFailedAnim();
@@ -31,6 +40,7 @@ public class ProbotView extends View {
                 e.printStackTrace();
             }
             postInvalidate();
+            ((ProbotActivity)getContext()).setProgramLineNum(-1);
         }
 
         @Override
@@ -53,6 +63,16 @@ public class ProbotView extends View {
 
         @Override
         protected void onSuccess() {
+            startSuccessAnim();
+            try {
+                synchronized (this) {
+                    wait();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            nextLevel();
+            postInvalidate();
         }
     };
 
@@ -64,16 +84,21 @@ public class ProbotView extends View {
 
     AAnimation<Canvas> animation = null;
 
+    void init(Context c, AttributeSet a) {
+    }
+
     public ProbotView(Context context) {
         super(context);
     }
 
     public ProbotView(Context context, AttributeSet attrs) {
         super(context, attrs);
+        init(context, attrs);
     }
 
     public ProbotView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
+        init(context, attrs);
     }
 
     @Override
@@ -90,28 +115,28 @@ public class ProbotView extends View {
         p.setColor(Color.RED);
         canvas.drawRect(r, p);
 
-        int cols = probot.coins.length;
-        int rows = probot.coins[0].length;
+        int cols = probot.coins[0].length;
+        int rows = probot.coins.length;
 
         // get cell width/height
         cw = getWidth() / cols;
         ch = getHeight() / rows;
-        radius = Math.min(cw, ch) / 4;
+        radius = Math.round(0.2f * Math.min(cw, ch));
 
         p.setStyle(Paint.Style.FILL);
         p.setColor(Color.WHITE);
-        for (int i=0; i<cols; i++) {
-            for (int ii=0; ii<rows; ii++) {
+        for (int i=0; i<rows; i++) {
+            for (int ii=0; ii<cols; ii++) {
                 if (probot.coins[i][ii] != 0) {
-                    int x = i*cw + cw/2;
-                    int y = ii*ch + ch/2;
+                    int x = ii*cw + cw/2;
+                    int y = i*ch + ch/2;
                     canvas.drawCircle(x, y, radius, p);
                 }
             }
         }
 
         // draw the pacman
-        radius = Math.min(cw, ch) * 2 / 3;
+        radius = Math.round(0.4f * Math.min(cw, ch));
         int x = probot.posx*cw + cw/2;
         int y = probot.posy*ch + ch/2;
         rf.set(x-radius, y-radius, x+radius, y+radius);
@@ -152,7 +177,7 @@ public class ProbotView extends View {
                 if (position < 0.5f) {
                     angStart = Math.round(position * 2 * 45);
                 } else {
-                    angStart = Math.round((1.0f - position * 2) * 45);
+                    angStart = Math.round((1.0f - position) * 2 * 45);
                 }
                 sweepAng = 360 - angStart*2;
 
@@ -214,6 +239,42 @@ public class ProbotView extends View {
         postInvalidate();
     }
 
+    void startSuccessAnim() {
+        animation = new AAnimation<Canvas>(3000) {
+
+            final int [] faces = new int [] {
+                    R.drawable.guy_smile1,
+                    R.drawable.guy_smile2,
+                    R.drawable.guy_smile3
+            };
+
+            @Override
+            protected void draw(Canvas g, float position, float dt) {
+                float parts = 1.0f / faces.length;
+                int x = probot.posx*cw + cw/2;
+                int y = probot.posy*ch + ch/2;
+                for (int i=faces.length-1; i>=0; i--) {
+                    if (position >= parts*i) {
+                        Drawable d = getContext().getResources().getDrawable(faces[i]);
+                        d.setBounds(x-radius, y-radius, x+radius, y+radius);
+                        d.draw(g);
+                        break;
+                    }
+                }
+
+            }
+
+            @Override
+            protected void onDone() {
+                animation = null;
+                synchronized (probot) {
+                    probot.notify();
+                }
+            }
+        }.start();
+        invalidate();
+    }
+
     void drawGuy(Canvas canvas, int x, int y) {
         canvas.drawCircle(x, y, radius, p);
         p.setColor(Color.BLACK);
@@ -232,5 +293,185 @@ public class ProbotView extends View {
                 canvas.drawLine(x, y, x, y-radius, p);
                 break;
         }
+    }
+
+    void nextLevel() {
+        switch (level++) {
+            case 0:
+                probot.init(new int[][] {
+                        { 0, 0, 0, 0, 0, 0, 0 },
+                        { 0, 0, 0, 0, 0, 0, 0 },
+                        { 2, 1, 1, 1, 0, 0, 0 },
+                        { 0, 0, 0, 0, 0, 0, 0 },
+                        { 0, 0, 0, 0, 0, 0, 0 },
+                });
+                break;
+            case 1:
+                probot.init(new int[][] {
+                        { 0, 0, 0, 0, 0, 0, 0 },
+                        { 0, 1, 1, 1, 0, 0, 0 },
+                        { 2, 1, 0, 1, 0, 0, 0 },
+                        { 0, 0, 0, 0, 0, 0, 0 },
+                        { 0, 0, 0, 0, 0, 0, 0 },
+                });
+                break;
+            case 2:
+                probot.init(new int[][] {
+                        { 0, 0, 0, 0, 0, 0, 0 },
+                        { 0, 1, 1, 0, 0, 0, 0 },
+                        { 2, 1, 1, 0, 0, 0, 0 },
+                        { 0, 1, 1, 0, 0, 0, 0 },
+                        { 0, 0, 0, 0, 0, 0, 0 },
+                });
+                break;
+            case 3:
+                probot.init(new int[][] {
+                        { 0, 0, 0, 0, 0, 0, 0 },
+                        { 2, 1, 1, 1, 1, 0, 0 },
+                        { 0, 0, 0, 0, 1, 0, 0 },
+                        { 0, 1, 1, 1, 1, 0, 0 },
+                        { 0, 0, 0, 0, 0, 0, 0 },
+                });
+                break;
+            case 4:
+                probot.init(new int[][] {
+                        { 0, 3, 0, 0, 0, 0, 0 },
+                        { 0, 1, 0, 1, 1, 1, 0 },
+                        { 0, 1, 1, 1, 0, 1, 0 },
+                        { 0, 0, 0, 1, 1, 1, 0 },
+                        { 0, 0, 0, 0, 0, 0, 0 },
+                });
+                break;
+            case 5:
+                probot.init(new int[][] {
+                        { 0, 0, 0, 0, 0, 0, 0 },
+                        { 0, 1, 1, 1, 1, 0, 0 },
+                        { 2, 1, 1, 1, 1, 0, 0 },
+                        { 0, 1, 1, 1, 1, 0, 0 },
+                        { 0, 0, 0, 0, 0, 0, 0 },
+                });
+                break;
+            case 6:
+                probot.init(new int[][] {
+                        { 0, 0, 0, 0, 0, 0, 0 },
+                        { 0, 1, 1, 1, 1, 1, 0 },
+                        { 0, 1, 1, 1, 1, 1, 0 },
+                        { 0, 1, 1, 1, 1, 1, 0 },
+                        { 0, 5, 0, 0, 0, 0, 0 },
+                });
+                break;
+            case 7:
+                probot.init(new int[][] {
+                        { 0, 0, 0, 0, 0, 0, 0 },
+                        { 0, 0, 0, 0, 0, 0, 0 },
+                        { 2, 1, 1, 1, 0, 0, 0 },
+                        { 0, 0, 0, 0, 0, 0, 0 },
+                        { 0, 0, 0, 0, 0, 0, 0 },
+                });
+                break;
+            case 8:
+                probot.init(new int[][] {
+                        { 0, 0, 0, 0, 0, 0, 0 },
+                        { 0, 0, 0, 0, 0, 0, 0 },
+                        { 2, 1, 1, 1, 0, 0, 0 },
+                        { 0, 0, 0, 0, 0, 0, 0 },
+                        { 0, 0, 0, 0, 0, 0, 0 },
+                });
+                break;
+            case 9:
+                probot.init(new int[][] {
+                        { 0, 0, 0, 0, 0, 0, 0 },
+                        { 0, 0, 0, 0, 0, 0, 0 },
+                        { 2, 1, 1, 1, 0, 0, 0 },
+                        { 0, 0, 0, 0, 0, 0, 0 },
+                        { 0, 0, 0, 0, 0, 0, 0 },
+                });
+                break;
+            case 10:
+                probot.init(new int[][] {
+                        { 0, 0, 0, 0, 0, 0, 0 },
+                        { 0, 0, 0, 0, 0, 0, 0 },
+                        { 2, 1, 1, 1, 0, 0, 0 },
+                        { 0, 0, 0, 0, 0, 0, 0 },
+                        { 0, 0, 0, 0, 0, 0, 0 },
+                });
+                break;
+            case 11:
+                probot.init(new int[][] {
+                        { 0, 0, 0, 0, 0, 0, 0 },
+                        { 0, 0, 0, 0, 0, 0, 0 },
+                        { 2, 1, 1, 1, 0, 0, 0 },
+                        { 0, 0, 0, 0, 0, 0, 0 },
+                        { 0, 0, 0, 0, 0, 0, 0 },
+                });
+                break;
+            case 12:
+                probot.init(new int[][] {
+                        { 0, 0, 0, 0, 0, 0, 0 },
+                        { 0, 0, 0, 0, 0, 0, 0 },
+                        { 2, 1, 1, 1, 0, 0, 0 },
+                        { 0, 0, 0, 0, 0, 0, 0 },
+                        { 0, 0, 0, 0, 0, 0, 0 },
+                });
+                break;
+            case 13:
+                probot.init(new int[][] {
+                        { 0, 0, 0, 0, 0, 0, 0 },
+                        { 0, 0, 0, 0, 0, 0, 0 },
+                        { 2, 1, 1, 1, 0, 0, 0 },
+                        { 0, 0, 0, 0, 0, 0, 0 },
+                        { 0, 0, 0, 0, 0, 0, 0 },
+                });
+                break;
+            case 14:
+                probot.init(new int[][] {
+                        { 0, 0, 0, 0, 0, 0, 0 },
+                        { 0, 0, 0, 0, 0, 0, 0 },
+                        { 2, 1, 1, 1, 0, 0, 0 },
+                        { 0, 0, 0, 0, 0, 0, 0 },
+                        { 0, 0, 0, 0, 0, 0, 0 },
+                });
+                break;
+            case 15:
+                probot.init(new int[][] {
+                        { 0, 0, 0, 0, 0, 0, 0 },
+                        { 0, 0, 0, 0, 0, 0, 0 },
+                        { 2, 1, 1, 1, 0, 0, 0 },
+                        { 0, 0, 0, 0, 0, 0, 0 },
+                        { 0, 0, 0, 0, 0, 0, 0 },
+                });
+                break;
+            case 16:
+                probot.init(new int[][] {
+                        { 0, 0, 0, 0, 0, 0, 0 },
+                        { 0, 0, 0, 0, 0, 0, 0 },
+                        { 2, 1, 1, 1, 0, 0, 0 },
+                        { 0, 0, 0, 0, 0, 0, 0 },
+                        { 0, 0, 0, 0, 0, 0, 0 },
+                });
+                break;
+            case 17:
+                probot.init(new int[][] {
+                        { 0, 0, 0, 0, 0, 0, 0 },
+                        { 0, 0, 0, 0, 0, 0, 0 },
+                        { 2, 1, 1, 1, 0, 0, 0 },
+                        { 0, 0, 0, 0, 0, 0, 0 },
+                        { 0, 0, 0, 0, 0, 0, 0 },
+                });
+                break;
+            case 18:
+                probot.init(new int[][] {
+                        { 0, 0, 0, 0, 0, 0, 0 },
+                        { 0, 0, 0, 0, 0, 0, 0 },
+                        { 2, 1, 1, 1, 0, 0, 0 },
+                        { 0, 0, 0, 0, 0, 0, 0 },
+                        { 0, 0, 0, 0, 0, 0, 0 },
+                });
+                break;
+            default:
+                level = 0;
+                nextLevel();
+        }
+        ((ProbotActivity)getContext()).setProgramLineNum(-1);
     }
 }
