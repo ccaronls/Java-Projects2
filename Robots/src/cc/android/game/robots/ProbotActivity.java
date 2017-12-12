@@ -59,8 +59,7 @@ public class ProbotActivity extends CCActivityBase implements View.OnClickListen
     @Override
     public boolean onTouch(View v, MotionEvent event) {
         Probot.CommandType type = (Probot.CommandType) v.getTag();
-        Probot.Command cmd = new Probot.Command();
-        cmd.type = type;
+        Probot.Command cmd = new Probot.Command(type, 0);
         v.startDrag(ClipData.newPlainText(cmd.type.name(), cmd.type.name()), new View.DragShadowBuilder(v), cmd, 0);
         return true;
     }

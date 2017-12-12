@@ -30,8 +30,36 @@
         android:layout_weight="1"/>
 
     <ImageButton
+        android:id="@+id/ibLoop"
+        android:layout_width="@dimen/icon_dim_sm"
+        android:layout_height="@dimen/icon_dim_sm"
+        android:scaleType="centerCrop"
+        android:src="@drawable/arrow_repeat"/>
+
+
+    <Button
+        android:id="@+id/bMinus"
+        android:layout_width="@dimen/icon_dim_sm"
+        android:layout_height="@dimen/icon_dim_sm"
+        android:textStyle="bold"
+        android:text="-"/>
+    <TextView
+        android:id="@+id/tvCount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:text="3"
+        android:textSize="24dp"/>
+    <Button
+        android:id="@+id/bPlus"
+        android:layout_width="@dimen/icon_dim_sm"
+        android:layout_height="@dimen/icon_dim_sm"
+        android:textStyle="bold"
+        android:text="+"/>
+    <ImageButton
         android:id="@+id/ibDelete"
         android:layout_width="@dimen/icon_dim_sm"
         android:layout_height="@dimen/icon_dim_sm"
         android:src="@android:drawable/ic_delete"/>
+
 </LinearLayout>

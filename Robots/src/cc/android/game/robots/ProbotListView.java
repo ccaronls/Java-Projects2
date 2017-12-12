@@ -19,11 +19,11 @@ import java.util.List;
  * Created by chriscaron on 12/12/17.
  */
 
-public class ProbotListView extends ListView implements View.OnDragListener, Runnable {
+public class ProbotListView extends ListView implements View.OnDragListener, View.OnClickListener, Runnable {
 
     BaseAdapter adapter = null;
     int programLineNum = -1;
-    Probot probot=null;
+    Probot probot = null;
 
     private void init(Context c, AttributeSet a) {
         setOnDragListener(this);
@@ -48,33 +48,89 @@ public class ProbotListView extends ListView implements View.OnDragListener, Run
                 if (convertView == null) {
                     convertView = View.inflate(getContext(), R.layout.item_command, null);
                 }
-                TextView tvLineNum = (TextView)convertView.findViewById(R.id.tvLineNum);
-                tvLineNum.setText(String.valueOf(position+1) + ":");
-
-                convertView.findViewById(R.id.ibDelete).setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        probot.program.remove(position);
-                        adapter.notifyDataSetChanged();
+                final Probot.Command cmd = probot.program.get(position);
+                boolean isInLoop = false;
+                boolean isLoop = cmd.type == Probot.CommandType.LoopEnd || cmd.type == Probot.CommandType.LoopStart;
+                if (!isLoop) {
+                    for (int i = position - 1; i >= 0; i--) {
+                        Probot.CommandType type = probot.program.get(i).type;
+                        if (type == Probot.CommandType.LoopStart) {
+                            isInLoop = true;
+                            break;
+                        } else if (type == Probot.CommandType.LoopEnd) {
+                            break;
+                        }
                     }
-                });
-
-                ImageView iv = (ImageView)convertView.findViewById(R.id.imageView);
-                switch (probot.program.get(position).type) {
-
-                    case Advance:
-                        iv.setImageResource(R.drawable.arrow_forward);
-                        break;
-                    case TurnRight:
-                        iv.setImageResource(R.drawable.arrow_right);
-                        break;
-                    case TurnLeft:
-                        iv.setImageResource(R.drawable.arrow_left);
-                        break;
                 }
 
-                iv = (ImageView)convertView.findViewById(R.id.ivPlay);
+                if (isInLoop) {
+                    convertView.setPadding(100, 0, 0, 0);
+                } else {
+                    convertView.setPadding(0, 0, 0, 0);
+                }
+
+                TextView tvLineNum = (TextView) convertView.findViewById(R.id.tvLineNum);
+                tvLineNum.setText(String.valueOf(position + 1) + ":");
+                tvLineNum.setVisibility(View.GONE);
+
+                View v = convertView.findViewById(R.id.ibDelete);
+                if (cmd.type == Probot.CommandType.LoopEnd) {
+                    v.setVisibility(View.GONE);
+                } else {
+                    v.setVisibility(View.VISIBLE);
+                    v.setTag(position);
+                    v.setOnClickListener(ProbotListView.this);
+                }
+
+                v = convertView.findViewById(R.id.ibLoop);
+                if (isLoop || isInLoop) {
+                    v.setVisibility(View.GONE);
+                } else {
+                    v.setTag(position);
+                    v.setVisibility(View.VISIBLE);
+                    v.setOnClickListener(ProbotListView.this);
+                }
+
+                ImageView iv = (ImageView) convertView.findViewById(R.id.imageView);
+                if (isLoop) {
+                    iv.setVisibility(View.GONE);
+                } else {
+                    iv.setVisibility(View.VISIBLE);
+                    switch (cmd.type) {
+
+                        case Advance:
+                            iv.setImageResource(R.drawable.arrow_forward);
+                            break;
+                        case TurnRight:
+                            iv.setImageResource(R.drawable.arrow_right);
+                            break;
+                        case TurnLeft:
+                            iv.setImageResource(R.drawable.arrow_left);
+                            break;
+                    }
+                }
+
+                iv = (ImageView) convertView.findViewById(R.id.ivPlay);
                 iv.setVisibility(position == programLineNum ? View.VISIBLE : View.INVISIBLE);
+
+                View bPlus = convertView.findViewById(R.id.bPlus);
+                View bMinus = convertView.findViewById(R.id.bMinus);
+                TextView tvCount = (TextView) convertView.findViewById(R.id.tvCount);
+
+                if (cmd.type == Probot.CommandType.LoopStart) {
+                    bPlus.setVisibility(View.VISIBLE);
+                    bPlus.setOnClickListener(ProbotListView.this);
+                    bPlus.setTag(cmd);
+                    bMinus.setVisibility(View.VISIBLE);
+                    bMinus.setOnClickListener(ProbotListView.this);
+                    bMinus.setTag(cmd);
+                    tvCount.setVisibility(View.VISIBLE);
+                    tvCount.setText(String.valueOf(cmd.count));
+                } else {
+                    bPlus.setVisibility(View.GONE);
+                    bMinus.setVisibility(View.GONE);
+                    tvCount.setVisibility(View.GONE);
+                }
 
                 return convertView;
             }
@@ -144,85 +200,40 @@ public class ProbotListView extends ListView implements View.OnDragListener, Run
             }
         }
     }
-}
-
-    /*
-    LinearLayout
-} implements View.OnDragListener, View.OnLongClickListener {
-
-    private List<Probot.Command> list = Collections.emptyList();
-
-    private void init(Context c, AttributeSet a) {
-        setOrientation(LinearLayout.VERTICAL);
-    }
-
-    public ProbotListView(Context context) {
-        super(context);
-        init(context, null);
-    }
-
-    public ProbotListView(Context context, AttributeSet attrs) {
-        super(context, attrs);
-        init(context, attrs);
-    }
-
-    public ProbotListView(Context context, AttributeSet attrs, int defStyleAttr) {
-        super(context, attrs, defStyleAttr);
-        init(context, attrs);
-    }
-
-    public void setList(List<Probot.Command> list) {
-        this.list = list;
-        removeAllViews();
-        for (Probot.Command c : list) {
-            View v = View.inflate(getContext(), R.layout.item_command, null);
-            // populate the view
-            v.setOnLongClickListener(this);
-            v.setOnDragListener(this);
-            v.setTag(c);
-        }
-    }
-
-
 
     @Override
-    public boolean onDrag(View v, DragEvent event) {
-        switch (event.getAction()) {
-            case DragEvent.ACTION_DRAG_ENTERED:
-            case DragEvent.ACTION_DRAG_LOCATION: {
-                // if the midpoint y of v is in the upper half of this view, then insert above
-                // otherwise insert below
-                float mp = v.getY() + v.getHeight()/2; // mp of view being dragged into
-                float mpd = event.getY() + dragged.getHeight();
-                Probot.Command cmd = (Probot.Command)v.getTag();
-                int index = list.indexOf(cmd);
-                if (mpd < mp) {
-
-                } else {
-
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.ibLoop: {
+                int position = (Integer) v.getTag();
+                probot.program.add(position, new Probot.Command(Probot.CommandType.LoopStart, 1));
+                probot.program.add(position + 2, new Probot.Command(Probot.CommandType.LoopEnd, 0));
+                break;
+            }
+            case R.id.ibDelete: {
+                int position = (Integer) v.getTag();
+                Probot.Command cmd = probot.program.remove(position);
+                if (cmd.type == Probot.CommandType.LoopStart) {
+                    probot.program.remove(position + 1);
+                } else if (cmd.type == Probot.CommandType.LoopEnd) {
+                    probot.program.remove(position - 2);
                 }
                 break;
             }
 
-            case DragEvent.ACTION_DRAG_EXITED:
-            case DragEvent.ACTION_DRAG_ENDED:
-            case DragEvent.ACTION_DRAG_STARTED:
-            case DragEvent.ACTION_DROP:
+            case R.id.bPlus: {
+                Probot.Command cmd = (Probot.Command) v.getTag();
+                if (cmd.count < 5)
+                    cmd.count++;
+                break;
+            }
+            case R.id.bMinus: {
+                Probot.Command cmd = (Probot.Command) v.getTag();
+                if (cmd.count > 1)
+                    cmd.count--;
+                break;
+            }
         }
-
-        return true;
+        adapter.notifyDataSetChanged();
     }
-
-    private View dragged = null; // when not null then we are re-arranging the list
-
-    @Override
-    public boolean onLongClick(View v) {
-        Probot.Command cmd = (Probot.Command)v.getTag();
-        v.startDrag(ClipData.newPlainText(cmd.type.name(), cmd.type.name()), new View.DragShadowBuilder(v), v, 0);
-        dragged = v;
-        return true;
-    }
-
-
 }
-*/

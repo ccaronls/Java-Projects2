@@ -1,6 +1,7 @@
 package cc.android.game.robots;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import cc.lib.utils.Reflector;
@@ -23,16 +24,21 @@ public class Probot extends Reflector<Probot> {
     }
 
     public static class Command {
-        CommandType type;
+        final CommandType type;
         int count;
-        List<Command> list;
+
+        public Command(CommandType type, int count) {
+            this.type = type;
+            this.count = count;
+        }
     }
 
     enum CommandType {
         Advance,
         TurnRight,
         TurnLeft,
-        Loop
+        LoopStart,
+        LoopEnd
     }
 
     enum Direction {
@@ -71,7 +77,7 @@ public class Probot extends Reflector<Probot> {
     public final void runProgram() {
         copy = new Probot();
         copy.copyFrom(this);
-        if (runProgramList(program, 0)) {
+        if (runProgram(new int [] { 0 })) {
             onSuccess();
         } else {
             onFailed();
@@ -79,17 +85,22 @@ public class Probot extends Reflector<Probot> {
         }
     }
 
-    private boolean runProgramList(List<Command> program, final int startLine) {
-        int line = startLine;
-        for (Command c : program) {
-            onCommand(line);
+    private boolean runProgram(int [] linePtr) {
+        while (linePtr[0] < program.size()) {
+            onCommand(linePtr[0]);
+            Command c = program.get(linePtr[0]);
             switch (c.type) {
-                case Loop: {
+                case LoopStart: {
+                    int lineStart = ++linePtr[0];
                     for (int i=0; i<c.count; i++) {
-                        if (!runProgramList(c.list, line))
+                        linePtr[0] = lineStart;
+                        if (!runProgram(linePtr))
                             return false;
                     }
                     break;
+                }
+                case LoopEnd: {
+                    return true;
                 }
                 case Advance:
                     if (!advance()) {
@@ -103,7 +114,7 @@ public class Probot extends Reflector<Probot> {
                     turn(-1);
                     break;
             }
-            line++;
+            linePtr[0]++;
         }
         for (int i=0; i<coins.length; i++) {
             for (int ii=0; ii<coins[i].length; ii++) {
