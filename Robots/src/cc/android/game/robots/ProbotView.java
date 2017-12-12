@@ -8,6 +8,7 @@ import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 
 import cc.lib.android.DroidUtils;
@@ -26,7 +27,8 @@ public class ProbotView extends View {
 
         @Override
         protected void onCommand(int line) {
-            ((ProbotActivity)getContext()).setProgramLineNum(line);
+            Log.d("ProbotView", "onCommand: " + line);
+            ((ProbotActivity)getContext()).lv.setProgramLineNum(line);
         }
 
         @Override
@@ -40,7 +42,7 @@ public class ProbotView extends View {
                 e.printStackTrace();
             }
             postInvalidate();
-            ((ProbotActivity)getContext()).setProgramLineNum(-1);
+            ((ProbotActivity)getContext()).lv.setProgramLineNum(-1);
         }
 
         @Override
@@ -296,7 +298,13 @@ public class ProbotView extends View {
     }
 
     void nextLevel() {
-        switch (level++) {
+        setLevel(++level);
+        ((ProbotActivity)getContext()).getPrefs().edit().putInt("Level", level).apply();
+    }
+
+    void setLevel(int level) {
+        this.level = level;
+        switch (level) {
             case 0:
                 probot.init(new int[][] {
                         { 0, 0, 0, 0, 0, 0, 0 },
@@ -472,6 +480,6 @@ public class ProbotView extends View {
                 level = 0;
                 nextLevel();
         }
-        ((ProbotActivity)getContext()).setProgramLineNum(-1);
+        ((ProbotActivity)getContext()).lv.setProgramLineNum(-1);
     }
 }

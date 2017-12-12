@@ -22,10 +22,17 @@ public class Probot extends Reflector<Probot> {
         addAllFields(Probot.class);
     }
 
-    enum Command {
+    public static class Command {
+        CommandType type;
+        int count;
+        List<Command> list;
+    }
+
+    enum CommandType {
         Advance,
         TurnRight,
-        TurnLeft
+        TurnLeft,
+        Loop
     }
 
     enum Direction {
@@ -64,15 +71,29 @@ public class Probot extends Reflector<Probot> {
     public final void runProgram() {
         copy = new Probot();
         copy.copyFrom(this);
-        int line = 0;
-        for (Command c : program) {
-            onCommand(line++);
-            switch (c) {
+        if (runProgramList(program, 0)) {
+            onSuccess();
+        } else {
+            onFailed();
+            reset();
+        }
+    }
 
+    private boolean runProgramList(List<Command> program, final int startLine) {
+        int line = startLine;
+        for (Command c : program) {
+            onCommand(line);
+            switch (c.type) {
+                case Loop: {
+                    for (int i=0; i<c.count; i++) {
+                        if (!runProgramList(c.list, line))
+                            return false;
+                    }
+                    break;
+                }
                 case Advance:
                     if (!advance()) {
-                        reset();
-                        return;
+                        return false;
                     }
                     break;
                 case TurnRight:
@@ -82,18 +103,16 @@ public class Probot extends Reflector<Probot> {
                     turn(-1);
                     break;
             }
+            line++;
         }
         for (int i=0; i<coins.length; i++) {
             for (int ii=0; ii<coins[i].length; ii++) {
                 if (coins[i][ii] != 0) {
-                    onFailed();
-                    reset();
-                    return;
+                    return false;
                 }
             }
         }
-
-        onSuccess();
+        return true;
     }
 
     public final void init(int [][] matrix) {
@@ -119,10 +138,8 @@ public class Probot extends Reflector<Probot> {
         int ny = posy + dir.dy;
 
         if (nx < 0 || ny < 0 || ny >= coins.length || nx >= coins[ny].length) {
-            onFailed();
             return false;
         } else if (coins[ny][nx] == 0) {
-            onFailed();
             return false;
         } else {
             onAdvanced();
