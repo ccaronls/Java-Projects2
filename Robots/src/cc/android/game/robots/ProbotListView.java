@@ -3,6 +3,7 @@ package cc.android.game.robots;
 import android.content.ClipData;
 import android.content.Context;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.DragEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,7 +20,7 @@ import java.util.List;
  * Created by chriscaron on 12/12/17.
  */
 
-public class ProbotListView extends ListView implements View.OnDragListener, View.OnClickListener, Runnable {
+public class ProbotListView extends ListView implements View.OnDragListener, View.OnClickListener, View.OnLongClickListener, Runnable {
 
     BaseAdapter adapter = null;
     int programLineNum = -1;
@@ -48,6 +49,24 @@ public class ProbotListView extends ListView implements View.OnDragListener, Vie
                 if (convertView == null) {
                     convertView = View.inflate(getContext(), R.layout.item_command, null);
                 }
+                convertView.setOnDragListener(ProbotListView.this);
+                convertView.setOnLongClickListener(ProbotListView.this);
+                convertView.setTag(position);
+
+                View divTop = convertView.findViewById(R.id.divider_top);
+                View divBot = convertView.findViewById(R.id.divider_bottom);
+
+                divTop.setVisibility(View.GONE);
+                divBot.setVisibility(View.GONE);
+
+                if (dragInsertPos >= 0) {
+                    if (dragInsertPos == position) {
+                        divTop.setVisibility(View.VISIBLE);
+                    } else if (dragInsertPos == position+1) {
+                        divBot.setVisibility(View.VISIBLE);
+                    }
+                }
+
                 final Probot.Command cmd = probot.program.get(position);
                 boolean isInLoop = false;
                 boolean isLoop = cmd.type == Probot.CommandType.LoopEnd || cmd.type == Probot.CommandType.LoopStart;
@@ -157,29 +176,87 @@ public class ProbotListView extends ListView implements View.OnDragListener, Vie
         init(context, attrs);
     }
 
+    int dragInsertPos = -1;
+
+    String getActionStr(int action) {
+        switch (action) {
+            case DragEvent.ACTION_DRAG_ENDED:
+                return "Ended";
+            case DragEvent.ACTION_DRAG_STARTED:
+                return "Started";
+            case DragEvent.ACTION_DRAG_ENTERED:
+                return "Entered";
+            case DragEvent.ACTION_DRAG_EXITED:
+                return "Exited";
+            case DragEvent.ACTION_DRAG_LOCATION:
+                return "Location";
+            case DragEvent.ACTION_DROP:
+                return "Drop";
+        }
+        return "???";
+    }
+
     @Override
     public boolean onDrag(View v, DragEvent event) {
-        switch (event.getAction()) {
-            case DragEvent.ACTION_DROP: {
-                // TODO: Use event x/y to insert into correct position
-                Probot.Command cmd = (Probot.Command) event.getLocalState();
-                probot.program.add(cmd);
-                adapter.notifyDataSetChanged();
-                setSelection(probot.program.size() - 1);
+        Log.d("List", "v=" + v.getClass().getSimpleName() + " action=" + getActionStr(event.getAction()));
+        if (v instanceof ProbotListView) {
+            switch (event.getAction()) {
+                case DragEvent.ACTION_DROP: {
+                    Probot.Command cmd = (Probot.Command) event.getLocalState();
+                    if (dragInsertPos < 0) {
+                        probot.program.add(cmd);
+                    } else {
+                        probot.program.add(dragInsertPos, cmd);
+                    }
+                    adapter.notifyDataSetChanged();
+                    setSelection(probot.program.size() - 1);
+                    dragInsertPos = -1;
+                    break;
+                }
+                case DragEvent.ACTION_DRAG_ENTERED: {
+                    if (probot.program.size() > 0) {
+                        dragInsertPos = probot.program.size();
+                    }
+                    break;
+                }
             }
-            //case DragEvent.ACTION_DRAG_STARTED:
-            //case DragEvent.ACTION_DRAG_ENDED:
-            case DragEvent.ACTION_DRAG_EXITED:
-                // drag has moved outside, so remove the entery we added
-            case DragEvent.ACTION_DRAG_ENTERED:
-                // drag has moved inside, so position the item at the bottom
-            case DragEvent.ACTION_DRAG_STARTED:
-            case DragEvent.ACTION_DRAG_LOCATION:
-                // drag has moved within, so update the items position in the list
-                return true;
+        } else {
+            int position = (Integer)v.getTag();
+            switch (event.getAction()) {
+                case DragEvent.ACTION_DROP: {
+                    Probot.Command cmd = (Probot.Command) event.getLocalState();
+                    if (dragInsertPos < 0) {
+                        probot.program.add(cmd);
+                    } else {
+                        probot.program.add(dragInsertPos, cmd);
+                    }
+                    adapter.notifyDataSetChanged();
+                    setSelection(probot.program.size() - 1);
+                    dragInsertPos = -1;
+                    break;
+                }
+                case DragEvent.ACTION_DRAG_EXITED:
+                    dragInsertPos = -1;
+                    // drag has moved outside, so remove the entery we added
+                    break;
+                case DragEvent.ACTION_DRAG_LOCATION:
+                case DragEvent.ACTION_DRAG_ENTERED: {
+                    float mp = v.getY() + v.getHeight()/2;
+                    float mpd = event.getY();// + dragging.getHeight();
 
+                    if (mp < mpd) {
+                        dragInsertPos = position;
+                    } else {
+                        dragInsertPos = position+1;
+                    }
+                    adapter.notifyDataSetChanged();
+                    break;
+                }
+                case DragEvent.ACTION_DRAG_STARTED:
+
+            }
         }
-        return false;
+        return true;
     }
 
     public void setProgramLineNum(int lineNum) {
@@ -235,5 +312,20 @@ public class ProbotListView extends ListView implements View.OnDragListener, Vie
             }
         }
         adapter.notifyDataSetChanged();
+    }
+
+    @Override
+    public boolean onLongClick(View v) {
+        if (probot.program.size() > 1) {
+            int position = (Integer) v.getTag();
+            Probot.Command cmd = probot.program.remove(position);
+            startDrag(v, cmd);
+            adapter.notifyDataSetChanged();
+        }
+        return true;
+    }
+
+    public final void startDrag(View v, Probot.Command cmd) {
+        v.startDrag(ClipData.newPlainText(cmd.type.name(), cmd.type.name()), new View.DragShadowBuilder(v), cmd, 0);
     }
 }
