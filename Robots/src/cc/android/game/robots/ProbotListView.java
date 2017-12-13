@@ -2,6 +2,7 @@ package cc.android.game.robots;
 
 import android.content.ClipData;
 import android.content.Context;
+import android.graphics.Color;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.DragEvent;
@@ -9,12 +10,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
-
-import java.util.Collections;
-import java.util.List;
 
 /**
  * Created by chriscaron on 12/12/17.
@@ -24,6 +21,7 @@ public class ProbotListView extends ListView implements View.OnDragListener, Vie
 
     BaseAdapter adapter = null;
     int programLineNum = -1;
+    int failedLineNum = -1;
     Probot probot = null;
 
     private void init(Context c, AttributeSet a) {
@@ -68,6 +66,7 @@ public class ProbotListView extends ListView implements View.OnDragListener, Vie
                 }
 
                 final Probot.Command cmd = probot.program.get(position);
+                // TODO: Put this into the command so we can have nested loops
                 boolean isInLoop = false;
                 boolean isLoop = cmd.type == Probot.CommandType.LoopEnd || cmd.type == Probot.CommandType.LoopStart;
                 if (!isLoop) {
@@ -90,7 +89,14 @@ public class ProbotListView extends ListView implements View.OnDragListener, Vie
 
                 TextView tvLineNum = (TextView) convertView.findViewById(R.id.tvLineNum);
                 tvLineNum.setText(String.valueOf(position + 1) + ":");
-                tvLineNum.setVisibility(View.GONE);
+                if (position == programLineNum) {
+                    tvLineNum.setBackgroundColor(Color.GREEN);
+                } else if (position == failedLineNum) {
+                    tvLineNum.setBackgroundColor(Color.RED);
+                } else {
+                    tvLineNum.setBackgroundColor(Color.TRANSPARENT);
+                }
+                //tvLineNum.setVisibility(View.GONE);
 
                 View v = convertView.findViewById(R.id.ibDelete);
                 if (cmd.type == Probot.CommandType.LoopEnd) {
@@ -129,8 +135,8 @@ public class ProbotListView extends ListView implements View.OnDragListener, Vie
                     }
                 }
 
-                iv = (ImageView) convertView.findViewById(R.id.ivPlay);
-                iv.setVisibility(position == programLineNum ? View.VISIBLE : View.INVISIBLE);
+                //iv = (ImageView) convertView.findViewById(R.id.ivPlay);
+                //iv.setVisibility(position == programLineNum ? View.VISIBLE : View.INVISIBLE);
 
                 View bPlus = convertView.findViewById(R.id.bPlus);
                 View bMinus = convertView.findViewById(R.id.bMinus);
@@ -198,8 +204,10 @@ public class ProbotListView extends ListView implements View.OnDragListener, Vie
 
     @Override
     public boolean onDrag(View v, DragEvent event) {
-        Log.d("List", "v=" + v.getClass().getSimpleName() + " action=" + getActionStr(event.getAction()));
+        int dragInsertPosIn = dragInsertPos;
+        String obj = null;
         if (v instanceof ProbotListView) {
+            obj = "ListView";
             switch (event.getAction()) {
                 case DragEvent.ACTION_DROP: {
                     Probot.Command cmd = (Probot.Command) event.getLocalState();
@@ -213,15 +221,22 @@ public class ProbotListView extends ListView implements View.OnDragListener, Vie
                     dragInsertPos = -1;
                     break;
                 }
+                case DragEvent.ACTION_DRAG_LOCATION:
                 case DragEvent.ACTION_DRAG_ENTERED: {
                     if (probot.program.size() > 0) {
                         dragInsertPos = probot.program.size();
+                        adapter.notifyDataSetChanged();
                     }
                     break;
                 }
+                case DragEvent.ACTION_DRAG_EXITED:
+                    dragInsertPos = -1;
+                    adapter.notifyDataSetChanged();
+                    break;
             }
         } else {
             int position = (Integer)v.getTag();
+            obj = "RowItem[" + position + "]";
             switch (event.getAction()) {
                 case DragEvent.ACTION_DROP: {
                     Probot.Command cmd = (Probot.Command) event.getLocalState();
@@ -237,14 +252,14 @@ public class ProbotListView extends ListView implements View.OnDragListener, Vie
                 }
                 case DragEvent.ACTION_DRAG_EXITED:
                     dragInsertPos = -1;
-                    // drag has moved outside, so remove the entery we added
+                    adapter.notifyDataSetChanged();
                     break;
                 case DragEvent.ACTION_DRAG_LOCATION:
                 case DragEvent.ACTION_DRAG_ENTERED: {
                     float mp = v.getY() + v.getHeight()/2;
                     float mpd = event.getY();// + dragging.getHeight();
 
-                    if (mp < mpd) {
+                    if (mp > mpd) {
                         dragInsertPos = position;
                     } else {
                         dragInsertPos = position+1;
@@ -256,11 +271,23 @@ public class ProbotListView extends ListView implements View.OnDragListener, Vie
 
             }
         }
+        //if (dragInsertPos != dragInsertPosIn)
+        {
+            Log.d("List", "v=" + obj + " action=" + getActionStr(event.getAction()) + " pos=" + dragInsertPos);
+
+        }
         return true;
     }
 
     public void setProgramLineNum(int lineNum) {
         this.programLineNum = lineNum;
+        this.failedLineNum = -1;
+        post(this);
+    }
+
+    public void markFailed() {
+        this.failedLineNum = programLineNum;
+        programLineNum = -1;
         post(this);
     }
 
@@ -272,14 +299,14 @@ public class ProbotListView extends ListView implements View.OnDragListener, Vie
     public void run() {
         adapter.notifyDataSetChanged();
         if (programLineNum >= 0) {
-            if (programLineNum < getFirstVisiblePosition() || programLineNum > getLastVisiblePosition()) {
-                setSelection(programLineNum);
-            }
+            setSelection(programLineNum);
         }
     }
 
     @Override
     public void onClick(View v) {
+        if (programLineNum >= 0)
+            return;
         switch (v.getId()) {
             case R.id.ibLoop: {
                 int position = (Integer) v.getTag();
@@ -291,9 +318,11 @@ public class ProbotListView extends ListView implements View.OnDragListener, Vie
                 int position = (Integer) v.getTag();
                 Probot.Command cmd = probot.program.remove(position);
                 if (cmd.type == Probot.CommandType.LoopStart) {
-                    probot.program.remove(position + 1);
-                } else if (cmd.type == Probot.CommandType.LoopEnd) {
-                    probot.program.remove(position - 2);
+                    while (probot.program.get(position).type != Probot.CommandType.LoopEnd) {
+                        //probot.program.remove(position);
+                        position++;
+                    }
+                    probot.program.remove(position);
                 }
                 break;
             }

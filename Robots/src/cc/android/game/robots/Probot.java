@@ -1,7 +1,6 @@
 package cc.android.game.robots;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import cc.lib.utils.Reflector;
@@ -162,11 +161,11 @@ public class Probot extends Reflector<Probot> {
     }
 
     private void turn(int d) {
+        onTurned(d);
         int nd = dir.ordinal() + d;
         nd += Direction.values().length;
         nd %= Direction.values().length;
         dir = Direction.values()[nd];
-        onTurned();
     }
 
     private void reset() {
@@ -181,7 +180,7 @@ public class Probot extends Reflector<Probot> {
 
     protected void onAdvanced() {}
 
-    protected void onTurned() {}
+    protected void onTurned(int dir) {}
 
     protected void onSuccess() {}
 

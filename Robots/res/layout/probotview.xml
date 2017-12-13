@@ -24,6 +24,12 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:src="@android:drawable/ic_menu_close_clear_cancel"/>
+            <ImageButton
+                android:id="@+id/ibPrevious"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@android:drawable/ic_media_previous"/>
+
         </LinearLayout>
         <cc.android.game.robots.ProbotListView
             android:id="@+id/lvProgram"
@@ -31,6 +37,7 @@
             android:layout_height="0dp"
             android:layout_weight="1"
             android:background="#888"
+            android:paddingBottom="20dp"
             />
 
         <LinearLayout

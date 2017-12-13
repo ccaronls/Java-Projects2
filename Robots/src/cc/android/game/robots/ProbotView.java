@@ -12,7 +12,6 @@ import android.util.Log;
 import android.view.View;
 
 import cc.lib.android.DroidUtils;
-import cc.lib.android.SquareLinearLayout;
 import cc.lib.game.AAnimation;
 
 /**
@@ -33,6 +32,7 @@ public class ProbotView extends View {
 
         @Override
         protected void onFailed() {
+            ((ProbotActivity)getContext()).lv.markFailed();
             startFailedAnim();
             try {
                 synchronized (this) {
@@ -42,7 +42,6 @@ public class ProbotView extends View {
                 e.printStackTrace();
             }
             postInvalidate();
-            ((ProbotActivity)getContext()).lv.setProgramLineNum(-1);
         }
 
         @Override
@@ -59,7 +58,15 @@ public class ProbotView extends View {
         }
 
         @Override
-        protected void onTurned() {
+        protected void onTurned(int dir) {
+            startTurnAnim(dir);
+            try {
+                synchronized (this) {
+                    wait();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
             postInvalidate();
         }
 
@@ -241,6 +248,31 @@ public class ProbotView extends View {
         postInvalidate();
     }
 
+    void startTurnAnim(final int dir) {
+        animation = new AAnimation<Canvas>(1000) {
+            @Override
+            protected void draw(Canvas g, float position, float dt) {
+                int x = probot.posx*cw + cw/2;
+                int y = probot.posy*ch + ch/2;
+
+                g.save();
+                g.translate(x, y);
+                g.rotate(Math.round(position * 90 * dir));
+                drawGuy(g, 0, 0);
+                g.restore();
+            }
+
+            @Override
+            protected void onDone() {
+                animation = null;
+                synchronized (probot) {
+                    probot.notify();
+                }
+            }
+        }.start();
+        postInvalidate();
+    }
+
     void startSuccessAnim() {
         animation = new AAnimation<Canvas>(3000) {
 
@@ -274,7 +306,7 @@ public class ProbotView extends View {
                 }
             }
         }.start();
-        invalidate();
+        postInvalidate();
     }
 
     void drawGuy(Canvas canvas, int x, int y) {
@@ -480,6 +512,7 @@ public class ProbotView extends View {
                 level = 0;
                 nextLevel();
         }
+        postInvalidate();
         ((ProbotActivity)getContext()).lv.setProgramLineNum(-1);
     }
 }

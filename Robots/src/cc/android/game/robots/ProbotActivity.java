@@ -1,19 +1,8 @@
 package cc.android.game.robots;
 
-import android.app.Activity;
-import android.content.ClipData;
 import android.os.Bundle;
-import android.view.DragEvent;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.Adapter;
-import android.widget.BaseAdapter;
-import android.widget.ImageView;
-import android.widget.ListAdapter;
-import android.widget.ListView;
-import android.widget.TextView;
-import android.widget.ViewSwitcher;
 
 import cc.lib.android.CCActivityBase;
 
@@ -46,6 +35,7 @@ public class ProbotActivity extends CCActivityBase implements View.OnClickListen
 
         findViewById(R.id.ibPlay).setOnClickListener(this);
         findViewById(R.id.ibClear).setOnClickListener(this);
+        findViewById(R.id.ibPrevious).setOnClickListener(this);
 
         actionForward.setOnTouchListener(this);
         actionRight.setOnTouchListener(this);
@@ -58,9 +48,11 @@ public class ProbotActivity extends CCActivityBase implements View.OnClickListen
 
     @Override
     public boolean onTouch(View v, MotionEvent event) {
-        Probot.CommandType type = (Probot.CommandType) v.getTag();
-        Probot.Command cmd = new Probot.Command(type, 0);
-        lv.startDrag(v, cmd);
+        if (lv.programLineNum < 0) {
+            Probot.CommandType type = (Probot.CommandType) v.getTag();
+            Probot.Command cmd = new Probot.Command(type, 0);
+            lv.startDrag(v, cmd);
+        }
         return true;
     }
 
@@ -85,6 +77,11 @@ public class ProbotActivity extends CCActivityBase implements View.OnClickListen
                             });
                         }
                     }.start();
+                }
+                break;
+            case R.id.ibPrevious:
+                if (pv.level > 0) {
+                    pv.setLevel(pv.level-1);
                 }
                 break;
         }

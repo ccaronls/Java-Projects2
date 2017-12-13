@@ -14,20 +14,20 @@
         android:layout_width="fill_parent"
         android:layout_height="0dp"
         android:layout_weight="1">
-
+<!--
         <ImageView
             android:id="@+id/ivPlay"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:src="@android:drawable/ic_media_play"/>
-
+-->
         <TextView
             android:id="@+id/tvLineNum"
-            android:layout_width="55dp"
+            android:layout_width="40dp"
             android:layout_height="fill_parent"
             android:gravity="right"
             android:paddingRight="3dp"
-            android:text="88:"
+            android:text="88"
             android:textSize="32dp"/>
         <ImageView
             android:id="@+id/imageView"
