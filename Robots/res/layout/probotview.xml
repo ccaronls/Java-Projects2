@@ -20,7 +20,7 @@
                 android:layout_height="wrap_content"
                 android:src="@android:drawable/ic_media_play"/>
             <ImageButton
-                android:id="@+id/ibClear"
+                android:id="@+id/ibStop"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:src="@android:drawable/ic_menu_close_clear_cancel"/>
@@ -29,6 +29,19 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:src="@android:drawable/ic_media_previous"/>
+
+            <TextView
+                android:id="@+id/tvLevel"
+                android:layout_width="60dp"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="100"
+                android:textSize="32dp"/>
+            <ImageButton
+                android:id="@+id/ibNext"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@android:drawable/ic_media_next"/>
 
         </LinearLayout>
         <cc.android.game.robots.ProbotListView
@@ -63,6 +76,12 @@
                 android:layout_width="@dimen/icon_dim"
                 android:layout_height="@dimen/icon_dim"
                 android:src="@drawable/arrow_left"/>
+
+            <ImageView
+                android:id="@+id/ivArrowJump"
+                android:layout_width="@dimen/icon_dim"
+                android:layout_height="@dimen/icon_dim"
+                android:src="@drawable/arrow_jump"/>
 
         </LinearLayout>
     </LinearLayout>

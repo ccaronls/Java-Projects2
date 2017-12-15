@@ -13,6 +13,9 @@ import android.view.View;
 
 import cc.lib.android.DroidUtils;
 import cc.lib.game.AAnimation;
+import cc.lib.math.Bezier;
+import cc.lib.math.CMath;
+import cc.lib.math.Vector2D;
 
 /**
  * Created by chriscaron on 12/7/17.
@@ -20,14 +23,25 @@ import cc.lib.game.AAnimation;
 
 public class ProbotView extends View {
 
-    int level = 0;
+    int maxLevel = 0;
 
     Probot probot = new Probot() {
 
         @Override
         protected void onCommand(int line) {
             Log.d("ProbotView", "onCommand: " + line);
-            ((ProbotActivity)getContext()).lv.setProgramLineNum(line);
+            setProgramLine(line);
+            switch (get(line).type) {
+                case LoopStart:
+                case LoopEnd:
+                    try {
+                        synchronized (this) {
+                            wait(500);
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+            }
         }
 
         @Override
@@ -47,6 +61,19 @@ public class ProbotView extends View {
         @Override
         protected void onAdvanced() {
             startAdvanceAnim();
+            try {
+                synchronized (this) {
+                    wait();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            postInvalidate();
+        }
+
+        @Override
+        protected void onJumped() {
+            startJumpAnim();
             try {
                 synchronized (this) {
                     wait();
@@ -80,8 +107,19 @@ public class ProbotView extends View {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            nextLevel();
+            ProbotView.this.nextLevel();
             postInvalidate();
+        }
+
+        @Override
+        public void stop() {
+            super.stop();
+            setProgramLine(-1);
+            if (animation != null) {
+                animation.stop();
+                animation = null;
+            }
+
         }
     };
 
@@ -225,6 +263,85 @@ public class ProbotView extends View {
         postInvalidate();
     }
 
+    void startJumpAnim() {
+        animation = new AAnimation<Canvas>(1000) {
+
+            Bezier b = null;
+
+            @Override
+            protected void draw(Canvas canvas, float position, float dt) {
+                if (b == null) {
+                    b = new Bezier();
+                    int x = probot.posx*cw + cw/2;
+                    int y = probot.posy*ch + ch/2;
+                    b.addPoint(x, y);
+                    switch (probot.dir) {
+                        case Right:
+                            b.addPoint(x+cw*2/3, y-ch/2);
+                            b.addPoint(x+cw*4/3, y-ch/2);
+                            b.addPoint(x+cw*2, y);
+                            break;
+                        case Down:
+                            b.addPoint(x+cw, y+ch*2/3);
+                            b.addPoint(x+cw, y+ch*4/3);
+                            b.addPoint(x, y+ch*2);
+                            break;
+                        case Left:
+                            b.addPoint(x-cw*2/3, y-ch/2);
+                            b.addPoint(x-cw*4/3, y-ch/2);
+                            b.addPoint(x+cw*2, y);
+                            break;
+                        case Up:
+                            b.addPoint(x+cw, y-ch*2/3);
+                            b.addPoint(x+cw, y-ch*4/3);
+                            b.addPoint(x, y-ch*2);
+                            break;
+                    }
+                }
+                rf.set(-radius, -radius, radius, radius);
+                int angStart=0, sweepAng=270;
+                if (position < 0.5f) {
+                    angStart = Math.round(position * 2 * 45);
+                } else {
+                    angStart = Math.round((1.0f - position) * 2 * 45);
+                }
+                sweepAng = 360 - angStart*2;
+
+                switch (probot.dir) {
+
+                    case Right:
+                        break;
+                    case Down:
+                        angStart+=90;
+                        break;
+                    case Left:
+                        angStart+=180;
+                        break;
+                    case Up:
+                        angStart+=270;
+                        break;
+                }
+                Vector2D v = b.getPointAt(position);
+                int x = v.Xi();
+                int y = v.Yi();
+                canvas.save();
+                canvas.translate(x, y);
+                canvas.drawArc(rf, angStart, sweepAng, true, p);
+                canvas.restore();
+            }
+
+            @Override
+            protected void onDone() {
+                animation = null;
+                synchronized (probot) {
+                    probot.notifyAll();
+                }
+
+            }
+        }.start();
+        postInvalidate();
+    }
+
     void startFailedAnim() {
         animation = new AAnimation<Canvas>(500, 6, true) {
             @Override
@@ -249,7 +366,7 @@ public class ProbotView extends View {
     }
 
     void startTurnAnim(final int dir) {
-        animation = new AAnimation<Canvas>(1000) {
+        animation = new AAnimation<Canvas>(500) {
             @Override
             protected void draw(Canvas g, float position, float dt) {
                 int x = probot.posx*cw + cw/2;
@@ -330,189 +447,21 @@ public class ProbotView extends View {
     }
 
     void nextLevel() {
-        setLevel(++level);
-        ((ProbotActivity)getContext()).getPrefs().edit().putInt("Level", level).apply();
+        setLevel(probot.level+1);
     }
 
     void setLevel(int level) {
-        this.level = level;
-        switch (level) {
-            case 0:
-                probot.init(new int[][] {
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                        { 2, 1, 1, 1, 0, 0, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                });
-                break;
-            case 1:
-                probot.init(new int[][] {
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                        { 0, 1, 1, 1, 0, 0, 0 },
-                        { 2, 1, 0, 1, 0, 0, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                });
-                break;
-            case 2:
-                probot.init(new int[][] {
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                        { 0, 1, 1, 0, 0, 0, 0 },
-                        { 2, 1, 1, 0, 0, 0, 0 },
-                        { 0, 1, 1, 0, 0, 0, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                });
-                break;
-            case 3:
-                probot.init(new int[][] {
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                        { 2, 1, 1, 1, 1, 0, 0 },
-                        { 0, 0, 0, 0, 1, 0, 0 },
-                        { 0, 1, 1, 1, 1, 0, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                });
-                break;
-            case 4:
-                probot.init(new int[][] {
-                        { 0, 3, 0, 0, 0, 0, 0 },
-                        { 0, 1, 0, 1, 1, 1, 0 },
-                        { 0, 1, 1, 1, 0, 1, 0 },
-                        { 0, 0, 0, 1, 1, 1, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                });
-                break;
-            case 5:
-                probot.init(new int[][] {
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                        { 0, 1, 1, 1, 1, 0, 0 },
-                        { 2, 1, 1, 1, 1, 0, 0 },
-                        { 0, 1, 1, 1, 1, 0, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                });
-                break;
-            case 6:
-                probot.init(new int[][] {
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                        { 0, 1, 1, 1, 1, 1, 0 },
-                        { 0, 1, 1, 1, 1, 1, 0 },
-                        { 0, 1, 1, 1, 1, 1, 0 },
-                        { 0, 5, 0, 0, 0, 0, 0 },
-                });
-                break;
-            case 7:
-                probot.init(new int[][] {
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                        { 2, 1, 1, 1, 0, 0, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                });
-                break;
-            case 8:
-                probot.init(new int[][] {
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                        { 2, 1, 1, 1, 0, 0, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                });
-                break;
-            case 9:
-                probot.init(new int[][] {
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                        { 2, 1, 1, 1, 0, 0, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                });
-                break;
-            case 10:
-                probot.init(new int[][] {
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                        { 2, 1, 1, 1, 0, 0, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                });
-                break;
-            case 11:
-                probot.init(new int[][] {
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                        { 2, 1, 1, 1, 0, 0, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                });
-                break;
-            case 12:
-                probot.init(new int[][] {
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                        { 2, 1, 1, 1, 0, 0, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                });
-                break;
-            case 13:
-                probot.init(new int[][] {
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                        { 2, 1, 1, 1, 0, 0, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                });
-                break;
-            case 14:
-                probot.init(new int[][] {
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                        { 2, 1, 1, 1, 0, 0, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                });
-                break;
-            case 15:
-                probot.init(new int[][] {
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                        { 2, 1, 1, 1, 0, 0, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                });
-                break;
-            case 16:
-                probot.init(new int[][] {
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                        { 2, 1, 1, 1, 0, 0, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                });
-                break;
-            case 17:
-                probot.init(new int[][] {
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                        { 2, 1, 1, 1, 0, 0, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                });
-                break;
-            case 18:
-                probot.init(new int[][] {
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                        { 2, 1, 1, 1, 0, 0, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                });
-                break;
-            default:
-                level = 0;
-                nextLevel();
-        }
+        this.maxLevel = Math.max(maxLevel, level);
+        ((ProbotActivity)getContext()).getPrefs().edit()
+                .putInt("Level", level)
+                .putInt("MaxLevel", maxLevel)
+                .apply();
+        probot.setLevel(level);
         postInvalidate();
-        ((ProbotActivity)getContext()).lv.setProgramLineNum(-1);
+        setProgramLine(-1);
+    }
+
+    void setProgramLine(int line) {
+        ((ProbotActivity)getContext()).lv.setProgramLineNum(line);
     }
 }

@@ -29,6 +29,13 @@
             android:paddingRight="3dp"
             android:text="88"
             android:textSize="32dp"/>
+
+        <View
+            android:id="@+id/vIndent"
+            android:layout_width="0dp"
+            android:layout_height="fill_parent"
+            />
+
         <ImageView
             android:id="@+id/imageView"
             android:layout_width="@dimen/icon_dim_sm"
@@ -47,12 +54,12 @@
             android:src="@drawable/arrow_repeat"/>
 
 
-        <Button
-            android:id="@+id/bMinus"
+        <ImageButton
+            android:id="@+id/ibMinus"
             android:layout_width="@dimen/icon_dim_sm"
             android:layout_height="@dimen/icon_dim_sm"
-            android:textStyle="bold"
-            android:text="-"/>
+            android:src="@drawable/minus"/>
+
         <TextView
             android:id="@+id/tvCount"
             android:layout_width="wrap_content"
@@ -60,12 +67,11 @@
             android:layout_gravity="center"
             android:text="3"
             android:textSize="24dp"/>
-        <Button
-            android:id="@+id/bPlus"
+        <ImageButton
+            android:id="@+id/ibPlus"
             android:layout_width="@dimen/icon_dim_sm"
             android:layout_height="@dimen/icon_dim_sm"
-            android:textStyle="bold"
-            android:text="+"/>
+            android:src="@drawable/plus"/>
         <ImageButton
             android:id="@+id/ibDelete"
             android:layout_width="@dimen/icon_dim_sm"
