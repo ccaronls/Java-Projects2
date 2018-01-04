@@ -15,9 +15,6 @@ public class Move extends Reflector<Move> implements IMove {
     }
 
     public final MoveType type;
-//    public final int startRank, startCol;
-//    public final int endRank, endCol;
-//    public final int captureRank, captureCol;
     public final int playerNum;
 
     private final int [][] squares;

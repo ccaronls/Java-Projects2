@@ -1,5 +1,7 @@
 package cc.android.checkerboard;
 
+import android.os.Debug;
+
 import cc.lib.game.MiniMaxTree;
 import cc.lib.game.MiniMaxTree.MMTreeNode;
 import cc.lib.game.Utils;
@@ -16,12 +18,12 @@ public class Robot extends Reflector<Robot> {
     }
 
     public enum RobotType {
-        RANDOM, MINIMAX_BOT1, MINIMAX_BOT2,
+        EASY, MEDIUM, HARD,
     }
 
     final RobotType type;
 
-    public Robot() { type = RobotType.MINIMAX_BOT1; }
+    public Robot() { type = RobotType.MEDIUM; }
 
     Robot(int difficulty) {
         this.type = RobotType.values()[difficulty];
@@ -68,19 +70,21 @@ public class Robot extends Reflector<Robot> {
         else
             mmt = mmtChess;
 
+        Debug.startMethodTracing();
         switch (type) {
-            case RANDOM:
+            case EASY:
                 doRandomRobot(root);
                 break;
-            case MINIMAX_BOT1: {
+            case MEDIUM: {
                 mmt.buildTree(game, root, 1);
                 break;
             }
-            case MINIMAX_BOT2: {
-                mmt.buildTree(game, root, 2);
+            case HARD: {
+                mmt.buildTree(game, root, 3);
                 break;
             }
         }
+        Debug.stopMethodTracing();
     }
 
 
@@ -95,7 +99,7 @@ public class Robot extends Reflector<Robot> {
 
         for (int rank=0; rank<game.RANKS; rank++) {
             for (int col=0; col<game.COLUMNS; col++) {
-                Piece p = game.getPiece(rank, col);
+                Piece p = game.board[rank][col];//getPiece(rank, col);
 
                 if (p.playerNum < 0)
                     continue;
@@ -213,7 +217,7 @@ public class Robot extends Reflector<Robot> {
         for (int rank=0; rank<game.RANKS; rank++) {
             for (int col=0; col<game.COLUMNS; col++) {
             //for (Piece p : game..getBoard[rank]) {
-                Piece p = game.getPiece(rank, col);
+                Piece p = game.board[rank][col];//getPiece(rank, col);
 
                 if (p.playerNum == playerNum) {
                     switch (p.type) {
@@ -268,7 +272,7 @@ public class Robot extends Reflector<Robot> {
             Piece p;
             for (int i = 0; i < game.RANKS; i++) {
                 for (int ii = 0; ii < game.COLUMNS; ii++) {
-                    if ((p = game.getPiece(i, ii)).moves.size() > mvNum) {
+                    if ((p = game.board[i][ii]).moves.size() > mvNum) {
                         Move m = p.moves.get(mvNum);
                         tree.setMove(m);
                     } else {

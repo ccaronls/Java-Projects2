@@ -35,7 +35,8 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
     protected Piece lock = null;
     protected final Stack<Move> undoStack = new Stack<>();
 
-    private final Piece [][] board; // rank major
+    // expose so we can allow fast access to array
+    public final Piece [][] board; // rank major
 
     protected ACheckboardGame(int ranks, int columns, int numPlayers) {
         this.RANKS = ranks;
@@ -112,7 +113,7 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
     public final Piece findPiece(int playerNum, PieceType ... types) {
         int[] pos = findPiecePosition(playerNum, types);
         if (pos != null) {
-            return getPiece(pos[0], pos[1]);
+            return board[pos[0]][pos[1]];//getPiece(pos[0], pos[1]);
         }
         return null;
     }

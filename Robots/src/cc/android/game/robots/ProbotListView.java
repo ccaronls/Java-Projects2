@@ -10,7 +10,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -229,7 +228,7 @@ public class ProbotListView extends ListView implements View.OnDragListener, Vie
                     dropped = true;
                     break;
                 }
-                case DragEvent.ACTION_DRAG_LOCATION:
+                //case DragEvent.ACTION_DRAG_LOCATION:
                 case DragEvent.ACTION_DRAG_ENTERED: {
                     if (probot.size() > 0) {
                         dragInsertPos = Utils.clamp(probot.size(), dragMinInsertPos, dragMaxInsertPos);
@@ -274,29 +273,54 @@ public class ProbotListView extends ListView implements View.OnDragListener, Vie
                 }
                 case DragEvent.ACTION_DRAG_EXITED:
                     // TODO: Do I need this?
-                    dragInsertPos = -1;
-                    adapter.notifyDataSetChanged();
+                    //dragInsertPos = -1;
+                    //adapter.notifyDataSetChanged();
                     break;
                 case DragEvent.ACTION_DRAG_LOCATION:
                 case DragEvent.ACTION_DRAG_ENTERED: {
-                    float mp = v.getY() + v.getHeight()/2;
+                    float mp = //v.getY() +
+                            v.getHeight()/2;
                     float mpd = event.getY();// + dragging.getHeight();
+                    int first = getFirstVisiblePosition();
+                    int last = getLastVisiblePosition();
 
-                    if (mp > mpd) {
+                    if (position == first) {
+                        Log.d("PLV", "A");
+                        dragInsertPos = position;
+                    } else if (position == last) {
+                        Log.d("PLV", "B");
+                        dragInsertPos = position+1;
+                    } else if (mp > mpd) {
+                        Log.d("PLV", "C mp=" + mp + " mpd=" + mpd);
                         dragInsertPos = position;
                     } else {
+                        Log.d("PLV", "D");
                         dragInsertPos = position+1;
                     }
                     dragInsertPos = Utils.clamp(dragInsertPos, dragMinInsertPos, dragMaxInsertPos);
                     adapter.notifyDataSetChanged();
-                    int first = getFirstVisiblePosition();
-                    int last = getLastVisiblePosition();
       //              setSelection(dragInsertPos);
-                    int scrollDist = v.getHeight();
+                    if (dragInsertPosIn != dragInsertPos){
+                        int scrollDist = v.getHeight();
+                        int midpt =(last + first + 1) / 2;
+                        float maxSp = 500f;
+                        int speed = Math.round(maxSp - Math.abs(maxSp * 2 * (dragInsertPos-midpt)/((last-first))));
+                                //0.5f * (dragInsertPos - first - midpt));
+                        Log.d("PLV", "speed=" + speed);
+                        if (dragInsertPos < midpt) {
+                            smoothScrollBy(-scrollDist, speed);
+                        } else {
+                            smoothScrollBy(scrollDist, speed);
+                        }
+                    }
+
+                    if (dragInsertPos == 0)
+                        smoothScrollToPositionFromTop(0, 0, 0);
+
                     if (dragInsertPos <= first+1) {
-                        smoothScrollBy(-scrollDist, 500);
+                    //    smoothScrollBy(-scrollDist, 500);
                     } else if (dragInsertPos >= last-1) {
-                        smoothScrollBy(scrollDist, 500);
+                      //  smoothScrollBy(scrollDist, 500);
                     }
         //            setSelection(dragInsertPos);
                     break;

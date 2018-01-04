@@ -1,10 +1,27 @@
 package cc.android.checkerboard;
 
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
+import java.util.Stack;
 
 import cc.lib.game.Utils;
 
-import static cc.android.checkerboard.PieceType.*;
+import static cc.android.checkerboard.PieceType.BISHOP;
+import static cc.android.checkerboard.PieceType.CHECKED_KING;
+import static cc.android.checkerboard.PieceType.CHECKED_KING_IDLE;
+import static cc.android.checkerboard.PieceType.EMPTY;
+import static cc.android.checkerboard.PieceType.KNIGHT;
+import static cc.android.checkerboard.PieceType.PAWN;
+import static cc.android.checkerboard.PieceType.PAWN_ENPASSANT;
+import static cc.android.checkerboard.PieceType.PAWN_IDLE;
+import static cc.android.checkerboard.PieceType.PAWN_TOSWAP;
+import static cc.android.checkerboard.PieceType.QUEEN;
+import static cc.android.checkerboard.PieceType.ROOK;
+import static cc.android.checkerboard.PieceType.ROOK_IDLE;
+import static cc.android.checkerboard.PieceType.UNAVAILABLE;
+import static cc.android.checkerboard.PieceType.UNCHECKED_KING;
+import static cc.android.checkerboard.PieceType.UNCHECKED_KING_IDLE;
 
 /**
  * Created by chriscaron on 10/10/17.
@@ -50,6 +67,7 @@ public class Chess extends ACheckboardGame {
         lock = null;
         clearMoves();
         undoStack.push(move);
+        isSqAttackedCache.push(new HashMap<Integer, Boolean>());
         {
             Piece p;
             switch (move.type) {
@@ -123,6 +141,7 @@ public class Chess extends ACheckboardGame {
 
     @Override
     protected void reverseMove(Move m, boolean recompute) {
+        isSqAttackedCache.pop();
         super.reverseMove(m, recompute);
         updateOpponentKingCheckedState();
     }
@@ -136,6 +155,8 @@ public class Chess extends ACheckboardGame {
         return false;
     }
 
+    private Stack<Map<Integer, Boolean>> isSqAttackedCache = new Stack<>();
+
     /**
      * Return true if playerNum is attacking the position
      * @param rank
@@ -144,12 +165,34 @@ public class Chess extends ACheckboardGame {
      * @return
      */
     final boolean isSquareAttacked(int rank, int col, int playerNum) {
-        // search in the eight directions and knights whom can
-        int [] dr = KNIGHT_DELTAS[0];
-        int [] dc = KNIGHT_DELTAS[1];
+        Map<Integer, Boolean> isSqAtt = null;
+        if (isSqAttackedCache.size() > 0) {
+            isSqAtt = isSqAttackedCache.peek();
+        }
+        if (isSqAtt == null) {
+            isSqAtt = new HashMap<>();
+            isSqAttackedCache.push(isSqAtt);
+        }
 
-        for (int i=0; i<8; i++) {
-            if (testPiece(getPiece(rank +dr[i], col +dc[i]), playerNum, KNIGHT)) {
+        int key = (rank << 16) | (col << 8) | playerNum;
+        Boolean att = isSqAtt.get(key);
+        if (att != null) {
+            return att;
+        }
+        boolean b = isSquareAttackedP(rank, col, playerNum);
+        isSqAtt.put(key, b);
+        return b;
+    }
+
+    final private boolean isSquareAttackedP(int rank, int col, int playerNum) {
+
+        // search in the eight directions and knights whom can
+        int [][] kd = getKnightDeltas(rank, col);
+        int [] dr = kd[0];
+        int [] dc = kd[1];
+
+        for (int i=0; i<dr.length; i++) {
+            if (testPiece(board[rank +dr[i]][col +dc[i]], playerNum, KNIGHT)) {
                 return true;
             }
         }
@@ -176,6 +219,8 @@ public class Chess extends ACheckboardGame {
         for (int i=0; i<4; i++) {
             for (int ii=1; ii<8; ii++) {
                 Piece p = getPiece(rank +dr[i]*ii, col +dc[i]*ii);
+                if (p.type == UNAVAILABLE)
+                    break;
                 if (testPiece(p, playerNum, ROOK, ROOK_IDLE, QUEEN))
                     return true;
                 if (p.type != EMPTY)
@@ -189,6 +234,8 @@ public class Chess extends ACheckboardGame {
         for (int i=0; i<4; i++) {
             for (int ii=1; ii<8; ii++) {
                 Piece p = getPiece(rank +dr[i]*ii, col +dc[i]*ii);
+                if (p.type == UNAVAILABLE)
+                    break;
                 if (testPiece(p, playerNum, BISHOP, QUEEN))
                     return true;
                 if (p.type != EMPTY)
@@ -295,12 +342,14 @@ public class Chess extends ACheckboardGame {
                 dr = DIAGONAL_DELTAS[0];
                 dc = DIAGONAL_DELTAS[1];
                 break;
-            case KNIGHT:
-                dr = KNIGHT_DELTAS[0];
-                dc = KNIGHT_DELTAS[1];
-                d=1;
+            case KNIGHT: {
+                int [][] kd = getKnightDeltas(rank, col);
+                dr = kd[0];//KNIGHT_DELTAS[0];
+                dc = kd[1];//KNIGHT_DELTAS[1];
+                d = 1;
                 mt = MoveType.JUMP;
                 break;
+            }
             case ROOK_IDLE:
                 nextType = ROOK;
             case ROOK:
@@ -369,10 +418,59 @@ public class Chess extends ACheckboardGame {
             {-1, -1, 1, 1},
             {-1, 1, -1, 1}
     };
-    public final static int [][] KNIGHT_DELTAS = {
+    //public final static int [][] KNIGHT_DELTAS = {
+    //        {-2, -2, -1, 1, 2,  2,  1, -1},
+    //        {-1,  1,  2, 2, 1, -1, -2, -2}
+    //};
+
+    // precompute knight deltas for each square
+
+    @Omit
+    private static int[][][][] knightDeltas = null;
+
+    public final static int [][] ALL_KNIGHT_DELTAS = {
             {-2, -2, -1, 1, 2,  2,  1, -1},
             {-1,  1,  2, 2, 1, -1, -2, -2}
     };
+
+    int [][] computeKnightDeltaFor(int rank, int col) {
+        int [][] d = new int[2][8];
+        int n = 0;
+        for (int i=0; i<8; i++) {
+            if (isOnBoard(rank+ALL_KNIGHT_DELTAS[0][i], col+ALL_KNIGHT_DELTAS[1][i])) {
+                d[0][n] = ALL_KNIGHT_DELTAS[0][i];
+                d[1][n] = ALL_KNIGHT_DELTAS[1][i];
+                n++;
+            }
+        }
+        if (n < 8) {
+            int[] t = d[0];
+            d[0] = new int[n];
+            System.arraycopy(t, 0, d[0], 0, n);
+
+            t = d[1];
+            d[1] = new int[n];
+            System.arraycopy(t, 0, d[1], 0, n);
+        }
+
+        return d;
+    }
+
+    private void buildKnightDeltas() {
+        knightDeltas = new int[8][8][][];
+        for (int i=0; i<8; i++) {
+            for (int ii=0; ii<8; ii++) {
+                knightDeltas[i][ii] = computeKnightDeltaFor(i, ii);
+            }
+        }
+    }
+
+    public int [][] getKnightDeltas(int rank, int col) {
+        if (knightDeltas == null) {
+            buildKnightDeltas();
+        }
+        return knightDeltas[rank][col];
+    }
 
     public final static int [][] NSEW_DELTAS = {
             {1, 0, -1, 0},

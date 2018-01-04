@@ -82,7 +82,7 @@ public class ProbotActivity extends CCActivityBase implements View.OnClickListen
 
     @Override
     public void run() {
-        tvLevel.setText(String.valueOf(pv.probot.level));
+        tvLevel.setText(String.valueOf(pv.probot.level+1));
         if (pv.probot.isRunning()) {
             bPrevious.setEnabled(false);
             bNext.setEnabled(false);
@@ -101,6 +101,10 @@ public class ProbotActivity extends CCActivityBase implements View.OnClickListen
     }
 
     public void refresh() {
+        run();
+    }
+
+    public void postRefresh() {
         runOnUiThread(this);
     }
 
@@ -119,8 +123,9 @@ public class ProbotActivity extends CCActivityBase implements View.OnClickListen
                 if (pv.probot.size() > 0) {
                     new Thread() {
                         public void run() {
+                            postRefresh();
                             pv.probot.runProgram();
-                            refresh();
+                            postRefresh();
                         }
                     }.start();
                 }
