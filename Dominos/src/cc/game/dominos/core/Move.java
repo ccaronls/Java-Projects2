@@ -1,9 +1,18 @@
 package cc.game.dominos.core;
 
-public class Move {
+import cc.lib.utils.Reflector;
 
-	Move(String pattern) {
+public class Move extends Reflector<Move> {
+
+	public Move() {
 		
 	}
-	
+
+	Move(Piece pc, int endPoint) {
+	    this.piece = pc;
+	    this.endpoint = endPoint;
+    }
+
+	Piece piece;
+	int endpoint;
 }

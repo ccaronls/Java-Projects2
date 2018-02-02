@@ -27,7 +27,7 @@ public class Board2 extends Reflector<Board2> {
 		List<Move> moves = new ArrayList<Move>();
 		
 		if (tree == null) {
-			moves.add(new Move("11,22,33,44,55,66"));
+			//moves.add(new Move("11,22,33,44,55,66"));
 		} else {
 			addMovesFromTreeR(moves, tree);
 		}

@@ -11,11 +11,24 @@ public final class Piece extends Reflector<Piece> {
 	}
 	
 	final int num1, num2;
-	
+
+	int openPips;
+
+	public Piece() {
+	    this(0,0);
+    }
+
 	public Piece(int num1, int num2) {
 		this.num1 = num1;
 		this.num2 = num2;
+		openPips = num1;
 	}
+
+	public int getClosedPips() {
+	    if (num1 == openPips)
+	        return num2;
+	    return num1;
+    }
 
 	@Override
 	public boolean equals(Object o) {
