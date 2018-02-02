@@ -37,7 +37,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     
     /**
      * 
-     * @param outlineColorARGB
+     * @param argb
      */
 	public abstract void setColorARGB(int argb);
 	
@@ -67,7 +67,6 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
 
     /**
      * Convenience method to draw with LEFT/TOP Justification
-     * @param g
      * @param x
      * @param y
      * @param text
@@ -78,7 +77,6 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
 
     /**
      * Convenience to draw with TOP Justification
-     * @param g
      * @param x
      * @param y
      * @param hJust
@@ -149,7 +147,6 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     
     /**
      * Draw a justified block text.  '\n' is a delimiter for seperate lines
-     * @param g
      * @param x
      * @param y
      * @param hJust
@@ -188,7 +185,6 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     
     /**
      * 
-     * @param g
      * @param str
      * @param maxWidth
      * @return
@@ -252,7 +248,6 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     
     /**
      * Use binary search to find substring of s that has max chars up to maxWidth pixels wide.
-     * @param g
      * @param s
      * @param start
      * @param end
@@ -484,8 +479,8 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param assetPath
      * @param w
      * @param h
-     * @param rows
-     * @param cols
+     * @param numCellsX
+     * @param numCellsY
      * @param bordeered
      * @param transparent
      * @return
@@ -587,7 +582,6 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * 
      * @param x
      * @param y
-     * @param z
      */
     public abstract void translate(float x, float y);
 
@@ -620,7 +614,6 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * 
      * @param x
      * @param y
-     * @param z
      */
     public abstract void scale(float x, float y);
     
@@ -634,7 +627,6 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     
     /**
      * 
-     * @param g
      * @param x0
      * @param y0
      * @param x1
@@ -663,8 +655,8 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     
     /**
      * 
-     * @param g
-     * @param points
+     * @param x_pts
+     * @param y_pts
      * @param thickness
      */
     public final void drawLineStrip(int [] x_pts, int [] y_pts, int thickness) {
@@ -1046,8 +1038,8 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
 
     /**
      * 
-     * @param brain_pts_x
-     * @param brain_pts_y
+     * @param pts_x
+     * @param pts_y
      * @param length
      */
     public final void drawFilledPolygon(int[] pts_x, int[] pts_y, int length) {

@@ -2,13 +2,21 @@ package cc.lib.swing;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.Properties;
 
 import javax.swing.JFrame;
 
 public class EZFrame extends JFrame implements WindowListener, ComponentListener {
 
 	public static final long serialVersionUID = 20002;
-	
+
+	private File propertiesFile = null;
+
 	public EZFrame() {
 		super();
 		addWindowListener(this);
@@ -70,10 +78,54 @@ public class EZFrame extends JFrame implements WindowListener, ComponentListener
 	}
 	
 	protected void onWindowClosing() {}
-	
+
+	protected void saveToFile() {
+	    if (propertiesFile != null) {
+            Properties p = new Properties();
+            p.setProperty("gui.x", String.valueOf(getX()));
+            p.setProperty("gui.y", String.valueOf(getY()));
+            p.setProperty("gui.w", String.valueOf(getWidth()));
+            p.setProperty("gui.h", String.valueOf(getHeight()));
+            try {
+                OutputStream out = new FileOutputStream(propertiesFile);
+                try {
+                    p.store(out, "");
+                } finally {
+                    out.close();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public boolean loadFromFile(File propertiesFile) {
+	    this.propertiesFile = propertiesFile;
+	    try {
+	        Properties p = new Properties();
+	        InputStream in = new FileInputStream(propertiesFile);
+	        try {
+                p.load(in);
+                int x = Integer.parseInt(p.getProperty("gui.x"));
+                int y = Integer.parseInt(p.getProperty("gui.y"));
+                int w = Integer.parseInt(p.getProperty("gui.w"));
+                int h = Integer.parseInt(p.getProperty("gui.h"));
+                setBounds(x, y, w, h);
+                this.setVisible(true);
+                return true;
+            } finally {
+	            in.close();
+            }
+        } catch (Exception e) {
+	        e.printStackTrace();
+        }
+
+        return false;
+    }
+
 	public void windowOpened(WindowEvent ev) {}
 	public void windowClosed(WindowEvent ev) {}
-	public final void windowClosing(WindowEvent ev) { onWindowClosing(); System.exit(0); }
+	public final void windowClosing(WindowEvent ev) { saveToFile(); onWindowClosing(); System.exit(0); }
 	public void windowIconified(WindowEvent ev) {}
 	public void windowDeiconified(WindowEvent ev) {}
 	public void windowActivated(WindowEvent ev) {}
