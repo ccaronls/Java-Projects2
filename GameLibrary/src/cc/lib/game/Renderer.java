@@ -1,6 +1,8 @@
 package cc.lib.game;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import cc.lib.math.*;
 
@@ -87,6 +89,16 @@ public class Renderer {
 		pts[num_pts].set(s_vec.X(), s_vec.Y());
 		names[num_pts++] = cur_name;
 	}
+
+	public final List<IVector2D> getVerticesForName(int name) {
+	    List<IVector2D> pts = new ArrayList<>();
+	    for (int i=0; i<num_pts; i++) {
+	        if (names[i] == name) {
+	            pts.add(this.pts[i]);
+            }
+        }
+        return pts;
+    }
     
 	/**
 	 * 
@@ -137,7 +149,7 @@ public class Renderer {
 		float y = bottom + (H - screenY)/(H / (top-bottom));
 		
 		MutableVector2D v = new MutableVector2D(x, y);
-		cur_mat.transform(v);
+		cur_mat.inverse().transform(v);
 		return v;
 	}
 
@@ -307,7 +319,7 @@ public class Renderer {
 	 * @return
 	 */
 	public final int getName(int index) {
-		return names[index];//.get(index);
+		return names[index];
 	}
 	
 	/**

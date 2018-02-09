@@ -9,9 +9,12 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Properties;
 
-import javax.swing.JFrame;
+import javax.swing.*;
+import javax.swing.event.*;
 
-public class EZFrame extends JFrame implements WindowListener, ComponentListener {
+import cc.lib.game.Utils;
+
+public class EZFrame extends JFrame implements WindowListener, ComponentListener, MenuListener, MenuKeyListener, ActionListener {
 
 	public static final long serialVersionUID = 20002;
 
@@ -123,6 +126,30 @@ public class EZFrame extends JFrame implements WindowListener, ComponentListener
         return false;
     }
 
+    public void addMenuBarMenu(String menuName, String ... menuItems) {
+	    addMenuBarMenu(menuName, this, menuItems);
+    }
+
+    public void addMenuBarMenu(String menuName, ActionListener listener, String ... menuItems) {
+	    JMenuBar bar = getJMenuBar();
+	    if (bar == null) {
+	        bar = new JMenuBar();
+	        setJMenuBar(bar);
+        }
+        JMenu menu = new JMenu(menuName);
+	    bar.add(menu);
+	    menu.addMenuListener(this);
+	    for (String item : menuItems) {
+	        if (item == null)
+	            menu.addSeparator();
+	        else {
+                JMenuItem i = menu.add(item);
+                //i.addMenuKeyListener(this);
+                i.addActionListener(listener);
+            }
+        }
+    }
+
 	public void windowOpened(WindowEvent ev) {}
 	public void windowClosed(WindowEvent ev) {}
 	public final void windowClosing(WindowEvent ev) { saveToFile(); onWindowClosing(); System.exit(0); }
@@ -195,4 +222,50 @@ public class EZFrame extends JFrame implements WindowListener, ComponentListener
 
     @Override
     public void componentShown(ComponentEvent arg0) {}
+
+    private JMenu selectedMenu = null;
+
+    @Override
+    public final void menuSelected(MenuEvent e) {
+	    Utils.println("menuSelected: " + e);
+	    selectedMenu = (JMenu)e.getSource();
+    }
+
+    @Override
+    public final void menuDeselected(MenuEvent e) {
+        Utils.println("menuDeselected: " + e);
+    }
+
+    @Override
+    public final void menuCanceled(MenuEvent e) {
+        Utils.println("menuCancelled: " + e);
+    }
+
+    @Override
+    public final void	menuKeyPressed(MenuKeyEvent e) {
+        Utils.println("menuKeyPressed: " + e);
+    }
+    @Override
+    public final void	menuKeyReleased(MenuKeyEvent e) {
+        Utils.println("menuKeyReleased: " + e);
+    }
+    @Override
+    public final void	menuKeyTyped(MenuKeyEvent e) {
+        Utils.println("menuKeyTyped: " + e);
+    }
+
+    @Override
+    public final void actionPerformed(ActionEvent e) {
+        Utils.println("actionPerformed: " + e);
+        ActionEvent ev = (ActionEvent)e;
+        String cmd = ev.getActionCommand();
+        //JMenuItem source = (JMenuItem)ev.getSource();
+        onMenuItemSelected(selectedMenu.getText(), cmd);
+        //Utils.println("actionPerformed: cmd=" + cmd + " source=" + source);
+        //JMenuItem item = (JMenuItem)source;
+    }
+
+    protected void onMenuItemSelected(String menu, String subMenu) {
+        Utils.println("onMneuItemSelected: menu=" + menu + " item=" + subMenu);
+    }
 }

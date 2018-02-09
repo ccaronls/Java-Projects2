@@ -134,7 +134,39 @@ public final class AWTRenderer extends Renderer {
 		}
 		return picked;
 	}
-	
+
+	public int pickRects(int x, int y) {
+	    int picked = -1;
+	    for (int i=0; i<=getNumVerts()-2; i+=2) {
+	        IVector2D v0 = getVertex(i);
+	        IVector2D v1 = getVertex(i+1);
+	        if (getName(i) < 0)
+	            continue;
+	        float X = Math.min(v0.getX(), v1.getX());
+	        float Y = Math.min(v0.getY(), v1.getY());
+	        float W = Math.abs(v0.getX()-v1.getX());
+	        float H = Math.abs(v0.getY()-v1.getY());
+
+	        //Utils.println("pick rect[%d] m[%d,%d] r[%3.1f,%3.1f,%3.1f,%3.1f]", getName(i),x, y, X, Y, W, H);
+
+	        if (Utils.isPointInsideRect(x,y,X,Y,W,H)) {
+	            picked = getName(i);
+	            break;
+            }
+        }
+        return picked;
+    }
+
+	public int pickQuads(int x, int y) {
+	    int picked = -1;
+	    for (int i=0; i<=getNumVerts()-4; i+=4) {
+	        if (Utils.isPointInsidePolygon(x, y, getVertex(i), getVertex(i+1), getVertex(i+2), getVertex(i+3))) {
+	            picked = getName(i);
+            }
+        }
+        return picked;
+    }
+
 	/**
 	 * draw a series of ray emitting from pt[0]
 	 * @param g
@@ -258,7 +290,7 @@ public final class AWTRenderer extends Renderer {
 			AWTUtils.drawTrianglef(g, getX(i+1), getY(i+1), getX(i+2), getY(i+2), getX(i+3), getY(i+3));
 		}		
 	}
-	
+
 	/**
 	 * 
 	 * @param g

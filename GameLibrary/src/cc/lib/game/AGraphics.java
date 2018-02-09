@@ -684,9 +684,23 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
         drawLineLoop();
         setLineWidth(oldWidth);
     }
-    
+
     /**
-     * 
+     *
+     * @param v0
+     * @param v1
+     * @param thickness
+     */
+    public final void drawRect(IVector2D v0, IVector2D v1, float thickness) {
+        float X = Math.min(v0.getX(), v1.getX());
+        float Y = Math.min(v0.getY(), v1.getY());
+        float W = Math.abs(v0.getX()-v1.getX());
+        float H = Math.abs(v0.getY()-v1.getY());
+        drawRect(X,Y,W,H,thickness);
+    }
+
+    /**
+     *
      * @param x
      * @param y
      * @param w

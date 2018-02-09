@@ -1,317 +1,286 @@
 package cc.game.dominos.core;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import cc.lib.game.AGraphics;
+import cc.lib.game.Utils;
+import cc.lib.math.Vector2D;
 import cc.lib.utils.Reflector;
 
+/**
+ * Created by chriscaron on 2/1/18.
+ */
+
 public class Board extends Reflector<Board> {
-	
-	static {
-		addAllFields(Board.class);
-	}
-	
-	public void draw(AGraphics g) {
-		for (int i=1; i<numSquares; i++) {
-			boolean done = false;
-			for (int ii=0; ii<DIM && !done; ii++) {
-				for (int iii=0; iii<DIM && !done; iii++) {
-					if (board[ii][iii] == i) {
-						drawDie(g, ii, iii, 2, 3, square[i]);
-						done = true;
-						break;
-					}
-				}
-			}
-		}
-	}
 
-	/**
-	 * 
-	 * @param p piece to place
-	 * @param x a x position on the board
-	 * @param y a y position on the board
-	 * @return the move that was replaced by the piece or null if piece could not be placed.
-	 * 
-	 */
-	public void addPiece(Piece p, int x, int y) {
-		
-		if (x<0 || y<0 || x>=DIM || y>=DIM)
-			return;
-		
-		if (moves.size() == 0) {
-			// x,y is the center of the piece
-			int [] xywh = { x,y,4,2 };
-			findSquare(xywh);
-			placePiece(xywh[0], xywh[1], p.num1, xywh[0]+2, xywh[1], p.num2, 2);
-			return;
-		}
+    static {
+        addAllFields(Board.class);
+    }
 
-		int [] mv = null;
-		int bestD = -1;
-		for (int [] m : moves) {
-			int mx = m[0];
-			int my = m[1];
-			int mn = m[2];
-			if (mn == p.num1 || mn == p.num2) {
-    			int dx = Math.abs(mx - x);
-    			int dy = Math.abs(my - y);
-    			
-    			int d2 = dx*dx + dy*dy;
-    			if (d2 < 8) {
-    				if (mv == null || d2 < bestD) {
-    					if (isOpen(mx, my, 2, 4) ||
-        	    		    isOpen(mx, my, 4, 2) ||
-        	    		    isOpen(mx-2, my, 4, 2) ||
-        	    		    isOpen(mx, my-2, 2, 4)) {
-        					mv = m;
-        					bestD = d2;
-    					}
-    				}
-    			}
-			}			
-		}
-		
-		if (mv != null) {
+    public final static int EP_LEFT     = 0;
+    public final static int EP_RIGHT    = 1;
+    public final static int EP_UP       = 2;
+    public final static int EP_DOWN     = 3;
 
-			int mx = mv[0];
-			int my = mv[1];
-			int mn = mv[2];
+    Tile root;
+    final LinkedList<Tile> [] endpoints = new LinkedList[4];
 
-			int n0,n1;
-			
-			if (mn==p.num1) {
-				n0=p.num1;
-				n1=p.num2;
-			} else {
-				n0=p.num2;
-				n1=p.num1;
-			}
-			
-			moves.remove(mv);
-			// if our x,y is 'above' or 'below' mv.xy, then try to place vertically
-			int dx = x-mx;
-			int dy = y-my;
-			
-			if (Math.abs(dx) > Math.abs(dy)) {
-				// try to place horizontally
-				if (dx < 0) {
-					// left
-					placePiece(mx-2, my, false, n0, n1);
-				} else {
-					// right
-					placePiece(mx,my, false, n0, n1);
-				}
-			} else {
-				// try to place vertically
-				if (dy < 0) {
-					// above
-					placePiece(mx, my-2, true, n0, n1);
-				} else {
-					// below
-					placePiece(mx, my, true, n0, n1);
-				}
-			}
-		}
-	}
+    @Omit
+    private Set<Integer> highlightedEndpoints = new HashSet<>();
+    @Omit
+    private int selectedEndpoint = -1;
+    @Omit
+    private Tile highlightedTile = null;
 
-	private void placePiece(int x, int y, boolean vertical, int n0, int n1) {
-		int w,h;
-		if (vertical) {
-			w=2;h=4;
-		} else {
-			w=4;h=2;
-		}
-		int [] xywh = { x,y,w,h };
-		findSquare(xywh);
-		if (vertical) {
-			placePiece(xywh[0], xywh[1], n1, xywh[0], xywh[1]+2, n1, 2);
-		} else {
-			placePiece(xywh[0], xywh[1], n0, xywh[0]+2, xywh[1], n1, 2);
-		}
-	}
-	
-	private boolean isOpen(int x, int y, int w, int h) {
-		if (x<1 || y<1 || x+w>=DIM-1 || y+h >= DIM-1)
-			return false;
-		
-		for (int i=0; i<w; i++) {
-			for (int ii=0; ii<h; ii++) {
-				if (board[x+i][y+ii] != 0)
-					return false;
-			}
-		}
-		
-		return true;
-	}
-	
-	
-	private boolean isLegal(int x, int y, int w, int h) {
-		if (x<1 || y<1 || x+w>=DIM-1 || y+h >= DIM-1)
-			return false;
-		
-		for (int i=0; i<w; i++) {
-			for (int ii=0; ii<h; ii++) {
-				if (board[x+i][y+ii] > 0)
-					return false;
-			}
-		}
-		
-		return true;
-	}
-	
-	/*
-	 * 
-	 */
-	private void placePiece(int x0, int y0, int n0, int x1, int y1, int n1, int d) {
-		
-		square[numSquares] = n0;
-		
-		for (int i=0; i<d; i++) {
-			for (int ii=0; ii<d; ii++) {
-				assert(board[x0+i][y0+ii] == 0);
-				board[x0+i][y0+ii] = numSquares; 
-			}
-		}
-		numSquares++;
-		square[numSquares] = n1;
-		for (int i=0; i<d; i++) {
-			for (int ii=0; ii<d; ii++) {
-				assert(board[x1+i][y1+ii] == 0);
-				board[x1+i][y1+ii] = numSquares; 
-			}
-		}
-		numSquares++;
-		// put a barrier around the piece to prevent adjacencies
-		borderRect(x0, y0, d);
-		borderRect(x1, y1, d);
-		
-		if (x0 == x1) {
-			// vertical piece, check above and below
-			maybeAddMove(x0,y0-d,d,n0);
-			maybeAddMove(x1,y1+d,d,n1);
-			// check for doubles
-			if (n0 == n1) {
-				maybeAddMove(x0-d,y0+d/2,d,n0);
-				maybeAddMove(x0+d,y0+d/2,d,n1);
-			}
-		} else if (y0 == y1) {
-			// horz piece, check to right and left
-			maybeAddMove(x0-d,y0,d,n0);
-			maybeAddMove(x1+d,y1,d,n1);
-			
-			if (n0 == n1) {
-				maybeAddMove(x0+d/2,y0-d,d,n0);
-				maybeAddMove(x0+d/2,y0+2,d,n1);
-			}
-		}
-	}
-	
-	private void maybeAddMove(int x, int y, int d, int n) {
-		if (isLegal(x,y,d,d)) {
-			setRect(x,y,d,d,0);
-			moves.add(new int [] {x,y,n});
-		}
-	}
+    public final void clear() {
+        root = null;
+        for (List<?> l : endpoints) {
+            l.clear();
+        }
+        clearSelection();
+    }
 
-	private void borderRect(int x, int y, int d) {
-		for (int i=-1; i<d+1; i++) {
-			if (board[x+i][y-1] == 0)
-				board[x+1][y-1] = -1;
-			if (board[x+i][y+d+1] == 0)
-				board[x+i][y+d+1] = -1;
-			if (board[x-1][y+i] == 0)
-				board[x-1][y+i] = -1;
-			if (board[x+d+1][y+i] == 0)
-				board[x+d+1][y+i] = -1;
-		}
-	}
-	
-	private void setRect(int x, int y, int w, int h, int n) {
-		for (int i=0; i<w; i++) {
-			for (int ii=0; ii<h; ii++) {
-				board[x+i][y+ii] = n;
-			}
-		}
-	}
-	
-	/*
-	 * return x,y,w,h
-	 */
-	private void findSquare(int [] xywh) {
-		int x = xywh[0];
-		int y = xywh[1];
-		int w = xywh[2];
-		int h = xywh[3];
-		
-		if (x<1)
-			x=1;
-		else if (x+w>=DIM-1)
-			x=DIM-2-w;
-		if (y<1)
-			y=1;
-		else if (y+h>=DIM-1)
-			y=DIM-2-h;
-	}
-	
-	
-	
-	public static void drawDie(AGraphics g, float x, float y, float dim, int dotSize, int numDots) {
-	    float dd2 = dim/2;
-	    float dd4 = dim/4;
-	    float dd34 = (dim*3)/4;
-	    switch (numDots) {
-	    case 1:	    	
-	        drawDot(g, x+dd2, y+dd2, dotSize);	    	
-	        break;
-	    case 2:
-	        drawDot(g, x+dd4, y+dd4, dotSize);
-	        drawDot(g, x+dd34, y+dd34, dotSize);
-	        break;
-	    case 3:
-	        drawDot(g, x+dd4, y+dd4, dotSize);
-	        drawDot(g, x+dd2, y+dd2, dotSize);
-	        drawDot(g, x+dd34, y+dd34, dotSize);
-	        break;
-	    case 4:
-	        drawDot(g, x+dd4, y+dd4, dotSize);
-	        drawDot(g, x+dd34, y+dd34, dotSize);
-	        drawDot(g, x+dd4, y+dd34, dotSize);
-	        drawDot(g, x+dd34, y+dd4, dotSize);
-	        break;
-	    case 5:
-	        drawDot(g, x+dd4, y+dd4, dotSize);
-	        drawDot(g, x+dd34, y+dd34, dotSize);
-	        drawDot(g, x+dd4, y+dd34, dotSize);
-	        drawDot(g, x+dd34, y+dd4, dotSize);
-	        drawDot(g, x+dd2, y+dd2, dotSize);
-	        break;
-	    case 6:
-	        drawDot(g, x+dd4, y+dd4, dotSize);
-	        drawDot(g, x+dd34, y+dd34, dotSize);
-	        drawDot(g, x+dd4, y+dd34, dotSize);
-	        drawDot(g, x+dd34, y+dd4, dotSize);
-	        drawDot(g, x+dd4, y+dd2, dotSize);
-	        drawDot(g, x+dd34, y+dd2, dotSize);
-	        break;
-	    }
-	}
-	
-	private static void drawDot(AGraphics g, float x, float y, int dotSize) {
-		g.drawFilledOval(x-dotSize/2,y-dotSize/2,dotSize,dotSize);
-	}
-	
-	enum Direction {
-		UP,DOWN,RIGHT,LEFT;
-	}
-	
-	private final List<int[]> moves = new ArrayList<int[]>();
-	
-	int [][] board = new int[DIM][DIM]; // unique indices into square
-	
-	int [] square = new int[DIM*2];
-	int numSquares = 1;
-	
-	final static int DIM = 100;
+    public final void clearSelection() {
+        highlightedEndpoints.clear();
+        selectedEndpoint = -1;
+        highlightedTile = null;
+    }
+
+    public Board() {
+        for (int i=0; i<4; i++)
+            endpoints[i] = new LinkedList<>();
+    }
+
+    public final List<Tile> collectPieces() {
+        List<Tile> pieces = new ArrayList<>();
+        if (root != null) {
+            pieces.add(root);
+            root = null;
+        }
+        for (int i=0; i<4; i++) {
+            pieces.addAll(endpoints[i]);
+            endpoints[i].clear();
+        }
+        return pieces;
+    }
+
+    public final void placeRootPiece(Tile pc) {
+        root = pc;
+    }
+
+    public final List<Move> findMovesForPiece(Tile p) {
+        List<Move> moves = new ArrayList<>();
+        for (int i=0; i<4; i++) {
+            if (endpoints[i].size() == 0) {
+                if (canPieceTouch(p, root.pip1)) {
+                    moves.add(new Move(p, i));
+                }
+            } else {
+                if (canPieceTouch(p, endpoints[i].getLast().openPips)) {
+                    moves.add(new Move(p, i));
+                }
+            }
+        }
+        return moves;
+    }
+
+    private final boolean canPieceTouch(Tile p, int pips) {
+        return p.pip1 == pips || p.pip2 == pips;
+    }
+
+    public final void doMove(Move mv) {
+        int open = 0;
+        if (endpoints[mv.endpoint].size() == 0) {
+            open = root.openPips;
+        } else {
+            open = endpoints[mv.endpoint].getLast().openPips;
+        }
+        if (mv.piece.pip1 == open) {
+            mv.piece.openPips = mv.piece.pip2;
+        } else if (mv.piece.pip2 == open) {
+            mv.piece.openPips = mv.piece.pip1;
+        }
+        endpoints[mv.endpoint].addLast(mv.piece);
+    }
+
+    private boolean drawHighlighted(AGraphics g, int endpoint, int mouseX, int mouseY, float DIM) {
+        if (highlightedEndpoints.contains(endpoint)) {
+            Vector2D mv = g.screenToViewport(mouseX, mouseY);
+            boolean inside;
+            if ((inside=Utils.isPointInsideRect(mv.getX(), mv.getY(), 0, 0, DIM*2, DIM))) {
+                g.setColor(g.RED);
+            } else {
+                g.setColor(g.CYAN);
+            }
+            //Utils.println("inside(%s): mouse(%d,%d) trans(%3.2f,%3.2f) dim(%3.2f)", inside, mouseX, mouseY, mv.getX(), mv.getY(), DIM);
+            g.drawRect(0, 0, DIM*2, DIM, 3);
+            if (inside)
+                selectedEndpoint = endpoint;
+            return inside;
+        }
+        return false;
+    }
+
+    public synchronized final void draw(AGraphics g, float vpWidth, float vpHeight, int mouseX, int mouseY) {
+        // choose an ortho that keeps the root in the middle and an edge around
+        // that allows for a piece to be placed
+
+        float maxPcW = Math.max(endpoints[EP_LEFT].size(), endpoints[EP_RIGHT].size());
+        float maxPcH = Math.max(endpoints[EP_UP].size(), endpoints[EP_DOWN].size());
+
+        float dimW = vpWidth/(2*(3+2*maxPcW));
+        float dimH = vpHeight/(2*(2+2*maxPcH));
+
+        float DIM = Math.min(dimW, dimH);
+
+        selectedEndpoint = -1;
+        g.pushMatrix();
+            g.translate(vpWidth/2, vpHeight/2);
+
+            Vector2D mv = g.screenToViewport(mouseX, mouseY);
+            g.setColor(g.YELLOW);
+            g.drawCircle(mv.getX(), mv.getY(), 10);
+
+            g.pushMatrix();
+                g.translate(-DIM, -DIM/2);
+                drawTile(g, DIM, root.pip1, root.pip2);
+            g.popMatrix();
+
+            g.pushMatrix();
+                g.translate(-DIM, -DIM/2);
+                g.scale(-1, 1);
+                for (Tile p : endpoints[EP_LEFT]) {
+                    drawTile(g, DIM, p.getClosedPips(), p.openPips);
+                    g.translate(DIM*2, 0);
+                }
+                drawHighlighted(g, EP_LEFT, mouseX, mouseY, DIM);
+            g.popMatrix();
+            g.pushMatrix();
+                g.translate(DIM, -DIM/2);
+                for (Tile p : endpoints[EP_RIGHT]) {
+                    drawTile(g, DIM, p.getClosedPips(), p.openPips);
+                    g.translate(DIM*2, 0);
+                }
+                drawHighlighted(g, EP_RIGHT, mouseX, mouseY, DIM);
+            g.popMatrix();
+            g.pushMatrix();
+                g.translate(0, -DIM);
+                g.rotate(-90);
+                g.translate(-DIM/2, -DIM/2);
+                for (Tile p : endpoints[EP_UP]) {
+                    drawTile(g, DIM, p.getClosedPips(), p.openPips);
+                    g.translate(DIM*2, 0);
+                }
+                drawHighlighted(g, EP_UP, mouseX, mouseY, DIM);
+            g.popMatrix();
+            g.pushMatrix();
+                g.translate(DIM, DIM);
+                g.rotate(90);
+                g.translate(-DIM/2, DIM/2);
+                for (Tile p : endpoints[EP_DOWN]) {
+                    drawTile(g,DIM, p.getClosedPips(), p.openPips);
+                    g.translate(DIM*2, 0);
+                }
+                drawHighlighted(g, EP_DOWN, mouseX, mouseY, DIM);
+            g.popMatrix();
+        g.popMatrix();
+    }
+
+    public static void drawTile(AGraphics g, float dim, int pips1, int pips2) {
+        g.pushMatrix();
+        int pipDim = Math.round(dim/8);
+        g.setColor(g.BLACK);
+        g.drawFilledRoundedRect(0, 0, dim*2, dim, dim/4);
+        g.setColor(g.WHITE);
+        g.drawRoundedRect(0, 0, dim*2, dim, 1, dim/4);
+        g.setColor(g.WHITE);
+        g.drawLine(dim, 0, dim, dim, 2);
+        g.setColor(g.WHITE);
+        drawDie(g, 0, 0, dim, pipDim, pips1);
+        drawDie(g, dim, 0, dim, pipDim, pips2);
+        g.popMatrix();
+    }
+
+    public static void drawDie(AGraphics g, float x, float y, float dim, int dotSize, int numDots) {
+        float dd2 = dim/2;
+        float dd4 = dim/4;
+        float dd34 = (dim*3)/4;
+        switch (numDots) {
+            case 1:
+                drawDot(g, x+dd2, y+dd2, dotSize);
+                break;
+            case 2:
+                drawDot(g, x+dd4, y+dd4, dotSize);
+                drawDot(g, x+dd34, y+dd34, dotSize);
+                break;
+            case 3:
+                drawDot(g, x+dd4, y+dd4, dotSize);
+                drawDot(g, x+dd2, y+dd2, dotSize);
+                drawDot(g, x+dd34, y+dd34, dotSize);
+                break;
+            case 4:
+                drawDot(g, x+dd4, y+dd4, dotSize);
+                drawDot(g, x+dd34, y+dd34, dotSize);
+                drawDot(g, x+dd4, y+dd34, dotSize);
+                drawDot(g, x+dd34, y+dd4, dotSize);
+                break;
+            case 5:
+                drawDot(g, x+dd4, y+dd4, dotSize);
+                drawDot(g, x+dd34, y+dd34, dotSize);
+                drawDot(g, x+dd4, y+dd34, dotSize);
+                drawDot(g, x+dd34, y+dd4, dotSize);
+                drawDot(g, x+dd2, y+dd2, dotSize);
+                break;
+            case 6:
+                drawDot(g, x+dd4, y+dd4, dotSize);
+                drawDot(g, x+dd34, y+dd34, dotSize);
+                drawDot(g, x+dd4, y+dd34, dotSize);
+                drawDot(g, x+dd34, y+dd4, dotSize);
+                drawDot(g, x+dd4, y+dd2, dotSize);
+                drawDot(g, x+dd34, y+dd2, dotSize);
+                break;
+        }
+    }
+
+    private static void drawDot(AGraphics g, float x, float y, int dotSize) {
+        g.drawFilledOval(x-dotSize/2,y-dotSize/2,dotSize,dotSize);
+    }
+
+    public final int computeEndpointsTotal() {
+        int score = 0;
+        for (int i=0; i<4; i++) {
+            if (endpoints[i].size() > 0) {
+                score += endpoints[i].getLast().openPips;
+            }
+        }
+        if (endpoints[EP_LEFT].size() == 0) {
+            score += root.pip1;
+        }
+        if (endpoints[EP_RIGHT].size() == 0) {
+            score += root.pip2;
+        }
+        return score;
+    }
+
+    public final void highlightMovesForPiece(Tile piece) {
+        highlightedEndpoints.clear();
+        highlightedTile = piece;
+        if (piece != null) {
+            for (Move m : findMovesForPiece(piece)) {
+                highlightedEndpoints.add(m.endpoint);
+            }
+        }
+    }
+
+    public final int getSelectedEndpoint() {
+        return this.selectedEndpoint;
+    }
+
+    public final Tile getHighlightedTile() {
+        return this.highlightedTile;
+    }
 }

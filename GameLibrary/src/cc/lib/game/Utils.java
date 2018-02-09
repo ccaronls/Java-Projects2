@@ -392,7 +392,11 @@ public class Utils {
         
         return true;
     }
-    
+
+    public static boolean isPointInsidePolygon(float px, float py, IVector2D ... pts) {
+        return isPointInsidePolygon(px, py, pts, pts.length);
+    }
+
     /**
      * 
      * @param px
@@ -966,8 +970,8 @@ public class Utils {
 	 * @author Chris Caron
 	 *
 	 */
-	public static interface Weighted {
-		public int getWeight();
+	public interface Weighted {
+		int getWeight();
 	};
 	
 	/**

@@ -1,26 +1,22 @@
 package cc.lib.swing;
 
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Font;
-import java.awt.Graphics;
-import java.awt.Image;
+import java.awt.*;
 import java.awt.image.RGBImageFilter;
+import java.util.List;
 
 import cc.lib.game.*;
-import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
 
 public final class AWTGraphics extends AGraphics {
 
-    private final Graphics g;
+    private Graphics g;
     private final AWTRenderer r;
     private final ImageMgr images;
     private final Component comp;
     //private int textureId = -1;
     private float mLineThickness = 1;
     private float mPointSize = 1;
-    
+
     public AWTGraphics(Graphics g, Component comp) {
         super(comp.getWidth(), comp.getHeight());
         this.g = g;
@@ -40,6 +36,14 @@ public final class AWTGraphics extends AGraphics {
         this.comp  = g.comp;
         initViewport(comp.getWidth(), comp.getHeight());
         ortho();
+    }
+
+    public final Graphics getGraphics() {
+        return g;
+    }
+
+    public final void setGraphics(Graphics g) {
+        this.g = g;
     }
 
     public final int getScreenWidth() {
@@ -352,5 +356,32 @@ public final class AWTGraphics extends AGraphics {
 	public int pickPoints(int mouseX, int mouseY, int size) {
 		return r.pickPoints(mouseX, mouseY, size);
 	}
-	
+
+    /**
+     * return which quad defined by 4 point contains mouseX/Y
+     *
+     * @param mouseX
+     * @param mouseY
+     * @return
+     */
+	public int pickQuads(int mouseX, int mouseY) {
+        return r.pickQuads(mouseX, mouseY);
+    }
+
+    /**
+     * return which rect defined by 2 points contains mouseX/Y
+     *
+     * @param mouseX
+     * @param mouseY
+     * @return
+     */
+    public int pickRects(int mouseX, int mouseY) {
+        return r.pickRects(mouseX, mouseY);
+    }
+
+    public List<IVector2D> getVerticesForName(int name) {
+        return r.getVerticesForName(name);
+    }
+
+
 }

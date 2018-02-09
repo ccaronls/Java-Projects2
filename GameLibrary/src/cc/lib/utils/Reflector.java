@@ -749,11 +749,11 @@ public class Reflector<T> {
         classMap.put("java.util.Arrays.ArrayList", ArrayList.class);
     }
     
-    public static void registerEnum(Class<?> enumClazz) {
-    	String clazz = getCanonicalName(enumClazz);
-    	classMap.put(clazz, enumClazz);
+    public static void registerClass(Class<?> clazz) {
+    	String sClazz = getCanonicalName(clazz);
+    	classMap.put(sClazz, clazz);
     }
-    
+
     private static Class<?> getClassForName(String forName) throws ClassNotFoundException {
         if (classMap.containsKey(forName))
             return classMap.get(forName);
@@ -1579,7 +1579,7 @@ public class Reflector<T> {
     /**
      * Derived classes override this to provide a min loadable version.
      * For instance, if the version loaded is '1' and theis method returns 2, then an exception
-     * is thrown
+     * is thrown. default version is 0
      * @return
      */
     protected int getMinVersion() {
