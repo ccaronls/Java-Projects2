@@ -184,8 +184,10 @@ public class Dominos extends Reflector<Dominos> {
                 }
             }
             pts = 5*((pts+2)/5);
-            p.score += pts;
-            onPlayerPoints(p, pts);
+            if (pts > 0) {
+                p.score += pts;
+                onPlayerPoints(p, pts);
+            }
             newRound();
             onEndRound();
         } else {

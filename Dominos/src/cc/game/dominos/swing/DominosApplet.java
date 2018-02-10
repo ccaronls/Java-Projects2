@@ -220,6 +220,7 @@ public class DominosApplet extends JComponent implements ActionListener, MouseLi
             G.setIdentity();
         } else {
             G.setGraphics(g);
+            G.initViewport(getWidth(), getHeight());
         }
 
         G.clearScreen(G.GREEN);
@@ -244,8 +245,8 @@ public class DominosApplet extends JComponent implements ActionListener, MouseLi
             user.tile = dominos.getBoard().getHighlightedTile();
             user.endpoint = dominos.getBoard().getSelectedEndpoint();
             dominos.getBoard().clearSelection();
-            synchronized (user) {
-                user.notifyAll();
+            synchronized (gameLock) {
+                gameLock.notifyAll();
             }
         }
     }

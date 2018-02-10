@@ -106,6 +106,7 @@ public class PlayerComponent extends Component implements MouseMotionListener, M
             synchronized (applet.gameLock) {
                 applet.gameLock.notify();
             }
+            repaint();
         }
     }
 
@@ -114,7 +115,7 @@ public class PlayerComponent extends Component implements MouseMotionListener, M
     }
 
     void startAddPointAnim(int pts) {
-        animation = new TextPulseAnim("Points: " + player.getScore() + " +" + pts).start();
+        animation = new TextPulseAnim("Points: " + player.getScore() + "\n+" + pts).start();
     }
 
     PlayerComponent(DominosApplet applet, int layoutPosition) {
@@ -144,6 +145,9 @@ public class PlayerComponent extends Component implements MouseMotionListener, M
         } else {
             G.setGraphics(g);
         }
+
+        G.setColor(G.GREEN);
+        G.drawFilledRect(0, 0, getWidth(), getHeight());
 
         G.setColor(G.BLACK);
         boolean vertical = getHeight() > getWidth();

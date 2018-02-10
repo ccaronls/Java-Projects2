@@ -190,10 +190,11 @@ public class Board extends Reflector<Board> {
         g.pushMatrix();
             g.translate(vpWidth/2, vpHeight/2);
 
+            /*
             Vector2D mv = g.screenToViewport(mouseX, mouseY);
             g.setColor(g.YELLOW);
             g.drawCircle(mv.getX(), mv.getY(), 10);
-
+*/
             g.pushMatrix();
                 g.translate(-DIM, -DIM/2);
                 drawTile(g, DIM, root.pip1, root.pip2);
