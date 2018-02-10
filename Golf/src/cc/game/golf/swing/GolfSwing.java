@@ -768,7 +768,7 @@ public class GolfSwing extends KeyboardAnimationApplet {
 
         g.drawImage(getCardImage(card, angle), x, y, cw, ch);
         if (card.isShowing() && game.getRules().getWildcard().isWild(card)) {
-            g.setColor(g.makeColori(0,0,0,64));
+            g.setColor(g.makeColor(0,0,0,64));
             g.drawFilledRect(x, y, cw, ch);
             int cx = x + cw/2;
             int cy = y + ch/2;

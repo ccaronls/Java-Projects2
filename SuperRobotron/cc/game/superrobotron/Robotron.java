@@ -4153,7 +4153,7 @@ public class Robotron {
             color = g.GREEN;
         } else if (player.scale > 1.0f) {
             int invScale = Math.round(255.0f * 1.0f-(player.scale-1.0f));
-            color = g.makeColori(invScale, 255, invScale);
+            color = g.makeColor(invScale, 255, invScale);
         }
         
         if (game_state == this.GAME_STATE_PLAY) {
@@ -4187,7 +4187,7 @@ public class Robotron {
         AColor secColor = g.DARK_GRAY;
         if (isGhostActive(player)) {
             if (optionalColor == null) {
-                priColor = secColor = g.makeColori(200, 200, 200, 100); // lightgray
+                priColor = secColor = g.makeColor(200, 200, 200, 100); // lightgray
             } else {
                 priColor = secColor = g.makeColor(optionalColor.getRed(),
                                                 optionalColor.getGreen(),
@@ -4897,7 +4897,7 @@ public class Robotron {
                 // give a number between 0-1 that is how much health we have
                 float health = (1.0f/WALL_NORMAL_HEALTH)*info.health;
                 int c = Math.round(255.0f * health);
-                g.setColor(g.makeColori(255, c, c));
+                g.setColor(g.makeColor(255, c, c));
                 // if wall is healthy, num==0
                 // if wall is med, num 1
                 // if wall is about to break, num = 2

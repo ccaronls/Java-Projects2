@@ -92,7 +92,7 @@ public class Snake {
         // draw the actual snake
         int green = Math.round(255.0f * health);
         green = Utils.clamp(green, 0, 255);
-        g.setColor(g.makeColori(0, green, 0));
+        g.setColor(g.makeColor(0, green, 0));
         drawSections(g, sx, sy);        
         
         // randomly draw a 'tounge'

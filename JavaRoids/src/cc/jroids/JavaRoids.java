@@ -210,7 +210,7 @@ public abstract class JavaRoids
 		int red = Utils.randRange(0,50);
 		int grn = 255-Utils.randRange(0,50);
 		int blu = Utils.randRange(0,50);
-		AColor color = g.makeColori(red,grn,blu);
+		AColor color = g.makeColor(red,grn,blu);
 		return new Polygon2D(pts, color, 1);
 	}
 	

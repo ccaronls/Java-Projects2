@@ -1155,19 +1155,19 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
         System.err.println(message);
     }
 
-    public final AColor BLACK       = makeColor(0,0,0,1);
-    public final AColor WHITE       = makeColor(1,1,1,1);
-    public final AColor RED         = makeColor(1,0,0,1);
-    public final AColor BLUE        = makeColor(0,0,1,1);
-    public final AColor GREEN       = makeColor(0,1,0,1);
-    public final AColor CYAN        = makeColor(0,1,1,1);
-    public final AColor MAGENTA     = makeColor(1,0,1,1);
-    public final AColor YELLOW      = makeColor(1,1,0,1);
-    public final AColor ORANGE      = makeColor(1,0.4f,0,1);
+    public final AColor BLACK       = makeColor(0f,0,0,1);
+    public final AColor WHITE       = makeColor(1f,1,1,1);
+    public final AColor RED         = makeColor(1f,0,0,1);
+    public final AColor BLUE        = makeColor(0f,0,1,1);
+    public final AColor GREEN       = makeColor(0f,1,0,1);
+    public final AColor CYAN        = makeColor(0f,1,1,1);
+    public final AColor MAGENTA     = makeColor(1f,0,1,1);
+    public final AColor YELLOW      = makeColor(1f,1,0,1);
+    public final AColor ORANGE      = makeColor(1f,0.4f,0,1);
     public final AColor GRAY      	= makeColor(0.6f, 0.6f, 0.6f, 1);
     public final AColor LIGHT_GRAY 	= makeColor(0.8f, 0.8f, 0.8f, 1);
     public final AColor DARK_GRAY 	= makeColor(0.4f, 0.4f, 0.4f, 1);
-    public final AColor TRANSPARENT = makeColor(0,0,0,0);
+    public final AColor TRANSPARENT = makeColor(0f,0,0,0);
     
     /**
      * 
@@ -1186,7 +1186,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param b
      * @return
      */
-    public AColor makeColori(int r, int g, int b) {
+    public final AColor makeColor(int r, int g, int b) {
         return makeColor((float)r/ 255, (float)g/255, (float)b/255, 1);
     }
 
@@ -1198,7 +1198,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param a
      * @return
      */
-    public AColor makeColori(int r, int g, int b, int a) {
+    public AColor makeColor(int r, int g, int b, int a) {
         return makeColor((float)r/ 255, (float)g/255, (float)b/255, (float)a/255);
     }
     

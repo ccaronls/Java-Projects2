@@ -6,7 +6,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import cc.lib.game.AAnimation;
 import cc.lib.game.AGraphics;
+import cc.lib.game.IVector2D;
 import cc.lib.game.Utils;
 import cc.lib.math.Vector2D;
 import cc.lib.utils.Reflector;
@@ -35,6 +37,50 @@ public class Board extends Reflector<Board> {
     private int selectedEndpoint = -1;
     @Omit
     private Tile highlightedTile = null;
+
+    private class PlaceTileAnim extends AAnimation<AGraphics> {
+
+        final IVector2D start, end;
+        final Tile tile;
+
+        PlaceTileAnim(Tile tile, int startPlayerPosition, int endPoint) {
+            super(2000);
+            this.tile = tile;
+            switch (startPlayerPosition) {
+                case EP_DOWN:
+                    start = new Vector2D(0.5f, 1); break;
+                case EP_LEFT:
+                    start = new Vector2D(0f, 0.5f); break;
+                case EP_RIGHT:
+                    start = new Vector2D(1f, 0.5f); break;
+                case EP_UP:
+                    start = new Vector2D(0.5f, 0); break;
+                default:
+                    start = Vector2D.ZERO;
+            }
+
+            switch (endPoint) {
+                case EP_DOWN:
+                    end = new Vector2D(0, 0.5f + 2*endpoints[EP_DOWN].size()); break;
+                case EP_LEFT:
+                    end = new Vector2D(1f + 2*endpoints[EP_DOWN].size(), 0); break;
+                case EP_RIGHT:
+                    end = new Vector2D(1f + 2*endpoints[EP_DOWN].size(), 0); break;
+                case EP_UP:
+                    end = new Vector2D(0, -0.5f - 2*endpoints[EP_DOWN].size()); break;
+                default:
+                    end = Vector2D.ZERO;
+
+            }
+        }
+
+        @Override
+        protected void draw(AGraphics g, float position, float dt) {
+
+        }
+    }
+
+
 
     public final void clear() {
         root = null;
@@ -128,6 +174,9 @@ public class Board extends Reflector<Board> {
     public synchronized final void draw(AGraphics g, float vpWidth, float vpHeight, int mouseX, int mouseY) {
         // choose an ortho that keeps the root in the middle and an edge around
         // that allows for a piece to be placed
+
+        if (root == null)
+            return;
 
         float maxPcW = Math.max(endpoints[EP_LEFT].size(), endpoints[EP_RIGHT].size());
         float maxPcH = Math.max(endpoints[EP_UP].size(), endpoints[EP_DOWN].size());
@@ -257,11 +306,13 @@ public class Board extends Reflector<Board> {
                 score += endpoints[i].getLast().openPips;
             }
         }
-        if (endpoints[EP_LEFT].size() == 0) {
-            score += root.pip1;
-        }
-        if (endpoints[EP_RIGHT].size() == 0) {
-            score += root.pip2;
+        if (root != null) {
+            if (endpoints[EP_LEFT].size() == 0) {
+                score += root.pip1;
+            }
+            if (endpoints[EP_RIGHT].size() == 0) {
+                score += root.pip2;
+            }
         }
         return score;
     }

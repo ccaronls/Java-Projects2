@@ -1,17 +1,25 @@
 package cc.game.dominos.swing;
 
+import java.awt.Color;
 import java.awt.Component;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import cc.game.dominos.core.Board;
 import cc.game.dominos.core.Dominos;
 import cc.game.dominos.core.Tile;
 import cc.game.dominos.core.Player;
+import cc.lib.game.AAnimation;
+import cc.lib.game.AColor;
+import cc.lib.game.AGraphics;
 import cc.lib.game.IVector2D;
+import cc.lib.game.Justify;
 import cc.lib.game.Utils;
 import cc.lib.math.Vector2D;
 import cc.lib.swing.AWTGraphics;
@@ -27,9 +35,91 @@ public class PlayerComponent extends Component implements MouseMotionListener, M
     int picked = -1;
     Board board;
     final DominosApplet applet;
+    final int layoutPosition;
 
-    PlayerComponent(DominosApplet applet) {
+    private AAnimation<AWTGraphics> animation = null;
+
+    final static Map<Player, PlayerComponent> compMap = new HashMap<>();
+
+    private class TextPulseAnim extends AAnimation<AWTGraphics> {
+
+        final String text;
+        float tileD = 1;
+
+        TextPulseAnim(String text) {
+            super(700, 1, true);
+            this.text = text;
+        }
+
+        @Override
+        protected void draw(AWTGraphics g, float position, float dt) {
+            Font curFont = g.getFont();
+            float startSize = curFont.getSize();
+            float maxSize = startSize * 1.5f;
+
+            float targetSize = startSize + (maxSize-startSize)*position;
+            Font newFont = curFont.deriveFont(targetSize);
+
+            g.setFont(newFont);
+            g.drawJustifiedString(0, 0, Justify.LEFT, Justify.TOP, text);
+            g.setFont(curFont);
+
+            repaint();
+        }
+
+        @Override
+        protected void onDone() {
+            animation = null;
+            synchronized (applet.gameLock) {
+                applet.gameLock.notify();
+            }
+        }
+    };
+
+    class NewTileAnim extends AAnimation<AWTGraphics> {
+
+        final Tile tile;
+        float tileD = 1;
+
+        NewTileAnim(Tile tile) {
+            super(1000);
+            this.tile = tile;
+        }
+
+        @Override
+        protected void draw(AWTGraphics g, float position, float dt) {
+            g.pushMatrix();
+            g.translate(tileD, tileD/2);
+            g.scale(position, position);
+            g.translate(-tileD, -tileD/2);
+            if (board != null)
+                Board.drawTile(G, tileD, tile.pip1, tile.pip2);
+            else
+                G.drawFilledRoundedRect(0, 0, tileD * 2, tileD, tileD/ 4);
+            g.popMatrix();
+            repaint();
+        }
+
+        @Override
+        protected void onDone() {
+            animation = null;
+            synchronized (applet.gameLock) {
+                applet.gameLock.notify();
+            }
+        }
+    }
+
+    void clearAnimations() {
+        animation = null;
+    }
+
+    void startAddPointAnim(int pts) {
+        animation = new TextPulseAnim("Points: " + player.getScore() + " +" + pts).start();
+    }
+
+    PlayerComponent(DominosApplet applet, int layoutPosition) {
         this.applet = applet;
+        this.layoutPosition = layoutPosition;
     }
 
     void init(Player player, Board board) {
@@ -39,10 +129,11 @@ public class PlayerComponent extends Component implements MouseMotionListener, M
             addMouseMotionListener(this);
             addMouseListener(this);
         }
+        compMap.put(player, this);
     }
 
     @Override
-    public synchronized void paint(Graphics g) {
+    public void paint(Graphics g) {
         if (player == null)
             return;
 
@@ -63,6 +154,20 @@ public class PlayerComponent extends Component implements MouseMotionListener, M
         float w = getWidth();
         float h = getHeight();
 
+        if (applet.dominos.getCurPlayer() == player) {
+            G.setColor(G.BLUE);
+            G.drawRect(2, 2, w-4, h-4, 4);
+        } else if (player.getScore() >= 150) {
+            int red = (int)System.currentTimeMillis() % 256;
+            int grn = (int)(System.currentTimeMillis() -857634567) % 256;
+            int blu = (int)(System.currentTimeMillis() -3225299) % 256;
+
+            AColor c = G.makeColor(red,grn,blu);
+            G.setColor(c);
+            G.drawRect(2, 2, w-4, h-4, 4);
+            repaint();
+        }
+
         float padding = 30;
 
         float tileD = Math.min(w, h)-padding;
@@ -72,21 +177,27 @@ public class PlayerComponent extends Component implements MouseMotionListener, M
         tilesPerRow *= numRows;
         tileD /= numRows;
 
-        G.setColor(G.BLACK);
-        G.drawString("Points: " + player.getScore(), 5, 5);
+        G.translate(5, 5);
+        if (animation != null && (animation instanceof TextPulseAnim)) {
+            G.setColor(G.RED);
+            animation.update(G);
+        } else {
+            G.setColor(G.BLACK);
+            G.drawString("Points: " + player.getScore(),0, 0);
+        }
+        G.translate(-5, -5);
 
         G.begin();
         G.pushMatrix();
         G.clearMinMax();
         if (vertical) {
-            G.translate(w, padding);
+            G.translate(w-5, padding);
             G.rotate(90);
         } else {
-            G.translate(padding, padding);
+            G.translate(padding-5, padding-5);
         }
         picked = -1;
         int tile = 0;
-        List<IVector2D> pickedRect = null;
         for (int i=0; i<numRows; i++) {
             G.pushMatrix();
             for (int ii=0; ii<tilesPerRow; ii++) {
@@ -94,7 +205,11 @@ public class PlayerComponent extends Component implements MouseMotionListener, M
                     Tile t = player.getTiles().get(tile);
                     G.pushMatrix();
                     G.scale(0.95f, 0.95f);
-                    if (board != null)
+                    G.setColor(G.BLACK);
+                    if (animation != null && (animation instanceof NewTileAnim) && ((NewTileAnim)animation).tile == t) {
+                        animation.update(G);
+                    }
+                    else if (board != null)
                         Board.drawTile(G, tileD, t.pip1, t.pip2);
                     else
                         G.drawFilledRoundedRect(0, 0, tileD * 2, tileD, tileD/ 4);

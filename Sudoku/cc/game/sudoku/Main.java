@@ -62,7 +62,7 @@ public class Main extends KeyboardAnimationApplet implements ActionListener {
 		
 		// draw the grid
 		if (solved)
-			g.setColor(g.makeColori(sudoku.rand()%256, 
+			g.setColor(g.makeColor(sudoku.rand()%256,
 								 sudoku.rand()%256, 
 								 sudoku.rand()%256));
 		else

@@ -2,9 +2,7 @@ package cc.game.dominos.swing;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.Graphics;
-import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -14,15 +12,13 @@ import java.io.File;
 import java.util.List;
 
 import javax.swing.JComponent;
-import javax.swing.JPanel;
 
 import cc.game.dominos.core.*;
+import cc.lib.game.AAnimation;
 import cc.lib.game.AGraphics;
 import cc.lib.game.Utils;
 import cc.lib.swing.AWTGraphics;
-import cc.lib.swing.EZButton;
 import cc.lib.swing.EZFrame;
-import cc.lib.swing.KeyboardAnimationApplet;
 import cc.lib.utils.Reflector;
 
 public class DominosApplet extends JComponent implements ActionListener, MouseListener, MouseMotionListener {
@@ -30,6 +26,8 @@ public class DominosApplet extends JComponent implements ActionListener, MouseLi
     static {
         Reflector.registerClass(PlayerConsole.class);
     }
+
+    final static Object gameLock = new Object();
 
     public static class PlayerConsole extends Player {
 
@@ -39,17 +37,20 @@ public class DominosApplet extends JComponent implements ActionListener, MouseLi
         @Override
         public Move chooseMove(List<Move> moves) {
 
-            synchronized (this) {
+            synchronized (gameLock) {
                 try {
-                    wait();
+                    gameLock.wait();
                 } catch (Exception e) {
                     throw new RuntimeException();
                 }
             }
 
-            for (Move m : moves) {
-                if (m.piece.equals(tile) && m.endpoint == endpoint) {
-                    return m;
+            if (tile != null) {
+                for (Move m : moves) {
+                    if (m.piece.equals(tile) && m.endpoint == endpoint) {
+                        tile = null;
+                        return m;
+                    }
                 }
             }
 
@@ -69,13 +70,21 @@ public class DominosApplet extends JComponent implements ActionListener, MouseLi
     void startNewGame() {
         if (gameRunning) {
             gameRunning = false;
-            synchronized (user) {
-                user.notifyAll();
+            synchronized (gameLock) {
+                gameLock.notifyAll();
             }
+            resetComponents();
         }
         dominos.newGame(6, 150);
         startGameThread();
         frame.repaint();
+    }
+
+    void resetComponents() {
+        eastPlayer.clearAnimations();
+        westPlayer.clearAnimations();
+        southPlayer.clearAnimations();
+        northPlayer.clearAnimations();
     }
 
     void startGameThread() {
@@ -84,10 +93,9 @@ public class DominosApplet extends JComponent implements ActionListener, MouseLi
                 gameRunning = true;
                 while (gameRunning && !dominos.isGameOver()) {
                     dominos.runGame();
-
-                    synchronized (frame) {
+                    synchronized (this) {
                         try {
-                            frame.wait(1000);
+                            wait(1000);
                         } catch (Exception e) {}
                     }
                 }
@@ -98,6 +106,7 @@ public class DominosApplet extends JComponent implements ActionListener, MouseLi
     }
 
     final EZFrame frame;
+
     DominosApplet() {
         frame = new EZFrame("Dominos") {
             protected void onWindowClosing() {
@@ -115,10 +124,10 @@ public class DominosApplet extends JComponent implements ActionListener, MouseLi
         };
         frame.addMenuBarMenu("File", "New Game");
         frame.setLayout(new BorderLayout());
-        frame.add(northPlayer = new PlayerComponent(this), BorderLayout.NORTH);
-        frame.add(eastPlayer = new PlayerComponent(this), BorderLayout.EAST);
-        frame.add(westPlayer = new PlayerComponent(this), BorderLayout.WEST);
-        frame.add(southPlayer = new PlayerComponent(this), BorderLayout.SOUTH);
+        frame.add(northPlayer = new PlayerComponent(this, Board.EP_UP), BorderLayout.NORTH);
+        frame.add(eastPlayer = new PlayerComponent(this, Board.EP_RIGHT), BorderLayout.EAST);
+        frame.add(westPlayer = new PlayerComponent(this, Board.EP_LEFT), BorderLayout.WEST);
+        frame.add(southPlayer = new PlayerComponent(this, Board.EP_RIGHT), BorderLayout.SOUTH);
 
         northPlayer.setPreferredSize(new Dimension(600, 100));
         southPlayer.setPreferredSize(new Dimension(600, 100));
@@ -140,15 +149,18 @@ public class DominosApplet extends JComponent implements ActionListener, MouseLi
             dominos.initPlayers(user, new Player(), new Player(), new Player());
             dominos.newGame(6, 150);
         }
+
         southPlayer.init(user, dominos.getBoard());
         eastPlayer.init(dominos.getPlayer(1), null);
         northPlayer.init(dominos.getPlayer(2), null);
         westPlayer.init(dominos.getPlayer(3), null);
+
         if (!frame.loadFromFile(new File("dominos.properties")))
             frame.centerToScreen(800, 600);
         addMouseListener(this);
         addMouseMotionListener(this);
         startGameThread();
+        frame.repaint();
     }
 
     @Override
@@ -178,19 +190,28 @@ public class DominosApplet extends JComponent implements ActionListener, MouseLi
         public void onKnock(Player p) {
             frame.repaint();
         }
+
+        @Override
+        protected void onPlayerPoints(Player p, int pts) {
+            PlayerComponent comp = PlayerComponent.compMap.get(p);
+            comp.startAddPointAnim(pts);
+            frame.repaint();
+
+            try {
+                synchronized (gameLock) {
+                    gameLock.wait(5000);
+                }
+            } catch (Exception e) {}
+            frame.repaint();
+        }
     };
     PlayerConsole user = null;
     PlayerComponent northPlayer = null;
     PlayerComponent southPlayer = null;
     PlayerComponent eastPlayer = null;
     PlayerComponent westPlayer = null;
-    EZButton bNewGame = null;
-    EZButton bDrawTile = null;
     AWTGraphics G = null;
     int mouseX, mouseY;
-    boolean inside = false;
-
-
 
     @Override
     public void paint(Graphics g) {
@@ -236,13 +257,13 @@ public class DominosApplet extends JComponent implements ActionListener, MouseLi
 
     @Override
     public void mouseEntered(MouseEvent e) {
-        System.out.println("entered");
+        //System.out.println("entered");
         repaint();
     }
 
     @Override
     public void mouseExited(MouseEvent e) {
-        System.out.println("exited");
+        //System.out.println("exited");
     }
 
     @Override
@@ -254,7 +275,6 @@ public class DominosApplet extends JComponent implements ActionListener, MouseLi
     public void mouseMoved(MouseEvent e) {
         mouseX = e.getX();
         mouseY = e.getY();
-        System.out.println("mouse=" + mouseX + "," + mouseY);
         repaint();
     }
 }

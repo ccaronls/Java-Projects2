@@ -69,6 +69,10 @@ public class Dominos extends Reflector<Dominos> {
 	    return players[num];
     }
 
+    public final Player getCurPlayer() {
+	    return players[turn];
+    }
+
     private void newRound() {
 
         for (Player p : players) {
@@ -190,12 +194,7 @@ public class Dominos extends Reflector<Dominos> {
 	}
 
 	public final boolean isGameOver() {
-	    for (Player p : players) {
-	        if (p.score >= maxScore) {
-	            return true;
-            }
-        }
-        return false;
+	    return getWinner() != null;
     }
 
     protected void onTilePlaced(Player p, Move mv) {
@@ -280,5 +279,14 @@ public class Dominos extends Reflector<Dominos> {
 	        g.setColor(g.WHITE);
 	        g.drawRoundedRect(0, 0, dim*2, dim, 1, dim/4);
         }
+    }
+
+    public final Player getWinner() {
+        for (Player p : players) {
+            if (p.score >= maxScore) {
+                return p;
+            }
+        }
+        return null;
     }
 }
