@@ -33,6 +33,7 @@ public class DominosApplet extends JComponent implements ActionListener, MouseLi
 
         Tile tile = null;
         int endpoint = -1;
+        int placement = 0;
 
         @Override
         public Move chooseMove(List<Move> moves) {
@@ -47,7 +48,7 @@ public class DominosApplet extends JComponent implements ActionListener, MouseLi
 
             if (tile != null) {
                 for (Move m : moves) {
-                    if (m.piece.equals(tile) && m.endpoint == endpoint) {
+                    if (m.piece.equals(tile) && m.endpoint == endpoint && m.placment == placement) {
                         tile = null;
                         return m;
                     }
@@ -93,10 +94,13 @@ public class DominosApplet extends JComponent implements ActionListener, MouseLi
                 gameRunning = true;
                 while (gameRunning && !dominos.isGameOver()) {
                     dominos.runGame();
-                    synchronized (this) {
-                        try {
-                            wait(1000);
-                        } catch (Exception e) {}
+                    if (gameRunning) {
+                        synchronized (this) {
+                            try {
+                                wait(1000);
+                            } catch (Exception e) {
+                            }
+                        }
                     }
                 }
                 gameRunning = false;
@@ -244,6 +248,7 @@ public class DominosApplet extends JComponent implements ActionListener, MouseLi
         if (dominos.getBoard().getSelectedEndpoint() >= 0) {
             user.tile = dominos.getBoard().getHighlightedTile();
             user.endpoint = dominos.getBoard().getSelectedEndpoint();
+            user.placement = dominos.getBoard().getSelectedPlacement();
             dominos.getBoard().clearSelection();
             synchronized (gameLock) {
                 gameLock.notifyAll();

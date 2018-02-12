@@ -11,6 +11,7 @@ public final class Tile extends Reflector<Tile> {
 	public final int pip1, pip2;
 
 	int openPips;
+    int placement = 0;
 
 	public Tile() {
 	    this(0,0);

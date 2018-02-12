@@ -164,6 +164,8 @@ public class Dominos extends Reflector<Dominos> {
 
         if (moves.size() > 0) {
 		    Move mv = p.chooseMove(moves);
+		    if (mv == null)
+		        return;
 		    onTilePlaced(p, mv);
 		    board.doMove(mv);
 		    p.tiles.remove(mv.piece);

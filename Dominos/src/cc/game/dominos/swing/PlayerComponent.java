@@ -146,7 +146,7 @@ public class PlayerComponent extends Component implements MouseMotionListener, M
             G.setGraphics(g);
         }
 
-        G.setColor(G.GREEN);
+        G.setColor(G.GREEN.darken(G, 0.2f));
         G.drawFilledRect(0, 0, getWidth(), getHeight());
 
         G.setColor(G.BLACK);

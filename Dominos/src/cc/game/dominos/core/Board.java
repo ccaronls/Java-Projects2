@@ -15,8 +15,10 @@ import cc.lib.utils.Reflector;
 
 /**
  * Created by chriscaron on 2/1/18.
+ *
+ * Representation of a Dominos board.
+ *
  */
-
 public class Board extends Reflector<Board> {
 
     static {
@@ -28,6 +30,13 @@ public class Board extends Reflector<Board> {
     public final static int EP_UP       = 2;
     public final static int EP_DOWN     = 3;
 
+    public final static int PLACMENT_FWD        = 0;
+    public final static int PLACMENT_FWD_RIGHT  = 1;
+    public final static int PLACMENT_FWD_LEFT   = 2;
+    public final static int PLACMENT_RIGHT      = 3;
+    public final static int PLACMENT_LEFT       = 4;
+    public final static int PLACEMENT_COUNT     = 5;
+
     Tile root;
     final LinkedList<Tile> [] endpoints = new LinkedList[4];
 
@@ -37,6 +46,8 @@ public class Board extends Reflector<Board> {
     private int selectedEndpoint = -1;
     @Omit
     private Tile highlightedTile = null;
+    @Omit
+    private int selectedPlacement = 0;
 
     private class PlaceTileAnim extends AAnimation<AGraphics> {
 
@@ -123,11 +134,16 @@ public class Board extends Reflector<Board> {
         for (int i=0; i<4; i++) {
             if (endpoints[i].size() == 0) {
                 if (canPieceTouch(p, root.pip1)) {
-                    moves.add(new Move(p, i));
+                    moves.add(new Move(p, i, PLACMENT_FWD));
                 }
             } else {
                 if (canPieceTouch(p, endpoints[i].getLast().openPips)) {
-                    moves.add(new Move(p, i));
+                    if (endpoints[i].size() < 2)
+                        moves.add(new Move(p, i, PLACMENT_FWD));
+                    else {
+                        for (int ii = 0; ii < PLACEMENT_COUNT; ii++)
+                            moves.add(new Move(p, i, ii));
+                    }
                 }
             }
         }
@@ -151,24 +167,100 @@ public class Board extends Reflector<Board> {
             mv.piece.openPips = mv.piece.pip1;
         }
         endpoints[mv.endpoint].addLast(mv.piece);
+        mv.piece.placement = mv.placment;
     }
 
-    private boolean drawHighlighted(AGraphics g, int endpoint, int mouseX, int mouseY, float DIM) {
-        if (highlightedEndpoints.contains(endpoint)) {
-            Vector2D mv = g.screenToViewport(mouseX, mouseY);
-            boolean inside;
-            if ((inside=Utils.isPointInsideRect(mv.getX(), mv.getY(), 0, 0, DIM*2, DIM))) {
-                g.setColor(g.RED);
-            } else {
-                g.setColor(g.CYAN);
-            }
-            //Utils.println("inside(%s): mouse(%d,%d) trans(%3.2f,%3.2f) dim(%3.2f)", inside, mouseX, mouseY, mv.getX(), mv.getY(), DIM);
-            g.drawRect(0, 0, DIM*2, DIM, 3);
-            if (inside)
-                selectedEndpoint = endpoint;
-            return inside;
+    private void transformPlacement(AGraphics g, int placement, float DIM) {
+        switch (placement) {
+            case PLACMENT_FWD: break;
+            case PLACMENT_FWD_LEFT:
+                g.translate(DIM, 0);
+                g.rotate(90);
+                break;
+            case PLACMENT_LEFT:
+                g.translate(0, DIM);
+                g.rotate(90);
+                break;
+            case PLACMENT_FWD_RIGHT:
+                g.translate(0, DIM);
+                g.rotate(-90);
+                break;
+            case PLACMENT_RIGHT:
+                g.translate(-DIM, 0);
+                g.rotate(-90);
+                break;
         }
-        return false;
+    }
+
+    private String epIndexToString(int index) {
+        switch (index) {
+            case EP_LEFT: return "EP_LEFT";
+            case EP_RIGHT: return "EP_RIGHT";
+            case EP_UP: return "EP_UP";
+            case EP_DOWN: return "EP_DOWN";
+        }
+        throw new AssertionError();
+    }
+
+    private String placementIndexToString(int index) {
+        switch (index) {
+            case PLACMENT_FWD: return "FWD";
+            case PLACMENT_FWD_LEFT: return "FWD_LEFT";
+            case PLACMENT_FWD_RIGHT: return "FWD_RIGHT";
+            case PLACMENT_LEFT: return "LEFT";
+            case PLACMENT_RIGHT: return "RIGHT";
+        }
+        throw new AssertionError();
+    }
+
+    private void drawHighlighted(AGraphics g, int endpoint, int mouseX, int mouseY, float DIM) {
+        if (highlightedEndpoints.contains(endpoint)) {
+            int indexToHighlight = -1;
+            int count = endpoints[endpoint].size() > 1 ? PLACEMENT_COUNT : 1;
+            for (int i=0; i<count; i++) {
+                g.pushMatrix();
+                transformPlacement(g, i, DIM);
+                Vector2D mv = g.screenToViewport(mouseX, mouseY);
+                boolean inside = Utils.isPointInsideRect(mv.getX(), mv.getY(), 0, 0, DIM * 2, DIM);
+
+                if (inside && selectedEndpoint != endpoint) {
+                    indexToHighlight = i;
+                    selectedEndpoint = endpoint;
+                    selectedPlacement = i;
+                    g.popMatrix();
+                    continue;
+                }
+
+                g.setColor(g.CYAN);
+                g.drawRect(0, 0, DIM * 2, DIM, 3);
+                g.popMatrix();
+            }
+            // make sure the highlighted is rendered on top of everything thing else
+            if (indexToHighlight >= 0) {
+                g.pushMatrix();
+                g.setColor(g.RED);
+                transformPlacement(g, indexToHighlight, DIM);
+                g.drawRect(0, 0, DIM * 2, DIM, 3);
+                g.popMatrix();
+                Utils.println("selected endpoint = " + epIndexToString(selectedEndpoint) + " placement = " + placementIndexToString(selectedPlacement));
+            }
+        }
+    }
+
+    private void transformEndpoint(AGraphics g, int endpoint, float DIM) {
+        switch (endpoint) {
+            case EP_LEFT:
+                g.scale(-1, -1);
+            case EP_RIGHT:
+                g.translate(DIM, -DIM / 2);
+                break;
+            case EP_DOWN:
+                g.scale(-1, -1);
+            case EP_UP:
+                g.translate(DIM/2, DIM/2);
+                g.rotate(90);
+                break;
+        }
     }
 
     public synchronized final void draw(AGraphics g, float vpWidth, float vpHeight, int mouseX, int mouseY) {
@@ -178,65 +270,78 @@ public class Board extends Reflector<Board> {
         if (root == null)
             return;
 
-        float maxPcW = Math.max(endpoints[EP_LEFT].size(), endpoints[EP_RIGHT].size());
-        float maxPcH = Math.max(endpoints[EP_UP].size(), endpoints[EP_DOWN].size());
-
-        float dimW = vpWidth/(2*(3+2*maxPcW));
-        float dimH = vpHeight/(2*(2+2*maxPcH));
-
-        float DIM = Math.min(dimW, dimH);
-
-        selectedEndpoint = -1;
         g.pushMatrix();
-            g.translate(vpWidth/2, vpHeight/2);
+        {
+            g.begin();
+            g.clearMinMax();
+            for (int i = 0; i < 4; i++) {
+                g.pushMatrix();
+                {
+                    transformEndpoint(g, i, 1);
+                    for (Tile t : endpoints[i]) {
+                        transformPlacement(g, t.placement, 1);
+                        g.vertex(0, 0);
+                        g.vertex(2, 1);
+                        g.translate(2, 1);
+                    }
+                    g.vertex(0, 2 );
+                    g.vertex(2, -2);
+                }
+                g.popMatrix();
+            }
+
+            IVector2D minBR = g.getMinBoundingRect();
+            IVector2D maxBR = g.getMaxBoundingRect();
+            g.end();
+
+            float maxPcW = Math.max(Math.abs(minBR.getX()), Math.abs(maxBR.getX()));
+            float maxPcH = Math.max(Math.abs(minBR.getY()), Math.abs(maxBR.getY()));
+
+            float dimW = vpWidth/(2*maxPcW);
+            float dimH = vpHeight/(2*maxPcH);
+
+            float DIM = Math.min(dimW, dimH);
+
+
+            selectedEndpoint = -1;
 
             /*
             Vector2D mv = g.screenToViewport(mouseX, mouseY);
             g.setColor(g.YELLOW);
             g.drawCircle(mv.getX(), mv.getY(), 10);
-*/
+    */
+            g.translate(vpWidth / 2, vpHeight / 2);
+            g.scale(1, -1);
+
+            // DEBUG outline the min/max bounding box in green
+            g.setColor(g.YELLOW);
             g.pushMatrix();
-                g.translate(-DIM, -DIM/2);
-                drawTile(g, DIM, root.pip1, root.pip2);
+            g.scale(DIM, DIM);
+            g.drawRect(minBR, maxBR, 1);
             g.popMatrix();
 
+
             g.pushMatrix();
-                g.translate(-DIM, -DIM/2);
-                g.scale(-1, 1);
-                for (Tile p : endpoints[EP_LEFT]) {
-                    drawTile(g, DIM, p.getClosedPips(), p.openPips);
-                    g.translate(DIM*2, 0);
-                }
-                drawHighlighted(g, EP_LEFT, mouseX, mouseY, DIM);
+            {
+                g.translate(-DIM, -DIM / 2);
+                drawTile(g, DIM, root.pip1, root.pip2);
+            }
             g.popMatrix();
-            g.pushMatrix();
-                g.translate(DIM, -DIM/2);
-                for (Tile p : endpoints[EP_RIGHT]) {
-                    drawTile(g, DIM, p.getClosedPips(), p.openPips);
-                    g.translate(DIM*2, 0);
+
+            for (int i = 0; i < 4; i++) {
+                g.pushMatrix();
+                {
+                    transformEndpoint(g, i, DIM);
+                    for (Tile p : endpoints[i]) {
+                        transformPlacement(g, p.placement, DIM);
+                        drawTile(g, DIM, p.getClosedPips(), p.openPips);
+                        g.translate(DIM * 2, 0);
+                    }
+                    drawHighlighted(g, i, mouseX, mouseY, DIM);
                 }
-                drawHighlighted(g, EP_RIGHT, mouseX, mouseY, DIM);
-            g.popMatrix();
-            g.pushMatrix();
-                g.translate(0, -DIM);
-                g.rotate(-90);
-                g.translate(-DIM/2, -DIM/2);
-                for (Tile p : endpoints[EP_UP]) {
-                    drawTile(g, DIM, p.getClosedPips(), p.openPips);
-                    g.translate(DIM*2, 0);
-                }
-                drawHighlighted(g, EP_UP, mouseX, mouseY, DIM);
-            g.popMatrix();
-            g.pushMatrix();
-                g.translate(DIM, DIM);
-                g.rotate(90);
-                g.translate(-DIM/2, DIM/2);
-                for (Tile p : endpoints[EP_DOWN]) {
-                    drawTile(g,DIM, p.getClosedPips(), p.openPips);
-                    g.translate(DIM*2, 0);
-                }
-                drawHighlighted(g, EP_DOWN, mouseX, mouseY, DIM);
-            g.popMatrix();
+                g.popMatrix();
+            }
+        }
         g.popMatrix();
     }
 
@@ -252,6 +357,8 @@ public class Board extends Reflector<Board> {
         g.setColor(g.WHITE);
         drawDie(g, 0, 0, dim, pipDim, pips1);
         drawDie(g, dim, 0, dim, pipDim, pips2);
+        g.setColor(g.RED);
+        g.drawDisk(0, 0, 4);
         g.popMatrix();
     }
 
@@ -335,4 +442,9 @@ public class Board extends Reflector<Board> {
     public final Tile getHighlightedTile() {
         return this.highlightedTile;
     }
+
+    public final int getSelectedPlacement() {
+        return selectedPlacement;
+    }
+
 }
