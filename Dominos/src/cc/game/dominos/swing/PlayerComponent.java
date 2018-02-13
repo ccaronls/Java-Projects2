@@ -173,6 +173,7 @@ public class PlayerComponent extends Component implements MouseMotionListener, M
         }
 
         float padding = 30;
+        float offset = 5;
 
         float tileD = Math.min(w, h)-padding;
         int tilesPerRow = (int)((Math.max(w, h)-padding) / (tileD * 2));
@@ -181,7 +182,7 @@ public class PlayerComponent extends Component implements MouseMotionListener, M
         tilesPerRow *= numRows;
         tileD /= numRows;
 
-        G.translate(5, 5);
+        G.translate(offset, offset);
         if (animation != null && (animation instanceof TextPulseAnim)) {
             G.setColor(G.RED);
             animation.update(G);
@@ -189,16 +190,16 @@ public class PlayerComponent extends Component implements MouseMotionListener, M
             G.setColor(G.BLACK);
             G.drawString("Points: " + player.getScore(),0, 0);
         }
-        G.translate(-5, -5);
+        G.translate(-offset, -offset);
 
         G.begin();
         G.pushMatrix();
         G.clearMinMax();
         if (vertical) {
-            G.translate(w-5, padding);
+            G.translate(w-offset, padding);
             G.rotate(90);
         } else {
-            G.translate(padding-5, padding-5);
+            G.translate(padding-offset, padding-offset);
         }
         picked = -1;
         int tile = 0;

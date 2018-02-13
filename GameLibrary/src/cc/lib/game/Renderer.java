@@ -45,10 +45,10 @@ public class Renderer {
 
 	/**
 	 * multiply a rotation matrix to the transform
-	 * @param angle
+	 * @param degrees
 	 */
-	public final void rotate(float angle) {
-		t_mat.setRotation(angle);
+	public final void rotate(float degrees) {
+		t_mat.setRotation(degrees);
 		cur_mat.multiply(t_mat, s_mat);
 		cur_mat.copy(s_mat);
 	}

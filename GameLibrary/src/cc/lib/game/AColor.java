@@ -36,7 +36,7 @@ public abstract class AColor extends Reflector<AColor> {
     
     /**
      * 
-     * @param color
+     * @param g
      * @param amount
      * @return
      */
@@ -52,7 +52,7 @@ public abstract class AColor extends Reflector<AColor> {
 
     /**
      * 
-     * @param color
+     * @param g
      * @param amount
      * @return
      */
@@ -69,8 +69,8 @@ public abstract class AColor extends Reflector<AColor> {
     /**
      * Return a when aWeight == 1.0
      * Return b when aWeight == 0.0
-     * @param a
-     * @param b
+     * @param g
+     * @param target
      * @param aWeight
      * @return
      */

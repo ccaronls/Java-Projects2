@@ -37,8 +37,8 @@ public class Board extends Reflector<Board> {
     public final static int PLACMENT_LEFT       = 4;
     public final static int PLACEMENT_COUNT     = 5;
 
-    Tile root;
-    final LinkedList<Tile> [] endpoints = new LinkedList[4];
+    private Tile root;
+    private final LinkedList<Tile> [] endpoints = new LinkedList[4];
 
     @Omit
     private Set<Integer> highlightedEndpoints = new HashSet<>();
@@ -48,6 +48,8 @@ public class Board extends Reflector<Board> {
     private Tile highlightedTile = null;
     @Omit
     private int selectedPlacement = 0;
+    @Omit
+    private int [][] testGrid = null;
 
     private class PlaceTileAnim extends AAnimation<AGraphics> {
 
@@ -263,6 +265,30 @@ public class Board extends Reflector<Board> {
         }
     }
 
+    private void genMinMaxPts(AGraphics g) {
+        g.vertex(-1, -0.5f);
+        g.vertex(1, 0.5f);
+        for (int i = 0; i < 4; i++) {
+            g.pushMatrix();
+            {
+                transformEndpoint(g, i, 1);
+                for (Tile t : endpoints[i]) {
+                    transformPlacement(g, t.placement, 1);
+                    g.vertex(0, 0);
+                    g.vertex(0, 1);
+                    g.vertex(2, 1);
+                    g.vertex(2, 0);
+                    g.translate(2, 0);
+                }
+                g.vertex(0, 3);
+                g.vertex(2, 3);
+                g.vertex(2, -2);
+                g.vertex(0, -2);
+            }
+            g.popMatrix();
+        }
+    }
+
     public synchronized final void draw(AGraphics g, float vpWidth, float vpHeight, int mouseX, int mouseY) {
         // choose an ortho that keeps the root in the middle and an edge around
         // that allows for a piece to be placed
@@ -274,24 +300,10 @@ public class Board extends Reflector<Board> {
         {
             g.begin();
             g.clearMinMax();
-            for (int i = 0; i < 4; i++) {
-                g.pushMatrix();
-                {
-                    transformEndpoint(g, i, 1);
-                    for (Tile t : endpoints[i]) {
-                        transformPlacement(g, t.placement, 1);
-                        g.vertex(0, 0);
-                        g.vertex(2, 1);
-                        g.translate(2, 1);
-                    }
-                    g.vertex(0, 2 );
-                    g.vertex(2, -2);
-                }
-                g.popMatrix();
-            }
+            genMinMaxPts(g);
 
-            IVector2D minBR = g.getMinBoundingRect();
-            IVector2D maxBR = g.getMaxBoundingRect();
+            Vector2D minBR = g.getMinBoundingRect();
+            Vector2D maxBR = g.getMaxBoundingRect();
             g.end();
 
             float maxPcW = Math.max(Math.abs(minBR.getX()), Math.abs(maxBR.getX()));
@@ -302,24 +314,18 @@ public class Board extends Reflector<Board> {
 
             float DIM = Math.min(dimW, dimH);
 
-
             selectedEndpoint = -1;
 
-            /*
-            Vector2D mv = g.screenToViewport(mouseX, mouseY);
-            g.setColor(g.YELLOW);
-            g.drawCircle(mv.getX(), mv.getY(), 10);
-    */
             g.translate(vpWidth / 2, vpHeight / 2);
-            g.scale(1, -1);
 
-            // DEBUG outline the min/max bounding box in green
+            // DEBUG outline the min/max bounding box
             g.setColor(g.YELLOW);
             g.pushMatrix();
-            g.scale(DIM, DIM);
+            g.scale(DIM, -DIM);
             g.drawRect(minBR, maxBR, 1);
             g.popMatrix();
 
+            g.scale(1, -1);
 
             g.pushMatrix();
             {
