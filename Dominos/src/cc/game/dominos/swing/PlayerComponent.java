@@ -28,7 +28,10 @@ import cc.lib.swing.AWTGraphics;
  * Created by chriscaron on 2/2/18.
  */
 
-public class PlayerComponent extends Component implements MouseMotionListener, MouseListener {
+public class PlayerComponent {
+    /*
+    extends
+} Component implements MouseMotionListener, MouseListener {
 
     Player player;
     AWTGraphics G = null;
@@ -284,5 +287,5 @@ public class PlayerComponent extends Component implements MouseMotionListener, M
     @Override
     public void mouseExited(MouseEvent e) {
         repaint();
-    }
+    }*/
 }

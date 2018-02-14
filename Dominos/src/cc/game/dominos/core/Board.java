@@ -8,8 +8,10 @@ import java.util.Set;
 
 import cc.lib.game.AAnimation;
 import cc.lib.game.AGraphics;
+import cc.lib.game.APGraphics;
 import cc.lib.game.IVector2D;
 import cc.lib.game.Utils;
+import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
 import cc.lib.utils.Reflector;
 
@@ -43,13 +45,16 @@ public class Board extends Reflector<Board> {
     @Omit
     private Set<Integer> highlightedEndpoints = new HashSet<>();
     @Omit
-    private int selectedEndpoint = -1;
+    int selectedEndpoint = -1;
     @Omit
-    private Tile highlightedTile = null;
+    Tile highlightedTile = null;
     @Omit
-    private int selectedPlacement = 0;
+    int selectedPlacement = 0;
     @Omit
     private int [][] testGrid = null;
+
+    private final MutableVector2D saveMinV = new MutableVector2D();
+    private final MutableVector2D saveMaxV = new MutableVector2D();
 
     private class PlaceTileAnim extends AAnimation<AGraphics> {
 
@@ -95,7 +100,7 @@ public class Board extends Reflector<Board> {
 
 
 
-    public final void clear() {
+    final void clear() {
         root = null;
         for (List<?> l : endpoints) {
             l.clear();
@@ -103,7 +108,7 @@ public class Board extends Reflector<Board> {
         clearSelection();
     }
 
-    public final void clearSelection() {
+    final void clearSelection() {
         highlightedEndpoints.clear();
         selectedEndpoint = -1;
         highlightedTile = null;
@@ -114,7 +119,7 @@ public class Board extends Reflector<Board> {
             endpoints[i] = new LinkedList<>();
     }
 
-    public final List<Tile> collectPieces() {
+    final List<Tile> collectPieces() {
         List<Tile> pieces = new ArrayList<>();
         if (root != null) {
             pieces.add(root);
@@ -124,14 +129,16 @@ public class Board extends Reflector<Board> {
             pieces.addAll(endpoints[i]);
             endpoints[i].clear();
         }
+        saveMaxV.zero();
+        saveMinV.zero();
         return pieces;
     }
 
-    public final void placeRootPiece(Tile pc) {
+    final void placeRootPiece(Tile pc) {
         root = pc;
     }
 
-    public final List<Move> findMovesForPiece(Tile p) {
+    final List<Move> findMovesForPiece(Tile p) {
         List<Move> moves = new ArrayList<>();
         for (int i=0; i<4; i++) {
             if (endpoints[i].size() == 0) {
@@ -156,7 +163,7 @@ public class Board extends Reflector<Board> {
         return p.pip1 == pips || p.pip2 == pips;
     }
 
-    public final void doMove(Move mv) {
+    final void doMove(Move mv) {
         int open = 0;
         if (endpoints[mv.endpoint].size() == 0) {
             open = root.openPips;
@@ -219,7 +226,7 @@ public class Board extends Reflector<Board> {
         if (highlightedEndpoints.contains(endpoint)) {
             int indexToHighlight = -1;
             int count = endpoints[endpoint].size() > 1 ? PLACEMENT_COUNT : 1;
-            for (int i=0; i<count; i++) {
+            for (int i = 0; i < count; i++) {
                 g.pushMatrix();
                 transformPlacement(g, i, DIM);
                 Vector2D mv = g.screenToViewport(mouseX, mouseY);
@@ -289,7 +296,7 @@ public class Board extends Reflector<Board> {
         }
     }
 
-    public synchronized final void draw(AGraphics g, float vpWidth, float vpHeight, int mouseX, int mouseY) {
+    synchronized final void draw(APGraphics g, float vpWidth, float vpHeight, int pickX, int pickY) {
         // choose an ortho that keeps the root in the middle and an edge around
         // that allows for a piece to be placed
 
@@ -302,8 +309,8 @@ public class Board extends Reflector<Board> {
             g.clearMinMax();
             genMinMaxPts(g);
 
-            Vector2D minBR = g.getMinBoundingRect();
-            Vector2D maxBR = g.getMaxBoundingRect();
+            Vector2D minBR = saveMinV.minEq(g.getMinBoundingRect());
+            Vector2D maxBR = saveMaxV.maxEq(g.getMaxBoundingRect());
             g.end();
 
             float maxPcW = Math.max(Math.abs(minBR.getX()), Math.abs(maxBR.getX()));
@@ -327,6 +334,10 @@ public class Board extends Reflector<Board> {
 
             g.scale(1, -1);
 
+            Vector2D mv = g.screenToViewport(pickX, pickY);
+            g.setColor(g.YELLOW);
+            g.drawCircle(mv.getX(), mv.getY(), 10);
+
             g.pushMatrix();
             {
                 g.translate(-DIM, -DIM / 2);
@@ -343,7 +354,7 @@ public class Board extends Reflector<Board> {
                         drawTile(g, DIM, p.getClosedPips(), p.openPips);
                         g.translate(DIM * 2, 0);
                     }
-                    drawHighlighted(g, i, mouseX, mouseY, DIM);
+                    drawHighlighted(g, i, pickX, pickY, DIM);
                 }
                 g.popMatrix();
             }
@@ -351,7 +362,7 @@ public class Board extends Reflector<Board> {
         g.popMatrix();
     }
 
-    public static void drawTile(AGraphics g, float dim, int pips1, int pips2) {
+    static void drawTile(AGraphics g, float dim, int pips1, int pips2) {
         g.pushMatrix();
         int pipDim = Math.round(dim/8);
         g.setColor(g.BLACK);
@@ -368,10 +379,14 @@ public class Board extends Reflector<Board> {
         g.popMatrix();
     }
 
-    public static void drawDie(AGraphics g, float x, float y, float dim, int dotSize, int numDots) {
+    static void drawDie(AGraphics g, float x, float y, float dim, int dotSize, int numDots) {
         float dd2 = dim/2;
         float dd4 = dim/4;
         float dd34 = (dim*3)/4;
+        float dd5 = dim/5;
+        float dd25 = dim*2/5;
+        float dd35 = dim*3/5;
+        float dd45 = dim*4/5;
         switch (numDots) {
             case 1:
                 drawDot(g, x+dd2, y+dd2, dotSize);
@@ -406,6 +421,82 @@ public class Board extends Reflector<Board> {
                 drawDot(g, x+dd4, y+dd2, dotSize);
                 drawDot(g, x+dd34, y+dd2, dotSize);
                 break;
+            case 7:
+                drawDot(g, x+dd2, y+dd2, dotSize);
+                drawDot(g, x+dd4, y+dd4, dotSize);
+                drawDot(g, x+dd34, y+dd34, dotSize);
+                drawDot(g, x+dd4, y+dd34, dotSize);
+                drawDot(g, x+dd34, y+dd4, dotSize);
+                drawDot(g, x+dd4, y+dd2, dotSize);
+                drawDot(g, x+dd34, y+dd2, dotSize);
+                break;
+            case 8:
+                drawDot(g, x+dd2, y+dd4, dotSize);
+                drawDot(g, x+dd2, y+dd34, dotSize);
+                drawDot(g, x+dd4, y+dd4, dotSize);
+                drawDot(g, x+dd34, y+dd34, dotSize);
+                drawDot(g, x+dd4, y+dd34, dotSize);
+                drawDot(g, x+dd34, y+dd4, dotSize);
+                drawDot(g, x+dd4, y+dd2, dotSize);
+                drawDot(g, x+dd34, y+dd2, dotSize);
+                break;
+            case 9:
+                drawDot(g, x+dd2, y+dd2, dotSize);
+                drawDot(g, x+dd2, y+dd4, dotSize);
+                drawDot(g, x+dd2, y+dd34, dotSize);
+                drawDot(g, x+dd4, y+dd4, dotSize);
+                drawDot(g, x+dd34, y+dd34, dotSize);
+                drawDot(g, x+dd4, y+dd34, dotSize);
+                drawDot(g, x+dd34, y+dd4, dotSize);
+                drawDot(g, x+dd4, y+dd2, dotSize);
+                drawDot(g, x+dd34, y+dd2, dotSize);
+                break;
+            case 10:
+                drawDot(g, x+dd4, y+dd5, dotSize);
+                drawDot(g, x+dd4, y+dd25, dotSize);
+                drawDot(g, x+dd4, y+dd35, dotSize);
+                drawDot(g, x+dd4, y+dd45, dotSize);
+
+                drawDot(g, x+dd2, y+dd5, dotSize);
+                drawDot(g, x+dd2, y+dd45, dotSize);
+
+                drawDot(g, x+dd34, y+dd5, dotSize);
+                drawDot(g, x+dd34, y+dd25, dotSize);
+                drawDot(g, x+dd34, y+dd35, dotSize);
+                drawDot(g, x+dd34, y+dd45, dotSize);
+                break;
+            case 11:
+                drawDot(g, x+dd4, y+dd5, dotSize);
+                drawDot(g, x+dd4, y+dd25, dotSize);
+                drawDot(g, x+dd4, y+dd35, dotSize);
+                drawDot(g, x+dd4, y+dd45, dotSize);
+
+                drawDot(g, x+dd2, y+dd5, dotSize);
+                drawDot(g, x+dd2, y+dd2, dotSize);
+                drawDot(g, x+dd2, y+dd45, dotSize);
+
+                drawDot(g, x+dd34, y+dd5, dotSize);
+                drawDot(g, x+dd34, y+dd2, dotSize);
+                drawDot(g, x+dd34, y+dd35, dotSize);
+                drawDot(g, x+dd34, y+dd45, dotSize);
+                break;
+            case 12:
+                drawDot(g, x+dd4, y+dd5, dotSize);
+                drawDot(g, x+dd4, y+dd25, dotSize);
+                drawDot(g, x+dd4, y+dd35, dotSize);
+                drawDot(g, x+dd4, y+dd45, dotSize);
+
+                drawDot(g, x+dd2, y+dd5, dotSize);
+                drawDot(g, x+dd2, y+dd25, dotSize);
+                drawDot(g, x+dd2, y+dd35, dotSize);
+                drawDot(g, x+dd2, y+dd45, dotSize);
+
+                drawDot(g, x+dd34, y+dd5, dotSize);
+                drawDot(g, x+dd34, y+dd25, dotSize);
+                drawDot(g, x+dd34, y+dd35, dotSize);
+                drawDot(g, x+dd34, y+dd45, dotSize);
+                break;
+
         }
     }
 
@@ -413,7 +504,7 @@ public class Board extends Reflector<Board> {
         g.drawFilledOval(x-dotSize/2,y-dotSize/2,dotSize,dotSize);
     }
 
-    public final int computeEndpointsTotal() {
+    final int computeEndpointsTotal() {
         int score = 0;
         for (int i=0; i<4; i++) {
             if (endpoints[i].size() > 0) {
@@ -431,7 +522,7 @@ public class Board extends Reflector<Board> {
         return score;
     }
 
-    public final void highlightMovesForPiece(Tile piece) {
+    final void highlightMovesForPiece(Tile piece) {
         highlightedEndpoints.clear();
         highlightedTile = piece;
         if (piece != null) {
@@ -439,18 +530,6 @@ public class Board extends Reflector<Board> {
                 highlightedEndpoints.add(m.endpoint);
             }
         }
-    }
-
-    public final int getSelectedEndpoint() {
-        return this.selectedEndpoint;
-    }
-
-    public final Tile getHighlightedTile() {
-        return this.highlightedTile;
-    }
-
-    public final int getSelectedPlacement() {
-        return selectedPlacement;
     }
 
 }

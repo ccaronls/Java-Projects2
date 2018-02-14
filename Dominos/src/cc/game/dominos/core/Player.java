@@ -39,7 +39,7 @@ public class Player extends Reflector<Player> {
         return null;
     }
 
-    public Move chooseMove(List<Move> moves) {
+    public Move chooseMove(Dominos game, List<Move> moves) {
         return moves.get(Utils.rand() % moves.size());
     }
 
@@ -54,4 +54,6 @@ public class Player extends Reflector<Player> {
     public void setScore(int score) {
         this.score = score;
     }
+
+    public boolean isPiecesVisible() { return false; }
 }
