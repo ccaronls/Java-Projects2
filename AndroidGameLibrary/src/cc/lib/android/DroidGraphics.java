@@ -472,6 +472,8 @@ public class DroidGraphics extends APGraphics {
 
         @Override
         public AColor setAlpha(float alpha) {
+            if (alpha == getAlpha())
+                return this;
             return new DroidColor(alpha, r, g, b);
         }
     }

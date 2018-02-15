@@ -1,12 +1,13 @@
 package cc.game.dominos.core;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
 import cc.lib.game.AAnimation;
 import cc.lib.game.AGraphics;
 import cc.lib.game.APGraphics;
 import cc.lib.game.Utils;
-import cc.lib.math.MutableVector2D;
 import cc.lib.utils.Reflector;
 
 /**
@@ -94,11 +95,12 @@ public abstract class Dominos extends Reflector<Dominos> {
                 Utils.println("Thread starting.");
                 gameRunning = true;
                 while (gameRunning && !isGameOver()) {
-                    runGame();
-                    if (gameRunning) {
-                        synchronized (this) {
+                    synchronized (Dominos.this) {
+                        runGame();
+                        redraw();
+                        if (gameRunning) {
                             try {
-                                wait(1000);
+                                Dominos.this.wait(1000);
                             } catch (Exception e) {
                             }
                         }
@@ -250,9 +252,9 @@ public abstract class Dominos extends Reflector<Dominos> {
 		    board.doMove(mv);
 		    p.tiles.remove(mv.piece);
 		    int pts = board.computeEndpointsTotal();
-		    if (pts % 5 == 0) {
-		        p.score += pts;
+		    if (pts > 0 && pts % 5 == 0) {
 		        onPlayerPoints(p, pts);
+                p.score += pts;
             }
         }
 
@@ -300,28 +302,41 @@ public abstract class Dominos extends Reflector<Dominos> {
     @Omit
     private final List<AAnimation<AGraphics>> animations = new ArrayList<>();
 
-	private class PtsAnimation extends AAnimation<AGraphics> {
+    enum AnimType {
+        POINTS
+    };
+
+    private class TextAnimation extends AAnimation<AGraphics> {
+
 
 	    final int pts;
 	    final Player p;
 	    final int name;
+        final AnimType type;
 
-	    PtsAnimation(Player p, int pts) {
+	    TextAnimation(Player p, int pts, AnimType type) {
 	        super(2000);
 	        this.pts = pts;
 	        this.p = p;
+            this.type = type;
 	        name = turn;
         }
 
         @Override
         protected void draw(AGraphics g, float position, float dt) {
+            switch (type) {
+                case POINTS: drawPoints(g, position); break;
+            }
+            redraw();
+        }
+
+        private void drawPoints(AGraphics g, float position) {
             int curPts = p.score + Math.round(position * pts);
             int alpha = 255 - Math.round(position*255);
             if (p.isPiecesVisible())
-                g.drawAnnotatedString(String.format("%d Points [%d,255,0,0] +%d", curPts, alpha, pts), 0, 0);
+                g.drawAnnotatedString(String.format("%d Points [%d,255,0,0]+%d", curPts, alpha, pts), 0, 0);
             else
-                g.drawAnnotatedString(String.format("P%d X %d [0,0,0]%d Points [%d,255,0,0] +%d", name, p.getTiles().size(), curPts, alpha, pts), 0, 0);
-            redraw();
+                g.drawAnnotatedString(String.format("P%d X %d [0,0,0]%d Points [%d,255,0,0]+%d", name, p.getTiles().size(), curPts, alpha, pts), 0, 0);
         }
 
         @Override
@@ -334,10 +349,13 @@ public abstract class Dominos extends Reflector<Dominos> {
         }
     }
 
+    /**
+     * Called when player was earned pts > 0
+     * @param p
+     * @param pts
+     */
     protected void onPlayerPoints(Player p, final int pts) {
-	    if (pts > 0) {
-	        p.animation = new PtsAnimation(p, pts).start();
-        }
+        p.animation = new TextAnimation(p, pts, AnimType.POINTS).start();
         redraw();
 	    synchronized (this) {
 	        try {
@@ -346,7 +364,7 @@ public abstract class Dominos extends Reflector<Dominos> {
         }
     }
 
-    public final   void draw(APGraphics g, int pickX, int pickY) {
+    public synchronized final void draw(APGraphics g, int pickX, int pickY) {
         float w = g.getViewportWidth();
         float h = g.getViewportHeight();
 
@@ -448,13 +466,20 @@ public abstract class Dominos extends Reflector<Dominos> {
         g.popMatrix();
     }
 
+    private PlayerUser getUser() {
+        return (PlayerUser)players[0];
+    }
+
     private void drawPlayerTiles(APGraphics g, Player p, float w, float h, int pickX, int pickY) {
 
 	    int numRows = 1;
-	    final int numTiles = p.getTiles().size();
+	    int numTiles = p.getTiles().size();
 
 	    if (numTiles == 0)
 	        return;
+
+        if (numTiles < 4)
+            numTiles = 4;
 
 	    float tileD = Math.min(w/(2*numTiles), h);
 	    int tilesPerRow = numTiles;
@@ -481,16 +506,20 @@ public abstract class Dominos extends Reflector<Dominos> {
                 if (tile < p.tiles.size()) {
                     Tile t = p.tiles.get(tile);
 
-                    g.setName(tile);
-                    g.vertex(0, 0);
-                    g.vertex(tileD*2, tileD);
-                    int picked = g.pickRects(pickX, pickY);
-                    if (picked >= 0) {
-                        highlightedPlayerTile = picked;
+                    boolean available = getUser().usable.contains(t);
+                    if (available) {
+                        g.setName(tile);
+                        g.vertex(0, 0);
+                        g.vertex(tileD * 2, tileD);
+                        int picked = g.pickRects(pickX, pickY);
+                        if (picked >= 0) {
+                            highlightedPlayerTile = picked;
+                        }
                     }
                     g.pushMatrix();
                     g.scale(0.95f, 0.95f);
-                    Board.drawTile(g, tileD, t.pip1, t.pip2);
+                    float alpha = available ? 1f : 0.5f;
+                    Board.drawTile(g, tileD, t.pip1, t.pip2, alpha);
                     g.popMatrix();
                     if (tile == selectedPlayerTile) {
                         g.setColor(g.RED);

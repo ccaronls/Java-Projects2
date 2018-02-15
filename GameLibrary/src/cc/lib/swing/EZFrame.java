@@ -4,6 +4,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -105,9 +106,9 @@ public class EZFrame extends JFrame implements WindowListener, ComponentListener
     public boolean loadFromFile(File propertiesFile) {
 	    this.propertiesFile = propertiesFile;
 	    try {
-	        Properties p = new Properties();
-	        InputStream in = new FileInputStream(propertiesFile);
-	        try {
+            Properties p = new Properties();
+            InputStream in = new FileInputStream(propertiesFile);
+            try {
                 p.load(in);
                 int x = Integer.parseInt(p.getProperty("gui.x"));
                 int y = Integer.parseInt(p.getProperty("gui.y"));
@@ -117,8 +118,10 @@ public class EZFrame extends JFrame implements WindowListener, ComponentListener
                 this.setVisible(true);
                 return true;
             } finally {
-	            in.close();
+                in.close();
             }
+        } catch (FileNotFoundException e) {
+            System.err.println("File Not Found: " + propertiesFile);
         } catch (Exception e) {
 	        e.printStackTrace();
         }

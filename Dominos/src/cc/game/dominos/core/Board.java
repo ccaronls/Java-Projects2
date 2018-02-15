@@ -355,7 +355,7 @@ public class Board extends Reflector<Board> {
             g.pushMatrix();
             {
                 g.translate(-DIM, -DIM / 2);
-                drawTile(g, DIM, root.pip1, root.pip2);
+                drawTile(g, DIM, root.pip1, root.pip2, 1);
             }
             g.popMatrix();
 
@@ -365,7 +365,7 @@ public class Board extends Reflector<Board> {
                     transformEndpoint(g, i, DIM);
                     for (Tile p : endpoints[i]) {
                         transformPlacement(g, p.placement, DIM);
-                        drawTile(g, DIM, p.getClosedPips(), p.openPips);
+                        drawTile(g, DIM, p.getClosedPips(), p.openPips, 1);
                         g.translate(DIM * 2, 0);
                     }
                     drawHighlighted(g, i, pickX, pickY, DIM);
@@ -376,10 +376,10 @@ public class Board extends Reflector<Board> {
         g.popMatrix();
     }
 
-    static void drawTile(AGraphics g, float dim, int pips1, int pips2) {
+    static void drawTile(AGraphics g, float dim, int pips1, int pips2, float alpha) {
         g.pushMatrix();
         int pipDim = Math.round(dim/8);
-        g.setColor(g.BLACK);
+        g.setColor(g.BLACK.setAlpha(alpha));
         g.drawFilledRoundedRect(0, 0, dim*2, dim, dim/4);
         g.setColor(g.WHITE);
         g.drawRoundedRect(0, 0, dim*2, dim, 1, dim/4);
