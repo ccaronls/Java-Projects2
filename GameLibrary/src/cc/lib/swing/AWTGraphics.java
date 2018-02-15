@@ -7,10 +7,9 @@ import java.util.List;
 import cc.lib.game.*;
 import cc.lib.math.Vector2D;
 
-public final class AWTGraphics extends AGraphics {
+public final class AWTGraphics extends APGraphics {
 
     private Graphics g;
-    private final AWTRenderer r;
     private final ImageMgr images;
     private final Component comp;
     //private int textureId = -1;
@@ -20,7 +19,6 @@ public final class AWTGraphics extends AGraphics {
     public AWTGraphics(Graphics g, Component comp) {
         super(comp.getWidth(), comp.getHeight());
         this.g = g;
-        this.r = new AWTRenderer(this);
         images = new ImageMgr(comp);
         this.comp  = comp;
         initViewport(comp.getWidth(), comp.getHeight());
@@ -30,7 +28,6 @@ public final class AWTGraphics extends AGraphics {
     public AWTGraphics(AWTGraphics g, Graphics G, Component comp) {
         super(g.comp.getWidth(), g.comp.getHeight());
         this.g = G;
-        this.r = g.r;
         r.setWindow(this);
         images = g.images;
         this.comp  = g.comp;
@@ -46,14 +43,6 @@ public final class AWTGraphics extends AGraphics {
         this.g = g;
     }
 
-    public final int getScreenWidth() {
-        return this.getViewportWidth();
-    }
-
-    public final int getScreenHeight() {
-        return this.getViewportHeight();
-    }
-
     @Override
     public final void setColor(AColor color) {
         g.setColor(((AWTColor)color).color);
@@ -67,6 +56,11 @@ public final class AWTGraphics extends AGraphics {
     @Override
     public final  int getTextHeight() {
         return AWTUtils.getFontHeight(g);
+    }
+
+    @Override
+    public final void setTextHeight(float height) {
+        g.setFont(g.getFont().deriveFont(height));
     }
 
     @Override
@@ -102,59 +96,118 @@ public final class AWTGraphics extends AGraphics {
         return mPointSize;
     }
 
-    @Override
-    public final  void transform(float x, float y, float[] result) {
-        r.transformXY(x, y, result);
-    }
-    
-    @Override
-    public final Vector2D screenToViewport(int screenX, int screenY) {
-    	return r.untransform(screenX, screenY);
+    private int getNumVerts() {
+        return r.getNumVerts();
     }
 
-    @Override
-    public final  void vertex(float x, float y) {
-        r.addVertex(x, y);
+    private float getX(int index) {
+        return r.getX(index);
+    }
+
+    private float getY(int index) {
+        return r.getY(index);
+    }
+
+    private Vector2D getVertex(int index) {
+        return r.getVertex(index);
     }
 
     @Override
     public final  void drawPoints() {
-        r.drawPoints(g, Math.round(mPointSize));
+        //r.drawPoints(g, Math.round(mPointSize));
+        int size = Math.round(mPointSize);
+        if (size <= 1) {
+            for (int i=0; i<getNumVerts(); i++) {
+                g.drawRect(Math.round(getX(i)), Math.round(getY(i)), 1, 1);
+            }
+        } else {
+            for (int i=0; i<getNumVerts(); i++) {
+                g.drawOval(Math.round(getX(i)-size/2), Math.round(getY(i)-size/2), size, size);
+            }
+        }
     }
 
     @Override
     public final  void drawLines() {
-        r.drawLines(g, Math.round(mLineThickness));
+        //r.drawLines(g, Math.round(mLineThickness));
+        for (int i=0; i<getNumVerts(); i+=2) {
+            if (i+1 < getNumVerts())
+                AWTUtils.drawLinef(g, getX(i), getY(i), getX(i+1), getY(i+1), Math.round(mLineThickness));
+        }
     }
 
     @Override
     public void drawLineStrip() {
-        r.drawLineStrip(g, Math.round(mLineThickness));
+        //r.drawLineStrip(g, Math.round(mLineThickness));
+        for (int i=0; i<getNumVerts()-1; i++) {
+            AWTUtils.drawLinef(g, getX(i), getY(i), getX(i+1), getY(i+1), Math.round(mLineThickness));
+        }
     }
 
     @Override
     public final  void drawLineLoop() {
-        r.drawLineLoop(g, Math.round(mLineThickness));
+        //r.drawLineLoop(g, Math.round(mLineThickness));
+        int thickness = Math.round(mLineThickness);
+        if (thickness <= 1) {
+            if (getNumVerts() > 1) {
+                for (int i=0; i<getNumVerts()-1; i++) {
+                    AWTUtils.drawLinef(g, getX(i), getY(i), getX(i+1), getY(i+1), 1);
+                }
+                int lastIndex = getNumVerts()-1;
+                AWTUtils.drawLinef(g, getX(lastIndex), getY(lastIndex), getX(0), getY(0), 1);
+            }
+            return;
+        }
+        if (getNumVerts() > 1) {
+            for (int i=1; i<getNumVerts(); i++) {
+                float x0 = getX(i-1);
+                float y0 = getY(i-1);
+                float x1 = getX(i);
+                float y1 = getY(i);
+                AWTUtils.drawLinef(g, x0, y0, x1, y1, thickness);
+            }
+            if (getNumVerts()>2) {
+                float x0 = getX(getNumVerts()-1);
+                float y0 = getY(getNumVerts()-1);
+                float x1 = getX(0);
+                float y1 = getY(0);
+                AWTUtils.drawLinef(g, x0, y0, x1, y1, thickness);
+            }
+        }
     }
 
     @Override
     public final  void drawTriangles() {
-        r.fillTriangles(g);
+        //r.fillTriangles(g);
+        for (int i=0; i<=getNumVerts()-3; i+=3) {
+            AWTUtils.fillTrianglef(g, getX(i), getY(i), getX(i+1), getY(i+1), getX(i+2), getY(i+2));
+        }
     }
 
     @Override
     public final  void drawTriangleFan() {
-        r.drawTriangleFan(g);
+        ///r.drawTriangleFan(g);
+        for (int i=1; i<getNumVerts()-1; i+=1) {
+            //AWTUtils.drawTriangle(g, getX(i), getY(i), getX(i+1), getY(i+1), getX(i+2), getY(i+2));
+            AWTUtils.fillTrianglef(g, getX(0), getY(0), getX(i), getY(i), getX(i+1), getY(i+1));
+        }
     }
 
     @Override
     public final  void drawTriangleStrip() {
-        r.drawTriangleStrip(g);
+        //r.drawTriangleStrip(g);
+        for (int i=0; i<=getNumVerts()-3; i+=1) {
+            AWTUtils.fillTrianglef(g, getX(i), getY(i), getX(i+1), getY(i+1), getX(i+2), getY(i+2));
+        }
     }
     
     @Override
     public final void drawQuadStrip() {
-    	r.fillQuadStrip(g);
+    	//r.fillQuadStrip(g);
+        for (int i=0; i<=getNumVerts()-4; i+=2) {
+            AWTUtils.fillTrianglef(g, getX(i), getY(i), getX(i+1), getY(i+1), getX(i+2), getY(i+2));
+            AWTUtils.fillTrianglef(g, getX(i+1), getY(i+1), getX(i+2), getY(i+2), getX(i+3), getY(i+3));
+        }
     }
 
     @Override
@@ -163,8 +216,8 @@ public final class AWTGraphics extends AGraphics {
     }
     
     @Override
-    public final int[] loadImageCells(String assetPath, int w, int h, int numCellsX, int numCellsY, boolean bordered, AColor transparent) {
-        return images.loadImageCells(assetPath, w, h, numCellsX, numCellsY, bordered, ((AWTColor)transparent).color);
+    public final int[] loadImageCells(String assetPath, int w, int h, int numCellsX, int numCells, boolean bordered, AColor transparent) {
+        return images.loadImageCells(assetPath, w, h, numCellsX, numCells, bordered, ((AWTColor)transparent).color);
     }
 
     @Override
@@ -226,48 +279,8 @@ public final class AWTGraphics extends AGraphics {
     }
 
     @Override
-    public final  void pushMatrix() {
-        r.pushMatrix();
-    }
-
-    @Override
-    public final  void popMatrix() {
-        r.popMatrix();
-    }
-
-    @Override
-    public final  void translate(float x, float y) {
-        r.translate(x, y);
-    }
-    
-    @Override
-    public final  void rotate(float degrees) {
-        r.rotate(degrees);
-    }
-
-    @Override
-    public final  void scale(float x, float y) {
-        r.scale(x, y);
-    }
-
-    @Override
-    public final  void setIdentity() {
-        r.makeIdentity();
-    }
-
-    @Override
     public final  AColor makeColor(float r, float g, float b, float a) {
         return new AWTColor(new Color(r, g, b, a));
-    }
-
-    @Override
-    public final  void begin() {
-        r.clearVerts();
-    }
-
-    @Override
-    public final  void end() {
-        r.clearVerts();
     }
 
     @Override
@@ -284,29 +297,9 @@ public final class AWTGraphics extends AGraphics {
         g.setColor(c);
     }
 
-    @Override
-    public final  void ortho(float left, float right, float top, float bottom) {
-        r.setOrtho(left, right, top, bottom);
-    }
-
     public final  void setFont(Font font) {
         g.setFont(font);
     }
-
-	@Override
-	public final void clearMinMax() {
-		r.clearBoundingRect();
-	}
-
-	@Override
-	public final Vector2D getMinBoundingRect() {
-		return r.getMin();
-	}
-
-	@Override
-	public final Vector2D getMaxBoundingRect() {
-		return r.getMax();
-	}
 
 	public void setColor(Color c) {
 		g.setColor(c);
@@ -338,50 +331,14 @@ public final class AWTGraphics extends AGraphics {
 	}
 
 	public void drawLineLoop(int thickness) {
-		r.drawLineLoop(g, thickness);
+		float saveThickness = setLineWidth(thickness);
+        drawLineLoop();
+        setLineWidth(saveThickness);
 	}
 
 	public void fillPolygon() {
-		r.fillPolygon(g);
+		//r.fillPolygon(g);
+        drawTriangleFan();
 	}
-
-	public void setName(int index) {
-		r.setName(index);
-	}
-
-	public int pickLines(int mouseX, int mouseY, int thickness) {
-		return r.pickLines(mouseX, mouseY, thickness);
-	}
-
-	public int pickPoints(int mouseX, int mouseY, int size) {
-		return r.pickPoints(mouseX, mouseY, size);
-	}
-
-    /**
-     * return which quad defined by 4 point contains mouseX/Y
-     *
-     * @param mouseX
-     * @param mouseY
-     * @return
-     */
-	public int pickQuads(int mouseX, int mouseY) {
-        return r.pickQuads(mouseX, mouseY);
-    }
-
-    /**
-     * return which rect defined by 2 points contains mouseX/Y
-     *
-     * @param mouseX
-     * @param mouseY
-     * @return
-     */
-    public int pickRects(int mouseX, int mouseY) {
-        return r.pickRects(mouseX, mouseY);
-    }
-
-    public List<IVector2D> getVerticesForName(int name) {
-        return r.getVerticesForName(name);
-    }
-
 
 }

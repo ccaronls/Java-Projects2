@@ -188,15 +188,15 @@ public class ImageMgr {
 	 * Convenience method, use getSourceImage(sourceId) as source Image.
 	 * 
 	 * @param sourceId
-	 * @param width
-	 * @param height
-	 * @param nx
-	 * @param ny
-	 * @param celled
+	 * @param width width of each sub image
+	 * @param height height of each subimage
+	 * @param numx number of cells on each row
+	 * @param num number of cells total
+	 * @param celled true of each cell has a 1 pixel border
 	 * @return
 	 */
-	public int [] loadImageCells(int sourceId, int width, int height, int nx, int ny, boolean celled) {
-		return loadImageCells(this.getSourceImage(sourceId), width, height, nx, ny, celled);
+	public int [] loadImageCells(int sourceId, int width, int height, int numx, int num, boolean celled) {
+		return loadImageCells(this.getSourceImage(sourceId), width, height, numx, num, celled);
 	}
 	
 	/**
@@ -211,7 +211,7 @@ public class ImageMgr {
 	/**
 	 * 
 	 * @param id
-	 * @param tColor
+	 * @param color
 	 */
 	public void setTransparent(int id, Color color) {
 		Image image = sourceImages.get(id);

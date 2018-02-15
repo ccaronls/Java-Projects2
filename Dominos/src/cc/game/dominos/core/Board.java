@@ -237,6 +237,20 @@ public class Board extends Reflector<Board> {
                     selectedEndpoint = endpoint;
                     selectedPlacement = i;
                     g.popMatrix();
+                    int newTotal = computeEndpointsTotal();
+                    int openPips = root.pip1;
+                    if (endpoints[selectedEndpoint].size() > 0) {
+                        newTotal -= openPips = endpoints[selectedEndpoint].getLast().openPips;
+                    } else if (selectedEndpoint == EP_LEFT || selectedEndpoint == EP_RIGHT) {
+                        newTotal -= root.pip1;
+                    }
+
+                    if (highlightedTile.pip1 == openPips) {
+                        newTotal += highlightedTile.pip2;
+                    } else {
+                        newTotal += highlightedTile.pip1;
+                    }
+                    Utils.println("Endpoint total:" + newTotal);
                     continue;
                 }
 
@@ -374,8 +388,10 @@ public class Board extends Reflector<Board> {
         g.setColor(g.WHITE);
         drawDie(g, 0, 0, dim, pipDim, pips1);
         drawDie(g, dim, 0, dim, pipDim, pips2);
-        g.setColor(g.RED);
-        g.drawDisk(0, 0, 4);
+        if (false && AGraphics.DEBUG_ENABLED) {
+            g.setColor(g.RED);
+            g.drawDisk(0, 0, 4);
+        }
         g.popMatrix();
     }
 

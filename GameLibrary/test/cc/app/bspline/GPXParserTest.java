@@ -7,7 +7,7 @@ import junit.framework.TestCase;
 public class GPXParserTest extends TestCase {
 
 	int num = 0;
-	
+	/*
 	
 	public void test() throws Exception {
 
@@ -40,6 +40,6 @@ public class GPXParserTest extends TestCase {
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
 		}
-	}
+	}*/
 	
 }

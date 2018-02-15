@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import cc.lib.game.AAnimation;
+import cc.lib.game.AGraphics;
 import cc.lib.game.Utils;
 import cc.lib.utils.Reflector;
 
@@ -15,6 +17,9 @@ public class Player extends Reflector<Player> {
 
     List<Tile> tiles = new ArrayList<>();
     int score;
+
+    @Omit
+    AAnimation<AGraphics> animation = null;
 
     boolean hasTile(int n1, int n2) {
         for (Tile p : tiles) {

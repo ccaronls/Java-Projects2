@@ -37,7 +37,7 @@ public abstract class AColor extends Reflector<AColor> {
     /**
      * 
      * @param g
-     * @param amount
+     * @param amount value between 0-1 to indcate amount of RGB to remove
      * @return
      */
     public final AColor darken(AGraphics g, float amount) {
@@ -53,7 +53,7 @@ public abstract class AColor extends Reflector<AColor> {
     /**
      * 
      * @param g
-     * @param amount
+     * @param amount value between 0-1 to indcate amount of RGB to add
      * @return
      */
     public final AColor lighten(AGraphics g, float amount) {

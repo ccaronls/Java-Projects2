@@ -2,12 +2,39 @@ package cc.game.dominos.core;
 
 import java.util.*;
 
+import cc.lib.game.AAnimation;
 import cc.lib.game.AGraphics;
 import cc.lib.game.APGraphics;
 import cc.lib.game.Utils;
 import cc.lib.math.MutableVector2D;
 import cc.lib.utils.Reflector;
 
+/**
+ * Dominos game biznezz logic.
+ *
+ * Example usage:
+ *
+ * D = new Dominos();
+ * D.setNumPlayers(4);
+ * D.startNewGame(6, 150);
+ *
+ * ...
+ *
+ * From ender thread:
+ * D.draw(g, mouseX, mouseY);
+ *
+ * on mouse click events:
+ * D.onClick();
+ *
+ * on mouse move event:
+ * D.redraw()
+ *
+ * on drag start event:
+ * D.startDrag(mouseX, mouseY)
+ *
+ * on drag end event
+ * D.endDrag(mouseX, mouseY)
+ */
 public abstract class Dominos extends Reflector<Dominos> {
 
     static {
@@ -16,7 +43,7 @@ public abstract class Dominos extends Reflector<Dominos> {
 
     @Override
     protected int getMinVersion() {
-        return 1;
+        return super.getMinVersion();
     }
 
     private Player [] players = new Player[0];
@@ -240,8 +267,8 @@ public abstract class Dominos extends Reflector<Dominos> {
             }
             pts = 5*((pts+2)/5);
             if (pts > 0) {
-                p.score += pts;
                 onPlayerPoints(p, pts);
+                p.score += pts;
             }
             newRound();
             onEndRound();
@@ -270,9 +297,53 @@ public abstract class Dominos extends Reflector<Dominos> {
         redraw();
     }
 
-    protected void onPlayerPoints(Player p, int pts) {
-        // start an animation
+    @Omit
+    private final List<AAnimation<AGraphics>> animations = new ArrayList<>();
+
+	private class PtsAnimation extends AAnimation<AGraphics> {
+
+	    final int pts;
+	    final Player p;
+	    final int name;
+
+	    PtsAnimation(Player p, int pts) {
+	        super(2000);
+	        this.pts = pts;
+	        this.p = p;
+	        name = turn;
+        }
+
+        @Override
+        protected void draw(AGraphics g, float position, float dt) {
+            int curPts = p.score + Math.round(position * pts);
+            int alpha = 255 - Math.round(position*255);
+            if (p.isPiecesVisible())
+                g.drawAnnotatedString(String.format("%d Points [%d,255,0,0] +%d", curPts, alpha, pts), 0, 0);
+            else
+                g.drawAnnotatedString(String.format("P%d X %d [0,0,0]%d Points [%d,255,0,0] +%d", name, p.getTiles().size(), curPts, alpha, pts), 0, 0);
+            redraw();
+        }
+
+        @Override
+        protected void onDone() {
+            p.animation = null;
+            synchronized (Dominos.this) {
+                Dominos.this.notifyAll();
+            }
+            redraw();
+        }
+    }
+
+    protected void onPlayerPoints(Player p, final int pts) {
+	    if (pts > 0) {
+	        p.animation = new PtsAnimation(p, pts).start();
+        }
         redraw();
+	    synchronized (this) {
+	        try {
+	            wait();
+            } catch (Exception e) {}
+        }
     }
 
     public final   void draw(APGraphics g, int pickX, int pickY) {
@@ -311,14 +382,14 @@ public abstract class Dominos extends Reflector<Dominos> {
         g.popMatrix();
     }
 
-    void setupTextHeight(AGraphics g, float targetWidth, float targetHeight) {
+    private void setupTextHeight(AGraphics g, float targetWidth, float targetHeight) {
         targetHeight -= 10;
         targetHeight /= 5;
         g.setTextHeight(targetHeight);
 
         // now size down until the string fits into the width
         for (int i=0; i<100; i++) {
-            float width = g.getTextWidth("WWWWWWWWWWW");
+            float width = g.getTextWidth("WWWWWWWWWWWWW");
             if (width > targetWidth) {
                 //g.setFont(g.getFont().deriveFont(--targetHeight));
                 g.setTextHeight(--targetHeight);
@@ -326,7 +397,6 @@ public abstract class Dominos extends Reflector<Dominos> {
                 break;
             }
         }
-
     }
 
     private void drawInfo(APGraphics g, float w, float h) {
@@ -338,7 +408,13 @@ public abstract class Dominos extends Reflector<Dominos> {
 	        name++;
 	        if (p.isPiecesVisible())
 	            continue;
-	        g.drawString(String.format("P%d X %d %d Points\n", name, p.getTiles().size(), p.getScore()), padding, y);
+	        g.pushMatrix();
+	        g.translate(padding, y);
+	        if (p.animation != null)
+	            p.animation.update(g);
+	        else
+                g.drawAnnotatedString(String.format("P%d X %d [0,0,0]%d Points\n", name, p.getTiles().size(), p.getScore()), 0, 0);
+	        g.popMatrix();
 	        y += g.getTextHeight();
         }
         g.drawString(String.format("Pool X %d", pool.size()), padding, y);
@@ -357,18 +433,22 @@ public abstract class Dominos extends Reflector<Dominos> {
 	    g.pushMatrix();
 	    int padding = 5;
 	    g.setColor(g.BLUE);
-	    g.drawString(String.format("%d Points", p.getScore()), padding, padding);
-	    g.translate(padding, g.getTextHeight() + padding*2);
+	    g.translate(padding, padding);
+	    if (p.animation != null)
+	        p.animation.update(g);
+	    else
+	        g.drawString(String.format("%d Points", p.getScore()), 0, 0);
+	    g.translate(0, g.getTextHeight() + padding);
 
 	    h-= padding*2+g.getTextHeight();
 	    w-= padding*2;
 
 	    // find the best grid to use to
-        drawPlayerTiles(g, p, true, w, h, pickX, pickY);
+        drawPlayerTiles(g, p, w, h, pickX, pickY);
         g.popMatrix();
     }
 
-    private void drawPlayerTiles(APGraphics g, Player p, boolean visible, float w, float h, int pickX, int pickY) {
+    private void drawPlayerTiles(APGraphics g, Player p, float w, float h, int pickX, int pickY) {
 
 	    int numRows = 1;
 	    final int numTiles = p.getTiles().size();
@@ -428,17 +508,6 @@ public abstract class Dominos extends Reflector<Dominos> {
         }
     }
 
-    public static void drawTile(AGraphics g, Tile t, float dim, boolean visible) {
-	    if (visible) {
-	        Board.drawTile(g, dim, t.pip1, t.pip2);
-        } else {
-	        g.setColor(g.BLACK);
-	        g.drawFilledRoundedRect(0, 0,dim*2, dim, dim/4);
-	        g.setColor(g.WHITE);
-	        g.drawRoundedRect(0, 0, dim*2, dim, 1, dim/4);
-        }
-    }
-
     public final Player getWinner() {
         for (Player p : players) {
             if (p.score >= maxScore) {
@@ -447,13 +516,11 @@ public abstract class Dominos extends Reflector<Dominos> {
         }
         return null;
     }
-    public void onClick() {
+    public final void onClick() {
         PlayerUser user = (PlayerUser)players[0];
         if (highlightedPlayerTile >= 0) {
-            if ((selectedPlayerTile = highlightedPlayerTile) >= 0)
-                getBoard().highlightMovesForPiece(user.getTiles().get(selectedPlayerTile));
-            else
-                getBoard().highlightMovesForPiece(null);
+            selectedPlayerTile = highlightedPlayerTile;
+            getBoard().highlightMovesForPiece(user.getTiles().get(selectedPlayerTile));
         } else if (board.selectedEndpoint >= 0) {
             user.tile = board.highlightedTile;
             user.endpoint = board.selectedEndpoint;
@@ -463,11 +530,14 @@ public abstract class Dominos extends Reflector<Dominos> {
                 notifyAll();
             }
             selectedPlayerTile = -1;
+        } else {
+            getBoard().highlightMovesForPiece(null);
+            Utils.println("endpoints total: " + board.computeEndpointsTotal());
         }
         redraw();
     }
 
-    public void onDrag(int pickX, int pickY) {
+    public final void startDrag(int pickX, int pickY) {
     }
 
     public abstract void redraw();

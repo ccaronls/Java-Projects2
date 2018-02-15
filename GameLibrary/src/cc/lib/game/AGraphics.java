@@ -1,6 +1,8 @@
 package cc.lib.game;
 
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import cc.lib.math.CMath;
 import cc.lib.math.MutableVector2D;
@@ -13,12 +15,12 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     private int mViewportWidth, mViewportHeight;
 
     /**
-     * 
+     *
      */
     protected AGraphics() {
-        
+
     }
-    
+
     /**
      * 
      * @param viewportWidth
@@ -95,13 +97,101 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     public final float drawString(String text, float x, float y) {
         return drawJustifiedString(x, y, Justify.LEFT, Justify.TOP, text);
     }
-    
+
+    /**
+     *
+     * @param text
+     * @param x
+     * @param y
+     * @return
+     */
+    public final float drawAnnotatedString(String text, float x, float y) {
+        return drawAnnotatedString(text, x,y, Justify.LEFT);
+    }
+
+   /**
+    * Annotated string can have annotations in the string (alal html) to control color, underline etc.
+    *
+    * annotated color pattern:
+    * [(a,)?r,g,b]
+    *
+    * @param text
+    * @param x
+    * @param y
+    * @return
+    */
+    public final float drawAnnotatedString(String text, float x, float y, Justify hJust) {
+
+        Matcher m = ANNOTATION_PATTERN.matcher(text);
+
+        if (m.find()) {
+            MutableVector2D mv = new MutableVector2D(x, y);
+            transform(mv);
+            x = mv.getX();
+            y = mv.getY();
+            AColor saveColor = getColor();
+            float width = 0;
+            int start = 0;
+            do {
+
+                AColor nextColor = stringToColor(m.group());
+                float w = drawStringLine(x, y, hJust, text.substring(start, m.start()));
+                width += w;
+                x += w;
+                start = m.end();
+                setColor(nextColor);
+
+            } while (m.find());
+            width += drawStringLine(x, y, hJust, text.substring(start));
+            setColor(saveColor);
+            return width;
+        }
+
+        return drawString(text, x, y);
+    }
+
+    final static Pattern ANNOTATION_PATTERN = Pattern.compile("\\[([0-9]{1,3},)?[0-9]{1,3},[0-9]{1,3},[0-9]{1,3}\\]");
+
+    /**
+     * Parses string of pattern [(a,)?r,g,b] into a color object
+     * @param str
+     * @return null of string not identified as a color
+     */
+    public final AColor stringToColor(String str) {
+        try {
+            if (str.startsWith("[") && str.endsWith("]")) {
+                String[] parts = str.substring(1, str.length() - 1).split("[,]");
+                if (parts.length == 3) {
+                    return makeColor(Integer.parseInt(parts[0]), Integer.parseInt(parts[1]), Integer.parseInt(parts[2]));
+                } else if (parts.length == 4) {
+                    return makeColor(Integer.parseInt(parts[1]), Integer.parseInt(parts[2]), Integer.parseInt(parts[3]), Integer.parseInt(parts[0]));
+                }
+            }
+        } catch (Exception e) {
+        }
+        error("Cannot parse '" + str + "' into a color");
+        return null;
+    }
+
+    public final String colorToString(AColor color) {
+        return "[" + Math.round(color.getAlpha()*255)
+                + "," + Math.round(color.getRed()*255)
+                + "," + Math.round(color.getGreen()*255)
+                + "," + Math.round(color.getBlue()*255) + "]";
+    }
+
     /**
      * 
      * @return
      */
     public abstract int getTextHeight();
-    
+
+    /**
+     *
+     * @param height
+     */
+    public abstract void  setTextHeight(float height);
+
     /**
      * 
      * @param string
@@ -281,7 +371,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param text
      * @return
      */
-    public final float drawWrapString(float x, float y, int maxWidth, String text) {
+    public final float drawWrapString(float x, float y, float maxWidth, String text) {
         String [] lines = generateWrappedLines(text, maxWidth);
         for (int i=0; i<lines.length; i++) {
             drawStringLine(x, y, Justify.LEFT, lines[i]);
@@ -320,8 +410,8 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     
     /**
      * Draw a single line of justified text and return the width of the text
-     * @param x
-     * @param y
+     * @param x position in screen coordinates
+     * @param y position in screen coordinates
      * @param hJust
      * @param text
      * @return
@@ -447,30 +537,35 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     }
 
     /**
-     * 
+     * Draw a series of triangle. Every 3 vertices is treated as a unique triangle
      */
     public abstract void drawTriangles();
 
     /**
-     * 
+     * draw a series of adjacent triangles that all share a common point, the first vertex in the list
      */
     public abstract void drawTriangleFan();
     
     /**
-     * 
+     * draw a series of adjacent triangles where the last 2 vertices of the current triangle are used as the first 2 point of the next triangle
      */
     public abstract void drawTriangleStrip();
     
     /**
-     * 
+     * draw a series of connected quads where the last 2 vertices of the current quad is used as the first 2 points of the next quad.
+     * Note the points are not circular:
+     *
+     *  A -- C
+     *  |    |
+     *  B -- D
      */
     public abstract void drawQuadStrip();
     
     /**
      * 
-     * @param assetPath
-     * @param transparent
-     * @return
+     * @param assetPath file location to load the image
+     * @param transparent optional color to make the transparent color if the image does not have transparency built in
+     * @return an id >= 0 if the image was loaded or -1 if not
      */
     public abstract int loadImage(String assetPath, AColor transparent);
 
@@ -480,12 +575,12 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param w
      * @param h
      * @param numCellsX
-     * @param numCellsY
+     * @param numCells
      * @param bordeered
      * @param transparent
-     * @return
+     * @return an array of length numCells with ids to the sub images or null if asset path does not produce an image
      */
-    public abstract int [] loadImageCells(String assetPath, int w, int h, int numCellsX, int numCellsY, boolean bordeered, AColor transparent);
+    public abstract int [] loadImageCells(String assetPath, int w, int h, int numCellsX, int numCells, boolean bordeered, AColor transparent);
     
     /**
      * 
@@ -1111,18 +1206,14 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     }
     
     /**
-     * 
+     * Draw an image
      * @param imageKey
      * @param x
      * @param y
      * @param w
      * @param h
      */
-    public void drawImage(int imageKey, int x, int y, int w, int h) {
-        enableTexture(imageKey);
-        drawFilledRect(x, y, w, h);
-        disableTexture();
-    }
+    public abstract void drawImage(int imageKey, int x, int y, int w, int h);
     
     /**
      * 
@@ -1198,11 +1289,11 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param a
      * @return
      */
-    public AColor makeColor(int r, int g, int b, int a) {
+    public final AColor makeColor(int r, int g, int b, int a) {
         return makeColor((float)r/ 255, (float)g/255, (float)b/255, (float)a/255);
     }
     
-    public AColor makeColorRGBA(int rgba) {
+    public final AColor makeColorRGBA(int rgba) {
     	int r = (rgba >>> 24) & 0xff;
         int g = (rgba >> 16) & 0xff;
         int b = (rgba >> 8) & 0xff;
@@ -1210,7 +1301,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     	return makeColor(r, g, b, a);
     }
 
-    public AColor makeColorARGB(int argb) {
+    public final AColor makeColorARGB(int argb) {
     	int a = (argb >>> 24) & 0xff;
     	int r = (argb >> 16) & 0xff;
         int g = (argb >> 8) & 0xff;

@@ -43,6 +43,14 @@ public class Utils {
     }
 
     /**
+     *
+     * @param expr
+     */
+    public static void assertFalse(boolean expr) {
+        assertTrue(!expr, "Expression is true");
+    }
+
+    /**
      * 
      * @param expr
      * @param msg

@@ -109,7 +109,7 @@ public class MediaScannerAsyncTask extends AsyncTask<String, Integer, Object> im
     }
 
     private final static String [] fileExtensions = {
-            "wav", "aiff", ".amr", "mp3", "ogg", "oga", "wav", "wma"
+            "wav", "aiff", "amr", "mp3", "ogg", "oga", "wav", "wma"
     };
 
     static {

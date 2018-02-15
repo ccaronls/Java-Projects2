@@ -217,7 +217,7 @@ public class ReflectorTest extends TestCase {
     	a.b = "A";
 
     	System.out.println(a);
-    	a.omitField("b");
+    	//a.omitField("b");
 
     	String outA = a.toString();
     	System.out.println(outA);

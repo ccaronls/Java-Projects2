@@ -127,8 +127,9 @@ public class GL10Graphics extends AGraphics {
 
     private int textHeight = 20;
 
-    public final void setTextHeight(int height) {
-        this.textHeight = height;
+    @Override
+    public final void setTextHeight(float height) {
+        this.textHeight = Math.round(height);
     }
     
     /**

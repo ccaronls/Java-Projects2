@@ -21,7 +21,7 @@ public class Renderer {
 		for (int i=0; i<MAX_VERTS; i++) {
 			pts[i] = new MutableVector2D();
 		}
-		m_stack = new Matrix3x3[8];
+		m_stack = new Matrix3x3[16];
 		for (int i=0; i<m_stack.length; i++) {
 			m_stack[i] = new Matrix3x3();
 		}

@@ -12,7 +12,7 @@ import android.view.SurfaceHolder;
  * @author chriscaron
  *
  */
-public abstract class GraphicsActivity extends Activity {
+public abstract class GL10GraphicsActivity extends Activity {
 
 	private BaseRenderer renderer;
 	
@@ -36,12 +36,12 @@ public abstract class GraphicsActivity extends Activity {
 			
 			@Override
 			protected void init(GL10Graphics g) {
-				GraphicsActivity.this.init(g);
+				GL10GraphicsActivity.this.init(g);
 			}
 			
 			@Override
 			protected void drawFrame(GL10Graphics g) {
-				GraphicsActivity.this.drawFrame(g);
+				GL10GraphicsActivity.this.drawFrame(g);
 			}
 		});
 		setContentView(view);
