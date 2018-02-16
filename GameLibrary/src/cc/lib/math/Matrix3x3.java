@@ -111,7 +111,7 @@ public final class Matrix3x3 extends Reflector<Matrix3x3> {
 		return this;
 	}
 
-	public Matrix3x3 assign(
+	public final Matrix3x3 assign(
 			double a11, double a12, double a13,
 			double a21, double a22, double a23,
 			double a31, double a32, double a33) {
@@ -139,7 +139,7 @@ public final class Matrix3x3 extends Reflector<Matrix3x3> {
 	 * @param A
 	 * @return
 	 */
-	public Matrix3x3 multiply(Matrix3x3 A) {
+	public final Matrix3x3 multiply(Matrix3x3 A) {
 		return multiply(this,A,new Matrix3x3());
 	}
 
@@ -148,7 +148,7 @@ public final class Matrix3x3 extends Reflector<Matrix3x3> {
 	 * @param A
 	 * @return
 	 */
-	public Matrix3x3 assignMultiply(Matrix3x3 A) {
+	public final Matrix3x3 multiplyEq(Matrix3x3 A) {
 		return multiply(this,A,this);
 	}
 
@@ -202,7 +202,7 @@ public final class Matrix3x3 extends Reflector<Matrix3x3> {
 
 
 	//A = A^T 
-	public Matrix3x3 assignTranspose() {
+	public final Matrix3x3 transposeEq() {
 		double t;
 		t=a12; a12=a21; a21=t;
 		t=a13; a13=a31; a31=t;
@@ -215,7 +215,7 @@ public final class Matrix3x3 extends Reflector<Matrix3x3> {
 	 * @return
 	 */
 	public final Matrix3x3 transpose() {
-		return new Matrix3x3(this).assignTranspose();
+		return new Matrix3x3(this).transposeEq();
 	}
 
 
@@ -231,7 +231,7 @@ public final class Matrix3x3 extends Reflector<Matrix3x3> {
 	 * @param B
 	 * @return
 	 */
-	public Matrix3x3 subtract( Matrix3x3 B ) {
+	public final Matrix3x3 subtract( Matrix3x3 B ) {
 		return subtract(this,B,new Matrix3x3());
 	}
 	/**
@@ -239,7 +239,7 @@ public final class Matrix3x3 extends Reflector<Matrix3x3> {
 	 * @param B
 	 * @return
 	 */
-	public Matrix3x3 assignSubtract( Matrix3x3 B ) {
+	public final Matrix3x3 subtractEq( Matrix3x3 B ) {
 		return subtract(this,B,this);
 	}
 	/**
@@ -247,7 +247,7 @@ public final class Matrix3x3 extends Reflector<Matrix3x3> {
 	 * @param B
 	 * @return
 	 */
-	public Matrix3x3 add( Matrix3x3 B ) {
+	public final Matrix3x3 add( Matrix3x3 B ) {
 		return add(this,B,new Matrix3x3());
 	}
 	/**
@@ -255,7 +255,7 @@ public final class Matrix3x3 extends Reflector<Matrix3x3> {
 	 * @param B
 	 * @return
 	 */
-	public Matrix3x3 assignAdd( Matrix3x3 B ) {
+	public final Matrix3x3 addEq( Matrix3x3 B ) {
 		return add(this,B,this);
 	}
 
@@ -275,11 +275,11 @@ public final class Matrix3x3 extends Reflector<Matrix3x3> {
 	 * @param r Vector to hold result of multiplication
 	 * @return Reference to the given Vector2D r instance
 	 */
-	public static Vector2D multiply( final Matrix3x3 A, final Vector2D v, final MutableVector2D r ) {
+	public static MutableVector2D multiply( final Matrix3x3 A, final Vector2D v, final MutableVector2D r ) {
 		//                   
 		//               V | v1
 		//                 | v2
-		//                 | v3                     
+		//                 | 1
 		//     -----------------
 		//  A  a11 a12 a13 | c1
 		//     a21 a22 a23 | c2
@@ -296,18 +296,18 @@ public final class Matrix3x3 extends Reflector<Matrix3x3> {
 
 	/**
 	 * Compute the determinant of Matrix A
-	 * @param A
 	 * @return 
 	 */
-	public double determinant() {
-		return a11*a22*a33- a11*a23*a32 + a21*a32*a13 - a21*a12*a33 + a31*a12*a23-a31*a22*a13;
+	public final double determinant() {
+        return a31*a12*a23 - a31*a13*a22 - a21*a12*a33 + a21*a13*a32 + a11*a22*a33 - a11*a23*a32;
+//		return a11*a22*a33 - a11*a23*a32 + a21*a32*a13 - a21*a12*a33 + a31*a12*a23 - a31*a22*a13;
 	}
 
 	/**
 	 * Compute the inverse of the matrix A, place the result in C
 	 */
 	public static Matrix3x3 inverse( final Matrix3x3 A, final Matrix3x3 C ) {
-		double d = (A.a31*A.a12*A.a23-A.a31*A.a13*A.a22-A.a21*A.a12*A.a33+A.a21*A.a13*A.a32+A.a11*A.a22*A.a33-A.a11*A.a23*A.a32);
+		double d = A.determinant();//(A.a31*A.a12*A.a23-A.a31*A.a13*A.a22-A.a21*A.a12*A.a33+A.a21*A.a13*A.a32+A.a11*A.a22*A.a33-A.a11*A.a23*A.a32);
 		double t11 =  (A.a22*A.a33-A.a23*A.a32)/d;
 		double t12 = -(A.a12*A.a33-A.a13*A.a32)/d;
 		double t13 =  (A.a12*A.a23-A.a13*A.a22)/d;
@@ -324,15 +324,16 @@ public final class Matrix3x3 extends Reflector<Matrix3x3> {
 		return C;
 	}
 
-	public final Matrix3x3 assignInverse() {
+	public final Matrix3x3 inverseEq() {
 		return inverse(this,this);
 	}
+
 	public final Matrix3x3 inverse() {
 		return inverse(this,new Matrix3x3());
 	}
 
 	@Override
-	public String toString() {
+	public final String toString() {
 		return "["+a11+", " + a12 + ", " + a13 + "]\n"
 				+ "["+a21+", " + a22 + ", " + a23 + "]\n"
 				+ "["+a31+", " + a32 + ", " + a33 + "]" ;
@@ -347,14 +348,21 @@ public final class Matrix3x3 extends Reflector<Matrix3x3> {
 				|| Double.isNaN(a31)||Double.isNaN(a32)||Double.isNaN(a33);
 	}
 
-	public double[] toArray() {
+	public final double[] toArray() {
 		return new double[]{
 				a11, a21, a31,
 				a12, a22, a32,
 				a13, a23, a33};
 	}
 
-	/**
+    public final float[] toFloatArray() {
+        return new float[]{
+                (float)a11, (float)a21, (float)a31,
+                (float)a12, (float)a22, (float)a32,
+                (float)a13, (float)a23, (float)a33};
+    }
+
+    /**
 	 * Return the Frobenius norm of this Matrix
 	 * @return
 	 */
@@ -362,51 +370,49 @@ public final class Matrix3x3 extends Reflector<Matrix3x3> {
 		return Math.sqrt(  a11*a11 + a12*a12 + a13*a13  + a21*a21 + a22*a22  + a23*a23  + a31*a31 + a32*a32 + a33*a33 ); 
 	}
 	
-	public final void setTranslate(IVector2D v) {
-		setTranslate(v.getX(), v.getY());
+	public final Matrix3x3 setTranslate(IVector2D v) {
+		return setTranslate(v.getX(), v.getY());
 	}
 
-	public final void setTranslate(float tx, float ty) {
-		this.assign(1, 0, tx, 0, 1, ty, 0, 0, 1);
+	public final Matrix3x3 setTranslate(float tx, float ty) {
+		return assign(1, 0, tx, 0, 1, ty, 0, 0, 1);
 	}
 
-	public void multiply(Matrix3x3 M, Matrix3x3 R) {
-		multiply(this, M, R);
+	public final Matrix3x3 multiply(Matrix3x3 M, Matrix3x3 R) {
+		return multiply(this, M, R);
 	}
 
-	public void copy(Matrix3x3 M) {
-		assign(M);
+	public final Matrix3x3 copy(Matrix3x3 M) {
+		return assign(M);
 	}
 
-	public void setRotation(float degrees) {
+	public final Matrix3x3 setRotation(float degrees) {
 		double rads  = degrees * CMath.DEG_TO_RAD;
 		double cos	= Math.cos(rads);
 		double sin	= Math.sin(rads);
-		//assign(cos, sin, 0, -sin, cos, 0, 0, 0, 1);
-		assign(cos, -sin, 0, sin, cos, 0, 0, 0, 1);
+		return assign(cos, -sin, 0, sin, cos, 0, 0, 0, 1);
 	}
 
-	public void setScale(float sx, float sy) {
-		assign(sx, 0, 0, 0, sy, 0, 0, 0, 1);
+	public final Matrix3x3 setScale(float sx, float sy) {
+		return assign(sx, 0, 0, 0, sy, 0, 0, 0, 1);
 	}
-/*
-	public void transform(float [] v) {
-		MutableVector2D V = new MutableVector2D(v[0], v[1]);
-		Vector2D V2 = multiply(V);
-		v[0] = V2.X(); v[1] = V2.Y();
-	}
-	*/
-	public void transform(MutableVector2D v) {
+
+	public final Matrix3x3 setHorzSkew(float n) {
+	    return assign(1-2*n, n, 0, 0, 1, 0, 0, 0, 1);
+    }
+
+	public final void transform(MutableVector2D v) {
 		Vector2D V2 = multiply(v);
 		v.set(V2);
 	}
-	public Matrix3x3 translate(Vector2D v) {
+
+    public final Matrix3x3 translate(Vector2D v) {
 		Matrix3x3 T = new Matrix3x3();
 		T.setTranslate(v.X(), v.Y());
 		return multiply(T);
 	}
-	
-	public Matrix3x3 rotateEq(float degrees) {
+
+	public final Matrix3x3 rotateEq(float degrees) {
 		Matrix3x3 T = new Matrix3x3();
 		T.setRotation(degrees);
 		assign(multiply(T));

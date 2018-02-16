@@ -1,6 +1,7 @@
 package cc.game.dominos.core;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -19,7 +20,13 @@ public class Player extends Reflector<Player> {
     int score;
 
     @Omit
-    AAnimation<AGraphics> animation = null;
+    AAnimation<AGraphics> textAnimation = null;
+
+    void reset() {
+        tiles.clear();
+        score = 0;
+        textAnimation = null;
+    }
 
     boolean hasTile(int n1, int n2) {
         for (Tile p : tiles) {
@@ -49,7 +56,7 @@ public class Player extends Reflector<Player> {
     }
 
     public final List<Tile> getTiles() {
-        return tiles;//new Collections.unmodifiableList(tiles);
+        return Collections.unmodifiableList(tiles);
     }
 
     public final int getScore() {

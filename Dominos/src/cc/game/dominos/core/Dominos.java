@@ -5,9 +5,11 @@ import java.util.LinkedList;
 import java.util.List;
 
 import cc.lib.game.AAnimation;
+import cc.lib.game.AColor;
 import cc.lib.game.AGraphics;
 import cc.lib.game.APGraphics;
 import cc.lib.game.Utils;
+import cc.lib.math.Matrix3x3;
 import cc.lib.utils.Reflector;
 
 /**
@@ -58,6 +60,8 @@ public abstract class Dominos extends Reflector<Dominos> {
     private int selectedPlayerTile = -1;
     @Omit
     private int highlightedPlayerTile = -1;
+    @Omit
+    private Object gameLock = this;
 
 	public void setNumPlayers(int num){
         this.players = new Player[num];
@@ -75,17 +79,22 @@ public abstract class Dominos extends Reflector<Dominos> {
     }
 
     public final void startNewGame(int maxPipNum, int maxScore) {
+	    if (players.length == 0)
+	        throw new RuntimeException("No players!");
         this.maxNum = maxPipNum;
         this.maxScore = maxScore;
+        stopGameThread();
+        newGame();
+        redraw();
+    }
+
+    public final void stopGameThread() {
         if (gameRunning) {
             gameRunning = false;
-            synchronized (this) {
-                this.notifyAll();
+            synchronized (gameLock) {
+                gameLock.notifyAll();
             }
         }
-        newGame();
-        startGameThread();
-        redraw();
     }
 
     public final void startGameThread() {
@@ -95,12 +104,12 @@ public abstract class Dominos extends Reflector<Dominos> {
                 Utils.println("Thread starting.");
                 gameRunning = true;
                 while (gameRunning && !isGameOver()) {
-                    synchronized (Dominos.this) {
+                    synchronized (gameLock) {
                         runGame();
                         redraw();
                         if (gameRunning) {
                             try {
-                                Dominos.this.wait(1000);
+                                gameLock.wait(1000);
                             } catch (Exception e) {
                             }
                         }
@@ -108,6 +117,21 @@ public abstract class Dominos extends Reflector<Dominos> {
                 }
                 gameRunning = false;
                 Utils.println("Thread done.");
+                if (getWinner() != null) {
+                    getWinner().textAnimation = new AAnimation<AGraphics>(1000, -1, true) {
+                        @Override
+                        protected void draw(AGraphics g, float position, float dt) {
+                            AColor c = g.makeColor(position, 1-position, position, position);
+                            if (getWinner().isPiecesVisible()) {
+                                g.drawAnnotatedString(String.format("%sPoints %d WINNER!!", g.colorToString(c), getWinner().getScore()), 0, 0);
+                            } else {
+                                g.drawAnnotatedString(String.format("%sP%d Points %d WINNNER!!", g.colorToString(c), turn, getWinner().getScore()), 0, 0);
+                            }
+                            redraw();
+                        }
+                    }.start();
+                    redraw();
+                }
             }
         }.start();
     }
@@ -120,8 +144,7 @@ public abstract class Dominos extends Reflector<Dominos> {
             }
         }
         for (Player p : players) {
-            p.tiles.clear();
-            p.score = 0;
+            p.reset();
         }
         board.clear();
         newRound();
@@ -239,8 +262,8 @@ public abstract class Dominos extends Reflector<Dominos> {
             }
 
 		    Tile pc = pool.removeFirst();
-		    p.tiles.add(pc);
 		    onTileFromPool(p, pc);
+            p.tiles.add(pc);
             moves.addAll(board.findMovesForPiece(pc));
         }
 
@@ -274,7 +297,7 @@ public abstract class Dominos extends Reflector<Dominos> {
             }
             newRound();
             onEndRound();
-        } else {
+        } else if (getWinner() == null) {
             nextTurn();
         }
 	}
@@ -287,8 +310,43 @@ public abstract class Dominos extends Reflector<Dominos> {
         redraw();
     }
 
-    protected void onTileFromPool(Player p, Tile pc) {
-        redraw();
+    protected void onTileFromPool(Player p, final Tile pc) {
+	    if (p.isPiecesVisible()) {
+	        poolAnimation = new AAnimation<AGraphics>(2000) {
+                @Override
+                protected void draw(AGraphics g, float position, float dt) {
+
+                    g.pushMatrix();
+                    //g.translate(1, 0);
+                    //g.scale(position, 1);
+                    //g.translate(-1, 0);
+                    g.scale(2, 1);
+                    g.multMatrix(new Matrix3x3().setHorzSkew((1.0f-position)/3));
+                    Board.drawTile(g, 1, pc.pip1, pc.pip2, position/2);
+                    g.popMatrix();
+                    redraw();
+                }
+
+                @Override
+                protected void onDone() {
+                    poolAnimation = null;
+                    synchronized (gameLock) {
+                        gameLock.notifyAll();
+                    }
+                    redraw();
+                }
+            }.start();
+	        redraw();
+	        synchronized (gameLock) {
+	            try {
+	                gameLock.wait();
+                } catch (Exception e) {}
+            }
+        } else {
+            redraw();
+        }
+
+
     }
 
     protected void onKnock(Player p) {
@@ -300,66 +358,42 @@ public abstract class Dominos extends Reflector<Dominos> {
     }
 
     @Omit
-    private final List<AAnimation<AGraphics>> animations = new ArrayList<>();
+    private AAnimation<AGraphics> poolAnimation = null;
 
-    enum AnimType {
-        POINTS
-    };
-
-    private class TextAnimation extends AAnimation<AGraphics> {
-
-
-	    final int pts;
-	    final Player p;
-	    final int name;
-        final AnimType type;
-
-	    TextAnimation(Player p, int pts, AnimType type) {
-	        super(2000);
-	        this.pts = pts;
-	        this.p = p;
-            this.type = type;
-	        name = turn;
-        }
-
-        @Override
-        protected void draw(AGraphics g, float position, float dt) {
-            switch (type) {
-                case POINTS: drawPoints(g, position); break;
-            }
-            redraw();
-        }
-
-        private void drawPoints(AGraphics g, float position) {
-            int curPts = p.score + Math.round(position * pts);
-            int alpha = 255 - Math.round(position*255);
-            if (p.isPiecesVisible())
-                g.drawAnnotatedString(String.format("%d Points [%d,255,0,0]+%d", curPts, alpha, pts), 0, 0);
-            else
-                g.drawAnnotatedString(String.format("P%d X %d [0,0,0]%d Points [%d,255,0,0]+%d", name, p.getTiles().size(), curPts, alpha, pts), 0, 0);
-        }
-
-        @Override
-        protected void onDone() {
-            p.animation = null;
-            synchronized (Dominos.this) {
-                Dominos.this.notifyAll();
-            }
-            redraw();
-        }
-    }
 
     /**
      * Called when player was earned pts > 0
      * @param p
      * @param pts
      */
-    protected void onPlayerPoints(Player p, final int pts) {
-        p.animation = new TextAnimation(p, pts, AnimType.POINTS).start();
+    protected void onPlayerPoints(final Player p, final int pts) {
+        p.textAnimation = new AAnimation<AGraphics>(2000) {
+
+            @Override
+            protected void draw(AGraphics g, float position, float dt) {
+                int curPts = p.score + Math.round(position * pts);
+                String alphaRed = g.colorToString(g.RED.setAlpha(1.0f-position));
+                if (p.isPiecesVisible())
+                    g.drawAnnotatedString(String.format("%d PTS %s+%d", curPts, alphaRed, pts), 0, 0);
+                else
+                    g.drawAnnotatedString(String.format("P%d X %d %s%d PTS %s+%d", turn+1, p.getTiles().size(), g.colorToString(g.BLACK), curPts, alphaRed, pts), 0, 0);
+                redraw();
+            }
+
+            @Override
+            protected void onDone() {
+                p.textAnimation = null;
+                synchronized (gameLock) {
+                    gameLock.notifyAll();
+                }
+                redraw();
+            }
+        }.start();
+
         redraw();
-	    synchronized (this) {
-	        try {
-	            wait();
+        synchronized (gameLock) {
+            try {
+                gameLock.wait();
             } catch (Exception e) {}
         }
     }
@@ -401,6 +435,7 @@ public abstract class Dominos extends Reflector<Dominos> {
     }
 
     private void setupTextHeight(AGraphics g, float targetWidth, float targetHeight) {
+
         targetHeight -= 10;
         targetHeight /= 5;
         g.setTextHeight(targetHeight);
@@ -428,10 +463,10 @@ public abstract class Dominos extends Reflector<Dominos> {
 	            continue;
 	        g.pushMatrix();
 	        g.translate(padding, y);
-	        if (p.animation != null)
-	            p.animation.update(g);
+	        if (p.textAnimation != null)
+	            p.textAnimation.update(g);
 	        else
-                g.drawAnnotatedString(String.format("P%d X %d [0,0,0]%d Points\n", name, p.getTiles().size(), p.getScore()), 0, 0);
+                g.drawAnnotatedString(String.format("P%d X %d [0,0,0]%d PTS", name, p.getTiles().size(), p.getScore()), 0, 0);
 	        g.popMatrix();
 	        y += g.getTextHeight();
         }
@@ -452,10 +487,10 @@ public abstract class Dominos extends Reflector<Dominos> {
 	    int padding = 5;
 	    g.setColor(g.BLUE);
 	    g.translate(padding, padding);
-	    if (p.animation != null)
-	        p.animation.update(g);
+	    if (p.textAnimation != null)
+	        p.textAnimation.update(g);
 	    else
-	        g.drawString(String.format("%d Points", p.getScore()), 0, 0);
+	        g.drawString(String.format("%d PTS", p.getScore()), 0, 0);
 	    g.translate(0, g.getTextHeight() + padding);
 
 	    h-= padding*2+g.getTextHeight();
@@ -474,6 +509,10 @@ public abstract class Dominos extends Reflector<Dominos> {
 
 	    int numRows = 1;
 	    int numTiles = p.getTiles().size();
+
+	    if (poolAnimation != null) {
+	        numTiles++;
+        }
 
 	    if (numTiles == 0)
 	        return;
@@ -494,47 +533,60 @@ public abstract class Dominos extends Reflector<Dominos> {
             }
         }
 
+        final int numT = p.tiles.size() + (poolAnimation == null ? 0 : 1);
+
         if (tileD*numRows > h) {
 	        tileD = h/numRows;
         }
 
+        g.setPointSize(tileD/8);
         highlightedPlayerTile = -1;
         int tile = 0;
+        g.pushMatrix();
+        g.scale(tileD, tileD);
         for (int i=0; i<numRows; i++) {
             g.pushMatrix();
             for (int ii=0; ii<tilesPerRow; ii++) {
-                if (tile < p.tiles.size()) {
-                    Tile t = p.tiles.get(tile);
+                if (tile < numT) {
 
-                    boolean available = getUser().usable.contains(t);
-                    if (available) {
-                        g.setName(tile);
-                        g.vertex(0, 0);
-                        g.vertex(tileD * 2, tileD);
-                        int picked = g.pickRects(pickX, pickY);
-                        if (picked >= 0) {
-                            highlightedPlayerTile = picked;
+                    boolean anim = tile >= p.tiles.size();
+
+                    if (!anim) {
+                        Tile t = p.tiles.get(tile);
+                        boolean available = getUser().usable.contains(t);
+                        if (available) {
+                            g.setName(tile);
+                            g.vertex(0, 0);
+                            g.vertex(2, 1);
+                            int picked = g.pickRects(pickX, pickY);
+                            if (picked >= 0) {
+                                highlightedPlayerTile = picked;
+                            }
                         }
+                        g.pushMatrix();
+                        g.translate(0.04f, 0.02f);
+                        g.scale(0.95f, 0.95f);
+                        float alpha = available ? 1f : 0.5f;
+                        Board.drawTile(g, 1, t.pip1, t.pip2, alpha);
+                        g.popMatrix();
+                        if (tile == selectedPlayerTile) {
+                            g.setColor(g.RED);
+                            g.drawRect(0, 0, 2, 1, 3);
+                        } else if (tile == highlightedPlayerTile) {
+                            g.setColor(g.YELLOW);
+                            g.drawRect(0, 0, 2, 1, 3);
+                        }
+                    } else {
+                        poolAnimation.update(g);
                     }
-                    g.pushMatrix();
-                    g.scale(0.95f, 0.95f);
-                    float alpha = available ? 1f : 0.5f;
-                    Board.drawTile(g, tileD, t.pip1, t.pip2, alpha);
-                    g.popMatrix();
-                    if (tile == selectedPlayerTile) {
-                        g.setColor(g.RED);
-                        g.drawRect(0, 0, tileD*2, tileD, 3);
-                    } else if (tile == highlightedPlayerTile) {
-                        g.setColor(g.YELLOW);
-                        g.drawRect(0, 0, tileD*2, tileD, 3);
-                    }
-                    g.translate(tileD*2, 0);
+                    g.translate(2, 0);
                     tile++;
                 }
             }
             g.popMatrix();
-            g.translate(0, tileD);
+            g.translate(0, 1);
         }
+        g.popMatrix();
     }
 
     public final Player getWinner() {
@@ -545,8 +597,9 @@ public abstract class Dominos extends Reflector<Dominos> {
         }
         return null;
     }
+
     public final void onClick() {
-        PlayerUser user = (PlayerUser)players[0];
+        PlayerUser user = getUser();
         if (highlightedPlayerTile >= 0) {
             selectedPlayerTile = highlightedPlayerTile;
             getBoard().highlightMovesForPiece(user.getTiles().get(selectedPlayerTile));
@@ -555,12 +608,13 @@ public abstract class Dominos extends Reflector<Dominos> {
             user.endpoint = board.selectedEndpoint;
             user.placement = board.selectedPlacement;
             getBoard().clearSelection();
-            synchronized (this) {
-                notifyAll();
+            synchronized (gameLock) {
+                gameLock.notifyAll();
             }
             selectedPlayerTile = -1;
         } else {
             getBoard().highlightMovesForPiece(null);
+            selectedPlayerTile = -1;
             Utils.println("endpoints total: " + board.computeEndpointsTotal());
         }
         redraw();

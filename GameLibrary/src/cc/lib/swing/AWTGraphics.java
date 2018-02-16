@@ -40,6 +40,7 @@ public final class AWTGraphics extends APGraphics {
     }
 
     public final void setGraphics(Graphics g) {
+        g.setFont(this.g.getFont());
         this.g = g;
     }
 
@@ -118,11 +119,11 @@ public final class AWTGraphics extends APGraphics {
         int size = Math.round(mPointSize);
         if (size <= 1) {
             for (int i=0; i<getNumVerts(); i++) {
-                g.drawRect(Math.round(getX(i)), Math.round(getY(i)), 1, 1);
+                g.fillRect(Math.round(getX(i)), Math.round(getY(i)), 1, 1);
             }
         } else {
             for (int i=0; i<getNumVerts(); i++) {
-                g.drawOval(Math.round(getX(i)-size/2), Math.round(getY(i)-size/2), size, size);
+                g.fillOval(Math.round(getX(i)-size/2), Math.round(getY(i)-size/2), size, size);
             }
         }
     }
@@ -207,6 +208,32 @@ public final class AWTGraphics extends APGraphics {
         for (int i=0; i<=getNumVerts()-4; i+=2) {
             AWTUtils.fillTrianglef(g, getX(i), getY(i), getX(i+1), getY(i+1), getX(i+2), getY(i+2));
             AWTUtils.fillTrianglef(g, getX(i+1), getY(i+1), getX(i+2), getY(i+2), getX(i+3), getY(i+3));
+        }
+    }
+
+    @Override
+    public void drawRects() {
+        for (int i=0; i<=getNumVerts()-1; i+=2) {
+            Vector2D v0 = getVertex(i);
+            Vector2D v1 = getVertex(i+1);
+            int x = Math.min(v0.Xi(), v1.Xi());
+            int y = Math.min(v0.Yi(), v1.Yi());
+            int w = Math.abs(v0.Xi()-v1.Xi());
+            int h = Math.abs(v0.Yi()-v1.Yi());
+            g.drawRect(x, y, w, h);
+        }
+    }
+
+    @Override
+    public void drawFilledRects() {
+        for (int i=0; i<=getNumVerts()-1; i+=2) {
+            Vector2D v0 = getVertex(i);
+            Vector2D v1 = getVertex(i+1);
+            int x = Math.min(v0.Xi(), v1.Xi());
+            int y = Math.min(v0.Yi(), v1.Yi());
+            int w = Math.abs(v0.Xi()-v1.Xi());
+            int h = Math.abs(v0.Yi()-v1.Yi());
+            g.fillRect(x, y, w, h);
         }
     }
 

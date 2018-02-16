@@ -92,7 +92,7 @@ public abstract class AColor extends Reflector<AColor> {
      * @return
      */
     public final int toARGB() {
-        return (((int)getAlpha()*255)<<24) | (((int)getRed()*255) << 16) | (((int)getGreen()*255)<<8) | (((int)getBlue()*255) << 0);
+        return (((int)(getAlpha()*255))<<24) | (((int)(getRed()*255)) << 16) | (((int)(getGreen()*255))<<8) | (((int)(getBlue()*255)) << 0);
     }
 
     /**
@@ -134,6 +134,12 @@ public abstract class AColor extends Reflector<AColor> {
         return g.makeColor(R, G, B, A);
     }
 
+    /**
+     * Return a new color instance with RGB components of this but specified alpha
+     *
+     * @param alpha
+     * @return
+     */
 	public abstract AColor setAlpha(float alpha);
 
 	/**

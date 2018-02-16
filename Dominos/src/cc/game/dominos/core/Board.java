@@ -222,49 +222,51 @@ public class Board extends Reflector<Board> {
         throw new AssertionError();
     }
 
-    private void drawHighlighted(AGraphics g, int endpoint, int mouseX, int mouseY, float DIM) {
+    private void drawHighlighted(APGraphics g, int endpoint, int mouseX, int mouseY, float DIM) {
         if (highlightedEndpoints.contains(endpoint)) {
-            int indexToHighlight = -1;
             int count = endpoints[endpoint].size() > 1 ? PLACEMENT_COUNT : 1;
+            g.begin();
+            g.setColor(g.CYAN);
             for (int i = 0; i < count; i++) {
                 g.pushMatrix();
                 transformPlacement(g, i, DIM);
-                Vector2D mv = g.screenToViewport(mouseX, mouseY);
-                boolean inside = Utils.isPointInsideRect(mv.getX(), mv.getY(), 0, 0, DIM * 2, DIM);
-
-                if (inside && selectedEndpoint != endpoint) {
-                    indexToHighlight = i;
-                    selectedEndpoint = endpoint;
-                    selectedPlacement = i;
-                    g.popMatrix();
-                    int newTotal = computeEndpointsTotal();
-                    int openPips = root.pip1;
-                    if (endpoints[selectedEndpoint].size() > 0) {
-                        newTotal -= openPips = endpoints[selectedEndpoint].getLast().openPips;
-                    } else if (selectedEndpoint == EP_LEFT || selectedEndpoint == EP_RIGHT) {
-                        newTotal -= root.pip1;
-                    }
-
-                    if (highlightedTile.pip1 == openPips) {
-                        newTotal += highlightedTile.pip2;
-                    } else {
-                        newTotal += highlightedTile.pip1;
-                    }
-                    Utils.println("Endpoint total:" + newTotal);
-                    continue;
-                }
-
-                g.setColor(g.CYAN);
-                g.drawRect(0, 0, DIM * 2, DIM, 3);
+                g.setName(i);
+                g.vertex(0, 0);
+                g.vertex(DIM * 2, DIM);
                 g.popMatrix();
             }
-            // make sure the highlighted is rendered on top of everything thing else
-            if (indexToHighlight >= 0) {
+
+            g.drawRects(3);
+            int picked = g.pickRects(mouseX, mouseY);
+            g.end();
+            if (picked >= 0) {
+                selectedPlacement = picked;
+                selectedEndpoint = endpoint;
+                int newTotal = computeEndpointsTotal();
+                int openPips = root.pip1;
+                if (endpoints[selectedEndpoint].size() > 0) {
+                    newTotal -= openPips = endpoints[selectedEndpoint].getLast().openPips;
+                } else if (selectedEndpoint == EP_LEFT || selectedEndpoint == EP_RIGHT) {
+                    newTotal -= root.pip1;
+                }
+
+                if (highlightedTile.pip1 == openPips) {
+                    newTotal += highlightedTile.pip2;
+                } else {
+                    newTotal += highlightedTile.pip1;
+                }
+                Utils.println("Endpoint total:" + newTotal);
+
+                g.begin();
                 g.pushMatrix();
                 g.setColor(g.RED);
-                transformPlacement(g, indexToHighlight, DIM);
-                g.drawRect(0, 0, DIM * 2, DIM, 3);
+                transformPlacement(g, selectedPlacement, DIM);
+                g.vertex(0, 0);
+                g.vertex(DIM * 2, DIM);
+                g.drawRects(3);
+//                g.drawRect(0, 0, DIM * 2, DIM, 3);
                 g.popMatrix();
+                g.end();
                 Utils.println("selected endpoint = " + epIndexToString(selectedEndpoint) + " placement = " + placementIndexToString(selectedPlacement));
             }
         }
@@ -334,23 +336,29 @@ public class Board extends Reflector<Board> {
             float dimH = vpHeight/(2*maxPcH);
 
             float DIM = Math.min(dimW, dimH);
+            g.setPointSize(DIM/8);
 
             selectedEndpoint = -1;
 
             g.translate(vpWidth / 2, vpHeight / 2);
 
             // DEBUG outline the min/max bounding box
-            g.setColor(g.YELLOW);
-            g.pushMatrix();
-            g.scale(DIM, -DIM);
-            g.drawRect(minBR, maxBR, 1);
-            g.popMatrix();
+            if (false && AGraphics.DEBUG_ENABLED) {
+                g.setColor(g.YELLOW);
+                g.pushMatrix();
+                g.scale(DIM, -DIM);
+                g.drawRect(minBR, maxBR, 1);
+                g.popMatrix();
+            }
 
             g.scale(1, -1);
 
-            Vector2D mv = g.screenToViewport(pickX, pickY);
-            g.setColor(g.YELLOW);
-            g.drawCircle(mv.getX(), mv.getY(), 10);
+            // DEBUG draw pickX, pickY in viewport coords
+            if (false && AGraphics.DEBUG_ENABLED) {
+                Vector2D mv = g.screenToViewport(pickX, pickY);
+                g.setColor(g.YELLOW);
+                g.drawCircle(mv.getX(), mv.getY(), 10);
+            }
 
             g.pushMatrix();
             {
@@ -378,7 +386,6 @@ public class Board extends Reflector<Board> {
 
     static void drawTile(AGraphics g, float dim, int pips1, int pips2, float alpha) {
         g.pushMatrix();
-        int pipDim = Math.round(dim/8);
         g.setColor(g.BLACK.setAlpha(alpha));
         g.drawFilledRoundedRect(0, 0, dim*2, dim, dim/4);
         g.setColor(g.WHITE);
@@ -386,8 +393,8 @@ public class Board extends Reflector<Board> {
         g.setColor(g.WHITE);
         g.drawLine(dim, 0, dim, dim, 2);
         g.setColor(g.WHITE);
-        drawDie(g, 0, 0, dim, pipDim, pips1);
-        drawDie(g, dim, 0, dim, pipDim, pips2);
+        drawDie(g, 0, 0, dim, pips1);
+        drawDie(g, dim, 0, dim, pips2);
         if (false && AGraphics.DEBUG_ENABLED) {
             g.setColor(g.RED);
             g.drawDisk(0, 0, 4);
@@ -395,7 +402,7 @@ public class Board extends Reflector<Board> {
         g.popMatrix();
     }
 
-    static void drawDie(AGraphics g, float x, float y, float dim, int dotSize, int numDots) {
+    static void drawDie(AGraphics g, float x, float y, float dim, int numDots) {
         float dd2 = dim/2;
         float dd4 = dim/4;
         float dd34 = (dim*3)/4;
@@ -403,121 +410,119 @@ public class Board extends Reflector<Board> {
         float dd25 = dim*2/5;
         float dd35 = dim*3/5;
         float dd45 = dim*4/5;
+        g.begin();
         switch (numDots) {
             case 1:
-                drawDot(g, x+dd2, y+dd2, dotSize);
+                g.vertex(x+dd2, y+dd2);
                 break;
             case 2:
-                drawDot(g, x+dd4, y+dd4, dotSize);
-                drawDot(g, x+dd34, y+dd34, dotSize);
+                g.vertex(x+dd4, y+dd4);
+                g.vertex(x+dd34, y+dd34);
                 break;
             case 3:
-                drawDot(g, x+dd4, y+dd4, dotSize);
-                drawDot(g, x+dd2, y+dd2, dotSize);
-                drawDot(g, x+dd34, y+dd34, dotSize);
+                g.vertex(x+dd4, y+dd4);
+                g.vertex(x+dd2, y+dd2);
+                g.vertex(x+dd34, y+dd34);
                 break;
             case 4:
-                drawDot(g, x+dd4, y+dd4, dotSize);
-                drawDot(g, x+dd34, y+dd34, dotSize);
-                drawDot(g, x+dd4, y+dd34, dotSize);
-                drawDot(g, x+dd34, y+dd4, dotSize);
+                g.vertex(x+dd4, y+dd4);
+                g.vertex(x+dd34, y+dd34);
+                g.vertex(x+dd4, y+dd34);
+                g.vertex(x+dd34, y+dd4);
                 break;
             case 5:
-                drawDot(g, x+dd4, y+dd4, dotSize);
-                drawDot(g, x+dd34, y+dd34, dotSize);
-                drawDot(g, x+dd4, y+dd34, dotSize);
-                drawDot(g, x+dd34, y+dd4, dotSize);
-                drawDot(g, x+dd2, y+dd2, dotSize);
+                g.vertex(x+dd4, y+dd4);
+                g.vertex(x+dd34, y+dd34);
+                g.vertex(x+dd4, y+dd34);
+                g.vertex(x+dd34, y+dd4);
+                g.vertex(x+dd2, y+dd2);
                 break;
             case 6:
-                drawDot(g, x+dd4, y+dd4, dotSize);
-                drawDot(g, x+dd34, y+dd34, dotSize);
-                drawDot(g, x+dd4, y+dd34, dotSize);
-                drawDot(g, x+dd34, y+dd4, dotSize);
-                drawDot(g, x+dd4, y+dd2, dotSize);
-                drawDot(g, x+dd34, y+dd2, dotSize);
+                g.vertex(x+dd4, y+dd4);
+                g.vertex(x+dd34, y+dd34);
+                g.vertex(x+dd4, y+dd34);
+                g.vertex(x+dd34, y+dd4);
+                g.vertex(x+dd4, y+dd2);
+                g.vertex(x+dd34, y+dd2);
                 break;
             case 7:
-                drawDot(g, x+dd2, y+dd2, dotSize);
-                drawDot(g, x+dd4, y+dd4, dotSize);
-                drawDot(g, x+dd34, y+dd34, dotSize);
-                drawDot(g, x+dd4, y+dd34, dotSize);
-                drawDot(g, x+dd34, y+dd4, dotSize);
-                drawDot(g, x+dd4, y+dd2, dotSize);
-                drawDot(g, x+dd34, y+dd2, dotSize);
+                g.vertex(x+dd2, y+dd2);
+                g.vertex(x+dd4, y+dd4);
+                g.vertex(x+dd34, y+dd34);
+                g.vertex(x+dd4, y+dd34);
+                g.vertex(x+dd34, y+dd4);
+                g.vertex(x+dd4, y+dd2);
+                g.vertex(x+dd34, y+dd2);
                 break;
             case 8:
-                drawDot(g, x+dd2, y+dd4, dotSize);
-                drawDot(g, x+dd2, y+dd34, dotSize);
-                drawDot(g, x+dd4, y+dd4, dotSize);
-                drawDot(g, x+dd34, y+dd34, dotSize);
-                drawDot(g, x+dd4, y+dd34, dotSize);
-                drawDot(g, x+dd34, y+dd4, dotSize);
-                drawDot(g, x+dd4, y+dd2, dotSize);
-                drawDot(g, x+dd34, y+dd2, dotSize);
+                g.vertex(x+dd2, y+dd4);
+                g.vertex(x+dd2, y+dd34);
+                g.vertex(x+dd4, y+dd4);
+                g.vertex(x+dd34, y+dd34);
+                g.vertex(x+dd4, y+dd34);
+                g.vertex(x+dd34, y+dd4);
+                g.vertex(x+dd4, y+dd2);
+                g.vertex(x+dd34, y+dd2);
                 break;
             case 9:
-                drawDot(g, x+dd2, y+dd2, dotSize);
-                drawDot(g, x+dd2, y+dd4, dotSize);
-                drawDot(g, x+dd2, y+dd34, dotSize);
-                drawDot(g, x+dd4, y+dd4, dotSize);
-                drawDot(g, x+dd34, y+dd34, dotSize);
-                drawDot(g, x+dd4, y+dd34, dotSize);
-                drawDot(g, x+dd34, y+dd4, dotSize);
-                drawDot(g, x+dd4, y+dd2, dotSize);
-                drawDot(g, x+dd34, y+dd2, dotSize);
+                g.vertex(x+dd2, y+dd2);
+                g.vertex(x+dd2, y+dd4);
+                g.vertex(x+dd2, y+dd34);
+                g.vertex(x+dd4, y+dd4);
+                g.vertex(x+dd34, y+dd34);
+                g.vertex(x+dd4, y+dd34);
+                g.vertex(x+dd34, y+dd4);
+                g.vertex(x+dd4, y+dd2);
+                g.vertex(x+dd34, y+dd2);
                 break;
             case 10:
-                drawDot(g, x+dd4, y+dd5, dotSize);
-                drawDot(g, x+dd4, y+dd25, dotSize);
-                drawDot(g, x+dd4, y+dd35, dotSize);
-                drawDot(g, x+dd4, y+dd45, dotSize);
+                g.vertex(x+dd4, y+dd5);
+                g.vertex(x+dd4, y+dd25);
+                g.vertex(x+dd4, y+dd35);
+                g.vertex(x+dd4, y+dd45);
 
-                drawDot(g, x+dd2, y+dd5, dotSize);
-                drawDot(g, x+dd2, y+dd45, dotSize);
+                g.vertex(x+dd2, y+dd5);
+                g.vertex(x+dd2, y+dd45);
 
-                drawDot(g, x+dd34, y+dd5, dotSize);
-                drawDot(g, x+dd34, y+dd25, dotSize);
-                drawDot(g, x+dd34, y+dd35, dotSize);
-                drawDot(g, x+dd34, y+dd45, dotSize);
+                g.vertex(x+dd34, y+dd5);
+                g.vertex(x+dd34, y+dd25);
+                g.vertex(x+dd34, y+dd35);
+                g.vertex(x+dd34, y+dd45);
                 break;
             case 11:
-                drawDot(g, x+dd4, y+dd5, dotSize);
-                drawDot(g, x+dd4, y+dd25, dotSize);
-                drawDot(g, x+dd4, y+dd35, dotSize);
-                drawDot(g, x+dd4, y+dd45, dotSize);
+                g.vertex(x+dd4, y+dd5);
+                g.vertex(x+dd4, y+dd25);
+                g.vertex(x+dd4, y+dd35);
+                g.vertex(x+dd4, y+dd45);
 
-                drawDot(g, x+dd2, y+dd5, dotSize);
-                drawDot(g, x+dd2, y+dd2, dotSize);
-                drawDot(g, x+dd2, y+dd45, dotSize);
+                g.vertex(x+dd2, y+dd5);
+                g.vertex(x+dd2, y+dd2);
+                g.vertex(x+dd2, y+dd45);
 
-                drawDot(g, x+dd34, y+dd5, dotSize);
-                drawDot(g, x+dd34, y+dd2, dotSize);
-                drawDot(g, x+dd34, y+dd35, dotSize);
-                drawDot(g, x+dd34, y+dd45, dotSize);
+                g.vertex(x+dd34, y+dd5);
+                g.vertex(x+dd34, y+dd2);
+                g.vertex(x+dd34, y+dd35);
+                g.vertex(x+dd34, y+dd45);
                 break;
             case 12:
-                drawDot(g, x+dd4, y+dd5, dotSize);
-                drawDot(g, x+dd4, y+dd25, dotSize);
-                drawDot(g, x+dd4, y+dd35, dotSize);
-                drawDot(g, x+dd4, y+dd45, dotSize);
+                g.vertex(x+dd4, y+dd5);
+                g.vertex(x+dd4, y+dd25);
+                g.vertex(x+dd4, y+dd35);
+                g.vertex(x+dd4, y+dd45);
 
-                drawDot(g, x+dd2, y+dd5, dotSize);
-                drawDot(g, x+dd2, y+dd25, dotSize);
-                drawDot(g, x+dd2, y+dd35, dotSize);
-                drawDot(g, x+dd2, y+dd45, dotSize);
+                g.vertex(x+dd2, y+dd5);
+                g.vertex(x+dd2, y+dd25);
+                g.vertex(x+dd2, y+dd35);
+                g.vertex(x+dd2, y+dd45);
 
-                drawDot(g, x+dd34, y+dd5, dotSize);
-                drawDot(g, x+dd34, y+dd25, dotSize);
-                drawDot(g, x+dd34, y+dd35, dotSize);
-                drawDot(g, x+dd34, y+dd45, dotSize);
+                g.vertex(x+dd34, y+dd5);
+                g.vertex(x+dd34, y+dd25);
+                g.vertex(x+dd34, y+dd35);
+                g.vertex(x+dd34, y+dd45);
                 break;
-
         }
-    }
-
-    private static void drawDot(AGraphics g, float x, float y, int dotSize) {
-        g.drawFilledOval(x-dotSize/2,y-dotSize/2,dotSize,dotSize);
+        g.drawPoints();
+        g.end();
     }
 
     final int computeEndpointsTotal() {

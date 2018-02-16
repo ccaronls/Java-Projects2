@@ -2,6 +2,7 @@ package cc.lib.game;
 
 import java.util.List;
 
+import cc.lib.math.Matrix3x3;
 import cc.lib.math.Vector2D;
 
 /**
@@ -61,6 +62,11 @@ public abstract class APGraphics extends AGraphics {
     @Override
     public final  void setIdentity() {
         r.makeIdentity();
+    }
+
+    @Override
+    public void multMatrix(Matrix3x3 m) {
+        r.multiply(m);
     }
 
     @Override

@@ -15,7 +15,7 @@ import cc.lib.math.*;
 
 public class DroidGraphics extends APGraphics {
 
-    final Canvas canvas;
+    private Canvas canvas;
     final Paint paint = new Paint();
     final Path path = new Path();
     final RectF rectf = new RectF();
@@ -25,6 +25,7 @@ public class DroidGraphics extends APGraphics {
         super(canvas.getWidth(), canvas.getHeight());
         this.canvas = canvas;
         r.setOrtho(0, canvas.getWidth(), 0, canvas.getHeight());
+        paint.setStrokeWidth(1);
     }
 
     public final void shutDown() {
@@ -34,6 +35,11 @@ public class DroidGraphics extends APGraphics {
             }
         }
         bitmaps.clear();
+    }
+
+    public void setCanvas(Canvas c) {
+        this.canvas = c;
+        initViewport(c.getWidth(), c.getHeight());
     }
 
     /**
@@ -92,6 +98,7 @@ public class DroidGraphics extends APGraphics {
 
     @Override
     public final float drawStringLine(float x, float y, Justify hJust, String text) {
+        y += getTextHeight(); // Android does bottom align by default for some bizzarre reason
         switch (hJust) {
             case LEFT:
                 paint.setTextAlign(Paint.Align.LEFT); break;
@@ -125,7 +132,7 @@ public class DroidGraphics extends APGraphics {
         paint.setStyle(Paint.Style.FILL);
         for (int i=0; i<r.getNumVerts(); i++) {
             Vector2D v = r.getVertex(i);
-            canvas.drawCircle(v.getX(), v.getY(), pointSize, paint);
+            canvas.drawCircle(v.getX(), v.getY(), pointSize/2, paint);
         }
     }
 
@@ -182,9 +189,9 @@ public class DroidGraphics extends APGraphics {
 
     @Override
     public final void drawTriangles() {
-        paint.setStyle(Paint.Style.STROKE);
+        paint.setStyle(Paint.Style.FILL);
         int num = r.getNumVerts();
-        for (int i=0; i<num-2; i+=3) {
+        for (int i=0; i<=num-3; i+=3) {
             Vector2D v0 = r.getVertex(i);
             Vector2D v1 = r.getVertex(i+1);
             Vector2D v2 = r.getVertex(i+2);
@@ -194,7 +201,7 @@ public class DroidGraphics extends APGraphics {
 
     @Override
     public final void drawTriangleFan() {
-        paint.setStyle(Paint.Style.STROKE);
+        paint.setStyle(Paint.Style.FILL);
         int num = r.getNumVerts();
         if (num < 3)
             return;
@@ -209,7 +216,7 @@ public class DroidGraphics extends APGraphics {
 
     @Override
     public final void drawTriangleStrip() {
-        paint.setStyle(Paint.Style.STROKE);
+        paint.setStyle(Paint.Style.FILL);
         int num = r.getNumVerts();
         if (num < 3)
             return;
@@ -225,19 +232,52 @@ public class DroidGraphics extends APGraphics {
 
     @Override
     public final void drawQuadStrip() {
-        paint.setStyle(Paint.Style.STROKE);
+        paint.setStyle(Paint.Style.FILL);
         int num = r.getNumVerts();
         if (num < 4)
             return;
         Vector2D v0 = r.getVertex(0);
         Vector2D v1 = r.getVertex(1);
-        for (int i=2; i<=num-1; i+=2) {
+        for (int i=2; i<=num-2; i+=2) {
             Vector2D v3 = r.getVertex(i);
             Vector2D v2 = r.getVertex(i+1);
             drawPolygon(v0, v1, v2, v3);
             v0 = v2;
             v1 = v3;
         }
+    }
+
+    @Override
+    public void drawRects() {
+        paint.setStyle(Paint.Style.STROKE);
+        for (int i=0; i<=r.getNumVerts()-2; i+=2) {
+            Vector2D v0 = r.getVertex(i);
+            Vector2D v1 = r.getVertex(i+1);
+            float x = Math.min(v0.X(), v1.X());
+            float y = Math.min(v0.Y(), v1.Y());
+            float w = Math.abs(v0.X()-v1.X());
+            float h = Math.abs(v0.Y()-v1.Y());
+            //canvas.drawRect(x, y, w, h, paint);
+            canvas.drawLine(x, y, x+w, y, paint);
+            canvas.drawLine(x+w, y, x+w, y+h, paint);
+            canvas.drawLine(x+w, y+h, x, y+h, paint);
+            canvas.drawLine(x, y+h, x, y, paint);
+        }
+    }
+
+    @Override
+    public void drawFilledRects() {
+        paint.setStyle(Paint.Style.FILL);
+        for (int i=0; i<=r.getNumVerts()-2; i+=2) {
+            Vector2D v0 = r.getVertex(i);
+            Vector2D v1 = r.getVertex(i+1);
+            float x = Math.min(v0.X(), v1.X());
+            float y = Math.min(v0.Y(), v1.Y());
+            float w = Math.abs(v0.X()-v1.X());
+            float h = Math.abs(v0.Y()-v1.Y());
+            canvas.drawRect(x, y, w, h, paint);
+        }
+
     }
 
     private final Vector<Bitmap> bitmaps = new Vector<>();

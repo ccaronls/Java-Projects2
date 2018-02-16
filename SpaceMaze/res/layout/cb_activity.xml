@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:cc="http://schemas.android.com/apk/res-auto"
+                xmlns:tools="http://schemas.android.com/tools"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_height="wrap_content"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_gravity="center_vertical"
+            android:orientation="vertical">
+
+            <Button
+                android:id="@+id/buttonNewGame"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:text="New Game"/>
+
+            <Button
+                android:id="@+id/buttonEndTurn"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:text="End Turn"/>
+
+            <Button
+                android:id="@+id/buttonRobot"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:text="Robot"/>
+
+            <ToggleButton
+                android:id="@+id/toggleButtonDebug"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:textOff="Debug Off"
+                android:textOn="Debug On"/>
+
+
+            <ImageButton
+                android:id="@+id/buttonUp"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:src="@android:drawable/arrow_up_float"/>
+
+            <LinearLayout
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content">
+
+                <ImageButton
+                    android:id="@+id/buttonLeft"
+                    android:layout_width="0dp"
+                    android:layout_height="fill_parent"
+                    android:layout_weight="1"
+                    android:src="@android:drawable/ic_media_previous"/>
+
+                <ImageButton
+                    android:id="@+id/buttonRight"
+                    android:layout_width="0dp"
+                    android:layout_height="fill_parent"
+                    android:layout_weight="1"
+                    android:src="@android:drawable/ic_media_next"/>
+
+            </LinearLayout>
+
+            <ImageButton
+                android:id="@+id/buttonDown"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:src="@android:drawable/arrow_down_float"/>
+
+        </LinearLayout>
+
+        <cc.android.checkerboard.CheckerboardView
+            android:id="@+id/cbView"
+            android:layout_width="0dp"
+            android:layout_height="fill_parent"
+            android:layout_weight="4"
+            android:background="#0d0"
+            cc:outlineThickness="3dp"/>
+    </LinearLayout>
+
+
+    <TextView
+        android:id="@+id/tvDebug"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:background="#afff"
+        android:text=""
+        android:textColor="#f00"
+        android:textSize="16dp"
+        android:textStyle="bold"
+        tools:text="Debug Text\nFor your Review"/>
+
+</RelativeLayout>

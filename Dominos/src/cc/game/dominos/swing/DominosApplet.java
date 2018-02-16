@@ -36,6 +36,7 @@ public class DominosApplet extends JComponent implements MouseListener, MouseMot
                 switch (subMenu) {
                     case "New Game":
                         dominos.startNewGame(9, 150);
+                        dominos.startGameThread();
                         break;
                 }
             }

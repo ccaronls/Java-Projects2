@@ -5,6 +5,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import cc.lib.math.CMath;
+import cc.lib.math.Matrix3x3;
 import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
 
@@ -560,7 +561,26 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      *  B -- D
      */
     public abstract void drawQuadStrip();
-    
+
+    /**
+     * Use each pair of points to render a rectangle
+     */
+    public abstract void drawRects();
+
+    /**
+     * Convenience
+     * @param linethickness
+     */
+    public final void drawRects(float linethickness) {
+        float saveT = setLineWidth(linethickness);
+        drawRects();
+        setLineWidth(saveT);
+    }
+
+    /**
+     *
+     */
+    public abstract void drawFilledRects();
     /**
      * 
      * @param assetPath file location to load the image
@@ -672,6 +692,12 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * 
      */
     public abstract void setIdentity();
+
+    /**
+     *
+     * @param m
+     */
+    public abstract void multMatrix(Matrix3x3 m);
     
     /**
      * 
@@ -866,7 +892,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
         vertex(x1, y1);
         drawTriangleStrip();
     }
-    
+
     /**
      * alias for drawQuad.  Here for compatibility with AWT Graphics
      * @param x

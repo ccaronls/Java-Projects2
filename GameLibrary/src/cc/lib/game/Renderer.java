@@ -30,7 +30,16 @@ public class Renderer {
 		s_mat = new Matrix3x3();
 		t_mat = new Matrix3x3();
 		makeIdentity();
-	} 
+	}
+
+    /**
+     *
+     * @param m
+     */
+	public final void multiply(Matrix3x3 m) {
+	    cur_mat.multiply(m, s_mat);
+	    cur_mat.copy(s_mat);
+    }
 	
 	/**
 	 * multiply a translation matrix to the transform

@@ -8,6 +8,7 @@ import java.util.*;
 import javax.microedition.khronos.opengles.*;
 
 import cc.lib.game.*;
+import cc.lib.math.Matrix3x3;
 import cc.lib.math.Vector2D;
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -661,7 +662,17 @@ for (int pix : pixels) {
     public final void drawQuadStrip() {
     	drawVertices2D(sGl, GL10.GL_TRIANGLE_STRIP, sVCount);
     }
-    
+
+    @Override
+    public void drawRects() {
+
+    }
+
+    @Override
+    public void drawFilledRects() {
+
+    }
+
     @Override
     public final void drawTriangleStrip() {
         sGl.glFrontFace(GL10.GL_CCW);
@@ -818,7 +829,12 @@ for (int pix : pixels) {
         sTfb.put(t);
         //sTCount ++;
     }
-    
+
+    @Override
+    public void multMatrix(Matrix3x3 m) {
+        sGl.glMultMatrixf(m.toFloatArray(), 0);
+    }
+
     /**
      * 
      */
