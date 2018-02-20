@@ -1675,4 +1675,13 @@ public class Utils {
         return c;
     }
 
+    public static boolean isPointInsideRect(IVector2D pt, IVector2D v0, IVector2D v1) {
+        float px = pt.getX();
+        float py = pt.getY();
+        float x  = Math.min(v0.getX(), v1.getX());
+        float y  = Math.min(v0.getY(), v1.getY());
+        float w  = Math.abs(v0.getX()-v1.getX());
+        float h  = Math.abs(v0.getY()-v1.getY());
+        return Utils.isPointInsideRect(px, py, x, y, w, h);
+    }
 }

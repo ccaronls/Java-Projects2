@@ -85,7 +85,7 @@ public class Renderer {
 	 * set the top matrix to the identity matrix
 	 */
 	public final void makeIdentity() {
-		cur_mat.identity();
+		cur_mat.identityEq();
 	}
 	
 	/**

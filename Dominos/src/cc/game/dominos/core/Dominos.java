@@ -9,7 +9,6 @@ import cc.lib.game.AColor;
 import cc.lib.game.AGraphics;
 import cc.lib.game.APGraphics;
 import cc.lib.game.Utils;
-import cc.lib.math.Matrix3x3;
 import cc.lib.utils.Reflector;
 
 /**
@@ -186,6 +185,7 @@ public abstract class Dominos extends Reflector<Dominos> {
         }
 
         pool.addAll(board.collectPieces());
+        board.clear();
         Utils.shuffle(pool);
 
         Utils.println("Total number of tiles: " + pool.size());
@@ -317,12 +317,10 @@ public abstract class Dominos extends Reflector<Dominos> {
                 protected void draw(AGraphics g, float position, float dt) {
 
                     g.pushMatrix();
-                    //g.translate(1, 0);
-                    //g.scale(position, 1);
-                    //g.translate(-1, 0);
-                    g.scale(2, 1);
-                    g.multMatrix(new Matrix3x3().setHorzSkew((1.0f-position)/3));
-                    Board.drawTile(g, 1, pc.pip1, pc.pip2, position/2);
+                    g.translate(0, 0.5f);
+                    g.scale(1, position);
+                    g.translate(0, -0.5f);
+                    Board.drawTile(g, pc.pip1, pc.pip2, position/2);
                     g.popMatrix();
                     redraw();
                 }
@@ -567,7 +565,7 @@ public abstract class Dominos extends Reflector<Dominos> {
                         g.translate(0.04f, 0.02f);
                         g.scale(0.95f, 0.95f);
                         float alpha = available ? 1f : 0.5f;
-                        Board.drawTile(g, 1, t.pip1, t.pip2, alpha);
+                        Board.drawTile(g, t.pip1, t.pip2, alpha);
                         g.popMatrix();
                         if (tile == selectedPlayerTile) {
                             g.setColor(g.RED);
@@ -602,18 +600,22 @@ public abstract class Dominos extends Reflector<Dominos> {
         PlayerUser user = getUser();
         if (highlightedPlayerTile >= 0) {
             selectedPlayerTile = highlightedPlayerTile;
-            getBoard().highlightMovesForPiece(user.getTiles().get(selectedPlayerTile));
-        } else if (board.selectedEndpoint >= 0) {
-            user.tile = board.highlightedTile;
-            user.endpoint = board.selectedEndpoint;
-            user.placement = board.selectedPlacement;
+            List<Move> highlightedMoves = new ArrayList<>();
+            for (Move m : user.moves) {
+                if (m.piece == user.tiles.get(selectedPlayerTile)) {
+                    highlightedMoves.add(m);
+                }
+            }
+            getBoard().highlightMoves(highlightedMoves);
+        } else if (board.selectedMove != null) {
+            user.choosedMove = board.selectedMove;
             getBoard().clearSelection();
             synchronized (gameLock) {
                 gameLock.notifyAll();
             }
             selectedPlayerTile = -1;
         } else {
-            getBoard().highlightMovesForPiece(null);
+            getBoard().highlightMoves(null);
             selectedPlayerTile = -1;
             Utils.println("endpoints total: " + board.computeEndpointsTotal());
         }

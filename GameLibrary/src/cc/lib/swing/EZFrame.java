@@ -15,7 +15,7 @@ import javax.swing.event.*;
 
 import cc.lib.game.Utils;
 
-public class EZFrame extends JFrame implements WindowListener, ComponentListener, MenuListener, MenuKeyListener, ActionListener {
+public class EZFrame extends JFrame implements WindowListener, ComponentListener, MenuListener, MenuKeyListener {
 
 	public static final long serialVersionUID = 20002;
 
@@ -130,8 +130,24 @@ public class EZFrame extends JFrame implements WindowListener, ComponentListener
     }
 
     public void addMenuBarMenu(String menuName, String ... menuItems) {
-	    addMenuBarMenu(menuName, this, menuItems);
+        if (menuItemActionListener == null) {
+            menuItemActionListener = new ActionListener() {
+                @Override
+                public final void actionPerformed(ActionEvent e) {
+                    Utils.println("actionPerformed: " + e);
+                    ActionEvent ev = (ActionEvent) e;
+                    String cmd = ev.getActionCommand();
+                    //JMenuItem source = (JMenuItem)ev.getSource();
+                    onMenuItemSelected(selectedMenu.getText(), cmd);
+                    //Utils.println("actionPerformed: cmd=" + cmd + " source=" + source);
+                    //JMenuItem item = (JMenuItem)source;
+                }
+            };
+        }
+	    addMenuBarMenu(menuName, menuItemActionListener, menuItems);
     }
+
+    private ActionListener menuItemActionListener = null;
 
     public void addMenuBarMenu(String menuName, ActionListener listener, String ... menuItems) {
 	    JMenuBar bar = getJMenuBar();
@@ -255,17 +271,6 @@ public class EZFrame extends JFrame implements WindowListener, ComponentListener
     @Override
     public final void	menuKeyTyped(MenuKeyEvent e) {
         Utils.println("menuKeyTyped: " + e);
-    }
-
-    @Override
-    public final void actionPerformed(ActionEvent e) {
-        Utils.println("actionPerformed: " + e);
-        ActionEvent ev = (ActionEvent)e;
-        String cmd = ev.getActionCommand();
-        //JMenuItem source = (JMenuItem)ev.getSource();
-        onMenuItemSelected(selectedMenu.getText(), cmd);
-        //Utils.println("actionPerformed: cmd=" + cmd + " source=" + source);
-        //JMenuItem item = (JMenuItem)source;
     }
 
     protected void onMenuItemSelected(String menu, String subMenu) {

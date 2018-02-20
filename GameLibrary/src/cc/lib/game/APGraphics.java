@@ -218,4 +218,10 @@ public abstract class APGraphics extends AGraphics {
     public final Vector2D getMaxBoundingRect() {
         return r.getMax();
     }
+
+    @Override
+    public void getTransform(Matrix3x3 result) {
+        result.assign(r.getCurrentTransform());
+    }
+
 }

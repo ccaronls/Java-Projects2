@@ -1,5 +1,6 @@
 package cc.game.dominos.core;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
@@ -9,19 +10,17 @@ import java.util.List;
 
 public class PlayerUser extends Player {
 
-    Tile tile = null;
-    int endpoint = -1;
-    int placement = 0;
+    Move choosedMove = null;
     final HashSet<Tile> usable = new HashSet<>();
+    final List<Move> moves = new ArrayList<>();
 
     @Override
     public Move chooseMove(Dominos game, List<Move> moves) {
 
-        tile = null;
-        endpoint = -1;
-        placement = 0;
-
+        choosedMove = null;
         usable.clear();
+        this.moves.clear();
+        this.moves.addAll(moves);
         for (Move m : moves) {
             usable.add(m.piece);
         }
@@ -37,16 +36,7 @@ public class PlayerUser extends Player {
 
         usable.clear();
 
-        if (tile != null) {
-            for (Move m : moves) {
-                if (m.piece.equals(tile) && m.endpoint == endpoint && m.placment == placement) {
-                    tile = null;
-                    return m;
-                }
-            }
-        }
-
-        return null;
+        return choosedMove;
     }
 
     @Override

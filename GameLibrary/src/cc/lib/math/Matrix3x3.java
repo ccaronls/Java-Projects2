@@ -13,9 +13,9 @@ public final class Matrix3x3 extends Reflector<Matrix3x3> {
 		addAllFields(Matrix3x3.class);
 	}
 	
-	public double a11, a12, a13;
-	public double a21, a22, a23;
-	public double a31, a32, a33;
+	private double a11, a12, a13;
+	private double a21, a22, a23;
+	private double a31, a32, a33;
 
 	public Matrix3x3() {
 		a11=0; a12=0; a13=0;
@@ -27,7 +27,7 @@ public final class Matrix3x3 extends Reflector<Matrix3x3> {
 	 * Assign the zero matrix to this matrix
 	 * @return <code>this</code>
 	 */
-	public final Matrix3x3 zero() {
+	public final Matrix3x3 zeroEq() {
 		a11 = 0; a12 = 0; a13 = 0;
 		a21 = 0; a22 = 0; a23 = 0;
 		a31 = 0; a32 = 0; a33 = 0;
@@ -83,7 +83,7 @@ public final class Matrix3x3 extends Reflector<Matrix3x3> {
 	/**
 	 * Assign the scale matrix given by s, to this matrix
 	 */
-	public final Matrix3x3 scale(final double s) {
+	public final Matrix3x3 scaleEq(final double s) {
 		a11 = s; a12 = 0; a13 = 0;
 		a21 = 0; a22 = s; a23 = 0;
 		a31 = 0; a32 = 0; a33 = s;
@@ -93,7 +93,7 @@ public final class Matrix3x3 extends Reflector<Matrix3x3> {
 	/**
 	 * Assign the non-uniform scale matrix given by s1, s2 and s3, to this matrix
 	 */
-	public final Matrix3x3 scale(double sx, double sy, double sz) {
+	public final Matrix3x3 scaleEq(double sx, double sy, double sz) {
 		a11 = sx; a12 = 0.; a13 = 0.;
 		a21 = 0.; a22 = sy; a23 = 0.;
 		a31 = 0.; a32 = 0.; a33 = sz;
@@ -104,7 +104,7 @@ public final class Matrix3x3 extends Reflector<Matrix3x3> {
 	/**
 	 * Assign the identity matrix to this matrix
 	 */
-	public final Matrix3x3 identity() {
+	public final Matrix3x3 identityEq() {
 		a11 = 1; a12 = 0; a13 = 0;
 		a21 = 0; a22 = 1; a23 = 0;
 		a31 = 0; a32 = 0; a33 = 1;

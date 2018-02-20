@@ -1,16 +1,16 @@
 package cc.game.dominos.core;
 
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 
 import cc.lib.game.AAnimation;
 import cc.lib.game.AGraphics;
 import cc.lib.game.APGraphics;
 import cc.lib.game.IVector2D;
 import cc.lib.game.Utils;
+import cc.lib.math.Matrix3x3;
 import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
 import cc.lib.utils.Reflector;
@@ -39,20 +39,16 @@ public class Board extends Reflector<Board> {
     public final static int PLACMENT_LEFT       = 4;
     public final static int PLACEMENT_COUNT     = 5;
 
-    private Tile root;
+    private Tile root = null;
     private final LinkedList<Tile> [] endpoints = new LinkedList[4];
+    private final Matrix3x3 [] endpointTransforms = new Matrix3x3[4];
 
     @Omit
-    private Set<Integer> highlightedEndpoints = new HashSet<>();
+    private List<Move> [] highlightedMoves = new List[4];
     @Omit
-    int selectedEndpoint = -1;
-    @Omit
-    Tile highlightedTile = null;
-    @Omit
-    int selectedPlacement = 0;
-    @Omit
-    private int [][] testGrid = null;
+    Move selectedMove = null;
 
+    private final List<Vector2D[]> rects = new ArrayList<>();
     private final MutableVector2D saveMinV = new MutableVector2D();
     private final MutableVector2D saveMaxV = new MutableVector2D();
 
@@ -106,17 +102,27 @@ public class Board extends Reflector<Board> {
             l.clear();
         }
         clearSelection();
+        rects.clear();
+        for (int i=0; i<4; i++) {
+            endpointTransforms[i].identityEq();
+            transformEndpoint(endpointTransforms[i], i);
+        }
+        saveMaxV.zero();
+        saveMinV.zero();
     }
 
     final void clearSelection() {
-        highlightedEndpoints.clear();
-        selectedEndpoint = -1;
-        highlightedTile = null;
+        for (Collection<?> s: highlightedMoves)
+            s.clear();
+        selectedMove = null;
     }
 
     public Board() {
-        for (int i=0; i<4; i++)
+        for (int i=0; i<4; i++) {
             endpoints[i] = new LinkedList<>();
+            endpointTransforms[i] = new Matrix3x3().identityEq();
+            highlightedMoves[i] = new ArrayList<>();
+        }
     }
 
     final List<Tile> collectPieces() {
@@ -129,13 +135,15 @@ public class Board extends Reflector<Board> {
             pieces.addAll(endpoints[i]);
             endpoints[i].clear();
         }
-        saveMaxV.zero();
-        saveMinV.zero();
         return pieces;
     }
 
     final void placeRootPiece(Tile pc) {
         root = pc;
+        rects.add(new Vector2D[] {
+                new Vector2D(-1, -0.5f),
+                new Vector2D(1, 0.5f)
+        });
     }
 
     final List<Move> findMovesForPiece(Tile p) {
@@ -150,8 +158,22 @@ public class Board extends Reflector<Board> {
                     if (endpoints[i].size() < 2)
                         moves.add(new Move(p, i, PLACMENT_FWD));
                     else {
-                        for (int ii = 0; ii < PLACEMENT_COUNT; ii++)
+                        Matrix3x3 m = new Matrix3x3();
+                        for (int ii = 0; ii < PLACEMENT_COUNT; ii++) {
+                            m.assign(endpointTransforms[i]);
+                            transformPlacement(m, ii);
+                            Vector2D v = new Vector2D(0.6f, 0.3f);
+                            v = m.multiply(v);
+                            if (isInsideRects(v))
+                                continue;
+                            v = new Vector2D(1.6f, 0.6f);
+                            v = m.multiply(v);
+                            if (isInsideRects(v))
+                                continue;
+
                             moves.add(new Move(p, i, ii));
+                        }
+                        // TODO: Make sure there is at least one option?
                     }
                 }
             }
@@ -177,26 +199,51 @@ public class Board extends Reflector<Board> {
         }
         endpoints[mv.endpoint].addLast(mv.piece);
         mv.piece.placement = mv.placment;
+        transformPlacement(endpointTransforms[mv.endpoint], mv.placment);
+        Vector2D v0 = Vector2D.ZERO;
+        Vector2D v1 = new Vector2D(2, 1);
+        rects.add(new Vector2D[] {
+            endpointTransforms[mv.endpoint].multiply(v0),
+            endpointTransforms[mv.endpoint].multiply(v1)
+        });
+        endpointTransforms[mv.endpoint].multiplyEq(new Matrix3x3().setTranslate(2, 0));
     }
 
-    private void transformPlacement(AGraphics g, int placement, float DIM) {
+    private void transformPlacement(APGraphics g, int placement) {
+        Matrix3x3 t = new Matrix3x3();
+        g.getTransform(t);
+        transformPlacement(t, placement);
+        g.setIdentity();
+        g.multMatrix(t);
+    }
+
+    private void transformPlacement(Matrix3x3 m, int placement) {
+        Matrix3x3 t = new Matrix3x3();
         switch (placement) {
             case PLACMENT_FWD: break;
             case PLACMENT_FWD_LEFT:
-                g.translate(DIM, 0);
-                g.rotate(90);
+                t.setTranslate(1, 0);
+                m.multiplyEq(t);
+                t.setRotation(90);
+                m.multiplyEq(t);
                 break;
             case PLACMENT_LEFT:
-                g.translate(0, DIM);
-                g.rotate(90);
+                t.setTranslate(0, 1);
+                m.multiplyEq(t);
+                t.setRotation(90);
+                m.multiplyEq(t);
                 break;
             case PLACMENT_FWD_RIGHT:
-                g.translate(0, DIM);
-                g.rotate(-90);
+                t.setTranslate(0, 1);
+                m.multiplyEq(t);
+                t.setRotation(-90);
+                m.multiplyEq(t);
                 break;
             case PLACMENT_RIGHT:
-                g.translate(-DIM, 0);
-                g.rotate(-90);
+                t.setTranslate(-1, 0);
+                m.multiplyEq(t);
+                t.setRotation(-90);
+                m.multiplyEq(t);
                 break;
         }
     }
@@ -222,81 +269,95 @@ public class Board extends Reflector<Board> {
         throw new AssertionError();
     }
 
-    private void drawHighlighted(APGraphics g, int endpoint, int mouseX, int mouseY, float DIM) {
-        if (highlightedEndpoints.contains(endpoint)) {
-            int count = endpoints[endpoint].size() > 1 ? PLACEMENT_COUNT : 1;
-            g.begin();
-            g.setColor(g.CYAN);
-            for (int i = 0; i < count; i++) {
-                g.pushMatrix();
-                transformPlacement(g, i, DIM);
-                g.setName(i);
-                g.vertex(0, 0);
-                g.vertex(DIM * 2, DIM);
-                g.popMatrix();
-            }
-
+    private void drawHighlighted(APGraphics g, int endpoint, int mouseX, int mouseY) {
+        MutableVector2D mv = new MutableVector2D();
+        g.setColor(g.CYAN);
+        g.begin();
+        int moveIndex = 0;
+        for (Move move : highlightedMoves[endpoint]) {
+            g.pushMatrix();
+            transformPlacement(g, move.placment);
+            g.setName(moveIndex++);
+            mv.set(1, 0.5f);
+            g.transform(mv);
+            g.vertex(0, 0);
+            g.vertex(2, 1);
+            g.popMatrix();
             g.drawRects(3);
-            int picked = g.pickRects(mouseX, mouseY);
-            g.end();
-            if (picked >= 0) {
-                selectedPlacement = picked;
-                selectedEndpoint = endpoint;
-                int newTotal = computeEndpointsTotal();
-                int openPips = root.pip1;
-                if (endpoints[selectedEndpoint].size() > 0) {
-                    newTotal -= openPips = endpoints[selectedEndpoint].getLast().openPips;
-                } else if (selectedEndpoint == EP_LEFT || selectedEndpoint == EP_RIGHT) {
-                    newTotal -= root.pip1;
-                }
-
-                if (highlightedTile.pip1 == openPips) {
-                    newTotal += highlightedTile.pip2;
-                } else {
-                    newTotal += highlightedTile.pip1;
-                }
-                Utils.println("Endpoint total:" + newTotal);
-
-                g.begin();
-                g.pushMatrix();
-                g.setColor(g.RED);
-                transformPlacement(g, selectedPlacement, DIM);
-                g.vertex(0, 0);
-                g.vertex(DIM * 2, DIM);
-                g.drawRects(3);
-//                g.drawRect(0, 0, DIM * 2, DIM, 3);
-                g.popMatrix();
-                g.end();
-                Utils.println("selected endpoint = " + epIndexToString(selectedEndpoint) + " placement = " + placementIndexToString(selectedPlacement));
+        }
+        int picked = g.pickRects(mouseX, mouseY);
+        g.end();
+        if (picked >= 0) {
+            selectedMove = highlightedMoves[endpoint].get(picked);
+            int selectedEndpoint = selectedMove.endpoint;
+            int newTotal = computeEndpointsTotal();
+            int openPips = root.pip1;
+            if (endpoints[selectedEndpoint].size() > 0) {
+                newTotal -= openPips = endpoints[selectedEndpoint].getLast().openPips;
+            } else if (selectedEndpoint == EP_LEFT || selectedEndpoint == EP_RIGHT) {
+                newTotal -= root.pip1;
             }
+
+            if (selectedMove.piece.pip1 == openPips) {
+                newTotal += selectedMove.piece.pip2;
+            } else {
+                newTotal += selectedMove.piece.pip1;
+            }
+            Utils.println("Endpoint total:" + newTotal);
+
+            g.begin();
+            g.pushMatrix();
+            g.setColor(g.RED);
+            transformPlacement(g, selectedMove.placment);
+            g.vertex(0, 0);
+            g.vertex(2, 1);
+            g.drawRects(3);
+//                g.drawRect(0, 0, DIM * 2, DIM, 3);
+            g.popMatrix();
+            g.end();
+            Utils.println("selected endpoint = " + epIndexToString(selectedEndpoint) + " placement = " + placementIndexToString(selectedMove.placment));
         }
     }
 
-    private void transformEndpoint(AGraphics g, int endpoint, float DIM) {
+    private void transformEndpoint(APGraphics g, int endpoint) {
+        Matrix3x3 t = new Matrix3x3();
+        g.getTransform(t);
+        transformEndpoint(t, endpoint);
+        g.setIdentity();
+        g.multMatrix(t);
+    }
+
+    private void transformEndpoint(Matrix3x3 m, int endpoint) {
+        Matrix3x3 t = new Matrix3x3();
         switch (endpoint) {
             case EP_LEFT:
-                g.scale(-1, -1);
+                t.setScale(-1, -1);
+                m.multiplyEq(t);
             case EP_RIGHT:
-                g.translate(DIM, -DIM / 2);
+                t.setTranslate(1, -0.5f);
+                m.multiplyEq(t);
                 break;
             case EP_DOWN:
-                g.scale(-1, -1);
+                t.setScale(-1, -1);
+                m.multiplyEq(t);
             case EP_UP:
-                g.translate(DIM/2, DIM/2);
-                g.rotate(90);
+                t.setTranslate(0.5f, 0.5f);
+                m.multiplyEq(t);
+                t.setRotation(90);
+                m.multiplyEq(t);
                 break;
         }
     }
 
-    private void genMinMaxPts(AGraphics g) {
+    private void genMinMaxPts(APGraphics g) {
         g.vertex(-1, -0.5f);
         g.vertex(1, 0.5f);
         for (int i = 0; i < 4; i++) {
             g.pushMatrix();
             {
-                transformEndpoint(g, i, 1);
+                transformEndpoint(g, i);
                 for (Tile t : endpoints[i]) {
-                    transformPlacement(g, t.placement, 1);
+                    transformPlacement(g, t.placement);
                     g.vertex(0, 0);
                     g.vertex(0, 1);
                     g.vertex(2, 1);
@@ -338,20 +399,16 @@ public class Board extends Reflector<Board> {
             float DIM = Math.min(dimW, dimH);
             g.setPointSize(DIM/8);
 
-            selectedEndpoint = -1;
+            selectedMove = null;
 
             g.translate(vpWidth / 2, vpHeight / 2);
+            g.scale(DIM, -DIM);
 
             // DEBUG outline the min/max bounding box
             if (false && AGraphics.DEBUG_ENABLED) {
                 g.setColor(g.YELLOW);
-                g.pushMatrix();
-                g.scale(DIM, -DIM);
                 g.drawRect(minBR, maxBR, 1);
-                g.popMatrix();
             }
-
-            g.scale(1, -1);
 
             // DEBUG draw pickX, pickY in viewport coords
             if (false && AGraphics.DEBUG_ENABLED) {
@@ -362,39 +419,48 @@ public class Board extends Reflector<Board> {
 
             g.pushMatrix();
             {
-                g.translate(-DIM, -DIM / 2);
-                drawTile(g, DIM, root.pip1, root.pip2, 1);
+                g.translate(-1, -0.5f);
+                drawTile(g, root.pip1, root.pip2, 1);
             }
             g.popMatrix();
 
             for (int i = 0; i < 4; i++) {
                 g.pushMatrix();
                 {
-                    transformEndpoint(g, i, DIM);
+                    transformEndpoint(g, i);
                     for (Tile p : endpoints[i]) {
-                        transformPlacement(g, p.placement, DIM);
-                        drawTile(g, DIM, p.getClosedPips(), p.openPips, 1);
-                        g.translate(DIM * 2, 0);
+                        transformPlacement(g, p.placement);
+                        drawTile(g, p.getClosedPips(), p.openPips, 1);
+                        g.translate(2, 0);
                     }
-                    drawHighlighted(g, i, pickX, pickY, DIM);
+                    drawHighlighted(g, i, pickX, pickY);
                 }
                 g.popMatrix();
             }
+
+            // DEBUG draw the rects
+            if (AGraphics.DEBUG_ENABLED) {
+                g.setColor(g.ORANGE);
+                for (IVector2D [] r : rects) {
+                    g.drawRect(r[0], r[1], 3);
+                }
+            }
+
         }
         g.popMatrix();
     }
 
-    static void drawTile(AGraphics g, float dim, int pips1, int pips2, float alpha) {
+    static void drawTile(AGraphics g, int pips1, int pips2, float alpha) {
         g.pushMatrix();
         g.setColor(g.BLACK.setAlpha(alpha));
-        g.drawFilledRoundedRect(0, 0, dim*2, dim, dim/4);
+        g.drawFilledRoundedRect(0, 0, 2, 1, 0.25f);
         g.setColor(g.WHITE);
-        g.drawRoundedRect(0, 0, dim*2, dim, 1, dim/4);
+        g.drawRoundedRect(0, 0, 2, 1, 1, 0.25f);
         g.setColor(g.WHITE);
-        g.drawLine(dim, 0, dim, dim, 2);
+        g.drawLine(1, 0, 1, 1, 2);
         g.setColor(g.WHITE);
-        drawDie(g, 0, 0, dim, pips1);
-        drawDie(g, dim, 0, dim, pips2);
+        drawDie(g, 0, 0, pips1);
+        drawDie(g, 1, 0, pips2);
         if (false && AGraphics.DEBUG_ENABLED) {
             g.setColor(g.RED);
             g.drawDisk(0, 0, 4);
@@ -402,14 +468,14 @@ public class Board extends Reflector<Board> {
         g.popMatrix();
     }
 
-    static void drawDie(AGraphics g, float x, float y, float dim, int numDots) {
-        float dd2 = dim/2;
-        float dd4 = dim/4;
-        float dd34 = (dim*3)/4;
-        float dd5 = dim/5;
-        float dd25 = dim*2/5;
-        float dd35 = dim*3/5;
-        float dd45 = dim*4/5;
+    static void drawDie(AGraphics g, float x, float y, int numDots) {
+        float dd2 = 0.5f;
+        float dd4 = 0.25f;
+        float dd34 = 0.75f;//(dim*3)/4;
+        float dd5 = 0.2f;//dim/5;
+        float dd25 = 0.4f;//dim*2/5;
+        float dd35 = 0.6f;//dim*3/5;
+        float dd45 = 0.8f;//dim*4/5;
         g.begin();
         switch (numDots) {
             case 1:
@@ -543,14 +609,23 @@ public class Board extends Reflector<Board> {
         return score;
     }
 
-    final void highlightMovesForPiece(Tile piece) {
-        highlightedEndpoints.clear();
-        highlightedTile = piece;
-        if (piece != null) {
-            for (Move m : findMovesForPiece(piece)) {
-                highlightedEndpoints.add(m.endpoint);
+    final void highlightMoves(List<Move> moves) {
+        for (int i=0; i<4; i++)
+            highlightedMoves[i].clear();
+
+        if (moves != null) {
+            for (Move m : moves) {
+                highlightedMoves[m.endpoint].add(m);
             }
         }
+    }
+
+    private boolean isInsideRects(IVector2D v) {
+        for (IVector2D[] r : rects) {
+            if (Utils.isPointInsideRect(v, r[0], r[1]))
+                return true;
+        }
+        return false;
     }
 
 }

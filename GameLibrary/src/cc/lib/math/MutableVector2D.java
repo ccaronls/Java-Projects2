@@ -27,7 +27,7 @@ public class MutableVector2D extends Vector2D {
         return this;
     }
 
-    public final MutableVector2D  set(float x, float y) {
+    public final MutableVector2D set(float x, float y) {
         this.x = x;
         this.y = y;
         return this;

@@ -101,12 +101,16 @@ public class DroidGraphics extends APGraphics {
         y += getTextHeight(); // Android does bottom align by default for some bizzarre reason
         switch (hJust) {
             case LEFT:
-                paint.setTextAlign(Paint.Align.LEFT); break;
+                paint.setTextAlign(Paint.Align.LEFT);
+                break;
             case RIGHT:
-                paint.setTextAlign(Paint.Align.RIGHT); break;
+                paint.setTextAlign(Paint.Align.RIGHT);
+                break;
             case CENTER:
-                paint.setTextAlign(Paint.Align.CENTER); break;
+                paint.setTextAlign(Paint.Align.CENTER);
+                break;
         }
+        paint.setStyle(Paint.Style.STROKE);
         canvas.drawText(text, x,y, paint);
         return getTextWidth(text);
     }

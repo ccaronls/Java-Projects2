@@ -722,6 +722,12 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     public abstract void rotate(float degrees);
 
     /**
+     *
+     * @param result
+     */
+    public abstract void getTransform(Matrix3x3 result);
+
+    /**
      * Call before calls to vertex and draw methods.
      */
     public void begin() {}

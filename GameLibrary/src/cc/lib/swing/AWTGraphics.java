@@ -88,13 +88,13 @@ public final class AWTGraphics extends APGraphics {
 
     @Override
     public final  float setPointSize(float newSize) {
-        if (newSize >= 1) {
-            float oldSize = mPointSize;
-            mPointSize = newSize;
-            return oldSize;
+        if (newSize < 1) {
+            error("Invalid parameter to setPointSize " + newSize + ". Clamped to 1");
+            newSize = 1;
         }
-        error("Invalid parameter to setPointSize " + newSize + ".  value is ignored");
-        return mPointSize;
+        float oldSize = mPointSize;
+        mPointSize = newSize;
+        return oldSize;
     }
 
     private int getNumVerts() {
