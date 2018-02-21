@@ -84,18 +84,28 @@ public class DominosApplet extends JComponent implements MouseListener, MouseMot
 
     @Override
     public void mouseClicked(MouseEvent e) {
-        System.out.println("click");
-        repaint();
-    }
-
-    @Override
-    public synchronized void mousePressed(MouseEvent e) {
+        Utils.println("mouseClicked");
         dominos.onClick();
     }
 
     @Override
-    public void mouseReleased(MouseEvent e) {
+    public synchronized void mousePressed(MouseEvent e) {
+        Utils.println("mousePressed");
+        mouseX = e.getX();
+        mouseY = e.getY();
+        repaint();
+    }
 
+    @Override
+    public void mouseReleased(MouseEvent e) {
+        Utils.println("mouseReleased");
+        if (dragging) {
+            dominos.stopDrag();
+            dragging = false;
+        }
+        mouseX = e.getX();
+        mouseY = e.getY();
+        repaint();
     }
 
     @Override
@@ -106,13 +116,23 @@ public class DominosApplet extends JComponent implements MouseListener, MouseMot
     public void mouseExited(MouseEvent e) {
     }
 
+    boolean dragging = false;
+
     @Override
     public void mouseDragged(MouseEvent e) {
-
+        if (!dragging) {
+            dominos.startDrag();
+            dragging = true;
+        }
+        Utils.println("mouseDragged");
+        mouseX = e.getX();
+        mouseY = e.getY();
+        repaint();
     }
 
     @Override
     public void mouseMoved(MouseEvent e) {
+        Utils.println("mouseMoved");
         mouseX = e.getX();
         mouseY = e.getY();
         repaint();

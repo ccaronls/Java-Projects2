@@ -214,8 +214,9 @@ public abstract class Dominos extends Reflector<Dominos> {
             for (int p=0; p<players.length; p++) {
                 Tile pc = players[p].removeTile(i, i);
                 if (pc != null) {
-                    board.placeRootPiece(pc);
                     onPiecePlaced(players[p], pc);
+                    board.placeRootPiece(pc);
+                    redraw();
                     turn = p;
                     return true;
                 }
@@ -251,12 +252,14 @@ public abstract class Dominos extends Reflector<Dominos> {
                 }
 
                 if (!canMove) {
-                    newRound();
                     onEndRound();
+                    newRound();
+                    redraw();
                     return;
                 } else {
                     // player knocks
                     onKnock(p);
+                    redraw();
                     break;
                 }
             }
@@ -273,7 +276,8 @@ public abstract class Dominos extends Reflector<Dominos> {
 		        return;
 		    onTilePlaced(p, mv);
 		    board.doMove(mv);
-		    p.tiles.remove(mv.piece);
+            redraw();
+            p.tiles.remove(mv.piece);
 		    int pts = board.computeEndpointsTotal();
 		    if (pts > 0 && pts % 5 == 0) {
 		        onPlayerPoints(p, pts);
@@ -307,7 +311,6 @@ public abstract class Dominos extends Reflector<Dominos> {
     }
 
     protected void onTilePlaced(Player p, Move mv) {
-        redraw();
     }
 
     protected void onTileFromPool(Player p, final Tile pc) {
@@ -348,11 +351,9 @@ public abstract class Dominos extends Reflector<Dominos> {
     }
 
     protected void onKnock(Player p) {
-        redraw();
     }
 
     protected void onEndRound() {
-        redraw();
     }
 
     @Omit
@@ -410,7 +411,13 @@ public abstract class Dominos extends Reflector<Dominos> {
         g.clearScreen(g.GREEN);
         g.setColor(g.GREEN.darken(g, 0.2f));
         g.drawFilledRectf(0, 0, boardDim, boardDim);
-        board.draw(g, boardDim, boardDim, pickX, pickY);
+        Tile dragging = null;
+        if (this.dragging && selectedPlayerTile >= 0) {
+            dragging = getUser().getTiles().get(selectedPlayerTile);
+        }
+        boolean drawDragged = true;
+        if (board.draw(g, boardDim, boardDim, pickX, pickY, dragging) >= 0)
+            drawDragged = false;
 
         g.pushMatrix();
         if (portrait) {
@@ -419,13 +426,13 @@ public abstract class Dominos extends Reflector<Dominos> {
             g.translate(0, boardDim);
             drawInfo(g, w/3, h-boardDim);
             g.translate(w/3, 0);
-            drawPlayer(g, w*2/3, h-boardDim, pickX, pickY);
+            drawPlayer(g, w*2/3, h-boardDim, pickX, pickY, drawDragged);
         } else {
             // draw the non-visible player stuff on lower half of rhs and visible player stuff on
             // upper half of RHS
             setupTextHeight(g, w-boardDim, h/3);
             g.translate(boardDim, 0);
-            drawPlayer(g, w-boardDim, h*2/3, pickX, pickY);
+            drawPlayer(g, w-boardDim, h*2/3, pickX, pickY, drawDragged);
             g.translate(0, h*2/3);
             drawInfo(g, w-boardDim, h/3);
         }
@@ -471,16 +478,16 @@ public abstract class Dominos extends Reflector<Dominos> {
         g.drawString(String.format("Pool X %d", pool.size()), padding, y);
     }
 
-    private void drawPlayer(APGraphics g, float w, float h, int pickX, int pickY) {
+    private void drawPlayer(APGraphics g, float w, float h, int pickX, int pickY, boolean drawDragged) {
         for (Player p : players) {
             if (p.isPiecesVisible()) {
-                drawPlayer(g, p, w, h, pickX, pickY);
+                drawPlayer(g, p, w, h, pickX, pickY, drawDragged);
                 break;
             }
         }
     }
 
-    private void drawPlayer(APGraphics g, Player p, float w, float h, int pickX, int pickY) {
+    private void drawPlayer(APGraphics g, Player p, float w, float h, int pickX, int pickY, boolean drawDragged) {
 	    g.pushMatrix();
 	    int padding = 5;
 	    g.setColor(g.BLUE);
@@ -495,7 +502,7 @@ public abstract class Dominos extends Reflector<Dominos> {
 	    w-= padding*2;
 
 	    // find the best grid to use to
-        drawPlayerTiles(g, p, w, h, pickX, pickY);
+        drawPlayerTiles(g, p, w, h, pickX, pickY, drawDragged);
         g.popMatrix();
     }
 
@@ -503,7 +510,7 @@ public abstract class Dominos extends Reflector<Dominos> {
         return (PlayerUser)players[0];
     }
 
-    private void drawPlayerTiles(APGraphics g, Player p, float w, float h, int pickX, int pickY) {
+    private void drawPlayerTiles(APGraphics g, Player p, float w, float h, int pickX, int pickY, boolean drawDragged) {
 
 	    int numRows = 1;
 	    int numTiles = p.getTiles().size();
@@ -565,7 +572,19 @@ public abstract class Dominos extends Reflector<Dominos> {
                         g.translate(0.04f, 0.02f);
                         g.scale(0.95f, 0.95f);
                         float alpha = available ? 1f : 0.5f;
-                        Board.drawTile(g, t.pip1, t.pip2, alpha);
+                        if (tile == selectedPlayerTile && dragging) {
+                            if (drawDragged) {
+                                g.pushMatrix();
+                                g.setIdentity();
+                                g.translate(pickX, pickY);
+                                g.translate(-tileD, -tileD / 2);
+                                g.scale(tileD, tileD);
+                                Board.drawTile(g, t.pip1, t.pip2, 1);
+                                g.popMatrix();
+                            }
+                        } else {
+                            Board.drawTile(g, t.pip1, t.pip2, alpha);
+                        }
                         g.popMatrix();
                         if (tile == selectedPlayerTile) {
                             g.setColor(g.RED);
@@ -596,7 +615,7 @@ public abstract class Dominos extends Reflector<Dominos> {
         return null;
     }
 
-    public final void onClick() {
+    public synchronized final void onClick() {
         PlayerUser user = getUser();
         if (highlightedPlayerTile >= 0) {
             selectedPlayerTile = highlightedPlayerTile;
@@ -622,7 +641,35 @@ public abstract class Dominos extends Reflector<Dominos> {
         redraw();
     }
 
-    public final void startDrag(int pickX, int pickY) {
+    private boolean dragging = false;
+
+    public synchronized final void startDrag() {
+        dragging = true;
+        if (selectedPlayerTile < 0 && highlightedPlayerTile >= 0) {
+            PlayerUser user = getUser();
+            selectedPlayerTile = highlightedPlayerTile;
+            List<Move> highlightedMoves = new ArrayList<>();
+            for (Move m : user.moves) {
+                if (m.piece == user.tiles.get(selectedPlayerTile)) {
+                    highlightedMoves.add(m);
+                }
+            }
+            getBoard().highlightMoves(highlightedMoves);
+        }
+    }
+
+    public synchronized final void stopDrag() {
+        if (dragging) {
+            if (selectedPlayerTile >= 0 && board.selectedMove != null) {
+                getUser().choosedMove = board.selectedMove;
+                getBoard().clearSelection();
+                synchronized (gameLock) {
+                    gameLock.notifyAll();
+                }
+                selectedPlayerTile = -1;
+            }
+            dragging = false;
+        }
     }
 
     public abstract void redraw();

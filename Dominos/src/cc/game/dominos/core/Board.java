@@ -269,7 +269,7 @@ public class Board extends Reflector<Board> {
         throw new AssertionError();
     }
 
-    private void drawHighlighted(APGraphics g, int endpoint, int mouseX, int mouseY) {
+    private int drawHighlighted(APGraphics g, int endpoint, int mouseX, int mouseY, Tile dragged) {
         MutableVector2D mv = new MutableVector2D();
         g.setColor(g.CYAN);
         g.begin();
@@ -309,14 +309,26 @@ public class Board extends Reflector<Board> {
             g.pushMatrix();
             g.setColor(g.RED);
             transformPlacement(g, selectedMove.placment);
+            if (dragged != null) {
+                int pip1 = dragged.pip1;
+                int pip2 = dragged.pip2;
+                if (pip2 == openPips) {
+                    int t = pip1;
+                    pip1 = pip2;
+                    pip2 = t;
+                }
+                g.begin();
+                drawTile(g, pip1, pip2, 1);
+                g.end();
+            }
             g.vertex(0, 0);
             g.vertex(2, 1);
             g.drawRects(3);
-//                g.drawRect(0, 0, DIM * 2, DIM, 3);
             g.popMatrix();
             g.end();
             Utils.println("selected endpoint = " + epIndexToString(selectedEndpoint) + " placement = " + placementIndexToString(selectedMove.placment));
         }
+        return picked;
     }
 
     private void transformEndpoint(APGraphics g, int endpoint) {
@@ -373,13 +385,14 @@ public class Board extends Reflector<Board> {
         }
     }
 
-    synchronized final void draw(APGraphics g, float vpWidth, float vpHeight, int pickX, int pickY) {
+    synchronized int draw(APGraphics g, float vpWidth, float vpHeight, int pickX, int pickY, Tile dragging) {
         // choose an ortho that keeps the root in the middle and an edge around
         // that allows for a piece to be placed
 
         if (root == null)
-            return;
+            return -1;
 
+        int picked = -1;
         g.pushMatrix();
         {
             g.begin();
@@ -433,7 +446,7 @@ public class Board extends Reflector<Board> {
                         drawTile(g, p.getClosedPips(), p.openPips, 1);
                         g.translate(2, 0);
                     }
-                    drawHighlighted(g, i, pickX, pickY);
+                    picked = Math.max(picked, drawHighlighted(g, i, pickX, pickY, dragging));
                 }
                 g.popMatrix();
             }
@@ -448,6 +461,7 @@ public class Board extends Reflector<Board> {
 
         }
         g.popMatrix();
+        return picked;
     }
 
     static void drawTile(AGraphics g, int pips1, int pips2, float alpha) {
