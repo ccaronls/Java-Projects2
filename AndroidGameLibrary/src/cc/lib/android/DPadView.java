@@ -1,5 +1,6 @@
 package cc.lib.android;
 
+import cc.lib.game.GColor;
 import cc.lib.game.Utils;
 import android.content.Context;
 import android.graphics.Canvas;
@@ -91,14 +92,14 @@ public class DPadView extends ImageView {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         if (Utils.DEBUG_ENABLED && touched) {
-            paint.setColor(GLColor.GREEN.toInt());
+            paint.setColor(GColor.GREEN.toARGB());
             paint.setStrokeWidth(4);
             canvas.drawCircle(cx + dx, cy + dy, 10, paint);
         }
         
         final float RECT_DIM = 16;
         
-        paint.setColor(GLColor.RED.toInt());
+        paint.setColor(GColor.GREEN.toARGB());
         paint.setStyle(Paint.Style.FILL);
         paint.setStrokeWidth(3);
         if (isDownPressed()) {

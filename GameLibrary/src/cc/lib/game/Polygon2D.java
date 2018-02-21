@@ -11,7 +11,7 @@ public class Polygon2D {
 	 * @param color
 	 * @param radius
 	 */
-	public Polygon2D(Vector2D [] pts, AColor color, float radius)	{
+	public Polygon2D(Vector2D [] pts, GColor color, float radius)	{
 		this.color = color;
 		this.pts = new MutableVector2D[pts.length];
 		for (int i=0; i<pts.length; i++)
@@ -101,6 +101,6 @@ public class Polygon2D {
 	// PRIVATE STUFF ///////////////////////////////////
 	////////////////////////////////////////////////////
 	
-	private AColor		color;
+	private GColor color;
 	private MutableVector2D [] pts;
 }

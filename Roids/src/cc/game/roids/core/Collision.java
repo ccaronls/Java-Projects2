@@ -3,7 +3,7 @@ package cc.game.roids.core;
 import java.util.ArrayList;
 import java.util.List;
 
-import cc.lib.game.AColor;
+import cc.lib.game.GColor;
 import cc.lib.game.AGraphics;
 import cc.lib.math.*;
 
@@ -45,20 +45,20 @@ public class Collision {
     
     public void draw(AGraphics g) {
     	
-    	AColor [] segColors = {
-    			g.YELLOW,
-    			g.MAGENTA,
-    			g.DARK_GRAY
+    	GColor [] segColors = {
+                GColor.YELLOW,
+                GColor.MAGENTA,
+                GColor.DARK_GRAY
     	};
     	
         for (Segment segment: segments) {
         	g.setColor(segColors[segment.index % segColors.length]);
             g.drawLine(segment.A.X(), segment.A.Y(), segment.B.X(), segment.B.Y(), 2);
         }
-        g.setColor(g.WHITE);
+        g.setColor(GColor.WHITE);
         g.drawCircle(collisionPoint.getX(), collisionPoint.getY(), 2);
         g.drawCircle(collisionPoint.getX(), collisionPoint.getY(), 5);
-        g.setColor(g.ORANGE);
+        g.setColor(GColor.ORANGE);
         final float arrowLen = 10;
         Vector2D pt = collisionPoint;
         g.drawLine(pt.getX(), pt.getY(), pt.getX()+planeNormal.getX()*arrowLen, pt.getY()+planeNormal.getY()*arrowLen, 2);
@@ -67,7 +67,7 @@ public class Collision {
         g.drawString("SRC", source.getX(), source.getY());
         g.drawString("TGT", target.getX(), target.getY());
 
-        g.setColor(g.CYAN);
+        g.setColor(GColor.CYAN);
         g.begin();
         g.vertex(source.getPosition());
         g.vertex(source.getPosition().add(R1, Vector2D.newTemp()));
@@ -76,7 +76,7 @@ public class Collision {
         g.drawLines();
         g.end();
         
-        g.setColor(g.GREEN);
+        g.setColor(GColor.GREEN);
         g.begin();
         g.vertex(target.getPosition());
         g.vertex(target.getPosition().add(R2, Vector2D.newTemp()));

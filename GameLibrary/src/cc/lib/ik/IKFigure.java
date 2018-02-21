@@ -1,6 +1,7 @@
 package cc.lib.ik;
 
 import cc.lib.game.AGraphics;
+import cc.lib.game.GColor;
 import cc.lib.utils.Reflector;
 
 public class IKFigure extends Reflector<IKFigure> {
@@ -67,7 +68,7 @@ public class IKFigure extends Reflector<IKFigure> {
 	}
 	
 	void debugDrawArm(AGraphics g, IKArm arm) {
-		g.setColor(g.WHITE);
+		g.setColor(GColor.WHITE);
 		g.setLineWidth(3);
 		g.begin();
 		for (int i=0; i<arm.getNumHinges(); i++) {
@@ -180,9 +181,9 @@ public class IKFigure extends Reflector<IKFigure> {
 	
 	protected void drawUpperLeg(AGraphics g, float length, float thickness, boolean far) {
     	if (far)
-    		g.setColor(g.LIGHT_GRAY.darkened(0.5f));
+    		g.setColor(GColor.LIGHT_GRAY.darkened(0.5f));
     	else
-    		g.setColor(g.LIGHT_GRAY);
+    		g.setColor(GColor.LIGHT_GRAY);
     	g.begin();
     	g.vertex(-thickness/2, 0);
     	g.vertex(-thickness/2,length);
@@ -193,9 +194,9 @@ public class IKFigure extends Reflector<IKFigure> {
 
     protected void drawLowerLeg(AGraphics g, float length, float thickness, boolean far) {
     	if (far)
-    		g.setColor(g.DARK_GRAY.darkened(0.5f));
+    		g.setColor(GColor.DARK_GRAY.darkened(0.5f));
     	else
-    		g.setColor(g.DARK_GRAY);
+    		g.setColor(GColor.DARK_GRAY);
     	g.begin();
     	g.vertex(-thickness/2, 0);
     	g.vertex(-thickness/2,length);
@@ -206,9 +207,9 @@ public class IKFigure extends Reflector<IKFigure> {
 
     protected void drawUpperArm(AGraphics g, float length, float thickness, boolean far) {
     	if (far)
-    		g.setColor(g.MAGENTA.darkened(0.5f));
+    		g.setColor(GColor.MAGENTA.darkened(0.5f));
     	else
-    		g.setColor(g.MAGENTA);
+    		g.setColor(GColor.MAGENTA);
     	g.begin();
     	g.vertex(-thickness/2, 0);
     	g.vertex(-thickness/2,length);
@@ -219,9 +220,9 @@ public class IKFigure extends Reflector<IKFigure> {
 
     protected void drawLowerArm(AGraphics g, float length, float thickness, boolean far) {
     	if (far)
-    		g.setColor(g.GREEN.darkened(0.5f));
+    		g.setColor(GColor.GREEN.darkened(0.5f));
     	else
-    		g.setColor(g.GREEN);
+    		g.setColor(GColor.GREEN);
     	g.begin();
     	g.vertex(-thickness/2, 0);
     	g.vertex(-thickness/2,length);
@@ -232,9 +233,9 @@ public class IKFigure extends Reflector<IKFigure> {
 
     protected void drawFoot(AGraphics g, float length, float thickness, boolean far) {
     	if (far)
-    		g.setColor(g.CYAN.darkened(0.5f));
+    		g.setColor(GColor.CYAN.darkened(0.5f));
     	else
-    		g.setColor(g.CYAN);
+    		g.setColor(GColor.CYAN);
     	g.begin();
     	g.vertex(-thickness/2, 0);
     	g.vertex(-thickness/2,length);
@@ -245,24 +246,24 @@ public class IKFigure extends Reflector<IKFigure> {
 
     protected void drawHand(AGraphics g, float radius, boolean far) {
     	if (far)
-    		g.setColor(g.YELLOW.darkened(0.5f));
+    		g.setColor(GColor.YELLOW.darkened(0.5f));
     	else
-    		g.setColor(g.YELLOW);
+    		g.setColor(GColor.YELLOW);
     	g.drawDisk(0,0,radius);
     }
 
     protected void drawNeck(AGraphics g, float radius) {
-    	g.setColor(g.YELLOW);
+    	g.setColor(GColor.YELLOW);
     	g.drawDisk(0, 0, radius);
     }
 
     protected void drawHead(AGraphics g, float radius) {
-    	g.setColor(g.RED);
+    	g.setColor(GColor.RED);
     	g.drawDisk(0, 0, radius);
     }
 
     protected void drawBody(AGraphics g, float length, float thickness) {
-    	g.setColor(g.BLUE);
+    	g.setColor(GColor.BLUE);
     	g.begin();
     	g.vertex(-thickness/2, -length/2);
     	g.vertex(thickness/2, -length/2);

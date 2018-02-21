@@ -535,7 +535,7 @@ public class Robotron {
     private final int DOOR_OPEN_FRAMES  = 100;
     private final float DOOR_OPEN_FRAMES_INV = 1.0f/DOOR_OPEN_FRAMES;
     
-    private final GLColor DOOR_COLOR = GLColor.CYAN;
+    private final GColor DOOR_COLOR = GColor.CYAN;
     private final int DOOR_THICKNESS = 2;
     
     private final String [] door_state_strings = {
@@ -715,7 +715,7 @@ public class Robotron {
     
     private final String[] msg_string = new String[MESSAGES_MAX];
     
-    private final GLColor[] msg_color = new GLColor[MESSAGES_MAX];
+    private final GColor[] msg_color = new GColor[MESSAGES_MAX];
     
     // PEOPLE ------------------------------
     
@@ -740,7 +740,7 @@ public class Robotron {
     
     private final int[] zombie_tracer_y = new int[MAX_ZOMBIE_TRACERS];
     
-    private final GLColor[] zombie_tracer_color = new GLColor[MAX_ZOMBIE_TRACERS];
+    private final GColor[] zombie_tracer_color = new GColor[MAX_ZOMBIE_TRACERS];
     
     // Player tracers ----------------------
     
@@ -748,7 +748,7 @@ public class Robotron {
     
     private final int[] player_tracer_y = new int[PLAYER_SUPERSPEED_NUM_TRACERS];
     
-    private final GLColor[] player_tracer_color = new GLColor[PLAYER_SUPERSPEED_NUM_TRACERS];
+    private final GColor[] player_tracer_color = new GColor[PLAYER_SUPERSPEED_NUM_TRACERS];
     
     private final int[] player_tracer_dir = new int[PLAYER_SUPERSPEED_NUM_TRACERS];
     
@@ -763,11 +763,11 @@ public class Robotron {
     
     private final int[] move_diag_dy = { -1, 1, -1, 1 };
     
-    private GLColor throbbing_white = GLColor.WHITE;
+    private GColor throbbing_white = GColor.WHITE;
     
     private int throbbing_dir = 0; // 0 == darker(), 1 == lighter()
     
-    private GLColor insta_msg_color;
+    private GColor insta_msg_color;
     
     private String insta_msg_str = null;
     
@@ -842,7 +842,7 @@ public class Robotron {
         int x, y;
         
         //g.glCsetColor(Color.GREEN);
-        g.setColor(GLColor.GREEN);
+        g.setColor(GColor.GREEN);
         final int [] verts = new int[5];
         
         if (isDebugEnabled(Debug.DRAW_MAZE_INFO)) {
@@ -914,7 +914,7 @@ public class Robotron {
 */
             computePrimaryVerts(player_x, player_y, verts);
             
-            g.setColor(GLColor.GREEN);
+            g.setColor(GColor.GREEN);
             int radius = 10;
             for (int i = 0; i < verts.length; i++) {
                 int v = verts[i];
@@ -926,7 +926,7 @@ public class Robotron {
                 radius = 5;
                 g.drawJustifiedString(x+15, y+15, String.valueOf(v));
             }
-            g.setColor(GLColor.ORANGE);
+            g.setColor(GColor.ORANGE);
             computePrimaryQuadrant(player_x, player_y, verts);
             for (int i=0; i<4; i++) {
                 int v = verts[i];
@@ -939,7 +939,7 @@ public class Robotron {
 
         }
         
-        g.setColor(GLColor.WHITE);
+        g.setColor(GColor.WHITE);
         //String msg = "frame: " + getFrameNumber();
         //g.drawJustifiedString(5, screen_height-5, Justify.LEFT, Justify.BOTTOM, msg);
         g.drawStringLine(5, screen_height-5, Justify.LEFT, "frame: "+ getFrameNumber());
@@ -1000,14 +1000,14 @@ public class Robotron {
     private void drawPowerup(GL10Graphics g, int type, int x, int y) {
         if (type == POWERUP_KEY) {
             final int dim = 20;
-            g.setColor(GLColor.WHITE);
+            g.setColor(GColor.WHITE);
             g.drawImage(imageKey, x-dim/2, y-dim/2, dim, dim);
         } else {
             g.setColor(throbbing_white);
             int r = POWERUP_RADIUS + (getFrameNumber() % 12) / 4;
             g.drawCircle(x, y, r);//(x - r, y - r, r * 2, r * 2);
             
-            g.setColor(GLColor.RED);
+            g.setColor(GColor.RED);
             if (type == POWERUP_BONUS_PLAYER) {
                 this.drawStickFigure(g, x, y, POWERUP_RADIUS);
             } else {
@@ -1175,7 +1175,7 @@ public class Robotron {
             return;
         zombie_tracer_x[num_zombie_tracers] = x;
         zombie_tracer_y[num_zombie_tracers] = y;
-        zombie_tracer_color[num_zombie_tracers] = GLColor.WHITE;
+        zombie_tracer_color[num_zombie_tracers] = GColor.WHITE;
         
         num_zombie_tracers++;
     }
@@ -1192,7 +1192,7 @@ public class Robotron {
     
     // -----------------------------------------------------------------------------------------------
     // append a zombie tracer
-    private void addPlayerTracer(int x, int y, int dir, GLColor color) {
+    private void addPlayerTracer(int x, int y, int dir, GColor color) {
         if (num_player_tracers == PLAYER_SUPERSPEED_NUM_TRACERS)
             return;
         player_tracer_x[num_player_tracers] = x;
@@ -1388,7 +1388,7 @@ public class Robotron {
             int x1 = x0 + move_dx[d] * SNAKE_SPEED * frames;
             int y1 = y0 + move_dy[d] * SNAKE_SPEED * frames;
             
-            g.setColor(GLColor.BLUE);
+            g.setColor(GColor.BLUE);
             drawBar(g, x0, y0, x1, y1, SNAKE_THICKNESS, 0);
             
             // draw the middle sections
@@ -1501,7 +1501,7 @@ public class Robotron {
         boolean update = getFrameNumber() % ENEMY_ZOMBIE_TRACER_FADE == 0;
         
         for (int i = 0; i < num_zombie_tracers;) {
-            if (!isOnScreen(zombie_tracer_x[i], zombie_tracer_y[i]) || zombie_tracer_color[i].equals(GLColor.BLACK)) {
+            if (!isOnScreen(zombie_tracer_x[i], zombie_tracer_y[i]) || zombie_tracer_color[i].equals(GColor.BLACK)) {
                 removeZombieTracer(i);
                 continue;
             }
@@ -1522,7 +1522,7 @@ public class Robotron {
         // boolean update = getFrameNumber() % ENEMY_ZOMBIE_TRACER_FADE == 0;
         
         for (int i = 0; i < num_player_tracers;) {
-            if (!isOnScreen(player_tracer_x[i], player_tracer_y[i]) || player_tracer_color[i].equals(GLColor.BLACK)) {
+            if (!isOnScreen(player_tracer_x[i], player_tracer_y[i]) || player_tracer_color[i].equals(GColor.BLACK)) {
                 removePlayerTracer(i);
                 continue;
             }
@@ -1544,7 +1544,7 @@ public class Robotron {
         int w = screen_width - ((screen_width * frame) / PLAYER_INDICATION_FRAMES);
         int h = screen_height - ((screen_height * frame) / PLAYER_INDICATION_FRAMES);
         
-        g.setColor(GLColor.RED);
+        g.setColor(GColor.RED);
         g.drawRect(left, top, w, h, 1);
     }
     
@@ -1567,11 +1567,11 @@ public class Robotron {
         if (getFrameNumber() % THROBBING_SPEED == 0) {
             if (throbbing_dir == 0) {
                 throbbing_white = throbbing_white.darkened(DARKEN_AMOUNT);
-                if (throbbing_white.equals(GLColor.BLACK))
+                if (throbbing_white.equals(GColor.BLACK))
                     throbbing_dir = 1;
             } else {
                 throbbing_white = throbbing_white.lightened(LIGHTEN_AMOUNT);
-                if (throbbing_white.equals(GLColor.WHITE))
+                if (throbbing_white.equals(GColor.WHITE))
                     throbbing_dir = 0;
             }
         }
@@ -1589,7 +1589,7 @@ public class Robotron {
     // -----------------------------------------------------------------------------------------------
     // Set the insta message
     private void setInstaMsg(String s) {
-        insta_msg_color = GLColor.YELLOW;
+        insta_msg_color = GColor.YELLOW;
         insta_msg_str = s;
     }
     /*
@@ -1616,7 +1616,7 @@ public class Robotron {
         float y = TEXT_PADDING;
         final float x0 = x;
         Justify hJust = Justify.LEFT;
-        g.setColor(GLColor.WHITE);
+        g.setColor(GColor.WHITE);
         x += g.drawStringLine(x, y, hJust, "Score    " + player_score);
         y += text_height; x = x0;
         x += g.drawStringLine(x, y, hJust, "Lives  X " + player_lives);
@@ -1636,7 +1636,7 @@ public class Robotron {
         
         // draw the instmsg
         if (insta_msg_str != null) {
-            if (insta_msg_color.equals(GLColor.BLACK)) {
+            if (insta_msg_color.equals(GColor.BLACK)) {
                 insta_msg_str = null;
             } else {
                 g.setColor(insta_msg_color);
@@ -1653,7 +1653,7 @@ public class Robotron {
         int x = player_x - screen_x + Utils.randRange(-5, 5);
         int y = player_y - screen_y + Utils.randRange(-5, 5);
         // drawPlayer(g, x, y, 2);
-        drawPlayerBody(g, x, y, player_dir, GLColor.RED);
+        drawPlayerBody(g, x, y, player_dir, GColor.RED);
         if (getFrameNumber() > player_killed_frame + PLAYER_DEATH_FRAMES) {
             if (--player_lives <= 0)
                 game_state = GAME_STATE_GAME_OVER;
@@ -1690,7 +1690,7 @@ public class Robotron {
         if (getFrameNumber() % 40 < 20)
             return;
         
-        g.setColor(GLColor.YELLOW);
+        g.setColor(GColor.YELLOW);
         
         int rad;
         switch (this.hit_type) {
@@ -1812,7 +1812,7 @@ public class Robotron {
         if (dir >= 0 && dir < 4) {
             int animIndex = dir*4 + (getFrameNumber()/8)%4;
             //Image img = Utils.getImage(animPeople[type][animIndex]);
-            g.setColor(GLColor.WHITE);
+            g.setColor(GColor.WHITE);
             g.drawImage(animPeople[type][animIndex], x-dimension/2, y-dimension/2, dimension, dimension);
             //Utils.drawImage(g, animPeople[type][animIndex], x, y, dim, dim);
         }
@@ -1827,7 +1827,7 @@ public class Robotron {
             
             if (people_state[i] < 0) {
                 // turning into a zombie, draw in white, shaking
-                g.setColor(GLColor.WHITE);
+                g.setColor(GColor.WHITE);
                 drawStickFigure(g, people_x[i] - screen_x, people_y[i] - screen_y + Utils.randRange(-2, 2), PEOPLE_RADIUS);
             } else {
                 // normal
@@ -1889,7 +1889,7 @@ public class Robotron {
         msg_x[num_msgs] = x;
         msg_y[num_msgs] = y;
         msg_string[num_msgs] = str;
-        msg_color[num_msgs] = GLColor.WHITE;
+        msg_color[num_msgs] = GColor.WHITE;
         num_msgs++;
     }
     
@@ -1910,7 +1910,7 @@ public class Robotron {
             
             if (frame_num % MESSAGE_FADE == 0) {
                 msg_color[i] = msg_color[i].darkened(DARKEN_AMOUNT);
-                if (msg_color[i].equals(GLColor.BLACK)) {
+                if (msg_color[i].equals(GColor.BLACK)) {
                     removeMsg(i);
                     continue;
                 }
@@ -1977,16 +1977,16 @@ public class Robotron {
                 final int pd2 = particle_duration[i]/2;
                 // draw a missle command type expl
                 if (duration <= pd2) {
-                    g.setColor(GLColor.RED);
+                    g.setColor(GColor.RED);
                     // draw expanding disk
                     radius = PARTICLE_BLOOD_RADIUS * duration / pd2;
                     g.drawFilledOval(x - radius, y - radius, radius * 2, radius * 2);
                 } else {
                     // draw 2nd half of explosion sequence
                     radius = PARTICLE_BLOOD_RADIUS * (duration-pd2) / pd2;
-                    g.setColor(GLColor.RED);
+                    g.setColor(GColor.RED);
                     g.drawFilledOval(x - PARTICLE_BLOOD_RADIUS, y - PARTICLE_BLOOD_RADIUS, PARTICLE_BLOOD_RADIUS * 2, PARTICLE_BLOOD_RADIUS * 2);
-                    g.setColor(GLColor.BLACK);
+                    g.setColor(GColor.BLACK);
                     g.drawFilledOval(x - radius, y - radius, radius * 2, radius * 2);
                 }
             }
@@ -1995,7 +1995,7 @@ public class Robotron {
             case PARTICLE_TYPE_DYING_ROBOT:
                 
                 // radius = PARTICLE_DYING_ROBOT_RADIUS - particle_duration[i];
-                g.setColor(GLColor.DARK_GRAY);
+                g.setColor(GColor.DARK_GRAY);
                 
                 v_spacing = 2 * (PARTICLE_DYING_ROBOT_DURATION - duration + 1);
                 width = ENEMY_ROBOT_RADIUS * 3 - (PARTICLE_DYING_ROBOT_DURATION - duration) * 4;
@@ -2010,7 +2010,7 @@ public class Robotron {
                 
             case PARTICLE_TYPE_DYING_TANK:
                 
-                g.setColor(GLColor.RED);
+                g.setColor(GColor.RED);
                 
                 v_spacing = 2 * (PARTICLE_DYING_ROBOT_DURATION - duration + 1);
                 width = ENEMY_TANK_RADIUS * 3 - (PARTICLE_DYING_ROBOT_DURATION - duration) * 4;
@@ -2030,7 +2030,7 @@ public class Robotron {
                 }
             
             // we will assume anything else is a stun
-            g.setColor(GLColor.WHITE);
+            g.setColor(GColor.WHITE);
             {
                 float rad = getPlayerRadius();
                 
@@ -2179,7 +2179,7 @@ public class Robotron {
             case ENEMY_INDEX_ZOMBIE_E:
             case ENEMY_INDEX_ZOMBIE_S:
             case ENEMY_INDEX_ZOMBIE_W:
-                g.setColor(GLColor.YELLOW);
+                g.setColor(GColor.YELLOW);
                 drawStickFigure(g, x0, y0, ENEMY_ZOMBIE_RADIUS);
                 break;
                 
@@ -2218,7 +2218,7 @@ public class Robotron {
                 int w = r*2;
                 int h = r*2;
                 if (Utils.isPointInsideRect(touchX, touchY, x, y, w, h)) {
-                    g.setColor(GLColor.YELLOW);
+                    g.setColor(GColor.YELLOW);
                     g.drawOval(x, y, w, h);
                     String msg = "index [" + i + "]"
                                + "\nradius [" + getEnemyRadius(i) + "]"
@@ -2238,7 +2238,7 @@ public class Robotron {
     // -----------------------------------------------------------------------------------------------
     // draw a robot at x0,y0 facing direction dir [0123] == [NESW]
     private void drawRobot(GL10Graphics g, int x0, int y0, int dir) {
-        g.setColor(GLColor.DARK_GRAY);
+        g.setColor(GColor.DARK_GRAY);
         int walk = (getFrameNumber() % 12) / 4 - 1;
         if (dir == 0 || dir == 2) {
             // draw head
@@ -2294,7 +2294,7 @@ public class Robotron {
                 g.drawFilledRect(x0 - 6, y0 - 12, 4, 4);
             }
             // draw the arm
-            g.setColor(GLColor.BLACK);
+            g.setColor(GColor.BLACK);
             g.drawFilledRect(x0 - 2, y0 - 6, 4, 12);
         }
     }
@@ -2338,10 +2338,10 @@ public class Robotron {
     // Draw the Evil Brain
     private void drawBrain(GL10Graphics g, int x0, int y0, int radius) {
         // big head, little arms and legs
-        g.setColor(GLColor.BLUE);
+        g.setColor(GColor.BLUE);
         g.translate(x0 - radius, y0 - radius, 0);
         g.drawFilledPolygon(brain_pts_x, brain_pts_y, brain_pts_x.length);
-        g.setColor(GLColor.RED);
+        g.setColor(GColor.RED);
         g.drawFilledPolygon(brain_legs_x, brain_legs_y, brain_legs_x.length);
         g.translate(-(x0 - radius), -(y0 - radius));
         
@@ -2360,7 +2360,7 @@ public class Robotron {
         x0 += radius;
         y0 += radius;
         // draw the eyes
-        g.setColor(GLColor.YELLOW);
+        g.setColor(GColor.YELLOW);
         g.drawFilledRect(x0 - 5, y0 + 1, 2, 2);
         g.drawFilledRect(x0 + 3, y0, 3, 2);
     }
@@ -2371,9 +2371,9 @@ public class Robotron {
         int dx = Math.round(5.0f * CMath.cosine(degrees));
         int dy = Math.round(5.0f * CMath.sine(degrees));
         
-        g.setColor(GLColor.GREEN);
+        g.setColor(GColor.GREEN);
         g.drawRect(x0 - ENEMY_TANK_GEN_RADIUS + dx, y0 - ENEMY_TANK_GEN_RADIUS + dy, ENEMY_TANK_GEN_RADIUS * 2, ENEMY_TANK_GEN_RADIUS * 2);
-        g.setColor(GLColor.BLUE);
+        g.setColor(GColor.BLUE);
         g.drawRect(x0 - ENEMY_TANK_GEN_RADIUS - dx, y0 - ENEMY_TANK_GEN_RADIUS - dy, ENEMY_TANK_GEN_RADIUS * 2, ENEMY_TANK_GEN_RADIUS * 2);
     }
     
@@ -2383,16 +2383,16 @@ public class Robotron {
     
     // -----------------------------------------------------------------------------------------------
     private void drawTank(GL10Graphics g, int x0, int y0, int dir) {
-        g.setColor(GLColor.DARK_GRAY);
+        g.setColor(GColor.DARK_GRAY);
         g.drawFilledRect(x0 - 12, y0 - 20, 24, 16);
-        g.setColor(GLColor.RED);
+        g.setColor(GColor.RED);
         g.translate(x0 - ENEMY_TANK_RADIUS, y0 - ENEMY_TANK_RADIUS);
         g.drawFilledPolygon(tank_pts_x, tank_pts_y, tank_pts_x.length);
         g.translate(-(x0 - ENEMY_TANK_RADIUS), -(y0 - ENEMY_TANK_RADIUS));
-        g.setColor(GLColor.DARK_GRAY);
+        g.setColor(GColor.DARK_GRAY);
         g.drawFilledRect(x0 - 12, y0 - 2, 24, 4);
         // draw the wheels
-        g.setColor(GLColor.CYAN);
+        g.setColor(GColor.CYAN);
         g.drawFilledOval(x0 - 22, y0 + 6, 12, 12);
         g.drawFilledOval(x0 + 10, y0 + 6, 12, 12);
     }
@@ -2406,7 +2406,7 @@ public class Robotron {
         index %= animJaws.length;
         int jw = 32;
         int jh = 32;
-        g.setColor(GLColor.WHITE);
+        g.setColor(GColor.WHITE);
         g.drawImage(animJaws[index], x0-jw/2, y0-jh/2, jw, jh);
     }
     
@@ -2417,7 +2417,7 @@ public class Robotron {
         if (animLava == null)
             return;
         if (index < animLava.length) {
-            g.setColor(GLColor.WHITE);
+            g.setColor(GColor.WHITE);
             g.drawImage(animLava[index], 
                     x0-ENEMY_LAVA_DIM/2, 
                     y0-ENEMY_LAVA_DIM/2, 
@@ -2430,9 +2430,9 @@ public class Robotron {
     // draw a dumb looking thug
     private void drawThug(GL10Graphics g, int x0, int y0, int dir) {
         // draw the body
-        g.setColor(GLColor.GREEN);
+        g.setColor(GColor.GREEN);
         g.drawFilledRect(x0 - 12, y0 - 12, 24, 21);
-        g.setColor(GLColor.RED);
+        g.setColor(GColor.RED);
         if (dir == 0 || dir == 2) {
             // draw 2 arms at the sides
             g.drawFilledRect(x0 - 15, y0 - 10, 3, 15);
@@ -2449,7 +2449,7 @@ public class Robotron {
             g.drawFilledRect(x0 - 3, y0 + 9, 6, 10);
         }
         // draw the head
-        g.setColor(GLColor.BLUE);
+        g.setColor(GColor.BLUE);
         g.drawFilledRect(x0 - 5, y0 - 19, 10, 7);
     }
     
@@ -3259,10 +3259,10 @@ public class Robotron {
         
         int thickness = 1;
         if (isMegaGunActive()) {
-            g.setColor(GLColor.CYAN);
+            g.setColor(GColor.CYAN);
             thickness = 2;
         } else {
-            g.setColor(GLColor.BLUE);
+            g.setColor(GColor.BLUE);
         }
         
         // Draw player's missles as lines
@@ -3280,7 +3280,7 @@ public class Robotron {
     // draw all missles to the screen
     private void drawEnemyMissles(GL10Graphics g) {
         // Draw the enemy missles as orange dots
-        g.setColor(GLColor.ORANGE);
+        g.setColor(GColor.ORANGE);
         int x, y;
         for (int i = 0; i < num_enemy_missles; i++) {
             MissleFloat m = enemy_missle[i];
@@ -3297,9 +3297,9 @@ public class Robotron {
             x = m.x - TANK_MISSLE_RADIUS - screen_x;
             y = m.y - TANK_MISSLE_RADIUS - screen_y;
             
-            g.setColor(GLColor.GREEN);
+            g.setColor(GColor.GREEN);
             g.drawOval(x, y, TANK_MISSLE_RADIUS * 2, TANK_MISSLE_RADIUS * 2);
-            g.setColor(GLColor.YELLOW);
+            g.setColor(GColor.YELLOW);
             g.drawOval(x + 2, y + 2, TANK_MISSLE_RADIUS * 2 - 4, TANK_MISSLE_RADIUS * 2 - 4);
         }
     }
@@ -3534,9 +3534,9 @@ public class Robotron {
             
             if (getFrameNumber() % 4 == 0) {                
                 if (isHulkActiveCharging()) {
-                    addPlayerTracer(player_x, player_y, player_dir, GLColor.GREEN);
+                    addPlayerTracer(player_x, player_y, player_dir, GColor.GREEN);
                 } else if (player_powerup == this.POWERUP_SUPER_SPEED) {
-                    addPlayerTracer(player_x, player_y, this.player_dir, GLColor.YELLOW);
+                    addPlayerTracer(player_x, player_y, this.player_dir, GColor.YELLOW);
                 }
             }
             
@@ -3925,19 +3925,19 @@ public class Robotron {
     // -----------------------------------------------------------------------------------------------
     // Draw the Player
     private void drawPlayer(GL10Graphics g, int px, int py, int dir) {
-        GLColor color = null;
+        GColor color = null;
         if (player_scale == PLAYER_HULK_SCALE) {
-            color = GLColor.GREEN;
+            color = GColor.GREEN;
         } else if (player_scale > 1.0f) {
             float invScale = 1.0f-(player_scale-1.0f);
-            color = new GLColor(invScale, 1.0f, invScale);
+            color = new GColor(invScale, 1.0f, invScale, 1);
         }
         
         if (game_state == this.GAME_STATE_PLAY) {
             int numFrames = this.PLAYER_POWERUP_DURATION - PLAYER_POWERUP_WARNING_FRAMES;
             if (player_powerup > 0 && player_powerup_duration > numFrames) {
                 if (getFrameNumber() % 8 < 4)
-                    color = GLColor.RED;
+                    color = GColor.RED;
             }
         }
         
@@ -3949,7 +3949,7 @@ public class Robotron {
                 this.addParticle(player_x, player_y, PARTICLE_TYPE_PLAYER_STUN, Utils.randRange(10,20));
         }   
         if (Utils.DEBUG_ENABLED) {
-            g.setColor(GLColor.BLUE);
+            g.setColor(GColor.BLUE);
             g.drawRect(px-1, py-1,3,3);
         }
     }
@@ -3957,15 +3957,15 @@ public class Robotron {
     // -----------------------------------------------------------------------------------------------
     // Draw the Player's Body
     // TODO: Avoid using new by caching all the colors we want
-    private void drawPlayerBody(GL10Graphics g, int px, int py, int dir, GLColor optionalColor) {
+    private void drawPlayerBody(GL10Graphics g, int px, int py, int dir, GColor optionalColor) {
         
-        GLColor priColor = GLColor.LIGHT_GRAY;
-        GLColor secColor = GLColor.DARK_GRAY;
+        GColor priColor = GColor.LIGHT_GRAY;
+        GColor secColor = GColor.DARK_GRAY;
         if (isGhostActive()) {
             if (optionalColor == null) {
-                priColor = secColor = new GLColor(200, 200, 200, 100); // lightgray
+                priColor = secColor = new GColor(200, 200, 200, 100); // lightgray
             } else {
-                priColor = secColor = new GLColor(optionalColor.getRed(),
+                priColor = secColor = new GColor(optionalColor.getRed(),
                                                 optionalColor.getGreen(),
                                                 optionalColor.getBlue(),
                                                 100);
@@ -4065,26 +4065,26 @@ public class Robotron {
         int f24 = Math.round(24.0f * scale);
         if (dir == 2) {
             // draw the eye
-            g.setColor(GLColor.BLACK);
+            g.setColor(GColor.BLACK);
             g.drawFilledRect(px - f8, py - f10, f16, f4);
-            g.setColor(GLColor.RED);
+            g.setColor(GColor.RED);
             int index = getFrameNumber() % 12;
             if (index > 6)
                 index = 12 - index;
             g.drawFilledRect(px - f8 + (index * f2), py - f10, f4, f4);
         } else if (dir == 1) {
-            g.setColor(GLColor.BLACK);
+            g.setColor(GColor.BLACK);
             g.drawFilledRect(px, py - f10, f10, f4);
-            g.setColor(GLColor.RED);
+            g.setColor(GColor.RED);
             int index = getFrameNumber() % 12;
             if (index < 4)
                 g.drawFilledRect(px + (index * f2), py - f10, f4, f4);
             else if (index >= 8)
                 g.drawFilledRect(px + (f24 - (index * f2)), py - f10, f4, f4);
         } else if (dir == 3) {
-            g.setColor(GLColor.BLACK);
+            g.setColor(GColor.BLACK);
             g.drawFilledRect(px - f10, py - f10, f10, f4);
-            g.setColor(GLColor.RED);
+            g.setColor(GColor.RED);
             int index = getFrameNumber() % 12;
             if (index < 4)
                 g.drawFilledRect(px - f10 + (index * f2), py - f10, f4, f4);
@@ -4312,7 +4312,7 @@ public class Robotron {
     private void drawPlayerBarrier(GL10Graphics g, int px, int py) {
         if (isBarrierActive()) {
             
-            g.setColor(GLColor.YELLOW);           
+            g.setColor(GColor.YELLOW);           
             if (barrier_electric_wall[0] >= 0) {
                 
                 drawPlayerBarrierElectricWall3(g, px, py);
@@ -4350,7 +4350,7 @@ public class Robotron {
     private void drawEnd(GL10Graphics g, int x, int y) {
         
         // draw an X
-        g.setColor(GLColor.CYAN);
+        g.setColor(GColor.CYAN);
         
         int minRadius = 10;
         int maxRadius = 22;
@@ -4441,11 +4441,11 @@ public class Robotron {
     }
     
     // -----------------------------------------------------------------------------------------------
-    private void drawLineFade_r(GL10Graphics g, int x0, int y0, int x1, int y1, GLColor outer, GLColor inner, int num, float factor) {
+    private void drawLineFade_r(GL10Graphics g, int x0, int y0, int x1, int y1, GColor outer, GColor inner, int num, float factor) {
         int mx = (x0+x1)/2;
         int my = (y0+y1)/2;
         if (num > 0) {
-            GLColor cm = outer.interpolateTo(inner, factor);//Utils.interpolate(outer, inner, factor);
+            GColor cm = outer.interpolateTo(inner, factor);//Utils.interpolate(outer, inner, factor);
             drawLineFade_r(g, x0, y0, mx, my, outer, cm, num-1, factor);
             drawLineFade_r(g, mx, my, x1, y1, cm, inner, num-1, factor);
         } else {
@@ -4458,8 +4458,8 @@ public class Robotron {
     private void drawPortalWall(GL10Graphics g, int x0, int y0, int x1, int y1) {
         int mx=(x0+x1)/2;
         int my=(y0+y1)/2;
-        drawLineFade_r(g, x0, y0, mx, my, GLColor.LIGHT_GRAY, this.throbbing_white, 3, 0.5f);
-        drawLineFade_r(g, mx, my, x1, y1, this.throbbing_white, GLColor.LIGHT_GRAY, 3, 0.5f);
+        drawLineFade_r(g, x0, y0, mx, my, GColor.LIGHT_GRAY, this.throbbing_white, 3, 0.5f);
+        drawLineFade_r(g, mx, my, x1, y1, this.throbbing_white, GColor.LIGHT_GRAY, 3, 0.5f);
     }
     
     // -----------------------------------------------------------------------------------------------
@@ -4468,7 +4468,7 @@ public class Robotron {
         float vx = (x1-x0)*0.5f;
         float vy = (y1-y0)*0.5f;
         float nx = 0, ny = 0;
-        g.setColor(GLColor.BLUE);
+        g.setColor(GColor.BLUE);
         
         float factor1 = 0.1f;
         float factor2 = 0.15f;
@@ -4520,7 +4520,7 @@ public class Robotron {
         float vx = (x1-x0)*0.5f;
         float vy = (y1-y0)*0.5f;
         float nx = 0, ny = 0;
-        g.setColor(GLColor.BLUE);
+        g.setColor(GColor.BLUE);
         final int thickness = 2;
         
         if (frequency < EPSILON) {
@@ -4566,7 +4566,7 @@ public class Robotron {
             return;
         case DOOR_STATE_LOCKED:
             g.drawLine(x0, y0, x1, y1, this.DOOR_THICKNESS);
-            g.setColor(GLColor.RED);
+            g.setColor(GColor.RED);
             g.drawDisk(mx, my, 10);
             return;
         case DOOR_STATE_OPEN:
@@ -4620,7 +4620,7 @@ public class Robotron {
     
     // -----------------------------------------------------------------------------------------------
     private void drawDebugWallInfo(GL10Graphics g) {
-        g.setColor(GLColor.GREEN);
+        g.setColor(GColor.GREEN);
         for (int i = 1; i < mazeNumVerts; i++) {
             for (int j = 0; j < i; j++) {
                 
@@ -4663,7 +4663,7 @@ public class Robotron {
                 // give a number between 0-1 that is how much health we have
                 float health = (1.0f/WALL_NORMAL_HEALTH)*info.health;
                 int c = Math.round(255.0f * health);
-                g.setColor(new GLColor(255, c, c));
+                g.setColor(new GColor(255, c, c));
                 // if wall is healthy, num==0
                 // if wall is med, num 1
                 // if wall is about to break, num = 2
@@ -4673,12 +4673,12 @@ public class Robotron {
                 //int yoff = (info.v1 * (-1 * info.v0 % 2) % 30);
                 drawBreakingWall_r(g, x0, y0, x1, y1, num, info.v0 + info.v1);
             } else {
-                g.setColor(GLColor.LIGHT_GRAY);
+                g.setColor(GColor.LIGHT_GRAY);
                 g.drawLine(x0, y0, x1, y1, MAZE_WALL_THICKNESS);
             }
             break;
         case WALL_TYPE_ELECTRIC:
-            g.setColor(GLColor.YELLOW);
+            g.setColor(GColor.YELLOW);
             if (isBarrierActive() && Utils.isCircleIntersectingLineSeg(x0,y0,x1,y1,player_x-screen_x, player_y-screen_y, PLAYER_RADIUS_BARRIER)) {
                 // draw the electric wall at the perimeter of the barrier, so the electric
                 // wall and the barrier become 1 unit.  TODO: make ememies die from electric walls.
@@ -4694,7 +4694,7 @@ public class Robotron {
             }
             break;
         case WALL_TYPE_INDESTRUCTABLE:
-            g.setColor(GLColor.DARK_GRAY);
+            g.setColor(GColor.DARK_GRAY);
             g.drawLine(x0, y0, x1, y1, MAZE_WALL_THICKNESS+2);
             break;
         case WALL_TYPE_PORTAL:  
@@ -4707,7 +4707,7 @@ public class Robotron {
             drawDoor(g, info, x0, y0, x1, y1);
             break;
         case WALL_TYPE_PHASE_DOOR:
-            g.setColor(GLColor.GREEN);
+            g.setColor(GColor.GREEN);
             g.drawLine(x0, y0, x1, y1, 1);
             break;              
         default: 
@@ -5946,25 +5946,25 @@ public class Robotron {
     }
     
     private void initImage_gif(GL10Graphics g) {
-        imageKey  = g.loadImage("images/key.gif", GLColor.BLACK);
-        imageLogo = g.loadImage("images/logo.gif", GLColor.BLACK);
-        animJaws = g.loadImageCells("images/jaws.gif" , 32, 32, 8, 9, true, GLColor.BLACK);
-        animLava = g.loadImageCells("images/lavapit.gif", 32, 32, 8, 25, true, GLColor.BLACK);
+        imageKey  = g.loadImage("images/key.gif", GColor.BLACK);
+        imageLogo = g.loadImage("images/logo.gif", GColor.BLACK);
+        animJaws = g.loadImageCells("images/jaws.gif" , 32, 32, 8, 9, true, GColor.BLACK);
+        animLava = g.loadImageCells("images/lavapit.gif", 32, 32, 8, 25, true, GColor.BLACK);
         animPeople = new int[PEOPLE_NUM_TYPES][];       
-        animPeople[0] = g.loadImageCells("images/people.gif", 32, 32, 4, 16, true, GLColor.BLACK);
-        animPeople[1] = g.loadImageCells("images/people2.gif", 32, 32, 4, 16, true, GLColor.BLACK);
-        animPeople[2] = g.loadImageCells("images/people3.gif", 32, 32, 4, 16, true, GLColor.BLACK);
+        animPeople[0] = g.loadImageCells("images/people.gif", 32, 32, 4, 16, true, GColor.BLACK);
+        animPeople[1] = g.loadImageCells("images/people2.gif", 32, 32, 4, 16, true, GColor.BLACK);
+        animPeople[2] = g.loadImageCells("images/people3.gif", 32, 32, 4, 16, true, GColor.BLACK);
     }
     
     private void initImages_png(GL10Graphics g) {
-        imageKey  = g.loadImage("pngs/key.png", GLColor.BLACK);
-        imageLogo = g.loadImage("pngs/logo.png", GLColor.BLACK);
-        animJaws = g.loadImageCells("pngs/jaws.png" , 32, 32, 8, 9, true, GLColor.BLACK);
-        animLava = g.loadImageCells("pngs/lavapit.png", 32, 32, 8, 25, true, GLColor.BLACK);
+        imageKey  = g.loadImage("pngs/key.png", GColor.BLACK);
+        imageLogo = g.loadImage("pngs/logo.png", GColor.BLACK);
+        animJaws = g.loadImageCells("pngs/jaws.png" , 32, 32, 8, 9, true, GColor.BLACK);
+        animLava = g.loadImageCells("pngs/lavapit.png", 32, 32, 8, 25, true, GColor.BLACK);
         animPeople = new int[PEOPLE_NUM_TYPES][];       
-        animPeople[0] = g.loadImageCells("pngs/people.png", 32, 32, 4, 16, true, GLColor.BLACK);
-        animPeople[1] = g.loadImageCells("pngs/people2.png", 32, 32, 4, 16, true, GLColor.BLACK);
-        animPeople[2] = g.loadImageCells("pngs/people3.png", 32, 32, 4, 16, true, GLColor.BLACK);
+        animPeople[0] = g.loadImageCells("pngs/people.png", 32, 32, 4, 16, true, GColor.BLACK);
+        animPeople[1] = g.loadImageCells("pngs/people2.png", 32, 32, 4, 16, true, GColor.BLACK);
+        animPeople[2] = g.loadImageCells("pngs/people3.png", 32, 32, 4, 16, true, GColor.BLACK);
     }
 
     
@@ -5978,7 +5978,7 @@ public class Robotron {
         
         int sy = 50;
         int dy = (screen_height-sy) / 5;
-        GLColor textColor = GLColor.RED;            
+        GColor textColor = GColor.RED;            
         int dir = this.DIR_DOWN;
         
         sy += this.PLAYER_RADIUS/2;     
@@ -6020,7 +6020,7 @@ public class Robotron {
         int x2 = screen_width / 2;      
         int sy = 50;
         int dy = (screen_height-sy) / WALL_NUM_TYPES;
-        GLColor textColor = GLColor.RED;        
+        GColor textColor = GColor.RED;        
         
         WallInfo info = new WallInfo();
         info.health = 100;
@@ -6048,14 +6048,14 @@ public class Robotron {
         int x2 = screen_width / 2;
         int sy = 50;        
         int dy = (screen_height-sy) / (this.POWERUP_NUM_TYPES+1);       
-        GLColor textColor = GLColor.WHITE;        
+        GColor textColor = GColor.WHITE;        
         
         sy += 16;
         //this.drawStickFigure(g, x1, sy, this.PEOPLE_RADIUS);
         //this.drawPeople(g)
         int type = (getFrameNumber() / 30) % PEOPLE_NUM_TYPES;
         int dir  = (getFrameNumber() / 60) % 4;
-        g.setColor(GLColor.WHITE);
+        g.setColor(GColor.WHITE);
         this.drawPerson(g, x1, sy, 32, type, dir);
         g.setColor(textColor);
         g.drawJustifiedString(x2, sy, "HUMAN");
@@ -6078,7 +6078,7 @@ public class Robotron {
         int x2 = screen_width / 2;
         int x3 = screen_width * 3 / 4;
         int sy = 50;
-        GLColor textColor = GLColor.RED;
+        GColor textColor = GColor.RED;
         int dy = (screen_height-sy) / 6;
         
         this.drawRobot(g, x1, sy, this.DIR_DOWN);
@@ -6122,7 +6122,7 @@ public class Robotron {
     private void drawIntro(GL10Graphics g) {
         
         if (imageLogo >= 0) {
-            g.setColor(GLColor.WHITE);
+            g.setColor(GColor.WHITE);
             g.drawImage(imageLogo, 0, 0, 256, 256);
         }
         
@@ -6145,7 +6145,7 @@ public class Robotron {
         int y = 0;
         for (int i = 0; i < BUTTONS_NUM; i++) {
             if (button_active == i) {
-                g.setColor(GLColor.RED);
+                g.setColor(GColor.RED);
                 g.drawFilledRect(button_x[i], button_y[i], BUTTON_WIDTH, BUTTON_HEIGHT);
             }
             boolean outline = false;
@@ -6179,11 +6179,11 @@ public class Robotron {
                     break;
             }
             if (outline) {
-                g.setColor(GLColor.GREEN);
+                g.setColor(GColor.GREEN);
                 g.drawRect(button_x[i] + 1, button_y[i] + 1, BUTTON_WIDTH - 2, BUTTON_HEIGHT - 2);
                 g.drawRect(button_x[i] + 2, button_y[i] + 2, BUTTON_WIDTH - 4, BUTTON_HEIGHT - 4);
             }
-            g.setColor(GLColor.CYAN);
+            g.setColor(GColor.CYAN);
             g.drawRect(button_x[i], button_y[i], BUTTON_WIDTH, BUTTON_HEIGHT);
             g.drawString(Button.values()[i].name(), button_x[i] + 5, button_y[i] + 5);
             y = button_y[i];
@@ -6205,10 +6205,10 @@ public class Robotron {
         int v_spacing = 20;
         int h_spacing = screen_width / 3;
         
-        GLColor textColor = GLColor.BLUE;
+        GColor textColor = GColor.BLUE;
         
         // Game name ect
-        g.setColor(GLColor.RED);
+        g.setColor(GColor.RED);
         g.drawString("RoboCraze 2.0", left, top);
         top += v_spacing;
         g.setColor(textColor);
@@ -6228,7 +6228,7 @@ public class Robotron {
         // draw a people
         g.setColor(textColor);
         g.drawString("Person (" + PEOPLE_START_POINTS + " - " + PEOPLE_MAX_POINTS + " points)", left, top);
-        g.setColor(GLColor.RED);
+        g.setColor(GColor.RED);
         drawStickFigure(g, left + h_spacing, top - PEOPLE_RADIUS, PEOPLE_RADIUS);
         top += v_spacing + PEOPLE_RADIUS * 2;
         // draw a generator
@@ -6239,7 +6239,7 @@ public class Robotron {
         // draw an enemy guy
         g.setColor(textColor);
         g.drawString("Enemy Guy (" + ENEMY_ROBOT_POINTS + " points)", left, top);
-        g.setColor(GLColor.LIGHT_GRAY);
+        g.setColor(GColor.LIGHT_GRAY);
         drawRobot(g, left + h_spacing, top - ENEMY_ROBOT_RADIUS, 2);
         top += v_spacing + ENEMY_ROBOT_RADIUS * 2;
         // draw a thug
@@ -6255,17 +6255,17 @@ public class Robotron {
         // draw a tank
         g.setColor(textColor);
         g.drawString("Enemy Tank (" + ENEMY_TANK_POINTS + " points)", left, top);
-        g.setColor(GLColor.DARK_GRAY);
+        g.setColor(GColor.DARK_GRAY);
         drawTank(g, left + h_spacing, top - ENEMY_TANK_RADIUS, 1);
         top += v_spacing + ENEMY_TANK_RADIUS * 2;
         // draw a tank gen
         g.setColor(textColor);
         g.drawString("Tank Generator (" + ENEMY_TANK_GEN_POINTS + " points)", left, top);
-        g.setColor(GLColor.GREEN);
+        g.setColor(GColor.GREEN);
         drawTankGen(g, left + h_spacing, top - ENEMY_TANK_GEN_RADIUS);
         top += v_spacing + ENEMY_TANK_GEN_RADIUS * 2;
         // draw the ending X
-        g.setColor(GLColor.RED);
+        g.setColor(GColor.RED);
         drawEnd(g, left + h_spacing, top);
         g.setColor(textColor);
         g.drawString("GOAL", left, top - 4);
@@ -6274,7 +6274,7 @@ public class Robotron {
         // draw some instructions on how to play
         left = screen_width / 2;
         top = 20;
-        g.setColor(GLColor.LIGHT_GRAY);
+        g.setColor(GColor.LIGHT_GRAY);
         g.drawString("Use [AWDS] to move", left, top);
         top += v_spacing * 2;
         g.drawString("Use Mouse to aim and fire missles", left, top);
@@ -6289,15 +6289,15 @@ public class Robotron {
         // draw buttons for selecting the gametype
         for (int i = 0; i < BUTTONS_NUM; i++) {
             if (button_active == i) {
-                g.setColor(GLColor.RED);
+                g.setColor(GColor.RED);
                 g.drawFilledRect(button_x[i], button_y[i], BUTTON_WIDTH, BUTTON_HEIGHT);
             }
             if (difficulty + 2 == i) {
-                g.setColor(GLColor.GREEN);
+                g.setColor(GColor.GREEN);
                 g.drawRect(button_x[i] + 1, button_y[i] + 1, BUTTON_WIDTH - 2, BUTTON_HEIGHT - 2);
                 g.drawRect(button_x[i] + 2, button_y[i] + 2, BUTTON_WIDTH - 4, BUTTON_HEIGHT - 4);
             }
-            g.setColor(GLColor.CYAN);
+            g.setColor(GColor.CYAN);
             g.drawRect(button_x[i], button_y[i], BUTTON_WIDTH, BUTTON_HEIGHT);
             g.drawString(Button.values()[i].name(), button_x[i] + 5, button_y[i] + BUTTON_HEIGHT - 5);
         }
@@ -6307,7 +6307,7 @@ public class Robotron {
     void drawGame(GL10Graphics g) {
         frame_number += 1;
         Arrays.fill(barrier_electric_wall, -1);
-        g.clearScreen(GLColor.BLACK);
+        g.clearScreen(GColor.BLACK);
         g.scale(2);
         switch (game_state) {
         case GAME_STATE_INTRO: // ---------------------------------------------------------
@@ -6406,9 +6406,9 @@ public class Robotron {
         int y = screen_height - 20;
         for (Debug d : Debug.values()) {
             if (isDebugEnabled(d))
-                g.setColor(GLColor.RED);
+                g.setColor(GColor.RED);
             else
-                g.setColor(GLColor.CYAN);
+                g.setColor(GColor.CYAN);
             g.drawJustifiedString(x, y, Justify.CENTER, d.indicator);
             x += w;
         }
@@ -6583,7 +6583,7 @@ public class Robotron {
     private void drawHelp(GL10Graphics g) {
         if ((key_down_flag & KEY_FLAG_HELP) == 0)
             return;
-        g.setColor(GLColor.YELLOW);
+        g.setColor(GColor.YELLOW);
         String strHelp = "HELP:\n" 
             + "M   - add snake missle\n" 
             + "L   - add powerup\n" 

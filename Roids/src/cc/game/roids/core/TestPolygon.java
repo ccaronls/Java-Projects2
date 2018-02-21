@@ -1,6 +1,7 @@
 package cc.game.roids.core;
 
 import cc.lib.game.AGraphics;
+import cc.lib.game.GColor;
 import cc.lib.game.Justify;
 import cc.lib.game.Utils;
 import cc.lib.math.*;
@@ -102,26 +103,26 @@ public class TestPolygon extends PolygonThingy {
 
     @Override
     void draw(AGraphics g) {
-        g.setColor(g.GREEN);
+        g.setColor(GColor.GREEN);
         super.draw(g);
         g.pushMatrix();
 	        g.translate(position);
 	        g.rotate(getOrientation());
 	        g.scale(1.1f, 1.1f);
 	        if (this.circleHighlighed) {
-	            g.setColor(g.RED);
+	            g.setColor(GColor.RED);
 	        } else {
-	            g.setColor(g.YELLOW);
+	            g.setColor(GColor.YELLOW);
 	        }
 	        g.drawCircle(0, 0, getRadius());
 	        //g.setLineWidth(2);
 	        if (this.highlighted) {
-	            g.setColor(g.RED);
+	            g.setColor(GColor.RED);
 	        } else {
-	            g.setColor(g.BLUE);
+	            g.setColor(GColor.BLUE);
 	        }
 	        renderBoundingVerts(g);
-	        g.setColor(g.WHITE);
+	        g.setColor(GColor.WHITE);
 	    g.popMatrix();
         g.pushMatrix();
 	        g.translate(position);
@@ -139,7 +140,7 @@ public class TestPolygon extends PolygonThingy {
 	        //g.end();
 	        //g.setLineWidth(1);
 	        //*
-	        g.setColor(g.WHITE);
+	        g.setColor(GColor.WHITE);
 	        g.pushMatrix();
 		        g.rotate(getOrientation());
 		        for (int i=0; i<getNumBoundingVerts(); i++) {

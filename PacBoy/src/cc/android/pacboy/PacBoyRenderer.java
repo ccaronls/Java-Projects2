@@ -8,7 +8,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import cc.lib.android.BaseRenderer;
 import cc.lib.android.GL10Graphics;
-import cc.lib.game.AColor;
+import cc.lib.game.GColor;
 import cc.lib.game.IVector2D;
 import cc.lib.game.Maze;
 import cc.lib.game.Utils;
@@ -244,7 +244,7 @@ class PacBoyRenderer extends BaseRenderer implements View.OnTouchListener {
 		g.popMatrix();
 		frame++;
 		if (difficulty > DIFFICULTY_NO_CHASE) {
-    		g.setColor(g.RED);
+    		g.setColor(GColor.RED);
     		float x = 15;
     		float y = g.getViewportHeight()- 15;
     		
@@ -260,8 +260,8 @@ class PacBoyRenderer extends BaseRenderer implements View.OnTouchListener {
 	}
 
 	void drawMaze(GL10Graphics g) {
-		g.clearScreen(g.YELLOW);
-		g.setColor(g.BLUE);
+		g.clearScreen(GColor.YELLOW);
+		g.setColor(GColor.BLUE);
 		maze.draw(g, 5);
 	}
 	
@@ -285,7 +285,7 @@ class PacBoyRenderer extends BaseRenderer implements View.OnTouchListener {
 		int sx = maze.getStartX();
 		int sy = maze.getStartY();
 		g.begin();
-		g.setColor(g.MAGENTA);
+		g.setColor(GColor.MAGENTA);
 		g.vertex(sx, sy);
 		for (Maze.Compass c : path) {
 			sx += c.dx;
@@ -299,17 +299,17 @@ class PacBoyRenderer extends BaseRenderer implements View.OnTouchListener {
 	
 	void drawReady(GL10Graphics g) {
 		drawMaze(g);
-		g.setColor(g.GREEN);
+		g.setColor(GColor.GREEN);
 		g.drawDisk(ix, iy, 0.3f + 0.01f * pulse[frame%pulse.length], 32);
-		g.setColor(g.RED);
+		g.setColor(GColor.RED);
 		g.drawDisk(ex, ey, 0.3f, 32);
 	}
 	
 	void drawPlaying(GL10Graphics g) {
 		drawMaze(g);
-		g.setColor(g.GREEN);
+		g.setColor(GColor.GREEN);
 		g.drawDisk(ix, iy, 0.3f);
-		g.setColor(g.RED);
+		g.setColor(GColor.RED);
 		g.drawDisk(ex, ey, 0.3f + 0.01f * pulse[frame%pulse.length], 32);
 		drawDots(g, 8);
 		//drawPath(g, solution);
@@ -317,7 +317,7 @@ class PacBoyRenderer extends BaseRenderer implements View.OnTouchListener {
 	
 	private void drawChasing(GL10Graphics g) {
 		drawPlaying(g);
-		g.setColor(g.BLACK);
+		g.setColor(GColor.BLACK);
 		pb.draw(g);
 		if (path.size() > 0) {
 			synchronized (path) {
@@ -362,7 +362,7 @@ class PacBoyRenderer extends BaseRenderer implements View.OnTouchListener {
 	
 	private void drawEaten(GL10Graphics g) {
 		
-		AColor [] colors = { g.BLUE, g.YELLOW };
+		GColor[] colors = { GColor.BLUE, GColor.YELLOW };
 
 		int i0 = (frame/5) % 2;
 		int i1 = (i0+1) % 2;
@@ -385,9 +385,9 @@ class PacBoyRenderer extends BaseRenderer implements View.OnTouchListener {
 	}
 	
 	private void drawFace(GL10Graphics g, float x, float y, float r, boolean tongue) {
-		g.setColor(g.BLACK);
+		g.setColor(GColor.BLACK);
 		g.drawDisk(x, y, r, 32);
-		g.setColor(g.YELLOW);
+		g.setColor(GColor.YELLOW);
 		g.begin();
 		g.vertex(x-r/3, y-r/3);
 		g.vertex(x+r/3, y-r/3);
@@ -395,7 +395,7 @@ class PacBoyRenderer extends BaseRenderer implements View.OnTouchListener {
 		g.end();
 		if (tongue) {
 			// draw a tongue
-			g.setColor(g.RED);
+			g.setColor(GColor.RED);
 			g.drawFilledRectf(x-r/6, y+r/4, r/3, r/3);
 			g.drawDisk(x, y+r/4+r/3, r/6);
 		} else {
@@ -410,7 +410,7 @@ class PacBoyRenderer extends BaseRenderer implements View.OnTouchListener {
 	private void drawCleanup(GL10Graphics g)
 	{
 		drawPlaying(g);
-		g.setColor(g.BLACK);
+		g.setColor(GColor.BLACK);
 		pb.draw(g);
 		if (path.size() > 0) {
 			synchronized (path) {
@@ -438,16 +438,16 @@ class PacBoyRenderer extends BaseRenderer implements View.OnTouchListener {
 	
 	private void drawSolved(GL10Graphics g) {
 		drawPlaying(g);
-		g.setColor(g.RED);
+		g.setColor(GColor.RED);
 		g.drawDisk(ex, ey, 0.3f, 32);
-		g.setColor(g.ORANGE);
+		g.setColor(GColor.ORANGE);
 		drawDots(g, 10);
 		float x = pb.pos.getX();
 		float y = pb.pos.getY();
 		float r = pb.radius;
-		g.setColor(g.BLACK);
+		g.setColor(GColor.BLACK);
 		g.drawDisk(x, y, r, 32);
-		g.setColor(g.YELLOW);
+		g.setColor(GColor.YELLOW);
 		g.begin();
 		g.vertex(x-r/3, y-r/3);
 		g.vertex(x+r/3, y-r/3);
@@ -493,8 +493,8 @@ class PacBoyRenderer extends BaseRenderer implements View.OnTouchListener {
 		int secondsToCenter = 3;
 		int framesToCenter = secondsToCenter * getTargetFPS();
 		float speed = (wid/2+pb.radius) / framesToCenter;
-		g.clearScreen(g.YELLOW);
-		g.setColor(g.BLACK);
+		g.clearScreen(GColor.YELLOW);
+		g.setColor(GColor.BLACK);
 		if (frame >= framesToCenter && frame < framesToCenter + getTargetFPS()*3) {
 			if (frame < framesToCenter + getTargetFPS()) {
 				drawFace(g, pb.pos.getX(), pb.pos.getY(), pb.radius, false);

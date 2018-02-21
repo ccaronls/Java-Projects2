@@ -4,7 +4,7 @@ import java.io.*;
 import java.util.LinkedList;
 import java.util.List;
 
-import cc.lib.game.AColor;
+import cc.lib.game.GColor;
 import cc.lib.game.AGraphics;
 import cc.lib.game.Utils;
 import cc.lib.math.*;

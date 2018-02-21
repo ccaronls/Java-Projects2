@@ -117,16 +117,16 @@ public class Board extends Reflector<Board> {
 			g.scale(0.9f);
 			switch (o.shape) {
 				case DIAMOND:
-					g.setColor(g.GREEN);
+					g.setColor(GColor.GREEN);
 					break;
 				case HEXAGON:
-					g.setColor(g.ORANGE);
+					g.setColor(GColor.ORANGE);
 					break;
 				case NONE:
-					g.setColor(g.BLACK);
+					g.setColor(GColor.BLACK);
 					break;
 				case TRIANGLE:
-					g.setColor(g.CYAN);
+					g.setColor(GColor.CYAN);
 					break;
 			}
 			g.begin();
@@ -142,7 +142,7 @@ public class Board extends Reflector<Board> {
 		
 		if (highlighted >= 0) {
 			Piece p = pieces.get(highlighted);
-			g.setColor(g.MAGENTA);
+			g.setColor(GColor.MAGENTA);
 			g.begin();
 			for (int i=0; i<3; i++)
 				g.vertex(verts.get(p.v[i]));
@@ -152,14 +152,14 @@ public class Board extends Reflector<Board> {
 		return highlighted;
 	}
 	
-	AColor getColorForPlayer(int playerNum, AGraphics g) {
+	GColor getColorForPlayer(int playerNum, AGraphics g) {
 		switch (playerNum) {
 			case 1:
-				return g.RED;
+				return GColor.RED;
 			case 2:
-				return g.BLUE;
+				return GColor.BLUE;
 		}
-		return g.BLACK;
+		return GColor.BLACK;
 	}
 	
 	private IVector2D getMidpoint(int ... vIndices) {
@@ -182,7 +182,7 @@ public class Board extends Reflector<Board> {
 			for (int v : p.v)
 				g.vertex(verts.get(v));
 			g.drawTriangles();
-			g.setColor(g.YELLOW);
+			g.setColor(GColor.YELLOW);
 			IVector2D c = getMidpoint(p.v);
 			switch (p.type) {
 				case NONE:
@@ -194,7 +194,7 @@ public class Board extends Reflector<Board> {
 					g.vertex(c.getX()-r, c.getY());
 					g.vertex(c.getX()+r, c.getY());
 					g.vertex(c.getX(), c.getY()-r*2);
-					g.setColor(g.YELLOW);
+					g.setColor(GColor.YELLOW);
 					g.drawTriangleStrip();
 					break;
 				}
@@ -236,7 +236,7 @@ public class Board extends Reflector<Board> {
 		g.begin();
 		for (int v : p.v)
 			g.vertex(verts.get(v));
-		g.setColor(g.WHITE);
+		g.setColor(GColor.WHITE);
 		g.setLineWidth(2);
 		g.drawLineLoop();
 		return Utils.isPointInsidePolygon(hx, hy, new IVector2D[] { verts.get(p.v[0]), verts.get(p.v[1]), verts.get(p.v[2]) }, 3);

@@ -8,6 +8,7 @@ import java.util.List;
 import cc.lib.game.AAnimation;
 import cc.lib.game.AGraphics;
 import cc.lib.game.APGraphics;
+import cc.lib.game.GColor;
 import cc.lib.game.IVector2D;
 import cc.lib.game.Utils;
 import cc.lib.math.Matrix3x3;
@@ -271,7 +272,7 @@ public class Board extends Reflector<Board> {
 
     private int drawHighlighted(APGraphics g, int endpoint, int mouseX, int mouseY, Tile dragged) {
         MutableVector2D mv = new MutableVector2D();
-        g.setColor(g.CYAN);
+        g.setColor(GColor.CYAN);
         g.begin();
         int moveIndex = 0;
         for (Move move : highlightedMoves[endpoint]) {
@@ -307,7 +308,7 @@ public class Board extends Reflector<Board> {
 
             g.begin();
             g.pushMatrix();
-            g.setColor(g.RED);
+            g.setColor(GColor.RED);
             transformPlacement(g, selectedMove.placment);
             if (dragged != null) {
                 int pip1 = dragged.pip1;
@@ -419,14 +420,14 @@ public class Board extends Reflector<Board> {
 
             // DEBUG outline the min/max bounding box
             if (false && AGraphics.DEBUG_ENABLED) {
-                g.setColor(g.YELLOW);
+                g.setColor(GColor.YELLOW);
                 g.drawRect(minBR, maxBR, 1);
             }
 
             // DEBUG draw pickX, pickY in viewport coords
             if (false && AGraphics.DEBUG_ENABLED) {
                 Vector2D mv = g.screenToViewport(pickX, pickY);
-                g.setColor(g.YELLOW);
+                g.setColor(GColor.YELLOW);
                 g.drawCircle(mv.getX(), mv.getY(), 10);
             }
 
@@ -453,7 +454,7 @@ public class Board extends Reflector<Board> {
 
             // DEBUG draw the rects
             if (AGraphics.DEBUG_ENABLED) {
-                g.setColor(g.ORANGE);
+                g.setColor(GColor.ORANGE);
                 for (IVector2D [] r : rects) {
                     g.drawRect(r[0], r[1], 3);
                 }
@@ -466,17 +467,17 @@ public class Board extends Reflector<Board> {
 
     static void drawTile(AGraphics g, int pips1, int pips2, float alpha) {
         g.pushMatrix();
-        g.setColor(g.BLACK.setAlpha(alpha));
+        g.setColor(GColor.BLACK.setAlpha(alpha));
         g.drawFilledRoundedRect(0, 0, 2, 1, 0.25f);
-        g.setColor(g.WHITE);
+        g.setColor(GColor.WHITE);
         g.drawRoundedRect(0, 0, 2, 1, 1, 0.25f);
-        g.setColor(g.WHITE);
+        g.setColor(GColor.WHITE);
         g.drawLine(1, 0, 1, 1, 2);
-        g.setColor(g.WHITE);
+        g.setColor(GColor.WHITE);
         drawDie(g, 0, 0, pips1);
         drawDie(g, 1, 0, pips2);
         if (false && AGraphics.DEBUG_ENABLED) {
-            g.setColor(g.RED);
+            g.setColor(GColor.RED);
             g.drawDisk(0, 0, 4);
         }
         g.popMatrix();

@@ -110,7 +110,7 @@ public abstract class MissleCommand {
 	}
 	
 	void initImages(AGraphics g) {
-		int cityId = g.loadImage("city.gif", g.BLACK);
+		int cityId = g.loadImage("city.gif", GColor.BLACK);
 		//Image src = images.getSourceImage(cityId);
 		cityImageIds[0] = g.newSubImage(cityId, 0, 0, 64, 64);
 		cityImageIds[1] = g.newSubImage(cityId, 64, 0, 64, 64);
@@ -118,7 +118,7 @@ public abstract class MissleCommand {
 		cityImageIds[3] = g.newSubImage(cityId, 64, 64, 64, 64);
 		for (int i=0; i<4; i++) {
 		    //cityImageIds[i] = g.getImage(cityImageIds[i], getCityRadius(), getCityRadius());
-		    cityImageIds[i] = g.newTransformedImage(cityImageIds[i], new ImageColorFilter(g.WHITE, getCityColor(), 0));
+		    cityImageIds[i] = g.newTransformedImage(cityImageIds[i], new ImageColorFilter(GColor.WHITE, getCityColor(), 0));
 		}
 	}
 	
@@ -213,16 +213,16 @@ public abstract class MissleCommand {
 		return landHeight;
 	}
 
-	AColor getSkyColor() 			{ return colors[0]; }	
-	AColor getLandColor() 			{ return colors[1]; }	
-	AColor getEnemyMissleColor() 	{ return colors[2]; }	
-	AColor getPlayerMissleColor() 	{ return colors[3]; }	
-	AColor getExplosionColor() 		{ return colors[4]; }	
-	AColor getCityColor() 			{ return colors[5]; }	
-	AColor getMissleHeadColor() 		{ return colors[6]; }	
-	AColor getTextColor() 			{ return colors[7]; }
+	GColor getSkyColor() 			{ return colors[0]; }	
+	GColor getLandColor() 			{ return colors[1]; }	
+	GColor getEnemyMissleColor() 	{ return colors[2]; }	
+	GColor getPlayerMissleColor() 	{ return colors[3]; }	
+	GColor getExplosionColor() 		{ return colors[4]; }	
+	GColor getCityColor() 			{ return colors[5]; }	
+	GColor getMissleHeadColor() 		{ return colors[6]; }	
+	GColor getTextColor() 			{ return colors[7]; }
 	
-	boolean drawMissle(AGraphics g, Missle m, AColor color, int missleSpeed) {
+	boolean drawMissle(AGraphics g, Missle m, GColor color, int missleSpeed) {
 		
 		float dx = m.ex - m.sx;
 		float dy = m.ey - m.sy;
@@ -582,21 +582,21 @@ public abstract class MissleCommand {
 	int nextWaveFrame = 0;
 	int numWavesLeft = 0;
 	
-	AColor colors[];
+	GColor colors[];
 	
 	void initColors(AGraphics g) {
-	    colors = new AColor[] {
-    		g.RED,
-    		g.BLACK,
-    		g.BLUE,
-    		g.GRAY,
-    		g.GREEN,
-    		g.DARK_GRAY,
-    		g.CYAN,
-    		g.MAGENTA,
-    		g.YELLOW,
-    		g.ORANGE,
-    		g.WHITE
+	    colors = new GColor[] {
+                GColor.RED,
+                GColor.BLACK,
+                GColor.BLUE,
+                GColor.GRAY,
+                GColor.GREEN,
+                GColor.DARK_GRAY,
+                GColor.CYAN,
+                GColor.MAGENTA,
+                GColor.YELLOW,
+                GColor.ORANGE,
+                GColor.WHITE
 	    };
 	};
 	

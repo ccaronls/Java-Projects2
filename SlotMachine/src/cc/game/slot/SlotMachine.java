@@ -1,5 +1,6 @@
 package cc.game.slot;
 
+import cc.lib.game.GColor;
 import cc.lib.swing.AWTGraphics;
 import cc.lib.swing.EZFrame;
 import cc.lib.swing.KeyboardAnimationApplet;
@@ -45,7 +46,7 @@ public class SlotMachine extends KeyboardAnimationApplet {
 	static long lastTime = System.currentTimeMillis();
 	
 	@Override
-	protected void drawFrame(AWTGraphics g) {
+	protected void drawFrame(AGraphics g) {
 
 		//g.setFont(Font.getFont("Arial"));
 		this.clearScreen();
@@ -53,7 +54,7 @@ public class SlotMachine extends KeyboardAnimationApplet {
 		final int maxX = this.getScreenWidth();
 		final int maxY = this.getScreenHeight();
 		
-		g.setColor(g.WHITE);
+		g.setColor(GColor.WHITE);
 		final int x0 = 50;
 		final int w0 = 50;
 		final int y0 = 150;
@@ -62,7 +63,7 @@ public class SlotMachine extends KeyboardAnimationApplet {
 		wheelB.draw(g, x0+w0, y0-50, w0, h0+100);
 		wheelC.draw(g, x0+w0*2, y0-50, w0, h0+100);
 		
-		g.setColor(g.CYAN);
+		g.setColor(GColor.CYAN);
 		g.drawFilledRect(0, 0, maxX, y0);
 		g.drawFilledRect(0, y0 + h0, maxX, 300);
 
@@ -74,7 +75,7 @@ public class SlotMachine extends KeyboardAnimationApplet {
 		
 		switch (state) {
 		case STATE_STOPPED:
-			g.setColor(g.WHITE);
+			g.setColor(GColor.WHITE);
 			g.drawJustifiedString(maxX - 20, cy, Justify.RIGHT, Justify.CENTER, "Press spacebar to spin");
 			
 			final int randFactor = 200;
@@ -86,7 +87,7 @@ public class SlotMachine extends KeyboardAnimationApplet {
 				state = STATE_SPINNING;
 			}
 			
-			g.setColor(g.CYAN);
+			g.setColor(GColor.CYAN);
 			g.drawLine(0, y0 + h0/2, maxX, y0 + h0/2, 1);
 			g.drawJustifiedString(cx, y0+h0/3, Justify.LEFT, Justify.CENTER, wheelA.getCenterCardAt());
 			g.drawJustifiedString(cx, y0+h0/2, Justify.LEFT, Justify.CENTER, wheelB.getCenterCardAt());

@@ -14,32 +14,6 @@ public class DroidUtils extends Utils {
     public final static int ORANGE = 0xffffa500;
 
     /**
-     * 
-     * @param color
-     * @return
-     */
-    public static String colorToString(GLColor color) {
-        return String.valueOf(color.getRed()) + "," + String.valueOf(color.getGreen()) + "," + String.valueOf(color.getBlue());
-    }
-
-    /**
-     * 
-     * @param line
-     * @return
-     */
-    public static GLColor stringToColor(String line) {
-        try {
-            String [] parts = line.split(",");
-            return new GLColor(Float.parseFloat(parts[0]),
-                             Float.parseFloat(parts[1]), 
-                             Float.parseFloat(parts[2]));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return GLColor.RED;
-    }
-
-    /**
      *
      * @param red
      * @param green
@@ -52,9 +26,9 @@ public class DroidUtils extends Utils {
         int r = Math.round(red*255);
         int g = Math.round(green*255);
         int b = Math.round(blue*255);
-        int d = ((a << 24) & 0xff000000) | 
-                ((r << 16) & 0x00ff0000) | 
-                ((g << 8)  & 0x0000ff00) | 
+        int d = ((a << 24) & 0xff000000) |
+                ((r << 16) & 0x00ff0000) |
+                ((g << 8)  & 0x0000ff00) |
                 ((b << 0)  & 0x000000ff);
         return d;
     }

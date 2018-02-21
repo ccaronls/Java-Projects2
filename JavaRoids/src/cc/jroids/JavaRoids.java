@@ -3,7 +3,7 @@ package cc.jroids;
 import cc.lib.math.CMath;
 import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
-import cc.lib.game.AColor;
+import cc.lib.game.GColor;
 import cc.lib.game.AGraphics;
 import cc.lib.game.Justify;
 import cc.lib.game.Polygon2D;
@@ -126,28 +126,28 @@ public abstract class JavaRoids
 
 	final MutableVector2D [] star_p = new MutableVector2D[NUM_STARS];
 	final int [] star_type = new int[NUM_STARS];
-	final AColor [] star_color = new AColor[NUM_STAR_TYPES];
+	final GColor [] star_color = new GColor[NUM_STAR_TYPES];
 
-	AColor	BUTTON_OUTLINE_COLOR;
-	AColor	BUTTON_FILL_COLOR;
-	AColor	BUTTON_TEXT_COLOR;
-	AColor	BUTTON_H_OUTLINE_COLOR;
-	AColor	BUTTON_H_TEXT_COLOR;
-    AColor  PLAYER_COLOR;
-    AColor  PLAYER_MISSLE_COLOR;
+    GColor	BUTTON_OUTLINE_COLOR;
+    GColor	BUTTON_FILL_COLOR;
+    GColor	BUTTON_TEXT_COLOR;
+    GColor	BUTTON_H_OUTLINE_COLOR;
+    GColor	BUTTON_H_TEXT_COLOR;
+    GColor  PLAYER_COLOR;
+    GColor  PLAYER_MISSLE_COLOR;
 	
     void initColors(AGraphics g) {
-        BUTTON_OUTLINE_COLOR    = g.RED;
-        BUTTON_FILL_COLOR       = g.DARK_GRAY;
-        BUTTON_TEXT_COLOR       = g.BLUE;
-        BUTTON_H_OUTLINE_COLOR  = g.YELLOW;
-        BUTTON_H_TEXT_COLOR     = g.YELLOW;
-        PLAYER_COLOR            = g.GREEN;
-        PLAYER_MISSLE_COLOR     = g.YELLOW;
-        AColor w = g.WHITE;
+        BUTTON_OUTLINE_COLOR    = GColor.RED;
+        BUTTON_FILL_COLOR       = GColor.DARK_GRAY;
+        BUTTON_TEXT_COLOR       = GColor.BLUE;
+        BUTTON_H_OUTLINE_COLOR  = GColor.YELLOW;
+        BUTTON_H_TEXT_COLOR     = GColor.YELLOW;
+        PLAYER_COLOR            = GColor.GREEN;
+        PLAYER_MISSLE_COLOR     = GColor.YELLOW;
+        GColor w = GColor.WHITE;
         for (int i=0; i<NUM_STAR_TYPES; i++) {
         	star_color[i] = w;
-        	w = w.darken(g, 1.0f/NUM_STAR_TYPES);
+        	w = w.darkened(1.0f/NUM_STAR_TYPES);
         }
     }	
 
@@ -210,7 +210,7 @@ public abstract class JavaRoids
 		int red = Utils.randRange(0,50);
 		int grn = 255-Utils.randRange(0,50);
 		int blu = Utils.randRange(0,50);
-		AColor color = g.makeColor(red,grn,blu);
+		GColor color = new GColor(red,grn,blu);
 		return new Polygon2D(pts, color, 1);
 	}
 	
@@ -222,7 +222,7 @@ public abstract class JavaRoids
 				new Vector2D(-11+Utils.randRange(-2,-2),  0 + Utils.randRange(-2,2)),
 				new Vector2D(-5 + Utils.randRange(-1,1),  2 + Utils.randRange(0,1))
 		};
-		Polygon2D p = new Polygon2D(pts, g.RED, PLAYER_RADIUS);
+		Polygon2D p = new Polygon2D(pts, GColor.RED, PLAYER_RADIUS);
 		p.translate(-PLAYER_RADIUS*3/4, 0);		
 		return p;
 	}
@@ -277,7 +277,7 @@ public abstract class JavaRoids
 	    }
 
 	    // clear screen
-		g.clearScreen(g.BLACK);
+		g.clearScreen(GColor.BLACK);
 		
 		switch (game_state) {
 		case STATE_INTRO:
@@ -429,7 +429,7 @@ public abstract class JavaRoids
 			g.scale(obj.radius, obj.radius);
 			shapes[obj.shape_index].draw(g);
 			g.popMatrix();
-			g.setColor(g.WHITE);
+			g.setColor(GColor.WHITE);
 			//g.drawString(obj.position.toString(), 0, 0); // debug
 			g.popMatrix();
 		}
@@ -628,7 +628,7 @@ public abstract class JavaRoids
 				break;
 			}
 		}
-		g.setColor(g.WHITE);
+		g.setColor(GColor.WHITE);
 		g.drawRect(0, 0, world_w, world_h);
 		g.popMatrix();
 	}
@@ -676,7 +676,7 @@ public abstract class JavaRoids
 				Math.round(player_angle));
 		
 		// draw the player's position
-		g.setColor(g.CYAN);
+		g.setColor(GColor.CYAN);
 		g.drawJustifiedString(cx, cy, Justify.RIGHT, Justify.TOP, str);
 
 	}

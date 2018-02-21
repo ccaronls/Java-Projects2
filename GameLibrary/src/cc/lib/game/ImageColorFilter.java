@@ -12,7 +12,7 @@ public class ImageColorFilter implements IImageFilter {
        this.variance = variance;
     }
 
-    public ImageColorFilter(AColor oldColor, AColor newColor, int variance) {
+    public ImageColorFilter(GColor oldColor, GColor newColor, int variance) {
         this.oldColor = oldColor.toARGB();
         this.newColor = newColor.toARGB();
         this.variance = variance;

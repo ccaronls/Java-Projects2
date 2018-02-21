@@ -207,7 +207,7 @@ public class Roids {
     }
     
     public void drawAll(AGraphics g) {
-        g.clearScreen(g.BLACK);
+        g.clearScreen(GColor.BLACK);
         g.ortho(-100, 100, 100, -100);
         g.setIdentity();
         
@@ -227,7 +227,7 @@ public class Roids {
         //g.drawString("" + mx + "," + my, mx, my);
         g.ortho();
         g.setIdentity();
-        g.setColor(g.WHITE);
+        g.setColor(GColor.WHITE);
         final int vTextSpacing = g.getTextHeight() + 3;
         int ty = 5;
         g.drawJustifiedString(5, ty, Justify.LEFT, Justify.TOP, "System Energy: " + energy);

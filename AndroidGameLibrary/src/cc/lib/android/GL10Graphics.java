@@ -88,7 +88,7 @@ public class GL10Graphics extends AGraphics {
         sGl = gl;
         sContext = context;
         sGl.glMatrixMode(GL10.GL_MODELVIEW);
-        setColor(WHITE);
+        setColor(GColor.WHITE);
     }
 
     /**
@@ -132,7 +132,12 @@ public class GL10Graphics extends AGraphics {
     public final void setTextHeight(float height) {
         this.textHeight = Math.round(height);
     }
-    
+
+    @Override
+    public void setTextStyles(TextStyle... styles) {
+        throw new RuntimeException("Not implemented");
+    }
+
     /**
      * 
      * @param text
@@ -740,7 +745,7 @@ for (int pix : pixels) {
         }
     }
 
-    private Bitmap setTransparency(Bitmap bitmap, AColor transparent) {
+    private Bitmap setTransparency(Bitmap bitmap, GColor transparent) {
         final int w = bitmap.getWidth();
         final int h = bitmap.getHeight();
         final int t = transparent.toARGB();
@@ -775,7 +780,7 @@ for (int pix : pixels) {
         return bitmap;
     }
 
-    public final int loadImage(String assetPath, AColor transparent) {
+    public final int loadImage(String assetPath, GColor transparent) {
     	long startTime = SystemClock.uptimeMillis();
     	try {
             Log.d(TAG, "loadImage: " + assetPath + ", transparent = " + transparent);
@@ -965,7 +970,7 @@ for (int pix : pixels) {
      * @param celled
      * @return
      */
-    public final int [] loadImageCells(String fileName, int width, int height, int num_cells_x, int num_cells, boolean celled, AColor transparentColor) {
+    public final int [] loadImageCells(String fileName, int width, int height, int num_cells_x, int num_cells, boolean celled, GColor transparentColor) {
         InputStream in = null;
         try {
             in = sContext.getAssets().open(fileName);
@@ -1004,16 +1009,16 @@ for (int pix : pixels) {
      * 
      * @param color
      */
-    public final void clearScreen(AColor color) {
+    public final void clearScreen(GColor color) {
         sGl.glClearColor(color.getRed(), 
                 color.getGreen(), color.getBlue(), color.getAlpha());
         sGl.glClear(GL10.GL_COLOR_BUFFER_BIT | GL10.GL_DEPTH_BUFFER_BIT);
     }
 
-    private AColor curColor = GLColor.BLACK;
+    private GColor curColor = GColor.BLACK;
     
     @Override
-    public final void setColor(AColor color) {
+    public final void setColor(GColor color) {
         sGl.glColor4f(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha());
         curColor = color;
     }
@@ -1042,7 +1047,7 @@ for (int pix : pixels) {
 	}
 
     @Override
-    public final AColor getColor() {
+    public final GColor getColor() {
         return curColor;
     }
 
@@ -1101,11 +1106,6 @@ for (int pix : pixels) {
         viewportScale[pushDepth][0] = (right-left)/this.getViewportWidth();
         viewportScale[pushDepth][1] = (bottom-top)/this.getViewportHeight();
         sGl.glOrthof(left, right, bottom, top, 1, -1);
-    }
-
-    @Override
-    public final AColor makeColor(float r, float g, float b, float a) {
-        return new GLColor(r, g, b, a);
     }
 
     private float getViewportScaleX() {

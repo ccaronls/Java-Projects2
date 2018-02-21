@@ -191,4 +191,40 @@ public abstract class AAnimation<T> {
      * Called from update thread when animation is started. base mthod does nothing
      */
     protected void onStarted() {}
+
+    public final boolean isStartDirectionReverse() {
+        return startDirectionReverse;
+    }
+
+    public final long getStartTime() {
+        return startTime;
+    }
+
+    public final long getLastTime() {
+        return lastTime;
+    }
+
+    public final long getDuration() {
+        return duration;
+    }
+
+    public final int getMaxRepeats() {
+        return maxRepeats;
+    }
+
+    public final float getPosition() {
+        return position;
+    }
+
+    public final State getState() {
+        return state;
+    }
+
+    public final boolean isReverse() {
+        return reverse;
+    }
+
+    public final boolean isOscilateOnRepeat() {
+        return oscilateOnRepeat;
+    }
 }

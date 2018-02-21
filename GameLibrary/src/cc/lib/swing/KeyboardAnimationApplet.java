@@ -59,7 +59,7 @@ import java.util.Arrays;
 
 import javax.swing.JApplet;
 
-import cc.lib.game.AColor;
+import cc.lib.game.GColor;
 import cc.lib.game.AGraphics;
 import cc.lib.game.Justify;
 import cc.lib.game.Renderable;
@@ -423,7 +423,7 @@ public abstract class KeyboardAnimationApplet extends JApplet implements
 			    OSG = new AWTGraphics(OSG, OSC.getGraphics(), this);
 			else
 			    OSG = new AWTGraphics(OSC.getGraphics(), this);
-			OSG.setColor(OSG.BLACK);
+			OSG.setColor(Color.BLACK);
 			OSG.setFont(getDefaultFont());
 			OSG.initViewport(width, height);
 	        onDimensionsChanged(OSG, width, height);
@@ -510,7 +510,7 @@ public abstract class KeyboardAnimationApplet extends JApplet implements
 //	                    System.out.println("framesThisSecond=" + framesThisSecond);
 					}
 					if (AGraphics.DEBUG_ENABLED) {
-					    OSG.setColor(OSG.RED);
+					    OSG.setColor(Color.RED);
 					    OSG.drawJustifiedString(getViewportWidth()-30, 0, Justify.RIGHT, Justify.TOP, "FPS: " + fps);
 					}
 				}
@@ -677,9 +677,9 @@ public abstract class KeyboardAnimationApplet extends JApplet implements
 	 * 
 	 *
 	 */
-	protected final void clearScreen(AColor color) {
+	protected final void clearScreen(GColor color) {
 		if (OSG != null) {
-			AColor old = OSG.getColor();
+			GColor old = OSG.getColor();
 			OSG.setColor(color);
 			this.OSG.drawFilledRect(0, 0, width, height);
 			OSG.setColor(old);
@@ -687,7 +687,7 @@ public abstract class KeyboardAnimationApplet extends JApplet implements
 	}
 
 	protected final void clearScreen() {
-		clearScreen(OSG.BLACK);
+		clearScreen(GColor.BLACK);
 	}
 
 	@Override

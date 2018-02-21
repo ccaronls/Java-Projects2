@@ -19,7 +19,7 @@ public class KaiserServer extends Kaiser implements GameServer.Listener {
     private Map<String, RemotePlayer> playerMap = new HashMap<String, RemotePlayer>();
     
     public void start(int port, String version) throws Exception {
-        server = new GameServer(this, port, 5000, version);
+        server = new GameServer(this, port, 5000, version, null, 4);
     }
     
     public GameServer getServer() {

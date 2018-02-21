@@ -18,6 +18,8 @@ import javax.swing.JOptionPane;
 import javax.swing.JPasswordField;
 import javax.swing.JProgressBar;
 import javax.swing.JTextField;
+
+import cc.lib.game.GColor;
 import marcos.games.hexes.core.Board;
 import marcos.games.hexes.core.Hexes;
 import marcos.games.hexes.core.Piece;
@@ -367,13 +369,13 @@ public class HexesApplet extends KeyboardAnimationApplet implements MultiPlayerC
 	}
 
 	@Override
-	protected void drawFrame(AWTGraphics g) {
-		g.clearScreen(g.LIGHT_GRAY);
+	protected void drawFrame(AGraphics g) {
+		g.clearScreen(GColor.LIGHT_GRAY);
 		Board b = game.getBoard();
 		b.setHighlighted(getMouseX(), getMouseY());
 		highlightedPiece = b.draw(g);
 		g.ortho();
-		g.setColor(g.RED);
+		g.setColor(GColor.RED);
 		if (game.getNumPlayers() > 1) {
     		String redTxt = "Points     " + game.getPlayer(1).getScore() + "\n"
     				      + "Hexagons   " + game.getPlayer(1).getShapeCount(Shape.HEXAGON) + "\n"
@@ -381,7 +383,7 @@ public class HexesApplet extends KeyboardAnimationApplet implements MultiPlayerC
     				      + "Diamonds   " + game.getPlayer(1).getShapeCount(Shape.DIAMOND);
     		
     		g.drawJustifiedString(10, 10, Justify.LEFT, redTxt);
-    		g.setColor(g.BLUE);
+    		g.setColor(GColor.BLUE);
     		String blueTxt = "Points     " + game.getPlayer(2).getScore() + "\n"
     				       + "Hexagons   " + game.getPlayer(2).getShapeCount(Shape.HEXAGON) + "\n"
     				       + "Triangles  " + game.getPlayer(2).getShapeCount(Shape.TRIANGLE) + "\n"
@@ -390,9 +392,9 @@ public class HexesApplet extends KeyboardAnimationApplet implements MultiPlayerC
     		g.drawJustifiedString(g.getViewportWidth()-10, 10, Justify.RIGHT, blueTxt);
 		}
 		// draw messages
-		int tx = g.getScreenWidth()/2;
+		int tx = g.getViewportWidth()/2;
 		int ty = 10;
-		g.setColor(g.BLACK);
+		g.setColor(GColor.BLACK);
 		synchronized (messages) {
     		for (String msg : messages) {
     			g.drawJustifiedString(tx, ty, Justify.CENTER, msg);

@@ -9,7 +9,7 @@ import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 import javax.microedition.khronos.opengles.GL11;
 
-import cc.lib.game.AColor;
+import cc.lib.game.GColor;
 import cc.lib.game.Justify;
 
 public abstract class BaseRenderer implements GLSurfaceView.Renderer {
@@ -26,7 +26,7 @@ public abstract class BaseRenderer implements GLSurfaceView.Renderer {
     
     protected abstract void init(GL10Graphics g);
 
-    private final AColor BLK = new GLColor(0,0,0,0.5f);
+    private final GColor BLK = new GColor(0,0,0,0.5f);
 
     @Override
     public final void onDrawFrame(GL10 arg0) {
@@ -54,10 +54,10 @@ public abstract class BaseRenderer implements GLSurfaceView.Renderer {
                     float wid = g.getTextWidth(fpsStr);
                     float x = g.getViewportWidth()-5;
                     float y = 5;
-                    AColor c = g.getColor();
+                    GColor c = g.getColor();
                     g.setColor(BLK);
                     g.drawFilledRectf(x-wid-2, y-2, wid+4, 4f + g.getTextHeight());
-                    g.setColor(g.RED);
+                    g.setColor(GColor.RED);
                     g.drawJustifiedString(x, y, Justify.RIGHT, Justify.TOP, fpsStr);
                     g.setColor(c);
                 }

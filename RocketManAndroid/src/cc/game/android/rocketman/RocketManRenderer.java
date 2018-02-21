@@ -9,6 +9,7 @@ import cc.lib.android.BaseRenderer;
 import cc.lib.android.GL10Graphics;
 import cc.lib.android.SpringSlider;
 import cc.lib.android.SpringSlider.OnSliderChangedListener;
+import cc.lib.game.GColor;
 
 public class RocketManRenderer extends BaseRenderer implements OnClickListener, OnSliderChangedListener {
 
@@ -38,8 +39,8 @@ public class RocketManRenderer extends BaseRenderer implements OnClickListener, 
         g.setIdentity();
         g.ortho(-100, 100, 100, -100);
 
-        g.clearScreen(g.GRAY);
-        g.setColor(g.BLUE.setAlpha(0.3f));
+        g.clearScreen(GColor.GRAY);
+        g.setColor(GColor.BLUE.setAlpha(0.3f));
         g.begin();
         g.vertex(-10, 0);
         g.vertex(10, 0);

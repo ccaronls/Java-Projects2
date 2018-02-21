@@ -5,7 +5,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import cc.lib.game.AAnimation;
-import cc.lib.game.AColor;
+import cc.lib.game.GColor;
 import cc.lib.game.AGraphics;
 import cc.lib.game.APGraphics;
 import cc.lib.game.Utils;
@@ -122,11 +122,11 @@ public abstract class Dominos extends Reflector<Dominos> {
                     getWinner().textAnimation = new AAnimation<AGraphics>(1000, -1, true) {
                         @Override
                         protected void draw(AGraphics g, float position, float dt) {
-                            AColor c = g.makeColor(position, 1-position, position, position);
+                            GColor c = new GColor(position, 1-position, position, position);
                             if (getWinner().isPiecesVisible()) {
-                                g.drawAnnotatedString(String.format("%sPoints %d WINNER!!", g.colorToString(c), getWinner().getScore()), 0, 0);
+                                g.drawAnnotatedString(String.format("%sPoints %d WINNER!!", c, getWinner().getScore()), 0, 0);
                             } else {
-                                g.drawAnnotatedString(String.format("%sP%d Points %d WINNNER!!", g.colorToString(c), turn, getWinner().getScore()), 0, 0);
+                                g.drawAnnotatedString(String.format("%sP%d Points %d WINNNER!!", c, turn, getWinner().getScore()), 0, 0);
                             }
                             redraw();
                         }
@@ -373,11 +373,11 @@ public abstract class Dominos extends Reflector<Dominos> {
             @Override
             protected void draw(AGraphics g, float position, float dt) {
                 int curPts = p.score + Math.round(position * pts);
-                String alphaRed = g.colorToString(g.RED.setAlpha(1.0f-position));
+                String alphaRed = GColor.RED.setAlpha(1.0f-position).toString();
                 if (p.isPiecesVisible())
                     g.drawAnnotatedString(String.format("%d PTS %s+%d", curPts, alphaRed, pts), 0, 0);
                 else
-                    g.drawAnnotatedString(String.format("P%d X %d %s%d PTS %s+%d", turn+1, p.getTiles().size(), g.colorToString(g.BLACK), curPts, alphaRed, pts), 0, 0);
+                    g.drawAnnotatedString(String.format("P%d X %d %s%d PTS %s+%d", turn+1, p.getTiles().size(), GColor.BLACK, curPts, alphaRed, pts), 0, 0);
                 redraw();
             }
 
@@ -410,8 +410,8 @@ public abstract class Dominos extends Reflector<Dominos> {
         final boolean portrait = h > w;
         final float boardDim = portrait ? w : h;
 
-        g.clearScreen(g.GREEN);
-        g.setColor(g.GREEN.darken(g, 0.2f));
+        g.clearScreen(GColor.GREEN);
+        g.setColor(GColor.GREEN.darkened(0.2f));
         g.drawFilledRectf(0, 0, boardDim, boardDim);
         Tile dragging = null;
         if (this.dragging && selectedPlayerTile >= 0) {
@@ -463,7 +463,7 @@ public abstract class Dominos extends Reflector<Dominos> {
 	    int name = 0;
 	    float padding = 5;
 	    float y = padding;
-        g.setColor(g.BLUE);
+        g.setColor(GColor.BLUE);
 	    for (Player p : players) {
 	        name++;
 	        if (p.isPiecesVisible())
@@ -492,7 +492,7 @@ public abstract class Dominos extends Reflector<Dominos> {
     private void drawPlayer(APGraphics g, Player p, float w, float h, int pickX, int pickY, boolean drawDragged) {
 	    g.pushMatrix();
 	    int padding = 5;
-	    g.setColor(g.BLUE);
+	    g.setColor(GColor.BLUE);
 	    g.translate(padding, padding);
 	    if (p.textAnimation != null)
 	        p.textAnimation.update(g);
@@ -589,10 +589,10 @@ public abstract class Dominos extends Reflector<Dominos> {
                         }
                         g.popMatrix();
                         if (tile == selectedPlayerTile) {
-                            g.setColor(g.RED);
+                            g.setColor(GColor.RED);
                             g.drawRect(0, 0, 2, 1, 3);
                         } else if (tile == highlightedPlayerTile) {
-                            g.setColor(g.YELLOW);
+                            g.setColor(GColor.YELLOW);
                             g.drawRect(0, 0, 2, 1, 3);
                         }
                     } else {

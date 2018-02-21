@@ -8,7 +8,7 @@ import java.util.List;
 
 import cc.game.kaiser.ai.PlayerBot;
 import cc.game.kaiser.core.*;
-import cc.lib.game.AColor;
+import cc.lib.game.GColor;
 import cc.lib.game.AGraphics;
 import cc.lib.game.AImage;
 import cc.lib.game.Justify;
@@ -213,7 +213,7 @@ public class KaiserApplet extends KeyboardAnimationApplet {
     }
     
     @Override
-    protected void drawFrame(AWTGraphics g) {
+    protected void drawFrame(AGraphics g) {
         this.clearScreen();
         g.drawImage(tableImageId, 0, 0, screenHeight-5, screenHeight-5);
         if (!running) {
@@ -351,7 +351,7 @@ public class KaiserApplet extends KeyboardAnimationApplet {
                           "Points " + t1.getTotalPoints() + "\n" +
                           "Round  " + t1.getRoundPoints() + "\n";
             
-            g.setColor(g.WHITE);
+            g.setColor(GColor.WHITE);
             int maxWidth = screenWidth - screenHeight - 10;
             final int sx = screenHeight + 5;
             float sy = 10;
@@ -418,11 +418,11 @@ public class KaiserApplet extends KeyboardAnimationApplet {
         final int padding = 2;
         int wid = Math.round(g.getTextWidth(text));
         int hgt = g.getTextHeight();
-        AColor fontColor = g.WHITE;
-        AColor rectColor = g.CYAN;
+        GColor fontColor = GColor.WHITE;
+        GColor rectColor = GColor.CYAN;
         boolean highlighted = false;
         if (Utils.isPointInsideRect(getMouseX(), getMouseY(), x, y, wid+padding*2, hgt+padding*2)) {
-            rectColor = g.YELLOW;
+            rectColor = GColor.YELLOW;
             highlighted = true;
         }
         g.setColor(fontColor);
@@ -439,15 +439,15 @@ public class KaiserApplet extends KeyboardAnimationApplet {
         final int padding = 2;
         int wid = Math.round(g.getTextWidth("00"));
         int hgt = g.getTextHeight();
-        AColor fontColor = g.WHITE;
-        AColor rectColor = g.CYAN;
+        GColor fontColor = GColor.WHITE;
+        GColor rectColor = GColor.CYAN;
         boolean highlighted = false;
         if (num == selectedBidNum) {
-            rectColor = g.RED;
+            rectColor = GColor.RED;
         }
         else if (Utils.isPointInsideRect(getMouseX(), getMouseY(), x, y, wid+padding*2, hgt+padding*2)) {
             highlighted = true;
-            rectColor = g.YELLOW;
+            rectColor = GColor.YELLOW;
         }
         g.setColor(fontColor);
         g.drawJustifiedString(x+padding, y+padding, Justify.LEFT, Justify.TOP, text);
@@ -474,15 +474,15 @@ public class KaiserApplet extends KeyboardAnimationApplet {
         }
         //g.getTextWidth("WW");
         int hgt = g.getTextHeight();
-        AColor fontColor = g.WHITE;
-        AColor rectColor = g.CYAN;
+        GColor fontColor = GColor.WHITE;
+        GColor rectColor = GColor.CYAN;
         boolean highlighted = false;
         if (suit == selectedBidSuit) {
-            rectColor = g.RED;
+            rectColor = GColor.RED;
         }
         else if (Utils.isPointInsideRect(getMouseX(), getMouseY(), x, y, wid+padding*2, hgt+padding*2)) {
             highlighted = true;
-            rectColor = g.YELLOW;
+            rectColor = GColor.YELLOW;
         }
         g.setColor(fontColor);
         g.drawJustifiedString(x+padding, y+padding, Justify.LEFT, Justify.TOP, text);
@@ -497,9 +497,6 @@ public class KaiserApplet extends KeyboardAnimationApplet {
         return false;
     }
 
-    
-    
-    
     @Override
     public void mouseClicked(MouseEvent evt) {
         switch (kaiser.getState()) {
@@ -539,7 +536,7 @@ public class KaiserApplet extends KeyboardAnimationApplet {
         drawCards(g, cards, 16, 8, x, y, Angle.ANG_0, width, true);
         y += cardHeight + 5;
         drawCards(g, cards, 24, 8, x, y, Angle.ANG_0, width, true);
-        g.setColor(g.BLUE);
+        g.setColor(GColor.BLUE);
         g.drawJustifiedString(screenWidth/2, screenHeight/2, Justify.CENTER, Justify.CENTER, 
                 "Click Mouse button to start");
     }

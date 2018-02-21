@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Graphics;
 
 import cc.lib.game.AGraphics;
+import cc.lib.game.GColor;
 import cc.lib.game.Utils;
 import cc.lib.math.CMath;
 
@@ -87,17 +88,17 @@ public class Snake {
     void draw(AGraphics g) {
     
         // draw the shadow
-        g.setColor(g.BLACK);
+        g.setColor(GColor.BLACK);
         drawSections(g, sx+5, sy+5);
         // draw the actual snake
         int green = Math.round(255.0f * health);
         green = Utils.clamp(green, 0, 255);
-        g.setColor(g.makeColor(0, green, 0));
+        g.setColor(new GColor(0, green, 0));
         drawSections(g, sx, sy);        
         
         // randomly draw a 'tounge'
         if (Utils.rand() % 100 == 0) {
-            g.setColor(g.RED);
+            g.setColor(GColor.RED);
             
         }
     }

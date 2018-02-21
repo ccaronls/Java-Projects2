@@ -3,6 +3,7 @@ package cc.app.soap;
 import java.util.ArrayList;
 
 import cc.lib.game.AGraphics;
+import cc.lib.game.GColor;
 import cc.lib.game.Utils;
 import cc.lib.swing.AWTGraphics;
 import cc.lib.swing.EZFrame;
@@ -32,8 +33,8 @@ public class SnakesOnAPlain extends KeyboardAnimationApplet {
     }
 
     @Override
-    protected void drawFrame(AWTGraphics g) {
-        this.clearScreen(g.WHITE);
+    protected void drawFrame(AGraphics g) {
+        this.clearScreen(GColor.WHITE);
         
         // TODO Auto-generated method stub
         if (this.getMouseButtonClicked(0)) {
@@ -45,7 +46,7 @@ public class SnakesOnAPlain extends KeyboardAnimationApplet {
             addSnake(getMouseX(), getMouseY());
         }
         
-        g.setColor(g.GRAY);
+        g.setColor(GColor.GRAY);
         for (int i=0; i<snakeFood.size(); ) {
             SnakeFood food = snakeFood.get(i);
             if (food.eaten) {

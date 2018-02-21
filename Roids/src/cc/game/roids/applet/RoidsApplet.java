@@ -7,6 +7,7 @@ import javax.swing.Timer;
 import cc.game.roids.core.Roids;
 import cc.game.roids.core.Roids.DragMode;
 import cc.lib.game.AGraphics;
+import cc.lib.game.GColor;
 import cc.lib.game.Justify;
 import cc.lib.game.Utils;
 import cc.lib.swing.AWTGraphics;
@@ -43,7 +44,7 @@ public class RoidsApplet extends KeyboardAnimationApplet {
     long fpsTime = 0;
     
     @Override
-    protected void drawFrame(AWTGraphics g) {
+    protected void drawFrame(AGraphics g) {
         if (roids != null) {
             if (sw == null) {
                 sw = new StopWatch();
@@ -71,7 +72,7 @@ public class RoidsApplet extends KeyboardAnimationApplet {
             final int tx = getScreenWidth()-5;
             final int th = g.getTextHeight() + 3;
             if (drawFps > 0) {
-                g.setColor(g.WHITE);
+                g.setColor(GColor.WHITE);
                 g.drawJustifiedString(tx, ty, Justify.RIGHT, Justify.TOP, "FPS: " + drawFps);
                 ty += th;
             }
@@ -200,7 +201,7 @@ public class RoidsApplet extends KeyboardAnimationApplet {
                 	  "a+drag  - change ang velocity\n" +
                 	  "";
                 
-    	g.setColor(g.WHITE);
+    	g.setColor(GColor.WHITE);
     	g.drawJustifiedString(g.getViewportWidth()/3, g.getViewportHeight()/2, Justify.LEFT, Justify.CENTER, help);
     }
     

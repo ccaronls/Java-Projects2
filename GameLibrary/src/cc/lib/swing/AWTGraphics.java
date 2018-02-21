@@ -2,7 +2,7 @@ package cc.lib.swing;
 
 import java.awt.*;
 import java.awt.image.RGBImageFilter;
-import java.util.List;
+import java.util.Arrays;
 
 import cc.lib.game.*;
 import cc.lib.math.Vector2D;
@@ -39,19 +39,24 @@ public final class AWTGraphics extends APGraphics {
         return g;
     }
 
+    public Color toColor(GColor c) {
+        return new Color(c.red(), c.green(), c.blue(), c.alpha());
+    }
+
     public final void setGraphics(Graphics g) {
         g.setFont(this.g.getFont());
         this.g = g;
     }
 
     @Override
-    public final void setColor(AColor color) {
-        g.setColor(((AWTColor)color).color);
+    public final void setColor(GColor color) {
+        g.setColor(new Color(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha()));
     }
 
     @Override
-    public final AColor getColor() {
-        return new AWTColor(g.getColor());
+    public final GColor getColor() {
+        Color c = g.getColor();
+        return new GColor(c.getRed(), c.getGreen(), c.getBlue(), c.getAlpha());
     }
 
     @Override
@@ -62,6 +67,45 @@ public final class AWTGraphics extends APGraphics {
     @Override
     public final void setTextHeight(float height) {
         g.setFont(g.getFont().deriveFont(height));
+    }
+
+    private TextStyle [] existingStyle = new TextStyle[0];
+
+    @Override
+    public void setTextStyles(TextStyle ... styles) {
+
+        if (Arrays.deepEquals(existingStyle, styles))
+            return;
+
+        for (TextStyle style : styles) {
+            switch (style) {
+
+                case NORMAL:
+                    g.setFont(g.getFont().deriveFont(Font.PLAIN));
+                    break;
+                case BOLD:
+                    g.setFont(g.getFont().deriveFont(Font.BOLD));
+                    break;
+                case ITALIC:
+                    g.setFont(g.getFont().deriveFont(Font.ITALIC));
+                    break;
+                case MONOSPACE: {
+                    Font f = Font.decode(Font.MONOSPACED);
+                    Font x = g.getFont();
+                    g.setFont(f.deriveFont(x.getStyle(), x.getSize2D()));
+                    break;
+                }
+
+                case UNDERLINE:
+                    //g.setFont(g.getFont().deriveFont(Font.ITALIC));
+
+                    //break;
+                default:
+                    error("Ignoring unsupported text style: " + style);
+            }
+        }
+
+        existingStyle = styles;
     }
 
     @Override
@@ -238,13 +282,13 @@ public final class AWTGraphics extends APGraphics {
     }
 
     @Override
-    public final  int loadImage(String assetPath, AColor transparent) {
-        return images.loadImage(assetPath, transparent == null ? null : ((AWTColor)transparent).color);
+    public final  int loadImage(String assetPath, GColor transparent) {
+        return images.loadImage(assetPath, transparent == null ? null : toColor(transparent));
     }
     
     @Override
-    public final int[] loadImageCells(String assetPath, int w, int h, int numCellsX, int numCells, boolean bordered, AColor transparent) {
-        return images.loadImageCells(assetPath, w, h, numCellsX, numCells, bordered, ((AWTColor)transparent).color);
+    public final int[] loadImageCells(String assetPath, int w, int h, int numCellsX, int numCells, boolean bordered, GColor transparent) {
+        return images.loadImageCells(assetPath, w, h, numCellsX, numCells, bordered, toColor(transparent));
     }
 
     @Override
@@ -306,20 +350,15 @@ public final class AWTGraphics extends APGraphics {
     }
 
     @Override
-    public final  AColor makeColor(float r, float g, float b, float a) {
-        return new AWTColor(new Color(r, g, b, a));
-    }
-
-    @Override
     public final  boolean isTextureEnabled() {
         // TODO Auto-generated method stub
         return false;
     }
 
     @Override
-    public final  void clearScreen(AColor color) {
+    public final  void clearScreen(GColor color) {
         Color c = g.getColor();
-        g.setColor(((AWTColor)color).color);
+        g.setColor(toColor(color));
         g.fillRect(0, 0, this.getViewportWidth(), this.getViewportHeight());
         g.setColor(c);
     }

@@ -51,7 +51,7 @@ public class DroidGraphics extends APGraphics {
     }
 
     @Override
-    public final void setColor(AColor color) {
+    public final void setColor(GColor color) {
         paint.setColor(color.toARGB());
     }
 
@@ -75,8 +75,8 @@ public class DroidGraphics extends APGraphics {
     }
 
     @Override
-    public final AColor getColor() {
-        return makeColorARGB(paint.getColor());
+    public final GColor getColor() {
+        return new GColor(paint.getColor());
     }
 
     @Override
@@ -87,6 +87,30 @@ public class DroidGraphics extends APGraphics {
     @Override
     public final void setTextHeight(float height) {
         paint.setTextSize(height);
+    }
+
+    @Override
+    public void setTextStyles(TextStyle ... style) {
+        paint.setUnderlineText(false);
+        for (TextStyle st : style) {
+            switch (st) {
+                case NORMAL:
+                    paint.setTypeface(Typeface.create(paint.getTypeface(), Typeface.NORMAL));
+                    break;
+                case BOLD:
+                    paint.setTypeface(Typeface.DEFAULT_BOLD);//Typeface.create(paint.getTypeface(), Typeface.NORMAL));
+                    break;
+                case ITALIC:
+                    paint.setTypeface(Typeface.create(paint.getTypeface(), Typeface.ITALIC));
+                    break;
+                case MONOSPACE:
+                    paint.setTypeface(Typeface.MONOSPACE);//paint.getTypeface(), Typeface.NORMAL));
+                    break;
+                case UNDERLINE:
+                    paint.setUnderlineText(true);
+                    break;
+            }
+        }
     }
 
     @Override
@@ -322,7 +346,7 @@ public class DroidGraphics extends APGraphics {
     }
 
     @Override
-    public final int loadImage(String assetPath, final AColor transparent) {
+    public final int loadImage(String assetPath, final GColor transparent) {
         Bitmap bm = BitmapFactory.decodeFile(assetPath);
         if (bm == null)
             return -1;
@@ -338,7 +362,7 @@ public class DroidGraphics extends APGraphics {
     }
 
     @Override
-    public final int[] loadImageCells(String assetPath, int w, int h, int numCellsX, int numCells, boolean bordered, AColor transparent) {
+    public final int[] loadImageCells(String assetPath, int w, int h, int numCellsX, int numCells, boolean bordered, GColor transparent) {
         int source = loadImage(assetPath, transparent);
 
         final int cellDelta = bordered ? 1 : 0;
@@ -461,70 +485,12 @@ public class DroidGraphics extends APGraphics {
     }
 
     @Override
-    public final void clearScreen(AColor color) {
+    public final void clearScreen(GColor color) {
         paint.setStyle(Paint.Style.FILL);
         int savecolor = paint.getColor();
         paint.setColor(color.toARGB());
         canvas.drawRect(0, 0, canvas.getWidth(), canvas.getHeight(), paint);
         paint.setColor(savecolor);
-    }
-
-    private static class DroidColor extends AColor {
-
-        final float a,r,g,b;
-
-        public DroidColor(int argb) {
-            this((1.0f/255)*Color.alpha(argb), (1.0f/255)*Color.red(argb), (1.0f/255)*Color.green(argb), (1.0f/255)*Color.blue(argb));
-        }
-
-        public DroidColor(float a, float r, float g, float b) {
-            this.a = a;
-            this.r = r;
-            this.g = g;
-            this.b = b;
-        }
-
-        @Override
-        public float getRed() {
-            return r;
-        }
-
-        @Override
-        public float getGreen() {
-            return g;
-        }
-
-        @Override
-        public float getBlue() {
-            return b;
-        }
-
-        @Override
-        public float getAlpha() {
-            return a;
-        }
-
-        @Override
-        public AColor darkened(float amount) {
-            return new DroidColor(DroidUtils.darken(this.toARGB(), amount));
-        }
-
-        @Override
-        public AColor lightened(float amount) {
-            return new DroidColor(DroidUtils.lighten(this.toARGB(), amount));
-        }
-
-        @Override
-        public AColor setAlpha(float alpha) {
-            if (alpha == getAlpha())
-                return this;
-            return new DroidColor(alpha, r, g, b);
-        }
-    }
-
-    @Override
-    public final AColor makeColor(final float r, final float g, final float b, final float a) {
-        return new DroidColor(a, r, g, b);
     }
 
 }

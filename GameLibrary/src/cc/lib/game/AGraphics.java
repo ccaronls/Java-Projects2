@@ -36,7 +36,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * 
      * @param color
      */
-    public abstract void setColor(AColor color);
+    public abstract void setColor(GColor color);
     
     /**
      * 
@@ -52,7 +52,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * 
      * @return
      */
-    public abstract AColor getColor();
+    public abstract GColor getColor();
     
     /**
      * 
@@ -130,12 +130,12 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
             transform(mv);
             x = mv.getX();
             y = mv.getY();
-            AColor saveColor = getColor();
+            GColor saveColor = getColor();
             float width = 0;
             int start = 0;
             do {
 
-                AColor nextColor = stringToColor(m.group());
+                GColor nextColor = GColor.fromString(m.group());
                 float w = drawStringLine(x, y, hJust, text.substring(start, m.start()));
                 width += w;
                 x += w;
@@ -152,34 +152,6 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     }
 
     final static Pattern ANNOTATION_PATTERN = Pattern.compile("\\[([0-9]{1,3},)?[0-9]{1,3},[0-9]{1,3},[0-9]{1,3}\\]");
-
-    /**
-     * Parses string of pattern [(a,)?r,g,b] into a color object
-     * @param str
-     * @return null of string not identified as a color
-     */
-    public final AColor stringToColor(String str) {
-        try {
-            if (str.startsWith("[") && str.endsWith("]")) {
-                String[] parts = str.substring(1, str.length() - 1).split("[,]");
-                if (parts.length == 3) {
-                    return makeColor(Integer.parseInt(parts[0]), Integer.parseInt(parts[1]), Integer.parseInt(parts[2]));
-                } else if (parts.length == 4) {
-                    return makeColor(Integer.parseInt(parts[1]), Integer.parseInt(parts[2]), Integer.parseInt(parts[3]), Integer.parseInt(parts[0]));
-                }
-            }
-        } catch (Exception e) {
-        }
-        error("Cannot parse '" + str + "' into a color");
-        return null;
-    }
-
-    public final String colorToString(AColor color) {
-        return "[" + Math.round(color.getAlpha()*255)
-                + "," + Math.round(color.getRed()*255)
-                + "," + Math.round(color.getGreen()*255)
-                + "," + Math.round(color.getBlue()*255) + "]";
-    }
 
     /**
      * 
@@ -199,6 +171,20 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @return
      */
     public abstract float getTextWidth(String string);
+
+    /**
+     *
+     */
+    public enum TextStyle {
+        NORMAL, BOLD, ITALIC, MONOSPACE, UNDERLINE
+    }
+
+    /**
+     * Apply some combination of styles to the font
+     *
+     * @param styles
+     */
+    public abstract void setTextStyles(TextStyle ... styles);
 
     /**
      * 
@@ -587,7 +573,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param transparent optional color to make the transparent color if the image does not have transparency built in
      * @return an id >= 0 if the image was loaded or -1 if not
      */
-    public abstract int loadImage(String assetPath, AColor transparent);
+    public abstract int loadImage(String assetPath, GColor transparent);
 
     /**
      * 
@@ -600,7 +586,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param transparent
      * @return an array of length numCells with ids to the sub images or null if asset path does not produce an image
      */
-    public abstract int [] loadImageCells(String assetPath, int w, int h, int numCellsX, int numCells, boolean bordeered, AColor transparent);
+    public abstract int [] loadImageCells(String assetPath, int w, int h, int numCellsX, int numCells, boolean bordeered, GColor transparent);
     
     /**
      * 
@@ -1251,7 +1237,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * 
      * @param color
      */
-    public abstract void clearScreen(AColor color);
+    public abstract void clearScreen(GColor color);
     
     /**
      * 
@@ -1276,69 +1262,6 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      */
     protected void error(String message) {
         System.err.println(message);
-    }
-
-    public final AColor BLACK       = makeColor(0f,0,0,1);
-    public final AColor WHITE       = makeColor(1f,1,1,1);
-    public final AColor RED         = makeColor(1f,0,0,1);
-    public final AColor BLUE        = makeColor(0f,0,1,1);
-    public final AColor GREEN       = makeColor(0f,1,0,1);
-    public final AColor CYAN        = makeColor(0f,1,1,1);
-    public final AColor MAGENTA     = makeColor(1f,0,1,1);
-    public final AColor YELLOW      = makeColor(1f,1,0,1);
-    public final AColor ORANGE      = makeColor(1f,0.4f,0,1);
-    public final AColor GRAY      	= makeColor(0.6f, 0.6f, 0.6f, 1);
-    public final AColor LIGHT_GRAY 	= makeColor(0.8f, 0.8f, 0.8f, 1);
-    public final AColor DARK_GRAY 	= makeColor(0.4f, 0.4f, 0.4f, 1);
-    public final AColor TRANSPARENT = makeColor(0f,0,0,0);
-    
-    /**
-     * 
-     * @param r
-     * @param g
-     * @param b
-     * @param a
-     * @return
-     */
-    public abstract AColor makeColor(float r, float g, float b, float a);
-
-    /**
-     * 
-     * @param r
-     * @param g
-     * @param b
-     * @return
-     */
-    public final AColor makeColor(int r, int g, int b) {
-        return makeColor((float)r/ 255, (float)g/255, (float)b/255, 1);
-    }
-
-    /**
-     * 
-     * @param r
-     * @param g
-     * @param b
-     * @param a
-     * @return
-     */
-    public final AColor makeColor(int r, int g, int b, int a) {
-        return makeColor((float)r/ 255, (float)g/255, (float)b/255, (float)a/255);
-    }
-    
-    public final AColor makeColorRGBA(int rgba) {
-    	int r = (rgba >>> 24) & 0xff;
-        int g = (rgba >> 16) & 0xff;
-        int b = (rgba >> 8) & 0xff;
-    	int a = (rgba >> 0) & 0xff;
-    	return makeColor(r, g, b, a);
-    }
-
-    public final AColor makeColorARGB(int argb) {
-    	int a = (argb >>> 24) & 0xff;
-    	int r = (argb >> 16) & 0xff;
-        int g = (argb >> 8) & 0xff;
-        int b = (argb >> 0) & 0xff;
-    	return makeColor(r, g, b, a);
     }
 
     /**
