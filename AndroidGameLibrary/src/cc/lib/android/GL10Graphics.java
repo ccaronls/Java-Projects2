@@ -853,7 +853,12 @@ for (int pix : pixels) {
         pushDepth--;
         DroidUtils.debugAssert(pushDepth>=0, "pushDepth invalid: " + pushDepth);
     }
-    
+
+    @Override
+    public void getTransform(Matrix3x3 result) {
+        throw new RuntimeException("Not implemented");
+    }
+
     /**
      * 
      * @param x

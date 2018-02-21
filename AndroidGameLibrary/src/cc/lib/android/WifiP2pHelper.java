@@ -25,6 +25,7 @@ import java.util.Collection;
 public class WifiP2pHelper implements WifiP2pManager.ChannelListener, WifiP2pManager.ActionListener, WifiP2pManager.PeerListListener {
 
     private final static String TAG = WifiP2pHelper.class.getSimpleName();
+    private boolean p2pEnabled = false;
 
     BroadcastReceiver rcvr = new BroadcastReceiver() {
         @Override
@@ -64,9 +65,11 @@ public class WifiP2pHelper implements WifiP2pManager.ChannelListener, WifiP2pMan
                     switch (state) {
                         case WifiP2pManager.WIFI_P2P_STATE_DISABLED:
                             Log.i(TAG, "BR:RCV = WIFI P2P STATE DISABLED");
+                            p2pEnabled = false;
                             break;
                         case WifiP2pManager.WIFI_P2P_STATE_ENABLED:
                             Log.i(TAG, "BR:RCV = WIFI P2P STATE ENABLED");
+                            p2pEnabled = true;
                             break;
                     }
                     break;
@@ -78,6 +81,7 @@ public class WifiP2pHelper implements WifiP2pManager.ChannelListener, WifiP2pMan
     final Context ctxt;
     final WifiP2pManager p2p;
     WifiP2pManager.Channel channel;
+    final IntentFilter p2pFilter;
     enum State {
         READY,
         DISCOVERING
@@ -88,19 +92,18 @@ public class WifiP2pHelper implements WifiP2pManager.ChannelListener, WifiP2pMan
     WifiP2pHelper(Context ctxt) {
         this.ctxt = ctxt;
         p2p = ctxt.getSystemService(WifiP2pManager.class);
+        p2pFilter = new IntentFilter();
+        p2pFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
+        //p2pFilter.addAction(WifiP2pManager.WIFI_P2P_DISCOVERY_CHANGED_ACTION);
+        p2pFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
+        p2pFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
+        p2pFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
     }
 
     public void p2pInitialize() {
         if (state == State.READY) {
             channel = p2p.initialize(ctxt, ctxt.getMainLooper(), this);
-            IntentFilter filter = new IntentFilter();
-            filter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
-            filter.addAction(WifiP2pManager.WIFI_P2P_DISCOVERY_CHANGED_ACTION);
-            filter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
-            filter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
-            filter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
-
-            ctxt.registerReceiver(rcvr, filter);
+            ctxt.registerReceiver(rcvr, p2pFilter);
             state = State.DISCOVERING;
             Log.i(TAG, "p2pInitialized success");
             discover();
@@ -180,7 +183,7 @@ public class WifiP2pHelper implements WifiP2pManager.ChannelListener, WifiP2pMan
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         WifiP2pConfig config = new WifiP2pConfig();
-//                        config.
+                        //config.
                         p2p.connect(channel, config, WifiP2pHelper.this);
                     }
                 }
@@ -197,6 +200,16 @@ public class WifiP2pHelper implements WifiP2pManager.ChannelListener, WifiP2pMan
         if (state != State.READY)
             ctxt.unregisterReceiver(rcvr);
         state = State.READY;
+    }
+
+    void pause() {
+        if (state != State.READY)
+            ctxt.unregisterReceiver(rcvr);
+        state = State.READY;
+    }
+
+    void resume() {
+        ctxt.registerReceiver(rcvr, p2pFilter);
     }
 
     private void requestPeers() {

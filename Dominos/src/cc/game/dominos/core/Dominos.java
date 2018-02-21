@@ -61,8 +61,10 @@ public abstract class Dominos extends Reflector<Dominos> {
     private int highlightedPlayerTile = -1;
     @Omit
     private Object gameLock = this;
+    @Omit
+    private boolean dragging = false;
 
-	public void setNumPlayers(int num){
+    public void setNumPlayers(int num){
         this.players = new Player[num];
         players[0] = new PlayerUser();
         for (int i=1; i<num; i++) {
@@ -640,8 +642,6 @@ public abstract class Dominos extends Reflector<Dominos> {
         }
         redraw();
     }
-
-    private boolean dragging = false;
 
     public synchronized final void startDrag() {
         dragging = true;

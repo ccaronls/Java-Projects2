@@ -51,8 +51,6 @@ public abstract class GameClient {
      * The userName must be unique to the server for successful connect.
      * 
      * @param userName
-     * @param host
-     * @param listenPort
      * @param version
      */
     public GameClient(String userName, String version) {
@@ -204,7 +202,7 @@ public abstract class GameClient {
     /**
      * Can be overridden to perform custom logging
      * Default behavior is to write to stderr.
-     * @param msg
+     * @param e
      */
     public void logError(Exception e) {
         logError("ERROR " + getClass().getSimpleName() + ":" + e.getClass().getSimpleName() + " " + e.getMessage());

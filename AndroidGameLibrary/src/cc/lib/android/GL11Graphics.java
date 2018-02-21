@@ -2,6 +2,7 @@ package cc.lib.android;
 
 import javax.microedition.khronos.opengles.*;
 
+import cc.lib.math.Matrix3x3;
 import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
 import android.content.Context;
@@ -82,5 +83,15 @@ public final class GL11Graphics extends GL10Graphics {
 	public Vector2D getMaxBoundingRect() {
 		// TODO Auto-generated method stub
 		return maxRect;
-	}	
+	}
+
+    @Override
+    public void getTransform(Matrix3x3 result) {
+	    float [] array = new float[16];
+        getGl11().glGetFloatv(GL11.GL_MODELVIEW_MATRIX, array, 0);
+        result.assign(array[0], array[4], array[8],
+                array[1], array[5], array[9],
+                array[2], array[6], array[1]);
+    }
+
 }

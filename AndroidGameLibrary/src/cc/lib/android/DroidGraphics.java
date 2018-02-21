@@ -110,7 +110,7 @@ public class DroidGraphics extends APGraphics {
                 paint.setTextAlign(Paint.Align.CENTER);
                 break;
         }
-        paint.setStyle(Paint.Style.STROKE);
+        paint.setStyle(Paint.Style.FILL_AND_STROKE);
         canvas.drawText(text, x,y, paint);
         return getTextWidth(text);
     }

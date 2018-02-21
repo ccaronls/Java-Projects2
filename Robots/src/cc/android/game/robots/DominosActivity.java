@@ -50,6 +50,7 @@ public class DominosActivity extends DroidActivity {
     }
 
     int tx, ty;
+    boolean dragging = false;
 
     @Override
     protected void onDraw(DroidGraphics g) {
@@ -60,17 +61,28 @@ public class DominosActivity extends DroidActivity {
     protected void onTouchDown(float x, float y) {
         tx = Math.round(x);
         ty = Math.round(y);
-        dominos.onClick();
         getContent().postInvalidate();
     }
 
     @Override
     protected void onTouchUp(float x, float y) {
-        //getContent().postInvalidate();
+        if (dragging) {
+            dominos.stopDrag();
+            dragging = false;
+        }
+        tx = Math.round(x);
+        ty = Math.round(y);
+        getContent().postInvalidate();
     }
 
     @Override
     protected void onDrag(float x, float y) {
-        //getContent().postInvalidate();
+        if (!dragging) {
+            dominos.startDrag();
+            dragging = true;
+        }
+        tx = Math.round(x);
+        ty = Math.round(y);
+        getContent().postInvalidate();
     }
 }

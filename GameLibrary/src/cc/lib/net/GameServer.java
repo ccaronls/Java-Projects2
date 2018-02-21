@@ -29,7 +29,7 @@ import cc.lib.crypt.EncryptionOutputStream;
  */
 public class GameServer {
     
-    public static interface Listener {
+    public interface Listener {
         void onConnected(ClientConnection conn);
         void onReconnection(ClientConnection conn);
         void onClientDisconnected(ClientConnection conn);
@@ -44,6 +44,7 @@ public class GameServer {
     private final int clientReadTimeout;
     private final String mVersion;
     private final Cypher cypher;
+    private final int maxConnections;
     
     final static int ENCRYPTION_CHUNK_SIZE = 256;
 
@@ -53,36 +54,24 @@ public class GameServer {
             r += " connected clients:" + clients.size();
         return r;
     }
-    
-    /**
-     * Create a Unencrypted server and start listening. 
-     * 
-     * @param serverListener
-     * @param listenPort
-     * @param clientReadTimeout
-     * @param serverVersion
-     * @throws IOException 
-     * @throws Exception
-     */
-    public GameServer(Listener serverListener, int listenPort, int clientReadTimeout, String serverVersion) throws IOException {
-        this(serverListener, listenPort, clientReadTimeout, serverVersion, null);
-    }
-    
+
     /**
      * Create a server and start listening.  When cypher is not null, then then server will only
      * allow encrypted clients.
      * 
-     * @param serverListener
-     * @param listenPort
-     * @param clientReadTimeout
-     * @param serverVersion
-     * @param cypher 
+     * @param serverListener handles callbacks
+     * @param listenPort port to listen on for new connections
+     * @param clientReadTimeout timeout in milliseconds before a client disconnect
+     * @param serverVersion version of this service to use to check compatibility with clients
+     * @param cypher used to encrypt the dialog. can be null.
+     * @param maxConnections max number of clients to allow to be connected
      * @throws IOException 
      * @throws Exception
      */
-    public GameServer(Listener serverListener, int listenPort, int clientReadTimeout, String serverVersion, Cypher cypher) throws IOException {
+    public GameServer(Listener serverListener, int listenPort, int clientReadTimeout, String serverVersion, Cypher cypher, int maxConnections) throws IOException {
         this.clientReadTimeout = clientReadTimeout;
         this.serverListener = serverListener;
+        this.maxConnections = maxConnections;
         if (serverListener == null)
             throw new NullPointerException("serverListener");
         this.mVersion = serverVersion.toString(); // null check
@@ -157,7 +146,7 @@ public class GameServer {
 
     /**
      * Broadcast a command to all connected clients
-     * @param cmd
+     * @param message
      */
     public final void broadcastMessage(String message) {
         broadcast(new GameCommand(GameCommandType.SVR_MESSAGE).setMessage(message));
@@ -251,6 +240,9 @@ public class GameServer {
                         if (clients.containsKey(name)) {
                             //new GameCommand(GameCommandType.SVR_MESSAGE).setMessage("ERROR: A client with the name '" + name + "' is already connected").write(out);
                             throw new ProtocolException("client with name already exists");
+                        }
+                        if (clients.size() >= maxConnections) {
+                            throw new java.net.ProtocolException("Max client connections reached");
                         }
                         conn = new ClientConnection(GameServer.this, name);
                         conn.connect(socket, in, out);
@@ -347,7 +339,7 @@ public class GameServer {
 
     /**
      * Override to perform custom error logging.  default writes to stderr
-     * @param msg
+     * @param e
      */
     public void logError(Exception e) {
         System.err.println("ERROR:" + e.getClass().getSimpleName() + " " + e.getMessage());
