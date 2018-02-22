@@ -15,7 +15,7 @@ import cc.lib.utils.Reflector;
  * @author Chris Caron
  * 
  */
-public final class Board extends Reflector<Board> {
+public class Board extends Reflector<Board> {
 	
 	static {
 		addAllFields(Board.class);

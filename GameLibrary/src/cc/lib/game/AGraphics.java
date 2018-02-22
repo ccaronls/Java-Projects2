@@ -174,6 +174,21 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
 
     /**
      *
+     * @param string
+     * @return
+     */
+    public GRectangle getTextDimension(String string, float maxWidth) {
+        String [] lines = generateWrappedLines(string, maxWidth);
+        float width = 0;
+        int height = getTextHeight() * lines.length;
+        for (String s : lines) {
+            width = Math.max(width, getTextWidth(s));
+        }
+        return new GRectangle((int)(width+0.9f), height);
+    }
+
+    /**
+     *
      */
     public enum TextStyle {
         NORMAL, BOLD, ITALIC, MONOSPACE, UNDERLINE

@@ -59,7 +59,7 @@ public class SOCGUI extends SOC {
         gui.logError(msg);
     }
 
-    class SlerpAnim extends Animation {
+    class SlerpAnim extends AAnimation<Graphics> {
 
         final Rectangle start, end;
         
@@ -70,7 +70,7 @@ public class SOCGUI extends SOC {
         }
         
         @Override
-        void draw(Graphics g, float position, float dt) {
+        public void draw(Graphics g, float position, float dt) {
             float dx = end.x - start.x;
             float dy = end.y - start.y;
             float dw = end.width - start.width;
@@ -92,7 +92,7 @@ public class SOCGUI extends SOC {
     void addCardAnimation(final Player player, final String text) {
         
     	final PlayerInfoComponent comp = gui.playerComponents[player.getPlayerNum()];
-        final List<Animation> cardsList = comp.getCardAnimations();
+        final List<AAnimation<Graphics>> cardsList = comp.getCardAnimations();
         final BoardComponent board = GUI.instance.getBoardComponent();
 
         final int cardWidth = 64;
@@ -114,13 +114,13 @@ public class SOCGUI extends SOC {
 
         final int animTime = GUI.instance.getProps().getIntProperty("anim.card.tm", 3000);
         
-        gui.getBoardComponent().addAnimation(new Animation(animTime, 0) {
-            void draw(Graphics g, float position, float dt) {
+        gui.getBoardComponent().addAnimation(new AAnimation<Graphics>(animTime, 0) {
+            public void draw(Graphics g, float position, float dt) {
                 drawCard(((GUIPlayer)player).getColor(), g, text, x, y, cardWidth, cardHeight);
             }
 
             @Override
-            void onDone() {
+            public void onDone() {
                 //playerRowCardNum[player.getPlayerNum()]--;
                 synchronized (cardsList) {
                     cardsList.remove(this);
@@ -128,7 +128,7 @@ public class SOCGUI extends SOC {
             }
 
             @Override
-            void onStarted() {
+            public void onStarted() {
                 synchronized (cardsList) {
                     cardsList.add(this);
                 }
@@ -328,8 +328,8 @@ public class SOCGUI extends SOC {
 		pts0[30]=pts0[29];
 		Utils.computeBezierCurvePoints(pts1, 30, tile1, mid1.sub(dv), mid0.sub(dv), tile0);
 		pts1[30]=pts1[29];
-		final AWTRenderer render = gui.getBoardComponent().render;
-		gui.getBoardComponent().addAnimation(new Animation(3000, 0) {
+		final Renderer render = gui.getBoardComponent().render;
+		gui.getBoardComponent().addAnimation(new AAnimation<Graphics>(3000, 0) {
 			
 			void drawChit(Graphics g, Vector2D [] pts, float position, int num) {
 				int index0 = (int)(position*28);
@@ -345,20 +345,20 @@ public class SOCGUI extends SOC {
 			}
 			
 			@Override
-			void draw(Graphics g, float position, float dt) {
+			public void draw(Graphics g, float position, float dt) {
 				drawChit(g, pts0, position, t1);
 				drawChit(g, pts1, position, t0);
 			}
 
 			@Override
-			void onDone() {
+            public void onDone() {
 				synchronized (SOCGUI.this) {
 					SOCGUI.this.notify();
 				}
 			}
 
 			@Override
-			void onStarted() {
+            public void onStarted() {
 				tile0.setDieNum(0);
 				tile1.setDieNum(0);
 			}
@@ -384,7 +384,7 @@ public class SOCGUI extends SOC {
 		gui.getBoardComponent().addAnimation(new BlockingAnimation(800) {
 			
 			@Override
-			void draw(Graphics g, float position, float dt) {
+            public void draw(Graphics g, float position, float dt) {
 				Vector2D v = Vector2D.newTemp(getBoard().getTile(fromTile)).scale(1-position).add(Vector2D.newTemp(getBoard().getTile(toTile)).scale(position));
 				gui.getBoardComponent().drawPirate(g, v);
 			}
@@ -488,9 +488,9 @@ public class SOCGUI extends SOC {
 		GUI.instance.getBoardComponent().addAnimation(new BlockingAnimation(2000) {
 			
 			@Override
-			void draw(Graphics g, float position, float dt) {
+            public void draw(Graphics g, float position, float dt) {
 				g.setColor(player.getColor());
-				AWTRenderer r = GUI.instance.getBoardComponent().render;
+				Renderer r = GUI.instance.getBoardComponent().render;
 				r.pushMatrix();
 				 r.translate(v);
 				 r.translate(0, -GUI.instance.getBoardComponent().getKnightRadius()*5);

@@ -27,7 +27,6 @@ public abstract class Player extends Reflector<Player> {
 	
 	/**
 	 * 
-	 * @param num
 	 */
 	protected Player() {
 	}
@@ -79,8 +78,7 @@ public abstract class Player extends Reflector<Player> {
 
 	/**
 	 * 
-	 * @param type
-	 * @param flag
+	 * @param card
 	 */
 	public final void addCard(Card card) {
 		cards.add(card);
@@ -563,7 +561,7 @@ public abstract class Player extends Reflector<Player> {
 
 	/**
 	 * 
-	 * @param status
+	 * @param flag
 	 * @return
 	 */
 	public final int getTotalDevelopment(int flag) {
@@ -705,7 +703,6 @@ public abstract class Player extends Reflector<Player> {
 
 	/**
 	 * Special victory points are points for longest road, largest army, printer, constitution
-	 * @param rules
 	 * @return
 	 */
 	public final int getSpecialVictoryPoints() {
@@ -742,12 +739,11 @@ public abstract class Player extends Reflector<Player> {
 	 * 
 	 * @param soc
 	 * @param moves
-	 * @param numMoves
 	 * @return
 	 */
 	public abstract MoveType chooseMove(SOC soc, Collection<MoveType> moves);
 	
-	public static enum VertexChoice {
+	public enum VertexChoice {
 		SETTLEMENT,
 		CITY,
 		CITY_WALL,
@@ -775,7 +771,7 @@ public abstract class Player extends Reflector<Player> {
 	 */
 	public abstract Vertex chooseVertex(SOC soc, Collection<Integer> vertexIndices, VertexChoice mode, Vertex knightToMove);
 
-	public static enum RouteChoice {
+	public enum RouteChoice {
 		ROAD,
 		SHIP,
 		UPGRADE_SHIP,
@@ -787,7 +783,7 @@ public abstract class Player extends Reflector<Player> {
 	
 	public abstract Route chooseRoute(SOC soc, Collection<Integer> routeIndices, RouteChoice mode);
 
-	public static enum RouteChoiceType {
+	public enum RouteChoiceType {
 		ROAD_CHOICE,
 		SHIP_CHOICE
 	}
@@ -799,7 +795,7 @@ public abstract class Player extends Reflector<Player> {
 	 */
 	public abstract RouteChoiceType chooseRouteType(SOC soc);
 	
-	public static enum TileChoice {
+	public enum TileChoice {
 		ROBBER,
 		PIRATE,
 		INVENTOR,
@@ -823,12 +819,11 @@ public abstract class Player extends Reflector<Player> {
 	 * 
 	 * @param soc
 	 * @param trades
-	 * @param numTrades
 	 * @return
 	 */
 	public abstract Trade chooseTradeOption(SOC soc, Collection<Trade> trades);
 
-	public static enum PlayerChoice {
+	public enum PlayerChoice {
 		PLAYER_TO_TAKE_CARD_FROM,
 		PLAYER_TO_SPY_ON,
 		PLAYER_FOR_DESERTION,
@@ -843,12 +838,12 @@ public abstract class Player extends Reflector<Player> {
 	 * 
 	 * @param soc
 	 * @param playerOptions
-	 * @param numPlayerOptions
+	 * @param mode
 	 * @return
 	 */
 	public abstract Player choosePlayer(SOC soc, Collection<Integer> playerOptions, PlayerChoice mode);
 	
-	public static enum CardChoice {
+	public enum CardChoice {
 		RESOURCE_OR_COMMODITY,
 		GIVEUP_CARD, // cards are lost 
 		OPPONENT_CARD, // choose from an opponents cards
@@ -864,7 +859,7 @@ public abstract class Player extends Reflector<Player> {
 	 */
 	public abstract Card chooseCard(SOC soc, Collection<Card> cards, CardChoice mode);
 	
-	public static enum EnumChoice {
+	public enum EnumChoice {
 		COMMODITY_MONOPOLY,
 		RESOURCE_MONOPOLY,
 		DRAW_PROGRESS_CARD,
@@ -881,11 +876,13 @@ public abstract class Player extends Reflector<Player> {
 	
 	/**
 	 * Players sets the dice to values of their choice each in range [1-6] inclusive
-	 * @param die array of dice to set
+     *
+     * @param soc
+	 * @param dice array of dice to set
 	 * @param num length of array to set
 	 * @return true when player completed
 	 */
-	public abstract boolean setDice(Dice [] dice, int num);
+	public abstract boolean setDice(SOC soc, Dice [] dice, int num);
 
 
 }

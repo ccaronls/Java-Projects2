@@ -52,6 +52,14 @@ public class Renderer {
 		cur_mat.copy(s_mat);
 	}
 
+    /**
+     *
+     * @param v
+     */
+	public final void translate(IVector2D v) {
+	    translate(v.getX(), v.getY());
+    }
+
 	/**
 	 * multiply a rotation matrix to the transform
 	 * @param degrees

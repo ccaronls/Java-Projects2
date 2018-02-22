@@ -6,9 +6,9 @@ import java.util.*;
 
 import cc.game.soc.core.*;
 import cc.lib.game.IVector2D;
+import cc.lib.game.Renderer;
 import cc.lib.math.CMath;
 import cc.lib.math.Vector2D;
-import cc.lib.swing.AWTRenderer;
 import cc.lib.swing.AWTUtils;
 
 /**
@@ -51,10 +51,10 @@ public class GUIPlayer extends PlayerBot {
         GUI.instance.getBoardComponent().addAnimation(new BlockingAnimation(getAnimTime()) {
 
             @Override
-            void draw(Graphics g, float position, float dt) {
+            public void draw(Graphics g, float position, float dt) {
                 //vertex.setPlayer(0);
                 g.setColor(getColor());
-                AWTRenderer render = GUI.instance.getBoardComponent().render;
+                Renderer render = GUI.instance.getBoardComponent().render;
                 render.pushMatrix();
                 render.translate(vertex);
                 render.translate(0, (1-position)*GUI.instance.getBoardComponent().getStructureRadius()*5);
@@ -94,9 +94,9 @@ public class GUIPlayer extends PlayerBot {
         comp.addAnimation(new BlockingAnimation(getAnimTime()) {
 			
 			@Override
-			void draw(Graphics g, float position, float dt) {
+			public void draw(Graphics g, float position, float dt) {
 				g.setColor(getColor());
-                AWTRenderer render = comp.render;
+                Renderer render = comp.render;
                 render.pushMatrix();
                 //render.translate(mp);
                 //render.scale(1, position);
@@ -125,9 +125,9 @@ public class GUIPlayer extends PlayerBot {
         comp.addAnimation(new BlockingAnimation(getAnimTime()) {
 			
 			@Override
-			void draw(Graphics g, float position, float dt) {
+			public void draw(Graphics g, float position, float dt) {
 				g.setColor(getColor());
-                AWTRenderer render = GUI.instance.getBoardComponent().render;
+                Renderer render = GUI.instance.getBoardComponent().render;
                 render.pushMatrix();
                 //render.translate(mp);
                 render.scale(1, position);
@@ -147,9 +147,9 @@ public class GUIPlayer extends PlayerBot {
     	comp.addAnimation(new BlockingAnimation(2000) {
 			
 			@Override
-			void draw(Graphics g, float position, float dt) {
+			public void draw(Graphics g, float position, float dt) {
 				g.setColor(getColor());
-                AWTRenderer render = GUI.instance.getBoardComponent().render;
+                Renderer render = GUI.instance.getBoardComponent().render;
                 render.pushMatrix();
                 //render.translate(mp);
                 render.scale(1, 1.0f - position);
@@ -179,7 +179,7 @@ public class GUIPlayer extends PlayerBot {
                 final Vertex B = soc.getBoard().getVertex(edge.getTo());
                 
                 @Override
-                void draw(Graphics g, float position, float dt) {
+                public void draw(Graphics g, float position, float dt) {
                     Vertex from, to;
                     if (A.getPlayer() == getPlayerNum() || soc.getBoard().isVertexAdjacentToPlayerRoad(edge.getFrom(), getPlayerNum())) {
                         from=A; to=B;
@@ -205,9 +205,9 @@ public class GUIPlayer extends PlayerBot {
     	GUI.instance.getBoardComponent().addAnimation(new BlockingAnimation(getAnimTime()) {
 			
 			@Override
-			void draw(Graphics g, float position, float dt) {
+			public void draw(Graphics g, float position, float dt) {
                 g.setColor(getColor());
-                AWTRenderer render = GUI.instance.getBoardComponent().render;
+                Renderer render = GUI.instance.getBoardComponent().render;
                 render.pushMatrix();
                 render.translate(vertex.getX(), position * (vertex.getY()));
                 render.scale((2f-position) * (float)Math.cos((1-position)*20), (2f-position));
@@ -225,9 +225,9 @@ public class GUIPlayer extends PlayerBot {
     	GUI.instance.getBoardComponent().addAnimation(new BlockingAnimation(getAnimTime()) {
 			
 			@Override
-			void draw(Graphics g, float position, float dt) {
+			public void draw(Graphics g, float position, float dt) {
                 g.setColor(getColor());
-                AWTRenderer render = GUI.instance.getBoardComponent().render;
+                Renderer render = GUI.instance.getBoardComponent().render;
                 render.pushMatrix();
                 IVector2D pos = Vector2D.newTemp(fromVertex).add(Vector2D.newTemp(toVertex).sub(fromVertex).scale(position));
                 render.translate(pos);

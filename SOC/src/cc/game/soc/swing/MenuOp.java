@@ -57,10 +57,10 @@ public enum MenuOp {
     AITUNING_NEXT_OPTIMAL_INDEX("Next Path", "Select the next path for the optimal path"),
     AITUNING_PREV_OPTIMAL_INDEX("Prev Path", "Select the previous path for the optimal path"),
 	AITUNING_ACCEPT_OPTIMAL("Accept", "Accept the current path"),
-	AITUNING_REFRESH("Refresh", "Refresh aiTuning properties form test area"),
+	AITUNING_REFRESH("Refresh", "Refresh aiTuning properties from test area"),
     ;
 	
-	private MenuOp(String txt, String toolTipText) {
+	MenuOp(String txt, String toolTipText) {
 		this.txt = txt;
 		this.toolTipText = toolTipText;
 	}

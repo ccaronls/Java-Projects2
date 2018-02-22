@@ -14,9 +14,9 @@ import javax.swing.JComponent;
 import cc.game.soc.core.*;
 import cc.lib.game.*;
 import cc.lib.math.*;
+import cc.lib.swing.AWTRenderer;
 import cc.lib.swing.AWTUtils;
 import cc.lib.swing.ImageMgr;
-import cc.lib.swing.AWTRenderer;
 
 @SuppressWarnings("serial")
 public abstract class BoardComponent extends JComponent implements MouseMotionListener, MouseListener, Renderable {
@@ -168,7 +168,7 @@ public abstract class BoardComponent extends JComponent implements MouseMotionLi
     final int padding;
 	
     private int renderFlag = 0;
-    private List<Animation> animations = new ArrayList<Animation>(32);
+    private List<AAnimation<Graphics>> animations = new ArrayList<>(32);
     
     private int edgeInfoIndex = -1;
     private int cellInfoIndex = -1;
@@ -229,7 +229,7 @@ public abstract class BoardComponent extends JComponent implements MouseMotionLi
         return (renderFlag & (1 << flag.ordinal())) != 0;
     }
     
-    void addAnimation(Animation anim) {
+    void addAnimation(AAnimation<Graphics> anim) {
         synchronized (animations) {
             animations.add(anim);
         }
@@ -1185,15 +1185,15 @@ public abstract class BoardComponent extends JComponent implements MouseMotionLi
     		
     		
     		{
-        		List<Animation> t = null;
+        		List<AAnimation<Graphics>> t = null;
         		synchronized (animations) {
-        		    t = new ArrayList<Animation>(animations);
+        		    t = new ArrayList<>(animations);
         		    animations.clear();
         		}
     		
         		// draw animations
         		for (int i=0; i<t.size(); ) {
-        		    Animation anim = t.get(i);
+        		    AAnimation<Graphics> anim = t.get(i);
         		    if (anim.isDone()) {
         		        t.remove(i);
         		    } else {

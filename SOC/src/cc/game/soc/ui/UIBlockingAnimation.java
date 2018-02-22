@@ -1,16 +1,16 @@
-package cc.game.soc.swing;
+package cc.game.soc.ui;
 
 import cc.lib.game.AAnimation;
-import java.awt.Graphics;
+import cc.lib.game.AGraphics;
 
 /**
  * Animation that blocks SOC thread until finished
  * @author chriscaron
  *
  */
-public abstract class BlockingAnimation extends AAnimation<Graphics> {
+public abstract class UIBlockingAnimation extends AAnimation<AGraphics> {
 
-	BlockingAnimation(long duration) {
+	UIBlockingAnimation(long duration) {
 		super(duration, 0);
 	}
 

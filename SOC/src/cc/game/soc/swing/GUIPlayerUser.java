@@ -65,7 +65,7 @@ public class GUIPlayerUser extends GUIPlayer {
 	}
 
 	@Override
-	public boolean setDice(Dice [] die, int num) {
+	public boolean setDice(SOC soc, Dice [] die, int num) {
 		return GUI.instance.getSetDiceMenu(die, num);
 	}
 

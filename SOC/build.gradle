@@ -13,7 +13,7 @@ sourceSets {
         }
 
         resources {
-            srcDirs = ['images'];
+            srcDirs = ['images', 'resources'];
         }
     }
 }

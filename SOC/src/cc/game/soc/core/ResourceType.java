@@ -19,7 +19,7 @@ public enum ResourceType implements ICardType<Void> {
 	ResourceType(String helpText) {
 		this.helpText = helpText;
 	}
-	
+
 	@Override
 	public CardType getCardType() {
 		return CardType.Resource;

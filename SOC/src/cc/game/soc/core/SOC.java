@@ -520,8 +520,7 @@ public class SOC extends Reflector<SOC> {
 	}
 	
 	/**
-	 * 
-	 * @param r
+	 *
 	 */
 	public void rollDice() {
 		Dice [] dice = nextDice();
@@ -2731,28 +2730,6 @@ public class SOC extends Reflector<SOC> {
 		}
 		return new ArrayList<Integer>(ships);
 	}
-	
-	/**
-	 * 
-	 * @param r
-	 * @param attackerNum
-	 * @param board
-	 * @return
-	 *
-	public static int computeAttackerScoreAgainstRoad(Route r, int attackerNum, Board board) {
-		int score = 0;
-		Vertex v0 = board.getVertex(r.getFrom());
-		Vertex v1 = board.getVertex(r.getTo());
-		if (v0.isActiveKnight() && v0.getPlayer() == attackerNum) {
-			score += v0.getType().getKnightLevel();
-			v0.deactivateKnight();
-		}
-		if (v1.isActiveKnight() && v1.getPlayer() == attackerNum) {
-			score += v1.getType().getKnightLevel();
-			v1.deactivateKnight();
-		}
-		return score;
-	}
 
 	/**
 	 * Attackable structures are those adjacent to a knight and on a road owned by the knight's player.
@@ -3084,7 +3061,7 @@ public class SOC extends Reflector<SOC> {
 
         	case ALCHEMIST_CARD: {
         		Dice [] dice = nextDice();
-        		if (getCurPlayer().setDice(dice, 2)) {
+        		if (getCurPlayer().setDice(this, dice, 2)) {
         			putCardBackInDeck(getCurPlayer().removeCard(ProgressCardType.Alchemist));
         			Dice ry = getDiceOfType(DiceType.YellowRed, dice);
         			Dice yr = getDiceOfType(DiceType.RedYellow, dice);
@@ -3957,14 +3934,14 @@ public class SOC extends Reflector<SOC> {
 		
 		setExplorer(explorer);
 	}
-	
-	/**
-	 * Return a list of vertices available for a settlement given a player and board instance.
-	 * 
-	 * @param p
-	 * @param b
-	 * @return
-	 */
+
+    /**
+     * Return a list of vertices available for a settlement given a player and board instance.
+     * @param soc
+     * @param playerNum
+     * @param b
+     * @return
+     */
 	static public List<Integer> computeSettlementVertexIndices(SOC soc, int playerNum, Board b) {
 
 		// un-owned settlements must be chosen first (pirate islands)
@@ -4032,12 +4009,12 @@ public class SOC extends Reflector<SOC> {
 		return vertices;
 	}
 
-	/**
-	 * Return a list of edges available for a road given a player and board instance.  
-	 * @param p
-	 * @param b
-	 * @return
-	 */
+    /**
+     * Return a list of edges available for a road given a player and board instance.
+     * @param playerNum
+     * @param b
+     * @return
+     */
 	static public List<Integer> computeRoadRouteIndices(int playerNum, Board b) {
         //if (Profiler.ENABLED) Profiler.push("SOC::computeRoadOptions");
         try {
@@ -4090,7 +4067,7 @@ public class SOC extends Reflector<SOC> {
 	
 	/**
 	 * Return list of vertices where a knight can be promoted (this assumes the player has passed the canBuild(Knight) test)
-	 * @param playerNum
+	 * @param p
 	 * @param b
 	 * @return
 	 */
@@ -4249,7 +4226,7 @@ public class SOC extends Reflector<SOC> {
 
 	/**
 	 * Return a list of vertices available for a city given a player and board intance.
-	 * @param p
+	 * @param playerNum
 	 * @param b
 	 * @return
 	 */
@@ -4259,7 +4236,7 @@ public class SOC extends Reflector<SOC> {
 
 	/**
 	 * Return a list of vertices available for a city given a player and board instance.
-	 * @param p
+	 * @param playerNum
 	 * @param b
 	 * @return
 	 */
@@ -5185,7 +5162,7 @@ public class SOC extends Reflector<SOC> {
 	
 	/**
 	 * 
-	 * @param playerNum
+	 * @param player
 	 * @param tile0
 	 * @param tile1
 	 */
@@ -5295,7 +5272,7 @@ public class SOC extends Reflector<SOC> {
 	 * in a turn.  default method does nothing.
 	 * @param taker
 	 * @param giver
-	 * @param type
+	 * @param applied
 	 * @param amount
 	 */
 	protected void onMonopolyCardApplied(Player taker, Player giver, ICardType<?> applied, int amount) {}

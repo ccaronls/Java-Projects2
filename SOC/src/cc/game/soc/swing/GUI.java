@@ -327,7 +327,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
         LAYOUT_CONFIGURE,  // 2 menus of buttons on left
     }
     
-	List<Animation> cardAnimations = new ArrayList<Animation>();
+	List<AAnimation<Graphics>> cardAnimations = new ArrayList<>();
     
     private LayoutType currentLayoutType = null;
     
@@ -915,7 +915,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 	            new MyToggleButton(f.name(), boardComp.getRenderFlag(f)) {
 
                     void onChecked() {
-                       boardComp.setRenderFlag(f, true); 
+                       boardComp.setRenderFlag(f, true);
                     }
                     void onUnchecked() {
                         boardComp.setRenderFlag(f, false);
@@ -1733,8 +1733,8 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 	public GUIPlayer getCurGUIPlayer() {
 		return (GUIPlayer)soc.getCurPlayer();
 	}
-    
-	public Color getPlayerColor(int playerNum) {
+
+    public Color getPlayerColor(int playerNum) {
 		if (playerNum < 1)
 			return Color.GRAY;
 		GUIPlayer p = getGUIPlayer(playerNum);
