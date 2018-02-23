@@ -1,21 +1,15 @@
 package cc.game.dominos.swing;
 
-import java.awt.BorderLayout;
-import java.awt.Graphics;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
 import java.io.File;
-
-import javax.swing.JComponent;
 
 import cc.game.dominos.core.*;
 import cc.lib.game.AGraphics;
 import cc.lib.game.Utils;
+import cc.lib.swing.AWTComponent;
 import cc.lib.swing.AWTGraphics;
 import cc.lib.swing.EZFrame;
 
-public class DominosApplet extends JComponent implements MouseListener, MouseMotionListener {
+public class DominosApplet extends AWTComponent {
 
     public static void main(String [] args) {
         AGraphics.DEBUG_ENABLED = true;
@@ -26,6 +20,7 @@ public class DominosApplet extends JComponent implements MouseListener, MouseMot
     final EZFrame frame;
 
     DominosApplet() {
+        super(false);
         frame = new EZFrame("Dominos") {
             protected void onWindowClosing() {
                 dominos.trySaveToFile(saveFile);
@@ -42,7 +37,7 @@ public class DominosApplet extends JComponent implements MouseListener, MouseMot
             }
         };
         frame.addMenuBarMenu("File", "New Game");
-        frame.add(this, BorderLayout.CENTER);
+        frame.add(this);
         try {
             dominos.loadFromFile(saveFile);
         } catch (Exception e) {
@@ -52,12 +47,10 @@ public class DominosApplet extends JComponent implements MouseListener, MouseMot
 
         if (!frame.loadFromFile(new File("dominos.properties")))
             frame.centerToScreen(800, 600);
-        addMouseListener(this);
-        addMouseMotionListener(this);
         dominos.startGameThread();
     }
 
-    File saveFile = new File("dominos.save");
+    final File saveFile = new File("dominos.save");
     final Dominos dominos = new Dominos() {
 
         @Override
@@ -66,75 +59,24 @@ public class DominosApplet extends JComponent implements MouseListener, MouseMot
         }
     };
 
-    AWTGraphics G = null;
-    int mouseX, mouseY;
-
     @Override
-    public synchronized void paint(Graphics g) {
-        if (G == null) {
-            G = new AWTGraphics(g, this);
-            G.setIdentity();
-        } else {
-            G.setGraphics(g);
-            G.initViewport(getWidth(), getHeight());
-        }
-        dominos.draw(G, mouseX, mouseY);
+    protected void paint(AWTGraphics g, int mouseX, int mouseY) {
+        dominos.draw(g, mouseX, mouseY);
     }
 
+    @Override
+    protected void startDrag() {
+        dominos.startDrag();
+    }
 
     @Override
-    public void mouseClicked(MouseEvent e) {
-        Utils.println("mouseClicked");
+    protected void stopDrag() {
+        dominos.stopDrag();
+    }
+
+    @Override
+    protected void onClick() {
         dominos.onClick();
     }
 
-    @Override
-    public synchronized void mousePressed(MouseEvent e) {
-        Utils.println("mousePressed");
-        mouseX = e.getX();
-        mouseY = e.getY();
-        repaint();
-    }
-
-    @Override
-    public void mouseReleased(MouseEvent e) {
-        Utils.println("mouseReleased");
-        if (dragging) {
-            dominos.stopDrag();
-            dragging = false;
-        }
-        mouseX = e.getX();
-        mouseY = e.getY();
-        repaint();
-    }
-
-    @Override
-    public void mouseEntered(MouseEvent e) {
-    }
-
-    @Override
-    public void mouseExited(MouseEvent e) {
-    }
-
-    boolean dragging = false;
-
-    @Override
-    public void mouseDragged(MouseEvent e) {
-        if (!dragging) {
-            dominos.startDrag();
-            dragging = true;
-        }
-        Utils.println("mouseDragged");
-        mouseX = e.getX();
-        mouseY = e.getY();
-        repaint();
-    }
-
-    @Override
-    public void mouseMoved(MouseEvent e) {
-        Utils.println("mouseMoved");
-        mouseX = e.getX();
-        mouseY = e.getY();
-        repaint();
-    }
 }

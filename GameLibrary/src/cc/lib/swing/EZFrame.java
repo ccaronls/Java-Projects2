@@ -276,4 +276,8 @@ public class EZFrame extends JFrame implements WindowListener, ComponentListener
     protected void onMenuItemSelected(String menu, String subMenu) {
         Utils.println("onMneuItemSelected: menu=" + menu + " item=" + subMenu);
     }
+
+    public final void add(AWTComponent comp) {
+        super.add(comp);
+    }
 }

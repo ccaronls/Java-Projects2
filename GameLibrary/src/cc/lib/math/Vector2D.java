@@ -190,7 +190,13 @@ public class Vector2D extends Reflector<Vector2D> implements IVector2D, Serializ
         return out.set(x*s, y*s);
     }
 
-    public final MutableVector2D scale(float s) {
+    /**
+     * Return new vector scaled by amount s
+     *
+     * @param s
+     * @return
+     */
+    public final MutableVector2D scaledBy(float s) {
         return scale(s, newTemp());
     }
     

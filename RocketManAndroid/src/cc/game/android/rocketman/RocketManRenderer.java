@@ -1,8 +1,6 @@
 package cc.game.android.rocketman;
 
-import android.graphics.Color;
 import android.opengl.GLSurfaceView;
-import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import cc.lib.android.BaseRenderer;
@@ -40,7 +38,7 @@ public class RocketManRenderer extends BaseRenderer implements OnClickListener, 
         g.ortho(-100, 100, 100, -100);
 
         g.clearScreen(GColor.GRAY);
-        g.setColor(GColor.BLUE.setAlpha(0.3f));
+        g.setColor(GColor.BLUE.withAlpha(0.3f));
         g.begin();
         g.vertex(-10, 0);
         g.vertex(10, 0);

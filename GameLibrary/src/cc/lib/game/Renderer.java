@@ -355,7 +355,7 @@ public class Renderer {
     }
     
     /**
-     * Return the vector that is minimum bounding rect point
+     * Return the transformed vector that is minimum bounding rect point
      * @return
      */
     public final Vector2D getMin() {
@@ -363,7 +363,7 @@ public class Renderer {
     }
     
     /**
-     * Return the vector that is the maximum bounding rect point
+     * Return the transformed vector that is the maximum bounding rect point
      * @return
      */
     public final Vector2D getMax() {

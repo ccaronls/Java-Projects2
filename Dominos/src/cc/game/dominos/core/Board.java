@@ -2,6 +2,7 @@ package cc.game.dominos.core;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -95,7 +96,8 @@ public class Board extends Reflector<Board> {
         }
     }
 
-
+    @Omit
+    final List<AAnimation<AGraphics>> animations = new ArrayList<>();
 
     final void clear() {
         root = null;
@@ -210,7 +212,7 @@ public class Board extends Reflector<Board> {
         endpointTransforms[mv.endpoint].multiplyEq(new Matrix3x3().setTranslate(2, 0));
     }
 
-    private void transformPlacement(APGraphics g, int placement) {
+    private void transformPlacement(AGraphics g, int placement) {
         Matrix3x3 t = new Matrix3x3();
         g.getTransform(t);
         transformPlacement(t, placement);
@@ -332,7 +334,7 @@ public class Board extends Reflector<Board> {
         return picked;
     }
 
-    private void transformEndpoint(APGraphics g, int endpoint) {
+    void transformEndpoint(AGraphics g, int endpoint) {
         Matrix3x3 t = new Matrix3x3();
         g.getTransform(t);
         transformEndpoint(t, endpoint);
@@ -383,6 +385,14 @@ public class Board extends Reflector<Board> {
                 g.vertex(0, -2);
             }
             g.popMatrix();
+        }
+    }
+
+    void transformToEndpointLastPiece(AGraphics g, int ep) {
+        transformEndpoint(g, ep);
+        for (Tile p : endpoints[ep]) {
+            transformPlacement(g, p.placement);
+            g.translate(2, 0);
         }
     }
 
@@ -453,7 +463,7 @@ public class Board extends Reflector<Board> {
             }
 
             // DEBUG draw the rects
-            if (AGraphics.DEBUG_ENABLED) {
+            if (false && AGraphics.DEBUG_ENABLED) {
                 g.setColor(GColor.ORANGE);
                 for (IVector2D [] r : rects) {
                     g.drawRect(r[0], r[1], 3);
@@ -461,13 +471,30 @@ public class Board extends Reflector<Board> {
             }
 
         }
+
+        Iterator<AAnimation<AGraphics>> it = animations.iterator();
+        while (it.hasNext()) {
+            AAnimation<AGraphics> a = it.next();
+            if (a.isDone()) {
+                it.remove();
+            } else {
+                a.update(g);
+            }
+        }
         g.popMatrix();
         return picked;
     }
 
+    /**
+     *
+     * @param g
+     * @param pips1
+     * @param pips2
+     * @param alpha [0-1] inclusive
+     */
     static void drawTile(AGraphics g, int pips1, int pips2, float alpha) {
         g.pushMatrix();
-        g.setColor(GColor.BLACK.setAlpha(alpha));
+        g.setColor(GColor.BLACK.withAlpha(alpha));
         g.drawFilledRoundedRect(0, 0, 2, 1, 0.25f);
         g.setColor(GColor.WHITE);
         g.drawRoundedRect(0, 0, 2, 1, 1, 0.25f);
@@ -643,4 +670,12 @@ public class Board extends Reflector<Board> {
         return false;
     }
 
+    public int getOpenPips(int ep) {
+        if (endpoints[ep].size() == 0) {
+            if (ep == EP_LEFT || ep == EP_RIGHT)
+                return root.pip1;
+            return 0;
+        }
+        return endpoints[ep].getLast().openPips;
+    }
 }

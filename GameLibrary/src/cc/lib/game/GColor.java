@@ -39,7 +39,10 @@ public final class GColor extends Reflector<GColor> {
     }
 
     public GColor(float r, float g, float b, float a) {
-        set(Math.round(r*255), Math.round(g*255), Math.round(b*255), Math.round(a*255));
+        set(Math.round(Utils.clamp(r, 0, 1)*255),
+                Math.round(Utils.clamp(g, 0, 1)*255),
+                Math.round(Utils.clamp(b, 0, 1)*255),
+                Math.round(Utils.clamp(a, 0, 1)*255));
     }
 
 	/**
@@ -91,7 +94,10 @@ public final class GColor extends Reflector<GColor> {
     }
 
     public void set(int r, int g, int b, int a) {
-        argb = (a<<24) | (r<<16) | (g<<8) | b;
+        argb = (Utils.clamp(a, 0, 255)<<24)
+                | (Utils.clamp(r, 0, 255)<<16)
+                | (Utils.clamp(g, 0, 255)<<8)
+                | Utils.clamp(b, 0, 255);
     }
 
     /**
@@ -100,6 +106,8 @@ public final class GColor extends Reflector<GColor> {
      * @return
      */
     public final GColor darkened(float amount) {
+        if (amount < 0.01f)
+            return this;
         float R = amount * getRed();
         float G = amount * getGreen();
         float B = amount * getBlue();
@@ -110,11 +118,14 @@ public final class GColor extends Reflector<GColor> {
     }
 
     /**
-     * 
+     * Return new color that is lightened of this
+     *
      * @param amount value between 0-1 to indcate amount of RGB to add
      * @return
      */
     public final GColor lightened(float amount) {
+        if (amount < 0.01f)
+            return this;
         float R = amount * getRed();
         float G = amount * getGreen();
         float B = amount * getBlue();
@@ -122,27 +133,6 @@ public final class GColor extends Reflector<GColor> {
         G = Utils.clamp(getGreen() + G, 0, 255);
         B = Utils.clamp(getBlue() + B, 0, 255);
         return new GColor(R, G, B, getAlpha());
-    }
-    
-    /**
-     * Return a when aWeight == 1.0
-     * Return b when aWeight == 0.0
-     * @param g
-     * @param target
-     * @param aWeight
-     * @return
-     */
-    public final GColor interpolate(AGraphics g, GColor target, float aWeight) {
-        if (aWeight > 0.99)
-            return this;
-        if (aWeight < 0.01)
-            return target;
-        float bWeight = 1.0f - aWeight;
-        float newAlpha = (aWeight * getAlpha() + bWeight * target.getAlpha());
-        float newRed   = (aWeight * getRed() + bWeight * target.getRed());
-        float newGreen = (aWeight * getGreen() + bWeight * target.getGreen());
-        float newBlue  = (aWeight * getBlue() + bWeight * target.getBlue());
-        return new GColor(newRed,  newGreen, newBlue, newAlpha);
     }
 
     /**
@@ -201,12 +191,23 @@ public final class GColor extends Reflector<GColor> {
         return c.toARGB() == toARGB();
     }
 
-    public final GColor interpolateTo(GColor inner, float factor) {
-        
-        float R = getRed()   * factor + inner.getRed() * (1.0f - factor);
-        float G = getGreen() * factor + inner.getGreen() * (1.0f - factor);
-        float B = getBlue()  * factor + inner.getBlue() * (1.0f - factor);
-        float A = getAlpha() * factor + inner.getAlpha() * (1.0f - factor);
+    /**
+     * Return new color that is interpolation between this and parameter
+     * @param target
+     * @param factor
+     * @return
+     */
+    public final GColor interpolateTo(GColor target, float factor) {
+
+        if (factor > 0.99)
+            return target;
+        if (factor < 0.01)
+            return this;
+
+        float R = getRed()   * factor + target.getRed() * (1.0f - factor);
+        float G = getGreen() * factor + target.getGreen() * (1.0f - factor);
+        float B = getBlue()  * factor + target.getBlue() * (1.0f - factor);
+        float A = getAlpha() * factor + target.getAlpha() * (1.0f - factor);
         
         return new GColor(R, G, B, A);
     }
@@ -217,7 +218,7 @@ public final class GColor extends Reflector<GColor> {
      * @param alpha
      * @return
      */
-	public GColor setAlpha(float alpha) {
+	public final GColor withAlpha(float alpha) {
 	    return new GColor(red(), green(), blue(), Math.round(alpha*255));
     }
 
@@ -227,7 +228,7 @@ public final class GColor extends Reflector<GColor> {
      * @param alpha
      * @return
      */
-    public GColor setAlpha(int alpha) {
+    public final GColor withAlpha(int alpha) {
         return new GColor(red(), green(), blue(), alpha);
     }
 

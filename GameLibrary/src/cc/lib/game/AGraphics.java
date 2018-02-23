@@ -916,16 +916,19 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     }
 
     // return whether points added for quads or lines (true == quads)
-    private final boolean circlePoints(float innerRadius, float outerRadius, float startAngle, float sweep, int sections) {
+    private final void circlePoints(float radius, float startAngle, float sweep, int sections) {
+        final float step = sweep / sections;
+        float angle = startAngle;
+        final float endAngle = startAngle + sweep;
+        /*
     	float radius = (innerRadius + outerRadius)/2;
         //float sections = radius * sweep/180;
         //if (sections > 32)
         //    sections = 32;
         //else if (sections < 8)
         //    sections = 8;
-        float step = sweep / sections;
-        float angle = startAngle;
-        float endAngle = startAngle + sweep;
+
+
         
         if (outerRadius-innerRadius>1) {
 	        for (int i=0; i<sections && angle < endAngle; i++) {
@@ -940,7 +943,8 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
             vertex(x*outerRadius, y*outerRadius);
             vertex(x*innerRadius, y*outerRadius);
         	return true;
-        } else {
+        } else*/
+         {
 	        for (int i=0; i<sections; i++) {
 	            float x = CMath.cosine(angle) * radius;
 	            float y = CMath.sine(angle) * radius;
@@ -948,7 +952,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
 	            angle += step;
 	        }
 	        vertex(CMath.cosine(endAngle) * radius, CMath.sine(endAngle) * radius);
-	        return false;
+	        //return false;
         }
     }
     
@@ -975,7 +979,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
         translate(x, y);
         begin();
         vertex(0, 0);
-        circlePoints(radius, radius, 0, 360, sections);
+        circlePoints(radius, 0, 360, sections);
         drawTriangleFan();
         popMatrix();
     }
@@ -993,7 +997,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
         translate(cx, cy);
         begin();
         vertex(0, 0);
-        circlePoints(radius, radius, startDegrees, sweepDegrees, sections);
+        circlePoints(radius, startDegrees, sweepDegrees, sections);
         drawTriangleFan();
         popMatrix();
     }
@@ -1009,11 +1013,8 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
         pushMatrix();
         translate(x, y);
         begin();
-        if (circlePoints(radius-thickness/2, radius+thickness/2, 0, 360, sections)) {
-        	drawQuadStrip();
-        } else {
-        	drawLineLoop();
-        }
+        circlePoints(radius, 0, 360, sections);
+      	drawLineLoop();
         popMatrix();
         setLineWidth(saveThickness);
     }
@@ -1032,11 +1033,8 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
         pushMatrix();
         translate(x, y);
         begin();
-        if (circlePoints(radius-thickness/2, radius+thickness/2, startDegrees, sweepDegrees, sections)) {
-        	drawQuadStrip();
-        } else {
-        	drawLineStrip();
-        }
+        circlePoints(radius, startDegrees, sweepDegrees, sections);
+       	drawLineStrip();
         popMatrix();
         setLineWidth(saveThickness);
     }
@@ -1098,11 +1096,8 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
             radius = w;
         }
         begin();
-        if (circlePoints(radius-thickness/2, radius+thickness/2, 0, 360, sections)) {
-        	drawQuadStrip();
-        } else {
-        	drawLineLoop();
-        }
+        circlePoints(radius, 0, 360, sections);
+       	drawLineLoop();
         popMatrix();
         setLineWidth(saveThickness);
     }
@@ -1285,13 +1280,13 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
 	public abstract void clearMinMax();
 	
 	/**
-	 * Get the min bounding rect of all verts since last call to clearMinMax
+	 * Get the min transformed point min of all verts since last call to clearMinMax
 	 * @return
 	 */
 	public abstract Vector2D getMinBoundingRect();
 	
 	/**
-	 * Get the max bounding rect of all verts since last call to clearMinMax
+	 * Get the max transformed point of all verts since last call to clearMinMax
 	 * @return
 	 */
 	public abstract Vector2D getMaxBoundingRect();

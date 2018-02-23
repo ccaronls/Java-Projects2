@@ -70,11 +70,12 @@ public abstract class AAnimation<T> {
      * Start the animation after some delay
      * @param delayMSecs
      */
-    public final void start(long delayMSecs) {
+    public final AAnimation<T> start(long delayMSecs) {
     	if (delayMSecs < 0)
     		delayMSecs = 0;
         lastTime = startTime = getCurrentTimeMSecs() + delayMSecs;
         position = 0;
+        return this;
     }
 
     /**
@@ -226,5 +227,13 @@ public abstract class AAnimation<T> {
 
     public final boolean isOscilateOnRepeat() {
         return oscilateOnRepeat;
+    }
+
+    public final long getElapsedTime() {
+        return getCurrentTimeMSecs() - startTime;
+    }
+
+    public final long getTimeRemaining() {
+        return getDuration() - getElapsedTime();
     }
 }

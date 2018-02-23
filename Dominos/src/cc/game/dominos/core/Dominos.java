@@ -8,7 +8,10 @@ import cc.lib.game.AAnimation;
 import cc.lib.game.GColor;
 import cc.lib.game.AGraphics;
 import cc.lib.game.APGraphics;
+import cc.lib.game.Justify;
 import cc.lib.game.Utils;
+import cc.lib.math.MutableVector2D;
+import cc.lib.math.Vector2D;
 import cc.lib.utils.Reflector;
 
 /**
@@ -124,9 +127,9 @@ public abstract class Dominos extends Reflector<Dominos> {
                         protected void draw(AGraphics g, float position, float dt) {
                             GColor c = new GColor(position, 1-position, position, position);
                             if (getWinner().isPiecesVisible()) {
-                                g.drawAnnotatedString(String.format("%sPoints %d WINNER!!", c, getWinner().getScore()), 0, 0);
+                                g.drawAnnotatedString(String.format("%s%d PTS WINS!!", c, getWinner().getScore()), 0, 0);
                             } else {
-                                g.drawAnnotatedString(String.format("%sP%d Points %d WINNNER!!", c, turn, getWinner().getScore()), 0, 0);
+                                g.drawAnnotatedString(String.format("%sP%d %d PTS WINS!!", c, turn, getWinner().getScore()), 0, 0);
                             }
                             redraw();
                         }
@@ -292,13 +295,13 @@ public abstract class Dominos extends Reflector<Dominos> {
             // this player gets remaining tiles points from all other players rounded to nearest 5
             int pts = 0;
             for (Player pp : players) {
-                for (Tile t : p.tiles) {
+                for (Tile t : pp.tiles) {
                     pts += t.pip1 + t.pip2;
                 }
             }
-            pts = 5*((pts+2)/5);
+            pts = 5*((pts+4)/5);
             if (pts > 0) {
-                onPlayerPoints(p, pts);
+                onPlayerEndRoundPoints(p, pts);
                 p.score += pts;
             }
             newRound();
@@ -361,19 +364,133 @@ public abstract class Dominos extends Reflector<Dominos> {
     @Omit
     private AAnimation<AGraphics> poolAnimation = null;
 
+    @Omit
+    private AAnimation<AGraphics> remainingTileAnimation = null;
 
-    /**
-     * Called when player was earned pts > 0
-     * @param p
-     * @param pts
-     */
-    protected void onPlayerPoints(final Player p, final int pts) {
+    class StackTilesAnim extends AAnimation<AGraphics> {
+
+        final List<Tile> tiles;
+        int rows, cols, num;
+        float scale;
+        final int pts;
+        final Player p;
+
+        static final int DELAY_BETWEEN = 700;
+
+        StackTilesAnim(List<Tile> tiles, final Player p, final int pts) {
+            super(tiles.size()*DELAY_BETWEEN + 3000);
+            this.tiles = tiles;
+            this.pts = pts;
+            this.p = p;
+            num = tiles.size();
+            rows = tiles.size();
+            cols = 1;
+            if (rows > 5) {
+                rows = 5;
+                cols = 1 + num / 5;
+            }
+        }
+
+        @Override
+        protected void draw(AGraphics g, float position, float dt) {
+            scale = Math.min(boardDim / (float)(rows+2), boardDim / (float)(cols*2 + 2));
+            int numToShow = Utils.clamp((int)(getElapsedTime()/DELAY_BETWEEN), 1, num);
+            drawTiles(g, numToShow, 0);
+            redraw();
+        }
+
+        void drawTiles(AGraphics g, int numToShow, float positionFromCenter) {
+            g.pushMatrix();
+            g.translate(boardDim/2, boardDim/2);
+            g.scale(scale, scale);
+            final float startY = -0.5f * (rows-1);
+            MutableVector2D pos = new MutableVector2D(-0.5f*(cols-1), startY);
+
+            int n = 0;
+            for (int i=0; i<cols; i++) {
+                for (int ii=0; ii<rows; ii++) {
+                    if (n < numToShow) {
+                        Tile t = tiles.get(n++);
+                        g.pushMatrix();
+                        g.translate(pos.scaledBy(1.0f-positionFromCenter));
+                        g.translate(-1, -0.5f);
+                        g.scale(0.9f, 0.9f);
+                        Board.drawTile(g, t.pip1, t.pip2, 1.0f - positionFromCenter);
+                        g.translate(1, 0.5f);
+                        g.popMatrix();
+                        pos.addEq(0, 1);
+                    }
+                }
+                pos.setY(startY);
+                pos.addEq(2, 0);
+            }
+
+            g.popMatrix();
+        }
+
+        @Override
+        protected void onDone() {
+            remainingTileAnimation = new AAnimation<AGraphics>(1000) {
+                @Override
+                protected void draw(AGraphics g, float position, float dt) {
+                    drawTiles(g, num, position);
+                    redraw();
+                }
+
+                @Override
+                protected void onDone() {
+                    remainingTileAnimation = new AAnimation<AGraphics>(2000) {
+                        @Override
+                        protected void draw(AGraphics g, float position, float dt) {
+                            float hgtStart = boardDim/12;
+                            float hgtStop  = boardDim/6;
+
+                            g.setTextHeight(hgtStart + (hgtStop-hgtStart) * position);
+                            g.setColor(GColor.MAGENTA.withAlpha(1.0f-position));
+                            g.drawJustifiedString(boardDim/2, boardDim/2, Justify.CENTER, Justify.CENTER, "+"+pts);
+
+                            redraw();
+                        }
+                        @Override
+                        protected void onDone() {
+                            startPlayerTextAnim(p, pts);
+                            redraw();
+                        }
+
+                    }.start();
+                    redraw();
+                }
+            }.start();
+            redraw();
+        }
+    }
+
+    protected void onPlayerEndRoundPoints(final Player p, final int pts) {
+
+        // figure out how many pieces are left
+        List<Tile> tiles = new ArrayList<>();
+        for (int i=0; i<players.length; i++) {
+            tiles.addAll(players[i].getTiles());
+        }
+
+        remainingTileAnimation = new StackTilesAnim(tiles, p, pts).start();
+
+        redraw();
+        synchronized (gameLock) {
+            try {
+                gameLock.wait();
+            } catch (Exception e) {}
+        }
+        remainingTileAnimation = null;
+    }
+
+    private void startPlayerTextAnim(final Player p, final int pts) {
         p.textAnimation = new AAnimation<AGraphics>(2000) {
 
             @Override
             protected void draw(AGraphics g, float position, float dt) {
                 int curPts = p.score + Math.round(position * pts);
-                String alphaRed = GColor.RED.setAlpha(1.0f-position).toString();
+                String alphaRed = GColor.RED.withAlpha(1.0f-position).toString();
                 if (p.isPiecesVisible())
                     g.drawAnnotatedString(String.format("%d PTS %s+%d", curPts, alphaRed, pts), 0, 0);
                 else
@@ -390,6 +507,65 @@ public abstract class Dominos extends Reflector<Dominos> {
                 redraw();
             }
         }.start();
+    }
+
+    class GlowEndpointAnimation extends AAnimation<AGraphics> {
+
+        final int endpoint;
+        final Vector2D[] boundingRect = new Vector2D[2];
+
+        GlowEndpointAnimation(int ep) {
+            super(500, 1, true);
+            this.endpoint = ep;
+        }
+
+        @Override
+        protected void draw(AGraphics g, float position, float dt) {
+            g.pushMatrix();
+            g.clearMinMax();
+            board.transformToEndpointLastPiece(g, endpoint);
+            g.translate(-1, 0);
+            int pips = board.getOpenPips(endpoint);
+            g.translate(0.5f, 0.5f);
+            float scale = position/4 + 1;
+            g.scale(scale, scale);
+            g.translate(-0.5f, -0.5f);
+            g.setColor(GColor.BLACK);
+            g.drawFilledRoundedRect(0, 0, 1, 1, 0.25f);
+            g.setColor(GColor.WHITE.interpolateTo(GColor.YELLOW, position));
+            g.drawRoundedRect(0, 0, 1, 1, 2/*1+Math.round(position*3)*/, 0.25f);
+            Board.drawDie(g, 0, 0, pips);
+            boundingRect[0] = g.getMinBoundingRect();
+            boundingRect[1] = g.getMaxBoundingRect();
+            g.popMatrix();
+            redraw();
+        }
+    };
+
+    /**
+     * Called when player was earned pts > 0
+     * @param p
+     * @param pts
+     */
+    protected void onPlayerPoints(final Player p, final int pts) {
+
+        long delay = 0;
+        for (int i=0; i<4; i++) {
+            if (board.getOpenPips(i) > 0) {
+                board.animations.add(new GlowEndpointAnimation(i) {
+
+                    @Override
+                    public void onDone() {
+                        // start a anim to make the pips into a line
+                        if (p.textAnimation == null) {
+                            startPlayerTextAnim(p, pts);
+                        }
+                    }
+
+                }.start(delay));
+                delay += 300;
+            }
+        }
 
         redraw();
         synchronized (gameLock) {
@@ -398,6 +574,9 @@ public abstract class Dominos extends Reflector<Dominos> {
             } catch (Exception e) {}
         }
     }
+
+    @Omit
+    private float boardDim = 0;
 
     public synchronized final void draw(APGraphics g, int pickX, int pickY) {
         float w = g.getViewportWidth();
@@ -408,18 +587,24 @@ public abstract class Dominos extends Reflector<Dominos> {
         // choose square for board and remainder to be used to display players stats
 
         final boolean portrait = h > w;
-        final float boardDim = portrait ? w : h;
+        boardDim = portrait ? w : h;
 
         g.clearScreen(GColor.GREEN);
         g.setColor(GColor.GREEN.darkened(0.2f));
         g.drawFilledRectf(0, 0, boardDim, boardDim);
-        Tile dragging = null;
-        if (this.dragging && selectedPlayerTile >= 0) {
-            dragging = getUser().getTiles().get(selectedPlayerTile);
+
+        boolean drawDragged = false;
+        if (remainingTileAnimation != null) {
+            remainingTileAnimation.update(g);
+        } else {
+            Tile dragging = null;
+            if (this.dragging && selectedPlayerTile >= 0) {
+                dragging = getUser().getTiles().get(selectedPlayerTile);
+            }
+            drawDragged = true;
+            if (board.draw(g, boardDim, boardDim, pickX, pickY, dragging) >= 0)
+                drawDragged = false;
         }
-        boolean drawDragged = true;
-        if (board.draw(g, boardDim, boardDim, pickX, pickY, dragging) >= 0)
-            drawDragged = false;
 
         g.pushMatrix();
         if (portrait) {
