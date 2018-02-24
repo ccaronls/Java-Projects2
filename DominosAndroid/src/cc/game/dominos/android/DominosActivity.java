@@ -1,4 +1,4 @@
-package cc.android.game.robots;
+package cc.game.dominos.android;
 
 import android.os.Bundle;
 import android.os.Environment;
