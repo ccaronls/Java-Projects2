@@ -22,29 +22,15 @@
         android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen" >
 
         <activity
-            android:name=".DominosActivity"
-            android:configChanges="orientation|keyboardHidden|screenSize"
-            android:icon="@drawable/ic_launcher1"
-            android:label="Dominos">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-
-
-        <activity
             android:name=".ProbotActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:screenOrientation="sensorLandscape"
             android:icon="@drawable/ic_launcher1"
             android:label="Probot">
-            <!--
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-            -->
         </activity>
         <activity
             android:name=".RobotnixActivity"

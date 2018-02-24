@@ -394,7 +394,7 @@ public abstract class Dominos extends Reflector<Dominos> {
         @Override
         protected void draw(AGraphics g, float position, float dt) {
             scale = Math.min(boardDim / (float)(rows+2), boardDim / (float)(cols*2 + 2));
-            int numToShow = Utils.clamp((int)(getElapsedTime()/DELAY_BETWEEN), 1, num);
+            int numToShow = Utils.clamp((int)(getElapsedTime()/DELAY_BETWEEN), 0, num);
             drawTiles(g, numToShow, 0);
             redraw();
         }
