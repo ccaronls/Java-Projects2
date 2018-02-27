@@ -21,7 +21,7 @@ import cc.lib.math.Vector2D;
  *
  * Base player type to interact with GUI
  */
-public abstract class UIPlayer extends PlayerBot {
+public class UIPlayer extends PlayerBot {
 
 	static {
 		addField(UIPlayer.class, "color");
@@ -39,18 +39,21 @@ public abstract class UIPlayer extends PlayerBot {
 	
     private boolean animationEnabled = true;
 	
-    public abstract boolean isInfoVisible();
+    public boolean isInfoVisible() {
+        return false;//UISOC.getInstance().getProps().getBooleanProperty(GUI.PROP_AI_TUNING_ENABLED, false);
+    }
 
 	private long getAnimTime() {
-		return 1500;//return GUI.instance.getProps().getIntProperty("anim.ms", 1500);
+		return UISOC.getInstance().getProps().getIntProperty("anim.ms", 1500);
 	}
     
-    void startStructureAnimation(UIBoard b, final Vertex vertex, final VertexType type) {
+    void startStructureAnimation(final Vertex vertex, final VertexType type) {
         if (!animationEnabled)
             return;
         if (vertex == null)
             return;
-        b.addAnimation(new UIBlockingAnimation(getAnimTime()) {
+        UIBoardComponent board = UISOC.getInstance().getUIBoard();
+        board.addAnimation(new UIAnimation(getAnimTime()) {
 
             @Override
             public void draw(AGraphics g, float position, float dt) {
@@ -58,40 +61,41 @@ public abstract class UIPlayer extends PlayerBot {
                 g.setColor(getColor());
                 g.pushMatrix();
                 g.translate(vertex);
-                g.translate(0, (1-position)*b.getStructureRadius()*5);
+                g.translate(0, (1-position)*board.getStructureRadius()*5);
                 g.scale(1, position);
                 switch (type) {
                 	case SETTLEMENT:
-                		b.drawSettlement(g, Vector2D.ZERO, getPlayerNum(), false);
+                		board.drawSettlement(g, Vector2D.ZERO, getPlayerNum(), false);
                 		break;
                 	case CITY:
-                		b.drawCity(g, Vector2D.ZERO, getPlayerNum(), false);
+                		board.drawCity(g, Vector2D.ZERO, getPlayerNum(), false);
                 		break;
                 	case WALLED_CITY:
-                		b.drawWalledCity(g, Vector2D.ZERO, getPlayerNum(), false);
+                		board.drawWalledCity(g, Vector2D.ZERO, getPlayerNum(), false);
                 		break;
                 	case METROPOLIS_POLITICS:
-                        b.drawMetropolisPolitics(g, Vector2D.ZERO, getPlayerNum(), false);
+                        board.drawMetropolisPolitics(g, Vector2D.ZERO, getPlayerNum(), false);
                         break;
                 	case METROPOLIS_SCIENCE:
-                        b.drawMetropolisScience(g, Vector2D.ZERO, getPlayerNum(), false);
+                        board.drawMetropolisScience(g, Vector2D.ZERO, getPlayerNum(), false);
                         break;
                 	case METROPOLIS_TRADE:
-                        b.drawMetropolisTrade(g, Vector2D.ZERO, getPlayerNum(), false);
+                        board.drawMetropolisTrade(g, Vector2D.ZERO, getPlayerNum(), false);
                         break;
                 }
                 g.popMatrix();
             }
-        });
+        }, true);
         
     }    
 
-    void startMoveShipAnimation(final UIBoard b, final Route source, final Route target, final SOC soc) {
+    void startMoveShipAnimation(final Route source, final Route target, final SOC soc) {
     	if (!animationEnabled)
     		return;
     	if (source == null || target == null || soc == null)
     		return;
-        b.addAnimation(new UIBlockingAnimation(getAnimTime()) {
+    	final UIBoardComponent comp = ((UISOC)soc).getUIBoard();
+        comp.addAnimation(new UIAnimation(getAnimTime()) {
 			
 			@Override
 			public void draw(AGraphics g, float position, float dt) {
@@ -99,28 +103,29 @@ public abstract class UIPlayer extends PlayerBot {
                 g.pushMatrix();
                 //render.translate(mp);
                 //render.scale(1, position);
-                Vector2D startV = b.getRouteMidpoint(source);
-                Vector2D endV   = b.getRouteMidpoint(target);
-                Vector2D curV   = startV.add(endV.sub(startV).scale(position));
+                Vector2D startV = comp.getRouteMidpoint(source);
+                Vector2D endV   = comp.getRouteMidpoint(target);
+                Vector2D curV   = startV.add(endV.sub(startV).scaledBy(position));
                 
-                float startAng  = b.getEdgeAngle(source);
-                float endAng    = b.getEdgeAngle(target);
+                float startAng  = comp.getEdgeAngle(source);
+                float endAng    = comp.getEdgeAngle(target);
                 float curAng    = startAng + (endAng - startAng) * position;
                 
-                b.drawShip(g, curV, Math.round(curAng), false);
+                comp.drawShip(g, curV, Math.round(curAng), false);
                 g.popMatrix();
 			}
-		});
+		}, true);
     }
     
-    void startBuildShipAnimation(UIBoard b, final Route edge, final SOC soc) {
+    void startBuildShipAnimation(final Route edge, final SOC soc) {
     	if (!animationEnabled)
     		return;
     	
     	if (edge == null || soc == null)
     		return;
-    	
-        b.addAnimation(new UIBlockingAnimation(getAnimTime()) {
+
+        final UIBoardComponent comp = ((UISOC)soc).getUIBoard();
+        comp.addAnimation(new UIAnimation(getAnimTime()) {
 			
 			@Override
 			public void draw(AGraphics g, float position, float dt) {
@@ -128,19 +133,20 @@ public abstract class UIPlayer extends PlayerBot {
                 g.pushMatrix();
                 //render.translate(mp);
                 g.scale(1, position);
-                b.drawShip(g, edge, false);
+                comp.drawShip(g, edge, false);
                 g.popMatrix();
 			}
-		});
+		}, true);
     }
     
-    void startUpgradeShipAnimation(final UIBoard b, final Route ship) {
+    void startUpgradeShipAnimation(final Route ship) {
     	if (!animationEnabled)
     		return;
     	
     	if (ship == null)
     		return;
-    	b.addAnimation(new UIBlockingAnimation(2000) {
+    	final UIBoardComponent comp = UISOC.getInstance().getUIBoard();
+    	comp.addAnimation(new UIAnimation(2000) {
 			
 			@Override
 			public void draw(AGraphics g, float position, float dt) {
@@ -148,26 +154,27 @@ public abstract class UIPlayer extends PlayerBot {
                 g.pushMatrix();
                 //render.translate(mp);
                 g.scale(1, 1.0f - position);
-                b.drawShip(g, ship, false);
+                comp.drawShip(g, ship, false);
                 g.popMatrix();
 			
                 g.pushMatrix();
                 //render.translate(mp);
                 g.scale(1, position);
-                b.drawWarShip(g, ship, false);
+                comp.drawWarShip(g, ship, false);
                 g.popMatrix();
 			}
-		});
+		}, true);
     }
     
-    void startRoadAnimation(final UIBoard b, final Route edge, final SOC soc) {
+    void startRoadAnimation(final Route edge, final SOC soc) {
         if (!animationEnabled)
             return;
 
         if (edge == null || soc == null)
             return;
+        final UIBoardComponent comp = UISOC.getInstance().getUIBoard();
         if (edge != null) {
-            b.addAnimation(new UIBlockingAnimation(getAnimTime()) {
+            comp.addAnimation(new UIAnimation(getAnimTime()) {
 
                 final Vertex A = soc.getBoard().getVertex(edge.getFrom());
                 final Vertex B = soc.getBoard().getVertex(edge.getTo());
@@ -186,17 +193,18 @@ public abstract class UIPlayer extends PlayerBot {
                     g.vertex(from);
                     g.vertex(from.getX() + dx, from.getY() + dy);
                     g.setColor(getColor());
-                    g.drawLines(b.roadLineThickness);
+                    g.drawLines(comp.roadLineThickness);
                 }
-            });
+            }, true);
         }
     }
     
-    void startKnightAnimation(final UIBoard b, final Vertex vertex) {
+    void startKnightAnimation(final Vertex vertex) {
     	if (!animationEnabled || vertex == null)
     		return;
 
-    	b.addAnimation(new UIBlockingAnimation(getAnimTime()) {
+        final UIBoardComponent comp = UISOC.getInstance().getUIBoard();
+    	comp.addAnimation(new UIAnimation(getAnimTime()) {
 			
 			@Override
 			public void draw(AGraphics g, float position, float dt) {
@@ -204,56 +212,58 @@ public abstract class UIPlayer extends PlayerBot {
                 g.pushMatrix();
                 g.translate(vertex.getX(), position * (vertex.getY()));
                 g.scale((2f-position) * (float)Math.cos((1-position)*20), (2f-position));
-                b.drawKnight(g, Vector2D.ZERO, getPlayerNum(), 1, false, false);
+                comp.drawKnight(g, Vector2D.ZERO
+                		, getPlayerNum(), 1, false, false);
                 g.popMatrix();
 			}
-		});
+		}, true);
     }
     
-    void startMoveKnightAnimation(UIBoard b, final Vertex fromVertex, final Vertex toVertex) {
+    void startMoveKnightAnimation(final Vertex fromVertex, final Vertex toVertex) {
     	if (!animationEnabled || fromVertex == null || toVertex == null)
     		return;
 
-    	b.addAnimation(new UIBlockingAnimation(getAnimTime()) {
+        final UIBoardComponent comp = UISOC.getInstance().getUIBoard();
+    	comp.addAnimation(new UIAnimation(getAnimTime()) {
 			
 			@Override
 			public void draw(AGraphics g, float position, float dt) {
                 g.setColor(getColor());
                 g.pushMatrix();
-                IVector2D pos = Vector2D.newTemp(fromVertex).add(Vector2D.newTemp(toVertex).sub(fromVertex).scale(position));
+                IVector2D pos = Vector2D.newTemp(fromVertex).add(Vector2D.newTemp(toVertex).sub(fromVertex).scaledBy(position));
                 g.translate(pos);
-                b.drawKnight(g, Vector2D.ZERO, getPlayerNum(), fromVertex.getType().getKnightLevel(), fromVertex.getType().isKnightActive(), false);
+                comp.drawKnight(g, Vector2D.ZERO, getPlayerNum(), fromVertex.getType().getKnightLevel(), fromVertex.getType().isKnightActive(), false);
                 g.popMatrix();
 			}
-		});
+		}, true);
     }
 
 	@Override
 	public Vertex chooseVertex(SOC soc, Collection<Integer> vertexIndices, VertexChoice mode, Vertex knightToMove) {
 		Vertex v = super.chooseVertex(soc, vertexIndices, mode, knightToMove);
-		doVertexAnimation((UIBoard)soc.getBoard(), mode, v, knightToMove);
+		doVertexAnimation(soc, mode, v, knightToMove);
 		return v;
 	}
 	
-	protected final void doVertexAnimation(UIBoard b, VertexChoice mode, Vertex v, Vertex v2) {
+	protected final void doVertexAnimation(SOC soc, VertexChoice mode, Vertex v, Vertex v2) {
 		if (v == null)
 			return;
 		switch (mode) {
 			case CITY:
-				startStructureAnimation(b, v, VertexType.CITY);
+				startStructureAnimation(v, VertexType.CITY);
 				break;
 			case CITY_WALL:
-				startStructureAnimation(b, v, VertexType.WALLED_CITY);
+				startStructureAnimation(v, VertexType.WALLED_CITY);
 				break;
 			case KNIGHT_DESERTER:
 				break;
 			case KNIGHT_DISPLACED:
 			case KNIGHT_MOVE_POSITION:
 				if (v2 != null)
-					startMoveKnightAnimation(b, v2, v);
+					startMoveKnightAnimation(v2, v);
 				break;
 			case NEW_KNIGHT:
-				startKnightAnimation(b, v);
+				startKnightAnimation(v);
 				break;
 			case KNIGHT_TO_ACTIVATE:
 				break;
@@ -264,16 +274,16 @@ public abstract class UIPlayer extends PlayerBot {
 			case OPPONENT_KNIGHT_TO_DISPLACE:
 				break;
 			case POLITICS_METROPOLIS:
-				startStructureAnimation(b, v, VertexType.METROPOLIS_POLITICS);
+				startStructureAnimation(v, VertexType.METROPOLIS_POLITICS);
 				break;
 			case SCIENCE_METROPOLIS:
-				startStructureAnimation(b, v, VertexType.METROPOLIS_SCIENCE);
+				startStructureAnimation(v, VertexType.METROPOLIS_SCIENCE);
 				break;
 			case SETTLEMENT:
-				startStructureAnimation(b, v, VertexType.SETTLEMENT);
+				startStructureAnimation(v, VertexType.SETTLEMENT);
 				break;
 			case TRADE_METROPOLIS:
-				startStructureAnimation(b, v, VertexType.METROPOLIS_TRADE);
+				startStructureAnimation(v, VertexType.METROPOLIS_TRADE);
 				break;
 			case PIRATE_FORTRESS:
 				break;
@@ -292,19 +302,18 @@ public abstract class UIPlayer extends PlayerBot {
 	}
 	
 	protected final void doRouteAnimation(SOC soc, RouteChoice mode, Route route) {
-	    UIBoard b = (UIBoard)soc.getBoard();
 		switch (mode)
 		{
 			case ROAD:
-				startRoadAnimation(b, route, soc);
+				startRoadAnimation(route, soc);
 				break;
 			case ROUTE_DIPLOMAT:
 				break;
 			case SHIP:
 				if (moveShipSource != null) {
-					startMoveShipAnimation(b, moveShipSource, route, soc);
+					startMoveShipAnimation(moveShipSource, route, soc);
 				} else {
-					startBuildShipAnimation(b, route, soc);
+					startBuildShipAnimation(route, soc);
 				}
 				moveShipSource = null;
 				break;
@@ -312,7 +321,7 @@ public abstract class UIPlayer extends PlayerBot {
 				moveShipSource = route;
 				break;
 			case UPGRADE_SHIP:
-				startUpgradeShipAnimation(b, route);
+				startUpgradeShipAnimation(route);
 				break;
 			case OPPONENT_ROAD_TO_ATTACK:
 			case OPPONENT_SHIP_TO_ATTACK:
@@ -321,11 +330,9 @@ public abstract class UIPlayer extends PlayerBot {
 	}
 
 	@Override
-	protected abstract void onBoardChanged();
-
-	/*{
-		BoardComponent bc = GUI.instance.getBoardComponent();
-		bc.repaint();
+	protected void onBoardChanged() {
+        final UIBoardComponent bc = UISOC.getInstance().getUIBoard();
+		bc.redraw();
         try {
             synchronized (bc) {
                 bc.wait(100);
@@ -334,13 +341,12 @@ public abstract class UIPlayer extends PlayerBot {
         synchronized (this) {
             notify(); // notify anyone waiting on this (see spinner)
         }		
-	}*/
+	}
 
 	@Override
-	protected abstract BotNode onOptimalPath(BotNode optimal, List<BotNode> leafs);
-
-	/*{
-		return GUI.instance.chooseOptimalPath(optimal, leafs);
-	}*/
+	protected BotNode onOptimalPath(BotNode optimal, List<BotNode> leafs) {
+//		return UISOC.getInstance().chooseOptimalPath(optimal, leafs);
+        return null;
+	}
 	
 }

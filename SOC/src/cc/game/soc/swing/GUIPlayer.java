@@ -7,7 +7,6 @@ import java.util.*;
 import cc.game.soc.core.*;
 import cc.lib.game.IVector2D;
 import cc.lib.game.Renderer;
-import cc.lib.math.CMath;
 import cc.lib.math.Vector2D;
 import cc.lib.swing.AWTUtils;
 
@@ -48,7 +47,7 @@ public class GUIPlayer extends PlayerBot {
             return;
         if (vertex == null)
             return;
-        GUI.instance.getBoardComponent().addAnimation(new BlockingAnimation(getAnimTime()) {
+        GUI.instance.getBoardComponent().addAnimation(new GAnimation(getAnimTime()) {
 
             @Override
             public void draw(Graphics g, float position, float dt) {
@@ -81,7 +80,7 @@ public class GUIPlayer extends PlayerBot {
                 }
                 render.popMatrix();
             }
-        });
+        }, true);
         
     }    
 
@@ -91,7 +90,7 @@ public class GUIPlayer extends PlayerBot {
     	if (source == null || target == null || soc == null)
     		return;
     	final BoardComponent comp = GUI.instance.getBoardComponent();
-        comp.addAnimation(new BlockingAnimation(getAnimTime()) {
+        comp.addAnimation(new GAnimation(getAnimTime()) {
 			
 			@Override
 			public void draw(Graphics g, float position, float dt) {
@@ -102,7 +101,7 @@ public class GUIPlayer extends PlayerBot {
                 //render.scale(1, position);
                 Vector2D startV = comp.getBoard().getRouteMidpoint(source);
                 Vector2D endV   = comp.getBoard().getRouteMidpoint(target);
-                Vector2D curV   = startV.add(endV.sub(startV).scale(position));
+                Vector2D curV   = startV.add(endV.sub(startV).scaledBy(position));
                 
                 float startAng  = comp.getEdgeAngle(source);
                 float endAng    = comp.getEdgeAngle(target);
@@ -111,7 +110,7 @@ public class GUIPlayer extends PlayerBot {
                 GUI.instance.getBoardComponent().drawShip(g, curV, Math.round(curAng), false);
                 render.popMatrix();				
 			}
-		});
+		}, true);
     }
     
     void startBuildShipAnimation(final Route edge, final SOC soc) {
@@ -122,7 +121,7 @@ public class GUIPlayer extends PlayerBot {
     		return;
     	
     	final BoardComponent comp = GUI.instance.getBoardComponent();
-        comp.addAnimation(new BlockingAnimation(getAnimTime()) {
+        comp.addAnimation(new GAnimation(getAnimTime()) {
 			
 			@Override
 			public void draw(Graphics g, float position, float dt) {
@@ -134,7 +133,7 @@ public class GUIPlayer extends PlayerBot {
                 GUI.instance.getBoardComponent().drawShip(g, edge, false);
                 render.popMatrix();				
 			}
-		});
+		}, true);
     }
     
     void startUpgradeShipAnimation(final Route ship) {
@@ -144,7 +143,7 @@ public class GUIPlayer extends PlayerBot {
     	if (ship == null)
     		return;
     	final BoardComponent comp = GUI.instance.getBoardComponent();
-    	comp.addAnimation(new BlockingAnimation(2000) {
+    	comp.addAnimation(new GAnimation(2000) {
 			
 			@Override
 			public void draw(Graphics g, float position, float dt) {
@@ -162,7 +161,7 @@ public class GUIPlayer extends PlayerBot {
                 GUI.instance.getBoardComponent().drawWarShip(g, ship, false);
                 render.popMatrix();
 			}
-		});
+		}, true);
     }
     
     void startRoadAnimation(final Route edge, final SOC soc) {
@@ -173,7 +172,7 @@ public class GUIPlayer extends PlayerBot {
             return;
         final BoardComponent comp = GUI.instance.getBoardComponent();
         if (edge != null) {
-            comp.addAnimation(new BlockingAnimation(getAnimTime()) {
+            comp.addAnimation(new GAnimation(getAnimTime()) {
 
                 final Vertex A = soc.getBoard().getVertex(edge.getFrom());
                 final Vertex B = soc.getBoard().getVertex(edge.getTo());
@@ -194,7 +193,7 @@ public class GUIPlayer extends PlayerBot {
                     g.setColor(getColor());
                     comp.render.drawLines(g, comp.roadLineThickness);
                 }
-            });
+            }, true);
         }
     }
     
@@ -202,7 +201,7 @@ public class GUIPlayer extends PlayerBot {
     	if (!animationEnabled || vertex == null)
     		return;
 
-    	GUI.instance.getBoardComponent().addAnimation(new BlockingAnimation(getAnimTime()) {
+    	GUI.instance.getBoardComponent().addAnimation(new GAnimation(getAnimTime()) {
 			
 			@Override
 			public void draw(Graphics g, float position, float dt) {
@@ -215,26 +214,26 @@ public class GUIPlayer extends PlayerBot {
                 		, getPlayerNum(), 1, false, false);
                 render.popMatrix();
 			}
-		});
+		}, true);
     }
     
     void startMoveKnightAnimation(final Vertex fromVertex, final Vertex toVertex) {
     	if (!animationEnabled || fromVertex == null || toVertex == null)
     		return;
 
-    	GUI.instance.getBoardComponent().addAnimation(new BlockingAnimation(getAnimTime()) {
+    	GUI.instance.getBoardComponent().addAnimation(new GAnimation(getAnimTime()) {
 			
 			@Override
 			public void draw(Graphics g, float position, float dt) {
                 g.setColor(getColor());
                 Renderer render = GUI.instance.getBoardComponent().render;
                 render.pushMatrix();
-                IVector2D pos = Vector2D.newTemp(fromVertex).add(Vector2D.newTemp(toVertex).sub(fromVertex).scale(position));
+                IVector2D pos = Vector2D.newTemp(fromVertex).add(Vector2D.newTemp(toVertex).sub(fromVertex).scaledBy(position));
                 render.translate(pos);
                 GUI.instance.getBoardComponent().drawKnight(g, Vector2D.ZERO, getPlayerNum(), fromVertex.getType().getKnightLevel(), fromVertex.getType().isKnightActive(), false);
                 render.popMatrix();
 			}
-		});
+		}, true);
     }
 
 	@Override

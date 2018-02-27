@@ -17,6 +17,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Vector;
 
 import javax.swing.ImageIcon;
@@ -70,8 +72,29 @@ public class ImageMgr {
 			} catch (Exception e) {}
 		}
 	}
-	
-	/* */
+
+    private Image loadImageFromSearchPaths(String name) {
+	    for (String path : paths) {
+            InputStream in = null;
+            try {
+                in = new FileInputStream(new File(path, name));
+                byte[] buffer = new byte[in.available()];
+                in.read(buffer);
+                return new ImageIcon(buffer).getImage();
+            } catch (Exception e) {
+                Utils.println(e.getMessage());
+            } finally {
+                try {
+                    if (in != null)
+                        in.close();
+                } catch (Exception e) {
+                }
+            }
+        }
+        return null;
+    }
+
+    /* */
 	private Image loadImageFromResource(String name) {
 		InputStream in = null;
 		try {
@@ -101,7 +124,13 @@ public class ImageMgr {
 		}
 		return null;
 	}
-	
+
+	private final List<String> paths = new ArrayList<>();
+
+    public void addSearchPath(String s) {
+        paths.add(s);
+    }
+
 	/**
 	 * 
 	 * @param name
@@ -117,9 +146,11 @@ public class ImageMgr {
 		} else if ((image = this.loadImageFromResource(fileOrResourceName))!=null) {
 			Utils.print("From Resource...");
 		} else if ((image = this.loadImageFromApplet(fileOrResourceName))!=null) {
-			Utils.print("From Applet...");
+            Utils.print("From Applet...");
+        } else if ((image = this.loadImageFromSearchPaths(fileOrResourceName))!=null) {
+		    Utils.print("From search paths...");
 		} else {
-			throw new RuntimeException("Cannot load image");
+			throw new RuntimeException("Cannot load image '" + fileOrResourceName + "'");
 		}		
 		
 		if (transparent != null) {
@@ -452,5 +483,6 @@ public class ImageMgr {
 		}
 		trackerId++;
 	}
+
 
 }

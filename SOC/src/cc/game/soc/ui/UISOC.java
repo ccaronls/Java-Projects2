@@ -1,6 +1,5 @@
 package cc.game.soc.ui;
 
-import java.awt.Color;
 import java.util.Collection;
 import java.util.List;
 
@@ -23,8 +22,20 @@ import cc.lib.math.MutableVector2D;
 
 public abstract class UISOC extends SOC {
 
-    public UIBoard getUIBoard() {
-        return (UIBoard)getBoard();
+    private static UISOC instance = null;
+
+    protected UISOC() {
+        if (instance != null)
+            throw new RuntimeException();
+        instance = this;
+    }
+
+    public static UISOC getInstance() {
+        return instance;
+    }
+
+    public UIBoardComponent getUIBoard() {
+        return (UIBoardComponent)getBoard();
     }
 
     Object returnValue = null;
@@ -35,6 +46,12 @@ public abstract class UISOC extends SOC {
         synchronized (waitObj) {
             waitObj.notify();
         }
+    }
+
+    private UIProperties properties = new UIProperties();
+
+    public final UIProperties getProps() {
+        return properties;
     }
 
     public abstract void clearMenu();
@@ -49,16 +66,16 @@ public abstract class UISOC extends SOC {
 
     public Vertex chooseVertex(final Collection<Integer> vertexIndices, final int playerNum, final Player.VertexChoice choice) {
         clearMenu();
-        getUIBoard().setPickHandler(new UIBoard.PickHandler() {
+        getUIBoard().setPickHandler(new UIBoardComponent.PickHandler() {
 
             @Override
-            public void onPick(UIBoard b, int pickedValue) {
+            public void onPick(UIBoardComponent b, int pickedValue) {
                 b.setPickHandler(null);
                 setReturnValue(getBoard().getVertex(pickedValue));
             }
 
             @Override
-            public void onHighlighted(UIBoard b, APGraphics g, int highlightedIndex) {
+            public void onHighlighted(UIBoardComponent b, APGraphics g, int highlightedIndex) {
                 Vertex v = getBoard().getVertex(highlightedIndex);
                 g.setColor(getPlayerColor(getCurPlayerNum()));
                 switch (choice) {
@@ -111,9 +128,9 @@ public abstract class UISOC extends SOC {
             }
 
             @Override
-            public void onDrawPickable(UIBoard b, APGraphics g, int index) {
+            public void onDrawPickable(UIBoardComponent b, APGraphics g, int index) {
                 Vertex v = getBoard().getVertex(index);
-                GColor color = getPlayerColor(getCurPlayerNum()).setAlpha(120);
+                GColor color = getPlayerColor(getCurPlayerNum()).withAlpha(120);
                 g.setColor(color);
                 switch (choice) {
                     case SETTLEMENT:
@@ -160,24 +177,24 @@ public abstract class UISOC extends SOC {
                         b.drawPirateFortress(g, v, false);
                         break;
                     case OPPONENT_STRUCTURE_TO_ATTACK:
-                        g.setColor(getPlayerColor(v.getPlayer()).setAlpha(120));
+                        g.setColor(getPlayerColor(v.getPlayer()).withAlpha(120));
                         b.drawVertex(g, v, v.getType(), 0, false);
                         break;
                 }
             }
 
             @Override
-            public void onDrawOverlay(UIBoard b, APGraphics g) {
+            public void onDrawOverlay(UIBoardComponent b, APGraphics g) {
             }
 
             @Override
-            public boolean isPickableIndex(UIBoard b, int index) {
+            public boolean isPickableIndex(UIBoardComponent b, int index) {
                 return vertexIndices.contains(index);
             }
 
             @Override
-            public UIBoard.PickMode getPickMode() {
-                return UIBoard.PickMode.PM_VERTEX;
+            public UIBoardComponent.PickMode getPickMode() {
+                return UIBoardComponent.PickMode.PM_VERTEX;
             }
         });
         completeMenu();
@@ -186,16 +203,16 @@ public abstract class UISOC extends SOC {
 
     public Route chooseRoute(final Collection<Integer> edges, final Player.RouteChoice choice) {
         clearMenu();
-        getUIBoard().setPickHandler(new UIBoard.PickHandler() {
+        getUIBoard().setPickHandler(new UIBoardComponent.PickHandler() {
 
             @Override
-            public void onPick(UIBoard b, int pickedValue) {
+            public void onPick(UIBoardComponent b, int pickedValue) {
                 b.setPickHandler(null);
                 setReturnValue(getBoard().getRoute(pickedValue));
             }
 
             @Override
-            public void onHighlighted(UIBoard b, APGraphics g, int highlightedIndex) {
+            public void onHighlighted(UIBoardComponent b, APGraphics g, int highlightedIndex) {
                 Route route = getBoard().getRoute(highlightedIndex);
                 g.setColor(getPlayerColor(getCurPlayerNum()));
                 switch (choice) {
@@ -220,12 +237,12 @@ public abstract class UISOC extends SOC {
             }
 
             @Override
-            public void onDrawPickable(UIBoard b, APGraphics g, int index) {
+            public void onDrawPickable(UIBoardComponent b, APGraphics g, int index) {
                 Route route = getBoard().getRoute(index);
-                g.setColor(getPlayerColor(getCurPlayerNum()).setAlpha(120));
+                g.setColor(getPlayerColor(getCurPlayerNum()).withAlpha(120));
                 switch (choice) {
                     case OPPONENT_ROAD_TO_ATTACK:
-                        g.setColor(getPlayerColor(route.getPlayer()).setAlpha(120));
+                        g.setColor(getPlayerColor(route.getPlayer()).withAlpha(120));
                         b.drawEdge(g, route, route.getType(), 0, false);
                         break;
                     case ROAD:
@@ -245,19 +262,19 @@ public abstract class UISOC extends SOC {
             }
 
             @Override
-            public void onDrawOverlay(UIBoard b, APGraphics g) {
+            public void onDrawOverlay(UIBoardComponent b, APGraphics g) {
                 // TODO Auto-generated method stub
 
             }
 
             @Override
-            public boolean isPickableIndex(UIBoard b, int index) {
+            public boolean isPickableIndex(UIBoardComponent b, int index) {
                 return edges.contains(index);
             }
 
             @Override
-            public UIBoard.PickMode getPickMode() {
-                return UIBoard.PickMode.PM_EDGE;
+            public UIBoardComponent.PickMode getPickMode() {
+                return UIBoardComponent.PickMode.PM_EDGE;
             }
         });
         completeMenu();
@@ -271,10 +288,10 @@ public abstract class UISOC extends SOC {
         final int merchantTilePlayer = getBoard().getMerchantPlayer();
         getBoard().setRobber(-1);
         getBoard().setMerchant(-1, 0);
-        getUIBoard().setPickHandler(new UIBoard.PickHandler() {
+        getUIBoard().setPickHandler(new UIBoardComponent.PickHandler() {
 
             @Override
-            public void onPick(UIBoard b, int pickedValue) {
+            public void onPick(UIBoardComponent b, int pickedValue) {
                 b.setPickHandler(null);
                 b.setRobberTile(robberTile);
                 b.setMerchant(merchantTileIndex, merchantTilePlayer);
@@ -282,7 +299,7 @@ public abstract class UISOC extends SOC {
             }
 
             @Override
-            public void onHighlighted(UIBoard b, APGraphics g, int highlightedIndex) {
+            public void onHighlighted(UIBoardComponent b, APGraphics g, int highlightedIndex) {
                 Tile t = b.getTile(highlightedIndex);
                 switch (choice) {
                     case INVENTOR:
@@ -303,31 +320,31 @@ public abstract class UISOC extends SOC {
             }
 
             @Override
-            public void onDrawPickable(UIBoard b, APGraphics g, int index) {
+            public void onDrawPickable(UIBoardComponent b, APGraphics g, int index) {
                 Tile t = b.getTile(index);
                 //g.setColor(Color.RED);
                 //bc.drawTileOutline(g, t, 1)
                 MutableVector2D v = g.transform(t);
                 g.setColor(GColor.RED);
-                g.drawFilledCircle(v.Xi(), v.Yi(), UIBoard.TILE_CELL_NUM_RADIUS+10);
+                g.drawFilledCircle(v.Xi(), v.Yi(), UIBoardComponent.TILE_CELL_NUM_RADIUS+10);
                 if (t.getDieNum() > 0)
-                    b.drawCellProductionValue(g, v.Xi(), v.Yi(), t.getDieNum(), UIBoard.TILE_CELL_NUM_RADIUS);//drawTileOutline(g, cell, borderThickness);
+                    b.drawCellProductionValue(g, v.Xi(), v.Yi(), t.getDieNum(), UIBoardComponent.TILE_CELL_NUM_RADIUS);//drawTileOutline(g, cell, borderThickness);
             }
 
             @Override
-            public void onDrawOverlay(UIBoard b, APGraphics g) {
+            public void onDrawOverlay(UIBoardComponent b, APGraphics g) {
                 // TODO Auto-generated method stub
 
             }
 
             @Override
-            public boolean isPickableIndex(UIBoard b, int index) {
+            public boolean isPickableIndex(UIBoardComponent b, int index) {
                 return tiles.contains(index);
             }
 
             @Override
-            public UIBoard.PickMode getPickMode() {
-                return UIBoard.PickMode.PM_TILE;
+            public UIBoardComponent.PickMode getPickMode() {
+                return UIBoardComponent.PickMode.PM_TILE;
             }
         });
         completeMenu();

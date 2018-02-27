@@ -114,7 +114,7 @@ public class SOCGUI extends SOC {
 
         final int animTime = GUI.instance.getProps().getIntProperty("anim.card.tm", 3000);
         
-        gui.getBoardComponent().addAnimation(new AAnimation<Graphics>(animTime, 0) {
+        gui.getBoardComponent().addAnimation(new GAnimation(animTime) {
             public void draw(Graphics g, float position, float dt) {
                 drawCard(((GUIPlayer)player).getColor(), g, text, x, y, cardWidth, cardHeight);
             }
@@ -133,11 +133,8 @@ public class SOCGUI extends SOC {
                     cardsList.add(this);
                 }
             }
-            
-            
-            
-            
-        });
+
+        }, false);
     }
     
     private void drawCard(Color color, Graphics g, String txt, int x, int y, int cw, int ch) {
@@ -174,7 +171,11 @@ public class SOCGUI extends SOC {
     
     @Override
 	protected void onProgressCardDistributed(Player player, ProgressCardType type) {
-    	addCardAnimation(player, type.name());
+        String txt = type.name();
+        if (!((GUIPlayer)player).isInfoVisible()) {
+            txt = "Progress";
+        }
+    	addCardAnimation(player, txt);
 	}
 
 	@Override
@@ -329,14 +330,14 @@ public class SOCGUI extends SOC {
 		Utils.computeBezierCurvePoints(pts1, 30, tile1, mid1.sub(dv), mid0.sub(dv), tile0);
 		pts1[30]=pts1[29];
 		final Renderer render = gui.getBoardComponent().render;
-		gui.getBoardComponent().addAnimation(new AAnimation<Graphics>(3000, 0) {
+		gui.getBoardComponent().addAnimation(new GAnimation(3000) {
 			
 			void drawChit(Graphics g, Vector2D [] pts, float position, int num) {
 				int index0 = (int)(position*28);
 				int index1 = index0+1;
 				float delta = ((position*28)-index0);
 				assert(position >= 0 && position <= 1);
-				Vector2D pos = pts[index0].scale(1.0f-delta).add(pts[index1].scale(delta));
+				Vector2D pos = pts[index0].scaledBy(1.0f-delta).add(pts[index1].scaledBy(delta));
 				Vector2D t = render.transformXY(pos);
 				int fh = AWTUtils.getFontHeight(g);
 				int x = Math.round(t.getX() - fh);
@@ -351,26 +352,12 @@ public class SOCGUI extends SOC {
 			}
 
 			@Override
-            public void onDone() {
-				synchronized (SOCGUI.this) {
-					SOCGUI.this.notify();
-				}
-			}
-
-			@Override
             public void onStarted() {
 				tile0.setDieNum(0);
 				tile1.setDieNum(0);
 			}
 			
-		});
-		
-		// block until animation completes
-		synchronized (this) {
-			try {
-				wait(4000);
-			} catch (Exception e) {}
-		}
+		}, true);
 		tile0.setDieNum(t0);
 		tile1.setDieNum(t1);
 	}
@@ -381,15 +368,15 @@ public class SOCGUI extends SOC {
 
 	@Override
 	protected void onPirateSailing(final int fromTile, final int toTile) {
-		gui.getBoardComponent().addAnimation(new BlockingAnimation(800) {
+		gui.getBoardComponent().addAnimation(new GAnimation(800) {
 			
 			@Override
             public void draw(Graphics g, float position, float dt) {
-				Vector2D v = Vector2D.newTemp(getBoard().getTile(fromTile)).scale(1-position).add(Vector2D.newTemp(getBoard().getTile(toTile)).scale(position));
+				Vector2D v = Vector2D.newTemp(getBoard().getTile(fromTile)).scaledBy(1-position).add(Vector2D.newTemp(getBoard().getTile(toTile)).scaledBy(position));
 				gui.getBoardComponent().drawPirate(g, v);
 			}
 			
-		});
+		}, true);
 	}
 
 	@Override
@@ -470,7 +457,8 @@ public class SOCGUI extends SOC {
 
 	@Override
 	protected void onExplorerPlayerUpdated(Player oldPlayer, Player newPlayer, int harborPts) {
-		addCardAnimation(oldPlayer, "Explorer Lost!");
+		if (oldPlayer != null)
+            addCardAnimation(oldPlayer, "Explorer Lost!");
 		addCardAnimation(newPlayer, "Explorer Gained!");
 	}
 
@@ -485,7 +473,7 @@ public class SOCGUI extends SOC {
 	}
 
 	void addFloatingTextAnimation(final GUIPlayer player, final IVector2D v, final String txt) {
-		GUI.instance.getBoardComponent().addAnimation(new BlockingAnimation(2000) {
+		GUI.instance.getBoardComponent().addAnimation(new GAnimation(2000) {
 			
 			@Override
             public void draw(Graphics g, float position, float dt) {
@@ -500,7 +488,7 @@ public class SOCGUI extends SOC {
 				 AWTUtils.drawJustifiedString(g, mv.Xi(), mv.Yi(), Justify.CENTER, Justify.CENTER, txt);
 				r.popMatrix();
 			}
-		});
+		}, true);
 		
 	}
 	

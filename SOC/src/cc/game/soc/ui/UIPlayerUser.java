@@ -7,6 +7,7 @@ import cc.game.soc.core.Card;
 import cc.game.soc.core.Dice;
 import cc.game.soc.core.MoveType;
 import cc.game.soc.core.Player;
+import cc.game.soc.core.PlayerBot;
 import cc.game.soc.core.Route;
 import cc.game.soc.core.SOC;
 import cc.game.soc.core.Tile;
@@ -14,6 +15,8 @@ import cc.game.soc.core.Trade;
 import cc.game.soc.core.Vertex;
 
 public abstract class UIPlayerUser extends UIPlayer {
+
+    UIPlayerComponent c;
 
 	public UIPlayerUser() {
 	}
@@ -33,7 +36,7 @@ public abstract class UIPlayerUser extends UIPlayer {
 	@Override
 	public Vertex chooseVertex(SOC soc, Collection<Integer> vertexIndices, VertexChoice mode, Vertex knightToMove) {
 		Vertex v = ((UISOC)soc).chooseVertex(vertexIndices, getPlayerNum(), mode);
-		doVertexAnimation((UIBoard)soc.getBoard(), mode, v, knightToMove);
+		c.doVertexAnimation((UIBoardComponent)soc.getBoard(), mode, v, knightToMove);
 		return v;
 	}
 
@@ -41,7 +44,7 @@ public abstract class UIPlayerUser extends UIPlayer {
 	@Override
 	public Route chooseRoute(SOC soc, Collection<Integer> routeIndices, RouteChoice mode) {
 		Route r = ((UISOC)soc).chooseRoute(routeIndices, mode);
-		doRouteAnimation(soc, mode, r);
+        doRouteAnimation(soc, mode, r);
 		return r;
 	}
 

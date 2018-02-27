@@ -1634,10 +1634,10 @@ public class Utils {
     public static boolean isEmpty(Object o) {
 		if (o == null)
 			return true;
-		if ((o instanceof String) && ((String)o).trim().length() == 0)
-			return true;
-		if ((o instanceof Collection) && ((Collection)o).size() == 0)
-			return true;
+		if (o instanceof String)
+		    return ((String)o).trim().length() == 0;
+		if (o instanceof Collection)
+		    return ((Collection)o).size() == 0;
 		if (o.getClass().isArray() && Array.getLength(o) == 0)
 			return true;
         System.err.println("isEmpty does not know about class " + o.getClass());

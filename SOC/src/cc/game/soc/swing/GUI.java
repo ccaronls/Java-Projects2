@@ -327,8 +327,6 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
         LAYOUT_CONFIGURE,  // 2 menus of buttons on left
     }
     
-	List<AAnimation<Graphics>> cardAnimations = new ArrayList<>();
-    
     private LayoutType currentLayoutType = null;
     
     @SuppressWarnings("serial")
