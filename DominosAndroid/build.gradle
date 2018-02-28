@@ -2,11 +2,12 @@ apply plugin: 'com.android.application'
 
 dependencies {
     compile project(':AndroidGameLibrary')
+    compile 'com.android.support:support-v4:23.0.0'
 }
 
 android {
-    compileSdkVersion project.myCompileSdkVersion.toInteger()
-    buildToolsVersion project.myBuildToolsVersion
+    compileSdkVersion 25
+    buildToolsVersion '25.0.3'
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_7
@@ -38,5 +39,28 @@ android {
         // by a similar customization.
         debug.setRoot('build-types/debug')
         release.setRoot('build-types/release')
+    }
+
+    signingConfigs {
+        release {
+            storeFile file("android.jks")
+            storePassword "ujvlF0x@"
+            keyAlias "pressuretestutility"
+            keyPassword "ujvlF0x@"
+        }
+    }
+
+    buildTypes {
+
+        /**
+         * By default, Android Studio configures the release build type to enable code
+         * shrinking, using minifyEnabled, and specifies the Proguard settings file.
+         */
+
+        release {
+            minifyEnabled true // Enables code shrinking for the release build type.
+            proguardFiles getDefaultProguardFile('proguard-android.txt')//, 'proguard-rules.pro'
+            signingConfig signingConfigs.release
+        }
     }
 }

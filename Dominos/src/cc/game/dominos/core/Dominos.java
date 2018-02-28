@@ -56,6 +56,7 @@ public abstract class Dominos extends Reflector<Dominos> {
     private int maxNum;
     private int maxScore;
     private int turn;
+    private int difficulty;
     private Board board = new Board();
 
     @Omit
@@ -67,10 +68,14 @@ public abstract class Dominos extends Reflector<Dominos> {
     @Omit
     private boolean dragging = false;
 
-    public void setNumPlayers(int num){
+    private void setNumPlayers(int num){
+        int d = difficulty;
         this.players = new Player[num];
         players[0] = new PlayerUser();
         for (int i=1; i<num; i++) {
+            if (d-- > 0) {
+                players[i] = new PlayerSmart();
+            }
             players[i] = new Player();
         }
 	}
@@ -82,11 +87,13 @@ public abstract class Dominos extends Reflector<Dominos> {
 	    return gameRunning;
     }
 
-    public final void startNewGame(int maxPipNum, int maxScore) {
-	    if (players.length == 0)
-	        throw new RuntimeException("No players!");
+    public final void startNewGame(int numPlayers, int maxPipNum, int maxScore, int difficulty) {
         this.maxNum = maxPipNum;
         this.maxScore = maxScore;
+        this.difficulty = difficulty;
+        setNumPlayers(numPlayers);
+        if (players.length == 0)
+            throw new RuntimeException("No players!");
         stopGameThread();
         newGame();
         redraw();
@@ -100,6 +107,8 @@ public abstract class Dominos extends Reflector<Dominos> {
             }
         }
     }
+
+    protected void onGameOver() {}
 
     public final void startGameThread() {
         Utils.println("startGameThread, currently running=" + gameRunning);
@@ -135,6 +144,7 @@ public abstract class Dominos extends Reflector<Dominos> {
                         }
                     }.start();
                     redraw();
+                    onGameOver();
                 }
             }
         }.start();
@@ -180,6 +190,14 @@ public abstract class Dominos extends Reflector<Dominos> {
 
     public final Player getCurPlayer() {
 	    return players[turn];
+    }
+
+    public final int getMaxPips() {
+        return this.maxNum;
+    }
+
+    public final int getMaxScore() {
+        return this.maxScore;
     }
 
     private void newRound() {
@@ -387,7 +405,7 @@ public abstract class Dominos extends Reflector<Dominos> {
             cols = 1;
             if (rows > 5) {
                 rows = 5;
-                cols = 1 + num / 5;
+                cols = 1 + (num -1)/ 5;
             }
         }
 
@@ -404,7 +422,7 @@ public abstract class Dominos extends Reflector<Dominos> {
             g.translate(boardDim/2, boardDim/2);
             g.scale(scale, scale);
             final float startY = -0.5f * (rows-1);
-            MutableVector2D pos = new MutableVector2D(-0.5f*(cols-1), startY);
+            MutableVector2D pos = new MutableVector2D(-(cols-1), startY);
 
             int n = 0;
             for (int i=0; i<cols; i++) {
@@ -674,6 +692,9 @@ public abstract class Dominos extends Reflector<Dominos> {
         }
     }
 
+    @Omit
+    private boolean newGameHighlighted = false;
+
     private void drawPlayer(APGraphics g, Player p, float w, float h, int pickX, int pickY, boolean drawDragged) {
 	    g.pushMatrix();
 	    int padding = 5;
@@ -681,8 +702,26 @@ public abstract class Dominos extends Reflector<Dominos> {
 	    g.translate(padding, padding);
 	    if (p.textAnimation != null)
 	        p.textAnimation.update(g);
-	    else
-	        g.drawString(String.format("%d PTS", p.getScore()), 0, 0);
+	    else {
+            g.drawString(String.format("%d PTS", p.getScore()), 0, 0);
+            g.setColor(GColor.WHITE);
+            float wid = g.getTextWidth("NEW GAME");
+            g.begin();
+            g.setName(1);
+            g.vertex(w-padding*2-wid, 0);
+            g.vertex(w-padding*2, g.getTextHeight());
+            //g.drawRects();
+            int picked = g.pickRects(pickX, pickY);
+            g.end();
+            newGameHighlighted = false;
+            if (picked == 1) {
+                newGameHighlighted = true;
+                g.setColor(GColor.DARK_GRAY);
+            }
+
+                g.drawJustifiedString(w - padding * 2, 0, Justify.RIGHT, "NEW GAME");
+
+        }
 	    g.translate(0, g.getTextHeight() + padding);
 
 	    h-= padding*2+g.getTextHeight();
@@ -693,7 +732,7 @@ public abstract class Dominos extends Reflector<Dominos> {
         g.popMatrix();
     }
 
-    private PlayerUser getUser() {
+    private final PlayerUser getUser() {
         return (PlayerUser)players[0];
     }
 
@@ -802,9 +841,29 @@ public abstract class Dominos extends Reflector<Dominos> {
         return null;
     }
 
+    public final int getDifficulty() {
+        return difficulty;
+    }
+
+    protected void onNewGameClicked() {
+        startNewGame(getNumPlayers(), maxNum, maxScore, difficulty);
+        startGameThread();
+    }
+
+    public void clearHighlghts() {
+        newGameHighlighted = false;
+        highlightedPlayerTile = -1;
+        selectedPlayerTile = -1;
+        board.clearSelection();
+        getBoard().highlightMoves(null);
+    }
+
     public synchronized final void onClick() {
         PlayerUser user = getUser();
-        if (highlightedPlayerTile >= 0) {
+        if (newGameHighlighted) {
+            onNewGameClicked();
+            clearHighlghts();
+        } else if (highlightedPlayerTile >= 0) {
             selectedPlayerTile = highlightedPlayerTile;
             List<Move> highlightedMoves = new ArrayList<>();
             for (Move m : user.moves) {
@@ -815,14 +874,12 @@ public abstract class Dominos extends Reflector<Dominos> {
             getBoard().highlightMoves(highlightedMoves);
         } else if (board.selectedMove != null) {
             user.choosedMove = board.selectedMove;
-            getBoard().clearSelection();
             synchronized (gameLock) {
                 gameLock.notifyAll();
             }
-            selectedPlayerTile = -1;
+            clearHighlghts();
         } else {
-            getBoard().highlightMoves(null);
-            selectedPlayerTile = -1;
+            clearHighlghts();
             Utils.println("endpoints total: " + board.computeEndpointsTotal());
         }
         redraw();
@@ -841,20 +898,23 @@ public abstract class Dominos extends Reflector<Dominos> {
             }
             getBoard().highlightMoves(highlightedMoves);
         }
+        redraw();
     }
 
     public synchronized final void stopDrag() {
         if (dragging) {
             if (selectedPlayerTile >= 0 && board.selectedMove != null) {
                 getUser().choosedMove = board.selectedMove;
-                getBoard().clearSelection();
                 synchronized (gameLock) {
                     gameLock.notifyAll();
                 }
-                selectedPlayerTile = -1;
             }
             dragging = false;
         }
+        getBoard().clearSelection();
+        selectedPlayerTile = -1;
+        highlightedPlayerTile = -1;
+        redraw();
     }
 
     public abstract void redraw();

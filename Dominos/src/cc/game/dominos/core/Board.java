@@ -276,17 +276,28 @@ public class Board extends Reflector<Board> {
         MutableVector2D mv = new MutableVector2D();
         g.setColor(GColor.CYAN);
         g.begin();
+        for (Move move : highlightedMoves[endpoint]) {
+            g.pushMatrix();
+            transformPlacement(g, move.placment);
+            mv.set(1, 0.5f);
+            g.transform(mv);
+            g.vertex(0, 0);
+            g.vertex(2, 1);
+            g.popMatrix();
+        }
+        g.drawRects(3);
         int moveIndex = 0;
+        g.begin();
         for (Move move : highlightedMoves[endpoint]) {
             g.pushMatrix();
             transformPlacement(g, move.placment);
             g.setName(moveIndex++);
             mv.set(1, 0.5f);
             g.transform(mv);
-            g.vertex(0, 0);
-            g.vertex(2, 1);
+            // use larger pick rects so easier to place on android (finger covers whole of piece)
+            g.vertex(0, -0.5f);
+            g.vertex(4, 1.5f);
             g.popMatrix();
-            g.drawRects(3);
         }
         int picked = g.pickRects(mouseX, mouseY);
         g.end();
@@ -608,7 +619,7 @@ public class Board extends Reflector<Board> {
                 g.vertex(x+dd2, y+dd45);
 
                 g.vertex(x+dd34, y+dd5);
-                g.vertex(x+dd34, y+dd2);
+                g.vertex(x+dd34, y+dd25);
                 g.vertex(x+dd34, y+dd35);
                 g.vertex(x+dd34, y+dd45);
                 break;

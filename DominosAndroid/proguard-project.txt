@@ -18,3 +18,63 @@
 #-keepclassmembers class fqcn.of.javascript.interface.for.webview {
 #   public *;
 #}
+
+-optimizationpasses 5
+-overloadaggressively
+-dontusemixedcaseclassnames
+-dontskipnonpubliclibraryclasses
+-dontpreverify
+-verbose
+-repackageclasses ''
+-optimizations !code/simplification/arithmetic,!field/*,!class/merging/*,!code/simplification/cast,!code/allocation/variable
+-dontwarn android.support.**
+-dontwarn android.content.pm.**
+-dontwarn com.google.android.gms.**
+
+# Remove logging
+-assumenosideeffects class android.util.Log {
+    public static *** d(...);
+    public static *** v(...);
+    public static *** i(...);
+    public static *** w(...);
+    public static *** e(...);
+}
+
+-keepclasseswithmembernames class * {
+    native <methods>;
+}
+
+-keepclasseswithmembernames class * {
+    public <init>(android.content.Context, android.util.AttributeSet);
+}
+
+-keepclasseswithmembernames class * {
+    public <init>(android.content.Context, android.util.AttributeSet, int);
+}
+
+-keepclassmembers enum * {
+    public static **[] values();
+    public static ** valueOf(java.lang.String);
+}
+
+-keepnames class * implements android.os.Parcelable {
+    public static final ** CREATOR;
+}
+
+-keepclassmembers class * extends cc.lib.util.Reflector {
+    *;
+}
+
+-keep
+
+-keepattributes Exceptions,InnerClasses
+#-keep class cc.android.photooverlay.SQLHelper.Column
+#-keep class com.parse.*{ *; }
+-dontwarn com.parse.**
+-dontwarn com.google.common.**
+-dontwarn org.hamcrest.**
+-dontwarn cc.lib.**
+-dontwarn org.junit.**
+-dontwarn android.support.v4.**
+-dontwarn android.test.**
+-dontwarn cc.app.**

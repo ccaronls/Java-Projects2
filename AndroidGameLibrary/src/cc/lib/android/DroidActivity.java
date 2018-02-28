@@ -3,6 +3,7 @@ package cc.lib.android;
 import android.app.Activity;
 import android.graphics.Canvas;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -19,6 +20,25 @@ public abstract class DroidActivity extends Activity {
 
     DroidGraphics g = null;
     View content = null;
+
+    private class DelayedTouchDown implements Runnable {
+
+        final float x, y;
+        DelayedTouchDown(MotionEvent ev) {
+            this.x = ev.getX();
+            this.y = ev.getY();
+        }
+        public void run() {
+            onTouchDown(x, y);
+            touchDownRunnable = null;
+        }
+    }
+
+    private final int CLICK_TIME = 700;
+
+    private long downTime = 0;
+
+    private Runnable touchDownRunnable = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,18 +59,33 @@ public abstract class DroidActivity extends Activity {
 
                 switch (event.getAction()) {
                     case MotionEvent.ACTION_DOWN:
+                        downTime = SystemClock.uptimeMillis();
                         onTouchDown(event.getX(), event.getY());
+                        postDelayed(touchDownRunnable=new DelayedTouchDown(event), CLICK_TIME);
                         break;
                     case MotionEvent.ACTION_UP:
-                        onTouchUp(event.getX(), event.getY());
+                        if (SystemClock.uptimeMillis() - downTime < CLICK_TIME) {
+                            removeCallbacks(touchDownRunnable);
+                            touchDownRunnable = null;
+                            onTap(event.getX(), event.getY());
+                        } else {
+                            onTouchUp(event.getX(), event.getY());
+                        }
                         break;
                     case MotionEvent.ACTION_MOVE:
-                        onDrag(event.getX(), event.getY());
+                        //if (touchDownRunnable != null) {
+                        //    removeCallbacks(touchDownRunnable);
+                        //    touchDownRunnable = null;
+                        //    onTouchDown(event.getX(), event.getY());
+                        if (touchDownRunnable == null) {
+                            onDrag(event.getX(), event.getY());
+                        }
                         break;
                 }
 
                 return true;
             }
+
         };
         setContentView(content);
     }
@@ -81,6 +116,8 @@ public abstract class DroidActivity extends Activity {
     }
 
     protected abstract void onDraw(DroidGraphics g);
+
+    protected void onTap(float x, float y) {}
 
     protected void onTouchDown(float x, float y) {}
 
