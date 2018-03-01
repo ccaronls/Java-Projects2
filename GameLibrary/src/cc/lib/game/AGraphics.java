@@ -88,7 +88,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     public final float drawJustifiedString(float x, float y, Justify hJust, String text) {
         return drawJustifiedString(x, y, hJust, Justify.TOP, text);
     }
-    
+
     /**
      * Render test with LEFT/TOP Justification
      * @param text
@@ -177,14 +177,14 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param string
      * @return
      */
-    public GRectangle getTextDimension(String string, float maxWidth) {
+    public GDimension getTextDimension(String string, float maxWidth) {
         String [] lines = generateWrappedLines(string, maxWidth);
         float width = 0;
         int height = getTextHeight() * lines.length;
         for (String s : lines) {
             width = Math.max(width, getTextWidth(s));
         }
-        return new GRectangle((int)(width+0.9f), height);
+        return new GDimension((int)(width+0.9f), height);
     }
 
     /**
@@ -1205,7 +1205,17 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
 	}
 
     /**
-     * 
+     *
+     * @param x
+     * @param y
+     * @param r
+     */
+    public final void drawFilledCircle(float x, float y, float r) {
+        drawFilledOval(x-r, y-r, r*2, r*2);
+    }
+
+    /**
+     *
      * @param pts_x
      * @param pts_y
      * @param length
@@ -1265,15 +1275,47 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     }
     
     /**
-     * Draw an image
+     * Draw an image with pre-transformed rectangle. Not to be called directly.
      * @param imageKey
      * @param x
      * @param y
      * @param w
      * @param h
      */
-    public abstract void drawImage(int imageKey, int x, int y, int w, int h);
-    
+    protected abstract void drawImage(int imageKey, int x, int y, int w, int h);
+
+    /**
+     *
+     * @param imageKey
+     * @param x
+     * @param y
+     * @param w
+     * @param h
+     */
+    public final void drawImage(int imageKey, float x, float y, float w, float h) {
+        drawImage(imageKey, new Vector2D(x,y), new Vector2D(x+w, y+h));
+    }
+
+    /**
+     *
+     * @param imageKey
+     * @param rect0
+     * @param rect1
+     */
+    public final void drawImage(int imageKey, IVector2D rect0, IVector2D rect1) {
+
+        MutableVector2D v0 = new MutableVector2D(rect0);
+        MutableVector2D v1 = new MutableVector2D(rect1);
+
+        transform(v0);
+        transform(v1);
+
+        Vector2D minV = v0.min(v1);
+        Vector2D maxV = v0.max(v1);
+
+        drawImage(imageKey, minV.Xi(), minV.Yi(), maxV.Xi()-minV.Xi(), maxV.Yi()-minV.Yi());
+    }
+
     /**
      * 
      * @param color

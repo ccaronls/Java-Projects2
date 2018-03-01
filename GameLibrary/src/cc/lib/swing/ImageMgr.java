@@ -263,14 +263,14 @@ public class ImageMgr {
 		Image image = scaledImages.get(id);
 		int curW = image.getWidth(comp);
 		int curH = image.getHeight(comp);
-		if (width >= 8 && width <= 1024 && height >= 8 && height <= 1024 && curW != width || curH != height) {
+		if (width >= 8 && width <= 1024 && height >= 8 && height <= 1024 && (curW - width) > 1 || (curH - height) > 1) {
 			//Utils.println("Resizing image [" + id + "] from " + curW + ", " + curH + " too " + width + ", " + height);
 		    Utils.println("Resizing image [%d] from %d, %d too %d, %d", id, curW, curH, width, height);
 
 			image = sourceImages.get(id);
 			image = transform(image, new ReplicateScaleFilter(width,height));
 			Image toDelete = scaledImages.get(id);
-			if (toDelete != null) {
+			if (toDelete != image) {
 				tracker.removeImage(toDelete);
 			}
 			scaledImages.set(id, image); // make this our new scaled images

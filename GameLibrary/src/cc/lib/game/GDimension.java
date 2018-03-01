@@ -1,14 +1,20 @@
 package cc.lib.game;
 
-public class GDimension {
+import cc.lib.utils.Reflector;
 
-	public int width,height;
+public class GDimension extends Reflector<GDimension> {
+
+    static {
+        addAllFields(GDimension.class);
+    }
+
+	public float width, height;
 	
 	public GDimension() {
 		this(0,0);
 	}
 	
-	public GDimension(int w, int h) {
+	public GDimension(float w, float h) {
 		this.width = w;
 		this.height = h;
 	}

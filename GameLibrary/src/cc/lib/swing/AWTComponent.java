@@ -19,35 +19,83 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
     AWTGraphics G = null;
     int mouseX, mouseY;
 
-    public AWTComponent(boolean focusable) {
-        addMouseListener(this);
-        addMouseMotionListener(this);
-        setFocusable(focusable);
+    public AWTComponent() {
+    }
+
+    public void setMouseEnabled(boolean enabled) {
+        if (enabled) {
+            addMouseListener(this);
+            addMouseMotionListener(this);
+        } else {
+            removeMouseListener(this);
+            removeMouseMotionListener(this);
+        }
+    }
+
+    public void setFocuable(boolean focuable) {
+        //super.setFocusable(focusable);
     }
 
     @Override
     public final synchronized void paint(Graphics g) {
-        if (G == null) {
-            G = new AWTGraphics(g, this);
-            G.setIdentity();
+        if (getWidth() > 0 && getHeight() > 0) {
+            if (G == null) {
+                G = new AWTGraphics(g, this);
+                init(G);
+                repaint();
+            } else {
+                float progress = getInitProgress();
+                G.setGraphics(g);
+                G.initViewport(getWidth(), getHeight());
+                if (progress >= 1) {
+                    paint(G, mouseX, mouseY);
+                } else {
+                    G.clearScreen(GColor.CYAN);
+                    G.setColor(GColor.WHITE);
+                    G.setTextHeight(getHeight()/10);
+                    float x = getWidth()/2;
+                    float y = getHeight()/3;
+                    String txt = "INITIALIZING";
+                    float tw = G.getTextWidth(txt);
+                    float th = G.getTextHeight();
+                    G.drawJustifiedString(x-tw/2, y,"Initializing");
+                    y += th;
+                    G.drawFilledRectf(x-tw/2, y, tw*progress, th);
+                    try {
+                        synchronized (this) {
+                            wait(100);
+                        }
+                    } catch (Exception e) {}
+                    repaint();
+                }
+            }
         } else {
-            G.setGraphics(g);
-            G.initViewport(getWidth(), getHeight());
+            repaint();
         }
-        paint(G, mouseX, mouseY);
     }
 
     protected abstract void paint(AWTGraphics g, int mouseX, int mouseY);
 
+    protected void init(AWTGraphics g) {
+    }
+
+    /**
+     * Return value between 0-1 that is the progress of init flow
+     * @return
+     */
+    protected float getInitProgress() {
+        return 1;
+    }
+
     @Override
     public final void mouseClicked(MouseEvent e) {
-        Utils.println("mouseClicked");
+        //Utils.println("mouseClicked");
         onClick();
     }
 
     @Override
     public final synchronized void mousePressed(MouseEvent e) {
-        Utils.println("mousePressed");
+        //Utils.println("mousePressed");
         grabFocus();
         mouseX = e.getX();
         mouseY = e.getY();
@@ -56,7 +104,7 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
 
     @Override
     public final void mouseReleased(MouseEvent e) {
-        Utils.println("mouseReleased");
+        //Utils.println("mouseReleased");
         if (dragging) {
             stopDrag();
             dragging = false;
@@ -82,7 +130,7 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
             startDrag();
             dragging = true;
         }
-        Utils.println("mouseDragged");
+        //Utils.println("mouseDragged");
         mouseX = e.getX();
         mouseY = e.getY();
         repaint();
@@ -90,7 +138,7 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
 
     @Override
     public final void mouseMoved(MouseEvent e) {
-        Utils.println("mouseMoved");
+        //Utils.println("mouseMoved");
         mouseX = e.getX();
         mouseY = e.getY();
         repaint();
@@ -116,12 +164,12 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
 
     @Override
     public Dimension getMinimumSize() {
-        GRectangle rect = getMinRect();
-        return new Dimension(rect.width, rect.height);
+        GDimension rect = getMinRect();
+        return new Dimension(Math.round(rect.width), Math.round(rect.height));
     }
 
-    protected GRectangle getMinRect() {
-        return new GRectangle(32, 32);
+    protected GDimension getMinRect() {
+        return new GDimension(32, 32);
     }
 
     @Override
@@ -132,5 +180,17 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
     @Override
     public int getViewportHeight() {
         return getHeight();
+    }
+
+    public void setMinSize(int width, int height) {
+        setPreferredSize(new Dimension(width, height));
+    }
+
+    public void setBounds(float x, float y, float w, float h) {
+        super.setBounds(new Rectangle(Math.round(x), Math.round(y), Math.round(w), Math.round(h)));
+    }
+
+    public final APGraphics getAPGraphics() {
+        return G;
     }
 }

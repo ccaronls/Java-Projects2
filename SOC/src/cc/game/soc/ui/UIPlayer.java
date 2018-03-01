@@ -12,7 +12,6 @@ import cc.game.soc.core.VertexType;
 import cc.lib.game.AGraphics;
 import cc.lib.game.GColor;
 import cc.lib.game.IVector2D;
-import cc.lib.game.Renderer;
 import cc.lib.math.Vector2D;
 
 /**
@@ -52,7 +51,7 @@ public class UIPlayer extends PlayerBot {
             return;
         if (vertex == null)
             return;
-        UIBoardComponent board = UISOC.getInstance().getUIBoard();
+        UIBoardRenderer board = UISOC.getInstance().getUIBoard();
         board.addAnimation(new UIAnimation(getAnimTime()) {
 
             @Override
@@ -94,7 +93,7 @@ public class UIPlayer extends PlayerBot {
     		return;
     	if (source == null || target == null || soc == null)
     		return;
-    	final UIBoardComponent comp = ((UISOC)soc).getUIBoard();
+    	final UIBoardRenderer comp = ((UISOC)soc).getUIBoard();
         comp.addAnimation(new UIAnimation(getAnimTime()) {
 			
 			@Override
@@ -103,8 +102,8 @@ public class UIPlayer extends PlayerBot {
                 g.pushMatrix();
                 //render.translate(mp);
                 //render.scale(1, position);
-                Vector2D startV = comp.getRouteMidpoint(source);
-                Vector2D endV   = comp.getRouteMidpoint(target);
+                Vector2D startV = soc.getBoard().getRouteMidpoint(source);
+                Vector2D endV   = soc.getBoard().getRouteMidpoint(target);
                 Vector2D curV   = startV.add(endV.sub(startV).scaledBy(position));
                 
                 float startAng  = comp.getEdgeAngle(source);
@@ -124,7 +123,7 @@ public class UIPlayer extends PlayerBot {
     	if (edge == null || soc == null)
     		return;
 
-        final UIBoardComponent comp = ((UISOC)soc).getUIBoard();
+        final UIBoardRenderer comp = ((UISOC)soc).getUIBoard();
         comp.addAnimation(new UIAnimation(getAnimTime()) {
 			
 			@Override
@@ -145,7 +144,7 @@ public class UIPlayer extends PlayerBot {
     	
     	if (ship == null)
     		return;
-    	final UIBoardComponent comp = UISOC.getInstance().getUIBoard();
+    	final UIBoardRenderer comp = UISOC.getInstance().getUIBoard();
     	comp.addAnimation(new UIAnimation(2000) {
 			
 			@Override
@@ -172,7 +171,7 @@ public class UIPlayer extends PlayerBot {
 
         if (edge == null || soc == null)
             return;
-        final UIBoardComponent comp = UISOC.getInstance().getUIBoard();
+        final UIBoardRenderer comp = UISOC.getInstance().getUIBoard();
         if (edge != null) {
             comp.addAnimation(new UIAnimation(getAnimTime()) {
 
@@ -203,7 +202,7 @@ public class UIPlayer extends PlayerBot {
     	if (!animationEnabled || vertex == null)
     		return;
 
-        final UIBoardComponent comp = UISOC.getInstance().getUIBoard();
+        final UIBoardRenderer comp = UISOC.getInstance().getUIBoard();
     	comp.addAnimation(new UIAnimation(getAnimTime()) {
 			
 			@Override
@@ -223,7 +222,7 @@ public class UIPlayer extends PlayerBot {
     	if (!animationEnabled || fromVertex == null || toVertex == null)
     		return;
 
-        final UIBoardComponent comp = UISOC.getInstance().getUIBoard();
+        final UIBoardRenderer comp = UISOC.getInstance().getUIBoard();
     	comp.addAnimation(new UIAnimation(getAnimTime()) {
 			
 			@Override
@@ -331,8 +330,8 @@ public class UIPlayer extends PlayerBot {
 
 	@Override
 	protected void onBoardChanged() {
-        final UIBoardComponent bc = UISOC.getInstance().getUIBoard();
-		bc.redraw();
+        final UIBoardRenderer bc = UISOC.getInstance().getUIBoard();
+		bc.component.redraw();
         try {
             synchronized (bc) {
                 bc.wait(100);
@@ -345,8 +344,7 @@ public class UIPlayer extends PlayerBot {
 
 	@Override
 	protected BotNode onOptimalPath(BotNode optimal, List<BotNode> leafs) {
-//		return UISOC.getInstance().chooseOptimalPath(optimal, leafs);
-        return null;
+		return UISOC.getInstance().chooseOptimalPath(optimal, leafs);
 	}
 	
 }

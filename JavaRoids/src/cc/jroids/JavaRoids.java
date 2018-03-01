@@ -331,7 +331,7 @@ public abstract class JavaRoids
 		Obj obj = this.findUnusedObject();
 		if (obj != null)
 		{
-			obj.position.set(Vector2D.newTemp().rotate(player_angle).scale(PLAYER_RADIUS-3)).addEq(player_p);
+			obj.position.set(Vector2D.newTemp().rotate(player_angle).scaledBy(PLAYER_RADIUS-3)).addEq(player_p);
 			obj.velocity.set(Vector2D.newTemp(PLAYER_MISSLE_SPEED, 0).rotateEq(player_angle)).addEq(player_v);
 			obj.angle = player_angle;
 			obj.type = TYPE_PLAYER_MISSLE;
@@ -595,13 +595,13 @@ public abstract class JavaRoids
 		for (int i=0; i<NUM_STARS; i++) {
 			switch (star_type[i]){
 			case STAR_NEAR:
-				updateStar(i, player_v.scale(-1));
+				updateStar(i, player_v.scaledBy(-1));
 				break;
 			case STAR_FAR:
-				updateStar(i, player_v.scale(-0.5f));
+				updateStar(i, player_v.scaledBy(-0.5f));
 				break;
 			case STAR_DISTANT:
-				updateStar(i, player_v.scale(-0.2f));
+				updateStar(i, player_v.scaledBy(-0.2f));
 				break;
 			}
 		}

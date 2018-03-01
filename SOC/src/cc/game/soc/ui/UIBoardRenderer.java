@@ -1,164 +1,42 @@
 package cc.game.soc.ui;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
-import cc.game.soc.core.Board;
-import cc.game.soc.core.Island;
-import cc.game.soc.core.Route;
-import cc.game.soc.core.RouteType;
-import cc.game.soc.core.Tile;
-import cc.game.soc.core.TileType;
-import cc.game.soc.core.Vertex;
-import cc.game.soc.core.VertexType;
-import cc.lib.game.AAnimation;
-import cc.lib.game.AGraphics;
-import cc.lib.game.APGraphics;
-import cc.lib.game.GColor;
-import cc.lib.game.GRectangle;
-import cc.lib.game.IVector2D;
-import cc.lib.game.Justify;
-import cc.lib.game.Renderable;
-import cc.lib.math.CMath;
-import cc.lib.math.MutableVector2D;
-import cc.lib.math.Vector2D;
+import cc.game.soc.core.*;
+import cc.lib.game.*;
+import cc.lib.math.*;
 
-@SuppressWarnings("serial")
-public abstract class UIBoard extends Board implements Renderable {
+public final class UIBoardRenderer implements UIRenderer {
 
-    public enum PickMode {
+    final UIComponent component;
 
-    	PM_NONE,
-    	PM_EDGE,
-    	PM_TILE,
-    	PM_VERTEX,
-    	PM_CUSTOM, // CUSTOM must be associated with a CustomPickHandler
-    }
-    
-    public enum RenderFlag {
-        DRAW_CELL_CENTERS,
-        NUMBER_CELLS,
-        NUMBER_VERTS,
-        NUMBER_EDGES,
-        DONT_DRAW_TEXTURES,
-        DRAW_CELL_OUTLINES, 
-        DONT_DRAW_ROADS, 
-        DONT_DRAW_STRUCTURES,
-        SHOW_CELL_INFO,
-        SHOW_EDGE_INFO,
-        SHOW_VERTEX_INFO,
-        SHOW_ISLAND_INFO,
-        
-        ;
-        RenderFlag() {
-            assert(1 << ordinal() > 0);
-        }
-    }
-    
-    public interface PickHandler {
-    	
-    	PickMode getPickMode();
-    	
-    	/**
-    	 * Called when mouse pressed on a pickable element
-    	 * @param pickedValue
-    	 */
-    	void onPick(UIBoard b, int pickedValue);
-    	
-    	/**
-    	 * Called when rendering an index that passes the isPickableIndex test
-         * 
-         * @param b
-    	 * @param g
-    	 * @param index
-    	 */
-    	void onDrawPickable(UIBoard b, APGraphics g, int index);
-    	
-    	/**
-    	 * Called after tiles, edges and verts are rendered for pick handler to render it own stuff
-         * 
-         * @param b
-    	 * @param g
-    	 */
-    	void onDrawOverlay(UIBoard b, APGraphics g);
-    	
-    	/**
-    	 * Render a highlighted index
-         * 
-         * @param b
-    	 * @param g
-    	 * @param highlightedIndex
-    	 */
-    	void onHighlighted(UIBoard b, APGraphics g, int highlightedIndex);
-    	
-    	/**
-    	 * Return whether the index is pickable
-    	 * @param index
-    	 * @return
-    	 */
-    	boolean isPickableIndex(UIBoard b, int index);
-    }
-    
-    public interface CustomPickHandler extends PickHandler {
-
-    	/**
-    	 * Return number of custom pickable elements 
-    	 * @return
-    	 */
-		int getNumElements();
-
-		/**
-		 * Pick a custom element
-		 * 
-		 * Example:
-		 *   for (int i : getNumElements())
-		 *      g.setName(i)
-		 *      g.vertex(...)
-		 *      
-		 *   return b.pickPoints(g, 10);
-		 *  
-         * @param b
-		 * @param g
-		 * @param x
-		 * @param y
-		 * @return
-		 */
-		int pickElement(UIBoard b, APGraphics g, int x, int y);
-    	
+    public UIBoardRenderer(UIComponent component) {
+        this.component = component;
+        component.setRenderer(this);
     }
 
-	protected abstract GColor getPlayerColor(int playerNum);
+	protected GColor getPlayerColor(int playerNum) {
+        return UISOC.getInstance().getPlayerColor(playerNum);
+    }
 	
-	
-	protected int desertImage;
-    protected int woodImage;
-    protected int wheatImage;
-    protected int oreImage;
-    protected int brickImage;
-    protected int sheepImage;
-    protected int waterImage;
-    protected int goldImage;
-    protected int undiscoveredImage;
-    protected int robberImage;
-    protected int pirateImage;
-	// CAK extension
-    protected int foresthexImage;
-    protected int hillshexImage;
-    protected int mountainshexImage;
-    protected int pastureshexImage;
-    protected int fieldshexImage;
+	private int desertImage;
+    private int waterImage;
+    private int goldImage;
+    private int undiscoveredImage;
+    private int foresthexImage;
+    private int hillshexImage;
+    private int mountainshexImage;
+    private int pastureshexImage;
+    private int fieldshexImage;
+    private int [] knightImages;
 
-    protected int cardFrameImage;
-
-    protected int roadLineThickness = 4;
-    protected GColor bkColor = GColor.LIGHT_GRAY;
-    protected GColor outlineColorDark = GColor.BLACK;
-    protected GColor outlineColorLight = GColor.WHITE;
-    protected GColor textColor = GColor.CYAN;
-    protected int padding = 20;
+    int roadLineThickness = 4;
+    GColor bkColor = GColor.LIGHT_GRAY;
+    GColor outlineColorDark = GColor.BLACK;
+    GColor outlineColorLight = GColor.WHITE;
+    GColor textColor = GColor.CYAN;
+    int padding = 20;
+    float textSize = 12;
     
 	private PickMode pickMode = PickMode.PM_NONE;
 	private int pickedValue = -1;
@@ -170,78 +48,73 @@ public abstract class UIBoard extends Board implements Renderable {
     private int edgeInfoIndex = -1;
     private int cellInfoIndex = -1;
     private int vertexInfoIndex = -1;
-    
-    protected int [] knightImages = new int[6];
-    
-	public UIBoard() {
+
+    public void initImages(int desertImage, int waterImage, int goldImage, int undiscoveredImage, int foresthexImage, int hillshexImage, int mountainshexImage, int pastureshexImage, int fieldshexImage,
+                           int knightBasicInactive, int knightBasicActive, int knightStrongInactive, int knightStrongActive, int knightMightlyInactive, int knightMightlyActive) {
+        this.desertImage = desertImage;
+        this.waterImage = waterImage;
+        this.goldImage = goldImage;
+        this.undiscoveredImage = undiscoveredImage;
+        this.foresthexImage = foresthexImage;
+        this.hillshexImage = hillshexImage;
+        this.mountainshexImage = mountainshexImage;
+        this.pastureshexImage = pastureshexImage;
+        this.fieldshexImage = fieldshexImage;
+        this.knightImages = new int[]{
+                knightBasicInactive,
+                knightBasicActive,
+                knightStrongInactive,
+                knightStrongActive,
+                knightMightlyInactive,
+                knightMightlyActive
+        };
     }
-    
-    protected abstract void initAssets(AGraphics g);
-	/*
-	    renderFlag          = getProperties().getIntProperty("renderFlag", 0);
-        bkColor             = getProperties().getColorProperty("bkcolor", GColor.LIGHT_GRAY);
-        roadLineThickness   = getProperties().getIntProperty("roadLineThickness", 4);
-        padding             = getProperties().getIntProperty("padding", 20);
-        outlineColor        = getProperties().getColorProperty("outline.color", GColor.BLACK);
-		this.board = board;
-        addMouseMotionListener(this);
-        addMouseListener(this);
-        
-        desertImage  = images.loadImage("desert.GIF", GColor.WHITE);
-		woodImage    = images.loadImage("wood.GIF",   GColor.WHITE);
-		wheatImage   = images.loadImage("wheat.GIF",  GColor.WHITE);
-		oreImage     = images.loadImage("ore.GIF",    GColor.WHITE);
-		brickImage   = images.loadImage("brick.GIF",  GColor.WHITE);
-		sheepImage   = images.loadImage("sheep.GIF",  GColor.WHITE);
-		waterImage   = images.loadImage("water.GIF",  GColor.WHITE);
-		robberImage  = images.loadImage("robber.GIF", GColor.WHITE);
-		pirateImage	 = images.loadImage("pirate.GIF");
-		goldImage    = images.loadImage("gold.GIF");
-		
-		mountainshexImage 	= images.loadImage("mountainshex.GIF");
-		hillshexImage 		= images.loadImage("hillshex.GIF");
-		pastureshexImage 	= images.loadImage("pastureshex.GIF");
-		fieldshexImage 		= images.loadImage("fieldshex.GIF");
-		foresthexImage 		= images.loadImage("foresthex.GIF");
-		
-		undiscoveredImage = images.loadImage("undiscoveredtile.GIF");
-		
-		cardFrameImage = images.loadImage("cardFrame.GIF", GColor.WHITE);
-		knightImages[0] = images.loadImage("knight_basic_inactive.GIF");
-		knightImages[1] = images.loadImage("knight_basic_active.GIF");
-		knightImages[2] = images.loadImage("knight_strong_inactive.GIF");
-		knightImages[3] = images.loadImage("knight_strong_active.GIF");
-		knightImages[4] = images.loadImage("knight_mighty_inactive.GIF");
-		knightImages[5] = images.loadImage("knight_mighty_active.GIF");
-	}*/
-	
-	protected abstract void repaint();
-	
+
+    public void initAttribs(int renderFlag, GColor bkColor, int roadLineThickness, int padding, float textSize) {
+        this.renderFlag = renderFlag;
+        this.bkColor = bkColor;
+        this.roadLineThickness = roadLineThickness;
+        this.padding = padding;
+        this.textSize = textSize;
+
+    }
+
     public void setRenderFlag(RenderFlag flag, boolean enabled) {
         if (enabled)
             renderFlag |= (1 << flag.ordinal());
         else
             renderFlag &= ~(1 << flag.ordinal());
         //getProperties().setProperty("renderFlag", renderFlag);
-        repaint();
+        component.redraw();
     }
     
     public boolean getRenderFlag(RenderFlag flag) {
         return (renderFlag & (1 << flag.ordinal())) != 0;
     }
     
-    public void addAnimation(AAnimation<AGraphics> anim) {
+    public void addAnimation(AAnimation<AGraphics> anim, boolean block) {
         synchronized (animations) {
             animations.add(anim);
         }
-        repaint();
+        component.redraw();
         anim.start();
+        if (block) {
+            synchronized (anim) {
+                try {
+                    anim.wait(anim.getDuration()+500);
+                } catch (Exception e) {}
+            }
+        }
+    }
+
+    public Board getBoard() {
+        return UISOC.getInstance().getBoard();
     }
 
 	public void drawTileOutline(AGraphics g, Tile cell, int borderThickness) {
 	    g.begin();
 		for (int i : cell.getAdjVerts()) {
-			Vertex v = getVertex(i);
+			Vertex v = getBoard().getVertex(i);
 			g.vertex(v.getX(), v.getY());
 		}
 		g.drawLineLoop( borderThickness);
@@ -472,46 +345,46 @@ public abstract class UIBoard extends Board implements Renderable {
 	};
 	
 	float getStructureRadius() {
-		return getTileWidth()/(6*3);
+		return getBoard().getTileWidth()/(6*3);
 	}
 	
-	void drawSettlement(AGraphics g, IVector2D pos, int playerNum, boolean outline) {
+	public void drawSettlement(AGraphics g, IVector2D pos, int playerNum, boolean outline) {
 		if (playerNum > 0)
 			g.setColor(getPlayerColor(playerNum));
 		drawFaces(g, pos, 0, getStructureRadius(), FaceType.SETTLEMENT, outline);
 	}
-	
-	void drawCity(AGraphics g, IVector2D pos, int playerNum, boolean outline) {
+
+    public void drawCity(AGraphics g, IVector2D pos, int playerNum, boolean outline) {
 		if (playerNum > 0)
 			g.setColor(getPlayerColor(playerNum));
 		drawFaces(g, pos, 0, getStructureRadius(), FaceType.CITY, outline);
 	}
-	
-	void drawWalledCity(AGraphics g, IVector2D pos, int playerNum, boolean outline) {
+
+    public void drawWalledCity(AGraphics g, IVector2D pos, int playerNum, boolean outline) {
 		if (playerNum > 0)
 			g.setColor(getPlayerColor(playerNum));
 		drawFaces(g, pos, 0, getStructureRadius(), FaceType.CITY_WALL, outline);
 	}
-	
-	void drawMetropolisTrade(AGraphics g, IVector2D pos, int playerNum, boolean outline) {
+
+    public void drawMetropolisTrade(AGraphics g, IVector2D pos, int playerNum, boolean outline) {
 		if (playerNum > 0)
 			g.setColor(getPlayerColor(playerNum));
 		drawFaces(g, pos, 0, getStructureRadius(), FaceType.METRO_TRADE, outline);
 	}
 
-	void drawMetropolisPolitics(AGraphics g, IVector2D pos, int playerNum, boolean outline) {
+    public void drawMetropolisPolitics(AGraphics g, IVector2D pos, int playerNum, boolean outline) {
 		if (playerNum > 0)
 			g.setColor(getPlayerColor(playerNum));
 		drawFaces(g, pos, 0, getStructureRadius(), FaceType.METRO_POLITICS, outline);
 	}
 
-	void drawMetropolisScience(AGraphics g, IVector2D pos, int playerNum, boolean outline) {
+    public void drawMetropolisScience(AGraphics g, IVector2D pos, int playerNum, boolean outline) {
 		if (playerNum > 0)
 			g.setColor(getPlayerColor(playerNum));
 		drawFaces(g, pos, 0, getStructureRadius(), FaceType.METRO_SCIENCE, outline);
 	}
 
-	void drawMerchant(AGraphics g, Tile t, int playerNum) {
+    public void drawMerchant(AGraphics g, Tile t, int playerNum) {
 		if (playerNum > 0)
 			g.setColor(getPlayerColor(playerNum));
 		drawFaces(g, t, 0, getStructureRadius(), FaceType.MERCHANT, false);
@@ -522,21 +395,21 @@ public abstract class UIBoard extends Board implements Renderable {
 		g.drawJustifiedString( v.Xi()-2, v.Yi()-2-g.getTextHeight()*2, Justify.CENTER, Justify.TOP, txt);
 	}
 
-	void drawKnight_image(AGraphics g, float _x, float _y, int playerNum, int level, boolean active, boolean outline) {
+    public void drawKnight_image(AGraphics g, float _x, float _y, int playerNum, int level, boolean active, boolean outline) {
 		final int x = Math.round(_x);
 		final int y = Math.round(_y);
-		final int r = (int)(getTileWidth()/8) + 1;
+		final int r = (int)(getBoard().getTileWidth()/8) + 1;
 		final int r2 = r+3;
 		int index = level * (active ? 2 : 1) - 1;
 		g.drawOval(x-r2/2, y-r2/2, r2, r2);
 		g.drawImage(knightImages[index], x-r/2, y-r/2, r, r);
 	}
-	
-	float getKnightRadius() {
-		return getTileWidth()*2/(8*3*3);
+
+    public float getKnightRadius() {
+		return getBoard().getTileWidth()*2/(8*3*3);
 	}
-	
-	void drawKnight(AGraphics g, IVector2D pos, int playerNum, int level, boolean active, boolean outline) {
+
+    public void drawKnight(AGraphics g, IVector2D pos, int playerNum, int level, boolean active, boolean outline) {
 		if (playerNum > 0)
 			g.setColor(getPlayerColor(playerNum));
 		FaceType structure = null;
@@ -550,13 +423,13 @@ public abstract class UIBoard extends Board implements Renderable {
 		float radius = getKnightRadius();
 		drawFaces(g, pos, 0, radius, structure, outline);
 	}
-	
-	void drawCircle(AGraphics g, IVector2D pos) {
+
+    public void drawCircle(AGraphics g, IVector2D pos) {
 		g.pushMatrix();
 		g.begin();
 		g.translate(pos);
 		int angle = 0;
-		float rad = getTileWidth()/5;
+		float rad = getBoard().getTileWidth()/5;
 		g.scale(rad, rad);
 		int pts = 10;
 		for (int i=0; i<pts; i++) {
@@ -566,8 +439,8 @@ public abstract class UIBoard extends Board implements Renderable {
 		g.drawLineLoop( 2);
 		g.popMatrix();
 	}
-	
-	void drawPirateFortress(AGraphics g, Vertex v, boolean outline) {
+
+    public void drawPirateFortress(AGraphics g, Vertex v, boolean outline) {
 		MutableVector2D mv = g.transform(v);
 		int x = mv.Xi()-10;
 		int y = mv.Yi()-10;
@@ -585,13 +458,13 @@ public abstract class UIBoard extends Board implements Renderable {
 		drawFaces(g, v, 0, getStructureRadius(), FaceType.PIRATE_FORTRESS, outline);
 	}
 
-	void drawFaces(AGraphics g, IVector2D pos, float angle, float radius, FaceType structure, boolean outline) {
+    public void drawFaces(AGraphics g, IVector2D pos, float angle, float radius, FaceType structure, boolean outline) {
 	    //final float xRad = 3; // actual radius as defined above
 		//float scale = radius / xRad;
 		drawFaces(g, pos, angle, radius, radius, structure, outline);
 	}
 
-	private HashMap<FaceType, Face[]> faceMap = new HashMap<UIBoard.FaceType, UIBoard.Face[]>();
+	private HashMap<FaceType, Face[]> faceMap = new HashMap<UIBoardRenderer.FaceType, UIBoardRenderer.Face[]>();
 	
 	Face [] getStructureFaces(FaceType s) {
 		Face [] faces = faceMap.get(s);
@@ -638,18 +511,18 @@ public abstract class UIBoard extends Board implements Renderable {
 	
 	private int pickEdge(APGraphics g, int mouseX, int mouseY) {
 		g.begin();
-		for (int index=0; index<getNumRoutes(); index++) {
+		for (int index=0; index<getBoard().getNumRoutes(); index++) {
 			g.setName(index);
-			renderEdge(g, getRoute(index));
+			renderEdge(g, getBoard().getRoute(index));
 		}
 		return g.pickLines(mouseX, mouseY, this.roadLineThickness*2);
 	}
 	
 	private int pickVertex(APGraphics g, int mouseX, int mouseY) {
 		g.begin();
-		for (int index=0; index<getNumVerts(); index++) {
+		for (int index=0; index<getBoard().getNumVerts(); index++) {
 			g.setName(index);
-			Vertex v = getVertex(index);
+			Vertex v = getBoard().getVertex(index);
 			g.vertex(v);
 		}
 		return g.pickPoints(mouseX, mouseY, 10);
@@ -657,28 +530,28 @@ public abstract class UIBoard extends Board implements Renderable {
 	
 	private int pickTile(APGraphics g, int mouseX, int mouseY) {
 		g.begin();
-		final int dim = Math.round(getTileWidth() * getViewportWidth());
-		for (int index=0; index<getNumTiles(); index++) {
+		final int dim = Math.round(getBoard().getTileWidth() * component.getWidth());
+		for (int index=0; index<getBoard().getNumTiles(); index++) {
 			g.setName(index);
-			Tile cell = getTile(index);
+			Tile cell = getBoard().getTile(index);
 			g.vertex(cell);
 		}
 		return g.pickPoints(mouseX, mouseY, dim);
 	}
 	
 	private void renderEdge(AGraphics g, Route e) {
-		Vertex v0 = getVertex(e.getFrom());
-		Vertex v1 = getVertex(e.getTo());
+		Vertex v0 = getBoard().getVertex(e.getFrom());
+		Vertex v1 = getBoard().getVertex(e.getTo());
 		g.vertex(v0);
 		g.vertex(v1);
 	}
 	
 	private void renderDamagedEdge(AGraphics g, Route e) {
-		Vertex v0 = getVertex(e.getFrom());
-		Vertex v1 = getVertex(e.getTo());
+		Vertex v0 = getBoard().getVertex(e.getFrom());
+		Vertex v1 = getBoard().getVertex(e.getTo());
 		g.begin();
 		g.vertex(v0);
-		Vector2D v = getRouteMidpoint(e);
+		Vector2D v = getBoard().getRouteMidpoint(e);
 		g.vertex(v);
 		Vector2D dv = Vector2D.newTemp(v).subEq(v0).normEq().addEq(v);
 		g.vertex(dv);
@@ -770,8 +643,8 @@ public abstract class UIBoard extends Board implements Renderable {
 	}
 	
 	public int getEdgeAngle(Route e) {
-		Vertex v0 = getVertex(e.getFrom());
-		Vertex v1 = getVertex(e.getTo());
+		Vertex v0 = getBoard().getVertex(e.getFrom());
+		Vertex v1 = getBoard().getVertex(e.getTo());
 		if (v1.getX() < v0.getX()) {
 			Vertex t = v0;
 			v0 = v1;
@@ -781,29 +654,29 @@ public abstract class UIBoard extends Board implements Renderable {
 		// we want eight 60, 300 or 0
 		return ang;
 	}
-	
-	float getShipRadius() {
-		return getTileWidth()/(8*3);
+
+    public float getShipRadius() {
+		return getBoard().getTileWidth()/(8*3);
 	}
-	
-	float getRobberRadius() {
-		return getTileWidth()/(7*3);
+
+    public float getRobberRadius() {
+		return getBoard().getTileWidth()/(7*3);
 	}
-	
-	void drawShip(AGraphics g, Route e, boolean outline) {
-		IVector2D mp = getRouteMidpoint(e);
+
+    public void drawShip(AGraphics g, Route e, boolean outline) {
+		IVector2D mp = getBoard().getRouteMidpoint(e);
 		drawFaces(g, mp, getEdgeAngle(e), getShipRadius(), FaceType.SHIP, outline);
 	}
-	
-	void drawShip(AGraphics g, IVector2D v, int angle, boolean outline) {
+
+    public void drawShip(AGraphics g, IVector2D v, int angle, boolean outline) {
 		drawFaces(g, v, angle, getShipRadius(), FaceType.SHIP, outline);
 	}
 	
-	void drawWarShip(AGraphics g, Route e, boolean outline) {
-		IVector2D mp = getRouteMidpoint(e);
+	public void drawWarShip(AGraphics g, Route e, boolean outline) {
+		IVector2D mp = getBoard().getRouteMidpoint(e);
 		drawFaces(g, mp, getEdgeAngle(e), getShipRadius(), FaceType.WAR_SHIP, outline);
 	}
-	
+
 	public void drawRobber(AGraphics g, Tile cell) {
 		g.setColor(GColor.LIGHT_GRAY);
 		drawFaces(g, cell, 0, getRobberRadius(), FaceType.ROBBER, false);
@@ -827,20 +700,20 @@ public abstract class UIBoard extends Board implements Renderable {
 		}
 		this.pickHandler = handler;
 		pickedValue = -1;
-		repaint();
+		component.redraw();
 	}
 	
 	public void drawIslandOutlined(AGraphics g, int tileIndex) {
-		Collection<Integer> islandEdges = findIslandShoreline(tileIndex);
+		Collection<Integer> islandEdges = getBoard().findIslandShoreline(tileIndex);
 		g.begin();
     	for (int eIndex : islandEdges) {
-    		renderEdge(g, getRoute(eIndex));
+    		renderEdge(g, getBoard().getRoute(eIndex));
     	}
     	g.drawLines(5);
 
-    	Tile cell = getTile(tileIndex);
+    	Tile cell = getBoard().getTile(tileIndex);
     	if (cell.getIslandNum() > 0) {
-    		drawIslandInfo(g, getIsland(cell.getIslandNum()));
+    		drawIslandInfo(g, getBoard().getIsland(cell.getIslandNum()));
     	}
 	}
 	
@@ -848,25 +721,25 @@ public abstract class UIBoard extends Board implements Renderable {
 		g.begin();
 		g.setColor(GColor.BLUE);
     	for (int eIndex : i.getShoreline()) {
-    		renderEdge(g, getRoute(eIndex));
+    		renderEdge(g, getBoard().getRoute(eIndex));
     	}
     	g.drawLines(5);
     	MutableVector2D midpoint = new MutableVector2D();
     	int num = 0;
     	for (int eIndex : i.getShoreline()) {
-    		midpoint.addEq(getRouteMidpoint(getRoute(eIndex)));
+    		midpoint.addEq(getBoard().getRouteMidpoint(getBoard().getRoute(eIndex)));
     		num++;
     	}
     	midpoint.scaleEq(1.0f / num);
     	g.transform(midpoint);
     	String txt = "ISLAND\n" + i.getNum();
-        GRectangle dim = g.getTextDimension(txt, Float.POSITIVE_INFINITY);
+        GDimension dim = g.getTextDimension(txt, Float.POSITIVE_INFINITY);
     	g.setColor(new GColor(0,0,0,0.5f));
-    	int x = midpoint.Xi() - (dim.width/2+5);
-    	int y = midpoint.Yi() - (dim.height/2+5);
-    	int w = dim.width + 10;
-    	int h = dim.height + 10;
-    	g.drawFilledRect(x, y, w, h);
+    	float x = midpoint.X() - (dim.width/2+5);
+    	float y = midpoint.Y() - (dim.height/2+5);
+    	float w = dim.width + 10;
+    	float h = dim.height + 10;
+    	g.drawFilledRectf(x, y, w, h);
     	g.setColor(GColor.WHITE);
     	g.drawJustifiedString( midpoint.Xi(), midpoint.Yi(), Justify.CENTER, Justify.CENTER, txt);
 	}
@@ -877,8 +750,8 @@ public abstract class UIBoard extends Board implements Renderable {
         
         float [] v = {0,0};
         
-        for (int i=0; i <getNumTiles(); i++) {
-            Tile cell = getTile(i);
+        for (int i=0; i <getBoard().getNumTiles(); i++) {
+            Tile cell = getBoard().getTile(i);
             g.transform(cell.getX(), cell.getY(), v);
             int x = Math.round(v[0]);
             int y = Math.round(v[1]);
@@ -937,22 +810,22 @@ public abstract class UIBoard extends Board implements Renderable {
     public final static int TILE_CELL_NUM_RADIUS = 20;
     
     private void drawTilesTextured(AGraphics g) {
-        float cellW = getTileWidth();
-        float cellH = getTileHeight();
-        int dim = Math.min(getViewportWidth(), getViewportHeight());
-        int w = Math.round(cellW / bw * (dim-padding));
-        int h = Math.round(cellH / bh * (dim-padding));
-        float [] v = {0,0};
+        Vector2D cellD = new Vector2D(getBoard().getTileWidth(), getBoard().getTileHeight()).scaledBy(0.5f);
+//        float cellW = getBoard().getTileWidth();
+//        float cellH = getBoard().getTileHeight();
+//        float dim = Math.min(component.getWidth(), component.getHeight());
+//        float w = cellW / bw * (dim-padding);
+//        float h = cellH / bh * (dim-padding);
 
         //GColor outlineColor = getProperties().getColorProperty("outlineColor", GColor.WHITE);
         //GColor textColor = getProperties().getColorProperty("textcolor", GColor.CYAN);
 
         g.setTextStyles(AGraphics.TextStyle.BOLD);
-        for (int i=0; i <getNumTiles(); i++) {
-            Tile cell = getTile(i);
-            g.transform(cell.getX(), cell.getY(), v);
-            int x = Math.round(v[0]);
-            int y = Math.round(v[1]);
+
+        for (int i=0; i <getBoard().getNumTiles(); i++) {
+            Tile cell = getBoard().getTile(i);
+            Vector2D v0 = new Vector2D(cell).sub(cellD);
+            Vector2D v1 = new Vector2D(cell).add(cellD);
             switch (cell.getType()) {
             case NONE:
                 g.setColor(outlineColorLight);
@@ -960,31 +833,31 @@ public abstract class UIBoard extends Board implements Renderable {
                 //Utils.drawJustifiedString(g,x,y,Justify.CENTER,Justify.CENTER,"NONE");
                 break;
             case DESERT:
-                g.drawImage(desertImage, x-w/2, y-h/2, w, h);
+                g.drawImage(desertImage, v0, v1);
                 break;
             case WATER:
-                g.drawImage(waterImage, x-w/2, y-h/2, w, h);
+                g.drawImage(waterImage, v0, v1);
                 break;
             case PORT_WHEAT:
             case PORT_WOOD:
             case PORT_BRICK:
             case PORT_ORE:
             case PORT_SHEEP:
-                g.drawImage(waterImage, x-w/2, y-h/2, w, h);
+                g.drawImage(waterImage, v0, v1);
                 g.setColor(textColor);
-                g.drawJustifiedString(x,y,Justify.CENTER,Justify.CENTER,"2:1\n" + cell.getResource().name());
+                g.drawJustifiedString(cell.getX(),cell.getY(),Justify.CENTER,Justify.CENTER,"2:1\n" + cell.getResource().name());
                 break;
             case PORT_MULTI:
-                g.drawImage(waterImage, x-w/2, y-h/2, w, h);
+                g.drawImage(waterImage, v0, v1);
                 g.setColor(textColor);
-                g.drawJustifiedString(x,y,Justify.CENTER,Justify.CENTER,"3:1\n?");
+                g.drawJustifiedString(cell.getX(),cell.getY(),Justify.CENTER,Justify.CENTER,"3:1\n?");
                 break;
             case GOLD:
-            	g.drawImage(goldImage, x-w/2, y-h/2, w, h);
+            	g.drawImage(goldImage, v0, v1);
             	break;
 
             case UNDISCOVERED:
-            	g.drawImage(undiscoveredImage, x-w/2, y-h/2, w, h);
+            	g.drawImage(undiscoveredImage, v0, v1);
             	break;
 
             // used for random generation
@@ -992,58 +865,59 @@ public abstract class UIBoard extends Board implements Renderable {
                 g.setColor(outlineColorLight);
                 drawTileOutline(g, cell, 2);
                 g.setColor(textColor);
-                g.drawJustifiedString(x,y,Justify.CENTER,Justify.CENTER,"Random\nResourse or\nDesert");
+                g.drawJustifiedString(cell.getX(), cell.getY(),Justify.CENTER,Justify.CENTER,"Random\nResourse or\nDesert");
                 break;
             case RANDOM_RESOURCE:
                 g.setColor(outlineColorLight);
                 drawTileOutline(g, cell, 2);
                 g.setColor(textColor);
-                g.drawJustifiedString(x,y,Justify.CENTER,Justify.CENTER,"Random\nResource");
+                g.drawJustifiedString(cell.getX(),cell.getY(),Justify.CENTER,Justify.CENTER,"Random\nResource");
                 break;
             case RANDOM_PORT_OR_WATER:
                 g.setColor(outlineColorLight);
                 drawTileOutline(g, cell, 2);
                 g.setColor(textColor);
-                g.drawJustifiedString(x,y,Justify.CENTER,Justify.CENTER,"Random Port\nor\nWater");
+                g.drawJustifiedString(cell.getX(),cell.getY(),Justify.CENTER,Justify.CENTER,"Random Port\nor\nWater");
                 break;
             case RANDOM_PORT:
                 g.setColor(outlineColorLight);
                 drawTileOutline(g, cell, 2);
                 g.setColor(textColor);
-                g.drawJustifiedString(x,y,Justify.CENTER,Justify.CENTER,"Random\nPort");
+                g.drawJustifiedString(cell.getX(),cell.getY(),Justify.CENTER,Justify.CENTER,"Random\nPort");
                 break;
             case FIELDS:
-            	g.drawImage(fieldshexImage, x-w/2, y-h/2, w, h);
+            	g.drawImage(fieldshexImage, v0, v1);
 				break;
 			case FOREST:
-				g.drawImage(foresthexImage, x-w/2, y-h/2, w, h);
+				g.drawImage(foresthexImage, v0, v1);
 				break;
 			case HILLS:
-				g.drawImage(hillshexImage, x-w/2, y-h/2, w, h);
+				g.drawImage(hillshexImage, v0, v1);
 				break;
 			case MOUNTAINS:
-				g.drawImage(mountainshexImage, x-w/2, y-h/2, w, h);
+				g.drawImage(mountainshexImage, v0, v1);
 				break;
 			case PASTURE:
-				g.drawImage(pastureshexImage, x-w/2, y-h/2, w, h);
+				g.drawImage(pastureshexImage, v0, v1);
 				break;                
             }
             
             if (cell.getDieNum() > 0) {
-            	drawCellProductionValue(g, x, y, cell.getDieNum(), TILE_CELL_NUM_RADIUS);
+            	drawCellProductionValue(g, cell.getX(),cell.getY(), cell.getDieNum(), TILE_CELL_NUM_RADIUS);
             }
         }   
     }
 
-    public void onClick() {
+    @Override
+    public void doClick() {
         if (pickedValue >= 0) {
             pickHandler.onPick(this, pickedValue);
-            repaint();
+            component.redraw();
             pickedValue = -1;
         }
     }
 
-    public void drawCellProductionValue(AGraphics g, int x, int y, int num, int radius) {
+    public void drawCellProductionValue(AGraphics g, float x, float y, int num, float radius) {
         g.setColor(GColor.BLACK);
         g.drawFilledCircle(x, y+1, radius);
         g.setColor(GColor.CYAN);
@@ -1055,11 +929,11 @@ public abstract class UIBoard extends Board implements Renderable {
         float ymin = Float.MAX_VALUE;
         float xmax = Float.MIN_VALUE;
         float ymax = Float.MIN_VALUE;
-        for (int i=0 ;i<getNumTiles(); i++) {
-            Tile cell = getTile(i);
+        for (int i=0 ;i<getBoard().getNumTiles(); i++) {
+            Tile cell = getBoard().getTile(i);
             if (cell.getType() != TileType.NONE) {
                 for (int ii : cell.getAdjVerts()) {
-                    Vertex v = getVertex(ii);
+                    Vertex v = getBoard().getVertex(ii);
                     xmin = Math.min(v.getX(), xmin);
                     ymin = Math.min(v.getY(), ymin);
                     xmax = Math.max(v.getX(), xmax);
@@ -1074,39 +948,42 @@ public abstract class UIBoard extends Board implements Renderable {
     }
     
     private float bx, by, bw, bh;
-    boolean gotAssets = false;
-    
-	public void draw(APGraphics g, int pickX, int pickY) {
 
-	    if (!gotAssets) {
-	        initAssets(g);
-	        gotAssets = true;
-        }
+	public void draw(APGraphics g, int pickX, int pickY) {
 
         doPick(g, pickX, pickY);
 
+	    final int width = component.getWidth();
+	    final int height = component.getHeight();
+	    final Board board = getBoard();
+
+	    g.setTextHeight(textSize);
+	    g.pushMatrix();
         try {
-    	    if (getViewportWidth() <= padding+5 || getViewportHeight() <= padding+5)
+    	    if (width <= padding+5 || height <= padding+5)
     	        return;
 
-
-    	    
     	    long enterTime = System.currentTimeMillis();
     	    
     	    computeBoardRect();
+    	    g.clearScreen(bkColor);
+    	    /*
     		g.setColor(bkColor);
-    		g.drawFilledRect(0,0,getViewportWidth(),getViewportHeight());
-    		//float xs = (float)getViewportWidth();
-    		//float ys = (float)getViewportHeight();
-    		g.ortho(0, getViewportWidth(), 0, getViewportHeight());
+    		g.drawFilledRect(0,0, width, height);
+    		//float xs = (float)getWidth();
+    		//float ys = (float)getHeight();
+    		g.ortho(0, width, 0, height);
     		g.setIdentity();
     		g.translate(padding, padding);
-    		float dim = Math.min(getViewportWidth(),  getViewportHeight()); // TODO: keep aspect ratio and center
-    		g.translate((getViewportWidth()-dim)/2, (getViewportHeight()-dim)/2);
+    		float dim = Math.min(width, height); // TODO: keep aspect ratio and center
+    		g.translate((width-dim)/2, (height-dim)/2);
     		g.scale(1f/bw, 1f/bh);
     		g.scale(dim-2*padding, dim-2*padding);
             g.translate(-bx, -by);
-            //g.translate(bx, by);
+            //g.translate(bx, by);*/
+
+    	    g.ortho(0, 1, 0, 1);
+
             if (!getRenderFlag(RenderFlag.DONT_DRAW_TEXTURES)) {
                 drawTilesTextured(g);
             } 
@@ -1116,7 +993,7 @@ public abstract class UIBoard extends Board implements Renderable {
             }
 
             if (pickMode == PickMode.PM_TILE) {
-                for (int i=0; i<getNumTiles(); i++) {
+                for (int i=0; i<board.getNumTiles(); i++) {
                 	if (pickHandler.isPickableIndex(this, i)) {
                 		if (i == pickedValue) {
                 			pickHandler.onHighlighted(this, g, i);
@@ -1129,7 +1006,7 @@ public abstract class UIBoard extends Board implements Renderable {
             
             if (!getRenderFlag(RenderFlag.DONT_DRAW_ROADS)) {
         		// draw the roads
-                for (int i=0; i<getNumRoutes(); i++) {
+                for (int i=0; i<board.getNumRoutes(); i++) {
                 	if (pickMode == PickMode.PM_EDGE) {
                     	if (pickHandler.isPickableIndex(this, i)) {
                     		if (i == pickedValue) {
@@ -1140,7 +1017,7 @@ public abstract class UIBoard extends Board implements Renderable {
                     		continue;
                     	} 
                     }
-                	Route e = getRoute(i);
+                	Route e = board.getRoute(i);
         			g.setColor(getPlayerColor(e.getPlayer()));
         			drawEdge(g, e, e.getType(), e.getPlayer(), false);
         		}
@@ -1148,7 +1025,7 @@ public abstract class UIBoard extends Board implements Renderable {
     		
     		// draw the structures
             if (!getRenderFlag(RenderFlag.DONT_DRAW_STRUCTURES)) {
-        		for (int i=0; i<getNumVerts(); i++) {
+        		for (int i=0; i<board.getNumVerts(); i++) {
         			if (pickMode == PickMode.PM_VERTEX) {
         				if (pickHandler.isPickableIndex(this, i)) {
                     		if (i == pickedValue) {
@@ -1159,7 +1036,7 @@ public abstract class UIBoard extends Board implements Renderable {
                     		continue;
         				}
         			}
-        			Vertex v = getVertex(i);
+        			Vertex v = board.getVertex(i);
         			drawVertex(g, v, v.getType(), v.getPlayer(), false);
         		}
             }
@@ -1175,21 +1052,21 @@ public abstract class UIBoard extends Board implements Renderable {
             	}
             }
     		
-    		int robberTile = getRobberTileIndex();
-    		int pirateTile = getPirateTileIndex();
-    		int merchantTile = getMerchantTileIndex();
-    		int merchantPlayer = getMerchantPlayer();
+    		int robberTile = board.getRobberTileIndex();
+    		int pirateTile = board.getPirateTileIndex();
+    		int merchantTile = board.getMerchantTileIndex();
+    		int merchantPlayer = board.getMerchantPlayer();
     		
             if (pickedValue >= 0) {
             	pickHandler.onHighlighted(this, g, pickedValue);
             }
 
     		if (robberTile >= 0)
-    		    drawRobber(g, getTile(robberTile));
+    		    drawRobber(g, board.getTile(robberTile));
     		if (pirateTile >= 0)
-    			drawPirate(g, getTile(pirateTile));
+    			drawPirate(g, board.getTile(pirateTile));
     		if (merchantTile >= 0)
-    			drawMerchant(g, getTile(merchantTile), merchantPlayer);
+    			drawMerchant(g, board.getTile(merchantTile), merchantPlayer);
     		
     		if (pickMode != PickMode.PM_NONE)
     			pickHandler.onDrawOverlay(this, g);
@@ -1219,8 +1096,8 @@ public abstract class UIBoard extends Board implements Renderable {
     		}
     		
     		if (getRenderFlag(RenderFlag.DRAW_CELL_CENTERS)) {
-    		    for (int i=0; i<getNumTiles(); i++) {
-    		        Tile c = getTile(i);
+    		    for (int i=0; i<board.getNumTiles(); i++) {
+    		        Tile c = board.getTile(i);
     		        g.vertex(c.getX(), c.getY());
     		    }
     		    g.setColor(GColor.YELLOW);
@@ -1230,8 +1107,8 @@ public abstract class UIBoard extends Board implements Renderable {
     		if (getRenderFlag(RenderFlag.NUMBER_CELLS)) {
     		    g.setColor(GColor.RED);
     		    float [] v = {0,0};
-    		    for (int i=0; i<getNumTiles(); i++) {
-    		        Tile c = getTile(i);
+    		    for (int i=0; i<board.getNumTiles(); i++) {
+    		        Tile c = board.getTile(i);
     		        g.transform(c.getX(), c.getY(), v);
     		        g.drawJustifiedString( Math.round(v[0]), Math.round(v[1])+5, Justify.CENTER, Justify.TOP, String.valueOf(i));
     		    }
@@ -1240,8 +1117,8 @@ public abstract class UIBoard extends Board implements Renderable {
     		if (getRenderFlag(RenderFlag.NUMBER_VERTS)) {
                 g.setColor(GColor.WHITE);
                 float []v = {0,0};
-                for (int i=0; i<getNumVerts(); i++) {
-                    Vertex vx = getVertex(i);
+                for (int i=0; i<board.getNumVerts(); i++) {
+                    Vertex vx = board.getVertex(i);
                     g.transform(vx.getX(), vx.getY(), v);
                     g.drawJustifiedString( Math.round(v[0]), Math.round(v[1]), Justify.CENTER, Justify.TOP, String.valueOf(i));
                 }
@@ -1249,16 +1126,16 @@ public abstract class UIBoard extends Board implements Renderable {
     		
     		if (getRenderFlag(RenderFlag.NUMBER_EDGES)) {
     		    g.setColor(GColor.YELLOW);
-    		    for (int i=0; i<getNumRoutes(); i++) {
-    		        Route e = getRoute(i);
-    		        MutableVector2D m = new MutableVector2D(getRouteMidpoint(e));
+    		    for (int i=0; i<board.getNumRoutes(); i++) {
+    		        Route e = board.getRoute(i);
+    		        MutableVector2D m = new MutableVector2D(board.getRouteMidpoint(e));
     		        g.transform(m);
     		        g.drawJustifiedString( Math.round(m.getX()), Math.round(m.getY()), Justify.CENTER, Justify.TOP, String.valueOf(i));
     		    }
     		}
     		
     		if (getRenderFlag(RenderFlag.SHOW_ISLAND_INFO)) {
-    			for (Island i : getIslands()) {
+    			for (Island i : board.getIslands()) {
     				drawIslandInfo(g, i);
     			}
     		}
@@ -1288,7 +1165,7 @@ public abstract class UIBoard extends Board implements Renderable {
         		    if (delta >= 33)
         		        break;
         		} while (true);
-                repaint();
+                component.redraw();
     		}
     		
     		// notify anyone waiting on me
@@ -1298,18 +1175,8 @@ public abstract class UIBoard extends Board implements Renderable {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        g.popMatrix();
 	}
-	/*
-	@Override
-	public Dimension getMinimumSize() {
-		return new Dimension(256,256);
-	}
-
-    @Override
-	public void mouseDragged(MouseEvent ev) {
-		mouseMoved(ev);
-		mouseClicked(ev);
-	}*/
 
 	private void doPick(APGraphics g, int pickX, int pickY) {
 		int index = -1;
@@ -1358,17 +1225,17 @@ public abstract class UIBoard extends Board implements Renderable {
         final int padding = 5;
         int width = maxW + padding*2;
         int height = lines.length * g.getTextHeight() + 2*padding;
-        g.setColor(GColor.DARK_GRAY.setAlpha(180));
+        g.setColor(GColor.DARK_GRAY.withAlpha(180));
         g.drawFilledRect(x, y, width, height);
         g.setColor(GColor.WHITE);
         y -= 2; // slight visual adjustment to center vertically
         
         // make sure we dont draw off screen
-        if (x + width > getViewportWidth()) {
-            x = getViewportWidth() - width;
+        if (x + width > component.getWidth()) {
+            x = component.getWidth() - width;
         }
-        if (y + height > getViewportHeight()) {
-            y = getViewportHeight() - height;
+        if (y + height > component.getHeight()) {
+            y = component.getHeight() - height;
         }
         
         for (int i=0; i<lines.length; i++) {
@@ -1380,7 +1247,7 @@ public abstract class UIBoard extends Board implements Renderable {
     private void drawTileInfo(AGraphics g, int cellIndex) {
         if (cellIndex < 0)
             return;
-        Tile cell = getTile(cellIndex);
+        Tile cell = getBoard().getTile(cellIndex);
         String info = "CELL " + cellIndex + "\n  " + cell.getType() + "\nadj:" + cell.getAdjVerts();
         if (cell.getResource() != null) {
             info += "\n  " + cell.getResource();
@@ -1400,7 +1267,7 @@ public abstract class UIBoard extends Board implements Renderable {
     private void drawEdgeInfo(AGraphics g, int edgeIndex) {
         if (edgeIndex < 0)
             return;
-        Route edge = getRoute(edgeIndex);
+        Route edge = getBoard().getRoute(edgeIndex);
         String info = "EDGE " + edgeIndex;
         if (edge.getPlayer() > 0)
             info += "\n  Player " + edge.getPlayer();
@@ -1408,7 +1275,7 @@ public abstract class UIBoard extends Board implements Renderable {
         info += "\n  ang=" + getEdgeAngle(edge);
         info += "\n  tiles=" + edge.getTile(0) + "/" + edge.getTile(1);
         
-        MutableVector2D m = new MutableVector2D(getRouteMidpoint(edge));
+        MutableVector2D m = new MutableVector2D(getBoard().getRouteMidpoint(edge));
         g.transform(m);
         
         drawInfo(g, Math.round(m.getX()), Math.round(m.getY()), info);
@@ -1417,7 +1284,7 @@ public abstract class UIBoard extends Board implements Renderable {
     private void drawVertexInfo(AGraphics g, int vertexIndex) {
         if (vertexIndex < 0)
             return;
-        Vertex vertex = getVertex(vertexIndex);
+        Vertex vertex = getBoard().getVertex(vertexIndex);
         String info = "VERTEX " + vertexIndex;
         if (vertex.isAdjacentToWater())
         	info += " WAT";
@@ -1428,7 +1295,7 @@ public abstract class UIBoard extends Board implements Renderable {
                     "City +2" : 
                     "Settlement +1");
         } else {
-            int pNum = checkForPlayerRouteBlocked(vertexIndex);
+            int pNum = getBoard().checkForPlayerRouteBlocked(vertexIndex);
             info += "\n  Blocks player " + pNum + "'s roads";
         }
         Vector2D v = g.transform(vertex);

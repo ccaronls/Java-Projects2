@@ -89,12 +89,20 @@ public class Vector2D extends Reflector<Vector2D> implements IVector2D, Serializ
         return add(v, newTemp());
     }
 
+    public final MutableVector2D add(float x, float y) {
+        return new MutableVector2D(this.x + x, this.y + y);
+    }
+
     public final MutableVector2D sub(IVector2D v, MutableVector2D out) {
         return out.set(x-v.getX(), y-v.getY());
     }
 
     public final MutableVector2D sub(IVector2D v) {
         return sub(v, newTemp());
+    }
+
+    public final MutableVector2D sub(float x, float y) {
+        return new MutableVector2D(this.x - x, this.y - y);
     }
 
     public final float dot(IVector2D v) {

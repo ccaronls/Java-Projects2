@@ -1,9 +1,12 @@
 package cc.game.soc.ui;
 
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 
+import cc.game.soc.core.BotNode;
 import cc.game.soc.core.Card;
+import cc.game.soc.core.CardType;
 import cc.game.soc.core.Dice;
 import cc.game.soc.core.MoveType;
 import cc.game.soc.core.Player;
@@ -14,32 +17,39 @@ import cc.game.soc.core.Trade;
 import cc.game.soc.core.Vertex;
 import cc.lib.game.APGraphics;
 import cc.lib.game.GColor;
+import cc.lib.game.Utils;
 import cc.lib.math.MutableVector2D;
 
 /**
  * Created by chriscaron on 2/22/18.
  */
 
-public abstract class UISOC extends SOC {
+public abstract class UISOC extends SOC implements MenuItem.Action {
+
+    private static Logger log = LoggerFactory.getLogger(UISOC.class);
 
     private static UISOC instance = null;
 
-    protected UISOC() {
+    private final UIBoardRenderer boardComp;
+    private final UIDiceRenderer[] diceComps;
+    private Object returnValue = null;
+    private final Object waitObj = new Object();
+
+    protected UISOC(UIBoardRenderer comp, UIDiceRenderer[] diceComps) {
         if (instance != null)
             throw new RuntimeException();
         instance = this;
+        this.boardComp = comp;
+        this.diceComps = diceComps;
     }
 
     public static UISOC getInstance() {
         return instance;
     }
 
-    public UIBoardComponent getUIBoard() {
-        return (UIBoardComponent)getBoard();
+    public UIBoardRenderer getUIBoard() {
+        return boardComp;
     }
-
-    Object returnValue = null;
-    final Object waitObj = new Object();
 
     public void setReturnValue(Object o) {
         returnValue = o;
@@ -48,34 +58,54 @@ public abstract class UISOC extends SOC {
         }
     }
 
+    public final boolean isRunning() {
+        return running;
+    }
+
     private UIProperties properties = new UIProperties();
 
     public final UIProperties getProps() {
         return properties;
     }
 
-    public abstract void clearMenu();
+    public final MoveType chooseMoveMenu(Collection<MoveType> moves) {
+        clearMenu();
+        Iterator<MoveType> it = moves.iterator();
+        while (it.hasNext()) {
+            MoveType move = it.next();
+            addMenuItem(CHOOSE_MOVE, move.getNiceText(), move.getHelpText(getRules()), move);
+        }
+        completeMenu();
+        return waitForReturnValue(null);
+    }
 
-    public abstract MoveType chooseMoveMenu(Collection<MoveType> moves);
-
-    public abstract Player.RouteChoiceType chooseRouteType();
+    protected final Player.RouteChoiceType chooseRouteType(){
+        clearMenu();
+        addMenuItem(CHOOSE_ROAD, "Roads", "View road options", Player.RouteChoiceType.ROAD_CHOICE);
+        addMenuItem(CHOOSE_ROAD, "Ships", "View ship options", Player.RouteChoiceType.SHIP_CHOICE);
+        completeMenu();
+        return waitForReturnValue(null);
+    }
 
     public GColor getPlayerColor(int playerNum) {
-        return ((UIPlayer)getPlayerByPlayerNum(playerNum)).getColor();
+        UIPlayer p = (UIPlayer)getPlayerByPlayerNum(playerNum);
+        if (p != null)
+            return p.getColor();
+        return GColor.BLACK;
     }
 
     public Vertex chooseVertex(final Collection<Integer> vertexIndices, final int playerNum, final Player.VertexChoice choice) {
         clearMenu();
-        getUIBoard().setPickHandler(new UIBoardComponent.PickHandler() {
+        getUIBoard().setPickHandler(new PickHandler() {
 
             @Override
-            public void onPick(UIBoardComponent b, int pickedValue) {
+            public void onPick(UIBoardRenderer b, int pickedValue) {
                 b.setPickHandler(null);
                 setReturnValue(getBoard().getVertex(pickedValue));
             }
 
             @Override
-            public void onHighlighted(UIBoardComponent b, APGraphics g, int highlightedIndex) {
+            public void onHighlighted(UIBoardRenderer b, APGraphics g, int highlightedIndex) {
                 Vertex v = getBoard().getVertex(highlightedIndex);
                 g.setColor(getPlayerColor(getCurPlayerNum()));
                 switch (choice) {
@@ -128,7 +158,7 @@ public abstract class UISOC extends SOC {
             }
 
             @Override
-            public void onDrawPickable(UIBoardComponent b, APGraphics g, int index) {
+            public void onDrawPickable(UIBoardRenderer b, APGraphics g, int index) {
                 Vertex v = getBoard().getVertex(index);
                 GColor color = getPlayerColor(getCurPlayerNum()).withAlpha(120);
                 g.setColor(color);
@@ -184,17 +214,17 @@ public abstract class UISOC extends SOC {
             }
 
             @Override
-            public void onDrawOverlay(UIBoardComponent b, APGraphics g) {
+            public void onDrawOverlay(UIBoardRenderer b, APGraphics g) {
             }
 
             @Override
-            public boolean isPickableIndex(UIBoardComponent b, int index) {
+            public boolean isPickableIndex(UIBoardRenderer b, int index) {
                 return vertexIndices.contains(index);
             }
 
             @Override
-            public UIBoardComponent.PickMode getPickMode() {
-                return UIBoardComponent.PickMode.PM_VERTEX;
+            public PickMode getPickMode() {
+                return PickMode.PM_VERTEX;
             }
         });
         completeMenu();
@@ -203,16 +233,16 @@ public abstract class UISOC extends SOC {
 
     public Route chooseRoute(final Collection<Integer> edges, final Player.RouteChoice choice) {
         clearMenu();
-        getUIBoard().setPickHandler(new UIBoardComponent.PickHandler() {
+        getUIBoard().setPickHandler(new PickHandler() {
 
             @Override
-            public void onPick(UIBoardComponent b, int pickedValue) {
+            public void onPick(UIBoardRenderer b, int pickedValue) {
                 b.setPickHandler(null);
                 setReturnValue(getBoard().getRoute(pickedValue));
             }
 
             @Override
-            public void onHighlighted(UIBoardComponent b, APGraphics g, int highlightedIndex) {
+            public void onHighlighted(UIBoardRenderer b, APGraphics g, int highlightedIndex) {
                 Route route = getBoard().getRoute(highlightedIndex);
                 g.setColor(getPlayerColor(getCurPlayerNum()));
                 switch (choice) {
@@ -237,7 +267,7 @@ public abstract class UISOC extends SOC {
             }
 
             @Override
-            public void onDrawPickable(UIBoardComponent b, APGraphics g, int index) {
+            public void onDrawPickable(UIBoardRenderer b, APGraphics g, int index) {
                 Route route = getBoard().getRoute(index);
                 g.setColor(getPlayerColor(getCurPlayerNum()).withAlpha(120));
                 switch (choice) {
@@ -262,19 +292,19 @@ public abstract class UISOC extends SOC {
             }
 
             @Override
-            public void onDrawOverlay(UIBoardComponent b, APGraphics g) {
+            public void onDrawOverlay(UIBoardRenderer b, APGraphics g) {
                 // TODO Auto-generated method stub
 
             }
 
             @Override
-            public boolean isPickableIndex(UIBoardComponent b, int index) {
+            public boolean isPickableIndex(UIBoardRenderer b, int index) {
                 return edges.contains(index);
             }
 
             @Override
-            public UIBoardComponent.PickMode getPickMode() {
-                return UIBoardComponent.PickMode.PM_EDGE;
+            public PickMode getPickMode() {
+                return PickMode.PM_EDGE;
             }
         });
         completeMenu();
@@ -288,19 +318,19 @@ public abstract class UISOC extends SOC {
         final int merchantTilePlayer = getBoard().getMerchantPlayer();
         getBoard().setRobber(-1);
         getBoard().setMerchant(-1, 0);
-        getUIBoard().setPickHandler(new UIBoardComponent.PickHandler() {
+        getUIBoard().setPickHandler(new PickHandler() {
 
             @Override
-            public void onPick(UIBoardComponent b, int pickedValue) {
+            public void onPick(UIBoardRenderer b, int pickedValue) {
                 b.setPickHandler(null);
-                b.setRobberTile(robberTile);
-                b.setMerchant(merchantTileIndex, merchantTilePlayer);
+                getBoard().setRobberTile(robberTile);
+                getBoard().setMerchant(merchantTileIndex, merchantTilePlayer);
                 setReturnValue(getBoard().getTile(pickedValue));
             }
 
             @Override
-            public void onHighlighted(UIBoardComponent b, APGraphics g, int highlightedIndex) {
-                Tile t = b.getTile(highlightedIndex);
+            public void onHighlighted(UIBoardRenderer b, APGraphics g, int highlightedIndex) {
+                Tile t = getBoard().getTile(highlightedIndex);
                 switch (choice) {
                     case INVENTOR:
                         g.setColor(GColor.YELLOW);
@@ -320,31 +350,31 @@ public abstract class UISOC extends SOC {
             }
 
             @Override
-            public void onDrawPickable(UIBoardComponent b, APGraphics g, int index) {
-                Tile t = b.getTile(index);
+            public void onDrawPickable(UIBoardRenderer b, APGraphics g, int index) {
+                Tile t = getBoard().getTile(index);
                 //g.setColor(Color.RED);
                 //bc.drawTileOutline(g, t, 1)
                 MutableVector2D v = g.transform(t);
                 g.setColor(GColor.RED);
-                g.drawFilledCircle(v.Xi(), v.Yi(), UIBoardComponent.TILE_CELL_NUM_RADIUS+10);
+                g.drawFilledCircle(v.Xi(), v.Yi(), UIBoardRenderer.TILE_CELL_NUM_RADIUS+10);
                 if (t.getDieNum() > 0)
-                    b.drawCellProductionValue(g, v.Xi(), v.Yi(), t.getDieNum(), UIBoardComponent.TILE_CELL_NUM_RADIUS);//drawTileOutline(g, cell, borderThickness);
+                    b.drawCellProductionValue(g, v.Xi(), v.Yi(), t.getDieNum(), UIBoardRenderer.TILE_CELL_NUM_RADIUS);//drawTileOutline(g, cell, borderThickness);
             }
 
             @Override
-            public void onDrawOverlay(UIBoardComponent b, APGraphics g) {
+            public void onDrawOverlay(UIBoardRenderer b, APGraphics g) {
                 // TODO Auto-generated method stub
 
             }
 
             @Override
-            public boolean isPickableIndex(UIBoardComponent b, int index) {
+            public boolean isPickableIndex(UIBoardRenderer b, int index) {
                 return tiles.contains(index);
             }
 
             @Override
-            public UIBoardComponent.PickMode getPickMode() {
-                return UIBoardComponent.PickMode.PM_TILE;
+            public PickMode getPickMode() {
+                return PickMode.PM_TILE;
             }
         });
         completeMenu();
@@ -352,13 +382,63 @@ public abstract class UISOC extends SOC {
 
     }
 
-    public abstract Trade chooseTradeMenu(Collection<Trade> trades);
+    public final Trade chooseTradeMenu(Collection<Trade> trades){
+        clearMenu();
+        Iterator<Trade> it = trades.iterator();
+        while (it.hasNext()) {
+            Trade trade = it.next();
+            String str = trade.getType().name() + " X " + trade.getAmount();
+            addMenuItem(CHOOSE_TRADE, str, null, trade);
+        }
+        completeMenu();
+        return waitForReturnValue(null);
+    }
 
-    public abstract Player choosePlayerMenu(Collection<Integer> players, Player.PlayerChoice mode);
+    public final Player choosePlayerMenu(Collection<Integer> players, Player.PlayerChoice mode) {
+        clearMenu();
+        for (int num : players) {
+            Player player = getPlayerByPlayerNum(num);
+            switch (mode) {
+                case PLAYER_FOR_DESERTION: {
+                    int numKnights = getBoard().getNumKnightsForPlayer(player.getPlayerNum());
+                    addMenuItem(CHOOSE_PLAYER, player.getName() + " X " + numKnights + " Knights", null, player);
+                    break;
+                }
+                case PLAYER_TO_SPY_ON:
+                    addMenuItem(CHOOSE_PLAYER, player.getName() + " X " + player.getUnusedCardCount(CardType.Progress) + " Progress Cards", null, player);
+                    break;
+                default:
+                    System.err.println("ERROR: Unhandled case '" + mode + "'");
+                case PLAYER_TO_FORCE_HARBOR_TRADE:
+                case PLAYER_TO_GIFT_CARD:
+                case PLAYER_TO_TAKE_CARD_FROM:
+                    addMenuItem(CHOOSE_PLAYER, player.getName() + " X " + player.getTotalCardsLeftInHand() + " Cards", null, player);
+                    break;
+            }
+        }
+        completeMenu();
+        return waitForReturnValue(null);
+    }
 
-    public abstract Card chooseCardMenu(Collection<Card> cards);
+    public final Card chooseCardMenu(Collection<Card> cards) {
+        clearMenu();
+        for (Card type : cards) {
+            addMenuItem(CHOOSE_CARD, type.getName(), type.getHelpText(getRules()), type);
+        }
+        completeMenu();
+        return waitForReturnValue(null);
+    }
 
-    public abstract <T extends Enum<T>> T chooseEnum(List<T> ts);
+    public final <T extends Enum<T>> T chooseEnum(List<T> choices) {
+        clearMenu();
+        Iterator<T> it = choices.iterator();
+        while (it.hasNext()) {
+            Enum<T> choice= it.next();
+            addMenuItem(CHOOSE_MOVE, choice.name(), null, choice);
+        }
+        completeMenu();
+        return waitForReturnValue(null);
+    }
 
     @SuppressWarnings("unchecked")
     public <T> T waitForReturnValue(T defaultValue) {
@@ -374,40 +454,69 @@ public abstract class UISOC extends SOC {
         return (T)returnValue;
     }
 
-    private void completeMenu() {
-/*
-        menu.add(new JSeparator());
+    protected abstract void addMenuItem(MenuItem item, String title, String helpText, Object extra);
 
-        if (soc.canCancel()) {
-            menu.add(getMenuOpButton(MenuOp.CANCEL));
+    public abstract void clearMenu();
+
+    public abstract void redraw();
+
+    public BotNode chooseOptimalPath(BotNode optimal, List<BotNode> leafs) {
+        return optimal;
+    }
+
+    private final void addMenuItem(MenuItem item) {
+        addMenuItem(item, item.title, item.helpText, null);
+    }
+
+    public void completeMenu() {
+        //menu.add(new JSeparator());
+
+        if (canCancel()) {
+            addMenuItem(CANCEL);
         } else {
-            menu.add(new JLabel(""));
+            //addMenuItem(CANCEL);
+            //menu.add(new JLabel(""));
         }
-        boolean aiTuningEnabled = getProps().getBooleanProperty(PROP_AI_TUNING_ENABLED, false);
-        JToggleButton tuneAI = new JToggleButton("AI Tuning");
-        tuneAI.setSelected(aiTuningEnabled);
-        tuneAI.addActionListener(new ActionListener() {
+        /*
+        addMenuItem(SHOW_RULES);
+        addMenuItem(BUILDABLES_POPUP);
+        addMenuItem(REWIND_GAME);
+        addMenuItem(QUIT);
+        */
+    }
 
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                getProps().setProperty(PROP_AI_TUNING_ENABLED, ((JToggleButton)e.getSource()).isSelected());
+    @Override
+    protected void onDiceRolled(Dice...  dice) {
+        spinDice(dice);
+    }
+
+    private  void spinDice(Dice ... dieToSpin) {
+        float diceSpinTimeSeconds = getProps().getFloatProperty("gui.diceSpinTimeSeconds", 3);
+        clearMenu();
+        int delay = 10;
+        long startTime = System.currentTimeMillis();
+        while (true) {
+            long curTime = System.currentTimeMillis();
+            if (curTime - startTime > diceSpinTimeSeconds*1000)
+                break;
+            for (int i=0; i<dieToSpin.length; i++) {
+                if (dieToSpin[i] == null)
+                    continue;
+                diceComps[i].setType(dieToSpin[i].getType());
+                diceComps[i].setDie(Utils.rand() % 6 + 1);
             }
-        });
-        menu.add(tuneAI);
-        menu.add(getMenuOpButton(MenuOp.SHOW_RULES));
-        menu.add(getMenuOpButton(MenuOp.BUILDABLES_POPUP));
-        menu.add(getMenuOpButton(MenuOp.REWIND_GAME));
-        menu.add(getMenuOpButton(MenuOp.QUIT));
-        helpText.setText(soc.getHelpText());
-        frame.validate();*/
+            try {
+                Thread.sleep(delay);
+            } catch (Exception e) {}
+            delay += 20;
+        }
     }
 
     public boolean getSetDiceMenu(Dice[] die, int num) {
         clearMenu();
-        /*
         diceComps[0].setDicePickerEnabled(true);
         diceComps[1].setDicePickerEnabled(true);
-        menu.add(getMenuOpButton(MenuOp.SET_DICE));
+        addMenuItem(SET_DICE);
         completeMenu();
         int [] result = (int[])waitForReturnValue(null);
         if (result != null) {
@@ -415,7 +524,83 @@ public abstract class UISOC extends SOC {
                 die[i].setNum(result[i]);
             }
             return true;
-        }*/
+        }
         return false;
+    }
+
+    private boolean running = false;
+
+    public final synchronized void startGameThread() {
+        log.debug("Entering thread");
+        assert(!running);
+        running = true;
+        new Thread() {
+            @Override
+            public void run() {
+                try {
+                    while (running) {
+                        runGame();
+                        if (running)
+                            redraw();
+                    }
+                } catch (Throwable e) {
+                    onRunError(e);
+                }
+                running = false;
+                log.debug("Exiting thread");
+
+            }
+        }.start();
+    }
+
+    public final synchronized void stopRunning() {
+        if (running) {
+            running = false;
+            notifyWaitObj();
+        }
+        setReturnValue(null);
+    }
+
+    protected void onRunError(Throwable e) {
+        e.printStackTrace();
+    }
+
+    // in game options
+    public final MenuItem CANCEL = new MenuItem("Cancel", "Cancel current operation", new MenuItem.Action() {
+        @Override
+        public void onAction(MenuItem item, Object extra) {
+            boardComp.setPickHandler(null);
+            cancel();
+            notifyWaitObj();
+        }
+    });
+    public final MenuItem CHOOSE_MOVE = new MenuItem("--", null, this);
+    public final MenuItem CHOOSE_GIVEUP_CARD = new MenuItem("--", null, this);
+    public final MenuItem CHOOSE_PLAYER = new MenuItem("--", null, this);
+    public final MenuItem CHOOSE_CARD = new MenuItem("--", null, this);
+    public final MenuItem CHOOSE_TRADE = new MenuItem("--", null, this);
+    public final MenuItem CHOOSE_SHIP = new MenuItem("Ships", "Show ship choices", this);
+    public final MenuItem CHOOSE_ROAD = new MenuItem("Roads", "Show road choices", this);
+    public final MenuItem SET_DICE = new MenuItem("Set Dice", "Click the dice to set value manually", new MenuItem.Action() {
+        @Override
+        public void onAction(MenuItem item, Object extra) {
+            returnValue = new int[] { diceComps[0].getDie(), diceComps[1].getDie() };
+            diceComps[0].setDicePickerEnabled(false);
+            diceComps[1].setDicePickerEnabled(false);
+            notifyWaitObj();
+        }
+    });
+
+    @Override
+    public void onAction(MenuItem item, Object extra) {
+        clearMenu();
+        returnValue = extra;
+        notifyWaitObj();
+    }
+
+    public final void notifyWaitObj() {
+        synchronized (waitObj) {
+            waitObj.notify();
+        }
     }
 }

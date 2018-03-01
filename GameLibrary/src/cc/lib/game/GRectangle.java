@@ -10,10 +10,12 @@ public class GRectangle extends Reflector<GRectangle> {
 
     public GRectangle() {}
 
-    public GRectangle(int width, int height) {
-        this.width = width;
-        this.height = height;
+    public GRectangle(float x, float y, float w, float h) {
+        this.x = x;
+        this.y = y;
+        this.w = w;
+        this.h = h;
     }
 
-    public int width, height;
+    public float x, y, w, h;
 }

@@ -123,7 +123,7 @@ public class UIProperties extends Properties {
         }
     }
 
-    void load(String fileName) throws IOException {
+    public void load(String fileName) throws IOException {
         this.fileName = fileName;
         log.debug("Loading properties '" + fileName + "'");
         InputStream in = null;
@@ -139,7 +139,7 @@ public class UIProperties extends Properties {
         }
     }
     
-    void save() {
+    public void save() {
         log.debug("Saving properties '" + fileName + "'");
         PrintWriter out = null;
         try {

@@ -26,10 +26,13 @@ public final class GColor extends Reflector<GColor> {
     public final static GColor GRAY      	= new GColor(0.6f, 0.6f, 0.6f, 1);
     public final static GColor LIGHT_GRAY 	= new GColor(0.8f, 0.8f, 0.8f, 1);
     public final static GColor DARK_GRAY 	= new GColor(0.4f, 0.4f, 0.4f, 1);
+    public final static GColor PINK         = new GColor(255, 175, 175);
     public final static GColor TRANSPARENT = new GColor(0f,0,0,0);
     public final static GColor TRANSLUSCENT_BLACK = BLACK.withAlpha(128);
 
     private int argb = 0;
+
+    public GColor() { }
 
     public GColor(int r, int g, int b, int a) {
         set(r, g, b, a);
@@ -171,7 +174,7 @@ public final class GColor extends Reflector<GColor> {
                     return new GColor(Integer.parseInt(parts[1]), Integer.parseInt(parts[2]), Integer.parseInt(parts[3]), Integer.parseInt(parts[0]));
                 }
             }
-            throw new Exception("string not in form '[(a,)?r,g,b]'");
+            throw new Exception("string '" + str + "' not in form '[(a,)?r,g,b]'");
         } catch (NumberFormatException e) {
             throw e;
         } catch (Exception e) {
