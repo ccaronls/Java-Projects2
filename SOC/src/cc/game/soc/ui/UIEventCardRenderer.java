@@ -23,6 +23,7 @@ public final class UIEventCardRenderer implements UIDiceRenderer.DiceChangedList
 		for (UIDiceRenderer d : diceComps) {
 			d.setListener(this);
 		}
+		this.component.setRenderer(this);
 	}
 	
 	@Override

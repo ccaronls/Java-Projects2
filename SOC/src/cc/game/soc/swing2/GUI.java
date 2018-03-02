@@ -135,9 +135,8 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, M
 		JFrame frame = new JFrame();
 		try {
 			PlayerBot.DEBUG_ENABLED = true;
-//			System.out.println(System.getProperties().toString().replace(",", "\n"));
-			
 			Utils.setDebugEnabled(true);
+            AGraphics.DEBUG_ENABLED = true;
 			UIProperties props = new UIProperties();
 			if (!HOME_FOLDER.exists()) {
 				if (!HOME_FOLDER.mkdir()) {
@@ -147,7 +146,8 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, M
 				throw new RuntimeException("Not a directory: " + HOME_FOLDER);
 			}
             props.load(new File(HOME_FOLDER, "gui.properties").getAbsolutePath());
-			GUI gui = new GUI(frame, props);
+            System.out.println(props.toString().replace(",", "\n"));
+            GUI gui = new GUI(frame, props);
 			frame.addWindowListener(gui);
 			frame.addComponentListener(gui);
             int w = props.getIntProperty("gui.w", 640);
@@ -306,6 +306,8 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, M
         final int index;
         DiceComponent(int index) {
             this.index = index;
+            setMinimumSize(new Dimension(30,30));
+            setPreferredSize(new Dimension(60, 30));
         }
 
         float progress = 0;
@@ -2006,7 +2008,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, M
 	private void initPlayers(int numPlayers) {
         soc.clear();
         Player [] players = new Player[numPlayers];
-        players[0] = localPlayer = new UIPlayerUser(playerRenderers[0]);
+        players[0] = localPlayer = new UIPlayerUser();
         localPlayer.setColor(playerColors[0].color);
         for (int i=1; i<numPlayers; i++) {
 			UIPlayer p = new UIPlayer();

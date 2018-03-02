@@ -7,7 +7,7 @@ import cc.lib.utils.Reflector;
 /**
  * A 3x3 matrix implementation
  */
-public final class Matrix3x3 extends Reflector<Matrix3x3> {
+public final class Matrix3x3 extends Reflector<Matrix3x3>  {
 	
 	static {
 		addAllFields(Matrix3x3.class);

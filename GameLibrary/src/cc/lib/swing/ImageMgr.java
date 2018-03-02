@@ -263,7 +263,7 @@ public class ImageMgr {
 		Image image = scaledImages.get(id);
 		int curW = image.getWidth(comp);
 		int curH = image.getHeight(comp);
-		if (width >= 8 && width <= 1024 && height >= 8 && height <= 1024 && (curW - width) > 1 || (curH - height) > 1) {
+		if (width >= 8 && width <= 1024 && height >= 8 && height <= 1024 && Math.abs(curW - width) > 1 || Math.abs(curH - height) > 1) {
 			//Utils.println("Resizing image [" + id + "] from " + curW + ", " + curH + " too " + width + ", " + height);
 		    Utils.println("Resizing image [%d] from %d, %d too %d, %d", id, curW, curH, width, height);
 

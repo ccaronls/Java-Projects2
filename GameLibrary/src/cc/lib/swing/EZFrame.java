@@ -234,10 +234,14 @@ public class EZFrame extends JFrame implements WindowListener, ComponentListener
     public void componentHidden(ComponentEvent arg0) {}
 
     @Override
-    public void componentMoved(ComponentEvent arg0) {}
+    public void componentMoved(ComponentEvent arg0) {
+        saveToFile();
+    }
 
     @Override
-    public void componentResized(ComponentEvent arg0) {}
+    public void componentResized(ComponentEvent arg0) {
+        saveToFile();
+    }
 
     @Override
     public void componentShown(ComponentEvent arg0) {}

@@ -4,11 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import cc.game.soc.core.SOC;
-import cc.game.soc.swing.BarbarianComponent;
-import cc.game.soc.swing.GUI;
 import cc.lib.game.APGraphics;
 import cc.lib.game.GColor;
-import cc.lib.game.Justify;
 
 public final class UIBarbarianRenderer implements UIRenderer {
 
@@ -24,7 +21,9 @@ public final class UIBarbarianRenderer implements UIRenderer {
 
 	public void initAssets(int imageDefault, int tile0, int tile1, int tile2, int tile3, int tile4, int tile5, int tile6, int tile7, float border) {
 	    this.imageDefault = imageDefault;
-	    this.images = images;
+	    this.images = new int [] {
+            tile1, tile2, tile3, tile4, tile5, tile6, tile7
+        };
 	    this.border = border;
     }
 

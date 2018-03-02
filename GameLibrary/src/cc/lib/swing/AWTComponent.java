@@ -183,11 +183,13 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
     }
 
     public void setMinSize(int width, int height) {
-        setPreferredSize(new Dimension(width, height));
+        setMinimumSize(new Dimension(width, height));
+        revalidate();
     }
 
     public void setBounds(float x, float y, float w, float h) {
         super.setBounds(new Rectangle(Math.round(x), Math.round(y), Math.round(w), Math.round(h)));
+        revalidate();
     }
 
     public final APGraphics getAPGraphics() {

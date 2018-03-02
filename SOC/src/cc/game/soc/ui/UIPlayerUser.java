@@ -15,10 +15,7 @@ import cc.game.soc.core.Vertex;
 
 public final class UIPlayerUser extends UIPlayer {
 
-    private final UIPlayerRenderer renederer;
-	public UIPlayerUser(UIPlayerRenderer playerRenderer) {
-	    this.renederer = playerRenderer;
-	}
+	public UIPlayerUser() {}
 
 	@Override
 	public MoveType chooseMove(SOC soc, Collection<MoveType> moves) {
@@ -34,7 +31,7 @@ public final class UIPlayerUser extends UIPlayer {
 	@Override
 	public Vertex chooseVertex(SOC soc, Collection<Integer> vertexIndices, VertexChoice mode, Vertex knightToMove) {
 		Vertex v = ((UISOC)soc).chooseVertex(vertexIndices, getPlayerNum(), mode);
-		renederer.doVertexAnimation(UISOC.getInstance().getUIBoard(), mode, v, knightToMove);
+		doVertexAnimation(soc, mode, v, knightToMove);
 		return v;
 	}
 

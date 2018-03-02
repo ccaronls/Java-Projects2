@@ -18,8 +18,6 @@ import cc.lib.game.GColor;
 @SuppressWarnings("serial")
 public class UIProperties extends Properties {
 
-//    private final static Logger log = Logger.getLogger(UIProperties.class);
-
     private final static Logger log = LoggerFactory.getLogger(UIProperties.class);
 
     public UIProperties() {}

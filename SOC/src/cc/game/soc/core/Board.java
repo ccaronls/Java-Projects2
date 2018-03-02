@@ -1013,16 +1013,6 @@ public class Board extends Reflector<Board> {
 		generateR(cx, cy, cw, ch, zeta, fillType);
 	}
 
-	private void shuffle(Object [] arr) {
-	    for (int i=0;  i<1000; i++) {
-	         int a = Utils.rand() % arr.length;
-	         int b = Utils.rand() % arr.length;
-	         Object t = arr[a];
-	         arr[a] = arr[b];
-	         arr[b] = t;
-	    }
-	}
-
 	/**
 	 * 
 	 */
@@ -1070,7 +1060,7 @@ public class Board extends Reflector<Board> {
 		};
         
 
-		shuffle(dieRolls);
+		Utils.shuffle(dieRolls);
 		int curDieRoll = Utils.rand() % dieRolls.length;
 
 		TileType [] resourceOptions = {
@@ -1097,8 +1087,8 @@ public class Board extends Reflector<Board> {
 				TileType.PORT_WOOD,
 		};
 		
-		shuffle(resourceOptions);
-		shuffle(portOptions);
+		Utils.shuffle(resourceOptions);
+		Utils.shuffle(portOptions);
 		int curResourceOption = 0;
 		int curPortOption = 0;
 		final int minDeserts = 1; // make configurable
@@ -2029,11 +2019,8 @@ public class Board extends Reflector<Board> {
     	for (Tile c : tiles) {
     		if (c.getType() == TileType.NONE)
     			continue;
-    		for (int ii : c.getAdjVerts()) {
-    		    Vertex v = getVertex(ii);
-                min.minEq(v);
-                max.maxEq(v);
-            }
+            min.minEq(c);
+            max.maxEq(c);
     	}
     	max.addEq(cw/2, ch/2);
     	min.subEq(cw/2, ch/2);
@@ -2051,7 +2038,7 @@ public class Board extends Reflector<Board> {
     	// fill a 1,1 rect
     	scale(1.0f / minMax.w, 1.0f / minMax.h);
     	// move to 0.5, 0.5
-    	translate(0.5f, 0.5f);
+    	translate(-0.5f, -0.5f);
     }
     
     /**

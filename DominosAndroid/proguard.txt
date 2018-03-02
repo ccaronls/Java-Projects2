@@ -61,15 +61,14 @@
     public static final ** CREATOR;
 }
 
--keepclassmembers class * extends cc.lib.util.Reflector {
-    *;
+-keep class cc.lib.utils.Reflector
+
+-keepnames class * extends cc.lib.utils.Reflector {
+    !static <fields>;
+    <init>();
 }
 
--keep
-
 -keepattributes Exceptions,InnerClasses
-#-keep class cc.android.photooverlay.SQLHelper.Column
-#-keep class com.parse.*{ *; }
 -dontwarn com.parse.**
 -dontwarn com.google.common.**
 -dontwarn org.hamcrest.**
