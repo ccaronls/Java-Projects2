@@ -82,7 +82,7 @@ public class ImageMgr {
                 in.read(buffer);
                 return new ImageIcon(buffer).getImage();
             } catch (Exception e) {
-                Utils.println(e.getMessage());
+                Utils.println("Not found in search path '" + path + "':" + e.getMessage());
             } finally {
                 try {
                     if (in != null)
@@ -103,7 +103,7 @@ public class ImageMgr {
 			in.read(buffer);
 			return new ImageIcon(buffer).getImage();
 		} catch (Exception e) {
-			System.err.println(e.getMessage());
+			System.err.println("Not found in resource: " + e.getMessage());
 			return null;
 		} finally {
 			try {
@@ -118,7 +118,7 @@ public class ImageMgr {
 				URL url = new URL(name);
 				return ((Applet)comp).getImage(url);
 			} catch (Exception e) {
-				System.err.println(e.getMessage());
+				System.err.println("Not found via Applet: " + e.getMessage());
 				return null;
 			}
 		}
@@ -143,12 +143,12 @@ public class ImageMgr {
 		Utils.print("Loading image %d : %s ...", id, fileOrResourceName);
 		if ((image = this.loadImageFromFile(fileOrResourceName))!=null) {
 			Utils.print("From File...");
+        } else if ((image = this.loadImageFromSearchPaths(fileOrResourceName))!=null) {
+            Utils.print("From search paths...");
 		} else if ((image = this.loadImageFromResource(fileOrResourceName))!=null) {
 			Utils.print("From Resource...");
 		} else if ((image = this.loadImageFromApplet(fileOrResourceName))!=null) {
             Utils.print("From Applet...");
-        } else if ((image = this.loadImageFromSearchPaths(fileOrResourceName))!=null) {
-		    Utils.print("From search paths...");
 		} else {
 			throw new RuntimeException("Cannot load image '" + fileOrResourceName + "'");
 		}		

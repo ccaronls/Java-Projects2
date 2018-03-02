@@ -1,8 +1,9 @@
 package cc.lib.game;
 
+import cc.lib.math.Vector2D;
 import cc.lib.utils.Reflector;
 
-public class GRectangle extends Reflector<GRectangle> {
+public final class GRectangle extends Reflector<GRectangle> {
 
     static {
         addAllFields(GRectangle.class);
@@ -18,4 +19,8 @@ public class GRectangle extends Reflector<GRectangle> {
     }
 
     public float x, y, w, h;
+
+    public Vector2D getCenter() {
+        return new Vector2D(x+w/2, y+h/2);
+    }
 }

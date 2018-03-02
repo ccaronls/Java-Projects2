@@ -35,10 +35,11 @@ public abstract class UISOC extends SOC implements MenuItem.Action {
     private Object returnValue = null;
     private final Object waitObj = new Object();
 
-    protected UISOC(UIBoardRenderer comp, UIDiceRenderer[] diceComps) {
+    protected UISOC(UIProperties properties, UIBoardRenderer comp, UIDiceRenderer[] diceComps) {
         if (instance != null)
             throw new RuntimeException();
         instance = this;
+        this.properties = properties;
         this.boardComp = comp;
         this.diceComps = diceComps;
     }
@@ -62,7 +63,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action {
         return running;
     }
 
-    private UIProperties properties = new UIProperties();
+    private final UIProperties properties;
 
     public final UIProperties getProps() {
         return properties;
@@ -464,7 +465,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action {
         return optimal;
     }
 
-    private final void addMenuItem(MenuItem item) {
+    protected final void addMenuItem(MenuItem item) {
         addMenuItem(item, item.title, item.helpText, null);
     }
 

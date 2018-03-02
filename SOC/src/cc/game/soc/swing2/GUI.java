@@ -9,6 +9,7 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.Graphics;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
@@ -70,8 +71,6 @@ import cc.lib.math.MutableVector2D;
 import cc.lib.swing.AWTGraphics;
 import cc.lib.swing.AWTUtils;
 import cc.lib.swing.EZPanel;
-import cc.lib.swing.ImageMgr;
-import cc.lib.swing.JMultiColoredScrollConsole;
 import cc.lib.swing.JPanelStack;
 import cc.lib.swing.JWrapLabel;
 import cc.lib.utils.FileUtils;
@@ -184,7 +183,24 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, M
 	
     private final UISOC soc;
 	private final JPanel menu = new JPanel();
-	private final JMultiColoredScrollConsole console;
+
+	class ConsoleComponent extends SOCComponent implements MouseWheelListener {
+
+        @Override
+        protected void init(AWTGraphics g) {
+            addMouseWheelListener(this);
+            console.initStyles(getProps().getColorProperty("console.bkColor", GColor.LIGHT_GRAY));
+        }
+
+        @Override
+        public void mouseWheelMoved(MouseWheelEvent e) {
+            console.scroll(e.getScrollAmount() < 0 ? -1 : 1);
+        }
+    }
+
+	private final SOCComponent consoleComponent = new SOCComponent() {
+    };
+	private final UIConsoleRenderer console = new UIConsoleRenderer(consoleComponent);
 	private final SOCComponent boardComp = new SOCComponent() {
 
         float progress = 0;
@@ -284,10 +300,55 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, M
             return progress;
         }
     };
+
+    class DiceComponent extends SOCComponent {
+
+        final int index;
+        DiceComponent(int index) {
+            this.index = index;
+        }
+
+        float progress = 0;
+        @Override
+        protected void init(final AWTGraphics g) {
+            setFocuable(true);
+            new Thread() {
+                public void run() {
+                    g.addSearchPath("images");
+
+                    Object [][] assets = {
+                            { "dicesideship2.GIF", null },
+                            { "dicesidecity2.GIF", GColor.RED },
+                            { "dicesidecity2.GIF", GColor.GREEN },
+                            { "dicesidecity2.GIF", GColor.BLUE },
+                    };
+
+                    int [] ids = new int[assets.length];
+                    float delta = 1.0f / ids.length;
+
+                    for (int i=0; i<ids.length; i++) {
+                        ids[i] = g.loadImage((String)assets[i][0], (GColor)assets[i][1]);
+                        progress += delta;
+                    }
+
+                    diceRenderers[index].initImages(ids[0], ids[1], ids[2], ids[3]);
+
+                    progress = 1;
+                }
+            }.start();
+        }
+
+        @Override
+        protected float getInitProgress() {
+            return progress;
+        }
+    }
+
+
     private final SOCComponent [] diceComps = {
-            new SOCComponent(),
-            new SOCComponent(),
-            new SOCComponent(),
+            new DiceComponent(0),
+            new DiceComponent(1),
+            new DiceComponent(2),
     };
     private final SOCComponent [] playerComponents = {
             new SOCComponent(),
@@ -302,7 +363,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, M
     private final SOCComponent eventCardComp = new SOCComponent();
 
     private final UIBarbarianRenderer barbarianRenderer = new UIBarbarianRenderer(barbarianComp);
-    private final UIPlayerRenderer [] playerRenderes = {
+    private final UIPlayerRenderer [] playerRenderers = {
             new UIPlayerRenderer(playerComponents[0]),
             new UIPlayerRenderer(playerComponents[1]),
             new UIPlayerRenderer(playerComponents[2]),
@@ -320,11 +381,8 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, M
             new UIDiceRenderer(diceComps[2])
     };
     private final UIEventCardRenderer eventCardRenderer = new UIEventCardRenderer(eventCardComp, diceRenderers);
-    
-	private final UIProperties props;
-	private final ImageMgr images;
-	
-	private final Stack<MenuState> menuStack = new Stack<MenuState>();
+
+	private final Stack<MenuState> menuStack = new Stack<>();
 	private UIPlayerUser localPlayer;
 	private final Container frame;
 	private JFrame popup;
@@ -352,13 +410,10 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, M
 	private final ColorString [] playerColors;
 
     private File defaultBoardFile;
-    final File saveGameFile;
+    private final File saveGameFile;
     private final File saveRulesFile;
     private final File debugBoard;
     
-    private float diceSpinTimeSeconds;
-    
-//    private Rules rules;
     private final JLabel boardNameLabel = new JLabel("Untitled");
     
     Board getBoard() {
@@ -375,8 +430,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, M
     
 	public GUI(Container frame, final UIProperties props) throws IOException {
 		this.frame = frame;
-		this.props = props;
-		soc = new UISOC(boardRenderer, diceRenderers) {
+		soc = new UISOC(props, boardRenderer, diceRenderers) {
             @Override
             protected void addMenuItem(MenuItem item, String title, String helpText, Object object) {
                 menu.add(getMenuOpButton(item, title, helpText, object));
@@ -389,13 +443,18 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, M
 
             @Override
             public void redraw() {
-                frame.invalidate();
+                frame.repaint();
             }
 
             @Override
             public void completeMenu() {
+
                 menu.add(new JSeparator());
-                super.completeMenu();
+                if (canCancel()) {
+                    addMenuItem(CANCEL);
+                } else {
+                    menu.add(new JLabel(""));
+                }
                 boolean aiTuningEnabled = getProps().getBooleanProperty(PROP_AI_TUNING_ENABLED, false);
                 JToggleButton tuneAI = new JToggleButton("AI Tuning");
                 tuneAI.setSelected(aiTuningEnabled);
@@ -465,7 +524,6 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, M
                 final int maxKeyWidthf = maxKeyWidth;
                 String optimalInfo = getBotNodeDetails(optimal, maxKeyWidth, maxValues);
                 final JTextArea nodeArea = new JTextArea();
-//		nodeArea.setLineWrap(true);
                 nodeArea.addKeyListener(new KeyListener() {
 
                     @Override
@@ -511,7 +569,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, M
                             Vertex v = (Vertex)n.getData();
                             v.setPlayerAndType(getCurPlayerNum(), VertexType.SETTLEMENT);
                             IDistances d = getBoard().computeDistances(getRules(), getCurPlayerNum());
-                            console.addText(Color.BLACK, d.toString());
+                            console.addText(GColor.BLACK, d.toString());
                             v.setOpen();
                         }
 
@@ -520,7 +578,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, M
                             //r.setType(RouteType.SHIP);
                             getBoard().setPlayerForRoute(r, getCurPlayerNum(), RouteType.SHIP);
                             IDistances d = getBoard().computeDistances(getRules(), getCurPlayerNum());
-                            console.addText(Color.BLACK, d.toString());
+                            console.addText(GColor.BLACK, d.toString());
                             getBoard().setRouteOpen(r);
                         }
 
@@ -571,7 +629,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, M
                                     }
                                 }
                             } else {
-                                console.addText(Color.BLACK, "Node has no max values");
+                                console.addText(GColor.BLACK, "Node has no max values");
                             }
                         }
                         soc.notifyWaitObj();
@@ -591,7 +649,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, M
                                 text = node.getDescription() + "==>>" + text;
                             }
                             text = "" + highlightedIndex + ": " + text;
-                            console.addText(Color.BLACK, text);
+                            console.addText(GColor.BLACK, text);
                         }
 
                         lastHighlighted = highlightedIndex;
@@ -676,8 +734,6 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, M
         saveRulesFile = new File(HOME_FOLDER, props.getProperty("gui.saveRulesFileName", "socrules.txt"));
         debugBoard = new File("boards/debug_board.txt");
         
-        diceSpinTimeSeconds = props.getFloatProperty("gui.diceSpinTimeSeconds", 3);
-        
         if (saveRulesFile.exists()) {
         	getRules().loadFromFile(saveRulesFile);
         }
@@ -704,9 +760,6 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, M
 				props.setProperty("debug.playerNum",  (Integer)playerChooser.getValue());
 			}
 		});
-		
-    	images = new ImageMgr(frame);
-
 		
         String scenario = getProps().getProperty("scenario");
         if (scenario != null) {
@@ -744,19 +797,13 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, M
 			}
 		});
         
-        // console
-        GColor bkColor = props.getColorProperty("console.bkColor", GColor.LIGHT_GRAY);
-        if (bkColor == null)
-            console = new JMultiColoredScrollConsole();
-        else
-            console = new JMultiColoredScrollConsole(AWTUtils.toColor(bkColor));
         consolePane = new JScrollPane();
         consolePane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
         consolePane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-        consolePane.getVerticalScrollBar().setBlockIncrement(console.getTextHeight());
-        consolePane.getVerticalScrollBar().setUnitIncrement(console.getTextHeight());
-        consolePane.setPreferredSize(console.getPreferredSize());
-        consolePane.setViewportView(console);
+        //consolePane.getVerticalScrollBar().setBlockIncrement(console.getTextHeight());
+        //consolePane.getVerticalScrollBar().setUnitIncrement(console.getTextHeight());
+        consolePane.setPreferredSize(consoleComponent.getPreferredSize());
+        consolePane.setViewportView(consoleComponent);
 
         // menu
         menu.setLayout(new GridLayout(0 ,1));
@@ -822,14 +869,9 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, M
                 eastGridPanel.removeAll();
                 westGridPanel.removeAll();
                 JPanel buttons = new JPanel();
-                //JScrollPane buttons = new JScrollPane(menu);
                 buttons.add(menu);
                 westGridPanel.add(new JSeparator());
-                //westGridPanel.add(new JSeparator());
                 westGridPanel.add(buttons);
-                //cntrBorderPanel.remove(configButtonsPanel);
-                //cntrBorderPanel.remove(consolePane);
-                //console.clear();
                 break;
             }
             case LAYOUT_INGAME:
@@ -840,39 +882,30 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, M
                 // NEW WAY
                 // basically, the user is always on the left and the remaining players are always on the right
 
-                UIPlayer userPlayer = getGUIPlayer(1);
-                for (Player p : soc.getPlayers()) {
-                	if (p instanceof UIPlayerUser) {
-                		userPlayer = (UIPlayer)p;
-                		break;
-                	}
-                }
-
-                {
-                    int num = userPlayer.getPlayerNum();
-                    playerRenderes[num].setPlayer(userPlayer);
-
-                    if (soc.getRules().isEnableCitiesAndKnightsExpansion()) {
-                        westGridPanel.add(barbarianComp);
-                        JScrollPane sp = new JScrollPane();
-                        sp.getViewport().add(playerComponents[num]);
-                        westGridPanel.add(sp);
-                    } else {
-                        westGridPanel.add(playerComponents[num]);
+                int userPlayerIndex = -1;
+                for (int i=0; i<soc.getNumPlayers(); i++) {
+                    UIPlayer p = (UIPlayer)soc.getPlayerByPlayerNum(i+1);
+                    playerRenderers[i].setPlayer(p);
+                    if (p instanceof  UIPlayerUser) {
+                        userPlayerIndex = i;
                     }
                 }
-                
-                for (int i=1; i<=soc.getNumPlayers(); i++) {
-                	if (i == userPlayer.getPlayerNum())
-                		continue;
-                	playerRenderes[i].setPlayer((UIPlayer)soc.getPlayerByPlayerNum(i));
-                	if (soc.getRules().isEnableCitiesAndKnightsExpansion()) {
-                		eastGridPanel.add(playerComponents[i]);
-                	} else {
-                		eastGridPanel.add(playerComponents[i]);
-                	}
+
+                if (soc.getRules().isEnableCitiesAndKnightsExpansion()) {
+                    westGridPanel.add(barbarianComp);
+                    JScrollPane sp = new JScrollPane();
+                    sp.getViewport().add(playerComponents[userPlayerIndex]);
+                    westGridPanel.add(sp);
+                } else {
+                    westGridPanel.add(playerComponents[userPlayerIndex]);
                 }
-                
+
+                for (int i=0; i<soc.getNumPlayers(); i++) {
+                    if (i == userPlayerIndex)
+                        continue;
+                    eastGridPanel.add(playerComponents[i]);
+                }
+
                 middleLeftPanel.removeAll();
                 JPanel diceHelpPanel = middleLeftPanel.push();
                 diceHelpPanel.setLayout(new BorderLayout());
@@ -977,7 +1010,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, M
     				getBoard().removeIsland(islandNum);
     			} else {
                 	islandNum = getBoard().createIsland(pickedValue);
-                	console.addText(Color.BLACK, "Found island: " + islandNum);
+                	console.addText(GColor.BLACK, "Found island: " + islandNum);
     			}
 
 				
@@ -1598,7 +1631,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, M
 							if (d == null) {
 								d = getBoard().computeDistances(getRules(), getCurPlayerNum());
 							}
-							console.addText(Color.BLACK, "Dist form " + vertex0 + "->" + vertex1 + " = " + d.getDist(vertex0, vertex1));
+							console.addText(GColor.BLACK, "Dist form " + vertex0 + "->" + vertex1 + " = " + d.getDist(vertex0, vertex1));
 							List<Integer> path = d.getShortestPath(vertex0, vertex1);
 							for (int i=0; i<path.size(); i++) {
 								g.vertex(getBoard().getVertex(path.get(i)));
@@ -1744,7 +1777,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, M
             saveBoard(getBoard().getName());
         } else if (op == SAVE_BOARD_AS) {
             JFileChooser chooser = new JFileChooser();
-            File baseDir = new File(props.getProperty("boardsDirectory", "boards"));
+            File baseDir = new File(getProps().getProperty("boardsDirectory", "boards"));
             if (!baseDir.exists() && !baseDir.mkdirs()) {
                 showOkPopup("ERROR", "Failed to ceate directory tree '" + baseDir + "'");
             } else if (!baseDir.isDirectory()) {
@@ -1767,7 +1800,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, M
         } else if (op == LOAD_BOARD) {
             JFileChooser chooser = new JFileChooser();
             chooser.setFileFilter(getExtensionFilter("txt", true));
-            File boardsDir = new File(props.getProperty("boardsDirectory", "boards"));
+            File boardsDir = new File(getProps().getProperty("boardsDirectory", "boards"));
             if (!boardsDir.isDirectory()) {
                 showOkPopup("ERROR", "Boards directory missing");
             } else if (boardsDir.list().length == 0) {
@@ -1832,7 +1865,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, M
                         public boolean doAction() {
                             getBoard().setName(nameField.getText());
                             JFileChooser chooser = new JFileChooser();
-                            File scenarioDir = new File(props.getProperty(PROP_SCENARIOS_DIR, "scenarios"));
+                            File scenarioDir = new File(getProps().getProperty(PROP_SCENARIOS_DIR, "scenarios"));
                             if (!scenarioDir.exists()) {
                                 if (!scenarioDir.mkdirs()) {
                                     showOkPopup("ERROR", "Failed to create directory '" + scenarioDir + "'");
@@ -1865,7 +1898,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, M
                     }
             });
         } else if (op == LOAD_SCENARIO) {
-            File scenariosDir = new File(props.getProperty(PROP_SCENARIOS_DIR, "scenarios"));
+            File scenariosDir = new File(getProps().getProperty(PROP_SCENARIOS_DIR, "scenarios"));
             if (!scenariosDir.isDirectory()) {
                 showOkPopup("ERROR", "Cant find scenarios directory '" + scenariosDir + "'");
             } else {
@@ -1955,10 +1988,6 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, M
 		menuStack.push(MenuState.MENU_CHOOSE_NUM_PLAYERS);
     }
     
-	public JMultiColoredScrollConsole getConsole() {
-		return console;
-	}
-
     private OpButton getMenuOpButton(MenuItem op) {
         return getMenuOpButton(op, op.title, op.helpText, null);
     }
@@ -1977,7 +2006,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, M
 	private void initPlayers(int numPlayers) {
         soc.clear();
         Player [] players = new Player[numPlayers];
-        players[0] = localPlayer = new UIPlayerUser(playerRenderes[0]);
+        players[0] = localPlayer = new UIPlayerUser(playerRenderers[0]);
         localPlayer.setColor(playerColors[0].color);
         for (int i=1; i<numPlayers; i++) {
 			UIPlayer p = new UIPlayer();
@@ -2042,33 +2071,6 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, M
 	
 	public SOC getSOC() {
 		return soc;
-	}
-	
-	private void completeMenu() {
-		
-	    menu.add(new JSeparator());
-	    soc.completeMenu();
-		boolean aiTuningEnabled = getProps().getBooleanProperty(PROP_AI_TUNING_ENABLED, false);
-		JToggleButton tuneAI = new JToggleButton("AI Tuning");
-		tuneAI.setSelected(aiTuningEnabled);
-		tuneAI.addActionListener(new ActionListener() {
-			
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				getProps().setProperty(PROP_AI_TUNING_ENABLED, ((JToggleButton)e.getSource()).isSelected());
-			}
-		});
-		menu.add(tuneAI);
-		menu.add(getMenuOpButton(SHOW_RULES));
-		menu.add(getMenuOpButton(BUILDABLES_POPUP));
-		menu.add(getMenuOpButton(REWIND_GAME));
-		menu.add(getMenuOpButton(QUIT));
-		helpText.setText(soc.getHelpText());
-        frame.validate();
-	}
-	
-	public UIPlayer getCurGUIPlayer() {
-		return (UIPlayer)soc.getCurPlayer();
 	}
 
     public GColor getPlayerColor(int playerNum) {
@@ -2396,14 +2398,14 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, M
     public void componentHidden(ComponentEvent arg0) {}
 	public void componentMoved(ComponentEvent arg0) {
         Component comp = arg0.getComponent();
-        props.setProperty("gui.x", comp.getX());
-        props.setProperty("gui.y", comp.getY());
+        getProps().setProperty("gui.x", comp.getX());
+        getProps().setProperty("gui.y", comp.getY());
         //log.debug("Moved too : " + frame.getX() + " x " + frame.getY()); 
     }
 	public void componentResized(ComponentEvent arg0) {
 	    Component comp = frame;
-        props.setProperty("gui.w", comp.getWidth());
-        props.setProperty("gui.h", comp.getHeight());
+        getProps().setProperty("gui.w", comp.getWidth());
+        getProps().setProperty("gui.h", comp.getHeight());
         setupDimensions(comp.getWidth(), comp.getHeight());
         //initMenu();
         frame.doLayout();
@@ -2449,7 +2451,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, M
     }
     
     UIProperties getProps() {
-    	return this.props;
+    	return soc.getProps();
     }
 
 	private void clearSaves() {

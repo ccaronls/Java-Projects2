@@ -95,13 +95,9 @@ public class SOCGUI extends SOC {
         final List<AAnimation<Graphics>> cardsList = comp.getCardAnimations();
         final BoardComponent board = GUI.instance.getBoardComponent();
 
-        final int cardWidth = 64;
-        final int cardHeight = 96;
+        final int cardHeight = comp.getHeight()/5;
+        final int cardWidth = cardHeight*2/3;
 
-//        int X = cardWidth/2 + cardWidth * cardsList.size(); 
-//        int Y = player.getPlayerNum() * 64 + 16;
-        
-        
         final Point compPt = comp.getLocationOnScreen();
         final Point boardPt = board.getLocationOnScreen();
 

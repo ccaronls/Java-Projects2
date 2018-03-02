@@ -40,6 +40,7 @@ public final class UIDiceRenderer implements UIRenderer {
 		this.type = DiceType.None;
         this.dotSize  = 4;
         this.component = component;
+        this.component.setRenderer(this);
 	}
 	
 	void setDie(int die) {

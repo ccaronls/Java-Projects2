@@ -47,6 +47,7 @@ public final class UIPlayerRenderer implements UIRenderer {
 
     public UIPlayerRenderer(UIComponent component) {
         this.component = component;
+        this.component.setRenderer(this);
     }
 
     public void setPlayer(UIPlayer player) {

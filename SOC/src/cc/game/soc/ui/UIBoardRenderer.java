@@ -919,70 +919,38 @@ public final class UIBoardRenderer implements UIRenderer {
 
     public void drawCellProductionValue(AGraphics g, float x, float y, int num, float radius) {
         g.setColor(GColor.BLACK);
-        g.drawFilledCircle(x, y+1, radius);
+        g.begin();
+        g.vertex(x, y);
+        g.drawPoints(radius);
+        g.end();
         g.setColor(GColor.CYAN);
         g.drawJustifiedString( x, y, Justify.CENTER, Justify.CENTER, String.valueOf(num));
     }
     
-    private void computeBoardRect() {
-        float xmin = Float.MAX_VALUE;
-        float ymin = Float.MAX_VALUE;
-        float xmax = Float.MIN_VALUE;
-        float ymax = Float.MIN_VALUE;
-        for (int i=0 ;i<getBoard().getNumTiles(); i++) {
-            Tile cell = getBoard().getTile(i);
-            if (cell.getType() != TileType.NONE) {
-                for (int ii : cell.getAdjVerts()) {
-                    Vertex v = getBoard().getVertex(ii);
-                    xmin = Math.min(v.getX(), xmin);
-                    ymin = Math.min(v.getY(), ymin);
-                    xmax = Math.max(v.getX(), xmax);
-                    ymax = Math.max(v.getY(), ymax);
-                }
-            }
-        }
-        bx = xmin;
-        by = ymin;
-        bw = xmax - xmin;
-        bh = ymax - ymin;
-    }
-    
-    private float bx, by, bw, bh;
-
 	public void draw(APGraphics g, int pickX, int pickY) {
 
-        doPick(g, pickX, pickY);
-
-	    final int width = component.getWidth();
-	    final int height = component.getHeight();
+	    final int width = component.getWidth() - padding*2;
+	    final int height = component.getHeight() - padding*2;
 	    final Board board = getBoard();
 
-	    g.setTextHeight(textSize);
+        if (width <= 10 || height <= 10)
+            return; // avoid images getting resized excessively if the window is getting resized
+
+        g.ortho();
+        g.setTextHeight(textSize);
+        g.clearScreen(bkColor);
 	    g.pushMatrix();
+	    g.setIdentity();
+        g.translate(padding, padding);
         try {
-    	    if (width <= padding+5 || height <= padding+5)
-    	        return;
 
+            float dim = Math.min(width, height);
+            g.translate(width/2, height/2);
+            g.scale(dim, dim);
+            g.translate(-0.5f, -0.5f);
+
+            doPick(g, pickX, pickY);
     	    long enterTime = System.currentTimeMillis();
-    	    
-    	    computeBoardRect();
-    	    g.clearScreen(bkColor);
-    	    /*
-    		g.setColor(bkColor);
-    		g.drawFilledRect(0,0, width, height);
-    		//float xs = (float)getWidth();
-    		//float ys = (float)getHeight();
-    		g.ortho(0, width, 0, height);
-    		g.setIdentity();
-    		g.translate(padding, padding);
-    		float dim = Math.min(width, height); // TODO: keep aspect ratio and center
-    		g.translate((width-dim)/2, (height-dim)/2);
-    		g.scale(1f/bw, 1f/bh);
-    		g.scale(dim-2*padding, dim-2*padding);
-            g.translate(-bx, -by);
-            //g.translate(bx, by);*/
-
-    	    g.ortho(0, 1, 0, 1);
 
             if (!getRenderFlag(RenderFlag.DONT_DRAW_TEXTURES)) {
                 drawTilesTextured(g);

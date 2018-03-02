@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
+import cc.lib.game.GRectangle;
 import cc.lib.game.Utils;
 import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
@@ -2017,36 +2018,38 @@ public class Board extends Reflector<Board> {
 	 * Center the board inside the 0,0 x 1,1 rectangle
 	 */
     public final void center() {
-    	Vector2D [] minMax = computeMinMax();
-    	Vector2D v = minMax[0].add(minMax[1]).scaledBy(-0.5f);
-    	translate(v.getX() + 0.5f, v.getY() + 0.5f);
+    	GRectangle minMax = computeMinMax();
+    	Vector2D v = minMax.getCenter();
+    	translate(v.getX(), v.getY());
     }
 
-    public final Vector2D [] computeMinMax() {
+    public final GRectangle computeMinMax() {
     	MutableVector2D min = new MutableVector2D(Vector2D.MAX);
     	MutableVector2D max = new MutableVector2D(Vector2D.MIN);
     	for (Tile c : tiles) {
     		if (c.getType() == TileType.NONE)
     			continue;
-    		min.minEq(c);
-    		max.maxEq(c);
+    		for (int ii : c.getAdjVerts()) {
+    		    Vertex v = getVertex(ii);
+                min.minEq(v);
+                max.maxEq(v);
+            }
     	}
-    	max.addEq(Vector2D.newTemp(cw/2, ch/2));
-    	min.subEq(Vector2D.newTemp(cw/2, ch/2));
-    	return new Vector2D [] { min, max };
+    	max.addEq(cw/2, ch/2);
+    	min.subEq(cw/2, ch/2);
+    	return new GRectangle(min.X(), min.Y(), max.X()-min.X(), max.Y()-min.Y());
     }
     
     /**
      * Fit all cells into the 0,0 x 1,1 rectangle
      */
     public final void fillFit() {
-    	Vector2D [] minMax = computeMinMax();
-    	Vector2D v = minMax[0].add(minMax[1]).scaledBy(-0.5f);
-    	Vector2D d = minMax[1].sub(minMax[0]);
+    	GRectangle minMax = computeMinMax();
+    	Vector2D v = minMax.getCenter();
     	// center at 0,0
     	translate(v.getX(), v.getY());
     	// fill a 1,1 rect
-    	scale(1.0f / d.getX(), 1.0f / d.getY());
+    	scale(1.0f / minMax.w, 1.0f / minMax.h);
     	// move to 0.5, 0.5
     	translate(0.5f, 0.5f);
     }

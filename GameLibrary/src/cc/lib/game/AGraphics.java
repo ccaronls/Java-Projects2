@@ -449,7 +449,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param text
      * @return
      */
-    public abstract float drawStringLine(float x, float y, Justify hJust, String text);
+    protected abstract float drawStringLine(float x, float y, Justify hJust, String text);
     
     /**
      * 

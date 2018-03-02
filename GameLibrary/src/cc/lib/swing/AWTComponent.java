@@ -58,7 +58,7 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
                     String txt = "INITIALIZING";
                     float tw = G.getTextWidth(txt);
                     float th = G.getTextHeight();
-                    G.drawJustifiedString(x-tw/2, y,"Initializing");
+                    G.drawJustifiedString(x-tw/2, y,txt);
                     y += th;
                     G.drawFilledRectf(x-tw/2, y, tw*progress, th);
                     try {
