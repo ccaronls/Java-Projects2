@@ -30,18 +30,20 @@ public abstract class UISOC extends SOC implements MenuItem.Action {
 
     private static UISOC instance = null;
 
-    private final UIBoardRenderer boardComp;
-    private final UIDiceRenderer[] diceComps;
+    private final UIBoardRenderer boardRenderer;
+    private final UIDiceRenderer diceRenderer;
+    private final UIConsoleRenderer console;
     private Object returnValue = null;
     private final Object waitObj = new Object();
 
-    protected UISOC(UIProperties properties, UIBoardRenderer comp, UIDiceRenderer[] diceComps) {
+    protected UISOC(UIProperties properties, UIBoardRenderer boardRenderer, UIDiceRenderer diceRenderer, UIConsoleRenderer console) {
         if (instance != null)
             throw new RuntimeException();
         instance = this;
         this.properties = properties;
-        this.boardComp = comp;
-        this.diceComps = diceComps;
+        this.boardRenderer = boardRenderer;
+        this.diceRenderer = diceRenderer;
+        this.console = console;
     }
 
     public static UISOC getInstance() {
@@ -49,7 +51,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action {
     }
 
     public UIBoardRenderer getUIBoard() {
-        return boardComp;
+        return boardRenderer;
     }
 
     public void setReturnValue(Object o) {
@@ -470,53 +472,21 @@ public abstract class UISOC extends SOC implements MenuItem.Action {
     }
 
     public void completeMenu() {
-        //menu.add(new JSeparator());
-
         if (canCancel()) {
             addMenuItem(CANCEL);
-        } else {
-            //addMenuItem(CANCEL);
-            //menu.add(new JLabel(""));
         }
-        /*
-        addMenuItem(SHOW_RULES);
-        addMenuItem(BUILDABLES_POPUP);
-        addMenuItem(REWIND_GAME);
-        addMenuItem(QUIT);
-        */
     }
 
     @Override
-    protected void onDiceRolled(Dice...  dice) {
-        spinDice(dice);
-    }
-
-    private  void spinDice(Dice ... dieToSpin) {
-        float diceSpinTimeSeconds = getProps().getFloatProperty("gui.diceSpinTimeSeconds", 3);
-        clearMenu();
-        int delay = 10;
-        long startTime = System.currentTimeMillis();
-        while (true) {
-            long curTime = System.currentTimeMillis();
-            if (curTime - startTime > diceSpinTimeSeconds*1000)
-                break;
-            for (int i=0; i<dieToSpin.length; i++) {
-                if (dieToSpin[i] == null)
-                    continue;
-                diceComps[i].setType(dieToSpin[i].getType());
-                diceComps[i].setDie(Utils.rand() % 6 + 1);
-            }
-            try {
-                Thread.sleep(delay);
-            } catch (Exception e) {}
-            delay += 20;
-        }
+    protected void onDiceRolled(Dice ... dice) {
+        diceRenderer.spinDice(getProps().getIntProperty("gui.diceSpinTimeSeconds", 3)*1000, dice);
+        diceRenderer.setDice(getDice());
     }
 
     public boolean getSetDiceMenu(Dice[] die, int num) {
         clearMenu();
-        diceComps[0].setDicePickerEnabled(true);
-        diceComps[1].setDicePickerEnabled(true);
+        diceRenderer.setDice(die);
+        diceRenderer.setPickableDice(num);
         addMenuItem(SET_DICE);
         completeMenu();
         int [] result = (int[])waitForReturnValue(null);
@@ -524,6 +494,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action {
             for (int i=0; i<result.length; i++) {
                 die[i].setNum(result[i]);
             }
+            diceRenderer.setPickableDice(0);
             return true;
         }
         return false;
@@ -535,6 +506,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action {
         log.debug("Entering thread");
         assert(!running);
         running = true;
+        diceRenderer.setDice(getDice());
         new Thread() {
             @Override
             public void run() {
@@ -570,7 +542,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action {
     public final MenuItem CANCEL = new MenuItem("Cancel", "Cancel current operation", new MenuItem.Action() {
         @Override
         public void onAction(MenuItem item, Object extra) {
-            boardComp.setPickHandler(null);
+            boardRenderer.setPickHandler(null);
             cancel();
             notifyWaitObj();
         }
@@ -585,9 +557,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action {
     public final MenuItem SET_DICE = new MenuItem("Set Dice", "Click the dice to set value manually", new MenuItem.Action() {
         @Override
         public void onAction(MenuItem item, Object extra) {
-            returnValue = new int[] { diceComps[0].getDie(), diceComps[1].getDie() };
-            diceComps[0].setDicePickerEnabled(false);
-            diceComps[1].setDicePickerEnabled(false);
+            returnValue = diceRenderer.getPickedDiceNums();
             notifyWaitObj();
         }
     });
@@ -603,5 +573,12 @@ public abstract class UISOC extends SOC implements MenuItem.Action {
         synchronized (waitObj) {
             waitObj.notify();
         }
+    }
+
+    @Override
+    public void printinfo(int playerNum, String txt) {
+        super.printinfo(playerNum, txt);
+        if (console != null)
+            console.addText(getPlayerColor(playerNum), txt);
     }
 }

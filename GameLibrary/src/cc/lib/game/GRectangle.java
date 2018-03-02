@@ -23,4 +23,16 @@ public final class GRectangle extends Reflector<GRectangle> {
     public Vector2D getCenter() {
         return new Vector2D(x+w/2, y+h/2);
     }
+
+    public boolean isIntersectingWidth(GRectangle other) {
+        return Utils.isBoxesOverlapping(x, y, w, h, other.x, other.y, other.w, other.h);
+    }
+
+    public boolean contains(float px, float py) {
+        return Utils.isPointInsideRect(px, py, x, y, w, h);
+    }
+
+    public boolean contains(IVector2D v) {
+        return contains(v.getX(), v.getY());
+    }
 }

@@ -1,6 +1,8 @@
 package cc.game.soc.ui;
 
 import cc.lib.game.APGraphics;
+import cc.lib.game.GDimension;
+import cc.lib.game.GRectangle;
 
 /**
  * Created by chriscaron on 2/23/18.
@@ -33,20 +35,4 @@ public interface UIComponent {
      */
     void setRenderer(UIRenderer r);
 
-    /**
-     * Tell component to resize itself if neccessary
-     *
-     * @param width
-     * @param height
-     */
-    void setMinSize(int width, int height);
-
-    /**
-     *
-     * @param x
-     * @param y
-     * @param w
-     * @param h
-     */
-    void setBounds(float x, float y, float w, float h);
 }

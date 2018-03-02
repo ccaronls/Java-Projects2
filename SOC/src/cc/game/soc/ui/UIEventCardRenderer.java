@@ -11,26 +11,18 @@ import cc.lib.game.GColor;
 import cc.lib.game.GDimension;
 import cc.lib.game.Justify;
 
-public final class UIEventCardRenderer implements UIDiceRenderer.DiceChangedListener, UIRenderer {
+public final class UIEventCardRenderer implements UIRenderer {
 
 	float minCardWidth = 0;
-	final UIDiceRenderer[] diceComps;
+	final UIDiceRenderer diceComps;
 	final UIComponent component;
 
-	public UIEventCardRenderer(UIComponent component, UIDiceRenderer... diceComps) {
+	public UIEventCardRenderer(UIComponent component, UIDiceRenderer diceComps) {
 		this.diceComps = diceComps;
 		this.component = component;
-		for (UIDiceRenderer d : diceComps) {
-			d.setListener(this);
-		}
 		this.component.setRenderer(this);
 	}
 	
-	@Override
-	public synchronized void onDiceChanged(int numDieNum) {
-		component.redraw();
-	}
-
 	@Override
 	public synchronized void draw(APGraphics g, int px, int py) {
 		g.setTextStyles(AGraphics.TextStyle.BOLD);
@@ -93,21 +85,28 @@ public final class UIEventCardRenderer implements UIDiceRenderer.DiceChangedList
 		float dieDim = cw/2-4*padding;
 		float dx = cx+cw/2-dieDim-padding;
 		float dy = cy+ch-2*padding-dieDim;
-		
-		for (UIDiceRenderer d : diceComps) {
-			d.setBounds(dx, dy, dieDim, dieDim);
-			if (d.getDie() > 0)
-				d.drawDie(g, dx, dy, dieDim);
-			dx += dieDim+padding*2;
-		}
 
-		float minWidth = Math.max(component.getWidth()-1, tw+3*padding+cw);
-		float minHeight = Math.max(cy + r.height, ch)+2*padding;
-		component.setMinSize(Math.round(minWidth), Math.round(minHeight));
+		g.pushMatrix();
+		g.translate(dx, dy);
+		diceComps.setDiceRect(new GDimension(minCardWidth, dieDim));
+        diceComps.draw(g, px, py);
+        diceComps.setDiceRect(null);
+		g.popMatrix();
 	}
 
     @Override
     public void doClick() {
 
     }
+
+    @Override
+    public void startDrag(float x, float y) {
+
+    }
+
+    @Override
+    public void endDrag() {
+
+    }
+
 }

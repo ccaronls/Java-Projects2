@@ -15,7 +15,7 @@ public class SOCComponent extends AWTComponent implements UIComponent {
     private UIRenderer delegate;
 
     @Override
-    protected void paint(AWTGraphics g, int mouseX, int mouseY) {
+    protected final void paint(AWTGraphics g, int mouseX, int mouseY) {
         if (delegate != null)
             delegate.draw(g, mouseX, mouseY);
         else {
@@ -24,17 +24,27 @@ public class SOCComponent extends AWTComponent implements UIComponent {
     }
 
     @Override
-    public void redraw() {
+    public final void redraw() {
         repaint();
     }
 
     @Override
-    public void setRenderer(UIRenderer r) {
+    public final void setRenderer(UIRenderer r) {
         this.delegate = r;
     }
 
     @Override
-    protected void onClick() {
+    protected final void onClick() {
         delegate.doClick();
+    }
+
+    @Override
+    protected final void startDrag(int x, int y) {
+        delegate.startDrag(x, y);
+    }
+
+    @Override
+    protected final void stopDrag() {
+        delegate.endDrag();
     }
 }

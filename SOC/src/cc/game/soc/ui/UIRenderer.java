@@ -10,4 +10,8 @@ public interface UIRenderer {
     void draw(APGraphics g, int px, int py);
 
     void doClick();
+
+    void startDrag(float x, float y);
+
+    void endDrag();
 }

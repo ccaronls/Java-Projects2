@@ -73,8 +73,9 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param x
      * @param y
      * @param text
+     * @return the enclosing rect of the text
      */
-    public final float drawJustifiedString(float x, float y, String text) {
+    public final GDimension drawJustifiedString(float x, float y, String text) {
         return drawJustifiedString(x, y, Justify.LEFT, Justify.TOP, text);
     }
 
@@ -84,8 +85,9 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param y
      * @param hJust
      * @param text
+     * @return the enclosing rect of the text
      */
-    public final float drawJustifiedString(float x, float y, Justify hJust, String text) {
+    public final GDimension drawJustifiedString(float x, float y, Justify hJust, String text) {
         return drawJustifiedString(x, y, hJust, Justify.TOP, text);
     }
 
@@ -94,8 +96,9 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param text
      * @param x
      * @param y
+     * @return the enclosing rect of the text
      */
-    public final float drawString(String text, float x, float y) {
+    public final GDimension drawString(String text, float x, float y) {
         return drawJustifiedString(x, y, Justify.LEFT, Justify.TOP, text);
     }
 
@@ -106,7 +109,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param y
      * @return
      */
-    public final float drawAnnotatedString(String text, float x, float y) {
+    public final GDimension drawAnnotatedString(String text, float x, float y) {
         return drawAnnotatedString(text, x,y, Justify.LEFT);
     }
 
@@ -119,9 +122,9 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     * @param text
     * @param x
     * @param y
-    * @return
+    * @return the enclosing rect of the text
     */
-    public final float drawAnnotatedString(String text, float x, float y, Justify hJust) {
+    public final GDimension drawAnnotatedString(String text, float x, float y, Justify hJust) {
 
         Matcher m = ANNOTATION_PATTERN.matcher(text);
 
@@ -145,7 +148,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
             } while (m.find());
             width += drawStringLine(x, y, hJust, text.substring(start));
             setColor(saveColor);
-            return width;
+            return new GDimension(width, getTextHeight());
         }
 
         return drawString(text, x, y);
@@ -216,7 +219,19 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     public final void transform(MutableVector2D v) {
     	v.set(transform((IVector2D)v));
     }
-    
+
+    /**
+     *
+     * @param x
+     * @param y
+     * @return
+     */
+    public final MutableVector2D transform(float x, float y) {
+        MutableVector2D mv = new MutableVector2D(x, y);
+        transform(mv);
+        return mv;
+    }
+
     /**
      * 
      * @param v
@@ -246,33 +261,30 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param text
      * @return the total height of the text. 
      */
-    public float drawJustifiedString(float x, float y, Justify hJust, Justify vJust, String text) {
+    public GDimension drawJustifiedString(float x, float y, Justify hJust, Justify vJust, String text) {
         if (text==null || text.length() == 0)
-            return 0;
-        float [] r= new float[2];
-        transform(x, y, r);
-        x = r[0];
-        y = r[1];
+            return GDimension.EMPTY;
+        MutableVector2D mv = transform(x, y);
         String [] lines = text.split("\n");
         final float textHeight = (float)getTextHeight();
         switch (vJust) {
         case TOP: 
             break;
         case CENTER: 
-            y -= (lines.length * (textHeight)) / 2; 
+            mv.subEq(0, 0.5f * (lines.length * (textHeight)));
             break;
         case BOTTOM: 
-            y -= lines.length * textHeight; 
+            mv.subEq(0, lines.length * textHeight);
             break;
         default:
             throw new RuntimeException("Unhandled case: " + vJust);
         }
+        float maxWidth = 0;
         for (int i=0; i<lines.length; i++) {
-            //priv_drawJustifiedString(sGl, x, y, hJust, lines[i]);
-            drawStringLine(x, y, hJust, lines[i]);
-            y += textHeight;
+            maxWidth = Math.max(drawStringLine(mv.X(), mv.Y(), hJust, lines[i]), maxWidth);
+            mv.addEq(0, textHeight);
         }
-        return textHeight * lines.length;
+        return new GDimension(maxWidth, textHeight * lines.length);
     }
     
     /**
@@ -291,12 +303,14 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      *
      * @param str
      * @param maxWidth
-     * @param resultLines
-     * @param resultLineWidths
+     * @param resultLines cannot be null
+     * @param resultLineWidths optional, can be null
      * @return the maxWidth of any line
      */
-    public final float generateWrappedText(String str, float maxWidth, List<String> resultLines, List<Float> resultLineWidths) {
+    public final GDimension generateWrappedText(String str, float maxWidth, List<String> resultLines, List<Float> resultLineWidths) {
         String text = str.trim();
+        if (text.isEmpty())
+            return GDimension.EMPTY;
         float maxLineWidth = 0;
         //List<String> lines = new ArrayList<String>(32);
         while (text.length() > 0 && resultLines.size() < 256) {
@@ -366,7 +380,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
             }
         }
 
-        return maxLineWidth;
+        return new GDimension(maxLineWidth, resultLines.size()*getTextHeight());
     }    
     
     /**
@@ -402,16 +416,17 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param y
      * @param maxWidth
      * @param text
-     * @return the total height of the text
+     * @return the enclosing rect of the text
      */
-    public final float drawWrapString(float x, float y, float maxWidth, String text) {
+    public final GDimension drawWrapString(float x, float y, float maxWidth, String text) {
+        MutableVector2D tv = transform(x, y);
         String [] lines = generateWrappedLines(text, maxWidth);
+        float mw = 0;
         for (int i=0; i<lines.length; i++) {
-            drawStringLine(x, y, Justify.LEFT, lines[i]);
-            //g.drawString(lines[i], x, y);
-            y += getTextHeight();
+            mw = Math.max(mw, drawStringLine(tv.X(), tv.Y(), Justify.LEFT, lines[i]));
+            tv.addEq(0, getTextHeight());
         }
-        return y;
+        return new GDimension(mw, lines.length*getTextHeight());
     }    
     
     /**
@@ -422,9 +437,9 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param hJust
      * @param vJust
      * @param text
-     * @return
+     * @return the enclosing rect of the text
      */
-    public float drawWrapString(float x, float y, float maxWidth, Justify hJust, Justify vJust, String text) {
+    public GDimension drawWrapString(float x, float y, float maxWidth, Justify hJust, Justify vJust, String text) {
         String [] lines = generateWrappedLines(text, maxWidth);
         switch (vJust) {
             case TOP: break;
@@ -433,21 +448,22 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
             default: 
                 throw new RuntimeException("Unhandled case: " + vJust);
         }
+        MutableVector2D tv = transform(x, y);
+        float mw = 0;
         for (int i=0; i<lines.length; i++) {
-            drawStringLine(x, y, hJust, lines[i]);
-            //g.drawString(lines[i], x, y);
-            y += getTextHeight();
+            mw = Math.max(mw, drawStringLine(tv.X(), tv.Y(), hJust, lines[i]));
+            tv.addEq(0, getTextHeight());
         }
-        return y;
+        return new GDimension(mw, lines.length*getTextHeight());
     }
     
     /**
-     * Draw a single line of justified text and return the width of the text
+     * Draw a single line of top justified text and return the width of the text
      * @param x position in screen coordinates
      * @param y position in screen coordinates
      * @param hJust
      * @param text
-     * @return
+     * @return the width of the line in pixels
      */
     protected abstract float drawStringLine(float x, float y, Justify hJust, String text);
     

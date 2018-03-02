@@ -811,15 +811,6 @@ public final class UIBoardRenderer implements UIRenderer {
     
     private void drawTilesTextured(AGraphics g) {
         Vector2D cellD = new Vector2D(getBoard().getTileWidth(), getBoard().getTileHeight()).scaledBy(0.5f);
-//        float cellW = getBoard().getTileWidth();
-//        float cellH = getBoard().getTileHeight();
-//        float dim = Math.min(component.getWidth(), component.getHeight());
-//        float w = cellW / bw * (dim-padding);
-//        float h = cellH / bh * (dim-padding);
-
-        //GColor outlineColor = getProperties().getColorProperty("outlineColor", GColor.WHITE);
-        //GColor textColor = getProperties().getColorProperty("textcolor", GColor.CYAN);
-
         g.setTextStyles(AGraphics.TextStyle.BOLD);
 
         for (int i=0; i <getBoard().getNumTiles(); i++) {
@@ -830,7 +821,6 @@ public final class UIBoardRenderer implements UIRenderer {
             case NONE:
                 g.setColor(outlineColorLight);
                 drawTileOutline(g, cell, 2);
-                //Utils.drawJustifiedString(g,x,y,Justify.CENTER,Justify.CENTER,"NONE");
                 break;
             case DESERT:
                 g.drawImage(desertImage, v0, v1);
@@ -1270,6 +1260,17 @@ public final class UIBoardRenderer implements UIRenderer {
         
         drawInfo(g, v.Xi(), v.Yi(), info);
     }
+
+    @Override
+    public void startDrag(float x, float y) {
+
+    }
+
+    @Override
+    public void endDrag() {
+
+    }
+
 }
 
 

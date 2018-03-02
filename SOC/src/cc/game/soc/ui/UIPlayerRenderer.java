@@ -11,6 +11,7 @@ import cc.game.soc.core.VertexType;
 import cc.lib.game.AGraphics;
 import cc.lib.game.APGraphics;
 import cc.lib.game.GColor;
+import cc.lib.game.GDimension;
 import cc.lib.game.Utils;
 
 /**
@@ -153,18 +154,10 @@ public final class UIPlayerRenderer implements UIRenderer {
         }
 
         g.setColor(player.getColor());
-        float height = g.drawWrapString(5, 5, component.getWidth(), str.toString());
-
-
-
-        //Rectangle r = AWTUtils.drawWrapString(g, 5, 5, getWidth(), str.toString());
-        //int h = r.y + r.height + 10;
-        //int w = getWidth() - 1;
+        g.drawWrapString(5, 5, component.getWidth(), str.toString());
         if (isCurrentPlayer()) {
             g.drawRect(0, 0, component.getWidth(), component.getHeight(), 3);
         }
-        //setPreferredSize(new Dimension(w, h));
-        component.setMinSize(component.getWidth(), Math.round(15 + height));
     }
 
     final boolean isCurrentPlayer() {
@@ -173,6 +166,16 @@ public final class UIPlayerRenderer implements UIRenderer {
 
     @Override
     public void doClick() {
+
+    }
+
+    @Override
+    public void startDrag(float x, float y) {
+
+    }
+
+    @Override
+    public void endDrag() {
 
     }
 }

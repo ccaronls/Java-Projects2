@@ -20,7 +20,6 @@ public class DominosApplet extends AWTComponent {
     final EZFrame frame;
 
     DominosApplet() {
-        super(false);
         frame = new EZFrame("Dominos") {
             protected void onWindowClosing() {
                 dominos.trySaveToFile(saveFile);

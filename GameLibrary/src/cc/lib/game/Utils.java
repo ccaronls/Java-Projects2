@@ -1638,8 +1638,8 @@ public class Utils {
 		    return ((String)o).trim().length() == 0;
 		if (o instanceof Collection)
 		    return ((Collection)o).size() == 0;
-		if (o.getClass().isArray() && Array.getLength(o) == 0)
-			return true;
+		if (o.getClass().isArray())
+		    return Array.getLength(o) == 0;
         System.err.println("isEmpty does not know about class " + o.getClass());
 		return false;
 	}

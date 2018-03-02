@@ -346,5 +346,6 @@ public class UIPlayer extends PlayerBot {
 	protected BotNode onOptimalPath(BotNode optimal, List<BotNode> leafs) {
 		return UISOC.getInstance().chooseOptimalPath(optimal, leafs);
 	}
-	
+
+
 }

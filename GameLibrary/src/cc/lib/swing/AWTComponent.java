@@ -16,8 +16,9 @@ import cc.lib.swing.*;
 
 public abstract class AWTComponent extends JComponent implements Renderable, MouseListener, MouseMotionListener {
 
-    AWTGraphics G = null;
-    int mouseX, mouseY;
+    private AWTGraphics G = null;
+    private int mouseX = -1;
+    private int mouseY = -1;
 
     public AWTComponent() {
     }
@@ -26,14 +27,13 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
         if (enabled) {
             addMouseListener(this);
             addMouseMotionListener(this);
+            setFocusable(true);
         } else {
             removeMouseListener(this);
             removeMouseMotionListener(this);
+            setFocusable(false);
+            mouseX = mouseY = -1;
         }
-    }
-
-    public void setFocuable(boolean focuable) {
-        //super.setFocusable(focusable);
     }
 
     @Override
@@ -47,6 +47,7 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
                 float progress = getInitProgress();
                 G.setGraphics(g);
                 G.initViewport(getWidth(), getHeight());
+                G.ortho();
                 if (progress >= 1) {
                     paint(G, mouseX, mouseY);
                 } else {
@@ -68,6 +69,10 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
                     } catch (Exception e) {}
                     repaint();
                 }
+            }
+            if (hasFocus()) {
+                g.setColor(Color.BLUE);
+                g.drawRect(0, 0, getWidth()-1, getHeight()-1);
             }
         } else {
             repaint();
@@ -116,23 +121,30 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
 
     @Override
     public final void mouseEntered(MouseEvent e) {
+        grabFocus();
+        repaint();
     }
 
     @Override
-    public final void mouseExited(MouseEvent e) {
-    }
+    public final void mouseExited(MouseEvent e) {}
 
     boolean dragging = false;
 
     @Override
+    public boolean lostFocus(java.awt.Event ev, Object obj) {
+        repaint();
+        return super.lostFocus(ev, obj);
+    }
+
+    @Override
     public final void mouseDragged(MouseEvent e) {
+        mouseX = e.getX();
+        mouseY = e.getY();
         if (!dragging) {
-            startDrag();
+            startDrag(mouseX, mouseY);
             dragging = true;
         }
         //Utils.println("mouseDragged");
-        mouseX = e.getX();
-        mouseY = e.getY();
         repaint();
     }
 
@@ -144,7 +156,7 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
         repaint();
     }
 
-    protected void startDrag() {}
+    protected void startDrag(int x, int y) {}
 
     protected void stopDrag() {}
 
@@ -163,16 +175,6 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
     }
 
     @Override
-    public Dimension getMinimumSize() {
-        GDimension rect = getMinRect();
-        return new Dimension(Math.round(rect.width), Math.round(rect.height));
-    }
-
-    protected GDimension getMinRect() {
-        return new GDimension(32, 32);
-    }
-
-    @Override
     public int getViewportWidth() {
         return getWidth();
     }
@@ -182,14 +184,12 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
         return getHeight();
     }
 
-    public void setMinSize(int width, int height) {
-        setMinimumSize(new Dimension(width, height));
-        revalidate();
+    public void setMinimumSize(int width, int height) {
+        super.setMinimumSize(new Dimension(width, height));
     }
 
-    public void setBounds(float x, float y, float w, float h) {
-        super.setBounds(new Rectangle(Math.round(x), Math.round(y), Math.round(w), Math.round(h)));
-        revalidate();
+    public void setPreferredSize(int w, int h) {
+        super.setPreferredSize(new Dimension(w, h));
     }
 
     public final APGraphics getAPGraphics() {

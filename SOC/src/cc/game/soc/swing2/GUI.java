@@ -9,11 +9,9 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
-import java.awt.Graphics;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
-import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -64,6 +62,7 @@ import cc.game.soc.ui.*;
 import cc.lib.game.AGraphics;
 import cc.lib.game.APGraphics;
 import cc.lib.game.GColor;
+import cc.lib.game.GRectangle;
 import cc.lib.game.IVector2D;
 import cc.lib.game.Justify;
 import cc.lib.game.Utils;
@@ -188,26 +187,26 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, M
 
         @Override
         protected void init(AWTGraphics g) {
+            setMouseEnabled(true);
             addMouseWheelListener(this);
             console.initStyles(getProps().getColorProperty("console.bkColor", GColor.LIGHT_GRAY));
         }
 
         @Override
         public void mouseWheelMoved(MouseWheelEvent e) {
-            console.scroll(e.getScrollAmount() < 0 ? -1 : 1);
+            console.scroll(e.getWheelRotation());
         }
     }
 
-	private final SOCComponent consoleComponent = new SOCComponent() {
-    };
+	private final SOCComponent consoleComponent = new ConsoleComponent();
 	private final UIConsoleRenderer console = new UIConsoleRenderer(consoleComponent);
 	private final SOCComponent boardComp = new SOCComponent() {
 
         float progress = 0;
         @Override
         protected void init(final AWTGraphics g) {
-            setFocuable(true);
             setMouseEnabled(true);
+            setMinimumSize(256, 256);
             new Thread() {
                 public void run() {
                     g.addSearchPath("images");
@@ -256,11 +255,6 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, M
         protected float getInitProgress() {
             return progress;
         }
-
-        @Override
-        public Dimension getMinimumSize() {
-            return new Dimension(256,256);
-        }
     };
     private final SOCComponent barbarianComp = new SOCComponent() {
         float progress = 0;
@@ -301,19 +295,14 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, M
         }
     };
 
-    class DiceComponent extends SOCComponent {
-
-        final int index;
-        DiceComponent(int index) {
-            this.index = index;
-            setMinimumSize(new Dimension(30,30));
-            setPreferredSize(new Dimension(60, 30));
-        }
+    private final SOCComponent diceComponent = new SOCComponent() {
 
         float progress = 0;
         @Override
         protected void init(final AWTGraphics g) {
-            setFocuable(true);
+            setMinimumSize(30,30);
+            setPreferredSize(60, 30);
+
             new Thread() {
                 public void run() {
                     g.addSearchPath("images");
@@ -333,8 +322,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, M
                         progress += delta;
                     }
 
-                    diceRenderers[index].initImages(ids[0], ids[1], ids[2], ids[3]);
-
+                    diceRenderers.initImages(ids[0], ids[1], ids[2], ids[3]);
                     progress = 1;
                 }
             }.start();
@@ -344,14 +332,8 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, M
         protected float getInitProgress() {
             return progress;
         }
-    }
-
-
-    private final SOCComponent [] diceComps = {
-            new DiceComponent(0),
-            new DiceComponent(1),
-            new DiceComponent(2),
     };
+
     private final SOCComponent [] playerComponents = {
             new SOCComponent(),
             new SOCComponent(),
@@ -362,7 +344,12 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, M
             new SOCComponent(),
             new SOCComponent()
     };
-    private final SOCComponent eventCardComp = new SOCComponent();
+    private final SOCComponent eventCardComp = new SOCComponent() {
+        @Override
+        protected void init(AWTGraphics g) {
+            setMouseEnabled(true);
+        }
+    };
 
     private final UIBarbarianRenderer barbarianRenderer = new UIBarbarianRenderer(barbarianComp);
     private final UIPlayerRenderer [] playerRenderers = {
@@ -377,11 +364,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, M
     };
     private final UIBoardRenderer boardRenderer = new UIBoardRenderer(boardComp);
     
-    private final UIDiceRenderer [] diceRenderers = {
-            new UIDiceRenderer(diceComps[0]),
-            new UIDiceRenderer(diceComps[1]),
-            new UIDiceRenderer(diceComps[2])
-    };
+    private final UIDiceRenderer diceRenderers = new UIDiceRenderer(diceComponent);
     private final UIEventCardRenderer eventCardRenderer = new UIEventCardRenderer(eventCardComp, diceRenderers);
 
 	private final Stack<MenuState> menuStack = new Stack<>();
@@ -393,7 +376,6 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, M
 	
 	private final JPanel eastGridPanel = new JPanel();
 	private final JPanel westGridPanel = new JPanel();
-	private JScrollPane consolePane;
 	private JSpinner playerChooser;
 	private final JPanelStack middleLeftPanel = new JPanelStack();
 	private final JWrapLabel helpText = new JWrapLabel();
@@ -432,7 +414,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, M
     
 	public GUI(Container frame, final UIProperties props) throws IOException {
 		this.frame = frame;
-		soc = new UISOC(props, boardRenderer, diceRenderers) {
+		soc = new UISOC(props, boardRenderer, diceRenderers, console) {
             @Override
             protected void addMenuItem(MenuItem item, String title, String helpText, Object object) {
                 menu.add(getMenuOpButton(item, title, helpText, object));
@@ -473,6 +455,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, M
                 menu.add(getMenuOpButton(REWIND_GAME));
                 menu.add(getMenuOpButton(QUIT));
                 helpText.setText(soc.getHelpText());
+                frame.validate();
             }
 
             @Override
@@ -661,7 +644,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, M
                         NodeRect nr = nodeRects[highlightedIndex];
                         String info = String.format("%.6f", node.getValue());
                         g.setColor(GColor.YELLOW);
-                        AWTUtils.drawWrapJustifiedStringOnBackground(((AWTGraphics)g).getGraphics(), nr.r.x+nr.r.width+padding+5, nr.r.y, 100, padding, Justify.LEFT, Justify.TOP, info, AWTUtils.TRANSLUSCENT_BLACK);
+                        AWTUtils.drawWrapJustifiedStringOnBackground(((AWTGraphics)g).getGraphics(), Math.round(nr.r.x+nr.r.w+padding+5), Math.round(nr.r.y), 100, padding, Justify.LEFT, Justify.TOP, info, AWTUtils.TRANSLUSCENT_BLACK);
 
 
                         g.setColor(GColor.BLACK);
@@ -681,7 +664,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, M
                     public void onDrawPickable(UIBoardRenderer bc, APGraphics g, int index) {
                         NodeRect nr = nodeRects[index];
                         g.setColor(GColor.TRANSLUSCENT_BLACK);
-                        g.drawRect(nr.r.x, nr.r.y, nr.r.width, nr.r.height, padding);
+                        g.drawRect(nr.r.x, nr.r.y, nr.r.w, nr.r.h, padding);
                         g.setColor(GColor.YELLOW);
                         g.drawJustifiedString(nr.r.x, nr.r.y, Justify.LEFT, Justify.TOP, nr.s);
                     }
@@ -709,7 +692,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, M
                         for (int i=0; i<nodeRects.length; i++) {
                             int dy = i * g.getTextHeight();
                             NodeRect nr = nodeRects[i];
-                            if (AWTUtils.isInsideRect(x, y, nodeRects[i].r))
+                            if (nodeRects[i].r.contains(x, y))
                                 return i;
                         }
                         return -1;
@@ -799,14 +782,6 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, M
 			}
 		});
         
-        consolePane = new JScrollPane();
-        consolePane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-        consolePane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-        //consolePane.getVerticalScrollBar().setBlockIncrement(console.getTextHeight());
-        //consolePane.getVerticalScrollBar().setUnitIncrement(console.getTextHeight());
-        consolePane.setPreferredSize(consoleComponent.getPreferredSize());
-        consolePane.setViewportView(consoleComponent);
-
         // menu
         menu.setLayout(new GridLayout(0 ,1));
 
@@ -831,7 +806,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, M
         
         frame.add(eastGridPanel, BorderLayout.EAST);
         frame.add(westGridPanel, BorderLayout.WEST);
-        cntrBorderPanel.add(consolePane, BorderLayout.SOUTH); 
+        cntrBorderPanel.add(consoleComponent, BorderLayout.SOUTH);
         helpText.setBorder(BorderFactory.createLineBorder(helpText.getBackground(), 5));
         //helpText.set
         
@@ -839,13 +814,12 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, M
 	}
 
 	private void setupDimensions(int w, int h) {
-        Dimension boardDim = new Dimension(w*2/3, h*3/4);
-        boardComp.setPreferredSize(boardDim);
+        int boardW = w*2/3;
+        boardComp.setPreferredSize(boardW, h*3/4);
         Dimension sideDim = new Dimension(w/6, h);
         eastGridPanel.setPreferredSize(sideDim);
         westGridPanel.setPreferredSize(sideDim);
-        Dimension consoleDim = new Dimension(boardDim.width, h/5);
-        consolePane.setPreferredSize(consoleDim);
+        consoleComponent.setPreferredSize(boardW, h/5);
 	}
 	
     enum LayoutType {
@@ -911,24 +885,12 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, M
                 middleLeftPanel.removeAll();
                 JPanel diceHelpPanel = middleLeftPanel.push();
                 diceHelpPanel.setLayout(new BorderLayout());
-                JPanel dicePanel = null;
-                
-                Dice [] dice = soc.getDice();
-                for (int i=0; i<diceRenderers.length; i++) {
-                    diceRenderers[i].setType(DiceType.None);
-                }
-                for (int i=0; i<dice.length; i++) {
-                    diceRenderers[i].setType(dice[i].getType());
-                }
-                
+                diceHelpPanel.add(helpText, BorderLayout.SOUTH);
                 if (getRules().isEnableEventCards()) {
-                	dicePanel = new EZPanel(new FlowLayout(), eventCardComp);
+                    diceHelpPanel.add(eventCardComp, BorderLayout.CENTER);
                 } else {
-                	dicePanel = new EZPanel(new FlowLayout(), diceComps);
+                    diceHelpPanel.add(diceComponent, BorderLayout.CENTER);
                 }
-                
-                diceHelpPanel.add(dicePanel, BorderLayout.NORTH);
-                diceHelpPanel.add(helpText, BorderLayout.CENTER);
                 westGridPanel.add(middleLeftPanel);
                 JScrollPane menuPanel = new JScrollPane();
                 menuPanel.setLayout(new ScrollPaneLayout());
@@ -1014,8 +976,6 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, M
                 	islandNum = getBoard().createIsland(pickedValue);
                 	console.addText(GColor.BLACK, "Found island: " + islandNum);
     			}
-
-				
 			}
 			
 			@Override
@@ -1633,7 +1593,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, M
 							if (d == null) {
 								d = getBoard().computeDistances(getRules(), getCurPlayerNum());
 							}
-							console.addText(GColor.BLACK, "Dist form " + vertex0 + "->" + vertex1 + " = " + d.getDist(vertex0, vertex1));
+							console.addText(GColor.BLACK, "Dist from " + vertex0 + "->" + vertex1 + " = " + d.getDist(vertex0, vertex1));
 							List<Integer> path = d.getShortestPath(vertex0, vertex1);
 							for (int i=0; i<path.size(); i++) {
 								g.vertex(getBoard().getVertex(path.get(i)));
@@ -1977,6 +1937,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, M
 
     public void quitToMainMenu() {
         soc.stopRunning();
+        soc.trySaveToFile(saveGameFile);
         console.clear();
         boardRenderer.setPickHandler(null);
         menuStack.clear();
@@ -2109,10 +2070,10 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, M
 	interface MyCustomPickHandler extends CustomPickHandler, MouseWheelListener {};
 
 	static final class NodeRect {
-		final Rectangle r;
+		final GRectangle r;
 		final String s;
 
-		public NodeRect(Rectangle r, String s) {
+		public NodeRect(GRectangle r, String s) {
 			this.r = r;
 			this.s = s;
 		}
@@ -2126,7 +2087,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, M
 			MutableVector2D v = new MutableVector2D(n.getBoardPosition(getBoard()));
 			if (v.isZero()) {
 				String s = String.valueOf(index+1) +  " " + n.getDescription();
-				Rectangle r = new Rectangle(padding, ypos, (int)g.getTextWidth(s), fontHeight);
+				GRectangle r = new GRectangle(padding, ypos, (int)g.getTextWidth(s), fontHeight);
 				nodeRects[index] = new NodeRect(r, s);
 				ypos += fontHeight+padding*2+1;
 				
@@ -2134,11 +2095,11 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, M
 				g.transform(v);
 				String s = String.valueOf(index+1);
 				int width = (int)g.getTextWidth(s);
-				Rectangle r = new Rectangle(v.Xi() - width/2, v.Yi() - fontHeight/2, width, fontHeight);
+				GRectangle r = new GRectangle(v.Xi() - width/2, v.Yi() - fontHeight/2, width, fontHeight);
 				for (int i=0; i<index; i++) {
-					if (AWTUtils.isBoxesOverlapping(nodeRects[i].r, r)) {
+					if (nodeRects[i].r.isIntersectingWidth(r)) {
 						r.x = nodeRects[i].r.x;
-						r.y = nodeRects[i].r.y + nodeRects[i].r.height + padding;
+						r.y = nodeRects[i].r.y + nodeRects[i].r.h + padding;
 						break;
 					}
 				}

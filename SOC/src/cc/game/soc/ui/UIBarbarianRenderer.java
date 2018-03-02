@@ -6,6 +6,7 @@ import java.util.List;
 import cc.game.soc.core.SOC;
 import cc.lib.game.APGraphics;
 import cc.lib.game.GColor;
+import cc.lib.game.GDimension;
 
 public final class UIBarbarianRenderer implements UIRenderer {
 
@@ -13,6 +14,7 @@ public final class UIBarbarianRenderer implements UIRenderer {
 	int [] images;
     float border;
     final UIComponent component;
+    float padding = 5;
 
 	public UIBarbarianRenderer(UIComponent component) { //}, SOC soc, int defaultImage, int [] images, float border) {
 	    this.component = component;
@@ -46,19 +48,19 @@ public final class UIBarbarianRenderer implements UIRenderer {
 				    + "\nCatan: " + catanStr;
 
 		List<String> lines = new ArrayList<>();
-		float maxWidth  = g.generateWrappedText(text, component.getWidth(), lines, null);
+		GDimension dim = g.generateWrappedText(text, component.getWidth(), lines, null);
 
         g.setColor(GColor.TRANSLUSCENT_BLACK);
-		g.drawFilledRect(0, 0, component.getWidth(), Math.round(maxWidth));
+		g.drawFilledRectf(0, 0, dim.width+padding*2, dim.height+padding*2);
 
         if (catanStr >= barbStr)
             g.setColor(GColor.GREEN);
         else
             g.setColor(GColor.RED);
 
-        float y = 3;
+        float y = padding;
 		for (String line : lines) {
-		    g.drawString(line, 3, y);
+		    g.drawString(line, padding, y);
 		    y += g.getTextHeight();
         }
 	}
@@ -67,4 +69,15 @@ public final class UIBarbarianRenderer implements UIRenderer {
     public void doClick() {
 
     }
+
+    @Override
+    public void startDrag(float x, float y) {
+
+    }
+
+    @Override
+    public void endDrag() {
+
+    }
+
 }
