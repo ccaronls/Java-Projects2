@@ -327,8 +327,6 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
         LAYOUT_CONFIGURE,  // 2 menus of buttons on left
     }
     
-	List<AAnimation<Graphics>> cardAnimations = new ArrayList<>();
-    
     private LayoutType currentLayoutType = null;
     
     @SuppressWarnings("serial")
@@ -1749,12 +1747,6 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
         return soc.getCurPlayerNum();
     }
 
-    public String chooseColorMenu() {
-        menuStack.push(MenuState.MENU_CHOOSE_COLOR);
-        initMenu();
-        return waitForReturnValue(null);
-    }
-    
     public Vertex chooseVertex(final Collection<Integer> vertices, final int playerNum, final VertexChoice choice) {
 		clearMenu();
 		boardComp.setPickHandler(new PickHandler() {
@@ -2474,14 +2466,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 			delay += 20;
 		}
 	}
-	
-	public void showCustomMenu(Component [] components) {
-		clearMenu();
-		for (int i=0; i<components.length; i++)
-			menu.add(components[i]);
-		completeMenu();
-	}
-	
+
 	public void setReturnValue(Object o) {
 		returnValue = o;
 		synchronized (waitObj) {

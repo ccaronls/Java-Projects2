@@ -23,6 +23,7 @@ public final class AWTGraphics extends APGraphics {
         this.comp  = comp;
         initViewport(comp.getWidth(), comp.getHeight());
         ortho();
+        setIdentity();
     }
     
     public AWTGraphics(AWTGraphics g, Graphics G, Component comp) {
@@ -37,10 +38,6 @@ public final class AWTGraphics extends APGraphics {
 
     public final Graphics getGraphics() {
         return g;
-    }
-
-    public Color toColor(GColor c) {
-        return new Color(c.red(), c.green(), c.blue(), c.alpha());
     }
 
     public final void setGraphics(Graphics g) {
@@ -115,7 +112,7 @@ public final class AWTGraphics extends APGraphics {
 
     @Override
     public final  float drawStringLine(float x, float y, Justify hJust, String text) {
-        AWTUtils.drawJustifiedString(g, Math.round(x), Math.round(y), hJust, Justify.TOP, text);
+        AWTUtils.drawJustifiedString(g, Math.round(x), Math.round(y)-3, hJust, Justify.TOP, text);
         return this.getTextWidth(text);
     }
 
@@ -281,14 +278,18 @@ public final class AWTGraphics extends APGraphics {
         }
     }
 
+    public final void addSearchPath(String path) {
+        images.addSearchPath(path);
+    }
+
     @Override
     public final  int loadImage(String assetPath, GColor transparent) {
-        return images.loadImage(assetPath, transparent == null ? null : toColor(transparent));
+        return images.loadImage(assetPath, transparent == null ? null : AWTUtils.toColor(transparent));
     }
     
     @Override
     public final int[] loadImageCells(String assetPath, int w, int h, int numCellsX, int numCells, boolean bordered, GColor transparent) {
-        return images.loadImageCells(assetPath, w, h, numCellsX, numCells, bordered, toColor(transparent));
+        return images.loadImageCells(assetPath, w, h, numCellsX, numCells, bordered, AWTUtils.toColor(transparent));
     }
 
     @Override
@@ -344,9 +345,8 @@ public final class AWTGraphics extends APGraphics {
     }
 
     @Override
-    public final  void drawImage(int imageKey, int x, int y, int w, int h) {
-        Vector2D v = r.transformXY(x, y);
-        images.drawImage(g, imageKey, v.Xi(), v.Yi(), w, h);
+    protected final void drawImage(int imageKey, int x, int y, int w, int h) {
+        images.drawImage(g, imageKey, x, y, w, h);
     }
 
     @Override
@@ -358,7 +358,7 @@ public final class AWTGraphics extends APGraphics {
     @Override
     public final  void clearScreen(GColor color) {
         Color c = g.getColor();
-        g.setColor(toColor(color));
+        g.setColor(AWTUtils.toColor(color));
         g.fillRect(0, 0, this.getViewportWidth(), this.getViewportHeight());
         g.setColor(c);
     }

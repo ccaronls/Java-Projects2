@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
+import cc.lib.game.GRectangle;
 import cc.lib.game.Utils;
 import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
@@ -328,7 +329,7 @@ public class Board extends Reflector<Board> {
      *  
      *  Return 0 means start cell was not land.
      *  
-     * @param start
+     * @param startCellIndex
      */
     public int createIsland(int startCellIndex) {
     	Tile start = getTile(startCellIndex);
@@ -806,21 +807,6 @@ public class Board extends Reflector<Board> {
 	}
 
 	/**
-	 *  This function only works for default (hexagon shaped) board types.
-	 * @param c
-	 * @return
-	 *
-	@Deprecated
-	public boolean isPerimeterTile(Tile c) {
-	    for (int vIndex: c.getAdjVerts()) {
-	        Vertex v = getVertex(vIndex);
-	        if (v.getNumAdjacent() != 3)
-	            return true;
-	    }
-	    return false;
-	}
-	
-	/**
 	 * Clear the board of all data.  There will be no tiles, hence the board will be unplayable.
 	 */
 	public void clear() {
@@ -1013,7 +999,8 @@ public class Board extends Reflector<Board> {
 
 	/**
 	 * Generate a rectangular board with dim*dim cells. 
-	 * @param rows
+	 * @param dim
+     * @param fillType
 	 */
 	public void generateRectBoard(int dim, TileType fillType) {
 		clear();
@@ -1282,7 +1269,7 @@ public class Board extends Reflector<Board> {
 	
 	/**
 	 * Convenience method to get routes adjacent and a specific route
-	 * @param rIndex
+	 * @param r
 	 * @return
 	 */
 	public Iterable<Integer> getRouteIndicesAdjacentToRoute(Route r) {
@@ -1331,7 +1318,7 @@ public class Board extends Reflector<Board> {
     /**
      * 
      * @param player
-     * @param rt
+     * @param types
      * @return
      */
     public List<Route> getRoutesOfType(int player, RouteType ... types) {
@@ -1553,7 +1540,7 @@ public class Board extends Reflector<Board> {
 	
 	/**
 	 * Count the number of vertices assigned to a player.
-	 * @param player
+	 * @param playerNum
 	 * @return
 	 */
 	public int getNumStructuresForPlayer(int playerNum) {
@@ -1562,7 +1549,7 @@ public class Board extends Reflector<Board> {
 
 	/**
 	 * Count the number of vertices assigned to player that are settlements.
-	 * @param player
+	 * @param playerNum
 	 * @return
 	 */
 	public int getNumSettlementsForPlayer(int playerNum) {
@@ -1639,16 +1626,7 @@ public class Board extends Reflector<Board> {
 	public List<Integer> getKnightsForPlayer(int playerNum) {
 		return getVertIndicesOfType(playerNum, VertexType.BASIC_KNIGHT_ACTIVE, VertexType.BASIC_KNIGHT_INACTIVE, VertexType.STRONG_KNIGHT_ACTIVE, VertexType.STRONG_KNIGHT_INACTIVE, VertexType.MIGHTY_KNIGHT_ACTIVE, VertexType.MIGHTY_KNIGHT_INACTIVE);
 	}
-	
-    /**
-     * Count the number of vertices assigned to player that are cities.
-     * @param player
-     * @return
-     *
-	public int getNumCitiesForPlayer(int playerNum) {
-		return getNumVertsOfType(playerNum, VertexType.CITY, VertexType.WALLED_CITY);
-	}
-	
+
 	/**
 	 * 
 	 * @param playerNum
@@ -1678,7 +1656,7 @@ public class Board extends Reflector<Board> {
 
 	/**
 	 * Return true if a player has any structure adjacent to a given cell.
-	 * @param player
+	 * @param playerNum
 	 * @param cellIndex
 	 * @return
 	 */
@@ -1696,7 +1674,7 @@ public class Board extends Reflector<Board> {
 	/**
 	 * Return true if an edge can legally be used as a road for a given player.
 	 * @param edgeIndex
-	 * @param p
+	 * @param playerNum
 	 * @return
 	 */
 	public boolean isRouteAvailableForRoad(int edgeIndex, int playerNum) {
@@ -1705,8 +1683,8 @@ public class Board extends Reflector<Board> {
 	
 	/**
 	 * Return true if an edge can legally be used as a road for a given player.
-	 * @param edgeIndex
-	 * @param p
+	 * @param edge
+	 * @param playerNum
 	 * @return
 	 */
 	public boolean isRouteAvailableForRoad(Route edge, int playerNum) {
@@ -1741,8 +1719,9 @@ public class Board extends Reflector<Board> {
 	}
 	
 	/**
-	 * 
-	 * @param edgeIndex
+	 *
+     * @param rules
+	 * @param edge
 	 * @param playerNum
 	 * @return
 	 */
@@ -1810,7 +1789,8 @@ public class Board extends Reflector<Board> {
 	/**
 	 * Return true if a vertex has any edge assigned to player.
 	 * @param vIndex
-	 * @param player
+	 * @param playerNum
+     * @param flag
 	 * @return
 	 */
 	private boolean isVertexAdjacentToRoute(int vIndex, int playerNum, int flag) {
@@ -1863,7 +1843,7 @@ public class Board extends Reflector<Board> {
 
 	/**
 	 * Count the number of edges assigned to player
-	 * @param player
+	 * @param playerNum
 	 * @return
 	 */
     public final int getNumRoadsForPlayer(int playerNum) {
@@ -2038,36 +2018,38 @@ public class Board extends Reflector<Board> {
 	 * Center the board inside the 0,0 x 1,1 rectangle
 	 */
     public final void center() {
-    	Vector2D [] minMax = computeMinMax();
-    	Vector2D v = minMax[0].add(minMax[1]).scale(-0.5f);
-    	translate(v.getX() + 0.5f, v.getY() + 0.5f);
+    	GRectangle minMax = computeMinMax();
+    	Vector2D v = minMax.getCenter();
+    	translate(v.getX(), v.getY());
     }
 
-    public final Vector2D [] computeMinMax() {
+    public final GRectangle computeMinMax() {
     	MutableVector2D min = new MutableVector2D(Vector2D.MAX);
     	MutableVector2D max = new MutableVector2D(Vector2D.MIN);
     	for (Tile c : tiles) {
     		if (c.getType() == TileType.NONE)
     			continue;
-    		min.minEq(c);
-    		max.maxEq(c);
+    		for (int ii : c.getAdjVerts()) {
+    		    Vertex v = getVertex(ii);
+                min.minEq(v);
+                max.maxEq(v);
+            }
     	}
-    	max.addEq(Vector2D.newTemp(cw/2, ch/2));
-    	min.subEq(Vector2D.newTemp(cw/2, ch/2));
-    	return new Vector2D [] { min, max };
+    	max.addEq(cw/2, ch/2);
+    	min.subEq(cw/2, ch/2);
+    	return new GRectangle(min.X(), min.Y(), max.X()-min.X(), max.Y()-min.Y());
     }
     
     /**
      * Fit all cells into the 0,0 x 1,1 rectangle
      */
     public final void fillFit() {
-    	Vector2D [] minMax = computeMinMax();
-    	Vector2D v = minMax[0].add(minMax[1]).scale(-0.5f);
-    	Vector2D d = minMax[1].sub(minMax[0]);
+    	GRectangle minMax = computeMinMax();
+    	Vector2D v = minMax.getCenter();
     	// center at 0,0
     	translate(v.getX(), v.getY());
     	// fill a 1,1 rect
-    	scale(1.0f / d.getX(), 1.0f / d.getY());
+    	scale(1.0f / minMax.w, 1.0f / minMax.h);
     	// move to 0.5, 0.5
     	translate(0.5f, 0.5f);
     }
@@ -2145,7 +2127,7 @@ public class Board extends Reflector<Board> {
 	
 	/**
      * Convenience method to get iterable over the cells adjacent to a vertex
-     * @param v
+     * @param vIndex
      * @return
      */
 	public final Iterable<Tile> getTilesAdjacentToVertex(int vIndex) {
@@ -2169,7 +2151,7 @@ public class Board extends Reflector<Board> {
 
 	/**
 	 * Return true if any edge adjacent to e is a ship and owned by playerNum
-	 * @param e
+	 * @param vIndex
 	 * @param playerNum
 	 * @return
 	 */
@@ -2242,7 +2224,7 @@ public class Board extends Reflector<Board> {
 
 	/**
 	 * Convenience to get the cells adjacent to a vertex
-	 * @param vIndex
+	 * @param v
 	 * @return
 	 */
 	public Collection<Tile> getVertexTiles(Vertex v) {

@@ -13,12 +13,13 @@ import cc.game.soc.core.Tile;
 import cc.game.soc.core.Trade;
 import cc.game.soc.core.Vertex;
 
-public abstract class UIPlayerUser extends UIPlayer {
+public final class UIPlayerUser extends UIPlayer {
 
-	public UIPlayerUser() {
+    private final UIPlayerRenderer renederer;
+	public UIPlayerUser(UIPlayerRenderer playerRenderer) {
+	    this.renederer = playerRenderer;
 	}
 
-	
 	@Override
 	public MoveType chooseMove(SOC soc, Collection<MoveType> moves) {
 		return ((UISOC)soc).chooseMoveMenu(moves);
@@ -33,7 +34,7 @@ public abstract class UIPlayerUser extends UIPlayer {
 	@Override
 	public Vertex chooseVertex(SOC soc, Collection<Integer> vertexIndices, VertexChoice mode, Vertex knightToMove) {
 		Vertex v = ((UISOC)soc).chooseVertex(vertexIndices, getPlayerNum(), mode);
-		doVertexAnimation((UIBoard)soc.getBoard(), mode, v, knightToMove);
+		renederer.doVertexAnimation(UISOC.getInstance().getUIBoard(), mode, v, knightToMove);
 		return v;
 	}
 
@@ -41,7 +42,7 @@ public abstract class UIPlayerUser extends UIPlayer {
 	@Override
 	public Route chooseRoute(SOC soc, Collection<Integer> routeIndices, RouteChoice mode) {
 		Route r = ((UISOC)soc).chooseRoute(routeIndices, mode);
-		doRouteAnimation(soc, mode, r);
+        doRouteAnimation(soc, mode, r);
 		return r;
 	}
 

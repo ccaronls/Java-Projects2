@@ -523,8 +523,10 @@ public class PlayerBot extends Player {
 					continue;
 				usedMoves.add(move);
 			}
-			if (numLeafs > 500)
-				break;
+			if (numLeafs > 500) {
+                doEvaluateAll(_root, soc, p, b);
+                break;
+            }
 			BotNode root = _root.attach(new BotNodeEnum(move));
 			switch (move) {
 				case CONTINUE:
@@ -1394,9 +1396,10 @@ public class PlayerBot extends Player {
 //		evaluateVertices(root, soc, this, soc.getBoard());
 //		evaluateSeafarers(root, soc,this, soc.getBoard());
 //		evalu
-		Player p = new PlayerTemp(this);
-		p.setCardsUsable(CardType.Development, false); // prevent generating development card moves on subsequent calls
-		buildChooseMoveTreeR(soc, p, soc.getBoard(), root, moves);
+		Player t = new PlayerTemp(this);
+		setCardsUsable(CardType.Development, false); // prevent generating development card moves on subsequent calls
+		buildChooseMoveTreeR(soc, this, soc.getBoard(), root, moves);
+		copyFrom(t);
 		/*
 		if (DEBUG_ENABLED) {
 			try {

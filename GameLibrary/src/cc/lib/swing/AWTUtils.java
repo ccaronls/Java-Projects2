@@ -5,6 +5,7 @@ import java.awt.*;
 import java.awt.font.GlyphVector;
 import java.util.*;
 
+import cc.lib.game.GColor;
 import cc.lib.game.Justify;
 import cc.lib.game.Utils;
 import cc.lib.utils.Reflector;
@@ -1046,4 +1047,8 @@ public class AWTUtils {
 				Math.min(255, a.getBlue() + b.getBlue()),
 				Math.min(255, a.getAlpha() + b.getAlpha()));
 	}
+
+    public static Color toColor(GColor c) {
+	    return new Color(c.red(), c.green(), c.blue(), c.alpha());
+    }
 }

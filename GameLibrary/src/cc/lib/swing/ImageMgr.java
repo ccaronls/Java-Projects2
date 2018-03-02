@@ -17,6 +17,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Vector;
 
 import javax.swing.ImageIcon;
@@ -70,8 +72,29 @@ public class ImageMgr {
 			} catch (Exception e) {}
 		}
 	}
-	
-	/* */
+
+    private Image loadImageFromSearchPaths(String name) {
+	    for (String path : paths) {
+            InputStream in = null;
+            try {
+                in = new FileInputStream(new File(path, name));
+                byte[] buffer = new byte[in.available()];
+                in.read(buffer);
+                return new ImageIcon(buffer).getImage();
+            } catch (Exception e) {
+                Utils.println("Not found in search path '" + path + "':" + e.getMessage());
+            } finally {
+                try {
+                    if (in != null)
+                        in.close();
+                } catch (Exception e) {
+                }
+            }
+        }
+        return null;
+    }
+
+    /* */
 	private Image loadImageFromResource(String name) {
 		InputStream in = null;
 		try {
@@ -80,7 +103,7 @@ public class ImageMgr {
 			in.read(buffer);
 			return new ImageIcon(buffer).getImage();
 		} catch (Exception e) {
-			System.err.println(e.getMessage());
+			System.err.println("Not found in resource: " + e.getMessage());
 			return null;
 		} finally {
 			try {
@@ -95,13 +118,19 @@ public class ImageMgr {
 				URL url = new URL(name);
 				return ((Applet)comp).getImage(url);
 			} catch (Exception e) {
-				System.err.println(e.getMessage());
+				System.err.println("Not found via Applet: " + e.getMessage());
 				return null;
 			}
 		}
 		return null;
 	}
-	
+
+	private final List<String> paths = new ArrayList<>();
+
+    public void addSearchPath(String s) {
+        paths.add(s);
+    }
+
 	/**
 	 * 
 	 * @param name
@@ -114,12 +143,14 @@ public class ImageMgr {
 		Utils.print("Loading image %d : %s ...", id, fileOrResourceName);
 		if ((image = this.loadImageFromFile(fileOrResourceName))!=null) {
 			Utils.print("From File...");
+        } else if ((image = this.loadImageFromSearchPaths(fileOrResourceName))!=null) {
+            Utils.print("From search paths...");
 		} else if ((image = this.loadImageFromResource(fileOrResourceName))!=null) {
 			Utils.print("From Resource...");
 		} else if ((image = this.loadImageFromApplet(fileOrResourceName))!=null) {
-			Utils.print("From Applet...");
+            Utils.print("From Applet...");
 		} else {
-			throw new RuntimeException("Cannot load image");
+			throw new RuntimeException("Cannot load image '" + fileOrResourceName + "'");
 		}		
 		
 		if (transparent != null) {
@@ -232,14 +263,14 @@ public class ImageMgr {
 		Image image = scaledImages.get(id);
 		int curW = image.getWidth(comp);
 		int curH = image.getHeight(comp);
-		if (width >= 8 && width <= 1024 && height >= 8 && height <= 1024 && curW != width || curH != height) {
+		if (width >= 8 && width <= 1024 && height >= 8 && height <= 1024 && (curW - width) > 1 || (curH - height) > 1) {
 			//Utils.println("Resizing image [" + id + "] from " + curW + ", " + curH + " too " + width + ", " + height);
 		    Utils.println("Resizing image [%d] from %d, %d too %d, %d", id, curW, curH, width, height);
 
 			image = sourceImages.get(id);
 			image = transform(image, new ReplicateScaleFilter(width,height));
 			Image toDelete = scaledImages.get(id);
-			if (toDelete != null) {
+			if (toDelete != image) {
 				tracker.removeImage(toDelete);
 			}
 			scaledImages.set(id, image); // make this our new scaled images
@@ -452,5 +483,6 @@ public class ImageMgr {
 		}
 		trackerId++;
 	}
+
 
 }

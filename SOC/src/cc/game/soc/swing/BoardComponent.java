@@ -188,7 +188,7 @@ public abstract class BoardComponent extends JComponent implements MouseMotionLi
 		this.board = board;
         addMouseMotionListener(this);
         addMouseListener(this);
-        
+        images.addSearchPath("images");
         desertImage  = images.loadImage("desert.GIF", Color.WHITE);
 		woodImage    = images.loadImage("wood.GIF",   Color.WHITE);
 		wheatImage   = images.loadImage("wheat.GIF",  Color.WHITE);
@@ -229,12 +229,21 @@ public abstract class BoardComponent extends JComponent implements MouseMotionLi
         return (renderFlag & (1 << flag.ordinal())) != 0;
     }
     
-    void addAnimation(AAnimation<Graphics> anim) {
+    void addAnimation(GAnimation anim, boolean block) {
         synchronized (animations) {
             animations.add(anim);
         }
-        repaint();
         anim.start();
+        repaint();
+        if (block) {
+            synchronized (anim) {
+                try {
+                    anim.wait(anim.getDuration() + 500);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 
 	public void drawTileOutline(Graphics g, Tile cell, int borderThickness) {

@@ -1498,8 +1498,13 @@ public class Reflector<T> {
 	public final void copyFrom(Reflector<T> other) {
     	try {
             Map<Field, Archiver> values = getValues(getClass(), false);
-            
+            Map<Field, Archiver> otherValues = getValues(other.getClass(), false);
+
             for (Field f: values.keySet()) {
+
+                if (!otherValues.containsKey(f))
+                    continue;
+
             	f.setAccessible(true);
             	Object o = f.get(this);
                 if (o != null && o instanceof Reflector) {
