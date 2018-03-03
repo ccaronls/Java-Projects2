@@ -537,7 +537,7 @@ public abstract class BoardComponent extends JComponent implements MouseMotionLi
 		final int r2 = r+3;
 		int index = level * (active ? 2 : 1) - 1;
 		g.drawOval(x-r2/2, y-r2/2, r2, r2);
-		images.drawImage(g, knightImages[index], x-r/2, y-r/2, r, r);
+		images.drawImage(g, this, knightImages[index], x-r/2, y-r/2, r, r);
 	}
 	
 	float getKnightRadius() {
@@ -973,31 +973,31 @@ public abstract class BoardComponent extends JComponent implements MouseMotionLi
                 //Utils.drawJustifiedString(g,x,y,Justify.CENTER,Justify.CENTER,"NONE");
                 break;
             case DESERT:
-                images.drawImage(g, desertImage, x-w/2, y-h/2, w, h);
+                images.drawImage(g, this, desertImage, x-w/2, y-h/2, w, h);
                 break;
             case WATER:
-                images.drawImage(g, waterImage, x-w/2, y-h/2, w, h);
+                images.drawImage(g, this, waterImage, x-w/2, y-h/2, w, h);
                 break;
             case PORT_WHEAT:
             case PORT_WOOD:
             case PORT_BRICK:
             case PORT_ORE:
             case PORT_SHEEP:
-                images.drawImage(g, waterImage, x-w/2, y-h/2, w, h);
+                images.drawImage(g, this, waterImage, x-w/2, y-h/2, w, h);
                 g.setColor(textColor);
                 AWTUtils.drawJustifiedString(g,x,y,Justify.CENTER,Justify.CENTER,"2:1\n" + cell.getResource().name());
                 break;
             case PORT_MULTI:
-                images.drawImage(g, waterImage, x-w/2, y-h/2, w, h);
+                images.drawImage(g, this, waterImage, x-w/2, y-h/2, w, h);
                 g.setColor(textColor);
                 AWTUtils.drawJustifiedString(g,x,y,Justify.CENTER,Justify.CENTER,"3:1\n?");
                 break;
             case GOLD:
-            	images.drawImage(g, goldImage, x-w/2, y-h/2, w, h);
+            	images.drawImage(g, this, goldImage, x-w/2, y-h/2, w, h);
             	break;
 
             case UNDISCOVERED:
-            	images.drawImage(g, undiscoveredImage, x-w/2, y-h/2, w, h);
+            	images.drawImage(g, this, undiscoveredImage, x-w/2, y-h/2, w, h);
             	break;
 
             // used for random generation
@@ -1026,19 +1026,19 @@ public abstract class BoardComponent extends JComponent implements MouseMotionLi
                 AWTUtils.drawJustifiedString(g,x,y,Justify.CENTER,Justify.CENTER,"Random\nPort");
                 break;
             case FIELDS:
-            	images.drawImage(g, fieldshexImage, x-w/2, y-h/2, w, h);
+            	images.drawImage(g, this, fieldshexImage, x-w/2, y-h/2, w, h);
 				break;
 			case FOREST:
-				images.drawImage(g, foresthexImage, x-w/2, y-h/2, w, h);
+				images.drawImage(g, this, foresthexImage, x-w/2, y-h/2, w, h);
 				break;
 			case HILLS:
-				images.drawImage(g, hillshexImage, x-w/2, y-h/2, w, h);
+				images.drawImage(g, this, hillshexImage, x-w/2, y-h/2, w, h);
 				break;
 			case MOUNTAINS:
-				images.drawImage(g, mountainshexImage, x-w/2, y-h/2, w, h);
+				images.drawImage(g, this, mountainshexImage, x-w/2, y-h/2, w, h);
 				break;
 			case PASTURE:
-				images.drawImage(g, pastureshexImage, x-w/2, y-h/2, w, h);
+				images.drawImage(g, this, pastureshexImage, x-w/2, y-h/2, w, h);
 				break;                
             }
             

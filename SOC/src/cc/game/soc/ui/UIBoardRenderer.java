@@ -70,6 +70,10 @@ public final class UIBoardRenderer implements UIRenderer {
         };
     }
 
+    public final PickHandler getPickHandler() {
+        return pickHandler;
+    }
+
     public void initAttribs(int renderFlag, GColor bkColor, int roadLineThickness, int padding, float textSize) {
         this.renderFlag = renderFlag;
         this.bkColor = bkColor;

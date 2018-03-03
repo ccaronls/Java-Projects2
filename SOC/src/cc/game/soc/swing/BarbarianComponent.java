@@ -33,7 +33,7 @@ public class BarbarianComponent extends JComponent {
 		if (numStepsAway >= 0 && numStepsAway < images.length) {
 			image = images[numStepsAway];
 		}
-		GUI.instance.images.drawImage(g, image, 0, 0, getWidth(), getHeight());
+		GUI.instance.images.drawImage(g, this, image, 0, 0, getWidth(), getHeight());
 		
 		int barbStr = SOC.computeBarbarianStrength(soc, soc.getBoard());
 		int catanStr = SOC.computeCatanStrength(soc, soc.getBoard());

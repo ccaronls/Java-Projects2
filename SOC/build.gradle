@@ -11,10 +11,10 @@ sourceSets {
         java {
             srcDirs = ['src']
         }
-
         resources {
             srcDirs = ['images', 'resources'];
         }
+        //output.resourcesDir = 'build/resources';
     }
 }
 

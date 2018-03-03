@@ -22,7 +22,6 @@ public final class UIDiceRenderer implements UIRenderer {
 	private int redCityImageId = -1;
 	private int greenCityImageId = -1;
 	private int blueCityImageId = -1;
-	private float dotSize = 4;
 	private GDimension diceRect = null;
 
 	private Dice [] dice = new Dice[0];
@@ -37,11 +36,6 @@ public final class UIDiceRenderer implements UIRenderer {
 	    this.blueCityImageId = blueCityImageId;
     }
     
-    public void initStyle(float dotSize) {
-	    this.dotSize = dotSize;
-    }
-
-
 	public UIDiceRenderer(UIComponent component) {
         this.component = component;
         this.component.setRenderer(this);
@@ -235,6 +229,7 @@ public final class UIDiceRenderer implements UIRenderer {
 	    float dd2 = dim/2;
 	    float dd4 = dim/4;
 	    float dd34 = (dim*3)/4;
+	    float dotSize = dim/8;
 	    float oldDotSize = g.setPointSize(dotSize);
 	    g.begin();
 	    switch (numDots) {

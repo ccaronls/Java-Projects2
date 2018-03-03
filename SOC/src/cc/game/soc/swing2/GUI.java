@@ -234,6 +234,13 @@ public class GUI implements ActionListener, MenuItem.Action {
         protected float getInitProgress() {
             return progress;
         }
+
+        @Override
+        protected void onMouseWheel(int rotation) {
+            if (boardRenderer.getPickHandler() != null && (boardRenderer.getPickHandler() instanceof MyCustomPickHandler)) {
+                ((MyCustomPickHandler)boardRenderer.getPickHandler()).onMouseWheel(rotation);
+            }
+        }
     };
     private final SOCComponent barbarianComp = new SOCComponent() {
         float progress = 0;
@@ -274,7 +281,7 @@ public class GUI implements ActionListener, MenuItem.Action {
         }
     };
 
-    private final SOCComponent diceComponent = new SOCComponent() {
+    class DiceComponent extends SOCComponent {
 
         float progress = 0;
         @Override
@@ -313,6 +320,8 @@ public class GUI implements ActionListener, MenuItem.Action {
         }
     };
 
+    private final DiceComponent diceComponent = new DiceComponent();
+
     private final SOCComponent [] playerComponents = {
             new SOCComponent(),
             new SOCComponent(),
@@ -323,13 +332,7 @@ public class GUI implements ActionListener, MenuItem.Action {
             new SOCComponent(),
             new SOCComponent()
     };
-    private final SOCComponent eventCardComp = new SOCComponent() {
-        @Override
-        protected void init(AWTGraphics g) {
-            setMouseEnabled(true);
-        }
-    };
-
+    private final DiceComponent eventCardComp = new DiceComponent();
     private final UIBarbarianRenderer barbarianRenderer = new UIBarbarianRenderer(barbarianComp);
     private final UIPlayerRenderer [] playerRenderers = {
             new UIPlayerRenderer(playerComponents[0]),
@@ -344,6 +347,7 @@ public class GUI implements ActionListener, MenuItem.Action {
     private final UIBoardRenderer boardRenderer = new UIBoardRenderer(boardComp);
     
     private final UIDiceRenderer diceRenderers = new UIDiceRenderer(diceComponent);
+    private final UIDiceRenderer diceRenderersEvent = new UIDiceRenderer(diceComponent);
     private final UIEventCardRenderer eventCardRenderer = new UIEventCardRenderer(eventCardComp, diceRenderers);
 
 	private final Stack<MenuState> menuStack = new Stack<>();
@@ -517,8 +521,8 @@ public class GUI implements ActionListener, MenuItem.Action {
 
                     int lastHighlighted = -1;
 
-                    public void mouseWheelMoved(MouseWheelEvent e) {
-                        int clicks = e.getWheelRotation();
+                    @Override
+                    public void onMouseWheel(int clicks) {
                         leftPanelOffset[0] = Math.max(0, leftPanelOffset[0]+clicks);
                         int ypos = -leftPanelOffset[0] * fontHeight;
                         initNodeRectsArray(g, leafs, nodeRects, ypos);
@@ -679,11 +683,9 @@ public class GUI implements ActionListener, MenuItem.Action {
 
                 };
                 boardRenderer.setPickHandler(handler);
-                boardComp.addMouseWheelListener(handler);
                 BotNode result = waitForReturnValue(null);
                 middleLeftPanel.pop();
                 boardRenderer.setPickHandler(null);
-                boardComp.removeMouseWheelListener(handler);
                 return result;
             }
 
@@ -1876,6 +1878,7 @@ public class GUI implements ActionListener, MenuItem.Action {
             soc.setReturnValue(optimalOptions.get(optimalIndex));
         } else if (op == AITUNING_REFRESH) {
             try {
+                // yikes! is there a better way to do this?
                 JTextArea area = (JTextArea)(((JScrollPane)middleLeftPanel.top().getComponent(0)).getViewport().getView());
                 String txt = area.getText();
                 String [] lines = txt.split("[\n]");
@@ -2046,7 +2049,9 @@ public class GUI implements ActionListener, MenuItem.Action {
 		return info.toString();
 	}
 			
-	interface MyCustomPickHandler extends CustomPickHandler, MouseWheelListener {};
+	interface MyCustomPickHandler extends CustomPickHandler {
+	    void onMouseWheel(int rotation);
+    };
 
 	static final class NodeRect {
 		final GRectangle r;

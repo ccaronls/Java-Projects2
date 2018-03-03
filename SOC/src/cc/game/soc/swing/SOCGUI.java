@@ -134,7 +134,7 @@ public class SOCGUI extends SOC {
     }
     
     private void drawCard(Color color, Graphics g, String txt, int x, int y, int cw, int ch) {
-    	gui.getBoardComponent().images.drawImage(g, gui.getBoardComponent().cardFrameImage, x, y, cw, ch);
+    	gui.getBoardComponent().images.drawImage(g, gui.getBoardComponent(), gui.getBoardComponent().cardFrameImage, x, y, cw, ch);
         g.setColor(color);
         AWTUtils.drawWrapJustifiedString(g, x+cw/2, y+ch/2, cw-6, Justify.CENTER, Justify.CENTER, txt);
     }

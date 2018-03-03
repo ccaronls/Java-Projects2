@@ -6,6 +6,7 @@ import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.MediaTracker;
+import java.awt.Toolkit;
 import java.awt.image.CropImageFilter;
 import java.awt.image.FilteredImageSource;
 import java.awt.image.ImageFilter;
@@ -28,7 +29,6 @@ import cc.lib.math.CMath;
 
 public class ImageMgr {
 
-	private Component 		comp; // Image Observer
 	private Vector<Image>	sourceImages = new Vector<Image>(); // loaded images
 	private Vector<Image>	scaledImages = new Vector<Image>(); // scaled images
 	private MediaTracker 	tracker; // used to wait for transforms, loading
@@ -36,11 +36,9 @@ public class ImageMgr {
 	
 	/**
 	 * 
-	 * @param comp
 	 */
-	public ImageMgr(Component comp) {
-		this.comp = comp;
-		this.tracker = new MediaTracker(comp);
+	public ImageMgr() {
+		//this.tracker = new MediaTracker(comp);
 	}
 	
 	/* Returns an ImageIcon, or null if the path was invalid. 
@@ -111,8 +109,8 @@ public class ImageMgr {
 			} catch (Exception e) {}
 		}
 	}
-	
-	private Image loadImageFromApplet(String name) {
+
+	private Image loadImageFromApplet(Component comp, String name) {
 		if (comp instanceof Applet) {
 			try {
 				URL url = new URL(name);
@@ -147,8 +145,8 @@ public class ImageMgr {
             Utils.print("From search paths...");
 		} else if ((image = this.loadImageFromResource(fileOrResourceName))!=null) {
 			Utils.print("From Resource...");
-		} else if ((image = this.loadImageFromApplet(fileOrResourceName))!=null) {
-            Utils.print("From Applet...");
+//		} else if ((image = this.loadImageFromApplet(fileOrResourceName))!=null) {
+  //          Utils.print("From Applet...");
 		} else {
 			throw new RuntimeException("Cannot load image '" + fileOrResourceName + "'");
 		}		
@@ -261,8 +259,8 @@ public class ImageMgr {
 	 */
 	public Image getImage(int id, int width, int height) {
 		Image image = scaledImages.get(id);
-		int curW = image.getWidth(comp);
-		int curH = image.getHeight(comp);
+		int curW = image.getWidth(null);
+		int curH = image.getHeight(null);
 		if (width >= 8 && width <= 1024 && height >= 8 && height <= 1024 && Math.abs(curW - width) > 1 || Math.abs(curH - height) > 1) {
 			//Utils.println("Resizing image [" + id + "] from " + curW + ", " + curH + " too " + width + ", " + height);
 		    Utils.println("Resizing image [%d] from %d, %d too %d, %d", id, curW, curH, width, height);
@@ -271,7 +269,8 @@ public class ImageMgr {
 			image = transform(image, new ReplicateScaleFilter(width,height));
 			Image toDelete = scaledImages.get(id);
 			if (toDelete != image) {
-				tracker.removeImage(toDelete);
+			    if (tracker != null)
+				    tracker.removeImage(toDelete);
 			}
 			scaledImages.set(id, image); // make this our new scaled images
 		}
@@ -300,7 +299,7 @@ public class ImageMgr {
 	 * @param w
 	 * @param h
 	 */
-	public void drawImage(Graphics g, int id, int x, int y, int w, int h) {
+	public void drawImage(Graphics g, Component comp, int id, int x, int y, int w, int h) {
 	    try {
     		Image image = getImage(id, w, h);
     		g.drawImage(image, x, y, comp);
@@ -338,7 +337,7 @@ public class ImageMgr {
 	 * @return
 	 */
 	public int getWidth(int id) {
-		return this.scaledImages.get(id).getWidth(comp);
+		return this.scaledImages.get(id).getWidth(null);
 	}
 
 	/**
@@ -347,7 +346,7 @@ public class ImageMgr {
 	 * @return
 	 */
 	public int getHeight(int id) {
-		return this.scaledImages.get(id).getHeight(comp);
+		return this.scaledImages.get(id).getHeight(null);
 	}
 	
 	/**
@@ -390,7 +389,7 @@ public class ImageMgr {
 	 */
 	public Image transform(Image image, ImageFilter filter) {
 		ImageProducer p = new FilteredImageSource(image.getSource(), filter);
-		Image newImage = comp.createImage(p);//Toolkit.getDefaultToolkit().createImage(p);
+		Image newImage = Toolkit.getDefaultToolkit().createImage(p);//comp.createImage(p);//Toolkit.getDefaultToolkit().createImage(p);
 		waitForIt(newImage);
 		return newImage;
 	}
@@ -406,8 +405,8 @@ public class ImageMgr {
 	    Image image = getImage(sourceId);
 	    if (image == null || degrees == 0)
 	        return sourceId;
-	    int srcWid = image.getWidth(comp);
-	    int srcHgt = image.getHeight(comp);
+	    int srcWid = image.getWidth(null);
+	    int srcHgt = image.getHeight(null);
 	    int dstWid = srcWid;
 	    int dstHgt = srcHgt;
 	    switch (degrees) {
@@ -426,7 +425,7 @@ public class ImageMgr {
         //dstWid = dstHgt = Math.max(srcWid,  srcHgt);
 	    int [] pixels = new int[srcWid * srcHgt];
 	    
-	    PixelGrabber grabber = new PixelGrabber(image, 0, 0, image.getWidth(comp), image.getHeight(comp), pixels, 0, srcWid);
+	    PixelGrabber grabber = new PixelGrabber(image, 0, 0, srcWid, srcHgt, pixels, 0, srcWid);
 	    try {
 	        grabber.grabPixels();
 	    } catch (Exception e) {
@@ -463,7 +462,7 @@ public class ImageMgr {
 	}
 	
 	public int newImage(int [] pixels, int w, int h) {
-	    Image img = comp.createImage(new MemoryImageSource(w, h, pixels, 0, w));
+	    Image img = Toolkit.getDefaultToolkit().createImage(new MemoryImageSource(w, h, pixels, 0, w));
 	    return addImage(img);
 	}
 
@@ -471,6 +470,7 @@ public class ImageMgr {
 	 * 
 	 */
 	private void waitForIt(Image image) {
+	    /*
 		tracker.addImage(image, trackerId);
 		
 		for (int i=0; i<3; i++) {
@@ -482,6 +482,12 @@ public class ImageMgr {
 			}
 		}
 		trackerId++;
+		*/
+	    try {
+	        synchronized (this) {
+	            wait(100);
+            }
+        } catch (Exception e) {}
 	}
 
 

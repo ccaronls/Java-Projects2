@@ -10,7 +10,7 @@ import cc.lib.math.Vector2D;
 public final class AWTGraphics extends APGraphics {
 
     private Graphics g;
-    private final ImageMgr images;
+    private final static ImageMgr images = new ImageMgr();
     private final Component comp;
     //private int textureId = -1;
     private float mLineThickness = 1;
@@ -19,7 +19,6 @@ public final class AWTGraphics extends APGraphics {
     public AWTGraphics(Graphics g, Component comp) {
         super(comp.getWidth(), comp.getHeight());
         this.g = g;
-        images = new ImageMgr(comp);
         this.comp  = comp;
         initViewport(comp.getWidth(), comp.getHeight());
         ortho();
@@ -30,7 +29,6 @@ public final class AWTGraphics extends APGraphics {
         super(g.comp.getWidth(), g.comp.getHeight());
         this.g = G;
         r.setWindow(this);
-        images = g.images;
         this.comp  = g.comp;
         initViewport(comp.getWidth(), comp.getHeight());
         ortho();
@@ -346,7 +344,7 @@ public final class AWTGraphics extends APGraphics {
 
     @Override
     protected final void drawImage(int imageKey, int x, int y, int w, int h) {
-        images.drawImage(g, imageKey, x, y, w, h);
+        images.drawImage(g, comp, imageKey, x, y, w, h);
     }
 
     @Override

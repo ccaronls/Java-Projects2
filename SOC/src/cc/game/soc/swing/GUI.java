@@ -214,7 +214,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 		});
 		// dice component
         
-    	images = new ImageMgr(frame);
+    	images = new ImageMgr();
 
 		// board component
         boardComp = new BoardComponent(getBoard(), images) {

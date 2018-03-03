@@ -157,7 +157,7 @@ public final class ADiceComponent extends JComponent implements ChangeListener, 
 		g.fillOval(x-dotSize/2,y-dotSize/2,dotSize,dotSize);
 	}
 
-	public static void drawEventDie(Graphics g, int x, int y, int dim, int dieNum) {
+	public void drawEventDie(Graphics g, int x, int y, int dim, int dieNum) {
 		initImages();
 		g.setColor(Color.WHITE);
 		int arc = dim/4;
@@ -165,16 +165,16 @@ public final class ADiceComponent extends JComponent implements ChangeListener, 
 	    ImageMgr images = GUI.instance.images;
 	    switch (DiceEvent.fromDieNum(dieNum)) {
 			case AdvanceBarbarianShip:
-	    		images.drawImage(g, shipImageId, x, y, dim, dim);
+	    		images.drawImage(g, this, shipImageId, x, y, dim, dim);
 				break;
 			case PoliticsCard:
-				images.drawImage(g, blueCityImageId, x, y, dim, dim);
+				images.drawImage(g, this, blueCityImageId, x, y, dim, dim);
 				break;
 			case ScienceCard:
-				images.drawImage(g, greenCityImageId, x, y, dim, dim);
+				images.drawImage(g, this, greenCityImageId, x, y, dim, dim);
 				break;
 			case TradeCard:
-	    		images.drawImage(g, redCityImageId, x, y, dim, dim);
+	    		images.drawImage(g, this, redCityImageId, x, y, dim, dim);
 				break;
 	    }
 	}
