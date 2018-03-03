@@ -410,7 +410,7 @@ public class Reflector<T> {
         @Override
         public void deserializeArray(Object arr, MyBufferedReader in) throws Exception {
             int len = Array.getLength(arr);
-            while (true) {
+            while (len > 0) {
                 String line = readLineOrEOF(in);
                 String [] parts = line.split(" ");
                 if (parts.length != len)

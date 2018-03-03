@@ -4,25 +4,18 @@ import org.apache.log4j.Logger;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
-import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
-import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -49,7 +42,6 @@ import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.JToggleButton;
-import javax.swing.ScrollPaneConstants;
 import javax.swing.ScrollPaneLayout;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeEvent;
@@ -69,6 +61,7 @@ import cc.lib.game.Utils;
 import cc.lib.math.MutableVector2D;
 import cc.lib.swing.AWTGraphics;
 import cc.lib.swing.AWTUtils;
+import cc.lib.swing.EZFrame;
 import cc.lib.swing.EZPanel;
 import cc.lib.swing.JPanelStack;
 import cc.lib.swing.JWrapLabel;
@@ -77,7 +70,7 @@ import cc.lib.utils.FileUtils;
 import static java.awt.GridBagConstraints.HORIZONTAL;
 import static java.awt.GridBagConstraints.NONE;
 
-public class GUI implements ActionListener, ComponentListener, WindowListener, MenuItem.Action {
+public class GUI implements ActionListener, MenuItem.Action {
 
 	final static String PROP_AI_TUNING_ENABLED = "aituning.enable";
 	final static String PROP_SCENARIOS_DIR = "scenariosDirectory";
@@ -131,7 +124,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, M
     public final MenuItem BUILDABLES_POPUP = new MenuItem("Buildables", "Show the buildables popup", this);
 
 	public static void main(String [] args)  {
-		JFrame frame = new JFrame();
+        EZFrame frame = new EZFrame();
 		try {
 			PlayerBot.DEBUG_ENABLED = true;
 			Utils.setDebugEnabled(true);
@@ -144,23 +137,13 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, M
 			} else if (!HOME_FOLDER.isDirectory()) {
 				throw new RuntimeException("Not a directory: " + HOME_FOLDER);
 			}
-            props.load(new File(HOME_FOLDER, "gui.properties").getAbsolutePath());
+			File propsFile = new File(HOME_FOLDER, "gui.properties");
+            props.load(propsFile.getAbsolutePath());
+            new GUI(frame, props);
             System.out.println(props.toString().replace(",", "\n"));
-            GUI gui = new GUI(frame, props);
-			frame.addWindowListener(gui);
-			frame.addComponentListener(gui);
-            int w = props.getIntProperty("gui.w", 640);
-            int h = props.getIntProperty("gui.h", 480);
-			frame.setSize(w, h);
-	        Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-	        int x,y;
-	        x = dim.width / 2 - frame.getWidth() / 2;
-	        y = dim.height / 2 - frame.getHeight() / 2;
-            x = props.getIntProperty("gui.x", x);
-            y = props.getIntProperty("gui.y", y);
-	        frame.setLocation(x, y);
-	        frame.setVisible(true);
-	        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+            if (!frame.loadFromFile(propsFile)) {
+                frame.centerToScreen(640, 480);
+            }
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -183,22 +166,18 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, M
     private final UISOC soc;
 	private final JPanel menu = new JPanel();
 
-	class ConsoleComponent extends SOCComponent implements MouseWheelListener {
-
+	private final SOCComponent consoleComponent = new SOCComponent() {
         @Override
         protected void init(AWTGraphics g) {
             setMouseEnabled(true);
-            addMouseWheelListener(this);
             console.initStyles(getProps().getColorProperty("console.bkColor", GColor.LIGHT_GRAY));
         }
 
         @Override
-        public void mouseWheelMoved(MouseWheelEvent e) {
-            console.scroll(e.getWheelRotation());
+        public void onMouseWheel(int rotation) {
+            console.scroll(rotation);
         }
-    }
-
-	private final SOCComponent consoleComponent = new ConsoleComponent();
+    };
 	private final UIConsoleRenderer console = new UIConsoleRenderer(consoleComponent);
 	private final SOCComponent boardComp = new SOCComponent() {
 
@@ -369,7 +348,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, M
 
 	private final Stack<MenuState> menuStack = new Stack<>();
 	private UIPlayerUser localPlayer;
-	private final Container frame;
+	private final EZFrame frame;
 	private JFrame popup;
 	private final JPanel westBorderPanel = new JPanel();
 	private final JPanel cntrBorderPanel = new JPanel();
@@ -412,9 +391,9 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, M
     	menu.removeAll();
     }
     
-	public GUI(Container frame, final UIProperties props) throws IOException {
+	public GUI(EZFrame frame, final UIProperties props) throws IOException {
 		this.frame = frame;
-		soc = new UISOC(props, boardRenderer, diceRenderers, console) {
+		soc = new UISOC(props, boardRenderer, diceRenderers, console, eventCardRenderer) {
             @Override
             protected void addMenuItem(MenuItem item, String title, String helpText, Object object) {
                 menu.add(getMenuOpButton(item, title, helpText, object));
@@ -1693,7 +1672,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, M
                 clearSaves();
                 soc.startGameThread();
             } else {
-                logError("Board not ready");
+                log.error("Board not ready");
             }
         } else if (op == GEN_HEX_BOARD) {
             menuStack.push(MenuState.MENU_CHOOSE_DEFAULT_BOARD_SIZE);
@@ -2357,55 +2336,6 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, M
         }
 		frame.repaint();
 	}
-	
-    public void componentHidden(ComponentEvent arg0) {}
-	public void componentMoved(ComponentEvent arg0) {
-        Component comp = arg0.getComponent();
-        getProps().setProperty("gui.x", comp.getX());
-        getProps().setProperty("gui.y", comp.getY());
-        //log.debug("Moved too : " + frame.getX() + " x " + frame.getY()); 
-    }
-	public void componentResized(ComponentEvent arg0) {
-	    Component comp = frame;
-        getProps().setProperty("gui.w", comp.getWidth());
-        getProps().setProperty("gui.h", comp.getHeight());
-        setupDimensions(comp.getWidth(), comp.getHeight());
-        //initMenu();
-        frame.doLayout();
-        frame.validate();
-        //frame.repaint();
-        log.debug("Resized too : " + frame.getWidth() + " x " + frame.getHeight()); 
-	}
-	public void componentShown(ComponentEvent arg0) {}
-
-	public void windowActivated(WindowEvent arg0) {}
-	public void windowClosed(WindowEvent arg0) {
-		synchronized (soc) {
-			System.exit(0);
-		}
-    }
-	public void windowClosing(WindowEvent arg0) {}
-	public void windowDeactivated(WindowEvent arg0) {}
-	public void windowDeiconified(WindowEvent arg0) {}
-	public void windowIconified(WindowEvent arg0) {}
-	public void windowOpened(WindowEvent arg0) {}
-
-
-//    public BoardComponent getBoardComponent() {
-//        return this.boardComp;
-//    }
-
-    public void logDebug(String msg) {
-        log.debug(msg);
-    }
-
-    public void logError(String msg) {
-        log.error(msg);
-    }
-
-    public void logInfo(String string) {
-        log.info(string);
-    }
 
     public MenuState getCurrentMenu() {
     	if (menuStack.size() == 0)

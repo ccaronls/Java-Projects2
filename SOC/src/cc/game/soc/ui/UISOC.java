@@ -8,6 +8,7 @@ import cc.game.soc.core.BotNode;
 import cc.game.soc.core.Card;
 import cc.game.soc.core.CardType;
 import cc.game.soc.core.Dice;
+import cc.game.soc.core.EventCard;
 import cc.game.soc.core.MoveType;
 import cc.game.soc.core.Player;
 import cc.game.soc.core.Route;
@@ -33,16 +34,18 @@ public abstract class UISOC extends SOC implements MenuItem.Action {
     private final UIBoardRenderer boardRenderer;
     private final UIDiceRenderer diceRenderer;
     private final UIConsoleRenderer console;
+    private final UIEventCardRenderer eventCardRenderer;
     private Object returnValue = null;
     private final Object waitObj = new Object();
 
-    protected UISOC(UIProperties properties, UIBoardRenderer boardRenderer, UIDiceRenderer diceRenderer, UIConsoleRenderer console) {
+    protected UISOC(UIProperties properties, UIBoardRenderer boardRenderer, UIDiceRenderer diceRenderer, UIConsoleRenderer console, UIEventCardRenderer eventCardRenderer) {
         if (instance != null)
             throw new RuntimeException();
         instance = this;
         this.properties = properties;
         this.boardRenderer = boardRenderer;
         this.diceRenderer = diceRenderer;
+        this.eventCardRenderer = eventCardRenderer;
         this.console = console;
     }
 
@@ -483,6 +486,11 @@ public abstract class UISOC extends SOC implements MenuItem.Action {
         diceRenderer.setDice(getDice());
     }
 
+    @Override
+    protected void onEventCardDealt(EventCard card) {
+        eventCardRenderer.setEventCard(card);
+    }
+
     public boolean getSetDiceMenu(Dice[] die, int num) {
         clearMenu();
         diceRenderer.setDice(die);
@@ -507,6 +515,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action {
         assert(!running);
         running = true;
         diceRenderer.setDice(getDice());
+        eventCardRenderer.setEventCard(getTopEventCard());
         new Thread() {
             @Override
             public void run() {

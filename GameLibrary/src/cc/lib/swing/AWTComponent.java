@@ -14,7 +14,7 @@ import cc.lib.swing.*;
  * Created by chriscaron on 2/21/18.
  */
 
-public abstract class AWTComponent extends JComponent implements Renderable, MouseListener, MouseMotionListener {
+public abstract class AWTComponent extends JComponent implements Renderable, MouseListener, MouseMotionListener, MouseWheelListener {
 
     private AWTGraphics G = null;
     private int mouseX = -1;
@@ -27,10 +27,12 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
         if (enabled) {
             addMouseListener(this);
             addMouseMotionListener(this);
+            addMouseWheelListener(this);
             setFocusable(true);
         } else {
             removeMouseListener(this);
             removeMouseMotionListener(this);
+            removeMouseWheelListener(this);
             setFocusable(false);
             mouseX = mouseY = -1;
         }
@@ -131,6 +133,13 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
     boolean dragging = false;
 
     @Override
+    public final void mouseWheelMoved(MouseWheelEvent e) {
+        onMouseWheel(e.getWheelRotation());
+    }
+
+    protected void onMouseWheel(int rotation) {}
+
+    @Override
     public boolean lostFocus(java.awt.Event ev, Object obj) {
         repaint();
         return super.lostFocus(ev, obj);
@@ -195,4 +204,5 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
     public final APGraphics getAPGraphics() {
         return G;
     }
+
 }

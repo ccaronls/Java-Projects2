@@ -284,4 +284,20 @@ public class EZFrame extends JFrame implements WindowListener, ComponentListener
     public final void add(AWTComponent comp) {
         super.add(comp);
     }
+
+    public final void repaint() {
+        super.repaint();
+    }
+
+    public final void validate() {
+        super.validate();
+    }
+
+    public void setEnabled(boolean enabled) {
+        super.setEnabled(enabled);
+    }
+
+    public void setVisible(boolean visible) {
+        super.setVisible(visible);
+    }
 }

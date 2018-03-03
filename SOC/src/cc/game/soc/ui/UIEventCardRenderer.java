@@ -13,9 +13,10 @@ import cc.lib.game.Justify;
 
 public final class UIEventCardRenderer implements UIRenderer {
 
-	float minCardWidth = 0;
-	final UIDiceRenderer diceComps;
-	final UIComponent component;
+	private float minCardWidth = 0;
+	private final UIDiceRenderer diceComps;
+	private final UIComponent component;
+	private EventCard eventCard = null;
 
 	public UIEventCardRenderer(UIComponent component, UIDiceRenderer diceComps) {
 		this.diceComps = diceComps;
@@ -47,15 +48,12 @@ public final class UIEventCardRenderer implements UIRenderer {
 		String cardText = "New Year";
 		String helpText = "Event cards wil be shuffled on next event card drawn.";
 		int production = 0;
-		{
-			EventCard card = UISOC.getInstance().getTopEventCard();
-			if (card != null) {
-				cardText = card.getType().getNiceString();
-				helpText = card.getHelpText(UISOC.getInstance().getRules());
-				production = card.getProduction();
-			}
-		}
-		
+        if (eventCard != null) {
+            cardText = eventCard.getType().getNiceString();
+            helpText = eventCard.getHelpText(UISOC.getInstance().getRules());
+            production = eventCard.getProduction();
+        }
+
 		final float cw = minCardWidth;
 		final float ch = cw*3/2;
 		final float fh = g.getTextHeight();
@@ -81,7 +79,9 @@ public final class UIEventCardRenderer implements UIRenderer {
 		}
 		g.setColor(GColor.BLACK);
 		g.drawWrapString(cx+cw/2, cy+ch/3, minCardWidth, Justify.CENTER, Justify.TOP, cardText);
-		
+
+		g.drawWrapString(padding, padding, tw, helpText);
+
 		float dieDim = cw/2-4*padding;
 		float dx = cx+cw/2-dieDim-padding;
 		float dy = cy+ch-2*padding-dieDim;
@@ -93,6 +93,11 @@ public final class UIEventCardRenderer implements UIRenderer {
         diceComps.setDiceRect(null);
 		g.popMatrix();
 	}
+
+	public final void setEventCard(EventCard card) {
+	    this.eventCard = card;
+	    component.redraw();
+    }
 
     @Override
     public void doClick() {

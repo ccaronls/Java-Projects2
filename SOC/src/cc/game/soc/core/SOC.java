@@ -1047,7 +1047,10 @@ public class SOC extends Reflector<SOC> {
         	}
         	mBarbarianDistance = getRules().getBarbarianStepsToAttack();
         } else {
-        	pushDiceConfig(DiceType.WhiteBlack, DiceType.WhiteBlack);
+            if (!getRules().isEnableEventCards())
+        	    pushDiceConfig(DiceType.WhiteBlack, DiceType.WhiteBlack);
+            else
+                pushDiceConfig();
         	mBarbarianDistance = -1;
         }
         
