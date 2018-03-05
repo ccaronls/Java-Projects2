@@ -2477,15 +2477,8 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 	@SuppressWarnings("unchecked")
     public <T> T waitForReturnValue(T defaultValue) {
 		returnValue = defaultValue;
-		try {
-			synchronized (waitObj) {
-				waitObj.wait();
-			}
-		} catch (Throwable e) {
-			e.printStackTrace();
-			System.exit(1);
-		}
-		return (T)returnValue;	
+        Utils.waitNoThrow(waitObj, -1);
+		return (T)returnValue;
 	}
 	
     public void showPopup(JFrame pop) {

@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
+import cc.lib.game.Utils;
+
 /**
  * Created by chriscaron on 2/14/18.
  */
@@ -26,14 +28,7 @@ public class PlayerUser extends Player {
         }
 
         game.redraw();
-        synchronized (game) {
-            try {
-                game.wait();
-            } catch (Exception e) {
-                throw new RuntimeException();
-            }
-        }
-
+        Utils.waitNoThrow(game, -1);
         usable.clear();
 
         return choosedMove;

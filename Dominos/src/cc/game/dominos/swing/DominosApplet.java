@@ -63,7 +63,7 @@ public class DominosApplet extends AWTComponent {
     }
 
     @Override
-    protected void startDrag() {
+    protected void startDrag(int x, int y) {
         dominos.startDrag();
     }
 

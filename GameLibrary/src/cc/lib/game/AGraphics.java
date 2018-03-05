@@ -883,7 +883,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param thickness
      * @param radius
      */
-    public final void drawRoundedRect(float x, float y, float w, float h, float thickness, float radius) {
+    public void drawRoundedRect(float x, float y, float w, float h, float thickness, float radius) {
     	drawArc(x+radius, y+radius, radius, thickness, 180f, 90f, 6);
     	drawLine(x+radius, y, x+w-radius, y, thickness);
     	drawArc(x+w-radius,y+radius,radius,thickness,270f,90f, 6);
@@ -901,7 +901,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param w
      * @param radius
      */
-    public final void drawFilledRoundedRect(float x, float y, float w, float h, float radius) {
+    public void drawFilledRoundedRect(float x, float y, float w, float h, float radius) {
     	float r2 = radius*2;
     	drawFilledWedge(x+radius, y+radius, radius, 180f, 90f, 6);
     	drawFilledRectf(x+radius,y,w-r2,radius);

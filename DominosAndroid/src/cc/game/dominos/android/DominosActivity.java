@@ -14,6 +14,7 @@ import android.widget.RadioGroup;
 import android.widget.Toast;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 
 import cc.game.dominos.core.Dominos;
 import cc.lib.android.DroidActivity;
@@ -58,8 +59,10 @@ public class DominosActivity extends DroidActivity {
 
         try {
             dominos.loadFromFile(saveFile);
+        } catch (FileNotFoundException e) {
+            // ignore
         } catch (Exception e) {
-//            showNewGameDialog(false);
+            e.printStackTrace();
         }
     }
 

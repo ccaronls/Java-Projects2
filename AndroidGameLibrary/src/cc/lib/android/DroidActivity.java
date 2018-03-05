@@ -47,7 +47,7 @@ public abstract class DroidActivity extends Activity {
             @Override
             protected void onDraw(Canvas canvas) {
                 if (g == null) {
-                    g = new DroidGraphics(canvas);
+                    g = new DroidGraphics(getContext(), canvas);
                 } else {
                     g.setCanvas(canvas);
                 }

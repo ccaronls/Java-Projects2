@@ -4,6 +4,7 @@ import org.apache.log4j.Logger;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Image;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -63,6 +64,8 @@ import cc.lib.swing.AWTGraphics;
 import cc.lib.swing.AWTUtils;
 import cc.lib.swing.EZFrame;
 import cc.lib.swing.EZPanel;
+import cc.lib.swing.ImageColorFilter;
+import cc.lib.swing.ImageMgr;
 import cc.lib.swing.JPanelStack;
 import cc.lib.swing.JWrapLabel;
 import cc.lib.utils.FileUtils;
@@ -170,7 +173,6 @@ public class GUI implements ActionListener, MenuItem.Action {
         @Override
         protected void init(AWTGraphics g) {
             setMouseEnabled(true);
-            console.initStyles(getProps().getColorProperty("console.bkColor", GColor.LIGHT_GRAY));
         }
 
         @Override
@@ -181,58 +183,43 @@ public class GUI implements ActionListener, MenuItem.Action {
 	private final UIConsoleRenderer console = new UIConsoleRenderer(consoleComponent);
 	private final SOCComponent boardComp = new SOCComponent() {
 
-        float progress = 0;
         @Override
-        protected void init(final AWTGraphics g) {
-            setMouseEnabled(true);
-            setMinimumSize(256, 256);
-            new Thread() {
-                public void run() {
-                    g.addSearchPath("images");
-                    Object [][] assets = {
-                            { "desert.GIF", GColor.WHITE },
-                            { "water.GIF",  GColor.WHITE },
-                            { "gold.GIF", null },
-                            { "undiscoveredtile.GIF", null },
-                            { "foresthex.GIF", null },
-                            { "hillshex.GIF", null },
-                            { "mountainshex.GIF", null },
-                            { "pastureshex.GIF", null },
-                            { "fieldshex.GIF", null },
-                            { "knight_basic_inactive.GIF", null },
-                            { "knight_basic_active.GIF", null },
-                            { "knight_strong_inactive.GIF", null },
-                            { "knight_strong_active.GIF", null },
-                            { "knight_mighty_inactive.GIF", null },
-                            { "knight_mighty_active.GIF", null }
-                    };
-
-                    int [] ids = new int[assets.length];
-                    float delta = 1.0f / ids.length;
-
-                    for (int i=0; i<ids.length; i++) {
-                        ids[i] = g.loadImage((String)assets[i][0], (GColor)assets[i][1]);
-                        progress += delta;
-                    }
-
-                    boardRenderer.initImages(ids[0], ids[1], ids[2], ids[3],
-                            ids[4], ids[5], ids[6], ids[7], ids[8], ids[9],
-                            ids[10], ids[11], ids[12], ids[13], ids[14]);
-
-                    boardRenderer.initAttribs(getProps().getIntProperty("renderFlag", 0),
-                            getProps().getColorProperty("bkcolor", GColor.LIGHT_GRAY),
-                            getProps().getIntProperty("roadLineThickness", 4),
-                            getProps().getIntProperty("padding", 20),
-                            getProps().getFloatProperty("board.textSize", 12));
-
-                    progress = 1;
-                }
-            }.start();
+        protected Object [][] getImagesToLoad() {
+            Object [][] assets = {
+                    { "desert.GIF", GColor.WHITE },
+                    { "water.GIF",  GColor.WHITE },
+                    { "gold.GIF", null },
+                    { "undiscoveredtile.GIF", null },
+                    { "foresthex.GIF", null },
+                    { "hillshex.GIF", null },
+                    { "mountainshex.GIF", null },
+                    { "pastureshex.GIF", null },
+                    { "fieldshex.GIF", null },
+                    { "knight_basic_inactive.GIF", null },
+                    { "knight_basic_active.GIF", null },
+                    { "knight_strong_inactive.GIF", null },
+                    { "knight_strong_active.GIF", null },
+                    { "knight_mighty_inactive.GIF", null },
+                    { "knight_mighty_active.GIF", null }
+            };
+            return assets;
         }
 
         @Override
-        protected float getInitProgress() {
-            return progress;
+        protected void init(final AWTGraphics g) {
+            super.init(g);
+            setMouseEnabled(true);
+            setMinimumSize(256, 256);
+            boardRenderer.initAttribs(getProps().getIntProperty("renderFlag", 0),
+                    getProps().getFloatProperty("roadLineThickness", 4));
+        }
+
+        @Override
+        protected void onImagesLoaded(int [] ids) {
+            boardRenderer.initImages(ids[0], ids[1], ids[2], ids[3],
+                    ids[4], ids[5], ids[6], ids[7], ids[8], ids[9],
+                    ids[10], ids[11], ids[12], ids[13], ids[14]);
+
         }
 
         @Override
@@ -243,80 +230,47 @@ public class GUI implements ActionListener, MenuItem.Action {
         }
     };
     private final SOCComponent barbarianComp = new SOCComponent() {
-        float progress = 0;
+
         @Override
-        protected void init(final AWTGraphics g) {
-            new Thread() {
-                public void run() {
-                    g.addSearchPath("images");
-                    Object [][] assets = {
-                            { "barbarians_tile.GIF", null },
-                            { "barbarians_tile0.GIF",  null },
-                            { "barbarians_tile1.GIF",  null },
-                            { "barbarians_tile2.GIF",  null },
-                            { "barbarians_tile3.GIF",  null },
-                            { "barbarians_tile4.GIF",  null },
-                            { "barbarians_tile5.GIF",  null },
-                            { "barbarians_tile6.GIF",  null },
-                            { "barbarians_tile7.GIF",  null },
-                    };
-
-                    int [] ids = new int[assets.length];
-                    float delta = 1.0f / ids.length;
-
-                    for (int i=0; i<ids.length; i++) {
-                        ids[i] = g.loadImage((String)assets[i][0], (GColor)assets[i][1]);
-                        progress += delta;
-                    }
-
-                    barbarianRenderer.initAssets(ids[0], ids[1], ids[2], ids[3], ids[4], ids[5], ids[6], ids[7], ids[8], 3.0f);
-
-                    progress = 1;
-                }
-            }.start();
+        protected Object [][] getImagesToLoad() {
+            Object[][] assets = {
+                    {"barbarians_tile.GIF", null},
+                    {"barbarians_piece.GIF", null},
+            };
+            return assets;
         }
         @Override
-        protected float getInitProgress() {
-            return progress;
+        protected void onImagesLoaded(int [] ids) {
+            barbarianRenderer.initAssets(ids[0], ids[1]);
         }
     };
 
     class DiceComponent extends SOCComponent {
 
-        float progress = 0;
         @Override
         protected void init(final AWTGraphics g) {
-            setMinimumSize(30,30);
+            setMinimumSize(30, 30);
             setPreferredSize(60, 30);
-
             new Thread() {
                 public void run() {
-                    g.addSearchPath("images");
+                    int [] ids = new int[4];
+                    ids[0] = g.loadImage("dicesideship2.GIF");
+                    progress = 0.25f;
+                    int cityId = g.loadImage("dicesidecity2.GIF");
+                    ImageMgr mgr = g.getImageMgr();
+                    Image i = mgr.getImage(cityId);
+                    ids[1] = mgr.addImage(mgr.transform(i, new ImageColorFilter(Color.WHITE, Color.RED)));
+                    progress = 0.5f;
+                    ids[2] = mgr.addImage(mgr.transform(i, new ImageColorFilter(Color.WHITE, Color.GREEN)));
+                    progress = 0.75f;
+                    ids[3] = mgr.addImage(mgr.transform(i, new ImageColorFilter(Color.WHITE, Color.BLUE)));
 
-                    Object [][] assets = {
-                            { "dicesideship2.GIF", null },
-                            { "dicesidecity2.GIF", GColor.RED },
-                            { "dicesidecity2.GIF", GColor.GREEN },
-                            { "dicesidecity2.GIF", GColor.BLUE },
-                    };
-
-                    int [] ids = new int[assets.length];
-                    float delta = 1.0f / ids.length;
-
-                    for (int i=0; i<ids.length; i++) {
-                        ids[i] = g.loadImage((String)assets[i][0], (GColor)assets[i][1]);
-                        progress += delta;
-                    }
+                    mgr.deleteImage(cityId);
 
                     diceRenderers.initImages(ids[0], ids[1], ids[2], ids[3]);
                     progress = 1;
                 }
             }.start();
-        }
-
-        @Override
-        protected float getInitProgress() {
-            return progress;
         }
     };
 
@@ -347,8 +301,7 @@ public class GUI implements ActionListener, MenuItem.Action {
     private final UIBoardRenderer boardRenderer = new UIBoardRenderer(boardComp);
     
     private final UIDiceRenderer diceRenderers = new UIDiceRenderer(diceComponent);
-    private final UIDiceRenderer diceRenderersEvent = new UIDiceRenderer(diceComponent);
-    private final UIEventCardRenderer eventCardRenderer = new UIEventCardRenderer(eventCardComp, diceRenderers);
+    private final UIEventCardRenderer eventCardRenderer = new UIEventCardRenderer(eventCardComp);
 
 	private final Stack<MenuState> menuStack = new Stack<>();
 	private UIPlayerUser localPlayer;
@@ -394,10 +347,12 @@ public class GUI implements ActionListener, MenuItem.Action {
     private void clearMenu() {
     	menu.removeAll();
     }
-    
+    private final UIProperties props;
+
 	public GUI(EZFrame frame, final UIProperties props) throws IOException {
 		this.frame = frame;
-		soc = new UISOC(props, boardRenderer, diceRenderers, console, eventCardRenderer) {
+		this.props = props;
+        soc = new UISOC(boardRenderer, diceRenderers, console, eventCardRenderer, barbarianRenderer) {
             @Override
             protected void addMenuItem(MenuItem item, String title, String helpText, Object object) {
                 menu.add(getMenuOpButton(item, title, helpText, object));
@@ -877,6 +832,10 @@ public class GUI implements ActionListener, MenuItem.Action {
                 menuPanel.setLayout(new ScrollPaneLayout());
                 menuPanel.getViewport().add(menu);
                 westGridPanel.add(menuPanel);
+
+                if (!soc.isRunning()) {
+                    soc.startGameThread();
+                }
                 break;
             }
             case LAYOUT_CONFIGURE:
@@ -1643,7 +1602,6 @@ public class GUI implements ActionListener, MenuItem.Action {
                 menuStack.push(MenuState.MENU_PLAY_GAME);
                 soc.stopRunning();
                 loadGame(saveGameFile);
-                soc.startGameThread();
             } catch (Exception e) {
                 e.printStackTrace();
                 menuStack.pop();
@@ -2349,7 +2307,7 @@ public class GUI implements ActionListener, MenuItem.Action {
     }
     
     UIProperties getProps() {
-    	return soc.getProps();
+    	return props;
     }
 
 	private void clearSaves() {

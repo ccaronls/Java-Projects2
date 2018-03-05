@@ -12,6 +12,7 @@ import cc.game.soc.core.VertexType;
 import cc.lib.game.AGraphics;
 import cc.lib.game.GColor;
 import cc.lib.game.IVector2D;
+import cc.lib.game.Utils;
 import cc.lib.math.Vector2D;
 
 /**
@@ -36,27 +37,22 @@ public class UIPlayer extends PlayerBot {
 		return color;
 	}
 	
-    private boolean animationEnabled = true;
-	
     public boolean isInfoVisible() {
         return false;//UISOC.getInstance().getProps().getBooleanProperty(GUI.PROP_AI_TUNING_ENABLED, false);
     }
 
 	private long getAnimTime() {
-		return UISOC.getInstance().getProps().getIntProperty("anim.ms", 1500);
+		return 1500;
 	}
     
     void startStructureAnimation(final Vertex vertex, final VertexType type) {
-        if (!animationEnabled)
-            return;
         if (vertex == null)
             return;
-        UIBoardRenderer board = UISOC.getInstance().getUIBoard();
+        final UIBoardRenderer board = UISOC.getInstance().getUIBoard();
         board.addAnimation(new UIAnimation(getAnimTime()) {
 
             @Override
             public void draw(AGraphics g, float position, float dt) {
-                //vertex.setPlayer(0);
                 g.setColor(getColor());
                 g.pushMatrix();
                 g.translate(vertex);
@@ -89,8 +85,6 @@ public class UIPlayer extends PlayerBot {
     }    
 
     void startMoveShipAnimation(final Route source, final Route target, final SOC soc) {
-    	if (!animationEnabled)
-    		return;
     	if (source == null || target == null || soc == null)
     		return;
     	final UIBoardRenderer comp = ((UISOC)soc).getUIBoard();
@@ -117,9 +111,6 @@ public class UIPlayer extends PlayerBot {
     }
     
     void startBuildShipAnimation(final Route edge, final SOC soc) {
-    	if (!animationEnabled)
-    		return;
-    	
     	if (edge == null || soc == null)
     		return;
 
@@ -139,9 +130,6 @@ public class UIPlayer extends PlayerBot {
     }
     
     void startUpgradeShipAnimation(final Route ship) {
-    	if (!animationEnabled)
-    		return;
-    	
     	if (ship == null)
     		return;
     	final UIBoardRenderer comp = UISOC.getInstance().getUIBoard();
@@ -166,9 +154,6 @@ public class UIPlayer extends PlayerBot {
     }
     
     void startRoadAnimation(final Route edge, final SOC soc) {
-        if (!animationEnabled)
-            return;
-
         if (edge == null || soc == null)
             return;
         final UIBoardRenderer comp = UISOC.getInstance().getUIBoard();
@@ -199,9 +184,6 @@ public class UIPlayer extends PlayerBot {
     }
     
     void startKnightAnimation(final Vertex vertex) {
-    	if (!animationEnabled || vertex == null)
-    		return;
-
         final UIBoardRenderer comp = UISOC.getInstance().getUIBoard();
     	comp.addAnimation(new UIAnimation(getAnimTime()) {
 			
@@ -219,9 +201,6 @@ public class UIPlayer extends PlayerBot {
     }
     
     void startMoveKnightAnimation(final Vertex fromVertex, final Vertex toVertex) {
-    	if (!animationEnabled || fromVertex == null || toVertex == null)
-    		return;
-
         final UIBoardRenderer comp = UISOC.getInstance().getUIBoard();
     	comp.addAnimation(new UIAnimation(getAnimTime()) {
 			
@@ -332,11 +311,7 @@ public class UIPlayer extends PlayerBot {
 	protected void onBoardChanged() {
         final UIBoardRenderer bc = UISOC.getInstance().getUIBoard();
 		bc.component.redraw();
-        try {
-            synchronized (bc) {
-                bc.wait(100);
-            }
-        } catch (Exception e) {}
+        Utils.waitNoThrow(bc, 100);
         synchronized (this) {
             notify(); // notify anyone waiting on this (see spinner)
         }		
@@ -346,6 +321,7 @@ public class UIPlayer extends PlayerBot {
 	protected BotNode onOptimalPath(BotNode optimal, List<BotNode> leafs) {
 		return UISOC.getInstance().chooseOptimalPath(optimal, leafs);
 	}
+
 
 
 }

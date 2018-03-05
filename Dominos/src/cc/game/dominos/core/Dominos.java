@@ -121,10 +121,7 @@ public abstract class Dominos extends Reflector<Dominos> {
                         runGame();
                         redraw();
                         if (gameRunning) {
-                            try {
-                                gameLock.wait(1000);
-                            } catch (Exception e) {
-                            }
+                            Utils.waitNoThrow(gameLock, 1000);
                         }
                     }
                 }
@@ -361,11 +358,7 @@ public abstract class Dominos extends Reflector<Dominos> {
                 }
             }.start();
 	        redraw();
-	        synchronized (gameLock) {
-	            try {
-	                gameLock.wait();
-                } catch (Exception e) {}
-            }
+            Utils.waitNoThrow(gameLock, -1);
         } else {
             redraw();
         }
@@ -494,11 +487,7 @@ public abstract class Dominos extends Reflector<Dominos> {
         remainingTileAnimation = new StackTilesAnim(tiles, p, pts).start();
 
         redraw();
-        synchronized (gameLock) {
-            try {
-                gameLock.wait();
-            } catch (Exception e) {}
-        }
+        Utils.waitNoThrow(gameLock, -1);
         remainingTileAnimation = null;
     }
 
@@ -586,11 +575,7 @@ public abstract class Dominos extends Reflector<Dominos> {
         }
 
         redraw();
-        synchronized (gameLock) {
-            try {
-                gameLock.wait();
-            } catch (Exception e) {}
-        }
+        Utils.waitNoThrow(gameLock, -1);
     }
 
     @Omit

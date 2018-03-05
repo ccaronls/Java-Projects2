@@ -437,13 +437,11 @@ public class CheckerboardView extends View {
 
         final int [] pos;
         final int drawable;
-        final boolean neverEnds;
 
         CheckmateAnim(int [] pos, int d, boolean neverEnds) {
-            super(2000);
+            super(2000, neverEnds ? -1 : 0);
             this.pos = pos;
             this.drawable = d;
-            this.neverEnds = neverEnds;
         }
 
         @Override
@@ -463,13 +461,6 @@ public class CheckerboardView extends View {
             drawBitmap(g, 0, 0, d, 1, OUTLINE_NONE);
             g.restore();
 
-        }
-
-        @Override
-        public boolean isDone() {
-            if (neverEnds)
-                return false;
-            return super.isDone();
         }
     }
 

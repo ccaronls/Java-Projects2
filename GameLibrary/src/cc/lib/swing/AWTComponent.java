@@ -19,6 +19,8 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
     private AWTGraphics G = null;
     private int mouseX = -1;
     private int mouseY = -1;
+    private boolean focused = false;
+    private int padding = 5;
 
     public AWTComponent() {
     }
@@ -41,6 +43,9 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
     @Override
     public final synchronized void paint(Graphics g) {
         if (getWidth() > 0 && getHeight() > 0) {
+            g.translate(padding,padding);
+            g.clearRect(0, 0, getWidth(), getHeight());
+            g.setClip(0, 0, getWidth(), getHeight());
             if (G == null) {
                 G = new AWTGraphics(g, this);
                 init(G);
@@ -53,6 +58,7 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
                 if (progress >= 1) {
                     paint(G, mouseX, mouseY);
                 } else {
+                    Font f = g.getFont();
                     G.clearScreen(GColor.CYAN);
                     G.setColor(GColor.WHITE);
                     G.setTextHeight(getHeight()/10);
@@ -61,21 +67,23 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
                     String txt = "INITIALIZING";
                     float tw = G.getTextWidth(txt);
                     float th = G.getTextHeight();
+                    while (tw > getWidth() && G.getTextHeight() > 8) {
+                        G.setTextHeight(G.getTextHeight()-2);
+                    }
                     G.drawJustifiedString(x-tw/2, y,txt);
                     y += th;
                     G.drawFilledRectf(x-tw/2, y, tw*progress, th);
-                    try {
-                        synchronized (this) {
-                            wait(100);
-                        }
-                    } catch (Exception e) {}
+                    g.setFont(f);
                     repaint();
                 }
             }
-            if (hasFocus()) {
+            if (focused) {
+                System.out.println("AWT " + toString() + " has focus!");
                 g.setColor(Color.BLUE);
                 g.drawRect(0, 0, getWidth()-1, getHeight()-1);
             }
+            g.translate(-padding,-padding);
+            g.setClip(0, 0, getWidth()+2*padding, getHeight()+2*padding);
         } else {
             repaint();
         }
@@ -123,12 +131,16 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
 
     @Override
     public final void mouseEntered(MouseEvent e) {
-        grabFocus();
+//        grabFocus();
+        focused = true;
         repaint();
     }
 
     @Override
-    public final void mouseExited(MouseEvent e) {}
+    public final void mouseExited(MouseEvent e) {
+        focused = false;
+        repaint();
+    }
 
     boolean dragging = false;
 
@@ -176,11 +188,11 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
     }
 
     public final int getWidth() {
-        return super.getWidth();
+        return super.getWidth()-padding*2;
     }
 
     public final int getHeight() {
-        return super.getHeight();
+        return super.getHeight()-padding*2;
     }
 
     @Override
@@ -203,6 +215,10 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
 
     public final APGraphics getAPGraphics() {
         return G;
+    }
+
+    public final void setPadding(int padding) {
+        this.padding = padding;
     }
 
 }

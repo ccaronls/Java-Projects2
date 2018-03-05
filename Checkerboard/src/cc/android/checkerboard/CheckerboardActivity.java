@@ -274,12 +274,7 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
             } else if (game.computeMoves() > 0) {
                 for (MMTreeNode<Move,ACheckboardGame> p : getPath()) {
                     publishProgress(p);
-                    synchronized (this) {
-                        try {
-                            wait(10000);
-                        } catch (Exception e) {
-                        }
-                    }
+                    Utils.waitNoThrow(this, 10000);
                     game.executeMove(p.getMove());
                     pbvGame.copyFrom(game);
                     pbv.postInvalidate();

@@ -198,6 +198,10 @@ public class Vector2D extends Reflector<Vector2D> implements IVector2D, Serializ
         return out.set(x*s, y*s);
     }
 
+    public final MutableVector2D scale(float x, float y, MutableVector2D out) {
+        return out.set(this.x*x, this.y*y);
+    }
+
     /**
      * Return new vector scaled by amount s
      *
@@ -207,7 +211,18 @@ public class Vector2D extends Reflector<Vector2D> implements IVector2D, Serializ
     public final MutableVector2D scaledBy(float s) {
         return scale(s, newTemp());
     }
-    
+
+    /**
+     * Return new vector scaled by amounts x,y
+     *
+     * @param x
+     * @param y
+     * @return
+     */
+    public final MutableVector2D scaledBy(float x, float y) {
+        return scale(x, y, newTemp());
+    }
+
     public final MutableVector2D rotate(float degrees, MutableVector2D out) {
         degrees *= CMath.DEG_TO_RAD;
         float cosd = (float)Math.cos(degrees);

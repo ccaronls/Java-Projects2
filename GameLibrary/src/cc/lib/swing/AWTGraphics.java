@@ -43,6 +43,10 @@ public final class AWTGraphics extends APGraphics {
         this.g = g;
     }
 
+    public final ImageMgr getImageMgr() {
+        return images;
+    }
+
     @Override
     public final void setColor(GColor color) {
         g.setColor(new Color(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha()));

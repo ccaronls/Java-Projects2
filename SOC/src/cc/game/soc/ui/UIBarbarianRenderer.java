@@ -1,69 +1,119 @@
 package cc.game.soc.ui;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import cc.game.soc.core.SOC;
+import cc.lib.game.AAnimation;
+import cc.lib.game.AGraphics;
 import cc.lib.game.APGraphics;
-import cc.lib.game.GColor;
-import cc.lib.game.GDimension;
+import cc.lib.game.Utils;
+import cc.lib.math.Vector2D;
 
 public final class UIBarbarianRenderer implements UIRenderer {
 
-	int imageDefault;
-	int [] images;
-    float border;
-    final UIComponent component;
-    float padding = 5;
+	private int baseImage;
+	private int shipImage;
+    private final UIComponent component;
+    private int distance = -1;//positions.length-1;
 
-	public UIBarbarianRenderer(UIComponent component) { //}, SOC soc, int defaultImage, int [] images, float border) {
+    private final static float IMAGE_WIDTH = 1f/454;
+    private final static float IMAGE_HEIGHT = 1f/502;
+
+    private final static Vector2D[] positions = {
+        new Vector2D(192,429).scaledBy(IMAGE_WIDTH, IMAGE_HEIGHT),
+        new Vector2D(319,404).scaledBy(IMAGE_WIDTH, IMAGE_HEIGHT),
+        new Vector2D(284,283).scaledBy(IMAGE_WIDTH, IMAGE_HEIGHT),
+        new Vector2D(199,194).scaledBy(IMAGE_WIDTH, IMAGE_HEIGHT),
+        new Vector2D(128,89).scaledBy(IMAGE_WIDTH, IMAGE_HEIGHT),
+        new Vector2D(255,74).scaledBy(IMAGE_WIDTH, IMAGE_HEIGHT),
+        new Vector2D(383,66).scaledBy(IMAGE_WIDTH, IMAGE_HEIGHT),
+    };
+
+	public UIBarbarianRenderer(UIComponent component) {
 	    this.component = component;
 	    component.setRenderer(this);
 	}
 
-	public void initAssets(int imageDefault, int tile0, int tile1, int tile2, int tile3, int tile4, int tile5, int tile6, int tile7, float border) {
-	    this.imageDefault = imageDefault;
-	    this.images = new int [] {
-            tile1, tile2, tile3, tile4, tile5, tile6, tile7
-        };
-	    this.border = border;
+	public void initAssets(int baseImage, int shipImage) {
+        this.baseImage = baseImage;
+        this.shipImage = shipImage;
     }
+
+    private AAnimation<AGraphics> anim = null;
+    //private float minShipDim, maxShipDim;
+
+    private float shipDim = 0;
 
 	@Override
 	public final void draw(APGraphics g, int pickX, int pickY) {
+        final float wid = component.getWidth();
+        final float hgt = component.getHeight();
 
-        UISOC soc = UISOC.getInstance();
+        g.drawImage(baseImage, 0, 0, wid, hgt);
+        //minShipDim = wid/9;
+        //maxShipDim = wid/7;
+        shipDim = wid/8;
 
-        int numStepsAway = soc.getBarbarianDistance();
-		int image = imageDefault;
-		if (numStepsAway >= 0 && numStepsAway < images.length) {
-			image = images[numStepsAway];
-		}
-		g.drawImage(image, 0, 0, component.getWidth(), component.getHeight());
+	    if (anim != null) {
+            if (anim.isDone())
+                anim = null;
+            else {
+                anim.update(g);
+                return;
+            }
+        }
 
-		int barbStr = SOC.computeBarbarianStrength(soc, soc.getBoard());
-		int catanStr = SOC.computeCatanStrength(soc, soc.getBoard());
-		
-		String text = "Barbarians: " + barbStr
-				    + "\nCatan: " + catanStr;
-
-		List<String> lines = new ArrayList<>();
-		GDimension dim = g.generateWrappedText(text, component.getWidth(), lines, null);
-
-        g.setColor(GColor.TRANSLUSCENT_BLACK);
-		g.drawFilledRectf(0, 0, dim.width+padding*2, dim.height+padding*2);
-
-        if (catanStr >= barbStr)
-            g.setColor(GColor.GREEN);
-        else
-            g.setColor(GColor.RED);
-
-        float y = padding;
-		for (String line : lines) {
-		    g.drawString(line, padding, y);
-		    y += g.getTextHeight();
+        if (distance >= 0) {
+            int d = (positions.length-1) - distance;
+            final float scale = 1f + (1f / (positions.length - 1));
+            //float shipDim = minShipDim + (maxShipDim - minShipDim) * scale * d;
+            Vector2D v = positions[distance].scaledBy(wid, hgt);
+            float sh2 = shipDim / 2;
+            g.drawImage(shipImage, v.sub(sh2, sh2), v.add(sh2, sh2));
         }
 	}
+
+	public void setDistance(final int nextDistance) {
+
+        if (nextDistance < distance) {
+
+            anim = new AAnimation<AGraphics>(2000) {
+                @Override
+                protected void draw(AGraphics g, float position, float dt) {
+                    final float scale = 1f + (1f / (positions.length - 1));
+                    final float wid = component.getWidth();
+                    final float hgt = component.getHeight();
+
+                    final int d0 = (positions.length-1) - distance;
+                    final int d1 = (positions.length-1) - nextDistance;
+
+                    //final float min = minShipDim + (maxShipDim - minShipDim) * scale * d0;
+                    //final float max = minShipDim + (maxShipDim - minShipDim) * scale * d1;
+
+                    final Vector2D v0 = positions[distance].scaledBy(wid, hgt);
+                    final Vector2D v1 = positions[nextDistance].scaledBy(wid, hgt);
+
+                    Vector2D pos = v0.add(v1.sub(v0).scaledBy(position));
+                    float sh2 = 0.5f * shipDim;//min + (max-min)*position;
+
+                    g.drawImage(shipImage, pos.sub(sh2, sh2), pos.add(sh2, sh2));
+                    component.redraw();
+                }
+
+                @Override
+                public void onDone() {
+                    synchronized (anim) {
+                        anim.notifyAll();
+                    }
+                }
+
+            }.start();
+            component.redraw();
+
+            Utils.waitNoThrow(anim, -1);
+        }
+
+        distance = nextDistance;
+        component.redraw();
+
+    }
 
     @Override
     public void doClick() {
@@ -80,4 +130,6 @@ public final class UIBarbarianRenderer implements UIRenderer {
 
     }
 
+    public void onBarbarianAttack(int catanStrength, int barbarianStrength, String[] playerStatus) {
+    }
 }

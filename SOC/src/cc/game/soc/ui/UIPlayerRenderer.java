@@ -11,7 +11,6 @@ import cc.game.soc.core.VertexType;
 import cc.lib.game.AGraphics;
 import cc.lib.game.APGraphics;
 import cc.lib.game.GColor;
-import cc.lib.game.GDimension;
 import cc.lib.game.Utils;
 
 /**
@@ -48,6 +47,7 @@ public final class UIPlayerRenderer implements UIRenderer {
 
     public void setPlayer(UIPlayer player) {
         this.player = player;
+        component.redraw();
     }
 
     @Override

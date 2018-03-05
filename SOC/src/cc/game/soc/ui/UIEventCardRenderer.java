@@ -5,7 +5,6 @@ import java.util.Arrays;
 
 import cc.game.soc.core.EventCard;
 import cc.game.soc.core.EventCardType;
-import cc.lib.game.AGraphics;
 import cc.lib.game.APGraphics;
 import cc.lib.game.GColor;
 import cc.lib.game.GDimension;
@@ -14,19 +13,18 @@ import cc.lib.game.Justify;
 public final class UIEventCardRenderer implements UIRenderer {
 
 	private float minCardWidth = 0;
-	private final UIDiceRenderer diceComps;
+	final UIDiceRenderer diceComps;
 	private final UIComponent component;
 	private EventCard eventCard = null;
 
-	public UIEventCardRenderer(UIComponent component, UIDiceRenderer diceComps) {
-		this.diceComps = diceComps;
+	public UIEventCardRenderer(UIComponent component) {
 		this.component = component;
+        this.diceComps = new UIDiceRenderer(component);
 		this.component.setRenderer(this);
 	}
 	
 	@Override
 	public synchronized void draw(APGraphics g, int px, int py) {
-		g.setTextStyles(AGraphics.TextStyle.BOLD);
 		final int padding = 5;
 	
 		if (minCardWidth == 0) {
@@ -86,12 +84,14 @@ public final class UIEventCardRenderer implements UIRenderer {
 		float dx = cx+cw/2-dieDim-padding;
 		float dy = cy+ch-2*padding-dieDim;
 
-		g.pushMatrix();
-		g.translate(dx, dy);
-		diceComps.setDiceRect(new GDimension(minCardWidth, dieDim));
-        diceComps.draw(g, px, py);
-        diceComps.setDiceRect(null);
-		g.popMatrix();
+        if (diceComps != null) {
+            g.pushMatrix();
+            g.translate(dx, dy);
+            diceComps.setDiceRect(new GDimension(minCardWidth, dieDim));
+            diceComps.draw(g, px, py);
+            diceComps.setDiceRect(null);
+            g.popMatrix();
+        }
 	}
 
 	public final void setEventCard(EventCard card) {

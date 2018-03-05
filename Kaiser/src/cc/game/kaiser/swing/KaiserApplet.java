@@ -355,7 +355,7 @@ public class KaiserApplet extends KeyboardAnimationApplet {
             int maxWidth = screenWidth - screenHeight - 10;
             final int sx = screenHeight + 5;
             float sy = 10;
-            sy = g.drawWrapString(sx, sy, maxWidth, text);
+            sy += g.drawWrapString(sx, sy, maxWidth, text).height;
     
             final int dy = fh+2;
             sy += dy;

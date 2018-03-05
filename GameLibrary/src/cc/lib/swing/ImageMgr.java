@@ -135,7 +135,7 @@ public class ImageMgr {
 	 * @param transparent
 	 * @return
 	 */
-	public int loadImage(String fileOrResourceName, Color transparent) {
+	public synchronized int loadImage(String fileOrResourceName, Color transparent) {
         int id = sourceImages.size();
 		Image image = null;
 		Utils.print("Loading image %d : %s ...", id, fileOrResourceName);
@@ -175,7 +175,7 @@ public class ImageMgr {
 	 * @param celled
 	 * @return
 	 */
-	public int [] loadImageCells(Image source, int width, int height, int num_cells_x, int num_cells, boolean celled) {
+	public synchronized int [] loadImageCells(Image source, int width, int height, int num_cells_x, int num_cells, boolean celled) {
 		
 		final int cellDelta = celled ? 1 : 0;
 		
@@ -208,7 +208,7 @@ public class ImageMgr {
 	 * @param celled
 	 * @return
 	 */
-	public int [] loadImageCells(String file, int width, int height, int num_cells_x, int num_cells, boolean celled, Color transparentColor) {
+	public synchronized int [] loadImageCells(String file, int width, int height, int num_cells_x, int num_cells, boolean celled, Color transparentColor) {
 		return loadImageCells(loadImage(file, transparentColor), width, height, num_cells_x, num_cells, celled);
 	}
 		
@@ -224,7 +224,7 @@ public class ImageMgr {
 	 * @param celled true of each cell has a 1 pixel border
 	 * @return
 	 */
-	public int [] loadImageCells(int sourceId, int width, int height, int numx, int num, boolean celled) {
+	public synchronized int [] loadImageCells(int sourceId, int width, int height, int numx, int num, boolean celled) {
 		return loadImageCells(this.getSourceImage(sourceId), width, height, numx, num, celled);
 	}
 	
@@ -257,7 +257,7 @@ public class ImageMgr {
 	 * @param height
 	 * @return
 	 */
-	public Image getImage(int id, int width, int height) {
+	public synchronized Image getImage(int id, int width, int height) {
 		Image image = scaledImages.get(id);
 		int curW = image.getWidth(null);
 		int curH = image.getHeight(null);
@@ -390,7 +390,7 @@ public class ImageMgr {
 	public Image transform(Image image, ImageFilter filter) {
 		ImageProducer p = new FilteredImageSource(image.getSource(), filter);
 		Image newImage = Toolkit.getDefaultToolkit().createImage(p);//comp.createImage(p);//Toolkit.getDefaultToolkit().createImage(p);
-		waitForIt(newImage);
+		//waitForIt(newImage);
 		return newImage;
 	}
 	
@@ -483,11 +483,7 @@ public class ImageMgr {
 		}
 		trackerId++;
 		*/
-	    try {
-	        synchronized (this) {
-	            wait(100);
-            }
-        } catch (Exception e) {}
+	    Utils.waitNoThrow(this, 100);
 	}
 
 

@@ -13,8 +13,8 @@ import android.view.View;
 
 import cc.lib.android.DroidUtils;
 import cc.lib.game.AAnimation;
+import cc.lib.game.Utils;
 import cc.lib.math.Bezier;
-import cc.lib.math.CMath;
 import cc.lib.math.Vector2D;
 
 /**
@@ -34,13 +34,7 @@ public class ProbotView extends View {
             switch (get(line).type) {
                 case LoopStart:
                 case LoopEnd:
-                    try {
-                        synchronized (this) {
-                            wait(500);
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
+                    Utils.waitNoThrow(this, 500);
             }
         }
 
@@ -48,65 +42,35 @@ public class ProbotView extends View {
         protected void onFailed() {
             ((ProbotActivity)getContext()).lv.markFailed();
             startFailedAnim();
-            try {
-                synchronized (this) {
-                    wait();
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            Utils.waitNoThrow(this, -1);
             postInvalidate();
         }
 
         @Override
         protected void onAdvanced() {
             startAdvanceAnim();
-            try {
-                synchronized (this) {
-                    wait();
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            Utils.waitNoThrow(this, -1);
             postInvalidate();
         }
 
         @Override
         protected void onJumped() {
             startJumpAnim();
-            try {
-                synchronized (this) {
-                    wait();
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            Utils.waitNoThrow(this, -1);
             postInvalidate();
         }
 
         @Override
         protected void onTurned(int dir) {
             startTurnAnim(dir);
-            try {
-                synchronized (this) {
-                    wait();
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            Utils.waitNoThrow(this, -1);
             postInvalidate();
         }
 
         @Override
         protected void onSuccess() {
             startSuccessAnim();
-            try {
-                synchronized (this) {
-                    wait();
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            Utils.waitNoThrow(this, -1);
             ProbotView.this.nextLevel();
             postInvalidate();
         }

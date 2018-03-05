@@ -36,11 +36,7 @@ public abstract class MiniMaxTree<G extends IGame> {
     public final void killAndBlock() {
         if (!this.kill) {
             this.kill = true;
-            try {
-                synchronized (this) {
-                    wait();
-                }
-            } catch (InterruptedException e) {}
+            Utils.waitNoThrow(this, -1);
         }
     }
 

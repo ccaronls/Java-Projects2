@@ -131,37 +131,19 @@ public class YahtzeeActivity extends Activity implements OnClickListener {
 	
 	void showGameOver() {
 		refresh();
-		synchronized (runner) {
-			try {
-				runner.wait();
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
+        Utils.waitNoThrow(runner, -1);
 	}
 	
 	// called from other runner thread
 	YahtzeeSlot showChooseSlot(List<YahtzeeSlot> slots) {
 		slotChoice = null;
 		refresh();
-		synchronized (runner) {
-			try {
-				runner.wait();
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
+        Utils.waitNoThrow(runner, -1);
 		return slotChoice;
 	}
 	
 	private void sleep() {
-		try {
-			synchronized (runner) {
-				runner.wait();
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+        Utils.waitNoThrow(runner, -1);
 	}
 	
 	private void wake() {

@@ -35,17 +35,18 @@ public abstract class UISOC extends SOC implements MenuItem.Action {
     private final UIDiceRenderer diceRenderer;
     private final UIConsoleRenderer console;
     private final UIEventCardRenderer eventCardRenderer;
+    private final UIBarbarianRenderer barbarianRenderer;
     private Object returnValue = null;
     private final Object waitObj = new Object();
 
-    protected UISOC(UIProperties properties, UIBoardRenderer boardRenderer, UIDiceRenderer diceRenderer, UIConsoleRenderer console, UIEventCardRenderer eventCardRenderer) {
+    protected UISOC(UIBoardRenderer boardRenderer, UIDiceRenderer diceRenderer, UIConsoleRenderer console, UIEventCardRenderer eventCardRenderer, UIBarbarianRenderer barbarianRenderer) {
         if (instance != null)
             throw new RuntimeException();
         instance = this;
-        this.properties = properties;
         this.boardRenderer = boardRenderer;
         this.diceRenderer = diceRenderer;
         this.eventCardRenderer = eventCardRenderer;
+        this.barbarianRenderer = barbarianRenderer;
         this.console = console;
     }
 
@@ -66,12 +67,6 @@ public abstract class UISOC extends SOC implements MenuItem.Action {
 
     public final boolean isRunning() {
         return running;
-    }
-
-    private final UIProperties properties;
-
-    public final UIProperties getProps() {
-        return properties;
     }
 
     public final MoveType chooseMoveMenu(Collection<MoveType> moves) {
@@ -449,14 +444,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action {
     @SuppressWarnings("unchecked")
     public <T> T waitForReturnValue(T defaultValue) {
         returnValue = defaultValue;
-        try {
-            synchronized (waitObj) {
-                waitObj.wait();
-            }
-        } catch (Throwable e) {
-            e.printStackTrace();
-            System.exit(1);
-        }
+        Utils.waitNoThrow(waitObj, -1);
         return (T)returnValue;
     }
 
@@ -482,8 +470,10 @@ public abstract class UISOC extends SOC implements MenuItem.Action {
 
     @Override
     protected void onDiceRolled(Dice ... dice) {
-        diceRenderer.spinDice(getProps().getIntProperty("gui.diceSpinTimeSeconds", 3)*1000, dice);
-        diceRenderer.setDice(getDice());
+        UIDiceRenderer dr = getRules().isEnableEventCards() ? eventCardRenderer.diceComps :diceRenderer;
+
+        dr.spinDice(3000, dice);
+        dr.setDice(getDice());
     }
 
     @Override
@@ -516,6 +506,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action {
         running = true;
         diceRenderer.setDice(getDice());
         eventCardRenderer.setEventCard(getTopEventCard());
+        barbarianRenderer.setDistance(getBarbarianDistance());
         new Thread() {
             @Override
             public void run() {
@@ -589,5 +580,15 @@ public abstract class UISOC extends SOC implements MenuItem.Action {
         super.printinfo(playerNum, txt);
         if (console != null)
             console.addText(getPlayerColor(playerNum), txt);
+    }
+
+    @Override
+    protected void onBarbariansAdvanced(int distanceAway) {
+        barbarianRenderer.setDistance(distanceAway);
+    }
+
+    @Override
+    protected void onBarbariansAttack(int catanStrength, int barbarianStrength, String[] playerStatus) {
+        barbarianRenderer.onBarbarianAttack(catanStrength, barbarianStrength, playerStatus);
     }
 }

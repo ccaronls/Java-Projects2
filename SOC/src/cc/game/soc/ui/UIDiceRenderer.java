@@ -1,30 +1,31 @@
 package cc.game.soc.ui;
 
-import javax.rmi.CORBA.Util;
-
 import cc.game.soc.core.Dice;
 import cc.game.soc.core.DiceEvent;
 import cc.game.soc.core.DiceType;
-import cc.game.soc.swing.GUI;
 import cc.lib.game.AAnimation;
 import cc.lib.game.AGraphics;
 import cc.lib.game.APGraphics;
 import cc.lib.game.GColor;
 import cc.lib.game.GDimension;
-import cc.lib.game.GRectangle;
 import cc.lib.game.Utils;
-import cc.lib.swing.ImageColorFilter;
-import cc.lib.swing.ImageMgr;
 
 public final class UIDiceRenderer implements UIRenderer {
 
-	private int shipImageId = -1;
-	private int redCityImageId = -1;
-	private int greenCityImageId = -1;
-	private int blueCityImageId = -1;
+    // There are 2 dice renderers, one with and without an associated event card renderer. hmmmmm
+    // I dont want to init twice since the event card renderer is a bit hidden. Hmmmm.
+	private static int shipImageId = -1;
+	private static int redCityImageId = -1;
+	private static int greenCityImageId = -1;
+	private static int blueCityImageId = -1;
 	private GDimension diceRect = null;
 
-	private Dice [] dice = new Dice[0];
+	private Dice [] dice = new Dice[] {
+            new Dice(3, DiceType.WhiteBlack),
+            new Dice(4, DiceType.WhiteBlack),
+            //new Dice(5, DiceType.RedYellow),
+            //new Dice(4, DiceType.YellowRed)
+    };
     private final UIComponent component;
     private int picked = -1;
     private int pickable = 0;
@@ -74,12 +75,7 @@ public final class UIDiceRenderer implements UIRenderer {
 
                 new Thread() {
                     public void run() {
-                        try {
-                            synchronized (this) {
-                                wait(delay);
-                            }
-                        } catch (Exception e) {
-                        }
+                        Utils.waitNoThrow(this, delay);
                         delay += 20;
                         component.redraw();
                     }
@@ -94,11 +90,7 @@ public final class UIDiceRenderer implements UIRenderer {
             }
         }.start();
 	    component.redraw();
-	    try {
-	        synchronized (spinAnim) {
-	            spinAnim.wait(spinTimeMs+500);
-            }
-        } catch (Exception e) {}
+        Utils.waitNoThrow(spinAnim, spinTimeMs+500);
     }
 
     private AAnimation<APGraphics> spinAnim = null;

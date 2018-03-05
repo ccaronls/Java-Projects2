@@ -10,6 +10,8 @@ public final class UIBoardRenderer implements UIRenderer {
 
     final UIComponent component;
 
+    public Board board = null;
+
     public UIBoardRenderer(UIComponent component) {
         this.component = component;
         component.setRenderer(this);
@@ -30,14 +32,11 @@ public final class UIBoardRenderer implements UIRenderer {
     private int fieldshexImage;
     private int [] knightImages;
 
-    int roadLineThickness = 4;
-    GColor bkColor = GColor.LIGHT_GRAY;
+    float roadLineThickness = 4;
     GColor outlineColorDark = GColor.BLACK;
     GColor outlineColorLight = GColor.WHITE;
     GColor textColor = GColor.CYAN;
-    int padding = 20;
-    float textSize = 12;
-    
+
 	private PickMode pickMode = PickMode.PM_NONE;
 	private int pickedValue = -1;
 	private PickHandler pickHandler = null;
@@ -74,13 +73,9 @@ public final class UIBoardRenderer implements UIRenderer {
         return pickHandler;
     }
 
-    public void initAttribs(int renderFlag, GColor bkColor, int roadLineThickness, int padding, float textSize) {
+    public void initAttribs(int renderFlag, float roadLineThickness) {
         this.renderFlag = renderFlag;
-        this.bkColor = bkColor;
         this.roadLineThickness = roadLineThickness;
-        this.padding = padding;
-        this.textSize = textSize;
-
     }
 
     public void setRenderFlag(RenderFlag flag, boolean enabled) {
@@ -103,15 +98,16 @@ public final class UIBoardRenderer implements UIRenderer {
         component.redraw();
         anim.start();
         if (block) {
-            synchronized (anim) {
-                try {
-                    anim.wait(anim.getDuration()+500);
-                } catch (Exception e) {}
-            }
+            Utils.waitNoThrow(anim, anim.getDuration()+500);
         }
     }
 
     public Board getBoard() {
+        if (board != null)
+            return board;
+        if (UISOC.getInstance() == null)
+            return null;
+
         return UISOC.getInstance().getBoard();
     }
 
@@ -519,7 +515,7 @@ public final class UIBoardRenderer implements UIRenderer {
 			g.setName(index);
 			renderEdge(g, getBoard().getRoute(index));
 		}
-		return g.pickLines(mouseX, mouseY, this.roadLineThickness*2);
+		return g.pickLines(mouseX, mouseY, Math.round(roadLineThickness*2));
 	}
 	
 	private int pickVertex(APGraphics g, int mouseX, int mouseY) {
@@ -923,19 +919,16 @@ public final class UIBoardRenderer implements UIRenderer {
     
 	public void draw(APGraphics g, int pickX, int pickY) {
 
-	    final int width = component.getWidth() - padding*2;
-	    final int height = component.getHeight() - padding*2;
+	    final int width = component.getWidth();
+	    final int height = component.getHeight();
 	    final Board board = getBoard();
 
-        if (width <= 10 || height <= 10)
+        if (width <= 10 || height <= 10 || board == null)
             return; // avoid images getting resized excessively if the window is getting resized
 
         g.ortho();
-        g.setTextHeight(textSize);
-        g.clearScreen(bkColor);
 	    g.pushMatrix();
 	    g.setIdentity();
-        g.translate(padding, padding);
         try {
 
             float dim = Math.min(width, height);
@@ -1032,31 +1025,20 @@ public final class UIBoardRenderer implements UIRenderer {
     		
     		if (pickMode != PickMode.PM_NONE)
     			pickHandler.onDrawOverlay(this, g);
-    		
-    		
-    		{
-        		List<AAnimation<AGraphics>> t = null;
-        		synchronized (animations) {
-        		    t = new ArrayList<>(animations);
-        		    animations.clear();
-        		}
-    		
-        		// draw animations
-        		for (int i=0; i<t.size(); ) {
-        		    AAnimation<AGraphics> anim = t.get(i);
-        		    if (anim.isDone()) {
-        		        t.remove(i);
-        		    } else {
-        		        anim.update(g);
-        		        i++;
-        		    }
-        		}
-        		
-        		synchronized (animations) {
-        		    animations.addAll(t);
-        		}
-    		}
-    		
+
+            synchronized (animations) {
+                Iterator<AAnimation<AGraphics> > it = animations.iterator();
+                while (it.hasNext()) {
+                    AAnimation<AGraphics> a = it.next();
+                    if (a.isDone()) {
+                        it.remove();
+                    } else {
+                        a.update(g);
+                        component.redraw();
+                    }
+                }
+            }
+
     		if (getRenderFlag(RenderFlag.DRAW_CELL_CENTERS)) {
     		    for (int i=0; i<board.getNumTiles(); i++) {
     		        Tile c = board.getTile(i);
@@ -1119,17 +1101,7 @@ public final class UIBoardRenderer implements UIRenderer {
     		        this.drawVertexInfo(g, vertexInfoIndex);
     		    }
     		}
-    		
-    		if (animations.size() > 0) {
-        		do {
-        		    long exitTime = System.currentTimeMillis();
-        		    long delta = exitTime - enterTime;
-        		    if (delta >= 33)
-        		        break;
-        		} while (true);
-                component.redraw();
-    		}
-    		
+
     		// notify anyone waiting on me
     		synchronized (this) {
     		    notifyAll();

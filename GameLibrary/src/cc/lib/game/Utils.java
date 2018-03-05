@@ -1684,4 +1684,17 @@ public class Utils {
         float h  = Math.abs(v0.getY()-v1.getY());
         return Utils.isPointInsideRect(px, py, x, y, w, h);
     }
+
+    public static void waitNoThrow(Object lock, long msecs) {
+        synchronized (lock) {
+            try {
+                if (msecs < 0)
+                    lock.wait();
+                else
+                    lock.wait(msecs);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 }

@@ -1,15 +1,13 @@
 package cc.game.soc.ui;
 
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.List;
 
 import cc.lib.game.AAnimation;
-import cc.lib.game.AGraphics;
 import cc.lib.game.APGraphics;
 import cc.lib.game.GColor;
 import cc.lib.game.GDimension;
+import cc.lib.game.Utils;
+import cc.lib.utils.QueueRunner;
 
 @SuppressWarnings("serial")
 public final class UIConsoleRenderer implements UIRenderer {
@@ -26,7 +24,6 @@ public final class UIConsoleRenderer implements UIRenderer {
 
     private int startLine = 0;
     private int maxVisibleLines = 1;
-    private float padding = 5;
 
     private final UIComponent component;
 
@@ -35,16 +32,7 @@ public final class UIConsoleRenderer implements UIRenderer {
         component.setRenderer(this);
     }
 
-    public void setStyles(float padding) {
-        this.padding = padding;
-    }
-
     private final LinkedList<Line> lines = new LinkedList<>();
-    private GColor bkColor = GColor.TRANSPARENT;
-
-    public void initStyles(GColor bkColor) {
-        this.bkColor = bkColor;
-    }
 
     public void scroll(int numLines) {
         startLine += numLines;
@@ -79,14 +67,13 @@ public final class UIConsoleRenderer implements UIRenderer {
     }
 
     private void drawPrivate(APGraphics g) {
-        g.clearScreen(bkColor);
 	    final int txtHgt = g.getTextHeight();
-	    float y = padding;
 	    maxVisibleLines = component.getHeight() / txtHgt;
+        float y = 0;
 	    for (int i=startLine; i<lines.size(); i++) {
 	        Line l = lines.get(i);
             g.setColor(l.color);
-            GDimension dim = g.drawWrapString(padding, y, component.getWidth()-padding*2, l.text);
+            GDimension dim = g.drawWrapString(0, y, component.getWidth(), l.text);
             y += dim.height;
             if (y > component.getHeight()) {
                 break;
@@ -96,46 +83,58 @@ public final class UIConsoleRenderer implements UIRenderer {
 
 	private AAnimation<APGraphics> anim = null;
 
-	public final void addText(final GColor color, final String text) {
-	    if (startLine > 0) {
-	        // if user is scrolling, then show this line at top with a fade out.
-	        anim = new AAnimation<APGraphics>(1000) {
-                @Override
-                protected void draw(APGraphics g, float position, float dt) {
-                    drawPrivate(g);
-                    g.setColor(bkColor);//GColor.BLACK.withAlpha(0.5f-position));
-                    String [] lines = g.generateWrappedLines(text, component.getWidth()-2*padding);
-                    g.drawFilledRectf(0, 0, component.getWidth(), lines.length*g.getTextHeight()+2*padding);
-                    g.setColor(color.withAlpha(1.0f-position/3));
-                    float y = padding;
-                    for (String l : lines) {
-                        g.drawString(l, padding, y);
-                        y += g.getTextHeight();
-                    }
-                }
-            }.start();
-        } else {
-	        // if user not scrolling, then show this line with the rest of lines tracing downward
-            anim = new AAnimation<APGraphics>(500) {
-                @Override
-                protected void draw(APGraphics g, float position, float dt) {
-                    g.pushMatrix();
-                    g.setColor(color.withAlpha(position));
-                    GDimension dim = g.drawWrapString(padding, padding, component.getWidth()-2*padding, text);
-                    g.translate(0, dim.height*position);
-                    drawPrivate(g);
-                    g.popMatrix();
-                }
-            }.start();
-        }
+    private QueueRunner<Line> queue = new QueueRunner<Line>() {
+        @Override
+        protected void process(final Line item) {
+            final String text = item.text;
+            final GColor color = item.color;
+            if (startLine > 0) {
 
-        lines.addFirst(new Line(text, color));
-	    if (startLine > 0)
-	        startLine++;
-	    component.redraw();
-	}
-	
+                // if user is scrolling, then show this line at top with a fade out.
+                anim = new AAnimation<APGraphics>(1000) {
+                    @Override
+                    protected void draw(APGraphics g, float position, float dt) {
+                        drawPrivate(g);
+                        g.setColor(GColor.BLACK.withAlpha(0.5f-position));
+                        String [] lines = g.generateWrappedLines(text, component.getWidth());
+                        g.drawFilledRectf(0, 0, component.getWidth(), lines.length*g.getTextHeight());
+                        g.setColor(color.withAlpha(1.0f-position/3));
+                        float y = 0;
+                        for (String l : lines) {
+                            g.drawString(l, 0, y);
+                            y += g.getTextHeight();
+                        }
+                    }
+                }.start();
+            } else {
+                // if user not scrolling, then show this line with the rest of lines tracing downward
+                anim = new AAnimation<APGraphics>(500) {
+                    @Override
+                    protected void draw(APGraphics g, float position, float dt) {
+                        g.pushMatrix();
+                        g.setColor(color.withAlpha(position));
+                        GDimension dim = g.drawWrapString(0, 0, component.getWidth(), text);
+                        g.translate(0, dim.height*position);
+                        drawPrivate(g);
+                        g.popMatrix();
+                    }
+                }.start();
+            }
+
+            lines.addFirst(item);
+            if (startLine > 0)
+                startLine++;
+            component.redraw();
+            Utils.waitNoThrow(anim, anim.getDuration());
+        }
+    };
+
+	public synchronized final void addText(final GColor color, final String text) {
+        queue.add(new Line(text, color));
+    }
+
 	public final void clear() {
+        queue.clear();
 	    lines.clear();
         component.redraw();
 	}

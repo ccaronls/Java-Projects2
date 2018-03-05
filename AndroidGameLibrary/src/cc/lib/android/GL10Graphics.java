@@ -1,25 +1,38 @@
 package cc.lib.android;
 
 
-import java.io.*;
-import java.nio.*;
-import java.util.*;
-
-import javax.microedition.khronos.opengles.*;
-
-import cc.lib.game.*;
-import cc.lib.math.Matrix3x3;
-import cc.lib.math.Vector2D;
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.Bitmap.Config;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Paint;
-import android.graphics.Bitmap.Config;
 import android.graphics.Paint.Align;
 import android.opengl.GLUtils;
 import android.os.SystemClock;
 import android.util.Log;
+
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.FloatBuffer;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Stack;
+
+import javax.microedition.khronos.opengles.*;
+
+import cc.lib.game.AGraphics;
+import cc.lib.game.AImage;
+import cc.lib.game.GColor;
+import cc.lib.game.GDimension;
+import cc.lib.game.IImageFilter;
+import cc.lib.game.Justify;
+import cc.lib.math.Matrix3x3;
+import cc.lib.math.Vector2D;
 
 public class GL10Graphics extends AGraphics {
 
@@ -101,7 +114,7 @@ public class GL10Graphics extends AGraphics {
      * @param text
      * @return
      */
-    public final float drawWrapString(float x, float y, float maxWidth, Justify hJust, Justify vJust, String text) {
+    public final GDimension drawWrapString(float x, float y, float maxWidth, Justify hJust, Justify vJust, String text) {
         String [] lines = generateWrappedLines(text, maxWidth);
         float th = getTextHeight() * this.getViewportScaleY();
         switch (vJust) {
@@ -111,11 +124,12 @@ public class GL10Graphics extends AGraphics {
             default:
             	throw new IllegalArgumentException("Illegal value for vertical justify: " + vJust);
         }
+        float mw = 0;
         for (int i=0; i<lines.length; i++) {
-            drawStringLine(x, y, hJust, lines[i]);
+            mw = Math.max(mw, drawStringLine(x, y, hJust, lines[i]));
             y += th;
         }
-        return y;
+        return new GDimension(mw, th*lines.length);
     }
     
     /**
@@ -176,9 +190,9 @@ public class GL10Graphics extends AGraphics {
      * @param text
      * @return the total height of the text. 
      */
-    public final float drawJustifiedString(float x, float y, Justify hJust, Justify vJust, String text) {
+    public final GDimension drawJustifiedString(float x, float y, Justify hJust, Justify vJust, String text) {
         if (text==null || text.length() == 0)
-            return 0;
+            return GDimension.EMPTY;
         String [] lines = text.split("\n");
         final float textHeight = (float)getTextHeight()*getViewportScaleY();
         switch (vJust) {
@@ -194,11 +208,12 @@ public class GL10Graphics extends AGraphics {
             DroidUtils.unhandledCase(vJust);
             break;
         }
+        float mw = 0;
         for (int i=0; i<lines.length; i++) {
-            priv_drawJustifiedString(sGl, x, y, hJust, lines[i]);
+            mw = Math.max(mw, priv_drawJustifiedString(sGl, x, y, hJust, lines[i]));
             y += textHeight;
         }
-        return textHeight * lines.length;
+        return new GDimension(mw, textHeight * lines.length);
     }
     
     /**
@@ -432,7 +447,7 @@ for (int pix : pixels) {
     }
 
     /*
-     * 
+     * return the width of the text
      */
     private float priv_drawJustifiedString(GL10 gl, float x, float y, Justify justify, String text) {
         if (text == null || text.length() == 0)

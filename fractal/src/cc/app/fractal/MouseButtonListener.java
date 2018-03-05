@@ -3,6 +3,8 @@ package cc.app.fractal;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 
+import cc.lib.game.Utils;
+
 public abstract class MouseButtonListener implements MouseListener, Runnable {
 
 	boolean entered = false;
@@ -12,11 +14,7 @@ public abstract class MouseButtonListener implements MouseListener, Runnable {
 	public void run() {
 		while (running) {
 			doAction();
-			try {
-				synchronized (this) {
-					wait(200);
-				}
-			} catch (Exception e) {}
+            Utils.waitNoThrow(this, 200);
 		}
 		
 	}
