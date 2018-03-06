@@ -120,7 +120,57 @@ public final class UIBoardRenderer implements UIRenderer {
 		g.drawLineLoop( borderThickness);
 	}
 
-	enum FaceType {
+    public void startTilesInventedAnimation(final Tile tile0, final Tile tile1) {
+        final int t1 = tile1.getDieNum();
+        final int t0 = tile0.getDieNum();
+        final Vector2D[] pts0 = new Vector2D[31];
+        final Vector2D [] pts1 = new Vector2D[31];
+        final Vector2D mid = Vector2D.newTemp(tile0).add(tile1).scaleEq(0.5f);
+        final Vector2D d = Vector2D.newTemp(mid).sub(tile0).scaleEq(0.5f);
+        final Vector2D mid0 = Vector2D.newTemp(tile0).add(d);
+        final Vector2D mid1 = Vector2D.newTemp(tile1).sub(d);
+        final MutableVector2D dv = d.norm().scaleEq(0.7f);
+        Utils.computeBezierCurvePoints(pts0, 30, tile0, mid0.add(dv), mid1.add(dv), tile1);
+        pts0[30]=pts0[29];
+        Utils.computeBezierCurvePoints(pts1, 30, tile1, mid1.sub(dv), mid0.sub(dv), tile0);
+        pts1[30]=pts1[29];
+        tile0.setDieNum(0);
+        tile1.setDieNum(0);
+
+        addAnimation(new AAnimation<AGraphics>(3000) {
+
+            void drawChit(AGraphics g, Vector2D [] pts, float position, int num) {
+                int index0 = (int)(position*28);
+                int index1 = index0+1;
+                float delta = ((position*28)-index0);
+                assert(position >= 0 && position <= 1);
+                Vector2D pos = pts[index0].scaledBy(1.0f-delta).add(pts[index1].scaledBy(delta));
+                Vector2D t = g.transform(pos);
+                int fh = g.getTextHeight();
+                int x = Math.round(t.getX() - fh);
+                int y = Math.round(t.getY() - fh);
+                drawCellProductionValue(g, x, y, num, TILE_CELL_NUM_RADIUS);
+            }
+
+            @Override
+            public void draw(AGraphics g, float position, float dt) {
+                drawChit(g, pts0, position, t1);
+                drawChit(g, pts1, position, t0);
+            }
+
+            @Override
+            public void onDone() {
+                synchronized (this) {
+                    notify();
+                }
+            }
+
+        }, true);
+        tile0.setDieNum(t0);
+        tile1.setDieNum(t1);
+    }
+
+    enum FaceType {
 		SETTLEMENT,
 		CITY,
 		CITY_WALL,
@@ -1246,6 +1296,7 @@ public final class UIBoardRenderer implements UIRenderer {
     public void endDrag() {
 
     }
+
 
 }
 

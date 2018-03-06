@@ -352,7 +352,7 @@ public class GUI implements ActionListener, MenuItem.Action {
 	public GUI(EZFrame frame, final UIProperties props) throws IOException {
 		this.frame = frame;
 		this.props = props;
-        soc = new UISOC(boardRenderer, diceRenderers, console, eventCardRenderer, barbarianRenderer) {
+        soc = new UISOC(playerRenderers, boardRenderer, diceRenderers, console, eventCardRenderer, barbarianRenderer) {
             @Override
             protected void addMenuItem(MenuItem item, String title, String helpText, Object object) {
                 menu.add(getMenuOpButton(item, title, helpText, object));
@@ -366,6 +366,17 @@ public class GUI implements ActionListener, MenuItem.Action {
             @Override
             public void redraw() {
                 frame.repaint();
+            }
+
+            @Override
+            protected void addCardAnimation(Player player, String text) {
+
+            }
+
+            @Override
+            protected void showOkPopup(String title, String message) {
+                JOptionPane.showMessageDialog(frame, message, title, JOptionPane.PLAIN_MESSAGE);
+
             }
 
             @Override

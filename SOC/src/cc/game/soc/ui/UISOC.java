@@ -3,23 +3,38 @@ package cc.game.soc.ui;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import cc.game.soc.core.BotNode;
 import cc.game.soc.core.Card;
 import cc.game.soc.core.CardType;
+import cc.game.soc.core.CommodityType;
+import cc.game.soc.core.DevelopmentArea;
 import cc.game.soc.core.Dice;
 import cc.game.soc.core.EventCard;
+import cc.game.soc.core.ICardType;
+import cc.game.soc.core.Island;
 import cc.game.soc.core.MoveType;
 import cc.game.soc.core.Player;
+import cc.game.soc.core.ProgressCardType;
+import cc.game.soc.core.ResourceType;
 import cc.game.soc.core.Route;
 import cc.game.soc.core.SOC;
+import cc.game.soc.core.SpecialVictoryType;
 import cc.game.soc.core.Tile;
 import cc.game.soc.core.Trade;
 import cc.game.soc.core.Vertex;
+import cc.game.soc.core.VertexType;
+import cc.lib.game.AAnimation;
+import cc.lib.game.AGraphics;
 import cc.lib.game.APGraphics;
 import cc.lib.game.GColor;
+import cc.lib.game.IVector2D;
+import cc.lib.game.Justify;
 import cc.lib.game.Utils;
 import cc.lib.math.MutableVector2D;
+import cc.lib.math.Vector2D;
 
 /**
  * Created by chriscaron on 2/22/18.
@@ -31,6 +46,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action {
 
     private static UISOC instance = null;
 
+    private final UIPlayerRenderer [] playerComponents;
     private final UIBoardRenderer boardRenderer;
     private final UIDiceRenderer diceRenderer;
     private final UIConsoleRenderer console;
@@ -39,10 +55,11 @@ public abstract class UISOC extends SOC implements MenuItem.Action {
     private Object returnValue = null;
     private final Object waitObj = new Object();
 
-    protected UISOC(UIBoardRenderer boardRenderer, UIDiceRenderer diceRenderer, UIConsoleRenderer console, UIEventCardRenderer eventCardRenderer, UIBarbarianRenderer barbarianRenderer) {
+    protected UISOC(UIPlayerRenderer [] playerComponents, UIBoardRenderer boardRenderer, UIDiceRenderer diceRenderer, UIConsoleRenderer console, UIEventCardRenderer eventCardRenderer, UIBarbarianRenderer barbarianRenderer) {
         if (instance != null)
             throw new RuntimeException();
         instance = this;
+        this.playerComponents = playerComponents;
         this.boardRenderer = boardRenderer;
         this.diceRenderer = diceRenderer;
         this.eventCardRenderer = eventCardRenderer;
@@ -588,7 +605,371 @@ public abstract class UISOC extends SOC implements MenuItem.Action {
     }
 
     @Override
-    protected void onBarbariansAttack(int catanStrength, int barbarianStrength, String[] playerStatus) {
-        barbarianRenderer.onBarbarianAttack(catanStrength, barbarianStrength, playerStatus);
+    protected void onBarbariansAttack(int catanStrength, int barbarianStrength, String [] playerStatus) {
+        StringBuffer str = new StringBuffer("Barbarian Attack!\n\nBarbarian Strength ")
+                .append(barbarianStrength)
+                .append("\nCatan Strength ")
+                .append(catanStrength)
+                .append("\n");
+        for (Player p : getPlayers()) {
+            str.append(p.getName()).append(" ").append(playerStatus[p.getPlayerNum()]).append("\n");
+        }
+        showOkPopup("Barbarian Attack", str.toString());
     }
+
+    protected abstract void addCardAnimation(final Player player, final String text);
+    
+    /*{
+
+        final UIPlayerRenderer comp = playerComponents[player.getPlayerNum()];
+        final List<AAnimation<Graphics>> cardsList = comp.getCardAnimations();
+
+        final int cardHeight = comp.getHeight()/5;
+        final int cardWidth = cardHeight*2/3;
+
+        final Point compPt = comp.getLocationOnScreen();
+        final Point boardPt = board.getLocationOnScreen();
+
+        final int dx = compPt.x - boardPt.x;
+        final int dy = compPt.y - boardPt.y;
+
+        final int y = board.getY() + dy; // duh
+        final int W = cardsList.size() * cardWidth + (cardsList.size()+1) * cardWidth/3;
+        final int x = board.getX() + dx > 0 ? board.getWidth() - W - cardWidth : W;
+
+        final int animTime = GUI.instance.getProps().getIntProperty("anim.card.tm", 3000);
+
+        gui.getBoardComponent().addAnimation(new GAnimation(animTime) {
+            public void draw(Graphics g, float position, float dt) {
+                drawCard(((UIPlayer)player).getColor(), g, text, x, y, cardWidth, cardHeight);
+            }
+
+            @Override
+            public void onDone() {
+                //playerRowCardNum[player.getPlayerNum()]--;
+                synchronized (cardsList) {
+                    cardsList.remove(this);
+                }
+            }
+
+            @Override
+            public void onStarted() {
+                synchronized (cardsList) {
+                    cardsList.add(this);
+                }
+            }
+
+        }, false);
+    }*/
+    @Override
+    protected void onCardPicked(final Player player, final Card card) {
+        String txt = "";
+        if (((UIPlayer)player).isInfoVisible()) {
+            Pattern splitter = Pattern.compile("[A-Z][a-z0-9]*");
+            Matcher matcher = splitter.matcher(card.getName());
+            while (matcher.find()) {
+                if (txt.length() > 0) {
+                    txt += " ";
+                }
+                txt += matcher.group();
+            }
+        }
+        addCardAnimation(player, txt);
+    }
+
+    @Override
+    protected void onDistributeResources(final Player player, final ResourceType type, final int amount) {
+        addCardAnimation(player, type.name() + "\nX " + amount);
+    }
+
+    @Override
+    protected void onDistributeCommodity(final Player player, final CommodityType type, final int amount) {
+        addCardAnimation(player, type.name() + "\nX " + amount);
+    }
+
+    @Override
+    protected void onProgressCardDistributed(Player player, ProgressCardType type) {
+        String txt = type.name();
+        if (!((UIPlayer)player).isInfoVisible()) {
+            txt = "Progress";
+        }
+        addCardAnimation(player, txt);
+    }
+
+    @Override
+    protected void onSpecialVictoryCard(Player player, SpecialVictoryType type) {
+        addCardAnimation(player, type.name());
+    }
+/*
+    @SuppressWarnings("serial")
+    @Override
+    protected void onGameOver(final Player winner) {
+        PopupButton button = new PopupButton("OK") {
+            public boolean doAction() {
+                gui.quitToMainMenu();
+                synchronized (this) {
+                    notify();
+                }
+                return true;
+            }
+        };
+        gui.showPopup("A WINNER!", "Player " + winner.getPlayerNum() + "\n Wins!", button);
+        try {
+            synchronized (button) {
+                button.wait();
+            }
+        } catch (Exception e) {
+            //gui.quitToMainMenu();
+        }
+    }
+*/
+    @Override
+    protected void onLargestArmyPlayerUpdated(final Player oldPlayer, final Player newPlayer, final int armySize) {
+        if (newPlayer != null)
+            addCardAnimation(newPlayer, "Largest Army");
+        if (oldPlayer != null)
+            addCardAnimation(oldPlayer, "Largest Army Lost!");
+    }
+
+    @Override
+    protected void onLongestRoadPlayerUpdated(final Player oldPlayer, final Player newPlayer, final int maxRoadLen) {
+        if (newPlayer != null)
+            addCardAnimation(newPlayer, "Longest Road");
+        if (oldPlayer != null)
+            addCardAnimation(oldPlayer, "Longest Road Lost!");
+    }
+
+    @Override
+    protected void onHarborMasterPlayerUpdated(Player oldPlayer, Player newPlayer, int harborPts) {
+        if (newPlayer != null)
+            addCardAnimation(newPlayer, "Harbor Master");
+        if (oldPlayer != null)
+            addCardAnimation(oldPlayer, "Harbor Master Lost!");
+    }
+
+    @Override
+    protected void onMonopolyCardApplied(final Player taker, final Player giver, final ICardType<?> type, final int amount) {
+        addCardAnimation(giver, type.name() + "\n- " + amount);
+        addCardAnimation(taker, type.name() + "\n+ " + amount);
+    }
+
+    @Override
+    protected void onPlayerPointsChanged(final Player player, final int changeAmount) {
+    }
+
+    @Override
+    protected void onTakeOpponentCard(final Player taker, final Player giver, final Card card) {
+        addCardAnimation(giver, card.getName() + "\n-1");
+        addCardAnimation(taker, card.getName() + "\n+1");
+    }
+
+    @Override
+    protected void onPlayerRoadLengthChanged(Player p, int oldLen, int newLen) {
+        if (oldLen > newLen)
+            addCardAnimation(p, "Route Reduced!\n" + "-" + (oldLen - newLen));
+        else
+            addCardAnimation(p, "Route Increased!\n" + "+" + (newLen - oldLen));
+    }
+
+    @Override
+    protected void onTradeCompleted(Player player, Trade trade) {
+        addCardAnimation(player, "Trade\n" + trade.getType() + "\n -" + trade.getAmount());
+    }
+
+    @Override
+    protected void onPlayerDiscoveredIsland(Player player, Island island) {
+        addCardAnimation(player, "Island " + island.getNum() + "\nDiscovered!");
+    }
+
+    @Override
+    protected void onDiscoverTerritory(Player player, Tile tile) {
+        addCardAnimation(player, "Territory\nDiscovered");
+    }
+
+
+    @Override
+    protected void onMetropolisStolen(Player loser, Player stealer, DevelopmentArea area) {
+        addCardAnimation(loser, "Metropolis\n" + area.name() + "\nLost!");
+        addCardAnimation(stealer, "Metropolis\n" + area.name() + "\nStolen!");
+    }
+
+    @Override
+    protected void onTilesInvented(Player player, final Tile tile0, final Tile tile1) {
+        boardRenderer.startTilesInventedAnimation(tile0, tile1);
+    }
+
+    @Override
+    protected void onPlayerShipUpgraded(Player p, Route r) {
+    }
+
+    @Override
+    protected void onPirateSailing(final int fromTile, final int toTile) {
+        boardRenderer.addAnimation(new AAnimation<AGraphics>(800) {
+
+            @Override
+            public void draw(AGraphics g, float position, float dt) {
+                Vector2D v = Vector2D.newTemp(getBoard().getTile(fromTile)).scaledBy(1-position).add(Vector2D.newTemp(getBoard().getTile(toTile)).scaledBy(position));
+                boardRenderer.drawPirate(g, v);
+            }
+
+            @Override
+            public void onDone() {
+                synchronized (this) {
+                    notify();
+                }
+            }
+
+        }, true);
+    }
+
+    @Override
+    protected void onCardLost(Player p, Card c) {
+        addCardAnimation(p, c.getName() + "\n-1");
+    }
+
+    @Override
+    protected void onPirateAttack(Player p, int playerStrength, int pirateStrength) {
+        StringBuffer str = new StringBuffer("Pirates attack " + p.getName())
+                .append("\nPlayer Strength " + playerStrength)
+                .append("\nPirate Stength " + pirateStrength)
+                .append("\n");
+        showOkPopup("Pirate Attack", str.toString());
+    }
+
+    /**
+     * Show a popup and block until a button is pressed and return the index of the button pressed
+     *
+     * @param title
+     * @param message
+     * @return
+     */
+    protected abstract void showOkPopup(String title, String message);
+
+    @Override
+    protected void onPlayerConqueredPirateFortress(Player p, Vertex v) {
+        StringBuffer str = new StringBuffer("Player " + p.getName() + " has conquered the fortress!");
+        showOkPopup("Pirate Attack", str.toString());
+    }
+
+    @Override
+    protected void onPlayerAttacksPirateFortress(Player p, int playerHealth, int pirateHealth) {
+        String result = null;
+        if (playerHealth > pirateHealth)
+            result = "Player damages the fortress";
+        else if (playerHealth < pirateHealth)
+            result = "Player loses battle and 2 ships";
+        else
+            result = "Battle is a draw.  Player lost a ship";
+        StringBuffer str = new StringBuffer(p.getName() + " attackes the pirate fortress!")
+                .append("\nPlayer Strength " + playerHealth)
+                .append("\nPirate Stength " + pirateHealth)
+                .append("\n")
+                .append("Result: " + result + "\n");
+        showOkPopup("Pirate Attack", str.toString());
+    }
+
+    @Override
+    protected void onAqueduct(Player p) {
+        addCardAnimation(p, "Aqueduct Ability!");
+    }
+
+    @Override
+    protected void onPlayerAttackingOpponent(Player attacker, Player victim, String attackingWhat, int attackerScore, int victimScore) {
+        String message = attacker.getName() + " is attacking " + victim.getName() + "'s " + attackingWhat + "\n"
+                + attacker.getName() + "'s score : " + attackerScore + "\n"
+                + victim.getName() + "'s score : " + victimScore;
+        showOkPopup("Player Attack!", message);
+    }
+
+    @Override
+    protected void onRoadDestroyed(Route r, Player destroyer, Player victim) {
+        addCardAnimation(victim, "Road Destroyed!");
+    }
+
+    @Override
+    protected void onStructureDemoted(Vertex v, VertexType newType, Player destroyer, Player victim) {
+        addCardAnimation(victim, v.getType().getNiceName() + " Reduced to " + newType.getNiceName());
+    }
+
+//    @Override
+//    protected void onShouldSaveGame() {
+//        FileUtils.backupFile(gui.saveGameFile.getAbsolutePath(), 10);
+//        save(gui.saveGameFile.getAbsolutePath());
+//    }
+
+    @Override
+    protected void onExplorerPlayerUpdated(Player oldPlayer, Player newPlayer, int harborPts) {
+        if (oldPlayer != null)
+            addCardAnimation(oldPlayer, "Explorer Lost!");
+        addCardAnimation(newPlayer, "Explorer Gained!");
+    }
+
+    @Override
+    protected void onPlayerKnightDestroyed(Player player, Vertex knight) {
+        addFloatingTextAnimation((UIPlayer)player, knight, "Knight\nDestroyed");
+    }
+
+    @Override
+    protected void onPlayerKnightDemoted(Player player, Vertex knight) {
+        addFloatingTextAnimation((UIPlayer)player, knight, "Demoted to\n" + knight.getType().getNiceName());
+    }
+
+    void addFloatingTextAnimation(final UIPlayer p, final IVector2D v, final String msg) {
+        boardRenderer.addAnimation(new AAnimation<AGraphics>(2000) {
+
+            @Override
+            public void draw(AGraphics g, float position, float dt) {
+                g.setColor(p.getColor());
+                g.pushMatrix();
+                g.translate(v);
+                g.translate(0, boardRenderer.getKnightRadius()*5);
+                g.translate(0, boardRenderer.getKnightRadius()*10*position);
+                MutableVector2D mv = new MutableVector2D();
+                g.transform(mv);
+                g.drawJustifiedString(mv.Xi(), mv.Yi(), Justify.CENTER, Justify.CENTER, msg);
+                g.popMatrix();
+            }
+
+            @Override
+            public void onDone() {
+                synchronized (this) {
+                    notify();
+                }
+            }
+
+        }, true);
+
+    }
+
+    @Override
+    protected void onPlayerKnightPromoted(Player player, final Vertex knight) {
+        addFloatingTextAnimation((UIPlayer)player, knight, "Promoted to\n" + knight.getType().getNiceName());
+    }
+
+    @Override
+    protected void onPlayerCityDeveloped(Player p, DevelopmentArea area) {
+        addCardAnimation(p, area.name() + "\n\n" + area.levelName[p.getCityDevelopment(area)]);
+    }
+
+    @Override
+    protected void onRoadDamaged(Route r, Player destroyer, Player victim) {
+        super.onRoadDamaged(r, destroyer, victim);
+    }
+
+    @Override
+    protected void onShouldSaveGame() {
+        super.onShouldSaveGame();
+    }
+
+    @Override
+    protected void onPlayerShipComandeered(Player taker, Route shipTaken) {
+        super.onPlayerShipComandeered(taker, shipTaken);
+    }
+
+    @Override
+    protected void onPlayerShipDestroyed(Route r) {
+        super.onPlayerShipDestroyed(r);
+    }
+
+
 }
