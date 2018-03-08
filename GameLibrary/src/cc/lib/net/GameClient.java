@@ -2,6 +2,9 @@ package cc.lib.net;
 
 import java.io.*;
 import java.net.*;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
 
 import cc.lib.crypt.Cypher;
 import cc.lib.crypt.EncryptionInputStream;
@@ -22,6 +25,12 @@ public abstract class GameClient {
         DISCONNECTING, // disconnect called, notify server
         DISCONNECTED // all IO closed and threads stopped
     }
+
+    public interface Listener {
+        void onCommand(GameCommand cmd);
+
+        void onMessage(String msg);
+    }
     
     private Socket socket;
     private InputStream in;
@@ -29,7 +38,8 @@ public abstract class GameClient {
     private final String userName;
     private State state = State.READY;
     private final String version;
-    private Cypher cypher; 
+    private Cypher cypher;
+    private final Set<Listener> listeners = new HashSet<>();
     
     // giving package access for JUnit tests ONLY!
     CommandQueueWriter outQueue = new CommandQueueWriter() {
@@ -91,6 +101,14 @@ public abstract class GameClient {
         connect(InetAddress.getByName(host), port);
     }
 
+    public final void addListener(Listener l) {
+        listeners.add(l);
+    }
+
+    public final void removeListener(Listener l) {
+        listeners.remove(l);
+    }
+
     /**
      * Asynchronous Connect to the server.  onConnected called when handshake completed.  
      * 
@@ -115,7 +133,7 @@ public abstract class GameClient {
                 outQueue.start(out);
                 GameCommandType type = state == State.READY ? GameCommandType.CL_CONNECT : GameCommandType.CL_RECONNECT;
                 outQueue.add(new GameCommand(type).setName(userName).setVersion(version));
-                new Thread(new Listener()).start();
+                new Thread(new SocketReader()).start();
                 logDebug("Connection SUCCESS");
                 break;
                 
@@ -223,7 +241,7 @@ public abstract class GameClient {
         //return state == State.DISCONNECTING;
     }
 
-    class Listener implements Runnable {
+    private class SocketReader implements Runnable {
         public void run() {
             logDebug("GameClient: Client Listener Thread starting");
             
@@ -240,8 +258,16 @@ public abstract class GameClient {
                         onConnected();        
                         
                     } else if (cmd.getType() == GameCommandType.SVR_MESSAGE) {
-                        onMessage(cmd.getMessage());        
-                        
+                        onMessage(cmd.getMessage());
+                        Iterator<Listener> it = listeners.iterator();
+                        while (it.hasNext()) {
+                            try {
+                                it.next().onMessage(cmd.getMessage());
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                                it.remove();
+                            }
+                        }
                     } else if (cmd.getType() == GameCommandType.SVR_DISCONNECTED) {
                         disconnectedReason = cmd.getMessage();
                         state = State.DISCONNECTING;
@@ -251,6 +277,15 @@ public abstract class GameClient {
                         onForm(clForm);
                     } else {      
                         onCommand(cmd);
+                        Iterator<Listener> it = listeners.iterator();
+                        while (it.hasNext()) {
+                            try {
+                                it.next().onCommand(cmd);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                                it.remove();
+                            }
+                        }
                     }
                 
                 } catch (Exception e) {
