@@ -1,0 +1,161 @@
+Index: pom.xml
+===================================================================
+--- pom.xml	(revision 62)
++++ pom.xml	(working copy)
+@@ -9,7 +9,7 @@
+ 
+     <dependencies>
+         <dependency>
+-            <groupId>org.xbill</groupId>
++            <groupId>dnsjava</groupId>
+             <artifactId>dnsjava</artifactId>
+             <version>2.1.6</version>
+         </dependency>
+Index: src/main/java/org/xbill/mDNS/DatagramProcessor.java
+===================================================================
+--- DatagramProcessor.java	(revision 112748)
++++ DatagramProcessor.java	(working copy)
+@@ -150,7 +150,7 @@
+     @Override
+     public boolean isOperational()
+     {
+-        return super.isOperational() && socket.isBound() && !socket.isClosed() && (lastPacket <= (System.currentTimeMillis() + 120000));
++        return super.isOperational() && socket.isBound() && !socket.isClosed() && (lastPacket >= (System.currentTimeMillis() - 100000));
+     }
+     
+     
+Index: src/main/java/org/xbill/mDNS/Lookup.java
+===================================================================
+--- src/main/java/org/xbill/mDNS/Lookup.java	(revision 62)
++++ src/main/java/org/xbill/mDNS/Lookup.java	(working copy)
+@@ -166,9 +166,37 @@
+     public void close()
+     throws IOException
+     {
++        querier.close();
+     }
+     
+     
++    protected Querier makeQuerier() {
++        try {
++            return new MulticastDNSQuerier(true, false);
++        } catch (IOException e) {
++            e.printStackTrace();
++            return null;
++        }
++    }
++
++    protected Name[] makeSearchPath() {
++        Name[] searchPath;
++        Name[] configuredSearchPath = org.xbill.DNS.ResolverConfig.getCurrentConfig().searchPath();
++        defaultSearchPath = new Name[(configuredSearchPath != null ? configuredSearchPath.length : 0) + querier.getMulticastDomains().length];
++        int startPos = 0;
++        if (configuredSearchPath != null)
++        {
++            searchPath = new Name[configuredSearchPath.length + defaultQuerier.getMulticastDomains().length];
++            System.arraycopy(configuredSearchPath, 0, searchPath, startPos, configuredSearchPath.length);
++            startPos = configuredSearchPath.length;
++        } else
++        {
++            searchPath = new Name[querier.getMulticastDomains().length];
++        }
++        System.arraycopy(querier.getMulticastDomains(), 0, searchPath, startPos, querier.getMulticastDomains().length);
++        return searchPath;
++    }
++
+     public Domain[] lookupDomains()
+     throws IOException
+     {
+Index: src/main/java/org/xbill/mDNS/MulticastDNSLookupBase.java
+===================================================================
+--- src/main/java/org/xbill/mDNS/MulticastDNSLookupBase.java	(revision 62)
++++ src/main/java/org/xbill/mDNS/MulticastDNSLookupBase.java	(working copy)
+@@ -103,13 +103,28 @@
+                                     return -1;
+                             }
+                         default:
+-                            return -1;
++                            switch (thatType)
++                            {
++                                case Type.PTR:
++                                case Type.SRV:
++                                case Type.TXT:
++                                case Type.A:
++                                case Type.AAAA:
++                                case Type.NSEC:
++                                    return +1;
++                                default:
++                                    return 0;
++                            }
+                             
+                     }
+                 }
++                return -1;
+             }
+-            
+-            return -1;
++            if (o2 instanceof Record)
++            {
++                return +1;
++            }
++            return 0;
+         }
+     };
+     
+@@ -228,8 +243,8 @@
+         
+         mdnsVerbose = Options.check("mdns_verbose") || Options.check("verbose");
+         
+-        querier = getDefaultQuerier();
+-        searchPath = getDefaultSearchPath();
++        querier = makeQuerier();
++        searchPath = makeSearchPath();
+     }
+     
+     
+@@ -509,6 +524,9 @@
+         return defaultQuerier;
+     }
+     
++    protected Querier makeQuerier() {
++        return getDefaultQuerier();
++    }
+     
+     /**
+      * Gets the search path that will be used as the default by future Lookups.
+@@ -536,8 +554,11 @@
+         
+         return defaultSearchPath;
+     }
++
++    protected Name[] makeSearchPath() {
++        return getDefaultSearchPath();
++    }
+     
+-    
+     /**
+      * Sets the default mDNS Querier to be used as the default by future Lookups.
+      * 
+Index: src/main/java/org/xbill/mDNS/ServiceInstance.java
+===================================================================
+--- src/main/java/org/xbill/mDNS/ServiceInstance.java	(revision 62)
++++ src/main/java/org/xbill/mDNS/ServiceInstance.java	(working copy)
+@@ -385,7 +385,17 @@
+             return parseTextRecords(((Collection) rawText).toArray());
+         } else if (rawText instanceof TXTRecord)
+         {
+-            return parseTextRecords(((TXTRecord) rawText).getStrings().toArray());
++            Map textAttributes = new LinkedHashMap();
++            for (Object o : ((TXTRecord) rawText).getStrings()) {
++                String value = o.toString();
++                int index = value.indexOf('=');
++                if (index > 0) {
++                    textAttributes.put(value.substring(0, index), value.substring(index + 1));
++                } else if (index < 0) {
++                    textAttributes.put(value, "");
++                }
++            }
++            return textAttributes;
+         } else
+         {
+             Map textAttributes = new LinkedHashMap();

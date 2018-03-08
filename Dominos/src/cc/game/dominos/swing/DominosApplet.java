@@ -20,6 +20,7 @@ public class DominosApplet extends AWTComponent {
     final EZFrame frame;
 
     DominosApplet() {
+        setMouseEnabled(true);
         frame = new EZFrame("Dominos") {
             protected void onWindowClosing() {
                 dominos.trySaveToFile(saveFile);
@@ -29,7 +30,10 @@ public class DominosApplet extends AWTComponent {
             protected void onMenuItemSelected(String menu, String subMenu) {
                 switch (subMenu) {
                     case "New Game":
-                        dominos.startNewGame(4, 9, 150, 0);
+                        dominos.stopGameThread();
+                        dominos.initGame(9, 150,0);
+                        dominos.setNumPlayers(4);
+                        dominos.startNewGame();
                         dominos.startGameThread();
                         break;
                 }
@@ -40,7 +44,9 @@ public class DominosApplet extends AWTComponent {
         try {
             dominos.loadFromFile(saveFile);
         } catch (Exception e) {
-            dominos.startNewGame(4, 9, 150, 0);
+            dominos.initGame(9, 150,0);
+            dominos.setNumPlayers(4);
+            dominos.startNewGame();
         }
 
         if (!frame.loadFromFile(new File("dominos.properties")))

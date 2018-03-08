@@ -38,7 +38,7 @@ public class SimpleCypherTest extends TestCase {
         ByteArrayOutputStream file = new ByteArrayOutputStream();
         
         // read test file into String
-        InputStream in = new FileInputStream(fileName);
+        InputStream in = getClass().getClassLoader().getResourceAsStream(fileName);
         doRead(in, file);
         System.out.println("File length: " + file.size());
         return file;
@@ -75,7 +75,7 @@ public class SimpleCypherTest extends TestCase {
         assertEquals("Hello", in.readUTF());
         in.close();
     }
-    
+    /*
     public void testAllFiles() throws Exception {
         String [] files = new File("resources").list();
         for (String f: files) {
@@ -101,7 +101,7 @@ public class SimpleCypherTest extends TestCase {
             }
         }
     }
-    
+    */
     private void doRead(InputStream in, OutputStream out) throws IOException, InterruptedException {
         byte [] buffer = new byte[1024];
         while (true) {
@@ -116,9 +116,7 @@ public class SimpleCypherTest extends TestCase {
         Thread.sleep(100);
     }
     
-    public void testTextFile() throws Exception {
-        
-        String file = loadFile("resources/cyphertest.txt").toString();
+    void doTestTextFile(String file) throws Exception {
         processTextFile(file);
     }
     
@@ -147,7 +145,7 @@ public class SimpleCypherTest extends TestCase {
     public void testBinaryFile() throws Exception {
 
 
-        ByteArrayOutputStream file = loadFile("resources/streamvideo.3gp");
+        ByteArrayOutputStream file = loadFile("signed_forms.pdf");
         ByteArrayOutputStream bytes = new ByteArrayOutputStream();
         OutputStream out = new EncryptionOutputStream(bytes, getCypher());
         out.write(file.toByteArray());

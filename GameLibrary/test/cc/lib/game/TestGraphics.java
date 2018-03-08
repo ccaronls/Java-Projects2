@@ -13,7 +13,7 @@ public class TestGraphics extends APGraphics {
     }
 
     @Override
-    public void setColor(AColor color) {
+    public void setColor(GColor color) {
 
     }
 
@@ -33,7 +33,7 @@ public class TestGraphics extends APGraphics {
     }
 
     @Override
-    public AColor getColor() {
+    public GColor getColor() {
         return null;
     }
 
@@ -50,6 +50,11 @@ public class TestGraphics extends APGraphics {
     @Override
     public float getTextWidth(String string) {
         return 0;
+    }
+
+    @Override
+    public void setTextStyles(TextStyle... styles) {
+
     }
 
     @Override
@@ -108,12 +113,22 @@ public class TestGraphics extends APGraphics {
     }
 
     @Override
-    public int loadImage(String assetPath, AColor transparent) {
+    public void drawRects() {
+
+    }
+
+    @Override
+    public void drawFilledRects() {
+
+    }
+
+    @Override
+    public int loadImage(String assetPath, GColor transparent) {
         return 0;
     }
 
     @Override
-    public int[] loadImageCells(String assetPath, int w, int h, int numCellsX, int numCells, boolean bordeered, AColor transparent) {
+    public int[] loadImageCells(String assetPath, int w, int h, int numCellsX, int numCells, boolean bordeered, GColor transparent) {
         return new int[0];
     }
 
@@ -173,47 +188,9 @@ public class TestGraphics extends APGraphics {
     }
 
     @Override
-    public void clearScreen(AColor color) {
+    public void clearScreen(GColor color) {
 
     }
 
-    @Override
-    public AColor makeColor(final float r, final float g, final float b, final float a) {
-        return new AColor() {
-            @Override
-            public float getRed() {
-                return r;
-            }
 
-            @Override
-            public float getGreen() {
-                return g;
-            }
-
-            @Override
-            public float getBlue() {
-                return b;
-            }
-
-            @Override
-            public float getAlpha() {
-                return a;
-            }
-
-            @Override
-            public AColor darkened(float amount) {
-                return null;
-            }
-
-            @Override
-            public AColor lightened(float amount) {
-                return null;
-            }
-
-            @Override
-            public AColor setAlpha(float alpha) {
-                return makeColor(alpha, r, g, b);
-            }
-        };
-    }
 }

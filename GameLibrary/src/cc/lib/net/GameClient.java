@@ -80,7 +80,17 @@ public abstract class GameClient {
     private boolean isIdle() {
         return state == State.READY || state == State.DISCONNECTED;
     }
-    
+
+    /**
+     *
+     * @param host
+     * @param port
+     * @throws IOException
+     */
+    public final void connect(String host, int port) throws IOException {
+        connect(InetAddress.getByName(host), port);
+    }
+
     /**
      * Asynchronous Connect to the server.  onConnected called when handshake completed.  
      * 
@@ -88,12 +98,12 @@ public abstract class GameClient {
      * @throws UnknownHostException 
      * @throws Exception
      */
-    public final void connect(String host, int port) throws IOException {
+    public final void connect(InetAddress address, int port) throws IOException {
         logDebug("Connecting ...");
         switch (state) {
             case READY:
             case DISCONNECTED:
-                socket = new Socket(host, port);
+                socket = new Socket(address, port);
                 if (cypher != null) {
                     logDebug("Using Cypher: " + cypher);
                     in = new EncryptionInputStream(socket.getInputStream(), cypher);

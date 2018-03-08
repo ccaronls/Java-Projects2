@@ -1,0 +1,17 @@
+apply plugin: 'java'
+
+dependencies {
+    compile files ('mdnsjava-2.1.6-SNAPSHOT.jar', 'dnsjava-2.1.7.jar')
+}
+
+targetCompatibility = '1.7'
+sourceCompatibility = '1.7'
+
+sourceSets {
+    //main {
+    //    java {
+    //        srcDirs = [ 'dnsjava-2.1.7/src',
+    //         'mdnsjava/src/main/java' ]
+    //    }
+    //}
+}

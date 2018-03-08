@@ -1,11 +1,8 @@
 apply plugin: 'com.android.library'
 
 dependencies {
-    //    compile fileTree(dir: '../GameLibrary/src');
-    //    compile fileTree(dir: 'libs', include: '*.jar')
-    //    compile fileTree(dir: '../GameLibrary/src', exclude:['**/skunkworks/**', '**/apps/**', '**/net/**', '**/swing/**']);
-    //    compile project(':GameLibrary')
-    //    compile project(
+    compile files('../DnsAndroid/mdnsjava-2.1.6-SNAPSHOT.jar', '../DnsAndroid/dnsjava-2.1.7.jar')
+//    compile project (':DnsAndroid')
 }
 
 android {

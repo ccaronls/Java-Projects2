@@ -28,19 +28,47 @@ import cc.lib.crypt.EncryptionOutputStream;
  *
  */
 public class GameServer {
-    
+
+    /**
+     *
+     */
     public interface Listener {
+        /**
+         *
+         * @param conn
+         */
         void onConnected(ClientConnection conn);
+
+        /**
+         *
+         * @param conn
+         */
         void onReconnection(ClientConnection conn);
+        /*
+
+         */
         void onClientDisconnected(ClientConnection conn);
+
+        /**
+         *
+         * @param conn
+         * @param command
+         */
         void onClientCommand(ClientConnection conn, GameCommand command);
+
+        /**
+         *
+         * @param conn
+         * @param id
+         * @param params
+         */
         void onFormSubmited(ClientConnection conn, int id, Map<String,String> params);
     }
     
     // keep sorted by alphabetical order 
-    private Map<String,ClientConnection> clients = Collections.synchronizedMap(new TreeMap<String,ClientConnection>());
+    private final Map<String,ClientConnection> clients = new LinkedHashMap<>();
     private SocketListener socketListener;
-    Listener serverListener;
+    private final Set<Listener> listeners = new LinkedHashSet<>();
     private final int clientReadTimeout;
     private final String mVersion;
     private final Cypher cypher;
@@ -60,7 +88,6 @@ public class GameServer {
      * Create a server and start listening.  When cypher is not null, then then server will only
      * allow encrypted clients.
      * 
-     * @param serverListener handles callbacks
      * @param listenPort port to listen on for new connections
      * @param clientReadTimeout timeout in milliseconds before a client disconnect
      * @param serverVersion version of this service to use to check compatibility with clients
@@ -69,34 +96,66 @@ public class GameServer {
      * @throws IOException 
      * @throws Exception
      */
-    public GameServer(Listener serverListener, int listenPort, int clientReadTimeout, String serverVersion, Cypher cypher, int maxConnections) {
+    public GameServer(int listenPort, int clientReadTimeout, String serverVersion, Cypher cypher, int maxConnections) {
         this.clientReadTimeout = clientReadTimeout;
         this.port = listenPort;
-        this.serverListener = serverListener;
         this.maxConnections = maxConnections;
-        if (serverListener == null)
-            throw new NullPointerException("serverListener");
         this.mVersion = serverVersion.toString(); // null check
         this.cypher = cypher;
     }
 
+    /**
+     * Start listening for connections
+     * @throws IOException
+     */
     public void listen() throws IOException {
         ServerSocket socket = new ServerSocket(port);
         new Thread(socketListener = new SocketListener(socket)).start();
     }
-    
+
+    /**
+     *
+     * @return
+     */
+    public final boolean isRunning() {
+        return socketListener != null;
+    }
+
+    /**
+     *
+     * @param l
+     */
+    public final void addListener(Listener l) {
+        listeners.add(l);
+    }
+
+    /**
+     *
+     * @param l
+     */
+    public final void removeListener(Listener l) {
+        listeners.remove(l);
+    }
+
+    final Iterable<Listener> getListeners() {
+        return listeners;
+    }
+
     /**
      * Disconnect all clients and stop listening.  Will block until all clients have closed their sockets.
      */
     public final void stop() {
         logInfo("GameServer: Stopping server: " + this);
-        socketListener.stop();
-        synchronized (clients) {
-            for (ClientConnection c : clients.values()) {
-                c.disconnect("Server Stopping");
+        if (socketListener != null) {
+            socketListener.stop();
+            synchronized (clients) {
+                for (ClientConnection c : clients.values()) {
+                    c.disconnect("Server Stopping");
+                }
             }
+            clients.clear();
+            socketListener = null;
         }
-        socketListener = null;
     }
     
     /**
@@ -123,7 +182,15 @@ public class GameServer {
     public final ClientConnection getClientConnection(String id) {
         return clients.get(id);
     }
-    
+
+    public final ClientConnection getConnection(int index) {
+        Iterator<ClientConnection> it = clients.values().iterator();
+        while (index-- > 0 && it.hasNext()) {
+            it.next();
+        }
+        return it.next();
+    }
+
     /**
      * 
      * @return
@@ -158,7 +225,7 @@ public class GameServer {
         broadcast(new GameCommand(GameCommandType.SVR_MESSAGE).setMessage(message));
     }
 
-    class SocketListener implements Runnable {
+    private class SocketListener implements Runnable {
 
         ServerSocket socket;
         boolean running;
@@ -208,7 +275,7 @@ public class GameServer {
         } catch (Exception ex) {}   
     }
     
-    class HandshakeThread implements Runnable {
+    private class HandshakeThread implements Runnable {
         final Socket socket;
         
         HandshakeThread(Socket socket) throws Exception {
@@ -276,9 +343,11 @@ public class GameServer {
                 new GameCommand(GameCommandType.SVR_CONNECTED).setArg("keepAlive", clientReadTimeout).write(out);
                 logDebug("GameServer: Client " + name + " connected");
                 if (cmd.getType() == GameCommandType.CL_CONNECT) {
-                    serverListener.onConnected(conn);                    
+                    for (Listener l : listeners)
+                        l.onConnected(conn);
                 } else {
-                    serverListener.onReconnection(conn);
+                    for (Listener l : listeners)
+                        l.onReconnection(conn);
                 }
                 
                 //new GameCommand(GameCommandType.SVR_CONNECTED).setArg("keepAlive", clientReadTimeout).write(out);

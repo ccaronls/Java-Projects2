@@ -19,13 +19,11 @@ public class ClientConnection extends CommandQueueReader implements Runnable {
         void onCommand(GameCommand cmd);
         void onDisconnected(String reason);
     };
-    
-    
+
     private Socket socket;
     private InputStream in;
     private OutputStream out;
     private final String name;
-    private String status;
     private final GameServer server;
     private CommandQueueWriter outQueue = new CommandQueueWriter();
     private Map<String, Object> attributes = new TreeMap<String, Object>();
@@ -39,8 +37,7 @@ public class ClientConnection extends CommandQueueReader implements Runnable {
     
     public String toString() {
         String r = "ClientConnection name=" + name;
-        if (status != null)
-            r += " status=" + status;
+        r += " connected=" + isConnected();
         if (attributes.size() > 0)
             r += " attribs=" + attributes;
         return r;
@@ -167,14 +164,6 @@ public class ClientConnection extends CommandQueueReader implements Runnable {
         return this.server;
     }
 
-    /**
-     * 
-     * @return
-     */
-    public final String getStatus() {
-        return status;
-    }
-    
     /*
      * init connection.  should only be used by GameServer
      */
@@ -254,7 +243,9 @@ public class ClientConnection extends CommandQueueReader implements Runnable {
         if (cmd.getType() == GameCommandType.CL_DISCONNECT) {
             server.logInfo("Client disconnected");
             connected = false;
-            server.serverListener.onClientDisconnected(this);
+            for (GameServer.Listener l : server.getListeners()) {
+                l.onClientDisconnected(this);
+            }
             if (listener != null)
                 listener.onDisconnected(cmd.getArg("reason"));
         } else if (cmd.getType() == GameCommandType.CL_KEEPALIVE) {
@@ -263,10 +254,14 @@ public class ClientConnection extends CommandQueueReader implements Runnable {
         } else if (cmd.getType() == GameCommandType.CL_FORM_SUBMIT) {
             final int id = Integer.parseInt(cmd.getArg("id"));
             final Map<String,String> params = new HashMap<String, String>(cmd.getProperties());
-            server.serverListener.onFormSubmited(this, id, params);
+            for (GameServer.Listener l : server.getListeners()) {
+                l.onFormSubmited(this, id, params);
+            }
+
             //server.logDebug("Form submitted id(" + )                                
         } else {
-            server.serverListener.onClientCommand(this, cmd);
+            for (GameServer.Listener l : server.getListeners())
+                l.onClientCommand(this, cmd);
             if (listener != null) {
                 listener.onCommand(cmd);
             }

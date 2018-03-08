@@ -1,0 +1,29 @@
+#
+include_defs('//j/build_tools/BUILD_HELPERS')
+
+# Prebuilt
+# This works fine but makes 4 very verbose warnings
+prebuilt_jar(
+  name = 'dnsjava_prebuilt',
+  binary_jar = 'dnsjava-2.1.7.jar',
+  visibility = ['PUBLIC'],
+)
+
+# From source
+# Using this avoids the verbose warnings.
+java_library(
+    name='dnsjava',
+    visibility = ['PUBLIC'],
+    srcs = glob([
+        'dnsjava-2.1.7/*.java',
+        'dnsjava-2.1.7/org/xbill/**/*.java'
+    ]),
+    deps = [],
+)
+    
+# Some other experiment that didn't work out I guess
+prebuilt_jar(
+  name = 'xbill',
+  binary_jar = 'mdnsjava-2.1.6-SNAPSHOT.jar',
+  visibility = ['PUBLIC'],
+)

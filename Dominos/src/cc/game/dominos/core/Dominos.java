@@ -68,7 +68,9 @@ public abstract class Dominos extends Reflector<Dominos> {
     @Omit
     private boolean dragging = false;
 
-    private void setNumPlayers(int num){
+    public void setNumPlayers(int num){
+        if (gameRunning)
+            throw new AssertionError();
         int d = difficulty;
         this.players = new Player[num];
         players[0] = new PlayerUser();
@@ -80,7 +82,7 @@ public abstract class Dominos extends Reflector<Dominos> {
         }
 	}
 
-	private void setPlayers(Player ... players) {
+	public void setPlayers(Player ... players) {
         if (gameRunning)
             throw new AssertionError();
         if (players.length <= 0 || players.length >= 4)
@@ -95,11 +97,15 @@ public abstract class Dominos extends Reflector<Dominos> {
 	    return gameRunning;
     }
 
-    public final void startNewGame(int numPlayers, int maxPipNum, int maxScore, int difficulty) {
+    public void initGame(int maxPipNum, int maxScore, int difficulty) {
+        if (gameRunning)
+            throw new AssertionError();
         this.maxNum = maxPipNum;
         this.maxScore = maxScore;
         this.difficulty = difficulty;
-        setNumPlayers(numPlayers);
+    }
+
+    public final void startNewGame() {
         if (players.length == 0)
             throw new RuntimeException("No players!");
         stopGameThread();
@@ -839,7 +845,7 @@ public abstract class Dominos extends Reflector<Dominos> {
     }
 
     protected void onNewGameClicked() {
-        startNewGame(getNumPlayers(), maxNum, maxScore, difficulty);
+        startNewGame();
         startGameThread();
     }
 

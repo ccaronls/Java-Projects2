@@ -25,7 +25,7 @@ public class FormTest extends TestCase {
                          + "---------------------------------------\n");
 
         listener1 = new MyServerListener();
-        server = new GameServer(listener1, PORT, TIMEOUT, VERSION);
+        server = new GameServer(listener1, PORT, TIMEOUT, VERSION, null, 2);
 
     }
 

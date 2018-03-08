@@ -16,7 +16,7 @@ public interface Cypher {
      * @param uncrypted
      * @return
      */
-    public int [] encrypt(int uncrypted);
+    int [] encrypt(int uncrypted);
     
     /**
      * Return a 2 component value
@@ -25,7 +25,7 @@ public interface Cypher {
      * @param encrypted
      * @return
      */
-    public int [] decrypt(int encrypted);
+    int [] decrypt(int encrypted);
     
     /**
      * Need to let the encryptor know how large too keep its internal buffer
@@ -35,6 +35,6 @@ public interface Cypher {
      * 
      * @return
      */
-    public int getMaxEncodedBitLength();
+    int getMaxEncodedBitLength();
     
 }

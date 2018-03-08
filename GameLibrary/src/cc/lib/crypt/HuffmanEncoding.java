@@ -96,6 +96,10 @@ public class HuffmanEncoding implements Cypher {
         void incrementOccurance() {
             occurances ++;
         }
+
+        void setOccurance(int occurance) {
+            occurances = occurance;
+        }
         
         int getOccurances() {
             return occurances;
@@ -158,11 +162,19 @@ public class HuffmanEncoding implements Cypher {
      *
      */
     public HuffmanEncoding() {
-        for (int i=0; i<counts.length; i++) {
-            counts[i] = new ByteCode(i);
-        }
+        clear();
     }
-    
+
+    public HuffmanEncoding(int [] counts) throws HuffmanException {
+        clear();
+        if (counts.length != this.counts.length)
+            throw new AssertionError();
+        for (int i=0; i<counts.length; i++) {
+            this.counts[i].setOccurance(counts[i]);
+        }
+        generate();
+    }
+
     /**
      * 
      *
@@ -261,13 +273,23 @@ public class HuffmanEncoding implements Cypher {
             debugDumpTreeR(out, root.getRight(), indent+"   ");
         }
     }
-    
+
     /**
-     * 
-     * @param omitZeroOccurance
+     * To be called before generate. Makes sure all occurances are at least 1.
+     */
+    public void keepAllOccurances() {
+        for (ByteCode b : counts) {
+            if (b.occurances == 0) {
+                b.incrementOccurance();
+            }
+        }
+    }
+
+    /**
+     * generate the search tree
      * @throws HuffmanException
      */
-    public void generate(boolean omitZeroOccurance) throws HuffmanException {
+    public void generate() throws HuffmanException {
         LinkedList<ByteCode> queue1 = new LinkedList<ByteCode>();
 
         if (counts[0].occurances == 0)
@@ -275,7 +297,7 @@ public class HuffmanEncoding implements Cypher {
         
         // add all the elems
         for (int i=0; i<counts.length; i++) {
-            if (!omitZeroOccurance || counts[i].occurances>0)
+            if (counts[i].occurances > 0)
                 queue1.addLast(counts[i]);
         }
         
@@ -352,6 +374,17 @@ public class HuffmanEncoding implements Cypher {
         }
         out.close();
     }
+
+    public void printEncodingAsCode(PrintStream out) {
+        out.print("int [] counts = {");
+        for (int i=0; i<COUNTS_ARRAY_SIZE; i++) {
+            if (i > 0) {
+                out.print(",");
+            }
+            out.print(counts[i].occurances);
+        }
+        out.println("};");
+    }
     
     /**
      * 
@@ -387,7 +420,7 @@ public class HuffmanEncoding implements Cypher {
             throw new IOException("Invalid encoding file");
         } 
         try {
-            generate(true);
+            generate();
         } catch (HuffmanException e) {
             clear();
             throw new IOException(e.getMessage());

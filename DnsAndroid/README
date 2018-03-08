@@ -1,0 +1,7 @@
+To make mdnsjava-2.1.6-SNAPSHOT.jar:
+
+  svn checkout http://mdnsjava.googlecode.com/svn/trunk/ mdnsjava-read-only
+
+Apply the diffs.
+
+  mvn package

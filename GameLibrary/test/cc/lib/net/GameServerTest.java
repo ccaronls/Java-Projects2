@@ -1,9 +1,12 @@
 package cc.lib.net;
 
+import java.net.InetAddress;
 import java.util.Map;
 
 import cc.lib.crypt.Cypher;
 import cc.lib.crypt.SimpleCypher;
+import cc.lib.game.Utils;
+
 import junit.framework.TestCase;
 
 /**
@@ -14,7 +17,6 @@ import junit.framework.TestCase;
  */
 public class GameServerTest extends TestCase {
 
-    final static String HOST = "localhost";
     final static int PORT = 10000;
     final static String VERSION = "GameServerTest";
     final static int TIMEOUT = 2000;
@@ -37,7 +39,9 @@ public class GameServerTest extends TestCase {
         } 
         
         listener1 = new MyServerListener();
-        server = new GameServer(listener1, PORT, TIMEOUT, VERSION, cypher);
+        server = new GameServer(listener1, PORT, TIMEOUT, VERSION, cypher, 2);
+        server.listen();
+        Utils.waitNoThrow(this, 100);
 
     }
     
@@ -63,7 +67,7 @@ public class GameServerTest extends TestCase {
                     
                     Thread.sleep(1000);
                     MyGameClient cl = new MyGameClient();
-                    cl.connect(HOST, PORT);
+                    cl.connect(InetAddress.getLocalHost(), PORT);
                     Thread.sleep(1000);
                     assertTrue(listener1.connected);
                     assertTrue(cl.connected);
@@ -84,7 +88,6 @@ public class GameServerTest extends TestCase {
         synchronized (server) {
             server.wait();
         }
-        server.stop();
     }
 
     // test basic client connect and disconnect
@@ -97,7 +100,7 @@ public class GameServerTest extends TestCase {
                     
                     Thread.sleep(1000);
                     MyGameClient cl = new MyGameClient("A", "BadVersion");
-                    cl.connect(HOST, PORT);
+                    cl.connect(InetAddress.getLocalHost(), PORT);
                     Thread.sleep(1000);
                     assertFalse(listener1.connected);
                     assertFalse(cl.connected);
@@ -119,7 +122,6 @@ public class GameServerTest extends TestCase {
         synchronized (server) {
             server.wait();
         }
-        server.stop();
     }
     
     // test basic client connect and disconnect
@@ -132,11 +134,11 @@ public class GameServerTest extends TestCase {
                     
                     Thread.sleep(1000);
                     MyGameClient cl = new MyGameClient("A", VERSION);
-                    cl.connect(HOST, PORT);
+                    cl.connect(InetAddress.getLocalHost(), PORT);
                     Thread.sleep(1000);
                     assertTrue(cl.isConnected());
                     MyGameClient cl2 = new MyGameClient("A", VERSION);
-                    cl2.connect(HOST, PORT);
+                    cl2.connect(InetAddress.getLocalHost(), PORT);
                     Thread.sleep(1000);
                     assertFalse(cl2.isConnected());
                     //cl.disconnect();
@@ -156,7 +158,6 @@ public class GameServerTest extends TestCase {
         synchronized (server) {
             server.wait();
         }
-        server.stop();
     }
     
     
@@ -170,13 +171,13 @@ public class GameServerTest extends TestCase {
                     
                     Thread.sleep(1000);
                     GameClient cl = new MyGameClient();
-                    cl.connect(HOST, PORT);
+                    cl.connect(InetAddress.getLocalHost(), PORT);
                     Thread.sleep(1000);
                     assertTrue(listener1.connected);
                     cl.disconnect();
                     Thread.sleep(1000);
                     assertTrue(listener1.disconnected);
-                    cl.connect(HOST, PORT);
+                    cl.connect(InetAddress.getLocalHost(), PORT);
                     Thread.sleep(1000);
                     assertTrue(listener1.reconnected);
                     cl.disconnect();
@@ -194,8 +195,7 @@ public class GameServerTest extends TestCase {
         synchronized (server) {
             server.wait();
         }
-        server.stop();
-    }    
+    }
     
     // test client connect and server disconnect
     public void testServerDisconnect() throws Exception {
@@ -207,7 +207,7 @@ public class GameServerTest extends TestCase {
                     
                     Thread.sleep(1000);
                     MyGameClient cl = new MyGameClient("XxX");
-                    cl.connect(HOST, PORT);
+                    cl.connect(InetAddress.getLocalHost(), PORT);
                     Thread.sleep(1000);
                     assertTrue(listener1.connected);
                     assertTrue(cl.connected);
@@ -233,8 +233,7 @@ public class GameServerTest extends TestCase {
         synchronized (server) {
             server.wait();
         }
-        server.stop();
-    }    
+    }
     
     // test client connect and server disconnect by shutdown
     public void testServerShutdown() throws Exception {
@@ -246,7 +245,7 @@ public class GameServerTest extends TestCase {
                     
                     Thread.sleep(1000);
                     MyGameClient cl = new MyGameClient();
-                    cl.connect(HOST, PORT);
+                    cl.connect(InetAddress.getLocalHost(), PORT);
                     Thread.sleep(1000);
                     assertTrue(listener1.connected);
                     server.stop();
@@ -267,8 +266,7 @@ public class GameServerTest extends TestCase {
         synchronized (server) {
             server.wait();
         }
-        server.stop();
-    }    
+    }
     
  // test client connect and server disconnect by shutdown
     public void testMessage() throws Exception {
@@ -280,7 +278,7 @@ public class GameServerTest extends TestCase {
                     
                     Thread.sleep(1000);
                     MyGameClient cl = new MyGameClient("ABC");
-                    cl.connect(HOST, PORT);
+                    cl.connect(InetAddress.getLocalHost(), PORT);
                     Thread.sleep(1000);
                     assertTrue(listener1.connected);
                     assertTrue(cl.connected);
@@ -314,8 +312,7 @@ public class GameServerTest extends TestCase {
         synchronized (server) {
             server.wait();
         }
-        server.stop();
-    }    
+    }
     
     // test client connect and server disconnect by shutdown
     public void testEncryption() throws Exception {
@@ -328,7 +325,7 @@ public class GameServerTest extends TestCase {
                     Thread.sleep(1000);
                     MyGameClient cl = new MyGameClient("ABC");
                     cl.setCypher(getCypher());
-                    cl.connect(HOST, PORT);
+                    cl.connect(InetAddress.getLocalHost(), PORT);
                     Thread.sleep(1000);
                     assertTrue(listener1.connected);
                     assertTrue(cl.connected);
@@ -362,8 +359,7 @@ public class GameServerTest extends TestCase {
         synchronized (server) {
             server.wait();
         }
-        server.stop();
-    }    
+    }
     
     
     public void testclientHardDisconnect() throws Exception {
@@ -375,7 +371,7 @@ public class GameServerTest extends TestCase {
                     
                     Thread.sleep(1000);
                     MyGameClient cl = new MyGameClient();
-                    cl.connect(HOST, PORT);
+                    cl.connect(InetAddress.getLocalHost(), PORT);
                     Thread.sleep(1000);
                     assertTrue(listener1.connected);
                     cl.close();//.disconnect();
@@ -395,7 +391,6 @@ public class GameServerTest extends TestCase {
         synchronized (server) {
             server.wait();
         }
-        server.stop();
     }
     
     public void testclientTimeout() throws Exception {
@@ -407,7 +402,7 @@ public class GameServerTest extends TestCase {
                     
                     Thread.sleep(1000);
                     MyGameClient cl = new MyGameClient();
-                    cl.connect(HOST, PORT);
+                    cl.connect(InetAddress.getLocalHost(), PORT);
                     Thread.sleep(1000);
                     assertTrue(listener1.connected);
                     //cl.close();//.disconnect();
@@ -430,7 +425,6 @@ public class GameServerTest extends TestCase {
         synchronized (server) {
             server.wait();
         }
-        server.stop();
     }
     
 

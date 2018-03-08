@@ -15,7 +15,7 @@ public class SpeedTest extends TestCase {
         
         HuffmanEncoding cypher = new HuffmanEncoding();
         cypher.importCounts(bigFile);
-        cypher.generate(true);
+        cypher.generate();
         
         System.out.println("Speedtest on " + bigFile + " SIZE: " + bigFile.length());
         
