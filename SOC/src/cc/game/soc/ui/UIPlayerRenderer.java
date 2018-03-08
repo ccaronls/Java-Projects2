@@ -1,5 +1,8 @@
 package cc.game.soc.ui;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import cc.game.soc.core.Card;
 import cc.game.soc.core.CardType;
 import cc.game.soc.core.CommodityType;
@@ -8,6 +11,7 @@ import cc.game.soc.core.ResourceType;
 import cc.game.soc.core.SOC;
 import cc.game.soc.core.SpecialVictoryType;
 import cc.game.soc.core.VertexType;
+import cc.lib.game.AAnimation;
 import cc.lib.game.AGraphics;
 import cc.lib.game.APGraphics;
 import cc.lib.game.GColor;
@@ -30,15 +34,15 @@ public final class UIPlayerRenderer implements UIRenderer {
 	public GColor getColor() {
 		return color;
 	}
-	
-    private boolean animationEnabled = true;
-	
+
+	final List<AAnimation<AGraphics>> animations = new ArrayList<>();
+
 	private long getAnimTime() {
 		return 1500;//return GUI.instance.getProps().getIntProperty("anim.ms", 1500);
 	}
 
-	private UIPlayer player;
-    private final UIComponent component;
+	UIPlayer player;
+    final UIComponent component;
 
     public UIPlayerRenderer(UIComponent component) {
         this.component = component;

@@ -1,8 +1,12 @@
 package cc.game.dominos.android;
 
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
+import android.database.DataSetObserver;
+import android.net.wifi.p2p.WifiP2pDevice;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
@@ -10,22 +14,47 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.BaseAdapter;
+import android.widget.Button;
+import android.widget.ListAdapter;
+import android.widget.ListView;
 import android.widget.RadioGroup;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import cc.game.dominos.core.Dominos;
+import cc.game.dominos.core.Move;
+import cc.game.dominos.core.Player;
+import cc.game.dominos.core.PlayerUser;
+import cc.game.dominos.core.Tile;
 import cc.lib.android.DroidActivity;
 import cc.lib.android.DroidGraphics;
+import cc.lib.android.WifiP2pHelper;
+import cc.lib.game.Utils;
+import cc.lib.net.ClientConnection;
+import cc.lib.net.ClientForm;
+import cc.lib.net.GameClient;
+import cc.lib.net.GameCommand;
+import cc.lib.net.GameCommandType;
+import cc.lib.net.GameServer;
 import cc.lib.utils.FileUtils;
 
 /**
  * Created by chriscaron on 2/15/18.
  */
 
-public class DominosActivity extends DroidActivity {
+public class DominosActivity extends DroidActivity implements GameServer.Listener {
 
     Dominos dominos = null;
 
@@ -185,7 +214,275 @@ public class DominosActivity extends DroidActivity {
         }, 100);
     }
 
-    private void showNewGameDialog(boolean cancleable) {
+    private void showNewGameDialog(final boolean cancleable) {
+
+        final View v = View.inflate(this, R.layout.new_game_type_dialog, null);
+        AlertDialog.Builder b = new AlertDialog.Builder(this).setTitle("New Game Type")
+                .setView(v).setCancelable(cancleable);
+
+        if (cancleable) {
+            b.setNegativeButton("Cancel", null);
+        }
+        final Dialog dialog = b.show();
+
+        v.findViewById(R.id.bSinglePlayer).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+                showNewSinglePlayerSetupDialog(cancleable);
+            }
+        });
+        v.findViewById(R.id.bMultiPlayerHost).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+            }
+        });
+        v.findViewById(R.id.bMultiPlayerSearch).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+            }
+        });
+    }
+
+    Dialog mpDialog = null;
+
+    private void showHostMultiplayerDialog(final boolean cancelable) {
+    }
+
+    private void showSearchMultiplayerHostsDialog(final boolean canceleble) {
+        final ListView lvHost = new ListView(this);
+        final List<WifiP2pDevice> devices = new ArrayList<>();
+        final BaseAdapter adapter = new BaseAdapter() {
+            @Override
+            public int getCount() {
+                return devices.size();
+            }
+
+            @Override
+            public Object getItem(int position) {
+                return null;
+            }
+
+            @Override
+            public long getItemId(int position) {
+                return 0;
+            }
+
+            @Override
+            public View getView(int position, View v, ViewGroup parent) {
+                if (v == null) {
+                    v = new TextView(DominosActivity.this);
+                }
+
+                synchronized (devices) {
+                    WifiP2pDevice device = devices.get(position);
+                    v.setTag(device);
+                    ((TextView)v).setText(device.deviceName + " " + WifiP2pHelper.statusToString(device.status));
+                }
+
+                return v;
+            }
+        };
+
+        final WifiP2pHelper helper = new WifiP2pHelper(this) {
+            @Override
+            protected AlertDialog.Builder newDialog() {
+                return newDialogBuilder();
+            }
+
+            @Override
+            protected void onPeersAvailable(Collection<WifiP2pDevice> peers) {
+                synchronized (devices) {
+                    devices.clear();
+                    devices.addAll(peers);
+                }
+                adapter.notifyDataSetChanged();
+            }
+
+            @Override
+            protected void onConnected(WifiP2pDevice device) {
+                if (mpDialog != null) {
+                    mpDialog.dismiss();
+                }
+            }
+        };
+
+        lvHost.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                final WifiP2pDevice d = (WifiP2pDevice)view.getTag();
+                final Dialog waitDialog = newDialogBuilder().setTitle("Connecting")
+                        .setMessage("Please wait while your connect request is accepted")
+                        .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                helper.cancelConnect();
+                            }
+                        }).show();
+                new AsyncTask<Void, Void, Void>() {
+                    @Override
+                    protected Void doInBackground(Void... voids) {
+                        helper.connect(d);
+                        Utils.waitNoThrow(helper, 20*1000);
+                        return null;
+                    }
+
+                    @Override
+                    protected void onPostExecute(Void aVoid) {
+                        waitDialog.dismiss();
+                    }
+                } .execute();
+                helper.connect(d);
+            }
+        });
+
+        mpDialog = newDialogBuilder().setMessage("Hosts")
+                .setView(lvHost)
+                .setNegativeButton("Cancel", null)
+                .setOnCancelListener(new DialogInterface.OnCancelListener() {
+                    @Override
+                    public void onCancel(DialogInterface dialog) {
+                        helper.destroy();
+                        showNewGameDialog(canceleble);
+                    }
+                }).show();
+    }
+
+    final static String VERSION = "1.0";
+
+    GameClient client = new GameClient(Build.PRODUCT + Build.MANUFACTURER, VERSION) {
+
+        PlayerUser user = new PlayerUser();
+
+        @Override
+        protected void onMessage(String message) {
+
+        }
+
+        @Override
+        protected void onDisconnected(String message) {
+
+        }
+
+        @Override
+        protected void onConnected() {
+
+        }
+
+        @Override
+        protected void onCommand(GameCommand cmd) {
+            if (cmd.getType() == SVR_TO_CL_REMOVE_TILE) {
+                Tile t = new Tile();
+                try {
+                    t.deserialize(cmd.getArg("tile"));
+                    user.removeTile(t.pip1, t.pip2);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            } else if (cmd.getType() == SVR_TO_CL_SET_SCORE) {
+                user.setScore(cmd.getInt("score"));
+                dominos.redraw();
+            }
+        }
+
+        @Override
+        protected void onForm(ClientForm form) {
+
+        }
+    };
+
+    AlertDialog.Builder newDialogBuilder() {
+        return new AlertDialog.Builder(this);
+    }
+
+    GameServer server = new GameServer(this, 8888, 10000, VERSION, null, 3);
+
+    private final static GameCommandType SVR_TO_CL_NEW_PEER    = new GameCommandType("SVR_NEW_PEER");
+    private final static GameCommandType SVR_TO_CL_CHOOSE_MOVE = new GameCommandType("SVR_CHOOSE_MOVE");
+    private final static GameCommandType CL_TO_SVR_MOVE_CHOSEN = new GameCommandType("CL_MOVE_CHOSEN");
+
+    private final static GameCommandType SVR_TO_CL_REMOVE_TILE = new GameCommandType("SVR_REMOVE_TILE");
+    private final static GameCommandType SVR_TO_CL_SET_SCORE   = new GameCommandType("SVR_SET_SCORE");
+
+    class PlayerRemoteClient extends Player {
+
+        PlayerRemoteClient(ClientConnection conn) {
+            this.connection = conn;
+        }
+
+        private final ClientConnection connection;
+        private Move chosen;
+
+        @Override
+        public Tile removeTile(int n1, int n2) {
+            Tile t = super.removeTile(n1, n2);
+            if (t != null) {
+                connection.sendCommand(new GameCommand(SVR_TO_CL_REMOVE_TILE).setArg("tile", t));
+            }
+            return t;
+        }
+
+        @Override
+        public Move chooseMove(Dominos game, List<Move> moves) {
+            //return super.chooseMove(game, moves);
+            //blocking request for client to tell their move
+            connection.sendCommand(new GameCommand(SVR_TO_CL_CHOOSE_MOVE));
+            Utils.waitNoThrow(this, 2000);
+            return chosen;
+        }
+
+        @Override
+        public void setScore(int score) {
+            super.setScore(score);
+            connection.sendCommand(new GameCommand(SVR_TO_CL_SET_SCORE).setArg("score", score));
+        }
+
+        void process(GameCommand cmd) {
+            if (cmd.getType() == CL_TO_SVR_MOVE_CHOSEN) {
+                Tile t = new Tile();
+                try {
+                    Move m = new Move();
+                    m.deserialize(cmd.getArg("move"));
+                    chosen = new Move();
+                    synchronized (this) {
+                        notify();
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    Map<ClientConnection, PlayerRemoteClient> clients = new HashMap<>();
+
+    @Override
+    public void onConnected(ClientConnection conn) {
+        clients.put(conn, new PlayerRemoteClient(conn));
+    }
+
+    @Override
+    public void onReconnection(ClientConnection conn) {
+
+    }
+
+    @Override
+    public void onClientDisconnected(ClientConnection conn) {
+    }
+
+    @Override
+    public void onClientCommand(ClientConnection conn, GameCommand command) {
+        clients.get(conn).process(command);
+    }
+
+    @Override
+    public void onFormSubmited(ClientConnection conn, int id, Map<String, String> params) {
+
+    }
+
+    private void showNewSinglePlayerSetupDialog(final boolean cancleable) {
         final View v = View.inflate(this, R.layout.new_game_dialog, null);
         final RadioGroup rgNumPlayers = (RadioGroup)v.findViewById(R.id.rgNumPlayers);
         final RadioGroup rgDifficulty = (RadioGroup)v.findViewById(R.id.rgDifficulty);
@@ -223,7 +520,7 @@ public class DominosActivity extends DroidActivity {
             case 250:
                 rgMaxPoints.check(R.id.rbMaxPoints250); break;
         }
-        new AlertDialog.Builder(this).setTitle("New Game")
+        new AlertDialog.Builder(this).setTitle("New Single Player Game")
                 .setView(v)
                 .setPositiveButton("Start", new DialogInterface.OnClickListener() {
                     @Override
@@ -276,7 +573,12 @@ public class DominosActivity extends DroidActivity {
                     }
 
 
-                }).setCancelable(cancleable).show();
+                }).setOnCancelListener(new DialogInterface.OnCancelListener() {
+            @Override
+            public void onCancel(DialogInterface dialog) {
+                showNewGameDialog(cancleable);
+            }
+        }).show();
     }
 
 

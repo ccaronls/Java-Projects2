@@ -617,31 +617,32 @@ public abstract class UISOC extends SOC implements MenuItem.Action {
         showOkPopup("Barbarian Attack", str.toString());
     }
 
-    protected abstract void addCardAnimation(final Player player, final String text);
-    
-    /*{
+    protected final void addCardAnimation(final Player player, final String text) {
 
         final UIPlayerRenderer comp = playerComponents[player.getPlayerNum()];
-        final List<AAnimation<Graphics>> cardsList = comp.getCardAnimations();
+        final List<AAnimation<AGraphics>> cardsList = comp.animations;
 
-        final int cardHeight = comp.getHeight()/5;
-        final int cardWidth = cardHeight*2/3;
+        final float cardHeight = comp.component.getHeight()/5;
+        final float cardWidth = cardHeight*2/3;
 
-        final Point compPt = comp.getLocationOnScreen();
-        final Point boardPt = board.getLocationOnScreen();
+        final Vector2D compPt = comp.component.getViewportLocation();
+        final Vector2D boardPt = boardRenderer.component.getViewportLocation();
 
-        final int dx = compPt.x - boardPt.x;
-        final int dy = compPt.y - boardPt.y;
+        final Vector2D dv = compPt.sub(boardPt);
 
-        final int y = board.getY() + dy; // duh
-        final int W = cardsList.size() * cardWidth + (cardsList.size()+1) * cardWidth/3;
-        final int x = board.getX() + dx > 0 ? board.getWidth() - W - cardWidth : W;
+//        final int y = board.getY() + dy; // duh
+        final float W = cardsList.size() * cardWidth + (cardsList.size()+1) * cardWidth/3;
+//        final int x = board.getX() + dx > 0 ? board.getWidth() - W - cardWidth : W;
+//        final int
 
-        final int animTime = GUI.instance.getProps().getIntProperty("anim.card.tm", 3000);
+        final int animTime = 3000;//GUI.instance.getProps().getIntProperty("anim.card.tm", 3000);
 
-        gui.getBoardComponent().addAnimation(new GAnimation(animTime) {
-            public void draw(Graphics g, float position, float dt) {
-                drawCard(((UIPlayer)player).getColor(), g, text, x, y, cardWidth, cardHeight);
+        final float x = dv.X() - W - cardWidth;
+        final float y = dv.Y();
+
+        boardRenderer.addAnimation(new AAnimation<AGraphics>(animTime) {
+            public void draw(AGraphics g, float position, float dt) {
+                boardRenderer.drawCard(((UIPlayer)player).getColor(), g, text, x, y, cardWidth, cardHeight);
             }
 
             @Override
@@ -660,7 +661,8 @@ public abstract class UISOC extends SOC implements MenuItem.Action {
             }
 
         }, false);
-    }*/
+    }
+
     @Override
     protected void onCardPicked(final Player player, final Card card) {
         String txt = "";
@@ -804,19 +806,12 @@ public abstract class UISOC extends SOC implements MenuItem.Action {
 
     @Override
     protected void onPirateSailing(final int fromTile, final int toTile) {
-        boardRenderer.addAnimation(new AAnimation<AGraphics>(800) {
+        boardRenderer.addAnimation(new UIAnimation(800) {
 
             @Override
             public void draw(AGraphics g, float position, float dt) {
                 Vector2D v = Vector2D.newTemp(getBoard().getTile(fromTile)).scaledBy(1-position).add(Vector2D.newTemp(getBoard().getTile(toTile)).scaledBy(position));
                 boardRenderer.drawPirate(g, v);
-            }
-
-            @Override
-            public void onDone() {
-                synchronized (this) {
-                    notify();
-                }
             }
 
         }, true);
@@ -915,7 +910,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action {
     }
 
     void addFloatingTextAnimation(final UIPlayer p, final IVector2D v, final String msg) {
-        boardRenderer.addAnimation(new AAnimation<AGraphics>(2000) {
+        boardRenderer.addAnimation(new UIAnimation(2000) {
 
             @Override
             public void draw(AGraphics g, float position, float dt) {
@@ -928,13 +923,6 @@ public abstract class UISOC extends SOC implements MenuItem.Action {
                 g.transform(mv);
                 g.drawJustifiedString(mv.Xi(), mv.Yi(), Justify.CENTER, Justify.CENTER, msg);
                 g.popMatrix();
-            }
-
-            @Override
-            public void onDone() {
-                synchronized (this) {
-                    notify();
-                }
             }
 
         }, true);

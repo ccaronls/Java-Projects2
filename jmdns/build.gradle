@@ -1,0 +1,48 @@
+apply plugin: 'java'
+apply plugin: 'org.junit.platform.gradle.plugin'
+
+buildscript {
+    repositories {
+        mavenCentral()
+        //flatDir {
+        //    dirs 'lib'
+        //}
+    }
+    dependencies {
+        classpath 'org.junit.platform:junit-platform-gradle-plugin:1.0.1'
+        //compile name: 'slf4j-simple-1.7.25'
+        //compile 'org.slf4j.slf4j-simple.1.7.6'
+        //compile files('lib/*.jar')
+    }
+}
+/*
+dependencies {
+    testCompile(
+            'org.junit.jupiter:junit-jupiter-api:5.0.1'
+    )
+    testRuntime(
+            'org.junit.jupiter:junit-jupiter-engine:5.0.1',
+            'org.junit.vintage:junit-vintage-engine:4.12.1',
+            'org.junit.platform:junit-platform-launcher:1.0.1',
+            'org.junit.platform:junit-platform-runner:1.0.1'
+    )
+}*/
+repositories {
+    jcenter()
+}
+dependencies {
+    //compile files('lib/slf4j-simple-1.7.25.jar', 'lib/slf4j-api-1.7.25.jar')
+    compile fileTree(dir: 'lib', include: '*.jar')
+}
+
+
+
+sourceSets {
+    main {
+        java {
+            srcDirs = [ 'src/main/java' ]
+        }
+    }
+
+//    test.java.srcDirs = ['test']
+}

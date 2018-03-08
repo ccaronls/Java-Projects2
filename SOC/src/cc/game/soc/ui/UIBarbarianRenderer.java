@@ -74,7 +74,7 @@ public final class UIBarbarianRenderer implements UIRenderer {
 
         if (nextDistance < distance) {
 
-            anim = new AAnimation<AGraphics>(2000) {
+            anim = new UIAnimation(2000) {
                 @Override
                 protected void draw(AGraphics g, float position, float dt) {
                     final float scale = 1f + (1f / (positions.length - 1));
@@ -95,13 +95,6 @@ public final class UIBarbarianRenderer implements UIRenderer {
 
                     g.drawImage(shipImage, pos.sub(sh2, sh2), pos.add(sh2, sh2));
                     component.redraw();
-                }
-
-                @Override
-                public void onDone() {
-                    synchronized (anim) {
-                        anim.notifyAll();
-                    }
                 }
 
             }.start();

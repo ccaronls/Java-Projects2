@@ -43,9 +43,12 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
     @Override
     public final synchronized void paint(Graphics g) {
         if (getWidth() > 0 && getHeight() > 0) {
+            Color c = g.getColor();
+            g.setColor(AWTUtils.toColor(GColor.TRANSPARENT));
+            g.fillRect(0, 0, super.getWidth(), super.getHeight());
+            g.setColor(c);
+            g.setClip(padding,padding, getWidth()+1, getHeight()+1);
             g.translate(padding,padding);
-            g.clearRect(0, 0, getWidth(), getHeight());
-            g.setClip(0, 0, getWidth(), getHeight());
             if (G == null) {
                 G = new AWTGraphics(g, this);
                 init(G);
@@ -77,13 +80,13 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
                     repaint();
                 }
             }
+            g.translate(-padding,-padding);
+            g.setClip(0, 0, super.getWidth(), super.getHeight());
             if (focused) {
                 System.out.println("AWT " + toString() + " has focus!");
                 g.setColor(Color.BLUE);
-                g.drawRect(0, 0, getWidth()-1, getHeight()-1);
+                g.drawRect(0, 0, super.getWidth()-1, super.getHeight()-1);
             }
-            g.translate(-padding,-padding);
-            g.setClip(0, 0, getWidth()+2*padding, getHeight()+2*padding);
         } else {
             repaint();
         }

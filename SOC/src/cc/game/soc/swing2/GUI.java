@@ -200,7 +200,8 @@ public class GUI implements ActionListener, MenuItem.Action {
                     { "knight_strong_inactive.GIF", null },
                     { "knight_strong_active.GIF", null },
                     { "knight_mighty_inactive.GIF", null },
-                    { "knight_mighty_active.GIF", null }
+                    { "knight_mighty_active.GIF", null },
+                    { "cardFrame.GIF", GColor.WHITE },
             };
             return assets;
         }
@@ -218,7 +219,7 @@ public class GUI implements ActionListener, MenuItem.Action {
         protected void onImagesLoaded(int [] ids) {
             boardRenderer.initImages(ids[0], ids[1], ids[2], ids[3],
                     ids[4], ids[5], ids[6], ids[7], ids[8], ids[9],
-                    ids[10], ids[11], ids[12], ids[13], ids[14]);
+                    ids[10], ids[11], ids[12], ids[13], ids[14], ids[15]);
 
         }
 
@@ -369,14 +370,8 @@ public class GUI implements ActionListener, MenuItem.Action {
             }
 
             @Override
-            protected void addCardAnimation(Player player, String text) {
-
-            }
-
-            @Override
             protected void showOkPopup(String title, String message) {
                 JOptionPane.showMessageDialog(frame, message, title, JOptionPane.PLAIN_MESSAGE);
-
             }
 
             @Override

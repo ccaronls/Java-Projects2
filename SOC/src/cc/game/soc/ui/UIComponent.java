@@ -3,6 +3,7 @@ package cc.game.soc.ui;
 import cc.lib.game.APGraphics;
 import cc.lib.game.GDimension;
 import cc.lib.game.GRectangle;
+import cc.lib.math.Vector2D;
 
 /**
  * Created by chriscaron on 2/23/18.
@@ -35,4 +36,9 @@ public interface UIComponent {
      */
     void setRenderer(UIRenderer r);
 
+    /**
+     * Get the position of the component in absolute screen coordinates
+     * @return
+     */
+    Vector2D getViewportLocation();
 }

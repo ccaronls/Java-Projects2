@@ -31,6 +31,7 @@ public final class UIBoardRenderer implements UIRenderer {
     private int pastureshexImage;
     private int fieldshexImage;
     private int [] knightImages;
+    private int cardFrameImage;
 
     float roadLineThickness = 4;
     GColor outlineColorDark = GColor.BLACK;
@@ -49,7 +50,7 @@ public final class UIBoardRenderer implements UIRenderer {
     private int vertexInfoIndex = -1;
 
     public void initImages(int desertImage, int waterImage, int goldImage, int undiscoveredImage, int foresthexImage, int hillshexImage, int mountainshexImage, int pastureshexImage, int fieldshexImage,
-                           int knightBasicInactive, int knightBasicActive, int knightStrongInactive, int knightStrongActive, int knightMightlyInactive, int knightMightlyActive) {
+                           int knightBasicInactive, int knightBasicActive, int knightStrongInactive, int knightStrongActive, int knightMightlyInactive, int knightMightlyActive, int cardFrameImage) {
         this.desertImage = desertImage;
         this.waterImage = waterImage;
         this.goldImage = goldImage;
@@ -67,6 +68,7 @@ public final class UIBoardRenderer implements UIRenderer {
                 knightMightlyInactive,
                 knightMightlyActive
         };
+        this.cardFrameImage = cardFrameImage;
     }
 
     public final PickHandler getPickHandler() {
@@ -137,7 +139,7 @@ public final class UIBoardRenderer implements UIRenderer {
         tile0.setDieNum(0);
         tile1.setDieNum(0);
 
-        addAnimation(new AAnimation<AGraphics>(3000) {
+        addAnimation(new UIAnimation(3000) {
 
             void drawChit(AGraphics g, Vector2D [] pts, float position, int num) {
                 int index0 = (int)(position*28);
@@ -156,13 +158,6 @@ public final class UIBoardRenderer implements UIRenderer {
             public void draw(AGraphics g, float position, float dt) {
                 drawChit(g, pts0, position, t1);
                 drawChit(g, pts1, position, t0);
-            }
-
-            @Override
-            public void onDone() {
-                synchronized (this) {
-                    notify();
-                }
             }
 
         }, true);
@@ -1285,6 +1280,12 @@ public final class UIBoardRenderer implements UIRenderer {
         Vector2D v = g.transform(vertex);
         
         drawInfo(g, v.Xi(), v.Yi(), info);
+    }
+
+    public void drawCard(GColor color, AGraphics g, String txt, float x, float y, float cw, float ch) {
+        g.drawImage(cardFrameImage, x, y, cw, ch);
+        g.setColor(color);
+        g.drawWrapString(x+cw/2, y+ch/2, cw-6, Justify.CENTER, Justify.CENTER, txt);
     }
 
     @Override

@@ -1,9 +1,12 @@
 package cc.game.soc.swing2;
 
+import java.awt.Point;
+
 import cc.game.soc.ui.UIComponent;
 import cc.game.soc.ui.UIRenderer;
 import cc.lib.game.GColor;
 import cc.lib.game.Utils;
+import cc.lib.math.Vector2D;
 import cc.lib.swing.AWTComponent;
 import cc.lib.swing.AWTGraphics;
 
@@ -87,6 +90,9 @@ public class SOCComponent extends AWTComponent implements UIComponent {
         return progress;
     }
 
-
-
+    @Override
+    public Vector2D getViewportLocation() {
+        Point pt = super.getLocationOnScreen();
+        return new Vector2D(pt.x, pt.y);
+    }
 }

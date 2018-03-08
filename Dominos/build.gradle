@@ -3,7 +3,7 @@ apply plugin: 'application'
 
 dependencies {
     compile project(':GameLibrary')
-    compile fileTree(dir: 'lib', include: '*.jar')
+    compile project(':jmdns')
 }
 
 sourceSets {
@@ -18,7 +18,8 @@ sourceSets {
     }
 }
 
-mainClassName = 'cc.game.dominos.swing'
+//mainClassName = 'cc.game.dominos.swing'
+mainClassName = 'cc.game.dominos.console.TestService'
 
 repositories {
     mavenCentral()

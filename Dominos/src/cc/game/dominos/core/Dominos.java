@@ -80,6 +80,14 @@ public abstract class Dominos extends Reflector<Dominos> {
         }
 	}
 
+	private void setPlayers(Player ... players) {
+        if (gameRunning)
+            throw new AssertionError();
+        if (players.length <= 0 || players.length >= 4)
+            throw new AssertionError();
+        this.players = players;
+    }
+
 	@Omit
     private boolean gameRunning = false;
 
@@ -247,7 +255,7 @@ public abstract class Dominos extends Reflector<Dominos> {
 
     protected void onPiecePlaced(Player player, Tile pc) {}
 
-    private List<Move> computrePlayerMoves(Player p) {
+    private List<Move> computePlayerMoves(Player p) {
         List<Move> moves = new ArrayList<>();
         for (Tile pc : p.tiles) {
             moves.addAll(board.findMovesForPiece(pc));
@@ -258,14 +266,14 @@ public abstract class Dominos extends Reflector<Dominos> {
 	public final void runGame() {
 		Player p = players[turn];
 
-		List<Move> moves = computrePlayerMoves(p);
+		List<Move> moves = computePlayerMoves(p);
 
         while (moves.size() == 0) {
 		    if (pool.size() == 0) {
 		        // see if any player can move, otherwise new round
                 boolean canMove = false;
                 for (Player pp : players) {
-                    if (computrePlayerMoves(pp).size() > 0) {
+                    if (computePlayerMoves(pp).size() > 0) {
                         canMove = true;
                         break;
                     }

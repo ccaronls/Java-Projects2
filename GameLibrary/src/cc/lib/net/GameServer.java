@@ -39,12 +39,13 @@ public class GameServer {
     
     // keep sorted by alphabetical order 
     private Map<String,ClientConnection> clients = Collections.synchronizedMap(new TreeMap<String,ClientConnection>());
-    private final SocketListener socketListener;
+    private SocketListener socketListener;
     Listener serverListener;
     private final int clientReadTimeout;
     private final String mVersion;
     private final Cypher cypher;
     private final int maxConnections;
+    private final int port;
     
     final static int ENCRYPTION_CHUNK_SIZE = 256;
 
@@ -68,15 +69,19 @@ public class GameServer {
      * @throws IOException 
      * @throws Exception
      */
-    public GameServer(Listener serverListener, int listenPort, int clientReadTimeout, String serverVersion, Cypher cypher, int maxConnections) throws IOException {
+    public GameServer(Listener serverListener, int listenPort, int clientReadTimeout, String serverVersion, Cypher cypher, int maxConnections) {
         this.clientReadTimeout = clientReadTimeout;
+        this.port = listenPort;
         this.serverListener = serverListener;
         this.maxConnections = maxConnections;
         if (serverListener == null)
             throw new NullPointerException("serverListener");
         this.mVersion = serverVersion.toString(); // null check
         this.cypher = cypher;
-        ServerSocket socket = new ServerSocket(listenPort);
+    }
+
+    public void listen() throws IOException {
+        ServerSocket socket = new ServerSocket(port);
         new Thread(socketListener = new SocketListener(socket)).start();
     }
     
@@ -91,6 +96,7 @@ public class GameServer {
                 c.disconnect("Server Stopping");
             }
         }
+        socketListener = null;
     }
     
     /**
