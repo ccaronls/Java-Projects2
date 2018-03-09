@@ -3,7 +3,9 @@ package cc.lib.utils;
 import junit.framework.TestCase;
 
 import java.io.BufferedReader;
+import java.io.PrintWriter;
 import java.io.StringReader;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -33,8 +35,51 @@ public class ReflectorTest extends TestCase {
         MyArchivable u = t.deepCopy();
         assertEquals(u, t);
         assertEquals(u, s);
-    }        
-    
+    }
+
+    public void testSerializeRawObject() throws Exception {
+        String str = "this is a test string for the purpose of NOT!!!";
+        StringWriter writer = new StringWriter();
+        Reflector.serializeObject(str, new PrintWriter(writer));
+        System.out.println(writer.getBuffer().toString());
+
+        String in = Reflector.deserializeObject(new BufferedReader(new StringReader(writer.getBuffer().toString())));
+        assertEquals(in, str);
+    }
+
+    public void testSerializeStringArray() throws Exception {
+        String [] arr = {
+                "a", "b", "c"
+        };
+
+        StringWriter str = new StringWriter();
+        Reflector.serializeObject(arr, new PrintWriter(str));
+        System.out.println(str.getBuffer().toString());
+
+        String [] arr2 = Reflector.deserializeObject(new BufferedReader(new StringReader(str.getBuffer().toString())));
+        assertTrue(Arrays.equals(arr, arr2));
+    }
+
+    public void testSerializeStringArray2D() throws Exception {
+        String [][] arr = {
+                { "a", "b", "c" },
+                { "d", "e", "f" }
+        };
+
+        StringWriter str = new StringWriter();
+        Reflector.serializeObject(arr, new PrintWriter(str));
+        System.out.println(str.getBuffer().toString());
+
+        String [][] arr2 = Reflector.deserializeObject(new BufferedReader(new StringReader(str.getBuffer().toString())));
+        System.out.println("Deserialized array:");
+        Reflector.serializeObject(arr2, new PrintWriter(System.out));
+
+        assertTrue(arr.length==arr2.length);
+        for (int i=0; i<arr.length; i++)
+            assertTrue(Arrays.equals(arr[i], arr2[i]));
+    }
+
+
     public void testArrays() throws Exception {
         MyArchivable t = new MyArchivable();
         t.my2DIntArray = new int[][] {

@@ -46,6 +46,7 @@ public class WifiP2pHelper implements
     private final static String TAG = WifiP2pHelper.class.getSimpleName();
     private Handler handler = new Handler(Looper.getMainLooper());
     private WifiP2pDevice connection = null;
+    private Object lock = new Object();
 
     private BroadcastReceiver rcvr = new BroadcastReceiver() {
         @Override
@@ -177,8 +178,8 @@ public class WifiP2pHelper implements
     private abstract class MyActionListener implements WifiP2pManager.ActionListener {
         @Override
         public final void onSuccess() {
-            synchronized (WifiP2pHelper.this) {
-                WifiP2pHelper.this.notify();
+            synchronized (lock) {
+                lock.notify();
             }
             onDone();
         }
@@ -188,8 +189,8 @@ public class WifiP2pHelper implements
         @Override
         public final void onFailure(final int reason) {
             Log.e(TAG, "Discover peers failure: " + getFailureReasonString(reason));
-            synchronized (WifiP2pHelper.this) {
-                WifiP2pHelper.this.notify();
+            synchronized (lock) {
+                lock.notify();
             }
             ctxt.runOnUiThread(new Runnable() {
                 @Override
@@ -376,13 +377,7 @@ public class WifiP2pHelper implements
                         requestPeers();
                     }
                 });
-                synchronized (this) {
-                    try {
-                        wait(2000);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
+                Utils.waitNoThrow(lock, 2000);
                 break;
             default:
                 Log.e(TAG, "P2P Not initialized!!!");
@@ -604,7 +599,7 @@ public class WifiP2pHelper implements
                 Log.i(TAG, "Group removed SUCCESS");
             }
         });
-        Utils.waitNoThrow(this, 2000);
+        Utils.waitNoThrow(lock, 2000);
     }
 
     @Override
@@ -622,7 +617,7 @@ public class WifiP2pHelper implements
     public final void connect(final WifiP2pDevice another) {
         final WifiP2pConfig config = new WifiP2pConfig();
         config.deviceAddress = another.deviceAddress;
-        //config.groupOwnerIntent = 0; // TODO: ?????
+        config.groupOwnerIntent = 0; // TODO: ????? - for now we want to force the owner, in this case the owner is the device we are connecting too
 
         p2p.connect(channel, config, new MyActionListener() {
             @Override
@@ -646,11 +641,12 @@ public class WifiP2pHelper implements
     public void disconnect() {
         removeGroup();
         connection = null;
-        discoverPeers();
     }
 
     @Override
     public void onConnectionInfoAvailable(WifiP2pInfo info) {
-        // override this to establist a connection to a server
+        // override this to establish a connection to a server
+        // TODO: should this be abstract? there are no situations when cannot override?
+        Log.i(TAG, "Connection info available: " + info);
     }
 }

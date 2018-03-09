@@ -44,6 +44,7 @@ public class DominosApplet extends AWTComponent {
         try {
             dominos.loadFromFile(saveFile);
         } catch (Exception e) {
+            e.printStackTrace();
             dominos.initGame(9, 150,0);
             dominos.setNumPlayers(4);
             dominos.startNewGame();

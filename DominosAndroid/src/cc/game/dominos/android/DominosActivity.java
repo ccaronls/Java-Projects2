@@ -35,6 +35,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
+import java.util.concurrent.Executor;
 
 import cc.game.dominos.core.Dominos;
 import cc.game.dominos.core.Move;
@@ -84,6 +85,7 @@ public class DominosActivity extends DroidActivity {
             try {
                 doIt();
             } catch (Exception e) {
+                e.printStackTrace();
                 return e;
             }
             return null;
@@ -111,6 +113,10 @@ public class DominosActivity extends DroidActivity {
                             onDone();
                         }
                     }).show();
+        }
+
+        public void run() {
+            executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
         }
     }
 
@@ -160,7 +166,7 @@ public class DominosActivity extends DroidActivity {
                                                 showNewGameDialog(false);
                                             }
 
-                                        }.execute();
+                                        }.run();
                                     }
                                 }).show();
                     case CLIENT:
@@ -197,6 +203,7 @@ public class DominosActivity extends DroidActivity {
         };
 
         try {
+            FileUtils.copyFile(saveFile, Environment.getExternalStorageDirectory());
             dominos.loadFromFile(saveFile);
             mode = Mode.SINGLE;
         } catch (FileNotFoundException e) {
@@ -392,12 +399,12 @@ public class DominosActivity extends DroidActivity {
                             protected void onDone() {
                                 showNewGameDialog(cancelable);
                             }
-                        }.execute();
+                        }.run();
                     }
                 }).show();
             }
 
-        }.execute();
+        }.run();
     }
 
     void killGame() {
@@ -470,7 +477,7 @@ public class DominosActivity extends DroidActivity {
                             protected void onDone() {
                                 showNewGameDialog(cancelable);
                             }
-                        }.execute();
+                        }.run();
                     }
                 }).show();
         server.addListener(new GameServer.Listener() {
@@ -600,10 +607,10 @@ public class DominosActivity extends DroidActivity {
                     protected void doIt() throws Exception {
                         client.connect(info.groupOwnerAddress, PORT);
                         stopPeerDiscovery();
-                        for (int i=0; i<10; i++) {
-                            if (client.isConnected())
-                                break;
-                            wait(1000);
+                        if (!client.isConnected()) {
+                            synchronized (client) {
+                                client.wait(20*1000);
+                            }
                         }
                     }
 
@@ -613,7 +620,7 @@ public class DominosActivity extends DroidActivity {
                             lvHost.notify();
                         }
                     }
-                }.execute();
+                }.run();
             }
         };
 
@@ -631,13 +638,16 @@ public class DominosActivity extends DroidActivity {
                                     protected void doIt() throws Exception {
                                         helper.cancelConnect();
                                         killGame();
+                                        synchronized (lvHost) {
+                                            lvHost.notify();
+                                        }
                                     }
 
                                     @Override
                                     protected void onDone() {
                                         showNewGameDialog(canceleble);
                                     }
-                                }.execute();
+                                }.run();
                             }
                         }).show();
                 new SpinnerTask() {
@@ -650,7 +660,7 @@ public class DominosActivity extends DroidActivity {
                     @Override
                     protected void onDone() {
                         if (client.isConnected()) {
-                            showWaitingForPlayersDialogClient();
+                            showWaitingForPlayersDialogClient(canceleble);
                         } else {
                             newDialogBuilder().setTitle("Error")
                                     .setMessage("Failed to connect to host")
@@ -662,7 +672,7 @@ public class DominosActivity extends DroidActivity {
                                     }).setCancelable(false).show();
                         }
                     }
-                }.execute();
+                }.run();
             }
         });
 
@@ -686,17 +696,18 @@ public class DominosActivity extends DroidActivity {
                         }).setCancelable(false).show();
 
             }
-        }.execute();
+        }.run();
 
     }
 
-    private void showWaitingForPlayersDialogClient() {
+    private void showWaitingForPlayersDialogClient(final boolean cancelable) {
         final AlertDialog d = newDialogBuilder().setTitle("Waiting")
                 .setTitle("Waiting for more players")
                 .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-
+                        client.disconnect();
+                        showNewGameDialog(cancelable);
                     }
                 }).setCancelable(false).show();
         client.addListener(new GameClient.Listener() {
@@ -754,10 +765,14 @@ public class DominosActivity extends DroidActivity {
                             }).setCancelable(false).show();
                 }
             });
+            killGame();
         }
 
         @Override
         protected void onConnected() {
+            synchronized (this) {
+                notify();
+            }
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {

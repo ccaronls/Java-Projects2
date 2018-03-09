@@ -626,7 +626,7 @@ public abstract class Dominos extends Reflector<Dominos> {
         g.pushMatrix();
         if (portrait) {
             // draw the non-visible player stuff on lower LHS and visible player stuff on lower RHS
-            setupTextHeight(g, w/3, h-boardDim);
+            setupTextHeight(g, w/3, (h-boardDim)/5);
             g.translate(0, boardDim);
             drawInfo(g, w/3, h-boardDim);
             g.translate(w/3, 0);
@@ -634,7 +634,7 @@ public abstract class Dominos extends Reflector<Dominos> {
         } else {
             // draw the non-visible player stuff on lower half of rhs and visible player stuff on
             // upper half of RHS
-            setupTextHeight(g, w-boardDim, h/3);
+            setupTextHeight(g, w-boardDim, h/5);
             g.translate(boardDim, 0);
             drawPlayer(g, w-boardDim, h*2/3, pickX, pickY, drawDragged);
             g.translate(0, h*2/3);
@@ -645,16 +645,16 @@ public abstract class Dominos extends Reflector<Dominos> {
 
     private void setupTextHeight(AGraphics g, float targetWidth, float targetHeight) {
 
-        targetHeight -= 10;
-        targetHeight /= 5;
-        g.setTextHeight(targetHeight);
-
         // now size down until the string fits into the width
         for (int i=0; i<100; i++) {
-            float width = g.getTextWidth("WWWWWWWWWWWWW");
+            g.setTextHeight(targetHeight);
+            float width = g.getTextWidth("PW X W WW PTS");
+            float delta = width / targetWidth;
             if (width > targetWidth) {
                 //g.setFont(g.getFont().deriveFont(--targetHeight));
-                g.setTextHeight(--targetHeight);
+                targetHeight *= 1f/delta;
+            } else if (width < targetWidth*0.8f) {
+                targetHeight *= delta/2;
             } else {
                 break;
             }
@@ -732,7 +732,10 @@ public abstract class Dominos extends Reflector<Dominos> {
     }
 
     private final PlayerUser getUser() {
-        return (PlayerUser)players[0];
+        for (Player p : players)
+            if (p instanceof PlayerUser)
+                return (PlayerUser)p;
+        return null;
     }
 
     private void drawPlayerTiles(APGraphics g, Player p, float w, float h, int pickX, int pickY, boolean drawDragged) {
@@ -859,6 +862,8 @@ public abstract class Dominos extends Reflector<Dominos> {
 
     public synchronized final void onClick() {
         PlayerUser user = getUser();
+        if (user == null)
+            return;
         if (newGameHighlighted) {
             onNewGameClicked();
             clearHighlghts();
@@ -888,14 +893,16 @@ public abstract class Dominos extends Reflector<Dominos> {
         dragging = true;
         if (selectedPlayerTile < 0 && highlightedPlayerTile >= 0) {
             PlayerUser user = getUser();
-            selectedPlayerTile = highlightedPlayerTile;
-            List<Move> highlightedMoves = new ArrayList<>();
-            for (Move m : user.moves) {
-                if (m.piece == user.tiles.get(selectedPlayerTile)) {
-                    highlightedMoves.add(m);
+            if (user != null) {
+                selectedPlayerTile = highlightedPlayerTile;
+                List<Move> highlightedMoves = new ArrayList<>();
+                for (Move m : user.moves) {
+                    if (m.piece == user.tiles.get(selectedPlayerTile)) {
+                        highlightedMoves.add(m);
+                    }
                 }
+                getBoard().highlightMoves(highlightedMoves);
             }
-            getBoard().highlightMoves(highlightedMoves);
         }
         redraw();
     }
@@ -903,9 +910,12 @@ public abstract class Dominos extends Reflector<Dominos> {
     public synchronized final void stopDrag() {
         if (dragging) {
             if (selectedPlayerTile >= 0 && board.selectedMove != null) {
-                getUser().choosedMove = board.selectedMove;
-                synchronized (gameLock) {
-                    gameLock.notifyAll();
+                PlayerUser user = getUser();
+                if (user != null) {
+                    user.choosedMove = board.selectedMove;
+                    synchronized (gameLock) {
+                        gameLock.notifyAll();
+                    }
                 }
             }
             dragging = false;

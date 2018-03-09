@@ -1,0 +1,77 @@
+turn=0
+pool=java.util.LinkedList {
+}
+board=cc.game.dominos.core.Board {
+   endpoints=java.util.LinkedList 4 {
+      java.util.LinkedList {
+      }
+      java.util.LinkedList {
+      }
+      java.util.LinkedList {
+      }
+      java.util.LinkedList {
+      }
+   }
+   saveMinV=cc.lib.math.MutableVector2D {
+      x=0.0
+      y=0.0
+   }
+   root=null
+   rects=java.util.ArrayList {
+   }
+   endpointTransforms=cc.lib.math.Matrix3x3 4 {
+      cc.lib.math.Matrix3x3 {
+         a31=0.0
+         a12=0.0
+         a23=0.0
+         a13=0.0
+         a21=0.0
+         a32=0.0
+         a11=1.0
+         a22=1.0
+         a33=1.0
+      }
+      cc.lib.math.Matrix3x3 {
+         a31=0.0
+         a12=0.0
+         a23=0.0
+         a13=0.0
+         a21=0.0
+         a32=0.0
+         a11=1.0
+         a22=1.0
+         a33=1.0
+      }
+      cc.lib.math.Matrix3x3 {
+         a31=0.0
+         a12=0.0
+         a23=0.0
+         a13=0.0
+         a21=0.0
+         a32=0.0
+         a11=1.0
+         a22=1.0
+         a33=1.0
+      }
+      cc.lib.math.Matrix3x3 {
+         a31=0.0
+         a12=0.0
+         a23=0.0
+         a13=0.0
+         a21=0.0
+         a32=0.0
+         a11=1.0
+         a22=1.0
+         a33=1.0
+      }
+   }
+   saveMaxV=cc.lib.math.MutableVector2D {
+      x=0.0
+      y=0.0
+   }
+}
+maxNum=0
+maxScore=0
+difficulty=0
+players=cc.game.dominos.core.Player 0 {
+}

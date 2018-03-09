@@ -65,18 +65,30 @@ import cc.lib.game.Utils;
  */
 public class Reflector<T> {
 
+    /**
+     * This flag to support situations where we dont want to create new Reflector instances, just overwrite their values.
+     * This can be helpful where we have derived classes that might be anonymous or have class scope that provides some
+     * critical functionality that we want to keep and it cannot be instantiated but otherwise shares all the fields with
+     * the incoming class type.
+     * One thing to be aware of is where deserializing an instance where the input has fields not represented in the
+     * instance. Consider enable THROW_ON_UNKNOWN flag when using KEEP_INSTANCES
+     */
     public static boolean KEEP_INSTANCES = false;
 
+    /**
+     * Turn this on to throw exceptions on any unknown fields.  Default is off.
+     */
+    public static boolean THROW_ON_UNKNOWN = false;
+
+    /**
+     * Thrown when incoming version is incompatible with version of this reflector object
+     */
     public static final class VersionTooOldException extends IOException {
         private VersionTooOldException(int current, int min) {
             super("Version of deserialized object is " + current + " which older than min specified " + min);
         }
     }
 
-    /**
-     * Turn this on to throw exceptions on any unknown fields.  Default is off.
-     */
-    public static boolean ENABLE_THROW_ON_UNKNOWN = false;
     private final static Map<Class<?>, Map<Field, Archiver>> classValues = new HashMap<Class<?>, Map<Field, Archiver>>();
     private final static Map<String, Class<?>> classMap = new HashMap<String, Class<?>>();
 
@@ -279,15 +291,14 @@ public class Reflector<T> {
         public void serializeArray(Object arr, MyPrintWriter out) throws Exception {
             int num = Array.getLength(arr);
             if (num > 0) {
-                StringBuffer buf = new StringBuffer();
                 for (int i=0; i<num; i++) {
                     Object entry = Array.get(arr, i);
                     if (entry == null)
-                        buf.append("null\n");
+                        //buf.append("null\n");
+                        out.println("null");
                     else
-                        buf.append("\"").append(entry).append("\"\n");
+                        out.println("\"" + entry + "\"");
                 }
-                out.print(buf.toString());
             }
         }
 
@@ -296,8 +307,10 @@ public class Reflector<T> {
             int len = Array.getLength(arr);
             for (int i=0; i<len; i++) {
                 String line = readLineOrEOF(in);
-                if (!line.equals("null"))
-                    Array.set(arr, i, line.substring(1, line.length()-1));
+                if (!line.equals("null")) {
+                    String s = line.substring(1, line.length()-1);
+                    Array.set(arr, i, s);
+                }
             }
             if (readLineOrEOF(in) != null)
             	throw new Exception("Line: " + in.lineNum +" expected closing '}'");
@@ -977,7 +990,7 @@ public class Reflector<T> {
         } catch (RuntimeException e) {
             throw e;
         } catch (NoSuchFieldException e) {
-        	if (ENABLE_THROW_ON_UNKNOWN)
+        	if (THROW_ON_UNKNOWN)
         		throw new RuntimeException("Failed to add field '" + name + "'", e);
         } catch (Exception e) {
         	throw new RuntimeException("Failed to add field '" + name + "'", e);
@@ -1043,18 +1056,70 @@ public class Reflector<T> {
     }
     
     /**
-     * 
+     * Allows serializing of non-reflector types
+     *
      * @param obj
      * @param out
      * @throws Exception
      */
-    public static void serializeObject(Object obj, PrintWriter out) throws Exception {
+    public static void serializeObject(Object obj, PrintWriter out) throws IOException {
     	MyPrintWriter _out;
         if (out instanceof MyPrintWriter)
             _out = (MyPrintWriter)out;
         else
             _out = new MyPrintWriter(out);
-        serializeObject(obj, _out, false);
+        if (obj.getClass().isArray()) {
+            int num = Array.getLength(obj);
+            _out.println(getCanonicalName(obj.getClass()) + " " + num + " {");
+        } else {
+            _out.println(getCanonicalName(obj.getClass()) + " {");
+        }
+        try {
+            serializeObject(obj, _out, true);
+        } catch (IOException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new IOException(e);
+        }
+    }
+
+    /**
+     * Get a non reflector object from serialized output (see serializeObject)
+     * @param in
+     * @param <T>
+     * @return
+     * @throws IOException
+     */
+    public static <T> T deserializeObject(BufferedReader in) throws IOException {
+        MyBufferedReader _in;
+        if (in instanceof  MyBufferedReader)
+            _in = (MyBufferedReader)in;
+        else
+            _in = new MyBufferedReader(in);
+        try {
+            Object o = _deserializeObject(_in);
+            return (T) o;
+        } catch (IOException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new IOException("Error on line " + _in.lineNum + " " + e.getMessage(), e);
+        }
+    }
+
+    private static Object _deserializeObject(MyBufferedReader in) throws Exception {
+        String line = readLineOrEOF(in);
+        String [] parts = line.split(" ");
+        if (parts.length < 1)
+            throw new Exception("Not of form <class> <len>? {");
+        Class<?> clazz = getClassForName(parts[0]);
+        if (parts.length > 1) {
+            Archiver a = getArchiverForType(clazz.getComponentType());
+            int len = Integer.parseInt(parts[1]);
+            Object o = Array.newInstance(clazz.getComponentType(), len);
+            a.deserializeArray(o, in);
+            return o;
+        }
+        return parse(null, clazz, in);
     }
     
     /**
@@ -1215,11 +1280,12 @@ public class Reflector<T> {
             	String [] parts = line.split(" ");
 	            if (parts.length > 1) {
                     int num = Integer.parseInt(parts[1]);
+                    Class<?> clazz = getClassForName(parts[0]);
                     if (!KEEP_INSTANCES || entry == null || Array.getLength(entry) != num) {
-                        Class<?> clazz = getClassForName(parts[0]);
+                        //Class<?> clazz = getClassForName(parts[0]);
                         entry = Array.newInstance(clazz, num);
                     }
-	                getArchiverForType(entry.getClass()).deserializeArray(entry, in);
+	                getArchiverForType(clazz).deserializeArray(entry, in);
 	            } else {
                     Class<?> clazz;
                     if (!KEEP_INSTANCES || entry == null)
@@ -1347,7 +1413,7 @@ public class Reflector<T> {
                 }
             }
             if (parts != null) {
-                if (ENABLE_THROW_ON_UNKNOWN)
+                if (THROW_ON_UNKNOWN)
                     throw new Exception("Unknown field: " + name + " not in fields: " + values.keySet());
                 System.err.println("Unknown field: " + name);// + " not in fields: " + values.keySet());
             }
@@ -1555,15 +1621,18 @@ public class Reflector<T> {
     /**
      * Convenience method to load from file and fail silently
      * @param file
+     * @returns true on success and false on failure
      */
-    public final void tryLoadFromFile(File file) {
+    public final boolean tryLoadFromFile(File file) {
         try {
             loadFromFile(file);
+            return true;
         } catch (FileNotFoundException e) {
-            // meh
+            System.err.println(e.getMessage());
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return false;
     }
 
     private int __reflector_version = getMinVersion();
@@ -1574,7 +1643,7 @@ public class Reflector<T> {
 
     /**
      * Derived classes override this to provide a min loadable version.
-     * For instance, if the version loaded is '1' and theis method returns 2, then an exception
+     * For instance, if the version loaded is '1' and this method returns 2, then an exception
      * is thrown. default version is 0
      * @return
      */
