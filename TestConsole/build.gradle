@@ -1,0 +1,22 @@
+apply plugin: 'java'
+apply plugin: 'application'
+
+dependencies {
+    compile project(':GameLibrary')
+    compile project(':jmdns')
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs = ['src']
+        }
+    }
+}
+
+//mainClassName = 'cc.game.dominos.swing'
+mainClassName = 'cc.app.test.console.TestService'
+
+repositories {
+    mavenCentral()
+}

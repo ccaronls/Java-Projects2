@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent">
+
+    <TextView
+        android:id="@+id/tvHeader"
+        android:text="Discovering..."
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"/>
+
+    <RadioGroup
+        android:id="@+id/rgDiscovery"
+        android:orientation="horizontal"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content">
+
+        <RadioButton
+            android:text="Peers"
+            android:id="@+id/rbPeers"
+            android:layout_width="0dp"
+            android:layout_height="fill_parent"
+            android:layout_weight="1"
+            android:checked="true"/>
+        <RadioButton
+            android:text="DNS1"
+            android:id="@+id/rbDns1"
+            android:layout_width="0dp"
+            android:layout_height="fill_parent"
+            android:layout_weight="1"/>
+        <RadioButton
+            android:text="DNS2"
+            android:id="@+id/rbDns2"
+            android:layout_width="0dp"
+            android:layout_height="fill_parent"
+            android:layout_weight="1"/>
+        <RadioButton
+            android:text="Upnp"
+            android:id="@+id/rbUpnp"
+            android:layout_width="0dp"
+            android:layout_height="fill_parent"
+            android:layout_weight="1"/>
+
+    </RadioGroup>
+
+    <View
+        android:layout_width="fill_parent"
+        android:layout_height="5dp"
+        android:background="@android:drawable/divider_horizontal_bright"/>
+
+    <ListView
+        android:id="@+id/lvDevices"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"/>
+
+</LinearLayout>
