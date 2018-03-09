@@ -17,6 +17,7 @@ import cc.game.soc.ui.UIEventCardRenderer;
 import cc.game.soc.ui.UIPlayerRenderer;
 import cc.game.soc.ui.UIRenderer;
 import cc.lib.android.DroidGraphics;
+import cc.lib.math.Vector2D;
 
 /**
  * Created by chriscaron on 3/2/18.
@@ -64,13 +65,13 @@ public class SOCView<T extends UIRenderer> extends View implements UIComponent {
             case R.id.soc_barbarian: {
                 UIBarbarianRenderer r = new UIBarbarianRenderer(this);
                 float border = getResources().getDimension(R.dimen.border_thin);
-                r.initAssets(R.drawable.barbarians_tile, R.drawable.barbarians_tile0, R.drawable.barbarians_tile1, R.drawable.barbarians_tile2, R.drawable.barbarians_tile3, R.drawable.barbarians_tile4, R.drawable.barbarians_tile5, R.drawable.barbarians_tile6, R.drawable.barbarians_tile7, border);
+                r.initAssets(R.drawable.barbarians_tile, R.drawable.barbarians_piece);
                 renderer = (T)r;
                 break;
             }
             case R.id.soc_board: {
                 UIBoardRenderer r = new UIBoardRenderer(this);
-                r.initImages(R.drawable.desert, R.drawable.water, R.drawable.gold, R.drawable.undiscoveredtile, R.drawable.foresthex, R.drawable.hillshex, R.drawable.mountainshex, R.drawable.pastureshex, R.drawable.fieldshex, R.drawable.knight_basic_inactive, R.drawable.knight_basic_active, R.drawable.knight_strong_inactive, R.drawable.knight_strong_active, R.drawable.knight_mighty_inactive, R.drawable.knight_mighty_active);
+                r.initImages(R.drawable.desert, R.drawable.water, R.drawable.gold, R.drawable.undiscoveredtile, R.drawable.foresthex, R.drawable.hillshex, R.drawable.mountainshex, R.drawable.pastureshex, R.drawable.fieldshex, R.drawable.knight_basic_inactive, R.drawable.knight_basic_active, R.drawable.knight_strong_inactive, R.drawable.knight_strong_active, R.drawable.knight_mighty_inactive, R.drawable.knight_mighty_active, R.drawable.card_frame);
                 Board board = new Board();
                 board.generateDefaultBoard();
                 board.trim();
@@ -87,7 +88,7 @@ public class SOCView<T extends UIRenderer> extends View implements UIComponent {
             case R.id.soc_player_bottom:
                 renderer = (T)new UIPlayerRenderer(this); break;
             case R.id.soc_event_cards:
-                renderer = (T)new UIEventCardRenderer(this, null); break;
+                renderer = (T)new UIEventCardRenderer(this); break;
         }
     }
 
@@ -144,5 +145,12 @@ public class SOCView<T extends UIRenderer> extends View implements UIComponent {
     @Override
     public void setRenderer(UIRenderer r) {
         this.renderer = (T)r;
+    }
+
+    @Override
+    public Vector2D getViewportLocation() {
+        int [] loc = new int[2];
+        getLocationOnScreen(loc);
+        return new Vector2D(loc[0], loc[1]);
     }
 }

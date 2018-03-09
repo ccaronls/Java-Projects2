@@ -1,11 +1,14 @@
 package cc.lib.utils;
 
-import java.lang.reflect.Field;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 
 public class MyArchivable extends Reflector<MyArchivable> {
     
-    SomeEnum myEnum;// = SomeEnum.ENUM1;
+    SomeEnum myEnum = SomeEnum.ENUM1;
     String myString;
     int myInt;
     Integer myInteger;
@@ -18,54 +21,67 @@ public class MyArchivable extends Reflector<MyArchivable> {
     double myDouble;
     Double myDoubleNum;
     MyArchivable myArchivable;
-    List<String> myList;// = new LinkedList<String>();
-    //int [] myArray = { 1,2,3,4,5 };
-    String [] myStringArray;// = { "a", null, "b", "c" };
-    String [] myEmptyStringArray;// = { };
+    List<String> myList = new LinkedList<>();
+    int [] myArray = { 1,2,3,4,5 };
+    String [] myStringArray = { "a", null, "b", "c" };
+    String [] myEmptyStringArray = { };
     String [] myNullStringArray = null;
     
-    int [] myIntArray;// = { 1, 2, 3, 4 };
-    int [] myEmptyIntArray;// = { };
-    int [] myNullIntArray;// = null;
+    int [] myIntArray = { 1, 2, 3, 4 };
+    int [] myEmptyIntArray = { };
+    int [] myNullIntArray = null;
     
-    float [] myFloatArray;// = { 10,11,12,13,14 };
-    float [] myEmptyFloatArray;// = { };
-    float [] myNullFloatArray;// = null;
+    float [] myFloatArray = { 10,11,12,13,14 };
+    float [] myEmptyFloatArray = { };
+    float [] myNullFloatArray = null;
     
-    long [] myLongArray;// = { 1000,2000,3000,4000 };
-    long [] myEmptyLongArray;// = { };
-    long [] myNullLongArray;// = null;
+    long [] myLongArray = { 1000,2000,3000,4000 };
+    long [] myEmptyLongArray = { };
+    long [] myNullLongArray = null;
     
-    double [] myDoubleArray;// = { 11111,22222,33333,444444,555555 };
-    double [] myEmptyDoubleArray;// = { };
+    double [] myDoubleArray = { 11111,22222,33333,444444,555555 };
+    double [] myEmptyDoubleArray = { };
     double [] myNullDoubleArray = null;
     
-    boolean [] myBooleanArray;// = { true, false, false, true };
+    boolean [] myBooleanArray = { true, false, false, true };
     boolean [] myEmptyBooleanArray;// = { };
     boolean [] myNullBooleanArray = null;
     
-    SomeEnum [] myEnumArray;// = { SomeEnum.ENUM2, SomeEnum.ENUM3, SomeEnum.ENUM1 }; 
-    SomeEnum [] myEmptyEnumArray;// = { };
+    SomeEnum [] myEnumArray = { SomeEnum.ENUM2, SomeEnum.ENUM3, SomeEnum.ENUM1 };
+    SomeEnum [] myEmptyEnumArray = { };
     SomeEnum [] myNullEnumArray = null;
     
     Reflector [] myArchivableArray = null;
-    Reflector [] myEmptyArchivableArray;// = { };
+    Reflector [] myEmptyArchivableArray = { };
     Reflector [] myNullArchivableArray = null;
-        
-    int [][] my2DIntArray;// = new int[3][];
-    String [][] my2DNullStringArray;// = new String[3][];
+
+    Reflector [][] my2DArchivableArray = null;
+
+    int [][] my2DIntArray = new int[3][];
+    String [][] my2DNullStringArray = new String[3][];
     
-    double [][][] my3DDoubleArray;// = new double[4][][];
-    
-    Collection<Integer> myIntList;// = new LinkedList<Integer>();
-    Collection<String> myStringSet;// = new HashSet<String>();
-    
-    Collection [] collectionArray = null;
-    Collection [][] collectionArray2D = null;
-    Collection [][][] collectionArray3D = null;
+    double [][][] my3DDoubleArray = new double[4][][];
+
+    Collection myCollection;
+    Collection<Integer> myIntList = new LinkedList<Integer>();
+    Collection<String> myStringSet = new HashSet<>();
+
+
+    Collection [] collectionArray = {
+            new ArrayList()
+    };
+    Collection [][] collectionArray2D = {
+            { new ArrayList(), new ArrayList() },
+            { new HashSet(), new HashSet() },
+    };
+    Collection [][][] collectionArray3D = {
+
+    };
     
     public MyArchivable() {
-        /*
+    }
+
+    void populate() {
         myList.add("A");
         myList.add("B");
         myList.add("C");
@@ -77,7 +93,7 @@ public class MyArchivable extends Reflector<MyArchivable> {
             for (int ii=0; ii<my3DDoubleArray[i].length; ii++) {
                 my3DDoubleArray[i][ii] = new double[] { i*ii+0, i*ii+1, i*ii+2 };
             }
-        }*/
+        }
     }
     
     static {

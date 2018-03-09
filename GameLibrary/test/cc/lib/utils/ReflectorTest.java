@@ -1,15 +1,23 @@
 package cc.lib.utils;
 
-import java.io.*;
-import java.util.*;
-
 import junit.framework.TestCase;
+
+import java.io.BufferedReader;
+import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.TreeSet;
 
 public class ReflectorTest extends TestCase {
 
     @Override
     protected void setUp() throws Exception {
         super.setUp();
+        Reflector.KEEP_INSTANCES = false;
         System.out.println("Start Test: " + getName());
         System.out.println("--------------------------------------------------------");        
     }
@@ -207,31 +215,61 @@ public class ReflectorTest extends TestCase {
         System.out.println(uos2);
         assertEquals(uos, uos2);
     }
-    
-    public void testLocalOmit() throws Exception {
-    	
-    	SmallReflector a = new SmallReflector();
-    	SmallReflector b = new SmallReflector();
-    	
-    	a.a = "A";
-    	a.b = "A";
 
-    	System.out.println(a);
-    	//a.omitField("b");
+    class MyArchivableX extends MyArchivable {
+        MyArchivableX() {}
+    }
 
-    	String outA = a.toString();
-    	System.out.println(outA);
-    	
-    	b.a = "B";
-    	b.b = "B";
-    	
-    	b.deserialize(outA);
-    	System.out.println(b);
-    	
-    	assertEquals(b.a, "A");
-    	assertEquals(b.b, "B");
-    	
-    	
+    public void testDerivedReflectors() throws Exception {
+
+        Reflector.KEEP_INSTANCES = true;
+        MyArchivable a = new MyArchivable();
+
+        a.myArchivable = new MyArchivableX();
+
+        String txt = a.toString();
+
+        a.deserialize(txt);
+
+        a.myArchivableArray = new MyArchivable[] {
+                new MyArchivableX(),
+                new MyArchivableX(),
+                new MyArchivable()
+        };
+
+        txt = a.toString();
+
+        a. deserialize(txt);
+
+        a.my2DArchivableArray = new MyArchivable[][] {
+                { new MyArchivableX(), new MyArchivableX() },
+                { new MyArchivableX(), new MyArchivableX() },
+        };
+
+        txt = a.toString();
+
+        a. deserialize(txt);
+
+        a.myCollection = new ArrayList();
+        a.myCollection.add(new MyArchivableX());
+        a.myCollection.add(new MyArchivableX());
+
+        txt = a.toString();
+        a. deserialize(txt);
+
+        a.collectionArray = new Collection[] {
+            new ArrayList(),
+            new HashSet()
+        };
+
+        a.collectionArray[0].add(new MyArchivableX());
+        a.collectionArray[0].add(new MyArchivableX());
+        a.collectionArray[1].add(new MyArchivableX());
+        a.collectionArray[1].add(new MyArchivableX());
+
+        txt = a.toString();
+        a. deserialize(txt);
+
     }
     
     public static class MyCollection extends Reflector<MyCollection> {

@@ -65,6 +65,8 @@ import cc.lib.game.Utils;
  */
 public class Reflector<T> {
 
+    public static boolean KEEP_INSTANCES = false;
+
     public static final class VersionTooOldException extends IOException {
         private VersionTooOldException(int current, int min) {
             super("Version of deserialized object is " + current + " which older than min specified " + min);
@@ -178,7 +180,7 @@ public class Reflector<T> {
     
     public interface Archiver {
         String get(Field field, Reflector<?> a) throws Exception;
-        void set(Field field, String value, Reflector<?> a) throws Exception;
+        void set(Object o, Field field, String value, Reflector<?> a) throws Exception;
         void serializeArray(Object arr, MyPrintWriter out) throws Exception;
         void deserializeArray(Object arr, MyBufferedReader in) throws Exception;
     };
@@ -209,7 +211,7 @@ public class Reflector<T> {
         }
 
         @Override
-        public void set(Field field, String value, Reflector<?> a) throws Exception {
+        public void set(Object o, Field field, String value, Reflector<?> a) throws Exception {
         	field.setAccessible(true);
             if (value == null || value.equals("null"))
                 field.set(a, null);
@@ -264,7 +266,7 @@ public class Reflector<T> {
         }
 
         @Override
-        public void set(Field field, String value, Reflector<?> a)  throws Exception{
+        public void set(Object o, Field field, String value, Reflector<?> a)  throws Exception{
             if (value == null || value.equals("null"))
                 field.set(a, null);
             else {
@@ -390,7 +392,7 @@ public class Reflector<T> {
         }
 
         @Override
-        public void set(Field field, String value, Reflector<?> a) throws Exception {
+        public void set(Object o, Field field, String value, Reflector<?> a) throws Exception {
             field.set(a, findEnumEntry(field.getType(), value));
         }
         
@@ -460,12 +462,13 @@ public class Reflector<T> {
         }
 
         @Override
-        public void set(Field field, String value, Reflector<?> a) throws Exception {
+        public void set(Object o, Field field, String value, Reflector<?> a) throws Exception {
             if (!value.equals("null") && value != null) {
                 value = value.split(" ")[0];
                 field.setAccessible(true);
                 try {
-                	field.set(a, getClassForName(value).newInstance());
+                    if (!KEEP_INSTANCES || o == null)
+                	    field.set(a, getClassForName(value).newInstance());
                 } catch (ClassNotFoundException e) {
                 	int dot = value.lastIndexOf('.');
                 	if (dot > 0) {
@@ -505,7 +508,13 @@ public class Reflector<T> {
                 String line = readLineOrEOF(in);
                 if (line.equals("null"))
                     continue;
-                Reflector<?> a = (Reflector<?>)getClassForName(line).newInstance();
+                Object o = Array.get(arr, i);
+                Reflector<?> a;
+                if (!KEEP_INSTANCES || o == null || !(o instanceof Reflector)) {
+                    a = (Reflector<?>)getClassForName(line).newInstance();
+                } else {
+                    a = (Reflector)o;
+                }
                 a.deserialize(in);
                 Array.set(arr, i, a);
                 if (in.depth > depth) {
@@ -530,9 +539,10 @@ public class Reflector<T> {
         }
 
         @Override
-        public void set(Field field, String value, Reflector<?> a) throws Exception {
+        public void set(Object o, Field field, String value, Reflector<?> a) throws Exception {
             if (value != null && !value.equals("null")) {
-                field.set(a, getClassForName(value).newInstance());
+                if (!KEEP_INSTANCES || o == null)
+                    field.set(a, getClassForName(value).newInstance());
             } else {
             	field.set(a, null);
             }
@@ -559,11 +569,20 @@ public class Reflector<T> {
         	int len = Array.getLength(arr);
         	for (int i=0; i<len; i++) {
         		String clazz = readLineOrEOF(in);
-        		if (!clazz.equals("null")) {
-            		Collection<?> c = (Collection<?>)getClassForName(clazz).newInstance();
+        		Collection c = (Collection)Array.get(arr, i);
+                if (!clazz.equals("null")) {
+                    Class clars = getClassForName(clazz);
+                    if (!KEEP_INSTANCES || c == null || !c.getClass().equals(clars)) {
+                        Collection cc = (Collection<?>) clars.newInstance();
+                        if (c != null)
+                            cc.addAll(c);
+                        c = cc;
+                    }
             		deserializeCollection(c, in);
             		Array.set(arr, i, c);
-        		}
+        		} else {
+                    Array.set(arr, i, null);
+                }
         	}
             if (readLineOrEOF(in) != null)
             	throw new Exception("Line: " + in.lineNum +" expected closing '}'");
@@ -582,7 +601,7 @@ public class Reflector<T> {
 		}
 
 		@Override
-		public void set(Field field, String value, Reflector<?> a) throws Exception {
+		public void set(Object o, Field field, String value, Reflector<?> a) throws Exception {
 			if (value != null && !value.equals("null")) {
 				String [] parts = value.split(" ");
 				if (parts.length < 2)
@@ -635,18 +654,22 @@ public class Reflector<T> {
             return s;
         }
 
-        private Object createArray(String line) throws Exception {
+        private Object createArray(Object current, String line) throws Exception {
             String [] parts = line.split(" ");
             if (parts.length < 2)
                 throw new Exception("Invalid array description '" + line + "' excepted < 2 parts");
-            Class<?> clazz =getClassForName(parts[0].trim());
-            return Array.newInstance(clazz, Integer.parseInt(parts[1].trim()));
+            final int len = Integer.parseInt(parts[1].trim());
+            if (!KEEP_INSTANCES || current == null || Array.getLength(current) != len) {
+                Class<?> clazz = getClassForName(parts[0].trim());
+                return Array.newInstance(clazz, len);
+            }
+            return current;
         }
         
         @Override
-        public void set(Field field, String value, Reflector<?> a) throws Exception {
+        public void set(Object o, Field field, String value, Reflector<?> a) throws Exception {
             if (value != null && !value.equals("null")) {
-                field.set(a, createArray(value));
+                field.set(a, createArray(o, value));
             } else {
             	field.set(a, null);
             }
@@ -676,10 +699,14 @@ public class Reflector<T> {
         public void deserializeArray(Object arr, MyBufferedReader in) throws Exception {
             int len = Array.getLength(arr);
             for (int i=0; i<len; i++) {
-                Archiver compArchiver = getArchiverForType(arr.getClass().getComponentType().getComponentType());
+                Class cl = arr.getClass().getComponentType();
+                if (cl.getComponentType() != null)
+                    cl = cl.getComponentType();
+                Archiver compArchiver = getArchiverForType(cl);
                 String line = readLineOrEOF(in);
                 if (line != null && !line.equals("null")) {
-                    Object obj = createArray(line);
+                    Object obj = Array.get(arr, i);
+                    obj = createArray(obj, line);
                     Array.set(arr, i, obj);
                     compArchiver.deserializeArray(obj, in);
                 }
@@ -765,70 +792,6 @@ public class Reflector<T> {
         }
     }
 
-    private static Comparator<Field> xfieldComparator = new XFieldComparator();
-
-    private final static class XFieldComparator implements Comparator<Field> {
-
-        @Override
-        public int compare(Field arg0, Field arg1) {
-            return arg0.getName().compareTo(arg1.getName());
-        }
-        
-    };
-    
-    private final static Comparator<Field> fieldComparator = new FieldComparator();
-
-    private final static class FieldComparator implements Comparator<Field> {
-
-    	Class<?> [] clazzes = {
-    		boolean.class,
-    		byte.class,
-    		int.class,
-    		long.class,
-    		float.class,
-    		double.class,
-    		Boolean.class,
-    		Byte.class,
-    		Integer.class,
-    		Long.class,
-    		Float.class,
-    		Double.class,
-    		String.class,
-    		Enum.class,
-    		Reflector.class,
-    		Array.class,
-    		Collection.class,
-    		Map.class
-    	};
-    	
-    	
-    	private int getFieldNumber(Field f) {
-    		for (int i=0; i<clazzes.length; i++) {
-    			if (clazzes[i] == Array.class && f.getType().isArray())
-    				return i;
-    			if (f.getType() == clazzes[i] || f.getType().equals(clazzes[i]) || clazzes[i].isAssignableFrom(f.getType()) || isSubclassOf(clazzes[i], f.getType())) {
-    				return i;
-    			}
-    		}
-    		//System.err.println("Failed to categorize type '" + f.getType());// + "' into one of " + Arrays.toString(clazzes));
-    		return Integer.MAX_VALUE;
-    	}
-    	
-		@Override
-		public int compare(Field o1, Field o2) {
-
-			int n0 = getFieldNumber(o1);
-			int n1 = getFieldNumber(o2);
-			
-			if (n0 == n1) {
-				return o1.getName().compareTo(o2.getName());
-			}
-			
-			return n0-n1;
-		}
-    	
-	};
-    
     private static void inheritValues(Class<?> clazz, Map<Field, Archiver> values) {
         if (clazz == null || clazz.equals(Archiver.class))
             return;
@@ -998,7 +961,8 @@ public class Reflector<T> {
         try {
             Field field = clazz.getDeclaredField(name);
             if (field.getAnnotation(Omit.class) != null) {
-                throw new RuntimeException("This field has been omitted using Omit annotation.");
+                System.err.println("Field '" + name + "' has been omitted using Omit annotation.");
+                return;
             }
             if (Modifier.isStatic(field.getModifiers()))
                 throw new RuntimeException("Cannot add static fields");
@@ -1195,7 +1159,7 @@ public class Reflector<T> {
         serialize(new MyPrintWriter(out));
     }
     
-    private static Object parse(Class<?> clazz, MyBufferedReader in) throws Exception {
+    private static Object parse(Object current, Class<?> clazz, MyBufferedReader in) throws Exception {
         if (clazz.isEnum())
             return findEnumEntry(clazz, readLineOrEOF(in));
         if (clazz.isArray()) {
@@ -1212,7 +1176,11 @@ public class Reflector<T> {
         if (isSubclassOf(clazz, Boolean.class))
             return Boolean.parseBoolean(readLineOrEOF(in));
         if (isSubclassOf(clazz, Reflector.class)) {
-            Reflector<?> a = (Reflector<?>)clazz.newInstance();
+            Reflector<?> a;
+            if (!KEEP_INSTANCES || current == null)
+                a = (Reflector<?>)clazz.newInstance();
+            else
+                a = (Reflector)current;
             a.deserialize(in);
             return a;
         }
@@ -1228,25 +1196,47 @@ public class Reflector<T> {
     @SuppressWarnings({ "unchecked", "rawtypes" })
     private static void deserializeCollection(Collection c, MyBufferedReader in) throws Exception {
     	final int startDepth = in.depth;
+        Iterator it = null;
+        if (!KEEP_INSTANCES)
+            c.clear();
+        else
+            it = c.iterator();
     	while (true) {
     		String line = readLineOrEOF(in);
     		if (line == null)
     			break;
             Object entry = null;
+            boolean doAdd = true;
+            if (it != null && it.hasNext()) {
+                entry = it.next();
+                doAdd = false;
+            }
             if (!line.equals("null")) {
             	String [] parts = line.split(" ");
-	            Class<?> clazz = getClassForName(parts[0]);
 	            if (parts.length > 1) {
-	            	int num = Integer.parseInt(parts[1]);
-	            	entry = Array.newInstance(clazz, num);
-	                getArchiverForType(clazz).deserializeArray(entry, in);
-	            } else
-	            	entry = parse(clazz, in); 
+                    int num = Integer.parseInt(parts[1]);
+                    if (!KEEP_INSTANCES || entry == null || Array.getLength(entry) != num) {
+                        Class<?> clazz = getClassForName(parts[0]);
+                        entry = Array.newInstance(clazz, num);
+                    }
+	                getArchiverForType(entry.getClass()).deserializeArray(entry, in);
+	            } else {
+                    Class<?> clazz;
+                    if (!KEEP_INSTANCES || entry == null)
+                        clazz = getClassForName(parts[0]);
+                    else
+                        clazz = entry.getClass();
+                    entry = parse(entry, clazz, in);
+                }
 	            if (in.depth > startDepth)
     	            if (readLineOrEOF(in) != null)
     	            	throw new Exception("Line " + in.lineNum + " Expected closing '}'");
             }
-            c.add(entry);
+            if (doAdd)
+                c.add(entry);
+        }
+        while (it != null && it.hasNext()) {
+            it.remove(); // remove any remaining in the collection
         }
     }
     
@@ -1257,7 +1247,7 @@ public class Reflector<T> {
             if (line == null || line.equals("null"))
                 break;
             Class<?> clazz = getClassForName(line);
-	    	Object key = parse(clazz, in);
+	    	Object key = parse(null, clazz, in);
 	    	if (key == null)
 	    		throw new Exception("null key in map");
         	line = readLineOrEOF(in).trim();
@@ -1269,7 +1259,7 @@ public class Reflector<T> {
             Object value = null;
             if (line != null && !line.equals("null")) {
 	            clazz = getClassForName(line);
-	            value = parse(clazz, in);
+	            value = parse(null, clazz, in);
 	            line = readLineOrEOF(in);
 	            if (line != null)
 	                throw new Exception("Expected '}' to end the value");
@@ -1332,7 +1322,8 @@ public class Reflector<T> {
             for (Field field : values.keySet()) {
                 if (field.getName().equals(name)) {
                     Archiver archiver = values.get(field);
-                    archiver.set(field, parts[1], this);
+                    Object instance = field.get(this);
+                    archiver.set(instance, field, parts[1], this);
                     if (field.get(Reflector.this) instanceof Reflector) {
                         Reflector<T> ref = (Reflector<T>)field.get(Reflector.this);
                         ref.deserialize(in);

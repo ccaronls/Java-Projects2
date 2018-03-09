@@ -34,8 +34,23 @@ sourceSets {
             srcDirs = [ 'src' ]
             exclude '**/skunkworks/**'
         }
+
+    }
+
+    test {
+        java {
+            srcDirs = ['test']
+        }
     }
 
     test.java.srcDirs = ['test']
     test.resources.srcDirs = ['testResources']
+}
+
+
+
+dependencies {
+    // https://mvnrepository.com/artifact/org.json/json
+    compile group: 'org.json', name: 'json', version: '20090211'
+    testCompile 'junit:junit:4.12'
 }

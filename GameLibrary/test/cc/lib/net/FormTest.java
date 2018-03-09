@@ -1,11 +1,9 @@
 package cc.lib.net;
 
+import junit.framework.TestCase;
+
 import java.util.Arrays;
 import java.util.Map;
-
-import cc.lib.crypt.SimpleCypher;
-import cc.lib.net.GameServerTest.MyGameClient;
-import junit.framework.TestCase;
 
 public class FormTest extends TestCase {
 
@@ -25,8 +23,8 @@ public class FormTest extends TestCase {
                          + "---------------------------------------\n");
 
         listener1 = new MyServerListener();
-        server = new GameServer(listener1, PORT, TIMEOUT, VERSION, null, 2);
-
+        server = new GameServer(PORT, TIMEOUT, VERSION, null, 2);
+        server.addListener(listener1);
     }
 
     @Override

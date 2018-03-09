@@ -1,13 +1,13 @@
 package cc.lib.net;
 
+import junit.framework.TestCase;
+
 import java.net.InetAddress;
 import java.util.Map;
 
 import cc.lib.crypt.Cypher;
 import cc.lib.crypt.SimpleCypher;
 import cc.lib.game.Utils;
-
-import junit.framework.TestCase;
 
 /**
  * Test the fundamental connect/disconnect/reconnect functionality to make sure all the
@@ -39,7 +39,8 @@ public class GameServerTest extends TestCase {
         } 
         
         listener1 = new MyServerListener();
-        server = new GameServer(listener1, PORT, TIMEOUT, VERSION, cypher, 2);
+        server = new GameServer(PORT, TIMEOUT, VERSION, cypher, 2);
+        server.addListener(listener1);
         server.listen();
         Utils.waitNoThrow(this, 100);
 
