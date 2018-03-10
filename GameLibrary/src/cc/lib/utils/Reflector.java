@@ -857,7 +857,7 @@ public class Reflector<T> {
 
     private final static Map<Class, Map<Class, Boolean>> subclassOfCache = new HashMap<>();
 
-    private static boolean isSubclassOf(Class<?> subClass, Class<?> baseClass) {
+    public static boolean isSubclassOf(Class<?> subClass, Class<?> baseClass) {
         Boolean result;
         Map<Class, Boolean> baseCache = subclassOfCache.get(subClass);
         if (baseCache == null) {
@@ -1054,7 +1054,20 @@ public class Reflector<T> {
             throw new RuntimeException("Failed to add all fields", e);
         }
     }
-    
+
+    /**
+     * Convenience
+     *
+     * @param obj
+     * @return
+     * @throws IOException
+     */
+    public static String serializeObject(Object obj) throws IOException {
+        StringWriter out = new StringWriter();
+        serializeObject(obj, new MyPrintWriter(out));
+        return out.getBuffer().toString();
+    }
+
     /**
      * Allows serializing of non-reflector types
      *
@@ -1081,6 +1094,19 @@ public class Reflector<T> {
         } catch (Exception e) {
             throw new IOException(e);
         }
+    }
+
+    /**
+     * Convenience
+     *
+     * @param str
+     * @param <T>
+     * @return
+     * @throws IOException
+     */
+    public static <T> T deserializeFromString(String str) throws IOException {
+        StringReader in = new StringReader(str);
+        return deserializeObject(new MyBufferedReader(in));
     }
 
     /**
@@ -1249,10 +1275,20 @@ public class Reflector<T> {
             a.deserialize(in);
             return a;
         }
+        if (isSubclassOf(clazz, Map.class)) {
+            Map map = (Map)clazz.newInstance();
+            deserializeMap(map, in);
+            return map;
+        }
+        if (isSubclassOf(clazz, Collection.class)) {
+            Collection c = (Collection)clazz.newInstance();
+            deserializeCollection(c, in);
+            return c;
+        }
         try {
             // try to create from a string constructor
             Constructor<?> cons = clazz.getConstructor(String.class);
-            String arg = readLineOrEOF(in).trim();
+            String arg = readLineOrEOF(in);
             return cons.newInstance(arg);
         } catch (NoSuchMethodException e) {}
         throw new Exception("Dont know how to parse class " + clazz);
@@ -1309,18 +1345,18 @@ public class Reflector<T> {
     @SuppressWarnings({ "unchecked", "rawtypes" })
     private static void deserializeMap(Map c, MyBufferedReader in) throws Exception {
     	while (true) {
-        	String line = readLineOrEOF(in).trim();
-            if (line == null || line.equals("null"))
+        	String line = readLineOrEOF(in);
+        	if (line == null || line.equals("null"))
                 break;
             Class<?> clazz = getClassForName(line);
 	    	Object key = parse(null, clazz, in);
 	    	if (key == null)
 	    		throw new Exception("null key in map");
-        	line = readLineOrEOF(in).trim();
-            if (line == null) // !line.equals("}"))
+        	line = readLineOrEOF(in);
+            if (line == null)
                 throw new Exception("Expected '}' to end the key");
-        	line = readLineOrEOF(in).trim();
-            if (line == null) //.equals("}"))
+        	line = readLineOrEOF(in);
+            if (line == null)
                 throw new Exception("Missing value from key/value pair in map");
             Object value = null;
             if (line != null && !line.equals("null")) {

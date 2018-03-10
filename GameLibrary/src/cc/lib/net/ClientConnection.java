@@ -4,6 +4,8 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 
+import cc.lib.utils.Reflector;
+
 /**
  * ClientConnection handles the socket and threads associated with a single client
  * That has passed the handshaking test.
@@ -207,6 +209,18 @@ public class ClientConnection extends CommandQueueReader implements Runnable {
     
     public final void sendForm(ServerForm form) {
         sendCommand(new GameCommand(GameCommandType.SVR_FORM).setArg("xml", form.toXML()).setArg("id", "" + form.getId()));
+    }
+
+    public final void executeMethod(String methodName, Object...params) throws IOException {
+        GameCommand cmd = new GameCommand(GameCommandType.SVR_EXECUTE_METHOD);
+        cmd.setArg("method", methodName);
+        cmd.setArg("numParams", params.length);
+        int index = 0;
+        for (Object o : params) {
+            cmd.setArg("param" + index, Reflector.serializeObject(o));
+            index++;
+        }
+        sendCommand(cmd);
     }
     
     /*

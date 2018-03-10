@@ -1,6 +1,7 @@
 package cc.lib.net;
 
 import java.io.*;
+import java.lang.reflect.Method;
 import java.net.*;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -9,6 +10,7 @@ import java.util.Set;
 import cc.lib.crypt.Cypher;
 import cc.lib.crypt.EncryptionInputStream;
 import cc.lib.crypt.EncryptionOutputStream;
+import cc.lib.utils.Reflector;
 
 /**
  * Base class for clients that want to connect to a GameServer
@@ -275,7 +277,9 @@ public abstract class GameClient {
                     } else if (cmd.getType() == GameCommandType.SVR_FORM) {
                         ClientForm clForm = new ClientForm(Integer.parseInt(cmd.getArg("id")), cmd.getArg("xml"));
                         onForm(clForm);
-                    } else {      
+                    } else if (cmd.getType() == GameCommandType.SVR_EXECUTE_METHOD) {
+                        doExecuteCommand(cmd);
+                    } else {
                         onCommand(cmd);
                         Iterator<Listener> it = listeners.iterator();
                         while (it.hasNext()) {
@@ -302,6 +306,70 @@ public abstract class GameClient {
                 onDisconnected(disconnectedReason);
             logDebug("GameClient: Client Listener Thread exiting");
         }
+    }
+
+    private void doExecuteCommand(GameCommand cmd) throws IOException {
+        String method = cmd.getArg("method");
+        int numParams = cmd.getInt("numParams");
+        Class [] paramsTypes = new Class[numParams];
+        Object [] params = new Object[numParams];
+        for (int i=0; i<numParams; i++) {
+            String param = cmd.getArg("param" + i);
+            Object o = Reflector.deserializeFromString(param);
+            paramsTypes[i] = o.getClass();
+            params[i] = o;
+        }
+        Object obj = getExecuteObject();
+        try {
+            Method m = obj.getClass().getDeclaredMethod(method, paramsTypes);
+            m.invoke(obj, params);
+        } catch (Exception e) {
+            // search methods to see if there is a compatible match
+            try {
+                searchMethods(obj, method, paramsTypes, params);
+            } catch (Exception ee) {
+                throw new IOException(ee);
+            }
+        }
+    }
+
+    private void searchMethods(Object execObj, String method, Class [] types, Object [] params) throws Exception {
+        for (Method m : execObj.getClass().getDeclaredMethods()) {
+            if (!m.getName().equals(method))
+                continue;
+            Class [] paramTypes = m.getParameterTypes();
+            if (paramTypes.length != types.length)
+                continue;
+            boolean match = true;
+            for (int i=0; i<paramTypes.length; i++) {
+                if (!isCompatiblePrimitives(paramTypes[i], types[i]) && !Reflector.isSubclassOf(paramTypes[i], types[i])) {
+                    match = false;
+                    break;
+                }
+            }
+            if (match) {
+                m.invoke(execObj, params);
+                return;
+            }
+        }
+        throw new Exception("Failed to match method '" + method + "'");
+    }
+
+    private boolean isCompatiblePrimitives(Class a, Class b) {
+        if ((a.equals(Integer.class) || a.equals(int.class)) && (b.equals(Integer.class) || b.equals(int.class)))
+            return true;
+        if ((a.equals(Float.class) || a.equals(float.class)) && (b.equals(Float.class) || b.equals(float.class)))
+            return true;
+        return false;
+    }
+
+    /**
+     * Must override to be able to use execute method
+     *
+     * @return
+     */
+    protected Object getExecuteObject() {
+        throw new AssertionError();
     }
     
     /**

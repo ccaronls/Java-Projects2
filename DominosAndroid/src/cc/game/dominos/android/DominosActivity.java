@@ -200,6 +200,43 @@ public class DominosActivity extends DroidActivity {
                         break;
                 }
             }
+
+            @Override
+            protected void onPiecePlaced(Player player, Tile pc) {
+                super.onPiecePlaced(player, pc);
+                if (server.isRunning()) {
+                }
+            }
+
+            @Override
+            protected void onTilePlaced(Player p, Move mv) {
+                super.onTilePlaced(p, mv);
+            }
+
+            @Override
+            protected void onTileFromPool(Player p, Tile pc) {
+                super.onTileFromPool(p, pc);
+            }
+
+            @Override
+            protected void onKnock(Player p) {
+                super.onKnock(p);
+            }
+
+            @Override
+            protected void onEndRound() {
+                super.onEndRound();
+            }
+
+            @Override
+            protected void onPlayerEndRoundPoints(Player p, int pts) {
+                super.onPlayerEndRoundPoints(p, pts);
+            }
+
+            @Override
+            protected void onPlayerPoints(Player p, int pts) {
+                super.onPlayerPoints(p, pts);
+            }
         };
 
         try {
@@ -490,7 +527,14 @@ public class DominosActivity extends DroidActivity {
                     players[0] = new PlayerUser();
                     Iterator<ClientConnection> it = server.getConnectionValues().iterator();
                     for (int i=1; i<players.length; i++) {
-                        players[i] = new PlayerRemoteClient(it.next());
+                        ClientConnection c = it.next();
+                        c.sendCommand(new GameCommand(SVR_TO_CL_INIT_GAME)
+                                .setArg("numPlayers", maxPlayers)
+                                .setArg("maxPips", dominos.getMaxPips())
+                                .setArg("maxScore", dominos.getMaxScore())
+                                .setArg("playerNum", i)
+                        );
+                        players[i] = new PlayerRemoteClient(c);
                     }
                     dominos.setPlayers(players);
                     dominos.startGameThread();
@@ -795,7 +839,19 @@ public class DominosActivity extends DroidActivity {
                 user.setScore(cmd.getInt("score"));
                 dominos.redraw();
             } else if (cmd.getType() == SVR_TO_CL_INIT_GAME) {
-
+                int numPlayers = cmd.getInt("numPlayers");
+                int maxPips = cmd.getInt("maxPips");
+                int maxScore = cmd.getInt("maxScore");
+                int playerNum = cmd.getInt("playerNum");
+                Player [] players = new Player[numPlayers];
+                int idx = 0;
+                for (; idx<playerNum; idx++)
+                    players[idx] = new Player();
+                players[idx++] = user;
+                for ( ; idx<numPlayers; idx++)
+                    players[idx] = new Player();
+                dominos.initGame(maxPips, maxScore, 0);
+                dominos.setPlayers(players);
             }
         }
 
@@ -825,9 +881,16 @@ public class DominosActivity extends DroidActivity {
     private final static GameCommandType SVR_TO_CL_CHOOSE_MOVE = new GameCommandType("SVR_CHOOSE_MOVE");
     private final static GameCommandType CL_TO_SVR_MOVE_CHOSEN = new GameCommandType("CL_MOVE_CHOSEN");
 
+    /** include:
+           numPlayers(int)
+           maxPips(int)
+           maxScore(int)
+           playerNum(int) of the client
+     */
     private final static GameCommandType SVR_TO_CL_INIT_GAME   = new GameCommandType("SVR_INIT_GAME");
     private final static GameCommandType SVR_TO_CL_REMOVE_TILE = new GameCommandType("SVR_REMOVE_TILE");
     private final static GameCommandType SVR_TO_CL_SET_SCORE   = new GameCommandType("SVR_SET_SCORE");
+    private final static GameCommandType SVR_TO_CL_EXEC_METHOD = new GameCommandType("SVR_EXEC_METHOD");
 
     // inctance of players when we are the host
     class PlayerRemoteClient extends Player implements GameServer.Listener {

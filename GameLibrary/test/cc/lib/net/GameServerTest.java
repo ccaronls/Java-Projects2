@@ -3,6 +3,7 @@ package cc.lib.net;
 import junit.framework.TestCase;
 
 import java.net.InetAddress;
+import java.util.HashMap;
 import java.util.Map;
 
 import cc.lib.crypt.Cypher;
@@ -86,6 +87,41 @@ public class GameServerTest extends TestCase {
             }
         }).start();
         
+        synchronized (server) {
+            server.wait();
+        }
+    }
+
+    public void testExecuteRemoteMethod() throws Exception {
+        new Thread(new Runnable() {
+            public void run() {
+                try {
+
+                    Thread.sleep(1000);
+                    MyGameClient cl = new MyGameClient("XX");
+                    cl.connect(InetAddress.getLocalHost(), PORT);
+                    Thread.sleep(1000);
+                    assertTrue(listener1.connected);
+                    assertTrue(cl.connected);
+                    server.getClientConnection("XX").executeMethod("testMethod", 15, "Hello", new HashMap<>());
+                    Thread.sleep(3000);
+                    assertEquals(15, cl.arg0);
+                    assertEquals("Hello", cl.arg1);
+                    assertNotNull(cl.arg2);
+                    cl.disconnect();
+                    Thread.sleep(1000);
+                    assertTrue(listener1.disconnected);
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                synchronized (server) {
+                    server.notify();
+                }
+            }
+        }).start();
+
         synchronized (server) {
             server.wait();
         }
@@ -549,6 +585,20 @@ public class GameServerTest extends TestCase {
             super.logDebug("Form receieved: " + form.toXML());
         }
         
-        
+        public void testMethod(int arg0, String arg1, HashMap arg2) {
+            System.out.println("testMethod executed with: " + arg0 + " " + arg1 + " " + arg2);
+            this.arg0 = arg0;
+            this.arg1 = arg1;
+            this.arg2 = arg2;
+        }
+
+        int arg0;
+        String arg1;
+        Map arg2;
+
+        @Override
+        protected Object getExecuteObject() {
+            return this;
+        }
     }
 }

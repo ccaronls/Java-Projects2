@@ -74,6 +74,8 @@ public class GameCommandType implements Comparable<GameCommandType> {
     static final GameCommandType SVR_DISCONNECTED = new GameCommandType("SVR_DISCONNECTED");
     // server send a form to be filled out by client
     static final GameCommandType SVR_FORM = new GameCommandType("SVR_FORM");
+
+    static final GameCommandType SVR_EXECUTE_METHOD = new GameCommandType("SVR_EXECUTE_METHOD");
     
     /**
      * 

@@ -355,7 +355,7 @@ public class ReflectorTest extends TestCase {
     	t.deserialize(s);
     	System.out.println(t);
     }
-    
+
     public static class TestListOfArrays extends Reflector<TestListOfArrays> {
     	static {
     		addAllFields(TestListOfArrays.class);
@@ -375,5 +375,18 @@ public class ReflectorTest extends TestCase {
         	};
         	objects2.add(arr2);
     	}
+    }
+
+    // NOPE, cannot handle
+    public void xtestSerializeObjectArray() throws Exception {
+        Object [] arr = {
+                "hello",
+                15,
+                new BaseClass()
+        };
+
+        StringWriter out = new StringWriter();
+        Reflector.serializeObject(arr, new PrintWriter(out));
+        System.out.println(out.getBuffer().toString());
     }
 }
