@@ -198,6 +198,19 @@ public class GameServer {
     public final int getNumClients() {
         return clients.size();                
     }
+
+    /**
+     *
+     * @return
+     */
+    public final int getNumConnectedClients() {
+        int num = 0;
+        for (ClientConnection c : clients.values()) {
+            if (c.isConnected())
+                num++;
+        }
+        return num;
+    }
     
     /**
      * Broadcast a command to all connected clients
@@ -213,6 +226,26 @@ public class GameServer {
                         e.printStackTrace();
                         logError("ERROR Sending to client '" + c.getName() + "' " + e.getClass() + " " + e.getMessage());
                     }
+            }
+        }
+    }
+
+    /**
+     *
+     * @param method
+     * @param params
+     */
+    public final void broadcastExecuteRemoteMethod(String method, Object ... params) {
+        synchronized (clients) {
+            for (ClientConnection c : clients.values()) {
+                if (c.isConnected()) {
+                    try {
+                        c.executeMethod(method, params);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        logError("ERROR Sending to client '" + c.getName() + "' " + e.getClass() + " " + e.getMessage());
+                    }
+                }
             }
         }
     }
@@ -298,6 +331,7 @@ public class GameServer {
                 }
                 
                 GameCommand cmd = GameCommand.parse(in);
+                logDebug("Parsed incoming command: " + cmd);
                 String name = cmd.getName();
                 String clientVersion = cmd.getVersion();
                 if (clientVersion == null) {
@@ -310,14 +344,20 @@ public class GameServer {
                 
                 synchronized (clients) {
                     if (cmd.getType() == GameCommandType.CL_CONNECT) {
+                        conn = null;
                         if (clients.containsKey(name)) {
-                            //new GameCommand(GameCommandType.SVR_MESSAGE).setMessage("ERROR: A client with the name '" + name + "' is already connected").write(out);
-                            throw new ProtocolException("client with name already exists");
+                            conn = clients.get(name);
+                            if (conn.isConnected()) {
+                                //new GameCommand(GameCommandType.SVR_MESSAGE).setMessage("ERROR: A client with the name '" + name + "' is already connected").write(out);
+                                throw new ProtocolException("client with name already exists");
+                            }
                         }
-                        if (clients.size() >= maxConnections) {
-                            throw new java.net.ProtocolException("Max client connections reached");
+                        if (conn == null) {
+                            if (clients.size() >= maxConnections) {
+                                throw new java.net.ProtocolException("Max client connections reached");
+                            }
+                            conn = new ClientConnection(GameServer.this, name);
                         }
-                        conn = new ClientConnection(GameServer.this, name);
                         conn.connect(socket, in, out);
                         clients.put(name, conn);
                     } else if (cmd.getType() == GameCommandType.CL_RECONNECT) {
@@ -416,7 +456,7 @@ public class GameServer {
      * Override to perform custom error logging.  default writes to stderr
      * @param e
      */
-    public void logError(Exception e) {
+    public final void logError(Exception e) {
         System.err.println("ERROR:" + e.getClass().getSimpleName() + " " + e.getMessage());
     }
     

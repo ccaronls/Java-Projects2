@@ -7,7 +7,7 @@ import java.util.*;
  * An Extendible Enum 
  * We go with this scheme for the sake of extensibility since we cannot extend an enum.
  * 
- * It still has the things we like about Enum like ordinal and not needing equals().
+ * It still has the things we like about Enum like ordinal and allowing == for comparisons.
  * However we do lose the ability to use switch-case statements,
  * but this is acceptable since if-else work the same if not quite as pretty.
  *   
@@ -38,7 +38,7 @@ import java.util.*;
  * @author ccaron
  *
  */
-public class GameCommandType implements Comparable<GameCommandType> {
+public final class GameCommandType implements Comparable<GameCommandType> {
     
     private final static Map<String, GameCommandType> instances = new LinkedHashMap<String, GameCommandType>() {
         // we want to preserve ordering (linked hash map) and prevent misuse by overriding put
@@ -62,7 +62,8 @@ public class GameCommandType implements Comparable<GameCommandType> {
     static final GameCommandType CL_KEEPALIVE = new GameCommandType("CL_KEEPALIVE");
     // command to submit a form
     static final GameCommandType CL_FORM_SUBMIT = new GameCommandType("CL_FORM_SUBMIT");
-    
+    static final GameCommandType CL_ERROR       = new GameCommandType("CL_ERROR");
+
     // commands that originate from the server
     
     // confirmation command from the server that a client has connected    
@@ -98,10 +99,6 @@ public class GameCommandType implements Comparable<GameCommandType> {
         return this.mOrdinal;
     }
 
-//    public static void registerGameCommand(String id) {
-//        instances.put(id, new GameCommandType(id));
-//    }
-    
     /**
      * Just like enum
      * @return

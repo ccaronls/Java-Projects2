@@ -9,18 +9,7 @@ buildscript {
         classpath 'org.junit.platform:junit-platform-gradle-plugin:1.0.1'
     }
 }
-/*
-dependencies {
-    testCompile(
-            'org.junit.jupiter:junit-jupiter-api:5.0.1'
-    )
-    testRuntime(
-            'org.junit.jupiter:junit-jupiter-engine:5.0.1',
-            'org.junit.vintage:junit-vintage-engine:4.12.1',
-            'org.junit.platform:junit-platform-launcher:1.0.1',
-            'org.junit.platform:junit-platform-runner:1.0.1'
-    )
-}*/
+
 repositories {
     jcenter()
 }
@@ -43,7 +32,6 @@ sourceSets {
         }
     }
 
-    test.java.srcDirs = ['test']
     test.resources.srcDirs = ['testResources']
 }
 

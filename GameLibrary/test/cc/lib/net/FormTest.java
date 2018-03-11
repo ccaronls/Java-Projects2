@@ -252,12 +252,6 @@ public class FormTest extends TestCase {
         }
 
         @Override
-        public void logError(Exception e) {
-            // TODO Auto-generated method stub
-            super.logError("----> MyGameClient:  " + e.getClass().getSimpleName() + " " + e.getMessage());
-        }
-
-        @Override
         protected void onForm(ClientForm form) {
             try {
                 this.form = form;
@@ -280,7 +274,12 @@ public class FormTest extends TestCase {
             } finally {            
                 
             }
-        }        
+        }
+
+        @Override
+        protected Object getExecuteObject() {
+            return null;
+        }
     }
     
     void makeForm(ServerForm form) {

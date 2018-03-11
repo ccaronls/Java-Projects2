@@ -1,9 +1,25 @@
 apply plugin: 'java'
 apply plugin: 'application'
+apply plugin: 'org.junit.platform.gradle.plugin'
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'org.junit.platform:junit-platform-gradle-plugin:1.0.1'
+    }
+}
+
+repositories {
+    jcenter()
+}
 
 dependencies {
     compile project(':GameLibrary')
     compile fileTree(dir: 'lib', include: '*.jar')
+    testCompile 'junit:junit:4.12'
+    compile 'junit:junit:4.12'
 }
 
 sourceSets {
@@ -14,6 +30,12 @@ sourceSets {
 
         resources {
             srcDirs = ['images'];
+        }
+    }
+
+    test {
+        java {
+            srcDirs = ['test']
         }
     }
 }

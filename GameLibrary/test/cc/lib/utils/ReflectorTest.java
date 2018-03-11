@@ -9,9 +9,11 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.TreeSet;
 
 public class ReflectorTest extends TestCase {
@@ -45,6 +47,29 @@ public class ReflectorTest extends TestCase {
 
         String in = Reflector.deserializeObject(new BufferedReader(new StringReader(writer.getBuffer().toString())));
         assertEquals(in, str);
+
+        writer.getBuffer().setLength(0);
+        Reflector r = new SmallReflector();
+        Reflector.serializeObject(r, new PrintWriter(writer));
+        System.out.println(writer.getBuffer().toString());
+
+        Reflector rin = Reflector.deserializeObject(new BufferedReader(new StringReader(writer.getBuffer().toString())));
+        assertEquals(rin, r);
+
+        writer.getBuffer().setLength(0);
+        Map<String, Integer> m = new HashMap();
+        m.put("hello", 1);
+        m.put("goodbye", 2);
+        Reflector.serializeObject(m, new PrintWriter(writer));
+        System.out.println(writer.getBuffer().toString());
+
+        Map min = Reflector.deserializeObject(new BufferedReader(new StringReader(writer.getBuffer().toString())));
+
+        assertTrue(m.size() == min.size());
+        for (String s: m.keySet()) {
+            assertEquals(m.get(s), min.get(s));
+        }
+
     }
 
     public void testSerializeStringArray() throws Exception {

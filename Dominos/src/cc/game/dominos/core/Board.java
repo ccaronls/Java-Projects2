@@ -99,7 +99,7 @@ public class Board extends Reflector<Board> {
     @Omit
     final List<AAnimation<AGraphics>> animations = new ArrayList<>();
 
-    final void clear() {
+    final synchronized void clear() {
         root = null;
         for (List<?> l : endpoints) {
             l.clear();
@@ -128,7 +128,7 @@ public class Board extends Reflector<Board> {
         }
     }
 
-    final List<Tile> collectPieces() {
+    final synchronized List<Tile> collectPieces() {
         List<Tile> pieces = new ArrayList<>();
         if (root != null) {
             pieces.add(root);
@@ -141,7 +141,7 @@ public class Board extends Reflector<Board> {
         return pieces;
     }
 
-    final void placeRootPiece(Tile pc) {
+    final synchronized void placeRootPiece(Tile pc) {
         root = pc;
         rects.add(new Vector2D[] {
                 new Vector2D(-1, -0.5f),
@@ -188,28 +188,28 @@ public class Board extends Reflector<Board> {
         return p.pip1 == pips || p.pip2 == pips;
     }
 
-    final void doMove(Move mv) {
+    final synchronized void doMove(Tile piece, int endpoint, int placement) {
         int open = 0;
-        if (endpoints[mv.endpoint].size() == 0) {
+        if (endpoints[endpoint].size() == 0) {
             open = root.openPips;
         } else {
-            open = endpoints[mv.endpoint].getLast().openPips;
+            open = endpoints[endpoint].getLast().openPips;
         }
-        if (mv.piece.pip1 == open) {
-            mv.piece.openPips = mv.piece.pip2;
-        } else if (mv.piece.pip2 == open) {
-            mv.piece.openPips = mv.piece.pip1;
+        if (piece.pip1 == open) {
+            piece.openPips = piece.pip2;
+        } else if (piece.pip2 == open) {
+            piece.openPips = piece.pip1;
         }
-        endpoints[mv.endpoint].addLast(mv.piece);
-        mv.piece.placement = mv.placment;
-        transformPlacement(endpointTransforms[mv.endpoint], mv.placment);
+        endpoints[endpoint].addLast(piece);
+        piece.placement = placement;
+        transformPlacement(endpointTransforms[endpoint], placement);
         Vector2D v0 = Vector2D.ZERO;
         Vector2D v1 = new Vector2D(2, 1);
         rects.add(new Vector2D[] {
-            endpointTransforms[mv.endpoint].multiply(v0),
-            endpointTransforms[mv.endpoint].multiply(v1)
+            endpointTransforms[endpoint].multiply(v0),
+            endpointTransforms[endpoint].multiply(v1)
         });
-        endpointTransforms[mv.endpoint].multiplyEq(new Matrix3x3().setTranslate(2, 0));
+        endpointTransforms[endpoint].multiplyEq(new Matrix3x3().setTranslate(2, 0));
     }
 
     private void transformPlacement(AGraphics g, int placement) {
@@ -662,7 +662,7 @@ public class Board extends Reflector<Board> {
         return score;
     }
 
-    final void highlightMoves(List<Move> moves) {
+    final synchronized void highlightMoves(List<Move> moves) {
         for (int i=0; i<4; i++)
             highlightedMoves[i].clear();
 

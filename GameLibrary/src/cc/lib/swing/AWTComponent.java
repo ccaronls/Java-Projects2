@@ -83,7 +83,7 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
             g.translate(-padding,-padding);
             g.setClip(0, 0, super.getWidth(), super.getHeight());
             if (focused) {
-                System.out.println("AWT " + toString() + " has focus!");
+//                System.out.println("AWT " + toString() + " has focus!");
                 g.setColor(Color.BLUE);
                 g.drawRect(0, 0, super.getWidth()-1, super.getHeight()-1);
             }

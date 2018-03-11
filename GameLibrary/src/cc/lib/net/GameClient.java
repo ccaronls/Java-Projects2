@@ -1,10 +1,18 @@
 package cc.lib.net;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.reflect.Method;
-import java.net.*;
+import java.net.InetAddress;
+import java.net.Socket;
+import java.net.UnknownHostException;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import cc.lib.crypt.Cypher;
@@ -64,15 +72,27 @@ public abstract class GameClient {
      * 
      * @param userName
      * @param version
+     * @param cypher
      */
-    public GameClient(String userName, String version) {
+    public GameClient(String userName, String version, Cypher cypher) {
         this.userName = userName;
         this.version = version;
+        this.cypher = cypher;
+    }
+
+    /**
+     * Convenience. Create no-cypher client
+     *
+     * @param userName
+     * @param version
+     */
+    public GameClient(String userName, String version) {
+        this(userName, version, null);
     }
 
     /**
      * Attach a cypher if we are connecting to a secure server
-     *  
+     *
      * @param cypher
      */
     public final void setCypher(Cypher cypher) {
@@ -138,7 +158,10 @@ public abstract class GameClient {
                 new Thread(new SocketReader()).start();
                 logDebug("Connection SUCCESS");
                 break;
-                
+            case CONNECTED:
+            case CONNECTING:
+                // ignore?
+                break;
             default:
                 throw new IOException("Cannot connect while in state: " + state);
         }
@@ -166,9 +189,9 @@ public abstract class GameClient {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            //outQueue.stop();
+            outQueue.stop();
             logDebug("GameClient: outQueue stopped");
-            //close();
+            close();
         }
     }
     
@@ -234,7 +257,7 @@ public abstract class GameClient {
      * Default behavior is to write to stderr.
      * @param e
      */
-    public void logError(Exception e) {
+    public final void logError(Exception e) {
         logError("ERROR " + getClass().getSimpleName() + ":" + e.getClass().getSimpleName() + " " + e.getMessage());
     }
     
@@ -253,6 +276,7 @@ public abstract class GameClient {
             while (!isDisconnecting()) {
                 try {
                     final GameCommand cmd = GameCommand.parse(in);
+                    logDebug("Parsed incoming cmd: " + cmd);
                     if (cmd.getType() == GameCommandType.SVR_CONNECTED) {
                         int keepAliveFreqMS = Integer.parseInt(cmd.getArg("keepAlive"));
                         outQueue.setTimeout(keepAliveFreqMS);
@@ -287,14 +311,16 @@ public abstract class GameClient {
                                 it.next().onCommand(cmd);
                             } catch (Exception e) {
                                 e.printStackTrace();
-                                it.remove();
                             }
                         }
                     }
                 
                 } catch (Exception e) {
                     if (!isDisconnecting()) {
-                        logError(e);
+                        sendError(e);
+//                        send(new GameCommand(GameCommandType.CL_ERROR).setArg("msg", "ERROR: " + e.getClass().getSimpleName() + ":" + e.getMessage())
+//                                .setArg("stack", Arrays.toString(e.getStackTrace())));
+//                        logError(e);
                         e.printStackTrace();
                         disconnectedReason = ("Exception: " + e.getClass().getSimpleName() + " " + e.getMessage());
                     }
@@ -321,17 +347,25 @@ public abstract class GameClient {
         }
         Object obj = getExecuteObject();
         try {
-            Method m = obj.getClass().getDeclaredMethod(method, paramsTypes);
+            Method m = methodMap.get(method);
+            if (m == null) {
+                m = obj.getClass().getDeclaredMethod(method, paramsTypes);
+                methodMap.put(method, m);
+            }
             m.invoke(obj, params);
         } catch (Exception e) {
+            methodMap.remove(method);
             // search methods to see if there is a compatible match
             try {
                 searchMethods(obj, method, paramsTypes, params);
+
             } catch (Exception ee) {
                 throw new IOException(ee);
             }
         }
     }
+
+    private final Map<String, Method> methodMap = new HashMap<>();
 
     private void searchMethods(Object execObj, String method, Class [] types, Object [] params) throws Exception {
         for (Method m : execObj.getClass().getDeclaredMethods()) {
@@ -342,36 +376,45 @@ public abstract class GameClient {
                 continue;
             boolean match = true;
             for (int i=0; i<paramTypes.length; i++) {
-                if (!isCompatiblePrimitives(paramTypes[i], types[i]) && !Reflector.isSubclassOf(paramTypes[i], types[i])) {
+                if (!isCompatiblePrimitives(paramTypes[i], types[i]) && !Reflector.isSubclassOf(types[i], paramTypes[i])) {
                     match = false;
                     break;
                 }
             }
             if (match) {
                 m.invoke(execObj, params);
+                methodMap.put(method, m);
                 return;
             }
         }
         throw new Exception("Failed to match method '" + method + "'");
     }
 
+    private final static Map<Class, List> primitiveCompatibilityMap = new HashMap<>();
+
+    static {
+        List c;
+        primitiveCompatibilityMap.put(boolean.class, c=Arrays.asList(boolean.class, Boolean.class));
+        primitiveCompatibilityMap.put(Boolean.class, c);
+        primitiveCompatibilityMap.put(byte.class, c=Arrays.asList(byte.class, Byte.class));
+        primitiveCompatibilityMap.put(Byte.class, c);
+        primitiveCompatibilityMap.put(int.class, c=Arrays.asList(int.class, Integer.class, byte.class, Byte.class));
+        primitiveCompatibilityMap.put(Integer.class, c);
+        primitiveCompatibilityMap.put(long.class, c=Arrays.asList(int.class, Integer.class, byte.class, Byte.class, long.class, Long.class));
+        primitiveCompatibilityMap.put(long.class, c);
+        primitiveCompatibilityMap.put(float.class, c=Arrays.asList(int.class, Integer.class, byte.class, Byte.class, float.class, Float.class));
+        primitiveCompatibilityMap.put(Float.class, c);
+        primitiveCompatibilityMap.put(double.class, c=Arrays.asList(int.class, Integer.class, byte.class, Byte.class, float.class, Float.class, double.class, Double.class, long.class, Long.class));
+        primitiveCompatibilityMap.put(Double.class, c);
+
+    }
+
     private boolean isCompatiblePrimitives(Class a, Class b) {
-        if ((a.equals(Integer.class) || a.equals(int.class)) && (b.equals(Integer.class) || b.equals(int.class)))
-            return true;
-        if ((a.equals(Float.class) || a.equals(float.class)) && (b.equals(Float.class) || b.equals(float.class)))
-            return true;
+        if (primitiveCompatibilityMap.containsKey(a))
+            return primitiveCompatibilityMap.get(a).contains(b);
         return false;
     }
 
-    /**
-     * Must override to be able to use execute method
-     *
-     * @return
-     */
-    protected Object getExecuteObject() {
-        throw new AssertionError();
-    }
-    
     /**
      * Send a command to the server.
      * @param cmd
@@ -384,7 +427,19 @@ public abstract class GameClient {
             logError("Send Failed: " + e.getClass().getSimpleName() + " " + e.getMessage());
         }
     }
-    
+
+    public final void sendError(Exception e) {
+        GameCommand cmd = new GameCommand(GameCommandType.CL_ERROR).setArg("msg", "ERROR: " + e.getMessage() + "\n" + Arrays.toString(e.getStackTrace()));
+        logError("Sending error: " + cmd);
+        send(cmd);
+    }
+
+    public final void sendError(String err) {
+        GameCommand cmd = new GameCommand(GameCommandType.CL_ERROR).setArg("msg", "ERROR: " + err);
+        logError("Sending error: " + cmd);
+        send(cmd);
+    }
+
     /**
      * 
      * @param form
@@ -419,12 +474,19 @@ public abstract class GameClient {
      * Called for unhandled server commands.
      * @param cmd
      */
-    protected abstract void onCommand(GameCommand cmd);
+    protected abstract void onCommand(GameCommand cmd) throws Exception;
     
     /**
      * Called when server sends client a form to be filled out
      * @param form
      */
     protected abstract void onForm(ClientForm form);
-    
+
+    /**
+     * Must override to be able to use execute method
+     *
+     * @return
+     */
+    protected abstract Object getExecuteObject();
+
 }

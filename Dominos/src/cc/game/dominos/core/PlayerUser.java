@@ -12,7 +12,7 @@ import cc.lib.game.Utils;
 
 public class PlayerUser extends Player {
 
-    Move choosedMove = null;
+    private Move choosedMove = null;
     final HashSet<Tile> usable = new HashSet<>();
     final List<Move> moves = new ArrayList<>();
 
@@ -28,8 +28,10 @@ public class PlayerUser extends Player {
         }
 
         game.redraw();
-        Utils.waitNoThrow(game, -1);
-        usable.clear();
+        if (game.isGameRunning()) {
+            Utils.waitNoThrow(game, -1);
+            usable.clear();
+        }
 
         return choosedMove;
     }
@@ -37,5 +39,19 @@ public class PlayerUser extends Player {
     @Override
     public boolean isPiecesVisible() {
         return true;
+    }
+
+    public Move getChoosedMove() {
+        return choosedMove;
+    }
+
+    public void setChoosedMove(Move choosedMove) {
+        this.choosedMove = choosedMove;
+    }
+
+    protected void clearMoves() {
+        moves.clear();
+        usable.clear();
+        choosedMove = null;
     }
 }

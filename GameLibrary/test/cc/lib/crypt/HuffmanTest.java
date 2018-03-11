@@ -1,6 +1,7 @@
 package cc.lib.crypt;
 
 import java.io.*;
+import java.util.Arrays;
 
 import cc.lib.utils.FileUtils;
 
@@ -88,6 +89,20 @@ public class HuffmanTest extends SimpleCypherTest {
         int [] counts = {3884,1,1,1,1,1,1,1,1,1,476,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,42,430,1,152,130,160,83,48,58,26,35,41,198,1,1,1,285,1,1,1,5,1,1,35,8,1,1,1,1,1,1,17,29,1,1,50,1,1,1,46,1,37,1,1,1,1,1,1,1,1,1,1,240,63,320,62,366,3,51,40,313,11,6,175,191,154,247,319,1,120,123,179,36,13,1,37,36,1,102,1,102,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
         cypher = new HuffmanEncoding(counts);
         processTextFile(loadFile("dominos.save2").toString());
+    }
+
+    public void testGenRandomCountsForKB() throws Exception {
+        String kb = "1234567890-=`~!@#$%^&*()_+qwertyuiop[]\\asdfghjkl;'zxcvbnm,.//QWERTYUIOP{}|ASDFGHJKL:\"ZXCVBNM<>?\n\r\t";
+        HuffmanEncoding enc = new HuffmanEncoding();
+        enc.importCounts(kb);
+        enc.generateRandomCountsFromExisitngOccurances(System.currentTimeMillis());
+        enc.generate();
+        int [] c0 = enc.getCounts();
+        enc.generate();
+        int [] c1 = enc.getCounts();
+        assertTrue(Arrays.equals(c0, c1));
+        enc.printEncodingAsCode(System.out);
+
     }
     
 }

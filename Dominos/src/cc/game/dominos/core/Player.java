@@ -2,7 +2,6 @@ package cc.game.dominos.core;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 
 import cc.lib.game.AAnimation;
@@ -22,35 +21,29 @@ public class Player extends Reflector<Player> {
     @Omit
     AAnimation<AGraphics> textAnimation = null;
 
-    void reset() {
+    final void reset() {
         tiles.clear();
         score = 0;
         textAnimation = null;
     }
 
-    boolean hasTile(int n1, int n2) {
+    final Tile findTile(int n1, int n2) {
         for (Tile p : tiles) {
             if (p.pip1 == n1 && p.pip2 == n2)
-                return true;
-            if (p.pip2 == n1 && p.pip1 == n2)
-                return true;
-        }
-        return false;
-    }
-
-    public Tile removeTile(int n1, int n2) {
-        Iterator<Tile> it = tiles.iterator();
-        while (it.hasNext()) {
-            Tile p = it.next();
-            if ((p.pip1 == n1 && p.pip2 == n2) ||
-                (p.pip2 == n1 && p.pip1 == n2)) {
-                it.remove();
                 return p;
-            }
+            if (p.pip2 == n1 && p.pip1 == n2)
+                return p;
         }
         return null;
     }
 
+    /**
+     * Override to change behavior. Base method does random pick of availabel choices
+     *
+     * @param game
+     * @param moves
+     * @return
+     */
     public Move chooseMove(Dominos game, List<Move> moves) {
         return moves.get(Utils.rand() % moves.size());
     }
@@ -61,10 +54,6 @@ public class Player extends Reflector<Player> {
 
     public final int getScore() {
         return score;
-    }
-
-    public void setScore(int score) {
-        this.score = score;
     }
 
     public boolean isPiecesVisible() { return false; }

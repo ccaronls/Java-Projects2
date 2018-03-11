@@ -14,7 +14,7 @@ public class PlayerSmart extends Player {
         int bestPts = 0;
         for (Move m : moves) {
             Board copy = game.getBoard().deepCopy();
-            copy.doMove(m);
+            copy.doMove(m.piece, m.endpoint, m.placment);
             int pts = copy.computeEndpointsTotal();
             if (pts % 5 == 0) {
                 if (bestPts < pts) {

@@ -167,12 +167,20 @@ public class HuffmanEncoding implements Cypher {
 
     public HuffmanEncoding(int [] counts) throws HuffmanException {
         clear();
-        if (counts.length != this.counts.length)
+        if (counts.length > this.counts.length)
             throw new AssertionError();
         for (int i=0; i<counts.length; i++) {
             this.counts[i].setOccurance(counts[i]);
         }
         generate();
+    }
+
+    int [] getCounts() {
+        int [] out = new int[COUNTS_ARRAY_SIZE];
+        for (int i=0; i<this.counts.length; i++) {
+            out[i] = counts[i].occurances;
+        }
+        return out;
     }
 
     /**
@@ -209,10 +217,28 @@ public class HuffmanEncoding implements Cypher {
         }
     }
 
+    public final void importCounts(String s) throws IOException {
+        byte [] buffer = new byte[COUNTS_ARRAY_SIZE];
+        byte [] b = s.getBytes();
+        for (int i=0; i<b.length; i++) {
+            int n = b[i];
+            n = (n+256) % 256;
+            counts[n].incrementOccurance();
+        }
+    }
+
+    public final void generateRandomCountsFromExisitngOccurances(long seed) {
+        Random random = new Random(seed);
+        for (int i=0; i<counts.length; i++) {
+            if (counts[i].occurances > 0)
+                counts[i].occurances = 1 + random.nextInt(1024);
+        }
+    }
+
     public void generateRandomCounts(long seed) {
         Random random = new Random(seed);
         for (int i=0; i<counts.length; i++) {
-            counts[i].occurances = random.nextInt(1024);
+            counts[i].occurances = 1 + random.nextInt(1024);
         }
     }
     

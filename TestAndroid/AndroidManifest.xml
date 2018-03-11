@@ -18,13 +18,13 @@
     <application
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
-        android:label="@string/app_name"
+        android:label="WifiTest"
         android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen" >
         <activity
             android:name=".p2p.WifiTest"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:screenOrientation="sensorPortrait"
-            android:icon="@drawable/ic_launcher1"
+            android:icon="@drawable/ic_launcher"
             android:label="Probot">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

@@ -3,7 +3,9 @@ package cc.lib.net;
 import junit.framework.TestCase;
 
 import java.net.InetAddress;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
 
 import cc.lib.crypt.Cypher;
@@ -22,6 +24,8 @@ public class GameServerTest extends TestCase {
     final static String VERSION = "GameServerTest";
     final static int TIMEOUT = 2000;
 
+    Throwable result = null;
+
     final static GameCommandType TEST = new GameCommandType("TEST");
 
     MyServerListener listener1;
@@ -38,7 +42,8 @@ public class GameServerTest extends TestCase {
         if (getName().indexOf("Encrypt") > 0) {
             cypher = SimpleCypher.generateCypher(0);
         } 
-        
+
+        result = null;
         listener1 = new MyServerListener();
         server = new GameServer(PORT, TIMEOUT, VERSION, cypher, 2);
         server.addListener(listener1);
@@ -57,6 +62,10 @@ public class GameServerTest extends TestCase {
         // TODO Auto-generated method stub
         if (server != null)
             server.stop();
+        if (result != null) {
+            result.printStackTrace();
+            fail(result.getMessage());
+        }
     }
     
     // test basic client connect and disconnect
@@ -66,7 +75,7 @@ public class GameServerTest extends TestCase {
         new Thread(new Runnable() {
             public void run() {
                 try {
-                    
+
                     Thread.sleep(1000);
                     MyGameClient cl = new MyGameClient();
                     cl.connect(InetAddress.getLocalHost(), PORT);
@@ -76,13 +85,13 @@ public class GameServerTest extends TestCase {
                     cl.disconnect();
                     Thread.sleep(1000);
                     assertTrue(listener1.disconnected);
-                    
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                
-                synchronized (server) {
-                    server.notify();
+
+                } catch (Throwable e) {
+                    result = e;
+                } finally {
+                    synchronized (server) {
+                        server.notify();
+                    }
                 }
             }
         }).start();
@@ -103,21 +112,56 @@ public class GameServerTest extends TestCase {
                     Thread.sleep(1000);
                     assertTrue(listener1.connected);
                     assertTrue(cl.connected);
-                    server.getClientConnection("XX").executeMethod("testMethod", 15, "Hello", new HashMap<>());
-                    Thread.sleep(3000);
-                    assertEquals(15, cl.arg0);
-                    assertEquals("Hello", cl.arg1);
-                    assertNotNull(cl.arg2);
+                    ClientConnection conn = server.getClientConnection("XX");
+                    /////////////////
+                    conn.executeMethod("testMethod_int", new Integer(10));
+                    Thread.sleep(1000);
+                    assertEquals(cl.argLong, 10);
+                    /////////////////
+                    conn.executeMethod("testMethod_Int", 11);
+                    Thread.sleep(1000);
+                    assertEquals(cl.argLong, 11);
+                    /////////////////
+                    conn.executeMethod("testMethod_float", new Float(12.0f));
+                    Thread.sleep(1000);
+                    assertEquals(cl.argFloat, 12.0);
+                    /////////////////
+                    conn.executeMethod("testMethod_Float", 13.0f);
+                    Thread.sleep(1000);
+                    assertEquals(cl.argFloat, 13.0);
+
+                    /////////////////
+                    Map map = new HashMap();
+                    map.put("hello", 1);
+                    map.put("goodbyte", 2);
+                    conn.executeMethod("testMethod_Map", map);
+                    Thread.sleep(1000);
+                    assertTrue(Utils.isEquals(cl.argMap, map));
+
+                    Collection c = new LinkedList();
+                    c.add("a");
+                    c.add("b");
+                    conn.executeMethod("testMethod_Collection", c);
+                    Thread.sleep(1000);
+                    assertTrue(Utils.isEquals(cl.argCollection, c));
+
+
+
+                    conn.executeMethod("testMethod", 15, "Hello", new HashMap<>());
+                    Thread.sleep(1000);
+                    assertEquals(15, cl.argLong);
+                    assertEquals("Hello", cl.argString);
+                    assertNotNull(cl.argMap);
                     cl.disconnect();
                     Thread.sleep(1000);
                     assertTrue(listener1.disconnected);
 
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-
-                synchronized (server) {
-                    server.notify();
+                } catch (Throwable e) {
+                    result = e;
+                } finally {
+                    synchronized (server) {
+                        server.notify();
+                    }
                 }
             }
         }).start();
@@ -146,12 +190,12 @@ public class GameServerTest extends TestCase {
                     //Thread.sleep(1000);
                     //assertTrue(listener1.disconnected);
                     
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                
-                synchronized (server) {
-                    server.notify();
+                } catch (Throwable e) {
+                    result = e;
+                } finally {
+                    synchronized (server) {
+                        server.notify();
+                    }
                 }
             }
         }).start();
@@ -182,12 +226,12 @@ public class GameServerTest extends TestCase {
                     //Thread.sleep(1000);
                     //assertTrue(listener1.disconnected);
                     
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                
-                synchronized (server) {
-                    server.notify();
+                } catch (Throwable e) {
+                    result = e;
+                } finally {
+                    synchronized (server) {
+                        server.notify();
+                    }
                 }
             }
         }).start();
@@ -219,12 +263,12 @@ public class GameServerTest extends TestCase {
                     assertTrue(listener1.reconnected);
                     cl.disconnect();
                     
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                
-                synchronized (server) {
-                    server.notify();
+                } catch (Throwable e) {
+                    result = e;
+                } finally {
+                    synchronized (server) {
+                        server.notify();
+                    }
                 }
             }
         }).start();
@@ -257,12 +301,12 @@ public class GameServerTest extends TestCase {
                     assertFalse(listener1.disconnected);
                     assertTrue(!cl.isConnected());
                     
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                
-                synchronized (server) {
-                    server.notify();
+                } catch (Throwable e) {
+                    result = e;
+                } finally {
+                    synchronized (server) {
+                        server.notify();
+                    }
                 }
             }
         }).start();
@@ -290,12 +334,12 @@ public class GameServerTest extends TestCase {
                     assertTrue(cl.disconnected);
                     assertTrue(!cl.isConnected());
                     
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                
-                synchronized (server) {
-                    server.notify();
+                } catch (Throwable e) {
+                    result = e;
+                } finally {
+                    synchronized (server) {
+                        server.notify();
+                    }
                 }
             }
         }).start();
@@ -336,12 +380,12 @@ public class GameServerTest extends TestCase {
                     assertTrue(!cl.isConnected());
                     assertFalse(conn.isConnected());
                     
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                
-                synchronized (server) {
-                    server.notify();
+                } catch (Throwable e) {
+                    result = e;
+                } finally {
+                    synchronized (server) {
+                        server.notify();
+                    }
                 }
             }
         }).start();
@@ -383,12 +427,12 @@ public class GameServerTest extends TestCase {
                     assertTrue(!cl.isConnected());
                     assertFalse(conn.isConnected());
                     
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                
-                synchronized (server) {
-                    server.notify();
+                } catch (Throwable e) {
+                    result = e;
+                } finally {
+                    synchronized (server) {
+                        server.notify();
+                    }
                 }
             }
         }).start();
@@ -415,12 +459,12 @@ public class GameServerTest extends TestCase {
                     Thread.sleep(1000 + TIMEOUT + 5000);
                     assertTrue(listener1.disconnected);
                     
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                
-                synchronized (server) {
-                    server.notify();
+                } catch (Throwable e) {
+                    result = e;
+                } finally {
+                    synchronized (server) {
+                        server.notify();
+                    }
                 }
             }
         }).start();
@@ -449,13 +493,14 @@ public class GameServerTest extends TestCase {
                     assertTrue(cl.disconnected);
                     assertFalse(cl.isConnected());
                     
-                } catch (Exception e) {
-                    e.printStackTrace();
+                } catch (Throwable e) {
+                    result = e;
+                } finally {
+                    synchronized (server) {
+                        server.notify();
+                    }
                 }
-                
-                synchronized (server) {
-                    server.notify();
-                }
+
             }
         }).start();
         
@@ -575,26 +620,71 @@ public class GameServerTest extends TestCase {
         }
 
         @Override
-        public void logError(Exception e) {
-            // TODO Auto-generated method stub
-            super.logError("----> MyGameClient:  " + e.getClass().getSimpleName() + " " + e.getMessage());
-        }
-
-        @Override
         protected void onForm(ClientForm form) {
             super.logDebug("Form receieved: " + form.toXML());
         }
         
-        public void testMethod(int arg0, String arg1, HashMap arg2) {
+        public void testMethod(int arg0, String arg1, Map arg2) {
             System.out.println("testMethod executed with: " + arg0 + " " + arg1 + " " + arg2);
-            this.arg0 = arg0;
-            this.arg1 = arg1;
-            this.arg2 = arg2;
+            this.argLong = arg0;
+            this.argString = arg1;
+            this.argMap = arg2;
         }
 
-        int arg0;
-        String arg1;
-        Map arg2;
+        protected void testMethod_int(int x) {
+            argLong = x;
+        }
+
+        protected void testMethod_Int(Integer x) {
+            argLong = x;
+        }
+
+        protected void testMethod_float(float f) {
+            argFloat =f;
+        }
+
+        protected void testMethod_Float(Float f) {
+            argFloat = f;
+        }
+
+        protected void testMethod_byte(byte b) {
+            argLong =b;
+        }
+
+        protected void testMethod_Byte(Byte b) {
+            argLong =b;
+        }
+
+        protected void testMethod_long(long l) {
+            argLong = l;
+        }
+
+        protected void testMethod_Long(Long l) {
+            argLong = l;
+        }
+
+        protected void testMethod_bool(boolean b) {
+            argBool = b;
+        }
+
+        protected void testMethod_Bool(Boolean b) {
+            argBool = b;
+        }
+
+        protected void testMethod_Collection(Collection c) {
+            argCollection = c;
+        }
+
+        protected void testMethod_Map(Map m) {
+            argMap = m;
+        }
+
+        long argLong;
+        String argString;
+        Map argMap;
+        double argFloat;
+        boolean argBool;
+        Collection argCollection;
 
         @Override
         protected Object getExecuteObject() {

@@ -37,6 +37,11 @@ public final class Tile extends Reflector<Tile> {
 		return pip1 == p.pip1 && pip2 == p.pip2;
 	}
 
+    @Override
+    public int hashCode() {
+        return (pip1  + pip2) % 31;
+    }
+
 	public final boolean isDouble() {
 		return pip1 == pip2;
 	}

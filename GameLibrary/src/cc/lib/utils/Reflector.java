@@ -1183,16 +1183,10 @@ public class Reflector<T> {
         	for (Map.Entry<?, ?> entry : m.entrySet()) {
         		Object o = entry.getKey();
                 out.println(getCanonicalName(o.getClass()) + " {");
-                out.push();
                 serializeObject(o, out, true);
-                out.pop();
-                out.println("}");
                 o = entry.getValue();
                 out.println(getCanonicalName(o.getClass()) + " {");
-                out.push();
                 serializeObject(o, out, true);
-                out.pop();
-                out.println("}");
         	}
             out.pop();
             out.println("}");
@@ -1312,6 +1306,9 @@ public class Reflector<T> {
                 entry = it.next();
                 doAdd = false;
             }
+            if (doAdd) {
+                it = null;
+            }
             if (!line.equals("null")) {
             	String [] parts = line.split(" ");
 	            if (parts.length > 1) {
@@ -1338,6 +1335,7 @@ public class Reflector<T> {
                 c.add(entry);
         }
         while (it != null && it.hasNext()) {
+            it.next();
             it.remove(); // remove any remaining in the collection
         }
     }
@@ -1353,8 +1351,8 @@ public class Reflector<T> {
 	    	if (key == null)
 	    		throw new Exception("null key in map");
         	line = readLineOrEOF(in);
-            if (line == null)
-                throw new Exception("Expected '}' to end the key");
+            if (line != null)
+                throw new Exception("unexpected line '"+ line + "'");
         	line = readLineOrEOF(in);
             if (line == null)
                 throw new Exception("Missing value from key/value pair in map");
@@ -1510,7 +1508,6 @@ public class Reflector<T> {
     @Override
     public String toString() {
         StringWriter buf = new StringWriter();
-//        buf.append(super.toString());
         try {
             serialize(new MyPrintWriter(buf));
         } catch (Exception e) {

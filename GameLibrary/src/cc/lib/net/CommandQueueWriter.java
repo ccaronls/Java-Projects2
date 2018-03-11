@@ -15,7 +15,7 @@ class CommandQueueWriter {
     
     private Queue<GameCommand> queue = new LinkedList<GameCommand>();
     private boolean running;
-    private int timeout;
+    private int timeout = 10000;
     
     public void setTimeout(int timeout) {
         this.timeout = timeout;

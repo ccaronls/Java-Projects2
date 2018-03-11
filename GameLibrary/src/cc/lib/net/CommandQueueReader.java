@@ -1,9 +1,6 @@
 package cc.lib.net;
 
-import java.io.InputStream;
-import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.Map;
 import java.util.Queue;
 
 /**
@@ -13,6 +10,8 @@ import java.util.Queue;
  *
  */
 abstract class CommandQueueReader {
+
+    // TODO: Replace this class with QueueRunner
 
     private Queue<GameCommand> queue = new LinkedList<GameCommand>();
     private boolean running = false;
@@ -71,59 +70,4 @@ abstract class CommandQueueReader {
     protected abstract void process(GameCommand cmd);
     
     protected abstract void onStopped();
-    /*
-    synchronized void start() {
-        if (!running) {
-            running = true;
-            new Thread(new Runnable() {
-                public void run() {
-                    while (running) {
-                        try {
-
-                            GameCommand cmd = GameCommand.parse(in);
-                            synchronized (queue) {
-                               queue.add(cmd);
-                               queue.notify();
-                            }
-                            
-                        } catch (Exception e) {
-                            onError(e);
-                        }
-                    }
-                }
-            }).start();
-        }
-    }
-    
-    void stop() {
-        running = false;
-        synchronized (queue) {
-            queue.notify();
-        }
-    }
-    
-    
-    public GameCommand readCommand(int timeout) throws Exception {
-        if (queue.isEmpty()) {
-            synchronized (queue) {
-                queue.wait(timeout);
-            }
-        }
-        
-        if (queue.isEmpty())
-            throw new Exception("Connection Lost");
-        
-        synchronized (queue) {
-            return queue.remove();
-        }
-    }
-    
-    protected void onError(Exception e) {
-        e.printStackTrace();
-    }
-    
-    protected void log(String msg) {
-        System.out.println(msg);
-    }
-    */
 }

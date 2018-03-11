@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
+import cc.lib.annotation.DontObfuscate;
 import cc.lib.game.AAnimation;
 import cc.lib.game.GColor;
 import cc.lib.game.AGraphics;
@@ -82,6 +83,14 @@ public abstract class Dominos extends Reflector<Dominos> {
         }
 	}
 
+	public void clear() {
+        stopGameThread();
+        clearHighlghts();
+        setNumPlayers(1);
+        pool.clear();
+        board.clear();
+    }
+
 	public void setPlayers(Player ... players) {
         if (gameRunning)
             throw new AssertionError();
@@ -122,7 +131,23 @@ public abstract class Dominos extends Reflector<Dominos> {
         }
     }
 
-    protected void onGameOver() {}
+    @DontObfuscate
+    protected void onGameOver(int playerNum) {
+        final Player winner = players[playerNum];
+        winner.textAnimation = new AAnimation<AGraphics>(1000, -1, true) {
+            @Override
+            protected void draw(AGraphics g, float position, float dt) {
+                GColor c = new GColor(position, 1-position, position, position);
+                if (winner.isPiecesVisible()) {
+                    g.drawAnnotatedString(String.format("%s%d PTS WINS!!", c, winner.getScore()), 0, 0);
+                } else {
+                    g.drawAnnotatedString(String.format("%sP%d %d PTS WINS!!", c, turn, winner.getScore()), 0, 0);
+                }
+                redraw();
+            }
+        }.start();
+        redraw();
+    }
 
     public final void startGameThread() {
         Utils.println("startGameThread, currently running=" + gameRunning);
@@ -141,21 +166,9 @@ public abstract class Dominos extends Reflector<Dominos> {
                 }
                 gameRunning = false;
                 Utils.println("Thread done.");
-                if (getWinner() != null) {
-                    getWinner().textAnimation = new AAnimation<AGraphics>(1000, -1, true) {
-                        @Override
-                        protected void draw(AGraphics g, float position, float dt) {
-                            GColor c = new GColor(position, 1-position, position, position);
-                            if (getWinner().isPiecesVisible()) {
-                                g.drawAnnotatedString(String.format("%s%d PTS WINS!!", c, getWinner().getScore()), 0, 0);
-                            } else {
-                                g.drawAnnotatedString(String.format("%sP%d %d PTS WINS!!", c, turn, getWinner().getScore()), 0, 0);
-                            }
-                            redraw();
-                        }
-                    }.start();
-                    redraw();
-                    onGameOver();
+                int w = getWinner();
+                if (w >= 0) {
+                    onGameOver(w);
                 }
             }
         }.start();
@@ -179,7 +192,9 @@ public abstract class Dominos extends Reflector<Dominos> {
         return turn;
     }
 
-    public final void setTurn(int turn) {
+    @DontObfuscate
+    public void setTurn(int turn) {
+        // TODO: start animation here
         this.turn = turn;
     }
 
@@ -240,26 +255,24 @@ public abstract class Dominos extends Reflector<Dominos> {
     }
 
     private void nextTurn() {
-	    turn = (turn+1) % players.length;
+	    setTurn((turn+1) % players.length);
     }
 
     private boolean placeFirstTile() {
         for (int i=maxNum; i>=1; i--) {
             for (int p=0; p<players.length; p++) {
-                Tile pc = players[p].removeTile(i, i);
-                if (pc != null) {
-                    onPiecePlaced(players[p], pc);
-                    board.placeRootPiece(pc);
-                    redraw();
+                Tile t = players[p].findTile(i, i);
+                if (t != null) {
+                    players[p].tiles.remove(t);
+                    board.placeRootPiece(t);
                     turn = p;
+                    redraw();
                     return true;
                 }
             }
         }
         return false;
     }
-
-    protected void onPiecePlaced(Player player, Tile pc) {}
 
     private List<Move> computePlayerMoves(Player p) {
         List<Move> moves = new ArrayList<>();
@@ -287,20 +300,16 @@ public abstract class Dominos extends Reflector<Dominos> {
 
                 if (!canMove) {
                     onEndRound();
-                    newRound();
-                    redraw();
                     return;
                 } else {
                     // player knocks
-                    onKnock(p);
-                    redraw();
+                    onKnock(turn);
                     break;
                 }
             }
 
-		    Tile pc = pool.removeFirst();
-		    onTileFromPool(p, pc);
-            p.tiles.add(pc);
+		    Tile pc = pool.getFirst();
+		    onTileFromPool(turn, pc);
             moves.addAll(board.findMovesForPiece(pc));
         }
 
@@ -308,14 +317,10 @@ public abstract class Dominos extends Reflector<Dominos> {
 		    Move mv = p.chooseMove(this, moves);
 		    if (mv == null)
 		        return;
-		    onTilePlaced(p, mv);
-		    board.doMove(mv);
-            redraw();
-            p.tiles.remove(mv.piece);
+		    onTilePlaced(turn, mv.piece, mv.endpoint, mv.placment);
 		    int pts = board.computeEndpointsTotal();
 		    if (pts > 0 && pts % 5 == 0) {
-		        onPlayerPoints(p, pts);
-                p.score += pts;
+		        onPlayerPoints(turn, pts);
             }
         }
 
@@ -330,25 +335,29 @@ public abstract class Dominos extends Reflector<Dominos> {
             }
             pts = 5*((pts+4)/5);
             if (pts > 0) {
-                onPlayerEndRoundPoints(p, pts);
-                p.score += pts;
+                onPlayerEndRoundPoints(turn, pts);
             }
-            newRound();
             onEndRound();
-        } else if (getWinner() == null) {
+        } else if (getWinner() < 0) {
             nextTurn();
         }
 	}
 
 	public final boolean isGameOver() {
-	    return getWinner() != null;
+	    return getWinner() >= 0;
     }
 
-    protected void onTilePlaced(Player p, Move mv) {
+    @DontObfuscate
+    protected void onTilePlaced(int player, Tile tile, int endpoint, int placement) {
+        board.doMove(tile, endpoint, placement);
+        players[player].tiles.remove(tile);
+        redraw();
     }
 
-    protected void onTileFromPool(Player p, final Tile pc) {
-	    if (p.isPiecesVisible()) {
+    @DontObfuscate
+    protected void onTileFromPool(int player, final Tile pc) {
+	    final Player p = players[player];
+        if (p.isPiecesVisible()) {
 	        poolAnimation = new AAnimation<AGraphics>(2000) {
                 @Override
                 protected void draw(AGraphics g, float position, float dt) {
@@ -364,7 +373,8 @@ public abstract class Dominos extends Reflector<Dominos> {
 
                 @Override
                 protected void onDone() {
-                    poolAnimation = null;
+                    p.tiles.add(pc);
+                    pool.remove(pc);
                     synchronized (gameLock) {
                         gameLock.notifyAll();
                     }
@@ -380,10 +390,15 @@ public abstract class Dominos extends Reflector<Dominos> {
 
     }
 
-    protected void onKnock(Player p) {
+    @DontObfuscate
+    protected void onKnock(int player) {
+        redraw();
     }
 
+    @DontObfuscate
     protected void onEndRound() {
+        newRound();
+        redraw();
     }
 
     @Omit
@@ -490,7 +505,10 @@ public abstract class Dominos extends Reflector<Dominos> {
         }
     }
 
-    protected void onPlayerEndRoundPoints(final Player p, final int pts) {
+    @DontObfuscate
+    protected void onPlayerEndRoundPoints(final int player, final int pts) {
+
+        Player p = players[player];
 
         // figure out how many pieces are left
         List<Tile> tiles = new ArrayList<>();
@@ -502,6 +520,7 @@ public abstract class Dominos extends Reflector<Dominos> {
 
         redraw();
         Utils.waitNoThrow(gameLock, -1);
+        p.score += pts;
         remainingTileAnimation = null;
     }
 
@@ -565,10 +584,13 @@ public abstract class Dominos extends Reflector<Dominos> {
 
     /**
      * Called when player was earned pts > 0
-     * @param p
+     * @param player
      * @param pts
      */
-    protected void onPlayerPoints(final Player p, final int pts) {
+    @DontObfuscate
+    protected void onPlayerPoints(final int player, final int pts) {
+
+        final Player p = players[player];
 
         long delay = 0;
         for (int i=0; i<4; i++) {
@@ -590,6 +612,7 @@ public abstract class Dominos extends Reflector<Dominos> {
 
         redraw();
         Utils.waitNoThrow(gameLock, -1);
+        p.score += pts;
     }
 
     @Omit
@@ -786,7 +809,8 @@ public abstract class Dominos extends Reflector<Dominos> {
 
                     if (!anim) {
                         Tile t = p.tiles.get(tile);
-                        boolean available = getUser().usable.contains(t);
+                        PlayerUser user = getUser();
+                        boolean available = user != null && user.usable.contains(t);
                         if (available) {
                             g.setName(tile);
                             g.vertex(0, 0);
@@ -822,7 +846,13 @@ public abstract class Dominos extends Reflector<Dominos> {
                             g.drawRect(0, 0, 2, 1, 3);
                         }
                     } else {
-                        poolAnimation.update(g);
+                        if (poolAnimation != null) {
+                            if (poolAnimation.isDone()) {
+                                poolAnimation = null;
+                            } else {
+                                poolAnimation.update(g);
+                            }
+                        }
                     }
                     g.translate(2, 0);
                     tile++;
@@ -834,13 +864,14 @@ public abstract class Dominos extends Reflector<Dominos> {
         g.popMatrix();
     }
 
-    public final Player getWinner() {
-        for (Player p : players) {
+    public final int getWinner() {
+        for (int i=0; i<players.length; i++) {
+            Player p = players[i];
             if (p.score >= maxScore) {
-                return p;
+                return i;
             }
         }
-        return null;
+        return -1;
     }
 
     public final int getDifficulty() {
@@ -860,7 +891,7 @@ public abstract class Dominos extends Reflector<Dominos> {
         getBoard().highlightMoves(null);
     }
 
-    public synchronized final void onClick() {
+    public final synchronized void onClick() {
         PlayerUser user = getUser();
         if (user == null)
             return;
@@ -877,7 +908,7 @@ public abstract class Dominos extends Reflector<Dominos> {
             }
             getBoard().highlightMoves(highlightedMoves);
         } else if (board.selectedMove != null) {
-            user.choosedMove = board.selectedMove;
+            user.setChoosedMove(board.selectedMove);
             synchronized (gameLock) {
                 gameLock.notifyAll();
             }
@@ -897,7 +928,7 @@ public abstract class Dominos extends Reflector<Dominos> {
                 selectedPlayerTile = highlightedPlayerTile;
                 List<Move> highlightedMoves = new ArrayList<>();
                 for (Move m : user.moves) {
-                    if (m.piece == user.tiles.get(selectedPlayerTile)) {
+                    if (m.piece.equals(user.tiles.get(selectedPlayerTile))) {
                         highlightedMoves.add(m);
                     }
                 }
@@ -912,7 +943,7 @@ public abstract class Dominos extends Reflector<Dominos> {
             if (selectedPlayerTile >= 0 && board.selectedMove != null) {
                 PlayerUser user = getUser();
                 if (user != null) {
-                    user.choosedMove = board.selectedMove;
+                    user.setChoosedMove(board.selectedMove);
                     synchronized (gameLock) {
                         gameLock.notifyAll();
                     }

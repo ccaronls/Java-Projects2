@@ -22,4 +22,10 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"/>
 
+    <Button
+        android:id="@+id/bResumeSP"
+        android:text="Resume Single Player"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"/>
+
 </LinearLayout>

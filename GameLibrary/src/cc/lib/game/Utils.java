@@ -804,6 +804,50 @@ public class Utils {
         return stdDev;
     }
 
+    /**
+     * Perform element wise comparison for equality
+     * @param m0
+     * @param m1
+     * @return
+     */
+    public static boolean isEquals(Map m0, Map m1) {
+        if (m0 == null && m1 == null)
+            return true;
+        if (m0 == null || m1 == null)
+            return false;
+        if (m0.size() != m1.size())
+            return false;
+        for (Object k : m0.keySet()) {
+            if (!m0.get(k).equals(m1.get(k)))
+                return false;
+        }
+        return true;
+    }
+
+    /**
+     * Perform elemwise comparison for equality
+     * length and elem positions are required for equality
+     *
+     * @param c0
+     * @param c1
+     * @return
+     */
+    public static boolean isEquals(Collection c0, Collection c1) {
+        if (c0 == null && c1 == null)
+            return true;
+        if (c0 == null || c1 == null)
+            return false;
+        if (c0.size() != c1.size())
+            return false;
+        Iterator i0 = c0.iterator();
+        Iterator i1 = c1.iterator();
+        while (i0.hasNext()) {
+            if (!i0.next().equals(i1.next()))
+                return false;
+        }
+        return true;
+    }
+
     public interface VertexList {
         public void vertex(float x, float y);
     }
