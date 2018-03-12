@@ -402,6 +402,19 @@ public class ReflectorTest extends TestCase {
     	}
     }
 
+    public void testSerialzespecialChars() throws Exception {
+
+        String str = "\n\t`1234567890-=~!@#$%^&*()_+/\"";
+
+        String serialized = Reflector.serializeObject(str);
+
+        System.out.println(serialized);
+
+        String s2 = Reflector.deserializeFromString(serialized);
+
+        assertEquals(s2, str);
+    }
+
     // NOPE, cannot handle
     public void xtestSerializeObjectArray() throws Exception {
         Object [] arr = {

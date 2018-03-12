@@ -212,51 +212,33 @@ public class FormTest extends TestCase {
 
         @Override
         protected void onMessage(String message) {
-            logDebug("client " + this.getName() + " onMessage: " + message);
+            log.debug("client " + this.getName() + " onMessage: " + message);
         }
 
         @Override
         protected void onDisconnected(String message) {
-            logDebug("client " + this.getName() +  " onDisconnected: " + message);
+            log.debug("client " + this.getName() +  " onDisconnected: " + message);
             disconnected = true;
         }
 
         @Override
         protected void onConnected() {
-            logDebug("client " + getName() + " onConnected");
+            log.debug("client " + getName() + " onConnected");
             connected = true;
         }
 
         @Override
         protected void onCommand(GameCommand cmd) {
-            logDebug("client " + getName() + " onCommand: " + cmd);
+            log.debug("client " + getName() + " onCommand: " + cmd);
             lastCommand = cmd;
-        }
-
-        @Override
-        public void logDebug(String msg) {
-            // TODO Auto-generated method stub
-            super.logDebug("----> MyGameClient:  " + msg);
-        }
-
-        @Override
-        public void logInfo(String msg) {
-            // TODO Auto-generated method stub
-            super.logInfo("----> MyGameClient:  " + msg);
-        }
-
-        @Override
-        public void logError(String msg) {
-            // TODO Auto-generated method stub
-            super.logError("----> MyGameClient:  " + msg);
         }
 
         @Override
         protected void onForm(ClientForm form) {
             try {
                 this.form = form;
-                super.logDebug("Form received: " + form.toXML());
-                logDebug("Root: " + form.getRootElem().toString());
+                super.log.debug("Form received: " + form.toXML());
+                log.debug("Root: " + form.getRootElem().toString());
                 //root = form.getRootElem();
                 //root = null;
                 //form.visit(this);
