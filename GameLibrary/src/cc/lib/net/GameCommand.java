@@ -11,6 +11,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import cc.lib.utils.NoDupesMap;
+
 /**
  * <pre>
  * GameCommand is the protocol used for clients and servers to talk to each other.
@@ -58,7 +60,7 @@ import java.util.Map;
 public class GameCommand {
 
     private final GameCommandType type;
-    private final Map<String, String> arguments  = new HashMap<String, String>();
+    private final Map<String, String> arguments = new NoDupesMap<>(new HashMap<String,String>());
     
     /**
      * 
@@ -287,7 +289,7 @@ public class GameCommand {
             dout.writeUTF(key);
             dout.writeUTF(arguments.get(key));
         }
-        out.flush();
+        dout.flush();
     }
     
     public String toString() {

@@ -9,6 +9,8 @@ import java.util.*;
 import cc.lib.crypt.Cypher;
 import cc.lib.crypt.EncryptionInputStream;
 import cc.lib.crypt.EncryptionOutputStream;
+import cc.lib.logger.Logger;
+import cc.lib.logger.LoggerFactory;
 
 /**
  * A Game server is a server that handles normal connection/handshaking and maintains
@@ -29,6 +31,8 @@ import cc.lib.crypt.EncryptionOutputStream;
  */
 public class GameServer {
 
+    private final Logger log = LoggerFactory.getLogger(GameServer.class);
+    
     /**
      *
      */
@@ -82,6 +86,12 @@ public class GameServer {
         if (clients.size() > 0)
             r += " connected clients:" + clients.size();
         return r;
+    }
+
+    void removeClient(ClientConnection cl) {
+        synchronized (clients) {
+            clients.remove(cl);
+        }
     }
 
     /**
@@ -145,15 +155,15 @@ public class GameServer {
      * Disconnect all clients and stop listening.  Will block until all clients have closed their sockets.
      */
     public final void stop() {
-        logInfo("GameServer: Stopping server: " + this);
+        log.info("GameServer: Stopping server: " + this);
         if (socketListener != null) {
-            socketListener.stop();
             synchronized (clients) {
                 for (ClientConnection c : clients.values()) {
                     c.disconnect("Server Stopping");
                 }
             }
             clients.clear();
+            socketListener.stop();
             socketListener = null;
         }
     }
@@ -224,7 +234,7 @@ public class GameServer {
                         c.sendCommand(cmd);
                     } catch (Exception e) {
                         e.printStackTrace();
-                        logError("ERROR Sending to client '" + c.getName() + "' " + e.getClass() + " " + e.getMessage());
+                        log.error("ERROR Sending to client '" + c.getName() + "' " + e.getClass() + " " + e.getMessage());
                     }
             }
         }
@@ -243,7 +253,7 @@ public class GameServer {
                         c.executeMethod(method, params);
                     } catch (Exception e) {
                         e.printStackTrace();
-                        logError("ERROR Sending to client '" + c.getName() + "' " + e.getClass() + " " + e.getMessage());
+                        log.error("ERROR Sending to client '" + c.getName() + "' " + e.getClass() + " " + e.getMessage());
                     }
                 }
             }
@@ -278,13 +288,13 @@ public class GameServer {
         public void run() {
             try {
             
-                logInfo("GameServer: Thread started listening for connections");
+                log.info("GameServer: Thread started listening for connections");
                 while (running) {
                     Socket client = socket.accept();
                     new Thread(new HandshakeThread(client)).start();
                 }                
             } catch (SocketException e) {
-                logWarn("GameServer: Thread Exiting since socket is closed");
+                log.warn("GameServer: Thread Exiting since socket is closed");
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -321,7 +331,8 @@ public class GameServer {
             OutputStream out = null;
             try {
 
-                logInfo("GameServer: Start handshake with new connection");
+                log.info("GameServer: Start handshake with new connection");
+
                 if (cypher != null) {
                     in = new EncryptionInputStream(socket.getInputStream(), cypher);
                     out = new EncryptionOutputStream(socket.getOutputStream(), cypher);
@@ -329,9 +340,9 @@ public class GameServer {
                     in = socket.getInputStream();
                     out = socket.getOutputStream();
                 }
-                
+
                 GameCommand cmd = GameCommand.parse(in);
-                logDebug("Parsed incoming command: " + cmd);
+                log.debug("Parsed incoming command: " + cmd);
                 String name = cmd.getName();
                 String clientVersion = cmd.getVersion();
                 if (clientVersion == null) {
@@ -373,7 +384,7 @@ public class GameServer {
                         }
                         conn.connect(socket, in , out);
                         //new GameCommand(GameCommandType.SVR_CONNECTED).setArg("keepAlive", clientReadTimeout).write(out);
-                        //logDebug("GameServer: Client " + name + " connected");
+                        //log.debug("GameServer: Client " + name + " connected");
                         //serverListener.onReconnection(conn);
                     } else {
                         throw new ProtocolException("Handshake failed: Invalid client command: " + cmd);
@@ -381,7 +392,7 @@ public class GameServer {
                 }
                 
                 new GameCommand(GameCommandType.SVR_CONNECTED).setArg("keepAlive", clientReadTimeout).write(out);
-                logDebug("GameServer: Client " + name + " connected");
+                log.debug("GameServer: Client " + name + " connected");
                 if (cmd.getType() == GameCommandType.CL_CONNECT) {
                     for (Listener l : listeners)
                         l.onConnected(conn);
@@ -391,29 +402,22 @@ public class GameServer {
                 }
                 
                 //new GameCommand(GameCommandType.SVR_CONNECTED).setArg("keepAlive", clientReadTimeout).write(out);
-                //logDebug("GameServer: Client " + name + " connected");
+                //log.debug("GameServer: Client " + name + " connected");
 
                 // send the client the main menu
             } catch (ProtocolException e) {
                 try {
+                    log.error(e);
                     new GameCommand(GameCommandType.SVR_DISCONNECTED).setMessage(e.getMessage()).write(out);
                 } catch (Exception ex) {}
                 close(socket, in, out);
             } catch (Exception e) {
-                logError(e);
+                log.error(e);
                 close(socket, null, null);
             }
         }
     }
     
-    /**
-     * Override to do custom debug logging.  Default impl writes to stdout and prefix with DEBUG
-     * @param msg
-     */
-    public void logDebug(String msg) {
-        System.out.println("DEBUG:" + msg);
-    }
-
     /**
      * Override this method to perform any custom version compatibility test.
      * If the clientVersion is compatible, do nothing.  Otherwise throw a 
@@ -426,38 +430,6 @@ public class GameServer {
     protected void clientVersionCompatibilityTest(String clientVersion, String serverVersion) throws ProtocolException {
         if (!clientVersion.equals(mVersion))
             throw new ProtocolException("Incompatible client version '" + clientVersion + "'");
-    }
-
-    /**
-     * Override to perform custom logging.  Default writes to stdout a prefix with INFO
-     * @param msg
-     */
-    public void logInfo(String msg) {
-        System.out.println("INFO :" + msg);
-    }
-    
-    /**
-     * Override to perform custom logging.  Default writes to stdout a prefix with WARN
-     * @param msg
-     */
-    public void logWarn(String msg) {
-        System.out.println("WARN :" + msg);
-    }
-
-    /**
-     * Override to perform custom error logging.  default writes to stderr
-     * @param msg
-     */
-    public void logError(String msg) {
-        System.err.println("ERROR:" + msg);
-    }
-
-    /**
-     * Override to perform custom error logging.  default writes to stderr
-     * @param e
-     */
-    public final void logError(Exception e) {
-        System.err.println("ERROR:" + e.getClass().getSimpleName() + " " + e.getMessage());
     }
     
 }

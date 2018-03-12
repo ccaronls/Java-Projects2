@@ -54,6 +54,10 @@ public class Board extends Reflector<Board> {
     private final MutableVector2D saveMinV = new MutableVector2D();
     private final MutableVector2D saveMaxV = new MutableVector2D();
 
+    Tile getRoot() {
+        return root;
+    }
+
     private class PlaceTileAnim extends AAnimation<AGraphics> {
 
         final IVector2D start, end;

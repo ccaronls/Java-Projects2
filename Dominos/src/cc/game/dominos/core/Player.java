@@ -6,6 +6,7 @@ import java.util.List;
 
 import cc.lib.game.AAnimation;
 import cc.lib.game.AGraphics;
+import cc.lib.game.GRectangle;
 import cc.lib.game.Utils;
 import cc.lib.utils.Reflector;
 
@@ -20,6 +21,9 @@ public class Player extends Reflector<Player> {
 
     @Omit
     AAnimation<AGraphics> textAnimation = null;
+
+    @Omit
+    final GRectangle outlineRect = new GRectangle();
 
     final void reset() {
         tiles.clear();

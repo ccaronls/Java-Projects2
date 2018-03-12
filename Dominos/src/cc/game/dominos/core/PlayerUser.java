@@ -54,4 +54,8 @@ public class PlayerUser extends Player {
         usable.clear();
         choosedMove = null;
     }
+
+    protected List<Move> getMoves() {
+        return moves;
+    }
 }

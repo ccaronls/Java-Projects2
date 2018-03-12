@@ -1,16 +1,8 @@
 package cecc.android.lib;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.*;
-
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.AlertDialog.Builder;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences.Editor;
@@ -33,10 +25,20 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.util.Log;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.TextView;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
+
 import cc.lib.android.BuildConfig;
 import cc.lib.android.EmailHelper;
 import cc.lib.android.R;
@@ -176,7 +178,6 @@ public abstract class CECCBaseActivity extends BillingActivity {
 	/**
 	 * Called on ui thread when the ambient sensor reports.  base method does nothing.
 	 * @param celcius
-	 * @param farhenheit
 	 */
 	protected void onAmbientTemperature(float celcius) {}
 	
@@ -274,7 +275,7 @@ public abstract class CECCBaseActivity extends BillingActivity {
 	public void finalizePurchase(String sku, long purchaseTime) {
 		Calendar cal = Calendar.getInstance();
 		cal.setTimeInMillis(purchaseTime);
-		Log.d(TAG, "finalizePurchase sku=" + sku + " datePurchased = " + cal.getTime());
+		log.debug("finalizePurchase sku=" + sku + " datePurchased = " + cal.getTime());
 		Purchase p = Purchase.getPurchaseFromSku(sku);
 		if (p != null) {
 			
@@ -500,7 +501,7 @@ public abstract class CECCBaseActivity extends BillingActivity {
                         int orientationColumnIndex = cursor.getColumnIndex(columns[1]);
                         //String filePath = cursor.getString(fileColumnIndex);
                         orientation = cursor.getInt(orientationColumnIndex);
-                        Log.d(TAG, "got image orientation "+orientation);
+                        log.debug("got image orientation "+orientation);
                     }
 
 				} catch (Exception e) {

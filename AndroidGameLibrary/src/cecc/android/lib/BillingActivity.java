@@ -1,8 +1,5 @@
 package cecc.android.lib;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.content.ComponentName;
@@ -15,11 +12,12 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 import android.provider.Settings;
-import android.util.Log;
 
 import com.android.vending.billing.IInAppBillingService;
 
-import cc.lib.android.BuildConfig;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import cc.lib.android.CCActivityBase;
 import cc.lib.android.R;
 
@@ -94,15 +92,15 @@ public abstract class BillingActivity extends CCActivityBase {
 	
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-		Log.d(TAG, "onActivityResult code=" + requestCode + " result=" + resultCode);
+		log.debug("onActivityResult code=" + requestCode + " result=" + resultCode);
 		switch (requestCode) {
 			case REQUEST_PURCHASE: {
     			int responseCode = data.getIntExtra("RESPONSE_CODE", 0);
     			String purchaseData = data.getStringExtra("INAPP_PURCHASE_DATA");
     			String dataSignature = data.getStringExtra("INAPP_DATA_SIGNATURE");
     
-    			Log.d(TAG, "purchaseData=" + purchaseData);
-    			Log.d(TAG, "dataSignature=" + dataSignature);
+    			log.debug("purchaseData=" + purchaseData);
+    			log.debug("dataSignature=" + dataSignature);
     
     			/*
     			 * INAPP_PURCHASE_DATA
@@ -120,7 +118,7 @@ public abstract class BillingActivity extends CCActivityBase {
     				try {
     					if (purchaseData != null) {
     						JSONObject jo = new JSONObject(purchaseData);
-    						Log.d(TAG, "purchase json=" + jo.toString(3));
+    						log.debug("purchase json=" + jo.toString(3));
     						String sku = jo.getString("productId");
     						String randomString = jo.getString("developerPayload");
     						String savedRandom = getPrefs().getString(PREF_PURCHASE_RANDOM_STRING, "");

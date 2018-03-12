@@ -28,6 +28,7 @@ public abstract class AAnimation<T> {
     private State state = State.IDLE;
     private boolean reverse = false; // 1 for forward, -1 for reversed
     private final boolean oscilateOnRepeat;
+    private boolean waiting = false;
 
     enum State {
         IDLE, STARTED, STOPPED, DONE
@@ -159,6 +160,12 @@ public abstract class AAnimation<T> {
         if (state == State.STOPPED) {
             state = State.DONE;
             onDone();
+            if (waiting) {
+                synchronized (this) {
+                    notify();
+                }
+                waiting = false;
+            }
         }
         return isDone();
     }
@@ -235,5 +242,13 @@ public abstract class AAnimation<T> {
 
     public final long getTimeRemaining() {
         return getDuration() - getElapsedTime();
+    }
+
+    public final void waitForDuration() {
+        waiting = true;
+        if (getDuration() < 0)
+            throw new AssertionError("Bad idea=infinite wait");
+        Utils.waitNoThrow(this, getDuration()+500);
+        waiting = false;
     }
 }

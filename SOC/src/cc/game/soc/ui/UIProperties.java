@@ -14,6 +14,8 @@ import java.util.List;
 import java.util.Properties;
 
 import cc.lib.game.GColor;
+import cc.lib.logger.Logger;
+import cc.lib.logger.LoggerFactory;
 
 @SuppressWarnings("serial")
 public class UIProperties extends Properties {

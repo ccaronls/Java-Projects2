@@ -272,9 +272,11 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
             break;
         case CENTER: 
             mv.subEq(0, 0.5f * (lines.length * (textHeight)));
+            y -= 0.5f * (lines.length * (textHeight));
             break;
         case BOTTOM: 
             mv.subEq(0, lines.length * textHeight);
+            y -= (lines.length * (textHeight));
             break;
         default:
             throw new RuntimeException("Unhandled case: " + vJust);
@@ -284,7 +286,17 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
             maxWidth = Math.max(drawStringLine(mv.X(), mv.Y(), hJust, lines[i]), maxWidth);
             mv.addEq(0, textHeight);
         }
-        return new GDimension(maxWidth, textHeight * lines.length);
+        float maxHeight = textHeight * lines.length;
+        vertex(x, y);
+        switch (hJust) {
+            case RIGHT:
+                vertex(x-maxWidth, y+maxHeight); break;
+            case CENTER:
+                vertex(x-maxWidth/2, y+maxHeight); break;
+            case LEFT:
+                vertex(x+maxWidth/2, y+maxHeight); break;
+        }
+        return new GDimension(maxWidth, maxHeight);
     }
     
     /**
@@ -858,6 +870,23 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
         vertex(x, y+h);
         drawLineLoop();
         setLineWidth(oldWidth);
+    }
+
+    /**
+     *
+     * @param rect
+     */
+    public final void drawRect(GRectangle rect) {
+        drawRect(rect.x, rect.y, rect.w, rect.h);
+    }
+
+    /**
+     *
+     * @param rect
+     * @param thickness
+     */
+    public final void drawRect(GRectangle rect, float thickness) {
+        drawRect(rect.x, rect.y, rect.w, rect.h, thickness);
     }
 
     /**

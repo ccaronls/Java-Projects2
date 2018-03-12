@@ -1,18 +1,20 @@
 package cc.lib.android;
 
-import java.util.Locale;
-import java.util.Timer;
-import java.util.TimerTask;
-
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
+
+import java.util.Locale;
+import java.util.Timer;
+import java.util.TimerTask;
+
+import cc.lib.logger.Logger;
+import cc.lib.logger.LoggerFactory;
 
 /**
  * Base class has support for inApp billing, polling and various helper methods
@@ -23,8 +25,17 @@ import android.view.inputmethod.InputMethodManager;
  */
 public class CCActivityBase extends Activity {
 
-	public final String TAG = getClass().getSimpleName();
-	
+    static {
+        LoggerFactory.factory = new LoggerFactory() {
+            @Override
+            public Logger getLogger(String name) {
+                return new AndroidLogger(name);
+            }
+        };
+    }
+
+    public final Logger log = new AndroidLogger(getClass().getSimpleName());
+
 	@Override
 	protected void onCreate(Bundle bundle) {
 		super.onCreate(bundle);
@@ -54,14 +65,14 @@ public class CCActivityBase extends Activity {
 	public final void hideKeyboard() {
         InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
         if (imm != null) {
-            View focused = getContentView().findFocus();
+            View focused = getContent().findFocus();
             if (focused != null) {
                 imm.hideSoftInputFromWindow(focused.getWindowToken(), 0);
             }
         }
     }
 	
-	public final View getContentView() {
+	public View getContent() {
 		return getWindow().getDecorView().findViewById(android.R.id.content);
 	}
 	
@@ -108,7 +119,7 @@ public class CCActivityBase extends Activity {
 	 * Override this method to handle your polling needs.  Base method just logs to LogCat a warning.
 	 */
 	protected void onPoll() {
-		Log.w(TAG, "onPoll not handled");
+		log.warn("onPoll not handled");
 	}
 
 	/**

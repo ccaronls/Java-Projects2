@@ -16,7 +16,7 @@ import android.view.View;
  *
  */
 
-public abstract class DroidActivity extends Activity {
+public abstract class DroidActivity extends Activity CCActivityBase {
 
     DroidGraphics g = null;
     View content = null;

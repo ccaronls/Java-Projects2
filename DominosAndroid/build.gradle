@@ -43,7 +43,7 @@ android {
 
     signingConfigs {
         release {
-            storeFile file("android.jks")
+            storeFile file("../common/android.jks")
             storePassword "ujvlF0x@"
             keyAlias "pressuretestutility"
             keyPassword "ujvlF0x@"
@@ -59,7 +59,7 @@ android {
 
         release {
             minifyEnabled true // Enables code shrinking for the release build type.
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard.txt'
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), '../common/proguard.txt'
             signingConfig signingConfigs.release
         }
     }

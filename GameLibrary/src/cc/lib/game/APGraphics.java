@@ -79,6 +79,10 @@ public abstract class APGraphics extends AGraphics {
         return r.untransform(screenX, screenY);
     }
 
+    public final Vector2D screenToViewport(float screenX, float screenY) {
+        return r.untransform(screenX, screenY);
+    }
+
     @Override
     public final void vertex(float x, float y) {
         r.addVertex(x, y);

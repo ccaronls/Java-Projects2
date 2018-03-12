@@ -18,6 +18,8 @@ import java.util.Set;
 import cc.lib.crypt.Cypher;
 import cc.lib.crypt.EncryptionInputStream;
 import cc.lib.crypt.EncryptionOutputStream;
+import cc.lib.logger.Logger;
+import cc.lib.logger.LoggerFactory;
 import cc.lib.utils.Reflector;
 
 /**
@@ -27,6 +29,8 @@ import cc.lib.utils.Reflector;
  *
  */
 public abstract class GameClient {
+
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
     private enum State {
         READY, // connect not called
@@ -59,7 +63,7 @@ public abstract class GameClient {
             try {
                 new GameCommand(GameCommandType.CL_KEEPALIVE).write(out);
             } catch (Exception e) {
-                logError(e.getClass() + " " + e.getMessage());
+                log.error(e.getClass() + " " + e.getMessage());
                 e.printStackTrace();
             }
         }
@@ -139,13 +143,13 @@ public abstract class GameClient {
      * @throws Exception
      */
     public final void connect(InetAddress address, int port) throws IOException {
-        logDebug("Connecting ...");
+        log.debug("Connecting ...");
         switch (state) {
             case READY:
             case DISCONNECTED:
                 socket = new Socket(address, port);
                 if (cypher != null) {
-                    logDebug("Using Cypher: " + cypher);
+                    log.debug("Using Cypher: " + cypher);
                     in = new EncryptionInputStream(socket.getInputStream(), cypher);
                     out = new EncryptionOutputStream(socket.getOutputStream(), cypher);
                 } else {
@@ -156,7 +160,7 @@ public abstract class GameClient {
                 GameCommandType type = state == State.READY ? GameCommandType.CL_CONNECT : GameCommandType.CL_RECONNECT;
                 outQueue.add(new GameCommand(type).setName(userName).setVersion(version));
                 new Thread(new SocketReader()).start();
-                logDebug("Connection SUCCESS");
+                log.debug("Connection SUCCESS");
                 break;
             case CONNECTED:
             case CONNECTING:
@@ -173,7 +177,7 @@ public abstract class GameClient {
      * @return
      */
     public final boolean isConnected() {
-        return state == State.CONNECTED;
+        return state == State.CONNECTED || state == State.CONNECTING;
     }
 
     /**
@@ -183,16 +187,21 @@ public abstract class GameClient {
     public final void disconnect() {
         if (state == State.CONNECTED || state == State.CONNECTING) {
             state = State.DISCONNECTING;
-            logDebug("GameClient: client '" + this.getName() + "' disconnecitng ...");
+            log.debug("GameClient: client '" + this.getName() + "' disconnecitng ...");
             try {
-                outQueue.add(new GameCommand(GameCommandType.CL_DISCONNECT));
+                outQueue.clear();
+                outQueue.add(new GameCommand(GameCommandType.CL_DISCONNECT).setArg("reason", "player left session"));
+                synchronized (this) {
+                    wait(500); // make sure we give the call a chance to get sent
+                }
             } catch (Exception e) {
                 e.printStackTrace();
             }
             outQueue.stop();
-            logDebug("GameClient: outQueue stopped");
+            log.debug("GameClient: outQueue stopped");
             close();
         }
+        reset();
     }
     
     // making this package access so JUnit can test a client timeout
@@ -225,42 +234,6 @@ public abstract class GameClient {
         state = State.READY;
     }
     
-    /**
-     * Can be overridden to perform custom logging
-     * Default behavior is to write to stdout.
-     * @param msg
-     */
-    public void logDebug(String msg) {
-        System.out.println("DEBUG " + getClass().getSimpleName() + ":" + msg);
-    }
-
-    /**
-     * Can be overridden to perform custom logging
-     * Default behavior is to write to stdout.
-     * @param msg
-     */
-    public void logInfo(String msg) {
-        System.out.println("INFO " + getClass().getSimpleName() + ":" + msg);
-    }
-
-    /**
-     * Can be overridden to perform custom logging
-     * Default behavior is to write to stderr.
-     * @param msg
-     */
-    public void logError(String msg) {
-        System.out.println("ERROR " + getClass().getSimpleName() + ":" + msg);
-    }
-
-    /**
-     * Can be overridden to perform custom logging
-     * Default behavior is to write to stderr.
-     * @param e
-     */
-    public final void logError(Exception e) {
-        logError("ERROR " + getClass().getSimpleName() + ":" + e.getClass().getSimpleName() + " " + e.getMessage());
-    }
-    
     private final boolean isDisconnecting() {
         return state == State.READY || state == State.DISCONNECTING;
         //return state == State.DISCONNECTING;
@@ -268,7 +241,7 @@ public abstract class GameClient {
 
     private class SocketReader implements Runnable {
         public void run() {
-            logDebug("GameClient: Client Listener Thread starting");
+            log.debug("GameClient: Client Listener Thread starting");
             
             state = State.CONNECTING;
             String disconnectedReason = null;
@@ -276,7 +249,9 @@ public abstract class GameClient {
             while (!isDisconnecting()) {
                 try {
                     final GameCommand cmd = GameCommand.parse(in);
-                    logDebug("Parsed incoming cmd: " + cmd);
+                    if (isDisconnecting())
+                        break;
+                    log.debug("Parsed incoming cmd: " + cmd);
                     if (cmd.getType() == GameCommandType.SVR_CONNECTED) {
                         int keepAliveFreqMS = Integer.parseInt(cmd.getArg("keepAlive"));
                         outQueue.setTimeout(keepAliveFreqMS);
@@ -320,7 +295,7 @@ public abstract class GameClient {
                         sendError(e);
 //                        send(new GameCommand(GameCommandType.CL_ERROR).setArg("msg", "ERROR: " + e.getClass().getSimpleName() + ":" + e.getMessage())
 //                                .setArg("stack", Arrays.toString(e.getStackTrace())));
-//                        logError(e);
+//                        log.error(e);
                         e.printStackTrace();
                         disconnectedReason = ("Exception: " + e.getClass().getSimpleName() + " " + e.getMessage());
                     }
@@ -330,7 +305,7 @@ public abstract class GameClient {
             close();
             if (disconnectedReason != null)
                 onDisconnected(disconnectedReason);
-            logDebug("GameClient: Client Listener Thread exiting");
+            log.debug("GameClient: Client Listener Thread exiting");
         }
     }
 
@@ -420,23 +395,27 @@ public abstract class GameClient {
      * @param cmd
      */
     public final void send(GameCommand cmd) {
-        logDebug("Sending command: " + cmd);
-        try {
-            this.outQueue.add(cmd);
-        } catch (Exception e) {
-            logError("Send Failed: " + e.getClass().getSimpleName() + " " + e.getMessage());
+        if (isConnected()) {
+            log.debug("Sending command: " + cmd);
+            try {
+                this.outQueue.add(cmd);
+            } catch (Exception e) {
+                log.error("Send Failed: " + e.getClass().getSimpleName() + " " + e.getMessage());
+            }
+        } else {
+            log.warn("Ignoring send of comd '" + cmd.getType() + "' since not connected");
         }
     }
 
     public final void sendError(Exception e) {
         GameCommand cmd = new GameCommand(GameCommandType.CL_ERROR).setArg("msg", "ERROR: " + e.getMessage() + "\n" + Arrays.toString(e.getStackTrace()));
-        logError("Sending error: " + cmd);
+        log.error("Sending error: " + cmd);
         send(cmd);
     }
 
     public final void sendError(String err) {
         GameCommand cmd = new GameCommand(GameCommandType.CL_ERROR).setArg("msg", "ERROR: " + err);
-        logError("Sending error: " + cmd);
+        log.error("Sending error: " + cmd);
         send(cmd);
     }
 

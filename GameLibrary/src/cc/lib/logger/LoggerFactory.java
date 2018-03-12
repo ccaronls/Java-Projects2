@@ -1,4 +1,4 @@
-package cc.game.soc.ui;
+package cc.lib.logger;
 
 /**
  * Created by chriscaron on 2/27/18.
@@ -24,7 +24,20 @@ public abstract class LoggerFactory {
 
                 @Override
                 public void info(String msg, Object... args) {
-                    System.err.println("I[" + name + "]:" + String.format(msg, args));
+                    System.out.println("I[" + name + "]:" + String.format(msg, args));
+                }
+
+                @Override
+                public void error(Exception e) {
+                    error("%s:%s\n%s", e.getClass().getSimpleName(), e.getMessage());
+                    for (StackTraceElement s : e.getStackTrace()) {
+                        error(s.toString());
+                    }
+                }
+
+                @Override
+                public void warn(String msg, Object... args) {
+                    System.err.println("W[" + name + "]:" + String.format(msg, args));
                 }
             };
         }

@@ -4,6 +4,9 @@ import java.io.OutputStream;
 import java.util.LinkedList;
 import java.util.Queue;
 
+import cc.lib.logger.Logger;
+import cc.lib.logger.LoggerFactory;
+
 /**
  * Allows for queueing of commands so we are never waiting for the network to write
  * @author ccaron
@@ -11,7 +14,7 @@ import java.util.Queue;
  */
 class CommandQueueWriter {
 
-    static final boolean DBEUG_ENABLED = false;
+    private Logger log = LoggerFactory.getLogger(CommandQueueWriter.class);
     
     private Queue<GameCommand> queue = new LinkedList<GameCommand>();
     private boolean running;
@@ -33,31 +36,32 @@ class CommandQueueWriter {
             running = true;
             new Thread(new Runnable() {
                 public void run() {
-                    if (DBEUG_ENABLED) log("thread starting");
+                    log.debug("thread starting");
                     while (running || !queue.isEmpty()) {
                         GameCommand cmd = null;
                         try {
                             if (queue.isEmpty()) {
                                 synchronized (queue) {
                                     if (timeout > 0) {
-                                        if (DBEUG_ENABLED) log("Wait for '" + timeout + "' msecs");
+                                        log.debug("Wait for '" + timeout + "' msecs");
                                         queue.wait(timeout);
                                     }
                                     else
                                         queue.wait();
                                 }
                             }
-                            if (DBEUG_ENABLED) log("Wake up");
+                            log.debug("Wake up");
                             
                             if (queue.isEmpty()) {
+                                log.debug("Q empty");
                                 if (running) {
-                                    if (DBEUG_ENABLED) log("Timeout");
+                                    log.debug("Timeout");
                                     onTimeout();
                                 }
                             } else {
                                 
                                 cmd = queue.peek();
-                                if (DBEUG_ENABLED) log("Writing command: " + cmd);
+                                log.debug("Writing command: " + cmd);
                                 cmd.write(out);
                                 synchronized (queue) {
                                     queue.remove();
@@ -72,7 +76,7 @@ class CommandQueueWriter {
                     synchronized (CommandQueueWriter.this) {
                         CommandQueueWriter.this.notify();
                     }
-                    if (DBEUG_ENABLED) log("thread exiting");
+                    log.debug("thread exiting");
                 }
             }).start();
         }
@@ -82,24 +86,29 @@ class CommandQueueWriter {
      * Block until all commands sent.  No new commands will be accepted.
      */
     void stop() {
-        if (DBEUG_ENABLED) log("Stopping");
-        running = false;
+        log.debug("Stopping");
         try {
             // block for up to 5 seconds for the remaining commands to get sent
             if (queue.size() > 0) {
+                log.debug("out Q has elements, notifying...");
                 synchronized (queue) {
                     queue.notify();
                 }
-                synchronized (this) {
-                    wait(5000);
-                }
             }
-            
+            log.debug("Wait for queue to flush");
+            synchronized (this) {
+                wait(5000);
+            }
+
         } catch (Exception e) {
             e.printStackTrace();
         }
+        running = false;
         queue.clear();
-        if (DBEUG_ENABLED) log("Stopped");
+        synchronized (queue) {
+            queue.notify();
+        }
+        log.debug("Stopped");
     }
 
     /**
@@ -109,12 +118,21 @@ class CommandQueueWriter {
      * @throws Exception
      */
     void add(GameCommand cmd) {
-        if (DBEUG_ENABLED) log("add command: " + cmd);
+        log.debug("add command: " + cmd);
         if (!running)
             throw new RuntimeException("commandQueue is not running");
         synchronized (queue) {
             queue.add(cmd);
             queue.notify();
+        }
+    }
+
+    /**
+     * Clear out any pending things
+     */
+    void clear() {
+        synchronized (queue) {
+            queue.clear();
         }
     }
     

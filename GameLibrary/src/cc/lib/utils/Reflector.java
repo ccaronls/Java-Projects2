@@ -1373,7 +1373,7 @@ public class Reflector<T> {
      * @param text
      * @throws Exception
      */
-    public final void deserialize(String text) throws Exception {
+    public synchronized final void deserialize(String text) throws Exception {
         deserialize(new MyBufferedReader(new StringReader(text)));
     }
 
@@ -1382,7 +1382,7 @@ public class Reflector<T> {
      * @param in
      * @throws Exception
      */
-    public final void deserialize(InputStream in) throws IOException {
+    public synchronized final void deserialize(InputStream in) throws IOException {
         MyBufferedReader reader = new MyBufferedReader(new InputStreamReader(in));
         try {
             deserialize(reader);
@@ -1400,7 +1400,7 @@ public class Reflector<T> {
      * @param _in
      * @throws Exception
      */
-    protected void deserialize(BufferedReader _in) throws Exception {
+    protected synchronized void deserialize(BufferedReader _in) throws Exception {
     	MyBufferedReader in = null;
     	if (_in instanceof MyBufferedReader)
     		in = (MyBufferedReader)_in;

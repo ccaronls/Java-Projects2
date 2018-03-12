@@ -33,6 +33,8 @@ import cc.lib.game.GColor;
 import cc.lib.game.IVector2D;
 import cc.lib.game.Justify;
 import cc.lib.game.Utils;
+import cc.lib.logger.Logger;
+import cc.lib.logger.LoggerFactory;
 import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
 

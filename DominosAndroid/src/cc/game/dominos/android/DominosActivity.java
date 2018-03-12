@@ -80,6 +80,7 @@ public class DominosActivity extends DroidActivity {
         } catch (Exception e) {
             throw new AssertionError();
         }
+
     }
 
     public abstract class SpinnerTask extends AsyncTask<Void, Void, Exception> {
@@ -185,7 +186,7 @@ public class DominosActivity extends DroidActivity {
             }
 
             @Override
-            protected void onNewGameClicked() {
+            protected void onMenuClicked() {
                 switch (mode) {
                     case HOST:
                         newDialogBuilder().setTitle("Confirm")
@@ -197,6 +198,7 @@ public class DominosActivity extends DroidActivity {
                                         new SpinnerTask() {
                                             @Override
                                             protected void doIt() {
+                                                server.stop();
                                                 killGame();
                                             }
 
@@ -208,6 +210,7 @@ public class DominosActivity extends DroidActivity {
                                         }.run();
                                     }
                                 }).show();
+                        break;
                     case CLIENT:
                         newDialogBuilder().setTitle("Confirm")
                                 .setMessage("Disconnect from server?")
@@ -313,10 +316,17 @@ public class DominosActivity extends DroidActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        if (!dominos.isInitialized()) {
+            dominos.tryLoadFromFile(saveFile);
+        }
         if (server.isRunning()) {
             dominos.startGameThread();
         } else if (!client.isConnected()) {
-            showNewGameDialog(false);
+            if (dominos.isInitialized()) {
+                dominos.startGameThread();
+            } else {
+                showNewGameDialog(false);
+            }
         }
         /*
         if (mode == Mode.SINGLE && dominos.getNumPlayers() > 0 && dominos.getWinner()<0)
@@ -375,7 +385,7 @@ public class DominosActivity extends DroidActivity {
     protected void onPause() {
         super.onPause();
         dominos.stopGameThread();
-        if (!server.isRunning() && !client.isConnected())
+        if (!client.isConnected())
             dominos.trySaveToFile(saveFile);
     }
 
@@ -425,6 +435,7 @@ public class DominosActivity extends DroidActivity {
         getContent().postInvalidate();
         getContent().postDelayed(new Runnable() {
             public void run() {
+                tx = ty = -1;
                 dominos.onClick();
             }
         }, 100);
@@ -466,6 +477,7 @@ public class DominosActivity extends DroidActivity {
                 public void onClick(View v) {
                     if (dominos.tryLoadFromFile(saveFile)) {
                         dominos.startGameThread();
+                        currentDialog.dismiss();
                     } else {
                         newDialogBuilder().setTitle("Error").setMessage("Failed to load from save file").setNegativeButton("Ok", null).show();
                     }
@@ -740,9 +752,11 @@ public class DominosActivity extends DroidActivity {
 
                     @Override
                     protected void onDone() {
-                        //showWaitingForPlayersDialogClient(false);
+                        mode = Mode.CLIENT;
                         connecting = false;
-                        Toast.makeText(DominosActivity.this, "Connection SUCCESS!", Toast.LENGTH_LONG).show();
+                        synchronized (helper) {
+                            helper.notify();
+                        }
                     }
 
                     @Override
@@ -802,12 +816,13 @@ public class DominosActivity extends DroidActivity {
                     @Override
                     protected void doIt() {
                         helper.connect(d);
-                        Utils.waitNoThrow(helper, 20*1000);
+                        Utils.waitNoThrow(helper, 60*1000);
                     }
 
                     @Override
                     protected void onDone() {
                         if (client.isConnected()) {
+                            mode = Mode.CLIENT;
                             //showWaitingForPlayersDialogClient(canceleble);
                             Toast.makeText(DominosActivity.this, "Connection SUCCESS!", Toast.LENGTH_LONG).show();
                         } else {
@@ -883,7 +898,7 @@ public class DominosActivity extends DroidActivity {
         });
     }
 
-    final static String VERSION = "1.0";
+    final static String VERSION = "DOMINOS.1.0";
     final static int PORT = 16342;
     final static int CLIENT_READ_TIMEOUT = 10000;
 
@@ -901,6 +916,9 @@ public class DominosActivity extends DroidActivity {
 
             @Override
             public Move chooseMove(Dominos game, List<Move> moves) {
+                if (Utils.isEquals(getMoves(), moves))
+                    return null;
+
                 return super.chooseMove(game, moves);
             }
         };
@@ -968,6 +986,7 @@ public class DominosActivity extends DroidActivity {
                     String str = cmd.getArg("dominos");
 //                    FileUtils.stringToFile(str, new File(Environment.getExternalStorageDirectory(), "dominos.in"));
                     dominos.deserialize(str);
+                    dominos.redraw();
                 } catch (Exception e) {
                     sendError(e);
                 }
@@ -979,6 +998,7 @@ public class DominosActivity extends DroidActivity {
                     String str = cmd.getArg("dominos");
 //                    FileUtils.stringToFile(str, new File(Environment.getExternalStorageDirectory(), "dominos.in"));
                     dominos.deserialize(str);
+                    dominos.redraw();
                 } catch (Exception e) {
                     sendError(e);
                 }
@@ -1000,21 +1020,6 @@ public class DominosActivity extends DroidActivity {
             return dominos;
         }
 
-        @Override
-        public void logDebug(String msg) {
-            Log.d(TAG, msg);//super.logDebug(msg);
-        }
-
-        @Override
-        public void logInfo(String msg) {
-            Log.i(TAG, msg);//super.logInfo(msg);
-        }
-
-        @Override
-        public void logError(String msg) {
-            Log.e(TAG, msg);//super.logError(msg);
-        }
-
     };
 
     private AlertDialog currentDialog = null;
@@ -1031,30 +1036,8 @@ public class DominosActivity extends DroidActivity {
         }.setCancelable(false);
     }
 
-    private GameServer server = new GameServer(PORT, CLIENT_READ_TIMEOUT, VERSION, cypher, 3) {
-        @Override
-        public void logDebug(String msg) {
-            Log.d(TAG,msg);//super.logDebug(msg);
-        }
+    private GameServer server = new GameServer(PORT, CLIENT_READ_TIMEOUT, VERSION, cypher, 3);
 
-        @Override
-        public void logInfo(String msg) {
-            Log.i(TAG, msg);//super.logInfo(msg);
-        }
-
-        @Override
-        public void logWarn(String msg) {
-            Log.w(TAG, msg);//super.logWarn(msg);
-        }
-
-        @Override
-        public void logError(String msg) {
-            Log.e(TAG, msg);//super.logError(msg);
-        }
-
-    };
-
-    private final static GameCommandType SVR_TO_CL_NEW_PEER    = new GameCommandType("SVR_NEW_PEER");
     private final static GameCommandType SVR_TO_CL_CHOOSE_MOVE = new GameCommandType("SVR_CHOOSE_MOVE");
     private final static GameCommandType CL_TO_SVR_MOVE_CHOSEN = new GameCommandType("CL_MOVE_CHOSEN");
 
@@ -1099,7 +1082,7 @@ public class DominosActivity extends DroidActivity {
             } catch(IOException e) {
                 throw new AssertionError(e);
             }
-            Utils.waitNoThrow(this, 5000);
+            Utils.waitNoThrow(this, 20000);
             return chosen;
         }
 
