@@ -30,7 +30,7 @@ import cc.lib.utils.Reflector;
  */
 public abstract class GameClient {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    protected final Logger log = LoggerFactory.getLogger(getClass());
 
     private enum State {
         READY, // connect not called

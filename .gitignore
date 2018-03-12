@@ -12,6 +12,7 @@
 **/.gradle
 **/gradlew*
 **/gradle/
-local.properties
-fractal.properties
+*.properties
 captures
+./*.txt
+*.save

@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-import cc.lib.annotation.DontObfuscate;
+import cc.lib.annotation.Keep;
 import cc.lib.game.AAnimation;
 import cc.lib.game.AGraphics;
 import cc.lib.game.APGraphics;
@@ -136,7 +136,7 @@ public abstract class Dominos extends Reflector<Dominos> {
         }
     }
 
-    @DontObfuscate
+    @Keep
     protected void onGameOver(int playerNum) {
         final Player winner = players[playerNum];
         winner.textAnimation = new AAnimation<AGraphics>(1000, -1, true) {
@@ -209,7 +209,7 @@ public abstract class Dominos extends Reflector<Dominos> {
         return turn;
     }
 
-    @DontObfuscate
+    @Keep
     public void setTurn(final int turn) {
         if (turn >= 0 && turn < players.length) {
             final Player fromPlayer = players[this.turn];
@@ -385,14 +385,14 @@ public abstract class Dominos extends Reflector<Dominos> {
 	    return getWinner() >= 0;
     }
 
-    @DontObfuscate
+    @Keep
     protected void onTilePlaced(int player, Tile tile, int endpoint, int placement) {
         board.doMove(tile, endpoint, placement);
         players[player].tiles.remove(tile);
         redraw();
     }
 
-    @DontObfuscate
+    @Keep
     protected void onTileFromPool(int player, final Tile pc) {
 	    final Player p = players[player];
         if (p.isPiecesVisible()) {
@@ -428,12 +428,12 @@ public abstract class Dominos extends Reflector<Dominos> {
 
     }
 
-    @DontObfuscate
+    @Keep
     protected void onKnock(int player) {
         redraw();
     }
 
-    @DontObfuscate
+    @Keep
     protected void onEndRound() {
         newRound();
         redraw();
@@ -543,7 +543,7 @@ public abstract class Dominos extends Reflector<Dominos> {
         }
     }
 
-    @DontObfuscate
+    @Keep
     protected void onPlayerEndRoundPoints(final int player, final int pts) {
 
         Player p = players[player];
@@ -625,7 +625,7 @@ public abstract class Dominos extends Reflector<Dominos> {
      * @param player
      * @param pts
      */
-    @DontObfuscate
+    @Keep
     protected void onPlayerPoints(final int player, final int pts) {
 
         final Player p = players[player];

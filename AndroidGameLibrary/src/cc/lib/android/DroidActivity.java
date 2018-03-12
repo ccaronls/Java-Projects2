@@ -16,7 +16,7 @@ import android.view.View;
  *
  */
 
-public abstract class DroidActivity extends Activity CCActivityBase {
+public abstract class DroidActivity extends CCActivityBase {
 
     DroidGraphics g = null;
     View content = null;
@@ -90,7 +90,7 @@ public abstract class DroidActivity extends Activity CCActivityBase {
         setContentView(content);
     }
 
-    protected View getContent() {
+    public View getContent() {
         return content;
     }
 
