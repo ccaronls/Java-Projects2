@@ -848,6 +848,17 @@ public class Utils {
         return true;
     }
 
+    public static String genRandomString(int length) {
+        StringBuffer buf = new StringBuffer(length);
+        String chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUV1234567890";
+        for (int i=0; i<length; i++) {
+            buf.append(chars.charAt(Utils.rand() % chars.length()));
+        }
+        return buf.toString();
+    }
+
+
+
     public interface VertexList {
         public void vertex(float x, float y);
     }

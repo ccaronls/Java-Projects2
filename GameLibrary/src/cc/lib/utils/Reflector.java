@@ -15,14 +15,14 @@ import cc.lib.game.Utils;
  * 
  * Serialization of primitives, arrays and subclasses of Reflector are supported.
  * Also collections are supported if their data types are one of the afore mentioned
- * New types can be added if they implement an Archiver.
+ * New types or can be added if they implement an Archiver.
  * 
- * There are 3 ways to use this class:
- * 1. Extend Reflector and Don't override serialize and deserialize, simple call addField within a static 
- * block of your class for each field you want to be serialized.  There are convenience methods like 
- * addAllFields and omitField to simplify this step.  The following types can be added using addField 
- * with no work:
- * primitives, primitive arrays, Object Arrays, enums, Collections, Maps, Reflectors.
+ * Ways to use this class:
+ *
+ * 1. Extend Reflector and Don't override serialize and deserialize, simply call addAllField within a static
+ * block of your class. Fields you dont want serialized should be annotated with @Omit
+ *
+ * primitives, primitive arrays, Object Arrays, enums, Collections, Maps, other Reflectors.
  * Fields of external types need to have an archiver attached like so:
  * class A extends Reflector<A> {
  *    java.awt.Color color;
@@ -58,6 +58,8 @@ import cc.lib.game.Utils;
  *      b = Integer.parseInt(in.readLine());
  *    }
  * }
+ *
+ * 3. User static serialze/deserialize methods on known objects, enums, arrays, primitives, maps, collections
  * 
  * NOTE: Derived classes must support a public zero argument constructor for de-serialization
  * @author ccaron
@@ -788,10 +790,15 @@ public class Reflector<T> {
         
         classMap.put("java.util.Arrays.ArrayList", ArrayList.class);
     }
-    
+
+    /**
+     * This method should never be neccessary
+     * @param clazz
+     */
+    @Deprecated
     public static void registerClass(Class<?> clazz) {
     	String sClazz = getCanonicalName(clazz);
-    	classMap.put(sClazz, clazz);
+        addArrayTypes(clazz);
     }
 
     private static Class<?> getClassForName(String forName) throws ClassNotFoundException {
@@ -894,6 +901,7 @@ public class Reflector<T> {
         } else if (clazz.equals(String.class)) {
             return stringArchiver;
         } else if (clazz.isEnum() || isSubclassOf(clazz, Enum.class)) {
+            addArrayTypes(clazz);
             return enumArchiver;
         } else if (isSubclassOf(clazz, Reflector.class)) {
             return archivableArchiver;

@@ -70,6 +70,20 @@ public class ReflectorTest extends TestCase {
             assertEquals(m.get(s), min.get(s));
         }
 
+        SomeEnum e = SomeEnum.ENUM1;
+        String eout = Reflector.serializeObject(e);
+        System.out.println(eout);
+        SomeEnum e2 = Reflector.deserializeFromString(eout);
+        assertEquals(e, e2);
+
+        SomeEnum [] el = {
+                SomeEnum.ENUM2,
+                SomeEnum.ENUM3
+        };
+        eout = Reflector.serializeObject(el);
+        System.out.println(eout);
+        SomeEnum [] el2 = Reflector.deserializeFromString(eout);
+        assertTrue(Arrays.equals(el, el2));
     }
 
     public void testSerializeStringArray() throws Exception {
