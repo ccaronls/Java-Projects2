@@ -603,9 +603,9 @@ public class GameServerTest extends TestCase {
 
         @Override
         protected void onForm(ClientForm form) {
-            log.debug("Form receieved: " + form.toXML());
+
         }
-        
+
         public void testMethod(int arg0, String arg1, Map arg2) {
             System.out.println("testMethod executed with: " + arg0 + " " + arg1 + " " + arg2);
             this.argLong = arg0;

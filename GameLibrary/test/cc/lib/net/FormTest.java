@@ -233,6 +233,7 @@ public class FormTest extends TestCase {
             lastCommand = cmd;
         }
 
+
         @Override
         protected void onForm(ClientForm form) {
             try {

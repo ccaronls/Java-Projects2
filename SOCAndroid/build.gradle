@@ -43,10 +43,10 @@ android {
 
     signingConfigs {
         release {
-            storeFile file("../common/android.jks")
-            storePassword "ujvlF0x@"
-            keyAlias "pressuretestutility"
-            keyPassword "ujvlF0x@"
+            storeFile file(project.storeFile)
+            storePassword project.storePassword
+            keyAlias project.keyAlias
+            keyPassword project.keyPassword
         }
     }
 

@@ -68,9 +68,16 @@
     <init>();
 }
 
--keepclassmembers class ** {
-  @cc.lib.annotation.DontObfuscate **;
+# we could use android.Keep but then we couldn't compile the cross-platform code. So I copied its implementation over to shared lib
+
+-keep class cc.lib.annotation.Keep
+
+-keepclassmembers class * {
+    @cc.lib.annotation.Keep <methods>;
 }
+
+-keepclassmembers class org.xbill.DNS.** { *; }
+-keep class sun.net.spi.nameservice.NameService { *; }
 
 -keepattributes Exceptions,InnerClasses
 -dontwarn com.parse.**
@@ -81,3 +88,4 @@
 -dontwarn android.support.v4.**
 -dontwarn android.test.**
 -dontwarn cc.app.**
+-dontwarn org.xbill.**
