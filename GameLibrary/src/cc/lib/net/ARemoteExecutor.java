@@ -36,7 +36,7 @@ import cc.lib.utils.Reflector;
  * On system B:
  * client = new ARemoteExecutor() {... }
  *
- * Each system register object to be executed upon
+ * System register objects to be executed upon
  *
  * client.register(myObject.getClass().getSimpleName(), myObject);
  *
@@ -69,24 +69,69 @@ public abstract class ARemoteExecutor {
 
     private Map<String, Object> executorObjects = new NoDupesMap<>(new HashMap<String, Object>());
 
-    public class ResponseListener<T> {
+    private final class ResponseListener<T> implements GameCommandType.Listener {
         private T response;
+        private final String id;
+
+        ResponseListener(String id) {
+            this.id = id;
+        }
+
         public void setResponse(T response) {
             this.response = response;
             synchronized (this) {
                 notify();
             }
         }
+
+        @Override
+        public void onCommand(GameCommand cmd) {
+            if (cmd.getArg("target").equals(id)) {
+                unregister(id);
+                try {
+                    setResponse((T)Reflector.deserializeFromString(cmd.getArg("return")));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     };
 
+    /**
+     * Send a command to remote listener
+     * @param cmd
+     * @throws IOException
+     */
     public abstract void sendCommand(GameCommand cmd) throws IOException;
 
+    /**
+     * return connected status
+     *
+     * @return
+     */
     public abstract boolean isConnected();
 
+    /**
+     * Register an object using its classname (make sure it matches string from gettClassName in stacktrace)
+     * @param o
+     */
+    public final void register(Object o) {
+        register(o.getClass().getName(), o);
+    }
+
+    /**
+     * register an object with a specific id
+     * @param id
+     * @param o
+     */
     public final void register(String id, Object o) {
         executorObjects.put(id, o);
     }
 
+    /**
+     * Unregister an object by its id
+     * @param id
+     */
     public final void unregister(String id) {
         executorObjects.remove(id);
     }
@@ -102,9 +147,22 @@ public abstract class ARemoteExecutor {
      */
     public final <T> T executeOnRemote(boolean hasReturn, Object...params) throws IOException {
         StackTraceElement elem = new Exception().getStackTrace()[1];
+        return executeOnRemote(elem.getClassName(), elem.getMethodName(), hasReturn, params);
+    }
+
+    /**
+     *
+     * @param targetId
+     * @param method
+     * @param hasReturn
+     * @param params
+     * @param <T>
+     * @return
+     */
+    public final <T> T executeOnRemote(String targetId, String method, boolean hasReturn, Object ... params) throws IOException {
         GameCommand cmd = new GameCommand(EXECUTE_REMOTE);
-        cmd.setArg("method", elem.getMethodName());
-        cmd.setArg("target", elem.getClassName());
+        cmd.setArg("method", method);
+        cmd.setArg("target", targetId);
         cmd.setArg("numParams", params.length);
         for (int i=0; i<params.length; i++) {
             cmd.setArg("param"+i, Reflector.serializeObject(params[i]));
@@ -112,8 +170,9 @@ public abstract class ARemoteExecutor {
         if (hasReturn) {
             String id = Utils.genRandomString(64);
             cmd.setArg("responseId", id);
-            ARemoteExecutor.ResponseListener<T> listener = new ARemoteExecutor.ResponseListener<>();
-            register(id, listener);
+            ARemoteExecutor.ResponseListener<T> listener = new ARemoteExecutor.ResponseListener<>(id);
+            EXECUTE_REMOTE.addListener(listener);
+            //register(id, listener);
             try {
                 sendCommand(cmd);
                 synchronized (listener) {

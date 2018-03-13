@@ -39,7 +39,48 @@ import java.util.*;
  *
  */
 public final class GameCommandType implements Comparable<GameCommandType> {
-    
+
+    public synchronized void addListener(Listener l) {
+        if (listeners == null) {
+            listeners = new HashSet<>();
+        }
+        listeners.add(l);
+    }
+
+    public synchronized void removeListener(Listener l) {
+        if (listeners != null) {
+            listeners.remove(l);
+        }
+    }
+
+    private HashSet<Listener> listeners = null;
+
+    void notifyListeners(GameCommand cmd) {
+        if (listeners != null) {
+            Listener [] arr;
+            synchronized (this) {
+                arr = listeners.toArray(new Listener[listeners.size()]);
+            }
+            for (Listener l : arr) {
+                try {
+                    l.onCommand(cmd);
+                } catch (Exception e) {
+                    e.getStackTrace();
+                    synchronized (this) {
+                        listeners.remove(l);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Listener can be used to listen for a specific type
+     */
+    public interface Listener {
+        void onCommand(GameCommand cmd);
+    }
+
     private final static Map<String, GameCommandType> instances = new LinkedHashMap<String, GameCommandType>() {
         // we want to preserve ordering (linked hash map) and prevent misuse by overriding put
         @Override
@@ -77,7 +118,7 @@ public final class GameCommandType implements Comparable<GameCommandType> {
     static final GameCommandType SVR_FORM = new GameCommandType("SVR_FORM");
 
     static final GameCommandType SVR_EXECUTE_METHOD = new GameCommandType("SVR_EXECUTE_METHOD");
-    
+
     /**
      * 
      * @param name

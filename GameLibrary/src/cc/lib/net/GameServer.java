@@ -400,7 +400,10 @@ public class GameServer {
                     for (Listener l : listeners)
                         l.onReconnection(conn);
                 }
-                
+
+                // process other listeners
+                cmd.getType().notifyListeners(cmd);
+
                 //new GameCommand(GameCommandType.SVR_CONNECTED).setArg("keepAlive", clientReadTimeout).write(out);
                 //log.debug("GameServer: Client " + name + " connected");
 

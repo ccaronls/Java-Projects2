@@ -39,7 +39,7 @@ public final class Tile extends Reflector<Tile> {
 
     @Override
     public int hashCode() {
-        return (pip1  + pip2) % 31;
+        return 17*pip1 + 191*pip2;
     }
 
 	public final boolean isDouble() {

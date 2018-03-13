@@ -416,7 +416,8 @@ public class ReflectorTest extends TestCase {
     	}
     }
 
-    // NOPE, cannot handle
+    // NOPE, cannot handle...too difficult, would require each element be surronded with a type descriptor. This would be hard
+    //  to make work everywhere
     public void xtestSerializeObjectArray() throws Exception {
         Object [] arr = {
                 "hello",

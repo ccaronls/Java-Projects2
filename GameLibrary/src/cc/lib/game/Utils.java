@@ -857,8 +857,6 @@ public class Utils {
         return buf.toString();
     }
 
-
-
     public interface VertexList {
         public void vertex(float x, float y);
     }

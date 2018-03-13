@@ -281,16 +281,20 @@ public class Vector2D extends Reflector<Vector2D> implements IVector2D, Serializ
 
     @Override
     public final boolean equals(Object o) {
-    	if (this == o)
-    		return true;
-    	
+        if (this == o)
+            return true;
+
         if (!(o instanceof Vector2D))
             return false;
-        
-        Vector2D v = (Vector2D)o;
+
+        Vector2D v = (Vector2D) o;
+        return v.x == x && v.y == y;
+    }
+
+    public final boolean equalsWithinRange(Vector2D v, float epsilon) {
         float dx = x-v.x;
         float dy = y-v.y;
-        return (Math.abs(dx) < CMath.EPSILON && Math.abs(dy) < CMath.EPSILON);
+        return (Math.abs(dx) < epsilon && Math.abs(dy) < epsilon);
     }
     
     /**
@@ -305,11 +309,11 @@ public class Vector2D extends Reflector<Vector2D> implements IVector2D, Serializ
         if (isNaN()) {
             return 542;
         }
-        return 122 * (76 * Float.valueOf(x).hashCode() +  Float.valueOf(y).hashCode());
+        return 123 * (71 * Float.valueOf(x).hashCode() + 13 * Float.valueOf(y).hashCode());
     }
     
     public boolean isZero() {
-    	return equals(ZERO);
+    	return equalsWithinRange(ZERO, CMath.EPSILON);
     }
     
     public boolean isNaN() {

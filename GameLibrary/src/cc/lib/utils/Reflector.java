@@ -11,7 +11,7 @@ import java.util.*;
 import cc.lib.game.Utils;
 
 /**
- * Derive from this class to handle copying, equals, serializing, etc.
+ * Derive from this class to handle copying, equals, serializing, deserializing.
  * 
  * Serialization of primitives, arrays and subclasses of Reflector are supported.
  * Also collections are supported if their data types are one of the afore mentioned
@@ -60,7 +60,15 @@ import cc.lib.game.Utils;
  * }
  *
  * 3. User static serialze/deserialize methods on known objects, enums, arrays, primitives, maps, collections
- * 
+ *
+ * Known Limitations:
+ *
+ * - Reflector cannot handle an Object array. Use a Collection if you want serialize unrelated types.
+ * - Use caution when hasing reflector objects. If you rely on Object.hashCode, then objects can get
+ *   lost after new instances are created for seialization. Consider implementing hashCodein reflector
+ *   objects you intend to be hashed.
+ *
+ *
  * NOTE: Derived classes must support a public zero argument constructor for de-serialization
  * @author ccaron
  *
@@ -1113,6 +1121,8 @@ public class Reflector<T> {
      * @throws IOException
      */
     public static <T> T deserializeFromString(String str) throws IOException {
+        if (str == null)
+            return null;
         StringReader in = new StringReader(str);
         return deserializeObject(new MyBufferedReader(in));
     }
