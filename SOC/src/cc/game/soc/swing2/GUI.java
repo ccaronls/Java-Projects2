@@ -650,6 +650,10 @@ public class GUI implements ActionListener, MenuItem.Action {
                 return result;
             }
 
+            @Override
+            protected void onShouldSaveGame() {
+                soc.trySaveToFile(saveGameFile);
+            }
         };
 		
 		String boardFilename = props.getProperty("gui.defaultBoardFilename", "soc_def_board.txt");
@@ -840,7 +844,7 @@ public class GUI implements ActionListener, MenuItem.Action {
                 westGridPanel.add(menuPanel);
 
                 if (!soc.isRunning()) {
-                    soc.startGameThread();
+                    menuStack.push(MenuState.MENU_GAME_SETUP);
                 }
                 break;
             }
@@ -1883,7 +1887,6 @@ public class GUI implements ActionListener, MenuItem.Action {
 
     public void quitToMainMenu() {
         soc.stopRunning();
-        soc.trySaveToFile(saveGameFile);
         console.clear();
         boardRenderer.setPickHandler(null);
         menuStack.clear();

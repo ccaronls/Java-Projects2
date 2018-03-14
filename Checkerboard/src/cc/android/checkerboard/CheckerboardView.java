@@ -487,7 +487,7 @@ public class CheckerboardView extends View {
             a.startReverse();
         else
             a.start();
-        this.hidden.add(m.captured);//game.getPiece(m.getCaptured()));
+        this.hidden.add(m.captured);
     }
 
     public void animateMoveAndThen(Move m, Runnable onDone) {
@@ -530,8 +530,12 @@ public class CheckerboardView extends View {
                     case SLIDE:
                     case JUMP: {
                         if (m.captured != null) {
-                            game.executeMove(m);
-                            startCapturedAnimation(m, null);
+                            startCapturedAnimation(m, new Runnable() {
+                                @Override
+                                public void run() {
+                                    game.executeMove(m);
+                                }
+                            });
                             return; // pause execution until this animation ends
                         }
                         break;

@@ -1,30 +1,26 @@
 package cc.lib.android;
 
-import java.net.Inet4Address;
-import java.net.InetAddress;
-import java.util.*;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
+import android.net.wifi.WifiManager.MulticastLock;
+import android.os.PowerManager;
+import android.util.Log;
 
 import org.xbill.DNS.DClass;
 import org.xbill.DNS.Type;
 import org.xbill.mDNS.Lookup;
 import org.xbill.mDNS.ServiceInstance;
 
-import android.annotation.TargetApi;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.net.ConnectivityManager;
-import android.net.Network;
-import android.net.NetworkCapabilities;
-import android.net.NetworkRequest;
-import android.net.ConnectivityManager.NetworkCallback;
-import android.net.wifi.WifiInfo;
-import android.net.wifi.WifiManager;
-import android.net.wifi.WifiManager.MulticastLock;
-import android.os.Build;
-import android.os.PowerManager;
-import android.util.Log;
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 import cc.lib.game.Utils;
 
@@ -43,8 +39,10 @@ public class BonjourThread {
     private final static String TAG = BonjourThread.class.getSimpleName();
 
     public final static class BonjourRecord implements Comparable<BonjourRecord> {
+        public final String name;
         public final InetAddress hostAddress;
         public final int port;
+        public final Map headers;
 
         private BonjourRecord(ServiceInstance instance) {
             /*
@@ -64,6 +62,9 @@ public class BonjourThread {
             }
             hostAddress = address;
             port = instance.getPort();
+            headers = instance.getTextAttributes();
+            name = instance.getName().toString();
+
             /*
             try {
                 String envStr = (String)instance.getTextAttributes().get("environment");

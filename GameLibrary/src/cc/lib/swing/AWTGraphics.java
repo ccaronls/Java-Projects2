@@ -306,12 +306,12 @@ public final class AWTGraphics extends APGraphics {
     
     @Override
     public final  AImage getImage(int id, int width, int height) {
-        return new AWTImage(images.getImage(id, width, height), comp);
+        return new AWTImage(images.getImage(id, width, height, comp), comp);
     }
 
     @Override
     public final  int newRotatedImage(int id, int degrees) {
-        return images.newRotatedImage(id, degrees);
+        return images.newRotatedImage(id, degrees, comp);
     }
 
     public final  int newTransformedImage(int id, final IImageFilter filter) {

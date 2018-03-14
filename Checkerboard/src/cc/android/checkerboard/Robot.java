@@ -213,6 +213,7 @@ public class Robot extends Reflector<Robot> {
         int dPc=0;
         int dKing=0;
         int dAdv=0;
+        int moves=0;
 
         for (int rank=0; rank<game.RANKS; rank++) {
             for (int col=0; col<game.COLUMNS; col++) {
@@ -222,7 +223,9 @@ public class Robot extends Reflector<Robot> {
                 if (p.playerNum == playerNum) {
                     switch (p.type) {
                         case CHECKER:
-                            dPc++; break;
+                            dPc++;
+                            dAdv += game.getAdvancementFromStart(p.playerNum, rank);
+                            break;
                         case KING:
                             dKing++; break;
                     }
@@ -230,7 +233,9 @@ public class Robot extends Reflector<Robot> {
                 } else if (p.playerNum >= 0) {
                     switch (p.type) {
                         case CHECKER:
-                            dPc--; break;
+                            dPc--;
+                            dAdv -= game.getAdvancementFromStart(p.playerNum, rank);
+                            break;
                         case KING:
                             dKing--; break;
                     }
@@ -238,7 +243,8 @@ public class Robot extends Reflector<Robot> {
             }
         }
 
-        long d = 100*dPc + 10000*dKing + dAdv;
+        moves = game.computeMoves();
+        long d = 100*dPc + 50000*dKing + dAdv + 5*moves;
 
         if (node != null) {
             node.appendMeta(String.format(
@@ -247,14 +253,15 @@ public class Robot extends Reflector<Robot> {
                             + "%4$s:%5$d\n"
                             + "%6$s:%7$d\n"
                             + "%8$s:%9$d\n"
-//                            + "%10$20s:%11$d\n"
+                            + "%10$s:%11$d\n"
 //                            + "%12$20s:%13$d\n"
 //                            + "%14$20s:%15$d\n"
                     ,
                     "Player", game.getTurn(), d,
                     "dPcs  ", dPc,
                     "dKings", dKing,
-                    "dAdv  ", dAdv
+                    "dAdv  ", dAdv,
+                    "moves ", moves
             ));
         }
 

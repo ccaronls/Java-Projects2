@@ -257,11 +257,11 @@ public class ImageMgr {
 	 * @param height
 	 * @return
 	 */
-	public synchronized Image getImage(int id, int width, int height) {
+	public synchronized Image getImage(int id, int width, int height, Component comp) {
 		Image image = scaledImages.get(id);
-		int curW = image.getWidth(null);
-		int curH = image.getHeight(null);
-		if (width >= 8 && width <= 1024 && height >= 8 && height <= 1024 && Math.abs(curW - width) > 1 || Math.abs(curH - height) > 1) {
+		int curW = image.getWidth(comp);
+		int curH = image.getHeight(comp);
+		if (width >= 8 && width <= 1024 && height >= 8 && height <= 1024 && (Math.abs(curW - width) > 1 || Math.abs(curH - height) > 1)) {
 			//Utils.println("Resizing image [" + id + "] from " + curW + ", " + curH + " too " + width + ", " + height);
 		    Utils.println("Resizing image [%d] from %d, %d too %d, %d", id, curW, curH, width, height);
 
@@ -301,7 +301,7 @@ public class ImageMgr {
 	 */
 	public void drawImage(Graphics g, Component comp, int id, int x, int y, int w, int h) {
 	    try {
-    		Image image = getImage(id, w, h);
+    		Image image = getImage(id, w, h, comp);
     		g.drawImage(image, x, y, comp);
 	    } catch (Exception e) {
 	        e.printStackTrace();
@@ -332,7 +332,7 @@ public class ImageMgr {
 	}
 	
 	/**
-	 * 
+	 *
 	 * @param id
 	 * @return
 	 */
@@ -341,14 +341,14 @@ public class ImageMgr {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param id
 	 * @return
 	 */
 	public int getHeight(int id) {
 		return this.scaledImages.get(id).getHeight(null);
 	}
-	
+
 	/**
 	 * 
 	 * @param image
@@ -400,13 +400,13 @@ public class ImageMgr {
 	 * @param id
 	 * @param degrees
 	 */
-	public int newRotatedImage(int sourceId, int degrees) {
+	public int newRotatedImage(int sourceId, int degrees, Component comp) {
 	    
 	    Image image = getImage(sourceId);
 	    if (image == null || degrees == 0)
 	        return sourceId;
-	    int srcWid = image.getWidth(null);
-	    int srcHgt = image.getHeight(null);
+	    int srcWid = image.getWidth(comp);
+	    int srcHgt = image.getHeight(comp);
 	    int dstWid = srcWid;
 	    int dstHgt = srcHgt;
 	    switch (degrees) {

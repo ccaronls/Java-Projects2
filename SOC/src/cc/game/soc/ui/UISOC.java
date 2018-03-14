@@ -621,10 +621,9 @@ public abstract class UISOC extends SOC implements MenuItem.Action {
 
     protected final void addCardAnimation(final Player player, final String text) {
 
-        final UIPlayerRenderer comp = playerComponents[player.getPlayerNum()];
-        final List<AAnimation<AGraphics>> cardsList = comp.animations;
+        final UIPlayerRenderer comp = playerComponents[player.getPlayerNum()-1];
 
-        final float cardHeight = comp.component.getHeight()/5;
+        final float cardHeight = boardRenderer.component.getHeight()/5;
         final float cardWidth = cardHeight*2/3;
 
         final Vector2D compPt = comp.component.getViewportLocation();
@@ -632,16 +631,13 @@ public abstract class UISOC extends SOC implements MenuItem.Action {
 
         final Vector2D dv = compPt.sub(boardPt);
 
-//        final int y = board.getY() + dy; // duh
-        final float W = cardsList.size() * cardWidth + (cardsList.size()+1) * cardWidth/3;
-//        final int x = board.getX() + dx > 0 ? board.getWidth() - W - cardWidth : W;
-//        final int
+        // center the card vertically against its player component
+        final float y = compPt.getY() - boardPt.getY() + comp.component.getHeight()/2 - cardHeight/2;//boardPt.getY() + dv.Y(); // duh
+        final float W = comp.numCardAnimations * cardWidth + (comp.numCardAnimations+1) * cardWidth/3;
+        final float x = boardPt.X() < compPt.getX() ? boardRenderer.component.getWidth() - cardWidth - W : W;
 
         final int animTime = 3000;//GUI.instance.getProps().getIntProperty("anim.card.tm", 3000);
-
-        final float x = dv.X() - W - cardWidth;
-        final float y = dv.Y();
-
+        comp.numCardAnimations++;
         boardRenderer.addAnimation(new AAnimation<AGraphics>(animTime) {
             public void draw(AGraphics g, float position, float dt) {
                 boardRenderer.drawCard(((UIPlayer)player).getColor(), g, text, x, y, cardWidth, cardHeight);
@@ -649,17 +645,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action {
 
             @Override
             public void onDone() {
-                //playerRowCardNum[player.getPlayerNum()]--;
-                synchronized (cardsList) {
-                    cardsList.remove(this);
-                }
-            }
-
-            @Override
-            public void onStarted() {
-                synchronized (cardsList) {
-                    cardsList.add(this);
-                }
+                comp.numCardAnimations--;
             }
 
         }, false);
@@ -887,12 +873,6 @@ public abstract class UISOC extends SOC implements MenuItem.Action {
     protected void onStructureDemoted(Vertex v, VertexType newType, Player destroyer, Player victim) {
         addCardAnimation(victim, v.getType().getNiceName() + " Reduced to " + newType.getNiceName());
     }
-
-//    @Override
-//    protected void onShouldSaveGame() {
-//        FileUtils.backupFile(gui.saveGameFile.getAbsolutePath(), 10);
-//        save(gui.saveGameFile.getAbsolutePath());
-//    }
 
     @Override
     protected void onExplorerPlayerUpdated(Player oldPlayer, Player newPlayer, int harborPts) {

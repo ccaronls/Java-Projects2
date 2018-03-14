@@ -18,7 +18,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-import cc.android.game.robots.R;
+import cc.android.test.R;
 import cc.lib.android.BonjourThread;
 import cc.lib.android.WifiP2pHelper;
 
@@ -72,7 +72,7 @@ public class WifiTest extends Activity implements RadioGroup.OnCheckedChangeList
             }
 
             tv.setText(info);
-            v.setTag(devices.get(position));
+            v.setTag(device);
             v.setOnClickListener(WifiTest.this);
 
             return v;
@@ -85,8 +85,11 @@ public class WifiTest extends Activity implements RadioGroup.OnCheckedChangeList
             devices.clear();
             deviceInfos.clear();
             for (BonjourThread.BonjourRecord r : records.values()) {
-                String s = r.getHostAddress()
-                        + "\n" + r.getIPAddress();
+                String s = r.name
+                        + "\n" + r.getHostAddress()
+                        + "\n" + r.getIPAddress()
+                        + "\n" + r.headers.toString().replace(',', '\n');
+                        ;
                 devices.add(r);
                 deviceInfos.add(s);
             }
@@ -229,19 +232,26 @@ public class WifiTest extends Activity implements RadioGroup.OnCheckedChangeList
 
     @Override
     public void onClick(View v) {
-        WifiP2pDevice device = (WifiP2pDevice)v.getTag();
-        switch (device.status) {
-            case WifiP2pDevice.AVAILABLE:
-                wifi.connect((WifiP2pDevice)v.getTag());
-                break;
-            case WifiP2pDevice.CONNECTED:
-                wifi.disconnect();
-                break;
-            case WifiP2pDevice.FAILED:
-            case WifiP2pDevice.INVITED:
-            case WifiP2pDevice.UNAVAILABLE:
-                Toast.makeText(this, "Device is " + WifiP2pHelper.statusToString(device.status), Toast.LENGTH_SHORT).show();
-                break;
+        Object d = v.getTag();
+        if (d == null)
+            return;
+        if (d instanceof WifiP2pDevice) {
+            WifiP2pDevice device = (WifiP2pDevice)v.getTag();
+            switch (device.status) {
+                case WifiP2pDevice.AVAILABLE:
+                    wifi.connect((WifiP2pDevice) v.getTag());
+                    break;
+                case WifiP2pDevice.CONNECTED:
+                    wifi.disconnect();
+                    break;
+                case WifiP2pDevice.FAILED:
+                case WifiP2pDevice.INVITED:
+                case WifiP2pDevice.UNAVAILABLE:
+                    Toast.makeText(this, "Device is " + WifiP2pHelper.statusToString(device.status), Toast.LENGTH_SHORT).show();
+                    break;
+            }
+        } else if (d instanceof BonjourThread.BonjourRecord) {
+            BonjourThread.BonjourRecord record = (BonjourThread.BonjourRecord)d;
         }
     }
 

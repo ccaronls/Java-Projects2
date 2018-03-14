@@ -44,7 +44,8 @@ public final class UIBoardRenderer implements UIRenderer {
 	
     private int renderFlag = 0;
     private List<AAnimation<AGraphics>> animations = new ArrayList<>(32);
-    
+    private List<AAnimation<AGraphics>> cardAnimations = new ArrayList<>(32);
+
     private int edgeInfoIndex = -1;
     private int cellInfoIndex = -1;
     private int vertexInfoIndex = -1;
@@ -1283,9 +1284,12 @@ public final class UIBoardRenderer implements UIRenderer {
     }
 
     public void drawCard(GColor color, AGraphics g, String txt, float x, float y, float cw, float ch) {
+        g.pushMatrix();
+        g.setIdentity();
         g.drawImage(cardFrameImage, x, y, cw, ch);
         g.setColor(color);
         g.drawWrapString(x+cw/2, y+ch/2, cw-6, Justify.CENTER, Justify.CENTER, txt);
+        g.popMatrix();
     }
 
     @Override

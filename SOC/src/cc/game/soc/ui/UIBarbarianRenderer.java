@@ -17,6 +17,7 @@ public final class UIBarbarianRenderer implements UIRenderer {
     private final static float IMAGE_HEIGHT = 1f/502;
 
     private final static Vector2D[] positions = {
+        new Vector2D(64, 431).scaledBy(IMAGE_WIDTH, IMAGE_HEIGHT),
         new Vector2D(192,429).scaledBy(IMAGE_WIDTH, IMAGE_HEIGHT),
         new Vector2D(319,404).scaledBy(IMAGE_WIDTH, IMAGE_HEIGHT),
         new Vector2D(284,283).scaledBy(IMAGE_WIDTH, IMAGE_HEIGHT),
@@ -60,7 +61,7 @@ public final class UIBarbarianRenderer implements UIRenderer {
             }
         }
 
-        if (distance >= 0) {
+        if (distance >= 0 && distance < positions.length) {
             int d = (positions.length-1) - distance;
             final float scale = 1f + (1f / (positions.length - 1));
             //float shipDim = minShipDim + (maxShipDim - minShipDim) * scale * d;
@@ -72,7 +73,7 @@ public final class UIBarbarianRenderer implements UIRenderer {
 
 	public void setDistance(final int nextDistance) {
 
-        if (nextDistance < distance) {
+        if (nextDistance < distance && distance < positions.length) {
 
             anim = new UIAnimation(2000) {
                 @Override

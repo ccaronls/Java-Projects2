@@ -332,7 +332,7 @@ public class HexesApplet extends KeyboardAnimationApplet implements MultiPlayerC
         	    dlg.setLocationRelativeTo(frame);
 				dlg.setVisible(true);
 			}
-	    }.start();
+        	    }.start();
 	    return dlg;
 	}
 

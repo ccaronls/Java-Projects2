@@ -217,6 +217,17 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
     }
 
     /**
+     * Get how many units of advancement the rank is for a side
+     *
+     * @param side
+     * @param rank
+     * @return
+     */
+    public final int getAdvancementFromStart(int side, int rank) {
+        return getStartRank(side) + rank*getAdvanceDir(side);
+    }
+
+    /**
      * This is the rank increment based on side
      * @param side
      * @return

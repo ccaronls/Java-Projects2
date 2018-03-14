@@ -1,15 +1,15 @@
 package cc.jroids;
 
-import cc.lib.math.CMath;
-import cc.lib.math.MutableVector2D;
-import cc.lib.math.Vector2D;
-import cc.lib.game.GColor;
+import java.util.Arrays;
+
 import cc.lib.game.AGraphics;
+import cc.lib.game.GColor;
 import cc.lib.game.Justify;
 import cc.lib.game.Polygon2D;
 import cc.lib.game.Utils;
-
-import java.util.Arrays;
+import cc.lib.math.CMath;
+import cc.lib.math.MutableVector2D;
+import cc.lib.math.Vector2D;
 
 public abstract class JavaRoids
 {

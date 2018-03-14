@@ -1,0 +1,5 @@
+- add MP
+- add timer
+- better theme for dialogs
+- remove DEBUG for release
+- Drag capture animations dont look right...capturing pice should animate?
