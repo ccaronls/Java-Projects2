@@ -14,10 +14,14 @@ import javax.swing.*;
 import javax.swing.event.*;
 
 import cc.lib.game.Utils;
+import cc.lib.logger.Logger;
+import cc.lib.logger.LoggerFactory;
 
 public class EZFrame extends JFrame implements WindowListener, ComponentListener, MenuListener, MenuKeyListener {
 
 	public static final long serialVersionUID = 20002;
+
+	public final Logger log = LoggerFactory.getLogger(getClass());
 
 	private File propertiesFile = null;
 
@@ -134,12 +138,12 @@ public class EZFrame extends JFrame implements WindowListener, ComponentListener
             menuItemActionListener = new ActionListener() {
                 @Override
                 public final void actionPerformed(ActionEvent e) {
-                    Utils.println("actionPerformed: " + e);
+                    log.debug("actionPerformed: " + e);
                     ActionEvent ev = (ActionEvent) e;
                     String cmd = ev.getActionCommand();
                     //JMenuItem source = (JMenuItem)ev.getSource();
                     onMenuItemSelected(selectedMenu.getText(), cmd);
-                    //Utils.println("actionPerformed: cmd=" + cmd + " source=" + source);
+                    //log.debug("actionPerformed: cmd=" + cmd + " source=" + source);
                     //JMenuItem item = (JMenuItem)source;
                 }
             };
@@ -250,35 +254,35 @@ public class EZFrame extends JFrame implements WindowListener, ComponentListener
 
     @Override
     public final void menuSelected(MenuEvent e) {
-	    Utils.println("menuSelected: " + e);
+	    log.debug("menuSelected: " + e);
 	    selectedMenu = (JMenu)e.getSource();
     }
 
     @Override
     public final void menuDeselected(MenuEvent e) {
-        Utils.println("menuDeselected: " + e);
+        log.debug("menuDeselected: " + e);
     }
 
     @Override
     public final void menuCanceled(MenuEvent e) {
-        Utils.println("menuCancelled: " + e);
+        log.debug("menuCancelled: " + e);
     }
 
     @Override
     public final void	menuKeyPressed(MenuKeyEvent e) {
-        Utils.println("menuKeyPressed: " + e);
+        log.debug("menuKeyPressed: " + e);
     }
     @Override
     public final void	menuKeyReleased(MenuKeyEvent e) {
-        Utils.println("menuKeyReleased: " + e);
+        log.debug("menuKeyReleased: " + e);
     }
     @Override
     public final void	menuKeyTyped(MenuKeyEvent e) {
-        Utils.println("menuKeyTyped: " + e);
+        log.debug("menuKeyTyped: " + e);
     }
 
     protected void onMenuItemSelected(String menu, String subMenu) {
-        Utils.println("onMneuItemSelected: menu=" + menu + " item=" + subMenu);
+        log.debug("onMneuItemSelected: menu=" + menu + " item=" + subMenu);
     }
 
     public final void add(AWTComponent comp) {

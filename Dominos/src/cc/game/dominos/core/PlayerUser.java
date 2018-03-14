@@ -28,10 +28,8 @@ public class PlayerUser extends Player {
         }
 
         game.redraw();
-        if (game.isGameRunning()) {
-            Utils.waitNoThrow(game, -1);
-            usable.clear();
-        }
+        Utils.waitNoThrow(game, -1);
+        usable.clear();
 
         return choosedMove;
     }

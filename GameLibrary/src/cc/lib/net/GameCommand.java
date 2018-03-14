@@ -108,8 +108,7 @@ public class GameCommand {
         return this.arguments;
     }
 
-    static GameCommand parse(InputStream in) throws Exception {
-        DataInputStream din = new DataInputStream(in);
+    static GameCommand parse(DataInputStream din) throws Exception {
         String cmd = din.readUTF();
         GameCommandType type = GameCommandType.valueOf(cmd);
         GameCommand command = new GameCommand(type);
@@ -278,11 +277,10 @@ public class GameCommand {
 
     /**
      * 
-     * @param out
+     * @param dout
      * @throws Exception
      */
-    public final void write(OutputStream out) throws Exception {
-        DataOutputStream dout = new DataOutputStream(out);
+    public final void write(DataOutputStream dout) throws Exception {
         dout.writeUTF(type.name());
         dout.writeInt(arguments.size());
         for (String key : arguments.keySet()) {

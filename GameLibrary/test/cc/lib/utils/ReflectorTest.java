@@ -416,6 +416,18 @@ public class ReflectorTest extends TestCase {
     	}
     }
 
+    public void testSerializeSpecialChars() throws Exception {
+        String str = "\n\t!@#$%^&*()-_=+[]{};':\",.<>/?";
+
+        String out = Reflector.serializeObject(str);
+        System.out.println(out);
+
+        String in = Reflector.deserializeFromString(out);
+
+        assertEquals(str, in);
+    }
+
+    // NOPE, cannot handle
     // NOPE, cannot handle...too difficult, would require each element be surronded with a type descriptor. This would be hard
     //  to make work everywhere
     public void xtestSerializeObjectArray() throws Exception {

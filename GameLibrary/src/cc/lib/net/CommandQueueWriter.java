@@ -1,9 +1,11 @@
 package cc.lib.net;
 
+import java.io.DataOutputStream;
 import java.io.OutputStream;
 import java.util.LinkedList;
 import java.util.Queue;
 
+import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
 
@@ -31,7 +33,7 @@ class CommandQueueWriter {
         System.out.println("CommandQueueWriter [" + Thread.currentThread().getId() + "]: " + msg);
     }
     
-    synchronized void start(final OutputStream out) {
+    synchronized void start(final DataOutputStream out) {
         if (!running) {
             running = true;
             new Thread(new Runnable() {
@@ -94,12 +96,11 @@ class CommandQueueWriter {
                 synchronized (queue) {
                     queue.notify();
                 }
+                log.debug("Wait for queue to flush");
+                synchronized (this) {
+                    wait(5000);
+                }
             }
-            log.debug("Wait for queue to flush");
-            synchronized (this) {
-                wait(5000);
-            }
-
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -118,7 +119,7 @@ class CommandQueueWriter {
      * @throws Exception
      */
     void add(GameCommand cmd) {
-        log.debug("add command: " + cmd);
+        log.debug("add command: " + cmd, 256, 32);
         if (!running)
             throw new RuntimeException("commandQueue is not running");
         synchronized (queue) {

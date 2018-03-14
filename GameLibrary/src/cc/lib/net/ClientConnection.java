@@ -6,7 +6,6 @@ import java.util.*;
 
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
-import cc.lib.utils.Reflector;
 
 /**
  * ClientConnection handles the socket and threads associated with a single client
@@ -17,30 +16,55 @@ import cc.lib.utils.Reflector;
  * @author ccaron
  *
  */
-public class ClientConnection extends CommandQueueReader implements Runnable {
+public class ClientConnection extends ARemoteExecutor implements Runnable {
     
     private Logger log = LoggerFactory.getLogger(ClientConnection.class);
+
+    private CommandQueueReader reader = new CommandQueueReader() {
+        @Override
+        protected void process(GameCommand cmd) throws IOException {
+            processCommand(cmd);
+        }
+
+        @Override
+        protected void onStopped() {
+            log.debug("onStopped called");
+            synchronized (ClientConnection.this) {
+                ClientConnection.this.notifyAll();
+            }
+        }
+    };
     
     public interface Listener {
         void onCommand(GameCommand cmd);
         void onDisconnected(String reason);
         void onConnected();
+        void onFormSubmited(ClientConnection conn, int id, Map<String,String> params);
+
     };
 
     private Socket socket;
-    private InputStream in;
-    private OutputStream out;
+    private DataInputStream in;
+    private DataOutputStream out;
     private final String name;
     private final GameServer server;
     private CommandQueueWriter outQueue = new CommandQueueWriter();
-    private Map<String, Object> attributes = new TreeMap<String, Object>();
+    private Map<String, Object> attributes = new TreeMap<>();
     private boolean connected = false;
-    private Listener listener = null;
+    private final Set<Listener> listeners = new HashSet<>();
     
-    public void setListener(Listener listener) {
-        this.listener = listener;
+    public final void addListener(Listener listener) {
+        synchronized (listeners) {
+            listeners.add(listener);
+        }
     }
-    
+
+    public final void removeListener(Listener l) {
+        synchronized (listeners) {
+            listeners.remove(l);
+        }
+    }
+
     
     public String toString() {
         String r = "ClientConnection name=" + name;
@@ -73,13 +97,13 @@ public class ClientConnection extends CommandQueueReader implements Runnable {
                 connected = false;
                 synchronized (outQueue) {
                     outQueue.clear();
-                    outQueue.add(new GameCommand(GameCommandType.SVR_DISCONNECTED).setMessage(reason));
+                    outQueue.add(new GameCommand(GameCommandType.DISCONNECT).setMessage(reason));
                 }
                 synchronized (this) {
                     wait(500);
                 }
                 outQueue.stop(); // <-- blocks until network flushed
-                stop(); // does not block, not completely stopped until onStopped called
+                reader.stop(); // does not block, not completely stopped until onStopped called
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -119,7 +143,7 @@ public class ClientConnection extends CommandQueueReader implements Runnable {
      * @return
      */
     public final boolean isConnected() {
-        return connected;//socket != null;
+        return connected;
     }
     
     /**
@@ -179,15 +203,15 @@ public class ClientConnection extends CommandQueueReader implements Runnable {
     /*
      * init connection.  should only be used by GameServer
      */
-    void connect(Socket socket, InputStream in, OutputStream out) throws Exception {
+    void connect(Socket socket, DataInputStream in, DataOutputStream out) throws Exception {
         if (isConnected()) {
             throw new Exception("Client '" + name + "' is already connected");
         }
         log.debug("ClientConnection: " + getName() + " connection attempt ...");
         this.socket = socket;
         try {
-            this.in = new BufferedInputStream(in);//(socket.getInputStream());
-            this.out = out;//out = (socket.getOutputStream());
+            this.in = in;
+            this.out = out;
             start();
             
         } catch (Exception e) {
@@ -195,8 +219,12 @@ public class ClientConnection extends CommandQueueReader implements Runnable {
             throw e;
         }
         log.debug("ClientConnection: " + getName() + " connected SUCCESS");
-        if (listener != null)
-            listener.onConnected();
+        if (listeners.size() > 0) {
+            Listener [] arr = listeners.toArray(new Listener[listeners.size()]);
+            for (Listener l : arr) {
+                l.onConnected();
+            }
+        }
     }
     
     /**
@@ -216,30 +244,18 @@ public class ClientConnection extends CommandQueueReader implements Runnable {
      * @param message
      */
     public final void sendMessage(String message) {
-        sendCommand(new GameCommand(GameCommandType.SVR_MESSAGE).setMessage(message));
+        sendCommand(new GameCommand(GameCommandType.MESSAGE).setMessage(message));
     }
     
     public final void sendForm(ServerForm form) {
         sendCommand(new GameCommand(GameCommandType.SVR_FORM).setArg("xml", form.toXML()).setArg("id", "" + form.getId()));
     }
 
-    public final void executeMethod(String methodName, Object...params) throws IOException {
-        GameCommand cmd = new GameCommand(GameCommandType.SVR_EXECUTE_METHOD);
-        cmd.setArg("method", methodName);
-        cmd.setArg("numParams", params.length);
-        int index = 0;
-        for (Object o : params) {
-            cmd.setArg("param" + index, Reflector.serializeObject(o));
-            index++;
-        }
-        sendCommand(cmd);
-    }
-    
     /*
      * internal
      */
     public final void start() {
-        super.start();
+        reader.start();
         connected = true;
         outQueue.start(out);
         new Thread(this).start();
@@ -248,16 +264,18 @@ public class ClientConnection extends CommandQueueReader implements Runnable {
     public final void run() {
         log.debug("ClientConnection: ClientThread " + Thread.currentThread().getId() + " starting");
         
-        while (connected) {
+        while (isConnected()) {
             try {
-                queue(GameCommand.parse(in));
+                reader.queue(GameCommand.parse(in));
             } catch (Exception e) {
                 //e.printStackTrace();
-                if (connected) {
+                if (isConnected()) {
                     log.error("ClientConnection: Connection with client '" + name + "' dropped: " + e.getClass().getSimpleName() + " " + e.getMessage());
-                    //queue(new GameCommand(GameCommandType.CL_DISCONNECT));//server.serverListener.onClientDisconnected(this);
-                    if (listener != null) {
-                        listener.onDisconnected(e.getClass().getSimpleName() + " " + e.getMessage());
+                    if (listeners.size() > 0) {
+                        Listener [] arr = listeners.toArray(new Listener[listeners.size()]);
+                        for (Listener l : arr) {
+                            l.onDisconnected(e.getClass().getSimpleName() + " " + e.getMessage());
+                        }
                     }
                     Iterator<GameServer.Listener> it = server.getListeners().iterator();
                     while (it.hasNext()) {
@@ -277,17 +295,24 @@ public class ClientConnection extends CommandQueueReader implements Runnable {
     }
     
     @Override
-    protected void process(GameCommand cmd) {
+    protected boolean processCommand(GameCommand cmd) throws IOException {
+        if (super.processCommand(cmd))
+            return true;
+        cmd.getType().notifyListeners(cmd);
         if (!connected)
-            return;
-        if (cmd.getType() == GameCommandType.CL_DISCONNECT) {
+            return false;
+        if (cmd.getType() == GameCommandType.DISCONNECT) {
             log.info("Client disconnected");
             connected = false;
             for (GameServer.Listener l : server.getListeners()) {
                 l.onClientDisconnected(this);
             }
-            if (listener != null)
-                listener.onDisconnected(cmd.getArg("reason"));
+            if (listeners.size() > 0) {
+                Listener [] arr = listeners.toArray(new Listener[listeners.size()]);
+                for (Listener l : arr) {
+                    l.onDisconnected(cmd.getArg("reason"));
+                }
+            }
             server.removeClient(this);
         } else if (cmd.getType() == GameCommandType.CL_KEEPALIVE) {
             // client should do this at regular intervals to prevent getting dropped
@@ -295,28 +320,23 @@ public class ClientConnection extends CommandQueueReader implements Runnable {
         } else if (cmd.getType() == GameCommandType.CL_FORM_SUBMIT) {
             final int id = Integer.parseInt(cmd.getArg("id"));
             final Map<String, String> params = new HashMap<String, String>(cmd.getProperties());
-            for (GameServer.Listener l : server.getListeners()) {
-                l.onFormSubmited(this, id, params);
+            if (listeners.size() > 0) {
+                Listener [] arr = listeners.toArray(new Listener[listeners.size()]);
+                for (Listener l : arr) {
+                    l.onFormSubmited(this, id, params);
+                }
             }
         } else if (cmd.getType() == GameCommandType.CL_ERROR) {
             System.err.println("ERROR From client '" + getName() + "'\n" + cmd.getArg("msg") + "\n" + cmd.getArg("stack"));
-
-            //log.debug("Form submitted id(" + )                                
         } else {
-            for (GameServer.Listener l : server.getListeners())
-                l.onClientCommand(this, cmd);
-            if (listener != null) {
-                listener.onCommand(cmd);
+            if (listeners.size() > 0) {
+                Listener [] arr = listeners.toArray(new Listener[listeners.size()]);
+                for (Listener l : arr) {
+                    l.onCommand(cmd);
+                }
             }
         }
-    }
-
-    @Override
-    protected void onStopped() {
-        log.debug("onStopped called");
-        synchronized (this) {
-            notifyAll();
-        }
+        return true;
     }
 
 }

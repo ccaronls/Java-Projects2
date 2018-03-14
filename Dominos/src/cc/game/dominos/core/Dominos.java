@@ -12,6 +12,8 @@ import cc.lib.game.GColor;
 import cc.lib.game.GDimension;
 import cc.lib.game.Justify;
 import cc.lib.game.Utils;
+import cc.lib.logger.Logger;
+import cc.lib.logger.LoggerFactory;
 import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
 import cc.lib.utils.Reflector;
@@ -46,6 +48,9 @@ public abstract class Dominos extends Reflector<Dominos> {
 
     public static float BORDER_PADDING = 10;
 
+    @Omit
+    private final Logger log = LoggerFactory.getLogger(getClass());
+
     static {
         addAllFields(Dominos.class);
     }
@@ -68,7 +73,7 @@ public abstract class Dominos extends Reflector<Dominos> {
     @Omit
     private int highlightedPlayerTile = -1;
     @Omit
-    private Object gameLock = this;
+    public final Object gameLock = this;
     @Omit
     private boolean dragging = false;
 
@@ -89,9 +94,7 @@ public abstract class Dominos extends Reflector<Dominos> {
 	public synchronized void clear() {
         stopGameThread();
         clearHighlghts();
-        for (Player p : players) {
-            p.reset();
-        }
+        players = new Player[0];
         pool.clear();
         board.clear();
     }
@@ -167,10 +170,10 @@ public abstract class Dominos extends Reflector<Dominos> {
     public final void startGameThread() {
         if (players.length < 2)
             throw new AssertionError("Game not initialized");
-        Utils.println("startGameThread, currently running=" + gameRunning);
+        log.debug("startGameThread, currently running=" + gameRunning);
         new Thread() {
             public void run() {
-                Utils.println("Thread starting.");
+                log.debug("Thread starting.");
                 gameRunning = true;
                 while (gameRunning && !isGameOver()) {
                     synchronized (gameLock) {
@@ -182,7 +185,7 @@ public abstract class Dominos extends Reflector<Dominos> {
                     }
                 }
                 gameRunning = false;
-                Utils.println("Thread done.");
+                log.debug("Thread done.");
                 int w = getWinner();
                 if (w >= 0) {
                     onGameOver(w);
@@ -275,7 +278,7 @@ public abstract class Dominos extends Reflector<Dominos> {
         board.clear();
         Utils.shuffle(pool);
 
-        Utils.println("Total number of tiles: " + pool.size());
+        log.debug("Total number of tiles: " + pool.size());
 
         int numPerPlayer = players.length == 2 ? 7 : 5;
 
@@ -784,9 +787,13 @@ public abstract class Dominos extends Reflector<Dominos> {
 	    g.setColor(GColor.BLUE);
 	    Player p = players[player];
         p.outlineRect.set(g.transform(0, 0), g.transform(w, h));
-        if (p.textAnimation != null)
-	        p.textAnimation.update(g);
-	    else {
+        if (p.textAnimation != null) {
+            if (p.textAnimation.isDone())
+                p.textAnimation = null;
+            else
+                p.textAnimation.update(g);
+        }
+	    if (p.textAnimation == null) {
             String infoStr = "MENU";
             g.drawString(String.format("%d PTS", p.getScore()), 0, 0);
             g.setColor(GColor.WHITE);
@@ -973,7 +980,7 @@ public abstract class Dominos extends Reflector<Dominos> {
             clearHighlghts();
         } else {
             clearHighlghts();
-            Utils.println("endpoints total: " + board.computeEndpointsTotal());
+            log.debug("endpoints total: " + board.computeEndpointsTotal());
         }
         redraw();
     }

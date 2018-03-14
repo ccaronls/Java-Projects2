@@ -1,5 +1,7 @@
 package cc.lib.logger;
 
+import java.util.Date;
+
 /**
  * Created by chriscaron on 2/27/18.
  */
@@ -14,17 +16,17 @@ public abstract class LoggerFactory {
             return new Logger() {
                 @Override
                 public void error(String msg, Object... args) {
-                    System.err.println("E[" + name + "]:" + String.format(msg, args));
+                    System.err.println(new Date() + " E[" + name + "]:" + String.format(msg, args));
                 }
 
                 @Override
                 public void debug(String msg, Object... args) {
-                    System.out.println("D[" + name + "]:" + String.format(msg, args));
+                    System.out.println(new Date() + " D[" + name + "]:" + String.format(msg, args));
                 }
 
                 @Override
                 public void info(String msg, Object... args) {
-                    System.out.println("I[" + name + "]:" + String.format(msg, args));
+                    System.out.println(new Date() + " I[" + name + "]:" + String.format(msg, args));
                 }
 
                 @Override
@@ -37,11 +39,16 @@ public abstract class LoggerFactory {
 
                 @Override
                 public void warn(String msg, Object... args) {
-                    System.err.println("W[" + name + "]:" + String.format(msg, args));
+                    System.err.println(new Date() + " W[" + name + "]:" + String.format(msg, args));
                 }
             };
         }
     };
+
+
+    public static Logger getLogger(String prefix, Class<?> clazz) {
+        return factory.getLogger(prefix + ":" + clazz.getSimpleName());
+    }
 
     public static Logger getLogger(Class<?> clazz) {
         return factory.getLogger(clazz.getSimpleName());

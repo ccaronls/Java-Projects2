@@ -6,9 +6,13 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.reflect.*;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.util.*;
 
 import cc.lib.game.Utils;
+import cc.lib.logger.Logger;
+import cc.lib.logger.LoggerFactory;
 
 /**
  * Derive from this class to handle copying, equals, serializing, deserializing.
@@ -284,7 +288,7 @@ public class Reflector<T> {
             Object s = field.get(a);
             if (s == null)
                 return "null";
-            return "\"" + (String)s + "\"";
+            return "\"" + encodeString((String)s) + "\"";
         }
 
         @Override
@@ -292,7 +296,7 @@ public class Reflector<T> {
             if (value == null || value.equals("null"))
                 field.set(a, null);
             else {
-                field.set(a, value.substring(1, value.length()-1));
+                field.set(a, decodeString(value.substring(1, value.length()-1)));
             }
         }
 
@@ -307,7 +311,7 @@ public class Reflector<T> {
                         //buf.append("null\n");
                         out.println("null");
                     else
-                        out.println("\"" + entry + "\"");
+                        out.println("\"" + encodeString((String)entry) + "\"");
                 }
             }
         }
@@ -318,7 +322,7 @@ public class Reflector<T> {
             for (int i=0; i<len; i++) {
                 String line = readLineOrEOF(in);
                 if (!line.equals("null")) {
-                    String s = line.substring(1, line.length()-1);
+                    String s = decodeString(line.substring(1, line.length()-1));
                     Array.set(arr, i, s);
                 }
             }
@@ -1079,6 +1083,8 @@ public class Reflector<T> {
      * @throws IOException
      */
     public static String serializeObject(Object obj) throws IOException {
+        if (obj == null)
+            return null;
         StringWriter out = new StringWriter();
         serializeObject(obj, new MyPrintWriter(out));
         return out.getBuffer().toString();
@@ -1217,10 +1223,22 @@ public class Reflector<T> {
         }         
         else if (printObjects) {
         	out.push();
-        	out.println(obj);
+        	if (obj instanceof String) {
+        	    out.println("\"" + encodeString((String)obj) + "\"");
+            } else {
+                out.println(obj);
+            }
         	out.pop();
         	out.println("}");
         }
+    }
+
+    static String encodeString(String s) throws Exception {
+        return URLEncoder.encode(s, "UTF-8").replace("\n", "%0A").replace("\t", "%09");
+    }
+
+    static String decodeString(String in) throws Exception {
+        return URLDecoder.decode(in, "UTF-8");
     }
     
     protected void serialize(PrintWriter out_) throws IOException {
@@ -1296,6 +1314,12 @@ public class Reflector<T> {
             Collection c = (Collection)clazz.newInstance();
             deserializeCollection(c, in);
             return c;
+        }
+        if (isSubclassOf(clazz, String.class)) {
+            String sin = readLineOrEOF(in);
+            if (sin == null)
+                return null;
+            return decodeString(sin.substring(1, sin.length()-1));
         }
         try {
             // try to create from a string constructor

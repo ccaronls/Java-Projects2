@@ -2,6 +2,8 @@ package cc.lib.net;
 
 import java.util.*;
 
+import cc.lib.utils.NoDupesMap;
+
 /**
  * <pre>
  * An Extendible Enum 
@@ -39,6 +41,8 @@ import java.util.*;
  *
  */
 public final class GameCommandType implements Comparable<GameCommandType> {
+    
+    private final static Map<String, GameCommandType> instances = new NoDupesMap<>(new LinkedHashMap<String, GameCommandType>());
 
     public synchronized void addListener(Listener l) {
         if (listeners == null) {
@@ -81,43 +85,39 @@ public final class GameCommandType implements Comparable<GameCommandType> {
         void onCommand(GameCommand cmd);
     }
 
-    private final static Map<String, GameCommandType> instances = new LinkedHashMap<String, GameCommandType>() {
-        // we want to preserve ordering (linked hash map) and prevent misuse by overriding put
-        @Override
-        public GameCommandType put(String key, GameCommandType value) {
-            if (containsKey(key))
-                throw new RuntimeException("Cannot put duplicate key '" + key + "'");
-            return super.put(key, value);
-        }
-        
-    };
+    // These commands are all package access only and are handled internally.
 
-    // These commands are all package access only and are handled internally.  
-    
+    // --------------------------------------
+    // Command sent from the client
+    // --------------------------------------
+
+
     // additional info is name and version    
     static final GameCommandType CL_CONNECT = new GameCommandType("CL_CONNECT");
     // additional info is name and version
     static final GameCommandType CL_RECONNECT = new GameCommandType("CL_RECONNECT");
     // no additional info
-    static final GameCommandType CL_DISCONNECT = new GameCommandType("CL_DISCONNECT");
     static final GameCommandType CL_KEEPALIVE = new GameCommandType("CL_KEEPALIVE");
     // command to submit a form
     static final GameCommandType CL_FORM_SUBMIT = new GameCommandType("CL_FORM_SUBMIT");
+    // report an error that occured on the client
     static final GameCommandType CL_ERROR       = new GameCommandType("CL_ERROR");
 
-    // commands that originate from the server
-    
-    // confirmation command from the server that a client has connected    
-    static final GameCommandType SVR_CONNECTED = new GameCommandType("SVR_CONNECTED");
+    // --------------------------------------
+    // commands sent from the server
+    // --------------------------------------
 
-    // send an error message
-    static final GameCommandType SVR_MESSAGE = new GameCommandType("SVR_MESSAGE");
-    // tell the client that they have been disconnected
-    static final GameCommandType SVR_DISCONNECTED = new GameCommandType("SVR_DISCONNECTED");
     // server send a form to be filled out by client
     static final GameCommandType SVR_FORM = new GameCommandType("SVR_FORM");
+    // confirmation command from the server that a client has connected
+    static final GameCommandType SVR_CONNECTED = new GameCommandType("SVR_CONNECTED");
 
-    static final GameCommandType SVR_EXECUTE_METHOD = new GameCommandType("SVR_EXECUTE_METHOD");
+    // --------------------------------------
+    // shared command types
+    // --------------------------------------
+    static final GameCommandType MESSAGE = new GameCommandType("MESSAGE");
+    static final GameCommandType DISCONNECT = new GameCommandType("DISCONNECT");
+
 
     /**
      * 

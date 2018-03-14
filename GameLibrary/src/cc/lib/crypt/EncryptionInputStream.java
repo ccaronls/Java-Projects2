@@ -27,7 +27,7 @@ public class EncryptionInputStream extends InputStream {
     }
     
     private int readChunk() throws IOException {
-        if (Profiler.ENABLED) Profiler.push("EncryptionOutputStream::writeChunk");
+        if (Profiler.ENABLED) Profiler.push("EncryptionOutputStream::readChunk");
         try {
             int chunkSize = 0;
             int numBits = 0;

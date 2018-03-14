@@ -644,9 +644,20 @@ public class WifiP2pHelper implements
     }
 
     @Override
-    public void onConnectionInfoAvailable(WifiP2pInfo info) {
+    public final void onConnectionInfoAvailable(WifiP2pInfo info) {
         // override this to establish a connection to a server
         // TODO: should this be abstract? there are no situations when cannot override?
         Log.i(TAG, "Connection info available: " + info);
+        if (state == State.PEERS && info.groupOwnerAddress != null) {
+            onConnectionAvailable(info);
+        }
+    }
+
+    /**
+     * Override this handle incoming connectionss
+     * @param info
+     */
+    protected void onConnectionAvailable(WifiP2pInfo info) {
+
     }
 }

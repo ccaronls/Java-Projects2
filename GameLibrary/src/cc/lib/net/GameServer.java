@@ -22,14 +22,15 @@ import cc.lib.logger.LoggerFactory;
  * - Handshaking with new connections
  * - Managing Connection timeouts and reconnects.
  * - Managing older client versions.
- * - Managing Protocol Encryption  (TODO)
+ * - Managing Protocol Encryption
+ * - Executing methods on a game object (see GameCommon)
  * 
  * Override protected methods to create custom behaviors
  * 
  * @author ccaron
  *
  */
-public class GameServer {
+public class GameServer extends ARemoteExecutor {
 
     private final Logger log = LoggerFactory.getLogger(GameServer.class);
     
@@ -52,21 +53,6 @@ public class GameServer {
 
          */
         void onClientDisconnected(ClientConnection conn);
-
-        /**
-         *
-         * @param conn
-         * @param command
-         */
-        void onClientCommand(ClientConnection conn, GameCommand command);
-
-        /**
-         *
-         * @param conn
-         * @param id
-         * @param params
-         */
-        void onFormSubmited(ClientConnection conn, int id, Map<String,String> params);
     }
     
     // keep sorted by alphabetical order 
@@ -79,8 +65,6 @@ public class GameServer {
     private final int maxConnections;
     private final int port;
     
-    final static int ENCRYPTION_CHUNK_SIZE = 256;
-
     public String toString() {
         String r = "GameServer:" + mVersion;
         if (clients.size() > 0)
@@ -226,7 +210,7 @@ public class GameServer {
      * Broadcast a command to all connected clients
      * @param cmd
      */
-    public final void broadcast(GameCommand cmd) {
+    public final void sendCommand(GameCommand cmd) {
         synchronized (clients) {
             for (ClientConnection c : clients.values()) {
                 if (c.isConnected())
@@ -240,24 +224,9 @@ public class GameServer {
         }
     }
 
-    /**
-     *
-     * @param method
-     * @param params
-     */
-    public final void broadcastExecuteRemoteMethod(String method, Object ... params) {
-        synchronized (clients) {
-            for (ClientConnection c : clients.values()) {
-                if (c.isConnected()) {
-                    try {
-                        c.executeMethod(method, params);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        log.error("ERROR Sending to client '" + c.getName() + "' " + e.getClass() + " " + e.getMessage());
-                    }
-                }
-            }
-        }
+    @Override
+    public boolean isConnected() {
+        return isRunning() && getNumConnectedClients() > 0;
     }
 
     /**
@@ -265,7 +234,7 @@ public class GameServer {
      * @param message
      */
     public final void broadcastMessage(String message) {
-        broadcast(new GameCommand(GameCommandType.SVR_MESSAGE).setMessage(message));
+        sendCommand(new GameCommand(GameCommandType.MESSAGE).setMessage(message));
     }
 
     private class SocketListener implements Runnable {
@@ -291,6 +260,28 @@ public class GameServer {
                 log.info("GameServer: Thread started listening for connections");
                 while (running) {
                     Socket client = socket.accept();
+                    log.debug("New Client connect:"
+                            +"\n   remote address=%s"
+                            +"\n   local address=%s"
+                            +"\n   keep alive=%s"
+                            +"\n   OOD inline=%s"
+                            +"\n   send buf size=%s"
+                            +"\n   recv buf size=%s"
+                            +"\n   reuse addr=%s"
+                            +"\n   tcp nodelay=%s"
+                            +"\n   SO timeout=%s"
+                            +"\n   SO linger=%s"
+                            ,client.getRemoteSocketAddress()
+                            ,client.getLocalAddress()
+                            ,client.getKeepAlive()
+                            ,client.getOOBInline()
+                            ,client.getSendBufferSize()
+                            ,client.getReceiveBufferSize()
+                            ,client.getReuseAddress()
+                            ,client.getTcpNoDelay()
+                            ,client.getSoTimeout()
+                            ,client.getSoLinger()
+                            );
                     new Thread(new HandshakeThread(client)).start();
                 }                
             } catch (SocketException e) {
@@ -327,26 +318,30 @@ public class GameServer {
         }
 
         public void run() {
-            InputStream in = null;
-            OutputStream out = null;
+            DataInputStream in = null;
+            DataOutputStream out = null;
             try {
 
                 log.info("GameServer: Start handshake with new connection");
 
                 if (cypher != null) {
-                    in = new EncryptionInputStream(socket.getInputStream(), cypher);
-                    out = new EncryptionOutputStream(socket.getOutputStream(), cypher);
+                    in = new DataInputStream(new EncryptionInputStream(new BufferedInputStream(socket.getInputStream()), cypher));
+                    out = new DataOutputStream(new EncryptionOutputStream(new BufferedOutputStream(socket.getOutputStream()), cypher));
                 } else {
-                    in = socket.getInputStream();
-                    out = socket.getOutputStream();
+                    in = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
+                    out = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
                 }
+
+                final long magic = in.readLong();
+                if (magic != 87263450972L)
+                    throw new ProtocolException("Unknown client");
 
                 GameCommand cmd = GameCommand.parse(in);
                 log.debug("Parsed incoming command: " + cmd);
                 String name = cmd.getName();
                 String clientVersion = cmd.getVersion();
                 if (clientVersion == null) {
-                    new GameCommand(GameCommandType.SVR_MESSAGE).setMessage("ERROR: Missing required 'version' attribute").write(out);
+                    new GameCommand(GameCommandType.MESSAGE).setMessage("ERROR: Missing required 'version' attribute").write(out);
                     throw new ProtocolException("Broken Protocol.  Expected clientVersion field in cmd: " + cmd);
                 }
                 
@@ -411,7 +406,7 @@ public class GameServer {
             } catch (ProtocolException e) {
                 try {
                     log.error(e);
-                    new GameCommand(GameCommandType.SVR_DISCONNECTED).setMessage(e.getMessage()).write(out);
+                    new GameCommand(GameCommandType.DISCONNECT).setMessage(e.getMessage()).write(out);
                 } catch (Exception ex) {}
                 close(socket, in, out);
             } catch (Exception e) {

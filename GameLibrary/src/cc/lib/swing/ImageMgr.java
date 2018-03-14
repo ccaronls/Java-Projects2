@@ -25,9 +25,13 @@ import java.util.Vector;
 import javax.swing.ImageIcon;
 
 import cc.lib.game.Utils;
+import cc.lib.logger.Logger;
+import cc.lib.logger.LoggerFactory;
 import cc.lib.math.CMath;
 
 public class ImageMgr {
+
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
 	private Vector<Image>	sourceImages = new Vector<Image>(); // loaded images
 	private Vector<Image>	scaledImages = new Vector<Image>(); // scaled images
@@ -61,7 +65,7 @@ public class ImageMgr {
 			in.read(buffer);
 			return new ImageIcon(buffer).getImage();
 		} catch (Exception e) {
-			Utils.println(e.getMessage());
+			log.debug(e.getMessage());
 			return null;
 		} finally {
 			try {
@@ -80,7 +84,7 @@ public class ImageMgr {
                 in.read(buffer);
                 return new ImageIcon(buffer).getImage();
             } catch (Exception e) {
-                Utils.println("Not found in search path '" + path + "':" + e.getMessage());
+                log.debug("Not found in search path '" + path + "':" + e.getMessage());
             } finally {
                 try {
                     if (in != null)
@@ -155,7 +159,7 @@ public class ImageMgr {
 			image = transform(image, new TransparencyFilter(transparent));
 		}			
 
-		Utils.println("SUCCESS");
+		log.debug("SUCCESS");
 		sourceImages.add(image);
 		scaledImages.add(image);
 		return id;
@@ -262,8 +266,8 @@ public class ImageMgr {
 		int curW = image.getWidth(comp);
 		int curH = image.getHeight(comp);
 		if (width >= 8 && width <= 1024 && height >= 8 && height <= 1024 && (Math.abs(curW - width) > 1 || Math.abs(curH - height) > 1)) {
-			//Utils.println("Resizing image [" + id + "] from " + curW + ", " + curH + " too " + width + ", " + height);
-		    Utils.println("Resizing image [%d] from %d, %d too %d, %d", id, curW, curH, width, height);
+			//log.debug("Resizing image [" + id + "] from " + curW + ", " + curH + " too " + width + ", " + height);
+		    log.debug("Resizing image [%d] from %d, %d too %d, %d", id, curW, curH, width, height);
 
 			image = sourceImages.get(id);
 			image = transform(image, new ReplicateScaleFilter(width,height));

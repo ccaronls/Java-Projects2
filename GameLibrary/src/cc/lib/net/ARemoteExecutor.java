@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Map;
 
 import cc.lib.game.Utils;
+import cc.lib.logger.Logger;
+import cc.lib.logger.LoggerFactory;
 import cc.lib.utils.NoDupesMap;
 import cc.lib.utils.Reflector;
 
@@ -64,32 +66,36 @@ import cc.lib.utils.Reflector;
 
 public abstract class ARemoteExecutor {
 
-    public static final GameCommandType EXECUTE_REMOTE = new GameCommandType("EXEC_REMOTE");
-    public static final GameCommandType REMOTE_RETURNS = new GameCommandType("REMOTE_RETURNS");
+    protected Logger log = LoggerFactory.getLogger("ARemoteExecutor", getClass());
+
+    static final GameCommandType EXECUTE_REMOTE = new GameCommandType("EXEC_REMOTE");
+    static final GameCommandType REMOTE_RETURNS = new GameCommandType("REMOTE_RETURNS");
 
     private Map<String, Object> executorObjects = new NoDupesMap<>(new HashMap<String, Object>());
 
     private final class ResponseListener<T> implements GameCommandType.Listener {
         private T response;
+        private final Object waitLock;
         private final String id;
 
-        ResponseListener(String id) {
+        ResponseListener(String id, Object waitLock) {
             this.id = id;
+            this.waitLock = waitLock;
         }
 
         public void setResponse(T response) {
             this.response = response;
-            synchronized (this) {
-                notify();
+            synchronized (waitLock) {
+                waitLock.notify();
             }
         }
 
         @Override
         public void onCommand(GameCommand cmd) {
             if (cmd.getArg("target").equals(id)) {
-                unregister(id);
                 try {
-                    setResponse((T)Reflector.deserializeFromString(cmd.getArg("return")));
+                    T resp = Reflector.deserializeFromString(cmd.getArg("returns"));
+                    setResponse(resp);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -112,19 +118,12 @@ public abstract class ARemoteExecutor {
     public abstract boolean isConnected();
 
     /**
-     * Register an object using its classname (make sure it matches string from gettClassName in stacktrace)
-     * @param o
-     */
-    public final void register(Object o) {
-        register(o.getClass().getName(), o);
-    }
-
-    /**
      * register an object with a specific id
      * @param id
      * @param o
      */
     public final void register(String id, Object o) {
+        log.debug("register '%s' -> %s", id, o.getClass());
         executorObjects.put(id, o);
     }
 
@@ -133,59 +132,65 @@ public abstract class ARemoteExecutor {
      * @param id
      */
     public final void unregister(String id) {
+        log.debug("unregister %s", id);
         executorObjects.remove(id);
     }
 
     /**
-     * Methods that call this method will have the same method signature executed on remote
-     *   object of same type, provided it has been registered with its endpoint
-     * @param hasReturn
+     *
+     * @param objId
+     * @param waitLock
      * @param params
      * @param <T>
      * @return
-     * @throws IOException
      */
-    public final <T> T executeOnRemote(boolean hasReturn, Object...params) throws IOException {
+    public final <T> T executeOnRemote(String objId, Object waitLock, Object ... params) {
         StackTraceElement elem = new Exception().getStackTrace()[1];
-        return executeOnRemote(elem.getClassName(), elem.getMethodName(), hasReturn, params);
+        return executeOnRemote(objId, elem.getMethodName(), waitLock, params);
     }
 
     /**
      *
      * @param targetId
      * @param method
-     * @param hasReturn
+     * @param waitLock
      * @param params
      * @param <T>
      * @return
      */
-    public final <T> T executeOnRemote(String targetId, String method, boolean hasReturn, Object ... params) throws IOException {
+    public final <T> T executeOnRemote(String targetId, String method, Object waitLock, Object [] params) { // <-- need [] array to disambiguate from above method
+        if (Utils.isEmpty(targetId) || Utils.isEmpty(method))
+            throw new NullPointerException();
+
+        if (!isConnected())
+            return null;
+
         GameCommand cmd = new GameCommand(EXECUTE_REMOTE);
         cmd.setArg("method", method);
         cmd.setArg("target", targetId);
         cmd.setArg("numParams", params.length);
-        for (int i=0; i<params.length; i++) {
-            cmd.setArg("param"+i, Reflector.serializeObject(params[i]));
-        }
-        if (hasReturn) {
-            String id = Utils.genRandomString(64);
-            cmd.setArg("responseId", id);
-            ARemoteExecutor.ResponseListener<T> listener = new ARemoteExecutor.ResponseListener<>(id);
-            EXECUTE_REMOTE.addListener(listener);
-            //register(id, listener);
-            try {
-                sendCommand(cmd);
-                synchronized (listener) {
-                    listener.wait();
-                }
-            } catch (Exception e) {
-                throw new IOException(e);
-            } finally {
-                unregister(id);
+        try {
+            for (int i = 0; i < params.length; i++) {
+                cmd.setArg("param" + i, Reflector.serializeObject(params[i]));
             }
-            return listener.response;
+            if (waitLock != null) {
+                String id = Utils.genRandomString(64);
+                cmd.setArg("responseId", id);
+                ARemoteExecutor.ResponseListener<T> listener = new ARemoteExecutor.ResponseListener<>(id, waitLock);
+                REMOTE_RETURNS.addListener(listener);
+                sendCommand(cmd);
+                synchronized (waitLock) {
+                    waitLock.wait();
+                }
+                REMOTE_RETURNS.removeListener(listener);
+                unregister(id);
+                return listener.response;
+            } else {
+                sendCommand(cmd);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        sendCommand(cmd);
         return null;
     }
 
@@ -197,7 +202,7 @@ public abstract class ARemoteExecutor {
      * @return
      * @throws IOException
      */
-    public boolean processCommand(GameCommand cmd) throws IOException {
+    protected boolean processCommand(GameCommand cmd) throws IOException {
         if (cmd.getType() == EXECUTE_REMOTE) {
             handleExecuteRemote(cmd);
         } else if (cmd.getType() == REMOTE_RETURNS) {
@@ -235,18 +240,32 @@ public abstract class ARemoteExecutor {
         for (int i=0; i<numParams; i++) {
             String param = cmd.getArg("param" + i);
             Object o = Reflector.deserializeFromString(param);
-            paramsTypes[i] = o.getClass();
-            params[i] = o;
+            if (o != null) {
+                paramsTypes[i] = o.getClass();
+                params[i] = o;
+            }
         }
-        Object obj = executorObjects.get(cmd.getArg("target"));//getExecuteObject();
+        String id = cmd.getArg("target");
+        Object obj = executorObjects.get(id);
+        if (obj == null)
+            throw new IOException("Unknown object id: " + id);
+        log.debug("id=%s -> %s", id, obj.getClass().getSimpleName());
         try {
             Method m = methodMap.get(method);
             if (m == null) {
-                m = obj.getClass().getDeclaredMethod(method, paramsTypes);
+                try {
+                    m = obj.getClass().getDeclaredMethod(method, paramsTypes);
+                } catch (NoSuchMethodException e) {
+                    // ignore
+                }
+                if (m == null)
+                    m = searchMethods(obj, method, paramsTypes, params);
+                m.setAccessible(true);
                 methodMap.put(method, m);
             }
             Object result = m.invoke(obj, params);
-            String id = cmd.getArg("responseId");
+            id = cmd.getArg("responseId");
+            log.debug("responseId=%s", id);
             if (id != null) {
                 GameCommand resp = new GameCommand(REMOTE_RETURNS);
                 resp.setArg("target", id);
@@ -255,38 +274,28 @@ public abstract class ARemoteExecutor {
                 sendCommand(resp);
             }
         } catch (Exception e) {
-            methodMap.remove(method);
-            // search methods to see if there is a compatible match
-            try {
-                searchMethods(obj, method, paramsTypes, params);
-
-            } catch (Exception ee) {
-                throw new IOException(ee);
-            }
+            throw new IOException(e);
         }
     }
 
     private final Map<String, Method> methodMap = new HashMap<>();
 
-    private void searchMethods(Object execObj, String method, Class [] types, Object [] params) throws Exception {
+    private Method searchMethods(Object execObj, String method, Class [] types, Object [] params) throws Exception {
         for (Method m : execObj.getClass().getDeclaredMethods()) {
             if (!m.getName().equals(method))
                 continue;
             Class [] paramTypes = m.getParameterTypes();
             if (paramTypes.length != types.length)
                 continue;
-            boolean match = true;
+            boolean matchFound = true;
             for (int i=0; i<paramTypes.length; i++) {
                 if (!isCompatiblePrimitives(paramTypes[i], types[i]) && !Reflector.isSubclassOf(types[i], paramTypes[i])) {
-                    match = false;
+                    matchFound = false;
                     break;
                 }
             }
-            if (match) {
-                m.invoke(execObj, params);
-                methodMap.put(method, m);
-                return;
-            }
+            if (matchFound)
+                return m;
         }
         throw new Exception("Failed to match method '" + method + "'");
     }

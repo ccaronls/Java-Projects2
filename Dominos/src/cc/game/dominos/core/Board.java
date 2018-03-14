@@ -321,7 +321,7 @@ public class Board extends Reflector<Board> {
             } else {
                 newTotal += selectedMove.piece.pip1;
             }
-            Utils.println("Endpoint total:" + newTotal);
+//            Utils.println("Endpoint total:" + newTotal);
 
             g.begin();
             g.pushMatrix();
@@ -344,7 +344,7 @@ public class Board extends Reflector<Board> {
             g.drawRects(3);
             g.popMatrix();
             g.end();
-            Utils.println("selected endpoint = " + epIndexToString(selectedEndpoint) + " placement = " + placementIndexToString(selectedMove.placment));
+//            Utils.println("selected endpoint = " + epIndexToString(selectedEndpoint) + " placement = " + placementIndexToString(selectedMove.placment));
         }
         return picked;
     }

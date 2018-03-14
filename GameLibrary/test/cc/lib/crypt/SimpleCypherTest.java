@@ -43,6 +43,18 @@ public class SimpleCypherTest extends TestCase {
         System.out.println("File length: " + file.size());
         return file;
     }
+
+    public void testSmallStrings() throws Exception {
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        DataOutputStream out = new DataOutputStream(new EncryptionOutputStream(buffer, getCypher()));
+        out.writeUTF("A");
+        out.flush();
+
+        ByteArrayInputStream inBuffer = new ByteArrayInputStream(buffer.toByteArray());
+        DataInputStream in = new DataInputStream(new EncryptionInputStream(inBuffer, getCypher()));
+        String x = in.readUTF();
+        assertEquals(x, "A");
+    }
     
     public void testDataStream() throws Exception {
         

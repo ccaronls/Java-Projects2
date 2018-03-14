@@ -7,8 +7,12 @@ import java.util.regex.Pattern;
 import java.util.zip.*;
 
 import cc.lib.game.Utils;
+import cc.lib.logger.Logger;
+import cc.lib.logger.LoggerFactory;
 
 public class FileUtils {
+
+    private final static Logger log = LoggerFactory.getLogger(FileUtils.class);
 
 	/**
 	 * 
@@ -106,7 +110,7 @@ public class FileUtils {
 	}
 	
 	private static boolean restoreFileR(String fileName, String root, String ext) {
-		Utils.println("restore file " + fileName);
+		log.debug("restore file " + fileName);
 		File file = new File(fileName);
 		int index = root.lastIndexOf('.');
 		int num = 0;
@@ -124,7 +128,7 @@ public class FileUtils {
 		if (copiedFile.exists()) {
 			file.delete();
 			success = copiedFile.renameTo(file);
-			Utils.println("Renaming " + copiedFile + " too " + fileName + " returns " + success);
+			log.debug("Renaming " + copiedFile + " too " + fileName + " returns " + success);
 			restoreFileR(copiedName, fileNamePrefix + "." + num, ext);
 		}
 		return success;

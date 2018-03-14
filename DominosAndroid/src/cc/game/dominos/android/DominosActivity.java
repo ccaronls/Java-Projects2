@@ -26,17 +26,13 @@ import android.widget.Toast;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 import cc.game.dominos.core.Dominos;
-import cc.game.dominos.core.Move;
 import cc.game.dominos.core.Player;
-import cc.game.dominos.core.PlayerUser;
 import cc.game.dominos.core.Tile;
 import cc.lib.android.DroidActivity;
 import cc.lib.android.DroidGraphics;
@@ -51,13 +47,15 @@ import cc.lib.net.GameCommand;
 import cc.lib.net.GameCommandType;
 import cc.lib.net.GameServer;
 import cc.lib.utils.FileUtils;
-import cc.lib.utils.Reflector;
 
 /**
  * Created by chriscaron on 2/15/18.
  */
 
 public class DominosActivity extends DroidActivity {
+
+    public final static String DOMINOS_ID = "Dominos";
+    public final static String USER_ID    = "User";
 
     private final static String TAG = DominosActivity.class.getSimpleName();
 
@@ -87,7 +85,11 @@ public class DominosActivity extends DroidActivity {
         Dialog spinner;
         @Override
         protected final void onPreExecute() {
-            spinner = ProgressDialog.show(DominosActivity.this, "", "", true);
+            spinner = showSpinner();
+        }
+
+        protected Dialog showSpinner() {
+            return ProgressDialog.show(DominosActivity.this, "", "", true);
         }
 
         @Override
@@ -144,7 +146,7 @@ public class DominosActivity extends DroidActivity {
             protected void onGameOver(int winner) {
                 super.onGameOver(winner);
                 if (server.isRunning()) {
-                    server.broadcastExecuteRemoteMethod("onGameOver");
+                    server.executeOnRemote(DOMINOS_ID, null);
                     getContent().postDelayed(new Runnable() {
                         @Override
                         public void run() {
@@ -245,52 +247,48 @@ public class DominosActivity extends DroidActivity {
 
             @Override
             protected void onTilePlaced(int player, Tile tile, int endpoint, int placement) {
-                server.broadcastExecuteRemoteMethod("onTilePlaced", player, tile, endpoint, placement);
+                server.executeOnRemote(DOMINOS_ID, null, player, tile, endpoint, placement);
                 super.onTilePlaced(player, tile, endpoint, placement);
             }
 
             @Override
             protected void onTileFromPool(int player, Tile pc) {
-                server.broadcastExecuteRemoteMethod("onTileFromPool", player, pc);
+                server.executeOnRemote(DOMINOS_ID, null, player, pc);
                 super.onTileFromPool(player, pc);
             }
 
             @Override
             protected void onKnock(int player) {
-                server.broadcastExecuteRemoteMethod("onKnock", player);
+                server.executeOnRemote(DOMINOS_ID, null, player);
                 super.onKnock(player);
             }
 
             @Override
             protected void onEndRound() {
                 super.onEndRound();
-                server.broadcast(new GameCommand(SVR_TO_CL_INIT_ROUND).setArg("dominos", dominos.toString()));
+                server.sendCommand(new GameCommand(SVR_TO_CL_INIT_ROUND).setArg("dominos", dominos.toString()));
             }
 
             @Override
             protected void onPlayerEndRoundPoints(int player, int pts) {
-                if (server.isRunning()) {
-                    server.broadcastExecuteRemoteMethod("onPlayerEndRoundPoints", player, pts);
-                }
+                server.executeOnRemote(DOMINOS_ID,null, player, pts);
                 super.onPlayerEndRoundPoints(player, pts);
             }
 
             @Override
             protected void onPlayerPoints(int player, int pts) {
-                if (server.isRunning()) {
-                    server.broadcastExecuteRemoteMethod("onPlayerPoints", player,pts);
-                }
+                server.executeOnRemote(DOMINOS_ID, null, player,pts);
                 super.onPlayerPoints(player, pts);
             }
 
             @Override
             public void setTurn(int turn) {
-                if (server.isRunning()) {
-                    server.broadcastExecuteRemoteMethod("setTurn", turn);
-                }
+                server.executeOnRemote(DOMINOS_ID, null, turn);
                 super.setTurn(turn);
             }
         };
+
+        server.register(DOMINOS_ID, dominos);
 
         if (false)
         try {
@@ -317,7 +315,10 @@ public class DominosActivity extends DroidActivity {
     protected void onResume() {
         super.onResume();
         if (!dominos.isInitialized()) {
-            dominos.tryLoadFromFile(saveFile);
+            if (!dominos.tryLoadFromFile(saveFile))
+                dominos.clear();
+            else
+                dominos.redraw();
         }
         if (server.isRunning()) {
             dominos.startGameThread();
@@ -441,13 +442,13 @@ public class DominosActivity extends DroidActivity {
         }, 100);
     }
 
-    private void showNewGameDialog(final boolean cancleable) {
+    void showNewGameDialog(final boolean cancleable) {
 
         final View v = View.inflate(this, R.layout.new_game_type_dialog, null);
         AlertDialog.Builder b = newDialogBuilder().setTitle("New Game Type")
                 .setView(v).setCancelable(cancleable);
 
-        if (true || cancleable) {
+        if (cancleable) {
             b.setNegativeButton("Cancel", null);
         }
         b.show();
@@ -475,11 +476,16 @@ public class DominosActivity extends DroidActivity {
             button.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    if (dominos.tryLoadFromFile(saveFile)) {
+                    if (dominos.tryLoadFromFile(saveFile) && dominos.isInitialized()) {
                         dominos.startGameThread();
                         currentDialog.dismiss();
                     } else {
-                        newDialogBuilder().setTitle("Error").setMessage("Failed to load from save file").setNegativeButton("Ok", null).show();
+                        newDialogBuilder().setTitle("Error").setMessage("Failed to load from save file").setNegativeButton("Ok", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                showNewGameDialog(false);
+                            }
+                        }).show();
                     }
                 }
             });
@@ -490,7 +496,7 @@ public class DominosActivity extends DroidActivity {
 
     WifiP2pHelper helper = null;
 
-    private void showHostMultiplayerDialog(final int numPlayers, final int maxPoints, final int maxPips, final boolean cancelable) {
+    void showHostMultiplayerDialog(final int numPlayers, final int maxPoints, final int maxPips, final boolean cancelable) {
         new SpinnerTask() {
             @Override
             protected void doIt() throws Exception {
@@ -499,6 +505,7 @@ public class DominosActivity extends DroidActivity {
                 helper = new WifiP2pHelper(DominosActivity.this);
                 helper.p2pInitialize();
                 helper.startGroup(); // make sure we are the group owner
+                dominos.stopGameThread();
                 dominos.initGame(maxPips, maxPoints, 0);
             }
 
@@ -552,7 +559,7 @@ public class DominosActivity extends DroidActivity {
         mode = Mode.NONE;
     }
 
-    private void showWaitingForPlayersDialog(final int maxPlayers, final boolean cancelable) {
+    void showWaitingForPlayersDialog(final int maxPlayers, final boolean cancelable) {
         ListView lvPlayers = new ListView(this);
         final BaseAdapter playersAdapter = new BaseAdapter() {
             @Override
@@ -611,11 +618,11 @@ public class DominosActivity extends DroidActivity {
                 if (server.getNumConnectedClients() == maxPlayers) {
                     server.removeListener(this);
                     Player [] players = new Player[1 + server.getNumClients()];
-                    players[0] = new PlayerUser();
+                    players[0] = user;
                     Iterator<ClientConnection> it = server.getConnectionValues().iterator();
                     for (int i=1; i<players.length; i++) {
                         ClientConnection c = it.next();
-                        players[i] = new PlayerRemoteClient(c, i);
+                        players[i] = new MPPlayerRemote(c, i, dominos, DominosActivity.this);
                     }
                     dominos.setPlayers(players);
                     dominos.startNewGame();
@@ -661,20 +668,10 @@ public class DominosActivity extends DroidActivity {
                 });
 
             }
-
-            @Override
-            public void onClientCommand(ClientConnection conn, GameCommand command) {
-                Log.w(TAG, "unhandled onClientCommand: " + command);
-            }
-
-            @Override
-            public void onFormSubmited(ClientConnection conn, int id, Map<String, String> params) {
-                Log.w(TAG, "unhandled onFormSubmitted: " + id + " " + params);
-            }
         });
     }
 
-    private void showSearchMultiplayerHostsDialog(final boolean canceleble) {
+    void showSearchMultiplayerHostsDialog(final boolean canceleble) {
         final ListView lvHost = new ListView(this);
         final List<WifiP2pDevice> devices = new ArrayList<>();
         final BaseAdapter adapter = new BaseAdapter() {
@@ -736,8 +733,7 @@ public class DominosActivity extends DroidActivity {
             boolean connecting = false;
 
             @Override
-            public void onConnectionInfoAvailable(final WifiP2pInfo info) {
-                super.onConnectionInfoAvailable(info);
+            public void onConnectionAvailable(final WifiP2pInfo info) {
                 if (connecting || client.isConnected()) {
                     return;
                 }
@@ -747,6 +743,7 @@ public class DominosActivity extends DroidActivity {
                     @Override
                     protected void doIt() throws Exception {
                         stopPeerDiscovery();
+                        user.connect(client, DominosActivity.this, dominos);
                         client.connect(info.groupOwnerAddress, PORT);
                     }
 
@@ -790,31 +787,39 @@ public class DominosActivity extends DroidActivity {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 final WifiP2pDevice d = (WifiP2pDevice)view.getTag();
-                newDialogBuilder().setTitle("Connecting")
-                        .setMessage("Please wait while your connect request is accepted")
-                        .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                new SpinnerTask() {
-                                    @Override
-                                    protected void doIt() throws Exception {
-                                        helper.cancelConnect();
-                                        killGame();
-                                        synchronized (helper) {
-                                            helper.notify();
-                                        }
-                                    }
-
-                                    @Override
-                                    protected void onDone() {
-                                        showNewGameDialog(canceleble);
-                                    }
-                                }.run();
-                            }
-                        }).show();
                 new SpinnerTask() {
+
+                    @Override
+                    protected Dialog showSpinner() {
+                        return newDialogBuilder().setTitle("Connecting")
+                                .setMessage("Please wait while your connect request is accepted")
+                                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        new SpinnerTask() {
+                                            @Override
+                                            protected void doIt() throws Exception {
+                                                helper.cancelConnect();
+                                                cancel(false);
+                                                killGame();
+                                                synchronized (helper) {
+                                                    helper.notify();
+                                                }
+                                            }
+
+                                            @Override
+                                            protected void onDone() {
+                                                showNewGameDialog(canceleble);
+                                            }
+                                        }.run();
+                                    }
+                                }).show();
+                    }
+
                     @Override
                     protected void doIt() {
+                        if (d.status == WifiP2pDevice.CONNECTED)
+                            return;
                         helper.connect(d);
                         Utils.waitNoThrow(helper, 60*1000);
                     }
@@ -825,7 +830,7 @@ public class DominosActivity extends DroidActivity {
                             mode = Mode.CLIENT;
                             //showWaitingForPlayersDialogClient(canceleble);
                             Toast.makeText(DominosActivity.this, "Connection SUCCESS!", Toast.LENGTH_LONG).show();
-                        } else {
+                        } else if (!isCancelled()) {
                             newDialogBuilder().setTitle("Error")
                                     .setMessage("Failed to connect to host")
                                     .setNegativeButton("Ok", new DialogInterface.OnClickListener() {
@@ -864,7 +869,7 @@ public class DominosActivity extends DroidActivity {
 
     }
 
-    private void showWaitingForPlayersDialogClient(final boolean cancelable) {
+    void showWaitingForPlayersDialogClient(final boolean cancelable) {
         final AlertDialog d = newDialogBuilder().setTitle("Waiting")
                 .setTitle("Waiting for more players")
                 .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -877,6 +882,7 @@ public class DominosActivity extends DroidActivity {
         client.addListener(new GameClient.Listener() {
             @Override
             public void onCommand(GameCommand cmd) {
+                client.removeListener(this);
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
@@ -895,137 +901,36 @@ public class DominosActivity extends DroidActivity {
                     }
                 });
             }
+
+            @Override
+            public void onDisconnected(String reason) {
+
+            }
+
+            @Override
+            public void onConnected() {
+
+            }
+
+            @Override
+            public void onForm(ClientForm form) {
+
+            }
         });
     }
 
     final static String VERSION = "DOMINOS.1.0";
     final static int PORT = 16342;
-    final static int CLIENT_READ_TIMEOUT = 10000;
+    final static int CLIENT_READ_TIMEOUT = 30000;
 
-    GameClient client = new GameClient(Build.PRODUCT + Build.MANUFACTURER, VERSION, cypher) {
+    GameClient client = new GameClient(Build.PRODUCT + Build.MANUFACTURER, VERSION, cypher);
 
-        final PlayerUser user = new PlayerUser() {
-            @Override
-            public void setChoosedMove(Move choosedMove) {
-                super.setChoosedMove(choosedMove);
-                if (choosedMove != null) {
-                    send(new GameCommand(CL_TO_SVR_MOVE_CHOSEN).setArg("move", choosedMove.toString()));
-                    clearMoves();
-                }
-            }
+    final MPPlayerUser user = new MPPlayerUser();
 
-            @Override
-            public Move chooseMove(Dominos game, List<Move> moves) {
-                if (Utils.isEquals(getMoves(), moves))
-                    return null;
-
-                return super.chooseMove(game, moves);
-            }
-        };
-
-        @Override
-        protected void onMessage(final String message) {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    Toast.makeText(DominosActivity.this, message, Toast.LENGTH_LONG).show();
-                }
-            });
-        }
-
-        @Override
-        protected void onDisconnected(String message) {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    newDialogBuilder().setTitle("Disconnected")
-                            .setMessage("You have been disconnected from the server.")
-                            .setNegativeButton("Ok", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    showSearchMultiplayerHostsDialog(false);
-                                }
-                            }).setCancelable(false).show();
-                }
-            });
-            killGame();
-        }
-
-        @Override
-        protected void onConnected() {
-            synchronized (this) {
-                notify();
-            }
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    Toast.makeText(DominosActivity.this, "Connected", Toast.LENGTH_LONG).show();
-                }
-            });
-        }
-
-        @Override
-        protected synchronized void onCommand(GameCommand cmd) throws Exception {
-            if (cmd.getType() == SVR_TO_CL_INIT_GAME) {
-                int numPlayers = cmd.getInt("numPlayers");
-                if (numPlayers < 2 || numPlayers > 4)
-                    throw new AssertionError("invalid numPlayers: " + numPlayers);
-                int playerNum = cmd.getInt("playerNum");
-                if (playerNum < 0 || playerNum >= numPlayers)
-                    throw new AssertionError("invalid playerNum: " + playerNum);
-                Player[] players = new Player[numPlayers];
-                int idx = 0;
-                for (; idx < playerNum; idx++)
-                    players[idx] = new Player();
-                players[idx++] = user;
-                for (; idx < numPlayers; idx++)
-                    players[idx] = new Player();
-                dominos.setPlayers(players);
-                Reflector.KEEP_INSTANCES = true;
-                try {
-                    String str = cmd.getArg("dominos");
-//                    FileUtils.stringToFile(str, new File(Environment.getExternalStorageDirectory(), "dominos.in"));
-                    dominos.deserialize(str);
-                    dominos.redraw();
-                } catch (Exception e) {
-                    sendError(e);
-                }
-                Reflector.KEEP_INSTANCES = false;
-                currentDialog.dismiss();
-            } else if (cmd.getType() == SVR_TO_CL_INIT_ROUND) {
-                Reflector.KEEP_INSTANCES = true;
-                try {
-                    String str = cmd.getArg("dominos");
-//                    FileUtils.stringToFile(str, new File(Environment.getExternalStorageDirectory(), "dominos.in"));
-                    dominos.deserialize(str);
-                    dominos.redraw();
-                } catch (Exception e) {
-                    sendError(e);
-                }
-                Reflector.KEEP_INSTANCES = false;
-            } else if (cmd.getType() == SVR_TO_CL_CHOOSE_MOVE) {
-                user.chooseMove(dominos, (List)Reflector.deserializeFromString(cmd.getArg("moves")));
-            } else {
-                throw new Exception("Dont know how to handle cmd: '" + cmd + "'");
-            }
-        }
-
-        @Override
-        protected void onForm(ClientForm form) {
-            Log.e(TAG, "Unhandled form: " + form);
-        }
-
-        @Override
-        protected Object getExecuteObject() {
-            return dominos;
-        }
-
-    };
-
-    private AlertDialog currentDialog = null;
+    AlertDialog currentDialog = null;
 
     AlertDialog.Builder newDialogBuilder() {
-        return new AlertDialog.Builder(this) {
+        return new AlertDialog.Builder(this, R.style.DialogTheme) {
             @Override
             public AlertDialog show() {
                 if (currentDialog != null) {
@@ -1038,107 +943,23 @@ public class DominosActivity extends DroidActivity {
 
     private GameServer server = new GameServer(PORT, CLIENT_READ_TIMEOUT, VERSION, cypher, 3);
 
-    private final static GameCommandType SVR_TO_CL_CHOOSE_MOVE = new GameCommandType("SVR_CHOOSE_MOVE");
-    private final static GameCommandType CL_TO_SVR_MOVE_CHOSEN = new GameCommandType("CL_MOVE_CHOSEN");
-
     /** include:
      *  numPlayers(int)
      *  playerNum(int) of the client
      *  dominos(serialixed)
      */
-    private final static GameCommandType SVR_TO_CL_INIT_GAME   = new GameCommandType("SVR_INIT_GAME");
+    final static GameCommandType SVR_TO_CL_INIT_GAME   = new GameCommandType("SVR_INIT_GAME");
     /**
      * similar to above except player count and players' positions remain
      */
-    private final static GameCommandType SVR_TO_CL_NEW_GAME    = new GameCommandType("SVR_NEW_GAME");
+    final static GameCommandType SVR_TO_CL_NEW_GAME    = new GameCommandType("SVR_NEW_GAME");
 
     /**
      * Just pass the serialized dominos
      */
-    private final static GameCommandType SVR_TO_CL_INIT_ROUND  = new GameCommandType("SVR_INIT_ROUND");
+    final static GameCommandType SVR_TO_CL_INIT_ROUND  = new GameCommandType("SVR_INIT_ROUND");
 
-    // inctance of players when we are the host
-    class PlayerRemoteClient extends Player implements ClientConnection.Listener {
-
-        final int playerNum;
-
-        PlayerRemoteClient(ClientConnection conn, int playerNum) {
-            this.playerNum = playerNum;
-            this.connection = conn;
-            conn.setListener(this);
-        }
-
-        private final ClientConnection connection;
-        private Move chosen;
-
-        @Override
-        public Move chooseMove(Dominos game, List<Move> moves) {
-            chosen = null;
-            if (!connection.isConnected())
-                return super.chooseMove(game, moves);
-            //blocking request for client to tell their move
-            try {
-                connection.sendCommand(new GameCommand(SVR_TO_CL_CHOOSE_MOVE).setArg("moves", Reflector.serializeObject(moves)));
-            } catch(IOException e) {
-                throw new AssertionError(e);
-            }
-            Utils.waitNoThrow(this, 20000);
-            return chosen;
-        }
-
-        @Override
-        public void onCommand(GameCommand cmd) {
-            try {
-                if (cmd.getType() == CL_TO_SVR_MOVE_CHOSEN) {
-                    chosen = new Move();
-                    chosen.deserialize(cmd.getArg("move"));
-                    synchronized (this) {
-                        notify();
-                    }
-                }
-            } catch (Exception e) {
-                Log.e(TAG, "ERROR: " + e.getMessage() + " " + e.getClass().getSimpleName());
-                e.printStackTrace();
-            }
-        }
-
-        @Override
-        public void onDisconnected(final String reason) {
-            Log.w(TAG, "Client disconnected: " + reason);
-            if (dominos.isGameRunning()) {
-                dominos.stopGameThread();
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        newDialogBuilder().setTitle("Notice")
-                                .setMessage("Client " + connection.getName() + " has disconnected because " + reason + ". You can choose to continue without or wait for them to reconnect.")
-                                .setNegativeButton("Continue without", new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        connection.disconnect("Dropped");
-                                        dominos.startGameThread();
-                                    }
-                                }).show();
-                    }
-                });
-            }
-        }
-
-        @Override
-        public void onConnected() {
-            // reconnect
-            if (server.getNumConnectedClients() == dominos.getNumPlayers()-1) {
-                connection.sendCommand(new GameCommand(SVR_TO_CL_INIT_GAME).setArg("numPlayers", dominos.getNumPlayers())
-                        .setArg("playerNum", playerNum)
-                        .setArg("dominos", dominos.toString()));
-
-                currentDialog.dismiss();
-                dominos.startGameThread();
-            }
-        }
-    };
-
-    private void showNewMultiplayerPlayerSetupDialog(final boolean cancleable, final boolean firstGame) {
+    void showNewMultiplayerPlayerSetupDialog(final boolean cancleable, final boolean firstGame) {
         final View v = View.inflate(this, R.layout.game_setup_dialog, null);
         final RadioGroup rgNumPlayers = (RadioGroup)v.findViewById(R.id.rgNumPlayers);
         final RadioGroup rgDifficulty = (RadioGroup)v.findViewById(R.id.rgDifficulty);
@@ -1231,7 +1052,7 @@ public class DominosActivity extends DroidActivity {
                         else {
                             dominos.startGameThread();
                             server.broadcastMessage("Starting a new game!");
-                            server.broadcast(new GameCommand(SVR_TO_CL_NEW_GAME).setArg("maxPips", maxPips).setArg("maxPoints", maxPoints));
+                            server.sendCommand(new GameCommand(SVR_TO_CL_NEW_GAME).setArg("maxPips", maxPips).setArg("maxPoints", maxPoints));
                         }
                     }
 
@@ -1254,8 +1075,7 @@ public class DominosActivity extends DroidActivity {
         }).show();
     }
 
-
-    private void showNewSinglePlayerSetupDialog(final boolean cancleable) {
+    void showNewSinglePlayerSetupDialog(final boolean cancleable) {
         final View v = View.inflate(this, R.layout.game_setup_dialog, null);
         final RadioGroup rgNumPlayers = (RadioGroup)v.findViewById(R.id.rgNumPlayers);
         final RadioGroup rgDifficulty = (RadioGroup)v.findViewById(R.id.rgDifficulty);

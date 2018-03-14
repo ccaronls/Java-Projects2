@@ -56,7 +56,7 @@ public class Utils {
      */
     public static void assertTrue(boolean expr, String msg, Object... args) {
         if (DEBUG_ENABLED && !expr) {
-            throw new RuntimeException("ASSERT FAILED " + String.format(msg, args));
+            throw new AssertionError("ASSERT FAILED " + String.format(msg, args));
         }
     }
 
@@ -78,26 +78,31 @@ public class Utils {
     }
 
     /**
+     * Use Logger instead
      * @param msg
      */
+    @Deprecated
     public static void println(String msg) {
         if (DEBUG_ENABLED)
             System.out.println(msg);
     }
 
     /**
-     *
+     * Use Logger instead
      *
      */
+    @Deprecated
     public static void println() {
         if (DEBUG_ENABLED)
             System.out.println();
     }
 
     /**
+     * Use logger instead
      * @param msg
      * @param args
      */
+    @Deprecated
     public static void print(String msg, Object... args) {
         if (DEBUG_ENABLED) {
             System.out.print(String.format(msg, args));
@@ -105,9 +110,11 @@ public class Utils {
     }
 
     /**
+     * Use logger instead
      * @param msg
      * @param args
      */
+    @Deprecated
     public static void println(String msg, Object... args) {
         if (DEBUG_ENABLED) {
             System.out.println(String.format(msg, args));
@@ -855,6 +862,41 @@ public class Utils {
             buf.append(chars.charAt(Utils.rand() % chars.length()));
         }
         return buf.toString();
+    }
+
+    public static String truncate(Object o, int maxChars, int maxLines) {
+        if (o == null)
+            return null;
+        String s = o.toString();
+        final int len = s.length();
+        String result = "";
+        for (int i=0; i<maxLines; i++) {
+            if (s.length() == 0)
+                break;
+            if (result.length()>0)
+                result += "\n";
+            int endl = s.indexOf('\n');
+            if (endl > maxChars) {
+                result += s.substring(0, maxChars) + "...\n   truncated to " + maxChars + " (" + len + ")";
+                break;
+            } else if (endl >= 0) {
+                result += s.substring(0, endl);
+                s = s.substring(endl+1);
+                maxChars -= endl;
+            } else if (s.length() > maxChars) {
+                result = s.substring(0, maxChars) + "...\n    truncated to " + maxChars + " (" + len + ")";
+                break;
+            } else {
+                result += s;
+                s = "";
+                break;
+            }
+        }
+        if (s.length() > 0) {
+            result += "\n....  truncated to " + maxLines + " lines " + " (" + len + ") bytes";
+        }
+
+        return result;
     }
 
     public interface VertexList {
