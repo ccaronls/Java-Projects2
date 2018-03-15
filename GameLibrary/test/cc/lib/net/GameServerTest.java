@@ -3,6 +3,7 @@ package cc.lib.net;
 import junit.framework.TestCase;
 
 import java.net.InetAddress;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -20,15 +21,16 @@ import cc.lib.game.Utils;
  */
 public class GameServerTest extends TestCase {
 
-    final static int PORT = 10000;
+    final static int PORT = 10001;
     final static String VERSION = "GameServerTest";
-    final static int TIMEOUT = 2000;
+    final static int TIMEOUT = 5000;
 
     Throwable result = null;
 
     final static GameCommandType TEST = new GameCommandType("TEST");
 
     MyServerListener listener1;
+    MyClientConnectionListener listener2;
     GameServer server;
     
     @Override
@@ -45,6 +47,7 @@ public class GameServerTest extends TestCase {
 
         result = null;
         listener1 = new MyServerListener();
+        listener2 = new MyClientConnectionListener();
         server = new GameServer(PORT, TIMEOUT, VERSION, cypher, 2);
         server.addListener(listener1);
         server.listen();
@@ -114,44 +117,44 @@ public class GameServerTest extends TestCase {
                     assertTrue(cl.connected);
                     ClientConnection conn = server.getClientConnection("XX");
                     /////////////////
-                    conn.executeMethod("testMethod_int", new Integer(10));
+
+                    conn.executeOnRemote(CLIENT_ID, "testMethod_int", false, new Integer(10));
                     Thread.sleep(1000);
                     assertEquals(cl.argLong, 10);
                     /////////////////
-                    conn.executeMethod("testMethod_Int", 11);
+                    conn.executeOnRemote(CLIENT_ID,"testMethod_Int", false, 11);
                     Thread.sleep(1000);
                     assertEquals(cl.argLong, 11);
                     /////////////////
-                    conn.executeMethod("testMethod_float", new Float(12.0f));
+                    conn.executeOnRemote(CLIENT_ID,"testMethod_float", false, new Float(12.0f));
                     Thread.sleep(1000);
                     assertEquals(cl.argFloat, 12.0);
                     /////////////////
-                    conn.executeMethod("testMethod_Float", 13.0f);
+                    conn.executeOnRemote(CLIENT_ID,"testMethod_Float", false, 13.0f);
                     Thread.sleep(1000);
                     assertEquals(cl.argFloat, 13.0);
-
                     /////////////////
                     Map map = new HashMap();
                     map.put("hello", 1);
                     map.put("goodbyte", 2);
-                    conn.executeMethod("testMethod_Map", map);
+                    conn.executeOnRemote(CLIENT_ID,"testMethod_Map", false, map);
                     Thread.sleep(1000);
                     assertTrue(Utils.isEquals(cl.argMap, map));
 
                     Collection c = new LinkedList();
                     c.add("a");
                     c.add("b");
-                    conn.executeMethod("testMethod_Collection", c);
+                    conn.executeOnRemote(CLIENT_ID,"testMethod_Collection", false, c);
                     Thread.sleep(1000);
                     assertTrue(Utils.isEquals(cl.argCollection, c));
 
-
-
-                    conn.executeMethod("testMethod", 15, "Hello", new HashMap<>());
+                    String [] result = conn.executeOnRemote(CLIENT_ID,"testMethod", true, 15, "Hello", new HashMap<>());
                     Thread.sleep(1000);
                     assertEquals(15, cl.argLong);
                     assertEquals("Hello", cl.argString);
                     assertNotNull(cl.argMap);
+                    assertNotNull(result);
+                    assertTrue(Arrays.equals(result, new String[] { "a", "b", "c" }));
                     cl.disconnect();
                     Thread.sleep(1000);
                     assertTrue(listener1.disconnected);
@@ -361,14 +364,15 @@ public class GameServerTest extends TestCase {
                     MyGameClient cl = new MyGameClient("ABC");
                     cl.connect(InetAddress.getLocalHost(), PORT);
                     Thread.sleep(1000);
+                    ClientConnection conn = server.getClientConnection("ABC");
+                    conn.addListener(listener2);
                     assertTrue(listener1.connected);
                     assertTrue(cl.connected);
                     assertTrue(cl.isConnected());
-                    cl.send(new GameCommand(TEST));
+                    cl.sendCommand(new GameCommand(TEST));
                     Thread.sleep(1000);
-                    assertNotNull(listener1.lastCommand);
-                    assertEquals(listener1.lastCommand.getType(), TEST);
-                    ClientConnection conn = server.getClientConnection("ABC");
+                    assertNotNull(listener2.lastCommand);
+                    assertEquals(listener2.lastCommand.getType(), TEST);
                     assertNotNull(conn);
                     conn.sendCommand(new GameCommand(TEST));
                     Thread.sleep(1000);
@@ -408,17 +412,19 @@ public class GameServerTest extends TestCase {
                     cl.setCypher(getCypher());
                     cl.connect(InetAddress.getLocalHost(), PORT);
                     Thread.sleep(1000);
+                    ClientConnection conn = server.getClientConnection("ABC");
+                    conn.addListener(listener2);
                     assertTrue(listener1.connected);
                     assertTrue(cl.connected);
                     assertTrue(cl.isConnected());
-                    cl.send(new GameCommand(TEST));
-                    Thread.sleep(1000);
-                    assertNotNull(listener1.lastCommand);
-                    assertEquals(listener1.lastCommand.getType(), TEST);
-                    ClientConnection conn = server.getClientConnection("ABC");
+                    assertTrue(conn.isConnected());
+                    cl.sendCommand(new GameCommand(TEST));
+                    Thread.sleep(10000000);
+                    assertNotNull(listener2.lastCommand);
+                    assertEquals(listener2.lastCommand.getType(), TEST);
                     assertNotNull(conn);
                     conn.sendCommand(new GameCommand(TEST));
-                    Thread.sleep(1000);
+                    Thread.sleep(2000);
                     assertNotNull(cl.lastCommand);
                     assertEquals(cl.lastCommand.getType(), TEST);
                     
@@ -515,8 +521,7 @@ public class GameServerTest extends TestCase {
         boolean connected = false;
         boolean reconnected = false;
         boolean disconnected = false;
-        GameCommand lastCommand;
-        
+
         @Override
         public void onReconnection(ClientConnection conn) {
             System.out.println("onReconnection: " + conn);
@@ -544,73 +549,90 @@ public class GameServerTest extends TestCase {
             this.disconnected = true;
         }
         
+    };
+
+    class MyClientConnectionListener implements ClientConnection.Listener {
+        GameCommand lastCommand;
+
         @Override
-        public void onClientCommand(ClientConnection conn, GameCommand command) {
-            System.out.println("onClientCommand: " + conn + " -> " + command);
-            this.lastCommand = command;
+        public void onCommand(GameCommand cmd) {
+            lastCommand = cmd;
+        }
+
+        @Override
+        public void onDisconnected(String reason) {
+
+        }
+
+        @Override
+        public void onConnected() {
+
         }
 
         @Override
         public void onFormSubmited(ClientConnection conn, int id, Map<String, String> params) {
-            System.out.println("onFormSubmitted: " + conn + " -> id=" + id + " params=" + params);
+
         }
-    };
+    }
     
     
     static int numClients = 0;
+
+    final String CLIENT_ID = "CLIENT";
     
-    class MyGameClient extends GameClient {
+    class MyGameClient extends GameClient implements GameClient.Listener {
 
         boolean connected = false;
         boolean disconnected = false;
         GameCommand lastCommand;
-      
-        public MyGameClient(String name) {
-            super(name, VERSION);
-        }
-        
-        public MyGameClient(String name, String version) {
-            super(name, version);
-        }
-        
-        public MyGameClient() {
-            super("test" + numClients, VERSION);
-            numClients++;
-        }
 
         @Override
-        protected void onMessage(String message) {
-            log.debug("client " + this.getName() + " onMessage: " + message);
-        }
-
-        @Override
-        protected void onDisconnected(String message) {
-            log.debug("client " + this.getName() +  " onDisconnected: " + message);
-            disconnected = true;
-        }
-
-        @Override
-        protected void onConnected() {
-            log.debug("client " + getName() + " onConnected");
-            connected = true;
-        }
-
-        @Override
-        protected void onCommand(GameCommand cmd) {
+        public void onCommand(GameCommand cmd) {
             log.debug("client " + getName() + " onCommand: " + cmd);
             lastCommand = cmd;
         }
 
         @Override
-        protected void onForm(ClientForm form) {
-
+        public void onMessage(String message) {
+            log.debug("client " + this.getName() + " onMessage: " + message);
         }
 
-        public void testMethod(int arg0, String arg1, Map arg2) {
+        @Override
+        public void onDisconnected(String reason) {
+            connected = false;
+            disconnected = true;
+            unregister(CLIENT_ID);
+        }
+
+        @Override
+        public void onConnected() {
+            connected = true;
+            disconnected = false;
+            register(CLIENT_ID, this);
+        }
+
+        public MyGameClient(String name) {
+            this(name, VERSION);
+        }
+        
+        public MyGameClient(String name, String version) {
+            super(name, version);
+            numClients++;
+            addListener(this);
+        }
+        
+        public MyGameClient() {
+            this("test" + numClients, VERSION);
+        }
+
+        public String [] testMethod(int arg0, String arg1, Map arg2) {
             System.out.println("testMethod executed with: " + arg0 + " " + arg1 + " " + arg2);
             this.argLong = arg0;
             this.argString = arg1;
             this.argMap = arg2;
+            return new String[] {
+                    "a", "b", "c"
+            };
         }
 
         protected void testMethod_int(int x) {
@@ -668,9 +690,5 @@ public class GameServerTest extends TestCase {
         boolean argBool;
         Collection argCollection;
 
-        @Override
-        protected Object getExecuteObject() {
-            return this;
-        }
     }
 }

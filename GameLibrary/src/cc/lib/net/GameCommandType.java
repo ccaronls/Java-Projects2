@@ -98,8 +98,6 @@ public final class GameCommandType implements Comparable<GameCommandType> {
     static final GameCommandType CL_RECONNECT = new GameCommandType("CL_RECONNECT");
     // no additional info
     static final GameCommandType CL_KEEPALIVE = new GameCommandType("CL_KEEPALIVE");
-    // command to submit a form
-    static final GameCommandType CL_FORM_SUBMIT = new GameCommandType("CL_FORM_SUBMIT");
     // report an error that occured on the client
     static final GameCommandType CL_ERROR       = new GameCommandType("CL_ERROR");
 
@@ -107,8 +105,6 @@ public final class GameCommandType implements Comparable<GameCommandType> {
     // commands sent from the server
     // --------------------------------------
 
-    // server send a form to be filled out by client
-    static final GameCommandType SVR_FORM = new GameCommandType("SVR_FORM");
     // confirmation command from the server that a client has connected
     static final GameCommandType SVR_CONNECTED = new GameCommandType("SVR_CONNECTED");
 

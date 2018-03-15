@@ -157,7 +157,7 @@ public class WifiTest extends Activity implements RadioGroup.OnCheckedChangeList
             }
 
             @Override
-            public void onConnectionInfoAvailable(final WifiP2pInfo info) {
+            public void onConnectionAvailable(final WifiP2pInfo info) {
                 super.onConnectionInfoAvailable(info);
                 runOnUiThread(new Runnable() {
                     public void run() {

@@ -246,12 +246,8 @@ public class ClientConnection extends ARemoteExecutor implements Runnable {
     public final void sendMessage(String message) {
         sendCommand(new GameCommand(GameCommandType.MESSAGE).setMessage(message));
     }
-    
-    public final void sendForm(ServerForm form) {
-        sendCommand(new GameCommand(GameCommandType.SVR_FORM).setArg("xml", form.toXML()).setArg("id", "" + form.getId()));
-    }
 
-    /*
+    /**
      * internal
      */
     public final void start() {
@@ -317,15 +313,6 @@ public class ClientConnection extends ARemoteExecutor implements Runnable {
         } else if (cmd.getType() == GameCommandType.CL_KEEPALIVE) {
             // client should do this at regular intervals to prevent getting dropped
             log.debug("ClientConnection: KeepAlive from client: " + getName());
-        } else if (cmd.getType() == GameCommandType.CL_FORM_SUBMIT) {
-            final int id = Integer.parseInt(cmd.getArg("id"));
-            final Map<String, String> params = new HashMap<String, String>(cmd.getProperties());
-            if (listeners.size() > 0) {
-                Listener [] arr = listeners.toArray(new Listener[listeners.size()]);
-                for (Listener l : arr) {
-                    l.onFormSubmited(this, id, params);
-                }
-            }
         } else if (cmd.getType() == GameCommandType.CL_ERROR) {
             System.err.println("ERROR From client '" + getName() + "'\n" + cmd.getArg("msg") + "\n" + cmd.getArg("stack"));
         } else {

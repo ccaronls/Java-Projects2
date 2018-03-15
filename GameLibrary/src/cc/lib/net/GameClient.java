@@ -53,8 +53,6 @@ public class GameClient extends ARemoteExecutor {
         void onDisconnected(String reason);
 
         void onConnected();
-
-        void onForm(ClientForm form);
     }
     
     private Socket socket;
@@ -304,10 +302,6 @@ public class GameClient extends ARemoteExecutor {
                         disconnectedReason = cmd.getMessage();
                         state = State.DISCONNECTING;
                         break;
-                    } else if (cmd.getType() == GameCommandType.SVR_FORM) {
-                        ClientForm clForm = new ClientForm(Integer.parseInt(cmd.getArg("id")), cmd.getArg("xml"));
-                        for (Listener l : larray)
-                            l.onForm(clForm);
                     } else {
                         for (Listener l : larray)
                             l.onCommand(cmd);
@@ -366,19 +360,6 @@ public class GameClient extends ARemoteExecutor {
     public final void sendError(String err) {
         GameCommand cmd = new GameCommand(GameCommandType.CL_ERROR).setArg("msg", "ERROR: " + err);
         log.error("Sending error: " + cmd);
-        sendCommand(cmd);
-    }
-
-    /**
-     * 
-     * @param form
-     */
-    public final void submitForm(ClientForm form) {
-        GameCommand cmd = new GameCommand(GameCommandType.CL_FORM_SUBMIT);
-        for (FormElem elem : form.values.values()) {
-            cmd.setArg(elem.getId(), elem.getValue());
-        }
-        cmd.setArg("id", "" + form.getId());
         sendCommand(cmd);
     }
 
