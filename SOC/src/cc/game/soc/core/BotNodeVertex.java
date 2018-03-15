@@ -20,7 +20,7 @@ public class BotNodeVertex extends BotNode {
 
 	@Override
 	public Object getData() {
-		return vertex;
+		return index;
 	}
 
 	@Override

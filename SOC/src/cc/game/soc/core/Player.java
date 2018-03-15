@@ -769,7 +769,7 @@ public abstract class Player extends Reflector<Player> {
 	 * @param knightToMove null unless mode is KNIGHT_DISPLACED or KNIGHT_TO_MOVE
 	 * @return
 	 */
-	public abstract Vertex chooseVertex(SOC soc, Collection<Integer> vertexIndices, VertexChoice mode, Vertex knightToMove);
+	public abstract Integer chooseVertex(SOC soc, Collection<Integer> vertexIndices, VertexChoice mode, Integer knightToMove);
 
 	public enum RouteChoice {
 		ROAD,
@@ -781,7 +781,7 @@ public abstract class Player extends Reflector<Player> {
 		OPPONENT_SHIP_TO_ATTACK, // player chooses an opponent ship adjacent to one of they're warships
 	}
 	
-	public abstract Route chooseRoute(SOC soc, Collection<Integer> routeIndices, RouteChoice mode);
+	public abstract Integer chooseRoute(SOC soc, Collection<Integer> routeIndices, RouteChoice mode);
 
 	public enum RouteChoiceType {
 		ROAD_CHOICE,
@@ -809,7 +809,7 @@ public abstract class Player extends Reflector<Player> {
 	 * @param mode
 	 * @return
 	 */
-	public abstract Tile chooseTile(SOC soc, Collection<Integer> tileIndices, TileChoice mode);
+	public abstract Integer chooseTile(SOC soc, Collection<Integer> tileIndices, TileChoice mode);
 	
 	
 	/**
@@ -832,7 +832,7 @@ public abstract class Player extends Reflector<Player> {
 	};
 	
 	/**
-	 * Return player to take card from or null for not yet chosen.
+	 * Return playerNum to take card from or null for not yet chosen.
 	 * Method will get called continuously until non-null value returned.
 	 * Cannot be cancelled.
 	 * 
@@ -841,7 +841,7 @@ public abstract class Player extends Reflector<Player> {
 	 * @param mode
 	 * @return
 	 */
-	public abstract Player choosePlayer(SOC soc, Collection<Integer> playerOptions, PlayerChoice mode);
+	public abstract Integer choosePlayer(SOC soc, Collection<Integer> playerOptions, PlayerChoice mode);
 	
 	public enum CardChoice {
 		RESOURCE_OR_COMMODITY,

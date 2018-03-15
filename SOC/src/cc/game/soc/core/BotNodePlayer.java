@@ -16,7 +16,7 @@ public class BotNodePlayer extends BotNode {
 
 	@Override
 	public Object getData() {
-		return player;
+		return player.getPlayerNum();
 	}
 
 	@Override

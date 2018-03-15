@@ -22,22 +22,22 @@ public class GUIPlayerUser extends GUIPlayer {
 	}
 
 	@Override
-	public Vertex chooseVertex(SOC soc, Collection<Integer> vertexIndices, VertexChoice mode, Vertex knightToMove) {
-		Vertex v = GUI.instance.chooseVertex(vertexIndices, getPlayerNum(), mode);
+	public Integer chooseVertex(SOC soc, Collection<Integer> vertexIndices, VertexChoice mode, Integer knightToMove) {
+		Integer v = GUI.instance.chooseVertex(vertexIndices, getPlayerNum(), mode);
 		doVertexAnimation(soc, mode, v, knightToMove);
 		return v;
 	}
 
 
 	@Override
-	public Route chooseRoute(SOC soc, Collection<Integer> routeIndices, RouteChoice mode) {
-		Route r = GUI.instance.chooseRoute(routeIndices, mode);
+	public Integer chooseRoute(SOC soc, Collection<Integer> routeIndices, RouteChoice mode) {
+		Integer r = GUI.instance.chooseRoute(routeIndices, mode);
 		doRouteAnimation(soc, mode, r);
 		return r;
 	}
 
 	@Override
-	public Tile chooseTile(SOC soc, Collection<Integer> tileIndices, TileChoice mode) {
+	public Integer chooseTile(SOC soc, Collection<Integer> tileIndices, TileChoice mode) {
 		return GUI.instance.chooseTile(tileIndices, mode);
 	}
 
@@ -49,7 +49,7 @@ public class GUIPlayerUser extends GUIPlayer {
 
 
 	@Override
-	public Player choosePlayer(SOC soc, Collection<Integer> players, PlayerChoice mode) {
+	public Integer choosePlayer(SOC soc, Collection<Integer> players, PlayerChoice mode) {
 		return GUI.instance.choosePlayerMenu(players, mode);
 	}
 

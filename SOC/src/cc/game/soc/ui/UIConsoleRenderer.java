@@ -97,7 +97,7 @@ public final class UIConsoleRenderer implements UIRenderer {
                         drawPrivate(g);
                         g.setColor(GColor.BLACK.withAlpha(0.5f-position));
                         String [] lines = g.generateWrappedLines(text, component.getWidth());
-                        g.drawFilledRectf(0, 0, component.getWidth(), lines.length*g.getTextHeight());
+                        g.drawFilledRect(0, 0, component.getWidth(), lines.length*g.getTextHeight());
                         g.setColor(color.withAlpha(1.0f-position/3));
                         float y = 0;
                         for (String l : lines) {

@@ -1,7 +1,5 @@
 package cc.game.soc.swing2;
 
-import org.apache.log4j.Logger;
-
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Image;
@@ -59,6 +57,8 @@ import cc.lib.game.GRectangle;
 import cc.lib.game.IVector2D;
 import cc.lib.game.Justify;
 import cc.lib.game.Utils;
+import cc.lib.logger.Logger;
+import cc.lib.logger.LoggerFactory;
 import cc.lib.math.MutableVector2D;
 import cc.lib.swing.AWTGraphics;
 import cc.lib.swing.AWTUtils;
@@ -78,7 +78,7 @@ public class GUI implements ActionListener, MenuItem.Action {
 	final static String PROP_AI_TUNING_ENABLED = "aituning.enable";
 	final static String PROP_SCENARIOS_DIR = "scenariosDirectory";
 	
-    final Logger log = Logger.getLogger(GUI.class);
+    final Logger log = LoggerFactory.getLogger(GUI.class);
     
     static final File HOME_FOLDER = new File(System.getProperty("user.home") + "/.soc");
     static final File AI_TUNING_FILE = new File("aituning.properties");
@@ -1609,12 +1609,13 @@ public class GUI implements ActionListener, MenuItem.Action {
             initMenu();
         } else if (op == RESTORE) {
             try {
-                menuStack.push(MenuState.MENU_PLAY_GAME);
                 soc.stopRunning();
                 loadGame(saveGameFile);
+                menuStack.push(MenuState.MENU_PLAY_GAME);
+                soc.startGameThread();
+                initMenu();
             } catch (Exception e) {
                 e.printStackTrace();
-                menuStack.pop();
                 ((JButton)extra).setEnabled(false);
                 e.printStackTrace();
             }

@@ -933,11 +933,11 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     public void drawFilledRoundedRect(float x, float y, float w, float h, float radius) {
     	float r2 = radius*2;
     	drawFilledWedge(x+radius, y+radius, radius, 180f, 90f, 6);
-    	drawFilledRectf(x+radius,y,w-r2,radius);
+    	drawFilledRect(x+radius,y,w-r2,radius);
     	drawFilledWedge(x+w-radius,y+radius,radius,270f,90f, 6);
-    	drawFilledRectf(x,y+radius,w,h-r2);
+    	drawFilledRect(x,y+radius,w,h-r2);
     	drawFilledWedge(x+w-radius,y+h-radius,radius,0,90, 6);
-    	drawFilledRectf(x+radius,y+h-radius,w-r2,radius);
+    	drawFilledRect(x+radius,y+h-radius,w-r2,radius);
     	drawFilledWedge(x+radius,y+h-radius,radius,90f,90f, 6);
     }
     
@@ -987,7 +987,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
         drawQuad(x, y, x+w, y+h);
     }
 
-    public final void drawFilledRectf(float x, float y, float w, float h) {
+    public final void drawFilledRect(float x, float y, float w, float h) {
         drawQuad(x, y, x+w, y+h);
     }
 

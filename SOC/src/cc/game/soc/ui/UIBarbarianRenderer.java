@@ -1,8 +1,11 @@
 package cc.game.soc.ui;
 
+import cc.game.soc.core.SOC;
 import cc.lib.game.AAnimation;
 import cc.lib.game.AGraphics;
 import cc.lib.game.APGraphics;
+import cc.lib.game.GColor;
+import cc.lib.game.GDimension;
 import cc.lib.game.Utils;
 import cc.lib.math.Vector2D;
 
@@ -42,6 +45,8 @@ public final class UIBarbarianRenderer implements UIRenderer {
 
     private float shipDim = 0;
 
+    public float textBorderPadding = 5;
+
 	@Override
 	public final void draw(APGraphics g, int pickX, int pickY) {
         final float wid = component.getWidth();
@@ -68,6 +73,27 @@ public final class UIBarbarianRenderer implements UIRenderer {
             Vector2D v = positions[distance].scaledBy(wid, hgt);
             float sh2 = shipDim / 2;
             g.drawImage(shipImage, v.sub(sh2, sh2), v.add(sh2, sh2));
+        }
+
+        // draw the settlers vs barbrian strengths in either uppleft hand corner or lower right hand corner
+        UISOC soc = UISOC.getInstance();
+        int barbStr = SOC.computeBarbarianStrength(soc, soc.getBoard());
+        int catanStr = SOC.computeCatanStrength(soc, soc.getBoard());
+        String text = String.format("%-10s %d\n%-10s %d", "Settlers:", catanStr, "Barbarians:", barbStr);
+        final float tb2 = textBorderPadding*2;
+        GDimension dim = g.getTextDimension(text, wid-tb2);
+        if (distance < positions.length/2) {
+            // upper left hand corner
+            g.setColor(GColor.TRANSLUSCENT_BLACK);
+            g.drawFilledRect(0, 0, dim.width+tb2, dim.height+tb2);
+            g.setColor(GColor.CYAN);
+            g.drawWrapString(textBorderPadding, textBorderPadding, wid-tb2, text);
+        } else {
+            // lower right hand corner
+            g.setColor(GColor.TRANSLUSCENT_BLACK);
+            g.drawFilledRect(wid-dim.width-tb2, hgt-dim.height-tb2, dim.width+tb2, dim.height+tb2);
+            g.setColor(GColor.CYAN);
+            g.drawWrapString(wid-dim.width-textBorderPadding, hgt-dim.height-textBorderPadding, wid-tb2, text);
         }
 	}
 

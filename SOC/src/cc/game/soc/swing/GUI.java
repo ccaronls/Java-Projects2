@@ -27,13 +27,13 @@ import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import org.apache.log4j.Logger;
-
 import cc.game.soc.core.*;
 import cc.game.soc.core.Player.*;
 import cc.game.soc.core.annotations.RuleVariable;
 import cc.game.soc.swing.BoardComponent.*;
 import cc.lib.game.*;
+import cc.lib.logger.Logger;
+import cc.lib.logger.LoggerFactory;
 import cc.lib.math.*;
 import cc.lib.swing.*;
 import cc.lib.utils.FileUtils;
@@ -43,7 +43,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 	final static String PROP_AI_TUNING_ENABLED = "aituning.enable";
 	final static String PROP_SCENARIOS_DIR = "scenariosDirectory";
 	
-    final Logger log = Logger.getLogger(GUI.class);
+    final Logger log = LoggerFactory.getLogger(GUI.class);
     
     static GUI instance;
     static final File HOME_FOLDER = new File(System.getProperty("user.home") + "/.soc");
@@ -1243,7 +1243,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 					clearSaves();
 					new Thread(this).start();
 				} else {
-					logError("Board not ready");
+					log.error("Board not ready");
 				}
 				break;
 
@@ -1747,14 +1747,14 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
         return soc.getCurPlayerNum();
     }
 
-    public Vertex chooseVertex(final Collection<Integer> vertices, final int playerNum, final VertexChoice choice) {
+    public Integer chooseVertex(final Collection<Integer> vertices, final int playerNum, final VertexChoice choice) {
 		clearMenu();
 		boardComp.setPickHandler(new PickHandler() {
 			
 			@Override
 			public void onPick(BoardComponent bc, int pickedValue) {
 				bc.setPickHandler(null);
-				setReturnValue(getBoard().getVertex(pickedValue));
+				setReturnValue(pickedValue);
 			}
 			
 			@Override
@@ -2206,14 +2206,14 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 		return result;
 	}
 	
-	public Route chooseRoute(final Collection<Integer> edges, final RouteChoice choice) {
+	public Integer chooseRoute(final Collection<Integer> edges, final RouteChoice choice) {
 		clearMenu();
 		boardComp.setPickHandler(new PickHandler() {
 			
 			@Override
 			public void onPick(BoardComponent bc, int pickedValue) {
 				bc.setPickHandler(null);
-				setReturnValue(getBoard().getRoute(pickedValue));
+				setReturnValue(pickedValue);
 			}
 			
 			@Override
@@ -2286,7 +2286,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 		return waitForReturnValue(null);
 	}
 	
-	public Tile chooseTile(final Collection<Integer> cells, final TileChoice choice) {
+	public Integer chooseTile(final Collection<Integer> cells, final TileChoice choice) {
 		clearMenu();
 		final Tile robberTile = getBoard().getRobberTile();
 		final int merchantTileIndex = getBoard().getMerchantTileIndex();
@@ -2300,7 +2300,7 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 				bc.setPickHandler(null);
 				bc.getBoard().setRobberTile(robberTile);
 				bc.getBoard().setMerchant(merchantTileIndex, merchantTilePlayer);
-				setReturnValue(getBoard().getTile(pickedValue));
+				setReturnValue(pickedValue);
 			}
 			
 			@Override
@@ -2398,25 +2398,25 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 		return false;
 	}
 	
-	public Player choosePlayerMenu(Collection<Integer> players, PlayerChoice mode) {
+	public Integer choosePlayerMenu(Collection<Integer> players, PlayerChoice mode) {
 		clearMenu();
 		for (int num : players) {
 			Player player = getGUIPlayer(num);
 			switch (mode) {
 				case PLAYER_FOR_DESERTION: {
 					int numKnights = getBoard().getNumKnightsForPlayer(player.getPlayerNum());
-					menu.add(getMenuOpButton(MenuOp.CHOOSE_PLAYER, player.getName() + " X " + numKnights + " Knights", null, player));
+					menu.add(getMenuOpButton(MenuOp.CHOOSE_PLAYER, player.getName() + " X " + numKnights + " Knights", null, num));
 					break;
 				}
 				case PLAYER_TO_SPY_ON:
-					menu.add(getMenuOpButton(MenuOp.CHOOSE_PLAYER, player.getName() + " X " + player.getUnusedCardCount(CardType.Progress) + " Progress Cards", null, player));
+					menu.add(getMenuOpButton(MenuOp.CHOOSE_PLAYER, player.getName() + " X " + player.getUnusedCardCount(CardType.Progress) + " Progress Cards", null, num));
 					break;
 				default:
 					System.err.println("ERROR: Unhandled case '" + mode + "'");
 				case PLAYER_TO_FORCE_HARBOR_TRADE:
 				case PLAYER_TO_GIFT_CARD:
 				case PLAYER_TO_TAKE_CARD_FROM:
-					menu.add(getMenuOpButton(MenuOp.CHOOSE_PLAYER, player.getName() + " X " + player.getTotalCardsLeftInHand() + " Cards", null, player));
+					menu.add(getMenuOpButton(MenuOp.CHOOSE_PLAYER, player.getName() + " X " + player.getTotalCardsLeftInHand() + " Cards", null, num));
 					break;
 			}
 		}
@@ -2778,18 +2778,6 @@ public class GUI implements ActionListener, ComponentListener, WindowListener, R
 
     public BoardComponent getBoardComponent() {
         return this.boardComp;
-    }
-
-    public void logDebug(String msg) {
-        log.debug(msg);
-    }
-
-    public void logError(String msg) {
-        log.error(msg);
-    }
-
-    public void logInfo(String string) {
-        log.info(string);
     }
 
     public MenuState getCurrentMenu() {

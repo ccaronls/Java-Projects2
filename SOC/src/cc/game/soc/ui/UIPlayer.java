@@ -2,11 +2,16 @@ package cc.game.soc.ui;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import cc.game.soc.core.BotNode;
+import cc.game.soc.core.Card;
+import cc.game.soc.core.Dice;
+import cc.game.soc.core.MoveType;
 import cc.game.soc.core.PlayerBot;
 import cc.game.soc.core.Route;
 import cc.game.soc.core.SOC;
+import cc.game.soc.core.Trade;
 import cc.game.soc.core.Vertex;
 import cc.game.soc.core.VertexType;
 import cc.lib.game.AGraphics;
@@ -14,6 +19,8 @@ import cc.lib.game.GColor;
 import cc.lib.game.IVector2D;
 import cc.lib.game.Utils;
 import cc.lib.math.Vector2D;
+import cc.lib.net.ClientConnection;
+import cc.lib.net.GameCommand;
 
 /**
  * 
@@ -21,12 +28,22 @@ import cc.lib.math.Vector2D;
  *
  * Base player type to interact with GUI
  */
-public class UIPlayer extends PlayerBot {
+public class UIPlayer extends PlayerBot implements ClientConnection.Listener {
 
 	static {
 		addField(UIPlayer.class, "color");
 	}
-	
+
+	@Omit
+	ClientConnection connection = null; // this is set when game is in server mode and this object represents a remote player
+
+    void connect(ClientConnection conn) {
+        if (connection != null && connection.isConnected())
+            throw new AssertionError("Connection already assigned");
+        connection = conn;
+        connection.addListener(this);
+    }
+
 	private GColor color = GColor.BLACK;
 	
 	public void setColor(GColor color) {
@@ -36,7 +53,14 @@ public class UIPlayer extends PlayerBot {
 	public GColor getColor() {
 		return color;
 	}
-	
+
+    public String getName() {
+        if (connection != null && connection.isConnected()) {
+            return connection.getName();
+        }
+        return "Player " + getPlayerNum();
+    }
+
     public boolean isInfoVisible() {
         return false;//UISOC.getInstance().getProps().getBooleanProperty(GUI.PROP_AI_TUNING_ENABLED, false);
     }
@@ -152,7 +176,7 @@ public class UIPlayer extends PlayerBot {
 			}
 		}, true);
     }
-    
+
     void startRoadAnimation(final Route edge, final SOC soc) {
         if (edge == null || soc == null)
             return;
@@ -217,13 +241,110 @@ public class UIPlayer extends PlayerBot {
     }
 
 	@Override
-	public Vertex chooseVertex(SOC soc, Collection<Integer> vertexIndices, VertexChoice mode, Vertex knightToMove) {
-		Vertex v = super.chooseVertex(soc, vertexIndices, mode, knightToMove);
-		doVertexAnimation(soc, mode, v, knightToMove);
-		return v;
+	public Integer chooseVertex(SOC soc, Collection<Integer> vertexIndices, VertexChoice mode, Integer knightToMove) {
+		Integer vIndex = null;
+		if (connection != null && connection.isConnected()) {
+		    vIndex = connection.executeOnRemote(NetCommon.USER_ID, soc, vertexIndices, mode, knightToMove);
+        } else {
+		    vIndex = super.chooseVertex(soc, vertexIndices, mode, knightToMove);
+        }
+		if (vIndex != null) {
+            doVertexAnimation(soc, mode, soc.getBoard().getVertex(vIndex), knightToMove);
+        }
+		return vIndex;
 	}
-	
-	protected final void doVertexAnimation(SOC soc, VertexChoice mode, Vertex v, Vertex v2) {
+
+    @Override
+    public MoveType chooseMove(SOC soc, Collection<MoveType> moves) {
+	    MoveType mv = null;
+	    if (connection != null && connection.isConnected()) {
+	        mv = connection.executeOnRemote(NetCommon.USER_ID,soc, moves);
+        } else {
+            mv = super.chooseMove(soc, moves);
+        }
+        return mv;
+    }
+
+    @Override
+    public RouteChoiceType chooseRouteType(SOC soc) {
+	    RouteChoiceType rt = null;
+        if (connection != null && connection.isConnected()) {
+            rt = connection.executeOnRemote(NetCommon.USER_ID, soc);
+        } else {
+            rt = super.chooseRouteType(soc);
+        }
+        return rt;
+    }
+
+    @Override
+    public Integer chooseTile(SOC soc, Collection<Integer> tileIndices, TileChoice mode) {
+	    Integer tIndex = null;
+        if (connection != null && connection.isConnected()) {
+            tIndex = connection.executeOnRemote(NetCommon.USER_ID, soc, tileIndices, mode);
+        } else {
+            tIndex = super.chooseTile(soc, tileIndices, mode);
+        }
+        return tIndex;
+    }
+
+    @Override
+    public Trade chooseTradeOption(SOC soc, Collection<Trade> trades) {
+	    Trade trade = null;
+        if (connection != null && connection.isConnected()) {
+            trade = connection.executeOnRemote(NetCommon.USER_ID, soc, trades);
+        } else {
+            trade = super.chooseTradeOption(soc, trades);
+        }
+        return trade;
+    }
+
+    @Override
+    public Integer choosePlayer(SOC soc, Collection<Integer> playerOptions, PlayerChoice mode) {
+	    Integer player = null;
+        if (connection != null && connection.isConnected()) {
+            player = connection.executeOnRemote(NetCommon.USER_ID, soc, playerOptions, mode);
+        } else {
+            player = super.choosePlayer(soc, playerOptions, mode);
+        }
+        return player;
+    }
+
+    @Override
+    public Card chooseCard(SOC soc, Collection<Card> cards, CardChoice mode) {
+	    Card card = null;
+        if (connection != null && connection.isConnected()) {
+            card = connection.executeOnRemote(NetCommon.USER_ID, soc, cards, mode);
+        } else {
+            card = super.chooseCard(soc, cards, mode);
+        }
+        return card;
+    }
+
+    @Override
+    public <T extends Enum<T>> T chooseEnum(SOC soc, EnumChoice mode, T[] values) {
+	    T e = null;
+        if (connection != null && connection.isConnected()) {
+            e = connection.executeOnRemote(NetCommon.USER_ID, soc, mode, values);
+        } else {
+            e = super.chooseEnum(soc, mode, values);
+        }
+        return e;
+    }
+
+    @Override
+    public boolean setDice(SOC soc, Dice[] die, int num) {
+	    if (connection != null && connection.isConnected()) {
+	        Dice [] result = connection.executeOnRemote(NetCommon.USER_ID, soc, die, num);
+	        if (result != null) {
+	            Utils.copyElems(die, result);
+	            return true;
+            }
+            return false;
+        }
+        return super.setDice(soc, die, num);
+    }
+
+    protected final void doVertexAnimation(SOC soc, VertexChoice mode, Vertex v, Integer v2) {
 		if (v == null)
 			return;
 		switch (mode) {
@@ -238,7 +359,7 @@ public class UIPlayer extends PlayerBot {
 			case KNIGHT_DISPLACED:
 			case KNIGHT_MOVE_POSITION:
 				if (v2 != null)
-					startMoveKnightAnimation(v2, v);
+					startMoveKnightAnimation(soc.getBoard().getVertex(v2), v);
 				break;
 			case NEW_KNIGHT:
 				startKnightAnimation(v);
@@ -273,9 +394,16 @@ public class UIPlayer extends PlayerBot {
 	private Route moveShipSource = null;
 
 	@Override
-	public Route chooseRoute(SOC soc, Collection<Integer> routeIndices, RouteChoice mode) {
-		Route route = super.chooseRoute(soc, routeIndices, mode);
-		doRouteAnimation(soc, mode, route);
+	public Integer chooseRoute(SOC soc, Collection<Integer> routeIndices, RouteChoice mode) {
+	    Integer route = null;
+	    if (connection != null && connection.isConnected()) {
+	        route = connection.executeOnRemote(NetCommon.USER_ID, soc, routeIndices, mode);
+        } else {
+            route = super.chooseRoute(soc, routeIndices, mode);
+        }
+		if (route != null) {
+            doRouteAnimation(soc, mode, soc.getBoard().getRoute(route));
+        }
 		return route;
 	}
 	
@@ -322,6 +450,23 @@ public class UIPlayer extends PlayerBot {
 		return UISOC.getInstance().chooseOptimalPath(optimal, leafs);
 	}
 
+    @Override
+    public void onCommand(GameCommand cmd) {
 
+    }
 
+    @Override
+    public void onDisconnected(String reason) {
+
+    }
+
+    @Override
+    public void onConnected() {
+
+    }
+
+    @Override
+    public void onFormSubmited(ClientConnection conn, int id, Map<String, String> params) {
+
+    }
 }

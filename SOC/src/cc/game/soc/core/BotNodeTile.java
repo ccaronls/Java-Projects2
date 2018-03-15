@@ -20,7 +20,7 @@ public class BotNodeTile extends BotNode {
 
 	@Override
 	public Object getData() {
-		return tile;
+		return index;
 	}
 
 	@Override

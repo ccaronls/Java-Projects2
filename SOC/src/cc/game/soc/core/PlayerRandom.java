@@ -1,6 +1,7 @@
 package cc.game.soc.core;
 
 import java.util.Collection;
+import java.util.Iterator;
 
 import cc.lib.game.Utils;
 
@@ -15,23 +16,27 @@ public class PlayerRandom extends Player {
     public PlayerRandom() {
     }
 
-    private Object pickRandom(Collection<?> options) {
-    	return options.toArray(new Object[options.size()])[Utils.rand() % options.size()];
+    private <T> T pickRandom(Collection<T> options) {
+        Iterator<T> it = options.iterator();
+        int num = Utils.rand() % options.size();
+        for (int i=0; i<num-1; i++)
+            it.next();
+        return it.next();
     }
     
 	@Override
 	public MoveType chooseMove(SOC soc, Collection<MoveType> moves) {
-		return (MoveType)pickRandom(moves);
+		return pickRandom(moves);
 	}
 
 	@Override
-	public Vertex chooseVertex(SOC soc, Collection<Integer> vertexIndices, VertexChoice mode, Vertex knightToMove) {
-		return soc.getBoard().getVertex((Integer)pickRandom(vertexIndices));
+	public Integer chooseVertex(SOC soc, Collection<Integer> vertexIndices, VertexChoice mode, Integer knightToMove) {
+		return pickRandom(vertexIndices);
 	}
 
 	@Override
-	public Route chooseRoute(SOC soc, Collection<Integer> routeIndices, RouteChoice mode) {
-		return soc.getBoard().getRoute((Integer)pickRandom(routeIndices));
+	public Integer chooseRoute(SOC soc, Collection<Integer> routeIndices, RouteChoice mode) {
+		return pickRandom(routeIndices);
 	}
 
 	@Override
@@ -40,23 +45,23 @@ public class PlayerRandom extends Player {
 	}
 
 	@Override
-	public Tile chooseTile(SOC soc, Collection<Integer> tileIndices, TileChoice mode) {
-		return soc.getBoard().getTile((Integer)pickRandom(tileIndices));
+	public Integer chooseTile(SOC soc, Collection<Integer> tileIndices, TileChoice mode) {
+		return pickRandom(tileIndices);
 	}
 
 	@Override
 	public Trade chooseTradeOption(SOC soc, Collection<Trade> trades) {
-		return (Trade)pickRandom(trades);
+		return pickRandom(trades);
 	}
 
 	@Override
-	public Player choosePlayer(SOC soc, Collection<Integer> playerOptions, PlayerChoice mode) {
-		return soc.getPlayerByPlayerNum((Integer)pickRandom(playerOptions));
+	public Integer choosePlayer(SOC soc, Collection<Integer> playerOptions, PlayerChoice mode) {
+		return pickRandom(playerOptions);
 	}
 
 	@Override
 	public Card chooseCard(SOC soc, Collection<Card> cards, CardChoice mode) {
-		return (Card)pickRandom(cards);
+		return pickRandom(cards);
 	}
 
 	@Override

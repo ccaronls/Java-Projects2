@@ -20,7 +20,7 @@ public class BotNodeRoute extends BotNode {
 	
 	@Override
 	public Object getData() {
-		return route;
+		return index;
 	}
 
 	@Override

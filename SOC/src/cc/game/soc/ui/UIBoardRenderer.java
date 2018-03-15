@@ -785,7 +785,7 @@ public final class UIBoardRenderer implements UIRenderer {
     	float y = midpoint.Y() - (dim.height/2+5);
     	float w = dim.width + 10;
     	float h = dim.height + 10;
-    	g.drawFilledRectf(x, y, w, h);
+    	g.drawFilledRect(x, y, w, h);
     	g.setColor(GColor.WHITE);
     	g.drawJustifiedString( midpoint.Xi(), midpoint.Yi(), Justify.CENTER, Justify.CENTER, txt);
 	}

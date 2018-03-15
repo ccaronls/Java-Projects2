@@ -1685,11 +1685,21 @@ public class Board extends Reflector<Board> {
 		// if either vertex is a structure then ok to place
 		Vertex v0 = getVertex(edge.getFrom());
 		Vertex v1 = getVertex(edge.getTo());
-		
-		if (v0.isKnight() && v0.getPlayer() != playerNum)
+
+		// we can place a knight on an opponents knight if we have an adjacent knight that is of higher rank
+        int knightRank = -1;
+        if (v0.isKnight() && v0.getPlayer() == playerNum) {
+            knightRank = v0.getType().getKnightLevel();
+        }
+
+        if (v1.isKnight() && v1.getPlayer() == playerNum) {
+            knightRank = Math.max(knightRank, v1.getType().getKnightLevel());
+        }
+
+		if (v0.isKnight() && v0.getPlayer() != playerNum && v0.getType().getKnightLevel() > knightRank)
 			return false;
 		
-		if (v1.isKnight() && v1.getPlayer() != playerNum)
+		if (v1.isKnight() && v1.getPlayer() != playerNum && v1.getType().getKnightLevel() > knightRank)
 			return false;
 		
 		if (v0.isStructure() && v0.getPlayer() == playerNum) {

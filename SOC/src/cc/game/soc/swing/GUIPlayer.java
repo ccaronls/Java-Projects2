@@ -237,15 +237,16 @@ public class GUIPlayer extends PlayerBot {
     }
 
 	@Override
-	public Vertex chooseVertex(SOC soc, Collection<Integer> vertexIndices, VertexChoice mode, Vertex knightToMove) {
-		Vertex v = super.chooseVertex(soc, vertexIndices, mode, knightToMove);
+	public Integer chooseVertex(SOC soc, Collection<Integer> vertexIndices, VertexChoice mode, Integer knightToMove) {
+		Integer v = super.chooseVertex(soc, vertexIndices, mode, knightToMove);
 		doVertexAnimation(soc, mode, v, knightToMove);
 		return v;
 	}
 	
-	protected final void doVertexAnimation(SOC soc, VertexChoice mode, Vertex v, Vertex v2) {
-		if (v == null)
-			return;
+	protected final void doVertexAnimation(SOC soc, VertexChoice mode, Integer vIndex, Integer v2) {
+        if (vIndex == null)
+            return;
+        Vertex v = soc.getBoard().getVertex(vIndex);
 		switch (mode) {
 			case CITY:
 				startStructureAnimation(v, VertexType.CITY);
@@ -258,7 +259,7 @@ public class GUIPlayer extends PlayerBot {
 			case KNIGHT_DISPLACED:
 			case KNIGHT_MOVE_POSITION:
 				if (v2 != null)
-					startMoveKnightAnimation(v2, v);
+					startMoveKnightAnimation(soc.getBoard().getVertex(v2), v);
 				break;
 			case NEW_KNIGHT:
 				startKnightAnimation(v);
@@ -293,13 +294,16 @@ public class GUIPlayer extends PlayerBot {
 	private Route moveShipSource = null;
 
 	@Override
-	public Route chooseRoute(SOC soc, Collection<Integer> routeIndices, RouteChoice mode) {
-		Route route = super.chooseRoute(soc, routeIndices, mode);
-		doRouteAnimation(soc, mode, route);
+	public Integer chooseRoute(SOC soc, Collection<Integer> routeIndices, RouteChoice mode) {
+		Integer route = super.chooseRoute(soc, routeIndices, mode);
+        doRouteAnimation(soc, mode, route);
 		return route;
 	}
 	
-	protected final void doRouteAnimation(SOC soc, RouteChoice mode, Route route) {
+	protected final void doRouteAnimation(SOC soc, RouteChoice mode, Integer routeIndex) {
+	    if (routeIndex == null)
+	        return;
+	    Route route = soc.getBoard().getRoute(routeIndex);
 		switch (mode)
 		{
 			case ROAD:

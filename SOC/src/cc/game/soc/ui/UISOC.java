@@ -1,5 +1,7 @@
 package cc.game.soc.ui;
 
+import cc.lib.annotation.*;
+
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -30,6 +32,7 @@ import cc.lib.game.AAnimation;
 import cc.lib.game.AGraphics;
 import cc.lib.game.APGraphics;
 import cc.lib.game.GColor;
+import cc.lib.game.GDimension;
 import cc.lib.game.IVector2D;
 import cc.lib.game.Justify;
 import cc.lib.game.Utils;
@@ -37,16 +40,20 @@ import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
 import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
+import cc.lib.net.ClientConnection;
+import cc.lib.net.GameServer;
 
 /**
  * Created by chriscaron on 2/22/18.
  */
 
-public abstract class UISOC extends SOC implements MenuItem.Action {
+public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.Listener {
 
     private static Logger log = LoggerFactory.getLogger(UISOC.class);
 
     private static UISOC instance = null;
+
+    private GameServer server = new GameServer(NetCommon.PORT, 30000, NetCommon.VERSION, NetCommon.cypher, 8);
 
     private final UIPlayerRenderer [] playerComponents;
     private final UIBoardRenderer boardRenderer;
@@ -61,6 +68,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action {
         if (instance != null)
             throw new RuntimeException();
         instance = this;
+        server.addListener(this);
         this.playerComponents = playerComponents;
         this.boardRenderer = boardRenderer;
         this.diceRenderer = diceRenderer;
@@ -77,6 +85,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action {
         return boardRenderer;
     }
 
+    @Keep
     public void setReturnValue(Object o) {
         returnValue = o;
         synchronized (waitObj) {
@@ -114,14 +123,14 @@ public abstract class UISOC extends SOC implements MenuItem.Action {
         return GColor.BLACK;
     }
 
-    public Vertex chooseVertex(final Collection<Integer> vertexIndices, final int playerNum, final Player.VertexChoice choice) {
+    public Integer chooseVertex(final Collection<Integer> vertexIndices, final int playerNum, final Player.VertexChoice choice) {
         clearMenu();
         getUIBoard().setPickHandler(new PickHandler() {
 
             @Override
             public void onPick(UIBoardRenderer b, int pickedValue) {
                 b.setPickHandler(null);
-                setReturnValue(getBoard().getVertex(pickedValue));
+                setReturnValue(pickedValue);
             }
 
             @Override
@@ -251,14 +260,14 @@ public abstract class UISOC extends SOC implements MenuItem.Action {
         return waitForReturnValue(null);
     }
 
-    public Route chooseRoute(final Collection<Integer> edges, final Player.RouteChoice choice) {
+    public Integer chooseRoute(final Collection<Integer> edges, final Player.RouteChoice choice) {
         clearMenu();
         getUIBoard().setPickHandler(new PickHandler() {
 
             @Override
             public void onPick(UIBoardRenderer b, int pickedValue) {
                 b.setPickHandler(null);
-                setReturnValue(getBoard().getRoute(pickedValue));
+                setReturnValue(pickedValue);
             }
 
             @Override
@@ -331,7 +340,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action {
         return waitForReturnValue(null);
     }
 
-    public Tile chooseTile(final Collection<Integer> tiles, final Player.TileChoice choice) {
+    public Integer chooseTile(final Collection<Integer> tiles, final Player.TileChoice choice) {
         clearMenu();
         final Tile robberTile = getBoard().getRobberTile();
         final int merchantTileIndex = getBoard().getMerchantTileIndex();
@@ -345,7 +354,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action {
                 b.setPickHandler(null);
                 getBoard().setRobberTile(robberTile);
                 getBoard().setMerchant(merchantTileIndex, merchantTilePlayer);
-                setReturnValue(getBoard().getTile(pickedValue));
+                setReturnValue(pickedValue);
             }
 
             @Override
@@ -414,25 +423,25 @@ public abstract class UISOC extends SOC implements MenuItem.Action {
         return waitForReturnValue(null);
     }
 
-    public final Player choosePlayerMenu(Collection<Integer> players, Player.PlayerChoice mode) {
+    public final Integer choosePlayerMenu(Collection<Integer> players, Player.PlayerChoice mode) {
         clearMenu();
         for (int num : players) {
             Player player = getPlayerByPlayerNum(num);
             switch (mode) {
                 case PLAYER_FOR_DESERTION: {
                     int numKnights = getBoard().getNumKnightsForPlayer(player.getPlayerNum());
-                    addMenuItem(CHOOSE_PLAYER, player.getName() + " X " + numKnights + " Knights", null, player);
+                    addMenuItem(CHOOSE_PLAYER, player.getName() + " X " + numKnights + " Knights", null, num);
                     break;
                 }
                 case PLAYER_TO_SPY_ON:
-                    addMenuItem(CHOOSE_PLAYER, player.getName() + " X " + player.getUnusedCardCount(CardType.Progress) + " Progress Cards", null, player);
+                    addMenuItem(CHOOSE_PLAYER, player.getName() + " X " + player.getUnusedCardCount(CardType.Progress) + " Progress Cards", null, num);
                     break;
                 default:
                     System.err.println("ERROR: Unhandled case '" + mode + "'");
                 case PLAYER_TO_FORCE_HARBOR_TRADE:
                 case PLAYER_TO_GIFT_CARD:
                 case PLAYER_TO_TAKE_CARD_FROM:
-                    addMenuItem(CHOOSE_PLAYER, player.getName() + " X " + player.getTotalCardsLeftInHand() + " Cards", null, player);
+                    addMenuItem(CHOOSE_PLAYER, player.getName() + " X " + player.getTotalCardsLeftInHand() + " Cards", null, num);
                     break;
             }
         }
@@ -487,10 +496,13 @@ public abstract class UISOC extends SOC implements MenuItem.Action {
         }
     }
 
+    UIDiceRenderer getDiceRenderer() {
+        return getRules().isEnableEventCards() ? eventCardRenderer.diceComps :diceRenderer;
+    }
+
     @Override
     protected void onDiceRolled(Dice ... dice) {
-        UIDiceRenderer dr = getRules().isEnableEventCards() ? eventCardRenderer.diceComps :diceRenderer;
-
+        UIDiceRenderer dr = getDiceRenderer();
         dr.spinDice(3000, dice);
         dr.setDice(getDice());
     }
@@ -502,8 +514,9 @@ public abstract class UISOC extends SOC implements MenuItem.Action {
 
     public boolean getSetDiceMenu(Dice[] die, int num) {
         clearMenu();
-        diceRenderer.setDice(die);
-        diceRenderer.setPickableDice(num);
+        UIDiceRenderer r = getDiceRenderer();
+        r.setDice(die);
+        r.setPickableDice(num);
         addMenuItem(SET_DICE);
         completeMenu();
         int [] result = (int[])waitForReturnValue(null);
@@ -511,7 +524,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action {
             for (int i=0; i<result.length; i++) {
                 die[i].setNum(result[i]);
             }
-            diceRenderer.setPickableDice(0);
+            r.setPickableDice(0);
             return true;
         }
         return false;
@@ -523,7 +536,8 @@ public abstract class UISOC extends SOC implements MenuItem.Action {
         log.debug("Entering thread");
         assert(!running);
         running = true;
-        diceRenderer.setDice(getDice());
+        UIDiceRenderer r = getDiceRenderer();
+        r.setDice(getDice());
         eventCardRenderer.setEventCard(getTopEventCard());
         barbarianRenderer.setDistance(getBarbarianDistance());
         new Thread() {
@@ -531,9 +545,19 @@ public abstract class UISOC extends SOC implements MenuItem.Action {
             public void run() {
                 try {
                     while (running) {
+                        long enterTime = System.currentTimeMillis();
                         runGame();
-                        if (running)
+                        if (running) {
                             redraw();
+                            long exitTime = System.currentTimeMillis();
+                            //make sure we take at least 1 second in between rungame calls
+                            int dt = (int)(exitTime - enterTime);
+                            if (dt > 0 && dt < 1000) {
+                                synchronized (waitObj) {
+                                    waitObj.wait(dt);
+                                }
+                            }
+                        }
                     }
                 } catch (Throwable e) {
                     onRunError(e);
@@ -576,7 +600,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action {
     public final MenuItem SET_DICE = new MenuItem("Set Dice", "Click the dice to set value manually", new MenuItem.Action() {
         @Override
         public void onAction(MenuItem item, Object extra) {
-            returnValue = diceRenderer.getPickedDiceNums();
+            returnValue = getDiceRenderer().getPickedDiceNums();
             notifyWaitObj();
         }
     });
@@ -619,9 +643,9 @@ public abstract class UISOC extends SOC implements MenuItem.Action {
         showOkPopup("Barbarian Attack", str.toString());
     }
 
-    protected final void addCardAnimation(final Player player, final String text) {
+    protected final void addCardAnimation(final int playerNum, final String text) {
 
-        final UIPlayerRenderer comp = playerComponents[player.getPlayerNum()-1];
+        final UIPlayerRenderer comp = playerComponents[playerNum-1];
 
         final float cardHeight = boardRenderer.component.getHeight()/5;
         final float cardWidth = cardHeight*2/3;
@@ -640,7 +664,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action {
         comp.numCardAnimations++;
         boardRenderer.addAnimation(new AAnimation<AGraphics>(animTime) {
             public void draw(AGraphics g, float position, float dt) {
-                boardRenderer.drawCard(((UIPlayer)player).getColor(), g, text, x, y, cardWidth, cardHeight);
+                boardRenderer.drawCard(((UIPlayer)getPlayerByPlayerNum(playerNum)).getColor(), g, text, x, y, cardWidth, cardHeight);
             }
 
             @Override
@@ -652,8 +676,9 @@ public abstract class UISOC extends SOC implements MenuItem.Action {
     }
 
     @Override
-    protected void onCardPicked(final Player player, final Card card) {
+    protected void onCardPicked(final int playerNum, final Card card) {
         String txt = "";
+        Player player = getPlayerByPlayerNum(playerNum);
         if (((UIPlayer)player).isInfoVisible()) {
             Pattern splitter = Pattern.compile("[A-Z][a-z0-9]*");
             Matcher matcher = splitter.matcher(card.getName());
@@ -664,97 +689,75 @@ public abstract class UISOC extends SOC implements MenuItem.Action {
                 txt += matcher.group();
             }
         }
-        addCardAnimation(player, txt);
+        addCardAnimation(playerNum, txt);
     }
 
     @Override
-    protected void onDistributeResources(final Player player, final ResourceType type, final int amount) {
+    protected void onDistributeResources(int player, final ResourceType type, final int amount) {
         addCardAnimation(player, type.name() + "\nX " + amount);
     }
 
     @Override
-    protected void onDistributeCommodity(final Player player, final CommodityType type, final int amount) {
+    protected void onDistributeCommodity(final int player, final CommodityType type, final int amount) {
         addCardAnimation(player, type.name() + "\nX " + amount);
     }
 
     @Override
-    protected void onProgressCardDistributed(Player player, ProgressCardType type) {
+    protected void onProgressCardDistributed(int player, ProgressCardType type) {
         String txt = type.name();
-        if (!((UIPlayer)player).isInfoVisible()) {
+        if (!((UIPlayer)getPlayerByPlayerNum(player)).isInfoVisible()) {
             txt = "Progress";
         }
         addCardAnimation(player, txt);
     }
 
     @Override
-    protected void onSpecialVictoryCard(Player player, SpecialVictoryType type) {
+    protected void onSpecialVictoryCard(int player, SpecialVictoryType type) {
         addCardAnimation(player, type.name());
     }
-/*
-    @SuppressWarnings("serial")
+
     @Override
-    protected void onGameOver(final Player winner) {
-        PopupButton button = new PopupButton("OK") {
-            public boolean doAction() {
-                gui.quitToMainMenu();
-                synchronized (this) {
-                    notify();
-                }
-                return true;
-            }
-        };
-        gui.showPopup("A WINNER!", "Player " + winner.getPlayerNum() + "\n Wins!", button);
-        try {
-            synchronized (button) {
-                button.wait();
-            }
-        } catch (Exception e) {
-            //gui.quitToMainMenu();
-        }
-    }
-*/
-    @Override
-    protected void onLargestArmyPlayerUpdated(final Player oldPlayer, final Player newPlayer, final int armySize) {
-        if (newPlayer != null)
+    protected void onLargestArmyPlayerUpdated(final int oldPlayer, final int newPlayer, final int armySize) {
+        if (newPlayer > 0)
             addCardAnimation(newPlayer, "Largest Army");
-        if (oldPlayer != null)
+        if (oldPlayer > 0)
             addCardAnimation(oldPlayer, "Largest Army Lost!");
     }
 
     @Override
-    protected void onLongestRoadPlayerUpdated(final Player oldPlayer, final Player newPlayer, final int maxRoadLen) {
-        if (newPlayer != null)
+    protected void onLongestRoadPlayerUpdated(final int oldPlayer, final int newPlayer, final int maxRoadLen) {
+        if (newPlayer > 0)
             addCardAnimation(newPlayer, "Longest Road");
-        if (oldPlayer != null)
+        if (oldPlayer > 0)
             addCardAnimation(oldPlayer, "Longest Road Lost!");
     }
 
     @Override
-    protected void onHarborMasterPlayerUpdated(Player oldPlayer, Player newPlayer, int harborPts) {
-        if (newPlayer != null)
+    protected void onHarborMasterPlayerUpdated(int oldPlayer, int newPlayer, int harborPts) {
+        if (newPlayer > 0)
             addCardAnimation(newPlayer, "Harbor Master");
-        if (oldPlayer != null)
+        if (oldPlayer > 0)
             addCardAnimation(oldPlayer, "Harbor Master Lost!");
     }
 
     @Override
-    protected void onMonopolyCardApplied(final Player taker, final Player giver, final ICardType<?> type, final int amount) {
+    protected void onMonopolyCardApplied(final int taker, final int giver, final ICardType<?> type, final int amount) {
         addCardAnimation(giver, type.name() + "\n- " + amount);
         addCardAnimation(taker, type.name() + "\n+ " + amount);
     }
 
     @Override
-    protected void onPlayerPointsChanged(final Player player, final int changeAmount) {
+    protected void onPlayerPointsChanged(final int player, final int changeAmount) {
     }
 
     @Override
-    protected void onTakeOpponentCard(final Player taker, final Player giver, final Card card) {
+    protected void onTakeOpponentCard(final int taker, final int giver, final Card card) {
         addCardAnimation(giver, card.getName() + "\n-1");
         addCardAnimation(taker, card.getName() + "\n+1");
     }
 
     @Override
-    protected void onPlayerRoadLengthChanged(Player p, int oldLen, int newLen) {
+    protected void onPlayerRoadLengthChanged(int p, int oldLen, int newLen) {
         if (oldLen > newLen)
             addCardAnimation(p, "Route Reduced!\n" + "-" + (oldLen - newLen));
         else
@@ -762,34 +765,34 @@ public abstract class UISOC extends SOC implements MenuItem.Action {
     }
 
     @Override
-    protected void onTradeCompleted(Player player, Trade trade) {
+    protected void onTradeCompleted(int player, Trade trade) {
         addCardAnimation(player, "Trade\n" + trade.getType() + "\n -" + trade.getAmount());
     }
 
     @Override
-    protected void onPlayerDiscoveredIsland(Player player, Island island) {
-        addCardAnimation(player, "Island " + island.getNum() + "\nDiscovered!");
+    protected void onPlayerDiscoveredIsland(int player, int island) {
+        addCardAnimation(player, "Island " + island + "\nDiscovered!");
     }
 
     @Override
-    protected void onDiscoverTerritory(Player player, Tile tile) {
+    protected void onDiscoverTerritory(int player, int tile) {
         addCardAnimation(player, "Territory\nDiscovered");
     }
 
 
     @Override
-    protected void onMetropolisStolen(Player loser, Player stealer, DevelopmentArea area) {
+    protected void onMetropolisStolen(int loser, int stealer, DevelopmentArea area) {
         addCardAnimation(loser, "Metropolis\n" + area.name() + "\nLost!");
         addCardAnimation(stealer, "Metropolis\n" + area.name() + "\nStolen!");
     }
 
     @Override
-    protected void onTilesInvented(Player player, final Tile tile0, final Tile tile1) {
-        boardRenderer.startTilesInventedAnimation(tile0, tile1);
+    protected void onTilesInvented(int player, final int tile0, final int tile1) {
+        boardRenderer.startTilesInventedAnimation(getBoard().getTile(tile0), getBoard().getTile(tile1));
     }
 
     @Override
-    protected void onPlayerShipUpgraded(Player p, Route r) {
+    protected void onPlayerShipUpgraded(int playerNum, int routeIndex) {
     }
 
     @Override
@@ -806,13 +809,13 @@ public abstract class UISOC extends SOC implements MenuItem.Action {
     }
 
     @Override
-    protected void onCardLost(Player p, Card c) {
-        addCardAnimation(p, c.getName() + "\n-1");
+    protected void onCardLost(int playerNum, Card c) {
+        addCardAnimation(playerNum, c.getName() + "\n-1");
     }
 
     @Override
-    protected void onPirateAttack(Player p, int playerStrength, int pirateStrength) {
-        StringBuffer str = new StringBuffer("Pirates attack " + p.getName())
+    protected void onPirateAttack(int playerNum, int playerStrength, int pirateStrength) {
+        StringBuffer str = new StringBuffer("Pirates attack " + getPlayerByPlayerNum(playerNum).getName())
                 .append("\nPlayer Strength " + playerStrength)
                 .append("\nPirate Stength " + pirateStrength)
                 .append("\n");
@@ -829,13 +832,13 @@ public abstract class UISOC extends SOC implements MenuItem.Action {
     protected abstract void showOkPopup(String title, String message);
 
     @Override
-    protected void onPlayerConqueredPirateFortress(Player p, Vertex v) {
-        StringBuffer str = new StringBuffer("Player " + p.getName() + " has conquered the fortress!");
+    protected void onPlayerConqueredPirateFortress(int p, int v) {
+        StringBuffer str = new StringBuffer("Player " + getPlayerByPlayerNum(p).getName() + " has conquered the fortress!");
         showOkPopup("Pirate Attack", str.toString());
     }
 
     @Override
-    protected void onPlayerAttacksPirateFortress(Player p, int playerHealth, int pirateHealth) {
+    protected void onPlayerAttacksPirateFortress(int p, int playerHealth, int pirateHealth) {
         String result = null;
         if (playerHealth > pirateHealth)
             result = "Player damages the fortress";
@@ -843,7 +846,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action {
             result = "Player loses battle and 2 ships";
         else
             result = "Battle is a draw.  Player lost a ship";
-        StringBuffer str = new StringBuffer(p.getName() + " attackes the pirate fortress!")
+        StringBuffer str = new StringBuffer(getPlayerByPlayerNum(p).getName() + " attackes the pirate fortress!")
                 .append("\nPlayer Strength " + playerHealth)
                 .append("\nPirate Stength " + pirateHealth)
                 .append("\n")
@@ -852,12 +855,15 @@ public abstract class UISOC extends SOC implements MenuItem.Action {
     }
 
     @Override
-    protected void onAqueduct(Player p) {
-        addCardAnimation(p, "Aqueduct Ability!");
+    protected void onAqueduct(int playerNum) {
+        server.executeOnRemote(NetCommon.SOC_ID, null, playerNum);
+        addCardAnimation(playerNum, "Aqueduct Ability!");
     }
 
     @Override
-    protected void onPlayerAttackingOpponent(Player attacker, Player victim, String attackingWhat, int attackerScore, int victimScore) {
+    protected void onPlayerAttackingOpponent(int attackerNum, int victimNum, String attackingWhat, int attackerScore, int victimScore) {
+        Player attacker = getPlayerByPlayerNum(attackerNum);
+        Player victim = getPlayerByPlayerNum(victimNum);
         String message = attacker.getName() + " is attacking " + victim.getName() + "'s " + attackingWhat + "\n"
                 + attacker.getName() + "'s score : " + attackerScore + "\n"
                 + victim.getName() + "'s score : " + victimScore;
@@ -865,45 +871,87 @@ public abstract class UISOC extends SOC implements MenuItem.Action {
     }
 
     @Override
-    protected void onRoadDestroyed(Route r, Player destroyer, Player victim) {
+    protected void onRoadDestroyed(int rIndex, int destroyer, int victim) {
         addCardAnimation(victim, "Road Destroyed!");
     }
 
     @Override
-    protected void onStructureDemoted(Vertex v, VertexType newType, Player destroyer, Player victim) {
-        addCardAnimation(victim, v.getType().getNiceName() + " Reduced to " + newType.getNiceName());
+    protected void onStructureDemoted(int vIndex, VertexType newType, int destroyer, int victim) {
+        addCardAnimation(victim, getBoard().getVertex(vIndex).getType().getNiceName() + " Reduced to " + newType.getNiceName());
     }
 
     @Override
-    protected void onExplorerPlayerUpdated(Player oldPlayer, Player newPlayer, int harborPts) {
-        if (oldPlayer != null)
+    protected void onExplorerPlayerUpdated(int oldPlayer, int newPlayer, int harborPts) {
+        if (oldPlayer > 0)
             addCardAnimation(oldPlayer, "Explorer Lost!");
         addCardAnimation(newPlayer, "Explorer Gained!");
     }
 
     @Override
-    protected void onPlayerKnightDestroyed(Player player, Vertex knight) {
-        addFloatingTextAnimation((UIPlayer)player, knight, "Knight\nDestroyed");
+    protected void onPlayerKnightDestroyed(int player, int knight) {
+        addFloatingTextAnimation((UIPlayer)getPlayerByPlayerNum(player), getBoard().getVertex(knight), "Knight\nDestroyed");
     }
 
     @Override
-    protected void onPlayerKnightDemoted(Player player, Vertex knight) {
-        addFloatingTextAnimation((UIPlayer)player, knight, "Demoted to\n" + knight.getType().getNiceName());
+    protected void onPlayerKnightDemoted(int player, int knightIndex) {
+        Vertex knight = getBoard().getVertex(knightIndex);
+        addFloatingTextAnimation((UIPlayer)getPlayerByPlayerNum(player), knight, "Demoted to\n" + knight.getType().getNiceName());
     }
 
     void addFloatingTextAnimation(final UIPlayer p, final IVector2D v, final String msg) {
-        boardRenderer.addAnimation(new UIAnimation(2000) {
+        boardRenderer.addAnimation(new UIAnimation(5000) {
+
+            GDimension dim = null;
 
             @Override
             public void draw(AGraphics g, float position, float dt) {
-                g.setColor(p.getColor());
+
+                final float width = boardRenderer.component.getWidth();
+                final float height = boardRenderer.component.getHeight();
+                final float margin = RenderConstants.textMargin;
+                final float m2 = margin*2;
+
+                if (dim == null) {
+                    dim = g.getTextDimension(msg, width);
+                }
+
+                // draw a rectangle in either upper half of screen or lower half of screen
+                // with an arrow pointing to the vertex to be modified.
+
+                Vector2D mv = g.transform(v);
+
                 g.pushMatrix();
-                g.translate(v);
-                g.translate(0, boardRenderer.getKnightRadius()*5);
-                g.translate(0, boardRenderer.getKnightRadius()*10*position);
-                MutableVector2D mv = new MutableVector2D();
-                g.transform(mv);
-                g.drawJustifiedString(mv.Xi(), mv.Yi(), Justify.CENTER, Justify.CENTER, msg);
+                g.setIdentity();
+                g.setColor(GColor.LIGHT_GRAY);
+                if (v.getY() < boardRenderer.component.getHeight()/2) {
+                    // lower half
+                    g.drawFilledRect(width/2-dim.width/2-margin, height*2/3, dim.width+m2, dim.height+m2);
+                    // arrow
+                    g.begin();
+                    g.vertex(width/2-margin, height*2/3);
+                    g.vertex(width/2+margin, height*2/3);
+                    g.vertex(mv);
+                    g.drawTriangles();
+                    g.end();
+                    g.translate(width/2, height*2/3+margin);
+                } else {
+                    // upper half
+                    float hgt = height/3-dim.height-m2;
+                    g.drawFilledRect(width/2-dim.width/2-margin, hgt, dim.width+m2, dim.height+m2);
+                    g.vertex(width/2-margin, hgt);
+                    g.vertex(width/2+margin, hgt);
+                    g.vertex(mv);
+                    g.drawTriangles();
+                    g.end();
+                    g.translate(width/2, height/3-dim.height-margin);
+                }
+
+                if (getTimeRemaining() < 1000) {
+                    g.setColor(p.getColor().withAlpha(0.001f * getTimeRemaining()));
+                } else {
+                    g.setColor(p.getColor());
+                }
+                g.drawJustifiedString(0, 0, Justify.CENTER, Justify.TOP, msg);
                 g.popMatrix();
             }
 
@@ -912,17 +960,18 @@ public abstract class UISOC extends SOC implements MenuItem.Action {
     }
 
     @Override
-    protected void onPlayerKnightPromoted(Player player, final Vertex knight) {
-        addFloatingTextAnimation((UIPlayer)player, knight, "Promoted to\n" + knight.getType().getNiceName());
+    protected void onPlayerKnightPromoted(int player, final int knightIndex) {
+        Vertex knight = getBoard().getVertex(knightIndex);
+        addFloatingTextAnimation((UIPlayer)getPlayerByPlayerNum(player), knight, "Promoted to\n" + knight.getType().getNiceName());
     }
 
     @Override
-    protected void onPlayerCityDeveloped(Player p, DevelopmentArea area) {
-        addCardAnimation(p, area.name() + "\n\n" + area.levelName[p.getCityDevelopment(area)]);
+    protected void onPlayerCityDeveloped(int p, DevelopmentArea area) {
+        addCardAnimation(p, area.name() + "\n\n" + area.levelName[getPlayerByPlayerNum(p).getCityDevelopment(area)]);
     }
 
     @Override
-    protected void onRoadDamaged(Route r, Player destroyer, Player victim) {
+    protected void onRoadDamaged(int r, int destroyer, int victim) {
         super.onRoadDamaged(r, destroyer, victim);
     }
 
@@ -932,14 +981,46 @@ public abstract class UISOC extends SOC implements MenuItem.Action {
     }
 
     @Override
-    protected void onPlayerShipComandeered(Player taker, Route shipTaken) {
+    protected void onPlayerShipComandeered(int taker, int shipTaken) {
         super.onPlayerShipComandeered(taker, shipTaken);
     }
 
     @Override
-    protected void onPlayerShipDestroyed(Route r) {
+    protected void onPlayerShipDestroyed(int r) {
         super.onPlayerShipDestroyed(r);
     }
 
+    @Override
+    public void onConnected(ClientConnection conn) {
+        for (Player p : getPlayers()) {
+            if (!(p instanceof UIPlayerUser)) {
+                UIPlayer uip = (UIPlayer)p;
+                if (uip.connection == null) {
+                    uip.connect(conn);
+                    return;
+                }
+            }
+        }
+        if (isRunning()) {
+            conn.disconnect("Game Full");
+        } else if (getNumPlayers() >= getRules().getMaxPlayers()) {
+            conn.disconnect("Game Full");
+        } else {
+            // made it here so it means we were not able to assign, so add a new player!
+            UIPlayer player = new UIPlayer();
+            player.connect(conn);
+            addPlayer(player);
+            printinfo(player.getPlayerNum(), "Player " + conn + " has joined");
+        }
+    }
 
+    @Override
+    public void onReconnection(ClientConnection conn) {
+
+    }
+
+    @Override
+    public void onClientDisconnected(ClientConnection conn) {
+
+    }
 }

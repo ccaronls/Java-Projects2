@@ -12,6 +12,8 @@ import javax.swing.JOptionPane;
 
 import cc.game.soc.core.*;
 import cc.lib.game.*;
+import cc.lib.logger.Logger;
+import cc.lib.logger.LoggerFactory;
 import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
 import cc.lib.swing.*;
@@ -41,22 +43,12 @@ public class SOCGUI extends SOC {
 			color = p.getColor();
         } 
 		gui.getConsole().addText(color, msg);
-		gui.logInfo("P(" + playerNum + ") " + msg);		
+		log.info("P(" + playerNum + ") " + msg);
 	}
 
     @Override
     public boolean isDebugEnabled() {
         return true;
-    }
-
-    @Override
-    public void logDebug(String msg) {
-        gui.logDebug(msg);
-    }
-
-    @Override
-    public void logError(String msg) {
-        gui.logError(msg);
     }
 
     class SlerpAnim extends AAnimation<Graphics> {
@@ -89,9 +81,9 @@ public class SOCGUI extends SOC {
     }
     
 
-    void addCardAnimation(final Player player, final String text) {
+    void addCardAnimation(final int player, final String text) {
         
-    	final PlayerInfoComponent comp = gui.playerComponents[player.getPlayerNum()];
+    	final PlayerInfoComponent comp = gui.playerComponents[player];
         final List<AAnimation<Graphics>> cardsList = comp.getCardAnimations();
         final BoardComponent board = GUI.instance.getBoardComponent();
 
@@ -112,7 +104,7 @@ public class SOCGUI extends SOC {
         
         gui.getBoardComponent().addAnimation(new GAnimation(animTime) {
             public void draw(Graphics g, float position, float dt) {
-                drawCard(((GUIPlayer)player).getColor(), g, text, x, y, cardWidth, cardHeight);
+                drawCard(((GUIPlayer)getPlayerByPlayerNum(player)).getColor(), g, text, x, y, cardWidth, cardHeight);
             }
 
             @Override
@@ -140,9 +132,9 @@ public class SOCGUI extends SOC {
     }
 
     @Override
-    protected void onCardPicked(final Player player, final Card card) {
+    protected void onCardPicked(final int player, final Card card) {
         String txt = "";
-        if (((GUIPlayer)player).isInfoVisible()) {
+        if (((GUIPlayer)getPlayerByPlayerNum(player)).isInfoVisible()) {
         	Pattern splitter = Pattern.compile("[A-Z][a-z0-9]*");
         	Matcher matcher = splitter.matcher(card.getName());
         	while (matcher.find()) {
@@ -156,32 +148,32 @@ public class SOCGUI extends SOC {
     }
 
     @Override
-    protected void onDistributeResources(final Player player, final ResourceType type, final int amount) {
+    protected void onDistributeResources(final int player, final ResourceType type, final int amount) {
         addCardAnimation(player, type.name() + "\nX " + amount);
     }
 
     @Override
-    protected void onDistributeCommodity(final Player player, final CommodityType type, final int amount) {
+    protected void onDistributeCommodity(int player, final CommodityType type, final int amount) {
         addCardAnimation(player, type.name() + "\nX " + amount);
     }
     
     @Override
-	protected void onProgressCardDistributed(Player player, ProgressCardType type) {
+	protected void onProgressCardDistributed(int player, ProgressCardType type) {
         String txt = type.name();
-        if (!((GUIPlayer)player).isInfoVisible()) {
+        if (!((GUIPlayer)getPlayerByPlayerNum(player)).isInfoVisible()) {
             txt = "Progress";
         }
     	addCardAnimation(player, txt);
 	}
 
 	@Override
-	protected void onSpecialVictoryCard(Player player, SpecialVictoryType type) {
+	protected void onSpecialVictoryCard(int player, SpecialVictoryType type) {
     	addCardAnimation(player, type.name());
 	}
 
 	@SuppressWarnings("serial")
     @Override
-    protected void onGameOver(final Player winner) {
+    protected void onGameOver(final int winner) {
         PopupButton button = new PopupButton("OK") {
             public boolean doAction() {
                 gui.quitToMainMenu();
@@ -191,7 +183,7 @@ public class SOCGUI extends SOC {
                 return true;
             }
         };
-        gui.showPopup("A WINNER!", "Player " + winner.getPlayerNum() + "\n Wins!", button);
+        gui.showPopup("A WINNER!", "Player " + winner + "\n Wins!", button);
         try {
             synchronized (button) {
                 button.wait();
@@ -202,47 +194,47 @@ public class SOCGUI extends SOC {
     }
 
     @Override
-    protected void onLargestArmyPlayerUpdated(final Player oldPlayer, final Player newPlayer, final int armySize) {
-    	if (newPlayer != null)
+    protected void onLargestArmyPlayerUpdated(final int oldPlayer, final int newPlayer, final int armySize) {
+    	if (newPlayer > 0)
     		addCardAnimation(newPlayer, "Largest Army");
-    	if (oldPlayer != null)
+    	if (oldPlayer > 0)
     		addCardAnimation(oldPlayer, "Largest Army Lost!");
     }
 
     @Override
-    protected void onLongestRoadPlayerUpdated(final Player oldPlayer, final Player newPlayer, final int maxRoadLen) {
-    	if (newPlayer != null)
+    protected void onLongestRoadPlayerUpdated(final int oldPlayer, final int newPlayer, final int maxRoadLen) {
+    	if (newPlayer > 0)
     		addCardAnimation(newPlayer, "Longest Road");
-    	if (oldPlayer != null)
+    	if (oldPlayer > 0)
     		addCardAnimation(oldPlayer, "Longest Road Lost!");
     }
 
     @Override
-	protected void onHarborMasterPlayerUpdated(Player oldPlayer, Player newPlayer, int harborPts) {
-    	if (newPlayer != null)
+	protected void onHarborMasterPlayerUpdated(int oldPlayer, int newPlayer, int harborPts) {
+    	if (newPlayer > 0)
     		addCardAnimation(newPlayer, "Harbor Master");
-    	if (oldPlayer != null)
+    	if (oldPlayer > 0)
     		addCardAnimation(oldPlayer, "Harbor Master Lost!");
 	}
 
 	@Override
-    protected void onMonopolyCardApplied(final Player taker, final Player giver, final ICardType<?> type, final int amount) {
+    protected void onMonopolyCardApplied(final int taker, final int giver, final ICardType<?> type, final int amount) {
         addCardAnimation(giver, type.name() + "\n- " + amount);
         addCardAnimation(taker, type.name() + "\n+ " + amount);
     }
 
     @Override
-    protected void onPlayerPointsChanged(final Player player, final int changeAmount) {
+    protected void onPlayerPointsChanged(final int player, final int changeAmount) {
     }
 
     @Override
-    protected void onTakeOpponentCard(final Player taker, final Player giver, final Card card) {
+    protected void onTakeOpponentCard(final int taker, final int giver, final Card card) {
         addCardAnimation(giver, card.getName() + "\n-1");
         addCardAnimation(taker, card.getName() + "\n+1");
     }
 
     @Override
-    protected void onPlayerRoadLengthChanged(Player p, int oldLen, int newLen) {
+    protected void onPlayerRoadLengthChanged(int p, int oldLen, int newLen) {
     	if (oldLen > newLen)
     		addCardAnimation(p, "Route Reduced!\n" + "-" + (oldLen - newLen));
     	else
@@ -250,7 +242,7 @@ public class SOCGUI extends SOC {
     }
 
     @Override
-    protected void onTradeCompleted(Player player, Trade trade) {
+    protected void onTradeCompleted(int player, Trade trade) {
         addCardAnimation(player, "Trade\n" + trade.getType() + "\n -" + trade.getAmount());
     }
     
@@ -294,24 +286,26 @@ public class SOCGUI extends SOC {
 	}
 
 	@Override
-	protected void onPlayerDiscoveredIsland(Player player, Island island) {
-		addCardAnimation(player, "Island " + island.getNum() + "\nDiscovered!");
+	protected void onPlayerDiscoveredIsland(int player, int island) {
+		addCardAnimation(player, "Island " + island + "\nDiscovered!");
 	}
 
 	@Override
-	protected void onDiscoverTerritory(Player player, Tile tile) {
+	protected void onDiscoverTerritory(int player, int tile) {
 		addCardAnimation(player, "Territory\nDiscovered");
 	}
 	
 	
 	@Override
-	protected void onMetropolisStolen(Player loser, Player stealer, DevelopmentArea area) {
+	protected void onMetropolisStolen(int loser, int stealer, DevelopmentArea area) {
 		addCardAnimation(loser, "Metropolis\n" + area.name() + "\nLost!");
 		addCardAnimation(stealer, "Metropolis\n" + area.name() + "\nStolen!");
 	}
 
 	@Override
-	protected void onTilesInvented(Player player, final Tile tile0, final Tile tile1) {
+	protected void onTilesInvented(int player, final int tileIndex0, final int tileIndex1) {
+        final Tile tile0 = getBoard().getTile(tileIndex0);
+        final Tile tile1 = getBoard().getTile(tileIndex1);
 		final int t1 = tile1.getDieNum();
 		final int t0 = tile0.getDieNum();
 		final Vector2D [] pts0 = new Vector2D[31];
@@ -359,7 +353,7 @@ public class SOCGUI extends SOC {
 	}
 
 	@Override
-	protected void onPlayerShipUpgraded(Player p, Route r) {
+	protected void onPlayerShipUpgraded(int p, int r) {
 	}
 
 	@Override
@@ -376,13 +370,13 @@ public class SOCGUI extends SOC {
 	}
 
 	@Override
-	protected void onCardLost(Player p, Card c) {
+	protected void onCardLost(int p, Card c) {
 		addCardAnimation(p, c.getName() + "\n-1");
 	}
 
 	@Override
-	protected void onPirateAttack(Player p, int playerStrength, int pirateStrength) {
-		StringBuffer str = new StringBuffer("Pirates attack " + p.getName())
+	protected void onPirateAttack(int p, int playerStrength, int pirateStrength) {
+		StringBuffer str = new StringBuffer("Pirates attack " + getPlayerByPlayerNum(p).getName())
 			.append("\nPlayer Strength " + playerStrength)
 			.append("\nPirate Stength " + pirateStrength)
 			.append("\n");
@@ -394,8 +388,8 @@ public class SOCGUI extends SOC {
 	}
 
 	@Override
-	protected void onPlayerConqueredPirateFortress(Player p, Vertex v) {
-		StringBuffer str = new StringBuffer("Player " + p.getName() + " has conquered the fortress!");
+	protected void onPlayerConqueredPirateFortress(int p, int v) {
+		StringBuffer str = new StringBuffer("Player " + getPlayerByPlayerNum(p).getName() + " has conquered the fortress!");
     	JOptionPane.showMessageDialog(gui.frame,
     		    str,
     		    "Pirate Attack",
@@ -403,7 +397,7 @@ public class SOCGUI extends SOC {
 	}
 
 	@Override
-	protected void onPlayerAttacksPirateFortress(Player p, int playerHealth, int pirateHealth) {
+	protected void onPlayerAttacksPirateFortress(int p, int playerHealth, int pirateHealth) {
 		String result = null;
 		if (playerHealth > pirateHealth)
 			result = "Player damages the fortress";
@@ -411,7 +405,7 @@ public class SOCGUI extends SOC {
 			result = "Player loses battle and 2 ships";
 		else
 			result = "Battle is a draw.  Player lost a ship";
-		StringBuffer str = new StringBuffer(p.getName() + " attackes the pirate fortress!")
+		StringBuffer str = new StringBuffer(getPlayerByPlayerNum(p).getName() + " attackes the pirate fortress!")
 		.append("\nPlayer Strength " + playerHealth)
 		.append("\nPirate Stength " + pirateHealth)
 		.append("\n")
@@ -423,12 +417,14 @@ public class SOCGUI extends SOC {
 	}
 
 	@Override
-	protected void onAqueduct(Player p) {
-		addCardAnimation(p, "Aqueduct Ability!");
+	protected void onAqueduct(int playerNum) {
+		addCardAnimation(playerNum, "Aqueduct Ability!");
 	}
 
 	@Override
-	protected void onPlayerAttackingOpponent(Player attacker, Player victim, String attackingWhat, int attackerScore, int victimScore) {
+	protected void onPlayerAttackingOpponent(int attackerIndex, int victimIndex, String attackingWhat, int attackerScore, int victimScore) {
+        Player attacker = getPlayerByPlayerNum(attackerIndex);
+        Player victim = getPlayerByPlayerNum(victimIndex);
 		String message = attacker.getName() + " is attacking " + victim.getName() + "'s " + attackingWhat + "\n"
 				       + attacker.getName() + "'s score : " + attackerScore + "\n"
 				       + victim.getName() + "'s score : " + victimScore;
@@ -436,13 +432,13 @@ public class SOCGUI extends SOC {
 	}
 
 	@Override
-	protected void onRoadDestroyed(Route r, Player destroyer, Player victim) {
+	protected void onRoadDestroyed(int r, int destroyer, int victim) {
 		addCardAnimation(victim, "Road Destroyed!");
 	}
 
 	@Override
-	protected void onStructureDemoted(Vertex v, VertexType newType, Player destroyer, Player victim) {
-		addCardAnimation(victim, v.getType().getNiceName() + " Reduced to " + newType.getNiceName());
+	protected void onStructureDemoted(int v, VertexType newType, int destroyer, int victim) {
+		addCardAnimation(victim, getBoard().getVertex(v).getType().getNiceName() + " Reduced to " + newType.getNiceName());
 	}
     
 	@Override
@@ -452,20 +448,21 @@ public class SOCGUI extends SOC {
 	}
 
 	@Override
-	protected void onExplorerPlayerUpdated(Player oldPlayer, Player newPlayer, int harborPts) {
-		if (oldPlayer != null)
+	protected void onExplorerPlayerUpdated(int oldPlayer, int newPlayer, int harborPts) {
+		if (oldPlayer > 0)
             addCardAnimation(oldPlayer, "Explorer Lost!");
 		addCardAnimation(newPlayer, "Explorer Gained!");
 	}
 
 	@Override
-	protected void onPlayerKnightDestroyed(Player player, Vertex knight) {
-		addFloatingTextAnimation((GUIPlayer)player, knight, "Knight\nDestroyed");
+	protected void onPlayerKnightDestroyed(int player, int knight) {
+		addFloatingTextAnimation((GUIPlayer)getPlayerByPlayerNum(player), getBoard().getVertex(knight), "Knight\nDestroyed");
 	}
 
 	@Override
-	protected void onPlayerKnightDemoted(Player player, Vertex knight) {
-		addFloatingTextAnimation((GUIPlayer)player, knight, "Demoted to\n" + knight.getType().getNiceName());
+	protected void onPlayerKnightDemoted(int player, int knightIndex) {
+        Vertex knight = getBoard().getVertex(knightIndex);
+		addFloatingTextAnimation((GUIPlayer)getPlayerByPlayerNum(player), knight, "Demoted to\n" + knight.getType().getNiceName());
 	}
 
 	void addFloatingTextAnimation(final GUIPlayer player, final IVector2D v, final String txt) {
@@ -489,13 +486,14 @@ public class SOCGUI extends SOC {
 	}
 	
 	@Override
-	protected void onPlayerKnightPromoted(Player player, final Vertex knight) {
-		addFloatingTextAnimation((GUIPlayer)player, knight, "Promoted to\n" + knight.getType().getNiceName());
+	protected void onPlayerKnightPromoted(int player, final int knightIndex) {
+        Vertex knight = getBoard().getVertex(knightIndex);
+		addFloatingTextAnimation((GUIPlayer)getPlayerByPlayerNum(player), knight, "Promoted to\n" + knight.getType().getNiceName());
 	}
 
 	@Override
-	protected void onPlayerCityDeveloped(Player p, DevelopmentArea area) {
-		addCardAnimation(p, area.name() + "\n\n" + area.levelName[p.getCityDevelopment(area)]);
+	protected void onPlayerCityDeveloped(int p, DevelopmentArea area) {
+		addCardAnimation(p, area.name() + "\n\n" + area.levelName[getPlayerByPlayerNum(p).getCityDevelopment(area)]);
 	}
 	
 	

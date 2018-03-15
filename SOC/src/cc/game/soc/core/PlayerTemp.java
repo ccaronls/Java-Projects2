@@ -21,13 +21,13 @@ public class PlayerTemp extends Player {
 	}
 
 	@Override
-	public Vertex chooseVertex(SOC soc, Collection<Integer> vertexIndices, VertexChoice mode, Vertex knightToMove) {
+	public Integer chooseVertex(SOC soc, Collection<Integer> vertexIndices, VertexChoice mode, Integer knightToMove) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public Route chooseRoute(SOC soc, Collection<Integer> routeIndices,
+	public Integer chooseRoute(SOC soc, Collection<Integer> routeIndices,
 			RouteChoice mode) {
 		// TODO Auto-generated method stub
 		return null;
@@ -40,7 +40,7 @@ public class PlayerTemp extends Player {
 	}
 
 	@Override
-	public Tile chooseTile(SOC soc, Collection<Integer> tileIndices, TileChoice mode) {
+	public Integer chooseTile(SOC soc, Collection<Integer> tileIndices, TileChoice mode) {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -52,7 +52,7 @@ public class PlayerTemp extends Player {
 	}
 
 	@Override
-	public Player choosePlayer(SOC soc, Collection<Integer> playerOptions, PlayerChoice mode) {
+	public Integer choosePlayer(SOC soc, Collection<Integer> playerOptions, PlayerChoice mode) {
 		// TODO Auto-generated method stub
 		return null;
 	}

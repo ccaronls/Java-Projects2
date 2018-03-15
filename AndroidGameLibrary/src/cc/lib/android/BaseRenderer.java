@@ -56,7 +56,7 @@ public abstract class BaseRenderer implements GLSurfaceView.Renderer {
                     float y = 5;
                     GColor c = g.getColor();
                     g.setColor(BLK);
-                    g.drawFilledRectf(x-wid-2, y-2, wid+4, 4f + g.getTextHeight());
+                    g.drawFilledRect(x-wid-2, y-2, wid+4, 4f + g.getTextHeight());
                     g.setColor(GColor.RED);
                     g.drawJustifiedString(x, y, Justify.RIGHT, Justify.TOP, fpsStr);
                     g.setColor(c);

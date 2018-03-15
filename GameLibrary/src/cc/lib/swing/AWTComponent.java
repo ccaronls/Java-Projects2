@@ -3,7 +3,7 @@ package cc.lib.swing;
 import java.awt.*;
 import java.awt.event.*;
 
-import javax.swing.JComponent;
+import javax.swing.*;
 
 import cc.lib.game.*;
 import cc.lib.swing.*;
@@ -75,7 +75,7 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
                     }
                     G.drawJustifiedString(x-tw/2, y,txt);
                     y += th;
-                    G.drawFilledRectf(x-tw/2, y, tw*progress, th);
+                    G.drawFilledRect(x-tw/2, y, tw*progress, th);
                     g.setFont(f);
                     repaint();
                 }

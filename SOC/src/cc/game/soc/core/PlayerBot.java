@@ -1283,8 +1283,8 @@ public class PlayerBot extends Player {
 						node.chance = (6.0f - Math.max(0, Math.min(info.minScore - info.knightStrength, 6))) / 6f;
 						doEvaluateAll(node, soc, p, b);
 						route.copyFrom(copy);
-						for (Vertex k : info.attackingKnights) {
-							k.activateKnight();
+						for (int k : info.attackingKnights) {
+							b.getVertex(k).activateKnight();
 						}
 					}
 					break;
@@ -1299,8 +1299,8 @@ public class PlayerBot extends Player {
 						v.setType(info.destroyedType);
 						doEvaluateAll(node, soc, p, b);
 						v.copyFrom(copy);
-						for (Vertex k : info.attackingKnights) {
-							k.activateKnight();
+						for (int k : info.attackingKnights) {
+							b.getVertex(k).activateKnight();
 						}
 					}
 					break;
@@ -1416,14 +1416,14 @@ public class PlayerBot extends Player {
 	}
 
 	@Override
-	public Vertex chooseVertex(SOC soc, Collection<Integer> vertexIndices, VertexChoice mode, Vertex knightToMove) {
+	public Integer chooseVertex(SOC soc, Collection<Integer> vertexIndices, VertexChoice mode, Integer knightIndexToMove) {
 		
 		// TODO: OMG not true
 		switch (mode) {
 			case POLITICS_METROPOLIS:
 			case SCIENCE_METROPOLIS:
 			case TRADE_METROPOLIS:
-				return soc.getBoard().getVertex(Utils.randItem(new ArrayList<Integer>(vertexIndices))); // special case where it does not matter which vertex we choose
+				return Utils.randItem(new ArrayList<Integer>(vertexIndices)); // special case where it does not matter which vertex we choose
 				// TODO: NOT TRUE! A city can be pillaged so picking a city to be upgraded should be evaluated!!!!!!
 			default:
 		}
@@ -1439,7 +1439,9 @@ public class PlayerBot extends Player {
 			Vertex v = b.getVertex(vIndex);
 			Vertex save = v.deepCopy();
 			Vertex save2 = null;
-			if (knightToMove != null) {
+			Vertex knightToMove = null;
+			if (knightIndexToMove != null) {
+			    knightToMove = soc.getBoard().getVertex(knightIndexToMove);
 				save2 = knightToMove.deepCopy();
 			}
 			int islandNum = b.getIslandAdjacentToVertex(v);
@@ -1499,7 +1501,7 @@ public class PlayerBot extends Player {
 	}
 
 	@Override
-	public Route chooseRoute(SOC soc, Collection<Integer> routeIndices, RouteChoice mode) {
+	public Integer chooseRoute(SOC soc, Collection<Integer> routeIndices, RouteChoice mode) {
 		if (movesPath != null) {
 			return detatchMove();
 		}
@@ -1556,7 +1558,7 @@ public class PlayerBot extends Player {
 	}
 
 	@Override
-	public Tile chooseTile(SOC soc, Collection<Integer> tileIndices, TileChoice mode) {
+	public Integer chooseTile(SOC soc, Collection<Integer> tileIndices, TileChoice mode) {
 		if (movesPath != null) {
 			return detatchMove();
 		}
@@ -1607,13 +1609,13 @@ public class PlayerBot extends Player {
 	}
 
 	@Override
-	public Player choosePlayer(SOC soc, Collection<Integer> playerOptions, PlayerChoice mode) {
+	public Integer choosePlayer(SOC soc, Collection<Integer> playerOptions, PlayerChoice mode) {
 		if (movesPath != null) {
 			return detatchMove();
 		}
 		
 		if (playerOptions.size() == 1)
-			return soc.getPlayerByPlayerNum(playerOptions.iterator().next());
+			return playerOptions.iterator().next();
 		
 		Player p = this;
 		Board b = soc.getBoard();
