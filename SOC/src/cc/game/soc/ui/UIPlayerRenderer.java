@@ -11,6 +11,7 @@ import cc.game.soc.core.VertexType;
 import cc.lib.game.AGraphics;
 import cc.lib.game.APGraphics;
 import cc.lib.game.GColor;
+import cc.lib.game.GDimension;
 import cc.lib.game.Utils;
 
 /**
@@ -19,7 +20,7 @@ import cc.lib.game.Utils;
  *
  * Base player type to interact with GUI
  */
-public final class UIPlayerRenderer implements UIRenderer {
+public final class UIPlayerRenderer extends UIRenderer {
 
 	private GColor color = GColor.BLACK;
 	
@@ -59,7 +60,8 @@ public final class UIPlayerRenderer implements UIRenderer {
         g.setTextStyles(AGraphics.TextStyle.BOLD);
 
         StringBuffer str = new StringBuffer();
-        str.append(player.getName()).append(" ").append(player.getPoints()).append(" Points Cards ")
+        str.append(player.getName())
+                .append(" ").append(player.getPoints()).append(" Points\nCards")
                 .append(player.getTotalCardsLeftInHand()).append( "(").append(soc.getRules().getMaxSafeCardsForPlayer(player.getPlayerNum(), soc.getBoard()))
                 .append(")\n");
         if (player.isInfoVisible()) {
@@ -153,10 +155,15 @@ public final class UIPlayerRenderer implements UIRenderer {
             str.append("Discovered Tiles X " + numDiscoveredTiles).append("\n");
         }
 
+        float padding = RenderConstants.textMargin;
+
         g.setColor(player.getColor());
-        g.drawWrapString(5, 5, component.getWidth(), str.toString());
+        GDimension dim = g.drawWrapString(padding, padding, component.getWidth(), str.toString());
+        GDimension min = new GDimension(dim.width + padding*2, dim.height + padding*2);
+        setMinDimension(min);
+
         if (isCurrentPlayer()) {
-            g.drawRect(0, 0, component.getWidth(), component.getHeight(), 3);
+            g.drawRect(0,0, component.getWidth()-6, min.height-6, RenderConstants.thickLineThickness);
         }
     }
 
@@ -164,18 +171,4 @@ public final class UIPlayerRenderer implements UIRenderer {
         return player.getPlayerNum() == UISOC.getInstance().getCurPlayerNum();
     }
 
-    @Override
-    public void doClick() {
-
-    }
-
-    @Override
-    public void startDrag(float x, float y) {
-
-    }
-
-    @Override
-    public void endDrag() {
-
-    }
 }

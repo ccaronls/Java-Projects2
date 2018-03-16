@@ -7,7 +7,7 @@ import java.util.Arrays;
 import cc.lib.game.*;
 import cc.lib.math.Vector2D;
 
-public final class AWTGraphics extends APGraphics {
+public class AWTGraphics extends APGraphics {
 
     private Graphics g;
     private final static ImageMgr images = new ImageMgr();
@@ -15,6 +15,21 @@ public final class AWTGraphics extends APGraphics {
     //private int textureId = -1;
     private float mLineThickness = 1;
     private float mPointSize = 1;
+    protected int [] x = new int[32];
+    protected int [] y = new int[32];
+
+    int getPolyPts() {
+        int n = getNumVerts();
+        if (x.length < n) {
+            x = new int[n*2];
+            y = new int[n*2];
+        }
+        for (int i=0; i<n; i++) {
+            x[i] = Math.round(getX(i));
+            y[i] = Math.round(getY(i));
+        }
+        return n;
+    }
 
     public AWTGraphics(Graphics g, Component comp) {
         super(comp.getWidth(), comp.getHeight());
@@ -38,7 +53,7 @@ public final class AWTGraphics extends APGraphics {
         return g;
     }
 
-    public final void setGraphics(Graphics g) {
+    public void setGraphics(Graphics g) {
         g.setFont(this.g.getFont());
         this.g = g;
     }
@@ -48,12 +63,12 @@ public final class AWTGraphics extends APGraphics {
     }
 
     @Override
-    public final void setColor(GColor color) {
+    public void setColor(GColor color) {
         g.setColor(new Color(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha()));
     }
 
     @Override
-    public final GColor getColor() {
+    public GColor getColor() {
         Color c = g.getColor();
         return new GColor(c.getRed(), c.getGreen(), c.getBlue(), c.getAlpha());
     }
@@ -119,7 +134,7 @@ public final class AWTGraphics extends APGraphics {
     }
 
     @Override
-    public final  float setLineWidth(float newWidth) {
+    public float setLineWidth(float newWidth) {
         if (newWidth >= 1) {
             float oldThickness = mLineThickness;
             mLineThickness = newWidth;
@@ -130,7 +145,7 @@ public final class AWTGraphics extends APGraphics {
     }
 
     @Override
-    public final  float setPointSize(float newSize) {
+    public final float setPointSize(float newSize) {
         if (newSize < 1) {
             error("Invalid parameter to setPointSize " + newSize + ". Clamped to 1");
             newSize = 1;
@@ -140,24 +155,24 @@ public final class AWTGraphics extends APGraphics {
         return oldSize;
     }
 
-    private int getNumVerts() {
+    protected int getNumVerts() {
         return r.getNumVerts();
     }
 
-    private float getX(int index) {
+    protected float getX(int index) {
         return r.getX(index);
     }
 
-    private float getY(int index) {
+    protected float getY(int index) {
         return r.getY(index);
     }
 
-    private Vector2D getVertex(int index) {
+    protected Vector2D getVertex(int index) {
         return r.getVertex(index);
     }
 
     @Override
-    public final  void drawPoints() {
+    public void drawPoints() {
         //r.drawPoints(g, Math.round(mPointSize));
         int size = Math.round(mPointSize);
         if (size <= 1) {
@@ -172,11 +187,11 @@ public final class AWTGraphics extends APGraphics {
     }
 
     @Override
-    public final  void drawLines() {
+    public void drawLines() {
         //r.drawLines(g, Math.round(mLineThickness));
         for (int i=0; i<getNumVerts(); i+=2) {
             if (i+1 < getNumVerts())
-                AWTUtils.drawLinef(g, getX(i), getY(i), getX(i+1), getY(i+1), Math.round(mLineThickness));
+                pdrawLine(getX(i), getY(i), getX(i+1), getY(i+1), Math.round(mLineThickness));
         }
     }
 
@@ -184,21 +199,21 @@ public final class AWTGraphics extends APGraphics {
     public void drawLineStrip() {
         //r.drawLineStrip(g, Math.round(mLineThickness));
         for (int i=0; i<getNumVerts()-1; i++) {
-            AWTUtils.drawLinef(g, getX(i), getY(i), getX(i+1), getY(i+1), Math.round(mLineThickness));
+            pdrawLine(getX(i), getY(i), getX(i+1), getY(i+1), Math.round(mLineThickness));
         }
     }
 
     @Override
-    public final  void drawLineLoop() {
+    public void drawLineLoop() {
         //r.drawLineLoop(g, Math.round(mLineThickness));
         int thickness = Math.round(mLineThickness);
         if (thickness <= 1) {
             if (getNumVerts() > 1) {
                 for (int i=0; i<getNumVerts()-1; i++) {
-                    AWTUtils.drawLinef(g, getX(i), getY(i), getX(i+1), getY(i+1), 1);
+                    pdrawLine(getX(i), getY(i), getX(i+1), getY(i+1), 1);
                 }
                 int lastIndex = getNumVerts()-1;
-                AWTUtils.drawLinef(g, getX(lastIndex), getY(lastIndex), getX(0), getY(0), 1);
+                pdrawLine(getX(lastIndex), getY(lastIndex), getX(0), getY(0), 1);
             }
             return;
         }
@@ -208,16 +223,19 @@ public final class AWTGraphics extends APGraphics {
                 float y0 = getY(i-1);
                 float x1 = getX(i);
                 float y1 = getY(i);
-                AWTUtils.drawLinef(g, x0, y0, x1, y1, thickness);
+                pdrawLine(x0, y0, x1, y1, thickness);
             }
             if (getNumVerts()>2) {
                 float x0 = getX(getNumVerts()-1);
                 float y0 = getY(getNumVerts()-1);
                 float x1 = getX(0);
                 float y1 = getY(0);
-                AWTUtils.drawLinef(g, x0, y0, x1, y1, thickness);
             }
         }
+    }
+
+    protected void pdrawLine(float x0, float y0, float x1, float y1, float width) {
+        AWTUtils.drawLine(g, x0, y0, x1, y1, Math.round(width));
     }
 
     @Override

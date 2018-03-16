@@ -201,7 +201,7 @@ public class UIPlayer extends PlayerBot implements ClientConnection.Listener {
                     g.vertex(from);
                     g.vertex(from.getX() + dx, from.getY() + dy);
                     g.setColor(getColor());
-                    g.drawLines(comp.roadLineThickness);
+                    g.drawLines(RenderConstants.thickLineThickness);
                 }
             }, true);
         }

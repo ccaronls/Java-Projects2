@@ -9,7 +9,7 @@ import cc.lib.game.GDimension;
 import cc.lib.game.Utils;
 import cc.lib.math.Vector2D;
 
-public final class UIBarbarianRenderer implements UIRenderer {
+public final class UIBarbarianRenderer extends UIRenderer {
 
 	private int baseImage;
 	private int shipImage;
@@ -132,21 +132,6 @@ public final class UIBarbarianRenderer implements UIRenderer {
 
         distance = nextDistance;
         component.redraw();
-
-    }
-
-    @Override
-    public void doClick() {
-
-    }
-
-    @Override
-    public void startDrag(float x, float y) {
-
-    }
-
-    @Override
-    public void endDrag() {
 
     }
 

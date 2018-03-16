@@ -729,7 +729,7 @@ public class AWTUtils {
      * @param y1
      * @param thickness
      */
-    public static void drawLinef(Graphics g, float x0, float y0, float x1, float y1, int thickness) {
+    public static void drawLine(Graphics g, float x0, float y0, float x1, float y1, int thickness) {
         int ix0 = Math.round(x0);
         int iy0 = Math.round(y0);
         int ix1 = Math.round(x1);
@@ -745,7 +745,7 @@ public class AWTUtils {
      * @param cy
      * @param radius
      */
-    public static void drawDiskf(Graphics g, float cx, float cy, float radius) {
+    public static void drawDisk(Graphics g, float cx, float cy, float radius) {
         int x0 = Math.round(cx-radius);
         int y0 = Math.round(cy-radius);
         int r =  Math.round(radius*2);

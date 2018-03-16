@@ -86,7 +86,7 @@ public final class AWTRenderer extends Renderer {
     public void drawLines(Graphics g, int thickness) {
         for (int i=0; i<getNumVerts(); i+=2) {
             if (i+1 < getNumVerts())
-                AWTUtils.drawLinef(g, getX(i), getY(i), getX(i+1), getY(i+1), thickness);
+                AWTUtils.drawLine(g, getX(i), getY(i), getX(i+1), getY(i+1), thickness);
         }
     }
 
@@ -97,7 +97,7 @@ public final class AWTRenderer extends Renderer {
      */
     public void drawLineStrip(Graphics g, int thickness) {
         for (int i=0; i<getNumVerts()-1; i++) {
-            AWTUtils.drawLinef(g, getX(i), getY(i), getX(i+1), getY(i+1), thickness);
+            AWTUtils.drawLine(g, getX(i), getY(i), getX(i+1), getY(i+1), thickness);
         }
     }
 
@@ -173,7 +173,7 @@ public final class AWTRenderer extends Renderer {
      */
     public void drawRays(Graphics g) {
         for (int i=1; i<getNumVerts(); i++) {
-            AWTUtils.drawLinef(g, getX(0), getY(0), getX(i), getY(i), 1);
+            AWTUtils.drawLine(g, getX(0), getY(0), getX(i), getY(i), 1);
         }
     }
 
@@ -184,10 +184,10 @@ public final class AWTRenderer extends Renderer {
     public void drawLineLoop(Graphics g) {
         if (getNumVerts() > 1) {
             for (int i=0; i<getNumVerts()-1; i++) {
-                AWTUtils.drawLinef(g, getX(i), getY(i), getX(i+1), getY(i+1), 1);
+                AWTUtils.drawLine(g, getX(i), getY(i), getX(i+1), getY(i+1), 1);
             }
             int lastIndex = getNumVerts()-1;
-            AWTUtils.drawLinef(g, getX(lastIndex), getY(lastIndex), getX(0), getY(0), 1);
+            AWTUtils.drawLine(g, getX(lastIndex), getY(lastIndex), getX(0), getY(0), 1);
         }
     }
 
@@ -208,14 +208,14 @@ public final class AWTRenderer extends Renderer {
                 float y0 = getY(i-1);
                 float x1 = getX(i);
                 float y1 = getY(i);
-                AWTUtils.drawLinef(g, x0, y0, x1, y1, thickness);
+                AWTUtils.drawLine(g, x0, y0, x1, y1, thickness);
             }
             if (getNumVerts()>2) {
                 float x0 = getX(getNumVerts()-1);
                 float y0 = getY(getNumVerts()-1);
                 float x1 = getX(0);
                 float y1 = getY(0);
-                AWTUtils.drawLinef(g, x0, y0, x1, y1, thickness);
+                AWTUtils.drawLine(g, x0, y0, x1, y1, thickness);
             }
         }
     }

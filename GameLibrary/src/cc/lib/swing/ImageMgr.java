@@ -35,9 +35,7 @@ public class ImageMgr {
 
 	private Vector<Image>	sourceImages = new Vector<Image>(); // loaded images
 	private Vector<Image>	scaledImages = new Vector<Image>(); // scaled images
-	private MediaTracker 	tracker; // used to wait for transforms, loading
-	private int				trackerId = 0;
-	
+
 	/**
 	 * 
 	 */
@@ -272,10 +270,6 @@ public class ImageMgr {
 			image = sourceImages.get(id);
 			image = transform(image, new ReplicateScaleFilter(width,height));
 			Image toDelete = scaledImages.get(id);
-			if (toDelete != image) {
-			    if (tracker != null)
-				    tracker.removeImage(toDelete);
-			}
 			scaledImages.set(id, image); // make this our new scaled images
 		}
 		return image;
@@ -391,10 +385,10 @@ public class ImageMgr {
 	/*
 	 * 
 	 */
-	public Image transform(Image image, ImageFilter filter) {
+	public synchronized Image transform(Image image, ImageFilter filter) {
 		ImageProducer p = new FilteredImageSource(image.getSource(), filter);
-		Image newImage = Toolkit.getDefaultToolkit().createImage(p);//comp.createImage(p);//Toolkit.getDefaultToolkit().createImage(p);
-		//waitForIt(newImage);
+		Image newImage = Toolkit.getDefaultToolkit().createImage(p);
+		waitForIt(newImage);
 		return newImage;
 	}
 	
@@ -465,7 +459,7 @@ public class ImageMgr {
 	    //return addImage(rotated);
 	}
 	
-	public int newImage(int [] pixels, int w, int h) {
+	public synchronized int newImage(int [] pixels, int w, int h) {
 	    Image img = Toolkit.getDefaultToolkit().createImage(new MemoryImageSource(w, h, pixels, 0, w));
 	    return addImage(img);
 	}
@@ -474,19 +468,6 @@ public class ImageMgr {
 	 * 
 	 */
 	private void waitForIt(Image image) {
-	    /*
-		tracker.addImage(image, trackerId);
-		
-		for (int i=0; i<3; i++) {
-			try {
-				tracker.waitForID(trackerId);
-				break;
-			} catch (Exception e) {
-				
-			}
-		}
-		trackerId++;
-		*/
 	    Utils.waitNoThrow(this, 100);
 	}
 

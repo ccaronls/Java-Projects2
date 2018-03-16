@@ -10,7 +10,7 @@ import cc.lib.game.Utils;
 import cc.lib.utils.QueueRunner;
 
 @SuppressWarnings("serial")
-public final class UIConsoleRenderer implements UIRenderer {
+public final class UIConsoleRenderer extends UIRenderer {
 
     static class Line {
         final String text;
@@ -138,20 +138,5 @@ public final class UIConsoleRenderer implements UIRenderer {
 	    lines.clear();
         component.redraw();
 	}
-
-    @Override
-    public void doClick() {
-
-    }
-
-    @Override
-    public void startDrag(float x, float y) {
-
-    }
-
-    @Override
-    public void endDrag() {
-
-    }
 
 }

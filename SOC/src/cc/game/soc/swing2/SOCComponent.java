@@ -21,9 +21,10 @@ public class SOCComponent extends AWTComponent implements UIComponent {
 
     @Override
     protected final void paint(AWTGraphics g, int mouseX, int mouseY) {
-        if (delegate != null)
+        if (delegate != null) {
             delegate.draw(g, mouseX, mouseY);
-        else {
+            setMinimumSize(delegate.getMinDimension());
+        } else {
             Utils.print("Missing delegate");
         }
     }

@@ -396,7 +396,7 @@ class PacBoyRenderer extends BaseRenderer implements View.OnTouchListener {
 		if (tongue) {
 			// draw a tongue
 			g.setColor(GColor.RED);
-			g.drawFilledRectf(x-r/6, y+r/4, r/3, r/3);
+			g.drawFilledRect(x-r/6, y+r/4, r/3, r/3);
 			g.drawDisk(x, y+r/4+r/3, r/6);
 		} else {
     		g.begin();

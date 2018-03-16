@@ -1,17 +1,29 @@
 package cc.game.soc.ui;
 
 import cc.lib.game.APGraphics;
+import cc.lib.game.GDimension;
 
 /**
  * Created by chriscaron on 2/27/18.
  */
 
-public interface UIRenderer {
-    void draw(APGraphics g, int px, int py);
+public abstract class UIRenderer {
 
-    void doClick();
+    private GDimension min = new GDimension(32, 32);
 
-    void startDrag(float x, float y);
+    public abstract void draw(APGraphics g, int px, int py);
 
-    void endDrag();
+    public void doClick() {}
+
+    public void startDrag(float x, float y) {}
+
+    public void endDrag() {}
+
+    public final GDimension getMinDimension() {
+        return min;
+    }
+
+    public void setMinDimension(GDimension dim) {
+        this.min = dim;
+    }
 }

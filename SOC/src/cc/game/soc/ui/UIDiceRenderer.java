@@ -10,7 +10,7 @@ import cc.lib.game.GColor;
 import cc.lib.game.GDimension;
 import cc.lib.game.Utils;
 
-public final class UIDiceRenderer implements UIRenderer {
+public final class UIDiceRenderer extends UIRenderer {
 
     // There are 2 dice renderers, one with and without an associated event card renderer. hmmmmm
     // I dont want to init twice since the event card renderer is a bit hidden. Hmmmm.
@@ -265,15 +265,5 @@ public final class UIDiceRenderer implements UIRenderer {
 	    g.drawPoints();
 	    g.setPointSize(oldDotSize);
 	}
-
-    @Override
-    public void startDrag(float x, float y) {
-
-    }
-
-    @Override
-    public void endDrag() {
-
-    }
 
 }

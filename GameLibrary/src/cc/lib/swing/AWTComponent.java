@@ -21,6 +21,8 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
     private int mouseY = -1;
     private boolean focused = false;
     private int padding = 5;
+    private int scrollAmount = -1;
+    private int scrollStartY = 0;
 
     public AWTComponent() {
     }
@@ -47,10 +49,13 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
             g.setColor(AWTUtils.toColor(GColor.TRANSPARENT));
             g.fillRect(0, 0, super.getWidth(), super.getHeight());
             g.setColor(c);
-            g.setClip(padding,padding, getWidth()+1, getHeight()+1);
+            //g.setClip(padding,padding, getWidth()+1, getHeight()+1);
             g.translate(padding,padding);
             if (G == null) {
-                G = new AWTGraphics(g, this);
+                if (g instanceof Graphics2D)
+                    G = new AWTGraphics2(((Graphics2D)g), this);
+                else
+                    G = new AWTGraphics(g, this);
                 init(G);
                 repaint();
             } else {
@@ -59,7 +64,16 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
                 G.initViewport(getWidth(), getHeight());
                 G.ortho();
                 if (progress >= 1) {
-                    paint(G, mouseX, mouseY);
+                    if (scrollAmount < 0)
+                        scrollAmount = G.getTextHeight();
+                    if (scrollStartY != 0) {
+                        G.pushMatrix();
+                        G.translate(0, scrollStartY);
+                        paint(G, mouseX, mouseY);
+                        G.popMatrix();
+                    } else {
+                        paint(G, mouseX, mouseY);
+                    }
                 } else {
                     Font f = g.getFont();
                     G.clearScreen(GColor.CYAN);
@@ -81,11 +95,11 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
                 }
             }
             g.translate(-padding,-padding);
-            g.setClip(0, 0, super.getWidth(), super.getHeight());
+            //g.setClip(0, 0, super.getWidth(), super.getHeight());
             if (focused) {
 //                System.out.println("AWT " + toString() + " has focus!");
                 g.setColor(Color.BLUE);
-                g.drawRect(0, 0, super.getWidth()-1, super.getHeight()-1);
+                g.drawRect(0, 0, super.getWidth()-2, super.getHeight()-2);
             }
         } else {
             repaint();
@@ -152,7 +166,14 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
         onMouseWheel(e.getWheelRotation());
     }
 
-    protected void onMouseWheel(int rotation) {}
+    protected void onMouseWheel(int rotation) {
+        Dimension d = getMinimumSize();
+        int maxScroll = getHeight() - d.height;
+        if (maxScroll < 0) {
+            scrollStartY = Utils.clamp(scrollStartY - rotation * scrollAmount, maxScroll, 0);
+            repaint();
+        }
+    }
 
     @Override
     public boolean lostFocus(java.awt.Event ev, Object obj) {
@@ -208,8 +229,12 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
         return getHeight();
     }
 
-    public void setMinimumSize(int width, int height) {
-        super.setMinimumSize(new Dimension(width, height));
+    public void setMinimumSize(int w, int h) {
+        super.setMinimumSize(new Dimension(w, h));
+    }
+
+    public void setMinimumSize(GDimension dim) {
+        setMinimumSize(Math.round(dim.width), Math.round(dim.height));
     }
 
     public void setPreferredSize(int w, int h) {

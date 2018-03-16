@@ -891,7 +891,11 @@ public class SOC extends Reflector<SOC> {
 	 * @param txt
 	 */
     public void printinfo(int playerNum, String txt) {
-        System.out.println(getPlayerByPlayerNum(playerNum).getName() + ": " + txt);
+        if (playerNum > 0) {
+            log.info("%s: %s", getPlayerByPlayerNum(playerNum).getName(), txt);
+        } else {
+            log.info(txt);
+        }
     }
     
 	private void printinfo(String txt) {

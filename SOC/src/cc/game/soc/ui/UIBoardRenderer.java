@@ -6,7 +6,7 @@ import cc.game.soc.core.*;
 import cc.lib.game.*;
 import cc.lib.math.*;
 
-public final class UIBoardRenderer implements UIRenderer {
+public final class UIBoardRenderer extends UIRenderer implements MenuItem.Action {
 
     final UIComponent component;
 
@@ -33,7 +33,6 @@ public final class UIBoardRenderer implements UIRenderer {
     private int [] knightImages;
     private int cardFrameImage;
 
-    float roadLineThickness = 4;
     GColor outlineColorDark = GColor.BLACK;
     GColor outlineColorLight = GColor.WHITE;
     GColor textColor = GColor.CYAN;
@@ -42,7 +41,7 @@ public final class UIBoardRenderer implements UIRenderer {
 	private int pickedValue = -1;
 	private PickHandler pickHandler = null;
 	
-    private int renderFlag = 0;
+    public int renderFlag = 0;
     private List<AAnimation<AGraphics>> animations = new ArrayList<>(32);
     private List<AAnimation<AGraphics>> cardAnimations = new ArrayList<>(32);
 
@@ -74,11 +73,6 @@ public final class UIBoardRenderer implements UIRenderer {
 
     public final PickHandler getPickHandler() {
         return pickHandler;
-    }
-
-    public void initAttribs(int renderFlag, float roadLineThickness) {
-        this.renderFlag = renderFlag;
-        this.roadLineThickness = roadLineThickness;
     }
 
     public void setRenderFlag(RenderFlag flag, boolean enabled) {
@@ -114,45 +108,51 @@ public final class UIBoardRenderer implements UIRenderer {
         return UISOC.getInstance().getBoard();
     }
 
-	public void drawTileOutline(AGraphics g, Tile cell, int borderThickness) {
-	    g.begin();
-		for (int i : cell.getAdjVerts()) {
-			Vertex v = getBoard().getVertex(i);
-			g.vertex(v.getX(), v.getY());
-		}
-		g.drawLineLoop( borderThickness);
+    public void drawTileOutline(AGraphics g, Tile cell, float thickness) {
+        g.begin();
+        for (int i : cell.getAdjVerts()) {
+            Vertex v = getBoard().getVertex(i);
+            g.vertex(v.getX(), v.getY());
+        }
+        g.drawLineLoop(thickness);
+    }
+
+	public void drawTileOutline(AGraphics g, Tile cell) {
+        drawTileOutline(g, cell, RenderConstants.thinLineThickness);
 	}
 
     public void startTilesInventedAnimation(final Tile tile0, final Tile tile1) {
+        final int NUM_PTS = 30;
+
         final int t1 = tile1.getDieNum();
         final int t0 = tile0.getDieNum();
-        final Vector2D[] pts0 = new Vector2D[31];
-        final Vector2D [] pts1 = new Vector2D[31];
+        final Vector2D[] pts0 = new Vector2D[NUM_PTS+1];
+        final Vector2D [] pts1 = new Vector2D[NUM_PTS+1];
         final Vector2D mid = Vector2D.newTemp(tile0).add(tile1).scaleEq(0.5f);
         final Vector2D d = Vector2D.newTemp(mid).sub(tile0).scaleEq(0.5f);
         final Vector2D mid0 = Vector2D.newTemp(tile0).add(d);
         final Vector2D mid1 = Vector2D.newTemp(tile1).sub(d);
         final MutableVector2D dv = d.norm().scaleEq(0.7f);
-        Utils.computeBezierCurvePoints(pts0, 30, tile0, mid0.add(dv), mid1.add(dv), tile1);
-        pts0[30]=pts0[29];
-        Utils.computeBezierCurvePoints(pts1, 30, tile1, mid1.sub(dv), mid0.sub(dv), tile0);
-        pts1[30]=pts1[29];
+        Utils.computeBezierCurvePoints(pts0, NUM_PTS, tile0, mid0.add(dv), mid1.add(dv), tile1);
+        pts0[NUM_PTS]=pts0[NUM_PTS-1];
+        Utils.computeBezierCurvePoints(pts1, NUM_PTS, tile1, mid1.sub(dv), mid0.sub(dv), tile0);
+        pts1[NUM_PTS]=pts1[NUM_PTS-1];
         tile0.setDieNum(0);
         tile1.setDieNum(0);
 
         addAnimation(new UIAnimation(3000) {
 
-            void drawChit(AGraphics g, Vector2D [] pts, float position, int num) {
-                int index0 = (int)(position*28);
+            public void drawChit(AGraphics g, Vector2D [] pts, float position, int num) {
+                int index0 = (int)(position*NUM_PTS-2);
                 int index1 = index0+1;
-                float delta = ((position*28)-index0);
+                float delta = ((position*NUM_PTS-2)-index0);
                 assert(position >= 0 && position <= 1);
                 Vector2D pos = pts[index0].scaledBy(1.0f-delta).add(pts[index1].scaledBy(delta));
                 Vector2D t = g.transform(pos);
                 int fh = g.getTextHeight();
                 int x = Math.round(t.getX() - fh);
                 int y = Math.round(t.getY() - fh);
-                drawCellProductionValue(g, x, y, num, TILE_CELL_NUM_RADIUS);
+                drawCellProductionValue(g, x, y, num);
             }
 
             @Override
@@ -561,7 +561,7 @@ public final class UIBoardRenderer implements UIRenderer {
 			g.setName(index);
 			renderEdge(g, getBoard().getRoute(index));
 		}
-		return g.pickLines(mouseX, mouseY, Math.round(roadLineThickness*2));
+		return g.pickLines(mouseX, mouseY, Math.round(RenderConstants.thickLineThickness*2));
 	}
 	
 	private int pickVertex(APGraphics g, int mouseX, int mouseY) {
@@ -609,11 +609,11 @@ public final class UIBoardRenderer implements UIRenderer {
 	        GColor old = g.getColor();
 	        g.setColor(outlineColorDark);
             renderDamagedEdge(g, e);
-            g.drawLines(roadLineThickness+2);
+            g.drawLines(RenderConstants.thickLineThickness+2);
             g.setColor(old);
 	    } 
 	    renderDamagedEdge(g, e);
-	    g.drawLineStrip(roadLineThickness);	
+	    g.drawLineStrip(RenderConstants.thickLineThickness);
 	}
 
 	public void drawEdge(AGraphics g, Route e, RouteType type, int playerNum, boolean outline) {
@@ -681,11 +681,11 @@ public final class UIBoardRenderer implements UIRenderer {
 	        GColor old = g.getColor();
 	        g.setColor(outlineColorDark);
             renderEdge(g, e);
-            g.drawLines(roadLineThickness+2);
+            g.drawLines(RenderConstants.thickLineThickness+2);
             g.setColor(old);
 	    } 
 	    renderEdge(g, e);
-	    g.drawLineStrip(roadLineThickness);
+	    g.drawLineStrip(RenderConstants.thickLineThickness);
 	}
 	
 	public int getEdgeAngle(Route e) {
@@ -802,7 +802,7 @@ public final class UIBoardRenderer implements UIRenderer {
             int x = Math.round(v[0]);
             int y = Math.round(v[1]);
             g.setColor(outlineColorLight);
-            drawTileOutline(g, cell, 2);
+            drawTileOutline(g, cell);
             g.setColor(textColor);
             switch (cell.getType()) {
                 case NONE:
@@ -853,8 +853,6 @@ public final class UIBoardRenderer implements UIRenderer {
         }        
     }
 
-    public final static int TILE_CELL_NUM_RADIUS = 20;
-    
     private void drawTilesTextured(AGraphics g) {
         Vector2D cellD = new Vector2D(getBoard().getTileWidth(), getBoard().getTileHeight()).scaledBy(0.5f);
         g.setTextStyles(AGraphics.TextStyle.BOLD);
@@ -866,7 +864,7 @@ public final class UIBoardRenderer implements UIRenderer {
             switch (cell.getType()) {
             case NONE:
                 g.setColor(outlineColorLight);
-                drawTileOutline(g, cell, 2);
+                drawTileOutline(g, cell);
                 break;
             case DESERT:
                 g.drawImage(desertImage, v0, v1);
@@ -899,25 +897,25 @@ public final class UIBoardRenderer implements UIRenderer {
             // used for random generation
             case RANDOM_RESOURCE_OR_DESERT:
                 g.setColor(outlineColorLight);
-                drawTileOutline(g, cell, 2);
+                drawTileOutline(g, cell);
                 g.setColor(textColor);
                 g.drawJustifiedString(cell.getX(), cell.getY(),Justify.CENTER,Justify.CENTER,"Random\nResourse or\nDesert");
                 break;
             case RANDOM_RESOURCE:
                 g.setColor(outlineColorLight);
-                drawTileOutline(g, cell, 2);
+                drawTileOutline(g, cell);
                 g.setColor(textColor);
                 g.drawJustifiedString(cell.getX(),cell.getY(),Justify.CENTER,Justify.CENTER,"Random\nResource");
                 break;
             case RANDOM_PORT_OR_WATER:
                 g.setColor(outlineColorLight);
-                drawTileOutline(g, cell, 2);
+                drawTileOutline(g, cell);
                 g.setColor(textColor);
                 g.drawJustifiedString(cell.getX(),cell.getY(),Justify.CENTER,Justify.CENTER,"Random Port\nor\nWater");
                 break;
             case RANDOM_PORT:
                 g.setColor(outlineColorLight);
-                drawTileOutline(g, cell, 2);
+                drawTileOutline(g, cell);
                 g.setColor(textColor);
                 g.drawJustifiedString(cell.getX(),cell.getY(),Justify.CENTER,Justify.CENTER,"Random\nPort");
                 break;
@@ -939,7 +937,7 @@ public final class UIBoardRenderer implements UIRenderer {
             }
             
             if (cell.getDieNum() > 0) {
-            	drawCellProductionValue(g, cell.getX(),cell.getY(), cell.getDieNum(), TILE_CELL_NUM_RADIUS);
+            	drawCellProductionValue(g, cell.getX(),cell.getY(), cell.getDieNum());
             }
         }   
     }
@@ -953,7 +951,8 @@ public final class UIBoardRenderer implements UIRenderer {
         }
     }
 
-    public void drawCellProductionValue(AGraphics g, float x, float y, int num, float radius) {
+    public void drawCellProductionValue(AGraphics g, float x, float y, int num) {
+	    final float radius = g.getTextHeight()*2;
         g.setColor(GColor.BLACK);
         g.begin();
         g.vertex(x, y);
@@ -1293,16 +1292,9 @@ public final class UIBoardRenderer implements UIRenderer {
     }
 
     @Override
-    public void startDrag(float x, float y) {
-
+    public void onAction(MenuItem item, Object extra) {
+        pickHandler.onPick(this, pickedValue);
     }
-
-    @Override
-    public void endDrag() {
-
-    }
-
-
 }
 
 

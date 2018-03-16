@@ -211,8 +211,7 @@ public class GUI implements ActionListener, MenuItem.Action {
             super.init(g);
             setMouseEnabled(true);
             setMinimumSize(256, 256);
-            boardRenderer.initAttribs(getProps().getIntProperty("renderFlag", 0),
-                    getProps().getFloatProperty("roadLineThickness", 4));
+            boardRenderer.renderFlag = getProps().getIntProperty("renderFlag", 0);
         }
 
         @Override
@@ -813,14 +812,12 @@ public class GUI implements ActionListener, MenuItem.Action {
                     }
                 }
 
+                playerComponents[userPlayerIndex].setMouseEnabled(false);
                 if (soc.getRules().isEnableCitiesAndKnightsExpansion()) {
                     westGridPanel.add(barbarianComp);
-                    JScrollPane sp = new JScrollPane();
-                    sp.getViewport().add(playerComponents[userPlayerIndex]);
-                    westGridPanel.add(sp);
-                } else {
-                    westGridPanel.add(playerComponents[userPlayerIndex]);
+                    playerComponents[userPlayerIndex].setMouseEnabled(true);
                 }
+                westGridPanel.add(playerComponents[userPlayerIndex]);
 
                 for (int i=0; i<soc.getNumPlayers(); i++) {
                     if (i == userPlayerIndex)
@@ -1481,7 +1478,7 @@ public class GUI implements ActionListener, MenuItem.Action {
 							}
 							case PM_TILE: {
 								g.setColor(GColor.YELLOW);
-								bc.drawTileOutline(g, getBoard().getTile(highlightedIndex), 2);
+								bc.drawTileOutline(g, getBoard().getTile(highlightedIndex), RenderConstants.thinLineThickness);
 								break;
 							}
 							case PM_VERTEX: {

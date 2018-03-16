@@ -10,7 +10,7 @@ import cc.lib.game.GColor;
 import cc.lib.game.GDimension;
 import cc.lib.game.Justify;
 
-public final class UIEventCardRenderer implements UIRenderer {
+public final class UIEventCardRenderer extends UIRenderer {
 
 	private float minCardWidth = 0;
 	final UIDiceRenderer diceComps;
@@ -66,9 +66,9 @@ public final class UIEventCardRenderer implements UIRenderer {
 		g.drawFilledRoundedRect(cx+padding, cy+padding, cw-2*padding, ch-2*padding, arc-2);
 		if (production > 0) {
     		g.setColor(GColor.BLUE);
-    		float ovalThickness = 2;
+    		float ovalThickness = RenderConstants.thinLineThickness;
     		float ovalWidth = fh*2;
-    		float ovalHeight = fh+ovalThickness+6;
+    		float ovalHeight = fh+ovalThickness+RenderConstants.textMargin;
     		g.drawFilledOval(cx+cw/2-ovalWidth/2, cy+padding*2, ovalWidth, ovalHeight);
     		g.setColor(GColor.YELLOW);
     		g.drawFilledOval(cx+cw/2-ovalWidth/2+ovalThickness, cy+padding*2+ovalThickness, ovalWidth-ovalThickness*2, ovalHeight-ovalThickness*2);
@@ -97,21 +97,6 @@ public final class UIEventCardRenderer implements UIRenderer {
 	public final void setEventCard(EventCard card) {
 	    this.eventCard = card;
 	    component.redraw();
-    }
-
-    @Override
-    public void doClick() {
-
-    }
-
-    @Override
-    public void startDrag(float x, float y) {
-
-    }
-
-    @Override
-    public void endDrag() {
-
     }
 
 }
