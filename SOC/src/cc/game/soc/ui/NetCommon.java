@@ -2,7 +2,6 @@ package cc.game.soc.ui;
 
 import cc.lib.crypt.Cypher;
 import cc.lib.crypt.HuffmanEncoding;
-import cc.lib.net.GameCommandType;
 
 /**
  * Created by chriscaron on 3/12/18.
@@ -16,6 +15,8 @@ public class NetCommon {
     public final static int PORT = 15551;
     public final static String VERSION = "SOC1.0";
     public final static int CLIENT_READ_TIMEOUT = 20000;
+
+    public final static String DNS_SERVICE_ID = "_soc._tcp.local.";
 
     public static Cypher getCypher() {
         try {

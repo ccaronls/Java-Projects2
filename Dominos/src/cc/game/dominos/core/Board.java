@@ -2,7 +2,6 @@ package cc.game.dominos.core;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -101,7 +100,13 @@ public class Board extends Reflector<Board> {
     }
 
     @Omit
-    final List<AAnimation<AGraphics>> animations = new ArrayList<>();
+    private final List<AAnimation<AGraphics>> animations = new ArrayList<>();
+
+    void addAnimation(AAnimation<AGraphics> a) {
+        synchronized (animations) {
+            animations.add(a);
+        }
+    }
 
     final synchronized void clear() {
         root = null;
@@ -487,11 +492,15 @@ public class Board extends Reflector<Board> {
 
         }
 
-        Iterator<AAnimation<AGraphics>> it = animations.iterator();
-        while (it.hasNext()) {
-            AAnimation<AGraphics> a = it.next();
+        List<AAnimation<AGraphics>> anims = new ArrayList<>();
+        synchronized (animations) {
+            anims.addAll(animations);
+        }
+        for (AAnimation<AGraphics> a : anims) {
             if (a.isDone()) {
-                it.remove();
+                synchronized (animations) {
+                    animations.remove(a);
+                }
             } else {
                 a.update(g);
             }

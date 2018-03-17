@@ -51,9 +51,29 @@ public class EZFrame extends JFrame implements WindowListener, ComponentListener
 	    for (int i=0; i<gs.length; i++) {
 	        System.out.println(String.format("Screen %2d %10s %10b", i, gs[i].getIDstring(), gs[i].isFullScreenSupported()));
 	    }
-
 	}
-	
+
+	public void showAsPopup(JFrame parent) {
+        setUndecorated(true);
+        parent.setEnabled(false);
+        setMinimumSize(new Dimension(160,120));
+        pack();
+        int x = parent.getX() + parent.getWidth()/2 - getWidth()/2;
+        int y = parent.getY() + parent.getHeight()/2 - getHeight()/2;
+        setLocation(x, y);
+        setResizable(false);
+        setVisible(true);
+    }
+
+    public void closePopup(JFrame parent) {
+        synchronized (this) {
+            this.notify();
+        }
+        setVisible(false);
+        parent.setEnabled(true);
+        parent.setVisible(true);
+    }
+
 	public void showFullscreenOnScreen( int screen )
 	{
 	    GraphicsEnvironment ge = GraphicsEnvironment

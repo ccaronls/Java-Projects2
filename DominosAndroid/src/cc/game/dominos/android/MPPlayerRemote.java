@@ -31,12 +31,15 @@ public class MPPlayerRemote extends Player implements ClientConnection.Listener 
 
     public MPPlayerRemote() {}
 
-    MPPlayerRemote(ClientConnection conn, int playerNum, Dominos dominos, DominosActivity activity) {
+    MPPlayerRemote(int playerNum, Dominos dominos, DominosActivity activity) {
         this.playerNum = playerNum;
-        this.connection = conn;
         this.dominos = dominos;
         this.activity = activity;
-        conn.addListener(this);
+    }
+
+    void setConnection(ClientConnection conn) {
+        this.connection = conn;
+        this.connection.addListener(this);
     }
 
     @Override

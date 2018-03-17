@@ -1288,6 +1288,7 @@ public class GUI implements ActionListener, MenuItem.Action {
     		case MENU_GAME_SETUP:
                 initLayout(LayoutType.LAYOUT_INGAME);
     			menu.add(getMenuOpButton(START));
+                menu.add(getMenuOpButton(START_MULTIPLAYER));
     			menu.add(getMenuOpButton(CONFIG_BOARD));
     			menu.add(getMenuOpButton(CONFIG_SETTINGS));
     			menu.add(getMenuOpButton(BACK));
@@ -1668,11 +1669,14 @@ public class GUI implements ActionListener, MenuItem.Action {
                     jmdns = JmDNS.create(InetAddress.getLocalHost());
 
                     // Register a service
-                    ServiceInfo serviceInfo = ServiceInfo.create("_soc._tcp.local.", "example", NetCommon.PORT, "name=" + System.getProperty("user.name"));
+                    ServiceInfo serviceInfo = ServiceInfo.create(NetCommon.DNS_SERVICE_ID,
+                            "Senators of Katan", NetCommon.PORT,
+                            "name=" + System.getProperty("user.name") + ",numplayers=" + soc.getNumPlayers());
                     jmdns.registerService(serviceInfo);
 
                     // Unregister all services
                     jmdns.unregisterAllServices();
+                    console.addText(GColor.BLACK, "Broadcasting on Bonjour");
                 } catch (Exception e) {
                     soc.server.stop();
                     showOkPopup("ERROR", "Failed to register Bonjour service. "+ e.getClass().getSimpleName() + ":" + e.getMessage());
@@ -1681,7 +1685,9 @@ public class GUI implements ActionListener, MenuItem.Action {
 
                 getBoard().assignRandom();
                 menuStack.clear();
-                menuStack.push(MenuState.MENU_START_MP);
+                menuStack.clear();
+                menuStack.push(MenuState.MENU_START);
+                menuStack.push(MenuState.MENU_PLAY_GAME);
                 initMenu();
             } else {
                 log.error("Board not ready");

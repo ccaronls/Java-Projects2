@@ -16,8 +16,7 @@
 
         <activity
             android:name=".SOCActivity"
-            android:configChanges="orientation|keyboardHidden|screenSize"
-            android:label="Dominos">
+            android:configChanges="orientation|keyboardHidden|screenSize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

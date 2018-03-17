@@ -74,9 +74,9 @@ public class MPPlayerUser extends PlayerUser implements GameClient.Listener {
             Reflector.KEEP_INSTANCES = true;
             try {
                 String str = cmd.getArg("dominos");
-//                    FileUtils.stringToFile(str, new File(Environment.getExternalStorageDirectory(), "dominos.in"));
                 dominos.deserialize(str);
                 dominos.redraw();
+                activity.currentDialog.dismiss();
             } catch (Exception e) {
                 client.sendError(e);
                 client.disconnect("Error: " + e.getMessage());

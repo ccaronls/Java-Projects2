@@ -5,27 +5,18 @@ import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import cc.lib.crypt.Cypher;
 import cc.lib.crypt.EncryptionInputStream;
 import cc.lib.crypt.EncryptionOutputStream;
-import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
-import cc.lib.utils.Reflector;
 
 /**
  * Base class for clients that want to connect to a GameServer
@@ -61,10 +52,10 @@ public class GameClient extends ARemoteExecutor {
     private final String userName;
     private State state = State.READY;
     private final String version;
-    private Cypher cypher;
+    private final Cypher cypher;
     private final Set<Listener> listeners = new HashSet<>();
     private String serverName = null;
-    
+
     // giving package access for JUnit tests ONLY!
     CommandQueueWriter outQueue = new CommandQueueWriter() {
 
@@ -107,17 +98,6 @@ public class GameClient extends ARemoteExecutor {
     }
 
     /**
-     * Attach a cypher if we are connecting to a secure server
-     *
-     * @param cypher
-     */
-    public final void setCypher(Cypher cypher) {
-        if (!isIdle())
-            throw new RuntimeException("Cannot enable encryption while connected");
-        this.cypher = cypher;
-    }
-    
-    /**
      * 
      * @return
      */
@@ -132,7 +112,7 @@ public class GameClient extends ARemoteExecutor {
     public final String getServerName() {
         return serverName;
     }
-    
+
     private boolean isIdle() {
         return state == State.READY || state == State.DISCONNECTED;
     }
@@ -147,12 +127,24 @@ public class GameClient extends ARemoteExecutor {
         connect(InetAddress.getByName(host), port);
     }
 
+    /**
+     *
+     * @param l
+     */
     public final void addListener(Listener l) {
-        listeners.add(l);
+        synchronized (listeners) {
+            listeners.add(l);
+        }
     }
 
+    /**
+     *
+     * @param l
+     */
     public final void removeListener(Listener l) {
-        listeners.remove(l);
+        synchronized (listeners) {
+            listeners.remove(l);
+        }
     }
 
     /**
@@ -179,7 +171,6 @@ public class GameClient extends ARemoteExecutor {
                     out = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
                 }
                 out.writeLong(87263450972L); // write out the magic number the servers are expecting
-                serverName = in.readUTF();
                 outQueue.start(out);
                 GameCommandType type = state == State.READY ? GameCommandType.CL_CONNECT : GameCommandType.CL_RECONNECT;
                 outQueue.add(new GameCommand(type).setName(userName).setVersion(version));
@@ -218,7 +209,7 @@ public class GameClient extends ARemoteExecutor {
             log.debug("GameClient: client '" + this.getName() + "' disconnecitng ...");
             try {
                 outQueue.clear();
-                outQueue.add(new GameCommand(GameCommandType.DISCONNECT).setArg("reason", reason));
+                outQueue.add(new GameCommand(GameCommandType.DISCONNECT).setArg("reason", "player left session"));
                 synchronized (this) {
                     wait(500); // make sure we give the call a chance to get sent
                 }
@@ -279,12 +270,13 @@ public class GameClient extends ARemoteExecutor {
             state = State.CONNECTING;
             String disconnectedReason = null;
             Listener [] larray = new Listener[0];
-            
+
             while (!isDisconnecting()) {
                 try {
                     final GameCommand cmd = GameCommand.parse(in);
                     if (isDisconnecting())
                         break;
+                    log.debug("Read command: " + cmd);
 
                     if (processCommand(cmd))
                         continue;
@@ -297,13 +289,14 @@ public class GameClient extends ARemoteExecutor {
 
                     log.debug("Parsed incoming cmd: " + cmd);
                     if (cmd.getType() == GameCommandType.SVR_CONNECTED) {
+                        serverName = cmd.getName();
                         int keepAliveFreqMS = Integer.parseInt(cmd.getArg("keepAlive"));
                         outQueue.setTimeout(keepAliveFreqMS);
                         state = State.CONNECTED;
                         for (Listener l :  larray) {
                             l.onConnected();
                         }
-                        
+
                     } else if (cmd.getType() == GameCommandType.MESSAGE) {
                         for (Listener l :  larray) {
                             l.onMessage(cmd.getMessage());
@@ -316,12 +309,16 @@ public class GameClient extends ARemoteExecutor {
                         for (Listener l : larray)
                             l.onCommand(cmd);
                     }
-                
+
+                    cmd.getType().notifyListeners(cmd);
+
                 } catch (Exception e) {
                     if (!isDisconnecting()) {
+                        outQueue.clear();
                         sendError(e);
                         e.printStackTrace();
                         disconnectedReason = ("Exception: " + e.getClass().getSimpleName() + " " + e.getMessage());
+                        state = State.DISCONNECTED;
                     }
                     break;
                 }

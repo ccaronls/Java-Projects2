@@ -64,7 +64,7 @@ public class GameServer extends ARemoteExecutor {
     private final Cypher cypher;
     private final int maxConnections;
     private final int port;
-    private final String name;
+    private final String serverName;
     
     public String toString() {
         String r = "GameServer:" + mVersion;
@@ -93,7 +93,7 @@ public class GameServer extends ARemoteExecutor {
      * @throws Exception
      */
     public GameServer(String serverName, int listenPort, int clientReadTimeout, String serverVersion, Cypher cypher, int maxConnections) {
-        this.name = serverName.toString(); // null check
+        this.serverName = serverName.toString(); // null check
         if (clientReadTimeout < 1000)
             throw new RuntimeException("Value for timeout too small");
         this.clientReadTimeout = clientReadTimeout;
@@ -348,7 +348,6 @@ public class GameServer extends ARemoteExecutor {
                 if (magic != 87263450972L)
                     throw new ProtocolException("Unknown client");
 
-                out.writeUTF(name);
                 GameCommand cmd = GameCommand.parse(in);
                 log.debug("Parsed incoming command: " + cmd);
                 String name = cmd.getName();
@@ -399,7 +398,9 @@ public class GameServer extends ARemoteExecutor {
                     }
                 }
                 
-                new GameCommand(GameCommandType.SVR_CONNECTED).setArg("keepAlive", clientReadTimeout).write(out);
+                new GameCommand(GameCommandType.SVR_CONNECTED)
+                        .setName(serverName)
+                        .setArg("keepAlive", clientReadTimeout).write(out);
                 log.debug("GameServer: Client " + name + " connected");
                 if (cmd.getType() == GameCommandType.CL_CONNECT) {
                     for (Listener l : listeners)

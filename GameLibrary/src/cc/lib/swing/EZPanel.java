@@ -1,21 +1,20 @@
 package cc.lib.swing;
 
-import java.awt.LayoutManager;
+import java.awt.*;
 
-import javax.swing.JComponent;
-import javax.swing.JPanel;
+import javax.swing.*;
 
 public class EZPanel extends JPanel {
 
-	public EZPanel(LayoutManager lm, JComponent ... components) {
+	public EZPanel(LayoutManager lm, Component ... components) {
 		super(lm);
-		for (JComponent c : components) {
+		for (Component c : components) {
 			add(c);
 		}
 	}
 
-	public EZPanel(JComponent ... components) {
-		for (JComponent c : components) {
+	public EZPanel(Component ... components) {
+		for (Component c : components) {
 			add(c);
 		}
 	}

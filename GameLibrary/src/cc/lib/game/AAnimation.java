@@ -251,4 +251,8 @@ public abstract class AAnimation<T> {
         Utils.waitNoThrow(this, getDuration()+500);
         waiting = false;
     }
+
+    public final boolean isIdle() {
+        return state == State.IDLE;
+    }
 }

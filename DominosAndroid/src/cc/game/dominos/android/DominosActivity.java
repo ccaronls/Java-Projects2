@@ -28,7 +28,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 
 import cc.game.dominos.core.Dominos;
@@ -88,7 +87,15 @@ public class DominosActivity extends DroidActivity {
         }
 
         protected Dialog showSpinner() {
-            return ProgressDialog.show(DominosActivity.this, "", "", true);
+            ProgressDialog d = new ProgressDialog(DominosActivity.this, R.style.DialogTheme);
+            d.setOnCancelListener(new DialogInterface.OnCancelListener() {
+                @Override
+                public void onCancel(DialogInterface dialog) {
+                    cancel(true);
+                }
+            });
+            d.show();
+            return d;
         }
 
         @Override
@@ -145,7 +152,7 @@ public class DominosActivity extends DroidActivity {
             protected void onGameOver(int winner) {
                 super.onGameOver(winner);
                 if (server.isRunning()) {
-                    server.executeOnRemote(DOMINOS_ID, null);
+                    server.executeOnRemote(DOMINOS_ID, null, winner);
                     getContent().postDelayed(new Runnable() {
                         @Override
                         public void run() {
@@ -320,7 +327,11 @@ public class DominosActivity extends DroidActivity {
                 dominos.redraw();
         }
         if (server.isRunning()) {
-            dominos.startGameThread();
+            if (dominos.isInitialized())
+                dominos.startGameThread();
+            else if (!currentDialog.isShowing())
+                showWaitingForPlayersDialog();
+
         } else if (!client.isConnected()) {
             if (dominos.isInitialized()) {
                 dominos.startGameThread();
@@ -502,22 +513,67 @@ public class DominosActivity extends DroidActivity {
 
     WifiP2pHelper helper = null;
 
+    GameServer.Listener connectionListener = new GameServer.Listener() {
+        @Override
+        public synchronized void onConnected(ClientConnection conn) {
+            int maxClients = dominos.getNumPlayers()-1;
+
+            // if enough clients have connected then start the game
+            MPPlayerRemote remote = null;
+            for (int i=1; i<dominos.getNumPlayers(); i++) {
+                MPPlayerRemote p = (MPPlayerRemote)dominos.getPlayer(i);
+                if (p.connection == null) {
+                    remote = p;
+                } else if (p.connection.getName().equals(conn.getName())) {
+                    remote = p;
+                }
+            }
+            if (remote != null) {
+                remote.setConnection(conn);
+                conn.sendCommand(new GameCommand(SVR_TO_CL_INIT_GAME)
+                        .setArg("numPlayers", dominos.getNumPlayers())
+                        .setArg("playerNum", remote.playerNum)
+                        .setArg("dominos", dominos.toString()));
+            }
+        }
+
+        @Override
+        public void onReconnection(ClientConnection conn) {
+
+        }
+
+        @Override
+        public void onClientDisconnected(ClientConnection conn) {
+
+        }
+    };
+
     void showHostMultiplayerDialog(final int numPlayers, final int maxPoints, final int maxPips) {
         new SpinnerTask() {
             @Override
             protected void doIt() throws Exception {
                 server.listen();
+                server.addListener(connectionListener);
                 mode = Mode.HOST;
                 helper = new WifiP2pHelper(DominosActivity.this);
                 helper.p2pInitialize();
                 helper.startGroup(); // make sure we are the group owner
                 dominos.stopGameThread();
                 dominos.initGame(maxPips, maxPoints, 0);
+                // now populate the game with remote players so that when they connect we can send them
+                // the game state right away.
+                Player [] players = new Player[numPlayers];
+                players[0] = user;
+                for (int i=1; i<players.length; i++) {
+                    players[i] = new MPPlayerRemote(i, dominos, DominosActivity.this);
+                }
+                dominos.setPlayers(players);
+                dominos.startNewGame();
             }
 
             @Override
             protected void onDone() {
-                showWaitingForPlayersDialog(numPlayers-1);
+                showWaitingForPlayersDialog();
             }
 
             @Override
@@ -546,6 +602,7 @@ public class DominosActivity extends DroidActivity {
     void killGame() {
         try {
             server.stop();
+            server.removeListener(connectionListener);
         } catch (Exception e) {
         }
         try {
@@ -565,7 +622,8 @@ public class DominosActivity extends DroidActivity {
         mode = Mode.NONE;
     }
 
-    void showWaitingForPlayersDialog(final int maxPlayers) {
+    void showWaitingForPlayersDialog() {
+        dominos.stopGameThread();
         ListView lvPlayers = new ListView(this);
         final BaseAdapter playersAdapter = new BaseAdapter() {
             @Override
@@ -620,36 +678,21 @@ public class DominosActivity extends DroidActivity {
         server.addListener(new GameServer.Listener() {
             @Override
             public synchronized void onConnected(ClientConnection conn) {
-                // if enough clients have connected then start the game
-                if (server.getNumConnectedClients() == maxPlayers) {
-                    server.removeListener(this);
-                    Player [] players = new Player[1 + server.getNumClients()];
-                    players[0] = user;
-                    Iterator<ClientConnection> it = server.getConnectionValues().iterator();
-                    for (int i=1; i<players.length; i++) {
-                        ClientConnection c = it.next();
-                        players[i] = new MPPlayerRemote(c, i, dominos, DominosActivity.this);
-                    }
-                    dominos.setPlayers(players);
-                    dominos.startNewGame();
-                    it = server.getConnectionValues().iterator();
-                    int index = 1;
-                    while (it.hasNext()) {
-                        it.next().sendCommand(new GameCommand(SVR_TO_CL_INIT_GAME).setArg("numPlayers", maxPlayers+1)
-                                .setArg("playerNum", index++)
-                                .setArg("dominos", dominos.toString()));
+                int maxClients = dominos.getNumPlayers()-1;
 
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        playersAdapter.notifyDataSetChanged();
                     }
+                });
+
+                if (server.getNumConnectedClients() == maxClients) {
+                    server.removeListener(this);
                     dominos.startGameThread();
                     currentDialog.dismiss();
                 } else {
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            playersAdapter.notifyDataSetChanged();
-                        }
-                    });
-                    int num = maxPlayers - server.getNumClients();
+                    int num = maxClients - server.getNumConnectedClients();
                     server.broadcastMessage("Waiting for " + num + " more players");
                 }
             }
@@ -922,7 +965,7 @@ public class DominosActivity extends DroidActivity {
 
     final static String VERSION = "DOMINOS.1.0";
     final static int PORT = 16342;
-    final static int CLIENT_READ_TIMEOUT = 30000;
+    final static int CLIENT_READ_TIMEOUT = 15000;
 
     GameClient client = new GameClient(Build.PRODUCT + Build.MANUFACTURER, VERSION, cypher);
 
@@ -961,10 +1004,6 @@ public class DominosActivity extends DroidActivity {
      *  dominos(serialixed)
      */
     final static GameCommandType SVR_TO_CL_INIT_GAME   = new GameCommandType("SVR_INIT_GAME");
-    /**
-     * similar to above except player count and players' positions remain
-     */
-    final static GameCommandType SVR_TO_CL_NEW_GAME    = new GameCommandType("SVR_NEW_GAME");
 
     /**
      * Just pass the serialized dominos
@@ -1062,16 +1101,19 @@ public class DominosActivity extends DroidActivity {
                         if (firstGame)
                             showHostMultiplayerDialog(numPlayers, maxPoints, maxPips);
                         else {
-                            dominos.startGameThread();
+                            dominos.initGame(maxPips, maxPoints, 0);
+                            dominos.startNewGame();
                             server.broadcastMessage("Starting a new game!");
-                            server.sendCommand(new GameCommand(SVR_TO_CL_NEW_GAME).setArg("maxPips", maxPips).setArg("maxPoints", maxPoints));
+                            server.sendCommand(new GameCommand(SVR_TO_CL_INIT_ROUND)
+                                    .setArg("dominos", dominos.toString()));
+                            dominos.startGameThread();
                         }
                     }
 
 
-                }).setOnCancelListener(new DialogInterface.OnCancelListener() {
+                }).setNegativeButton("Quit", new DialogInterface.OnClickListener() {
             @Override
-            public void onCancel(DialogInterface dialog) {
+            public void onClick(DialogInterface dialog, int which) {
                 new SpinnerTask() {
                     @Override
                     protected void doIt() throws Exception {
@@ -1171,6 +1213,7 @@ public class DominosActivity extends DroidActivity {
                             case R.id.rbTiles12x12:
                                 maxPips = 12; break;
                         }
+                        dominos.stopGameThread();
                         dominos.initGame(maxPips, maxPoints, difficulty);
                         dominos.setNumPlayers(numPlayers);
                         dominos.startNewGame();

@@ -176,6 +176,13 @@ public class WifiP2pHelper implements
     }
 
     private abstract class MyActionListener implements WifiP2pManager.ActionListener {
+
+        final String caller;
+
+        MyActionListener(String caller) {
+            this.caller = caller;
+        }
+
         @Override
         public final void onSuccess() {
             synchronized (lock) {
@@ -188,7 +195,7 @@ public class WifiP2pHelper implements
 
         @Override
         public final void onFailure(final int reason) {
-            Log.e(TAG, "Discover peers failure: " + getFailureReasonString(reason));
+            Log.e(TAG, caller + " : " + getFailureReasonString(reason));
             synchronized (lock) {
                 lock.notify();
             }
@@ -196,7 +203,7 @@ public class WifiP2pHelper implements
                 @Override
                 public void run() {
                     //Toast.makeText(ctxt, "Failed: " + getFailureReasonString(reason), Toast.LENGTH_LONG).show();
-                    onError(getFailureReasonString(reason));
+                    onError(caller + ":" + getFailureReasonString(reason));
                 }
             });
         }
@@ -284,11 +291,11 @@ public class WifiP2pHelper implements
 //WifiP2pDnsSdServiceRequest.newInstance();
         p2p.addServiceRequest(channel,
                 serviceRequest,
-                new MyActionListener() {
+                new MyActionListener("addServiceRequest") {
                     @Override
                     public void onDone() {
                         discoverServicesRequest = serviceRequest;
-                        p2p.discoverServices(channel, new MyActionListener() {
+                        p2p.discoverServices(channel, new MyActionListener("discoverServices") {
                             @Override
                             public void onDone() {
                                 Log.i(TAG, "discoverServcies SUCCESS");
@@ -297,7 +304,7 @@ public class WifiP2pHelper implements
                                     @Override
                                     public void run() {
                                         if (state == State.SERVICES && discoverServicesRequest != null) {
-                                            p2p.removeServiceRequest(channel, discoverServicesRequest, new MyActionListener() {
+                                            p2p.removeServiceRequest(channel, discoverServicesRequest, new MyActionListener("removeServiceRequest") {
                                                 @Override
                                                 protected void onDone() {
                                                     executeServiceRequest(discoverServicesRequest);
@@ -318,11 +325,11 @@ public class WifiP2pHelper implements
      */
     public final void stopDiscoverServices() {
         Log.d(TAG, "stop discover services state="+state);
-        p2p.clearLocalServices(channel, new MyActionListener() {
+        p2p.clearLocalServices(channel, new MyActionListener("clearLocalServices") {
             @Override
             protected void onDone() {
                 if (discoverServicesRequest != null) {
-                    p2p.removeServiceRequest(channel, discoverServicesRequest, new MyActionListener() {
+                    p2p.removeServiceRequest(channel, discoverServicesRequest, new MyActionListener("removeServiceRequest") {
                         @Override
                         public void onDone() {
                             Log.i(TAG, "stopDiscoverServices SUCCESS");
@@ -370,7 +377,7 @@ public class WifiP2pHelper implements
                 stopDiscoverServices();
             case PEERS:
             case INITIALIZED:
-                p2p.discoverPeers(channel, new MyActionListener() {
+                p2p.discoverPeers(channel, new MyActionListener("discoverPeers") {
                     @Override
                     public void onDone() {
                         state = State.PEERS;
@@ -505,7 +512,7 @@ public class WifiP2pHelper implements
         Log.d(TAG, "stop peer discovery state="+state);
 
         if (state == State.PEERS) {
-            p2p.stopPeerDiscovery(channel, new MyActionListener() {
+            p2p.stopPeerDiscovery(channel, new MyActionListener("stopPeerDiscovery") {
                 @Override
                 public void onDone() {
                     Log.i(TAG, "stopPeerDiscovery SUCCESS");
@@ -558,7 +565,7 @@ public class WifiP2pHelper implements
         // Add the local service, sending the service info, network channel,
         // and listener that will be used to indicate success or failure of
         // the request.
-        p2p.addLocalService(channel, serviceInfo, new MyActionListener() {
+        p2p.addLocalService(channel, serviceInfo, new MyActionListener("addLocalService") {
             @Override public void onDone() {
                 Log.i(TAG, "register service success");
                 registeredServiceInfo = serviceInfo;
@@ -572,7 +579,7 @@ public class WifiP2pHelper implements
     public final void endRegistration() {
         Log.d(TAG, "endRegistration state=" + state + ", registeredServiceInfo=" + registeredServiceInfo);
         if (registeredServiceInfo != null) {
-            p2p.removeLocalService(channel, registeredServiceInfo, new MyActionListener() {
+            p2p.removeLocalService(channel, registeredServiceInfo, new MyActionListener("removeLocalService") {
                 @Override
                 protected void onDone() {
                     Log.i(TAG, "registered service done");
@@ -584,7 +591,7 @@ public class WifiP2pHelper implements
 
 
     public void startGroup() {
-        p2p.createGroup(channel, new MyActionListener() {
+        p2p.createGroup(channel, new MyActionListener("createGroup") {
             @Override
             protected void onDone() {
                 Log.i(TAG, "Group created SUCCESS");
@@ -593,7 +600,7 @@ public class WifiP2pHelper implements
     }
 
     public void removeGroup() {
-        p2p.removeGroup(channel, new MyActionListener() {
+        p2p.removeGroup(channel, new MyActionListener("removeGrouop") {
             @Override
             protected void onDone() {
                 Log.i(TAG, "Group removed SUCCESS");
@@ -619,7 +626,7 @@ public class WifiP2pHelper implements
         config.deviceAddress = another.deviceAddress;
         config.groupOwnerIntent = 0; // TODO: ????? - for now we want to force the owner, in this case the owner is the device we are connecting too
 
-        p2p.connect(channel, config, new MyActionListener() {
+        p2p.connect(channel, config, new MyActionListener("connect") {
             @Override
             protected void onDone() {
                 Log.i(TAG, "Connect SUCCESS");
@@ -630,7 +637,7 @@ public class WifiP2pHelper implements
     }
 
     public final void cancelConnect() {
-        p2p.cancelConnect(channel, new MyActionListener() {
+        p2p.cancelConnect(channel, new MyActionListener("cancelConnect") {
             @Override
             protected void onDone() {
                 Log.i(TAG, "Connect cancelled");

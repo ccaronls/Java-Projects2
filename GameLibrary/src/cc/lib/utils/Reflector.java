@@ -1546,7 +1546,7 @@ public class Reflector<T> {
         	return super.equals(o);
         }
     }
-    
+
     @Override
     public String toString() {
         StringWriter buf = new StringWriter();
