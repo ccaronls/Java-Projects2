@@ -1,106 +1,535 @@
 package cc.game.soc.android;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.content.DialogInterface;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.BaseAdapter;
+import android.widget.Button;
+import android.widget.CompoundButton;
+import android.widget.LinearLayout;
+import android.widget.ListAdapter;
 import android.widget.ListView;
+import android.widget.NumberPicker;
+import android.widget.TableLayout;
+import android.widget.TableRow;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Vector;
 
+import cc.game.soc.core.Board;
+import cc.game.soc.core.BuildableType;
+import cc.game.soc.core.Player;
+import cc.game.soc.core.ResourceType;
+import cc.game.soc.core.Rules;
+import cc.game.soc.core.SOC;
+import cc.game.soc.core.annotations.RuleVariable;
 import cc.game.soc.ui.MenuItem;
 import cc.game.soc.ui.UIBarbarianRenderer;
 import cc.game.soc.ui.UIBoardRenderer;
+import cc.game.soc.ui.UIConsoleRenderer;
 import cc.game.soc.ui.UIDiceRenderer;
 import cc.game.soc.ui.UIEventCardRenderer;
+import cc.game.soc.ui.UIPlayer;
 import cc.game.soc.ui.UIPlayerRenderer;
+import cc.game.soc.ui.UIPlayerUser;
 import cc.game.soc.ui.UIProperties;
 import cc.game.soc.ui.UISOC;
+import cc.lib.android.ArrayListAdapter;
+import cc.lib.android.CCActivityBase;
+import cc.lib.android.CCNumberPicker;
+import cc.lib.game.GColor;
+import cc.lib.game.Utils;
 
 /**
  * Created by chriscaron on 2/15/18.
  */
 
-public class SOCActivity extends Activity {
+public class SOCActivity extends CCActivityBase implements MenuItem.Action {
 
     UISOC soc = null;
-    File saveFile;
+    File rulesFile;
+    File gameFile;
     View content;
+
+    SOCView<UIBarbarianRenderer> vBarbarian;
+    SOCView<UIEventCardRenderer> vEvent;
+    SOCView<UIBoardRenderer> vBoard;
+    SOCView<UIDiceRenderer> vDice;
+    SOCView<UIPlayerRenderer> vUser;
+    SOCView<UIPlayerRenderer> vPlayerTop;
+    SOCView<UIPlayerRenderer> vPlayerlMiddle;
+    SOCView<UIPlayerRenderer> vPlayerlBottom;
+    UIConsoleRenderer console;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         content = View.inflate(this, R.layout.soc_activity, null);
         setContentView(content);
-        SOCView<UIBarbarianRenderer> barbarian = (SOCView)findViewById(R.id.soc_barbarian);
-        SOCView<UIEventCardRenderer> event     = (SOCView)findViewById(R.id.soc_event_cards);
-        SOCView<UIBoardRenderer> board     = (SOCView)findViewById(R.id.soc_board);
-        SOCView<UIDiceRenderer> dice      = (SOCView)findViewById(R.id.soc_dice);
-        SOCView<UIPlayerRenderer> user      = (SOCView)findViewById(R.id.soc_user);
-        SOCView<UIPlayerRenderer> plTop     = (SOCView)findViewById(R.id.soc_player_top);
-        SOCView<UIPlayerRenderer> plMiddle  = (SOCView)findViewById(R.id.soc_player_middle);
-        SOCView<UIPlayerRenderer> plBottom  = (SOCView)findViewById(R.id.soc_player_bottom);
-        ListView lvMenu   = (ListView)findViewById(R.id.soc_menu_list);
+        vBarbarian = (SOCView) findViewById(R.id.soc_barbarian);
+        vEvent = (SOCView) findViewById(R.id.soc_event_cards);
+        vBoard = (SOCView) findViewById(R.id.soc_board);
+        vDice = (SOCView) findViewById(R.id.soc_dice);
+        vUser = (SOCView) findViewById(R.id.soc_user);
+        vPlayerTop = (SOCView) findViewById(R.id.soc_player_top);
+        vPlayerlMiddle = (SOCView) findViewById(R.id.soc_player_middle);
+        vPlayerlBottom = (SOCView) findViewById(R.id.soc_player_bottom);
+        console = new UIConsoleRenderer(new SOCView<>(this));
 
+        final ListView lvMenu = (ListView) findViewById(R.id.soc_menu_list);
+        final ArrayList<Object[]> menu = new ArrayList<>();
+        final BaseAdapter adapter = new ArrayListAdapter<Object[]>(this, menu, R.layout.menu_list_item) {
+            @Override
+            protected void initItem(View v, int position, Object[] item) {
+                final MenuItem mi = (MenuItem) item[0];
+                final String title = (String) item[1];
+                final String helpText = (String) item[2];
+                final Object extra = item[3];
 
-        UIProperties properties = new UIProperties();
-        //    protected UISOC(UIProperties properties, UIBoardRenderer boardRenderer, UIDiceRenderer diceRenderer, UIConsoleRenderer console,
-        // UIEventCardRenderer eventCardRenderer) {
+                TextView tvTitle = (TextView) v.findViewById(R.id.tvTitle);
+                final TextView tvHelp = (TextView) v.findViewById(R.id.tvHelp);
 
-        soc = new UISOC(properties, board.renderer, dice.renderer, null, event.renderer) {
+                tvTitle.setText(title);
+                tvHelp.setText(helpText);
+
+                v.findViewById(R.id.bAction).setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        mi.action.onAction(mi, extra);
+                    }
+                });
+                v.setOnLongClickListener(new View.OnLongClickListener() {
+                    @Override
+                    public boolean onLongClick(View v) {
+                        if (tvHelp.getVisibility() == View.VISIBLE) {
+                            tvHelp.setVisibility(View.GONE);
+                        } else {
+                            tvHelp.setVisibility(View.VISIBLE);
+                        }
+                        return true;
+                    }
+                });
+            }
+        };
+        lvMenu.setAdapter(adapter);
+
+        gameFile = new File(getFilesDir(), "save.txt");
+        rulesFile = new File(getFilesDir(), "rules.txt");
+
+        UIPlayerRenderer[] players = {
+                vUser.renderer,
+                vPlayerTop.renderer,
+                vPlayerlMiddle.renderer,
+                vPlayerlBottom.renderer
+        };
+
+        soc = new UISOC(players, vBoard.renderer, vDice.renderer, console, vEvent.renderer, vBarbarian.renderer) {
             @Override
             protected void addMenuItem(MenuItem item, String title, String helpText, Object extra) {
+                menu.add(new Object[]{
+                        item, title, helpText, extra
+                });
+            }
 
+            @Override
+            public void completeMenu() {
+                super.completeMenu();
+                addMenuItem(CONSOLE);
+                addMenuItem(BUILDABLES);
+                addMenuItem(RULES);
+                addMenuItem(QUIT);
+                adapter.notifyDataSetChanged();
             }
 
             @Override
             public void clearMenu() {
-
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        menu.clear();
+                        adapter.notifyDataSetChanged();
+                    }
+                });
             }
 
             @Override
             public void redraw() {
                 content.postInvalidate();
             }
-        };
-
-//        soc.setBoard(board);
-
-        /*
-        saveFile = new File(getFilesDir(), "soc.save");
-        soc = new soc() {
-            @Override
-            public void redraw() {
-                getContent().postInvalidate();
-            }
 
             @Override
-            protected void onGameOver() {
-                getContent().postDelayed(new Runnable() {
+            protected void showOkPopup(final String title, final String message) {
+                runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        showNewGameDialog(false);
+                        newDialog().setTitle(title).setMessage(message).setNeutralButton("OK", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                synchronized (soc) {
+                                    soc.notify();
+                                }
+                            }
+                        }).show();
                     }
-                }, 5000);
+                });
+                Utils.waitNoThrow(this, -1);
             }
 
             @Override
-            protected void onNewGameClicked() {
-                showNewGameDialog(true);
+            protected String getServerName() {
+                return Build.BRAND + "." + Build.PRODUCT;
+            }
+
+
+        };
+    }
+
+    final UIPlayerUser user = new UIPlayerUser();
+
+    final MenuItem QUIT = new MenuItem("Quit", "Exit to main menu", this);
+    final MenuItem BUILDABLES = new MenuItem("Buidlables", "See how to build things", this);
+    final MenuItem RULES = new MenuItem("Rules", "View or Edit the game rules", this);
+    final MenuItem START = new MenuItem("Start", "Start the game", this);
+    final MenuItem CONSOLE = new MenuItem("Console", "View console messages", this);
+
+    @Override
+    public void onAction(MenuItem item, Object extra) {
+        if (item == QUIT) {
+            newDialog().setTitle("Confirm").setMessage("Ae you sure you want to quit the game?").setNegativeButton("Cancel", null)
+                    .setPositiveButton("Quit", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            soc.server.stop();
+                            soc.stopRunning();
+                            user.client.disconnect("player quit");
+                            soc.clearMenu();
+                            showStartDialog();
+                        }
+                    }).show();
+        } else if (item == BUILDABLES) {
+            showBuildablesDialog();
+        } else if (item == RULES) {
+            showRulesDialog();
+        } else if (item == START) {
+            soc.initGame();
+            soc.startGameThread();
+        } else if (item == CONSOLE) {
+            newDialog().setView((SOCView)console.getComponent()).setNegativeButton("OK", null).show();
+        }
+    }
+
+    void showStartDialog() {
+        View v = View.inflate(this, R.layout.new_game_dialog, null);
+        final Dialog startDialog = newDialog().setView(v).setCancelable(false).show();
+        View.OnClickListener l = new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                try {
+                    switch (v.getId()) {
+                        case R.id.bBoards:
+                            final String [] boards = getAssets().list("boards");
+                            newDialog().setTitle("Load Board").setItems(boards, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+
+                                    try {
+                                        InputStream in = getAssets().open("boards/" + boards[which]);
+                                        try {
+                                            Board b = new Board();
+                                            b.deserialize(getAssets().open(boards[which]));
+                                            soc.setBoard(b);
+                                        } finally {
+                                            in.close();
+                                        }
+                                    } catch (IOException e) {
+                                        newDialog().setTitle("Error").setMessage("Failed to laod board. " + e.getClass().getSimpleName() + ":" + e.getMessage()).setNegativeButton("Ok", null).show();
+                                    }
+                                }
+                            }).setNegativeButton("Cancel", null).show();
+                            break;
+                        case R.id.bRules:
+                            showRulesDialog();
+                            break;
+                        case R.id.bSPGame: {
+                            final String [] items = { "2", "3", "4" };
+                            newDialog().setTitle("Num Players").setItems(items, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    final int numPlayers = which+2;
+                                    final String [] colorStrings = {
+                                            "Red", "Green", "Blue", "Yellow"
+                                    };
+                                    final GColor[]  colors = {
+                                            GColor.RED, GColor.GREEN, GColor.BLUE, GColor.YELLOW
+                                    };
+                                    newDialog().setTitle("Pick Color").setItems(colorStrings, new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            user.setColor(colors[which]);
+                                            soc.clear();
+                                            soc.addPlayer(user);
+                                            for (int i=1; i<numPlayers; i++) {
+                                                int nextColor = (which+1)%colors.length;
+                                                soc.addPlayer(new UIPlayer(colors[nextColor]));
+                                            }
+                                            startDialog.dismiss();
+                                            initGame();
+                                        }
+                                    }).setNegativeButton("Cancel", null).show();
+                                }
+                            }).setNegativeButton("Cancel", null).show();
+                            break;
+                        }
+                        case R.id.bMPGame: {
+
+                            break;
+                        }
+                        case R.id.bScenarios:
+                            final String [] scenarios = getAssets().list("scenarios");
+                            newDialog().setTitle("Load Board").setItems(scenarios, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+
+                                    try {
+                                        InputStream in = getAssets().open("scerarios/" + scenarios[which]);
+                                        try {
+                                            SOC scenario = new SOC();
+                                            scenario.deserialize(getAssets().open(scenarios[which]));
+                                            soc.copyFrom(scenario);
+                                        } finally {
+                                            in.close();
+                                        }
+                                    } catch (IOException e) {
+                                        newDialog().setTitle("Error").setMessage("Failed to laod scenario. " + e.getClass().getSimpleName() + ":" + e.getMessage()).setNegativeButton("Ok", null).show();
+                                    }
+                                }
+                            }).setNegativeButton("Cancel", null).show();
+                            break;
+                        case R.id.bResume: {
+                            SOC game = new SOC();
+                            if (game.tryLoadFromFile(gameFile)) {
+                                soc.copyFrom(game);
+                                startDialog.dismiss();
+                                initGame();
+                            } else {
+                                newDialog().setTitle("ERROR").setMessage("Cannot resume").setNegativeButton("Ok", null).show();
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         };
+        v.findViewById(R.id.bBoards).setOnClickListener(l);
+        v.findViewById(R.id.bRules).setOnClickListener(l);
+        v.findViewById(R.id.bSPGame).setOnClickListener(l);
+        v.findViewById(R.id.bMPGame).setOnClickListener(l);
+        v.findViewById(R.id.bScenarios).setOnClickListener(l);
+        v.findViewById(R.id.bResume).setOnClickListener(l);
+    }
 
-        try {
-            soc.loadFromFile(saveFile);
-        } catch (FileNotFoundException e) {
-            // ignore
-        } catch (Exception e) {
-            e.printStackTrace();
-        }*/
+    void initGame() {
+        soc.clearMenu();
+        soc.addMenuItem(START);
+        soc.completeMenu();
+        vBarbarian.setVisibility(soc.getRules().isEnableCitiesAndKnightsExpansion() ? View.VISIBLE  : View.GONE);
+        if (soc.getRules().isEnableEventCards()) {
+            vEvent.setVisibility(View.VISIBLE);
+            vDice.setVisibility(View.GONE);
+        } else {
+            vEvent.setVisibility(View.GONE);
+            vDice.setVisibility(View.VISIBLE);
+        }
+
+        vPlayerlMiddle.setVisibility(soc.getNumPlayers() > 2 ? View.VISIBLE : View.GONE);
+        vPlayerlBottom.setVisibility(soc.getNumPlayers() > 3 ? View.VISIBLE : View.GONE);
+    }
+
+    void showBuildablesDialog() {
+        Vector<String> columnNames = new Vector<String>();
+        columnNames.add("Buildable");
+        for (ResourceType r : ResourceType.values()) {
+            columnNames.add(r.name());
+
+        }
+        Vector<Vector<String>> rowData = new Vector<>();
+        for (BuildableType b : BuildableType.values()) {
+            if (b.isAvailable(soc)) {
+                Vector<String> row = new Vector<>();
+                row.add(b.name());
+                for (ResourceType r : ResourceType.values())
+                    row.add(String.valueOf(b.getCost(r)));
+                rowData.add(row);
+            }
+        }
+
+        TableLayout table = new TableLayout(this);
+        TableRow header = new TableRow(this);
+
+        for (String s : columnNames) {
+            TextView t = new TextView(this);
+            t.setText(s);
+            header.addView(t);
+        }
+
+        table.addView(header);
+        for (Vector<String> r : rowData) {
+            TableRow row = new TableRow(this);
+            for (String s : r) {
+                TextView t = new TextView(this);
+                t.setText(s);
+                row.addView(t);
+            }
+            table.addView(row);
+        }
+        newDialog().setTitle("Buildables").setView(table).setNegativeButton("Ok", null).show();
+    }
+
+    void showRulesDialog() {
+        final boolean canEdit = !soc.isRunning() && !user.client.isConnected();
+        final Rules rules = soc.getRules().deepCopy();
+
+        final Field[] fields = Rules.class.getDeclaredFields();
+        ListView lv = new ListView(this);
+        BaseAdapter rulesAdapter = new BaseAdapter() {
+            @Override
+            public int getCount() {
+                return fields.length;
+            }
+
+            @Override
+            public Object getItem(int position) {
+                return null;
+            }
+
+            @Override
+            public long getItemId(int position) {
+                return position;
+            }
+
+            @Override
+            public View getView(int position, View v, ViewGroup parent) {
+                if (v == null) {
+                    v = View.inflate(SOCActivity.this, R.layout.rules_list_item, null);
+                }
+                TextView tvHeader = (TextView)v.findViewById(R.id.tvHeader);
+                TextView tvName   = (TextView)v.findViewById(R.id.tvName);
+                TextView tvDesc   = (TextView)v.findViewById(R.id.tvDescription);
+                CompoundButton cb = (CompoundButton)v.findViewById(R.id.cbEnabled);
+                Button   bEdit    = (Button)v.findViewById(R.id.bEdit);
+
+                try {
+                    final Field f = fields[position];
+                    Annotation[] anno = f.getAnnotations();
+                    for (Annotation a : anno) {
+                        if (a.annotationType().equals(RuleVariable.class)) {
+                            f.setAccessible(true);
+                            final RuleVariable ruleVar = (RuleVariable)a;
+                            if (ruleVar.separator().length() > 0) {
+                                // header
+                                tvHeader.setVisibility(View.VISIBLE);
+                                tvName.setVisibility(View.GONE);
+                                tvDesc.setVisibility(View.GONE);
+                                cb.setVisibility(View.GONE);
+                                bEdit.setVisibility(View.GONE);
+                                tvHeader.setText(ruleVar.separator());
+                            } else if (f.getType().equals(boolean.class)) {
+                                // checkbox
+                                tvHeader.setVisibility(View.GONE);
+                                tvName.setVisibility(View.VISIBLE);
+                                tvDesc.setVisibility(View.VISIBLE);
+                                cb.setVisibility(View.VISIBLE);
+                                bEdit.setVisibility(View.GONE);
+                                tvName.setText(f.getName());
+                                tvDesc.setText(ruleVar.description());
+                                cb.setChecked(f.getBoolean(rules));
+                                cb.setEnabled(canEdit);
+                                cb.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                                    @Override
+                                    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                                        try {
+                                            f.setBoolean(rules, isChecked);
+                                        } catch (Exception e) {
+                                            e.printStackTrace();
+                                        }
+                                    }
+                                });
+                            } else if (f.getType().equals(int.class)) {
+                                // numberpicker
+                                tvHeader.setVisibility(View.GONE);
+                                tvName.setVisibility(View.VISIBLE);
+                                tvDesc.setVisibility(View.VISIBLE);
+                                cb.setVisibility(View.GONE);
+                                bEdit.setVisibility(View.VISIBLE);
+                                tvName.setText(f.getName());
+                                tvDesc.setText(ruleVar.description());
+                                final int value = f.getInt(rules);
+                                bEdit.setText(String.valueOf(f.getInt(rules)));
+                                bEdit.setEnabled(canEdit);
+                                bEdit.setOnClickListener(new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View v) {
+                                        final NumberPicker np = CCNumberPicker.newPicker(SOCActivity.this, value, ruleVar.minValue(), ruleVar.maxValue(), null);
+                                        newDialog().setTitle(f.getName()).setView(np).setNegativeButton("Cancel", null)
+                                                .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                try {
+                                                    f.setInt(rules, np.getValue());
+                                                } catch (Exception e) {
+                                                    e.printStackTrace();
+                                                }
+                                            }
+                                        }).show();
+                                    }
+                                });
+                            } else {
+                                log.error("Dont know how to handle field: " + f.getName());
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                return v;
+            }
+        };
+        lv.setAdapter(rulesAdapter);
+        AlertDialog.Builder b = newDialog().setTitle("Rules").setView(lv);
+        if (canEdit) {
+            b.setNegativeButton("Discard", null).setNeutralButton("Save", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    rules.trySaveToFile(rulesFile);
+                    soc.setRules(rules);
+                }
+            }).setPositiveButton("Keep", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    soc.setRules(rules);
+                }
+            }).show();
+        } else {
+            b.setNegativeButton("Ok", null).show();
+        }
     }
 
     void copyFileToExt() {
@@ -114,6 +543,7 @@ public class SOCActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
+        showStartDialog();
         /*
         if (soc.getNumPlayers() > 0 && soc.getWinner() == null)
             soc.startGameThread();
@@ -169,7 +599,10 @@ public class SOCActivity extends Activity {
     protected void onPause() {
         super.onPause();
         soc.stopRunning();
-        soc.trySaveToFile(saveFile);
+        soc.trySaveToFile(gameFile);
     }
 
+    protected AlertDialog.Builder newDialog() {
+        return new AlertDialog.Builder(this, android.R.style.Theme_Holo_Dialog);
+    }
 }

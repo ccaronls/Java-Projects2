@@ -45,7 +45,13 @@ public class UIPlayer extends PlayerBot implements ClientConnection.Listener {
     }
 
 	private GColor color = GColor.BLACK;
-	
+
+    public UIPlayer() {}
+
+    public UIPlayer(GColor color) {
+        this.color = color;
+    }
+
 	public void setColor(GColor color) {
 		this.color = color;
 	}

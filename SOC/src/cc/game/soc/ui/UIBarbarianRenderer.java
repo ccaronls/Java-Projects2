@@ -13,7 +13,6 @@ public final class UIBarbarianRenderer extends UIRenderer {
 
 	private int baseImage;
 	private int shipImage;
-    private final UIComponent component;
     private int distance = -1;//positions.length-1;
 
     private final static float IMAGE_WIDTH = 1f/454;
@@ -31,7 +30,7 @@ public final class UIBarbarianRenderer extends UIRenderer {
     };
 
 	public UIBarbarianRenderer(UIComponent component) {
-	    this.component = component;
+	    super(component);
 	    component.setRenderer(this);
 	}
 

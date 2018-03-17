@@ -14,11 +14,10 @@ public final class UIEventCardRenderer extends UIRenderer {
 
 	private float minCardWidth = 0;
 	final UIDiceRenderer diceComps;
-	private final UIComponent component;
 	private EventCard eventCard = null;
 
 	public UIEventCardRenderer(UIComponent component) {
-		this.component = component;
+		super(component);
         this.diceComps = new UIDiceRenderer(component);
 		this.component.setRenderer(this);
 	}

@@ -25,10 +25,8 @@ public final class UIConsoleRenderer extends UIRenderer {
     private int startLine = 0;
     private int maxVisibleLines = 1;
 
-    private final UIComponent component;
-
     public UIConsoleRenderer(UIComponent component) {
-        this.component = component;
+        super(component);
         component.setRenderer(this);
     }
 

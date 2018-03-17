@@ -53,7 +53,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
 
     private static UISOC instance = null;
 
-    private GameServer server = new GameServer(NetCommon.PORT, 30000, NetCommon.VERSION, NetCommon.cypher, 8);
+    public final GameServer server = new GameServer(getServerName(), NetCommon.PORT, 30000, NetCommon.VERSION, NetCommon.getCypher(), 8);
 
     private final UIPlayerRenderer [] playerComponents;
     private final UIBoardRenderer boardRenderer;
@@ -111,7 +111,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
     protected final Player.RouteChoiceType chooseRouteType(){
         clearMenu();
         addMenuItem(CHOOSE_ROAD, "Roads", "View road options", Player.RouteChoiceType.ROAD_CHOICE);
-        addMenuItem(CHOOSE_ROAD, "Ships", "View ship options", Player.RouteChoiceType.SHIP_CHOICE);
+        addMenuItem(CHOOSE_SHIP, "Ships", "View ship options", Player.RouteChoiceType.SHIP_CHOICE);
         completeMenu();
         return waitForReturnValue(null);
     }
@@ -479,6 +479,8 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
         return (T)returnValue;
     }
 
+    protected abstract String getServerName();
+
     protected abstract void addMenuItem(MenuItem item, String title, String helpText, Object extra);
 
     public abstract void clearMenu();
@@ -489,7 +491,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
         return optimal;
     }
 
-    protected final void addMenuItem(MenuItem item) {
+    public final void addMenuItem(MenuItem item) {
         addMenuItem(item, item.title, item.helpText, null);
     }
 
@@ -501,24 +503,6 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
 
     UIDiceRenderer getDiceRenderer() {
         return getRules().isEnableEventCards() ? eventCardRenderer.diceComps :diceRenderer;
-    }
-
-    @Override
-    @Keep
-    protected void onDiceRolled(Dice ... dice) {
-        server.executeOnRemote(NetCommon.SOC_ID, null, dice);
-        UIDiceRenderer dr = getDiceRenderer();
-        dr.spinDice(3000, dice);
-        dr.setDice(getDice());
-        super.onDiceRolled(dice);
-    }
-
-    @Override
-    @Keep
-    protected void onEventCardDealt(EventCard card) {
-        server.executeOnRemote(NetCommon.SOC_ID, null, card);
-        eventCardRenderer.setEventCard(card);
-        super.onEventCardDealt(card);
     }
 
     public boolean getSetDiceMenu(Dice[] die, int num) {
@@ -601,7 +585,6 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
     });
 
     public final MenuItem CHOOSE_MOVE = new MenuItem("--", null, this);
-    public final MenuItem CHOOSE_GIVEUP_CARD = new MenuItem("--", null, this);
     public final MenuItem CHOOSE_PLAYER = new MenuItem("--", null, this);
     public final MenuItem CHOOSE_CARD = new MenuItem("--", null, this);
     public final MenuItem CHOOSE_TRADE = new MenuItem("--", null, this);
@@ -635,6 +618,24 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
         super.printinfo(playerNum, txt);
         if (console != null)
             console.addText(getPlayerColor(playerNum), txt);
+    }
+
+    @Override
+    @Keep
+    protected void onDiceRolled(Dice ... dice) {
+        server.executeOnRemote(NetCommon.SOC_ID, null, dice);
+        UIDiceRenderer dr = getDiceRenderer();
+        dr.spinDice(3000, dice);
+        dr.setDice(getDice());
+        super.onDiceRolled(dice);
+    }
+
+    @Override
+    @Keep
+    protected void onEventCardDealt(EventCard card) {
+        server.executeOnRemote(NetCommon.SOC_ID, null, card);
+        eventCardRenderer.setEventCard(card);
+        super.onEventCardDealt(card);
     }
 
     @Override
@@ -1086,6 +1087,8 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
     @Keep
     protected void onRoadDamaged(int r, int destroyer, int victim) {
         server.executeOnRemote(NetCommon.SOC_ID, null, r, destroyer, victim);
+        Route road = getBoard().getRoute(r);
+        addFloatingTextAnimation((UIPlayer)getPlayerByPlayerNum(road.getPlayer()), getBoard().getRouteMidpoint(road), "Road Damaged.\nCannt build another\nuntil it is repaired");
         super.onRoadDamaged(r, destroyer, victim);
     }
 
@@ -1098,6 +1101,9 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
     @Keep
     protected void onPlayerShipComandeered(int taker, int shipTaken) {
         server.executeOnRemote(NetCommon.SOC_ID, null, taker, shipTaken);
+        Route ship = getBoard().getRoute(shipTaken);
+        Player tPlayer = getPlayerByPlayerNum(taker);
+        addFloatingTextAnimation((UIPlayer)getPlayerByPlayerNum(ship.getPlayer()), getBoard().getRouteMidpoint(ship), "Ship Commandeered\nby " + tPlayer.getName());
         super.onPlayerShipComandeered(taker, shipTaken);
     }
 
@@ -1105,7 +1111,38 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
     @Keep
     protected void onPlayerShipDestroyed(int r) {
         server.executeOnRemote(NetCommon.SOC_ID, null, r);
+        Route ship = getBoard().getRoute(r);
+        addFloatingTextAnimation((UIPlayer)getPlayerByPlayerNum(ship.getPlayer()), getBoard().getRouteMidpoint(ship), "Ship Destroyed");
         super.onPlayerShipDestroyed(r);
+    }
+
+
+    @Override
+    @Keep
+    protected void onGameOver(final int winnerNum) {
+        server.executeOnRemote(NetCommon.SOC_ID, null, winnerNum);
+        getUIBoard().addAnimation(new AAnimation<AGraphics>(700, -1, true) {
+
+            @Override
+            protected void draw(AGraphics g, float position, float dt) {
+                UIPlayer player = (UIPlayer)getPlayerByPlayerNum(winnerNum);
+                String txt = player.getName() + " WINS!!!";
+                float width = g.getTextWidth(txt);
+                float ratio = 2*width/g.getViewportWidth();
+                float oldHgt = g.getTextHeight();
+                float targetHeight = ratio * oldHgt;
+                float minHeight = targetHeight * 0.8f;
+                float maxHeight = targetHeight * 1.2f;
+                g.setTextHeight(minHeight + (maxHeight-minHeight)*position);
+                g.setColor(player.getColor());
+                g.pushMatrix();
+                g.translate(g.getViewportWidth()/2, g.getViewportHeight()/2);
+                g.drawJustifiedString(0, 0, Justify.CENTER, Justify.CENTER,txt);
+                g.popMatrix();
+                g.setTextHeight(oldHgt);
+            }
+        }, false);
+        super.onGameOver(winnerNum);
     }
 
     @Override
@@ -1141,4 +1178,5 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
     public void onClientDisconnected(ClientConnection conn) {
         printinfo(0, "Player " + conn.getName() + " has disconnected");
     }
+
 }

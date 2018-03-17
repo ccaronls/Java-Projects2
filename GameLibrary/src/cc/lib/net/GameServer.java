@@ -64,6 +64,7 @@ public class GameServer extends ARemoteExecutor {
     private final Cypher cypher;
     private final int maxConnections;
     private final int port;
+    private final String name;
     
     public String toString() {
         String r = "GameServer:" + mVersion;
@@ -81,7 +82,8 @@ public class GameServer extends ARemoteExecutor {
     /**
      * Create a server and start listening.  When cypher is not null, then then server will only
      * allow encrypted clients.
-     * 
+     *
+     * @param serverName the name of this server as seen by the clients
      * @param listenPort port to listen on for new connections
      * @param clientReadTimeout timeout in milliseconds before a client disconnect
      * @param serverVersion version of this service to use to check compatibility with clients
@@ -90,12 +92,22 @@ public class GameServer extends ARemoteExecutor {
      * @throws IOException 
      * @throws Exception
      */
-    public GameServer(int listenPort, int clientReadTimeout, String serverVersion, Cypher cypher, int maxConnections) {
+    public GameServer(String serverName, int listenPort, int clientReadTimeout, String serverVersion, Cypher cypher, int maxConnections) {
+        this.name = serverName.toString(); // null check
+        if (clientReadTimeout < 1000)
+            throw new RuntimeException("Value for timeout too small");
         this.clientReadTimeout = clientReadTimeout;
+        if (listenPort < 1000)
+            throw new RuntimeException("Invalid value for listener port/ Think higher.");
         this.port = listenPort;
+        if (maxConnections < 2)
+            throw new RuntimeException("Value for maxConnections too small");
         this.maxConnections = maxConnections;
         this.mVersion = serverVersion.toString(); // null check
         this.cypher = cypher;
+        if (cypher == null) {
+            log.warn("NULL CYPHER NOT A GOOD IDEA FOR RELEASE!");
+        }
     }
 
     /**
@@ -336,6 +348,7 @@ public class GameServer extends ARemoteExecutor {
                 if (magic != 87263450972L)
                     throw new ProtocolException("Unknown client");
 
+                out.writeUTF(name);
                 GameCommand cmd = GameCommand.parse(in);
                 log.debug("Parsed incoming command: " + cmd);
                 String name = cmd.getName();

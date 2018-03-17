@@ -26,7 +26,6 @@ public final class UIDiceRenderer extends UIRenderer {
             //new Dice(5, DiceType.RedYellow),
             //new Dice(4, DiceType.YellowRed)
     };
-    private final UIComponent component;
     private int picked = -1;
     private int pickable = 0;
 
@@ -38,7 +37,7 @@ public final class UIDiceRenderer extends UIRenderer {
     }
     
 	public UIDiceRenderer(UIComponent component) {
-        this.component = component;
+        super(component);
         this.component.setRenderer(this);
 	}
 

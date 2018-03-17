@@ -1628,6 +1628,11 @@ public class Reflector<T> {
      */
     @SuppressWarnings({ "unchecked", "rawtypes" })
 	public final void copyFrom(Reflector<T> other) {
+        if (other == this) {
+            System.err.println("Copying from self?");
+            return;
+        }
+
     	try {
             Map<Field, Archiver> values = getValues(getClass(), false);
             Map<Field, Archiver> otherValues = getValues(other.getClass(), false);

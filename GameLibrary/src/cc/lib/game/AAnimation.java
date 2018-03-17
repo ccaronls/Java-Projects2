@@ -55,7 +55,7 @@ public abstract class AAnimation<T> {
     /**
      * Create a repeating animation with option to oscilate (play in reverse) on every other repeat
      *
-     * @param durationMSecs duration of one loop
+     * @param durationMSecs duration of one loop, must be > 0
      * @param repeats repeats=0 means none. repeats<0 means infinite. repeats>0 means fixed number of repeats
      * @param oscilateOnRepeat when true, a loop will reverse from its current play direction on each repeat
      */

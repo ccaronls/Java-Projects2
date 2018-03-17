@@ -672,7 +672,7 @@ public abstract class Dominos extends Reflector<Dominos> {
 
         g.clearScreen(GColor.GREEN);
         g.setColor(GColor.GREEN.darkened(0.2f));
-        g.drawFilledRectf(0, 0, boardDim, boardDim);
+        g.drawFilledRect(0, 0, boardDim, boardDim);
 
         boolean drawDragged = false;
         if (remainingTileAnimation != null) {
@@ -729,18 +729,23 @@ public abstract class Dominos extends Reflector<Dominos> {
 
     @Omit private AAnimation<AGraphics> turnTransitionAnimation = null;
 
-    private void setupTextHeight(AGraphics g, float targetWidth, float targetHeight) {
+    private void setupTextHeight(AGraphics g, float maxWidth, float maxLinesHeight) {
+        if (players.length < 2)
+            return;
 
         // now size down until the string fits into the width
-        for (int i=0; i<100; i++) {
-            g.setTextHeight(targetHeight);
+        float height = maxLinesHeight/(players.length-1);
+        final float maxHeight = height;
+
+         for (int i=0; i<10; i++) {
+            g.setTextHeight(height);
             float width = g.getTextWidth("PW X W WW PTS");
-            float delta = width / targetWidth;
-            if (width > targetWidth) {
+            float delta = width / maxWidth;
+            if (width > maxWidth) {
                 //g.setFont(g.getFont().deriveFont(--targetHeight));
-                targetHeight *= 1f/delta;
-            } else if (width < targetWidth*0.8f) {
-                targetHeight *= delta/2;
+                height *= 1f/delta;
+            } else if (width < maxWidth*0.8f && height < maxHeight * 0.8f) {
+                height *= 1f/(delta*2);
             } else {
                 break;
             }
@@ -828,7 +833,6 @@ public abstract class Dominos extends Reflector<Dominos> {
     private void drawPlayerTiles(APGraphics g, int player, float w, float h, int pickX, int pickY, boolean drawDragged) {
 
         Player p = players[player];
-	    int numRows = 1;
 	    int numTiles = p.getTiles().size();
 
 	    if (poolAnimation != null) {
@@ -841,34 +845,34 @@ public abstract class Dominos extends Reflector<Dominos> {
         if (numTiles < 4)
             numTiles = 4;
 
-	    float tileD = Math.min(w/(2*numTiles), h);
-	    int tilesPerRow = numTiles;
+        int rows = 2;
+        int cols = 2;
+        final float aspect = w/h;
 
-	    while (tilesPerRow > 1) {
-	        if (tileD * 2 * tilesPerRow * tileD * numRows < (w*h)/2) {
-                tilesPerRow -= 1;
-                numRows++;
-                tileD = w / (2 * tilesPerRow);
+        while (numTiles > rows*cols/2) {
+            float a = (float)(cols*2)/rows;
+            if (a < aspect) {
+                rows++;
             } else {
-	            break;
+                cols += 2;
             }
         }
 
-        final int numT = p.tiles.size() + (poolAnimation == null ? 0 : 1);
-
-        if (tileD*numRows > h) {
-	        tileD = h/numRows;
+        if (rows * cols * 2 < numTiles) {
+            System.err.println("oooops");
         }
+        int tilesPerRow = cols/2;
+        float tileD = Math.min(h/rows, w/cols);
 
         g.setPointSize(tileD/8);
         highlightedPlayerTile = -1;
         int tile = 0;
         g.pushMatrix();
         g.scale(tileD, tileD);
-        for (int i=0; i<numRows; i++) {
+        for (int i=0; i<rows; i++) {
             g.pushMatrix();
             for (int ii=0; ii<tilesPerRow; ii++) {
-                if (tile < numT) {
+                if (tile < numTiles) {
 
                     boolean anim = tile >= p.tiles.size();
 

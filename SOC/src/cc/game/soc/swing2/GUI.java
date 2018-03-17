@@ -22,6 +22,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
+import java.net.InetAddress;
 import java.util.*;
 
 import javax.swing.BorderFactory;
@@ -47,6 +48,9 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileFilter;
 
+import javax.jmdns.JmDNS;
+import javax.jmdns.ServiceInfo;
+
 import cc.game.soc.core.*;
 import cc.game.soc.core.annotations.RuleVariable;
 import cc.game.soc.ui.*;
@@ -60,6 +64,7 @@ import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
 import cc.lib.math.MutableVector2D;
+import cc.lib.net.GameServer;
 import cc.lib.swing.AWTGraphics;
 import cc.lib.swing.AWTUtils;
 import cc.lib.swing.EZFrame;
@@ -93,6 +98,7 @@ public class GUI implements ActionListener, MenuItem.Action {
     public final MenuItem CHOOSE_NUM_PLAYERS = new MenuItem("--", null, this);
     public final MenuItem CHOOSE_COLOR = new MenuItem("--", null, this);
     public final MenuItem START = new MenuItem("Start", "Start the game", this);
+    public final MenuItem START_MULTIPLAYER = new MenuItem("Start MP", "Start game and wait for players to join", this);
     public final MenuItem GEN_HEX_BOARD = new MenuItem("New Hexagon", "Generate a hexagon shaped board", this);
     public final MenuItem GEN_HEX_BOARD_SMALL = new MenuItem("Small", "Generate a small hexagon shaped board", this);
     public final MenuItem GEN_HEX_BOARD_MEDIUM = new MenuItem("Medium", "Generate a medium hexagon shaped board", this);
@@ -155,6 +161,7 @@ public class GUI implements ActionListener, MenuItem.Action {
 	private enum MenuState {
 
 	    MENU_START,
+        MENU_START_MP,
 	    MENU_CHOOSE_NUM_PLAYERS,
 	    MENU_CHOOSE_COLOR,
 	    MENU_GAME_SETUP,
@@ -165,7 +172,8 @@ public class GUI implements ActionListener, MenuItem.Action {
 	    MENU_DEBUGGING,
 	    
 	}
-	
+
+    private JmDNS jmdns = null;
     private final UISOC soc;
 	private final JPanel menu = new JPanel();
 
@@ -352,7 +360,7 @@ public class GUI implements ActionListener, MenuItem.Action {
 	public GUI(EZFrame frame, final UIProperties props) throws IOException {
 		this.frame = frame;
 		this.props = props;
-        soc = new UISOC(playerRenderers, boardRenderer, diceRenderers, console, eventCardRenderer, barbarianRenderer) {
+		soc = new UISOC(playerRenderers, boardRenderer, diceRenderers, console, eventCardRenderer, barbarianRenderer) {
             @Override
             protected void addMenuItem(MenuItem item, String title, String helpText, Object object) {
                 menu.add(getMenuOpButton(item, title, helpText, object));
@@ -366,6 +374,11 @@ public class GUI implements ActionListener, MenuItem.Action {
             @Override
             public void redraw() {
                 frame.repaint();
+            }
+
+            @Override
+            protected String getServerName() {
+                return System.getProperty("user.name");
             }
 
             @Override
@@ -1639,6 +1652,37 @@ public class GUI implements ActionListener, MenuItem.Action {
                 initMenu();
                 clearSaves();
                 soc.startGameThread();
+            } else {
+                log.error("Board not ready");
+            }
+        } else if (op == START_MULTIPLAYER) {
+            if (getBoard().isReady()) {
+                try {
+                    soc.server.listen();
+                } catch (Exception e) {
+                    showOkPopup("ERROR", "Failed to start server. " + e.getClass().getSimpleName() + ":" + e.getMessage());
+                    return;
+                }
+
+                try {
+                    jmdns = JmDNS.create(InetAddress.getLocalHost());
+
+                    // Register a service
+                    ServiceInfo serviceInfo = ServiceInfo.create("_soc._tcp.local.", "example", NetCommon.PORT, "name=" + System.getProperty("user.name"));
+                    jmdns.registerService(serviceInfo);
+
+                    // Unregister all services
+                    jmdns.unregisterAllServices();
+                } catch (Exception e) {
+                    soc.server.stop();
+                    showOkPopup("ERROR", "Failed to register Bonjour service. "+ e.getClass().getSimpleName() + ":" + e.getMessage());
+                    return;
+                }
+
+                getBoard().assignRandom();
+                menuStack.clear();
+                menuStack.push(MenuState.MENU_START_MP);
+                initMenu();
             } else {
                 log.error("Board not ready");
             }

@@ -39,10 +39,9 @@ public final class UIPlayerRenderer extends UIRenderer {
 	}
 
 	UIPlayer player;
-    final UIComponent component;
 
     public UIPlayerRenderer(UIComponent component) {
-        this.component = component;
+        super(component);
         this.component.setRenderer(this);
     }
 
@@ -61,7 +60,7 @@ public final class UIPlayerRenderer extends UIRenderer {
 
         StringBuffer str = new StringBuffer();
         str.append(player.getName())
-                .append(" ").append(player.getPoints()).append(" Points\nCards")
+                .append(" ").append(player.getPoints()).append(" Points\nCards ")
                 .append(player.getTotalCardsLeftInHand()).append( "(").append(soc.getRules().getMaxSafeCardsForPlayer(player.getPlayerNum(), soc.getBoard()))
                 .append(")\n");
         if (player.isInfoVisible()) {

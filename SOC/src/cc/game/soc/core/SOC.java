@@ -3525,6 +3525,8 @@ public class SOC extends Reflector<SOC> {
 	 * @return
 	 */
 	public boolean canCancel() {
+	    if (mStateStack.empty())
+	        return false;
 	    return getState().canCancel;
 	}
 
@@ -5283,9 +5285,7 @@ public class SOC extends Reflector<SOC> {
 	/**
 	 * Called when game over is detected
 	 */
-	protected void onGameOver(int winnerNum) {
-	    
-	}
+	protected void onGameOver(int winnerNum) {}
 
     public final boolean save(String fileName) {
     	try {

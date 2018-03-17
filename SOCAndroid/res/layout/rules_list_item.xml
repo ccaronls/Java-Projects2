@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:orientation="vertical"
+              android:layout_height="match_parent">
+
+    <TextView
+        style="@style/soc_header"
+        android:drawableBottom="@drawable/horz_line"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/tvHeader"
+        android:text="Header Text"/>
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            style="@style/soc_label"
+            android:layout_height="fill_parent"
+              android:layout_width="0dp"
+              android:layout_weight="4"
+              android:id="@+id/tvName"
+              android:text="NAME"/>
+
+        <Button
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="fill_parent"
+            android:id="@+id/bEdit"
+            android:text="Edit"/>
+
+        <CheckBox
+            android:layout_width="wrap_content"
+            android:layout_height="fill_parent"
+            android:id="@+id/cbEnabled"
+            android:enabled="false"
+            android:checked="true"/>
+
+    </LinearLayout>
+
+    <TextView
+        style="@style/soc_label"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/tvDescription"
+        android:text="This is intended to be longer text"/>
+
+
+</LinearLayout>

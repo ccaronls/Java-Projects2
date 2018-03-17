@@ -63,6 +63,7 @@ public class GameClient extends ARemoteExecutor {
     private final String version;
     private Cypher cypher;
     private final Set<Listener> listeners = new HashSet<>();
+    private String serverName = null;
     
     // giving package access for JUnit tests ONLY!
     CommandQueueWriter outQueue = new CommandQueueWriter() {
@@ -123,6 +124,14 @@ public class GameClient extends ARemoteExecutor {
     public final String getName() {
         return userName;
     }
+
+    /**
+     *
+     * @return
+     */
+    public final String getServerName() {
+        return serverName;
+    }
     
     private boolean isIdle() {
         return state == State.READY || state == State.DISCONNECTED;
@@ -170,6 +179,7 @@ public class GameClient extends ARemoteExecutor {
                     out = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
                 }
                 out.writeLong(87263450972L); // write out the magic number the servers are expecting
+                serverName = in.readUTF();
                 outQueue.start(out);
                 GameCommandType type = state == State.READY ? GameCommandType.CL_CONNECT : GameCommandType.CL_RECONNECT;
                 outQueue.add(new GameCommand(type).setName(userName).setVersion(version));

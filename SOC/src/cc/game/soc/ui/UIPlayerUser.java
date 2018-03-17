@@ -10,23 +10,23 @@ import cc.game.soc.core.Dice;
 import cc.game.soc.core.MoveType;
 import cc.game.soc.core.SOC;
 import cc.game.soc.core.Trade;
+import cc.lib.annotation.Keep;
 import cc.lib.net.GameClient;
 import cc.lib.net.GameCommand;
 
+/**
+ * A UI Plauer User is a player that required user feedback for choice callabcks. On any individual
+ * device "there can only be one" user.
+ *
+ * In a MP game is the device is connected as a client, then the GameClient isconnected to a game
+ * server where this user is represented as a UIPlayer with an active clientConnection.
+ */
 public final class UIPlayerUser extends UIPlayer implements GameClient.Listener {
 
-    private final GameClient client = new GameClient(getName(), NetCommon.VERSION, NetCommon.cypher);
+    public final GameClient client = new GameClient(getName(), NetCommon.VERSION, NetCommon.getCypher());
 
 	public UIPlayerUser() {
 	    client.addListener(this);
-    }
-
-    public void connect(InetAddress address) throws IOException {
-        client.connect(address, NetCommon.PORT);
-    }
-
-    public void disconnect() {
-	    client.disconnect("user disconnected");
     }
 
 	@Override
@@ -34,6 +34,7 @@ public final class UIPlayerUser extends UIPlayer implements GameClient.Listener 
 		return ((UISOC)soc).chooseMoveMenu(moves);
 	}
     // private versions of overloaded methods are called by remote server so as not to need to include the large SOC object
+    @Keep
     private MoveType chooseMove(Collection<MoveType> moves) {
         return chooseMove(UISOC.getInstance(), moves);
     }
@@ -43,6 +44,7 @@ public final class UIPlayerUser extends UIPlayer implements GameClient.Listener 
 		return ((UISOC)soc).chooseRouteType();
 	}
     // private versions of overloaded methods are called by remote server so as not to need to include the large SOC object
+    @Keep
     private RouteChoiceType chooseRouteType() {
 	    return chooseRouteType(UISOC.getInstance());
     }
@@ -56,6 +58,7 @@ public final class UIPlayerUser extends UIPlayer implements GameClient.Listener 
 		return v;
 	}
     // private versions of overloaded methods are called by remote server so as not to need to include the large SOC object
+    @Keep
     private Integer chooseVertex(Collection<Integer> vertexIndices, VertexChoice mode, Integer knightToMove) {
 	    return chooseVertex(UISOC.getInstance(), vertexIndices, mode, knightToMove);
     }
@@ -69,6 +72,7 @@ public final class UIPlayerUser extends UIPlayer implements GameClient.Listener 
 		return r;
 	}
     // private versions of overloaded methods are called by remote server so as not to need to include the large SOC object
+    @Keep
     private  Integer chooseRoute(Collection<Integer> routeIndices, RouteChoice mode) {
 	    return chooseRoute(UISOC.getInstance(), routeIndices, mode);
     }
@@ -78,6 +82,7 @@ public final class UIPlayerUser extends UIPlayer implements GameClient.Listener 
 		return ((UISOC)soc).chooseTile(tileIndices, mode);
 	}
     // private versions of overloaded methods are called by remote server so as not to need to include the large SOC object
+    @Keep
     private  Integer chooseTile(Collection<Integer> tileIndices, TileChoice mode) {
 	    return chooseTile(UISOC.getInstance(), tileIndices, mode);
     }
@@ -87,6 +92,7 @@ public final class UIPlayerUser extends UIPlayer implements GameClient.Listener 
 		return ((UISOC)soc).chooseTradeMenu(trades);
 	}
     // private versions of overloaded methods are called by remote server so as not to need to include the large SOC object
+    @Keep
     private  Trade chooseTradeOption(Collection<Trade> trades) {
         return chooseTradeOption(UISOC.getInstance(), trades);
     }
@@ -96,6 +102,7 @@ public final class UIPlayerUser extends UIPlayer implements GameClient.Listener 
 		return ((UISOC)soc).choosePlayerMenu(players, mode);
 	}
     // private versions of overloaded methods are called by remote server so as not to need to include the large SOC object
+    @Keep
     private  Integer choosePlayer(Collection<Integer> players, PlayerChoice mode) {
 	    return choosePlayer(UISOC.getInstance(), players, mode);
     }
@@ -105,6 +112,7 @@ public final class UIPlayerUser extends UIPlayer implements GameClient.Listener 
 		return ((UISOC)soc).chooseCardMenu(cards);
     }
     // private versions of overloaded methods are called by remote server so as not to need to include the large SOC object
+    @Keep
     private Card chooseCard(Collection<Card> cards, CardChoice mode) {
         return chooseCard(UISOC.getInstance(), cards, mode);
     }
@@ -114,6 +122,7 @@ public final class UIPlayerUser extends UIPlayer implements GameClient.Listener 
 		return ((UISOC)soc).chooseEnum(Arrays.asList(values));
     }
     // private versions of overloaded methods are called by remote server so as not to need to include the large SOC object
+    @Keep
     private <T extends Enum<T>> T chooseEnum(EnumChoice mode, T [] values) {
         return chooseEnum(UISOC.getInstance(), mode, values);
     }
@@ -123,6 +132,7 @@ public final class UIPlayerUser extends UIPlayer implements GameClient.Listener 
 		return ((UISOC)soc).getSetDiceMenu(die, num);
 	}
     // private versions of overloaded methods are called by remote server so as not to need to include the large SOC object
+    @Keep
 	private Dice [] setDice(Dice [] die, int num) {
 	    setDice(UISOC.getInstance(), die, num);
 	    return die;
@@ -133,29 +143,6 @@ public final class UIPlayerUser extends UIPlayer implements GameClient.Listener 
         return true;
     }
 
-    /*
-    @Override
-    public void onConnected(ClientConnection conn) {
-        // we are the server and have a new client connection.
-        // match them with a player in the game...
-        UISOC soc = UISOC.getInstance();
-        for (Player p : soc.getPlayers()) {
-            if (p == this)
-                continue;
-            if (p instanceof UIPlayer) {
-                UIPlayer uip = (UIPlayer)p;
-                if (uip.connection == null) {
-                    uip.connect(conn);
-                    return;
-                }
-            }
-        }
-        // made it here so it means we were not able to assign, so add a new player!
-        UIPlayer player = new UIPlayer();
-        player.connect(conn);
-        soc.addPlayer(player);
-    }*/
-
     @Override
     public void onCommand(GameCommand cmd) {
 
@@ -163,16 +150,17 @@ public final class UIPlayerUser extends UIPlayer implements GameClient.Listener 
 
     @Override
     public void onMessage(String msg) {
-
+        UISOC.getInstance().printinfo(0, msg);
+        UISOC.getInstance().showOkPopup("MESSAGE", msg);
     }
 
     @Override
     public void onDisconnected(String reason) {
-
+        UISOC.getInstance().printinfo(getPlayerNum(), "Disconnected from " + client.getServerName() + ": " + reason);
     }
 
     @Override
     public void onConnected() {
-
+        UISOC.getInstance().printinfo(getPlayerNum(), "Connected to " + client.getServerName());
     }
 }

@@ -9,7 +9,6 @@ import cc.game.dominos.core.Dominos;
 import cc.game.dominos.core.Move;
 import cc.game.dominos.core.Player;
 import cc.game.dominos.core.PlayerUser;
-import cc.lib.net.ClientForm;
 import cc.lib.net.GameClient;
 import cc.lib.net.GameCommand;
 import cc.lib.utils.Reflector;
@@ -112,7 +111,7 @@ public class MPPlayerUser extends PlayerUser implements GameClient.Listener {
                         .setNegativeButton("Ok", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                activity.showNewGameDialog(false);
+                                activity.showNewGameDialog();
                             }
                         }).setCancelable(false).show();
             }
@@ -131,11 +130,6 @@ public class MPPlayerUser extends PlayerUser implements GameClient.Listener {
                 Toast.makeText(activity, "Connected", Toast.LENGTH_LONG).show();
             }
         });
-    }
-
-    @Override
-    public void onForm(ClientForm form) {
-
     }
 
 }

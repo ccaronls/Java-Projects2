@@ -975,6 +975,7 @@ public class Board extends Reflector<Board> {
 		copyCells.get(36).setType(TileType.PORT_MULTI);
 
 		assignRandom();
+		trim();
 	}
 	
 	/**

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:cc="http://schemas.android.com/apk/res-auto"
+              xmlns:tools="http://schemas.android.com/tools"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:animateLayoutChanges="true"
+              android:orientation="vertical"
+              tools:divider="@drawable/horz_line"
+    >
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/tvTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            style="@style/soc_label"
+            android:layout_weight="1"
+            android:text="ACTION"/>
+
+        <Button
+            android:id="@+id/bAction"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="GO >"/>
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvHelp"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="The lest we know about the world, the lest we know about ourselves"
+        android:textSize="20sp"
+        android:visibility="gone"
+        />
+
+</LinearLayout>

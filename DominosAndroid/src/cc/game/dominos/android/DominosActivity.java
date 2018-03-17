@@ -41,7 +41,6 @@ import cc.lib.crypt.Cypher;
 import cc.lib.crypt.HuffmanEncoding;
 import cc.lib.game.Utils;
 import cc.lib.net.ClientConnection;
-import cc.lib.net.ClientForm;
 import cc.lib.net.GameClient;
 import cc.lib.net.GameCommand;
 import cc.lib.net.GameCommandType;
@@ -150,7 +149,7 @@ public class DominosActivity extends DroidActivity {
                     getContent().postDelayed(new Runnable() {
                         @Override
                         public void run() {
-                            showNewMultiplayerPlayerSetupDialog(false, false);
+                            showNewMultiplayerPlayerSetupDialog(false);
                         }
                     }, 5000);
                 } else if (client.isConnected()) {
@@ -170,7 +169,7 @@ public class DominosActivity extends DroidActivity {
 
                                                 @Override
                                                 protected void onDone() {
-                                                    showNewGameDialog(false);
+                                                    showNewGameDialog();
                                                 }
                                             }.run();
                                         }
@@ -181,7 +180,7 @@ public class DominosActivity extends DroidActivity {
                     getContent().postDelayed(new Runnable() {
                         @Override
                         public void run() {
-                            showNewGameDialog(false);
+                            showNewGameDialog();
                         }
                     }, 5000);
                 }
@@ -206,7 +205,7 @@ public class DominosActivity extends DroidActivity {
 
                                             @Override
                                             protected void onDone() {
-                                                showNewGameDialog(false);
+                                                showNewGameDialog();
                                             }
 
                                         }.run();
@@ -231,7 +230,7 @@ public class DominosActivity extends DroidActivity {
                                             @Override
                                             protected void onDone() {
                                                 mode = Mode.NONE;
-                                                showNewGameDialog(false);
+                                                showNewGameDialog();
                                             }
                                         }.execute();
                                     }
@@ -240,7 +239,7 @@ public class DominosActivity extends DroidActivity {
                     case SINGLE:
                         dominos.stopGameThread();
                     case NONE:
-                        showNewGameDialog(true);
+                        showNewGameDialog();
                         break;
                 }
             }
@@ -326,7 +325,7 @@ public class DominosActivity extends DroidActivity {
             if (dominos.isInitialized()) {
                 dominos.startGameThread();
             } else {
-                showNewGameDialog(false);
+                showNewGameDialog();
             }
         }
         /*
@@ -442,33 +441,40 @@ public class DominosActivity extends DroidActivity {
         }, 100);
     }
 
-    void showNewGameDialog(final boolean cancleable) {
+    void showNewGameDialog() {
 
         final View v = View.inflate(this, R.layout.new_game_type_dialog, null);
         AlertDialog.Builder b = newDialogBuilder().setTitle("New Game Type")
-                .setView(v).setCancelable(cancleable);
+                .setView(v);
 
-        if (cancleable) {
-            b.setNegativeButton("Cancel", null);
+        if (dominos.isInitialized()) {
+            b.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    if (!dominos.isGameRunning())
+                        dominos.startGameThread();
+                    mode = Mode.SINGLE;
+                }
+            });
         }
         b.show();
 
         v.findViewById(R.id.bSinglePlayer).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                showNewSinglePlayerSetupDialog(cancleable);
+                showNewSinglePlayerSetupDialog();
             }
         });
         v.findViewById(R.id.bMultiPlayerHost).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                showNewMultiplayerPlayerSetupDialog(cancleable, true);
+                showNewMultiplayerPlayerSetupDialog(true);
             }
         });
         v.findViewById(R.id.bMultiPlayerSearch).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                showSearchMultiplayerHostsDialog(cancleable);
+                showSearchMultiplayerHostsDialog();
             }
         });
         View button = v.findViewById(R.id.bResumeSP);
@@ -483,7 +489,7 @@ public class DominosActivity extends DroidActivity {
                         newDialogBuilder().setTitle("Error").setMessage("Failed to load from save file").setNegativeButton("Ok", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                showNewGameDialog(false);
+                                showNewGameDialog();
                             }
                         }).show();
                     }
@@ -496,7 +502,7 @@ public class DominosActivity extends DroidActivity {
 
     WifiP2pHelper helper = null;
 
-    void showHostMultiplayerDialog(final int numPlayers, final int maxPoints, final int maxPips, final boolean cancelable) {
+    void showHostMultiplayerDialog(final int numPlayers, final int maxPoints, final int maxPips) {
         new SpinnerTask() {
             @Override
             protected void doIt() throws Exception {
@@ -511,7 +517,7 @@ public class DominosActivity extends DroidActivity {
 
             @Override
             protected void onDone() {
-                showWaitingForPlayersDialog(numPlayers-1, cancelable);
+                showWaitingForPlayersDialog(numPlayers-1);
             }
 
             @Override
@@ -527,7 +533,7 @@ public class DominosActivity extends DroidActivity {
 
                             @Override
                             protected void onDone() {
-                                showNewGameDialog(cancelable);
+                                showNewGameDialog();
                             }
                         }.run();
                     }
@@ -559,7 +565,7 @@ public class DominosActivity extends DroidActivity {
         mode = Mode.NONE;
     }
 
-    void showWaitingForPlayersDialog(final int maxPlayers, final boolean cancelable) {
+    void showWaitingForPlayersDialog(final int maxPlayers) {
         ListView lvPlayers = new ListView(this);
         final BaseAdapter playersAdapter = new BaseAdapter() {
             @Override
@@ -606,7 +612,7 @@ public class DominosActivity extends DroidActivity {
 
                             @Override
                             protected void onDone() {
-                                showNewGameDialog(cancelable);
+                                showNewGameDialog();
                             }
                         }.run();
                     }
@@ -671,7 +677,7 @@ public class DominosActivity extends DroidActivity {
         });
     }
 
-    void showSearchMultiplayerHostsDialog(final boolean canceleble) {
+    void showSearchMultiplayerHostsDialog() {
         final ListView lvHost = new ListView(this);
         final List<WifiP2pDevice> devices = new ArrayList<>();
         final BaseAdapter adapter = new BaseAdapter() {
@@ -772,7 +778,7 @@ public class DominosActivity extends DroidActivity {
 
                                             @Override
                                             protected void onDone() {
-                                                showNewGameDialog(false);
+                                                showNewGameDialog();
                                             }
                                         }.run();
                                     }
@@ -809,7 +815,7 @@ public class DominosActivity extends DroidActivity {
 
                                             @Override
                                             protected void onDone() {
-                                                showNewGameDialog(canceleble);
+                                                showNewGameDialog();
                                             }
                                         }.run();
                                     }
@@ -836,7 +842,7 @@ public class DominosActivity extends DroidActivity {
                                     .setNegativeButton("Ok", new DialogInterface.OnClickListener() {
                                         @Override
                                         public void onClick(DialogInterface dialog, int which) {
-                                            showNewGameDialog(canceleble);
+                                            showNewGameDialog();
                                         }
                                     }).setCancelable(false).show();
                         }
@@ -860,7 +866,7 @@ public class DominosActivity extends DroidActivity {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 helper.destroy();
-                                showNewGameDialog(canceleble);
+                                showNewGameDialog();
                             }
                         }).setCancelable(false).show();
 
@@ -876,7 +882,7 @@ public class DominosActivity extends DroidActivity {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         client.disconnect();
-                        showNewGameDialog(cancelable);
+                        showNewGameDialog();
                     }
                 }).setCancelable(false).show();
         client.addListener(new GameClient.Listener() {
@@ -911,11 +917,6 @@ public class DominosActivity extends DroidActivity {
             public void onConnected() {
 
             }
-
-            @Override
-            public void onForm(ClientForm form) {
-
-            }
         });
     }
 
@@ -930,7 +931,8 @@ public class DominosActivity extends DroidActivity {
     AlertDialog currentDialog = null;
 
     AlertDialog.Builder newDialogBuilder() {
-        return new AlertDialog.Builder(this, R.style.DialogTheme) {
+        final AlertDialog previous = currentDialog;
+        AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.DialogTheme) {
             @Override
             public AlertDialog show() {
                 if (currentDialog != null) {
@@ -939,9 +941,19 @@ public class DominosActivity extends DroidActivity {
                 return currentDialog = super.show();
             }
         }.setCancelable(false);
+        if (currentDialog != null && currentDialog.isShowing()) {
+            builder.setNeutralButton("Back", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    currentDialog = previous;
+                    previous.show();
+                }
+            });
+        }
+        return builder;
     }
 
-    private GameServer server = new GameServer(PORT, CLIENT_READ_TIMEOUT, VERSION, cypher, 3);
+    private GameServer server = new GameServer(Build.BRAND + "." + Build.PRODUCT, PORT, CLIENT_READ_TIMEOUT, VERSION, cypher, 3);
 
     /** include:
      *  numPlayers(int)
@@ -959,7 +971,7 @@ public class DominosActivity extends DroidActivity {
      */
     final static GameCommandType SVR_TO_CL_INIT_ROUND  = new GameCommandType("SVR_INIT_ROUND");
 
-    void showNewMultiplayerPlayerSetupDialog(final boolean cancleable, final boolean firstGame) {
+    void showNewMultiplayerPlayerSetupDialog(final boolean firstGame) {
         final View v = View.inflate(this, R.layout.game_setup_dialog, null);
         final RadioGroup rgNumPlayers = (RadioGroup)v.findViewById(R.id.rgNumPlayers);
         final RadioGroup rgDifficulty = (RadioGroup)v.findViewById(R.id.rgDifficulty);
@@ -1048,7 +1060,7 @@ public class DominosActivity extends DroidActivity {
                         }
 
                         if (firstGame)
-                            showHostMultiplayerDialog(numPlayers, maxPoints, maxPips, cancleable);
+                            showHostMultiplayerDialog(numPlayers, maxPoints, maxPips);
                         else {
                             dominos.startGameThread();
                             server.broadcastMessage("Starting a new game!");
@@ -1068,14 +1080,14 @@ public class DominosActivity extends DroidActivity {
 
                     @Override
                     protected void onDone() {
-                        showNewGameDialog(cancleable);
+                        showNewGameDialog();
                     }
                 }.run();
             }
         }).show();
     }
 
-    void showNewSinglePlayerSetupDialog(final boolean cancleable) {
+    void showNewSinglePlayerSetupDialog() {
         final View v = View.inflate(this, R.layout.game_setup_dialog, null);
         final RadioGroup rgNumPlayers = (RadioGroup)v.findViewById(R.id.rgNumPlayers);
         final RadioGroup rgDifficulty = (RadioGroup)v.findViewById(R.id.rgDifficulty);
@@ -1171,7 +1183,7 @@ public class DominosActivity extends DroidActivity {
                 }).setOnCancelListener(new DialogInterface.OnCancelListener() {
             @Override
             public void onCancel(DialogInterface dialog) {
-                showNewGameDialog(cancleable);
+                showNewGameDialog();
             }
         }).show();
     }

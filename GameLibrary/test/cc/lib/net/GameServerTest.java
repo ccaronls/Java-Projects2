@@ -48,7 +48,7 @@ public class GameServerTest extends TestCase {
         result = null;
         listener1 = new MyServerListener();
         listener2 = new MyClientConnectionListener();
-        server = new GameServer(PORT, TIMEOUT, VERSION, cypher, 2);
+        server = new GameServer("Test", PORT, TIMEOUT, VERSION, cypher, 2);
         server.addListener(listener1);
         server.listen();
         Utils.waitNoThrow(this, 100);

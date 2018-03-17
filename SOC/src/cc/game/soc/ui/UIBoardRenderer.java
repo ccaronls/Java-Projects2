@@ -8,12 +8,10 @@ import cc.lib.math.*;
 
 public final class UIBoardRenderer extends UIRenderer implements MenuItem.Action {
 
-    final UIComponent component;
-
     public Board board = null;
 
     public UIBoardRenderer(UIComponent component) {
-        this.component = component;
+        super(component);
         component.setRenderer(this);
     }
 

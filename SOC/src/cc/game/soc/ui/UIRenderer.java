@@ -9,6 +9,16 @@ import cc.lib.game.GDimension;
 
 public abstract class UIRenderer {
 
+    final UIComponent component;
+
+    UIRenderer(UIComponent component) {
+        this.component = component;
+    }
+
+    public <T extends UIComponent> T getComponent() {
+        return (T)component;
+    }
+
     private GDimension min = new GDimension(32, 32);
 
     public abstract void draw(APGraphics g, int px, int py);
