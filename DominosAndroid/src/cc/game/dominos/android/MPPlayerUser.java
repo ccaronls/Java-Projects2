@@ -53,10 +53,10 @@ public class MPPlayerUser extends PlayerUser implements GameClient.Listener {
             Player[] players = new Player[numPlayers];
             int idx = 0;
             for (; idx < playerNum; idx++)
-                players[idx] = new Player();
+                players[idx] = new Player(idx);
             players[idx++] = this;
             for (; idx < numPlayers; idx++)
-                players[idx] = new Player();
+                players[idx] = new Player(idx);
             dominos.setPlayers(players);
             Reflector.KEEP_INSTANCES = true;
             try {
@@ -82,6 +82,7 @@ public class MPPlayerUser extends PlayerUser implements GameClient.Listener {
                 client.disconnect("Error: " + e.getMessage());
             }
             Reflector.KEEP_INSTANCES = false;
+            dominos.redraw();
         } else {
             client.sendError("Dont know how to handle cmd: '" + cmd + "'");
             client.disconnect("Error: dont understand command: " + cmd.getType());

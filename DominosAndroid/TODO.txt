@@ -1,0 +1,16 @@
+- Allow a player to leave and another to join (test)
+- Add forfiet menu item (done)
+- Fix array index out of bounds exception
+- no infinite wait for remote exec calls
+- allow for spectators that can become players on a new game to replace player with fewest pts
+- dont show p2p devices that are not group owners (done)
+- is it possible to control the display name of your p2p device? (yes, done)
+- Allow server to kick out players (done)
+- Remove playersmart (done) and MP players as well. simpler to have just player and playeruser for all cases
+  and this allows us to have java app version of game
+- Figure out extern strings for localization
+- Show players' names on info instead of Px (done)
+- Track max string width and use that to determine height of text (or wrap the text?)
+- Notify users when players or server pauses or resumes their game
+- Allow users to set their name (alias or handle or icon? or pic?)
+   - use camera to face capture and use thumb as icon!

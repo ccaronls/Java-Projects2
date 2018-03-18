@@ -403,7 +403,13 @@ public class HuffmanEncoding implements Cypher {
 
     public void printEncodingAsCode(PrintStream out) {
         out.print("int [] counts = {");
-        for (int i=0; i<COUNTS_ARRAY_SIZE; i++) {
+        int n = COUNTS_ARRAY_SIZE;
+        while (counts[--n].occurances == 0) {
+
+        }
+        if (n <= 0)
+            throw new RuntimeException("nothing counted");
+        for (int i = 0; i <= n; i++) {
             if (i > 0) {
                 out.print(",");
             }
@@ -411,7 +417,7 @@ public class HuffmanEncoding implements Cypher {
         }
         out.println("};");
     }
-    
+
     /**
      * 
      * @param file

@@ -1,8 +1,12 @@
 package cc.game.dominos.core;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import cc.lib.annotation.Keep;
 import cc.lib.game.AAnimation;
@@ -84,10 +88,10 @@ public abstract class Dominos extends Reflector<Dominos> {
         this.players = new Player[num];
         players[0] = new PlayerUser();
         for (int i=1; i<num; i++) {
+            players[i] = new Player(i);
             if (d-- > 0) {
-                players[i] = new PlayerSmart();
+                players[i].smart = true;
             }
-            players[i] = new Player();
         }
 	}
 
@@ -102,7 +106,7 @@ public abstract class Dominos extends Reflector<Dominos> {
 	public void setPlayers(Player ... players) {
         if (gameRunning)
             throw new AssertionError();
-        if (players.length <= 0 || players.length >= 4)
+        if (players.length <= 0 || players.length > 4)
             throw new AssertionError();
         this.players = players;
     }
@@ -142,19 +146,17 @@ public abstract class Dominos extends Reflector<Dominos> {
     @Keep
     protected void onGameOver(int playerNum) {
         final Player winner = players[playerNum];
-        winner.textAnimation = new AAnimation<AGraphics>(1000, -1, true) {
+        addAnimation(winner.getName(), new AAnimation<AGraphics>(1000, -1, true) {
             @Override
             protected void draw(AGraphics g, float position, float dt) {
                 GColor c = new GColor(position, 1-position, position, position);
                 if (winner.isPiecesVisible()) {
                     g.drawAnnotatedString(String.format("%s%d PTS WINS!!", c, winner.getScore()), 0, 0);
                 } else {
-                    g.drawAnnotatedString(String.format("%sP%d %d PTS WINS!!", c, turn, winner.getScore()), 0, 0);
+                    g.drawAnnotatedString(String.format("%s%s %d PTS WINS!!", c, winner.getName(), winner.getScore()), 0, 0);
                 }
-                redraw();
             }
-        }.start();
-        redraw();
+        }, false);
     }
 
     public final boolean isInitialized() {
@@ -196,6 +198,7 @@ public abstract class Dominos extends Reflector<Dominos> {
 
 	private void newGame() {
         pool.clear();
+        anims.clear();
         for (int i=1; i<=maxNum; i++) {
             for (int ii=i; ii<=maxNum; ii++) {
                 pool.add(new Tile(i, ii));
@@ -217,7 +220,7 @@ public abstract class Dominos extends Reflector<Dominos> {
         if (turn >= 0 && turn < players.length) {
             final Player fromPlayer = players[this.turn];
             final Player toPlayer = players[turn];
-            turnTransitionAnimation = new AAnimation<AGraphics>(1000) {
+            addAnimation("TURN", new AAnimation<AGraphics>(1000) {
                 @Override
                 protected void draw(AGraphics g, float position, float dt) {
                     g.setColor(GColor.YELLOW);
@@ -230,11 +233,7 @@ public abstract class Dominos extends Reflector<Dominos> {
                         gameLock.notifyAll();
                     }
                 }
-            }.start();
-
-            redraw();
-            //turnTransitionAnimation.waitForDuration();
-            Utils.waitNoThrow(gameLock, turnTransitionAnimation.getDuration() + 500);
+            }, true);
         }
         Dominos.this.turn = turn;
     }
@@ -317,8 +316,10 @@ public abstract class Dominos extends Reflector<Dominos> {
 
     private List<Move> computePlayerMoves(Player p) {
         List<Move> moves = new ArrayList<>();
-        for (Tile pc : p.tiles) {
-            moves.addAll(board.findMovesForPiece(pc));
+        synchronized (p.tiles) {
+            for (Tile pc : p.tiles) {
+                moves.addAll(board.findMovesForPiece(pc));
+            }
         }
         return moves;
     }
@@ -399,7 +400,7 @@ public abstract class Dominos extends Reflector<Dominos> {
     protected synchronized void onTileFromPool(int player, final Tile pc) {
 	    final Player p = players[player];
         if (p.isPiecesVisible()) {
-	        poolAnimation = new AAnimation<AGraphics>(2000) {
+	        addAnimation("POOL", new AAnimation<AGraphics>(2000) {
                 @Override
                 protected void draw(AGraphics g, float position, float dt) {
 
@@ -419,9 +420,7 @@ public abstract class Dominos extends Reflector<Dominos> {
                     }
                     redraw();
                 }
-            }.start();
-	        redraw();
-            Utils.waitNoThrow(gameLock, -1);
+            }, true);
         }
 
         p.tiles.add(pc);
@@ -443,10 +442,17 @@ public abstract class Dominos extends Reflector<Dominos> {
     }
 
     @Omit
-    private AAnimation<AGraphics> poolAnimation = null;
+    private final Map<String, AAnimation<AGraphics>> anims = Collections.synchronizedMap(new HashMap<String, AAnimation<AGraphics>>());
 
-    @Omit
-    private AAnimation<AGraphics> remainingTileAnimation = null;
+    void addAnimation(String id, AAnimation<AGraphics> a, boolean block) {
+        anims.put(id, a);
+        a.start();
+        redraw();
+        if (block && a.getDuration() > 0) {
+            Utils.waitNoThrow(gameLock, a.getDuration());
+        }
+    }
+
 
     class StackTilesAnim extends AAnimation<AGraphics> {
 
@@ -512,16 +518,15 @@ public abstract class Dominos extends Reflector<Dominos> {
 
         @Override
         protected void onDone() {
-            remainingTileAnimation = new AAnimation<AGraphics>(1000) {
+            addAnimation("TILES", new AAnimation<AGraphics>(1000) {
                 @Override
                 protected void draw(AGraphics g, float position, float dt) {
                     drawTiles(g, num, position);
-                    redraw();
                 }
 
                 @Override
                 protected void onDone() {
-                    remainingTileAnimation = new AAnimation<AGraphics>(2000) {
+                    addAnimation("TILES", new AAnimation<AGraphics>(2000) {
                         @Override
                         protected void draw(AGraphics g, float position, float dt) {
                             float hgtStart = boardDim/12;
@@ -536,14 +541,11 @@ public abstract class Dominos extends Reflector<Dominos> {
                         @Override
                         protected void onDone() {
                             startPlayerTextAnim(p, pts);
-                            redraw();
                         }
 
-                    }.start();
-                    redraw();
+                    }, false);
                 }
-            }.start();
-            redraw();
+            }, false);
         }
     }
 
@@ -558,16 +560,15 @@ public abstract class Dominos extends Reflector<Dominos> {
             tiles.addAll(players[i].getTiles());
         }
 
-        remainingTileAnimation = new StackTilesAnim(tiles, p, pts).start();
-
-        redraw();
-        Utils.waitNoThrow(gameLock, -1);
+        addAnimation("TILES", new StackTilesAnim(tiles, p, pts), false);
+        Utils.waitNoThrow(gameLock, 30000);
         p.score += pts;
-        remainingTileAnimation = null;
     }
 
     private void startPlayerTextAnim(final Player p, final int pts) {
-        p.textAnimation = new AAnimation<AGraphics>(2000) {
+        if (anims.get(p.getName()) != null)
+            return;
+        addAnimation(p.getName(), new AAnimation<AGraphics>(2000) {
 
             @Override
             protected void draw(AGraphics g, float position, float dt) {
@@ -576,19 +577,18 @@ public abstract class Dominos extends Reflector<Dominos> {
                 if (p.isPiecesVisible())
                     g.drawAnnotatedString(String.format("%d PTS %s+%d", curPts, alphaRed, pts), 0, 0);
                 else
-                    g.drawAnnotatedString(String.format("P%d X %d %s%d PTS %s+%d", turn+1, p.getTiles().size(), GColor.BLACK, curPts, alphaRed, pts), 0, 0);
+                    g.drawAnnotatedString(String.format("%s %s%d PTS %s+%d", p.getName(), GColor.BLACK, curPts, alphaRed, pts), 0, 0);
                 redraw();
             }
 
             @Override
             protected void onDone() {
-                p.textAnimation = null;
                 synchronized (gameLock) {
                     gameLock.notifyAll();
                 }
                 redraw();
             }
-        }.start();
+        }, false);
     }
 
     class GlowEndpointAnimation extends AAnimation<AGraphics> {
@@ -642,9 +642,7 @@ public abstract class Dominos extends Reflector<Dominos> {
                     @Override
                     public void onDone() {
                         // start a anim to make the pips into a line
-                        if (p.textAnimation == null) {
-                            startPlayerTextAnim(p, pts);
-                        }
+                        startPlayerTextAnim(p, pts);
                     }
 
                 }.start(delay));
@@ -676,8 +674,9 @@ public abstract class Dominos extends Reflector<Dominos> {
         g.drawFilledRect(0, 0, boardDim, boardDim);
 
         boolean drawDragged = false;
-        if (remainingTileAnimation != null) {
-            remainingTileAnimation.update(g);
+        AAnimation<AGraphics> anim = anims.get("TILES");
+        if (anim != null) {
+            anim.update(g);
         } else {
             Tile dragging = null;
             if (this.dragging && selectedPlayerTile >= 0) {
@@ -713,22 +712,28 @@ public abstract class Dominos extends Reflector<Dominos> {
         }
         g.popMatrix();
 
-        if (turnTransitionAnimation != null) {
-            if (turnTransitionAnimation.isDone()) {
-                turnTransitionAnimation = null;
-            } else {
-                turnTransitionAnimation.update(g);
-                redraw();
-            }
+        anim = anims.get("TURN");
+        if (anim != null) {
+            anim.update(g);
         }
 
-        if (turnTransitionAnimation == null && turn >= 0 && turn < players.length) {
+        if (anim == null && turn >= 0 && turn < players.length) {
             g.setColor(GColor.YELLOW);
             g.drawRect(players[turn].outlineRect, 3);
         }
-    }
 
-    @Omit private AAnimation<AGraphics> turnTransitionAnimation = null;
+        synchronized (anims) {
+            Iterator<String> it = anims.keySet().iterator();
+            while (it.hasNext()) {
+                if (anims.get(it.next()).isDone()) {
+                    it.remove();
+                }
+            }
+        }
+
+        if (anims.size() > 0)
+            redraw();
+    }
 
     private void setupTextHeight(AGraphics g, float maxWidth, float maxHeight) {
         // now size down until the string fits into the width
@@ -750,20 +755,19 @@ public abstract class Dominos extends Reflector<Dominos> {
     }
 
     private void drawInfo(APGraphics g, float w, float h) {
-	    int name = 0;
 	    float y = 0;
 	    for (int i=0; i<players.length; i++) {
             Player p = players[i];
-	        name++;
 	        if (p.isPiecesVisible())
 	            continue;
 	        g.pushMatrix();
 	        g.translate(0, y);
-	        if (p.textAnimation != null)
-	            p.textAnimation.update(g);
+            g.setColor(GColor.BLUE);
+            AAnimation<AGraphics> txtAnim = anims.get(p.getName());
+	        if (txtAnim != null)
+	            txtAnim.update(g);
 	        else {
-                g.setColor(GColor.BLUE);
-                GDimension dim = g.drawAnnotatedString(String.format("P%d X %d [0,0,0]%d PTS", name, p.getTiles().size(), p.getScore()), 0, 0);
+                GDimension dim = g.drawAnnotatedString(String.format("%s X %d [0,0,0]%d PTS", p.getName(), p.getTiles().size(), p.getScore()), 0, 0);
                 p.outlineRect.set(g.transform(0, 0), g.transform(dim.width, dim.height));
             }
 	        g.popMatrix();
@@ -787,16 +791,14 @@ public abstract class Dominos extends Reflector<Dominos> {
 
     private void drawPlayer(APGraphics g, int player, float w, float h, int pickX, int pickY, boolean drawDragged) {
         g.pushMatrix();
+	    g.setColor(GColor.BLUE);
 	    Player p = players[player];
         p.outlineRect.set(g.transform(0, 0), g.transform(w, h));
-        if (p.textAnimation != null) {
-            if (p.textAnimation.isDone())
-                p.textAnimation = null;
-            else
-                p.textAnimation.update(g);
-        }
         String infoStr = "MENU";
-        if (p.textAnimation == null) {
+        AAnimation<AGraphics> anim = anims.get(p.getName());
+        if (anim != null) {
+            anim.update(g);
+        } else {
             g.setColor(GColor.BLUE);
             g.drawString(String.format("%d PTS", p.getScore()), 0, 0);
         }
@@ -835,7 +837,13 @@ public abstract class Dominos extends Reflector<Dominos> {
         int numVirtualTiles = numPlayerTiles;
         int numDrawnTiles = numPlayerTiles;
 
-	    if (poolAnimation != null && !poolAnimation.isDone()) {
+        final List<Tile> playertiles;
+        synchronized (p.tiles) {
+            playertiles = new ArrayList<>(p.tiles);
+        }
+
+        AAnimation<AGraphics> poolAnim = anims.get("POOL");
+	    if (poolAnim != null) {
 	        numDrawnTiles++;
         }
 
@@ -915,12 +923,8 @@ public abstract class Dominos extends Reflector<Dominos> {
                             g.drawRect(0, 0, 2, 1, 3);
                         }
                     } else {
-                        if (poolAnimation != null) {
-                            if (poolAnimation.isDone()) {
-                                poolAnimation = null;
-                            } else {
-                                poolAnimation.update(g);
-                            }
+                        if (poolAnim != null) {
+                            poolAnim.update(g);
                         }
                     }
                     g.translate(2, 0);

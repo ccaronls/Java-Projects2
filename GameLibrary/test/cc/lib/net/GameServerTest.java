@@ -409,7 +409,6 @@ public class GameServerTest extends TestCase {
                     
                     Thread.sleep(1000);
                     MyGameClient cl = new MyGameClient("ABC");
-                    cl.setCypher(getCypher());
                     cl.connect(InetAddress.getLocalHost(), PORT);
                     Thread.sleep(1000);
                     ClientConnection conn = server.getClientConnection("ABC");
@@ -568,11 +567,6 @@ public class GameServerTest extends TestCase {
         public void onConnected() {
 
         }
-
-        @Override
-        public void onFormSubmited(ClientConnection conn, int id, Map<String, String> params) {
-
-        }
     }
     
     
@@ -616,7 +610,7 @@ public class GameServerTest extends TestCase {
         }
         
         public MyGameClient(String name, String version) {
-            super(name, version);
+            super(name, version, getCypher());
             numClients++;
             addListener(this);
         }

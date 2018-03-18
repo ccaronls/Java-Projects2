@@ -4,7 +4,6 @@ import android.content.DialogInterface;
 import android.util.Log;
 
 import java.util.List;
-import java.util.Map;
 
 import cc.game.dominos.core.Dominos;
 import cc.game.dominos.core.Move;
@@ -12,7 +11,9 @@ import cc.game.dominos.core.Player;
 import cc.lib.net.ClientConnection;
 import cc.lib.net.GameCommand;
 
-import static cc.game.dominos.android.DominosActivity.*;
+import static cc.game.dominos.android.DominosActivity.CL_TO_SVR_FORFEIT;
+import static cc.game.dominos.android.DominosActivity.SVR_TO_CL_INIT_GAME;
+import static cc.game.dominos.android.DominosActivity.USER_ID;
 
 /**
  * Created by chriscaron on 3/14/18.
@@ -24,15 +25,22 @@ public class MPPlayerRemote extends Player implements ClientConnection.Listener 
 
     public final String TAG = getClass().getSimpleName();
 
-    int playerNum = 0;
     ClientConnection connection = null;
     Dominos dominos;
     DominosActivity activity;
 
     public MPPlayerRemote() {}
 
+    @Override
+    public String getName() {
+        if (connection != null && connection.isConnected()) {
+            return connection.getName();
+        }
+        return super.getName();
+    }
+
     MPPlayerRemote(int playerNum, Dominos dominos, DominosActivity activity) {
-        this.playerNum = playerNum;
+        super(playerNum);
         this.dominos = dominos;
         this.activity = activity;
     }
@@ -50,12 +58,17 @@ public class MPPlayerRemote extends Player implements ClientConnection.Listener 
     }
 
     @Override
-    public void onCommand(GameCommand cmd) {
-        Log.w(TAG, "Unhandled cmd: " + cmd);
+    public void onCommand(ClientConnection c, GameCommand cmd) {
+        if (cmd.getType() == CL_TO_SVR_FORFEIT) {
+            connection.getServer().broadcastMessage("Player " + connection.getName() + " has forfeited the game.");
+            activity.startNewGame();
+        } else {
+            Log.w(TAG, "Unhandled cmd: " + cmd);
+        }
     }
 
     @Override
-    public void onDisconnected(final String reason) {
+    public void onDisconnected(ClientConnection c, final String reason) {
         Log.w(TAG, "Client disconnected: " + reason);
         if (dominos.isGameRunning()) {
             dominos.stopGameThread();
@@ -77,7 +90,7 @@ public class MPPlayerRemote extends Player implements ClientConnection.Listener 
     }
 
     @Override
-    public void onConnected() {
+    public void onConnected(ClientConnection c) {
         // reconnect
         if (connection.getServer().getNumConnectedClients() == dominos.getNumPlayers()-1) {
             connection.sendCommand(new GameCommand(SVR_TO_CL_INIT_GAME).setArg("numPlayers", dominos.getNumPlayers())
@@ -87,10 +100,5 @@ public class MPPlayerRemote extends Player implements ClientConnection.Listener 
             activity.currentDialog.dismiss();
             dominos.startGameThread();
         }
-    }
-
-    @Override
-    public void onFormSubmited(ClientConnection conn, int id, Map<String, String> params) {
-
     }
 }

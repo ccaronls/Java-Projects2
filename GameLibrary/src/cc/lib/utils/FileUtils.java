@@ -1,12 +1,16 @@
 package cc.lib.utils;
 
-import java.io.*;
-import java.util.*;
-import java.util.regex.Matcher;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.Collection;
 import java.util.regex.Pattern;
-import java.util.zip.*;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
-import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
 
@@ -238,15 +242,24 @@ public class FileUtils {
 	   }
    }
    
-    public static void copy(InputStream in, File cache) throws IOException {
-    	OutputStream out = new FileOutputStream(cache);
+    public static void copy(InputStream in, File outFile) throws IOException {
+    	OutputStream out = new FileOutputStream(outFile);
     	try {
     		copy(in, out);
     	} finally {
     		out.close();
     	}
     }
-    
+
+    public static void copyFile(File inFile, OutputStream out) throws IOException {
+        InputStream in = new FileInputStream(inFile);
+        try {
+            copy(in, out);
+        } finally {
+            out.close();
+        }
+    }
+
     public static void copyFile(File source, File dest) throws IOException {
     	InputStream in = new FileInputStream(source);
     	if (dest.isDirectory()) {
