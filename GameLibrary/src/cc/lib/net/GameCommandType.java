@@ -91,8 +91,9 @@ public final class GameCommandType implements Comparable<GameCommandType> {
     // Command sent from the client
     // --------------------------------------
 
-
-    // additional info is name and version    
+    // response from a waiting execOnRemote
+    static final GameCommandType CL_REMOTE_RETURNS = new GameCommandType("CL_REMOTE_RETURNS");
+    // additional info is name and version
     static final GameCommandType CL_CONNECT = new GameCommandType("CL_CONNECT");
     // additional info is name and version
     static final GameCommandType CL_RECONNECT = new GameCommandType("CL_RECONNECT");
@@ -100,6 +101,8 @@ public final class GameCommandType implements Comparable<GameCommandType> {
     static final GameCommandType CL_KEEPALIVE = new GameCommandType("CL_KEEPALIVE");
     // report an error that occured on the client
     static final GameCommandType CL_ERROR       = new GameCommandType("CL_ERROR");
+    // set the display name of this user. Includes a 'name' argument.
+    static final GameCommandType CL_HANDLE      = new GameCommandType("CL_HANDLE");
 
     // --------------------------------------
     // commands sent from the server
@@ -107,6 +110,7 @@ public final class GameCommandType implements Comparable<GameCommandType> {
 
     // confirmation command from the server that a client has connected
     static final GameCommandType SVR_CONNECTED = new GameCommandType("SVR_CONNECTED");
+    static final GameCommandType SVR_EXECUTE_REMOTE = new GameCommandType("SVR_EXEC_REMOTE");
 
     // --------------------------------------
     // shared command types

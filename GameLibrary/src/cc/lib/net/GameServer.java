@@ -30,7 +30,7 @@ import cc.lib.logger.LoggerFactory;
  * @author ccaron
  *
  */
-public class GameServer extends ARemoteExecutor {
+public class GameServer {
 
     private final Logger log = LoggerFactory.getLogger(GameServer.class);
     
@@ -64,10 +64,10 @@ public class GameServer extends ARemoteExecutor {
     private final Cypher cypher;
     private final int maxConnections;
     private final int port;
-    private final String serverName;
+    private final String mServerName;
     
     public String toString() {
-        String r = "GameServer:" + mVersion;
+        String r = "GameServer:" + mServerName + " v:" + mVersion;
         if (clients.size() > 0)
             r += " connected clients:" + clients.size();
         return r;
@@ -77,6 +77,10 @@ public class GameServer extends ARemoteExecutor {
         synchronized (clients) {
             clients.remove(cl);
         }
+    }
+
+    public final String getName() {
+        return mServerName;
     }
 
     /**
@@ -93,7 +97,7 @@ public class GameServer extends ARemoteExecutor {
      * @throws Exception
      */
     public GameServer(String serverName, int listenPort, int clientReadTimeout, String serverVersion, Cypher cypher, int maxConnections) {
-        this.serverName = serverName.toString(); // null check
+        this.mServerName = serverName.toString(); // null check
         if (clientReadTimeout < 1000)
             throw new RuntimeException("Value for timeout too small");
         this.clientReadTimeout = clientReadTimeout;
@@ -222,7 +226,7 @@ public class GameServer extends ARemoteExecutor {
      * Broadcast a command to all connected clients
      * @param cmd
      */
-    public final void sendCommand(GameCommand cmd) {
+    public final void broadcastCommand(GameCommand cmd) {
         synchronized (clients) {
             for (ClientConnection c : clients.values()) {
                 if (c.isConnected())
@@ -236,8 +240,37 @@ public class GameServer extends ARemoteExecutor {
         }
     }
 
-    @Override
-    public boolean isConnected() {
+    /**
+     * Send an execute command to all client using derived method. No return respose supported
+     * @param objId
+     * @param params
+     */
+    public final void broadcastExecuteOnRemote(String objId, Object ... params) {
+        StackTraceElement elem = new Exception().getStackTrace()[1];
+        broadcastExecuteOnRemote(objId, elem.getMethodName(), params);
+    }
+
+    /**
+     * Send an execute command to all client using specific method. No return response supported.
+     * @param objId
+     * @param method
+     * @param params
+     */
+    public final void broadcastExecuteOnRemote(String objId, String method, Object ... params) {
+        synchronized (clients) {
+            for (ClientConnection c : clients.values()) {
+                if (c.isConnected())
+                    try {
+                        c.executeOnRemote(objId, method, null, params);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        log.error("ERROR Sending to client '" + c.getName() + "' " + e.getClass() + " " + e.getMessage());
+                    }
+            }
+        }
+    }
+
+    public final boolean isConnected() {
         return isRunning() && getNumConnectedClients() > 0;
     }
 
@@ -246,7 +279,7 @@ public class GameServer extends ARemoteExecutor {
      * @param message
      */
     public final void broadcastMessage(String message) {
-        sendCommand(new GameCommand(GameCommandType.MESSAGE).setMessage(message));
+        broadcastCommand(new GameCommand(GameCommandType.MESSAGE).setMessage(message));
     }
 
     private class SocketListener implements Runnable {
@@ -399,8 +432,11 @@ public class GameServer extends ARemoteExecutor {
                 }
                 
                 new GameCommand(GameCommandType.SVR_CONNECTED)
-                        .setName(serverName)
+                        .setName(mServerName)
                         .setArg("keepAlive", clientReadTimeout).write(out);
+
+                // TODO: Add a password feature when server prompts for password before conn.connect is called.
+
                 log.debug("GameServer: Client " + name + " connected");
                 if (cmd.getType() == GameCommandType.CL_CONNECT) {
                     for (Listener l : listeners)

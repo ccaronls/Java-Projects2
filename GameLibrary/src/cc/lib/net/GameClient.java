@@ -5,11 +5,15 @@ import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import cc.lib.crypt.Cypher;
@@ -17,6 +21,8 @@ import cc.lib.crypt.EncryptionInputStream;
 import cc.lib.crypt.EncryptionOutputStream;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
+import cc.lib.utils.NoDupesMap;
+import cc.lib.utils.Reflector;
 
 /**
  * Base class for clients that want to connect to a GameServer
@@ -24,7 +30,7 @@ import cc.lib.logger.LoggerFactory;
  * @author ccaron
  *
  */
-public class GameClient extends ARemoteExecutor {
+public class GameClient {
 
     protected final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -55,6 +61,8 @@ public class GameClient extends ARemoteExecutor {
     private final Cypher cypher;
     private final Set<Listener> listeners = new HashSet<>();
     private String serverName = null;
+    private Map<String, Object> executorObjects = new NoDupesMap<>(new HashMap<String, Object>());
+
 
     // giving package access for JUnit tests ONLY!
     CommandQueueWriter outQueue = new CommandQueueWriter() {
@@ -277,10 +285,6 @@ public class GameClient extends ARemoteExecutor {
                     if (isDisconnecting())
                         break;
                     log.debug("Read command: " + cmd);
-
-                    if (processCommand(cmd))
-                        continue;
-
                     cmd.getType().notifyListeners(cmd);
 
                     synchronized (listeners) {
@@ -305,6 +309,8 @@ public class GameClient extends ARemoteExecutor {
                         disconnectedReason = cmd.getMessage();
                         state = State.DISCONNECTING;
                         break;
+                    } else if (cmd.getType() == GameCommandType.SVR_EXECUTE_REMOTE) {
+                        handleExecuteRemote(cmd);
                     } else {
                         for (Listener l : larray)
                             l.onCommand(cmd);
@@ -338,7 +344,6 @@ public class GameClient extends ARemoteExecutor {
      * Send a command to the server.
      * @param cmd
      */
-    @Override
     public final void sendCommand(GameCommand cmd) {
         if (isConnected()) {
             log.debug("Sending command: " + cmd);
@@ -368,6 +373,123 @@ public class GameClient extends ARemoteExecutor {
         GameCommand cmd = new GameCommand(GameCommandType.CL_ERROR).setArg("msg", "ERROR: " + err);
         log.error("Sending error: " + cmd);
         sendCommand(cmd);
+    }
+
+    /**
+     * register an object with a specific id
+     * @param id
+     * @param o
+     */
+    public final void register(String id, Object o) {
+        log.debug("register '%s' -> %s", id, o.getClass());
+        executorObjects.put(id, o);
+    }
+
+    /**
+     * Unregister an object by its id
+     * @param id
+     */
+    public final void unregister(String id) {
+        log.debug("unregister %s", id);
+        executorObjects.remove(id);
+    }
+
+    /* Execute a method locally based on params provided by remote caller.
+     *
+     * @param cmd
+     * @throws IOException
+     */
+    private void handleExecuteRemote(GameCommand cmd) throws IOException {
+        String method = cmd.getArg("method");
+        int numParams = cmd.getInt("numParams");
+        Class [] paramsTypes = new Class[numParams];
+        Object [] params = new Object[numParams];
+        for (int i=0; i<numParams; i++) {
+            String param = cmd.getArg("param" + i);
+            Object o = Reflector.deserializeFromString(param);
+            if (o != null) {
+                paramsTypes[i] = o.getClass();
+                params[i] = o;
+            }
+        }
+        String id = cmd.getArg("target");
+        Object obj = executorObjects.get(id);
+        if (obj == null)
+            throw new IOException("Unknown object id: " + id);
+        log.debug("id=%s -> %s", id, obj.getClass().getSimpleName());
+        try {
+            Method m = methodMap.get(method);
+            if (m == null) {
+                try {
+                    m = obj.getClass().getDeclaredMethod(method, paramsTypes);
+                } catch (NoSuchMethodException e) {
+                    // ignore
+                }
+                if (m == null)
+                    m = searchMethods(obj, method, paramsTypes, params);
+                m.setAccessible(true);
+                methodMap.put(method, m);
+            }
+            Object result = m.invoke(obj, params);
+            id = cmd.getArg("responseId");
+            log.debug("responseId=%s", id);
+            if (id != null) {
+                GameCommand resp = new GameCommand(GameCommandType.CL_REMOTE_RETURNS);
+                resp.setArg("target", id);
+                if (result != null)
+                    resp.setArg("returns", Reflector.serializeObject(result));
+                sendCommand(resp);
+            }
+        } catch (Exception e) {
+            throw new IOException(e);
+        }
+    }
+
+    private final Map<String, Method> methodMap = new HashMap<>();
+
+    private Method searchMethods(Object execObj, String method, Class [] types, Object [] params) throws Exception {
+        for (Method m : execObj.getClass().getDeclaredMethods()) {
+            if (!m.getName().equals(method))
+                continue;
+            Class [] paramTypes = m.getParameterTypes();
+            if (paramTypes.length != types.length)
+                continue;
+            boolean matchFound = true;
+            for (int i=0; i<paramTypes.length; i++) {
+                if (!isCompatiblePrimitives(paramTypes[i], types[i]) && !Reflector.isSubclassOf(types[i], paramTypes[i])) {
+                    matchFound = false;
+                    break;
+                }
+            }
+            if (matchFound)
+                return m;
+        }
+        throw new Exception("Failed to match method '" + method + "'");
+    }
+
+    private final static Map<Class, List> primitiveCompatibilityMap = new HashMap<>();
+
+    static {
+        List c;
+        primitiveCompatibilityMap.put(boolean.class, c= Arrays.asList(boolean.class, Boolean.class));
+        primitiveCompatibilityMap.put(Boolean.class, c);
+        primitiveCompatibilityMap.put(byte.class, c=Arrays.asList(byte.class, Byte.class));
+        primitiveCompatibilityMap.put(Byte.class, c);
+        primitiveCompatibilityMap.put(int.class, c=Arrays.asList(int.class, Integer.class, byte.class, Byte.class));
+        primitiveCompatibilityMap.put(Integer.class, c);
+        primitiveCompatibilityMap.put(long.class, c=Arrays.asList(int.class, Integer.class, byte.class, Byte.class, long.class, Long.class));
+        primitiveCompatibilityMap.put(long.class, c);
+        primitiveCompatibilityMap.put(float.class, c=Arrays.asList(int.class, Integer.class, byte.class, Byte.class, float.class, Float.class));
+        primitiveCompatibilityMap.put(Float.class, c);
+        primitiveCompatibilityMap.put(double.class, c=Arrays.asList(int.class, Integer.class, byte.class, Byte.class, float.class, Float.class, double.class, Double.class, long.class, Long.class));
+        primitiveCompatibilityMap.put(Double.class, c);
+
+    }
+
+    private boolean isCompatiblePrimitives(Class a, Class b) {
+        if (primitiveCompatibilityMap.containsKey(a))
+            return primitiveCompatibilityMap.get(a).contains(b);
+        return false;
     }
 
 }

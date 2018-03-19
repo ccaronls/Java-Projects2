@@ -20,15 +20,17 @@ import android.net.wifi.p2p.nsd.WifiP2pServiceRequest;
 import android.net.wifi.p2p.nsd.WifiP2pUpnpServiceRequest;
 import android.os.Handler;
 import android.os.Looper;
-import android.util.Log;
 import android.widget.Toast;
 
+import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import cc.lib.game.Utils;
+import cc.lib.logger.Logger;
+import cc.lib.logger.LoggerFactory;
 
 /**
  * Created by chriscaron on 2/16/18.
@@ -43,15 +45,15 @@ public class WifiP2pHelper implements
         WifiP2pManager.GroupInfoListener,
         WifiP2pManager.ConnectionInfoListener {
 
-    private final static String TAG = WifiP2pHelper.class.getSimpleName();
+    private final Logger log = LoggerFactory.getLogger(getClass());
+    
     private Handler handler = new Handler(Looper.getMainLooper());
     private WifiP2pDevice connection = null;
-    private Object lock = new Object();
 
     private BroadcastReceiver rcvr = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            Log.d(TAG, "BR:RECV = " + intent.getAction());
+            log.debug("BR:RECV = " + intent.getAction());
             switch (intent.getAction()) {
                 case WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION: {
                     //NetworkInfo ni = intent.getParcelableExtra(WifiP2pManager.EXTRA_NETWORK_INFO);
@@ -72,11 +74,11 @@ public class WifiP2pHelper implements
                     int state = intent.getIntExtra(WifiP2pManager.EXTRA_DISCOVERY_STATE, -1);
                     switch (state) {
                         case WifiP2pManager.WIFI_P2P_DISCOVERY_STARTED:
-                            Log.i(TAG, "BR:RCV = WIFI P2P DISCOVERY STARTED");
+                            log.info("BR:RCV = WIFI P2P DISCOVERY STARTED");
                             break;
 
                         case WifiP2pManager.WIFI_P2P_DISCOVERY_STOPPED:
-                            Log.i(TAG, "BR:RCV = WIFI P2P DISCOVERY STOPPED");
+                            log.info("BR:RCV = WIFI P2P DISCOVERY STOPPED");
                             break;
                     }
                     break;
@@ -95,11 +97,11 @@ public class WifiP2pHelper implements
                     int state = intent.getIntExtra(WifiP2pManager.EXTRA_WIFI_STATE, -1);
                     switch (state) {
                         case WifiP2pManager.WIFI_P2P_STATE_DISABLED:
-                            Log.i(TAG, "BR:RCV = WIFI P2P STATE DISABLED");
+                            log.info("BR:RCV = WIFI P2P STATE DISABLED");
                             destroy();
                             break;
                         case WifiP2pManager.WIFI_P2P_STATE_ENABLED:
-                            Log.i(TAG, "BR:RCV = WIFI P2P STATE ENABLED");
+                            log.info("BR:RCV = WIFI P2P STATE ENABLED");
                             break;
                     }
                     break;
@@ -141,14 +143,14 @@ public class WifiP2pHelper implements
             channel = p2p.initialize(ctxt, ctxt.getMainLooper(), this);
             ctxt.registerReceiver(rcvr, p2pFilter);
             state = State.INITIALIZED;
-            Log.i(TAG, "p2pInitialized success");
+            log.info("p2pInitialized success");
         }
     }
 
     @Override
     public final void onChannelDisconnected() {
         if (state != State.READY) {
-            Log.d(TAG, "channel disconnected");
+            log.debug("channel disconnected");
             destroy();
             ctxt.runOnUiThread(new Runnable() {
                 @Override
@@ -185,8 +187,8 @@ public class WifiP2pHelper implements
 
         @Override
         public final void onSuccess() {
-            synchronized (lock) {
-                lock.notify();
+            synchronized (caller) {
+                caller.notify();
             }
             onDone();
         }
@@ -195,9 +197,9 @@ public class WifiP2pHelper implements
 
         @Override
         public final void onFailure(final int reason) {
-            Log.e(TAG, caller + " : " + getFailureReasonString(reason));
-            synchronized (lock) {
-                lock.notify();
+            log.error(caller + " : " + getFailureReasonString(reason));
+            synchronized (caller) {
+                caller.notify();
             }
             ctxt.runOnUiThread(new Runnable() {
                 @Override
@@ -259,7 +261,7 @@ public class WifiP2pHelper implements
     }
 
     private void discoverServices(final WifiP2pServiceRequest serviceRequest) {
-        Log.d(TAG, "discover services state="+state);
+        log.debug("discover services state="+state);
 
         switch (state) {
             case PEERS:
@@ -283,7 +285,7 @@ public class WifiP2pHelper implements
                 }
                 break;
             default:
-                Log.e(TAG, "P2P Not initialized!");
+                log.error("P2P Not initialized!");
         }
     }
 
@@ -298,7 +300,7 @@ public class WifiP2pHelper implements
                         p2p.discoverServices(channel, new MyActionListener("discoverServices") {
                             @Override
                             public void onDone() {
-                                Log.i(TAG, "discoverServcies SUCCESS");
+                                log.info("discoverServcies SUCCESS");
                                 state = State.SERVICES;
                                 handler.postDelayed(new Runnable() {
                                     @Override
@@ -324,7 +326,7 @@ public class WifiP2pHelper implements
      *
      */
     public final void stopDiscoverServices() {
-        Log.d(TAG, "stop discover services state="+state);
+        log.debug("stop discover services state="+state);
         p2p.clearLocalServices(channel, new MyActionListener("clearLocalServices") {
             @Override
             protected void onDone() {
@@ -332,7 +334,7 @@ public class WifiP2pHelper implements
                     p2p.removeServiceRequest(channel, discoverServicesRequest, new MyActionListener("removeServiceRequest") {
                         @Override
                         public void onDone() {
-                            Log.i(TAG, "stopDiscoverServices SUCCESS");
+                            log.info("stopDiscoverServices SUCCESS");
                         }
                     });
                     synchronized (this) {
@@ -364,14 +366,14 @@ public class WifiP2pHelper implements
      * @param peers
      */
     protected void onPeersAvailable(Collection<WifiP2pDevice> peers) {
-        Log.i(TAG, "Peers Available: " + peers.size());
+        log.info("Peers Available: " + peers.size());
     }
 
     /**
      *
      */
     public final synchronized void discoverPeers() {
-        Log.d(TAG, "discover peers state="+state);
+        log.debug("discover peers state="+state);
         switch (state) {
             case SERVICES:
                 stopDiscoverServices();
@@ -384,10 +386,9 @@ public class WifiP2pHelper implements
                         requestPeers();
                     }
                 });
-                Utils.waitNoThrow(lock, 2000);
                 break;
             default:
-                Log.e(TAG, "P2P Not initialized!!!");
+                log.error("P2P Not initialized!!!");
         }
     }
 
@@ -427,7 +428,7 @@ public class WifiP2pHelper implements
 
     @Override
     public final synchronized void onDnsSdServiceAvailable(String instanceName, String registrationType, WifiP2pDevice device) {
-        Log.i(TAG, "ServiceAvailable: " + instanceName + ", " + registrationType + ", " + device.deviceName);
+        log.info("ServiceAvailable: " + instanceName + ", " + registrationType + ", " + device.deviceName);
 
         if ((device = resolveDevice(device))==null)
             return;
@@ -475,7 +476,7 @@ public class WifiP2pHelper implements
      *
      */
     public final void destroy() {
-        Log.d(TAG, "destroy state="+state);
+        log.debug("destroy state="+state);
         endRegistration();
         stopPeerDiscovery();
         stopDiscoverServices();
@@ -494,7 +495,7 @@ public class WifiP2pHelper implements
      *
      */
     public final void pause() {
-        Log.d(TAG, "pause state="+state);
+        log.debug("pause state="+state);
         switch (state) {
             case READY:
             case INITIALIZED:
@@ -509,13 +510,13 @@ public class WifiP2pHelper implements
     }
 
     public final void stopPeerDiscovery() {
-        Log.d(TAG, "stop peer discovery state="+state);
+        log.debug("stop peer discovery state="+state);
 
         if (state == State.PEERS) {
             p2p.stopPeerDiscovery(channel, new MyActionListener("stopPeerDiscovery") {
                 @Override
                 public void onDone() {
-                    Log.i(TAG, "stopPeerDiscovery SUCCESS");
+                    log.info("stopPeerDiscovery SUCCESS");
                 }
             });
             state = State.INITIALIZED;
@@ -526,7 +527,7 @@ public class WifiP2pHelper implements
      *
      */
     public final void resume() {
-        Log.d(TAG, "resume state="+state);
+        log.debug("resume state="+state);
 
         switch (state) {
             case READY:
@@ -536,7 +537,7 @@ public class WifiP2pHelper implements
     }
 
     private void requestPeers() {
-        Log.d(TAG, "request peers state="+state);
+        log.debug("request peers state="+state);
         p2p.requestPeers(channel, this);
     }
 
@@ -548,7 +549,7 @@ public class WifiP2pHelper implements
      * @param serviceName
      */
     public final void startRegistration(int listenPort, String serviceName) {
-        Log.d(TAG, "startRegistration " + listenPort + ". " + serviceName);
+        log.debug("startRegistration " + listenPort + ". " + serviceName);
         endRegistration();
         //  Create a string map containing information about your service.
         Map record = new HashMap();
@@ -567,7 +568,7 @@ public class WifiP2pHelper implements
         // the request.
         p2p.addLocalService(channel, serviceInfo, new MyActionListener("addLocalService") {
             @Override public void onDone() {
-                Log.i(TAG, "register service success");
+                log.info("register service success");
                 registeredServiceInfo = serviceInfo;
             }
         });
@@ -577,12 +578,12 @@ public class WifiP2pHelper implements
      *
      */
     public final void endRegistration() {
-        Log.d(TAG, "endRegistration state=" + state + ", registeredServiceInfo=" + registeredServiceInfo);
+        log.debug("endRegistration state=" + state + ", registeredServiceInfo=" + registeredServiceInfo);
         if (registeredServiceInfo != null) {
             p2p.removeLocalService(channel, registeredServiceInfo, new MyActionListener("removeLocalService") {
                 @Override
                 protected void onDone() {
-                    Log.i(TAG, "registered service done");
+                    log.info("registered service done");
                 }
             });
             registeredServiceInfo = null;
@@ -594,7 +595,7 @@ public class WifiP2pHelper implements
         p2p.createGroup(channel, new MyActionListener("createGroup") {
             @Override
             protected void onDone() {
-                Log.i(TAG, "Group created SUCCESS");
+                log.info("Group created SUCCESS");
             }
         });
     }
@@ -603,16 +604,15 @@ public class WifiP2pHelper implements
         p2p.removeGroup(channel, new MyActionListener("removeGrouop") {
             @Override
             protected void onDone() {
-                Log.i(TAG, "Group removed SUCCESS");
+                log.info("Group removed SUCCESS");
             }
         });
-        Utils.waitNoThrow(lock, 2000);
     }
 
     @Override
     public void onGroupInfoAvailable(WifiP2pGroup group) {
         if (group != null) {
-            Log.i(TAG, "Group Info"
+            log.info("Group Info"
                     + "\n   interface: " + group.getInterface()
                     + "\n   network name: " + group.getNetworkName()
                     + "\n   passphrase: " + group.getPassphrase()
@@ -629,7 +629,7 @@ public class WifiP2pHelper implements
         p2p.connect(channel, config, new MyActionListener("connect") {
             @Override
             protected void onDone() {
-                Log.i(TAG, "Connect SUCCESS");
+                log.info("Connect SUCCESS");
                 // dont do anthing, wait for onConnectionInfo
                 connection = another;
             }
@@ -640,7 +640,7 @@ public class WifiP2pHelper implements
         p2p.cancelConnect(channel, new MyActionListener("cancelConnect") {
             @Override
             protected void onDone() {
-                Log.i(TAG, "Connect cancelled");
+                log.info("Connect cancelled");
             }
         });
     }
@@ -654,7 +654,7 @@ public class WifiP2pHelper implements
     public final void onConnectionInfoAvailable(WifiP2pInfo info) {
         // override this to establish a connection to a server
         // TODO: should this be abstract? there are no situations when cannot override?
-        Log.i(TAG, "Connection info available: " + info);
+        log.info("Connection info available: " + info);
         if (state == State.PEERS && info.groupOwnerAddress != null) {
             onConnectionAvailable(info);
         }
@@ -666,5 +666,24 @@ public class WifiP2pHelper implements
      */
     protected void onConnectionAvailable(WifiP2pInfo info) {
 
+    }
+
+    public void setDeviceName(String name) {
+        try {
+            Method m = p2p.getClass().getMethod(
+                    "setDeviceName",
+                    new Class[] { WifiP2pManager.Channel.class, String.class,
+                            WifiP2pManager.ActionListener.class });
+
+            m.invoke(p2p, channel, name, new MyActionListener("setDeviceName") {
+                @Override
+                protected void onDone() {
+                    log.info("Device name changes success");
+                }
+            });
+        } catch (Exception e) {
+
+            e.printStackTrace();
+        }
     }
 }

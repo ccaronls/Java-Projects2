@@ -864,9 +864,10 @@ public class Utils {
         return buf.toString();
     }
 
-    public static String truncate(Object o, int maxChars, int maxLines) {
+    public static String truncate(Object o, final int maxChars, int maxLines) {
         if (o == null)
             return null;
+        int charsLeft = maxChars;
         String s = o.toString();
         final int len = s.length();
         String result = "";
@@ -876,15 +877,15 @@ public class Utils {
             if (result.length()>0)
                 result += "\n";
             int endl = s.indexOf('\n');
-            if (endl > maxChars) {
-                result += s.substring(0, maxChars) + "...\n   truncated to " + maxChars + " (" + len + ")";
+            if (endl > charsLeft) {
+                result += s.substring(0, charsLeft);
                 break;
             } else if (endl >= 0) {
                 result += s.substring(0, endl);
                 s = s.substring(endl+1);
-                maxChars -= endl;
-            } else if (s.length() > maxChars) {
-                result = s.substring(0, maxChars) + "...\n    truncated to " + maxChars + " (" + len + ")";
+                charsLeft -= endl;
+            } else if (s.length() > charsLeft) {
+                result += s.substring(0, charsLeft);
                 break;
             } else {
                 result += s;
@@ -892,7 +893,7 @@ public class Utils {
                 break;
             }
         }
-        if (s.length() > 0) {
+        if (s.length() > 0 && maxChars > 256) {
             result += "\n....  truncated to " + maxLines + " lines " + " (" + len + ") bytes";
         }
 

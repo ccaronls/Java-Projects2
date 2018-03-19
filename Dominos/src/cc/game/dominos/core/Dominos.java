@@ -767,7 +767,8 @@ public abstract class Dominos extends Reflector<Dominos> {
 	        if (txtAnim != null)
 	            txtAnim.update(g);
 	        else {
-                GDimension dim = g.drawAnnotatedString(String.format("%s X %d [0,0,0]%d PTS", p.getName(), p.getTiles().size(), p.getScore()), 0, 0);
+                GDimension dim = g.drawAnnotatedString(String.format("%s X %d [0,0,0]%d PTS",
+                        Utils.truncate(p.getName(), 5, 1), p.getTiles().size(), p.getScore()), 0, 0);
                 p.outlineRect.set(g.transform(0, 0), g.transform(dim.width, dim.height));
             }
 	        g.popMatrix();
@@ -885,7 +886,7 @@ public abstract class Dominos extends Reflector<Dominos> {
                     boolean anim = tile >= numPlayerTiles;
 
                     if (!anim) {
-                        Tile t = p.tiles.get(tile);
+                        Tile t = playertiles.get(tile);
                         PlayerUser user = getUser();
                         boolean available = user != null && user.usable.contains(t);
                         if (available) {
