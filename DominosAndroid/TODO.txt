@@ -1,7 +1,7 @@
 - Allow a player to leave and another to join (test)
 - Add forfiet menu item (done)
-- Fix array index out of bounds exception
-- no infinite wait for remote exec calls
+- Fix array index out of bounds exception (done?)
+- no infinite wait for remote exec calls (done?)
 - allow for spectators that can become players on a new game to replace player with fewest pts
 - dont show p2p devices that are not group owners (done)
 - is it possible to control the display name of your p2p device? (yes, done)
@@ -14,3 +14,14 @@
 - Notify users when players or server pauses or resumes their game
 - Allow users to set their name (alias or handle or icon? or pic?)
    - use camera to face capture and use thumb as icon!
+- Player layout is terrible. Should be a player on each side or something.
+- Add sound effects.
+- Add shuffling animation
+- Add animations to show how pieces are moving around, like from the pool to a player
+- Remember game params in settings
+- Fix inconsistent corners on tiles (some are round and some are more square)
+- Dont ever allow text overlapp
+- When a client moves, there is ui glitch that can be avoided if client simply updates game state itself
+  and includes a flag to server to omit broadcasting back to the client.
+- test in release mode
+- Add about screen and splash screen

@@ -16,12 +16,17 @@ public class PlayerUser extends Player {
     final HashSet<Tile> usable = new HashSet<>();
     final List<Move> moves = new ArrayList<>();
 
+    public PlayerUser() {
+    }
+
+    public PlayerUser(int playerNum) {
+        super(playerNum);
+    }
+
     @Override
     public Move chooseMove(Dominos game, List<Move> moves) {
 
-        choosedMove = null;
-        usable.clear();
-        this.moves.clear();
+        clearMoves();
         this.moves.addAll(moves);
         for (Move m : moves) {
             usable.add(m.piece);

@@ -1,21 +1,20 @@
 package cc.game.soc.core;
 
-import java.io.PrintWriter;
+import junit.framework.TestCase;
 
 import cc.lib.utils.Reflector;
-import junit.framework.TestCase;
 
 public class FixSaveFile extends TestCase {
 
 	public void test() throws Exception {
-		Reflector.ENABLE_THROW_ON_UNKNOWN = true;
+		Reflector.THROW_ON_UNKNOWN = true;
 		SOC soc = new SOC();
-		assertTrue(soc.load("socsavegame.txt"));
-		soc.serialize(new PrintWriter(System.out));
+		assertTrue(soc.load("~/.soc/socsavegame.txt"));
+		soc.serialize(System.out);
 	}
 	
 	public void xtest() {
-		Reflector.ENABLE_THROW_ON_UNKNOWN = true;
+		Reflector.THROW_ON_UNKNOWN = true;
 		SOC soc = new SOC();
 		assertTrue(soc.load("socsavegame.txt"));
 		Board b = soc.getBoard();

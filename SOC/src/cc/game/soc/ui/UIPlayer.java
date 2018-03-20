@@ -2,7 +2,6 @@ package cc.game.soc.ui;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
 import cc.game.soc.core.BotNode;
 import cc.game.soc.core.Card;
@@ -457,22 +456,17 @@ public class UIPlayer extends PlayerBot implements ClientConnection.Listener {
 	}
 
     @Override
-    public void onCommand(GameCommand cmd) {
+    public void onCommand(ClientConnection c, GameCommand cmd) {
 
     }
 
     @Override
-    public void onDisconnected(String reason) {
+    public void onDisconnected(ClientConnection c, String reason) {
 
     }
 
     @Override
-    public void onConnected() {
-
-    }
-
-    @Override
-    public void onFormSubmited(ClientConnection conn, int id, Map<String, String> params) {
+    public void onConnected(ClientConnection c) {
 
     }
 }

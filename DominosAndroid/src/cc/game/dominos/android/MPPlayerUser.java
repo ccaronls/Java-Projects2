@@ -9,6 +9,7 @@ import cc.game.dominos.core.Dominos;
 import cc.game.dominos.core.Move;
 import cc.game.dominos.core.Player;
 import cc.game.dominos.core.PlayerUser;
+import cc.lib.annotation.Keep;
 import cc.lib.net.GameClient;
 import cc.lib.net.GameCommand;
 import cc.lib.utils.Reflector;
@@ -35,10 +36,11 @@ public class MPPlayerUser extends PlayerUser implements GameClient.Listener {
         client.addListener(this);
     }
 
+    @Keep
     public Move chooseMove(List<Move> options) {
         // TODO: we should be able to apply the move our self to prevent the visual glitch that happens
         //    while waiting for the server to process our move
-        return super.chooseMove(dominos, options);
+        return chooseMove(dominos, options);
     }
 
     @Override
@@ -57,6 +59,7 @@ public class MPPlayerUser extends PlayerUser implements GameClient.Listener {
             players[idx++] = this;
             for (; idx < numPlayers; idx++)
                 players[idx] = new Player(idx);
+            dominos.clear();
             dominos.setPlayers(players);
             Reflector.KEEP_INSTANCES = true;
             try {

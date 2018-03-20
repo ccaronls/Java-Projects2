@@ -42,7 +42,7 @@ android {
     }
 
     signingConfigs {
-        release {
+        general {
             storeFile file(project.storeFile)
             storePassword project.storePassword
             keyAlias project.keyAlias
@@ -56,11 +56,15 @@ android {
          * By default, Android Studio configures the release build type to enable code
          * shrinking, using minifyEnabled, and specifies the Proguard settings file.
          */
+        debug {
+            debuggable true
+            signingConfig signingConfigs.general
+        }
 
         release {
             minifyEnabled true // Enables code shrinking for the release build type.
             proguardFiles getDefaultProguardFile('proguard-android.txt'), '../common/proguard.txt'
-            signingConfig signingConfigs.release
+            signingConfig signingConfigs.general
         }
     }
 }

@@ -1,15 +1,12 @@
 package cc.game.soc.core;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
+import junit.framework.TestCase;
+
 import java.io.File;
-import java.io.FileReader;
 import java.io.FileWriter;
-import java.io.IOException;
 
 import cc.lib.game.Utils;
 import cc.lib.utils.Profiler;
-import junit.framework.TestCase;
 
 public class SOCTest extends TestCase {
 
@@ -44,17 +41,7 @@ public class SOCTest extends TestCase {
     public void testSOC() throws Exception
 	{
 		final FileWriter log = new FileWriter("testresult/soctestlog.txt");
-		SOC soc = new SOC() {
-            @Override
-			public void printinfo(int playerNum, String msg) {
-				super.printinfo(playerNum, msg);
-				try {
-					log.write(msg + "\n");
-				} catch (Exception e) {
-					e.printStackTrace();					
-				}
-			}
-		};
+		SOC soc = new SOC();
 		Board b = soc.getBoard();
 		b.generateHexBoard(4, TileType.WATER);
 		for (int i=0; i<b.getNumTiles(); i++) {

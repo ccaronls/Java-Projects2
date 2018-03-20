@@ -86,7 +86,7 @@ public abstract class Dominos extends Reflector<Dominos> {
             throw new AssertionError();
         int d = difficulty;
         this.players = new Player[num];
-        players[0] = new PlayerUser();
+        players[0] = new PlayerUser(0);
         for (int i=1; i<num; i++) {
             players[i] = new Player(i);
             if (d-- > 0) {

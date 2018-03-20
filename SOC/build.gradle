@@ -5,8 +5,10 @@ dependencies {
     compile project(':GameLibrary')
     compile fileTree(dir: 'lib', include: '*.jar')
     compile project(':jmdns')
-}
 
+    testCompile 'junit:junit:4.12'
+    compile 'junit:junit:4.12'
+}
 sourceSets {
     main {
         java {
@@ -18,6 +20,15 @@ sourceSets {
         }
         //output.resourcesDir = 'build/resources';
     }
+
+    test {
+        java {
+            srcDirs = ['test']
+            excludes = ['**/jmdns/src/test/**']
+        }
+    }
+
+    test.resources.srcDirs = ['testResources']
 }
 
 mainClassName = 'cc.game.soc.swing2.GUI'

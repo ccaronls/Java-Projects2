@@ -17,19 +17,35 @@ public class Player extends Reflector<Player> {
 
     List<Tile> tiles = new SyncList<>(new ArrayList<Tile>());
     int score;
-    public final int playerNum;
+    private int playerNum = -1;
+    private String name = null;
     boolean smart = false;
 
-    public Player() {
-        this(-1);
-    }
+    public Player() {}
 
     public Player(int playerNum) {
         this.playerNum = playerNum;
+        this.name = "P" + (playerNum+1);
     }
 
     public String getName() {
-        return "P" + (playerNum+1);
+        return name;
+    }
+
+    public int getPlayerNum() {
+        return playerNum;
+    }
+
+    public void setPlayerNum(int playerNum) {
+        this.playerNum = playerNum;
+    }
+
+    /**
+     * Set the display name for this player. name from client connection takes precedence.
+     * @param name
+     */
+    public final void setName(String name) {
+        this.name = name;
     }
 
     @Omit

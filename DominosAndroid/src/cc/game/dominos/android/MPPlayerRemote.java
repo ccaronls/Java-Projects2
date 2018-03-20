@@ -8,6 +8,7 @@ import java.util.List;
 import cc.game.dominos.core.Dominos;
 import cc.game.dominos.core.Move;
 import cc.game.dominos.core.Player;
+import cc.lib.annotation.Keep;
 import cc.lib.net.ClientConnection;
 import cc.lib.net.GameCommand;
 
@@ -51,6 +52,7 @@ public class MPPlayerRemote extends Player implements ClientConnection.Listener 
     }
 
     @Override
+    @Keep
     public Move chooseMove(Dominos game, List<Move> moves) {
         if (connection != null && connection.isConnected())
             return connection.executeOnRemote(USER_ID, dominos, moves);
@@ -94,7 +96,7 @@ public class MPPlayerRemote extends Player implements ClientConnection.Listener 
         // reconnect
         if (connection.getServer().getNumConnectedClients() == dominos.getNumPlayers()-1) {
             connection.sendCommand(new GameCommand(SVR_TO_CL_INIT_GAME).setArg("numPlayers", dominos.getNumPlayers())
-                    .setArg("playerNum", playerNum)
+                    .setArg("playerNum", getPlayerNum())
                     .setArg("dominos", dominos.toString()));
 
             activity.currentDialog.dismiss();

@@ -36,6 +36,7 @@ import cc.game.dominos.core.Tile;
 import cc.lib.android.DroidActivity;
 import cc.lib.android.DroidGraphics;
 import cc.lib.android.WifiP2pHelper;
+import cc.lib.annotation.Keep;
 import cc.lib.crypt.Cypher;
 import cc.lib.crypt.HuffmanEncoding;
 import cc.lib.game.Utils;
@@ -141,6 +142,7 @@ public class DominosActivity extends DroidActivity {
             }
 
             @Override
+            @Keep
             protected void onGameOver(int winner) {
                 super.onGameOver(winner);
                 if (server.isRunning()) {
@@ -325,42 +327,49 @@ public class DominosActivity extends DroidActivity {
             }
 
             @Override
+            @Keep
             protected void onTilePlaced(int player, Tile tile, int endpoint, int placement) {
                 server.broadcastExecuteOnRemote(DOMINOS_ID, player, tile, endpoint, placement);
                 super.onTilePlaced(player, tile, endpoint, placement);
             }
 
             @Override
+            @Keep
             protected void onTileFromPool(int player, Tile pc) {
                 server.broadcastExecuteOnRemote(DOMINOS_ID, player, pc);
                 super.onTileFromPool(player, pc);
             }
 
             @Override
+            @Keep
             protected void onKnock(int player) {
                 server.broadcastExecuteOnRemote(DOMINOS_ID, player);
                 super.onKnock(player);
             }
 
             @Override
+            @Keep
             protected void onEndRound() {
                 super.onEndRound();
                 server.broadcastCommand(new GameCommand(SVR_TO_CL_INIT_ROUND).setArg("dominos", dominos.toString()));
             }
 
             @Override
+            @Keep
             protected void onPlayerEndRoundPoints(int player, int pts) {
                 server.broadcastExecuteOnRemote(DOMINOS_ID, player, pts);
                 super.onPlayerEndRoundPoints(player, pts);
             }
 
             @Override
+            @Keep
             protected void onPlayerPoints(int player, int pts) {
                 server.broadcastExecuteOnRemote(DOMINOS_ID, player,pts);
                 super.onPlayerPoints(player, pts);
             }
 
             @Override
+            @Keep
             public void setTurn(int turn) {
                 server.broadcastExecuteOnRemote(DOMINOS_ID, turn);
                 super.setTurn(turn);
@@ -409,24 +418,6 @@ public class DominosActivity extends DroidActivity {
                 showNewGameDialog();
             }
         }
-        /*
-        if (mode == Mode.SINGLE && dominos.getNumPlayers() > 0 && dominos.getWinner()<0)
-            dominos.startGameThread();
-        else if (currentDialog != null && currentDialog.isShowing()) {
-            // ignore
-        } else if (!dominos.isGameRunning())
-            showNewGameDialog(false);
-
-        if (saveFile.exists()) {
-            if (Build.VERSION.SDK_INT >= 23) {
-                if (checkPermission()) {
-                    copyFileToExt();
-                } else {
-                    requestPermission();
-                }
-            }
-        }*/
-
     }
 
     final int PERMISSION_REQUEST_CODE = 1001;
@@ -602,7 +593,7 @@ public class DominosActivity extends DroidActivity {
                 remote.setConnection(conn);
                 conn.sendCommand(new GameCommand(SVR_TO_CL_INIT_GAME)
                         .setArg("numPlayers", dominos.getNumPlayers())
-                        .setArg("playerNum", remote.playerNum)
+                        .setArg("playerNum", remote.getPlayerNum())
                         .setArg("dominos", dominos.toString()));
                 currentDialog.dismiss();
             }
@@ -625,6 +616,7 @@ public class DominosActivity extends DroidActivity {
             protected void doIt() throws Exception {
                 server.listen();
                 server.addListener(connectionListener);
+                user.setName(server.getName());
                 helper = new WifiP2pHelper(DominosActivity.this);
                 helper.p2pInitialize();
                 String build = Build.PRODUCT
