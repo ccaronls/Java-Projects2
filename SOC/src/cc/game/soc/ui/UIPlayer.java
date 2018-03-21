@@ -13,6 +13,7 @@ import cc.game.soc.core.SOC;
 import cc.game.soc.core.Trade;
 import cc.game.soc.core.Vertex;
 import cc.game.soc.core.VertexType;
+import cc.lib.annotation.Keep;
 import cc.lib.game.AGraphics;
 import cc.lib.game.GColor;
 import cc.lib.game.IVector2D;
@@ -246,6 +247,7 @@ public class UIPlayer extends PlayerBot implements ClientConnection.Listener {
     }
 
 	@Override
+    @Keep
 	public Integer chooseVertex(SOC soc, Collection<Integer> vertexIndices, VertexChoice mode, Integer knightToMove) {
 		Integer vIndex = null;
 		if (connection != null && connection.isConnected()) {
@@ -260,6 +262,7 @@ public class UIPlayer extends PlayerBot implements ClientConnection.Listener {
 	}
 
     @Override
+    @Keep
     public MoveType chooseMove(SOC soc, Collection<MoveType> moves) {
 	    MoveType mv = null;
 	    if (connection != null && connection.isConnected()) {
@@ -271,6 +274,7 @@ public class UIPlayer extends PlayerBot implements ClientConnection.Listener {
     }
 
     @Override
+    @Keep
     public RouteChoiceType chooseRouteType(SOC soc) {
 	    RouteChoiceType rt = null;
         if (connection != null && connection.isConnected()) {
@@ -282,6 +286,7 @@ public class UIPlayer extends PlayerBot implements ClientConnection.Listener {
     }
 
     @Override
+    @Keep
     public Integer chooseTile(SOC soc, Collection<Integer> tileIndices, TileChoice mode) {
 	    Integer tIndex = null;
         if (connection != null && connection.isConnected()) {
@@ -293,6 +298,7 @@ public class UIPlayer extends PlayerBot implements ClientConnection.Listener {
     }
 
     @Override
+    @Keep
     public Trade chooseTradeOption(SOC soc, Collection<Trade> trades) {
 	    Trade trade = null;
         if (connection != null && connection.isConnected()) {
@@ -304,6 +310,7 @@ public class UIPlayer extends PlayerBot implements ClientConnection.Listener {
     }
 
     @Override
+    @Keep
     public Integer choosePlayer(SOC soc, Collection<Integer> playerOptions, PlayerChoice mode) {
 	    Integer player = null;
         if (connection != null && connection.isConnected()) {
@@ -315,6 +322,7 @@ public class UIPlayer extends PlayerBot implements ClientConnection.Listener {
     }
 
     @Override
+    @Keep
     public Card chooseCard(SOC soc, Collection<Card> cards, CardChoice mode) {
 	    Card card = null;
         if (connection != null && connection.isConnected()) {
@@ -326,6 +334,7 @@ public class UIPlayer extends PlayerBot implements ClientConnection.Listener {
     }
 
     @Override
+    @Keep
     public <T extends Enum<T>> T chooseEnum(SOC soc, EnumChoice mode, T[] values) {
 	    T e = null;
         if (connection != null && connection.isConnected()) {
@@ -337,6 +346,7 @@ public class UIPlayer extends PlayerBot implements ClientConnection.Listener {
     }
 
     @Override
+    @Keep
     public boolean setDice(SOC soc, Dice[] die, int num) {
 	    if (connection != null && connection.isConnected()) {
 	        Dice [] result = connection.executeOnRemote(NetCommon.USER_ID, soc, die, num);
@@ -399,6 +409,7 @@ public class UIPlayer extends PlayerBot implements ClientConnection.Listener {
 	private Route moveShipSource = null;
 
 	@Override
+    @Keep
 	public Integer chooseRoute(SOC soc, Collection<Integer> routeIndices, RouteChoice mode) {
 	    Integer route = null;
 	    if (connection != null && connection.isConnected()) {

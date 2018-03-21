@@ -51,7 +51,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
 
     private static UISOC instance = null;
 
-    public final GameServer server = new GameServer(getServerName(), NetCommon.PORT, 30000, NetCommon.VERSION, NetCommon.getCypher(), 8);
+    public final GameServer server = new GameServer(getServerName(), NetCommon.PORT, NetCommon.CLIENT_READ_TIMEOUT, NetCommon.VERSION, NetCommon.getCypher(), NetCommon.MAX_CONNECTIONS);
 
     private final UIPlayerRenderer [] playerComponents;
     private final UIBoardRenderer boardRenderer;
@@ -672,9 +672,17 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
         final Vector2D dv = compPt.sub(boardPt);
 
         // center the card vertically against its player component
-        final float y = compPt.getY() - boardPt.getY() + comp.component.getHeight()/2 - cardHeight/2;//boardPt.getY() + dv.Y(); // duh
+        float _y = compPt.getY() - boardPt.getY() + comp.component.getHeight()/2 - cardHeight/2;
         final float W = comp.numCardAnimations * cardWidth + (comp.numCardAnimations+1) * cardWidth/3;
         final float x = boardPt.X() < compPt.getX() ? boardRenderer.component.getWidth() - cardWidth - W : W;
+
+        if (_y < 0) {
+            _y = 0;
+        } else if (_y + cardHeight > boardRenderer.component.getHeight()) {
+            _y = boardRenderer.component.getHeight() - cardHeight;
+        }
+
+        final float y = _y;
 
         final int animTime = 3000;//GUI.instance.getProps().getIntProperty("anim.card.tm", 3000);
         comp.numCardAnimations++;
@@ -691,6 +699,20 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
         }, false);
     }
 
+    private String getNiceString(String in) {
+        String txt = "";
+        Pattern splitter = Pattern.compile("[A-Z][a-z0-9]*");
+        Matcher matcher = splitter.matcher(in);
+        while (matcher.find()) {
+            if (txt.length() > 0) {
+                txt += " ";
+            }
+            txt += matcher.group();
+        }
+        return txt;
+    }
+
+
     @Override
     @Keep
     protected void onCardPicked(final int playerNum, final Card card) {
@@ -698,14 +720,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
         String txt = "";
         Player player = getPlayerByPlayerNum(playerNum);
         if (((UIPlayer)player).isInfoVisible()) {
-            Pattern splitter = Pattern.compile("[A-Z][a-z0-9]*");
-            Matcher matcher = splitter.matcher(card.getName());
-            while (matcher.find()) {
-                if (txt.length() > 0) {
-                    txt += " ";
-                }
-                txt += matcher.group();
-            }
+            txt = getNiceString(card.getName());
         }
         addCardAnimation(playerNum, txt);
         super.onCardPicked(playerNum, card);
@@ -731,7 +746,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
     @Keep
     protected void onProgressCardDistributed(int player, ProgressCardType type) {
         server.broadcastExecuteOnRemote(NetCommon.SOC_ID, player, type);
-        String txt = type.name();
+        String txt = getNiceString(type.name());
         if (!((UIPlayer)getPlayerByPlayerNum(player)).isInfoVisible()) {
             txt = "Progress";
         }
@@ -743,7 +758,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
     @Keep
     protected void onSpecialVictoryCard(int player, SpecialVictoryType type) {
         server.broadcastExecuteOnRemote(NetCommon.SOC_ID, player, type);
-        addCardAnimation(player, type.name());
+        addCardAnimation(player, getNiceString(type.name()));
         super.onSpecialVictoryCard(player, type);
     }
 
@@ -784,8 +799,8 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
     @Keep
     protected void onMonopolyCardApplied(final int taker, final int giver, final ICardType<?> type, final int amount) {
         server.broadcastExecuteOnRemote(NetCommon.SOC_ID, taker, giver, type, amount);
-        addCardAnimation(giver, type.name() + "\n- " + amount);
-        addCardAnimation(taker, type.name() + "\n+ " + amount);
+        addCardAnimation(giver, getNiceString(type.name()) + "\n- " + amount);
+        addCardAnimation(taker, getNiceString(type.name()) + "\n+ " + amount);
         super.onMonopolyCardApplied(taker, giver, type, amount);
     }
 
@@ -800,8 +815,8 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
     @Keep
     protected void onTakeOpponentCard(final int taker, final int giver, final Card card) {
         server.broadcastExecuteOnRemote(NetCommon.SOC_ID, taker, giver, card);
-        addCardAnimation(giver, card.getName() + "\n-1");
-        addCardAnimation(taker, card.getName() + "\n+1");
+        addCardAnimation(giver, getNiceString(card.getName()) + "\n-1");
+        addCardAnimation(taker, getNiceString(card.getName()) + "\n+1");
         super.onTakeOpponentCard(taker, giver, card);
     }
 
@@ -885,7 +900,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
     @Keep
     protected void onCardLost(int playerNum, Card c) {
         server.broadcastExecuteOnRemote(NetCommon.SOC_ID, playerNum, c);
-        addCardAnimation(playerNum, c.getName() + "\n-1");
+        addCardAnimation(playerNum, getNiceString(c.getName()) + "\n-1");
         super.onCardLost(playerNum, c);
     }
 

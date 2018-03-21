@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="app_theme" parent="@android:style/Theme.Black.NoTitleBar.Fullscreen"/>
+    <style name="AppBaseTheme" parent="@android:style/Theme.Black.NoTitleBar.Fullscreen"/>
+
+    <style name="AppTheme" parent="@style/AppBaseTheme">
+
+    </style>
 
     <style name="soc_label">
         <item name="android:textSize">14sp</item>

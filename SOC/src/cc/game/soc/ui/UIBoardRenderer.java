@@ -6,13 +6,12 @@ import cc.game.soc.core.*;
 import cc.lib.game.*;
 import cc.lib.math.*;
 
-public final class UIBoardRenderer extends UIRenderer implements MenuItem.Action {
+public class UIBoardRenderer extends UIRenderer implements MenuItem.Action {
 
     public Board board = null;
 
     public UIBoardRenderer(UIComponent component) {
         super(component);
-        component.setRenderer(this);
     }
 
 	protected GColor getPlayerColor(int playerNum) {
@@ -31,9 +30,9 @@ public final class UIBoardRenderer extends UIRenderer implements MenuItem.Action
     private int [] knightImages;
     private int cardFrameImage;
 
-    GColor outlineColorDark = GColor.BLACK;
-    GColor outlineColorLight = GColor.WHITE;
-    GColor textColor = GColor.CYAN;
+    private GColor outlineColorDark = GColor.BLACK;
+    private GColor outlineColorLight = GColor.WHITE;
+    private GColor textColor = GColor.CYAN;
 
 	private PickMode pickMode = PickMode.PM_NONE;
 	private int pickedValue = -1;
@@ -73,7 +72,7 @@ public final class UIBoardRenderer extends UIRenderer implements MenuItem.Action
         return pickHandler;
     }
 
-    public void setRenderFlag(RenderFlag flag, boolean enabled) {
+    public final void setRenderFlag(RenderFlag flag, boolean enabled) {
         if (enabled)
             renderFlag |= (1 << flag.ordinal());
         else
@@ -82,11 +81,11 @@ public final class UIBoardRenderer extends UIRenderer implements MenuItem.Action
         component.redraw();
     }
     
-    public boolean getRenderFlag(RenderFlag flag) {
+    public final boolean getRenderFlag(RenderFlag flag) {
         return (renderFlag & (1 << flag.ordinal())) != 0;
     }
     
-    public void addAnimation(AAnimation<AGraphics> anim, boolean block) {
+    public final void addAnimation(AAnimation<AGraphics> anim, boolean block) {
         synchronized (animations) {
             animations.add(anim);
         }
@@ -97,7 +96,7 @@ public final class UIBoardRenderer extends UIRenderer implements MenuItem.Action
         }
     }
 
-    public Board getBoard() {
+    public final Board getBoard() {
         if (board != null)
             return board;
         if (UISOC.getInstance() == null)
@@ -106,7 +105,7 @@ public final class UIBoardRenderer extends UIRenderer implements MenuItem.Action
         return UISOC.getInstance().getBoard();
     }
 
-    public void drawTileOutline(AGraphics g, Tile cell, float thickness) {
+    public final void drawTileOutline(AGraphics g, Tile cell, float thickness) {
         g.begin();
         for (int i : cell.getAdjVerts()) {
             Vertex v = getBoard().getVertex(i);
@@ -115,11 +114,11 @@ public final class UIBoardRenderer extends UIRenderer implements MenuItem.Action
         g.drawLineLoop(thickness);
     }
 
-	public void drawTileOutline(AGraphics g, Tile cell) {
+	public final void drawTileOutline(AGraphics g, Tile cell) {
         drawTileOutline(g, cell, RenderConstants.thinLineThickness);
 	}
 
-    public void startTilesInventedAnimation(final Tile tile0, final Tile tile1) {
+    public final void startTilesInventedAnimation(final Tile tile0, final Tile tile1) {
         final int NUM_PTS = 30;
 
         final int t1 = tile1.getDieNum();
@@ -392,43 +391,43 @@ public final class UIBoardRenderer extends UIRenderer implements MenuItem.Action
 		return getBoard().getTileWidth()/(6*3);
 	}
 	
-	public void drawSettlement(AGraphics g, IVector2D pos, int playerNum, boolean outline) {
+	public final void drawSettlement(AGraphics g, IVector2D pos, int playerNum, boolean outline) {
 		if (playerNum > 0)
 			g.setColor(getPlayerColor(playerNum));
 		drawFaces(g, pos, 0, getStructureRadius(), FaceType.SETTLEMENT, outline);
 	}
 
-    public void drawCity(AGraphics g, IVector2D pos, int playerNum, boolean outline) {
+    public final void drawCity(AGraphics g, IVector2D pos, int playerNum, boolean outline) {
 		if (playerNum > 0)
 			g.setColor(getPlayerColor(playerNum));
 		drawFaces(g, pos, 0, getStructureRadius(), FaceType.CITY, outline);
 	}
 
-    public void drawWalledCity(AGraphics g, IVector2D pos, int playerNum, boolean outline) {
+    public final void drawWalledCity(AGraphics g, IVector2D pos, int playerNum, boolean outline) {
 		if (playerNum > 0)
 			g.setColor(getPlayerColor(playerNum));
 		drawFaces(g, pos, 0, getStructureRadius(), FaceType.CITY_WALL, outline);
 	}
 
-    public void drawMetropolisTrade(AGraphics g, IVector2D pos, int playerNum, boolean outline) {
+    public final void drawMetropolisTrade(AGraphics g, IVector2D pos, int playerNum, boolean outline) {
 		if (playerNum > 0)
 			g.setColor(getPlayerColor(playerNum));
 		drawFaces(g, pos, 0, getStructureRadius(), FaceType.METRO_TRADE, outline);
 	}
 
-    public void drawMetropolisPolitics(AGraphics g, IVector2D pos, int playerNum, boolean outline) {
+    public final void drawMetropolisPolitics(AGraphics g, IVector2D pos, int playerNum, boolean outline) {
 		if (playerNum > 0)
 			g.setColor(getPlayerColor(playerNum));
 		drawFaces(g, pos, 0, getStructureRadius(), FaceType.METRO_POLITICS, outline);
 	}
 
-    public void drawMetropolisScience(AGraphics g, IVector2D pos, int playerNum, boolean outline) {
+    public final void drawMetropolisScience(AGraphics g, IVector2D pos, int playerNum, boolean outline) {
 		if (playerNum > 0)
 			g.setColor(getPlayerColor(playerNum));
 		drawFaces(g, pos, 0, getStructureRadius(), FaceType.METRO_SCIENCE, outline);
 	}
 
-    public void drawMerchant(AGraphics g, Tile t, int playerNum) {
+    public final void drawMerchant(AGraphics g, Tile t, int playerNum) {
 		if (playerNum > 0)
 			g.setColor(getPlayerColor(playerNum));
 		drawFaces(g, t, 0, getStructureRadius(), FaceType.MERCHANT, false);
@@ -439,7 +438,7 @@ public final class UIBoardRenderer extends UIRenderer implements MenuItem.Action
 		g.drawJustifiedString( v.Xi()-2, v.Yi()-2-g.getTextHeight()*2, Justify.CENTER, Justify.TOP, txt);
 	}
 
-    public void drawKnight_image(AGraphics g, float _x, float _y, int playerNum, int level, boolean active, boolean outline) {
+    public final void drawKnight_image(AGraphics g, float _x, float _y, int playerNum, int level, boolean active, boolean outline) {
 		final int x = Math.round(_x);
 		final int y = Math.round(_y);
 		final int r = (int)(getBoard().getTileWidth()/8) + 1;
@@ -449,11 +448,11 @@ public final class UIBoardRenderer extends UIRenderer implements MenuItem.Action
 		g.drawImage(knightImages[index], x-r/2, y-r/2, r, r);
 	}
 
-    public float getKnightRadius() {
+    public final float getKnightRadius() {
 		return getBoard().getTileWidth()*2/(8*3*3);
 	}
 
-    public void drawKnight(AGraphics g, IVector2D pos, int playerNum, int level, boolean active, boolean outline) {
+    public final void drawKnight(AGraphics g, IVector2D pos, int playerNum, int level, boolean active, boolean outline) {
 		if (playerNum > 0)
 			g.setColor(getPlayerColor(playerNum));
 		FaceType structure = null;
@@ -468,7 +467,7 @@ public final class UIBoardRenderer extends UIRenderer implements MenuItem.Action
 		drawFaces(g, pos, 0, radius, structure, outline);
 	}
 
-    public void drawCircle(AGraphics g, IVector2D pos) {
+    public final void drawCircle(AGraphics g, IVector2D pos) {
 		g.pushMatrix();
 		g.begin();
 		g.translate(pos);
@@ -484,7 +483,7 @@ public final class UIBoardRenderer extends UIRenderer implements MenuItem.Action
 		g.popMatrix();
 	}
 
-    public void drawPirateFortress(AGraphics g, Vertex v, boolean outline) {
+    public final void drawPirateFortress(AGraphics g, Vertex v, boolean outline) {
 		MutableVector2D mv = g.transform(v);
 		int x = mv.Xi()-10;
 		int y = mv.Yi()-10;
@@ -502,7 +501,7 @@ public final class UIBoardRenderer extends UIRenderer implements MenuItem.Action
 		drawFaces(g, v, 0, getStructureRadius(), FaceType.PIRATE_FORTRESS, outline);
 	}
 
-    public void drawFaces(AGraphics g, IVector2D pos, float angle, float radius, FaceType structure, boolean outline) {
+    public final void drawFaces(AGraphics g, IVector2D pos, float angle, float radius, FaceType structure, boolean outline) {
 	    //final float xRad = 3; // actual radius as defined above
 		//float scale = radius / xRad;
 		drawFaces(g, pos, angle, radius, radius, structure, outline);
@@ -510,7 +509,7 @@ public final class UIBoardRenderer extends UIRenderer implements MenuItem.Action
 
 	private HashMap<FaceType, Face[]> faceMap = new HashMap<UIBoardRenderer.FaceType, UIBoardRenderer.Face[]>();
 	
-	Face [] getStructureFaces(FaceType s) {
+	private Face [] getStructureFaces(FaceType s) {
 		Face [] faces = faceMap.get(s);
 		if (faces == null) {
 			ArrayList<Face> a = new ArrayList<Face>();
@@ -526,8 +525,8 @@ public final class UIBoardRenderer extends UIRenderer implements MenuItem.Action
 		}
 		return faces;
 	}
-	
-	void drawFaces(AGraphics g, IVector2D pos, float angle, float w, float h, FaceType structure, boolean outline) {
+
+    final void drawFaces(AGraphics g, IVector2D pos, float angle, float w, float h, FaceType structure, boolean outline) {
 		g.pushMatrix();
 		g.translate(pos);
 		g.rotate(angle);
@@ -601,7 +600,7 @@ public final class UIBoardRenderer extends UIRenderer implements MenuItem.Action
 		g.vertex(dv);
 	}
 	
-	public void drawDamagedRoad(AGraphics g, Route e, boolean outline) {
+	public final void drawDamagedRoad(AGraphics g, Route e, boolean outline) {
 		g.begin();
 	    if (outline) {
 	        GColor old = g.getColor();
@@ -614,7 +613,7 @@ public final class UIBoardRenderer extends UIRenderer implements MenuItem.Action
 	    g.drawLineStrip(RenderConstants.thickLineThickness);
 	}
 
-	public void drawEdge(AGraphics g, Route e, RouteType type, int playerNum, boolean outline) {
+	public final void drawEdge(AGraphics g, Route e, RouteType type, int playerNum, boolean outline) {
 		if (playerNum > 0)
 			g.setColor(getPlayerColor(playerNum));
 		switch (type) {
@@ -635,7 +634,7 @@ public final class UIBoardRenderer extends UIRenderer implements MenuItem.Action
 		}
 	}
 	
-	public void drawVertex(AGraphics g, Vertex v, VertexType type, int playerNum, boolean outline) {
+	public final void drawVertex(AGraphics g, Vertex v, VertexType type, int playerNum, boolean outline) {
 		switch (type) {
 			case OPEN:
 				break;
@@ -673,7 +672,7 @@ public final class UIBoardRenderer extends UIRenderer implements MenuItem.Action
 		}		
 	}
 	
-	public void drawRoad(AGraphics g, Route e, boolean outline) {
+	public final void drawRoad(AGraphics g, Route e, boolean outline) {
 		g.begin();
 	    if (outline) {
 	        GColor old = g.getColor();
@@ -686,7 +685,7 @@ public final class UIBoardRenderer extends UIRenderer implements MenuItem.Action
 	    g.drawLineStrip(RenderConstants.thickLineThickness);
 	}
 	
-	public int getEdgeAngle(Route e) {
+	public final int getEdgeAngle(Route e) {
 		Vertex v0 = getBoard().getVertex(e.getFrom());
 		Vertex v1 = getBoard().getVertex(e.getTo());
 		if (v1.getX() < v0.getX()) {
@@ -699,34 +698,34 @@ public final class UIBoardRenderer extends UIRenderer implements MenuItem.Action
 		return ang;
 	}
 
-    public float getShipRadius() {
+    public final float getShipRadius() {
 		return getBoard().getTileWidth()/(8*3);
 	}
 
-    public float getRobberRadius() {
+    public final float getRobberRadius() {
 		return getBoard().getTileWidth()/(7*3);
 	}
 
-    public void drawShip(AGraphics g, Route e, boolean outline) {
+    public final void drawShip(AGraphics g, Route e, boolean outline) {
 		IVector2D mp = getBoard().getRouteMidpoint(e);
 		drawFaces(g, mp, getEdgeAngle(e), getShipRadius(), FaceType.SHIP, outline);
 	}
 
-    public void drawShip(AGraphics g, IVector2D v, int angle, boolean outline) {
+    public final void drawShip(AGraphics g, IVector2D v, int angle, boolean outline) {
 		drawFaces(g, v, angle, getShipRadius(), FaceType.SHIP, outline);
 	}
 	
-	public void drawWarShip(AGraphics g, Route e, boolean outline) {
+	public final void drawWarShip(AGraphics g, Route e, boolean outline) {
 		IVector2D mp = getBoard().getRouteMidpoint(e);
 		drawFaces(g, mp, getEdgeAngle(e), getShipRadius(), FaceType.WAR_SHIP, outline);
 	}
 
-	public void drawRobber(AGraphics g, Tile cell) {
+	public final void drawRobber(AGraphics g, Tile cell) {
 		g.setColor(GColor.LIGHT_GRAY);
 		drawFaces(g, cell, 0, getRobberRadius(), FaceType.ROBBER, false);
 	}
 	
-	public void drawPirate(AGraphics g, IVector2D v) {
+	public final void drawPirate(AGraphics g, IVector2D v) {
 		g.setColor(GColor.BLACK);
 		drawFaces(g, v, 0, getRobberRadius(), FaceType.WAR_SHIP, false);
 	}
@@ -736,7 +735,7 @@ public final class UIBoardRenderer extends UIRenderer implements MenuItem.Action
 	 *  
 	 * @param handler
 	 */
-	public void setPickHandler(PickHandler handler) {
+	public final void setPickHandler(PickHandler handler) {
 		if (handler == null) {
 			this.pickMode = PickMode.PM_NONE;
 		} else {
@@ -747,7 +746,7 @@ public final class UIBoardRenderer extends UIRenderer implements MenuItem.Action
 		component.redraw();
 	}
 	
-	public void drawIslandOutlined(AGraphics g, int tileIndex) {
+	public final void drawIslandOutlined(AGraphics g, int tileIndex) {
 		Collection<Integer> islandEdges = getBoard().findIslandShoreline(tileIndex);
 		g.begin();
     	for (int eIndex : islandEdges) {
@@ -761,7 +760,7 @@ public final class UIBoardRenderer extends UIRenderer implements MenuItem.Action
     	}
 	}
 	
-	public void drawIslandInfo(AGraphics g, Island i) {
+	public final void drawIslandInfo(AGraphics g, Island i) {
 		g.begin();
 		g.setColor(GColor.BLUE);
     	for (int eIndex : i.getShoreline()) {
@@ -788,7 +787,7 @@ public final class UIBoardRenderer extends UIRenderer implements MenuItem.Action
     	g.drawJustifiedString( midpoint.Xi(), midpoint.Yi(), Justify.CENTER, Justify.CENTER, txt);
 	}
 	
-    private void drawTilesOutlined(AGraphics g) {
+    private final void drawTilesOutlined(AGraphics g) {
         //GColor outlineColor = getProperties().getColorProperty("outlineColor", GColor.WHITE);
         //GColor textColor = getProperties().getColorProperty("textcolor", GColor.CYAN);
         
@@ -851,8 +850,9 @@ public final class UIBoardRenderer extends UIRenderer implements MenuItem.Action
         }        
     }
 
-    private void drawTilesTextured(AGraphics g) {
+    private final void drawTilesTextured(AGraphics g) {
         Vector2D cellD = new Vector2D(getBoard().getTileWidth(), getBoard().getTileHeight()).scaledBy(0.5f);
+        g.setTextHeight(RenderConstants.textSizeSmall);
         g.setTextStyles(AGraphics.TextStyle.BOLD);
 
         for (int i=0; i <getBoard().getNumTiles(); i++) {
@@ -941,7 +941,8 @@ public final class UIBoardRenderer extends UIRenderer implements MenuItem.Action
     }
 
     @Override
-    public void doClick() {
+    public final void doClick() {
+	    // allow the accept button to do this work now
         if (pickedValue >= 0) {
             pickHandler.onPick(this, pickedValue);
             component.redraw();
@@ -949,7 +950,7 @@ public final class UIBoardRenderer extends UIRenderer implements MenuItem.Action
         }
     }
 
-    public void drawCellProductionValue(AGraphics g, float x, float y, int num) {
+    public final void drawCellProductionValue(AGraphics g, float x, float y, int num) {
 	    final float radius = g.getTextHeight()*2;
         g.setColor(GColor.BLACK);
         g.begin();
@@ -960,7 +961,7 @@ public final class UIBoardRenderer extends UIRenderer implements MenuItem.Action
         g.drawJustifiedString( x, y, Justify.CENTER, Justify.CENTER, String.valueOf(num));
     }
     
-	public void draw(APGraphics g, int pickX, int pickY) {
+	public final void draw(APGraphics g, int pickX, int pickY) {
 
 	    final int width = component.getWidth();
 	    final int height = component.getHeight();
@@ -1177,7 +1178,8 @@ public final class UIBoardRenderer extends UIRenderer implements MenuItem.Action
 		if (index >= 0 && pickHandler.isPickableIndex(this, index)) {
 			pickedValue = index;
 		} else {
-			pickedValue = -1;
+			// pickedValue = -1;
+            // preserve the most recent
 		}
 
         if (getRenderFlag(RenderFlag.SHOW_CELL_INFO)) {
@@ -1291,7 +1293,8 @@ public final class UIBoardRenderer extends UIRenderer implements MenuItem.Action
 
     @Override
     public void onAction(MenuItem item, Object extra) {
-        pickHandler.onPick(this, pickedValue);
+	    if (pickHandler != null && pickedValue >= 0)
+            pickHandler.onPick(this, pickedValue);
     }
 }
 

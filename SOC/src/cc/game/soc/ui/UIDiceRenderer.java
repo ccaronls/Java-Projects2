@@ -38,7 +38,6 @@ public final class UIDiceRenderer extends UIRenderer {
     
 	public UIDiceRenderer(UIComponent component) {
         super(component);
-        this.component.setRenderer(this);
 	}
 
 	public void setDice(Dice ... dice) {

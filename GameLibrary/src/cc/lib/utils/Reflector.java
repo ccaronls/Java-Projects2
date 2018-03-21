@@ -1510,6 +1510,21 @@ public class Reflector<T> {
         }
         return true;
     }
+
+    private static boolean isCollectionsEqual(Collection c0, Collection c1) {
+        if (c0.size() != c1.size())
+            return false;
+
+        Iterator i0 = c0.iterator();
+        Iterator i1 = c1.iterator();
+
+        while (i0.hasNext()) {
+            if (!isEqual(i0.next(), i1.next()))
+                return false;
+        }
+
+        return true;
+    }
     
     private static boolean isEqual(Object a, Object b) {
         if (a == null && b == null)
@@ -1518,8 +1533,13 @@ public class Reflector<T> {
             return false;
         if (a == b)
             return true;
+        if (!a.getClass().equals(b.getClass()))
+            return false;
         if (a.getClass().isArray() && b.getClass().isArray())
             return isArraysEqual(a, b);
+        if ((a instanceof Collection) && (b instanceof Collection)) {
+            return isCollectionsEqual((Collection)a, (Collection)b);
+        }
         return a.equals(b);
     }
     

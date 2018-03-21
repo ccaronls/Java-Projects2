@@ -309,13 +309,15 @@ public class SOC extends Reflector<SOC> {
 	 */
 	private void reset() {
 		for (int i=0; i<getNumPlayers(); i++) {
-			mPlayers[i].reset();
+		    if (mPlayers[i] != null)
+			    mPlayers[i].reset();
 		}
 		//mBoard.reset();
 		mStateStack.clear();
 		mEventCards.clear();
 		mDice.clear();
 		mDiceConfigStack.clear();
+		mBoard.reset();
 	}
 
 	@Override

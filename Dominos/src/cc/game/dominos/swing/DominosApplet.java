@@ -29,7 +29,8 @@ public class DominosApplet extends AWTComponent {
         setMouseEnabled(true);
         frame = new EZFrame("Dominos") {
             protected void onWindowClosing() {
-                dominos.trySaveToFile(saveFile);
+                if (dominos.isGameRunning())
+                    dominos.trySaveToFile(saveFile);
             }
 
             @Override
@@ -56,9 +57,9 @@ public class DominosApplet extends AWTComponent {
         if (!frame.loadFromFile(new File("dominos.properties")))
             frame.centerToScreen(800, 600);
 //        dominos.startGameThread();
-        dominos.initGame(6, 150, 0);
-        dominos.startNewGame();
-        dominos.getBoard().startShuffleAnimation(dominos.getPool());
+        //dominos.initGame(9, 150, 0);
+        //dominos.startIntroAnim();
+        dominos.getBoard().startDominosIntroAnimation();
     }
 
     interface OnChoiceListener {
@@ -76,7 +77,8 @@ public class DominosApplet extends AWTComponent {
         for (int i  :buttons) {
             String s = String.valueOf(i);
             JRadioButton b = new JRadioButton(s);
-            b.setSelected(i==choice);
+            if (i == choice)
+                b.setSelected(true);
             b.addActionListener(al);
             b.setActionCommand(s);
             group.add(b);
@@ -105,16 +107,12 @@ public class DominosApplet extends AWTComponent {
         return panel;
     }
 
-    int numPlayersChoice = 4;
-    int numPipsChoice = 6;
-    int maxScoreChoice = 150;
+    int numPlayersChoice = 3;
+    int numPipsChoice = 9;
+    int maxScoreChoice = 200;
     int difficultyChoice = 0;
 
     void showNewGamePopup() {
-        numPlayersChoice = dominos.getNumPlayers();
-        numPipsChoice = dominos.getMaxPips();
-        maxScoreChoice = dominos.getMaxScore();
-        difficultyChoice = dominos.getDifficulty();
 
         final JPanel numPlayers = makeRadioGroup(numPlayersChoice, new OnChoiceListener() {
                 @Override
@@ -140,7 +138,7 @@ public class DominosApplet extends AWTComponent {
                     difficultyChoice = choice;
                 }
             }, "Easy", "Medium", "Hard");
-        EZFrame popup = new EZFrame();
+        final EZFrame popup = new EZFrame();
         EZPanel panel = new EZPanel(new GridLayout(0, 1),
                 numPlayers,
                 numPips,
@@ -162,7 +160,20 @@ public class DominosApplet extends AWTComponent {
                         dominos.startGameThread();
                         popup.closePopup(frame);
                     }
-                }));
+                }),
+                new EZButton("Resume", new ActionListener() {
+                    public void actionPerformed(ActionEvent e) {
+                        dominos.stopGameThread();
+                        if (!dominos.tryLoadFromFile(saveFile) || !dominos.isInitialized()) {
+                            dominos.clear();
+                            setEnabled(false);
+                        } else {
+                            dominos.startGameThread();
+                            popup.closePopup(frame);
+                        }
+                    }
+                })
+                );
         EZPanel root = new EZPanel(new BorderLayout());
         root.add(new JLabel("Game Setup"), BorderLayout.NORTH);
         root.add(panel, BorderLayout.CENTER);

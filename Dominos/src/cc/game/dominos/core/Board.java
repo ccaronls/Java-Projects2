@@ -430,6 +430,7 @@ public class Board extends Reflector<Board> {
 
         int picked = -1;
         g.pushMatrix();
+        g.setIdentity();
         {
             g.begin();
             g.clearMinMax();
@@ -712,7 +713,172 @@ public class Board extends Reflector<Board> {
         return endpoints[ep].getLast().openPips;
     }
 
-    public void startShuffleAnimation(final List<Tile> pool) {
+    class IntroAnim extends AAnimation<AGraphics> {
+        final Vector2D [] dominosPositions = {
+                // Big D
+                new Vector2D(.5f, 2), // v
+                new Vector2D(.5f, 4), // v
+                new Vector2D(1f, 5.5f), // h
+                new Vector2D(2.5f, 4.5f), // v
+                new Vector2D(2.5f, 2.5f), // v
+                new Vector2D(2f, 1), // h
+                // little o
+                new Vector2D(5.5f, 2.5f), // h
+                new Vector2D(4.5f, 4f), // v
+                new Vector2D(5.5f, 5.5f), // h
+                new Vector2D(6.5f, 4f), // v
+                // little m
+                new Vector2D(8.5f, 5f), // v
+                new Vector2D(9f, 3.5f), // h
+                new Vector2D(10.5f, 4.5f), // v
+                new Vector2D(12f, 3.5f), // h
+                new Vector2D(12.5f, 5f), // v
+                // little i
+                new Vector2D(14.5f, 3f), // v
+                new Vector2D(14.5f, 5f), // v
+                // little n
+                new Vector2D(16.5f, 5f), // v
+                new Vector2D(17f, 3.5f), // h
+                new Vector2D(18.5f, 5f), // v
+                // little o
+                new Vector2D(20.5f, 4f), // v
+                new Vector2D(21.5f, 2.5f), // h
+                new Vector2D(22.5f, 4f), // v
+                new Vector2D(21.5f, 5.5f), // h
+                // little s
+                new Vector2D(25.5f, 1.5f), // h
+                new Vector2D(24.5f, 3f), // v
+                new Vector2D(26f, 3.5f), // h
+                new Vector2D(26.5f, 5f), // v
+                new Vector2D(25f, 5.5f) // h
+        };
+
+        final boolean [] dominosVertical = {
+                // Big D
+                true,true,false,true,true,false,
+                // little o
+                false,true,false,true,
+                // little m
+                true,false,true,false,true,
+                // little i
+                true,true,
+                // little n
+                true,false,true,
+                // little o
+                true,false,true,false,
+                // little s
+                false,true,false,true,false
+        };
+
+        final List<Tile> tiles = new ArrayList<>();
+        IntroAnim() {
+            super(8000, 1, true);
+            assert (dominosPositions.length == dominosVertical.length);
+
+            for (int p0 = 1; p0 <= 9; p0++) {
+                for (int p1 = p0; p1 <= 9; p1++) {
+                    if (tiles.size() < dominosPositions.length) {
+                        tiles.add(new Tile(p0, p1));
+                    }
+                }
+            }
+        }
+
+        Bezier [] starts = null;
+
+        void init(float dim, Vector2D offset) {
+            starts = new Bezier[dominosPositions.length];
+
+            int n = 0;
+            for (int i=0; i< starts.length/4; i++) {
+                starts[n] = new Bezier();
+                starts[n].addPoint(-1, Utils.randFloat(dim));
+                starts[n].addPoint(dim/2+Utils.randFloat(dim/2), Utils.randFloat(dim/2));
+                starts[n].addPoint(dim/2+Utils.randFloat(dim/2), dim/2+Utils.randFloat(dim/2));
+                starts[n].addPoint(dominosPositions[n].add(offset));
+                n++;
+            }
+
+            for (int i=0; i< starts.length/4; i++) {
+                starts[n] = new Bezier();
+                starts[n].addPoint(Utils.randFloat(dim), -1);
+                starts[n].addPoint(dim/2+Utils.randFloat(dim/2), dim/2+Utils.randFloat(dim/2));
+                starts[n].addPoint(Utils.randFloat(dim/2), dim/2+Utils.randFloat(dim/2));
+                starts[n].addPoint(dominosPositions[n].add(offset));
+                n++;
+            }
+
+            for (int i=0; i< starts.length/4; i++) {
+                starts[n] = new Bezier();
+                starts[n].addPoint(dim+1, Utils.randFloat(dim));
+                starts[n].addPoint(Utils.randFloat(dim/2), dim/2+Utils.randFloat(dim/2));
+                starts[n].addPoint(Utils.randFloat(dim/2), Utils.randFloat(dim/2));
+                starts[n].addPoint(dominosPositions[n].add(offset));
+                n++;
+            }
+
+            while (n < starts.length) {
+                starts[n] = new Bezier();
+                starts[n].addPoint(Utils.randFloat(dim), dim+1);
+                starts[n].addPoint(Utils.randFloat(dim/2), Utils.randFloat(dim/2));
+                starts[n].addPoint(dim/2+Utils.randFloat(dim/2), Utils.randFloat(dim));
+                starts[n].addPoint(dominosPositions[n].add(offset));
+                n++;
+            }
+
+        }
+
+
+        @Override
+        protected void draw(AGraphics g, float position, float dt) {
+            MutableVector2D min = new MutableVector2D(Vector2D.MAX);
+            MutableVector2D max = new MutableVector2D(Vector2D.MIN);
+
+            for (Vector2D v: dominosPositions) {
+                min.minEq(v);
+                max.maxEq(v);
+            }
+
+            float dim = boardWidth/(max.getX()-min.getX());
+
+            if (starts == null) {
+                init(boardWidth/dim, new Vector2D(.5f, 9));
+            }
+
+            g.setPointSize(dim/8);
+            g.pushMatrix();
+            g.setIdentity();
+            g.scale(dim-2, dim-2);
+            //g.translate(.5f, 9);
+            for (int i=0; i<dominosPositions.length; i++) {
+                g.pushMatrix();
+                //g.translate(dominosPositions[i]);
+                g.translate(starts[i].getPointAt(Utils.clamp(position*2, 0, 1)));
+                if (dominosVertical[i]) {
+                    g.rotate(90);
+                }
+                g.translate(-1, -.5f);
+                Tile t = tiles.get(i);
+                drawTile(g, t.pip1, t.pip2, 1);
+                g.popMatrix();
+            }
+
+            g.popMatrix();
+        }
+
+        @Override
+        protected void onDone() {
+            addAnimation(new IntroAnim().start(5000));
+        }
+
+
+    }
+
+    public void startDominosIntroAnimation() {
+        addAnimation(new IntroAnim().start());
+    }
+
+    public void startShuffleAnimation(final Object monitor, final List<Tile> pool) {
 
         final int rows = (int)Math.round(Math.sqrt(pool.size()*2));
         final int cols = 2 * (pool.size() / rows);
@@ -731,13 +897,16 @@ public class Board extends Reflector<Board> {
             }
         }
 
+
+
         // stack->flip->shuffle->repeat
-        addAnimation(new AAnimation<AGraphics>(200, pool.size()) {
+        addAnimation(new AAnimation<AGraphics>(50, pool.size()) {
 
             @Override
             protected void draw(AGraphics g, float position, float dt) {
 
                 float DIM = Math.min(boardHeight / (rows+2), boardWidth / (cols+2));
+                g.setPointSize(DIM/8);
                 g.pushMatrix();
                 g.setIdentity();
                 g.scale(DIM, DIM);
@@ -758,11 +927,12 @@ public class Board extends Reflector<Board> {
 
             @Override
             protected void onDone() {
-                addAnimation(new AAnimation<AGraphics>(300, pool.size()-1) {
+                addAnimation(new AAnimation<AGraphics>(100, pool.size()-1) {
                     @Override
                     protected void draw(AGraphics g, float position, float dt) {
 
                         float DIM = Math.min(boardHeight / (rows+2), boardWidth / (cols+2));
+                        g.setPointSize(DIM/8);
                         g.pushMatrix();
                         g.setIdentity();
                         g.scale(DIM, DIM);
@@ -818,29 +988,113 @@ public class Board extends Reflector<Board> {
 
                     @Override
                     protected void onDone() {
-                        addAnimation(new AAnimation<AGraphics>(2000, 5) {
+                        addAnimation(new AAnimation<AGraphics>(2000, 2) {
 
                             Bezier [] curves = new Bezier[pool.size()];
                             int curRepeat = -1;
-                            void init() {
+
+                            void addPoint(Bezier b, int quad, float dimX, float dimY) {
+                                switch (quad) {
+                                    case 0:
+                                        b.addPoint(Utils.randFloat(0.25f * cols), Utils.randFloat(0.25f * rows));
+                                        break;
+                                    case 1:
+                                        b.addPoint(Utils.randFloat(0.25f * cols), 0.75f * rows + Utils.randFloat(0.25f * dimY));
+                                        break;
+                                    case 2:
+                                        b.addPoint(0.75f * cols + Utils.randFloat(0.25f * cols), 0.75f * rows+Utils.randFloat(0.25f * rows));
+                                        break;
+                                    case 3:
+                                        b.addPoint(0.75f * cols + Utils.randFloat(0.25f * cols), Utils.randFloat(0.75f * dimY));
+                                        break;
+                                }
+                            }
+
+
+                            void init(float dim) {
+                                float dimX = boardWidth / dim;
+                                float dimY = boardHeight / dim;
                                 for (int i=0; i<curves.length; i++) {
                                     curves[i] = new Bezier();
                                     curves[i].addPoint(positions[i]);
-                                    curves[i].addPoint(1+Utils.randFloat(cols), 1+Utils.randFloat(rows));
-                                    curves[i].addPoint(1+Utils.randFloat(cols), 1+Utils.randFloat(rows));
-                                    curves[i].addPoint(1+Utils.randFloat(cols), 1+Utils.randFloat(rows));
+
+                                    int quad = 0;
+                                    if (positions[i].getX() < cols/2) {
+                                        if (positions[i].getY() < rows/2) {
+                                            quad = 0;
+                                        } else {
+                                            quad = 1;
+                                        }
+                                    } else {
+                                        if (positions[i].getY() < rows/2) {
+                                            quad = 2;
+                                        } else {
+                                            quad = 3;
+                                        }
+                                    }
+
+                                    switch (quad) {
+                                        case 0:
+                                            if (Utils.flipCoin()) {
+                                                addPoint(curves[i], 1, dimX, dimY);
+                                                addPoint(curves[i], 3, dimX, dimY);
+                                                addPoint(curves[i], 2, dimX, dimY);
+                                            } else {
+                                                addPoint(curves[i], 2, dimX, dimY);
+                                                addPoint(curves[i], 3, dimX, dimY);
+                                                addPoint(curves[i], 1, dimX, dimY);
+                                            }
+                                            break;
+                                        case 1:
+                                            if (Utils.flipCoin()) {
+                                                addPoint(curves[i], 3, dimX, dimY);
+                                                addPoint(curves[i], 2, dimX, dimY);
+                                                addPoint(curves[i], 0, dimX, dimY);
+                                            } else {
+                                                addPoint(curves[i], 0, dimX, dimY);
+                                                addPoint(curves[i], 2, dimX, dimY);
+                                                addPoint(curves[i], 3, dimX, dimY);
+                                            }
+                                            break;
+                                        case 2:
+                                            if (Utils.flipCoin()) {
+                                                addPoint(curves[i], 3, dimX, dimY);
+                                                addPoint(curves[i], 1, dimX, dimY);
+                                                addPoint(curves[i], 0, dimX, dimY);
+                                            } else {
+                                                addPoint(curves[i], 0, dimX, dimY);
+                                                addPoint(curves[i], 1, dimX, dimY);
+                                                addPoint(curves[i], 3, dimX, dimY);
+                                            }
+                                            break;
+                                        case 3:
+                                            if (Utils.flipCoin()) {
+                                                addPoint(curves[i], 2, dimX, dimY);
+                                                addPoint(curves[i], 0, dimX, dimY);
+                                                addPoint(curves[i], 1, dimX, dimY);
+                                            } else {
+                                                addPoint(curves[i], 1, dimX, dimY);
+                                                addPoint(curves[i], 0, dimX, dimY);
+                                                addPoint(curves[i], 2, dimX, dimY);
+                                            }
+                                            break;
+                                        default:
+                                            assert(false);
+                                    }
+
                                 }
 
                             }
 
                             @Override
                             protected void draw(AGraphics g, float position, float dt) {
+                                float DIM = Math.min(boardHeight / (rows+2), boardWidth / (cols+2));
+                                g.setPointSize(DIM/8);
                                 if (curRepeat < getRepeat()) {
-                                    init();
+                                    init(boardWidth/DIM);
                                     curRepeat = getRepeat();
                                 }
 
-                                float DIM = Math.min(boardHeight / (rows+2), boardWidth / (cols+2));
                                 g.pushMatrix();
                                 g.setIdentity();
                                 g.scale(DIM, DIM);
@@ -862,7 +1116,9 @@ public class Board extends Reflector<Board> {
 
                             @Override
                             protected void onDone() {
-                                startShuffleAnimation(pool);
+                                synchronized (monitor) {
+                                    monitor.notifyAll();
+                                }
                             }
                         }.start());
                     }

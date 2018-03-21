@@ -19,13 +19,12 @@ public final class UIEventCardRenderer extends UIRenderer {
 	public UIEventCardRenderer(UIComponent component) {
 		super(component);
         this.diceComps = new UIDiceRenderer(component);
-		this.component.setRenderer(this);
 	}
 	
 	@Override
 	public synchronized void draw(APGraphics g, int px, int py) {
 		final int padding = 5;
-	
+        g.setTextHeight(RenderConstants.textSizeSmall);
 		if (minCardWidth == 0) {
 			ArrayList<String> all = new ArrayList<String>();
 			for (EventCardType e : EventCardType.values()) {

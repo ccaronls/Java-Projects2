@@ -191,7 +191,7 @@ public class AWTGraphics extends APGraphics {
         //r.drawLines(g, Math.round(mLineThickness));
         for (int i=0; i<getNumVerts(); i+=2) {
             if (i+1 < getNumVerts())
-                pdrawLine(getX(i), getY(i), getX(i+1), getY(i+1), Math.round(mLineThickness));
+                AWTUtils.drawLine(g, getX(i), getY(i), getX(i+1), getY(i+1), Math.round(mLineThickness));
         }
     }
 
@@ -199,7 +199,7 @@ public class AWTGraphics extends APGraphics {
     public void drawLineStrip() {
         //r.drawLineStrip(g, Math.round(mLineThickness));
         for (int i=0; i<getNumVerts()-1; i++) {
-            pdrawLine(getX(i), getY(i), getX(i+1), getY(i+1), Math.round(mLineThickness));
+            AWTUtils.drawLine(g, getX(i), getY(i), getX(i+1), getY(i+1), Math.round(mLineThickness));
         }
     }
 
@@ -210,10 +210,10 @@ public class AWTGraphics extends APGraphics {
         if (thickness <= 1) {
             if (getNumVerts() > 1) {
                 for (int i=0; i<getNumVerts()-1; i++) {
-                    pdrawLine(getX(i), getY(i), getX(i+1), getY(i+1), 1);
+                    AWTUtils.drawLine(g, getX(i), getY(i), getX(i+1), getY(i+1), 1);
                 }
                 int lastIndex = getNumVerts()-1;
-                pdrawLine(getX(lastIndex), getY(lastIndex), getX(0), getY(0), 1);
+                AWTUtils.drawLine(g, getX(lastIndex), getY(lastIndex), getX(0), getY(0), 1);
             }
             return;
         }
@@ -223,7 +223,7 @@ public class AWTGraphics extends APGraphics {
                 float y0 = getY(i-1);
                 float x1 = getX(i);
                 float y1 = getY(i);
-                pdrawLine(x0, y0, x1, y1, thickness);
+                AWTUtils.drawLine(g, x0, y0, x1, y1, thickness);
             }
             if (getNumVerts()>2) {
                 float x0 = getX(getNumVerts()-1);
@@ -232,10 +232,6 @@ public class AWTGraphics extends APGraphics {
                 float y1 = getY(0);
             }
         }
-    }
-
-    protected void pdrawLine(float x0, float y0, float x1, float y1, float width) {
-        AWTUtils.drawLine(g, x0, y0, x1, y1, Math.round(width));
     }
 
     @Override

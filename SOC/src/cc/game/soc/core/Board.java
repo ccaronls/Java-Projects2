@@ -867,9 +867,6 @@ public class Board extends Reflector<Board> {
 		merchantTile = -1;
 		merchantPlayer = -1;
 		clearRouteLenCache();
-	}
-	
-	/*
 		for (Tile c : tiles) {
 			c.reset();
 		}
@@ -879,16 +876,9 @@ public class Board extends Reflector<Board> {
 		for (Route r : routes) {
 			r.reset();
 		}
-		for (int tile : undiscoveredCells) {
-			getTile(tile).setType(TileType.UNDISCOVERED);
-			getTile(tile).setDieNum(0);
-		}
-		for (int vertex : pirateFortresses) {
-			getVertex(vertex).setPirateFortress();
-		}
-	}*/
+	}
 	
-	public void clearIslaned() {
+	public void clearIsland() {
 		for (Island i : islands) {
 			Arrays.fill(i.discovered, false);
 		}

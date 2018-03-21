@@ -42,7 +42,6 @@ public final class UIPlayerRenderer extends UIRenderer {
 
     public UIPlayerRenderer(UIComponent component) {
         super(component);
-        this.component.setRenderer(this);
     }
 
     public void setPlayer(UIPlayer player) {
@@ -56,6 +55,7 @@ public final class UIPlayerRenderer extends UIRenderer {
             return;
 
         SOC soc = UISOC.getInstance();
+        g.setTextHeight(RenderConstants.textSizeBig);
         g.setTextStyles(AGraphics.TextStyle.BOLD);
 
         StringBuffer str = new StringBuffer();
@@ -162,7 +162,7 @@ public final class UIPlayerRenderer extends UIRenderer {
         setMinDimension(min);
 
         if (isCurrentPlayer()) {
-            g.drawRect(0,0, component.getWidth()-6, min.height-6, RenderConstants.thickLineThickness);
+            g.drawRect(0,0, component.getWidth()-6, Math.max(min.height, component.getHeight())-6, RenderConstants.thickLineThickness);
         }
     }
 

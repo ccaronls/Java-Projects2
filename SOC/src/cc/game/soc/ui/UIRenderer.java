@@ -13,6 +13,7 @@ public abstract class UIRenderer {
 
     UIRenderer(UIComponent component) {
         this.component = component;
+        component.setRenderer(this);
     }
 
     public <T extends UIComponent> T getComponent() {

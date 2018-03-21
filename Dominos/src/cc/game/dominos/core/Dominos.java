@@ -134,11 +134,6 @@ public abstract class Dominos extends Reflector<Dominos> {
         redraw();
     }
 
-    public final void startIntroAnim() {
-        initPool();
-        board.startShuffleAnimation(pool);
-    }
-
     public final void stopGameThread() {
         if (gameRunning) {
             gameRunning = false;
@@ -212,12 +207,11 @@ public abstract class Dominos extends Reflector<Dominos> {
 
 	private void newGame() {
         anims.clear();
-        initPool();
+        pool.clear();
         for (Player p : players) {
             p.reset();
         }
         board.clear();
-        newRound();
     }
 
     public final int getTurn() {
@@ -280,15 +274,11 @@ public abstract class Dominos extends Reflector<Dominos> {
     private void newRound() {
 
         for (Player p : players) {
-            pool.addAll(p.tiles);
             p.tiles.clear();
         }
 
-        pool.addAll(board.collectPieces());
         board.clear();
         Utils.shuffle(pool);
-
-        log.debug("Total number of tiles: " + pool.size());
 
         int numPerPlayer = players.length == 2 ? 7 : 5;
 
@@ -337,6 +327,12 @@ public abstract class Dominos extends Reflector<Dominos> {
 
 	public final void runGame() {
 		Player p = players[turn];
+
+		if (pool.size() == 0) {
+		    initPool();
+		    onNewRound();
+		    newRound();
+        }
 
 		List<Move> moves = computePlayerMoves(p);
 
@@ -394,6 +390,8 @@ public abstract class Dominos extends Reflector<Dominos> {
         } else if (getWinner() < 0) {
             nextTurn();
         }
+
+        redraw();
 	}
 
 	public final boolean isGameOver() {
@@ -660,6 +658,12 @@ public abstract class Dominos extends Reflector<Dominos> {
         p.score += pts;
     }
 
+    protected void onNewRound() {
+        board.startShuffleAnimation(gameLock, pool);
+        redraw();
+        Utils.waitNoThrow(gameLock, -1);
+    }
+
     @Omit
     private float boardDim = 0;
 
@@ -790,24 +794,7 @@ public abstract class Dominos extends Reflector<Dominos> {
                 break;
             }
         }
-    }
-
-    @Omit
-    private boolean menuHighlighted = false;
-
-    private void drawPlayer(APGraphics g, int player, float w, float h, int pickX, int pickY, boolean drawDragged) {
-        g.pushMatrix();
-	    g.setColor(GColor.BLUE);
-	    Player p = players[player];
-        p.outlineRect.set(g.transform(0, 0), g.transform(w, h));
         String infoStr = "MENU";
-        AAnimation<AGraphics> anim = anims.get(p.getName());
-        if (anim != null) {
-            anim.update(g);
-        } else {
-            g.setColor(GColor.BLUE);
-            g.drawString(String.format("%d PTS", p.getScore()), 0, 0);
-        }
         g.setColor(GColor.WHITE);
         g.setName(1);
         g.begin();
@@ -820,6 +807,24 @@ public abstract class Dominos extends Reflector<Dominos> {
             g.drawJustifiedString(w, 0, Justify.RIGHT, infoStr);
         }
         g.end();
+    }
+
+    @Omit
+    private boolean menuHighlighted = false;
+
+    private void drawPlayer(APGraphics g, int player, float w, float h, int pickX, int pickY, boolean drawDragged) {
+        g.pushMatrix();
+	    g.setColor(GColor.BLUE);
+	    Player p = players[player];
+        p.outlineRect.set(g.transform(0, 0), g.transform(w, h));
+        AAnimation<AGraphics> anim = anims.get(p.getName());
+        if (anim != null) {
+            anim.update(g);
+        } else {
+            g.setColor(GColor.BLUE);
+            g.drawString(String.format("%d PTS", p.getScore()), 0, 0);
+        }
+
 	    g.translate(0, g.getTextHeight());
 
 	    h-= g.getTextHeight();
@@ -847,7 +852,6 @@ public abstract class Dominos extends Reflector<Dominos> {
         synchronized (p.tiles) {
             playertiles = new ArrayList<>(p.tiles);
         }
-
         AAnimation<AGraphics> poolAnim = anims.get("POOL");
 	    if (poolAnim != null) {
 	        numDrawnTiles++;
@@ -856,12 +860,12 @@ public abstract class Dominos extends Reflector<Dominos> {
 	    if (numPlayerTiles == 0)
 	        return;
 
+        final float aspect = w/h;
+
         if (numVirtualTiles < 4)
             numVirtualTiles = 4;
-
         int rows = 2;
         int cols = 2;
-        final float aspect = w/h;
 
         while (numVirtualTiles > rows*cols/2) {
             float a = (float)(cols*2)/rows;
@@ -870,9 +874,14 @@ public abstract class Dominos extends Reflector<Dominos> {
             } else {
                 cols += 2;
             }
-        }
-
-        if (rows * cols * 2 < numPlayerTiles) {
+        }//*/
+/*
+        int rows = (int)Math.round(Math.sqrt(numDrawnTiles*2) / aspect);
+        if (rows < 2)
+            rows = 2;
+        int cols = 2*(numDrawnTiles/rows);
+*/
+        if (rows * cols / 2 < numPlayerTiles) {
             System.err.println("oooops");
         }
         int tilesPerRow = cols/2;
@@ -971,13 +980,14 @@ public abstract class Dominos extends Reflector<Dominos> {
     }
 
     public final synchronized void onClick() {
-        PlayerUser user = getUser();
-        if (user == null)
-            return;
         if (menuHighlighted) {
             onMenuClicked();
             clearHighlghts();
-        } else if (highlightedPlayerTile >= 0) {
+        }
+        PlayerUser user = getUser();
+        if (user == null)
+            return;
+        if (highlightedPlayerTile >= 0) {
             selectedPlayerTile = highlightedPlayerTile;
             List<Move> highlightedMoves = new ArrayList<>();
             for (Move m : user.moves) {

@@ -31,7 +31,6 @@ public final class UIBarbarianRenderer extends UIRenderer {
 
 	public UIBarbarianRenderer(UIComponent component) {
 	    super(component);
-	    component.setRenderer(this);
 	}
 
 	public void initAssets(int baseImage, int shipImage) {
@@ -81,6 +80,7 @@ public final class UIBarbarianRenderer extends UIRenderer {
         String text = String.format("%-10s %d\n%-10s %d", "Settlers:", catanStr, "Barbarians:", barbStr);
         final float tb2 = textBorderPadding*2;
         GDimension dim = g.getTextDimension(text, wid-tb2);
+        g.setTextHeight(RenderConstants.textSizeSmall);
         if (distance < positions.length/2) {
             // upper left hand corner
             g.setColor(GColor.TRANSLUSCENT_BLACK);

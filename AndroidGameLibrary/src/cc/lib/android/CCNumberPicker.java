@@ -54,9 +54,9 @@ public class CCNumberPicker extends NumberPicker {
 
 	public static NumberPicker newPicker(Context c, int num, int min, int max, OnValueChangeListener listener) {
         CCNumberPicker np = new CCNumberPicker(c);
-        np.setValue(num);
         np.setMinValue(min);
         np.setMaxValue(max);
+        np.setValue(num);
         np.setOnValueChangedListener(listener);
         return np;
     }

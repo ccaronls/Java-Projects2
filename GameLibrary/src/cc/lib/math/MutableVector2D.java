@@ -58,7 +58,7 @@ public class MutableVector2D extends Vector2D {
     }
 
     public final MutableVector2D scaleEq(float scalar) {
-        return (MutableVector2D)set(x*scalar, y*scalar);
+        return set(x*scalar, y*scalar);
     }
 
     /**
@@ -66,23 +66,23 @@ public class MutableVector2D extends Vector2D {
      * @return
      */
     public final MutableVector2D normEq() {
-        return (MutableVector2D)norm(this);
+        return norm(this);
     }
 
     public final MutableVector2D unitLengthEq() {
-        return (MutableVector2D)unitLength(this);
+        return unitLength(this);
     }
 
     public final MutableVector2D rotateEq(float degrees) {
-        return (MutableVector2D)rotate(degrees, this);
+        return rotate(degrees, this);
     }
 
     public final MutableVector2D minEq(IVector2D v) {
-        return (MutableVector2D)min(v, this);
+        return min(v, this);
     }
 
     public final MutableVector2D maxEq(IVector2D v) {
-        return (MutableVector2D)max(v, this);
+        return max(v, this);
     }
 
 }

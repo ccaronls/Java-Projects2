@@ -15,6 +15,7 @@ public class NetCommon {
     public final static int PORT = 15551;
     public final static String VERSION = "SOC1.0";
     public final static int CLIENT_READ_TIMEOUT = 20000;
+    public final static int MAX_CONNECTIONS = 8;
 
     public final static String DNS_SERVICE_ID = "_soc._tcp.local.";
 

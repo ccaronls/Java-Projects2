@@ -70,7 +70,13 @@ public class SOCView<T extends UIRenderer> extends View implements UIComponent {
                 break;
             }
             case R.id.soc_board: {
-                UIBoardRenderer r = new UIBoardRenderer(this);
+                UIBoardRenderer r = new UIBoardRenderer(this) {
+                    @Override
+                    public void doClick() {
+                        // disable this method since it is hard to pull off easily on a device. Use accept button only.
+                        //super.doClick();
+                    }
+                };
                 r.initImages(R.drawable.desert, R.drawable.water, R.drawable.gold, R.drawable.undiscoveredtile, R.drawable.foresthex, R.drawable.hillshex, R.drawable.mountainshex, R.drawable.pastureshex, R.drawable.fieldshex, R.drawable.knight_basic_inactive, R.drawable.knight_basic_active, R.drawable.knight_strong_inactive, R.drawable.knight_strong_active, R.drawable.knight_mighty_inactive, R.drawable.knight_mighty_active, R.drawable.card_frame);
                 Board board = new Board();
                 board.generateDefaultBoard();
@@ -152,5 +158,9 @@ public class SOCView<T extends UIRenderer> extends View implements UIComponent {
         int [] loc = new int[2];
         getLocationOnScreen(loc);
         return new Vector2D(loc[0], loc[1]);
+    }
+
+    public T getRenderer() {
+        return renderer;
     }
 }

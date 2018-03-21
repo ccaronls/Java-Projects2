@@ -63,6 +63,7 @@ public class EZFrame extends JFrame implements WindowListener, ComponentListener
         setLocation(x, y);
         setResizable(false);
         setVisible(true);
+        setAlwaysOnTop(true);
     }
 
     public void closePopup(JFrame parent) {
@@ -317,11 +318,16 @@ public class EZFrame extends JFrame implements WindowListener, ComponentListener
         super.validate();
     }
 
-    public void setEnabled(boolean enabled) {
+    public final void setEnabled(boolean enabled) {
         super.setEnabled(enabled);
+        super.setFocusable(enabled);
+        super.setFocusableWindowState(enabled);
+        if (enabled) {
+            setVisible(true);
+        }
     }
 
-    public void setVisible(boolean visible) {
+    public final void setVisible(boolean visible) {
         super.setVisible(visible);
     }
 }

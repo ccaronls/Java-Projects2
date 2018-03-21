@@ -31,6 +31,7 @@ import java.io.InputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Stack;
 import java.util.Vector;
 
 import cc.game.soc.core.Board;
@@ -41,6 +42,7 @@ import cc.game.soc.core.Rules;
 import cc.game.soc.core.SOC;
 import cc.game.soc.core.annotations.RuleVariable;
 import cc.game.soc.ui.MenuItem;
+import cc.game.soc.ui.RenderConstants;
 import cc.game.soc.ui.UIBarbarianRenderer;
 import cc.game.soc.ui.UIBoardRenderer;
 import cc.game.soc.ui.UIConsoleRenderer;
@@ -77,10 +79,20 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action {
     SOCView<UIPlayerRenderer> vPlayerlMiddle;
     SOCView<UIPlayerRenderer> vPlayerlBottom;
     UIConsoleRenderer console;
+    ListView lvMenu;
+
+    Stack<Dialog> dialogStack = new Stack<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        RenderConstants.textMargin = getResources().getDimension(R.dimen.margin);
+        RenderConstants.textSizeBig = getResources().getDimension(R.dimen.text_big);
+        RenderConstants.textSizeSmall = getResources().getDimension(R.dimen.text_sm);
+        RenderConstants.thickLineThickness = getResources().getDimension(R.dimen.line_thick);
+        RenderConstants.thinLineThickness = getResources().getDimension(R.dimen.line_thin);
+
         content = View.inflate(this, R.layout.soc_activity, null);
         setContentView(content);
         vBarbarian = (SOCView) findViewById(R.id.soc_barbarian);
@@ -91,9 +103,19 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action {
         vPlayerTop = (SOCView) findViewById(R.id.soc_player_top);
         vPlayerlMiddle = (SOCView) findViewById(R.id.soc_player_middle);
         vPlayerlBottom = (SOCView) findViewById(R.id.soc_player_bottom);
+        lvMenu = (ListView) findViewById(R.id.soc_menu_list);
         console = new UIConsoleRenderer(new SOCView<>(this));
 
-        final ListView lvMenu = (ListView) findViewById(R.id.soc_menu_list);
+        // initially only the board is visible
+        vBarbarian.setVisibility(View.GONE);
+        vEvent.setVisibility(View.GONE);
+        vDice.setVisibility(View.INVISIBLE);
+        vUser.setVisibility(View.INVISIBLE);
+        vPlayerTop.setVisibility(View.INVISIBLE);
+        vPlayerlBottom.setVisibility(View.INVISIBLE);
+        vPlayerlMiddle.setVisibility(View.INVISIBLE);
+        lvMenu.setVisibility(View.INVISIBLE);
+
         final ArrayList<Object[]> menu = new ArrayList<>();
         final BaseAdapter adapter = new ArrayListAdapter<Object[]>(this, menu, R.layout.menu_list_item) {
             @Override
@@ -155,15 +177,20 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action {
                 addMenuItem(BUILDABLES);
                 addMenuItem(RULES);
                 addMenuItem(QUIT);
-                adapter.notifyDataSetChanged();
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        adapter.notifyDataSetChanged();
+                    }
+                });
             }
 
             @Override
             public void clearMenu() {
+                menu.clear();
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        menu.clear();
                         adapter.notifyDataSetChanged();
                     }
                 });
@@ -179,7 +206,7 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        newDialog().setTitle(title).setMessage(message).setNeutralButton("OK", new DialogInterface.OnClickListener() {
+                        newDialog(true).setTitle(title).setMessage(message).setNeutralButton("OK", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 synchronized (soc) {
@@ -199,7 +226,10 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action {
 
 
         };
+        soc.setBoard(vBoard.getRenderer().getBoard());
     }
+
+
 
     final UIPlayerUser user = new UIPlayerUser();
 
@@ -212,7 +242,7 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action {
     @Override
     public void onAction(MenuItem item, Object extra) {
         if (item == QUIT) {
-            newDialog().setTitle("Confirm").setMessage("Ae you sure you want to quit the game?").setNegativeButton("Cancel", null)
+            newDialog(true).setTitle("Confirm").setMessage("Ae you sure you want to quit the game?")
                     .setPositiveButton("Quit", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
@@ -231,45 +261,32 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action {
             soc.initGame();
             soc.startGameThread();
         } else if (item == CONSOLE) {
-            newDialog().setView((SOCView)console.getComponent()).setNegativeButton("OK", null).show();
+            newDialog(true).setView((SOCView)console.getComponent()).show();
         }
     }
 
-    void showStartDialog() {
-        View v = View.inflate(this, R.layout.new_game_dialog, null);
-        final Dialog startDialog = newDialog().setView(v).setCancelable(false).show();
-        View.OnClickListener l = new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                try {
-                    switch (v.getId()) {
-                        case R.id.bBoards:
-                            final String [] boards = getAssets().list("boards");
-                            newDialog().setTitle("Load Board").setItems(boards, new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
+    void showError(Exception e) {
+        newDialog(true).setTitle("ERROR").setMessage("AN error occured: " + e.getClass().getSimpleName() + " " + e.getMessage()).show();
+    }
 
-                                    try {
-                                        InputStream in = getAssets().open("boards/" + boards[which]);
-                                        try {
-                                            Board b = new Board();
-                                            b.deserialize(getAssets().open(boards[which]));
-                                            soc.setBoard(b);
-                                        } finally {
-                                            in.close();
-                                        }
-                                    } catch (IOException e) {
-                                        newDialog().setTitle("Error").setMessage("Failed to laod board. " + e.getClass().getSimpleName() + ":" + e.getMessage()).setNegativeButton("Ok", null).show();
-                                    }
-                                }
-                            }).setNegativeButton("Cancel", null).show();
-                            break;
-                        case R.id.bRules:
-                            showRulesDialog();
-                            break;
-                        case R.id.bSPGame: {
+    void showStartDialog() {
+        String [] items = {
+                "Single Player",
+                "Multiplyer",
+                "Resume",
+                "Rules",
+                "Boards",
+                "Scenarios"
+        };
+
+        newDialog(false).setItems(items, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                try {
+                    switch (which) {
+                        case 0: {
                             final String [] items = { "2", "3", "4" };
-                            newDialog().setTitle("Num Players").setItems(items, new DialogInterface.OnClickListener() {
+                            newDialog(true).setTitle("Num Players").setItems(items, new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
                                     final int numPlayers = which+2;
@@ -279,7 +296,7 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action {
                                     final GColor[]  colors = {
                                             GColor.RED, GColor.GREEN, GColor.BLUE, GColor.YELLOW
                                     };
-                                    newDialog().setTitle("Pick Color").setItems(colorStrings, new DialogInterface.OnClickListener() {
+                                    newDialog(true).setTitle("Pick Color").setItems(colorStrings, new DialogInterface.OnClickListener() {
                                         @Override
                                         public void onClick(DialogInterface dialog, int which) {
                                             user.setColor(colors[which]);
@@ -289,64 +306,101 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action {
                                                 int nextColor = (which+1)%colors.length;
                                                 soc.addPlayer(new UIPlayer(colors[nextColor]));
                                             }
-                                            startDialog.dismiss();
                                             initGame();
                                         }
-                                    }).setNegativeButton("Cancel", null).show();
+                                    }).show();
                                 }
                             }).setNegativeButton("Cancel", null).show();
                             break;
                         }
-                        case R.id.bMPGame: {
+                        case 1: {
+                            // multiplayer
+                            String [] mpItems = {
+                                    "Host",
+                                    "Join"
+                            };
+                            newDialog(true).setTitle("MULTIPLAYER")
+                                    .setItems(mpItems, new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
 
+                                        }
+                                    }).show();
                             break;
                         }
-                        case R.id.bScenarios:
-                            final String [] scenarios = getAssets().list("scenarios");
-                            newDialog().setTitle("Load Board").setItems(scenarios, new DialogInterface.OnClickListener() {
+                        case 2: {
+                            // resume
+                            try {
+                                soc.loadFromFile(gameFile);
+                                soc.startGameThread();
+                            } catch (Exception e) {
+                                soc.clear();
+                                showError(e);
+                            }
+                            break;
+                        }
+                        case 3: {
+                            // rules
+                            showRulesDialog();
+                            break;
+                        }
+                        case 4: {
+                            // boards
+                            final String[] boards = getAssets().list("boards");
+                            newDialog(true).setTitle("Load Board").setItems(boards, new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
 
                                     try {
-                                        InputStream in = getAssets().open("scerarios/" + scenarios[which]);
+                                        InputStream in = getAssets().open("boards/" + boards[which]);
+                                        try {
+                                            Board b = new Board();
+                                            b.deserialize(in);
+                                            soc.setBoard(b);
+                                        } finally {
+                                            in.close();
+                                        }
+                                    } catch (IOException e) {
+                                        showError(e);
+                                    }
+                                }
+                            }).setNegativeButton("Cancel", null).show();
+                            break;
+                        }
+                        case 5: {
+                            final String [] scenarios = getAssets().list("scenarios");
+                            newDialog(true).setTitle("Load Scenario").setItems(scenarios, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+
+                                    try {
+                                        InputStream in = getAssets().open("scenarios/" + scenarios[which]);
                                         try {
                                             SOC scenario = new SOC();
-                                            scenario.deserialize(getAssets().open(scenarios[which]));
+                                            scenario.deserialize(in);
                                             soc.copyFrom(scenario);
                                         } finally {
                                             in.close();
                                         }
                                     } catch (IOException e) {
-                                        newDialog().setTitle("Error").setMessage("Failed to laod scenario. " + e.getClass().getSimpleName() + ":" + e.getMessage()).setNegativeButton("Ok", null).show();
+                                        showError(e);
                                     }
                                 }
                             }).setNegativeButton("Cancel", null).show();
                             break;
-                        case R.id.bResume: {
-                            SOC game = new SOC();
-                            if (game.tryLoadFromFile(gameFile)) {
-                                soc.copyFrom(game);
-                                startDialog.dismiss();
-                                initGame();
-                            } else {
-                                newDialog().setTitle("ERROR").setMessage("Cannot resume").setNegativeButton("Ok", null).show();
-                            }
                         }
                     }
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    showError(e);
                 }
             }
-        };
-        v.findViewById(R.id.bBoards).setOnClickListener(l);
-        v.findViewById(R.id.bRules).setOnClickListener(l);
-        v.findViewById(R.id.bSPGame).setOnClickListener(l);
-        v.findViewById(R.id.bMPGame).setOnClickListener(l);
-        v.findViewById(R.id.bScenarios).setOnClickListener(l);
-        v.findViewById(R.id.bResume).setOnClickListener(l);
+        }).show();
     }
 
     void initGame() {
+        vPlayerTop.setVisibility(View.VISIBLE);
+        vUser.setVisibility(View.VISIBLE);
+        lvMenu.setVisibility(View.VISIBLE);
         soc.clearMenu();
         soc.addMenuItem(START);
         soc.completeMenu();
@@ -361,6 +415,7 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action {
 
         vPlayerlMiddle.setVisibility(soc.getNumPlayers() > 2 ? View.VISIBLE : View.GONE);
         vPlayerlBottom.setVisibility(soc.getNumPlayers() > 3 ? View.VISIBLE : View.GONE);
+        clearDialogs();
     }
 
     void showBuildablesDialog() {
@@ -400,7 +455,7 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action {
             }
             table.addView(row);
         }
-        newDialog().setTitle("Buildables").setView(table).setNegativeButton("Ok", null).show();
+        newDialog(true).setTitle("Buildables").setView(table).setNegativeButton("Ok", null).show();
     }
 
     void showRulesDialog() {
@@ -434,7 +489,7 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action {
                 TextView tvName   = (TextView)v.findViewById(R.id.tvName);
                 TextView tvDesc   = (TextView)v.findViewById(R.id.tvDescription);
                 CompoundButton cb = (CompoundButton)v.findViewById(R.id.cbEnabled);
-                Button   bEdit    = (Button)v.findViewById(R.id.bEdit);
+                final Button   bEdit    = (Button)v.findViewById(R.id.bEdit);
 
                 try {
                     final Field f = fields[position];
@@ -488,12 +543,13 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action {
                                     @Override
                                     public void onClick(View v) {
                                         final NumberPicker np = CCNumberPicker.newPicker(SOCActivity.this, value, ruleVar.minValue(), ruleVar.maxValue(), null);
-                                        newDialog().setTitle(f.getName()).setView(np).setNegativeButton("Cancel", null)
+                                        newDialog(false).setTitle(f.getName()).setView(np).setNegativeButton("Cancel", null)
                                                 .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
                                             @Override
                                             public void onClick(DialogInterface dialog, int which) {
                                                 try {
                                                     f.setInt(rules, np.getValue());
+                                                    bEdit.setText(String.valueOf(np.getValue()));
                                                 } catch (Exception e) {
                                                     e.printStackTrace();
                                                 }
@@ -513,7 +569,7 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action {
             }
         };
         lv.setAdapter(rulesAdapter);
-        AlertDialog.Builder b = newDialog().setTitle("Rules").setView(lv);
+        AlertDialog.Builder b = newDialog(true).setTitle("Rules").setView(lv);
         if (canEdit) {
             b.setNegativeButton("Discard", null).setNeutralButton("Save", new DialogInterface.OnClickListener() {
                 @Override
@@ -602,7 +658,33 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action {
         soc.trySaveToFile(gameFile);
     }
 
-    protected AlertDialog.Builder newDialog() {
-        return new AlertDialog.Builder(this, android.R.style.Theme_Holo_Dialog);
+    protected AlertDialog.Builder newDialog(boolean cancelable) {
+        AlertDialog.Builder b = new AlertDialog.Builder(this, android.R.style.Theme_Holo_Dialog) {
+            @Override
+            public AlertDialog show() {
+                AlertDialog d = super.show();
+                dialogStack.push(d);
+                return d;
+            }
+        };
+        if (cancelable) {
+            if (dialogStack.size()>0) {
+                b.setNegativeButton("Back", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialogStack.pop().show();
+                    }
+                });
+            } else {
+                b.setNegativeButton("Cancel", null);
+            }
+        }
+        return b;
+    }
+
+    void clearDialogs() {
+        while (dialogStack.size() > 0) {
+            dialogStack.pop().dismiss();
+        }
     }
 }

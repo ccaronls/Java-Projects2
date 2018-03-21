@@ -18,7 +18,7 @@ import cc.lib.net.GameCommand;
  * A UI Plauer User is a player that required user feedback for choice callabcks. On any individual
  * device "there can only be one" user.
  *
- * In a MP game is the device is connected as a client, then the GameClient isconnected to a game
+ * In a MP game, if the device is connected as a client, then the GameClient is connected to a game
  * server where this user is represented as a UIPlayer with an active clientConnection.
  */
 public final class UIPlayerUser extends UIPlayer implements GameClient.Listener {

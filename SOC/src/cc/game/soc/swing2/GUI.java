@@ -82,11 +82,12 @@ public class GUI implements ActionListener, MenuItem.Action {
 
 	final static String PROP_AI_TUNING_ENABLED = "aituning.enable";
 	final static String PROP_SCENARIOS_DIR = "scenariosDirectory";
+	final static String PROP_BOARDS_DIR = "boardsDirectory";
 	
     final Logger log = LoggerFactory.getLogger(GUI.class);
     
     static final File HOME_FOLDER = new File(System.getProperty("user.home") + "/.soc");
-    static final File AI_TUNING_FILE = new File("aituning.properties");
+    static final File AI_TUNING_FILE = new File("assets/aituning.properties");
 
     public final MenuItem QUIT = new MenuItem("Quit", "Quit current game", this);
     public final MenuItem BACK = new MenuItem("Back", null, this);
@@ -665,6 +666,12 @@ public class GUI implements ActionListener, MenuItem.Action {
             @Override
             protected void onShouldSaveGame() {
                 soc.trySaveToFile(saveGameFile);
+            }
+
+            @Override
+            protected void onRunError(Throwable e) {
+                super.onRunError(e);
+                quitToMainMenu();
             }
         };
 		
@@ -1736,7 +1743,7 @@ public class GUI implements ActionListener, MenuItem.Action {
             saveBoard(getBoard().getName());
         } else if (op == SAVE_BOARD_AS) {
             JFileChooser chooser = new JFileChooser();
-            File baseDir = new File(getProps().getProperty("boardsDirectory", "boards"));
+            File baseDir = new File(getProps().getProperty(PROP_BOARDS_DIR, "assets/boards"));
             if (!baseDir.exists() && !baseDir.mkdirs()) {
                 showOkPopup("ERROR", "Failed to ceate directory tree '" + baseDir + "'");
             } else if (!baseDir.isDirectory()) {
@@ -1759,7 +1766,7 @@ public class GUI implements ActionListener, MenuItem.Action {
         } else if (op == LOAD_BOARD) {
             JFileChooser chooser = new JFileChooser();
             chooser.setFileFilter(getExtensionFilter("txt", true));
-            File boardsDir = new File(getProps().getProperty("boardsDirectory", "boards"));
+            File boardsDir = new File(getProps().getProperty(PROP_BOARDS_DIR, "assets/boards"));
             if (!boardsDir.isDirectory()) {
                 showOkPopup("ERROR", "Boards directory missing");
             } else if (boardsDir.list().length == 0) {
@@ -1824,7 +1831,7 @@ public class GUI implements ActionListener, MenuItem.Action {
                         public boolean doAction() {
                             getBoard().setName(nameField.getText());
                             JFileChooser chooser = new JFileChooser();
-                            File scenarioDir = new File(getProps().getProperty(PROP_SCENARIOS_DIR, "scenarios"));
+                            File scenarioDir = new File(getProps().getProperty(PROP_SCENARIOS_DIR, "assets/scenarios"));
                             if (!scenarioDir.exists()) {
                                 if (!scenarioDir.mkdirs()) {
                                     showOkPopup("ERROR", "Failed to create directory '" + scenarioDir + "'");
@@ -1857,7 +1864,7 @@ public class GUI implements ActionListener, MenuItem.Action {
                     }
             });
         } else if (op == LOAD_SCENARIO) {
-            File scenariosDir = new File(getProps().getProperty(PROP_SCENARIOS_DIR, "scenarios"));
+            File scenariosDir = new File(getProps().getProperty(PROP_SCENARIOS_DIR, "assets/scenarios"));
             if (!scenariosDir.isDirectory()) {
                 showOkPopup("ERROR", "Cant find scenarios directory '" + scenariosDir + "'");
             } else {
@@ -1935,6 +1942,7 @@ public class GUI implements ActionListener, MenuItem.Action {
 
     public void quitToMainMenu() {
         soc.stopRunning();
+        soc.clear();
         console.clear();
         boardRenderer.setPickHandler(null);
         menuStack.clear();
@@ -2166,16 +2174,19 @@ public class GUI implements ActionListener, MenuItem.Action {
         buttons.setLayout(new GridLayout(1, 0));
         if (leftButton != null) {
             buttons.add(leftButton);
+            leftButton.addActionListener(this);
         }
         else
             buttons.add(new JLabel());
         if (middleButton!= null) {
             buttons.add(middleButton);
+            middleButton.addActionListener(this);
         }
         else
             buttons.add(new JLabel());
         if (rightButton != null) {
             buttons.add(rightButton);
+            rightButton.addActionListener(this);
         }
         else
             buttons.add(new JLabel());
@@ -2202,7 +2213,7 @@ public class GUI implements ActionListener, MenuItem.Action {
         showPopup(name, msg, button);
     }
 
-    public void showConfigureGameSettingsPopup(final Rules rules, boolean editable) {
+    public void     showConfigureGameSettingsPopup(final Rules rules, boolean editable) {
         final JPanel view = new JPanel();
         JScrollPane panel = new JScrollPane();
         //panel.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);

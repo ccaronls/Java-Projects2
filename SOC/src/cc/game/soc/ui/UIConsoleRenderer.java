@@ -27,7 +27,6 @@ public final class UIConsoleRenderer extends UIRenderer {
 
     public UIConsoleRenderer(UIComponent component) {
         super(component);
-        component.setRenderer(this);
     }
 
     private final LinkedList<Line> lines = new LinkedList<>();
@@ -71,6 +70,7 @@ public final class UIConsoleRenderer extends UIRenderer {
 	    for (int i=startLine; i<lines.size(); i++) {
 	        Line l = lines.get(i);
             g.setColor(l.color);
+            g.setTextHeight(RenderConstants.textSizeSmall);
             GDimension dim = g.drawWrapString(0, y, component.getWidth(), l.text);
             y += dim.height;
             if (y > component.getHeight()) {

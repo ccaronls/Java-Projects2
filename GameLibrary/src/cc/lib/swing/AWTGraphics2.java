@@ -34,14 +34,6 @@ public class AWTGraphics2 extends AWTGraphics {
     }
 
     @Override
-    protected void pdrawLine(float x0, float y0, float x1, float y1, float width) {
-        BasicStroke s = new BasicStroke(width);
-        G2.setStroke(s);
-        getGraphics().drawLine(Math.round(x0), Math.round(y0), Math.round(x1), Math.round(y1));
-        G2.setStroke(stroke);
-    }
-
-    @Override
     public void drawLineStrip() {
         int n = getPolyPts();
         G2.drawPolyline(x, y, n);
@@ -52,18 +44,5 @@ public class AWTGraphics2 extends AWTGraphics {
         int n = getPolyPts();
         G2.drawPolygon(x, y, n);
     }
-/*
-    @Override
-    public void setColor(GColor color) {
-        Color c = new Color(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha());
-        G2.setPaint(c);
-        G2.setColor(c);
-    }
 
-/*    @Override
-    public GColor getColor() {
-        Color c = (Color)G2.getPaint();
-        return new GColor(c.getRed(), c.getGreen(), c.getBlue(), c.getAlpha());
-    }
-*/
 }
