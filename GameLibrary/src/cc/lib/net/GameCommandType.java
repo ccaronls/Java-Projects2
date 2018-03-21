@@ -117,6 +117,8 @@ public final class GameCommandType implements Comparable<GameCommandType> {
     // --------------------------------------
     static final GameCommandType MESSAGE = new GameCommandType("MESSAGE");
     static final GameCommandType DISCONNECT = new GameCommandType("DISCONNECT");
+    static final GameCommandType PASSWORD = new GameCommandType("PASSWORD");
+
 
 
     /**

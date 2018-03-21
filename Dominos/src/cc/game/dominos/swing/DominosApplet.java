@@ -43,6 +43,7 @@ public class DominosApplet extends AWTComponent {
         };
         frame.addMenuBarMenu("File", "New Game");
         frame.add(this);
+        /*
         try {
             dominos.loadFromFile(saveFile);
         } catch (Exception e) {
@@ -51,10 +52,13 @@ public class DominosApplet extends AWTComponent {
             dominos.setNumPlayers(4);
             dominos.startNewGame();
         }
-
+*/
         if (!frame.loadFromFile(new File("dominos.properties")))
             frame.centerToScreen(800, 600);
-        dominos.startGameThread();
+//        dominos.startGameThread();
+        dominos.initGame(6, 150, 0);
+        dominos.startNewGame();
+        dominos.getBoard().startShuffleAnimation(dominos.getPool());
     }
 
     interface OnChoiceListener {

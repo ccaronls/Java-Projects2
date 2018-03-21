@@ -311,6 +311,8 @@ public class GameClient {
                         break;
                     } else if (cmd.getType() == GameCommandType.SVR_EXECUTE_REMOTE) {
                         handleExecuteRemote(cmd);
+                    } else if (cmd.getType() == GameCommandType.PASSWORD) {
+                        outQueue.add(new GameCommand(GameCommandType.PASSWORD).setArg("password", getPasswordFromUser()));
                     } else {
                         for (Listener l : larray)
                             l.onCommand(cmd);
@@ -373,6 +375,24 @@ public class GameClient {
         GameCommand cmd = new GameCommand(GameCommandType.CL_ERROR).setArg("msg", "ERROR: " + err);
         log.error("Sending error: " + cmd);
         sendCommand(cmd);
+    }
+
+    /**
+     * Override this method to take input from user for password requests.
+     * Default behavior throws a runtime exception, so dont super me.
+     *
+     * @return
+     */
+    protected String getPasswordFromUser() {
+        throw new RuntimeException("Client does not overide the getPasswordFromUser method");
+    }
+
+    /**
+     *
+     * @param displayName
+     */
+    public void setHandle(String displayName) {
+        sendCommand(new GameCommand(GameCommandType.CL_HANDLE).setName(displayName));
     }
 
     /**

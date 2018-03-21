@@ -11,6 +11,7 @@ import cc.lib.game.APGraphics;
 import cc.lib.game.GColor;
 import cc.lib.game.IVector2D;
 import cc.lib.game.Utils;
+import cc.lib.math.Bezier;
 import cc.lib.math.Matrix3x3;
 import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
@@ -100,7 +101,7 @@ public class Board extends Reflector<Board> {
     }
 
     @Omit
-    private final List<AAnimation<AGraphics>> animations = new ArrayList<>();
+    final List<AAnimation<AGraphics>> animations = new ArrayList<>();
 
     void addAnimation(AAnimation<AGraphics> a) {
         synchronized (animations) {
@@ -121,6 +122,7 @@ public class Board extends Reflector<Board> {
         }
         saveMaxV.zero();
         saveMinV.zero();
+        animations.clear();
     }
 
     final void clearSelection() {
@@ -416,12 +418,15 @@ public class Board extends Reflector<Board> {
         }
     }
 
+    @Omit float boardWidth=1;
+    @Omit float boardHeight=1;
+
     synchronized int draw(APGraphics g, float vpWidth, float vpHeight, int pickX, int pickY, Tile dragging) {
         // choose an ortho that keeps the root in the middle and an edge around
         // that allows for a piece to be placed
 
-        if (root == null)
-            return -1;
+        boardWidth = vpWidth;
+        boardHeight = vpHeight;
 
         int picked = -1;
         g.pushMatrix();
@@ -461,25 +466,27 @@ public class Board extends Reflector<Board> {
                 g.drawCircle(mv.getX(), mv.getY(), 10);
             }
 
-            g.pushMatrix();
-            {
-                g.translate(-1, -0.5f);
-                drawTile(g, root.pip1, root.pip2, 1);
-            }
-            g.popMatrix();
-
-            for (int i = 0; i < 4; i++) {
+            if (root != null) {
                 g.pushMatrix();
                 {
-                    transformEndpoint(g, i);
-                    for (Tile p : endpoints[i]) {
-                        transformPlacement(g, p.placement);
-                        drawTile(g, p.getClosedPips(), p.openPips, 1);
-                        g.translate(2, 0);
-                    }
-                    picked = Math.max(picked, drawHighlighted(g, i, pickX, pickY, dragging));
+                    g.translate(-1, -0.5f);
+                    drawTile(g, root.pip1, root.pip2, 1);
                 }
                 g.popMatrix();
+
+                for (int i = 0; i < 4; i++) {
+                    g.pushMatrix();
+                    {
+                        transformEndpoint(g, i);
+                        for (Tile p : endpoints[i]) {
+                            transformPlacement(g, p.placement);
+                            drawTile(g, p.getClosedPips(), p.openPips, 1);
+                            g.translate(2, 0);
+                        }
+                        picked = Math.max(picked, drawHighlighted(g, i, pickX, pickY, dragging));
+                    }
+                    g.popMatrix();
+                }
             }
 
             // DEBUG draw the rects
@@ -544,6 +551,8 @@ public class Board extends Reflector<Board> {
         float dd45 = 0.8f;//dim*4/5;
         g.begin();
         switch (numDots) {
+            case 0:
+                break;
             case 1:
                 g.vertex(x+dd2, y+dd2);
                 break;
@@ -701,5 +710,165 @@ public class Board extends Reflector<Board> {
             return 0;
         }
         return endpoints[ep].getLast().openPips;
+    }
+
+    public void startShuffleAnimation(final List<Tile> pool) {
+
+        final int rows = (int)Math.round(Math.sqrt(pool.size()*2));
+        final int cols = 2 * (pool.size() / rows);
+
+        final MutableVector2D [] positions = new MutableVector2D[pool.size()];
+        {
+            int r = 0;
+            int c = 1;
+            for (int t = 0; t < pool.size(); t++) {
+                positions[t] = new MutableVector2D(c, r + 0.5f);
+                c += 2;
+                if (c >= cols) {
+                    c = 1;
+                    r++;
+                }
+            }
+        }
+
+        // stack->flip->shuffle->repeat
+        addAnimation(new AAnimation<AGraphics>(200, pool.size()) {
+
+            @Override
+            protected void draw(AGraphics g, float position, float dt) {
+
+                float DIM = Math.min(boardHeight / (rows+2), boardWidth / (cols+2));
+                g.pushMatrix();
+                g.setIdentity();
+                g.scale(DIM, DIM);
+                g.translate(1, 0.5f);
+
+                int repeats =  getRepeat();
+                for (int t=0; t<Math.min(pool.size(), repeats); t++) {
+                    g.pushMatrix();
+                    g.translate(positions[t]);
+                    g.scale(0.95f, 0.95f);
+                    g.translate(-1, -0.5f);
+                    drawTile(g, 0, 0, 1);
+                    g.popMatrix();
+                }
+
+                g.popMatrix();
+            }
+
+            @Override
+            protected void onDone() {
+                addAnimation(new AAnimation<AGraphics>(300, pool.size()-1) {
+                    @Override
+                    protected void draw(AGraphics g, float position, float dt) {
+
+                        float DIM = Math.min(boardHeight / (rows+2), boardWidth / (cols+2));
+                        g.pushMatrix();
+                        g.setIdentity();
+                        g.scale(DIM, DIM);
+                        g.translate(1, 0.5f);
+
+                        int t = 0;
+                        for (; t<Math.min(pool.size(), getRepeat()); t++) {
+                            Tile tile = pool.get(t);
+                            g.pushMatrix();
+                            g.translate(positions[t]);
+                            g.scale(0.95f, 0.95f);
+                            g.translate(-1, -0.5f);
+                            drawTile(g, tile.pip1, tile.pip2, 1);
+                            g.popMatrix();
+                        }
+
+                        // last tile is in progress of getting flipped
+                        t = Utils.clamp(Math.min(pool.size(), getRepeat()), 0, pool.size()-1);
+                        Tile tile = pool.get(t);
+
+                        g.pushMatrix();
+                        g.translate(positions[t]);
+                        g.scale(0.95f, 0.95f);
+                        g.translate(-1, -0.5f);
+                        if (getElapsedTime() < getDuration()/2) {
+                            // flip from big to small
+                            g.translate(0, 0.5f);
+                            g.scale(1, 1-position*2);
+                            g.translate(0, -0.5f);
+                            drawTile(g, 0, 0, 1);
+                        } else {
+                            // flip from small to big showing pips
+                            g.translate(0, 0.5f);
+                            g.scale(1, position*2-1);
+                            g.translate(0, -0.5f);
+                            drawTile(g, tile.pip1, tile.pip2, 1);
+                        }
+                        g.popMatrix();
+
+                        // draw remaining tile down
+                        while (++t < pool.size()) {
+                            g.pushMatrix();
+                            g.translate(positions[t]);
+                            g.scale(0.95f, 0.95f);
+                            g.translate(-1, -0.5f);
+                            drawTile(g, 0, 0, 1);
+                            g.popMatrix();
+                        }
+
+
+                        g.popMatrix();
+                    }
+
+                    @Override
+                    protected void onDone() {
+                        addAnimation(new AAnimation<AGraphics>(2000, 5) {
+
+                            Bezier [] curves = new Bezier[pool.size()];
+                            int curRepeat = -1;
+                            void init() {
+                                for (int i=0; i<curves.length; i++) {
+                                    curves[i] = new Bezier();
+                                    curves[i].addPoint(positions[i]);
+                                    curves[i].addPoint(1+Utils.randFloat(cols), 1+Utils.randFloat(rows));
+                                    curves[i].addPoint(1+Utils.randFloat(cols), 1+Utils.randFloat(rows));
+                                    curves[i].addPoint(1+Utils.randFloat(cols), 1+Utils.randFloat(rows));
+                                }
+
+                            }
+
+                            @Override
+                            protected void draw(AGraphics g, float position, float dt) {
+                                if (curRepeat < getRepeat()) {
+                                    init();
+                                    curRepeat = getRepeat();
+                                }
+
+                                float DIM = Math.min(boardHeight / (rows+2), boardWidth / (cols+2));
+                                g.pushMatrix();
+                                g.setIdentity();
+                                g.scale(DIM, DIM);
+                                g.translate(1, 0.5f);
+
+                                for (int i=0; i<pool.size(); i++) {
+                                    Tile t = pool.get(i);
+                                    positions[i].set(curves[i].getPointAt(position));
+                                    g.pushMatrix();
+                                    g.translate(positions[i]);
+                                    g.scale(0.95f, 0.95f);
+                                    g.translate(-1, -0.5f);
+                                    drawTile(g, t.pip1, t.pip2, 1);
+                                    g.popMatrix();
+                                }
+
+                                g.popMatrix();
+                            }
+
+                            @Override
+                            protected void onDone() {
+                                startShuffleAnimation(pool);
+                            }
+                        }.start());
+                    }
+                }.start());
+            }
+
+        }.start(1000));
     }
 }

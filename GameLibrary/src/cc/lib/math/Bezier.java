@@ -8,7 +8,7 @@ import cc.lib.game.IVector2D;
  * @author chriscaron
  *
  */
-public class Bezier {
+public final class Bezier {
 	
 	final IVector2D [] ctrl;
 	int numCtrl = 0;
@@ -23,8 +23,16 @@ public class Bezier {
 	}
 	
 	public void addPoint(float x, float y) {
-		ctrl[numCtrl++] = new Vector2D(x, y);
+        addPoint(new Vector2D(x, y));
 	}
+
+	public void addPoint(IVector2D v) {
+        ctrl[numCtrl++] = v;
+    }
+
+    public void reset() {
+        numCtrl = 0;
+    }
 	
 	public Vector2D getPointAt(float t) {
 		if (numCtrl < 4)

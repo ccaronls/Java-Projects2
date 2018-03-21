@@ -134,6 +134,11 @@ public abstract class Dominos extends Reflector<Dominos> {
         redraw();
     }
 
+    public final void startIntroAnim() {
+        initPool();
+        board.startShuffleAnimation(pool);
+    }
+
     public final void stopGameThread() {
         if (gameRunning) {
             gameRunning = false;
@@ -196,14 +201,18 @@ public abstract class Dominos extends Reflector<Dominos> {
         }.start();
     }
 
-	private void newGame() {
+    private void initPool() {
         pool.clear();
-        anims.clear();
         for (int i=1; i<=maxNum; i++) {
             for (int ii=i; ii<=maxNum; ii++) {
                 pool.add(new Tile(i, ii));
             }
         }
+    }
+
+	private void newGame() {
+        anims.clear();
+        initPool();
         for (Player p : players) {
             p.reset();
         }
@@ -265,6 +274,8 @@ public abstract class Dominos extends Reflector<Dominos> {
     public final int getMaxScore() {
         return this.maxScore;
     }
+
+    public final List<Tile> getPool() { return pool; }
 
     private void newRound() {
 
@@ -406,11 +417,10 @@ public abstract class Dominos extends Reflector<Dominos> {
 
                     g.pushMatrix();
                     g.translate(0, 0.5f);
-                    g.scale(1, position);
+                    g.scale(1, Math.max(0.1f, position));
                     g.translate(0, -0.5f);
                     Board.drawTile(g, pc.pip1, pc.pip2, position/2);
                     g.popMatrix();
-                    redraw();
                 }
 
                 @Override
@@ -535,8 +545,6 @@ public abstract class Dominos extends Reflector<Dominos> {
                             g.setTextHeight(hgtStart + (hgtStop-hgtStart) * position);
                             g.setColor(GColor.MAGENTA.withAlpha(1.0f-position));
                             g.drawJustifiedString(boardDim/2, boardDim/2, Justify.CENTER, Justify.CENTER, "+"+pts);
-
-                            redraw();
                         }
                         @Override
                         protected void onDone() {
@@ -578,7 +586,6 @@ public abstract class Dominos extends Reflector<Dominos> {
                     g.drawAnnotatedString(String.format("%d PTS %s+%d", curPts, alphaRed, pts), 0, 0);
                 else
                     g.drawAnnotatedString(String.format("%s %s%d PTS %s+%d", p.getName(), GColor.BLACK, curPts, alphaRed, pts), 0, 0);
-                redraw();
             }
 
             @Override
@@ -586,7 +593,6 @@ public abstract class Dominos extends Reflector<Dominos> {
                 synchronized (gameLock) {
                     gameLock.notifyAll();
                 }
-                redraw();
             }
         }, false);
     }
@@ -620,7 +626,6 @@ public abstract class Dominos extends Reflector<Dominos> {
             boundingRect[0] = g.getMinBoundingRect();
             boundingRect[1] = g.getMaxBoundingRect();
             g.popMatrix();
-            redraw();
         }
     };
 
@@ -731,7 +736,7 @@ public abstract class Dominos extends Reflector<Dominos> {
             }
         }
 
-        if (anims.size() > 0)
+        if (anims.size() > 0 || board.animations.size() > 0)
             redraw();
     }
 

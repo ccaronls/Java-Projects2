@@ -93,6 +93,7 @@ public class ClientConnection implements Runnable {
     private DataInputStream in;
     private DataOutputStream out;
     private final String name;
+    private String handle; // dynamic display name. takes precedence over name when non-null
     private final GameServer server;
     private CommandQueueWriter outQueue = new CommandQueueWriter();
     private Map<String, Object> attributes = new TreeMap<>();
@@ -237,7 +238,17 @@ public class ClientConnection implements Runnable {
     public final String getName() {
         return name;
     }
-    
+
+    /**
+     * Return the user's handle if set. normal name otherwise.
+     * @return
+     */
+    public final String getDisplayName() {
+        if (!Utils.isEmpty(handle))
+            return handle;
+        return name;
+    }
+
     /**
      * 
      * @return
@@ -358,6 +369,8 @@ public class ClientConnection implements Runnable {
             log.debug("ClientConnection: KeepAlive from client: " + getName());
         } else if (cmd.getType() == GameCommandType.CL_ERROR) {
             System.err.println("ERROR From client '" + getName() + "'\n" + cmd.getArg("msg") + "\n" + cmd.getArg("stack"));
+        } else if (cmd.getType() == GameCommandType.CL_HANDLE) {
+            this.handle = cmd.getName();
         } else {
             if (listeners.size() > 0) {
                 Listener [] arr = listeners.toArray(new Listener[listeners.size()]);

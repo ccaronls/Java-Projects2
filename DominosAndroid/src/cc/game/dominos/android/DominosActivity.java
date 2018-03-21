@@ -25,7 +25,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -376,16 +375,6 @@ public class DominosActivity extends DroidActivity {
             }
         };
 
-        if (false)
-        try {
-            FileUtils.copyFile(saveFile, Environment.getExternalStorageDirectory());
-            dominos.loadFromFile(saveFile);
-        } catch (FileNotFoundException e) {
-            // ignore
-        } catch (Exception e) {
-            dominos.clear();
-            e.printStackTrace();
-        }
     }
 
     void copyFileToExt() {
@@ -399,12 +388,9 @@ public class DominosActivity extends DroidActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        if (!dominos.isInitialized()) {
-            if (!dominos.tryLoadFromFile(saveFile))
-                dominos.clear();
-            else
-                dominos.redraw();
-        }
+        dominos.initGame(6, 150, 0);
+        dominos.startIntroAnim();
+        dominos.redraw();
         if (server.isRunning()) {
             if (dominos.isInitialized())
                 dominos.startGameThread();
@@ -415,7 +401,7 @@ public class DominosActivity extends DroidActivity {
             if (dominos.isInitialized()) {
                 dominos.startGameThread();
             } else {
-                showNewGameDialog();
+                //showNewGameDialog();
             }
         }
     }

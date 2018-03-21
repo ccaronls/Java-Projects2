@@ -255,4 +255,6 @@ public abstract class AAnimation<T> {
     public final boolean isIdle() {
         return state == State.IDLE;
     }
+
+    public final int getRepeat() { return (int)((System.currentTimeMillis() - startTime) / duration); }
 }

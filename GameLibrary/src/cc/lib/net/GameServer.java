@@ -9,6 +9,7 @@ import java.util.*;
 import cc.lib.crypt.Cypher;
 import cc.lib.crypt.EncryptionInputStream;
 import cc.lib.crypt.EncryptionOutputStream;
+import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
 
@@ -65,6 +66,7 @@ public class GameServer {
     private final int maxConnections;
     private final int port;
     private final String mServerName;
+    private String password = null;
     
     public String toString() {
         String r = "GameServer:" + mServerName + " v:" + mVersion;
@@ -81,6 +83,15 @@ public class GameServer {
 
     public final String getName() {
         return mServerName;
+    }
+
+    /**
+     * You can optionally require clients to enter a password to login to your server
+     *
+     * @param paswword
+     */
+    public final void setPassword(String paswword) {
+        this.password = paswword;
     }
 
     /**
@@ -391,6 +402,15 @@ public class GameServer {
                 }
                 
                 clientVersionCompatibilityTest(clientVersion, mVersion);
+
+                if (!Utils.isEmpty(password)) {
+                    new GameCommand(GameCommandType.PASSWORD).write(out);
+                    GameCommand pswd = GameCommand.parse(in);
+                    if (!password.equals(pswd.getArg("password")))
+                        throw new ProtocolException("Bad Password");
+                }
+
+
                 ClientConnection conn = null;
                 
                 synchronized (clients) {
