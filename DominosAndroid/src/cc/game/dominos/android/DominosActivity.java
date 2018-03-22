@@ -318,9 +318,6 @@ public class DominosActivity extends DroidActivity {
                             }).setNegativeButton("Cancel", null).show();
 
                 } else {
-                    if (dominos.isGameRunning()) {
-                        dominos.stopGameThread();
-                    }
                     showNewGameDialog();
                 }
             }
@@ -373,6 +370,20 @@ public class DominosActivity extends DroidActivity {
                 server.broadcastExecuteOnRemote(DOMINOS_ID, turn);
                 super.setTurn(turn);
             }
+
+            @Override
+            protected void onNewRound() {
+                server.broadcastCommand(new GameCommand(SVR_TO_CL_INIT_ROUND).setArg("dominos", dominos));
+                server.broadcastExecuteOnRemote(DOMINOS_ID);
+                super.onNewRound();
+            }
+
+            @Override
+            @Keep
+            protected void onPlaceFirstTile(int player, Tile t) {
+                server.broadcastExecuteOnRemote(DOMINOS_ID, player, t);
+                super.onPlaceFirstTile(player, t);
+            }
         };
 
     }
@@ -389,7 +400,7 @@ public class DominosActivity extends DroidActivity {
     protected void onResume() {
         super.onResume();
         dominos.initGame(6, 150, 0);
-        dominos.startIntroAnim();
+        dominos.getBoard().startDominosIntroAnimation();
         dominos.redraw();
         if (server.isRunning()) {
             if (dominos.isInitialized())
@@ -502,8 +513,8 @@ public class DominosActivity extends DroidActivity {
     void showNewGameDialog() {
 
         final View v = View.inflate(this, R.layout.new_game_type_dialog, null);
-        AlertDialog.Builder b = newDialogBuilder().setTitle("New Game Type")
-                .setView(v);
+        AlertDialog.Builder b = newDialogBuilder().setTitle("Choose Game Type")
+                .setView(v).setNegativeButton("Cancel", null);
 
         if (dominos.isInitialized()) {
             b.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -525,7 +536,12 @@ public class DominosActivity extends DroidActivity {
         v.findViewById(R.id.bMultiPlayerHost).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                showNewMultiplayerPlayerSetupDialog(true);
+                if (dominos.isGameRunning()) {
+                    // this wont work until we get rid of MPPlayer stuff
+                    showHostMultiplayerDialog();
+                } else {
+                    showNewMultiplayerPlayerSetupDialog(true);
+                }
             }
         });
         v.findViewById(R.id.bMultiPlayerSearch).setOnClickListener(new View.OnClickListener() {
@@ -539,6 +555,7 @@ public class DominosActivity extends DroidActivity {
             button.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    dominos.clear();
                     if (dominos.tryLoadFromFile(saveFile) && dominos.isInitialized()) {
                         dominos.startGameThread();
                         currentDialog.dismiss();
@@ -596,7 +613,7 @@ public class DominosActivity extends DroidActivity {
         }
     };
 
-    void showHostMultiplayerDialog(final int numPlayers, final int maxPoints, final int maxPips) {
+    void showHostMultiplayerDialog() {
         new SpinnerTask() {
             @Override
             protected void doIt() throws Exception {
@@ -619,17 +636,6 @@ public class DominosActivity extends DroidActivity {
                 log.debug("Device info=%s", build);
                 helper.setDeviceName(server.getName() + "-Dominos");
                 helper.startGroup(); // make sure we are the group owner
-                dominos.stopGameThread();
-                dominos.initGame(maxPips, maxPoints, 0);
-                // now populate the game with remote players so that when they connect we can send them
-                // the game state right away.
-                Player [] players = new Player[numPlayers];
-                players[0] = user;
-                for (int i=1; i<players.length; i++) {
-                    players[i] = new MPPlayerRemote(i, dominos, DominosActivity.this);
-                }
-                dominos.setPlayers(players);
-                dominos.startNewGame();
             }
 
             @Override
@@ -1162,14 +1168,24 @@ public class DominosActivity extends DroidActivity {
                                 maxPips = 12; break;
                         }
 
-                        if (firstGame)
-                            showHostMultiplayerDialog(numPlayers, maxPoints, maxPips);
-                        else {
+                        if (firstGame) {
+                            dominos.initGame(maxPips, maxPoints, 0);
+                            // now populate the game with remote players so that when they connect we can send them
+                            // the game state right away.
+                            Player [] players = new Player[numPlayers];
+                            players[0] = user;
+                            for (int i=1; i<players.length; i++) {
+                                players[i] = new MPPlayerRemote(i, dominos, DominosActivity.this);
+                            }
+                            dominos.setPlayers(players);
+                            dominos.startNewGame();
+                            showHostMultiplayerDialog();
+                        } else {
                             dominos.initGame(maxPips, maxPoints, 0);
                             dominos.startNewGame();
                             server.broadcastMessage("Starting a new game!");
                             server.broadcastCommand(new GameCommand(SVR_TO_CL_INIT_ROUND)
-                                    .setArg("dominos", dominos.toString()));
+                                    .setArg("dominos", dominos));
                             dominos.startGameThread();
                         }
                     }

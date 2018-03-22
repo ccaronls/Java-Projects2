@@ -825,9 +825,7 @@ public class Board extends Reflector<Board> {
                 starts[n].addPoint(dominosPositions[n].add(offset));
                 n++;
             }
-
         }
-
 
         @Override
         protected void draw(AGraphics g, float position, float dt) {
@@ -839,7 +837,7 @@ public class Board extends Reflector<Board> {
                 max.maxEq(v);
             }
 
-            float dim = boardWidth/(max.getX()-min.getX());
+            float dim = boardWidth/(max.getX()-min.getX()+2);
 
             if (starts == null) {
                 init(boardWidth/dim, new Vector2D(.5f, 9));
@@ -848,7 +846,7 @@ public class Board extends Reflector<Board> {
             g.setPointSize(dim/8);
             g.pushMatrix();
             g.setIdentity();
-            g.scale(dim-2, dim-2);
+            g.scale(dim, dim);
             //g.translate(.5f, 9);
             for (int i=0; i<dominosPositions.length; i++) {
                 g.pushMatrix();
@@ -927,7 +925,7 @@ public class Board extends Reflector<Board> {
 
             @Override
             protected void onDone() {
-                addAnimation(new AAnimation<AGraphics>(100, pool.size()-1) {
+                addAnimation(new AAnimation<AGraphics>(50, pool.size()-1) {
                     @Override
                     protected void draw(AGraphics g, float position, float dt) {
 
@@ -999,13 +997,13 @@ public class Board extends Reflector<Board> {
                                         b.addPoint(Utils.randFloat(0.25f * cols), Utils.randFloat(0.25f * rows));
                                         break;
                                     case 1:
-                                        b.addPoint(Utils.randFloat(0.25f * cols), 0.75f * rows + Utils.randFloat(0.25f * dimY));
+                                        b.addPoint(Utils.randFloat(0.25f * cols), 0.75f * rows + Utils.randFloat(0.25f * rows));
                                         break;
                                     case 2:
-                                        b.addPoint(0.75f * cols + Utils.randFloat(0.25f * cols), 0.75f * rows+Utils.randFloat(0.25f * rows));
+                                        b.addPoint(0.75f * cols + Utils.randFloat(0.25f * cols), 0.75f * rows + Utils.randFloat(0.25f * rows));
                                         break;
                                     case 3:
-                                        b.addPoint(0.75f * cols + Utils.randFloat(0.25f * cols), Utils.randFloat(0.75f * dimY));
+                                        b.addPoint(0.75f * cols + Utils.randFloat(0.25f * cols), Utils.randFloat(0.75f * rows));
                                         break;
                                 }
                             }

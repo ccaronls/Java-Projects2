@@ -59,7 +59,7 @@ public class GameServer {
     // keep sorted by alphabetical order 
     private final Map<String,ClientConnection> clients = new LinkedHashMap<>();
     private SocketListener socketListener;
-    private final Set<Listener> listeners = new LinkedHashSet<>();
+    private final Set<Listener> listeners = Collections.synchronizedSet(new LinkedHashSet<Listener>());
     private final int clientReadTimeout;
     private final String mVersion;
     private final Cypher cypher;
@@ -458,11 +458,13 @@ public class GameServer {
                 // TODO: Add a password feature when server prompts for password before conn.connect is called.
 
                 log.debug("GameServer: Client " + name + " connected");
+                List<Listener> list = new ArrayList<>(listeners);
+
                 if (cmd.getType() == GameCommandType.CL_CONNECT) {
-                    for (Listener l : listeners)
+                    for (Listener l : list)
                         l.onConnected(conn);
                 } else {
-                    for (Listener l : listeners)
+                    for (Listener l : list)
                         l.onReconnection(conn);
                 }
 

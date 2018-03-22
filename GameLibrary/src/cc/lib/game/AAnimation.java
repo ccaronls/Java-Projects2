@@ -137,21 +137,23 @@ public abstract class AAnimation<T> {
 
             float delta = (t - startTime) % duration;
             long repeats = (t - startTime) / duration;
-            if (oscilateOnRepeat) {
-                if (repeats % 2 == 1) {
-                    reverse = !startDirectionReverse;
-                } else {
-                    reverse = startDirectionReverse;
-                }
-            }
-            if (reverse) {
-                position = 1 - (delta / duration);
-            } else {
-                position = delta / duration;
-            }
+
             if (maxRepeats >= 0 && repeats > maxRepeats) {
                 position = reverse ? 0 : 1;
                 stop();
+            } else {
+                if (oscilateOnRepeat) {
+                    if (repeats % 2 == 1) {
+                        reverse = !startDirectionReverse;
+                    } else {
+                        reverse = startDirectionReverse;
+                    }
+                }
+                if (reverse) {
+                    position = 1 - (delta / duration);
+                } else {
+                    position = delta / duration;
+                }
             }
             dt = t-lastTime;
         }

@@ -277,6 +277,7 @@ public abstract class Dominos extends Reflector<Dominos> {
             p.tiles.clear();
         }
 
+        initPool();
         board.clear();
         Utils.shuffle(pool);
 
@@ -304,8 +305,7 @@ public abstract class Dominos extends Reflector<Dominos> {
             for (int p=0; p<players.length; p++) {
                 Tile t = players[p].findTile(i, i);
                 if (t != null) {
-                    players[p].tiles.remove(t);
-                    board.placeRootPiece(t);
+                    onPlaceFirstTile(p, t);
                     turn = p;
                     redraw();
                     return true;
@@ -325,13 +325,18 @@ public abstract class Dominos extends Reflector<Dominos> {
         return moves;
     }
 
+    @Keep
+    protected void onPlaceFirstTile(int player, Tile t) {
+        players[player].tiles.remove(t);
+        board.placeRootPiece(t);
+    }
+
 	public final void runGame() {
 		Player p = players[turn];
 
 		if (pool.size() == 0) {
-		    initPool();
-		    onNewRound();
 		    newRound();
+            onNewRound();
         }
 
 		List<Move> moves = computePlayerMoves(p);
@@ -659,9 +664,10 @@ public abstract class Dominos extends Reflector<Dominos> {
     }
 
     protected void onNewRound() {
+        /*
         board.startShuffleAnimation(gameLock, pool);
         redraw();
-        Utils.waitNoThrow(gameLock, -1);
+        Utils.waitNoThrow(gameLock, -1);*/
     }
 
     @Omit
