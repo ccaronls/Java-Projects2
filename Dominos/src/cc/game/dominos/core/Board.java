@@ -2,6 +2,7 @@ package cc.game.dominos.core;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -101,7 +102,7 @@ public class Board extends Reflector<Board> {
     }
 
     @Omit
-    final List<AAnimation<AGraphics>> animations = new ArrayList<>();
+    final List<AAnimation<AGraphics>> animations = Collections.synchronizedList(new ArrayList<AAnimation<AGraphics>>());
 
     void addAnimation(AAnimation<AGraphics> a) {
         synchronized (animations) {
@@ -723,34 +724,34 @@ public class Board extends Reflector<Board> {
                 new Vector2D(2.5f, 2.5f), // v
                 new Vector2D(2f, 1), // h
                 // little o
-                new Vector2D(5.5f, 2.5f), // h
-                new Vector2D(4.5f, 4f), // v
-                new Vector2D(5.5f, 5.5f), // h
-                new Vector2D(6.5f, 4f), // v
+                new Vector2D(5f, 2.5f), // h
+                new Vector2D(4f, 4f), // v
+                new Vector2D(5f, 5.5f), // h
+                new Vector2D(6f, 4f), // v
                 // little m
-                new Vector2D(8.5f, 5f), // v
-                new Vector2D(9f, 3.5f), // h
-                new Vector2D(10.5f, 4.5f), // v
-                new Vector2D(12f, 3.5f), // h
-                new Vector2D(12.5f, 5f), // v
+                new Vector2D(7.5f, 5f), // v
+                new Vector2D(8f, 3.5f), // h
+                new Vector2D(9.5f, 4.5f), // v
+                new Vector2D(11f, 3.5f), // h
+                new Vector2D(11.5f, 5f), // v
                 // little i
-                new Vector2D(14.5f, 3f), // v
-                new Vector2D(14.5f, 5f), // v
+                new Vector2D(13f, 3f), // v
+                new Vector2D(13f, 5f), // v
                 // little n
+                new Vector2D(14.5f, 5f), // v
+                new Vector2D(15f, 3.5f), // h
                 new Vector2D(16.5f, 5f), // v
-                new Vector2D(17f, 3.5f), // h
-                new Vector2D(18.5f, 5f), // v
                 // little o
-                new Vector2D(20.5f, 4f), // v
-                new Vector2D(21.5f, 2.5f), // h
-                new Vector2D(22.5f, 4f), // v
-                new Vector2D(21.5f, 5.5f), // h
+                new Vector2D(18f, 4f), // v
+                new Vector2D(19f, 2.5f), // h
+                new Vector2D(20f, 4f), // v
+                new Vector2D(19f, 5.5f), // h
                 // little s
-                new Vector2D(25.5f, 1.5f), // h
-                new Vector2D(24.5f, 3f), // v
-                new Vector2D(26f, 3.5f), // h
-                new Vector2D(26.5f, 5f), // v
-                new Vector2D(25f, 5.5f) // h
+                new Vector2D(22.5f, 1.5f), // h
+                new Vector2D(21.5f, 3f), // v
+                new Vector2D(23f, 3.5f), // h
+                new Vector2D(23.5f, 5f), // v
+                new Vector2D(22f, 5.5f) // h
         };
 
         final boolean [] dominosVertical = {
@@ -868,12 +869,34 @@ public class Board extends Reflector<Board> {
         protected void onDone() {
             addAnimation(new IntroAnim().start(5000));
         }
-
-
     }
 
-    public void startDominosIntroAnimation() {
-        addAnimation(new IntroAnim().start());
+    public void startDominosIntroAnimation(final Runnable onDoneRunnable) {
+        animations.clear();
+        addAnimation(new IntroAnim() {
+            @Override
+            protected void onDone() {
+                if (onDoneRunnable != null) {
+                    onDoneRunnable.run();
+                }
+                super.onDone();
+            }
+        }.start());
+        /*
+        addAnimation(new AAnimation<AGraphics>(2000, -1) {
+            @Override
+            protected void draw(AGraphics g, float position, float dt) {
+                float dim = boardWidth/6;
+                g.pushMatrix();
+                g.setIdentity();
+                g.scale(dim, dim);
+                g.translate(3, 3);
+                g.rotate(360f * position);
+                g.translate(-1, -0.5f);
+                drawTile(g, 6, 6, 1);
+                g.popMatrix();
+            }
+        }.start());//*/
     }
 
     public void startShuffleAnimation(final Object monitor, final List<Tile> pool) {

@@ -525,6 +525,22 @@ public class DroidGraphics extends APGraphics {
         canvas.drawRoundRect(x, y, x+w, y+h, radius, radius, paint);
         canvas.restore();
 */
+        Matrix m = new Matrix();
+        float [] arr = r.getCurrentTransform().transpose().toFloatArray();
+        m.setValues(arr);
+        float width = paint.getStrokeWidth();
+        paint.setStrokeWidth(0);
+        canvas.save();
+        canvas.setMatrix(m);
+        canvas.drawRoundRect(x, y, x+w, y+h, radius, radius,paint);
+        canvas.restore();
+        paint.setStrokeWidth(width);
+
+
+
+
+        /*
+
         MutableVector2D v0 = new MutableVector2D(x, y);
         MutableVector2D v1 = new MutableVector2D(x+w, y+h);
         transform(v0);

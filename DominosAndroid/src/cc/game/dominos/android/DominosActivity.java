@@ -385,7 +385,6 @@ public class DominosActivity extends DroidActivity {
                 super.onPlaceFirstTile(player, t);
             }
         };
-
     }
 
     void copyFileToExt() {
@@ -399,8 +398,6 @@ public class DominosActivity extends DroidActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        dominos.initGame(6, 150, 0);
-        dominos.getBoard().startDominosIntroAnimation();
         dominos.redraw();
         if (server.isRunning()) {
             if (dominos.isInitialized())
