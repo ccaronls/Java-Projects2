@@ -1029,6 +1029,7 @@ public class Board extends Reflector<Board> {
                                 }
 
                                 addAnimation(new AAnimation<AGraphics>(5000) {
+
                                     @Override
                                     protected void draw(AGraphics g, float position, float dt) {
 
@@ -1076,6 +1077,21 @@ public class Board extends Reflector<Board> {
                                             final Vector2D pos = positions[i];
                                             final boolean isLast = i==positions.length-1;
                                             addAnimation(new AAnimation<AGraphics>(600) {
+
+                                                @Override
+                                                protected void drawPrestart(AGraphics g) {
+                                                    g.setPointSize(DIM/8);
+                                                    g.pushMatrix();
+                                                    g.setIdentity();
+                                                    g.scale(DIM, DIM);
+                                                    g.translate(1, 0.5f);
+                                                    g.translate(pos);
+                                                    g.scale(0.95f, 0.95f);
+                                                    g.translate(-1, -0.5f);
+                                                    drawTile(g, 0, 0, 1);
+                                                    g.popMatrix();
+                                                }
+
                                                 @Override
                                                 protected void draw(AGraphics g, float position, float dt) {
                                                     Vector2D boneyard;

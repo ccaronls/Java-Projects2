@@ -296,6 +296,7 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
 
     private void newRound() {
 
+        Utils.shuffle(pool);
         int numPerPlayer = players.length == 2 ? 7 : 5;
 
         for (Player p : players) {
@@ -689,7 +690,6 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
         }
         board.clear();
         initPool();
-        Utils.shuffle(pool);
         board.startShuffleAnimation(gameLock, pool);
         redraw();
         Utils.waitNoThrow(gameLock, -1);
@@ -877,7 +877,7 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
 
         Player p = players[player];
 	    final int numPlayerTiles = p.getTiles().size();
-        int numVirtualTiles = numPlayerTiles;
+        //int numVirtualTiles = numPlayerTiles;
         int numDrawnTiles = numPlayerTiles;
 
         final List<Tile> playertiles;
@@ -892,8 +892,12 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
 	    if (numPlayerTiles == 0)
 	        return;
 
-        final float aspect = w/h;
+        final float aspect = w/(h*2);
 
+        int cols = 2*Utils.clamp((int)Math.floor(Math.sqrt(aspect*numDrawnTiles*2)), 1, 100);
+        int rows = Utils.clamp((int)Math.ceil(2f * numDrawnTiles / cols),2, 100);
+
+        /*
         if (numVirtualTiles < 4)
             numVirtualTiles = 4;
         int rows = 2;
@@ -913,7 +917,7 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
             rows = 2;
         int cols = 2*(numDrawnTiles/rows);
 */
-        if (rows * cols / 2 < numPlayerTiles) {
+        if (rows * cols / 2 < numDrawnTiles) {
             System.err.println("oooops");
         }
         int tilesPerRow = cols/2;

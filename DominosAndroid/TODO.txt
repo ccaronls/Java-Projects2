@@ -25,3 +25,5 @@
   and includes a flag to server to omit broadcasting back to the client.
 - test in release mode
 - Add about screen and splash screen
+- Try diamond shared board with player in each corner?
+- Seems to be bug on render player tiles when player has one tile in a row?
