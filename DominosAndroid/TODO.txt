@@ -26,4 +26,6 @@
 - test in release mode
 - Add about screen and splash screen
 - Try diamond shared board with player in each corner?
-- Seems to be bug on render player tiles when player has one tile in a row?
+- Seems to be bug on render player tiles when player has one tile in a row? (fixed)
+- Speed up the end of round points anim.
+- Dont shuffle when a player has won the game

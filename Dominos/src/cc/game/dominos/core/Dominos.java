@@ -13,7 +13,6 @@ import cc.lib.game.AAnimation;
 import cc.lib.game.AGraphics;
 import cc.lib.game.APGraphics;
 import cc.lib.game.GColor;
-import cc.lib.game.GDimension;
 import cc.lib.game.Justify;
 import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
@@ -432,28 +431,30 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
     protected synchronized void onTileFromPool(int player, final Tile pc) {
         server.broadcastExecuteOnRemote(MPConstants.DOMINOS_ID, player, pc);
         final Player p = players[player];
-        if (p.isPiecesVisible()) {
-	        addAnimation("POOL", new AAnimation<AGraphics>(2000) {
-                @Override
-                protected void draw(AGraphics g, float position, float dt) {
+        addAnimation(p.getName() + "POOL", new AAnimation<AGraphics>(2000) {
+            @Override
+            protected void draw(AGraphics g, float position, float dt) {
 
-                    g.pushMatrix();
-                    g.translate(0, 0.5f);
-                    g.scale(1, Math.max(0.1f, position));
-                    g.translate(0, -0.5f);
-                    Board.drawTile(g, pc.pip1, pc.pip2, position/2);
-                    g.popMatrix();
+                g.pushMatrix();
+                g.translate(0, 0.5f);
+                g.scale(1, Math.max(0.1f, position));
+                g.translate(0, -0.5f);
+                if (p.isPiecesVisible()) {
+                    Board.drawTile(g, pc.pip1, pc.pip2, position / 2);
+                } else {
+                    Board.drawTile(g, 0, 0, 1);
                 }
+                g.popMatrix();
+            }
 
-                @Override
-                protected void onDone() {
-                    synchronized (gameLock) {
-                        gameLock.notifyAll();
-                    }
-                    redraw();
+            @Override
+            protected void onDone() {
+                synchronized (gameLock) {
+                    gameLock.notifyAll();
                 }
-            }, true);
-        }
+                redraw();
+            }
+        }, true);
 
         p.tiles.add(pc);
         pool.remove(pc);
@@ -780,9 +781,17 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
         // now size down until the string fits into the width
         float height = maxHeight;
 
-         for (int i=0; i<10; i++) {
+        String longest = "";
+        for (Player p : players) {
+            String s = String.format("%s X 99 999 PTS", p.getName());
+            if (s.length() > longest.length()) {
+                longest = s;
+            }
+        }
+
+        for (int i=0; i<10; i++) {
             g.setTextHeight(height);
-            float width = g.getTextWidth("PW X W WW PTS");
+            float width = g.getTextWidth(longest);
             float delta = width / maxWidth;
             if (width > maxWidth) {
                 //g.setFont(g.getFont().deriveFont(--targetHeight));
@@ -804,16 +813,60 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
 	        g.pushMatrix();
 	        g.translate(0, y);
             g.setColor(GColor.BLUE);
-            AAnimation<AGraphics> txtAnim = anims.get(p.getName());
-	        if (txtAnim != null)
-	            txtAnim.update(g);
-	        else {
+            AAnimation<AGraphics> anim = anims.get(p.getName());
+	        {
+                float padding = g.getTextHeight()/5;
+	            Vector2D outline1 = g.transform(0, 0);
+                if (anim != null)
+                    anim.update(g);
+                else {
+                    g.drawString(p.getName(), 0, 0);
+                    g.setColor(GColor.BLACK);
+                    g.drawJustifiedString(w - padding, 0, Justify.RIGHT, String.format("%d PTS", p.getScore()));
+                }
+                g.translate(0, g.getTextHeight());
+                int numTiles = p.getTiles().size();
+                float width = g.getTextHeight() * numTiles + ((numTiles-1)*padding);
+                g.pushMatrix();
+                float tileDim = g.getTextHeight()/2;
+                if (width > w) {
+                    final float saveth = g.getTextHeight();
+                    g.setTextHeight(saveth/2);
+                    g.pushMatrix();
+                    g.scale(tileDim, tileDim);
+                    Board.drawTile(g, 0, 0, 1);
+                    g.popMatrix();
+                    g.translate(tileDim*2+padding, 0);
+                    g.setColor(GColor.BLUE);
+                    g.drawJustifiedString(0, tileDim/2, Justify.LEFT, Justify.CENTER, "x " + numTiles);
+                    g.setTextHeight(saveth);
+
+                } else {
+                    for (int t=0; t<numTiles; t++) {
+                        g.pushMatrix();
+                        g.scale(tileDim, tileDim);
+                        Board.drawTile(g, 0, 0, 1);
+                        g.popMatrix();
+                        g.translate(tileDim*2+padding, 0);
+                    }
+                    anim = anims.get(p.getName() + "POOL");
+                    if (anim != null) {
+                        g.pushMatrix();
+                        g.scale(tileDim, tileDim);
+                        anim.update(g);
+                        g.popMatrix();
+                    }
+                }
+                g.popMatrix();
+                Vector2D outline2 = g.transform(w, tileDim);
+
+                /*
                 GDimension dim = g.drawAnnotatedString(String.format("%s X %d [0,0,0]%d PTS",
-                        Utils.truncate(p.getName(), 5, 1), p.getTiles().size(), p.getScore()), 0, 0);
-                p.outlineRect.set(g.transform(0, 0), g.transform(w, dim.height));
+                        Utils.truncate(p.getName(), 5, 1), p.getTiles().size(), p.getScore()), 0, 0);*/
+                p.outlineRect.set(outline1, outline2);
             }
 	        g.popMatrix();
-	        y += g.getTextHeight();
+	        y += g.getTextHeight()+g.getTextHeight()/2;
         }
         g.setColor(GColor.BLUE);
         g.drawString(String.format("Pool X %d", pool.size()), 0, y);
@@ -884,7 +937,7 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
         synchronized (p.tiles) {
             playertiles = new ArrayList<>(p.tiles);
         }
-        AAnimation<AGraphics> poolAnim = anims.get("POOL");
+        AAnimation<AGraphics> poolAnim = anims.get(p.getName() + "POOL");
 	    if (poolAnim != null) {
 	        numDrawnTiles++;
         }
@@ -897,26 +950,6 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
         int cols = 2*Utils.clamp((int)Math.floor(Math.sqrt(aspect*numDrawnTiles*2)), 1, 100);
         int rows = Utils.clamp((int)Math.ceil(2f * numDrawnTiles / cols),2, 100);
 
-        /*
-        if (numVirtualTiles < 4)
-            numVirtualTiles = 4;
-        int rows = 2;
-        int cols = 2;
-
-        while (numVirtualTiles > rows*cols/2) {
-            float a = (float)(cols*2)/rows;
-            if (a > aspect) {
-                rows++;
-            } else {
-                cols += 2;
-            }
-        }//*/
-/*
-        int rows = (int)Math.round(Math.sqrt(numDrawnTiles*2) / aspect);
-        if (rows < 2)
-            rows = 2;
-        int cols = 2*(numDrawnTiles/rows);
-*/
         if (rows * cols / 2 < numDrawnTiles) {
             System.err.println("oooops");
         }
