@@ -20,6 +20,9 @@ import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
 import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
+import cc.lib.net.ClientConnection;
+import cc.lib.net.GameCommand;
+import cc.lib.net.GameServer;
 import cc.lib.utils.Reflector;
 
 /**
@@ -48,7 +51,7 @@ import cc.lib.utils.Reflector;
  * on drag end event
  * D.endDrag(mouseX, mouseY)
  */
-public abstract class Dominos extends Reflector<Dominos> {
+public abstract class Dominos extends Reflector<Dominos> implements GameServer.Listener {
 
     public static float BORDER_PADDING = 10;
 
@@ -63,6 +66,15 @@ public abstract class Dominos extends Reflector<Dominos> {
     protected int getMinVersion() {
         return super.getMinVersion();
     }
+
+    @Omit
+    public final GameServer server = new GameServer(
+            getServerName(),
+            MPConstants.PORT,
+            MPConstants.CLIENT_READ_TIMEOUT,
+            MPConstants.VERSION,
+            MPConstants.getCypher(),
+            MPConstants.MAX_CONNECTIONS);
 
     private Player [] players = new Player[0];
     private LinkedList<Tile> pool = new LinkedList<Tile>();
@@ -81,6 +93,10 @@ public abstract class Dominos extends Reflector<Dominos> {
     @Omit
     private boolean dragging = false;
 
+    public Dominos() {
+        server.addListener(this);
+    }
+
     public void setNumPlayers(int num){
         if (gameRunning)
             throw new AssertionError();
@@ -94,6 +110,10 @@ public abstract class Dominos extends Reflector<Dominos> {
             }
         }
 	}
+
+	protected String getServerName() {
+        return System.getProperty("user.home");
+    }
 
 	public synchronized void clear() {
         stopGameThread();
@@ -132,6 +152,7 @@ public abstract class Dominos extends Reflector<Dominos> {
         stopGameThread();
         newGame();
         redraw();
+        server.broadcastCommand(new GameCommand(MPConstants.SVR_TO_CL_INIT_ROUND).setArg("dominos", this));
     }
 
     public final void stopGameThread() {
@@ -145,6 +166,7 @@ public abstract class Dominos extends Reflector<Dominos> {
 
     @Keep
     protected void onGameOver(int playerNum) {
+        server.broadcastExecuteOnRemote(MPConstants.DOMINOS_ID, playerNum);
         final Player winner = players[playerNum];
         addAnimation(winner.getName(), new AAnimation<AGraphics>(1000, -1, true) {
             @Override
@@ -220,6 +242,7 @@ public abstract class Dominos extends Reflector<Dominos> {
 
     @Keep
     public void setTurn(final int turn) {
+        server.broadcastExecuteOnRemote(MPConstants.DOMINOS_ID, turn);
         if (turn >= 0 && turn < players.length) {
             final Player fromPlayer = players[this.turn];
             final Player toPlayer = players[turn];
@@ -272,14 +295,6 @@ public abstract class Dominos extends Reflector<Dominos> {
     public final List<Tile> getPool() { return pool; }
 
     private void newRound() {
-
-        for (Player p : players) {
-            p.tiles.clear();
-        }
-
-        initPool();
-        board.clear();
-        Utils.shuffle(pool);
 
         int numPerPlayer = players.length == 2 ? 7 : 5;
 
@@ -335,7 +350,6 @@ public abstract class Dominos extends Reflector<Dominos> {
 		Player p = players[turn];
 
 		if (pool.size() == 0) {
-		    newRound();
             onNewRound();
         }
 
@@ -354,6 +368,7 @@ public abstract class Dominos extends Reflector<Dominos> {
 
                 if (!canMove) {
                     onEndRound();
+                    onNewRound();
                     return;
                 } else {
                     // player knocks
@@ -392,6 +407,7 @@ public abstract class Dominos extends Reflector<Dominos> {
                 onPlayerEndRoundPoints(turn, pts);
             }
             onEndRound();
+            onNewRound();
         } else if (getWinner() < 0) {
             nextTurn();
         }
@@ -405,6 +421,7 @@ public abstract class Dominos extends Reflector<Dominos> {
 
     @Keep
     protected void onTilePlaced(int player, Tile tile, int endpoint, int placement) {
+        server.broadcastExecuteOnRemote(MPConstants.DOMINOS_ID, player, tile, endpoint, placement);
         board.doMove(tile, endpoint, placement);
         players[player].tiles.remove(tile);
         redraw();
@@ -412,7 +429,8 @@ public abstract class Dominos extends Reflector<Dominos> {
 
     @Keep
     protected synchronized void onTileFromPool(int player, final Tile pc) {
-	    final Player p = players[player];
+        server.broadcastExecuteOnRemote(MPConstants.DOMINOS_ID, player, pc);
+        final Player p = players[player];
         if (p.isPiecesVisible()) {
 	        addAnimation("POOL", new AAnimation<AGraphics>(2000) {
                 @Override
@@ -445,13 +463,14 @@ public abstract class Dominos extends Reflector<Dominos> {
 
     @Keep
     protected void onKnock(int player) {
+        server.broadcastExecuteOnRemote(MPConstants.DOMINOS_ID, player);
         redraw();
     }
 
     @Keep
     protected void onEndRound() {
-        newRound();
         redraw();
+        server.broadcastCommand(new GameCommand(MPConstants.SVR_TO_CL_INIT_ROUND).setArg("dominos", toString()));
     }
 
     @Omit
@@ -562,7 +581,7 @@ public abstract class Dominos extends Reflector<Dominos> {
 
     @Keep
     protected void onPlayerEndRoundPoints(final int player, final int pts) {
-
+        server.broadcastExecuteOnRemote(MPConstants.DOMINOS_ID, player, pts);
         Player p = players[player];
 
         // figure out how many pieces are left
@@ -639,7 +658,7 @@ public abstract class Dominos extends Reflector<Dominos> {
      */
     @Keep
     protected void onPlayerPoints(final int player, final int pts) {
-
+        server.broadcastExecuteOnRemote(MPConstants.DOMINOS_ID, player,pts);
         final Player p = players[player];
 
         long delay = 0;
@@ -664,10 +683,17 @@ public abstract class Dominos extends Reflector<Dominos> {
     }
 
     protected void onNewRound() {
-        /*
+        server.broadcastExecuteOnRemote(MPConstants.DOMINOS_ID);
+        for (Player p : players) {
+            p.tiles.clear();
+        }
+        board.clear();
+        initPool();
+        Utils.shuffle(pool);
         board.startShuffleAnimation(gameLock, pool);
         redraw();
-        Utils.waitNoThrow(gameLock, -1);*/
+        Utils.waitNoThrow(gameLock, -1);
+        newRound();
     }
 
     @Omit
@@ -784,7 +810,7 @@ public abstract class Dominos extends Reflector<Dominos> {
 	        else {
                 GDimension dim = g.drawAnnotatedString(String.format("%s X %d [0,0,0]%d PTS",
                         Utils.truncate(p.getName(), 5, 1), p.getTiles().size(), p.getScore()), 0, 0);
-                p.outlineRect.set(g.transform(0, 0), g.transform(dim.width, dim.height));
+                p.outlineRect.set(g.transform(0, 0), g.transform(w, dim.height));
             }
 	        g.popMatrix();
 	        y += g.getTextHeight();
@@ -1050,6 +1076,42 @@ public abstract class Dominos extends Reflector<Dominos> {
         selectedPlayerTile = -1;
         highlightedPlayerTile = -1;
         redraw();
+    }
+
+    @Override
+    public final void onConnected(ClientConnection conn) {
+        // if enough clients have connected then start the game
+        Player remote = null;
+        for (int i=1; i<getNumPlayers(); i++) {
+            Player p = getPlayer(i);
+            ClientConnection connection = p.getConnection();
+            if (connection == null || !connection.isConnected()) {
+                remote = p;
+            } else if (connection.getName().equals(conn.getName())) {
+                remote = p;
+                break; // stop here if we have a reconnect
+            }
+        }
+        if (remote != null) {
+            remote.connect(conn);
+            conn.sendCommand(new GameCommand(MPConstants.SVR_TO_CL_INIT_GAME)
+                    .setArg("numPlayers", getNumPlayers())
+                    .setArg("playerNum", remote.getPlayerNum())
+                    .setArg("dominos", this));
+            onPlayerConnected(remote);
+        }
+    }
+
+    protected abstract void onPlayerConnected(Player player);
+
+    @Override
+    public void onReconnection(ClientConnection conn) {
+
+    }
+
+    @Override
+    public void onClientDisconnected(ClientConnection conn) {
+
     }
 
     public abstract void redraw();

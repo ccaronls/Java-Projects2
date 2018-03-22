@@ -116,7 +116,14 @@ public abstract class AAnimation<T> {
     public final boolean isDone() {
         return state==State.DONE;
     }
-    
+
+    /**
+     * Override this is there is some rendering to do while waiting for the animation to start
+     *
+     * @param g
+     */
+    protected void drawPrestart(T g) {}
+
     /**
      * Call this within your rendering loop.  Animation is over when onDone() {} executed
      * 
@@ -124,10 +131,11 @@ public abstract class AAnimation<T> {
      * returns true when isDone
      */
     public synchronized final boolean update(T g) {
-        long dt = duration;
+        float dt = 0;
         long t = getCurrentTimeMSecs();
         if (!isDone()) {
             if (t < startTime) {
+                drawPrestart(g);
                 return false;
             } else if (state == State.IDLE) {
                 state = State.STARTED;
@@ -155,7 +163,7 @@ public abstract class AAnimation<T> {
                     position = delta / duration;
                 }
             }
-            dt = t-lastTime;
+            dt = (float)(t-lastTime)/duration;
         }
         draw(g, position, dt);
         lastTime = t;

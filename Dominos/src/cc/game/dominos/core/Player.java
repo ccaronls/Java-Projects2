@@ -4,8 +4,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import cc.lib.annotation.Keep;
 import cc.lib.game.GRectangle;
 import cc.lib.game.Utils;
+import cc.lib.net.ClientConnection;
+import cc.lib.net.GameCommand;
 import cc.lib.utils.Reflector;
 import cc.lib.utils.SyncList;
 
@@ -21,6 +24,9 @@ public class Player extends Reflector<Player> {
     private String name = null;
     boolean smart = false;
 
+    @Omit
+    private ClientConnection connection = null;
+
     public Player() {}
 
     public Player(int playerNum) {
@@ -29,6 +35,9 @@ public class Player extends Reflector<Player> {
     }
 
     public String getName() {
+        if (connection != null) {
+            return connection.getName() + (connection.isConnected() ? "" : " D");
+        }
         return name;
     }
 
@@ -38,6 +47,14 @@ public class Player extends Reflector<Player> {
 
     public void setPlayerNum(int playerNum) {
         this.playerNum = playerNum;
+    }
+
+    public void connect(ClientConnection conn) {
+        this.connection = conn;
+    }
+
+    public ClientConnection getConnection() {
+        return connection;
     }
 
     /**
@@ -73,7 +90,11 @@ public class Player extends Reflector<Player> {
      * @param moves
      * @return
      */
+    @Keep
     public Move chooseMove(Dominos game, List<Move> moves) {
+        if (connection != null && connection.isConnected()) {
+            return connection.executeOnRemote(MPConstants.USER_ID, game, moves);
+        }
         if (smart) {
             Move best = null;
             int bestPts = 0;
@@ -103,4 +124,5 @@ public class Player extends Reflector<Player> {
     }
 
     public boolean isPiecesVisible() { return false; }
+
 }

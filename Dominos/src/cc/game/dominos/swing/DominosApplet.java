@@ -5,6 +5,10 @@ import java.io.File;
 import cc.game.dominos.core.*;
 import cc.lib.game.AGraphics;
 import cc.lib.game.Utils;
+import cc.lib.logger.Logger;
+import cc.lib.logger.LoggerFactory;
+import cc.lib.net.ClientConnection;
+import cc.lib.net.GameServer;
 import cc.lib.swing.AWTComponent;
 import cc.lib.swing.AWTGraphics;
 import cc.lib.swing.EZButton;
@@ -13,9 +17,15 @@ import cc.lib.swing.EZPanel;
 
 import java.awt.*;
 import java.awt.event.*;
-import javax.swing.*;
+import java.net.InetAddress;
 
-public class DominosApplet extends AWTComponent {
+import javax.swing.*;
+import javax.jmdns.*;
+
+
+public class DominosApplet extends AWTComponent implements GameServer.Listener {
+
+    private final static Logger log = LoggerFactory.getLogger(DominosApplet.class);
 
     public static void main(String [] args) {
         AGraphics.DEBUG_ENABLED = true;
@@ -59,7 +69,21 @@ public class DominosApplet extends AWTComponent {
 //        dominos.startGameThread();
         //dominos.initGame(9, 150, 0);
         //dominos.startIntroAnim();
-        dominos.getBoard().startDominosIntroAnimation();
+        //dominos.getBoard().setBoardImageId(AWTGraphics.getImages().loadImage("assets/jamaica_dominos_table.png"));
+        dominos.getBoard().startDominosIntroAnimation(null);
+        try {
+            dominos.server.listen();
+            dominos.server.addListener(this);
+
+            //JmDNS jmdns = JmDNS.create(InetAddress.getLocalHost());
+
+            // Register a service
+            //ServiceInfo serviceInfo = ServiceInfo.create(MPConstants.DNS_TAG, "dom", MPConstants.PORT, "");
+            //jmdns.registerService(serviceInfo);
+
+        } catch (Exception e) {
+
+        }
     }
 
     interface OnChoiceListener {
@@ -194,6 +218,11 @@ public class DominosApplet extends AWTComponent {
         protected void onMenuClicked() {
             showNewGamePopup();
         }
+
+        @Override
+        protected void onPlayerConnected(Player player) {
+            log.info("onPlayerConnected: " + player.getName());
+        }
     };
 
     @Override
@@ -216,4 +245,18 @@ public class DominosApplet extends AWTComponent {
         dominos.onClick();
     }
 
+    @Override
+    public void onConnected(ClientConnection conn) {
+        log.info("New Client connection: " + conn.getName());
+    }
+
+    @Override
+    public void onReconnection(ClientConnection conn) {
+        log.info("Client reconnection: " + conn.getName());
+    }
+
+    @Override
+    public void onClientDisconnected(ClientConnection conn) {
+        log.info("Client disconnected: " + conn.getName());
+    }
 }

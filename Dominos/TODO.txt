@@ -1,9 +1,9 @@
 - MP When round changes on client, it crashes
-- confirm MP with release
-- use common jar signer and proguard for all projects
-- make new jar signer w/out the cecc references
-- confirm MP with > 2 players
-- confirm MP with a new game
+- confirm MP with release (done)
+- use common jar signer and proguard for all projects (done)
+- make new jar signer w/out the cecc references (done)
+- confirm MP with > 2 players (done)
+- confirm MP with a new game (done)
 - consider menu flow for UI in MP vs. SP
 - move GameServer/GameClient too core
   - support MP for PC app
@@ -11,9 +11,9 @@
 - rotations working?
 - text size overlapp when +pts animating
 - behavior of disconnect from server end needs work
-- Make an ILogger/Factory in utils to be shared accross projects
-- MP Host mode should save state onPause
-- Fix 'Failed Busy' Toast
+- Make an ILogger/Factory in utils to be shared accross projects (done)
+- MP Host mode should save state onPause (done)
+- Fix 'Failed Busy' Toast - Busy seems to benign, but ERROR could mean WiFi is off
 - For listeners, copy into temp collection for iteration, catch errors and remove from
   persistent collection. This allows listeners to remove themselves form the callbacks otherwise
-  we get concurrent modification type exceptions.
+  we get concurrent modification type exceptions. (done)

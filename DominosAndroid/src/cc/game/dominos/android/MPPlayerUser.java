@@ -6,6 +6,7 @@ import android.widget.Toast;
 import java.util.List;
 
 import cc.game.dominos.core.Dominos;
+import cc.game.dominos.core.MPConstants;
 import cc.game.dominos.core.Move;
 import cc.game.dominos.core.Player;
 import cc.game.dominos.core.PlayerUser;
@@ -31,8 +32,8 @@ public class MPPlayerUser extends PlayerUser implements GameClient.Listener {
         this.client = client;
         this.activity = activity;
         this.dominos = game;
-        client.register(USER_ID, this);
-        client.register(DOMINOS_ID, dominos);
+        client.register(MPConstants.USER_ID, this);
+        client.register(MPConstants.DOMINOS_ID, dominos);
         client.addListener(this);
     }
 
@@ -45,7 +46,7 @@ public class MPPlayerUser extends PlayerUser implements GameClient.Listener {
 
     @Override
     public void onCommand(GameCommand cmd) {
-        if (cmd.getType() == SVR_TO_CL_INIT_GAME) {
+        if (cmd.getType() == MPConstants.SVR_TO_CL_INIT_GAME) {
             int numPlayers = cmd.getInt("numPlayers");
             if (numPlayers < 2 || numPlayers > 4)
                 throw new AssertionError("invalid numPlayers: " + numPlayers);
@@ -73,7 +74,7 @@ public class MPPlayerUser extends PlayerUser implements GameClient.Listener {
             }
             Reflector.KEEP_INSTANCES = false;
             activity.currentDialog.dismiss();
-        } else if (cmd.getType() == SVR_TO_CL_INIT_ROUND) {
+        } else if (cmd.getType() == MPConstants.SVR_TO_CL_INIT_ROUND) {
             Reflector.KEEP_INSTANCES = true;
             try {
                 String str = cmd.getArg("dominos");
@@ -105,8 +106,8 @@ public class MPPlayerUser extends PlayerUser implements GameClient.Listener {
     @Override
     public void onDisconnected(String reason) {
         client.removeListener(this);
-        client.unregister(USER_ID);
-        client.unregister(DOMINOS_ID);
+        client.unregister(MPConstants.USER_ID);
+        client.unregister(MPConstants.DOMINOS_ID);
         activity.runOnUiThread(new Runnable() {
             @Override
             public void run() {

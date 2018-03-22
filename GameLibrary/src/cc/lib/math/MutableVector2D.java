@@ -61,6 +61,10 @@ public class MutableVector2D extends Vector2D {
         return set(x*scalar, y*scalar);
     }
 
+    public final MutableVector2D scaleEq(float xscale, float yscale) {
+        return set(x*xscale, y*yscale);
+    }
+
     /**
      * Rotate this vector 90 degrees
      * @return

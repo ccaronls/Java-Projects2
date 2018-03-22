@@ -18,6 +18,10 @@ public class AWTGraphics extends APGraphics {
     protected int [] x = new int[32];
     protected int [] y = new int[32];
 
+    public static ImageMgr getImages() {
+        return images;
+    }
+
     int getPolyPts() {
         int n = getNumVerts();
         if (x.length < n) {
