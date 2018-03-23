@@ -505,5 +505,8 @@ public class HuffmanEncoding implements Cypher {
         return decryptR(encrypted, root.getRight(), bit+1, code | (1<<bit));
         
     }
-    
+
+    public final void increment(int b) {
+        counts[(b+256)%256].incrementOccurance();
+    }
 }

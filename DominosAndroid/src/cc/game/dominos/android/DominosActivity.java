@@ -3,7 +3,6 @@ package cc.game.dominos.android;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -40,13 +39,10 @@ import cc.lib.android.DroidActivity;
 import cc.lib.android.DroidGraphics;
 import cc.lib.android.WifiP2pHelper;
 import cc.lib.annotation.Keep;
-import cc.lib.crypt.Cypher;
-import cc.lib.crypt.HuffmanEncoding;
 import cc.lib.game.Utils;
 import cc.lib.net.ClientConnection;
 import cc.lib.net.GameClient;
 import cc.lib.net.GameCommand;
-import cc.lib.net.GameCommandType;
 import cc.lib.net.GameServer;
 import cc.lib.utils.FileUtils;
 
@@ -230,7 +226,6 @@ public class DominosActivity extends DroidActivity {
                                                     .setPositiveButton("Start", new DialogInterface.OnClickListener() {
                                                         @Override
                                                         public void onClick(DialogInterface dialog, int which) {
-                                                            dominos.stopGameThread();
                                                             dominos.startNewGame();
                                                             dominos.startGameThread();
                                                         }
@@ -327,7 +322,7 @@ public class DominosActivity extends DroidActivity {
             @Override
             protected void onNewRound() {
                 server.broadcastCommand(new GameCommand(MPConstants.SVR_TO_CL_INIT_ROUND).setArg("dominos", dominos));
-                server.broadcastExecuteOnRemote(MPConstants.DOMINOS_ID);
+                //server.broadcastExecuteOnRemote(MPConstants.DOMINOS_ID);
                 super.onNewRound();
             }
 
@@ -339,6 +334,13 @@ public class DominosActivity extends DroidActivity {
             }
         };
         server = dominos.server;
+        dominos.getBoard().startDominosIntroAnimation(new Runnable() {
+            @Override
+            public void run() {
+                if (currentDialog == null)
+                    showNewGameDialog();
+            }
+        });
     }
 
     void copyFileToExt() {
@@ -552,6 +554,7 @@ public class DominosActivity extends DroidActivity {
                         .setArg("playerNum", remote.getPlayerNum())
                         .setArg("dominos", dominos.toString()));
                 currentDialog.dismiss();
+                dominos.startGameThread();
             }
         }
 
@@ -857,8 +860,8 @@ public class DominosActivity extends DroidActivity {
                     @Override
                     protected void doIt() throws Exception {
                         stopPeerDiscovery();
-                        user.connect(client, DominosActivity.this, dominos);
                         client.connect(info.groupOwnerAddress, MPConstants.PORT);
+                        user.connect(client, DominosActivity.this, dominos);
                     }
 
                     @Override
@@ -897,7 +900,7 @@ public class DominosActivity extends DroidActivity {
         };
 
         final BonjourThread bonjour = new BonjourThread("dom");
-        bonjour.attach(this);
+        //bonjour.attach(this);
         bonjour.addListener(new BonjourThread.BonjourListener() {
             @Override
             public synchronized void onRecords(Map<String, BonjourThread.BonjourRecord> records) {
@@ -999,6 +1002,7 @@ public class DominosActivity extends DroidActivity {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 helper.destroy();
+                                bonjour.detatch();
                                 showNewGameDialog();
                             }
                         }).setCancelable(false).show();
@@ -1057,7 +1061,7 @@ public class DominosActivity extends DroidActivity {
 
     GameClient client = new GameClient(NAME, MPConstants.VERSION, MPConstants.getCypher());
 
-    final MPPlayerUser user = new MPPlayerUser();
+    public final static MPPlayerUser user = new MPPlayerUser();
 
     AlertDialog currentDialog = null;
 

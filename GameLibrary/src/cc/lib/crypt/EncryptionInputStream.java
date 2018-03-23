@@ -33,7 +33,7 @@ public class EncryptionInputStream extends InputStream {
             int numBits = 0;
             final int EXTRA_BYTES = 8; 
             if (input.available() < 0) {
-                
+                System.err.println("Conditional met but no code!");
             }
             try {
                 // WARNING!! If we change this then we need to change EXTRA_BYTES

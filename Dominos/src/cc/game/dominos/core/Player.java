@@ -8,7 +8,6 @@ import cc.lib.annotation.Keep;
 import cc.lib.game.GRectangle;
 import cc.lib.game.Utils;
 import cc.lib.net.ClientConnection;
-import cc.lib.net.GameCommand;
 import cc.lib.utils.Reflector;
 import cc.lib.utils.SyncList;
 
@@ -36,7 +35,7 @@ public class Player extends Reflector<Player> {
 
     public String getName() {
         if (connection != null) {
-            return connection.getName() + (connection.isConnected() ? "" : " D");
+            return Utils.truncate(connection.getName(), 8, 1, Utils.EllipsisStyle.MIDDLE) + (connection.isConnected() ? "" : " D");
         }
         return name;
     }

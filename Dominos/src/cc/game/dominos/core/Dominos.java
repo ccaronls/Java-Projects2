@@ -240,7 +240,7 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
     }
 
     @Keep
-    public void setTurn(final int turn) {
+    public final void setTurn(final int turn) {
         server.broadcastExecuteOnRemote(MPConstants.DOMINOS_ID, turn);
         if (turn >= 0 && turn < players.length) {
             final Player fromPlayer = players[this.turn];
@@ -691,9 +691,14 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
         }
         board.clear();
         initPool();
+        int expectedPoolSize = pool.size();
         board.startShuffleAnimation(gameLock, pool);
         redraw();
         Utils.waitNoThrow(gameLock, -1);
+        while (pool.size() != expectedPoolSize) {
+            log.error("Monitor notified too early");
+            Utils.waitNoThrow(gameLock, 1000);
+        }
         newRound();
     }
 
@@ -868,8 +873,10 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
 	        g.popMatrix();
 	        y += g.getTextHeight()+g.getTextHeight()/2;
         }
-        g.setColor(GColor.BLUE);
-        g.drawString(String.format("Pool X %d", pool.size()), 0, y);
+        if (isInitialized()) {
+            g.setColor(GColor.BLUE);
+            g.drawString(String.format("Pool X %d", pool.size()), 0, y);
+        }
     }
 
     private void drawPlayer(APGraphics g, float w, float h, int pickX, int pickY, boolean drawDragged) {

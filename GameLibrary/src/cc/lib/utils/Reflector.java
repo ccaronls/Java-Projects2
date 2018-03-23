@@ -1,14 +1,36 @@
 package cc.lib.utils;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.EOFException;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.io.Reader;
+import java.io.StringReader;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import java.lang.reflect.*;
+import java.lang.reflect.Array;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
@@ -78,6 +100,8 @@ import cc.lib.logger.LoggerFactory;
  *
  */
 public class Reflector<T> {
+
+    private final static Logger log = LoggerFactory.getLogger(Reflector.class);
 
     /**
      * This flag to support situations where we dont want to create new Reflector instances, just overwrite their values.
@@ -1006,7 +1030,7 @@ public class Reflector<T> {
                 throw new RuntimeException("Duplicate field.  Field '" + name + "' has already been included for class: " + getCanonicalName(clazz));
             values.put(field, archiver);
             classMap.put(clazz.getName().replace('$', '.'), clazz);
-            Utils.println("Added field '" + name + "' for " + clazz);
+            log.debug("Added field '" + name + "' for " + clazz);
         } catch (RuntimeException e) {
             throw e;
         } catch (NoSuchFieldException e) {
@@ -1453,7 +1477,7 @@ public class Reflector<T> {
         while (true) {
             if (in.depth > depth)
             	if (in.readLine() != null)
-            		throw new Exception("Line: " + in.lineNum + " Expected closing '}");
+            		throw new Exception("Line: " + in.lineNum + " Expected closing '}'");
             String line = readLineOrEOF(in);
             if (line == null)
                 break;
@@ -1491,7 +1515,7 @@ public class Reflector<T> {
             if (parts != null) {
                 if (THROW_ON_UNKNOWN)
                     throw new Exception("Unknown field: " + name + " not in fields: " + values.keySet());
-                System.err.println("Unknown field: " + name);// + " not in fields: " + values.keySet());
+                log.error("Unknown field: " + name);// + " not in fields: " + values.keySet());
             }
         }
         if (__reflector_version < getMinVersion()) {
@@ -1687,7 +1711,7 @@ public class Reflector<T> {
      * @throws IOException
      */
     public final void saveToFile(File file) throws IOException {
-        Utils.println("saving to file %s", file.getAbsolutePath());
+        log.debug("saving to file %s", file.getAbsolutePath());
         try (FileOutputStream out = new FileOutputStream(file)) {
             serialize(out);
         }
@@ -1712,7 +1736,7 @@ public class Reflector<T> {
      * @throws IOException
      */
     public final void loadFromFile(File file) throws IOException {
-        Utils.println("Loading from file %s", file.getAbsolutePath());
+        log.debug("Loading from file %s", file.getAbsolutePath());
         try (InputStream in = new FileInputStream(file)) {
             deserialize(in);
         }

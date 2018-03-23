@@ -554,17 +554,17 @@ public class GameServerTest extends TestCase {
         GameCommand lastCommand;
 
         @Override
-        public void onCommand(GameCommand cmd) {
-            lastCommand = cmd;
-        }
-
-        @Override
-        public void onDisconnected(String reason) {
+        public void onCommand(ClientConnection c, GameCommand cmd) {
 
         }
 
         @Override
-        public void onConnected() {
+        public void onDisconnected(ClientConnection c, String reason) {
+
+        }
+
+        @Override
+        public void onConnected(ClientConnection c) {
 
         }
     }

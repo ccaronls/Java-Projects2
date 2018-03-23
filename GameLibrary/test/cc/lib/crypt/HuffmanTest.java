@@ -2,6 +2,7 @@ package cc.lib.crypt;
 
 import java.io.*;
 import java.util.Arrays;
+import java.util.Random;
 
 import cc.lib.utils.FileUtils;
 
@@ -32,6 +33,100 @@ public class HuffmanTest extends SimpleCypherTest {
             cypher = encoding;
         }
         return cypher;
+    }
+
+    public void testRandomNumbers() throws Exception {
+        String kb = "1234567890-=`~!@#$%^&*()_+qwertyuiop[]\\asdfghjkl;'zxcvbnm,.//QWERTYUIOP{}|ASDFGHJKL:\"ZXCVBNM<>?\n\r\t";
+        HuffmanEncoding enc = new HuffmanEncoding();
+        enc.importCounts(kb);
+        enc.generateRandomCounts(3287923);
+        //enc.generateRandomCountsFromExisitngOccurances(871270);
+        enc.generate();
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        EncryptionOutputStream eout = new EncryptionOutputStream(out, enc);
+        DataOutputStream dout = new DataOutputStream(eout);
+
+        Random r = new Random();
+        r.setSeed(0);
+
+        for (int i=0; i<1000; i++) {
+            int ii = r.nextInt();
+            dout.writeInt(ii);
+        }
+
+        dout.flush();
+
+        DataInputStream din = new DataInputStream(new EncryptionInputStream(new ByteArrayInputStream(out.toByteArray()), enc));
+
+        r.setSeed(0);
+        for (int i=0; i<1000; i++) {
+            if (i % 100 == 0)
+                System.out.print(".");
+            int ii = r.nextInt();
+            assertEquals(din.readInt(), ii);
+        }
+
+        // longs
+
+        out.reset();
+        r.setSeed(340);
+        for (int i=0; i<1000; i++) {
+            long ii = r.nextLong();
+            dout.writeLong(ii);
+        }
+
+        dout.flush();
+        din = new DataInputStream(new EncryptionInputStream(new ByteArrayInputStream(out.toByteArray()), enc));
+
+        r.setSeed(340);
+        for (int i=0; i<1000; i++) {
+            if (i % 100 == 0)
+                System.out.print(".");
+            long ii = r.nextLong();
+            assertEquals(din.readLong(), ii);
+        }
+
+        // floats
+
+        out.reset();
+        r.setSeed(94058);
+        for (int i=0; i<1000; i++) {
+            float ii = r.nextFloat();
+            dout.writeFloat(ii);
+        }
+
+        dout.flush();
+        din = new DataInputStream(new EncryptionInputStream(new ByteArrayInputStream(out.toByteArray()), enc));
+
+        r.setSeed(94058);
+        for (int i=0; i<1000; i++) {
+            if (i % 100 == 0)
+                System.out.print(".");
+            float ii = r.nextFloat();
+            assertEquals(din.readFloat(), ii);
+        }
+
+        // doubles
+
+        out.reset();
+        r.setSeed(23498);
+        for (int i=0; i<1000; i++) {
+            double ii = r.nextDouble();
+            dout.writeDouble(ii);
+        }
+
+        dout.flush();
+        din = new DataInputStream(new EncryptionInputStream(new ByteArrayInputStream(out.toByteArray()), enc));
+
+        r.setSeed(23498);
+        for (int i=0; i<1000; i++) {
+            if (i % 100 == 0)
+                System.out.print(".");
+            double ii = r.nextDouble();
+            assertEquals(din.readDouble(), ii);
+        }
+
     }
 /*
     @Override

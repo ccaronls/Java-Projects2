@@ -864,7 +864,18 @@ public class Utils {
         return buf.toString();
     }
 
+    public enum EllipsisStyle {
+        NONE,
+        MIDDLE,
+        END,
+        INFO
+    };
+
     public static String truncate(Object o, final int maxChars, int maxLines) {
+        return truncate(o, maxChars, maxLines, EllipsisStyle.NONE);
+    }
+
+    public static String truncate(Object o, final int maxChars, int maxLines, EllipsisStyle eStyle) {
         if (o == null)
             return null;
         int charsLeft = maxChars;
@@ -893,8 +904,24 @@ public class Utils {
                 break;
             }
         }
-        if (s.length() > 0 && maxChars > 256) {
-            result += "\n....  truncated to " + maxLines + " lines " + " (" + len + ") bytes";
+
+        if (s.length() > 0) {
+            switch (eStyle) {
+
+                case NONE:
+                    break;
+                case MIDDLE:
+                    if (maxLines == 1 && result.length()>3) {
+                        result = result.substring(0, result.length()/2-1) + "..." + result.substring(result.length()/2+1);
+                    }
+                    break;
+                case END:
+                    result += "...";
+                    break;
+                case INFO:
+                    result += "\n  truncated to " + maxLines + " lines " + " (" + len + ") bytes";
+                    break;
+            }
         }
 
         return result;

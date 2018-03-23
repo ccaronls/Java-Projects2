@@ -1,3 +1,5 @@
+
+
 - MP When round changes on client, it crashes
 - confirm MP with release (done)
 - use common jar signer and proguard for all projects (done)
@@ -17,3 +19,4 @@
 - For listeners, copy into temp collection for iteration, catch errors and remove from
   persistent collection. This allows listeners to remove themselves form the callbacks otherwise
   we get concurrent modification type exceptions. (done)
+  - Add skip button when shuffle anim is going

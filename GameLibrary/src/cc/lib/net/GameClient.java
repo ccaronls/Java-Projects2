@@ -179,8 +179,10 @@ public class GameClient {
                     out = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
                 }
                 out.writeLong(87263450972L); // write out the magic number the servers are expecting
+                out.flush();
                 outQueue.start(out);
-                GameCommandType type = state == State.READY ? GameCommandType.CL_CONNECT : GameCommandType.CL_RECONNECT;
+                GameCommandType type = //state == State.READY ?
+                        GameCommandType.CL_CONNECT; // : GameCommandType.CL_RECONNECT;
                 outQueue.add(new GameCommand(type).setName(userName).setVersion(version));
                 new Thread(new SocketReader()).start();
                 log.debug("Connection SUCCESS");
@@ -468,21 +470,26 @@ public class GameClient {
     private final Map<String, Method> methodMap = new HashMap<>();
 
     private Method searchMethods(Object execObj, String method, Class [] types, Object [] params) throws Exception {
-        for (Method m : execObj.getClass().getDeclaredMethods()) {
-            if (!m.getName().equals(method))
-                continue;
-            Class [] paramTypes = m.getParameterTypes();
-            if (paramTypes.length != types.length)
-                continue;
-            boolean matchFound = true;
-            for (int i=0; i<paramTypes.length; i++) {
-                if (!isCompatiblePrimitives(paramTypes[i], types[i]) && !Reflector.isSubclassOf(types[i], paramTypes[i])) {
-                    matchFound = false;
-                    break;
+        Class clazz = execObj.getClass();
+        while (clazz!= null && !clazz.equals(Object.class)) {
+            for (Method m : clazz.getDeclaredMethods()) {
+                m.setAccessible(true);
+                if (!m.getName().equals(method))
+                    continue;
+                Class[] paramTypes = m.getParameterTypes();
+                if (paramTypes.length != types.length)
+                    continue;
+                boolean matchFound = true;
+                for (int i = 0; i < paramTypes.length; i++) {
+                    if (!isCompatiblePrimitives(paramTypes[i], types[i]) && !Reflector.isSubclassOf(types[i], paramTypes[i])) {
+                        matchFound = false;
+                        break;
+                    }
                 }
+                if (matchFound)
+                    return m;
             }
-            if (matchFound)
-                return m;
+            clazz = clazz.getSuperclass();
         }
         throw new Exception("Failed to match method '" + method + "'");
     }

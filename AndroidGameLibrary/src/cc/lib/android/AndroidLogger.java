@@ -22,23 +22,23 @@ public class AndroidLogger implements Logger {
     }
 
     public AndroidLogger(String name) {
-        this(name, 1024, 32);
+        this(name, 1024, 64);
     }
 
     @Override
     public void debug(String msg, Object... args) {
-        Log.d(name, Utils.truncate(String.format(msg, args), maxLen, maxLines));
+        Log.d(name, Utils.truncate(String.format(msg, args), maxLen, maxLines, Utils.EllipsisStyle.INFO));
     }
 
     @Override
     public void info(String msg, Object... args) {
-        Log.i(name, Utils.truncate(String.format(msg, args), maxLen, maxLines));
+        Log.i(name, Utils.truncate(String.format(msg, args), maxLen, maxLines, Utils.EllipsisStyle.INFO));
 
     }
 
     @Override
     public void error(String msg, Object... args) {
-        Log.e(name, Utils.truncate(String.format(msg, args), maxLen, maxLines));
+        Log.e(name, Utils.truncate(String.format(msg, args), maxLen, maxLines, Utils.EllipsisStyle.INFO));
 
     }
 
