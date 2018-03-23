@@ -19,7 +19,7 @@ public class Player extends Reflector<Player> {
 
     List<Tile> tiles = new SyncList<>(new ArrayList<Tile>());
     int score;
-    private int playerNum = -1;
+    private int playerNum = -1; // 0 index
     private String name = null;
     boolean smart = false;
 
@@ -35,23 +35,32 @@ public class Player extends Reflector<Player> {
 
     public String getName() {
         if (connection != null) {
-            return Utils.truncate(connection.getName(), 8, 1, Utils.EllipsisStyle.MIDDLE) + (connection.isConnected() ? "" : " D");
+            return connection.getName();
         }
         return name;
     }
 
+    /**
+     * 0 index player num
+     *
+     * @return
+     */
     public int getPlayerNum() {
         return playerNum;
     }
 
-    public void setPlayerNum(int playerNum) {
-        this.playerNum = playerNum;
-    }
-
+    /**
+     *
+     * @param conn
+     */
     public void connect(ClientConnection conn) {
         this.connection = conn;
     }
 
+    /**
+     *
+     * @return
+     */
     public ClientConnection getConnection() {
         return connection;
     }
@@ -114,14 +123,26 @@ public class Player extends Reflector<Player> {
         return moves.get(Utils.rand() % moves.size());
     }
 
+    /**
+     *
+     * @return
+     */
     public final List<Tile> getTiles() {
         return Collections.unmodifiableList(tiles);
     }
 
+    /**
+     *
+     * @return
+     */
     public final int getScore() {
         return score;
     }
 
+    /**
+     *
+     * @return
+     */
     public boolean isPiecesVisible() { return false; }
 
 }

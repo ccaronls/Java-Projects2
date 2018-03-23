@@ -50,7 +50,6 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
             g.fillRect(0, 0, super.getWidth(), super.getHeight());
             g.setColor(c);
             //g.setClip(padding,padding, getWidth()+1, getHeight()+1);
-            g.translate(padding,padding);
             if (G == null) {
                 if (g instanceof Graphics2D)
                     G = new AWTGraphics2(((Graphics2D)g), this);
@@ -94,7 +93,6 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
                     repaint();
                 }
             }
-            g.translate(-padding,-padding);
             //g.setClip(0, 0, super.getWidth(), super.getHeight());
             if (focused) {
 //                System.out.println("AWT " + toString() + " has focus!");
@@ -209,6 +207,14 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
 
     public final void repaint() {
         super.repaint();
+    }
+
+    public final int getX() {
+        return padding;
+    }
+
+    public final int getY() {
+        return padding;
     }
 
     public final int getWidth() {

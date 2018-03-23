@@ -77,14 +77,22 @@ public class AWTGraphics extends APGraphics {
         return new GColor(c.getRed(), c.getGreen(), c.getBlue(), c.getAlpha());
     }
 
+
+    private int currentFontHeight = -1;
+
     @Override
-    public final  int getTextHeight() {
-        return AWTUtils.getFontHeight(g);
+    public final int getTextHeight() {
+        if (currentFontHeight < 0) {
+            currentFontHeight = g.getFontMetrics(g.getFont()).getHeight();
+        }
+        return currentFontHeight;
     }
 
     @Override
     public final void setTextHeight(float height) {
-        g.setFont(g.getFont().deriveFont(height));
+        Font newFont = g.getFont().deriveFont(height);
+        g.setFont(newFont);
+        currentFontHeight = Math.round(height);
     }
 
     private TextStyle [] existingStyle = new TextStyle[0];
@@ -427,4 +435,16 @@ public class AWTGraphics extends APGraphics {
         drawTriangleFan();
 	}
 
+    @Override
+    public void setClipRect(float x, float y, float w, float h) {
+        Vector2D v0 = transform(x, y);
+        Vector2D v1 = transform(x+w, y+h);
+        GRectangle r = new GRectangle(v0, v1);
+        g.clipRect(Math.round(r.x), Math.round(r.y), Math.round(r.w), Math.round(r.h));
+    }
+
+    @Override
+    public void clearClip() {
+        g.setClip(null);
+    }
 }

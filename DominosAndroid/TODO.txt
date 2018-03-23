@@ -7,10 +7,11 @@
 - is it possible to control the display name of your p2p device? (yes, done)
 - Allow server to kick out players (done)
 - Remove playersmart (done) and MP players as well. simpler to have just player and playeruser for all cases
-  and this allows us to have java app version of game
+  and this allows us to have java app version of game (done)
 - Figure out extern strings for localization
 - Show players' names on info instead of Px (done)
 - Track max string width and use that to determine height of text (or wrap the text?)
+  - Maybe fixed text size is better then just wrap player names?
 - Notify users when players or server pauses or resumes their game
 - Allow users to set their name (alias or handle or icon? or pic?)
    - use camera to face capture and use thumb as icon!
@@ -29,3 +30,5 @@
 - Seems to be bug on render player tiles when player has one tile in a row? (fixed)
 - Speed up the end of round points anim.
 - Dont shuffle when a player has won the game
+- Fix 'Failed Busy' Toast - Busy seems to benign, but ERROR could mean WiFi is off
+- no name for server player displayed on clients

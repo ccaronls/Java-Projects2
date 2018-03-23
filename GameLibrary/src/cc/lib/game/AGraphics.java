@@ -1409,4 +1409,35 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
 	 */
 	public abstract Vector2D getMaxBoundingRect();
 
+    /**
+     * Specify a clip rect in object coordinates
+     * @param x
+     * @param y
+     * @param w
+     * @param h
+     */
+	public abstract void setClipRect(float x, float y, float w, float h);
+
+    /**
+     * Convenience
+     *
+     * @param rect
+     */
+	public final void setClipRect(GRectangle rect) {
+	    setClipRect(rect.x, rect.y, rect.w, rect.y);
+    }
+
+    /**
+     *
+     * @param p0
+     * @param p1
+     */
+    public final void setClipRect(IVector2D p0, IVector2D p1) {
+	    setClipRect(new GRectangle(p0, p1));
+    }
+
+    /**
+     * Clears out any clipping bounds applied
+     */
+    public abstract void clearClip();
 }

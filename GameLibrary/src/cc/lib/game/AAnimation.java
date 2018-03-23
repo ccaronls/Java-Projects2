@@ -25,13 +25,12 @@ public abstract class AAnimation<T> {
     private final long duration;
     private final int maxRepeats;
     private float position = 0;
-    private State state = State.IDLE;
+    private State state = State.PRESTART;
     private boolean reverse = false; // 1 for forward, -1 for reversed
     private final boolean oscilateOnRepeat;
-    private boolean waiting = false;
 
     enum State {
-        IDLE, STARTED, STOPPED, DONE
+        PRESTART, STARTED, RUNNING, STOPPED, DONE
     };
 
     /**
@@ -76,6 +75,7 @@ public abstract class AAnimation<T> {
     		delayMSecs = 0;
         lastTime = startTime = getCurrentTimeMSecs() + delayMSecs;
         position = 0;
+        state = State.STARTED;
         return this;
     }
 
@@ -118,7 +118,8 @@ public abstract class AAnimation<T> {
     }
 
     /**
-     * Override this is there is some rendering to do while waiting for the animation to start
+     * Override this if there is some rendering to do while waiting for the animation to finish
+     * initial delay
      *
      * @param g
      */
@@ -131,14 +132,19 @@ public abstract class AAnimation<T> {
      * returns true when isDone
      */
     public synchronized final boolean update(T g) {
+        if (state == State.PRESTART) {
+            System.err.println("Calling update on animation that has not been started!");
+            return false;
+        }
+
         float dt = 0;
         long t = getCurrentTimeMSecs();
-        if (!isDone()) {
+        if (state != State.STOPPED) {
             if (t < startTime) {
                 drawPrestart(g);
                 return false;
-            } else if (state == State.IDLE) {
-                state = State.STARTED;
+            } else if (state == State.STARTED) {
+                state = State.RUNNING;
                 lastTime = t;
                 onStarted();
             }
@@ -170,14 +176,10 @@ public abstract class AAnimation<T> {
         if (state == State.STOPPED) {
             state = State.DONE;
             onDone();
-            if (waiting) {
-                synchronized (this) {
-                    notify();
-                }
-                waiting = false;
-            }
         }
-        return isDone();
+        boolean done = isDone();
+        reset();
+        return done;
     }
     
     public synchronized void stop() {
@@ -207,6 +209,7 @@ public abstract class AAnimation<T> {
     
     /**
      * Called from update thread when animation is started. base mthod does nothing
+     * If there is an initial delay then this will indicate the delay has expired.
      */
     protected void onStarted() {}
 
@@ -254,17 +257,13 @@ public abstract class AAnimation<T> {
         return getDuration() - getElapsedTime();
     }
 
-    public final void waitForDuration() {
-        waiting = true;
-        if (getDuration() < 0)
-            throw new AssertionError("Bad idea=infinite wait");
-        Utils.waitNoThrow(this, getDuration()+500);
-        waiting = false;
-    }
-
-    public final boolean isIdle() {
-        return state == State.IDLE;
-    }
-
     public final int getRepeat() { return (int)((System.currentTimeMillis() - startTime) / duration); }
+
+    /**
+     * Reset the animation to the prestart state. Must call start(...) afterward before the next update.
+     * Called automatically after onDone(). Calling this before onDone will cause onDone to not get called
+     * for current animation cycle.
+     */
+    public final void reset() {
+    }
 }

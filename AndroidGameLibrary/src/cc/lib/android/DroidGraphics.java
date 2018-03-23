@@ -517,14 +517,6 @@ public class DroidGraphics extends APGraphics {
     }
 
     private void renderRoundRect(float x, float y, float w, float h, float radius) {
-        /*
-        Matrix m = new Matrix();
-        m.setValues(r.getCurrentTransform().transpose().toFloatArray());
-        canvas.save();
-        canvas.setMatrix(m);
-        canvas.drawRoundRect(x, y, x+w, y+h, radius, radius, paint);
-        canvas.restore();
-*/
         Matrix m = new Matrix();
         float [] arr = r.getCurrentTransform().transpose().toFloatArray();
         m.setValues(arr);
@@ -535,32 +527,18 @@ public class DroidGraphics extends APGraphics {
         canvas.drawRoundRect(x, y, x+w, y+h, radius, radius,paint);
         canvas.restore();
         paint.setStrokeWidth(width);
-
-
-
-
-        /*
-
-        MutableVector2D v0 = new MutableVector2D(x, y);
-        MutableVector2D v1 = new MutableVector2D(x+w, y+h);
-        transform(v0);
-        transform(v1);
-        float x0 = Math.min(v0.getX(), v1.getX());
-        float y0 = Math.min(v0.getY(), v1.getY());
-        float x1 = Math.max(v0.getX(), v1.getX());
-        float y1 = Math.max(v0.getY(), v1.getY());
-        float aspect = w/h;
-        float ratio = radius/w;
-        float W = Math.abs(v0.getX()-v1.getX());
-        float H = Math.abs(v0.getY()-v1.getY());
-        if (W/H < aspect) {
-            Matrix m = new Matrix();
-            m.setValues(r.getCurrentTransform().toFloatArray());
-            radius = H*ratio;
-        } else {
-            radius = W*ratio;
-        }
-        canvas.drawRoundRect(x0, y0, x1, y1, radius, radius, paint);//*/
     }
 
+    @Override
+    public void setClipRect(float x, float y, float w, float h) {
+        Vector2D v0 = transform(x, y);
+        Vector2D v1 = transform(x+w, y+h);
+        GRectangle r = new GRectangle(v0, v1);
+        canvas.clipRect(r.x, r.y, r.x+r.w, r.y+r.h);
+    }
+
+    @Override
+    public void clearClip() {
+        canvas.clipRect(0, 0, getViewportWidth(), getViewportHeight());
+    }
 }

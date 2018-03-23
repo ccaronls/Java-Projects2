@@ -11,6 +11,7 @@ import cc.game.dominos.core.Move;
 import cc.game.dominos.core.Player;
 import cc.game.dominos.core.PlayerUser;
 import cc.lib.annotation.Keep;
+import cc.lib.game.Utils;
 import cc.lib.net.GameClient;
 import cc.lib.net.GameCommand;
 import cc.lib.utils.Reflector;
@@ -62,31 +63,20 @@ public class MPPlayerUser extends PlayerUser implements GameClient.Listener {
                 players[idx] = new Player(idx);
             dominos.clear();
             dominos.setPlayers(players);
-            Reflector.KEEP_INSTANCES = true;
-            try {
-                String str = cmd.getArg("dominos");
-//                    FileUtils.stringToFile(str, new File(Environment.getExternalStorageDirectory(), "dominos.in"));
-                dominos.deserialize(str);
-                dominos.redraw();
-            } catch (Exception e) {
-                client.sendError(e);
-                client.disconnect("Error: " + e.getMessage());
-            }
-            Reflector.KEEP_INSTANCES = false;
-            activity.currentDialog.dismiss();
         } else if (cmd.getType() == MPConstants.SVR_TO_CL_INIT_ROUND) {
             Reflector.KEEP_INSTANCES = true;
             try {
                 String str = cmd.getArg("dominos");
                 dominos.deserialize(str);
-                dominos.redraw();
                 activity.currentDialog.dismiss();
+                dominos.getBoard().startShuffleAnimation(dominos, dominos.getPool());
+                dominos.redraw();
+                Utils.waitNoThrow(dominos, -1);
             } catch (Exception e) {
                 client.sendError(e);
                 client.disconnect("Error: " + e.getMessage());
             }
             Reflector.KEEP_INSTANCES = false;
-            dominos.redraw();
         } else {
             client.sendError("Dont know how to handle cmd: '" + cmd + "'");
             client.disconnect("Error: dont understand command: " + cmd.getType());

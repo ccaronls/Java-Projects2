@@ -13,6 +13,7 @@ import cc.lib.game.AAnimation;
 import cc.lib.game.AGraphics;
 import cc.lib.game.APGraphics;
 import cc.lib.game.GColor;
+import cc.lib.game.GDimension;
 import cc.lib.game.Justify;
 import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
@@ -52,7 +53,7 @@ import cc.lib.utils.Reflector;
  */
 public abstract class Dominos extends Reflector<Dominos> implements GameServer.Listener {
 
-    public static float BORDER_PADDING = 10;
+    public static float SPACING = 6;
 
     @Omit
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -151,7 +152,6 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
         stopGameThread();
         newGame();
         redraw();
-        server.broadcastCommand(new GameCommand(MPConstants.SVR_TO_CL_INIT_ROUND).setArg("dominos", this));
     }
 
     public final void stopGameThread() {
@@ -167,25 +167,68 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
     protected void onGameOver(int playerNum) {
         server.broadcastExecuteOnRemote(MPConstants.DOMINOS_ID, playerNum);
         final Player winner = players[playerNum];
-        addAnimation(winner.getName(), new AAnimation<AGraphics>(1000, -1, true) {
+        addAnimation(winner.getName() + "WINNER", new AAnimation<AGraphics>(1000, -1, true) {
             @Override
             protected void draw(AGraphics g, float position, float dt) {
                 GColor c = new GColor(position, 1-position, position, position);
-                if (winner.isPiecesVisible()) {
-                    g.drawAnnotatedString(String.format("%s%d PTS WINS!!", c, winner.getScore()), 0, 0);
-                } else {
-                    g.drawAnnotatedString(String.format("%s%s %d PTS WINS!!", c, winner.getName(), winner.getScore()), 0, 0);
+                g.drawJustifiedString(0, 0, Justify.CENTER, "WINNER!");
+            }
+        }, false);
+    }
+
+    private void startPlayerPtsAnim(final Player p, final int pts) {
+        addAnimation(p.getName() + "PTS", new AAnimation<AGraphics>(2000) {
+
+            @Override
+            protected void draw(AGraphics g, float position, float dt) {
+                int curPts = p.score + Math.round(position * pts);
+                g.drawJustifiedString(0, 0, Justify.RIGHT, String.valueOf(curPts));
+            }
+
+            @Override
+            protected void onDone() {
+                synchronized (gameLock) {
+                    gameLock.notifyAll();
                 }
             }
         }, false);
+    }
+
+    // return the height of used area (numLines * textHgt)
+    private float drawPlayerInfo(AGraphics g, Player p, float maxWidth) {
+        AAnimation<AGraphics> a = anims.get(p.getName() + "PTS");
+        g.setColor(GColor.BLACK);
+        if (a != null) {
+            g.translate(maxWidth, 0);
+            a.update(g);
+            g.translate(-maxWidth, 0);
+            g.setColor(GColor.TRANSPARENT);
+        }
+        GDimension dim = g.drawJustifiedString(maxWidth, 0, Justify.RIGHT, String.valueOf(p.getScore()));
+	    g.setColor(GColor.BLUE);
+        dim = g.drawWrapString(0, 0, maxWidth-dim.width-SPACING, p.getName());
+
+        a = anims.get(p.getName() + "WINNER");
+        if (a != null) {
+            g.translate(maxWidth/2, 0);
+            a.update(g);
+            g.translate(-maxWidth/2, 0);
+        } else {
+            a = anims.get(p.getName() + "KNOCK");
+            if (a != null) {
+                g.translate(maxWidth/2, 0);
+                a.update(g);
+                g.translate(-maxWidth/2, 0);
+            }
+        }
+
+        return dim.height;
     }
 
     public final boolean isInitialized() {
         if (players.length < 2)
             return false;
         if (getWinner() >= 0)
-            return false;
-        if (board.getRoot() == null)
             return false;
         return true;
     }
@@ -240,7 +283,7 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
     }
 
     @Keep
-    public final void setTurn(final int turn) {
+    public synchronized final void setTurn(final int turn) {
         server.broadcastExecuteOnRemote(MPConstants.DOMINOS_ID, turn);
         if (turn >= 0 && turn < players.length) {
             final Player fromPlayer = players[this.turn];
@@ -252,15 +295,9 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
                     g.drawRect(fromPlayer.outlineRect.getInterpolationTo(toPlayer.outlineRect, position), 3);
                 }
 
-                @Override
-                protected void onDone() {
-                    synchronized (gameLock) {
-                        gameLock.notifyAll();
-                    }
-                }
             }, true);
         }
-        Dominos.this.turn = turn;
+        this.turn = turn;
     }
 
     public final Board getBoard() {
@@ -299,8 +336,11 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
         int numPerPlayer = players.length == 2 ? 7 : 5;
 
         for (Player p : players) {
-            for (int i=0; i<numPerPlayer; i++)
-                p.tiles.add(pool.removeFirst());
+            for (int i=0; i<numPerPlayer; i++) {
+                Tile t = pool.removeFirst();
+                onTileFromPool(p.getPlayerNum(), t);
+                p.tiles.add(t);
+            }
         }
 
         if (!placeFirstTile()) {
@@ -321,7 +361,7 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
                 Tile t = players[p].findTile(i, i);
                 if (t != null) {
                     onPlaceFirstTile(p, t);
-                    turn = p;
+                    setTurn(p);
                     redraw();
                     return true;
                 }
@@ -341,18 +381,18 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
     }
 
     @Keep
-    protected void onPlaceFirstTile(int player, Tile t) {
+    protected final void onPlaceFirstTile(int player, Tile t) {
+        server.broadcastExecuteOnRemote(MPConstants.DOMINOS_ID, player, t);
         players[player].tiles.remove(t);
         board.placeRootPiece(t);
     }
 
 	public final void runGame() {
-		Player p = players[turn];
-
-		if (pool.size() == 0) {
+		if (pool.size() == 0 && board.getRoot() == null) {
             onNewRound();
         }
 
+        Player p = players[turn];
 		List<Move> moves = computePlayerMoves(p);
 
         while (moves.size() == 0) {
@@ -367,7 +407,6 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
                 }
 
                 if (!canMove) {
-                    onEndRound();
                     onNewRound();
                     return;
                 } else {
@@ -377,8 +416,9 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
                 }
             }
 
-		    Tile pc = pool.getFirst();
+		    Tile pc = pool.removeFirst();
 		    onTileFromPool(turn, pc);
+            p.tiles.add(pc);
             moves.addAll(board.findMovesForPiece(pc));
         }
 
@@ -406,7 +446,6 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
             if (pts > 0) {
                 onPlayerEndRoundPoints(turn, pts);
             }
-            onEndRound();
             onNewRound();
         } else if (getWinner() < 0) {
             nextTurn();
@@ -420,7 +459,7 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
     }
 
     @Keep
-    protected void onTilePlaced(int player, Tile tile, int endpoint, int placement) {
+    protected final void onTilePlaced(int player, Tile tile, int endpoint, int placement) {
         server.broadcastExecuteOnRemote(MPConstants.DOMINOS_ID, player, tile, endpoint, placement);
         board.doMove(tile, endpoint, placement);
         players[player].tiles.remove(tile);
@@ -428,10 +467,10 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
     }
 
     @Keep
-    protected synchronized void onTileFromPool(int player, final Tile pc) {
+    protected final void onTileFromPool(int player, final Tile pc) {
         server.broadcastExecuteOnRemote(MPConstants.DOMINOS_ID, player, pc);
         final Player p = players[player];
-        addAnimation(p.getName() + "POOL", new AAnimation<AGraphics>(2000) {
+        addAnimation(p.getName() + "POOL", new AAnimation<AGraphics>(700) {
             @Override
             protected void draw(AGraphics g, float position, float dt) {
 
@@ -447,32 +486,22 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
                 g.popMatrix();
             }
 
-            @Override
-            protected void onDone() {
-                synchronized (gameLock) {
-                    gameLock.notifyAll();
-                }
-                redraw();
-            }
         }, true);
-
-        p.tiles.add(pc);
-        pool.remove(pc);
         redraw();
-
-
     }
 
     @Keep
     protected void onKnock(int player) {
         server.broadcastExecuteOnRemote(MPConstants.DOMINOS_ID, player);
+        Player p = players[player];
+        addAnimation(p.getName() + "KNOCK", new AAnimation<AGraphics>(1000) {
+            @Override
+            protected void draw(AGraphics g, float position, float dt) {
+                g.setColor(GColor.YELLOW.withAlpha(1f-position));
+                g.drawJustifiedString(0, 0, Justify.CENTER, "KNOCK");
+            }
+        }, true);
         redraw();
-    }
-
-    @Keep
-    protected void onEndRound() {
-        redraw();
-        server.broadcastCommand(new GameCommand(MPConstants.SVR_TO_CL_INIT_ROUND).setArg("dominos", toString()));
     }
 
     @Omit
@@ -560,29 +589,33 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
 
                 @Override
                 protected void onDone() {
-                    addAnimation("TILES", new AAnimation<AGraphics>(2000) {
-                        @Override
-                        protected void draw(AGraphics g, float position, float dt) {
-                            float hgtStart = boardDim/12;
-                            float hgtStop  = boardDim/6;
-
-                            g.setTextHeight(hgtStart + (hgtStop-hgtStart) * position);
-                            g.setColor(GColor.MAGENTA.withAlpha(1.0f-position));
-                            g.drawJustifiedString(boardDim/2, boardDim/2, Justify.CENTER, Justify.CENTER, "+"+pts);
-                        }
-                        @Override
-                        protected void onDone() {
-                            startPlayerTextAnim(p, pts);
-                        }
-
-                    }, false);
+                    startPlayerPtsBoardGraphicAnim(p, pts);
                 }
             }, false);
         }
     }
 
+    private void startPlayerPtsBoardGraphicAnim(final Player p, final int pts) {
+        addAnimation("TILES", new AAnimation<AGraphics>(2000) {
+            @Override
+            protected void draw(AGraphics g, float position, float dt) {
+                float hgtStart = boardDim/12;
+                float hgtStop  = boardDim/6;
+
+                g.setTextHeight(hgtStart + (hgtStop-hgtStart) * position);
+                g.setColor(GColor.MAGENTA.withAlpha(1.0f-position));
+                g.drawJustifiedString(boardDim/2, boardDim/2, Justify.CENTER, Justify.CENTER, "+"+pts);
+            }
+            @Override
+            protected void onDone() {
+                startPlayerPtsAnim(p, pts);
+            }
+
+        }, false);
+    }
+
     @Keep
-    protected void onPlayerEndRoundPoints(final int player, final int pts) {
+    protected final void onPlayerEndRoundPoints(final int player, final int pts) {
         server.broadcastExecuteOnRemote(MPConstants.DOMINOS_ID, player, pts);
         Player p = players[player];
 
@@ -595,30 +628,6 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
         addAnimation("TILES", new StackTilesAnim(tiles, p, pts), false);
         Utils.waitNoThrow(gameLock, 30000);
         p.score += pts;
-    }
-
-    private void startPlayerTextAnim(final Player p, final int pts) {
-        if (anims.get(p.getName()) != null)
-            return;
-        addAnimation(p.getName(), new AAnimation<AGraphics>(2000) {
-
-            @Override
-            protected void draw(AGraphics g, float position, float dt) {
-                int curPts = p.score + Math.round(position * pts);
-                String alphaRed = GColor.RED.withAlpha(1.0f-position).toString();
-                if (p.isPiecesVisible())
-                    g.drawAnnotatedString(String.format("%d PTS %s+%d", curPts, alphaRed, pts), 0, 0);
-                else
-                    g.drawAnnotatedString(String.format("%s %s%d PTS %s+%d", p.getName(), GColor.BLACK, curPts, alphaRed, pts), 0, 0);
-            }
-
-            @Override
-            protected void onDone() {
-                synchronized (gameLock) {
-                    gameLock.notifyAll();
-                }
-            }
-        }, false);
     }
 
     class GlowEndpointAnimation extends AAnimation<AGraphics> {
@@ -659,19 +668,20 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
      * @param pts
      */
     @Keep
-    protected void onPlayerPoints(final int player, final int pts) {
+    protected final void onPlayerPoints(final int player, final int pts) {
         server.broadcastExecuteOnRemote(MPConstants.DOMINOS_ID, player,pts);
         final Player p = players[player];
 
         long delay = 0;
         for (int i=0; i<4; i++) {
+            final boolean isFirst = i==0;
             if (board.getOpenPips(i) > 0) {
                 board.addAnimation(new GlowEndpointAnimation(i) {
 
                     @Override
                     public void onDone() {
-                        // start a anim to make the pips into a line
-                        startPlayerTextAnim(p, pts);
+                        if (isFirst)
+                            startPlayerPtsBoardGraphicAnim(p, pts);
                     }
 
                 }.start(delay));
@@ -684,8 +694,8 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
         p.score += pts;
     }
 
-    protected void onNewRound() {
-        server.broadcastExecuteOnRemote(MPConstants.DOMINOS_ID);
+    protected final void onNewRound() {
+        server.broadcastCommand(new GameCommand(MPConstants.SVR_TO_CL_INIT_ROUND).setArg("dominos", this));
         for (Player p : players) {
             p.tiles.clear();
         }
@@ -723,6 +733,7 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
         boolean drawDragged = false;
         AAnimation<AGraphics> anim = anims.get("TILES");
         if (anim != null) {
+            board.draw(g, boardDim, boardDim, pickX, pickY, null);
             anim.update(g);
         } else {
             Tile dragging = null;
@@ -738,24 +749,20 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
         if (portrait) {
             // draw the non-visible player stuff on lower LHS and visible player stuff on lower RHS
             g.translate(0, boardDim);
-            g.translate(BORDER_PADDING, BORDER_PADDING);
-            w -= BORDER_PADDING*2;
-            h -= BORDER_PADDING*2;
-            setupTextHeight(g, w/3, (h-boardDim)/5);
-            drawInfo(g, w/3, h-boardDim);
+            //setupTextHeight(g, w/3, (h-boardDim)/5);
+            g.setTextHeight((h-boardDim)/8);
+            drawInfo(g, w/3-SPACING, h-boardDim);
             g.translate(w/3, 0);
             drawPlayer(g, w*2/3, h-boardDim, pickX, pickY, drawDragged);
         } else {
             // draw the non-visible player stuff on lower half of rhs and visible player stuff on
             // upper half of RHS
             g.translate(boardDim, 0);
-            g.translate(BORDER_PADDING, BORDER_PADDING);
-            w -= BORDER_PADDING*2;
-            h -= BORDER_PADDING*2;
-            setupTextHeight(g, w-boardDim, h/5);
+            //setupTextHeight(g, w-boardDim, h/5);
+            g.setTextHeight(h/(3*6));
             drawPlayer(g, w-boardDim, h*2/3, pickX, pickY, drawDragged);
-            g.translate(0, h*2/3);
-            drawInfo(g, w-boardDim, h/3);
+            g.translate(0, h*2/3+SPACING);
+            drawInfo(g, w-boardDim, h/3-SPACING);
         }
         g.popMatrix();
 
@@ -810,88 +817,106 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
     }
 
     private void drawInfo(APGraphics g, float w, float h) {
-	    float y = 0;
+	    GColor [] bk = {
+	            GColor.GREEN.darkened(.25f),
+                GColor.GREEN.darkened(.5f)
+        };
+	    g.pushMatrix();
+	    int index = 0;
 	    for (int i=0; i<players.length; i++) {
             Player p = players[i];
 	        if (p.isPiecesVisible())
 	            continue;
-	        g.pushMatrix();
-	        g.translate(0, y);
-            g.setColor(GColor.BLUE);
-            AAnimation<AGraphics> anim = anims.get(p.getName());
-	        {
-                float padding = g.getTextHeight()/5;
-	            Vector2D outline1 = g.transform(0, 0);
-                if (anim != null)
-                    anim.update(g);
-                else {
-                    g.drawString(p.getName(), 0, 0);
-                    g.setColor(GColor.BLACK);
-                    g.drawJustifiedString(w - padding, 0, Justify.RIGHT, String.format("%d PTS", p.getScore()));
-                }
-                g.translate(0, g.getTextHeight());
-                int numTiles = p.getTiles().size();
-                float width = g.getTextHeight() * numTiles + ((numTiles-1)*padding);
-                g.pushMatrix();
-                float tileDim = g.getTextHeight()/2;
+
+	        g.setColor(bk[index]);
+	        index = (index+1) % bk.length;
+	        g.drawFilledRect(0, 0, p.outlineRect.w, p.outlineRect.h);
+
+            Vector2D outline1 = g.transform(0, 0);
+	        float dy = drawPlayerInfo(g, p, w);
+	        g.translate(0, dy);
+
+            g.translate(0, SPACING);
+
+            int numTiles = p.getTiles().size();
+            final float tileDim = g.getTextHeight() / 2;
+            AAnimation<AGraphics> anim = anims.get(p.getName() + "POOL");
+            float width = tileDim * 2 * numTiles + ((numTiles-1)*SPACING);
+            if (anim != null) {
+                width += tileDim*2 + SPACING;
+            }
+            g.pushMatrix();
+            {
                 if (width > w) {
                     final float saveth = g.getTextHeight();
-                    g.setTextHeight(saveth/2);
+                    g.setTextHeight(saveth / 2);
                     g.pushMatrix();
-                    g.scale(tileDim, tileDim);
-                    Board.drawTile(g, 0, 0, 1);
+                    {
+                        g.scale(tileDim, tileDim);
+                        Board.drawTile(g, 0, 0, 1);
+                    }
                     g.popMatrix();
-                    g.translate(tileDim*2+padding, 0);
+                    g.translate(tileDim * 2 + SPACING, 0);
+                    if (anim != null) {
+                        g.pushMatrix();
+                        {
+                            g.scale(tileDim, tileDim);
+                            anim.update(g);
+                        }
+                        g.popMatrix();
+                        g.translate(tileDim * 2 + SPACING, 0);
+                    }
                     g.setColor(GColor.BLUE);
-                    g.drawJustifiedString(0, tileDim/2, Justify.LEFT, Justify.CENTER, "x " + numTiles);
+                    g.drawJustifiedString(0, tileDim / 2, Justify.LEFT, Justify.CENTER, "x " + numTiles);
                     g.setTextHeight(saveth);
 
                 } else {
-                    for (int t=0; t<numTiles; t++) {
+                    for (int t = 0; t < numTiles; t++) {
                         g.pushMatrix();
-                        g.scale(tileDim, tileDim);
-                        Board.drawTile(g, 0, 0, 1);
+                        {
+                            g.scale(tileDim, tileDim);
+                            Board.drawTile(g, 0, 0, 1);
+                        }
                         g.popMatrix();
-                        g.translate(tileDim*2+padding, 0);
+                        g.translate(tileDim * 2 + SPACING, 0);
                     }
-                    anim = anims.get(p.getName() + "POOL");
                     if (anim != null) {
                         g.pushMatrix();
-                        g.scale(tileDim, tileDim);
-                        anim.update(g);
+                        {
+                            g.scale(tileDim, tileDim);
+                            anim.update(g);
+                        }
                         g.popMatrix();
                     }
                 }
-                g.popMatrix();
-                Vector2D outline2 = g.transform(w, tileDim);
-
-                /*
-                GDimension dim = g.drawAnnotatedString(String.format("%s X %d [0,0,0]%d PTS",
-                        Utils.truncate(p.getName(), 5, 1), p.getTiles().size(), p.getScore()), 0, 0);*/
-                p.outlineRect.set(outline1, outline2);
             }
 	        g.popMatrix();
-	        y += g.getTextHeight()+g.getTextHeight()/2;
+            g.translate(0, tileDim+SPACING);
+            Vector2D outline2 = g.transform(w, 0);
+            p.outlineRect.set(outline1, outline2);
         }
+        g.popMatrix();
         if (isInitialized()) {
+            //g.drawJustifiedString(0, h, Justify.LEFT, Justify.BOTTOM, String.format("Pool X %d", pool.size()));
+            g.pushMatrix();
+            float dim = g.getTextHeight();
+            g.translate(0, h-dim);
+            g.scale(dim, dim);
+            Board.drawTile(g, 0, 0, 1);
+            g.popMatrix();
             g.setColor(GColor.BLUE);
-            g.drawString(String.format("Pool X %d", pool.size()), 0, y);
+            g.drawJustifiedString(dim*2+SPACING, h, Justify.LEFT, Justify.BOTTOM, String.format("x %d", pool.size()));
         }
     }
 
     private void drawPlayer(APGraphics g, float w, float h, int pickX, int pickY, boolean drawDragged) {
-        for (int i=0; i<players.length; i++) {
-            if (players[i].isPiecesVisible()) {
-                drawPlayer(g, i, w, h, pickX, pickY, drawDragged);
-                break;
-            }
-        }
-        String infoStr = "MENU";
+        String infoStr = "MENU"; // TODO: know when in shuffle so we can skip it
         g.setColor(GColor.WHITE);
         g.setName(1);
         g.begin();
-        g.drawJustifiedString(w, 0, Justify.RIGHT, infoStr);
+        float tw = g.drawJustifiedString(w, 0, Justify.RIGHT, infoStr).width;
         int picked = g.pickRects(pickX, pickY);
+        tw += tw/4;
         menuHighlighted = false;
         if (picked == 1) {
             menuHighlighted = true;
@@ -899,32 +924,24 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
             g.drawJustifiedString(w, 0, Justify.RIGHT, infoStr);
         }
         g.end();
+        g.pushMatrix();
+        for (int i=0; i<players.length; i++) {
+            if (players[i].isPiecesVisible()) {
+                Player p = players[i];
+                p.outlineRect.set(g.transform(0, 0), g.transform(w, h));
+                float dy = drawPlayerInfo(g, p, w-tw);
+                dy += SPACING;
+                g.translate(0, dy);
+                h -= dy;
+                drawPlayerTiles(g, p, w, h, pickX, pickY, drawDragged);
+                break;
+            }
+        }
+        g.popMatrix();
     }
 
     @Omit
     private boolean menuHighlighted = false;
-
-    private void drawPlayer(APGraphics g, int player, float w, float h, int pickX, int pickY, boolean drawDragged) {
-        g.pushMatrix();
-	    g.setColor(GColor.BLUE);
-	    Player p = players[player];
-        p.outlineRect.set(g.transform(0, 0), g.transform(w, h));
-        AAnimation<AGraphics> anim = anims.get(p.getName());
-        if (anim != null) {
-            anim.update(g);
-        } else {
-            g.setColor(GColor.BLUE);
-            g.drawString(String.format("%d PTS", p.getScore()), 0, 0);
-        }
-
-	    g.translate(0, g.getTextHeight());
-
-	    h-= g.getTextHeight();
-
-	    // find the best grid to use to
-        drawPlayerTiles(g, player, w, h, pickX, pickY, drawDragged);
-        g.popMatrix();
-    }
 
     private final PlayerUser getUser() {
         for (Player p : players)
@@ -933,9 +950,7 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
         return null;
     }
 
-    private void drawPlayerTiles(APGraphics g, int player, float w, float h, int pickX, int pickY, boolean drawDragged) {
-
-        Player p = players[player];
+    private void drawPlayerTiles(APGraphics g, Player p, float w, float h, int pickX, int pickY, boolean drawDragged) {
 	    final int numPlayerTiles = p.getTiles().size();
         //int numVirtualTiles = numPlayerTiles;
         int numDrawnTiles = numPlayerTiles;
@@ -949,7 +964,7 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
 	        numDrawnTiles++;
         }
 
-	    if (numPlayerTiles == 0)
+	    if (numDrawnTiles == 0)
 	        return;
 
         final float aspect = w/(h*2);
@@ -1047,7 +1062,7 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
         startGameThread();
     }
 
-    public void clearHighlghts() {
+    public final void clearHighlghts() {
         menuHighlighted = false;
         highlightedPlayerTile = -1;
         selectedPlayerTile = -1;

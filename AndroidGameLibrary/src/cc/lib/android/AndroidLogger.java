@@ -12,17 +12,11 @@ import cc.lib.logger.Logger;
 public class AndroidLogger implements Logger {
 
     final String name;
-    final int maxLen;
-    final int maxLines;
-
-    public AndroidLogger(String name, int maxLen, int maxLines) {
-        this.name = name;
-        this.maxLen = maxLen;
-        this.maxLines = maxLines;
-    }
+    public static int maxLen = 4096;
+    public static int maxLines = 100;
 
     public AndroidLogger(String name) {
-        this(name, 1024, 64);
+        this.name = name;
     }
 
     @Override

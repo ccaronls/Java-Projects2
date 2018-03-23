@@ -9,7 +9,7 @@ import cc.lib.utils.Profiler;
  * @author ccaron
  *
  */
-public class EncryptionOutputStream extends OutputStream {
+public final class EncryptionOutputStream extends OutputStream {
 
     // Problem:  Encryption can result in unaligned data (not divisible by 8) 
     // Solution: Send the data in fixed size chunks that are preceded by the
@@ -46,7 +46,7 @@ public class EncryptionOutputStream extends OutputStream {
     }
 
     @Override
-    synchronized public void flush() throws IOException {
+    public void flush() throws IOException {
         while (data.getLen() > 0) {
             writeChunk();
         }
@@ -69,7 +69,7 @@ public class EncryptionOutputStream extends OutputStream {
     }
 
     @Override
-    synchronized public void write(int b) throws IOException {
+    public void write(int b) throws IOException {
         if (Profiler.ENABLED) Profiler.push("EncryptionOutputStream.write()");
         try {
             int [] e = cypher.encrypt(b);
@@ -94,5 +94,4 @@ public class EncryptionOutputStream extends OutputStream {
         data.clear();
         super.close();
     }
-    
 }

@@ -9,6 +9,7 @@ import java.util.*;
 import cc.lib.crypt.Cypher;
 import cc.lib.crypt.EncryptionInputStream;
 import cc.lib.crypt.EncryptionOutputStream;
+import cc.lib.crypt.HuffmanEncoding;
 import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
@@ -67,7 +68,8 @@ public class GameServer {
     private final int port;
     private final String mServerName;
     private String password = null;
-    
+    private HuffmanEncoding counter = null;
+
     public String toString() {
         String r = "GameServer:" + mServerName + " v:" + mVersion;
         if (clients.size() > 0)
@@ -176,6 +178,17 @@ public class GameServer {
             clients.clear();
             socketListener.stop();
             socketListener = null;
+        }
+
+        if (counter != null) {
+            log.info("------------------------------------------------------------------------------------------------------");
+            log.info("******************************************************************************************************");
+            log.info("------------------------------------------------------------------------------------------------------");
+            log.info(counter.getEncodingAsCode());
+            log.info("------------------------------------------------------------------------------------------------------");
+            log.info("******************************************************************************************************");
+            log.info("------------------------------------------------------------------------------------------------------");
+            counter = null;
         }
     }
     
@@ -384,8 +397,9 @@ public class GameServer {
                     in = new DataInputStream(new EncryptionInputStream(new BufferedInputStream(socket.getInputStream()), cypher));
                     out = new DataOutputStream(new EncryptionOutputStream(new BufferedOutputStream(socket.getOutputStream()), cypher));
                 } else {
-                    in = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
-                    out = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
+                    counter = new HuffmanEncoding();
+                    in = new DataInputStream(new BufferedInputStream(new HuffmanByteCounterInputStream(socket.getInputStream(), counter)));
+                    out = new DataOutputStream(new BufferedOutputStream(new HuffmanByteCounterOutputStream(socket.getOutputStream(), counter)));
                 }
 
                 final long magic = in.readLong();

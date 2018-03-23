@@ -402,7 +402,12 @@ public class HuffmanEncoding implements Cypher {
     }
 
     public void printEncodingAsCode(PrintStream out) {
-        out.print("int [] counts = {");
+        out.println(getEncodingAsCode());
+    }
+
+    public String getEncodingAsCode() {
+        StringBuffer buf = new StringBuffer(256);
+        buf.append("int [] counts = {");
         int n = COUNTS_ARRAY_SIZE;
         while (counts[--n].occurances == 0) {
 
@@ -411,11 +416,12 @@ public class HuffmanEncoding implements Cypher {
             throw new RuntimeException("nothing counted");
         for (int i = 0; i <= n; i++) {
             if (i > 0) {
-                out.print(",");
+                buf.append(",");
             }
-            out.print(counts[i].occurances);
+            buf.append(counts[i].occurances);
         }
-        out.println("};");
+        buf.append("};");
+        return buf.toString();
     }
 
     /**
@@ -508,5 +514,11 @@ public class HuffmanEncoding implements Cypher {
 
     public final void increment(int b) {
         counts[(b+256)%256].incrementOccurance();
+    }
+
+    public final void increment(byte [] bytes, int offset, int length) {
+        for (int i=0; i<length; i++) {
+            increment(bytes[i+offset]);
+        }
     }
 }

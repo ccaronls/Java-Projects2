@@ -10,7 +10,7 @@ import cc.lib.utils.Profiler;
  * @author ccaron
  *
  */
-public class EncryptionInputStream extends InputStream {
+public final class EncryptionInputStream extends InputStream {
 
     private final DataInputStream input;
     private final Cypher cypher;

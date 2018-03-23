@@ -24,4 +24,26 @@ public class HuffmanByteCounterOutputStream extends OutputStream {
         enc.increment(b);
         out.write(b);
     }
+
+    @Override
+    public void write(byte[] b) throws IOException {
+        enc.increment(b, 0, b.length);
+        out.write(b);
+    }
+
+    @Override
+    public void write(byte[] b, int off, int len) throws IOException {
+        enc.increment(b, off, len);
+        out.write(b, off, len);
+    }
+
+    @Override
+    public void flush() throws IOException {
+        out.flush();
+    }
+
+    @Override
+    public void close() throws IOException {
+        out.close();
+    }
 }

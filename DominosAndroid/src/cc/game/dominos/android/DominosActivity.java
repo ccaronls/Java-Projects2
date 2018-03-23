@@ -128,6 +128,7 @@ public class DominosActivity extends DroidActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         saveFile = new File(getFilesDir(), "dominos.save");
+        Dominos.SPACING = getResources().getDimension(R.dimen.element_spacing);
         dominos = new Dominos() {
             @Override
             public void redraw() {
@@ -320,17 +321,8 @@ public class DominosActivity extends DroidActivity {
             }
 
             @Override
-            protected void onNewRound() {
-                server.broadcastCommand(new GameCommand(MPConstants.SVR_TO_CL_INIT_ROUND).setArg("dominos", dominos));
-                //server.broadcastExecuteOnRemote(MPConstants.DOMINOS_ID);
-                super.onNewRound();
-            }
-
-            @Override
-            @Keep
-            protected void onPlaceFirstTile(int player, Tile t) {
-                server.broadcastExecuteOnRemote(MPConstants.DOMINOS_ID, player, t);
-                super.onPlaceFirstTile(player, t);
+            protected String getServerName() {
+                return NAME;
             }
         };
         server = dominos.server;
@@ -533,8 +525,6 @@ public class DominosActivity extends DroidActivity {
     class GameListener implements GameServer.Listener, ClientConnection.Listener {
         @Override
         public synchronized void onConnected(ClientConnection conn) {
-            int maxClients = dominos.getNumPlayers()-1;
-
             // if enough clients have connected then start the game
             Player remote = null;
             for (int i=1; i<dominos.getNumPlayers(); i++) {
@@ -551,10 +541,11 @@ public class DominosActivity extends DroidActivity {
                 remote.connect(conn);
                 conn.sendCommand(new GameCommand(MPConstants.SVR_TO_CL_INIT_GAME)
                         .setArg("numPlayers", dominos.getNumPlayers())
-                        .setArg("playerNum", remote.getPlayerNum())
-                        .setArg("dominos", dominos.toString()));
-                currentDialog.dismiss();
-                dominos.startGameThread();
+                        .setArg("playerNum", remote.getPlayerNum()));
+                if (server.getNumConnectedClients() == dominos.getNumPlayers()-1) {
+                    currentDialog.dismiss();
+                    dominos.startGameThread();
+                }
             }
         }
 
@@ -591,8 +582,17 @@ public class DominosActivity extends DroidActivity {
                                 .setNegativeButton("Continue without", new DialogInterface.OnClickListener() {
                                     @Override
                                     public void onClick(DialogInterface dialog, int which) {
-                                        c.disconnect("Dropped");
-                                        dominos.startGameThread();
+                                        new SpinnerTask() {
+                                            @Override
+                                            protected void doIt() throws Exception {
+                                                c.disconnect("Dropped");
+                                            }
+
+                                            @Override
+                                            protected void onDone() {
+                                                dominos.startGameThread();
+                                            }
+                                        }.run();
                                     }
                                 }).show();
                     }

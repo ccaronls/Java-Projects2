@@ -13,6 +13,8 @@ import cc.lib.game.GColor;
 import cc.lib.game.IVector2D;
 import cc.lib.game.Justify;
 import cc.lib.game.Utils;
+import cc.lib.logger.Logger;
+import cc.lib.logger.LoggerFactory;
 import cc.lib.math.Bezier;
 import cc.lib.math.Matrix3x3;
 import cc.lib.math.MutableVector2D;
@@ -25,7 +27,10 @@ import cc.lib.utils.Reflector;
  * Representation of a Dominos board.
  *
  */
-public class Board extends Reflector<Board> {
+public final class Board extends Reflector<Board> {
+
+    @Omit
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
     static {
         addAllFields(Board.class);
@@ -305,6 +310,8 @@ public class Board extends Reflector<Board> {
             g.popMatrix();
         }
         g.drawRects(3);
+        if (selectedMove != null)
+            return -1;
         int moveIndex = 0;
         g.begin();
         for (Move move : highlightedMoves[endpoint]) {
@@ -336,7 +343,8 @@ public class Board extends Reflector<Board> {
             } else {
                 newTotal += selectedMove.piece.pip1;
             }
-//            Utils.println("Endpoint total:" + newTotal);
+
+            log.debug("Endpoint total:" + newTotal);
 
             g.begin();
             g.pushMatrix();
@@ -359,7 +367,7 @@ public class Board extends Reflector<Board> {
             g.drawRects(3);
             g.popMatrix();
             g.end();
-//            Utils.println("selected endpoint = " + epIndexToString(selectedEndpoint) + " placement = " + placementIndexToString(selectedMove.placment));
+            log.debug("selected endpoint = " + epIndexToString(selectedEndpoint) + " placement = " + placementIndexToString(selectedMove.placment));
         }
         return picked;
     }

@@ -7,16 +7,18 @@
 - confirm MP with > 2 players (done)
 - confirm MP with a new game (done)
 - consider menu flow for UI in MP vs. SP
-- move GameServer/GameClient too core
+- move GameServer/GameClient too core (done)
   - support MP for PC app
 - allow MP between PC and android
-- rotations working?
-- text size overlapp when +pts animating
-- behavior of disconnect from server end needs work
+- rotations working? (yes)
+- text size overlapp when +pts animating (needs more work)
+- behavior of disconnect from server end needs work (ok?)
 - Make an ILogger/Factory in utils to be shared accross projects (done)
 - MP Host mode should save state onPause (done)
-- Fix 'Failed Busy' Toast - Busy seems to benign, but ERROR could mean WiFi is off
 - For listeners, copy into temp collection for iteration, catch errors and remove from
   persistent collection. This allows listeners to remove themselves form the callbacks otherwise
   we get concurrent modification type exceptions. (done)
   - Add skip button when shuffle anim is going
+- Display POOL = (Boneyard?) in a better spot (bottom LHS of info?)
+- Animate from pool more quickly and also animate players getting theor pieces on start of round
+- Use more varied pieces for intro anim

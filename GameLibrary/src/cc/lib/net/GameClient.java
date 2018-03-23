@@ -170,6 +170,28 @@ public class GameClient {
                 socket = new Socket(address, port);
                 socket.setSoTimeout(0);
                 socket.setKeepAlive(true);
+                log.debug("New Socket connect:"
+                                +"\n   remote address=%s"
+                                +"\n   local address=%s"
+                                +"\n   keep alive=%s"
+                                +"\n   OOD inline=%s"
+                                +"\n   send buf size=%s"
+                                +"\n   recv buf size=%s"
+                                +"\n   reuse addr=%s"
+                                +"\n   tcp nodelay=%s"
+                                +"\n   SO timeout=%s"
+                                +"\n   SO linger=%s"
+                        ,socket.getRemoteSocketAddress()
+                        ,socket.getLocalAddress()
+                        ,socket.getKeepAlive()
+                        ,socket.getOOBInline()
+                        ,socket.getSendBufferSize()
+                        ,socket.getReceiveBufferSize()
+                        ,socket.getReuseAddress()
+                        ,socket.getTcpNoDelay()
+                        ,socket.getSoTimeout()
+                        ,socket.getSoLinger()
+                );
                 if (cypher != null) {
                     log.debug("Using Cypher: " + cypher);
                     in = new DataInputStream(new EncryptionInputStream(new BufferedInputStream(socket.getInputStream()), cypher));
@@ -438,7 +460,7 @@ public class GameClient {
         Object obj = executorObjects.get(id);
         if (obj == null)
             throw new IOException("Unknown object id: " + id);
-        log.debug("id=%s -> %s", id, obj.getClass().getSimpleName());
+        log.debug("id=%s -> %s", id, obj.getClass());
         try {
             Method m = methodMap.get(method);
             if (m == null) {
