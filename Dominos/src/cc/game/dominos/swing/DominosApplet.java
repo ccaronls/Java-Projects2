@@ -215,6 +215,11 @@ public class DominosApplet extends AWTComponent implements GameServer.Listener {
         protected void onPlayerConnected(Player player) {
             log.info("onPlayerConnected: " + player.getName());
         }
+
+        @Override
+        protected void onAllPlayersJoined() {
+
+        }
     };
 
     @Override

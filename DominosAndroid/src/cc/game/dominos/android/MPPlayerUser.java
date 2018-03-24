@@ -11,12 +11,9 @@ import cc.game.dominos.core.Move;
 import cc.game.dominos.core.Player;
 import cc.game.dominos.core.PlayerUser;
 import cc.lib.annotation.Keep;
-import cc.lib.game.Utils;
 import cc.lib.net.GameClient;
 import cc.lib.net.GameCommand;
 import cc.lib.utils.Reflector;
-
-import static cc.game.dominos.android.DominosActivity.*;
 
 /**
  * Created by chriscaron on 3/14/18.
@@ -25,17 +22,22 @@ import static cc.game.dominos.android.DominosActivity.*;
  */
 public class MPPlayerUser extends PlayerUser implements GameClient.Listener {
 
-    private GameClient client;
-    private DominosActivity activity;
-    private Dominos dominos;
+    private final GameClient client;
+    private final DominosActivity activity;
+    private final Dominos dominos;
 
-    public void connect(GameClient client, DominosActivity activity, Dominos game) {
+    MPPlayerUser(GameClient client, DominosActivity activity, Dominos game) {
         this.client = client;
         this.activity = activity;
         this.dominos = game;
         client.register(MPConstants.USER_ID, this);
         client.register(MPConstants.DOMINOS_ID, dominos);
         client.addListener(this);
+    }
+
+    @Override
+    public String getName() {
+        return client.getName();
     }
 
     @Keep
@@ -58,6 +60,7 @@ public class MPPlayerUser extends PlayerUser implements GameClient.Listener {
             int idx = 0;
             for (; idx < playerNum; idx++)
                 players[idx] = new Player(idx);
+            setPlayerNum(idx);
             players[idx++] = this;
             for (; idx < numPlayers; idx++)
                 players[idx] = new Player(idx);
@@ -67,11 +70,12 @@ public class MPPlayerUser extends PlayerUser implements GameClient.Listener {
             Reflector.KEEP_INSTANCES = true;
             try {
                 String str = cmd.getArg("dominos");
+                dominos.reset();
                 dominos.deserialize(str);
                 activity.currentDialog.dismiss();
-                dominos.getBoard().startShuffleAnimation(dominos, dominos.getPool());
-                dominos.redraw();
-                Utils.waitNoThrow(dominos, -1);
+                if (dominos.getBoard().getRoot() == null) {
+                    dominos.getBoard().startShuffleAnimation(dominos, dominos.getPool());
+                }
             } catch (Exception e) {
                 client.sendError(e);
                 client.disconnect("Error: " + e.getMessage());
@@ -126,5 +130,4 @@ public class MPPlayerUser extends PlayerUser implements GameClient.Listener {
             }
         });
     }
-
 }

@@ -2,6 +2,12 @@ package cc.lib.android;
 
 import android.util.Log;
 
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintStream;
+
 import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
 
@@ -12,38 +18,75 @@ import cc.lib.logger.Logger;
 public class AndroidLogger implements Logger {
 
     final String name;
-    public static int maxLen = 4096;
-    public static int maxLines = 100;
+    public static int maxLen = 1024;
+    public static int maxLines = 20;
+    private static PrintStream out = null;
+
+    private synchronized void writeFile(String level, String msg) {
+        if (out != null) {
+            try {
+                out.print(name);
+                out.print(":");
+                out.print(level);
+                out.print(" - ");
+                out.println(msg);
+                out.flush();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
 
     public AndroidLogger(String name) {
         this.name = name;
     }
 
+    /**
+     * Allows sending log output to file
+     * @param file
+     * @throws IOException
+     */
+    public static void setLogFile(File file) throws IOException {
+        if (out == null) {
+            out = new PrintStream(new BufferedOutputStream(new FileOutputStream(file)));
+        }
+    }
+
     @Override
     public void debug(String msg, Object... args) {
-        Log.d(name, Utils.truncate(String.format(msg, args), maxLen, maxLines, Utils.EllipsisStyle.INFO));
+        String str = String.format(msg, args);
+        Log.d(name, Utils.truncate(str, maxLen, maxLines, Utils.EllipsisStyle.INFO));
+        writeFile("D", str);
     }
 
     @Override
     public void info(String msg, Object... args) {
-        Log.i(name, Utils.truncate(String.format(msg, args), maxLen, maxLines, Utils.EllipsisStyle.INFO));
-
+        String str = String.format(msg, args);
+        Log.i(name, Utils.truncate(str, maxLen, maxLines, Utils.EllipsisStyle.INFO));
+        writeFile("I", str);
     }
 
     @Override
     public void error(String msg, Object... args) {
-        Log.e(name, Utils.truncate(String.format(msg, args), maxLen, maxLines, Utils.EllipsisStyle.INFO));
-
+        String str = String.format(msg, args);
+        Log.e(name, Utils.truncate(str, maxLen, maxLines, Utils.EllipsisStyle.INFO));
+        writeFile("E", str);
     }
 
     @Override
     public void error(Exception e) {
-        Log.e(name, e.getClass().getSimpleName()+":"+e.getMessage(), e);
+        String str = e.getClass().getSimpleName()+":"+e.getMessage();
+        Log.e(name, str);
+        Log.e(name, e.toString());
+        writeFile("E", str);
+        if (out != null)
+            e.printStackTrace(out);
     }
 
     @Override
     public void warn(String msg, Object... args) {
-        Log.d(name, String.format(msg, args));
-
+        String str = String.format(msg, args);
+        Log.w(name, str);
+        writeFile("W", str);
     }
 }

@@ -18,14 +18,31 @@ public class TestDeserializeKeepMembers extends TestCase {
             public void redraw() {
 
             }
+
+            @Override
+            protected void onPlayerConnected(Player player) {
+
+            }
+
+            @Override
+            protected void onAllPlayersJoined() {
+
+            }
         };
 
-        d.setNumPlayers(2);
-        d.initGame(6, 12, 1);
-        d.startNewGame();
 
         Reflector.KEEP_INSTANCES = true;
-        d.loadFromFile(new File("dominos.in"));
+        d.loadFromFile(new File("dominos.save"));
+        int size = d.getPool().size();
+
+
+        d.setNumPlayers(2);
+        d.initGame(12, 1000, 1);
+        d.startNewGame();
+
+        d.loadFromFile(new File("dominos.save"));
+        assertTrue(d.getPool().size() == size);
+
     }
 
 }

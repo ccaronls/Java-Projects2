@@ -843,7 +843,7 @@ public class Reflector<T> {
         try {
             return Reflector.class.getClassLoader().loadClass(forName);
         } catch (ClassNotFoundException e) {
-            System.err.println("Failed to find class '" + forName + "'");
+            log.error("Failed to find class '" + forName + "'");
             throw e;
         }
     }
@@ -1018,7 +1018,7 @@ public class Reflector<T> {
         try {
             Field field = clazz.getDeclaredField(name);
             if (field.getAnnotation(Omit.class) != null) {
-                System.err.println("Field '" + name + "' has been omitted using Omit annotation.");
+                log.debug("Field '" + name + "' has been omitted using Omit annotation.");
                 return;
             }
             if (Modifier.isStatic(field.getModifiers()))
@@ -1036,6 +1036,7 @@ public class Reflector<T> {
         } catch (NoSuchFieldException e) {
         	if (THROW_ON_UNKNOWN)
         		throw new RuntimeException("Failed to add field '" + name + "'", e);
+            log.warn("Field '" + name + "' not found for class: " + clazz);
         } catch (Exception e) {
         	throw new RuntimeException("Failed to add field '" + name + "'", e);
         }
@@ -1265,7 +1266,7 @@ public class Reflector<T> {
         return URLDecoder.decode(in, "UTF-8");
     }
     
-    protected void serialize(PrintWriter out_) throws IOException {
+    protected synchronized void serialize(PrintWriter out_) throws IOException {
 //        Utils.println("Serializing %s", getClass().getName());
         MyPrintWriter out;
         if (out_ instanceof MyPrintWriter)
@@ -1515,7 +1516,7 @@ public class Reflector<T> {
             if (parts != null) {
                 if (THROW_ON_UNKNOWN)
                     throw new Exception("Unknown field: " + name + " not in fields: " + values.keySet());
-                log.error("Unknown field: " + name);// + " not in fields: " + values.keySet());
+                log.error("Unknown field: " + name + " not found in class: " + getClass());// + " not in fields: " + values.keySet());
             }
         }
         if (__reflector_version < getMinVersion()) {
@@ -1673,7 +1674,7 @@ public class Reflector<T> {
     @SuppressWarnings({ "unchecked", "rawtypes" })
 	public final void copyFrom(Reflector<T> other) {
         if (other == this) {
-            System.err.println("Copying from self?");
+            log.error("Copying from self?");
             return;
         }
 
@@ -1752,7 +1753,7 @@ public class Reflector<T> {
             loadFromFile(file);
             return true;
         } catch (FileNotFoundException e) {
-            System.err.println(e.getMessage());
+            log.error(e.getMessage());
         } catch (Exception e) {
             e.printStackTrace();
         }

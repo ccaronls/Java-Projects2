@@ -33,7 +33,7 @@ import java.util.Map;
 import cc.game.dominos.core.Dominos;
 import cc.game.dominos.core.MPConstants;
 import cc.game.dominos.core.Player;
-import cc.game.dominos.core.Tile;
+import cc.game.dominos.core.PlayerUser;
 import cc.lib.android.BonjourThread;
 import cc.lib.android.DroidActivity;
 import cc.lib.android.DroidGraphics;
@@ -129,7 +129,7 @@ public class DominosActivity extends DroidActivity {
         super.onCreate(savedInstanceState);
         int padding = getResources().getDimensionPixelSize(R.dimen.border_padding);
         setMargin(padding);
-        saveFile = new File(getFilesDir(), "dominos.save");
+        saveFile = new File(Environment.getExternalStorageDirectory(), "dominos.save");
         Dominos.SPACING = getResources().getDimension(R.dimen.element_spacing);
         Dominos.TEXT_SIZE = getResources().getDimension(R.dimen.info_txt_size);
         dominos = new Dominos() {
@@ -315,6 +315,12 @@ public class DominosActivity extends DroidActivity {
                 } else {
                     showNewGameDialog();
                 }
+            }
+
+            @Override
+            protected void onAllPlayersJoined() {
+                currentDialog.dismiss();
+                dominos.startGameThread();
             }
 
             @Override
@@ -525,41 +531,9 @@ public class DominosActivity extends DroidActivity {
 
     WifiP2pHelper helper = null;
 
-    class GameListener implements GameServer.Listener, ClientConnection.Listener {
+    class GameListener implements ClientConnection.Listener {
         @Override
         public synchronized void onConnected(ClientConnection conn) {
-            // if enough clients have connected then start the game
-            Player remote = null;
-            for (int i=1; i<dominos.getNumPlayers(); i++) {
-                Player p = dominos.getPlayer(i);
-
-                if (p.getConnection() == null || !p.getConnection().isConnected()) {
-                    remote = p;
-                } else if (p.getConnection().getName().equals(conn.getName())) {
-                    remote = p;
-                    break;
-                }
-            }
-            if (remote != null) {
-                remote.connect(conn);
-                conn.sendCommand(new GameCommand(MPConstants.SVR_TO_CL_INIT_GAME)
-                        .setArg("numPlayers", dominos.getNumPlayers())
-                        .setArg("playerNum", remote.getPlayerNum()));
-                if (server.getNumConnectedClients() == dominos.getNumPlayers()-1) {
-                    currentDialog.dismiss();
-                    dominos.startGameThread();
-                }
-            }
-        }
-
-        @Override
-        public void onReconnection(ClientConnection conn) {
-
-        }
-
-        @Override
-        public void onClientDisconnected(ClientConnection conn) {
-
         }
 
         @Override
@@ -611,20 +585,19 @@ public class DominosActivity extends DroidActivity {
             @Override
             protected void doIt() throws Exception {
                 server.listen();
-                user.setName(server.getName());
                 helper = new WifiP2pHelper(DominosActivity.this);
                 helper.p2pInitialize();
-                String build = Build.PRODUCT
-                        +"\n"+Build.DEVICE
-                        +"\n"+Build.BOARD
-                        +"\n"+Build.BRAND
-                        +"\n"+Build.HARDWARE
-                        +"\n"+Build.HARDWARE
-                        +"\n"+Build.HOST
-                        +"\n"+Build.MANUFACTURER
-                        +"\n"+Build.MODEL
-                        +"\n"+Build.TYPE
-                        +"\n"+Build.VERSION.CODENAME;
+                String build =
+                         "\nPRODUCT   :"+Build.PRODUCT
+                        +"\nDEVICE    :"+Build.DEVICE
+                        +"\nBOARD     :"+Build.BOARD
+                        +"\nBRAND     :"+Build.BRAND
+                        +"\nHARDWARE  :"+Build.HARDWARE
+                        +"\nHOST      :"+Build.HOST
+                        +"\nMANFUC    :"+Build.MANUFACTURER
+                        +"\nMODEL     :"+Build.MODEL
+                        +"\nTYPE      :"+Build.TYPE
+                        +"\nVERSION   :"+Build.VERSION.CODENAME;
                 log.debug("Device info=%s", build);
                 helper.setDeviceName(server.getName() + "-Dominos");
                 helper.startGroup(); // make sure we are the group owner
@@ -862,9 +835,10 @@ public class DominosActivity extends DroidActivity {
                 new SpinnerTask() {
                     @Override
                     protected void doIt() throws Exception {
+                        dominos.clear();
                         stopPeerDiscovery();
                         client.connect(info.groupOwnerAddress, MPConstants.PORT);
-                        user.connect(client, DominosActivity.this, dominos);
+                        new MPPlayerUser(client, DominosActivity.this, dominos);
                     }
 
                     @Override
@@ -1060,11 +1034,9 @@ public class DominosActivity extends DroidActivity {
         });
     }
 
-    final static String NAME= Build.BRAND.toUpperCase()+ Build.MODEL;
+    final static String NAME= Build.MODEL;
 
     GameClient client = new GameClient(NAME, MPConstants.VERSION, MPConstants.getCypher());
-
-    public final static MPPlayerUser user = new MPPlayerUser();
 
     AlertDialog currentDialog = null;
 
@@ -1184,7 +1156,8 @@ public class DominosActivity extends DroidActivity {
                             // now populate the game with remote players so that when they connect we can send them
                             // the game state right away.
                             Player [] players = new Player[numPlayers];
-                            players[0] = user;
+                            players[0] = new PlayerUser(0);
+                            players[0].setName(server.getName());
                             for (int i=1; i<players.length; i++) {
                                 players[i] = new Player(i);
                             }
@@ -1195,8 +1168,6 @@ public class DominosActivity extends DroidActivity {
                             dominos.initGame(maxPips, maxPoints, 0);
                             dominos.startNewGame();
                             server.broadcastMessage("Starting a new game!");
-                            server.broadcastCommand(new GameCommand(MPConstants.SVR_TO_CL_INIT_ROUND)
-                                    .setArg("dominos", dominos.toString()));
                             dominos.startGameThread();
                         }
                     }
@@ -1223,8 +1194,6 @@ public class DominosActivity extends DroidActivity {
     void startNewGame() {
         dominos.startNewGame();
         server.broadcastMessage("Starting a new game!");
-        server.broadcastCommand(new GameCommand(MPConstants.SVR_TO_CL_INIT_ROUND)
-                .setArg("dominos", dominos.toString()));
         dominos.startGameThread();
     }
 

@@ -98,18 +98,14 @@ public class ClientConnection implements Runnable {
     private CommandQueueWriter outQueue = new CommandQueueWriter();
     private Map<String, Object> attributes = new TreeMap<>();
     private boolean connected = false;
-    private final Set<Listener> listeners = new HashSet<>();
+    private final Set<Listener> listeners = Collections.synchronizedSet(new HashSet<Listener>());
     
     public final void addListener(Listener listener) {
-        synchronized (listeners) {
-            listeners.add(listener);
-        }
+        listeners.add(listener);
     }
 
     public final void removeListener(Listener l) {
-        synchronized (listeners) {
-            listeners.remove(l);
-        }
+        listeners.remove(l);
     }
 
     
@@ -276,11 +272,12 @@ public class ClientConnection implements Runnable {
             throw e;
         }
         log.debug("ClientConnection: " + getName() + " connected SUCCESS");
-        if (listeners.size() > 0) {
-            Listener [] arr = listeners.toArray(new Listener[listeners.size()]);
-            for (Listener l : arr) {
-                l.onConnected(this);
-            }
+        Listener [] arr;
+        synchronized (listeners) {
+            arr = listeners.toArray(new Listener[listeners.size()]);
+        }
+        for (Listener l : arr) {
+            l.onConnected(this);
         }
     }
     
@@ -292,7 +289,7 @@ public class ClientConnection implements Runnable {
         log.debug("Sending command to client " + getName() + "\n    " + cmd);
         if (!isConnected())
             throw new RuntimeException("Client " + getName() + " is not connected");
-        log.debug("ClientConnection: " + getName() + "-> sendCommand: " + cmd);
+        //log.debug("ClientConnection: " + getName() + "-> sendCommand: " + cmd);
         outQueue.add(cmd);
     }
     
@@ -470,7 +467,7 @@ public class ClientConnection implements Runnable {
                 GameCommandType.CL_REMOTE_RETURNS.addListener(listener);
                 sendCommand(cmd);
                 synchronized (waitLock) {
-                    waitLock.wait();
+                    waitLock.wait(2000);
                 }
                 GameCommandType.CL_REMOTE_RETURNS.removeListener(listener);
                 removeListener(listener);

@@ -1,7 +1,5 @@
 package cc.lib.game;
 
-import cc.lib.math.Vector2D;
-
 /**
  * Created by chriscaron on 2/14/18.
  */
@@ -192,5 +190,13 @@ public class TestGraphics extends APGraphics {
 
     }
 
+    @Override
+    public void setClipRect(float x, float y, float w, float h) {
 
+    }
+
+    @Override
+    public void clearClip() {
+
+    }
 }

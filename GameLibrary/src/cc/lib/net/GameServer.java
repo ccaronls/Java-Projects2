@@ -407,7 +407,7 @@ public class GameServer {
                     throw new ProtocolException("Unknown client");
 
                 GameCommand cmd = GameCommand.parse(in);
-                log.debug("Parsed incoming command: " + cmd);
+                //log.debug("Parsed incoming command: " + cmd);
                 String name = cmd.getName();
                 String clientVersion = cmd.getVersion();
                 if (clientVersion == null) {

@@ -315,7 +315,6 @@ public class GameClient {
                         larray = listeners.toArray(new Listener[listeners.size()]);
                     }
 
-                    log.debug("Parsed incoming cmd: " + cmd);
                     if (cmd.getType() == GameCommandType.SVR_CONNECTED) {
                         serverName = cmd.getName();
                         int keepAliveFreqMS = Integer.parseInt(cmd.getArg("keepAlive"));

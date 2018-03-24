@@ -63,7 +63,7 @@ public final class Board extends Reflector<Board> {
     private final MutableVector2D saveMinV = new MutableVector2D();
     private final MutableVector2D saveMaxV = new MutableVector2D();
 
-    Tile getRoot() {
+    public final Tile getRoot() {
         return root;
     }
 

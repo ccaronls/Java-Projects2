@@ -116,12 +116,25 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
         return System.getProperty("user.home");
     }
 
-	public synchronized void clear() {
+    /**
+     * Clear out tiles and board but keep playre instances with restted scores
+     */
+    public synchronized void reset() {
         stopGameThread();
         clearHighlghts();
-        players = new Player[0];
         pool.clear();
         board.clear();
+        for (Player p : players) {
+            p.reset();
+        }
+    }
+
+    /**
+     * Same as reset but also set players count to 0
+     */
+    public synchronized void clear() {
+        reset();
+        players = new Player[0];
     }
 
 	public void setPlayers(Player ... players) {
@@ -134,6 +147,8 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
 
 	@Omit
     private boolean gameRunning = false;
+    @Omit
+    private boolean gameStopped = true;
 
 	public final boolean isGameRunning() {
 	    return gameRunning;
@@ -152,15 +167,22 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
             throw new RuntimeException("No players!");
         stopGameThread();
         newGame();
+        server.broadcastCommand(new GameCommand(MPConstants.SVR_TO_CL_INIT_ROUND)
+                .setArg("dominos", this.toString()));
         redraw();
     }
 
     public final void stopGameThread() {
+        log.debug("stop game thread");
         if (gameRunning) {
+            gameStopped = false;
             gameRunning = false;
             synchronized (gameLock) {
                 gameLock.notifyAll();
             }
+        }
+        while (!gameStopped) {
+            Utils.waitNoThrow(gameLock, 1000);
         }
     }
 
@@ -242,6 +264,7 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
             public void run() {
                 log.debug("Thread starting.");
                 gameRunning = true;
+                gameStopped = false;
                 while (gameRunning && !isGameOver()) {
                     synchronized (gameLock) {
                         runGame();
@@ -251,11 +274,15 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
                         }
                     }
                 }
-                gameRunning = false;
                 log.debug("Thread done.");
                 int w = getWinner();
-                if (w >= 0) {
+                if (gameRunning && w >= 0) {
                     onGameOver(w);
+                }
+                gameRunning = false;
+                gameStopped = true;
+                synchronized (gameLock) {
+                    gameLock.notifyAll();
                 }
             }
         }.start();
@@ -277,6 +304,7 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
             p.reset();
         }
         board.clear();
+        initPool();
     }
 
     public final int getTurn() {
@@ -338,9 +366,8 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
 
         for (Player p : players) {
             for (int i=0; i<numPerPlayer; i++) {
-                Tile t = pool.removeFirst();
+                Tile t = pool.getFirst();
                 onTileFromPool(p.getPlayerNum(), t);
-                p.tiles.add(t);
             }
         }
 
@@ -389,7 +416,12 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
     }
 
 	public final void runGame() {
-		if (pool.size() == 0 && board.getRoot() == null) {
+
+        // make sure players are numbered corrcetly
+        for (int i=0; i<players.length; i++)
+            players[i].setPlayerNum(i);
+
+		if (board.getRoot() == null) {
             onNewRound();
         }
 
@@ -417,15 +449,14 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
                 }
             }
 
-		    Tile pc = pool.removeFirst();
+		    Tile pc = pool.getFirst();
 		    onTileFromPool(turn, pc);
-            p.tiles.add(pc);
             moves.addAll(board.findMovesForPiece(pc));
         }
 
         if (moves.size() > 0) {
 		    Move mv = p.chooseMove(this, moves);
-		    if (mv == null)
+		    if (mv == null || !gameRunning)
 		        return;
 		    onTilePlaced(turn, mv.piece, mv.endpoint, mv.placment);
 		    int pts = board.computeEndpointsTotal();
@@ -471,6 +502,7 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
     protected final void onTileFromPool(int player, final Tile pc) {
         server.broadcastExecuteOnRemote(MPConstants.DOMINOS_ID, player, pc);
         final Player p = players[player];
+        pool.remove(pc);
         addAnimation(p.getName() + "POOL", new AAnimation<AGraphics>(700) {
             @Override
             protected void draw(AGraphics g, float position, float dt) {
@@ -488,6 +520,7 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
             }
 
         }, true);
+        p.tiles.add(pc);
         redraw();
     }
 
@@ -696,12 +729,12 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
     }
 
     protected final void onNewRound() {
-        server.broadcastCommand(new GameCommand(MPConstants.SVR_TO_CL_INIT_ROUND).setArg("dominos", this));
         for (Player p : players) {
             p.tiles.clear();
         }
         board.clear();
         initPool();
+        server.broadcastCommand(new GameCommand(MPConstants.SVR_TO_CL_INIT_ROUND).setArg("dominos", this.toString()));
         int expectedPoolSize = pool.size();
         board.startShuffleAnimation(gameLock, pool);
         redraw();
@@ -1153,15 +1186,18 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
         }
         if (remote != null) {
             remote.connect(conn);
-            conn.sendCommand(new GameCommand(MPConstants.SVR_TO_CL_INIT_GAME)
-                    .setArg("numPlayers", getNumPlayers())
-                    .setArg("playerNum", remote.getPlayerNum())
-                    .setArg("dominos", this));
+            conn.sendCommand(MPConstants.getSvrToClInitGameCmd(this, remote));
             onPlayerConnected(remote);
+            if (server.getNumConnectedClients() == getNumPlayers()-1) {
+                server.broadcastCommand(new GameCommand(MPConstants.SVR_TO_CL_INIT_ROUND).setArg("dominos", this.toString()));
+                onAllPlayersJoined();
+            }
         }
     }
 
     protected abstract void onPlayerConnected(Player player);
+
+    protected abstract void onAllPlayersJoined();
 
     @Override
     public void onReconnection(ClientConnection conn) {

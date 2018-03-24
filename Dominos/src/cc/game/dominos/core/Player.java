@@ -30,13 +30,15 @@ public class Player extends Reflector<Player> {
 
     public Player(int playerNum) {
         this.playerNum = playerNum;
-        this.name = "Player" + (playerNum+1);
+        this.name = "Player " + (playerNum+1);
     }
 
     public String getName() {
         if (connection != null) {
             return connection.getName();
         }
+        if (name == null)
+            name = "Player " + (playerNum+1);
         return name;
     }
 
@@ -47,6 +49,14 @@ public class Player extends Reflector<Player> {
      */
     public int getPlayerNum() {
         return playerNum;
+    }
+
+    /**
+     *
+     * @param playerNum
+     */
+    public void setPlayerNum(int playerNum) {
+        this.playerNum = playerNum;
     }
 
     /**

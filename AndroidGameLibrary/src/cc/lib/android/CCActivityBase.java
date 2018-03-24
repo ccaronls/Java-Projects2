@@ -34,7 +34,7 @@ public class CCActivityBase extends Activity {
         };
     }
 
-    public final Logger log = new AndroidLogger(getClass().getSimpleName());
+    public final Logger log = new AndroidLogger(getClass().toString());
 
 	@Override
 	protected void onCreate(Bundle bundle) {

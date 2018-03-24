@@ -172,7 +172,6 @@ public class HuffmanEncoding implements Cypher {
         for (int i=0; i<counts.length; i++) {
             this.counts[i].setOccurance(counts[i]);
         }
-        generate();
     }
 
     int [] getCounts() {
