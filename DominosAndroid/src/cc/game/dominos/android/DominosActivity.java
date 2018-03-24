@@ -127,8 +127,11 @@ public class DominosActivity extends DroidActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        int padding = getResources().getDimensionPixelSize(R.dimen.border_padding);
+        setMargin(padding);
         saveFile = new File(getFilesDir(), "dominos.save");
         Dominos.SPACING = getResources().getDimension(R.dimen.element_spacing);
+        Dominos.TEXT_SIZE = getResources().getDimension(R.dimen.info_txt_size);
         dominos = new Dominos() {
             @Override
             public void redraw() {

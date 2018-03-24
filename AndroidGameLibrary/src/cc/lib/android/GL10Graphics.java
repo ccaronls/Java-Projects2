@@ -1227,6 +1227,13 @@ for (int pix : pixels) {
 		throw new RuntimeException("not implemented: getMaxBoundingRect");
 	}
 
+    @Override
+    public void setClipRect(float x, float y, float w, float h) {
+        throw new RuntimeException("not implemented: setClipRect");
+    }
 
-    
+    @Override
+    public void clearClip() {
+        throw new RuntimeException("not implemented: clearClip");
+    }
 }

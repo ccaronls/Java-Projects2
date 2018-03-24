@@ -24,11 +24,11 @@ public class DroidGraphics extends APGraphics {
     final RectF rectf = new RectF();
     final Rect rect = new Rect();
 
-    public DroidGraphics(Context context, Canvas canvas) {
-        super(canvas.getWidth(), canvas.getHeight());
+    public DroidGraphics(Context context, Canvas canvas, int width, int height) {
+        super(width, height);
         this.context = context;
         this.canvas = canvas;
-        r.setOrtho(0, canvas.getWidth(), 0, canvas.getHeight());
+        r.setOrtho(0, width, 0, height);
         paint.setStrokeWidth(1);
     }
 
@@ -41,9 +41,9 @@ public class DroidGraphics extends APGraphics {
         bitmaps.clear();
     }
 
-    public void setCanvas(Canvas c) {
+    public void setCanvas(Canvas c, int width, int height) {
         this.canvas = c;
-        initViewport(c.getWidth(), c.getHeight());
+        initViewport(width, height);
     }
 
     /**
@@ -498,7 +498,12 @@ public class DroidGraphics extends APGraphics {
         paint.setStyle(Paint.Style.FILL);
         int savecolor = paint.getColor();
         paint.setColor(color.toARGB());
+        canvas.save();
+        Matrix I = new Matrix();
+        I.setValues(new float[] { 1,0,0,0,1,0,0,0,1}); // strange this is not easier
+        canvas.setMatrix(I);
         canvas.drawRect(0, 0, canvas.getWidth(), canvas.getHeight(), paint);
+        canvas.restore();
         paint.setColor(savecolor);
     }
 
@@ -523,7 +528,7 @@ public class DroidGraphics extends APGraphics {
         float width = paint.getStrokeWidth();
         paint.setStrokeWidth(0);
         canvas.save();
-        canvas.setMatrix(m);
+        canvas.concat(m);
         canvas.drawRoundRect(x, y, x+w, y+h, radius, radius,paint);
         canvas.restore();
         paint.setStrokeWidth(width);

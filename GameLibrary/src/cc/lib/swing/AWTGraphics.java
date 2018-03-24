@@ -141,7 +141,10 @@ public class AWTGraphics extends APGraphics {
 
     @Override
     public final float drawStringLine(float x, float y, Justify hJust, String text) {
-        AWTUtils.drawJustifiedString(g, Math.round(x), Math.round(y)-3, hJust, Justify.TOP, text);
+        int leading = g.getFontMetrics().getLeading();
+        int ascent = g.getFontMetrics().getAscent();
+        int descent = g.getFontMetrics().getDescent();
+        AWTUtils.drawJustifiedString(g, Math.round(x), Math.round(y)-descent, hJust, Justify.TOP, text);
         return this.getTextWidth(text);
     }
 

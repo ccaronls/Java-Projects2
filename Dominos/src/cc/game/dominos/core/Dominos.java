@@ -54,6 +54,7 @@ import cc.lib.utils.Reflector;
 public abstract class Dominos extends Reflector<Dominos> implements GameServer.Listener {
 
     public static float SPACING = 6;
+    public static float TEXT_SIZE = 20;
 
     @Omit
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -746,11 +747,11 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
         }
 
         g.pushMatrix();
+        g.setTextHeight(TEXT_SIZE);
         if (portrait) {
             // draw the non-visible player stuff on lower LHS and visible player stuff on lower RHS
             g.translate(0, boardDim);
             //setupTextHeight(g, w/3, (h-boardDim)/5);
-            g.setTextHeight((h-boardDim)/8);
             drawInfo(g, w/3-SPACING, h-boardDim);
             g.translate(w/3, 0);
             drawPlayer(g, w*2/3, h-boardDim, pickX, pickY, drawDragged);
@@ -759,7 +760,6 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
             // upper half of RHS
             g.translate(boardDim, 0);
             //setupTextHeight(g, w-boardDim, h/5);
-            g.setTextHeight(h/(3*6));
             drawPlayer(g, w-boardDim, h*2/3, pickX, pickY, drawDragged);
             g.translate(0, h*2/3+SPACING);
             drawInfo(g, w-boardDim, h/3-SPACING);
@@ -905,7 +905,7 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
             Board.drawTile(g, 0, 0, 1);
             g.popMatrix();
             g.setColor(GColor.BLUE);
-            g.drawJustifiedString(dim*2+SPACING, h, Justify.LEFT, Justify.BOTTOM, String.format("x %d", pool.size()));
+            g.drawJustifiedString(dim*2+SPACING, h-dim, Justify.LEFT, Justify.TOP, String.format("x %d", pool.size()));
         }
     }
 

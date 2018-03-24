@@ -6,6 +6,9 @@ import android.os.Bundle;
 import android.os.SystemClock;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 
 /**
  * Created by chriscaron on 2/13/18.
@@ -40,18 +43,34 @@ public abstract class DroidActivity extends CCActivityBase {
 
     private Runnable touchDownRunnable = null;
 
+    private int margin = 0;
+    public void setMargin(int margin) {
+        this.margin = margin;
+        //FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams)content.getLayoutParams();
+        //lp.setMargins(margin, margin, margin, margin);
+        //content.setLayoutParams(lp);
+        content.postInvalidate();
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         content = new View(this) {
             @Override
             protected void onDraw(Canvas canvas) {
+                int width = canvas.getWidth()-margin*2;
+                int height = canvas.getHeight()-margin*2;
                 if (g == null) {
-                    g = new DroidGraphics(getContext(), canvas);
+                    g = new DroidGraphics(getContext(), canvas, width, height);
                 } else {
-                    g.setCanvas(canvas);
+                    g.setCanvas(canvas, width, height);
                 }
+                canvas.save();
+                canvas.translate(margin, margin);
+                canvas.save();
                 DroidActivity.this.onDraw(g);
+                canvas.restore();
+                canvas.restore();
             }
 
             @Override

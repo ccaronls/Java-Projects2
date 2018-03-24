@@ -30,7 +30,7 @@ public class Player extends Reflector<Player> {
 
     public Player(int playerNum) {
         this.playerNum = playerNum;
-        this.name = "P" + (playerNum+1);
+        this.name = "Player" + (playerNum+1);
     }
 
     public String getName() {
