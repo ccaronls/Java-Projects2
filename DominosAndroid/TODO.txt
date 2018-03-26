@@ -1,34 +1,27 @@
 - Allow a player to leave and another to join (test)
-- Add forfiet menu item (done)
 - Fix array index out of bounds exception (done?)
 - no infinite wait for remote exec calls (done?)
+  - Better way: put waiting for input from player in separate thread so we dont block the in/out cmd queues.
 - allow for spectators that can become players on a new game to replace player with fewest pts
-- dont show p2p devices that are not group owners (done)
-- is it possible to control the display name of your p2p device? (yes, done)
 - Allow server to kick out players (done)
-- Remove playersmart (done) and MP players as well. simpler to have just player and playeruser for all cases
-  and this allows us to have java app version of game (done)
 - Figure out extern strings for localization
-- Show players' names on info instead of Px (done)
 - Track max string width and use that to determine height of text (or wrap the text?)
-  - Maybe fixed text size is better then just wrap player names?
+  - Maybe fixed text size is better then just wrap player names? <--- Fixed text width more predictable
 - Notify users when players or server pauses or resumes their game
 - Allow users to set their name (alias or handle or icon? or pic?)
    - use camera to face capture and use thumb as icon!
 - Player layout is terrible. Should be a player on each side or something.
+  - Diamond shaped board with player in each corner?
 - Add sound effects.
-- Add shuffling animation
-- Add animations to show how pieces are moving around, like from the pool to a player
+- Need animation of player making a more, reuse the same from tile from pool anim.
 - Remember game params in settings
 - Fix inconsistent corners on tiles (some are round and some are more square)
 - Dont ever allow text overlapp
 - When a client moves, there is ui glitch that can be avoided if client simply updates game state itself
   and includes a flag to server to omit broadcasting back to the client.
-- test in release mode
+- test in release mode (90% sure this is ok. Need final test)
 - Add about screen and splash screen
 - Try diamond shared board with player in each corner?
-- Seems to be bug on render player tiles when player has one tile in a row? (fixed)
 - Speed up the end of round points anim.
-- Dont shuffle when a player has won the game
-- Fix 'Failed Busy' Toast - Busy seems to benign, but ERROR could mean WiFi is off
-- no name for server player displayed on clients
+- Dont shuffle when a player has won the game. Allow players to skip shuffle anim when they press menu (SKIP?)
+- Fix 'Failed Busy' Toast - Busy seems to be benign, but ERROR could mean WiFi is off

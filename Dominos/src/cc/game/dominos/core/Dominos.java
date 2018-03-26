@@ -735,14 +735,7 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
         board.clear();
         initPool();
         server.broadcastCommand(new GameCommand(MPConstants.SVR_TO_CL_INIT_ROUND).setArg("dominos", this.toString()));
-        int expectedPoolSize = pool.size();
-        board.startShuffleAnimation(gameLock, pool);
-        redraw();
-        Utils.waitNoThrow(gameLock, -1);
-        while (pool.size() != expectedPoolSize) {
-            log.error("Monitor notified too early");
-            Utils.waitNoThrow(gameLock, 1000);
-        }
+        startShuffleAnimation();
         newRound();
     }
 
@@ -938,7 +931,14 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
             Board.drawTile(g, 0, 0, 1);
             g.popMatrix();
             g.setColor(GColor.BLUE);
-            g.drawJustifiedString(dim*2+SPACING, h-dim, Justify.LEFT, Justify.TOP, String.format("x %d", pool.size()));
+            AAnimation<AGraphics> a = anims.get("POOL");
+            g.pushMatrix();
+            g.translate(dim*2+SPACING, h-dim);
+            if (a != null)
+                a.update(g);
+            else
+                g.drawJustifiedString(0, 0, Justify.LEFT, Justify.TOP, String.format("x %d", pool.size()));
+            g.popMatrix();
         }
     }
 
@@ -1191,6 +1191,249 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
             if (server.getNumConnectedClients() == getNumPlayers()-1) {
                 server.broadcastCommand(new GameCommand(MPConstants.SVR_TO_CL_INIT_ROUND).setArg("dominos", this.toString()));
                 onAllPlayersJoined();
+            }
+        }
+    }
+
+    public void startShuffleAnimation() {
+        final List<Tile> gamePool = new ArrayList<>(pool);
+        addAnimation("POOL", new AAnimation<AGraphics>(1000, -1) {
+            @Override
+            protected void draw(AGraphics g, float position, float dt) {
+                g.drawJustifiedString(0, 0, Justify.LEFT, Justify.TOP, String.format("x %d", gamePool.size()));
+            }
+        }, false);
+        board.addAnimation(new ShuffleAnimation(pool));
+        Utils.waitNoThrow(gameLock, -1);
+        anims.remove("POOL");
+    }
+
+    class ShuffleAnimation extends AAnimation<AGraphics> {
+
+        final List<Tile> pool = new ArrayList<>();
+        final List<Tile> gamePool;
+        final int rows;// = (int)Math.round(Math.sqrt(pool.size()*2));
+        final int cols;// = 2 * (pool.size() / rows);
+        final MutableVector2D [] positions = new MutableVector2D[pool.size()];
+
+        ShuffleAnimation(List<Tile> gamePool) {
+            super(20, gamePool.size());
+            this.gamePool = gamePool;
+            pool.addAll(gamePool);
+            gamePool.clear();
+            rows = (int)Math.round(Math.sqrt(pool.size()*2));
+            cols = 2 * (pool.size() / rows);
+            int r = 0;
+            int c = 1;
+            for (int t = 0; t < pool.size(); t++) {
+                positions[t] = new MutableVector2D(c, r + 0.5f);
+                c += 2;
+                if (c >= cols) {
+                    c = 1;
+                    r++;
+                }
+            }
+        }
+
+        @Override
+        protected void draw(AGraphics g, float position, float dt) {
+
+            float DIM = Math.min(board.boardHeight / (rows+2), board.boardWidth / (cols+2));
+            g.setPointSize(DIM/8);
+            g.pushMatrix();
+            g.setIdentity();
+            g.scale(DIM, DIM);
+            g.translate(1, 0.5f);
+
+            int repeats =  getRepeat();
+            for (int t=0; t<Math.min(pool.size(), repeats); t++) {
+                g.pushMatrix();
+                g.translate(positions[t]);
+                g.scale(0.95f, 0.95f);
+                g.translate(-1, -0.5f);
+                Tile tile = pool.get(t);
+                Board.drawTile(g, tile.pip1, tile.pip2, 1);
+                g.popMatrix();
+            }
+
+            g.popMatrix();
+        }
+
+        @Override
+        protected void onDone() {
+            // flip each one over in succession with some overlapp
+            // total time to flip should be 1 second with 25? ms inbetween starts
+            int delay = 0;
+            final int delayStep = 50;
+            final long flipTime = 500;
+            for (int i=0; i<positions.length; i++) {
+                final Vector2D pos = positions[i];
+                final Tile tile = pool.get(i);
+                final float DIM = Math.min(board.boardHeight / (rows+2), board.boardWidth / (cols+2));
+                final boolean isLast = i==positions.length-1;
+                long dur = flipTime + delayStep * (positions.length-1-i);
+                board.addAnimation(new AAnimation<AGraphics>(dur) {
+
+                    @Override
+                    protected void drawPrestart(AGraphics g) {
+                        g.setPointSize(DIM/8);
+                        g.pushMatrix();
+                        g.setIdentity();
+                        g.scale(DIM, DIM);
+                        g.translate(1, 0.5f);
+                        g.translate(pos);
+                        g.scale(0.95f, 0.95f);
+                        g.translate(-1, -0.5f);
+                        Board.drawTile(g, tile.pip1, tile.pip2, 1);
+                        g.popMatrix();
+                    }
+
+                    @Override
+                    protected void draw(AGraphics g, float position, float dt) {
+                        g.setPointSize(DIM/8);
+                        g.pushMatrix();
+                        g.setIdentity();
+                        g.scale(DIM, DIM);
+                        g.translate(1, 0.5f);
+                        g.translate(pos);
+                        g.scale(0.95f, 0.95f);
+                        g.translate(-1, -0.5f);
+                        float pos = (float)getElapsedTime()/flipTime;
+                        if (getElapsedTime() < flipTime/2) {
+                            g.translate(0, 0.5f);
+                            g.scale(1, 1-pos*2);
+                            g.translate(0, -0.5f);
+                            Board.drawTile(g, tile.pip1, tile.pip2, 1);
+                        } else if (getElapsedTime() < flipTime){
+                            g.translate(0, 0.5f);
+                            g.scale(1, pos*2-1);
+                            g.translate(0, -0.5f);
+                            Board.drawTile(g, 0, 0, 1);
+                        } else {
+                            Board.drawTile(g, 0, 0, 1);
+                        }
+                        g.popMatrix();
+                    }
+
+                    @Override
+                    protected void onDone() {
+                        if (isLast) {
+                            // start an animation of the tiles bouncing around the board edges
+                            final MutableVector2D [] velocities = new MutableVector2D[positions.length];
+                            //float speed = 0.02f;
+                            for (int i=0; i<velocities.length; i++) {
+                                float speed = Utils.randFloat(25f) + 25f;
+                                velocities[i] = new MutableVector2D(
+                                        Utils.flipCoin() ? -speed : speed,
+                                        Utils.flipCoin() ? -speed : speed
+                                );
+                            }
+
+                            board.addAnimation(new AAnimation<AGraphics>(5000) {
+
+                                @Override
+                                protected void draw(AGraphics g, float position, float dt) {
+
+                                    g.setPointSize(DIM/8);
+                                    g.pushMatrix();
+                                    g.setIdentity();
+                                    g.scale(DIM, DIM);
+                                    g.translate(1, 0.5f);
+                                    for (int i=0; i<positions.length; i++) {
+                                        Vector2D dv = velocities[i].scaledBy(dt);
+                                        positions[i].addEq(dv);
+                                        if (positions[i].getX() < 0 || positions[i].getX() > cols) {
+                                            //positions[i].setX(positions[i].getX())
+                                            positions[i].subEq(dv);
+                                            velocities[i].scaleEq(-1, 1);
+                                            positions[i].addEq(velocities[i].scaledBy(dt));
+                                        }
+                                        if (positions[i].getY() < 0 || positions[i].getY() > (float)rows) {
+                                            positions[i].subEq(dv);
+                                            velocities[i].scaleEq(1, -1);
+                                            positions[i].addEq(velocities[i].scaledBy(dt));
+                                        }
+                                        g.pushMatrix();
+                                        g.translate(positions[i]);
+                                        g.scale(0.95f, 0.95f);
+                                        g.translate(-1, -0.5f);
+                                        Board.drawTile(g, 0, 0, 1);
+                                        g.popMatrix();
+                                    }
+                                    g.popMatrix();
+
+                                    g.setIdentity();
+                                    g.setColor(GColor.CYAN);
+                                    g.setTextHeight(board.boardHeight/20);
+                                    g.drawJustifiedString(board.boardWidth/2, board.boardHeight/2, Justify.CENTER, Justify.CENTER, "SHUFFLING");
+                                }
+
+                                @Override
+                                protected void onDone() {
+                                    // finally shuffle all the tiles into the boneyard
+                                    int delay = 0;
+                                    final int delayStep = 30;
+                                    for (int i=0; i<positions.length; i++) {
+                                        final Tile tile = pool.get(i);
+                                        final Vector2D pos = positions[i];
+                                        final boolean isLast = i==positions.length-1;
+                                        board.addAnimation(new AAnimation<AGraphics>(600) {
+
+                                            @Override
+                                            protected void drawPrestart(AGraphics g) {
+                                                g.setPointSize(DIM/8);
+                                                g.pushMatrix();
+                                                g.setIdentity();
+                                                g.scale(DIM, DIM);
+                                                g.translate(1, 0.5f);
+                                                g.translate(pos);
+                                                g.scale(0.95f, 0.95f);
+                                                g.translate(-1, -0.5f);
+                                                Board.drawTile(g, 0, 0, 1);
+                                                g.popMatrix();
+                                            }
+
+                                            @Override
+                                            protected void draw(AGraphics g, float position, float dt) {
+                                                Vector2D boneyard;
+                                                if (g.getViewportWidth() > g.getViewportHeight()) {
+                                                    // landscape
+                                                    boneyard = new Vector2D(rows+3, 1);
+                                                } else {
+                                                    boneyard = new Vector2D(1, rows+3);
+                                                }
+                                                g.setPointSize(DIM/8);
+                                                g.pushMatrix();
+                                                g.setIdentity();
+                                                g.scale(DIM, DIM);
+                                                g.translate(1, 0.5f);
+                                                Vector2D dv = boneyard.sub(pos);
+                                                Vector2D p = pos.add(dv.scaledBy(position));
+                                                g.translate(p);
+                                                g.scale(1-position, 1-position);
+                                                g.translate(-1, -0.5f);
+                                                Board.drawTile(g, 0, 0, 1);
+                                                g.popMatrix();
+                                            }
+
+                                            @Override
+                                            protected void onDone() {
+                                                gamePool.add(tile);
+                                                if (isLast) {
+                                                    synchronized (gameLock) {
+                                                        gameLock.notifyAll();
+                                                    }
+                                                }
+                                            }
+                                        }.start(delay));
+                                        delay += delayStep;
+                                    }
+                                }
+                            }.start());
+                        }
+                    }
+                }.start(delay));
+                delay += delayStep;
             }
         }
     }

@@ -127,6 +127,7 @@ public class DominosActivity extends DroidActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        //AndroidLogger.setLogFile(new File(Environment.getExternalStorageDirectory(), "dominos.log"));
         int padding = getResources().getDimensionPixelSize(R.dimen.border_padding);
         setMargin(padding);
         saveFile = new File(Environment.getExternalStorageDirectory(), "dominos.save");

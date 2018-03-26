@@ -529,6 +529,8 @@ public class Reflector<T> {
                 		throw e;
                 	}
                 }
+            } else {
+                field.set(a, null);
             }
         }
         

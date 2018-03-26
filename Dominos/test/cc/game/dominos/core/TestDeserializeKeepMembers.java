@@ -32,16 +32,10 @@ public class TestDeserializeKeepMembers extends TestCase {
 
 
         Reflector.KEEP_INSTANCES = true;
-        d.loadFromFile(new File("dominos.save"));
-        int size = d.getPool().size();
-
-
+        d.initGame(12, 150, 0);
         d.setNumPlayers(2);
-        d.initGame(12, 1000, 1);
-        d.startNewGame();
-
         d.loadFromFile(new File("dominos.save"));
-        assertTrue(d.getPool().size() == size);
+        d.loadFromFile(new File("dominos.save2"));
 
     }
 

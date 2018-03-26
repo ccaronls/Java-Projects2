@@ -1,19 +1,12 @@
-
-
-- MP When round changes on client, it crashes
+- MP When round changes on client, it crashes (fixed. This caused by deserialization of root Tile form
+non-null to null. Need more thorough unit tests for Reflector to make sure we can convert from non-null to null all object types.)
 - confirm MP with release (done)
-- use common jar signer and proguard for all projects (done)
-- make new jar signer w/out the cecc references (done)
 - confirm MP with > 2 players (done)
 - confirm MP with a new game (done)
 - consider menu flow for UI in MP vs. SP
-- move GameServer/GameClient too core (done)
-  - support MP for PC app
+- support MP for PC app
 - allow MP between PC and android
-- rotations working? (yes)
-- text size overlapp when +pts animating (needs more work)
 - behavior of disconnect from server end needs work (ok?)
-- Make an ILogger/Factory in utils to be shared accross projects (done)
 - MP Host mode should save state onPause (done)
 - For listeners, copy into temp collection for iteration, catch errors and remove from
   persistent collection. This allows listeners to remove themselves form the callbacks otherwise

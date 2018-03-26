@@ -46,9 +46,13 @@ public class AndroidLogger implements Logger {
      * @param file
      * @throws IOException
      */
-    public static void setLogFile(File file) throws IOException {
+    public static void setLogFile(File file) {
         if (out == null) {
-            out = new PrintStream(new BufferedOutputStream(new FileOutputStream(file)));
+            try {
+                out = new PrintStream(new BufferedOutputStream(new FileOutputStream(file)));
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
