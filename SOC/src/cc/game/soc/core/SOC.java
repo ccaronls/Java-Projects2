@@ -472,12 +472,13 @@ public class SOC extends Reflector<SOC> {
 
 	private void dumpStateStack() {
 		if (mStateStack.size() == 0) {
-			Utils.println("State Stack Empty");
+			log.warn("State Stack Empty");
 		} else {
+            StringBuffer buf = new StringBuffer();
 			for (StackItem s : mStateStack) {
-				Utils.print(s.state + ", ");
+				buf.append(s.state).append(", ");
 			}
-			Utils.println();
+			log.debug(buf.toString());
 		}
 	}
 	
@@ -4401,7 +4402,7 @@ public class SOC extends Reflector<SOC> {
 			}
 			
 		});
-		Utils.println("Moves: " + moves);
+		log.debug("Moves: %s", moves);
 		return moves;
 	}
 
@@ -5352,4 +5353,12 @@ public class SOC extends Reflector<SOC> {
      * @param area
      */
 	protected void onPlayerCityDeveloped(int playerNum, DevelopmentArea area) {}
+
+    /**
+     *
+     * @param id
+     * @param params
+     * @return
+     */
+    protected String getString(int id, Object ... params) { return "IMPLEMENT THIS"; }
 }

@@ -12,7 +12,7 @@ dependencies {
 sourceSets {
     main {
         java {
-            srcDirs = ['src']
+            srcDirs = ['src', '../SOCAndroid/build/generated/source/r' ]
 //            excludes = [ '**/swing/**', '**/applet/**' ]
         }
         resources {
