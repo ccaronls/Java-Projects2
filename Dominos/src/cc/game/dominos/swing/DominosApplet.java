@@ -1,7 +1,9 @@
 package cc.game.dominos.swing;
 
+import java.io.BufferedReader;
 import java.io.File;
 
+import cc.game.dominos.android.R;
 import cc.game.dominos.core.*;
 import cc.lib.game.AGraphics;
 import cc.lib.game.Utils;
@@ -17,7 +19,16 @@ import cc.lib.swing.EZPanel;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.io.FileInputStream;
+import java.io.FileReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.lang.reflect.Field;
 import java.net.InetAddress;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.swing.*;
 import javax.jmdns.*;
@@ -34,8 +45,11 @@ public class DominosApplet extends AWTComponent implements GameServer.Listener {
     }
 
     final EZFrame frame;
+    final Map<Integer, String> stringTable;
+
 
     DominosApplet() {
+        stringTable = Utils.buildStringsTable(R.string.class, "../DominosAndroid/res/values/strings.xml");
         setMouseEnabled(true);
         setPadding(5);
         frame = new EZFrame("Dominos") {
@@ -62,7 +76,7 @@ public class DominosApplet extends AWTComponent implements GameServer.Listener {
         //dominos.initGame(9, 150, 0);
         //dominos.startIntroAnim();
         //dominos.getBoard().setBoardImageId(AWTGraphics.getImages().loadImage("assets/jamaica_dominos_table.png"));
-        dominos.getBoard().startDominosIntroAnimation(null);
+        dominos.startDominosIntroAnimation(null);
         try {
             dominos.server.listen();
             dominos.server.addListener(this);
@@ -219,6 +233,11 @@ public class DominosApplet extends AWTComponent implements GameServer.Listener {
         @Override
         protected void onAllPlayersJoined() {
 
+        }
+
+        @Override
+        protected String getString(int id, Object... params) {
+            return String.format(stringTable.get(id), params);
         }
     };
 

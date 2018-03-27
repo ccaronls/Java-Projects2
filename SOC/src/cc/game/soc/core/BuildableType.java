@@ -1,5 +1,7 @@
 package cc.game.soc.core;
 
+import cc.game.soc.android.R;
+
 /**
  * 
  * @author Chris Caron
@@ -36,18 +38,18 @@ public enum BuildableType {
 	    return cost[r.ordinal()];
 	}
 	
-	public String getNiceString() {
+	public String getNiceString(StringResource sr) {
 		String s = "";
 		for (ResourceType r : ResourceType.values()) {
 			if (cost[r.ordinal()] > 0) {
 				if (s.length() > 0)
 					 s += ", ";
-				s += String.valueOf(cost[r.ordinal()]) + " " + r.name();
+				s += String.valueOf(cost[r.ordinal()]) + " " + r.getName(sr);
 			}
 		}
 		int comma = s.lastIndexOf(',');
 		if (comma > 0) {
-			s = s.substring(0, comma) + " and" + s.substring(comma+1);
+			s = s.substring(0, comma) + sr.getString(R.string.buildable_costs_and) + s.substring(comma+1);
 		}
 		return s;
 	}

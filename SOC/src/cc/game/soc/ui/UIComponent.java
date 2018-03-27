@@ -1,8 +1,5 @@
 package cc.game.soc.ui;
 
-import cc.lib.game.APGraphics;
-import cc.lib.game.GDimension;
-import cc.lib.game.GRectangle;
 import cc.lib.math.Vector2D;
 
 /**

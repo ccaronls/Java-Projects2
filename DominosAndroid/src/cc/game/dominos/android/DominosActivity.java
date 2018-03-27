@@ -56,13 +56,12 @@ public class DominosActivity extends DroidActivity {
 
     private Dominos dominos = null;
     private File saveFile=null;
-    static DominosActivity instance = null;
 
     public DominosActivity() {
-        instance = this;
+
     }
 
-    public static abstract class SpinnerTask extends AsyncTask<Void, Void, Exception> {
+    public abstract class SpinnerTask extends AsyncTask<Void, Void, Exception> {
 
         Dialog spinner;
         @Override
@@ -71,7 +70,7 @@ public class DominosActivity extends DroidActivity {
         }
 
         protected Dialog showSpinner() {
-            ProgressDialog d = new ProgressDialog(instance, R.style.DialogTheme);
+            ProgressDialog d = new ProgressDialog(DominosActivity.this, R.style.DialogTheme);
             d.setOnCancelListener(new DialogInterface.OnCancelListener() {
                 @Override
                 public void onCancel(DialogInterface dialog) {
@@ -108,8 +107,8 @@ public class DominosActivity extends DroidActivity {
         protected abstract void onDone();
 
         protected void onError(Exception e) {
-            instance.newDialogBuilder().setTitle("Error").setMessage("An error occured\n  " + e.getMessage()).setNegativeButton("Cancel", null)
-                    .setPositiveButton("Proceed anyway", new DialogInterface.OnClickListener() {
+            newDialogBuilder().setTitle(R.string.popup_title_error).setMessage(getString(R.string.popup_msg_error_occured, e.getMessage())).setNegativeButton(R.string.popup_button_cancel, null)
+                    .setPositiveButton(R.string.popup_button_proceed, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             onDone();
@@ -154,9 +153,9 @@ public class DominosActivity extends DroidActivity {
                     getContent().postDelayed(new Runnable() {
                         @Override
                         public void run() {
-                            newDialogBuilder().setTitle("Game Over")
-                                    .setMessage("Standby for next game!")
-                                    .setNegativeButton("Quit", new DialogInterface.OnClickListener() {
+                            newDialogBuilder().setTitle(R.string.popup_title_game_over)
+                                    .setMessage(R.string.popup_msg_standby_for_next_game)
+                                    .setNegativeButton(R.string.popup_button_quit, new DialogInterface.OnClickListener() {
                                         @Override
                                         public void onClick(DialogInterface dialog, int which) {
                                             new SpinnerTask() {
@@ -188,11 +187,11 @@ public class DominosActivity extends DroidActivity {
             protected void onMenuClicked() {
                 if (server.isRunning()) {
                     String[] options = {
-                            "View Clients",
-                            "New Game",
-                            "Stop Session"
+                            getString(R.string.popup_item_view_clients),
+                            getString(R.string.popup_item_new_game),
+                            getString(R.string.popup_item_stop_session)
                     };
-                    newDialogBuilder().setTitle("Multiplayer Host")
+                    newDialogBuilder().setTitle(R.string.popup_title_mp_hosts)
                             .setItems(options, new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
@@ -204,20 +203,22 @@ public class DominosActivity extends DroidActivity {
                                             int index = 0;
                                             for (ClientConnection c : server.getConnectionValues()) {
                                                 clients[index] = c;
-                                                clientItems[index++] = c.getName() + " " + (c.isConnected() ? " Connected" : " Disconnected");
+                                                clientItems[index++] = getString(c.isConnected() ? R.string.list_item_player_status_connected :
+                                                                R.string.list_item_player_status_disconnected,
+                                                        c.getName());
                                             }
-                                            newDialogBuilder().setTitle("Clients")
+                                            newDialogBuilder().setTitle(R.string.popup_title_clients)
                                                     .setItems(clientItems, new DialogInterface.OnClickListener() {
                                                         @Override
                                                         public void onClick(DialogInterface dialog, int which) {
                                                             final ClientConnection client = clients[which];
-                                                            newDialogBuilder().setTitle("Client " + client.getName())
-                                                                    .setMessage("Kick this client off?")
-                                                                    .setNegativeButton("No", null)
-                                                                    .setPositiveButton("Kick", new DialogInterface.OnClickListener() {
+                                                            newDialogBuilder().setTitle(getString(R.string.popup_title_client_name, client.getName()))
+                                                                    .setMessage(R.string.popup_msg_kick_client)
+                                                                    .setNegativeButton(R.string.popup_button_no, null)
+                                                                    .setPositiveButton(R.string.popup_button_kick, new DialogInterface.OnClickListener() {
                                                                         @Override
                                                                         public void onClick(DialogInterface dialog, int which) {
-                                                                            client.disconnect("Kicked out");
+                                                                            client.disconnect(getString(R.string.client_disconnected_reason_kicked_out));
                                                                         }
                                                                     }).show();
                                                         }
@@ -226,9 +227,9 @@ public class DominosActivity extends DroidActivity {
                                             break;
                                         }
                                         case 1: {
-                                            newDialogBuilder().setTitle("Confirm").setMessage("Start a new Game?")
-                                                    .setNegativeButton("Cancel", null)
-                                                    .setPositiveButton("Start", new DialogInterface.OnClickListener() {
+                                            newDialogBuilder().setTitle(R.string.popup_title_confirm).setMessage(R.string.popup_msg_start_new_game)
+                                                    .setNegativeButton(R.string.popup_button_cancel, null)
+                                                    .setPositiveButton(R.string.popup_button_start, new DialogInterface.OnClickListener() {
                                                         @Override
                                                         public void onClick(DialogInterface dialog, int which) {
                                                             dominos.startNewGame();
@@ -238,10 +239,10 @@ public class DominosActivity extends DroidActivity {
                                             break;
                                         }
                                         case 2:
-                                            newDialogBuilder().setTitle("Confirm")
-                                                    .setMessage("End multiplayer session?")
-                                                    .setNegativeButton("No", null)
-                                                    .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                                            newDialogBuilder().setTitle(R.string.popup_title_confirm)
+                                                    .setMessage(R.string.popup_msg_exit_mp)
+                                                    .setNegativeButton(R.string.popup_button_no, null)
+                                                    .setPositiveButton(R.string.popup_button_yes, new DialogInterface.OnClickListener() {
                                                         @Override
                                                         public void onClick(DialogInterface dialog, int which) {
                                                             new SpinnerTask() {
@@ -262,22 +263,22 @@ public class DominosActivity extends DroidActivity {
                                     }
                                 }
                             })
-                            .setNegativeButton("Cancel", null).show();
+                            .setNegativeButton(R.string.popup_button_cancel, null).show();
                 } else if (client.isConnected()) {
                     String[] options = {
-                            "Forfeit",
-                            "Exit Multiplayer"
+                            getString(R.string.popup_item_forfeit),
+                            getString(R.string.popup_item_exit_mp)
                     };
-                    newDialogBuilder().setTitle("Client Session")
+                    newDialogBuilder().setTitle(R.string.popup_title_client_session)
                             .setItems(options, new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
                                     switch (which) {
                                         case 0: // forfeit
-                                            newDialogBuilder().setTitle("Confirm")
-                                                    .setMessage("Are you sure you want to forfeit? A new game will get started if you do.")
-                                                    .setNegativeButton("No", null)
-                                                    .setPositiveButton("Forfeit", new DialogInterface.OnClickListener() {
+                                            newDialogBuilder().setTitle(R.string.popup_title_confirm)
+                                                    .setMessage(R.string.popup_msg_confirm_forfeit)
+                                                    .setNegativeButton(R.string.popup_button_no, null)
+                                                    .setPositiveButton(R.string.popup_button_forfiet, new DialogInterface.OnClickListener() {
                                                         @Override
                                                         public void onClick(DialogInterface dialog, int which) {
                                                             client.sendCommand(new GameCommand(MPConstants.CL_TO_SVR_FORFEIT));
@@ -288,10 +289,10 @@ public class DominosActivity extends DroidActivity {
                                                     }).show();
                                             break;
                                         case 1: // exit
-                                            newDialogBuilder().setTitle("Confirm")
-                                                    .setMessage("Disconnect from server?")
-                                                    .setNegativeButton("No", null)
-                                                    .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                                            newDialogBuilder().setTitle(R.string.popup_title_confirm)
+                                                    .setMessage(R.string.popup_msg_confirm_disconnect)
+                                                    .setNegativeButton(R.string.popup_button_no, null)
+                                                    .setPositiveButton(R.string.popup_button_yes, new DialogInterface.OnClickListener() {
                                                         @Override
                                                         public void onClick(DialogInterface dialog, int which) {
                                                             new SpinnerTask() {
@@ -311,7 +312,7 @@ public class DominosActivity extends DroidActivity {
                                                     }).show();
                                     }
                                 }
-                            }).setNegativeButton("Cancel", null).show();
+                            }).setNegativeButton(R.string.popup_button_cancel, null).show();
 
                 } else {
                     showNewGameDialog();
@@ -334,9 +335,14 @@ public class DominosActivity extends DroidActivity {
             protected String getServerName() {
                 return NAME;
             }
+
+            @Override
+            protected String getString(int id, Object ... params) {
+                return getResources().getString(id, params);
+            }
         };
         server = dominos.server;
-        dominos.getBoard().startDominosIntroAnimation(new Runnable() {
+        dominos.startDominosIntroAnimation(new Runnable() {
             @Override
             public void run() {
                 if (currentDialog == null)
@@ -386,7 +392,7 @@ public class DominosActivity extends DroidActivity {
     private void requestPermission() {
 
         if (ActivityCompat.shouldShowRequestPermissionRationale(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-            Toast.makeText(this, "Write External Storage permission allows us to do store images. Please allow this permission in App Settings.", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, R.string.toast_allow_write_external_storage, Toast.LENGTH_LONG).show();
         } else {
             ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.WRITE_EXTERNAL_STORAGE}, PERMISSION_REQUEST_CODE);
         }
@@ -468,11 +474,11 @@ public class DominosActivity extends DroidActivity {
     void showNewGameDialog() {
 
         final View v = View.inflate(this, R.layout.new_game_type_dialog, null);
-        AlertDialog.Builder b = newDialogBuilder().setTitle("Choose Game Type")
-                .setView(v).setNegativeButton("Cancel", null);
+        AlertDialog.Builder b = newDialogBuilder().setTitle(R.string.popup_title_choose_game_type)
+                .setView(v).setNegativeButton(R.string.popup_button_cancel, null);
 
         if (dominos.isInitialized()) {
-            b.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            b.setNegativeButton(R.string.popup_button_cancel, new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
                     if (!dominos.isGameRunning())
@@ -516,7 +522,7 @@ public class DominosActivity extends DroidActivity {
                         currentDialog.dismiss();
                     } else {
                         dominos.clear();
-                        newDialogBuilder().setTitle("Error").setMessage("Failed to load from save file").setNegativeButton("Ok", new DialogInterface.OnClickListener() {
+                        newDialogBuilder().setTitle(R.string.popup_title_error).setMessage(R.string.popup_msg_failed_to_load).setNegativeButton(R.string.popup_button_ok, new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 showNewGameDialog();
@@ -540,7 +546,7 @@ public class DominosActivity extends DroidActivity {
         @Override
         public void onCommand(ClientConnection c, GameCommand cmd) {
             if (cmd.getType() == MPConstants.CL_TO_SVR_FORFEIT) {
-                c.getServer().broadcastMessage("Player " + c.getName() + " has forfeited the game.");
+                c.getServer().broadcastMessage(getString(R.string.server_broadcast_player_forfieted, c.getName()));
                 startNewGame();
             } else {
                 Log.w(TAG, "Unhandled cmd: " + cmd);
@@ -555,15 +561,15 @@ public class DominosActivity extends DroidActivity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        newDialogBuilder().setTitle("Notice")
-                                .setMessage("Client " + c.getName() + " has disconnected because " + reason + ". You can choose to continue without or wait for them to reconnect.")
-                                .setNegativeButton("Continue without", new DialogInterface.OnClickListener() {
+                        newDialogBuilder().setTitle(R.string.popup_title_notice)
+                                .setMessage(getString(R.string.popup_msg_player_disconnect_reason, c.getName(), reason))
+                                .setNegativeButton(R.string.popup_button_continue_without, new DialogInterface.OnClickListener() {
                                     @Override
                                     public void onClick(DialogInterface dialog, int which) {
                                         new SpinnerTask() {
                                             @Override
                                             protected void doIt() throws Exception {
-                                                c.disconnect("Dropped");
+                                                c.disconnect(getString(R.string.client_disconnected_reason_droppped));
                                             }
 
                                             @Override
@@ -600,7 +606,7 @@ public class DominosActivity extends DroidActivity {
                         +"\nTYPE      :"+Build.TYPE
                         +"\nVERSION   :"+Build.VERSION.CODENAME;
                 log.debug("Device info=%s", build);
-                helper.setDeviceName(server.getName() + "-Dominos");
+                helper.setDeviceName(server.getName() + "-" + getString(R.string.app_name));
                 helper.startGroup(); // make sure we are the group owner
             }
 
@@ -611,7 +617,7 @@ public class DominosActivity extends DroidActivity {
 
             @Override
             protected void onError(Exception e) {
-                newDialogBuilder().setTitle("Error").setMessage("Failed to start server\n" + e.getLocalizedMessage()).setNegativeButton("Ok", new DialogInterface.OnClickListener() {
+                newDialogBuilder().setTitle(R.string.popup_title_error).setMessage(getString(R.string.popup_msg_failed_to_start_server, e.getLocalizedMessage())).setNegativeButton(R.string.popup_button_ok, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         new SpinnerTask() {
@@ -688,9 +694,9 @@ public class DominosActivity extends DroidActivity {
             }
         };
         lvPlayers.setAdapter(playersAdapter);
-        newDialogBuilder().setTitle("Waiting for players")
+        newDialogBuilder().setTitle(R.string.popup_title_waiting_for_players)
                 .setView(lvPlayers)
-                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                .setNegativeButton(R.string.popup_button_cancel, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         new SpinnerTask() {
@@ -724,7 +730,7 @@ public class DominosActivity extends DroidActivity {
                     currentDialog.dismiss();
                 } else {
                     int num = maxClients - server.getNumConnectedClients();
-                    server.broadcastMessage("Waiting for " + num + " more players");
+                    server.broadcastMessage(getString(R.string.server_broadcast_waiting_for_n_more_players, num));
                 }
             }
 
@@ -784,7 +790,7 @@ public class DominosActivity extends DroidActivity {
                     TextView tvPeer = (TextView)v.findViewById(R.id.tvPeer);
                     if (d instanceof WifiP2pDevice) {
                         WifiP2pDevice device = (WifiP2pDevice)d;
-                        tvPeer.setText(device.deviceName + " " + WifiP2pHelper.statusToString(device.status));
+                        tvPeer.setText(device.deviceName + " " + WifiP2pHelper.statusToString(device.status, DominosActivity.this));
                     } else if (d instanceof BonjourThread.BonjourRecord) {
                         BonjourThread.BonjourRecord record = (BonjourThread.BonjourRecord)d;
                         tvPeer.setText("DNS: " + record.getHostAddress());
@@ -853,9 +859,9 @@ public class DominosActivity extends DroidActivity {
                     @Override
                     protected void onError(Exception e) {
                         connecting = false;
-                        newDialogBuilder().setTitle("Error")
-                                .setMessage("Failed to connect " + e.getMessage())
-                                .setNegativeButton("Ok", new DialogInterface.OnClickListener() {
+                        newDialogBuilder().setTitle(R.string.popup_title_error)
+                                .setMessage(getString(R.string.popup_msg_failed_to_connect_reason, e.getMessage()))
+                                .setNegativeButton(R.string.popup_button_ok, new DialogInterface.OnClickListener() {
                                     @Override
                                     public void onClick(DialogInterface dialog, int which) {
                                         new SpinnerTask() {
@@ -912,9 +918,9 @@ public class DominosActivity extends DroidActivity {
 
                     @Override
                     protected Dialog showSpinner() {
-                        return newDialogBuilder().setTitle("Connecting")
-                                .setMessage("Please wait while your connect request is accepted")
-                                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                        return newDialogBuilder().setTitle(R.string.popup_title_connecting)
+                                .setMessage(R.string.popup_msg_please_wait_forconnect_accept)
+                                .setNegativeButton(R.string.popup_button_cancel, new DialogInterface.OnClickListener() {
                                     @Override
                                     public void onClick(DialogInterface dialog, int which) {
                                         new SpinnerTask() {
@@ -949,11 +955,11 @@ public class DominosActivity extends DroidActivity {
                     protected void onDone() {
                         if (client.isConnected()) {
                             //showWaitingForPlayersDialogClient(canceleble);
-                            Toast.makeText(DominosActivity.this, "Connection SUCCESS!", Toast.LENGTH_LONG).show();
+                            Toast.makeText(DominosActivity.this, R.string.toast_connect_success, Toast.LENGTH_LONG).show();
                         } else if (!isCancelled()) {
-                            newDialogBuilder().setTitle("Error")
-                                    .setMessage("Failed to connect to host")
-                                    .setNegativeButton("Ok", new DialogInterface.OnClickListener() {
+                            newDialogBuilder().setTitle(R.string.popup_title_error)
+                                    .setMessage(R.string.popup_msg_failed_connect_host)
+                                    .setNegativeButton(R.string.popup_button_ok, new DialogInterface.OnClickListener() {
                                         @Override
                                         public void onClick(DialogInterface dialog, int which) {
                                             showNewGameDialog();
@@ -974,9 +980,9 @@ public class DominosActivity extends DroidActivity {
 
             @Override
             protected void onDone() {
-                newDialogBuilder().setMessage("Hosts")
+                newDialogBuilder().setTitle(R.string.popup_title_hosts)
                         .setView(lvHost)
-                        .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                        .setNegativeButton(R.string.popup_button_cancel, new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 helper.destroy();
@@ -991,9 +997,9 @@ public class DominosActivity extends DroidActivity {
     }
 
     void showWaitingForPlayersDialogClient(final boolean cancelable) {
-        final AlertDialog d = newDialogBuilder().setTitle("Waiting")
-                .setTitle("Waiting for more players")
-                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+        final AlertDialog d = newDialogBuilder().setTitle(R.string.popup_title_waiting)
+                .setMessage(R.string.popup_msg_waiting_for_players)
+                .setNegativeButton(R.string.popup_button_cancel, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         client.disconnect();
@@ -1053,7 +1059,7 @@ public class DominosActivity extends DroidActivity {
             }
         }.setCancelable(false);
         if (currentDialog != null && currentDialog.isShowing()) {
-            builder.setNeutralButton("Back", new DialogInterface.OnClickListener() {
+            builder.setNeutralButton(R.string.popup_button_back, new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
                     currentDialog = previous;
@@ -1105,9 +1111,9 @@ public class DominosActivity extends DroidActivity {
             case 250:
                 rgMaxPoints.check(R.id.rbMaxPoints250); break;
         }
-        newDialogBuilder().setTitle("New Multi Player Game")
+        newDialogBuilder().setTitle(R.string.popup_title_new_mp_game)
                 .setView(v)
-                .setPositiveButton("Start", new DialogInterface.OnClickListener() {
+                .setPositiveButton(R.string.popup_button_start, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
 
@@ -1168,13 +1174,13 @@ public class DominosActivity extends DroidActivity {
                         } else {
                             dominos.initGame(maxPips, maxPoints, 0);
                             dominos.startNewGame();
-                            server.broadcastMessage("Starting a new game!");
+                            server.broadcastMessage(getString(R.string.server_broadcast_starting_new_game));
                             dominos.startGameThread();
                         }
                     }
 
 
-                }).setNegativeButton("Quit", new DialogInterface.OnClickListener() {
+                }).setNegativeButton(R.string.popup_button_quit, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 new SpinnerTask() {
@@ -1194,7 +1200,7 @@ public class DominosActivity extends DroidActivity {
 
     void startNewGame() {
         dominos.startNewGame();
-        server.broadcastMessage("Starting a new game!");
+        server.broadcastMessage(getString(R.string.server_broadcast_starting_new_game));
         dominos.startGameThread();
     }
 
@@ -1236,9 +1242,9 @@ public class DominosActivity extends DroidActivity {
             case 250:
                 rgMaxPoints.check(R.id.rbMaxPoints250); break;
         }
-        newDialogBuilder().setTitle("New Single Player Game")
+        newDialogBuilder().setTitle(R.string.popup_title_new_sp_game)
                 .setView(v)
-                .setPositiveButton("Start", new DialogInterface.OnClickListener() {
+                .setPositiveButton(R.string.popup_button_start, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
 

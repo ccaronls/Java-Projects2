@@ -14,6 +14,7 @@ import cc.game.soc.core.DiceType;
 import cc.game.soc.core.EventCard;
 import cc.game.soc.core.EventCardType;
 import cc.game.soc.swing.ADiceComponent.DiceChangedListener;
+import cc.game.soc.ui.UISOC;
 import cc.lib.game.Justify;
 import cc.lib.swing.AWTUtils;
 
@@ -46,7 +47,7 @@ public class EventCardComponent extends JComponent implements DiceChangedListene
 		if (minCardWidth == 0) {
 			ArrayList<String> all = new ArrayList<String>();
 			for (EventCardType e : EventCardType.values()) {
-				all.addAll(Arrays.asList(e.getNiceString().split("\n")));
+				all.addAll(Arrays.asList(e.getName(UISOC.getInstance()).split("\n")));
 			}
 			
 			for (String s : all) {
@@ -65,8 +66,8 @@ public class EventCardComponent extends JComponent implements DiceChangedListene
 		{
 			EventCard card = GUI.instance.getSOC().getTopEventCard();
 			if (card != null) {
-				cardText = card.getType().getNiceString();
-				helpText = card.getHelpText(GUI.instance.getRules());
+				cardText = card.getType().getName(UISOC.getInstance());
+				helpText = card.getHelpText(GUI.instance.getRules(), UISOC.getInstance());
 				production = card.getProduction();
 			}
 		}

@@ -1,38 +1,41 @@
 package cc.game.soc.core;
 
+import cc.game.soc.android.R;
+
 /**
  * 
  * @author Chris Caron
  *
  */
 public enum TileType {
-	NONE		(0, false, false, false, false, null, null), 		// nothing
-	DESERT		(1, false, true, false, false, null, null), 		// worthless
-	WATER		(1, true, false, false, false, null, null), 		// worthless
-	PORT_WOOD	(1, true, false, true, false, ResourceType.Wood, null), 		// water with a resource icon
-	PORT_WHEAT	(1, true, false, true, false, ResourceType.Wheat, null), 		// water with a resource icon
-	PORT_SHEEP	(1, true, false, true, false, ResourceType.Sheep, null), 		// water with a resource icon
-	PORT_ORE	(1, true, false, true, false, ResourceType.Ore, null), 		// water with a resource icon
-	PORT_BRICK	(1, true, false, true, false, ResourceType.Brick, null), 		// water with a resource icon
-	PORT_MULTI	(1, true, false, true, false, null, null), 		// water with a ? icon
-	GOLD		(1, false, true, false, true, null, null),		// cell type gives out a resource of users choice
-	UNDISCOVERED(0, false, false, false, false, null, null),		// cell type is unknown until user reaches a vertex by road or ship (usually ship)
+	NONE		(R.string.tile_type_none, 0, false, false, false, false, null, null), 		// nothing
+	DESERT		(R.string.tile_type_desert, 1, false, true, false, false, null, null), 		// worthless
+	WATER		(R.string.tile_type_water, 1, true, false, false, false, null, null), 		// worthless
+	PORT_WOOD	(R.string.tile_type_port_wood, 1, true, false, true, false, ResourceType.Wood, null), 		// water with a resource icon
+	PORT_WHEAT	(R.string.tile_type_port_wheat, 1, true, false, true, false, ResourceType.Wheat, null), 		// water with a resource icon
+	PORT_SHEEP	(R.string.tile_type_port_sheep, 1, true, false, true, false, ResourceType.Sheep, null), 		// water with a resource icon
+	PORT_ORE	(R.string.tile_type_port_ore, 1, true, false, true, false, ResourceType.Ore, null), 		// water with a resource icon
+	PORT_BRICK	(R.string.tile_type_port_brick, 1, true, false, true, false, ResourceType.Brick, null), 		// water with a resource icon
+	PORT_MULTI	(R.string.tile_type_port_multi, 1, true, false, true, false, null, null), 		// water with a ? icon
+	GOLD		(R.string.tile_type_gold, 1, false, true, false, true, null, null),		// cell type gives out a resource of users choice
+	UNDISCOVERED(R.string.tile_type_undiscovered, 0, false, false, false, false, null, null),		// cell type is unknown until user reaches a vertex by road or ship (usually ship)
 
 	// used for random generation
-	RANDOM_RESOURCE_OR_DESERT	(0, false, true, false, false, null, null),	// randomly assign a desert or a resource 
-	RANDOM_RESOURCE				(0, false, true, false, false, null, null),	// randomly assign a resource
-	RANDOM_PORT_OR_WATER		(0, true, false, false, false, null, null),	// randomly assign a post or water
-	RANDOM_PORT					(0, true, false, true, false, null, null),	// randomly assign a port
+	RANDOM_RESOURCE_OR_DESERT	(R.string.tile_type_random_resource_or_desert, 0, false, true, false, false, null, null),	// randomly assign a desert or a resource
+	RANDOM_RESOURCE				(R.string.tile_type_random_resource, 0, false, true, false, false, null, null),	// randomly assign a resource
+	RANDOM_PORT_OR_WATER		(R.string.tile_type_random_port_or_water, 0, true, false, false, false, null, null),	// randomly assign a post or water
+	RANDOM_PORT					(R.string.tile_type_random_port, 0, true, false, true, false, null, null),	// randomly assign a port
 	
 	// Cites and Knights Extension
-	PASTURE		(3, false, true, false, true, ResourceType.Sheep, CommodityType.Cloth), 	// 1 Sheep, 1 Cloth
-	HILLS		(3, false, true, false, true, ResourceType.Brick, null),					// 2 Brick
-	MOUNTAINS	(3, false, true, false, true, ResourceType.Ore, CommodityType.Coin),		// 1 Ore, 1 Coin
-	FIELDS		(3, false, true, false, true, ResourceType.Wheat, null),					// 2 Grain
-	FOREST		(3, false, true, false, true, ResourceType.Wood, CommodityType.Paper), 	// 1 Wood, 1 Paper
+	PASTURE		(R.string.tile_type_pasture, 3, false, true, false, true, ResourceType.Sheep, CommodityType.Cloth), 	// 1 Sheep, 1 Cloth
+	HILLS		(R.string.tile_type_hills, 3, false, true, false, true, ResourceType.Brick, null),					// 2 Brick
+	MOUNTAINS	(R.string.tile_type_mountains, 3, false, true, false, true, ResourceType.Ore, CommodityType.Coin),		// 1 Ore, 1 Coin
+	FIELDS		(R.string.tile_type_fields, 3, false, true, false, true, ResourceType.Wheat, null),					// 2 Grain
+	FOREST		(R.string.tile_type_forest, 3, false, true, false, true, ResourceType.Wood, CommodityType.Paper), 	// 1 Wood, 1 Paper
 	;
 	
 	final int chanceOnUndiscovered;
+	final int stringId;
 	public final boolean isWater;
 	public final boolean isLand;
 	public final boolean isPort;
@@ -40,8 +43,9 @@ public enum TileType {
 	public final ResourceType resource;
 	public final CommodityType commodity;
 
-	private TileType(int chance, boolean isWater, boolean isLand, boolean isPort, boolean isDistribution, ResourceType resource, CommodityType commodity) {
-		this.chanceOnUndiscovered = chance;
+	TileType(int stringId, int chance, boolean isWater, boolean isLand, boolean isPort, boolean isDistribution, ResourceType resource, CommodityType commodity) {
+		this.stringId = stringId;
+	    this.chanceOnUndiscovered = chance;
 		this.isDistribution = isDistribution;
 		this.isWater = isWater;
 		this.isLand = isLand;
@@ -66,5 +70,8 @@ public enum TileType {
 		return null;
 	}
 
+	public String getName(StringResource sr) {
+        return sr.getString(stringId);
+    }
 
 }

@@ -155,10 +155,10 @@ public class WifiP2pHelper implements
             ctxt.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    newDialog().setTitle("Channel Disconnected")
-                            .setMessage("Attempt ot re-connect?")
-                            .setNegativeButton("No", null)
-                            .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    newDialog().setTitle(R.string.wifi_popup_title_channel_disconnected)
+                            .setMessage(R.string.wifi_popup_msg_channel_auto_reconnect)
+                            .setNegativeButton(R.string.wifi_popup_button_no, null)
+                            .setPositiveButton(R.string.wifi_popup_button_yes, new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
                                     p2pInitialize();
@@ -201,13 +201,16 @@ public class WifiP2pHelper implements
             synchronized (caller) {
                 caller.notify();
             }
-            ctxt.runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    //Toast.makeText(ctxt, "Failed: " + getFailureReasonString(reason), Toast.LENGTH_LONG).show();
-                    onError(caller + ":" + getFailureReasonString(reason));
-                }
-            });
+            if (reason != WifiP2pManager.BUSY) {
+                // Ignore BUSY, it appears to be benign.
+                ctxt.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        //Toast.makeText(ctxt, "Failed: " + getFailureReasonString(reason), Toast.LENGTH_LONG).show();
+                        onError(caller + ":" + getFailureReasonString(reason));
+                    }
+                });
+            }
         }
     }
 
@@ -215,29 +218,29 @@ public class WifiP2pHelper implements
     private String getFailureReasonString(int reason) {
         switch (reason) {
             case WifiP2pManager.ERROR:
-                return "ERROR";
+                return ctxt.getString(R.string.wifi_failure_reason_error);
             case WifiP2pManager.BUSY:
-                return "BUSY";
+                return ctxt.getString(R.string.wifi_failure_reason_busy);
             case WifiP2pManager.P2P_UNSUPPORTED:
-                return "P2P UNSUPPORTED";
+                return ctxt.getString(R.string.wifi_failure_reason_p2p_unsupported);
         }
-        return "UNKNOWN";
+        return ctxt.getString(R.string.wifi_failure_reason_unknown);
     }
 
-    public static String statusToString(int status) {
+    public static String statusToString(int status, Context ctxt) {
         switch (status) {
             case WifiP2pDevice.AVAILABLE:
-                return "Available";
+                return ctxt.getString(R.string.wifi_conn_status_available);
             case WifiP2pDevice.CONNECTED:
-                return "Connected";
+                return ctxt.getString(R.string.wifi_conn_status_connected);
             case WifiP2pDevice.FAILED:
-                return "Failed";
+                return ctxt.getString(R.string.wifi_conn_status_failed);
             case WifiP2pDevice.INVITED:
-                return "Invited";
+                return ctxt.getString(R.string.wifi_conn_status_invited);
             case WifiP2pDevice.UNAVAILABLE:
-                return "Unavailable";
+                return ctxt.getString(R.string.wifi_conn_status_unavailable);
         }
-        return "UNKNOWN";
+        return ctxt.getString(R.string.wifi_conn_status_unknown);
     }
 
     private WifiP2pServiceRequest discoverServicesRequest = null;

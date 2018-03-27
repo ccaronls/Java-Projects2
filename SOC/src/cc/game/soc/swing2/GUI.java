@@ -25,6 +25,7 @@ import java.lang.reflect.Field;
 import java.net.InetAddress;
 import java.util.*;
 
+import javax.swing.ToolTipManager;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -51,6 +52,7 @@ import javax.swing.filechooser.FileFilter;
 import javax.jmdns.JmDNS;
 import javax.jmdns.ServiceInfo;
 
+import cc.game.soc.android.R;
 import cc.game.soc.core.*;
 import cc.game.soc.core.annotations.RuleVariable;
 import cc.game.soc.ui.*;
@@ -358,9 +360,13 @@ public class GUI implements ActionListener, MenuItem.Action {
     }
     private final UIProperties props;
 
+    private final Map<Integer, String> stringTable;
+
 	public GUI(EZFrame frame, final UIProperties props) throws IOException {
 		this.frame = frame;
 		this.props = props;
+		this.stringTable = Utils.buildStringsTable(R.string.class, "../SOCAndroid/res/values/strings.xml");
+        ToolTipManager.sharedInstance().setDismissDelay(Integer.MAX_VALUE);
 		soc = new UISOC(playerRenderers, boardRenderer, diceRenderers, console, eventCardRenderer, barbarianRenderer) {
             @Override
             protected void addMenuItem(MenuItem item, String title, String helpText, Object object) {
@@ -672,6 +678,15 @@ public class GUI implements ActionListener, MenuItem.Action {
             protected void onRunError(Throwable e) {
                 super.onRunError(e);
                 quitToMainMenu();
+            }
+
+            @Override
+            public String getString(int resourceId, Object... args) {
+                String s = stringTable.get(resourceId);
+                if (s == null) {
+                    log.error("Unknown string resource '" + resourceId + "'");
+                }
+                return String.format(s, args);
             }
         };
 		

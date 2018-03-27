@@ -12,8 +12,8 @@ dependencies {
 sourceSets {
     main {
         java {
-            srcDirs = ['src', '../SOCAndroid/build/generated/source/r' ]
-//            excludes = [ '**/swing/**', '**/applet/**' ]
+            srcDirs = ['src', '../SOCAndroid/build/generated/source/r/debug' ]
+            excludes = [ '**/swing/**', '**/applet/**' ]
         }
         resources {
             srcDirs = ['images', 'resources'];

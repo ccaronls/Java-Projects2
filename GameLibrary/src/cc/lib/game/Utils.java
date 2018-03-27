@@ -1,6 +1,12 @@
 package cc.lib.game;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.lang.reflect.Array;
+import java.lang.reflect.Field;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -1882,5 +1888,55 @@ public class Utils {
         return ipStr;
     }
 
+    public static Map<Integer, String> buildStringsTable(Class<?> stringResource, String ... resources) {
+        Map<Integer, String> table = new HashMap<>();
+        try {
+            for (String resource : resources) {
+                processStringResource(stringResource, table, resource);
+            }
+        } catch (Exception e) {
+            throw new AssertionError("Failed to process strings: " + e);
+        }
+        return table;
+    }
+
+    public static String stripEnds(String s) {
+        return s.substring(1, s.length()-1);
+    }
+
+    private static void processStringResource(Class<?> stringResource, Map<Integer, String> stringTable, String resource) throws Exception {
+        Pattern quoted = Pattern.compile("\"[^\"]+\"");
+        Pattern xmlContent = Pattern.compile(">[^<]*<");
+        InputStream is = Utils.class.getClassLoader().getResourceAsStream(resource);
+        if (is == null)
+            is = new FileInputStream(new File(resource));
+        try {
+            BufferedReader in = new BufferedReader(new InputStreamReader(is));
+            while (true) {
+                String line = in.readLine();
+                if (line == null)
+                    break;
+
+                line = line.trim();
+                if (!line.startsWith("<string name="))
+                    continue;
+
+                Matcher m = quoted.matcher(line);
+                if (!m.find())
+                    throw new AssertionError("Failed to find quoted string on line:\n" + line);
+                String name = stripEnds(m.group());
+                m = xmlContent.matcher(line);
+                if (!m.find())
+                    throw new AssertionError("Failed to find xml content on line:\n" + line);
+                String content = stripEnds(m.group());
+                Field f = stringResource.getField(name);
+                int id = f.getInt(null);
+                stringTable.put(id, content);
+            }
+
+        } finally {
+            is.close();
+        }
+    }
 
 }

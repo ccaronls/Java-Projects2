@@ -102,9 +102,9 @@ public class SOCView<T extends UIRenderer> extends View implements UIComponent {
     protected void onDraw(Canvas canvas) {
         if (renderer != null) {
             if (g == null) {
-                g = new DroidGraphics(getContext(), canvas);
+                g = new DroidGraphics(getContext(), canvas, getWidth(), getHeight());
             } else {
-                g.setCanvas(canvas);
+                g.setCanvas(canvas, getWidth(), getHeight());
             }
             renderer.draw(g, tx, ty);
         }

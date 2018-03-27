@@ -224,7 +224,10 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action {
                 return Build.BRAND + "." + Build.PRODUCT;
             }
 
-
+            @Override
+            public String getString(int resourceId, Object... args) {
+                return getResources().getString(resourceId, args);
+            }
         };
         soc.setBoard(vBoard.getRenderer().getBoard());
     }

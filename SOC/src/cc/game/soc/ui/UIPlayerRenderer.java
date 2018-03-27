@@ -74,11 +74,11 @@ public final class UIPlayerRenderer extends UIRenderer {
                     str.append(t.name()).append(" X ").append(num).append("\n");
                 }
                 for (Card c : player.getCards(CardType.Progress)) {
-                    str.append(c.getName()).append("(").append(c.getCardStatus()).append(")\n");
+                    str.append(c.getName(UISOC.getInstance())).append("(").append(c.getCardStatus()).append(")\n");
                 }
             } else {
                 for (Card c : player.getCards(CardType.Development)) {
-                    str.append(c.getName()).append("(").append(c.getCardStatus()).append(")\n");
+                    str.append(c.getName(UISOC.getInstance())).append("(").append(c.getCardStatus()).append(")\n");
                 }
             }
         } else {
@@ -132,7 +132,7 @@ public final class UIPlayerRenderer extends UIRenderer {
 
         for (DevelopmentArea d : DevelopmentArea.values()) {
             if (player.getCityDevelopment(d) > 0) {
-                str.append(d.name()).append(" ").append(d.levelName[player.getCityDevelopment(d)]).append(" (").append(player.getCityDevelopment(d)).append(") ");
+                str.append(d.name()).append(" ").append(d.getLevelName(player.getCityDevelopment(d), UISOC.getInstance())).append(" (").append(player.getCityDevelopment(d)).append(") ");
                 if (soc.getMetropolisPlayer(d) == player.getPlayerNum()) {
                     str.append(" Metro +").append(soc.getRules().getPointsPerMetropolis());
                 }
@@ -140,7 +140,7 @@ public final class UIPlayerRenderer extends UIRenderer {
             }
         }
         if (player.getMerchantFleetTradable() != null) {
-            str.append("Merchant Fleet ").append(player.getMerchantFleetTradable().getName()).append("\n");
+            str.append("Merchant Fleet ").append(player.getMerchantFleetTradable().getName(UISOC.getInstance())).append("\n");
         }
 
         {

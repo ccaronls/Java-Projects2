@@ -3,9 +3,9 @@
     <string name="app_name">AndroidGameLibrary</string>
 
     <string name="cached_file_provider_authority">cc.android.applications</string>
-    
+
     <string name="url_marketplace_pdfviewer">market://details?id=com.adobe.reader</string>
-    
+
     <string name="popup_title_purchase_complete">Purchase Complete</string>
     <string name="popup_title_purchase_options">Purchase Options</string>
     <string name="popup_title_purchases">Purchases</string>
@@ -22,19 +22,19 @@
     <string name="popup_msg_empty_purchases">You do not have any recorded purchases.</string>
     <string name="popup_msg_temp_locked">The temperature can only be set once. The completed form has more value when customers know there is no chance of altering critical data after the fact.</string>
     <string name="popup_msg_tempinfo">Your device has a built-in ambient temperature gauge.  This value is used to populate the temperautre field.  Because accuracy can vary between devices it is recommened to verify its accuracy with a secondary reader.</string>
-    
+
     <string name="popup_button_ok">OK</string>
     <string name="popup_button_cancel">Cancel</string>
     <string name="popup_button_not_now">Not Now</string>
     <string name="popup_button_purchase_options">Purchase Options</string>
-    
+
     <string name="popup_billing_purchases_row_description">DESCRIPTION</string>
     <string name="popup_billing_purchases_row_buy">BUY</string>
     <string name="popup_billing_purchases_row_sku">SKU</string>
     <string name="popup_billing_purchases_row_orderid">ORDER ID</string>
     <string name="popup_billing_purchases_row_date">DATE</string>
     <string name="popup_billing_purchases_row_state">STATE</string>
-    
+
     <string name="popup_msg_premium_feature_locked">This premium feature is locked.\n\n
         Premium Features Include:\n
         - Unlimited forms\n
@@ -44,14 +44,14 @@
         - Duplicate Form\n
         Would you like to unlock all features?
     </string>
-    
+
     <string name="popup_msg_subscription_activiated">Your susbscription is activated. Premium features will be unlocked until %s.  You will have the option to unlock permanently at a reduced price if you do so before the subscription expires.</string>
     <string name="popup_msg_premium_permanently_unlocked">Congratulations!  All features have been permanantly unlocked.</string>
     <string name="popup_msg_subs_expired">Your subscription has expired.  Would you like to re-activate it?</string>
     <string name="popup_msg_operation_not_supported">Operation not supported on this device.</string>
 
     <string name="colloqial_subscription_expire_time">Subscription expires in under %s</string>
-    
+
     <plurals name="plural_days">
         <item quantity="one">%d day</item>
         <item quantity="other">%d days</item>
@@ -61,22 +61,39 @@
         <item quantity="one">%d hour</item>
         <item quantity="other">%d hours</item>
     </plurals>
-    
+
     <plurals name="plural_mins">
         <item quantity="one">%d minute</item>
         <item quantity="other">%d minutes</item>
     </plurals>
 
     <string name="ambient_temp">Ambient Temperature</string>
-    
+
     <string name="popup_cb_dont_show_again">Don\'t show again</string>
     <!-- 
     <string name="degrees_fahrenheit">%d&#xb0;F"</string>
     <string name="degrees_celcius">%.1f&#xb0;C"</string>
      -->
-     
-     <string name="switch_units_metric">Switch to Metric Units</string>
-     <string name="switch_units_imperial">Switch to Imperial Units</string>
-     
-     <string name="generate_page_error_msg">Failed to generate the report.  You may not have enough memory to perform this action.  If you think this is a bug, please screenshot this error and include in an bug report email through send feedback channel.</string>
+
+    <string name="switch_units_metric">Switch to Metric Units</string>
+    <string name="switch_units_imperial">Switch to Imperial Units</string>
+
+    <string name="generate_page_error_msg">Failed to generate the report.  You may not have enough memory to perform this action.  If you think this is a bug, please screenshot this error and include in an bug report email through send feedback channel.</string>
+
+    <string name="wifi_conn_status_available">Available</string>
+    <string name="wifi_conn_status_connected">Connected</string>
+    <string name="wifi_conn_status_failed">Failed</string>
+    <string name="wifi_conn_status_invited">Invited</string>
+    <string name="wifi_conn_status_unavailable">Unavailable</string>
+    <string name="wifi_conn_status_unknown">Unknown</string>
+
+    <string name="wifi_failure_reason_error">Error. Is WiFi On?</string>
+    <string name="wifi_failure_reason_busy">Busy</string>
+    <string name="wifi_failure_reason_p2p_unsupported">Peer 2 Peer connections unsupported</string>
+    <string name="wifi_failure_reason_unknown">Unknown</string>
+
+    <string name="wifi_popup_title_channel_disconnected">Channel Disconnected</string>
+    <string name="wifi_popup_msg_channel_auto_reconnect">Attempt ot re-connect?</string>
+    <string name="wifi_popup_button_yes">Yes</string>
+    <string name="wifi_popup_button_no">No</string>
 </resources>

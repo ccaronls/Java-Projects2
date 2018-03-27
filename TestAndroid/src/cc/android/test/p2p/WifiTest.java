@@ -178,7 +178,7 @@ public class WifiTest extends Activity implements RadioGroup.OnCheckedChangeList
     String deviceToString(WifiP2pDevice device) {
         return device.deviceName
                 + "\nAddress: " + device.deviceAddress
-                + "\nStatus: " + WifiP2pHelper.statusToString(device.status)
+                + "\nStatus: " + WifiP2pHelper.statusToString(device.status, this)
                 + "\nPrimary: " + device.primaryDeviceType
                 + "\nSecondary: " + device.secondaryDeviceType
                 + "\ngroup owner: " + device.isGroupOwner()
@@ -247,7 +247,7 @@ public class WifiTest extends Activity implements RadioGroup.OnCheckedChangeList
                 case WifiP2pDevice.FAILED:
                 case WifiP2pDevice.INVITED:
                 case WifiP2pDevice.UNAVAILABLE:
-                    Toast.makeText(this, "Device is " + WifiP2pHelper.statusToString(device.status), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Device is " + WifiP2pHelper.statusToString(device.status, this), Toast.LENGTH_SHORT).show();
                     break;
             }
         } else if (d instanceof BonjourThread.BonjourRecord) {

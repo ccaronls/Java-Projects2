@@ -26,11 +26,7 @@ dependencies {
 sourceSets {
     main {
         java {
-            srcDirs = ['src']
-        }
-
-        resources {
-            srcDirs = ['images'];
+            srcDirs = ['src', '../DominosAndroid/build/generated/source/r/debug' ]
         }
     }
 
@@ -41,7 +37,7 @@ sourceSets {
     }
 }
 
-mainClassName = 'cc.game.dominos.swing'
+mainClassName = 'cc.game.dominos.swing.DominosApplet'
 
 repositories {
     mavenCentral()

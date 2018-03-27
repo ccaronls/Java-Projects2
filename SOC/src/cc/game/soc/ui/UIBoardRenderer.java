@@ -941,7 +941,7 @@ public class UIBoardRenderer extends UIRenderer implements MenuItem.Action {
     }
 
     @Override
-    public final void doClick() {
+    public void doClick() {
 	    // allow the accept button to do this work now
         if (pickedValue >= 0) {
             pickHandler.onPick(this, pickedValue);

@@ -57,9 +57,11 @@ public enum ProgressCardType implements ICardType<DevelopmentArea> {
 	}
 
 	@Override
-	public String helpText(Rules rules) {
-		return moveType.getHelpText(rules);
+	public String getHelpText(Rules rules, StringResource sr) {
+		return moveType.getHelpText(rules, sr);
 	}
+
+
 
 	@Override
 	public DevelopmentArea getData() {
@@ -71,7 +73,12 @@ public enum ProgressCardType implements ICardType<DevelopmentArea> {
 		return CardStatus.UNUSABLE;
 	}
 
-	public boolean isEnabled(Rules rules) {
+    @Override
+    public String getName(StringResource sr) {
+        return null;
+    }
+
+    public boolean isEnabled(Rules rules) {
 		switch (this) {
 			case Alchemist:
 				return !rules.isEnableEventCards();

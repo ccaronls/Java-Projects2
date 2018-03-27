@@ -2,5 +2,10 @@
 <resources>
 
     <string name="app_name">Dominos</string>
+    <string name="button_menu">MENU</string>
+    <string name="button_skip">SKIP</string>
+    <string name="anim_text_shuffling">SHUFFLING</string>
+    <string name="anim_text_winner">WINNER!</string>
+    <string name="anim_text_knock">KNOCK</string>
 
 </resources>

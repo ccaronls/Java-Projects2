@@ -8,6 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import cc.game.dominos.android.R;
 import cc.lib.annotation.Keep;
 import cc.lib.game.AAnimation;
 import cc.lib.game.AGraphics;
@@ -18,6 +19,7 @@ import cc.lib.game.Justify;
 import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
+import cc.lib.math.Bezier;
 import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
 import cc.lib.net.ClientConnection;
@@ -194,7 +196,7 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
             @Override
             protected void draw(AGraphics g, float position, float dt) {
                 GColor c = new GColor(position, 1-position, position, position);
-                g.drawJustifiedString(0, 0, Justify.CENTER, "WINNER!");
+                g.drawJustifiedString(0, 0, Justify.CENTER, getString(R.string.anim_text_winner));
             }
         }, false);
     }
@@ -532,7 +534,7 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
             @Override
             protected void draw(AGraphics g, float position, float dt) {
                 g.setColor(GColor.YELLOW.withAlpha(1f-position));
-                g.drawJustifiedString(0, 0, Justify.CENTER, "KNOCK");
+                g.drawJustifiedString(0, 0, Justify.CENTER, getString(R.string.anim_text_knock));
             }
         }, true);
         redraw();
@@ -757,6 +759,7 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
         g.setColor(GColor.GREEN.darkened(0.2f));
         g.drawFilledRect(0, 0, boardDim, boardDim);
 
+        g.setClipRect(0, 0, boardDim, boardDim);
         boolean drawDragged = false;
         AAnimation<AGraphics> anim = anims.get("TILES");
         if (anim != null) {
@@ -771,6 +774,7 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
             if (board.draw(g, boardDim, boardDim, pickX, pickY, dragging) >= 0)
                 drawDragged = false;
         }
+        g.clearClip();
 
         g.pushMatrix();
         g.setTextHeight(TEXT_SIZE);
@@ -813,33 +817,6 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
 
         if (anims.size() > 0 || board.animations.size() > 0)
             redraw();
-    }
-
-    private void setupTextHeight(AGraphics g, float maxWidth, float maxHeight) {
-        // now size down until the string fits into the width
-        float height = maxHeight;
-
-        String longest = "";
-        for (Player p : players) {
-            String s = String.format("%s X 99 999 PTS", p.getName());
-            if (s.length() > longest.length()) {
-                longest = s;
-            }
-        }
-
-        for (int i=0; i<10; i++) {
-            g.setTextHeight(height);
-            float width = g.getTextWidth(longest);
-            float delta = width / maxWidth;
-            if (width > maxWidth) {
-                //g.setFont(g.getFont().deriveFont(--targetHeight));
-                height *= 1f/delta;
-            } else if (width < maxWidth*0.8f && height < maxHeight * 0.8f) {
-                height *= 1f/(delta*2);
-            } else {
-                break;
-            }
-        }
     }
 
     private void drawInfo(APGraphics g, float w, float h) {
@@ -923,7 +900,6 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
         }
         g.popMatrix();
         if (isInitialized()) {
-            //g.drawJustifiedString(0, h, Justify.LEFT, Justify.BOTTOM, String.format("Pool X %d", pool.size()));
             g.pushMatrix();
             float dim = g.getTextHeight();
             g.translate(0, h-dim);
@@ -943,7 +919,10 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
     }
 
     private void drawPlayer(APGraphics g, float w, float h, int pickX, int pickY, boolean drawDragged) {
-        String infoStr = "MENU"; // TODO: know when in shuffle so we can skip it
+        String infoStr = getString(R.string.button_menu); // TODO: know when in shuffle so we can skip it
+        if (anims.get("POOL") != null) {
+            infoStr = getString(R.string.button_skip);
+        }
         g.setColor(GColor.WHITE);
         g.setName(1);
         g.begin();
@@ -1365,7 +1344,7 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
                                     g.setIdentity();
                                     g.setColor(GColor.CYAN);
                                     g.setTextHeight(board.boardHeight/20);
-                                    g.drawJustifiedString(board.boardWidth/2, board.boardHeight/2, Justify.CENTER, Justify.CENTER, "SHUFFLING");
+                                    g.drawJustifiedString(board.boardWidth/2, board.boardHeight/2, Justify.CENTER, Justify.CENTER, getString(R.string.anim_text_shuffling));
                                 }
 
                                 @Override
@@ -1438,6 +1417,238 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
         }
     }
 
+    class IntroAnim extends AAnimation<AGraphics> {
+        final Object [][] dominosPositions = {
+                // BIG D
+                { new Vector2D(0.5f, 1), 90, -1, -1 },
+                { new Vector2D(0.5f, 3), 90, -1, -1 },
+                { new Vector2D(0.5f, 5), 90, -1, -1 },
+                { new Vector2D(2f, 5.5f), 0, -1, -1 },
+                { new Vector2D(3.5f, 4), 90, -1, -1 },
+                { new Vector2D(3.5f, 2), 90, -1, -1 },
+                { new Vector2D(2f, 0.5f), 0, -1, -1 },
+                // BIF O
+                { new Vector2D(5f, 2), 90, -1, -1 },
+                { new Vector2D(5f, 4), 90, -1, -1 },
+                { new Vector2D(6f, 5.5f), 0, -1, -1 },
+                { new Vector2D(7f, 4), 90, -1, -1 },
+                { new Vector2D(7f, 2), 90, -1, -1 },
+                { new Vector2D(6f, 0.5f), 0, -1, -1 },
+                // BIG M
+                { new Vector2D(8.5f, 1), 90, -1, -1 },
+                { new Vector2D(8.5f, 3), 90, -1, -1 },
+                { new Vector2D(8.5f, 5), 90, -1, -1 },
+                { new Vector2D(9.5f, 2), 90, -1, -1 },
+                { new Vector2D(10.5f, 3), 90, 3, 0 },
+                { new Vector2D(11.5f, 2), 90, 5, 0 },
+                { new Vector2D(12.5f, 1), 270, 3, 0 },
+                { new Vector2D(12.5f, 3), 90, -1, -1 },
+                { new Vector2D(12.5f, 5), 90, -1, -1 },
+                // BIG I
+                { new Vector2D(14.5f, 0.5f), 0, -1, -1 },
+                { new Vector2D(16.5f, 0.5f), 0, -1, -1 },
+                { new Vector2D(15.5f, 2f), 90, -1, -1 },
+                { new Vector2D(15.5f, 4f), 90, -1, -1 },
+                { new Vector2D(14.5f, 5.5f), 0, -1, -1 },
+                { new Vector2D(16.5f, 5.5f), 0, -1, -1 },
+                // BIG N
+                { new Vector2D(18.5f, 1), 90, -1, -1 },
+                { new Vector2D(18.5f, 3), 90, -1, -1 },
+                { new Vector2D(18.5f, 5), 90, -1, -1 },
+                { new Vector2D(19.5f, 2), 90, -1, -1 },
+                { new Vector2D(20.5f, 3), 90, -1, -1 },
+                { new Vector2D(21.5f, 4), 90, -1, -1 },
+                { new Vector2D(22.5f, 1), 90, -1, -1 },
+                { new Vector2D(22.5f, 3), 90, -1, -1 },
+                { new Vector2D(22.5f, 5), 90, -1, -1 },
+                // BIG O
+                { new Vector2D(24f, 2), 90, -1, -1 },
+                { new Vector2D(24f, 4), 90, -1, -1 },
+                { new Vector2D(25f, 5.5f), 0, -1, -1 },
+                { new Vector2D(26f, 4), 90, -1, -1 },
+                { new Vector2D(26f, 2), 90, -1, -1 },
+                { new Vector2D(25f, 0.5f), 0, -1, -1 },
+                // BIG S
+                { new Vector2D(28.5f, 0.5f), 0, -1, -1 },
+                { new Vector2D(27.5f, 2f), 90, -1, -1 },
+                { new Vector2D(29f, 3f), 0, -1, -1 },
+                { new Vector2D(29.5f, 4.5f), 90, -1, -1 },
+                { new Vector2D(28f, 5.5f), 0, -1, -1 },
+
+        };
+        final Object [][] old_dominosPositions = {
+                // position, angle, pip1, pip2
+
+                // Big D
+                { new Vector2D(.5f, 2), 90, 6, 6 },
+                { new Vector2D(.5f, 4), 90, 6, 6 },
+                { new Vector2D(1f, 5.5f), 0, 6, 6 },
+                { new Vector2D(2.5f, 4.5f), 90, 6, 6 },
+                { new Vector2D(2.5f, 2.5f), 90, 6, 6 },
+                { new Vector2D(2f, 1), 0, 6, 6 },
+                // little o
+                { new Vector2D(5f, 2.5f), 0, 6, 6 },
+                { new Vector2D(4f, 4f), 90, 6, 6, },
+                { new Vector2D(5f, 5.5f), 0, 6, 6 },
+                { new Vector2D(6f, 4f), 90, 6, 6 },
+                // little m
+                { new Vector2D(7.5f, 5f), 90, 6, 6 },
+                { new Vector2D(8f, 3.5f), 0, 6, 6 },
+                { new Vector2D(9.5f, 4.5f), 90, 5, 6 },
+                { new Vector2D(11f, 3.5f), 0, 6, 6 },
+                { new Vector2D(11.5f, 5f), 90, 6, 6 },
+                // little i
+                { new Vector2D(13f, 3f), 90, 9, 0 },
+                { new Vector2D(13f, 5f), 90, 6, 6 },
+                // little n
+                { new Vector2D(14.5f, 5f), 90, 6, 6 },
+                { new Vector2D(15f, 3.5f), 0, 6, 6 },
+                { new Vector2D(16.5f, 5f), 90, 6, 6 },
+                // little o
+                { new Vector2D(18f, 4f), 90, 6, 6 },
+                { new Vector2D(19f, 2.5f), 0, 6, 6 },
+                { new Vector2D(20f, 4f), 90, 6, 6 },
+                { new Vector2D(19f, 5.5f), 0, 6, 6 },
+                // little s
+                { new Vector2D(22.5f, 1.5f), 0, 6, 6 },
+                { new Vector2D(21.5f, 3f), 90, 6, 6 },
+                { new Vector2D(23f, 3.5f), 0, 6, 6 },
+                { new Vector2D(23.5f, 5f), 90, 6, 6 },
+                { new Vector2D(22f, 5.5f), 0, 6, 6 }
+        };
+
+        IntroAnim() {
+            super(8000, 1, true);
+        }
+
+        Bezier[] starts = null;
+        float angSpeeds [] = null;
+        float angles[] = null;
+
+        void init(float dim, Vector2D offset) {
+            starts = new Bezier[dominosPositions.length];
+
+            int n = 0;
+            for (int i=0; i< starts.length/4; i++) {
+                starts[n] = new Bezier();
+                starts[n].addPoint(-1, Utils.randFloat(dim));
+                starts[n].addPoint(dim/2+Utils.randFloat(dim/2), Utils.randFloat(dim/2));
+                starts[n].addPoint(dim/2+Utils.randFloat(dim/2), dim/2+Utils.randFloat(dim/2));
+                starts[n].addPoint(((Vector2D)dominosPositions[n][0]).add(offset));
+                n++;
+            }
+
+            for (int i=0; i< starts.length/4; i++) {
+                starts[n] = new Bezier();
+                starts[n].addPoint(Utils.randFloat(dim), -1);
+                starts[n].addPoint(dim/2+Utils.randFloat(dim/2), dim/2+Utils.randFloat(dim/2));
+                starts[n].addPoint(Utils.randFloat(dim/2), dim/2+Utils.randFloat(dim/2));
+                starts[n].addPoint(((Vector2D)dominosPositions[n][0]).add(offset));
+                n++;
+            }
+
+            for (int i=0; i< starts.length/4; i++) {
+                starts[n] = new Bezier();
+                starts[n].addPoint(dim+1, Utils.randFloat(dim));
+                starts[n].addPoint(Utils.randFloat(dim/2), dim/2+Utils.randFloat(dim/2));
+                starts[n].addPoint(Utils.randFloat(dim/2), Utils.randFloat(dim/2));
+                starts[n].addPoint(((Vector2D)dominosPositions[n][0]).add(offset));
+                n++;
+            }
+
+            while (n < starts.length) {
+                starts[n] = new Bezier();
+                starts[n].addPoint(Utils.randFloat(dim), dim+1);
+                starts[n].addPoint(Utils.randFloat(dim/2), Utils.randFloat(dim/2));
+                starts[n].addPoint(dim/2+Utils.randFloat(dim/2), Utils.randFloat(dim));
+                starts[n].addPoint(((Vector2D)dominosPositions[n][0]).add(offset));
+                n++;
+            }
+
+            angSpeeds = new float[dominosPositions.length];
+            angles = new float[dominosPositions.length];
+
+            // choose angle and ang speed such that angle+1*angSpeed = targetAngle
+            for (int i=0; i<angles.length; i++) {
+                int target = (Integer)dominosPositions[i][1];
+                angSpeeds[i] = 100 * Utils.randFloatX(50);
+                angles[i] = (float)target - angSpeeds[i];
+            }
+
+            for (int i=0; i<dominosPositions.length; i++) {
+                Object [] o = dominosPositions[i];
+                int pip1 = (Integer)o[2];
+                int pip2 = (Integer)o[3];
+                if (pip1 < 0)
+                    o[2] = Utils.rand() % 6 + 1;
+                if (pip2 < 0)
+                    o[3] = Utils.rand() % 6 + 1;
+            }
+        }
+
+        @Override
+        protected void draw(AGraphics g, float position, float dt) {
+            MutableVector2D min = new MutableVector2D(Vector2D.MAX);
+            MutableVector2D max = new MutableVector2D(Vector2D.MIN);
+
+            for (Object [] o : dominosPositions) {
+                Vector2D v = (Vector2D)o[0];
+                min.minEq(v);
+                max.maxEq(v);
+            }
+
+            float dim = board.boardWidth/(max.getX()-min.getX()+2);
+
+            if (starts == null) {
+                init(board.boardWidth/dim, new Vector2D(.5f, 9));
+            }
+
+            final float pos = Utils.clamp(position*2, 0, 1);
+            g.setPointSize(dim/8);
+            g.pushMatrix();
+            g.setIdentity();
+            g.scale(dim, dim);
+            //g.translate(.5f, 9);
+            for (int i=0; i<dominosPositions.length; i++) {
+                Object [] o = dominosPositions[i];
+                int angle = (Integer)o[1];
+                int pip1 = (Integer)o[2];
+                int pip2 = (Integer)o[3];
+                g.pushMatrix();
+                //g.translate(dominosPositions[i]);
+                g.translate(starts[i].getPointAt(pos));
+                //g.rotate(angle);
+                float ang = angles[i] + pos*angSpeeds[i];
+                g.rotate(ang);
+                g.translate(-1, -.5f);
+                Board.drawTile(g, pip1, pip2, 1);
+                g.popMatrix();
+            }
+
+            g.popMatrix();
+        }
+
+        @Override
+        protected void onDone() {
+            board.addAnimation(new IntroAnim().start(5000));
+        }
+    }
+
+    public void startDominosIntroAnimation(final Runnable onDoneRunnable) {
+        board.animations.clear();
+        board.addAnimation(new IntroAnim() {
+            @Override
+            protected void onDone() {
+                if (onDoneRunnable != null) {
+                    onDoneRunnable.run();
+                }
+                super.onDone();
+            }
+        }.start());
+    }
+
+
+
     protected abstract void onPlayerConnected(Player player);
 
     protected abstract void onAllPlayersJoined();
@@ -1453,4 +1664,6 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
     }
 
     public abstract void redraw();
+
+    protected abstract String getString(int id, Object ... params);
 }

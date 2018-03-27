@@ -136,7 +136,7 @@ public class SOCGUI extends SOC {
         String txt = "";
         if (((GUIPlayer)getPlayerByPlayerNum(player)).isInfoVisible()) {
         	Pattern splitter = Pattern.compile("[A-Z][a-z0-9]*");
-        	Matcher matcher = splitter.matcher(card.getName());
+        	Matcher matcher = splitter.matcher(card.getName(GUI.instance.getSOC()));
         	while (matcher.find()) {
         		if (txt.length() > 0) {
         			txt += " ";

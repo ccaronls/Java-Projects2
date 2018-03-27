@@ -500,7 +500,7 @@ public class DroidGraphics extends APGraphics {
         paint.setColor(color.toARGB());
         canvas.save();
         Matrix I = new Matrix();
-        I.setValues(new float[] { 1,0,0,0,1,0,0,0,1}); // strange this is not easier
+        I.reset();
         canvas.setMatrix(I);
         canvas.drawRect(0, 0, canvas.getWidth(), canvas.getHeight(), paint);
         canvas.restore();

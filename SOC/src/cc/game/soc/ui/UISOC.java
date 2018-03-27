@@ -100,7 +100,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
         Iterator<MoveType> it = moves.iterator();
         while (it.hasNext()) {
             MoveType move = it.next();
-            addMenuItem(CHOOSE_MOVE, move.getNiceText(), move.getHelpText(getRules()), move);
+            addMenuItem(CHOOSE_MOVE, move.getName(this), move.getHelpText(getRules(), this), move);
         }
         completeMenu();
         return waitForReturnValue(null);
@@ -453,7 +453,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
     public final Card chooseCardMenu(Collection<Card> cards) {
         clearMenu();
         for (Card type : cards) {
-            addMenuItem(CHOOSE_CARD, type.getName(), type.getHelpText(getRules()), type);
+            addMenuItem(CHOOSE_CARD, type.getName(this), type.getHelpText(getRules(), this), type);
         }
         completeMenu();
         return waitForReturnValue(null);
@@ -698,7 +698,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
 
         }, false);
     }
-
+/*
     private String getNiceString(String in) {
         String txt = "";
         Pattern splitter = Pattern.compile("[A-Z][a-z0-9]*");
@@ -710,7 +710,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
             txt += matcher.group();
         }
         return txt;
-    }
+    }*/
 
 
     @Override
@@ -720,7 +720,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
         String txt = "";
         Player player = getPlayerByPlayerNum(playerNum);
         if (((UIPlayer)player).isInfoVisible()) {
-            txt = getNiceString(card.getName());
+            txt = card.getName(this);
         }
         addCardAnimation(playerNum, txt);
         super.onCardPicked(playerNum, card);
@@ -746,7 +746,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
     @Keep
     protected void onProgressCardDistributed(int player, ProgressCardType type) {
         server.broadcastExecuteOnRemote(NetCommon.SOC_ID, player, type);
-        String txt = getNiceString(type.name());
+        String txt = type.getName(this);
         if (!((UIPlayer)getPlayerByPlayerNum(player)).isInfoVisible()) {
             txt = "Progress";
         }
@@ -758,7 +758,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
     @Keep
     protected void onSpecialVictoryCard(int player, SpecialVictoryType type) {
         server.broadcastExecuteOnRemote(NetCommon.SOC_ID, player, type);
-        addCardAnimation(player, getNiceString(type.name()));
+        addCardAnimation(player, type.getName(this));
         super.onSpecialVictoryCard(player, type);
     }
 
@@ -799,8 +799,8 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
     @Keep
     protected void onMonopolyCardApplied(final int taker, final int giver, final ICardType<?> type, final int amount) {
         server.broadcastExecuteOnRemote(NetCommon.SOC_ID, taker, giver, type, amount);
-        addCardAnimation(giver, getNiceString(type.name()) + "\n- " + amount);
-        addCardAnimation(taker, getNiceString(type.name()) + "\n+ " + amount);
+        addCardAnimation(giver, type.getName(this) + "\n- " + amount);
+        addCardAnimation(taker, type.getName(this) + "\n+ " + amount);
         super.onMonopolyCardApplied(taker, giver, type, amount);
     }
 
@@ -815,8 +815,8 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
     @Keep
     protected void onTakeOpponentCard(final int taker, final int giver, final Card card) {
         server.broadcastExecuteOnRemote(NetCommon.SOC_ID, taker, giver, card);
-        addCardAnimation(giver, getNiceString(card.getName()) + "\n-1");
-        addCardAnimation(taker, getNiceString(card.getName()) + "\n+1");
+        addCardAnimation(giver, card.getName(this) + "\n-1");
+        addCardAnimation(taker, card.getName(this) + "\n+1");
         super.onTakeOpponentCard(taker, giver, card);
     }
 
@@ -900,7 +900,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
     @Keep
     protected void onCardLost(int playerNum, Card c) {
         server.broadcastExecuteOnRemote(NetCommon.SOC_ID, playerNum, c);
-        addCardAnimation(playerNum, getNiceString(c.getName()) + "\n-1");
+        addCardAnimation(playerNum, c.getName(this) + "\n-1");
         super.onCardLost(playerNum, c);
     }
 
@@ -987,7 +987,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
     @Keep
     protected void onStructureDemoted(int vIndex, VertexType newType, int destroyer, int victim) {
         server.broadcastExecuteOnRemote(NetCommon.SOC_ID, vIndex, newType, destroyer, victim);
-        addCardAnimation(victim, getBoard().getVertex(vIndex).getType().getNiceName() + " Reduced to " + newType.getNiceName());
+        addCardAnimation(victim, getBoard().getVertex(vIndex).getType().getName(this) + " Reduced to " + newType.getName(this));
         super.onStructureDemoted(vIndex, newType, destroyer, victim);
     }
 
@@ -1014,7 +1014,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
     protected void onPlayerKnightDemoted(int player, int knightIndex) {
         server.broadcastExecuteOnRemote(NetCommon.SOC_ID, player, knightIndex);
         Vertex knight = getBoard().getVertex(knightIndex);
-        addFloatingTextAnimation((UIPlayer)getPlayerByPlayerNum(player), knight, "Demoted to\n" + knight.getType().getNiceName());
+        addFloatingTextAnimation((UIPlayer)getPlayerByPlayerNum(player), knight, "Demoted to\n" + knight.getType().getName(this));
         super.onPlayerKnightDemoted(player, knightIndex);
     }
 
@@ -1084,7 +1084,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
     protected void onPlayerKnightPromoted(int player, final int knightIndex) {
         server.broadcastExecuteOnRemote(NetCommon.SOC_ID, player, knightIndex);
         Vertex knight = getBoard().getVertex(knightIndex);
-        addFloatingTextAnimation((UIPlayer)getPlayerByPlayerNum(player), knight, "Promoted to\n" + knight.getType().getNiceName());
+        addFloatingTextAnimation((UIPlayer)getPlayerByPlayerNum(player), knight, "Promoted to\n" + knight.getType().getName(this));
         super.onPlayerKnightPromoted(player, knightIndex);
     }
 
@@ -1092,7 +1092,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
     @Keep
     protected void onPlayerCityDeveloped(int p, DevelopmentArea area) {
         server.broadcastExecuteOnRemote(NetCommon.SOC_ID, p, area);
-        addCardAnimation(p, area.name() + "\n\n" + area.levelName[getPlayerByPlayerNum(p).getCityDevelopment(area)]);
+        addCardAnimation(p, area.name() + "\n\n" + area.getLevelName(getPlayerByPlayerNum(p).getCityDevelopment(area), this));
         super.onPlayerCityDeveloped(p, area);
     }
 
@@ -1104,11 +1104,6 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
         addFloatingTextAnimation((UIPlayer)getPlayerByPlayerNum(road.getPlayer()), getBoard().getRouteMidpoint(road), "Road Damaged.\nCannt build another\nuntil it is repaired");
         super.onRoadDamaged(r, destroyer, victim);
     }
-
-//    @Override
-//    protected void onShouldSaveGame() {
-//        super.onShouldSaveGame();
-//    }
 
     @Override
     @Keep

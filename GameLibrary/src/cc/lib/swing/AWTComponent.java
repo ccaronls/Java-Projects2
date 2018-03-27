@@ -210,11 +210,11 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
     }
 
     public final int getX() {
-        return padding;
+        return super.getX() + padding;
     }
 
     public final int getY() {
-        return padding;
+        return super.getY() + padding;
     }
 
     public final int getWidth() {

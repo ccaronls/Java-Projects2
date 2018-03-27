@@ -28,7 +28,7 @@ public final class UIEventCardRenderer extends UIRenderer {
 		if (minCardWidth == 0) {
 			ArrayList<String> all = new ArrayList<String>();
 			for (EventCardType e : EventCardType.values()) {
-				all.addAll(Arrays.asList(e.getNiceString().split("\n")));
+				all.addAll(Arrays.asList(e.getName(UISOC.getInstance()).split("\n")));
 			}
 			
 			for (String s : all) {
@@ -45,8 +45,8 @@ public final class UIEventCardRenderer extends UIRenderer {
 		String helpText = "Event cards wil be shuffled on next event card drawn.";
 		int production = 0;
         if (eventCard != null) {
-            cardText = eventCard.getType().getNiceString();
-            helpText = eventCard.getHelpText(UISOC.getInstance().getRules());
+            cardText = eventCard.getType().getName(UISOC.getInstance());
+            helpText = eventCard.getHelpText(UISOC.getInstance().getRules(), UISOC.getInstance());
             production = eventCard.getProduction();
         }
 

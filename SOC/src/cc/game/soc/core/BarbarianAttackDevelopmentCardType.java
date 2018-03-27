@@ -1,22 +1,24 @@
 package cc.game.soc.core;
 
+import cc.game.soc.android.R;
+
 public enum BarbarianAttackDevelopmentCardType implements ICardType<Void> {
 
-	KnightHood(14, "Knight Hood", "Place 1 knight on one of the unoccupied paths of the castle tile."),
-	BlackKnight(4, "Black Knight", "Place a knight on an open path of your choice."),
-	Intrigue(4, "Intregue", "Remove a barbarian form a hex of your choice and add to your prisoners.  If there are no more barbarians, then draw a new card."),
-	Treason(4, "Treason", "Obtain 2 Gold and remove 2 barbarians from 2 different tiles (or from supply) and place on 2 other unconquered tiles.")
+	KnightHood(14, R.string.barb_atk_type_knighthood, R.string.barb_atk_type_knighthood_help),
+	BlackKnight(4, R.string.barb_atk_type_black_knight, R.string.barb_atk_type_black_knight_help),
+	Intrigue(4, R.string.barb_atk_type_intrigue, R.string.barb_atk_type_intrigue_help),
+	Treason(4, R.string.barb_atk_type_treason, R.string.barb_atk_type_treason_help)
 	
 	;
 	
 	public final int occurance;
-	public final String niceText;
-	public final String helpText;
+	public final int nameId;
+	public final int helpTextId;
 	
-	private BarbarianAttackDevelopmentCardType(int occurance, String niceText, String helpText) {
+	private BarbarianAttackDevelopmentCardType(int occurance, int nameId, int helpTextId) {
 		this.occurance = occurance;
-		this.niceText = niceText;
-		this.helpText = helpText;
+		this.nameId = nameId;
+		this.helpTextId = helpTextId;
 	}
 
 	@Override
@@ -24,9 +26,9 @@ public enum BarbarianAttackDevelopmentCardType implements ICardType<Void> {
 		return CardType.BarbarianAttackDevelopment;
 	}
 
-	@Override
-	public String helpText(Rules rules) {
-		return this.helpText;
+    @Override
+	public String getHelpText(Rules rules, StringResource sr) {
+		return sr.getString(helpTextId);
 	}
 
 	@Override
@@ -38,5 +40,11 @@ public enum BarbarianAttackDevelopmentCardType implements ICardType<Void> {
 	public CardStatus defaultStatus() {
 		return CardStatus.USED;
 	}
-	
+
+    @Override
+    public String getName(StringResource sr) {
+        return sr.getString(nameId);
+    }
+
+
 }

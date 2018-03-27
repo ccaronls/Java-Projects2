@@ -20,7 +20,7 @@ public class Card extends Reflector<Card> implements Comparable <Card> {
 	public void serialize(PrintWriter out) throws IOException {
 		out.println(type);
 		out.println(status);
-		out.println(getName());
+		out.println(type.dereferenceOrdinal(typeOrdinal).name());
 	}
 
 	@Override
@@ -97,8 +97,8 @@ public class Card extends Reflector<Card> implements Comparable <Card> {
 	 * 
 	 * @return
 	 */
-    public final String getName() {
-    	return type.dereferenceOrdinal(typeOrdinal).name();
+    public final String getName(StringResource sr) {
+    	return type.dereferenceOrdinal(typeOrdinal).getName(sr);
     }
     
     /**
@@ -165,8 +165,8 @@ public class Card extends Reflector<Card> implements Comparable <Card> {
 	 * 
 	 * @return
 	 */
-	public final String getHelpText(Rules rules) {
-		return type.dereferenceOrdinal(typeOrdinal).helpText(rules);
+	public final String getHelpText(Rules rules, StringResource sr) {
+		return type.dereferenceOrdinal(typeOrdinal).getHelpText(rules, sr);
 	}
 	
 	/**
