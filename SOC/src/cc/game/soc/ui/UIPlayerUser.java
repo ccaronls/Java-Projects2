@@ -51,7 +51,7 @@ public final class UIPlayerUser extends UIPlayer implements GameClient.Listener 
 
 	@Override
 	public Integer chooseVertex(SOC soc, Collection<Integer> vertexIndices, VertexChoice mode, Integer knightToMove) {
-		Integer v = ((UISOC)soc).chooseVertex(vertexIndices, getPlayerNum(), mode);
+		Integer v = ((UISOC)soc).chooseVertex(vertexIndices, mode, knightToMove);
 		if (v != null) {
             doVertexAnimation(soc, mode, soc.getBoard().getVertex(v), knightToMove);
         }

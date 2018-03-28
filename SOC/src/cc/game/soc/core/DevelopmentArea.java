@@ -2,7 +2,7 @@ package cc.game.soc.core;
 
 import cc.game.soc.android.R;
 
-public enum DevelopmentArea {
+public enum DevelopmentArea implements ILocalized {
 	Science		(R.string.dev_area_science, MoveType.IMPROVE_CITY_SCIENCE, 	CommodityType.Paper,	VertexType.METROPOLIS_SCIENCE,  Player.VertexChoice.SCIENCE_METROPOLIS,
             R.string.dev_area_empty, R.string.dev_area_science_abbey, R.string.dev_area_science_library, R.string.dev_area_science_aqueduct, R.string.dev_area_science_theatre, R.string.dev_area_science_university),
 	Trade		(R.string.dev_area_trade, MoveType.IMPROVE_CITY_TRADE, 		CommodityType.Cloth,	VertexType.METROPOLIS_TRADE,	Player.VertexChoice.TRADE_METROPOLIS,

@@ -149,17 +149,17 @@ public class SOCGUI extends SOC {
 
     @Override
     protected void onDistributeResources(final int player, final ResourceType type, final int amount) {
-        addCardAnimation(player, type.name() + "\nX " + amount);
+        addCardAnimation(player, type.getName(this) + "\nX " + amount);
     }
 
     @Override
     protected void onDistributeCommodity(int player, final CommodityType type, final int amount) {
-        addCardAnimation(player, type.name() + "\nX " + amount);
+        addCardAnimation(player, type.getName(this) + "\nX " + amount);
     }
     
     @Override
 	protected void onProgressCardDistributed(int player, ProgressCardType type) {
-        String txt = type.name();
+        String txt = type.getName(this);
         if (!((GUIPlayer)getPlayerByPlayerNum(player)).isInfoVisible()) {
             txt = "Progress";
         }
@@ -219,8 +219,8 @@ public class SOCGUI extends SOC {
 
 	@Override
     protected void onMonopolyCardApplied(final int taker, final int giver, final ICardType<?> type, final int amount) {
-        addCardAnimation(giver, type.name() + "\n- " + amount);
-        addCardAnimation(taker, type.name() + "\n+ " + amount);
+        addCardAnimation(giver, type.getName(this) + "\n- " + amount);
+        addCardAnimation(taker, type.getName(this) + "\n+ " + amount);
     }
 
     @Override
@@ -298,8 +298,8 @@ public class SOCGUI extends SOC {
 	
 	@Override
 	protected void onMetropolisStolen(int loser, int stealer, DevelopmentArea area) {
-		addCardAnimation(loser, "Metropolis\n" + area.name() + "\nLost!");
-		addCardAnimation(stealer, "Metropolis\n" + area.name() + "\nStolen!");
+		addCardAnimation(loser, "Metropolis\n" + area.getName(this) + "\nLost!");
+		addCardAnimation(stealer, "Metropolis\n" + area.getName(this) + "\nStolen!");
 	}
 
 	@Override
@@ -493,7 +493,7 @@ public class SOCGUI extends SOC {
 
 	@Override
 	protected void onPlayerCityDeveloped(int p, DevelopmentArea area) {
-		addCardAnimation(p, area.name() + "\n\n" + area.levelName[getPlayerByPlayerNum(p).getCityDevelopment(area)]);
+		addCardAnimation(p, area.getName(this) + "\n\n" + area.levelName[getPlayerByPlayerNum(p).getCityDevelopment(area)]);
 	}
 	
 	

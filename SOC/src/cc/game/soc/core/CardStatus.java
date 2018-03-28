@@ -2,7 +2,7 @@ package cc.game.soc.core;
 
 import cc.game.soc.android.R;
 
-public enum CardStatus {
+public enum CardStatus implements ILocalized {
 
 	// order is important here, see Card.compareTo
 	

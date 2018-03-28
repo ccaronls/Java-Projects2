@@ -78,7 +78,7 @@ public class AndroidLogger implements Logger {
     }
 
     @Override
-    public void error(Exception e) {
+    public void error(Throwable e) {
         String str = e.getClass().getSimpleName()+":"+e.getMessage();
         Log.e(name, str);
         Log.e(name, e.toString());

@@ -437,4 +437,11 @@
     <string name="card_status_unusable">Unusable</string>
     <string name="card_status_used">Used</string>
 
+    <!-- route types -->
+    <string name="route_type_open">Open</string>
+    <string name="route_type_road">Road</string>
+    <string name="route_type_damaged_road">Damaged Road</string>
+    <string name="route_type_ship">Ship</string>
+    <string name="route_type_warship">Warship</string>
+
 </resources>

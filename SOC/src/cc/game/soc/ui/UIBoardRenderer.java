@@ -123,7 +123,7 @@ public class UIBoardRenderer extends UIRenderer implements MenuItem.Action {
 
         final int t1 = tile1.getDieNum();
         final int t0 = tile0.getDieNum();
-        final Vector2D[] pts0 = new Vector2D[NUM_PTS+1];
+        final Vector2D [] pts0 = new Vector2D[NUM_PTS+1];
         final Vector2D [] pts1 = new Vector2D[NUM_PTS+1];
         final Vector2D mid = Vector2D.newTemp(tile0).add(tile1).scaleEq(0.5f);
         final Vector2D d = Vector2D.newTemp(mid).sub(tile0).scaleEq(0.5f);
@@ -140,16 +140,12 @@ public class UIBoardRenderer extends UIRenderer implements MenuItem.Action {
         addAnimation(new UIAnimation(3000) {
 
             public void drawChit(AGraphics g, Vector2D [] pts, float position, int num) {
-                int index0 = (int)(position*NUM_PTS-2);
+                int index0 = (int)(position*(NUM_PTS-2));
                 int index1 = index0+1;
-                float delta = ((position*NUM_PTS-2)-index0);
+                float delta = ((position*(NUM_PTS-2))-index0);
                 assert(position >= 0 && position <= 1);
                 Vector2D pos = pts[index0].scaledBy(1.0f-delta).add(pts[index1].scaledBy(delta));
-                Vector2D t = g.transform(pos);
-                int fh = g.getTextHeight();
-                int x = Math.round(t.getX() - fh);
-                int y = Math.round(t.getY() - fh);
-                drawCellProductionValue(g, x, y, num);
+                drawCellProductionValue(g, pos.getX(), pos.getY(), num);
             }
 
             @Override
@@ -432,7 +428,7 @@ public class UIBoardRenderer extends UIRenderer implements MenuItem.Action {
 			g.setColor(getPlayerColor(playerNum));
 		drawFaces(g, t, 0, getStructureRadius(), FaceType.MERCHANT, false);
 		g.setColor(GColor.WHITE);
-		String txt = "\n2:1\n" + t.getResource().name();
+		String txt = "\n2:1\n" + t.getResource().getName(UISOC.getInstance());
 		Vector2D v = g.transform(t);
 		
 		g.drawJustifiedString( v.Xi()-2, v.Yi()-2-g.getTextHeight()*2, Justify.CENTER, Justify.TOP, txt);

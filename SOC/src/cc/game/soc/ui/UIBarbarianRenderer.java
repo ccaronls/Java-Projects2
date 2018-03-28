@@ -135,5 +135,7 @@ public final class UIBarbarianRenderer extends UIRenderer {
     }
 
     public void onBarbarianAttack(int catanStrength, int barbarianStrength, String[] playerStatus) {
+	    distance = positions.length-1;
+	    component.redraw();
     }
 }

@@ -14,6 +14,7 @@ import cc.game.soc.core.DevelopmentArea;
 import cc.game.soc.core.Dice;
 import cc.game.soc.core.EventCard;
 import cc.game.soc.core.ICardType;
+import cc.game.soc.core.ILocalized;
 import cc.game.soc.core.MoveType;
 import cc.game.soc.core.Player;
 import cc.game.soc.core.ProgressCardType;
@@ -121,7 +122,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
         return GColor.BLACK;
     }
 
-    public Integer chooseVertex(final Collection<Integer> vertexIndices, final int playerNum, final Player.VertexChoice choice) {
+    public Integer chooseVertex(final Collection<Integer> vertexIndices, final Player.VertexChoice choice, final Integer knightToMove) {
         clearMenu();
         addMenuItem(new MenuItem("Accept", null, boardRenderer));
         getUIBoard().setPickHandler(new PickHandler() {
@@ -150,11 +151,19 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
                     case KNIGHT_DISPLACED:
                     case KNIGHT_MOVE_POSITION:
                     case KNIGHT_TO_MOVE:
-                    case OPPONENT_KNIGHT_TO_DISPLACE:
-                        b.drawKnight(g, v, v.getPlayer(), v.getType().getKnightLevel(), v.getType().isKnightActive(), false);
+                    case OPPONENT_KNIGHT_TO_DISPLACE: {
+                        int knightLevel = v.getType().getKnightLevel();
+                        boolean active = v.getType().isKnightActive();
+                        if (knightToMove != null) {
+                            Vertex vv = getBoard().getVertex(knightToMove);
+                            knightLevel = vv.getType().getKnightLevel();
+                            active = vv.getType().isKnightActive();
+                        }
+                        b.drawKnight(g, v, v.getPlayer(), knightLevel, active, false);
                         g.setColor(GColor.RED);
                         b.drawCircle(g, v);
                         break;
+                    }
                     case KNIGHT_TO_ACTIVATE:
                         b.drawKnight(g, v, v.getPlayer(), v.getType().getKnightLevel(), true, true);
                         break;
@@ -204,12 +213,20 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
                     case KNIGHT_DISPLACED:
                     case KNIGHT_MOVE_POSITION:
                     case KNIGHT_TO_MOVE:
-                    case OPPONENT_KNIGHT_TO_DISPLACE:
-                        b.drawKnight(g, v, 0, v.getType().getKnightLevel(), v.getType().isKnightActive(), false);
+                    case OPPONENT_KNIGHT_TO_DISPLACE: {
+                        int knightLevel = v.getType().getKnightLevel();
+                        boolean active = v.getType().isKnightActive();
+                        if (knightToMove != null) {
+                            Vertex vv = getBoard().getVertex(knightToMove);
+                            knightLevel = vv.getType().getKnightLevel();
+                            active = vv.getType().isKnightActive();
+                        }
+                        b.drawKnight(g, v, 0, knightLevel, active, false);
                         g.setColor(GColor.YELLOW);
                         b.drawCircle(g, v);
                         g.setColor(color);
                         break;
+                    }
                     case KNIGHT_TO_ACTIVATE:
                         b.drawKnight(g, v, 0, v.getType().getKnightLevel(), true, false);
                         break;
@@ -417,7 +434,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
         Iterator<Trade> it = trades.iterator();
         while (it.hasNext()) {
             Trade trade = it.next();
-            String str = trade.getType().name() + " X " + trade.getAmount();
+            String str = trade.getType().getName(this) + " X " + trade.getAmount();
             addMenuItem(CHOOSE_TRADE, str, null, trade);
         }
         completeMenu();
@@ -464,7 +481,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
         Iterator<T> it = choices.iterator();
         while (it.hasNext()) {
             Enum<T> choice= it.next();
-            addMenuItem(CHOOSE_MOVE, choice.name(), null, choice);
+            addMenuItem(CHOOSE_MOVE, ((ILocalized)choice).getName(this), null, choice);
         }
         completeMenu();
         return waitForReturnValue(null);
@@ -648,6 +665,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
     @Keep
     protected void onBarbariansAttack(int catanStrength, int barbarianStrength, String [] playerStatus) {
         server.broadcastExecuteOnRemote(NetCommon.SOC_ID, catanStrength, barbarianStrength, playerStatus);
+        barbarianRenderer.onBarbarianAttack(catanStrength, barbarianStrength, playerStatus);
         StringBuffer str = new StringBuffer("Barbarian Attack!\n\nBarbarian Strength ")
                 .append(barbarianStrength)
                 .append("\nCatan Strength ")
@@ -730,7 +748,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
     @Keep
     protected void onDistributeResources(int player, final ResourceType type, final int amount) {
         server.broadcastExecuteOnRemote(NetCommon.SOC_ID, player, type, amount);
-        addCardAnimation(player, type.name() + "\nX " + amount);
+        addCardAnimation(player, type.getName(this) + "\nX " + amount);
         super.onDistributeResources(player, type, amount);
     }
 
@@ -738,7 +756,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
     @Keep
     protected void onDistributeCommodity(final int player, final CommodityType type, final int amount) {
         server.broadcastExecuteOnRemote(NetCommon.SOC_ID, player, type, amount);
-        addCardAnimation(player, type.name() + "\nX " + amount);
+        addCardAnimation(player, type.getName(this) + "\nX " + amount);
         super.onDistributeCommodity(player, type, amount);
     }
 
@@ -860,8 +878,8 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
     @Keep
     protected void onMetropolisStolen(int loser, int stealer, DevelopmentArea area) {
         server.broadcastExecuteOnRemote(NetCommon.SOC_ID, loser, stealer, area);
-        addCardAnimation(loser, "Metropolis\n" + area.name() + "\nLost!");
-        addCardAnimation(stealer, "Metropolis\n" + area.name() + "\nStolen!");
+        addCardAnimation(loser, "Metropolis\n" + area.getName(this) + "\nLost!");
+        addCardAnimation(stealer, "Metropolis\n" + area.getName(this) + "\nStolen!");
         super.onMetropolisStolen(loser, stealer, area);
     }
 
@@ -1075,7 +1093,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
                 g.popMatrix();
             }
 
-        }, true);
+        }, false);
 
     }
 
@@ -1092,7 +1110,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
     @Keep
     protected void onPlayerCityDeveloped(int p, DevelopmentArea area) {
         server.broadcastExecuteOnRemote(NetCommon.SOC_ID, p, area);
-        addCardAnimation(p, area.name() + "\n\n" + area.getLevelName(getPlayerByPlayerNum(p).getCityDevelopment(area), this));
+        addCardAnimation(p, area.getName(this) + "\n\n" + area.getLevelName(getPlayerByPlayerNum(p).getCityDevelopment(area), this));
         super.onPlayerCityDeveloped(p, area);
     }
 

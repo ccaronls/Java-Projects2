@@ -1,6 +1,6 @@
 package cc.game.soc.core;
 
-public interface ICardType<T> {
+public interface ICardType<T> extends ILocalized {
 	CardType getCardType();
 	
 	int ordinal();
@@ -12,6 +12,4 @@ public interface ICardType<T> {
 	T getData();
 	
 	CardStatus defaultStatus();
-
-	String getName(StringResource sr);
 }

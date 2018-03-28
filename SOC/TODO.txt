@@ -78,3 +78,5 @@ CAK Rule Details:
 (DONE, partially tested)
 
 Add barbarians and traders expansion option
+
+Make rules not need annotations which dont work well with localiztion!!!

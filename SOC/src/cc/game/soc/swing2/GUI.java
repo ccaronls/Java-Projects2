@@ -671,6 +671,7 @@ public class GUI implements ActionListener, MenuItem.Action {
 
             @Override
             protected void onShouldSaveGame() {
+                FileUtils.backupFile(saveGameFile.getAbsolutePath(), 20);
                 soc.trySaveToFile(saveGameFile);
             }
 

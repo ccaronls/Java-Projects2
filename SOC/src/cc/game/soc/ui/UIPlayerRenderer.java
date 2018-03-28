@@ -66,12 +66,12 @@ public final class UIPlayerRenderer extends UIRenderer {
         if (player.isInfoVisible()) {
             for (ResourceType t : ResourceType.values()) {
                 int num = player.getCardCount(t);
-                str.append(t.name()).append(" X ").append(num).append("\n");
+                str.append(t.getName(UISOC.getInstance())).append(" X ").append(num).append("\n");
             }
             if (soc.getRules().isEnableCitiesAndKnightsExpansion()) {
                 for (CommodityType t : CommodityType.values()) {
                     int num = player.getCardCount(t);
-                    str.append(t.name()).append(" X ").append(num).append("\n");
+                    str.append(t.getName(UISOC.getInstance())).append(" X ").append(num).append("\n");
                 }
                 for (Card c : player.getCards(CardType.Progress)) {
                     str.append(c.getName(UISOC.getInstance())).append("(").append(c.getCardStatus().getName(UISOC.getInstance())).append(")\n");

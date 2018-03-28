@@ -1911,20 +1911,8 @@ public class SOC extends Reflector<SOC> implements StringResource {
 					assert(!Utils.isEmpty(options));
 					final Integer vIndex = getCurPlayer().chooseVertex(this, options, VertexChoice.KNIGHT_TO_MOVE, null);
 					if (vIndex != null) {
-					    final Vertex v = getBoard().getVertex(vIndex);
-						final VertexType vt = v.getType();
 						popState();
-						VertexType type = v.getType();
-						if (type.isKnightActive())
-							type = type.deActivatedType();
-						pushStateFront(State.POSITION_KNIGHT_CANCEL, type, computeKnightMoveVertexIndices(this, vIndex, mBoard), new UndoAction() {
-							@Override
-							public void undo() {
-								v.setPlayerAndType(getCurPlayerNum(), vt);
-							}
-						});
-						v.setOpen();
-						updatePlayerRoadsBlocked(vIndex);
+						pushStateFront(State.POSITION_KNIGHT_CANCEL, vIndex, computeKnightMoveVertexIndices(this, vIndex, mBoard));
 					}
 					break;
 				}
@@ -1951,20 +1939,19 @@ public class SOC extends Reflector<SOC> implements StringResource {
 				case POSITION_KNIGHT_CANCEL: {
 					printinfo(getString(R.string.info_player_position_knight, getCurPlayer().getName()));
 					assert(!Utils.isEmpty(options));
-					Integer knightIndexToMove = null;
-					Vertex knightToMove = null;
-					VertexType knight = null;
-					if (getStateData() instanceof Vertex) {
-						knightToMove = getStateData();
-						knight = knightToMove.getType();
-						knightIndexToMove = getBoard().getVertexIndex(knightToMove);
-					} else {
-						knight = getStateData();
-					}
-					assert(knight.isKnight());
+					Integer sourceKnight = getStateData();
+					VertexType knight = VertexType.BASIC_KNIGHT_INACTIVE;
+					if (sourceKnight != null) {
+                        knight = getBoard().getVertex(sourceKnight).getType().deActivatedType();
+                    }
+
+                    assert(knight.isKnight());
 					Integer vIndex = getCurPlayer().chooseVertex(this, options,
-							state == State.POSITION_NEW_KNIGHT_CANCEL ? VertexChoice.NEW_KNIGHT : VertexChoice.KNIGHT_MOVE_POSITION, knightIndexToMove);
+							state == State.POSITION_NEW_KNIGHT_CANCEL ? VertexChoice.NEW_KNIGHT : VertexChoice.KNIGHT_MOVE_POSITION, sourceKnight);
 					if (vIndex != null) {
+					    if (sourceKnight != null) {
+                            getBoard().getVertex(sourceKnight).setOpen();
+                        }
 					    Vertex v = getBoard().getVertex(vIndex);
 						popState();
 
@@ -2033,17 +2020,11 @@ public class SOC extends Reflector<SOC> implements StringResource {
 					assert(!Utils.isEmpty(options));
 					Integer vIndex = getCurPlayer().chooseVertex(this, options, VertexChoice.KNIGHT_DESERTER, null);
 					if (vIndex != null) {
-					    Vertex v = getBoard().getVertex(vIndex);
-						VertexType knightType = v.getType();
-						assert(knightType.isKnight());
-						Vertex copy = v.deepCopy();
-						int newPlayerNum = getStateData();
-						copy.setPlayerAndType(newPlayerNum, knightType);
-						v.setOpen();
+					    int newPlayerNum = getStateData();
 						popState();
 						options = computeNewKnightVertexIndices(newPlayerNum, getBoard());
 						if (options.size() > 0) {
-    						pushStateFront(State.POSITION_KNIGHT_NOCANCEL, copy, options);
+    						pushStateFront(State.POSITION_KNIGHT_NOCANCEL, vIndex, options);
 						}
 						pushStateFront(State.SET_PLAYER, newPlayerNum);
 					}
@@ -3054,7 +3035,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
         		Collection<Integer> options = computeNewKnightVertexIndices(getCurPlayerNum(), mBoard);
         		if (options.size() > 0) {
             		getCurPlayer().adjustResourcesForBuildable(BuildableType.Knight, -1);
-            		pushStateFront(State.POSITION_NEW_KNIGHT_CANCEL, VertexType.BASIC_KNIGHT_INACTIVE, options, new UndoAction() {
+            		pushStateFront(State.POSITION_NEW_KNIGHT_CANCEL, null, options, new UndoAction() {
     					@Override
     					public void undo() {
     						getCurPlayer().adjustResourcesForBuildable(BuildableType.Knight, 1);

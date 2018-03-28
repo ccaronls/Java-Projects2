@@ -7,7 +7,7 @@ import cc.game.soc.android.R;
  * @author Chris Caron
  *
  */
-public enum MoveType {
+public enum MoveType implements ILocalized {
 
 	// The priority value is for sorting of moves for the PlayerBot.  Here is the priorities from highest to lowest:
 	// Trades 

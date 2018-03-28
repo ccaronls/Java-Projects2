@@ -89,7 +89,7 @@ public final class UIConsoleRenderer extends UIRenderer {
             if (startLine > 0) {
 
                 // if user is scrolling, then show this line at top with a fade out.
-                anim = new AAnimation<APGraphics>(1000) {
+                anim = new AAnimation<APGraphics>(500) {
                     @Override
                     protected void draw(APGraphics g, float position, float dt) {
                         drawPrivate(g);
@@ -119,11 +119,11 @@ public final class UIConsoleRenderer extends UIRenderer {
                 }.start();
             }
 
+            component.redraw();
+            Utils.waitNoThrow(anim, anim.getDuration());
             lines.addFirst(item);
             if (startLine > 0)
                 startLine++;
-            component.redraw();
-            Utils.waitNoThrow(anim, anim.getDuration());
         }
     };
 

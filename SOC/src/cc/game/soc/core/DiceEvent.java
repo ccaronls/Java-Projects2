@@ -2,7 +2,7 @@ package cc.game.soc.core;
 
 import cc.game.soc.android.R;
 
-public enum DiceEvent {
+public enum DiceEvent implements ILocalized {
 	AdvanceBarbarianShip(R.string.dice_event_advance_barbarian),
 	ScienceCard(R.string.dice_event_science_card),
 	TradeCard(R.string.dice_event_trade_card),
