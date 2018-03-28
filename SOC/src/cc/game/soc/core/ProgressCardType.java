@@ -1,9 +1,11 @@
 package cc.game.soc.core;
 
+import cc.game.soc.android.R;
+
 public enum ProgressCardType implements ICardType<DevelopmentArea> {
 
 	// Science
-	Alchemist		(DevelopmentArea.Science, "Can assign any values to the dice on your turn", 2),
+	Alchemist		(DevelopmentArea.Science, MoveType.ALCHEMIST_CARD, 2),
 	Inventor		(DevelopmentArea.Science, MoveType.INVENTOR_CARD, 2),
 	Crane			(DevelopmentArea.Science, MoveType.CRANE_CARD, 2),
 	Irrigation		(DevelopmentArea.Science, MoveType.IRRIGATION_CARD, 2),
@@ -11,13 +13,13 @@ public enum ProgressCardType implements ICardType<DevelopmentArea> {
 	Medicine		(DevelopmentArea.Science, MoveType.MEDICINE_CARD, 2),
 	Smith			(DevelopmentArea.Science, MoveType.SMITH_CARD, 2),
 	Mining			(DevelopmentArea.Science, MoveType.MINING_CARD, 2),
-	Printer			(DevelopmentArea.Science, "Collect 1 victory point played immediately upon drawing, cannot be taken.", 1),
+	Printer			(DevelopmentArea.Science, R.string.special_victory_printer, 1),
 	RoadBuilding	(DevelopmentArea.Science, MoveType.ROAD_BUILDING_CARD, 1),
 	
 	// Politics
 	Bishop			(DevelopmentArea.Politics, MoveType.BISHOP_CARD, 2),
 	Diplomat		(DevelopmentArea.Politics, MoveType.DIPLOMAT_CARD, 2),
-	Constitution	(DevelopmentArea.Politics, "Collect 1 victory point played immediately upon drawing, cannot be taken.", 1),
+	Constitution	(DevelopmentArea.Politics, R.string.special_victory_constitution, 1),
 	Intrigue		(DevelopmentArea.Politics, MoveType.INTRIGUE_CARD, 2),
 	Deserter		(DevelopmentArea.Politics, MoveType.DESERTER_CARD, 2),
 	Saboteur		(DevelopmentArea.Politics, MoveType.SABOTEUR_CARD, 2),
@@ -35,17 +37,20 @@ public enum ProgressCardType implements ICardType<DevelopmentArea> {
 	
 	;
 
+	final int nameId;
 	final DevelopmentArea type;
 	final int deckOccurances;
 	final MoveType moveType;
 
-	ProgressCardType(DevelopmentArea type, String helpText, int deckOccurances) { 
-		this.type = type;
-		this.deckOccurances = deckOccurances;
-		this.moveType = null;
-	}
-	
-	ProgressCardType(DevelopmentArea type, MoveType moveType, int deckOccurances) { 
+    ProgressCardType(DevelopmentArea type, int nameId, int deckOccurances) {
+        this.nameId = nameId;
+        this.type = type;
+        this.deckOccurances = deckOccurances;
+        this.moveType = null;
+    }
+
+    ProgressCardType(DevelopmentArea type, MoveType moveType, int deckOccurances) {
+	    this.nameId = moveType.nameId;
 		this.type = type;
 		this.deckOccurances = deckOccurances;
 		this.moveType = moveType;
@@ -61,8 +66,6 @@ public enum ProgressCardType implements ICardType<DevelopmentArea> {
 		return moveType.getHelpText(rules, sr);
 	}
 
-
-
 	@Override
 	public DevelopmentArea getData() {
 		return type;
@@ -75,7 +78,7 @@ public enum ProgressCardType implements ICardType<DevelopmentArea> {
 
     @Override
     public String getName(StringResource sr) {
-        return null;
+        return sr.getString(nameId);
     }
 
     public boolean isEnabled(Rules rules) {

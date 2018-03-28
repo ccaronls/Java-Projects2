@@ -158,10 +158,16 @@ public enum MoveType {
         }
     },
     ACTIVATE_KNIGHT(false, 50, R.string.move_type_activate_knight, R.string.move_type_activate_knight_help_cost) {
-        //"Activate Knight", "Activate one of your knights for cost of " + BuildableType.ActivateKnight.getNiceString()),
+        @Override
+        public String getHelpText(Rules rules, StringResource sr) {
+            return sr.getString(this.helpTextId, BuildableType.ActivateKnight.getNiceString(sr));
+        }
     },
     PROMOTE_KNIGHT(false, 40, R.string.move_type_promote_knight, R.string.move_type_promote_knight_help_cost) {
-        //"Promote Knight", "Promote one of your knight for cost " + BuildableType.PromoteKnight.getNiceString()),
+        @Override
+        public String getHelpText(Rules rules, StringResource sr) {
+            return sr.getString(this.helpTextId, BuildableType.PromoteKnight.getNiceString(sr));
+        }
     },
     MOVE_KNIGHT(false, 5, R.string.move_type_move_knight, R.string.move_type_move_knight_help),
 

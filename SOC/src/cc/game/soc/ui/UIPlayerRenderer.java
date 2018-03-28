@@ -74,11 +74,11 @@ public final class UIPlayerRenderer extends UIRenderer {
                     str.append(t.name()).append(" X ").append(num).append("\n");
                 }
                 for (Card c : player.getCards(CardType.Progress)) {
-                    str.append(c.getName(UISOC.getInstance())).append("(").append(c.getCardStatus()).append(")\n");
+                    str.append(c.getName(UISOC.getInstance())).append("(").append(c.getCardStatus().getName(UISOC.getInstance())).append(")\n");
                 }
             } else {
                 for (Card c : player.getCards(CardType.Development)) {
-                    str.append(c.getName(UISOC.getInstance())).append("(").append(c.getCardStatus()).append(")\n");
+                    str.append(c.getName(UISOC.getInstance())).append("(").append(c.getCardStatus().getName(UISOC.getInstance())).append(")\n");
                 }
             }
         } else {

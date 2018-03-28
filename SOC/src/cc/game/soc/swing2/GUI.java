@@ -686,7 +686,12 @@ public class GUI implements ActionListener, MenuItem.Action {
                 if (s == null) {
                     log.error("Unknown string resource '" + resourceId + "'");
                 }
-                return String.format(s, args);
+                try {
+                    return String.format(s, args);
+                } catch (MissingFormatArgumentException e) {
+                    log.error("Missing format argument for line:\n" + s);
+                    throw e;
+                }
             }
         };
 		

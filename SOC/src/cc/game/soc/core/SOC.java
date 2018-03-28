@@ -1990,6 +1990,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
     							pushStateFront(State.SET_PLAYER, getCurPlayerNum());
     							pushStateFront(State.POSITION_DISPLACED_KNIGHT, v, options);
     							pushStateFront(State.SET_PLAYER, v.getPlayer());
+    							break; // exit out early. SET_VERTEX_TYPE will assign after displaced knight is moved.
 							} 
 						} else {
                             assert (v.getType() == VertexType.OPEN);

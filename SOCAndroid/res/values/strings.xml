@@ -421,7 +421,7 @@
     <string name="tile_type_gold">Gold</string>
     <string name="tile_type_undiscovered">Undiscovered</string>
 
-    // used for random generation
+    <!-- Used for random generation -->
     <string name="tile_type_random_resource_or_desert">Resource or Desert</string>
     <string name="tile_type_random_resource">Resource</string>
     <string name="tile_type_random_port_or_water">Port or Water</string>
@@ -431,5 +431,10 @@
     <string name="tile_type_mountains">Mountains</string>
     <string name="tile_type_fields">Fields</string>
     <string name="tile_type_forest">Forest</string>
+
+    <!-- card status -->
+    <string name="card_status_usable">Usable</string>
+    <string name="card_status_unusable">Unusable</string>
+    <string name="card_status_used">Used</string>
 
 </resources>
