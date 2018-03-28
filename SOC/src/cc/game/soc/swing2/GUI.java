@@ -847,7 +847,7 @@ public class GUI implements ActionListener, MenuItem.Action {
                 int userPlayerIndex = -1;
                 for (int i=0; i<soc.getNumPlayers(); i++) {
                     UIPlayer p = (UIPlayer)soc.getPlayerByPlayerNum(i+1);
-                    playerRenderers[i].setPlayer(p);
+                    playerRenderers[i].setPlayer(i+1);
                     if (p instanceof  UIPlayerUser) {
                         userPlayerIndex = i;
                     }

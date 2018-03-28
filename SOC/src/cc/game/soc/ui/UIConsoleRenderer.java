@@ -124,6 +124,7 @@ public final class UIConsoleRenderer extends UIRenderer {
             lines.addFirst(item);
             if (startLine > 0)
                 startLine++;
+            component.redraw();
         }
     };
 

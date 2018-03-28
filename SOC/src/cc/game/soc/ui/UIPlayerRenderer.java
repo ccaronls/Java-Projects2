@@ -38,19 +38,23 @@ public final class UIPlayerRenderer extends UIRenderer {
 		return 1500;//return GUI.instance.getProps().getIntProperty("anim.ms", 1500);
 	}
 
-	UIPlayer player;
+	int playerNum=0;
 
     public UIPlayerRenderer(UIComponent component) {
         super(component);
     }
 
-    public void setPlayer(UIPlayer player) {
-        this.player = player;
+    public void setPlayer(int playerNum) {
+        this.playerNum = playerNum;
         component.redraw();
     }
 
     @Override
     public void draw(APGraphics g, int px, int py) {
+        if (playerNum < 1)
+            return;
+
+        UIPlayer player = (UIPlayer)UISOC.getInstance().getPlayerByPlayerNum(playerNum);
         if (player == null)
             return;
 
@@ -167,7 +171,7 @@ public final class UIPlayerRenderer extends UIRenderer {
     }
 
     final boolean isCurrentPlayer() {
-        return player.getPlayerNum() == UISOC.getInstance().getCurPlayerNum();
+        return playerNum == UISOC.getInstance().getCurPlayerNum();
     }
 
 }
