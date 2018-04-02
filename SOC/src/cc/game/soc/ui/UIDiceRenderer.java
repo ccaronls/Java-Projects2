@@ -36,8 +36,8 @@ public final class UIDiceRenderer extends UIRenderer {
 	    this.blueCityImageId = blueCityImageId;
     }
     
-	public UIDiceRenderer(UIComponent component) {
-        super(component);
+	public UIDiceRenderer(UIComponent component, boolean attach) {
+        super(component, attach);
 	}
 
 	public void setDice(Dice ... dice) {
@@ -117,6 +117,9 @@ public final class UIDiceRenderer extends UIRenderer {
         }
 
         drawPrivate(g, pickX, pickY, dice);
+
+        //g.setColor(GColor.BLACK);
+        //g.drawRect(0, 0, diceRect.width, diceRect.height, 3);
     }
 
     private void drawPrivate(APGraphics g, int pickX, int pickY, Dice [] dice) {
@@ -126,13 +129,13 @@ public final class UIDiceRenderer extends UIRenderer {
             GDimension dim = getDim();
 
             float dieDim = dim.height;
-            if (dieDim*dice.length + (dieDim/4*(dice.length+1)) > dim.width) {
-                dieDim = (4*dim.width) / (5*dice.length + 1);
+            if (dieDim*dice.length + (dieDim/4*(dice.length-1)) > dim.width) {
+                dieDim = dim.width / (dice.length + (dice.length-1)/4);
                 g.translate(0, dim.height/2 - dieDim/2);
             }
             float spacing = dieDim/4;
-
-            g.translate(spacing, 0);
+            float dw = dieDim*dice.length + spacing*(dice.length-1);
+            g.translate(dim.width/2 - dw/2, 0);
 
             g.pushMatrix();
             {

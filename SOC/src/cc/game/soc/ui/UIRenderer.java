@@ -12,8 +12,13 @@ public abstract class UIRenderer {
     final UIComponent component;
 
     UIRenderer(UIComponent component) {
+        this(component, true);
+    }
+
+    UIRenderer(UIComponent component, boolean attach) {
         this.component = component;
-        component.setRenderer(this);
+        if (attach)
+            component.setRenderer(this);
     }
 
     public <T extends UIComponent> T getComponent() {

@@ -175,6 +175,29 @@ public abstract class APGraphics extends AGraphics {
     }
 
     /**
+     * Returns name of closest vertex to x,y
+     * @param x
+     * @param y
+     * @return
+     */
+    public final int pickClosest(int x, int y) {
+        int picked = -1;
+        float closest = Float.MAX_VALUE;
+        for (int i=0; i<r.getNumVerts(); i++) {
+            if (r.getName(i) < 0)
+                continue;
+            Vector2D v = r.getVertex(i);
+            Vector2D dv =  v.sub(x, y);
+            float d = dv.magSquared();
+            if (d < closest) {
+                closest = d;
+                picked = r.getName(i);
+            }
+        }
+        return picked;
+    }
+
+    /**
      *
      * @param x
      * @param y

@@ -1929,6 +1929,7 @@ public class Utils {
                 if (!m.find())
                     throw new AssertionError("Failed to find xml content on line:\n" + line);
                 String content = stripEnds(m.group());
+                content = content.replace("\\n", "\n");
                 Field f = stringResource.getField(name);
                 int id = f.getInt(null);
                 stringTable.put(id, content);

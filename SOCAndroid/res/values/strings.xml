@@ -72,6 +72,8 @@
     <string name="resource_type_brick_help">Produced by Hills Tiles</string>
 
     <!-- event cards -->
+    <string name="event_card_new_year">New Year</string>
+    <string name="event_card_card_shuffled_on_next">Event cards wil be shuffled on next event card drawn.</string>
     <string name="event_card_robber_attack">Robber\nAttack</string>
     <string name="event_card_robber_attack_help">Current player places the robber and all players discard half of your cards (round down).  Same as rolling a \'7\'</string>
     <string name="event_card_epidemic">Epidemic</string>
@@ -486,5 +488,7 @@
     <string name="rule_enable_event_cards">Use Event Cards instead of dice</string>
     <string name="rule_min_victory_points_for_robber">Min Victory Points for a player to have Robber placed adjacent to them</string>
     <string name="rule_enable_harbor_master">Player with most harbor points gets special victory points</string>
+
+
 
 </resources>

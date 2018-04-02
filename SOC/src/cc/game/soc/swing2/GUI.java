@@ -310,7 +310,7 @@ public class GUI implements ActionListener, MenuItem.Action {
     };
     private final UIBoardRenderer boardRenderer = new UIBoardRenderer(boardComp);
     
-    private final UIDiceRenderer diceRenderers = new UIDiceRenderer(diceComponent);
+    private final UIDiceRenderer diceRenderers = new UIDiceRenderer(diceComponent, true);
     private final UIEventCardRenderer eventCardRenderer = new UIEventCardRenderer(eventCardComp);
 
 	private final Stack<MenuState> menuStack = new Stack<>();

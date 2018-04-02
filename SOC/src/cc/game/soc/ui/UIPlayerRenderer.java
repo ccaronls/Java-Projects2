@@ -165,7 +165,7 @@ public final class UIPlayerRenderer extends UIRenderer {
         setMinDimension(min);
 
         if (isCurrentPlayer()) {
-            g.drawRect(0,0, component.getWidth()-6, Math.max(min.height, component.getHeight())-6, RenderConstants.thickLineThickness);
+            g.drawRect(0,0, component.getWidth()-RenderConstants.thickLineThickness/2, Math.max(min.height, component.getHeight())-RenderConstants.thickLineThickness/2, RenderConstants.thickLineThickness);
         }
     }
 

@@ -552,9 +552,10 @@ public class UIBoardRenderer extends UIRenderer implements MenuItem.Action {
 		g.begin();
 		for (int index=0; index<getBoard().getNumRoutes(); index++) {
 			g.setName(index);
-			renderEdge(g, getBoard().getRoute(index));
+			//renderEdge(g, getBoard().getRoute(index));
+            g.vertex(getBoard().getRouteMidpoint(getBoard().getRoute(index)));
 		}
-		return g.pickLines(mouseX, mouseY, Math.round(RenderConstants.thickLineThickness*2));
+		return g.pickClosest(mouseX, mouseY);//g.pickLines(mouseX, mouseY, Math.round(RenderConstants.thickLineThickness*2));
 	}
 	
 	private int pickVertex(APGraphics g, int mouseX, int mouseY) {
@@ -564,18 +565,18 @@ public class UIBoardRenderer extends UIRenderer implements MenuItem.Action {
 			Vertex v = getBoard().getVertex(index);
 			g.vertex(v);
 		}
-		return g.pickPoints(mouseX, mouseY, 10);
+		return g.pickClosest(mouseX, mouseY);//g.pickPoints(mouseX, mouseY, 10);
 	}
 	
 	private int pickTile(APGraphics g, int mouseX, int mouseY) {
 		g.begin();
-		final int dim = Math.round(getBoard().getTileWidth() * component.getWidth());
+		//final int dim = Math.round(getBoard().getTileWidth() * component.getWidth());
 		for (int index=0; index<getBoard().getNumTiles(); index++) {
 			g.setName(index);
 			Tile cell = getBoard().getTile(index);
 			g.vertex(cell);
 		}
-		return g.pickPoints(mouseX, mouseY, dim);
+		return g.pickClosest(mouseX, mouseY);//g.pickPoints(mouseX, mouseY, dim);
 	}
 	
 	private void renderEdge(AGraphics g, Route e) {
@@ -588,11 +589,26 @@ public class UIBoardRenderer extends UIRenderer implements MenuItem.Action {
 	private void renderDamagedEdge(AGraphics g, Route e) {
 		Vertex v0 = getBoard().getVertex(e.getFrom());
 		Vertex v1 = getBoard().getVertex(e.getTo());
+		// choose v1 or v0 based on which endpoint is touching another route or structure of ours
+        Vertex v = v0;
+        if (v1.getPlayer() == e.getPlayer() && v1.isStructure()) {
+            v = v1;
+        } else if (v0.getPlayer() != e.getPlayer() || !v0.isStructure()) {
+            for (Route r : getBoard().getRoutesAdjacentToVertex(e.getTo())) {
+                if (!r.equals(e)) {
+                    if (r.getPlayer() == e.getPlayer()) {
+                        v = v1;
+                    }
+                }
+            }
+        }
+
+
 		g.begin();
 		g.vertex(v0);
-		Vector2D v = getBoard().getRouteMidpoint(e);
-		g.vertex(v);
-		Vector2D dv = Vector2D.newTemp(v).subEq(v0).normEq().addEq(v);
+		Vector2D mp = getBoard().getRouteMidpoint(e);
+		g.vertex(mp);
+		Vector2D dv = Vector2D.newTemp(mp).subEq(v0).normEq().addEq(v);
 		g.vertex(dv);
 	}
 	

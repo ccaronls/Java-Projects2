@@ -86,7 +86,7 @@ public class SOCView<T extends UIRenderer> extends View implements UIComponent {
                 break;
             }
             case R.id.soc_dice:
-                renderer = (T)new UIDiceRenderer(this);
+                renderer = (T)new UIDiceRenderer(this, true);
                 break;
             case R.id.soc_user:
             case R.id.soc_player_top:
