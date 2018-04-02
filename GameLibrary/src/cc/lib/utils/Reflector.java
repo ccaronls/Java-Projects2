@@ -1728,7 +1728,7 @@ public class Reflector<T> {
         try {
             saveToFile(file);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error(e);
         }
     }
 

@@ -599,6 +599,7 @@ public class WifiP2pHelper implements
             @Override
             protected void onDone() {
                 log.info("Group created SUCCESS");
+                p2p.requestGroupInfo(channel, WifiP2pHelper.this);
             }
         });
     }
@@ -613,7 +614,7 @@ public class WifiP2pHelper implements
     }
 
     @Override
-    public void onGroupInfoAvailable(WifiP2pGroup group) {
+    public final void onGroupInfoAvailable(WifiP2pGroup group) {
         if (group != null) {
             log.info("Group Info"
                     + "\n   interface: " + group.getInterface()
@@ -621,7 +622,16 @@ public class WifiP2pHelper implements
                     + "\n   passphrase: " + group.getPassphrase()
                     + "\n   owner: " + group.getOwner().deviceName
                     + "\n   clients: " + group.getClientList().size());
+            onGroupInfo(group);
         }
+    }
+
+    /**
+     *
+     * @param group
+     */
+    protected void onGroupInfo(WifiP2pGroup group) {
+
     }
 
     public final void connect(final WifiP2pDevice another) {

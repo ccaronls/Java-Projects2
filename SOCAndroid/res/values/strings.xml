@@ -444,4 +444,47 @@
     <string name="route_type_ship">Ship</string>
     <string name="route_type_warship">Warship</string>
 
+    <!-- Rules -->
+    <string name="rule_variation_soc">Settlers of Catan</string>
+    <string name="rule_settlement_on_start">Num Settlements during Start</string>
+    <string name="rule_resources_for_city">Num Resources for City</string>
+    <string name="rule_resources_for_settlement">Num Resources for Settlement</string>
+    <string name="rule_points_for_city">Points for City</string>
+    <string name="rule_points_for_settlement">Points for Settlement</string>
+    <string name="rule_max_safe_cards">Max number of safe cards in hand</string>
+    <string name="rule_min_longest_road">Min Longest Road Length</string>
+    <string name="rule_min_largest_army_size">Min largest Army Size</string>
+    <string name="rule_points_for_win">Point to Win</string>
+    <string name="rule_enable_road_block">Enable Road Block</string>
+    <string name="rule_min_players">Minimum players</string>
+    <string name="rule_max_players">Maximum players</string>
+    <string name="rule_variation_seafarers">Seafarers Expansion</string>
+    <string name="rule_enable_seafarers">Enable seafarers expansion</string>
+    <string name="rule_enable_island_settlements">Enable Island Settlements on Startup</string>
+    <string name="rule_points_for_discovered_island">Points for discovered Island</string>
+    <string name="rule_resources_for_discovered_territory">Resources for Discovered Territory</string>
+    <string name="rule_enable_robber">Robber enabled</string>
+    <string name="rule_pirate_fortress_health">Pirate Fortress Health</string>
+    <string name="rule_enable_build_ship_on_any_port">Ships can be built from any port regardless if there is a settlement.</string>
+    <string name="rule_enable_warships">Warship can chase away pirate and attack opponents normal ships.</string>
+    <string name="rule_min_discovered_territory_for_victory_points">Minimum discovered territories for victory points.  Set to 0 to disable feature.</string>
+    <string name="rule_enable_attacking_fortress_ends_turn">Attacking a Pirate fortress ends turn flag. Default is true based on original rule set.</string>
+    <string name="rule_variation_cak">Cities &amp; Knights Expansion</string>
+    <string name="rule_enable_cak">Enable Cities and Knights</string>
+    <string name="rule_barbarian_steps_to_attack">Barbaian Steps to attack</string>
+    <string name="rule_max_progress_cards">Max Progress Cards</string>
+    <string name="rule_safe_cards_per_wall">Additional safe cards per wall</string>
+    <string name="rule_points_for_metro">Points per Metropolis</string>
+    <string name="rule_enable_knights_venture_off_roads">Allow knights to venture off roads 1 unit at a time</string>
+    <string name="rule_knight_score_to_destroy_road">Indicate the min die roll (offset by knight level) needed to destroy a road.  Set to 0 to disable.</string>
+    <string name="rule_knight_score_to_destroy_settlement">Indicate the min die roll (offset by knight level) needed to destroy a settlement.  Set to 0 to disable.</string>
+    <string name="rule_knight_score_to_destroy_city">Indicate the min die roll (offset by knight level) needed to destroy a city.  Set to 0 to disable.</string>
+    <string name="rule_knight_score_to_destroy_walled_city">Indicate the min die roll (offset by knight level) needed to destroy a walled city.  Set to 0 to disable.</string>
+    <string name="rule_knight_score_to_destroy_metro">Indicate the min die roll (offset by knight level) needed to destroy a metropolis.  Set to 0 to disable.</string>
+    <string name="rule_enable_inventor_unrestrained">When true, inventor can swap any tiles, otherwise 2,6,8 and 12 cannot be swapped as per original rule set.</string>
+    <string name="rule_variation_tab">Traders &amp; Barbarians expansion</string>
+    <string name="rule_enable_event_cards">Use Event Cards instead of dice</string>
+    <string name="rule_min_victory_points_for_robber">Min Victory Points for a player to have Robber placed adjacent to them</string>
+    <string name="rule_enable_harbor_master">Player with most harbor points gets special victory points</string>
+
 </resources>

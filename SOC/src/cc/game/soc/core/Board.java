@@ -871,7 +871,8 @@ public class Board extends Reflector<Board> {
 			c.reset();
 		}
 		for (Vertex v : verts) {
-			v.setOpen();
+            if (v.getType() != VertexType.OPEN_SETTLEMENT && v.getType() != VertexType.PIRATE_FORTRESS)
+			    v.setOpen();
 		}
 		for (Route r : routes) {
 			r.reset();

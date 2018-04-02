@@ -62,6 +62,7 @@ public class GameClient {
     private final Set<Listener> listeners = new HashSet<>();
     private String serverName = null;
     private Map<String, Object> executorObjects = new NoDupesMap<>(new HashMap<String, Object>());
+    private String passPhrase = null;
 
 
     // giving package access for JUnit tests ONLY!
@@ -335,7 +336,11 @@ public class GameClient {
                     } else if (cmd.getType() == GameCommandType.SVR_EXECUTE_REMOTE) {
                         handleExecuteRemote(cmd);
                     } else if (cmd.getType() == GameCommandType.PASSWORD) {
-                        outQueue.add(new GameCommand(GameCommandType.PASSWORD).setArg("password", getPasswordFromUser()));
+                        if (passPhrase != null) {
+                            passPhrase = getPasswordFromUser();
+                        }
+                        outQueue.add(new GameCommand(GameCommandType.PASSWORD).setArg("password", passPhrase));
+                        passPhrase = null;
                     } else {
                         for (Listener l : larray)
                             l.onCommand(cmd);
@@ -400,6 +405,10 @@ public class GameClient {
         sendCommand(cmd);
     }
 
+    public void setPassphrase(String passphrase) {
+        this.passPhrase = passphrase;
+    }
+
     /**
      * Override this method to take input from user for password requests.
      * Default behavior throws a runtime exception, so dont super me.
@@ -446,7 +455,7 @@ public class GameClient {
         String method = cmd.getArg("method");
         int numParams = cmd.getInt("numParams");
         Class [] paramsTypes = new Class[numParams];
-        Object [] params = new Object[numParams];
+        final Object [] params = new Object[numParams];
         for (int i=0; i<numParams; i++) {
             String param = cmd.getArg("param" + i);
             Object o = Reflector.deserializeFromString(param);
@@ -456,36 +465,54 @@ public class GameClient {
             }
         }
         String id = cmd.getArg("target");
-        Object obj = executorObjects.get(id);
+        final Object obj = executorObjects.get(id);
         if (obj == null)
             throw new IOException("Unknown object id: " + id);
         log.debug("id=%s -> %s", id, obj.getClass());
         try {
-            Method m = methodMap.get(method);
-            if (m == null) {
-                try {
-                    m = obj.getClass().getDeclaredMethod(method, paramsTypes);
-                } catch (NoSuchMethodException e) {
-                    // ignore
-                }
-                if (m == null)
-                    m = searchMethods(obj, method, paramsTypes, params);
-                m.setAccessible(true);
-                methodMap.put(method, m);
-            }
-            Object result = m.invoke(obj, params);
-            id = cmd.getArg("responseId");
-            log.debug("responseId=%s", id);
-            if (id != null) {
-                GameCommand resp = new GameCommand(GameCommandType.CL_REMOTE_RETURNS);
-                resp.setArg("target", id);
-                if (result != null)
-                    resp.setArg("returns", Reflector.serializeObject(result));
-                sendCommand(resp);
+            final Method m = findMethod(method, obj, paramsTypes, params);
+            final String responseId = cmd.getArg("responseId");
+            if (responseId != null) {
+                new Thread() {
+                    public void run() {
+                        try {
+                            Object result = m.invoke(obj, params);
+                            log.debug("responseId=%s", responseId);
+                            if (responseId != null) {
+                                GameCommand resp = new GameCommand(GameCommandType.CL_REMOTE_RETURNS);
+                                resp.setArg("target", responseId);
+                                if (result != null)
+                                    resp.setArg("returns", Reflector.serializeObject(result));
+                                sendCommand(resp);
+                            }
+                        } catch (Exception e) {
+                            sendError(e);
+                            e.printStackTrace();
+                        }
+                    }
+                }.start();
+            } else {
+                m.invoke(obj, params);
             }
         } catch (Exception e) {
             throw new IOException(e);
         }
+    }
+
+    private Method findMethod(String method, Object obj, Class [] paramsTypes, Object [] params) throws Exception {
+        Method m = methodMap.get(method);
+        if (m == null) {
+            try {
+                m = obj.getClass().getDeclaredMethod(method, paramsTypes);
+            } catch (NoSuchMethodException e) {
+                // ignore
+            }
+            if (m == null)
+                m = searchMethods(obj, method, paramsTypes, params);
+            m.setAccessible(true);
+            methodMap.put(method, m);
+        }
+        return m;
     }
 
     private final Map<String, Method> methodMap = new HashMap<>();

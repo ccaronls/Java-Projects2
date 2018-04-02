@@ -54,7 +54,6 @@ import javax.jmdns.ServiceInfo;
 
 import cc.game.soc.android.R;
 import cc.game.soc.core.*;
-import cc.game.soc.core.annotations.RuleVariable;
 import cc.game.soc.ui.*;
 import cc.lib.game.AGraphics;
 import cc.lib.game.APGraphics;
@@ -2246,19 +2245,20 @@ public class GUI implements ActionListener, MenuItem.Action {
         final HashMap<JComponent, Field> components = new HashMap<JComponent, Field>();
         final int numCols = 10;
         try {
-        	
-        	Field [] fields = Rules.class.getDeclaredFields();
+            Rules.Variation var = null;
+            Field [] fields = Rules.class.getDeclaredFields();
         	for (Field f : fields) {
         		Annotation [] anno = f.getAnnotations();
         		for (Annotation a : anno) {
-        			if (a.annotationType().equals(RuleVariable.class)) {
+        			if (a.annotationType().equals(Rules.Rule.class)) {
     					cons.gridx=0;
         				f.setAccessible(true);
-        				RuleVariable ruleVar = (RuleVariable)a;
-        				if (ruleVar.separator().length() > 0) {
+                        Rules.Rule ruleVar = (Rules.Rule)a;
+                        if (var != ruleVar.variation()) {
+                            var = ruleVar.variation();
         					cons.fill=HORIZONTAL;
         					cons.gridwidth=numCols;
-        					view.add(new JLabel(ruleVar.separator()), cons);
+        					view.add(new JLabel(getSOC().getString(var.stringId)), cons);
         					cons.gridy++;
         					view.add(new JSeparator(), cons);
         					cons.gridy++;
@@ -2277,7 +2277,7 @@ public class GUI implements ActionListener, MenuItem.Action {
         					}
         				} else if (f.getType().equals(int.class)) {
         					if (editable) {
-            			        final JSpinner spinner = new JSpinner(new SpinnerNumberModel(f.getInt(rules), ruleVar.minValue(), ruleVar.maxValue(), ruleVar.valueStep()));
+            			        final JSpinner spinner = new JSpinner(new SpinnerNumberModel(f.getInt(rules), ruleVar.minValue(), ruleVar.maxValue(), 1));
             			        view.add(spinner, cons);
             			        components.put(spinner, f);
         					} else {
@@ -2288,7 +2288,7 @@ public class GUI implements ActionListener, MenuItem.Action {
         				}
         				cons.gridx=1;
         				cons.gridwidth = numCols-1;
-    			        view.add(new JLabel(ruleVar.description()), cons);
+    			        view.add(new JLabel(getSOC().getString(ruleVar.stringId())), cons);
     			        cons.gridy++;
         				break;
         			}

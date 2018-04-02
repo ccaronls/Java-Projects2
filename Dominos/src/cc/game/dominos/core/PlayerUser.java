@@ -33,7 +33,7 @@ public class PlayerUser extends Player {
         }
 
         game.redraw();
-        Utils.waitNoThrow(game, 2000);
+        Utils.waitNoThrow(game, -1);
         if (choosedMove != null)
             usable.clear();
 

@@ -1,6 +1,11 @@
 package cc.game.soc.core;
 
-import cc.game.soc.core.annotations.RuleVariable;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+import cc.game.soc.android.R;
 import cc.lib.utils.Reflector;
 
 /**
@@ -47,93 +52,113 @@ public final class Rules extends Reflector<Rules> {
 	static {
 		addAllFields(Rules.class);
 	}
-	
+
+    @Target(value = ElementType.FIELD)
+    @Retention(RetentionPolicy.RUNTIME)
+	public @interface Rule {
+        int stringId();
+        Variation variation();
+        int minValue() default 0;
+        int maxValue() default 0;
+    }
+
 	// SOC Variables
-	
-	// OOOOO ya baby!  Just set the annotation to get picked up automatically by GUI!
-	
-	@RuleVariable(separator="Settlers of Catan", description="Num Settlements during Start", minValue=1, maxValue=4)
-	private int numStartSettlements = 2;
-	@RuleVariable(description="Num Resources for City", minValue=1, maxValue=3)
+
+    public enum Variation {
+        SOC(R.string.rule_variation_soc),
+        SEAFARERS(R.string.rule_variation_seafarers),
+        CAK(R.string.rule_variation_cak), // cities and knights
+        TAB(R.string.rule_variation_tab) // traders and barbarians
+        ;
+
+        public final int stringId;
+
+        Variation(int id) {
+            this.stringId = id;
+        }
+    }
+
+    @Rule(variation = Variation.SOC, stringId = R.string.rule_settlement_on_start, minValue=1, maxValue=4)
+    private int numStartSettlements = 2;
+	@Rule(variation = Variation.SOC, stringId = R.string.rule_resources_for_city, minValue=1, maxValue=3)
 	private int numResourcesForCity = 2;
-	@RuleVariable(description="Num Resources for Settlement", minValue=1, maxValue=4)
+	@Rule(variation = Variation.SOC, stringId = R.string.rule_resources_for_settlement, minValue=1, maxValue=4)
 	private int numResourcesForSettlement = 1;
-	@RuleVariable(description="Points for City", minValue=2, maxValue=4)
+    @Rule(variation = Variation.SOC, stringId = R.string.rule_points_for_city, minValue=2, maxValue=4)
 	private int pointsPerCity = 2;
-	@RuleVariable(description="Points for Settlement", minValue=1, maxValue=3)
+    @Rule(variation = Variation.SOC, stringId = R.string.rule_points_for_settlement, minValue=1, maxValue=3)
 	private int pointsPerSettlement = 1;
-	@RuleVariable(description="Max number of safe cards in hand", minValue=5, maxValue=10)
+    @Rule(variation = Variation.SOC, stringId = R.string.rule_max_safe_cards, minValue=5, maxValue=10)
 	private int maxSafeCards = 7;
-	@RuleVariable(description="Min Longest Road Length", minValue=3, maxValue=7)
+    @Rule(variation = Variation.SOC, stringId = R.string.rule_min_longest_road, minValue=3, maxValue=7)
 	private int minLongestLoadLen = 5;
-	@RuleVariable(description="Min largest Army Size", minValue=2, maxValue=4)
+    @Rule(variation = Variation.SOC, stringId = R.string.rule_min_largest_army_size, minValue=2, maxValue=4)
 	private int minLargestArmySize = 3;
-	@RuleVariable(description="Point to Win", minValue=5, maxValue=50, valueStep=1)
+    @Rule(variation = Variation.SOC, stringId = R.string.rule_points_for_win, minValue=5, maxValue=50)
 	private int pointsForWinGame = 10;
-	@RuleVariable(description="Enable Road Block")
+    @Rule(variation = Variation.SOC, stringId = R.string.rule_enable_road_block)
 	private boolean enableRoadBlock = false;
-	@RuleVariable(description="Minimum players", minValue=2, maxValue=4, valueStep=1)
+    @Rule(variation = Variation.SOC, stringId = R.string.rule_min_players, minValue=2, maxValue=4)
 	private int minPlayers = 2;
-	@RuleVariable(description="Maximum players", minValue=3, maxValue=6, valueStep=1)
+    @Rule(variation = Variation.SOC, stringId = R.string.rule_max_players, minValue=3, maxValue=6)
 	private int maxPlayers = 6;
 	
 	// Extensions
-	
-	@RuleVariable(description="Enable Searfarers", separator="Seafarers Expansion")
+
+    @Rule(variation = Variation.SEAFARERS, stringId = R.string.rule_enable_seafarers)
 	private boolean enableSeafarersExpansion = false;
-	@RuleVariable(description="Enable Island Settlements on Startup")
+    @Rule(variation = Variation.SEAFARERS, stringId = R.string.rule_enable_island_settlements)
 	private boolean enableIslandSettlementsOnSetup = false; // some scenarios allow starting on a island while others dont
-	@RuleVariable(description="Points for discovered Island", minValue=0, maxValue=4)
+    @Rule(variation = Variation.SEAFARERS, stringId = R.string.rule_points_for_discovered_island, minValue=0, maxValue=4)
 	private int pointsIslandDiscovery = 2;
-	@RuleVariable(description="Resources for Discovered Territory", minValue=1, maxValue=3)
+    @Rule(variation = Variation.SEAFARERS, stringId = R.string.rule_resources_for_discovered_territory, minValue=1, maxValue=3)
 	private int numResourcesForDiscoveredTerritory = 1;
-	@RuleVariable(description="Robber enabled")
+    @Rule(variation = Variation.SEAFARERS, stringId = R.string.rule_enable_robber)
 	private boolean enableRobber = true;
-	@RuleVariable(description="Pirate Fortress Health", minValue=1, maxValue=5)
+    @Rule(variation = Variation.SEAFARERS, stringId = R.string.rule_pirate_fortress_health, minValue=1, maxValue=5)
 	private int pirateFortressHealth = 3;
-	@RuleVariable(description="Ships can be built from any port regardless if there is a settlement.")
+    @Rule(variation = Variation.SEAFARERS, stringId = R.string.rule_enable_build_ship_on_any_port)
 	private boolean enableBuildShipsFromPort = false;
-	@RuleVariable(description="Warship can chase away pirate and attack opponents normal ships.")
+    @Rule(variation = Variation.SEAFARERS, stringId = R.string.rule_enable_warships)
 	private boolean enableWarShipBuildable = false;
-	@RuleVariable(description="Minimum discovered territories for victory points.  Set to 0 to disable feature.")
+    @Rule(variation = Variation.SEAFARERS, stringId = R.string.rule_min_discovered_territory_for_victory_points)
 	private int minMostDiscoveredTerritories=0;
-	@RuleVariable(description="Attacking a Pirate fortress ends turn flag. Default is tru based on original rule set.")
+    @Rule(variation = Variation.SEAFARERS, stringId = R.string.rule_enable_attacking_fortress_ends_turn)
 	private boolean attackPirateFortressEndsTurn = true;
 	
 	// knight
-	@RuleVariable(description="Enable Cities and Knights", separator="Cities & Knights Expansion")
+    @Rule(variation = Variation.CAK, stringId = R.string.rule_enable_cak)
 	private boolean enableCitiesAndKnightsExpansion = false;
-	@RuleVariable(description="Barbaian Steps to attack", minValue=5, maxValue=10)
+    @Rule(variation = Variation.CAK, stringId = R.string.rule_barbarian_steps_to_attack, minValue=5, maxValue=10)
 	private int barbarianStepsToAttack=7;
-	@RuleVariable(description="Max Progress Cards", minValue=3, maxValue=6)
+    @Rule(variation = Variation.CAK, stringId = R.string.rule_max_progress_cards, minValue=3, maxValue=6)
 	private int maxProgressCards=4;
-	@RuleVariable(description="Additional safe cards per wall", minValue=1, maxValue=3)
+    @Rule(variation = Variation.CAK, stringId = R.string.rule_safe_cards_per_wall, minValue=1, maxValue=3)
 	private int numSafeCardsPerCityWall=2;
-	@RuleVariable(description="Points per Metropolis", minValue=3, maxValue=5)
+    @Rule(variation = Variation.CAK, stringId = R.string.rule_points_for_metro, minValue=3, maxValue=5)
 	private int pointsPerMetropolis=4;
-	@RuleVariable(description="Allow knights to venture off roads 1 unit at a time")
+    @Rule(variation = Variation.CAK, stringId = R.string.rule_enable_knights_venture_off_roads)
 	private boolean enableKnightExtendedMoves=false;
-	@RuleVariable(description="Indicate the min die roll (offset by knight level) needed to destroy a road.  Set to 0 to disable.", minValue=0, maxValue=11)
+    @Rule(variation = Variation.CAK, stringId = R.string.rule_knight_score_to_destroy_road, minValue=0, maxValue=11)
 	private int knightScoreToDestroyRoad=0;
-	@RuleVariable(description="Indicate the min die roll (offset by knight level) needed to destroy a settlement.  Set to 0 to disable.", minValue=0, maxValue=14)
+    @Rule(variation = Variation.CAK, stringId = R.string.rule_knight_score_to_destroy_settlement, minValue=0, maxValue=14)
 	private int knightScoreToDestroySettlement=0;
-	@RuleVariable(description="Indicate the min die roll (offset by knight level) needed to destroy a city.  Set to 0 to disable.", minValue=0, maxValue=14)
+    @Rule(variation = Variation.CAK, stringId = R.string.rule_knight_score_to_destroy_city, minValue=0, maxValue=14)
 	private int knightScoreToDestroyCity=0;
-	@RuleVariable(description="Indicate the min die roll (offset by knight level) needed to destroy a walled city.  Set to 0 to disable.", minValue=0, maxValue=14)
+    @Rule(variation = Variation.CAK, stringId = R.string.rule_knight_score_to_destroy_walled_city, minValue=0, maxValue=14)
 	private int knightScoreToDestroyWalledCity=0;
-	@RuleVariable(description="Indicate the min die roll (offset by knight level) needed to destroy a metropolis.  Set to 0 to disable.", minValue=0, maxValue=14)
+    @Rule(variation = Variation.CAK, stringId = R.string.rule_knight_score_to_destroy_metro, minValue=0, maxValue=14)
 	private int knightScoreToDestroyMetropolis=0;
-	@RuleVariable(description="When true, inventor can swap any tiles, otherwise 2,6,8 and 12 cannot be swapped")
+    @Rule(variation = Variation.CAK, stringId = R.string.rule_enable_inventor_unrestrained)
 	private boolean unlimitedInventorTiles=false;
-	
-	@RuleVariable(description="Use Event Cards instead of dice", separator="Traders & Barbarians expansion")
+
+    @Rule(variation = Variation.TAB, stringId = R.string.rule_enable_event_cards)
 	private boolean enableEventCards = false;
-	@RuleVariable(description="Min Victory Points for a player to have Robber placed adjacent to them", minValue=0, maxValue=3, valueStep=1)
+    @Rule(variation = Variation.TAB, stringId = R.string.rule_min_victory_points_for_robber, minValue=0, maxValue=3)
 	private int minVictoryPointsForRobber = 0;
-	@RuleVariable(description="Player with most harbor points gets special victory points")
+    @Rule(variation = Variation.TAB, stringId = R.string.rule_enable_harbor_master)
 	private boolean enableHarborMaster = false;
-	
-	
+
 	public final int getBarbarianStepsToAttack() {
 		return barbarianStepsToAttack;
 	}

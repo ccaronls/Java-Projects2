@@ -2,6 +2,8 @@ package cc.lib.logger;
 
 import java.util.Date;
 
+import cc.lib.game.Utils;
+
 /**
  * Created by chriscaron on 2/27/18.
  */
@@ -45,6 +47,11 @@ public abstract class LoggerFactory {
         }
     };
 
+    private String getName(Class<?> clazz) {
+        if (!Utils.isEmpty(clazz.getSimpleName()))
+            return clazz.getSimpleName();
+        else return getName(clazz.getSuperclass());
+    }
 
     public static Logger getLogger(String prefix, Class<?> clazz) {
         return factory.getLogger(prefix + ":" + clazz.getSimpleName());

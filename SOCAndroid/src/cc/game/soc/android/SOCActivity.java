@@ -1,13 +1,12 @@
 package cc.game.soc.android;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
+import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
@@ -16,8 +15,6 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.CompoundButton;
-import android.widget.LinearLayout;
-import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.NumberPicker;
 import android.widget.TableLayout;
@@ -31,16 +28,16 @@ import java.io.InputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Stack;
 import java.util.Vector;
 
 import cc.game.soc.core.Board;
 import cc.game.soc.core.BuildableType;
-import cc.game.soc.core.Player;
 import cc.game.soc.core.ResourceType;
 import cc.game.soc.core.Rules;
 import cc.game.soc.core.SOC;
-import cc.game.soc.core.annotations.RuleVariable;
 import cc.game.soc.ui.MenuItem;
 import cc.game.soc.ui.RenderConstants;
 import cc.game.soc.ui.UIBarbarianRenderer;
@@ -51,7 +48,6 @@ import cc.game.soc.ui.UIEventCardRenderer;
 import cc.game.soc.ui.UIPlayer;
 import cc.game.soc.ui.UIPlayerRenderer;
 import cc.game.soc.ui.UIPlayerUser;
-import cc.game.soc.ui.UIProperties;
 import cc.game.soc.ui.UISOC;
 import cc.lib.android.ArrayListAdapter;
 import cc.lib.android.CCActivityBase;
@@ -162,73 +158,79 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action {
                 vPlayerlBottom.renderer
         };
 
-        soc = new UISOC(players, vBoard.renderer, vDice.renderer, console, vEvent.renderer, vBarbarian.renderer) {
-            @Override
-            protected void addMenuItem(MenuItem item, String title, String helpText, Object extra) {
-                menu.add(new Object[]{
-                        item, title, helpText, extra
-                });
-            }
+        if (UISOC.getInstance() == null)
+            soc = new UISOC(players, vBoard.renderer, vDice.renderer, console, vEvent.renderer, vBarbarian.renderer) {
+                @Override
+                protected void addMenuItem(MenuItem item, String title, String helpText, Object extra) {
+                    menu.add(new Object[]{
+                            item, title, helpText, extra
+                    });
+                }
 
-            @Override
-            public void completeMenu() {
-                super.completeMenu();
-                addMenuItem(CONSOLE);
-                addMenuItem(BUILDABLES);
-                addMenuItem(RULES);
-                addMenuItem(QUIT);
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        adapter.notifyDataSetChanged();
-                    }
-                });
-            }
+                @Override
+                public void completeMenu() {
+                    super.completeMenu();
+                    addMenuItem(CONSOLE);
+                    addMenuItem(BUILDABLES);
+                    addMenuItem(RULES);
+                    addMenuItem(QUIT);
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            adapter.notifyDataSetChanged();
+                        }
+                    });
+                }
 
-            @Override
-            public void clearMenu() {
-                menu.clear();
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        adapter.notifyDataSetChanged();
-                    }
-                });
-            }
+                @Override
+                public void clearMenu() {
+                    menu.clear();
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            adapter.notifyDataSetChanged();
+                        }
+                    });
+                }
 
-            @Override
-            public void redraw() {
-                content.postInvalidate();
-            }
+                @Override
+                public void redraw() {
+                    content.postInvalidate();
+                }
 
-            @Override
-            protected void showOkPopup(final String title, final String message) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        newDialog(true).setTitle(title).setMessage(message).setNeutralButton("OK", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                synchronized (soc) {
-                                    soc.notify();
+                @Override
+                protected void showOkPopup(final String title, final String message) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            newDialog(true).setTitle(title).setMessage(message).setNeutralButton("OK", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    synchronized (soc) {
+                                        soc.notify();
+                                    }
                                 }
-                            }
-                        }).show();
-                    }
-                });
-                Utils.waitNoThrow(this, -1);
-            }
+                            }).show();
+                        }
+                    });
+                    Utils.waitNoThrow(this, -1);
+                }
 
-            @Override
-            protected String getServerName() {
-                return Build.BRAND + "." + Build.PRODUCT;
-            }
+                @Override
+                protected String getServerName() {
+                    return Build.BRAND + "." + Build.PRODUCT;
+                }
 
-            @Override
-            public String getString(int resourceId, Object... args) {
-                return getResources().getString(resourceId, args);
-            }
-        };
+                @Override
+                public String getString(int resourceId, Object... args) {
+                    return getResources().getString(resourceId, args);
+                }
+
+                @Override
+                protected void onShouldSaveGame() {
+                    trySaveToFile(gameFile);
+                }
+            };
         soc.setBoard(vBoard.getRenderer().getBoard());
     }
 
@@ -264,8 +266,17 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action {
             soc.initGame();
             soc.startGameThread();
         } else if (item == CONSOLE) {
-            newDialog(true).setView((SOCView)console.getComponent()).show();
+            showConsole();
         }
+    }
+
+    Dialog consoleDialog = null;
+
+    void showConsole() {
+        if (consoleDialog == null) {
+            consoleDialog = newDialog(true).setView((SOCView)console.getComponent()).create();
+        };
+        consoleDialog.show();
     }
 
     void showError(Exception e) {
@@ -401,6 +412,18 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action {
     }
 
     void initGame() {
+
+        int index = 0;
+        SOCView<UIPlayerRenderer> [] opponents = Utils.toArray(vPlayerTop, vPlayerlMiddle, vPlayerlBottom);
+
+        for (int i=1; i<=soc.getNumPlayers(); i++) {
+            if (soc.getPlayerByPlayerNum(i) instanceof UIPlayerUser) {
+                vUser.renderer.setPlayer(i);
+            } else {
+                opponents[index++].renderer.setPlayer(i);
+            }
+        }
+
         vPlayerTop.setVisibility(View.VISIBLE);
         vUser.setVisibility(View.VISIBLE);
         lvMenu.setVisibility(View.VISIBLE);
@@ -461,16 +484,62 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action {
         newDialog(true).setTitle("Buildables").setView(table).setNegativeButton("Ok", null).show();
     }
 
+    class RuleItem implements Comparable<RuleItem> {
+        final Rules.Variation var;
+        final int min, max;
+        final int stringId;
+        final Field field;
+
+        public RuleItem(Rules.Variation var) {
+            this.var = var;
+            this.min = max = 0;
+            field = null;
+            this.stringId = var.stringId;
+        }
+
+        public RuleItem(Rules.Rule rule, Field field) {
+            this.var = rule.variation();
+            this.min = rule.minValue();
+            this.max = rule.maxValue();
+            this.field = field;
+            this.stringId = rule.stringId();
+        }
+
+        @Override
+        public int compareTo(@NonNull RuleItem o) {
+            if (var != o.var)
+                return var.compareTo(o.var);
+            if (field == null)
+                return -1;
+            if (o.field == null)
+                return 1;
+            return field.getName().compareTo(o.field.getName());
+        }
+    }
+
     void showRulesDialog() {
         final boolean canEdit = !soc.isRunning() && !user.client.isConnected();
-        final Rules rules = soc.getRules().deepCopy();
+        final Rules r = soc.getRules().deepCopy();
 
-        final Field[] fields = Rules.class.getDeclaredFields();
+        final List<RuleItem> rules = new ArrayList<>();
+        for (Rules.Variation v : Rules.Variation.values())
+            rules.add(new RuleItem(v));
+        for (Field f : Rules.class.getDeclaredFields()) {
+            Annotation[] anno = f.getAnnotations();
+            for (Annotation a : anno) {
+                if (a.annotationType().equals(Rules.Rule.class)) {
+                    f.setAccessible(true);
+                    final Rules.Rule ruleVar = (Rules.Rule) a;
+                    rules.add(new RuleItem(ruleVar, f));
+                }
+            }
+        }
+        Collections.sort(rules);
         ListView lv = new ListView(this);
         BaseAdapter rulesAdapter = new BaseAdapter() {
             @Override
             public int getCount() {
-                return fields.length;
+                return rules.size();
             }
 
             @Override
@@ -488,83 +557,77 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action {
                 if (v == null) {
                     v = View.inflate(SOCActivity.this, R.layout.rules_list_item, null);
                 }
-                TextView tvHeader = (TextView)v.findViewById(R.id.tvHeader);
-                TextView tvName   = (TextView)v.findViewById(R.id.tvName);
-                TextView tvDesc   = (TextView)v.findViewById(R.id.tvDescription);
-                CompoundButton cb = (CompoundButton)v.findViewById(R.id.cbEnabled);
-                final Button   bEdit    = (Button)v.findViewById(R.id.bEdit);
+                TextView tvHeader  = (TextView)v.findViewById(R.id.tvHeader);
+                TextView tvName    = (TextView)v.findViewById(R.id.tvName);
+                TextView tvDesc    = (TextView)v.findViewById(R.id.tvDescription);
+                CompoundButton cb  = (CompoundButton)v.findViewById(R.id.cbEnabled);
+                final Button bEdit = (Button)v.findViewById(R.id.bEdit);
 
                 try {
-                    final Field f = fields[position];
-                    Annotation[] anno = f.getAnnotations();
-                    for (Annotation a : anno) {
-                        if (a.annotationType().equals(RuleVariable.class)) {
-                            f.setAccessible(true);
-                            final RuleVariable ruleVar = (RuleVariable)a;
-                            if (ruleVar.separator().length() > 0) {
-                                // header
-                                tvHeader.setVisibility(View.VISIBLE);
-                                tvName.setVisibility(View.GONE);
-                                tvDesc.setVisibility(View.GONE);
-                                cb.setVisibility(View.GONE);
-                                bEdit.setVisibility(View.GONE);
-                                tvHeader.setText(ruleVar.separator());
-                            } else if (f.getType().equals(boolean.class)) {
-                                // checkbox
-                                tvHeader.setVisibility(View.GONE);
-                                tvName.setVisibility(View.VISIBLE);
-                                tvDesc.setVisibility(View.VISIBLE);
-                                cb.setVisibility(View.VISIBLE);
-                                bEdit.setVisibility(View.GONE);
-                                tvName.setText(f.getName());
-                                tvDesc.setText(ruleVar.description());
-                                cb.setChecked(f.getBoolean(rules));
-                                cb.setEnabled(canEdit);
-                                cb.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                                    @Override
-                                    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                                        try {
-                                            f.setBoolean(rules, isChecked);
-                                        } catch (Exception e) {
-                                            e.printStackTrace();
-                                        }
-                                    }
-                                });
-                            } else if (f.getType().equals(int.class)) {
-                                // numberpicker
-                                tvHeader.setVisibility(View.GONE);
-                                tvName.setVisibility(View.VISIBLE);
-                                tvDesc.setVisibility(View.VISIBLE);
-                                cb.setVisibility(View.GONE);
-                                bEdit.setVisibility(View.VISIBLE);
-                                tvName.setText(f.getName());
-                                tvDesc.setText(ruleVar.description());
-                                final int value = f.getInt(rules);
-                                bEdit.setText(String.valueOf(f.getInt(rules)));
-                                bEdit.setEnabled(canEdit);
-                                bEdit.setOnClickListener(new View.OnClickListener() {
-                                    @Override
-                                    public void onClick(View v) {
-                                        final NumberPicker np = CCNumberPicker.newPicker(SOCActivity.this, value, ruleVar.minValue(), ruleVar.maxValue(), null);
-                                        newDialog(false).setTitle(f.getName()).setView(np).setNegativeButton("Cancel", null)
-                                                .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                    final RuleItem item = rules.get(position);
+                    if (item.field == null) {
+                        // header
+                        tvHeader.setVisibility(View.VISIBLE);
+                        tvName.setVisibility(View.GONE);
+                        tvDesc.setVisibility(View.GONE);
+                        cb.setVisibility(View.GONE);
+                        bEdit.setVisibility(View.GONE);
+                        tvHeader.setText(item.stringId);
+                    } else if (item.field.getType().equals(boolean.class)) {
+                        // checkbox
+                        tvHeader.setVisibility(View.GONE);
+                        tvName.setVisibility(View.VISIBLE);
+                        tvDesc.setVisibility(View.VISIBLE);
+                        cb.setVisibility(View.VISIBLE);
+                        bEdit.setVisibility(View.GONE);
+                        tvName.setText(item.field.getName());
+                        tvDesc.setText(item.stringId);
+                        cb.setChecked(item.field.getBoolean(rules));
+                        cb.setEnabled(canEdit);
+                        cb.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                            @Override
+                            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                                try {
+                                    item.field.setBoolean(rules, isChecked);
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        });
+                    } else if (item.field.getType().equals(int.class)) {
+                        // numberpicker
+                        tvHeader.setVisibility(View.GONE);
+                        tvName.setVisibility(View.VISIBLE);
+                        tvDesc.setVisibility(View.VISIBLE);
+                        cb.setVisibility(View.GONE);
+                        bEdit.setVisibility(View.VISIBLE);
+                        tvName.setText(item.field.getName());
+                        tvDesc.setText(item.stringId);
+                        final int value = item.field.getInt(rules);
+                        bEdit.setText(String.valueOf(item.field.getInt(rules)));
+                        bEdit.setEnabled(canEdit);
+                        bEdit.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                final NumberPicker np = CCNumberPicker.newPicker(SOCActivity.this, value, item.min, item.max, null);
+                                newDialog(false).setTitle(item.field.getName()).setView(np).setNegativeButton("Cancel", null)
+                                        .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
                                             @Override
                                             public void onClick(DialogInterface dialog, int which) {
                                                 try {
-                                                    f.setInt(rules, np.getValue());
+                                                    item.field.setInt(rules, np.getValue());
                                                     bEdit.setText(String.valueOf(np.getValue()));
                                                 } catch (Exception e) {
                                                     e.printStackTrace();
                                                 }
                                             }
                                         }).show();
-                                    }
-                                });
-                            } else {
-                                log.error("Dont know how to handle field: " + f.getName());
                             }
-                        }
+                        });
+                    } else {
+                        log.error("Dont know how to handle field: " + item.field.getName());
                     }
+
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -577,13 +640,13 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action {
             b.setNegativeButton("Discard", null).setNeutralButton("Save", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
-                    rules.trySaveToFile(rulesFile);
-                    soc.setRules(rules);
+                    r.trySaveToFile(rulesFile);
+                    soc.setRules(r);
                 }
             }).setPositiveButton("Keep", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
-                    soc.setRules(rules);
+                    soc.setRules(r);
                 }
             }).show();
         } else {
@@ -679,7 +742,14 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action {
                     }
                 });
             } else {
-                b.setNegativeButton("Cancel", null);
+                b.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        if (!soc.isRunning()) {
+                            showStartDialog();
+                        }
+                    }
+                });
             }
         }
         return b;

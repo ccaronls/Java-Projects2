@@ -1191,7 +1191,8 @@ public class UIBoardRenderer extends UIRenderer implements MenuItem.Action {
         }
 	}
 
-    private void drawInfo(AGraphics g, int x, int y, String info) {
+    private void drawInfo(AGraphics g, IVector2D v, String info) {
+
         String [] lines = info.split("\n");
         int maxW = 0;
         for (int i=0; i<lines.length; i++) {
@@ -1201,8 +1202,9 @@ public class UIBoardRenderer extends UIRenderer implements MenuItem.Action {
         int width = maxW + padding*2;
         int height = lines.length * g.getTextHeight() + 2*padding;
         g.setColor(GColor.DARK_GRAY.withAlpha(180));
-        g.drawFilledRect(x, y, width, height);
+        g.drawFilledRect(v.getX(), v.getY(), width, height);
         g.setColor(GColor.WHITE);
+        /*
         y -= 2; // slight visual adjustment to center vertically
         
         // make sure we dont draw off screen
@@ -1216,7 +1218,8 @@ public class UIBoardRenderer extends UIRenderer implements MenuItem.Action {
         for (int i=0; i<lines.length; i++) {
             y += g.getTextHeight();
             g.drawString(lines[i], x+padding, y+padding);
-        }
+        }*/
+        g.drawWrapString(v.getX(), v.getY(), maxW, info);
     }
     
     private void drawTileInfo(AGraphics g, int cellIndex) {
@@ -1231,12 +1234,7 @@ public class UIBoardRenderer extends UIRenderer implements MenuItem.Action {
         	info += "\n  Island " + cell.getIslandNum();
         }
         
-        float [] v = {0,0};
-        g.transform(cell.getX(), cell.getY(), v);
-        int x = Math.round(v[0]);
-        int y = Math.round(v[1]);
-
-        drawInfo(g, x, y, info);
+        drawInfo(g, cell, info);
     }
     
     private void drawEdgeInfo(AGraphics g, int edgeIndex) {
@@ -1250,10 +1248,7 @@ public class UIBoardRenderer extends UIRenderer implements MenuItem.Action {
         info += "\n  ang=" + getEdgeAngle(edge);
         info += "\n  tiles=" + edge.getTile(0) + "/" + edge.getTile(1);
         
-        MutableVector2D m = new MutableVector2D(getBoard().getRouteMidpoint(edge));
-        g.transform(m);
-        
-        drawInfo(g, Math.round(m.getX()), Math.round(m.getY()), info);
+        drawInfo(g, getBoard().getRouteMidpoint(edge), info);
     }
     
     private void drawVertexInfo(AGraphics g, int vertexIndex) {
@@ -1273,9 +1268,8 @@ public class UIBoardRenderer extends UIRenderer implements MenuItem.Action {
             int pNum = getBoard().checkForPlayerRouteBlocked(vertexIndex);
             info += "\n  Blocks player " + pNum + "'s roads";
         }
-        Vector2D v = g.transform(vertex);
-        
-        drawInfo(g, v.Xi(), v.Yi(), info);
+
+        drawInfo(g, vertex, info);
     }
 
     public void drawCard(GColor color, AGraphics g, String txt, float x, float y, float cw, float ch) {

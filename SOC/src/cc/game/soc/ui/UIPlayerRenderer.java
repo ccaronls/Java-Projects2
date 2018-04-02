@@ -8,7 +8,6 @@ import cc.game.soc.core.ResourceType;
 import cc.game.soc.core.SOC;
 import cc.game.soc.core.SpecialVictoryType;
 import cc.game.soc.core.VertexType;
-import cc.lib.game.AGraphics;
 import cc.lib.game.APGraphics;
 import cc.lib.game.GColor;
 import cc.lib.game.GDimension;
@@ -60,7 +59,7 @@ public final class UIPlayerRenderer extends UIRenderer {
 
         SOC soc = UISOC.getInstance();
         g.setTextHeight(RenderConstants.textSizeBig);
-        g.setTextStyles(AGraphics.TextStyle.BOLD);
+        //g.setTextStyles(AGraphics.TextStyle.BOLD);
 
         StringBuffer str = new StringBuffer();
         str.append(player.getName())

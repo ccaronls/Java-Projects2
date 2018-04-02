@@ -35,7 +35,7 @@ public class Player extends Reflector<Player> {
 
     public String getName() {
         if (connection != null) {
-            return connection.getName();
+            return "P" + (playerNum+1) + " " + connection.getName();
         }
         if (name == null)
             name = "Player " + (playerNum+1);

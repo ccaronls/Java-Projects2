@@ -37,7 +37,7 @@ public class MPPlayerUser extends PlayerUser implements GameClient.Listener {
 
     @Override
     public String getName() {
-        return client.getName();
+        return "P" + (getPlayerNum()+1) + " " + client.getName();
     }
 
     @Keep

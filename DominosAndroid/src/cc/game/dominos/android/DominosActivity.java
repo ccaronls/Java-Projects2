@@ -7,6 +7,7 @@ import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.net.wifi.p2p.WifiP2pDevice;
+import android.net.wifi.p2p.WifiP2pGroup;
 import android.net.wifi.p2p.WifiP2pInfo;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -592,7 +593,13 @@ public class DominosActivity extends DroidActivity {
             @Override
             protected void doIt() throws Exception {
                 server.listen();
-                helper = new WifiP2pHelper(DominosActivity.this);
+                helper = new WifiP2pHelper(DominosActivity.this) {
+                    @Override
+                    public void onGroupInfo(WifiP2pGroup group) {
+                        super.onGroupInfoAvailable(group);
+                        server.setPassword(group.getPassphrase());
+                    }
+                };
                 helper.p2pInitialize();
                 String build =
                          "\nPRODUCT   :"+Build.PRODUCT
@@ -880,6 +887,11 @@ public class DominosActivity extends DroidActivity {
                     }
                 }.run();
 
+            }
+
+            @Override
+            public void onGroupInfo(WifiP2pGroup group) {
+                client.setPassphrase(group.getPassphrase());
             }
         };
 

@@ -169,8 +169,8 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
             throw new RuntimeException("No players!");
         stopGameThread();
         newGame();
-        server.broadcastCommand(new GameCommand(MPConstants.SVR_TO_CL_INIT_ROUND)
-                .setArg("dominos", this.toString()));
+//        server.broadcastCommand(new GameCommand(MPConstants.SVR_TO_CL_INIT_ROUND)
+//                .setArg("dominos", this.toString()));
         redraw();
     }
 
@@ -183,8 +183,8 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
                 gameLock.notifyAll();
             }
         }
-        while (!gameStopped) {
-            Utils.waitNoThrow(gameLock, 1000);
+        if (!gameStopped) {
+            Utils.waitNoThrow(log, 1000);
         }
     }
 
@@ -325,6 +325,12 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
                     g.setColor(GColor.YELLOW);
                     g.drawRect(fromPlayer.outlineRect.getInterpolationTo(toPlayer.outlineRect, position), 3);
                 }
+                @Override
+                public void onDone() {
+                    synchronized (gameLock) {
+                        gameLock.notify();
+                    }
+                }
 
             }, true);
         }
@@ -421,7 +427,8 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
 
         // make sure players are numbered corrcetly
         for (int i=0; i<players.length; i++)
-            players[i].setPlayerNum(i);
+            if (players[i].getPlayerNum() != i)
+                throw new AssertionError();
 
 		if (board.getRoot() == null) {
             onNewRound();
@@ -521,6 +528,13 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
                 g.popMatrix();
             }
 
+            @Override
+            public void onDone() {
+                synchronized (gameLock) {
+                    gameLock.notify();
+                }
+            }
+
         }, true);
         p.tiles.add(pc);
         redraw();
@@ -548,7 +562,7 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
         a.start();
         redraw();
         if (block && a.getDuration() > 0) {
-            Utils.waitNoThrow(gameLock, a.getDuration());
+            Utils.waitNoThrow(gameLock, a.getDuration() + 500);
         }
     }
 
@@ -731,6 +745,7 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
     }
 
     protected final void onNewRound() {
+        log.debug("onNewRound");
         for (Player p : players) {
             p.tiles.clear();
         }
@@ -759,7 +774,7 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
         g.setColor(GColor.GREEN.darkened(0.2f));
         g.drawFilledRect(0, 0, boardDim, boardDim);
 
-        g.setClipRect(0, 0, boardDim, boardDim);
+        //g.setClipRect(0, 0, boardDim, boardDim);
         boolean drawDragged = false;
         AAnimation<AGraphics> anim = anims.get("TILES");
         if (anim != null) {
@@ -774,7 +789,7 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
             if (board.draw(g, boardDim, boardDim, pickX, pickY, dragging) >= 0)
                 drawDragged = false;
         }
-        g.clearClip();
+        //g.clearClip();
 
         g.pushMatrix();
         g.setTextHeight(TEXT_SIZE);
@@ -1168,7 +1183,7 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
             conn.sendCommand(MPConstants.getSvrToClInitGameCmd(this, remote));
             onPlayerConnected(remote);
             if (server.getNumConnectedClients() == getNumPlayers()-1) {
-                server.broadcastCommand(new GameCommand(MPConstants.SVR_TO_CL_INIT_ROUND).setArg("dominos", this.toString()));
+                //server.broadcastCommand(new GameCommand(MPConstants.SVR_TO_CL_INIT_ROUND).setArg("dominos", this.toString()));
                 onAllPlayersJoined();
             }
         }
@@ -1182,7 +1197,7 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
                 g.drawJustifiedString(0, 0, Justify.LEFT, Justify.TOP, String.format("x %d", gamePool.size()));
             }
         }, false);
-        board.addAnimation(new ShuffleAnimation(pool));
+        board.addAnimation(new ShuffleAnimation(gamePool).start());
         Utils.waitNoThrow(gameLock, -1);
         anims.remove("POOL");
     }
@@ -1193,13 +1208,14 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
         final List<Tile> gamePool;
         final int rows;// = (int)Math.round(Math.sqrt(pool.size()*2));
         final int cols;// = 2 * (pool.size() / rows);
-        final MutableVector2D [] positions = new MutableVector2D[pool.size()];
+        final MutableVector2D [] positions;
 
         ShuffleAnimation(List<Tile> gamePool) {
             super(20, gamePool.size());
             this.gamePool = gamePool;
             pool.addAll(gamePool);
             gamePool.clear();
+            positions = new MutableVector2D[pool.size()];
             rows = (int)Math.round(Math.sqrt(pool.size()*2));
             cols = 2 * (pool.size() / rows);
             int r = 0;
@@ -1321,13 +1337,16 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
                                     for (int i=0; i<positions.length; i++) {
                                         Vector2D dv = velocities[i].scaledBy(dt);
                                         positions[i].addEq(dv);
-                                        if (positions[i].getX() < 0 || positions[i].getX() > cols) {
+                                        if ((positions[i].getX() < 0 && dv.getX() < 0) ||
+                                            (positions[i].getX() > cols && dv.getX() > 0)) {
                                             //positions[i].setX(positions[i].getX())
                                             positions[i].subEq(dv);
                                             velocities[i].scaleEq(-1, 1);
                                             positions[i].addEq(velocities[i].scaledBy(dt));
                                         }
-                                        if (positions[i].getY() < 0 || positions[i].getY() > (float)rows) {
+
+                                        if ((positions[i].getY() < 0 && dv.getY() < 0) ||
+                                            (positions[i].getY() > rows && dv.getY() > 0)) {
                                             positions[i].subEq(dv);
                                             velocities[i].scaleEq(1, -1);
                                             positions[i].addEq(velocities[i].scaledBy(dt));

@@ -467,7 +467,7 @@ public class ClientConnection implements Runnable {
                 GameCommandType.CL_REMOTE_RETURNS.addListener(listener);
                 sendCommand(cmd);
                 synchronized (waitLock) {
-                    waitLock.wait(2000);
+                    waitLock.wait();
                 }
                 GameCommandType.CL_REMOTE_RETURNS.removeListener(listener);
                 removeListener(listener);
