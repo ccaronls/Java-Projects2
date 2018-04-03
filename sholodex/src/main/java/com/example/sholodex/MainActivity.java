@@ -146,12 +146,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 || ic.address.trim().length() > 0) {
                             getFormHelper().addOrUpdateForm(ic);
                             refreshCursor();
-                            if (newCard) {
-                                cursor.moveToLast(); // move the cursor to most recently added card
-                            }
                             int current = mViewPager.getCurrentItem();
                             mViewPager.setAdapter(mSectionsPagerAdapter);
                             mViewPager.setCurrentItem(current);
+                            if (newCard) {
+                                mViewPager.setCurrentItem(getFormHelper().getFormCount());
+                            }
                             fabEdit.setVisibility(View.VISIBLE);
                         } else {
                             new AlertDialog.Builder(MainActivity.this).setTitle("Error").setMessage("Index card cannot be empty").setNegativeButton("Ok", null).show();
