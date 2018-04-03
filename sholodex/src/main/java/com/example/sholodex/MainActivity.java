@@ -22,6 +22,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -34,10 +35,13 @@ import android.widget.TextView;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FilenameFilter;
 import java.util.Date;
 import java.util.concurrent.Executor;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, ViewPager.OnPageChangeListener {
+
+    final static String TAG = "Sholodex";
 
     final static int IMAGE_CAPURTE_DIM = 512;
 
@@ -59,7 +63,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private FloatingActionButton fabEdit;
     private TextView tvTabs;
 
-    DBHelper helper = null;
+    private DBHelper helper = null;
+    private Cursor cursor = null;
+
 
     public final DBHelper getFormHelper() {
         if (helper == null || !helper.getDB().isOpen())
@@ -101,6 +107,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             }
             case R.id.fabEdit: {
+                cursor.moveToPosition(mViewPager.getCurrentItem());
                 IndexCard ic = getFormHelper().getFormFromCursor(cursor);
                 showEditIndexCarddialog(ic, false);
                 break;
@@ -110,16 +117,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     void showEditIndexCarddialog(final IndexCard ic, final boolean newCard) {
         final View v = View.inflate(this, R.layout.form_edit_dialog, null);
+
+        final EditText etFN = v.findViewById(R.id.etFirstName);
+        final EditText etPH = v.findViewById(R.id.etPhoneNum);
+        final EditText etAD = v.findViewById(R.id.etAddress);
+        final EditText etEM = v.findViewById(R.id.etEmail);
+
+        etFN.setText(ic.firstName);
+        etPH.setText(ic.phoneNumber);
+        etAD.setText(ic.address);
+        etEM.setText(ic.email);
+
         new AlertDialog.Builder(this).setTitle(newCard ? "New Index Card" : "Edit Index Card")
                 .setView(v)
                 .setNegativeButton("Cancel", null)
                 .setPositiveButton(newCard ? "Add" : "Save", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
-                        EditText etFN = v.findViewById(R.id.etFirstName);
-                        EditText etPH = v.findViewById(R.id.etPhoneNum);
-                        EditText etAD = v.findViewById(R.id.etAddress);
-                        EditText etEM = v.findViewById(R.id.etEmail);
 
                         ic.address = etAD.getText().toString();
                         ic.email = etEM.getText().toString();
@@ -131,11 +145,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 || ic.email.trim().length() > 0
                                 || ic.address.trim().length() > 0) {
                             getFormHelper().addOrUpdateForm(ic);
+                            refreshCursor();
                             if (newCard) {
-                                refreshCursor();
                                 cursor.moveToLast(); // move the cursor to most recently added card
                             }
-                            mSectionsPagerAdapter.notifyDataSetChanged();
+                            int current = mViewPager.getCurrentItem();
+                            mViewPager.setAdapter(mSectionsPagerAdapter);
+                            mViewPager.setCurrentItem(current);
                             fabEdit.setVisibility(View.VISIBLE);
                         } else {
                             new AlertDialog.Builder(MainActivity.this).setTitle("Error").setMessage("Index card cannot be empty").setNegativeButton("Ok", null).show();
@@ -145,8 +161,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     }
 
-    Cursor cursor = null;
-
     @Override
     protected void onResume() {
         super.onResume();
@@ -155,6 +169,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             fabEdit.setVisibility(View.GONE);
         } else {
             fabEdit.setVisibility(View.VISIBLE);
+        }
+        String [] files = getFilesDir().list(new FilenameFilter() {
+            @Override
+            public boolean accept(File file, String s) {
+                return s.toLowerCase().endsWith("jpg");
+            }
+        });
+        if (files != null) {
+            Log.d(TAG, "Num images = " + files.length);
         }
     }
 
@@ -236,6 +259,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Bitmap photo = null;
         IndexCard ic;
         ImageView ivPhoto;
+        TextView tvFirstName;
+        TextView tvPhoneNum;
+        TextView tvEmail;
+        TextView tvAddress;
 
         public PlaceholderFragment() {
         }
@@ -264,25 +291,26 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
             ivPhoto = rootView.findViewById(R.id.ivPhoto);
-            TextView tvFirstName = rootView.findViewById(R.id.tvFirstName);
-            TextView tvPhoneNum = rootView.findViewById(R.id.tvPhoneNum);
-            TextView tvEmail = rootView.findViewById(R.id.tvEmail);
-            TextView tvAddress = rootView.findViewById(R.id.tvAddress);
+            tvFirstName = rootView.findViewById(R.id.tvFirstName);
+            tvPhoneNum = rootView.findViewById(R.id.tvPhoneNum);
+            tvEmail = rootView.findViewById(R.id.tvEmail);
+            tvAddress = rootView.findViewById(R.id.tvAddress);
 
             ic = getArguments().getParcelable("IndexCard");
 
             ivPhoto.setOnClickListener(this);
-            tvFirstName.setText(ic.firstName);
-            tvPhoneNum.setText(ic.phoneNumber);
-            tvEmail.setText(ic.email);
-            tvAddress.setText(ic.address);
 
-            loadPhoto();
+            refresh();
 
             return rootView;
         }
 
-        private void loadPhoto() {
+        private void refresh() {
+
+            tvFirstName.setText(ic.firstName);
+            tvPhoneNum.setText(ic.phoneNumber);
+            tvEmail.setText(ic.email);
+            tvAddress.setText(ic.address);
 
             if (ic.imagePath != null && ic.imagePath.trim().length() > 0) {
                 new AsyncTask<Void, Void, Bitmap>() {
@@ -316,9 +344,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         @Override
         public void onResume() {
             super.onResume();
-            ic = ((MainActivity)getActivity()).getFormHelper().getFormById(ic.id);
-            loadPhoto();
+            if (ic != null) {
+                ic = ((MainActivity) getActivity()).getFormHelper().getFormById(ic.id);
+                refresh();
+            }
         }
+
+
     }
 
     /**
@@ -345,6 +377,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             return getFormHelper().getFormCount();
         }
 
+
     }
 
     public final void startTakePictureActivity(int resultIndex) {
@@ -356,6 +389,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         IndexCard ic = getFormHelper().getFormById(resultIndex);
         bitmap.recycle();
         if (ic != null) {
+            if (ic.imagePath != null) {
+                new File(getFilesDir(), ic.imagePath).delete();
+            }
             ic.imagePath = bitmapFile.getName();
             getFormHelper().addOrUpdateForm(ic);
             mSectionsPagerAdapter.notifyDataSetChanged();
