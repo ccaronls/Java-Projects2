@@ -129,6 +129,7 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
         for (Player p : players) {
             p.reset();
         }
+        anims.clear();
     }
 
     /**
@@ -196,7 +197,11 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
             @Override
             protected void draw(AGraphics g, float position, float dt) {
                 GColor c = new GColor(position, 1-position, position, position);
-                g.drawJustifiedString(0, 0, Justify.CENTER, getString(R.string.anim_text_winner));
+                g.setColor(c);
+                if (getRepeat()%4 < 2)
+                    g.drawJustifiedString(0, 0, Justify.LEFT, getString(R.string.anim_text_winner));
+                else
+                    g.drawJustifiedString(0, 0, Justify.LEFT, winner.getName());
             }
         }, false);
     }
@@ -230,22 +235,21 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
             g.setColor(GColor.TRANSPARENT);
         }
         GDimension dim = g.drawJustifiedString(maxWidth, 0, Justify.RIGHT, String.valueOf(p.getScore()));
-	    g.setColor(GColor.BLUE);
-        dim = g.drawWrapString(0, 0, maxWidth-dim.width-SPACING, p.getName());
 
         a = anims.get(p.getName() + "WINNER");
         if (a != null) {
-            g.translate(maxWidth/2, 0);
             a.update(g);
-            g.translate(-maxWidth/2, 0);
-        } else {
-            a = anims.get(p.getName() + "KNOCK");
-            if (a != null) {
-                g.translate(maxWidth/2, 0);
-                a.update(g);
-                g.translate(-maxWidth/2, 0);
-            }
+            return dim.height;
         }
+
+        a = anims.get(p.getName() + "KNOCK");
+        if (a != null) {
+            a.update(g);
+            return dim.height;
+        }
+
+        g.setColor(GColor.BLUE);
+        dim = g.drawWrapString(0, 0, maxWidth-dim.width-SPACING, p.getName());
 
         return dim.height;
     }
@@ -463,34 +467,42 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
             moves.addAll(board.findMovesForPiece(pc));
         }
 
-        if (moves.size() > 0) {
-		    Move mv = p.chooseMove(this, moves);
-		    if (mv == null || !gameRunning)
-		        return;
-		    onTilePlaced(turn, mv.piece, mv.endpoint, mv.placment);
-		    int pts = board.computeEndpointsTotal();
-		    if (pts > 0 && pts % 5 == 0) {
-		        onPlayerPoints(turn, pts);
-            }
-        }
-
-        if (p.tiles.size() == 0) {
-		    // end of round
-            // this player gets remaining tiles points from all other players rounded to nearest 5
-            int pts = 0;
-            for (Player pp : players) {
-                for (Tile t : pp.tiles) {
-                    pts += t.pip1 + t.pip2;
+        do { // sumtin to break out of
+            if (moves.size() > 0) {
+                Move mv = p.chooseMove(this, moves);
+                if (mv == null || !gameRunning)
+                    return;
+                onTilePlaced(turn, mv.piece, mv.endpoint, mv.placment);
+                int pts = board.computeEndpointsTotal();
+                if (pts > 0 && pts % 5 == 0) {
+                    onPlayerPoints(turn, pts);
+                    if (isGameOver()) {
+                        break;
+                    }
                 }
             }
-            pts = 5*((pts+4)/5);
-            if (pts > 0) {
-                onPlayerEndRoundPoints(turn, pts);
+
+            if (p.tiles.size() == 0) {
+                // end of round
+                // this player gets remaining tiles points from all other players rounded to nearest 5
+                int pts = 0;
+                for (Player pp : players) {
+                    for (Tile t : pp.tiles) {
+                        pts += t.pip1 + t.pip2;
+                    }
+                }
+                pts = 5 * ((pts + 4) / 5);
+                if (pts > 0) {
+                    onPlayerEndRoundPoints(turn, pts);
+                    if (isGameOver()) {
+                        break;
+                    }
+                }
+                onNewRound();
+            } else if (getWinner() < 0) {
+                nextTurn();
             }
-            onNewRound();
-        } else if (getWinner() < 0) {
-            nextTurn();
-        }
+        } while (false);
 
         redraw();
 	}

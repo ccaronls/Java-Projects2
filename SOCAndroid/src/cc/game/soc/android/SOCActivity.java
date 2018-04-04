@@ -2,14 +2,17 @@ package cc.game.soc.android;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
@@ -17,6 +20,7 @@ import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.ListView;
 import android.widget.NumberPicker;
+import android.widget.ScrollView;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
@@ -70,12 +74,10 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action {
     SOCView<UIEventCardRenderer> vEvent;
     SOCView<UIBoardRenderer> vBoard;
     SOCView<UIDiceRenderer> vDice;
-    SOCView<UIPlayerRenderer> vUser;
-    SOCView<UIPlayerRenderer> vPlayerTop;
-    SOCView<UIPlayerRenderer> vPlayerlMiddle;
-    SOCView<UIPlayerRenderer> vPlayerlBottom;
+    SOCView<UIPlayerRenderer> [] vPlayers;
     UIConsoleRenderer console;
     ListView lvMenu;
+    ScrollView svPlayers;
 
     Stack<Dialog> dialogStack = new Stack<>();
 
@@ -95,27 +97,49 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action {
         vEvent = (SOCView) findViewById(R.id.soc_event_cards);
         vBoard = (SOCView) findViewById(R.id.soc_board);
         vDice = (SOCView) findViewById(R.id.soc_dice);
-        vUser = (SOCView) findViewById(R.id.soc_user);
+        vPlayers = new SOCView[] {
+                (SOCView)findViewById(R.id.soc_player_1),
+                (SOCView)findViewById(R.id.soc_player_2),
+                (SOCView)findViewById(R.id.soc_player_3),
+                (SOCView)findViewById(R.id.soc_player_4),
+                (SOCView)findViewById(R.id.soc_player_5),
+                (SOCView)findViewById(R.id.soc_player_6),
+        };
+
+        if (vPlayers.length != SOC.MAX_PLAYERS) {
+            throw new AssertionError();
+        }
+        /*
+        vPlayerLeft = (SOCView) findViewById(R.id.soc_player_left);
         vPlayerTop = (SOCView) findViewById(R.id.soc_player_top);
-        vPlayerlMiddle = (SOCView) findViewById(R.id.soc_player_middle);
-        vPlayerlBottom = (SOCView) findViewById(R.id.soc_player_bottom);
+        vPlayerTopMiddle = (SOCView) findViewById(R.id.soc_player_top_middle);
+        vPlayerBottomMiddle = (SOCView) findViewById(R.id.soc_player_bottom_middle);
+        vPlayerBottom = (SOCView) findViewById(R.id.soc_player_bottom);
+        */
         lvMenu = (ListView) findViewById(R.id.soc_menu_list);
         console = new UIConsoleRenderer(new SOCView<>(this));
+        svPlayers = (ScrollView)findViewById(R.id.svPlayers);
 
-        // initially only the board is visible
-        vBarbarian.setVisibility(View.GONE);
-        vEvent.setVisibility(View.GONE);
-        vDice.setVisibility(View.INVISIBLE);
-        vUser.setVisibility(View.INVISIBLE);
-        vPlayerTop.setVisibility(View.INVISIBLE);
-        vPlayerlBottom.setVisibility(View.INVISIBLE);
-        vPlayerlMiddle.setVisibility(View.INVISIBLE);
-        lvMenu.setVisibility(View.INVISIBLE);
+        QUIT         = new MenuItem(getString(R.string.menu_item_quit),      getString(R.string.menu_item_quit_help), this);
+        BUILDABLES   = new MenuItem(getString(R.string.menu_item_buildables), getString(R.string.menu_item_buildables_help), this);
+        RULES        = new MenuItem(getString(R.string.menu_item_rules),     getString(R.string.menu_item_rules_help), this);
+        START        = new MenuItem(getString(R.string.menu_item_start),     getString(R.string.menu_item_start_help), this);
+        CONSOLE      = new MenuItem(getString(R.string.menu_item_console),   getString(R.string.menu_item_console_help), this);
+
+        SINGLE_PLAYER= new MenuItem(getString(R.string.menu_item_sp), null, this);
+        MULTI_PLAYER = new MenuItem(getString(R.string.menu_item_mp), null, this);
+        RESUME       = new MenuItem(getString(R.string.menu_item_resume), null, this);
+        BOARDS       = new MenuItem(getString(R.string.menu_item_boards), null, this);
+        SCENARIOS    = new MenuItem(getString(R.string.menu_item_scenarios), null, this);
+
 
         final ArrayList<Object[]> menu = new ArrayList<>();
         final BaseAdapter adapter = new ArrayListAdapter<Object[]>(this, menu, R.layout.menu_list_item) {
+
+            int helpItem = -1;
+
             @Override
-            protected void initItem(View v, int position, Object[] item) {
+            protected void initItem(View v, final int position, Object[] item) {
                 final MenuItem mi = (MenuItem) item[0];
                 final String title = (String) item[1];
                 final String helpText = (String) item[2];
@@ -133,17 +157,18 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action {
                         mi.action.onAction(mi, extra);
                     }
                 });
-                v.setOnLongClickListener(new View.OnLongClickListener() {
-                    @Override
-                    public boolean onLongClick(View v) {
-                        if (tvHelp.getVisibility() == View.VISIBLE) {
-                            tvHelp.setVisibility(View.GONE);
-                        } else {
-                            tvHelp.setVisibility(View.VISIBLE);
+                tvHelp.setVisibility(helpItem == position ? View.VISIBLE : View.GONE);
+
+                if (!Utils.isEmpty(helpText)) {
+                    v.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            helpItem = position;
+                            notifyDataSetChanged();
                         }
-                        return true;
-                    }
-                });
+                    });
+
+                }
             }
         };
         lvMenu.setAdapter(adapter);
@@ -151,12 +176,11 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action {
         gameFile = new File(getFilesDir(), "save.txt");
         rulesFile = new File(getFilesDir(), "rules.txt");
 
-        UIPlayerRenderer[] players = {
-                vUser.renderer,
-                vPlayerTop.renderer,
-                vPlayerlMiddle.renderer,
-                vPlayerlBottom.renderer
-        };
+        final UIPlayerRenderer[] players = new UIPlayerRenderer[SOC.MAX_PLAYERS];
+
+        for (int i=0; i<players.length; i++) {
+            players[i] = this.vPlayers[i].renderer;
+        }
 
         if (UISOC.getInstance() == null)
             soc = new UISOC(players, vBoard.renderer, vDice.renderer, console, vEvent.renderer, vBarbarian.renderer) {
@@ -195,7 +219,16 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action {
 
                 @Override
                 public void redraw() {
-                    content.postInvalidate();
+                    runOnUiThread(new Runnable() {
+                        public void run() {
+                            svPlayers.smoothScrollTo(0, vPlayers[soc.getCurPlayerNum()-1].getTop());
+                            content.invalidate();
+                            for (final SOCView v : vPlayers) {
+                                v.requestLayout();
+                                v.invalidate();
+                            }
+                        }
+                    });
                 }
 
                 @Override
@@ -238,11 +271,17 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action {
 
     final UIPlayerUser user = new UIPlayerUser();
 
-    final MenuItem QUIT = new MenuItem("Quit", "Exit to main menu", this);
-    final MenuItem BUILDABLES = new MenuItem("Buidlables", "See how to build things", this);
-    final MenuItem RULES = new MenuItem("Rules", "View or Edit the game rules", this);
-    final MenuItem START = new MenuItem("Start", "Start the game", this);
-    final MenuItem CONSOLE = new MenuItem("Console", "View console messages", this);
+    MenuItem QUIT;
+    MenuItem BUILDABLES;
+    MenuItem RULES;
+    MenuItem START;
+    MenuItem CONSOLE;
+
+    MenuItem SINGLE_PLAYER;
+    MenuItem MULTI_PLAYER;
+    MenuItem RESUME;
+    MenuItem BOARDS;
+    MenuItem SCENARIOS;
 
     @Override
     public void onAction(MenuItem item, Object extra) {
@@ -255,7 +294,7 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action {
                             soc.stopRunning();
                             user.client.disconnect("player quit");
                             soc.clearMenu();
-                            showStartDialog();
+                            showStartMenu();
                         }
                     }).show();
         } else if (item == BUILDABLES) {
@@ -263,10 +302,27 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action {
         } else if (item == RULES) {
             showRulesDialog();
         } else if (item == START) {
-            soc.initGame();
+            soc.getBoard().assignRandom();
             soc.startGameThread();
         } else if (item == CONSOLE) {
             showConsole();
+        } else if (item == SINGLE_PLAYER) {
+            showSinglePlayerDialog();
+        } else if (item == MULTI_PLAYER) {
+            showMultiPlayerDialog();
+        } else if (item == RESUME) {
+            try {
+                soc.loadFromFile(gameFile);
+                initGame();
+            } catch (Exception e) {
+                ((View)extra).setEnabled(false);
+                soc.clear();
+                showError(e);
+            }
+        } else if (item == BOARDS) {
+            showBoardsDialog();
+        } else if (item == SCENARIOS) {
+            showScenariosDialog();
         }
     }
 
@@ -283,150 +339,157 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action {
         newDialog(true).setTitle("ERROR").setMessage("AN error occured: " + e.getClass().getSimpleName() + " " + e.getMessage()).show();
     }
 
-    void showStartDialog() {
-        String [] items = {
-                "Single Player",
-                "Multiplyer",
-                "Resume",
-                "Rules",
-                "Boards",
-                "Scenarios"
+    void showMultiPlayerDialog() {
+        String [] mpItems = {
+                "Host",
+                "Join"
         };
+        newDialog(true).setTitle("MULTIPLAYER")
+                .setItems(mpItems, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
 
-        newDialog(false).setItems(items, new DialogInterface.OnClickListener() {
+                    }
+                }).show();
+    }
+
+    void showSinglePlayerDialog() {
+        final String [] items = { "2", "3", "4", "5", "6" };
+        newDialog(true).setTitle("Num Players").setItems(items, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                try {
-                    switch (which) {
-                        case 0: {
-                            final String [] items = { "2", "3", "4" };
-                            newDialog(true).setTitle("Num Players").setItems(items, new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    final int numPlayers = which+2;
-                                    final String [] colorStrings = {
-                                            "Red", "Green", "Blue", "Yellow"
-                                    };
-                                    final GColor[]  colors = {
-                                            GColor.RED, GColor.GREEN, GColor.BLUE, GColor.YELLOW
-                                    };
-                                    newDialog(true).setTitle("Pick Color").setItems(colorStrings, new DialogInterface.OnClickListener() {
-                                        @Override
-                                        public void onClick(DialogInterface dialog, int which) {
-                                            user.setColor(colors[which]);
-                                            soc.clear();
-                                            soc.addPlayer(user);
-                                            for (int i=1; i<numPlayers; i++) {
-                                                int nextColor = (which+1)%colors.length;
-                                                soc.addPlayer(new UIPlayer(colors[nextColor]));
-                                            }
-                                            initGame();
-                                        }
-                                    }).show();
-                                }
-                            }).setNegativeButton("Cancel", null).show();
-                            break;
+                final int numPlayers = which+2;
+                final String [] colorStrings = {
+                        "Red", "Green", "Blue", "Yellow", "Orange", "Pink"
+                };
+                final GColor[]  colors = {
+                        GColor.RED, GColor.GREEN, GColor.BLUE, GColor.YELLOW, GColor.ORANGE, GColor.PINK
+                };
+                newDialog(true).setTitle("Pick Color").setItems(colorStrings, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        user.setColor(colors[which]);
+                        soc.clear();
+                        soc.addPlayer(user);
+                        for (int i=1; i<numPlayers; i++) {
+                            int nextColor = (which+i)%colors.length;
+                            soc.addPlayer(new UIPlayer(colors[nextColor]));
                         }
-                        case 1: {
-                            // multiplayer
-                            String [] mpItems = {
-                                    "Host",
-                                    "Join"
-                            };
-                            newDialog(true).setTitle("MULTIPLAYER")
-                                    .setItems(mpItems, new DialogInterface.OnClickListener() {
-                                        @Override
-                                        public void onClick(DialogInterface dialog, int which) {
+                        soc.initGame();
+                        initGame();
+                    }
+                }).show();
+            }
+        }).setNegativeButton("Cancel", null).show();
+    }
 
-                                        }
-                                    }).show();
-                            break;
+    void showScenariosDialog() {
+        try {
+            final String [] scenarios = getAssets().list("scenarios");
+            newDialog(true).setTitle("Load Scenario").setItems(scenarios, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, final int which) {
+
+                    new AsyncTask<Void, Void, Exception>() {
+
+                        Dialog spinner;
+
+                        @Override
+                        protected void onPreExecute() {
+                            spinner = ProgressDialog.show(SOCActivity.this, null, "Loading...");
                         }
-                        case 2: {
-                            // resume
+
+                        @Override
+                        protected Exception doInBackground(Void... voids) {
                             try {
-                                soc.loadFromFile(gameFile);
-                                soc.startGameThread();
-                            } catch (Exception e) {
-                                soc.clear();
+                                InputStream in = getAssets().open("scenarios/" + scenarios[which]);
+                                try {
+                                    SOC scenario = new SOC();
+                                    scenario.deserialize(in);
+                                    soc.copyFrom(scenario);
+                                } finally {
+                                    in.close();
+                                }
+                            } catch (IOException e) {
+                                return e;
+                            }
+                            return null;
+                        }
+
+                        @Override
+                        protected void onPostExecute(Exception e) {
+                            spinner.dismiss();
+                            if (e != null) {
                                 showError(e);
                             }
-                            break;
+                            vBoard.invalidate();
                         }
-                        case 3: {
-                            // rules
-                            showRulesDialog();
-                            break;
-                        }
-                        case 4: {
-                            // boards
-                            final String[] boards = getAssets().list("boards");
-                            newDialog(true).setTitle("Load Board").setItems(boards, new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-
-                                    try {
-                                        InputStream in = getAssets().open("boards/" + boards[which]);
-                                        try {
-                                            Board b = new Board();
-                                            b.deserialize(in);
-                                            soc.setBoard(b);
-                                        } finally {
-                                            in.close();
-                                        }
-                                    } catch (IOException e) {
-                                        showError(e);
-                                    }
-                                }
-                            }).setNegativeButton("Cancel", null).show();
-                            break;
-                        }
-                        case 5: {
-                            final String [] scenarios = getAssets().list("scenarios");
-                            newDialog(true).setTitle("Load Scenario").setItems(scenarios, new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-
-                                    try {
-                                        InputStream in = getAssets().open("scenarios/" + scenarios[which]);
-                                        try {
-                                            SOC scenario = new SOC();
-                                            scenario.deserialize(in);
-                                            soc.copyFrom(scenario);
-                                        } finally {
-                                            in.close();
-                                        }
-                                    } catch (IOException e) {
-                                        showError(e);
-                                    }
-                                }
-                            }).setNegativeButton("Cancel", null).show();
-                            break;
-                        }
-                    }
-                } catch (Exception e) {
-                    showError(e);
+                    }.execute();
                 }
-            }
-        }).show();
+            }).setNegativeButton("Cancel", null).show();
+        } catch (Exception e) {
+            log.error(e);
+        }
+    }
+
+    void showBoardsDialog() {
+        try {
+            final String[] boards = getAssets().list("boards");
+            newDialog(true).setTitle("Load Board").setItems(boards, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+
+                    try {
+                        InputStream in = getAssets().open("boards/" + boards[which]);
+                        try {
+                            Board b = new Board();
+                            b.deserialize(in);
+                            soc.setBoard(b);
+                        } finally {
+                            in.close();
+                        }
+                    } catch (IOException e) {
+                        showError(e);
+                    }
+                }
+            }).setNegativeButton("Cancel", null).show();
+        } catch (Exception e) {
+            log.error(e);
+        }
+    }
+
+    void showStartMenu() {
+        vBarbarian.setVisibility(View.GONE);
+        vEvent.setVisibility(View.GONE);
+        vDice.setVisibility(View.GONE);
+        svPlayers.setVisibility(View.GONE);
+
+        lvMenu.setVisibility(View.VISIBLE);
+        soc.clearMenu();
+        soc.addMenuItem(SINGLE_PLAYER);
+        //soc.addMenuItem(MULTI_PLAYER);
+        soc.addMenuItem(RESUME);
+        soc.addMenuItem(BOARDS);
+        soc.addMenuItem(SCENARIOS);
+        soc.addMenuItem(RULES);
     }
 
     void initGame() {
 
-        int index = 0;
-        SOCView<UIPlayerRenderer> [] opponents = Utils.toArray(vPlayerTop, vPlayerlMiddle, vPlayerlBottom);
-
+        int index = 1;
+        svPlayers.setVisibility(View.VISIBLE);
+        for (int i = 1; i< vPlayers.length; i++) {
+            vPlayers[i].setVisibility(View.GONE);
+        }
         for (int i=1; i<=soc.getNumPlayers(); i++) {
             if (soc.getPlayerByPlayerNum(i) instanceof UIPlayerUser) {
-                vUser.renderer.setPlayer(i);
+                vPlayers[0].renderer.setPlayer(i);
             } else {
-                opponents[index++].renderer.setPlayer(i);
+                vPlayers[index].setVisibility(View.VISIBLE);
+                vPlayers[index++].renderer.setPlayer(i);
             }
         }
 
-        vPlayerTop.setVisibility(View.VISIBLE);
-        vUser.setVisibility(View.VISIBLE);
-        lvMenu.setVisibility(View.VISIBLE);
         soc.clearMenu();
         soc.addMenuItem(START);
         soc.completeMenu();
@@ -439,8 +502,6 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action {
             vDice.setVisibility(View.VISIBLE);
         }
 
-        vPlayerlMiddle.setVisibility(soc.getNumPlayers() > 2 ? View.VISIBLE : View.GONE);
-        vPlayerlBottom.setVisibility(soc.getNumPlayers() > 3 ? View.VISIBLE : View.GONE);
         clearDialogs();
     }
 
@@ -448,7 +509,7 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action {
         Vector<String> columnNames = new Vector<String>();
         columnNames.add("Buildable");
         for (ResourceType r : ResourceType.values()) {
-            columnNames.add(r.name());
+            columnNames.add(" " + r.getName(soc) + " ");
 
         }
         Vector<Vector<String>> rowData = new Vector<>();
@@ -464,6 +525,9 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action {
 
         TableLayout table = new TableLayout(this);
         TableRow header = new TableRow(this);
+        TableLayout.LayoutParams params = new TableLayout.LayoutParams();
+        params.width = TableLayout.LayoutParams.WRAP_CONTENT;
+        //params.rightMargin = (int)getResources().getDimension(R.dimen.margin);
 
         for (String s : columnNames) {
             TextView t = new TextView(this);
@@ -473,10 +537,13 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action {
 
         table.addView(header);
         for (Vector<String> r : rowData) {
+            int gravity = Gravity.LEFT;
             TableRow row = new TableRow(this);
             for (String s : r) {
                 TextView t = new TextView(this);
                 t.setText(s);
+                t.setGravity(gravity);
+                gravity = Gravity.CENTER;
                 row.addView(t);
             }
             table.addView(row);
@@ -519,27 +586,27 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action {
 
     void showRulesDialog() {
         final boolean canEdit = !soc.isRunning() && !user.client.isConnected();
-        final Rules r = soc.getRules().deepCopy();
+        final Rules rules = soc.getRules().deepCopy();
 
-        final List<RuleItem> rules = new ArrayList<>();
+        final List<RuleItem> rulesList = new ArrayList<>();
         for (Rules.Variation v : Rules.Variation.values())
-            rules.add(new RuleItem(v));
+            rulesList.add(new RuleItem(v));
         for (Field f : Rules.class.getDeclaredFields()) {
             Annotation[] anno = f.getAnnotations();
             for (Annotation a : anno) {
                 if (a.annotationType().equals(Rules.Rule.class)) {
                     f.setAccessible(true);
                     final Rules.Rule ruleVar = (Rules.Rule) a;
-                    rules.add(new RuleItem(ruleVar, f));
+                    rulesList.add(new RuleItem(ruleVar, f));
                 }
             }
         }
-        Collections.sort(rules);
+        Collections.sort(rulesList);
         ListView lv = new ListView(this);
         BaseAdapter rulesAdapter = new BaseAdapter() {
             @Override
             public int getCount() {
-                return rules.size();
+                return rulesList.size();
             }
 
             @Override
@@ -558,17 +625,17 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action {
                     v = View.inflate(SOCActivity.this, R.layout.rules_list_item, null);
                 }
                 TextView tvHeader  = (TextView)v.findViewById(R.id.tvHeader);
-                TextView tvName    = (TextView)v.findViewById(R.id.tvName);
+                //TextView tvName    = (TextView)v.findViewById(R.id.tvName);
                 TextView tvDesc    = (TextView)v.findViewById(R.id.tvDescription);
                 CompoundButton cb  = (CompoundButton)v.findViewById(R.id.cbEnabled);
                 final Button bEdit = (Button)v.findViewById(R.id.bEdit);
 
                 try {
-                    final RuleItem item = rules.get(position);
+                    final RuleItem item = rulesList.get(position);
                     if (item.field == null) {
                         // header
                         tvHeader.setVisibility(View.VISIBLE);
-                        tvName.setVisibility(View.GONE);
+                        //tvName.setVisibility(View.GONE);
                         tvDesc.setVisibility(View.GONE);
                         cb.setVisibility(View.GONE);
                         bEdit.setVisibility(View.GONE);
@@ -576,11 +643,11 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action {
                     } else if (item.field.getType().equals(boolean.class)) {
                         // checkbox
                         tvHeader.setVisibility(View.GONE);
-                        tvName.setVisibility(View.VISIBLE);
+                        //tvName.setVisibility(View.GONE);
                         tvDesc.setVisibility(View.VISIBLE);
                         cb.setVisibility(View.VISIBLE);
                         bEdit.setVisibility(View.GONE);
-                        tvName.setText(item.field.getName());
+                        //tvName.setText(item.field.getName());
                         tvDesc.setText(item.stringId);
                         cb.setChecked(item.field.getBoolean(rules));
                         cb.setEnabled(canEdit);
@@ -597,14 +664,14 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action {
                     } else if (item.field.getType().equals(int.class)) {
                         // numberpicker
                         tvHeader.setVisibility(View.GONE);
-                        tvName.setVisibility(View.VISIBLE);
+                        //tvName.setVisibility(View.GONE);
                         tvDesc.setVisibility(View.VISIBLE);
                         cb.setVisibility(View.GONE);
                         bEdit.setVisibility(View.VISIBLE);
-                        tvName.setText(item.field.getName());
+                        //tvName.setText(item.field.getName());
                         tvDesc.setText(item.stringId);
                         final int value = item.field.getInt(rules);
-                        bEdit.setText(String.valueOf(item.field.getInt(rules)));
+                        bEdit.setText(String.valueOf(value));
                         bEdit.setEnabled(canEdit);
                         bEdit.setOnClickListener(new View.OnClickListener() {
                             @Override
@@ -640,13 +707,13 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action {
             b.setNegativeButton("Discard", null).setNeutralButton("Save", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
-                    r.trySaveToFile(rulesFile);
-                    soc.setRules(r);
+                    rules.trySaveToFile(rulesFile);
+                    soc.setRules(rules);
                 }
             }).setPositiveButton("Keep", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
-                    soc.setRules(r);
+                    soc.setRules(rules);
                 }
             }).show();
         } else {
@@ -665,7 +732,7 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action {
     @Override
     protected void onResume() {
         super.onResume();
-        showStartDialog();
+        showStartMenu();
         /*
         if (soc.getNumPlayers() > 0 && soc.getWinner() == null)
             soc.startGameThread();
@@ -742,14 +809,7 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action {
                     }
                 });
             } else {
-                b.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        if (!soc.isRunning()) {
-                            showStartDialog();
-                        }
-                    }
-                });
+                b.setNegativeButton("Cancel", null);
             }
         }
         return b;

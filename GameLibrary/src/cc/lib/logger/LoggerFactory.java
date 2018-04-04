@@ -47,17 +47,17 @@ public abstract class LoggerFactory {
         }
     };
 
-    private String getName(Class<?> clazz) {
+    private static String getName(Class<?> clazz) {
         if (!Utils.isEmpty(clazz.getSimpleName()))
             return clazz.getSimpleName();
         else return getName(clazz.getSuperclass());
     }
 
     public static Logger getLogger(String prefix, Class<?> clazz) {
-        return factory.getLogger(prefix + ":" + clazz.getSimpleName());
+        return factory.getLogger(prefix + ":" + getName(clazz));
     }
 
     public static Logger getLogger(Class<?> clazz) {
-        return factory.getLogger(clazz.getSimpleName());
+        return factory.getLogger(getName(clazz));
     }
 }

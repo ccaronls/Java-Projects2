@@ -44,6 +44,7 @@ public class DroidGraphics extends APGraphics {
     public void setCanvas(Canvas c, int width, int height) {
         this.canvas = c;
         initViewport(width, height);
+        r.setOrtho(0, width, 0, height);
     }
 
     /**

@@ -17,6 +17,7 @@ import cc.game.soc.ui.UIEventCardRenderer;
 import cc.game.soc.ui.UIPlayerRenderer;
 import cc.game.soc.ui.UIRenderer;
 import cc.lib.android.DroidGraphics;
+import cc.lib.game.GDimension;
 import cc.lib.math.Vector2D;
 
 /**
@@ -88,10 +89,12 @@ public class SOCView<T extends UIRenderer> extends View implements UIComponent {
             case R.id.soc_dice:
                 renderer = (T)new UIDiceRenderer(this, true);
                 break;
-            case R.id.soc_user:
-            case R.id.soc_player_top:
-            case R.id.soc_player_middle:
-            case R.id.soc_player_bottom:
+            case R.id.soc_player_1:
+            case R.id.soc_player_2:
+            case R.id.soc_player_3:
+            case R.id.soc_player_4:
+            case R.id.soc_player_5:
+            case R.id.soc_player_6:
                 renderer = (T)new UIPlayerRenderer(this); break;
             case R.id.soc_event_cards:
                 renderer = (T)new UIEventCardRenderer(this); break;
@@ -162,5 +165,34 @@ public class SOCView<T extends UIRenderer> extends View implements UIComponent {
 
     public T getRenderer() {
         return renderer;
+    }
+
+    @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        int width = MeasureSpec.getSize(widthMeasureSpec);
+        int height = MeasureSpec.getSize(heightMeasureSpec);
+
+        int wSpec = MeasureSpec.getMode(widthMeasureSpec);
+        int hSpec = MeasureSpec.getMode(heightMeasureSpec);
+
+        GDimension dim = renderer.getMinDimension();
+
+        switch (wSpec) {
+            case MeasureSpec.AT_MOST:
+                width = Math.min(width, Math.round(dim.width)); break;
+            case MeasureSpec.UNSPECIFIED:
+                width = Math.round(dim.width); break;
+            case MeasureSpec.EXACTLY:
+        }
+
+        switch (hSpec) {
+            case MeasureSpec.AT_MOST:
+                height = Math.min(height, Math.round(dim.height)); break;
+            case MeasureSpec.UNSPECIFIED:
+                height = Math.round(dim.height); break;
+            case MeasureSpec.EXACTLY:
+        }
+
+        super.setMeasuredDimension(width, height);
     }
 }

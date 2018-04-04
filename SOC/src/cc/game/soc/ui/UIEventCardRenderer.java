@@ -6,6 +6,7 @@ import java.util.Arrays;
 import cc.game.soc.android.R;
 import cc.game.soc.core.EventCard;
 import cc.game.soc.core.EventCardType;
+import cc.game.soc.core.Rules;
 import cc.lib.game.AGraphics;
 import cc.lib.game.APGraphics;
 import cc.lib.game.GColor;
@@ -16,7 +17,7 @@ public final class UIEventCardRenderer extends UIRenderer {
 
 	//private float minCardWidth = 0;
 	final UIDiceRenderer diceComps;
-	private EventCard eventCard = null;
+	private EventCard eventCard = new EventCard(EventCardType.NoEvent, 8);
 
 	public UIEventCardRenderer(UIComponent component) {
 		super(component);
@@ -28,29 +29,14 @@ public final class UIEventCardRenderer extends UIRenderer {
         g.setTextHeight(RenderConstants.textSizeSmall);
         g.setTextStyles(AGraphics.TextStyle.NORMAL);
 
-        /*
-		if (minCardWidth == 0) {
-			ArrayList<String> all = new ArrayList<String>();
-			for (EventCardType e : EventCardType.values()) {
-				all.addAll(Arrays.asList(e.getName(UISOC.getInstance()).split("\n")));
-			}
-			
-			for (String s : all) {
-				float width = g.getTextWidth(s);
-				if (width > minCardWidth) {
-					minCardWidth = width;
-				}
-			}
-			
-			minCardWidth += 2*padding;
-		}*/
 		float padding = RenderConstants.thickLineThickness;
-		String cardText = UISOC.getInstance().getString(R.string.event_card_new_year);
-		String helpText = UISOC.getInstance().getString(R.string.event_card_card_shuffled_on_next);
+		String cardText = getString(R.string.event_card_new_year);
+		String helpText = getString(R.string.event_card_card_shuffled_on_next);
 		int production = 0;
+        UISOC soc = UISOC.getInstance();
         if (eventCard != null) {
-            cardText = eventCard.getType().getName(UISOC.getInstance());
-            helpText = eventCard.getHelpText(UISOC.getInstance().getRules(), UISOC.getInstance());
+            cardText = eventCard.getType().getName(this);
+            helpText = eventCard.getHelpText(soc != null ? soc.getRules() : new Rules(), this);
             production = eventCard.getProduction();
         }
 

@@ -97,10 +97,8 @@ public class UIBoardRenderer extends UIRenderer implements MenuItem.Action {
     }
 
     public final Board getBoard() {
-        if (board != null)
-            return board;
         if (UISOC.getInstance() == null)
-            return null;
+            return board;
 
         return UISOC.getInstance().getBoard();
     }
@@ -1302,6 +1300,7 @@ public class UIBoardRenderer extends UIRenderer implements MenuItem.Action {
 	    if (pickHandler != null && pickedValue >= 0)
             pickHandler.onPick(this, pickedValue);
     }
+
 }
 
 

@@ -25,7 +25,7 @@ public class SOCComponent extends AWTComponent implements UIComponent {
             delegate.draw(g, mouseX, mouseY);
             setMinimumSize(delegate.getMinDimension());
         } else {
-            Utils.print("Missing delegate");
+            System.err.println("Missing delegate");
         }
     }
 

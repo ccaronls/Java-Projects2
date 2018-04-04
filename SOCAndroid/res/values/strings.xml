@@ -489,6 +489,22 @@
     <string name="rule_min_victory_points_for_robber">Min Victory Points for a player to have Robber placed adjacent to them</string>
     <string name="rule_enable_harbor_master">Player with most harbor points gets special victory points</string>
 
+    <!-- Menu strings -->
+    <string name="menu_item_quit">Quit</string>
+    <string name="menu_item_quit_help">Exit to main menu</string>
+    <string name="menu_item_buildables">Buidlables</string>
+    <string name="menu_item_buildables_help">See how to build things</string>
+    <string name="menu_item_rules">Rules</string>
+    <string name="menu_item_rules_help">View or Edit the game rules</string>
+    <string name="menu_item_start">Start</string>
+    <string name="menu_item_start_help">Start the game</string>
+    <string name="menu_item_console">Console</string>
+    <string name="menu_item_console_help">View console messages</string>
 
+    <string name="menu_item_sp">Single Player</string>
+    <string name="menu_item_mp">Multiplyer</string>
+    <string name="menu_item_resume">Resume</string>
+    <string name="menu_item_boards">Boards</string>
+    <string name="menu_item_scenarios">Scenarios</string>
 
 </resources>

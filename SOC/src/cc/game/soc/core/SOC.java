@@ -30,7 +30,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
 	
     protected final static Logger log = LoggerFactory.getLogger(SOC.class);
     
-	public static final int MAX_PLAYERS = 8;
+	public static int MAX_PLAYERS = 6;
 	
 	public static final int	NUM_RESOURCE_TYPES			= ResourceType.values().length;
 	public static final int	NUM_DEVELOPMENT_CARD_TYPES	= DevelopmentCardType.values().length;

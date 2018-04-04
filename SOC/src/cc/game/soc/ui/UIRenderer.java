@@ -1,5 +1,6 @@
 package cc.game.soc.ui;
 
+import cc.game.soc.core.StringResource;
 import cc.lib.game.APGraphics;
 import cc.lib.game.GDimension;
 
@@ -7,7 +8,7 @@ import cc.lib.game.GDimension;
  * Created by chriscaron on 2/27/18.
  */
 
-public abstract class UIRenderer {
+public abstract class UIRenderer implements StringResource {
 
     final UIComponent component;
 
@@ -41,5 +42,13 @@ public abstract class UIRenderer {
 
     public void setMinDimension(GDimension dim) {
         this.min = dim;
+    }
+
+    @Override
+    public String getString(int resourceId, Object... args) {
+        if (UISOC.getInstance() != null) {
+            return UISOC.getInstance().getString(resourceId, args);
+        }
+        return "NO STRINGS";
     }
 }

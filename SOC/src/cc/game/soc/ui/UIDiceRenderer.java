@@ -130,7 +130,7 @@ public final class UIDiceRenderer extends UIRenderer {
 
             float dieDim = dim.height;
             if (dieDim*dice.length + (dieDim/4*(dice.length-1)) > dim.width) {
-                dieDim = dim.width / (dice.length + (dice.length-1)/4);
+                dieDim = 4 * dim.width / (5 * dice.length - 1);
                 g.translate(0, dim.height/2 - dieDim/2);
             }
             float spacing = dieDim/4;

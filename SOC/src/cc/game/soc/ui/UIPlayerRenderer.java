@@ -33,10 +33,6 @@ public final class UIPlayerRenderer extends UIRenderer {
 
 	int numCardAnimations = 0;
 
-	private long getAnimTime() {
-		return 1500;//return GUI.instance.getProps().getIntProperty("anim.ms", 1500);
-	}
-
 	int playerNum=0;
 
     public UIPlayerRenderer(UIComponent component) {
@@ -53,11 +49,13 @@ public final class UIPlayerRenderer extends UIRenderer {
         if (playerNum < 1)
             return;
 
-        UIPlayer player = (UIPlayer)UISOC.getInstance().getPlayerByPlayerNum(playerNum);
+        SOC soc = UISOC.getInstance();
+        if (soc == null)
+            return;
+        UIPlayer player = (UIPlayer)soc.getPlayerByPlayerNum(playerNum);
         if (player == null)
             return;
 
-        SOC soc = UISOC.getInstance();
         g.setTextHeight(RenderConstants.textSizeBig);
         //g.setTextStyles(AGraphics.TextStyle.BOLD);
 

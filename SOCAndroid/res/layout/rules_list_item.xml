@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:tools="http://schemas.android.com/tools"
               android:layout_width="match_parent"
               android:orientation="vertical"
               android:layout_height="match_parent">
@@ -14,38 +15,30 @@
 
     <LinearLayout
         android:layout_width="fill_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="fill_parent">
 
         <TextView
+            android:id="@+id/tvDescription"
             style="@style/soc_label"
+            android:layout_width="0dp"
             android:layout_height="fill_parent"
-              android:layout_width="0dp"
-              android:layout_weight="4"
-              android:id="@+id/tvName"
-              android:text="NAME"/>
+            android:layout_weight="4"
+            android:text="This is intended to be longer text. Much Much Much longer than usual text. Just so you understand that."/>
 
         <Button
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="fill_parent"
             android:id="@+id/bEdit"
+            android:layout_width="0dp"
+            android:layout_height="fill_parent"
+            android:layout_weight="1"
             android:text="Edit"/>
 
         <CheckBox
+            android:id="@+id/cbEnabled"
             android:layout_width="wrap_content"
             android:layout_height="fill_parent"
-            android:id="@+id/cbEnabled"
-            android:enabled="false"
-            android:checked="true"/>
+            android:checked="true"
+            android:enabled="false"/>
 
     </LinearLayout>
-
-    <TextView
-        style="@style/soc_label"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/tvDescription"
-        android:text="This is intended to be longer text"/>
-
 
 </LinearLayout>

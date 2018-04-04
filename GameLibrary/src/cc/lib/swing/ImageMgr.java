@@ -140,13 +140,13 @@ public class ImageMgr {
 	public synchronized int loadImage(String fileOrResourceName, Color transparent) {
         int id = sourceImages.size();
 		Image image = null;
-		Utils.print("Loading image %d : %s ...", id, fileOrResourceName);
+		log.debug("Loading image %d : %s ...", id, fileOrResourceName);
 		if ((image = this.loadImageFromFile(fileOrResourceName))!=null) {
-			Utils.print("From File...");
+            log.debug("From File...");
         } else if ((image = this.loadImageFromSearchPaths(fileOrResourceName))!=null) {
-            Utils.print("From search paths...");
+            log.debug("From search paths...");
 		} else if ((image = this.loadImageFromResource(fileOrResourceName))!=null) {
-			Utils.print("From Resource...");
+            log.debug("From Resource...");
 //		} else if ((image = this.loadImageFromApplet(fileOrResourceName))!=null) {
   //          Utils.print("From Applet...");
 		} else {

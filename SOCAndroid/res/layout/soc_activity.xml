@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:tools="http://schemas.android.com/tools"
               android:layout_width="match_parent"
-              android:layout_height="match_parent">
+              android:layout_height="match_parent"
+              android:padding="5dp">
 
     <LinearLayout
         android:layout_width="0dp"
@@ -14,13 +16,6 @@
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"/>
-
-        <cc.game.soc.android.SOCView
-            android:id="@+id/soc_user"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"/>
-
         <cc.game.soc.android.SOCView
             android:id="@+id/soc_event_cards"
             android:layout_width="match_parent"
@@ -31,17 +26,20 @@
             android:id="@+id/soc_dice"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1"/>
+            android:layout_weight=".3"/>
 
-        <ListView
-            android:id="@+id/soc_menu_list"
+        <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1">
+            android:layout_weight="1"
+            android:orientation="vertical">
 
-
-        </ListView>
-
+            <ListView
+                android:id="@+id/soc_menu_list"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"/>
+        </RelativeLayout>
 
     </LinearLayout>
 
@@ -60,32 +58,49 @@
 
     </LinearLayout>
 
-
-    <LinearLayout
+    <ScrollView
+        android:id="@+id/svPlayers"
         android:layout_width="0dp"
         android:layout_height="fill_parent"
         android:layout_weight="1"
-        android:orientation="vertical">
+        android:fillViewport="true"
+        >
 
-        <cc.game.soc.android.SOCView
-            android:id="@+id/soc_player_top"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"/>
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:orientation="vertical">
 
-        <cc.game.soc.android.SOCView
-            android:id="@+id/soc_player_middle"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"/>
+            <cc.game.soc.android.SOCView
+                android:id="@+id/soc_player_1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
 
-        <cc.game.soc.android.SOCView
-            android:id="@+id/soc_player_bottom"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"/>
+            <cc.game.soc.android.SOCView
+                android:id="@+id/soc_player_2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
 
+            <cc.game.soc.android.SOCView
+                android:id="@+id/soc_player_3"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
 
-    </LinearLayout>
+            <cc.game.soc.android.SOCView
+                android:id="@+id/soc_player_4"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
 
+            <cc.game.soc.android.SOCView
+                android:id="@+id/soc_player_5"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+
+            <cc.game.soc.android.SOCView
+                android:id="@+id/soc_player_6"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+
+        </LinearLayout>
+    </ScrollView>
 </LinearLayout>

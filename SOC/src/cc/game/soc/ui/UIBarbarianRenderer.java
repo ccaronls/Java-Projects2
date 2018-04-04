@@ -75,6 +75,8 @@ public final class UIBarbarianRenderer extends UIRenderer {
 
         // draw the settlers vs barbrian strengths in either uppleft hand corner or lower right hand corner
         UISOC soc = UISOC.getInstance();
+	    if (soc == null)
+	        return;
         int barbStr = SOC.computeBarbarianStrength(soc, soc.getBoard());
         int catanStr = SOC.computeCatanStrength(soc, soc.getBoard());
         String text = String.format("%-10s %d\n%-10s %d", "Settlers:", catanStr, "Barbarians:", barbStr);

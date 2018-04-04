@@ -28,9 +28,11 @@ import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.TreeMap;
 
 import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
@@ -881,7 +883,7 @@ public class Reflector<T> {
                     }
                     clazz.newInstance();
                 }
-                values = new HashMap<Field, Archiver>();//TreeMap<Field, Archiver>(fieldComparator);
+                values = new TreeMap<>(fieldComparator);
                 // now inherit any values in base classes that were added
                 inheritValues(clazz.getSuperclass(), values);
                 classValues.put(clazz,  values);
@@ -899,6 +901,13 @@ public class Reflector<T> {
             throw new RuntimeException("Cannot instantiate " + getCanonicalName(clazz) + ". Is it public? Does it have a public 0 argument constructor?", e);
         }
     }
+
+    private final static Comparator<Field> fieldComparator = new Comparator<Field>() {
+        @Override
+        public int compare(Field o1, Field o2) {
+            return o1.getName().compareTo(o2.getName());
+        }
+    };
 
     private final static Map<Class, Map<Class, Boolean>> subclassOfCache = new HashMap<>();
 
@@ -1519,6 +1528,10 @@ public class Reflector<T> {
                 if (THROW_ON_UNKNOWN)
                     throw new Exception("Unknown field: " + name + " not in fields: " + values.keySet());
                 log.error("Unknown field: " + name + " not found in class: " + getClass());// + " not in fields: " + values.keySet());
+                // skip ahead until depth matches current depth
+                while (in.depth > depth) {
+                    readLineOrEOF(in);
+                }
             }
         }
         if (__reflector_version < getMinVersion()) {

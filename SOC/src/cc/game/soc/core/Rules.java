@@ -100,8 +100,8 @@ public final class Rules extends Reflector<Rules> {
 	private boolean enableRoadBlock = false;
     @Rule(variation = Variation.SOC, stringId = R.string.rule_min_players, minValue=2, maxValue=4)
 	private int minPlayers = 2;
-    @Rule(variation = Variation.SOC, stringId = R.string.rule_max_players, minValue=3, maxValue=6)
-	private int maxPlayers = 6;
+    @Rule(variation = Variation.SOC, stringId = R.string.rule_max_players, minValue=3, maxValue=4)
+	private int maxPlayers = 4;
 	
 	// Extensions
 

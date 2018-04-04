@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import cc.game.soc.core.Board;
 import cc.game.soc.core.BotNode;
 import cc.game.soc.core.Card;
 import cc.game.soc.core.CardType;
@@ -74,6 +75,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
         this.eventCardRenderer = eventCardRenderer;
         this.barbarianRenderer = barbarianRenderer;
         this.console = console;
+        MAX_PLAYERS = playerComponents.length;
     }
 
     public static UISOC getInstance() {
@@ -1205,4 +1207,12 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
         printinfo(0, "Player " + conn.getName() + " has disconnected");
     }
 
+    /**
+     *
+     * @param board
+     */
+    public final void setBoard(Board board) {
+        super.setBoard(board);
+        boardRenderer.component.redraw();
+    }
 }

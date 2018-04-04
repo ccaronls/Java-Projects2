@@ -20,4 +20,8 @@ public final class MenuItem {
         this.action = action;
     }
 
+    @Override
+    public final String toString() {
+        return title;
+    }
 }
