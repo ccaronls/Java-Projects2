@@ -65,4 +65,19 @@ public final class GRectangle extends Reflector<GRectangle> {
         v1.addEq(r1.subEq(v1).scaleEq(position));
         return new GRectangle(v0, v1);
     }
+
+    public void grow(float pixels) {
+        x-=pixels;
+        y-=pixels;
+        w+=pixels*2;
+        h+=pixels*2;
+    }
+
+    public void drawFilled(AGraphics g) {
+        g.drawFilledRect(x, y, w, h);
+    }
+
+    public void drawOutlined(AGraphics g, int thickness) {
+        g.drawRect(x, y, w, h, thickness);
+    }
 }

@@ -25,12 +25,12 @@
         <TextView
             android:id="@+id/bAction"
             style="@style/soc_label"
-            android:layout_width="50dp"
+            android:layout_width="30dp"
             android:layout_height="30dp"
             android:background="@drawable/button_bk"
             android:gravity="center"
             android:layout_gravity="center_vertical"
-            android:text="GO >"/>
+            android:text="Go>"/>
     </LinearLayout>
 
     <TextView

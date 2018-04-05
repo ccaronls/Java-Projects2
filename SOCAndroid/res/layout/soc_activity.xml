@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:soc="http://schemas.android.com/apk/res-auto"
               xmlns:tools="http://schemas.android.com/tools"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
@@ -31,8 +32,7 @@
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1"
-            android:orientation="vertical">
+            android:layout_weight="1">
 
             <ListView
                 android:id="@+id/soc_menu_list"
@@ -43,20 +43,32 @@
 
     </LinearLayout>
 
-    <LinearLayout
+    <RelativeLayout
         android:layout_width="0dp"
         android:layout_height="fill_parent"
-        android:layout_weight="3"
-        android:orientation="vertical">
+        android:layout_weight="3">
 
         <cc.game.soc.android.SOCView
             android:id="@+id/soc_board"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"/>
+            android:layout_height="match_parent"
+            android:layout_above="@+id/svConsole"
+            />
 
+        <ScrollView
+            android:id="@+id/svConsole"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_alignParentBottom="true">
 
-    </LinearLayout>
+            <cc.game.soc.android.SOCView
+                android:id="@+id/soc_console"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"/>
+
+        </ScrollView>
+
+    </RelativeLayout>
 
     <ScrollView
         android:id="@+id/svPlayers"

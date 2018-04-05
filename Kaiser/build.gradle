@@ -16,6 +16,7 @@ sourceSets {
 
         resources {
             srcDirs = ['png']
+            excludes = [ '**/net/**' ]
         }
     }
 }

@@ -1161,7 +1161,7 @@ public class GUI implements ActionListener, MenuItem.Action {
 			@Override
 			public PickMode getPickMode() {
 				indices.clear();
-				for (int i=0; i<getBoard().getNumVerts(); i++) {
+				for (int i=0; i<getBoard().getNumAvailableVerts(); i++) {
 					Vertex v = getBoard().getVertex(i);
 					if (v.canPlaceStructure() && v.getType() == VertexType.OPEN) {
 						indices.add(i);
@@ -1963,8 +1963,8 @@ public class GUI implements ActionListener, MenuItem.Action {
     public void quitToMainMenu() {
         soc.stopRunning();
         soc.clear();
-        console.clear();
         boardRenderer.setPickHandler(null);
+        console.clear();
         menuStack.clear();
         menuStack.push(MenuState.MENU_START);
         initMenu();

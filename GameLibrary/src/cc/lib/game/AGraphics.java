@@ -191,6 +191,35 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     }
 
     /**
+     * Return true if screen capture functionality is available. Default false
+     * @return
+     */
+    public boolean isCaptureAvailable() {
+        return false;
+    }
+
+    /**
+     * Start a screen capture operation. the next call to captureScreen will end the operation
+     */
+    public void beginScreenCapture() {
+        throw new RuntimeException("Not implemented");
+    }
+
+    /**
+     * Capture a portion of the viewport
+     *
+     * @param x
+     * @param y
+     * @param w
+     * @param h
+     *
+     * @return image id of the captured image
+     */
+    public int captureScreen(int x, int y, int w, int h) {
+        throw new RuntimeException("Not implemented");
+    }
+
+    /**
      *
      */
     public enum TextStyle {
@@ -297,6 +326,73 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
                 vertex(x+maxWidth/2, y+maxHeight); break;
         }
         return new GDimension(maxWidth, maxHeight);
+    }
+
+    public GRectangle drawJustifiedStringR(float x, float y, Justify hJust, Justify vJust, String text) {
+        if (text==null || text.length() == 0)
+            return new GRectangle();
+        MutableVector2D mv = transform(x, y);
+        String [] lines = text.split("\n");
+        final float textHeight = (float)getTextHeight();
+        switch (vJust) {
+            case TOP:
+                break;
+            case CENTER:
+                mv.subEq(0, 0.5f * (lines.length * (textHeight)));
+                y -= 0.5f * (lines.length * (textHeight));
+                break;
+            case BOTTOM:
+                mv.subEq(0, lines.length * textHeight);
+                y -= (lines.length * (textHeight));
+                break;
+            default:
+                throw new RuntimeException("Unhandled case: " + vJust);
+        }
+        float top = mv.getY();
+        float maxWidth = 0;
+        for (int i=0; i<lines.length; i++) {
+            maxWidth = Math.max(drawStringLine(mv.X(), mv.Y(), hJust, lines[i]), maxWidth);
+            mv.addEq(0, textHeight);
+        }
+        float maxHeight = textHeight * lines.length;
+        vertex(x, y);
+        float left = 0;
+        switch (hJust) {
+            case RIGHT:
+                left = mv.getX()-maxWidth;
+                vertex(x-maxWidth, y+maxHeight); break;
+            case CENTER:
+                left = mv.getX()-maxWidth/2;
+                vertex(x-maxWidth/2, y+maxHeight); break;
+            case LEFT:
+                left = mv.getX();
+                vertex(x+maxWidth/2, y+maxHeight); break;
+        }
+        return new GRectangle(left, top, maxWidth, maxHeight);
+    }
+
+    /**
+     *
+     * @param x
+     * @param y
+     * @param hJust
+     * @param vJust
+     * @param text
+     * @param bkColor
+     * @param border
+     * @return
+     */
+    public GDimension drawJustifiedStringOnBackground(float x, float y, Justify hJust, Justify vJust, String text, GColor bkColor, float border) {
+        GRectangle r = drawJustifiedStringR(x, y, hJust, vJust, text);
+        pushMatrix();
+        setIdentity();
+        r.grow(border);
+        GColor saveColor = getColor();
+        setColor(bkColor);
+        r.drawFilled(this);
+        setColor(saveColor);
+        popMatrix();
+        return drawJustifiedString(x, y, hJust, vJust, text);
     }
     
     /**

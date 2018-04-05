@@ -63,7 +63,7 @@ import cc.lib.game.Utils;
  * Created by chriscaron on 2/15/18.
  */
 
-public class SOCActivity extends CCActivityBase implements MenuItem.Action {
+public class SOCActivity extends CCActivityBase implements MenuItem.Action, View.OnClickListener {
 
     UISOC soc = null;
     File rulesFile;
@@ -75,11 +75,12 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action {
     SOCView<UIBoardRenderer> vBoard;
     SOCView<UIDiceRenderer> vDice;
     SOCView<UIPlayerRenderer> [] vPlayers;
-    UIConsoleRenderer console;
+    SOCView<UIConsoleRenderer> vConsole;
     ListView lvMenu;
     ScrollView svPlayers;
 
     Stack<Dialog> dialogStack = new Stack<>();
+    int helpItem = -1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -109,22 +110,16 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action {
         if (vPlayers.length != SOC.MAX_PLAYERS) {
             throw new AssertionError();
         }
-        /*
-        vPlayerLeft = (SOCView) findViewById(R.id.soc_player_left);
-        vPlayerTop = (SOCView) findViewById(R.id.soc_player_top);
-        vPlayerTopMiddle = (SOCView) findViewById(R.id.soc_player_top_middle);
-        vPlayerBottomMiddle = (SOCView) findViewById(R.id.soc_player_bottom_middle);
-        vPlayerBottom = (SOCView) findViewById(R.id.soc_player_bottom);
-        */
+
         lvMenu = (ListView) findViewById(R.id.soc_menu_list);
-        console = new UIConsoleRenderer(new SOCView<>(this));
+        vConsole = (SOCView) findViewById(R.id.soc_console);
+        vConsole.renderer.setMaxVisibleLines(100);
         svPlayers = (ScrollView)findViewById(R.id.svPlayers);
 
         QUIT         = new MenuItem(getString(R.string.menu_item_quit),      getString(R.string.menu_item_quit_help), this);
         BUILDABLES   = new MenuItem(getString(R.string.menu_item_buildables), getString(R.string.menu_item_buildables_help), this);
         RULES        = new MenuItem(getString(R.string.menu_item_rules),     getString(R.string.menu_item_rules_help), this);
         START        = new MenuItem(getString(R.string.menu_item_start),     getString(R.string.menu_item_start_help), this);
-        CONSOLE      = new MenuItem(getString(R.string.menu_item_console),   getString(R.string.menu_item_console_help), this);
 
         SINGLE_PLAYER= new MenuItem(getString(R.string.menu_item_sp), null, this);
         MULTI_PLAYER = new MenuItem(getString(R.string.menu_item_mp), null, this);
@@ -132,11 +127,8 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action {
         BOARDS       = new MenuItem(getString(R.string.menu_item_boards), null, this);
         SCENARIOS    = new MenuItem(getString(R.string.menu_item_scenarios), null, this);
 
-
         final ArrayList<Object[]> menu = new ArrayList<>();
         final BaseAdapter adapter = new ArrayListAdapter<Object[]>(this, menu, R.layout.menu_list_item) {
-
-            int helpItem = -1;
 
             @Override
             protected void initItem(View v, final int position, Object[] item) {
@@ -163,7 +155,10 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action {
                     v.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            helpItem = position;
+                            if (helpItem == position)
+                                helpItem = -1;
+                            else
+                                helpItem = position;
                             notifyDataSetChanged();
                         }
                     });
@@ -182,8 +177,10 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action {
             players[i] = this.vPlayers[i].renderer;
         }
 
-        if (UISOC.getInstance() == null)
-            soc = new UISOC(players, vBoard.renderer, vDice.renderer, console, vEvent.renderer, vBarbarian.renderer) {
+        if (UISOC.getInstance() != null) {
+            soc = UISOC.getInstance();
+        } else {
+            soc = new UISOC(players, vBoard.renderer, vDice.renderer, vConsole.renderer, vEvent.renderer, vBarbarian.renderer) {
                 @Override
                 protected void addMenuItem(MenuItem item, String title, String helpText, Object extra) {
                     menu.add(new Object[]{
@@ -194,7 +191,6 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action {
                 @Override
                 public void completeMenu() {
                     super.completeMenu();
-                    addMenuItem(CONSOLE);
                     addMenuItem(BUILDABLES);
                     addMenuItem(RULES);
                     addMenuItem(QUIT);
@@ -208,6 +204,7 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action {
 
                 @Override
                 public void clearMenu() {
+                    helpItem = -1;
                     menu.clear();
                     runOnUiThread(new Runnable() {
                         @Override
@@ -221,8 +218,10 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action {
                 public void redraw() {
                     runOnUiThread(new Runnable() {
                         public void run() {
-                            svPlayers.smoothScrollTo(0, vPlayers[soc.getCurPlayerNum()-1].getTop());
+                            svPlayers.smoothScrollTo(0, vPlayers[soc.getCurPlayerNum() - 1].getTop());
                             content.invalidate();
+                            vConsole.requestLayout();
+                            vConsole.invalidate();
                             for (final SOCView v : vPlayers) {
                                 v.requestLayout();
                                 v.invalidate();
@@ -264,6 +263,7 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action {
                     trySaveToFile(gameFile);
                 }
             };
+        }
         soc.setBoard(vBoard.getRenderer().getBoard());
     }
 
@@ -275,7 +275,7 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action {
     MenuItem BUILDABLES;
     MenuItem RULES;
     MenuItem START;
-    MenuItem CONSOLE;
+    //MenuItem CONSOLE;
 
     MenuItem SINGLE_PLAYER;
     MenuItem MULTI_PLAYER;
@@ -291,6 +291,8 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             soc.server.stop();
+                            soc.clear();
+                            vBoard.renderer.setPickHandler(null);
                             soc.stopRunning();
                             user.client.disconnect("player quit");
                             soc.clearMenu();
@@ -304,8 +306,7 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action {
         } else if (item == START) {
             soc.getBoard().assignRandom();
             soc.startGameThread();
-        } else if (item == CONSOLE) {
-            showConsole();
+            vBoard.renderer.clearCached();
         } else if (item == SINGLE_PLAYER) {
             showSinglePlayerDialog();
         } else if (item == MULTI_PLAYER) {
@@ -324,15 +325,6 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action {
         } else if (item == SCENARIOS) {
             showScenariosDialog();
         }
-    }
-
-    Dialog consoleDialog = null;
-
-    void showConsole() {
-        if (consoleDialog == null) {
-            consoleDialog = newDialog(true).setView((SOCView)console.getComponent()).create();
-        };
-        consoleDialog.show();
     }
 
     void showError(Exception e) {
@@ -423,6 +415,7 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action {
                                 showError(e);
                             }
                             vBoard.invalidate();
+                            vBoard.renderer.clearCached();
                         }
                     }.execute();
                 }
@@ -445,6 +438,8 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action {
                             Board b = new Board();
                             b.deserialize(in);
                             soc.setBoard(b);
+                            vBoard.renderer.clearCached();
+                            vBoard.invalidate();
                         } finally {
                             in.close();
                         }
@@ -472,6 +467,8 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action {
         soc.addMenuItem(BOARDS);
         soc.addMenuItem(SCENARIOS);
         soc.addMenuItem(RULES);
+
+        vBoard.renderer.clearCached();
     }
 
     void initGame() {
@@ -503,6 +500,7 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action {
         }
 
         clearDialogs();
+        vBoard.renderer.clearCached();
     }
 
     void showBuildablesDialog() {
@@ -818,6 +816,13 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action {
     void clearDialogs() {
         while (dialogStack.size() > 0) {
             dialogStack.pop().dismiss();
+        }
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+
         }
     }
 }

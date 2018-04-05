@@ -24,6 +24,7 @@ public final class UIConsoleRenderer extends UIRenderer {
 
     private int startLine = 0;
     private int maxVisibleLines = 1;
+    private boolean maxVisibleLinesSet = false;
 
     public UIConsoleRenderer(UIComponent component) {
         super(component);
@@ -65,7 +66,8 @@ public final class UIConsoleRenderer extends UIRenderer {
 
     private void drawPrivate(APGraphics g) {
 	    final int txtHgt = g.getTextHeight();
-	    maxVisibleLines = component.getHeight() / txtHgt;
+	    if (!maxVisibleLinesSet)
+	        maxVisibleLines = component.getHeight() / txtHgt;
         float y = 0;
 	    for (int i=startLine; i<lines.size(); i++) {
 	        Line l = lines.get(i);
@@ -77,7 +79,15 @@ public final class UIConsoleRenderer extends UIRenderer {
                 break;
             }
         }
+        if  (maxVisibleLinesSet) {
+	        setMinDimension(new GDimension(component.getWidth(), Math.min(Math.max(1, lines.size()), maxVisibleLines)*txtHgt));
+        }
 	}
+
+	public void setMaxVisibleLines(int max) {
+	    this.maxVisibleLines = max;
+	    maxVisibleLinesSet = true;
+    }
 
 	private AAnimation<APGraphics> anim = null;
 
@@ -124,6 +134,9 @@ public final class UIConsoleRenderer extends UIRenderer {
             lines.addFirst(item);
             if (startLine > 0)
                 startLine++;
+            while (lines.size() > 100) {
+                lines.removeLast();
+            }
             component.redraw();
         }
     };

@@ -2,6 +2,8 @@ package cc.game.soc.core;
 
 import junit.framework.TestCase;
 
+import java.io.File;
+
 import cc.lib.utils.Reflector;
 
 public class FixSaveFile extends TestCase {
@@ -18,7 +20,8 @@ public class FixSaveFile extends TestCase {
 		SOC soc = new SOC();
 		assertTrue(soc.load("socsavegame.txt"));
 		Board b = soc.getBoard();
-		for (Vertex v : b.getVerticies()) {
+		for (int i=0; i<b.getNumAvailableVerts(); i++) {
+		    Vertex v = b.getVertex(i);
 			if (v.getPlayer()==0) {
 				v.setOpen();
 				System.out.println("fixing board vertex : " + v);
@@ -40,5 +43,15 @@ public class FixSaveFile extends TestCase {
 		soc.save("socsavegame_FIXED.txt");
 		soc.load("socsavegame_FIXED.txt");
 	}
-	
+
+	public void testFixScenarios() throws Exception {
+        File [] files = new File("assets/scenarios").listFiles();
+        for (File f : files) {
+            System.out.println("fixing: " + f);
+            Scenario s = new Scenario();
+            s.loadFromFile(f);
+            s.saveToFile(f);
+        }
+
+    }
 }

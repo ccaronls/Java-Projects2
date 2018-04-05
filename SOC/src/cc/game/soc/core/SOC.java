@@ -916,7 +916,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
 		int numPts = player.getSpecialVictoryPoints();
 		// count cities and settlements
 		boolean [] islands = new boolean[board.getNumIslands()+1];
-		for (int i = 0; i < board.getNumVerts(); i++) {
+		for (int i = 0; i < board.getNumAvailableVerts(); i++) {
 			Vertex vertex = board.getVertex(i);
 			if (vertex.getPlayer() == player.getPlayerNum()) {
 				numPts += vertex.getPointsValue(soc.getRules());
@@ -1159,7 +1159,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
      */
     public static List<Integer> computeIntrigueKnightsVertexIndices(int playerNum, Board b) {
     	List<Integer> verts = new ArrayList<Integer>();
-		for (int vIndex=0; vIndex<b.getNumVerts(); vIndex++) {
+		for (int vIndex=0; vIndex<b.getNumAvailableVerts(); vIndex++) {
 			Vertex v = b.getVertex(vIndex);
 			if (v.isKnight() && v.getPlayer() != playerNum && b.isVertexAdjacentToPlayerRoute(vIndex, playerNum)) {
 				verts.add(vIndex);
@@ -3898,7 +3898,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
 		
 		// build an array of vertices legal for the current player
 		// to place a settlement.
-		for (int i = 0; i < b.getNumVerts(); i++) {
+		for (int i = 0; i < b.getNumAvailableVerts(); i++) {
 			Vertex v = b.getVertex(i);
 			if (v.getType() != VertexType.OPEN)
 				continue;
@@ -4020,7 +4020,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
 	 */
 	static public List<Integer> computePromoteKnightVertexIndices(Player p, Board b) {
 		List<Integer> verts = new ArrayList<Integer>();
-		for (int vIndex=0; vIndex < b.getNumVerts(); vIndex++) {
+		for (int vIndex=0; vIndex < b.getNumAvailableVerts(); vIndex++) {
 			Vertex v = b.getVertex(vIndex);
 			if (v.getPlayer() == p.getPlayerNum()) {
 				switch (v.getType()) {
@@ -4112,7 +4112,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
 		Vertex knight = b.getVertex(knightVertex);
 		assert(knight != null);
 		assert(knight.getType().getKnightLevel() > 0);
-		boolean [] visitedVerts = new boolean[b.getNumVerts()];
+		boolean [] visitedVerts = new boolean[b.getNumAvailableVerts()];
 		visitedVerts[knightVertex] = true;
 		findReachableVertsR(b, knight, knightVertex, verts, visitedVerts);
 		if (soc.getRules().isEnableKnightExtendedMoves()) {
@@ -4229,7 +4229,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
 		    types.add(MoveType.TRADE);
 		
 		if (p.canBuild(BuildableType.Settlement)) {
-			for (int i = 0; i < b.getNumVerts(); i++) {
+			for (int i = 0; i < b.getNumAvailableVerts(); i++) {
 				if (b.isVertexAvailbleForSettlement(i) && b.isVertexAdjacentToPlayerRoute(i, p.getPlayerNum())) {
 					types.add(MoveType.BUILD_SETTLEMENT);
 					break;

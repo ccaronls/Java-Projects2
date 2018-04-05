@@ -6,6 +6,8 @@ import java.util.*;
 
 import cc.lib.game.GRectangle;
 import cc.lib.game.Utils;
+import cc.lib.logger.Logger;
+import cc.lib.logger.LoggerFactory;
 import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
 import cc.lib.utils.Reflector;
@@ -17,7 +19,9 @@ import cc.lib.utils.Reflector;
  * 
  */
 public class Board extends Reflector<Board> {
-	
+
+    static final Logger log = LoggerFactory.getLogger(Board.class);
+
 	static {
 		addAllFields(Board.class);
 	}
@@ -43,7 +47,8 @@ public class Board extends Reflector<Board> {
 	// optimization - To prevent excessive execution of the road len algorithm O(2^n) , we cache the result here.
 	private final int [] playerRoadLenCache = new int[16];
 	private int pirateRouteStartTile = -1; // when >= 0, then the pirate route starts at this tile.  each tile has a next index to form a route.
-	
+	private int numAvaialbleVerts = -1;
+
 	/**
 	 * Create an empty board
 	 */
@@ -167,7 +172,7 @@ public class Board extends Reflector<Board> {
     // compute the cell lookups for each vertex
     private void computeVertexTiles() {
     	for (Vertex v : verts) {
-    		v.setNumCells(0);
+    		v.setNumTiles(0);
     	}
         for (int i=0; i<getNumTiles(); i++) {
             Tile c = getTile(i);
@@ -176,6 +181,56 @@ public class Board extends Reflector<Board> {
                 v.addTile(i);
             }
         }
+        // now we need to rewrite all the vertices such that the perimiter verts are at the ned on the list.
+        // this way way can cull them from availablibilty and speed certain operations up.
+        // Also players should not be able position vertices on the perimiter
+
+        List<Vertex> moved = new ArrayList<>();
+
+    	// mark all the vertex we want push to back of list
+    	numAvaialbleVerts = 0;
+        for (int i=verts.size()-1; i>=0; i--) {
+    	    Vertex v = verts.get(i);
+    	    if (v.getNumTiles() < 3) {
+    	        moved.add(v);
+            } else {
+    	        numAvaialbleVerts++;
+            }
+        }
+
+        // we want to reorder the vertices such that all the unusable verts are at the end of the list
+        // need to track where they are now and where they get moved too
+        Map<Vertex, Integer> vMap = new HashMap<>();
+        for (int i=0; i<verts.size(); i++) {
+            vMap.put(verts.get(i), i);
+        }
+
+        // this pushes all the moved verts to the end of the list
+        verts.removeAll(moved);
+        verts.addAll(moved);
+
+        // map tells us how to remap the indices
+        int [] map = new int[verts.size()];
+        for (int i=0; i<map.length; i++) {
+            Vertex v = verts.get(i);
+            map[vMap.get(v)] = i;
+        }
+
+        // remap all the tile vertices
+        for (Tile t : tiles) {
+            assert(t.getNumAdj()==6);
+            for (int v=0; v<t.adjVerts.length; v++) {
+                t.adjVerts[v] = map[t.adjVerts[v]];
+            }
+        }
+
+        // remap adjacency verts
+        for (Vertex v : verts) {
+            for (int ii=0; ii<v.getNumAdjacentVerts(); ii++) {
+                v.getAdjacentVerts()[ii] = map[v.getAdjacentVerts()[ii]];
+            }
+        }
+
     }
     
     private void computeRoutes() {
@@ -184,7 +239,8 @@ public class Board extends Reflector<Board> {
 		int ii;
 
 		// clear vertex flags
-		for (Vertex v : getVerticies()) {
+        for (int i=0; i<getNumAvailableVerts(); i++) {
+            Vertex v = getVertex(i);
 			v.setAdjacentToLand(false);
 			v.setAdjacentToWater(false);
 		}
@@ -195,19 +251,23 @@ public class Board extends Reflector<Board> {
 			if (c.getType() != TileType.NONE) {
 				for (ii = 0; ii < c.getNumAdj(); ii++) {
 					int i2 = (ii + 1) % c.getNumAdj();
-					int v0 = c.getAdjVert(ii);
-					int v1 = c.getAdjVert(i2);
+					int iv0 = c.getAdjVert(ii);
+					int iv1 = c.getAdjVert(i2);
+
+					if (iv0 >= numAvaialbleVerts || iv1 >= numAvaialbleVerts)
+					    continue;
+
 					if (c.isWater()) {
-						getVertex(v0).setAdjacentToWater(true);
-						getVertex(v1).setAdjacentToWater(true);
+						getVertex(iv0).setAdjacentToWater(true);
+						getVertex(iv1).setAdjacentToWater(true);
 					} else if (c.isLand()) {
-						getVertex(v0).setAdjacentToLand(true);
-						getVertex(v1).setAdjacentToLand(true);
+						getVertex(iv0).setAdjacentToLand(true);
+						getVertex(iv1).setAdjacentToLand(true);
 					}
-					int edgeIndex = getRouteIndex(v0, v1);
+					int edgeIndex = getRouteIndex(iv0, iv1);
 					Route edge = null;
 					if (edgeIndex < 0) {
-						edge = new Route(Math.min(v0, v1), Math.max(v0,  v1));
+						edge = new Route(Math.min(iv0, iv1), Math.max(iv0, iv1));
 						routes.add(-(edgeIndex+1), edge);
 					} else {
 						edge = getRoute(edgeIndex);
@@ -235,7 +295,7 @@ public class Board extends Reflector<Board> {
 		}
 		
 		//visit all vertices and remove adjacencies that dont exist
-		for (int vIndex=0; vIndex<getNumVerts(); vIndex++) {
+		for (int vIndex=0; vIndex<getNumAvailableVerts(); vIndex++) {
 			Vertex v = getVertex(vIndex);
 			for (int i=0; i<v.getNumAdjacentVerts(); ) {
 				Route r = getRoute(vIndex, v.getAdjacentVerts()[i]);
@@ -1023,12 +1083,9 @@ public class Board extends Reflector<Board> {
 		fillFit();
 		computeVertexTiles();
 		computeRoutes();
-		
-		Utils.println("Tiles : " + tiles.size());
-		Utils.println("Verts : " + verts.size());
-		Utils.println("routes: " + routes.size());
+		log.info("Trim\n  Tiles: %d\n  Verts: %d\n  Routes:  %d\n  Available Verts: %d", tiles.size(), verts.size(), routes.size(), numAvaialbleVerts);
 	}
-	
+
     /**
      * Visit all the cells and assign die values when necessary and apply cell types to random cell.
      */
@@ -1189,6 +1246,25 @@ public class Board extends Reflector<Board> {
 		return verts.size();
 	}
 
+    /**
+     * Returns a subset of the verts that are available for placement of a structure
+     * @return
+     */
+	public int getNumAvailableVerts() {
+	    if (numAvaialbleVerts < 0) {
+	        // recompute if neccessary
+	        numAvaialbleVerts = verts.size();
+	        for (int i=0; i<verts.size(); i++) {
+	            Vertex v = verts.get(i);
+	            if (v.getNumTiles() < 3) {
+	                numAvaialbleVerts = i;
+	                break;
+                }
+            }
+        }
+        return numAvaialbleVerts;
+    }
+
 	/**
 	 * Get the vertex assigned to index
 	 * @param index
@@ -1273,14 +1349,6 @@ public class Board extends Reflector<Board> {
         return getRoute(index);
     }
 
-    /**
-     * 
-     * @return
-     */
-    public Iterable<Vertex> getVerticies() {
-        return this.verts;
-    }
-    
     /**
      * 
      * @return
@@ -1454,7 +1522,7 @@ public class Board extends Reflector<Board> {
 	    try {
     	    boolean [] visitedEdges = new boolean[getNumRoutes()];
     	    int max = 0;
-    	    for (int i=0; i<getNumVerts(); i++) {
+    	    for (int i=0; i<getNumAvailableVerts(); i++) {
     	        Vertex v = getVertex(i);
     	        if (v.getType() != VertexType.OPEN && !v.isKnight()) // TOOD: should we check here for enableRoadBlock and only consider knights if true?
     	            continue; // skip past verts with settlements on them
@@ -1566,7 +1634,7 @@ public class Board extends Reflector<Board> {
 	public List<Integer> getVertIndicesOfType(int playerNum, VertexType ... types) {
 		List<Integer> verts = new ArrayList<Integer>();
 		List<VertexType> arr = Arrays.asList(types);
-		for (int i = 0; i < getNumVerts(); i++) {
+		for (int i = 0; i < getNumAvailableVerts(); i++) {
 			Vertex v = getVertex(i);
 			if ((playerNum == 0 || playerNum == v.getPlayer()) && arr.contains(v.getType()))
 				verts.add(i);
@@ -1583,7 +1651,7 @@ public class Board extends Reflector<Board> {
 	public List<Vertex> getVertsOfType(int playerNum, VertexType ... types) {
 		List<Vertex> verts = new ArrayList<Vertex>();
 		List<VertexType> arr = Arrays.asList(types);
-		for (int i = 0; i < getNumVerts(); i++) {
+		for (int i = 0; i < getNumAvailableVerts(); i++) {
 			Vertex v = getVertex(i);
 			if ((playerNum == 0 || playerNum == v.getPlayer()) && arr.contains(v.getType()))
 				verts.add(v);
@@ -2034,6 +2102,9 @@ public class Board extends Reflector<Board> {
      */
     public final void fillFit() {
     	GRectangle minMax = computeMinMax();
+    	//if (minMax.w <= 1 && minMax.h <= 1)
+    	//    return;
+
     	Vector2D v = minMax.getCenter();
     	// center at 0,0
     	translate(v.getX(), v.getY());
@@ -2370,9 +2441,9 @@ public class Board extends Reflector<Board> {
 		
 		return false;
 	}
-	
+	/*
 	public void findAllPairsShortestPathToDiscoverables(int playerNum) {
-		boolean [] discoverable = new boolean[getNumVerts()];
+		boolean [] discoverable = new boolean[getNumAvailableVerts()];
 		
 		// find the verts we can touch
 		for (Tile t : getTiles()) {
@@ -2419,7 +2490,7 @@ public class Board extends Reflector<Board> {
 				}
 			}
 		}	
-	}
+	}*/
 
 	public List<Integer> getOpenKnightVertsForPlayer(int playerNum) {
 		HashSet<Integer> verts = new HashSet<Integer>();
@@ -2494,10 +2565,10 @@ public class Board extends Reflector<Board> {
 		if (rules.isEnableSeafarersExpansion()) {
 			return computeDistancesLandWater(rules, playerNum);
 		} else {
-			final int numV = getNumVerts();
+			final int numV = getNumAvailableVerts();
 			final int [][] dist = new int[numV][numV];
 			final int [][] next = new int[numV][numV];
-			
+
 			for (int i=0; i<numV; i++) {
 				for (int ii=0; ii<numV; ii++) {
 					dist[i][ii] = DistancesLandWater.DISTANCE_INFINITY;
@@ -2548,15 +2619,15 @@ public class Board extends Reflector<Board> {
 			return new DistancesLand(dist, next);
 		}
 	}
-	
+
 	private DistancesLandWater computeDistancesLandWater(final Rules rules, int playerNum) {
 		
-		final int numV = getNumVerts();
+		final int numV = getNumAvailableVerts();
 		final int [][] distLand = new int[numV][numV];
 		final int [][] distAqua = new int[numV][numV];
 		final int [][] nextLand = new int[numV][numV];
 		final int [][] nextAqua = new int[numV][numV];
-		
+
 		for (int i=0; i<numV; i++) {
 			for (int ii=0; ii<numV; ii++) {
 				distLand[i][ii] = DistancesLandWater.DISTANCE_INFINITY;
@@ -2622,7 +2693,7 @@ public class Board extends Reflector<Board> {
 		Set<Integer> launchVerts = new HashSet<Integer>();
 		
 		// find all vertices where we can launch a ship from
-		for (int vIndex=0; vIndex<getNumVerts(); vIndex++) {
+		for (int vIndex=0; vIndex<getNumAvailableVerts(); vIndex++) {
 			Vertex v = getVertex(vIndex);
 			if (v.isAdjacentToWater()) {
     			if (v.isStructure() && v.getPlayer() == playerNum) {

@@ -12,6 +12,7 @@ import cc.game.soc.core.Board;
 import cc.game.soc.ui.UIBarbarianRenderer;
 import cc.game.soc.ui.UIBoardRenderer;
 import cc.game.soc.ui.UIComponent;
+import cc.game.soc.ui.UIConsoleRenderer;
 import cc.game.soc.ui.UIDiceRenderer;
 import cc.game.soc.ui.UIEventCardRenderer;
 import cc.game.soc.ui.UIPlayerRenderer;
@@ -78,10 +79,11 @@ public class SOCView<T extends UIRenderer> extends View implements UIComponent {
                         //super.doClick();
                     }
                 };
-                r.initImages(R.drawable.desert, R.drawable.water, R.drawable.gold, R.drawable.undiscoveredtile, R.drawable.foresthex, R.drawable.hillshex, R.drawable.mountainshex, R.drawable.pastureshex, R.drawable.fieldshex, R.drawable.knight_basic_inactive, R.drawable.knight_basic_active, R.drawable.knight_strong_inactive, R.drawable.knight_strong_active, R.drawable.knight_mighty_inactive, R.drawable.knight_mighty_active, R.drawable.card_frame);
+                r.initImages(R.drawable.desert,
+                        R.drawable.water,
+                        R.drawable.gold, R.drawable.undiscoveredtile, R.drawable.foresthex, R.drawable.hillshex, R.drawable.mountainshex, R.drawable.pastureshex, R.drawable.fieldshex, R.drawable.knight_basic_inactive, R.drawable.knight_basic_active, R.drawable.knight_strong_inactive, R.drawable.knight_strong_active, R.drawable.knight_mighty_inactive, R.drawable.knight_mighty_active, R.drawable.card_frame);
                 Board board = new Board();
                 board.generateDefaultBoard();
-                board.trim();
                 r.board = board;
                 renderer = (T)r;
                 break;
@@ -98,6 +100,8 @@ public class SOCView<T extends UIRenderer> extends View implements UIComponent {
                 renderer = (T)new UIPlayerRenderer(this); break;
             case R.id.soc_event_cards:
                 renderer = (T)new UIEventCardRenderer(this); break;
+            case R.id.soc_console:
+                renderer = (T)new UIConsoleRenderer(this); break;
         }
     }
 
@@ -194,5 +198,13 @@ public class SOCView<T extends UIRenderer> extends View implements UIComponent {
         }
 
         super.setMeasuredDimension(width, height);
+    }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        if (this.g != null) {
+            g.releaseBitmaps();
+        }
     }
 }

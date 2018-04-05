@@ -5,10 +5,12 @@ import java.util.*;
 import cc.game.soc.core.*;
 import cc.lib.game.*;
 import cc.lib.math.*;
+import cc.lib.utils.Reflector;
 
 public class UIBoardRenderer extends UIRenderer implements MenuItem.Action {
 
     public Board board = null;
+    private AGraphics lastG;
 
     public UIBoardRenderer(UIComponent component) {
         super(component);
@@ -558,7 +560,7 @@ public class UIBoardRenderer extends UIRenderer implements MenuItem.Action {
 	
 	private int pickVertex(APGraphics g, int mouseX, int mouseY) {
 		g.begin();
-		for (int index=0; index<getBoard().getNumVerts(); index++) {
+		for (int index=0; index<getBoard().getNumAvailableVerts(); index++) {
 			g.setName(index);
 			Vertex v = getBoard().getVertex(index);
 			g.vertex(v);
@@ -947,7 +949,7 @@ public class UIBoardRenderer extends UIRenderer implements MenuItem.Action {
             if (cell.getDieNum() > 0) {
             	drawCellProductionValue(g, cell.getX(),cell.getY(), cell.getDieNum());
             }
-        }   
+        }
     }
 
     @Override
@@ -970,6 +972,8 @@ public class UIBoardRenderer extends UIRenderer implements MenuItem.Action {
         g.setColor(GColor.CYAN);
         g.drawJustifiedString( x, y, Justify.CENTER, Justify.CENTER, String.valueOf(num));
     }
+
+    private int screenCaptureId = -1;
     
 	public final void draw(APGraphics g, int pickX, int pickY) {
 
@@ -980,6 +984,7 @@ public class UIBoardRenderer extends UIRenderer implements MenuItem.Action {
         if (width <= 10 || height <= 10 || board == null)
             return; // avoid images getting resized excessively if the window is getting resized
 
+        lastG = g;
         g.ortho();
 	    g.pushMatrix();
 	    g.setIdentity();
@@ -990,12 +995,26 @@ public class UIBoardRenderer extends UIRenderer implements MenuItem.Action {
             g.scale(dim, dim);
             g.translate(-0.5f, -0.5f);
 
-            doPick(g, pickX, pickY);
+            if (pickX >= 0 && pickY >= 0)
+                doPick(g, pickX, pickY);
     	    long enterTime = System.currentTimeMillis();
 
             if (!getRenderFlag(RenderFlag.DONT_DRAW_TEXTURES)) {
-                drawTilesTextured(g);
-            } 
+                if (g.isCaptureAvailable()) {
+                    if (screenCaptureId < 0) {
+                        g.beginScreenCapture();
+                        drawTilesTextured(g);
+                        screenCaptureId = g.captureScreen(0, 0, g.getViewportWidth(), g.getViewportHeight());
+                    }
+                    g.pushMatrix();
+                    g.setIdentity();
+                    g.drawImage(screenCaptureId, 0, 0, g.getViewportWidth(), g.getViewportHeight());
+                    g.popMatrix();
+                } else {
+                    drawTilesTextured(g);
+                }
+            }
+
             
             if (getRenderFlag(RenderFlag.DRAW_CELL_OUTLINES)) {
                 drawTilesOutlined(g);
@@ -1034,7 +1053,7 @@ public class UIBoardRenderer extends UIRenderer implements MenuItem.Action {
     		
     		// draw the structures
             if (!getRenderFlag(RenderFlag.DONT_DRAW_STRUCTURES)) {
-        		for (int i=0; i<board.getNumVerts(); i++) {
+        		for (int i=0; i<board.getNumAvailableVerts(); i++) {
         			if (pickMode == PickMode.PM_VERTEX) {
         				if (pickHandler.isPickableIndex(this, i)) {
                     		if (i == pickedValue) {
@@ -1104,21 +1123,17 @@ public class UIBoardRenderer extends UIRenderer implements MenuItem.Action {
     		
     		if (getRenderFlag(RenderFlag.NUMBER_CELLS)) {
     		    g.setColor(GColor.RED);
-    		    float [] v = {0,0};
     		    for (int i=0; i<board.getNumTiles(); i++) {
     		        Tile c = board.getTile(i);
-    		        g.transform(c.getX(), c.getY(), v);
-    		        g.drawJustifiedString( Math.round(v[0]), Math.round(v[1])+5, Justify.CENTER, Justify.TOP, String.valueOf(i));
+    		        g.drawJustifiedStringOnBackground(c.getX(), c.getY(), Justify.CENTER, Justify.TOP, String.valueOf(i), GColor.TRANSLUSCENT_BLACK, 5);
     		    }
     		}
     		
     		if (getRenderFlag(RenderFlag.NUMBER_VERTS)) {
                 g.setColor(GColor.WHITE);
-                float []v = {0,0};
-                for (int i=0; i<board.getNumVerts(); i++) {
-                    Vertex vx = board.getVertex(i);
-                    g.transform(vx.getX(), vx.getY(), v);
-                    g.drawJustifiedString( Math.round(v[0]), Math.round(v[1]), Justify.CENTER, Justify.TOP, String.valueOf(i));
+                for (int i=0; i<board.getNumAvailableVerts(); i++) {
+                    Vertex v  = board.getVertex(i);
+                    g.drawJustifiedStringOnBackground(v.getX(), v.getY(), Justify.CENTER, Justify.TOP, String.valueOf(i), GColor.TRANSLUSCENT_BLACK, 5);
                 }
     		}
     		
@@ -1127,8 +1142,7 @@ public class UIBoardRenderer extends UIRenderer implements MenuItem.Action {
     		    for (int i=0; i<board.getNumRoutes(); i++) {
     		        Route e = board.getRoute(i);
     		        MutableVector2D m = new MutableVector2D(board.getRouteMidpoint(e));
-    		        g.transform(m);
-    		        g.drawJustifiedString( Math.round(m.getX()), Math.round(m.getY()), Justify.CENTER, Justify.TOP, String.valueOf(i));
+    		        g.drawJustifiedStringOnBackground(m.getX(), m.getY(), Justify.CENTER, Justify.TOP, String.valueOf(i), GColor.TRANSLUSCENT_BLACK, 5);
     		    }
     		}
     		
@@ -1301,6 +1315,15 @@ public class UIBoardRenderer extends UIRenderer implements MenuItem.Action {
             pickHandler.onPick(this, pickedValue);
     }
 
+    /**
+     * Delete screen capture and force a full redraw
+     */
+    public final void clearCached() {
+	    if (screenCaptureId >= 0 && lastG != null) {
+	        lastG.deleteImage(screenCaptureId);
+	        screenCaptureId = -1;
+        }
+    }
 }
 
 

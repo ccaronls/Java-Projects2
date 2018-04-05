@@ -45,7 +45,8 @@ public class SOCBoardTest extends TestCase {
     	VertexType [] values = VertexType.values();
     	int [] counts = new int[values.length];
     	
-    	for (Vertex v : b.getVerticies()) {
+    	for (int i=0; i<b.getNumAvailableVerts(); i++) {
+    	    Vertex v = b.getVertex(i);
     		counts[v.getType().ordinal()] ++;
     	}
     	

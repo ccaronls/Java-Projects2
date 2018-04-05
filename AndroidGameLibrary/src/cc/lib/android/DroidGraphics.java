@@ -320,6 +320,17 @@ public class DroidGraphics extends APGraphics {
         return id;
     }
 
+    /**
+     * Recycle all saved bitmaps
+     */
+    public void releaseBitmaps() {
+        for (Bitmap bm : bitmaps) {
+            if (bm != null)
+                bm.recycle();
+        }
+        bitmaps.clear();
+    }
+
     private final Bitmap transformImage(Bitmap in, int outWidth, int outHeight, IImageFilter transform) {
         if (outWidth > 0 || outHeight > 0) {
             if (outWidth <= 0)
@@ -428,7 +439,7 @@ public class DroidGraphics extends APGraphics {
         } else {
             rectf.set(x, y, x+w, y+h);
             Bitmap bm = bitmaps.get(imageKey);
-            canvas.drawBitmap(bm, null, rect, null);
+            canvas.drawBitmap(bm, null, rectf, null);
         }
     }
 
@@ -540,11 +551,45 @@ public class DroidGraphics extends APGraphics {
         Vector2D v0 = transform(x, y);
         Vector2D v1 = transform(x+w, y+h);
         GRectangle r = new GRectangle(v0, v1);
+        canvas.save();
         canvas.clipRect(r.x, r.y, r.x+r.w, r.y+r.h);
     }
 
     @Override
     public void clearClip() {
-        canvas.clipRect(0, 0, getViewportWidth(), getViewportHeight());
+        canvas.restore();
     }
+
+    @Override
+    public boolean isCaptureAvailable() {
+        return true;
+    }
+
+    private Bitmap screenCapture = null;
+    private Canvas savedCanvas = null;
+
+    @Override
+    public void beginScreenCapture() {
+        if (screenCapture != null) {
+            System.err.println("screen capture bitmap already exist, deleting it.");
+            screenCapture.recycle();
+            screenCapture = null;
+        }
+
+        screenCapture = Bitmap.createBitmap(getViewportWidth(), getViewportHeight(), Bitmap.Config.ARGB_8888);
+        savedCanvas = canvas;
+        canvas = new Canvas(screenCapture);
+    }
+
+    @Override
+    public int captureScreen(int x, int y, int w, int h) {
+
+        Bitmap subBM = Bitmap.createBitmap(screenCapture, x, y, w, h);
+        screenCapture.recycle();
+        int id = addImage(subBM);
+        canvas = savedCanvas;
+        return id;
+
+    }
+
 }

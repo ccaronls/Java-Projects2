@@ -1792,7 +1792,8 @@ public class PlayerBot extends Player {
 		float knightValue = 0;
 		float structureValue = 0;
 		
-		for (Vertex v : b.getVerticies()) {
+		for (int vIndex=0; vIndex<b.getNumAvailableVerts(); vIndex++) {
+		    Vertex v = b.getVertex(vIndex);
 			float scale = 0;
 			if (v.getPlayer() != playerNum)
 				continue;
@@ -2099,11 +2100,11 @@ public class PlayerBot extends Player {
 		IDistances d = b.computeDistances(soc.getRules(), p.getPlayerNum());
 		
 		// visit the vertices and assign a value to each.
-		double [] vertexValue = new double[b.getNumVerts()];
+		double [] vertexValue = new double[b.getNumAvailableVerts()];
 		
 		List<Integer> structures = new ArrayList<Integer>();
 		
-		for (int vIndex=0; vIndex<b.getNumVerts(); vIndex++) {
+		for (int vIndex=0; vIndex<b.getNumAvailableVerts(); vIndex++) {
 			Vertex v = b.getVertex(vIndex);
 			if (v.getPlayer() == p.getPlayerNum()) {
 				if (v.isStructure())
@@ -2251,7 +2252,7 @@ public class PlayerBot extends Player {
 			}
 		}
 		
-		for (int vIndex=0; vIndex<b.getNumVerts(); vIndex++) {
+		for (int vIndex=0; vIndex<b.getNumAvailableVerts(); vIndex++) {
 			Vertex v = b.getVertex(vIndex);
 		
 			if (v.getType() == VertexType.PIRATE_FORTRESS) {

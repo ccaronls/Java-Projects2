@@ -52,7 +52,7 @@ public final class Route extends Reflector<Route> implements Comparable<Route> {
 		else if (tiles[1] < 0)
 			tiles[1] = tIndex;
 		else
-			throw new AssertionError("Ropute already has 2 tiles");
+			throw new AssertionError("Route already has 2 tiles");
 	}
 	
 	/**

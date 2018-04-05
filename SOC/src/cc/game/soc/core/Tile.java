@@ -24,7 +24,7 @@ public final class Tile extends Reflector<Tile> implements IVector2D {
 	//	 indicies to vertices
 	// that are adjacent to
 	// this cell
-	private int[] adjVerts	= new int[6];
+	int[] adjVerts	= new int[6];
 	private int	numAdj;
 	private int	dieNum;
 	private int islandNum;

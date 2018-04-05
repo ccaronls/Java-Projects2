@@ -196,7 +196,7 @@ public final class Vertex extends Reflector<Vertex> implements IVector2D {
 	    return numCells;
 	}
 	
-	void setNumCells(int num) {
+	void setNumTiles(int num) {
 		this.numCells = num;
 	}
 	
