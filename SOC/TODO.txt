@@ -65,10 +65,11 @@ CAK Rule Details:
   - players of equal weakness all lose a city
   - If a player who has a city attacked has a wall, then the wall is removed and the city remains
   (DONE, untested)
-- If catan is greater or equal to barbarians then
+- If catan is greater or equal to barbarians then (DONE)
   - When a single player has highest value active knights then they get the 'Defender of Catan' Victory point placed face up (not takeable)
-  - If players tie, then no victory points awarded, instead each eligible player gets to draw 1 card from any of the Progress card stacks   
-- After attack, barbarians return to starting position and all knights become inactive
+  - If players tie, then no victory points awarded, instead each eligible player gets to draw 1 card from any of the Progress card stacks
+
+- After attack, barbarians return to starting position and all knights become inactive (DONE untested)
 - A player obtains a progress card when the event die shows , Science(green), Politics(blue) or Trade(yellow) and the red die 
   is 1 of the die showing for that players improvement.  For instance, if a player has a first level improvement in trade, and a trade
   event is rolled, then that player can only draw a progress card if a 1 shows on the red die.  A second level improvement deals a progress card
@@ -77,6 +78,6 @@ CAK Rule Details:
 - CAK uses 3 dice, 1, red, 1 yellow and 1 event.  The red is used to determine Progress card distribution.
 (DONE, partially tested)
 
-Add barbarians and traders expansion option
+Add barbarians and traders expansion option (DONE)
 
-Make rules not need annotations which dont work well with localiztion!!!
+Make rules not need annotations which dont work well with localiztion (they do work interestingly. DONE)

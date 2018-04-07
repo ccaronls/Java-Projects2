@@ -291,6 +291,8 @@
     <string name="info_player_takes_n_x_cards_from_player">%1$s takes %2$d %3$s card from player %4$s</string>
 
     <!-- Move types -->
+    <string name="move_type_cancel">Cancel</string>
+    <string name="move_type_cancel_help">Cancel current operation</string>
     <string name="move_type_continue">Continue</string>
     <string name="move_type_continue_help">End your turn</string>
     <string name="move_type_soldier">Soldier</string>
@@ -397,7 +399,15 @@
     <string name="move_type_attack_metro_help_knight_level">If knight level+die roll is greater than or equal to %d, then metropolis reduced to city</string>
     <string name="move_type_roll_dice">Roll dice</string>
     <string name="move_type_roll_dice_help">Determines resource distribution. Rolling a seven causes the Robber sequence when enabled.</string>
+    <string name="move_type_accept">Accept</string>
+    <string name="move_type_choose_ships">Ships</string>
+    <string name="move_type_choose_ships_help">Show ship choices</string>
+    <string name="move_type_choose_roads">Roads</string>
+    <string name="move_type_choose_roads_help">Show road choices</string>
+    <string name="move_type_set_dice">Set Dice</string>
+    <string name="move_type_set_dice_help">Click the dice to set value manually</string>
 
+    <!-- Progress Cards -->
     <string name="progress_card_type_alchemist_help">Can assign any values to the dice on your turn</string>
     <string name="progress_card_type_printer_help">Collect 1 victory point played immediately upon drawing, cannot be taken.</string>
     <string name="progress_card_type_constitution_help">Collect 1 victory point played immediately upon drawing, cannot be taken.</string>

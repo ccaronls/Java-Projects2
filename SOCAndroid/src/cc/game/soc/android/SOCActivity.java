@@ -120,6 +120,7 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
         BUILDABLES   = new MenuItem(getString(R.string.menu_item_buildables), getString(R.string.menu_item_buildables_help), this);
         RULES        = new MenuItem(getString(R.string.menu_item_rules),     getString(R.string.menu_item_rules_help), this);
         START        = new MenuItem(getString(R.string.menu_item_start),     getString(R.string.menu_item_start_help), this);
+        CONSOLE      = new MenuItem(getString(R.string.menu_item_console), getString(R.string.menu_item_console_help), this);
 
         SINGLE_PLAYER= new MenuItem(getString(R.string.menu_item_sp), null, this);
         MULTI_PLAYER = new MenuItem(getString(R.string.menu_item_mp), null, this);
@@ -137,32 +138,44 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
                 final String helpText = (String) item[2];
                 final Object extra = item[3];
 
+                View vDivider = v.findViewById(R.id.ivDivider);
                 TextView tvTitle = (TextView) v.findViewById(R.id.tvTitle);
                 final TextView tvHelp = (TextView) v.findViewById(R.id.tvHelp);
+                View bAction = v.findViewById(R.id.bAction);
+                View content= v.findViewById(R.id.layoutContent);
 
-                tvTitle.setText(title);
-                tvHelp.setText(helpText);
-
-                v.findViewById(R.id.bAction).setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        mi.action.onAction(mi, extra);
-                    }
-                });
-                tvHelp.setVisibility(helpItem == position ? View.VISIBLE : View.GONE);
-
-                if (!Utils.isEmpty(helpText)) {
-                    v.setOnClickListener(new View.OnClickListener() {
+                if (mi == DIVIDER) {
+                    vDivider.setVisibility(View.VISIBLE);
+                    content.setVisibility(View.GONE);
+                    tvHelp.setVisibility(View.GONE);
+                } else {
+                    vDivider.setVisibility(View.GONE);
+                    content.setVisibility(View.VISIBLE);
+                    tvTitle.setText(title);
+                    tvHelp.setText(helpText);
+                    bAction.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            if (helpItem == position)
-                                helpItem = -1;
-                            else
-                                helpItem = position;
-                            notifyDataSetChanged();
+                            mi.action.onAction(mi, extra);
                         }
                     });
+                    tvHelp.setVisibility(helpItem == position ? View.VISIBLE : View.GONE);
 
+                    if (!Utils.isEmpty(helpText)) {
+                        v.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                if (helpItem == position)
+                                    helpItem = -1;
+                                else
+                                    helpItem = position;
+                                notifyDataSetChanged();
+                            }
+                        });
+
+                    } else {
+                        v.setOnClickListener(null);
+                    }
                 }
             }
         };
@@ -177,105 +190,108 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
             players[i] = this.vPlayers[i].renderer;
         }
 
-        if (UISOC.getInstance() != null) {
-            soc = UISOC.getInstance();
-        } else {
-            soc = new UISOC(players, vBoard.renderer, vDice.renderer, vConsole.renderer, vEvent.renderer, vBarbarian.renderer) {
-                @Override
-                protected void addMenuItem(MenuItem item, String title, String helpText, Object extra) {
-                    menu.add(new Object[]{
-                            item, title, helpText, extra
-                    });
-                }
+        soc = new UISOC(players, vBoard.renderer, vDice.renderer, vConsole.renderer, vEvent.renderer, vBarbarian.renderer) {
+            @Override
+            protected void addMenuItem(MenuItem item, String title, String helpText, Object extra) {
+                menu.add(new Object[]{
+                        item, title, helpText, extra
+                });
+            }
 
-                @Override
-                public void completeMenu() {
-                    super.completeMenu();
-                    addMenuItem(BUILDABLES);
-                    addMenuItem(RULES);
-                    addMenuItem(QUIT);
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            adapter.notifyDataSetChanged();
+            @Override
+            public void completeMenu() {
+                addMenuItem(DIVIDER);
+                super.completeMenu();
+//                    addMenuItem(CONSOLE);
+                addMenuItem(BUILDABLES);
+                addMenuItem(RULES);
+                addMenuItem(QUIT);
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        adapter.notifyDataSetChanged();
+                    }
+                });
+            }
+
+            @Override
+            public void clearMenu() {
+                helpItem = -1;
+                menu.clear();
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        adapter.notifyDataSetChanged();
+                    }
+                });
+            }
+
+            @Override
+            public void redraw() {
+                runOnUiThread(new Runnable() {
+                    public void run() {
+                        svPlayers.smoothScrollTo(0, vPlayers[soc.getCurPlayerNum() - 1].getTop());
+                        content.invalidate();
+                        vConsole.requestLayout();
+                        vConsole.invalidate();
+                        for (final SOCView v : vPlayers) {
+                            v.requestLayout();
+                            v.invalidate();
                         }
-                    });
-                }
+                    }
+                });
+            }
 
-                @Override
-                public void clearMenu() {
-                    helpItem = -1;
-                    menu.clear();
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            adapter.notifyDataSetChanged();
-                        }
-                    });
-                }
-
-                @Override
-                public void redraw() {
-                    runOnUiThread(new Runnable() {
-                        public void run() {
-                            svPlayers.smoothScrollTo(0, vPlayers[soc.getCurPlayerNum() - 1].getTop());
-                            content.invalidate();
-                            vConsole.requestLayout();
-                            vConsole.invalidate();
-                            for (final SOCView v : vPlayers) {
-                                v.requestLayout();
-                                v.invalidate();
-                            }
-                        }
-                    });
-                }
-
-                @Override
-                protected void showOkPopup(final String title, final String message) {
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            newDialog(true).setTitle(title).setMessage(message).setNeutralButton("OK", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    synchronized (soc) {
-                                        soc.notify();
-                                    }
+            @Override
+            protected void showOkPopup(final String title, final String message) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        newDialog(true).setTitle(title).setMessage(message).setNeutralButton("OK", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                synchronized (soc) {
+                                    soc.notify();
                                 }
-                            }).show();
-                        }
-                    });
-                    Utils.waitNoThrow(this, -1);
-                }
+                            }
+                        }).show();
+                    }
+                });
+                Utils.waitNoThrow(this, -1);
+            }
 
-                @Override
-                protected String getServerName() {
-                    return Build.BRAND + "." + Build.PRODUCT;
-                }
+            @Override
+            protected String getServerName() {
+                return Build.BRAND + "." + Build.PRODUCT;
+            }
 
-                @Override
-                public String getString(int resourceId, Object... args) {
-                    return getResources().getString(resourceId, args);
-                }
+            @Override
+            public String getString(int resourceId, Object... args) {
+                return getResources().getString(resourceId, args);
+            }
 
-                @Override
-                protected void onShouldSaveGame() {
-                    trySaveToFile(gameFile);
-                }
-            };
-        }
+            @Override
+            protected void onShouldSaveGame() {
+                trySaveToFile(gameFile);
+            }
+        };
         soc.setBoard(vBoard.getRenderer().getBoard());
+        Rules rules = new Rules();
+        if (rules.tryLoadFromFile(rulesFile)) {
+            soc.setRules(rules);
+        }
     }
 
 
 
     final UIPlayerUser user = new UIPlayerUser();
 
+    final MenuItem DIVIDER = new MenuItem(null, null, null);
     MenuItem QUIT;
     MenuItem BUILDABLES;
     MenuItem RULES;
     MenuItem START;
-    //MenuItem CONSOLE;
+    MenuItem CONSOLE;
 
     MenuItem SINGLE_PLAYER;
     MenuItem MULTI_PLAYER;
@@ -307,6 +323,8 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
             soc.getBoard().assignRandom();
             soc.startGameThread();
             vBoard.renderer.clearCached();
+        } else if (item == CONSOLE) {
+            //showConsole();
         } else if (item == SINGLE_PLAYER) {
             showSinglePlayerDialog();
         } else if (item == MULTI_PLAYER) {
@@ -326,7 +344,16 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
             showScenariosDialog();
         }
     }
+/*
+    Dialog consoleDialog = null;
 
+    void showConsole() {
+        if (consoleDialog == null) {
+            consoleDialog = newDialog(true).setView((SOCView)console.getComponent()).create();
+        };
+        consoleDialog.show();
+    }
+*/
     void showError(Exception e) {
         newDialog(true).setTitle("ERROR").setMessage("AN error occured: " + e.getClass().getSimpleName() + " " + e.getMessage()).show();
     }

@@ -6,10 +6,16 @@
               android:layout_height="match_parent"
               android:animateLayoutChanges="true"
               android:orientation="vertical"
-              tools:divider="@drawable/horz_line"
-    >
+              tools:divider="@drawable/horz_line">
+
+    <View
+        android:id="@+id/ivDivider"
+        android:background="#0ff"
+        android:layout_width="match_parent"
+        android:layout_height="10dp"/>
 
     <LinearLayout
+        android:id="@+id/layoutContent"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
@@ -25,7 +31,7 @@
         <TextView
             android:id="@+id/bAction"
             style="@style/soc_label"
-            android:layout_width="30dp"
+            android:layout_width="32dp"
             android:layout_height="30dp"
             android:background="@drawable/button_bk"
             android:gravity="center"

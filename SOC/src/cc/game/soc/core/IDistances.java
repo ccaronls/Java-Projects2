@@ -9,4 +9,5 @@ public interface IDistances {
 	List<Integer> getShortestPath(int fromVertex, int toVertex);
 	
 	int getDist(int from, int to);
+
 }

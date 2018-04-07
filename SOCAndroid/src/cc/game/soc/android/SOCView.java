@@ -28,7 +28,7 @@ import cc.lib.math.Vector2D;
 public class SOCView<T extends UIRenderer> extends View implements UIComponent {
 
     DroidGraphics g;
-    int tx, ty;
+    int tx = -1, ty = -1;
     T renderer = null;
 
     private class DelayedTouchDown implements Runnable {
@@ -51,6 +51,11 @@ public class SOCView<T extends UIRenderer> extends View implements UIComponent {
 
     private Runnable touchDownRunnable = null;
 
+
+    SOCView(Context context, T renderer) {
+        this(context);
+        this.renderer = renderer;
+    }
 
     public SOCView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
@@ -110,6 +115,7 @@ public class SOCView<T extends UIRenderer> extends View implements UIComponent {
         if (renderer != null) {
             if (g == null) {
                 g = new DroidGraphics(getContext(), canvas, getWidth(), getHeight());
+                g.setCaptureModeSupported(!isInEditMode());
             } else {
                 g.setCanvas(canvas, getWidth(), getHeight());
             }

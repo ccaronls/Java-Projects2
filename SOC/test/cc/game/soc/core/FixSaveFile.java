@@ -50,6 +50,7 @@ public class FixSaveFile extends TestCase {
             System.out.println("fixing: " + f);
             Scenario s = new Scenario();
             s.loadFromFile(f);
+            s.mBoard.trim();
             s.saveToFile(f);
         }
 

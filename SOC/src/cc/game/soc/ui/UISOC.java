@@ -1,11 +1,13 @@
 package cc.game.soc.ui;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import cc.game.soc.android.R;
 import cc.game.soc.core.Board;
 import cc.game.soc.core.BotNode;
 import cc.game.soc.core.Card;
@@ -65,8 +67,6 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
     private final Object waitObj = new Object();
 
     protected UISOC(UIPlayerRenderer [] playerComponents, UIBoardRenderer boardRenderer, UIDiceRenderer diceRenderer, UIConsoleRenderer console, UIEventCardRenderer eventCardRenderer, UIBarbarianRenderer barbarianRenderer) {
-        if (instance != null)
-            throw new RuntimeException();
         instance = this;
         server.addListener(this);
         this.playerComponents = playerComponents;
@@ -76,6 +76,17 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
         this.barbarianRenderer = barbarianRenderer;
         this.console = console;
         MAX_PLAYERS = playerComponents.length;
+
+        CANCEL = new MenuItem(getString(R.string.move_type_cancel), getString(R.string.move_type_cancel_help), this);
+        ACCEPT = new MenuItem(getString(R.string.move_type_accept), null, this);
+        CHOOSE_MOVE = new MenuItem("--", null, this);
+        CHOOSE_PLAYER = new MenuItem("--", null, this);
+        CHOOSE_CARD = new MenuItem("--", null, this);
+        CHOOSE_TRADE = new MenuItem("--", null, this);
+        CHOOSE_SHIP = new MenuItem(getString(R.string.move_type_choose_ships), getString(R.string.move_type_choose_ships_help), this);
+        CHOOSE_ROAD = new MenuItem(getString(R.string.move_type_choose_roads), getString(R.string.move_type_choose_roads_help), this);
+        SET_DICE = new MenuItem(getString(R.string.move_type_set_dice), getString(R.string.move_type_set_dice_help), this);
+
     }
 
     public static UISOC getInstance() {
@@ -126,7 +137,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
 
     public Integer chooseVertex(final Collection<Integer> vertexIndices, final Player.VertexChoice choice, final Integer knightToMove) {
         clearMenu();
-        addMenuItem(new MenuItem("Accept", null, boardRenderer));
+        addMenuItem(ACCEPT);
         getUIBoard().setPickHandler(new PickHandler() {
 
             @Override
@@ -280,7 +291,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
 
     public Integer chooseRoute(final Collection<Integer> edges, final Player.RouteChoice choice) {
         clearMenu();
-        addMenuItem(new MenuItem("Accept", null, boardRenderer));
+        addMenuItem(ACCEPT);
         getUIBoard().setPickHandler(new PickHandler() {
 
             @Override
@@ -361,7 +372,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
 
     public Integer chooseTile(final Collection<Integer> tiles, final Player.TileChoice choice) {
         clearMenu();
-        addMenuItem(new MenuItem("Accept", null, boardRenderer));
+        addMenuItem(ACCEPT);
         final Tile robberTile = getBoard().getRobberTile();
         final int merchantTileIndex = getBoard().getMerchantTileIndex();
         final int merchantTilePlayer = getBoard().getMerchantPlayer();
@@ -401,13 +412,26 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
             @Override
             public void onDrawPickable(UIBoardRenderer b, APGraphics g, int index) {
                 Tile t = getBoard().getTile(index);
-                //g.setColor(Color.RED);
-                //bc.drawTileOutline(g, t, 1)
-                MutableVector2D v = g.transform(t);
-                g.setColor(GColor.RED);
-                g.drawFilledCircle(v.Xi(), v.Yi(), g.getTextHeight()*2+10);
-                if (t.getDieNum() > 0)
-                    b.drawCellProductionValue(g, v.Xi(), v.Yi(), t.getDieNum());
+                switch (choice) {
+
+                    case ROBBER:
+                    case PIRATE:
+                        if (t.isWater())
+                            b.drawPirate(g, t, GColor.TRANSLUSCENT_BLACK);
+                        else
+                            b.drawRobber(g, t, GColor.LIGHT_GRAY.withAlpha(0.5f));
+                        break;
+                    case INVENTOR:
+                        g.setColor(GColor.RED);
+                        g.drawFilledCircle(t.getX(), t.getY(), g.getTextHeight()*2+10);
+                        if (t.getDieNum() > 0)
+                            b.drawCellProductionValue(g, t.getX(), t.getY(), t.getDieNum());
+                        break;
+                    case MERCHANT:
+                        g.setColor(getPlayerColor(getCurPlayerNum()).withAlpha(0.5f));
+                        b.drawMerchant(g, t, 0);
+                        break;
+                }
             }
 
             @Override
@@ -585,6 +609,8 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
             notifyWaitObj();
         }
         setReturnValue(null);
+        boardRenderer.setPickHandler(null);
+        console.clear();
     }
 
     protected void onRunError(Throwable e) {
@@ -592,34 +618,35 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
     }
 
     // in game options
-    public final MenuItem CANCEL = new MenuItem("Cancel", "Cancel current operation", new MenuItem.Action() {
-        @Override
-        public void onAction(MenuItem item, Object extra) {
-            boardRenderer.setPickHandler(null);
-            cancel();
-            notifyWaitObj();
-        }
-    });
-
-    public final MenuItem CHOOSE_MOVE = new MenuItem("--", null, this);
-    public final MenuItem CHOOSE_PLAYER = new MenuItem("--", null, this);
-    public final MenuItem CHOOSE_CARD = new MenuItem("--", null, this);
-    public final MenuItem CHOOSE_TRADE = new MenuItem("--", null, this);
-    public final MenuItem CHOOSE_SHIP = new MenuItem("Ships", "Show ship choices", this);
-    public final MenuItem CHOOSE_ROAD = new MenuItem("Roads", "Show road choices", this);
-    public final MenuItem SET_DICE = new MenuItem("Set Dice", "Click the dice to set value manually", new MenuItem.Action() {
-        @Override
-        public void onAction(MenuItem item, Object extra) {
-            returnValue = getDiceRenderer().getPickedDiceNums();
-            notifyWaitObj();
-        }
-    });
+    public final MenuItem CANCEL;
+    public final MenuItem ACCEPT;
+    public final MenuItem CHOOSE_MOVE;
+    public final MenuItem CHOOSE_PLAYER;
+    public final MenuItem CHOOSE_CARD;
+    public final MenuItem CHOOSE_TRADE;
+    public final MenuItem CHOOSE_SHIP;
+    public final MenuItem CHOOSE_ROAD;
+    public final MenuItem SET_DICE;
 
     @Override
     public void onAction(MenuItem item, Object extra) {
-        clearMenu();
-        returnValue = extra;
-        notifyWaitObj();
+        if (item == CANCEL) {
+            boardRenderer.setPickHandler(null);
+            cancel();
+            notifyWaitObj();
+        } else if (item == SET_DICE) {
+            returnValue = getDiceRenderer().getPickedDiceNums();
+            notifyWaitObj();
+        } else if (item == ACCEPT) {
+            if (boardRenderer.isPicked()) {
+                clearMenu();
+                boardRenderer.acceptPicked();
+            }
+        } else {
+            clearMenu();
+            returnValue = extra;
+            notifyWaitObj();
+        }
     }
 
     public final void notifyWaitObj() {
@@ -680,7 +707,84 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
         super.onBarbariansAttack(catanStrength, barbarianStrength, playerStatus);
     }
 
+    class CardsAnim extends AAnimation<AGraphics> {
+
+        final UIPlayerRenderer comp;
+        final GColor color;
+        float x, y, cw, ch;
+        final int dir;
+        List<String> cards = new ArrayList<>();
+        long t = 0;
+
+        CardsAnim(int playerNum) {
+            super(-1);
+            comp = playerComponents[playerNum-1];
+            color = ((UIPlayer)getPlayerByPlayerNum(playerNum)).getColor();
+
+            ch = boardRenderer.component.getHeight()/5;
+            cw = ch*2/3;
+
+            Vector2D compPt = comp.component.getViewportLocation();
+            Vector2D boardPt = boardRenderer.component.getViewportLocation();
+
+            final float spacing = cw/4;
+
+            // center the card vertically against its player component
+            y = compPt.getY() - boardPt.getY() + comp.component.getHeight()/2 - ch/2;
+            if (boardPt.X() < compPt.getX()) {
+                // player component is to the right of the board
+                x = boardRenderer.component.getWidth() - cw - spacing;
+                dir = 1; // slide right as cards fade out
+            } else {
+                // player component is to the left of the board
+                x = spacing;
+                dir = -1; // slide left as cards fade out
+            }
+
+            // make sure we dont render off top or bottom
+            if (y < 0) {
+                y = 0;
+            } else if (y + ch > boardRenderer.component.getHeight()) {
+                y = boardRenderer.component.getHeight() - ch;
+            }
+        }
+
+        @Override
+        protected void draw(AGraphics g, float position, float dt) {
+            float delta = (cw - cw/4) * dir;
+            float X = x + (cards.size()-1) * delta;
+            for (String s : cards) {
+                boardRenderer.drawCard(color, g, s, X, y, cw, ch);
+                X += delta;
+            }
+            if (getCurrentTimeMSecs()-t > 3000) {
+                // start slide over and fade out the last card
+            }
+        }
+
+        void addCard(final String text) {
+            boardRenderer.addAnimation(true, new AAnimation<AGraphics>(500) {
+                @Override
+                protected void draw(AGraphics g, float position, float dt) {
+                    boardRenderer.drawCard(color, g, text, x, y, cw, ch, position);
+                }
+
+                @Override
+                public void onDone() {
+                    if (cards.size() == 0) {
+                        t = getCurrentTimeMSecs();
+                    }
+                    cards.add(text);
+                    synchronized (this) {
+                        notify();
+                    }
+                }
+            }, true);
+        }
+    }
+
     protected final void addCardAnimation(final int playerNum, final String text) {
+
         final UIPlayerRenderer comp = playerComponents[playerNum-1];
 
         final float cardHeight = boardRenderer.component.getHeight()/5;
@@ -690,10 +794,11 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
         final Vector2D boardPt = boardRenderer.component.getViewportLocation();
 
         final Vector2D dv = compPt.sub(boardPt);
+        final float spacing = cardWidth/4;
 
         // center the card vertically against its player component
         float _y = compPt.getY() - boardPt.getY() + comp.component.getHeight()/2 - cardHeight/2;
-        final float W = comp.numCardAnimations * cardWidth + (comp.numCardAnimations+1) * cardWidth/3;
+        final float W = comp.numCardAnimations * cardWidth + (comp.numCardAnimations+1) * spacing;
         final float x = boardPt.X() < compPt.getX() ? boardRenderer.component.getWidth() - cardWidth - W : W;
 
         if (_y < 0) {
@@ -703,35 +808,41 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
         }
 
         final float y = _y;
+        final GColor color = ((UIPlayer)getPlayerByPlayerNum(playerNum)).getColor();
 
-        final int animTime = 3000;//GUI.instance.getProps().getIntProperty("anim.card.tm", 3000);
         comp.numCardAnimations++;
-        boardRenderer.addAnimation(new AAnimation<AGraphics>(animTime) {
+        boardRenderer.addAnimation(new AAnimation<AGraphics>(500) {
             public void draw(AGraphics g, float position, float dt) {
-                boardRenderer.drawCard(((UIPlayer)getPlayerByPlayerNum(playerNum)).getColor(), g, text, x, y, cardWidth, cardHeight);
+                boardRenderer.drawCard(color, g, text, x, y, cardWidth, cardHeight, position);
             }
 
             @Override
             public void onDone() {
-                comp.numCardAnimations--;
+                boardRenderer.addAnimation(new AAnimation<AGraphics>(3000) {
+                    @Override
+                    protected void draw(AGraphics g, float position, float dt) {
+                        boardRenderer.drawCard(color, g, text, x, y, cardWidth, cardHeight);
+                    }
+
+                    @Override
+                    public void onDone() {
+                        comp.numCardAnimations--;
+                        boardRenderer.addAnimation(new AAnimation<AGraphics>(500) {
+                            @Override
+                            protected void draw(AGraphics g, float position, float dt) {
+                                boardRenderer.drawCard(color, g, text, x, y, cardWidth, cardHeight, 1-position);
+                            }
+                        }, false);
+                    }
+
+                }, false);
+                synchronized (this) {
+                    notify();
+                }
             }
 
-        }, false);
+        }, true);
     }
-/*
-    private String getNiceString(String in) {
-        String txt = "";
-        Pattern splitter = Pattern.compile("[A-Z][a-z0-9]*");
-        Matcher matcher = splitter.matcher(in);
-        while (matcher.find()) {
-            if (txt.length() > 0) {
-                txt += " ";
-            }
-            txt += matcher.group();
-        }
-        return txt;
-    }*/
-
 
     @Override
     @Keep

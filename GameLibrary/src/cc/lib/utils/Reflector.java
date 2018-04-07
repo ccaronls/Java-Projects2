@@ -363,7 +363,7 @@ public class Reflector<T> {
 
         @Override
         public Object parse(String s) {
-            return Byte.parseByte(s);
+            return s.equals("null") ? null : Byte.parseByte(s);
         }
         
     };
@@ -374,7 +374,7 @@ public class Reflector<T> {
 
         @Override
         public Object parse(String s) {
-            return Integer.parseInt(s);
+            return s.equals("null") ? null : Integer.parseInt(s);
         }
         
     };
@@ -385,7 +385,7 @@ public class Reflector<T> {
 
         @Override
 		public Object parse(String s) {
-            return Long.parseLong(s);
+            return s.equals("null") ? null : Long.parseLong(s);
         }
         
     };
@@ -396,7 +396,7 @@ public class Reflector<T> {
 
         @Override
 		public Object parse(String s) {
-            return Float.parseFloat(s);
+            return s.equals("null") ? null : Float.parseFloat(s);
         }
         
     };    
@@ -407,7 +407,7 @@ public class Reflector<T> {
 
         @Override
 		public Object parse(String s) {
-            return Double.parseDouble(s);
+            return s.equals("null") ? null : Double.parseDouble(s);
         }
     
     };
@@ -418,7 +418,7 @@ public class Reflector<T> {
 
         @Override
         public Object parse(String s) {
-            return Boolean.parseBoolean(s);
+            return s.equals("null") ? null : Boolean.parseBoolean(s);
         }
         
     };
@@ -829,6 +829,31 @@ public class Reflector<T> {
         classMap.put("java.lang.String[][][]", String[][][].class);
         
         classMap.put("java.util.Arrays.ArrayList", ArrayList.class);
+
+        classMap.put("java.lang.Boolean[]", Boolean[].class);
+        classMap.put("java.lang.Boolean[][]", Boolean[][].class);
+        classMap.put("java.lang.Boolean[][][]", Boolean[][][].class);
+
+        classMap.put("java.lang.Integer[]", Integer[].class);
+        classMap.put("java.lang.Integer[][]", Integer[][].class);
+        classMap.put("java.lang.Integer[][][]", Integer[][][].class);
+
+        classMap.put("java.lang.Float[]", Float[].class);
+        classMap.put("java.lang.Float[][]", Float[][].class);
+        classMap.put("java.lang.Float[][][]", Float[][][].class);
+
+        classMap.put("java.lang.Double[]", Double[].class);
+        classMap.put("java.lang.Double[][]", Double[][].class);
+        classMap.put("java.lang.Double[][][]", Double[][][].class);
+
+        classMap.put("java.lang.Long[]", Long[].class);
+        classMap.put("java.lang.Long[][]", Long[][].class);
+        classMap.put("java.lang.Long[][][]", Long[][][].class);
+
+        classMap.put("java.lang.Byte[]", Byte[].class);
+        classMap.put("java.lang.Byte[][]", Byte[][].class);
+        classMap.put("java.lang.Byte[][][]", Byte[][][].class);
+
     }
 
     /**

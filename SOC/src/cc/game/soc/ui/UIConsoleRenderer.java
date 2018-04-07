@@ -113,6 +113,11 @@ public final class UIConsoleRenderer extends UIRenderer {
                             y += g.getTextHeight();
                         }
                     }
+
+                    @Override
+                    protected void onDone() {
+                        lines.addFirst(item);
+                    }
                 }.start();
             } else {
                 // if user not scrolling, then show this line with the rest of lines tracing downward
@@ -126,12 +131,16 @@ public final class UIConsoleRenderer extends UIRenderer {
                         drawPrivate(g);
                         g.popMatrix();
                     }
+
+                    @Override
+                    protected void onDone() {
+                        lines.addFirst(item);
+                    }
                 }.start();
             }
 
             component.redraw();
             Utils.waitNoThrow(anim, anim.getDuration());
-            lines.addFirst(item);
             if (startLine > 0)
                 startLine++;
             while (lines.size() > 100) {

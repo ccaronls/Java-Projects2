@@ -441,4 +441,23 @@ public class ReflectorTest extends TestCase {
         Reflector.serializeObject(arr, new PrintWriter(out));
         System.out.println(out.getBuffer().toString());
     }
+
+    public void testArraysOfNullableInts() throws Exception {
+
+        Integer [] a = new Integer[10];
+
+        Integer [] b = new Integer[] { 1,2,3,4,null,6,7 };
+
+        System.out.println("a=" + Reflector.serializeObject(a));
+        System.out.println("b=" + Reflector.serializeObject(b));
+
+        Integer [] x = Reflector.deserializeFromString(Reflector.serializeObject(b));
+        System.out.println("x=" + Reflector.serializeObject(x));
+
+        List l = new ArrayList();
+        l.addAll(Arrays.asList(1, 2, 3, 4));
+        System.out.println("l=" + Reflector.serializeObject(l));
+
+
+    }
 }

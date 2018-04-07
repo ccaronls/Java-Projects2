@@ -107,4 +107,5 @@ public class DistancesLandWater implements IDistances {
 		} 
 		return DISTANCE_INFINITY;
 	}
+
 }

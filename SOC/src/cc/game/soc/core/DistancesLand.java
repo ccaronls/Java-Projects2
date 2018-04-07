@@ -33,5 +33,5 @@ public class DistancesLand implements IDistances {
 	public int getDist(int from, int to) {
 		return dist[from][to];
 	}
-	
+
 }

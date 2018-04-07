@@ -5236,6 +5236,12 @@ public class SOC extends Reflector<SOC> implements StringResource {
 			}
 			onBarbariansAttack(catanStrength, barbarianStrength, playerStatus);
 			mBarbarianDistance = getRules().getBarbarianStepsToAttack();
+
+			// all knights revert to inactive
+            for (Vertex v : getBoard().getVertsOfType(0, VertexType.STRONG_KNIGHT_ACTIVE, VertexType.BASIC_KNIGHT_ACTIVE, VertexType.MIGHTY_KNIGHT_ACTIVE)) {
+                v.setType(v.getType().deActivatedType());
+            }
+
 		} else {
 			onBarbariansAdvanced(mBarbarianDistance);
 		}

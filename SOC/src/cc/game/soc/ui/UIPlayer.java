@@ -455,10 +455,10 @@ public class UIPlayer extends PlayerBot implements ClientConnection.Listener {
 	protected void onBoardChanged() {
         final UIBoardRenderer bc = UISOC.getInstance().getUIBoard();
 		bc.component.redraw();
-        Utils.waitNoThrow(bc, 100);
-        synchronized (this) {
-            notify(); // notify anyone waiting on this (see spinner)
-        }		
+        //Utils.waitNoThrow(bc, 100);
+        //synchronized (this) {
+        //    notify(); // notify anyone waiting on this (see spinner)
+        //}
 	}
 
 	@Override

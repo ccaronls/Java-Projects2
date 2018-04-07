@@ -40,13 +40,19 @@ public final class UIEventCardRenderer extends UIRenderer {
             production = eventCard.getProduction();
         }
 
-        final float ch = component.getHeight();//cw*3/2;
-		final float cw = ch*2/3;
+        float ch = component.getHeight();
+		float cw = ch*2/3;
+
+		if (cw > component.getWidth()/2) {
+		    cw = component.getWidth()/2;
+            ch = cw*3/2;
+        }
+
 		final float fh = g.getTextHeight();
 		final float tw = g.getViewportWidth() - cw - 3*padding;
 		GDimension r = g.getTextDimension(helpText, tw);
 		float cx = g.getViewportWidth() - cw;
-		float cy = 0;
+		float cy = g.getViewportHeight() - ch;
 		float arc = Math.min(cw,  ch) / 5;
 		g.setColor(GColor.BLUE);
 		g.drawFilledRoundedRect(cx, cy, cw, ch, arc);
@@ -66,8 +72,9 @@ public final class UIEventCardRenderer extends UIRenderer {
 		}
 		g.setColor(GColor.BLACK);
 		g.drawWrapString(cx+cw/2, cy+ch/3, cw, Justify.CENTER, Justify.TOP, cardText);
-
-		g.drawWrapString(padding, padding, tw, helpText);
+        g.setColor(GColor.WHITE);
+        g.setTextStyles(AGraphics.TextStyle.NORMAL);
+		g.drawWrapString(padding, cy + padding, tw, helpText);
 
 		float dieDim = cw/2-4*padding;
 		float dx = cx;//+component.getWidth()-cw;//+cw/2-dieDim-padding;

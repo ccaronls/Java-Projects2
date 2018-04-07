@@ -7,7 +7,7 @@ import cc.lib.game.*;
 import cc.lib.math.*;
 import cc.lib.utils.Reflector;
 
-public class UIBoardRenderer extends UIRenderer implements MenuItem.Action {
+public class UIBoardRenderer extends UIRenderer {
 
     public Board board = null;
     private AGraphics lastG;
@@ -41,8 +41,7 @@ public class UIBoardRenderer extends UIRenderer implements MenuItem.Action {
 	private PickHandler pickHandler = null;
 	
     public int renderFlag = 0;
-    private List<AAnimation<AGraphics>> animations = new ArrayList<>(32);
-    private List<AAnimation<AGraphics>> cardAnimations = new ArrayList<>(32);
+    private LinkedList<AAnimation<AGraphics>> animations = new LinkedList<>();
 
     private int edgeInfoIndex = -1;
     private int cellInfoIndex = -1;
@@ -86,10 +85,17 @@ public class UIBoardRenderer extends UIRenderer implements MenuItem.Action {
     public final boolean getRenderFlag(RenderFlag flag) {
         return (renderFlag & (1 << flag.ordinal())) != 0;
     }
-    
+
     public final void addAnimation(AAnimation<AGraphics> anim, boolean block) {
+        addAnimation(false, anim, block);
+    }
+
+    public final void addAnimation(boolean front, AAnimation<AGraphics> anim, boolean block) {
         synchronized (animations) {
-            animations.add(anim);
+            if (front)
+                animations.addFirst(anim);
+            else
+                animations.addLast(anim);
         }
         component.redraw();
         anim.start();
@@ -733,12 +739,20 @@ public class UIBoardRenderer extends UIRenderer implements MenuItem.Action {
 	}
 
 	public final void drawRobber(AGraphics g, Tile cell) {
-		g.setColor(GColor.LIGHT_GRAY);
-		drawFaces(g, cell, 0, getRobberRadius(), FaceType.ROBBER, false);
+	    drawRobber(g, cell, GColor.LIGHT_GRAY);
 	}
-	
-	public final void drawPirate(AGraphics g, IVector2D v) {
-		g.setColor(GColor.BLACK);
+
+    public final void drawRobber(AGraphics g, Tile cell, GColor color) {
+        g.setColor(color);
+        drawFaces(g, cell, 0, getRobberRadius(), FaceType.ROBBER, false);
+    }
+
+    public final void drawPirate(AGraphics g, IVector2D v) {
+	    drawPirate(g, v, GColor.BLACK);
+    }
+
+    public final void drawPirate(AGraphics g, IVector2D v, GColor color) {
+		g.setColor(color);
 		drawFaces(g, v, 0, getRobberRadius(), FaceType.WAR_SHIP, false);
 	}
 
@@ -1301,17 +1315,29 @@ public class UIBoardRenderer extends UIRenderer implements MenuItem.Action {
     }
 
     public void drawCard(GColor color, AGraphics g, String txt, float x, float y, float cw, float ch) {
+	    drawCard(color, g, txt, x, y, cw, ch, 1);
+    }
+
+    public void drawCard(GColor color, AGraphics g, String txt, float x, float y, float cw, float ch, float alpha) {
         g.pushMatrix();
         g.setIdentity();
-        g.drawImage(cardFrameImage, x, y, cw, ch);
+        //g.drawImage(cardFrameImage, x, y, cw, ch);
+        float border = RenderConstants.thickLineThickness;
+        g.setColor(GColor.BLUE.withAlpha(alpha));
+        g.drawFilledRoundedRect(x-border, y-border, cw+border*2, ch+border*2, cw/4+border);
+        g.setColor(GColor.CYAN.darkened(0.2f).withAlpha(alpha));
+        g.drawFilledRoundedRect(x, y, cw, ch, cw/4);
         g.setColor(color);
-        g.drawWrapString(x+cw/2, y+ch/2, cw-6, Justify.CENTER, Justify.CENTER, txt);
+        g.drawWrapString(x+cw/2, y+ch/2, cw-border*2, Justify.CENTER, Justify.CENTER, txt);
         g.popMatrix();
     }
 
-    @Override
-    public void onAction(MenuItem item, Object extra) {
-	    if (pickHandler != null && pickedValue >= 0)
+    public boolean isPicked() {
+        return pickHandler != null && pickedValue >= 0;
+    }
+
+    public void acceptPicked() {
+	    if (isPicked())
             pickHandler.onPick(this, pickedValue);
     }
 

@@ -560,9 +560,19 @@ public class DroidGraphics extends APGraphics {
         canvas.restore();
     }
 
+    private boolean captureModeSupported = true;
+
     @Override
     public boolean isCaptureAvailable() {
-        return true;
+        return captureModeSupported;
+    }
+
+    /**
+     *
+     * @param supported
+     */
+    public final void setCaptureModeSupported(boolean supported) {
+        this.captureModeSupported = supported;
     }
 
     private Bitmap screenCapture = null;

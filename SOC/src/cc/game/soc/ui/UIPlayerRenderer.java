@@ -32,7 +32,6 @@ public final class UIPlayerRenderer extends UIRenderer {
 	}
 
 	int numCardAnimations = 0;
-
 	int playerNum=0;
 
     public UIPlayerRenderer(UIComponent component) {

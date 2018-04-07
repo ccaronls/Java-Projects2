@@ -1908,7 +1908,17 @@ public class GUI implements ActionListener, MenuItem.Action {
             long t = System.currentTimeMillis();
             IDistances distances = getBoard().computeDistances(getRules(), getCurPlayerNum());
             long dt = System.currentTimeMillis() - t;
-            System.out.println("got Distances in " + dt + " MSecs:\n" + distances);
+            StringBuffer buf = new StringBuffer();
+            for (int i=0; i<getBoard().getNumAvailableVerts()-1; i++) {
+                for (int ii=i+1; ii<getBoard().getNumAvailableVerts(); ii++) {
+                    int dist = distances.getDist(i, ii);
+                    if (dist != IDistances.DISTANCE_INFINITY) {
+                        buf.append(String.format("DIST %-3d -> %-3d = %d\n", i, ii, dist));
+                    }
+                }
+            }
+            System.out.println("got Distances in " + dt + " MSecs:\n" + buf);
+
         } else if (op == LOAD_DEBUG) {
             loadBoard(debugBoard.getAbsolutePath());
         } else if (op == SAVE_DEBUG) {
