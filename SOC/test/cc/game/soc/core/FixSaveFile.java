@@ -2,8 +2,6 @@ package cc.game.soc.core;
 
 import junit.framework.TestCase;
 
-import java.io.File;
-
 import cc.lib.utils.Reflector;
 
 public class FixSaveFile extends TestCase {
@@ -43,16 +41,4 @@ public class FixSaveFile extends TestCase {
 		soc.save("socsavegame_FIXED.txt");
 		soc.load("socsavegame_FIXED.txt");
 	}
-
-	public void testFixScenarios() throws Exception {
-        File [] files = new File("assets/scenarios").listFiles();
-        for (File f : files) {
-            System.out.println("fixing: " + f);
-            Scenario s = new Scenario();
-            s.loadFromFile(f);
-            s.mBoard.trim();
-            s.saveToFile(f);
-        }
-
-    }
 }

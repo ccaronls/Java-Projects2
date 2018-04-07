@@ -2094,7 +2094,7 @@ public class Board extends Reflector<Board> {
     	}
     	max.addEq(cw/2, ch/2);
     	min.subEq(cw/2, ch/2);
-    	return new GRectangle(min.X(), min.Y(), max.X()-min.X(), max.Y()-min.Y());
+    	return new GRectangle(min, max);
     }
     
     /**
@@ -2111,7 +2111,10 @@ public class Board extends Reflector<Board> {
     	// fill a 1,1 rect
     	scale(1.0f / minMax.w, 1.0f / minMax.h);
     	// move to 0.5, 0.5
-    	translate(-0.5f, -0.5f);
+    	translate(-v.getX(), -v.getY());
+
+    	minMax = computeMinMax();
+        translate(-minMax.x, -minMax.y);
     }
     
     /**

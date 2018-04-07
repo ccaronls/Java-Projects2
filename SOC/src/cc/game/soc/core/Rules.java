@@ -60,6 +60,7 @@ public final class Rules extends Reflector<Rules> {
         Variation variation();
         int minValue() default 0;
         int maxValue() default 0;
+        int order() default 0;
     }
 
 	// SOC Variables
@@ -105,7 +106,7 @@ public final class Rules extends Reflector<Rules> {
 	
 	// Extensions
 
-    @Rule(variation = Variation.SEAFARERS, stringId = R.string.rule_enable_seafarers)
+    @Rule(variation = Variation.SEAFARERS, stringId = R.string.rule_enable_seafarers, order = 1)
 	private boolean enableSeafarersExpansion = false;
     @Rule(variation = Variation.SEAFARERS, stringId = R.string.rule_enable_island_settlements)
 	private boolean enableIslandSettlementsOnSetup = false; // some scenarios allow starting on a island while others dont
@@ -127,7 +128,7 @@ public final class Rules extends Reflector<Rules> {
 	private boolean attackPirateFortressEndsTurn = true;
 	
 	// knight
-    @Rule(variation = Variation.CAK, stringId = R.string.rule_enable_cak)
+    @Rule(variation = Variation.CAK, stringId = R.string.rule_enable_cak, order = 1)
 	private boolean enableCitiesAndKnightsExpansion = false;
     @Rule(variation = Variation.CAK, stringId = R.string.rule_barbarian_steps_to_attack, minValue=5, maxValue=10)
 	private int barbarianStepsToAttack=7;

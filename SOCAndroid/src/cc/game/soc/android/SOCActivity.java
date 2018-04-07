@@ -8,7 +8,6 @@ import android.content.pm.PackageManager;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
@@ -115,6 +114,7 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
         vConsole = (SOCView) findViewById(R.id.soc_console);
         vConsole.renderer.setMaxVisibleLines(100);
         svPlayers = (ScrollView)findViewById(R.id.svPlayers);
+        vDice.renderer.initImages(R.drawable.dicesideship2, R.drawable.dicesidecity_red2, R.drawable.dicesidecity_green2, R.drawable.dicesidecity_blue2);
 
         QUIT         = new MenuItem(getString(R.string.menu_item_quit),      getString(R.string.menu_item_quit_help), this);
         BUILDABLES   = new MenuItem(getString(R.string.menu_item_buildables), getString(R.string.menu_item_buildables_help), this);
@@ -228,18 +228,20 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
 
             @Override
             public void redraw() {
-                runOnUiThread(new Runnable() {
-                    public void run() {
-                        svPlayers.smoothScrollTo(0, vPlayers[soc.getCurPlayerNum() - 1].getTop());
-                        content.invalidate();
-                        vConsole.requestLayout();
-                        vConsole.invalidate();
-                        for (final SOCView v : vPlayers) {
-                            v.requestLayout();
-                            v.invalidate();
+                if (soc.getCurPlayerNum() > 0) {
+                    runOnUiThread(new Runnable() {
+                        public void run() {
+                            svPlayers.smoothScrollTo(0, vPlayers[soc.getCurPlayerNum() - 1].getTop());
+                            content.invalidate();
+                            vConsole.requestLayout();
+                            vConsole.invalidate();
+                            for (final SOCView v : vPlayers) {
+                                v.requestLayout();
+                                v.invalidate();
+                            }
                         }
-                    }
-                });
+                    });
+                }
             }
 
             @Override
@@ -320,6 +322,7 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
         } else if (item == RULES) {
             showRulesDialog();
         } else if (item == START) {
+            soc.clearMenu();
             soc.getBoard().assignRandom();
             soc.startGameThread();
             vBoard.renderer.clearCached();
@@ -580,6 +583,7 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
         final Rules.Variation var;
         final int min, max;
         final int stringId;
+        final int order;
         final Field field;
 
         public RuleItem(Rules.Variation var) {
@@ -587,6 +591,7 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
             this.min = max = 0;
             field = null;
             this.stringId = var.stringId;
+            this.order = 100;
         }
 
         public RuleItem(Rules.Rule rule, Field field) {
@@ -595,12 +600,15 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
             this.max = rule.maxValue();
             this.field = field;
             this.stringId = rule.stringId();
+            this.order = rule.order();
         }
 
         @Override
-        public int compareTo(@NonNull RuleItem o) {
+        public int compareTo(RuleItem o) {
             if (var != o.var)
                 return var.compareTo(o.var);
+            if (order != o.order)
+                return o.order - order;
             if (field == null)
                 return -1;
             if (o.field == null)

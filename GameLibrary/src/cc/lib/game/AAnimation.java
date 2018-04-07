@@ -259,6 +259,10 @@ public abstract class AAnimation<T> {
 
     public final int getRepeat() { return (int)((System.currentTimeMillis() - startTime) / duration); }
 
+    public final boolean isStarted() {
+        return state == State.STARTED;
+    }
+
     /**
      * Reset the animation to the prestart state. Must call start(...) afterward before the next update.
      * Called automatically after onDone(). Calling this before onDone will cause onDone to not get called

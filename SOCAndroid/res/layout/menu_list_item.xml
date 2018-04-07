@@ -4,7 +4,6 @@
               xmlns:tools="http://schemas.android.com/tools"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
-              android:animateLayoutChanges="true"
               android:orientation="vertical"
               tools:divider="@drawable/horz_line">
 
@@ -45,6 +44,7 @@
         android:layout_height="wrap_content"
         android:text="The lest we know about the world, the lest we know about ourselves"
         android:textSize="16sp"
+        android:animateLayoutChanges="true"
         />
 
 </LinearLayout>

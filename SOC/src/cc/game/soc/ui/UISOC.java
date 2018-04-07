@@ -1,11 +1,8 @@
 package cc.game.soc.ui;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import cc.game.soc.android.R;
 import cc.game.soc.core.Board;
@@ -40,7 +37,6 @@ import cc.lib.game.Justify;
 import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
-import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
 import cc.lib.net.ClientConnection;
 import cc.lib.net.GameServer;
@@ -241,13 +237,13 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
                         break;
                     }
                     case KNIGHT_TO_ACTIVATE:
-                        b.drawKnight(g, v, 0, v.getType().getKnightLevel(), true, false);
+                        b.drawKnight(g, v, getCurPlayerNum(), v.getType().getKnightLevel(), true, false);
                         break;
                     case KNIGHT_TO_PROMOTE:
-                        b.drawKnight(g, v, 0, v.getType().getKnightLevel() + 1, v.getType().isKnightActive(), false);
+                        b.drawKnight(g, v, getCurPlayerNum(), v.getType().getKnightLevel() + 1, v.getType().isKnightActive(), false);
                         break;
                     case NEW_KNIGHT:
-                        b.drawKnight(g, v, 0, 1, false, false);
+                        b.drawKnight(g, v, getCurPlayerNum(), 1, false, false);
                         g.setColor(GColor.YELLOW);
                         b.drawCircle(g, v);
                         g.setColor(color);
@@ -705,82 +701,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
         }
         showOkPopup("Barbarian Attack", str.toString());
         super.onBarbariansAttack(catanStrength, barbarianStrength, playerStatus);
-    }
-
-    class CardsAnim extends AAnimation<AGraphics> {
-
-        final UIPlayerRenderer comp;
-        final GColor color;
-        float x, y, cw, ch;
-        final int dir;
-        List<String> cards = new ArrayList<>();
-        long t = 0;
-
-        CardsAnim(int playerNum) {
-            super(-1);
-            comp = playerComponents[playerNum-1];
-            color = ((UIPlayer)getPlayerByPlayerNum(playerNum)).getColor();
-
-            ch = boardRenderer.component.getHeight()/5;
-            cw = ch*2/3;
-
-            Vector2D compPt = comp.component.getViewportLocation();
-            Vector2D boardPt = boardRenderer.component.getViewportLocation();
-
-            final float spacing = cw/4;
-
-            // center the card vertically against its player component
-            y = compPt.getY() - boardPt.getY() + comp.component.getHeight()/2 - ch/2;
-            if (boardPt.X() < compPt.getX()) {
-                // player component is to the right of the board
-                x = boardRenderer.component.getWidth() - cw - spacing;
-                dir = 1; // slide right as cards fade out
-            } else {
-                // player component is to the left of the board
-                x = spacing;
-                dir = -1; // slide left as cards fade out
-            }
-
-            // make sure we dont render off top or bottom
-            if (y < 0) {
-                y = 0;
-            } else if (y + ch > boardRenderer.component.getHeight()) {
-                y = boardRenderer.component.getHeight() - ch;
-            }
-        }
-
-        @Override
-        protected void draw(AGraphics g, float position, float dt) {
-            float delta = (cw - cw/4) * dir;
-            float X = x + (cards.size()-1) * delta;
-            for (String s : cards) {
-                boardRenderer.drawCard(color, g, s, X, y, cw, ch);
-                X += delta;
-            }
-            if (getCurrentTimeMSecs()-t > 3000) {
-                // start slide over and fade out the last card
-            }
-        }
-
-        void addCard(final String text) {
-            boardRenderer.addAnimation(true, new AAnimation<AGraphics>(500) {
-                @Override
-                protected void draw(AGraphics g, float position, float dt) {
-                    boardRenderer.drawCard(color, g, text, x, y, cw, ch, position);
-                }
-
-                @Override
-                public void onDone() {
-                    if (cards.size() == 0) {
-                        t = getCurrentTimeMSecs();
-                    }
-                    cards.add(text);
-                    synchronized (this) {
-                        notify();
-                    }
-                }
-            }, true);
-        }
+        boardRenderer.component.redraw();
     }
 
     protected final void addCardAnimation(final int playerNum, final String text) {
@@ -811,37 +732,24 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
         final GColor color = ((UIPlayer)getPlayerByPlayerNum(playerNum)).getColor();
 
         comp.numCardAnimations++;
-        boardRenderer.addAnimation(new AAnimation<AGraphics>(500) {
+        boardRenderer.addAnimation(new AAnimation<AGraphics>(4000) {
             public void draw(AGraphics g, float position, float dt) {
-                boardRenderer.drawCard(color, g, text, x, y, cardWidth, cardHeight, position);
+                float alpha = 1;
+                if (getElapsedTime() < 500) {
+                    alpha = (float)getElapsedTime()/500;
+                } else if (getDuration() > 3500) {
+                    alpha = (float)(4000-getElapsedTime())/500;
+                }
+                boardRenderer.drawCard(color, g, text, x, y, cardWidth, cardHeight, alpha);
             }
 
             @Override
             public void onDone() {
-                boardRenderer.addAnimation(new AAnimation<AGraphics>(3000) {
-                    @Override
-                    protected void draw(AGraphics g, float position, float dt) {
-                        boardRenderer.drawCard(color, g, text, x, y, cardWidth, cardHeight);
-                    }
-
-                    @Override
-                    public void onDone() {
-                        comp.numCardAnimations--;
-                        boardRenderer.addAnimation(new AAnimation<AGraphics>(500) {
-                            @Override
-                            protected void draw(AGraphics g, float position, float dt) {
-                                boardRenderer.drawCard(color, g, text, x, y, cardWidth, cardHeight, 1-position);
-                            }
-                        }, false);
-                    }
-
-                }, false);
-                synchronized (this) {
-                    notify();
-                }
+                comp.numCardAnimations--;
             }
 
-        }, true);
+        }, false);
+        Utils.waitNoThrow(this, 500);
     }
 
     @Override
@@ -1267,7 +1175,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
                 UIPlayer player = (UIPlayer)getPlayerByPlayerNum(winnerNum);
                 String txt = player.getName() + " WINS!!!";
                 float width = g.getTextWidth(txt);
-                float ratio = 2*width/g.getViewportWidth();
+                float ratio = g.getViewportWidth()/(width*2);
                 float oldHgt = g.getTextHeight();
                 float targetHeight = ratio * oldHgt;
                 float minHeight = targetHeight * 0.8f;
@@ -1275,12 +1183,14 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
                 g.setTextHeight(minHeight + (maxHeight-minHeight)*position);
                 g.setColor(player.getColor());
                 g.pushMatrix();
+                g.setIdentity();
                 g.translate(g.getViewportWidth()/2, g.getViewportHeight()/2);
                 g.drawJustifiedString(0, 0, Justify.CENTER, Justify.CENTER,txt);
                 g.popMatrix();
                 g.setTextHeight(oldHgt);
             }
         }, false);
+        running = false;
         super.onGameOver(winnerNum);
     }
 

@@ -12,7 +12,7 @@ public class FixBoards extends TestCase {
 
     public void testTrimSavedBoardsAndResave() throws Exception {
 
-        File[] files = new File("SOC/assets/boards").listFiles();
+        File[] files = new File("assets/boards").listFiles();
         for (File file : files) {
             Board b = new Board();
             b.loadFromFile(file);
@@ -22,5 +22,17 @@ public class FixBoards extends TestCase {
 
     }
 
+
+
+    public void testFixScenarios() throws Exception {
+        File [] files = new File("assets/scenarios").listFiles();
+        for (File f : files) {
+            Scenario s = new Scenario();
+            s.loadFromFile(f);
+            s.mBoard.trim();
+            s.saveToFile(f);
+        }
+
+    }
 
 }

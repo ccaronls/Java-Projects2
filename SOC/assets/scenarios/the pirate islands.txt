@@ -1806,7 +1806,7 @@ mBoard=cc.game.soc.core.Board {
          pirateRouteNext=36
          type=WATER
          x=0.5
-         y=0.49999994
+         y=0.49999997
       }
       cc.game.soc.core.Tile {
          adjVerts=int 6 {
@@ -1818,7 +1818,7 @@ mBoard=cc.game.soc.core.Board {
          pirateRouteNext=-1
          type=DESERT
          x=0.6071429
-         y=0.45454538
+         y=0.4545454
       }
       cc.game.soc.core.Tile {
          adjVerts=int 6 {
@@ -1830,7 +1830,7 @@ mBoard=cc.game.soc.core.Board {
          pirateRouteNext=9
          type=WATER
          x=0.71428573
-         y=0.40909082
+         y=0.40909085
       }
       cc.game.soc.core.Tile {
          adjVerts=int 6 {
@@ -1842,11 +1842,11 @@ mBoard=cc.game.soc.core.Board {
          pirateRouteNext=-1
          type=RANDOM_RESOURCE
          x=0.82142854
-         y=0.36363626
+         y=0.36363629
       }
       cc.game.soc.core.Tile {
          adjVerts=int 6 {
-            15 18 215 214 213 16 
+            15 18 128 129 130 16 
          }
          dieNum=0
          islandNum=0
@@ -1854,18 +1854,18 @@ mBoard=cc.game.soc.core.Board {
          pirateRouteNext=-1
          type=WATER
          x=0.92857134
-         y=0.3181817
+         y=0.31818172
       }
       cc.game.soc.core.Tile {
          adjVerts=int 6 {
-            165 167 63 127 131 128 
+            178 176 63 127 212 215 
          }
          dieNum=0
          islandNum=0
          numAdj=6
          pirateRouteNext=-1
          type=WATER
-         x=0.07142854
+         x=0.07142857
          y=0.77272725
       }
       cc.game.soc.core.Tile {
@@ -1877,12 +1877,12 @@ mBoard=cc.game.soc.core.Board {
          numAdj=6
          pirateRouteNext=-1
          type=RANDOM_RESOURCE
-         x=0.17857134
+         x=0.17857137
          y=0.72727275
       }
       cc.game.soc.core.Tile {
          adjVerts=int 6 {
-            17 16 213 206 205 19 
+            17 16 130 137 138 19 
          }
          dieNum=0
          islandNum=0
@@ -1890,7 +1890,7 @@ mBoard=cc.game.soc.core.Board {
          pirateRouteNext=-1
          type=WATER
          x=0.92857134
-         y=0.40909082
+         y=0.40909085
       }
       cc.game.soc.core.Tile {
          adjVerts=int 6 {
@@ -1901,7 +1901,7 @@ mBoard=cc.game.soc.core.Board {
          numAdj=6
          pirateRouteNext=-1
          type=RANDOM_RESOURCE
-         x=0.2857142
+         x=0.28571424
          y=0.68181825
       }
       cc.game.soc.core.Tile {
@@ -1914,11 +1914,11 @@ mBoard=cc.game.soc.core.Board {
          pirateRouteNext=13
          type=WATER
          x=0.82142854
-         y=0.45454538
+         y=0.4545454
       }
       cc.game.soc.core.Tile {
          adjVerts=int 6 {
-            20 19 205 202 201 22 
+            20 19 138 141 142 22 
          }
          dieNum=0
          islandNum=0
@@ -1926,7 +1926,7 @@ mBoard=cc.game.soc.core.Board {
          pirateRouteNext=-1
          type=WATER
          x=0.92857134
-         y=0.49999994
+         y=0.49999997
       }
       cc.game.soc.core.Tile {
          adjVerts=int 6 {
@@ -1937,7 +1937,7 @@ mBoard=cc.game.soc.core.Board {
          numAdj=6
          pirateRouteNext=-1
          type=RANDOM_RESOURCE
-         x=0.39285707
+         x=0.3928571
          y=0.6363636
       }
       cc.game.soc.core.Tile {
@@ -1950,7 +1950,7 @@ mBoard=cc.game.soc.core.Board {
          pirateRouteNext=-1
          type=DESERT
          x=0.71428573
-         y=0.49999994
+         y=0.49999997
       }
       cc.game.soc.core.Tile {
          adjVerts=int 6 {
@@ -1966,7 +1966,7 @@ mBoard=cc.game.soc.core.Board {
       }
       cc.game.soc.core.Tile {
          adjVerts=int 6 {
-            25 22 201 198 197 27 
+            25 22 142 145 146 27 
          }
          dieNum=0
          islandNum=0
@@ -1978,7 +1978,7 @@ mBoard=cc.game.soc.core.Board {
       }
       cc.game.soc.core.Tile {
          adjVerts=int 6 {
-            122 34 193 190 129 133 
+            122 34 150 153 214 210 
          }
          dieNum=0
          islandNum=0
@@ -2026,7 +2026,7 @@ mBoard=cc.game.soc.core.Board {
       }
       cc.game.soc.core.Tile {
          adjVerts=int 6 {
-            32 27 197 194 193 34 
+            32 27 146 149 150 34 
          }
          dieNum=0
          islandNum=0
@@ -2057,8 +2057,8 @@ mBoard=cc.game.soc.core.Board {
          numAdj=6
          pirateRouteNext=-1
          type=DESERT
-         x=0.39285707
-         y=0.45454538
+         x=0.3928571
+         y=0.4545454
       }
       cc.game.soc.core.Tile {
          adjVerts=int 6 {
@@ -2069,8 +2069,8 @@ mBoard=cc.game.soc.core.Board {
          numAdj=6
          pirateRouteNext=62
          type=WATER
-         x=0.2857142
-         y=0.40909082
+         x=0.28571424
+         y=0.40909085
       }
       cc.game.soc.core.Tile {
          adjVerts=int 6 {
@@ -2081,20 +2081,20 @@ mBoard=cc.game.soc.core.Board {
          numAdj=6
          pirateRouteNext=-1
          type=RANDOM_RESOURCE
-         x=0.17857134
-         y=0.36363626
+         x=0.17857137
+         y=0.36363629
       }
       cc.game.soc.core.Tile {
          adjVerts=int 6 {
-            189 188 47 44 43 187 
+            154 155 47 44 43 156 
          }
          dieNum=0
          islandNum=0
          numAdj=6
          pirateRouteNext=-1
          type=WATER
-         x=0.07142854
-         y=0.3181817
+         x=0.07142857
+         y=0.31818172
       }
       cc.game.soc.core.Tile {
          adjVerts=int 6 {
@@ -2122,26 +2122,26 @@ mBoard=cc.game.soc.core.Board {
       }
       cc.game.soc.core.Tile {
          adjVerts=int 6 {
-            181 187 43 46 48 179 
+            162 156 43 46 48 164 
          }
          dieNum=0
          islandNum=0
          numAdj=6
          pirateRouteNext=-1
          type=WATER
-         x=0.07142854
-         y=0.40909082
+         x=0.07142857
+         y=0.40909085
       }
       cc.game.soc.core.Tile {
          adjVerts=int 6 {
-            131 127 125 117 135 130 
+            212 127 125 117 208 213 
          }
          dieNum=0
          islandNum=0
          numAdj=6
          pirateRouteNext=-1
          type=RANDOM_PORT
-         x=0.17857134
+         x=0.17857137
          y=0.8181819
       }
       cc.game.soc.core.Tile {
@@ -2153,20 +2153,20 @@ mBoard=cc.game.soc.core.Board {
          numAdj=6
          pirateRouteNext=22
          type=WATER
-         x=0.17857134
-         y=0.45454538
+         x=0.17857137
+         y=0.4545454
       }
       cc.game.soc.core.Tile {
          adjVerts=int 6 {
-            177 179 48 50 51 175 
+            166 164 48 50 51 168 
          }
          dieNum=0
          islandNum=0
          numAdj=6
          pirateRouteNext=-1
          type=WATER
-         x=0.07142854
-         y=0.49999994
+         x=0.07142857
+         y=0.49999997
       }
       cc.game.soc.core.Tile {
          adjVerts=int 6 {
@@ -2177,7 +2177,7 @@ mBoard=cc.game.soc.core.Board {
          numAdj=6
          pirateRouteNext=-1
          type=RANDOM_RESOURCE
-         x=0.2857142
+         x=0.28571424
          y=0.77272725
       }
       cc.game.soc.core.Tile {
@@ -2189,8 +2189,8 @@ mBoard=cc.game.soc.core.Board {
          numAdj=6
          pirateRouteNext=-1
          type=DESERT
-         x=0.2857142
-         y=0.49999994
+         x=0.28571424
+         y=0.49999997
       }
       cc.game.soc.core.Tile {
          adjVerts=int 6 {
@@ -2201,19 +2201,19 @@ mBoard=cc.game.soc.core.Board {
          numAdj=6
          pirateRouteNext=29
          type=WATER
-         x=0.17857134
+         x=0.17857137
          y=0.5454545
       }
       cc.game.soc.core.Tile {
          adjVerts=int 6 {
-            173 175 51 55 56 171 
+            170 168 51 55 56 172 
          }
          dieNum=0
          islandNum=0
          numAdj=6
          pirateRouteNext=-1
          type=WATER
-         x=0.07142854
+         x=0.07142857
          y=0.590909
       }
       cc.game.soc.core.Tile {
@@ -2225,7 +2225,7 @@ mBoard=cc.game.soc.core.Board {
          numAdj=6
          pirateRouteNext=-1
          type=RANDOM_RESOURCE
-         x=0.39285707
+         x=0.3928571
          y=0.72727275
       }
       cc.game.soc.core.Tile {
@@ -2237,7 +2237,7 @@ mBoard=cc.game.soc.core.Board {
          numAdj=6
          pirateRouteNext=37
          type=WATER
-         x=0.39285707
+         x=0.3928571
          y=0.5454545
       }
       cc.game.soc.core.Tile {
@@ -2249,7 +2249,7 @@ mBoard=cc.game.soc.core.Board {
          numAdj=6
          pirateRouteNext=33
          type=WATER
-         x=0.2857142
+         x=0.28571424
          y=0.590909
       }
       cc.game.soc.core.Tile {
@@ -2261,24 +2261,24 @@ mBoard=cc.game.soc.core.Board {
          numAdj=6
          pirateRouteNext=-1
          type=RANDOM_RESOURCE
-         x=0.17857134
+         x=0.17857137
          y=0.6363636
       }
       cc.game.soc.core.Tile {
          adjVerts=int 6 {
-            169 171 56 62 63 167 
+            174 172 56 62 63 176 
          }
          dieNum=0
          islandNum=0
          numAdj=6
          pirateRouteNext=-1
          type=RANDOM_PORT
-         x=0.07142854
+         x=0.07142857
          y=0.68181825
       }
       cc.game.soc.core.Tile {
          adjVerts=int 6 {
-            114 121 122 133 132 137 
+            114 121 122 210 211 206 
          }
          dieNum=0
          islandNum=0
@@ -2298,7 +2298,7 @@ mBoard=cc.game.soc.core.Board {
          pirateRouteNext=58
          type=WATER
          x=0.5
-         y=0.40909088
+         y=0.4090909
       }
       cc.game.soc.core.Tile {
          adjVerts=int 6 {
@@ -2310,7 +2310,7 @@ mBoard=cc.game.soc.core.Board {
          pirateRouteNext=-1
          type=RANDOM_RESOURCE
          x=0.5
-         y=0.31818175
+         y=0.31818178
       }
       cc.game.soc.core.Tile {
          adjVerts=int 6 {
@@ -2322,7 +2322,7 @@ mBoard=cc.game.soc.core.Board {
          pirateRouteNext=-1
          type=WATER
          x=0.5
-         y=0.22727269
+         y=0.22727272
       }
       cc.game.soc.core.Tile {
          adjVerts=int 6 {
@@ -2334,11 +2334,11 @@ mBoard=cc.game.soc.core.Board {
          pirateRouteNext=-1
          type=WATER
          x=0.5
-         y=0.13636363
+         y=0.13636366
       }
       cc.game.soc.core.Tile {
          adjVerts=int 6 {
-            163 162 161 160 76 75 
+            180 181 182 183 76 75 
          }
          dieNum=0
          islandNum=0
@@ -2346,11 +2346,11 @@ mBoard=cc.game.soc.core.Board {
          pirateRouteNext=-1
          type=WATER
          x=0.5
-         y=0.045454502
+         y=0.045454532
       }
       cc.game.soc.core.Tile {
          adjVerts=int 6 {
-            76 160 159 158 78 77 
+            76 183 184 185 78 77 
          }
          dieNum=0
          islandNum=0
@@ -2358,19 +2358,19 @@ mBoard=cc.game.soc.core.Board {
          pirateRouteNext=-1
          type=WATER
          x=0.6071429
-         y=0.090909064
+         y=0.09090909
       }
       cc.game.soc.core.Tile {
          adjVerts=int 6 {
-            157 156 163 75 74 79 
+            186 187 180 75 74 79 
          }
          dieNum=0
          islandNum=0
          numAdj=6
          pirateRouteNext=-1
          type=WATER
-         x=0.39285707
-         y=0.090909064
+         x=0.3928571
+         y=0.09090909
       }
       cc.game.soc.core.Tile {
          adjVerts=int 6 {
@@ -2382,11 +2382,11 @@ mBoard=cc.game.soc.core.Board {
          pirateRouteNext=-1
          type=RANDOM_RESOURCE
          x=0.6071429
-         y=0.18181813
+         y=0.18181816
       }
       cc.game.soc.core.Tile {
          adjVerts=int 6 {
-            78 158 155 154 82 80 
+            78 185 188 189 82 80 
          }
          dieNum=0
          islandNum=0
@@ -2394,7 +2394,7 @@ mBoard=cc.game.soc.core.Board {
          pirateRouteNext=-1
          type=WATER
          x=0.71428573
-         y=0.13636363
+         y=0.13636366
       }
       cc.game.soc.core.Tile {
          adjVerts=int 6 {
@@ -2405,20 +2405,20 @@ mBoard=cc.game.soc.core.Board {
          numAdj=6
          pirateRouteNext=-1
          type=RANDOM_RESOURCE
-         x=0.39285707
-         y=0.18181813
+         x=0.3928571
+         y=0.18181816
       }
       cc.game.soc.core.Tile {
          adjVerts=int 6 {
-            153 152 157 79 83 85 
+            190 191 186 79 83 85 
          }
          dieNum=0
          islandNum=0
          numAdj=6
          pirateRouteNext=-1
          type=WATER
-         x=0.2857142
-         y=0.13636363
+         x=0.28571424
+         y=0.13636366
       }
       cc.game.soc.core.Tile {
          adjVerts=int 6 {
@@ -2430,7 +2430,7 @@ mBoard=cc.game.soc.core.Board {
          pirateRouteNext=-1
          type=WATER
          x=0.6071429
-         y=0.27272725
+         y=0.27272728
       }
       cc.game.soc.core.Tile {
          adjVerts=int 6 {
@@ -2442,11 +2442,11 @@ mBoard=cc.game.soc.core.Board {
          pirateRouteNext=-1
          type=RANDOM_RESOURCE
          x=0.71428573
-         y=0.22727263
+         y=0.22727266
       }
       cc.game.soc.core.Tile {
          adjVerts=int 6 {
-            82 154 151 150 90 88 
+            82 189 192 193 90 88 
          }
          dieNum=0
          islandNum=0
@@ -2454,7 +2454,7 @@ mBoard=cc.game.soc.core.Board {
          pirateRouteNext=-1
          type=WATER
          x=0.82142854
-         y=0.18181813
+         y=0.18181816
       }
       cc.game.soc.core.Tile {
          adjVerts=int 6 {
@@ -2465,8 +2465,8 @@ mBoard=cc.game.soc.core.Board {
          numAdj=6
          pirateRouteNext=-1
          type=WATER
-         x=0.39285707
-         y=0.27272725
+         x=0.3928571
+         y=0.27272728
       }
       cc.game.soc.core.Tile {
          adjVerts=int 6 {
@@ -2477,20 +2477,20 @@ mBoard=cc.game.soc.core.Board {
          numAdj=6
          pirateRouteNext=-1
          type=RANDOM_RESOURCE
-         x=0.2857142
-         y=0.22727263
+         x=0.28571424
+         y=0.22727266
       }
       cc.game.soc.core.Tile {
          adjVerts=int 6 {
-            149 148 153 85 93 95 
+            194 195 190 85 93 95 
          }
          dieNum=0
          islandNum=0
          numAdj=6
          pirateRouteNext=-1
          type=WATER
-         x=0.17857134
-         y=0.18181813
+         x=0.17857137
+         y=0.18181816
       }
       cc.game.soc.core.Tile {
          adjVerts=int 6 {
@@ -2502,7 +2502,7 @@ mBoard=cc.game.soc.core.Board {
          pirateRouteNext=2
          type=WATER
          x=0.6071429
-         y=0.3636363
+         y=0.36363634
       }
       cc.game.soc.core.Tile {
          adjVerts=int 6 {
@@ -2514,7 +2514,7 @@ mBoard=cc.game.soc.core.Board {
          pirateRouteNext=-1
          type=WATER
          x=0.71428573
-         y=0.31818175
+         y=0.31818178
       }
       cc.game.soc.core.Tile {
          adjVerts=int 6 {
@@ -2526,11 +2526,11 @@ mBoard=cc.game.soc.core.Board {
          pirateRouteNext=-1
          type=RANDOM_RESOURCE
          x=0.82142854
-         y=0.27272725
+         y=0.27272728
       }
       cc.game.soc.core.Tile {
          adjVerts=int 6 {
-            90 150 147 212 215 18 
+            90 193 196 131 128 18 
          }
          dieNum=0
          islandNum=0
@@ -2538,7 +2538,7 @@ mBoard=cc.game.soc.core.Board {
          pirateRouteNext=-1
          type=WATER
          x=0.92857134
-         y=0.22727263
+         y=0.22727266
       }
       cc.game.soc.core.Tile {
          adjVerts=int 6 {
@@ -2549,8 +2549,8 @@ mBoard=cc.game.soc.core.Board {
          numAdj=6
          pirateRouteNext=41
          type=WATER
-         x=0.39285707
-         y=0.3636363
+         x=0.3928571
+         y=0.36363634
       }
       cc.game.soc.core.Tile {
          adjVerts=int 6 {
@@ -2561,8 +2561,8 @@ mBoard=cc.game.soc.core.Board {
          numAdj=6
          pirateRouteNext=-1
          type=WATER
-         x=0.2857142
-         y=0.31818175
+         x=0.28571424
+         y=0.31818178
       }
       cc.game.soc.core.Tile {
          adjVerts=int 6 {
@@ -2573,20 +2573,20 @@ mBoard=cc.game.soc.core.Board {
          numAdj=6
          pirateRouteNext=-1
          type=RANDOM_RESOURCE
-         x=0.17857134
-         y=0.27272725
+         x=0.17857137
+         y=0.27272728
       }
       cc.game.soc.core.Tile {
          adjVerts=int 6 {
-            184 146 149 95 47 188 
+            159 197 194 95 47 155 
          }
          dieNum=0
          islandNum=0
          numAdj=6
          pirateRouteNext=-1
          type=WATER
-         x=0.07142854
-         y=0.22727263
+         x=0.07142857
+         y=0.22727266
       }
       cc.game.soc.core.Tile {
          adjVerts=int 6 {
@@ -2638,7 +2638,7 @@ mBoard=cc.game.soc.core.Board {
       }
       cc.game.soc.core.Tile {
          adjVerts=int 6 {
-            145 109 108 144 143 142 
+            198 109 108 199 200 201 
          }
          dieNum=0
          islandNum=0
@@ -2650,7 +2650,7 @@ mBoard=cc.game.soc.core.Board {
       }
       cc.game.soc.core.Tile {
          adjVerts=int 6 {
-            108 107 110 141 140 144 
+            108 107 110 202 203 199 
          }
          dieNum=0
          islandNum=0
@@ -2662,14 +2662,14 @@ mBoard=cc.game.soc.core.Board {
       }
       cc.game.soc.core.Tile {
          adjVerts=int 6 {
-            139 111 106 109 145 138 
+            204 111 106 109 198 205 
          }
          dieNum=0
          islandNum=0
          numAdj=6
          pirateRouteNext=-1
          type=WATER
-         x=0.39285707
+         x=0.3928571
          y=0.909091
       }
       cc.game.soc.core.Tile {
@@ -2686,7 +2686,7 @@ mBoard=cc.game.soc.core.Board {
       }
       cc.game.soc.core.Tile {
          adjVerts=int 6 {
-            110 113 114 137 136 141 
+            110 113 114 206 207 202 
          }
          dieNum=0
          islandNum=0
@@ -2705,19 +2705,19 @@ mBoard=cc.game.soc.core.Board {
          numAdj=6
          pirateRouteNext=-1
          type=RANDOM_RESOURCE
-         x=0.39285707
+         x=0.3928571
          y=0.8181819
       }
       cc.game.soc.core.Tile {
          adjVerts=int 6 {
-            135 117 115 111 139 134 
+            208 117 115 111 204 209 
          }
          dieNum=0
          islandNum=0
          numAdj=6
          pirateRouteNext=-1
          type=RANDOM_PORT
-         x=0.2857142
+         x=0.28571424
          y=0.8636364
       }
       cc.game.soc.core.Tile {
@@ -2759,8 +2759,8 @@ mBoard=cc.game.soc.core.Board {
          pirateHealth=0
          player=0
          type=OPEN
-         x=0.42857134
-         y=0.49999994
+         x=0.42857137
+         y=0.49999997
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
@@ -2775,8 +2775,8 @@ mBoard=cc.game.soc.core.Board {
          pirateHealth=0
          player=0
          type=OPEN
-         x=0.46428567
-         y=0.45454538
+         x=0.4642857
+         y=0.4545454
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
@@ -2792,7 +2792,7 @@ mBoard=cc.game.soc.core.Board {
          player=0
          type=OPEN
          x=0.53571427
-         y=0.45454538
+         y=0.4545454
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
@@ -2808,7 +2808,7 @@ mBoard=cc.game.soc.core.Board {
          player=0
          type=OPEN
          x=0.57142854
-         y=0.49999994
+         y=0.49999997
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
@@ -2839,7 +2839,7 @@ mBoard=cc.game.soc.core.Board {
          pirateHealth=0
          player=0
          type=OPEN
-         x=0.46428567
+         x=0.4642857
          y=0.5454545
       }
       cc.game.soc.core.Vertex {
@@ -2856,7 +2856,7 @@ mBoard=cc.game.soc.core.Board {
          player=0
          type=OPEN
          x=0.57142854
-         y=0.40909082
+         y=0.40909085
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
@@ -2872,7 +2872,7 @@ mBoard=cc.game.soc.core.Board {
          player=0
          type=OPEN
          x=0.6428572
-         y=0.40909082
+         y=0.40909085
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
@@ -2888,7 +2888,7 @@ mBoard=cc.game.soc.core.Board {
          player=0
          type=OPEN
          x=0.67857146
-         y=0.45454538
+         y=0.4545454
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
@@ -2904,7 +2904,7 @@ mBoard=cc.game.soc.core.Board {
          player=0
          type=OPEN
          x=0.6428572
-         y=0.49999994
+         y=0.49999997
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
@@ -2920,7 +2920,7 @@ mBoard=cc.game.soc.core.Board {
          player=0
          type=OPEN
          x=0.67857134
-         y=0.36363626
+         y=0.36363629
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
@@ -2936,7 +2936,7 @@ mBoard=cc.game.soc.core.Board {
          player=0
          type=OPEN
          x=0.7499999
-         y=0.36363626
+         y=0.36363629
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
@@ -2952,7 +2952,7 @@ mBoard=cc.game.soc.core.Board {
          player=0
          type=OPEN
          x=0.78571427
-         y=0.40909082
+         y=0.40909085
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
@@ -2968,7 +2968,7 @@ mBoard=cc.game.soc.core.Board {
          player=0
          type=OPEN
          x=0.7499999
-         y=0.45454538
+         y=0.4545454
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
@@ -2984,7 +2984,7 @@ mBoard=cc.game.soc.core.Board {
          player=0
          type=OPEN
          x=0.78571427
-         y=0.3181817
+         y=0.31818172
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
@@ -3000,7 +3000,7 @@ mBoard=cc.game.soc.core.Board {
          player=0
          type=OPEN
          x=0.8571428
-         y=0.3181817
+         y=0.31818172
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
@@ -3016,7 +3016,7 @@ mBoard=cc.game.soc.core.Board {
          player=0
          type=OPEN
          x=0.8928572
-         y=0.36363626
+         y=0.36363629
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
@@ -3032,7 +3032,7 @@ mBoard=cc.game.soc.core.Board {
          player=0
          type=OPEN
          x=0.8571428
-         y=0.40909082
+         y=0.40909085
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
@@ -3048,7 +3048,7 @@ mBoard=cc.game.soc.core.Board {
          player=0
          type=PIRATE_FORTRESS
          x=0.8928572
-         y=0.27272713
+         y=0.27272716
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
@@ -3064,7 +3064,7 @@ mBoard=cc.game.soc.core.Board {
          player=0
          type=OPEN
          x=0.8928572
-         y=0.45454538
+         y=0.4545454
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
@@ -3080,7 +3080,7 @@ mBoard=cc.game.soc.core.Board {
          player=0
          type=OPEN
          x=0.8571428
-         y=0.49999994
+         y=0.49999997
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
@@ -3096,7 +3096,7 @@ mBoard=cc.game.soc.core.Board {
          player=0
          type=OPEN
          x=0.78571427
-         y=0.49999994
+         y=0.49999997
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
@@ -3319,8 +3319,8 @@ mBoard=cc.game.soc.core.Board {
          pirateHealth=0
          player=0
          type=OPEN
-         x=0.32142854
-         y=0.45454538
+         x=0.32142857
+         y=0.4545454
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
@@ -3335,8 +3335,8 @@ mBoard=cc.game.soc.core.Board {
          pirateHealth=0
          player=0
          type=OPEN
-         x=0.3571428
-         y=0.40909082
+         x=0.35714284
+         y=0.40909085
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
@@ -3351,8 +3351,8 @@ mBoard=cc.game.soc.core.Board {
          pirateHealth=0
          player=0
          type=OPEN
-         x=0.42857134
-         y=0.40909082
+         x=0.42857137
+         y=0.40909085
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
@@ -3367,8 +3367,8 @@ mBoard=cc.game.soc.core.Board {
          pirateHealth=0
          player=0
          type=OPEN
-         x=0.3571428
-         y=0.49999994
+         x=0.35714284
+         y=0.49999997
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
@@ -3383,8 +3383,8 @@ mBoard=cc.game.soc.core.Board {
          pirateHealth=0
          player=0
          type=OPEN
-         x=0.21428561
-         y=0.40909082
+         x=0.21428564
+         y=0.40909085
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
@@ -3399,8 +3399,8 @@ mBoard=cc.game.soc.core.Board {
          pirateHealth=0
          player=0
          type=OPEN
-         x=0.24999988
-         y=0.36363626
+         x=0.24999991
+         y=0.36363629
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
@@ -3415,8 +3415,8 @@ mBoard=cc.game.soc.core.Board {
          pirateHealth=0
          player=0
          type=OPEN
-         x=0.32142854
-         y=0.36363626
+         x=0.32142857
+         y=0.36363629
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
@@ -3431,8 +3431,8 @@ mBoard=cc.game.soc.core.Board {
          pirateHealth=0
          player=0
          type=OPEN
-         x=0.24999988
-         y=0.45454538
+         x=0.24999991
+         y=0.4545454
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
@@ -3447,8 +3447,8 @@ mBoard=cc.game.soc.core.Board {
          pirateHealth=0
          player=0
          type=OPEN
-         x=0.107142806
-         y=0.36363626
+         x=0.107142836
+         y=0.36363629
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
@@ -3463,8 +3463,8 @@ mBoard=cc.game.soc.core.Board {
          pirateHealth=0
          player=0
          type=OPEN
-         x=0.14285707
-         y=0.3181817
+         x=0.1428571
+         y=0.31818172
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
@@ -3479,8 +3479,8 @@ mBoard=cc.game.soc.core.Board {
          pirateHealth=0
          player=0
          type=OPEN
-         x=0.21428567
-         y=0.3181817
+         x=0.2142857
+         y=0.31818172
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
@@ -3495,8 +3495,8 @@ mBoard=cc.game.soc.core.Board {
          pirateHealth=0
          player=0
          type=OPEN
-         x=0.14285707
-         y=0.40909082
+         x=0.1428571
+         y=0.40909085
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
@@ -3511,8 +3511,8 @@ mBoard=cc.game.soc.core.Board {
          pirateHealth=3
          player=0
          type=PIRATE_FORTRESS
-         x=0.107142806
-         y=0.27272713
+         x=0.107142836
+         y=0.27272716
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
@@ -3527,8 +3527,8 @@ mBoard=cc.game.soc.core.Board {
          pirateHealth=0
          player=0
          type=OPEN
-         x=0.107142806
-         y=0.45454538
+         x=0.107142836
+         y=0.4545454
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
@@ -3543,8 +3543,8 @@ mBoard=cc.game.soc.core.Board {
          pirateHealth=0
          player=0
          type=OPEN
-         x=0.21428567
-         y=0.49999994
+         x=0.2142857
+         y=0.49999997
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
@@ -3559,8 +3559,8 @@ mBoard=cc.game.soc.core.Board {
          pirateHealth=0
          player=0
          type=OPEN
-         x=0.14285707
-         y=0.49999994
+         x=0.1428571
+         y=0.49999997
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
@@ -3575,7 +3575,7 @@ mBoard=cc.game.soc.core.Board {
          pirateHealth=0
          player=0
          type=OPEN
-         x=0.107142806
+         x=0.107142836
          y=0.5454545
       }
       cc.game.soc.core.Vertex {
@@ -3591,7 +3591,7 @@ mBoard=cc.game.soc.core.Board {
          pirateHealth=0
          player=0
          type=OPEN
-         x=0.32142854
+         x=0.32142857
          y=0.5454545
       }
       cc.game.soc.core.Vertex {
@@ -3607,7 +3607,7 @@ mBoard=cc.game.soc.core.Board {
          pirateHealth=0
          player=0
          type=OPEN
-         x=0.24999988
+         x=0.24999991
          y=0.5454545
       }
       cc.game.soc.core.Vertex {
@@ -3623,7 +3623,7 @@ mBoard=cc.game.soc.core.Board {
          pirateHealth=0
          player=0
          type=OPEN
-         x=0.21428567
+         x=0.2142857
          y=0.590909
       }
       cc.game.soc.core.Vertex {
@@ -3639,7 +3639,7 @@ mBoard=cc.game.soc.core.Board {
          pirateHealth=0
          player=0
          type=OPEN
-         x=0.14285707
+         x=0.1428571
          y=0.590909
       }
       cc.game.soc.core.Vertex {
@@ -3655,7 +3655,7 @@ mBoard=cc.game.soc.core.Board {
          pirateHealth=0
          player=0
          type=OPEN
-         x=0.107142806
+         x=0.107142836
          y=0.6363636
       }
       cc.game.soc.core.Vertex {
@@ -3671,7 +3671,7 @@ mBoard=cc.game.soc.core.Board {
          pirateHealth=0
          player=0
          type=OPEN_SETTLEMENT
-         x=0.42857134
+         x=0.42857137
          y=0.590909
       }
       cc.game.soc.core.Vertex {
@@ -3687,7 +3687,7 @@ mBoard=cc.game.soc.core.Board {
          pirateHealth=0
          player=0
          type=OPEN
-         x=0.3571428
+         x=0.35714284
          y=0.590909
       }
       cc.game.soc.core.Vertex {
@@ -3703,7 +3703,7 @@ mBoard=cc.game.soc.core.Board {
          pirateHealth=0
          player=0
          type=OPEN
-         x=0.32142854
+         x=0.32142857
          y=0.6363636
       }
       cc.game.soc.core.Vertex {
@@ -3719,7 +3719,7 @@ mBoard=cc.game.soc.core.Board {
          pirateHealth=0
          player=0
          type=OPEN_SETTLEMENT
-         x=0.24999988
+         x=0.24999991
          y=0.6363636
       }
       cc.game.soc.core.Vertex {
@@ -3735,7 +3735,7 @@ mBoard=cc.game.soc.core.Board {
          pirateHealth=0
          player=0
          type=OPEN
-         x=0.21428567
+         x=0.2142857
          y=0.68181825
       }
       cc.game.soc.core.Vertex {
@@ -3751,7 +3751,7 @@ mBoard=cc.game.soc.core.Board {
          pirateHealth=0
          player=0
          type=OPEN
-         x=0.14285707
+         x=0.1428571
          y=0.68181825
       }
       cc.game.soc.core.Vertex {
@@ -3767,7 +3767,7 @@ mBoard=cc.game.soc.core.Board {
          pirateHealth=0
          player=0
          type=OPEN
-         x=0.107142806
+         x=0.107142836
          y=0.72727275
       }
       cc.game.soc.core.Vertex {
@@ -3783,8 +3783,8 @@ mBoard=cc.game.soc.core.Board {
          pirateHealth=0
          player=0
          type=OPEN
-         x=0.46428567
-         y=0.3636363
+         x=0.4642857
+         y=0.36363634
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
@@ -3800,7 +3800,7 @@ mBoard=cc.game.soc.core.Board {
          player=0
          type=OPEN
          x=0.53571427
-         y=0.3636363
+         y=0.36363634
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
@@ -3815,8 +3815,8 @@ mBoard=cc.game.soc.core.Board {
          pirateHealth=0
          player=0
          type=OPEN
-         x=0.42857134
-         y=0.31818175
+         x=0.42857137
+         y=0.31818178
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
@@ -3831,8 +3831,8 @@ mBoard=cc.game.soc.core.Board {
          pirateHealth=0
          player=0
          type=OPEN
-         x=0.46428567
-         y=0.27272725
+         x=0.4642857
+         y=0.27272728
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
@@ -3848,7 +3848,7 @@ mBoard=cc.game.soc.core.Board {
          player=0
          type=OPEN
          x=0.53571427
-         y=0.27272725
+         y=0.27272728
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
@@ -3864,7 +3864,7 @@ mBoard=cc.game.soc.core.Board {
          player=0
          type=OPEN
          x=0.57142854
-         y=0.31818175
+         y=0.31818178
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
@@ -3879,8 +3879,8 @@ mBoard=cc.game.soc.core.Board {
          pirateHealth=0
          player=0
          type=OPEN
-         x=0.42857134
-         y=0.22727269
+         x=0.42857137
+         y=0.22727272
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
@@ -3895,8 +3895,8 @@ mBoard=cc.game.soc.core.Board {
          pirateHealth=0
          player=0
          type=OPEN
-         x=0.46428567
-         y=0.18181813
+         x=0.4642857
+         y=0.18181816
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
@@ -3912,7 +3912,7 @@ mBoard=cc.game.soc.core.Board {
          player=0
          type=OPEN
          x=0.53571427
-         y=0.18181813
+         y=0.18181816
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
@@ -3928,7 +3928,7 @@ mBoard=cc.game.soc.core.Board {
          player=0
          type=OPEN
          x=0.57142854
-         y=0.22727269
+         y=0.22727272
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
@@ -3943,8 +3943,8 @@ mBoard=cc.game.soc.core.Board {
          pirateHealth=0
          player=0
          type=OPEN
-         x=0.42857134
-         y=0.13636363
+         x=0.42857137
+         y=0.13636366
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
@@ -3959,8 +3959,8 @@ mBoard=cc.game.soc.core.Board {
          pirateHealth=0
          player=0
          type=OPEN
-         x=0.46428567
-         y=0.090909064
+         x=0.4642857
+         y=0.09090909
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
@@ -3976,7 +3976,7 @@ mBoard=cc.game.soc.core.Board {
          player=0
          type=OPEN
          x=0.53571427
-         y=0.090909064
+         y=0.09090909
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
@@ -3992,7 +3992,7 @@ mBoard=cc.game.soc.core.Board {
          player=0
          type=OPEN
          x=0.57142854
-         y=0.13636363
+         y=0.13636366
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
@@ -4008,7 +4008,7 @@ mBoard=cc.game.soc.core.Board {
          player=0
          type=OPEN
          x=0.6428572
-         y=0.13636363
+         y=0.13636366
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
@@ -4023,8 +4023,8 @@ mBoard=cc.game.soc.core.Board {
          pirateHealth=0
          player=0
          type=OPEN
-         x=0.3571428
-         y=0.13636363
+         x=0.35714284
+         y=0.13636366
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
@@ -4040,7 +4040,7 @@ mBoard=cc.game.soc.core.Board {
          player=0
          type=OPEN
          x=0.67857146
-         y=0.18181813
+         y=0.18181816
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
@@ -4056,7 +4056,7 @@ mBoard=cc.game.soc.core.Board {
          player=0
          type=PIRATE_FORTRESS
          x=0.6428572
-         y=0.22727269
+         y=0.22727272
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
@@ -4072,7 +4072,7 @@ mBoard=cc.game.soc.core.Board {
          player=0
          type=OPEN
          x=0.7499999
-         y=0.18181813
+         y=0.18181816
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
@@ -4087,8 +4087,8 @@ mBoard=cc.game.soc.core.Board {
          pirateHealth=0
          player=0
          type=OPEN
-         x=0.32142854
-         y=0.18181813
+         x=0.32142857
+         y=0.18181816
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
@@ -4103,8 +4103,8 @@ mBoard=cc.game.soc.core.Board {
          pirateHealth=3
          player=0
          type=PIRATE_FORTRESS
-         x=0.3571428
-         y=0.22727269
+         x=0.35714284
+         y=0.22727272
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
@@ -4119,8 +4119,8 @@ mBoard=cc.game.soc.core.Board {
          pirateHealth=0
          player=0
          type=OPEN
-         x=0.24999988
-         y=0.18181813
+         x=0.24999991
+         y=0.18181816
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
@@ -4136,7 +4136,7 @@ mBoard=cc.game.soc.core.Board {
          player=0
          type=OPEN
          x=0.67857146
-         y=0.27272725
+         y=0.27272728
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
@@ -4152,7 +4152,7 @@ mBoard=cc.game.soc.core.Board {
          player=0
          type=OPEN
          x=0.6428572
-         y=0.31818175
+         y=0.31818178
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
@@ -4168,7 +4168,7 @@ mBoard=cc.game.soc.core.Board {
          player=0
          type=OPEN
          x=0.78571427
-         y=0.22727263
+         y=0.22727266
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
@@ -4184,7 +4184,7 @@ mBoard=cc.game.soc.core.Board {
          player=0
          type=OPEN
          x=0.7499999
-         y=0.27272725
+         y=0.27272728
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
@@ -4200,7 +4200,7 @@ mBoard=cc.game.soc.core.Board {
          player=0
          type=OPEN
          x=0.8571428
-         y=0.22727263
+         y=0.22727266
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
@@ -4215,8 +4215,8 @@ mBoard=cc.game.soc.core.Board {
          pirateHealth=0
          player=0
          type=OPEN
-         x=0.32142854
-         y=0.27272725
+         x=0.32142857
+         y=0.27272728
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
@@ -4231,8 +4231,8 @@ mBoard=cc.game.soc.core.Board {
          pirateHealth=0
          player=0
          type=OPEN
-         x=0.3571428
-         y=0.31818175
+         x=0.35714284
+         y=0.31818178
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
@@ -4247,8 +4247,8 @@ mBoard=cc.game.soc.core.Board {
          pirateHealth=0
          player=0
          type=OPEN
-         x=0.21428561
-         y=0.22727263
+         x=0.21428564
+         y=0.22727266
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
@@ -4263,8 +4263,8 @@ mBoard=cc.game.soc.core.Board {
          pirateHealth=0
          player=0
          type=OPEN
-         x=0.24999988
-         y=0.27272725
+         x=0.24999991
+         y=0.27272728
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
@@ -4279,8 +4279,8 @@ mBoard=cc.game.soc.core.Board {
          pirateHealth=0
          player=0
          type=OPEN
-         x=0.14285707
-         y=0.22727263
+         x=0.1428571
+         y=0.22727266
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
@@ -4311,7 +4311,7 @@ mBoard=cc.game.soc.core.Board {
          pirateHealth=0
          player=0
          type=OPEN
-         x=0.46428567
+         x=0.4642857
          y=0.6363636
       }
       cc.game.soc.core.Vertex {
@@ -4327,7 +4327,7 @@ mBoard=cc.game.soc.core.Board {
          pirateHealth=0
          player=0
          type=OPEN
-         x=0.42857134
+         x=0.42857137
          y=0.68181825
       }
       cc.game.soc.core.Vertex {
@@ -4375,7 +4375,7 @@ mBoard=cc.game.soc.core.Board {
          pirateHealth=0
          player=0
          type=OPEN
-         x=0.46428567
+         x=0.4642857
          y=0.72727275
       }
       cc.game.soc.core.Vertex {
@@ -4391,7 +4391,7 @@ mBoard=cc.game.soc.core.Board {
          pirateHealth=0
          player=0
          type=OPEN
-         x=0.42857134
+         x=0.42857137
          y=0.77272725
       }
       cc.game.soc.core.Vertex {
@@ -4439,7 +4439,7 @@ mBoard=cc.game.soc.core.Board {
          pirateHealth=0
          player=0
          type=OPEN
-         x=0.46428567
+         x=0.4642857
          y=0.8181819
       }
       cc.game.soc.core.Vertex {
@@ -4455,7 +4455,7 @@ mBoard=cc.game.soc.core.Board {
          pirateHealth=0
          player=0
          type=OPEN
-         x=0.42857134
+         x=0.42857137
          y=0.8636364
       }
       cc.game.soc.core.Vertex {
@@ -4503,7 +4503,7 @@ mBoard=cc.game.soc.core.Board {
          pirateHealth=0
          player=0
          type=OPEN
-         x=0.46428567
+         x=0.4642857
          y=0.909091
       }
       cc.game.soc.core.Vertex {
@@ -4535,7 +4535,7 @@ mBoard=cc.game.soc.core.Board {
          pirateHealth=0
          player=0
          type=OPEN
-         x=0.3571428
+         x=0.35714284
          y=0.8636364
       }
       cc.game.soc.core.Vertex {
@@ -4599,7 +4599,7 @@ mBoard=cc.game.soc.core.Board {
          pirateHealth=0
          player=0
          type=OPEN
-         x=0.32142854
+         x=0.32142857
          y=0.8181819
       }
       cc.game.soc.core.Vertex {
@@ -4615,7 +4615,7 @@ mBoard=cc.game.soc.core.Board {
          pirateHealth=0
          player=0
          type=OPEN
-         x=0.3571428
+         x=0.35714284
          y=0.77272725
       }
       cc.game.soc.core.Vertex {
@@ -4631,7 +4631,7 @@ mBoard=cc.game.soc.core.Board {
          pirateHealth=0
          player=0
          type=OPEN
-         x=0.24999988
+         x=0.24999991
          y=0.8181819
       }
       cc.game.soc.core.Vertex {
@@ -4727,7 +4727,7 @@ mBoard=cc.game.soc.core.Board {
          pirateHealth=0
          player=0
          type=OPEN
-         x=0.32142854
+         x=0.32142857
          y=0.72727275
       }
       cc.game.soc.core.Vertex {
@@ -4743,7 +4743,7 @@ mBoard=cc.game.soc.core.Board {
          pirateHealth=0
          player=0
          type=OPEN
-         x=0.3571428
+         x=0.35714284
          y=0.68181825
       }
       cc.game.soc.core.Vertex {
@@ -4759,7 +4759,7 @@ mBoard=cc.game.soc.core.Board {
          pirateHealth=0
          player=0
          type=OPEN
-         x=0.21428561
+         x=0.21428564
          y=0.77272725
       }
       cc.game.soc.core.Vertex {
@@ -4775,7 +4775,7 @@ mBoard=cc.game.soc.core.Board {
          pirateHealth=0
          player=0
          type=OPEN
-         x=0.24999988
+         x=0.24999991
          y=0.72727275
       }
       cc.game.soc.core.Vertex {
@@ -4791,63 +4791,47 @@ mBoard=cc.game.soc.core.Board {
          pirateHealth=0
          player=0
          type=OPEN
-         x=0.14285707
+         x=0.1428571
          y=0.77272725
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
-            131 165 0 
+            18 129 131 
          }
          cells=int 3 {
-            5 0 0 
+            4 61 0 
          }
          flags=2
-         numAdj=2
-         numCells=1
-         pirateHealth=0
-         player=0
-         type=OPEN
-         x=0.03571421
-         y=0.8181819
-      }
-      cc.game.soc.core.Vertex {
-         adjacent=int 3 {
-            190 133 0 
-         }
-         cells=int 3 {
-            15 0 0 
-         }
-         flags=2
-         numAdj=2
-         numCells=1
+         numAdj=3
+         numCells=2
          pirateHealth=0
          player=0
          type=OPEN
          x=0.9642856
-         y=0.8181819
+         y=0.27272716
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
-            135 131 0 
+            128 130 134 
          }
          cells=int 3 {
-            28 0 0 
+            4 0 0 
          }
          flags=2
-         numAdj=2
+         numAdj=3
          numCells=1
          pirateHealth=0
          player=0
          type=OPEN
-         x=0.14285707
-         y=0.8636364
+         x=1.0
+         y=0.31818172
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
-            127 130 128 
+            129 16 137 
          }
          cells=int 3 {
-            5 28 0 
+            4 7 0 
          }
          flags=2
          numAdj=3
@@ -4855,956 +4839,28 @@ mBoard=cc.game.soc.core.Board {
          pirateHealth=0
          player=0
          type=OPEN
-         x=0.107142806
-         y=0.8181819
+         x=0.9642856
+         y=0.36363629
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
-            133 137 0 
-         }
-         cells=int 3 {
-            40 0 0 
-         }
-         flags=2
-         numAdj=2
-         numCells=1
-         pirateHealth=0
-         player=0
-         type=OPEN
-         x=0.8571428
-         y=0.8636364
-      }
-      cc.game.soc.core.Vertex {
-         adjacent=int 3 {
-            122 132 129 
-         }
-         cells=int 3 {
-            15 40 0 
-         }
-         flags=2
-         numAdj=3
-         numCells=2
-         pirateHealth=0
-         player=0
-         type=OPEN
-         x=0.8928572
-         y=0.8181819
-      }
-      cc.game.soc.core.Vertex {
-         adjacent=int 3 {
-            139 135 0 
-         }
-         cells=int 3 {
-            76 0 0 
-         }
-         flags=2
-         numAdj=2
-         numCells=1
-         pirateHealth=0
-         player=0
-         type=OPEN
-         x=0.24999988
-         y=0.909091
-      }
-      cc.game.soc.core.Vertex {
-         adjacent=int 3 {
-            117 134 130 
-         }
-         cells=int 3 {
-            28 76 0 
-         }
-         flags=2
-         numAdj=3
-         numCells=2
-         pirateHealth=0
-         player=0
-         type=OPEN
-         x=0.21428561
-         y=0.8636364
-      }
-      cc.game.soc.core.Vertex {
-         adjacent=int 3 {
-            137 141 0 
-         }
-         cells=int 3 {
-            74 0 0 
-         }
-         flags=2
-         numAdj=2
-         numCells=1
-         pirateHealth=0
-         player=0
-         type=OPEN
-         x=0.7499999
-         y=0.909091
-      }
-      cc.game.soc.core.Vertex {
-         adjacent=int 3 {
-            114 136 132 
-         }
-         cells=int 3 {
-            40 74 0 
-         }
-         flags=2
-         numAdj=3
-         numCells=2
-         pirateHealth=0
-         player=0
-         type=OPEN
-         x=0.78571427
-         y=0.8636364
-      }
-      cc.game.soc.core.Vertex {
-         adjacent=int 3 {
-            145 139 0 
-         }
-         cells=int 3 {
-            72 0 0 
-         }
-         flags=2
-         numAdj=2
-         numCells=1
-         pirateHealth=0
-         player=0
-         type=OPEN
-         x=0.3571428
-         y=0.9545455
-      }
-      cc.game.soc.core.Vertex {
-         adjacent=int 3 {
-            111 138 134 
-         }
-         cells=int 3 {
-            72 76 0 
-         }
-         flags=2
-         numAdj=3
-         numCells=2
-         pirateHealth=0
-         player=0
-         type=OPEN
-         x=0.32142854
-         y=0.909091
-      }
-      cc.game.soc.core.Vertex {
-         adjacent=int 3 {
-            141 144 0 
-         }
-         cells=int 3 {
-            71 0 0 
-         }
-         flags=2
-         numAdj=2
-         numCells=1
-         pirateHealth=0
-         player=0
-         type=OPEN
-         x=0.6428572
-         y=0.9545455
-      }
-      cc.game.soc.core.Vertex {
-         adjacent=int 3 {
-            110 140 136 
-         }
-         cells=int 3 {
-            71 74 0 
-         }
-         flags=2
-         numAdj=3
-         numCells=2
-         pirateHealth=0
-         player=0
-         type=OPEN
-         x=0.67857146
-         y=0.909091
-      }
-      cc.game.soc.core.Vertex {
-         adjacent=int 3 {
-            143 145 0 
-         }
-         cells=int 3 {
-            70 0 0 
-         }
-         flags=2
-         numAdj=2
-         numCells=1
-         pirateHealth=0
-         player=0
-         type=OPEN
-         x=0.46428567
-         y=1.0
-      }
-      cc.game.soc.core.Vertex {
-         adjacent=int 3 {
-            144 142 0 
-         }
-         cells=int 3 {
-            70 0 0 
-         }
-         flags=2
-         numAdj=2
-         numCells=1
-         pirateHealth=0
-         player=0
-         type=OPEN
-         x=0.53571427
-         y=1.0
-      }
-      cc.game.soc.core.Vertex {
-         adjacent=int 3 {
-            108 143 140 
-         }
-         cells=int 3 {
-            70 71 0 
-         }
-         flags=2
-         numAdj=3
-         numCells=2
-         pirateHealth=0
-         player=0
-         type=OPEN
-         x=0.57142854
-         y=0.9545455
-      }
-      cc.game.soc.core.Vertex {
-         adjacent=int 3 {
-            109 142 138 
-         }
-         cells=int 3 {
-            70 72 0 
-         }
-         flags=2
-         numAdj=3
-         numCells=2
-         pirateHealth=0
-         player=0
-         type=OPEN
-         x=0.42857134
-         y=0.9545455
-      }
-      cc.game.soc.core.Vertex {
-         adjacent=int 3 {
-            184 149 0 
-         }
-         cells=int 3 {
-            65 0 0 
-         }
-         flags=2
-         numAdj=2
-         numCells=1
-         pirateHealth=0
-         player=0
-         type=OPEN
-         x=0.03571421
-         y=0.18181813
-      }
-      cc.game.soc.core.Vertex {
-         adjacent=int 3 {
-            150 212 0 
+            128 132 196 
          }
          cells=int 3 {
             61 0 0 
          }
          flags=2
-         numAdj=2
-         numCells=1
-         pirateHealth=0
-         player=0
-         type=OPEN
-         x=0.9642856
-         y=0.18181813
-      }
-      cc.game.soc.core.Vertex {
-         adjacent=int 3 {
-            149 153 0 
-         }
-         cells=int 3 {
-            57 0 0 
-         }
-         flags=2
-         numAdj=2
-         numCells=1
-         pirateHealth=0
-         player=0
-         type=OPEN
-         x=0.14285707
-         y=0.13636363
-      }
-      cc.game.soc.core.Vertex {
-         adjacent=int 3 {
-            148 95 146 
-         }
-         cells=int 3 {
-            57 65 0 
-         }
-         flags=2
-         numAdj=3
-         numCells=2
-         pirateHealth=0
-         player=0
-         type=OPEN
-         x=0.107142806
-         y=0.18181813
-      }
-      cc.game.soc.core.Vertex {
-         adjacent=int 3 {
-            151 90 147 
-         }
-         cells=int 3 {
-            54 61 0 
-         }
-         flags=2
-         numAdj=3
-         numCells=2
-         pirateHealth=0
-         player=0
-         type=OPEN
-         x=0.8928572
-         y=0.18181813
-      }
-      cc.game.soc.core.Vertex {
-         adjacent=int 3 {
-            154 150 0 
-         }
-         cells=int 3 {
-            54 0 0 
-         }
-         flags=2
-         numAdj=2
-         numCells=1
-         pirateHealth=0
-         player=0
-         type=OPEN
-         x=0.8571428
-         y=0.13636363
-      }
-      cc.game.soc.core.Vertex {
-         adjacent=int 3 {
-            153 157 0 
-         }
-         cells=int 3 {
-            51 0 0 
-         }
-         flags=2
-         numAdj=2
-         numCells=1
-         pirateHealth=0
-         player=0
-         type=OPEN
-         x=0.24999988
-         y=0.090909064
-      }
-      cc.game.soc.core.Vertex {
-         adjacent=int 3 {
-            152 85 148 
-         }
-         cells=int 3 {
-            51 57 0 
-         }
-         flags=2
-         numAdj=3
-         numCells=2
-         pirateHealth=0
-         player=0
-         type=OPEN
-         x=0.21428561
-         y=0.13636363
-      }
-      cc.game.soc.core.Vertex {
-         adjacent=int 3 {
-            155 82 151 
-         }
-         cells=int 3 {
-            49 54 0 
-         }
-         flags=2
-         numAdj=3
-         numCells=2
-         pirateHealth=0
-         player=0
-         type=OPEN
-         x=0.78571427
-         y=0.13636363
-      }
-      cc.game.soc.core.Vertex {
-         adjacent=int 3 {
-            158 154 0 
-         }
-         cells=int 3 {
-            49 0 0 
-         }
-         flags=2
-         numAdj=2
-         numCells=1
-         pirateHealth=0
-         player=0
-         type=OPEN
-         x=0.7499999
-         y=0.090909064
-      }
-      cc.game.soc.core.Vertex {
-         adjacent=int 3 {
-            157 163 0 
-         }
-         cells=int 3 {
-            47 0 0 
-         }
-         flags=2
-         numAdj=2
-         numCells=1
-         pirateHealth=0
-         player=0
-         type=OPEN
-         x=0.3571428
-         y=0.045454502
-      }
-      cc.game.soc.core.Vertex {
-         adjacent=int 3 {
-            156 79 152 
-         }
-         cells=int 3 {
-            47 51 0 
-         }
-         flags=2
-         numAdj=3
-         numCells=2
-         pirateHealth=0
-         player=0
-         type=OPEN
-         x=0.32142854
-         y=0.090909064
-      }
-      cc.game.soc.core.Vertex {
-         adjacent=int 3 {
-            159 78 155 
-         }
-         cells=int 3 {
-            46 49 0 
-         }
-         flags=2
-         numAdj=3
-         numCells=2
-         pirateHealth=0
-         player=0
-         type=OPEN
-         x=0.67857146
-         y=0.090909064
-      }
-      cc.game.soc.core.Vertex {
-         adjacent=int 3 {
-            160 158 0 
-         }
-         cells=int 3 {
-            46 0 0 
-         }
-         flags=2
-         numAdj=2
-         numCells=1
-         pirateHealth=0
-         player=0
-         type=OPEN
-         x=0.6428572
-         y=0.045454502
-      }
-      cc.game.soc.core.Vertex {
-         adjacent=int 3 {
-            161 76 159 
-         }
-         cells=int 3 {
-            45 46 0 
-         }
-         flags=2
-         numAdj=3
-         numCells=2
-         pirateHealth=0
-         player=0
-         type=OPEN
-         x=0.57142854
-         y=0.045454502
-      }
-      cc.game.soc.core.Vertex {
-         adjacent=int 3 {
-            162 160 0 
-         }
-         cells=int 3 {
-            45 0 0 
-         }
-         flags=2
-         numAdj=2
-         numCells=1
-         pirateHealth=0
-         player=0
-         type=OPEN
-         x=0.53571427
-         y=0.0
-      }
-      cc.game.soc.core.Vertex {
-         adjacent=int 3 {
-            163 161 0 
-         }
-         cells=int 3 {
-            45 0 0 
-         }
-         flags=2
-         numAdj=2
-         numCells=1
-         pirateHealth=0
-         player=0
-         type=OPEN
-         x=0.46428567
-         y=0.0
-      }
-      cc.game.soc.core.Vertex {
-         adjacent=int 3 {
-            162 75 156 
-         }
-         cells=int 3 {
-            45 47 0 
-         }
-         flags=2
-         numAdj=3
-         numCells=2
-         pirateHealth=0
-         player=0
-         type=OPEN
-         x=0.42857134
-         y=0.045454502
-      }
-      cc.game.soc.core.Vertex {
-         adjacent=int 3 {
-            165 166 0 
-         }
-         cells=int 3 {
-            0 0 0 
-         }
-         flags=0
-         numAdj=2
-         numCells=0
-         pirateHealth=0
-         player=0
-         type=OPEN
-         x=-0.07142863
-         y=0.77272725
-      }
-      cc.game.soc.core.Vertex {
-         adjacent=int 3 {
-            167 164 128 
-         }
-         cells=int 3 {
-            5 0 0 
-         }
-         flags=2
-         numAdj=3
-         numCells=1
-         pirateHealth=0
-         player=0
-         type=OPEN
-         x=-8.940697E-8
-         y=0.77272725
-      }
-      cc.game.soc.core.Vertex {
-         adjacent=int 3 {
-            168 164 0 
-         }
-         cells=int 3 {
-            0 0 0 
-         }
-         flags=0
-         numAdj=2
-         numCells=0
-         pirateHealth=0
-         player=0
-         type=OPEN
-         x=-0.107142955
-         y=0.72727275
-      }
-      cc.game.soc.core.Vertex {
-         adjacent=int 3 {
-            63 169 165 
-         }
-         cells=int 3 {
-            5 39 0 
-         }
-         flags=2
-         numAdj=3
-         numCells=2
-         pirateHealth=0
-         player=0
-         type=OPEN
-         x=0.03571421
-         y=0.72727275
-      }
-      cc.game.soc.core.Vertex {
-         adjacent=int 3 {
-            169 170 166 
-         }
-         cells=int 3 {
-            0 0 0 
-         }
-         flags=0
-         numAdj=3
-         numCells=0
-         pirateHealth=0
-         player=0
-         type=OPEN
-         x=-0.07142863
-         y=0.68181825
-      }
-      cc.game.soc.core.Vertex {
-         adjacent=int 3 {
-            171 168 167 
-         }
-         cells=int 3 {
-            39 0 0 
-         }
-         flags=2
-         numAdj=3
-         numCells=1
-         pirateHealth=0
-         player=0
-         type=OPEN
-         x=-8.940697E-8
-         y=0.68181825
-      }
-      cc.game.soc.core.Vertex {
-         adjacent=int 3 {
-            172 168 0 
-         }
-         cells=int 3 {
-            0 0 0 
-         }
-         flags=0
-         numAdj=2
-         numCells=0
-         pirateHealth=0
-         player=0
-         type=OPEN
-         x=-0.107142955
-         y=0.6363636
-      }
-      cc.game.soc.core.Vertex {
-         adjacent=int 3 {
-            56 173 169 
-         }
-         cells=int 3 {
-            34 39 0 
-         }
-         flags=2
-         numAdj=3
-         numCells=2
-         pirateHealth=0
-         player=0
-         type=OPEN
-         x=0.03571421
-         y=0.6363636
-      }
-      cc.game.soc.core.Vertex {
-         adjacent=int 3 {
-            173 174 170 
-         }
-         cells=int 3 {
-            0 0 0 
-         }
-         flags=0
-         numAdj=3
-         numCells=0
-         pirateHealth=0
-         player=0
-         type=OPEN
-         x=-0.07142863
-         y=0.590909
-      }
-      cc.game.soc.core.Vertex {
-         adjacent=int 3 {
-            175 172 171 
-         }
-         cells=int 3 {
-            34 0 0 
-         }
-         flags=2
-         numAdj=3
-         numCells=1
-         pirateHealth=0
-         player=0
-         type=OPEN
-         x=-8.940697E-8
-         y=0.590909
-      }
-      cc.game.soc.core.Vertex {
-         adjacent=int 3 {
-            176 172 0 
-         }
-         cells=int 3 {
-            0 0 0 
-         }
-         flags=0
-         numAdj=2
-         numCells=0
-         pirateHealth=0
-         player=0
-         type=OPEN
-         x=-0.107142955
-         y=0.5454545
-      }
-      cc.game.soc.core.Vertex {
-         adjacent=int 3 {
-            51 177 173 
-         }
-         cells=int 3 {
-            30 34 0 
-         }
-         flags=2
-         numAdj=3
-         numCells=2
-         pirateHealth=0
-         player=0
-         type=OPEN
-         x=0.03571421
-         y=0.5454545
-      }
-      cc.game.soc.core.Vertex {
-         adjacent=int 3 {
-            177 178 174 
-         }
-         cells=int 3 {
-            0 0 0 
-         }
-         flags=0
-         numAdj=3
-         numCells=0
-         pirateHealth=0
-         player=0
-         type=OPEN
-         x=-0.07142863
-         y=0.49999994
-      }
-      cc.game.soc.core.Vertex {
-         adjacent=int 3 {
-            179 176 175 
-         }
-         cells=int 3 {
-            30 0 0 
-         }
-         flags=2
-         numAdj=3
-         numCells=1
-         pirateHealth=0
-         player=0
-         type=OPEN
-         x=-8.940697E-8
-         y=0.49999994
-      }
-      cc.game.soc.core.Vertex {
-         adjacent=int 3 {
-            180 176 0 
-         }
-         cells=int 3 {
-            0 0 0 
-         }
-         flags=0
-         numAdj=2
-         numCells=0
-         pirateHealth=0
-         player=0
-         type=OPEN
-         x=-0.107142955
-         y=0.45454538
-      }
-      cc.game.soc.core.Vertex {
-         adjacent=int 3 {
-            48 181 177 
-         }
-         cells=int 3 {
-            27 30 0 
-         }
-         flags=2
-         numAdj=3
-         numCells=2
-         pirateHealth=0
-         player=0
-         type=OPEN
-         x=0.03571421
-         y=0.45454538
-      }
-      cc.game.soc.core.Vertex {
-         adjacent=int 3 {
-            181 182 178 
-         }
-         cells=int 3 {
-            0 0 0 
-         }
-         flags=0
-         numAdj=3
-         numCells=0
-         pirateHealth=0
-         player=0
-         type=OPEN
-         x=-0.07142863
-         y=0.40909082
-      }
-      cc.game.soc.core.Vertex {
-         adjacent=int 3 {
-            187 180 179 
-         }
-         cells=int 3 {
-            27 0 0 
-         }
-         flags=2
-         numAdj=3
-         numCells=1
-         pirateHealth=0
-         player=0
-         type=OPEN
-         x=-8.940697E-8
-         y=0.40909082
-      }
-      cc.game.soc.core.Vertex {
-         adjacent=int 3 {
-            183 180 0 
-         }
-         cells=int 3 {
-            0 0 0 
-         }
-         flags=0
-         numAdj=2
-         numCells=0
-         pirateHealth=0
-         player=0
-         type=OPEN
-         x=-0.107142955
-         y=0.36363626
-      }
-      cc.game.soc.core.Vertex {
-         adjacent=int 3 {
-            189 186 182 
-         }
-         cells=int 3 {
-            0 0 0 
-         }
-         flags=0
-         numAdj=3
-         numCells=0
-         pirateHealth=0
-         player=0
-         type=OPEN
-         x=-0.07142863
-         y=0.3181817
-      }
-      cc.game.soc.core.Vertex {
-         adjacent=int 3 {
-            185 188 146 
-         }
-         cells=int 3 {
-            65 0 0 
-         }
-         flags=2
-         numAdj=3
-         numCells=1
-         pirateHealth=0
-         player=0
-         type=OPEN
-         x=-8.940697E-8
-         y=0.22727263
-      }
-      cc.game.soc.core.Vertex {
-         adjacent=int 3 {
-            186 184 0 
-         }
-         cells=int 3 {
-            0 0 0 
-         }
-         flags=0
-         numAdj=2
-         numCells=0
-         pirateHealth=0
-         player=0
-         type=OPEN
-         x=-0.07142863
-         y=0.22727263
-      }
-      cc.game.soc.core.Vertex {
-         adjacent=int 3 {
-            185 183 0 
-         }
-         cells=int 3 {
-            0 0 0 
-         }
-         flags=0
-         numAdj=2
-         numCells=0
-         pirateHealth=0
-         player=0
-         type=OPEN
-         x=-0.107142955
-         y=0.27272713
-      }
-      cc.game.soc.core.Vertex {
-         adjacent=int 3 {
-            43 189 181 
-         }
-         cells=int 3 {
-            24 27 0 
-         }
-         flags=2
-         numAdj=3
-         numCells=2
-         pirateHealth=0
-         player=0
-         type=OPEN
-         x=0.03571421
-         y=0.36363626
-      }
-      cc.game.soc.core.Vertex {
-         adjacent=int 3 {
-            189 47 184 
-         }
-         cells=int 3 {
-            24 65 0 
-         }
-         flags=2
-         numAdj=3
-         numCells=2
-         pirateHealth=0
-         player=0
-         type=OPEN
-         x=0.03571421
-         y=0.27272713
-      }
-      cc.game.soc.core.Vertex {
-         adjacent=int 3 {
-            188 187 183 
-         }
-         cells=int 3 {
-            24 0 0 
-         }
-         flags=2
-         numAdj=3
-         numCells=1
-         pirateHealth=0
-         player=0
-         type=OPEN
-         x=-8.940697E-8
-         y=0.3181817
-      }
-      cc.game.soc.core.Vertex {
-         adjacent=int 3 {
-            191 193 129 
-         }
-         cells=int 3 {
-            15 0 0 
-         }
-         flags=2
          numAdj=3
          numCells=1
          pirateHealth=0
          player=0
          type=OPEN
          x=1.0
-         y=0.77272725
+         y=0.22727266
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
-            192 190 0 
+            131 133 0 
          }
          cells=int 3 {
             0 0 0 
@@ -5816,11 +4872,11 @@ mBoard=cc.game.soc.core.Board {
          player=0
          type=OPEN
          x=1.0714285
-         y=0.77272725
+         y=0.22727266
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
-            195 191 0 
+            132 134 0 
          }
          cells=int 3 {
             0 0 0 
@@ -5832,43 +4888,11 @@ mBoard=cc.game.soc.core.Board {
          player=0
          type=OPEN
          x=1.1071429
-         y=0.72727275
+         y=0.27272716
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
-            194 34 190 
-         }
-         cells=int 3 {
-            15 19 0 
-         }
-         flags=2
-         numAdj=3
-         numCells=2
-         pirateHealth=0
-         player=0
-         type=OPEN
-         x=0.9642856
-         y=0.72727275
-      }
-      cc.game.soc.core.Vertex {
-         adjacent=int 3 {
-            195 197 193 
-         }
-         cells=int 3 {
-            19 0 0 
-         }
-         flags=2
-         numAdj=3
-         numCells=1
-         pirateHealth=0
-         player=0
-         type=OPEN
-         x=1.0
-         y=0.68181825
-      }
-      cc.game.soc.core.Vertex {
-         adjacent=int 3 {
-            196 194 192 
+            133 129 135 
          }
          cells=int 3 {
             0 0 0 
@@ -5880,11 +4904,11 @@ mBoard=cc.game.soc.core.Board {
          player=0
          type=OPEN
          x=1.0714285
-         y=0.68181825
+         y=0.31818172
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
-            199 195 0 
+            134 136 0 
          }
          cells=int 3 {
             0 0 0 
@@ -5896,43 +4920,11 @@ mBoard=cc.game.soc.core.Board {
          player=0
          type=OPEN
          x=1.1071429
-         y=0.6363636
+         y=0.36363629
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
-            198 27 194 
-         }
-         cells=int 3 {
-            14 19 0 
-         }
-         flags=2
-         numAdj=3
-         numCells=2
-         pirateHealth=0
-         player=0
-         type=OPEN
-         x=0.9642856
-         y=0.6363636
-      }
-      cc.game.soc.core.Vertex {
-         adjacent=int 3 {
-            199 201 197 
-         }
-         cells=int 3 {
-            14 0 0 
-         }
-         flags=2
-         numAdj=3
-         numCells=1
-         pirateHealth=0
-         player=0
-         type=OPEN
-         x=1.0
-         y=0.590909
-      }
-      cc.game.soc.core.Vertex {
-         adjacent=int 3 {
-            200 198 196 
+            135 137 139 
          }
          cells=int 3 {
             0 0 0 
@@ -5944,11 +4936,43 @@ mBoard=cc.game.soc.core.Board {
          player=0
          type=OPEN
          x=1.0714285
-         y=0.590909
+         y=0.40909085
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
-            203 199 0 
+            136 130 138 
+         }
+         cells=int 3 {
+            7 0 0 
+         }
+         flags=2
+         numAdj=3
+         numCells=1
+         pirateHealth=0
+         player=0
+         type=OPEN
+         x=1.0
+         y=0.40909085
+      }
+      cc.game.soc.core.Vertex {
+         adjacent=int 3 {
+            137 19 141 
+         }
+         cells=int 3 {
+            7 10 0 
+         }
+         flags=2
+         numAdj=3
+         numCells=2
+         pirateHealth=0
+         player=0
+         type=OPEN
+         x=0.9642856
+         y=0.4545454
+      }
+      cc.game.soc.core.Vertex {
+         adjacent=int 3 {
+            136 140 0 
          }
          cells=int 3 {
             0 0 0 
@@ -5960,11 +4984,43 @@ mBoard=cc.game.soc.core.Board {
          player=0
          type=OPEN
          x=1.1071429
-         y=0.5454545
+         y=0.4545454
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
-            202 22 198 
+            139 141 143 
+         }
+         cells=int 3 {
+            0 0 0 
+         }
+         flags=0
+         numAdj=3
+         numCells=0
+         pirateHealth=0
+         player=0
+         type=OPEN
+         x=1.0714285
+         y=0.49999997
+      }
+      cc.game.soc.core.Vertex {
+         adjacent=int 3 {
+            140 138 142 
+         }
+         cells=int 3 {
+            10 0 0 
+         }
+         flags=2
+         numAdj=3
+         numCells=1
+         pirateHealth=0
+         player=0
+         type=OPEN
+         x=1.0
+         y=0.49999997
+      }
+      cc.game.soc.core.Vertex {
+         adjacent=int 3 {
+            141 22 145 
          }
          cells=int 3 {
             10 14 0 
@@ -5980,39 +5036,7 @@ mBoard=cc.game.soc.core.Board {
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
-            203 205 201 
-         }
-         cells=int 3 {
-            10 0 0 
-         }
-         flags=2
-         numAdj=3
-         numCells=1
-         pirateHealth=0
-         player=0
-         type=OPEN
-         x=1.0
-         y=0.49999994
-      }
-      cc.game.soc.core.Vertex {
-         adjacent=int 3 {
-            204 202 200 
-         }
-         cells=int 3 {
-            0 0 0 
-         }
-         flags=0
-         numAdj=3
-         numCells=0
-         pirateHealth=0
-         player=0
-         type=OPEN
-         x=1.0714285
-         y=0.49999994
-      }
-      cc.game.soc.core.Vertex {
-         adjacent=int 3 {
-            207 203 0 
+            140 144 0 
          }
          cells=int 3 {
             0 0 0 
@@ -6024,14 +5048,46 @@ mBoard=cc.game.soc.core.Board {
          player=0
          type=OPEN
          x=1.1071429
-         y=0.45454538
+         y=0.5454545
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
-            206 19 202 
+            143 145 147 
          }
          cells=int 3 {
-            7 10 0 
+            0 0 0 
+         }
+         flags=0
+         numAdj=3
+         numCells=0
+         pirateHealth=0
+         player=0
+         type=OPEN
+         x=1.0714285
+         y=0.590909
+      }
+      cc.game.soc.core.Vertex {
+         adjacent=int 3 {
+            144 142 146 
+         }
+         cells=int 3 {
+            14 0 0 
+         }
+         flags=2
+         numAdj=3
+         numCells=1
+         pirateHealth=0
+         player=0
+         type=OPEN
+         x=1.0
+         y=0.590909
+      }
+      cc.game.soc.core.Vertex {
+         adjacent=int 3 {
+            145 27 149 
+         }
+         cells=int 3 {
+            14 19 0 
          }
          flags=2
          numAdj=3
@@ -6040,14 +5096,46 @@ mBoard=cc.game.soc.core.Board {
          player=0
          type=OPEN
          x=0.9642856
-         y=0.45454538
+         y=0.6363636
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
-            207 213 205 
+            144 148 0 
          }
          cells=int 3 {
-            7 0 0 
+            0 0 0 
+         }
+         flags=0
+         numAdj=2
+         numCells=0
+         pirateHealth=0
+         player=0
+         type=OPEN
+         x=1.1071429
+         y=0.6363636
+      }
+      cc.game.soc.core.Vertex {
+         adjacent=int 3 {
+            147 149 151 
+         }
+         cells=int 3 {
+            0 0 0 
+         }
+         flags=0
+         numAdj=3
+         numCells=0
+         pirateHealth=0
+         player=0
+         type=OPEN
+         x=1.0714285
+         y=0.68181825
+      }
+      cc.game.soc.core.Vertex {
+         adjacent=int 3 {
+            148 146 150 
+         }
+         cells=int 3 {
+            19 0 0 
          }
          flags=2
          numAdj=3
@@ -6056,27 +5144,27 @@ mBoard=cc.game.soc.core.Board {
          player=0
          type=OPEN
          x=1.0
-         y=0.40909082
+         y=0.68181825
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
-            208 206 204 
+            149 34 153 
          }
          cells=int 3 {
-            0 0 0 
+            15 19 0 
          }
-         flags=0
+         flags=2
          numAdj=3
-         numCells=0
+         numCells=2
          pirateHealth=0
          player=0
          type=OPEN
-         x=1.0714285
-         y=0.40909082
+         x=0.9642856
+         y=0.72727275
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
-            209 207 0 
+            148 152 0 
          }
          cells=int 3 {
             0 0 0 
@@ -6088,11 +5176,139 @@ mBoard=cc.game.soc.core.Board {
          player=0
          type=OPEN
          x=1.1071429
-         y=0.36363626
+         y=0.72727275
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
-            210 214 208 
+            151 153 0 
+         }
+         cells=int 3 {
+            0 0 0 
+         }
+         flags=0
+         numAdj=2
+         numCells=0
+         pirateHealth=0
+         player=0
+         type=OPEN
+         x=1.0714285
+         y=0.77272725
+      }
+      cc.game.soc.core.Vertex {
+         adjacent=int 3 {
+            152 150 214 
+         }
+         cells=int 3 {
+            15 0 0 
+         }
+         flags=2
+         numAdj=3
+         numCells=1
+         pirateHealth=0
+         player=0
+         type=OPEN
+         x=1.0
+         y=0.77272725
+      }
+      cc.game.soc.core.Vertex {
+         adjacent=int 3 {
+            155 156 160 
+         }
+         cells=int 3 {
+            24 0 0 
+         }
+         flags=2
+         numAdj=3
+         numCells=1
+         pirateHealth=0
+         player=0
+         type=OPEN
+         x=-5.9604645E-8
+         y=0.31818172
+      }
+      cc.game.soc.core.Vertex {
+         adjacent=int 3 {
+            154 47 159 
+         }
+         cells=int 3 {
+            24 65 0 
+         }
+         flags=2
+         numAdj=3
+         numCells=2
+         pirateHealth=0
+         player=0
+         type=OPEN
+         x=0.03571424
+         y=0.27272716
+      }
+      cc.game.soc.core.Vertex {
+         adjacent=int 3 {
+            43 154 162 
+         }
+         cells=int 3 {
+            24 27 0 
+         }
+         flags=2
+         numAdj=3
+         numCells=2
+         pirateHealth=0
+         player=0
+         type=OPEN
+         x=0.03571424
+         y=0.36363629
+      }
+      cc.game.soc.core.Vertex {
+         adjacent=int 3 {
+            158 160 0 
+         }
+         cells=int 3 {
+            0 0 0 
+         }
+         flags=0
+         numAdj=2
+         numCells=0
+         pirateHealth=0
+         player=0
+         type=OPEN
+         x=-0.107142925
+         y=0.27272716
+      }
+      cc.game.soc.core.Vertex {
+         adjacent=int 3 {
+            157 159 0 
+         }
+         cells=int 3 {
+            0 0 0 
+         }
+         flags=0
+         numAdj=2
+         numCells=0
+         pirateHealth=0
+         player=0
+         type=OPEN
+         x=-0.0714286
+         y=0.22727266
+      }
+      cc.game.soc.core.Vertex {
+         adjacent=int 3 {
+            158 155 197 
+         }
+         cells=int 3 {
+            65 0 0 
+         }
+         flags=2
+         numAdj=3
+         numCells=1
+         pirateHealth=0
+         player=0
+         type=OPEN
+         x=-5.9604645E-8
+         y=0.22727266
+      }
+      cc.game.soc.core.Vertex {
+         adjacent=int 3 {
+            154 157 161 
          }
          cells=int 3 {
             0 0 0 
@@ -6103,12 +5319,12 @@ mBoard=cc.game.soc.core.Board {
          pirateHealth=0
          player=0
          type=OPEN
-         x=1.0714285
-         y=0.3181817
+         x=-0.0714286
+         y=0.31818172
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
-            211 209 0 
+            160 163 0 
          }
          cells=int 3 {
             0 0 0 
@@ -6119,12 +5335,60 @@ mBoard=cc.game.soc.core.Board {
          pirateHealth=0
          player=0
          type=OPEN
-         x=1.1071429
-         y=0.27272713
+         x=-0.107142925
+         y=0.36363629
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
-            212 210 0 
+            156 163 164 
+         }
+         cells=int 3 {
+            27 0 0 
+         }
+         flags=2
+         numAdj=3
+         numCells=1
+         pirateHealth=0
+         player=0
+         type=OPEN
+         x=-5.9604645E-8
+         y=0.40909085
+      }
+      cc.game.soc.core.Vertex {
+         adjacent=int 3 {
+            162 161 165 
+         }
+         cells=int 3 {
+            0 0 0 
+         }
+         flags=0
+         numAdj=3
+         numCells=0
+         pirateHealth=0
+         player=0
+         type=OPEN
+         x=-0.0714286
+         y=0.40909085
+      }
+      cc.game.soc.core.Vertex {
+         adjacent=int 3 {
+            48 162 166 
+         }
+         cells=int 3 {
+            27 30 0 
+         }
+         flags=2
+         numAdj=3
+         numCells=2
+         pirateHealth=0
+         player=0
+         type=OPEN
+         x=0.03571424
+         y=0.4545454
+      }
+      cc.game.soc.core.Vertex {
+         adjacent=int 3 {
+            163 167 0 
          }
          cells=int 3 {
             0 0 0 
@@ -6135,31 +5399,527 @@ mBoard=cc.game.soc.core.Board {
          pirateHealth=0
          player=0
          type=OPEN
-         x=1.0714285
-         y=0.22727263
+         x=-0.107142925
+         y=0.4545454
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
-            215 211 147 
+            164 167 168 
+         }
+         cells=int 3 {
+            30 0 0 
+         }
+         flags=2
+         numAdj=3
+         numCells=1
+         pirateHealth=0
+         player=0
+         type=OPEN
+         x=-5.9604645E-8
+         y=0.49999997
+      }
+      cc.game.soc.core.Vertex {
+         adjacent=int 3 {
+            166 165 169 
+         }
+         cells=int 3 {
+            0 0 0 
+         }
+         flags=0
+         numAdj=3
+         numCells=0
+         pirateHealth=0
+         player=0
+         type=OPEN
+         x=-0.0714286
+         y=0.49999997
+      }
+      cc.game.soc.core.Vertex {
+         adjacent=int 3 {
+            51 166 170 
+         }
+         cells=int 3 {
+            30 34 0 
+         }
+         flags=2
+         numAdj=3
+         numCells=2
+         pirateHealth=0
+         player=0
+         type=OPEN
+         x=0.03571424
+         y=0.5454545
+      }
+      cc.game.soc.core.Vertex {
+         adjacent=int 3 {
+            167 171 0 
+         }
+         cells=int 3 {
+            0 0 0 
+         }
+         flags=0
+         numAdj=2
+         numCells=0
+         pirateHealth=0
+         player=0
+         type=OPEN
+         x=-0.107142925
+         y=0.5454545
+      }
+      cc.game.soc.core.Vertex {
+         adjacent=int 3 {
+            168 171 172 
+         }
+         cells=int 3 {
+            34 0 0 
+         }
+         flags=2
+         numAdj=3
+         numCells=1
+         pirateHealth=0
+         player=0
+         type=OPEN
+         x=-5.9604645E-8
+         y=0.590909
+      }
+      cc.game.soc.core.Vertex {
+         adjacent=int 3 {
+            170 169 173 
+         }
+         cells=int 3 {
+            0 0 0 
+         }
+         flags=0
+         numAdj=3
+         numCells=0
+         pirateHealth=0
+         player=0
+         type=OPEN
+         x=-0.0714286
+         y=0.590909
+      }
+      cc.game.soc.core.Vertex {
+         adjacent=int 3 {
+            56 170 174 
+         }
+         cells=int 3 {
+            34 39 0 
+         }
+         flags=2
+         numAdj=3
+         numCells=2
+         pirateHealth=0
+         player=0
+         type=OPEN
+         x=0.03571424
+         y=0.6363636
+      }
+      cc.game.soc.core.Vertex {
+         adjacent=int 3 {
+            171 175 0 
+         }
+         cells=int 3 {
+            0 0 0 
+         }
+         flags=0
+         numAdj=2
+         numCells=0
+         pirateHealth=0
+         player=0
+         type=OPEN
+         x=-0.107142925
+         y=0.6363636
+      }
+      cc.game.soc.core.Vertex {
+         adjacent=int 3 {
+            172 175 176 
+         }
+         cells=int 3 {
+            39 0 0 
+         }
+         flags=2
+         numAdj=3
+         numCells=1
+         pirateHealth=0
+         player=0
+         type=OPEN
+         x=-5.9604645E-8
+         y=0.68181825
+      }
+      cc.game.soc.core.Vertex {
+         adjacent=int 3 {
+            174 173 177 
+         }
+         cells=int 3 {
+            0 0 0 
+         }
+         flags=0
+         numAdj=3
+         numCells=0
+         pirateHealth=0
+         player=0
+         type=OPEN
+         x=-0.0714286
+         y=0.68181825
+      }
+      cc.game.soc.core.Vertex {
+         adjacent=int 3 {
+            63 174 178 
+         }
+         cells=int 3 {
+            5 39 0 
+         }
+         flags=2
+         numAdj=3
+         numCells=2
+         pirateHealth=0
+         player=0
+         type=OPEN
+         x=0.03571424
+         y=0.72727275
+      }
+      cc.game.soc.core.Vertex {
+         adjacent=int 3 {
+            175 179 0 
+         }
+         cells=int 3 {
+            0 0 0 
+         }
+         flags=0
+         numAdj=2
+         numCells=0
+         pirateHealth=0
+         player=0
+         type=OPEN
+         x=-0.107142925
+         y=0.72727275
+      }
+      cc.game.soc.core.Vertex {
+         adjacent=int 3 {
+            176 179 215 
+         }
+         cells=int 3 {
+            5 0 0 
+         }
+         flags=2
+         numAdj=3
+         numCells=1
+         pirateHealth=0
+         player=0
+         type=OPEN
+         x=-5.9604645E-8
+         y=0.77272725
+      }
+      cc.game.soc.core.Vertex {
+         adjacent=int 3 {
+            178 177 0 
+         }
+         cells=int 3 {
+            0 0 0 
+         }
+         flags=0
+         numAdj=2
+         numCells=0
+         pirateHealth=0
+         player=0
+         type=OPEN
+         x=-0.0714286
+         y=0.77272725
+      }
+      cc.game.soc.core.Vertex {
+         adjacent=int 3 {
+            181 75 187 
+         }
+         cells=int 3 {
+            45 47 0 
+         }
+         flags=2
+         numAdj=3
+         numCells=2
+         pirateHealth=0
+         player=0
+         type=OPEN
+         x=0.42857137
+         y=0.045454532
+      }
+      cc.game.soc.core.Vertex {
+         adjacent=int 3 {
+            180 182 0 
+         }
+         cells=int 3 {
+            45 0 0 
+         }
+         flags=2
+         numAdj=2
+         numCells=1
+         pirateHealth=0
+         player=0
+         type=OPEN
+         x=0.4642857
+         y=2.9802322E-8
+      }
+      cc.game.soc.core.Vertex {
+         adjacent=int 3 {
+            181 183 0 
+         }
+         cells=int 3 {
+            45 0 0 
+         }
+         flags=2
+         numAdj=2
+         numCells=1
+         pirateHealth=0
+         player=0
+         type=OPEN
+         x=0.53571427
+         y=2.9802322E-8
+      }
+      cc.game.soc.core.Vertex {
+         adjacent=int 3 {
+            182 76 184 
+         }
+         cells=int 3 {
+            45 46 0 
+         }
+         flags=2
+         numAdj=3
+         numCells=2
+         pirateHealth=0
+         player=0
+         type=OPEN
+         x=0.57142854
+         y=0.045454532
+      }
+      cc.game.soc.core.Vertex {
+         adjacent=int 3 {
+            183 185 0 
+         }
+         cells=int 3 {
+            46 0 0 
+         }
+         flags=2
+         numAdj=2
+         numCells=1
+         pirateHealth=0
+         player=0
+         type=OPEN
+         x=0.6428572
+         y=0.045454532
+      }
+      cc.game.soc.core.Vertex {
+         adjacent=int 3 {
+            184 78 188 
+         }
+         cells=int 3 {
+            46 49 0 
+         }
+         flags=2
+         numAdj=3
+         numCells=2
+         pirateHealth=0
+         player=0
+         type=OPEN
+         x=0.67857146
+         y=0.09090909
+      }
+      cc.game.soc.core.Vertex {
+         adjacent=int 3 {
+            187 79 191 
+         }
+         cells=int 3 {
+            47 51 0 
+         }
+         flags=2
+         numAdj=3
+         numCells=2
+         pirateHealth=0
+         player=0
+         type=OPEN
+         x=0.32142857
+         y=0.09090909
+      }
+      cc.game.soc.core.Vertex {
+         adjacent=int 3 {
+            186 180 0 
+         }
+         cells=int 3 {
+            47 0 0 
+         }
+         flags=2
+         numAdj=2
+         numCells=1
+         pirateHealth=0
+         player=0
+         type=OPEN
+         x=0.35714284
+         y=0.045454532
+      }
+      cc.game.soc.core.Vertex {
+         adjacent=int 3 {
+            185 189 0 
+         }
+         cells=int 3 {
+            49 0 0 
+         }
+         flags=2
+         numAdj=2
+         numCells=1
+         pirateHealth=0
+         player=0
+         type=OPEN
+         x=0.7499999
+         y=0.09090909
+      }
+      cc.game.soc.core.Vertex {
+         adjacent=int 3 {
+            188 82 192 
+         }
+         cells=int 3 {
+            49 54 0 
+         }
+         flags=2
+         numAdj=3
+         numCells=2
+         pirateHealth=0
+         player=0
+         type=OPEN
+         x=0.78571427
+         y=0.13636366
+      }
+      cc.game.soc.core.Vertex {
+         adjacent=int 3 {
+            191 85 195 
+         }
+         cells=int 3 {
+            51 57 0 
+         }
+         flags=2
+         numAdj=3
+         numCells=2
+         pirateHealth=0
+         player=0
+         type=OPEN
+         x=0.21428564
+         y=0.13636366
+      }
+      cc.game.soc.core.Vertex {
+         adjacent=int 3 {
+            190 186 0 
+         }
+         cells=int 3 {
+            51 0 0 
+         }
+         flags=2
+         numAdj=2
+         numCells=1
+         pirateHealth=0
+         player=0
+         type=OPEN
+         x=0.24999991
+         y=0.09090909
+      }
+      cc.game.soc.core.Vertex {
+         adjacent=int 3 {
+            189 193 0 
+         }
+         cells=int 3 {
+            54 0 0 
+         }
+         flags=2
+         numAdj=2
+         numCells=1
+         pirateHealth=0
+         player=0
+         type=OPEN
+         x=0.8571428
+         y=0.13636366
+      }
+      cc.game.soc.core.Vertex {
+         adjacent=int 3 {
+            192 90 196 
+         }
+         cells=int 3 {
+            54 61 0 
+         }
+         flags=2
+         numAdj=3
+         numCells=2
+         pirateHealth=0
+         player=0
+         type=OPEN
+         x=0.8928572
+         y=0.18181816
+      }
+      cc.game.soc.core.Vertex {
+         adjacent=int 3 {
+            195 95 197 
+         }
+         cells=int 3 {
+            57 65 0 
+         }
+         flags=2
+         numAdj=3
+         numCells=2
+         pirateHealth=0
+         player=0
+         type=OPEN
+         x=0.107142836
+         y=0.18181816
+      }
+      cc.game.soc.core.Vertex {
+         adjacent=int 3 {
+            194 190 0 
+         }
+         cells=int 3 {
+            57 0 0 
+         }
+         flags=2
+         numAdj=2
+         numCells=1
+         pirateHealth=0
+         player=0
+         type=OPEN
+         x=0.1428571
+         y=0.13636366
+      }
+      cc.game.soc.core.Vertex {
+         adjacent=int 3 {
+            193 131 0 
          }
          cells=int 3 {
             61 0 0 
          }
          flags=2
-         numAdj=3
+         numAdj=2
          numCells=1
          pirateHealth=0
          player=0
          type=OPEN
-         x=1.0
-         y=0.22727263
+         x=0.9642856
+         y=0.18181816
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
-            214 16 206 
+            159 194 0 
          }
          cells=int 3 {
-            4 7 0 
+            65 0 0 
+         }
+         flags=2
+         numAdj=2
+         numCells=1
+         pirateHealth=0
+         player=0
+         type=OPEN
+         x=0.03571424
+         y=0.18181816
+      }
+      cc.game.soc.core.Vertex {
+         adjacent=int 3 {
+            109 201 205 
+         }
+         cells=int 3 {
+            70 72 0 
          }
          flags=2
          numAdj=3
@@ -6167,31 +5927,15 @@ mBoard=cc.game.soc.core.Board {
          pirateHealth=0
          player=0
          type=OPEN
-         x=0.9642856
-         y=0.36363626
+         x=0.42857137
+         y=0.9545455
       }
       cc.game.soc.core.Vertex {
          adjacent=int 3 {
-            215 213 209 
+            108 200 203 
          }
          cells=int 3 {
-            4 0 0 
-         }
-         flags=2
-         numAdj=3
-         numCells=1
-         pirateHealth=0
-         player=0
-         type=OPEN
-         x=1.0
-         y=0.3181817
-      }
-      cc.game.soc.core.Vertex {
-         adjacent=int 3 {
-            18 214 212 
-         }
-         cells=int 3 {
-            4 61 0 
+            70 71 0 
          }
          flags=2
          numAdj=3
@@ -6199,8 +5943,264 @@ mBoard=cc.game.soc.core.Board {
          pirateHealth=0
          player=0
          type=OPEN
+         x=0.57142854
+         y=0.9545455
+      }
+      cc.game.soc.core.Vertex {
+         adjacent=int 3 {
+            199 201 0 
+         }
+         cells=int 3 {
+            70 0 0 
+         }
+         flags=2
+         numAdj=2
+         numCells=1
+         pirateHealth=0
+         player=0
+         type=OPEN
+         x=0.53571427
+         y=1.0
+      }
+      cc.game.soc.core.Vertex {
+         adjacent=int 3 {
+            200 198 0 
+         }
+         cells=int 3 {
+            70 0 0 
+         }
+         flags=2
+         numAdj=2
+         numCells=1
+         pirateHealth=0
+         player=0
+         type=OPEN
+         x=0.4642857
+         y=1.0
+      }
+      cc.game.soc.core.Vertex {
+         adjacent=int 3 {
+            110 203 207 
+         }
+         cells=int 3 {
+            71 74 0 
+         }
+         flags=2
+         numAdj=3
+         numCells=2
+         pirateHealth=0
+         player=0
+         type=OPEN
+         x=0.67857146
+         y=0.909091
+      }
+      cc.game.soc.core.Vertex {
+         adjacent=int 3 {
+            202 199 0 
+         }
+         cells=int 3 {
+            71 0 0 
+         }
+         flags=2
+         numAdj=2
+         numCells=1
+         pirateHealth=0
+         player=0
+         type=OPEN
+         x=0.6428572
+         y=0.9545455
+      }
+      cc.game.soc.core.Vertex {
+         adjacent=int 3 {
+            111 205 209 
+         }
+         cells=int 3 {
+            72 76 0 
+         }
+         flags=2
+         numAdj=3
+         numCells=2
+         pirateHealth=0
+         player=0
+         type=OPEN
+         x=0.32142857
+         y=0.909091
+      }
+      cc.game.soc.core.Vertex {
+         adjacent=int 3 {
+            198 204 0 
+         }
+         cells=int 3 {
+            72 0 0 
+         }
+         flags=2
+         numAdj=2
+         numCells=1
+         pirateHealth=0
+         player=0
+         type=OPEN
+         x=0.35714284
+         y=0.9545455
+      }
+      cc.game.soc.core.Vertex {
+         adjacent=int 3 {
+            114 207 211 
+         }
+         cells=int 3 {
+            40 74 0 
+         }
+         flags=2
+         numAdj=3
+         numCells=2
+         pirateHealth=0
+         player=0
+         type=OPEN
+         x=0.78571427
+         y=0.8636364
+      }
+      cc.game.soc.core.Vertex {
+         adjacent=int 3 {
+            206 202 0 
+         }
+         cells=int 3 {
+            74 0 0 
+         }
+         flags=2
+         numAdj=2
+         numCells=1
+         pirateHealth=0
+         player=0
+         type=OPEN
+         x=0.7499999
+         y=0.909091
+      }
+      cc.game.soc.core.Vertex {
+         adjacent=int 3 {
+            117 209 213 
+         }
+         cells=int 3 {
+            28 76 0 
+         }
+         flags=2
+         numAdj=3
+         numCells=2
+         pirateHealth=0
+         player=0
+         type=OPEN
+         x=0.21428564
+         y=0.8636364
+      }
+      cc.game.soc.core.Vertex {
+         adjacent=int 3 {
+            204 208 0 
+         }
+         cells=int 3 {
+            76 0 0 
+         }
+         flags=2
+         numAdj=2
+         numCells=1
+         pirateHealth=0
+         player=0
+         type=OPEN
+         x=0.24999991
+         y=0.909091
+      }
+      cc.game.soc.core.Vertex {
+         adjacent=int 3 {
+            122 211 214 
+         }
+         cells=int 3 {
+            15 40 0 
+         }
+         flags=2
+         numAdj=3
+         numCells=2
+         pirateHealth=0
+         player=0
+         type=OPEN
+         x=0.8928572
+         y=0.8181819
+      }
+      cc.game.soc.core.Vertex {
+         adjacent=int 3 {
+            210 206 0 
+         }
+         cells=int 3 {
+            40 0 0 
+         }
+         flags=2
+         numAdj=2
+         numCells=1
+         pirateHealth=0
+         player=0
+         type=OPEN
+         x=0.8571428
+         y=0.8636364
+      }
+      cc.game.soc.core.Vertex {
+         adjacent=int 3 {
+            127 213 215 
+         }
+         cells=int 3 {
+            5 28 0 
+         }
+         flags=2
+         numAdj=3
+         numCells=2
+         pirateHealth=0
+         player=0
+         type=OPEN
+         x=0.107142836
+         y=0.8181819
+      }
+      cc.game.soc.core.Vertex {
+         adjacent=int 3 {
+            208 212 0 
+         }
+         cells=int 3 {
+            28 0 0 
+         }
+         flags=2
+         numAdj=2
+         numCells=1
+         pirateHealth=0
+         player=0
+         type=OPEN
+         x=0.1428571
+         y=0.8636364
+      }
+      cc.game.soc.core.Vertex {
+         adjacent=int 3 {
+            153 210 0 
+         }
+         cells=int 3 {
+            15 0 0 
+         }
+         flags=2
+         numAdj=2
+         numCells=1
+         pirateHealth=0
+         player=0
+         type=OPEN
          x=0.9642856
-         y=0.27272713
+         y=0.8181819
+      }
+      cc.game.soc.core.Vertex {
+         adjacent=int 3 {
+            212 178 0 
+         }
+         cells=int 3 {
+            5 0 0 
+         }
+         flags=2
+         numAdj=2
+         numCells=1
+         pirateHealth=0
+         player=0
+         type=OPEN
+         x=0.03571424
+         y=0.8181819
       }
    }
 }

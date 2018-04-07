@@ -1,11 +1,30 @@
 package cc.game.soc.ui;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
 
-import cc.game.soc.core.*;
-import cc.lib.game.*;
-import cc.lib.math.*;
-import cc.lib.utils.Reflector;
+import cc.game.soc.core.Board;
+import cc.game.soc.core.Island;
+import cc.game.soc.core.Route;
+import cc.game.soc.core.RouteType;
+import cc.game.soc.core.Tile;
+import cc.game.soc.core.Vertex;
+import cc.game.soc.core.VertexType;
+import cc.lib.game.AAnimation;
+import cc.lib.game.AGraphics;
+import cc.lib.game.APGraphics;
+import cc.lib.game.GColor;
+import cc.lib.game.GDimension;
+import cc.lib.game.IVector2D;
+import cc.lib.game.Justify;
+import cc.lib.game.Utils;
+import cc.lib.math.CMath;
+import cc.lib.math.MutableVector2D;
+import cc.lib.math.Vector2D;
 
 public class UIBoardRenderer extends UIRenderer {
 
@@ -98,7 +117,8 @@ public class UIBoardRenderer extends UIRenderer {
                 animations.addLast(anim);
         }
         component.redraw();
-        anim.start();
+        if (!anim.isStarted())
+            anim.start();
         if (block) {
             Utils.waitNoThrow(anim, anim.getDuration()+500);
         }
@@ -1029,7 +1049,6 @@ public class UIBoardRenderer extends UIRenderer {
                 }
             }
 
-            
             if (getRenderFlag(RenderFlag.DRAW_CELL_OUTLINES)) {
                 drawTilesOutlined(g);
             }
@@ -1117,11 +1136,10 @@ public class UIBoardRenderer extends UIRenderer {
                 Iterator<AAnimation<AGraphics> > it = animations.iterator();
                 while (it.hasNext()) {
                     AAnimation<AGraphics> a = it.next();
+                    a.update(g);
+                    component.redraw();
                     if (a.isDone()) {
                         it.remove();
-                    } else {
-                        a.update(g);
-                        component.redraw();
                     }
                 }
             }
