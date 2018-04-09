@@ -1776,7 +1776,7 @@ public class Reflector<T> {
      * @param file
      * @throws IOException
      */
-    public final void loadFromFile(File file) throws IOException {
+    public void loadFromFile(File file) throws IOException {
         log.debug("Loading from file %s", file.getAbsolutePath());
         try (InputStream in = new FileInputStream(file)) {
             deserialize(in);

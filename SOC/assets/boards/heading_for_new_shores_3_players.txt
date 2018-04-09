@@ -1,10 +1,172 @@
 ch=0.11111111
 cw=0.14285713
 islands=java.util.Vector {
+   cc.game.soc.core.Island {
+      borderRoute=java.util.ArrayList {
+         java.lang.Integer {
+            80
+         }
+         java.lang.Integer {
+            78
+         }
+         java.lang.Integer {
+            79
+         }
+         java.lang.Integer {
+            88
+         }
+         java.lang.Integer {
+            81
+         }
+         java.lang.Integer {
+            85
+         }
+         java.lang.Integer {
+            86
+         }
+         java.lang.Integer {
+            130
+         }
+         java.lang.Integer {
+            131
+         }
+         java.lang.Integer {
+            89
+         }
+      }
+      discovered=boolean 16 {
+         false false false false false false false false false false false false false false false false 
+      }
+      num=1
+      tiles=java.util.ArrayList {
+         java.lang.Integer {
+            27
+         }
+         java.lang.Integer {
+            59
+         }
+      }
+   }
+   cc.game.soc.core.Island {
+      borderRoute=java.util.ArrayList {
+         java.lang.Integer {
+            47
+         }
+         java.lang.Integer {
+            50
+         }
+         java.lang.Integer {
+            129
+         }
+         java.lang.Integer {
+            128
+         }
+         java.lang.Integer {
+            45
+         }
+         java.lang.Integer {
+            43
+         }
+         java.lang.Integer {
+            117
+         }
+         java.lang.Integer {
+            113
+         }
+         java.lang.Integer {
+            111
+         }
+         java.lang.Integer {
+            116
+         }
+         java.lang.Integer {
+            118
+         }
+         java.lang.Integer {
+            114
+         }
+         java.lang.Integer {
+            38
+         }
+         java.lang.Integer {
+            36
+         }
+         java.lang.Integer {
+            37
+         }
+         java.lang.Integer {
+            41
+         }
+      }
+      discovered=boolean 16 {
+         false false false false false false false false false false false false false false false false 
+      }
+      num=2
+      tiles=java.util.ArrayList {
+         java.lang.Integer {
+            56
+         }
+         java.lang.Integer {
+            55
+         }
+         java.lang.Integer {
+            46
+         }
+         java.lang.Integer {
+            12
+         }
+      }
+   }
+   cc.game.soc.core.Island {
+      borderRoute=java.util.ArrayList {
+         java.lang.Integer {
+            22
+         }
+         java.lang.Integer {
+            26
+         }
+         java.lang.Integer {
+            28
+         }
+         java.lang.Integer {
+            29
+         }
+         java.lang.Integer {
+            21
+         }
+         java.lang.Integer {
+            23
+         }
+         java.lang.Integer {
+            30
+         }
+         java.lang.Integer {
+            31
+         }
+         java.lang.Integer {
+            32
+         }
+         java.lang.Integer {
+            25
+         }
+      }
+      discovered=boolean 16 {
+         false false false false false false false false false false false false false false false false 
+      }
+      num=3
+      tiles=java.util.ArrayList {
+         java.lang.Integer {
+            3
+         }
+         java.lang.Integer {
+            6
+         }
+      }
+   }
 }
 merchantPlayer=0
 merchantTile=-1
-name="%2FUsers%2Fchriscaron%2FDocuments%2Fworkspace2%2FMyStuff%2FJava%2FSOC%2Fboards%2Fheading_for_new_shores_3_players.txt"
+name="heading_for_new_shores_3_players.txt"
 numAvaialbleVerts=96
 pirateRouteStartTile=-1
 pirateTile=-1
@@ -1376,7 +1538,7 @@ tiles=java.util.Vector {
          11 14 15 16 17 12 
       }
       dieNum=0
-      islandNum=0
+      islandNum=3
       numAdj=6
       pirateRouteNext=-1
       type=RANDOM_RESOURCE
@@ -1412,7 +1574,7 @@ tiles=java.util.Vector {
          13 12 17 18 19 20 
       }
       dieNum=0
-      islandNum=0
+      islandNum=3
       numAdj=6
       pirateRouteNext=-1
       type=GOLD
@@ -1484,7 +1646,7 @@ tiles=java.util.Vector {
          27 23 22 25 29 30 
       }
       dieNum=0
-      islandNum=0
+      islandNum=2
       numAdj=6
       pirateRouteNext=-1
       type=RANDOM_RESOURCE
@@ -1664,7 +1826,7 @@ tiles=java.util.Vector {
          53 52 51 57 58 59 
       }
       dieNum=0
-      islandNum=0
+      islandNum=1
       numAdj=6
       pirateRouteNext=-1
       type=RANDOM_RESOURCE
@@ -1892,7 +2054,7 @@ tiles=java.util.Vector {
          80 79 78 81 82 83 
       }
       dieNum=0
-      islandNum=0
+      islandNum=2
       numAdj=6
       pirateRouteNext=-1
       type=RANDOM_RESOURCE
@@ -2000,7 +2162,7 @@ tiles=java.util.Vector {
          78 28 27 30 90 81 
       }
       dieNum=0
-      islandNum=0
+      islandNum=2
       numAdj=6
       pirateRouteNext=-1
       type=RANDOM_RESOURCE
@@ -2012,7 +2174,7 @@ tiles=java.util.Vector {
          90 30 29 32 92 91 
       }
       dieNum=0
-      islandNum=0
+      islandNum=2
       numAdj=6
       pirateRouteNext=-1
       type=RANDOM_RESOURCE
@@ -2048,7 +2210,7 @@ tiles=java.util.Vector {
          58 57 56 94 93 95 
       }
       dieNum=0
-      islandNum=0
+      islandNum=1
       numAdj=6
       pirateRouteNext=-1
       type=GOLD

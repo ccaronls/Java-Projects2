@@ -709,9 +709,9 @@ public class GUI implements ActionListener, MenuItem.Action {
         }
         
         menuStack.push(MenuState.MENU_START);
-		if (!loadBoard(defaultBoardFile.getAbsolutePath())) {
+		if (!loadBoard(defaultBoardFile)) {
 			getBoard().generateDefaultBoard();
-			saveBoard(defaultBoardFile.getAbsolutePath());
+			saveBoard(defaultBoardFile);
 		}
         playerColors = new ColorString[] {
         		new ColorString(GColor.RED, "Red"),
@@ -1754,13 +1754,13 @@ public class GUI implements ActionListener, MenuItem.Action {
         } else if (op == ASSIGN_RANDOM) {
             getBoard().assignRandom();
         } else if (op == SAVE_BOARD_AS_DEFAULT) {
-            saveBoard(defaultBoardFile.getAbsolutePath());
+            saveBoard(defaultBoardFile);
         } else if (op == LOAD_DEFAULT) {
-            if (loadBoard(defaultBoardFile.getAbsolutePath())) {
+            if (loadBoard(defaultBoardFile)) {
                 frame.repaint();
             }
         } else if (op == SAVE_BOARD) {
-            saveBoard(getBoard().getName());
+            saveBoard(new File(getBoard().getName()));
         } else if (op == SAVE_BOARD_AS) {
             JFileChooser chooser = new JFileChooser();
             File baseDir = new File(getProps().getProperty(PROP_BOARDS_DIR, "assets/boards"));
@@ -1780,7 +1780,7 @@ public class GUI implements ActionListener, MenuItem.Action {
                     String fileName = file.getAbsolutePath();
                     if (!fileName.endsWith(".txt"))
                         fileName += ".txt";
-                    saveBoard(fileName);
+                    saveBoard(new File(fileName));
                 }
             }
         } else if (op == LOAD_BOARD) {
@@ -1798,7 +1798,7 @@ public class GUI implements ActionListener, MenuItem.Action {
                 int result = chooser.showOpenDialog(frame);
                 if (result == JFileChooser.APPROVE_OPTION) {
                     File file = chooser.getSelectedFile();
-                    loadBoard(file.getAbsolutePath());
+                    loadBoard(file);
                 }
             }
         } else if (op == REWIND_GAME) {
@@ -1920,9 +1920,9 @@ public class GUI implements ActionListener, MenuItem.Action {
             System.out.println("got Distances in " + dt + " MSecs:\n" + buf);
 
         } else if (op == LOAD_DEBUG) {
-            loadBoard(debugBoard.getAbsolutePath());
+            loadBoard(debugBoard);
         } else if (op == SAVE_DEBUG) {
-            saveBoard(debugBoard.getAbsolutePath());
+            saveBoard(debugBoard);
         } else if (op == AITUNING_NEXT_OPTIMAL_INDEX) {
             optimalIndex = (optimalIndex + 1) % optimalOptions.size();
         } else if (op == AITUNING_PREV_OPTIMAL_INDEX) {
@@ -2037,11 +2037,11 @@ public class GUI implements ActionListener, MenuItem.Action {
 		}
 	}
 	
-	private boolean saveBoard(String fileName) {
+	private boolean saveBoard(File file) {
 		try {
-			getBoard().setName(fileName);
-			getBoard().save(fileName);
-			boardNameLabel.setText(fileName);
+			getBoard().setName(file.getAbsolutePath());
+			getBoard().saveToFile(file);
+			boardNameLabel.setText(file.getName());
 			initMenu();
 		} catch (IOException e) {
 			log.error(e.getMessage());
@@ -2050,12 +2050,12 @@ public class GUI implements ActionListener, MenuItem.Action {
 		return true;
 	}
 	
-	private boolean loadBoard(String fileName) {
+	private boolean loadBoard(File file) {
 		try {
 			Board b = new Board();
-			b.load(fileName);
+			b.loadFromFile(file);
 			getBoard().copyFrom(b);
-			boardNameLabel.setText(fileName);
+			boardNameLabel.setText(file.getName());
 			return true;
 		} catch (Exception e) {
 			log.error(e.getMessage());

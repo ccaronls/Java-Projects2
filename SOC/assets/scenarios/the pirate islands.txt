@@ -1,7 +1,191 @@
+mBarbarianDistance=-1
 mBoard=cc.game.soc.core.Board {
    ch=0.090909086
    cw=0.14285715
    islands=java.util.Vector {
+      cc.game.soc.core.Island {
+         borderRoute=java.util.ArrayList {
+            java.lang.Integer {
+               75
+            }
+            java.lang.Integer {
+               137
+            }
+            java.lang.Integer {
+               73
+            }
+            java.lang.Integer {
+               72
+            }
+            java.lang.Integer {
+               129
+            }
+            java.lang.Integer {
+               127
+            }
+            java.lang.Integer {
+               128
+            }
+            java.lang.Integer {
+               135
+            }
+            java.lang.Integer {
+               121
+            }
+            java.lang.Integer {
+               116
+            }
+            java.lang.Integer {
+               111
+            }
+            java.lang.Integer {
+               108
+            }
+            java.lang.Integer {
+               109
+            }
+            java.lang.Integer {
+               69
+            }
+            java.lang.Integer {
+               66
+            }
+            java.lang.Integer {
+               62
+            }
+            java.lang.Integer {
+               64
+            }
+            java.lang.Integer {
+               70
+            }
+         }
+         discovered=boolean 16 {
+            false false false false false false false false false false false false false false false false 
+         }
+         num=1
+         tiles=java.util.ArrayList {
+            java.lang.Integer {
+               64
+            }
+            java.lang.Integer {
+               56
+            }
+            java.lang.Integer {
+               50
+            }
+            java.lang.Integer {
+               23
+            }
+         }
+      }
+      cc.game.soc.core.Island {
+         borderRoute=java.util.ArrayList {
+            java.lang.Integer {
+               101
+            }
+            java.lang.Integer {
+               103
+            }
+            java.lang.Integer {
+               105
+            }
+            java.lang.Integer {
+               100
+            }
+            java.lang.Integer {
+               98
+            }
+            java.lang.Integer {
+               99
+            }
+         }
+         discovered=boolean 16 {
+            false false false false false false false false false false false false false false false false 
+         }
+         num=2
+         tiles=java.util.ArrayList {
+            java.lang.Integer {
+               42
+            }
+         }
+      }
+      cc.game.soc.core.Island {
+         borderRoute=java.util.ArrayList {
+            java.lang.Integer {
+               133
+            }
+            java.lang.Integer {
+               32
+            }
+            java.lang.Integer {
+               29
+            }
+            java.lang.Integer {
+               27
+            }
+            java.lang.Integer {
+               123
+            }
+            java.lang.Integer {
+               125
+            }
+            java.lang.Integer {
+               131
+            }
+            java.lang.Integer {
+               124
+            }
+            java.lang.Integer {
+               113
+            }
+            java.lang.Integer {
+               119
+            }
+            java.lang.Integer {
+               120
+            }
+            java.lang.Integer {
+               114
+            }
+            java.lang.Integer {
+               112
+            }
+            java.lang.Integer {
+               22
+            }
+            java.lang.Integer {
+               28
+            }
+            java.lang.Integer {
+               30
+            }
+            java.lang.Integer {
+               24
+            }
+            java.lang.Integer {
+               21
+            }
+         }
+         discovered=boolean 16 {
+            false false false false false false false false false false false false false false false false 
+         }
+         num=3
+         tiles=java.util.ArrayList {
+            java.lang.Integer {
+               60
+            }
+            java.lang.Integer {
+               53
+            }
+            java.lang.Integer {
+               48
+            }
+            java.lang.Integer {
+               3
+            }
+         }
+      }
    }
    merchantPlayer=-1
    merchantTile=-1
@@ -1837,7 +2021,7 @@ mBoard=cc.game.soc.core.Board {
             11 14 15 16 17 12 
          }
          dieNum=0
-         islandNum=0
+         islandNum=3
          numAdj=6
          pirateRouteNext=-1
          type=RANDOM_RESOURCE
@@ -2077,7 +2261,7 @@ mBoard=cc.game.soc.core.Board {
             43 44 45 40 39 46 
          }
          dieNum=0
-         islandNum=0
+         islandNum=1
          numAdj=6
          pirateRouteNext=-1
          type=RANDOM_RESOURCE
@@ -2305,7 +2489,7 @@ mBoard=cc.game.soc.core.Board {
             66 67 68 69 65 64 
          }
          dieNum=0
-         islandNum=0
+         islandNum=2
          numAdj=6
          pirateRouteNext=-1
          type=RANDOM_RESOURCE
@@ -2377,7 +2561,7 @@ mBoard=cc.game.soc.core.Board {
             72 77 78 80 81 73 
          }
          dieNum=0
-         islandNum=0
+         islandNum=3
          numAdj=6
          pirateRouteNext=-1
          type=RANDOM_RESOURCE
@@ -2401,7 +2585,7 @@ mBoard=cc.game.soc.core.Board {
             83 79 74 71 70 84 
          }
          dieNum=0
-         islandNum=0
+         islandNum=1
          numAdj=6
          pirateRouteNext=-1
          type=RANDOM_RESOURCE
@@ -2437,7 +2621,7 @@ mBoard=cc.game.soc.core.Board {
             81 80 82 88 89 86 
          }
          dieNum=0
-         islandNum=0
+         islandNum=3
          numAdj=6
          pirateRouteNext=-1
          type=RANDOM_RESOURCE
@@ -2473,7 +2657,7 @@ mBoard=cc.game.soc.core.Board {
             93 85 83 84 91 94 
          }
          dieNum=0
-         islandNum=0
+         islandNum=1
          numAdj=6
          pirateRouteNext=-1
          type=RANDOM_RESOURCE
@@ -2521,7 +2705,7 @@ mBoard=cc.game.soc.core.Board {
             89 88 90 18 15 14 
          }
          dieNum=0
-         islandNum=0
+         islandNum=3
          numAdj=6
          pirateRouteNext=-1
          type=RANDOM_RESOURCE
@@ -2569,7 +2753,7 @@ mBoard=cc.game.soc.core.Board {
             47 95 93 94 45 44 
          }
          dieNum=0
-         islandNum=0
+         islandNum=1
          numAdj=6
          pirateRouteNext=-1
          type=RANDOM_RESOURCE
@@ -6204,6 +6388,28 @@ mBoard=cc.game.soc.core.Board {
       }
    }
 }
+mCurrentPlayer=0
+mDevelopmentCards=java.util.ArrayList {
+}
+mDice=java.util.LinkedList {
+}
+mDiceConfigStack=java.util.Stack {
+}
+mEventCards=java.util.ArrayList {
+}
+mMetropolisPlayer=int 3 {
+   0 0 0 
+}
+mNumPlayers=0
+mPlayers=cc.game.soc.core.Player 6 {
+   null
+   null
+   null
+   null
+   null
+   null
+}
+mProgressCards=null
 mRules=cc.game.soc.core.Rules {
    attackPirateFortressEndsTurn=true
    barbarianStepsToAttack=7
@@ -6242,4 +6448,6 @@ mRules=cc.game.soc.core.Rules {
    pointsPerMetropolis=4
    pointsPerSettlement=1
    unlimitedInventorTiles=true
+}
+mStateStack=java.util.Stack {
 }

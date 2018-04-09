@@ -1,20 +1,24 @@
 package cc.game.soc.core;
 
-public enum CardType {
-	Resource(ResourceType.values()),				// resources for building
-	Commodity(CommodityType.values()),				// used to buy city upgrades
-	Development(DevelopmentCardType.values()),		// SOC
-	Progress(ProgressCardType.values()),			// CAK
-	SpecialVictory(SpecialVictoryType.values()),	// CAK
-	Event(EventCardType.values()),				// No dice variation
-	BarbarianAttackDevelopment(BarbarianAttackDevelopmentCardType.values()),
+import cc.game.soc.android.R;
+
+public enum CardType implements ILocalized{
+	Resource(0, ResourceType.values()),				// resources for building
+	Commodity(0, CommodityType.values()),				// used to buy city upgrades
+	Development(R.string.card_type_development, DevelopmentCardType.values()),		// SOC
+	Progress(R.string.card_type_progress, ProgressCardType.values()),			// CAK
+	SpecialVictory(0, SpecialVictoryType.values()),	// CAK
+	Event(0, EventCardType.values()),				// No dice variation
+	BarbarianAttackDevelopment(0, BarbarianAttackDevelopmentCardType.values()),
 	
 	;
 
-	CardType(Enum<?> [] typeValues) {
-		this.typeValues = typeValues;
+	CardType(int resourceId, Enum<?> [] typeValues) {
+		this.resourceId = resourceId;
+	    this.typeValues = typeValues;
 	}
-	
+
+	final int resourceId;
 	final Enum<?> [] typeValues;
 	
 	public ICardType<?> dereferenceOrdinal(int typeOrdinal) {
@@ -28,4 +32,12 @@ public enum CardType {
 	public int getCount() {
 		return typeValues.length;
 	}
+
+
+    @Override
+    public String getName(StringResource sr) {
+	    if (resourceId == 0)
+	        return "";
+        return sr.getString(resourceId);
+    }
 }

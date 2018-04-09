@@ -1372,12 +1372,13 @@ public class Utils {
         randGen.setSeed(seed);
     }
 
-    public static String toString(int[] array) {
+    public static String toString(int[] array, int startIndex, int len) {
         StringBuffer buf = new StringBuffer("[");
-        int i = 0;
-        for (; i < array.length - 1; i++)
+        int i = startIndex;
+        for (; i < len - 1; i++)
             buf.append(array[i]).append(", ");
-        buf.append(array[i]).append("]");
+        if (len > 0)
+            buf.append(array[i]).append("]");
         return buf.toString();
     }
 
@@ -1389,8 +1390,8 @@ public class Utils {
         StringBuffer buf = new StringBuffer("{");
         int i = 0;
         for (; i < array.length - 1; i++)
-            buf.append(toString(array[i])).append(", ");
-        buf.append(toString(array[i])).append("}");
+            buf.append(toString(array[i], 0, array[i].length)).append(", ");
+        buf.append(toString(array[i], 0, array[i].length)).append("}");
         return buf.toString();
     }
 

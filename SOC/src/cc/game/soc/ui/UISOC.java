@@ -756,7 +756,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
     @Keep
     protected void onCardPicked(final int playerNum, final Card card) {
         server.broadcastExecuteOnRemote(NetCommon.SOC_ID, playerNum, card);
-        String txt = "";
+        String txt = card.getCardType().getName(this);
         Player player = getPlayerByPlayerNum(playerNum);
         if (((UIPlayer)player).isInfoVisible()) {
             txt = card.getName(this);
@@ -891,6 +891,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
     protected void onDiscoverTerritory(int player, int tile) {
         server.broadcastExecuteOnRemote(NetCommon.SOC_ID, player, tile);
         addCardAnimation(player, "Territory\nDiscovered");
+        boardRenderer.clearCached();
         super.onDiscoverTerritory(player, tile);
     }
 
@@ -908,7 +909,9 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
     @Keep
     protected void onTilesInvented(int player, final int tile0, final int tile1) {
         server.broadcastExecuteOnRemote(NetCommon.SOC_ID, player, tile0, tile1);
+        boardRenderer.clearCached();
         boardRenderer.startTilesInventedAnimation(getBoard().getTile(tile0), getBoard().getTile(tile1));
+        boardRenderer.clearCached();
         super.onTilesInvented(player, tile0, tile1);
     }
 

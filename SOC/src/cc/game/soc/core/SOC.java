@@ -2338,12 +2338,12 @@ public class SOC extends Reflector<SOC> implements StringResource {
 					if (getDice()[0].getNum() > info.minScore - info.knightStrength) {
 						switch (info.destroyedType) {
 							case DAMAGED_ROAD:
-								printinfo(getString(R.string.info_player_has_destroyoed_road, getCurPlayer().getName()));
+								printinfo(getString(R.string.info_player_has_damaged_road, getCurPlayer().getName()));
 								onRoadDamaged(routeIndex, getCurPlayerNum(), victim.getPlayerNum());
 								r.setType(RouteType.DAMAGED_ROAD);
 								break;
 							case OPEN:
-								printinfo(getString(R.string.info_player_has_destroyoed_road, getCurPlayer().getName()));
+								printinfo(getString(R.string.info_player_has_destroyed_road, getCurPlayer().getName()));
 								onRoadDestroyed(routeIndex, getCurPlayerNum(), victim.getPlayerNum());
 								getBoard().setRouteOpen(r);
 								processRouteChange(victim, r);

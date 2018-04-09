@@ -8,6 +8,7 @@ import android.content.pm.PackageManager;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
@@ -33,9 +34,11 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Properties;
 import java.util.Stack;
 import java.util.Vector;
 
+import cc.game.soc.core.AITuning;
 import cc.game.soc.core.Board;
 import cc.game.soc.core.BuildableType;
 import cc.game.soc.core.ResourceType;
@@ -53,10 +56,12 @@ import cc.game.soc.ui.UIPlayerRenderer;
 import cc.game.soc.ui.UIPlayerUser;
 import cc.game.soc.ui.UISOC;
 import cc.lib.android.ArrayListAdapter;
+import cc.lib.android.BuildConfig;
 import cc.lib.android.CCActivityBase;
 import cc.lib.android.CCNumberPicker;
 import cc.lib.game.GColor;
 import cc.lib.game.Utils;
+import cc.lib.utils.FileUtils;
 
 /**
  * Created by chriscaron on 2/15/18.
@@ -275,6 +280,24 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
             @Override
             protected void onShouldSaveGame() {
                 trySaveToFile(gameFile);
+                if (BuildConfig.DEBUG) try {
+                    FileUtils.backupFile(Environment.getExternalStorageDirectory().getAbsolutePath() + "/socsave.txt", 20);
+                    FileUtils.copyFile(gameFile, new File(Environment.getExternalStorageDirectory(), "socsave.txt"));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            @Override
+            protected void onGameOver(int winnerNum) {
+                super.onGameOver(winnerNum);
+                clearMenu();
+                addMenuItem(QUIT);
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        adapter.notifyDataSetChanged();
+                    }
+                });
             }
         };
         soc.setBoard(vBoard.getRenderer().getBoard());
@@ -282,6 +305,31 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
         if (rules.tryLoadFromFile(rulesFile)) {
             soc.setRules(rules);
         }
+
+        final Properties aiTuning = new Properties();
+        try {
+            InputStream in = getAssets().open("aituning.properties");
+            try {
+                aiTuning.load(in);
+            } finally {
+                in.close();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        AITuning.setInstance(new AITuning() {
+
+            @Override
+            public double getScalingFactor(String property) {
+                if (!aiTuning.containsKey(property)) {
+                    aiTuning.setProperty(property, "1.0");
+                    return 1.0;
+                }
+
+                return Double.valueOf(aiTuning.getProperty(property));
+            }
+        });
     }
 
 
@@ -617,127 +665,148 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
         }
     }
 
-    void showRulesDialog() {
-        final boolean canEdit = !soc.isRunning() && !user.client.isConnected();
-        final Rules rules = soc.getRules().deepCopy();
+    class RulesAdapter extends BaseAdapter implements CompoundButton.OnCheckedChangeListener, View.OnClickListener {
 
+        final boolean canEdit;
+        final Rules rules;
         final List<RuleItem> rulesList = new ArrayList<>();
-        for (Rules.Variation v : Rules.Variation.values())
-            rulesList.add(new RuleItem(v));
-        for (Field f : Rules.class.getDeclaredFields()) {
-            Annotation[] anno = f.getAnnotations();
-            for (Annotation a : anno) {
-                if (a.annotationType().equals(Rules.Rule.class)) {
-                    f.setAccessible(true);
-                    final Rules.Rule ruleVar = (Rules.Rule) a;
-                    rulesList.add(new RuleItem(ruleVar, f));
+
+        RulesAdapter(Rules rules, boolean canEdit) {
+            this.rules = rules;
+            this.canEdit = canEdit;
+            for (Rules.Variation v : Rules.Variation.values())
+                rulesList.add(new RuleItem(v));
+            for (Field f : Rules.class.getDeclaredFields()) {
+                Annotation[] anno = f.getAnnotations();
+                for (Annotation a : anno) {
+                    if (a.annotationType().equals(Rules.Rule.class)) {
+                        f.setAccessible(true);
+                        final Rules.Rule ruleVar = (Rules.Rule) a;
+                        rulesList.add(new RuleItem(ruleVar, f));
+                    }
                 }
             }
+            Collections.sort(rulesList);
         }
-        Collections.sort(rulesList);
-        ListView lv = new ListView(this);
-        BaseAdapter rulesAdapter = new BaseAdapter() {
-            @Override
-            public int getCount() {
-                return rulesList.size();
-            }
 
-            @Override
-            public Object getItem(int position) {
-                return null;
-            }
+        @Override
+        public int getCount() {
+            return rulesList.size();
+        }
 
-            @Override
-            public long getItemId(int position) {
-                return position;
-            }
+        @Override
+        public Object getItem(int position) {
+            return null;
+        }
 
-            @Override
-            public View getView(int position, View v, ViewGroup parent) {
-                if (v == null) {
-                    v = View.inflate(SOCActivity.this, R.layout.rules_list_item, null);
+        @Override
+        public long getItemId(int position) {
+            return position;
+        }
+
+        @Override
+        public View getView(int position, View v, ViewGroup parent) {
+            if (v == null) {
+                v = View.inflate(SOCActivity.this, R.layout.rules_list_item, null);
+            }
+            TextView tvHeader  = (TextView)v.findViewById(R.id.tvHeader);
+            //TextView tvName    = (TextView)v.findViewById(R.id.tvName);
+            TextView tvDesc    = (TextView)v.findViewById(R.id.tvDescription);
+            CompoundButton cb  = (CompoundButton)v.findViewById(R.id.cbEnabled);
+            final Button bEdit = (Button)v.findViewById(R.id.bEdit);
+
+            try {
+                final RuleItem item = rulesList.get(position);
+                if (item.field == null) {
+                    // header
+                    tvHeader.setVisibility(View.VISIBLE);
+                    //tvName.setVisibility(View.GONE);
+                    tvDesc.setVisibility(View.GONE);
+                    cb.setVisibility(View.GONE);
+                    bEdit.setVisibility(View.GONE);
+                    tvHeader.setText(item.stringId);
+                } else if (item.field.getType().equals(boolean.class)) {
+                    // checkbox
+                    tvHeader.setVisibility(View.GONE);
+                    //tvName.setVisibility(View.GONE);
+                    tvDesc.setVisibility(View.VISIBLE);
+                    cb.setVisibility(View.VISIBLE);
+                    bEdit.setVisibility(View.GONE);
+                    //tvName.setText(item.field.getName());
+                    tvDesc.setText(item.stringId);
+                    cb.setOnCheckedChangeListener(null);
+                    cb.setChecked(item.field.getBoolean(rules));
+                    cb.setEnabled(canEdit);
+                    cb.setTag(item);
+                    cb.setOnCheckedChangeListener(this);
+                } else if (item.field.getType().equals(int.class)) {
+                    // numberpicker
+                    tvHeader.setVisibility(View.GONE);
+                    //tvName.setVisibility(View.GONE);
+                    tvDesc.setVisibility(View.VISIBLE);
+                    cb.setVisibility(View.GONE);
+                    bEdit.setVisibility(View.VISIBLE);
+                    //tvName.setText(item.field.getName());
+                    tvDesc.setText(item.stringId);
+                    final int value = item.field.getInt(rules);
+                    bEdit.setText(String.valueOf(value));
+                    bEdit.setEnabled(canEdit);
+                    bEdit.setTag(item);
+                    bEdit.setOnClickListener(this);
+                } else {
+                    throw new AssertionError("Dont know how to handle field: " + item.field.getName());
                 }
-                TextView tvHeader  = (TextView)v.findViewById(R.id.tvHeader);
-                //TextView tvName    = (TextView)v.findViewById(R.id.tvName);
-                TextView tvDesc    = (TextView)v.findViewById(R.id.tvDescription);
-                CompoundButton cb  = (CompoundButton)v.findViewById(R.id.cbEnabled);
-                final Button bEdit = (Button)v.findViewById(R.id.bEdit);
 
-                try {
-                    final RuleItem item = rulesList.get(position);
-                    if (item.field == null) {
-                        // header
-                        tvHeader.setVisibility(View.VISIBLE);
-                        //tvName.setVisibility(View.GONE);
-                        tvDesc.setVisibility(View.GONE);
-                        cb.setVisibility(View.GONE);
-                        bEdit.setVisibility(View.GONE);
-                        tvHeader.setText(item.stringId);
-                    } else if (item.field.getType().equals(boolean.class)) {
-                        // checkbox
-                        tvHeader.setVisibility(View.GONE);
-                        //tvName.setVisibility(View.GONE);
-                        tvDesc.setVisibility(View.VISIBLE);
-                        cb.setVisibility(View.VISIBLE);
-                        bEdit.setVisibility(View.GONE);
-                        //tvName.setText(item.field.getName());
-                        tvDesc.setText(item.stringId);
-                        cb.setChecked(item.field.getBoolean(rules));
-                        cb.setEnabled(canEdit);
-                        cb.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            } catch (Exception e) {
+                throw new AssertionError(e);
+            }
+            return v;
+        }
+
+        @Override
+        public void onClick(final View v) {
+            try {
+                final RuleItem item = (RuleItem) v.getTag();
+                final int value = item.field.getInt(rules);
+
+                final NumberPicker np = CCNumberPicker.newPicker(SOCActivity.this, value, item.min, item.max, null);
+                newDialog(false).setTitle(item.field.getName()).setView(np).setNegativeButton("Cancel", null)
+                        .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
                             @Override
-                            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                            public void onClick(DialogInterface dialog, int which) {
                                 try {
-                                    item.field.setBoolean(rules, isChecked);
+                                    item.field.setInt(rules, np.getValue());
+                                    ((Button) v).setText(String.valueOf(np.getValue()));
                                 } catch (Exception e) {
                                     e.printStackTrace();
                                 }
                             }
-                        });
-                    } else if (item.field.getType().equals(int.class)) {
-                        // numberpicker
-                        tvHeader.setVisibility(View.GONE);
-                        //tvName.setVisibility(View.GONE);
-                        tvDesc.setVisibility(View.VISIBLE);
-                        cb.setVisibility(View.GONE);
-                        bEdit.setVisibility(View.VISIBLE);
-                        //tvName.setText(item.field.getName());
-                        tvDesc.setText(item.stringId);
-                        final int value = item.field.getInt(rules);
-                        bEdit.setText(String.valueOf(value));
-                        bEdit.setEnabled(canEdit);
-                        bEdit.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                final NumberPicker np = CCNumberPicker.newPicker(SOCActivity.this, value, item.min, item.max, null);
-                                newDialog(false).setTitle(item.field.getName()).setView(np).setNegativeButton("Cancel", null)
-                                        .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-                                            @Override
-                                            public void onClick(DialogInterface dialog, int which) {
-                                                try {
-                                                    item.field.setInt(rules, np.getValue());
-                                                    bEdit.setText(String.valueOf(np.getValue()));
-                                                } catch (Exception e) {
-                                                    e.printStackTrace();
-                                                }
-                                            }
-                                        }).show();
-                            }
-                        });
-                    } else {
-                        log.error("Dont know how to handle field: " + item.field.getName());
-                    }
-
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                return v;
+                        }).show();
+            } catch (Exception e) {
+                throw new AssertionError(e);
             }
-        };
-        lv.setAdapter(rulesAdapter);
+        }
+
+        @Override
+        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+            final RuleItem item = (RuleItem)buttonView.getTag();
+            try {
+                item.field.setBoolean(rules, isChecked);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    void showRulesDialog() {
+        final boolean canEdit = !soc.isRunning() && !user.client.isConnected();
+        final Rules rules = soc.getRules().deepCopy();
+        ListView lv = new ListView(this);
+        lv.setAdapter(new RulesAdapter(rules, canEdit));
         AlertDialog.Builder b = newDialog(true).setTitle("Rules").setView(lv);
         if (canEdit) {
-            b.setNegativeButton("Discard", null).setNeutralButton("Save", new DialogInterface.OnClickListener() {
+            b.setNegativeButton("Discard", null)
+            .setNeutralButton("Save", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
                     rules.trySaveToFile(rulesFile);
@@ -766,22 +835,6 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
     protected void onResume() {
         super.onResume();
         showStartMenu();
-        /*
-        if (soc.getNumPlayers() > 0 && soc.getWinner() == null)
-            soc.startGameThread();
-        else if (!soc.isGameRunning())
-            showNewGameDialog(false);
-
-        if (saveFile.exists()) {
-            if (Build.VERSION.SDK_INT >= 23) {
-                if (checkPermission()) {
-                    copyFileToExt();
-                } else {
-                    requestPermission();
-                }
-            }
-        }
-*/
     }
 
     final int PERMISSION_REQUEST_CODE = 1001;

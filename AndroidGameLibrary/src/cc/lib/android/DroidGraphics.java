@@ -30,6 +30,7 @@ public class DroidGraphics extends APGraphics {
         this.canvas = canvas;
         r.setOrtho(0, width, 0, height);
         paint.setStrokeWidth(1);
+        paint.setAntiAlias(true);
     }
 
     public final void shutDown() {

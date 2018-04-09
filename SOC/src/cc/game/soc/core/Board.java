@@ -1804,8 +1804,10 @@ public class Board extends Reflector<Board> {
 		
 		if (rules.isEnableBuildShipsFromPort()) {
 			for (Tile t : getRouteTiles(edge)) {
-				if (t.isPort())
-					return true;
+				if (t.isPort()) {
+				    if (isVertexAdjacentToPlayerRoad(edge.getFrom(), playerNum) || isVertexAdjacentToPlayerRoad(edge.getTo(), playerNum))
+				        return true;
+                }
 			}
 		}
 		
@@ -2040,15 +2042,6 @@ public class Board extends Reflector<Board> {
     	}
     	return 0;
     }
-
-	public void load(String string) throws IOException {
-		loadFromFile(new File(string));
-		Collections.sort(routes);
-	}
-
-	public void save(String string) throws IOException {
-		saveToFile(new File(string));
-	}
 
 	public void translate(float dx, float dy) {
 		for (Vertex v : verts) {
@@ -2555,6 +2548,9 @@ public class Board extends Reflector<Board> {
 		this.pirateRouteStartTile = pirateRouteStartTile;
 	}
 
+	@Omit
+    private static final HashMap<String, IDistances> distancesCache = new HashMap<>();
+
 	/**
 	 * Return a structure that can compute the distance/path between any 2 vertices.  
 	 * When transitioning from land to water, these routes must pass through a structure and/or port depending on rules.
@@ -2579,10 +2575,14 @@ public class Board extends Reflector<Board> {
 				}
 				dist[i][i] = 0;
 			}
-			
-			// Assign distances to edges
-			for (Route r: getRoutes()) {
 
+			int [] rcache = new int[routes.size()];
+			int rcacheLen = 0;
+
+			// Assign distances to edges
+			for (int rIndex=0; rIndex<routes.size(); rIndex++) {
+
+			    Route r = routes.get(rIndex);
 				final int v0 = r.getFrom();
 				final int v1 = r.getTo();
 				
@@ -2593,6 +2593,7 @@ public class Board extends Reflector<Board> {
 						case DAMAGED_ROAD:
 						case ROAD:
 							dist[v0][v1] = dist[v1][v0] = 0;
+							rcache[rcacheLen++] = rIndex;
 							break;
 						case SHIP:
 						case WARSHIP:
@@ -2604,8 +2605,14 @@ public class Board extends Reflector<Board> {
 				}
 				
 			}
-			
-			// All-Pairs shortest paths [Floyd-Marshall O(|V|^3)] algorithm.  This is a good choice for dense graphs like ours
+
+            // OPTIMIZATION: check if the current route configuration has already been done, then no need to do it again
+            Arrays.sort(rcache, 0, rcacheLen);
+            String str = Utils.toString(rcache, 0, rcacheLen);
+            if (distancesCache.containsKey(str))
+                return distancesCache.get(str);
+
+            // All-Pairs shortest paths [Floyd-Marshall O(|V|^3)] algorithm.  This is a good choice for dense graphs like ours
 			// where every vertex has 2 or 3 edges.  The memory usage and complexity of a Dijkstra's make it less desirable.  
 			for (int k=0; k<numV; k++) {
 				for (int i=0; i<numV; i++) {
@@ -2619,11 +2626,13 @@ public class Board extends Reflector<Board> {
 				}
 			}		
 			
-			return new DistancesLand(dist, next);
+			IDistances d = new DistancesLand(dist, next);
+			distancesCache.put(str, d);
+			return d;
 		}
 	}
 
-	private DistancesLandWater computeDistancesLandWater(final Rules rules, int playerNum) {
+	private IDistances computeDistancesLandWater(final Rules rules, int playerNum) {
 		
 		final int numV = getNumAvailableVerts();
 		final int [][] distLand = new int[numV][numV];
@@ -2641,10 +2650,14 @@ public class Board extends Reflector<Board> {
 			distLand[i][i] = 0;
 			distAqua[i][i] = 0;
 		}
-		
-		// Assign distances to edges
-		for (Route r: getRoutes()) {
 
+		int [] rcache = new int[routes.size()];
+		int rcacheLen = 0;
+
+		// Assign distances to edges
+		for (int rIndex =0; rIndex<routes.size(); rIndex++) {
+
+		    Route r= routes.get(rIndex);
 			final int v0 = r.getFrom();
 			final int v1 = r.getTo();
 			
@@ -2660,10 +2673,12 @@ public class Board extends Reflector<Board> {
 					case DAMAGED_ROAD:
 					case ROAD:
 						distLand[v0][v1] = distLand[v1][v0] = 0;
+						rcache[rcacheLen++] = rIndex;
 						break;
 					case SHIP:
 					case WARSHIP:
 						distAqua[v0][v1] = distAqua[v1][v0] = 0;
+						rcache[rcacheLen++] = rIndex*1000; // for water
 						break;
 					case OPEN:
 					default:
@@ -2671,9 +2686,14 @@ public class Board extends Reflector<Board> {
 					
 				}
 			}
-			
 		}
-		
+
+		// OPTIMIZATION: check if the current route configuration has already been done, then no need to do it again
+        Arrays.sort(rcache, 0, rcacheLen);
+		String str = Utils.toString(rcache, 0, rcacheLen);
+		if (distancesCache.containsKey(str))
+		    return distancesCache.get(str);
+
 		// All-Pairs shortest paths [Floyd-Marshall O(|V|^3)] algorithm.  This is a good choice for dense graphs like ours
 		// where every vertex has 2 or 3 edges.  The memory usage and complexity of a Dijkstra's make it less desirable.  
 		for (int k=0; k<numV; k++) {
@@ -2701,7 +2721,7 @@ public class Board extends Reflector<Board> {
 			if (v.isAdjacentToWater()) {
     			if (v.isStructure() && v.getPlayer() == playerNum) {
     				launchVerts.add(vIndex);
-    			} else if (v.getPlayer() == 0 && rules.isEnableBuildShipsFromPort()) {
+    			} else if (v.getPlayer() == 0 && rules.isEnableBuildShipsFromPort() && isVertexAdjacentToPlayerRoute(vIndex, playerNum)) {
     				for (Tile t : getVertexTiles(vIndex)) {
     					if (t.getType().isPort) {
     						launchVerts.add(vIndex);
@@ -2713,9 +2733,16 @@ public class Board extends Reflector<Board> {
 			
 		}
 		
-		return new DistancesLandWater(distLand, nextLand, distAqua, nextAqua, launchVerts);
+		IDistances d = new DistancesLandWater(distLand, nextLand, distAqua, nextAqua, launchVerts);
+		distancesCache.put(str, d);
+		return d;
 	}
-	
+
+	@Override
+    public void loadFromFile(File file) throws IOException {
+        super.loadFromFile(file);
+        setName(file.getAbsolutePath());
+    }
 }
 
 

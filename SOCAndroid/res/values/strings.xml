@@ -245,7 +245,8 @@
     <string name="info_player_gives_card_x_to_player">%1$s gives a %2$s card to %3$s</string>
     <string name="info_player_choose_road_to_attack">%s choose road to attack</string>
     <string name="info_player_attacking_victims_road">%1$s is attacking %2$s\'s road</string>
-    <string name="info_player_has_destroyoed_road">%s has destoryed the road</string>
+    <string name="info_player_has_damaged_road">%s has damaged the road</string>
+    <string name="info_player_has_destroyed_road">%s has destroyed the road</string>
     <string name="info_player_failed_to_destroy_road">%s failed to destroy the road</string>
     <string name="info_player_choose_structure_to_attack">%s choose structure to attack</string>
     <string name="info_player_is_attacking_victim_structure_with_knight">%1$s is attacking %2$s\'s %3$s with knight strength %4$s</string>
@@ -516,5 +517,8 @@
     <string name="menu_item_resume">Resume</string>
     <string name="menu_item_boards">Boards</string>
     <string name="menu_item_scenarios">Scenarios</string>
+
+    <string name="card_type_development">Development</string>
+    <string name="card_type_progress">Progress</string>
 
 </resources>
