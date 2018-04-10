@@ -2,6 +2,7 @@
 <resources>
 
     <string name="app_name">Senators</string>
+    <string name="cached_file_provider_authority">cc.game.soc.android</string>
 
     <!-- VERTEX TYPES -->
     <string name="vertex_type_open">Open</string>
@@ -209,7 +210,7 @@
     <string name="info_player_placing_pirate_on_cell">%1$s placing pirate on cell %2$s</string>
     <string name="info_player_placing_robber_on_cell">%1$s placing robber on cell %2$s</string>
     <string name="info_player_place_pirate">%s place pirate</string>
-    <string name="info_player_choose_oppoennt_to_take_resource">%s choose opponent to take resource from</string>
+    <string name="info_player_choose_oppoennt_to_take_resource">%s choose opponent to take card from</string>
     <string name="info_player_choose_opponent_for_gift">%s choose opponent for gift</string>
     <string name="info_player_choose_resource_to_monopolize">%s choose resource to monopolize</string>
     <string name="info_player_must_give_up_n_of_n_cards">%1$s must give up %2$d of %3$d cards</string>
@@ -518,7 +519,48 @@
     <string name="menu_item_boards">Boards</string>
     <string name="menu_item_scenarios">Scenarios</string>
 
+    <string name="card_type_resource">Resource</string>
+    <string name="card_type_commodity">Commodity</string>
     <string name="card_type_development">Development</string>
     <string name="card_type_progress">Progress</string>
+
+    <string name="anim_aqeduct_ability">Aqueduct Ability!</string>
+    <string name="anim_territory_discovered">Territory\nDiscovered</string>
+    <string name="anim_explorer_lost">Explorer Lost!</string>
+    <string name="anim_explorer_gained">Explorer Gained!</string>
+
+    <string name="anim_knight_destroyed">Knight\nDestroyed</string>
+    <string name="anim_knight_demoted_arg">Demoted to\n%s</string>
+    <string name="anim_harbor_master">Harbor Master</string>
+    <string name="anim_harbor_master_lost">Harbor Master Lost!</string>
+    <string name="anim_largest_army">Largest Army</string>
+    <string name="anim_largest_army_lost">Largest Army Lost!</string>
+    <string name="anim_longest_road">Longest Road</string>
+    <string name="anim_longest_road_lost">Longest Road Lost!</string>
+    <string name="anim_island_discovered_arg">Island %s\nDiscovered!</string>
+    <string name="anim_metro_lost_arg">Metropolis\n%s\nLost!</string>
+    <string name="anim_metro_stolen_arg">Metropolis\n%s\nStolen!</string>
+    <string name="anim_route_reduced_arg">Route Reduced!\n-%d</string>
+    <string name="anim_route_increased_arg">Route Increased!\n+%d</string>
+    <string name="anim_road_destroyed">Road Destroyed</string>
+    <string name="anim_road_damaged">Road Damaged.\nCannt build another\nuntil it is repaired</string>
+    <string name="anim_structure_demoted">%1$s Reduced to %2$s</string>
+    <string name="anim_knight_promoted">Promoted to\n%s</string>
+    <string name="anim_ship_comandeered">Ship Commandeered by %s</string>
+    <string name="anim_ship_destroyed">Ship Destroyed</string>
+    <string name="anim_player_wins">%s WINS!!!</string>
+    <string name="anim_trade_summary">Trade\n %1$s\n -%2$d</string>
+
+    <string name="popup_title_pirate_attack">Pirate Attack</string>
+    <string name="popup_content_pirate_attack">Pirates attack %1$s\nPlayer Strength %2$d\nPirate Stength %3$d\n</string>
+    <string name="popup_content_player_attack_fortress_summary">%1$s attacks the pirate fortress!\nPlayer Strength %2$d\nPirate Stength %3$d\nResult:\n%4$s</string>
+    <string name="popup_content_player_attack_fortress_result_conquered">Player %s has conquered the fortress!</string>
+    <string name="popup_content_player_attack_fortress_result_player_won">Player damages the fortress</string>
+    <string name="popup_content_player_attack_fortress_result_player_lost">Player loses battle and 2 ships</string>
+    <string name="popup_content_player_attack_fortress_result_draw">Battle is a draw.  Player lost a ship</string>
+    <string name="popup_content_player_attack_opponent_summary">%1$s is attacking %2$s\'s %3$s\n%4$s\'s score : %5$d\n%6$s's score : %7$d</string>
+    <string name="popup_title_player_attack">Player Attack!</string>
+    <string name="popup_title_barbarian_attack">Barbarian Attack</string>
+    <string name="popup_content_barbarian_attack_summry">Barbarian Attack!\n\nBarbarian Strength %1$d\nCatan Strength %2$d\n</string>
 
 </resources>

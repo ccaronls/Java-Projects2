@@ -3,8 +3,8 @@ package cc.game.soc.core;
 import cc.game.soc.android.R;
 
 public enum CardType implements ILocalized{
-	Resource(0, ResourceType.values()),				// resources for building
-	Commodity(0, CommodityType.values()),				// used to buy city upgrades
+	Resource(R.string.card_type_resource, ResourceType.values()),				// resources for building
+	Commodity(R.string.card_type_commodity, CommodityType.values()),				// used to buy city upgrades
 	Development(R.string.card_type_development, DevelopmentCardType.values()),		// SOC
 	Progress(R.string.card_type_progress, ProgressCardType.values()),			// CAK
 	SpecialVictory(0, SpecialVictoryType.values()),	// CAK

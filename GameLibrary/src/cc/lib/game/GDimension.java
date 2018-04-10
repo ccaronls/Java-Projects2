@@ -20,5 +20,15 @@ public class GDimension extends Reflector<GDimension> {
 		this.width = w;
 		this.height = h;
 	}
+
+	@Override
+    public final boolean equals(Object o) {
+	    if (o == this)
+	        return true;
+	    if (o == null)
+	        return false;
+        GDimension og = (GDimension)o;
+        return og.width == width && og.height == height;
+    }
 	
 }

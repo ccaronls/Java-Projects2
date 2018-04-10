@@ -529,7 +529,7 @@ public class UIBoardRenderer extends UIRenderer {
 		drawFaces(g, pos, angle, radius, radius, structure, outline);
 	}
 
-	private HashMap<FaceType, Face[]> faceMap = new HashMap<UIBoardRenderer.FaceType, UIBoardRenderer.Face[]>();
+	private HashMap<FaceType, Face[]> faceMap = new HashMap<>();
 	
 	private Face [] getStructureFaces(FaceType s) {
 		Face [] faces = faceMap.get(s);

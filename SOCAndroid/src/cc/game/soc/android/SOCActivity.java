@@ -27,11 +27,13 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
@@ -59,6 +61,7 @@ import cc.lib.android.ArrayListAdapter;
 import cc.lib.android.BuildConfig;
 import cc.lib.android.CCActivityBase;
 import cc.lib.android.CCNumberPicker;
+import cc.lib.android.EmailHelper;
 import cc.lib.game.GColor;
 import cc.lib.game.Utils;
 import cc.lib.utils.FileUtils;
@@ -117,7 +120,7 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
 
         lvMenu = (ListView) findViewById(R.id.soc_menu_list);
         vConsole = (SOCView) findViewById(R.id.soc_console);
-        vConsole.renderer.setMaxVisibleLines(100);
+        vConsole.renderer.setMinVisibleLines(5);
         svPlayers = (ScrollView)findViewById(R.id.svPlayers);
         vDice.renderer.initImages(R.drawable.dicesideship2, R.drawable.dicesidecity_red2, R.drawable.dicesidecity_green2, R.drawable.dicesidecity_blue2);
 
@@ -130,6 +133,7 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
         SINGLE_PLAYER= new MenuItem(getString(R.string.menu_item_sp), null, this);
         MULTI_PLAYER = new MenuItem(getString(R.string.menu_item_mp), null, this);
         RESUME       = new MenuItem(getString(R.string.menu_item_resume), null, this);
+        LOADSAVED    = new MenuItem("Load Saved", null, this);
         BOARDS       = new MenuItem(getString(R.string.menu_item_boards), null, this);
         SCENARIOS    = new MenuItem(getString(R.string.menu_item_scenarios), null, this);
 
@@ -237,13 +241,14 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
                     runOnUiThread(new Runnable() {
                         public void run() {
                             svPlayers.smoothScrollTo(0, vPlayers[soc.getCurPlayerNum() - 1].getTop());
-                            content.invalidate();
-                            vConsole.requestLayout();
+                            //content.invalidate();
+                            //vConsole.requestLayout();
                             vConsole.invalidate();
                             for (final SOCView v : vPlayers) {
-                                v.requestLayout();
+                                //v.requestLayout();
                                 v.invalidate();
                             }
+                            vBarbarian.invalidate();
                         }
                     });
                 }
@@ -299,6 +304,34 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
                     }
                 });
             }
+
+            @Override
+            protected void onRunError(final Throwable e) {
+                super.onRunError(e);
+                runOnUiThread(new Runnable() {
+                    public void run() {
+                        showStartMenu();
+                        newDialog(true).setTitle("Error").setMessage("An error occurred:\n" + e.getClass().getSimpleName() + "  " + e.getMessage())
+                                .setNegativeButton("Ignore", null)
+                                .setPositiveButton("Report", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        try {
+                                            File saveFile = new File(getCacheDir(),"gameError.txt");
+                                            if (gameFile.exists()) {
+                                                FileUtils.copyFile(gameFile, saveFile);
+                                            } else {
+                                                saveToFile(saveFile);
+                                            }
+                                            EmailHelper.sendEmail(SOCActivity.this, saveFile, "sebisoftware@gmail.com", "SOC Crash log", Utils.toString(e.getStackTrace()));
+                                        } catch (Exception e) {
+                                            e.printStackTrace();
+                                        }
+                                    }
+                                }).show();
+                    }
+                });
+            }
         };
         soc.setBoard(vBoard.getRenderer().getBoard());
         Rules rules = new Rules();
@@ -346,6 +379,7 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
     MenuItem SINGLE_PLAYER;
     MenuItem MULTI_PLAYER;
     MenuItem RESUME;
+    MenuItem LOADSAVED;
     MenuItem BOARDS;
     MenuItem SCENARIOS;
 
@@ -385,10 +419,27 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
                 soc.loadFromFile(gameFile);
                 initGame();
             } catch (Exception e) {
-                ((View)extra).setEnabled(false);
+                ((View) extra).setEnabled(false);
                 soc.clear();
                 showError(e);
             }
+        } else if (item == LOADSAVED) {
+            final String [] files = Environment.getExternalStorageDirectory().list(new FilenameFilter() {
+                @Override
+                public boolean accept(File dir, String name) {
+                    return name.endsWith(".txt");
+                }
+            });
+            newDialog(true).setTitle("Load saved").setItems(files, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    if (soc.tryLoadFromFile(new File(Environment.getExternalStorageDirectory(), files[which]))) {
+                        initGame();
+                    } else {
+                        Toast.makeText(SOCActivity.this, "Problem loading '" + files[which], Toast.LENGTH_LONG).show();
+                    }
+                }
+            }).setNegativeButton("Cancel", null).show();
         } else if (item == BOARDS) {
             showBoardsDialog();
         } else if (item == SCENARIOS) {
@@ -433,7 +484,7 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
                         "Red", "Green", "Blue", "Yellow", "Orange", "Pink"
                 };
                 final GColor[]  colors = {
-                        GColor.RED, GColor.GREEN, GColor.BLUE, GColor.YELLOW, GColor.ORANGE, GColor.PINK
+                        GColor.RED, GColor.GREEN, GColor.BLUE.lightened(.2f), GColor.YELLOW, GColor.ORANGE, GColor.PINK
                 };
                 newDialog(true).setTitle("Pick Color").setItems(colorStrings, new DialogInterface.OnClickListener() {
                     @Override
@@ -542,6 +593,9 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
         soc.addMenuItem(SINGLE_PLAYER);
         //soc.addMenuItem(MULTI_PLAYER);
         soc.addMenuItem(RESUME);
+        if (cc.game.soc.android.BuildConfig.DEBUG) {
+            soc.addMenuItem(LOADSAVED);
+        }
         soc.addMenuItem(BOARDS);
         soc.addMenuItem(SCENARIOS);
         soc.addMenuItem(RULES);
@@ -874,7 +928,6 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
     protected void onPause() {
         super.onPause();
         soc.stopRunning();
-        soc.trySaveToFile(gameFile);
     }
 
     protected AlertDialog.Builder newDialog(boolean cancelable) {

@@ -39,7 +39,9 @@ public abstract class Player extends Reflector<Player> {
     public final String toString() {
         StringBuffer buf = new StringBuffer();
         buf.append(getName());
-        buf.append(" cards:").append(cards);
+        synchronized (cards) {
+            buf.append(" cards:").append(cards);
+        }
         buf.append(" roadLen:").append(roadLength);
         buf.append(" points:").append(points);
         buf.append(" harbor pts:").append(harborPoints);
@@ -60,19 +62,21 @@ public abstract class Player extends Reflector<Player> {
 	 */
 	public final List<Card> setCardsUsable(CardType type, boolean usable) {
 		List<Card> modified = new ArrayList<Card>();
-		for (Card card : cards) {
-			if (card.isUsed())
-				continue;
-			if (card.getCardType() != type)
-				continue;
-			if (usable && !card.isUsable()) {
-				card.setUsable();
-				modified.add(card);
-			} else if (!usable && card.isUsable()) {
-				card.setUsable();
-				modified.add(card);
-			}
-		}
+		synchronized (cards) {
+            for (Card card : cards) {
+                if (card.isUsed())
+                    continue;
+                if (card.getCardType() != type)
+                    continue;
+                if (usable && !card.isUsable()) {
+                    card.setUsable();
+                    modified.add(card);
+                } else if (!usable && card.isUsable()) {
+                    card.setUsable();
+                    modified.add(card);
+                }
+            }
+        }
 		return modified;
 	}
 
@@ -81,8 +85,10 @@ public abstract class Player extends Reflector<Player> {
 	 * @param card
 	 */
 	public final void addCard(Card card) {
-		cards.add(card);
-		Collections.sort(cards);
+	    synchronized (cards) {
+            cards.add(card);
+            Collections.sort(cards);
+        }
 	}
 	
 	/**
@@ -90,8 +96,10 @@ public abstract class Player extends Reflector<Player> {
 	 * @param type
 	 */
 	public final void addCard(ICardType<?> type) {
-		cards.add(new Card(type, type.defaultStatus()));//CardStatus.USABLE));
-		Collections.sort(cards);
+	    synchronized (cards) {
+            cards.add(new Card(type, type.defaultStatus()));//CardStatus.USABLE));
+            Collections.sort(cards);
+        }
 	}
 	
 	/**
@@ -148,7 +156,9 @@ public abstract class Player extends Reflector<Player> {
 	 * 
 	 */
 	public final void reset() {
-		cards.clear();
+	    synchronized (cards) {
+            cards.clear();
+        }
 		roadLength=0;
 		points = 0;
 		harborPoints = 0;
@@ -162,7 +172,9 @@ public abstract class Player extends Reflector<Player> {
 	 * @return
 	 */
 	public final Iterable<Card> getCards() {
-		return cards;
+	    synchronized (cards) {
+            return Collections.unmodifiableList(cards);
+        }
 	}
 	
 	/**
@@ -172,11 +184,13 @@ public abstract class Player extends Reflector<Player> {
 	 */
 	public final List<Card> getCards(CardType type) {
 		List<Card> list = new ArrayList<Card>();
-		for (Card card : cards) {
-			if (card.getCardType() == type) {
-				list.add(card);
-			}
-		}
+		synchronized (cards) {
+            for (Card card : cards) {
+                if (card.getCardType() == type) {
+                    list.add(card);
+                }
+            }
+        }
 		return list;
 	}
 	
@@ -199,11 +213,13 @@ public abstract class Player extends Reflector<Player> {
 	 */
 	public final List<Card> getUsableCards(ICardType<?> type) {
 		List<Card> list = new ArrayList<Card>();
-		for (Card card : cards) {
-			if (card.isUsable() && card.equals(type)) {
-				list.add(card);
-			}
-		}
+		synchronized (cards) {
+            for (Card card : cards) {
+                if (card.isUsable() && card.equals(type)) {
+                    list.add(card);
+                }
+            }
+        }
 		return list;
 	}
 
@@ -214,11 +230,13 @@ public abstract class Player extends Reflector<Player> {
 	 */
 	public final List<Card> getUsableCards(CardType type) {
 		List<Card> list = new ArrayList<Card>();
-		for (Card card : cards) {
-			if (card.isUsable() && card.equals(type)) {
-				list.add(card);
-			}
-		}
+		synchronized (cards) {
+            for (Card card : cards) {
+                if (card.isUsable() && card.equals(type)) {
+                    list.add(card);
+                }
+            }
+        }
 		return list;
 	}
 
@@ -229,11 +247,13 @@ public abstract class Player extends Reflector<Player> {
 	 */
 	public final List<Card> getUnusedCards(CardType type) {
 		List<Card> list = new ArrayList<Card>();
-		for (Card card : cards) {
-			if (card.getCardType() == type && !card.isUsed()) {
-				list.add(card);
-			}
-		}
+		synchronized (cards) {
+            for (Card card : cards) {
+                if (card.getCardType() == type && !card.isUsed()) {
+                    list.add(card);
+                }
+            }
+        }
 		return list;
 	}
 	
@@ -243,11 +263,13 @@ public abstract class Player extends Reflector<Player> {
 	 */
 	public final List<Card> getUnusedCards() {
 		List<Card> list = new ArrayList<Card>();
-		for (Card card : cards) {
-			if (!card.isUsed()) {
-				list.add(card);
-			}
-		}
+		synchronized (cards) {
+            for (Card card : cards) {
+                if (!card.isUsed()) {
+                    list.add(card);
+                }
+            }
+        }
 		return list;
 	}
 
@@ -274,10 +296,12 @@ public abstract class Player extends Reflector<Player> {
 	 */
 	public final int getCardCount(CardType type) {
 		int num = 0;
-		for (Card card : cards) {
-			if (card.getCardType() == type)
-				num++;
-		}
+		synchronized (cards) {
+            for (Card card : cards) {
+                if (card.getCardType() == type)
+                    num++;
+            }
+        }
 		return num;
 	}
 
@@ -289,10 +313,12 @@ public abstract class Player extends Reflector<Player> {
 	 */
 	public final int getCardCount(CardType type, CardStatus status) {
 		int num = 0;
-		for (Card card : cards) {
-			if (card.getCardType() == type && card.getCardStatus() == status)
-				num++;
-		}
+		synchronized (cards) {
+            for (Card card : cards) {
+                if (card.getCardType() == type && card.getCardStatus() == status)
+                    num++;
+            }
+        }
 		return num;
 	}
 
@@ -303,10 +329,12 @@ public abstract class Player extends Reflector<Player> {
 	 */
 	public final int getUnusableCardCount(CardType type) {
 		int num = 0;
-		for (Card card : cards) {
-			if (card.getCardType() == type && !card.isUsable());
-				num++;
-		}
+		synchronized (cards) {
+            for (Card card : cards) {
+                if (card.getCardType() == type && !card.isUsable()) ;
+                num++;
+            }
+        }
 		return num;
 	}
 
@@ -317,10 +345,12 @@ public abstract class Player extends Reflector<Player> {
 	 */
 	public final int getCardCount(Card type) {
 		int num = 0;
-		for (Card card : cards) {
-			if (card.equals(type))
-				num++;
-		}
+		synchronized (cards) {
+            for (Card card : cards) {
+                if (card.equals(type))
+                    num++;
+            }
+        }
 		return num;
 	}
 	
@@ -331,10 +361,12 @@ public abstract class Player extends Reflector<Player> {
 	 */
 	public final int getCardCount(ICardType<?> type) {
 		int num = 0;
-		for (Card card : cards) {
-			if (card.equals(type))
-				num++;
-		}
+		synchronized (cards) {
+            for (Card card : cards) {
+                if (card.equals(type))
+                    num++;
+            }
+        }
 		return num;
 	}
 
@@ -345,10 +377,12 @@ public abstract class Player extends Reflector<Player> {
 	 */
 	public final int getUsedCardCount(ICardType<?> type) {
 		int num = 0;
-		for (Card card : cards) {
-			if (card.equals(type) && card.isUsed())
-				num++;
-		}
+		synchronized (cards) {
+            for (Card card : cards) {
+                if (card.equals(type) && card.isUsed())
+                    num++;
+            }
+        }
 		return num;
 	}
 	
@@ -359,10 +393,12 @@ public abstract class Player extends Reflector<Player> {
 	 */
 	public final int getUsableCardCount(ICardType<?> type) {
 		int num = 0;
-		for (Card card : cards) {
-			if (card.equals(type) && card.isUsable())
-				num++;
-		}
+		synchronized (cards) {
+            for (Card card : cards) {
+                if (card.equals(type) && card.isUsable())
+                    num++;
+            }
+        }
 		return num;
 	}
 
@@ -373,10 +409,12 @@ public abstract class Player extends Reflector<Player> {
 	 */
 	public final int getUsableCardCount(CardType type) {
 		int num = 0;
-		for (Card card : cards) {
-			if (card.getCardType() == type && card.isUsable())
-				num++;
-		}
+		synchronized (cards) {
+            for (Card card : cards) {
+                if (card.getCardType() == type && card.isUsable())
+                    num++;
+            }
+        }
 		return num;
 	}
 
@@ -387,10 +425,12 @@ public abstract class Player extends Reflector<Player> {
 	 */
 	public final int getUnusedCardCount(ICardType<?> type) {
 		int num = 0;
-		for (Card card : cards) {
-			if (card.equals(type) && !card.isUsed())
-				num++;
-		}
+		synchronized (cards) {
+            for (Card card : cards) {
+                if (card.equals(type) && !card.isUsed())
+                    num++;
+            }
+        }
 		return num;
 	}
 
@@ -401,10 +441,12 @@ public abstract class Player extends Reflector<Player> {
 	 */
 	public final int getUnusedCardCount(CardType type) {
 		int num = 0;
-		for (Card card : cards) {
-			if (card.getCardType() == (type) && !card.isUsed())
-				num++;
-		}
+		synchronized (cards) {
+            for (Card card : cards) {
+                if (card.getCardType() == (type) && !card.isUsed())
+                    num++;
+            }
+        }
 		return num;
 	}
 	
@@ -414,10 +456,12 @@ public abstract class Player extends Reflector<Player> {
 	 */
 	public final int getUnusedCardCount() {
 		int num = 0;
-		for (Card card : cards) {
-			if (!card.isUsed())
-				num++;
-		}
+		synchronized (cards) {
+            for (Card card : cards) {
+                if (!card.isUsed())
+                    num++;
+            }
+        }
 		return num;
 	}
 	
@@ -428,12 +472,14 @@ public abstract class Player extends Reflector<Player> {
 	public final Card removeRandomUnusedCard() {
 		int r = Utils.rand() % getTotalCardsLeftInHand();
 		assert(r >= 0);
-		for (Card card : cards) {
-			if (!card.isUsed() && r-- == 0) {
-				cards.remove(card);
-				return card;
-			}
-		}
+		synchronized (cards) {
+            for (Card card : cards) {
+                if (!card.isUsed() && r-- == 0) {
+                    cards.remove(card);
+                    return card;
+                }
+            }
+        }
 		throw new RuntimeException("Failed to remove random card");
 	}
 
@@ -462,10 +508,12 @@ public abstract class Player extends Reflector<Player> {
 	 * @return
 	 */
 	public final Card getCard(ICardType<?> type) {
-		for (Card card : cards) {
-			if (card.equals(type))
-				return card;
-		}
+	    synchronized (cards) {
+            for (Card card : cards) {
+                if (card.equals(type))
+                    return card;
+            }
+        }
 		return null;
 	}
 	
@@ -475,12 +523,14 @@ public abstract class Player extends Reflector<Player> {
 	 * @return
 	 */
 	public final Card removeCard(ICardType<?> type) {
-		for (Card card : cards) {
-			if (card.equals(type)) {
-				cards.remove(card);
-				return card;
-			}
-		}
+	    synchronized (cards) {
+            for (Card card : cards) {
+                if (card.equals(type)) {
+                    cards.remove(card);
+                    return card;
+                }
+            }
+        }
 		throw new RuntimeException("Player has no cards of type " + type + " to remove");
 	}
 	
@@ -490,8 +540,10 @@ public abstract class Player extends Reflector<Player> {
 	 * @return
 	 */
 	public final Card removeCard(Card card) {
-		if (cards.remove(card))
-			return card;
+	    synchronized (cards) {
+            if (cards.remove(card))
+                return card;
+        }
 		return null;
 	}
 	
@@ -501,12 +553,14 @@ public abstract class Player extends Reflector<Player> {
 	 * @return
 	 */
 	public final Card removeUsableCard(ICardType<?> type) {
-		for (Card card : cards) {
-			if (card.equals(type) && card.isUsable()) {
-				cards.remove(card);
-				return card;
-			}
-		}
+	    synchronized (cards) {
+            for (Card card : cards) {
+                if (card.equals(type) && card.isUsable()) {
+                    cards.remove(card);
+                    return card;
+                }
+            }
+        }
 		return null;
 	}
 	
@@ -517,9 +571,11 @@ public abstract class Player extends Reflector<Player> {
 	 */
 	public final Card getUsableCard(ICardType<?> type) {
 		for (Card card : cards) {
-			if (card.equals(type) && card.isUsable()) {
-				return card;
-			}
+		    synchronized (cards) {
+                if (card.equals(type) && card.isUsable()) {
+                    return card;
+                }
+            }
 		}
 		return null;
 	}
@@ -582,10 +638,12 @@ public abstract class Player extends Reflector<Player> {
 	 */
 	public final int getTotalCardsLeftInHand() {
 		int num=0;
-		for (Card card : cards) {
-			if (!card.isUsed())
-				num++;
-		}
+		synchronized (cards) {
+            for (Card card : cards) {
+                if (!card.isUsed())
+                    num++;
+            }
+        }
 		return num;
 	}
 

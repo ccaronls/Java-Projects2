@@ -1531,9 +1531,6 @@ public class SOC extends Reflector<SOC> implements StringResource {
 
 					if (vIndex != null) {
 					    Vertex v = getBoard().getVertex(vIndex);
-						if (!getRules().isEnableCitiesAndKnightsExpansion()) {
-							assert (v.getPlayer() == getCurPlayerNum());
-						}
 						v.setPlayerAndType(getCurPlayerNum(), VertexType.CITY);
 						printinfo(getString(R.string.info_player_placing_city_on_vertex, getCurPlayer().getName() , vIndex));
 						if (getRules().isEnableHarborMaster()) {
@@ -1567,9 +1564,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
 
 					if (vIndex != null) {
 					    Vertex v = getBoard().getVertex(vIndex);
-						assert (v.getPlayer() == getCurPlayerNum());
 						printinfo(getString(R.string.info_player_placing_city_on_vertex, getCurPlayer().getName(), vIndex));
-						assert (v.getType() == VertexType.CITY);
 						v.setPlayerAndType(getCurPlayerNum(), VertexType.WALLED_CITY);
 						popState();
 					}

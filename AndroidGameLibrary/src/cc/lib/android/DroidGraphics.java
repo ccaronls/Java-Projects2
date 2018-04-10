@@ -127,7 +127,8 @@ public class DroidGraphics extends APGraphics {
 
     @Override
     public final float drawStringLine(float x, float y, Justify hJust, String text) {
-        y += getTextHeight(); // Android does bottom align by default for some bizzarre reason
+        Paint.FontMetrics fm = paint.getFontMetrics();
+        y -= fm.ascent;
         switch (hJust) {
             case LEFT:
                 paint.setTextAlign(Paint.Align.LEFT);

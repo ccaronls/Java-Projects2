@@ -7,6 +7,7 @@ import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 
 import cc.game.soc.core.Board;
 import cc.game.soc.ui.UIBarbarianRenderer;
@@ -119,8 +120,21 @@ public class SOCView<T extends UIRenderer> extends View implements UIComponent {
             } else {
                 g.setCanvas(canvas, getWidth(), getHeight());
             }
+            GDimension prev = renderer.getMinDimension();
             renderer.draw(g, tx, ty);
+            GDimension next = renderer.getMinDimension();
+            if (!next.equals(prev)) {
+                if (isResizable()) {
+                    requestLayout();
+                    invalidate();
+                }
+            }
         }
+    }
+
+    boolean isResizable() {
+        ViewGroup.LayoutParams lp = getLayoutParams();
+        return lp.width == ViewGroup.LayoutParams.WRAP_CONTENT || lp.height == ViewGroup.LayoutParams.WRAP_CONTENT;
     }
 
     @Override

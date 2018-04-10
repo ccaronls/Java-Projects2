@@ -79,6 +79,7 @@ public class UIPlayer extends PlayerBot implements ClientConnection.Listener {
         if (vertex == null)
             return;
         final UIBoardRenderer board = UISOC.getInstance().getUIBoard();
+        vertex.setOpen();
         board.addAnimation(new UIAnimation(getAnimTime()) {
 
             @Override
@@ -232,6 +233,8 @@ public class UIPlayer extends PlayerBot implements ClientConnection.Listener {
     
     void startMoveKnightAnimation(final Vertex fromVertex, final Vertex toVertex) {
         final UIBoardRenderer comp = UISOC.getInstance().getUIBoard();
+        final VertexType knightType = fromVertex.getType();
+        fromVertex.setOpen();
     	comp.addAnimation(new UIAnimation(getAnimTime()) {
 			
 			@Override
@@ -240,7 +243,7 @@ public class UIPlayer extends PlayerBot implements ClientConnection.Listener {
                 g.pushMatrix();
                 IVector2D pos = Vector2D.newTemp(fromVertex).add(Vector2D.newTemp(toVertex).sub(fromVertex).scaledBy(position));
                 g.translate(pos);
-                comp.drawKnight(g, Vector2D.ZERO, getPlayerNum(), fromVertex.getType().getKnightLevel(), fromVertex.getType().isKnightActive(), false);
+                comp.drawKnight(g, Vector2D.ZERO, getPlayerNum(), knightType.getKnightLevel(), knightType.isKnightActive(), false);
                 g.popMatrix();
 			}
 		}, true);

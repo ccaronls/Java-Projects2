@@ -1396,6 +1396,19 @@ public class Utils {
     }
 
     /**
+     * Return a stacktrace string nicer than what is returned by Arrays.toString
+     * @param st
+     * @return
+     */
+    public static String toString(StackTraceElement [] st) {
+        StringBuffer b = new StringBuffer();
+        for (StackTraceElement e : st) {
+            b.append(e.toString()).append("\n");
+        }
+        return b.toString();
+    }
+
+    /**
      * @param r
      * @param g
      * @param b

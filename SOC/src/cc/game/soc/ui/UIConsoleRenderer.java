@@ -24,7 +24,7 @@ public final class UIConsoleRenderer extends UIRenderer {
 
     private int startLine = 0;
     private int maxVisibleLines = 1;
-    private boolean maxVisibleLinesSet = false;
+    private int minVisibleLines = 0;
 
     public UIConsoleRenderer(UIComponent component) {
         super(component);
@@ -66,8 +66,7 @@ public final class UIConsoleRenderer extends UIRenderer {
 
     private void drawPrivate(APGraphics g) {
 	    final int txtHgt = g.getTextHeight();
-	    if (!maxVisibleLinesSet)
-	        maxVisibleLines = component.getHeight() / txtHgt;
+	    maxVisibleLines = component.getHeight() / txtHgt;
         float y = 0;
 	    for (int i=startLine; i<lines.size(); i++) {
 	        Line l = lines.get(i);
@@ -79,14 +78,13 @@ public final class UIConsoleRenderer extends UIRenderer {
                 break;
             }
         }
-        if  (maxVisibleLinesSet) {
-	        setMinDimension(new GDimension(component.getWidth(), Math.min(Math.max(1, lines.size()), maxVisibleLines)*txtHgt));
+        if  (minVisibleLines > 0) {
+	        setMinDimension(new GDimension(component.getWidth(), Math.max(minVisibleLines, lines.size())*txtHgt));
         }
 	}
 
-	public void setMaxVisibleLines(int max) {
-	    this.maxVisibleLines = max;
-	    maxVisibleLinesSet = true;
+	public void setMinVisibleLines(int min) {
+	    this.minVisibleLines = min;
     }
 
 	private AAnimation<APGraphics> anim = null;
@@ -117,6 +115,9 @@ public final class UIConsoleRenderer extends UIRenderer {
                     @Override
                     protected void onDone() {
                         lines.addFirst(item);
+                        synchronized (this) {
+                            notify();
+                        }
                     }
                 }.start();
             } else {
@@ -135,12 +136,15 @@ public final class UIConsoleRenderer extends UIRenderer {
                     @Override
                     protected void onDone() {
                         lines.addFirst(item);
+                        synchronized (this) {
+                            notify();
+                        }
                     }
                 }.start();
             }
 
             component.redraw();
-            Utils.waitNoThrow(anim, anim.getDuration());
+            Utils.waitNoThrow(anim, -1);
             if (startLine > 0)
                 startLine++;
             while (lines.size() > 100) {

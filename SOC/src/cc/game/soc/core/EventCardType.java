@@ -10,7 +10,7 @@ import cc.game.soc.android.R;
  */
 public enum EventCardType implements ICardType<Void> {
 	
-	RobberAttack	(R.string.event_card_robber_attack, R.string.event_card_robber_attack_help, 7),
+	RobberAttack	(R.string.event_card_robber_attack, R.string.event_card_robber_attack_help, 7, 7, 7, 7, 7),
 	Epidemic		(R.string.event_card_epidemic, R.string.event_card_epidemic_help, 6, 8),
 	Earthquake		(R.string.event_card_earthquake, R.string.event_card_earthquake_help, 6),
 	GoodNeighbor	(R.string.event_card_good_neighbor, R.string.event_card_good_neighbor_help, 6),
