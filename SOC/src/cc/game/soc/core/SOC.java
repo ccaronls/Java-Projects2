@@ -3257,30 +3257,40 @@ public class SOC extends Reflector<SOC> implements StringResource {
 				// promote 2 knights for free
 				final List<Integer> knights = computePromoteKnightVertexIndices(getCurPlayer(), mBoard);
 				if (knights.size() > 0) {
-					final Card removed = getCurPlayer().removeCard(ProgressCardType.Smith); 
-					putCardBackInDeck(removed);
+                    final Card removed = getCurPlayer().removeCard(ProgressCardType.Smith);
+                    putCardBackInDeck(removed);
+                    if (knights.size()>1) {
+                        // remember the knights we have so that we can revert
+                        final HashMap<Integer, VertexType> currentKnights = new HashMap<>();
+                        for (int k : knights) {
+                            currentKnights.put(k, mBoard.getVertex(k).getType());
+                        }
+
+                        // this one we be chosen second
+                        pushStateFront(State.CHOOSE_KNIGHT_TO_PROMOTE, null, null, new UndoAction() {
+
+                            @Override
+                            public void undo() {
+                                for (int k : knights) {
+                                    mBoard.getVertex(k).setType(currentKnights.get(k));
+                                }
+                                getCurPlayer().addCard(removed);
+                                removeCardFromDeck(removed);
+                            }
+                        });
+                    }
+                    // this one will be chosen first
 					pushStateFront(State.CHOOSE_KNIGHT_TO_PROMOTE, null, knights, new UndoAction() {
 						
 						@Override
 						public void undo() {
-							getCurPlayer().addCard(removed);
+						    if (knights.size() > 1)
+                                popState();
+
+                            getCurPlayer().addCard(removed);
 							removeCardFromDeck(removed);
 						}
 					});
-					if (knights.size()>1) {
-    					pushStateFront(State.CHOOSE_KNIGHT_TO_PROMOTE, null, null, new UndoAction() {
-							
-							@Override
-							public void undo() {
-								popState(); // saa except for this
-								for (int kIndex : knights) {
-									mBoard.getVertex(kIndex).demoteKnight();
-								}
-								getCurPlayer().addCard(removed);
-								removeCardFromDeck(removed);
-							}
-						});
-    				}
 				}
 				break;
 			}
