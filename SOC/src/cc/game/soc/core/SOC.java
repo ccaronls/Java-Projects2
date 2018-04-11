@@ -319,6 +319,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
 		mDice.clear();
 		mDiceConfigStack.clear();
 		mBoard.reset();
+		Arrays.fill(mMetropolisPlayer, 0);
 	}
 
 	@Override

@@ -81,3 +81,5 @@ CAK Rule Details:
 Add barbarians and traders expansion option (DONE)
 
 Make rules not need annotations which dont work well with localiztion (they do work interestingly. DONE)
+
+- BUG: I noticed that I was able to build a opening settlement on a undiscovered tile when the opponents road was there. investigate.

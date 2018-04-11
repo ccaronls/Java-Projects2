@@ -607,7 +607,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
             notifyWaitObj();
         }
         setReturnValue(null);
-        boardRenderer.setPickHandler(null);
+        boardRenderer.reset();
         console.clear();
     }
 

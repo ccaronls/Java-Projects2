@@ -1368,6 +1368,11 @@ public class UIBoardRenderer extends UIRenderer {
 	        screenCaptureId = -1;
         }
     }
+
+    public final void reset() {
+        setPickHandler(null);
+        animations.clear();
+    }
 }
 
 

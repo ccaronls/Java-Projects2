@@ -33,7 +33,6 @@ import java.io.InputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
@@ -710,7 +709,7 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
             if (var != o.var)
                 return var.compareTo(o.var);
             if (order != o.order)
-                return o.order - order;
+                return order - o.order;
             if (field == null)
                 return -1;
             if (o.field == null)
