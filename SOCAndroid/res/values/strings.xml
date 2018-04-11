@@ -104,7 +104,7 @@
     // Take all of one resource
     <string name="dev_type_monopoly">Monopoly</string>
     <string name="dev_type_monopoly_help">force other players to give you resources of your choice</string>
-    <string name="dev_type_yop">YearOfPlenty</string>
+    <string name="dev_type_yop">Year Of Plenty</string>
     <string name="dev_type_yop_help">Draw resources of your choice from pile</string>
     <string name="dev_type_rb">Road Building</string>
     <string name="dev_type_rb_help">Build 2 roads for free</string>
@@ -448,7 +448,7 @@
 
     <!-- card status -->
     <string name="card_status_usable">Usable</string>
-    <string name="card_status_unusable">Unusable</string>
+    <string name="card_status_unusable">Locked</string>
     <string name="card_status_used">Used</string>
 
     <!-- route types -->
@@ -500,6 +500,9 @@
     <string name="rule_enable_event_cards">Use Event Cards instead of dice</string>
     <string name="rule_min_victory_points_for_robber">Min Victory Points for a player to have Robber placed adjacent to them</string>
     <string name="rule_enable_harbor_master">Player with most harbor points gets special victory points</string>
+    <string name="rule_barbarian_pts_per_settlement">Number of points barbarians get per settlement.</string>
+    <string name="rule_barbarian_pts_per_city">Number of points barbarians get per city.</string>
+    <string name="rule_barbarian_pts_per_metro">Number of points barbarians get per Metropolis.</string>
 
     <!-- Menu strings -->
     <string name="menu_item_quit">Quit</string>
@@ -574,5 +577,63 @@
     <string name="player_info_merchantfleet_tradable">Merchant Fleet %s</string>
     <string name="player_info_discoveredislands_count_pts">Discovered Islands X %d %s</string>
     <string name="player_info_discoveredtiles_count">Discovered Tiles X %d</string>
+
+    <!-- states -->
+    <string name="state_game_not_running">Game not running</string>
+    <string name="state_deal_cards">Dealing cards&#8230;</string>
+    <string name="state_position_settlement">Place a Settlement on the board.</string>
+    <string name="state_position_road">Place a road on the board.</string>
+    <string name="state_position_road_or_ship">Choose to place a road or ship.</string>
+    <string name="state_position_city">Upgrade one of your settlements to a City.</string>
+    <string name="state_choose_city_for_wall">Build a wall around one of your cites to protect against barbarian attack.</string>
+    <string name="state_position_ship">Place ship on the board.</string>
+    <string name="state_upgrade_ship">Choose a ship to upgrade to warship.</string>
+    <string name="state_choose_ship_to_move">Choose from an open ended ship to reposition.</string>
+    <string name="state_start_round">Round starting.</string>
+    <string name="state_setup_giveup_cards">Computing each players cards to give up.</string>
+    <string name="state_give_up_cards">Discard one of your cards back to the deck.</string>
+    <string name="state_player_turn">Choose from one of your move options or End Turn to allow next player to take a turn.</string>
+    <string name="state_position_robber_or_pirate">Pick a hexagon for the Robber or Pirate.</string>
+    <string name="state_position_robber">Pick a land hexagon for the Robber.</string>
+    <string name="state_position_pirate">Pick a water hexagon for the Pirate.</string>
+    <string name="state_draw_resource_or_commodity">Pick a Resource or Commodity Card to take into your hand.</string>
+    <string name="state_draw_resource">Pick a Resource Card to take into your hand.</string>
+    <string name="state_choose_opponent_to_take_resource">Pick an opponent to take a card from.</string>
+    <string name="state_choose_opponent_for_gift">Pick an opponent to give a resource of your choice.</string>
+    <string name="state_choose_resource_monopoly">Choose a Resource to monopolize (collect all from all opponents hands.)</string>
+    <string name="state_show_trade_options">Display your trade options.</string>
+    <string name="state_choose_knight_to_activate">Choose form one of your knight to Activate.  This makes it possible to defend against Barbarians or reposition.</string>
+    <string name="state_position_new_knight">Place your new knight on the board.</string>
+    <string name="state_position_knight">Place your knight on the board.  Active knights can displace an opponents knight or chase the Robber.</string>
+    <string name="state_position_deserter_knight">Place the deserted knight on the board.</string>
+    <string name="state_position_displaced_knight">Place your displaced knight on the board.</string>
+    <string name="state_choose_knight_to_move">Pick an Active knight to move.</string>
+    <string name="state_choose_knight_to_promote">Choose from one of your knights to Promote.</string>
+    <string name="state_choose_progress_card_type">Choose from one of the Development Areas to pick a Progress Card.</string>
+    <string name="state_choose_metro">Choose from one of your Cities to upgrade to a Metropolis.  Metropolis cannot be pillaged by Barbarians.</string>
+    <string name="state_choose_city_improvement">Choose from one of the City Improvement options.</string>
+    <string name="state_choose_knight_for_desertion">Choose from one of your one knights to desert into your opponents ranks.</string>
+    <string name="state_choose_player_for_desertion">Choose a player.  They must choose a knight for desertion.  You then can place a knight of equal strength.</string>
+    <string name="state_choose_diplomat_route">Pick a road.  If you pick an opponents road it will be removed from the board.  If you pick one of your one roads you will be allowed to reposition it.</string>
+    <string name="state_choose_harbor_resource">Pick a resource for Harbor Trade.</string>
+    <string name="state_choose_harbor_player">Choose a player with whom to force trade.</string>
+    <string name="state_choose_card_for_exchange">Pick a card form your hand to Exchange.</string>
+    <string name="state_choose_opponent_knight_for_displace">Choose an opponents knight to displace.</string>
+    <string name="state_choose_tile_inventor">Pick 2 tiles to switch their die numbers.</string>
+    <string name="state_choose_master_merchant_player">Choose from one of your opponents.  You can take any 2 resource or commodity cards form their hand if they have it.</string>
+    <string name="state_choose_opponent_to_take_card">Choose from one of your opponents cards to take into your hand.</string>
+    <string name="state_position_merchant">Place the merchant on the board.  Whatever resource the Merchant is on, you will be allowed a 2:1 trade for the Resource until the Merchant is moved again.</string>
+    <string name="state_choose_resource_fleet">Choose any Resource to use for a 2:1 trade for the duration of your turn.</string>
+    <string name="state_choose_player_to_spy">Choose an Opponent to Spy on.  You can pick any one of their Progress cards into your hand.</string>
+    <string name="state_choose_trade_monopoly">Choose a Commodity to Monopolize.  All players with that commodity in their hand forfeit one to you.</string>
+    <string name="state_choose_wedding_card_to_gift">Choose a card to give to the happy couple on their Wedding day.</string>
+    <string name="state_choose_pirate_fortress_to_attack">Choose a pirate fortress to attack</string>
+    <string name="state_choose_road_to_attack">Pick a road for knight to attack</string>
+    <string name="state_roll_dice_attack_road">Roll dice to attack opponents road.</string>
+    <string name="state_choose_structure_to_attack">Pick a structure for knight to attack.</string>
+    <string name="state_roll_dice_attack_structure">Roll dice to attack opponents structure.</string>
+    <string name="state_choose_ship_to_attack">Pick a ship to be attacked by a warship.</string>
+    <string name="state_roll_dice_attack_ship">Roll dice to attack your opponents ship.</string>
+
 
 </resources>

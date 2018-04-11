@@ -152,6 +152,12 @@ public final class Rules extends Reflector<Rules> {
 	private int knightScoreToDestroyMetropolis=0;
     @Rule(variation = Variation.CAK, stringId = R.string.rule_enable_inventor_unrestrained)
 	private boolean unlimitedInventorTiles=false;
+    @Rule(variation = Variation.CAK, stringId=R.string.rule_barbarian_pts_per_city, minValue=1, maxValue=4, order=6)
+    private int barbarianPointsPerCity=1;
+    @Rule(variation = Variation.CAK, stringId=R.string.rule_barbarian_pts_per_metro, minValue=1, maxValue=4, order=7)
+    private int barbarianPointsPerMetro=1;
+    @Rule(variation = Variation.CAK, stringId=R.string.rule_barbarian_pts_per_settlement, minValue=0, maxValue=3, order=8)
+    private int barbarianPointsPerSettlement=0;
 
     @Rule(variation = Variation.TAB, stringId = R.string.rule_enable_event_cards)
 	private boolean enableEventCards = false;
@@ -393,8 +399,31 @@ public final class Rules extends Reflector<Rules> {
 		return attackPirateFortressEndsTurn;
 	}
 	public final void setAttackPirateFortressEndsTurn(
-			boolean attackPirateFortressEndsTunr) {
-		this.attackPirateFortressEndsTurn = attackPirateFortressEndsTunr;
+			boolean attackPirateFortressEndsTurn) {
+		this.attackPirateFortressEndsTurn = attackPirateFortressEndsTurn;
 	}
-	
+
+    public final int getBarbarianPointsPerCity() {
+        return barbarianPointsPerCity;
+    }
+
+    public void setBarbarianPointsPerCity(int barbarianPointsPerCity) {
+        this.barbarianPointsPerCity = barbarianPointsPerCity;
+    }
+
+    public final int getBarbarianPointsPerMetro() {
+        return barbarianPointsPerMetro;
+    }
+
+    public void setBarbarianPointsPerMetro(int barbarianPointsPerMetro) {
+        this.barbarianPointsPerMetro = barbarianPointsPerMetro;
+    }
+
+    public final int getBarbarianPointsPerSettlement() {
+        return barbarianPointsPerSettlement;
+    }
+
+    public void setBarbarianPointsPerSettlement(int barbarianPointsPerSettlement) {
+        this.barbarianPointsPerSettlement = barbarianPointsPerSettlement;
+    }
 }

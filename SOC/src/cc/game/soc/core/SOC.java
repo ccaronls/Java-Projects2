@@ -4515,7 +4515,12 @@ public class SOC extends Reflector<SOC> implements StringResource {
 	}
 	
 	static public int computeBarbarianStrength(SOC soc, Board b) {
-		return b.getNumVertsOfType(0, VertexType.CITY, VertexType.WALLED_CITY, VertexType.METROPOLIS_POLITICS, VertexType.METROPOLIS_SCIENCE, VertexType.METROPOLIS_TRADE);
+	    int pts = 0;
+	    if (soc.getRules().getBarbarianPointsPerSettlement() > 0)
+	        pts += b.getNumVertsOfType(0, VertexType.SETTLEMENT) * soc.getRules().getBarbarianPointsPerSettlement();
+	    pts += b.getNumVertsOfType(0, VertexType.CITY, VertexType.WALLED_CITY) * soc.getRules().getBarbarianPointsPerCity();
+	    pts += b.getNumVertsOfType(0, VertexType.METROPOLIS_POLITICS, VertexType.METROPOLIS_SCIENCE, VertexType.METROPOLIS_TRADE) * soc.getRules().getBarbarianPointsPerMetro();
+	    return pts;
 	}
 	
 	static private void computeTrades(Player p, Board b, List<Trade> trades, int maxOptions) {
@@ -5315,10 +5320,10 @@ public class SOC extends Reflector<SOC> implements StringResource {
 	
 	public String getHelpText() {
 		if (mStateStack.peek() == null) {
-			return "Game not running";
+			return getString(R.string.state_game_not_running);
 		}
 		
-		return mStateStack.peek().state.helpText;
+		return mStateStack.peek().state.getHelpText(this);
 	}
 
     /**

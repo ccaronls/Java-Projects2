@@ -111,6 +111,12 @@ public class EZFrame extends JFrame implements WindowListener, ComponentListener
 	protected void saveToFile() {
 	    if (propertiesFile != null) {
             Properties p = new Properties();
+            try (InputStream in = new FileInputStream(propertiesFile)) {
+                p.load(in);
+            } catch (Exception e) {
+                e.printStackTrace();
+                // oh well!
+            }
             p.setProperty("gui.x", String.valueOf(getX()));
             p.setProperty("gui.y", String.valueOf(getY()));
             p.setProperty("gui.w", String.valueOf(getWidth()));

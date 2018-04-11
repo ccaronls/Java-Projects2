@@ -2304,7 +2304,7 @@ public class PlayerBot extends Player {
 		}
 
 		node.addValue("minDistToFortress", 1.0f / (minDistToFortress+1));
-		node.addValue("minDistToUndiscov", soc.getRules().getMinMostDiscoveredTerritories() * 1.0f / (1 + minDistToUndiscovered));
+		node.addValue("minDistToUndiscov", Math.max(1, soc.getRules().getMinMostDiscoveredTerritories()) * 1.0f / (1 + minDistToUndiscovered));
 		node.addValue("minDistToIsland",  soc.getRules().getPointsIslandDiscovery() * 1.0f / (1 + minDistToIsland));
 		node.addValue("aveDistToIsland", soc.getRules().getPointsIslandDiscovery() * 1.0f / (1 + aveDistToIsland));
 		node.addValue("warShipValue", 0.1f * b.getRoutesOfType(p.getPlayerNum(), RouteType.WARSHIP).size());

@@ -49,6 +49,30 @@ public class Board extends Reflector<Board> {
 	private int pirateRouteStartTile = -1; // when >= 0, then the pirate route starts at this tile.  each tile has a next index to form a route.
 	private int numAvaialbleVerts = -1;
 
+    @Omit
+    private final HashMap<String, IDistances> distancesCache = new HashMap<>();
+
+    /**
+     * Reset the board to its initial playable state.
+     */
+    public void reset() {
+        robberTile = -1;
+        pirateTile = -1;
+        merchantTile = -1;
+        merchantPlayer = -1;
+        clearRouteLenCache();
+        for (Tile c : tiles) {
+            c.reset();
+        }
+        for (Vertex v : verts) {
+            if (v.getType() != VertexType.OPEN_SETTLEMENT && v.getType() != VertexType.PIRATE_FORTRESS)
+                v.setOpen();
+        }
+        for (Route r : routes) {
+            r.reset();
+        }
+    }
+
 	/**
 	 * Create an empty board
 	 */
@@ -918,27 +942,6 @@ public class Board extends Reflector<Board> {
 		}
 	}
 
-	/**
-	 * Reset the board to its initial playable state.
-	 */
-	public void reset() {
-		robberTile = -1;
-		pirateTile = -1;
-		merchantTile = -1;
-		merchantPlayer = -1;
-		clearRouteLenCache();
-		for (Tile c : tiles) {
-			c.reset();
-		}
-		for (Vertex v : verts) {
-            if (v.getType() != VertexType.OPEN_SETTLEMENT && v.getType() != VertexType.PIRATE_FORTRESS)
-			    v.setOpen();
-		}
-		for (Route r : routes) {
-			r.reset();
-		}
-	}
-	
 	public void clearIsland() {
 		for (Island i : islands) {
 			Arrays.fill(i.discovered, false);
@@ -2368,9 +2371,6 @@ public class Board extends Reflector<Board> {
 		this.pirateRouteStartTile = pirateRouteStartTile;
 	}
 
-	@Omit
-    private static final HashMap<String, IDistances> distancesCache = new HashMap<>();
-
 	/**
 	 * Return a structure that can compute the distance/path between any 2 vertices.  
 	 * When transitioning from land to water, these routes must pass through a structure and/or port depending on rules.
@@ -2427,13 +2427,14 @@ public class Board extends Reflector<Board> {
 			}
 
             // OPTIMIZATION: check if the current route configuration has already been done, then no need to do it again
-            Arrays.sort(rcache, 0, rcacheLen);
-            String str = Utils.toString(rcache, 0, rcacheLen);
+            Arrays.sort(rcache, 0, rcacheLen); // do we really need to sort?
+            String str = Utils.toString(rcache, 0, rcacheLen);  // decompose the array into a hashable string
             if (distancesCache.containsKey(str))
                 return distancesCache.get(str);
 
             // All-Pairs shortest paths [Floyd-Marshall O(|V|^3)] algorithm.  This is a good choice for dense graphs like ours
-			// where every vertex has 2 or 3 edges.  The memory usage and complexity of a Dijkstra's make it less desirable.  
+			// where every vertex has 2 or 3 edges.  The memory usage and complexity of a Dijkstra's make it less desirable.
+            // However this is very expensive computationally especially on lesser tablets, hence the optimization above.
 			for (int k=0; k<numV; k++) {
 				for (int i=0; i<numV; i++) {
 					for (int j=0; j<numV; j++) {

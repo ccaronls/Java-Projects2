@@ -625,10 +625,15 @@ public class GUI implements ActionListener, MenuItem.Action {
                     @Override
                     public void onDrawPickable(UIBoardRenderer bc, APGraphics g, int index) {
                         NodeRect nr = nodeRects[index];
-                        g.setColor(GColor.TRANSLUSCENT_BLACK);
-                        g.drawRect(nr.r.x, nr.r.y, nr.r.w, nr.r.h, padding);
+                        //g.setColor(GColor.TRANSLUSCENT_BLACK);
+                        //g.drawRect(nr.r.x, nr.r.y, nr.r.w, nr.r.h, padding);
                         g.setColor(GColor.YELLOW);
-                        g.drawJustifiedString(nr.r.x, nr.r.y, Justify.LEFT, Justify.TOP, nr.s);
+                        //g.drawJustifiedString(nr.r.x, nr.r.y, Justify.LEFT, Justify.TOP, nr.s);
+                        g.pushMatrix();
+                        g.setIdentity();
+                        g.drawJustifiedStringOnBackground(nr.r.x, nr.r.y, Justify.LEFT, Justify.TOP, nr.s, GColor.TRANSLUSCENT_BLACK, 2);
+                        g.popMatrix();
+
                     }
 
                     @Override
@@ -950,7 +955,7 @@ public class GUI implements ActionListener, MenuItem.Action {
             }
         };
         for (TileType c : TileType.values()) {
-            grp.addButton(formatString(c.getName(this)), c);
+            grp.addButton(formatString(c.getName(soc)), c);
         }
         grp.addButton("Islands", new PickHandler() {
 			

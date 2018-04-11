@@ -84,6 +84,7 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
     SOCView<UIConsoleRenderer> vConsole;
     ListView lvMenu;
     ScrollView svPlayers;
+    TextView tvHelpText;
 
     Stack<Dialog> dialogStack = new Stack<>();
     int helpItem = -1;
@@ -122,6 +123,7 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
         vConsole.renderer.setMinVisibleLines(5);
         svPlayers = (ScrollView)findViewById(R.id.svPlayers);
         vDice.renderer.initImages(R.drawable.dicesideship2, R.drawable.dicesidecity_red2, R.drawable.dicesidecity_green2, R.drawable.dicesidecity_blue2);
+        tvHelpText = (TextView)findViewById(R.id.tvHelpText);
 
         QUIT         = new MenuItem(getString(R.string.menu_item_quit),      getString(R.string.menu_item_quit_help), this);
         BUILDABLES   = new MenuItem(getString(R.string.menu_item_buildables), getString(R.string.menu_item_buildables_help), this);
@@ -248,6 +250,7 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
                                 v.invalidate();
                             }
                             vBarbarian.invalidate();
+                            tvHelpText.setText(getHelpText());
                         }
                     });
                 }
@@ -330,6 +333,12 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
                                 }).show();
                     }
                 });
+            }
+
+            @Override
+            public void printinfo(int playerNum, String txt) {
+                vConsole.scrollTo(0, 0);
+                super.printinfo(playerNum, txt);
             }
         };
         soc.setBoard(vBoard.getRenderer().getBoard());
@@ -445,16 +454,7 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
             showScenariosDialog();
         }
     }
-/*
-    Dialog consoleDialog = null;
 
-    void showConsole() {
-        if (consoleDialog == null) {
-            consoleDialog = newDialog(true).setView((SOCView)console.getComponent()).create();
-        };
-        consoleDialog.show();
-    }
-*/
     void showError(Exception e) {
         newDialog(true).setTitle("ERROR").setMessage("AN error occured: " + e.getClass().getSimpleName() + " " + e.getMessage()).show();
     }
@@ -586,7 +586,7 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
         vEvent.setVisibility(View.GONE);
         vDice.setVisibility(View.GONE);
         svPlayers.setVisibility(View.GONE);
-
+        tvHelpText.setVisibility(View.GONE);
         lvMenu.setVisibility(View.VISIBLE);
         soc.clearMenu();
         soc.addMenuItem(SINGLE_PLAYER);
@@ -632,6 +632,7 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
 
         clearDialogs();
         vBoard.renderer.clearCached();
+        tvHelpText.setVisibility(View.VISIBLE);
     }
 
     void showBuildablesDialog() {

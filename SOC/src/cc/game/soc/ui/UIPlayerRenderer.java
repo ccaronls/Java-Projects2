@@ -2,9 +2,11 @@ package cc.game.soc.ui;
 
 import cc.game.soc.android.R;
 import cc.game.soc.core.Card;
+import cc.game.soc.core.CardStatus;
 import cc.game.soc.core.CardType;
 import cc.game.soc.core.CommodityType;
 import cc.game.soc.core.DevelopmentArea;
+import cc.game.soc.core.DevelopmentCardType;
 import cc.game.soc.core.ResourceType;
 import cc.game.soc.core.SOC;
 import cc.game.soc.core.SpecialVictoryType;
@@ -73,11 +75,14 @@ public final class UIPlayerRenderer extends UIRenderer {
                     str.append(t.getName(UISOC.getInstance())).append(" X ").append(num).append("\n");
                 }
                 for (Card c : player.getCards(CardType.Progress)) {
-                    str.append(c.getName(UISOC.getInstance())).append("(").append(c.getCardStatus().getName(UISOC.getInstance())).append(")\n");
+                    str.append(c.getName(UISOC.getInstance())).append(" (").append(c.getCardStatus().getName(UISOC.getInstance())).append(")\n");
                 }
             } else {
                 for (Card c : player.getCards(CardType.Development)) {
-                    str.append(c.getName(UISOC.getInstance())).append("(").append(c.getCardStatus().getName(UISOC.getInstance())).append(")\n");
+                    // dont need to show these since it is covered by the army size
+                    if (c.getCardStatus() == CardStatus.USED && c.getTypeOrdinal() == DevelopmentCardType.Soldier.ordinal())
+                        continue;
+                    str.append(c.getName(UISOC.getInstance())).append(" (").append(c.getCardStatus().getName(UISOC.getInstance())).append(")\n");
                 }
             }
         } else {
