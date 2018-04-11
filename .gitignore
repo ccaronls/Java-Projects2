@@ -12,7 +12,6 @@
 **/.gradle
 **/gradlew*
 **/gradle/
-*.properties
 captures
 ./*.txt
 *.save
