@@ -48,8 +48,8 @@
     <string name="special_victory_longest_road_help">Given to player with the longest road</string>
     <string name="special_victory_defender_of_catan_help">Awarded when a player single-handedly defends against Barbarians.</string>
     <string name="special_victory_tradesman_help">Given to the player who controls the Merchant.</string>
-    <string name="special_victory_constitution_help">When this prgress card is picked it is emmediately played and cannot be taken.</string>
-    <string name="special_victory_printer_help">When this progress card is picked it is emmediately played and cannot be taken.</string>
+    <string name="special_victory_constitution_help">When this progress card is picked it is immediately played and cannot be taken.</string>
+    <string name="special_victory_printer_help">When this progress card is picked it is immediately played and cannot be taken.</string>
     <string name="special_victory_merchant_help">Given to last player who has placed the Merchant</string>
     <string name="special_victory_harbor_master_help">Player who has most harbor points gets this card</string>
     <string name="special_victory_old_boot_help">Counts against your points so you need 1 extra point to win</string>
@@ -78,7 +78,7 @@
     <string name="event_card_robber_attack">Robber\nAttack</string>
     <string name="event_card_robber_attack_help">Current player places the robber and all players discard half of your cards (round down).  Same as rolling a \'7\'</string>
     <string name="event_card_epidemic">Epidemic</string>
-    <string name="event_card_epidemic_help">Each player recieves 1 resource for a city (no commodity)</string>
+    <string name="event_card_epidemic_help">Each player receives 1 resource for a city (no commodity)</string>
     <string name="event_card_earthquake">Earthquake</string>
     <string name="event_card_earthquake_help">Each player has one of their roads damaged</string>
     <string name="event_card_good_neighbor">Good\nNeighbor</string>
@@ -100,7 +100,7 @@
     <string name="event_card_no_event">No Event</string>
     <string name="event_card_no_event_help">The settlers labor and Catan prospers.</string>
 
-    <!-- developement card type -->
+    <!-- development card type -->
     // Take all of one resource
     <string name="dev_type_monopoly">Monopoly</string>
     <string name="dev_type_monopoly_help">force other players to give you resources of your choice</string>
@@ -115,7 +115,7 @@
     <string name="dev_type_warship">Warship</string>
     <string name="dev_type_warship_help">Convert a ship into a warship</string>
 
-    <!-- developement area -->
+    <!-- development area -->
     <string name="dev_area_empty"></string>
 
     <string name="dev_area_science">Science</string>
@@ -164,7 +164,7 @@
     <string name="barb_atk_type_knighthood_help">Place 1 knight on one of the unoccupied paths of the castle tile.</string>
     <string name="barb_atk_type_black_knight">Black Knight</string>
     <string name="barb_atk_type_black_knight_help">Place a knight on an open path of your choice.</string>
-    <string name="barb_atk_type_intrigue">Intregue</string>
+    <string name="barb_atk_type_intrigue">Intrigue</string>
     <string name="barb_atk_type_intrigue_help">Remove a barbarian form a hex of your choice and add to your prisoners.  If there are no more barbarians, then draw a new card.</string>
     <string name="barb_atk_type_treason">Treason</string>
     <string name="barb_atk_type_treason_help">Obtain 2 Gold and remove 2 barbarians from 2 different tiles (or from supply) and place on 2 other unconquered tiles.</string>
@@ -199,10 +199,10 @@
     <string name="info_player_placing_city_on_vertex">%1$s placing a city at vertex %2$s</string>
     <string name="info_player_choose_city_for_wall">%s choose city to protect with wall</string>
     <string name="info_player_choose_city_for_metro">%s choose city to upgrade to Metropolis</string>
-    <string name="info_player_building_metro">%1$s is building a %2$s Metrololis</string>
+    <string name="info_player_building_metro">%1$s is building a %2$s Metropolis</string>
     <string name="info_begin_round">Begin round</string>
     <string name="info_player_choose_move">%s choose move</string>
-    <string name="info_player_choosed_move_m">%1$s choose move %2$s</string>
+    <string name="info_player_chosen_move_m">%1$s choose move %2$s</string>
     <string name="info_player_select_trade_option">%s select trade option</string>
     <string name="info_player_trade_x_for_n">%1$s trades %2$s X %3$s</string>
     <string name="info_player_place_robber_or_pirate">%s place robber or pirate</string>
@@ -210,7 +210,7 @@
     <string name="info_player_placing_pirate_on_cell">%1$s placing pirate on cell %2$s</string>
     <string name="info_player_placing_robber_on_cell">%1$s placing robber on cell %2$s</string>
     <string name="info_player_place_pirate">%s place pirate</string>
-    <string name="info_player_choose_oppoennt_to_take_resource">%s choose opponent to take card from</string>
+    <string name="info_player_choose_opponent_to_take_resource">%s choose opponent to take card from</string>
     <string name="info_player_choose_opponent_for_gift">%s choose opponent for gift</string>
     <string name="info_player_choose_resource_to_monopolize">%s choose resource to monopolize</string>
     <string name="info_player_must_give_up_n_of_n_cards">%1$s must give up %2$d of %3$d cards</string>
@@ -218,7 +218,7 @@
     <string name="info_player_draw_resource_or_commodity">%s draw a resource or commodity</string>
     <string name="info_player_draw_resource">%s draw a resource</string>
     <string name="info_player_draws_a_x_card">%1$s draws a %2$s card</string>
-    <string name="info_player_choose_knight_to_acitvate">%s choose knight to activate</string>
+    <string name="info_player_choose_knight_to_activate">%s choose knight to activate</string>
     <string name="info_player_choose_knight_to_promote">%s choose knight to promote</string>
     <string name="info_player_choose_knight_to_move">%s choose knight to move</string>
     <string name="info_player_position_displaced_knight">%s position your displaced knight</string>
@@ -226,8 +226,8 @@
     <string name="info_player_chased_robber">%s has chased away the robber!</string>
     <string name="info_player_chased_pirate">%s has chased away the pirate!</string>
     <string name="info_player_draws_progress_card">%s draw a progress card</string>
-    <string name="info_player_choose_developement_area">%s choose development area</string>
-    <string name="info_player_choose_knight_for_desertion">%s choose a kinght for desertion</string>
+    <string name="info_player_choose_development_area">%s choose development area</string>
+    <string name="info_player_choose_knight_for_desertion">%s choose a knight for desertion</string>
     <string name="info_player_choose_player_for_desertion">%s choose player for desertion</string>
     <string name="info_player_choose_diplomat_route">%s choose diplomat route</string>
     <string name="info_player_choose_player_for_harbor_trade">%s choose player for harbor trade</string>
@@ -259,7 +259,7 @@
     <string name="info_player_knight_demoted">%s\'s knight demoted!</string>
     <string name="info_player_choose_ship_to_attack">%s choose ship to attack</string>
     <string name="info_player_needs_die_n_to_win">%1$s needs a %2$s or better to win.</string>
-    <string name="info_player_has_attacked_player_and_commandeered_ship">%1$s has attacked %2$s and comandeered their ship!</string>
+    <string name="info_player_has_attacked_player_and_commandeered_ship">%1$s has attacked %2$s and commandeered their ship!</string>
     <string name="info_player_has_defended_ship_from_player">%1$s has defended their ship from %2$s\'s attack.  Warship destroyed.</string>
     <string name="info_player_attacking_pirate_fortress">%s is attacking a pirate fortress</string>
     <string name="info_player_conquered_pirate_fortress">%s has conquered a pirate fortress!</string>
@@ -267,7 +267,7 @@
     <string name="info_player_attack_is_draw_1_ship">%s\'s attack results in a draw.  Player loses 1 ship</string>
     <string name="info_player_attack_is_loss_2_ships">%s\'s attack results in a loss.  Player loses 2 ships</string>
     <string name="info_player_applied_alchemist_on_die_n_n_x">%1$s applied Alchemist card on dice %2$d, %2$d, %4$s</string>
-    <string name="info_player_has_discovered_new_terriroy_x">%1$s has discoverd a new territory: %2$s</string>
+    <string name="info_player_has_discovered_new_territory_x">%1$s has discovered a new territory: %2$s</string>
     <string name="info_player_has_discovered_island">%s has discovered an island</string>
     <string name="info_player_blocked_lost_longest_road">%s is blocked and has lost the longest road!</string>
     <string name="info_player_gained_longest_road">%s has gained the Longest Road!</string>
@@ -289,14 +289,14 @@
     <string name="info_player_gets_defender_of_catan_card">%s receives the Defender of Catan card!</string>
     <string name="info_catan_defeated">Catan failed to defend against the Barbarians!</string>
     <string name="info_player_defended_city_With_wall">%s has defended their city with a wall</string>
-    <string name="info_player_has_city_pilledged">%s has their city pilledged</string>
+    <string name="info_player_has_city_pillaged">%s has their city pillaged</string>
     <string name="info_player_takes_n_x_cards_from_player">%1$s takes %2$d %3$s card from player %4$s</string>
 
     <!-- Move types -->
     <string name="move_type_cancel">Cancel</string>
     <string name="move_type_cancel_help">Cancel current operation</string>
-    <string name="move_type_continue">Continue</string>
-    <string name="move_type_continue_help">End your turn</string>
+    <string name="move_type_continue">End Turn</string>
+    <string name="move_type_continue_help">End your turn and allow next player to play.</string>
     <string name="move_type_soldier">Soldier</string>
     <string name="move_type_soldier_help">Move the robber or Pirate to cell of players choice</string>
     <string name="move_type_warship">Warship</string>
@@ -318,7 +318,7 @@
     <string name="move_type_build_warship">Build Warship</string>
     <string name="move_type_build_warship_help_cost">Upgrade an existing ship to a war ship for cost of %s. Warships can chase away the pirate.</string>
     <string name="move_type_attack_ship">Attack a ship</string>
-    <string name="move_type_attack_ship_help">Your warship can attack an opponent\'s ship. Roll a die. If 1,2,3 then opponent wins and you lose your warship.  On a 4,5,6 you win and opponent ship becomes yours.  The midpoint of the die is shifted based on the difference in number of cities posessed be each player.</string>
+    <string name="move_type_attack_ship_help">Your warship can attack an opponent\'s ship. Roll a die. If 1,2,3 then opponent wins and you lose your warship.  On a 4,5,6 you win and opponent ship becomes yours.  The midpoint of the die is shifted based on the difference in number of cities possessed be each player.</string>
     <string name="move_type_attack_fortress">Attack Fortress</string>
     <string name="move_type_attack_fortress_help">Roll the dice and take a chance at converting the fortress to a new settlement. Three wins converts the settlement. A loss makes you lose the 2 ships adjacent to the fortress. A win costs you 1 ship</string>
     <string name="move_type_build_road">Build Road</string>
@@ -365,24 +365,24 @@
     <string name="move_type_deserter">Deserter</string>
     <string name="move_type_deserter_help">Choose an opponent to remove one of their knights, then place one of equal strength.</string>
     <string name="move_type_saboteur">Saboteur</string>
-    <string name="move_type_saboteur_help">Players with equal or higher victory points must discard half (rounded down) of their inhand cards</string>
+    <string name="move_type_saboteur_help">Players with equal or higher victory points must discard half (rounded down) of their in hand cards</string>
     <string name="move_type_spy">Spy</string>
     <string name="move_type_spy_help">View and choose any one of a single opponents progress cards except victory cards</string>
     <string name="move_type_warlord">Warlord</string>
     <string name="move_type_warlord_help">Activate all your knights for free</string>
     <string name="move_type_wedding">Wedding</string>
-    <string name="move_type_wedding_help">All players with more points give you any 2 commoditty or resource cards of their choice</string>
+    <string name="move_type_wedding_help">All players with more points give you any 2 commodity or resource cards of their choice</string>
     <string name="move_type_harbor">Harbor</string>
     <string name="move_type_harbor_help">Force each player to exchange a commodity card of their choice for a resource card. If they have no commodity cards, then the trade is voided</string>
     <string name="move_type_master_merchant">Master Merchant</string>
     <string name="move_type_master_merchant_help">View and then take any 2 resource or commodity cards from another players hand who has more points</string>
     <string name="move_type_merchant">Merchant</string>
-    <string name="move_type_merchant_help">Place the merchant on a land tile to recieve the 2:1 trade bonus for that tile type for as long as the merchant is on the tile</string>
+    <string name="move_type_merchant_help">Place the merchant on a land tile to receive the 2:1 trade bonus for that tile type for as long as the merchant is on the tile</string>
     <string name="move_type_merchant_fleet">Merchant Fleet</string>
     <string name="move_type_merchant_fleet_help">Choose one resource or commodity to get a 2:1 trade bonus for that turn</string>
     <string name="move_type_resource_monopoly">Resource Monopoly</string>
     <string name="move_type_resource_monopoly_help">All players give you 2 resources of your choice if they have it</string>
-    <string name="move_type_trade_monopoloy">Trade Monopoly</string>
+    <string name="move_type_trade_monopoly">Trade Monopoly</string>
     <string name="move_type_trade_monopoly_help">All players give you 1 commodity of your choice if they have it</string>
     <string name="move_type_hire_knight">Hire Knight</string>
     <string name="move_type_hire_knight_help_cost">Position new basic inactive knight for cost of %s</string>
@@ -485,16 +485,16 @@
     <string name="rule_enable_attacking_fortress_ends_turn">Attacking a Pirate fortress ends turn flag. Default is true based on original rule set.</string>
     <string name="rule_variation_cak">Cities &amp; Knights Expansion</string>
     <string name="rule_enable_cak">Enable Cities and Knights</string>
-    <string name="rule_barbarian_steps_to_attack">Barbaian Steps to attack</string>
+    <string name="rule_barbarian_steps_to_attack">Barbarian Steps to attack</string>
     <string name="rule_max_progress_cards">Max Progress Cards</string>
     <string name="rule_safe_cards_per_wall">Additional safe cards per wall</string>
     <string name="rule_points_for_metro">Points per Metropolis</string>
     <string name="rule_enable_knights_venture_off_roads">Allow knights to venture off roads 1 unit at a time</string>
-    <string name="rule_knight_score_to_destroy_road">Indicate the min die roll (offset by knight level) needed to destroy a road.  Set to 0 to disable.</string>
-    <string name="rule_knight_score_to_destroy_settlement">Indicate the min die roll (offset by knight level) needed to destroy a settlement.  Set to 0 to disable.</string>
-    <string name="rule_knight_score_to_destroy_city">Indicate the min die roll (offset by knight level) needed to destroy a city.  Set to 0 to disable.</string>
-    <string name="rule_knight_score_to_destroy_walled_city">Indicate the min die roll (offset by knight level) needed to destroy a walled city.  Set to 0 to disable.</string>
-    <string name="rule_knight_score_to_destroy_metro">Indicate the min die roll (offset by knight level) needed to destroy a metropolis.  Set to 0 to disable.</string>
+    <string name="rule_knight_score_to_destroy_road">Enable Attack Roads by setting value to non-zero. When enabled, active knights can attack roads they are adjacent to. If die roll + knight level of all adjacent knights is greater than value specified then the road is damaged. The next successful attack will remove the opponents road. A player can guard their road by placing an active knight adjacent to it, which will adjust the required die roll into their favor.</string>
+    <string name="rule_knight_score_to_destroy_settlement">Enable Attack Settlements by setting value to non-zero. When enabled, active knights can attack Settlements they are adjacent to. If die roll + knight level of all adjacent knights is greater then value specified then the settlement is removed. A player can guard their settlement by placing active knights adjacent to it, which will adjust the required die roll to their favor.</string>
+    <string name="rule_knight_score_to_destroy_city">Enable Attack Cities by setting value to non-zero. When enabled, active knights can attack Cities they are adjacent to. If die roll + knight level of all adjacent knights is greater then value specified then the city is reduced to settlement. A player can guard their city by placing active knights adjacent to it, which will adjust the required die roll to their favor.</string>
+    <string name="rule_knight_score_to_destroy_walled_city">Enable Attack Walled Cities by setting value to non-zero. When enabled, active knights can attack Walled Cities they are adjacent to. If die roll + knight level of all adjacent knights is greater then value specified then the walled city is reduced to city. A player can guard their walled city by placing active knights adjacent to it, which will adjust the required die roll to their favor.</string>
+    <string name="rule_knight_score_to_destroy_metro">Enable Attack a Metropolis by setting value to non-zero. When enabled, active knights can attack an Metropolis they are adjacent to. If die roll + knight level of all adjacent knights is greater then value specified then the metropolis is reduced to walled city. A player can guard their metropolis by placing active knights adjacent to it, which will adjust the required die roll to their favor.</string>
     <string name="rule_enable_inventor_unrestrained">When true, inventor can swap any tiles, otherwise 2,6,8 and 12 cannot be swapped as per original rule set.</string>
     <string name="rule_variation_tab">Traders &amp; Barbarians expansion</string>
     <string name="rule_enable_event_cards">Use Event Cards instead of dice</string>
@@ -504,7 +504,7 @@
     <!-- Menu strings -->
     <string name="menu_item_quit">Quit</string>
     <string name="menu_item_quit_help">Exit to main menu</string>
-    <string name="menu_item_buildables">Buidlables</string>
+    <string name="menu_item_buildables">Buildable Items</string>
     <string name="menu_item_buildables_help">See how to build things</string>
     <string name="menu_item_rules">Rules</string>
     <string name="menu_item_rules_help">View or Edit the game rules</string>
@@ -514,7 +514,7 @@
     <string name="menu_item_console_help">View console messages</string>
 
     <string name="menu_item_sp">Single Player</string>
-    <string name="menu_item_mp">Multiplyer</string>
+    <string name="menu_item_mp">Multi-player</string>
     <string name="menu_item_resume">Resume</string>
     <string name="menu_item_boards">Boards</string>
     <string name="menu_item_scenarios">Scenarios</string>
@@ -524,7 +524,7 @@
     <string name="card_type_development">Development</string>
     <string name="card_type_progress">Progress</string>
 
-    <string name="anim_aqeduct_ability">Aqueduct Ability!</string>
+    <string name="anim_aqueduct_ability">Aqueduct Ability!</string>
     <string name="anim_territory_discovered">Territory\nDiscovered</string>
     <string name="anim_explorer_lost">Explorer Lost!</string>
     <string name="anim_explorer_gained">Explorer Gained!</string>
@@ -543,17 +543,17 @@
     <string name="anim_route_reduced_arg">Route Reduced!\n-%d</string>
     <string name="anim_route_increased_arg">Route Increased!\n+%d</string>
     <string name="anim_road_destroyed">Road Destroyed</string>
-    <string name="anim_road_damaged">Road Damaged.\nCannt build another\nuntil it is repaired</string>
+    <string name="anim_road_damaged">Road Damaged.\nCannot build another\nuntil it is repaired</string>
     <string name="anim_structure_demoted">%1$s Reduced to %2$s</string>
     <string name="anim_knight_promoted">Promoted to\n%s</string>
-    <string name="anim_ship_comandeered">Ship Commandeered by %s</string>
+    <string name="anim_ship_commandeered">Ship Commandeered by %s</string>
     <string name="anim_ship_destroyed">Ship Destroyed</string>
     <string name="anim_player_wins">%s WINS!!!</string>
     <string name="anim_trade_summary">Trade\n %1$s\n -%2$d</string>
 
     <string name="popup_title_pirate_attack">Pirate Attack</string>
-    <string name="popup_content_pirate_attack">Pirates attack %1$s\nPlayer Strength %2$d\nPirate Stength %3$d\n</string>
-    <string name="popup_content_player_attack_fortress_summary">%1$s attacks the pirate fortress!\nPlayer Strength %2$d\nPirate Stength %3$d\nResult:\n%4$s</string>
+    <string name="popup_content_pirate_attack">Pirates attack %1$s\nPlayer Strength %2$d\nPirate Strength %3$d\n</string>
+    <string name="popup_content_player_attack_fortress_summary">%1$s attacks the pirate fortress!\nPlayer Strength %2$d\nPirate Strength %3$d\nResult:\n%4$s</string>
     <string name="popup_content_player_attack_fortress_result_conquered">Player %s has conquered the fortress!</string>
     <string name="popup_content_player_attack_fortress_result_player_won">Player damages the fortress</string>
     <string name="popup_content_player_attack_fortress_result_player_lost">Player loses battle and 2 ships</string>
@@ -561,6 +561,18 @@
     <string name="popup_content_player_attack_opponent_summary">%1$s is attacking %2$s\'s %3$s\n%4$s\'s score : %5$d\n%6$s's score : %7$d</string>
     <string name="popup_title_player_attack">Player Attack!</string>
     <string name="popup_title_barbarian_attack">Barbarian Attack</string>
-    <string name="popup_content_barbarian_attack_summry">Barbarian Attack!\n\nBarbarian Strength %1$d\nCatan Strength %2$d\n</string>
+    <string name="popup_content_barbarian_attack_summary">Barbarian Attack!\n\nBarbarian Strength %1$d\nCatan Strength %2$d\n</string>
+
+    <!-- player info -->
+    <string name="player_info_header_name_pts_cards_maxsafecards">%1$s %2$d Points\nCards %3$d(%4$d)</string>
+    <string name="player_info_materials_count">Progress X %d</string>
+    <string name="player_info_progress_count">Progress X %d</string>
+    <string name="player_info_cards_count">Cards X %d</string>
+    <string name="player_info_army_size">Army X %d</string>
+    <string name="player_info_knights_count_strength">Knights %1$d/%2$d</string>
+    <string name="player_info_road_length">Road Length %d</string>
+    <string name="player_info_merchantfleet_tradable">Merchant Fleet %s</string>
+    <string name="player_info_discoveredislands_count_pts">Discovered Islands X %d %s</string>
+    <string name="player_info_discoveredtiles_count">Discovered Tiles X %d</string>
 
 </resources>

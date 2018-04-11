@@ -950,7 +950,7 @@ public class GUI implements ActionListener, MenuItem.Action {
             }
         };
         for (TileType c : TileType.values()) {
-            grp.addButton(formatString(c.name()), c);
+            grp.addButton(formatString(c.getName(this)), c);
         }
         grp.addButton("Islands", new PickHandler() {
 			

@@ -60,7 +60,7 @@ public final class Rules extends Reflector<Rules> {
         Variation variation();
         int minValue() default 0;
         int maxValue() default 0;
-        int order() default Integer.MAX_VALUE;
+        int order() default 1000;
     }
 
 	// SOC Variables
@@ -106,7 +106,7 @@ public final class Rules extends Reflector<Rules> {
 	
 	// Extensions
 
-    @Rule(variation = Variation.SEAFARERS, stringId = R.string.rule_enable_seafarers, order = 100)
+    @Rule(variation = Variation.SEAFARERS, stringId = R.string.rule_enable_seafarers, order = 0)
 	private boolean enableSeafarersExpansion = false;
     @Rule(variation = Variation.SEAFARERS, stringId = R.string.rule_enable_island_settlements)
 	private boolean enableIslandSettlementsOnSetup = false; // some scenarios allow starting on a island while others dont
@@ -128,7 +128,7 @@ public final class Rules extends Reflector<Rules> {
 	private boolean attackPirateFortressEndsTurn = true;
 	
 	// knight
-    @Rule(variation = Variation.CAK, stringId = R.string.rule_enable_cak, order = 100)
+    @Rule(variation = Variation.CAK, stringId = R.string.rule_enable_cak, order = 0)
 	private boolean enableCitiesAndKnightsExpansion = false;
     @Rule(variation = Variation.CAK, stringId = R.string.rule_barbarian_steps_to_attack, minValue=5, maxValue=10)
 	private int barbarianStepsToAttack=7;
@@ -140,15 +140,15 @@ public final class Rules extends Reflector<Rules> {
 	private int pointsPerMetropolis=4;
     @Rule(variation = Variation.CAK, stringId = R.string.rule_enable_knights_venture_off_roads)
 	private boolean enableKnightExtendedMoves=false;
-    @Rule(variation = Variation.CAK, stringId = R.string.rule_knight_score_to_destroy_road, minValue=0, maxValue=11, order=10)
+    @Rule(variation = Variation.CAK, stringId = R.string.rule_knight_score_to_destroy_road, minValue=0, maxValue=11, order=1)
 	private int knightScoreToDestroyRoad=0;
-    @Rule(variation = Variation.CAK, stringId = R.string.rule_knight_score_to_destroy_settlement, minValue=0, maxValue=14, order=9)
+    @Rule(variation = Variation.CAK, stringId = R.string.rule_knight_score_to_destroy_settlement, minValue=0, maxValue=14, order=2)
 	private int knightScoreToDestroySettlement=0;
-    @Rule(variation = Variation.CAK, stringId = R.string.rule_knight_score_to_destroy_city, minValue=0, maxValue=14, order=8)
+    @Rule(variation = Variation.CAK, stringId = R.string.rule_knight_score_to_destroy_city, minValue=0, maxValue=14, order=3)
 	private int knightScoreToDestroyCity=0;
-    @Rule(variation = Variation.CAK, stringId = R.string.rule_knight_score_to_destroy_walled_city, minValue=0, maxValue=14, order=7)
+    @Rule(variation = Variation.CAK, stringId = R.string.rule_knight_score_to_destroy_walled_city, minValue=0, maxValue=14, order=4)
 	private int knightScoreToDestroyWalledCity=0;
-    @Rule(variation = Variation.CAK, stringId = R.string.rule_knight_score_to_destroy_metro, minValue=0, maxValue=14, order=6)
+    @Rule(variation = Variation.CAK, stringId = R.string.rule_knight_score_to_destroy_metro, minValue=0, maxValue=14, order=5)
 	private int knightScoreToDestroyMetropolis=0;
     @Rule(variation = Variation.CAK, stringId = R.string.rule_enable_inventor_unrestrained)
 	private boolean unlimitedInventorTiles=false;

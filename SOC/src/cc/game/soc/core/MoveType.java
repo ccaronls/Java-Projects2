@@ -148,7 +148,7 @@ public enum MoveType implements ILocalized {
     MERCHANT_CARD(true, 0, R.string.move_type_merchant, R.string.move_type_merchant_help),
     MERCHANT_FLEET_CARD(true, 0, R.string.move_type_merchant_fleet, R.string.move_type_merchant_fleet_help),
     RESOURCE_MONOPOLY_CARD(true, 0, R.string.move_type_resource_monopoly, R.string.move_type_resource_monopoly_help),
-    TRADE_MONOPOLY_CARD(true, 0, R.string.move_type_trade_monopoloy, R.string.move_type_trade_monopoly_help),
+    TRADE_MONOPOLY_CARD(true, 0, R.string.move_type_trade_monopoly, R.string.move_type_trade_monopoly_help),
 
     // Knight actions
     HIRE_KNIGHT(false, 10, R.string.move_type_hire_knight, R.string.move_type_hire_knight_help_cost) {

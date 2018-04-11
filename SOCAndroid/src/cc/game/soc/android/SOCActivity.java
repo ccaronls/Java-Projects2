@@ -692,7 +692,7 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
             this.min = max = 0;
             field = null;
             this.stringId = var.stringId;
-            this.order = 100;
+            this.order = 0;
         }
 
         public RuleItem(Rules.Rule rule, Field field) {
@@ -727,14 +727,28 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
         RulesAdapter(Rules rules, boolean canEdit) {
             this.rules = rules;
             this.canEdit = canEdit;
-            for (Rules.Variation v : Rules.Variation.values())
+            for (Rules.Variation v : Rules.Variation.values()) {
+                if (!canEdit) {
+                    if (v == Rules.Variation.SEAFARERS && !rules.isEnableSeafarersExpansion())
+                        continue;
+                    if (v == Rules.Variation.CAK && !rules.isEnableCitiesAndKnightsExpansion())
+                        continue;
+                }
                 rulesList.add(new RuleItem(v));
+            }
             for (Field f : Rules.class.getDeclaredFields()) {
                 Annotation[] anno = f.getAnnotations();
                 for (Annotation a : anno) {
                     if (a.annotationType().equals(Rules.Rule.class)) {
-                        f.setAccessible(true);
                         final Rules.Rule ruleVar = (Rules.Rule) a;
+                        if (!canEdit) {
+                            if (ruleVar.variation() == Rules.Variation.SEAFARERS && !rules.isEnableSeafarersExpansion())
+                                continue;
+                            if (ruleVar.variation() == Rules.Variation.CAK && !rules.isEnableCitiesAndKnightsExpansion())
+                                continue;
+                        }
+
+                        f.setAccessible(true);
                         rulesList.add(new RuleItem(ruleVar, f));
                     }
                 }

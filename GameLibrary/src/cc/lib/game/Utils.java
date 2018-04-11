@@ -1618,6 +1618,20 @@ public class Utils {
     }
 
     /**
+     * Return string value of a number and its sign (+ / -)
+     *
+     * @param n
+     * @return
+     */
+    public static String getSignedStringOrEmptyWhenZero(int n) {
+        if (n == 0)
+            return "";
+        if (n < 0)
+            return String.valueOf(n);
+        return "+" + n;
+    }
+
+    /**
      * Return the next enum occurrence wrapping if necessary.
      * <unicodePattern>
      * Example:

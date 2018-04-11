@@ -1,5 +1,6 @@
 package cc.game.soc.ui;
 
+import cc.game.soc.android.R;
 import cc.game.soc.core.Card;
 import cc.game.soc.core.CardType;
 import cc.game.soc.core.CommodityType;
@@ -59,10 +60,8 @@ public final class UIPlayerRenderer extends UIRenderer {
         //g.setTextStyles(AGraphics.TextStyle.BOLD);
 
         StringBuffer str = new StringBuffer();
-        str.append(player.getName())
-                .append(" ").append(player.getPoints()).append(" Points\nCards ")
-                .append(player.getTotalCardsLeftInHand()).append( "(").append(soc.getRules().getMaxSafeCardsForPlayer(player.getPlayerNum(), soc.getBoard()))
-                .append(")\n");
+        str.append(getString(R.string.player_info_header_name_pts_cards_maxsafecards, player.getName(), player.getPoints(), player.getTotalCardsLeftInHand(), soc.getRules().getMaxSafeCardsForPlayer(player.getPlayerNum(), soc.getBoard())));
+        str.append("\n");
         if (player.isInfoVisible()) {
             for (ResourceType t : ResourceType.values()) {
                 int num = player.getCardCount(t);
@@ -85,12 +84,12 @@ public final class UIPlayerRenderer extends UIRenderer {
             if (soc.getRules().isEnableCitiesAndKnightsExpansion()) {
                 int num = player.getCardCount(CardType.Resource);
                 num += player.getCardCount(CardType.Commodity);
-                str.append("Materials X ").append(num).append("\n");
+                str.append(getString(R.string.player_info_materials_count, num)).append("\n");
                 num = player.getCardCount(CardType.Progress);
-                str.append("Progress X ").append(num).append("\n");
+                str.append(getString(R.string.player_info_progress_count, num)).append("\n");
             } else {
                 int num = player.getUnusedCardCount();
-                str.append("Card X ").append(num).append("\n");
+                str.append(getString(R.string.player_info_cards_count, num)).append("\n");
             }
         }
 
@@ -113,17 +112,16 @@ public final class UIPlayerRenderer extends UIRenderer {
   */
         int size = player.getArmySize();
         if (size > 0) {
-            str.append("Army X ").append(size).append("\n");
+            str.append(getString(R.string.player_info_army_size, size)).append("\n");
         }
         if (numKnights > 0) {
-            str.append("Knights ").append(knightLevel).append("/").append(maxKnightLevel).append("\n");
+            str.append(getString(R.string.player_info_knights_count_strength, knightLevel, maxKnightLevel)).append("\n");
         }
-        str.append("Road Length ").append(player.getRoadLength());
-        str.append("\n");
+        str.append(getString(R.string.player_info_road_length, player.getRoadLength())).append("\n");
         for (SpecialVictoryType sv : SpecialVictoryType.values()) {
             int num = player.getCardCount(sv);
             if (num > 0) {
-                str.append(sv.name());
+                str.append(sv.getName(this));
                 if (sv.points != 0)
                     str.append(Utils.getSignedString(num*sv.points));
                 str.append("\n");
@@ -132,26 +130,26 @@ public final class UIPlayerRenderer extends UIRenderer {
 
         for (DevelopmentArea d : DevelopmentArea.values()) {
             if (player.getCityDevelopment(d) > 0) {
-                str.append(d.name()).append(" ").append(d.getLevelName(player.getCityDevelopment(d), UISOC.getInstance())).append(" (").append(player.getCityDevelopment(d)).append(") ");
+                str.append(d.getName(this)).append(" ").append(d.getLevelName(player.getCityDevelopment(d), UISOC.getInstance())).append(" (").append(player.getCityDevelopment(d)).append(") ");
                 if (soc.getMetropolisPlayer(d) == player.getPlayerNum()) {
-                    str.append(" Metro +").append(soc.getRules().getPointsPerMetropolis());
+                    str.append(" +").append(soc.getRules().getPointsPerMetropolis());
                 }
                 str.append("\n");
             }
         }
         if (player.getMerchantFleetTradable() != null) {
-            str.append("Merchant Fleet ").append(player.getMerchantFleetTradable().getName(UISOC.getInstance())).append("\n");
+            str.append(getString(R.string.player_info_merchantfleet_tradable, player.getMerchantFleetTradable().getName(UISOC.getInstance()))).append("\n");
         }
 
         {
             int num = soc.getBoard().getNumDiscoveredIslands(player.getPlayerNum());
             if (num > 0) {
-                str.append("Discovered Islands X ").append(num).append(" +").append(num * soc.getRules().getPointsIslandDiscovery()).append("\n");
+                str.append(getString(R.string.player_info_discoveredislands_count_pts, num, Utils.getSignedStringOrEmptyWhenZero(num * soc.getRules().getPointsIslandDiscovery()))).append("\n");
             }
         }
 
         if (numDiscoveredTiles > 0) {
-            str.append("Discovered Tiles X " + numDiscoveredTiles).append("\n");
+            str.append(getString(R.string.player_info_discoveredtiles_count, numDiscoveredTiles)).append("\n");
         }
 
         float padding = RenderConstants.textMargin;

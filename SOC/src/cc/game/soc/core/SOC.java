@@ -1748,7 +1748,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
 				}
 
 				case CHOOSE_OPPONENT_TO_TAKE_RESOURCE_FROM: // wait state
-					printinfo(getString(R.string.info_player_choose_oppoennt_to_take_resource, getCurPlayer().getName()));
+					printinfo(getString(R.string.info_player_choose_opponent_to_take_resource, getCurPlayer().getName()));
 					assert (options != null);
 					if (options.size() == 0) {
 						popState();
@@ -1871,7 +1871,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
 				}
 
 				case CHOOSE_KNIGHT_TO_ACTIVATE: {
-					printinfo(getString(R.string.info_player_choose_knight_to_acitvate, getCurPlayer().getName()));
+					printinfo(getString(R.string.info_player_choose_knight_to_activate, getCurPlayer().getName()));
 					if (Utils.isEmpty(options)) {
 						options = mBoard.getVertIndicesOfType(getCurPlayerNum(), VertexType.BASIC_KNIGHT_INACTIVE, VertexType.STRONG_KNIGHT_INACTIVE, VertexType.MIGHTY_KNIGHT_INACTIVE);
 					}
@@ -1999,7 +1999,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
 
 				// Crane Card
 				case CHOOSE_CITY_IMPROVEMENT: {
-					printinfo(getString(R.string.info_player_choose_developement_area, getCurPlayer().getName()));
+					printinfo(getString(R.string.info_player_choose_development_area, getCurPlayer().getName()));
 					Collection<DevelopmentArea> ops = getStateExtraOptions();
 					assert(!Utils.isEmpty(ops));
 					DevelopmentArea [] areas = ops.toArray(new DevelopmentArea[ops.size()]);
@@ -2794,7 +2794,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
 	 */
 	public final void processMove(MoveType move) {
 	    
-        printinfo(getString(R.string.info_player_choosed_move_m, getCurPlayer().getName(), move.getName(this)));
+        printinfo(getString(R.string.info_player_chosen_move_m, getCurPlayer().getName(), move.getName(this)));
         switch (move) {
         	case ROLL_DICE:
         		rollDice();
@@ -3601,7 +3601,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
 					
 				}
 
-				printinfo(getString(R.string.info_player_has_discovered_new_terriroy_x, getCurPlayer().getName(), newType));
+				printinfo(getString(R.string.info_player_has_discovered_new_territory_x, getCurPlayer().getName(), newType));
 				getCurPlayer().incrementDiscoveredTerritory(1);
 				updateExplorerPlayer();
 				for (Route r : mBoard.getTileRoutes(tile)) {
@@ -5230,7 +5230,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
 					} else {
 						cities = mBoard.getVertIndicesOfType(playerNum, VertexType.CITY);
 						if (cities.size() > 0) {
-							printinfo(getString(R.string.info_player_has_city_pilledged, getPlayerByPlayerNum(playerNum).getName()));
+							printinfo(getString(R.string.info_player_has_city_pillaged, getPlayerByPlayerNum(playerNum).getName()));
 							int cityIndex = Utils.randItem(cities);
 							playerStatus[playerNum] +=" City piledged";
 							Vertex v = mBoard.getVertex(cityIndex);

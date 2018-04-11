@@ -693,11 +693,11 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
     protected void onBarbariansAttack(int catanStrength, int barbarianStrength, String [] playerStatus) {
         server.broadcastExecuteOnRemote(NetCommon.SOC_ID, catanStrength, barbarianStrength, playerStatus);
         barbarianRenderer.onBarbarianAttack(catanStrength, barbarianStrength, playerStatus);
-        StringBuffer str = new StringBuffer(getString(R.string.popup_content_barbarian_attack_summry, barbarianStrength, catanStrength));
+        StringBuffer str = new StringBuffer(getString(R.string.popup_content_barbarian_attack_summary, barbarianStrength, catanStrength));
         for (Player p : getPlayers()) {
             str.append(p.getName()).append(" ").append(playerStatus[p.getPlayerNum()]).append("\n");
         }
-        showOkPopup(getString(R.string.popup_title_barbarian_attack), getString(R.string.popup_content_barbarian_attack_summry, barbarianStrength, catanStrength));
+        showOkPopup(getString(R.string.popup_title_barbarian_attack), getString(R.string.popup_content_barbarian_attack_summary, barbarianStrength, catanStrength));
         super.onBarbariansAttack(catanStrength, barbarianStrength, playerStatus);
         boardRenderer.component.redraw();
     }
@@ -989,7 +989,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
     @Keep
     protected void onAqueduct(int playerNum) {
         server.broadcastExecuteOnRemote(NetCommon.SOC_ID, playerNum);
-        addCardAnimation(playerNum, getString(R.string.anim_aqeduct_ability));
+        addCardAnimation(playerNum, getString(R.string.anim_aqueduct_ability));
         super.onAqueduct(playerNum);
     }
 
@@ -1139,7 +1139,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
         server.broadcastExecuteOnRemote(NetCommon.SOC_ID, taker, shipTaken);
         Route ship = getBoard().getRoute(shipTaken);
         Player tPlayer = getPlayerByPlayerNum(taker);
-        addFloatingTextAnimation((UIPlayer)getPlayerByPlayerNum(ship.getPlayer()), getBoard().getRouteMidpoint(ship), getString(R.string.anim_ship_comandeered, tPlayer.getName()));
+        addFloatingTextAnimation((UIPlayer)getPlayerByPlayerNum(ship.getPlayer()), getBoard().getRouteMidpoint(ship), getString(R.string.anim_ship_commandeered, tPlayer.getName()));
         super.onPlayerShipComandeered(taker, shipTaken);
     }
 
