@@ -69,7 +69,7 @@ public class UIPlayer extends PlayerBot implements ClientConnection.Listener {
     }
 
     public boolean isInfoVisible() {
-        return false;//UISOC.getInstance().getProps().getBooleanProperty(GUI.PROP_AI_TUNING_ENABLED, false);
+        return UISOC.getInstance().isAITuningEnabled();
     }
 
 	private long getAnimTime() {

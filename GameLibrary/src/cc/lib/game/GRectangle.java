@@ -23,6 +23,10 @@ public final class GRectangle extends Reflector<GRectangle> {
         this(x, y, dim.width, dim.height);
     }
 
+    public GRectangle(IVector2D v, GDimension d) {
+        this(v.getX(), v.getY(), d);
+    }
+
     public GRectangle(IVector2D v0, IVector2D v1) {
         set(v0, v1);
     }

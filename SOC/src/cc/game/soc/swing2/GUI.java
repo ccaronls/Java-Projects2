@@ -45,6 +45,8 @@ import javax.swing.JTextField;
 import javax.swing.JToggleButton;
 import javax.swing.ScrollPaneLayout;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.SwingConstants;
+import javax.swing.ScrollPaneConstants;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileFilter;
@@ -589,14 +591,6 @@ public class GUI implements ActionListener, MenuItem.Action {
                             BotNode node = leafs.get(highlightedIndex);
                             String info = getBotNodeDetails(node, maxKeyWidthf, maxValues);
                             nodeArea.setText(info);
-
-                            String text = node.getDescription();
-                            while (node.getParent() != null) {
-                                node = node.getParent();
-                                text = node.getDescription() + "==>>" + text;
-                            }
-                            text = "" + highlightedIndex + ": " + text;
-                            console.addText(GColor.BLACK, text);
                         }
 
                         lastHighlighted = highlightedIndex;
@@ -604,10 +598,20 @@ public class GUI implements ActionListener, MenuItem.Action {
                         BotNode node = leafs.get(highlightedIndex);
                         onDrawPickable(bc, g, highlightedIndex);
                         NodeRect nr = nodeRects[highlightedIndex];
-                        String info = String.format("%.6f", node.getValue());
+                        String text = node.getDescription();
+                        while (node.getParent() != null) {
+                            node = node.getParent();
+                            text = node.getDescription() + " => " + text;
+                        }
+                        text = "" + highlightedIndex + ": " + text;
+;
+                        node = leafs.get(highlightedIndex);
+                        String info = String.format("%.6f\n", node.getValue()) + text;
                         g.setColor(GColor.YELLOW);
-                        AWTUtils.drawWrapJustifiedStringOnBackground(((AWTGraphics)g).getGraphics(), Math.round(nr.r.x+nr.r.w+padding+5), Math.round(nr.r.y), 100, padding, Justify.LEFT, Justify.TOP, info, AWTUtils.TRANSLUSCENT_BLACK);
-
+                        g.pushMatrix();
+                        g.setIdentity();
+                        g.drawWrapStringOnBackground(nr.r.x+nr.r.w, nr.r.y, g.getViewportWidth()/2, info, GColor.TRANSLUSCENT_BLACK, 2);
+                        g.popMatrix();
 
                         g.setColor(GColor.BLACK);
                         MutableVector2D v = new MutableVector2D();
@@ -625,10 +629,7 @@ public class GUI implements ActionListener, MenuItem.Action {
                     @Override
                     public void onDrawPickable(UIBoardRenderer bc, APGraphics g, int index) {
                         NodeRect nr = nodeRects[index];
-                        //g.setColor(GColor.TRANSLUSCENT_BLACK);
-                        //g.drawRect(nr.r.x, nr.r.y, nr.r.w, nr.r.h, padding);
                         g.setColor(GColor.YELLOW);
-                        //g.drawJustifiedString(nr.r.x, nr.r.y, Justify.LEFT, Justify.TOP, nr.s);
                         g.pushMatrix();
                         g.setIdentity();
                         g.drawJustifiedStringOnBackground(nr.r.x, nr.r.y, Justify.LEFT, Justify.TOP, nr.s, GColor.TRANSLUSCENT_BLACK, 2);
@@ -698,6 +699,12 @@ public class GUI implements ActionListener, MenuItem.Action {
                     throw e;
                 }
             }
+
+            @Override
+            public boolean isAITuningEnabled() {
+                return getProps().getBooleanProperty(PROP_AI_TUNING_ENABLED, false);
+            }
+
         };
 		
 		String boardFilename = props.getProperty("gui.defaultBoardFilename", "soc_def_board.txt");
@@ -2125,19 +2132,49 @@ public class GUI implements ActionListener, MenuItem.Action {
 		int index = 0;
 		final int fontHeight = g.getTextHeight();
 		final int padding = 2;
-		for (BotNode n : leafs) {
+
+		// need to setup the same transform as UIBoardRenderer
+        float width = g.getViewportWidth();
+        float height = g.getViewportHeight();
+        float dim = Math.min(width, height);
+        g.pushMatrix();
+        g.setIdentity();
+        g.translate(width/2, height/2);
+        g.scale(dim, dim);
+        g.translate(-0.5f, -0.5f);
+
+		for (BotNode node : leafs) {
+		    // find the best node from the root that suits us.
+            // start moving up the tree and pick the top most that is an edge, vertex or tile node
+            BotNode n = node;
+            BotNode best = node;
+            String desc = n.getDescription();
+            while (n.getParent() != null) {
+                n = n.getParent();
+                if ((n instanceof BotNodeVertex) ||
+                        (n instanceof BotNodeRoute) ||
+                        (n instanceof BotNodeTile)) {
+                    best = n;
+                }
+                if (n.getParent() != null)
+                    desc = n.getDescription();
+            }
+		    n=best;
+
 			MutableVector2D v = new MutableVector2D(n.getBoardPosition(getBoard()));
-			if (v.isZero()) {
-				String s = String.valueOf(index+1) +  " " + n.getDescription();
+			if (true || v.isZero()) {
+
+			    // this method seems easier
+				String s = String.valueOf(index) +  " " + desc;
 				GRectangle r = new GRectangle(padding, ypos, (int)g.getTextWidth(s), fontHeight);
 				nodeRects[index] = new NodeRect(r, s);
 				ypos += fontHeight+padding*2+1;
 				
 			} else {
 				g.transform(v);
-				String s = String.valueOf(index+1);
-				int width = (int)g.getTextWidth(s);
-				GRectangle r = new GRectangle(v.Xi() - width/2, v.Yi() - fontHeight/2, width, fontHeight);
+				String s = String.valueOf(index);
+				width = g.getTextWidth(s);
+				GRectangle r = new GRectangle(v.X() - width/2, v.Y() - fontHeight/2, width, fontHeight);
 				for (int i=0; i<index; i++) {
 					if (nodeRects[i].r.isIntersectingWidth(r)) {
 						r.x = nodeRects[i].r.x;
@@ -2149,6 +2186,8 @@ public class GUI implements ActionListener, MenuItem.Action {
 			}
 			index++;
 		}
+
+		g.popMatrix();
 	}
 
 	public void showPopup(JFrame pop) {
@@ -2251,11 +2290,14 @@ public class GUI implements ActionListener, MenuItem.Action {
     public void     showConfigureGameSettingsPopup(final Rules rules, boolean editable) {
         final JPanel view = new JPanel();
         JScrollPane panel = new JScrollPane();
+        panel.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         //panel.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         panel.setPreferredSize(new Dimension(1000, 800));
         panel.getViewport().add(view);
         view.setLayout(new GridBagLayout());
         GridBagConstraints cons = new GridBagConstraints();
+        cons.fill = GridBagConstraints.BOTH;
+        cons.anchor = GridBagConstraints.WEST;
 
         final HashMap<JComponent, Field> components = new HashMap<JComponent, Field>();
         final int numCols = 10;
@@ -2284,7 +2326,7 @@ public class GUI implements ActionListener, MenuItem.Action {
         				cons.gridwidth=1;
         				if (f.getType().equals(boolean.class)) {
         					if (editable) {
-        						JCheckBox button = new JCheckBox("Enabled", f.getBoolean(rules));
+        						JCheckBox button = new JCheckBox("", f.getBoolean(rules));
             			        view.add(button, cons);
             			        components.put(button,  f);
         					} else {
@@ -2303,7 +2345,9 @@ public class GUI implements ActionListener, MenuItem.Action {
         				}
         				cons.gridx=1;
         				cons.gridwidth = numCols-1;
-    			        view.add(new JLabel(getSOC().getString(ruleVar.stringId())), cons);
+        				String txt = "<html><div WIDTH=900>" + getSOC().getString(ruleVar.stringId()) + "</div></html>";
+        				JLabel label = new JLabel(txt);
+    			        view.add(label, cons);
     			        cons.gridy++;
         				break;
         			}

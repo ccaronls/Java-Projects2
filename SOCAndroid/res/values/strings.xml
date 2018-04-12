@@ -503,6 +503,7 @@
     <string name="rule_barbarian_pts_per_settlement">Number of points barbarians get per settlement.</string>
     <string name="rule_barbarian_pts_per_city">Number of points barbarians get per city.</string>
     <string name="rule_barbarian_pts_per_metro">Number of points barbarians get per Metropolis.</string>
+    <string name="rule_barbarian_min_attacks_to_enable_robber_or_pirate">Minimum number af attacks from the barbarian to enable robber and pirate. Rolling a 7 still initiates the give up cards and take opponent card routines.</string>
 
     <!-- Menu strings -->
     <string name="menu_item_quit">Quit</string>
@@ -634,6 +635,14 @@
     <string name="state_roll_dice_attack_structure">Roll dice to attack opponents structure.</string>
     <string name="state_choose_ship_to_attack">Pick a ship to be attacked by a warship.</string>
     <string name="state_roll_dice_attack_ship">Roll dice to attack your opponents ship.</string>
+
+    <string name="attacking_what_ship">Ship</string>
+    <string name="attacking_what_road">Road</string>
+    <string name="barbarian_attack_summary_player_strength">Strength %d</string>
+    <string name="barbarian_attack_summary_defender_of_catan"> Defender of Catan</string>
+    <string name="barbarian_attack_summary_choose_progress_card"> Choose Progress Card</string>
+    <string name="barbarian_attack_summary_defended_by_wall"> Defended by Wall</string>
+    <string name="barbarian_attack_summary_city_pillaged"> City Pillaged</string>
 
 
 </resources>

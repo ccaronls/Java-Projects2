@@ -1234,4 +1234,8 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
         super.setBoard(board);
         boardRenderer.component.redraw();
     }
+
+    public boolean isAITuningEnabled() {
+        return false;
+    }
 }

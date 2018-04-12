@@ -94,6 +94,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
 	private Rules				mRules;
 	private int					mBarbarianDistance = -1; // CAK
 	private int []				mMetropolisPlayer = new int[NUM_DEVELOPMENT_AREA_TYPES];
+	private int                 mBarbarianAttackCount=0;
 	
 	public final State getState() {
 		return mStateStack.peek().state;
@@ -319,6 +320,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
 		mDiceConfigStack.clear();
 		mBoard.reset();
 		Arrays.fill(mMetropolisPlayer, 0);
+        mBarbarianAttackCount=0;
 	}
 
 	@Override
@@ -2337,7 +2339,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
 					int routeIndex = mBoard.getRouteIndex(r);
 					AttackInfo<RouteType> info = computeAttackRoad(routeIndex, this, mBoard, getCurPlayerNum());
 					//score += computeAttackerScoreAgainstRoad(r, getCurPlayerNum(), getBoard());
-					onPlayerAttackingOpponent(getCurPlayerNum(), victim.getPlayerNum(), "Road" , info.knightStrength+getDice()[0].getNum(), info.minScore);
+					onPlayerAttackingOpponent(getCurPlayerNum(), victim.getPlayerNum(), getString(R.string.attacking_what_road) , info.knightStrength+getDice()[0].getNum(), info.minScore);
 					if (getDice()[0].getNum() > info.minScore - info.knightStrength) {
 						switch (info.destroyedType) {
 							case DAMAGED_ROAD:
@@ -2451,16 +2453,11 @@ public class SOC extends Reflector<SOC> implements StringResource {
 					assert(attacking != null);
 					pushDiceConfig(DiceType.WhiteBlack);
 					Player victim = getPlayerByPlayerNum(attacking.getPlayer());
-					// if roll is 1,2,3 then attacker lost and loses their ship
-					// if roll is 4,5,6 then attacker won and the attacked ship becomes property of attacker
-					// the midpoint is shifted by the difference in the number of cities of each player
-					int attackingCities = mBoard.getCitiesForPlayer(getCurPlayerNum()).size();
-					int attackedCities = mBoard.getCitiesForPlayer(attacking.getPlayer()).size();
-					int dieToWin = (4-(attackingCities-attackedCities));
+					int dieToWin = computeDiceToWinAttackShip(mBoard, getCurPlayerNum(), attacking.getPlayer());
 					printinfo(getString(R.string.info_player_needs_die_n_to_win, getCurPlayer().getName(), dieToWin));
 					rollDice();
 					int score = getDice()[0].getNum();
-					onPlayerAttackingOpponent(getCurPlayerNum(), victim.getPlayerNum(), "Ship" , score, dieToWin-1);
+					onPlayerAttackingOpponent(getCurPlayerNum(), victim.getPlayerNum(), getString(R.string.attacking_what_ship) , score, dieToWin-1);
 					if (score >= dieToWin) {
 						printinfo(getString(R.string.info_player_has_attacked_player_and_commandeered_ship, getCurPlayer().getName(), getPlayerByPlayerNum(attacking.getPlayer()).getName()));
 						onPlayerShipComandeered(getCurPlayerNum(), getBoard().getRouteIndex(attacking));
@@ -2495,6 +2492,16 @@ public class SOC extends Reflector<SOC> implements StringResource {
             //if (Profiler.ENABLED) Profiler.pop("SOC::runGame");
 	    }
 	}
+
+	public static int computeDiceToWinAttackShip(Board b, int attackerNum, int defenderNum) {
+        // if roll is 1,2,3 then attacker lost and loses their ship
+        // if roll is 4,5,6 then attacker won and the attacked ship becomes property of attacker
+        // the midpoint is shifted by the difference in the number of cities of each player
+        int attackingCities = b.getCitiesForPlayer(attackerNum).size();
+        int defenderCities = b.getCitiesForPlayer(defenderNum).size();
+        int dieToWin = (4-(attackingCities-defenderCities));
+        return dieToWin;
+    }
     
     static class AttackInfo<T> {
     	List<Integer> attackingKnights = new ArrayList<>(); // which knights involved in the attack.  They will have been set to inactive post processing
@@ -5010,7 +5017,9 @@ public class SOC extends Reflector<SOC> implements StringResource {
 		if (getProductionNum() == 7) {
 			printinfo(getString(R.string.info_player_rolled_seven, getCurPlayer().getName()));
 			pushStateFront(State.SETUP_GIVEUP_CARDS);
-			if (getRules().isEnableRobber()) {
+			if (getRules().isEnableCitiesAndKnightsExpansion() && mBarbarianAttackCount < mRules.getMinBarbarianAttackstoEnableRobberAndPirate()) {
+                pushStateFront(State.CHOOSE_OPPONENT_TO_TAKE_RESOURCE_FROM, null, computeOpponents(this, getCurPlayerNum()), null);
+            } else if (getRules().isEnableRobber()) {
                 if (getRules().isEnableSeafarersExpansion())
                     pushStateFront(State.POSITION_ROBBER_OR_PIRATE_NOCANCEL);
                 else
@@ -5191,7 +5200,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
 			}
 			
 			for (Player p : getPlayers()) {
-				playerStatus[p.getPlayerNum()] = "Strength " + playerStrength[p.getPlayerNum()];
+				playerStatus[p.getPlayerNum()] = getString(R.string.barbarian_attack_summary_player_strength, playerStrength[p.getPlayerNum()]);
 			}
 
 			if (catanStrength >= barbarianStrength) {
@@ -5211,12 +5220,12 @@ public class SOC extends Reflector<SOC> implements StringResource {
 					for (Player p : getPlayers()) {
 						playerStatus[p.getPlayerNum()] = "[" + playerStrength[p.getPlayerNum()] + "]";
 					}
-					playerStatus[defender.getPlayerNum()] += " Defender of Catan";
+					playerStatus[defender.getPlayerNum()] += getString(R.string.barbarian_attack_summary_defender_of_catan);
 				} else {
 					pushStateFront(State.SET_PLAYER, getCurPlayerNum());
 					for (int playerNum : defenders) {
 						if (getPlayerByPlayerNum(playerNum).getCardCount(CardType.Progress) < getRules().getMaxProgressCards()) {
-							playerStatus[playerNum] += " Choose progress card";
+							playerStatus[playerNum] += getString(R.string.barbarian_attack_summary_choose_progress_card);
     						pushStateFront(State.CHOOSE_PROGRESS_CARD_TYPE);
     						pushStateFront(State.SET_PLAYER, playerNum);
 						}
@@ -5238,7 +5247,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
 					if (cities.size() > 0) {
 						printinfo(getString(R.string.info_player_defended_city_With_wall, getPlayerByPlayerNum(playerNum).getName()));
 						int cityIndex = Utils.randItem(cities);
-						playerStatus[playerNum] += " Defended by wall";
+						playerStatus[playerNum] += getString(R.string.barbarian_attack_summary_defended_by_wall);
 						Vertex v = mBoard.getVertex(cityIndex);
 						v.setPlayerAndType(playerNum, VertexType.CITY);
 					} else {
@@ -5246,7 +5255,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
 						if (cities.size() > 0) {
 							printinfo(getString(R.string.info_player_has_city_pillaged, getPlayerByPlayerNum(playerNum).getName()));
 							int cityIndex = Utils.randItem(cities);
-							playerStatus[playerNum] +=" City piledged";
+							playerStatus[playerNum] += getString(R.string.barbarian_attack_summary_city_pillaged);
 							Vertex v = mBoard.getVertex(cityIndex);
 							v.setPlayerAndType(playerNum, VertexType.SETTLEMENT);
 						}
@@ -5255,6 +5264,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
 				
 			}
 			onBarbariansAttack(catanStrength, barbarianStrength, playerStatus);
+			mBarbarianAttackCount++;
 			mBarbarianDistance = getRules().getBarbarianStepsToAttack();
 
 			// all knights revert to inactive

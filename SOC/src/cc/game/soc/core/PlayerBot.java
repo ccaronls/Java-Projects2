@@ -696,6 +696,16 @@ public class PlayerBot extends Player {
 					p.adjustResourcesForBuildable(BuildableType.Warship, 1);
 					break;
 				case ATTACK_SHIP: {
+				    for (int rIndex : SOC.computeAttackableShips(soc, getPlayerNum(), b)) {
+				        Route r = b.getRoute(rIndex);
+				        int defenderNum = r.getPlayer();
+                        float dieToWin = SOC.computeDiceToWinAttackShip(b, getPlayerNum(), defenderNum);
+                        BotNode node = root.attach(new BotNodeRoute(r, rIndex));
+                        node.chance = Utils.clamp(dieToWin / 6, 0, 1);
+                        b.setPlayerForRoute(r, getPlayerNum(), r.getType());
+                        buildChooseMoveTreeR(soc, p, b, node, SOC.computeMoves(p, b, soc));
+                        b.setPlayerForRoute(r, defenderNum, r.getType());
+                    }
 					break;
 				}
 				case DRAW_DEVELOPMENT: {
@@ -2004,9 +2014,15 @@ public class PlayerBot extends Player {
 		Set<Integer> routes = new HashSet<Integer>();
 		
 		for (Route r : b.getRoutesForPlayer(p.getPlayerNum())) {
-			tiles.addAll(b.getVertex(r.getFrom()).getTiles());
-			tiles.addAll(b.getVertex(r.getTo()).getTiles());
-			
+
+		    Vertex v0 = b.getVertex(r.getFrom());
+		    Vertex v1 = b.getVertex(r.getTo());
+
+		    if (!v0.getType().isStructure && !v1.getType().isStructure) {
+                tiles.addAll(v0.getTiles());
+                tiles.addAll(v1.getTiles());
+            }
+
 			routes.addAll(b.getVertexRouteIndices(r.getFrom()));
 			routes.addAll(b.getVertexRouteIndices(r.getTo()));
 		}

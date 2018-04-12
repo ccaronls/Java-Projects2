@@ -394,6 +394,8 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
         popMatrix();
         return drawJustifiedString(x, y, hJust, vJust, text);
     }
+
+
     
     /**
      * 
@@ -471,8 +473,21 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
             }
             
             // made it here means we have to wrap on a whole word!
-            t = split(text, 0, text.length(), maxWidth);
-            resultLines.add(t);
+
+            // try to split in half with a hyphen
+            boolean gotHalf = false;
+            if (text.length() > 3) {
+                t = text.substring(0, text.length() / 2);
+                String halfStr = t + "-";
+                if (getTextWidth(halfStr) < maxWidth) {
+                    resultLines.add(halfStr);
+                    gotHalf = true;
+                }
+            }
+            if (!gotHalf) {
+                t = split(text, 0, text.length(), maxWidth);
+                resultLines.add(t);
+            }
             width = getTextWidth(t);
             if (resultLineWidths != null) {
                 resultLineWidths.add(width);
@@ -564,7 +579,56 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
         }
         return new GDimension(mw, lines.length*getTextHeight());
     }
-    
+
+    /**
+     * Draws the string with background and makes sure it is completely on the screen
+     * @param x
+     * @param y
+     * @param maxWidth
+     * @param text
+     * @param bkColor
+     * @param border
+     * @return
+     */
+    public GDimension drawWrapStringOnBackground(float x, float y, float maxWidth, String text, GColor bkColor, float border) {
+        List<String> lines = new ArrayList<>();
+        GDimension dim = generateWrappedText(text, maxWidth, lines, null);
+        MutableVector2D tv = transform(x, y);
+        if (tv.getX() + dim.width + border > getViewportWidth()) {
+            tv.setX(getViewportWidth() - dim.width - border);
+        }
+        if (tv.getY() + dim.height + border > getViewportHeight()) {
+            tv.setY(getViewportHeight() - dim.height - border);
+        }
+
+        pushMatrix();
+        setIdentity();
+        GColor textColor = getColor();
+        setColor(bkColor);
+        GRectangle r = new GRectangle(tv, dim);
+        r.grow(border);
+        r.drawFilled(this);
+        setColor(textColor);
+        for (String s : lines) {
+            drawStringLine(tv.X(), tv.Y(), Justify.LEFT, s);
+            tv.addEq(0, getTextHeight());
+        }
+        popMatrix();
+        return dim;
+        /*
+GRectangle r = drawJustifiedStringR(x, y, hJust, vJust, text);
+        pushMatrix();
+        setIdentity();
+        r.grow(border);
+        GColor saveColor = getColor();
+        setColor(bkColor);
+        r.drawFilled(this);
+        setColor(saveColor);
+        popMatrix();
+        return drawJustifiedString(x, y, hJust, vJust, text);
+         */
+    }
+
     /**
      * Draw a single line of top justified text and return the width of the text
      * @param x position in screen coordinates

@@ -122,7 +122,7 @@ public final class Rules extends Reflector<Rules> {
 	private boolean enableBuildShipsFromPort = false;
     @Rule(variation = Variation.SEAFARERS, stringId = R.string.rule_enable_warships)
 	private boolean enableWarShipBuildable = false;
-    @Rule(variation = Variation.SEAFARERS, stringId = R.string.rule_min_discovered_territory_for_victory_points, minValue=1, maxValue=5)
+    @Rule(variation = Variation.SEAFARERS, stringId = R.string.rule_min_discovered_territory_for_victory_points, minValue=0, maxValue=5)
 	private int minMostDiscoveredTerritories=0;
     @Rule(variation = Variation.SEAFARERS, stringId = R.string.rule_enable_attacking_fortress_ends_turn)
 	private boolean attackPirateFortressEndsTurn = true;
@@ -158,6 +158,8 @@ public final class Rules extends Reflector<Rules> {
     private int barbarianPointsPerMetro=1;
     @Rule(variation = Variation.CAK, stringId=R.string.rule_barbarian_pts_per_settlement, minValue=0, maxValue=3, order=8)
     private int barbarianPointsPerSettlement=0;
+    @Rule(variation = Variation.CAK, stringId=R.string.rule_barbarian_min_attacks_to_enable_robber_or_pirate, minValue=0, maxValue = 3)
+    private int minBarbarianAttackstoEnableRobberAndPirate=1;
 
     @Rule(variation = Variation.TAB, stringId = R.string.rule_enable_event_cards)
 	private boolean enableEventCards = false;
@@ -425,5 +427,13 @@ public final class Rules extends Reflector<Rules> {
 
     public void setBarbarianPointsPerSettlement(int barbarianPointsPerSettlement) {
         this.barbarianPointsPerSettlement = barbarianPointsPerSettlement;
+    }
+
+    public final int getMinBarbarianAttackstoEnableRobberAndPirate() {
+        return minBarbarianAttackstoEnableRobberAndPirate;
+    }
+
+    public void setMinBarbarianAttackstoEnableRobberAndPirate(int minBarbarianAttackstoEnableRobberAndPirate) {
+        this.minBarbarianAttackstoEnableRobberAndPirate = minBarbarianAttackstoEnableRobberAndPirate;
     }
 }

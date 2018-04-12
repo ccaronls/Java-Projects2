@@ -1,3 +1,5 @@
+mBarbarianAttackCount=0
+mBarbarianDistance=-1
 mBoard=cc.game.soc.core.Board {
    ch=0.09999999
    cw=0.14285713
@@ -5,7 +7,7 @@ mBoard=cc.game.soc.core.Board {
    }
    merchantPlayer=0
    merchantTile=-1
-   name="the+fog+islands+3+players"
+   name="fog_islands_3_players"
    numAvaialbleVerts=112
    pirateRouteStartTile=-1
    pirateTile=-1
@@ -1706,7 +1708,7 @@ mBoard=cc.game.soc.core.Board {
          islandNum=0
          numAdj=6
          pirateRouteNext=-1
-         type=WATER
+         type=RANDOM_PORT_OR_WATER
          x=0.8214284
          y=0.79999995
       }
@@ -1742,7 +1744,7 @@ mBoard=cc.game.soc.core.Board {
          islandNum=0
          numAdj=6
          pirateRouteNext=-1
-         type=WATER
+         type=RANDOM_PORT_OR_WATER
          x=0.92857134
          y=0.65
       }
@@ -1802,7 +1804,7 @@ mBoard=cc.game.soc.core.Board {
          islandNum=0
          numAdj=6
          pirateRouteNext=-1
-         type=WATER
+         type=RANDOM_PORT_OR_WATER
          x=0.92857134
          y=0.75
       }
@@ -1910,7 +1912,7 @@ mBoard=cc.game.soc.core.Board {
          islandNum=0
          numAdj=6
          pirateRouteNext=-1
-         type=WATER
+         type=RANDOM_PORT_OR_WATER
          x=0.71428573
          y=0.85
       }
@@ -1922,7 +1924,7 @@ mBoard=cc.game.soc.core.Board {
          islandNum=0
          numAdj=6
          pirateRouteNext=-1
-         type=WATER
+         type=RANDOM_PORT_OR_WATER
          x=0.17857134
          y=0.4999999
       }
@@ -2054,7 +2056,7 @@ mBoard=cc.game.soc.core.Board {
          islandNum=0
          numAdj=6
          pirateRouteNext=-1
-         type=WATER
+         type=RANDOM_PORT_OR_WATER
          x=0.6071429
          y=0.9000001
       }
@@ -2102,7 +2104,7 @@ mBoard=cc.game.soc.core.Board {
          islandNum=0
          numAdj=6
          pirateRouteNext=-1
-         type=WATER
+         type=RANDOM_PORT_OR_WATER
          x=0.5
          y=0.15
       }
@@ -2150,7 +2152,7 @@ mBoard=cc.game.soc.core.Board {
          islandNum=0
          numAdj=6
          pirateRouteNext=-1
-         type=WATER
+         type=RANDOM_PORT_OR_WATER
          x=0.6071429
          y=0.20000002
       }
@@ -2174,7 +2176,7 @@ mBoard=cc.game.soc.core.Board {
          islandNum=0
          numAdj=6
          pirateRouteNext=-1
-         type=WATER
+         type=RANDOM_PORT_OR_WATER
          x=0.39285707
          y=0.20000002
       }
@@ -2198,7 +2200,7 @@ mBoard=cc.game.soc.core.Board {
          islandNum=0
          numAdj=6
          pirateRouteNext=-1
-         type=WATER
+         type=RANDOM_PORT_OR_WATER
          x=0.6071429
          y=0.29999998
       }
@@ -2246,7 +2248,7 @@ mBoard=cc.game.soc.core.Board {
          islandNum=0
          numAdj=6
          pirateRouteNext=-1
-         type=WATER
+         type=RANDOM_PORT_OR_WATER
          x=0.28571415
          y=0.24999997
       }
@@ -2342,7 +2344,7 @@ mBoard=cc.game.soc.core.Board {
          islandNum=0
          numAdj=6
          pirateRouteNext=-1
-         type=WATER
+         type=RANDOM_PORT_OR_WATER
          x=0.17857134
          y=0.29999998
       }
@@ -2390,7 +2392,7 @@ mBoard=cc.game.soc.core.Board {
          islandNum=0
          numAdj=6
          pirateRouteNext=-1
-         type=WATER
+         type=RANDOM_PORT_OR_WATER
          x=0.5
          y=0.85
       }
@@ -5866,8 +5868,33 @@ mBoard=cc.game.soc.core.Board {
       }
    }
 }
+mCurrentPlayer=0
+mDevelopmentCards=java.util.ArrayList {
+}
+mDice=java.util.LinkedList {
+}
+mDiceConfigStack=java.util.Stack {
+}
+mEventCards=java.util.ArrayList {
+}
+mMetropolisPlayer=int 3 {
+   0 0 0 
+}
+mNumPlayers=0
+mPlayers=cc.game.soc.core.Player 6 {
+   null
+   null
+   null
+   null
+   null
+   null
+}
+mProgressCards=null
 mRules=cc.game.soc.core.Rules {
    attackPirateFortressEndsTurn=true
+   barbarianPointsPerCity=1
+   barbarianPointsPerMetro=1
+   barbarianPointsPerSettlement=0
    barbarianStepsToAttack=7
    enableBuildShipsFromPort=false
    enableCitiesAndKnightsExpansion=false
@@ -5887,6 +5914,7 @@ mRules=cc.game.soc.core.Rules {
    maxPlayers=3
    maxProgressCards=4
    maxSafeCards=7
+   minBarbarianAttackstoEnableRobberAndPirate=1
    minLargestArmySize=3
    minLongestLoadLen=5
    minMostDiscoveredTerritories=0
@@ -5904,4 +5932,6 @@ mRules=cc.game.soc.core.Rules {
    pointsPerMetropolis=4
    pointsPerSettlement=1
    unlimitedInventorTiles=true
+}
+mStateStack=java.util.Stack {
 }

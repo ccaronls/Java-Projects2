@@ -2,92 +2,26 @@ Apply these rules:
 - A player can only play a development card once per turn. 
   (DONE, untested) 
 
-- Victory cards are not played until the player has the winning points (so this means that victory cards can be stolen until the end of the game)
-  This should probably be an automatic thing. 
-  (DONE, untested)  
-
-- Rules should have min/max players
-
 Seafarers expansion
-- AI Needs to quantify the ships route
-- Add undiscovered tiles
-  (DONE) 
-- Prevent building initial settlements on islands 
-  (DONE, configurable) 
-- compute longest route for player needs to only consider roads that connect to ships at a structure
-- AI Should consider proximity to islands and undiscovered territory
-  (DONE, use of Floyd-Marshall algorithm produces nice results)  
-- Looks like computeMaxRouteLengthForPlayer has a bug
-  (FIXED, needed to track visited edges, not vertices)
-- When adding edges for the Walsh-Marshall argorithm, should consider edges owned by user as weight=0, this will simplify the min distance computation, 
-  we basically only consider structures.  Also, structures on a coast line should be treated differently, or at least accounted for.  Roads vs Ships 
-  on a coastline are a problem.
-- Pirate should be able to move along a track on each turn instead of being moved by player.
-  
+
 Core Game Improvements  
-- Should be able to define a 'game' as a board and a rule set to customize the experience.  Should be able to define the expansions as described in the seafarers pdf
-- Reflector should have a header and version.  Also fix indentation in reflector.
-- Optimization of compuetMoveOptions should return a List<Move> where Move is struct { MoveType move; List options; }
-- UNDO should be serializable 
-  (Workaround: don't save game when we 'canCancel') 
-- Robber/Pirate options should only include those cells with players adjacent 
-  (DONE, untested) 
-- SOC should have only pushFront, no pushBack, to reduce confusion
-  (DONE needs more testing)
-- Remove rollDice from Player and make roll dice a move type. (this is needed to CAK expansion where user can perform a roll_dice OR play a certain progress card)
-  (DONE tested)
-- Remove the individual development card types?  Just MoveType.PLAY_DEVELOPMENT with a list of ordinals? 
-- No need for INIT_GAME state, this is implied when no states.
-  (DONE tested)
 - AINode can be extend Refector so we can save and restore the trees for analysis from a AI debug UI.
-- Board should be able to expensive operations.  Vertex, Route and Tile to have a ptr to Board so they can invalidate 
-  caches during changes.
-- AIEvaluator should have a set of string->double pairs where the double is a scaling factor on a particular evaluation that can be tuned from a GUI 
-
-
-Add knights and cites expansion option
 
 CAK Rule Details:
-- Players start with 1 settlement and 1 city and 2 raods
-  (DONE, untested)
-- Robber/Pirate not movable until the barbarians attack for first time.  
+- Robber/Pirate not movable until the barbarians attack for first time.
   Still rolling a 7 results in the giveup cards procedure.
-- Can only promote to mightly knight once the 3rd level blue (politics) achieved
-  (Done, not tested)
 - Losing your last city to barbarians means you keep your progress cards and improvements
   (Done?  Nothing to do)
-- When barbarians attack:
-  - Strength of barbarians = sum count of all cities and metropoli on the board
-  - Strength of catan      = sum of all ACTIVE knights strengths (1, 2, or 3)
-  (DONE, untested)
-- If barbarians are stronger, then
-  - player with lowest strength active knights have 1 city reduced to settlement (not counting players with no cities or only metropolis)
-  - players of equal weakness all lose a city
-  - If a player who has a city attacked has a wall, then the wall is removed and the city remains
-  (DONE, untested)
-- If catan is greater or equal to barbarians then (DONE)
-  - When a single player has highest value active knights then they get the 'Defender of Catan' Victory point placed face up (not takeable)
-  - If players tie, then no victory points awarded, instead each eligible player gets to draw 1 card from any of the Progress card stacks
-
-- After attack, barbarians return to starting position and all knights become inactive (DONE untested)
-- A player obtains a progress card when the event die shows , Science(green), Politics(blue) or Trade(yellow) and the red die 
-  is 1 of the die showing for that players improvement.  For instance, if a player has a first level improvement in trade, and a trade
-  event is rolled, then that player can only draw a progress card if a 1 shows on the red die.  A second level improvement deals a progress card
-  if a 1 or 2 is showing and so on.  A 6 on the red die never produces a progress card since there are only 5 levels of improvement.  
-- Max 4 progress cards in hand at any one time
-- CAK uses 3 dice, 1, red, 1 yellow and 1 event.  The red is used to determine Progress card distribution.
 (DONE, partially tested)
-
-Add barbarians and traders expansion option (DONE)
-
-Make rules not need annotations which dont work well with localiztion (they do work interestingly. DONE)
 
 - BUG: I noticed that I was able to build a opening settlement on a undiscovered tile when the opponents road was there. investigate.
 
-- BUG: Moving a warship causes the warship status to revert to normal ship
-- IMPROVEMENT: When upgrading a ship, hide the original ship
-- BUG: When robber disabled, so it the pirate
-- BUG: Move ship does not highlight ships when picked
 - IMPROVEMENT: Show indication bot is thinking
 - BUG: GUI Assertion when picking a botnode during AI tuning.
-- IMPROVEMENT; GUI Ai Tuning - Dont dump info to console instead display omn screen with dimmed bk
+- IMPROVEMENT: GUI Ai Tuning - Dont dump info to console instead display omn screen with dimmed bk
+
+- Make sure AI considers attacking options
+
+- Put the name of the board on top on Android
+
+- Clean up how cards are rendered. There should not be vertical overlapp if possible
