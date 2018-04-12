@@ -83,3 +83,9 @@ Add barbarians and traders expansion option (DONE)
 Make rules not need annotations which dont work well with localiztion (they do work interestingly. DONE)
 
 - BUG: I noticed that I was able to build a opening settlement on a undiscovered tile when the opponents road was there. investigate.
+
+- BUG: Moving a warship causes the warship status to revert to normal ship
+- IMPROVEMENT: When upgrading a ship, hide the original ship
+- BUG: When robber disabled, so it the pirate
+- BUG: Move ship does not highlight ships when picked
+- Show indication bot is thinking

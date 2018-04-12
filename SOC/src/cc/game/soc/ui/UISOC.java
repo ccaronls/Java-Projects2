@@ -717,7 +717,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
 
         // center the card vertically against its player component
         float _y = compPt.getY() - boardPt.getY() + comp.component.getHeight()/2 - cardHeight/2;
-        final float W = comp.numCardAnimations * cardWidth + (comp.numCardAnimations+1) * spacing;
+        final float W = comp.numCardAnimations * cardWidth - (comp.numCardAnimations+1) * spacing;
         final float x = boardPt.X() < compPt.getX() ? boardRenderer.component.getWidth() - cardWidth - W : W;
 
         if (_y < 0) {

@@ -2427,7 +2427,7 @@ public class Board extends Reflector<Board> {
 			}
 
             // OPTIMIZATION: check if the current route configuration has already been done, then no need to do it again
-            Arrays.sort(rcache, 0, rcacheLen); // do we really need to sort?
+            //Arrays.sort(rcache, 0, rcacheLen); // do we really need to sort?
             String str = Utils.toString(rcache, 0, rcacheLen);  // decompose the array into a hashable string
             if (distancesCache.containsKey(str))
                 return distancesCache.get(str);
@@ -2499,7 +2499,7 @@ public class Board extends Reflector<Board> {
 					case SHIP:
 					case WARSHIP:
 						distAqua[v0][v1] = distAqua[v1][v0] = 0;
-						rcache[rcacheLen++] = rIndex*1000; // for water
+						rcache[rcacheLen++] = rIndex*1000; // for water we scale by 1000 so that it produces a different distanceCache string
 						break;
 					case OPEN:
 					default:

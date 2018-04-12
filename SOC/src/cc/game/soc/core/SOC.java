@@ -313,7 +313,6 @@ public class SOC extends Reflector<SOC> implements StringResource {
 		    if (mPlayers[i] != null)
 			    mPlayers[i].reset();
 		}
-		//mBoard.reset();
 		mStateStack.clear();
 		mEventCards.clear();
 		mDice.clear();
