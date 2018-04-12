@@ -1501,7 +1501,7 @@ public class PlayerBot extends Player {
 	}
 
 	@Override
-	public Integer chooseRoute(SOC soc, Collection<Integer> routeIndices, RouteChoice mode) {
+	public Integer chooseRoute(SOC soc, Collection<Integer> routeIndices, RouteChoice mode, Integer shipToMove) {
 		if (movesPath != null) {
 			return detatchMove();
 		}
@@ -1518,7 +1518,7 @@ public class PlayerBot extends Player {
 					b.setPlayerForRoute(r, p.getPlayerNum(), RouteType.ROAD);
 					break;
 				case SHIP:
-					b.setPlayerForRoute(r, p.getPlayerNum(), RouteType.SHIP);
+					b.setPlayerForRoute(r, p.getPlayerNum(), shipToMove == null ? RouteType.SHIP : b.getRoute(shipToMove).getType());
 					break;
 				case SHIP_TO_MOVE:
 				case ROUTE_DIPLOMAT:

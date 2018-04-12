@@ -27,8 +27,7 @@ public class PlayerTemp extends Player {
 	}
 
 	@Override
-	public Integer chooseRoute(SOC soc, Collection<Integer> routeIndices,
-			RouteChoice mode) {
+	public Integer chooseRoute(SOC soc, Collection<Integer> routeIndices, RouteChoice mode, Integer shipToMove) {
 		// TODO Auto-generated method stub
 		return null;
 	}

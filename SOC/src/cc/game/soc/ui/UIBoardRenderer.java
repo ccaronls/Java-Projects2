@@ -752,11 +752,31 @@ public class UIBoardRenderer extends UIRenderer {
     public final void drawShip(AGraphics g, IVector2D v, int angle, boolean outline) {
 		drawFaces(g, v, angle, getShipRadius(), FaceType.SHIP, outline);
 	}
-	
-	public final void drawWarShip(AGraphics g, Route e, boolean outline) {
+
+    public final void drawWarShip(AGraphics g, IVector2D v, int angle, boolean outline) {
+        drawFaces(g, v, angle, getShipRadius(), FaceType.WAR_SHIP, outline);
+    }
+
+    public final void drawWarShip(AGraphics g, Route e, boolean outline) {
 		IVector2D mp = getBoard().getRouteMidpoint(e);
-		drawFaces(g, mp, getEdgeAngle(e), getShipRadius(), FaceType.WAR_SHIP, outline);
+		drawWarShip(g, mp, getEdgeAngle(e), outline);
 	}
+
+    public final void drawVessel(AGraphics g, RouteType type, Route e, boolean outline) {
+        IVector2D mp = getBoard().getRouteMidpoint(e);
+        drawVessel(g, type, mp, getEdgeAngle(e), outline);
+    }
+
+    public final void drawVessel(AGraphics g, RouteType type, IVector2D v, int angle, boolean outline) {
+	    switch (type) {
+            case SHIP:
+                drawShip(g, v, angle, outline);
+                break;
+            case WARSHIP:
+                drawWarShip(g, v, angle, outline);
+                break;
+        }
+    }
 
 	public final void drawRobber(AGraphics g, Tile cell) {
 	    drawRobber(g, cell, GColor.LIGHT_GRAY);

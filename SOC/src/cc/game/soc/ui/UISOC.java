@@ -20,6 +20,7 @@ import cc.game.soc.core.Player;
 import cc.game.soc.core.ProgressCardType;
 import cc.game.soc.core.ResourceType;
 import cc.game.soc.core.Route;
+import cc.game.soc.core.RouteType;
 import cc.game.soc.core.SOC;
 import cc.game.soc.core.SpecialVictoryType;
 import cc.game.soc.core.Tile;
@@ -283,14 +284,22 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
         return waitForReturnValue(null);
     }
 
-    public Integer chooseRoute(final Collection<Integer> edges, final Player.RouteChoice choice) {
+    public Integer chooseRoute(final Collection<Integer> edges, final Player.RouteChoice choice, final Route shipToMove) {
         clearMenu();
         addMenuItem(ACCEPT);
+        final RouteType shipType = shipToMove == null ? RouteType.SHIP : shipToMove.getType();
+        assert(shipType.isVessel);
+        if (shipToMove != null) {
+            shipToMove.setType(RouteType.OPEN);
+        }
         getUIBoard().setPickHandler(new PickHandler() {
 
             @Override
             public void onPick(UIBoardRenderer b, int pickedValue) {
                 b.setPickHandler(null);
+                if (shipToMove != null) {
+                    shipToMove.setType(shipType);
+                }
                 setReturnValue(pickedValue);
             }
 
@@ -308,7 +317,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
                         b.drawRoad(g, route, true);
                         break;
                     case SHIP:
-                        b.drawShip(g, route, true);
+                        b.drawVessel(g, shipType, route, true);
                         break;
                     case SHIP_TO_MOVE:
                         b.drawEdge(g, route, route.getType(), getCurPlayerNum(), true);
@@ -333,10 +342,10 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
                         b.drawRoad(g, route, false);
                         break;
                     case SHIP:
-                        b.drawShip(g, route, false);
+                        b.drawVessel(g, shipType, route, false);
                         break;
                     case SHIP_TO_MOVE:
-                        b.drawEdge(g, route, route.getType(), getCurPlayerNum(), true);
+                        b.drawEdge(g, route, route.getType(), 0, false);
                         break;
                     case UPGRADE_SHIP:
                         b.drawWarShip(g, route, false);
@@ -717,7 +726,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
 
         // center the card vertically against its player component
         float _y = compPt.getY() - boardPt.getY() + comp.component.getHeight()/2 - cardHeight/2;
-        final float W = comp.numCardAnimations * cardWidth - (comp.numCardAnimations+1) * spacing;
+        final float W = comp.numCardAnimations * cardWidth + spacing - (comp.numCardAnimations-1) * spacing;
         final float x = boardPt.X() < compPt.getX() ? boardRenderer.component.getWidth() - cardWidth - W : W;
 
         if (_y < 0) {
@@ -730,7 +739,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
         final GColor color = ((UIPlayer)getPlayerByPlayerNum(playerNum)).getColor();
 
         comp.numCardAnimations++;
-        boardRenderer.addAnimation(new AAnimation<AGraphics>(4000) {
+        boardRenderer.addAnimation(true, new AAnimation<AGraphics>(4000) {
             public void draw(AGraphics g, float position, float dt) {
                 float alpha = 1;
                 if (getElapsedTime() < 500) {

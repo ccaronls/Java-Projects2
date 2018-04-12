@@ -64,17 +64,17 @@ public final class UIPlayerUser extends UIPlayer implements GameClient.Listener 
     }
 
 	@Override
-	public Integer chooseRoute(SOC soc, Collection<Integer> routeIndices, RouteChoice mode) {
-		Integer r = ((UISOC)soc).chooseRoute(routeIndices, mode);
+	public Integer chooseRoute(SOC soc, Collection<Integer> routeIndices, RouteChoice mode, Integer shipToMove) {
+		Integer r = ((UISOC)soc).chooseRoute(routeIndices, mode, shipToMove == null ? null : soc.getBoard().getRoute(shipToMove));
 		if (r != null) {
-            doRouteAnimation(soc, mode, soc.getBoard().getRoute(r));
+            doRouteAnimation(soc, mode, soc.getBoard().getRoute(r), shipToMove);
         }
 		return r;
 	}
     // private versions of overloaded methods are called by remote server so as not to need to include the large SOC object
     @Keep
-    private  Integer chooseRoute(Collection<Integer> routeIndices, RouteChoice mode) {
-	    return chooseRoute(UISOC.getInstance(), routeIndices, mode);
+    private  Integer chooseRoute(Collection<Integer> routeIndices, RouteChoice mode, Integer shipToMove) {
+	    return chooseRoute(UISOC.getInstance(), routeIndices, mode, shipToMove);
     }
 
     @Override

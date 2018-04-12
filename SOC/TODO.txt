@@ -88,4 +88,6 @@ Make rules not need annotations which dont work well with localiztion (they do w
 - IMPROVEMENT: When upgrading a ship, hide the original ship
 - BUG: When robber disabled, so it the pirate
 - BUG: Move ship does not highlight ships when picked
-- Show indication bot is thinking
+- IMPROVEMENT: Show indication bot is thinking
+- BUG: GUI Assertion when picking a botnode during AI tuning.
+- IMPROVEMENT; GUI Ai Tuning - Dont dump info to console instead display omn screen with dimmed bk

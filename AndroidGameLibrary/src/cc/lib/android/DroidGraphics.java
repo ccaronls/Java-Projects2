@@ -598,6 +598,7 @@ public class DroidGraphics extends APGraphics {
 
         Bitmap subBM = Bitmap.createBitmap(screenCapture, x, y, w, h);
         screenCapture.recycle();
+        screenCapture = null;
         int id = addImage(subBM);
         canvas = savedCanvas;
         return id;

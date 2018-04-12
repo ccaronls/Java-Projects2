@@ -371,7 +371,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
 						break;
 					}
 					case Warship: {
-						if (isPirateAttacksEnabled()) {
+						if (isPirateAttacksEnabled() || getRules().isEnableWarShipBuildable()) {
 							for (int i=0; i<d.deckOccurances; i++)
 								mDevelopmentCards.add(new Card(d, CardStatus.USABLE));
 						}
@@ -1426,7 +1426,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
 					}
 					assert(!Utils.isEmpty(options));
 
-					Integer edgeIndex= getCurPlayer().chooseRoute(this, options, RouteChoice.ROAD);
+					Integer edgeIndex= getCurPlayer().chooseRoute(this, options, RouteChoice.ROAD, null);
 
 					if (edgeIndex != null) {
 					    Route edge = getBoard().getRoute(edgeIndex);
@@ -1444,19 +1444,25 @@ public class SOC extends Reflector<SOC> implements StringResource {
 				case POSITION_SHIP_NOCANCEL:
 				case POSITION_SHIP_AND_LOCK_CANCEL:
 				case POSITION_SHIP_CANCEL: {
-					printinfo(getString(R.string.info_player_place_ship, getCurPlayer().getName()));
+                    Integer shipToMove = getStateData();
+                    printinfo(getString(R.string.info_player_place_ship, getCurPlayer().getName()));
 					if (options == null) {
 						options = computeShipRouteIndices(this, getCurPlayerNum(), mBoard);
 					}
+					final RouteType shipType = shipToMove == null ? RouteType.SHIP : mBoard.getRoute(shipToMove).getType();
+					assert(shipType.isVessel);
 					assert(!Utils.isEmpty(options));
-					Integer edgeIndex = getCurPlayer().chooseRoute(this, options, RouteChoice.SHIP);
+					Integer edgeIndex = getCurPlayer().chooseRoute(this, options, RouteChoice.SHIP, shipToMove);
 					if (edgeIndex != null) {
 					    Route edge = getBoard().getRoute(edgeIndex);
 						assert(edge.getPlayer()==0);
 						assert(edge.isAdjacentToWater());
 						edge.setLocked(true);
 						printinfo(getString(R.string.info_player_placing_ship_on_edge, getCurPlayer().getName(), edgeIndex));
-						getBoard().setPlayerForRoute(edge, getCurPlayerNum(), RouteType.SHIP);
+						getBoard().setPlayerForRoute(edge, getCurPlayerNum(), shipType);
+						if (shipToMove != null) {
+						    getBoard().setRouteOpen(getBoard().getRoute(shipToMove));
+                        }
 						processRouteChange(getCurPlayer(), edge);
 						if (getState() == State.POSITION_SHIP_AND_LOCK_CANCEL) {
 							for (Route toLock : getBoard().getRoutesOfType(getCurPlayerNum(), RouteType.SHIP, RouteType.WARSHIP)) {
@@ -1474,10 +1480,9 @@ public class SOC extends Reflector<SOC> implements StringResource {
 						options = getBoard().getRoutesIndicesOfType(getCurPlayerNum(), RouteType.SHIP);
 					}
 					assert(!Utils.isEmpty(options));
-					Integer edgeIndex = getCurPlayer().chooseRoute(this, options, RouteChoice.UPGRADE_SHIP);
+					Integer edgeIndex = getCurPlayer().chooseRoute(this, options, RouteChoice.UPGRADE_SHIP, null);
 					if (edgeIndex != null) {
 					    Route edge = getBoard().getRoute(edgeIndex);
-						assert(edge.getType() == RouteType.SHIP);
 						assert(edge.getPlayer() == getCurPlayerNum());
 						edge.setType(RouteType.WARSHIP);
 						popState();
@@ -1499,20 +1504,23 @@ public class SOC extends Reflector<SOC> implements StringResource {
 					}
 
 					assert(!Utils.isEmpty(options));
-					final Integer shipIndex = getCurPlayer().chooseRoute(this, options, RouteChoice.SHIP_TO_MOVE);
+					final Integer shipIndex = getCurPlayer().chooseRoute(this, options, RouteChoice.SHIP_TO_MOVE, null);
 					if (shipIndex != null) {
 					    final Route ship = getBoard().getRoute(shipIndex);
 						assert(ship.getType().isVessel);
 						assert(ship.getPlayer() == getCurPlayerNum());
-						final RouteType saveType = ship.getType();
-						mBoard.setRouteOpen(ship);
 						popState();
-						pushStateFront(State.POSITION_SHIP_AND_LOCK_CANCEL, null, null, new UndoAction() {
-							@Override
-							public void undo() {
-								mBoard.setPlayerForRoute(ship, getCurPlayerNum(), saveType);
-							}
-						});
+                        final RouteType saveType = ship.getType();
+                        ship.setType(RouteType.OPEN);
+						List<Integer> moveShipOptions = computeShipRouteIndices(this, getCurPlayerNum(), getBoard());
+						moveShipOptions.remove((Object)shipIndex);
+						ship.setType(saveType);
+						pushStateFront(State.POSITION_SHIP_AND_LOCK_CANCEL, shipIndex, moveShipOptions, new UndoAction() {
+                            @Override
+                            public void undo() {
+                                ship.setType(saveType);
+                            }
+                        });
 					}
 					break;
 
@@ -2044,7 +2052,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
 				case CHOOSE_DIPLOMAT_ROUTE: {
 					printinfo(getString(R.string.info_player_choose_diplomat_route, getCurPlayer().getName()));
 					assert(!Utils.isEmpty(options));
-					final Integer rIndex = getCurPlayer().chooseRoute(this, options, RouteChoice.ROUTE_DIPLOMAT);
+					final Integer rIndex = getCurPlayer().chooseRoute(this, options, RouteChoice.ROUTE_DIPLOMAT, null);
 					if (rIndex != null) {
 					    final Route r = getBoard().getRoute(rIndex);
 						popState();
@@ -2308,7 +2316,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
 						options = computeAttackableRoads(this, getCurPlayerNum(), getBoard());
 					}
 					assert(!Utils.isEmpty(options));
-					Integer rIndex = getCurPlayer().chooseRoute(this, options, RouteChoice.OPPONENT_ROAD_TO_ATTACK);
+					Integer rIndex = getCurPlayer().chooseRoute(this, options, RouteChoice.OPPONENT_ROAD_TO_ATTACK, null);
 					if (rIndex != null) {
 					    Route r = getBoard().getRoute(rIndex);
 						assert(r.getPlayer() > 0);
@@ -2429,7 +2437,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
 					if (Utils.isEmpty(options)) {
 						options = computeAttackableShips(this, getCurPlayerNum(), getBoard());
 					}
-					Integer rIndex = getCurPlayer().chooseRoute(this, options, RouteChoice.OPPONENT_SHIP_TO_ATTACK);
+					Integer rIndex = getCurPlayer().chooseRoute(this, options, RouteChoice.OPPONENT_SHIP_TO_ATTACK, null);
 					if (rIndex != null) {
 					    Route r = getBoard().getRoute(rIndex);
 						popState();
@@ -5003,10 +5011,12 @@ public class SOC extends Reflector<SOC> implements StringResource {
 			printinfo(getString(R.string.info_player_rolled_seven, getCurPlayer().getName()));
 			pushStateFront(State.SETUP_GIVEUP_CARDS);
 			if (getRules().isEnableRobber()) {
-    			if (getRules().isEnableSeafarersExpansion())
-    				pushStateFront(State.POSITION_ROBBER_OR_PIRATE_NOCANCEL);
-    			else
-    				pushStateFront(State.POSITION_ROBBER_NOCANCEL);
+                if (getRules().isEnableSeafarersExpansion())
+                    pushStateFront(State.POSITION_ROBBER_OR_PIRATE_NOCANCEL);
+                else
+                    pushStateFront(State.POSITION_ROBBER_NOCANCEL);
+            } else if (getRules().isEnableSeafarersExpansion()) {
+                pushStateFront(State.POSITION_PIRATE_NOCANCEL);
 			} else {
 				pushStateFront(State.CHOOSE_OPPONENT_TO_TAKE_RESOURCE_FROM, null, computeOpponents(this, getCurPlayerNum()), null);
 			}

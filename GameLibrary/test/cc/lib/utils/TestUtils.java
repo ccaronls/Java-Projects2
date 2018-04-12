@@ -99,8 +99,28 @@ public class TestUtils extends TestCase {
     public void testAnagrams() {
         assertTrue(checkAnagrams("astronomer", "moon starer"));
         assertFalse(checkAnagrams("something", "another thing"));
+    }
 
+    class X {
+        String s;
+    }
 
+    X x = new X() {
+
+    };
+
+    public void testClassnames() {
+        printClassnames(x.getClass());
+        System.out.println();
+        printClassnames(x.getClass().getSuperclass());
+    }
+
+    private void printClassnames(Class c) {
+        System.out.println(c.toString());
+        System.out.println(c.toGenericString());
+        System.out.println(c.getName());
+        System.out.println(c.getSimpleName());
+        System.out.println(c.getTypeName());
     }
 
 }

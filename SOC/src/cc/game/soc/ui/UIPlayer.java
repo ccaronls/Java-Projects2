@@ -9,6 +9,7 @@ import cc.game.soc.core.Dice;
 import cc.game.soc.core.MoveType;
 import cc.game.soc.core.PlayerBot;
 import cc.game.soc.core.Route;
+import cc.game.soc.core.RouteType;
 import cc.game.soc.core.SOC;
 import cc.game.soc.core.Trade;
 import cc.game.soc.core.Vertex;
@@ -118,6 +119,8 @@ public class UIPlayer extends PlayerBot implements ClientConnection.Listener {
     void startMoveShipAnimation(final Route source, final Route target, final SOC soc) {
     	if (source == null || target == null || soc == null)
     		return;
+    	final RouteType shipType = source.getType();
+    	source.setType(RouteType.OPEN);
     	final UIBoardRenderer comp = ((UISOC)soc).getUIBoard();
         comp.addAnimation(new UIAnimation(getAnimTime()) {
 			
@@ -134,8 +137,8 @@ public class UIPlayer extends PlayerBot implements ClientConnection.Listener {
                 float startAng  = comp.getEdgeAngle(source);
                 float endAng    = comp.getEdgeAngle(target);
                 float curAng    = startAng + (endAng - startAng) * position;
-                
-                comp.drawShip(g, curV, Math.round(curAng), false);
+
+                comp.drawVessel(g, shipType, curV, Math.round(curAng), false);
                 g.popMatrix();
 			}
 		}, true);
@@ -164,6 +167,7 @@ public class UIPlayer extends PlayerBot implements ClientConnection.Listener {
     	if (ship == null)
     		return;
     	final UIBoardRenderer comp = UISOC.getInstance().getUIBoard();
+    	ship.setType(RouteType.OPEN);
     	comp.addAnimation(new UIAnimation(2000) {
 			
 			@Override
@@ -409,24 +413,22 @@ public class UIPlayer extends PlayerBot implements ClientConnection.Listener {
 		}
 	}
 
-	private Route moveShipSource = null;
-
 	@Override
     @Keep
-	public Integer chooseRoute(SOC soc, Collection<Integer> routeIndices, RouteChoice mode) {
+	public Integer chooseRoute(SOC soc, Collection<Integer> routeIndices, RouteChoice mode, Integer shipToMove) {
 	    Integer route = null;
 	    if (connection != null && connection.isConnected()) {
-	        route = connection.executeOnRemote(NetCommon.USER_ID, soc, routeIndices, mode);
+	        route = connection.executeOnRemote(NetCommon.USER_ID, soc, routeIndices, mode, shipToMove);
         } else {
-            route = super.chooseRoute(soc, routeIndices, mode);
+            route = super.chooseRoute(soc, routeIndices, mode, shipToMove);
         }
 		if (route != null) {
-            doRouteAnimation(soc, mode, soc.getBoard().getRoute(route));
+            doRouteAnimation(soc, mode, soc.getBoard().getRoute(route), shipToMove);
         }
 		return route;
 	}
 	
-	protected final void doRouteAnimation(SOC soc, RouteChoice mode, Route route) {
+	protected final void doRouteAnimation(SOC soc, RouteChoice mode, Route route, Integer shipToMove) {
 		switch (mode)
 		{
 			case ROAD:
@@ -435,15 +437,13 @@ public class UIPlayer extends PlayerBot implements ClientConnection.Listener {
 			case ROUTE_DIPLOMAT:
 				break;
 			case SHIP:
-				if (moveShipSource != null) {
-					startMoveShipAnimation(moveShipSource, route, soc);
+				if (shipToMove != null) {
+					startMoveShipAnimation(soc.getBoard().getRoute(shipToMove), route, soc);
 				} else {
 					startBuildShipAnimation(route, soc);
 				}
-				moveShipSource = null;
 				break;
 			case SHIP_TO_MOVE:
-				moveShipSource = route;
 				break;
 			case UPGRADE_SHIP:
 				startUpgradeShipAnimation(route);

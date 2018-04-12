@@ -839,7 +839,7 @@ public abstract class Player extends Reflector<Player> {
 		OPPONENT_SHIP_TO_ATTACK, // player chooses an opponent ship adjacent to one of they're warships
 	}
 	
-	public abstract Integer chooseRoute(SOC soc, Collection<Integer> routeIndices, RouteChoice mode);
+	public abstract Integer chooseRoute(SOC soc, Collection<Integer> routeIndices, RouteChoice mode, Integer shipToMove);
 
 	public enum RouteChoiceType {
 		ROAD_CHOICE,

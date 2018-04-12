@@ -92,6 +92,8 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (cc.game.soc.android.BuildConfig.DEBUG)
+            dumpAssets();
 
         RenderConstants.textMargin = getResources().getDimension(R.dimen.margin);
         RenderConstants.textSizeBig = getResources().getDimension(R.dimen.text_big);

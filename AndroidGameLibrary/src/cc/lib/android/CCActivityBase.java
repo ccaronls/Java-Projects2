@@ -6,9 +6,11 @@ import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 
+import java.util.Arrays;
 import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -129,4 +131,26 @@ public class CCActivityBase extends Activity {
 	public final Locale getLocale() {
 		return getResources().getConfiguration().locale;
 	}
+
+	public final void dumpAssets() {
+	    dumpAssetsR("");
+    }
+
+    private void dumpAssetsR(String folder) {
+        try {
+            String[] files = getAssets().list(folder);
+            Log.d("Assets", "Contents of " + folder + ":\n" + Arrays.toString(files));
+            for (String f : files) {
+                if (f.indexOf('.') < 0) {
+                    if (folder.length() > 0)
+                        dumpAssetsR(folder + "/" + f);
+                    else
+                        dumpAssetsR(f);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 }

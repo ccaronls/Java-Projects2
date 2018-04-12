@@ -35,7 +35,7 @@ public class PlayerRandom extends Player {
 	}
 
 	@Override
-	public Integer chooseRoute(SOC soc, Collection<Integer> routeIndices, RouteChoice mode) {
+	public Integer chooseRoute(SOC soc, Collection<Integer> routeIndices, RouteChoice mode, Integer shipToMove) {
 		return pickRandom(routeIndices);
 	}
 
