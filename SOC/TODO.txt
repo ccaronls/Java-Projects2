@@ -24,4 +24,5 @@ CAK Rule Details:
 
 - Put the name of the board on top on Android
 
-- Clean up how cards are rendered. There should not be vertical overlapp if possible
+- Clean up how cards are rendered. There should not be vertical overlapp if possible.
+  Also counting the card occurances is not working. Need to keep a stack I guess

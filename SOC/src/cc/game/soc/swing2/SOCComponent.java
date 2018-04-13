@@ -19,8 +19,13 @@ public class SOCComponent extends AWTComponent implements UIComponent {
     private UIRenderer delegate;
     protected float progress = 1;
 
+    SOCComponent() {
+        setBackground(GColor.DARK_GRAY);
+    }
+
     @Override
     protected final void paint(AWTGraphics g, int mouseX, int mouseY) {
+        //g.clearScreen(GColor.DARK_GRAY);
         if (delegate != null) {
             delegate.draw(g, mouseX, mouseY);
             setMinimumSize(delegate.getMinDimension());

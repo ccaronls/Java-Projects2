@@ -1273,33 +1273,8 @@ public class UIBoardRenderer extends UIRenderer {
 
     private void drawInfo(AGraphics g, IVector2D v, String info) {
 
-        String [] lines = info.split("\n");
-        int maxW = 0;
-        for (int i=0; i<lines.length; i++) {
-            maxW = Math.max(maxW, (int)g.getTextWidth(lines[i]));
-        }
-        final int padding = 5;
-        int width = maxW + padding*2;
-        int height = lines.length * g.getTextHeight() + 2*padding;
-        g.setColor(GColor.DARK_GRAY.withAlpha(180));
-        g.drawFilledRect(v.getX(), v.getY(), width, height);
         g.setColor(GColor.WHITE);
-        /*
-        y -= 2; // slight visual adjustment to center vertically
-        
-        // make sure we dont draw off screen
-        if (x + width > component.getWidth()) {
-            x = component.getWidth() - width;
-        }
-        if (y + height > component.getHeight()) {
-            y = component.getHeight() - height;
-        }
-        
-        for (int i=0; i<lines.length; i++) {
-            y += g.getTextHeight();
-            g.drawString(lines[i], x+padding, y+padding);
-        }*/
-        g.drawWrapString(v.getX(), v.getY(), maxW, info);
+	    g.drawWrapStringOnBackground(v.getX(), v.getY(), g.getViewportWidth()/2, info, GColor.TRANSLUSCENT_BLACK, 4);
     }
     
     private void drawTileInfo(AGraphics g, int cellIndex) {

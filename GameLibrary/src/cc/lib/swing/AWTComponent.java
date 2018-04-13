@@ -46,7 +46,7 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
     public final synchronized void paint(Graphics g) {
         if (getWidth() > 0 && getHeight() > 0) {
             Color c = g.getColor();
-            g.setColor(AWTUtils.toColor(GColor.TRANSPARENT));
+            g.setColor(getBackground());//AWTUtils.toColor(GColor.TRANSPARENT));
             g.fillRect(0, 0, super.getWidth(), super.getHeight());
             g.setColor(c);
             //g.setClip(padding,padding, getWidth()+1, getHeight()+1);
@@ -255,4 +255,7 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
         this.padding = padding;
     }
 
+    public final void setBackground(GColor color) {
+        super.setBackground(AWTUtils.toColor(color));
+    }
 }

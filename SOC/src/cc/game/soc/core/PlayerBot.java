@@ -3,12 +3,18 @@ package cc.game.soc.core;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 
 import cc.lib.game.Utils;
 import cc.lib.math.CMath;
 import cc.lib.utils.FileUtils;
-import cc.lib.utils.Reflector;
 
 public class PlayerBot extends Player {
 
@@ -824,6 +830,7 @@ public class PlayerBot extends Player {
 					List<Integer> shipVerts = SOC.computeOpenRouteIndices(p.getPlayerNum(), b, false, true);
 					for (int shipIndex : shipVerts) {
 						Route shipToMove = b.getRoute(shipIndex);
+						RouteType shipType = shipToMove.getType();
 						b.setRouteOpen(shipToMove);
 						shipToMove.setLocked(true);
 						BotNode shipChoice = root.attach(new BotNodeRoute(shipToMove, shipIndex));
@@ -832,7 +839,7 @@ public class PlayerBot extends Player {
 							if (moveIndex == shipIndex)
 								continue;
 							Route newPos = b.getRoute(moveIndex);
-							b.setPlayerForRoute(newPos, p.getPlayerNum(), RouteType.SHIP);
+							b.setPlayerForRoute(newPos, p.getPlayerNum(), shipType);
 							newPos.setLocked(true);
 							BotNode node = new BotNodeRoute(newPos, moveIndex);
 							onBoardChanged();
@@ -841,7 +848,7 @@ public class PlayerBot extends Player {
 							b.setRouteOpen(newPos);
 							newPos.setLocked(false);
 						}
-						b.setPlayerForRoute(shipToMove, p.getPlayerNum(), RouteType.SHIP);
+						b.setPlayerForRoute(shipToMove, p.getPlayerNum(), shipType);
 						shipToMove.setLocked(false);
 					}
 					break;

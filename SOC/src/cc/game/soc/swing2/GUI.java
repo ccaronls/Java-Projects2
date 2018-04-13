@@ -138,6 +138,7 @@ public class GUI implements ActionListener, MenuItem.Action {
 
 	public static void main(String [] args)  {
         EZFrame frame = new EZFrame();
+        frame.setTitle("Senators of Coran");
 		try {
 			PlayerBot.DEBUG_ENABLED = true;
 			Utils.setDebugEnabled(true);
@@ -1984,7 +1985,7 @@ public class GUI implements ActionListener, MenuItem.Action {
 
     public void quitToMainMenu() {
         soc.stopRunning();
-        soc.clear();
+        //soc.clear();
         boardRenderer.setPickHandler(null);
         console.clear();
         menuStack.clear();
