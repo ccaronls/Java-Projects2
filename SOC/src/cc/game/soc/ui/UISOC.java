@@ -1081,7 +1081,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
                 g.pushMatrix();
                 g.setIdentity();
                 g.setColor(GColor.LIGHT_GRAY);
-                if (v.getY() < boardRenderer.component.getHeight()/2) {
+                if (mv.getY() < height/2) {
                     // lower half
                     g.drawFilledRect(width/2-dim.width/2-margin, height*2/3, dim.width+m2, dim.height+m2);
                     // arrow
@@ -1096,8 +1096,10 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
                     // upper half
                     float hgt = height/3-dim.height-m2;
                     g.drawFilledRect(width/2-dim.width/2-margin, hgt, dim.width+m2, dim.height+m2);
-                    g.vertex(width/2-margin, hgt);
-                    g.vertex(width/2+margin, hgt);
+                    // arrow
+                    g.begin();
+                    g.vertex(width/2-margin, hgt+g.getTextHeight());
+                    g.vertex(width/2+margin, hgt+g.getTextHeight());
                     g.vertex(mv);
                     g.drawTriangles();
                     g.end();

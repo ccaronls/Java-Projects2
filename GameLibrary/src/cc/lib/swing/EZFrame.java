@@ -322,6 +322,7 @@ public class EZFrame extends JFrame implements WindowListener, ComponentListener
     }
 
     public final void validate() {
+        clearContainersBackgrounds(getContentPane());
         super.validate();
     }
 
