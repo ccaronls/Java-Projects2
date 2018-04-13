@@ -419,15 +419,7 @@ public class PlayerBot extends Player {
 		}
 		return null;
 	}
-/*	
-	private void doEvaluate(BotNode node, SOC soc, Player p, Board b) {
-		properties = node.properties;
-		evaluateBoard(soc, p.getPlayerNum(), b);
-		evaluateCards(soc, p);
-		addValue("Random", 0.0001 * (Utils.getRandom().nextDouble()-0.5)); // apply just a slight amount of randomness to avoid duplicate values among nodes
-		evaluatedNodes.add(node);
-	}*/
-	
+
 	private void addRouteBuildingMovesR(SOC soc, Player p, Board b, BotNode root, boolean allowRoads, boolean allowShips, int depth, boolean recurseMoves) {
 		
 		if (depth <= 0) {
@@ -705,23 +697,26 @@ public class PlayerBot extends Player {
 				    for (int rIndex : SOC.computeAttackableShips(soc, getPlayerNum(), b)) {
 				        Route r = b.getRoute(rIndex);
 				        int defenderNum = r.getPlayer();
-                        float dieToWin = SOC.computeDiceToWinAttackShip(b, getPlayerNum(), defenderNum);
-                        BotNode node = root.attach(new BotNodeRoute(r, rIndex));
-                        node.chance = Utils.clamp(dieToWin / 6, 0, 1);
-                        b.setPlayerForRoute(r, getPlayerNum(), r.getType());
-                        buildChooseMoveTreeR(soc, p, b, node, SOC.computeMoves(p, b, soc));
-                        b.setPlayerForRoute(r, defenderNum, r.getType());
+                        int dieToWin = SOC.computeDiceToWinAttackShip(b, getPlayerNum(), defenderNum);
+                        // chance to win is the chance we will consider this move
+                        if (Utils.randRange(1, 6) >= dieToWin) {
+                            BotNode node = root.attach(new BotNodeRoute(r, rIndex));
+                            b.setPlayerForRoute(r, getPlayerNum(), r.getType());
+                            buildChooseMoveTreeR(soc, p, b, node, SOC.computeMoves(p, b, soc));
+                            b.setPlayerForRoute(r, defenderNum, r.getType());
+                        }
                     }
 					break;
 				}
 				case DRAW_DEVELOPMENT: {
-					p.adjustResourcesForBuildable(BuildableType.Development, -1);
-					Card temp = new Card(DevelopmentCardType.Soldier, CardStatus.UNUSABLE);
-					p.addCard(temp);
-					doEvaluateAll(root, soc, p, b);
-					root.addValue("randomness", Utils.randFloatX(1));
-					p.removeCard(temp);
-					p.adjustResourcesForBuildable(BuildableType.Development, 1);
+				    if (soc.nextDie() > 3) {
+                        p.adjustResourcesForBuildable(BuildableType.Development, -1);
+                        Card temp = new Card(DevelopmentCardType.Soldier, CardStatus.UNUSABLE);
+                        p.addCard(temp);
+                        doEvaluateAll(root, soc, p, b);
+                        p.removeCard(temp);
+                        p.adjustResourcesForBuildable(BuildableType.Development, 1);
+                    }
 					break;
 				}
 				case HIRE_KNIGHT: {
@@ -1274,17 +1269,17 @@ public class PlayerBot extends Player {
 				case ATTACK_PIRATE_FORTRESS: {
 					for (int vIndex : SOC.computeAttackablePirateFortresses(b, p)) {
 						Vertex v = b.getVertex(vIndex);
-						int score = b.getRoutesOfType(getPlayerNum(), RouteType.WARSHIP).size();
-						float chance = (6.0f - Math.max(0, Math.min(score, 6))) / 6f;//1f * score / 6f;
 						assert(v.getType() == VertexType.PIRATE_FORTRESS);
 						assert(v.getPlayer() == 0);
-						int health = v.getPirateHealth();
+                        int score = b.getRoutesOfType(getPlayerNum(), RouteType.WARSHIP).size();
+                        if (soc.nextDie() >= score)
+                            continue;
+                        int health = v.getPirateHealth();
 						if (health <= 1)
 							v.setPlayerAndType(getPlayerNum(), VertexType.SETTLEMENT);
 						else
 							v.setPirateHealth(health-1);
 						BotNode node = root.attach(new BotNodeVertex(v, vIndex));
-						node.chance = chance;
 						doEvaluateAll(node, soc, p, b);
 						v.setPirateFortress();
 						v.setPirateHealth(health);
@@ -1296,8 +1291,9 @@ public class PlayerBot extends Player {
 						SOC.AttackInfo<RouteType> info = SOC.computeAttackRoad(rIndex, soc, b, getPlayerNum());
 						Route route = b.getRoute(rIndex);
 						Route copy = route.deepCopy();
+						if (soc.nextDie() < info.minScore+info.knightStrength)
+						    continue;
 						BotNode node = root.attach(new BotNodeRoute(route, rIndex));
-						node.chance = (6.0f - Math.max(0, Math.min(info.minScore - info.knightStrength, 6))) / 6f;
 						doEvaluateAll(node, soc, p, b);
 						route.copyFrom(copy);
 						for (int k : info.attackingKnights) {
@@ -1310,8 +1306,9 @@ public class PlayerBot extends Player {
 					for (int vIndex : SOC.computeAttackableStructures(soc, getPlayerNum(), b)) {
 						SOC.AttackInfo<VertexType> info = SOC.computeStructureAttack(vIndex, soc, b, getPlayerNum());
 						Vertex v = b.getVertex(vIndex);
+                        if (soc.nextDie() < info.minScore+info.knightStrength)
+                            continue;
 						BotNode node = root.attach(new BotNodeVertex(v, vIndex));
-						node.chance = (6.0f - Math.max(0, Math.min(info.minScore - info.knightStrength, 6))) / 6f;
 						Vertex copy = v.deepCopy();
 						v.setType(info.destroyedType);
 						doEvaluateAll(node, soc, p, b);
@@ -1930,6 +1927,42 @@ public class PlayerBot extends Player {
 		node.addValue("Structures", structureValue);
 		node.addValue("tiles protected", covered);
 		node.addValue("knights", knightValue);
+
+		if (soc.getRules().isEnableCitiesAndKnightsExpansion()) {
+		    float barbResist = 0;
+		    final int barStrength = SOC.computeBarbarianStrength(soc, b);
+		    // see if we would win or lose a barbarian attack and scale by the distance away the brs are
+            int sum= 0;
+            int max = 0;
+            int maxPlayer = 0;
+            int min = 1000;
+            int minPlayer = 0;
+            for (int i=1; i<=soc.getNumPlayers(); i++) {
+                int s = b.getKnightLevelForPlayer(i, true, false);
+                if (s > max) {
+                    max = s;
+                    maxPlayer = i;
+                }
+                if (s < min) {
+                    min = s;
+                    minPlayer = i;
+                }
+                sum += s;
+            }
+
+            if (sum < barStrength) {
+                if (playerNum == minPlayer) {
+                    // this is bad. This means we will get creamed if barbrians attack
+                    barbResist = -1;
+                }
+            } else if (sum > barStrength) {
+                if (playerNum == maxPlayer) {
+                    // this is good this means we will get pts
+                    barbResist = 1;
+                }
+            }
+            node.addValue("barbResist", barbResist/(Math.max(soc.getBarbarianDistance(), 1)));
+        }
 		
 	}
 

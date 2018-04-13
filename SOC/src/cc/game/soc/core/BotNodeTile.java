@@ -4,10 +4,6 @@ import cc.lib.game.IVector2D;
 
 public class BotNodeTile extends BotNode {
 
-	static {
-		addAllFields(BotNodeTile.class);
-	}
-	
 	private Tile tile;
 	private int index;
 	

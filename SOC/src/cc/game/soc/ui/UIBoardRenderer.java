@@ -867,47 +867,42 @@ public class UIBoardRenderer extends UIRenderer {
             g.setColor(outlineColorLight);
             drawTileOutline(g, cell);
             g.setColor(textColor);
+            String name = cell.getType().getName(UISOC.getInstance());
             switch (cell.getType()) {
                 case NONE:
                     break;
                 case DESERT:
-                    g.drawJustifiedString(x,y,Justify.CENTER,Justify.CENTER,"Desert");
+                    g.drawJustifiedString(x,y,Justify.CENTER,Justify.CENTER,name);
                     break;
                 case WATER:
-                    g.drawJustifiedString(x,y,Justify.CENTER,Justify.CENTER,"Water");
+                    g.drawJustifiedString(x,y,Justify.CENTER,Justify.CENTER,name);
                     break;
         		case PORT_ORE:
         		case PORT_SHEEP:
         		case PORT_WHEAT:
         		case PORT_WOOD:
         		case PORT_BRICK:
-        			g.drawJustifiedString(x,y,Justify.CENTER,Justify.CENTER,"2:1\n" + cell.getResource().name());
+        			g.drawJustifiedString(x,y,Justify.CENTER,Justify.CENTER,"2:1\n" + cell.getResource().getName(UISOC.getInstance()));
                     break;
                 case PORT_MULTI:
                     g.drawJustifiedString(x,y,Justify.CENTER,Justify.CENTER,"3:1\n?");
                     break;
                 case GOLD:
-                    g.drawJustifiedString( x, y, Justify.CENTER, Justify.CENTER, "GOLD\n" + String.valueOf(cell.getDieNum()));
+                    g.drawJustifiedString( x, y, Justify.CENTER, Justify.CENTER, name + "\n" + String.valueOf(cell.getDieNum()));
                     break;
                 // used for random generation
                 case RANDOM_RESOURCE_OR_DESERT:
-                    g.drawJustifiedString(x,y,Justify.CENTER,Justify.CENTER,"Random\nResourse or\nDesert");
-                    break;
                 case RANDOM_RESOURCE:
-                    g.drawJustifiedString(x,y,Justify.CENTER,Justify.CENTER,"Random\nResource");
-                    break;
                 case RANDOM_PORT_OR_WATER:
-                    g.drawJustifiedString(x,y,Justify.CENTER,Justify.CENTER,"Random Port\nor\nWater");
-                    break;
                 case RANDOM_PORT:
-                    g.drawJustifiedString(x,y,Justify.CENTER,Justify.CENTER,"Random\nPort");
+                    g.drawJustifiedString(x,y,Justify.CENTER,Justify.CENTER,name);
                     break;
 				case FIELDS:
 				case FOREST:
 				case HILLS:
 				case MOUNTAINS:
 				case PASTURE:
-					g.drawJustifiedString( x, y, Justify.CENTER, Justify.CENTER, cell.getResource() + "\n" + String.valueOf(cell.getDieNum()));
+					g.drawJustifiedString( x, y, Justify.CENTER, Justify.CENTER, cell.getResource().getName(UISOC.getInstance()) + "\n" + String.valueOf(cell.getDieNum()));
 					break;
 				case UNDISCOVERED:
 					break;
@@ -960,28 +955,13 @@ public class UIBoardRenderer extends UIRenderer {
 
             // used for random generation
             case RANDOM_RESOURCE_OR_DESERT:
-                g.setColor(outlineColorLight);
-                drawTileOutline(g, cell);
-                g.setColor(textColor);
-                g.drawJustifiedString(cell.getX(), cell.getY(),Justify.CENTER,Justify.CENTER,"Random\nResourse or\nDesert");
-                break;
             case RANDOM_RESOURCE:
-                g.setColor(outlineColorLight);
-                drawTileOutline(g, cell);
-                g.setColor(textColor);
-                g.drawJustifiedString(cell.getX(),cell.getY(),Justify.CENTER,Justify.CENTER,"Random\nResource");
-                break;
             case RANDOM_PORT_OR_WATER:
-                g.setColor(outlineColorLight);
-                drawTileOutline(g, cell);
-                g.setColor(textColor);
-                g.drawJustifiedString(cell.getX(),cell.getY(),Justify.CENTER,Justify.CENTER,"Random Port\nor\nWater");
-                break;
             case RANDOM_PORT:
                 g.setColor(outlineColorLight);
                 drawTileOutline(g, cell);
                 g.setColor(textColor);
-                g.drawJustifiedString(cell.getX(),cell.getY(),Justify.CENTER,Justify.CENTER,"Random\nPort");
+                g.drawJustifiedString(cell.getX(),cell.getY(),Justify.CENTER,Justify.CENTER,cell.getType().getName(UISOC.getInstance()));
                 break;
             case FIELDS:
             	g.drawImage(fieldshexImage, v0, v1);

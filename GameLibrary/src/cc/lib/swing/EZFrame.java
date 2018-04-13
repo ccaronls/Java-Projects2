@@ -13,6 +13,7 @@ import java.util.Properties;
 import javax.swing.*;
 import javax.swing.event.*;
 
+import cc.lib.game.GColor;
 import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
@@ -335,5 +336,20 @@ public class EZFrame extends JFrame implements WindowListener, ComponentListener
 
     public final void setVisible(boolean visible) {
         super.setVisible(visible);
+    }
+
+    public void setBackground(GColor c) {
+        Container container = getContentPane();
+        container.setBackground(AWTUtils.toColor(c));
+        clearContainersBackgrounds(container);
+    }
+
+    private void clearContainersBackgrounds(Container c) {
+        for (Component comp : c.getComponents()) {
+            comp.setBackground(null);
+            if (comp instanceof Container) {
+                clearContainersBackgrounds((Container)comp);
+            }
+        }
     }
 }

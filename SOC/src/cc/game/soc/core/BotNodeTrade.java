@@ -2,10 +2,6 @@ package cc.game.soc.core;
 
 public class BotNodeTrade extends BotNode {
 
-	static {
-		addAllFields(BotNodeTrade.class);
-	}
-	
 	private Trade trade;
 	
 	public BotNodeTrade() {}

@@ -1911,26 +1911,22 @@ public class Board extends Reflector<Board> {
 	 * @param playerNum
 	 * @return
 	 */
-    public final int getNumRoadsForPlayer(int playerNum) {
+    public final int getNumRoutesOfType(int playerNum, RouteType ... types) {
         int num = 0;
         for (int i=0; i<getNumRoutes(); i++) {
             Route e = getRoute(i);
             if (e.getPlayer() == playerNum) {
-            	switch (e.getType()) {
-					case DAMAGED_ROAD:
-					case ROAD:
-						num++;
-						break;
-					case OPEN:
-					case SHIP:
-					case WARSHIP:
-						break;
-            	}
+                for (RouteType rt : types) {
+                    if (rt == e.getType()) {
+                        num++;
+                        break;
+                    }
+                }
             }
         }
         return num;
     }
-    
+
     /**
      * Convenience method to get a iterable over a players roads.  The roads are not ordered
      * 

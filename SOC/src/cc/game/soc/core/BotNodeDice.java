@@ -2,10 +2,6 @@ package cc.game.soc.core;
 
 public class BotNodeDice extends BotNode {
 
-	static {
-		addAllFields(BotNodeDice.class);
-	}
-	
 	private Integer [] dice = new Integer[2];
 	
 	public BotNodeDice() {}

@@ -628,8 +628,8 @@ public abstract class Player extends Reflector<Player> {
 	 * 
 	 * @return
 	 */
-	public final int getArmySize() {
-		return getUsedCardCount(DevelopmentCardType.Soldier);
+	public final int getArmySize(Board b) {
+		return getUsedCardCount(DevelopmentCardType.Soldier) + b.getNumRoutesOfType(playerNum, RouteType.WARSHIP);
 	}
 
 	/**

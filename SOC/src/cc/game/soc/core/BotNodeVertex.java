@@ -4,10 +4,6 @@ import cc.lib.game.IVector2D;
 
 public class BotNodeVertex extends BotNode {
 
-	static {
-		addAllFields(BotNodeVertex.class);
-	}
-	
 	private Vertex vertex;
 	private int index;
 	

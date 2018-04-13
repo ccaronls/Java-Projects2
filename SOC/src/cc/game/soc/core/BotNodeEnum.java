@@ -2,10 +2,6 @@ package cc.game.soc.core;
 
 public class BotNodeEnum extends BotNode {
 
-	static {
-		addAllFields(BotNodeEnum.class);
-	}
-	
 	private Enum<?> enumData;
 	
 	public BotNodeEnum() {}

@@ -80,9 +80,18 @@ public final class UIPlayerRenderer extends UIRenderer {
             } else {
                 for (Card c : player.getCards(CardType.Development)) {
                     // dont need to show these since it is covered by the army size
-                    if (c.getCardStatus() == CardStatus.USED && c.getTypeOrdinal() == DevelopmentCardType.Soldier.ordinal())
-                        continue;
-                    str.append(c.getName(UISOC.getInstance())).append(" (").append(c.getCardStatus().getName(UISOC.getInstance())).append(")\n");
+                    switch (c.getCardStatus()) {
+                        case USABLE:
+                            str.append(c.getName(UISOC.getInstance())).append("\n");
+                            break;
+                        case USED:
+                            // ignore these since they are covered by the army size
+                            if (c.getTypeOrdinal() == DevelopmentCardType.Soldier.ordinal() || c.getTypeOrdinal() == DevelopmentCardType.Warship.ordinal())
+                                continue;
+                        case UNUSABLE:
+                            str.append(c.getName(UISOC.getInstance())).append(" (").append(c.getCardStatus().getName(UISOC.getInstance())).append(")\n");
+                            break;
+                    }
                 }
             }
         } else {
@@ -98,24 +107,15 @@ public final class UIPlayerRenderer extends UIRenderer {
             }
         }
 
-        int numSettlements = soc.getBoard().getNumVertsOfType(player.getPlayerNum(), VertexType.SETTLEMENT);
-        int numCities      = soc.getBoard().getNumVertsOfType(player.getPlayerNum(), VertexType.CITY, VertexType.WALLED_CITY);
-        int numMetros      = soc.getBoard().getNumVertsOfType(player.getPlayerNum(), VertexType.METROPOLIS_POLITICS, VertexType.METROPOLIS_SCIENCE, VertexType.METROPOLIS_TRADE);
+        //int numSettlements = soc.getBoard().getNumVertsOfType(player.getPlayerNum(), VertexType.SETTLEMENT);
+        //int numCities      = soc.getBoard().getNumVertsOfType(player.getPlayerNum(), VertexType.CITY, VertexType.WALLED_CITY);
+        //nt numMetros      = soc.getBoard().getNumVertsOfType(player.getPlayerNum(), VertexType.METROPOLIS_POLITICS, VertexType.METROPOLIS_SCIENCE, VertexType.METROPOLIS_TRADE);
         int numKnights     = soc.getBoard().getNumKnightsForPlayer(player.getPlayerNum());
         int knightLevel    = soc.getBoard().getKnightLevelForPlayer(player.getPlayerNum(), true, false);
         int maxKnightLevel = soc.getBoard().getKnightLevelForPlayer(player.getPlayerNum(), true, true);
         int numDiscoveredTiles = player.getNumDiscoveredTerritories();
-/*
-        str.append(" S X ").append(numSettlements).append(" +").append(numSettlements * soc.getRules().getPointsPerSettlement())
-           .append(" C X ").append(numCities).append(" +").append(numCities * soc.getRules().getPointsPerCity())
-           .append(" KL X ").append(knightLevel).append("/").append(maxKnightLevel);
 
-        if (soc.getRules().isEnableCitiesAndKnightsExpansion()) {
-        	str.append(" M X ").append(numMetros).append(" +").append(numMetros * soc.getRules().getPointsPerMetropolis());
-        }
-        str.append("\n");
-  */
-        int size = player.getArmySize();
+        int size = player.getArmySize(soc.getBoard());
         if (size > 0) {
             str.append(getString(R.string.player_info_army_size, size)).append("\n");
         }

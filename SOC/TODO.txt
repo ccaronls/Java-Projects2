@@ -1,4 +1,5 @@
 Apply these rules:
+
 - A player can only play a development card once per turn. 
   (DONE, untested) 
 
@@ -9,7 +10,7 @@ Core Game Improvements
 
 CAK Rule Details:
 - Robber/Pirate not movable until the barbarians attack for first time.
-  Still rolling a 7 results in the giveup cards procedure.
+  Still rolling a 7 results in the give up cards procedure. (DONE needs testing)
 - Losing your last city to barbarians means you keep your progress cards and improvements
   (Done?  Nothing to do)
 (DONE, partially tested)
@@ -18,15 +19,26 @@ CAK Rule Details:
 
 - IMPROVEMENT: Show indication bot is thinking
 - BUG: GUI Assertion when picking a botnode during AI tuning.
-- IMPROVEMENT: GUI Ai Tuning - Dont dump info to console instead display omn screen with dimmed bk
+- IMPROVEMENT: GUI Ai Tuning - Don't dump info to console instead display omn screen with dimmed bk
 
 - Make sure AI considers attacking options
 
 - Put the name of the board on top on Android
 
-- Clean up how cards are rendered. There should not be vertical overlapp if possible.
-  Also counting the card occurances is not working. Need to keep a stack I guess
+- Clean up how cards are rendered. There should not be vertical overlap if possible.
+  Also counting the card occurrences is not working. Need to keep a stack I guess
 
 - Barbarian attack popup does not show summary. Also no cancel button on popup.
 - Rules dialog should not be cancelable on touch outside.
 - Help text causes left panel to shift around
+- Tiles need to be more obvious what they produce
+- Should have a intro screen to show the basics
+- Help text on Right hand side?
+- Console scrolling should work better
+- AI Randomness need to be more thought out. Having a scale factor is too large an impact on the overall score. Basically
+  the AI is never attacking.
+  I think move options that have randomness (like attacks) should be considered when the the AI rolls the dice.
+  For instance, if attacking a road has a 2 in 6 chance of succeeding, then only add the move to the total move set
+  if the AI randomly chooses a value between 0-2 out of 6.
+- There should be different AI tuning for each scenario and also different tuning to support different strategies.
+- Warships count toward Army?

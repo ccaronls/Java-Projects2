@@ -20,7 +20,7 @@ public class SOCComponent extends AWTComponent implements UIComponent {
     protected float progress = 1;
 
     SOCComponent() {
-        setBackground(GColor.DARK_GRAY);
+        //setBackground(GColor.DARK_GRAY);
     }
 
     @Override

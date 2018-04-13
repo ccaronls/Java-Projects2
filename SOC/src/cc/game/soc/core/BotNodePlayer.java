@@ -2,10 +2,6 @@ package cc.game.soc.core;
 
 public class BotNodePlayer extends BotNode {
 
-	static {
-		addAllFields(BotNodePlayer.class);
-	}
-	
 	private Player player;
 	
 	public BotNodePlayer() {}

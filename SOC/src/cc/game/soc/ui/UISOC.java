@@ -11,6 +11,7 @@ import cc.game.soc.core.Card;
 import cc.game.soc.core.CardType;
 import cc.game.soc.core.CommodityType;
 import cc.game.soc.core.DevelopmentArea;
+import cc.game.soc.core.DevelopmentCardType;
 import cc.game.soc.core.Dice;
 import cc.game.soc.core.EventCard;
 import cc.game.soc.core.ICardType;
@@ -207,7 +208,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
             @Override
             public void onDrawPickable(UIBoardRenderer b, APGraphics g, int index) {
                 Vertex v = getBoard().getVertex(index);
-                GColor color = getPlayerColor(getCurPlayerNum()).withAlpha(120);
+                GColor color = getPlayerColor(getCurPlayerNum()).withAlpha(RenderConstants.pickableAlpha);
                 g.setColor(color);
                 switch (choice) {
                     case SETTLEMENT:
@@ -260,7 +261,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
                         b.drawPirateFortress(g, v, false);
                         break;
                     case OPPONENT_STRUCTURE_TO_ATTACK:
-                        g.setColor(getPlayerColor(v.getPlayer()).withAlpha(120));
+                        g.setColor(getPlayerColor(v.getPlayer()).withAlpha(RenderConstants.pickableAlpha));
                         b.drawVertex(g, v, v.getType(), 0, false);
                         break;
                 }
@@ -331,10 +332,10 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
             @Override
             public void onDrawPickable(UIBoardRenderer b, APGraphics g, int index) {
                 Route route = getBoard().getRoute(index);
-                g.setColor(getPlayerColor(getCurPlayerNum()).withAlpha(120));
+                g.setColor(getPlayerColor(getCurPlayerNum()).withAlpha(RenderConstants.pickableAlpha));
                 switch (choice) {
                     case OPPONENT_ROAD_TO_ATTACK:
-                        g.setColor(getPlayerColor(route.getPlayer()).withAlpha(120));
+                        g.setColor(getPlayerColor(route.getPlayer()).withAlpha(RenderConstants.pickableAlpha));
                         b.drawEdge(g, route, route.getType(), 0, false);
                         break;
                     case ROAD:
@@ -422,7 +423,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
                         if (t.isWater())
                             b.drawPirate(g, t, GColor.TRANSLUSCENT_BLACK);
                         else
-                            b.drawRobber(g, t, GColor.LIGHT_GRAY.withAlpha(0.5f));
+                            b.drawRobber(g, t, GColor.LIGHT_GRAY.withAlpha(RenderConstants.pickableAlpha));
                         break;
                     case INVENTOR:
                         g.setColor(GColor.RED);
@@ -431,7 +432,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
                             b.drawCellProductionValue(g, t.getX(), t.getY(), t.getDieNum());
                         break;
                     case MERCHANT:
-                        g.setColor(getPlayerColor(getCurPlayerNum()).withAlpha(0.5f));
+                        g.setColor(getPlayerColor(getCurPlayerNum()).withAlpha(RenderConstants.pickableAlpha));
                         b.drawMerchant(g, t, 0);
                         break;
                 }
@@ -477,18 +478,18 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
             switch (mode) {
                 case PLAYER_FOR_DESERTION: {
                     int numKnights = getBoard().getNumKnightsForPlayer(player.getPlayerNum());
-                    addMenuItem(CHOOSE_PLAYER, player.getName() + " X " + numKnights + " Knights", null, num);
+                    addMenuItem(CHOOSE_PLAYER, getString(R.string.menu_item_choose_player_x_n_knights, player.getName(), numKnights), null, num);
                     break;
                 }
                 case PLAYER_TO_SPY_ON:
-                    addMenuItem(CHOOSE_PLAYER, player.getName() + " X " + player.getUnusedCardCount(CardType.Progress) + " Progress Cards", null, num);
+                    addMenuItem(CHOOSE_PLAYER, getString(R.string.menu_item_choose_player_x_n_progresscards, player.getName(), player.getUnusedCardCount(CardType.Progress)), null, num);
                     break;
                 default:
                     System.err.println("ERROR: Unhandled case '" + mode + "'");
                 case PLAYER_TO_FORCE_HARBOR_TRADE:
                 case PLAYER_TO_GIFT_CARD:
                 case PLAYER_TO_TAKE_CARD_FROM:
-                    addMenuItem(CHOOSE_PLAYER, player.getName() + " X " + player.getTotalCardsLeftInHand() + " Cards", null, num);
+                    addMenuItem(CHOOSE_PLAYER, getString(R.string.menu_item_choose_player_x_n_cards, player.getName(), player.getTotalCardsLeftInHand()), null, num);
                     break;
             }
         }
@@ -706,7 +707,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
         for (Player p : getPlayers()) {
             str.append(p.getName()).append(" ").append(playerStatus[p.getPlayerNum()]).append("\n");
         }
-        showOkPopup(getString(R.string.popup_title_barbarian_attack), getString(R.string.popup_content_barbarian_attack_summary, barbarianStrength, catanStrength));
+        showOkPopup(getString(R.string.popup_title_barbarian_attack), str.toString());
         super.onBarbariansAttack(catanStrength, barbarianStrength, playerStatus);
         boardRenderer.component.redraw();
     }
@@ -794,7 +795,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
         server.broadcastExecuteOnRemote(NetCommon.SOC_ID, player, type);
         String txt = type.getName(this);
         if (!((UIPlayer)getPlayerByPlayerNum(player)).isInfoVisible()) {
-            txt = "Progress";
+            txt = CardType.Progress.getName(this);
         }
         addCardAnimation(player, txt);
         super.onProgressCardDistributed(player, type);
@@ -1204,15 +1205,15 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
             }
         }
         if (isRunning()) {
-            conn.disconnect("Game Full");
+            conn.disconnect(getString(R.string.mp_info_game_full));
         } else if (getNumPlayers() >= getRules().getMaxPlayers()) {
-            conn.disconnect("Game Full");
+            conn.disconnect(getString(R.string.mp_info_game_full));
         } else {
             // made it here so it means we were not able to assign, so add a new player!
             UIPlayer player = new UIPlayer();
             player.connect(conn);
             addPlayer(player);
-            printinfo(0, "Player " + conn + " has joined");
+            printinfo(0, getString(R.string.mp_info_player_has_joined, conn.getName()));
         }
     }
 
@@ -1223,7 +1224,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
 
     @Override
     public void onClientDisconnected(ClientConnection conn) {
-        printinfo(0, "Player " + conn.getName() + " has disconnected");
+        printinfo(0, getString(R.string.mp_info_player_has_disconnected, conn.getName()));
     }
 
     /**

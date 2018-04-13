@@ -8,12 +8,8 @@ import cc.lib.game.Utils;
 import cc.lib.math.Vector2D;
 import cc.lib.utils.Reflector;
 
-public abstract class BotNode extends Reflector<BotNode> implements Comparable<BotNode> {
+public abstract class BotNode implements Comparable<BotNode> {
 
-	static {
-		addAllFields(BotNode.class);
-	}
-	
     private boolean optimal = false;
     private double value = 0;
     private int numProperties = 0;

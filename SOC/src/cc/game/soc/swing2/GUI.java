@@ -806,8 +806,8 @@ public class GUI implements ActionListener, MenuItem.Action {
         frame.add(westGridPanel, BorderLayout.WEST);
         cntrBorderPanel.add(consoleComponent, BorderLayout.SOUTH);
         helpText.setBorder(BorderFactory.createLineBorder(helpText.getBackground(), 5));
-        //helpText.set
-        
+        frame.setBackground(new GColor(128, 128, 128));
+
 		initMenu();
 	}
 
@@ -2288,7 +2288,7 @@ public class GUI implements ActionListener, MenuItem.Action {
         showPopup(name, msg, button);
     }
 
-    public void     showConfigureGameSettingsPopup(final Rules rules, boolean editable) {
+    public void showConfigureGameSettingsPopup(final Rules rules, boolean editable) {
         final JPanel view = new JPanel();
         JScrollPane panel = new JScrollPane();
         panel.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
@@ -2322,6 +2322,7 @@ public class GUI implements ActionListener, MenuItem.Action {
         					cons.gridy++;
         					cons.fill=NONE;
         				}
+
         				
         				cons.gridx=0;
         				cons.gridwidth=1;
@@ -2331,7 +2332,7 @@ public class GUI implements ActionListener, MenuItem.Action {
             			        view.add(button, cons);
             			        components.put(button,  f);
         					} else {
-        						view.add(new JLabel(f.getBoolean(rules) ? "Enable" : "Disabled"), cons);
+        						view.add(new JLabel(f.getBoolean(rules) ? "Enabled" : "Disabled"), cons);
         					}
         				} else if (f.getType().equals(int.class)) {
         					if (editable) {

@@ -2,10 +2,6 @@ package cc.game.soc.core;
 
 public class BotNodeCard extends BotNode {
 
-	static {
-		addAllFields(BotNodeCard.class);
-	}
-	
 	private Card card;
 	
 	public BotNodeCard() {}

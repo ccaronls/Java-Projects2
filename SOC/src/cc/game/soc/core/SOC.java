@@ -512,6 +512,11 @@ public class SOC extends Reflector<SOC> implements StringResource {
 		initDice();
 		return getDice();
 	}
+
+	public final int nextDie() {
+	    initDice();
+	    return mDice.removeFirst();
+    }
 	
 	/**
 	 *
@@ -589,7 +594,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
 						if (getRules().isEnableCitiesAndKnightsExpansion()) {
 							size = mBoard.getKnightLevelForPlayer(p.getPlayerNum(), true, false);
 						} else {
-							size = p.getArmySize();
+							size = p.getArmySize(mBoard);
 						}
 						armySize[p.getPlayerNum()] = size;
 						maxSize = Math.max(size, maxSize);
@@ -689,7 +694,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
 					if (getRules().isEnableCitiesAndKnightsExpansion())
 						num = getBoard().getNumKnightsForPlayer(i);
 					else
-						num = getPlayerByPlayerNum(i).getArmySize();
+						num = getPlayerByPlayerNum(i).getArmySize(mBoard);
 					numKnights[i] = num;
 					if (num > most) {
 						most = num;
@@ -1495,6 +1500,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
 									pushStateFront(State.POSITION_PIRATE_NOCANCEL, null, opts);
 							}
 						}
+						updateLargestArmyPlayer();
 					}
 					break;
 				}
@@ -3713,11 +3719,11 @@ public class SOC extends Reflector<SOC> implements StringResource {
 		int maxArmySize = soc.getRules().getMinLargestArmySize() - 1;
 		Player curLAP = soc.getLargestArmyPlayer();
 		if (curLAP != null)
-		    maxArmySize = Math.max(maxArmySize, curLAP.getArmySize());
+		    maxArmySize = Math.max(maxArmySize, curLAP.getArmySize(soc.getBoard()));
 		Player maxArmyPlayer = curLAP;
 		for (Player cur : soc.getPlayers()) {
-			if (cur.getArmySize() > maxArmySize) {
-				maxArmySize = cur.getArmySize();
+			if (cur.getArmySize(soc.getBoard()) > maxArmySize) {
+				maxArmySize = cur.getArmySize(soc.getBoard());
 				maxArmyPlayer = cur;
 			}
 		}
@@ -3725,7 +3731,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
 		if (maxArmyPlayer == null)
 			return null;
 		
-		if (maxArmyPlayer.getArmySize() >= soc.getRules().getMinLargestArmySize())
+		if (maxArmyPlayer.getArmySize(soc.getBoard()) >= soc.getRules().getMinLargestArmySize())
 		    return maxArmyPlayer;
 		
 		return null;
@@ -3828,11 +3834,11 @@ public class SOC extends Reflector<SOC> implements StringResource {
 	    if (curLAP != null && largestArmyPlayer.getPlayerNum() == curLAP.getPlayerNum())
 	        return;
 
-	    final int maxArmySize = largestArmyPlayer.getArmySize();
+	    final int maxArmySize = largestArmyPlayer.getArmySize(mBoard);
 	    if (curLAP == null) {
 	        printinfo(getString(R.string.info_player_has_largest_army, largestArmyPlayer.getName()));
 	        onLargestArmyPlayerUpdated(-1, largestArmyPlayer.getPlayerNum(), maxArmySize);
-	    } else if (largestArmyPlayer.getArmySize() > curLAP.getArmySize()) {
+	    } else if (largestArmyPlayer.getArmySize(mBoard) > curLAP.getArmySize(mBoard)) {
 	        printinfo(getString(R.string.info_player_overtakes_player_for_largest_army, largestArmyPlayer.getName(), curLAP.getName()));
 	        onLargestArmyPlayerUpdated(curLAP.getPlayerNum(), largestArmyPlayer.getPlayerNum(), maxArmySize);
 	    }
@@ -5018,7 +5024,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
 			printinfo(getString(R.string.info_player_rolled_seven, getCurPlayer().getName()));
 			pushStateFront(State.SETUP_GIVEUP_CARDS);
 			if (getRules().isEnableCitiesAndKnightsExpansion() && mBarbarianAttackCount < mRules.getMinBarbarianAttackstoEnableRobberAndPirate()) {
-                pushStateFront(State.CHOOSE_OPPONENT_TO_TAKE_RESOURCE_FROM, null, computeOpponents(this, getCurPlayerNum()), null);
+                pushStateFront(State.CHOOSE_OPPONENT_TO_TAKE_RESOURCE_FROM, null, computeOpponentsWithCardsInHand(this, getCurPlayerNum()), null);
             } else if (getRules().isEnableRobber()) {
                 if (getRules().isEnableSeafarersExpansion())
                     pushStateFront(State.POSITION_ROBBER_OR_PIRATE_NOCANCEL);
@@ -5027,7 +5033,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
             } else if (getRules().isEnableSeafarersExpansion()) {
                 pushStateFront(State.POSITION_PIRATE_NOCANCEL);
 			} else {
-				pushStateFront(State.CHOOSE_OPPONENT_TO_TAKE_RESOURCE_FROM, null, computeOpponents(this, getCurPlayerNum()), null);
+				pushStateFront(State.CHOOSE_OPPONENT_TO_TAKE_RESOURCE_FROM, null, computeOpponentsWithCardsInHand(this, getCurPlayerNum()), null);
 			}
 		} else {
 

@@ -436,10 +436,10 @@
     <string name="tile_type_undiscovered">Undiscovered</string>
 
     <!-- Used for random generation -->
-    <string name="tile_type_random_resource_or_desert">Resource or Desert</string>
+    <string name="tile_type_random_resource_or_desert">Resource\nor\nDesert</string>
     <string name="tile_type_random_resource">Resource</string>
-    <string name="tile_type_random_port_or_water">Port or Water</string>
-    <string name="tile_type_random_port">Random Port</string>
+    <string name="tile_type_random_port_or_water">Port\nor\nWater</string>
+    <string name="tile_type_random_port">Random\nPort</string>
     <string name="tile_type_pasture">Pasture</string>
     <string name="tile_type_hills">Hills</string>
     <string name="tile_type_mountains">Mountains</string>
@@ -643,6 +643,14 @@
     <string name="barbarian_attack_summary_choose_progress_card"> Choose Progress Card</string>
     <string name="barbarian_attack_summary_defended_by_wall"> Defended by Wall</string>
     <string name="barbarian_attack_summary_city_pillaged"> City Pillaged</string>
+
+    <string name="menu_item_choose_player_x_n_knights">%1$s X %2$d Knights</string>
+    <string name="menu_item_choose_player_x_n_progresscards">%1$s X %2$d Progress Cards</string>
+    <string name="menu_item_choose_player_x_n_cards">%1$s X %2$d Cards</string>
+
+    <string name="mp_info_game_full">Game Full</string>
+    <string name="mp_info_player_has_joined">Player %s has joined</string>
+    <string name="mp_info_player_has_disconnected">Player %s has disconnected</string>
 
 
 </resources>

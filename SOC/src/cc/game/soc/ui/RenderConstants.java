@@ -11,5 +11,6 @@ public class RenderConstants {
     public static float thickLineThickness = 5;
     public static float textSizeBig = 18;
     public static float textSizeSmall = 14;
+    public static float pickableAlpha = 0.4f;
 
 }

@@ -4,10 +4,6 @@ import cc.lib.game.IVector2D;
 
 public class BotNodeRoute extends BotNode {
 
-	static {
-		addAllFields(BotNodeRoute.class);
-	}
-	
 	private Route route;
 	private int index;
 	

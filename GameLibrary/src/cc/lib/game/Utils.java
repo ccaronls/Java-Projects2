@@ -1106,7 +1106,7 @@ public class Utils {
      * @author Chris Caron
      */
     public interface Weigher {
-        public int weightOf(Object o);
+        int weightOf(Object o);
     }
 
     ;
@@ -1448,21 +1448,23 @@ public class Utils {
     }
 
     @SafeVarargs
-    public static <T extends Number> T max(T t0, T t1, T... args) {
-        T max = max2(t0, t1);
-        for (T t : args) {
-            max = max2(max, t);
+    public static <T extends Number> T max(T... args) {
+        assert(args.length>1);
+        T max = max2(args[0], args[1]);
+        for (int i=2; i<args.length; i++) {
+            max = max2(max, args[i]);
         }
         return max;
     }
 
     @SafeVarargs
-    public static <T extends Number> T min(T t0, T t1, T... args) {
-        T max = min2(t0, t1);
-        for (T t : args) {
-            max = min2(max, t);
+    public static <T extends Number> T min(T... args) {
+        assert(args.length>1);
+        T min = min2(args[0], args[1]);
+        for (int i=2; i<args.length; i++) {
+            min = min2(min, args[i]);
         }
-        return max;
+        return min;
     }
 
     public static int[] copyOf(int[] arr) {
@@ -1938,6 +1940,7 @@ public class Utils {
         InputStream is = Utils.class.getClassLoader().getResourceAsStream(resource);
         if (is == null)
             is = new FileInputStream(new File(resource));
+        int numParsed = 0;
         try {
             BufferedReader in = new BufferedReader(new InputStreamReader(is));
             while (true) {
@@ -1961,11 +1964,16 @@ public class Utils {
                 Field f = stringResource.getField(name);
                 int id = f.getInt(null);
                 stringTable.put(id, content);
+                System.out.print(".");
+                if (++numParsed % 50 == 0) {
+                    System.out.println();
+                }
             }
 
         } finally {
             is.close();
         }
+        System.out.println("Parsed " + numParsed + " strings");
     }
 
 }
