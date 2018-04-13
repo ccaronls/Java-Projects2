@@ -26,3 +26,7 @@ CAK Rule Details:
 
 - Clean up how cards are rendered. There should not be vertical overlapp if possible.
   Also counting the card occurances is not working. Need to keep a stack I guess
+
+- Barbarian attack popup does not show summary. Also no cancel button on popup.
+- Rules dialog should not be cancelable on touch outside.
+- Help text causes left panel to shift around
