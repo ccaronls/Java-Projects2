@@ -709,14 +709,13 @@ public class PlayerBot extends Player {
 					break;
 				}
 				case DRAW_DEVELOPMENT: {
-				    if (soc.nextDie() > 3) {
-                        p.adjustResourcesForBuildable(BuildableType.Development, -1);
-                        Card temp = new Card(DevelopmentCardType.Soldier, CardStatus.UNUSABLE);
-                        p.addCard(temp);
-                        doEvaluateAll(root, soc, p, b);
-                        p.removeCard(temp);
-                        p.adjustResourcesForBuildable(BuildableType.Development, 1);
-                    }
+				    root.chance = 0.8f + 0.4f * (Utils.rand() % 101);
+                    p.adjustResourcesForBuildable(BuildableType.Development, -1);
+                    Card temp = new Card(DevelopmentCardType.Soldier, CardStatus.UNUSABLE);
+                    p.addCard(temp);
+                    doEvaluateAll(root, soc, p, b);
+                    p.removeCard(temp);
+                    p.adjustResourcesForBuildable(BuildableType.Development, 1);
 					break;
 				}
 				case HIRE_KNIGHT: {
@@ -1817,6 +1816,9 @@ public class PlayerBot extends Player {
 				case SETTLEMENT:
 					structureValue += 1;
 					scale = rules.getNumResourcesForSettlement();
+					if (b.isVertexAdjacentToPirateRoute(vIndex)) {
+					    scale *= -1;
+                    }
 					break;
 				case METROPOLIS_POLITICS:
 				case METROPOLIS_SCIENCE:
@@ -2497,18 +2499,42 @@ public class PlayerBot extends Player {
 		// total cards near the max but not over
 		// we want the highest value to be half of the max
 		//node.addValue("cardsInHand", CMath.normalDistribution(p.getTotalCardsLeftInHand(), soc.getRules().getMaxSafeCards()));
-		
-		float cardsInHand = 0;
+
+        float cardsValue = 0;
+
 		final int maxCards = soc.getRules().getMaxSafeCardsForPlayer(p.getPlayerNum(), b);
-		if (p.getTotalCardsLeftInHand() <= maxCards) {
-			cardsInHand = p.getTotalCardsLeftInHand()
-					+ p.getCardCount(CardType.Development);
-		} else {
-			cardsInHand = maxCards - 2 * (p.getTotalCardsLeftInHand() - maxCards);
-		}
-		
-//		int cardsInHand = p.getTotalCardsLeftInHand() > soc.getRules().getMaxSafeCards() ? 0 : 1;
-		node.addValue("cardsInHand", 0.1 * cardsInHand);
+		final int numCards = p.getTotalCardsLeftInHand();
+
+		for(Card c : p.getCards()) {
+		    switch (c.getCardType()) {
+
+                case Resource:
+                    cardsValue++;
+                    break;
+                case Commodity:
+                    cardsValue+=2;
+                    break;
+                case Development:
+                    cardsValue+=3;
+                    break;
+                case Progress:
+                    cardsValue+=3;
+                    break;
+                case SpecialVictory:
+                    cardsValue+=4;
+                    break;
+                case Event:
+                case BarbarianAttackDevelopment:
+                    assert(false);
+                    break;
+            }
+        }
+
+        if (numCards > maxCards) {
+		    cardsValue -= 2*(numCards-maxCards);
+        }
+
+		node.addValue("cardsValue", 0.1 * cardsValue);
 		
 		// city development
 		float sum = 0;
@@ -2538,6 +2564,10 @@ public class PlayerBot extends Player {
 		}
 		node.addValue("points", SOC.computePointsForPlayer(p, b, soc));
 		node.addValue("discoveredTiles", 0.1f * p.getNumDiscoveredTerritories());
+		node.addValue("armySize", 0.1f * p.getArmySize(b));
+		if (b.getPirateTile() != null) {
+		    node.addValue("pirateDefence", 0.1f * b.getNumRoutesOfType(p.getPlayerNum(), RouteType.WARSHIP));
+        }
 	}
 	
 	private static void evaluateDice(BotNode node, int die1, int die2, SOC soc, Player p, Board b) {

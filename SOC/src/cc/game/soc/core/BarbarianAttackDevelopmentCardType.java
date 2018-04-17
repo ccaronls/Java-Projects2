@@ -15,7 +15,7 @@ public enum BarbarianAttackDevelopmentCardType implements ICardType<Void> {
 	public final int nameId;
 	public final int helpTextId;
 	
-	private BarbarianAttackDevelopmentCardType(int occurance, int nameId, int helpTextId) {
+	BarbarianAttackDevelopmentCardType(int occurance, int nameId, int helpTextId) {
 		this.occurance = occurance;
 		this.nameId = nameId;
 		this.helpTextId = helpTextId;

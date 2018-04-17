@@ -880,10 +880,10 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
 
     @Override
     @Keep
-    protected void onTradeCompleted(int player, Trade trade) {
+    protected void onCardsTraded(int player, Trade trade) {
         server.broadcastExecuteOnRemote(NetCommon.SOC_ID, player, trade);
         addCardAnimation(player, getString(R.string.anim_trade_summary, trade.getType() , trade.getAmount()));
-        super.onTradeCompleted(player, trade);
+        super.onCardsTraded(player, trade);
     }
 
     @Override

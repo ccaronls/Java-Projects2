@@ -41,4 +41,12 @@ CAK Rule Details:
   For instance, if attacking a road has a 2 in 6 chance of succeeding, then only add the move to the total move set
   if the AI randomly chooses a value between 0-2 out of 6.
 - There should be different AI tuning for each scenario and also different tuning to support different strategies.
-- Warships count toward Army?
+- Warships count toward Army? (DONE, I think its a good balancing feature. Makes warships more valuable.)
+- Should not have popups for attacks, instead a longer animation with some pomp and circumstance)
+- PlayerBot: 1. Each bot should have own tuning. Can get different behaviors with different tunings.
+             2. Need to have tuning vars for attacks.
+             3. Should be able to have bot target a buildable.
+                - If we have good candidates for settlement, then should strive to collect resources to that end.
+                - If we have lots of settlements and few cities, should target resources for that end
+                - If we have lots of unprotected tiles then we should strive to build knights
+                - If we have the robber next to us, then strive for resources to draw a development

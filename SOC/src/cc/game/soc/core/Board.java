@@ -35,6 +35,7 @@ public class Board extends Reflector<Board> {
 	private int				merchantTile = -1;
 	private int				merchantPlayer = 0; // player num who last placed the merchant or 0 is not played
 	private String			name		= "";
+    private String			displayName	= null;
 	private float           cw, ch;
 	
 	private final static int GD_N		= 1;
@@ -773,7 +774,30 @@ public class Board extends Reflector<Board> {
 	    this.name = name;
 	}
 
-	/**
+    /**
+     *
+     * @return
+     */
+    public final String getDisplayName() {
+        if (Utils.isEmpty(displayName )) {
+            if (Utils.isEmpty(name))
+                return "Unnamed";
+            File file = new File(this.name);
+            if (file.isFile())
+                return Utils.getPrettyString(file.getName());
+        }
+        return displayName;
+    }
+
+    /**
+     *
+     * @param displayName
+     */
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
+    }
+
+    /**
 	 * Get the vertex at point x,y such that |P(x,y) - P(v)| < epsilon
 	 * @param x
 	 * @param y
@@ -2195,7 +2219,12 @@ public class Board extends Reflector<Board> {
 	public void clearRouteLenCache() {
 		Arrays.fill(playerRoadLenCache, -1);
 	}
-	
+
+    /**
+     *
+     * @param v
+     * @return
+     */
 	public final boolean isVertexAdjacentToWater(Vertex v) {
 		for (Tile cell : getTilesAdjacentToVertex(v)) {
 			if (cell.isWater())
@@ -2203,6 +2232,24 @@ public class Board extends Reflector<Board> {
 		}
 		return false;
 	}
+
+    /**
+     *
+     * @param vIndex
+     * @return
+     */
+    public boolean isVertexAdjacentToPirateRoute(int vIndex) {
+        if (pirateRouteStartTile >= 0) {
+            Vertex v = getVertex(vIndex);
+            int i = pirateRouteStartTile;
+            do {
+                if (v.isAdjacentToTile(i))
+                    return true;
+                i = getTile(i).getPirateRouteNext();
+            } while (i != pirateRouteStartTile);
+        }
+        return false;
+    }
 
 	/**
 	 * Return true if any edge adjacent to e is a ship and owned by playerNum
@@ -2559,6 +2606,16 @@ public class Board extends Reflector<Board> {
     public void loadFromFile(File file) throws IOException {
         super.loadFromFile(file);
         setName(file.getAbsolutePath());
+    }
+
+    public final boolean tryRefreshFromFile() {
+	    try {
+	        loadFromFile(new File(name));
+	        return true;
+        } catch (Exception e) {
+	        e.printStackTrace();
+	        return false;
+        }
     }
 }
 

@@ -1686,6 +1686,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
 					if (trade != null) {
 						printinfo(getString(R.string.info_player_trade_x_for_n, getCurPlayer().getName(), trade.getType(), trade.getAmount()));
 						getCurPlayer().incrementResource(trade.getType(), -trade.getAmount());
+						onCardsTraded(getCurPlayerNum(), trade);
 						popState();
 						UndoAction action = new UndoAction() {
 							public void undo() {
@@ -3454,7 +3455,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
 	 * @param playerNum
 	 * @param trade
 	 */
-	protected void onTradeCompleted(int playerNum, Trade trade) {}
+	protected void onCardsTraded(int playerNum, Trade trade) {}
 	
 	/**
 	 * Called when a player has discovered a new island for app to add any logic they want.

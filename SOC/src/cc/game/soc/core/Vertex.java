@@ -74,14 +74,6 @@ public final class Vertex extends Reflector<Vertex> implements IVector2D {
 	public void setAdjacentToWater(boolean adjacent) {
 		setFlag(VERTEX_FLAG_ADJACENT_TO_WATER, adjacent);
 	}
-	/*
-	public void setPromotedKnight(boolean promoted) {
-		setFlag(VERTEX_FLAG_PROMOTED_KNIGHT, promoted);
-	}
-
-	public boolean isPromotedKnight() {
-		return 0 != (flags & VERTEX_FLAG_PROMOTED_KNIGHT);
-	}*/
 
 	public boolean isAdjacentToLand() {
 		return 0 != (flags & VERTEX_FLAG_ADJACENT_TO_LAND);
@@ -90,7 +82,14 @@ public final class Vertex extends Reflector<Vertex> implements IVector2D {
 	public boolean isAdjacentToWater() {
 		return 0 != (flags & VERTEX_FLAG_ADJACENT_TO_WATER);
 	}
-	
+
+    public boolean isAdjacentToTile(int tIndex) {
+	    for (int i=0; i<numCells; i++) {
+	        if (cells[i] == tIndex)
+	            return true;
+        }
+        return false;
+    }
 
 	private void setFlag(int flag, boolean on) {
 		if (on) {
@@ -116,11 +115,12 @@ public final class Vertex extends Reflector<Vertex> implements IVector2D {
 				return false;
 		}
 	}
-	
-	/**
-	 * 
-	 * @param isCity
-	 */
+
+    /**
+     *
+     * @param playerNum
+     * @param type
+     */
 	public void setPlayerAndType(int playerNum, VertexType type) {
 		assert(type != null);
 		assert(playerNum > 0);
@@ -307,4 +307,6 @@ public final class Vertex extends Reflector<Vertex> implements IVector2D {
 	void removeAdjacency(int index) {
 		adjacent[index] = adjacent[--numAdj];
 	}
+
+
 }

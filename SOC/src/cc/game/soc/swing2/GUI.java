@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Image;
 import java.awt.Container;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
@@ -27,6 +28,7 @@ import java.util.*;
 
 import javax.swing.ToolTipManager;
 import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -102,6 +104,7 @@ public class GUI implements ActionListener, MenuItem.Action {
     public final MenuItem CHOOSE_NUM_PLAYERS = new MenuItem("--", null, this);
     public final MenuItem CHOOSE_COLOR = new MenuItem("--", null, this);
     public final MenuItem START = new MenuItem("Start", "Start the game", this);
+    public final MenuItem RESTART = new MenuItem("Restart", "Start the game", this);
     public final MenuItem START_MULTIPLAYER = new MenuItem("Start MP", "Start game and wait for players to join", this);
     public final MenuItem GEN_HEX_BOARD = new MenuItem("New Hexagon", "Generate a hexagon shaped board", this);
     public final MenuItem GEN_HEX_BOARD_SMALL = new MenuItem("Small", "Generate a small hexagon shaped board", this);
@@ -175,7 +178,7 @@ public class GUI implements ActionListener, MenuItem.Action {
 	    MENU_CHOOSE_DEFAULT_BOARD_SIZE,
 	    MENU_CHOOSE_CUSTOM_BOARD_SIZE, 
 	    MENU_DEBUGGING,
-	    
+        MENU_REWIND,
 	}
 
     private JmDNS jmdns = null;
@@ -748,6 +751,7 @@ public class GUI implements ActionListener, MenuItem.Action {
         if (scenario != null) {
         	try {
         		loadGame(new File(scenario));
+
         	} catch (Exception e) {
         		e.printStackTrace();
         	}
@@ -781,7 +785,8 @@ public class GUI implements ActionListener, MenuItem.Action {
 		});
         
         // menu
-        menu.setLayout(new GridLayout(0 ,1));
+        menu.setLayout(new GridLayout(0 ,1)); // new BoxLayout(menu, BoxLayout.Y_AXIS)
+        //menu.add(Box.createVerticalBox());
 
         cntrBorderPanel.setLayout(new BorderLayout());
         westBorderPanel.setLayout(new BorderLayout());
@@ -1281,7 +1286,12 @@ public class GUI implements ActionListener, MenuItem.Action {
     	final RouteType rType;
     	final TileType tType;
     }
-    
+
+    private void addMenuItem(Component op) {
+        //menu.add(Box.createHorizontalGlue());
+        menu.add(op);
+        //menu.add(Box.createHorizontalGlue());
+    }
     
     
 	@SuppressWarnings("serial")
@@ -1296,91 +1306,94 @@ public class GUI implements ActionListener, MenuItem.Action {
 		
 		if (menuStack.size() > 0) {
     		switch (menuStack.peek()) {
-    		case MENU_START:
-    		    initLayout(LayoutType.LAYOUT_DEFAULT);
-    			menu.add(getMenuOpButton(NEW_GAME));
-    			menu.add(getMenuOpButton(RESTORE));
-    			menu.add(getMenuOpButton(CONFIG_BOARD));
-                menu.add(getMenuOpButton(CONFIG_SETTINGS));
-    			menu.add(getMenuOpButton(DEBUG_BOARD));
-    			menu.add(getMenuOpButton(SAVE_SCENARIO));
-    			menu.add(getMenuOpButton(LOAD_SCENARIO));
-    			menu.add(getMenuOpButton(EXIT));
-    			break;
-    			
-    		case MENU_CHOOSE_NUM_PLAYERS:
-                initLayout(LayoutType.LAYOUT_DEFAULT);
-                for (int i=getRules().getMinPlayers(); i<=getRules().getMaxPlayers(); i++) {
+                case MENU_START:
+                    initLayout(LayoutType.LAYOUT_DEFAULT);
+                    addMenuItem(getMenuOpButton(NEW_GAME));
+                    addMenuItem(getMenuOpButton(RESTORE));
+                    addMenuItem(getMenuOpButton(CONFIG_BOARD));
+                    addMenuItem(getMenuOpButton(CONFIG_SETTINGS));
+                    addMenuItem(getMenuOpButton(DEBUG_BOARD));
+                    addMenuItem(getMenuOpButton(SAVE_SCENARIO));
+                    addMenuItem(getMenuOpButton(LOAD_SCENARIO));
+                    addMenuItem(getMenuOpButton(EXIT));
+                    break;
+
+                case MENU_CHOOSE_NUM_PLAYERS:
+                    initLayout(LayoutType.LAYOUT_DEFAULT);
+                    for (int i = getRules().getMinPlayers(); i <= getRules().getMaxPlayers(); i++) {
 //    			for (int i=0; i<playerColors.length; i++) {
-    				menu.add(getMenuOpButton(CHOOSE_NUM_PLAYERS, String.valueOf(i), null, i));
-    			}
-    			menu.add(getMenuOpButton(QUIT, "Back", "Go back to previous menu"));
-    			break;
-    			
-    		case MENU_CHOOSE_COLOR:
-                initLayout(LayoutType.LAYOUT_DEFAULT);
-                for (ColorString cs : playerColors) {
-    				menu.add(getMenuOpButton(CHOOSE_COLOR, cs.name, null, cs.color));
+                        addMenuItem(getMenuOpButton(CHOOSE_NUM_PLAYERS, String.valueOf(i), null, i));
+                    }
+                    addMenuItem(getMenuOpButton(QUIT, "Back", "Go back to previous menu"));
+                    break;
+
+                case MENU_CHOOSE_COLOR:
+                    initLayout(LayoutType.LAYOUT_DEFAULT);
+                    for (ColorString cs : playerColors) {
+                        addMenuItem(getMenuOpButton(CHOOSE_COLOR, cs.name, null, cs.color));
+                    }
+                    addMenuItem(getMenuOpButton(BACK));
+                    break;
+
+                case MENU_GAME_SETUP:
+                    initLayout(LayoutType.LAYOUT_INGAME);
+                    addMenuItem(getMenuOpButton(START));
+                    addMenuItem(getMenuOpButton(START_MULTIPLAYER));
+                    addMenuItem(getMenuOpButton(CONFIG_BOARD));
+                    addMenuItem(getMenuOpButton(CONFIG_SETTINGS));
+                    addMenuItem(getMenuOpButton(BACK));
+                    break;
+
+                case MENU_REWIND:
+                    addMenuItem(getMenuOpButton(RESTART));
+                    addMenuItem(getMenuOpButton(REWIND_GAME));
+                    break;
+
+                case MENU_PLAY_GAME:
+                    initLayout(LayoutType.LAYOUT_INGAME);
+                    break;
+
+                case MENU_DEBUGGING:
+                {
+                    buildDebugLayout();
+                    break;
                 }
-                menu.add(getMenuOpButton(BACK));
-    			break;
-    			
-    		case MENU_GAME_SETUP:
-                initLayout(LayoutType.LAYOUT_INGAME);
-    			menu.add(getMenuOpButton(START));
-                menu.add(getMenuOpButton(START_MULTIPLAYER));
-    			menu.add(getMenuOpButton(CONFIG_BOARD));
-    			menu.add(getMenuOpButton(CONFIG_SETTINGS));
-    			menu.add(getMenuOpButton(BACK));
-    			break;
-    			
-    		case MENU_PLAY_GAME:
-                initLayout(LayoutType.LAYOUT_INGAME);
-    			break;
-    			
-    		case MENU_DEBUGGING:
-    		{
-                buildDebugLayout();
-    		    break;
-    		}
-    		
-    		case MENU_CONFIG_BOARD:
-                initLayout(LayoutType.LAYOUT_CONFIGURE);
-    			menu.add(getMenuOpButton(LOAD_DEFAULT));
-    			menu.add(getMenuOpButton(LOAD_BOARD));
-    			menu.add(getMenuOpButton(GEN_HEX_BOARD));
-    			menu.add(getMenuOpButton(GEN_RECT_BOARD));
-    			menu.add(getMenuOpButton(TRIM_BOARD));
-    			menu.add(getMenuOpButton(ASSIGN_RANDOM));
-    			menu.add(getMenuOpButton(SAVE_BOARD_AS_DEFAULT));
-    			if (getBoard().getName() != null) {
-    				if (new File(getBoard().getName()).isFile())
-    					menu.add(getMenuOpButton(SAVE_BOARD));
-    			}
-    			menu.add(getMenuOpButton(SAVE_BOARD_AS));
-    			menu.add(getMenuOpButton(BACK));
-    			break;
-    			
-    		case MENU_CHOOSE_DEFAULT_BOARD_SIZE:
-                initLayout(LayoutType.LAYOUT_CONFIGURE);
-    			menu.add(getMenuOpButton(GEN_HEX_BOARD_SMALL));
-    			menu.add(getMenuOpButton(GEN_HEX_BOARD_MEDIUM));
-    			menu.add(getMenuOpButton(GEN_HEX_BOARD_LARGE));
-    			menu.add(getMenuOpButton(BACK));
-    			break;
-                
-    		case MENU_CHOOSE_CUSTOM_BOARD_SIZE:
-                initLayout(LayoutType.LAYOUT_CONFIGURE);
-    			menu.add(getMenuOpButton(GEN_RECT_BOARD_SMALL));
-    			menu.add(getMenuOpButton(GEN_RECT_BOARD_MEDIUM));
-    			menu.add(getMenuOpButton(GEN_RECT_BOARD_LARGE));
-    			menu.add(getMenuOpButton(BACK));
-    			break;
-    			
-    		default:
-    			log.error("Unhandled case : " + menuStack.peek());
-    
-    		
+
+                case MENU_CONFIG_BOARD:
+                    initLayout(LayoutType.LAYOUT_CONFIGURE);
+                    addMenuItem(getMenuOpButton(LOAD_DEFAULT));
+                    addMenuItem(getMenuOpButton(LOAD_BOARD));
+                    addMenuItem(getMenuOpButton(GEN_HEX_BOARD));
+                    addMenuItem(getMenuOpButton(GEN_RECT_BOARD));
+                    addMenuItem(getMenuOpButton(TRIM_BOARD));
+                    addMenuItem(getMenuOpButton(ASSIGN_RANDOM));
+                    addMenuItem(getMenuOpButton(SAVE_BOARD_AS_DEFAULT));
+                    if (getBoard().getName() != null) {
+                        if (new File(getBoard().getName()).isFile())
+                            addMenuItem(getMenuOpButton(SAVE_BOARD));
+                    }
+                    addMenuItem(getMenuOpButton(SAVE_BOARD_AS));
+                    addMenuItem(getMenuOpButton(BACK));
+                    break;
+
+                case MENU_CHOOSE_DEFAULT_BOARD_SIZE:
+                    initLayout(LayoutType.LAYOUT_CONFIGURE);
+                    addMenuItem(getMenuOpButton(GEN_HEX_BOARD_SMALL));
+                    addMenuItem(getMenuOpButton(GEN_HEX_BOARD_MEDIUM));
+                    addMenuItem(getMenuOpButton(GEN_HEX_BOARD_LARGE));
+                    addMenuItem(getMenuOpButton(BACK));
+                    break;
+
+                case MENU_CHOOSE_CUSTOM_BOARD_SIZE:
+                    initLayout(LayoutType.LAYOUT_CONFIGURE);
+                    addMenuItem(getMenuOpButton(GEN_RECT_BOARD_SMALL));
+                    addMenuItem(getMenuOpButton(GEN_RECT_BOARD_MEDIUM));
+                    addMenuItem(getMenuOpButton(GEN_RECT_BOARD_LARGE));
+                    addMenuItem(getMenuOpButton(BACK));
+                    break;
+
+                default:
+                    log.error("Unhandled case : " + menuStack.peek());
     		}
 	    }
 		frame.validate();
@@ -1390,7 +1403,7 @@ public class GUI implements ActionListener, MenuItem.Action {
 	private void buildDebugLayout() {
 		initLayout(LayoutType.LAYOUT_DEFAULT);
 	    for (final RenderFlag f : RenderFlag.values()) {
-	        menu.add(
+	        addMenuItem(
 	            new MyToggleButton(f.name(), boardRenderer.getRenderFlag(f)) {
 
                     void onChecked() {
@@ -1407,7 +1420,6 @@ public class GUI implements ActionListener, MenuItem.Action {
         choiceButtons.setLayout(new BoxLayout(choiceButtons, BoxLayout.Y_AXIS));
         MyRadioButtonGroup<DebugPick> pickChoice = new MyRadioButtonGroup<DebugPick>(choiceButtons) {
             protected void onChange(final DebugPick mode) {
-                //boardRenderer.setPickMode(getCurPlayerNum(), mode, null);
             	boardRenderer.setPickHandler(new PickHandler() {
 					
             		int vertex0 = -1;
@@ -1580,7 +1592,7 @@ public class GUI implements ActionListener, MenuItem.Action {
 					
 					@Override
 					public void onDrawOverlay(UIBoardRenderer bc, APGraphics g) {
-						g.setColor(GColor.BLACK);
+						g.setColor(GColor.YELLOW);
 						g.begin();
 						if (vertex0 >= 0) {
 							g.vertex(getBoard().getVertex(vertex0));
@@ -1590,16 +1602,17 @@ public class GUI implements ActionListener, MenuItem.Action {
 						}
 						g.drawPoints(10);
 						if (vertex0 >= 0 && vertex1 >= 0) {
-							g.begin();
 							if (d == null) {
 								d = getBoard().computeDistances(getRules(), getCurPlayerNum());
 							}
-							console.addText(GColor.BLACK, "Dist from " + vertex0 + "->" + vertex1 + " = " + d.getDist(vertex0, vertex1));
+                            g.begin();
 							List<Integer> path = d.getShortestPath(vertex0, vertex1);
 							for (int i=0; i<path.size(); i++) {
 								g.vertex(getBoard().getVertex(path.get(i)));
 							}
-							g.drawLineStrip(3);
+							g.drawLineStrip(5);
+							IVector2D v = getBoard().getVertex(path.get(0));
+                            g.drawWrapStringOnBackground(v.getX(), v.getY(), g.getViewportWidth()/2, "Dist from " + vertex0 + "->" + vertex1 + " = " + d.getDist(vertex0, vertex1), GColor.TRANSLUSCENT_BLACK, 5);
 						}
 					}
 					
@@ -1630,7 +1643,7 @@ public class GUI implements ActionListener, MenuItem.Action {
         //eastGridPanel.add(new JPanel());
         eastGridPanel.add(choiceButtons);
         
-	    menu.add(getMenuOpButton(BACK));		
+	    addMenuItem(getMenuOpButton(BACK));
 	}
 
 	@Override
@@ -1656,7 +1669,9 @@ public class GUI implements ActionListener, MenuItem.Action {
         } else if (op == RESET_BOARD_ISLANDS) {
             getBoard().clearIslands();
         } else if (op == NEW_GAME) {
-            newGame();
+            menuStack.push(MenuState.MENU_GAME_SETUP);
+            menuStack.push(MenuState.MENU_CHOOSE_COLOR);
+            menuStack.push(MenuState.MENU_CHOOSE_NUM_PLAYERS);
             initMenu();
         } else if (op == RESTORE) {
             try {
@@ -1677,10 +1692,13 @@ public class GUI implements ActionListener, MenuItem.Action {
             showConfigureGameSettingsPopup(getRules().deepCopy(), true);
         } else if (op ==CHOOSE_NUM_PLAYERS) {
             initPlayers((Integer) extra);
-            soc.initGame();
             menuStack.pop();
             initMenu();
         } else if (op == CHOOSE_COLOR) {
+            // reload the board
+            Board b = soc.getBoard();
+            b.tryRefreshFromFile();
+            soc.initGame();
             setPlayerColor((GColor) extra);
             menuStack.pop();
             initMenu();
@@ -1696,6 +1714,10 @@ public class GUI implements ActionListener, MenuItem.Action {
             } else {
                 log.error("Board not ready");
             }
+        } else if (op == RESTART) {
+            menuStack.pop();
+            initMenu();
+            soc.startGameThread();
         } else if (op == START_MULTIPLAYER) {
             if (getBoard().isReady()) {
                 try {
@@ -1819,7 +1841,12 @@ public class GUI implements ActionListener, MenuItem.Action {
             try {
                 FileUtils.restoreFile(saveGameFile.getAbsolutePath());
                 loadGame(saveGameFile);
-                soc.startGameThread();
+                //soc.startGameThread();
+                clearMenu();
+                if (getCurrentMenu() != MenuState.MENU_REWIND) {
+                    menuStack.push(MenuState.MENU_REWIND);
+                }
+                initMenu();
                 frame.repaint();
             } catch (Exception e) {
                 ((JButton)extra).setEnabled(false);
@@ -1968,6 +1995,7 @@ public class GUI implements ActionListener, MenuItem.Action {
 	
 	private void loadGame(File file) throws IOException {
 		soc.loadFromFile(file);
+		soc.getBoard().setName(file.getAbsolutePath());
 		initMenu();
 	}
     
@@ -1991,12 +2019,6 @@ public class GUI implements ActionListener, MenuItem.Action {
         menuStack.clear();
         menuStack.push(MenuState.MENU_START);
         initMenu();
-    }
-    
-    private void newGame() {
-		menuStack.push(MenuState.MENU_GAME_SETUP);
-		menuStack.push(MenuState.MENU_CHOOSE_COLOR);
-		menuStack.push(MenuState.MENU_CHOOSE_NUM_PLAYERS);
     }
     
     private OpButton getMenuOpButton(MenuItem op) {

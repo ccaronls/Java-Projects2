@@ -13,6 +13,7 @@ import java.util.regex.Pattern;
 
 import cc.lib.math.CMath;
 import cc.lib.math.Vector2D;
+import cc.lib.utils.FileUtils;
 
 public class Utils {
 
@@ -870,6 +871,28 @@ public class Utils {
         return buf.toString();
     }
 
+    /**
+     * 1. Strip extension if any
+     * 2. Replace [_]+ (underscores) with a space
+     * 3. Make whole strings lowercase with first letter capitalized
+     *
+     * @param str
+     * @return
+     */
+    public static String getPrettyString(String str) {
+        if (str == null)
+            return null;
+        Matcher us = Pattern.compile("[a-zA-Z0-9]+").matcher(FileUtils.stripExtension(str.trim()));
+        StringBuffer result = new StringBuffer();
+        while (us.find()) {
+            String s = us.group().toLowerCase();
+            if (result.length() > 0)
+                result.append(" ");
+            result.append(Character.toUpperCase(s.charAt(0))).append(s.substring(1));
+        }
+        return result.toString();
+    }
+
     public enum EllipsisStyle {
         NONE,
         MIDDLE,
@@ -934,7 +957,7 @@ public class Utils {
     }
 
     public interface VertexList {
-        public void vertex(float x, float y);
+        void vertex(float x, float y);
     }
 
     /**

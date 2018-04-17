@@ -94,14 +94,13 @@
     <string name="event_card_neighborly_assistance">Neighborly\nAssistance</string>
     <string name="event_card_neighborly_assistance_help">Player with most victory points gives a player of their choice a resource card of the givers choice if they have it.</string>
     <string name="event_card_conflict">Conflict</string>
-    <string name="event_card_conflict_help">The single player with largest army (active knights) take a random resource or commodity card form another player</string>
+    <string name="event_card_conflict_help">The single player with largest army (active knights) take a random resource or commodity card from another player</string>
     <string name="event_card_plentiful_year">Plentiful\nYear</string>
     <string name="event_card_plentiful_year_help">Each player takes 1 resource of their choice from supply</string>
     <string name="event_card_no_event">No Event</string>
     <string name="event_card_no_event_help">The settlers labor and Catan prospers.</string>
 
     <!-- development card type -->
-    // Take all of one resource
     <string name="dev_type_monopoly">Monopoly</string>
     <string name="dev_type_monopoly_help">force other players to give you resources of your choice</string>
     <string name="dev_type_yop">Year Of Plenty</string>
@@ -165,7 +164,7 @@
     <string name="barb_atk_type_black_knight">Black Knight</string>
     <string name="barb_atk_type_black_knight_help">Place a knight on an open path of your choice.</string>
     <string name="barb_atk_type_intrigue">Intrigue</string>
-    <string name="barb_atk_type_intrigue_help">Remove a barbarian form a hex of your choice and add to your prisoners.  If there are no more barbarians, then draw a new card.</string>
+    <string name="barb_atk_type_intrigue_help">Remove a barbarian from a hex of your choice and add to your prisoners.  If there are no more barbarians, then draw a new card.</string>
     <string name="barb_atk_type_treason">Treason</string>
     <string name="barb_atk_type_treason_help">Obtain 2 Gold and remove 2 barbarians from 2 different tiles (or from supply) and place on 2 other unconquered tiles.</string>
 
@@ -176,7 +175,7 @@
     <string name="info_no_largest_army_player">No single player with largest army so event cancelled</string>
     <string name="info_player_gives_resource">%s must give a resource card to another player of their choice</string>
     <string name="info_no_event_same_size_army">No event when 2 or more players have the same size army</string>
-    <string name="info_player_has_longest_road">%s has longest road and gets to take a card form another</string>
+    <string name="info_player_has_longest_road">%s has longest road and gets to take a card from another</string>
     <string name="info_no_longest_road_player">No single player with the longest road so event cancelled</string>
     <string name="info_distrib_resources_for_die_n">Distributing resources for num %d</string>
     <string name="info_player_struck_gold">%s has struck Gold!</string>
@@ -316,7 +315,7 @@
     <string name="move_type_build_ship">Build Ship</string>
     <string name="move_type_build_ship_help_cost">Position a new ship for cost of %s"</string>
     <string name="move_type_build_warship">Build Warship</string>
-    <string name="move_type_build_warship_help_cost">Upgrade an existing ship to a war ship for cost of %s. Warships can chase away the pirate.</string>
+    <string name="move_type_build_warship_help_cost">Upgrade an existing ship to a war ship for cost of %s. Warships can chase away the pirate and engage other players ships.</string>
     <string name="move_type_attack_ship">Attack a ship</string>
     <string name="move_type_attack_ship_help">Your warship can attack an opponent\'s ship. Roll a die. If 1,2,3 then opponent wins and you lose your warship.  On a 4,5,6 you win and opponent ship becomes yours.  The midpoint of the die is shifted based on the difference in number of cities possessed be each player.</string>
     <string name="move_type_attack_fortress">Attack Fortress</string>
@@ -393,7 +392,7 @@
     <string name="move_type_move_knight">Move Knight</string>
     <string name="move_type_move_knight_help">Move one of your active knights. Position next to robber to reposition the robber. Can displace another players knight of lesser rank</string>
     <string name="move_type_attack_road">Attack Road</string>
-    <string name="move_type_attack_road_help_die">Pick a road adjacent to the knight and roll a die. If the die roll+knight level is greater than or equal to %d then the road is removed form the board</string>
+    <string name="move_type_attack_road_help_die">Pick a road adjacent to the knight and roll a die. If the die roll+knight level is greater than or equal to %d then the road is removed from the board</string>
     <string name="move_type_attack_structure">Attack Structure</string>
     <string name="move_type_attack_settlement_help_knight_level">If knight level+die roll is greater than or equal to %d, then settlement destroyed</string>
     <string name="move_type_attack_city_help_knight_level">If knight level+die roll is greater than or equal to %d, then city reduced to settlement</string>
@@ -603,7 +602,7 @@
     <string name="state_choose_opponent_for_gift">Pick an opponent to give a resource of your choice.</string>
     <string name="state_choose_resource_monopoly">Choose a Resource to monopolize (collect all from all opponents hands.)</string>
     <string name="state_show_trade_options">Display your trade options.</string>
-    <string name="state_choose_knight_to_activate">Choose form one of your knight to Activate.  This makes it possible to defend against Barbarians or reposition.</string>
+    <string name="state_choose_knight_to_activate">Choose from one of your knight to Activate.  This makes it possible to defend against Barbarians or reposition.</string>
     <string name="state_position_new_knight">Place your new knight on the board.</string>
     <string name="state_position_knight">Place your knight on the board.  Active knights can displace an opponents knight or chase the Robber.</string>
     <string name="state_position_deserter_knight">Place the deserted knight on the board.</string>
@@ -618,10 +617,10 @@
     <string name="state_choose_diplomat_route">Pick a road.  If you pick an opponents road it will be removed from the board.  If you pick one of your one roads you will be allowed to reposition it.</string>
     <string name="state_choose_harbor_resource">Pick a resource for Harbor Trade.</string>
     <string name="state_choose_harbor_player">Choose a player with whom to force trade.</string>
-    <string name="state_choose_card_for_exchange">Pick a card form your hand to Exchange.</string>
+    <string name="state_choose_card_for_exchange">Pick a card from your hand to Exchange.</string>
     <string name="state_choose_opponent_knight_for_displace">Choose an opponents knight to displace.</string>
     <string name="state_choose_tile_inventor">Pick 2 tiles to switch their die numbers.</string>
-    <string name="state_choose_master_merchant_player">Choose from one of your opponents.  You can take any 2 resource or commodity cards form their hand if they have it.</string>
+    <string name="state_choose_master_merchant_player">Choose from one of your opponents.  You can take any 2 resource or commodity cards from their hand if they have it.</string>
     <string name="state_choose_opponent_to_take_card">Choose from one of your opponents cards to take into your hand.</string>
     <string name="state_position_merchant">Place the merchant on the board.  Whatever resource the Merchant is on, you will be allowed a 2:1 trade for the Resource until the Merchant is moved again.</string>
     <string name="state_choose_resource_fleet">Choose any Resource to use for a 2:1 trade for the duration of your turn.</string>
@@ -651,6 +650,5 @@
     <string name="mp_info_game_full">Game Full</string>
     <string name="mp_info_player_has_joined">Player %s has joined</string>
     <string name="mp_info_player_has_disconnected">Player %s has disconnected</string>
-
 
 </resources>

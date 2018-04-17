@@ -41,7 +41,13 @@ public class SOCTest extends TestCase {
     public void testSOC() throws Exception
 	{
 		final FileWriter log = new FileWriter("testresult/soctestlog.txt");
-		SOC soc = new SOC();
+		SOC soc = new SOC() {
+            @Override
+            public String getString(int resourceId, Object... args) {
+                //return super.getString(resourceId, args);
+                return "";
+            }
+        };
 		Board b = soc.getBoard();
 		b.generateHexBoard(4, TileType.WATER);
 		for (int i=0; i<b.getNumTiles(); i++) {
@@ -68,7 +74,13 @@ public class SOCTest extends TestCase {
 	
     public void testAIGame() throws Exception
     {
-        SOC soc = new SOC();
+        SOC soc = new SOC() {
+            @Override
+            public String getString(int resourceId, Object... args) {
+                //return super.getString(resourceId, args);
+                return "";
+            }
+        };
         Board b = soc.getBoard();
         b.generateHexBoard(4, TileType.WATER);
         for (int i=0; i<b.getNumTiles(); i++) {
@@ -82,6 +94,31 @@ public class SOCTest extends TestCase {
         for (int i=0; i<10000 && !soc.isGameOver(); i++)
             soc.runGame();
         soc.save("testresult/soctestresult.txt");
+    }
+
+    public void testScenarios() throws Exception {
+
+        SOC soc = new SOC() {
+            @Override
+            public String getString(int resourceId, Object... args) {
+                //return super.getString(resourceId, args);
+                return "";
+            }
+        };
+
+        for (File scenario : new File("SOC/assets/scenarios/").listFiles()) {
+            soc.loadFromFile(scenario);
+
+            for (int i=0; i<3; i++)
+                soc.addPlayer(new PlayerBot());
+
+            for (int i=0; i<100000 && !soc.isGameOver(); i++)
+                soc.runGame();
+
+            assertTrue(soc.isGameOver());
+            soc.clear();
+        }
+
     }
     
 	public void testRestoreGame() throws Exception {
