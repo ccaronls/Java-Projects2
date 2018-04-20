@@ -27,7 +27,7 @@ public enum SpecialVictoryType implements ICardType<Integer> {
 	
 	/**
 	 * Given to first player to get to 3 harbor points  A settlement on a harbor is 1 pt.  A city is 2 points.
-	 * Can be taken by another player who gaion the most harbor points.
+	 * Can be taken by another player who gains the most harbor points.
 	 */
 	HarborMaster(R.string.special_victory_harbor_master, 2, R.string.special_victory_harbor_master_help),
 	

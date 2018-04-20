@@ -50,3 +50,4 @@ CAK Rule Details:
                 - If we have lots of settlements and few cities, should target resources for that end
                 - If we have lots of unprotected tiles then we should strive to build knights
                 - If we have the robber next to us, then strive for resources to draw a development
+             4. Add distance eval for attackable roads, structures etc.

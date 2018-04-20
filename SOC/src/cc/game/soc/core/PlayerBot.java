@@ -1789,8 +1789,8 @@ public class PlayerBot extends Player {
 		int playerNum = p.getPlayerNum();
 		Rules rules = soc.getRules();
 		
-		HashSet<Integer> tilesAdjacent = new HashSet<Integer>();
-		HashSet<Integer> tilesProtected  = new HashSet<Integer>();
+		HashSet<Integer> tilesAdjacent = new HashSet<>();
+		HashSet<Integer> tilesProtected  = new HashSet<>();
 		
 		final double [] resourceProb = new double[SOC.NUM_RESOURCE_TYPES];
 		final int [] resourcePorts = new int[SOC.NUM_RESOURCE_TYPES];
@@ -1936,34 +1936,33 @@ public class PlayerBot extends Player {
 		    // see if we would win or lose a barbarian attack and scale by the distance away the brs are
             int sum= 0;
             int max = 0;
-            int maxPlayer = 0;
             int min = 1000;
-            int minPlayer = 0;
+            int [] knightLevel = new int[soc.getNumPlayers()+1];
             for (int i=1; i<=soc.getNumPlayers(); i++) {
-                int s = b.getKnightLevelForPlayer(i, true, false);
+                int s = knightLevel[i] = b.getKnightLevelForPlayer(i, true, false);
                 if (s > max) {
                     max = s;
-                    maxPlayer = i;
                 }
                 if (s < min) {
                     min = s;
-                    minPlayer = i;
                 }
                 sum += s;
             }
 
             if (sum < barStrength) {
-                if (playerNum == minPlayer) {
+
+
+                if (min == knightLevel[p.getPlayerNum()]) {
                     // this is bad. This means we will get creamed if barbrians attack
                     barbResist = -1;
                 }
             } else if (sum > barStrength) {
-                if (playerNum == maxPlayer) {
+                if (max == knightLevel[p.getPlayerNum()]) {
                     // this is good this means we will get pts
                     barbResist = 1;
                 }
             }
-            node.addValue("barbResist", barbResist/(Math.max(soc.getBarbarianDistance(), 1)));
+            node.addValue("barbResist", barbResist/(Math.max(soc.getBarbarianDistance(), 1))); // scale with distance barbs are form attack
         }
 		
 	}

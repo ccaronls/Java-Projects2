@@ -49,6 +49,7 @@ import javax.swing.ScrollPaneLayout;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
 import javax.swing.ScrollPaneConstants;
+import javax.swing.UIManager;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileFilter;
@@ -72,6 +73,7 @@ import cc.lib.math.MutableVector2D;
 import cc.lib.net.GameServer;
 import cc.lib.swing.AWTGraphics;
 import cc.lib.swing.AWTUtils;
+import cc.lib.swing.ButtonLayout;
 import cc.lib.swing.EZFrame;
 import cc.lib.swing.EZPanel;
 import cc.lib.swing.ImageColorFilter;
@@ -139,7 +141,13 @@ public class GUI implements ActionListener, MenuItem.Action {
     public final MenuItem SHOW_RULES = new MenuItem("Rules", "Display the Rules", this);
     public final MenuItem BUILDABLES_POPUP = new MenuItem("Buildables", "Show the buildables popup", this);
 
-	public static void main(String [] args)  {
+	public static void main(String [] args) throws Exception {
+        UIManager.LookAndFeelInfo [] all = UIManager.getInstalledLookAndFeels();
+        HashMap<String, String> lafs = new HashMap<>();
+        for (int i=0; i<all.length; i++) {
+            lafs.put(all[i].getName(), all[i].getClassName());
+        }
+        UIManager.setLookAndFeel(lafs.get("Metal"));
         EZFrame frame = new EZFrame();
         frame.setTitle("Senators of Coran");
 		try {
@@ -375,7 +383,7 @@ public class GUI implements ActionListener, MenuItem.Action {
 		soc = new UISOC(playerRenderers, boardRenderer, diceRenderers, console, eventCardRenderer, barbarianRenderer) {
             @Override
             protected void addMenuItem(MenuItem item, String title, String helpText, Object object) {
-                menu.add(getMenuOpButton(item, title, helpText, object));
+                GUI.this.addMenuItem(getMenuOpButton(item, title, helpText, object));
             }
 
             @Override
@@ -537,7 +545,7 @@ public class GUI implements ActionListener, MenuItem.Action {
 
                         // rewrite the aituning properties (to the text pane, user must visually inspect and commit) such that the picked botnode becomes the most dominant.
                         // there will be cases when this is not possible, in which case, algorithm will need additional factors introduced to give favor to the node we want to 'win'
-                        BotNode best = leafs.get(0);
+                        final BotNode best = leafs.get(0);
                         final double delta = best.getValue() - n.getValue();
                         if (delta > 0) {
                             double deltaPos = 0;
@@ -611,9 +619,11 @@ public class GUI implements ActionListener, MenuItem.Action {
 ;
                         node = leafs.get(highlightedIndex);
                         String info = String.format("%.6f\n", node.getValue()) + text;
-                        g.setColor(GColor.YELLOW);
                         g.pushMatrix();
                         g.setIdentity();
+                        g.setColor(GColor.RED);
+                        g.drawJustifiedStringOnBackground(nr.r.x, nr.r.y, Justify.LEFT, Justify.TOP, nr.s, GColor.TRANSLUSCENT_BLACK, 2);
+                        g.setColor(GColor.YELLOW);
                         g.drawWrapStringOnBackground(nr.r.x+nr.r.w, nr.r.y, g.getViewportWidth()/2, info, GColor.TRANSLUSCENT_BLACK, 2);
                         g.popMatrix();
 
@@ -785,7 +795,9 @@ public class GUI implements ActionListener, MenuItem.Action {
 		});
         
         // menu
-        menu.setLayout(new GridLayout(0 ,1)); // new BoxLayout(menu, BoxLayout.Y_AXIS)
+        //menu.setLayout(new GridLayout(0 ,1));
+        //menu.setLayout(new BoxLayout(menu, BoxLayout.Y_AXIS));
+        menu.setLayout(new ButtonLayout());
         //menu.add(Box.createVerticalBox());
 
         cntrBorderPanel.setLayout(new BorderLayout());
@@ -811,7 +823,7 @@ public class GUI implements ActionListener, MenuItem.Action {
         frame.add(westGridPanel, BorderLayout.WEST);
         cntrBorderPanel.add(consoleComponent, BorderLayout.SOUTH);
         helpText.setBorder(BorderFactory.createLineBorder(helpText.getBackground(), 5));
-        frame.setBackground(new GColor(128, 128, 128));
+        frame.setBackground(GColor.LIGHT_GRAY);
 
 		initMenu();
 	}
@@ -1847,7 +1859,7 @@ public class GUI implements ActionListener, MenuItem.Action {
                     menuStack.push(MenuState.MENU_REWIND);
                 }
                 initMenu();
-                frame.repaint();
+                soc.redraw();
             } catch (Exception e) {
                 ((JButton)extra).setEnabled(false);
             }

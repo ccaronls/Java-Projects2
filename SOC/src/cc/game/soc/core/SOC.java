@@ -658,7 +658,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
 				if (p != null) {
 					printinfo(getString(R.string.info_player_gives_resource, p.getName()));
 					pushStateFront(State.SET_PLAYER, getCurPlayerNum());
-					pushStateFront(State.CHOOSE_OPPONENT_FOR_GIFT_CARD, null, computeOpponentsWithCardsInHand(this, p.getPlayerNum()), getCurPlayer().getCards(CardType.Resource), null);
+					pushStateFront(State.CHOOSE_OPPONENT_FOR_GIFT_CARD, null, computeOpponents(this, p.getPlayerNum()), p.getCards(CardType.Resource), null);
 					pushStateFront(State.SET_PLAYER, p.getPlayerNum());
 				}
 				break;

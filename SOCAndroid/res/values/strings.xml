@@ -626,7 +626,7 @@
     <string name="state_choose_resource_fleet">Choose any Resource to use for a 2:1 trade for the duration of your turn.</string>
     <string name="state_choose_player_to_spy">Choose an Opponent to Spy on.  You can pick any one of their Progress cards into your hand.</string>
     <string name="state_choose_trade_monopoly">Choose a Commodity to Monopolize.  All players with that commodity in their hand forfeit one to you.</string>
-    <string name="state_choose_wedding_card_to_gift">Choose a card to give to the happy couple on their Wedding day.</string>
+    <string name="state_choose_card_to_gift">Choose a card to gift.</string>
     <string name="state_choose_pirate_fortress_to_attack">Choose a pirate fortress to attack</string>
     <string name="state_choose_road_to_attack">Pick a road for knight to attack</string>
     <string name="state_roll_dice_attack_road">Roll dice to attack opponents road.</string>

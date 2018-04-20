@@ -66,7 +66,7 @@ enum State {
 	CHOOSE_RESOURCE_FLEET(true, R.string.state_choose_resource_fleet), // Merchant Fleet
 	CHOOSE_PLAYER_TO_SPY_ON(true, R.string.state_choose_player_to_spy), // Spy
 	CHOOSE_TRADE_MONOPOLY(true, R.string.state_choose_trade_monopoly),
-	CHOOSE_GIFT_CARD(false, R.string.state_choose_wedding_card_to_gift),
+	CHOOSE_GIFT_CARD(false, R.string.state_choose_card_to_gift),
     PROCESS_DICE(false, 0), // transition state
     PROCESS_PIRATE_ATTACK(false, 0), // transition state
     CHOOSE_PIRATE_FORTRESS_TO_ATTACK(true, R.string.state_choose_pirate_fortress_to_attack),

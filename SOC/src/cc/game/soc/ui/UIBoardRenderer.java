@@ -1101,18 +1101,7 @@ public class UIBoardRenderer extends UIRenderer {
         			drawVertex(g, v, v.getType(), v.getPlayer(), false);
         		}
             }
-            
-            if (pickMode == PickMode.PM_CUSTOM) {
-            	CustomPickHandler handler = (CustomPickHandler)pickHandler;
-            	for (int i=0; i<handler.getNumElements(); i++) {
-            		if (i == pickedValue) {
-            			handler.onHighlighted(this, g, i);
-            		} else {
-            			handler.onDrawPickable(this, g, i);
-            		}
-            	}
-            }
-    		
+
     		int robberTile = board.getRobberTileIndex();
     		int pirateTile = board.getPirateTileIndex();
     		int merchantTile = board.getMerchantTileIndex();
@@ -1201,6 +1190,17 @@ public class UIBoardRenderer extends UIRenderer {
     		        this.drawVertexInfo(g, vertexInfoIndex);
     		    }
     		}
+
+            if (pickMode == PickMode.PM_CUSTOM) {
+                CustomPickHandler handler = (CustomPickHandler)pickHandler;
+                for (int i=0; i<handler.getNumElements(); i++) {
+                    if (i == pickedValue) {
+                        handler.onHighlighted(this, g, i);
+                    } else {
+                        handler.onDrawPickable(this, g, i);
+                    }
+                }
+            }
 
     		// notify anyone waiting on me
     		synchronized (this) {
