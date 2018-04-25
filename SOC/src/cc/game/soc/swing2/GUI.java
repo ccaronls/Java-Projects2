@@ -409,7 +409,13 @@ public class GUI implements ActionListener, MenuItem.Action {
             @Override
             public void completeMenu() {
 
-                menu.add(new JSeparator());
+                {
+                    JComponent sep = new JSeparator();
+                    Dimension d = sep.getPreferredSize();
+                    d.height = 32;
+                    sep.setPreferredSize(d);
+                    menu.add(sep);
+                }
                 if (canCancel()) {
                     addMenuItem(CANCEL);
                 } else {
@@ -795,10 +801,7 @@ public class GUI implements ActionListener, MenuItem.Action {
 		});
         
         // menu
-        //menu.setLayout(new GridLayout(0 ,1));
-        //menu.setLayout(new BoxLayout(menu, BoxLayout.Y_AXIS));
         menu.setLayout(new ButtonLayout());
-        //menu.add(Box.createVerticalBox());
 
         cntrBorderPanel.setLayout(new BorderLayout());
         westBorderPanel.setLayout(new BorderLayout());
@@ -1902,7 +1905,7 @@ public class GUI implements ActionListener, MenuItem.Action {
                         @Override
                         public boolean doAction() {
                             getBoard().setName(nameField.getText());
-                            JFileChooser chooser = new JFileChooser();
+                            final JFileChooser chooser = new JFileChooser();
                             File scenarioDir = new File(getProps().getProperty(PROP_SCENARIOS_DIR, "assets/scenarios"));
                             if (!scenarioDir.exists()) {
                                 if (!scenarioDir.mkdirs()) {
@@ -1925,7 +1928,8 @@ public class GUI implements ActionListener, MenuItem.Action {
                                 if (!fileName.endsWith(".txt"))
                                     fileName += ".txt";
                                 try {
-                                    soc.saveToFile(new File(fileName));
+                                    Scenario scenario = new Scenario(soc);
+                                    scenario.saveToFile(new File(fileName));
                                 } catch (Exception e) {
                                     e.printStackTrace();
                                 }

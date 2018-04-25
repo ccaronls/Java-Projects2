@@ -167,6 +167,8 @@ public final class Rules extends Reflector<Rules> {
 	private int minVictoryPointsForRobber = 0;
     @Rule(variation = Variation.TAB, stringId = R.string.rule_enable_harbor_master)
 	private boolean enableHarborMaster = false;
+    @Rule(variation = Variation.TAB, stringId = R.string.rule_catan_for_two)
+    private boolean catanForTwo = false;
 
 	public final int getBarbarianStepsToAttack() {
 		return barbarianStepsToAttack;
@@ -435,5 +437,13 @@ public final class Rules extends Reflector<Rules> {
 
     public void setMinBarbarianAttackstoEnableRobberAndPirate(int minBarbarianAttackstoEnableRobberAndPirate) {
         this.minBarbarianAttackstoEnableRobberAndPirate = minBarbarianAttackstoEnableRobberAndPirate;
+    }
+
+    public final boolean isCatanForTwo() {
+        return catanForTwo;
+    }
+
+    public void setCatanForTwo(boolean catanForTwo) {
+        this.catanForTwo = catanForTwo;
     }
 }

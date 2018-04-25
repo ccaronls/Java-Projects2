@@ -6,6 +6,7 @@ enum State {
 	DEAL_CARDS(false, R.string.state_deal_cards),
 	POSITION_SETTLEMENT_CANCEL(true, R.string.state_position_settlement),
 	POSITION_SETTLEMENT_NOCANCEL(false, R.string.state_position_settlement),
+    POSITION_NEUTRAL_SETTLEMENT_NOCANCEL(false, R.string.state_position_settlement_neutral_player),
 	POSITION_ROAD_CANCEL(true, R.string.state_position_road),
 	POSITION_ROAD_NOCANCEL(false, R.string.state_position_road),
 	POSITION_ROAD_OR_SHIP_CANCEL(true, R.string.state_position_road_or_ship),
@@ -77,6 +78,7 @@ enum State {
     CHOOSE_SHIP_TO_ATTACK(true, R.string.state_choose_ship_to_attack),
     ROLL_DICE_ATTACK_SHIP(false, R.string.state_roll_dice_attack_ship),
     CLEAR_FORCED_SETTLEMENTS(false, 0), // transition state
+    PROCESS_NEUTRAL_PLAYER(false, 0), // transition state
 	;
 	
 	State(boolean canCancel, int helpTextId) {

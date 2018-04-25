@@ -104,9 +104,11 @@ public enum MoveType implements ILocalized {
 
     // user rolls the dice.  For CAK, the user can roll the dice or play an Alchemist card of they have one, otherwise this move is always by itself.
     ROLL_DICE(false, 100, R.string.move_type_roll_dice, R.string.move_type_roll_dice_help),
+    ROLL_DICE_NEUTRAL_PLAYER(false, 100, R.string.move_type_roll_dice, R.string.move_type_roll_neutral_player_dice_help),
    
     // used unstead of dice for TAB expansion
     DEAL_EVENT_CARD(false, 100, R.string.move_type_deal_event, R.string.move_type_deal_event_help),
+    DEAL_EVENT_CARD_NEUTRAL_PLAYER(false, 100, R.string.move_type_deal_event, R.string.move_type_deal_event_neutral_player_help),
     
     // CAK Moves
     BUILD_CITY_WALL(false, 10, R.string.move_type_build_wall, R.string.move_type_build_wall_help_cost) {

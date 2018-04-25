@@ -31,7 +31,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
     protected final static Logger log = LoggerFactory.getLogger(SOC.class);
     
 	public static int MAX_PLAYERS = 6;
-	
+
 	public static final int	NUM_RESOURCE_TYPES			= ResourceType.values().length;
 	public static final int	NUM_DEVELOPMENT_CARD_TYPES	= DevelopmentCardType.values().length;
 	public static final int NUM_DEVELOPMENT_AREA_TYPES	= DevelopmentArea.values().length; // DONT REMOVE. I know this is redundant, but it prevents a null ptr in DevelopementArea.commodity
@@ -397,6 +397,18 @@ public class SOC extends Reflector<SOC> implements StringResource {
 		}
 		Utils.shuffle(mEventCards);
 	}
+
+    /**
+     *
+     * @return
+     */
+	public final Player getNeutralPlayer() {
+	    for (Player p : getPlayers()) {
+	        if (p.isNeutralPlayer())
+	            return p;
+        }
+        return null;
+    }
 	
 	/**
 	 * 
@@ -1142,16 +1154,14 @@ public class SOC extends Reflector<SOC> implements StringResource {
     
     public static List<Integer> computeHarborTradePlayers(Player trader, SOC soc) {
     	List<Integer> players = new ArrayList<Integer>();
-    	int num = trader.getCardCount(CardType.Resource);
+        if (trader.getCardCount(CardType.Resource) == 0)
+            return players;
     	for (Player p : soc.getPlayers()) {
-    		if (num == 0)
-    			break;
     		if (p == trader)
     			continue;
     		int numCommodity = p.getCardCount(CardType.Commodity);
     		if (numCommodity > 0) {
     			players.add(p.getPlayerNum());
-    			num -= 1;
     		}
     	}
     	return players;
@@ -1308,6 +1318,8 @@ public class SOC extends Reflector<SOC> implements StringResource {
 	        		break;
 				}
 
+                case POSITION_NEUTRAL_SETTLEMENT_NOCANCEL:
+                    options = computeSettlementVertexIndices(this, getNeutralPlayer().getPlayerNum(), mBoard);
 				case POSITION_SETTLEMENT_CANCEL: // wait state
 				case POSITION_SETTLEMENT_NOCANCEL: { // wait state
 					printinfo(getString(R.string.info_player_place_settlement, getCurPlayer().getName()));
@@ -1360,8 +1372,6 @@ public class SOC extends Reflector<SOC> implements StringResource {
 							}
 						}
 						popState();
-						
-//						checkForOpeningStructure(vIndex);
 					}
 					break;
 				}
@@ -1604,8 +1614,6 @@ public class SOC extends Reflector<SOC> implements StringResource {
 						vIndex = getCurPlayer().chooseVertex(this, options, area.choice, null);
 					if (vIndex != null) {
 					    Vertex v = getBoard().getVertex(vIndex);
-						assert(v.getPlayer() == getCurPlayerNum());
-						assert(v.isCity());
 						mMetropolisPlayer[area.ordinal()] = getCurPlayerNum();
 						printinfo(getString(R.string.info_player_building_metro, getCurPlayer().getName(), area));
 						v.setPlayerAndType(getCurPlayerNum(), area.vertexType);
@@ -1641,6 +1649,17 @@ public class SOC extends Reflector<SOC> implements StringResource {
 					pushStateFront(State.PLAYER_TURN_NOCANCEL, moves);
 					break;
 				}
+
+                case PROCESS_NEUTRAL_PLAYER: {
+                    List<MoveType> moves = null;
+                    if (getRules().isEnableEventCards()) {
+                        moves = Arrays.asList(MoveType.DEAL_EVENT_CARD);
+                    } else {
+                        moves = Arrays.asList(MoveType.ROLL_DICE);
+                    }
+                    pushStateFront(State.PLAYER_TURN_NOCANCEL, moves);
+                    break;
+                }
 
 				case INIT_PLAYER_TURN: { // transition state
 					// update any unusable cards in that players hand to be usable
@@ -2090,7 +2109,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
 				}
 				
 				case CHOOSE_HARBOR_PLAYER: {
-					if (Utils.isEmpty(options)) {
+					if (Utils.isEmpty(options) || getCurPlayer().getCardCount(CardType.Resource) == 0) {
 						popState();
 						break;
 					}
@@ -2660,7 +2679,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
 		}
 		return attackableroads;
 	}
-	
+
 	/**
 	 * 
 	 * @param soc
@@ -2818,17 +2837,23 @@ public class SOC extends Reflector<SOC> implements StringResource {
         printinfo(getString(R.string.info_player_chosen_move_m, getCurPlayer().getName(), move.getName(this)));
         switch (move) {
         	case ROLL_DICE:
+        	    if (mRules.isCatanForTwo()) {
+                    pushStateFront(State.PROCESS_NEUTRAL_PLAYER);
+                }
+            case ROLL_DICE_NEUTRAL_PLAYER:
         		rollDice();
         		popState();
+                pushStateFront(State.PROCESS_DICE);
         		if (isPirateAttacksEnabled()) {
-        			pushStateFront(State.PROCESS_DICE);
         			pushStateFront(State.PROCESS_PIRATE_ATTACK);
-        		} else {
-        			processDice();
         		}
         		break;
         		
         	case DEAL_EVENT_CARD:
+        	    if (mRules.isCatanForTwo()) {
+        	        pushStateFront(State.PROCESS_NEUTRAL_PLAYER);
+                }
+            case DEAL_EVENT_CARD_NEUTRAL_PLAYER:
         		if (mEventCards.size() > 1) {
         			mEventCards.remove(0);
         		} else {

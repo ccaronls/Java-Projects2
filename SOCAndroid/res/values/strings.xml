@@ -8,7 +8,7 @@
     <string name="vertex_type_open">Open</string>
 
     <string name="vertex_type_settlement">Settlement</string>
-    <string name="vertex_type_open_settlement">Settlement</string>
+    <string name="vertex_type_open_settlement">Open Settlement</string>
     <string name="vertex_type_city">City</string>
     <string name="vertex_type_walled_city">Walled City</string>
 
@@ -331,6 +331,7 @@
     <string name="move_type_coll_dice">Roll dice</string>
     <string name="move_type_deal_event">Deal Event</string>
     <string name="move_type_deal_event_help">Turn over the next event card</string>
+    <string name="move_type_deal_event_neutral_player_help">Turn over the next event card for the neutral player</string>
     <string name="move_type_build_wall">Build Wall</string>
     <string name="move_type_build_wall_help_cost">Build a wall around one of your cities for cost of %s. Wall be destroyed when barbarians win an attack but city is reserved</string>
     <string name="move_type_improve_politics">Improve Politics</string>
@@ -400,6 +401,7 @@
     <string name="move_type_attack_metro_help_knight_level">If knight level+die roll is greater than or equal to %d, then metropolis reduced to city</string>
     <string name="move_type_roll_dice">Roll dice</string>
     <string name="move_type_roll_dice_help">Determines resource distribution. Rolling a seven causes the Robber sequence when enabled.</string>
+    <string name="move_type_roll_neutral_player_dice_help">Roll for the neutral player. Dice outcome will not be same as first roll.</string>
     <string name="move_type_accept">Accept</string>
     <string name="move_type_choose_ships">Ships</string>
     <string name="move_type_choose_ships_help">Show ship choices</string>
@@ -503,6 +505,7 @@
     <string name="rule_barbarian_pts_per_city">Number of points barbarians get per city.</string>
     <string name="rule_barbarian_pts_per_metro">Number of points barbarians get per Metropolis.</string>
     <string name="rule_barbarian_min_attacks_to_enable_robber_or_pirate">Minimum number af attacks from the barbarian to enable robber and pirate. Rolling a 7 still initiates the give up cards and take opponent card routines.</string>
+    <string name="rule_catan_for_two">Creates a neutral player to fill in. The \'real\' players roll twice and perform moves for the neutral player on their turn.</string>
 
     <!-- Menu strings -->
     <string name="menu_item_quit">Quit</string>
@@ -582,6 +585,7 @@
     <string name="state_game_not_running">Game not running</string>
     <string name="state_deal_cards">Dealing cards&#8230;</string>
     <string name="state_position_settlement">Place a Settlement on the board.</string>
+    <string name="state_position_settlement_neutral_player">Place a Settlement on the board for the neutral player.</string>
     <string name="state_position_road">Place a road on the board.</string>
     <string name="state_position_road_or_ship">Choose to place a road or ship.</string>
     <string name="state_position_city">Upgrade one of your settlements to a City.</string>

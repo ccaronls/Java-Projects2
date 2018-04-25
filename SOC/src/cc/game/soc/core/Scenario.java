@@ -11,6 +11,13 @@ public class Scenario extends Reflector<Scenario> {
         addAllFields(Scenario.class);
     }
 
+    public Scenario() {}
+
+    public Scenario(SOC soc) {
+        this.mBoard = soc.getBoard();
+        this.mRules = soc.getRules();
+    }
+
     //members mirro those in SOC so we can save a scenarion and load into an SOC without all the other
     // crap associated with SOC
     Board mBoard;

@@ -865,6 +865,7 @@ public class PlayerBot extends Player {
 				}
 				case DEAL_EVENT_CARD:
 				case ROLL_DICE:
+                case ROLL_DICE_NEUTRAL_PLAYER:
 					root.properties.clear();
 					break;
 				case ALCHEMIST_CARD: {
@@ -1634,15 +1635,32 @@ public class PlayerBot extends Player {
 		Board b = soc.getBoard();
 		
 		BotNode root = createNewTree("Choose Player:" + mode);
-		
 		for (int num : playerOptions) {
-			Player opponent = soc.getPlayerByPlayerNum(num);
-			Card card = opponent.removeRandomUnusedCard();
-			p.addCard(card);
-			BotNode node = root.attach(new BotNodePlayer(opponent));
+            Player opponent = soc.getPlayerByPlayerNum(num);
+            BotNode node = root.attach(new BotNodePlayer(opponent));
+		    switch (mode) {
+                case PLAYER_TO_TAKE_CARD_FROM:
+                    // choose player with some cards
+                    break;
+                case PLAYER_TO_SPY_ON:
+                    // choose player with most progress cards
+                    break;
+                case PLAYER_FOR_DESERTION:
+                    // choose player with highest ranking knight or one with a knight endangering us
+
+
+
+
+                    break;
+                case PLAYER_TO_GIFT_CARD:
+                    // choose a lower value opponent
+                    node.chance = -1;
+                    break;
+                case PLAYER_TO_FORCE_HARBOR_TRADE:
+                    // choose strong player
+                    break;
+            }
 			evaluateOpponent(node, soc, opponent, b);
-			p.removeCard(card);
-			opponent.addCard(card);
 		}
 		
 		buildOptimalPath(root);
@@ -2644,10 +2662,12 @@ public class PlayerBot extends Player {
 		int numProgress = opponent.getCardCount(CardType.Progress);
 		int numPoints   = opponent.getPoints();
 		int numCards    = opponent.getTotalCardsLeftInHand();
+		int knightStrength = b.getKnightLevelForPlayer(opponent.getPlayerNum(), true, true);
 		
 		node.addValue("opponent progress", numProgress);
 		node.addValue("opponent points", numPoints);
 		node.addValue("opponent cards", numCards);
+		node.addValue("opponent knights", knightStrength);
 	}
 
 	/**

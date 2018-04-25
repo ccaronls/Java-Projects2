@@ -789,6 +789,19 @@ public abstract class Player extends Reflector<Player> {
 		numDiscoveredTerritories+=amount;
 	}
 
+    /**
+     * Special case player type when Rules.isCatanForTwo enabled
+     *
+     * Neutral players dont get a turn, instead the other playres take turns for them.
+     * When another player places a road, they do so also for the neutral player (for free)
+     * When another player places a settlement, they do so also for the neutral player if possible, a road otherwise
+     * The non-neutral players roll the dice twice and collect all resources from the 2 rolls. The die rolls must be different values.
+     *
+     * @return
+     */
+	public boolean isNeutralPlayer() {
+	    return false;
+    }
 	
 	/**
 	 * Return a move or null for not yet chosen.

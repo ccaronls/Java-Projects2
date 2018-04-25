@@ -6,7 +6,7 @@ public enum VertexType {
 	OPEN(R.string.vertex_type_open, 0, false, false),
 	
 	SETTLEMENT(R.string.vertex_type_settlement, 0, false, true), // produce
-	OPEN_SETTLEMENT(R.string.vertex_type_settlement, 0, false, true), // used to setup 'pirate island' games
+	OPEN_SETTLEMENT(R.string.vertex_type_open_settlement, 0, false, true), // used to setup 'pirate island' games
 	CITY(R.string.vertex_type_city, 0, false, true),
 	WALLED_CITY(R.string.vertex_type_walled_city, 0, false, true),
 	

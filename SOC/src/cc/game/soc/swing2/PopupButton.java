@@ -13,7 +13,6 @@ public class PopupButton extends EZButton implements ActionListener {
 
     PopupButton(String txt) {
         super(txt, null);
-        this.addActionListener(this);
     }
 
     @Override

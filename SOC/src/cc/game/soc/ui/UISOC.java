@@ -130,7 +130,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
         UIPlayer p = (UIPlayer)getPlayerByPlayerNum(playerNum);
         if (p != null)
             return p.getColor();
-        return GColor.BLACK;
+        return GColor.DARK_GRAY;
     }
 
     public Integer chooseVertex(final Collection<Integer> vertexIndices, final Player.VertexChoice choice, final Integer knightToMove) {
