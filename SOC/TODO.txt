@@ -51,3 +51,7 @@ CAK Rule Details:
                 - If we have lots of unprotected tiles then we should strive to build knights
                 - If we have the robber next to us, then strive for resources to draw a development
              4. Add distance eval for attackable roads, structures etc.
+
+
+- Make so card wont overlapp vertially
+- Welcome screen for android

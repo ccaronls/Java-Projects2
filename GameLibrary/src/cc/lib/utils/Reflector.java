@@ -658,10 +658,7 @@ public class Reflector<T> {
 		@Override
 		public void set(Object o, Field field, String value, Reflector<?> a) throws Exception {
 			if (value != null && !value.equals("null")) {
-				String [] parts = value.split(" ");
-				if (parts.length < 2)
-                    throw new Exception("Expected at least 2 parts in " + value);
-                field.set(a, getClassForName(parts[0]).newInstance());
+				field.set(a, getClassForName(value).newInstance());
 			} else {
 				field.set(a, null);
 			}

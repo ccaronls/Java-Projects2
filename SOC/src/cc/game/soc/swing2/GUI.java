@@ -1928,8 +1928,13 @@ public class GUI implements ActionListener, MenuItem.Action {
                                 if (!fileName.endsWith(".txt"))
                                     fileName += ".txt";
                                 try {
-                                    Scenario scenario = new Scenario(soc);
+                                    Map<String, Double> aituning = new HashMap<>();
+                                    for (Object key : aiTuning.keySet()) {
+                                        aituning.put((String)key, Double.valueOf(aiTuning.getProperty((String)key)));
+                                    }
+                                    Scenario scenario = new Scenario(soc, aituning);
                                     scenario.saveToFile(new File(fileName));
+
                                 } catch (Exception e) {
                                     e.printStackTrace();
                                 }
