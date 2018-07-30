@@ -1556,27 +1556,31 @@ public class Utils {
 
     @SafeVarargs
     public static <T> void setElems(T[] arr, T... elems) {
-        System.arraycopy(elems, 0, arr, 0, elems.length);
+        System.arraycopy(elems, 0, arr, 0, Math.min(arr.length, elems.length));
+    }
+
+    public static void setElems(boolean[] arr, boolean... elems) {
+        System.arraycopy(elems, 0, arr, 0, Math.min(arr.length, elems.length));
     }
 
     public static void setElems(byte[] arr, byte... elems) {
-        System.arraycopy(elems, 0, arr, 0, elems.length);
+        System.arraycopy(elems, 0, arr, 0, Math.min(arr.length, elems.length));
     }
 
     public static void setElems(int[] arr, int... elems) {
-        System.arraycopy(elems, 0, arr, 0, elems.length);
+        System.arraycopy(elems, 0, arr, 0, Math.min(arr.length, elems.length));
     }
 
     public static void setElems(float[] arr, float... elems) {
-        System.arraycopy(elems, 0, arr, 0, elems.length);
+        System.arraycopy(elems, 0, arr, 0, Math.min(arr.length, elems.length));
     }
 
     public static void setElems(long[] arr, long... elems) {
-        System.arraycopy(elems, 0, arr, 0, elems.length);
+        System.arraycopy(elems, 0, arr, 0, Math.min(arr.length, elems.length));
     }
 
     public static void setElems(double[] arr, double... elems) {
-        System.arraycopy(elems, 0, arr, 0, elems.length);
+        System.arraycopy(elems, 0, arr, 0, Math.min(arr.length, elems.length));
     }
 
     public static void setDebugEnabled(boolean enable) {

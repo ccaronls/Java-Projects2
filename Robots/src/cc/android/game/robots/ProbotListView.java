@@ -278,19 +278,19 @@ public class ProbotListView extends ListView implements View.OnDragListener, Vie
                     break;
                 case DragEvent.ACTION_DRAG_LOCATION:
                 case DragEvent.ACTION_DRAG_ENTERED: {
-                    float mp = //v.getY() +
-                            v.getHeight()/2;
+                    float mp = v.getHeight()/2;
                     float mpd = event.getY();// + dragging.getHeight();
                     int first = getFirstVisiblePosition();
                     int last = getLastVisiblePosition();
 
-                    if (position == first) {
-                        Log.d("PLV", "A");
-                        dragInsertPos = position;
-                    } else if (position == last) {
-                        Log.d("PLV", "B");
-                        dragInsertPos = position+1;
-                    } else if (mp > mpd) {
+                    //if (position == first) {
+                    //    Log.d("PLV", "A");
+                    //    dragInsertPos = position;
+                    //} else if (position == last) {
+                    //    Log.d("PLV", "B");
+                    //    dragInsertPos = position+1;
+                    //} else
+                    if (mp > mpd) {
                         Log.d("PLV", "C mp=" + mp + " mpd=" + mpd);
                         dragInsertPos = position;
                     } else {

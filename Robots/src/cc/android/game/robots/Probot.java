@@ -3,6 +3,7 @@ package cc.android.game.robots;
 import java.util.ArrayList;
 import java.util.List;
 
+import cc.lib.game.Utils;
 import cc.lib.utils.Reflector;
 
 /**
@@ -22,8 +23,22 @@ public class Probot extends Reflector<Probot> {
         addAllFields(Probot.class);
     }
 
-    public final static int GREEN_DOT = 1;
-    public final static int RED_DOT = 2;
+    public final static int EM  = 0;  // EMPTY
+    public final static int DD  = 1;  // DOT
+    public final static int SE  = 2;  // Start facing east
+    public final static int SS  = 3;  // Start facing south
+    public final static int SW  = 4;  // Start facing west
+    public final static int SN  = 5;  // Start facing north
+    public final static int LH0 = 6;  // horz lazer on by default
+    public final static int LV0 = 7;  // vert lazer on by default
+    public final static int LB0 = 8;  // lazer0 toggle
+    public final static int LH1 = 9;  // horz lazer on by default
+    public final static int LV1 = 10; // vert lazer on by default
+    public final static int LB1 = 11; // lazer1 toggle
+    public final static int LH2 = 12; // horz lazer on by default
+    public final static int LV2 = 13; // vert lazer on by default
+    public final static int LB2 = 14; // lazer2 toggle
+    public final static int LB  = 15; // universal lazer toggle
 
     public static class Command {
         final CommandType type;
@@ -40,6 +55,7 @@ public class Probot extends Reflector<Probot> {
         Advance,
         TurnRight,
         TurnLeft,
+        UTurn,
         LoopStart,
         LoopEnd,
         Jump,
@@ -67,16 +83,26 @@ public class Probot extends Reflector<Probot> {
     private List<Command> program = new ArrayList<>();
 
     int [][] coins = {
-            { 0, 0, 0, 0, 0, 0 },
-            { 0, 1, 1, 1, 1, 0 },
-            { 0, 1, 1, 1, 1, 0 },
-            { 0, 1, 1, 1, 1, 0 },
-            { 0, 0, 0, 0, 0, 0 }
+            {  0,  0,  0,  0,  0, 0 },
+            {  0, DD, DD, DD, DD, 0 },
+            { SE, DD, DD, DD, DD, 0 },
+            {  0, DD, DD, DD, DD, 0 },
+            {  0,  0,  0,  0,  0, 0 }
     };
+
+    // the lazer matrix is same size as the coins. Eash elem is a bit flag of LAZER_N/S/E/W values
+
+    int [][] lazer = {};
+
+    public final static int LAZER_EAST  = 1<<0;
+    public final static int LAZER_SOUTH = 1<<1;
+    public final static int LAZER_WEST  = 1<<2;
+    public final static int LAZER_NORTH = 1<<3;
 
     int level=0;
     int posx=0, posy=2;
     Direction dir=Direction.Right;
+    boolean [] lazerEnabled = new boolean[3];
 
     @Omit
     private Probot copy;
@@ -186,6 +212,9 @@ public class Probot extends Reflector<Probot> {
                 case TurnLeft:
                     turn(-1);
                     break;
+                case UTurn:
+                    turn(2);
+                    break;
                 case Jump:
                     if (!advance(2)) {
                         return running ? 0 : -1;
@@ -196,7 +225,8 @@ public class Probot extends Reflector<Probot> {
         }
         for (int i=0; running && i<coins.length; i++) {
             for (int ii=0; running && ii<coins[i].length; ii++) {
-                if (coins[i][ii] != 0) {
+                if (coins[i][ii] == DD) {
+                    onDotsRemaining();
                     return running ? 0 : -1;
                 }
             }
@@ -205,20 +235,53 @@ public class Probot extends Reflector<Probot> {
     }
 
     public final void init(int [][] matrix) {
+        init(matrix, true, true, false);
+    }
+
+    public final void init(int [][] matrix, boolean ... lazerEnabled) {
         coins = matrix;
+        Utils.setElems(this.lazerEnabled, lazerEnabled);
+        initLazers();
         program.clear();
         for (int i=0; i<coins.length; i++) {
             for (int ii=0; ii<coins[i].length; ii++) {
-                if (coins[i][ii] > 1) {
-                    posx = ii;
-                    posy = i;
-                    dir = Direction.values()[coins[i][ii]-2];
-                    coins[i][ii] = 0;
-                    return;
+                switch (coins[i][ii]) {
+                    case EM:
+                        break;
+                    case DD:
+                        break;
+                    case SE:
+                    case SS:
+                    case SW:
+                    case SN:
+                        posx = ii;
+                        posy = i;
+                        dir = Direction.values()[coins[i][ii]-2];
+                        coins[i][ii] = 0;
+                        break;
+                    case LH0:
+                        break;
+                    case LV0:
+                        break;
+                    case LB0:
+                        break;
+                    case LH1:
+                        break;
+                    case LV1:
+                        break;
+                    case LB1:
+                        break;
+                    case LH2:
+                        break;
+                    case LV2:
+                        break;
+                    case LB2:
+                        break;
+                    case LB:
+                        break;
                 }
             }
         }
-        throw new AssertionError();
     }
 
     // return false if failed
@@ -227,19 +290,206 @@ public class Probot extends Reflector<Probot> {
         int ny = posy + dir.dy*amt;
 
         if (nx < 0 || ny < 0 || ny >= coins.length || nx >= coins[ny].length) {
+            onAdvanceFailed();
             return false;
-        } else if (coins[ny][nx] == 0) {
+        } else if (!canMoveToPos(ny, nx)) {
+            onAdvanceFailed();
+            return false;
+        } else if (lazer[ny][nx] != 0) {
+            onLazered();
             return false;
         } else {
-            if (amt == 1)
+            if (amt == 1) {
                 onAdvanced();
-            else
+            } else {
                 onJumped();
+            }
             posx = nx;
             posy = ny;
-            coins[posy][posx] = 0;
+            switch (coins[posy][posx]) {
+                case DD:
+                    coins[posy][posx] = EM;
+                    break;
+                case LB0:
+                    toggleLazers(0);
+                    break;
+                case LB1:
+                    toggleLazers(1);
+                    break;
+                case LB2:
+                    toggleLazers(2);
+                    break;
+                case LB:
+                    toggleLazers(0, 1, 2);
+                    break;
+            }
+            //coins[posy][posx] = 0;
         }
         return true;
+    }
+
+    private void initHorzLazer(int y, int x) {
+        for (int i=x-1; i>=0; i--) {
+            if (lazer[y][i] != 0) {
+                lazer[y][i] |= LAZER_EAST;
+                break; // cannot lazer past another lazer
+            }
+            lazer[y][i] |= LAZER_WEST | LAZER_EAST;
+        }
+
+        for (int i=x+1; i<lazer[0].length; i++) {
+            if (lazer[y][i] != 0) {
+                lazer[y][i] |= LAZER_WEST;
+                break; // cannot lazer past another lazer
+            }
+            lazer[y][i] |= LAZER_WEST | LAZER_EAST;
+        }
+    }
+
+    private void initVertLazer(int y, int x) {
+        for (int i=y-1; i>=0; i--) {
+            if (lazer[i][x] != 0) {
+                lazer[i][x] |= LAZER_NORTH;
+                break; // cannot lazer past another lazer
+            }
+            lazer[i][x] |= LAZER_NORTH | LAZER_SOUTH;
+        }
+
+        for (int i=y+1; i<lazer.length; i++) {
+            if (lazer[i][x] != 0) {
+                lazer[i][x] |= LAZER_SOUTH;
+                break; // cannot lazer past another lazer
+            }
+            lazer[i][x] |= LAZER_NORTH | LAZER_SOUTH;
+        }
+    }
+
+    private void initLazers() {
+        lazer = new int[coins.length][coins[0].length];
+        for (int i=0; i<lazer.length; i++) {
+            for (int ii=0; ii<lazer[i].length; ii++) {
+                for (int iii=0; iii<lazerOrdering.length; iii++) {
+                    switch (lazerOrdering[iii]) {
+                        case 0:
+                            switch (coins[i][ii]) {
+                                case LH0:
+                                    if (lazerEnabled[0]) {
+                                        initHorzLazer(i, ii);
+                                    }
+                                    break;
+                                case LV0:
+                                    if (lazerEnabled[0]) {
+                                        initVertLazer(i, ii);
+                                    }
+                                    break;
+                            }
+                            break;
+                        case 1:
+                            switch (coins[i][ii]) {
+                                case LH1:
+                                    if (lazerEnabled[1]) {
+                                        initHorzLazer(i, ii);
+                                    }
+                                    break;
+                                case LV1:
+                                    if (lazerEnabled[1]) {
+                                        initVertLazer(i, ii);
+                                    }
+                                    break;
+                            }
+                            break;
+                        case 2:
+                            switch (coins[i][ii]) {
+                                case LH2:
+                                    if (lazerEnabled[2]) {
+                                        initHorzLazer(i, ii);
+                                    }
+                                    break;
+                                case LV2:
+                                    if (lazerEnabled[2]) {
+                                        initVertLazer(i, ii);
+                                    }
+                                    break;
+                            }
+
+
+                    }
+                }
+            }
+        }
+    }
+
+    // ordering the lazer initialilzation makes possible for any lazer to block any other depending on whose state has changed
+    int [] lazerOrdering = { 0, 1, 2 };
+
+    private void toggleLazers(int ... nums) {
+        for (int n : nums) {
+            lazerEnabled[n] = !lazerEnabled[n];
+        }
+        initLazers();
+    }
+
+    private void toggleLazer(int num) {
+        lazerEnabled[num] = !lazerEnabled[num];
+        // adjust the ordering so that 'num' is made last. This makes it possible for any lazer to block another
+
+        for (int i=0; i<lazerOrdering.length-1; i++) {
+            if (lazerOrdering[i] == num) {
+                lazerOrdering[i] = lazerOrdering[i+1];
+                lazerOrdering[i+1] = num;
+            }
+        }
+
+        initLazers();
+    }
+
+    private boolean canMoveToPos(int y, int x) {
+        switch (coins[y][x]) {
+            case DD:
+            case LB0:
+            case LB1:
+            case LB2:
+            case LB:
+                return true;
+        }
+        return false;
+    }
+
+    private void moveToPos(int y, int x) {
+        switch (coins[y][x]) {
+            case EM:
+                break;
+            case DD:
+                break;
+            case SE:
+                break;
+            case SS:
+                break;
+            case SW:
+                break;
+            case SN:
+                break;
+            case LH0:
+                break;
+            case LV0:
+                break;
+            case LB0:
+                break;
+            case LH1:
+                break;
+            case LV1:
+                break;
+            case LB1:
+                break;
+            case LH2:
+                break;
+            case LV2:
+                break;
+            case LB2:
+                break;
+            case LB:
+                break;
+        }
     }
 
     private void turn(int d) {
@@ -266,185 +516,231 @@ public class Probot extends Reflector<Probot> {
         switch (level) {
             case 0:
                 init(new int[][] {
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                        { 2, 1, 1, 1, 0, 0, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0 },
+                        { EM, EM, EM, EM, EM, EM, EM },
+                        { EM, EM, EM, EM, EM, EM, EM },
+                        { SE, DD, DD, DD, EM, EM, EM },
+                        { EM, EM, EM, EM, EM, EM, EM },
+                        { EM, EM, EM, EM, EM, EM, EM },
                 });
                 break;
             case 1:
                 init(new int[][] {
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                        { 0, 1, 1, 1, 0, 0, 0 },
-                        { 2, 1, 0, 1, 0, 0, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0 },
+                        { EM, EM, EM, EM, EM, EM, EM },
+                        { EM, DD, DD, DD, EM, EM, EM },
+                        { SE, DD, EM, DD, EM, EM, EM },
+                        { EM, EM, EM, EM, EM, EM, EM },
+                        { EM, EM, EM, EM, EM, EM, EM },
                 });
                 break;
             case 2:
                 init(new int[][] {
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                        { 0, 1, 1, 0, 0, 0, 0 },
-                        { 2, 1, 1, 0, 0, 0, 0 },
-                        { 0, 1, 1, 0, 0, 0, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0 },
+                        { EM, EM, EM, EM, EM, EM, EM },
+                        { EM, DD, DD, EM, EM, EM, EM },
+                        { SE, DD, DD, EM, EM, EM, EM },
+                        { EM, DD, DD, EM, EM, EM, EM },
+                        { EM, EM, EM, EM, EM, EM, EM },
                 });
                 break;
             case 3:
                 init(new int[][] {
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                        { 2, 1, 1, 1, 1, 0, 0 },
-                        { 0, 0, 0, 0, 1, 0, 0 },
-                        { 0, 1, 1, 1, 1, 0, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0 },
+                        { EM, EM, EM, EM, EM, EM, EM },
+                        { SE, DD, DD, DD, DD, EM, EM },
+                        { EM, EM, EM, EM, DD, EM, EM },
+                        { EM, DD, DD, DD, DD, EM, EM },
+                        { EM, EM, EM, EM, EM, EM, EM },
                 });
                 break;
             case 4:
                 init(new int[][] {
-                        { 0, 3, 0, 0, 0, 0, 0 },
-                        { 0, 1, 0, 1, 1, 1, 0 },
-                        { 0, 1, 1, 1, 0, 1, 0 },
-                        { 0, 0, 0, 1, 1, 1, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0 },
+                        { EM, SS,LV0, EM, EM, EM, EM },
+                        { EM, DD, EM, DD, DD, DD,LH1 },
+                        { EM,LB0, DD, LB, EM, LB, EM },
+                        { EM, EM, EM, DD, DD, DD,LH0 },
+                        { EM, EM, EM, EM, EM, EM, EM },
                 });
                 break;
             case 5:
                 init(new int[][] {
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                        { 0, 1, 1, 1, 1, 0, 0 },
-                        { 2, 1, 1, 1, 1, 0, 0 },
-                        { 0, 1, 1, 1, 1, 0, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0 },
+                        {  EM, EM,LV1, EM, EM, EM, EM },
+                        {  LH0,LB1,DD ,DD, DD, EM, EM },
+                        {  SE, LB0,DD ,LB2,DD, EM, EM },
+                        {  LH0,LB2,DD ,DD, DD, EM, EM },
+                        {  EM, EM,LV2, EM, EM, EM, EM },
                 });
                 break;
             case 6:
-                init(new int[][] {
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                        { 0, 1, 1, 1, 1, 1, 0 },
-                        { 0, 1, 1, 1, 1, 1, 0 },
-                        { 0, 1, 1, 1, 1, 1, 0 },
-                        { 0, 5, 0, 0, 0, 0, 0 },
-                });
+                init(new int[][]{
+                        {EM, EM,  LV2, EM,  LV2, EM,  EM},
+                        {EM, LB0, LB1, LB2, LB1, LB0, EM},
+                        {LH0,LB1, LB2, LB0, LB2, LB1, EM},
+                        {LH1,LB2, LB0, DD,  LB0, LB2, EM},
+                        {LH0,LB1, LB2, LB0, LB2, LB1, EM},
+                        {SE, LB0, LB1, LB2, LB1, LB0, EM},
+                        {EM, EM,  EM,  EM,  EM,  EM,  EM}
+
+                }, false, false, false);
+
+                /*init(new int[][] {
+                        { EM, EM, EM, EM, EM, EM, EM },
+                        { EM, DD, DD, DD, DD, DD, EM },
+                        { LH0,DD, DD, DD, DD, DD, EM },
+                        { EM, DD, DD, DD, DD, DD, EM },
+                        { EM, SN, LV0,EM, EM, EM, EM },
+                });*/
                 break;
             case 7:
+                /*
                 init(new int[][] {
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                        { 0, 0, 0, 0, 1, 1, 0 },
-                        { 0, 0, 0, 1, 1, 1, 0 },
-                        { 0, 0, 1, 1, 1, 1, 0 },
-                        { 0, 1, 1, 1, 1, 0, 0 },
-                        { 2, 1, 1, 1, 0, 0, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                });
+                        { EM, EM, EM, EM, EM, EM, EM },
+                        { EM, EM, EM, EM, DD, DD, EM },
+                        { EM, EM, EM, DD, DD, DD, EM },
+                        { EM, EM, DD, DD, DD, DD, EM },
+                        { EM, DD, DD, DD, DD, EM, EM },
+                        { SE, DD, DD, DD, EM, EM, EM },
+                        { EM, EM, EM, EM, EM, EM, EM },
+                });*/
+                init(new int[][] {
+                        { EM, EM, LV0,EM, EM, EM, LV0,EM, EM },
+                        { EM, EM, EM, EM, DD, EM, EM, EM, EM },
+                        { EM, EM, EM, EM, LB2,EM, EM, EM, LH2 },
+                        { LH1,EM, EM, EM, LB0,EM, EM, EM, EM },
+                        { EM, DD, LB1,LB0,SE, LB, LB2,DD, EM },
+                        { EM, EM, EM, EM, LB2,EM, EM, EM, LH1 },
+                        { EM, EM, EM, EM, LB1,EM, EM, EM, EM },
+                        { EM, EM, EM, EM, DD, EM, EM, EM, EM },
+                        { EM, EM, EM, EM, EM, EM, LV2,EM, EM }
+                }, false, false, false);
                 break;
             case 8:
                 init(new int[][] {
-                        { 0, 0, 0, 0, 0, 0, 0, 0 },
-                        { 0, 1, 1, 1, 1, 1, 1, 0 },
-                        { 0, 1, 0, 0, 0, 0, 1, 0 },
-                        { 0, 1, 1, 1, 1, 0, 1, 0 },
-                        { 0, 0, 0, 0, 0, 0, 1, 0 },
-                        { 2, 1, 1, 1, 1, 1, 1, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0, 0 },
+                        { EM, EM, EM, EM, EM, EM, EM, EM },
+                        { EM, DD, DD, DD, DD, DD, DD, EM },
+                        { EM, DD, EM, EM, EM, EM, DD, EM },
+                        { EM, DD, DD, DD, DD, EM, DD, EM },
+                        { EM, EM, EM, EM, EM, EM, DD, EM },
+                        { SE, DD, DD, DD, DD, DD, DD, EM },
+                        { EM, EM, EM, EM, EM, EM, EM, EM },
                 });
                 break;
             case 9:
                 init(new int[][] {
-                        { 0, 0, 0, 0, 0, 0, 0, 0 },
-                        { 0, 1, 1, 1, 1, 1, 1, 0 },
-                        { 0, 1, 0, 0, 0, 0, 1, 0 },
-                        { 0, 1, 0, 1, 1, 1, 1, 0 },
-                        { 0, 1, 0, 1, 0, 0, 1, 0 },
-                        { 2, 1, 0, 1, 1, 1, 1, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0, 0 },
+                        { EM, EM, EM, EM, EM, EM, EM, EM },
+                        { EM, DD, DD, DD, DD, DD, DD, EM },
+                        { EM, DD, EM, EM, EM, EM, DD, EM },
+                        { EM, DD, EM, DD, DD, DD, DD, EM },
+                        { EM, DD, EM, DD, EM, EM, DD, EM },
+                        { SE, DD, EM, DD, DD, DD, DD, EM },
+                        { EM, EM, EM, EM, EM, EM, EM, EM },
                 });
                 break;
             case 10:
                 init(new int[][] {
-                        { 0, 0, 0, 0, 0, 0, 0, 0 },
-                        { 0, 1, 1, 1, 1, 1, 1, 0 },
-                        { 0, 1, 0, 1, 1, 0, 1, 0 },
-                        { 0, 1, 1, 1, 1, 1, 1, 0 },
-                        { 0, 1, 1, 1, 0, 0, 1, 0 },
-                        { 0, 1, 0, 1, 1, 1, 1, 0 },
-                        { 0, 5, 0, 0, 0, 0, 0, 0 },
+                        { EM, EM, EM, EM, EM, EM, EM, EM },
+                        { EM, DD, DD, DD, DD, DD, DD, EM },
+                        { EM, DD, EM, DD, DD, EM, DD, EM },
+                        { EM, DD, DD, DD, DD, DD, DD, EM },
+                        { EM, DD, DD, DD, EM, EM, DD, EM },
+                        { EM, DD, EM, DD, DD, DD, DD, EM },
+                        { EM, SN, EM, EM, EM, EM, EM, EM },
                 });
                 break;
             case 11:
                 init(new int[][] {
-                        { 0, 0, 0, 0, 0, 0, 0, 0 },
-                        { 0, 1, 1, 1, 1, 1, 1, 0 },
-                        { 0, 1, 0, 1, 1, 0, 1, 0 },
-                        { 0, 1, 0, 0, 0, 1, 1, 0 },
-                        { 0, 1, 1, 1, 1, 1, 1, 0 },
-                        { 0, 0, 0, 1, 1, 0, 1, 0 },
-                        { 0, 1, 1, 1, 1, 1, 1, 0 },
-                        { 0, 1, 1, 1, 0, 0, 0, 0 },
-                        { 0, 0, 0, 2, 0, 0, 0, 0 },
+                        { EM, EM, EM, EM, EM, EM, EM, EM },
+                        { EM, DD, DD, DD, DD, DD, DD, EM },
+                        { EM, DD, EM, DD, DD, EM, DD, EM },
+                        { EM, DD, EM, EM, EM, DD, DD, EM },
+                        { EM, DD, DD, DD, DD, DD, DD, EM },
+                        { EM, EM, EM, DD, DD, EM, DD, EM },
+                        { EM, DD, DD, DD, DD, DD, DD, EM },
+                        { EM, DD, DD, DD, EM, EM, EM, EM },
+                        { EM, EM, EM, SE, EM, EM, EM, EM },
                 });
                 break;
             case 12:
                 init(new int[][] {
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                        { 2, 1, 1, 1, 0, 0, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0 },
+                        { EM, EM, EM, EM, EM, EM, EM },
+                        { EM, EM, EM, EM, EM, EM, EM },
+                        { SE, DD, DD, DD, EM, EM, EM },
+                        { EM, EM, EM, EM, EM, EM, EM },
+                        { EM, EM, EM, EM, EM, EM, EM },
                 });
                 break;
             case 13:
                 init(new int[][] {
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                        { 2, 1, 1, 1, 0, 0, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0 },
+                        { EM, EM, EM, EM, EM, EM, EM },
+                        { EM, EM, EM, EM, EM, EM, EM },
+                        { SE, DD, DD, DD, EM, EM, EM },
+                        { EM, EM, EM, EM, EM, EM, EM },
+                        { EM, EM, EM, EM, EM, EM, EM },
                 });
                 break;
             case 14:
                 init(new int[][] {
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                        { 2, 1, 1, 1, 0, 0, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0 },
+                        { EM, EM, EM, EM, EM, EM, EM },
+                        { EM, EM, EM, EM, EM, EM, EM },
+                        { SE, DD, DD, DD, EM, EM, EM },
+                        { EM, EM, EM, EM, EM, EM, EM },
+                        { EM, EM, EM, EM, EM, EM, EM },
                 });
                 break;
             case 15:
                 init(new int[][] {
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                        { 2, 1, 1, 1, 0, 0, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0 },
+                        { EM, EM, EM, EM, EM, EM, EM },
+                        { EM, EM, EM, EM, EM, EM, EM },
+                        { SE, DD, DD, DD, EM, EM, EM },
+                        { EM, EM, EM, EM, EM, EM, EM },
+                        { EM, EM, EM, EM, EM, EM, EM },
                 });
                 break;
             case 16:
                 init(new int[][] {
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                        { 2, 1, 1, 1, 0, 0, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0 },
+                        { EM, EM, EM, EM, EM, EM, EM },
+                        { EM, EM, EM, EM, EM, EM, EM },
+                        { SE, DD, DD, DD, EM, EM, EM },
+                        { EM, EM, EM, EM, EM, EM, EM },
+                        { EM, EM, EM, EM, EM, EM, EM },
                 });
                 break;
             case 17:
                 init(new int[][] {
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                        { 2, 1, 1, 1, 0, 0, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0 },
+                        { EM, EM, EM, EM, EM, EM, EM },
+                        { EM, EM, EM, EM, EM, EM, EM },
+                        { SE, DD, DD, DD, EM, EM, EM },
+                        { EM, EM, EM, EM, EM, EM, EM },
+                        { EM, EM, EM, EM, EM, EM, EM },
                 });
                 break;
             case 18:
                 init(new int[][] {
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                        { 2, 1, 1, 1, 0, 0, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0 },
-                        { 0, 0, 0, 0, 0, 0, 0 },
+                        { EM, EM, EM, EM, EM, EM, EM },
+                        { EM, EM, EM, EM, EM, EM, EM },
+                        { SE, DD, DD, DD, EM, EM, EM },
+                        { EM, EM, EM, EM, EM, EM, EM },
+                        { EM, EM, EM, EM, EM, EM, EM },
+                });
+                break;
+            case 19:
+                init(new int[][] {
+                        { EM, SS, EM, EM, EM, EM, EM, EM },
+                        { EM, DD, DD, DD, DD, DD, DD, EM },
+                        { EM, EM, EM, DD, DD, EM, EM, EM },
+                        { EM, DD, DD, DD, DD, DD, DD, EM },
+                        { EM, DD, EM, DD, DD, EM, DD, EM },
+                        { EM, DD, DD, DD, DD, DD, DD, EM },
+                        { EM, EM, EM, EM, EM, EM, EM, EM },
+                });
+                break;
+            case 20:
+                init(new int[][] {
+                        { EM, EM, EM, EM, EM, EM, EM, EM, EM },
+                        { SE, EM, EM, EM, EM, EM, EM, EM, EM },
+                        { EM, EM, EM, EM, EM, EM, EM, EM, EM },
+                        { EM, EM, EM, EM, EM, EM, EM, EM, EM },
+                        { EM, EM, EM, EM, EM, EM, EM, EM, EM },
+                        { EM, EM, EM, EM, EM, EM, EM, EM, EM },
+                        { EM, EM, EM, EM, EM, EM, EM, EM, EM },
+                        { EM, EM, EM, EM, EM, EM, EM, EM, EM },
                 });
                 break;
             default:
@@ -474,6 +770,8 @@ public class Probot extends Reflector<Probot> {
 
     protected void onFailed() {}
 
+    protected void onAdvanceFailed() {}
+
     protected void onAdvanced() {}
 
     protected void onJumped() {}
@@ -482,4 +780,7 @@ public class Probot extends Reflector<Probot> {
 
     protected void onSuccess() {}
 
+    protected void onLazered() {}
+
+    protected void onDotsRemaining() {}
 }

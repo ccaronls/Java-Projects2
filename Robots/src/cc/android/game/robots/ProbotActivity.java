@@ -18,6 +18,7 @@ public class ProbotActivity extends CCActivityBase implements View.OnClickListen
     View actionForward;
     View actionRight;
     View actionLeft;
+    View actionUTurn;
     View actionJump;
     View bPlay;
     View bStop;
@@ -38,11 +39,13 @@ public class ProbotActivity extends CCActivityBase implements View.OnClickListen
         actionForward = findViewById(R.id.ivArrowForward);
         actionRight = findViewById(R.id.ivArrowRight);
         actionLeft = findViewById(R.id.ivArrowLeft);
+        actionUTurn = findViewById(R.id.ivUTurn);
         actionJump = findViewById(R.id.ivArrowJump);
 
         actionForward.setTag(Probot.CommandType.Advance);
         actionRight.setTag(Probot.CommandType.TurnRight);
         actionLeft.setTag(Probot.CommandType.TurnLeft);
+        actionUTurn.setTag(Probot.CommandType.UTurn);
         actionJump.setTag(Probot.CommandType.Jump);
 
         actions = new View[] {
@@ -52,6 +55,7 @@ public class ProbotActivity extends CCActivityBase implements View.OnClickListen
         actionForward.setOnTouchListener(this);
         actionRight.setOnTouchListener(this);
         actionLeft.setOnTouchListener(this);
+        actionUTurn.setOnTouchListener(this);
         actionJump.setOnTouchListener(this);
 
         bPlay = findViewById(R.id.ibPlay);

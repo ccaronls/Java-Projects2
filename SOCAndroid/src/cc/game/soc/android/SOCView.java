@@ -52,12 +52,6 @@ public class SOCView<T extends UIRenderer> extends View implements UIComponent {
 
     private Runnable touchDownRunnable = null;
 
-
-    SOCView(Context context, T renderer) {
-        this(context);
-        this.renderer = renderer;
-    }
-
     public SOCView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
         init(context, attrs);
