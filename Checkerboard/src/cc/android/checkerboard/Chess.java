@@ -39,8 +39,7 @@ public class Chess extends ACheckboardGame {
         super(8,8,2);
     }
 
-    public void newGame() {
-        super.newGame();
+    public void initBoard() {
         whiteSide = Utils.flipCoin() ? FAR : NEAR;
         setTurn(whiteSide);
         // this is to enforce the 'quenn on her own color square' rule
@@ -59,7 +58,6 @@ public class Chess extends ACheckboardGame {
         initRank(5, -1  , EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY);
         initRank(6, NEAR, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE);
         initRank(7, NEAR, ROOK_IDLE, KNIGHT, BISHOP, left, right, BISHOP, KNIGHT, ROOK_IDLE);
-        computeMoves();
     }
 
     @Override
@@ -288,7 +286,7 @@ public class Chess extends ACheckboardGame {
         final int opponent = getOpponent(p.playerNum);
         int [] dr=null;
         int [] dc=null;
-        int d = 8;
+        int d = Math.max(RANKS, COLUMNS);
         MoveType mt = MoveType.SLIDE;
         PieceType nextType = null;
         switch (p.type) {
@@ -368,10 +366,7 @@ public class Chess extends ACheckboardGame {
                 dr = NSEW_DIAG_DELTAS[0];
                 dc = NSEW_DIAG_DELTAS[1];
                 break;
-            case KING:
-            case EMPTY:
-            case CHECKER:
-            case UNAVAILABLE:
+            default:
                 throw new AssertionError();
         }
 

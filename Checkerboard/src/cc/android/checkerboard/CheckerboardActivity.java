@@ -14,6 +14,7 @@ import android.widget.TextView;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,7 +28,7 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
 
     public final static int THINKING_PROGRESS_DELAY = 500;
 
-	private CheckerboardView pbv;
+    private CheckerboardView pbv;
     private View bEndTurn;
     private MMTreeNode<Move, ACheckboardGame> root = null;
     private TextView tvDebug;
@@ -74,6 +75,42 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
         pbv.highlightMove(null);
     }
 
+    class MoveTask extends AsyncTask<Move,Void,Void> {
+
+        MoveTask(ACheckboardGame game) {
+            this.game = new WeakReference<>(game);
+        }
+
+        final WeakReference<ACheckboardGame> game;
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            pbv.invalidate();
+            updateButtons();
+            checkForRobotTurn();
+        }
+
+        @Override
+        protected void onProgressUpdate(Void... values) {
+            pbv.invalidate();
+        }
+
+        @Override
+        protected Void doInBackground(Move... moves) {
+            game.get().executeMove(moves[0]);
+            publishProgress();
+            File file = getSaveFile(game.get());
+            game.get().trySaveToFile(file);
+            try {
+                FileUtils.copyFile(file, Environment.getExternalStorageDirectory());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+
+    };
+
     public class MyChess extends Chess implements Runnable, DialogInterface.OnCancelListener {
         private Dialog dialog = null;
         private AsyncTask task = null;
@@ -101,35 +138,8 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
 
         @Override
         public void executeMove(final Move move) {
-            new AsyncTask<ACheckboardGame,Void,Void>() {
-                @Override
-                protected void onPostExecute(Void aVoid) {
-                    pbv.invalidate();
-                    updateButtons();
-                    checkForRobotTurn();
-                }
-
-                @Override
-                protected void onProgressUpdate(Void... values) {
-                    pbv.invalidate();
-                }
-
-                @Override
-                protected Void doInBackground(ACheckboardGame... params) {
-                    MyChess.super.executeMove(move);
-                    publishProgress();
-                    File file = getSaveFile(params[0]);
-                    params[0].trySaveToFile(file);
-                    try {
-                        FileUtils.copyFile(file, Environment.getExternalStorageDirectory());
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    return null;
-                }
-            }.execute(pbv.getGame());
+            task = new MoveTask(this).execute(move);
         }
-
     }
 
 
@@ -166,29 +176,103 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
 
         @Override
         public void executeMove(final Move move) {
-            new AsyncTask<ACheckboardGame,Void,Void>() {
-                @Override
-                protected void onPostExecute(Void aVoid) {
-                    pbv.invalidate();
-                    updateButtons();
-                    checkForRobotTurn();
-                }
-
-                @Override
-                protected Void doInBackground(ACheckboardGame... params) {
-                    MyCheckers.super.executeMove(move);
-                    File file = getSaveFile(params[0]);
-                    params[0].trySaveToFile(file);
-                    try {
-                        FileUtils.copyFile(file, Environment.getExternalStorageDirectory());
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    return null;
-                }
-            }.execute(pbv.getGame());
+            task = new MoveTask(this).execute(move);
         }
 
+        @Override
+        protected void onPiecesCaptured(List<int[]> pieces) {
+            for (int [] pos : pieces) {
+                pbv.startCapturedAnimation(pos, getPiece(pos), null);
+            }
+            pbv.invalidate();
+
+        }
+
+        @Override
+        public void endTurn() {
+            super.endTurn();
+            checkForRobotTurn();
+        }
+    }
+
+    public class MyDraughts extends Draughts implements Runnable, DialogInterface.OnCancelListener {
+        private Dialog dialog = null;
+        private AsyncTask task = null;
+
+        @Override
+        public void onCancel(DialogInterface dialog) {
+            if (task != null) {
+                task.cancel(true);
+                //undo();
+                if (root != null && root.getFirst() != null) {
+                    pbv.animateAndExecuteMove(root.getFirst().getMove());
+                }
+            }
+        }
+
+        public void run() {
+            dialog.show();
+        }
+
+        @Override
+        public void onGameOver() {
+            if (robot != null && robot.type.ordinal() > 0 && pbv.getGame().getTurn() == ROBOT_PLAYER_NUM) {
+                getPrefs().edit().putBoolean("wondraughts", true).apply();
+            }
+            pbv.post(new Runnable() {
+                public void run() {
+                    showWinnerDialog();
+                }
+            });
+        }
+
+        @Override
+        public void executeMove(final Move move) {
+            task = new MoveTask(this).execute(move);
+        }
+
+        @Override
+        public void endTurn() {
+            super.endTurn();
+            checkForRobotTurn();
+        }
+    }
+
+    public class MyDama extends Dama implements Runnable, DialogInterface.OnCancelListener {
+        private Dialog dialog = null;
+        private AsyncTask task = null;
+
+        @Override
+        public void onCancel(DialogInterface dialog) {
+            if (task != null) {
+                task.cancel(true);
+                //undo();
+                if (root != null && root.getFirst() != null) {
+                    pbv.animateAndExecuteMove(root.getFirst().getMove());
+                }
+            }
+        }
+
+        public void run() {
+            dialog.show();
+        }
+
+        @Override
+        public void onGameOver() {
+            if (robot != null && robot.type.ordinal() > 0 && pbv.getGame().getTurn() == ROBOT_PLAYER_NUM) {
+                getPrefs().edit().putBoolean("wondraughts", true).apply();
+            }
+            pbv.post(new Runnable() {
+                public void run() {
+                    showWinnerDialog();
+                }
+            });
+        }
+
+        @Override
+        public void executeMove(final Move move) {
+            task = new MoveTask(this).execute(move);
+        }
         @Override
         public void endTurn() {
             super.endTurn();
@@ -348,7 +432,7 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
     }
 
     void showChooseGameDialog() {
-        String [] items = {"Checkers", "Chess" };
+        String [] items = {"Checkers", "Chess", "Draughts", "Dama" };
         newDialogBuilder(false).setItems(items, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
@@ -359,6 +443,11 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
                     case 1:
                         showChoosePlayersDialog(new MyChess());
                         break;
+                    case 2:
+                        showChoosePlayersDialog(new MyDraughts());
+                        break;
+                    case 3:
+                        showChoosePlayersDialog(new MyDama());
                 }
             }
         }).show();
@@ -415,16 +504,9 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
 
     }
 
-	private File getSaveFile(ACheckboardGame game) {
-        if (game instanceof Checkers)
-            return new File(getFilesDir(), SAVEFILE_CHECKERS);
-        return new File(getFilesDir(), SAVEFILE_CHESS);
+	public File getSaveFile(ACheckboardGame game) {
+        return new File(game.getClass().getSimpleName() + ".save");
     }
-
-    public final String SAVEFILE_CHECKERS = "checkers.save";
-    public final String SAVEFILE_CHESS    = "chess.save";
-
-
 
 	@Override
     public void onPause() {

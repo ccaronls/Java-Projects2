@@ -305,9 +305,7 @@ public class Reflector<T> {
         }        
     }
     
-    private static Archiver stringArchiver = new StringArchiver();
-
-    private final static class StringArchiver implements Archiver {
+    private static Archiver stringArchiver = new Archiver() {
         
         @Override
         public String get(Field field, Reflector<?> a)  throws Exception{
@@ -357,9 +355,7 @@ public class Reflector<T> {
         }
     };
 
-    private static Archiver byteArchiver = new ByteArchiver();
-
-    private final static class ByteArchiver extends AArchiver {
+    private static Archiver byteArchiver = new AArchiver() {
 
         @Override
         public Object parse(String s) {
@@ -368,9 +364,7 @@ public class Reflector<T> {
         
     };
     
-    private static Archiver integerArchiver = new IntArchiver();
-
-    private final static class IntArchiver extends AArchiver {
+    private static Archiver integerArchiver = new AArchiver() {
 
         @Override
         public Object parse(String s) {
@@ -379,9 +373,7 @@ public class Reflector<T> {
         
     };
 
-    private static Archiver longArchiver = new LongArchiver();
-
-    private final static class LongArchiver extends AArchiver {
+    private static Archiver longArchiver = new AArchiver() {
 
         @Override
 		public Object parse(String s) {
@@ -390,9 +382,7 @@ public class Reflector<T> {
         
     };
     
-    private static Archiver floatArchiver = new FloatArchiver();
-
-    private final static class FloatArchiver extends AArchiver {
+    private static Archiver floatArchiver = new AArchiver() {
 
         @Override
 		public Object parse(String s) {
@@ -401,9 +391,7 @@ public class Reflector<T> {
         
     };    
     
-    private static Archiver doubleArchiver = new DoubleArchiver();
-
-    private final static class DoubleArchiver extends AArchiver{
+    private static Archiver doubleArchiver = new AArchiver() {
 
         @Override
 		public Object parse(String s) {
@@ -412,9 +400,7 @@ public class Reflector<T> {
     
     };
 
-    private static Archiver booleanArchiver = new BooleanArchiver();
-
-    private final static class BooleanArchiver extends AArchiver {
+    private static Archiver booleanArchiver = new AArchiver() {
 
         @Override
         public Object parse(String s) {
@@ -436,9 +422,7 @@ public class Reflector<T> {
         throw new Exception("Failed to find enum value: '" + value + "' in available constants: " + Arrays.asList(constants));
     }
     
-    private static Archiver enumArchiver = new EnumArchiver();
-
-    private final static class EnumArchiver implements Archiver {
+    private static Archiver enumArchiver = new Archiver() {
         @Override
         public String get(Field field, Reflector<?> a) throws Exception {
             return ((Enum<?>)field.get(a)).name();
@@ -493,11 +477,7 @@ public class Reflector<T> {
         return name;
     }
 
-
-
-    private static Archiver archivableArchiver = new ArchivableArchiver();;
-
-    private final static class ArchivableArchiver implements Archiver {
+    private static Archiver archivableArchiver = new Archiver() {
 
         @Override
         public String get(Field field, Reflector<?> a) throws Exception {
@@ -582,9 +562,7 @@ public class Reflector<T> {
         }
     };
 
-    private static Archiver collectionArchiver = new CollectionArchiver();
-
-    private final static class CollectionArchiver implements Archiver {
+    private static Archiver collectionArchiver = new Archiver() {
 
         @Override
         public String get(Field field, Reflector<?> a) throws Exception {
@@ -644,9 +622,7 @@ public class Reflector<T> {
         }
     };
 
-    private static Archiver mapArchiver = new MapArchiver();
-
-    private final static class MapArchiver implements Archiver {
+    private static Archiver mapArchiver = new Archiver() {
 
 		@Override
 		public String get(Field field, Reflector<?> a) throws Exception {
@@ -695,9 +671,7 @@ public class Reflector<T> {
             	throw new Exception("Line: " + in.lineNum +" expected closing '}'");		}
 	};
 	
-    private static Archiver arrayArchiver = new ArrayArchiver();
-
-    private final static class ArrayArchiver implements Archiver {
+    private static Archiver arrayArchiver = new Archiver() {
 
         @Override
         public String get(Field field, Reflector<?> a) throws Exception {

@@ -118,8 +118,8 @@ public class CheckerboardView extends View {
 
         int dim = Math.min(getWidth(), getHeight());
         dim -= boardPadding*2;
-        int curRank = (int)((touchY-boardPadding) * 8 / dim);
-        int curColumn = (int)((touchX-boardPadding) * 8 / dim);
+        int curRank = (int)((touchY-boardPadding) * game.RANKS / dim);
+        int curColumn = (int)((touchX-boardPadding) * game.COLUMNS / dim);
 
         long dt = (int)(SystemClock.uptimeMillis() - downTime);
 
@@ -323,6 +323,7 @@ public class CheckerboardView extends View {
                         continue;
                     case CASTLE:
                     case SLIDE:
+                    case FLYING_JUMP:
                     case JUMP:
                         if (m.getEnd()[0]==curRank && m.getEnd()[1] == curCol) {
                             animateAndExecuteMove(m);
@@ -464,25 +465,29 @@ public class CheckerboardView extends View {
         }
     }
 
+    private class CaptureAnim extends JumpAnim {
+        CaptureAnim(int sx, int sy, int playerNum, PieceType type, Runnable whenDone) {
+            super(cellDim * sx + cellDim / 2,
+                    cellDim * sy + cellDim / 2,
+                    playerNum == ACheckboardGame.NEAR ? nextFarCaptureX : nextNearCaptureX,
+                    playerNum == ACheckboardGame.NEAR ? nextFarCaptureY : nextNearCaptureY,
+                    playerNum, type, whenDone);
+        }
+    }
+
     private void startCapturedAnimation(Move m, Runnable whenDone) {
         startCapturedAnimation(m, whenDone, false);
     }
 
+    public void startCapturedAnimation(int [] pos, Piece p, Runnable whenDone) {
+        animations.add(new CaptureAnim(pos[1], pos[0], p.playerNum, p.type, whenDone).start());
+        this.hidden.add(p);
+    }
+
     private void startCapturedAnimation(Move m, Runnable whenDone, boolean reverse) {
 
-        float nx, ny;
-        if (m.captured.playerNum == ACheckboardGame.NEAR) {
-            nx = nextFarCaptureX;
-            ny = nextFarCaptureY;
-        } else {
-            nx = nextNearCaptureX;
-            ny = nextNearCaptureY;
-        }
-        AAnimation<Canvas> a;
-        animations.add(a = new JumpAnim(cellDim * m.getCaptured()[1] + cellDim / 2,
-                cellDim * m.getCaptured()[0] + cellDim / 2,
-                nx, ny,
-                m.captured.playerNum, m.captured.type, whenDone));
+        AAnimation<Canvas> a = new CaptureAnim(m.getCaptured()[1], m.getCaptured()[0], m.captured.playerNum, m.captured.type, whenDone);
+        animations.add(a);
         if (reverse)
             a.startReverse();
         else
@@ -507,6 +512,7 @@ public class CheckerboardView extends View {
                 if (m.captured != null) {
                     startCapturedAnimation(m, null);
                 }
+            case FLYING_JUMP:
                 animations.add(new JumpAnim(m, onDone).start());
                 break;
             case STACK:
@@ -528,6 +534,8 @@ public class CheckerboardView extends View {
             if (m.hasEnd() && m.getEnd()[0] == curRank && m.getEnd()[1] == curCol) {
                 switch (m.type) {
                     case SLIDE:
+                    case FLYING_JUMP:
+                        break;
                     case JUMP: {
                         if (m.captured != null) {
                             startCapturedAnimation(m, new Runnable() {
@@ -567,18 +575,12 @@ public class CheckerboardView extends View {
         float width = getWidth();
         float height = getHeight();
 
-        int COLUMNS=8;
-        int RANKS=8;
+        final int COLUMNS = game == null ? 8 : game.COLUMNS;
+        final int RANKS = game == null ? 8 : game.RANKS;
+        final float dim = Math.min(width, height);
 
-        if (game != null) {
-            COLUMNS=game.COLUMNS;
-            RANKS =game.RANKS;
-        }
-
-        float dim = Math.min(width, height);
-        
         cellDim = dim / COLUMNS;
-        pcRad = Math.min(cellDim/3, cellDim/3);
+        pcRad = Math.min(cellDim / 3, cellDim / 3);
 
         if (getBackground() != null) {
             getBackground().setBounds(0, 0, Math.round(width), Math.round(height));
@@ -587,81 +589,114 @@ public class CheckerboardView extends View {
             pFill.setColor(Color.GREEN);
             canvas.drawRect(0f, 0f, width, height, pFill);
         }
-        // draw simple checkerboard
-/*
-        pFill.setColor(Color.GRAY);
-        canvas.drawRect(0f, 0f, dim, dim, pFill);
-
-        pFill.setColor(DroidUtils.ORANGE);
-
-        for (int i=0; i<COLUMNS; i++) {
-            for (int ii=i%2; ii<RANKS; ii+=2) {
-                float x = i*cellDim;
-                float y = ii*cellDim;
-                canvas.drawRect(x, y, x+cellDim, y+cellDim, pFill);
-            }
-        }*/
-
-        // Draw cb from bitmap resource
-        Drawable board = getResources().getDrawable(R.drawable.wood_checkerboard);
-        int iDim = Math.round(dim);
-        board.setBounds(0, 0, iDim, iDim);
-        board.draw(canvas);
 
         if (game == null)
-            return;
+            drawCheckerboard(canvas, width, height, dim, RANKS, COLUMNS);
 
-        // draw the captured pieces on the RHS
-        {
-            List<Piece> captured = game.getCapturedPieces();
-            final float padding = cellDim / 8;
-            nextNearCaptureY = height - iDim / 2 + cellDim / 2 + padding;
-            nextFarCaptureY = cellDim / 2 + padding;
-            float xnearpacing = padding;
-            float xfarspacing = padding;
-            float sxnear = iDim + cellDim / 2;
-            float sxfar = sxnear;
-            nextNearCaptureX = sxnear;
-            nextFarCaptureX = nextNearCaptureX;
-            final float maxX = width - cellDim/4;
-            for (Piece p : captured) {
-                switch (p.playerNum) {
-                    case ACheckboardGame.FAR:
-                        drawPieceAt(canvas, p, nextNearCaptureX, nextNearCaptureY, OUTLINE_NONE);
-                        nextNearCaptureX += padding*2;
-                        if (nextNearCaptureX > maxX) {
-                            sxnear += xnearpacing;
-                            xnearpacing *= -1;
-                            nextNearCaptureX = sxnear;
-                        }
-                        nextNearCaptureY += padding;
-                        break;
-                    case ACheckboardGame.NEAR:
-                        drawPieceAt(canvas, p, nextFarCaptureX, nextFarCaptureY, OUTLINE_NONE);
-                        nextFarCaptureX += padding*2;
-                        if (nextFarCaptureX > maxX) {
-                            sxfar += xfarspacing;
-                            xfarspacing *= -1;
-                            nextFarCaptureX = sxfar;
-                        }
-                        nextFarCaptureY += padding;
-                        break;
-                }
-            }
+        switch (game.getBoardType()) {
+            case DAMA:
+                drawDamaboard(canvas, width, height, dim, RANKS, COLUMNS);
+                break;
+            default:
+                drawCheckerboard(canvas, width, height, dim, RANKS, COLUMNS);
         }
 
+        if (game != null) {
+            drawCapturedPieces(canvas, width, height, dim);
+            drawBoardPieces(canvas, width, height, dim, RANKS, COLUMNS);
+        }
+    }
+
+    private void drawDamaboard(Canvas canvas, float width, float height, float dim, int RANKS, int COLUMNS) {
+        pFill.setColor(getResources().getColor(R.color.dama_board));
+        canvas.drawRect(0, 0, dim, dim, pFill);
+        pStroke.setColor(Color.BLACK);
+        pStroke.setStrokeWidth(getResources().getDimension(R.dimen.dama_line));
+        for (int i=0; i<=RANKS; i++) {
+            for (int ii=0; ii<=COLUMNS; ii++) {
+                canvas.drawLine(i*cellDim, 0, i*cellDim, dim, pStroke);
+            }
+        }
+    }
+
+    private void drawCheckerboard(Canvas canvas, float width, float height, float dim, int RANKS, int COLUMNS) {
+
+        int iDim = Math.round(dim);
+        // draw simple checkerboard
+        if (COLUMNS != 8 || RANKS != 8) {
+            boardPadding = 0;
+            pFill.setColor(Color.GRAY);
+            canvas.drawRect(0f, 0f, dim, dim, pFill);
+
+            pFill.setColor(DroidUtils.ORANGE);
+
+            for (int i = 0; i < COLUMNS; i++) {
+                for (int ii = i % 2; ii < RANKS; ii += 2) {
+                    float x = i * cellDim;
+                    float y = ii * cellDim;
+                    canvas.drawRect(x, y, x + cellDim, y + cellDim, pFill);
+                }
+            }
+        } else {
+            // Draw cb from bitmap resource
+            Drawable board = getResources().getDrawable(R.drawable.wood_checkerboard_8x8);
+            board.setBounds(0, 0, iDim, iDim);
+            board.draw(canvas);
+            float ratio = 25f / 545;
+            boardPadding = dim * ratio;
+        }
+    }
+
+    private void drawCapturedPieces(Canvas canvas, float width, float height, float dim) {
+        final int iDim = Math.round(dim);
+        List<Piece> captured = game.getCapturedPieces();
+        final float padding = cellDim / 8;
+        nextNearCaptureY = height - iDim / 2 + cellDim / 2 + padding;
+        nextFarCaptureY = cellDim / 2 + padding;
+        float xnearpacing = padding;
+        float xfarspacing = padding;
+        float sxnear = iDim + cellDim / 2;
+        float sxfar = sxnear;
+        nextNearCaptureX = sxnear;
+        nextFarCaptureX = nextNearCaptureX;
+        final float maxX = width - cellDim/4;
+        for (Piece p : captured) {
+            switch (p.playerNum) {
+                case ACheckboardGame.FAR:
+                    drawPieceAt(canvas, p, nextNearCaptureX, nextNearCaptureY, OUTLINE_NONE);
+                    nextNearCaptureX += padding*2;
+                    if (nextNearCaptureX > maxX) {
+                        sxnear += xnearpacing;
+                        xnearpacing *= -1;
+                        nextNearCaptureX = sxnear;
+                    }
+                    nextNearCaptureY += padding;
+                    break;
+                case ACheckboardGame.NEAR:
+                    drawPieceAt(canvas, p, nextFarCaptureX, nextFarCaptureY, OUTLINE_NONE);
+                    nextFarCaptureX += padding*2;
+                    if (nextFarCaptureX > maxX) {
+                        sxfar += xfarspacing;
+                        xfarspacing *= -1;
+                        nextFarCaptureX = sxfar;
+                    }
+                    nextFarCaptureY += padding;
+                    break;
+            }
+        }
+    }
+
+    private void drawBoardPieces(Canvas canvas, float width, float height, float dim, int RANKS, int COLUMNS) {
         // the dawable is 530x530. The wood trim is 30px
-        float ratio = 25f/545;
-        boardPadding = dim*ratio;
         canvas.save();
         try {
-            canvas.translate(boardPadding, boardPadding - 5);
-            dim -= boardPadding * 2;
+            canvas.translate(boardPadding, boardPadding - 5);//boardPadding*0.1f);
+            final float ddim = dim - boardPadding * 2;
 
             // debug outline the playable part of the
             //canvas.drawRect(0, 0, dim, dim, pStroke);
 
-            cellDim = dim / COLUMNS;
+            cellDim = ddim / COLUMNS;
             pcRad = Math.min(cellDim / 3, cellDim / 3);
 
             if (drawDebugInfo) {
@@ -772,6 +807,7 @@ public class CheckerboardView extends View {
                 cy = m.getCastleRookEnd()[0]*cellDim;
                 canvas.drawRect(cx, cy, cx+cellDim, cy+cellDim, pStroke);
 
+            case FLYING_JUMP:
             case JUMP:
             case SLIDE:
                 pStroke.setColor(Color.GREEN);
@@ -881,11 +917,13 @@ public class CheckerboardView extends View {
                 else
                     d = getResources().getDrawable(R.drawable.wt_king);
                 break;
+            case FLYING_KING:
             case KING:
                 drawChecker(g, cx, cy, pcRad, pc.playerNum, 0);
                 cy -= pcRad/4;
                 // fall through
             case CHECKER:
+            case CAPTURED_CHECKER:
                 drawChecker(g, cx, cy, pcRad, pc.playerNum, outline);
                 break;
         }
@@ -1009,6 +1047,7 @@ public class CheckerboardView extends View {
                 }, 1);
             }
             switch (m.type) {
+                case FLYING_JUMP:
                 case JUMP:
                     animations.add(new JumpAnim(m, null).startReverse());
                     break;

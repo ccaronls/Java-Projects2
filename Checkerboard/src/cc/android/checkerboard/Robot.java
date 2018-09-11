@@ -226,6 +226,7 @@ public class Robot extends Reflector<Robot> {
                             dPc++;
                             dAdv += game.getAdvancementFromStart(p.playerNum, rank);
                             break;
+                        case FLYING_KING:
                         case KING:
                             dKing++; break;
                     }
@@ -236,6 +237,7 @@ public class Robot extends Reflector<Robot> {
                             dPc--;
                             dAdv -= game.getAdvancementFromStart(p.playerNum, rank);
                             break;
+                        case FLYING_KING:
                         case KING:
                             dKing--; break;
                     }

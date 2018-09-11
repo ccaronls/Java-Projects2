@@ -1450,6 +1450,8 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
 
     class IntroAnim extends AAnimation<AGraphics> {
         final Object [][] dominosPositions = {
+                // position, angle, pip1, pip2
+
                 // BIG D
                 { new Vector2D(0.5f, 1), 90, -1, -1 },
                 { new Vector2D(0.5f, 3), 90, -1, -1 },
@@ -1458,7 +1460,7 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
                 { new Vector2D(3.5f, 4), 90, -1, -1 },
                 { new Vector2D(3.5f, 2), 90, -1, -1 },
                 { new Vector2D(2f, 0.5f), 0, -1, -1 },
-                // BIF O
+                // BIG O
                 { new Vector2D(5f, 2), 90, -1, -1 },
                 { new Vector2D(5f, 4), 90, -1, -1 },
                 { new Vector2D(6f, 5.5f), 0, -1, -1 },

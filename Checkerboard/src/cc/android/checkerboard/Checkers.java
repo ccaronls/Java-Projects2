@@ -1,8 +1,16 @@
 package cc.android.checkerboard;
 
-import cc.lib.game.Utils;
+import java.util.ArrayList;
+import java.util.List;
 
-import static cc.android.checkerboard.PieceType.*;
+import cc.lib.game.Utils;
+import cc.lib.math.CMath;
+
+import static cc.android.checkerboard.PieceType.CAPTURED_CHECKER;
+import static cc.android.checkerboard.PieceType.CHECKER;
+import static cc.android.checkerboard.PieceType.EMPTY;
+import static cc.android.checkerboard.PieceType.FLYING_KING;
+import static cc.android.checkerboard.PieceType.KING;
 
 /**
  * Red is positive and black is negative
@@ -15,12 +23,15 @@ public class Checkers extends ACheckboardGame  {
         addAllFields(Checkers.class);
     }
 
+    protected Checkers(int ranks, int cols) {
+        super(ranks, cols, 2);
+    }
+
     public Checkers() {
         super(8,8,2);
     }
 
-	public final void newGame() {
-        super.newGame();
+	public void initBoard() {
         initRank(0, FAR, CHECKER, EMPTY, CHECKER, EMPTY, CHECKER, EMPTY, CHECKER, EMPTY);
         initRank(1, FAR, EMPTY, CHECKER, EMPTY, CHECKER, EMPTY, CHECKER, EMPTY, CHECKER);
         initRank(2, FAR, CHECKER, EMPTY, CHECKER, EMPTY, CHECKER, EMPTY, CHECKER, EMPTY);
@@ -30,7 +41,6 @@ public class Checkers extends ACheckboardGame  {
         initRank(6, NEAR, CHECKER, EMPTY, CHECKER, EMPTY, CHECKER, EMPTY, CHECKER, EMPTY);
         initRank(7, NEAR, EMPTY, CHECKER, EMPTY, CHECKER, EMPTY, CHECKER, EMPTY, CHECKER);
         setTurn(Utils.flipCoin() ? FAR : NEAR);
-        computeMoves();
 	}
 
     @Override
@@ -38,6 +48,13 @@ public class Checkers extends ACheckboardGame  {
 		Piece p = getPiece(rank, col);
         if (p.playerNum != getTurn())
             throw new AssertionError();
+
+        if (p.type == FLYING_KING) {
+            final int [] dr =  { 1, 1, -1, -1 };
+            final int [] dc =  { -1, 1, -1, 1 };
+            computeFlyingKingMoves(p, rank, col, parent, dr, dc);
+            return;
+        }
 
 		int [] dr, dc;
 		if (p.type == KING) {
@@ -78,7 +95,8 @@ public class Checkers extends ACheckboardGame  {
 						// we can jump to here
 						if (t.playerNum == getTurn()) {
 							// we are jumping ourself, no capture
-							p.moves.add(new Move(MoveType.JUMP, getTurn(), null, null, rank, col, rdr2, cdc2));
+                            if (canJumpSelf())
+							    p.moves.add(new Move(MoveType.JUMP, getTurn(), null, null, rank, col, rdr2, cdc2));
 						} else {
 							// jump with capture
 							p.moves.add(new Move(MoveType.JUMP, getTurn(), t, null, rank, col, rdr2, cdc2, rdr, cdc));
@@ -89,7 +107,100 @@ public class Checkers extends ACheckboardGame  {
 		}
 	}
 
-	public void endTurn() {
+	/*
+	flying kings move any distance along unblocked diagonals, and may capture an opposing man any distance away
+	by jumping to any of the unoccupied squares immediately beyond it.
+
+	Since jumped pieces remain on the board until the turn is complete, it is possible to reach a position in a multi-jump move
+	where the flying king is blocked from capturing further by a piece already jumped. (TODO)
+	 */
+    protected void computeFlyingKingMoves(Piece p, int rank, int col, Move parent, int [] dr, int [] dc) {
+        final int d = Math.max(RANKS, COLUMNS);
+
+        for (int i=0; i<4; i++) {
+            MoveType mt = MoveType.SLIDE;
+            Piece captured = null;
+            int capturedRank=0;
+            int capturedCol =0;
+
+            int ii=1;
+            if (parent != null) {
+                // we are in a multijump, so search forward for the piece to capture
+                int ddr = CMath.signOf(parent.getStart()[0] - rank);
+                int ddc = CMath.signOf(parent.getStart()[1] - col);
+
+                if (ddr == dr[i] && ddc == dc[i])
+                    continue; // cannot go backwards
+
+                for ( ; ii<=d; ii++) {
+                    // square we are moving too
+                    final int rdr = rank+dr[i]*ii;
+                    final int cdc = col+dc[i]*ii;
+
+                    if (!isOnBoard(rdr, cdc))
+                        break;
+
+                    Piece t = getPiece(rdr, cdc);
+                    if (t.type == EMPTY)
+                        continue;
+
+                    if (t.type == CAPTURED_CHECKER)
+                        break; // cannot jump a piece we already did
+
+                    if (t.playerNum == getOpponent()) {
+                        captured = t;
+                        ii++;
+                        capturedRank=rdr;
+                        capturedCol=cdc;
+                        break;
+                    }
+                }
+
+                if (captured == null)
+                    continue;
+
+                mt = MoveType.FLYING_JUMP;
+            }
+
+            for ( ; ii<d; ii++) {
+
+                // square we are moving too
+                final int rdr = rank+dr[i]*ii;
+                final int cdc = col+dc[i]*ii;
+
+                if (!isOnBoard(rdr, cdc))
+                    break;
+
+                // t is piece one unit away in this direction
+                Piece t = getPiece(rdr, cdc);
+
+                if (t.type == EMPTY) {
+                    if (captured == null)
+                        p.moves.add(new Move(mt, getTurn(), null, null, rank, col, rdr, cdc));
+                    else
+                        p.moves.add(new Move(mt, getTurn(), captured, null, rank, col, rdr, cdc, capturedRank, capturedCol));
+
+                    continue;
+                }
+
+                if (mt != MoveType.SLIDE)
+                    break;
+
+                if (t.playerNum != getOpponent())
+                    break;
+
+                mt = MoveType.FLYING_JUMP;
+                captured = t;
+                capturedRank = rdr;
+                capturedCol = cdc;
+
+            }
+        }
+
+
+    }
+
+    public void endTurn() {
         if (lock != null) {
             for (Move m : lock.moves) {
                 if (m.type == MoveType.END) {
@@ -102,6 +213,7 @@ public class Checkers extends ACheckboardGame  {
     }
 
     private void endTurnPrivate() {
+        removeCapturedPieces();
         nextTurn();
         lock = null;
         clearMoves();
@@ -109,6 +221,26 @@ public class Checkers extends ACheckboardGame  {
             onGameOver();
         }
 	}
+
+	private void removeCapturedPieces() {
+        List<int[]> captured = new ArrayList<>();
+        for (int i=0; i<RANKS; i++) {
+            for (int ii=0; ii<COLUMNS; ii++) {
+                Piece p = getPiece(i, ii);
+                if (p.type == CAPTURED_CHECKER) {
+                    captured.add(new int[] { i, ii });
+                }
+            }
+        }
+        if (captured.size() > 0) {
+            onPiecesCaptured(captured);
+            for (int[] pos : captured) {
+                clearPiece(pos);
+            }
+        }
+    }
+
+    protected void onPiecesCaptured(List<int[]> pieces) {}
 
     @Override
 	public void executeMove(Move move) {
@@ -128,7 +260,7 @@ public class Checkers extends ACheckboardGame  {
         switch (move.type) {
             case SLIDE:
                 if (isKinged) {
-                    p.moves.add(new Move(MoveType.STACK, move.playerNum, null, PieceType.KING, move.getEnd()));
+                    p.moves.add(new Move(MoveType.STACK, move.playerNum, null, isFlyingKings() ? PieceType.FLYING_KING : PieceType.KING, move.getEnd()));
                     lock = p;
                     break;
                 }
@@ -140,13 +272,16 @@ public class Checkers extends ACheckboardGame  {
                     clearPiece(move.getCaptured());
                 }
                 if (isKinged) {
-                    p.moves.add(new Move(MoveType.STACK, move.playerNum, null, PieceType.KING, move.getEnd()));
+                    p.moves.add(new Move(MoveType.STACK, move.playerNum, null, isFlyingKings() ? PieceType.FLYING_KING : PieceType.KING, move.getEnd()));
                     lock = p;
                 }
                 break;
+            case FLYING_JUMP:
+                setPieceType(move.getCaptured(), CAPTURED_CHECKER);
+                break;
             case STACK:
                 move.nextType = p.type;
-                setPieceType(move.getStart(), KING);
+                setPieceType(move.getStart(), isFlyingKings() ? PieceType.FLYING_KING : KING);
                 break;
         }
 
@@ -156,7 +291,7 @@ public class Checkers extends ACheckboardGame  {
                 computeMovesForSquare(move.getEnd()[0], move.getEnd()[1], move);
             if (p.moves.size() == 0) {
                 endTurnPrivate();
-            } else {
+            } else if (!isJumpsMandatory()) {
                 p.moves.add(new Move(MoveType.END, move.playerNum, null, null, move.getEnd()));
                 lock = p;
             }
@@ -174,4 +309,17 @@ public class Checkers extends ACheckboardGame  {
         Utils.assertTrue(false);
         return null;
     }
+
+    protected boolean isFlyingKings() {
+        return false;
+    }
+
+    protected boolean canJumpSelf() {
+        return true;
+    }
+
+    protected boolean canMenJumpBackwards() {
+        return false; // true for international/russian draughts
+    }
+
 }

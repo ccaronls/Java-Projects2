@@ -1,5 +1,5 @@
 package cc.android.checkerboard;
 
 public enum MoveType {
-    END, SLIDE, JUMP, STACK, SWAP, CASTLE
+    END, SLIDE, FLYING_JUMP, JUMP, STACK, SWAP, CASTLE
 }

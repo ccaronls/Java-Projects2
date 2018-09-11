@@ -130,12 +130,16 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
     /**
      * Should be called after all the pieces have been setup
      */
-    public void newGame() {
+    public final void newGame() {
         if (board[0][0] != null)
             clearMoves();
         lock = null;
         undoStack.clear();
+        initBoard();
+        computeMoves();
     }
+
+    protected abstract void initBoard();
 
     protected int recomputeMoves() {
         int num = 0;
@@ -286,6 +290,7 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
                 clearPiece(m.getCastleRookEnd());
                 // fallthrough
             case SLIDE:
+            case FLYING_JUMP:
             case JUMP:
                 setBoard(m.getStart(), getPiece(m.getEnd()));
                 clearPiece(m.getEnd());
@@ -321,7 +326,8 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
             clearMoves();
             p = getPiece(m.getStart());
             computeMovesForSquare(m.getStart()[0], m.getStart()[1], parent);
-            p.moves.add(new Move(MoveType.END, m.playerNum, null, null, m.getStart()));
+            if (!isJumpsMandatory())
+                p.moves.add(new Move(MoveType.END, m.playerNum, null, null, m.getStart()));
             lock = p;
         }
     }
@@ -409,7 +415,7 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
     }
 
     protected void initRank(int rank, int player, PieceType...pieces) {
-        for (int i=0; i<8; i++) {
+        for (int i=0; i<pieces.length; i++) {
             Piece p = board[rank][i] = new Piece(player, pieces[i]);
             switch (p.type) {
                 case EMPTY:
@@ -427,4 +433,18 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
     } ;
 
     public abstract Color getPlayerColor(int side);
+
+    protected boolean isJumpsMandatory() {
+        return false;
+    }
+
+    enum BoardType {
+        CHECKERS,
+        DAMA
+    }
+
+    public BoardType getBoardType() {
+        return BoardType.CHECKERS;
+    }
+
 }

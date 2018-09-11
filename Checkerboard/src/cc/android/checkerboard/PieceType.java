@@ -20,7 +20,9 @@ public enum PieceType {
     UNCHECKED_KING("K"), // chess only
     UNCHECKED_KING_IDLE("K"), // only an unchecked idle king can castle
     KING("K"), // checkers king, not chess
+    FLYING_KING("K"),
     CHECKER("Ch"),
+    CAPTURED_CHECKER("Ch"), // a piece jumped by a flying king
     UNAVAILABLE("x"), // this means off board
     ;
 
