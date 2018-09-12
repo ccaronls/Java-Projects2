@@ -1,13 +1,14 @@
 package cc.android.checkerboard;
 
+import cc.lib.game.Utils;
+
 import static cc.android.checkerboard.PieceType.CHECKER;
 import static cc.android.checkerboard.PieceType.EMPTY;
 import static cc.android.checkerboard.PieceType.KING;
 
 public class Dama extends Checkers {
 
-    public Dama() {
-        super(8, 8);
+    public final void initBoard() {
         initRank(0, -1, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY);
         initRank(1, FAR, CHECKER, CHECKER, CHECKER, CHECKER, CHECKER, CHECKER, CHECKER, CHECKER);
         initRank(2, FAR, CHECKER, CHECKER, CHECKER, CHECKER, CHECKER, CHECKER, CHECKER, CHECKER);
@@ -16,6 +17,7 @@ public class Dama extends Checkers {
         initRank(5, NEAR, CHECKER, CHECKER, CHECKER, CHECKER, CHECKER, CHECKER, CHECKER, CHECKER);
         initRank(6, NEAR, CHECKER, CHECKER, CHECKER, CHECKER, CHECKER, CHECKER, CHECKER, CHECKER);
         initRank(7, -1, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY);
+        setTurn(Utils.flipCoin() ? FAR : NEAR);
     }
 
     @Override
@@ -85,4 +87,8 @@ public class Dama extends Checkers {
         return true;
     }
 
+    @Override
+    public BoardType getBoardType() {
+        return BoardType.DAMA;
+    }
 }

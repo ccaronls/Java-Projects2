@@ -138,7 +138,12 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
 
         @Override
         public void executeMove(final Move move) {
-            task = new MoveTask(this).execute(move);
+            if (task == null)
+                task = new MoveTask(this).execute(move);
+            else {
+                super.executeMove(move);
+                task = null;
+            }
         }
     }
 
@@ -176,7 +181,12 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
 
         @Override
         public void executeMove(final Move move) {
-            task = new MoveTask(this).execute(move);
+            if (task == null)
+                task = new MoveTask(this).execute(move);
+            else {
+                super.executeMove(move);
+                task = null;
+            }
         }
 
         @Override
@@ -228,7 +238,12 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
 
         @Override
         public void executeMove(final Move move) {
-            task = new MoveTask(this).execute(move);
+            if (task == null)
+                task = new MoveTask(this).execute(move);
+            else {
+                super.executeMove(move);
+                task = null;
+            }
         }
 
         @Override
@@ -271,7 +286,12 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
 
         @Override
         public void executeMove(final Move move) {
-            task = new MoveTask(this).execute(move);
+            if (task == null)
+                task = new MoveTask(this).execute(move);
+            else {
+                super.executeMove(move);
+                task = null;
+            }
         }
         @Override
         public void endTurn() {
@@ -505,7 +525,7 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
     }
 
 	public File getSaveFile(ACheckboardGame game) {
-        return new File(game.getClass().getSimpleName() + ".save");
+        return new File(getFilesDir(), game.getClass().getSimpleName() + ".save");
     }
 
 	@Override

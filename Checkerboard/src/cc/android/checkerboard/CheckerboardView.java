@@ -592,30 +592,31 @@ public class CheckerboardView extends View {
 
         if (game == null)
             drawCheckerboard(canvas, width, height, dim, RANKS, COLUMNS);
+        else {
+            switch (game.getBoardType()) {
+                case DAMA:
+                    drawDamaboard(canvas, width, height, dim, RANKS, COLUMNS);
+                    break;
+                default:
+                    drawCheckerboard(canvas, width, height, dim, RANKS, COLUMNS);
+            }
 
-        switch (game.getBoardType()) {
-            case DAMA:
-                drawDamaboard(canvas, width, height, dim, RANKS, COLUMNS);
-                break;
-            default:
-                drawCheckerboard(canvas, width, height, dim, RANKS, COLUMNS);
-        }
-
-        if (game != null) {
             drawCapturedPieces(canvas, width, height, dim);
             drawBoardPieces(canvas, width, height, dim, RANKS, COLUMNS);
         }
     }
 
     private void drawDamaboard(Canvas canvas, float width, float height, float dim, int RANKS, int COLUMNS) {
+        boardPadding = 0;
         pFill.setColor(getResources().getColor(R.color.dama_board));
         canvas.drawRect(0, 0, dim, dim, pFill);
         pStroke.setColor(Color.BLACK);
         pStroke.setStrokeWidth(getResources().getDimension(R.dimen.dama_line));
         for (int i=0; i<=RANKS; i++) {
-            for (int ii=0; ii<=COLUMNS; ii++) {
-                canvas.drawLine(i*cellDim, 0, i*cellDim, dim, pStroke);
-            }
+            canvas.drawLine(i*cellDim, 0, i*cellDim, dim, pStroke);
+        }
+        for (int i=0; i<=COLUMNS; i++) {
+            canvas.drawLine(0, i*cellDim, dim, i*cellDim, pStroke);
         }
     }
 
