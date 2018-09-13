@@ -136,18 +136,10 @@ public class EZFrame extends JFrame implements WindowListener, ComponentListener
     }
 
     public void setProperties(Properties props) {
-        Properties p = new Properties();
-        try (InputStream in = new FileInputStream(propertiesFile)) {
-            p.load(in);
-        } catch (Exception e) {
-            e.printStackTrace();
-            // oh well!
-        }
-        p.putAll(props);
         try {
             OutputStream out = new FileOutputStream(propertiesFile);
             try {
-                p.store(out, "");
+                props.store(out, "");
             } finally {
                 out.close();
             }

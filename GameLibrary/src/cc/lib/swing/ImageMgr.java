@@ -63,7 +63,7 @@ public class ImageMgr {
 			in.read(buffer);
 			return new ImageIcon(buffer).getImage();
 		} catch (Exception e) {
-			log.debug(e.getMessage());
+			log.error(e);
 			return null;
 		} finally {
 			try {
@@ -263,7 +263,7 @@ public class ImageMgr {
 		Image image = scaledImages.get(id);
 		int curW = image.getWidth(comp);
 		int curH = image.getHeight(comp);
-		if (width >= 8 && width <= 1024 && height >= 8 && height <= 1024 && (Math.abs(curW - width) > 1 || Math.abs(curH - height) > 1)) {
+		if (width >= 8 && width <= 1024*8 && height >= 8 && height <= 1024*8 && (Math.abs(curW - width) > 1 || Math.abs(curH - height) > 1)) {
 			//log.debug("Resizing image [" + id + "] from " + curW + ", " + curH + " too " + width + ", " + height);
 		    log.debug("Resizing image [%d] from %d, %d too %d, %d", id, curW, curH, width, height);
 

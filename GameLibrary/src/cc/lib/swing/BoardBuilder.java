@@ -1,6 +1,7 @@
 package cc.lib.swing;
 
 import java.io.File;
+import java.util.Properties;
 
 import cc.lib.board.BVertex;
 import cc.lib.board.GenericBoard;
@@ -42,11 +43,18 @@ public class BoardBuilder extends AWTComponent {
     BoardBuilder() {
         setMouseEnabled(true);
         setPadding(10);
-        frame.addMenuBarMenu("File", "New Board", "Load Board", "Load Image", "Save As...", "Save");
+        frame.addMenuBarMenu("File", "New Board", "Load Board", "Load Image", "Clear Image", "Save As...", "Save");
         frame.add(this);
         board.tryLoadFromFile(new File("bb.backup.board"));
         if (!frame.loadFromFile(new File("bb.properties")))
             frame.centerToScreen(640, 480);
+    }
+
+    @Override
+    protected void init(AWTGraphics g) {
+        String image = frame.getProperties().getProperty("image");
+        if (image != null)
+            background = g.loadImage(image);
     }
 
     @Override
@@ -62,8 +70,13 @@ public class BoardBuilder extends AWTComponent {
         g.setLineWidth(3);
         board.drawEdges(g);
         g.setPointSize(5);
-        g.setColor(GColor.RED);
+        g.setColor(GColor.GREEN);
         board.drawVerts(g);
+        if (selectedVertex >= 0) {
+            g.setColor(GColor.RED);
+            g.vertex(board.getVertex(selectedVertex));
+            g.drawPoints();
+        }
     }
 
     File boardFile = null;
@@ -93,6 +106,10 @@ public class BoardBuilder extends AWTComponent {
                     background = getAPGraphics().loadImage(file.getAbsolutePath());
                     if (background < 0) {
                         showMessageDialog(frame, "Error", "Failed to load image\n" + file.getAbsolutePath());
+                    } else {
+                        Properties p = frame.getProperties();
+                        p.setProperty("image", file.getAbsolutePath());
+                        frame.setProperties(p);
                     }
                 }
                 break;
@@ -117,6 +134,15 @@ public class BoardBuilder extends AWTComponent {
                         showMessageDialog(frame, "Error", "Failed to Save file\n" + boardFile.getAbsolutePath() + "\n\n" + e.getClass().getSimpleName() + ":" + e.getMessage());
                     }
                 }
+                break;
+            }
+
+            case "Clear Image": {
+                background = -1;
+                Properties p = frame.getProperties();
+                p.remove("image");
+                frame.setProperties(p);
+                break;
             }
         }
         repaint();

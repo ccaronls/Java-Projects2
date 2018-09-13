@@ -53,7 +53,7 @@ public class GenericBoard extends Reflector<GenericBoard> {
             throw new AssertionError("From Index < 0");
         if (to < 0)
             throw new AssertionError("From Index < 0");
-        if (from > to)
+        if (from >= to)
             throw new AssertionError("From > to");
 
         int index = edges.size();

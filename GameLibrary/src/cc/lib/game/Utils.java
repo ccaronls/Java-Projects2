@@ -2003,4 +2003,12 @@ public class Utils {
         System.out.println("Parsed " + numParsed + " strings");
     }
 
+    public static String formatNoThrow(String msg, Object ... args) {
+        try {
+            return String.format(msg, args);
+        } catch (Exception e) {
+            return e.getClass().getSimpleName() + ":" + e.getMessage();
+        }
+    }
+
 }

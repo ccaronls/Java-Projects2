@@ -20,12 +20,12 @@ public class BVertex extends Reflector<BVertex> implements IVector2D {
 
     @Override
     public float getX() {
-        return 0;
+        return x;
     }
 
     @Override
     public float getY() {
-        return 0;
+        return y;
     }
 
     public void set(IVector2D v) {
