@@ -2,19 +2,21 @@ package cc.lib.swing;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.swing.*;
+import javax.swing.filechooser.*;
 
 import cc.lib.game.*;
-import cc.lib.swing.*;
-
 
 
 /**
  * Created by chriscaron on 2/21/18.
  */
 
-public abstract class AWTComponent extends JComponent implements Renderable, MouseListener, MouseMotionListener, MouseWheelListener {
+public abstract class AWTComponent extends JComponent implements Renderable, MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
 
     private AWTGraphics G = null;
     private int mouseX = -1;
@@ -33,11 +35,13 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
             addMouseMotionListener(this);
             addMouseWheelListener(this);
             setFocusable(true);
+            addKeyListener(this);
         } else {
             removeMouseListener(this);
             removeMouseMotionListener(this);
             removeMouseWheelListener(this);
             setFocusable(false);
+            removeKeyListener(this);
             mouseX = mouseY = -1;
         }
     }
@@ -136,7 +140,7 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
     public final void mouseReleased(MouseEvent e) {
         //Utils.println("mouseReleased");
         if (dragging) {
-            stopDrag();
+            onDragStopped();
             dragging = false;
         }
         mouseX = e.getX();
@@ -184,7 +188,7 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
         mouseX = e.getX();
         mouseY = e.getY();
         if (!dragging) {
-            startDrag(mouseX, mouseY);
+            onDragStarted(mouseX, mouseY);
             dragging = true;
         }
         //Utils.println("mouseDragged");
@@ -199,9 +203,27 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
         repaint();
     }
 
-    protected void startDrag(int x, int y) {}
+    public void keyTyped(KeyEvent evt) {
+    }
 
-    protected void stopDrag() {}
+    public void keyPressed(KeyEvent evt) {
+        int c = evt.getKeyChar();
+    }
+
+    public void keyReleased(KeyEvent evt) {
+    }
+
+    public int getMouseX() {
+        return mouseX;
+    }
+
+    public int getMouseY() {
+        return mouseY;
+    }
+
+    protected void onDragStarted(int x, int y) {}
+
+    protected void onDragStopped() {}
 
     protected void onClick() {}
 
@@ -257,5 +279,73 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
 
     public final void setBackground(GColor color) {
         super.setBackground(AWTUtils.toColor(color));
+    }
+
+    static FileFilter getExtensionFilter(final String ext, final boolean acceptDirectories) {
+
+        return new FileFilter() {
+
+            public boolean accept(File file) {
+                if (file.isDirectory() && acceptDirectories)
+                    return true;
+                return file.getName().endsWith(ext);
+            }
+
+            public String getDescription() {
+                return "SOC Board Files";
+            }
+
+        };
+    }
+
+    private File workingDir = new File(".");
+
+    public File showFileOpenChooser(EZFrame frame, String title, String extension) {
+        JFileChooser chooser = new JFileChooser();
+        chooser.setCurrentDirectory(workingDir);
+        chooser.setDialogTitle(title);
+        chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        if (extension != null) {
+            if (!extension.startsWith("."))
+                extension = "." + extension;
+            chooser.setFileFilter(getExtensionFilter(extension, true));
+        }
+        int result = chooser.showOpenDialog(frame);
+        if (result == JFileChooser.APPROVE_OPTION) {
+            File file = chooser.getSelectedFile();
+            workingDir = file.getParentFile();
+            String fileName = file.getAbsolutePath();
+            if (extension != null && !fileName.endsWith(extension))
+                fileName += extension;
+            return new File(fileName);
+        }
+        return null;
+    }
+
+    public File showFileSaveChooser(EZFrame frame, String title, String extension, File selectedFile) {
+        final JFileChooser chooser = new JFileChooser();
+        chooser.setSelectedFile(selectedFile);
+        chooser.setCurrentDirectory(workingDir);
+        chooser.setDialogTitle(title);
+        chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        if (extension != null) {
+            if (!extension.startsWith("."))
+                extension = "." + extension;
+            chooser.setFileFilter(getExtensionFilter(extension, true));
+        }
+        int result = chooser.showSaveDialog(frame);
+        if (result == JFileChooser.APPROVE_OPTION) {
+            File file = chooser.getSelectedFile();
+            workingDir = file.getParentFile();
+            String fileName = file.getAbsolutePath();
+            if (extension != null && !fileName.endsWith(extension))
+                fileName += extension;
+            return new File(file.getParent(), fileName);
+        }
+        return null;
+    }
+
+    public void showMessageDialog(EZFrame frame, String title, String message) {
+        JOptionPane.showMessageDialog(frame, message, title, JOptionPane.PLAIN_MESSAGE);
     }
 }

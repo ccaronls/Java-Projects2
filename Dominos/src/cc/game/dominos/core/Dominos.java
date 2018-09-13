@@ -48,7 +48,7 @@ import cc.lib.utils.Reflector;
  * D.redraw()
  *
  * on drag start event:
- * D.startDrag(mouseX, mouseY)
+ * D.onDragStarted(mouseX, mouseY)
  *
  * on drag end event
  * D.endDrag(mouseX, mouseY)

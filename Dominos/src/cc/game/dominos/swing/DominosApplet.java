@@ -247,12 +247,12 @@ public class DominosApplet extends AWTComponent implements GameServer.Listener {
     }
 
     @Override
-    protected void startDrag(int x, int y) {
+    protected void onDragStarted(int x, int y) {
         dominos.startDrag();
     }
 
     @Override
-    protected void stopDrag() {
+    protected void onDragStopped() {
         dominos.stopDrag();
     }
 

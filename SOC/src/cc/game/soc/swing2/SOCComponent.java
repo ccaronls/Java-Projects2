@@ -50,12 +50,12 @@ public class SOCComponent extends AWTComponent implements UIComponent {
     }
 
     @Override
-    protected final void startDrag(int x, int y) {
+    protected final void onDragStarted(int x, int y) {
         delegate.startDrag(x, y);
     }
 
     @Override
-    protected final void stopDrag() {
+    protected final void onDragStopped() {
         delegate.endDrag();
     }
 

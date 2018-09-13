@@ -135,6 +135,27 @@ public class EZFrame extends JFrame implements WindowListener, ComponentListener
         }
     }
 
+    public void setProperties(Properties props) {
+        Properties p = new Properties();
+        try (InputStream in = new FileInputStream(propertiesFile)) {
+            p.load(in);
+        } catch (Exception e) {
+            e.printStackTrace();
+            // oh well!
+        }
+        p.putAll(props);
+        try {
+            OutputStream out = new FileOutputStream(propertiesFile);
+            try {
+                p.store(out, "");
+            } finally {
+                out.close();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     public boolean loadFromFile(File propertiesFile) {
 	    this.propertiesFile = propertiesFile;
 	    try {
@@ -352,5 +373,23 @@ public class EZFrame extends JFrame implements WindowListener, ComponentListener
                 clearContainersBackgrounds((Container)comp);
             }
         }
+    }
+
+    /**
+     * Load properties from file
+     *
+     * @return
+     */
+    public Properties getProperties() {
+        Properties p = new Properties();
+        if (propertiesFile != null) {
+            try (InputStream in = new FileInputStream(propertiesFile)) {
+                p.load(in);
+            } catch (Exception e) {
+                e.printStackTrace();
+                // oh well!
+            }
+        }
+        return p;
     }
 }
