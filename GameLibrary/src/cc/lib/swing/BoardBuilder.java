@@ -6,7 +6,6 @@ import java.util.Properties;
 import cc.lib.board.BVertex;
 import cc.lib.board.GenericBoard;
 import cc.lib.game.GColor;
-import cc.lib.game.IVector2D;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
 
@@ -26,6 +25,9 @@ public class BoardBuilder extends AWTComponent {
                     onFileMenu(subMenu);
                     break;
 
+                case "Mode":
+                    onModeMenu(subMenu);
+
                 default:
                     log.warn("Unhandled case %s", menu);
             }
@@ -37,24 +39,40 @@ public class BoardBuilder extends AWTComponent {
         }
     };
 
-    GenericBoard board = new GenericBoard();
+    final GenericBoard board = new GenericBoard();
     int background = -1;
+    int selectedVertex = -1;
+    File boardFile;
 
     BoardBuilder() {
         setMouseEnabled(true);
         setPadding(10);
         frame.addMenuBarMenu("File", "New Board", "Load Board", "Load Image", "Clear Image", "Save As...", "Save");
+        frame.addMenuBarMenu("Mode", "Vert", "Cell");
         frame.add(this);
-        board.tryLoadFromFile(new File("bb.backup.board"));
         if (!frame.loadFromFile(new File("bb.properties")))
             frame.centerToScreen(640, 480);
     }
 
+    float progress = 0;
+
     @Override
     protected void init(AWTGraphics g) {
-        String image = frame.getProperties().getProperty("image");
+        Properties p = frame.getProperties();
+        progress += 0.1f;
+        String image = p.getProperty("image");
         if (image != null)
             background = g.loadImage(image);
+        progress = 0.5f;
+        boardFile = new File(p.getProperty("boardFile", "bb.backup.board"));
+        progress = 0.75f;
+        board.tryLoadFromFile(boardFile);
+        progress = 1;
+    }
+
+    @Override
+    protected float getInitProgress() {
+        return progress;
     }
 
     @Override
@@ -74,17 +92,37 @@ public class BoardBuilder extends AWTComponent {
         board.drawVerts(g);
         if (selectedVertex >= 0) {
             g.setColor(GColor.RED);
+            g.begin();
             g.vertex(board.getVertex(selectedVertex));
-            g.drawPoints();
+            g.drawPoints(8);
+        }
+        int highlighted = board.pickVertex(g, mouseX, mouseY);
+        if (highlighted >= 0) {
+            g.setColor(GColor.MAGENTA);
+            g.begin();
+            g.vertex(board.getVertex(highlighted));
+            g.drawPoints(8);
         }
     }
 
-    File boardFile = null;
+    void setBoardFile(File file) {
+        boardFile = file;
+        Properties p = frame.getProperties();
+        p.setProperty("boardFile", boardFile.getAbsolutePath());
+        frame.setProperties(p);
+    }
+
+    void onModeMenu(String item) {
+        switch (item) {
+            case "Vert":
+            case "Cell":
+        }
+    }
 
     void onFileMenu(String item) {
         switch (item) {
             case "New Board":
-                board = new GenericBoard();
+                board.clear();
                 break;
             case "Load Board": {
                 File file = showFileOpenChooser(frame, "Load Board", "board");
@@ -92,8 +130,8 @@ public class BoardBuilder extends AWTComponent {
                     try {
                         GenericBoard b = new GenericBoard();
                         b.loadFromFile(file);
-                        board = b;
-                        boardFile = file;
+                        board.copyFrom(b);
+                        setBoardFile(file);
                     } catch (Exception e) {
                         showMessageDialog(frame, "Error", "Failed to load file\n" + file.getAbsolutePath() + "\n\n" + e.getClass().getSimpleName() + ":" + e.getMessage());
                     }
@@ -119,7 +157,7 @@ public class BoardBuilder extends AWTComponent {
                 if (file != null) {
                     try {
                         board.saveToFile(file);
-                        boardFile = file;
+                        setBoardFile(file);
                     } catch (Exception e) {
                         showMessageDialog(frame, "Error", "Failed to Save file\n" + file.getAbsolutePath() + "\n\n" + e.getClass().getSimpleName() + ":" + e.getMessage());
                     }
@@ -148,8 +186,6 @@ public class BoardBuilder extends AWTComponent {
         repaint();
     }
 
-    int selectedVertex = -1;
-
     @Override
     protected void onClick() {
         int picked = board.pickVertex(getAPGraphics(), getMouseX(), getMouseY());
@@ -161,10 +197,6 @@ public class BoardBuilder extends AWTComponent {
         }
         selectedVertex = picked;
         repaint();
-    }
-
-    IVector2D getMousePos() {
-        return getAPGraphics().screenToViewport(getMouseX(), getMouseY());
     }
 
     @Override

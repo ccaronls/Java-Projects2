@@ -1,5 +1,6 @@
 package cc.lib.board;
 
+import java.util.Collections;
 import java.util.Vector;
 
 import cc.lib.game.AGraphics;
@@ -49,19 +50,55 @@ public class GenericBoard extends Reflector<GenericBoard> {
     }
 
     public int addEdge(int from, int to) {
-        if (from < 0)
-            throw new AssertionError("From Index < 0");
-        if (to < 0)
-            throw new AssertionError("From Index < 0");
-        if (from >= to)
-            throw new AssertionError("From > to");
-
         int index = edges.size();
-        edges.add(new BEdge(Math.min(from, to), Math.max(from, to)));
+        edges.add(new BEdge(from, to));
         return index;
     }
 
     public BVertex getVertex(int index) {
         return verts.get(index);
+    }
+
+    public void clear() {
+        verts.clear();
+        edges.clear();
+        cells.clear();
+    }
+
+    public void compute() {
+
+        for (BVertex v : verts) {
+            v.numAdjCells=0;
+            v.numAdjVerts=0;
+        }
+
+        for (BEdge e : edges) {
+            e.numAdjCells=0;
+            verts.get(e.from).addAdjacentVertex(e.to);
+            verts.get(e.to).addAdjacentVertex(e.from);
+        }
+
+        Collections.sort(edges);
+        cells.clear();
+        // dfs search the edges
+        int [] flag = new int[edges.size()];
+
+    }
+
+    private void dfsFindCells(int [] edgeflags, int v) {
+        BVertex bv = verts.get(v);
+        for (int i=0; i<bv.numAdjVerts; i++) {
+            int eIndex = getEdgeIndex(v, bv.adjacentVerts[i]);
+            if (edgeflags[eIndex] != 0)
+                continue;
+        }
+    }
+
+    public int getEdgeIndex(int from, int to) {
+        if (from < 0 || from >= verts.size())
+            throw new IndexOutOfBoundsException("From not in range 0-" + verts.size());
+        if (to < 0 || to >= verts.size())
+            throw new IndexOutOfBoundsException("To not in range 0-" + verts.size());
+        return Collections.binarySearch(edges, new BEdge(from, to));
     }
 }

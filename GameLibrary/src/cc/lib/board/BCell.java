@@ -11,10 +11,10 @@ public class BCell extends Reflector<BCell> implements IVector2D {
 
     float cx, cy;
 
-    public BCell() {}
+    int [] adjacentVerts = new int[16];
+    int numAdjVerts;
 
-    final int [] verts = new int[8];
-    int numVerts = 0;
+    public BCell() {}
 
     @Override
     public float getX() {
