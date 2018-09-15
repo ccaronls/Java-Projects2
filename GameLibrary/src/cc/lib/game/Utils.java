@@ -1722,8 +1722,11 @@ public class Utils {
             n--;
         } while (swapped);
     }
-
     public static <T extends Comparable<T>, S> void bubbleSort(T[] primary, S[] target) {
+        bubbleSort(primary, target, false);
+    }
+
+    public static <T extends Comparable<T>, S> void bubbleSort(T[] primary, S[] target, boolean descending) {
         assert (target.length >= primary.length);
         boolean swapped = false;
         int n = primary.length;
@@ -1731,6 +1734,9 @@ public class Utils {
             swapped = false;
             for (int ii = 1; ii < n; ii++) {
                 int c = primary[ii - 1].compareTo(primary[ii]);
+                if (descending) {
+                    c = -c;
+                }
                 if (c > 0) {
                     swapElems(primary, ii - 1, ii);
                     swapElems(target, ii - 1, ii);

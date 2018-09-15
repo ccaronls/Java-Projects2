@@ -21,6 +21,7 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
 
 
     enum VKKey {
+        VK_UNKNOWN(-1),
         VK_0(KeyEvent.VK_0),
         VK_1(KeyEvent.VK_1),
         VK_2(KeyEvent.VK_2),
@@ -32,53 +33,61 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
         VK_8(KeyEvent.VK_8),
         VK_9(KeyEvent.VK_9),
         VK_A(KeyEvent.VK_A),
+        VK_B(KeyEvent.VK_B),
+        VK_C(KeyEvent.VK_C),
+        VK_D(KeyEvent.VK_D),
+        VK_E(KeyEvent.VK_E),
+        VK_F(KeyEvent.VK_F),
+        VK_G(KeyEvent.VK_G),
+        VK_H(KeyEvent.VK_H),
+        VK_I(KeyEvent.VK_I),
+        VK_J(KeyEvent.VK_J),
+        VK_K(KeyEvent.VK_K),
+        VK_L(KeyEvent.VK_L),
+        VK_M(KeyEvent.VK_M),
+        VK_N(KeyEvent.VK_N),
+        VK_O(KeyEvent.VK_O),
+        VK_P(KeyEvent.VK_P),
+        VK_Q(KeyEvent.VK_Q),
+        VK_R(KeyEvent.VK_R),
+        VK_S(KeyEvent.VK_S),
+        VK_T(KeyEvent.VK_T),
+        VK_U(KeyEvent.VK_U),
+        VK_V(KeyEvent.VK_V),
+        VK_W(KeyEvent.VK_W),
+        VK_X(KeyEvent.VK_X),
+        VK_Y(KeyEvent.VK_Y),
+        VK_Z(KeyEvent.VK_Z),
         VK_ACCEPT(KeyEvent.VK_ACCEPT),
         VK_ADD(KeyEvent.VK_ADD),
         VK_AGAIN(KeyEvent.VK_AGAIN),
         VK_ALL_CANDIDATES(KeyEvent.VK_ALL_CANDIDATES),
-
         VK_ALPHANUMERIC(KeyEvent.VK_ALPHANUMERIC),
-
         VK_ALT(KeyEvent.VK_ALT),
         VK_ALT_GRAPH(KeyEvent.VK_ALT_GRAPH),
-
         VK_AMPERSAND(KeyEvent.VK_AMPERSAND),
         VK_ASTERISK(KeyEvent.VK_ASTERISK),
         VK_AT(KeyEvent.VK_AT),
-
-        VK_B(KeyEvent.VK_B),
         VK_BACK_QUOTE(KeyEvent.VK_BACK_QUOTE),
         VK_BACK_SLASH(KeyEvent.VK_BACK_SLASH),
-
         VK_BACK_SPACE(KeyEvent.VK_BACK_SPACE),
         VK_BEGIN(KeyEvent.VK_BEGIN),
-
         VK_BRACELEFT(KeyEvent.VK_BRACELEFT),
         VK_BRACERIGHT(KeyEvent.VK_BRACERIGHT),
-        VK_C(KeyEvent.VK_C),
         VK_CANCEL(KeyEvent.VK_CANCEL),
         VK_CAPS_LOCK(KeyEvent.VK_CAPS_LOCK),
         VK_CIRCUMFLEX(KeyEvent.VK_CIRCUMFLEX),
-
         VK_CLEAR(KeyEvent.VK_CLEAR),
         VK_CLOSE_BRACKET(KeyEvent.VK_CLOSE_BRACKET),
-
         VK_CODE_INPUT(KeyEvent.VK_CODE_INPUT),
-
         VK_COLON(KeyEvent.VK_COLON),
-
         VK_COMMA(KeyEvent.VK_COMMA),
-
         VK_COMPOSE(KeyEvent.VK_COMPOSE),
-
         VK_CONTEXT_MENU(KeyEvent.VK_CONTEXT_MENU),
-
         VK_CONTROL(KeyEvent.VK_CONTROL),
         VK_CONVERT(KeyEvent.VK_CONVERT),
-
         VK_COPY(KeyEvent.VK_COPY),
         VK_CUT(KeyEvent.VK_CUT),
-        VK_D(KeyEvent.VK_D),
         VK_DEAD_ABOVEDOT(KeyEvent.VK_DEAD_ABOVEDOT),
         VK_DEAD_ABOVERING(KeyEvent.VK_DEAD_ABOVERING),
         VK_DEAD_ACUTE(KeyEvent.VK_DEAD_ACUTE),
@@ -99,127 +108,69 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
         VK_DELETE(KeyEvent.VK_DELETE),
         VK_DIVIDE(KeyEvent.VK_DIVIDE),
         VK_DOLLAR(KeyEvent.VK_DOLLAR),
-
         VK_DOWN(KeyEvent.VK_DOWN),
-
-        VK_E(KeyEvent.VK_E),
         VK_END(KeyEvent.VK_END),
         VK_ENTER(KeyEvent.VK_ENTER),
         VK_EQUALS(KeyEvent.VK_EQUALS),
-
         VK_ESCAPE(KeyEvent.VK_ESCAPE),
         VK_EURO_SIGN(KeyEvent.VK_EURO_SIGN),
-
         VK_EXCLAMATION_MARK(KeyEvent.VK_EXCLAMATION_MARK),
-
-        VK_F(KeyEvent.VK_F),
         VK_F1(KeyEvent.VK_F1),
-
         VK_F10(KeyEvent.VK_F10),
-
         VK_F11(KeyEvent.VK_F11),
-
         VK_F12(KeyEvent.VK_F12),
-
         VK_F13(KeyEvent.VK_F13),
-
         VK_F14(KeyEvent.VK_F14),
-
         VK_F15(KeyEvent.VK_F15),
-
         VK_F16(KeyEvent.VK_F16),
-
         VK_F17(KeyEvent.VK_F17),
-
         VK_F18(KeyEvent.VK_F18),
-
         VK_F19(KeyEvent.VK_F19),
-
         VK_F2(KeyEvent.VK_F2),
-
         VK_F20(KeyEvent.VK_F20),
-
         VK_F21(KeyEvent.VK_F21),
-
         VK_F22(KeyEvent.VK_F22),
-
         VK_F23(KeyEvent.VK_F23),
-
         VK_F24(KeyEvent.VK_F24),
-
         VK_F3(KeyEvent.VK_F3),
-
         VK_F4(KeyEvent.VK_F4),
-
         VK_F5(KeyEvent.VK_F5),
-
         VK_F6(KeyEvent.VK_F6),
-
         VK_F7(KeyEvent.VK_F7),
-
         VK_F8(KeyEvent.VK_F8),
-
         VK_F9(KeyEvent.VK_F9),
-
         VK_FINAL(KeyEvent.VK_FINAL),
         VK_FIND(KeyEvent.VK_FIND),
         VK_FULL_WIDTH(KeyEvent.VK_FULL_WIDTH),
-
-        VK_G(KeyEvent.VK_G),
         VK_GREATER(KeyEvent.VK_GREATER),
-        VK_H(KeyEvent.VK_H),
         VK_HALF_WIDTH(KeyEvent.VK_HALF_WIDTH),
-
         VK_HELP(KeyEvent.VK_HELP),
         VK_HIRAGANA(KeyEvent.VK_HIRAGANA),
-
         VK_HOME(KeyEvent.VK_HOME),
-        VK_I(KeyEvent.VK_I),
         VK_INPUT_METHOD_ON_OFF(KeyEvent.VK_INPUT_METHOD_ON_OFF),
-
         VK_INSERT(KeyEvent.VK_INSERT),
         VK_INVERTED_EXCLAMATION_MARK(KeyEvent.VK_INVERTED_EXCLAMATION_MARK),
-
-        VK_J(KeyEvent.VK_J),
         VK_JAPANESE_HIRAGANA(KeyEvent.VK_JAPANESE_HIRAGANA),
-
         VK_JAPANESE_KATAKANA(KeyEvent.VK_JAPANESE_KATAKANA),
-
         VK_JAPANESE_ROMAN(KeyEvent.VK_JAPANESE_ROMAN),
-
-        VK_K(KeyEvent.VK_K),
         VK_KANA(KeyEvent.VK_KANA),
         VK_KANA_LOCK(KeyEvent.VK_KANA_LOCK),
-
         VK_KANJI(KeyEvent.VK_KANJI),
         VK_KATAKANA(KeyEvent.VK_KATAKANA),
-
         VK_KP_DOWN(KeyEvent.VK_KP_DOWN),
-
         VK_KP_LEFT(KeyEvent.VK_KP_LEFT),
-
         VK_KP_RIGHT(KeyEvent.VK_KP_RIGHT),
-
         VK_KP_UP(KeyEvent.VK_KP_UP),
-
-        VK_L(KeyEvent.VK_L),
         VK_LEFT(KeyEvent.VK_LEFT),
-
         VK_LEFT_PARENTHESIS(KeyEvent.VK_LEFT_PARENTHESIS),
-
         VK_LESS(KeyEvent.VK_LESS),
-        VK_M(KeyEvent.VK_M),
         VK_META(KeyEvent.VK_META),
         VK_MINUS(KeyEvent.VK_MINUS),
-
         VK_MODECHANGE(KeyEvent.VK_MODECHANGE),
         VK_MULTIPLY(KeyEvent.VK_MULTIPLY),
-        VK_N(KeyEvent.VK_N),
         VK_NONCONVERT(KeyEvent.VK_NONCONVERT),
-
         VK_NUM_LOCK(KeyEvent.VK_NUM_LOCK),
         VK_NUMBER_SIGN(KeyEvent.VK_NUMBER_SIGN),
-
         VK_NUMPAD0(KeyEvent.VK_NUMPAD0),
         VK_NUMPAD1(KeyEvent.VK_NUMPAD1),
         VK_NUMPAD2(KeyEvent.VK_NUMPAD2),
@@ -230,67 +181,60 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
         VK_NUMPAD7(KeyEvent.VK_NUMPAD7),
         VK_NUMPAD8(KeyEvent.VK_NUMPAD8),
         VK_NUMPAD9(KeyEvent.VK_NUMPAD9),
-        VK_O(KeyEvent.VK_O),
         VK_OPEN_BRACKET(KeyEvent.VK_OPEN_BRACKET),
-
-        VK_P(KeyEvent.VK_P),
         VK_PAGE_DOWN(KeyEvent.VK_PAGE_DOWN),
         VK_PAGE_UP(KeyEvent.VK_PAGE_UP),
         VK_PASTE(KeyEvent.VK_PASTE),
         VK_PAUSE(KeyEvent.VK_PAUSE),
         VK_PERIOD(KeyEvent.VK_PERIOD),
-
         VK_PLUS(KeyEvent.VK_PLUS),
-
         VK_PREVIOUS_CANDIDATE(KeyEvent.VK_PREVIOUS_CANDIDATE),
-
         VK_PRINTSCREEN(KeyEvent.VK_PRINTSCREEN),
         VK_PROPS(KeyEvent.VK_PROPS),
-        VK_Q(KeyEvent.VK_Q),
         VK_QUOTE(KeyEvent.VK_QUOTE),
         VK_QUOTEDBL(KeyEvent.VK_QUOTEDBL),
-        VK_R(KeyEvent.VK_R),
         VK_RIGHT(KeyEvent.VK_RIGHT),
-
         VK_RIGHT_PARENTHESIS(KeyEvent.VK_RIGHT_PARENTHESIS),
-
         VK_ROMAN_CHARACTERS(KeyEvent.VK_ROMAN_CHARACTERS),
-
-        VK_S(KeyEvent.VK_S),
         VK_SCROLL_LOCK(KeyEvent.VK_SCROLL_LOCK),
         VK_SEMICOLON(KeyEvent.VK_SEMICOLON),
-
         VK_SEPARATER(KeyEvent.VK_SEPARATER),
         VK_SEPARATOR(KeyEvent.VK_SEPARATOR),
-
         VK_SHIFT(KeyEvent.VK_SHIFT),
         VK_SLASH(KeyEvent.VK_SLASH),
-
         VK_SPACE(KeyEvent.VK_SPACE),
         VK_STOP(KeyEvent.VK_STOP),
         VK_SUBTRACT(KeyEvent.VK_SUBTRACT),
-        VK_T(KeyEvent.VK_T),
         VK_TAB(KeyEvent.VK_TAB),
-        VK_U(KeyEvent.VK_U),
         VK_UNDEFINED(KeyEvent.VK_UNDEFINED),
         VK_UNDERSCORE(KeyEvent.VK_UNDERSCORE),
-
         VK_UNDO(KeyEvent.VK_UNDO),
         VK_UP(KeyEvent.VK_UP),
-
-        VK_V(KeyEvent.VK_V),
-        VK_W(KeyEvent.VK_W),
         VK_WINDOWS(KeyEvent.VK_WINDOWS),
-
-        VK_X(KeyEvent.VK_X),
-        VK_Y(KeyEvent.VK_Y),
-        VK_Z(KeyEvent.VK_Z);
+        ;
 
         VKKey(int code) {
-            lookup[code] = this;
+            this.code = code;
         }
 
-        static VKKey [] lookup = new VKKey[256];
+        static VKKey lookup(int code) {
+            if (lookup == null) {
+                int max = 0;
+                for (VKKey k : values()) {
+                    max = Math.max(max, k.code);
+                }
+                lookup = new VKKey[max+1];
+                for (VKKey k : values()) {
+                    lookup[k.code] = k;
+                }
+            }
+            if (code < lookup.length)
+                return lookup[code];
+            return VK_UNKNOWN;
+        }
+
+        private final int code;
+        private static VKKey [] lookup;
     }
 
 
@@ -481,7 +425,7 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
 
     @Override
     public final synchronized void keyTyped(KeyEvent evt) {
-        onKeyTyped(evt.getKeyChar());
+        onKeyTyped(VKKey.lookup(evt.getKeyChar()));
     }
 
     @Override
@@ -493,8 +437,8 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
     public final synchronized void keyReleased(KeyEvent evt) {
     }
 
-    protected void onKeyTyped(int vkkey) {
-        System.out.println("Key '" + vkkey + "'");
+    protected void onKeyTyped(VKKey key) {
+        System.out.println("Key '" + key + "'");
     }
 
     public int getMouseX() {

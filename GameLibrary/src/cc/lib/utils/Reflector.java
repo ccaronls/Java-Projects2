@@ -1037,7 +1037,7 @@ public class Reflector<T> {
                 throw new RuntimeException("Duplicate field.  Field '" + name + "' has already been included for class: " + getCanonicalName(clazz));
             values.put(field, archiver);
             classMap.put(clazz.getName().replace('$', '.'), clazz);
-            log.debug("Added field '" + name + "' for " + clazz);
+            //log.debug("Added field '" + name + "' for " + clazz);
         } catch (RuntimeException e) {
             throw e;
         } catch (NoSuchFieldException e) {

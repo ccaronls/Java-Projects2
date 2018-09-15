@@ -105,6 +105,10 @@ public class Vector2D extends Reflector<Vector2D> implements IVector2D, Serializ
         return new MutableVector2D(this.x - x, this.y - y);
     }
 
+    public static Vector2D sub(IVector2D a, IVector2D b) {
+        return new Vector2D(a.getX()-b.getX(), a.getY()-b.getY());
+    }
+
     public final float dot(IVector2D v) {
         return x*v.getX() + y*v.getY();
     }
@@ -234,11 +238,30 @@ public class Vector2D extends Reflector<Vector2D> implements IVector2D, Serializ
         return rotate(degrees, newTemp());
     }
 
+    /**
+     * Returns always positive angle between 2 vectors 0-180
+     * @param v
+     * @return
+     */
     public final float angleBetween(IVector2D v) {
         float dv = dot(v);
         return (float)Math.acos(dv / (mag() * mag(v))) * CMath.RAD_TO_DEG;
     }
-    
+
+    /**
+     * Returns value between 180-180
+     * @param v
+     * @return
+     */
+    public final float angleBetweenSigned(IVector2D v) {
+        float ang = angleBetween(v);
+        if (dot(v) > 0) {
+            return ang;
+        } else {
+            return -ang;
+        }
+    }
+
     public final float angleOf() {
         if (Math.abs(x) < CMath.EPSILON)
             return (y > 0 ? 90 : 270);

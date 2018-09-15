@@ -4,7 +4,7 @@ import java.io.File;
 import java.util.Properties;
 
 import cc.lib.board.BVertex;
-import cc.lib.board.GenericBoard;
+import cc.lib.board.CustomBoard;
 import cc.lib.game.GColor;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
@@ -27,6 +27,11 @@ public class BoardBuilder extends AWTComponent {
 
                 case "Mode":
                     onModeMenu(subMenu);
+                    break;
+
+                case "Action":
+                    onActionMenu(subMenu);
+                    break;
 
                 default:
                     log.warn("Unhandled case %s", menu);
@@ -39,7 +44,7 @@ public class BoardBuilder extends AWTComponent {
         }
     };
 
-    final GenericBoard board = new GenericBoard();
+    final CustomBoard board = new CustomBoard();
     int background = -1;
     int selectedVertex = -1;
     File boardFile;
@@ -49,6 +54,7 @@ public class BoardBuilder extends AWTComponent {
         setPadding(10);
         frame.addMenuBarMenu("File", "New Board", "Load Board", "Load Image", "Clear Image", "Save As...", "Save");
         frame.addMenuBarMenu("Mode", "Vert", "Cell");
+        frame.addMenuBarMenu("Action", "Compute");
         frame.add(this);
         if (!frame.loadFromFile(new File("bb.properties")))
             frame.centerToScreen(640, 480);
@@ -90,6 +96,9 @@ public class BoardBuilder extends AWTComponent {
         g.setPointSize(5);
         g.setColor(GColor.GREEN);
         board.drawVerts(g);
+        g.setColor(GColor.BLUE);
+        board.drawCells(g);
+
         if (selectedVertex >= 0) {
             g.setColor(GColor.RED);
             g.begin();
@@ -119,6 +128,15 @@ public class BoardBuilder extends AWTComponent {
         }
     }
 
+    void onActionMenu(String item) {
+        switch (item) {
+            case "Compute":
+                board.compute();
+                break;
+        }
+        repaint();
+    }
+
     void onFileMenu(String item) {
         switch (item) {
             case "New Board":
@@ -128,7 +146,7 @@ public class BoardBuilder extends AWTComponent {
                 File file = showFileOpenChooser(frame, "Load Board", "board");
                 if (file != null) {
                     try {
-                        GenericBoard b = new GenericBoard();
+                        CustomBoard b = new CustomBoard();
                         b.loadFromFile(file);
                         board.copyFrom(b);
                         setBoardFile(file);

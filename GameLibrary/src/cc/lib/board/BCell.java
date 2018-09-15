@@ -1,5 +1,8 @@
 package cc.lib.board;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import cc.lib.game.IVector2D;
 import cc.lib.utils.Reflector;
 
@@ -11,18 +14,28 @@ public class BCell extends Reflector<BCell> implements IVector2D {
 
     float cx, cy;
 
-    int [] adjacentVerts = new int[16];
-    int numAdjVerts;
-
+    final List<Integer> adjVerts = new ArrayList<>();
     public BCell() {}
 
+    BCell(List<Integer> verts) {
+        adjVerts.addAll(verts);
+    }
+
     @Override
-    public float getX() {
+    public final float getX() {
         return cx;
     }
 
     @Override
-    public float getY() {
+    public final float getY() {
         return cy;
+    }
+
+    public final int getNumAdjVerts() {
+        return adjVerts.size();
+    }
+
+    public final int getAdjVertex(int index) {
+        return adjVerts.get(index);
     }
 }
