@@ -112,6 +112,10 @@ public class Vector2D extends Reflector<Vector2D> implements IVector2D, Serializ
     public final float dot(IVector2D v) {
         return x*v.getX() + y*v.getY();
     }
+
+    public final float dotNorm(IVector2D v) {
+        return x*-v.getY() + y*v.getX();
+    }
     
     public final float cross(IVector2D v) {
         return x*v.getY() - v.getX()*y;
@@ -255,7 +259,8 @@ public class Vector2D extends Reflector<Vector2D> implements IVector2D, Serializ
      */
     public final float angleBetweenSigned(IVector2D v) {
         float ang = angleBetween(v);
-        if (dot(v) > 0) {
+        assert(ang >= 0);
+        if (dotNorm(v) < 0) {
             return ang;
         } else {
             return -ang;

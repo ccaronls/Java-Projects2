@@ -1728,6 +1728,8 @@ public class Utils {
 
     public static <T extends Comparable<T>, S> void bubbleSort(T[] primary, S[] target, boolean descending) {
         assert (target.length >= primary.length);
+        if (primary.length < 2)
+            return; // already sorted
         boolean swapped = false;
         int n = primary.length;
         do {
@@ -2017,4 +2019,15 @@ public class Utils {
         }
     }
 
+    /**
+     * Return true if n is between min and max
+     * @param n
+     * @param min
+     * @param max
+     * @param <T>
+     * @return
+     */
+    public static <T extends Number> boolean isBetween(T n, T min, T max) {
+        return n.doubleValue() >= min.doubleValue() && n.doubleValue() <= max.doubleValue();
+    }
 }

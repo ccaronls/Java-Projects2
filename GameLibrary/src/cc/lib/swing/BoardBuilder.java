@@ -82,7 +82,7 @@ public class BoardBuilder extends AWTComponent {
     }
 
     @Override
-    protected void paint(AWTGraphics g, int mouseX, int mouseY) {
+    protected synchronized void paint(AWTGraphics g, int mouseX, int mouseY) {
         g.setIdentity();
         g.ortho();//0, 1, 1, 0);
         if (background >= 0) {
@@ -112,6 +112,14 @@ public class BoardBuilder extends AWTComponent {
             g.vertex(board.getVertex(highlighted));
             g.drawPoints(8);
         }
+        board.drawVertsNumbered(g);
+
+        if (selectedVertex >= 0 && selectedVertex != highlighted) {
+            g.setColor(GColor.RED);
+            g.begin();
+            g.vertex(board.getVertex(selectedVertex));
+            g.drawPoints(8);
+        }
     }
 
     void setBoardFile(File file) {
@@ -128,7 +136,7 @@ public class BoardBuilder extends AWTComponent {
         }
     }
 
-    void onActionMenu(String item) {
+    synchronized void onActionMenu(String item) {
         switch (item) {
             case "Compute":
                 board.compute();
@@ -137,10 +145,11 @@ public class BoardBuilder extends AWTComponent {
         repaint();
     }
 
-    void onFileMenu(String item) {
+    synchronized void onFileMenu(String item) {
         switch (item) {
             case "New Board":
                 board.clear();
+                selectedVertex = -1;
                 break;
             case "Load Board": {
                 File file = showFileOpenChooser(frame, "Load Board", "board");

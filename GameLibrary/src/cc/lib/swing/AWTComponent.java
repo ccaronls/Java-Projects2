@@ -577,7 +577,7 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
         if (result == JFileChooser.APPROVE_OPTION) {
             File file = chooser.getSelectedFile();
             setWorkingDir(frame, file.getParentFile());
-            String fileName = file.getAbsolutePath();
+            String fileName = file.getName();
             if (extension != null && !fileName.endsWith(extension))
                 fileName += extension;
             return new File(file.getParent(), fileName);
