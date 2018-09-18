@@ -29,4 +29,8 @@ public class BEdge extends Reflector<BEdge> implements Comparable<BEdge> {
         }
         return from-o.from;
     }
+
+    public int getNumAdjacentCells() {
+        return numAdjCells;
+    }
 }

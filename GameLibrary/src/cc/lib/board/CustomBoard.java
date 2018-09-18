@@ -1,9 +1,9 @@
 package cc.lib.board;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Vector;
@@ -12,11 +12,15 @@ import cc.lib.game.AGraphics;
 import cc.lib.game.APGraphics;
 import cc.lib.game.IVector2D;
 import cc.lib.game.Utils;
+import cc.lib.logger.Logger;
+import cc.lib.logger.LoggerFactory;
 import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
 import cc.lib.utils.Reflector;
 
 public class CustomBoard extends Reflector<CustomBoard> {
+
+    static Logger log = LoggerFactory.getLogger(CustomBoard.class);
 
     static {
         addAllFields(CustomBoard.class);
@@ -101,10 +105,9 @@ public class CustomBoard extends Reflector<CustomBoard> {
         return addVertex(new Vector2D(x, y));
     }
 
-    public int addEdge(int from, int to) {
+    public void addEdge(int from, int to) {
         int index = edges.size();
         edges.add(newEdge(from, to));
-        return index;
     }
 
     protected BEdge newEdge(int from, int to) {
@@ -117,6 +120,13 @@ public class CustomBoard extends Reflector<CustomBoard> {
 
     public BEdge getEdge(int index) {
         return edges.get(index);
+    }
+
+    public BEdge getEdge(int from, int to) {
+        int index = Collections.binarySearch(edges, new BEdge(from, to));
+        if (index < 0)
+            return null;
+        return getEdge(index);
     }
 
     public BCell getCell(int index) {
@@ -132,8 +142,7 @@ public class CustomBoard extends Reflector<CustomBoard> {
     public void compute() {
 
         for (BVertex v : verts) {
-            v.numAdjCells=0;
-            v.numAdjVerts=0;
+            v.reset();
         }
 
         for (BEdge e : edges) {
@@ -147,12 +156,9 @@ public class CustomBoard extends Reflector<CustomBoard> {
         // dfs search the edges
 
         int [][] lookup = new int[verts.size()][verts.size()];
-        for (BEdge e : edges) {
-            lookup[e.from][e.to] = lookup[e.to][e.from] = 1;
-            e.numAdjCells = 0;
-        }
 
-        dfsGenCells(0, "", lookup, 0, new LinkedList<Integer>());
+        dfs(0, "", 0, lookup, new LinkedList<Integer>());
+        //dfsGenCells(0, "", lookup, 0, new LinkedList<Integer>());
         //bfsGenCells();
 
         // now compute the center of each cell and assign adjCells to edges.
@@ -189,31 +195,93 @@ public class CustomBoard extends Reflector<CustomBoard> {
         return new BCell(pts);
     }
 
+    private void dfs(int d, String indent, int v, int [][] visited, LinkedList<Integer> cell) {
+        if (d > 100) {
+            return;
+        }
+        log.debug("%sDFS %d %s", indent, v, cell);
+        BVertex bv = verts.get(v);
+
+        if (cell.size() > 2 && v == cell.getFirst()) {
+            log.debug("%sADD CELL %s", indent, cell);
+            cells.add(newCell(cell));
+            cell.clear();
+        }
+
+        List<Integer> adjacent = bv.getAdjVerts();
+        Iterator<Integer> it = adjacent.iterator();
+        while (it.hasNext()) {
+            int vv = it.next();
+            if (visited[v][vv] != 0) {
+                it.remove();
+            }
+        }
+        log.debug("%sADJ=%s", indent, adjacent);
+        if (adjacent.size() == 0)
+            return;
+
+        if (cell.size() > 0) {
+            int prev = cell.getLast();
+            boolean removed = adjacent.remove((Object)prev);
+            if (adjacent.size() > 0) {
+                Vector2D dv = Vector2D.sub(bv, verts.get(prev));
+                log.debug("%sdv=%s", indent, dv);
+                Float[] reference = new Float[adjacent.size()];
+                Integer[] target = new Integer[adjacent.size()];
+                for (int i = 0; i < adjacent.size(); i++) {
+                    Vector2D v2 = Vector2D.sub(verts.get(adjacent.get(i)), bv);
+                    reference[i] = dv.angleBetweenSigned(v2);
+                    target[i] = adjacent.get(i);
+                }
+                Utils.bubbleSort(reference, target, true);
+                log.debug("%sSorted edges: %s", indent, Arrays.toString(target));
+                log.debug("%sReference vectors: %s", indent, Arrays.toString(reference));
+
+                adjacent.clear();
+                adjacent.addAll(Arrays.asList(target));
+                if (Utils.isBetween(reference[0], 5, 175)) {
+                    int first = adjacent.remove(0);
+                    visited[v][first] = 1;
+                    cell.add(v);
+                    dfs(d + 1, indent + "  ", first, visited, cell);
+                }
+            }
+//            if (removed) // TODO: Put this back in?
+  //              adjacent.add(prev);
+        }
+
+        for (int vv : adjacent) {
+            cell = new LinkedList<>();
+            visited[v][vv] = 1;
+            cell.add(v);
+            dfs(d+1, indent+"  ", vv, visited, cell);
+        }
+
+        log.debug("%sEND", indent);
+    }
+/*
     private void dfsGenCells(int d, String indent, int [][] lookup, int v,LinkedList<Integer> cell) {
         if (d > 10)
         {
             return;
         }
-        System.out.println(indent + "DFS " + v + " cell: " + cell);
+        log.debug("%sDFS %s cell:%s ", indent, v, cell);
+        if (cell.size() > 1 && v == cell.getFirst()) {
+            log.debug("%sADD CELL %s", indent, cell);
+            cells.add(newCell(cell));
+            cell.clear();
+        }
         int p = -1;
         if (cell.size() > 0)
             p = cell.getLast();
-        if (cell.size() > 2 && v == cell.getFirst()) {
-            System.out.println(indent + "ADD CELL " + cell);
-            cells.add(newCell(cell));
-            int l = cell.getLast();
-            for (int ll : cell) {
-                lookup[l][ll] = 0;
-                l = ll;
-            }
-            cell.clear();
-        } else {
+        // else
+        {
             cell.addLast(v);
             BVertex bv = verts.get(v);
             List<Integer> list = new ArrayList<>();
             for (int i=0; i<bv.numAdjVerts; i++) {
                 int vv = bv.adjacentVerts[i];
-                if (vv != p && lookup[v][vv] == 1) {
+                if (vv != p && lookup[v][vv] != 1) {
                     list.add(vv);
                 }
             }
@@ -222,16 +290,16 @@ public class CustomBoard extends Reflector<CustomBoard> {
             final Integer [] target = list.toArray(new Integer[list.size()]);
             int targetIndex = 0;
             if (p < 0 && target.length>1) {
-                System.out.println(indent + "Case 1:");
+                log.debug("%sCase 1:", indent);
                 Vector2D [] reference = new Vector2D[target.length];
                 for (int i=0; i<target.length; i++) {
                     reference[i] = Vector2D.sub(verts.get(target[i]), bv);
                 }
                 Utils.bubbleSort(reference, target, angComp);
-                System.out.println(indent + "Sorted edges: " + Arrays.toString(target));
-                System.out.println(indent + "Reference vectors: " + Arrays.toString(reference));
+                log.debug("%sSorted edges: %s", indent, Arrays.toString(target));
+                log.debug("%sReference vectors: %s", indent, Arrays.toString(reference));
             } else if (p >=0 ){
-                System.out.println(indent + "Case 2:");
+                log.debug(indent, "Case 2:");
                 // sort the list in decending order of angle of incidence of v->l[i] and prev->v
                 Vector2D V0 = Vector2D.sub(bv, verts.get(p));
                 assert(!V0.isZero());
@@ -243,8 +311,8 @@ public class CustomBoard extends Reflector<CustomBoard> {
                     reference[i] = ang;
                 }
                 Utils.bubbleSort(reference, target, true);
-                System.out.println(indent + "Sorted edges: " + Arrays.toString(target));
-                System.out.println(indent + "Reference vectors: " + Arrays.toString(reference));
+                log.debug("%sSorted edges: %s", indent, Arrays.toString(target));
+                log.debug("%sReference vectors: %s", indent, Arrays.toString(reference));
 
                 if (reference.length == 1 || Utils.isBetween(reference[0], 5, 175)) {
                     int index = target[targetIndex++];
@@ -260,9 +328,9 @@ public class CustomBoard extends Reflector<CustomBoard> {
                 dfsGenCells(d+1, indent+"  ", lookup, target[targetIndex], ll);
             }
         }
-        System.out.println(indent + "END");
+        log.debug("%sEND", indent);
     }
-
+*/
     public int getEdgeIndex(int from, int to) {
         if (from < 0 || from >= verts.size())
             throw new IndexOutOfBoundsException("From not in range 0-" + verts.size());

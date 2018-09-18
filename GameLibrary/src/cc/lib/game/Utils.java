@@ -75,6 +75,11 @@ public class Utils {
             System.out.print(msg);
     }
 
+    /**
+     *
+     * @param c
+     * @param <T>
+     */
     public static <T> void printCollection(Collection<T> c) {
         if (DEBUG_ENABLED) {
             int index = 0;
@@ -146,6 +151,18 @@ public class Utils {
         return false;
     }
 
+    /**
+     *
+     * @param x0
+     * @param y0
+     * @param x1
+     * @param y1
+     * @param x2
+     * @param y2
+     * @param x3
+     * @param y3
+     * @return
+     */
     public static boolean isLineSegsIntersecting(
             int x0, int y0, int x1, int y1, // line segment 1
             int x2, int y2, int x3, int y3) // line segment 2
@@ -225,6 +242,14 @@ public class Utils {
         return 1;
     }
 
+    /**
+     *
+     * @param p0
+     * @param p1
+     * @param p2
+     * @param p3
+     * @return
+     */
     public static int isLineSegsIntersecting(IVector2D p0, IVector2D p1, IVector2D p2, IVector2D p3) {
         return isLineSegsIntersecting(p0.getX(), p0.getY(),
                 p1.getX(), p1.getY(),
@@ -1490,6 +1515,13 @@ public class Utils {
         return min;
     }
 
+    public static Integer [] copyOf(int[] arr, Integer [] copy) {
+        for (int i =0; i<copy.length; i++) {
+            copy[i] = arr[i];
+        }
+        return copy;
+    }
+
     public static int[] copyOf(int[] arr) {
         if (arr == null)
             return null;
@@ -1497,6 +1529,7 @@ public class Utils {
         System.arraycopy(arr, 0, copy, 0, arr.length);
         return copy;
     }
+
 
     public static boolean[] copyOf(boolean[] arr) {
         if (arr == null)
@@ -1706,12 +1739,25 @@ public class Utils {
      * @param <S>
      */
     public static <T, S> void bubbleSort(T[] primary, S[] target, Comparator<T> comp) {
-        assert (target.length >= primary.length);
+        bubbleSort(primary, target, Math.min(primary.length, target.length), comp);
+
+    }
+
+    /**
+     *
+     * @param primary
+     * @param target
+     * @param length
+     * @param comp
+     * @param <T>
+     * @param <S>
+     */
+    public static <T, S> void bubbleSort(T[] primary, S[] target, int length, Comparator<T> comp) {
+        assert (target.length >= length && primary.length >= length);
         boolean swapped = false;
-        int n = primary.length;
         do {
             swapped = false;
-            for (int ii = 1; ii < n; ii++) {
+            for (int ii = 1; ii < length; ii++) {
                 int c = comp.compare(primary[ii - 1], primary[ii]);
                 if (c < 0) {
                     swapElems(primary, ii - 1, ii);
@@ -1719,18 +1765,59 @@ public class Utils {
                     swapped = true;
                 }
             }
-            n--;
+            length--;
         } while (swapped);
     }
+
+    /**
+     *
+     * @param primary
+     * @param target
+     * @param <T>
+     * @param <S>
+     */
     public static <T extends Comparable<T>, S> void bubbleSort(T[] primary, S[] target) {
-        bubbleSort(primary, target, false);
+        bubbleSort(primary, target, Math.min(primary.length, target.length), false);
     }
 
+    /**
+     *
+     * @param primary
+     * @param target
+     * @param length
+     * @param <T>
+     * @param <S>
+     */
+    public static <T extends Comparable<T>, S> void bubbleSort(T[] primary, S[] target, int length) {
+        bubbleSort(primary, target, length, false);
+    }
+
+    /**
+     *
+     * @param primary
+     * @param target
+     * @param descending
+     * @param <T>
+     * @param <S>
+     */
     public static <T extends Comparable<T>, S> void bubbleSort(T[] primary, S[] target, boolean descending) {
+        bubbleSort(primary, target, Math.min(primary.length, target.length), descending);
+    }
+
+    /**
+     *
+     * @param primary
+     * @param target
+     * @param length
+     * @param descending
+     * @param <T>
+     * @param <S>
+     */
+    public static <T extends Comparable<T>, S> void bubbleSort(T[] primary, S[] target, int length, boolean descending) {
         assert (target.length >= primary.length);
         if (primary.length < 2)
             return; // already sorted
-        boolean swapped = false;
+        boolean swapped;
         int n = primary.length;
         do {
             swapped = false;
@@ -1749,6 +1836,13 @@ public class Utils {
         } while (swapped);
     }
 
+    /**
+     *
+     * @param arr
+     * @param key
+     * @param <T>
+     * @return
+     */
     public static <T extends Comparable<T>> int linearSearch(T[] arr, T key) {
         for (int i = 0; i < arr.length; i++) {
             int x = arr[i].compareTo(key);
@@ -1792,6 +1886,12 @@ public class Utils {
         return false;
     }
 
+    /**
+     *
+     * @param c
+     * @param length
+     * @return
+     */
     public static Object getRepeatingChars(char c, int length) {
         String s = "";
         for (int i = 0; i < length; i++)
@@ -1799,6 +1899,11 @@ public class Utils {
         return s;
     }
 
+    /**
+     *
+     * @param argb
+     * @return
+     */
     public static int[] getARGB(int argb) {
         return new int[]{
                 (argb >>> 24) & 0xff,
@@ -1808,6 +1913,13 @@ public class Utils {
         };
     }
 
+    /**
+     *
+     * @param argb0
+     * @param argb1
+     * @param factor
+     * @return
+     */
     public static int interpolateColor(int argb0, int argb1, float factor) {
 
         int[] argb0A = getARGB(argb0);
@@ -1823,6 +1935,13 @@ public class Utils {
         return c;
     }
 
+    /**
+     *
+     * @param pt
+     * @param v0
+     * @param v1
+     * @return
+     */
     public static boolean isPointInsideRect(IVector2D pt, IVector2D v0, IVector2D v1) {
         float px = pt.getX();
         float py = pt.getY();
@@ -1833,6 +1952,11 @@ public class Utils {
         return Utils.isPointInsideRect(px, py, x, y, w, h);
     }
 
+    /**
+     *
+     * @param lock
+     * @param msecs
+     */
     public static void waitNoThrow(Object lock, long msecs) {
         synchronized (lock) {
             try {
@@ -1846,6 +1970,11 @@ public class Utils {
         }
     }
 
+    /**
+     *
+     * @param s
+     * @return
+     */
     public static String trimQuotes(String s) {
         if (s == null) {
             return null;
@@ -1936,12 +2065,22 @@ public class Utils {
         return ret;
     }
 
+    /**
+     *
+     * @param n
+     * @return
+     */
     public static int signOf(int n) {
         if (n < 0)
             return -1;
         return 1;
     }
 
+    /**
+     *
+     * @param ip
+     * @return
+     */
     public static String getIpAddressString(int ip) {
         // http://stackoverflow.com/questions/1957637/java-convert-int-to-inetaddress
         String ipStr =
@@ -1953,6 +2092,12 @@ public class Utils {
         return ipStr;
     }
 
+    /**
+     *
+     * @param stringResource
+     * @param resources
+     * @return
+     */
     public static Map<Integer, String> buildStringsTable(Class<?> stringResource, String ... resources) {
         Map<Integer, String> table = new HashMap<>();
         try {
@@ -1965,10 +2110,22 @@ public class Utils {
         return table;
     }
 
+    /**
+     *
+     * @param s
+     * @return
+     */
     public static String stripEnds(String s) {
         return s.substring(1, s.length()-1);
     }
 
+    /**
+     *
+     * @param stringResource
+     * @param stringTable
+     * @param resource
+     * @throws Exception
+     */
     private static void processStringResource(Class<?> stringResource, Map<Integer, String> stringTable, String resource) throws Exception {
         Pattern quoted = Pattern.compile("\"[^\"]+\"");
         Pattern xmlContent = Pattern.compile(">[^<]*<");
@@ -2011,6 +2168,12 @@ public class Utils {
         System.out.println("Parsed " + numParsed + " strings");
     }
 
+    /**
+     *
+     * @param msg
+     * @param args
+     * @return
+     */
     public static String formatNoThrow(String msg, Object ... args) {
         try {
             return String.format(msg, args);
