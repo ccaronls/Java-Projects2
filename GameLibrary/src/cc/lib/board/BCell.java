@@ -1,6 +1,7 @@
 package cc.lib.board;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import cc.lib.game.IVector2D;
@@ -15,9 +16,11 @@ public class BCell extends Reflector<BCell> implements IVector2D {
     float cx, cy;
 
     final List<Integer> adjVerts = new ArrayList<>();
+    final List<Integer> adjCells = new ArrayList<>();
+
     public BCell() {}
 
-    BCell(List<Integer> verts) {
+    protected BCell(List<Integer> verts) {
         adjVerts.addAll(verts);
     }
 
@@ -37,5 +40,9 @@ public class BCell extends Reflector<BCell> implements IVector2D {
 
     public final int getAdjVertex(int index) {
         return adjVerts.get(index);
+    }
+
+    public final List<Integer> getAdjCells() {
+        return Collections.unmodifiableList(adjCells);
     }
 }

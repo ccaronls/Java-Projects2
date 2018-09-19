@@ -5,7 +5,12 @@ import cc.lib.utils.Reflector;
 
 public class DPlayer extends Reflector<DPlayer> {
 
+    int playerNum;
     int hp, dex, str, spd, def, attack; // stats
+
+    public boolean hasKey() {
+        return false;
+    }
 
     enum Pet {
 
@@ -13,6 +18,7 @@ public class DPlayer extends Reflector<DPlayer> {
 
     Pet pet;
     int cellIndex; // position on borad
+    int backCellIndex; // index of cell we came from to prevent going backward
 
     protected DMove chooseMove(DMove ... moves) {
         return moves[Utils.randRange(0, moves.length-1)];
@@ -34,5 +40,9 @@ public class DPlayer extends Reflector<DPlayer> {
         str = Utils.randRange(1, 6);
 
         spd = Utils.randRange(1, 6);
+    }
+
+    public String getName() {
+        return "Player " + (playerNum+1);
     }
 }

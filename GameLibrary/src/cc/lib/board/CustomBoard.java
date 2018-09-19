@@ -2,7 +2,6 @@ package cc.lib.board;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -10,6 +9,7 @@ import java.util.Vector;
 
 import cc.lib.game.AGraphics;
 import cc.lib.game.APGraphics;
+import cc.lib.game.GRectangle;
 import cc.lib.game.IVector2D;
 import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
@@ -58,10 +58,37 @@ public class CustomBoard extends Reflector<CustomBoard> {
         g.popMatrix();
     }
 
-    public void renderCell(AGraphics g, BCell b) {
+    public void drawEdgesNumbered(AGraphics g) {
+        g.begin();
+        g.pushMatrix();
+        g.translate(-5, 0);
+        int index = 0;
+        for (BEdge e : edges) {
+            Vector2D mp = getMidpoint(e);
+            g.drawString(String.valueOf(index++), mp.X(), mp.Y());
+        }
+        g.popMatrix();
+    }
+
+    public void drawCellsNumbered(AGraphics g) {
+        g.begin();
+        g.pushMatrix();
+        g.translate(-5, 0);
+        int index = 0;
+        for (BCell c : cells) {
+            g.drawString(String.valueOf(index++), c.cx, c.cy);
+        }
+        g.popMatrix();
+    }
+
+    public final Vector2D getMidpoint(BEdge e) {
+        return Vector2D.add(verts.get(e.from), verts.get(e.to)).scaledBy(0.5f);
+    }
+
+    public void renderCell(BCell b, AGraphics g, float scale) {
         g.pushMatrix();
         g.translate(b);
-        g.scale(0.9f);
+        g.scale(scale);
         g.translate(-b.getX(), -b.getY());
         g.begin();
         for (int v : b.adjVerts) {
@@ -70,9 +97,9 @@ public class CustomBoard extends Reflector<CustomBoard> {
         g.popMatrix();
     }
 
-    public void drawCells(AGraphics g) {
+    public void drawCells(AGraphics g, float scale) {
         for (BCell b : cells) {
-            renderCell(g, b);
+            renderCell(b, g, scale);
             g.drawLineLoop();
             // draw center point
             g.begin();
@@ -110,27 +137,56 @@ public class CustomBoard extends Reflector<CustomBoard> {
         edges.add(newEdge(from, to));
     }
 
+    public void addEdge(BEdge e) {
+        edges.add(e);
+    }
+
+    public int pickEdge(APGraphics g, int mx, int my) {
+        g.begin();
+        int index = 0;
+        for (BEdge e : edges) {
+            g.setName(index++);
+            renderEdge(e, g);
+        }
+        return g.pickLines(mx, my, 5);
+    }
+
+    public int pickCell(APGraphics g, int mx, int my) {
+        g.begin();
+        int index = 0;
+        for (BCell c : cells) {
+            g.setName(index++);
+            renderCell(c, g, 1);
+        }
+        return g.pickClosest(mx, my);
+    }
+
+    public final void renderEdge(BEdge e, AGraphics g) {
+        g.vertex(verts.get(e.from));
+        g.vertex(verts.get(e.to));
+    }
+
     protected BEdge newEdge(int from, int to) {
         return new BEdge(from, to);
     }
 
-    public BVertex getVertex(int index) {
-        return verts.get(index);
+    public <V extends BVertex> V getVertex(int index) {
+        return (V)verts.get(index);
     }
 
-    public BEdge getEdge(int index) {
-        return edges.get(index);
+    public <E extends BEdge> E getEdge(int index) {
+        return (E)edges.get(index);
     }
 
-    public BEdge getEdge(int from, int to) {
+    public <E extends BEdge> E getEdge(int from, int to) {
         int index = Collections.binarySearch(edges, new BEdge(from, to));
         if (index < 0)
             return null;
-        return getEdge(index);
+        return (E)getEdge(index);
     }
 
-    public BCell getCell(int index) {
-        return cells.get(index);
+    public <T extends BCell> T getCell(int index) {
+        return (T)cells.get(index);
     }
 
     public void clear() {
@@ -145,21 +201,21 @@ public class CustomBoard extends Reflector<CustomBoard> {
             v.reset();
         }
 
+        Collections.sort(edges);
+        Utils.unique(edges);
+
         for (BEdge e : edges) {
             e.numAdjCells=0;
             verts.get(e.from).addAdjacentVertex(e.to);
             verts.get(e.to).addAdjacentVertex(e.from);
         }
 
-        Collections.sort(edges);
         cells.clear();
         // dfs search the edges
 
         int [][] lookup = new int[verts.size()][verts.size()];
 
-        dfs(0, "", 0, lookup, new LinkedList<Integer>());
-        //dfsGenCells(0, "", lookup, 0, new LinkedList<Integer>());
-        //bfsGenCells();
+        dfsCellSearch(0, "", 0, lookup, new LinkedList<Integer>());
 
         // now compute the center of each cell and assign adjCells to edges.
         MutableVector2D mv = new MutableVector2D();
@@ -182,21 +238,24 @@ public class CustomBoard extends Reflector<CustomBoard> {
             c.cx = mv.getX();
             c.cy = mv.getY();
         }
-    }
 
-    static Comparator<Vector2D> angComp = new Comparator<Vector2D>() {
-        @Override
-        public int compare(Vector2D t0, Vector2D t1) {
-            return Math.round(t0.angleBetweenSigned(t1));
+        // now iterate over the edges and create the cell adjacencies
+        for (BEdge e : edges) {
+            if (e.numAdjCells == 2) {
+                BCell c0 = cells.get(e.adjacentCells[0]);
+                BCell c1 = cells.get(e.adjacentCells[1]);
+                c0.adjCells.add(e.adjacentCells[1]);
+                c1.adjCells.add(e.adjacentCells[0]);
+            }
         }
-    };
+    }
 
     protected BCell newCell(List<Integer> pts) {
         return new BCell(pts);
     }
 
-    private void dfs(int d, String indent, int v, int [][] visited, LinkedList<Integer> cell) {
-        if (d > 100) {
+    private void dfsCellSearch(int d, String indent, int v, int [][] visited, LinkedList<Integer> cell) {
+        if (d > 256) {
             return;
         }
         log.debug("%sDFS %d %s", indent, v, cell);
@@ -243,94 +302,21 @@ public class CustomBoard extends Reflector<CustomBoard> {
                     int first = adjacent.remove(0);
                     visited[v][first] = 1;
                     cell.add(v);
-                    dfs(d + 1, indent + "  ", first, visited, cell);
+                    dfsCellSearch(d + 1, indent + "  ", first, visited, cell);
                 }
             }
-//            if (removed) // TODO: Put this back in?
-  //              adjacent.add(prev);
         }
 
         for (int vv : adjacent) {
             cell = new LinkedList<>();
             visited[v][vv] = 1;
             cell.add(v);
-            dfs(d+1, indent+"  ", vv, visited, cell);
+            dfsCellSearch(d+1, indent+"  ", vv, visited, cell);
         }
 
         log.debug("%sEND", indent);
     }
-/*
-    private void dfsGenCells(int d, String indent, int [][] lookup, int v,LinkedList<Integer> cell) {
-        if (d > 10)
-        {
-            return;
-        }
-        log.debug("%sDFS %s cell:%s ", indent, v, cell);
-        if (cell.size() > 1 && v == cell.getFirst()) {
-            log.debug("%sADD CELL %s", indent, cell);
-            cells.add(newCell(cell));
-            cell.clear();
-        }
-        int p = -1;
-        if (cell.size() > 0)
-            p = cell.getLast();
-        // else
-        {
-            cell.addLast(v);
-            BVertex bv = verts.get(v);
-            List<Integer> list = new ArrayList<>();
-            for (int i=0; i<bv.numAdjVerts; i++) {
-                int vv = bv.adjacentVerts[i];
-                if (vv != p && lookup[v][vv] != 1) {
-                    list.add(vv);
-                }
-            }
-            if (list.size() == 0)
-                return;
-            final Integer [] target = list.toArray(new Integer[list.size()]);
-            int targetIndex = 0;
-            if (p < 0 && target.length>1) {
-                log.debug("%sCase 1:", indent);
-                Vector2D [] reference = new Vector2D[target.length];
-                for (int i=0; i<target.length; i++) {
-                    reference[i] = Vector2D.sub(verts.get(target[i]), bv);
-                }
-                Utils.bubbleSort(reference, target, angComp);
-                log.debug("%sSorted edges: %s", indent, Arrays.toString(target));
-                log.debug("%sReference vectors: %s", indent, Arrays.toString(reference));
-            } else if (p >=0 ){
-                log.debug(indent, "Case 2:");
-                // sort the list in decending order of angle of incidence of v->l[i] and prev->v
-                Vector2D V0 = Vector2D.sub(bv, verts.get(p));
-                assert(!V0.isZero());
-                Float [] reference = new Float[list.size()];
-                for (int i=0; i<list.size(); i++) {
-                    int index = list.get(i);
-                    Vector2D V1 = Vector2D.sub(verts.get(index), bv);
-                    float ang = V0.angleBetweenSigned(V1);
-                    reference[i] = ang;
-                }
-                Utils.bubbleSort(reference, target, true);
-                log.debug("%sSorted edges: %s", indent, Arrays.toString(target));
-                log.debug("%sReference vectors: %s", indent, Arrays.toString(reference));
 
-                if (reference.length == 1 || Utils.isBetween(reference[0], 5, 175)) {
-                    int index = target[targetIndex++];
-                    lookup[v][index] = 0;
-                    dfsGenCells(d+1, indent+"  ", lookup, index, cell);
-                }
-            }
-            for ( ; targetIndex < target.length; targetIndex++) {
-                LinkedList<Integer> ll = new LinkedList<>();
-                ll.addAll(cell);
-                if (cell.size() > 1)
-                    ll.removeFirst();
-                dfsGenCells(d+1, indent+"  ", lookup, target[targetIndex], ll);
-            }
-        }
-        log.debug("%sEND", indent);
-    }
-*/
     public int getEdgeIndex(int from, int to) {
         if (from < 0 || from >= verts.size())
             throw new IndexOutOfBoundsException("From not in range 0-" + verts.size());
@@ -351,4 +337,39 @@ public class CustomBoard extends Reflector<CustomBoard> {
         return cells.size();
     }
 
+    public final void removeVertex(int vIndex) {
+        verts.remove(vIndex);
+    }
+
+    public final void removeEdge(int from, int to) {
+        int eIndex = getEdgeIndex(from, to);
+        if (eIndex >= 0) {
+            edges.remove(eIndex);
+        }
+    }
+
+    public final void removeEdge(int index) {
+        edges.remove(index);
+    }
+
+    public final List<BCell> getAdjacentCells(BCell cell) {
+        BCell [] cells = new BCell[cell.adjCells.size()];
+        for (int i=0; i<cells.length; i++) {
+            cells[i] = getCell(cell.adjCells.get(i));
+        }
+        return Arrays.asList(cells);
+    }
+
+    public final GRectangle getCellBoundingRect(int cellIndex) {
+        GRectangle rect = new GRectangle();
+        BCell cell = getCell(cellIndex);
+        MutableVector2D min = new MutableVector2D(cell);
+        MutableVector2D max = new MutableVector2D(cell);
+        for (int vIndex : cell.adjVerts) {
+            BVertex v = getVertex(vIndex);
+            min.minEq(v);
+            max.maxEq(v);
+        }
+        return new GRectangle(min, max);
+    }
 }

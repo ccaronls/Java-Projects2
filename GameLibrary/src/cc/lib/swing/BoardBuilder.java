@@ -1,11 +1,17 @@
 package cc.lib.swing;
 
 import java.io.File;
+import java.util.LinkedList;
 import java.util.Properties;
 
+import cc.lib.board.BCell;
+import cc.lib.board.BEdge;
 import cc.lib.board.BVertex;
 import cc.lib.board.CustomBoard;
+import cc.lib.game.APGraphics;
 import cc.lib.game.GColor;
+import cc.lib.game.Justify;
+import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
 
@@ -20,47 +26,83 @@ public class BoardBuilder extends AWTComponent {
     final EZFrame frame = new EZFrame() {
         @Override
         protected void onMenuItemSelected(String menu, String subMenu) {
-            switch (menu) {
-                case "File":
-                    onFileMenu(subMenu);
-                    break;
-
-                case "Mode":
-                    onModeMenu(subMenu);
-                    break;
-
-                case "Action":
-                    onActionMenu(subMenu);
-                    break;
-
-                default:
-                    log.warn("Unhandled case %s", menu);
-            }
+            BoardBuilder.this.onMenuItemSelected(menu, subMenu);
         }
 
         @Override
         protected void onWindowClosing() {
-            board.trySaveToFile(new File("bb.backup.board"));
+            board.trySaveToFile(boardFile);
         }
     };
 
-    final CustomBoard board = new CustomBoard();
+    interface Action {
+        void undo();
+    }
+
+    final File DEFAULT_FILE = new File("bb.backup.board");
+
+    final CustomBoard board;
     int background = -1;
-    int selectedVertex = -1;
-    File boardFile;
+    int selectedIndex = -1;
+    File boardFile = DEFAULT_FILE;
+    final LinkedList<Action> undoList = new LinkedList<>();
+    PickMode pickMode = PickMode.VERTEX;
+
+    enum PickMode {
+        VERTEX, EDGE, CELL
+    }
 
     BoardBuilder() {
+        board = newBoard();
         setMouseEnabled(true);
         setPadding(10);
         frame.addMenuBarMenu("File", "New Board", "Load Board", "Load Image", "Clear Image", "Save As...", "Save");
-        frame.addMenuBarMenu("Mode", "Vert", "Cell");
-        frame.addMenuBarMenu("Action", "Compute");
+        frame.addMenuBarMenu("Mode", "Vert", "Edge", "Cell");
+        frame.addMenuBarMenu("Action", "Compute", "Undo");
+        initFrame(frame);
         frame.add(this);
         if (!frame.loadFromFile(new File("bb.properties")))
             frame.centerToScreen(640, 480);
     }
 
     float progress = 0;
+
+    protected CustomBoard newBoard() {
+        return new CustomBoard();
+    }
+
+    /**
+     * This is a good place to add top bar menus
+     * @param frame
+     */
+    protected void initFrame(EZFrame frame) {
+
+    }
+
+    /**
+     * Handle menu pushes. Call super if not handled.
+     *
+     * @param menu
+     * @param subMenu
+     */
+    protected void onMenuItemSelected(String menu, String subMenu) {
+        switch (menu) {
+            case "File":
+                onFileMenu(subMenu);
+                break;
+
+            case "Mode":
+                onModeMenu(subMenu);
+                break;
+
+            case "Action":
+                onActionMenu(subMenu);
+                break;
+
+            default:
+                log.warn("Unhandled case %s", menu);
+        }
+    }
 
     @Override
     protected void init(AWTGraphics g) {
@@ -99,10 +141,30 @@ public class BoardBuilder extends AWTComponent {
         g.setColor(GColor.BLUE);
         board.drawCells(g);
 
-        if (selectedVertex >= 0) {
+        switch (pickMode) {
+            case VERTEX:
+                drawVertexMode(g, mouseX, mouseY);
+                break;
+
+            case EDGE:
+                drawEdgeMode(g, mouseX, mouseY);
+                break;
+
+            case CELL:
+                drawCellMode(g, mouseX, mouseY);
+                break;
+        }
+
+        g.setColor(GColor.RED);
+        g.drawJustifiedString(getWidth()-10, 10, Justify.RIGHT, Justify.TOP, pickMode.name());
+    }
+
+    protected void drawVertexMode(APGraphics g, int mouseX, int mouseY) {
+
+        if (selectedIndex >= 0) {
             g.setColor(GColor.RED);
             g.begin();
-            g.vertex(board.getVertex(selectedVertex));
+            g.vertex(board.getVertex(selectedIndex));
             g.drawPoints(8);
         }
         int highlighted = board.pickVertex(g, mouseX, mouseY);
@@ -112,27 +174,96 @@ public class BoardBuilder extends AWTComponent {
             g.vertex(board.getVertex(highlighted));
             g.drawPoints(8);
         }
+
+        g.setColor(GColor.BLACK);
         board.drawVertsNumbered(g);
 
-        if (selectedVertex >= 0 && selectedVertex != highlighted) {
+        if (selectedIndex >= 0 && selectedIndex != highlighted) {
             g.setColor(GColor.RED);
             g.begin();
-            g.vertex(board.getVertex(selectedVertex));
+            g.vertex(board.getVertex(selectedIndex));
             g.drawPoints(8);
         }
     }
 
+    protected void drawEdgeMode(APGraphics g, int mouseX, int mouseY) {
+        if (selectedIndex >= 0) {
+            g.setColor(GColor.RED);
+            g.begin();
+            BEdge e = board.getEdge(selectedIndex);
+            board.renderEdge(e, g);
+            g.drawLines();
+        }
+
+        int highlighted = board.pickEdge(g, mouseX, mouseY);
+        if (highlighted >= 0) {
+            g.setColor(GColor.MAGENTA);
+            g.begin();
+            BEdge e = board.getEdge(highlighted);
+            board.renderEdge(e, g);
+            g.drawLines();
+        }
+
+        g.setColor(GColor.BLACK);
+        board.drawEdgesNumbered(g);
+    }
+
+    protected void drawCellMode(APGraphics g, int mouseX, int mouseY) {
+        if (selectedIndex >= 0) {
+            g.setColor(GColor.RED);
+            g.begin();
+            BCell c = board.getCell(selectedIndex);
+            board.renderCell(c, g);
+            g.setLineWidth(4);
+            g.drawLines();
+        }
+
+        int highlighted = board.pickEdge(g, mouseX, mouseY);
+        if (highlighted >= 0) {
+            g.setColor(GColor.MAGENTA);
+            g.begin();
+            BEdge e = board.getEdge(highlighted);
+            board.renderEdge(e, g);
+            g.setLineWidth(2);
+            g.drawLines();
+        }
+
+        g.setColor(GColor.BLACK);
+        board.drawCellsNumbered(g);
+    }
+
+    public final int getSelectedIndex() {
+        return selectedIndex;
+    }
+
     void setBoardFile(File file) {
-        boardFile = file;
-        Properties p = frame.getProperties();
-        p.setProperty("boardFile", boardFile.getAbsolutePath());
-        frame.setProperties(p);
+        if (file == null) {
+            boardFile = DEFAULT_FILE;
+            Properties p = frame.getProperties();
+            p.remove("boardFile");
+            frame.setProperties(p);
+        } else {
+            boardFile = file;
+            Properties p = frame.getProperties();
+            p.setProperty("boardFile", boardFile.getAbsolutePath());
+            frame.setProperties(p);
+        }
     }
 
     void onModeMenu(String item) {
         switch (item) {
             case "Vert":
+                pickMode = PickMode.VERTEX;
+                selectedIndex = -1;
+                break;
             case "Cell":
+                pickMode = PickMode.CELL;
+                selectedIndex = -1;
+                break;
+            case "Edge":
+                pickMode = PickMode.EDGE;
+                selectedIndex = -1;
+                break;
         }
     }
 
@@ -140,6 +271,12 @@ public class BoardBuilder extends AWTComponent {
         switch (item) {
             case "Compute":
                 board.compute();
+                break;
+
+            case "Undo":
+                if (undoList.size() > 0) {
+                    undoList.removeLast().undo();
+                }
                 break;
         }
         repaint();
@@ -149,7 +286,8 @@ public class BoardBuilder extends AWTComponent {
         switch (item) {
             case "New Board":
                 board.clear();
-                selectedVertex = -1;
+                selectedIndex = -1;
+                setBoardFile(null);
                 break;
             case "Load Board": {
                 File file = showFileOpenChooser(frame, "Load Board", "board");
@@ -215,32 +353,130 @@ public class BoardBuilder extends AWTComponent {
 
     @Override
     protected void onClick() {
+        switch (pickMode) {
+            case VERTEX:
+                pickVertex();
+                break;
+
+            case EDGE:
+                pickEdge();
+                break;
+
+            case CELL:
+                pickCell();
+                break;
+        }
+    }
+
+    protected void pickVertex() {
+
         int picked = board.pickVertex(getAPGraphics(), getMouseX(), getMouseY());
+        Action a = null;
         if (picked < 0) {
-            picked = board.addVertex(getMousePos());
+            final int v = board.addVertex(getMousePos());
+            final int s = selectedIndex;
+            a = new Action() {
+                @Override
+                public void undo() {
+                    board.removeVertex(v);
+                    selectedIndex = s;
+                }
+            };
+            picked = v;
         }
-        if (selectedVertex >= 0 && selectedVertex != picked) {
-            board.addEdge(selectedVertex, picked);
+        if (selectedIndex >= 0 && selectedIndex != picked) {
+            final int p = picked;
+            final int s = selectedIndex;
+            board.addEdge(selectedIndex, picked);
+            a = new Action() {
+                @Override
+                public void undo() {
+                    board.removeEdge(s, p);
+                    board.removeVertex(p);
+                    selectedIndex = s;
+                }
+            };
         }
-        selectedVertex = picked;
+        if (a != null) {
+            pushUndoAction(a);
+        }
+        selectedIndex = picked;
         repaint();
+    }
+
+    protected void pickEdge() {
+        int picked = board.pickEdge(getAPGraphics(), getMouseX(), getMouseY());
+        Action a = null;
+        if (picked >= 0) {
+            final BEdge e = board.getEdge(picked);
+            board.removeEdge(picked);
+            pushUndoAction(new Action() {
+                @Override
+                public void undo() {
+                    board.addEdge(e);
+                }
+            });
+        }
+        repaint();
+    }
+
+    protected void pickCell() {
+        selectedIndex = board.pickCell(getAPGraphics(), getMouseX(), getMouseY());
+    }
+
+    protected void pushUndoAction(Action a) {
+        undoList.add(a);
+        if (undoList.size() > 100)
+            undoList.remove(0);
     }
 
     @Override
     protected void onDragStarted(int x, int y) {
-        if (selectedVertex < 0) {
-            selectedVertex = board.pickVertex(getAPGraphics(), x, y);
+        if (selectedIndex < 0) {
+            selectedIndex = board.pickVertex(getAPGraphics(), x, y);
         } else {
-            BVertex v = board.getVertex(selectedVertex);
-            v.set(getMousePos());
+            BVertex v = board.getVertex(selectedIndex);
+            v.set(getMousePos(x, y));
         }
         repaint();
     }
 
     @Override
     protected void onDragStopped() {
-        selectedVertex = -1;
+        selectedIndex = -1;
         repaint();
     }
 
+    @Override
+    protected void onKeyTyped(VKKey key) {
+        switch (key) {
+            case VK_ESCAPE:
+                selectedIndex = -1;
+                break;
+
+            case VK_V:
+                pickMode = PickMode.VERTEX;
+                selectedIndex = -1;
+                break;
+
+            case VK_E:
+                pickMode = PickMode.EDGE;
+                selectedIndex = -1;
+                break;
+
+            case VK_C:
+                pickMode = PickMode.CELL;
+                selectedIndex = -1;
+                break;
+
+            case VK_TAB:
+                pickMode = Utils.incrementEnum(pickMode, PickMode.values());
+                selectedIndex = -1;
+                break;
+
+            default:
+                super.onKeyTyped(key);
+        }
+        repaint();
+    }
 }

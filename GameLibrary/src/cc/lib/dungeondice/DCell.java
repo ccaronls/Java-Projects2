@@ -1,0 +1,25 @@
+package cc.lib.dungeondice;
+
+import java.util.List;
+
+import cc.lib.board.BCell;
+
+public class DCell extends BCell {
+
+    static {
+        addAllFields(DCell.class);
+    }
+
+    CellType type;
+    boolean locked;
+
+    public DCell() {
+
+    }
+
+    DCell(List<Integer> pts, CellType type) {
+        super(pts);
+        this.type = type;
+    }
+
+}

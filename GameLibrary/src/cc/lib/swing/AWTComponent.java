@@ -218,18 +218,10 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
         }
 
         static VKKey lookup(int code) {
-            if (lookup == null) {
-                int max = 0;
-                for (VKKey k : values()) {
-                    max = Math.max(max, k.code);
-                }
-                lookup = new VKKey[max+1];
-                for (VKKey k : values()) {
-                    lookup[k.code] = k;
-                }
+            for (VKKey k : values()) {
+                if (code == k.code)
+                    return k;
             }
-            if (code < lookup.length)
-                return lookup[code];
             return VK_UNKNOWN;
         }
 
@@ -594,7 +586,11 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
      * @return
      */
     protected IVector2D getMousePos() {
-        return getAPGraphics().screenToViewport(getMouseX(), getMouseY());
+        return getMousePos(getMouseX(), getMouseY());
+    }
+
+    protected IVector2D getMousePos(int mx, int my) {
+        return getAPGraphics().screenToViewport(mx, my);
     }
 
 }

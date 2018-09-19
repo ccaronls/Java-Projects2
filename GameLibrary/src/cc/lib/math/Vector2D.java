@@ -109,6 +109,10 @@ public class Vector2D extends Reflector<Vector2D> implements IVector2D, Serializ
         return new Vector2D(a.getX()-b.getX(), a.getY()-b.getY());
     }
 
+    public static Vector2D add(IVector2D a, IVector2D b) {
+        return new Vector2D(a.getX()+b.getX(), a.getY()+b.getY());
+    }
+
     public final float dot(IVector2D v) {
         return x*v.getX() + y*v.getY();
     }

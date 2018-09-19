@@ -8,18 +8,28 @@ public class BEdge extends Reflector<BEdge> implements Comparable<BEdge> {
         addAllFields(BEdge.class);
     }
 
-    int from, to;
+    final int from, to;
 
-    int [] adjacentCells = new int[2];
+    final int [] adjacentCells = new int[2];
     int numAdjCells;
 
-    public BEdge() {}
+    public BEdge() {
+        from = to = -1;
+    }
 
     BEdge(int from, int to) {
         if (from == to)
             throw new AssertionError("Edge cannot point to itself");
         this.from = Math.min(from, to);
         this.to   = Math.max(from, to);
+    }
+
+    public final int getFrom() {
+        return from;
+    }
+
+    public final int getTo() {
+        return to;
     }
 
     @Override

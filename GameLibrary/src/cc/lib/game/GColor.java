@@ -27,6 +27,8 @@ public final class GColor extends Reflector<GColor> {
     public final static GColor LIGHT_GRAY 	= new GColor(0.8f, 0.8f, 0.8f, 1);
     public final static GColor DARK_GRAY 	= new GColor(0.4f, 0.4f, 0.4f, 1);
     public final static GColor PINK         = new GColor(255, 175, 175);
+    public final static GColor BROWN        = new GColor(165,42,42);
+    public final static GColor CHOCOLATE    = new GColor(210,105,30);
     public final static GColor TRANSPARENT = new GColor(0f,0,0,0);
     public final static GColor TRANSLUSCENT_BLACK = BLACK.withAlpha(128);
 

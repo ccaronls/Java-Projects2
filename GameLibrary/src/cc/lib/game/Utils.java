@@ -2193,4 +2193,16 @@ public class Utils {
     public static <T extends Number> boolean isBetween(T n, T min, T max) {
         return n.doubleValue() >= min.doubleValue() && n.doubleValue() <= max.doubleValue();
     }
+
+    /**
+     * Remove adjacent duplicates from the list.
+     * @param list
+     */
+    public static void unique(List list) {
+        for (int i=0; i<list.size()-1; i++) {
+            if (list.get(i).equals(list.get(i+1))) {
+                list.remove(i+1);
+            }
+        }
+    }
 }
