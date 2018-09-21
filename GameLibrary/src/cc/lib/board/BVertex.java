@@ -15,11 +15,11 @@ public class BVertex extends Reflector<BVertex> implements IVector2D {
     }
 
     float x, y;
-    private int [] adjacentVerts = new int[8];
-    private int numAdjVerts;
+    final int [] adjacentVerts = new int[8];
+    int numAdjVerts;
 
-    private int [] adjacentCells = new int[8];
-    private int numAdjCells;
+    final int [] adjacentCells = new int[8];
+    int numAdjCells;
 
     public BVertex() {}
 
@@ -47,10 +47,20 @@ public class BVertex extends Reflector<BVertex> implements IVector2D {
         adjacentVerts[numAdjVerts++] = v;
     }
 
+    void addAdjacentCell(int c) { adjacentCells[numAdjCells++] = c; }
+
     public List<Integer> getAdjVerts() {
         List<Integer> adj = new ArrayList<>();
         for (int i=0; i<numAdjVerts; i++) {
             adj.add(adjacentVerts[i]);
+        }
+        return adj;
+    }
+
+    public List<Integer> getAdjCells() {
+        List<Integer> adj = new ArrayList<>();
+        for (int i=0; i<numAdjCells; i++) {
+            adj.add(adjacentCells[i]);
         }
         return adj;
     }

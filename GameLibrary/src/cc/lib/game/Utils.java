@@ -2209,4 +2209,19 @@ public class Utils {
             }
         }
     }
+
+    /**
+     * Return subset of an array as a list
+     * @param num
+     * @param array
+     * @param <T>
+     * @return
+     */
+    public static <T> List<T> toList(int start, int num, T ... array) {
+        List<T> l = new ArrayList<>();
+        for (int i=start; i<Math.min(start+num, array.length); i++) {
+            l.add(array[i]);
+        }
+        return l;
+    }
 }

@@ -14,6 +14,7 @@ import cc.lib.game.Justify;
 import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
+import cc.lib.math.Vector2D;
 
 public class BoardBuilder extends AWTComponent {
 
@@ -44,6 +45,7 @@ public class BoardBuilder extends AWTComponent {
     final CustomBoard board;
     int background = -1;
     int selectedIndex = -1;
+    int highlightedIndex = -1;
     File boardFile = DEFAULT_FILE;
     final LinkedList<Action> undoList = new LinkedList<>();
     PickMode pickMode = PickMode.VERTEX;
@@ -166,18 +168,25 @@ public class BoardBuilder extends AWTComponent {
             g.vertex(board.getVertex(selectedIndex));
             g.drawPoints(8);
         }
-        int highlighted = board.pickVertex(g, mouseX, mouseY);
-        if (highlighted >= 0) {
+        highlightedIndex = board.pickVertex(g, mouseX, mouseY);
+        if (highlightedIndex >= 0) {
             g.setColor(GColor.MAGENTA);
             g.begin();
-            g.vertex(board.getVertex(highlighted));
+            BVertex v = board.getVertex(highlightedIndex);
+            g.vertex(v);
             g.drawPoints(8);
+            // draw lines from vertex to its adjacent cells
+            for (BCell c : board.getAdjacentCells(v)) {
+                g.vertex(v);
+                g.vertex(c);
+            }
+            g.drawLines();
         }
 
         g.setColor(GColor.BLACK);
         board.drawVertsNumbered(g);
 
-        if (selectedIndex >= 0 && selectedIndex != highlighted) {
+        if (selectedIndex >= 0 && selectedIndex != highlightedIndex) {
             g.setColor(GColor.RED);
             g.begin();
             g.vertex(board.getVertex(selectedIndex));
@@ -194,12 +203,18 @@ public class BoardBuilder extends AWTComponent {
             g.drawLines();
         }
 
-        int highlighted = board.pickEdge(g, mouseX, mouseY);
-        if (highlighted >= 0) {
+        highlightedIndex = board.pickEdge(g, mouseX, mouseY);
+        if (highlightedIndex >= 0) {
             g.setColor(GColor.MAGENTA);
             g.begin();
-            BEdge e = board.getEdge(highlighted);
+            BEdge e = board.getEdge(highlightedIndex);
             board.renderEdge(e, g);
+            Vector2D mp = board.getMidpoint(e);
+            // draw the lines from midpt of edge to the cntr of its adjacent cells
+            for (BCell c : board.getAdjacentCells(e)) {
+                g.vertex(mp);
+                g.vertex(c);
+            }
             g.drawLines();
         }
 

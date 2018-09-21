@@ -40,10 +40,6 @@ public class BEdge extends Reflector<BEdge> implements Comparable<BEdge> {
         return from-o.from;
     }
 
-    public int getNumAdjacentCells() {
-        return numAdjCells;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (o == this)

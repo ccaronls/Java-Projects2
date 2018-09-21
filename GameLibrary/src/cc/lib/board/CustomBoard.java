@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 import java.util.Vector;
 
 import cc.lib.game.AGraphics;
@@ -119,6 +120,12 @@ public class CustomBoard extends Reflector<CustomBoard> {
     }
 
     public int addVertex(IVector2D v) {
+        for (int index=0; index<verts.size(); index++) {
+            if (verts.get(index)==null) {
+                verts.set(index, newVertex(v));
+                return index;
+            }
+        }
         int index = verts.size();
         verts.add(newVertex(v));
         return index;
@@ -217,7 +224,17 @@ public class CustomBoard extends Reflector<CustomBoard> {
 
         int [][] lookup = new int[verts.size()][verts.size()];
 
-        dfsCellSearch(0, "", 0, lookup, new LinkedList<Integer>());
+        Queue<int[]> queue = new LinkedList<>();
+        dfsCellSearch(queue, 0, "", 0, lookup, new LinkedList<Integer>());
+        while (queue.size() > 0) {
+            int [] e = queue.remove();
+            int v = e[0];
+            int vv = e[1];
+            LinkedList<Integer> cell = new LinkedList<>();
+            lookup[v][vv] = 1;
+            cell.add(v);
+            dfsCellSearch(queue, v, "", vv, lookup, cell);
+        }
 
         // now compute the center of each cell and assign adjCells to edges.
         MutableVector2D mv = new MutableVector2D();
@@ -235,6 +252,8 @@ public class CustomBoard extends Reflector<CustomBoard> {
                 BEdge e = getEdge(eIndex);
                 e.adjacentCells[e.numAdjCells++] = cIndex;
                 p = vIndex;
+                BVertex v = verts.get(vIndex);
+                v.addAdjacentCell(cIndex);
             }
             mv.scaleEq(1.0f / c.adjVerts.size());
             c.cx = mv.getX();
@@ -242,12 +261,16 @@ public class CustomBoard extends Reflector<CustomBoard> {
         }
 
         // now iterate over the edges and create the cell adjacencies
-        for (BEdge e : edges) {
+        Iterator<BEdge> it = edges.iterator();
+        while (it.hasNext()) {
+            BEdge e = it.next();
             if (e.numAdjCells == 2) {
                 BCell c0 = cells.get(e.adjacentCells[0]);
                 BCell c1 = cells.get(e.adjacentCells[1]);
                 c0.adjCells.add(e.adjacentCells[1]);
                 c1.adjCells.add(e.adjacentCells[0]);
+            } else if (e.numAdjCells == 0) {
+                //it.remove();
             }
         }
 
@@ -258,7 +281,7 @@ public class CustomBoard extends Reflector<CustomBoard> {
         return new BCell(pts);
     }
 
-    private void dfsCellSearch(int d, String indent, int v, int [][] visited, LinkedList<Integer> cell) {
+    private void dfsCellSearch(Queue<int[]> q, int d, String indent, int v, int [][] visited, LinkedList<Integer> cell) {
         log.debug("%sDFS %d %s", indent, v, cell);
         BVertex bv = verts.get(v);
 
@@ -303,16 +326,17 @@ public class CustomBoard extends Reflector<CustomBoard> {
                     int first = adjacent.remove(0);
                     visited[v][first] = 1;
                     cell.add(v);
-                    dfsCellSearch(d + 1, indent + " ", first, visited, cell);
+                    dfsCellSearch(q, d + 1, indent + " ", first, visited, cell);
                 }
             }
         }
 
         for (int vv : adjacent) {
-            cell = new LinkedList<>();
-            visited[v][vv] = 1;
-            cell.add(v);
-            dfsCellSearch(d+1, indent+" ", vv, visited, cell);
+            //cell = new LinkedList<>();
+            //visited[v][vv] = 1;
+            //cell.add(v);
+            //dfsCellSearch(d+1, indent+" ", vv, visited, cell);
+            q.add(new int[] { v, vv });
         }
 
         log.debug("%sEND", indent);
@@ -339,7 +363,19 @@ public class CustomBoard extends Reflector<CustomBoard> {
     }
 
     public final void removeVertex(int vIndex) {
-        verts.remove(vIndex);
+        // remove all edges associated with this vertex
+        Iterator<BEdge> it = edges.iterator();
+        while (it.hasNext()) {
+            BEdge e = it.next();
+            if (e.from == vIndex || e.to == vIndex) {
+                it.remove();
+            }
+        }
+        // remove this index from any cells we are adjacent too
+        for (BCell c : getAdjacentCells(verts.get(vIndex))) {
+            c.adjVerts.remove((Object)vIndex);
+        }
+        verts.set(vIndex, null);
     }
 
     public final void removeEdge(int from, int to) {
@@ -361,8 +397,47 @@ public class CustomBoard extends Reflector<CustomBoard> {
         return Arrays.asList(cells);
     }
 
+    public final Iterable<BCell> getAdjacentCells(final BEdge edge) {
+        return new Iterable<BCell>() {
+            @Override
+            public Iterator<BCell> iterator() {
+                return new Iterator<BCell>() {
+                    int index = 0;
+                    @Override
+                    public boolean hasNext() {
+                        return index < edge.numAdjCells;
+                    }
+
+                    @Override
+                    public BCell next() {
+                        return cells.get(index++);
+                    }
+                };
+            }
+        };
+    }
+
+    public final Iterable<BCell> getAdjacentCells(final BVertex vertex) {
+        return new Iterable<BCell>() {
+            @Override
+            public Iterator<BCell> iterator() {
+                return new Iterator<BCell>() {
+                    int index = 0;
+                    @Override
+                    public boolean hasNext() {
+                        return index < vertex.numAdjCells;
+                    }
+
+                    @Override
+                    public BCell next() {
+                        return cells.get(index++);
+                    }
+                };
+            }
+        };
+    }
+
     public final GRectangle getCellBoundingRect(int cellIndex) {
-        GRectangle rect = new GRectangle();
         BCell cell = getCell(cellIndex);
         MutableVector2D min = new MutableVector2D(cell);
         MutableVector2D max = new MutableVector2D(cell);
