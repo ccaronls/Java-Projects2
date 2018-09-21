@@ -2,6 +2,8 @@ package cc.board;
 
 import junit.framework.TestCase;
 
+import java.io.File;
+
 import cc.lib.board.CustomBoard;
 
 public class CustomBoardTest extends TestCase {
@@ -83,4 +85,9 @@ public class CustomBoardTest extends TestCase {
         assertEquals(3, b.getNumCells());
     }
 
+    public void testSavedBoard() throws Exception {
+        CustomBoard b = new CustomBoard();
+        b.loadFromFile(new File("bb.backup.board"));
+        b.compute();
+    }
 }

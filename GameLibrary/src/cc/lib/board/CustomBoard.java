@@ -259,9 +259,6 @@ public class CustomBoard extends Reflector<CustomBoard> {
     }
 
     private void dfsCellSearch(int d, String indent, int v, int [][] visited, LinkedList<Integer> cell) {
-        if (d > 256) {
-            return;
-        }
         log.debug("%sDFS %d %s", indent, v, cell);
         BVertex bv = verts.get(v);
 
@@ -306,7 +303,7 @@ public class CustomBoard extends Reflector<CustomBoard> {
                     int first = adjacent.remove(0);
                     visited[v][first] = 1;
                     cell.add(v);
-                    dfsCellSearch(d + 1, indent + "  ", first, visited, cell);
+                    dfsCellSearch(d + 1, indent + " ", first, visited, cell);
                 }
             }
         }
@@ -315,7 +312,7 @@ public class CustomBoard extends Reflector<CustomBoard> {
             cell = new LinkedList<>();
             visited[v][vv] = 1;
             cell.add(v);
-            dfsCellSearch(d+1, indent+"  ", vv, visited, cell);
+            dfsCellSearch(d+1, indent+" ", vv, visited, cell);
         }
 
         log.debug("%sEND", indent);

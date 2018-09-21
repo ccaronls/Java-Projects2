@@ -1,6 +1,7 @@
 package cc.lib.dungeondice;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -35,9 +36,9 @@ public class DBoard extends CustomBoard {
                 if (adjCell == backCell)
                     continue;
                 DCell next = getCell(adjCell);
-                if (next.type == CellType.ROOM)
+                if (next.getCellType() == CellType.ROOM)
                     dfsFindPaths(player, adjCell, rootCell, 0, path, moves);
-                else if (next.type == CellType.LOCKED_ROOM) {
+                else if (next.getCellType() == CellType.LOCKED_ROOM) {
                     if (player.hasKey()) {
                         dfsFindPaths(player, adjCell, rootCell, 0, path, moves);
                     }
@@ -57,9 +58,9 @@ public class DBoard extends CustomBoard {
     public void draw(AGraphics g) {
         for (int i=0; i<getNumCells(); i++) {
             DCell cell = getCell(i);
-            g.setColor(cell.type.color);
+            g.setColor(cell.getCellType().color);
             renderCell(cell, g, 0.95f);
-            if (cell.type == CellType.LOCKED_ROOM) {
+            if (cell.getCellType() == CellType.LOCKED_ROOM) {
                 // draw black keyhole over cell
                 GRectangle rect = getCellBoundingRect(i);
                 g.pushMatrix();
@@ -77,5 +78,30 @@ public class DBoard extends CustomBoard {
                 g.popMatrix();
             }
         }
+    }
+
+    public int getStartCellIndex() {
+        return -1;
+    }
+
+    public List<Integer> getCellsOfType(CellType ... types) {
+        List<Integer> list = new ArrayList<>();
+        if (types.length > 1) {
+            Arrays.sort(types);
+            for (int i = 0; i < getNumCells(); i++) {
+                DCell cell = getCell(i);
+                if (Arrays.binarySearch(types, cell.getCellType()) >= 0) {
+                    list.add(i);
+                }
+            }
+        } else if (types.length > 0) {
+            for (int i = 0; i < getNumCells(); i++) {
+                DCell cell = getCell(i);
+                if (cell.getCellType() == types[0]) {
+                    list.add(i);
+                }
+            }
+        }
+        return list;
     }
 }

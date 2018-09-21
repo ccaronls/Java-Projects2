@@ -1,13 +1,13 @@
 package cc.lib.dungeondice;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
-import cc.lib.game.IGame;
 import cc.lib.game.Utils;
 import cc.lib.utils.Reflector;
 
-public class DDungeon extends Reflector<DDungeon> implements IGame<DMove> {
+public class DDungeon extends Reflector<DDungeon> {
 
     static {
         addAllFields(DDungeon.class);
@@ -57,6 +57,8 @@ public class DDungeon extends Reflector<DDungeon> implements IGame<DMove> {
     }
 
     public final void setPlayer(int index, DPlayer player) {
+        if (state != State.INIT)
+            throw new RuntimeException("Cannot modify players while in game");
         if (index < 0 || index >= numPlayers)
             throw new IndexOutOfBoundsException();
         players[index] = player;
@@ -64,28 +66,14 @@ public class DDungeon extends Reflector<DDungeon> implements IGame<DMove> {
     }
 
     public final void addPlayer(DPlayer player) {
+        if (state != State.INIT)
+            throw new RuntimeException("Cannot modify players while in game");
         if (player == null)
             throw new NullPointerException();
         players[numPlayers] = player;
         player.playerNum = numPlayers++;
     }
 
-    @Override
-    public void executeMove(DMove move) {
-
-    }
-
-    @Override
-    public DMove undo() {
-        return null;
-    }
-
-    @Override
-    public Iterable<DMove> getMoves() {
-        return null;
-    }
-
-    @Override
     public final int getTurn() {
         return curPlayer;
     }
@@ -105,13 +93,38 @@ public class DDungeon extends Reflector<DDungeon> implements IGame<DMove> {
 
     }
 
-    public void run() {
+    public final Iterable<DPlayer> getPlayers() {
+        return new Iterable<DPlayer>() {
+            @Override
+            public Iterator<DPlayer> iterator() {
+                return new Iterator<DPlayer>() {
+                    int index = 0;
+
+                    @Override
+                    public boolean hasNext() {
+                        return index < numPlayers;
+                    }
+
+                    @Override
+                    public DPlayer next() {
+                        return players[index++];
+                    }
+                };
+            }
+        };
+    }
+
+    public final void runGame() {
         switch (state) {
             case INIT:
                 curPlayer = 0;
                 curEnemy = -1;
                 enemyList.clear();
+                for (DPlayer p : getPlayers()) {
+                    p.cellIndex = board.getStartCellIndex();
+                }
                 break;
+                /*
             case ROLL_TO_MOVE: {
                 diceConfig = DiceConfig.ONE_6x6;
                 rollDice();
@@ -179,13 +192,13 @@ public class DDungeon extends Reflector<DDungeon> implements IGame<DMove> {
                 break;
             }
             case ROLL_ENEMY_DAMAGE:
-                break;
+                break;*/
         }
     }
 
     private void nextPlayer() {
         curPlayer = (curPlayer + 1) % players.length;
-        state = State.ROLL_TO_MOVE;
+        //state = State.ROLL_TO_MOVE;
     }
 
     private void processMove(DMove move) {

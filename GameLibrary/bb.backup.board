@@ -1,4 +1,2151 @@
 cells=java.util.Vector {
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            1
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            0
+         }
+         java.lang.Integer {
+            1
+         }
+         java.lang.Integer {
+            2
+         }
+         java.lang.Integer {
+            3
+         }
+      }
+      cx=429.0
+      cy=670.5
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            0
+         }
+         java.lang.Integer {
+            2
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            4
+         }
+         java.lang.Integer {
+            112
+         }
+         java.lang.Integer {
+            2
+         }
+         java.lang.Integer {
+            1
+         }
+      }
+      cx=441.0
+      cy=628.5
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            1
+         }
+         java.lang.Integer {
+            3
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            4
+         }
+         java.lang.Integer {
+            5
+         }
+         java.lang.Integer {
+            111
+         }
+         java.lang.Integer {
+            112
+         }
+      }
+      cx=462.0
+      cy=594.25
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            2
+         }
+         java.lang.Integer {
+            4
+         }
+         java.lang.Integer {
+            5
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            5
+         }
+         java.lang.Integer {
+            113
+         }
+         java.lang.Integer {
+            110
+         }
+         java.lang.Integer {
+            111
+         }
+      }
+      cx=490.75
+      cy=559.25
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            3
+         }
+         java.lang.Integer {
+            72
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            5
+         }
+         java.lang.Integer {
+            6
+         }
+         java.lang.Integer {
+            143
+         }
+         java.lang.Integer {
+            113
+         }
+      }
+      cx=436.5
+      cy=529.75
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            3
+         }
+         java.lang.Integer {
+            52
+         }
+         java.lang.Integer {
+            6
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            113
+         }
+         java.lang.Integer {
+            114
+         }
+         java.lang.Integer {
+            213
+         }
+         java.lang.Integer {
+            110
+         }
+      }
+      cx=535.5
+      cy=515.75
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            5
+         }
+         java.lang.Integer {
+            7
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            115
+         }
+         java.lang.Integer {
+            228
+         }
+         java.lang.Integer {
+            213
+         }
+         java.lang.Integer {
+            114
+         }
+      }
+      cx=594.0
+      cy=473.5
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            6
+         }
+         java.lang.Integer {
+            8
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            115
+         }
+         java.lang.Integer {
+            116
+         }
+         java.lang.Integer {
+            227
+         }
+         java.lang.Integer {
+            228
+         }
+      }
+      cx=651.75
+      cy=440.75
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            10
+         }
+         java.lang.Integer {
+            7
+         }
+         java.lang.Integer {
+            9
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            227
+         }
+         java.lang.Integer {
+            116
+         }
+         java.lang.Integer {
+            196
+         }
+         java.lang.Integer {
+            226
+         }
+      }
+      cx=704.5
+      cy=419.0
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            11
+         }
+         java.lang.Integer {
+            8
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            196
+         }
+         java.lang.Integer {
+            195
+         }
+         java.lang.Integer {
+            225
+         }
+         java.lang.Integer {
+            226
+         }
+      }
+      cx=763.0
+      cy=405.25
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            8
+         }
+         java.lang.Integer {
+            34
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            196
+         }
+         java.lang.Integer {
+            116
+         }
+         java.lang.Integer {
+            117
+         }
+         java.lang.Integer {
+            197
+         }
+      }
+      cx=678.0
+      cy=358.0
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            12
+         }
+         java.lang.Integer {
+            9
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            194
+         }
+         java.lang.Integer {
+            202
+         }
+         java.lang.Integer {
+            225
+         }
+         java.lang.Integer {
+            195
+         }
+      }
+      cx=825.5
+      cy=402.75
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            13
+         }
+         java.lang.Integer {
+            14
+         }
+         java.lang.Integer {
+            11
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            194
+         }
+         java.lang.Integer {
+            193
+         }
+         java.lang.Integer {
+            203
+         }
+         java.lang.Integer {
+            202
+         }
+      }
+      cx=888.5
+      cy=420.0
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            51
+         }
+         java.lang.Integer {
+            12
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            194
+         }
+         java.lang.Integer {
+            201
+         }
+         java.lang.Integer {
+            192
+         }
+         java.lang.Integer {
+            193
+         }
+      }
+      cx=876.75
+      cy=364.75
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            24
+         }
+         java.lang.Integer {
+            15
+         }
+         java.lang.Integer {
+            12
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            193
+         }
+         java.lang.Integer {
+            204
+         }
+         java.lang.Integer {
+            89
+         }
+         java.lang.Integer {
+            203
+         }
+      }
+      cx=950.25
+      cy=445.25
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            16
+         }
+         java.lang.Integer {
+            14
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            181
+         }
+         java.lang.Integer {
+            88
+         }
+         java.lang.Integer {
+            89
+         }
+         java.lang.Integer {
+            204
+         }
+      }
+      cx=1014.0
+      cy=465.25
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            17
+         }
+         java.lang.Integer {
+            15
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            181
+         }
+         java.lang.Integer {
+            86
+         }
+         java.lang.Integer {
+            87
+         }
+         java.lang.Integer {
+            88
+         }
+      }
+      cx=1073.75
+      cy=481.25
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            18
+         }
+         java.lang.Integer {
+            16
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            181
+         }
+         java.lang.Integer {
+            182
+         }
+         java.lang.Integer {
+            85
+         }
+         java.lang.Integer {
+            86
+         }
+      }
+      cx=1074.75
+      cy=437.5
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            19
+         }
+         java.lang.Integer {
+            17
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            182
+         }
+         java.lang.Integer {
+            183
+         }
+         java.lang.Integer {
+            84
+         }
+         java.lang.Integer {
+            85
+         }
+      }
+      cx=1069.25
+      cy=393.5
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            20
+         }
+         java.lang.Integer {
+            18
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            183
+         }
+         java.lang.Integer {
+            184
+         }
+         java.lang.Integer {
+            83
+         }
+         java.lang.Integer {
+            84
+         }
+      }
+      cx=1061.0
+      cy=349.25
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            21
+         }
+         java.lang.Integer {
+            19
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            184
+         }
+         java.lang.Integer {
+            185
+         }
+         java.lang.Integer {
+            82
+         }
+         java.lang.Integer {
+            83
+         }
+      }
+      cx=1053.75
+      cy=305.0
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            22
+         }
+         java.lang.Integer {
+            20
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            185
+         }
+         java.lang.Integer {
+            186
+         }
+         java.lang.Integer {
+            81
+         }
+         java.lang.Integer {
+            82
+         }
+      }
+      cx=1046.5
+      cy=262.0
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            23
+         }
+         java.lang.Integer {
+            21
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            186
+         }
+         java.lang.Integer {
+            187
+         }
+         java.lang.Integer {
+            80
+         }
+         java.lang.Integer {
+            81
+         }
+      }
+      cx=1036.25
+      cy=221.25
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            22
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            187
+         }
+         java.lang.Integer {
+            78
+         }
+         java.lang.Integer {
+            79
+         }
+         java.lang.Integer {
+            80
+         }
+      }
+      cx=1022.0
+      cy=182.75
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            14
+         }
+         java.lang.Integer {
+            25
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            89
+         }
+         java.lang.Integer {
+            90
+         }
+         java.lang.Integer {
+            205
+         }
+         java.lang.Integer {
+            203
+         }
+      }
+      cx=940.25
+      cy=483.5
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            24
+         }
+         java.lang.Integer {
+            26
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            90
+         }
+         java.lang.Integer {
+            91
+         }
+         java.lang.Integer {
+            206
+         }
+         java.lang.Integer {
+            205
+         }
+      }
+      cx=930.75
+      cy=512.25
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            27
+         }
+         java.lang.Integer {
+            25
+         }
+         java.lang.Integer {
+            28
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            91
+         }
+         java.lang.Integer {
+            102
+         }
+         java.lang.Integer {
+            207
+         }
+         java.lang.Integer {
+            206
+         }
+      }
+      cx=913.75
+      cy=545.75
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            26
+         }
+         java.lang.Integer {
+            31
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            91
+         }
+         java.lang.Integer {
+            92
+         }
+         java.lang.Integer {
+            101
+         }
+         java.lang.Integer {
+            102
+         }
+      }
+      cx=951.5
+      cy=566.0
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            26
+         }
+         java.lang.Integer {
+            29
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            102
+         }
+         java.lang.Integer {
+            103
+         }
+         java.lang.Integer {
+            208
+         }
+         java.lang.Integer {
+            207
+         }
+      }
+      cx=885.0
+      cy=580.25
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            28
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            103
+         }
+         java.lang.Integer {
+            104
+         }
+         java.lang.Integer {
+            209
+         }
+         java.lang.Integer {
+            208
+         }
+      }
+      cx=847.25
+      cy=606.75
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            209
+         }
+         java.lang.Integer {
+            218
+         }
+         java.lang.Integer {
+            219
+         }
+         java.lang.Integer {
+            210
+         }
+      }
+      cx=788.25
+      cy=578.25
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            27
+         }
+         java.lang.Integer {
+            32
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            92
+         }
+         java.lang.Integer {
+            93
+         }
+         java.lang.Integer {
+            100
+         }
+         java.lang.Integer {
+            101
+         }
+      }
+      cx=978.5
+      cy=589.75
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            31
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            93
+         }
+         java.lang.Integer {
+            94
+         }
+         java.lang.Integer {
+            95
+         }
+         java.lang.Integer {
+            96
+         }
+         java.lang.Integer {
+            97
+         }
+         java.lang.Integer {
+            98
+         }
+         java.lang.Integer {
+            99
+         }
+         java.lang.Integer {
+            100
+         }
+      }
+      cx=1034.625
+      cy=628.125
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            199
+         }
+         java.lang.Integer {
+            198
+         }
+         java.lang.Integer {
+            68
+         }
+         java.lang.Integer {
+            69
+         }
+      }
+      cx=737.5
+      cy=228.75
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            35
+         }
+         java.lang.Integer {
+            10
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            197
+         }
+         java.lang.Integer {
+            117
+         }
+         java.lang.Integer {
+            129
+         }
+         java.lang.Integer {
+            130
+         }
+      }
+      cx=634.5
+      cy=298.5
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            34
+         }
+         java.lang.Integer {
+            36
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            117
+         }
+         java.lang.Integer {
+            118
+         }
+         java.lang.Integer {
+            128
+         }
+         java.lang.Integer {
+            129
+         }
+      }
+      cx=590.75
+      cy=331.0
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            35
+         }
+         java.lang.Integer {
+            37
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            118
+         }
+         java.lang.Integer {
+            119
+         }
+         java.lang.Integer {
+            127
+         }
+         java.lang.Integer {
+            128
+         }
+      }
+      cx=547.5
+      cy=365.25
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            36
+         }
+         java.lang.Integer {
+            38
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            119
+         }
+         java.lang.Integer {
+            120
+         }
+         java.lang.Integer {
+            126
+         }
+         java.lang.Integer {
+            127
+         }
+      }
+      cx=493.0
+      cy=390.0
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            37
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            120
+         }
+         java.lang.Integer {
+            121
+         }
+         java.lang.Integer {
+            122
+         }
+         java.lang.Integer {
+            123
+         }
+         java.lang.Integer {
+            124
+         }
+         java.lang.Integer {
+            125
+         }
+         java.lang.Integer {
+            126
+         }
+      }
+      cx=432.57144
+      cy=427.7143
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            47
+         }
+         java.lang.Integer {
+            40
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            66
+         }
+         java.lang.Integer {
+            229
+         }
+         java.lang.Integer {
+            235
+         }
+         java.lang.Integer {
+            65
+         }
+      }
+      cx=560.0
+      cy=138.5
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            39
+         }
+         java.lang.Integer {
+            41
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            66
+         }
+         java.lang.Integer {
+            132
+         }
+         java.lang.Integer {
+            172
+         }
+         java.lang.Integer {
+            229
+         }
+      }
+      cx=527.75
+      cy=186.0
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            42
+         }
+         java.lang.Integer {
+            40
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            229
+         }
+         java.lang.Integer {
+            172
+         }
+         java.lang.Integer {
+            171
+         }
+         java.lang.Integer {
+            230
+         }
+      }
+      cx=475.0
+      cy=167.25
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            41
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            171
+         }
+         java.lang.Integer {
+            170
+         }
+         java.lang.Integer {
+            231
+         }
+         java.lang.Integer {
+            230
+         }
+      }
+      cx=422.0
+      cy=150.25
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            231
+         }
+         java.lang.Integer {
+            48
+         }
+         java.lang.Integer {
+            49
+         }
+         java.lang.Integer {
+            232
+         }
+      }
+      cx=387.0
+      cy=96.75
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            45
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            170
+         }
+         java.lang.Integer {
+            169
+         }
+         java.lang.Integer {
+            46
+         }
+         java.lang.Integer {
+            47
+         }
+      }
+      cx=345.75
+      cy=175.0
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            46
+         }
+         java.lang.Integer {
+            44
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            169
+         }
+         java.lang.Integer {
+            168
+         }
+         java.lang.Integer {
+            45
+         }
+         java.lang.Integer {
+            46
+         }
+      }
+      cx=307.75
+      cy=198.0
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            45
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            168
+         }
+         java.lang.Integer {
+            167
+         }
+         java.lang.Integer {
+            44
+         }
+         java.lang.Integer {
+            45
+         }
+      }
+      cx=262.5
+      cy=201.5
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            48
+         }
+         java.lang.Integer {
+            49
+         }
+         java.lang.Integer {
+            39
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            235
+         }
+         java.lang.Integer {
+            54
+         }
+         java.lang.Integer {
+            55
+         }
+         java.lang.Integer {
+            65
+         }
+      }
+      cx=595.25
+      cy=87.75
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            47
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            235
+         }
+         java.lang.Integer {
+            234
+         }
+         java.lang.Integer {
+            53
+         }
+         java.lang.Integer {
+            54
+         }
+      }
+      cx=543.0
+      cy=74.0
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            47
+         }
+         java.lang.Integer {
+            50
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            55
+         }
+         java.lang.Integer {
+            56
+         }
+         java.lang.Integer {
+            64
+         }
+         java.lang.Integer {
+            65
+         }
+      }
+      cx=648.0
+      cy=103.75
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            49
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            56
+         }
+         java.lang.Integer {
+            57
+         }
+         java.lang.Integer {
+            58
+         }
+         java.lang.Integer {
+            64
+         }
+      }
+      cx=697.25
+      cy=125.75
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            13
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            192
+         }
+         java.lang.Integer {
+            201
+         }
+         java.lang.Integer {
+            200
+         }
+         java.lang.Integer {
+            191
+         }
+      }
+      cx=855.75
+      cy=311.25
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            53
+         }
+         java.lang.Integer {
+            5
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            214
+         }
+         java.lang.Integer {
+            109
+         }
+         java.lang.Integer {
+            110
+         }
+         java.lang.Integer {
+            213
+         }
+      }
+      cx=584.5
+      cy=551.5
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            54
+         }
+         java.lang.Integer {
+            52
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            214
+         }
+         java.lang.Integer {
+            215
+         }
+         java.lang.Integer {
+            108
+         }
+         java.lang.Integer {
+            109
+         }
+      }
+      cx=617.0
+      cy=586.5
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            53
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            215
+         }
+         java.lang.Integer {
+            216
+         }
+         java.lang.Integer {
+            107
+         }
+         java.lang.Integer {
+            108
+         }
+      }
+      cx=651.25
+      cy=619.0
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            57
+         }
+         java.lang.Integer {
+            56
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            163
+         }
+         java.lang.Integer {
+            152
+         }
+         java.lang.Integer {
+            28
+         }
+         java.lang.Integer {
+            29
+         }
+      }
+      cx=57.25
+      cy=287.75
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            55
+         }
+         java.lang.Integer {
+            80
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            163
+         }
+         java.lang.Integer {
+            180
+         }
+         java.lang.Integer {
+            153
+         }
+         java.lang.Integer {
+            152
+         }
+      }
+      cx=113.0
+      cy=280.0
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            58
+         }
+         java.lang.Integer {
+            55
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            152
+         }
+         java.lang.Integer {
+            151
+         }
+         java.lang.Integer {
+            27
+         }
+         java.lang.Integer {
+            28
+         }
+      }
+      cx=72.0
+      cy=330.5
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            59
+         }
+         java.lang.Integer {
+            57
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            150
+         }
+         java.lang.Integer {
+            26
+         }
+         java.lang.Integer {
+            27
+         }
+         java.lang.Integer {
+            151
+         }
+      }
+      cx=93.25
+      cy=366.25
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            60
+         }
+         java.lang.Integer {
+            58
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            150
+         }
+         java.lang.Integer {
+            149
+         }
+         java.lang.Integer {
+            25
+         }
+         java.lang.Integer {
+            26
+         }
+      }
+      cx=121.75
+      cy=397.5
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            61
+         }
+         java.lang.Integer {
+            59
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            149
+         }
+         java.lang.Integer {
+            148
+         }
+         java.lang.Integer {
+            24
+         }
+         java.lang.Integer {
+            25
+         }
+      }
+      cx=153.5
+      cy=431.0
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            63
+         }
+         java.lang.Integer {
+            60
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            148
+         }
+         java.lang.Integer {
+            147
+         }
+         java.lang.Integer {
+            23
+         }
+         java.lang.Integer {
+            24
+         }
+      }
+      cx=184.25
+      cy=469.25
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            64
+         }
+         java.lang.Integer {
+            63
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            23
+         }
+         java.lang.Integer {
+            145
+         }
+         java.lang.Integer {
+            144
+         }
+         java.lang.Integer {
+            22
+         }
+      }
+      cx=176.5
+      cy=535.25
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            62
+         }
+         java.lang.Integer {
+            61
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            23
+         }
+         java.lang.Integer {
+            147
+         }
+         java.lang.Integer {
+            146
+         }
+         java.lang.Integer {
+            145
+         }
+      }
+      cx=216.5
+      cy=503.25
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            66
+         }
+         java.lang.Integer {
+            65
+         }
+         java.lang.Integer {
+            62
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            144
+         }
+         java.lang.Integer {
+            11
+         }
+         java.lang.Integer {
+            21
+         }
+         java.lang.Integer {
+            22
+         }
+      }
+      cx=140.5
+      cy=569.0
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            68
+         }
+         java.lang.Integer {
+            64
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            144
+         }
+         java.lang.Integer {
+            162
+         }
+         java.lang.Integer {
+            10
+         }
+         java.lang.Integer {
+            11
+         }
+      }
+      cx=191.25
+      cy=594.25
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            64
+         }
+         java.lang.Integer {
+            67
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            11
+         }
+         java.lang.Integer {
+            12
+         }
+         java.lang.Integer {
+            20
+         }
+         java.lang.Integer {
+            21
+         }
+      }
+      cx=105.0
+      cy=604.0
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            66
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            12
+         }
+         java.lang.Integer {
+            13
+         }
+         java.lang.Integer {
+            14
+         }
+         java.lang.Integer {
+            15
+         }
+         java.lang.Integer {
+            16
+         }
+         java.lang.Integer {
+            17
+         }
+         java.lang.Integer {
+            18
+         }
+         java.lang.Integer {
+            19
+         }
+         java.lang.Integer {
+            20
+         }
+      }
+      cx=58.0
+      cy=657.7778
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            69
+         }
+         java.lang.Integer {
+            65
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            162
+         }
+         java.lang.Integer {
+            161
+         }
+         java.lang.Integer {
+            9
+         }
+         java.lang.Integer {
+            10
+         }
+      }
+      cx=244.25
+      cy=583.75
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            70
+         }
+         java.lang.Integer {
+            68
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            161
+         }
+         java.lang.Integer {
+            160
+         }
+         java.lang.Integer {
+            8
+         }
+         java.lang.Integer {
+            9
+         }
+      }
+      cx=288.0
+      cy=549.25
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            72
+         }
+         java.lang.Integer {
+            69
+         }
+         java.lang.Integer {
+            71
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            160
+         }
+         java.lang.Integer {
+            142
+         }
+         java.lang.Integer {
+            7
+         }
+         java.lang.Integer {
+            8
+         }
+      }
+      cx=334.25
+      cy=522.5
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            73
+         }
+         java.lang.Integer {
+            70
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            160
+         }
+         java.lang.Integer {
+            159
+         }
+         java.lang.Integer {
+            141
+         }
+         java.lang.Integer {
+            142
+         }
+      }
+      cx=322.5
+      cy=478.5
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            4
+         }
+         java.lang.Integer {
+            70
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            142
+         }
+         java.lang.Integer {
+            143
+         }
+         java.lang.Integer {
+            6
+         }
+         java.lang.Integer {
+            7
+         }
+      }
+      cx=385.0
+      cy=514.0
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            74
+         }
+         java.lang.Integer {
+            71
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            159
+         }
+         java.lang.Integer {
+            158
+         }
+         java.lang.Integer {
+            140
+         }
+         java.lang.Integer {
+            141
+         }
+      }
+      cx=308.5
+      cy=437.0
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            75
+         }
+         java.lang.Integer {
+            73
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            158
+         }
+         java.lang.Integer {
+            157
+         }
+         java.lang.Integer {
+            139
+         }
+         java.lang.Integer {
+            140
+         }
+      }
+      cx=303.0
+      cy=392.75
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            77
+         }
+         java.lang.Integer {
+            74
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            157
+         }
+         java.lang.Integer {
+            156
+         }
+         java.lang.Integer {
+            138
+         }
+         java.lang.Integer {
+            139
+         }
+      }
+      cx=310.5
+      cy=347.75
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            77
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            138
+         }
+         java.lang.Integer {
+            176
+         }
+         java.lang.Integer {
+            175
+         }
+         java.lang.Integer {
+            137
+         }
+      }
+      cx=375.5
+      cy=307.25
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            75
+         }
+         java.lang.Integer {
+            76
+         }
+         java.lang.Integer {
+            78
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            138
+         }
+         java.lang.Integer {
+            156
+         }
+         java.lang.Integer {
+            177
+         }
+         java.lang.Integer {
+            176
+         }
+      }
+      cx=328.5
+      cy=300.75
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            79
+         }
+         java.lang.Integer {
+            77
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            156
+         }
+         java.lang.Integer {
+            155
+         }
+         java.lang.Integer {
+            178
+         }
+         java.lang.Integer {
+            177
+         }
+      }
+      cx=274.0
+      cy=293.25
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            80
+         }
+         java.lang.Integer {
+            78
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            155
+         }
+         java.lang.Integer {
+            154
+         }
+         java.lang.Integer {
+            179
+         }
+         java.lang.Integer {
+            178
+         }
+      }
+      cx=213.25
+      cy=284.0
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            56
+         }
+         java.lang.Integer {
+            79
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            154
+         }
+         java.lang.Integer {
+            153
+         }
+         java.lang.Integer {
+            180
+         }
+         java.lang.Integer {
+            179
+         }
+      }
+      cx=159.75
+      cy=279.0
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            41
+         }
+         java.lang.Integer {
+            33
+         }
+         java.lang.Integer {
+            34
+         }
+         java.lang.Integer {
+            35
+         }
+         java.lang.Integer {
+            36
+         }
+         java.lang.Integer {
+            37
+         }
+         java.lang.Integer {
+            38
+         }
+         java.lang.Integer {
+            39
+         }
+         java.lang.Integer {
+            40
+         }
+      }
+      cx=229.77779
+      cy=86.88889
+   }
 }
 edges=java.util.Vector {
    cc.lib.board.BEdge {
@@ -6,248 +2153,400 @@ edges=java.util.Vector {
          0 0 
       }
       from=0
-      numAdjCells=0
+      numAdjCells=1
       to=1
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
          0 0 
       }
+      from=0
+      numAdjCells=1
+      to=3
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         0 1 
+      }
       from=1
-      numAdjCells=0
+      numAdjCells=2
       to=2
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
-      }
-      from=2
-      numAdjCells=0
-      to=3
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=0
-      numAdjCells=0
-      to=3
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=0
-      numAdjCells=0
-      to=1
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
+         1 0 
       }
       from=1
-      numAdjCells=0
+      numAdjCells=1
       to=4
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
          0 0 
       }
+      from=2
+      numAdjCells=1
+      to=3
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         1 0 
+      }
+      from=2
+      numAdjCells=1
+      to=112
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         2 0 
+      }
       from=4
-      numAdjCells=0
+      numAdjCells=1
       to=5
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         1 2 
+      }
+      from=4
+      numAdjCells=2
+      to=112
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         4 0 
       }
       from=5
-      numAdjCells=0
+      numAdjCells=1
       to=6
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         2 3 
+      }
+      from=5
+      numAdjCells=2
+      to=111
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         3 4 
+      }
+      from=5
+      numAdjCells=2
+      to=113
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         72 0 
       }
       from=6
-      numAdjCells=0
+      numAdjCells=1
       to=7
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         4 72 
+      }
+      from=6
+      numAdjCells=2
+      to=143
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         70 0 
       }
       from=7
-      numAdjCells=0
+      numAdjCells=1
       to=8
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         70 72 
+      }
+      from=7
+      numAdjCells=2
+      to=142
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         69 0 
       }
       from=8
-      numAdjCells=0
+      numAdjCells=1
       to=9
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         69 70 
+      }
+      from=8
+      numAdjCells=2
+      to=160
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         68 0 
       }
       from=9
-      numAdjCells=0
+      numAdjCells=1
       to=10
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         68 69 
+      }
+      from=9
+      numAdjCells=2
+      to=161
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         65 0 
       }
       from=10
-      numAdjCells=0
+      numAdjCells=1
       to=11
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         65 68 
+      }
+      from=10
+      numAdjCells=2
+      to=162
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         66 0 
       }
       from=11
-      numAdjCells=0
+      numAdjCells=1
       to=12
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         64 66 
       }
-      from=12
-      numAdjCells=0
-      to=13
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=13
-      numAdjCells=0
-      to=14
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=14
-      numAdjCells=0
-      to=15
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=15
-      numAdjCells=0
-      to=16
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=16
-      numAdjCells=0
-      to=17
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=17
-      numAdjCells=0
-      to=18
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=18
-      numAdjCells=0
-      to=19
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=19
-      numAdjCells=0
-      to=20
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=20
-      numAdjCells=0
+      from=11
+      numAdjCells=2
       to=21
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         64 65 
+      }
+      from=11
+      numAdjCells=2
+      to=144
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         67 0 
+      }
+      from=12
+      numAdjCells=1
+      to=13
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         66 67 
+      }
+      from=12
+      numAdjCells=2
+      to=20
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         67 0 
+      }
+      from=13
+      numAdjCells=1
+      to=14
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         67 0 
+      }
+      from=14
+      numAdjCells=1
+      to=15
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         67 0 
+      }
+      from=15
+      numAdjCells=1
+      to=16
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         67 0 
+      }
+      from=16
+      numAdjCells=1
+      to=17
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         67 0 
+      }
+      from=17
+      numAdjCells=1
+      to=18
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         67 0 
+      }
+      from=18
+      numAdjCells=1
+      to=19
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         67 0 
+      }
+      from=19
+      numAdjCells=1
+      to=20
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         66 0 
+      }
+      from=20
+      numAdjCells=1
+      to=21
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         64 0 
       }
       from=21
-      numAdjCells=0
+      numAdjCells=1
       to=22
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         62 0 
       }
       from=22
-      numAdjCells=0
+      numAdjCells=1
       to=23
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         62 64 
+      }
+      from=22
+      numAdjCells=2
+      to=144
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         61 0 
       }
       from=23
-      numAdjCells=0
+      numAdjCells=1
       to=24
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         62 63 
+      }
+      from=23
+      numAdjCells=2
+      to=145
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         61 63 
+      }
+      from=23
+      numAdjCells=2
+      to=147
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         60 0 
       }
       from=24
-      numAdjCells=0
+      numAdjCells=1
       to=25
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         60 61 
+      }
+      from=24
+      numAdjCells=2
+      to=148
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         59 0 
       }
       from=25
-      numAdjCells=0
+      numAdjCells=1
       to=26
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         59 60 
+      }
+      from=25
+      numAdjCells=2
+      to=149
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         58 0 
       }
       from=26
-      numAdjCells=0
+      numAdjCells=1
       to=27
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         58 59 
+      }
+      from=26
+      numAdjCells=2
+      to=150
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         57 0 
       }
       from=27
-      numAdjCells=0
+      numAdjCells=1
       to=28
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         57 58 
+      }
+      from=27
+      numAdjCells=2
+      to=151
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         55 0 
       }
       from=28
-      numAdjCells=0
+      numAdjCells=1
       to=29
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         55 57 
+      }
+      from=28
+      numAdjCells=2
+      to=152
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
@@ -256,6 +2555,14 @@ edges=java.util.Vector {
       from=29
       numAdjCells=0
       to=30
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         55 0 
+      }
+      from=29
+      numAdjCells=1
+      to=163
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
@@ -269,9 +2576,25 @@ edges=java.util.Vector {
       adjacentCells=int 2 {
          0 0 
       }
+      from=30
+      numAdjCells=0
+      to=164
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         0 0 
+      }
       from=31
       numAdjCells=0
       to=32
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         0 0 
+      }
+      from=31
+      numAdjCells=0
+      to=165
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
@@ -285,64 +2608,80 @@ edges=java.util.Vector {
       adjacentCells=int 2 {
          0 0 
       }
-      from=33
+      from=32
       numAdjCells=0
+      to=42
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         81 0 
+      }
+      from=33
+      numAdjCells=1
       to=34
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         81 0 
+      }
+      from=33
+      numAdjCells=1
+      to=41
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         81 0 
       }
       from=34
-      numAdjCells=0
+      numAdjCells=1
       to=35
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         81 0 
       }
       from=35
-      numAdjCells=0
+      numAdjCells=1
       to=36
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         81 0 
       }
       from=36
-      numAdjCells=0
+      numAdjCells=1
       to=37
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         81 0 
       }
       from=37
-      numAdjCells=0
+      numAdjCells=1
       to=38
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         81 0 
       }
       from=38
-      numAdjCells=0
+      numAdjCells=1
       to=39
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         81 0 
       }
       from=39
-      numAdjCells=0
+      numAdjCells=1
       to=40
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         81 0 
       }
       from=40
-      numAdjCells=0
+      numAdjCells=1
       to=41
    }
    cc.lib.board.BEdge {
@@ -365,6 +2704,14 @@ edges=java.util.Vector {
       adjacentCells=int 2 {
          0 0 
       }
+      from=42
+      numAdjCells=0
+      to=165
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         0 0 
+      }
       from=43
       numAdjCells=0
       to=44
@@ -373,25 +2720,57 @@ edges=java.util.Vector {
       adjacentCells=int 2 {
          0 0 
       }
-      from=44
+      from=43
       numAdjCells=0
+      to=166
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         46 0 
+      }
+      from=44
+      numAdjCells=1
       to=45
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         46 0 
+      }
+      from=44
+      numAdjCells=1
+      to=167
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         45 0 
       }
       from=45
-      numAdjCells=0
+      numAdjCells=1
       to=46
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         45 46 
+      }
+      from=45
+      numAdjCells=2
+      to=168
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         44 0 
       }
       from=46
-      numAdjCells=0
+      numAdjCells=1
       to=47
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         44 45 
+      }
+      from=46
+      numAdjCells=2
+      to=169
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
@@ -403,11 +2782,27 @@ edges=java.util.Vector {
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         44 0 
+      }
+      from=47
+      numAdjCells=1
+      to=170
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         43 0 
       }
       from=48
-      numAdjCells=0
+      numAdjCells=1
       to=49
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         43 0 
+      }
+      from=48
+      numAdjCells=1
+      to=231
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
@@ -416,6 +2811,14 @@ edges=java.util.Vector {
       from=49
       numAdjCells=0
       to=50
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         43 0 
+      }
+      from=49
+      numAdjCells=1
+      to=232
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
@@ -437,6 +2840,14 @@ edges=java.util.Vector {
       adjacentCells=int 2 {
          0 0 
       }
+      from=51
+      numAdjCells=0
+      to=232
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         0 0 
+      }
       from=52
       numAdjCells=0
       to=53
@@ -445,40 +2856,80 @@ edges=java.util.Vector {
       adjacentCells=int 2 {
          0 0 
       }
-      from=53
+      from=52
       numAdjCells=0
+      to=233
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         48 0 
+      }
+      from=53
+      numAdjCells=1
       to=54
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         48 0 
+      }
+      from=53
+      numAdjCells=1
+      to=234
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         47 0 
       }
       from=54
-      numAdjCells=0
+      numAdjCells=1
       to=55
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         47 48 
+      }
+      from=54
+      numAdjCells=2
+      to=235
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         49 0 
       }
       from=55
-      numAdjCells=0
+      numAdjCells=1
       to=56
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         47 49 
+      }
+      from=55
+      numAdjCells=2
+      to=65
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         50 0 
       }
       from=56
-      numAdjCells=0
+      numAdjCells=1
       to=57
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         49 50 
+      }
+      from=56
+      numAdjCells=2
+      to=64
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         50 0 
       }
       from=57
-      numAdjCells=0
+      numAdjCells=1
       to=58
    }
    cc.lib.board.BEdge {
@@ -488,6 +2939,14 @@ edges=java.util.Vector {
       from=58
       numAdjCells=0
       to=59
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         50 0 
+      }
+      from=58
+      numAdjCells=1
+      to=64
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
@@ -531,19 +2990,27 @@ edges=java.util.Vector {
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         49 0 
       }
       from=64
-      numAdjCells=0
+      numAdjCells=1
       to=65
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         39 0 
       }
       from=65
-      numAdjCells=0
+      numAdjCells=1
       to=66
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         39 47 
+      }
+      from=65
+      numAdjCells=2
+      to=235
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
@@ -555,6 +3022,22 @@ edges=java.util.Vector {
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
+         40 0 
+      }
+      from=66
+      numAdjCells=1
+      to=132
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         39 40 
+      }
+      from=66
+      numAdjCells=2
+      to=229
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
          0 0 
       }
       from=67
@@ -563,11 +3046,27 @@ edges=java.util.Vector {
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
+         33 0 
+      }
+      from=68
+      numAdjCells=1
+      to=69
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
          0 0 
       }
       from=68
       numAdjCells=0
-      to=69
+      to=130
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         33 0 
+      }
+      from=68
+      numAdjCells=1
+      to=198
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
@@ -576,6 +3075,14 @@ edges=java.util.Vector {
       from=69
       numAdjCells=0
       to=70
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         33 0 
+      }
+      from=69
+      numAdjCells=1
+      to=199
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
@@ -589,9 +3096,33 @@ edges=java.util.Vector {
       adjacentCells=int 2 {
          0 0 
       }
+      from=70
+      numAdjCells=0
+      to=77
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         0 0 
+      }
+      from=70
+      numAdjCells=0
+      to=189
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         0 0 
+      }
       from=71
       numAdjCells=0
       to=72
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         0 0 
+      }
+      from=71
+      numAdjCells=0
+      to=76
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
@@ -645,209 +3176,361 @@ edges=java.util.Vector {
       adjacentCells=int 2 {
          0 0 
       }
-      from=78
+      from=77
       numAdjCells=0
+      to=188
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         23 0 
+      }
+      from=78
+      numAdjCells=1
       to=79
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         23 0 
+      }
+      from=78
+      numAdjCells=1
+      to=187
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         23 0 
       }
       from=79
-      numAdjCells=0
+      numAdjCells=1
       to=80
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         22 0 
       }
       from=80
-      numAdjCells=0
+      numAdjCells=1
       to=81
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         22 23 
+      }
+      from=80
+      numAdjCells=2
+      to=187
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         21 0 
       }
       from=81
-      numAdjCells=0
+      numAdjCells=1
       to=82
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         21 22 
+      }
+      from=81
+      numAdjCells=2
+      to=186
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         20 0 
       }
       from=82
-      numAdjCells=0
+      numAdjCells=1
       to=83
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         20 21 
+      }
+      from=82
+      numAdjCells=2
+      to=185
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         19 0 
       }
       from=83
-      numAdjCells=0
+      numAdjCells=1
       to=84
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         19 20 
+      }
+      from=83
+      numAdjCells=2
+      to=184
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         18 0 
       }
       from=84
-      numAdjCells=0
+      numAdjCells=1
       to=85
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         18 19 
+      }
+      from=84
+      numAdjCells=2
+      to=183
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         17 0 
       }
       from=85
-      numAdjCells=0
+      numAdjCells=1
       to=86
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         17 18 
+      }
+      from=85
+      numAdjCells=2
+      to=182
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         16 0 
       }
       from=86
-      numAdjCells=0
+      numAdjCells=1
       to=87
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         16 17 
+      }
+      from=86
+      numAdjCells=2
+      to=181
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         16 0 
       }
       from=87
-      numAdjCells=0
+      numAdjCells=1
       to=88
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         15 0 
       }
       from=88
-      numAdjCells=0
+      numAdjCells=1
       to=89
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         15 16 
+      }
+      from=88
+      numAdjCells=2
+      to=181
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         24 0 
       }
       from=89
-      numAdjCells=0
+      numAdjCells=1
       to=90
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         14 24 
+      }
+      from=89
+      numAdjCells=2
+      to=203
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         14 15 
+      }
+      from=89
+      numAdjCells=2
+      to=204
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         25 0 
       }
       from=90
-      numAdjCells=0
+      numAdjCells=1
       to=91
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         24 25 
+      }
+      from=90
+      numAdjCells=2
+      to=205
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         27 0 
       }
       from=91
-      numAdjCells=0
+      numAdjCells=1
       to=92
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         26 27 
       }
-      from=92
-      numAdjCells=0
-      to=93
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=93
-      numAdjCells=0
-      to=94
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=94
-      numAdjCells=0
-      to=95
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=95
-      numAdjCells=0
-      to=96
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=96
-      numAdjCells=0
-      to=97
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=97
-      numAdjCells=0
-      to=98
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=98
-      numAdjCells=0
-      to=99
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=99
-      numAdjCells=0
-      to=100
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=100
-      numAdjCells=0
-      to=101
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=101
-      numAdjCells=0
+      from=91
+      numAdjCells=2
       to=102
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         25 26 
+      }
+      from=91
+      numAdjCells=2
+      to=206
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         31 0 
+      }
+      from=92
+      numAdjCells=1
+      to=93
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         27 31 
+      }
+      from=92
+      numAdjCells=2
+      to=101
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         32 0 
+      }
+      from=93
+      numAdjCells=1
+      to=94
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         31 32 
+      }
+      from=93
+      numAdjCells=2
+      to=100
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         32 0 
+      }
+      from=94
+      numAdjCells=1
+      to=95
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         32 0 
+      }
+      from=95
+      numAdjCells=1
+      to=96
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         32 0 
+      }
+      from=96
+      numAdjCells=1
+      to=97
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         32 0 
+      }
+      from=97
+      numAdjCells=1
+      to=98
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         32 0 
+      }
+      from=98
+      numAdjCells=1
+      to=99
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         32 0 
+      }
+      from=99
+      numAdjCells=1
+      to=100
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         31 0 
+      }
+      from=100
+      numAdjCells=1
+      to=101
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         27 0 
+      }
+      from=101
+      numAdjCells=1
+      to=102
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         28 0 
       }
       from=102
-      numAdjCells=0
+      numAdjCells=1
       to=103
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         26 28 
+      }
+      from=102
+      numAdjCells=2
+      to=207
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         29 0 
       }
       from=103
-      numAdjCells=0
+      numAdjCells=1
       to=104
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         28 29 
+      }
+      from=103
+      numAdjCells=2
+      to=208
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
@@ -859,7 +3542,15 @@ edges=java.util.Vector {
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         29 0 
+      }
+      from=104
+      numAdjCells=1
+      to=209
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         30 0 
       }
       from=105
       numAdjCells=0
@@ -867,7 +3558,15 @@ edges=java.util.Vector {
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         30 0 
+      }
+      from=105
+      numAdjCells=0
+      to=218
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         31 0 
       }
       from=106
       numAdjCells=0
@@ -875,234 +3574,306 @@ edges=java.util.Vector {
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         30 31 
+      }
+      from=106
+      numAdjCells=0
+      to=217
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         54 0 
       }
       from=107
-      numAdjCells=0
+      numAdjCells=1
       to=108
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         54 0 
+      }
+      from=107
+      numAdjCells=1
+      to=216
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         53 0 
       }
       from=108
-      numAdjCells=0
+      numAdjCells=1
       to=109
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         53 54 
+      }
+      from=108
+      numAdjCells=2
+      to=215
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         52 0 
       }
       from=109
-      numAdjCells=0
+      numAdjCells=1
       to=110
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         52 53 
+      }
+      from=109
+      numAdjCells=2
+      to=214
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         3 0 
       }
       from=110
-      numAdjCells=0
+      numAdjCells=1
       to=111
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         3 5 
       }
-      from=111
-      numAdjCells=0
-      to=112
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=2
-      numAdjCells=0
-      to=112
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=2
-      numAdjCells=0
-      to=112
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=4
-      numAdjCells=0
-      to=112
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=4
-      numAdjCells=0
-      to=5
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=5
-      numAdjCells=0
-      to=111
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=5
-      numAdjCells=0
-      to=111
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=5
-      numAdjCells=0
+      from=110
+      numAdjCells=2
       to=113
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         5 52 
+      }
+      from=110
+      numAdjCells=2
+      to=213
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         2 0 
+      }
+      from=111
+      numAdjCells=1
+      to=112
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         5 0 
       }
       from=113
-      numAdjCells=0
+      numAdjCells=1
       to=114
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         4 0 
+      }
+      from=113
+      numAdjCells=1
+      to=143
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         6 0 
       }
       from=114
-      numAdjCells=0
+      numAdjCells=1
       to=115
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         5 6 
+      }
+      from=114
+      numAdjCells=2
+      to=213
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         7 0 
       }
       from=115
-      numAdjCells=0
+      numAdjCells=1
       to=116
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         6 7 
+      }
+      from=115
+      numAdjCells=2
+      to=228
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         10 0 
       }
       from=116
-      numAdjCells=0
+      numAdjCells=1
       to=117
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         8 10 
+      }
+      from=116
+      numAdjCells=2
+      to=196
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         7 8 
+      }
+      from=116
+      numAdjCells=2
+      to=227
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         35 0 
       }
       from=117
-      numAdjCells=0
+      numAdjCells=1
       to=118
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         34 35 
       }
-      from=118
-      numAdjCells=0
-      to=119
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=119
-      numAdjCells=0
-      to=120
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=120
-      numAdjCells=0
-      to=121
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=121
-      numAdjCells=0
-      to=122
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=122
-      numAdjCells=0
-      to=123
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=123
-      numAdjCells=0
-      to=124
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=124
-      numAdjCells=0
-      to=125
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=125
-      numAdjCells=0
-      to=126
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=126
-      numAdjCells=0
-      to=127
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=127
-      numAdjCells=0
-      to=128
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=128
-      numAdjCells=0
+      from=117
+      numAdjCells=2
       to=129
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         10 34 
+      }
+      from=117
+      numAdjCells=2
+      to=197
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         36 0 
+      }
+      from=118
+      numAdjCells=1
+      to=119
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         35 36 
+      }
+      from=118
+      numAdjCells=2
+      to=128
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         37 0 
+      }
+      from=119
+      numAdjCells=1
+      to=120
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         36 37 
+      }
+      from=119
+      numAdjCells=2
+      to=127
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         38 0 
+      }
+      from=120
+      numAdjCells=1
+      to=121
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         37 38 
+      }
+      from=120
+      numAdjCells=2
+      to=126
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         38 0 
+      }
+      from=121
+      numAdjCells=1
+      to=122
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         38 0 
+      }
+      from=122
+      numAdjCells=1
+      to=123
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         38 0 
+      }
+      from=123
+      numAdjCells=1
+      to=124
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         38 0 
+      }
+      from=124
+      numAdjCells=1
+      to=125
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         38 0 
+      }
+      from=125
+      numAdjCells=1
+      to=126
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         37 0 
+      }
+      from=126
+      numAdjCells=1
+      to=127
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         36 0 
+      }
+      from=127
+      numAdjCells=1
+      to=128
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         35 0 
+      }
+      from=128
+      numAdjCells=1
+      to=129
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         34 0 
       }
       from=129
-      numAdjCells=0
+      numAdjCells=1
       to=130
    }
    cc.lib.board.BEdge {
@@ -1112,6 +3883,14 @@ edges=java.util.Vector {
       from=130
       numAdjCells=0
       to=131
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         34 0 
+      }
+      from=130
+      numAdjCells=1
+      to=197
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
@@ -1131,6 +3910,14 @@ edges=java.util.Vector {
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
+         40 0 
+      }
+      from=132
+      numAdjCells=1
+      to=172
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
          0 0 
       }
       from=133
@@ -1141,9 +3928,25 @@ edges=java.util.Vector {
       adjacentCells=int 2 {
          0 0 
       }
+      from=133
+      numAdjCells=0
+      to=173
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         0 0 
+      }
       from=134
       numAdjCells=0
       to=135
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         0 0 
+      }
+      from=134
+      numAdjCells=0
+      to=174
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
@@ -1165,233 +3968,305 @@ edges=java.util.Vector {
       adjacentCells=int 2 {
          0 0 
       }
-      from=137
+      from=136
       numAdjCells=0
+      to=174
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         76 0 
+      }
+      from=137
+      numAdjCells=1
       to=138
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         76 0 
+      }
+      from=137
+      numAdjCells=1
+      to=175
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         75 0 
       }
       from=138
-      numAdjCells=0
+      numAdjCells=1
       to=139
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         75 77 
       }
-      from=139
-      numAdjCells=0
-      to=140
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=140
-      numAdjCells=0
-      to=141
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=141
-      numAdjCells=0
-      to=142
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=142
-      numAdjCells=0
-      to=143
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=113
-      numAdjCells=0
-      to=143
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=11
-      numAdjCells=0
-      to=144
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=144
-      numAdjCells=0
-      to=145
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=145
-      numAdjCells=0
-      to=146
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=146
-      numAdjCells=0
-      to=147
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=147
-      numAdjCells=0
-      to=148
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=148
-      numAdjCells=0
-      to=149
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=149
-      numAdjCells=0
-      to=150
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=150
-      numAdjCells=0
-      to=151
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=151
-      numAdjCells=0
-      to=152
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=152
-      numAdjCells=0
-      to=153
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=153
-      numAdjCells=0
-      to=154
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=154
-      numAdjCells=0
-      to=155
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=155
-      numAdjCells=0
+      from=138
+      numAdjCells=2
       to=156
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         76 77 
       }
-      from=156
-      numAdjCells=0
+      from=138
+      numAdjCells=2
+      to=176
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         74 0 
+      }
+      from=139
+      numAdjCells=1
+      to=140
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         74 75 
+      }
+      from=139
+      numAdjCells=2
       to=157
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         73 0 
       }
-      from=157
-      numAdjCells=0
+      from=140
+      numAdjCells=1
+      to=141
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         73 74 
+      }
+      from=140
+      numAdjCells=2
       to=158
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         71 0 
       }
-      from=158
-      numAdjCells=0
+      from=141
+      numAdjCells=1
+      to=142
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         71 73 
+      }
+      from=141
+      numAdjCells=2
       to=159
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         72 0 
       }
-      from=159
-      numAdjCells=0
+      from=142
+      numAdjCells=1
+      to=143
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         70 71 
+      }
+      from=142
+      numAdjCells=2
       to=160
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         62 0 
+      }
+      from=144
+      numAdjCells=1
+      to=145
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         65 0 
+      }
+      from=144
+      numAdjCells=1
+      to=162
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         63 0 
+      }
+      from=145
+      numAdjCells=1
+      to=146
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         63 0 
+      }
+      from=146
+      numAdjCells=1
+      to=147
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         61 0 
+      }
+      from=147
+      numAdjCells=1
+      to=148
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         60 0 
+      }
+      from=148
+      numAdjCells=1
+      to=149
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         59 0 
+      }
+      from=149
+      numAdjCells=1
+      to=150
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         58 0 
+      }
+      from=150
+      numAdjCells=1
+      to=151
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         57 0 
+      }
+      from=151
+      numAdjCells=1
+      to=152
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         56 0 
+      }
+      from=152
+      numAdjCells=1
+      to=153
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         55 56 
+      }
+      from=152
+      numAdjCells=2
+      to=163
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         80 0 
+      }
+      from=153
+      numAdjCells=1
+      to=154
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         56 80 
+      }
+      from=153
+      numAdjCells=2
+      to=180
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         79 0 
+      }
+      from=154
+      numAdjCells=1
+      to=155
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         79 80 
+      }
+      from=154
+      numAdjCells=2
+      to=179
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         78 0 
+      }
+      from=155
+      numAdjCells=1
+      to=156
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         78 79 
+      }
+      from=155
+      numAdjCells=2
+      to=178
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         75 0 
+      }
+      from=156
+      numAdjCells=1
+      to=157
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         77 78 
+      }
+      from=156
+      numAdjCells=2
+      to=177
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         74 0 
+      }
+      from=157
+      numAdjCells=1
+      to=158
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         73 0 
+      }
+      from=158
+      numAdjCells=1
+      to=159
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         71 0 
+      }
+      from=159
+      numAdjCells=1
+      to=160
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         69 0 
       }
       from=160
-      numAdjCells=0
+      numAdjCells=1
       to=161
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         68 0 
       }
       from=161
-      numAdjCells=0
+      numAdjCells=1
       to=162
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=144
-      numAdjCells=0
-      to=162
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=22
-      numAdjCells=0
-      to=144
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=152
-      numAdjCells=0
-      to=163
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
@@ -1400,6 +4275,14 @@ edges=java.util.Vector {
       from=163
       numAdjCells=0
       to=164
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         56 0 
+      }
+      from=163
+      numAdjCells=1
+      to=180
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
@@ -1427,43 +4310,59 @@ edges=java.util.Vector {
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         46 0 
       }
       from=167
-      numAdjCells=0
+      numAdjCells=1
       to=168
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         45 0 
       }
       from=168
-      numAdjCells=0
+      numAdjCells=1
       to=169
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         44 0 
       }
       from=169
-      numAdjCells=0
+      numAdjCells=1
       to=170
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         42 0 
       }
       from=170
-      numAdjCells=0
+      numAdjCells=1
       to=171
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         42 0 
+      }
+      from=170
+      numAdjCells=1
+      to=231
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         41 0 
       }
       from=171
-      numAdjCells=0
+      numAdjCells=1
       to=172
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         41 42 
+      }
+      from=171
+      numAdjCells=2
+      to=230
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
@@ -1472,6 +4371,14 @@ edges=java.util.Vector {
       from=172
       numAdjCells=0
       to=173
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         40 41 
+      }
+      from=172
+      numAdjCells=2
+      to=229
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
@@ -1491,146 +4398,98 @@ edges=java.util.Vector {
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         76 0 
       }
       from=175
-      numAdjCells=0
+      numAdjCells=1
       to=176
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         77 0 
       }
       from=176
-      numAdjCells=0
+      numAdjCells=1
       to=177
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         78 0 
       }
       from=177
-      numAdjCells=0
+      numAdjCells=1
       to=178
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         79 0 
       }
       from=178
-      numAdjCells=0
+      numAdjCells=1
       to=179
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         80 0 
       }
       from=179
-      numAdjCells=0
+      numAdjCells=1
       to=180
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
-      }
-      from=163
-      numAdjCells=0
-      to=180
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=23
-      numAdjCells=0
-      to=145
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=23
-      numAdjCells=0
-      to=147
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=91
-      numAdjCells=0
-      to=102
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=92
-      numAdjCells=0
-      to=101
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=93
-      numAdjCells=0
-      to=100
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=88
-      numAdjCells=0
-      to=181
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
+         17 0 
       }
       from=181
-      numAdjCells=0
+      numAdjCells=1
       to=182
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         15 0 
+      }
+      from=181
+      numAdjCells=1
+      to=204
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         18 0 
       }
       from=182
-      numAdjCells=0
+      numAdjCells=1
       to=183
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         19 0 
       }
       from=183
-      numAdjCells=0
+      numAdjCells=1
       to=184
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         20 0 
       }
       from=184
-      numAdjCells=0
+      numAdjCells=1
       to=185
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         21 0 
       }
       from=185
-      numAdjCells=0
+      numAdjCells=1
       to=186
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         22 0 
       }
       from=186
-      numAdjCells=0
+      numAdjCells=1
       to=187
    }
    cc.lib.board.BEdge {
@@ -1645,23 +4504,7 @@ edges=java.util.Vector {
       adjacentCells=int 2 {
          0 0 
       }
-      from=77
-      numAdjCells=0
-      to=188
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=70
-      numAdjCells=0
-      to=77
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=70
+      from=188
       numAdjCells=0
       to=189
    }
@@ -1685,49 +4528,121 @@ edges=java.util.Vector {
       adjacentCells=int 2 {
          0 0 
       }
-      from=191
+      from=190
       numAdjCells=0
+      to=199
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         51 0 
+      }
+      from=191
+      numAdjCells=1
       to=192
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         51 0 
+      }
+      from=191
+      numAdjCells=1
+      to=200
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         13 0 
       }
       from=192
-      numAdjCells=0
+      numAdjCells=1
       to=193
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         13 51 
+      }
+      from=192
+      numAdjCells=2
+      to=201
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         12 13 
       }
       from=193
-      numAdjCells=0
+      numAdjCells=2
       to=194
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         12 14 
+      }
+      from=193
+      numAdjCells=2
+      to=203
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         14 0 
+      }
+      from=193
+      numAdjCells=1
+      to=204
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         11 0 
       }
       from=194
-      numAdjCells=0
+      numAdjCells=1
       to=195
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         13 0 
+      }
+      from=194
+      numAdjCells=1
+      to=201
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         11 12 
+      }
+      from=194
+      numAdjCells=2
+      to=202
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         9 0 
       }
       from=195
-      numAdjCells=0
+      numAdjCells=1
       to=196
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         9 11 
+      }
+      from=195
+      numAdjCells=2
+      to=225
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         10 0 
       }
       from=196
-      numAdjCells=0
+      numAdjCells=1
       to=197
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         8 9 
+      }
+      from=196
+      numAdjCells=2
+      to=226
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
@@ -1739,10 +4654,10 @@ edges=java.util.Vector {
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         33 0 
       }
       from=198
-      numAdjCells=0
+      numAdjCells=1
       to=199
    }
    cc.lib.board.BEdge {
@@ -1755,123 +4670,83 @@ edges=java.util.Vector {
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         51 0 
       }
       from=200
-      numAdjCells=0
+      numAdjCells=1
       to=201
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
-      }
-      from=194
-      numAdjCells=0
-      to=201
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=194
-      numAdjCells=0
-      to=202
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
+         12 0 
       }
       from=202
-      numAdjCells=0
+      numAdjCells=1
       to=203
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         11 0 
       }
-      from=193
-      numAdjCells=0
-      to=203
+      from=202
+      numAdjCells=1
+      to=225
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
-      }
-      from=193
-      numAdjCells=0
-      to=204
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=181
-      numAdjCells=0
-      to=204
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=89
-      numAdjCells=0
-      to=203
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=89
-      numAdjCells=0
-      to=203
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
+         24 0 
       }
       from=203
-      numAdjCells=0
+      numAdjCells=1
       to=205
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         25 0 
       }
       from=205
-      numAdjCells=0
+      numAdjCells=1
       to=206
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         26 0 
       }
       from=206
-      numAdjCells=0
+      numAdjCells=1
       to=207
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         28 0 
       }
       from=207
-      numAdjCells=0
+      numAdjCells=1
       to=208
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         29 0 
       }
       from=208
-      numAdjCells=0
+      numAdjCells=1
       to=209
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         30 0 
       }
       from=209
-      numAdjCells=0
+      numAdjCells=1
       to=210
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         30 0 
+      }
+      from=209
+      numAdjCells=1
+      to=218
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
@@ -1880,6 +4755,14 @@ edges=java.util.Vector {
       from=210
       numAdjCells=0
       to=211
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         30 0 
+      }
+      from=210
+      numAdjCells=1
+      to=219
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
@@ -1893,45 +4776,45 @@ edges=java.util.Vector {
       adjacentCells=int 2 {
          0 0 
       }
-      from=110
+      from=212
       numAdjCells=0
-      to=113
+      to=224
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
-      }
-      from=110
-      numAdjCells=0
-      to=213
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
+         52 0 
       }
       from=213
-      numAdjCells=0
+      numAdjCells=1
       to=214
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         6 0 
+      }
+      from=213
+      numAdjCells=1
+      to=228
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         53 0 
       }
       from=214
-      numAdjCells=0
+      numAdjCells=1
       to=215
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         54 0 
       }
       from=215
-      numAdjCells=0
+      numAdjCells=1
       to=216
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         31 0 
       }
       from=216
       numAdjCells=0
@@ -1939,7 +4822,7 @@ edges=java.util.Vector {
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         30 0 
       }
       from=217
       numAdjCells=0
@@ -1947,10 +4830,10 @@ edges=java.util.Vector {
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         30 0 
       }
       from=218
-      numAdjCells=0
+      numAdjCells=1
       to=219
    }
    cc.lib.board.BEdge {
@@ -1995,211 +4878,91 @@ edges=java.util.Vector {
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
-      }
-      from=212
-      numAdjCells=0
-      to=224
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=202
-      numAdjCells=0
-      to=225
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
+         9 0 
       }
       from=225
-      numAdjCells=0
+      numAdjCells=1
       to=226
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         8 0 
       }
       from=226
-      numAdjCells=0
+      numAdjCells=1
       to=227
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         7 0 
       }
       from=227
-      numAdjCells=0
+      numAdjCells=1
       to=228
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
-      }
-      from=213
-      numAdjCells=0
-      to=228
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=116
-      numAdjCells=0
-      to=227
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=116
-      numAdjCells=0
-      to=196
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=196
-      numAdjCells=0
-      to=226
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=195
-      numAdjCells=0
-      to=225
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=89
-      numAdjCells=0
-      to=204
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=32
-      numAdjCells=0
-      to=42
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=42
-      numAdjCells=0
-      to=165
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=31
-      numAdjCells=0
-      to=165
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=30
-      numAdjCells=0
-      to=164
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=29
-      numAdjCells=0
-      to=163
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=28
-      numAdjCells=0
-      to=29
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=28
-      numAdjCells=0
-      to=152
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=156
-      numAdjCells=0
-      to=177
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=138
-      numAdjCells=0
-      to=156
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=138
-      numAdjCells=0
-      to=176
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=66
-      numAdjCells=0
-      to=229
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=66
-      numAdjCells=0
-      to=132
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=132
-      numAdjCells=0
-      to=172
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=172
-      numAdjCells=0
-      to=229
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
+         41 0 
       }
       from=229
-      numAdjCells=0
+      numAdjCells=1
       to=230
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         39 0 
+      }
+      from=229
+      numAdjCells=1
+      to=235
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         42 0 
+      }
+      from=230
+      numAdjCells=1
+      to=231
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         43 0 
+      }
+      from=231
+      numAdjCells=1
+      to=232
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         0 0 
+      }
+      from=232
+      numAdjCells=0
+      to=233
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         0 0 
+      }
+      from=233
+      numAdjCells=0
+      to=234
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         48 0 
+      }
+      from=234
+      numAdjCells=1
+      to=235
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         0 0 
+      }
+      from=67
+      numAdjCells=0
+      to=131
    }
 }
 verts=java.util.Vector {
@@ -2208,10 +4971,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         1 3 0 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=2
       x=400.0
       y=692.0
    }
@@ -2220,10 +4983,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         0 2 4 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=402.0
       y=646.0
    }
@@ -2232,10 +4995,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         1 3 112 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=461.0
       y=652.0
    }
@@ -2244,10 +5007,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         0 2 0 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=2
       x=453.0
       y=692.0
    }
@@ -2256,10 +5019,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         1 5 112 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=421.0
       y=604.0
    }
@@ -2268,10 +5031,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         4 6 111 113 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=4
       x=447.0
       y=569.0
    }
@@ -2280,10 +5043,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         5 7 143 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=399.0
       y=539.0
    }
@@ -2292,10 +5055,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         6 8 142 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=359.0
       y=536.0
    }
@@ -2304,10 +5067,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         7 9 160 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=316.0
       y=555.0
    }
@@ -2316,10 +5079,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         8 10 161 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=283.0
       y=585.0
    }
@@ -2328,10 +5091,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         9 11 162 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=223.0
       y=626.0
    }
@@ -2340,10 +5103,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         10 12 21 144 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=4
       x=143.0
       y=607.0
    }
@@ -2352,10 +5115,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         11 13 20 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=112.0
       y=633.0
    }
@@ -2364,10 +5127,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         12 14 0 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=2
       x=125.0
       y=677.0
    }
@@ -2376,10 +5139,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         13 15 0 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=2
       x=100.0
       y=704.0
    }
@@ -2388,10 +5151,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         14 16 0 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=2
       x=58.0
       y=713.0
    }
@@ -2400,10 +5163,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         15 17 0 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=2
       x=16.0
       y=701.0
    }
@@ -2412,10 +5175,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         16 18 0 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=2
       x=3.0
       y=684.0
    }
@@ -2424,10 +5187,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         17 19 0 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=2
       x=4.0
       y=607.0
    }
@@ -2436,10 +5199,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         18 20 0 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=2
       x=34.0
       y=597.0
    }
@@ -2448,10 +5211,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         12 19 21 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=70.0
       y=604.0
    }
@@ -2460,10 +5223,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         11 20 22 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=95.0
       y=572.0
    }
@@ -2472,10 +5235,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         21 23 144 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=143.0
       y=529.0
    }
@@ -2484,10 +5247,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         22 24 145 147 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=4
       x=171.0
       y=510.0
    }
@@ -2496,10 +5259,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         23 25 148 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=145.0
       y=470.0
    }
@@ -2508,10 +5271,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         24 26 149 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=117.0
       y=428.0
    }
@@ -2520,10 +5283,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         25 27 150 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=86.0
       y=397.0
    }
@@ -2532,10 +5295,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         26 28 151 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=54.0
       y=360.0
    }
@@ -2544,10 +5307,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         27 29 152 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=31.0
       y=319.0
    }
@@ -2556,10 +5319,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         28 30 163 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=19.0
       y=268.0
    }
@@ -2568,10 +5331,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         29 31 164 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=20.0
       y=216.0
    }
@@ -2580,10 +5343,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         30 32 165 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=29.0
       y=167.0
    }
@@ -2592,10 +5355,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         31 33 42 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=70.0
       y=108.0
    }
@@ -2604,10 +5367,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         32 34 41 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=158.0
       y=69.0
    }
@@ -2616,10 +5379,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         33 35 0 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=2
       x=180.0
       y=50.0
    }
@@ -2628,10 +5391,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         34 36 0 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=2
       x=238.0
       y=34.0
    }
@@ -2640,10 +5403,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         35 37 0 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=2
       x=271.0
       y=44.0
    }
@@ -2652,10 +5415,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         36 38 0 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=2
       x=292.0
       y=85.0
    }
@@ -2664,10 +5427,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         37 39 0 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=2
       x=279.0
       y=124.0
    }
@@ -2676,10 +5439,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         38 40 0 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=2
       x=249.0
       y=138.0
    }
@@ -2688,10 +5451,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         39 41 0 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=2
       x=211.0
       y=131.0
    }
@@ -2700,10 +5463,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         33 40 42 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=190.0
       y=107.0
    }
@@ -2712,10 +5475,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         32 41 43 165 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=4
       x=138.0
       y=136.0
    }
@@ -2724,10 +5487,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         42 44 166 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=202.0
       y=157.0
    }
@@ -2736,10 +5499,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         43 45 167 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=244.0
       y=175.0
    }
@@ -2748,10 +5511,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         44 46 168 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=281.0
       y=177.0
    }
@@ -2760,10 +5523,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         45 47 169 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=310.0
       y=172.0
    }
@@ -2772,10 +5535,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         46 48 170 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=338.0
       y=150.0
    }
@@ -2784,10 +5547,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         47 49 231 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=354.0
       y=113.0
    }
@@ -2796,10 +5559,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         48 50 232 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=366.0
       y=79.0
    }
@@ -2808,10 +5571,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         49 51 0 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=2
       x=369.0
       y=36.0
    }
@@ -2820,10 +5583,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         50 52 232 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=421.0
       y=31.0
    }
@@ -2832,10 +5595,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         51 53 233 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=484.0
       y=35.0
    }
@@ -2844,10 +5607,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         52 54 234 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=531.0
       y=47.0
    }
@@ -2856,10 +5619,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         53 55 235 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=582.0
       y=54.0
    }
@@ -2868,10 +5631,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         54 56 65 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=645.0
       y=70.0
    }
@@ -2880,10 +5643,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         55 57 64 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=692.0
       y=89.0
    }
@@ -2892,10 +5655,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         56 58 0 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=2
       x=740.0
       y=118.0
    }
@@ -2904,10 +5667,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         57 59 64 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=707.0
       y=159.0
    }
@@ -2916,10 +5679,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         58 60 0 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=2
       x=709.0
       y=181.0
    }
@@ -2928,10 +5691,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         59 61 0 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=2
       x=695.0
       y=197.0
    }
@@ -2940,10 +5703,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         60 62 0 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=2
       x=658.0
       y=203.0
    }
@@ -2952,10 +5715,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         61 63 0 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=2
       x=618.0
       y=185.0
    }
@@ -2964,10 +5727,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         62 64 0 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=2
       x=623.0
       y=157.0
    }
@@ -2976,10 +5739,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         56 58 63 65 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=4
       x=650.0
       y=137.0
    }
@@ -2988,10 +5751,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         55 64 66 235 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=4
       x=605.0
       y=119.0
    }
@@ -3000,10 +5763,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         65 67 132 229 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=4
       x=568.0
       y=172.0
    }
@@ -3012,10 +5775,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         66 68 0 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=2
       x=621.0
       y=197.0
    }
@@ -3024,10 +5787,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         67 69 130 198 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=4
       x=687.0
       y=229.0
    }
@@ -3036,10 +5799,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         68 70 199 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=757.0
       y=186.0
    }
@@ -3048,10 +5811,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         69 71 77 189 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=4
       x=848.0
       y=172.0
    }
@@ -3060,10 +5823,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         70 72 76 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=829.0
       y=109.0
    }
@@ -3072,10 +5835,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         71 73 0 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=2
       x=781.0
       y=131.0
    }
@@ -3084,10 +5847,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         72 74 0 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=2
       x=733.0
       y=56.0
    }
@@ -3096,10 +5859,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         73 75 0 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=2
       x=952.0
       y=35.0
    }
@@ -3108,10 +5871,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         74 76 0 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=2
       x=986.0
       y=115.0
    }
@@ -3120,10 +5883,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         71 75 77 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=898.0
       y=109.0
    }
@@ -3132,10 +5895,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         70 76 78 188 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=4
       x=924.0
       y=162.0
    }
@@ -3144,10 +5907,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         77 79 187 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=986.0
       y=165.0
    }
@@ -3156,10 +5919,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         78 80 0 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=2
       x=1043.0
       y=164.0
    }
@@ -3168,10 +5931,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         79 81 187 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=1060.0
       y=197.0
    }
@@ -3180,10 +5943,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         80 82 186 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=1072.0
       y=235.0
    }
@@ -3192,10 +5955,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         81 83 185 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=1075.0
       y=281.0
    }
@@ -3204,10 +5967,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         82 84 184 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=1084.0
       y=324.0
    }
@@ -3216,10 +5979,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         83 85 183 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=1093.0
       y=370.0
    }
@@ -3228,10 +5991,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         84 86 182 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=1101.0
       y=417.0
    }
@@ -3240,10 +6003,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         85 87 181 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=1103.0
       y=468.0
    }
@@ -3252,10 +6015,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         86 88 0 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=2
       x=1094.0
       y=507.0
    }
@@ -3264,10 +6027,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         87 89 181 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=1050.0
       y=500.0
    }
@@ -3276,10 +6039,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         88 90 203 204 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=4
       x=970.0
       y=481.0
    }
@@ -3288,10 +6051,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         89 91 205 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=958.0
       y=504.0
    }
@@ -3300,10 +6063,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         90 92 102 206 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=4
       x=949.0
       y=533.0
    }
@@ -3312,10 +6075,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         91 93 101 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=986.0
       y=563.0
    }
@@ -3324,10 +6087,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         92 94 100 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=1005.0
       y=580.0
    }
@@ -3336,10 +6099,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         93 95 0 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=2
       x=1060.0
       y=559.0
    }
@@ -3348,10 +6111,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         94 96 0 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=2
       x=1099.0
       y=579.0
    }
@@ -3360,10 +6123,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         95 97 0 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=2
       x=1108.0
       y=628.0
    }
@@ -3372,10 +6135,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         96 98 0 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=2
       x=1069.0
       y=688.0
    }
@@ -3384,10 +6147,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         97 99 0 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=2
       x=1006.0
       y=696.0
    }
@@ -3396,10 +6159,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         98 100 0 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=2
       x=960.0
       y=671.0
    }
@@ -3408,10 +6171,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         93 99 101 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=970.0
       y=624.0
    }
@@ -3420,10 +6183,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         92 100 102 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=953.0
       y=592.0
    }
@@ -3432,10 +6195,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         91 101 103 207 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=4
       x=918.0
       y=576.0
    }
@@ -3444,10 +6207,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         102 104 208 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=881.0
       y=611.0
    }
@@ -3456,10 +6219,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         103 105 209 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=836.0
       y=638.0
    }
@@ -3468,10 +6231,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         104 106 218 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=791.0
       y=654.0
    }
@@ -3480,10 +6243,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         105 107 217 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=723.0
       y=666.0
    }
@@ -3492,10 +6255,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         106 108 216 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=660.0
       y=659.0
    }
@@ -3504,10 +6267,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         107 109 215 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=610.0
       y=619.0
    }
@@ -3516,10 +6279,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         108 110 214 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=578.0
       y=582.0
    }
@@ -3528,10 +6291,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         109 111 113 213 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=4
       x=536.0
       y=556.0
    }
@@ -3540,10 +6303,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         5 110 112 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=500.0
       y=592.0
    }
@@ -3552,10 +6315,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         2 4 111 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=480.0
       y=612.0
    }
@@ -3564,10 +6327,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         5 110 114 143 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=4
       x=480.0
       y=520.0
    }
@@ -3576,10 +6339,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         113 115 213 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=530.0
       y=475.0
    }
@@ -3588,10 +6351,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         114 116 228 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=601.0
       y=430.0
    }
@@ -3600,10 +6363,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         115 117 196 227 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=4
       x=668.0
       y=402.0
    }
@@ -3612,10 +6375,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         116 118 129 197 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=4
       x=635.0
       y=340.0
    }
@@ -3624,10 +6387,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         117 119 128 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=589.0
       y=368.0
    }
@@ -3636,10 +6399,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         118 120 127 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=540.0
       y=401.0
    }
@@ -3648,10 +6411,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         119 121 126 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=482.0
       y=418.0
    }
@@ -3660,10 +6423,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         120 122 0 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=2
       x=484.0
       y=446.0
    }
@@ -3672,10 +6435,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         121 123 0 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=2
       x=451.0
       y=470.0
    }
@@ -3684,10 +6447,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         122 124 0 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=2
       x=394.0
       y=465.0
    }
@@ -3696,10 +6459,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         123 125 0 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=2
       x=379.0
       y=433.0
    }
@@ -3708,10 +6471,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         124 126 0 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=2
       x=397.0
       y=384.0
    }
@@ -3720,10 +6483,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         120 125 127 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=441.0
       y=378.0
    }
@@ -3732,10 +6495,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         119 126 128 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=509.0
       y=363.0
    }
@@ -3744,10 +6507,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         118 127 129 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=552.0
       y=329.0
    }
@@ -3756,10 +6519,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         117 128 130 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=587.0
       y=287.0
    }
@@ -3768,10 +6531,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         68 129 131 197 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=4
       x=632.0
       y=258.0
    }
@@ -3780,10 +6543,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         130 132 0 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=2
       x=596.0
       y=231.0
    }
@@ -3792,10 +6555,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         66 131 133 172 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=4
       x=541.0
       y=219.0
    }
@@ -3804,10 +6567,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         132 134 173 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=506.0
       y=268.0
    }
@@ -3816,10 +6579,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         133 135 174 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=488.0
       y=303.0
    }
@@ -3828,10 +6591,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         134 136 0 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=2
       x=475.0
       y=350.0
    }
@@ -3840,10 +6603,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         135 137 174 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=433.0
       y=343.0
    }
@@ -3852,10 +6615,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         136 138 175 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=394.0
       y=333.0
    }
@@ -3864,10 +6627,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         137 139 156 176 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=4
       x=343.0
       y=327.0
    }
@@ -3876,10 +6639,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         138 140 157 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=329.0
       y=371.0
    }
@@ -3888,10 +6651,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         139 141 158 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=333.0
       y=417.0
    }
@@ -3900,10 +6663,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         140 142 159 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=347.0
       y=455.0
    }
@@ -3912,10 +6675,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         7 141 143 160 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=4
       x=362.0
       y=490.0
    }
@@ -3924,10 +6687,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         6 113 142 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=420.0
       y=491.0
    }
@@ -3936,10 +6699,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         11 22 145 162 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=4
       x=181.0
       y=568.0
    }
@@ -3948,10 +6711,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         23 144 146 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=211.0
       y=534.0
    }
@@ -3960,10 +6723,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         145 147 0 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=2
       x=254.0
       y=502.0
    }
@@ -3972,10 +6735,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         23 146 148 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=230.0
       y=467.0
    }
@@ -3984,10 +6747,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         24 147 149 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=191.0
       y=430.0
    }
@@ -3996,10 +6759,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         25 148 150 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=161.0
       y=396.0
    }
@@ -4008,10 +6771,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         26 149 151 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=123.0
       y=369.0
    }
@@ -4020,10 +6783,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         27 150 152 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=110.0
       y=339.0
    }
@@ -4032,10 +6795,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         28 151 153 163 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=4
       x=93.0
       y=304.0
    }
@@ -4044,10 +6807,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         152 154 180 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=141.0
       y=303.0
    }
@@ -4056,10 +6819,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         153 155 179 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=184.0
       y=304.0
    }
@@ -4068,10 +6831,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         154 156 178 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=242.0
       y=311.0
    }
@@ -4080,10 +6843,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         138 155 157 177 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=4
       x=293.0
       y=326.0
    }
@@ -4092,10 +6855,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         139 156 158 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=277.0
       y=367.0
    }
@@ -4104,10 +6867,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         140 157 159 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=273.0
       y=416.0
    }
@@ -4116,10 +6879,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         141 158 160 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=281.0
       y=460.0
    }
@@ -4128,10 +6891,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         8 142 159 161 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=4
       x=300.0
       y=509.0
    }
@@ -4140,10 +6903,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         9 160 162 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=253.0
       y=548.0
    }
@@ -4152,10 +6915,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         10 144 161 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=218.0
       y=576.0
    }
@@ -4164,10 +6927,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         29 152 164 180 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=4
       x=86.0
       y=260.0
    }
@@ -4176,10 +6939,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         30 163 165 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=82.0
       y=213.0
    }
@@ -4188,10 +6951,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         31 42 164 166 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=4
       x=100.0
       y=171.0
    }
@@ -4200,10 +6963,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         43 165 167 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=172.0
       y=202.0
    }
@@ -4212,10 +6975,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         44 166 168 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=235.0
       y=223.0
    }
@@ -4224,10 +6987,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         45 167 169 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=290.0
       y=231.0
    }
@@ -4236,10 +6999,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         46 168 170 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=350.0
       y=212.0
    }
@@ -4248,10 +7011,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         47 169 171 231 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=4
       x=385.0
       y=166.0
    }
@@ -4260,10 +7023,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         170 172 230 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=437.0
       y=180.0
    }
@@ -4272,10 +7035,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         132 171 173 229 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=4
       x=484.0
       y=198.0
    }
@@ -4284,10 +7047,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         133 172 174 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=456.0
       y=247.0
    }
@@ -4296,10 +7059,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         134 136 173 175 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=4
       x=444.0
       y=294.0
    }
@@ -4308,10 +7071,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         137 174 176 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=403.0
       y=290.0
    }
@@ -4320,10 +7083,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         138 175 177 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=362.0
       y=279.0
    }
@@ -4332,10 +7095,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         156 176 178 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=316.0
       y=271.0
    }
@@ -4344,10 +7107,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         155 177 179 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=245.0
       y=265.0
    }
@@ -4356,10 +7119,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         154 178 180 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=182.0
       y=256.0
    }
@@ -4368,10 +7131,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         153 163 179 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=132.0
       y=253.0
    }
@@ -4380,10 +7143,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         86 88 182 204 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=4
       x=1048.0
       y=450.0
    }
@@ -4392,10 +7155,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         85 181 183 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=1047.0
       y=415.0
    }
@@ -4404,10 +7167,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         84 182 184 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=1036.0
       y=372.0
    }
@@ -4416,10 +7179,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         83 183 185 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=1031.0
       y=331.0
    }
@@ -4428,10 +7191,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         82 184 186 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=1025.0
       y=284.0
    }
@@ -4440,10 +7203,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         81 185 187 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=1014.0
       y=248.0
    }
@@ -4452,10 +7215,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         78 80 186 188 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=4
       x=999.0
       y=205.0
    }
@@ -4464,10 +7227,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         77 187 189 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=939.0
       y=202.0
    }
@@ -4476,10 +7239,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         70 188 190 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=862.0
       y=215.0
    }
@@ -4488,10 +7251,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         189 191 199 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=841.0
       y=225.0
    }
@@ -4500,10 +7263,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         190 192 200 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=874.0
       y=282.0
    }
@@ -4512,10 +7275,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         191 193 201 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=894.0
       y=342.0
    }
@@ -4524,10 +7287,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         192 194 203 204 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=4
       x=925.0
       y=412.0
    }
@@ -4536,10 +7299,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         193 195 201 202 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=4
       x=849.0
       y=371.0
    }
@@ -4548,10 +7311,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         194 196 225 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=791.0
       y=370.0
    }
@@ -4560,10 +7323,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         116 195 197 226 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=4
       x=725.0
       y=381.0
    }
@@ -4572,10 +7335,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         117 130 196 198 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=4
       x=684.0
       y=309.0
    }
@@ -4584,10 +7347,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         68 197 199 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=726.0
       y=262.0
    }
@@ -4596,10 +7359,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         69 190 198 200 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=4
       x=780.0
       y=238.0
    }
@@ -4608,10 +7371,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         191 199 201 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=816.0
       y=287.0
    }
@@ -4620,10 +7383,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         192 194 200 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=839.0
       y=334.0
    }
@@ -4632,10 +7395,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         194 203 225 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=862.0
       y=439.0
    }
@@ -4644,10 +7407,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         89 193 202 205 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=4
       x=918.0
       y=458.0
    }
@@ -4656,10 +7419,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         89 181 193 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=988.0
       y=430.0
    }
@@ -4668,10 +7431,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         90 203 206 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=915.0
       y=491.0
    }
@@ -4680,10 +7443,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         91 205 207 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=901.0
       y=521.0
    }
@@ -4692,10 +7455,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         102 206 208 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=887.0
       y=553.0
    }
@@ -4704,10 +7467,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         103 207 209 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=854.0
       y=581.0
    }
@@ -4716,10 +7479,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         104 208 210 218 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=4
       x=818.0
       y=597.0
    }
@@ -4728,10 +7491,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         209 211 219 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=802.0
       y=550.0
    }
@@ -4740,10 +7503,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         210 212 0 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=2
       x=833.0
       y=533.0
    }
@@ -4752,10 +7515,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         211 224 0 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=2
       x=840.0
       y=493.0
    }
@@ -4764,10 +7527,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         110 114 214 228 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=4
       x=596.0
       y=512.0
    }
@@ -4776,10 +7539,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         109 213 215 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=628.0
       y=556.0
    }
@@ -4788,10 +7551,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         108 214 216 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=652.0
       y=589.0
    }
@@ -4800,10 +7563,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         107 215 217 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=683.0
       y=609.0
    }
@@ -4812,10 +7575,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         106 216 218 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=723.0
       y=615.0
    }
@@ -4824,10 +7587,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         105 209 217 219 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=4
       x=774.0
       y=605.0
    }
@@ -4836,10 +7599,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         210 218 220 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=759.0
       y=561.0
    }
@@ -4848,10 +7611,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         219 221 0 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=2
       x=727.0
       y=564.0
    }
@@ -4860,10 +7623,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         220 222 0 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=2
       x=697.0
       y=553.0
    }
@@ -4872,10 +7635,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         221 223 0 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=2
       x=691.0
       y=506.0
    }
@@ -4884,10 +7647,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         222 224 0 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=2
       x=728.0
       y=466.0
    }
@@ -4896,10 +7659,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         212 223 0 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=2
       x=791.0
       y=453.0
    }
@@ -4908,10 +7671,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         195 202 226 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=800.0
       y=431.0
    }
@@ -4920,10 +7683,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         196 225 227 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=736.0
       y=439.0
    }
@@ -4932,10 +7695,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         116 226 228 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=689.0
       y=454.0
    }
@@ -4944,10 +7707,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         115 213 227 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=649.0
       y=477.0
    }
@@ -4956,10 +7719,10 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         66 172 230 235 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=4
       x=518.0
       y=155.0
    }
@@ -4968,11 +7731,71 @@ verts=java.util.Vector {
          0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         171 229 231 0 0 0 0 0 
       }
       numAdjCells=0
-      numAdjVerts=0
+      numAdjVerts=3
       x=461.0
       y=136.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         0 0 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         48 170 230 232 0 0 0 0 
+      }
+      numAdjCells=0
+      numAdjVerts=4
+      x=405.0
+      y=119.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         0 0 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         49 51 231 233 0 0 0 0 
+      }
+      numAdjCells=0
+      numAdjVerts=4
+      x=423.0
+      y=76.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         0 0 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         52 232 234 0 0 0 0 0 
+      }
+      numAdjCells=0
+      numAdjVerts=3
+      x=471.0
+      y=76.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         0 0 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         53 233 235 0 0 0 0 0 
+      }
+      numAdjCells=0
+      numAdjVerts=3
+      x=510.0
+      y=87.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         0 0 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         54 65 229 234 0 0 0 0 
+      }
+      numAdjCells=0
+      numAdjVerts=4
+      x=549.0
+      y=108.0
    }
 }

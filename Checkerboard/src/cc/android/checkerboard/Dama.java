@@ -2,31 +2,30 @@ package cc.android.checkerboard;
 
 import cc.lib.game.Utils;
 
-import static cc.android.checkerboard.PieceType.CHECKER;
+import static cc.android.checkerboard.PieceType.DAMA_MAN;
 import static cc.android.checkerboard.PieceType.EMPTY;
-import static cc.android.checkerboard.PieceType.FLYING_KING;
 
 public class Dama extends Checkers {
 
     public final void initBoard() {
         initRank(0, -1, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY);
-        initRank(1, FAR, CHECKER, CHECKER, CHECKER, CHECKER, CHECKER, CHECKER, CHECKER, CHECKER);
-        initRank(2, FAR, CHECKER, CHECKER, CHECKER, CHECKER, CHECKER, CHECKER, CHECKER, CHECKER);
+        initRank(1, FAR, DAMA_MAN, DAMA_MAN, DAMA_MAN, DAMA_MAN, DAMA_MAN, DAMA_MAN, DAMA_MAN, DAMA_MAN);
+        initRank(2, FAR, DAMA_MAN, DAMA_MAN, DAMA_MAN, DAMA_MAN, DAMA_MAN, DAMA_MAN, DAMA_MAN, DAMA_MAN);
         initRank(3, -1, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY);
         initRank(4, -1, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY);
-        initRank(5, NEAR, CHECKER, CHECKER, CHECKER, CHECKER, CHECKER, CHECKER, CHECKER, CHECKER);
-        initRank(6, NEAR, CHECKER, CHECKER, CHECKER, CHECKER, CHECKER, CHECKER, CHECKER, CHECKER);
+        initRank(5, NEAR, DAMA_MAN, DAMA_MAN, DAMA_MAN, DAMA_MAN, DAMA_MAN, DAMA_MAN, DAMA_MAN, DAMA_MAN);
+        initRank(6, NEAR, DAMA_MAN, DAMA_MAN, DAMA_MAN, DAMA_MAN, DAMA_MAN, DAMA_MAN, DAMA_MAN, DAMA_MAN);
         initRank(7, -1, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY);
         setTurn(Utils.flipCoin() ? FAR : NEAR);
     }
-
+/*
     @Override
     protected void computeMovesForSquare(int rank, int col, Move parent) {
         Piece p = getPiece(rank, col);
         if (p.playerNum != getTurn())
             throw new AssertionError();
 
-        if (p.type == FLYING_KING) {
+        if (p.type == DAMA_KING) {
             //final int [] dr =  { 1, 0, -1,  0 };
             //final int [] dc =  { 0, 1,  0, -1 };
             computeFlyingKingMoves(p, rank, col, parent);
@@ -80,12 +79,22 @@ public class Dama extends Checkers {
                 }
             }
         }
-    }
+    }*/
 
 
     @Override
     protected boolean isJumpsMandatory() {
         return true;
+    }
+
+    @Override
+    protected boolean canMenJumpBackwards() {
+        return true;
+    }
+
+    @Override
+    protected boolean canJumpSelf() {
+        return false;
     }
 
     @Override

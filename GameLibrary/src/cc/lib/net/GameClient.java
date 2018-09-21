@@ -446,7 +446,8 @@ public class GameClient {
         executorObjects.remove(id);
     }
 
-    /* Execute a method locally based on params provided by remote caller.
+    /*
+     * Execute a method locally based on params provided by remote caller.
      *
      * @param cmd
      * @throws IOException
@@ -473,24 +474,15 @@ public class GameClient {
             final Method m = findMethod(method, obj, paramsTypes, params);
             final String responseId = cmd.getArg("responseId");
             if (responseId != null) {
-                new Thread() {
-                    public void run() {
-                        try {
-                            Object result = m.invoke(obj, params);
-                            log.debug("responseId=%s", responseId);
-                            if (responseId != null) {
-                                GameCommand resp = new GameCommand(GameCommandType.CL_REMOTE_RETURNS);
-                                resp.setArg("target", responseId);
-                                if (result != null)
-                                    resp.setArg("returns", Reflector.serializeObject(result));
-                                sendCommand(resp);
-                            }
-                        } catch (Exception e) {
-                            sendError(e);
-                            e.printStackTrace();
-                        }
-                    }
-                }.start();
+                Object result = m.invoke(obj, params);
+                log.debug("responseId=%s", responseId);
+                if (responseId != null) {
+                    GameCommand resp = new GameCommand(GameCommandType.CL_REMOTE_RETURNS);
+                    resp.setArg("target", responseId);
+                    if (result != null)
+                        resp.setArg("returns", Reflector.serializeObject(result));
+                    sendCommand(resp);
+                }
             } else {
                 m.invoke(obj, params);
             }
