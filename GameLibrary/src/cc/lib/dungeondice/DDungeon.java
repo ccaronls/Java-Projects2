@@ -15,21 +15,7 @@ public class DDungeon extends Reflector<DDungeon> implements IGame<DMove> {
 
     enum State {
         INIT,
-        ROLL_TO_MOVE,
-        ADVANCE,
-        LAND_ON_RED,
-        LAND_ON_BLUE,
-        LAND_ON_GREEN,
-        LAND_ON_BROWN,
-        LAND_ON_BLACK,
-        LAND_ON_ROOM,
-        LAND_ON_KEY_ROOM,
-        ROLL_TO_FIGHT_ENEMY,
-        ROLL_FOR_ENEMY_GP,
-        ROLL_PLAYER_HITS,
-        ROLL_PLAYER_DAMAGE,
-        ROLL_ENEMY_HITS,
-        ROLL_ENEMY_DAMAGE,
+        ADVANCE
     }
 
     enum Prize {
@@ -53,7 +39,7 @@ public class DDungeon extends Reflector<DDungeon> implements IGame<DMove> {
     int numPlayers;
     int curPlayer;
     int curEnemy;
-    State state = State.INIT;
+    State state = null;
     int die1, die2;
     DiceConfig diceConfig = DiceConfig.ONE_6x6;
     final List<DEnemy> enemyList = new ArrayList<>();
@@ -71,11 +57,17 @@ public class DDungeon extends Reflector<DDungeon> implements IGame<DMove> {
     }
 
     public final void setPlayer(int index, DPlayer player) {
-
+        if (index < 0 || index >= numPlayers)
+            throw new IndexOutOfBoundsException();
+        players[index] = player;
+        player.playerNum = index;
     }
 
-    public final void newGame(int numPlayers) {
-
+    public final void addPlayer(DPlayer player) {
+        if (player == null)
+            throw new NullPointerException();
+        players[numPlayers] = player;
+        player.playerNum = numPlayers++;
     }
 
     @Override
@@ -102,8 +94,24 @@ public class DDungeon extends Reflector<DDungeon> implements IGame<DMove> {
         return players[curPlayer];
     }
 
+    public void newGame() {
+        if (players.length < 1) {
+            throw new RuntimeException("Must have at least 1 player");
+        }
+        state = State.INIT;
+        curPlayer = 0;
+        die1 = die2 = 0;
+        enemyList.clear();
+
+    }
+
     public void run() {
         switch (state) {
+            case INIT:
+                curPlayer = 0;
+                curEnemy = -1;
+                enemyList.clear();
+                break;
             case ROLL_TO_MOVE: {
                 diceConfig = DiceConfig.ONE_6x6;
                 rollDice();

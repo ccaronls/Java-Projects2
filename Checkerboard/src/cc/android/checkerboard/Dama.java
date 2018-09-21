@@ -4,7 +4,7 @@ import cc.lib.game.Utils;
 
 import static cc.android.checkerboard.PieceType.CHECKER;
 import static cc.android.checkerboard.PieceType.EMPTY;
-import static cc.android.checkerboard.PieceType.KING;
+import static cc.android.checkerboard.PieceType.FLYING_KING;
 
 public class Dama extends Checkers {
 
@@ -26,10 +26,11 @@ public class Dama extends Checkers {
         if (p.playerNum != getTurn())
             throw new AssertionError();
 
-        if (p.type == KING) {
-            final int [] dr =  { 1, 0, -1,  0 };
-            final int [] dc =  { 0, 1,  0, -1 };
-            computeFlyingKingMoves(p, rank, col, parent, dr, dc);
+        if (p.type == FLYING_KING) {
+            //final int [] dr =  { 1, 0, -1,  0 };
+            //final int [] dc =  { 0, 1,  0, -1 };
+            computeFlyingKingMoves(p, rank, col, parent);
+            //computeFlyingKingMoves(p, rank, col, parent, dr, dc);
             return;
         }
 

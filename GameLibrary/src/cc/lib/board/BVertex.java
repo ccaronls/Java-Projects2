@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import cc.lib.game.IVector2D;
+import cc.lib.math.CMath;
+import cc.lib.math.Vector2D;
 import cc.lib.utils.Reflector;
 
 public class BVertex extends Reflector<BVertex> implements IVector2D {
@@ -55,5 +57,15 @@ public class BVertex extends Reflector<BVertex> implements IVector2D {
 
     void reset() {
         numAdjVerts=numAdjCells=0;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == this)
+            return true;
+        if (o != null && o instanceof BVertex) {
+            return Vector2D.dot(this, (BVertex)o) < CMath.EPSILON;
+        }
+        return false;
     }
 }

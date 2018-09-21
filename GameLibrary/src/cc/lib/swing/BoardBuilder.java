@@ -56,9 +56,6 @@ public class BoardBuilder extends AWTComponent {
         board = newBoard();
         setMouseEnabled(true);
         setPadding(10);
-        frame.addMenuBarMenu("File", "New Board", "Load Board", "Load Image", "Clear Image", "Save As...", "Save");
-        frame.addMenuBarMenu("Mode", "Vert", "Edge", "Cell");
-        frame.addMenuBarMenu("Action", "Compute", "Undo");
         initFrame(frame);
         frame.add(this);
         if (!frame.loadFromFile(new File("bb.properties")))
@@ -76,7 +73,9 @@ public class BoardBuilder extends AWTComponent {
      * @param frame
      */
     protected void initFrame(EZFrame frame) {
-
+        frame.addMenuBarMenu("File", "New Board", "Load Board", "Load Image", "Clear Image", "Save As...", "Save");
+        frame.addMenuBarMenu("Mode", Utils.toStringArray(PickMode.values()));
+        frame.addMenuBarMenu("Action", "Compute", "Undo");
     }
 
     /**
@@ -92,7 +91,7 @@ public class BoardBuilder extends AWTComponent {
                 break;
 
             case "Mode":
-                onModeMenu(subMenu);
+                onModeMenu(PickMode.valueOf(subMenu));
                 break;
 
             case "Action":
@@ -139,7 +138,7 @@ public class BoardBuilder extends AWTComponent {
         g.setColor(GColor.GREEN);
         board.drawVerts(g);
         g.setColor(GColor.BLUE);
-        board.drawCells(g);
+        board.drawCells(g, 0.9f);
 
         switch (pickMode) {
             case VERTEX:
@@ -213,7 +212,7 @@ public class BoardBuilder extends AWTComponent {
             g.setColor(GColor.RED);
             g.begin();
             BCell c = board.getCell(selectedIndex);
-            board.renderCell(c, g);
+            board.renderCell(c, g, 0.9f);
             g.setLineWidth(4);
             g.drawLines();
         }
@@ -250,21 +249,9 @@ public class BoardBuilder extends AWTComponent {
         }
     }
 
-    void onModeMenu(String item) {
-        switch (item) {
-            case "Vert":
-                pickMode = PickMode.VERTEX;
-                selectedIndex = -1;
-                break;
-            case "Cell":
-                pickMode = PickMode.CELL;
-                selectedIndex = -1;
-                break;
-            case "Edge":
-                pickMode = PickMode.EDGE;
-                selectedIndex = -1;
-                break;
-        }
+    void onModeMenu(PickMode mode) {
+        pickMode = mode;
+        selectedIndex = -1;
     }
 
     synchronized void onActionMenu(String item) {
@@ -352,7 +339,7 @@ public class BoardBuilder extends AWTComponent {
     }
 
     @Override
-    protected void onClick() {
+    protected final void onClick() {
         switch (pickMode) {
             case VERTEX:
                 pickVertex();

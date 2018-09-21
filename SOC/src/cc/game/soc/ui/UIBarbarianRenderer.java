@@ -8,6 +8,7 @@ import cc.lib.game.GColor;
 import cc.lib.game.GDimension;
 import cc.lib.game.Utils;
 import cc.lib.math.Vector2D;
+import cc.lib.ui.UIComponent;
 
 public final class UIBarbarianRenderer extends UIRenderer {
 
@@ -47,8 +48,8 @@ public final class UIBarbarianRenderer extends UIRenderer {
 
 	@Override
 	public final void draw(APGraphics g, int pickX, int pickY) {
-        final float wid = component.getWidth();
-        final float hgt = component.getHeight();
+        final float wid = getComponent().getWidth();
+        final float hgt = getComponent().getHeight();
 
         g.drawImage(baseImage, 0, 0, wid, hgt);
         //minShipDim = wid/9;
@@ -106,8 +107,8 @@ public final class UIBarbarianRenderer extends UIRenderer {
                 @Override
                 protected void draw(AGraphics g, float position, float dt) {
                     final float scale = 1f + (1f / (positions.length - 1));
-                    final float wid = component.getWidth();
-                    final float hgt = component.getHeight();
+                    final float wid = getComponent().getWidth();
+                    final float hgt = getComponent().getHeight();
 
                     final int d0 = (positions.length-1) - distance;
                     final int d1 = (positions.length-1) - nextDistance;
@@ -122,22 +123,22 @@ public final class UIBarbarianRenderer extends UIRenderer {
                     float sh2 = 0.5f * shipDim;//min + (max-min)*position;
 
                     g.drawImage(shipImage, pos.sub(sh2, sh2), pos.add(sh2, sh2));
-                    component.redraw();
+                    getComponent().redraw();
                 }
 
             }.start();
-            component.redraw();
+            getComponent().redraw();
 
             Utils.waitNoThrow(anim, -1);
         }
 
         distance = nextDistance;
-        component.redraw();
+        getComponent().redraw();
 
     }
 
     public void onBarbarianAttack(int catanStrength, int barbarianStrength, String[] playerStatus) {
 	    distance = positions.length-1;
-	    component.redraw();
+	    getComponent().redraw();
     }
 }

@@ -7,6 +7,7 @@ import cc.lib.game.APGraphics;
 import cc.lib.game.GColor;
 import cc.lib.game.GDimension;
 import cc.lib.game.Utils;
+import cc.lib.ui.UIComponent;
 import cc.lib.utils.QueueRunner;
 
 @SuppressWarnings("serial")
@@ -39,12 +40,12 @@ public final class UIConsoleRenderer extends UIRenderer {
         }
         if (startLine < 0)
             startLine = 0;
-        component.redraw();
+        getComponent().redraw();
     }
 
     public void scrollToTop() {
         startLine = 0;
-        component.redraw();
+        getComponent().redraw();
     }
 
 	/*
@@ -57,7 +58,7 @@ public final class UIConsoleRenderer extends UIRenderer {
                 anim = null;
             } else {
                 anim.update(g);
-                component.redraw();
+                getComponent().redraw();
                 return;
             }
         }
@@ -66,20 +67,20 @@ public final class UIConsoleRenderer extends UIRenderer {
 
     private void drawPrivate(APGraphics g) {
 	    final int txtHgt = g.getTextHeight();
-	    maxVisibleLines = component.getHeight() / txtHgt;
+	    maxVisibleLines = getComponent().getHeight() / txtHgt;
         float y = 0;
 	    for (int i=startLine; i<lines.size(); i++) {
 	        Line l = lines.get(i);
             g.setColor(l.color);
             g.setTextHeight(RenderConstants.textSizeSmall);
-            GDimension dim = g.drawWrapString(0, y, component.getWidth(), l.text);
+            GDimension dim = g.drawWrapString(0, y, getComponent().getWidth(), l.text);
             y += dim.height;
-            if (y > component.getHeight()) {
+            if (y > getComponent().getHeight()) {
                 break;
             }
         }
         if  (minVisibleLines > 0) {
-	        setMinDimension(new GDimension(component.getWidth(), Math.max(minVisibleLines, lines.size())*txtHgt));
+	        setMinDimension(new GDimension(getComponent().getWidth(), Math.max(minVisibleLines, lines.size())*txtHgt));
         }
 	}
 
@@ -102,8 +103,8 @@ public final class UIConsoleRenderer extends UIRenderer {
                     protected void draw(APGraphics g, float position, float dt) {
                         drawPrivate(g);
                         g.setColor(GColor.BLACK.withAlpha(0.5f-position));
-                        String [] lines = g.generateWrappedLines(text, component.getWidth());
-                        g.drawFilledRect(0, 0, component.getWidth(), lines.length*g.getTextHeight());
+                        String [] lines = g.generateWrappedLines(text, getComponent().getWidth());
+                        g.drawFilledRect(0, 0, getComponent().getWidth(), lines.length*g.getTextHeight());
                         g.setColor(color.withAlpha(1.0f-position/3));
                         float y = 0;
                         for (String l : lines) {
@@ -127,7 +128,7 @@ public final class UIConsoleRenderer extends UIRenderer {
                     protected void draw(APGraphics g, float position, float dt) {
                         g.pushMatrix();
                         g.setColor(color.withAlpha(position));
-                        GDimension dim = g.drawWrapString(0, 0, component.getWidth(), text);
+                        GDimension dim = g.drawWrapString(0, 0, getComponent().getWidth(), text);
                         g.translate(0, dim.height*position);
                         drawPrivate(g);
                         g.popMatrix();
@@ -143,14 +144,14 @@ public final class UIConsoleRenderer extends UIRenderer {
                 }.start();
             }
 
-            component.redraw();
+            getComponent().redraw();
             Utils.waitNoThrow(anim, -1);
             if (startLine > 0)
                 startLine++;
             while (lines.size() > 100) {
                 lines.removeLast();
             }
-            component.redraw();
+            getComponent().redraw();
         }
     };
 
@@ -161,7 +162,7 @@ public final class UIConsoleRenderer extends UIRenderer {
 	public final void clear() {
         queue.clear();
 	    lines.clear();
-        component.redraw();
+        getComponent().redraw();
 	}
 
 }

@@ -1,5 +1,6 @@
 package cc.lib.game;
 
+import cc.lib.math.CMath;
 import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
 
@@ -77,17 +78,44 @@ public class Polygon2D {
 	public void translate(float dx, float dy) {
 		translate(Vector2D.newTemp(dx, dx));
 	}
-	
-	/**
-	 * 
-	 * @param dx
-	 * @param dy
-	 */
-	public void translate(Vector2D dv) {
+
+    /**
+     *
+     * @param dv
+     */
+	public void translate(IVector2D dv) {
 		for (int i=0; i<getNumPts(); i++) {
 			pts[i].addEq(dv);
 		}
 	}
+
+    /**
+     * Return true if v is inside this convex polygon
+     *
+     * @param v
+     * @return
+     */
+	public boolean contains(IVector2D v) {
+	   if (pts.length < 3)
+	       return false;
+
+	   int dir = CMath.signOf(getSide(0).dot(v));
+	   for (int i=1; i<pts.length; i++) {
+	       if (CMath.signOf(getSide(i).dot(v)) != dir)
+	           return false;
+       }
+       return true;
+    }
+
+    /**
+     * Return the side of the polygon at which pt[index] is at the tail
+     * @param index
+     * @return
+     */
+    public Vector2D getSide(int index) {
+	    int i = (index+1) % pts.length;
+	    return pts[i].sub(pts[index]);
+    }
 	
 	/**
 	 *

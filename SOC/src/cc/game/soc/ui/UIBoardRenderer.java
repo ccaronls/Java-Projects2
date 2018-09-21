@@ -25,6 +25,7 @@ import cc.lib.game.Utils;
 import cc.lib.math.CMath;
 import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
+import cc.lib.ui.UIComponent;
 
 public class UIBoardRenderer extends UIRenderer {
 
@@ -98,7 +99,7 @@ public class UIBoardRenderer extends UIRenderer {
         else
             renderFlag &= ~(1 << flag.ordinal());
         //getProperties().setProperty("renderFlag", renderFlag);
-        component.redraw();
+        getComponent().redraw();
     }
     
     public final boolean getRenderFlag(RenderFlag flag) {
@@ -116,7 +117,7 @@ public class UIBoardRenderer extends UIRenderer {
             else
                 animations.addLast(anim);
         }
-        component.redraw();
+        getComponent().redraw();
         if (!anim.isStarted())
             anim.start();
         if (block) {
@@ -596,7 +597,7 @@ public class UIBoardRenderer extends UIRenderer {
 	
 	private int pickTile(APGraphics g, int mouseX, int mouseY) {
 		g.begin();
-		//final int dim = Math.round(getBoard().getTileWidth() * component.getWidth());
+		//final int dim = Math.round(getBoard().getTileWidth() * getComponent().getWidth());
 		for (int index=0; index<getBoard().getNumTiles(); index++) {
 			g.setName(index);
 			Tile cell = getBoard().getTile(index);
@@ -809,7 +810,7 @@ public class UIBoardRenderer extends UIRenderer {
 		}
 		this.pickHandler = handler;
 		pickedValue = -1;
-		component.redraw();
+		getComponent().redraw();
 	}
 	
 	public final void drawIslandOutlined(AGraphics g, int tileIndex) {
@@ -991,7 +992,7 @@ public class UIBoardRenderer extends UIRenderer {
 	    // allow the accept button to do this work now
         if (pickedValue >= 0) {
             pickHandler.onPick(this, pickedValue);
-            component.redraw();
+            getComponent().redraw();
             pickedValue = -1;
         }
     }
@@ -1011,8 +1012,8 @@ public class UIBoardRenderer extends UIRenderer {
     
 	public final void draw(APGraphics g, int pickX, int pickY) {
 
-	    final int width = component.getWidth();
-	    final int height = component.getHeight();
+	    final int width = getComponent().getWidth();
+	    final int height = getComponent().getHeight();
 	    final Board board = getBoard();
 
         if (width <= 10 || height <= 10 || board == null)
@@ -1126,7 +1127,7 @@ public class UIBoardRenderer extends UIRenderer {
                 while (it.hasNext()) {
                     AAnimation<AGraphics> a = it.next();
                     a.update(g);
-                    component.redraw();
+                    getComponent().redraw();
                     if (a.isDone()) {
                         it.remove();
                     }

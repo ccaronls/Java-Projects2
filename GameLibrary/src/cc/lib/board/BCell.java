@@ -5,6 +5,8 @@ import java.util.Collections;
 import java.util.List;
 
 import cc.lib.game.IVector2D;
+import cc.lib.math.CMath;
+import cc.lib.math.Vector2D;
 import cc.lib.utils.Reflector;
 
 public class BCell extends Reflector<BCell> implements IVector2D {
@@ -44,5 +46,15 @@ public class BCell extends Reflector<BCell> implements IVector2D {
 
     public final List<Integer> getAdjCells() {
         return Collections.unmodifiableList(adjCells);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == this)
+            return true;
+        if (o != null && o instanceof BCell) {
+            return Vector2D.dot(this, (BCell)o) < CMath.EPSILON;
+        }
+        return super.equals(o);
     }
 }

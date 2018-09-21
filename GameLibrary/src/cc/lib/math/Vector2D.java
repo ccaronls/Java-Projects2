@@ -113,45 +113,94 @@ public class Vector2D extends Reflector<Vector2D> implements IVector2D, Serializ
         return new Vector2D(a.getX()+b.getX(), a.getY()+b.getY());
     }
 
+    public static float dot(IVector2D a, IVector2D b) {
+        return a.getX()*b.getX() + a.getY()+b.getY();
+    }
+
+    /**
+     * Return a positive number if v is 270 - 90 degrees of this,
+     * or a negative number if v is 90 - 270 degrees of this,
+     * or zero if v is at right angle to this
+     * @param v
+     * @return
+     */
     public final float dot(IVector2D v) {
         return x*v.getX() + y*v.getY();
     }
 
-    public final float dotNorm(IVector2D v) {
-        return x*-v.getY() + y*v.getX();
-    }
-    
+    /**
+     * Return a positive number if v is 0-180 degrees of this,
+     * or a negative number if v is 180-360 degrees of this
+     *
+     * @param v
+     * @return
+     */
     public final float cross(IVector2D v) {
         return x*v.getY() - v.getX()*y;
     }
-    
+
+    /**
+     *
+     * @param s
+     * @param out
+     * @return
+     */
     public final MutableVector2D cross(float s, MutableVector2D out) {
         final float tempy = -s * x;
         return out.set(s*y, tempy);
     }
 
+    /**
+     *
+     * @param s
+     * @return
+     */
     public final MutableVector2D cross(float s) {
         return cross(s, newTemp());
     }
 
+    /**
+     *
+     * @return
+     */
     public final float magSquared() {
         return x*x + y*y;
     }
-    
+
+    /**
+     *
+     * @param v
+     * @return
+     */
     public static float mag(IVector2D v) {
     	final float x = v.getX();
     	final float y = v.getY();
     	return (float)Math.sqrt(x*x+y*y);
     }
-    
+
+    /**
+     *
+     * @return
+     */
     public final float mag() {
         return (float)Math.sqrt(magSquared());
     }
-    
+
+    /**
+     *
+     * @param v
+     * @param out
+     * @return
+     */
     public final MutableVector2D midPoint(IVector2D v, MutableVector2D out) {
         return out.set((x+v.getX())/2, (y+v.getY())/2);
     }
 
+    /**
+     *
+     * @param v
+     * @return
+     */
     public final MutableVector2D midPoint(IVector2D v) {
         return midPoint(v, newTemp());
     }
@@ -173,6 +222,11 @@ public class Vector2D extends Reflector<Vector2D> implements IVector2D, Serializ
         return norm(newTemp());
     }
 
+    /**
+     *
+     * @param out
+     * @return
+     */
     public final MutableVector2D unitLength(MutableVector2D out) {
         float m = mag();
         if (m > CMath.EPSILON) {
@@ -181,6 +235,10 @@ public class Vector2D extends Reflector<Vector2D> implements IVector2D, Serializ
         return out.set(x,y);
     }
 
+    /**
+     *
+     * @return
+     */
     public final MutableVector2D unitLength() {
         return unitLength(newTemp());
     }
@@ -205,11 +263,24 @@ public class Vector2D extends Reflector<Vector2D> implements IVector2D, Serializ
     public final MutableVector2D normalized() {
         return normalized(newTemp());
     }
-    
+
+    /**
+     *
+     * @param s
+     * @param out
+     * @return
+     */
     public final MutableVector2D scale(float s, MutableVector2D out) {
         return out.set(x*s, y*s);
     }
 
+    /**
+     *
+     * @param x
+     * @param y
+     * @param out
+     * @return
+     */
     public final MutableVector2D scale(float x, float y, MutableVector2D out) {
         return out.set(this.x*x, this.y*y);
     }
@@ -235,6 +306,12 @@ public class Vector2D extends Reflector<Vector2D> implements IVector2D, Serializ
         return scale(x, y, newTemp());
     }
 
+    /**
+     *
+     * @param degrees
+     * @param out
+     * @return
+     */
     public final MutableVector2D rotate(float degrees, MutableVector2D out) {
         degrees *= CMath.DEG_TO_RAD;
         float cosd = (float)Math.cos(degrees);
@@ -242,6 +319,11 @@ public class Vector2D extends Reflector<Vector2D> implements IVector2D, Serializ
         return out.set(x*cosd - y*sind, x*sind + y*cosd);
     }
 
+    /**
+     *
+     * @param degrees
+     * @return
+     */
     public final MutableVector2D rotate(float degrees) {
         return rotate(degrees, newTemp());
     }
@@ -264,41 +346,33 @@ public class Vector2D extends Reflector<Vector2D> implements IVector2D, Serializ
     public final float angleBetweenSigned(IVector2D v) {
         float ang = angleBetween(v);
         assert(ang >= 0);
-        if (dotNorm(v) < 0) {
-            return ang;
-        } else {
+        if (cross(v) < 0) {
             return -ang;
+        } else {
+            return ang;
         }
     }
 
+    /**
+     *
+     * @return
+     */
     public final float angleOf() {
         if (Math.abs(x) < CMath.EPSILON)
             return (y > 0 ? 90 : 270);
         int r = (int)Math.round(Math.atan(y/x) * CMath.RAD_TO_DEG);
         return (x < 0 ? 180 + r : r < 0 ? 360 + r : r);
     }
-    
+
+    @Override
     public final String toString() {
         return String.format("<%6f, %6f>", x, y);
     }    
     
-    private static MutableVector2D [] pool = new MutableVector2D[64];
-    private static int poolIndex = 0;
-    static {
-        for (int i=0; i<pool.length; i++) {
-            pool[i] = new MutableVector2D();
-        }
-    }
-    
     private static MutableVector2D getFromPool() {
-    	if (USE_TEMPS) {
-            MutableVector2D next = pool[poolIndex];
-            poolIndex = (poolIndex+1) % pool.length;
-            return next;
-    	}
     	return new MutableVector2D();
     }
-    
+
     public static MutableVector2D newTemp() {
         return getFromPool().set(0,0);
     }

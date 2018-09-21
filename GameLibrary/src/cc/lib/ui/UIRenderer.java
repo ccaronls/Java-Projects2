@@ -10,7 +10,7 @@ import cc.lib.game.GDimension;
  */
 public abstract class UIRenderer {
 
-    final UIComponent component;
+    private final UIComponent component;
 
     protected UIRenderer(UIComponent component) {
         this(component, true);

@@ -183,7 +183,11 @@ public class EZFrame extends JFrame implements WindowListener, ComponentListener
                     ActionEvent ev = (ActionEvent) e;
                     String cmd = ev.getActionCommand();
                     //JMenuItem source = (JMenuItem)ev.getSource();
-                    onMenuItemSelected(selectedMenu.getText(), cmd);
+                    try {
+                        onMenuItemSelected(selectedMenu.getText(), cmd);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                     //log.debug("actionPerformed: cmd=" + cmd + " source=" + source);
                     //JMenuItem item = (JMenuItem)source;
                 }

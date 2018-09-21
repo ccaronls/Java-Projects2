@@ -12,7 +12,6 @@ import android.view.ViewGroup;
 import cc.game.soc.core.Board;
 import cc.game.soc.ui.UIBarbarianRenderer;
 import cc.game.soc.ui.UIBoardRenderer;
-import cc.game.soc.ui.UIComponent;
 import cc.game.soc.ui.UIConsoleRenderer;
 import cc.game.soc.ui.UIDiceRenderer;
 import cc.game.soc.ui.UIEventCardRenderer;
@@ -21,6 +20,7 @@ import cc.game.soc.ui.UIRenderer;
 import cc.lib.android.DroidGraphics;
 import cc.lib.game.GDimension;
 import cc.lib.math.Vector2D;
+import cc.lib.ui.UIComponent;
 
 /**
  * Created by chriscaron on 3/2/18.
@@ -170,7 +170,7 @@ public class SOCView<T extends UIRenderer> extends View implements UIComponent {
     }
 
     @Override
-    public void setRenderer(UIRenderer r) {
+    public void setRenderer(cc.lib.ui.UIRenderer r) {
         this.renderer = (T)r;
     }
 

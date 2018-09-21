@@ -9,6 +9,7 @@ import cc.lib.game.APGraphics;
 import cc.lib.game.GColor;
 import cc.lib.game.GDimension;
 import cc.lib.game.Utils;
+import cc.lib.ui.UIComponent;
 
 public final class UIDiceRenderer extends UIRenderer {
 
@@ -42,12 +43,12 @@ public final class UIDiceRenderer extends UIRenderer {
 
 	public void setDice(Dice ... dice) {
 	    this.dice = dice;
-	    component.redraw();
+	    getComponent().redraw();
     }
 
     public void setPickableDice(int num) {
         this.pickable = num;
-        component.redraw();
+        getComponent().redraw();
     }
 
     public int [] getPickedDiceNums() {
@@ -75,7 +76,7 @@ public final class UIDiceRenderer extends UIRenderer {
                     public void run() {
                         Utils.waitNoThrow(this, delay);
                         delay += 20;
-                        component.redraw();
+                        getComponent().redraw();
                     }
                 }.start();
             }
@@ -87,7 +88,7 @@ public final class UIDiceRenderer extends UIRenderer {
                 }
             }
         }.start();
-	    component.redraw();
+	    getComponent().redraw();
         Utils.waitNoThrow(spinAnim, spinTimeMs+500);
     }
 
@@ -98,7 +99,7 @@ public final class UIDiceRenderer extends UIRenderer {
     }
 
     private GDimension getDim() {
-	    return diceRect != null ? diceRect : new GDimension(component.getWidth(), component.getHeight());
+	    return diceRect != null ? diceRect : new GDimension(getComponent().getWidth(), getComponent().getHeight());
     }
 
 	@Override
@@ -191,7 +192,7 @@ public final class UIDiceRenderer extends UIRenderer {
             }
             dice[picked].setNum(num);
         }
-        component.redraw();
+        getComponent().redraw();
 	}
 
 	public void drawEventDie(AGraphics g, float dim, int dieNum) {

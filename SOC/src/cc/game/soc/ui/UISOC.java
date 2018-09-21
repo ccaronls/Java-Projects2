@@ -11,7 +11,6 @@ import cc.game.soc.core.Card;
 import cc.game.soc.core.CardType;
 import cc.game.soc.core.CommodityType;
 import cc.game.soc.core.DevelopmentArea;
-import cc.game.soc.core.DevelopmentCardType;
 import cc.game.soc.core.Dice;
 import cc.game.soc.core.EventCard;
 import cc.game.soc.core.ICardType;
@@ -709,31 +708,31 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
         }
         showOkPopup(getString(R.string.popup_title_barbarian_attack), str.toString());
         super.onBarbariansAttack(catanStrength, barbarianStrength, playerStatus);
-        boardRenderer.component.redraw();
+        boardRenderer.getComponent().redraw();
     }
 
     protected final void addCardAnimation(final int playerNum, final String text) {
 
         final UIPlayerRenderer comp = playerComponents[playerNum-1];
 
-        final float cardHeight = boardRenderer.component.getHeight()/5;
+        final float cardHeight = boardRenderer.getComponent().getHeight()/5;
         final float cardWidth = cardHeight*2/3;
 
-        final Vector2D compPt = comp.component.getViewportLocation();
-        final Vector2D boardPt = boardRenderer.component.getViewportLocation();
+        final Vector2D compPt = comp.getComponent().getViewportLocation();
+        final Vector2D boardPt = boardRenderer.getComponent().getViewportLocation();
 
         final Vector2D dv = compPt.sub(boardPt);
         final float spacing = cardWidth/4;
 
-        // center the card vertically against its player component
-        float _y = compPt.getY() - boardPt.getY() + comp.component.getHeight()/2 - cardHeight/2;
+        // center the card vertically against its player getComponent()
+        float _y = compPt.getY() - boardPt.getY() + comp.getComponent().getHeight()/2 - cardHeight/2;
         final float W = comp.numCardAnimations * cardWidth + spacing - (comp.numCardAnimations-1) * spacing;
-        final float x = boardPt.X() < compPt.getX() ? boardRenderer.component.getWidth() - cardWidth - W : W;
+        final float x = boardPt.X() < compPt.getX() ? boardRenderer.getComponent().getWidth() - cardWidth - W : W;
 
         if (_y < 0) {
             _y = 0;
-        } else if (_y + cardHeight > boardRenderer.component.getHeight()) {
-            _y = boardRenderer.component.getHeight() - cardHeight;
+        } else if (_y + cardHeight > boardRenderer.getComponent().getHeight()) {
+            _y = boardRenderer.getComponent().getHeight() - cardHeight;
         }
 
         final float y = _y;
@@ -1064,8 +1063,8 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
             @Override
             public void draw(AGraphics g, float position, float dt) {
 
-                final float width = boardRenderer.component.getWidth();
-                final float height = boardRenderer.component.getHeight();
+                final float width = boardRenderer.getComponent().getWidth();
+                final float height = boardRenderer.getComponent().getHeight();
                 final float margin = RenderConstants.textMargin;
                 final float m2 = margin*2;
 
@@ -1235,7 +1234,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
      */
     public final void setBoard(Board board) {
         super.setBoard(board);
-        boardRenderer.component.redraw();
+        boardRenderer.getComponent().redraw();
     }
 
     public boolean isAITuningEnabled() {

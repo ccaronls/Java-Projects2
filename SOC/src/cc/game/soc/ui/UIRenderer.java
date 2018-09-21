@@ -1,47 +1,20 @@
 package cc.game.soc.ui;
 
 import cc.game.soc.core.StringResource;
-import cc.lib.game.APGraphics;
-import cc.lib.game.GDimension;
+import cc.lib.ui.UIComponent;
 
 /**
  * Created by chriscaron on 2/27/18.
  */
 
-public abstract class UIRenderer implements StringResource {
-
-    final UIComponent component;
+public abstract class UIRenderer extends cc.lib.ui.UIRenderer implements StringResource {
 
     UIRenderer(UIComponent component) {
         this(component, true);
     }
 
     UIRenderer(UIComponent component, boolean attach) {
-        this.component = component;
-        if (attach)
-            component.setRenderer(this);
-    }
-
-    public <T extends UIComponent> T getComponent() {
-        return (T)component;
-    }
-
-    private GDimension min = new GDimension(32, 32);
-
-    public abstract void draw(APGraphics g, int px, int py);
-
-    public void doClick() {}
-
-    public void startDrag(float x, float y) {}
-
-    public void endDrag() {}
-
-    public final GDimension getMinDimension() {
-        return min;
-    }
-
-    public void setMinDimension(GDimension dim) {
-        this.min = dim;
+        super(component, attach);
     }
 
     @Override

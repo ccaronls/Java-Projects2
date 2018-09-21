@@ -197,6 +197,8 @@ public class CustomBoard extends Reflector<CustomBoard> {
 
     public void compute() {
 
+        log.debug("COMPUTE BEGIN\n   numV:%d\n   numE:%d\n   numC:%d", verts.size(), edges.size(), cells.size());
+
         for (BVertex v : verts) {
             v.reset();
         }
@@ -248,6 +250,8 @@ public class CustomBoard extends Reflector<CustomBoard> {
                 c1.adjCells.add(e.adjacentCells[0]);
             }
         }
+
+        log.debug("COMPUTE END\n   numV:%d\n   numE:%d\n   numC:%d", verts.size(), edges.size(), cells.size());
     }
 
     protected BCell newCell(List<Integer> pts) {

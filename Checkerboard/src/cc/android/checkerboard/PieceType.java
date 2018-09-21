@@ -22,11 +22,23 @@ public enum PieceType {
     KING("K"), // checkers king, not chess
     FLYING_KING("K"),
     CHECKER("Ch"),
-    CAPTURED_CHECKER("Ch"), // a piece jumped by a flying king
+    CAPTURED_CHECKER("CCh"), // a piece jumped by a flying king
+    DAMA_MAN("Da"), // dama pieces move horz and vertically
+    DAMA_KING("KDa"),
+    CAPTURED_DAMA("CDa"),
     UNAVAILABLE("x"), // this means off board
     ;
 
     public final String abbrev;
+
+    public boolean isFlying() {
+        switch (this) {
+            case FLYING_KING:
+            case DAMA_KING:
+                return true;
+        }
+        return false;
+    }
 
     PieceType(String abbrev) {
         this.abbrev = abbrev;

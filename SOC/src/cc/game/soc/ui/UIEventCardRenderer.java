@@ -11,6 +11,7 @@ import cc.lib.game.GColor;
 import cc.lib.game.GDimension;
 import cc.lib.game.Justify;
 import cc.lib.game.Utils;
+import cc.lib.ui.UIComponent;
 
 public final class UIEventCardRenderer extends UIRenderer {
 
@@ -43,11 +44,11 @@ public final class UIEventCardRenderer extends UIRenderer {
             production = eventCard.getProduction();
         }
 
-        ch = component.getHeight();
+        ch = getComponent().getHeight();
 		cw = ch*2/3;
 
-		if (cw > component.getWidth()/2) {
-		    cw = component.getWidth()/2;
+		if (cw > getComponent().getWidth()/2) {
+		    cw = getComponent().getWidth()/2;
             ch = cw*3/2;
         }
 
@@ -70,7 +71,7 @@ public final class UIEventCardRenderer extends UIRenderer {
 		    if (dealAnim.isDone()) {
 		        dealAnim = null;
             }
-            component.redraw();
+            getComponent().redraw();
         } else {
 		    drawCard(g, production, cardText);
         }
@@ -115,7 +116,7 @@ public final class UIEventCardRenderer extends UIRenderer {
 	        return;
 	    if (eventCard == null) {
 	        eventCard = card;
-	        component.redraw();
+	        getComponent().redraw();
 	        return;
         }
 	    final int productionIn = eventCard.getProduction();
@@ -145,7 +146,7 @@ public final class UIEventCardRenderer extends UIRenderer {
             }
         }.start();
 
-	    component.redraw();
+	    getComponent().redraw();
         Utils.waitNoThrow(dealAnim, dealAnim.getDuration()+100);
     }
 

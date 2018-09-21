@@ -2,7 +2,6 @@ package cc.game.soc.ui;
 
 import cc.game.soc.android.R;
 import cc.game.soc.core.Card;
-import cc.game.soc.core.CardStatus;
 import cc.game.soc.core.CardType;
 import cc.game.soc.core.CommodityType;
 import cc.game.soc.core.DevelopmentArea;
@@ -10,11 +9,11 @@ import cc.game.soc.core.DevelopmentCardType;
 import cc.game.soc.core.ResourceType;
 import cc.game.soc.core.SOC;
 import cc.game.soc.core.SpecialVictoryType;
-import cc.game.soc.core.VertexType;
 import cc.lib.game.APGraphics;
 import cc.lib.game.GColor;
 import cc.lib.game.GDimension;
 import cc.lib.game.Utils;
+import cc.lib.ui.UIComponent;
 
 /**
  * 
@@ -43,7 +42,7 @@ public final class UIPlayerRenderer extends UIRenderer {
 
     public void setPlayer(int playerNum) {
         this.playerNum = playerNum;
-        component.redraw();
+        getComponent().redraw();
     }
 
     @Override
@@ -160,12 +159,12 @@ public final class UIPlayerRenderer extends UIRenderer {
         float padding = RenderConstants.textMargin;
 
         g.setColor(player.getColor());
-        GDimension dim = g.drawWrapString(padding, padding, component.getWidth(), str.toString());
+        GDimension dim = g.drawWrapString(padding, padding, getComponent().getWidth(), str.toString());
         GDimension min = new GDimension(dim.width + padding*2, dim.height + padding*2);
         setMinDimension(min);
 
         if (isCurrentPlayer()) {
-            g.drawRect(0,0, component.getWidth()-RenderConstants.thickLineThickness/2, Math.max(min.height, component.getHeight())-RenderConstants.thickLineThickness/2, RenderConstants.thickLineThickness);
+            g.drawRect(0,0, getComponent().getWidth()-RenderConstants.thickLineThickness/2, Math.max(min.height, getComponent().getHeight())-RenderConstants.thickLineThickness/2, RenderConstants.thickLineThickness);
         }
     }
 

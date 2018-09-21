@@ -8,6 +8,7 @@ import cc.lib.math.CMath;
 
 import static cc.android.checkerboard.PieceType.CAPTURED_CHECKER;
 import static cc.android.checkerboard.PieceType.CHECKER;
+import static cc.android.checkerboard.PieceType.DAMA_KING;
 import static cc.android.checkerboard.PieceType.EMPTY;
 import static cc.android.checkerboard.PieceType.FLYING_KING;
 import static cc.android.checkerboard.PieceType.KING;
@@ -45,66 +46,117 @@ public class Checkers extends ACheckboardGame  {
 
     @Override
 	protected void computeMovesForSquare(int rank, int col, Move parent) {
-		Piece p = getPiece(rank, col);
+        Piece p = getPiece(rank, col);
         if (p.playerNum != getTurn())
             throw new AssertionError();
 
-        if (p.type == FLYING_KING) {
-            final int [] dr =  { 1, 1, -1, -1 };
-            final int [] dc =  { -1, 1, -1, 1 };
-            computeFlyingKingMoves(p, rank, col, parent, dr, dc);
-            return;
+        if (p.type == FLYING_KING || p.type == DAMA_KING) {
+            computeFlyingKingMoves(p, rank, col, parent);
+        } else {
+            computeMenKingMoves(p, rank, col, parent);
+        }
+    }
+
+    protected void computeMenKingMoves(Piece p, int rank, int col, Move parent) {
+
+        int [] jdr, jdc, dr, dc;
+        switch (p.type) {
+            case KING:
+                jdr = dr = new int[] { 1, 1, -1, -1 };
+                jdc = dc = new int[] { -1, 1, -1, 1 };
+                break;
+            case CHECKER:
+                if (p.playerNum == NEAR) {
+                    // negative
+                    dr = new int [] { -1, -1 };
+                    dc = new int [] { -1, 1 };
+                } else { // red
+                    // positive
+                    dr = new int [] { 1, 1 };
+                    dc = new int [] { -1, 1 };
+                }
+                if (canMenJumpBackwards()) {
+                    jdr = new int[]{1, 1, -1, -1};
+                    jdc = new int[]{-1, 1, -1, 1};
+                } else {
+                    jdr = dr;
+                    jdc = dc;
+                }
+                break;
+            case DAMA_MAN:
+                if (p.playerNum == NEAR) {
+                    // negative
+                    dr = new int [] { -1, 0, 0 };
+                    dc = new int [] {  0, 1, -1 };
+                } else { // red
+                    // positive
+                    dr = new int [] { 1, 0, 0 };
+                    dc = new int [] { 0, 1, -1 };
+                }
+                if (canMenJumpBackwards()) {
+                    jdr = new int[] { 1, -1, 0, 0};
+                    jdc = new int[] { 0,  0, -1, 1};
+                } else {
+                    jdr = dr;
+                    jdc = dc;
+                }
+                break;
+            case DAMA_KING:
+                jdr = dr = new int[] { 1, -1, 0, 0};
+                jdc = dc = new int[] { 0,  0, -1, 1};
+                break;
+            default:
+                throw new AssertionError("Unhandled case");
         }
 
-		int [] dr, dc;
-		if (p.type == KING) {
-			dr = new int[] { 1, 1, -1, -1 };
-			dc = new int[] { -1, 1, -1, 1 };
-		} else if (p.playerNum == NEAR) {
-			// negative
-			dr = new int [] { -1, -1 };
-			dc = new int [] { -1, 1 };
-		} else { // red
-			// positive
-			dr = new int [] { 1, 1 };
-			dc = new int [] { -1, 1 };
-		}
-		
-		for (int i=0; i<dr.length; i++) {
-			final int rdr = rank+dr[i];
-			final int cdc = col+dc[i];
-			final int rdr2 = rank+dr[i]*2;
-			final int cdc2 = col+dc[i]*2;
-			
-			if (!isOnBoard(rdr, cdc))
-				continue;
-			// t is piece one unit away in this direction
-			Piece t = getPiece(rdr, cdc);
-			if (t.type == EMPTY) {
-				if (parent == null)
-					p.moves.add(new Move(MoveType.SLIDE, getTurn(), null, null, rank, col, rdr, cdc));
-					        //new Move(MoveType.SLIDE, rank, col, rdr, cdc, getTurn()));
-			} else {
-				// check for jump
-				if (isOnBoard(rdr2, cdc2)) {
-                    if (parent != null && parent.getStart()[1] == cdc2 && parent.getStart()[0] == rdr2) {
-                        continue; // dont allow to jump back to a place we just came from
-                    }
-					Piece j = getPiece(rdr2, cdc2);
-					if (j.type == EMPTY) {
-						// we can jump to here
-						if (t.playerNum == getTurn()) {
-							// we are jumping ourself, no capture
-                            if (canJumpSelf())
-							    p.moves.add(new Move(MoveType.JUMP, getTurn(), null, null, rank, col, rdr2, cdc2));
-						} else {
-							// jump with capture
-							p.moves.add(new Move(MoveType.JUMP, getTurn(), t, null, rank, col, rdr2, cdc2, rdr, cdc));
-						}
-					}
-				}
-			}
-		}
+        // check for jumps
+        for (int i=0; i<jdr.length; i++) {
+            final int rdr = rank+jdr[i];
+            final int cdc = col+jdc[i];
+            final int rdr2 = rank+dr[i]*2;
+            final int cdc2 = col+dc[i]*2;
+
+            if (!isOnBoard(rdr, cdc))
+                continue;
+
+            if (!isOnBoard(rdr2, cdc2))
+                continue;
+
+            Piece cap = getPiece(rdr, cdc);
+            if (cap.type != CHECKER)
+                continue;
+
+            if (canJumpSelf()) {
+                if (cap.playerNum == getTurn())
+                    cap = null;
+            } else {
+                if (cap.playerNum != getOpponent())
+                    continue;
+            }
+
+            Piece t = getPiece(rdr2, cdc2);
+            if (t.type != EMPTY)
+                continue;
+
+            p.moves.add(new Move(MoveType.JUMP, getTurn(), cap, null, rank, col, rdr2, cdc2));
+        }
+
+        // check for slides
+        if (parent == null && !(isJumpsMandatory() && p.moves.size()>0)) {
+            for (int i = 0; i < dr.length; i++) {
+                final int rdr = rank + dr[i];
+                final int cdc = col + dc[i];
+
+                if (!isOnBoard(rdr, cdc))
+                    continue;
+                // t is piece one unit away in this direction
+                Piece t = getPiece(rdr, cdc);
+                if (t.type == EMPTY) {
+                    p.moves.add(new Move(MoveType.SLIDE, getTurn(), null, null, rank, col, rdr, cdc));
+                    //new Move(MoveType.SLIDE, rank, col, rdr, cdc, getTurn()));
+                }
+            }
+        }
 	}
 
 	/*
@@ -114,8 +166,22 @@ public class Checkers extends ACheckboardGame  {
 	Since jumped pieces remain on the board until the turn is complete, it is possible to reach a position in a multi-jump move
 	where the flying king is blocked from capturing further by a piece already jumped. (TODO)
 	 */
-    protected void computeFlyingKingMoves(Piece p, int rank, int col, Move parent, int [] dr, int [] dc) {
+    protected void computeFlyingKingMoves(Piece p, int rank, int col, Move parent) {
         final int d = Math.max(RANKS, COLUMNS);
+
+        int [] dr, dc;
+        switch (p.type) {
+            case FLYING_KING:
+                dr = new int[] { 1, 1, -1, -1 };
+                dc = new int[] { -1, 1, -1, 1 };
+                break;
+            case DAMA_KING:
+                dr = new int[] { 1, -1, 0, 0 };
+                dc = new int[] { 0,  0, -1, 1 };
+                break;
+            default:
+                throw new AssertionError("Unhandled case");
+        }
 
         for (int i=0; i<4; i++) {
             MoveType mt = MoveType.SLIDE;
@@ -322,4 +388,19 @@ public class Checkers extends ACheckboardGame  {
         return false; // true for international/russian draughts
     }
 
+    /**
+     * Men/King must jump when possible
+     * @return
+     */
+    protected boolean isJumpsMandatory() {
+        return false;
+    }
+
+    /**
+     * Men/King must take moves that lead to most jumps
+     * @return
+     */
+    protected boolean isMaxJumpsMandatory() {
+        return false;
+    }
 }
