@@ -8,10 +8,13 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Arrays;
 import java.util.Properties;
 
 import javax.swing.*;
 import javax.swing.event.*;
+
+import javax.swing.filechooser.*;
 
 import cc.lib.game.GColor;
 import cc.lib.game.Utils;
@@ -109,6 +112,8 @@ public class EZFrame extends JFrame implements WindowListener, ComponentListener
 	
 	protected void onWindowClosing() {}
 
+	protected void onWindowResized(int w, int h) {}
+
 	protected void saveToFile() {
 	    if (propertiesFile != null) {
             Properties p = new Properties();
@@ -147,6 +152,14 @@ public class EZFrame extends JFrame implements WindowListener, ComponentListener
             e.printStackTrace();
         }
     }
+
+    public void setProperty(String name, String value) {
+	    Properties p = getProperties();
+	    p.setProperty(name, value);
+	    setProperties(p);
+    }
+
+
 
     public boolean loadFromFile(File propertiesFile) {
 	    this.propertiesFile = propertiesFile;
@@ -283,13 +296,14 @@ public class EZFrame extends JFrame implements WindowListener, ComponentListener
     public void componentHidden(ComponentEvent arg0) {}
 
     @Override
-    public void componentMoved(ComponentEvent arg0) {
+    public final void componentMoved(ComponentEvent arg0) {
         saveToFile();
     }
 
     @Override
-    public void componentResized(ComponentEvent arg0) {
+    public final void componentResized(ComponentEvent arg0) {
         saveToFile();
+        onWindowResized(getWidth(), getHeight());
     }
 
     @Override
@@ -327,7 +341,7 @@ public class EZFrame extends JFrame implements WindowListener, ComponentListener
     }
 
     protected void onMenuItemSelected(String menu, String subMenu) {
-        log.debug("onMneuItemSelected: menu=" + menu + " item=" + subMenu);
+        log.warn("Unhandled onMneuItemSelected: menu=" + menu + " item=" + subMenu);
     }
 
     public final void add(AWTComponent comp) {
@@ -388,4 +402,231 @@ public class EZFrame extends JFrame implements WindowListener, ComponentListener
         }
         return p;
     }
+
+    /**
+     *
+     * @param name
+     * @param defaultValue
+     * @return
+     */
+    public final boolean getBooleanProperty(String name, boolean defaultValue) {
+        try {
+            String prop = getProperties().getProperty(name);
+            if (prop == null)
+                return defaultValue;
+            return Boolean.parseBoolean(prop);
+        } catch (Exception e) {
+            return defaultValue;
+        }
+    }
+
+    /**
+     *
+     * @param name
+     * @param defaultValue
+     * @return
+     */
+    public final int getIntProperty(String name, int defaultValue) {
+        try {
+            return Integer.parseInt(getProperties().getProperty(name));
+        } catch (Exception e) {}
+        setProperty(name, String.valueOf(defaultValue));
+        return defaultValue;
+    }
+
+    /**
+     *
+     * @param name
+     * @param defaultValue
+     * @return
+     */
+    public final double getDoubleProperty(String name, double defaultValue) {
+        try {
+            return Double.parseDouble(getProperties().getProperty(name));
+        } catch (Exception e) {}
+        setProperty(name, String.valueOf(defaultValue));
+        return defaultValue;
+    }
+
+    /**
+     *
+     * @param name
+     * @param defaultValue
+     * @return
+     */
+    public final String getStringProperty(String name, String defaultValue) {
+        String value = getProperties().getProperty(name);
+        if (value != null)
+            return value;
+        if (defaultValue != null)
+            setProperty(name, defaultValue);
+        return defaultValue;
+    }
+
+    static FileFilter getExtensionFilter(final String ext, final boolean acceptDirectories) {
+
+        return new FileFilter() {
+
+            public boolean accept(File file) {
+                if (file.isDirectory() && acceptDirectories)
+                    return true;
+                return file.getName().endsWith(ext);
+            }
+
+            public String getDescription() {
+                return "SOC Board Files";
+            }
+
+        };
+    }
+
+    /**
+     *
+     * @return
+     */
+    public File getWorkingDir() {
+        Properties p = getProperties();
+        String dir = p.getProperty("workingDir");
+        if (dir != null)
+            return new File(dir);
+        return new File(".");
+    }
+
+    /**
+     *
+     * @param dir
+     */
+    public void setWorkingDir(File dir) {
+        Properties p = getProperties();
+        p.setProperty("workingDir", dir.getAbsolutePath());
+        setProperties(p);
+    }
+
+    /**
+     *
+     * @param title
+     * @param extension
+     * @return
+     */
+    public File showFileOpenChooser(String title, String extension) {
+        JFileChooser chooser = new JFileChooser();
+        chooser.setCurrentDirectory(getWorkingDir());
+        chooser.setDialogTitle(title);
+        chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        if (extension != null) {
+            if (!extension.startsWith("."))
+                extension = "." + extension;
+            chooser.setFileFilter(getExtensionFilter(extension, true));
+        }
+        int result = chooser.showOpenDialog(this);
+        if (result == JFileChooser.APPROVE_OPTION) {
+            File file = chooser.getSelectedFile();
+            setWorkingDir(file.getParentFile());
+            String fileName = file.getAbsolutePath();
+            if (extension != null && !fileName.endsWith(extension))
+                fileName += extension;
+            return new File(fileName);
+        }
+        return null;
+    }
+
+    /**
+     *
+     * @param title
+     * @param extension
+     * @param selectedFile
+     * @return
+     */
+    public File showFileSaveChooser(String title, String extension, File selectedFile) {
+        final JFileChooser chooser = new JFileChooser();
+        chooser.setSelectedFile(selectedFile);
+        chooser.setCurrentDirectory(getWorkingDir());
+        chooser.setDialogTitle(title);
+        chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        if (extension != null) {
+            if (!extension.startsWith("."))
+                extension = "." + extension;
+            chooser.setFileFilter(getExtensionFilter(extension, true));
+        }
+        int result = chooser.showSaveDialog(this);
+        if (result == JFileChooser.APPROVE_OPTION) {
+            File file = chooser.getSelectedFile();
+            setWorkingDir(file.getParentFile());
+            String fileName = file.getName();
+            if (extension != null && !fileName.endsWith(extension))
+                fileName += extension;
+            return new File(file.getParent(), fileName);
+        }
+        return null;
+    }
+
+    public enum MessageIconType {
+        PLAIN(JOptionPane.PLAIN_MESSAGE),
+        QUESTION(JOptionPane.QUESTION_MESSAGE),
+        INFO(JOptionPane.INFORMATION_MESSAGE),
+        WARNING(JOptionPane.WARNING_MESSAGE),
+        ERROR(JOptionPane.ERROR_MESSAGE);
+
+        MessageIconType(int type) {
+            this.type=type;
+        }
+
+        final int type;
+    };
+
+    /**
+     *
+     * @param title
+     * @param message
+     * @param icon
+     */
+    public void showMessageDialog(String title, String message, MessageIconType icon) {
+        JOptionPane.showMessageDialog(this, message, title, icon.type);
+    }
+
+    /**
+     *
+     * @param title
+     * @param message
+     */
+    public void showMessageDialog(String title, String message) {
+        showMessageDialog(title, message, MessageIconType.PLAIN);
+    }
+
+    /**
+     * Show drop down menu with options
+     *
+     * @param title
+     * @param message
+     * @param items
+     * @return index of the chosen item or -1 if cancelled
+     */
+    public int showItemChooserDialog(String title, String message, String ... items) {
+
+        String input = (String) JOptionPane.showInputDialog(null, message,
+                title, JOptionPane.QUESTION_MESSAGE, null, // Use
+                // default
+                // icon
+                items, // Array of choices
+                items[0]); // Initial choice
+
+        return Utils.linearSearch(items, input);
+    }
+
+    /**
+     * Show a dialog with yes/no buttons. Return true if yes was pressed.
+     *
+     * @param title
+     * @param message
+     * @return
+     */
+    public boolean showYesNoDialog(String title, String message) {
+        int n = JOptionPane.showConfirmDialog(
+                this,
+                message,
+                title,
+                JOptionPane.YES_NO_OPTION);
+        return n == JOptionPane.YES_OPTION;
+    }
+
 }

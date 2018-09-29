@@ -99,7 +99,6 @@ public class FractalViewer extends EZFrame implements FractalComponent.FractalLi
 //    final HashMap<String, ComplexNumber> vars = new HashMap<String, ComplexNumber>();
     final AEvaluator evaluator = new Evaluator();
     
-    Properties props = new Properties();
     Vector<String> formulas = new Vector<String>();
 
     final String USER_HOME = System.getProperty("user.home");
@@ -117,7 +116,6 @@ public class FractalViewer extends EZFrame implements FractalComponent.FractalLi
         listScreens();
         addWindowListener(this);
         
-        loadProps();
         loadFormulas();
         
         ButtonGroup group;
@@ -185,7 +183,7 @@ public class FractalViewer extends EZFrame implements FractalComponent.FractalLi
 
             @Override
             public void itemStateChanged(ItemEvent arg0) {
-                props.setProperty(PROP_ANIM_NUM_FRAMES, animationNumFrames.getSelectedItem().toString());
+                setProperty(PROP_ANIM_NUM_FRAMES, animationNumFrames.getSelectedItem().toString());
             }
             
         });
@@ -318,11 +316,11 @@ public class FractalViewer extends EZFrame implements FractalComponent.FractalLi
         undoButton.setEnabled(fractalComponent.canUndo());
         redoButton.setEnabled(fractalComponent.canRedo());
         saveZoomRect();
-        props.setProperty(PROP_CONSTANT_EXPRESSION, constantExpression.getText());
+        setProperty(PROP_CONSTANT_EXPRESSION, constantExpression.getText());
     }
     
     public void onAnimationDone(AnimateThread animateThread) {
-        props.setProperty(PROP_CONSTANT_EXPRESSION, constantExpression.getText());
+        setProperty(PROP_CONSTANT_EXPRESSION, constantExpression.getText());
         this.animateButton.setText(Action.ANIMATE.getLabel());
         this.animateButton.setEnabled(true);
     }
@@ -397,10 +395,10 @@ public class FractalViewer extends EZFrame implements FractalComponent.FractalLi
     
     void saveZoomRect() {
         FractalImage i = fractalComponent.getLastFractalImage();
-        props.setProperty(PROP_ZOOM_LEFT, String.valueOf(i.left));
-        props.setProperty(PROP_ZOOM_RIGHT, String.valueOf(i.right));
-        props.setProperty(PROP_ZOOM_TOP, String.valueOf(i.top));
-        props.setProperty(PROP_ZOOM_BOTTOM, String.valueOf(i.bottom));
+        setProperty(PROP_ZOOM_LEFT, String.valueOf(i.left));
+        setProperty(PROP_ZOOM_RIGHT, String.valueOf(i.right));
+        setProperty(PROP_ZOOM_TOP, String.valueOf(i.top));
+        setProperty(PROP_ZOOM_BOTTOM, String.valueOf(i.bottom));
     }
     
     @Override
@@ -435,6 +433,7 @@ public class FractalViewer extends EZFrame implements FractalComponent.FractalLi
                     break;
                     
                 case SAVE: {
+
                     JFileChooser chooser = new JFileChooser();
                     chooser.setDialogTitle("Save PNG File");
                     FileNameExtensionFilter filter = new FileNameExtensionFilter(
@@ -455,7 +454,7 @@ public class FractalViewer extends EZFrame implements FractalComponent.FractalLi
                         
                         File file = new File(chooser.getCurrentDirectory(), fileName);
                         if (!file.exists() || JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(this, "File Exists.  Overwrite?")) {
-                            props.setProperty(PROP_CURRENT_DIR, chooser.getCurrentDirectory().getAbsolutePath());
+                            setProperty(PROP_CURRENT_DIR, chooser.getCurrentDirectory().getAbsolutePath());
                             fractalComponent.saveImage(file, format);
                         } 
                     }
@@ -503,7 +502,7 @@ public class FractalViewer extends EZFrame implements FractalComponent.FractalLi
                     ColorTable.Scale scale = ColorTable.Scale.valueOf(((AbstractButton)ac.getSource()).getText());
                     fractalComponent.getColorTable().setScale(scale);
                     fractalComponent.startNewFractal(true);
-                    props.setProperty(PROP_COLOR_SCALE, scale.name());
+                    setProperty(PROP_COLOR_SCALE, scale.name());
                     break;
                 }
                     
@@ -516,7 +515,7 @@ public class FractalViewer extends EZFrame implements FractalComponent.FractalLi
                     fractalComponent.setFractal(new ComplexNumber(), new AFractal.Mandelbrot());
                     fractalComponent.reset(true);
                     fractalComponent.startNewFractal(false);
-                    props.setProperty(PROP_FRACTAL_SET, a.name());
+                    setProperty(PROP_FRACTAL_SET, a.name());
                     break;
                     
                 case JULIA_SET: {
@@ -529,7 +528,7 @@ public class FractalViewer extends EZFrame implements FractalComponent.FractalLi
                     fractalComponent.setFractal(evaluator.evaluate(), new AFractal.Julia());
                     fractalComponent.reset(true);
                     fractalComponent.startNewFractal(false);
-                    props.setProperty(PROP_FRACTAL_SET, a.name());
+                    setProperty(PROP_FRACTAL_SET, a.name());
                     break;
                 }
                     
@@ -544,7 +543,7 @@ public class FractalViewer extends EZFrame implements FractalComponent.FractalLi
                     fractalComponent.setFractal(c, new AFractal.Custom(getExpressionText()));
                     fractalComponent.reset(true);
                     fractalComponent.startNewFractal(false);
-                    props.setProperty(PROP_FRACTAL_SET, a.name());
+                    setProperty(PROP_FRACTAL_SET, a.name());
                     break;
                     
                 case CUSTOM_SET_EXPRESSION: {
@@ -561,7 +560,7 @@ public class FractalViewer extends EZFrame implements FractalComponent.FractalLi
                     //AFractal frac= fractalComponent.getFractal();
                     evaluator.parse(field.getText());
                     fractalComponent.setConstant(evaluator.evaluate());
-                    props.setProperty(PROP_ANIM_START_FIELD, field.getText());
+                    setProperty(PROP_ANIM_START_FIELD, field.getText());
                     fractalComponent.reset(false);
                     fractalComponent.startNewFractal(false);
                     break;
@@ -570,7 +569,7 @@ public class FractalViewer extends EZFrame implements FractalComponent.FractalLi
                     JTextField field = (JTextField)ac.getSource();
                     evaluator.parse(field.getText());
                     fractalComponent.setConstant(evaluator.evaluate());
-                    props.setProperty(PROP_ANIM_END_FIELD, field.getText());
+                    setProperty(PROP_ANIM_END_FIELD, field.getText());
                     fractalComponent.reset(false);
                     fractalComponent.startNewFractal(false);
                     break;
@@ -579,7 +578,7 @@ public class FractalViewer extends EZFrame implements FractalComponent.FractalLi
                     JTextField field = (JTextField)ac.getSource();
                     evaluator.parse(field.getText());
                     fractalComponent.setConstant(evaluator.evaluate());
-                    props.setProperty(PROP_CONSTANT_EXPRESSION, field.getText());
+                    setProperty(PROP_CONSTANT_EXPRESSION, field.getText());
                     fractalComponent.reset(false);
                     fractalComponent.startNewFractal(false);
                     break;
@@ -614,7 +613,7 @@ public class FractalViewer extends EZFrame implements FractalComponent.FractalLi
                 case SHOW_WATERMARK: {
                 	boolean selected = ((AbstractButton)ac.getSource()).isSelected();
                     fractalComponent.setShowWatermark(selected);
-                    props.setProperty(PROP_SHOW_WATERMARK_BOOLEAN, String.valueOf(selected));
+                    setProperty(PROP_SHOW_WATERMARK_BOOLEAN, String.valueOf(selected));
                     break;
                 }
     
@@ -624,24 +623,6 @@ public class FractalViewer extends EZFrame implements FractalComponent.FractalLi
         } catch (Exception e) {
             e.printStackTrace();
             showError(e.getClass().getSimpleName() +  ":" + e.getMessage());
-        }
-    }
-    
-    void loadProps() {
-        InputStream in = null;
-        try {
-            File file = new File(PROPS_FILE);
-            if (file.exists()) {
-                System.out.println("Loading file " + file.getAbsolutePath());
-                in = new FileInputStream(file);
-                props.load(in);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            if (in != null) {
-                try { in.close(); } catch (Exception e) {}
-            }
         }
     }
     
@@ -663,29 +644,12 @@ public class FractalViewer extends EZFrame implements FractalComponent.FractalLi
             } else {
                 formulas.add("Z^2 + Z0");
                 formulas.add("Z^2 - C");
-                saveProps();
             }
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
             if (in != null) {
                 try { in.close(); } catch (Exception e) {}
-            }
-        }
-    }
-    
-    void saveProps() {
-        OutputStream out = null;
-        try {
-            File file = new File(PROPS_FILE);
-            System.out.println("Saving properties to file " + file.getAbsolutePath());
-            out = new FileOutputStream(file);
-            props.store(out, "Generated on " + new Date());
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            if (out != null) {
-                try { out.close(); } catch (Exception e) {}
             }
         }
     }
@@ -709,56 +673,9 @@ public class FractalViewer extends EZFrame implements FractalComponent.FractalLi
         }
     }
     
-    boolean getBooleanProperty(String name, boolean defaultValue) {
-    	try {
-    		String prop = props.getProperty(name);
-    		if (prop == null)
-    			return defaultValue;
-    		return Boolean.parseBoolean(prop);
-    	} catch (Exception e) {
-    		return defaultValue;
-    	}
-    }
-    
-    int getIntProperty(String name, int defaultValue) {
-        try {
-            return Integer.parseInt(props.getProperty(name));
-        } catch (Exception e) {}
-        props.put(name, String.valueOf(defaultValue));
-        return defaultValue;
-    }
-
-    double getDoubleProperty(String name, double defaultValue) {
-        try {
-            return Double.parseDouble(props.getProperty(name));
-        } catch (Exception e) {}
-        props.put(name, String.valueOf(defaultValue));
-        return defaultValue;
-    }
-
-    String getStringProperty(String name, String defaultValue) {
-        String value = props.getProperty(name);
-        if (value != null)
-            return value;
-        if (defaultValue != null)
-            props.put(name, defaultValue);
-        return defaultValue;
-    }
-
     @Override
     public void onWindowClosing() {
         animation.stop();
-        if (props.size() > 0)
-            this.saveProps();
     }
 
-    @Override
-    public void componentMoved(ComponentEvent arg0) {
-        super.componentMoved(arg0);
-        Rectangle rect = getBounds();
-        props.setProperty(PROP_WINDOW_X, "" + rect.x);
-        props.setProperty(PROP_WINDOW_Y, "" + rect.y);
-    }
-    
-    
 }

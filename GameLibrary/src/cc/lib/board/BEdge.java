@@ -33,7 +33,7 @@ public class BEdge extends Reflector<BEdge> implements Comparable<BEdge> {
     }
 
     @Override
-    public int compareTo(BEdge o) {
+    public final int compareTo(BEdge o) {
         if (from == o.from) {
             return to-o.to;
         }
@@ -41,7 +41,7 @@ public class BEdge extends Reflector<BEdge> implements Comparable<BEdge> {
     }
 
     @Override
-    public boolean equals(Object o) {
+    public final boolean equals(Object o) {
         if (o == this)
             return true;
         if (o != null && o instanceof BEdge) {
@@ -49,5 +49,9 @@ public class BEdge extends Reflector<BEdge> implements Comparable<BEdge> {
             return e.from == from && e.to == to;
         }
         return false;
+    }
+
+    public final int getNumAdjCells() {
+        return numAdjCells;
     }
 }

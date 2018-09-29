@@ -322,14 +322,14 @@ public class DominosActivity extends DroidActivity {
 
             @Override
             protected void onAllPlayersJoined() {
-                currentDialog.dismiss();
+                dismissCurrentDialog();
                 dominos.startGameThread();
             }
 
             @Override
             protected void onPlayerConnected(Player player) {
                 player.getConnection().addListener(connectionListener);
-                currentDialog.dismiss();
+                dismissCurrentDialog();
             }
 
             @Override
@@ -346,7 +346,7 @@ public class DominosActivity extends DroidActivity {
         dominos.startDominosIntroAnimation(new Runnable() {
             @Override
             public void run() {
-                if (currentDialog == null)
+                if (!isCurrentDialogShowing())
                     showNewGameDialog();
             }
         });
@@ -367,7 +367,7 @@ public class DominosActivity extends DroidActivity {
         if (server.isRunning()) {
             if (dominos.isInitialized())
                 dominos.startGameThread();
-            else if (!currentDialog.isShowing())
+            else if (!isCurrentDialogShowing())
                 showWaitingForPlayersDialog();
 
         } else if (!client.isConnected()) {
@@ -520,7 +520,7 @@ public class DominosActivity extends DroidActivity {
                     dominos.clear();
                     if (dominos.tryLoadFromFile(saveFile) && dominos.isInitialized()) {
                         dominos.startGameThread();
-                        currentDialog.dismiss();
+                        dismissCurrentDialog();
                     } else {
                         dominos.clear();
                         newDialogBuilder().setTitle(R.string.popup_title_error).setMessage(R.string.popup_msg_failed_to_load).setNegativeButton(R.string.popup_button_ok, new DialogInterface.OnClickListener() {
@@ -734,7 +734,7 @@ public class DominosActivity extends DroidActivity {
                 if (server.getNumConnectedClients() == maxClients) {
                     server.removeListener(this);
                     dominos.startGameThread();
-                    currentDialog.dismiss();
+                    dismissCurrentDialog();
                 } else {
                     int num = maxClients - server.getNumConnectedClients();
                     server.broadcastMessage(getString(R.string.server_broadcast_waiting_for_n_more_players, num));
@@ -845,7 +845,7 @@ public class DominosActivity extends DroidActivity {
                     return;
                 }
                 connecting = true;
-                currentDialog.dismiss();
+                dismissCurrentDialog();
                 new SpinnerTask() {
                     @Override
                     protected void doIt() throws Exception {
@@ -1056,31 +1056,6 @@ public class DominosActivity extends DroidActivity {
     final static String NAME= Build.MODEL;
 
     GameClient client = new GameClient(NAME, MPConstants.VERSION, MPConstants.getCypher());
-
-    AlertDialog currentDialog = null;
-
-    AlertDialog.Builder newDialogBuilder() {
-        final AlertDialog previous = currentDialog;
-        AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.DialogTheme) {
-            @Override
-            public AlertDialog show() {
-                if (currentDialog != null) {
-                    currentDialog.dismiss();
-                }
-                return currentDialog = super.show();
-            }
-        }.setCancelable(false);
-        if (currentDialog != null && currentDialog.isShowing()) {
-            builder.setNeutralButton(R.string.popup_button_back, new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    currentDialog = previous;
-                    previous.show();
-                }
-            });
-        }
-        return builder;
-    }
 
     void showNewMultiplayerPlayerSetupDialog(final boolean firstGame) {
         final View v = View.inflate(this, R.layout.game_setup_dialog, null);

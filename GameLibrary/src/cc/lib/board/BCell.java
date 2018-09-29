@@ -15,7 +15,7 @@ public class BCell extends Reflector<BCell> implements IVector2D {
         addAllFields(BCell.class);
     }
 
-    float cx, cy;
+    float cx, cy, radius;
 
     final List<Integer> adjVerts = new ArrayList<>();
     final List<Integer> adjCells = new ArrayList<>();
@@ -36,6 +36,10 @@ public class BCell extends Reflector<BCell> implements IVector2D {
         return cy;
     }
 
+    public final float getRadius() {
+        return radius;
+    }
+
     public final int getNumAdjVerts() {
         return adjVerts.size();
     }
@@ -49,7 +53,7 @@ public class BCell extends Reflector<BCell> implements IVector2D {
     }
 
     @Override
-    public boolean equals(Object o) {
+    public final boolean equals(Object o) {
         if (o == this)
             return true;
         if (o != null && o instanceof BCell) {

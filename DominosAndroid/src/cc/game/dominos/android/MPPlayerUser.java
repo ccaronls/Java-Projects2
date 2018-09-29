@@ -72,7 +72,7 @@ public class MPPlayerUser extends PlayerUser implements GameClient.Listener {
                 String str = cmd.getArg("dominos");
                 dominos.reset();
                 dominos.deserialize(str);
-                activity.currentDialog.dismiss();
+                activity.dismissCurrentDialog();
                 if (dominos.getBoard().getRoot() == null) {
                     dominos.startShuffleAnimation();
                 }

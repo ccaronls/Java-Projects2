@@ -57,7 +57,7 @@ public class CustomBoardTest extends TestCase {
         assertEquals(2, b.getNumCells());
         assertEquals(4, b.getCell(0).getNumAdjVerts());
         assertEquals(4, b.getCell(1).getNumAdjVerts());
-        assertEquals(2, b.getEdge(2, 3).getNumAdjacentCells());
+        assertEquals(2, b.getEdge(2, 3).getNumAdjCells());
     }
 
     public void test3Cells() {

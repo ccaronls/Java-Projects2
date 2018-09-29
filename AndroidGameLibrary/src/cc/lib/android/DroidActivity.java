@@ -1,14 +1,12 @@
 package cc.lib.android;
 
-import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.graphics.Canvas;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.FrameLayout;
-import android.widget.LinearLayout;
 
 /**
  * Created by chriscaron on 2/13/18.
@@ -143,4 +141,40 @@ public abstract class DroidActivity extends CCActivityBase {
     protected void onTouchUp(float x, float y) {}
 
     protected void onDrag(float x, float y) {}
+
+    private AlertDialog currentDialog = null;
+
+    public final AlertDialog.Builder newDialogBuilder() {
+        final AlertDialog previous = currentDialog;
+        AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.DialogTheme) {
+            @Override
+            public AlertDialog show() {
+                if (currentDialog != null) {
+                    currentDialog.dismiss();
+                }
+                return currentDialog = super.show();
+            }
+        }.setCancelable(false);
+        if (currentDialog != null && currentDialog.isShowing()) {
+            builder.setNeutralButton(R.string.popup_button_back, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    currentDialog = previous;
+                    previous.show();
+                }
+            });
+        }
+        return builder;
+    }
+
+    public void dismissCurrentDialog() {
+        if (currentDialog != null) {
+            currentDialog.dismiss();
+            currentDialog = null;
+        }
+    }
+
+    public boolean isCurrentDialogShowing() {
+        return currentDialog != null && currentDialog.isShowing();
+    }
 }

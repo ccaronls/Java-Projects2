@@ -1,7 +1,9 @@
 package cc.lib.swing;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Properties;
 
 import cc.lib.board.BCell;
@@ -14,6 +16,7 @@ import cc.lib.game.Justify;
 import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
+import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
 
 public class BoardBuilder extends AWTComponent {
@@ -40,13 +43,13 @@ public class BoardBuilder extends AWTComponent {
         void undo();
     }
 
-    final File DEFAULT_FILE = new File("bb.backup.board");
+    final File DEFAULT_FILE;
 
     final CustomBoard board;
     int background = -1;
     int selectedIndex = -1;
     int highlightedIndex = -1;
-    File boardFile = DEFAULT_FILE;
+    File boardFile;
     final LinkedList<Action> undoList = new LinkedList<>();
     PickMode pickMode = PickMode.VERTEX;
 
@@ -60,14 +63,25 @@ public class BoardBuilder extends AWTComponent {
         setPadding(10);
         initFrame(frame);
         frame.add(this);
-        if (!frame.loadFromFile(new File("bb.properties")))
+        if (!frame.loadFromFile(new File(getPropertiesFileName())))
             frame.centerToScreen(640, 480);
+        DEFAULT_FILE = new File(getDefaultBoardFileName());
+        boardFile = new File(frame.getStringProperty("boardFile", getDefaultBoardFileName()));
+        pickMode = PickMode.valueOf(frame.getStringProperty("pickMode", pickMode.name()));
     }
 
     float progress = 0;
 
     protected CustomBoard newBoard() {
         return new CustomBoard();
+    }
+
+    protected String getPropertiesFileName() {
+        return "bb.properties";
+    }
+
+    protected String getDefaultBoardFileName() {
+        return "bb.backup.board";
     }
 
     /**
@@ -112,8 +126,6 @@ public class BoardBuilder extends AWTComponent {
         String image = p.getProperty("image");
         if (image != null)
             background = g.loadImage(image);
-        progress = 0.5f;
-        boardFile = new File(p.getProperty("boardFile", "bb.backup.board"));
         progress = 0.75f;
         board.tryLoadFromFile(boardFile);
         progress = 1;
@@ -157,7 +169,18 @@ public class BoardBuilder extends AWTComponent {
         }
 
         g.setColor(GColor.RED);
-        g.drawJustifiedString(getWidth()-10, 10, Justify.RIGHT, Justify.TOP, pickMode.name());
+        List<String> lines = new ArrayList<>();
+        getDisplayData(lines);
+        int y = 10;
+        for (String line : lines) {
+            g.drawJustifiedString(getWidth() - 10, y, Justify.RIGHT, Justify.TOP, line);
+            y += g.getTextHeight();
+        }
+    }
+
+    protected void getDisplayData(List<String> lines) {
+        lines.add(boardFile.getName());
+        lines.add(pickMode.name());
     }
 
     protected void drawVertexMode(APGraphics g, int mouseX, int mouseY) {
@@ -176,6 +199,7 @@ public class BoardBuilder extends AWTComponent {
             g.vertex(v);
             g.drawPoints(8);
             // draw lines from vertex to its adjacent cells
+            g.begin();
             for (BCell c : board.getAdjacentCells(v)) {
                 g.vertex(v);
                 g.vertex(c);
@@ -232,14 +256,15 @@ public class BoardBuilder extends AWTComponent {
             g.drawLines();
         }
 
-        int highlighted = board.pickEdge(g, mouseX, mouseY);
-        if (highlighted >= 0) {
+        highlightedIndex = board.pickCell(g, mouseX, mouseY);
+        if (highlightedIndex >= 0) {
             g.setColor(GColor.MAGENTA);
             g.begin();
-            BEdge e = board.getEdge(highlighted);
-            board.renderEdge(e, g);
+            BCell cell = board.getCell(highlightedIndex);
             g.setLineWidth(2);
-            g.drawLines();
+            g.setColor(GColor.RED);
+            board.drawCellArrowed(cell, g);
+            g.drawCircle(cell.getX(), cell.getY(), cell.getRadius());
         }
 
         g.setColor(GColor.BLACK);
@@ -258,15 +283,14 @@ public class BoardBuilder extends AWTComponent {
             frame.setProperties(p);
         } else {
             boardFile = file;
-            Properties p = frame.getProperties();
-            p.setProperty("boardFile", boardFile.getAbsolutePath());
-            frame.setProperties(p);
+            frame.setProperty("boardFile", boardFile.getAbsolutePath());
         }
     }
 
     void onModeMenu(PickMode mode) {
         pickMode = mode;
         selectedIndex = -1;
+        frame.setProperty("pickMode", mode.name());
     }
 
     synchronized void onActionMenu(String item) {
@@ -292,7 +316,7 @@ public class BoardBuilder extends AWTComponent {
                 setBoardFile(null);
                 break;
             case "Load Board": {
-                File file = showFileOpenChooser(frame, "Load Board", "board");
+                File file = frame.showFileOpenChooser("Load Board", "board");
                 if (file != null) {
                     try {
                         CustomBoard b = new CustomBoard();
@@ -300,17 +324,17 @@ public class BoardBuilder extends AWTComponent {
                         board.copyFrom(b);
                         setBoardFile(file);
                     } catch (Exception e) {
-                        showMessageDialog(frame, "Error", "Failed to load file\n" + file.getAbsolutePath() + "\n\n" + e.getClass().getSimpleName() + ":" + e.getMessage());
+                        frame.showMessageDialog("Error", "Failed to load file\n" + file.getAbsolutePath() + "\n\n" + e.getClass().getSimpleName() + ":" + e.getMessage());
                     }
                 }
                 break;
             }
             case "Load Image": {
-                File file = showFileOpenChooser(frame, "Load Image", null);
+                File file = frame.showFileOpenChooser("Load Image", null);
                 if (file != null) {
                     background = getAPGraphics().loadImage(file.getAbsolutePath());
                     if (background < 0) {
-                        showMessageDialog(frame, "Error", "Failed to load image\n" + file.getAbsolutePath());
+                        frame.showMessageDialog("Error", "Failed to load image\n" + file.getAbsolutePath());
                     } else {
                         Properties p = frame.getProperties();
                         p.setProperty("image", file.getAbsolutePath());
@@ -320,13 +344,13 @@ public class BoardBuilder extends AWTComponent {
                 break;
             }
             case "Save As...": {
-                File file = showFileSaveChooser(frame, "Save Board", "board", null);
+                File file = frame.showFileSaveChooser("Save Board", "board", null);
                 if (file != null) {
                     try {
                         board.saveToFile(file);
                         setBoardFile(file);
                     } catch (Exception e) {
-                        showMessageDialog(frame, "Error", "Failed to Save file\n" + file.getAbsolutePath() + "\n\n" + e.getClass().getSimpleName() + ":" + e.getMessage());
+                        frame.showMessageDialog("Error", "Failed to Save file\n" + file.getAbsolutePath() + "\n\n" + e.getClass().getSimpleName() + ":" + e.getMessage());
                     }
                 }
                 break;
@@ -336,7 +360,7 @@ public class BoardBuilder extends AWTComponent {
                     try {
                         board.saveToFile(boardFile);
                     } catch (Exception e) {
-                        showMessageDialog(frame, "Error", "Failed to Save file\n" + boardFile.getAbsolutePath() + "\n\n" + e.getClass().getSimpleName() + ":" + e.getMessage());
+                        frame.showMessageDialog("Error", "Failed to Save file\n" + boardFile.getAbsolutePath() + "\n\n" + e.getClass().getSimpleName() + ":" + e.getMessage());
                     }
                 }
                 break;
@@ -474,6 +498,49 @@ public class BoardBuilder extends AWTComponent {
             case VK_TAB:
                 pickMode = Utils.incrementEnum(pickMode, PickMode.values());
                 selectedIndex = -1;
+                break;
+
+            default:
+                super.onKeyTyped(key);
+        }
+        frame.setProperty("pickMode", pickMode.name());
+        repaint();
+    }
+
+    @Override
+    protected void onKeyPressed(VKKey key) {
+        switch (key) {
+            case VK_UP:
+                if (pickMode == PickMode.VERTEX && selectedIndex >= 0) {
+                    BVertex bv = board.getVertex(selectedIndex);
+                    MutableVector2D v = new MutableVector2D(bv);
+                    v.setY(v.getY() - 1);
+                    bv.set(v);
+                }
+                break;
+            case VK_DOWN:
+                if (pickMode == PickMode.VERTEX && selectedIndex >= 0) {
+                    BVertex bv = board.getVertex(selectedIndex);
+                    MutableVector2D v = new MutableVector2D(bv);
+                    v.setY(v.getY() + 1);
+                    bv.set(v);
+                }
+                break;
+            case VK_RIGHT:
+                if (pickMode == PickMode.VERTEX && selectedIndex >= 0) {
+                    BVertex bv = board.getVertex(selectedIndex);
+                    MutableVector2D v = new MutableVector2D(bv);
+                    v.setX(v.getX() + 1);
+                    bv.set(v);
+                }
+                break;
+            case VK_LEFT:
+                if (pickMode == PickMode.VERTEX && selectedIndex >= 0) {
+                    BVertex bv = board.getVertex(selectedIndex);
+                    MutableVector2D v = new MutableVector2D(bv);
+                    v.setX(v.getX() - 1);
+                    bv.set(v);
+                }
                 break;
 
             default:

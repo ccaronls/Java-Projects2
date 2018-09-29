@@ -1,5 +1,7 @@
 package cc.lib.swing;
 
+import java.util.List;
+
 import cc.lib.board.CustomBoard;
 import cc.lib.dungeondice.CellType;
 import cc.lib.dungeondice.DBoard;
@@ -49,5 +51,16 @@ public class DDungeonBuilder extends BoardBuilder {
             DCell cell = board.getCell(getSelectedIndex());
             cell.setType(cellType);
         }
+    }
+
+    @Override
+    protected String getDefaultBoardFileName() {
+        return "ddungeon.backup.board";
+    }
+
+    @Override
+    protected void getDisplayData(List<String> lines) {
+        super.getDisplayData(lines);
+        lines.add(cellType.name());
     }
 }

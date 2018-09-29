@@ -4,7 +4,8 @@ import cc.lib.game.GColor;
 
 public enum CellType {
 
-    EMPTY(GColor.WHITE),
+    EMPTY(GColor.TRANSPARENT),
+    WHITE(GColor.WHITE),
     START(GColor.DARK_GRAY),
     RED(GColor.RED),
     GREEN(GColor.GREEN),

@@ -55,11 +55,14 @@ public class DBoard extends CustomBoard {
         return new DCell(pts, CellType.EMPTY);
     }
 
-    public void draw(AGraphics g) {
+    @Override
+    public void drawCells(AGraphics g, float scale) {
         for (int i=0; i<getNumCells(); i++) {
             DCell cell = getCell(i);
             g.setColor(cell.getCellType().color);
             renderCell(cell, g, 0.95f);
+            g.drawTriangleFan();
+            g.begin();
             if (cell.getCellType() == CellType.LOCKED_ROOM) {
                 // draw black keyhole over cell
                 GRectangle rect = getCellBoundingRect(i);

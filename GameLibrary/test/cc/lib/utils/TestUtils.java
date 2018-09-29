@@ -2,7 +2,9 @@ package cc.lib.utils;
 
 import junit.framework.TestCase;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Stack;
 
 import cc.lib.game.Utils;
@@ -17,7 +19,7 @@ public class TestUtils extends TestCase {
 
         assertEquals("hello", Utils.truncate("hello", 64, 1));
         assertEquals("hello", Utils.truncate("hello\ngoodbye", 64, 1));
-        assertEquals("hello...", Utils.truncate("hello this is you rmother speaking", 5, 1));
+        assertEquals("hello...", Utils.truncate("hello this is you rmother speaking", 5, 1, Utils.EllipsisStyle.END));
         assertEquals("hello\ngoodbye", Utils.truncate("hello\ngoodbye\nsolong\nfarewell", 64, 2));
     }
 
@@ -121,6 +123,18 @@ public class TestUtils extends TestCase {
         System.out.println(c.getName());
         System.out.println(c.getSimpleName());
         System.out.println(c.getTypeName());
+    }
+
+    public void testUnique() {
+        Integer [] nums = {
+                0,1,1,2,2,2,3,3,3,3,3,3,4,4,4,4,5,6,7,8,9
+        };
+        List elems = new ArrayList(Arrays.asList(nums));
+
+        Utils.unique(elems);
+
+        assertEquals(10, elems.size());
+        System.out.println("Elems: " + elems);
     }
 
 }

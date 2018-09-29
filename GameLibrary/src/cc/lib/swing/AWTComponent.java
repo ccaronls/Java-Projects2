@@ -8,7 +8,6 @@ import java.util.Map;
 import java.util.Properties;
 
 import javax.swing.*;
-import javax.swing.filechooser.*;
 
 import cc.lib.game.*;
 
@@ -417,21 +416,26 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
 
     @Override
     public final synchronized void keyTyped(KeyEvent evt) {
-        onKeyTyped(VKKey.lookup(evt.getKeyChar()));
+        onKeyTyped(VKKey.lookup(evt.getKeyCode()));
     }
 
     @Override
     public final synchronized void keyPressed(KeyEvent evt) {
-        int c = evt.getKeyChar();
+        onKeyPressed(VKKey.lookup(evt.getKeyCode()));
     }
 
     @Override
     public final synchronized void keyReleased(KeyEvent evt) {
+        onKeyReleased(VKKey.lookup(evt.getKeyCode()));
     }
 
     protected void onKeyTyped(VKKey key) {
-        System.out.println("Key '" + key + "'");
+        System.out.println("Key Typed'" + key + "'");
     }
+
+    protected void onKeyPressed(VKKey key) { System.out.println("Key Pressed'" + key + "'"); }
+
+    protected void onKeyReleased(VKKey key) { System.out.println("Key Released'" + key + "'"); }
 
     public int getMouseX() {
         return mouseX;
@@ -499,86 +503,6 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
 
     public final void setBackground(GColor color) {
         super.setBackground(AWTUtils.toColor(color));
-    }
-
-    static FileFilter getExtensionFilter(final String ext, final boolean acceptDirectories) {
-
-        return new FileFilter() {
-
-            public boolean accept(File file) {
-                if (file.isDirectory() && acceptDirectories)
-                    return true;
-                return file.getName().endsWith(ext);
-            }
-
-            public String getDescription() {
-                return "SOC Board Files";
-            }
-
-        };
-    }
-
-    public File getWorkingDir(EZFrame frame) {
-        Properties p = frame.getProperties();
-        String dir = p.getProperty("workingDir");
-        if (dir != null)
-            return new File(dir);
-        return new File(".");
-    }
-
-    public void setWorkingDir(EZFrame frame, File dir) {
-        Properties p = frame.getProperties();
-        p.setProperty("workingDir", dir.getAbsolutePath());
-        frame.setProperties(p);
-    }
-
-    public File showFileOpenChooser(EZFrame frame, String title, String extension) {
-        JFileChooser chooser = new JFileChooser();
-        chooser.setCurrentDirectory(getWorkingDir(frame));
-        chooser.setDialogTitle(title);
-        chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-        if (extension != null) {
-            if (!extension.startsWith("."))
-                extension = "." + extension;
-            chooser.setFileFilter(getExtensionFilter(extension, true));
-        }
-        int result = chooser.showOpenDialog(frame);
-        if (result == JFileChooser.APPROVE_OPTION) {
-            File file = chooser.getSelectedFile();
-            setWorkingDir(frame, file.getParentFile());
-            String fileName = file.getAbsolutePath();
-            if (extension != null && !fileName.endsWith(extension))
-                fileName += extension;
-            return new File(fileName);
-        }
-        return null;
-    }
-
-    public File showFileSaveChooser(EZFrame frame, String title, String extension, File selectedFile) {
-        final JFileChooser chooser = new JFileChooser();
-        chooser.setSelectedFile(selectedFile);
-        chooser.setCurrentDirectory(getWorkingDir(frame));
-        chooser.setDialogTitle(title);
-        chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-        if (extension != null) {
-            if (!extension.startsWith("."))
-                extension = "." + extension;
-            chooser.setFileFilter(getExtensionFilter(extension, true));
-        }
-        int result = chooser.showSaveDialog(frame);
-        if (result == JFileChooser.APPROVE_OPTION) {
-            File file = chooser.getSelectedFile();
-            setWorkingDir(frame, file.getParentFile());
-            String fileName = file.getName();
-            if (extension != null && !fileName.endsWith(extension))
-                fileName += extension;
-            return new File(file.getParent(), fileName);
-        }
-        return null;
-    }
-
-    public void showMessageDialog(EZFrame frame, String title, String message) {
-        JOptionPane.showMessageDialog(frame, message, title, JOptionPane.PLAIN_MESSAGE);
     }
 
     /**

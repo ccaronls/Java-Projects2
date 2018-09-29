@@ -692,7 +692,7 @@ GRectangle r = drawJustifiedStringR(x, y, hJust, vJust, text);
      * 
      * @param a
      */
-    public final void vertexArray(IVector2D [] a) {
+    public final void vertexArray(IVector2D ... a) {
         for (IVector2D t : a)
             vertex(t);
     }

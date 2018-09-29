@@ -29,16 +29,16 @@ public class BVertex extends Reflector<BVertex> implements IVector2D {
     }
 
     @Override
-    public float getX() {
+    public final float getX() {
         return x;
     }
 
     @Override
-    public float getY() {
+    public final float getY() {
         return y;
     }
 
-    public void set(IVector2D v) {
+    public final void set(IVector2D v) {
         x = v.getX();
         y = v.getY();
     }
@@ -49,7 +49,7 @@ public class BVertex extends Reflector<BVertex> implements IVector2D {
 
     void addAdjacentCell(int c) { adjacentCells[numAdjCells++] = c; }
 
-    public List<Integer> getAdjVerts() {
+    public final List<Integer> getAdjVerts() {
         List<Integer> adj = new ArrayList<>();
         for (int i=0; i<numAdjVerts; i++) {
             adj.add(adjacentVerts[i]);
@@ -57,7 +57,7 @@ public class BVertex extends Reflector<BVertex> implements IVector2D {
         return adj;
     }
 
-    public List<Integer> getAdjCells() {
+    public final List<Integer> getAdjCells() {
         List<Integer> adj = new ArrayList<>();
         for (int i=0; i<numAdjCells; i++) {
             adj.add(adjacentCells[i]);
@@ -65,12 +65,12 @@ public class BVertex extends Reflector<BVertex> implements IVector2D {
         return adj;
     }
 
-    void reset() {
+    final void reset() {
         numAdjVerts=numAdjCells=0;
     }
 
     @Override
-    public boolean equals(Object o) {
+    public final boolean equals(Object o) {
         if (o == this)
             return true;
         if (o != null && o instanceof BVertex) {
