@@ -33,6 +33,12 @@ public final class GRectangle extends Reflector<GRectangle> {
 
     public float x, y, w, h;
 
+    /**
+     * Create a rect that bounds 2 vectors
+     *
+     * @param v0
+     * @param v1
+     */
     public void set(IVector2D v0, IVector2D v1) {
         x = Math.min(v0.getX(), v1.getX());
         y = Math.min(v0.getY(), v1.getY());
@@ -40,22 +46,48 @@ public final class GRectangle extends Reflector<GRectangle> {
         h = Math.abs(v0.getY()-v1.getY());
     }
 
+    /**
+     *
+     * @return
+     */
     public final Vector2D getCenter() {
         return new Vector2D(x+w/2, y+h/2);
     }
 
+    /**
+     *
+     * @param other
+     * @return
+     */
     public final boolean isIntersectingWidth(GRectangle other) {
         return Utils.isBoxesOverlapping(x, y, w, h, other.x, other.y, other.w, other.h);
     }
 
+    /**
+     *
+     * @param px
+     * @param py
+     * @return
+     */
     public final boolean contains(float px, float py) {
         return Utils.isPointInsideRect(px, py, x, y, w, h);
     }
 
+    /**
+     *
+     * @param v
+     * @return
+     */
     public final boolean contains(IVector2D v) {
         return contains(v.getX(), v.getY());
     }
 
+    /**
+     *
+     * @param r
+     * @param position
+     * @return
+     */
     public final GRectangle getInterpolationTo(GRectangle r, float position) {
         if (position < 0.01f)
             return this;
@@ -70,6 +102,10 @@ public final class GRectangle extends Reflector<GRectangle> {
         return new GRectangle(v0, v1);
     }
 
+    /**
+     *
+     * @param pixels
+     */
     public void grow(float pixels) {
         x-=pixels;
         y-=pixels;
@@ -77,11 +113,36 @@ public final class GRectangle extends Reflector<GRectangle> {
         h+=pixels*2;
     }
 
+    /**
+     *
+     * @param g
+     */
     public void drawFilled(AGraphics g) {
         g.drawFilledRect(x, y, w, h);
     }
 
+    /**
+     *
+     * @param g
+     * @param thickness
+     */
     public void drawOutlined(AGraphics g, int thickness) {
         g.drawRect(x, y, w, h, thickness);
+    }
+
+    /**
+     * Scale the dimension of this rect by some amout. s < 1 reduces size. s > 1 increases size.
+     * @param sx
+     * @param sy
+     */
+    public void scale(float sx, float sy) {
+        float nw = w * sx;
+        float nh = h * sy;
+        float dw = nw-w;
+        float dh = nh-h;
+        x -= dw/2;
+        y -= dh/2;
+        w = nw;
+        h = nh;
     }
 }

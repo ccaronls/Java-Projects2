@@ -1,4 +1,4 @@
-cells=java.util.Vector {
+xcells=java.util.Vector {
    cc.lib.board.BCell {
       adjCells=java.util.ArrayList {
          java.lang.Integer {

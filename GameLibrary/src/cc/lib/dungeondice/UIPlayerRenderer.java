@@ -31,7 +31,7 @@ public class UIPlayerRenderer extends UIRenderer {
         txt.append("\n").append(String.format("%-5s %d", "STR", player.str));
         txt.append("\n").append(String.format("%-5s %d", "DEX", player.dex));
         txt.append("\n").append(String.format("%-5s %d", "ATT", player.attack));
-        txt.append("\n").append(String.format("%-5s %d", "DEF", player.def));
+        txt.append("\n").append(String.format("%-5s %d", "DEF", player.defense));
 
         g.setColor(GColor.BLACK);
         g.drawString(txt.toString(), 10, 10);

@@ -19,10 +19,19 @@ public class DDungeonBuilder extends BoardBuilder {
         return new DBoard();
     }
 
+
+    CellType cellType = CellType.EMPTY;
+
     @Override
     protected void initFrame(EZFrame frame) {
         super.initFrame(frame);
         frame.addMenuBarMenu("CELL", Utils.toStringArray(CellType.values()));
+    }
+
+    @Override
+    protected void init(AWTGraphics g) {
+        super.init(g);
+        cellType = CellType.valueOf(frame.getStringProperty("cellType", cellType.name()));
     }
 
     @Override
@@ -37,10 +46,9 @@ public class DDungeonBuilder extends BoardBuilder {
         }
     }
 
-    CellType cellType = CellType.EMPTY;
-
     void onCellMenu(String item) {
         cellType = CellType.valueOf(item);
+        frame.setProperty("cellType", cellType.name());
         repaint();
     }
 
@@ -54,6 +62,11 @@ public class DDungeonBuilder extends BoardBuilder {
     }
 
     @Override
+    protected String getPropertiesFileName() {
+        return "ddbuilder.properties";
+    }
+
+    @Override
     protected String getDefaultBoardFileName() {
         return "ddungeon.backup.board";
     }
@@ -62,5 +75,11 @@ public class DDungeonBuilder extends BoardBuilder {
     protected void getDisplayData(List<String> lines) {
         super.getDisplayData(lines);
         lines.add(cellType.name());
+        if (highlightedIndex >= 0) {
+            switch (pickMode) {
+                case CELL:
+                    lines.add(((DCell)board.getCell(highlightedIndex)).getCellType().name());
+            }
+        }
     }
 }

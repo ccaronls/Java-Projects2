@@ -1,24 +1,19 @@
 package cc.lib.dungeondice;
 
+import cc.lib.game.GColor;
 import cc.lib.game.Utils;
-import cc.lib.utils.Reflector;
 
-public class DPlayer extends Reflector<DPlayer> {
+public class DPlayer extends DEntity {
 
     int playerNum;
-    int hp, dex, str, spd, def, attack; // stats
 
     public boolean hasKey() {
         return false;
     }
 
-    enum Pet {
-
-    };
-
-    Pet pet;
     int cellIndex; // position on borad
     int backCellIndex; // index of cell we came from to prevent going backward
+    GColor color;
 
     protected DMove chooseMove(DMove ... moves) {
         return moves[Utils.randRange(0, moves.length-1)];
@@ -26,7 +21,6 @@ public class DPlayer extends Reflector<DPlayer> {
 
     public void init() {
         hp = Utils.max(
-                Utils.randRange(2, 12),
                 Utils.randRange(2, 12),
                 Utils.randRange(2, 12),
                 Utils.randRange(2, 12)
@@ -44,5 +38,13 @@ public class DPlayer extends Reflector<DPlayer> {
 
     public String getName() {
         return "Player " + (playerNum+1);
+    }
+
+    public GColor getColor() {
+        return color;
+    }
+
+    public boolean rollDice() {
+        return true;
     }
 }

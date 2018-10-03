@@ -140,7 +140,7 @@ public class EZFrame extends JFrame implements WindowListener, ComponentListener
         }
     }
 
-    public void setProperties(Properties props) {
+    public synchronized void setProperties(Properties props) {
         try {
             OutputStream out = new FileOutputStream(propertiesFile);
             try {
@@ -153,7 +153,7 @@ public class EZFrame extends JFrame implements WindowListener, ComponentListener
         }
     }
 
-    public void setProperty(String name, String value) {
+    public synchronized void setProperty(String name, String value) {
 	    Properties p = getProperties();
 	    p.setProperty(name, value);
 	    setProperties(p);
@@ -430,7 +430,6 @@ public class EZFrame extends JFrame implements WindowListener, ComponentListener
         try {
             return Integer.parseInt(getProperties().getProperty(name));
         } catch (Exception e) {}
-        setProperty(name, String.valueOf(defaultValue));
         return defaultValue;
     }
 
@@ -444,7 +443,6 @@ public class EZFrame extends JFrame implements WindowListener, ComponentListener
         try {
             return Double.parseDouble(getProperties().getProperty(name));
         } catch (Exception e) {}
-        setProperty(name, String.valueOf(defaultValue));
         return defaultValue;
     }
 
@@ -458,8 +456,6 @@ public class EZFrame extends JFrame implements WindowListener, ComponentListener
         String value = getProperties().getProperty(name);
         if (value != null)
             return value;
-        if (defaultValue != null)
-            setProperty(name, defaultValue);
         return defaultValue;
     }
 

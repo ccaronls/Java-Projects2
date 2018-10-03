@@ -426,6 +426,10 @@ public class Vector2D extends Reflector<Vector2D> implements IVector2D, Serializ
     	return Float.isNaN(x) || Float.isNaN(y);
     }
 
+    public boolean isInfinite() {
+        return Float.isInfinite(x) || Float.isInfinite(y);
+    }
+
     protected void writeObject(ObjectOutputStream out) throws IOException {
         out.writeFloat(x);
         out.writeFloat(y);;

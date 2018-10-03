@@ -711,4 +711,75 @@ public class CustomBoard extends Reflector<CustomBoard> {
         }
         return true;
     }
+
+    public final GRectangle getBounds() {
+        MutableVector2D min = new MutableVector2D(Vector2D.MAX);
+        MutableVector2D max = new MutableVector2D(Vector2D.MIN);
+
+        for (BVertex v : verts) {
+            if (v != null) {
+                min.minEq(v);
+                max.maxEq(max);
+            }
+        }
+
+        return new GRectangle(min, max);
+    }
+
+    /**
+     * Normailze the vertices so that board fits in rect (0,0)-(1,1) while keeping aspect ratio
+     */
+    public void normalize() {
+        MutableVector2D min = new MutableVector2D(Vector2D.MAX);
+        MutableVector2D max = new MutableVector2D(Vector2D.MIN);
+
+        for (BVertex v : verts) {
+            if (v == null)
+                continue;
+            min.minEq(v);
+            max.maxEq(v);
+        }
+
+        MutableVector2D dim = max.sub(min);
+        if (dim.isNaN() || dim.getX() == 0 || dim.getY() == 0 || dim.isInfinite())
+            return;
+
+        float scale = 1.0f / Math.max(dim.getX(), dim.getY());
+        for (BVertex v : verts) {
+            if (v == null)
+                continue;
+
+            MutableVector2D mv = new MutableVector2D(v);
+            mv.subEq(min);
+            mv.scaleEq(scale);
+
+            v.set(mv);
+        }
+
+        // now recompuet all the cell centers
+        MutableVector2D mv = new MutableVector2D();
+        for (int cIndex=0; cIndex<cells.size(); cIndex++) {
+            BCell c = cells.get(cIndex);
+            mv.zero();
+            if (c.adjVerts.size()<3)
+                throw new AssertionError("Invalid cell: " + c.adjVerts);
+            int p = c.adjVerts.get(c.adjVerts.size()-1);
+            for (int vIndex : c.adjVerts) {
+                mv.addEq(verts.get(vIndex));
+            }
+            mv.scaleEq(1.0f / c.adjVerts.size());
+            c.cx = mv.getX();
+            c.cy = mv.getY();
+            // now compute the radius
+            float magSquared = 0;
+            for (int vIndex : c.adjVerts) {
+                Vector2D dv = Vector2D.sub(verts.get(vIndex), c);
+                float m = dv.magSquared();
+                if (m > magSquared)
+                    magSquared = m;
+            }
+            c.radius = (float)Math.sqrt(magSquared);
+        }
+
+    }
 }

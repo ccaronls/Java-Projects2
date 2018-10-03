@@ -66,8 +66,6 @@ public class BoardBuilder extends AWTComponent {
         if (!frame.loadFromFile(new File(getPropertiesFileName())))
             frame.centerToScreen(640, 480);
         DEFAULT_FILE = new File(getDefaultBoardFileName());
-        boardFile = new File(frame.getStringProperty("boardFile", getDefaultBoardFileName()));
-        pickMode = PickMode.valueOf(frame.getStringProperty("pickMode", pickMode.name()));
     }
 
     float progress = 0;
@@ -122,6 +120,8 @@ public class BoardBuilder extends AWTComponent {
     @Override
     protected void init(AWTGraphics g) {
         Properties p = frame.getProperties();
+        boardFile = new File(p.getProperty("boardFile", getDefaultBoardFileName()));
+        pickMode = PickMode.valueOf(p.getProperty("pickMode", pickMode.name()));
         progress += 0.1f;
         String image = p.getProperty("image");
         if (image != null)
@@ -265,6 +265,11 @@ public class BoardBuilder extends AWTComponent {
             g.setColor(GColor.RED);
             board.drawCellArrowed(cell, g);
             g.drawCircle(cell.getX(), cell.getY(), cell.getRadius());
+            g.begin();
+            g.vertex(cell);
+            g.drawPoints(3);
+            g.begin();
+            g.drawRect(board.getCellBoundingRect(highlightedIndex));
         }
 
         g.setColor(GColor.BLACK);

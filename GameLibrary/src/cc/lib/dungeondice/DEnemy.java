@@ -1,9 +1,8 @@
 package cc.lib.dungeondice;
 
 import cc.lib.game.Utils;
-import cc.lib.utils.Reflector;
 
-public class DEnemy extends Reflector<DEnemy> {
+public class DEnemy extends DEntity {
 
     public enum EnemyType {
         RAT(5),
@@ -36,17 +35,11 @@ public class DEnemy extends Reflector<DEnemy> {
     }
 
     EnemyType type;
-    int hp;
-    int str, dex, attack, defense;
 
     public DEnemy() {}
 
     DEnemy(EnemyType type, int hp, int str, int dex, int attack, int defense) {
+        super(hp, str, dex, attack, defense);
         this.type = type;
-        this.hp = hp;
-        this.str = str;
-        this.dex = dex;
-        this.attack = attack;
-        this.defense = defense;
     }
 }

@@ -68,8 +68,7 @@ public class DBoard extends CustomBoard {
                 GRectangle rect = getCellBoundingRect(i);
                 g.pushMatrix();
                 g.translate(rect.getCenter());
-                g.scale(1.0f / Math.max(rect.w, rect.h));
-                g.scale(5);
+                g.scale(Math.min(rect.w, rect.h)/10);
                 g.setColor(GColor.BLACK);
                 g.drawFilledCircle(0, -0.5f, 1);
                 g.begin();
