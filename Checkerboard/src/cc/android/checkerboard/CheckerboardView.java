@@ -429,7 +429,7 @@ public class CheckerboardView extends View {
         hidden.add(game.getPiece(pos[0], pos[1]));
         final int drawable = game.getPlayerColor(game.getTurn()) == ACheckboardGame.Color.BLACK ? R.drawable.bk_king : R.drawable.wt_king;
 
-        animations.add(new CheckmateAnim(pos, drawable, true).start());
+        animations.add(new CheckmateAnim(pos, drawable, false).start());
 
         //animations.add(new GlowAnim(glowRed, Color.RED, Color.argb(0, 0xff, 0, 0)).start());
     }
@@ -918,13 +918,14 @@ public class CheckerboardView extends View {
                 else
                     d = getResources().getDrawable(R.drawable.wt_king);
                 break;
+            case DAMA_KING:
             case FLYING_KING:
             case KING:
                 drawChecker(g, cx, cy, pcRad, pc.playerNum, 0);
                 cy -= pcRad/4;
                 // fall through
+            case DAMA_MAN:
             case CHECKER:
-            case CAPTURED_CHECKER:
                 drawChecker(g, cx, cy, pcRad, pc.playerNum, outline);
                 break;
         }

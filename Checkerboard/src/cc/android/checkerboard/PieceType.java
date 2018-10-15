@@ -19,13 +19,12 @@ public enum PieceType {
     CHECKED_KING_IDLE("K"), // a king that has not moved and so is
     UNCHECKED_KING("K"), // chess only
     UNCHECKED_KING_IDLE("K"), // only an unchecked idle king can castle
+
     KING("K"), // checkers king, not chess
     FLYING_KING("K"),
     CHECKER("Ch"),
-    CAPTURED_CHECKER("CCh"), // a piece jumped by a flying king
     DAMA_MAN("Da"), // dama pieces move horz and vertically
     DAMA_KING("KDa"),
-    CAPTURED_DAMA("CDa"),
     UNAVAILABLE("x"), // this means off board
     ;
 
@@ -43,4 +42,5 @@ public enum PieceType {
     PieceType(String abbrev) {
         this.abbrev = abbrev;
     }
+
 };

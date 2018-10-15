@@ -1,7 +1,6 @@
 package cc.android.checkerboard;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import cc.lib.utils.Reflector;
@@ -19,6 +18,8 @@ public class Piece extends Reflector<Piece> {
     public int playerNum;
     public PieceType type;
     public final List<Move> moves = new ArrayList<>();
+
+    boolean captured = false;
 
     public Piece() {
         playerNum = -1;

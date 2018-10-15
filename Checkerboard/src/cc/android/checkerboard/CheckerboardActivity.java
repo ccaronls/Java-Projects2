@@ -468,6 +468,7 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
                         break;
                     case 3:
                         showChoosePlayersDialog(new MyDama());
+                        break;
                 }
             }
         }).show();

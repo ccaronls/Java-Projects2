@@ -6,7 +6,6 @@ import java.util.List;
 import cc.lib.game.Utils;
 import cc.lib.math.CMath;
 
-import static cc.android.checkerboard.PieceType.CAPTURED_CHECKER;
 import static cc.android.checkerboard.PieceType.CHECKER;
 import static cc.android.checkerboard.PieceType.DAMA_KING;
 import static cc.android.checkerboard.PieceType.EMPTY;
@@ -59,7 +58,7 @@ public class Checkers extends ACheckboardGame  {
 
     protected void computeMenKingMoves(Piece p, int rank, int col, Move parent) {
 
-        int [] jdr, jdc, dr, dc;
+        int [] jdr=null, jdc=null, dr=null, dc=null;
         switch (p.type) {
             case KING:
                 jdr = dr = new int[] { 1, 1, -1, -1 };
@@ -106,15 +105,15 @@ public class Checkers extends ACheckboardGame  {
                 jdc = dc = new int[] { 0,  0, -1, 1};
                 break;
             default:
-                throw new AssertionError("Unhandled case");
+                Utils.unhandledCase(p.type);
         }
 
         // check for jumps
         for (int i=0; i<jdr.length; i++) {
-            final int rdr = rank+jdr[i];
-            final int cdc = col+jdc[i];
-            final int rdr2 = rank+dr[i]*2;
-            final int cdc2 = col+dc[i]*2;
+            final int rdr  = rank+jdr[i];
+            final int cdc  = col +jdc[i];
+            final int rdr2 = rank+jdr[i]*2;
+            final int cdc2 = col +jdc[i]*2;
 
             if (!isOnBoard(rdr, cdc))
                 continue;
@@ -123,22 +122,35 @@ public class Checkers extends ACheckboardGame  {
                 continue;
 
             Piece cap = getPiece(rdr, cdc);
-            if (cap.type != CHECKER)
-                continue;
-
-            if (canJumpSelf()) {
-                if (cap.playerNum == getTurn())
-                    cap = null;
-            } else {
-                if (cap.playerNum != getOpponent())
-                    continue;
-            }
-
             Piece t = getPiece(rdr2, cdc2);
             if (t.type != EMPTY)
                 continue;
+            PieceType nextType = null;
+            if (rdr2==getStartRank(getOpponent())) {
+                switch (p.type) {
+                    case CHECKER:
+                        if (isFlyingKings())
+                            nextType = FLYING_KING;
+                        else
+                            nextType = KING;
+                        break;
 
-            p.moves.add(new Move(MoveType.JUMP, getTurn(), cap, null, rank, col, rdr2, cdc2));
+                    case DAMA_MAN:
+                        nextType = DAMA_KING;
+                        break;
+
+                    default:
+                        Utils.unhandledCase(p.type);
+
+                }
+            }
+
+            if (canJumpSelf() && cap.playerNum == getTurn()) {
+                p.moves.add(new Move(MoveType.JUMP, getTurn(), null, nextType, rank, col, rdr2, cdc2));
+            } else if (cap.playerNum == getOpponent()) {
+                p.moves.add(new Move(MoveType.JUMP, getTurn(), cap, nextType, rank, col, rdr2, cdc2, rdr, cdc));
+            }
+
         }
 
         // check for slides
@@ -210,7 +222,7 @@ public class Checkers extends ACheckboardGame  {
                     if (t.type == EMPTY)
                         continue;
 
-                    if (t.type == CAPTURED_CHECKER)
+                    if (t.captured)
                         break; // cannot jump a piece we already did
 
                     if (t.playerNum == getOpponent()) {
@@ -293,7 +305,7 @@ public class Checkers extends ACheckboardGame  {
         for (int i=0; i<RANKS; i++) {
             for (int ii=0; ii<COLUMNS; ii++) {
                 Piece p = getPiece(i, ii);
-                if (p.type == CAPTURED_CHECKER) {
+                if (p.captured) {
                     captured.add(new int[] { i, ii });
                 }
             }
@@ -343,7 +355,7 @@ public class Checkers extends ACheckboardGame  {
                 }
                 break;
             case FLYING_JUMP:
-                setPieceType(move.getCaptured(), CAPTURED_CHECKER);
+                getPiece(move.getCaptured()).captured = true;
                 break;
             case STACK:
                 move.nextType = p.type;
