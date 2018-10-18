@@ -483,4 +483,9 @@ public class Chess extends ACheckboardGame {
             return Color.WHITE;
         return Color.BLACK;
     }
+
+    @Override
+    public String getName() {
+        return "chess";
+    }
 }

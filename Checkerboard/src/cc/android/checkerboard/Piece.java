@@ -18,7 +18,6 @@ public class Piece extends Reflector<Piece> {
     public int playerNum;
     public PieceType type;
     public final List<Move> moves = new ArrayList<>();
-
     boolean captured = false;
 
     public Piece() {
@@ -29,5 +28,21 @@ public class Piece extends Reflector<Piece> {
     Piece(int playerNum, PieceType type) {
         this.playerNum = playerNum;
         this.type = type;
+    }
+
+    boolean hasJumpMove() {
+        for (Move m : moves) {
+            switch (m.getMoveType()) {
+                case JUMP:
+                case FLYING_JUMP:
+                    return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public String toString() {
+        return type.name() + " pNum=" + playerNum;
     }
 }

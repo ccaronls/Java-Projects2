@@ -122,6 +122,8 @@ public class Checkers extends ACheckboardGame  {
                 continue;
 
             Piece cap = getPiece(rdr, cdc);
+            if (cap.captured)
+                continue; // cannot re-capture
             Piece t = getPiece(rdr2, cdc2);
             if (t.type != EMPTY)
                 continue;
@@ -146,9 +148,9 @@ public class Checkers extends ACheckboardGame  {
             }
 
             if (canJumpSelf() && cap.playerNum == getTurn()) {
-                p.moves.add(new Move(MoveType.JUMP, getTurn(), null, nextType, rank, col, rdr2, cdc2));
+                p.moves.add(new Move(MoveType.JUMP, p.playerNum).setStart(rank, col, p.type, nextType).addPath(rdr2, cdc2));//, null, nextType, rank, col, rdr2, cdc2));
             } else if (cap.playerNum == getOpponent()) {
-                p.moves.add(new Move(MoveType.JUMP, getTurn(), cap, nextType, rank, col, rdr2, cdc2, rdr, cdc));
+                p.moves.add(new Move(MoveType.JUMP, p.playerNum).setStart(rank, col, p.type, nextType).addPath(rdr2, cdc2, rdr, cdc, cap));
             }
 
         }
@@ -164,7 +166,7 @@ public class Checkers extends ACheckboardGame  {
                 // t is piece one unit away in this direction
                 Piece t = getPiece(rdr, cdc);
                 if (t.type == EMPTY) {
-                    p.moves.add(new Move(MoveType.SLIDE, getTurn(), null, null, rank, col, rdr, cdc));
+                    p.moves.add(new Move(MoveType.SLIDE, p.playerNum).setStart(rank, col, p.type, null).addPath(rdr, cdc));
                     //new Move(MoveType.SLIDE, rank, col, rdr, cdc, getTurn()));
                 }
             }
@@ -254,9 +256,9 @@ public class Checkers extends ACheckboardGame  {
 
                 if (t.type == EMPTY) {
                     if (captured == null)
-                        p.moves.add(new Move(mt, getTurn(), null, null, rank, col, rdr, cdc));
+                        p.moves.add(new Move(mt, p.playerNum).setStart(rank, col, p.type, null).addPath(rdr, cdc));
                     else
-                        p.moves.add(new Move(mt, getTurn(), captured, null, rank, col, rdr, cdc, capturedRank, capturedCol));
+                        p.moves.add(new Move(mt, p.playerNum).setStart(rank, col, p.type, null).addPath(rdr, cdc, capturedRank, capturedCol, captured));
 
                     continue;
                 }
@@ -281,7 +283,7 @@ public class Checkers extends ACheckboardGame  {
     public void endTurn() {
         if (lock != null) {
             for (Move m : lock.moves) {
-                if (m.type == MoveType.END) {
+                if (m.getMoveType() == MoveType.END) {
                     undoStack.push(m);
                     break;
                 }
@@ -323,54 +325,67 @@ public class Checkers extends ACheckboardGame  {
     @Override
 	public void executeMove(Move move) {
         lock = null;
-		boolean isKinged = false;
+		PieceType kingType = null;
 		final Piece p = getPiece(move.getStart());
         // clear everyone all moves
         clearMoves();
 		if (move.hasEnd()) {
             int rank = move.getEnd()[0];
-            isKinged = (p.type == CHECKER && getStartRank(getOpponent()) == rank);
+            if (getStartRank(getOpponent()) == rank) {
+                switch (p.type) {
+                    case CHECKER:
+                        if (isFlyingKings())
+                            kingType = FLYING_KING;
+                        else
+                            kingType = KING;
+                        break;
+                    case DAMA_MAN:
+                        kingType = DAMA_KING;
+                        break;
+                }
+            }
             movePiece(move);
 		}
 
         undoStack.push(move);
 
-        switch (move.type) {
+        switch (move.getMoveType()) {
             case SLIDE:
-                if (isKinged) {
-                    p.moves.add(new Move(MoveType.STACK, move.playerNum, null, isFlyingKings() ? PieceType.FLYING_KING : PieceType.KING, move.getEnd()));
+                if (kingType != null) {
+                    p.moves.add(new Move(MoveType.STACK, move.getPlayerNum()).setStart(move.getEnd()[0], move.getEnd()[1], move.getStartType(), kingType));//new Piece(move.getPlayerNum(), move.getStartType()), null, kingType, move.getEnd()));
                     lock = p;
                     break;
                 }
             case END:
                 endTurnPrivate();
                 return;
+            case FLYING_JUMP:
             case JUMP:
-                if (move.captured != null) {
-                    clearPiece(move.getCaptured());
+                for (int[] pos : move.getCapturedPositions()) {
+                    if (isRemoveFromBoardOnMultiCapture()) {
+                        clearPiece(pos);
+                    } else {
+                        getPiece(pos).captured = true;
+                    }
                 }
-                if (isKinged) {
-                    p.moves.add(new Move(MoveType.STACK, move.playerNum, null, isFlyingKings() ? PieceType.FLYING_KING : PieceType.KING, move.getEnd()));
+                if (kingType != null) {
+                    p.moves.add(new Move(MoveType.STACK, move.getPlayerNum()).setStart(move.getEnd()[0], move.getEnd()[1], move.getStartType(), kingType));
                     lock = p;
                 }
                 break;
-            case FLYING_JUMP:
-                getPiece(move.getCaptured()).captured = true;
-                break;
             case STACK:
-                move.nextType = p.type;
                 setPieceType(move.getStart(), isFlyingKings() ? PieceType.FLYING_KING : KING);
                 break;
         }
 
-        if (!isKinged) {
+        if (kingType == null) {
             // recursive compute next move if possible after a jump
             if (move.hasEnd())
                 computeMovesForSquare(move.getEnd()[0], move.getEnd()[1], move);
             if (p.moves.size() == 0) {
                 endTurnPrivate();
             } else if (!isJumpsMandatory()) {
-                p.moves.add(new Move(MoveType.END, move.playerNum, null, null, move.getEnd()));
+                p.moves.add(new Move(MoveType.END,move.getPlayerNum()));//, move.getStartType()), null, null, move.getEnd()));
                 lock = p;
             }
         }
@@ -414,5 +429,18 @@ public class Checkers extends ACheckboardGame  {
      */
     protected boolean isMaxJumpsMandatory() {
         return false;
+    }
+
+    @Override
+    public String getName() {
+        return "checkers";
+    }
+
+    /**
+     * Should we remove pieces as they are captured? Or do we leave them on the board until the multi jump is complete?
+     * @return
+     */
+    public boolean isRemoveFromBoardOnMultiCapture() {
+        return true;
     }
 }

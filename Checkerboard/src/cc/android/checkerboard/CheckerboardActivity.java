@@ -145,6 +145,11 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
                 task = null;
             }
         }
+
+        @Override
+        public ACheckboardGame deepCopy() {
+            return new Chess().copyFrom(this);
+        }
     }
 
 
@@ -156,7 +161,6 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
         public void onCancel(DialogInterface dialog) {
             if (task != null) {
                 task.cancel(true);
-                //undo();
                 if (root != null && root.getFirst() != null) {
                     pbv.animateAndExecuteMove(root.getFirst().getMove());
                 }
@@ -203,11 +207,20 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
             super.endTurn();
             checkForRobotTurn();
         }
+
+        @Override
+        public ACheckboardGame deepCopy() {
+            return new Checkers().copyFrom(this);
+        }
     }
 
     public class MyDraughts extends Draughts implements Runnable, DialogInterface.OnCancelListener {
         private Dialog dialog = null;
         private AsyncTask task = null;
+
+        MyDraughts(int dim) {
+            super(dim);
+        }
 
         @Override
         public void onCancel(DialogInterface dialog) {
@@ -250,6 +263,11 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
         public void endTurn() {
             super.endTurn();
             checkForRobotTurn();
+        }
+
+        @Override
+        public ACheckboardGame deepCopy() {
+            return new Draughts().copyFrom(this);
         }
     }
 
@@ -297,6 +315,11 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
         public void endTurn() {
             super.endTurn();
             checkForRobotTurn();
+        }
+
+        @Override
+        public ACheckboardGame deepCopy() {
+            return new Dama().copyFrom(this);
         }
     }
 
@@ -452,7 +475,7 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
     }
 
     void showChooseGameDialog() {
-        String [] items = {"Checkers", "Chess", "Draughts", "Dama" };
+        String [] items = {"Checkers", "Chess", "10x10 Draughts", "12x12 Draughts", "Dama" };
         newDialogBuilder(false).setItems(items, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
@@ -464,9 +487,12 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
                         showChoosePlayersDialog(new MyChess());
                         break;
                     case 2:
-                        showChoosePlayersDialog(new MyDraughts());
+                        showChoosePlayersDialog(new MyDraughts(10));
                         break;
                     case 3:
+                        showChoosePlayersDialog(new MyDraughts(12));
+                        break;
+                    case 4:
                         showChoosePlayersDialog(new MyDama());
                         break;
                 }
@@ -526,7 +552,7 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
     }
 
 	public File getSaveFile(ACheckboardGame game) {
-        return new File(getFilesDir(), game.getClass().getSimpleName() + ".save");
+        return new File(getFilesDir(), game.getName() + ".save");
     }
 
 	@Override

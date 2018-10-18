@@ -209,7 +209,7 @@ public class CheckerboardView extends View {
         }
 
         MoveAnim(long duration, Move move, Runnable whenDone, Piece ... toHide) {
-            this(duration, move.getStart(), move.hasEnd() ? move.getEnd() : move.getStart(), move.playerNum, game.getPiece(move.getStart()).type, whenDone, toHide);
+            this(duration, move.getStart(), move.hasEnd() ? move.getEnd() : move.getStart(), move.getPlayerNum(), game.getPiece(move.getStart()).type, whenDone, toHide);
         }
 
         @Override
@@ -249,7 +249,7 @@ public class CheckerboardView extends View {
     class SlideAnim extends MoveAnim {
 
         public SlideAnim(Move move, Runnable whenDone) {
-            this(move.getStart(), move.getEnd(), move.playerNum, game.getPiece(move.getStart()).type, whenDone);
+            this(move.getStart(), move.getEnd(), move.getPlayerNum(), game.getPiece(move.getStart()).type, whenDone);
         }
 
         public SlideAnim(int[] start, int []end, int playerNum, PieceType pt, Runnable whenDone) {
@@ -318,7 +318,7 @@ public class CheckerboardView extends View {
         } else {
             Piece swappy = null;
             for (Move m : tapped.moves) {
-                switch (m.type) {
+                switch (m.getMoveType()) {
                     case END:
                         continue;
                     case CASTLE:
@@ -336,8 +336,8 @@ public class CheckerboardView extends View {
                             Piece p = game.getPiece(curRank, curCol);
                             swappy = p;
                             if (p.type == PieceType.PAWN_TOSWAP) {
-                                p.type = m.nextType;
-                            } else if (p.type == m.nextType) {
+                                p.type = m.getNextType();
+                            } else if (p.type == m.getNextType()) {
                                 p.type = PieceType.PAWN_TOSWAP; // this makes so next iteration will
                             }
                         }
@@ -354,7 +354,7 @@ public class CheckerboardView extends View {
             }
             if (swappy != null) {
                 if (swappy.type == PieceType.PAWN_TOSWAP) {
-                    swappy.type = swappy.moves.get(0).nextType;
+                    swappy.type = swappy.moves.get(0).getNextType();
                 }
             } else {
                 Piece p = game.getPiece(curRank, curCol);
@@ -486,19 +486,24 @@ public class CheckerboardView extends View {
 
     private void startCapturedAnimation(Move m, Runnable whenDone, boolean reverse) {
 
-        AAnimation<Canvas> a = new CaptureAnim(m.getCaptured()[1], m.getCaptured()[0], m.captured.playerNum, m.captured.type, whenDone);
-        animations.add(a);
-        if (reverse)
-            a.startReverse();
-        else
-            a.start();
-        this.hidden.add(m.captured);
+        int index = 0;
+        for (Piece captured : m.getCaptured()) {
+            int [] pos = m.getCapturedPosition(index++);
+            AAnimation<Canvas> a = new CaptureAnim(pos[1], pos[0], captured.playerNum, captured.type, whenDone);
+            whenDone = null;
+            animations.add(a);
+            if (reverse)
+                a.startReverse();
+            else
+                a.start();
+            this.hidden.add(captured);
+        }
     }
 
     public void animateMoveAndThen(Move m, Runnable onDone) {
-        switch (m.type) {
+        switch (m.getMoveType()) {
             case CASTLE:
-                animations.add(new JumpAnim(m.getCastleRookStart(), m.getCastleRookEnd(), m.playerNum, PieceType.ROOK, onDone).start());
+                animations.add(new JumpAnim(m.getCastleRookStart(), m.getCastleRookEnd(), m.getPlayerNum(), PieceType.ROOK, onDone).start());
                 animations.add(new SlideAnim(m, null).start());
                 break;
             case SLIDE:
@@ -516,7 +521,7 @@ public class CheckerboardView extends View {
                 animations.add(new JumpAnim(m, onDone).start());
                 break;
             case STACK:
-                animations.add(new StackAnim(m.getStart(), m.playerNum, PieceType.CHECKER, onDone).start());
+                animations.add(new StackAnim(m.getStart(), m.getPlayerNum(), PieceType.CHECKER, onDone).start());
                 break;
             case SWAP:
             default:
@@ -532,12 +537,12 @@ public class CheckerboardView extends View {
     private void onDragEnd(int curRank, int curCol) {
         for (final Move m : dragging.moves) {
             if (m.hasEnd() && m.getEnd()[0] == curRank && m.getEnd()[1] == curCol) {
-                switch (m.type) {
+                switch (m.getMoveType()) {
                     case SLIDE:
                     case FLYING_JUMP:
                         break;
                     case JUMP: {
-                        if (m.captured != null) {
+                        if (m.getCaptured().size() > 0) {
                             startCapturedAnimation(m, new Runnable() {
                                 @Override
                                 public void run() {
@@ -688,7 +693,7 @@ public class CheckerboardView extends View {
     }
 
     private void drawBoardPieces(Canvas canvas, float width, float height, float dim, int RANKS, int COLUMNS) {
-        // the dawable is 530x530. The wood trim is 30px
+        // the asset image is 530x530. The wood trim is 30px
         canvas.save();
         try {
             canvas.translate(boardPadding, boardPadding - 5);//boardPadding*0.1f);
@@ -726,7 +731,7 @@ public class CheckerboardView extends View {
                     Piece pc = game.getPiece(ii, i);
                     if (pc.type != PieceType.EMPTY && !hidden.contains(pc)) {
                         int outline = OUTLINE_NONE;
-                        if (dragging == null && tapped == null && pc.moves.size() > 0) {
+                        if (dragging == null && pc.moves.size() > 0) {
                             outline = OUTLINE_YELLOW;
                         }
                         drawPiece(canvas, pc, ii, i, outline);
@@ -798,7 +803,7 @@ public class CheckerboardView extends View {
         float sx = m.getStart()[1]*cellDim;
         float sy = m.getStart()[0]*cellDim;
         float cx, cy;
-        switch (m.type) {
+        switch (m.getMoveType()) {
             case CASTLE:
                 pStroke.setColor(Color.WHITE);
                 cx = m.getCastleRookStart()[1]*cellDim;
@@ -828,11 +833,7 @@ public class CheckerboardView extends View {
             cx = m.getEnd()[1]*cellDim;
             cy = m.getEnd()[0]*cellDim + cellDim/2;
             if (drawDebugInfo) {
-                canvas.drawText(m.nextType == null ? "null" : m.nextType.name(), cx, cy, pText);
-                if (m.captured != null) {
-                    cy += pText.getTextSize();
-                    canvas.drawText(m.captured.type.name() + " " + m.getCaptured()[0] + "x" + m.getCaptured()[1], cx, cy, pText);
-                }
+                canvas.drawText(m.getNextType() == null ? "null" : m.getNextType().name(), cx, cy, pText);
             }
         }
     }
@@ -1039,7 +1040,7 @@ public class CheckerboardView extends View {
         }
 
         if (m != null) {
-            if (m.captured != null) {
+            if (m.getCaptured().size() > 0) {
                 // start un-capture animation on next frame so the nextNear/FarCapturedX/Y are reflect updated state
                 postDelayed(new Runnable() {
                     @Override
@@ -1048,7 +1049,7 @@ public class CheckerboardView extends View {
                     }
                 }, 1);
             }
-            switch (m.type) {
+            switch (m.getMoveType()) {
                 case FLYING_JUMP:
                 case JUMP:
                     animations.add(new JumpAnim(m, null).startReverse());
@@ -1057,7 +1058,7 @@ public class CheckerboardView extends View {
                     animations.add(new SlideAnim(m, null).startReverse());
                     break;
                 case STACK:
-                    animations.add(new StackAnim(m.getStart(), m.playerNum, PieceType.CHECKER, null).startReverse());
+                    animations.add(new StackAnim(m.getStart(), m.getPlayerNum(), PieceType.CHECKER, null).startReverse());
                     break;
                 case CASTLE:
                     animations.add(new JumpAnim(m, null).startReverse());

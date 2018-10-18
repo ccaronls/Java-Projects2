@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Stack;
 
 import cc.lib.game.IGame;
+import cc.lib.game.TreeNode;
 import cc.lib.game.Utils;
 import cc.lib.utils.Reflector;
 
@@ -72,13 +73,8 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
 
     public final void movePiece(Move m) {
         Piece p = getPiece(m.getStart());
-        setBoard(m.getEnd(), p);
+        setBoard(m.getEnd(), new Piece(m.getPlayerNum(), m.getNextType()));
         clearPiece(m.getStart());
-        if (m.nextType != null) {
-            PieceType t = p.type;
-            p.type = m.nextType;
-            m.nextType = t;
-        }
     }
 
     public final void clearPiece(int [] pos ) {
@@ -121,8 +117,7 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
     public final List<Piece> getCapturedPieces() {
         List<Piece> captured = new ArrayList<>();
         for (Move m : undoStack) {
-            if (m.captured != null)
-                captured.add(m.captured);
+            captured.addAll(m.getCaptured());
         }
         return captured;
     }
@@ -141,8 +136,11 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
 
     protected abstract void initBoard();
 
+    private boolean limitJumps = true;
+
     protected int recomputeMoves() {
         int num = 0;
+        int numJumps = 0;
         for (int rank = 0; rank < RANKS; rank++) {
             for (int col = 0; col < COLUMNS; col++) {
                 Piece p = getPiece(rank, col);
@@ -150,8 +148,52 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
                 if (p.playerNum == getTurn())
                     computeMovesForSquare(rank, col, null);
                 num += p.moves.size();
+                if (p.hasJumpMove()) {
+                    numJumps++;
+                }
             }
         }
+
+        if (numJumps > 0 && isJumpsMandatory()) {
+            num = 0;
+            for (int rank = 0; rank < RANKS; rank++) {
+                for (int col = 0; col < COLUMNS; col++) {
+                    Piece p = getPiece(rank, col);
+                    Iterator<Move> it = p.moves.iterator();
+                    while (it.hasNext()) {
+                        Move m = it.next();
+                        switch (m.getMoveType()) {
+                            case JUMP:
+                            case FLYING_JUMP:
+                                continue;
+                        }
+                        it.remove();
+                    }
+                    num += p.moves.size();
+                }
+            }
+/*
+            if (limitJumps && isMaxJumpsMandatory()) {
+                int [][] counts = new int[RANKS][COLUMNS];
+                int max = limitToLongestJumpsPath(counts);
+
+                // now go through the nums and clear moves from pieces that have < max jumps
+                for (int rank=0; rank<RANKS; rank++) {
+                    for (int cols = 0; cols < COLUMNS; cols++) {
+                        Piece p = getPiece(rank, cols);
+                        if (counts[rank][cols] < max) {
+                            p.moves.clear();
+                        }
+                    }
+                }
+
+            }*/
+
+            if (isMaxJumpsMandatory()) {
+
+            }
+        }
+
         return num;
     }
 
@@ -164,6 +206,97 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
         } else {
             return lock.moves.size();
         }
+    }
+
+    private int limitToLongestJumpsPath(int [][] num) {
+        ACheckboardGame g = deepCopy();
+        g.limitJumps = false;
+
+        int max = 0;
+        for (int rank=0; rank<RANKS; rank++) {
+            for (int cols=0; cols<COLUMNS; cols++) {
+                Piece p = getPiece(rank, cols);
+                if (p.moves.size() > 0) {
+                    num[rank][cols] = g.findLongestJumpsPathR(rank, cols, g.turn);
+                    max = Math.max(num[rank][cols], max);
+                }
+            }
+        }
+        return max;
+    }
+
+    private void findMaxJumpsPath() {
+        TreeNode<Move>[][] paths = new TreeNode[RANKS][COLUMNS];
+        int [][] lengths = new int[RANKS][COLUMNS];
+        ACheckboardGame g = deepCopy();
+        int max = 0;
+        for (int rank = 0; rank <RANKS; rank++) {
+            for (int col=0; col<COLUMNS; col++) {
+                Piece p = getPiece(rank, col);
+                if (p.moves.size() > 0) {
+                    paths[rank][col] = new TreeNode<>(null);
+                    int m = g.findMaxJumpsPathR(rank, col, paths[rank][col]);
+                    lengths[rank][col] = m;
+                    max = Math.max(m, max);
+                }
+            }
+        }
+        Utils.assertTrue(max > 0);
+        // now we need to traverse all trees and strip off any branches that are < max depth
+        for (int rank=0; rank<RANKS; rank++) {
+            for (int col=0; col<COLUMNS; col++) {
+                if (lengths[rank][col] < max)
+                    paths[rank][col] = null;
+                if (paths[rank][col] != null) {
+                    // this tree has 1 or more paths that are length of max
+                    reduceTreeR(paths[rank][col], max);
+                }
+            }
+        }
+    }
+
+    private void reduceTreeR(TreeNode<Move> root, int max) {
+        if (root.isLeaf()) {
+            if (max > 0) {
+                root.getParent().remove(root);
+            }
+        } else {
+            for (TreeNode<Move> f=root.getFirst(); f!= null; f=f.getNext()) {
+                reduceTreeR(f, max-1);
+            }
+        }
+    }
+
+    private int findMaxJumpsPathR(int r, int c, TreeNode<Move> root) {
+        Piece p = getPiece(r, c);
+        int len = 0;
+        for (Move m : p.moves) {
+            TreeNode<Move> child = new TreeNode(m);
+            root.addChildBack(child);
+            movePiece(m);
+            r = m.getEnd()[0];
+            c = m.getEnd()[1];
+            computeMovesForSquare(r, c, m);
+            len = 1 + findMaxJumpsPathR(r, c, child);
+            reverseMove(m, false);
+        }
+        return len;
+    }
+
+    private int findLongestJumpsPathR(int rank, int col, int num) {
+        Piece p = getPiece(rank, col);
+        if (p.playerNum != num)
+            throw new AssertionError();
+        int max = 0;
+        for (Move m : new ArrayList<>(p.moves)) {
+            if (m.getMoveType() != MoveType.JUMP && m.getMoveType() != MoveType.FLYING_JUMP)
+                throw new AssertionError();
+            executeMove(m);
+            int [] pos = m.getEnd();
+            max = Math.max(max, 1+findLongestJumpsPathR(pos[0], pos[1], num));
+            undo();
+        }
+        return max;
     }
 
     /*
@@ -278,44 +411,40 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
 
     protected void reverseMove(Move m, boolean recompute) {
         Piece p;
-        switch (m.type) {
+        switch (m.getMoveType()) {
             case END:
                 break;
             case CASTLE:
                 p = getPiece(m.getCastleRookEnd());
                 Utils.assertTrue(p.type == PieceType.ROOK, "Expected ROOK was " + p.type);
                 p.type = PieceType.ROOK_IDLE;
-                p.playerNum = m.playerNum;
+                p.playerNum = m.getPlayerNum();
                 setBoard(m.getCastleRookStart(), p);
                 clearPiece(m.getCastleRookEnd());
                 // fallthrough
             case SLIDE:
             case FLYING_JUMP:
             case JUMP:
-                setBoard(m.getStart(), getPiece(m.getEnd()));
-                clearPiece(m.getEnd());
-                if (m.captured != null)
-                    setBoard(m.getCaptured(), m.captured);
+                int index = 0;
+                for (Piece cap : m.getCaptured()) {
+                    setBoard(m.getCapturedPosition(index), cap);
+                }
                 //fallthrough
             case SWAP:
             case STACK:
+                setBoard(m.getStart(), new Piece(m.getPlayerNum(), m.getStartType()));
+                clearPiece(m.getEnd());
                 break;
-        }
-
-        if (m.nextType != null) {
-            PieceType t = getPiece(m.getStart()).type;
-            getPiece(m.getStart()).type = m.nextType;
-            m.nextType = t;
         }
 
         if (!recompute)
             return;
 
-        setTurn(m.playerNum);
+        setTurn(m.getPlayerNum());
         Move parent = null;
         if (undoStack.size() > 0) {
             parent = undoStack.peek();
-            if (parent.playerNum != m.playerNum) {
+            if (parent.getPlayerNum() != m.getPlayerNum()) {
                 parent = null;
             }
         }
@@ -327,7 +456,7 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
             p = getPiece(m.getStart());
             computeMovesForSquare(m.getStart()[0], m.getStart()[1], parent);
             if (!isJumpsMandatory())
-                p.moves.add(new Move(MoveType.END, m.playerNum, null, null, m.getStart()));
+                p.moves.add(new Move(MoveType.END, m.getPlayerNum()));
             lock = p;
         }
     }
@@ -438,6 +567,10 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
         return false;
     }
 
+    protected boolean isMaxJumpsMandatory() {
+        return false;
+    }
+
     enum BoardType {
         CHECKERS,
         DAMA
@@ -446,5 +579,7 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
     public BoardType getBoardType() {
         return BoardType.CHECKERS;
     }
+
+    public abstract String getName();
 
 }
