@@ -707,4 +707,8 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
         root = null;
         checkForRobotTurn();
     }
+
+    public boolean isMultiPlayer() {
+        return robot == null;
+    }
 }

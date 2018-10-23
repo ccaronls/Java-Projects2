@@ -2,10 +2,12 @@ package cc.android.checkerboard;
 
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.graphics.Bitmap;
 import android.graphics.BlurMaskFilter;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.ColorFilter;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
@@ -50,6 +52,7 @@ public class CheckerboardView extends View {
     private final Paint glowRed = new Paint(Paint.ANTI_ALIAS_FLAG);
     boolean drawDebugInfo = false;
 
+    private CheckerboardActivity activity;
     private ACheckboardGame game = null;
     private float boardPadding = 0;
 
@@ -74,6 +77,7 @@ public class CheckerboardView extends View {
     }
 
     private void init(Context context, AttributeSet attrs) {
+        activity = (CheckerboardActivity)context;
         pFill.setStyle(Paint.Style.FILL);
         pStroke.setStyle(Paint.Style.STROKE);
         TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.CheckerboardView);
@@ -240,10 +244,14 @@ public class CheckerboardView extends View {
             g.save();
             g.translate(x, y);
             g.scale(scale, scale);
-            drawPieceAt(g, new Piece(playerNum, pType), 0f, 0f, OUTLINE_NONE);
+            drawPieceAt(g, new Piece(playerNum, pType), 0f, 0f, OUTLINE_NONE, false);
             g.restore();
         }
 
+    }
+
+    boolean shouldDrawUpsideDown(int playerNum) {
+        return (game instanceof Chess) && activity.isMultiPlayer() && (playerNum < 0 || game.getTurn() == playerNum);
     }
 
     class SlideAnim extends MoveAnim {
@@ -261,7 +269,7 @@ public class CheckerboardView extends View {
             int x = Math.round(sx + (ex-sx) * position);
             int y = Math.round(sy + (ey-sy) * position);
             Piece p = new Piece(playerNum, pType);
-            drawPieceAt(g, p, x, y, OUTLINE_NONE);
+            drawPieceAt(g, p, x, y, OUTLINE_NONE, shouldDrawUpsideDown(ACheckboardGame.FAR));
         }
     }
 
@@ -304,7 +312,7 @@ public class CheckerboardView extends View {
         public void draw(Canvas g, float position, float dt) {
             Vector2D v = curve.getPointAt(position);
             Piece p = new Piece(playerNum, pType);
-            drawPieceAt(g, p, v.X(), v.Y(), OUTLINE_NONE);
+            drawPieceAt(g, p, v.X(), v.Y(), OUTLINE_NONE, shouldDrawUpsideDown(ACheckboardGame.FAR));
         }
 
     };
@@ -459,9 +467,14 @@ public class CheckerboardView extends View {
             g.translate(dim[0]/2, dim[1]/2);
             g.rotate(90f * position);
             g.translate(-dim[0]/2, -dim[1]/2);
-            drawBitmap(g, 0, 0, d, 1, OUTLINE_NONE);
+            drawBitmap(g, 0, 0, d, 1, OUTLINE_NONE, shouldDrawUpsideDown(ACheckboardGame.FAR));
             g.restore();
 
+        }
+
+        @Override
+        public boolean isDone() {
+            return isReverse();
         }
     }
 
@@ -662,9 +675,10 @@ public class CheckerboardView extends View {
         nextFarCaptureX = nextNearCaptureX;
         final float maxX = width - cellDim/4;
         for (Piece p : captured) {
+            boolean upsidedown = shouldDrawUpsideDown(p.playerNum);
             switch (p.playerNum) {
                 case ACheckboardGame.FAR:
-                    drawPieceAt(canvas, p, nextNearCaptureX, nextNearCaptureY, OUTLINE_NONE);
+                    drawPieceAt(canvas, p, nextNearCaptureX, nextNearCaptureY, OUTLINE_NONE, upsidedown);
                     nextNearCaptureX += padding*2;
                     if (nextNearCaptureX > maxX) {
                         sxnear += xnearpacing;
@@ -674,7 +688,7 @@ public class CheckerboardView extends View {
                     nextNearCaptureY += padding;
                     break;
                 case ACheckboardGame.NEAR:
-                    drawPieceAt(canvas, p, nextFarCaptureX, nextFarCaptureY, OUTLINE_NONE);
+                    drawPieceAt(canvas, p, nextFarCaptureX, nextFarCaptureY, OUTLINE_NONE, upsidedown);
                     nextFarCaptureX += padding*2;
                     if (nextFarCaptureX > maxX) {
                         sxfar += xfarspacing;
@@ -729,7 +743,7 @@ public class CheckerboardView extends View {
                         if (dragging == null && tapped == null && pc.moves.size() > 0) {
                             outline = OUTLINE_YELLOW;
                         }
-                        drawPiece(canvas, pc, ii, i, outline);
+                        drawPiece(canvas, pc, ii, i, outline, shouldDrawUpsideDown(ACheckboardGame.FAR));
                         if (pc.moves.size() > 0) {
                             numMvblePcs++;
                             if (numMvblePcs == 1) {
@@ -772,7 +786,7 @@ public class CheckerboardView extends View {
             }
 
             if (dragging != null) {
-                drawPieceAt(canvas, dragging, dragX, dragY, OUTLINE_NONE);
+                drawPieceAt(canvas, dragging, dragX, dragY, OUTLINE_NONE, shouldDrawUpsideDown(ACheckboardGame.FAR));
                 for (Move m : dragging.moves) {
                     highlightMove(canvas, m);
                 }
@@ -848,10 +862,10 @@ public class CheckerboardView extends View {
     final static int OUTLINE_RED = Color.RED;
     final static int OUTLINE_YELLOW = Color.YELLOW;
 
-    void drawPiece(Canvas g, Piece pc, int rank, int col, int outline) {
+    void drawPiece(Canvas g, Piece pc, int rank, int col, int outline, boolean upsidedown) {
         float cx = col * cellDim + cellDim / 2;
         float cy = rank * cellDim + cellDim / 2;
-        drawPieceAt(g, pc, cx, cy, outline);
+        drawPieceAt(g, pc, cx, cy, outline, upsidedown);
         if (drawDebugInfo) {
             if (isSquareBlack(rank, col))
                 g.drawText(pc.type.name(), cellDim * col, cellDim * rank + cellDim - 5, pText);
@@ -863,7 +877,7 @@ public class CheckerboardView extends View {
     /*
     Draw piece centered at cx, cy
      */
-    void drawPieceAt(Canvas g, Piece pc, float cx, float cy, int outline) {
+    void drawPieceAt(Canvas g, Piece pc, float cx, float cy, int outline, boolean upsidedown) {
 
         Drawable d = null;
         boolean isBlack = game.getPlayerColor(pc.playerNum) == ACheckboardGame.Color.BLACK;
@@ -930,7 +944,7 @@ public class CheckerboardView extends View {
                 break;
         }
         if (d != null) {
-            drawBitmap(g, cx, cy, d, heightPercent, outline);
+            drawBitmap(g, cx, cy, d, heightPercent, outline, upsidedown);
         }
     }
 
@@ -962,23 +976,34 @@ public class CheckerboardView extends View {
         return cellDim/20;
     }
 
-    private void drawBitmap(Canvas g, float cx, float cy, Drawable d, float heightPercent, int outline) {
-// do aspect fit of bitmap onto cell
+    public static Bitmap flip(Bitmap src) {
+        Matrix matrix = new Matrix();
+        matrix.preScale(1.0f, -1.0f);
+        return Bitmap.createBitmap(src, 0, 0, src.getWidth(), src.getHeight(), matrix, true);
+    }
+
+    private void drawBitmap(Canvas g, float cx, float cy, Drawable d, float heightPercent, int outline, boolean upsidedown) {
+
         BitmapDrawable bd = (BitmapDrawable)d;
         float [] dim = getBitmapRect(bd, heightPercent);
-
+        g.save();
+        g.translate(cx, cy);
         float sy = cy + cellDim/2 - getPadding();
         float w = dim[0];
         float h = dim[1];
-        Rect dest = new Rect(Math.round(cx - w / 2), Math.round(sy - h), Math.round(cx + w / 2), Math.round(sy));
+        Rect dest = null;
+        dest = new Rect(Math.round(- w / 2), Math.round(- h / 2), Math.round(w / 2), Math.round(h / 2));
+        if (upsidedown)
+            g.rotate(180);
         if (outline != OUTLINE_NONE) {
             g.save();
-            g.scale(1.2f, 1.1f, cx, cy);
+            g.scale(1.2f, 1.1f);
             g.drawBitmap(bd.getBitmap(), null, dest, outline == OUTLINE_RED ? glowRed : glowYellow);
             g.restore();
         }
         d.setBounds(dest);
         d.draw(g);
+        g.restore();
     }
 
     void drawChecker(Canvas g, float x, float y, float rad, int playerNum, int outlineColor) {
@@ -989,7 +1014,7 @@ public class CheckerboardView extends View {
             d = getResources().getDrawable(R.drawable.red_checker);
         }
 
-        drawBitmap(g, x, y, d, 0.75f, outlineColor);
+        drawBitmap(g, x, y, d, 0.75f, outlineColor, false);
 
 
         //Drawable d = getResources().getDrawable(color == )

@@ -1,9 +1,6 @@
 package cc.android.checkerboard;
 
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
-import java.util.Stack;
 
 import cc.lib.game.Utils;
 
@@ -65,7 +62,6 @@ public class Chess extends ACheckboardGame {
         lock = null;
         clearMoves();
         undoStack.push(move);
-        isSqAttackedCache.push(new HashMap<Integer, Boolean>());
         {
             Piece p;
             switch (move.type) {
@@ -139,7 +135,6 @@ public class Chess extends ACheckboardGame {
 
     @Override
     protected void reverseMove(Move m, boolean recompute) {
-        isSqAttackedCache.pop();
         super.reverseMove(m, recompute);
         updateOpponentKingCheckedState();
     }
@@ -153,8 +148,6 @@ public class Chess extends ACheckboardGame {
         return false;
     }
 
-    private Stack<Map<Integer, Boolean>> isSqAttackedCache = new Stack<>();
-
     /**
      * Return true if playerNum is attacking the position
      * @param rank
@@ -163,22 +156,7 @@ public class Chess extends ACheckboardGame {
      * @return
      */
     final boolean isSquareAttacked(int rank, int col, int playerNum) {
-        Map<Integer, Boolean> isSqAtt = null;
-        if (isSqAttackedCache.size() > 0) {
-            isSqAtt = isSqAttackedCache.peek();
-        }
-        if (isSqAtt == null) {
-            isSqAtt = new HashMap<>();
-            isSqAttackedCache.push(isSqAtt);
-        }
-
-        int key = (rank << 16) | (col << 8) | playerNum;
-        Boolean att = isSqAtt.get(key);
-        if (att != null) {
-            return att;
-        }
         boolean b = isSquareAttackedP(rank, col, playerNum);
-        isSqAtt.put(key, b);
         return b;
     }
 

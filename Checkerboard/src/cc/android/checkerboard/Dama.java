@@ -101,4 +101,5 @@ public class Dama extends Checkers {
     public BoardType getBoardType() {
         return BoardType.DAMA;
     }
+
 }
