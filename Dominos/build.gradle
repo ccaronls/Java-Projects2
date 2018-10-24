@@ -16,11 +16,11 @@ repositories {
 }
 
 dependencies {
-    compile project(':GameLibrary')
-    compile fileTree(dir: 'lib', include: '*.jar')
-    testCompile 'junit:junit:4.12'
-    compile 'junit:junit:4.12'
-    compile project(':jmdns')
+    implementation project(':GameLibrary')
+    implementation fileTree(dir: 'lib', include: '*.jar')
+    testImplementation 'junit:junit:4.12'
+    implementation 'junit:junit:4.12'
+    implementation project(':jmdns')
 }
 
 sourceSets {

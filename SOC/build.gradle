@@ -2,12 +2,12 @@ apply plugin: 'java'
 apply plugin: 'application'
 
 dependencies {
-    compile project(':GameLibrary')
-    compile fileTree(dir: 'lib', include: '*.jar')
-    compile project(':jmdns')
+    implementation project(':GameLibrary')
+    implementation fileTree(dir: 'lib', include: '*.jar')
+    implementation project(':jmdns')
 
-    testCompile 'junit:junit:4.12'
-    compile 'junit:junit:4.12'
+    testImplementation 'junit:junit:4.12'
+    implementation 'junit:junit:4.12'
 }
 sourceSets {
     main {

@@ -1,18 +1,13 @@
 apply plugin: 'com.android.library'
 
 dependencies {
-    compile files('../DnsAndroid/mdnsjava-2.1.6-SNAPSHOT.jar', '../DnsAndroid/dnsjava-2.1.7.jar')
+    implementation files('../DnsAndroid/mdnsjava-2.1.6-SNAPSHOT.jar', '../DnsAndroid/dnsjava-2.1.7.jar')
 //    compile project (':DnsAndroid')
 }
 
 android {
     compileSdkVersion project.myCompileSdkVersion.toInteger()
     buildToolsVersion project.myBuildToolsVersion
-
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_7
-        targetCompatibility JavaVersion.VERSION_1_7
-    }
 
     defaultConfig {
 	    minSdkVersion project.myMinSdkVersion.toInteger()

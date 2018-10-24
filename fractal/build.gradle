@@ -24,7 +24,7 @@ compileJavacc{
 mainClassName = 'cc.app.fractal.FractalViewer'
 
 dependencies {
-    compile project(':GameLibrary')
+    implementation project(':GameLibrary')
 }
 
 

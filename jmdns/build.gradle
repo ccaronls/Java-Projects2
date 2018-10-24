@@ -17,7 +17,7 @@ buildscript {
 }
 /*
 dependencies {
-    testCompile(
+    testImplementation(
             'org.junit.jupiter:junit-jupiter-api:5.0.1'
     )
     testRuntime(
@@ -32,7 +32,7 @@ repositories {
 }
 dependencies {
     //compile files('lib/slf4j-simple-1.7.25.jar', 'lib/slf4j-api-1.7.25.jar')
-    compile fileTree(dir: 'lib', include: '*.jar')
+    implementation fileTree(dir: 'lib', include: '*.jar')
 }
 
 
