@@ -1,7 +1,10 @@
 package cc.lib.checkers;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
 import cc.lib.game.IMove;
-import cc.lib.game.Utils;
 import cc.lib.utils.Reflector;
 
 /**
@@ -14,6 +17,126 @@ public class Move extends Reflector<Move> implements IMove {
         addAllFields(Move.class);
     }
 
+    private final MoveType type;
+    private final int playerNum;
+    private int startRank=-1, startCol=-1;
+    private PieceType startType=null;
+    private PieceType endType=null;
+    private List<Path> steps = null;
+
+    public Move() {
+        type = null;
+        playerNum = -1;
+    }
+
+    public Move(MoveType mt, int playerNum) {
+        this.type = mt;
+        this.playerNum = playerNum;
+    }
+
+    public Move setStart(int rank, int col, PieceType startType, PieceType endType) {
+        this.startRank = rank;
+        this.startCol = col;
+        this.startType = startType;
+        this.endType = endType != null ? endType : startType;
+        return this;
+    }
+
+    public Move addPath(int landRank, int landCol) {
+        return addPath(landRank, landCol, -1, -1, null);
+    }
+
+    public Move addPath(int landRank, int landCol, int captureRank, int captureCol, Piece captured) {
+        if (steps == null) {
+            steps = new ArrayList<>();
+        }
+        steps.add(new Path(landRank, landCol, captureRank, captureCol, captured));
+        return this;
+    }
+
+    @Override
+    public final int getPlayerNum() {
+        return playerNum;
+    }
+
+    public final MoveType getMoveType() {
+        return type;
+    }
+
+    public final int [] getStart() {
+        return new int[] { startRank, startCol };
+    }
+
+    public final int [] getEnd() {
+        Path last = steps.get(steps.size()-1);
+        return new int [] { last.landRank, last.landCol };
+    }
+
+    public final PieceType getNextType() {
+        return endType;
+    }
+
+    public final PieceType getStartType() {
+        return this.startType;
+    }
+
+    public final List<Piece> getCaptured() {
+        ArrayList<Piece> captured = new ArrayList<>();
+        if (steps != null) {
+            for (Path i : steps) {
+                if (i.captured != null)
+                    captured.add(i.captured);
+            }
+        }
+        return captured;
+    }
+
+    public int [] getCastleRookStart() {
+        Path first = steps.get(0);
+        return new int [] { first.captureRank, first.captureCol };
+    }
+
+    public int [] getCastleRookEnd() {
+        Path first = steps.get(0);
+        return new int [] { first.landRank, first.landCol };
+    }
+
+    public int [] getCapturedPosition(int index) {
+        Path i = steps.get(index);
+        return new int [] { i.captureRank, i.captureCol };
+    }
+
+    public Iterable<Path> getPath() {
+        return steps;
+    }
+
+    public Iterable<int[]> getCapturedPositions() {
+        return new Iterable<int[]>() {
+            @Override
+            public Iterator<int[]> iterator() {
+                return new Iterator<int[]>() {
+                    int index = 0;
+                    @Override
+                    public boolean hasNext() {
+                        return steps != null && index < steps.size();
+                    }
+
+                    @Override
+                    public int[] next() {
+                        int [] pos = { steps.get(index).captureRank, steps.get(index).captureCol };
+                        index++;
+                        return pos;
+                    }
+                };
+            }
+        };
+    }
+
+    public boolean hasEnd() {
+        return steps != null;
+    }
+
+    /*
     public final MoveType type;
     public final int playerNum;
 
@@ -73,5 +196,5 @@ public class Move extends Reflector<Move> implements IMove {
     @Override
     public int getPlayerNum() {
         return playerNum;
-    }
+    }*/
 }

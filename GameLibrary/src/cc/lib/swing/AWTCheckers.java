@@ -1,16 +1,20 @@
 package cc.lib.swing;
 
 import java.io.File;
+import java.io.PrintWriter;
 
 import cc.lib.checkers.ACheckboardGame;
 import cc.lib.checkers.Checkers;
+import cc.lib.checkers.Chess;
 import cc.lib.checkers.Dama;
 import cc.lib.checkers.Draughts;
 import cc.lib.checkers.Move;
+import cc.lib.checkers.Path;
 import cc.lib.checkers.Piece;
 import cc.lib.checkers.Robot;
 import cc.lib.game.AGraphics;
 import cc.lib.game.GColor;
+import cc.lib.game.MiniMaxTree;
 import cc.lib.game.Utils;
 import cc.lib.utils.Reflector;
 
@@ -26,6 +30,17 @@ public class AWTCheckers extends AWTComponent {
     Robot robot;
 
     AWTCheckers() {
+        try {
+            if (SAVE_FILE.exists()) {
+                game = Reflector.deserializeFromFile(SAVE_FILE);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        if (game == null) {
+            game = new Checkers();
+        }
         frame = new EZFrame() {
             @Override
             protected void onMenuItemSelected(String menu, String subMenu) {
@@ -38,7 +53,11 @@ public class AWTCheckers extends AWTComponent {
             @Override
             protected void onWindowClosing() {
                 if (game != null) {
-                    game.trySaveToFile(SAVE_FILE);
+                    try {
+                        Reflector.serializeToFile(game, SAVE_FILE);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         };
@@ -50,17 +69,6 @@ public class AWTCheckers extends AWTComponent {
         if (!frame.loadFromFile(new File("checkers.properties")))
             frame.centerToScreen(640, 640);
 
-        try {
-            if (SAVE_FILE.exists()) {
-                game = Reflector.deserializeFromFile(SAVE_FILE);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        if (game == null) {
-            game = new Checkers();
-        }
     }
 
     enum GameType {
@@ -70,13 +78,12 @@ public class AWTCheckers extends AWTComponent {
                 return new Checkers();
             }
         },
-        /*
         Chess {
             @Override
             ACheckboardGame newGame() {
                 return new Chess();
             }
-        },*/
+        },
         Draughts {
             @Override
             ACheckboardGame newGame() {
@@ -109,6 +116,7 @@ public class AWTCheckers extends AWTComponent {
                         case 1:
                             // multi
                             game = GameType.values()[index].newGame();
+                            game.newGame();
 
                     }
                     game.newGame();
@@ -118,14 +126,16 @@ public class AWTCheckers extends AWTComponent {
             case "Load Game":
             case "Save as":
         }
+        repaint();
     }
 
     int selectedRank=-1, selectedCol=-1;
     int highlightedRank, highlightedCol;
     Move selectedMove = null;
+    final static GColor DAMA_BOARD_COLOR = new GColor(0xfffde9a9);
 
     @Override
-    protected void paint(AWTGraphics g, int mouseX, int mouseY) {
+    protected synchronized void paint(AWTGraphics g, int mouseX, int mouseY) {
         if (game != null) {
             int dim = Math.min(getWidth(), getHeight());
 
@@ -154,18 +164,19 @@ public class AWTCheckers extends AWTComponent {
                             g.drawFilledRect(i * dw, ii * dh, dw, dh);
                             cIndex = (cIndex + 1) % colors.length;
                         }
+                        cIndex = (cIndex + 1) % colors.length;
                     }
                     break;
                 }
 
                 case DAMA: {
-                    g.setColor(new GColor(0xfffde9a9));
+                    g.setColor(DAMA_BOARD_COLOR);
                     g.drawFilledRect(0, 0, dim, dim);
                     g.setColor(GColor.BLACK);
                     for (int i=0; i<=game.COLUMNS; i++) {
                         g.drawLine(i*dw, 0, i*dw, dim, 5);
                     }
-                    for (int i=0; i<game.RANKS; i++) {
+                    for (int i=0; i<=game.RANKS; i++) {
                         g.drawLine(0, i*dh, dim, i*dh, 5);
                     }
                 }
@@ -184,7 +195,8 @@ public class AWTCheckers extends AWTComponent {
                     int y = r*dh;
 
                     Piece p = game.getPiece(r, c);
-                    drawPiece(g, p, x, y, dw, dh);
+                    if (p.playerNum >= 0)
+                        drawPiece(g, p, x, y, dw, dh);
 
                     if (Utils.isPointInsideRect(mouseX, mouseY, x, y, dw, dh)) {
                         highlightedCol = c;
@@ -198,15 +210,20 @@ public class AWTCheckers extends AWTComponent {
 
             selectedMove = null;
             if (selectedCol >= 0 && selectedRank >= 0) {
-                for (Move m : game.getMoves()) {
-                    int [] pos = m.getStart();
-                    if (selectedRank == pos[0] && selectedCol == pos[1]) {
-                        pos = m.getEnd();
-                        int y = pos[0] * dh;
-                        int x = pos[1] * dw;
-                        g.drawCircleWithThickness(x + dw / 2, y + dh / 2, Math.min(dw, dh) * 2 / 3 + 2, 5);
-                        selectedMove = m;
-                        break;
+                Piece p = game.getPiece(selectedRank, selectedCol);
+                if (p.playerNum == game.getTurn()) {
+                    for (Move m : p.moves) {
+                        int[] pos = m.getStart();
+                        if (selectedRank == pos[0] && selectedCol == pos[1]) {
+                            for (Path i : m.getPath()) {
+                                pos = i.getLandPos();
+                                int y = pos[0] * dh;
+                                int x = pos[1] * dw;
+                                g.setColor(GColor.GREEN);
+                                g.drawCircleWithThickness(x + dw / 2, y + dh / 2, Math.min(dw, dh) * 1 / 3 + 2, 5);
+                                selectedMove = m;
+                            }
+                        }
                     }
                 }
             } else {
@@ -216,7 +233,7 @@ public class AWTCheckers extends AWTComponent {
                     int[] pos = m.getStart();
                     int y = pos[0] * dh;
                     int x = pos[1] * dw;
-                    g.drawCircleWithThickness(x + dw / 2, y + dh / 2, Math.min(dw, dh) * 2 / 3 + 2, 5);
+                    g.drawCircleWithThickness(x + dw / 2, y + dh / 2, Math.min(dw, dh) * 1 / 3 + 2, 5);
                 }
             }
 
@@ -230,55 +247,134 @@ public class AWTCheckers extends AWTComponent {
             case 0:
                 return GColor.RED;
             case 1:
-                return GColor.BLACK;
+                return GColor.DARK_GRAY;
         }
         throw new AssertionError("Unhandled Case");
     }
 
-    void drawPiece(AGraphics g, Piece p, int x, int y, int w, int h) {
-        switch (p.type) {
+    private void drawBase(AGraphics g) {
+        g.drawFilledRect(-.5f, .7f, 1f, .3f);
+    }
 
+    private void drawColumn(AGraphics g) {
+        g.begin();
+        g.vertex(-.15f, 1.2f);
+        g.vertex(-.12f, 0);
+        g.vertex(.12f, 0);
+        g.vertex(.15f, 1.2f);
+        g.drawTriangleFan();
+    }
+
+    void drawPiece(AGraphics g, Piece p, int x, int y, int w, int h) {
+        g.setColor(getColor(p.playerNum));
+        g.pushMatrix();
+        g.translate(x+w/2, y+h/2);
+        g.scale(Math.min(w,h)*1/3);
+        switch (p.type) {
             case EMPTY:
                 break;
             case PAWN:
-                break;
             case PAWN_IDLE:
-                break;
             case PAWN_ENPASSANT:
-                break;
             case PAWN_TOSWAP:
+                g.drawFilledCircle(0, -.25f, .25f);
+                g.drawFilledRect(-.2f, 0, .4f, 1.5f);
+                drawBase(g);
                 break;
             case BISHOP:
+                g.begin();
+                g.vertex(-.12f, 0);
+                g.vertex(-.2f, -.1f);
+                g.vertex(0, -.5f);
+                g.vertex(.2f, -.1f);
+                g.vertex(.12f, 0);
+                g.drawTriangleFan();
+                drawColumn(g);
+                drawBase(g);
                 break;
             case KNIGHT:
-                break;
-            case ROOK:
+                g.begin();
+                g.vertex(-.12f, 0);
+                g.vertex(-.2f, -.5f);
+                g.vertex(0, -1);
+                g.vertex(0, .75f);
+                g.vertex(1, -.5f);
+                g.vertex(1, -.1f);
+                g.vertex(.12f, 0);
+                g.drawTriangleFan();
+                drawColumn(g);
+                drawBase(g);
                 break;
             case ROOK_IDLE:
+            case ROOK:
+                g.begin();
+                g.vertex(-.12f, 0);
+                g.vertex(-.2f, -.1f);
+                g.vertex(-.2f, -.3f);
+                g.vertex(.2f, -.3f);
+                g.vertex(.2f, -.1f);
+                g.vertex(.12f, 0);
+                g.drawTriangleFan();
+                drawColumn(g);
+                drawBase(g);
                 break;
             case QUEEN:
-                break;
+                g.drawFilledRect(-.3f, 1.1f, .3f, 1.5f);
+                g.begin();
+                g.vertex(-.2f, 1.1f);
+                g.vertex(-.12f, -.4f);
+                g.vertex(.12f, -.4f);
+                g.vertex(.2f, 1.1f);
+                g.drawTriangleFan();
+                g.begin();
+                g.vertex(0, -.4f);
+                g.vertex(-.12f, -.4f);
+                g.vertex(-.2f, -.8f);
+                g.vertex(-.2f, -1.4f);
+                g.vertex(-.12f, -1.2f);
+                g.vertex(0, -1.5f);
+                g.vertex(.12f, -1.2f);
+                g.vertex(.2f, -1.4f);
+                g.vertex(.2f, -.8f);
+                g.vertex(.12f, -.4f);
+                g.drawTriangleFan();
+            break;
             case CHECKED_KING:
-                break;
             case CHECKED_KING_IDLE:
-                break;
             case UNCHECKED_KING:
-                break;
             case UNCHECKED_KING_IDLE:
+                g.drawFilledRect(-.3f, 1.1f, .3f, 1.5f);
+                g.begin();
+                g.vertex(-.2f, 1.1f);
+                g.vertex(-.12f, -.4f);
+                g.vertex(.12f, -.4f);
+                g.vertex(.2f, 1.1f);
+                g.drawTriangleFan();
+                g.begin();
+                g.vertex(0, -.4f);
+                g.vertex(-.12f, -.4f);
+                g.vertex(-.2f, -.8f);
+                g.vertex(-.2f, -1.4f);
+                g.vertex(-.12f, -1.2f);
+                g.vertex(.12f, -1.2f);
+                g.vertex(.2f, -1.4f);
+                g.vertex(.2f, -.8f);
+                g.vertex(.12f, -.4f);
+                g.drawTriangleFan();
+                g.drawFilledRect(-0.05f, -1.5f, .1f, .3f);
+                g.drawFilledRect(-.12f, -1.35f, .24f, .1f);
                 break;
             case KING:
             case FLYING_KING:
             case CHECKER:
-            case CAPTURED_CHECKER:
             case DAMA_MAN:
             case DAMA_KING:
-            case CAPTURED_DAMA:
-                g.setColor(getColor(p.playerNum));
-                g.drawFilledCircle(x+w/2, y+h/2, Math.min(w,h)*2/3);
+                g.drawFilledCircle(0, 0, 1);
                 break;
             case UNAVAILABLE:
                 break;
         }
+        g.popMatrix();
     }
 
     @Override
@@ -288,7 +384,9 @@ public class AWTCheckers extends AWTComponent {
             if (robot != null && game.getTurn() == 1) {
                 new Thread() {
                     public void run() {
-
+                        MiniMaxTree.MMTreeNode<Move, ACheckboardGame> root = new MiniMaxTree.MMTreeNode(game);
+                        robot.doRobot(game, root);
+                        root.dumpTree(new PrintWriter(System.out));
                     }
                 }.start();
             }
@@ -297,6 +395,45 @@ public class AWTCheckers extends AWTComponent {
         } else {
             selectedRank=highlightedRank;
             selectedCol=highlightedCol;
+        }
+        repaint();
+    }
+
+    @Override
+    protected void onKeyPressed(VKKey key) {
+        if (game == null)
+            return;
+        if (game.getTurn() == 1 && robot != null)
+            return;
+        switch (key) {
+            case VK_B:
+                if (game.canUndo())
+                    game.undo();
+                break;
+
+            case VK_UP:
+                if (highlightedRank < game.RANKS-1)
+                    highlightedRank++;
+                break;
+            case VK_DOWN:
+                if (highlightedRank > 0)
+                    highlightedRank--;
+                break;
+            case VK_LEFT:
+                if (highlightedCol > 0)
+                    highlightedCol--;
+                break;
+            case VK_RIGHT:
+                if (highlightedCol < game.COLUMNS-1)
+                    highlightedCol++;
+                break;
+
+            case VK_ENTER:
+                onClick();
+                break;
+
+            default:
+                super.onKeyTyped(key);
         }
         repaint();
     }

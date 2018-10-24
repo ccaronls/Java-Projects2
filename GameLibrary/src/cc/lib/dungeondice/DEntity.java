@@ -1,5 +1,7 @@
 package cc.lib.dungeondice;
 
+import cc.lib.game.AGraphics;
+import cc.lib.ui.UIAnimation;
 import cc.lib.utils.Reflector;
 
 public abstract class DEntity extends Reflector<DEntity> {
@@ -9,6 +11,8 @@ public abstract class DEntity extends Reflector<DEntity> {
     }
 
     int hp, str, dex, attack, defense, spd;
+
+    UIAnimation animation;
 
     public DEntity() {}
 
@@ -21,4 +25,6 @@ public abstract class DEntity extends Reflector<DEntity> {
     }
 
     public abstract String getName();
+
+    public abstract void draw(AGraphics g, float radius);
 }

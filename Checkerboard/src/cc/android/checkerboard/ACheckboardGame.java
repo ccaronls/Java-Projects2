@@ -74,18 +74,13 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
 
     public final void forfeit() {
         forfeited = true;
-        executeMove(new Move(MoveType.END, getTurn(), null, null));
+        executeMove(new Move(MoveType.END, getTurn()));
     }
 
     public final void movePiece(Move m) {
         Piece p = getPiece(m.getStart());
         setBoard(m.getEnd(), new Piece(m.getPlayerNum(), m.getNextType()));
         clearPiece(m.getStart());
-        if (m.nextType != null) {
-            PieceType t = p.type;
-            p.type = m.nextType;
-            m.nextType = t;
-        }
     }
 
     public final boolean isForfeited() {
@@ -602,7 +597,7 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
     public void endTurn() {
         if (lock != null) {
             for (Move m : lock.moves) {
-                if (m.type == MoveType.END) {
+                if (m.getMoveType() == MoveType.END) {
                     undoStack.push(m);
                     break;
                 }

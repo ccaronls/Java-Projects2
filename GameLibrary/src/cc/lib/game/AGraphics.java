@@ -1386,7 +1386,10 @@ GRectangle r = drawJustifiedStringR(x, y, hJust, vJust, text);
      */
     public final void drawFilledOval(float x, float y, float w, float h) {
         pushMatrix();
-        float radius = Math.max(w/2, h/2);
+        MutableVector2D mv0 = transform(x, y);
+        MutableVector2D mv2 = transform(x+w, y+h);
+        mv2.subEq(mv0);
+        float radius = Math.max(mv2.getX()/2, mv2.getY()/2);
         float sections = radius * 2;
         if (sections > 32)
             sections = 32;
@@ -1529,6 +1532,25 @@ GRectangle r = drawJustifiedStringR(x, y, hJust, vJust, text);
         Vector2D maxV = v0.max(v1);
 
         drawImage(imageKey, minV.Xi(), minV.Yi(), maxV.Xi()-minV.Xi(), maxV.Yi()-minV.Yi());
+    }
+
+    /**
+     *
+     * @param imageKey
+     * @param rect
+     */
+    public final void drawImage(int imageKey, GRectangle rect) {
+        drawImage(imageKey, rect.x, rect.y, rect.w, rect.h);
+    }
+
+    /**
+     *
+     * @param imageKey
+     * @param center
+     * @param dimension
+     */
+    public final void drawImage(int imageKey, IVector2D center, GDimension dimension) {
+        drawImage(imageKey, center.getX()-dimension.width/2, center.getY()-dimension.height/2, dimension.width, dimension.height);
     }
 
     /**

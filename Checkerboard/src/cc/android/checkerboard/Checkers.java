@@ -293,16 +293,6 @@ public class Checkers extends ACheckboardGame  {
         endTurnPrivate();
     }
 
-    private void endTurnPrivate() {
-        removeCapturedPieces();
-        nextTurn();
-        lock = null;
-        clearMoves();
-        if (computeMoves()==0) {
-            onGameOver();
-        }
-	}
-
 	private void removeCapturedPieces() {
         List<int[]> captured = new ArrayList<>();
         for (int i=0; i<RANKS; i++) {
@@ -348,7 +338,7 @@ public class Checkers extends ACheckboardGame  {
                     break;
                 }
                 if (isDamaKing) {
-                    p.moves.add(new Move(MoveType.STACK, move.getPlayerNum(), null, PieceType.DAMA_KING, move.getEnd()));
+                    p.moves.add(new Move(MoveType.STACK, move.getPlayerNum()).setStart(move.getEnd()[0],move.getEnd()[1], p.type, PieceType.DAMA_KING));
                     lock = p;
                     break;
                 }
@@ -365,27 +355,27 @@ public class Checkers extends ACheckboardGame  {
                     }
                 }
                 if (isKinged) {
-                    p.moves.add(new Move(MoveType.STACK, move.getPlayerNum(), null, isFlyingKings() ? PieceType.FLYING_KING : PieceType.KING, move.getEnd()));
+                    p.moves.add(new Move(MoveType.STACK, move.getPlayerNum()).setStart(move.getEnd()[0], move.getEnd()[1], p.type, isFlyingKings() ? PieceType.FLYING_KING : PieceType.KING));
                     lock = p;
                 }
                 if (isDamaKing) {
-                    p.moves.add(new Move(MoveType.STACK, move.getPlayerNum(), null, PieceType.DAMA_KING, move.getEnd()));
+                    p.moves.add(new Move(MoveType.STACK, move.getPlayerNum()).setStart(move.getEnd()[0], move.getEnd()[1], p.type, PieceType.DAMA_KING));
                     lock = p;
                 }
                 break;
             case STACK:
-                setPieceType(move.getStart(), move.nextType);
+                setPieceType(move.getStart(), move.getNextType());
                 break;
         }
 
-        if (!) {
+        if (!isKinged && !isDamaKing) {
             // recursive compute next move if possible after a jump
             if (move.hasEnd())
                 computeMovesForSquare(move.getEnd()[0], move.getEnd()[1], move);
             if (p.moves.size() == 0) {
                 endTurnPrivate();
             } else if (!isJumpsMandatory()) {
-                p.moves.add(new Move(MoveType.END,move.getPlayerNum()));//, move.getStartType()), null, null, move.getEnd()));
+                p.moves.add(new Move(MoveType.END,move.getPlayerNum()));
                 lock = p;
             }
         }

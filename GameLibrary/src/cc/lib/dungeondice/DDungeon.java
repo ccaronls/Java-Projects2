@@ -1,6 +1,7 @@
 package cc.lib.dungeondice;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 
@@ -13,6 +14,19 @@ import cc.lib.logger.LoggerFactory;
 import cc.lib.utils.Reflector;
 
 public class DDungeon extends Reflector<DDungeon> {
+
+    public interface Listener {
+        void onPrize(Prize p);
+
+        void onEnemyDead(DEnemy e);
+
+        void onPlayerDead(DPlayer p);
+
+        void onMiss(DEntity attacker);
+
+        void onDamage(DEntity e, int damage);
+    }
+
 
     private final static Logger log = LoggerFactory.getLogger(DDungeon.class);
 
@@ -35,15 +49,51 @@ public class DDungeon extends Reflector<DDungeon> {
 
     enum Prize {
         KEY,
-        DMG_PLUS1,
-        DMG_PLUS2,
-        BMG_PLUS3,
+        DEFENSE_PLUS1,
+        DEFENSE_PLUS2,
+        DEFENSE_PLUS3,
         ATTACK_PLUS1,
         ATTACK_PLUS2,
         ATTACK_PLUS3,
         MAGIC_PLUS2,
         HP_PLUS_1,
-        HP_PLUS_2,
+        HP_PLUS_2;
+
+        void apply(DPlayer p) {
+            switch (this) {
+
+                case KEY:
+                    p.key = true;
+                    break;
+                case DEFENSE_PLUS1:
+                    p.defense+=1;
+                    break;
+                case DEFENSE_PLUS2:
+                    p.defense+=2;
+                    break;
+                case DEFENSE_PLUS3:
+                    p.defense+=3;
+                    break;
+                case ATTACK_PLUS1:
+                    p.attack+=1;
+                    break;
+                case ATTACK_PLUS2:
+                    p.attack+=2;
+                    break;
+                case ATTACK_PLUS3:
+                    p.attack+=3;
+                    break;
+                case MAGIC_PLUS2:
+                    ;
+                    break;
+                case HP_PLUS_1:
+                    p.hp+=1;
+                    break;
+                case HP_PLUS_2:
+                    p.hp+=1;
+                    break;
+            }
+        }
     }
 
     enum DiceConfig {
@@ -61,6 +111,8 @@ public class DDungeon extends Reflector<DDungeon> {
     int die1, die2, die3;
     DiceConfig diceConfig = DiceConfig.ONE_6x6;
     final List<DEnemy> enemyList = new ArrayList<>();
+    @Omit
+    HashSet<Listener> listeners = new HashSet<>();
 
     public int getDieRoll() {
         switch (diceConfig) {
@@ -146,8 +198,7 @@ public class DDungeon extends Reflector<DDungeon> {
                 break;
 
             case ROLL_DICE_TO_ADVANCE: {
-                diceConfig = DiceConfig.ONE_6x6;
-                if (getCurPlayer().rollDice()) {
+                if (rollDice(DiceConfig.ONE_6x6)) {
                     state = State.ADVANCE;
                 }
                 break;
@@ -198,8 +249,7 @@ public class DDungeon extends Reflector<DDungeon> {
             }
 
             case ROLL_DICE_FOR_FIGHT:
-                diceConfig = DiceConfig.ONE_6x6;
-                if (getCurPlayer().rollDice()) {
+                if (rollDice(DiceConfig.ONE_6x6)) {
                     DEnemy enemy = enemyList.get(0);
                     if (getDieRoll() <= enemy.type.chanceToFight) {
                         state = State.CHOOSE_FIGHT_OR_FLEE;
@@ -210,22 +260,37 @@ public class DDungeon extends Reflector<DDungeon> {
                 break;
 
             case ROLL_DICE_FOR_BLUE_PRIZE:
-                diceConfig = DiceConfig.ONE_6x6;
-                if (getCurPlayer().rollDice()) {
-
+                if (rollDice(DiceConfig.ONE_6x6)) {
+                    Prize [] prizes = {
+                            Prize.DEFENSE_PLUS3,
+                            Prize.DEFENSE_PLUS2,
+                            Prize.DEFENSE_PLUS2,
+                            Prize.DEFENSE_PLUS1,
+                            Prize.DEFENSE_PLUS1,
+                            Prize.DEFENSE_PLUS1,
+                    };
+                    onPrize(prizes[getDieRoll()]);
+                    prizes[getDieRoll()].apply(getCurPlayer());
                 }
                 break;
 
             case ROLL_DICE_FOR_RED_PRIZE:
-                diceConfig = DiceConfig.ONE_6x6;
-                if (getCurPlayer().rollDice()) {
-
+                if (rollDice(DiceConfig.ONE_6x6)) {
+                    Prize [] prizes = {
+                            Prize.ATTACK_PLUS3,
+                            Prize.ATTACK_PLUS2,
+                            Prize.ATTACK_PLUS2,
+                            Prize.ATTACK_PLUS1,
+                            Prize.ATTACK_PLUS1,
+                            Prize.ATTACK_PLUS1,
+                    };
+                    onPrize(prizes[getDieRoll()]);
+                    prizes[getDieRoll()].apply(getCurPlayer());
                 }
                 break;
 
             case ROLL_DICE_FOR_ROOM: {
-                diceConfig = DiceConfig.TWO_6x6;
-                if (getCurPlayer().rollDice()) {
+                if (rollDice(DiceConfig.TWO_6x6)) {
                     DEnemy.EnemyType[] t = {
                             DEnemy.EnemyType.RAT,
                             DEnemy.EnemyType.RAT,
@@ -234,15 +299,16 @@ public class DDungeon extends Reflector<DDungeon> {
                             DEnemy.EnemyType.SNAKE,
                             DEnemy.EnemyType.SPIDER,
                     };
+                    enemyList.clear();
                     enemyList.add(t[die1-1].newEnemy());
                     enemyList.add(t[die2-1].newEnemy());
+                    state = State.CHOOSE_FIGHT_OR_FLEE;
                 }
                 break;
             }
 
             case ROLL_DICE_FOR_LOCKED_ROOM: {
-                diceConfig = DiceConfig.THREE_6x6;
-                if (getCurPlayer().rollDice()) {
+                if (rollDice(DiceConfig.THREE_6x6)) {
                     DEnemy.EnemyType[] t = {
                             DEnemy.EnemyType.RAT,
                             DEnemy.EnemyType.RAT,
@@ -251,37 +317,69 @@ public class DDungeon extends Reflector<DDungeon> {
                             DEnemy.EnemyType.SPIDER,
                             DEnemy.EnemyType.SPIDER,
                     };
+                    enemyList.clear();
                     enemyList.add(t[die1-1].newEnemy());
                     enemyList.add(t[die2-1].newEnemy());
                     enemyList.add(t[die3-1].newEnemy());
+                    state = State.CHOOSE_FIGHT_OR_FLEE;
                 }
                 break;
             }
 
             case CHOOSE_FIGHT_OR_FLEE: {
-                DMove [] moves = {
-                        new DMove(MoveType.ATTACK, 0, 0, null),
-                        new DMove(MoveType.FLEE, 0, 0, null)
-                };
+                DMove [] moves = new DMove[enemyList.size()+1];
+                for (int i=0; i<enemyList.size(); i++) {
+                    moves[i] = new DMove(MoveType.ATTACK, getCurPlayer().playerNum, i, null);
+                }
+                moves[enemyList.size()] = new DMove(MoveType.FLEE, getCurPlayer().playerNum, 0, null);
                 DMove move = getCurPlayer().chooseMove(moves);
                 if (move != null) {
                     switch (move.type) {
                         case ATTACK: {
                             state = State.ROLL_DICE_FOR_ATTACK;
+                            curEnemy = move.index;
                             break;
                         }
-                        case FLEE:
+                        case FLEE: {
                             // the enemies get a shot in
                             for (DEnemy e : enemyList) {
-                                doAttack(e, getCurPlayer());
-                                doAttack(e, getCurPlayer());
+                                doAttack(Utils.rand()%6+1, e, getCurPlayer());
                             }
 
                             if (!checkPlayerDead(getCurPlayer()))
                                 getCurPlayer().cellIndex = getCurPlayer().backCellIndex;
 
+                            enemyList.clear();
                             nextPlayer();
                             break;
+                        }
+                    }
+                }
+                break;
+            }
+
+            case ROLL_DICE_FOR_ATTACK: {
+                if (rollDice(DiceConfig.ONE_6x6)) {
+                    {
+                        DEnemy e = enemyList.get(curEnemy);
+                        doAttack(getDieRoll(), getCurPlayer(), e);
+                        if (e.hp <= 0) {
+                            onEnemyDead(e);
+                            enemyList.remove(curEnemy);
+                            curEnemy = -1;
+                        }
+                    }
+                    if (enemyList.size() > 0) {
+                        for (DEnemy e : enemyList) {
+                            doAttack(Utils.rand()%6+1, e, getCurPlayer());
+                        }
+
+                        if (checkPlayerDead(getCurPlayer())) {
+                            state = State.ROLL_DICE_TO_ADVANCE;
+                            nextPlayer();
+                        } else {
+                            state = State.CHOOSE_FIGHT_OR_FLEE;
+                        }
                     }
                 }
                 break;
@@ -289,12 +387,15 @@ public class DDungeon extends Reflector<DDungeon> {
         }
     }
 
-    private void doAttack(DEntity attacker, DEntity e) {
+    private void doAttack(int die, DEntity attacker, DEntity e) {
+        if (e.hp <= 0)
+            return;
+
         // attacker dexterity determines if a hit
         // attacker strength determines max damage
         // e def is amount reduced from damage
         // e att is amount added to damage
-        if ((Utils.rand()%6+1) <= attacker.dex) {
+        if (die <= attacker.dex) {
             int damage = Utils.rand()%attacker.str+1+attacker.attack-e.defense;
             if (damage > 0) {
                 onDamage(e, damage);
@@ -317,16 +418,39 @@ public class DDungeon extends Reflector<DDungeon> {
         return false;
     }
 
-    protected void onPlayerDead(DPlayer p) {
-        log.info("Player %s has died. They return to beginning and lose there ATT and DEF");
+    private void onPrize(Prize p) {
+        log.info("Player %s gets %s", getCurPlayer().getName(), p.name());
+        for (Listener l : listeners) {
+            l.onPrize(p);
+        }
     }
 
-    protected void onMiss(DEntity attacker) {
-        log.info("%d Missed!", attacker.getName());
+    private void onEnemyDead(DEnemy e) {
+        log.info("Enemy %s destroyed.", e.getName());
+        for (Listener l : listeners) {
+            l.onEnemyDead(e);
+        }
     }
 
-    protected void onDamage(DEntity e, int damage) {
+    private void onPlayerDead(DPlayer p) {
+        log.info("Player %s has died. They return to beginning and lose there ATT and DEF", p.getName());
+        for (Listener l : listeners) {
+            l.onPlayerDead(p);
+        }
+    }
+
+    private void onMiss(DEntity attacker) {
+        log.info("%s Missed!", attacker.getName());
+        for (Listener l : listeners) {
+            l.onMiss(attacker);
+        }
+    }
+
+    private void onDamage(DEntity e, int damage) {
         log.info("%s took %d damage", e.getName(), damage);
+        for (Listener l : listeners) {
+            l.onDamage(e, damage);
+        }
     }
 
     private void nextPlayer() {
@@ -334,16 +458,21 @@ public class DDungeon extends Reflector<DDungeon> {
         state = State.ROLL_DICE_TO_ADVANCE;
     }
 
-    protected void rollDice() {
-        switch (diceConfig) {
-            case THREE_6x6:
-                die3 = Utils.rand()%6+1;
-            case TWO_6x6:
-                die2 = Utils.rand()%6+1;
-            case ONE_6x6:
-                die1 = Utils.rand()%6+1;
-                break;
+    protected boolean rollDice(DiceConfig config) {
+        diceConfig = config;
+        if (getCurPlayer().rollDice()) {
+            switch (diceConfig) {
+                case THREE_6x6:
+                    die3 = Utils.rand() % 6 + 1;
+                case TWO_6x6:
+                    die2 = Utils.rand() % 6 + 1;
+                case ONE_6x6:
+                    die1 = Utils.rand() % 6 + 1;
+                    break;
+            }
+            return true;
         }
+        return false;
     }
 
     public void draw(APGraphics g) {
@@ -357,24 +486,10 @@ public class DDungeon extends Reflector<DDungeon> {
         DCell cell = board.getCell(p.cellIndex);
         g.pushMatrix();
         g.translate(cell);
-        g.setColor(p.getColor());
         GRectangle rect = board.getCellBoundingRect(p.cellIndex);
         float m = Math.min(rect.w, rect.h);
         rect.scale(m/8, m/8);
-        g.setLineWidth(2);
-        g.drawCircle(0, -1.5f, 0.5f);
-        g.begin();
-        g.vertexArray(new float [][] {
-                { 0, -1 },
-                { 0, .5f },
-                { -1, -.5f },
-                {  1, -.5f },
-                { 0, .5f },
-                { -1, 2 },
-                { 0, .5f },
-                { 1, 2 }
-        });
-        g.drawLines();
+        p.draw(g, 1);
         g.popMatrix();
     }
 

@@ -1,14 +1,16 @@
 package cc.lib.dungeondice;
 
+import cc.lib.game.AGraphics;
 import cc.lib.game.GColor;
 import cc.lib.game.Utils;
 
 public class DPlayer extends DEntity {
 
     int playerNum;
+    boolean key=false;
 
     public boolean hasKey() {
-        return false;
+        return key;
     }
 
     int cellIndex; // position on borad
@@ -36,6 +38,7 @@ public class DPlayer extends DEntity {
         spd = Utils.randRange(1, 6);
     }
 
+    @Override
     public String getName() {
         return "Player " + (playerNum+1);
     }
@@ -46,5 +49,24 @@ public class DPlayer extends DEntity {
 
     public boolean rollDice() {
         return true;
+    }
+
+    @Override
+    public void draw(AGraphics g, float radius) {
+        g.setColor(getColor());
+        g.setLineWidth(2);
+        g.drawCircle(0, -1.5f, 0.5f);
+        g.begin();
+        g.vertexArray(new float [][] {
+                { 0, -1 },
+                { 0, .5f },
+                { -1, -.5f },
+                {  1, -.5f },
+                { 0, .5f },
+                { -1, 2 },
+                { 0, .5f },
+                { 1, 2 }
+        });
+        g.drawLines();
     }
 }

@@ -70,22 +70,22 @@ public abstract class AAnimation<T> {
      * Start the animation after some delay
      * @param delayMSecs
      */
-    public final AAnimation<T> start(long delayMSecs) {
+    public final <A extends AAnimation<T>> A start(long delayMSecs) {
     	if (delayMSecs < 0)
     		delayMSecs = 0;
         lastTime = startTime = getCurrentTimeMSecs() + delayMSecs;
         position = 0;
         state = State.STARTED;
-        return this;
+        return (A)this;
     }
 
     /**
      * Start the animation emmediately
      * @return
      */
-    public final AAnimation<T> start() {
+    public final <A extends AAnimation<T>> A start() {
     	start(0);
-    	return this;
+    	return (A)this;
     }
 
     /**
@@ -94,18 +94,18 @@ public abstract class AAnimation<T> {
      * @param delayMSecs
      * @return
      */
-    public final AAnimation<T> startReverse(long delayMSecs) {
+    public final <A extends AAnimation<T>> A startReverse(long delayMSecs) {
         start(delayMSecs);
         position = 1;
         startDirectionReverse = reverse = true;
-        return this;
+        return (A)this;
     }
 
     /**
      * Emmediately start the animation in reverse direction
      * @return
      */
-    public final AAnimation<T> startReverse() {
+    public final <A extends AAnimation<T>> A startReverse() {
         return startReverse(0);
     }
 

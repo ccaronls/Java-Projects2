@@ -6,7 +6,6 @@ import java.util.List;
 import cc.lib.game.Utils;
 import cc.lib.math.CMath;
 
-import static cc.lib.checkers.PieceType.CAPTURED_CHECKER;
 import static cc.lib.checkers.PieceType.CHECKER;
 import static cc.lib.checkers.PieceType.DAMA_KING;
 import static cc.lib.checkers.PieceType.EMPTY;
@@ -59,7 +58,7 @@ public class Checkers extends ACheckboardGame  {
 
     protected void computeMenKingMoves(Piece p, int rank, int col, Move parent) {
 
-        int [] jdr, jdc, dr, dc;
+        int [] jdr=null, jdc=null, dr=null, dc=null;
         switch (p.type) {
             case KING:
                 jdr = dr = new int[] { 1, 1, -1, -1 };
@@ -106,15 +105,15 @@ public class Checkers extends ACheckboardGame  {
                 jdc = dc = new int[] { 0,  0, -1, 1};
                 break;
             default:
-                throw new AssertionError("Unhandled case");
+                Utils.unhandledCase(p.type);
         }
 
         // check for jumps
         for (int i=0; i<jdr.length; i++) {
-            final int rdr = rank+jdr[i];
-            final int cdc = col+jdc[i];
-            final int rdr2 = rank+dr[i]*2;
-            final int cdc2 = col+dc[i]*2;
+            final int rdr  = rank+jdr[i];
+            final int cdc  = col +jdc[i];
+            final int rdr2 = rank+jdr[i]*2;
+            final int cdc2 = col +jdc[i]*2;
 
             if (!isOnBoard(rdr, cdc))
                 continue;
@@ -123,22 +122,37 @@ public class Checkers extends ACheckboardGame  {
                 continue;
 
             Piece cap = getPiece(rdr, cdc);
-            if (cap.type != CHECKER)
-                continue;
-
-            if (canJumpSelf()) {
-                if (cap.playerNum == getTurn())
-                    cap = null;
-            } else {
-                if (cap.playerNum != getOpponent())
-                    continue;
-            }
-
+            if (cap.captured)
+                continue; // cannot re-capture
             Piece t = getPiece(rdr2, cdc2);
             if (t.type != EMPTY)
                 continue;
+            PieceType nextType = null;
+            if (rdr2==getStartRank(getOpponent())) {
+                switch (p.type) {
+                    case CHECKER:
+                        if (isFlyingKings())
+                            nextType = FLYING_KING;
+                        else
+                            nextType = KING;
+                        break;
 
-            p.moves.add(new Move(MoveType.JUMP, getTurn(), cap, null, rank, col, rdr2, cdc2));
+                    case DAMA_MAN:
+                        nextType = DAMA_KING;
+                        break;
+
+                    default:
+                        Utils.unhandledCase(p.type);
+
+                }
+            }
+
+            if (canJumpSelf() && cap.playerNum == getTurn()) {
+                p.moves.add(new Move(MoveType.JUMP, p.playerNum).setStart(rank, col, p.type, nextType).addPath(rdr2, cdc2));//, null, nextType, rank, col, rdr2, cdc2));
+            } else if (cap.playerNum == getOpponent()) {
+                p.moves.add(new Move(MoveType.JUMP, p.playerNum).setStart(rank, col, p.type, nextType).addPath(rdr2, cdc2, rdr, cdc, cap));
+            }
+
         }
 
         // check for slides
@@ -152,7 +166,7 @@ public class Checkers extends ACheckboardGame  {
                 // t is piece one unit away in this direction
                 Piece t = getPiece(rdr, cdc);
                 if (t.type == EMPTY) {
-                    p.moves.add(new Move(MoveType.SLIDE, getTurn(), null, null, rank, col, rdr, cdc));
+                    p.moves.add(new Move(MoveType.SLIDE, p.playerNum).setStart(rank, col, p.type, null).addPath(rdr, cdc));
                     //new Move(MoveType.SLIDE, rank, col, rdr, cdc, getTurn()));
                 }
             }
@@ -210,7 +224,7 @@ public class Checkers extends ACheckboardGame  {
                     if (t.type == EMPTY)
                         continue;
 
-                    if (t.type == CAPTURED_CHECKER)
+                    if (t.captured)
                         break; // cannot jump a piece we already did
 
                     if (t.playerNum == getOpponent()) {
@@ -242,9 +256,9 @@ public class Checkers extends ACheckboardGame  {
 
                 if (t.type == EMPTY) {
                     if (captured == null)
-                        p.moves.add(new Move(mt, getTurn(), null, null, rank, col, rdr, cdc));
+                        p.moves.add(new Move(mt, p.playerNum).setStart(rank, col, p.type, null).addPath(rdr, cdc));
                     else
-                        p.moves.add(new Move(mt, getTurn(), captured, null, rank, col, rdr, cdc, capturedRank, capturedCol));
+                        p.moves.add(new Move(mt, p.playerNum).setStart(rank, col, p.type, null).addPath(rdr, cdc, capturedRank, capturedCol, captured));
 
                     continue;
                 }
@@ -269,7 +283,7 @@ public class Checkers extends ACheckboardGame  {
     public void endTurn() {
         if (lock != null) {
             for (Move m : lock.moves) {
-                if (m.type == MoveType.END) {
+                if (m.getMoveType() == MoveType.END) {
                     undoStack.push(m);
                     break;
                 }
@@ -293,7 +307,7 @@ public class Checkers extends ACheckboardGame  {
         for (int i=0; i<RANKS; i++) {
             for (int ii=0; ii<COLUMNS; ii++) {
                 Piece p = getPiece(i, ii);
-                if (p.type == CAPTURED_CHECKER) {
+                if (p.captured) {
                     captured.add(new int[] { i, ii });
                 }
             }
@@ -311,54 +325,67 @@ public class Checkers extends ACheckboardGame  {
     @Override
 	public void executeMove(Move move) {
         lock = null;
-		boolean isKinged = false;
+		PieceType kingType = null;
 		final Piece p = getPiece(move.getStart());
         // clear everyone all moves
         clearMoves();
 		if (move.hasEnd()) {
             int rank = move.getEnd()[0];
-            isKinged = (p.type == CHECKER && getStartRank(getOpponent()) == rank);
+            if (getStartRank(getOpponent()) == rank) {
+                switch (p.type) {
+                    case CHECKER:
+                        if (isFlyingKings())
+                            kingType = FLYING_KING;
+                        else
+                            kingType = KING;
+                        break;
+                    case DAMA_MAN:
+                        kingType = DAMA_KING;
+                        break;
+                }
+            }
             movePiece(move);
 		}
 
         undoStack.push(move);
 
-        switch (move.type) {
+        switch (move.getMoveType()) {
             case SLIDE:
-                if (isKinged) {
-                    p.moves.add(new Move(MoveType.STACK, move.playerNum, null, isFlyingKings() ? PieceType.FLYING_KING : PieceType.KING, move.getEnd()));
+                if (kingType != null) {
+                    p.moves.add(new Move(MoveType.STACK, move.getPlayerNum()).setStart(move.getEnd()[0], move.getEnd()[1], move.getStartType(), kingType));//new Piece(move.getPlayerNum(), move.getStartType()), null, kingType, move.getEnd()));
                     lock = p;
                     break;
                 }
             case END:
                 endTurnPrivate();
                 return;
+            case FLYING_JUMP:
             case JUMP:
-                if (move.captured != null) {
-                    clearPiece(move.getCaptured());
+                for (int[] pos : move.getCapturedPositions()) {
+                    if (isRemoveFromBoardOnMultiCapture()) {
+                        clearPiece(pos);
+                    } else {
+                        getPiece(pos).captured = true;
+                    }
                 }
-                if (isKinged) {
-                    p.moves.add(new Move(MoveType.STACK, move.playerNum, null, isFlyingKings() ? PieceType.FLYING_KING : PieceType.KING, move.getEnd()));
+                if (kingType != null) {
+                    p.moves.add(new Move(MoveType.STACK, move.getPlayerNum()).setStart(move.getEnd()[0], move.getEnd()[1], move.getStartType(), kingType));
                     lock = p;
                 }
                 break;
-            case FLYING_JUMP:
-                setPieceType(move.getCaptured(), CAPTURED_CHECKER);
-                break;
             case STACK:
-                move.nextType = p.type;
                 setPieceType(move.getStart(), isFlyingKings() ? PieceType.FLYING_KING : KING);
                 break;
         }
 
-        if (!isKinged) {
+        if (kingType == null) {
             // recursive compute next move if possible after a jump
             if (move.hasEnd())
                 computeMovesForSquare(move.getEnd()[0], move.getEnd()[1], move);
             if (p.moves.size() == 0) {
                 endTurnPrivate();
             } else if (!isJumpsMandatory()) {
-                p.moves.add(new Move(MoveType.END, move.playerNum, null, null, move.getEnd()));
+                p.moves.add(new Move(MoveType.END,move.getPlayerNum()));//, move.getStartType()), null, null, move.getEnd()));
                 lock = p;
             }
         }
@@ -402,5 +429,18 @@ public class Checkers extends ACheckboardGame  {
      */
     protected boolean isMaxJumpsMandatory() {
         return false;
+    }
+
+    @Override
+    public String getName() {
+        return "checkers";
+    }
+
+    /**
+     * Should we remove pieces as they are captured? Or do we leave them on the board until the multi jump is complete?
+     * @return
+     */
+    public boolean isRemoveFromBoardOnMultiCapture() {
+        return true;
     }
 }

@@ -1154,12 +1154,13 @@ public class Reflector<T> {
     /**
      * This version will write the object name at top level element.
      *
+     * @param obj
      * @param file
      * @throws IOException
      */
-    public static void serializeToFile(File file) throws IOException {
+    public static void serializeToFile(Object obj, File file) throws IOException {
         try (FileWriter out = new FileWriter(file)) {
-            serializeObject(new MyPrintWriter(out));
+            serializeObject(obj, new MyPrintWriter(out));
         }
     }
 
@@ -1689,7 +1690,7 @@ public class Reflector<T> {
      * @return
      */
     @SuppressWarnings("unchecked")
-    public final T deepCopy() {
+    public T deepCopy() {
         try {
             T a = (T)getClass().newInstance();
             Map<Field, Archiver> values = getValues(getClass(), false);
@@ -1710,10 +1711,10 @@ public class Reflector<T> {
      * @param other
      */
     @SuppressWarnings({ "unchecked", "rawtypes" })
-	public final void copyFrom(Reflector<T> other) {
+	public final T copyFrom(Reflector<T> other) {
         if (other == this) {
             log.error("Copying from self?");
-            return;
+            return (T)this;
         }
 
     	try {
@@ -1741,6 +1742,8 @@ public class Reflector<T> {
     	} catch (Exception e) {
             throw new RuntimeException("Failed to deep copy", e);
         }
+
+        return (T)this;
     }
     
     /**

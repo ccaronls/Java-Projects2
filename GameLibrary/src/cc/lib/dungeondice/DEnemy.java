@@ -1,8 +1,13 @@
 package cc.lib.dungeondice;
 
+import cc.lib.game.AGraphics;
 import cc.lib.game.Utils;
 
 public class DEnemy extends DEntity {
+
+    static {
+        addAllFields(DEnemy.class);
+    }
 
     public enum EnemyType {
         RAT(5),
@@ -41,5 +46,25 @@ public class DEnemy extends DEntity {
     DEnemy(EnemyType type, int hp, int str, int dex, int attack, int defense) {
         super(hp, str, dex, attack, defense);
         this.type = type;
+    }
+
+    @Override
+    public String getName() {
+        return type + "(" + hp + ")";
+    }
+
+    @Override
+    public void draw(AGraphics g, float radius) {
+        switch (type) {
+            case RAT:
+                g.drawImage(UIGameRenderer.ratId, 0, 0, radius, radius);
+                break;
+            case SNAKE:
+                g.drawImage(UIGameRenderer.snakeId, 0, 0, radius, radius);
+                break;
+            case SPIDER:
+                g.drawImage(UIGameRenderer.spiderId, 0, 0, radius, radius);
+                break;
+        }
     }
 }
