@@ -22,6 +22,8 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -42,7 +44,7 @@ import cc.lib.math.Vector2D;
  * @author chriscaron
  *
  */
-public class CheckerboardView extends View {
+public class CheckerboardView extends RelativeLayout implements View.OnClickListener, Runnable {
 
     private final Paint pFill = new Paint();
     private final Paint pStroke = new Paint();
@@ -51,6 +53,7 @@ public class CheckerboardView extends View {
     private final Paint glowYellow = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint glowRed = new Paint(Paint.ANTI_ALIAS_FLAG);
     boolean drawDebugInfo = false;
+    private TextView bNear, bFar, bStart;
 
     private CheckerboardActivity activity;
     private ACheckboardGame game = null;
@@ -69,6 +72,20 @@ public class CheckerboardView extends View {
     public final void setGame(ACheckboardGame game) {
         this.game = game;
         reset();
+        removeCallbacks(this);
+        if (game != null && game instanceof Chess && ((Chess)game).getTimerLength() > 0) {
+            bFar.setVisibility(View.VISIBLE);
+            bNear.setVisibility(View.VISIBLE);
+            bStart.setVisibility(View.VISIBLE);
+            bFar.setEnabled(false);
+            bNear.setEnabled(false);
+            bNear.setText(timerText(((Chess)game).getTimerNear()));
+            bFar.setText(timerText(((Chess)game).getTimerFar()));
+        } else {
+            bFar.setVisibility(View.GONE);
+            bNear.setVisibility(View.GONE);
+            bStart.setVisibility(View.GONE);
+        }
         invalidate();
     }
 
@@ -102,6 +119,15 @@ public class CheckerboardView extends View {
             game = new Chess();
             game.newGame();
         }
+    }
+
+    @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        (bFar = (TextView)findViewById(R.id.buttonFar)).setOnClickListener(this);
+        (bNear = (TextView)findViewById(R.id.buttonNear)).setOnClickListener(this);
+        (bStart = (TextView)findViewById(R.id.buttonStart)).setOnClickListener(this);
+        setGame(game);
     }
 
     private long downTime = 0;
@@ -276,9 +302,11 @@ public class CheckerboardView extends View {
     class JumpAnim extends MoveAnim {
 
         final Bezier curve;
+        boolean upsidedown;
 
         private IVector2D[] computeJumpPoints(int playerNum) {
 
+            upsidedown = shouldDrawUpsideDown(playerNum);
             float midx1 = sx + ((ex-sx) / 3);
             float midx2 = sx + ((ex-sx) * 2 / 3);
             float midy1 = sy + ((ey-sy) / 3);
@@ -291,6 +319,11 @@ public class CheckerboardView extends View {
                     new Vector2D(ex, ey),
             };
             return v;
+        }
+
+        JumpAnim setUpsideDown(boolean upsideDown) {
+            this.upsidedown = upsideDown;
+            return this;
         }
 
         public JumpAnim(int [] start, int [] end, int playerNum, PieceType pt, Runnable whenDone) {
@@ -312,7 +345,7 @@ public class CheckerboardView extends View {
         public void draw(Canvas g, float position, float dt) {
             Vector2D v = curve.getPointAt(position);
             Piece p = new Piece(playerNum, pType);
-            drawPieceAt(g, p, v.X(), v.Y(), OUTLINE_NONE, shouldDrawUpsideDown(ACheckboardGame.FAR));
+            drawPieceAt(g, p, v.X(), v.Y(), OUTLINE_NONE, upsidedown);
         }
 
     };
@@ -426,13 +459,18 @@ public class CheckerboardView extends View {
     }
 
     public void startEndgameAnimation() {
-        final int [] pos = game.findPiecePosition(game.getTurn(), PieceType.CHECKED_KING, PieceType.CHECKED_KING_IDLE);
+
+        int[] pos;
+        if (game.isForfeited()) {
+            pos = game.findPiecePosition(game.getTurn(), PieceType.CHECKED_KING, PieceType.CHECKED_KING_IDLE, PieceType.UNCHECKED_KING, PieceType.UNCHECKED_KING_IDLE);
+        } else {
+            pos = game.findPiecePosition(game.getTurn(), PieceType.CHECKED_KING, PieceType.CHECKED_KING_IDLE);
+        }
         if (pos == null) {
             // then we are in a draw game.
             startDrawGameAnimation();
             return;
         }
-
 
         hidden.add(game.getPiece(pos[0], pos[1]));
         final int drawable = game.getPlayerColor(game.getTurn()) == ACheckboardGame.Color.BLACK ? R.drawable.bk_king : R.drawable.wt_king;
@@ -485,6 +523,7 @@ public class CheckerboardView extends View {
                     playerNum == ACheckboardGame.NEAR ? nextFarCaptureX : nextNearCaptureX,
                     playerNum == ACheckboardGame.NEAR ? nextFarCaptureY : nextNearCaptureY,
                     playerNum, type, whenDone);
+            setUpsideDown(shouldDrawUpsideDown(-1) && playerNum == ACheckboardGame.NEAR);
         }
     }
 
@@ -499,7 +538,7 @@ public class CheckerboardView extends View {
 
     private void startCapturedAnimation(Move m, Runnable whenDone, boolean reverse) {
 
-        AAnimation<Canvas> a = new CaptureAnim(m.getCaptured()[1], m.getCaptured()[0], m.captured.playerNum, m.captured.type, whenDone);
+        JumpAnim a = new CaptureAnim(m.getCaptured()[1], m.getCaptured()[0], m.captured.playerNum, m.captured.type, whenDone);
         animations.add(a);
         if (reverse)
             a.startReverse();
@@ -522,6 +561,7 @@ public class CheckerboardView extends View {
                 animations.add(new SlideAnim(m, onDone).start());
                 break;
             case JUMP:
+                // TODO: Flying jump sometimes capture
                 if (m.captured != null) {
                     startCapturedAnimation(m, null);
                 }
@@ -675,7 +715,7 @@ public class CheckerboardView extends View {
         nextFarCaptureX = nextNearCaptureX;
         final float maxX = width - cellDim/4;
         for (Piece p : captured) {
-            boolean upsidedown = shouldDrawUpsideDown(p.playerNum);
+            boolean upsidedown = shouldDrawUpsideDown(-1) && p.playerNum == ACheckboardGame.NEAR;
             switch (p.playerNum) {
                 case ACheckboardGame.FAR:
                     drawPieceAt(canvas, p, nextNearCaptureX, nextNearCaptureY, OUTLINE_NONE, upsidedown);
@@ -699,6 +739,72 @@ public class CheckerboardView extends View {
                     break;
             }
         }
+    }
+
+    @Override
+    public void onClick(View view) {
+        switch (view.getId()) {
+            case R.id.buttonFar:
+            case R.id.buttonNear:
+                bNear.setEnabled(false);
+                bFar.setEnabled(false);
+                game.executeMove((Move)view.getTag());
+                break;
+            case R.id.buttonStart:
+                bStart.setVisibility(View.GONE);
+                switch (game.getTurn()) {
+                    case ACheckboardGame.FAR:
+                        bFar.setEnabled(false);
+                        bNear.setEnabled(false);
+                        break;
+                    case ACheckboardGame.NEAR:
+                        bFar.setEnabled(false);
+                        bNear.setEnabled(false);
+                        break;
+                }
+                postDelayed(this, 200);
+                break;
+        }
+    }
+
+    String timerText(int seconds) {
+        int mins = seconds/60;
+        seconds -= mins*60;
+        return String.format("%d:%02d", mins, seconds);
+    }
+
+    @Override
+    public void run() {
+        if (game == null)
+            return;
+        if (!(game instanceof Chess))
+            return;
+        Chess chess = (Chess)game;
+        chess.timerTick();
+        bFar.setText(timerText(chess.getTimerFar()));
+        bNear.setText(timerText(chess.getTimerNear()));
+        Move m;
+        if (game.computeMoves() == 1 && (m=game.getMoves().iterator().next()).type == MoveType.END) {
+            switch (chess.getTurn()) {
+                case ACheckboardGame.FAR:
+                    bFar.setEnabled(true);
+                    bFar.setTag(m);
+                    break;
+                case ACheckboardGame.NEAR:
+                    bNear.setEnabled(true);
+                    bNear.setTag(m);
+                    break;
+            }
+        } else {
+            bNear.setEnabled(false);
+            bFar.setEnabled(false);
+        }
+        if (chess.isTimerExpired()) {
+            chess.forfeit();
+        } else {
+            postDelayed(this, 200);
+        }
+        invalidate();
     }
 
     private void drawBoardPieces(Canvas canvas, float width, float height, float dim, int RANKS, int COLUMNS) {

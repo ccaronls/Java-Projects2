@@ -7,7 +7,10 @@ import android.content.DialogInterface;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
+import android.view.GestureDetector;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.CompoundButton;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -20,6 +23,7 @@ import java.util.List;
 
 import cc.lib.android.AndroidLogWriter;
 import cc.lib.android.CCActivityBase;
+import cc.lib.android.SwipeGestureListener;
 import cc.lib.game.MiniMaxTree.MMTreeNode;
 import cc.lib.game.Utils;
 import cc.lib.utils.FileUtils;
@@ -35,7 +39,9 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
     private View bUp, bDown, bLeft, bRight;
     private View bRobot;
     private CompoundButton tbDebug;
+    private ViewGroup vgButtons;
     private Robot robot = null;
+    private GestureDetector gesture;
 
     @Override
     protected void onCreate(Bundle bundle) {
@@ -52,10 +58,33 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
         (bRight = findViewById(R.id.buttonRight)).setOnClickListener(this);
         (bDown = findViewById(R.id.buttonDown)).setOnClickListener(this);
         (bRobot = findViewById(R.id.buttonRobot)).setOnClickListener(this);
+        vgButtons = (ViewGroup)findViewById(R.id.vgButtons);
         tvDebug = (TextView)findViewById(R.id.tvDebug);
         tbDebug = (CompoundButton)findViewById(R.id.toggleButtonDebug);
         tbDebug.setOnCheckedChangeListener(this);
         bRobot.setVisibility(View.GONE);
+        gesture = new GestureDetector(this, new SwipeGestureListener() {
+            @Override
+            public void onSwipeLeft() {
+                vgButtons.removeCallbacks(hideButtonsRunnable);
+                vgButtons.setVisibility(View.GONE);
+            }
+
+            @Override
+            public void onSwipeRight() {
+                vgButtons.removeCallbacks(hideButtonsRunnable);
+                vgButtons.setVisibility(View.VISIBLE);
+                vgButtons.postDelayed(hideButtonsRunnable, 5000);
+            }
+        });
+        pbv.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                gesture.onTouchEvent(event);
+
+                return pbv.onTouchEvent(event);
+            }
+        });
 
         bEndTurn.setEnabled(false);
         setDebugMode(false);
@@ -474,6 +503,30 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
         }).show();
     }
 
+    void showChooseChessVersion(final Chess chess) {
+        String [] items = { "No Timer", "30 minute", "15 minute", "Speed Chess (5 min)"};
+        newDialogBuilder(true).setItems(items, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int which) {
+                switch (which) {
+                    case 1: // 30 min
+                        chess.setTimer(30 * 60);
+                        break;
+                    case 2: // 15 min
+                        chess.setTimer(15 * 60);
+                        break;
+                    case 3: // 5 min
+                        chess.setTimer(5 * 60);
+                        break;
+                    case 0: // No Timer
+                    default:
+                }
+                pbv.setGame(chess);
+            }
+        }).show();
+    }
+
+
     void showChoosePlayersDialog(final ACheckboardGame game) {
         tbDebug.setVisibility(View.GONE);
         ArrayList<String> list = new ArrayList<>();
@@ -507,8 +560,12 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
                     case 1: {// 2 players
                         robot = null;
                         game.newGame();
-                        pbv.setGame(game);
                         updateButtons();
+                        if (game instanceof Chess) {
+                            showChooseChessVersion((Chess)game);
+                        } else {
+                            pbv.setGame(game);
+                        }
                         break;
                     }
                     case 2:
@@ -536,9 +593,21 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
             pbv.getGame().trySaveToFile(getSaveFile(pbv.getGame()));
     }
 
+    Runnable hideButtonsRunnable = new Runnable() {
+        @Override
+        public void run() {
+            try {
+                vgButtons.setVisibility(View.GONE);
+            } catch (Exception e) {}
+        }
+    };
+
     @Override
     public void onResume() {
         super.onResume();
+        vgButtons.setVisibility(View.VISIBLE);
+        vgButtons.postDelayed(hideButtonsRunnable, 5000);
+
     }
 
     private void loadAsync(final ACheckboardGame game) {
@@ -602,7 +671,7 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
 
     @Override
     public void onBackPressed() {
-        if (pbv.getGame().canUndo()) {
+        if (pbv.getGame() != null && pbv.getGame().canUndo()) {
             pbv.undo();
             updateButtons();
         } else {

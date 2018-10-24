@@ -8,6 +8,7 @@ import cc.lib.math.CMath;
 
 import static cc.android.checkerboard.PieceType.CHECKER;
 import static cc.android.checkerboard.PieceType.DAMA_KING;
+import static cc.android.checkerboard.PieceType.DAMA_MAN;
 import static cc.android.checkerboard.PieceType.EMPTY;
 import static cc.android.checkerboard.PieceType.FLYING_KING;
 import static cc.android.checkerboard.PieceType.KING;
@@ -278,28 +279,6 @@ public class Checkers extends ACheckboardGame  {
 
     }
 
-    public void endTurn() {
-        if (lock != null) {
-            for (Move m : lock.moves) {
-                if (m.type == MoveType.END) {
-                    undoStack.push(m);
-                    break;
-                }
-            }
-        }
-        endTurnPrivate();
-    }
-
-    private void endTurnPrivate() {
-        removeCapturedPieces();
-        nextTurn();
-        lock = null;
-        clearMoves();
-        if (computeMoves()==0) {
-            onGameOver();
-        }
-	}
-
 	private void removeCapturedPieces() {
         List<int[]> captured = new ArrayList<>();
         for (int i=0; i<RANKS; i++) {
@@ -324,12 +303,14 @@ public class Checkers extends ACheckboardGame  {
 	public void executeMove(Move move) {
         lock = null;
 		boolean isKinged = false;
+		boolean isDamaKing = false;
 		final Piece p = getPiece(move.getStart());
         // clear everyone all moves
         clearMoves();
 		if (move.hasEnd()) {
             int rank = move.getEnd()[0];
             isKinged = (p.type == CHECKER && getStartRank(getOpponent()) == rank);
+            isDamaKing = (p.type == DAMA_MAN && getStartRank(getOpponent()) == rank);
             movePiece(move);
 		}
 
@@ -339,6 +320,11 @@ public class Checkers extends ACheckboardGame  {
             case SLIDE:
                 if (isKinged) {
                     p.moves.add(new Move(MoveType.STACK, move.playerNum, null, isFlyingKings() ? PieceType.FLYING_KING : PieceType.KING, move.getEnd()));
+                    lock = p;
+                    break;
+                }
+                if (isDamaKing) {
+                    p.moves.add(new Move(MoveType.STACK, move.playerNum, null, PieceType.DAMA_KING, move.getEnd()));
                     lock = p;
                     break;
                 }
@@ -353,13 +339,16 @@ public class Checkers extends ACheckboardGame  {
                     p.moves.add(new Move(MoveType.STACK, move.playerNum, null, isFlyingKings() ? PieceType.FLYING_KING : PieceType.KING, move.getEnd()));
                     lock = p;
                 }
+                if (isDamaKing) {
+                    p.moves.add(new Move(MoveType.STACK, move.playerNum, null, PieceType.DAMA_KING, move.getEnd()));
+                    lock = p;
+                }
                 break;
             case FLYING_JUMP:
                 getPiece(move.getCaptured()).captured = true;
                 break;
             case STACK:
-                move.nextType = p.type;
-                setPieceType(move.getStart(), isFlyingKings() ? PieceType.FLYING_KING : KING);
+                setPieceType(move.getStart(), move.nextType);
                 break;
         }
 
@@ -375,6 +364,12 @@ public class Checkers extends ACheckboardGame  {
             }
         }
 	}
+
+    @Override
+    protected void endTurnPrivate() {
+        removeCapturedPieces();
+        super.endTurnPrivate();
+    }
 
     @Override
     public Color getPlayerColor(int side) {
