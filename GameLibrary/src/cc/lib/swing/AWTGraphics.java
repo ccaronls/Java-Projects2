@@ -450,4 +450,21 @@ public class AWTGraphics extends APGraphics {
     public void clearClip() {
         g.setClip(null);
     }
+
+    @Override
+    public boolean isCaptureAvailable() {
+        return super.isCaptureAvailable();
+    }
+
+    @Override
+    public void beginScreenCapture() {
+
+
+        super.beginScreenCapture();
+    }
+
+    @Override
+    public int captureScreen(int x, int y, int w, int h) {
+        return super.captureScreen(x, y, w, h);
+    }
 }

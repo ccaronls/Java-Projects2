@@ -113,7 +113,7 @@ public abstract class AAnimation<T> {
      *
      * @return
      */
-    public final boolean isDone() {
+    public boolean isDone() {
         return state==State.DONE;
     }
 

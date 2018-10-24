@@ -8,6 +8,7 @@ import cc.lib.math.CMath;
 
 import static cc.android.checkerboard.PieceType.CHECKER;
 import static cc.android.checkerboard.PieceType.DAMA_KING;
+import static cc.android.checkerboard.PieceType.DAMA_MAN;
 import static cc.android.checkerboard.PieceType.EMPTY;
 import static cc.android.checkerboard.PieceType.FLYING_KING;
 import static cc.android.checkerboard.PieceType.KING;
@@ -325,25 +326,15 @@ public class Checkers extends ACheckboardGame  {
     @Override
 	public void executeMove(Move move) {
         lock = null;
-		PieceType kingType = null;
+		boolean isKinged = false;
+		boolean isDamaKing = false;
 		final Piece p = getPiece(move.getStart());
         // clear everyone all moves
         clearMoves();
 		if (move.hasEnd()) {
             int rank = move.getEnd()[0];
-            if (getStartRank(getOpponent()) == rank) {
-                switch (p.type) {
-                    case CHECKER:
-                        if (isFlyingKings())
-                            kingType = FLYING_KING;
-                        else
-                            kingType = KING;
-                        break;
-                    case DAMA_MAN:
-                        kingType = DAMA_KING;
-                        break;
-                }
-            }
+            isKinged = (p.type == CHECKER && getStartRank(getOpponent()) == rank);
+            isDamaKing = (p.type == DAMA_MAN && getStartRank(getOpponent()) == rank);
             movePiece(move);
 		}
 
@@ -351,8 +342,13 @@ public class Checkers extends ACheckboardGame  {
 
         switch (move.getMoveType()) {
             case SLIDE:
-                if (kingType != null) {
-                    p.moves.add(new Move(MoveType.STACK, move.getPlayerNum()).setStart(move.getEnd()[0], move.getEnd()[1], move.getStartType(), kingType));//new Piece(move.getPlayerNum(), move.getStartType()), null, kingType, move.getEnd()));
+                if (isKinged) {
+                    p.moves.add(new Move(MoveType.STACK, move.getPlayerNum()).setStart(move.getEnd()[0], move.getEnd()[1], move.getStartType(), isFlyingKings() ? PieceType.FLYING_KING : PieceType.KING));//new Piece(move.getPlayerNum(), move.getStartType()), null, kingType, move.getEnd()));
+                    lock = p;
+                    break;
+                }
+                if (isDamaKing) {
+                    p.moves.add(new Move(MoveType.STACK, move.getPlayerNum(), null, PieceType.DAMA_KING, move.getEnd()));
                     lock = p;
                     break;
                 }
@@ -368,17 +364,21 @@ public class Checkers extends ACheckboardGame  {
                         getPiece(pos).captured = true;
                     }
                 }
-                if (kingType != null) {
-                    p.moves.add(new Move(MoveType.STACK, move.getPlayerNum()).setStart(move.getEnd()[0], move.getEnd()[1], move.getStartType(), kingType));
+                if (isKinged) {
+                    p.moves.add(new Move(MoveType.STACK, move.getPlayerNum(), null, isFlyingKings() ? PieceType.FLYING_KING : PieceType.KING, move.getEnd()));
+                    lock = p;
+                }
+                if (isDamaKing) {
+                    p.moves.add(new Move(MoveType.STACK, move.getPlayerNum(), null, PieceType.DAMA_KING, move.getEnd()));
                     lock = p;
                 }
                 break;
             case STACK:
-                setPieceType(move.getStart(), isFlyingKings() ? PieceType.FLYING_KING : KING);
+                setPieceType(move.getStart(), move.nextType);
                 break;
         }
 
-        if (kingType == null) {
+        if (!) {
             // recursive compute next move if possible after a jump
             if (move.hasEnd())
                 computeMovesForSquare(move.getEnd()[0], move.getEnd()[1], move);
@@ -390,6 +390,12 @@ public class Checkers extends ACheckboardGame  {
             }
         }
 	}
+
+    @Override
+    protected void endTurnPrivate() {
+        removeCapturedPieces();
+        super.endTurnPrivate();
+    }
 
     @Override
     public Color getPlayerColor(int side) {
