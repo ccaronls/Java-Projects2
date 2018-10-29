@@ -1,6 +1,7 @@
 package cc.android.checkerboard;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import cc.lib.game.Utils;
@@ -122,6 +123,11 @@ public class Checkers extends ACheckboardGame  {
             if (!isOnBoard(rdr2, cdc2))
                 continue;
 
+            if (parent != null) {
+                if (rdr2 == parent.getStart()[0] && cdc2 == parent.getStart()[1])
+                    continue;
+            }
+
             Piece cap = getPiece(rdr, cdc);
             Piece t = getPiece(rdr2, cdc2);
             if (t.type != EMPTY)
@@ -130,6 +136,7 @@ public class Checkers extends ACheckboardGame  {
             if (rdr2==getStartRank(getOpponent())) {
                 switch (p.type) {
                     case CHECKER:
+                    case KING:
                         if (isFlyingKings())
                             nextType = FLYING_KING;
                         else
@@ -148,7 +155,7 @@ public class Checkers extends ACheckboardGame  {
 
             if (canJumpSelf() && cap.playerNum == getTurn()) {
                 p.moves.add(new Move(MoveType.JUMP, getTurn(), null, nextType, rank, col, rdr2, cdc2));
-            } else if (cap.playerNum == getOpponent()) {
+            } else if (!cap.captured && cap.playerNum == getOpponent()) {
                 p.moves.add(new Move(MoveType.JUMP, getTurn(), cap, nextType, rank, col, rdr2, cdc2, rdr, cdc));
             }
 
@@ -231,9 +238,9 @@ public class Checkers extends ACheckboardGame  {
                         ii++;
                         capturedRank=rdr;
                         capturedCol=cdc;
+                    }
                         break;
                     }
-                }
 
                 if (captured == null)
                     continue;
@@ -279,7 +286,7 @@ public class Checkers extends ACheckboardGame  {
 
     }
 
-	private void removeCapturedPieces() {
+	protected void removeCapturedPieces() {
         List<int[]> captured = new ArrayList<>();
         for (int i=0; i<RANKS; i++) {
             for (int ii=0; ii<COLUMNS; ii++) {
@@ -331,9 +338,14 @@ public class Checkers extends ACheckboardGame  {
             case END:
                 endTurnPrivate();
                 return;
+            case FLYING_JUMP:
             case JUMP:
+                if (isCaptureAtEndEnabled()) {
+                    getPiece(move.getCaptured()).captured = true;
+                } else {
                 if (move.captured != null) {
                     clearPiece(move.getCaptured());
+                }
                 }
                 if (isKinged) {
                     p.moves.add(new Move(MoveType.STACK, move.playerNum, null, isFlyingKings() ? PieceType.FLYING_KING : PieceType.KING, move.getEnd()));
@@ -343,9 +355,6 @@ public class Checkers extends ACheckboardGame  {
                     p.moves.add(new Move(MoveType.STACK, move.playerNum, null, PieceType.DAMA_KING, move.getEnd()));
                     lock = p;
                 }
-                break;
-            case FLYING_JUMP:
-                getPiece(move.getCaptured()).captured = true;
                 break;
             case STACK:
                 setPieceType(move.getStart(), move.nextType);
@@ -364,6 +373,38 @@ public class Checkers extends ACheckboardGame  {
             }
         }
 	}
+
+    @Override
+    protected int recomputeMoves() {
+        int num = super.recomputeMoves();
+        if (isJumpsMandatory()) {
+            boolean hasJumps = false;
+            for (Move m : getMoves()) {
+                if (m.type == MoveType.JUMP || m.type == MoveType.FLYING_JUMP) {
+                    hasJumps = true;
+                    break;
+                }
+            }
+            if (hasJumps) {
+                for (int rank = 0; rank < RANKS; rank++) {
+                    for (int col = 0; col < COLUMNS; col++) {
+                        Iterator<Move> it = getPiece(rank, col).moves.iterator();
+                        while (it.hasNext()) {
+                            Move m = it.next();
+                            switch (m.type) {
+                                case JUMP:
+                                case FLYING_JUMP:
+                                    continue;
+                            }
+                            it.remove();
+                            num--;
+                        }
+                    }
+                }
+            }
+        }
+        return num;
+    }
 
     @Override
     protected void endTurnPrivate() {
@@ -408,6 +449,9 @@ public class Checkers extends ACheckboardGame  {
      * @return
      */
     protected boolean isMaxJumpsMandatory() {
+        return false;
+    }
+    protected boolean isCaptureAtEndEnabled() {
         return false;
     }
 }

@@ -19,6 +19,8 @@ public class Piece extends Reflector<Piece> {
     public PieceType type;
     public final List<Move> moves = new ArrayList<>();
 
+    boolean captured = false;
+
     public Piece() {
         playerNum = -1;
         type = PieceType.EMPTY;

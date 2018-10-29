@@ -1,9 +1,6 @@
 package cc.lib.checkers;
 
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
-import java.util.Stack;
 
 import cc.lib.game.Utils;
 import cc.lib.utils.Reflector;
@@ -35,9 +32,59 @@ public class Chess extends ACheckboardGame {
     }
 
     private int whiteSide = -1;
+    private long timerLength, timerFar, timerNear;
 
     public Chess() {
         super(8,8,2);
+        setTimer(-1);
+    }
+
+    @Omit
+    private long startTimeMS = 0;
+
+    public void setTimer(int seconds) {
+        this.timerLength = this.timerFar = this.timerNear = seconds*1000;
+        startTimeMS = 0;
+    }
+
+    @Override
+    public void newGame() {
+        super.newGame();
+        this.timerFar = this.timerNear = this.timerLength;
+        startTimeMS = 0;
+    }
+
+    public void timerTick(long uptimeMillis) {
+        if (startTimeMS <= 0)
+            startTimeMS = uptimeMillis;
+        long dt = uptimeMillis-startTimeMS;
+        switch (getTurn()) {
+            case FAR: timerFar -= dt; break;
+            case NEAR: timerNear-= dt; break;
+        }
+        startTimeMS = uptimeMillis;
+    }
+
+    public int getTimerLength() {
+        return (int)(timerLength/1000);
+    }
+
+    public int getTimerFar() {
+        return (int)(timerFar/1000);
+    }
+
+    public int getTimerNear() {
+        return (int)(timerNear/1000);
+    }
+
+    public boolean isTimerExpired() {
+        if (timerLength <= 0)
+            return false;
+        if (getTurn() == FAR && timerFar <= 0)
+            return true;
+        if (getTurn() == NEAR && timerNear <= 0)
+            return true;
+        return false;
     }
 
     public void initBoard() {
@@ -64,12 +111,17 @@ public class Chess extends ACheckboardGame {
     @Override
     public void executeMove(Move move) {
         lock = null;
+        Piece p = null;
         clearMoves();
         undoStack.push(move);
-        isSqAttackedCache.push(new HashMap<Integer, Boolean>());
         {
-            Piece p;
             switch (move.type) {
+                case END:
+                    if (isForfeited()) {
+                        onGameOver();
+                        return;
+                    }
+                    break;
                 case JUMP:
                 case SLIDE:
                     if (move.captured != null) {
@@ -100,6 +152,12 @@ public class Chess extends ACheckboardGame {
                     throw new AssertionError();
             }
             updateOpponentKingCheckedState();
+        }
+
+        if (p != null && timerLength > 0) {
+            lock = p;
+            lock.moves.clear();
+            lock.moves.add(new Move(MoveType.END, p.playerNum, null, null, move.getEnd()));
         }
 
         if (lock == null) {
@@ -140,7 +198,6 @@ public class Chess extends ACheckboardGame {
 
     @Override
     protected void reverseMove(Move m, boolean recompute) {
-        isSqAttackedCache.pop();
         super.reverseMove(m, recompute);
         updateOpponentKingCheckedState();
     }
@@ -154,8 +211,6 @@ public class Chess extends ACheckboardGame {
         return false;
     }
 
-    private Stack<Map<Integer, Boolean>> isSqAttackedCache = new Stack<>();
-
     /**
      * Return true if playerNum is attacking the position
      * @param rank
@@ -164,22 +219,7 @@ public class Chess extends ACheckboardGame {
      * @return
      */
     final boolean isSquareAttacked(int rank, int col, int playerNum) {
-        Map<Integer, Boolean> isSqAtt = null;
-        if (isSqAttackedCache.size() > 0) {
-            isSqAtt = isSqAttackedCache.peek();
-        }
-        if (isSqAtt == null) {
-            isSqAtt = new HashMap<>();
-            isSqAttackedCache.push(isSqAtt);
-        }
-
-        int key = (rank << 16) | (col << 8) | playerNum;
-        Boolean att = isSqAtt.get(key);
-        if (att != null) {
-            return att;
-        }
         boolean b = isSquareAttackedP(rank, col, playerNum);
-        isSqAtt.put(key, b);
         return b;
     }
 

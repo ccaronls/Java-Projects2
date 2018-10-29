@@ -42,4 +42,9 @@ public class DEnemy extends DEntity {
         super(hp, str, dex, attack, defense);
         this.type = type;
     }
+
+    @Override
+    public String getName() {
+        return type.name();
+    }
 }

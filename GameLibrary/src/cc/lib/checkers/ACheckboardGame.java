@@ -34,6 +34,7 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
     private int computedMoves = -1; // optimization so that multiple calls to compute moves doesnt cause complete rescan unless neccessary
     protected Piece lock = null;
     protected final Stack<Move> undoStack = new Stack<>();
+    private boolean forfeited = false;
 
     // expose so we can allow fast access to array
     public final Piece [][] board; // rank major
@@ -70,6 +71,11 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
         board[pos[0]][pos[1]] = p;
     }
 
+    public final void forfeit() {
+        forfeited = true;
+        executeMove(new Move(MoveType.END, getTurn(), null, null));
+    }
+
     public final void movePiece(Move m) {
         Piece p = getPiece(m.getStart());
         setBoard(m.getEnd(), p);
@@ -79,6 +85,10 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
             p.type = m.nextType;
             m.nextType = t;
         }
+    }
+
+    public final boolean isForfeited() {
+        return forfeited;
     }
 
     public final void clearPiece(int [] pos ) {
@@ -100,9 +110,8 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
         for (int rank=0; rank<RANKS; rank++) {
             for (int col =0; col<COLUMNS; col++) {
                 if (board[rank][col].playerNum == playerNum) {
-                    for (PieceType t : types) {
-                        if (board[rank][col].type == t)
-                            return new int[]{rank, col};
+                    if (Utils.linearSearch(types, board[rank][col].type) >= 0) {
+                        return new int[]{rank, col};
                     }
                 }
             }
@@ -130,10 +139,11 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
     /**
      * Should be called after all the pieces have been setup
      */
-    public final void newGame() {
+    public void newGame() {
         if (board[0][0] != null)
             clearMoves();
         lock = null;
+        forfeited = false;
         undoStack.clear();
         initBoard();
         computeMoves();
@@ -156,6 +166,8 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
     }
 
     private final int computeMoves(boolean refresh) {
+        if (forfeited)
+            return 0;
         if (lock == null) {
             if (computedMoves >= 0 && !refresh)
                 return computedMoves;
@@ -187,7 +199,7 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
         this.turn = turn;
     }
 
-    protected final void nextTurn() {
+    protected void nextTurn() {
         turn = (turn+1) % NUM_PLAYERS;
         clearMoves();
     }
@@ -294,8 +306,10 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
             case JUMP:
                 setBoard(m.getStart(), getPiece(m.getEnd()));
                 clearPiece(m.getEnd());
-                if (m.captured != null)
+                if (m.captured != null) {
                     setBoard(m.getCaptured(), m.captured);
+                    m.captured.captured = false;
+                }
                 //fallthrough
             case SWAP:
             case STACK:
@@ -446,5 +460,27 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
     public BoardType getBoardType() {
         return BoardType.CHECKERS;
     }
+
+    public void endTurn() {
+        if (lock != null) {
+            for (Move m : lock.moves) {
+                if (m.type == MoveType.END) {
+                    undoStack.push(m);
+                    break;
+                }
+            }
+        }
+        endTurnPrivate();
+    }
+
+    protected void endTurnPrivate() {
+        nextTurn();
+        lock = null;
+        clearMoves();
+        if (computeMoves()==0) {
+            onGameOver();
+        }
+    }
+
 
 }

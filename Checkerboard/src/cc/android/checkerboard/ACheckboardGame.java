@@ -306,8 +306,10 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
             case JUMP:
                 setBoard(m.getStart(), getPiece(m.getEnd()));
                 clearPiece(m.getEnd());
-                if (m.captured != null)
+                if (m.captured != null) {
                     setBoard(m.getCaptured(), m.captured);
+                    m.captured.captured = false;
+                }
                 //fallthrough
             case SWAP:
             case STACK:
