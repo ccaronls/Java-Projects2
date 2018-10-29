@@ -66,15 +66,12 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
         gesture = new GestureDetector(this, new SwipeGestureListener() {
             @Override
             public void onSwipeLeft() {
-                vgButtons.removeCallbacks(hideButtonsRunnable);
                 vgButtons.setVisibility(View.GONE);
             }
 
             @Override
             public void onSwipeRight() {
-                vgButtons.removeCallbacks(hideButtonsRunnable);
                 vgButtons.setVisibility(View.VISIBLE);
-                vgButtons.postDelayed(hideButtonsRunnable, 5000);
             }
         });
         pbv.setOnTouchListener(new View.OnTouchListener() {
@@ -82,7 +79,9 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
             public boolean onTouch(View v, MotionEvent event) {
                 gesture.onTouchEvent(event);
 
-                return pbv.onTouchEvent(event);
+                pbv.onTouchEvent(event);
+
+                return true;
             }
         });
 
@@ -521,7 +520,7 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
                     case 0: // No Timer
                     default:
                 }
-                pbv.setGame(chess);
+                startGame(chess);
             }
         }).show();
     }
@@ -544,7 +543,7 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
                             @Override
                             public void onClick(DialogInterface dialog, final int which) {
                                 game.newGame();
-                                pbv.setGame(game);
+                                startGame(game);
                                 robot = new Robot(which);
                                 updateButtons();
                                 checkForRobotTurn();
@@ -564,7 +563,7 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
                         if (game instanceof Chess) {
                             showChooseChessVersion((Chess)game);
                         } else {
-                            pbv.setGame(game);
+                            startGame(game);
                         }
                         break;
                     }
@@ -593,21 +592,10 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
             pbv.getGame().trySaveToFile(getSaveFile(pbv.getGame()));
     }
 
-    Runnable hideButtonsRunnable = new Runnable() {
-        @Override
-        public void run() {
-            try {
-                vgButtons.setVisibility(View.GONE);
-            } catch (Exception e) {}
-        }
-    };
-
     @Override
     public void onResume() {
         super.onResume();
         vgButtons.setVisibility(View.VISIBLE);
-        vgButtons.postDelayed(hideButtonsRunnable, 5000);
-
     }
 
     private void loadAsync(final ACheckboardGame game) {
@@ -634,7 +622,7 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
                             .setNegativeButton("Ok", null)
                             .show();
                 } else {
-                    pbv.setGame(game);
+                    startGame(game);
                 }
                 robot = null; //  TODO: Save robot or difficulty on the checkers object
                 pbv.invalidate();
@@ -681,9 +669,20 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
 
     private static final int ROBOT_PLAYER_NUM = 1;
 
+    void setEndTurnButton(Move m) {
+        if (m == null) {
+            bEndTurn.setEnabled(false);
+            bEndTurn.setTag(null);
+            vgButtons.setVisibility(View.GONE);
+        } else {
+            bEndTurn.setEnabled(true);
+            bEndTurn.setTag(m);
+            vgButtons.setVisibility(View.VISIBLE);
+        }
+    }
+
     void updateButtons() {
-        bEndTurn.setEnabled(false);
-        bEndTurn.setTag(null);
+        setEndTurnButton(null);
         if (robot != null && pbv.getGame().getTurn() == ROBOT_PLAYER_NUM)
         {} else if (pbv.getGame()!=null) {
             Piece lock = pbv.getGame().getLocked();
@@ -695,13 +694,11 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
                         switch (m.type) {
                             case SWAP:
                                 if (m.nextType == lock.type) {
-                                    bEndTurn.setTag(m);
-                                    bEndTurn.setEnabled(true);
+                                    setEndTurnButton(m);
                                 }
                                 break;
                             case END:
-                                bEndTurn.setTag(m);
-                                bEndTurn.setEnabled(true);
+                                setEndTurnButton(m);
                                 break;
                         }
                     }
@@ -718,6 +715,11 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
         }
         bRobot.setVisibility(robot == null ? View.VISIBLE :View.GONE);
         tbDebug.setVisibility(robot == null ? View.GONE : View.VISIBLE);
+    }
+
+    void startGame(ACheckboardGame game) {
+        pbv.setGame(game);
+        vgButtons.setVisibility(View.GONE);
     }
 
     @Override

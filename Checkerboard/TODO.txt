@@ -1,5 +1,19 @@
 - add MP
-- add timer
-- better theme for dialogs
-- remove DEBUG for release
-- Drag capture animations dont look right...capturing pice should animate?
+
+- highlighted moves off center for boards other than 8x8
+
+- pieces should have their own animation handle (get rid of 'hidden' table)
+
+CHECKERS
+- undo from a king stack causes end turn to be available (should not)
+- captured pieces appear on side before animation completes when dragging
+
+CHESS
+- king topple animation wrong when unsidedown
+- no capture animation when dragging checkmate
+
+DRAUGHTS
+- capture keeps pieces on board until end not supported. Undo wont work.
+- Add 12x12 version
+
+DAMA

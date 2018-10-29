@@ -6,21 +6,7 @@ import java.util.Iterator;
 
 import cc.lib.game.Utils;
 
-import static cc.android.checkerboard.PieceType.BISHOP;
-import static cc.android.checkerboard.PieceType.CHECKED_KING;
-import static cc.android.checkerboard.PieceType.CHECKED_KING_IDLE;
-import static cc.android.checkerboard.PieceType.EMPTY;
-import static cc.android.checkerboard.PieceType.KNIGHT;
-import static cc.android.checkerboard.PieceType.PAWN;
-import static cc.android.checkerboard.PieceType.PAWN_ENPASSANT;
-import static cc.android.checkerboard.PieceType.PAWN_IDLE;
-import static cc.android.checkerboard.PieceType.PAWN_TOSWAP;
-import static cc.android.checkerboard.PieceType.QUEEN;
-import static cc.android.checkerboard.PieceType.ROOK;
-import static cc.android.checkerboard.PieceType.ROOK_IDLE;
-import static cc.android.checkerboard.PieceType.UNAVAILABLE;
-import static cc.android.checkerboard.PieceType.UNCHECKED_KING;
-import static cc.android.checkerboard.PieceType.UNCHECKED_KING_IDLE;
+import static cc.android.checkerboard.PieceType.*;
 
 /**
  * Created by chriscaron on 10/10/17.

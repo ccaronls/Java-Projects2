@@ -560,12 +560,12 @@ public class CheckerboardView extends RelativeLayout implements View.OnClickList
                 }
                 animations.add(new SlideAnim(m, onDone).start());
                 break;
+            case FLYING_JUMP:
             case JUMP:
                 // TODO: Flying jump sometimes capture
                 if (m.captured != null) {
                     startCapturedAnimation(m, null);
                 }
-            case FLYING_JUMP:
                 animations.add(new JumpAnim(m, onDone).start());
                 break;
             case STACK:
@@ -587,17 +587,11 @@ public class CheckerboardView extends RelativeLayout implements View.OnClickList
             if (m.hasEnd() && m.getEnd()[0] == curRank && m.getEnd()[1] == curCol) {
                 switch (m.type) {
                     case SLIDE:
-                    case FLYING_JUMP:
                         break;
+                    case FLYING_JUMP:
                     case JUMP: {
                         if (m.captured != null) {
-                            startCapturedAnimation(m, new Runnable() {
-                                @Override
-                                public void run() {
-                                    game.executeMove(m);
-                                }
-                            });
-                            return; // pause execution until this animation ends
+                            startCapturedAnimation(m, null);
                         }
                         break;
                     }
@@ -1204,6 +1198,7 @@ public class CheckerboardView extends RelativeLayout implements View.OnClickList
     public void reset() {
         animations.clear();
         hidden.clear();
+        highlightMove(null);
     }
 
     public void highlightMove(Move m) {
