@@ -286,14 +286,14 @@ public class Checkers extends ACheckboardGame  {
         lock = null;
 		boolean isKinged = false;
 		boolean isDamaKing = false;
-		final Piece p = getPiece(move.getStart());
+		Piece p = getPiece(move.getStart());
         // clear everyone all moves
         clearMoves();
 		if (move.hasEnd()) {
             int rank = move.getEnd()[0];
             isKinged = (p.type == CHECKER && getStartRank(getOpponent()) == rank);
             isDamaKing = (p.type == DAMA_MAN && getStartRank(getOpponent()) == rank);
-            movePiece(move);
+            p = movePiece(move);
 		}
 
         undoStack.push(move);
@@ -343,7 +343,7 @@ public class Checkers extends ACheckboardGame  {
             if (p.moves.size() == 0) {
                 endTurnPrivate();
             } else if (!isJumpsMandatory()) {
-                p.moves.add(new Move(MoveType.END, move.getPlayerNum()));
+                p.moves.add(new Move(MoveType.END, move.getPlayerNum()).setStart(move.getEnd()[0], move.getEnd()[1], p.type));
                 lock = p;
             }
         }

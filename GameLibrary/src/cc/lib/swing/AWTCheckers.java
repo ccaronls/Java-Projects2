@@ -8,6 +8,7 @@ import cc.lib.checkers.Checkers;
 import cc.lib.checkers.Dama;
 import cc.lib.checkers.Draughts;
 import cc.lib.checkers.Move;
+import cc.lib.checkers.MoveType;
 import cc.lib.checkers.Piece;
 import cc.lib.checkers.Robot;
 import cc.lib.game.AGraphics;
@@ -41,7 +42,11 @@ public class AWTCheckers extends AWTComponent {
             @Override
             protected void onWindowClosing() {
                 if (game != null) {
-                    game.trySaveToFile(SAVE_FILE);
+                    try {
+                        Reflector.serializeToFile(game, SAVE_FILE);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         };
@@ -63,7 +68,9 @@ public class AWTCheckers extends AWTComponent {
 
         if (game == null) {
             game = new Checkers();
+            game.newGame();
         }
+
     }
 
     enum GameType {
@@ -130,13 +137,13 @@ public class AWTCheckers extends AWTComponent {
 
     @Override
     protected void paint(AWTGraphics g, int mouseX, int mouseY) {
-        if (game != null) {
+        g.pushMatrix();
+        if (game != null) try {
             int dim = Math.min(getWidth(), getHeight());
 
             int sx = getWidth()/2 - dim/2;
             int sy = getHeight()/2 - dim/2;
 
-            g.pushMatrix();
             g.translate(sx, sy);
 
             int dw = dim/game.COLUMNS;
@@ -207,11 +214,12 @@ public class AWTCheckers extends AWTComponent {
                 Piece p = game.getPiece(selectedRank, selectedCol);
                 if (p.playerNum == game.getTurn()) {
                     for (Move m : p.moves) {
-                        int[] pos = m.getStart();
-                        if (m.hasEnd() && selectedRank == pos[0] && selectedCol == pos[1]) {
+                        if (m.hasEnd()) {
                             g.setColor(GColor.GREEN);
-                            g.drawCircleWithThickness(m.getEnd()[1] + dw / 2, m.getEnd()[0] + dh / 2, Math.min(dw, dh) * 1 / 3 + 2, 5);
-                            selectedMove = m;
+                            g.drawCircleWithThickness(m.getEnd()[1]*dw + dw / 2, m.getEnd()[0]*dh + dh / 2, Math.min(dw, dh) * 1 / 3 + 2, 5);
+                            if (highlightedRank == m.getEnd()[0] && highlightedCol == m.getEnd()[1])
+                                selectedMove = m;
+                            System.out.println("selected move = " + m);
                         }
                     }
                 }
@@ -220,14 +228,24 @@ public class AWTCheckers extends AWTComponent {
                 g.setColor(GColor.CYAN);
                 for (Move m : game.getMoves()) {
                     int[] pos = m.getStart();
-                    int y = pos[0] * dh;
-                    int x = pos[1] * dw;
-                    g.drawCircleWithThickness(x + dw / 2, y + dh / 2, Math.min(dw, dh) * 1 / 3 + 2, 5);
+                    if (pos != null) {
+                        int y = pos[0] * dh;
+                        int x = pos[1] * dw;
+                        g.drawCircleWithThickness(x + dw / 2, y + dh / 2, Math.min(dw, dh) * 1 / 3 + 2, 5);
+                    }
                 }
             }
 
-            g.popMatrix();
+            for (Move m : game.getMoves()) {
+                if (m.getMoveType() == MoveType.END) {
+                    g.setColor(GColor.YELLOW);
+                    g.drawJustifiedString(g.getViewportWidth()/2, g.getViewportHeight()/2, Justify.CENTER, Justify.CENTER, "Press 'e' to end turn");
+                    break;
+                }
+            }
 
+        } finally {
+            g.popMatrix();
         }
     }
 
@@ -243,7 +261,7 @@ public class AWTCheckers extends AWTComponent {
 
     void drawPiece(AGraphics g, Piece p, int x, int y, int w, int h) {
         g.pushMatrix();
-        g.translate(x+2/w, y+h/2);
+        g.translate(x+w/2, y+h/2);
         g.scale(Math.min(w,h)*1/3);
         g.setColor(getColor(p.playerNum));
         g.drawFilledCircle(0, 0, 1);
@@ -278,9 +296,10 @@ public class AWTCheckers extends AWTComponent {
                 break;
             case KING:
             case FLYING_KING:
+            case DAMA_KING:
+                g.drawJustifiedString(0, 0, Justify.CENTER, Justify.CENTER, "K");
             case CHECKER:
             case DAMA_MAN:
-            case DAMA_KING:
                 break;
             case UNAVAILABLE:
                 break;
@@ -292,6 +311,7 @@ public class AWTCheckers extends AWTComponent {
     protected void onClick() {
         if (selectedMove != null && highlightedRank == selectedMove.getEnd()[0] && highlightedCol == selectedMove.getEnd()[1]) {
             game.executeMove(selectedMove);
+            selectedCol = selectedRank = highlightedRank = highlightedCol = -1;
             if (robot != null && game.getTurn() == 1) {
                 new Thread() {
                     public void run() {
@@ -321,6 +341,15 @@ public class AWTCheckers extends AWTComponent {
                 if (game.canUndo())
                     game.undo();
                 break;
+            case VK_E: {
+                for (Move m : game.getMoves()) {
+                    if (m.getMoveType() == MoveType.END) {
+                        game.executeMove(m);
+                        break;
+                    }
+                }
+                break;
+            }
 
             case VK_UP:
                 if (highlightedRank < game.RANKS-1)

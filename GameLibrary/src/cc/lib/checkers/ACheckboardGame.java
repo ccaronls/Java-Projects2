@@ -76,10 +76,11 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
         executeMove(new Move(MoveType.END, getTurn()));
     }
 
-    public final void movePiece(Move m) {
+    public Piece movePiece(Move m) {
         Piece p = getPiece(m.getStart());
-        setBoard(m.getEnd(), new Piece(p.playerNum, m.getEndType()));
+        setBoard(m.getEnd(), p=new Piece(p.playerNum, m.getEndType()));
         clearPiece(m.getStart());
+        return p;
     }
 
     public final boolean isForfeited() {
