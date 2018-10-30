@@ -44,4 +44,9 @@ public class Draughts extends Checkers {
     protected boolean isJumpsMandatory() {
         return true;
     }
+
+    @Override
+    protected boolean isCaptureAtEndEnabled() {
+        return true;
+    }
 }

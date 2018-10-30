@@ -44,7 +44,7 @@ public class Robot extends Reflector<Robot> {
             if (m.hasEnd()) {
                 node.appendMeta("%s->%dx%d", p.type.abbrev, m.getEnd()[0], m.getEnd()[1]);
             } else {
-                node.appendMeta("%s %s", m.type.name(), p.type.abbrev);
+                node.appendMeta("%s %s", m.getMoveType().name(), p.type.abbrev);
             }
         }
 
@@ -61,7 +61,7 @@ public class Robot extends Reflector<Robot> {
         }
     };
 
-    void doRobot(ACheckboardGame game, MMTreeNode<Move, ACheckboardGame> root) {
+    public void doRobot(ACheckboardGame game, MMTreeNode<Move, ACheckboardGame> root) {
         MiniMaxTree mmt;
         if (game instanceof Checkers)
             mmt = mmtCheckers;

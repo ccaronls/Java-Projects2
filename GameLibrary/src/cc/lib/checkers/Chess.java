@@ -115,7 +115,7 @@ public class Chess extends ACheckboardGame {
         clearMoves();
         undoStack.push(move);
         {
-            switch (move.type) {
+            switch (move.getMoveType()) {
                 case END:
                     if (isForfeited()) {
                         onGameOver();
@@ -124,7 +124,7 @@ public class Chess extends ACheckboardGame {
                     break;
                 case JUMP:
                 case SLIDE:
-                    if (move.captured != null) {
+                    if (move.getCaptured() != null) {
                         clearPiece(move.getCaptured());
                     }
                     p = getPiece(move.getStart());
@@ -137,7 +137,7 @@ public class Chess extends ACheckboardGame {
                     // see if this move result
                     break;
                 case SWAP:
-                    setPieceType(move.getStart(), move.nextType);
+                    setPieceType(move.getStart(), move.getEndType());
                     break;
                 case CASTLE: {
                     movePiece(move);
@@ -157,7 +157,7 @@ public class Chess extends ACheckboardGame {
         if (p != null && timerLength > 0) {
             lock = p;
             lock.moves.clear();
-            lock.moves.add(new Move(MoveType.END, p.playerNum, null, null, move.getEnd()));
+            lock.moves.add(new Move(MoveType.END, p.playerNum));//, null, null, move.getEnd()));
         }
 
         if (lock == null) {
@@ -316,7 +316,7 @@ public class Chess extends ACheckboardGame {
             kingEndCol=kingCol-2;
             rookEndCol=kingEndCol+1;
         }
-        king.moves.add(new Move(MoveType.CASTLE, king.playerNum, null, UNCHECKED_KING, rank, kingCol, rank, kingEndCol, rank, rookCol, rank, rookEndCol));
+        king.moves.add(new Move(MoveType.CASTLE, king.playerNum).setStart(rank, kingCol, UNCHECKED_KING_IDLE).setEnd(rank, kingEndCol, UNCHECKED_KING).setCastle(rank, rookCol, rank, rookEndCol));
     }
 
     @Override
@@ -342,12 +342,12 @@ public class Chess extends ACheckboardGame {
                 if (tr == getStartRank(getOpponent(p.playerNum)))
                     nextPawn = PAWN_TOSWAP;
                 if (getPiece(tr, col).type == EMPTY) {
-                    p.moves.add(new Move(MoveType.SLIDE, p.playerNum, null, nextPawn, rank, col, tr, tc));
+                    p.moves.add(new Move(MoveType.SLIDE, p.playerNum).setStart(rank, col, p.type).setEnd(tr, tc, PAWN));
                     if (p.type == PAWN_IDLE) {
                         int tr2 = rank + getAdvanceDir(p.playerNum)*2;
                         // if we have not moved yet then we may be able move 2 squares
                         if (getPiece(tr2, col).type == EMPTY) {
-                            p.moves.add(new Move(MoveType.SLIDE, p.playerNum, null, PAWN_ENPASSANT, rank, col, tr2, tc));
+                            p.moves.add(new Move(MoveType.SLIDE, p.playerNum).setStart(rank, col, p.type).setEnd(tr2, tc, PAWN_ENPASSANT));
                         }
 
                     }
@@ -355,26 +355,26 @@ public class Chess extends ACheckboardGame {
                 // check if we can capture to upper right or upper left
                 if ((tp=getPiece(tr, (tc=col+1))).playerNum == opponent) {
                     // if this opponent is the king, then we will be 'checking' him
-                    p.moves.add(new Move(MoveType.SLIDE, p.playerNum, tp, nextPawn, rank, col, tr, tc, tr, tc));
+                    p.moves.add(new Move(MoveType.SLIDE, p.playerNum).setStart(rank, col, p.type).setCaptured(tr, tc, tp.type).setEnd(tr, tc, nextPawn));
                 }
                 // check if we can capture to upper right or upper left
                 if ((tp=getPiece(tr, (tc=col-1))).playerNum == opponent) {
-                    p.moves.add(new Move(MoveType.SLIDE, p.playerNum, tp, nextPawn, rank, col, tr, tc, tr, tc));
+                    p.moves.add(new Move(MoveType.SLIDE, p.playerNum).setStart(rank, col, p.type).setCaptured(tr, tc, tp.type).setEnd(tr, tc, nextPawn));
                 }
                 // check en passant
                 tr = rank;
                 if ((tp=getPiece(tr, (tc=col+1))).playerNum == opponent && tp.type == PAWN_ENPASSANT) {
-                    p.moves.add(new Move(MoveType.SLIDE, p.playerNum, tp, nextPawn, rank, col, tr+getAdvanceDir(p.playerNum), tc, tr, tc));
+                    p.moves.add(new Move(MoveType.SLIDE, p.playerNum).setStart(rank, col, p.type).setCaptured(tr+getAdvanceDir(p.playerNum), tc, tp.type).setEnd(tr, tc, p.type));
                 }
                 if ((tp=getPiece(tr, (tc=col-1))).playerNum == opponent && tp.type == PAWN_ENPASSANT) {
-                    p.moves.add(new Move(MoveType.SLIDE, p.playerNum, tp, nextPawn, rank, col, tr+getAdvanceDir(p.playerNum), tc, tr, tc));
+                    p.moves.add(new Move(MoveType.SLIDE, p.playerNum).setStart(rank, col, p.type).setCaptured(tr+getAdvanceDir(p.playerNum), tc, tp.type).setEnd(tr, tc, p.type));
                 }
                 break;
             }
 
             case PAWN_TOSWAP:
                 for (PieceType np : Utils.toArray(ROOK, KNIGHT, BISHOP, QUEEN)) {
-                    p.moves.add(new Move(MoveType.SWAP, p.playerNum, null, np, rank, col));
+                    p.moves.add(new Move(MoveType.SWAP, p.playerNum).setStart(rank, col, p.type).setEnd(rank, col, np));
                 }
                 break;
             case BISHOP:
@@ -420,10 +420,10 @@ public class Chess extends ACheckboardGame {
                     tc=col +dc[i]*ii;
                     tp = getPiece(tr, tc);
                     if (tp.playerNum == opponent) { // look for capture
-                        p.moves.add(new Move(mt, p.playerNum, tp, nextType, rank, col, tr, tc, tr, tc));
+                        p.moves.add(new Move(mt, p.playerNum).setStart(rank, col, p.type).setEnd(tr, tc, nextType).setCaptured(tr, tc, tp.type));
                         break; // can no longer search along this path
                     } else if (tp.type == EMPTY) { // look for open
-                        p.moves.add(new Move(mt, p.playerNum, null, nextType, rank, col, tr, tc));
+                        p.moves.add(new Move(mt, p.playerNum).setStart(rank, col, p.type).setEnd(tr, tc, nextType));
                     } else {
                         break; // can no longer search along this path
                     }
@@ -435,7 +435,7 @@ public class Chess extends ACheckboardGame {
         Iterator<Move> it = p.moves.iterator();
         while (it.hasNext()) {
             Move m = it.next();
-            switch (m.type) {
+            switch (m.getMoveType()) {
                 case CASTLE:
                 case SWAP:
                     continue;

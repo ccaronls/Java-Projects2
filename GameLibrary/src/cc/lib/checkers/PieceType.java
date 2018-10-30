@@ -42,4 +42,5 @@ public enum PieceType {
     PieceType(String abbrev) {
         this.abbrev = abbrev;
     }
+
 };

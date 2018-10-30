@@ -73,18 +73,13 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
 
     public final void forfeit() {
         forfeited = true;
-        executeMove(new Move(MoveType.END, getTurn(), null, null));
+        executeMove(new Move(MoveType.END, getTurn()));
     }
 
     public final void movePiece(Move m) {
         Piece p = getPiece(m.getStart());
-        setBoard(m.getEnd(), p);
+        setBoard(m.getEnd(), new Piece(p.playerNum, m.getEndType()));
         clearPiece(m.getStart());
-        if (m.nextType != null) {
-            PieceType t = p.type;
-            p.type = m.nextType;
-            m.nextType = t;
-        }
     }
 
     public final boolean isForfeited() {
@@ -130,8 +125,8 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
     public final List<Piece> getCapturedPieces() {
         List<Piece> captured = new ArrayList<>();
         for (Move m : undoStack) {
-            if (m.captured != null)
-                captured.add(m.captured);
+            if (m.getCaptured() != null)
+                captured.add(new Piece(getOpponent(m.getPlayerNum()), m.getCapturedType()));
         }
         return captured;
     }
@@ -290,25 +285,22 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
 
     protected void reverseMove(Move m, boolean recompute) {
         Piece p;
-        switch (m.type) {
+        switch (m.getMoveType()) {
             case END:
                 break;
             case CASTLE:
                 p = getPiece(m.getCastleRookEnd());
                 Utils.assertTrue(p.type == PieceType.ROOK, "Expected ROOK was " + p.type);
-                p.type = PieceType.ROOK_IDLE;
-                p.playerNum = m.playerNum;
-                setBoard(m.getCastleRookStart(), p);
+                setBoard(m.getCastleRookStart(), new Piece(m.getPlayerNum(), PieceType.ROOK_IDLE));
                 clearPiece(m.getCastleRookEnd());
                 // fallthrough
             case SLIDE:
             case FLYING_JUMP:
             case JUMP:
-                setBoard(m.getStart(), getPiece(m.getEnd()));
+                setBoard(m.getStart(), new Piece(m.getPlayerNum(), m.getStartType()));
                 clearPiece(m.getEnd());
-                if (m.captured != null) {
-                    setBoard(m.getCaptured(), m.captured);
-                    m.captured.captured = false;
+                if (m.getCaptured() != null) {
+                    setBoard(m.getCaptured(), new Piece(getOpponent(m.getPlayerNum()), m.getCapturedType()));
                 }
                 //fallthrough
             case SWAP:
@@ -316,20 +308,14 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
                 break;
         }
 
-        if (m.nextType != null) {
-            PieceType t = getPiece(m.getStart()).type;
-            getPiece(m.getStart()).type = m.nextType;
-            m.nextType = t;
-        }
-
         if (!recompute)
             return;
 
-        setTurn(m.playerNum);
+        setTurn(m.getPlayerNum());
         Move parent = null;
         if (undoStack.size() > 0) {
             parent = undoStack.peek();
-            if (parent.playerNum != m.playerNum) {
+            if (parent.getPlayerNum() != m.getPlayerNum()) {
                 parent = null;
             }
         }
@@ -341,7 +327,7 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
             p = getPiece(m.getStart());
             computeMovesForSquare(m.getStart()[0], m.getStart()[1], parent);
             if (!isJumpsMandatory())
-                p.moves.add(new Move(MoveType.END, m.playerNum, null, null, m.getStart()));
+                p.moves.add(new Move(MoveType.END, m.getPlayerNum()).setStart(m.getStart()[0], m.getStart()[1], m.getStartType()));
             lock = p;
         }
     }
@@ -444,7 +430,7 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
 
     enum Color {
         RED, WHITE, BLACK
-    } ;
+    };
 
     public abstract Color getPlayerColor(int side);
 
@@ -464,7 +450,7 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
     public void endTurn() {
         if (lock != null) {
             for (Move m : lock.moves) {
-                if (m.type == MoveType.END) {
+                if (m.getMoveType() == MoveType.END) {
                     undoStack.push(m);
                     break;
                 }
