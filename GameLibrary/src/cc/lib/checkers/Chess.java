@@ -127,8 +127,7 @@ public class Chess extends ACheckboardGame {
                     if (move.getCaptured() != null) {
                         clearPiece(move.getCaptured());
                     }
-                    p = getPiece(move.getStart());
-                    movePiece(move);
+                    p = movePiece(move);
                     // check for pawn advancing
                     if (p.type == PAWN_TOSWAP) {
                         computeMovesForSquare(move.getEnd()[0], move.getEnd()[1], null);

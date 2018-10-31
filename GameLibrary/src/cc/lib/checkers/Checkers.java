@@ -315,10 +315,10 @@ public class Checkers extends ACheckboardGame  {
                 return;
             case FLYING_JUMP:
             case JUMP:
-                if (isCaptureAtEndEnabled()) {
-                    getPiece(move.getCaptured()).captured = true;
-                } else {
-                    if (move.getCaptured() != null) {
+                if (move.getCaptured() != null) {
+                    if (isCaptureAtEndEnabled()) {
+                        getPiece(move.getCaptured()).captured = true;
+                    } else {
                         clearPiece(move.getCaptured());
                     }
                 }
