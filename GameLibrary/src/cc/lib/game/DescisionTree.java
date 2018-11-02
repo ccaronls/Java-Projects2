@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -70,6 +71,33 @@ public class DescisionTree<G,M> implements Comparable<DescisionTree> {
         first=last=null;
     }
 
+    public Iterable<DescisionTree> getChildren() {
+        return new Iterable<DescisionTree>() {
+            @Override
+            public Iterator<DescisionTree> iterator() {
+                return new Iterator<DescisionTree>() {
+                    DescisionTree d = first;
+
+                    @Override
+                    public boolean hasNext() {
+                        return d != null ;
+                    }
+
+                    @Override
+                    public DescisionTree next() {
+                        DescisionTree dd = d;
+                        if (d == last) {
+                            d = null;
+                        } else {
+                            d = d.next;
+                        }
+                        return dd;
+                    }
+                };
+            }
+        };
+    }
+
     public final <T extends DescisionTree<G,M>> T  getParent() {
         return (T)parent;
     }
@@ -130,7 +158,7 @@ public class DescisionTree<G,M> implements Comparable<DescisionTree> {
         if (first == null || first.next == null)
             return; // 0 or 1 items. no sort
         List<DescisionTree> list = new ArrayList<>();
-        for (DescisionTree t = first; ; t = t.next) {
+        for (DescisionTree t = first; t != null; t = t.next) {
             list.add(t);
             if (t == last)
                 break;
@@ -138,6 +166,7 @@ public class DescisionTree<G,M> implements Comparable<DescisionTree> {
         Collections.sort(list);
         first = last = null;
         for (DescisionTree t : list) {
+            t.prev = t.next = null;
             if (maxChildren-- < 0)
                 break;
             addChild(t);
@@ -162,13 +191,13 @@ public class DescisionTree<G,M> implements Comparable<DescisionTree> {
         } catch (Exception e) {}
     }
 
-    private void dumpTree(Writer out, DescisionTree<G,M> root, String indent) throws IOException {
+    private static void dumpTree(Writer out, DescisionTree<?,?> root, String indent) throws IOException {
         if (root == null)
             return;
-        out.write(indent+root.getMeta().replace('\n', ',') + "\n");
-        dumpTree(out, root.getFirst(), indent+"   ");
-        if (root.next != null && root.next != parent.first)
-            dumpTree(out, root.getNext(), indent);
+        out.write(indent + root.getMeta().replace('\n', ',') + "\n");
+        for (DescisionTree t : root.getChildren()) {
+            dumpTree(out, t, indent + "   ");
+        }
     }
 
 
