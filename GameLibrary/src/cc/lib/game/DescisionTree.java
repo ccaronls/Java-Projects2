@@ -48,8 +48,8 @@ public class DescisionTree<G,M> implements Comparable<DescisionTree> {
             last.next = child;
             last = child;
             // make circular list for items > 1
-            child.next = first;
-            first.prev = child;
+//            child.next = first;
+//            first.prev = child;
         }
         child.parent=this;
     }
@@ -197,6 +197,27 @@ public class DescisionTree<G,M> implements Comparable<DescisionTree> {
         out.write(indent + root.getMeta().replace('\n', ',') + "\n");
         for (DescisionTree t : root.getChildren()) {
             dumpTree(out, t, indent + "   ");
+        }
+    }
+
+    public <T extends DescisionTree<G,M>> T findDominantChild() {
+        DescisionTree<G,M> [] result = new DescisionTree [] { this };
+        double [] best = new double[] { Double.NEGATIVE_INFINITY };
+        findDominantChildR(this, best, result);
+        return (T)result[0];
+    }
+
+    private static <G,M> void findDominantChildR(DescisionTree<G,M> root, double [] highest, DescisionTree<G,M> [] result) {
+        if (root.getFirst() != null) {
+            findDominantChildR(root.<DescisionTree<G,M>>getFirst(), highest, result);
+        } else {
+            if (root.getValue() > highest[0]) {
+                highest[0] = root.getValue();
+                result[0] = root;
+            }
+        }
+        if (root.getNext() != null) {
+            findDominantChildR(root.<DescisionTree<G,M>>getNext(), highest, result);
         }
     }
 

@@ -1,7 +1,6 @@
 package cc.android.checkerboard;
 
 import cc.lib.game.IMove;
-import cc.lib.game.Utils;
 import cc.lib.utils.Reflector;
 
 /**
@@ -14,60 +13,116 @@ public class Move extends Reflector<Move> implements IMove {
         addAllFields(Move.class);
     }
 
-    public final MoveType type;
-    public final int playerNum;
+    private final MoveType moveType;
+    private final int playerNum;
 
-    private final int [][] squares;
+    private int [] start;
+    private int [] end;
+    private int [] castleRookStart;
+    private int [] castleRookEnd;
+    private int [] captured;
 
-    public final Piece captured;
-    public PieceType nextType;
+    private PieceType startType, endType, capturedType;
 
-    public Move(MoveType t, int playerNum, Piece captured, PieceType nextType, int ... positions) {
-        this.type = t;
-        this.captured = captured;
-        this.nextType = nextType;
+    public Move(MoveType t, int playerNum) { //}, Piece captured, PieceType nextType, int ... positions) {
+        this.moveType = t;
         this.playerNum = playerNum;
-        squares = new int[positions.length/2][];
-        for (int i=0; i<positions.length; i+=2) {
-            int sr = positions[i];
-            int er = positions[i+1];
-            squares[i/2] = new int[] { sr, er };
-        }
+    }
+
+    public Move setStart(int startRank, int startCol, PieceType type) {
+        start = new int[]{startRank, startCol};
+        startType = type;
+        return this;
+    }
+
+    public Move setEnd(int endRank, int endCol, PieceType type) {
+        end = new int [] { endRank, endCol };
+        if (type == null)
+            throw new AssertionError("type cannot be null");
+        endType = type;
+        return this;
+    }
+
+    public Move setCaptured(int capturedRank, int capturedCol, PieceType type) {
+        captured = new int[] { capturedRank, capturedCol };
+        capturedType = type;
+        return this;
+    }
+
+    public Move setCastle(int castleRookStartRank, int castRookStartCol, int castleRookEndRank, int castleRookEndCol) {
+        castleRookStart = new int [] { castleRookStartRank, castRookStartCol };
+        castleRookEnd = new int   [] { castleRookEndRank, castleRookEndCol };
+        return this;
     }
 
     public Move() {
-        this(null, -1, null, null);
+        this(null, -1);
+    }
+
+    public final MoveType getMoveType() {
+        return moveType;
+    }
+
+    public final PieceType getStartType() {
+        return startType;
+    }
+
+    public final PieceType getEndType() {
+        return endType;
     }
 
     public final int [] getStart() {
-        return squares[0];
+        return start;
     }
 
     public final int [] getEnd() {
-        return squares[1];
+        return end;
     }
 
     public final boolean hasEnd() {
-        return squares.length >= 2;
+        return end != null;
     }
 
     public final int [] getCaptured() {
-        return squares[2];
+        return captured;
+    }
+
+    public final PieceType getCapturedType() {
+        return capturedType;
+    }
+
+    public final boolean hasCaptured() {
+        return captured != null && capturedType != null;
     }
 
     public final int [] getCastleRookStart() {
-        return squares[2];
+        return castleRookStart;
     }
 
     public final int [] getCastleRookEnd() {
-        return squares[3];
+        return castleRookEnd;
+    }
+
+    String toStr(int [] pos) {
+        return "{" + pos[0] + "," + pos[1] + "}";
     }
 
     @Override
     public final String toString() {
-        return type.name() + Utils.toString(squares) + " pn:" + playerNum + " nt: " + nextType + " cap:"
-                + (captured == null ? "null" : captured.type.name() + "[" + captured.playerNum + "]")
-                ;
+        String s = moveType.name() + " pn:" + playerNum;
+        if (start != null) {
+            s += " spos: " + toStr(start) + " st: " + startType;
+        }
+        if (end != null) {
+            s += " epos: " + toStr(end) + " et: " + endType;
+        }
+        if (captured != null) {
+            s += " cap:" + toStr(captured) + " ct: " + capturedType;
+        }
+        if (castleRookStart != null) {
+            s += " castle st: " + toStr(castleRookStart) + " end: " + toStr(castleRookEnd);
+        }
+        return s;
     }
 
     @Override

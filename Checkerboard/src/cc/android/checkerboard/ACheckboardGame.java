@@ -35,6 +35,7 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
     protected Piece lock = null;
     protected final Stack<Move> undoStack = new Stack<>();
     private boolean forfeited = false;
+    public int singlePlayerDifficulty = -1;
 
     // expose so we can allow fast access to array
     public final Piece [][] board; // rank major
@@ -73,18 +74,14 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
 
     public final void forfeit() {
         forfeited = true;
-        executeMove(new Move(MoveType.END, getTurn(), null, null));
+        executeMove(new Move(MoveType.END, getTurn()));
     }
 
-    public final void movePiece(Move m) {
+    public Piece movePiece(Move m) {
         Piece p = getPiece(m.getStart());
-        setBoard(m.getEnd(), p);
+        setBoard(m.getEnd(), p=new Piece(p.getPlayerNum(), m.getEndType()));
         clearPiece(m.getStart());
-        if (m.nextType != null) {
-            PieceType t = p.type;
-            p.type = m.nextType;
-            m.nextType = t;
-        }
+        return p;
     }
 
     public final boolean isForfeited() {
@@ -96,7 +93,11 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
     }
 
     public final void setPieceType(int [] pos, PieceType t) {
-        getPiece(pos).type = t;
+        getPiece(pos).setType(t);
+    }
+
+    public final void setPiece(int [] pos, int playerNum, PieceType t) {
+        board[pos[0]][pos[1]] = new Piece(playerNum, t);
     }
 
     /**
@@ -109,8 +110,8 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
     public final int[] findPiecePosition(int playerNum, PieceType ... types) {
         for (int rank=0; rank<RANKS; rank++) {
             for (int col =0; col<COLUMNS; col++) {
-                if (board[rank][col].playerNum == playerNum) {
-                    if (Utils.linearSearch(types, board[rank][col].type) >= 0) {
+                if (board[rank][col].getPlayerNum() == playerNum) {
+                    if (Utils.linearSearch(types, board[rank][col].getType()) >= 0) {
                         return new int[]{rank, col};
                     }
                 }
@@ -130,8 +131,8 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
     public final List<Piece> getCapturedPieces() {
         List<Piece> captured = new ArrayList<>();
         for (Move m : undoStack) {
-            if (m.captured != null)
-                captured.add(m.captured);
+            if (m.hasCaptured() && !getPiece(m.getCaptured()).isCaptured())
+                captured.add(new Piece(getOpponent(m.getPlayerNum()), m.getCapturedType()));
         }
         return captured;
     }
@@ -146,7 +147,7 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
         forfeited = false;
         undoStack.clear();
         initBoard();
-        computeMoves();
+        computeMoves(true);
     }
 
     protected abstract void initBoard();
@@ -156,10 +157,10 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
         for (int rank = 0; rank < RANKS; rank++) {
             for (int col = 0; col < COLUMNS; col++) {
                 Piece p = getPiece(rank, col);
-                p.moves.clear();
-                if (p.playerNum == getTurn())
+                p.clearMoves();
+                if (p.getPlayerNum() == getTurn())
                     computeMovesForSquare(rank, col, null);
-                num += p.moves.size();
+                num += p.getNumMoves();
             }
         }
         return num;
@@ -174,7 +175,7 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
             int num = recomputeMoves();
             return computedMoves = num;
         } else {
-            return lock.moves.size();
+            return lock.getNumMoves();
         }
     }
 
@@ -195,7 +196,7 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
         return turn;
     }
 
-    protected final void setTurn(int turn) {
+    public final void setTurn(int turn) {
         this.turn = turn;
     }
 
@@ -210,7 +211,7 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
             return;
         for (int i = 0; i < RANKS; i++) {
             for (int ii = 0; ii < COLUMNS; ii++) {
-                getPiece(i, ii).moves.clear();
+                getPiece(i, ii).clearMoves();
             }
         }
     }
@@ -290,46 +291,38 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
 
     protected void reverseMove(Move m, boolean recompute) {
         Piece p;
-        switch (m.type) {
+        switch (m.getMoveType()) {
             case END:
                 break;
             case CASTLE:
                 p = getPiece(m.getCastleRookEnd());
-                Utils.assertTrue(p.type == PieceType.ROOK, "Expected ROOK was " + p.type);
-                p.type = PieceType.ROOK_IDLE;
-                p.playerNum = m.playerNum;
-                setBoard(m.getCastleRookStart(), p);
+                Utils.assertTrue(p.getType() == PieceType.ROOK, "Expected ROOK was " + p.getType());
+                setBoard(m.getCastleRookStart(), new Piece(m.getPlayerNum(), PieceType.ROOK_IDLE));
                 clearPiece(m.getCastleRookEnd());
                 // fallthrough
             case SLIDE:
             case FLYING_JUMP:
             case JUMP:
-                setBoard(m.getStart(), getPiece(m.getEnd()));
                 clearPiece(m.getEnd());
-                if (m.captured != null) {
-                    setBoard(m.getCaptured(), m.captured);
-                    m.captured.captured = false;
+                if (m.getCaptured() != null) {
+                    setBoard(m.getCaptured(), new Piece(getOpponent(m.getPlayerNum()), m.getCapturedType()));
                 }
                 //fallthrough
             case SWAP:
             case STACK:
+                setBoard(m.getStart(), new Piece(m.getPlayerNum(), m.getStartType()));
                 break;
-        }
-
-        if (m.nextType != null) {
-            PieceType t = getPiece(m.getStart()).type;
-            getPiece(m.getStart()).type = m.nextType;
-            m.nextType = t;
         }
 
         if (!recompute)
             return;
 
-        setTurn(m.playerNum);
+        setTurn(m.getPlayerNum());
+        computedMoves = recomputeMoves();
         Move parent = null;
         if (undoStack.size() > 0) {
             parent = undoStack.peek();
-            if (parent.playerNum != m.playerNum) {
+            if (parent.getPlayerNum() != m.getPlayerNum()) {
                 parent = null;
             }
         }
@@ -341,7 +334,7 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
             p = getPiece(m.getStart());
             computeMovesForSquare(m.getStart()[0], m.getStart()[1], parent);
             if (!isJumpsMandatory())
-                p.moves.add(new Move(MoveType.END, m.playerNum, null, null, m.getStart()));
+                p.addMove(new Move(MoveType.END, m.getPlayerNum()).setStart(m.getStart()[0], m.getStart()[1], m.getStartType()));
             lock = p;
         }
     }
@@ -353,7 +346,7 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
     public final Iterable<Piece> getPieces(int playerNum) {
         List<Piece> all = new ArrayList<>();
         for (Piece p : getPieces()) {
-            if (p.playerNum == playerNum)
+            if (p.getPlayerNum() == playerNum)
                 all.add(p);
         }
         return all;
@@ -394,23 +387,23 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
     @Override
     public final Iterable<Move> getMoves() {
         if (lock != null)
-            return new ArrayList<>(lock.moves);
+            lock.getMoves();
 
         // order the moves such that those pieces with fewer moves are earliest
         List<Move> moves = new ArrayList<>();
         final List<Piece> pieces = new ArrayList<>();
         for (Piece p : getPieces()) {
-            if (p.moves.size() > 0)
+            if (p.getNumMoves() > 0)
                 pieces.add(p);
         }
         Collections.sort(pieces, new Comparator<Piece>() {
             @Override
             public int compare(Piece p0, Piece p1) {
-                return p0.moves.size() - p1.moves.size();
+                return p0.getNumMoves() - p1.getNumMoves();
             }
         });
         for (Piece p : pieces) {
-            for (Move m : p.moves)
+            for (Move m : p.getMoves())
                 moves.add(m);
         }
         return moves;
@@ -431,10 +424,10 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
     protected void initRank(int rank, int player, PieceType...pieces) {
         for (int i=0; i<pieces.length; i++) {
             Piece p = board[rank][i] = new Piece(player, pieces[i]);
-            switch (p.type) {
+            switch (p.getType()) {
                 case EMPTY:
                 case UNAVAILABLE:
-                    p.playerNum = -1;
+                    p.setPlayerNum(-1);
                     break;
             }
         }
@@ -444,15 +437,11 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
 
     enum Color {
         RED, WHITE, BLACK
-    } ;
+    };
 
     public abstract Color getPlayerColor(int side);
 
-    protected boolean isJumpsMandatory() {
-        return false;
-    }
-
-    enum BoardType {
+    public enum BoardType {
         CHECKERS,
         DAMA
     }
@@ -463,8 +452,8 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
 
     public void endTurn() {
         if (lock != null) {
-            for (Move m : lock.moves) {
-                if (m.type == MoveType.END) {
+            for (Move m : lock.getMoves()) {
+                if (m.getMoveType() == MoveType.END) {
                     undoStack.push(m);
                     break;
                 }
@@ -482,5 +471,36 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
         }
     }
 
+    protected boolean isFlyingKings() {
+        return false;
+    }
+
+    protected boolean canJumpSelf() {
+        return true;
+    }
+
+    protected boolean canMenJumpBackwards() {
+        return false; // true for international/russian draughts
+    }
+
+    /**
+     * Men/King must jump when possible
+     * @return
+     */
+    protected boolean isJumpsMandatory() {
+        return false;
+    }
+
+    /**
+     * Men/King must take moves that lead to most jumps
+     * @return
+     */
+    protected boolean isMaxJumpsMandatory() {
+        return false;
+    }
+
+    protected boolean isCaptureAtEndEnabled() {
+        return false;
+    }
 
 }

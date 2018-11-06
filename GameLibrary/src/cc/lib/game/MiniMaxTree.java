@@ -1,8 +1,5 @@
 package cc.lib.game;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * Created by chriscaron on 10/7/17.
  */
@@ -16,22 +13,6 @@ public abstract class MiniMaxTree<G extends IGame> {
 
         public MMTreeNode(G game, M move) {
             super(game, move);
-        }
-
-        public List<M> getPath() {
-            List<M> list = new ArrayList<>();
-            if (getFirst()==null) {
-                if (getMove() != null)
-                    list.add(getMove());
-            } else {
-                int playerNum = getFirst().getMove().getPlayerNum();
-                for (MMTreeNode<M,G> t = getFirst(); t != null; t = t.getFirst()) {
-                    if (t.getMove().getPlayerNum() != playerNum)
-                        break;
-                    list.add(t.getMove());
-                }
-            }
-            return list;
         }
 
     };

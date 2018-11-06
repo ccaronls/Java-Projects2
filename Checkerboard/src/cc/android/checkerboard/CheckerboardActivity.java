@@ -19,6 +19,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import cc.lib.android.AndroidLogWriter;
@@ -154,6 +155,13 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
             }
         }
 
+        @Override
+        public ACheckboardGame deepCopy() {
+            Chess c = new Chess();
+            c.copyFrom(this);
+            return c;
+        }
+
         public void run() {
             dialog.show();
         }
@@ -193,6 +201,13 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
 
         public void run() {
             dialog.show();
+        }
+
+        @Override
+        public ACheckboardGame deepCopy() {
+            Checkers c = new Checkers();
+            c.copyFrom(this);
+            return c;
         }
 
         @Override
@@ -253,6 +268,13 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
         }
 
         @Override
+        public ACheckboardGame deepCopy() {
+            Draughts c = new Draughts();
+            c.copyFrom(this);
+            return c;
+        }
+
+        @Override
         public void onGameOver() {
             if (robot != null && robot.type.ordinal() > 0 && pbv.getGame().getTurn() == ROBOT_PLAYER_NUM) {
                 getPrefs().edit().putBoolean("wondraughts", true).apply();
@@ -279,6 +301,37 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
             super.endTurn();
             checkForRobotTurn();
         }
+
+        @Override
+        protected void onPiecesCaptured(final List<int[]> pieces) {
+            if (pieces.size() > 1) {
+                final Object lock = new Object();
+                Runnable whenDone = new Runnable() {
+                    @Override
+                    public void run() {
+                        synchronized (lock) {
+                            lock.notify();
+                        }
+                    }
+                };
+
+
+                for (int i=0; i<pieces.size(); i++) {
+                    int [] pos= pieces.get(i);
+                    Piece p = getPiece(pos);
+                    pbv.startCapturedAnimation(pos, p, whenDone);
+                    whenDone = null;
+                }
+
+                synchronized (lock) {
+                    try {
+                        lock.wait(2000);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
     }
 
     public class MyDama extends Dama implements Runnable, DialogInterface.OnCancelListener {
@@ -299,6 +352,14 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
         public void run() {
             dialog.show();
         }
+
+        @Override
+        public ACheckboardGame deepCopy() {
+            Dama c = new Dama();
+            c.copyFrom(this);
+            return c;
+        }
+
 
         @Override
         public void onGameOver() {
@@ -336,7 +397,7 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
         }
     }
 
-    class RobotTask extends AsyncTask<ACheckboardGame,MMTreeNode<Move,ACheckboardGame>,Void> implements DialogInterface.OnCancelListener, Runnable {
+    class RobotTask extends AsyncTask<ACheckboardGame,Move,Void> implements DialogInterface.OnCancelListener, Runnable {
 
         boolean debugMode = tbDebug.isChecked();
 
@@ -369,21 +430,20 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
             pbv.removeCallbacks(this);
             thinking.dismiss();
             root = root.getRoot(); // make sure at top of tree
-            for (MMTreeNode t : getPath()) {
+            for (Move t : getPath()) {
                 pbv.getGame().executeMove(root.getMove());
             }
             pbv.invalidate();
         }
 
         @Override
-        protected void onProgressUpdate(MMTreeNode<Move, ACheckboardGame>... root) {
+        protected void onProgressUpdate(Move... moves) {
             pbv.removeCallbacks(this);
             thinking.dismiss();
-            Move move = root[0].getMove();
             if (debugMode) {
                 updateButtons();
             } else {
-                pbv.animateMoveAndThen(move, new Runnable() {
+                pbv.animateMoveAndThen(moves[0], new Runnable() {
                     public void run() {
                         synchronized (RobotTask.this) {
                             RobotTask.this.notifyAll();
@@ -396,45 +456,42 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
         @Override
         protected Void doInBackground(ACheckboardGame... params) {
             ACheckboardGame pbvGame = params[0];
-            ACheckboardGame game = (pbvGame instanceof Checkers) ? new Checkers() : new Chess();
-            game.copyFrom(pbvGame);
+            ACheckboardGame game = pbvGame.deepCopy();
             root = new MMTreeNode(game);
             robot.doRobot(game, root);
             if (debugMode) {
                 root.dumpTree(new AndroidLogWriter("Robot"));
-                publishProgress(root);
+                publishProgress(root.getMove());
             } else if (game.computeMoves() > 0) {
-                for (MMTreeNode<Move,ACheckboardGame> p : getPath()) {
-                    publishProgress(p);
+                for (Move m : getPath()) {
+                    publishProgress(m);
                     Utils.waitNoThrow(this, 10000);
-                    game.executeMove(p.getMove());
+                    game.executeMove(m);
                     pbvGame.copyFrom(game);
                     pbv.postInvalidate();
+                    if (pbvGame.getTurn() == 0) {
+                        break;
+                    }
                 }
             }
             return null;
+        }
+
+        List<Move> getPath() {
+            // full search the tree to find highest value child
+            MMTreeNode<Move,ACheckboardGame> ch = root.findDominantChild();
+            LinkedList<Move> path  = new LinkedList<>();
+            while (ch != root) {
+                path.addFirst(ch.getMove());
+                ch = ch.getParent();
+            }
+            return path;
         }
 
         @Override
         public void onCancel(DialogInterface dialog) {
             cancel(true);
         }
-    }
-
-    List<MMTreeNode<Move,ACheckboardGame>> getPath() {
-        List<MMTreeNode<Move,ACheckboardGame>> list = new ArrayList<>();
-        if (root.getFirst()==null) {
-            if (root.getMove() != null)
-                list.add(root);
-        } else {
-            int playerNum = root.getFirst().getMove().playerNum;
-            for (MMTreeNode<Move,ACheckboardGame> t = root.getFirst(); t != null; t = t.getFirst()) {
-                if (t.getMove().getPlayerNum() != playerNum)
-                    break;
-                list.add(t);
-            }
-        }
-        return list;
     }
 
     Dialog winnerDialog;
@@ -687,13 +744,14 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
         {} else if (pbv.getGame()!=null) {
             Piece lock = pbv.getGame().getLocked();
             if (lock != null) {
-                if (lock.playerNum != pbv.getGame().getTurn())
+                if (lock.getPlayerNum() != pbv.getGame().getTurn())
                     throw new AssertionError();
-                if (lock.type != PieceType.PAWN_TOSWAP) {
-                    for (Move m : lock.moves) {
-                        switch (m.type) {
+                if (lock.getType() != PieceType.PAWN_TOSWAP) {
+                    for (Move m : lock.getMoves()) {
+                        switch (m.getMoveType()) {
                             case SWAP:
-                                if (m.nextType == lock.type) {
+                                // TODO What????
+                                if (m.getEndType()== lock.getType()) {
                                     setEndTurnButton(m);
                                 }
                                 break;

@@ -89,6 +89,10 @@ public class Move extends Reflector<Move> implements IMove {
         return capturedType;
     }
 
+    public final boolean hasCaptured() {
+        return captured != null && capturedType != null;
+    }
+
     public final int [] getCastleRookStart() {
         return castleRookStart;
     }

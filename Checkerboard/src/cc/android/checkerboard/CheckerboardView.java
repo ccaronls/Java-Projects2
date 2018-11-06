@@ -164,7 +164,7 @@ public class CheckerboardView extends RelativeLayout implements View.OnClickList
                     dragX = touchX - boardPadding;
                     dragY = touchY - boardPadding;
                     dragging = game.getPiece(touchRank, touchColumn);
-                    if (dragging.moves.size() == 0)
+                    if (dragging.getNumMoves() == 0)
                         dragging = null;
                 }
                 break;
@@ -239,7 +239,7 @@ public class CheckerboardView extends RelativeLayout implements View.OnClickList
         }
 
         MoveAnim(long duration, Move move, Runnable whenDone, Piece ... toHide) {
-            this(duration, move.getStart(), move.hasEnd() ? move.getEnd() : move.getStart(), move.playerNum, game.getPiece(move.getStart()).type, whenDone, toHide);
+            this(duration, move.getStart(), move.hasEnd() ? move.getEnd() : move.getStart(), move.getPlayerNum(), move.getStartType(), whenDone, toHide);
         }
 
         @Override
@@ -283,7 +283,7 @@ public class CheckerboardView extends RelativeLayout implements View.OnClickList
     class SlideAnim extends MoveAnim {
 
         public SlideAnim(Move move, Runnable whenDone) {
-            this(move.getStart(), move.getEnd(), move.playerNum, game.getPiece(move.getStart()).type, whenDone);
+            this(move.getStart(), move.getEnd(), move.getPlayerNum(), move.getStartType(), whenDone);
         }
 
         public SlideAnim(int[] start, int []end, int playerNum, PieceType pt, Runnable whenDone) {
@@ -354,12 +354,12 @@ public class CheckerboardView extends RelativeLayout implements View.OnClickList
     private void onTap(int curRank, int curCol) {
         if (tapped == null) {
             tapped = game.getPiece(curRank, curCol);
-            if (tapped.moves.size() == 0)
+            if (tapped.getNumMoves() == 0)
                 tapped = null;
         } else {
             Piece swappy = null;
-            for (Move m : tapped.moves) {
-                switch (m.type) {
+            for (Move m : tapped.getMoves()) {
+                switch (m.getMoveType()) {
                     case END:
                         continue;
                     case CASTLE:
@@ -376,10 +376,10 @@ public class CheckerboardView extends RelativeLayout implements View.OnClickList
                         if (m.getStart()[0]==curRank && m.getStart()[1]==curCol) {
                             Piece p = game.getPiece(curRank, curCol);
                             swappy = p;
-                            if (p.type == PieceType.PAWN_TOSWAP) {
-                                p.type = m.nextType;
-                            } else if (p.type == m.nextType) {
-                                p.type = PieceType.PAWN_TOSWAP; // this makes so next iteration will
+                            if (p.getType() == PieceType.PAWN_TOSWAP) {
+                                p.setType(m.getEndType());
+                            } else if (p.getType() == m.getEndType()) {
+                                p.setType(PieceType.PAWN_TOSWAP); // this makes so next iteration will
                             }
                         }
                         break;
@@ -394,12 +394,12 @@ public class CheckerboardView extends RelativeLayout implements View.OnClickList
                 }
             }
             if (swappy != null) {
-                if (swappy.type == PieceType.PAWN_TOSWAP) {
-                    swappy.type = swappy.moves.get(0).nextType;
+                if (swappy.getType() == PieceType.PAWN_TOSWAP) {
+                    swappy.setType(swappy.getMovesIterator().next().getEndType());
                 }
             } else {
                 Piece p = game.getPiece(curRank, curCol);
-                if (p.moves.size() > 0) {
+                if (p.getNumMoves() > 0) {
                     tapped = p;
                 } else {
                     tapped = null;
@@ -532,29 +532,29 @@ public class CheckerboardView extends RelativeLayout implements View.OnClickList
     }
 
     public void startCapturedAnimation(int [] pos, Piece p, Runnable whenDone) {
-        animations.add(new CaptureAnim(pos[1], pos[0], p.playerNum, p.type, whenDone).start());
+        animations.add(new CaptureAnim(pos[1], pos[0], p.getPlayerNum(), p.getType(), whenDone).start());
         this.hidden.add(p);
     }
 
     private void startCapturedAnimation(Move m, Runnable whenDone, boolean reverse) {
 
-        JumpAnim a = new CaptureAnim(m.getCaptured()[1], m.getCaptured()[0], m.captured.playerNum, m.captured.type, whenDone);
+        JumpAnim a = new CaptureAnim(m.getCaptured()[1], m.getCaptured()[0], game.getOpponent(m.getPlayerNum()), m.getCapturedType(), whenDone);
         animations.add(a);
         if (reverse)
             a.startReverse();
         else
             a.start();
-        this.hidden.add(m.captured);
+        this.hidden.add(game.getPiece(m.getCaptured()));
     }
 
     public void animateMoveAndThen(Move m, Runnable onDone) {
-        switch (m.type) {
+        switch (m.getMoveType()) {
             case CASTLE:
-                animations.add(new JumpAnim(m.getCastleRookStart(), m.getCastleRookEnd(), m.playerNum, PieceType.ROOK, onDone).start());
+                animations.add(new JumpAnim(m.getCastleRookStart(), m.getCastleRookEnd(), m.getPlayerNum(), PieceType.ROOK, onDone).start());
                 animations.add(new SlideAnim(m, null).start());
                 break;
             case SLIDE:
-                if (m.captured != null) {
+                if (m.hasCaptured()) {
                     startCapturedAnimation(m, onDone);
                     onDone = null;
                 }
@@ -563,13 +563,13 @@ public class CheckerboardView extends RelativeLayout implements View.OnClickList
             case FLYING_JUMP:
             case JUMP:
                 // TODO: Flying jump sometimes capture
-                if (m.captured != null) {
+                if (m.hasCaptured() && !game.isCaptureAtEndEnabled()) {
                     startCapturedAnimation(m, null);
                 }
                 animations.add(new JumpAnim(m, onDone).start());
                 break;
             case STACK:
-                animations.add(new StackAnim(m.getStart(), m.playerNum, PieceType.CHECKER, onDone).start());
+                animations.add(new StackAnim(m.getStart(), m.getPlayerNum(), PieceType.CHECKER, onDone).start());
                 break;
             case SWAP:
             default:
@@ -583,14 +583,14 @@ public class CheckerboardView extends RelativeLayout implements View.OnClickList
     }
 
     private void onDragEnd(int curRank, int curCol) {
-        for (final Move m : dragging.moves) {
+        for (final Move m : dragging.getMoves()) {
             if (m.hasEnd() && m.getEnd()[0] == curRank && m.getEnd()[1] == curCol) {
-                switch (m.type) {
+                switch (m.getMoveType()) {
                     case SLIDE:
                         break;
                     case FLYING_JUMP:
                     case JUMP: {
-                        if (m.captured != null) {
+                        if (m.hasCaptured()) {
                             startCapturedAnimation(m, null);
                         }
                         break;
@@ -697,7 +697,7 @@ public class CheckerboardView extends RelativeLayout implements View.OnClickList
 
     private void drawCapturedPieces(Canvas canvas, float width, float height, float dim) {
         final int iDim = Math.round(dim);
-        List<Piece> captured = game.getCapturedPieces();
+        final List<Piece> captured = new ArrayList<>(game.getCapturedPieces());
         final float padding = cellDim / 8;
         nextNearCaptureY = height - iDim / 2 + cellDim / 2 + padding;
         nextFarCaptureY = cellDim / 2 + padding;
@@ -709,8 +709,8 @@ public class CheckerboardView extends RelativeLayout implements View.OnClickList
         nextFarCaptureX = nextNearCaptureX;
         final float maxX = width - cellDim/4;
         for (Piece p : captured) {
-            boolean upsidedown = shouldDrawUpsideDown(-1) && p.playerNum == ACheckboardGame.NEAR;
-            switch (p.playerNum) {
+            boolean upsidedown = shouldDrawUpsideDown(-1) && p.getPlayerNum() == ACheckboardGame.NEAR;
+            switch (p.getPlayerNum()) {
                 case ACheckboardGame.FAR:
                     drawPieceAt(canvas, p, nextNearCaptureX, nextNearCaptureY, OUTLINE_NONE, upsidedown);
                     nextNearCaptureX += padding*2;
@@ -778,7 +778,7 @@ public class CheckerboardView extends RelativeLayout implements View.OnClickList
         bFar.setText(timerText(chess.getTimerFar()));
         bNear.setText(timerText(chess.getTimerNear()));
         Move m;
-        if (game.computeMoves() == 1 && (m=game.getMoves().iterator().next()).type == MoveType.END) {
+        if (game.computeMoves() == 1 && (m=game.getMoves().iterator().next()).getMoveType() == MoveType.END) {
             switch (chess.getTurn()) {
                 case ACheckboardGame.FAR:
                     bFar.setEnabled(true);
@@ -826,7 +826,7 @@ public class CheckerboardView extends RelativeLayout implements View.OnClickList
                 }
             }
 
-            if (tapped != null && tapped.playerNum != game.getTurn())
+            if (tapped != null && tapped.getPlayerNum() != game.getTurn())
                 tapped = null;
 
             // Draw the pieces and see if there is only one possible piece that can be moved.
@@ -838,13 +838,15 @@ public class CheckerboardView extends RelativeLayout implements View.OnClickList
                     if (dragging != null && touchColumn == i && touchRank == ii)
                         continue;
                     Piece pc = game.getPiece(ii, i);
-                    if (pc.type != PieceType.EMPTY && !hidden.contains(pc)) {
+                    if (pc.getType() != PieceType.EMPTY && !hidden.contains(pc)) {
                         int outline = OUTLINE_NONE;
-                        if (dragging == null && tapped == null && pc.moves.size() > 0) {
+                        if (dragging == null && tapped == null && pc.getNumMoves() > 0) {
                             outline = OUTLINE_YELLOW;
+                        } else if (pc.isCaptured()) {
+                            outline = OUTLINE_RED;
                         }
                         drawPiece(canvas, pc, ii, i, outline, shouldDrawUpsideDown(ACheckboardGame.FAR));
-                        if (pc.moves.size() > 0) {
+                        if (pc.getNumMoves() > 0) {
                             numMvblePcs++;
                             if (numMvblePcs == 1) {
                                 mainPc = pc;
@@ -874,12 +876,12 @@ public class CheckerboardView extends RelativeLayout implements View.OnClickList
 
             if (highlightMove != null) {
                 highlightMove(canvas, highlightMove);
-            } else if (mainPc != null && mainPc.playerNum == game.getTurn()) {
+            } else if (mainPc != null && mainPc.getPlayerNum() == game.getTurn()) {
                 tapped = mainPc;
             }
 
-            if (tapped != null && tapped.playerNum == game.getTurn()) {
-                for (Move m : new ArrayList<>(tapped.moves)) {
+            if (tapped != null && tapped.getPlayerNum() == game.getTurn()) {
+                for (Move m : tapped.getMoves()) {
                     Log.d("CB", "Tapped move: " + m);
                     highlightMove(canvas, m);
                 }
@@ -887,7 +889,7 @@ public class CheckerboardView extends RelativeLayout implements View.OnClickList
 
             if (dragging != null) {
                 drawPieceAt(canvas, dragging, dragX, dragY, OUTLINE_NONE, shouldDrawUpsideDown(ACheckboardGame.FAR));
-                for (Move m : dragging.moves) {
+                for (Move m : dragging.getMoves()) {
                     highlightMove(canvas, m);
                 }
             }
@@ -912,7 +914,7 @@ public class CheckerboardView extends RelativeLayout implements View.OnClickList
         float sx = m.getStart()[1]*cellDim;
         float sy = m.getStart()[0]*cellDim;
         float cx, cy;
-        switch (m.type) {
+        switch (m.getMoveType()) {
             case CASTLE:
                 pStroke.setColor(Color.WHITE);
                 cx = m.getCastleRookStart()[1]*cellDim;
@@ -942,10 +944,10 @@ public class CheckerboardView extends RelativeLayout implements View.OnClickList
             cx = m.getEnd()[1]*cellDim;
             cy = m.getEnd()[0]*cellDim + cellDim/2;
             if (drawDebugInfo) {
-                canvas.drawText(m.nextType == null ? "null" : m.nextType.name(), cx, cy, pText);
-                if (m.captured != null) {
+                canvas.drawText(!m.hasEnd() ? "null" : m.getEndType().name(), cx, cy, pText);
+                if (m.getCaptured() != null) {
                     cy += pText.getTextSize();
-                    canvas.drawText(m.captured.type.name() + " " + m.getCaptured()[0] + "x" + m.getCaptured()[1], cx, cy, pText);
+                    canvas.drawText(m.getCapturedType().name() + " " + m.getCaptured()[0] + "x" + m.getCaptured()[1], cx, cy, pText);
                 }
             }
         }
@@ -968,9 +970,9 @@ public class CheckerboardView extends RelativeLayout implements View.OnClickList
         drawPieceAt(g, pc, cx, cy, outline, upsidedown);
         if (drawDebugInfo) {
             if (isSquareBlack(rank, col))
-                g.drawText(pc.type.name(), cellDim * col, cellDim * rank + cellDim - 5, pText);
+                g.drawText(pc.getType().name(), cellDim * col, cellDim * rank + cellDim - 5, pText);
             else
-                g.drawText(pc.type.name(), cellDim * col, cellDim * rank + pText.getTextSize() + 5, pText);
+                g.drawText(pc.getType().name(), cellDim * col, cellDim * rank + pText.getTextSize() + 5, pText);
         }
     }
 
@@ -980,9 +982,9 @@ public class CheckerboardView extends RelativeLayout implements View.OnClickList
     void drawPieceAt(Canvas g, Piece pc, float cx, float cy, int outline, boolean upsidedown) {
 
         Drawable d = null;
-        boolean isBlack = game.getPlayerColor(pc.playerNum) == ACheckboardGame.Color.BLACK;
+        boolean isBlack = game.getPlayerColor(pc.getPlayerNum()) == ACheckboardGame.Color.BLACK;
         float heightPercent = 1; // adjust height for pieces. so pawn is shortest and king is tallest and the rest reasonably inbetween
-        switch (pc.type) {
+        switch (pc.getType()) {
             case PAWN:
             case PAWN_IDLE:
             case PAWN_ENPASSANT:
@@ -1035,12 +1037,12 @@ public class CheckerboardView extends RelativeLayout implements View.OnClickList
             case DAMA_KING:
             case FLYING_KING:
             case KING:
-                drawChecker(g, cx, cy, pcRad, pc.playerNum, 0);
+                drawChecker(g, cx, cy, pcRad, pc.getPlayerNum(), 0);
                 cy -= pcRad/4;
                 // fall through
             case DAMA_MAN:
             case CHECKER:
-                drawChecker(g, cx, cy, pcRad, pc.playerNum, outline);
+                drawChecker(g, cx, cy, pcRad, pc.getPlayerNum(), outline);
                 break;
         }
         if (d != null) {
@@ -1164,7 +1166,7 @@ public class CheckerboardView extends RelativeLayout implements View.OnClickList
         }
 
         if (m != null) {
-            if (m.captured != null) {
+            if (m.hasCaptured()) {
                 // start un-capture animation on next frame so the nextNear/FarCapturedX/Y are reflect updated state
                 postDelayed(new Runnable() {
                     @Override
@@ -1173,7 +1175,7 @@ public class CheckerboardView extends RelativeLayout implements View.OnClickList
                     }
                 }, 1);
             }
-            switch (m.type) {
+            switch (m.getMoveType()) {
                 case FLYING_JUMP:
                 case JUMP:
                     animations.add(new JumpAnim(m, null).startReverse());
@@ -1182,7 +1184,7 @@ public class CheckerboardView extends RelativeLayout implements View.OnClickList
                     animations.add(new SlideAnim(m, null).startReverse());
                     break;
                 case STACK:
-                    animations.add(new StackAnim(m.getStart(), m.playerNum, PieceType.CHECKER, null).startReverse());
+                    animations.add(new StackAnim(m.getStart(), m.getPlayerNum(), PieceType.CHECKER, null).startReverse());
                     break;
                 case CASTLE:
                     animations.add(new JumpAnim(m, null).startReverse());

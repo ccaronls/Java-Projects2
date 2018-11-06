@@ -29,11 +29,20 @@ public class Robot extends Reflector<Robot> {
         this.type = RobotType.values()[difficulty];
     }
 
+    public RobotType getDifficulty() {
+        return type;
+    }
+
     final MiniMaxTree mmtCheckers = new MiniMaxTree<Checkers>() {
 
         @Override
         protected long evaluate(Checkers game, MMTreeNode t, int playerNum) {
             return Robot.this.evaluateCheckersBoard(game, t, playerNum);
+        }
+
+        @Override
+        protected void onNewNode(MMTreeNode node) {
+            onNewMove((Move)node.getMove());
         }
     };
 
@@ -44,10 +53,11 @@ public class Robot extends Reflector<Robot> {
             Move m = (Move)node.getMove();
             Piece p = ((Chess) node.getGame()).getPiece(m.getStart());
             if (m.hasEnd()) {
-                node.appendMeta("%s->%dx%d", p.type.abbrev, m.getEnd()[0], m.getEnd()[1]);
+                node.appendMeta("%s->%dx%d", p.getType().abbrev, m.getEnd()[0], m.getEnd()[1]);
             } else {
-                node.appendMeta("%s %s", m.type.name(), p.type.abbrev);
+                node.appendMeta("%s %s", m.getMoveType().name(), p.getType().abbrev);
             }
+            onNewMove(m);
         }
 
         @Override
@@ -63,7 +73,9 @@ public class Robot extends Reflector<Robot> {
         }
     };
 
-    void doRobot(ACheckboardGame game, MMTreeNode<Move, ACheckboardGame> root) {
+    protected void onNewMove(Move m) {}
+
+    public void doRobot(ACheckboardGame game, MMTreeNode<Move, ACheckboardGame> root) {
         MiniMaxTree mmt;
         if (game instanceof Checkers)
             mmt = mmtCheckers;
@@ -101,28 +113,28 @@ public class Robot extends Reflector<Robot> {
             for (int col=0; col<game.COLUMNS; col++) {
                 Piece p = game.board[rank][col];//getPiece(rank, col);
 
-                if (p.playerNum < 0)
+                if (p.getPlayerNum() < 0)
                     continue;
 
-                final int scale = p.playerNum == playerNum ? 1 : -1;
+                final int scale = p.getPlayerNum() == playerNum ? 1 : -1;
 
                 int value = 0;
 
-                switch (p.type) {
+                switch (p.getType()) {
                     case PAWN:
-                        dPawnAdv += scale * Math.abs(rank-game.getStartRank(p.playerNum));
+                        dPawnAdv += scale * Math.abs(rank-game.getStartRank(p.getPlayerNum()));
                         value = 1;
                         break;
                     case PAWN_IDLE:
-                        dPawnAdv += scale * Math.abs(rank-game.getStartRank(p.playerNum));
+                        dPawnAdv += scale * Math.abs(rank-game.getStartRank(p.getPlayerNum()));
                         value = 1;
                         break;
                     case PAWN_ENPASSANT:
-                        dPawnAdv += scale * Math.abs(rank-game.getStartRank(p.playerNum));
+                        dPawnAdv += scale * Math.abs(rank-game.getStartRank(p.getPlayerNum()));
                         value = 1;
                         break;
                     case PAWN_TOSWAP:
-                        dPawnAdv += scale * Math.abs(rank-game.getStartRank(p.playerNum));
+                        dPawnAdv += scale * Math.abs(rank-game.getStartRank(p.getPlayerNum()));
                         value = 1000;
                         break;
                     case BISHOP:
@@ -160,10 +172,10 @@ public class Robot extends Reflector<Robot> {
                 dPcCount += scale;
                 dPcValue += scale * value;
 
-                if (game.isSquareAttacked(rank, col, p.playerNum)) {
+                if (game.isSquareAttacked(rank, col, p.getPlayerNum())) {
                     bValue[rank][col] += value;
                 }
-                if (game.isSquareAttacked(rank, col, game.getOpponent(p.playerNum))) {
+                if (game.isSquareAttacked(rank, col, game.getOpponent(p.getPlayerNum()))) {
                     bValue[rank][col] -= value;
                 }
 
@@ -219,23 +231,24 @@ public class Robot extends Reflector<Robot> {
             for (int col=0; col<game.COLUMNS; col++) {
             //for (Piece p : game..getBoard[rank]) {
                 Piece p = game.board[rank][col];//getPiece(rank, col);
+                Utils.assertTrue(p != null && p.getType() != null);
 
-                if (p.playerNum == playerNum) {
-                    switch (p.type) {
+                if (p.getPlayerNum() == playerNum) {
+                    switch (p.getType()) {
                         case CHECKER:
                             dPc++;
-                            dAdv += game.getAdvancementFromStart(p.playerNum, rank);
+                            dAdv += game.getAdvancementFromStart(p.getPlayerNum(), rank);
                             break;
                         case FLYING_KING:
                         case KING:
                             dKing++; break;
                     }
 
-                } else if (p.playerNum >= 0) {
-                    switch (p.type) {
+                } else if (p.getPlayerNum() >= 0) {
+                    switch (p.getType()) {
                         case CHECKER:
                             dPc--;
-                            dAdv -= game.getAdvancementFromStart(p.playerNum, rank);
+                            dAdv -= game.getAdvancementFromStart(p.getPlayerNum(), rank);
                             break;
                         case FLYING_KING:
                         case KING:
@@ -281,11 +294,11 @@ public class Robot extends Reflector<Robot> {
             Piece p;
             for (int i = 0; i < game.RANKS; i++) {
                 for (int ii = 0; ii < game.COLUMNS; ii++) {
-                    if ((p = game.board[i][ii]).moves.size() > mvNum) {
-                        Move m = p.moves.get(mvNum);
+                    if ((p = game.board[i][ii]).getNumMoves() > mvNum) {
+                        Move m = p.getMove(mvNum);
                         tree.setMove(m);
                     } else {
-                        mvNum -= p.moves.size();
+                        mvNum -= p.getNumMoves();
                     }
                 }
             }

@@ -1701,7 +1701,7 @@ public class Reflector<T> {
      * @return
      */
     @SuppressWarnings("unchecked")
-    public final T deepCopy() {
+    public T deepCopy() {
         try {
             T a = (T)getClass().newInstance();
             Map<Field, Archiver> values = getValues(getClass(), false);
@@ -1722,10 +1722,10 @@ public class Reflector<T> {
      * @param other
      */
     @SuppressWarnings({ "unchecked", "rawtypes" })
-	public final void copyFrom(Reflector<T> other) {
+	public final Reflector<T> copyFrom(Reflector<T> other) {
         if (other == this) {
             log.error("Copying from self?");
-            return;
+            return this;
         }
 
     	try {
@@ -1749,6 +1749,8 @@ public class Reflector<T> {
             		f.set(this, deepCopy(f.get(other)));
             	}
             }
+
+            return this;
     		
     	} catch (Exception e) {
             throw new RuntimeException("Failed to deep copy", e);
