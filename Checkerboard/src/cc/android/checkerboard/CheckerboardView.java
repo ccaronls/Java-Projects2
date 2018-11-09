@@ -500,12 +500,14 @@ public class CheckerboardView extends RelativeLayout implements View.OnClickList
             BitmapDrawable d = (BitmapDrawable)getResources().getDrawable(drawable);
             float [] dim = getBitmapRect(d, 1);
 
+            boolean upsidedown = shouldDrawUpsideDown(ACheckboardGame.FAR);
             g.save();
             g.translate(cx, cy);
-            g.translate(dim[0]/2, dim[1]/2);
-            g.rotate(90f * position);
-            g.translate(-dim[0]/2, -dim[1]/2);
-            drawBitmap(g, 0, 0, d, 1, OUTLINE_NONE, shouldDrawUpsideDown(ACheckboardGame.FAR));
+            float ty = dim[1]/2 * (upsidedown ? -1 : 1);
+            g.translate(dim[0]/2, ty);
+            g.rotate(90f * position * (upsidedown ? -1:1));
+            g.translate(-dim[0]/2, -ty);
+            drawBitmap(g, 0, 0, d, 1, OUTLINE_NONE, upsidedown);
             g.restore();
 
         }

@@ -160,7 +160,7 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
                 p.clearMoves();
                 if (p.getPlayerNum() == getTurn())
                     computeMovesForSquare(rank, col, null);
-                num += p.getNumMoves();
+                num += getPiece(rank, col).getNumMoves();
             }
         }
         return num;

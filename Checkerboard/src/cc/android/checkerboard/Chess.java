@@ -436,8 +436,8 @@ public class Chess extends ACheckboardGame {
             if (isSquareAttacked(kingPos[0], kingPos[1], opponent))
                 it.remove();
             reverseMove(m);
-            getPiece(m.getStart()).setMovesList(moves);
         }
+        getPiece(rank, col).setMovesList(moves);
     }
 
     public final static int [][] DIAGONAL_DELTAS = {
