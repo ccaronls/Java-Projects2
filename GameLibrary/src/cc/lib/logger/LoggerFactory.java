@@ -37,7 +37,7 @@ public abstract class LoggerFactory {
 
                 @Override
                 public void error(Throwable e) {
-                    error("%s:%s\n%s", e.getClass().getSimpleName(), e.getMessage());
+                    error("%s:%s", e.getClass().getSimpleName(), e.getMessage());
                     for (StackTraceElement s : e.getStackTrace()) {
                         error(s.toString());
                     }

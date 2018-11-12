@@ -6,6 +6,10 @@ dependencies {
 }
 
 android {
+
+    sourceCompatibility = project.sourceCompatibility; // for example
+    targetCompatibility = project.targetCompatibility; // defaults to sourceCompatibility
+
     compileSdkVersion project.myCompileSdkVersion.toInteger()
     buildToolsVersion project.myBuildToolsVersion
 
