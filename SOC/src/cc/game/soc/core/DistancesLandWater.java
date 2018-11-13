@@ -7,18 +7,18 @@ import java.util.List;
 public class DistancesLandWater implements IDistances {
 	
 	public DistancesLandWater() {
-		this(new int[0][0], new int[0][0], new int[0][0], new int[0][0], null);
+		this(null, null, null, null, null);
 	}
 	
-	private final int [][] distLand;
-	private final int [][] nextLand;
-	private final int [][] distAqua;
-	private final int [][] nextAqua;
+	private final byte [][] distLand;
+	private final byte [][] nextLand;
+	private final byte [][] distAqua;
+	private final byte [][] nextAqua;
 	private final Collection<Integer> launchVerts;
 	
 	public DistancesLandWater(
-			int [][] distLand, int [][] nextLand, 
-			int [][] distAqua, int [][] nextAqua,
+			byte [][] distLand, byte [][] nextLand,
+			byte [][] distAqua, byte [][] nextAqua,
 			Collection<Integer> launchVerts) {
 		super();
 		this.distAqua = distAqua;
@@ -28,8 +28,8 @@ public class DistancesLandWater implements IDistances {
 		this.launchVerts = launchVerts;
 	}
 	
-	private static int nearestShorelineIndex(int from, int [][] dist, Collection<Integer> launchVerts) {
-		int d = DISTANCE_INFINITY;
+	private static int nearestShorelineIndex(int from, byte [][] dist, Collection<Integer> launchVerts) {
+		byte d = DISTANCE_INFINITY;
 		int index = -1;
 		for (int vIndex : launchVerts) {
 			if (dist[from][vIndex] < d) {
@@ -79,7 +79,7 @@ public class DistancesLandWater implements IDistances {
 		}
 	}
 	
-	private void getShortestPath(int fromVertex, int toVertex, List<Integer> path, int [][] dist, int [][] next) {
+	private void getShortestPath(int fromVertex, int toVertex, List<Integer> path, byte [][] dist, byte [][] next) {
 		if (dist[fromVertex][toVertex] != DISTANCE_INFINITY)
 		{
 			path.add(fromVertex);

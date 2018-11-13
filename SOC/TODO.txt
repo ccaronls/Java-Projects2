@@ -55,3 +55,6 @@ CAK Rule Details:
 
 - Make so card wont overlapp vertially
 - Welcome screen for android
+- Put the name of the board in play at top of board
+- Pirate Fortress should have indicator for what players can attack, how close they are to attacking, how many warships needed to attack
+- Long press on console should bring up big console dialog

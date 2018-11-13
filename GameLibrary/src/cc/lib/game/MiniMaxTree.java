@@ -1,10 +1,17 @@
 package cc.lib.game;
 
+import java.io.PrintWriter;
+
+import cc.lib.logger.Logger;
+import cc.lib.logger.LoggerFactory;
+
 /**
  * Created by chriscaron on 10/7/17.
  */
 
 public abstract class MiniMaxTree<G extends IGame> {
+
+    final static Logger log = LoggerFactory.getLogger(MiniMaxTree.class);
 
     public static class MMTreeNode<M extends IMove, G extends IGame<M>> extends DescisionTree<G, M> {
         public MMTreeNode(G game) {
@@ -26,7 +33,13 @@ public abstract class MiniMaxTree<G extends IGame> {
      * @return
      */
     public void buildTree(IGame game, MMTreeNode root, int depth) {
-        double d = buildTree(game, root, depth, 1);
+        try {
+            double d = buildTree(game, root, depth, 1);
+        } catch (Throwable e) {
+            log.error(e);
+            root.dumpTree(new PrintWriter(System.err));
+            throw e;
+        }
         synchronized (this) {
             notifyAll();
         }
@@ -49,10 +62,12 @@ public abstract class MiniMaxTree<G extends IGame> {
 
         long d = getZeroMovesValue((G)game) * scale;// < 0 ? Long.MAX_VALUE : Long.MIN_VALUE;
         for (M m : game.getMoves()) {
+            if (m.getPlayerNum() < 0)
+                throw new AssertionError();
             game.executeMove(m);
             MMTreeNode next = new MMTreeNode(game, m);
             //next.appendMeta("playerNum=%d, scale=%d, depth=%d", m.playerNum, scale, depth);
-            next.appendMeta("pn(%d)depth(%d)scale(%d)", m.getPlayerNum(), depth, scale);
+            next.appendMeta("pn(%d) move(%s)scale(%d)", m.getPlayerNum(), m.toString(), scale);
             onNewNode(next);
             root.addChild(next);
             long v;
@@ -60,9 +75,9 @@ public abstract class MiniMaxTree<G extends IGame> {
                 // this means we have more move options
                 v = buildTree(game, next, depth, scale);
             } else if (depth > 0 && !kill) {
-                v = buildTree(game, next, depth-1, scale * -1);
+                v = buildTree(game, next, depth - 1, scale * -1);
             } else {
-                v = evaluate((G)game, next, m.getPlayerNum()) * scale;
+                v = evaluate((G) game, next, m.getPlayerNum()) * scale;
             }
             next.setValue(v);
             if (scale < 0) {

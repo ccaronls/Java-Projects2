@@ -113,7 +113,7 @@ public class KaiserApplet extends KeyboardAnimationApplet {
         Kaiser.DEBUG_ENABLED = true;
         Utils.DEBUG_ENABLED = false;
         PlayerBot.ENABLE_AIDEBUG = true;
-        Reflector.ENABLE_THROW_ON_UNKNOWN = true;
+        Reflector.THROW_ON_UNKNOWN = true;
         kaiser = new Kaiser();
         try {
             kaiser.loadFromFile(SAVE_FILE);

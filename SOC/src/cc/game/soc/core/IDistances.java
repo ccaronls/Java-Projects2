@@ -4,7 +4,7 @@ import java.util.List;
 
 public interface IDistances {
 
-	public final static int DISTANCE_INFINITY = 100;
+	public final static byte DISTANCE_INFINITY = Byte.MAX_VALUE;
 	
 	List<Integer> getShortestPath(int fromVertex, int toVertex);
 	

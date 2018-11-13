@@ -4,8 +4,8 @@ dependencies {
 //    compile files ('mdnsjava-2.1.6-SNAPSHOT.jar', 'dnsjava-2.1.7.jar')
 }
 
-targetCompatibility = '1.7'
-sourceCompatibility = '1.7'
+targetCompatibility = '1.8'
+sourceCompatibility = '1.8'
 
 sourceSets {
     main {

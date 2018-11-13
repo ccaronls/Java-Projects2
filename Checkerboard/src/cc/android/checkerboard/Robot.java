@@ -82,7 +82,8 @@ public class Robot extends Reflector<Robot> {
         else
             mmt = mmtChess;
 
-        Debug.startMethodTracing();
+        if (BuildConfig.DEBUG)
+            Debug.startMethodTracing();
         switch (type) {
             case EASY:
                 doRandomRobot(root);
@@ -96,7 +97,9 @@ public class Robot extends Reflector<Robot> {
                 break;
             }
         }
-        Debug.stopMethodTracing();
+        if (BuildConfig.DEBUG)
+            Debug.stopMethodTracing();
+
     }
 
 

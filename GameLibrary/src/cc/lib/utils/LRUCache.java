@@ -3,6 +3,7 @@ package cc.lib.utils;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -12,24 +13,34 @@ import java.util.Set;
  * @param <K>
  * @param <V>
  */
-public class LRUCache<K, V> implements Map<K, V> {
+public final class LRUCache<K, V> implements Map<K, V> {
 
     public static class LRUEntry<K> {
         LRUEntry<K> prev, next;
         final K key;
 
         LRUEntry(K key) {
+            if (key == null)
+                throw new NullPointerException("Key cannot be null");
             this.key = key;
         }
 
         @Override
         public boolean equals(Object obj) {
-            return key.equals(obj) || super.equals(obj);
+            if (obj != null && obj instanceof LRUEntry) {
+                return ((LRUEntry) obj).key.equals(key);
+            }
+            return key.equals(obj);
         }
 
         @Override
         public int hashCode() {
             return key.hashCode();
+        }
+
+        @Override
+        public String toString() {
+            return key.toString();
         }
     }
 
@@ -55,31 +66,27 @@ public class LRUCache<K, V> implements Map<K, V> {
 
     @Override
     public boolean containsKey(Object key) {
-        return map.containsKey(key);
+        return map.containsKey(new LRUEntry(key));
     }
 
     @Override
     public boolean containsValue(Object value) {
-        return map.containsKey(value);
+        return map.containsValue(value);
     }
 
     @Override
     public V get(Object key) {
-        V value = map.get(key);
+        V value = map.get(new LRUEntry(key));
         if (value == null)
             return null;
 
         LRUEntry<K> e = listFindEntry(key);
         // move to front of the list
-        if (e.prev != null) {
-            e.prev.next = e.next;
-        }
-        if (e.next != null) {
-            e.next.prev = e.prev;
-        }
-        e.prev = null;
+        listRemove(e);
+        first.prev = e;
         e.next = first;
         first = e;
+
         return value;
     }
 
@@ -110,22 +117,32 @@ public class LRUCache<K, V> implements Map<K, V> {
     }
 
     private void listRemove(LRUEntry<K> e) {
-        if (e.prev != null) {
-            e.prev.next = e.next;
+        //System.out.println("listRemove " + e + " first=" + first + " last=" + last + " size=" + size());
+        if (first == e) {
+            if (first == last) {
+                //System.out.println("remove single entry");
+                first = last = null;
+            } else {
+                //System.out.println("remove first entry");
+                first = first.next;
+                first.prev = null;
+            }
         }
-        if (e.next != null) {
+        else if (last == e) {
+            //System.out.println("remove last entry");
+            last = last.prev;
+            last.next = null;
+        } else {
+            //System.out.println("remove middle entry");
+            e.prev.next = e.next;
             e.next.prev = e.prev;
         }
-        if (first == e) {
-            if (first == last)
-                first = last = null;
-            else
-                first = first.next;
-        }
-        if (last == e) {
-            last = last.prev;
-        }
         e.next = e.prev = null;
+
+        //if (last.next != null)
+        //    throw new AssertionError("");
+        //if (first.prev != null)
+        //    throw new AssertionError("");
     }
 
     private LRUEntry<K> listFindEntry(Object key) {
@@ -156,7 +173,7 @@ public class LRUCache<K, V> implements Map<K, V> {
     @Override
     public void clear() {
         first = last = null;
-        clear();
+        map.clear();
     }
 
     @Override
@@ -175,7 +192,12 @@ public class LRUCache<K, V> implements Map<K, V> {
 
     @Override
     public Set<Entry<K, V>> entrySet() {
-        throw new AssertionError("Not implemented");
+        Map<K,V> mapCopy=new LinkedHashMap<>();
+        for (LRUEntry<K> e = first; e!= null; e=e.next) {
+            //System.out.println("e=" + e);
+            mapCopy.put(e.key, map.get(e));
+        }
+        return mapCopy.entrySet();
     }
 
     public int getMax() {

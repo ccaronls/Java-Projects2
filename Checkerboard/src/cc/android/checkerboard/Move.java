@@ -30,6 +30,8 @@ public class Move extends Reflector<Move> implements IMove {
     }
 
     public Move setStart(int startRank, int startCol, PieceType type) {
+        if (type == PieceType.EMPTY)
+            throw new AssertionError("start type cannot be empty");
         start = new int[]{startRank, startCol};
         startType = type;
         return this;

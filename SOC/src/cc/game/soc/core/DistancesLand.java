@@ -6,13 +6,13 @@ import java.util.List;
 public class DistancesLand implements IDistances {
 
 	public DistancesLand() {
-		this(new int[0][0], new int[0][0]);
+		this(null, null);
 	}
 	
-	private final int [][] dist;
-	private final int [][] next;
+	private final byte [][] dist;
+	private final byte [][] next;
 	
-	public DistancesLand(int [][] dist, int [][] next) {
+	public DistancesLand(byte [][] dist, byte [][] next) {
 		this.dist = dist;
 		this.next = next;
 	}

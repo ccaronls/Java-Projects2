@@ -61,6 +61,7 @@ import cc.lib.android.BuildConfig;
 import cc.lib.android.CCActivityBase;
 import cc.lib.android.CCNumberPicker;
 import cc.lib.android.EmailHelper;
+import cc.lib.android.SpinnerTask;
 import cc.lib.game.GColor;
 import cc.lib.game.Utils;
 import cc.lib.utils.FileUtils;
@@ -426,10 +427,33 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
             showMultiPlayerDialog();
         } else if (item == RESUME) {
             try {
-                soc.loadFromFile(gameFile);
-                initGame();
+                if (cc.game.soc.android.BuildConfig.DEBUG) {
+                    //FileUtils.copyFile(gameFile, Environment.getExternalStorageDirectory());
+                    // User can put a fixed file onto sdcard to overwrite the current save file.
+                    // It will be deleted when done
+                    File fixed = new File(Environment.getExternalStorageDirectory(), "fixed.txt");
+                    if (fixed.exists()) {
+                        FileUtils.copyFile(fixed, gameFile);
+                        fixed.delete();
+                    }
+                }
+
+                new SpinnerTask(this) {
+
+                    @Override
+                    protected void doIt(String... args) throws Exception {
+                        soc.loadFromFile(gameFile);
+                    }
+
+                    @Override
+                    protected void onSuccess() {
+                        initGame();
+                    }
+
+                }.execute();
             } catch (Exception e) {
-                ((View) extra).setEnabled(false);
+                if (extra != null)
+                    ((View) extra).setEnabled(false);
                 soc.clear();
                 showError(e);
             }
@@ -597,7 +621,8 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
         if (cc.game.soc.android.BuildConfig.DEBUG) {
             soc.addMenuItem(LOADSAVED);
         }
-        soc.addMenuItem(BOARDS);
+        if (cc.game.soc.android.BuildConfig.DEBUG)
+            soc.addMenuItem(BOARDS);
         soc.addMenuItem(SCENARIOS);
         soc.addMenuItem(RULES);
 

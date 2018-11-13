@@ -10,6 +10,7 @@ import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
 import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
+import cc.lib.utils.LRUCache;
 import cc.lib.utils.Reflector;
 
 /**
@@ -51,7 +52,7 @@ public class Board extends Reflector<Board> {
 	private int numAvaialbleVerts = -1;
 
     @Omit
-    private final HashMap<String, IDistances> distancesCache = new HashMap<>();
+    private final LRUCache<String, IDistances> distancesCache = new LRUCache<>(100);
 
     /**
      * Reset the board to its initial playable state.
@@ -72,6 +73,7 @@ public class Board extends Reflector<Board> {
         for (Route r : routes) {
             r.reset();
         }
+        distancesCache.clear();
     }
 
 	/**
@@ -311,14 +313,15 @@ public class Board extends Reflector<Board> {
 		Collections.sort(routes);
 		
 		// make sure edges are unique and in ascending order
-		// TODO: do we need this sanity check anymore?
-		for (int i=1; i<routes.size(); i++) {
-			Route e0 = getRoute(i-1);
-			Route e1 = getRoute(i);
-			if (e1.compareTo(e0)<=0)
-				throw new RuntimeException("Edges out of order or not unique");
-		}
-		
+        if (Utils.DEBUG_ENABLED) {
+            // TODO: do we need this sanity check anymore?
+            for (int i = 1; i < routes.size(); i++) {
+                Route e0 = getRoute(i - 1);
+                Route e1 = getRoute(i);
+                if (e1.compareTo(e0) <= 0)
+                    throw new RuntimeException("Edges out of order or not unique");
+            }
+        }
 		//visit all vertices and remove adjacencies that dont exist
 		for (int vIndex=0; vIndex<getNumAvailableVerts(); vIndex++) {
 			Vertex v = getVertex(vIndex);
@@ -2425,19 +2428,13 @@ public class Board extends Reflector<Board> {
 	public IDistances computeDistances(final Rules rules, final int playerNum) {
 		
 		if (rules.isEnableSeafarersExpansion()) {
-			return computeDistancesLandWater(rules, playerNum);
+		    try {
+                return computeDistancesLandWater(rules, playerNum);
+            } catch (OutOfMemoryError e) {
+		        System.gc();
+                return computeDistancesLandWater(rules, playerNum);
+            }
 		} else {
-			final int numV = getNumAvailableVerts();
-			final int [][] dist = new int[numV][numV];
-			final int [][] next = new int[numV][numV];
-
-			for (int i=0; i<numV; i++) {
-				for (int ii=0; ii<numV; ii++) {
-					dist[i][ii] = DistancesLandWater.DISTANCE_INFINITY;
-					next[i][ii] = ii;
-				}
-				dist[i][i] = 0;
-			}
 
 			int [] rcache = new int[routes.size()];
 			int rcacheLen = 0;
@@ -2449,13 +2446,10 @@ public class Board extends Reflector<Board> {
 				final int v0 = r.getFrom();
 				final int v1 = r.getTo();
 				
-				if (r.getPlayer() == 0) {
-					dist[v0][v1] = dist[v1][v0] = 1;
-				} else if (r.getPlayer() == playerNum) {
+                if (r.getPlayer() == playerNum) {
 					switch (r.getType()) {
 						case DAMAGED_ROAD:
 						case ROAD:
-							dist[v0][v1] = dist[v1][v0] = 0;
 							rcache[rcacheLen++] = rIndex;
 							break;
 						case SHIP:
@@ -2475,6 +2469,45 @@ public class Board extends Reflector<Board> {
             if (distancesCache.containsKey(str))
                 return distancesCache.get(str);
 
+            final int numV = getNumAvailableVerts();
+            Utils.assertTrue(numV <= 100);
+            final byte [][] dist = new byte[numV][numV];
+            final byte [][] next = new byte[numV][numV];
+
+            for (int i=0; i<numV; i++) {
+                for (int ii=0; ii<numV; ii++) {
+                    dist[i][ii] = DistancesLandWater.DISTANCE_INFINITY;
+                    next[i][ii] = (byte)ii;
+                }
+                dist[i][i] = 0;
+            }
+
+            for (int rIndex=0; rIndex<routes.size(); rIndex++) {
+
+                Route r = routes.get(rIndex);
+                final int v0 = r.getFrom();
+                final int v1 = r.getTo();
+
+                if (r.getPlayer() == 0) {
+                    dist[v0][v1] = dist[v1][v0] = 1;
+                } else if (r.getPlayer() == playerNum) {
+                    switch (r.getType()) {
+                        case DAMAGED_ROAD:
+                        case ROAD:
+                            dist[v0][v1] = dist[v1][v0] = 0;
+                            break;
+                        case SHIP:
+                        case WARSHIP:
+                        case OPEN:
+                        default:
+                            assert(false);
+
+                    }
+                }
+
+            }
+
+
             // All-Pairs shortest paths [Floyd-Marshall O(|V|^3)] algorithm.  This is a good choice for dense graphs like ours
 			// where every vertex has 2 or 3 edges.  The memory usage and complexity of a Dijkstra's make it less desirable.
             // However this is very expensive computationally especially on lesser tablets, hence the optimization above.
@@ -2483,7 +2516,8 @@ public class Board extends Reflector<Board> {
 					for (int j=0; j<numV; j++) {
 						int sum = dist[i][k] + dist[k][j];
 						if (sum < dist[i][j]) {
-							dist[i][j] = sum;
+						    Utils.assertTrue(sum < IDistances.DISTANCE_INFINITY);
+							dist[i][j] = (byte)sum;
 							next[i][j] = next[i][k];
 						}
 					}
@@ -2497,23 +2531,6 @@ public class Board extends Reflector<Board> {
 	}
 
 	private IDistances computeDistancesLandWater(final Rules rules, int playerNum) {
-		
-		final int numV = getNumAvailableVerts();
-		final int [][] distLand = new int[numV][numV];
-		final int [][] distAqua = new int[numV][numV];
-		final int [][] nextLand = new int[numV][numV];
-		final int [][] nextAqua = new int[numV][numV];
-
-		for (int i=0; i<numV; i++) {
-			for (int ii=0; ii<numV; ii++) {
-				distLand[i][ii] = DistancesLandWater.DISTANCE_INFINITY;
-				distAqua[i][ii] = DistancesLandWater.DISTANCE_INFINITY;
-				nextLand[i][ii] = ii;
-				nextAqua[i][ii] = ii;
-			}
-			distLand[i][i] = 0;
-			distAqua[i][i] = 0;
-		}
 
 		int [] rcache = new int[routes.size()];
 		int rcacheLen = 0;
@@ -2522,32 +2539,21 @@ public class Board extends Reflector<Board> {
 		for (int rIndex =0; rIndex<routes.size(); rIndex++) {
 
 		    Route r= routes.get(rIndex);
-			final int v0 = r.getFrom();
-			final int v1 = r.getTo();
-			
-			if (r.getPlayer() == 0) {
-				if (r.isAdjacentToLand()) {
-					distLand[v0][v1] = distLand[v1][v0] = 1;
-				}
-				if (r.isAdjacentToWater()) {
-					distAqua[v0][v1] = distAqua[v1][v0] = 1;
-				}
-			} else if (r.getPlayer() == playerNum) {
+
+            if (r.getPlayer() == playerNum) {
 				switch (r.getType()) {
 					case DAMAGED_ROAD:
 					case ROAD:
-						distLand[v0][v1] = distLand[v1][v0] = 0;
 						rcache[rcacheLen++] = rIndex;
 						break;
 					case SHIP:
 					case WARSHIP:
-						distAqua[v0][v1] = distAqua[v1][v0] = 0;
 						rcache[rcacheLen++] = rIndex*1000; // for water we scale by 1000 so that it produces a different distanceCache string
 						break;
 					case OPEN:
 					default:
 						assert(false);
-					
+
 				}
 			}
 		}
@@ -2558,19 +2564,69 @@ public class Board extends Reflector<Board> {
 		if (distancesCache.containsKey(str))
 		    return distancesCache.get(str);
 
-		// All-Pairs shortest paths [Floyd-Marshall O(|V|^3)] algorithm.  This is a good choice for dense graphs like ours
+        final int numV = getNumAvailableVerts();
+        final byte [][] distLand = new byte[numV][numV];
+        final byte [][] distAqua = new byte[numV][numV];
+        final byte [][] nextLand = new byte[numV][numV];
+        final byte [][] nextAqua = new byte[numV][numV];
+
+        for (int i=0; i<numV; i++) {
+            for (int ii=0; ii<numV; ii++) {
+                distLand[i][ii] = DistancesLandWater.DISTANCE_INFINITY;
+                distAqua[i][ii] = DistancesLandWater.DISTANCE_INFINITY;
+                nextLand[i][ii] = (byte)ii;
+                nextAqua[i][ii] = (byte)ii;
+            }
+            distLand[i][i] = 0;
+            distAqua[i][i] = 0;
+        }
+
+        // Assign distances to edges
+        for (int rIndex =0; rIndex<routes.size(); rIndex++) {
+
+            Route r= routes.get(rIndex);
+            final int v0 = r.getFrom();
+            final int v1 = r.getTo();
+
+            if (r.getPlayer() == 0) {
+                if (r.isAdjacentToLand()) {
+                    distLand[v0][v1] = distLand[v1][v0] = 1;
+                }
+                if (r.isAdjacentToWater()) {
+                    distAqua[v0][v1] = distAqua[v1][v0] = 1;
+                }
+            } else if (r.getPlayer() == playerNum) {
+                switch (r.getType()) {
+                    case DAMAGED_ROAD:
+                    case ROAD:
+                        distLand[v0][v1] = distLand[v1][v0] = 0;
+                        break;
+                    case SHIP:
+                    case WARSHIP:
+                        distAqua[v0][v1] = distAqua[v1][v0] = 0;
+                        break;
+                    case OPEN:
+                    default:
+                        assert(false);
+
+                }
+            }
+        }
+
+        // All-Pairs shortest paths [Floyd-Marshall O(|V|^3)] algorithm.  This is a good choice for dense graphs like ours
 		// where every vertex has 2 or 3 edges.  The memory usage and complexity of a Dijkstra's make it less desirable.  
 		for (int k=0; k<numV; k++) {
 			for (int i=0; i<numV; i++) {
 				for (int j=0; j<numV; j++) {
 					int sum = distLand[i][k] + distLand[k][j];
+					Utils.assertTrue(sum < IDistances.DISTANCE_INFINITY);
 					if (sum < distLand[i][j]) {
-						distLand[i][j] = sum;
+						distLand[i][j] = (byte)sum;
 						nextLand[i][j] = nextLand[i][k];
 					}
 					sum = distAqua[i][k] + distAqua[k][j];
 					if (sum < distAqua[i][j]) {
-						distAqua[i][j] = sum;
+						distAqua[i][j] = (byte)sum;
 						nextAqua[i][j] = nextAqua[i][k];
 					}
 				}

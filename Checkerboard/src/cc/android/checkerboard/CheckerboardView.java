@@ -52,7 +52,7 @@ public class CheckerboardView extends RelativeLayout implements View.OnClickList
     private final RectF rf = new RectF();
     private final Paint glowYellow = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint glowRed = new Paint(Paint.ANTI_ALIAS_FLAG);
-    boolean drawDebugInfo = false;
+    boolean drawDebugInfo = true;
     private TextView bNear, bFar, bStart;
 
     private CheckerboardActivity activity;
@@ -913,6 +913,8 @@ public class CheckerboardView extends RelativeLayout implements View.OnClickList
     }
 
     private void highlightMove(Canvas canvas, Move m) {
+        if (m.getStart() == null)
+            return;
         float sx = m.getStart()[1]*cellDim;
         float sy = m.getStart()[0]*cellDim;
         float cx, cy;

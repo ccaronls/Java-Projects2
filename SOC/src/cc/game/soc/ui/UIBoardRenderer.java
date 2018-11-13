@@ -1008,8 +1008,6 @@ public class UIBoardRenderer extends UIRenderer {
         g.drawJustifiedString( x, y, Justify.CENTER, Justify.CENTER, String.valueOf(num));
     }
 
-    private int screenCaptureId = -1;
-    
 	public final void draw(APGraphics g, int pickX, int pickY) {
 
 	    final int width = getComponent().getWidth();
@@ -1035,19 +1033,7 @@ public class UIBoardRenderer extends UIRenderer {
     	    long enterTime = System.currentTimeMillis();
 
             if (!getRenderFlag(RenderFlag.DONT_DRAW_TEXTURES)) {
-                if (g.isCaptureAvailable()) {
-                    if (screenCaptureId < 0) {
-                        g.beginScreenCapture();
-                        drawTilesTextured(g);
-                        screenCaptureId = g.captureScreen(0, 0, g.getViewportWidth(), g.getViewportHeight());
-                    }
-                    g.pushMatrix();
-                    g.setIdentity();
-                    g.drawImage(screenCaptureId, 0, 0, g.getViewportWidth(), g.getViewportHeight());
-                    g.popMatrix();
-                } else {
-                    drawTilesTextured(g);
-                }
+                drawTilesTextured(g);
             }
 
             if (getRenderFlag(RenderFlag.DRAW_CELL_OUTLINES)) {
@@ -1339,10 +1325,6 @@ public class UIBoardRenderer extends UIRenderer {
      * Delete screen capture and force a full redraw
      */
     public final void clearCached() {
-	    if (screenCaptureId >= 0 && lastG != null) {
-	        lastG.deleteImage(screenCaptureId);
-	        screenCaptureId = -1;
-        }
     }
 
     public final void reset() {

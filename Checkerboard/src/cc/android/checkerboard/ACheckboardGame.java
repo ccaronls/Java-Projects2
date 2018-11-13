@@ -93,10 +93,15 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
     }
 
     public final void setPieceType(int [] pos, PieceType t) {
-        getPiece(pos).setType(t);
+        Piece p = getPiece(pos);
+        if (p.getPlayerNum() < 0)
+            throw new AssertionError("Not a piece " + p);
+        p.setType(t);
     }
 
     public final void setPiece(int [] pos, int playerNum, PieceType t) {
+        if (playerNum < 0)
+            throw new AssertionError("Invalid player");
         board[pos[0]][pos[1]] = new Piece(playerNum, t);
     }
 
@@ -264,7 +269,6 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
         if (r < 0 || c < 0 || r >= RANKS || c >= COLUMNS)
             return false;
         return true;
-        //return r>=0 && c>=0 && r<RANKS && c<COLUMNS;
     }
 
     public final boolean canUndo() {

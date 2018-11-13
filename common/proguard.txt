@@ -52,14 +52,22 @@
     public <init>(android.content.Context, android.util.AttributeSet, int);
 }
 
--keepclassmembers enum * {
+-keepclassmembers class * extends java.lang.Enum {
+    <fields>;
     public static **[] values();
     public static ** valueOf(java.lang.String);
 }
 
+#-keepclassmembers enum * {
+#    public static **[] values();
+#    public static ** valueOf(java.lang.String);
+#}
+
 -keepnames class * implements android.os.Parcelable {
     public static final ** CREATOR;
 }
+
+-keepnames class * extends android.content.Context
 
 -keep class cc.lib.utils.Reflector
 

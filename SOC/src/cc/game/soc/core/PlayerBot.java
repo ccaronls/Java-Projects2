@@ -20,7 +20,7 @@ public class PlayerBot extends Player {
 
 	public static boolean DEBUG_ENABLED = false;
 	
-	private BotNode movesPath = null; 
+	private BotNode movesPath = null;
 //	private LinkedList<BotNode> leafNodes = new LinkedList<BotNode>();
 	private Set<Integer> usedRoadRoutes = new HashSet<Integer>();
 	private Set<Integer> usedShipRoutes = new HashSet<Integer>();
@@ -1410,10 +1410,10 @@ public class PlayerBot extends Player {
 //		evaluateVertices(root, soc, this, soc.getBoard());
 //		evaluateSeafarers(root, soc,this, soc.getBoard());
 //		evalu
-		Player t = new PlayerTemp(this);
-		setCardsUsable(CardType.Development, false); // prevent generating development card moves on subsequent calls
+		//Player t = new PlayerTemp(this);
+//		setCardsUsable(CardType.Development, false); // prevent generating development card moves on subsequent calls
 		buildChooseMoveTreeR(soc, this, soc.getBoard(), root, moves);
-		copyFrom(t);
+//		copyFrom(t);
 		/*
 		if (DEBUG_ENABLED) {
 			try {
@@ -1755,15 +1755,15 @@ public class PlayerBot extends Player {
         };
 
     }
-    
+
     final static double [] diePossibility_usegetter; // TODO: The die distribution is different (equal) for EventCards
-    
+
     public static double getDiePossibility(int dieNum, Rules rules) {
     	if (rules.isEnableEventCards())
     		return 0.1;
     	return diePossibility_usegetter[dieNum];
     }
-	
+
     private void doEvaluateAll(BotNode node, SOC soc, Player p, Board b) {
     	doEvaluateEdges(node, soc, p, b);
     	doEvaluatePlayer(node, soc, p, b);

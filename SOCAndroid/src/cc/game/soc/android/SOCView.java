@@ -3,7 +3,6 @@ package cc.game.soc.android;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.os.SystemClock;
-import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
@@ -52,7 +51,7 @@ public class SOCView<T extends UIRenderer> extends View implements UIComponent {
 
     private Runnable touchDownRunnable = null;
 
-    public SOCView(Context context, @Nullable AttributeSet attrs) {
+    public SOCView(Context context, AttributeSet attrs) {
         super(context, attrs);
         init(context, attrs);
     }
@@ -62,7 +61,7 @@ public class SOCView<T extends UIRenderer> extends View implements UIComponent {
         init(context, null);
     }
 
-    private void init(Context context, @Nullable AttributeSet attrs) {
+    private void init(Context context, AttributeSet attrs) {
         switch (getId()) {
             case R.id.soc_barbarian: {
                 UIBarbarianRenderer r = new UIBarbarianRenderer(this);

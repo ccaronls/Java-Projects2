@@ -450,10 +450,11 @@ public class AWTCheckers extends AWTComponent {
                     MiniMaxTree.MMTreeNode<Move, ACheckboardGame> root = new MiniMaxTree.MMTreeNode(g);
                     robot.doRobot(g, root);
                     root.dumpTree(new PrintWriter(System.out));
+                    /*
                     for (Move m : root.getPath()) {
                         animateMove(m);
                         game.executeMove(m);
-                    }
+                    }*/
                     repaint();
                     Utils.print("Thread " + Thread.currentThread().getName() + " DONE");
                 }

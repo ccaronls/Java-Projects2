@@ -286,6 +286,8 @@ public class Checkers extends ACheckboardGame  {
 
     @Override
 	public void executeMove(Move move) {
+        if (move.getPlayerNum() != getTurn())
+            throw new AssertionError();
         lock = null;
 		boolean isKinged = false;
 		boolean isDamaKing = false;
@@ -301,13 +303,7 @@ public class Checkers extends ACheckboardGame  {
             p = movePiece(move);
 		}
 
-		switch (move.getMoveType()) {
-            case STACK:
-                break;
-            default:
-                undoStack.push(move);
-        }
-
+        undoStack.push(move);
         switch (move.getMoveType()) {
             case SLIDE:
                 if (isKinged) {

@@ -6,8 +6,8 @@ dependencies {
 }
 
 android {
-    compileSdkVersion project.myCompileSdkVersion.toInteger()
-    buildToolsVersion project.myBuildToolsVersion
+    compileSdkVersion 24
+    buildToolsVersion '27.0.3'
 
     sourceSets {
         main {
@@ -46,6 +46,11 @@ android {
         }
     }
 
+    defaultConfig {
+        versionCode 1       // increment with every release
+        versionName '1.0.0'
+    }
+
     buildTypes {
 
         /**
@@ -58,7 +63,7 @@ android {
         }
 
         release {
-            minifyEnabled true // Enables code shrinking for the release build type.
+            minifyEnabled false // Enables code shrinking for the release build type.
             proguardFiles getDefaultProguardFile('proguard-android.txt'), '../common/proguard.txt'
             signingConfig signingConfigs.general
         }

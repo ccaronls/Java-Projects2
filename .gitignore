@@ -15,3 +15,4 @@
 captures
 ./*.txt
 *.save
+**/android.jks

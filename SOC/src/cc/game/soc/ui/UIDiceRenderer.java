@@ -68,7 +68,8 @@ public final class UIDiceRenderer extends UIRenderer {
             protected void draw(APGraphics g, float position, float dt) {
 
                 for (Dice d : which) {
-                    d.setNum(1 + Utils.rand()%6);
+                    if (d != null)
+                        d.setNum(1 + Utils.rand()%6);
                 }
                 drawPrivate(g, 0, 0, which);
 
@@ -153,6 +154,8 @@ public final class UIDiceRenderer extends UIRenderer {
 
             int index = 0;
             for (Dice d : dice) {
+                if (d == null)
+                    continue;
                 drawDie(g, dieDim, d.getType(), d.getNum());
                 if (index == picked) {
                     g.setColor(GColor.RED);

@@ -7,11 +7,17 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
+import cc.lib.logger.Logger;
+import cc.lib.logger.LoggerFactory;
+
 /**
  * Created by chriscaron on 10/5/17.
  */
 
 public class DescisionTree<G,M> implements Comparable<DescisionTree> {
+
+    private final static Logger log = LoggerFactory.getLogger(DescisionTree.class);
+
     private DescisionTree<G,M> parent, first, last, next, prev;
     private double value = 0;
 
@@ -194,7 +200,8 @@ public class DescisionTree<G,M> implements Comparable<DescisionTree> {
     private static void dumpTree(Writer out, DescisionTree<?,?> root, String indent) throws IOException {
         if (root == null)
             return;
-        out.write(indent + root.getMeta().replace('\n', ',') + "\n");
+        //out.write("DTREE " + indent + root.getMeta().replace('\n', ',') + "\n");
+        log.info("%s%s", indent, root.getMeta().replace('\n', ','));
         for (DescisionTree t : root.getChildren()) {
             dumpTree(out, t, indent + "   ");
         }
