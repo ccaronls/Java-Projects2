@@ -2,8 +2,7 @@ package cc.lib.utils;
 
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
 
@@ -15,39 +14,8 @@ import java.util.Set;
  */
 public final class LRUCache<K, V> implements Map<K, V> {
 
-    public static class LRUEntry<K> {
-        LRUEntry<K> prev, next;
-        final K key;
-
-        LRUEntry(K key) {
-            if (key == null)
-                throw new NullPointerException("Key cannot be null");
-            this.key = key;
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (obj != null && obj instanceof LRUEntry) {
-                return ((LRUEntry) obj).key.equals(key);
-            }
-            return key.equals(obj);
-        }
-
-        @Override
-        public int hashCode() {
-            return key.hashCode();
-        }
-
-        @Override
-        public String toString() {
-            return key.toString();
-        }
-    }
-
-    private final HashMap<LRUEntry<K>, V> map = new HashMap<>();
-
-    private LRUEntry<K> first=null, last=null;
-
+    private final HashMap<K, V> map = new HashMap<>();
+    private LinkedList<K> list = new LinkedList<>();
     private final int max;
 
     public LRUCache(int max) {
@@ -56,6 +24,8 @@ public final class LRUCache<K, V> implements Map<K, V> {
 
     @Override
     public int size() {
+        if (map.size() != list.size())
+            throw new AssertionError();
         return map.size();
     }
 
@@ -66,7 +36,7 @@ public final class LRUCache<K, V> implements Map<K, V> {
 
     @Override
     public boolean containsKey(Object key) {
-        return map.containsKey(new LRUEntry(key));
+        return map.containsKey(key);
     }
 
     @Override
@@ -76,91 +46,46 @@ public final class LRUCache<K, V> implements Map<K, V> {
 
     @Override
     public V get(Object key) {
-        V value = map.get(new LRUEntry(key));
+        V value = map.get(key);
         if (value == null)
             return null;
 
-        LRUEntry<K> e = listFindEntry(key);
-        // move to front of the list
-        listRemove(e);
-        first.prev = e;
-        e.next = first;
-        first = e;
-
+        if (!list.remove(key))
+            throw new AssertionError("");
+        list.addFirst((K)key);
         return value;
     }
 
     @Override
     public V put(K key, V value) {
 
-        LRUEntry<K> e = new LRUEntry<K>(key);
-        listInsertFirst(e);
+        if (map.containsKey(key)) {
+            map.put(key, value);
+            if (!list.remove(key))
+                throw new AssertionError();
+            list.addFirst(key);
+        } else {
 
-        map.put(e, value);
-        if (map.size() > max) {
-            map.remove(last);
-            last = last.prev;
-            last.next = null;
+            if (list.size() == max && !list.remove(key)) {
+                K k = list.removeLast();
+                if (k == null)
+                    throw new AssertionError();
+                if (map.remove(k) == null)
+                    throw new AssertionError();
+            }
+            map.put(key, value);
+            list.addFirst(key);
         }
-
         return value;
-    }
-
-    private void listInsertFirst(LRUEntry<K> e) {
-        if (first == null) {
-            first = last = e;
-        } else {
-            e.next = first;
-            first.prev = e;
-            first = e;
-        }
-    }
-
-    private void listRemove(LRUEntry<K> e) {
-        //System.out.println("listRemove " + e + " first=" + first + " last=" + last + " size=" + size());
-        if (first == e) {
-            if (first == last) {
-                //System.out.println("remove single entry");
-                first = last = null;
-            } else {
-                //System.out.println("remove first entry");
-                first = first.next;
-                first.prev = null;
-            }
-        }
-        else if (last == e) {
-            //System.out.println("remove last entry");
-            last = last.prev;
-            last.next = null;
-        } else {
-            //System.out.println("remove middle entry");
-            e.prev.next = e.next;
-            e.next.prev = e.prev;
-        }
-        e.next = e.prev = null;
-
-        //if (last.next != null)
-        //    throw new AssertionError("");
-        //if (first.prev != null)
-        //    throw new AssertionError("");
-    }
-
-    private LRUEntry<K> listFindEntry(Object key) {
-        for (LRUEntry<K> e = first; e !=null; e = e.next) {
-            if (e.key.equals(key)) {
-                return e;
-            }
-        }
-        return null;
     }
 
     @Override
     public V remove(Object key) {
-        LRUEntry<K> e = listFindEntry(key);
-        if (e != null) {
-            listRemove(e);
+        V v = map.remove(key);
+        if (v != null) {
+            list.remove(v);
         }
-        return map.remove(key);
+        return v;
     }
 
     @Override
@@ -172,17 +97,13 @@ public final class LRUCache<K, V> implements Map<K, V> {
 
     @Override
     public void clear() {
-        first = last = null;
         map.clear();
+        list.clear();
     }
 
     @Override
     public Set<K> keySet() {
-        HashSet<K> keys = new HashSet<>();
-        for (LRUEntry<K> e = first; e!=null; e=e.next) {
-            keys.add(e.key);
-        }
-        return keys;
+        return map.keySet();
     }
 
     @Override
@@ -192,24 +113,19 @@ public final class LRUCache<K, V> implements Map<K, V> {
 
     @Override
     public Set<Entry<K, V>> entrySet() {
-        Map<K,V> mapCopy=new LinkedHashMap<>();
-        for (LRUEntry<K> e = first; e!= null; e=e.next) {
-            //System.out.println("e=" + e);
-            mapCopy.put(e.key, map.get(e));
-        }
-        return mapCopy.entrySet();
+        return map.entrySet();
     }
 
     public int getMax() {
         return max;
     }
 
-    public LRUEntry<K> getOldest() {
-        return last;
+    public K getOldest() {
+        return list.getLast();
     }
 
-    public LRUEntry<K> getNewest() {
-        return first;
+    public K getNewest() {
+        return list.getFirst();
     }
 
 }

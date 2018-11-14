@@ -2,6 +2,8 @@ package cc.lib.utils;
 
 import junit.framework.TestCase;
 
+import java.util.Random;
+
 import cc.lib.game.Utils;
 
 /**
@@ -18,8 +20,8 @@ public class LRUCacheTest extends TestCase {
         }
 
         assertEquals(5, cache.size());
-        assertTrue(cache.getOldest().key.equals("15"));
-        assertTrue(cache.getNewest().key.equals("19"));
+        assertTrue(cache.getOldest().equals("15"));
+        assertTrue(cache.getNewest().equals("19"));
 
         //System.out.println("entry set=" + cache.entrySet());
 
@@ -31,11 +33,19 @@ public class LRUCacheTest extends TestCase {
 
         for (int i:x) {
             assertNotNull(cache.get(String.valueOf(i)));
-            assertTrue(cache.getNewest().key.equals(String.valueOf(i)));
+            assertTrue(cache.getNewest().equals(String.valueOf(i)));
         }
 
         System.out.println("entry set=" + cache.entrySet());
 
+        cache = new LRUCache<>(100);
+
+        Random r = new Random(0);
+        for (int i=0; i<10000; i++) {
+            String key = String.valueOf(r.nextInt(10000));
+            cache.put(key, 0);
+            assertTrue(cache.size() <= 100);
+        }
     }
 
 }
