@@ -37,6 +37,7 @@ public class LRUCacheTest extends TestCase {
         }
 
         System.out.println("entry set=" + cache.entrySet());
+        System.out.println("values=" + cache.values());
 
         cache = new LRUCache<>(100);
 
@@ -45,6 +46,17 @@ public class LRUCacheTest extends TestCase {
             String key = String.valueOf(r.nextInt(10000));
             cache.put(key, 0);
             assertTrue(cache.size() <= 100);
+        }
+
+        // remove everything
+        while (cache.size() > 0) {
+            Integer v = null;
+            if (Utils.flipCoin()) {
+                v = cache.remove(cache.getNewest());
+            } else {
+                v = cache.remove(cache.getOldest());
+            }
+            assertNotNull(v);
         }
     }
 

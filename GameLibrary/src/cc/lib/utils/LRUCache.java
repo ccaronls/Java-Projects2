@@ -1,30 +1,110 @@
 package cc.lib.utils;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 /**
- * A map with fixed capacity. When limit reached the 'oldest' elem is removed
+ * A map with fixed capacity. When limit reached the 'oldest' elem is removed.
+ * This version optimized for fastest access at expense of memory.
  *
  * @param <K>
  * @param <V>
  */
 public final class LRUCache<K, V> implements Map<K, V> {
 
-    private final HashMap<K, V> map = new HashMap<>();
-    private LinkedList<K> list = new LinkedList<>();
+    /**
+     * Double linked list node
+     * @param <K>
+     * @param <V>
+     */
+    static class DList<K,V> {
+        private final K key;
+        private V val;
+        private DList<K,V> prev, next;
+
+        public DList(K key, V val) {
+            this.key = key;
+            this.val = val;
+        }
+
+        @Override
+        public int hashCode() {
+            return key.hashCode();
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj == null)
+                return false;
+            return key.equals(((DList)obj).key);
+        }
+    }
+
+    private final HashMap<K, DList<K,V>> map = new HashMap<>();
+    private DList<K,V> first, last;
     private final int max;
 
     public LRUCache(int max) {
         this.max = max;
     }
 
+    private int listCount() {
+        int num=0;
+        for (DList<K,V> e = first; e!=null; e=e.next) {
+            num++;
+        }
+        return num;
+    }
+
+    private boolean listRemove(DList<K,V> e) {
+        if (e==first) {
+            if (first == last) {
+                first = last = null;
+            } else {
+                first = first.next;
+                first.prev = null;
+            }
+        } else if (e==last) {
+            last = last.prev;
+            last.next = null;
+        } else {
+            e.next.prev = e.prev;
+            e.prev.next = e.next;
+        }
+
+        e.next=e.prev=null;
+        return true;
+    }
+
+    private void listAddFirst(DList<K,V> e) {
+        if (first == null) {
+            first = last = e;
+            e.prev = e.next = null;
+        } else {
+            e.next = first;
+            first.prev = e;
+            first = e;
+            e.prev = null;
+        }
+    }
+
+    private void listClear() {
+        DList<K,V> e = first;
+        while (e != null) {
+            DList t = e;
+            e = e.next;
+            t.prev = t.next = null;
+        }
+        first = last = null;
+    }
+
     @Override
     public int size() {
-        if (map.size() != list.size())
+        if (map.size() != listCount())
             throw new AssertionError();
         return map.size();
     }
@@ -41,51 +121,61 @@ public final class LRUCache<K, V> implements Map<K, V> {
 
     @Override
     public boolean containsValue(Object value) {
-        return map.containsValue(value);
+        for (DList<K,V> e = first; e!=null; e=e.next) {
+            if (e.val == null) {
+                if (value == null)
+                    return true;
+            } else if (e.val.equals(value)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
     public V get(Object key) {
-        V value = map.get(key);
-        if (value == null)
+        DList<K,V> e = map.get(key);
+        if (e == null)
             return null;
 
-        if (!list.remove(key))
-            throw new AssertionError("");
-        list.addFirst((K)key);
-        return value;
+        if (!listRemove(e))
+            throw new AssertionError();
+        listAddFirst(e);
+        return e.val;
     }
 
     @Override
     public V put(K key, V value) {
 
         if (map.containsKey(key)) {
-            map.put(key, value);
-            if (!list.remove(key))
+            DList<K,V> e = map.get(key);
+            e.val = value;
+            if (!listRemove(e))
                 throw new AssertionError();
-            list.addFirst(key);
+            listAddFirst(e);
         } else {
-
-            if (list.size() == max && !list.remove(key)) {
-                K k = list.removeLast();
-                if (k == null)
+            DList<K,V> e = new DList<>(key, value);
+            if (map.size() == max) {
+                if (map.remove(last.key)==null)
                     throw new AssertionError();
-                if (map.remove(k) == null)
+                if (!listRemove(last))
                     throw new AssertionError();
             }
-            map.put(key, value);
-            list.addFirst(key);
+            map.put(key, e);
+            listAddFirst(e);
         }
         return value;
     }
 
     @Override
     public V remove(Object key) {
-        V v = map.remove(key);
-        if (v != null) {
-            list.remove(v);
-        }
-        return v;
+        DList<K,V> e = map.remove(key);
+        if (e == null)
+            return null;
+
+        if (!listRemove(e))
+            throw new AssertionError();
+        return e.val;
     }
 
     @Override
@@ -98,7 +188,7 @@ public final class LRUCache<K, V> implements Map<K, V> {
     @Override
     public void clear() {
         map.clear();
-        list.clear();
+        listClear();
     }
 
     @Override
@@ -108,12 +198,20 @@ public final class LRUCache<K, V> implements Map<K, V> {
 
     @Override
     public Collection<V> values() {
-        return map.values();
+        List<V> values = new ArrayList<>();
+        for (DList<K,V> e = first; e != null; e=e.next) {
+            values.add(e.val);
+        }
+        return values;
     }
 
     @Override
     public Set<Entry<K, V>> entrySet() {
-        return map.entrySet();
+        Map<K,V> tmp = new HashMap<>();
+        for (Map.Entry<K, DList<K,V>> e : map.entrySet()) {
+            tmp.put(e.getKey(), e.getValue().val);
+        }
+        return tmp.entrySet();
     }
 
     public int getMax() {
@@ -121,11 +219,11 @@ public final class LRUCache<K, V> implements Map<K, V> {
     }
 
     public K getOldest() {
-        return list.getLast();
+        return last == null ? null : last.key;
     }
 
     public K getNewest() {
-        return list.getFirst();
+        return first == null ? null : first.key;
     }
 
 }
