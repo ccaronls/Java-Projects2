@@ -2,10 +2,8 @@ package cc.game.soc.android;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
@@ -26,10 +24,7 @@ import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.io.File;
-import java.io.FilenameFilter;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -39,29 +34,9 @@ import java.util.Properties;
 import java.util.Stack;
 import java.util.Vector;
 
-import cc.game.soc.core.AITuning;
-import cc.game.soc.core.Board;
-import cc.game.soc.core.BuildableType;
-import cc.game.soc.core.ResourceType;
-import cc.game.soc.core.Rules;
-import cc.game.soc.core.SOC;
-import cc.game.soc.ui.MenuItem;
-import cc.game.soc.ui.RenderConstants;
-import cc.game.soc.ui.UIBarbarianRenderer;
-import cc.game.soc.ui.UIBoardRenderer;
-import cc.game.soc.ui.UIConsoleRenderer;
-import cc.game.soc.ui.UIDiceRenderer;
-import cc.game.soc.ui.UIEventCardRenderer;
-import cc.game.soc.ui.UIPlayer;
-import cc.game.soc.ui.UIPlayerRenderer;
-import cc.game.soc.ui.UIPlayerUser;
-import cc.game.soc.ui.UISOC;
-import cc.lib.android.ArrayListAdapter;
-import cc.lib.android.BuildConfig;
-import cc.lib.android.CCActivityBase;
-import cc.lib.android.CCNumberPicker;
-import cc.lib.android.EmailHelper;
-import cc.lib.android.SpinnerTask;
+import cc.game.soc.core.*;
+import cc.game.soc.ui.*;
+import cc.lib.android.*;
 import cc.lib.game.GColor;
 import cc.lib.game.Utils;
 import cc.lib.utils.FileUtils;
@@ -313,6 +288,17 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
             @Override
             protected void onRunError(final Throwable e) {
                 super.onRunError(e);
+                if (BuildConfig.DEBUG) {
+                    // write crashes to sdcard for eval later
+                    try {
+                        File tmpDir = File.createTempFile("crash", "", Environment.getExternalStorageDirectory());
+                        tmpDir.mkdir();
+                        File crash = new File(tmpDir, "stack.txt");
+                        FileUtils.stringToFile(e.toString(), crash);
+                        FileUtils.copyFile(gameFile, tmpDir);
+                    } catch (Exception ee) {
+                    }
+                }
                 runOnUiThread(new Runnable() {
                     public void run() {
                         showStartMenu();
@@ -536,38 +522,21 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
                 @Override
                 public void onClick(DialogInterface dialog, final int which) {
 
-                    new AsyncTask<Void, Void, Exception>() {
-
-                        Dialog spinner;
-
+                    new SpinnerTask(SOCActivity.this) {
                         @Override
-                        protected void onPreExecute() {
-                            spinner = ProgressDialog.show(SOCActivity.this, null, "Loading...");
-                        }
-
-                        @Override
-                        protected Exception doInBackground(Void... voids) {
+                        protected void doIt(String... args) throws Exception {
+                            InputStream in = getAssets().open("scenarios/" + scenarios[which]);
                             try {
-                                InputStream in = getAssets().open("scenarios/" + scenarios[which]);
-                                try {
-                                    SOC scenario = new SOC();
-                                    scenario.deserialize(in);
-                                    soc.copyFrom(scenario);
-                                } finally {
-                                    in.close();
-                                }
-                            } catch (IOException e) {
-                                return e;
+                                SOC scenario = new SOC();
+                                scenario.deserialize(in);
+                                soc.copyFrom(scenario);
+                            } finally {
+                                in.close();
                             }
-                            return null;
                         }
 
                         @Override
-                        protected void onPostExecute(Exception e) {
-                            spinner.dismiss();
-                            if (e != null) {
-                                showError(e);
-                            }
+                        protected void onSuccess() {
                             vBoard.invalidate();
                             vBoard.renderer.clearCached();
                         }

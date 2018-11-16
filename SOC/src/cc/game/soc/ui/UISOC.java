@@ -674,7 +674,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
     @Override
     @Keep
     protected void onDiceRolled(Dice ... dice) {
-        server.broadcastExecuteOnRemote(NetCommon.SOC_ID, dice);
+        server.broadcastExecuteOnRemote(NetCommon.SOC_ID,dice);
         UIDiceRenderer dr = getDiceRenderer();
         dr.spinDice(3000, dice);
         dr.setDice(getDice());

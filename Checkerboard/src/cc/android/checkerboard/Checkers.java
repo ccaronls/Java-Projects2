@@ -285,7 +285,7 @@ public class Checkers extends ACheckboardGame  {
     protected void onPiecesCaptured(List<int[]> pieces) {}
 
     @Override
-	public void executeMove(Move move) {
+	public synchronized void executeMove(Move move) {
         if (move.getPlayerNum() != getTurn())
             throw new AssertionError();
         lock = null;

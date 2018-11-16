@@ -133,7 +133,7 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
         return null;
     }
 
-    public final List<Piece> getCapturedPieces() {
+    public synchronized final List<Piece> getCapturedPieces() {
         List<Piece> captured = new ArrayList<>();
         for (Move m : undoStack) {
             if (m.hasCaptured() && !getPiece(m.getCaptured()).isCaptured())
@@ -280,7 +280,7 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
      * @return the move that was reversed
      */
     @Override
-    public final Move undo() {
+    public final synchronized Move undo() {
         if (undoStack.size() > 0) {
             Move m = undoStack.pop();
             reverseMove(m, true);
@@ -454,7 +454,7 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
         return BoardType.CHECKERS;
     }
 
-    public void endTurn() {
+    public synchronized void endTurn() {
         if (lock != null) {
             for (Move m : lock.getMoves()) {
                 if (m.getMoveType() == MoveType.END) {

@@ -269,7 +269,7 @@ public class GameServer {
      * @param objId
      * @param params
      */
-    public final void broadcastExecuteOnRemote(String objId, Object ... params) {
+    public final <T> void broadcastExecuteOnRemote(String objId, T ... params) {
         StackTraceElement elem = new Exception().getStackTrace()[1];
         broadcastExecuteOnRemote(objId, elem.getMethodName(), params);
     }

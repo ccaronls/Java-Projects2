@@ -60,7 +60,7 @@ public final class LRUCache<K, V> implements Map<K, V> {
         return num;
     }
 
-    private boolean listRemove(DList<K,V> e) {
+    private void listRemove(DList<K,V> e) {
         if (e==first) {
             if (first == last) {
                 first = last = null;
@@ -77,7 +77,6 @@ public final class LRUCache<K, V> implements Map<K, V> {
         }
 
         e.next=e.prev=null;
-        return true;
     }
 
     private void listAddFirst(DList<K,V> e) {
@@ -104,8 +103,8 @@ public final class LRUCache<K, V> implements Map<K, V> {
 
     @Override
     public int size() {
-        if (map.size() != listCount())
-            throw new AssertionError();
+//        if (map.size() != listCount())
+//            throw new AssertionError();
         return map.size();
     }
 
@@ -138,8 +137,7 @@ public final class LRUCache<K, V> implements Map<K, V> {
         if (e == null)
             return null;
 
-        if (!listRemove(e))
-            throw new AssertionError();
+        listRemove(e);
         listAddFirst(e);
         return e.val;
     }
@@ -150,16 +148,14 @@ public final class LRUCache<K, V> implements Map<K, V> {
         if (map.containsKey(key)) {
             DList<K,V> e = map.get(key);
             e.val = value;
-            if (!listRemove(e))
-                throw new AssertionError();
+            listRemove(e);
             listAddFirst(e);
         } else {
             DList<K,V> e = new DList<>(key, value);
             if (map.size() == max) {
                 if (map.remove(last.key)==null)
                     throw new AssertionError();
-                if (!listRemove(last))
-                    throw new AssertionError();
+                listRemove(last);
             }
             map.put(key, e);
             listAddFirst(e);
@@ -173,8 +169,7 @@ public final class LRUCache<K, V> implements Map<K, V> {
         if (e == null)
             return null;
 
-        if (!listRemove(e))
-            throw new AssertionError();
+        listRemove(e);
         return e.val;
     }
 
@@ -214,14 +209,27 @@ public final class LRUCache<K, V> implements Map<K, V> {
         return tmp.entrySet();
     }
 
+    /**
+     * Return the max number of elements this cache can hold
+     *
+     * @return
+     */
     public int getMax() {
         return max;
     }
 
+    /**
+     * Return the oldest key associated with this cache
+     * @return
+     */
     public K getOldest() {
         return last == null ? null : last.key;
     }
 
+    /**
+     * Return the newest key associated with this cache
+     * @return
+     */
     public K getNewest() {
         return first == null ? null : first.key;
     }
