@@ -21,11 +21,13 @@ public class ProbotLevelBuilder extends AWTComponent {
 
     EZFrame frame;
     AWTRadioButtonGroup<Probot.Type> cellType;
-    AWTButton prev, next;
-    final JLabel levelLabel = new JLabel();
+    AWTButton prev1, next1, prev10, next10;
+    final JLabel levelNumLabel = new JLabel();
     EZToggleButton lazer0;
     EZToggleButton lazer1;
     EZToggleButton lazer2;
+    NumberPicker npTurns, npJumps, npLoops;
+    AWTEditText levelLabel;
 
     File levelsFile = new File("Robots/assets/levels.txt");
     Probot probot = new Probot() {
@@ -92,18 +94,64 @@ public class ProbotLevelBuilder extends AWTComponent {
             @Override
             protected void onAction() {
                 grid.init(1, 1, Probot.Type.EM);
+                getLevel().coins = grid.getGrid();
+                repaint();
+            }
+        });
+        lhs.add(new AWTButton("Save") {
+            @Override
+            protected void onAction() {
+                try {
+                    Reflector.serializeToFile(levels, levelsFile);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         });
 
-        lhs.add(new NumberPicker.Builder().setMin(-1).setMax(10).setValue(-1).setLabel("Turns").build(new NumberPicker.Listener() {
+        lhs.add(npTurns = new NumberPicker.Builder().setMin(-1).setMax(10).setValue(-1).setLabel("Turns").build(new NumberPicker.Listener() {
             @Override
             public void onValueChanged(int oldValue, int newValue) {
                 getLevel().numTurns = newValue;
             }
         }));
 
+        lhs.add(npLoops = new NumberPicker.Builder().setMin(-1).setMax(10).setValue(-1).setLabel("Loops").build(new NumberPicker.Listener() {
+            @Override
+            public void onValueChanged(int oldValue, int newValue) {
+                getLevel().numLoops = newValue;
+            }
+        }));
+        lhs.add(npJumps = new NumberPicker.Builder().setMin(-1).setMax(10).setValue(-1).setLabel("Jumps").build(new NumberPicker.Listener() {
+            @Override
+            public void onValueChanged(int oldValue, int newValue) {
+                getLevel().numJumps = newValue;
+            }
+        }));
 
-        prev = new AWTButton("<<") {
+        lhs.add(lazer0 = new EZToggleButton("Lazer 0") {
+            @Override
+            protected void onToggle(boolean on) {
+                getLevel().lazers[0] = on;
+                repaint();
+            }
+        });
+        lhs.add(lazer1 = new EZToggleButton("Lazer 1") {
+            @Override
+            protected void onToggle(boolean on) {
+                getLevel().lazers[1] = on;
+                repaint();
+            }
+        });
+        lhs.add(lazer2 = new EZToggleButton("Lazer 2") {
+            @Override
+            protected void onToggle(boolean on) {
+                getLevel().lazers[2] = on;
+                repaint();
+            }
+        });
+
+        prev1 = new AWTButton("<") {
             @Override
             protected void onAction() {
                 if (curLevel > 0) {
@@ -114,7 +162,7 @@ public class ProbotLevelBuilder extends AWTComponent {
             }
         };
 
-        next = new AWTButton(">>") {
+        next1 = new AWTButton(">") {
             @Override
             protected void onAction() {
                 if (curLevel == levels.size()-1) {
@@ -126,34 +174,44 @@ public class ProbotLevelBuilder extends AWTComponent {
             }
         };
 
-        lazer0 = new EZToggleButton("Lazer 0") {
+        prev10 = new AWTButton("<<") {
             @Override
-            protected void onToggle(boolean on) {
-                getLevel().lazers[0] = on;
-                repaint();
-            }
-        };
-        lazer1 = new EZToggleButton("Lazer 1") {
-            @Override
-            protected void onToggle(boolean on) {
-                getLevel().lazers[1] = on;
-                repaint();
-            }
-        };
-        lazer2 = new EZToggleButton("Lazer 2") {
-            @Override
-            protected void onToggle(boolean on) {
-                getLevel().lazers[2] = on;
-                repaint();
+            protected void onAction() {
+                if (curLevel > 0) {
+                    curLevel = Math.max(0, curLevel-10);
+                    probot.setLevel(curLevel, levels.get(curLevel));
+                    updateAll();
+                    repaint();
+                }
             }
         };
 
-        EZPanel top = new EZPanel(prev, levelLabel, next, lazer0, lazer1, lazer2);
+        next10 = new AWTButton(">>") {
+            @Override
+            protected void onAction() {
+                if (curLevel < levels.size()-1) {
+                    curLevel = Math.min(curLevel+10, levels.size()-1);
+                    levels.add(new Probot.Level());
+                    probot.setLevel(curLevel, levels.get(curLevel));
+                    updateAll();
+                    repaint();
+                }
+            }
+        };
+
+        levelLabel = new AWTEditText("", 32) {
+            @Override
+            protected void onTextChanged(String newText) {
+                getLevel().label = newText;
+            }
+        };
+
+        EZPanel top = new EZPanel(levelLabel, prev10, prev1, levelNumLabel, next1, next10);
         frame.add(top, BorderLayout.NORTH);
         updateAll();
 
         if (!frame.loadFromFile(new File("probotlevelbuilder.properties")))
-            frame.centerToScreen(640, 640);
+            frame.centerToScreen(800, 640);
     }
 
     private Probot.Level getLevel() {
@@ -161,12 +219,19 @@ public class ProbotLevelBuilder extends AWTComponent {
     }
 
     private void updateAll() {
-        levelLabel.setText("Level " + (curLevel+1) + " of " + levels.size());
+        levelNumLabel.setText("Level " + (curLevel+1) + " of " + levels.size());
         Probot.Level level = getLevel();
+        grid.setGrid(level.coins);
         lazer0.setSelected(level.lazers[0]);
         lazer1.setSelected(level.lazers[1]);
         lazer2.setSelected(level.lazers[2]);
-        prev.setEnabled(curLevel > 0);
+        prev1.setEnabled(curLevel > 0);
+        prev10.setEnabled(curLevel > 0);
+        next10.setEnabled(curLevel < levels.size()-1);
+        npJumps.setValue(level.numJumps);
+        npLoops.setValue(level.numLoops);
+        npTurns.setValue(level.numTurns);
+        levelLabel.setText(level.label);
     }
 
     int pickCol = -1;
@@ -215,7 +280,7 @@ public class ProbotLevelBuilder extends AWTComponent {
             return;
         }
 
-        grid.ensureCapacity(pickCol+1, pickRow+1, Probot.Type.EM);
+        grid.ensureCapacity(pickRow+1, pickCol+1, Probot.Type.EM);
         getLevel().coins = grid.getGrid();
 
         Probot.Type t = this.cellType.getChecked();

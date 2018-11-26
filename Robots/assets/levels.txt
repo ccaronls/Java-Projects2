@@ -1,2 +1,42 @@
 java.util.ArrayList {
+   cc.lib.probot.Probot.Level {
+      coins=cc.lib.probot.Probot.Type[] 5 {
+         cc.lib.probot.Probot.Type 5 {
+            EM EM EM EM EM 
+         }
+         cc.lib.probot.Probot.Type 5 {
+            EM EM DD EM EM 
+         }
+         cc.lib.probot.Probot.Type 5 {
+            EM EM DD EM EM 
+         }
+         cc.lib.probot.Probot.Type 5 {
+            EM EM DD EM EM 
+         }
+         cc.lib.probot.Probot.Type 5 {
+            EM EM SN EM EM 
+         }
+      }
+      label="Hello+World%21"
+      lazers=boolean 3 {
+         true true true 
+      }
+      numJumps=0
+      numLoops=0
+      numTurns=0
+   }
+   cc.lib.probot.Probot.Level {
+      coins=cc.lib.probot.Probot.Type[] 1 {
+         cc.lib.probot.Probot.Type 1 {
+            EM 
+         }
+      }
+      label="%3CUNNAMED%3E"
+      lazers=boolean 3 {
+         true true true 
+      }
+      numJumps=0
+      numLoops=-1
+      numTurns=-1
+   }
 }

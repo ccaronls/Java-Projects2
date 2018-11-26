@@ -8,7 +8,7 @@ import javax.swing.event.*;
 
 public class NumberPicker extends EZPanel implements ChangeListener {
 
-    public static interface Listener {
+    public interface Listener {
         void onValueChanged(int oldValue, int newValue);
     };
 
@@ -28,11 +28,16 @@ public class NumberPicker extends EZPanel implements ChangeListener {
     }
 
     public void setValue(int value) {
+        ignore = true;
         model.setValue(value);
+        ignore = false;
     }
 
+    private boolean ignore = false;
+
     public final void stateChanged(ChangeEvent e) {
-        listener.onValueChanged(0, (Integer)model.getValue());
+        if (!ignore)
+            listener.onValueChanged(0, (Integer)model.getValue());
     }
 
     static class Builder {
@@ -53,6 +58,7 @@ public class NumberPicker extends EZPanel implements ChangeListener {
             }
             panel.model = new SpinnerNumberModel(value, min, max, step);
             JSpinner spinner = new JSpinner(panel.model);
+            spinner.addChangeListener(panel);
             panel.add(spinner);
             panel.listener = listener;
             return panel;

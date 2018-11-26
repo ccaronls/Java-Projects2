@@ -45,11 +45,12 @@ public class Probot extends Reflector<Probot> {
     };
 
     public static class Level extends Reflector<Level> {
-        public Type [][] coins = {};
+        public String label = "<UNNAMED>";
+        public Type [][] coins = { { Type.EM } };
         public boolean [] lazers = { true, true, true };
         public int numJumps = 0;
-        public int numTurns = Integer.MAX_VALUE;
-        public int numLoops = Integer.MAX_VALUE;
+        public int numTurns = -1;
+        public int numLoops = -1;
     }
 
     public static class Command {

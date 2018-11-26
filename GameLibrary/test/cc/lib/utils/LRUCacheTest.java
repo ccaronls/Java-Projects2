@@ -58,6 +58,19 @@ public class LRUCacheTest extends TestCase {
             }
             assertNotNull(v);
         }
+
+        cache = new LRUCache<>(3);
+        for (int i=0; i<10000; i++) {
+            Integer d = Utils.rand() % 5;
+            if (Utils.flipCoin()) {
+                cache.put(String.valueOf(d), d);
+                assertEquals(cache.get(String.valueOf(d)), d);
+            } else {
+                cache.remove(String.valueOf(d));
+                assertNull(cache.get(String.valueOf(d)));
+            }
+            assertTrue(cache.size()<=3);
+        }
     }
 
 }
