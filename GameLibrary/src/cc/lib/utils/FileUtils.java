@@ -67,7 +67,7 @@ public class FileUtils {
 	/**
 	 * This is a recursive function with stack depth <= to maxNum
 	 * rename a file such that the file of form root.ext is copied too root.num.ext when num is integer between 0 and maxNum.
-	 * All other files of form root.num+1.ext are renamed accordingly with the file falling off when backups exceed maxNum
+	 * All other files of form root.num+n.ext are renamed accordingly with the file falling off when backups exceed maxNum
 	 * 
 	 * @param fileName
 	 * @param maxNum
@@ -103,7 +103,7 @@ public class FileUtils {
 	}
 	
 	/**
-	 * Reverse operation from restoreFile.  For filename of form root.ext, if there exists a file of form
+	 * Reverse operation of backupFile.  For filename of form root.ext, if there exists a file of form
 	 * root.0.ext, then it will be renamed to fileName.  For all other files of form root.n.ext they will
 	 * be renamed too root.n-1.ext.
 	 */

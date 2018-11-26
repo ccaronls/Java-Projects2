@@ -18,6 +18,7 @@
     </style>
 
     <style name="DialogTheme" parent="@android:style/Theme.Dialog">
+
     </style>
 
     <style name="HomeButtonStyle" parent="@android:style/Widget.Button.Inset">
@@ -33,5 +34,13 @@
     <declare-styleable name="CheckerboardView">
         <attr name="outlineThickness" format="dimension"/>
     </declare-styleable>
+
+    <!-- Style for dialog with transparent background -->
+    <style name="DialogWithTransparentBackground" parent="@android:style/Theme.Material.Dialog.NoActionBar">
+        <item name="android:background">@android:color/transparent</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:colorBackgroundCacheHint">@null</item>
+        <item name="android:windowIsTranslucent">true</item>
+    </style>
 
 </resources>

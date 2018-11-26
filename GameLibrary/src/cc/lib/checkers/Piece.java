@@ -5,7 +5,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import cc.lib.game.AAnimation;
-import cc.lib.game.Utils;
 import cc.lib.utils.Reflector;
 
 /**
@@ -32,6 +31,8 @@ public class Piece extends Reflector<Piece> {
     }
 
     Piece(int playerNum, PieceType type) {
+        if (type == null)
+            throw new AssertionError("type cannot be null");
         this.playerNum = playerNum;
         this.type = type;
     }
@@ -49,12 +50,13 @@ public class Piece extends Reflector<Piece> {
     }
 
     public void setType(PieceType type) {
-        Utils.assertTrue(type != null);
+        if (type == null)
+            throw new AssertionError("type cannot be null");
         this.type = type;
     }
 
     public Iterable<Move> getMoves() {
-        return moves;
+        return new ArrayList<>(moves);
     }
 
     public void clearMoves() {
@@ -89,11 +91,20 @@ public class Piece extends Reflector<Piece> {
         return moves.iterator();
     }
 
+    public List<Move> getMovesList() {
+        return new ArrayList<>(moves);
+    }
+
+    public void setMovesList(List<Move> m) {
+        moves.clear();
+        moves.addAll(m);
+    }
+
     public Move getMove(int index) {
         return moves.get(index);
     }
 
-    public boolean getCaptured() {
+    public boolean isCaptured() {
         return captured;
     }
 

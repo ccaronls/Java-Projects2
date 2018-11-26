@@ -137,8 +137,10 @@ public final class LRUCache<K, V> implements Map<K, V> {
         if (e == null)
             return null;
 
-        listRemove(e);
-        listAddFirst(e);
+        if (e != first) {
+            listRemove(e);
+            listAddFirst(e);
+        }
         return e.val;
     }
 

@@ -67,12 +67,12 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
         gesture = new GestureDetector(this, new SwipeGestureListener() {
             @Override
             public void onSwipeLeft() {
-                vgButtons.setVisibility(View.GONE);
+                vgButtons.setVisibility(View.VISIBLE);
             }
 
             @Override
             public void onSwipeRight() {
-                vgButtons.setVisibility(View.VISIBLE);
+                vgButtons.setVisibility(View.GONE);
             }
         });
         pbv.setOnTouchListener(new View.OnTouchListener() {
@@ -332,6 +332,12 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
                 }
             }
         }
+
+        @Override
+        protected void onPieceUncaptured(int[] pos, PieceType type) {
+            //super.onPieceUncaptured(pos, type);
+            //pbv.startCapturedAnimation(pos);
+        }
     }
 
     public class MyDama extends Dama implements Runnable, DialogInterface.OnCancelListener {
@@ -404,7 +410,11 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
         @Override
         protected void onPreExecute() {
             if (thinking== null) {
-                thinking = new AlertDialog.Builder(CheckerboardActivity.this).setTitle("Thinking").setView(new ProgressBar(CheckerboardActivity.this)).setOnCancelListener(this).create();
+                thinking = new AlertDialog.Builder(CheckerboardActivity.this, R.style.DialogWithTransparentBackground)
+                        .setTitle("Thinking")
+                        .setView(new ProgressBar(CheckerboardActivity.this))
+                        .setOnCancelListener(this)
+                        .create();
             }
             pbv.postDelayed(this, 500);
         }
@@ -426,12 +436,11 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
 
         @Override
         protected void onCancelled(Void result) {
-            super.onCancelled();
+            super.onCancelled(result);
             pbv.removeCallbacks(this);
             thinking.dismiss();
-            root = root.getRoot(); // make sure at top of tree
-            for (Move t : getPath()) {
-                pbv.getGame().executeMove(root.getMove());
+            for (Move m : getPath()) {
+                pbv.getGame().executeMove(m);
             }
             pbv.invalidate();
         }
@@ -730,7 +739,8 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
         if (m == null) {
             bEndTurn.setEnabled(false);
             bEndTurn.setTag(null);
-            vgButtons.setVisibility(View.GONE);
+            if (!tbDebug.isChecked())
+                vgButtons.setVisibility(View.GONE);
         } else {
             bEndTurn.setEnabled(true);
             bEndTurn.setTag(m);

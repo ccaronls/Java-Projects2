@@ -133,11 +133,13 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
         return null;
     }
 
-    public synchronized final List<Piece> getCapturedPieces() {
+    public final List<Piece> getCapturedPieces() {
         List<Piece> captured = new ArrayList<>();
-        for (Move m : undoStack) {
-            if (m.hasCaptured() && !getPiece(m.getCaptured()).isCaptured())
-                captured.add(new Piece(getOpponent(m.getPlayerNum()), m.getCapturedType()));
+        synchronized (undoStack) {
+            for (Move m : undoStack) {
+                if (m.hasCaptured() && !getPiece(m.getCaptured()).isCaptured())
+                    captured.add(new Piece(getOpponent(m.getPlayerNum()), m.getCapturedType()));
+            }
         }
         return captured;
     }
@@ -150,7 +152,9 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
             clearMoves();
         lock = null;
         forfeited = false;
-        undoStack.clear();
+        synchronized (undoStack) {
+            undoStack.clear();
+        }
         initBoard();
         computeMoves(true);
     }
@@ -280,9 +284,12 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
      * @return the move that was reversed
      */
     @Override
-    public final synchronized Move undo() {
+    public final Move undo() {
         if (undoStack.size() > 0) {
-            Move m = undoStack.pop();
+            Move m = null;
+            synchronized (undoStack) {
+                m = undoStack.pop();
+            }
             reverseMove(m, true);
             return m;
         }
@@ -309,7 +316,8 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
             case JUMP:
                 clearPiece(m.getEnd());
                 if (m.getCaptured() != null) {
-                    setBoard(m.getCaptured(), new Piece(getOpponent(m.getPlayerNum()), m.getCapturedType()));
+                    Piece piece = new Piece(getOpponent(m.getPlayerNum()), m.getCapturedType());
+                    setBoard(m.getCaptured(), piece);
                 }
                 //fallthrough
             case SWAP:
@@ -325,7 +333,9 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
         computedMoves = recomputeMoves();
         Move parent = null;
         if (undoStack.size() > 0) {
-            parent = undoStack.peek();
+            synchronized (undoStack) {
+                parent = undoStack.peek();
+            }
             if (parent.getPlayerNum() != m.getPlayerNum()) {
                 parent = null;
             }
@@ -454,11 +464,13 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
         return BoardType.CHECKERS;
     }
 
-    public synchronized void endTurn() {
+    public void endTurn() {
         if (lock != null) {
             for (Move m : lock.getMoves()) {
                 if (m.getMoveType() == MoveType.END) {
-                    undoStack.push(m);
+                    synchronized (undoStack) {
+                        undoStack.push(m);
+                    }
                     break;
                 }
             }

@@ -1,25 +1,12 @@
 package cc.lib.checkers;
 
 import java.util.Iterator;
+import java.util.List;
 
 import cc.lib.game.Utils;
 import cc.lib.utils.Reflector;
 
-import static cc.lib.checkers.PieceType.BISHOP;
-import static cc.lib.checkers.PieceType.CHECKED_KING;
-import static cc.lib.checkers.PieceType.CHECKED_KING_IDLE;
-import static cc.lib.checkers.PieceType.EMPTY;
-import static cc.lib.checkers.PieceType.KNIGHT;
-import static cc.lib.checkers.PieceType.PAWN;
-import static cc.lib.checkers.PieceType.PAWN_ENPASSANT;
-import static cc.lib.checkers.PieceType.PAWN_IDLE;
-import static cc.lib.checkers.PieceType.PAWN_TOSWAP;
-import static cc.lib.checkers.PieceType.QUEEN;
-import static cc.lib.checkers.PieceType.ROOK;
-import static cc.lib.checkers.PieceType.ROOK_IDLE;
-import static cc.lib.checkers.PieceType.UNAVAILABLE;
-import static cc.lib.checkers.PieceType.UNCHECKED_KING;
-import static cc.lib.checkers.PieceType.UNCHECKED_KING_IDLE;
+import static cc.lib.checkers.PieceType.*;
 
 /**
  * Created by chriscaron on 10/10/17.
@@ -89,7 +76,6 @@ public class Chess extends ACheckboardGame {
 
     public void initBoard() {
         whiteSide = Utils.flipCoin() ? FAR : NEAR;
-        setTurn(whiteSide);
         // this is to enforce the 'quenn on her own color square' rule
         PieceType left = PieceType.QUEEN;
         PieceType right = PieceType.UNCHECKED_KING_IDLE;
@@ -106,6 +92,8 @@ public class Chess extends ACheckboardGame {
         initRank(5, -1  , EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY);
         initRank(6, NEAR, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE);
         initRank(7, NEAR, ROOK_IDLE, KNIGHT, BISHOP, left, right, BISHOP, KNIGHT, ROOK_IDLE);
+
+        setTurn(whiteSide);
     }
 
     @Override
@@ -113,7 +101,9 @@ public class Chess extends ACheckboardGame {
         lock = null;
         Piece p = null;
         clearMoves();
-        undoStack.push(move);
+        synchronized (undoStack) {
+            undoStack.push(move);
+        }
         {
             switch (move.getMoveType()) {
                 case END:
@@ -328,7 +318,7 @@ public class Chess extends ACheckboardGame {
         int [] dc=null;
         int d = Math.max(RANKS, COLUMNS);
         MoveType mt = MoveType.SLIDE;
-        PieceType nextType = null;
+        PieceType nextType = p.getType();
         switch (p.getType()) {
             case PAWN_ENPASSANT:
                 p.setType(PAWN);
@@ -341,7 +331,7 @@ public class Chess extends ACheckboardGame {
                 if (tr == getStartRank(getOpponent(p.getPlayerNum())))
                     nextPawn = PAWN_TOSWAP;
                 if (getPiece(tr, col).getType() == EMPTY) {
-                    p.addMove(new Move(MoveType.SLIDE, p.getPlayerNum()).setStart(rank, col, p.getType()).setEnd(tr, tc, PAWN));
+                    p.addMove(new Move(MoveType.SLIDE, p.getPlayerNum()).setStart(rank, col, p.getType()).setEnd(tr, tc, nextPawn));
                     if (p.getType() == PAWN_IDLE) {
                         int tr2 = rank + getAdvanceDir(p.getPlayerNum())*2;
                         // if we have not moved yet then we may be able move 2 squares
@@ -363,10 +353,10 @@ public class Chess extends ACheckboardGame {
                 // check en passant
                 tr = rank;
                 if ((tp=getPiece(tr, (tc=col+1))).getPlayerNum() == opponent && tp.getType() == PAWN_ENPASSANT) {
-                    p.addMove(new Move(MoveType.SLIDE, p.getPlayerNum()).setStart(rank, col, p.getType()).setCaptured(tr+getAdvanceDir(p.getPlayerNum()), tc, tp.getType()).setEnd(tr, tc, p.getType()));
+                    p.addMove(new Move(MoveType.SLIDE, p.getPlayerNum()).setStart(rank, col, p.getType()).setCaptured(rank, tc, tp.getType()).setEnd(tr+getAdvanceDir(p.getPlayerNum()), tc, nextPawn));
                 }
                 if ((tp=getPiece(tr, (tc=col-1))).getPlayerNum() == opponent && tp.getType() == PAWN_ENPASSANT) {
-                    p.addMove(new Move(MoveType.SLIDE, p.getPlayerNum()).setStart(rank, col, p.getType()).setCaptured(tr+getAdvanceDir(p.getPlayerNum()), tc, tp.getType()).setEnd(tr, tc, p.getType()));
+                    p.addMove(new Move(MoveType.SLIDE, p.getPlayerNum()).setStart(rank, col, p.getType()).setCaptured(rank, tc, tp.getType()).setEnd(tr+getAdvanceDir(p.getPlayerNum()), tc, nextPawn));
                 }
                 break;
             }
@@ -431,7 +421,8 @@ public class Chess extends ACheckboardGame {
         }
 
         // now search moves and remove any that cause our king to be checked
-        Iterator<Move> it = p.getMovesIterator();
+        List<Move> moves = p.getMovesList();
+        Iterator<Move> it = moves.iterator();
         while (it.hasNext()) {
             Move m = it.next();
             switch (m.getMoveType()) {
@@ -447,6 +438,7 @@ public class Chess extends ACheckboardGame {
                 it.remove();
             reverseMove(m);
         }
+        getPiece(rank, col).setMovesList(moves);
     }
 
     public final static int [][] DIAGONAL_DELTAS = {

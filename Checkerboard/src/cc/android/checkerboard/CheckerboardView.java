@@ -52,7 +52,7 @@ public class CheckerboardView extends RelativeLayout implements View.OnClickList
     private final RectF rf = new RectF();
     private final Paint glowYellow = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint glowRed = new Paint(Paint.ANTI_ALIAS_FLAG);
-    boolean drawDebugInfo = true;
+    boolean drawDebugInfo = false;
     private TextView bNear, bFar, bStart;
 
     private CheckerboardActivity activity;
@@ -425,6 +425,7 @@ public class CheckerboardView extends RelativeLayout implements View.OnClickList
     int taps = 0;
 
     public void animateAndExecuteMove(final Move m) {
+        highlightMove = null;
         animateMoveAndThen(m, new Runnable() {
             public void run() {
                 game.executeMove(m);
@@ -530,7 +531,8 @@ public class CheckerboardView extends RelativeLayout implements View.OnClickList
     }
 
     private void startCapturedAnimation(Move m, Runnable whenDone) {
-        startCapturedAnimation(m, whenDone, false);
+        //startCapturedAnimation(m, whenDone, false);
+        startCapturedAnimation(m.getCaptured(), game.getPiece(m.getCaptured()), whenDone);
     }
 
     public void startCapturedAnimation(int [] pos, Piece p, Runnable whenDone) {
@@ -592,7 +594,7 @@ public class CheckerboardView extends RelativeLayout implements View.OnClickList
                         break;
                     case FLYING_JUMP:
                     case JUMP: {
-                        if (m.hasCaptured()) {
+                        if (m.hasCaptured() && !game.isCaptureAtEndEnabled()) {
                             startCapturedAnimation(m, null);
                         }
                         break;
@@ -628,7 +630,7 @@ public class CheckerboardView extends RelativeLayout implements View.OnClickList
         final int RANKS = game == null ? 8 : game.RANKS;
         final float dim = Math.min(width, height);
 
-        cellDim = dim / COLUMNS;
+        cellDim = Math.round(dim / COLUMNS);
         pcRad = Math.min(cellDim / 3, cellDim / 3);
 
         if (getBackground() != null) {
@@ -692,14 +694,14 @@ public class CheckerboardView extends RelativeLayout implements View.OnClickList
             Drawable board = getResources().getDrawable(R.drawable.wood_checkerboard_8x8);
             board.setBounds(0, 0, iDim, iDim);
             board.draw(canvas);
-            float ratio = 25f / 545;
+            float ratio = 25f / 548;
             boardPadding = dim * ratio;
         }
     }
 
     private void drawCapturedPieces(Canvas canvas, float width, float height, float dim) {
         final int iDim = Math.round(dim);
-        final List<Piece> captured = new ArrayList<>(game.getCapturedPieces());
+        final List<Piece> captured = game.getCapturedPieces();
         final float padding = cellDim / 8;
         nextNearCaptureY = height - iDim / 2 + cellDim / 2 + padding;
         nextFarCaptureY = cellDim / 2 + padding;
@@ -806,8 +808,9 @@ public class CheckerboardView extends RelativeLayout implements View.OnClickList
     private void drawBoardPieces(Canvas canvas, float width, float height, float dim, int RANKS, int COLUMNS) {
         // the dawable is 530x530. The wood trim is 30px
         canvas.save();
+        //canvas.translate(0, 4);
         try {
-            canvas.translate(boardPadding, boardPadding - 5);//boardPadding*0.1f);
+            canvas.translate(boardPadding, boardPadding);//boardPadding*0.1f);
             final float ddim = dim - boardPadding * 2;
 
             // debug outline the playable part of the
@@ -1094,7 +1097,6 @@ public class CheckerboardView extends RelativeLayout implements View.OnClickList
         float [] dim = getBitmapRect(bd, heightPercent);
         g.save();
         g.translate(cx, cy);
-        float sy = cy + cellDim/2 - getPadding();
         float w = dim[0];
         float h = dim[1];
         Rect dest = null;
@@ -1163,6 +1165,15 @@ public class CheckerboardView extends RelativeLayout implements View.OnClickList
             a.stop();
         }
         animations.clear();
+
+        // remember the captured state so we know to run reverse animation...whew!
+        boolean [][] tmpB = new boolean [game.RANKS][game.COLUMNS];
+        for (int r=0; r<game.RANKS; r++) {
+            for (int c=0; c<game.COLUMNS; c++) {
+                tmpB[r][c] = game.getPiece(r, c).isCaptured();
+            }
+        }
+
         final Move m = game.undo();
 
         if (cm != null) {
@@ -1170,7 +1181,7 @@ public class CheckerboardView extends RelativeLayout implements View.OnClickList
         }
 
         if (m != null) {
-            if (m.hasCaptured()) {
+            if (m.hasCaptured() && !tmpB[m.getCaptured()[0]][m.getCaptured()[1]]) {
                 // start un-capture animation on next frame so the nextNear/FarCapturedX/Y are reflect updated state
                 postDelayed(new Runnable() {
                     @Override

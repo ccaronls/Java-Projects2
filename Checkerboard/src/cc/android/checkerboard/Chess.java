@@ -102,7 +102,9 @@ public class Chess extends ACheckboardGame {
         lock = null;
         Piece p = null;
         clearMoves();
-        undoStack.push(move);
+        synchronized (undoStack) {
+            undoStack.push(move);
+        }
         {
             switch (move.getMoveType()) {
                 case END:

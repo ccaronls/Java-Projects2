@@ -21,6 +21,7 @@ public class Move extends Reflector<Move> implements IMove {
     private int [] castleRookStart;
     private int [] castleRookEnd;
     private int [] captured;
+    private boolean groupCapture = false;
 
     private PieceType startType, endType, capturedType;
 
@@ -121,6 +122,9 @@ public class Move extends Reflector<Move> implements IMove {
         if (captured != null) {
             s += " cap:" + toStr(captured) + " ct: " + capturedType;
         }
+        if (groupCapture) {
+            s += " group capture";
+        }
         if (castleRookStart != null) {
             s += " castle st: " + toStr(castleRookStart) + " end: " + toStr(castleRookEnd);
         }
@@ -130,5 +134,13 @@ public class Move extends Reflector<Move> implements IMove {
     @Override
     public int getPlayerNum() {
         return playerNum;
+    }
+
+    public boolean isGroupCapture() {
+        return groupCapture;
+    }
+
+    public void setGroupCapture(boolean groupCapture) {
+        this.groupCapture = groupCapture;
     }
 }

@@ -72,6 +72,7 @@ import cc.lib.logger.LoggerFactory;
 import cc.lib.math.MutableVector2D;
 import cc.lib.net.GameServer;
 import cc.lib.swing.AWTGraphics;
+import cc.lib.swing.AWTRadioButtonGroup;
 import cc.lib.swing.AWTUtils;
 import cc.lib.swing.ButtonLayout;
 import cc.lib.swing.EZFrame;
@@ -936,7 +937,7 @@ public class GUI implements ActionListener, MenuItem.Action {
         JPanel chooser = new JPanel();
         chooser.setLayout(new GridLayout(0,1));
         
-        MyRadioButtonGroup<Object> grp = new MyRadioButtonGroup<Object>(chooser) {
+        AWTRadioButtonGroup<Object> grp = new AWTRadioButtonGroup<Object>(chooser) {
             @Override
             protected void onChange(Object extra) {
             	if (extra instanceof TileType) {

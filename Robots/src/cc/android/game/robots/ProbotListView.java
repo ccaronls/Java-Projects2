@@ -128,6 +128,9 @@ public class ProbotListView extends ListView implements View.OnDragListener, Vie
                         case Jump:
                             iv.setImageResource(R.drawable.arrow_jump);
                             break;
+                        case UTurn:
+                            iv.setImageResource(R.drawable.uturn);
+                            break;
                     }
                 }
 

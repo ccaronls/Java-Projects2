@@ -292,6 +292,7 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
                     // write crashes to sdcard for eval later
                     try {
                         File tmpDir = File.createTempFile("crash", "", Environment.getExternalStorageDirectory());
+                        tmpDir.delete();
                         tmpDir.mkdir();
                         File crash = new File(tmpDir, "stack.txt");
                         FileUtils.stringToFile(e.toString(), crash);

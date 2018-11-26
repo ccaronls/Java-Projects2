@@ -1,7 +1,5 @@
 package cc.android.checkerboard;
 
-import android.os.Debug;
-
 import cc.lib.game.MiniMaxTree;
 import cc.lib.game.MiniMaxTree.MMTreeNode;
 import cc.lib.game.Utils;
@@ -82,14 +80,14 @@ public class Robot extends Reflector<Robot> {
         else
             mmt = mmtChess;
 
-        if (BuildConfig.DEBUG)
-            Debug.startMethodTracing();
+        //if (BuildConfig.DEBUG)
+        //    Debug.startMethodTracing();
         switch (type) {
             case EASY:
                 doRandomRobot(root);
                 break;
             case MEDIUM: {
-                mmt.buildTree(game, root, 1);
+                mmt.buildTree(game, root, 2);
                 break;
             }
             case HARD: {
@@ -97,8 +95,8 @@ public class Robot extends Reflector<Robot> {
                 break;
             }
         }
-        if (BuildConfig.DEBUG)
-            Debug.stopMethodTracing();
+        //if (BuildConfig.DEBUG)
+        //    Debug.stopMethodTracing();
 
     }
 
@@ -262,7 +260,7 @@ public class Robot extends Reflector<Robot> {
         }
 
         moves = game.computeMoves();
-        long d = 100*dPc + 50000*dKing + dAdv + 5*moves;
+        long d = 100*dPc + 1000*dKing + 10*dAdv + moves;
 
         if (node != null) {
             node.appendMeta(String.format(

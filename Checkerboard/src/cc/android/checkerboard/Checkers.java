@@ -260,11 +260,35 @@ public class Checkers extends ACheckboardGame  {
 
             }
         }
-
-
     }
 
-	protected void removeCapturedPieces() {
+    @Override
+    protected void reverseMove(Move m, boolean recompute) {
+        if (m.isGroupCapture()) {
+            if (m.hasCaptured()) {
+                onPieceUncaptured(m.getCaptured(), m.getCapturedType());
+            }
+            List<Move> uncap = new ArrayList<>();
+            synchronized (undoStack) {
+                for (Move um : undoStack) {
+                    if (um.getPlayerNum()!=m.getPlayerNum())
+                        break;
+                    if (um.hasCaptured()) {
+                        uncap.add(um);
+                    }
+                }
+            }
+            for (Move um : uncap) {
+                onPieceUncaptured(um.getCaptured(), um.getCapturedType());
+            }
+        }
+
+        super.reverseMove(m, recompute);
+    }
+
+    protected void onPieceUncaptured(int [] pos, PieceType type) {}
+
+    protected void removeCapturedPieces() {
         List<int[]> captured = new ArrayList<>();
         for (int i=0; i<RANKS; i++) {
             for (int ii=0; ii<COLUMNS; ii++) {
@@ -275,6 +299,9 @@ public class Checkers extends ACheckboardGame  {
             }
         }
         if (captured.size() > 0) {
+            synchronized (undoStack) {
+                undoStack.peek().setGroupCapture(true);
+            }
             onPiecesCaptured(captured);
             for (int[] pos : captured) {
                 clearPiece(pos);
@@ -285,7 +312,7 @@ public class Checkers extends ACheckboardGame  {
     protected void onPiecesCaptured(List<int[]> pieces) {}
 
     @Override
-	public synchronized void executeMove(Move move) {
+	public void executeMove(Move move) {
         if (move.getPlayerNum() != getTurn())
             throw new AssertionError();
         lock = null;
@@ -303,7 +330,9 @@ public class Checkers extends ACheckboardGame  {
             p = movePiece(move);
 		}
 
-        undoStack.push(move);
+		synchronized (undoStack) {
+            undoStack.push(move);
+        }
         switch (move.getMoveType()) {
             case SLIDE:
                 if (isKinged) {

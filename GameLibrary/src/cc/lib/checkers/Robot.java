@@ -221,7 +221,7 @@ public class Robot extends Reflector<Robot> {
      *
      * @return
      */
-    protected synchronized long evaluateCheckersBoard(Checkers game, MMTreeNode node, int playerNum) {
+    protected long evaluateCheckersBoard(Checkers game, MMTreeNode node, int playerNum) {
 
         int dPc=0;
         int dKing=0;
@@ -260,15 +260,18 @@ public class Robot extends Reflector<Robot> {
         }
 
         moves = game.computeMoves();
-        long d = 100*dPc + 50000*dKing + dAdv + 5*moves;
+        long d = 100*dPc + 1000*dKing + 10*dAdv + moves;
 
         if (node != null) {
             node.appendMeta(String.format(
+                              //"%1$20s:%2$d
                               "(%3$d)\n"
                             + "%4$s:%5$d\n"
                             + "%6$s:%7$d\n"
                             + "%8$s:%9$d\n"
                             + "%10$s:%11$d\n"
+//                            + "%12$20s:%13$d\n"
+//                            + "%14$20s:%15$d\n"
                     ,
                     "Player", game.getTurn(), d,
                     "dPcs  ", dPc,

@@ -25,6 +25,12 @@ public class ButtonLayout implements LayoutManager2 {
     public void addLayoutComponent(Component comp, Object constraints) {
     }
 
+    public ButtonLayout() {}
+
+    public ButtonLayout(Container target) {
+        layoutContainer(target);
+    }
+
     @Override
     public Dimension preferredLayoutSize(Container target) {
         Dimension size = new Dimension();

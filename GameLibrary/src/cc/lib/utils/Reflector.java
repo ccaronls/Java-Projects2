@@ -1183,9 +1183,9 @@ public class Reflector<T> {
      * @param file
      * @throws IOException
      */
-    public static <T> void serializeToFile(Reflector<T> r, File file) throws IOException {
+    public static <T> void serializeToFile(Object o, File file) throws IOException {
         try (FileOutputStream out = new FileOutputStream(file)) {
-            serializeObject(r, new MyPrintWriter(out));
+            serializeObject(o, new MyPrintWriter(out));
         }
     }
 

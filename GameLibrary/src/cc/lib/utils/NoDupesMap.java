@@ -6,6 +6,8 @@ import java.util.Set;
 
 /**
  * Created by chriscaron on 3/11/18.
+ *
+ * Will assert if try to add a duplicate key
  */
 
 public class NoDupesMap<K,V> implements Map<K,V> {

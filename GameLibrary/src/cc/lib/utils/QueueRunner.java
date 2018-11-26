@@ -5,6 +5,8 @@ import java.util.Queue;
 
 /**
  * Created by chriscaron on 3/4/18.
+ *
+ * FIFO Command processing Q. Items are processed in separate thread.
  */
 
 public abstract class QueueRunner<T> implements Runnable {
