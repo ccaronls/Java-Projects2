@@ -1709,10 +1709,23 @@ public class Utils {
      * @param values
      * @return
      */
-    public static <T extends Enum<T>> T incrementEnum(T value, T[] values) {
-        int ordinal = value.ordinal() + 1;
-        ordinal %= values.length;
-        return values[ordinal];
+    public static <T extends Comparable<T>> T incrementValue(T value, T ... values) {
+        int index = linearSearch(values, value);
+        index = (index+1) % values.length;
+        return values[index];
+    }
+
+    /**
+     *
+     * @param value
+     * @param values
+     * @param <T>
+     * @return
+     */
+    public static <T extends Comparable<T>> T decrementValue(T value, T ... values) {
+        int index = linearSearch(values, value);
+        index = (index-1+values.length) % values.length;
+        return values[index];
     }
 
     /**

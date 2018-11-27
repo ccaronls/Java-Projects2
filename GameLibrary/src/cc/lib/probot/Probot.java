@@ -54,9 +54,9 @@ public class Probot extends Reflector<Probot> {
     }
 
     public static class Command {
-        final CommandType type;
-        int count;
-        int nesting=0;
+        public final CommandType type;
+        public int count;
+        public int nesting=0;
 
         public Command(CommandType type, int count) {
             this.type = type;
@@ -64,7 +64,7 @@ public class Probot extends Reflector<Probot> {
         }
     }
 
-    enum CommandType {
+    public enum CommandType {
         Advance,
         TurnRight,
         TurnLeft,
@@ -95,20 +95,20 @@ public class Probot extends Reflector<Probot> {
     @Omit
     private List<Command> program = new ArrayList<>();
 
-    Level level = new Level();
+    public Level level = new Level();
     int levelNum = 0;
 
     // the lazer matrix is same size as the coins. Eash elem is a bit flag of LAZER_N/S/E/W values
 
-    int [][] lazer = {};
+    public int [][] lazer = {};
 
     public final static int LAZER_EAST  = 1<<0;
     public final static int LAZER_SOUTH = 1<<1;
     public final static int LAZER_WEST  = 1<<2;
     public final static int LAZER_NORTH = 1<<3;
 
-    int posx=0, posy=2;
-    Direction dir= Direction.Right;
+    public int posx=0, posy=2;
+    public Direction dir= Direction.Right;
 
     @Omit
     private Probot copy;

@@ -501,7 +501,7 @@ public class BoardBuilder extends AWTComponent {
                 break;
 
             case VK_TAB:
-                pickMode = Utils.incrementEnum(pickMode, PickMode.values());
+                pickMode = Utils.incrementValue(pickMode, PickMode.values());
                 selectedIndex = -1;
                 break;
 

@@ -26,6 +26,35 @@ java.util.ArrayList {
       numTurns=0
    }
    cc.lib.probot.Probot.Level {
+      coins=cc.lib.probot.Probot.Type[] 6 {
+         cc.lib.probot.Probot.Type 6 {
+            EM EM SS EM EM EM 
+         }
+         cc.lib.probot.Probot.Type 6 {
+            EM EM DD EM EM EM 
+         }
+         cc.lib.probot.Probot.Type 6 {
+            DD DD DD DD DD EM 
+         }
+         cc.lib.probot.Probot.Type 6 {
+            DD EM EM EM DD EM 
+         }
+         cc.lib.probot.Probot.Type 6 {
+            DD DD DD DD DD EM 
+         }
+         cc.lib.probot.Probot.Type 6 {
+            EM EM EM EM EM EM 
+         }
+      }
+      label="%3CUNNAMED%3E"
+      lazers=boolean 3 {
+         true true true 
+      }
+      numJumps=0
+      numLoops=-1
+      numTurns=-1
+   }
+   cc.lib.probot.Probot.Level {
       coins=cc.lib.probot.Probot.Type[] 1 {
          cc.lib.probot.Probot.Type 1 {
             EM 

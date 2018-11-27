@@ -10,6 +10,7 @@ import cc.lib.utils.Reflector;
 
 import javax.swing.*;
 import java.awt.*;
+
 import java.util.ArrayList;
 
 public class ProbotLevelBuilder extends AWTComponent {
@@ -95,7 +96,7 @@ public class ProbotLevelBuilder extends AWTComponent {
             protected void onAction() {
                 grid.init(1, 1, Probot.Type.EM);
                 getLevel().coins = grid.getGrid();
-                repaint();
+                ProbotLevelBuilder.this.repaint();
             }
         });
         lhs.add(new AWTButton("Save") {
@@ -133,21 +134,21 @@ public class ProbotLevelBuilder extends AWTComponent {
             @Override
             protected void onToggle(boolean on) {
                 getLevel().lazers[0] = on;
-                repaint();
+                ProbotLevelBuilder.this.repaint();
             }
         });
         lhs.add(lazer1 = new EZToggleButton("Lazer 1") {
             @Override
             protected void onToggle(boolean on) {
                 getLevel().lazers[1] = on;
-                repaint();
+                ProbotLevelBuilder.this.repaint();
             }
         });
         lhs.add(lazer2 = new EZToggleButton("Lazer 2") {
             @Override
             protected void onToggle(boolean on) {
                 getLevel().lazers[2] = on;
-                repaint();
+                ProbotLevelBuilder.this.repaint();
             }
         });
 
@@ -157,7 +158,7 @@ public class ProbotLevelBuilder extends AWTComponent {
                 if (curLevel > 0) {
                     probot.setLevel(--curLevel, levels.get(curLevel));
                     updateAll();
-                    repaint();
+                    ProbotLevelBuilder.this.repaint();
                 }
             }
         };
@@ -170,7 +171,7 @@ public class ProbotLevelBuilder extends AWTComponent {
                 }
                 probot.setLevel(++curLevel, levels.get(curLevel));
                 updateAll();
-                repaint();
+                ProbotLevelBuilder.this.repaint();
             }
         };
 
@@ -181,7 +182,7 @@ public class ProbotLevelBuilder extends AWTComponent {
                     curLevel = Math.max(0, curLevel-10);
                     probot.setLevel(curLevel, levels.get(curLevel));
                     updateAll();
-                    repaint();
+                    ProbotLevelBuilder.this.repaint();
                 }
             }
         };
@@ -194,7 +195,7 @@ public class ProbotLevelBuilder extends AWTComponent {
                     levels.add(new Probot.Level());
                     probot.setLevel(curLevel, levels.get(curLevel));
                     updateAll();
-                    repaint();
+                    ProbotLevelBuilder.this.repaint();
                 }
             }
         };
@@ -275,6 +276,55 @@ public class ProbotLevelBuilder extends AWTComponent {
     }
 
     @Override
+    protected void onKeyPressed(VKKey key) {
+        if (pickCol < 0 || pickRow < 0)
+            return;
+
+        Probot.Type t = grid.get(pickCol, pickRow);
+        Probot.Type [] values = {};
+
+        switch (t) {
+
+            case EM:
+            case DD:
+                values = Utils.toArray(Probot.Type.EM, Probot.Type.DD);
+                break;
+            case SE:
+            case SS:
+            case SW:
+            case SN:
+                values = Utils.toArray(Probot.Type.SE, Probot.Type.SS, Probot.Type.SW, Probot.Type.SN);
+                break;
+            case LH0:
+            case LV0:
+            case LH1:
+            case LV1:
+            case LH2:
+            case LV2:
+                values = Utils.toArray(Probot.Type.LH0, Probot.Type.LV0, Probot.Type.LH1, Probot.Type.LV1, Probot.Type.LH2, Probot.Type.LV2);
+                break;
+            case LB0:
+            case LB1:
+            case LB2:
+            case LB:
+                values = Utils.toArray(Probot.Type.LB0, Probot.Type.LB1, Probot.Type.LB2, Probot.Type.LB);
+                break;
+        }
+
+        switch (key) {
+            case VK_LEFT:
+                t = Utils.decrementValue(t, values);
+                break;
+            case VK_RIGHT:
+                t = Utils.incrementValue(t, values);
+                break;
+        }
+
+        grid.set(pickRow, pickCol, t);
+        repaint();
+    }
+
+    @Override
     protected void onClick() {
         if (pickCol < 0 || pickRow < 0) {
             return;
@@ -287,7 +337,7 @@ public class ProbotLevelBuilder extends AWTComponent {
         if (t == Probot.Type.EM || (t=grid.get(pickRow, pickCol)) == Probot.Type.EM) {
             grid.set(pickRow, pickCol, t = this.cellType.getChecked());
         } else {
-            grid.set(pickRow, pickCol, t = Utils.incrementEnum(t, Probot.Type.values()));
+            grid.set(pickRow, pickCol, t = Utils.incrementValue(t, Probot.Type.values()));
         }
 
         switch (t) {

@@ -54,50 +54,67 @@
             android:paddingBottom="5dp"
             android:paddingTop="5dp"/>
 
-        <LinearLayout
+        <HorizontalScrollView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@id/lvProgram"
             android:layout_alignRight="@id/lvProgram">
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
 
-            <ImageView
-                android:id="@+id/ivArrowForward"
-                android:layout_width="@dimen/icon_dim"
-                android:layout_height="@dimen/icon_dim"
-                android:src="@drawable/arrow_forward"/>
+                <ImageView
+                    android:id="@+id/ivArrowForward"
+                    android:layout_width="@dimen/icon_dim"
+                    android:layout_height="@dimen/icon_dim"
+                    android:src="@drawable/arrow_forward"/>
 
-            <ImageView
-                android:id="@+id/ivArrowRight"
-                android:layout_width="@dimen/icon_dim"
-                android:layout_height="@dimen/icon_dim"
-                android:src="@drawable/arrow_right"/>
+                <ImageView
+                    android:id="@+id/ivArrowRight"
+                    android:layout_width="@dimen/icon_dim"
+                    android:layout_height="@dimen/icon_dim"
+                    android:src="@drawable/arrow_right"/>
 
-            <ImageView
-                android:id="@+id/ivArrowLeft"
-                android:layout_width="@dimen/icon_dim"
-                android:layout_height="@dimen/icon_dim"
-                android:src="@drawable/arrow_left"/>
+                <ImageView
+                    android:id="@+id/ivArrowLeft"
+                    android:layout_width="@dimen/icon_dim"
+                    android:layout_height="@dimen/icon_dim"
+                    android:src="@drawable/arrow_left"/>
 
-            <ImageView
-                android:id="@+id/ivUTurn"
-                android:layout_width="@dimen/icon_dim"
-                android:layout_height="@dimen/icon_dim"
-                android:src="@drawable/uturn"/>
+                <ImageView
+                    android:id="@+id/ivUTurn"
+                    android:layout_width="@dimen/icon_dim"
+                    android:layout_height="@dimen/icon_dim"
+                    android:src="@drawable/uturn"/>
 
-            <ImageView
-                android:id="@+id/ivArrowJump"
-                android:layout_width="@dimen/icon_dim"
-                android:layout_height="@dimen/icon_dim"
-                android:src="@drawable/arrow_jump"/>
+                <ImageView
+                    android:id="@+id/ivArrowJump"
+                    android:layout_width="@dimen/icon_dim"
+                    android:layout_height="@dimen/icon_dim"
+                    android:src="@drawable/arrow_jump"/>
 
-        </LinearLayout>
+            </LinearLayout>
+        </HorizontalScrollView>
     </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvLevelName"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="LEVEL TITLE"
+        android:gravity="center"
+        android:textSize="20sp"
+        android:textColor="#fff"
+        android:layout_alignParentRight="true"
+        android:layout_alignLeft="@id/layoutProbot"
+        />
 
     <cc.lib.android.SquareLinearLayout
         android:id="@+id/layoutProbot"
         android:layout_width="wrap_content"
-        android:layout_height="fill_parent"
-        app:dominantSide="width_matches_height"
+        android:layout_height="wrap_content"
+        app:dominantSide="fill_fit"
+        android:layout_below="@id/tvLevelName"
         android:layout_alignParentRight="true">
         <cc.android.game.robots.ProbotView
             android:id="@+id/probotView"

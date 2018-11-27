@@ -20,7 +20,7 @@ public abstract class Grid<T extends Comparable<T>> {
             throw new IllegalArgumentException();
         if (getRows() >= rows && getCols() >= cols)
             return;
-        T [][] newGrid = build(rows, cols);
+        T [][] newGrid = build(Math.max(getRows(), rows), Math.max(getCols(), cols));
         fill(newGrid, fillValue);
         for (int i=0; i<getRows(); i++) {
             for (int ii=0; ii<getCols(); ii++) {

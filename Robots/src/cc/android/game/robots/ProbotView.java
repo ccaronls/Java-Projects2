@@ -14,11 +14,18 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
 
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.List;
+
 import cc.lib.android.DroidUtils;
 import cc.lib.game.AAnimation;
 import cc.lib.game.Utils;
 import cc.lib.math.Bezier;
 import cc.lib.math.Vector2D;
+import cc.lib.probot.Probot;
+import cc.lib.utils.Reflector;
 
 /**
  * Created by chriscaron on 12/7/17.
@@ -118,6 +125,16 @@ public class ProbotView extends View {
     AAnimation<Canvas> animation = null;
 
     void init(Context c, AttributeSet a) {
+        try {
+            InputStream in = c.getAssets().open("levels.txt");
+            try {
+                levels = Reflector.deserializeObject(new BufferedReader(new InputStreamReader(in)));
+            } finally {
+                in.close();
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public ProbotView(Context context) {
@@ -148,8 +165,8 @@ public class ProbotView extends View {
         p.setColor(Color.RED);
         canvas.drawRect(r, p);
 
-        int cols = probot.coins[0].length;
-        int rows = probot.coins.length;
+        int cols = probot.level.coins[0].length;
+        int rows = probot.level.coins.length;
 
         // get cell width/height
         cw = getWidth() / cols;
@@ -160,50 +177,50 @@ public class ProbotView extends View {
             for (int ii=0; ii<cols; ii++) {
                 int x = ii*cw + cw/2;
                 int y = i*ch + ch/2;
-                switch (probot.coins[i][ii]) {
-                    case Probot.EM:
+                switch (probot.level.coins[i][ii]) {
+                    case EM:
                         break;
-                    case Probot.DD:
+                    case DD:
                         p.setStyle(Paint.Style.FILL);
                         p.setColor(Color.WHITE);
                         canvas.drawCircle(x, y, radius, p);
                         break;
-                    case Probot.SE:
+                    case SE:
                         break;
-                    case Probot.SS:
+                    case SS:
                         break;
-                    case Probot.SW:
+                    case SW:
                         break;
-                    case Probot.SN:
+                    case SN:
                         break;
-                    case Probot.LH0:
+                    case LH0:
                         drawLazer(canvas, x, y, true, Color.RED);
                         break;
-                    case Probot.LV0:
+                    case LV0:
                         drawLazer(canvas, x, y, false, Color.RED);
                         break;
-                    case Probot.LB0:
-                        drawButton(canvas, x, y, Color.RED, probot.lazerEnabled[0]);
+                    case LB0:
+                        drawButton(canvas, x, y, Color.RED, probot.level.lazers[0]);
                         break;
-                    case Probot.LH1:
+                    case LH1:
                         drawLazer(canvas, x, y, true, Color.BLUE);
                         break;
-                    case Probot.LV1:
+                    case LV1:
                         drawLazer(canvas, x, y, false, Color.BLUE);
                         break;
-                    case Probot.LB1:
-                        drawButton(canvas, x, y, Color.BLUE, probot.lazerEnabled[1]);
+                    case LB1:
+                        drawButton(canvas, x, y, Color.BLUE, probot.level.lazers[1]);
                         break;
-                    case Probot.LH2:
+                    case LH2:
                         drawLazer(canvas, x, y, true, Color.GREEN);
                         break;
-                    case Probot.LV2:
+                    case LV2:
                         drawLazer(canvas, x, y, false, Color.GREEN);
                         break;
-                    case Probot.LB2:
-                        drawButton(canvas, x, y, Color.GREEN, probot.lazerEnabled[2]);
+                    case LB2:
+                        drawButton(canvas, x, y, Color.GREEN, probot.level.lazers[2]);
                         break;
-                    case Probot.LB:
+                    case LB:
                         // toggle all button
                         p.setColor(Color.RED);
                         canvas.drawCircle(x, y, radius*3/2, p);
@@ -374,54 +391,6 @@ public class ProbotView extends View {
 
     void startAdvanceAnim() {
         animation = new AdvanceAnim(1000, 1).start();
-
-                /*
-                new AAnimation<Canvas>(1000) {
-            @Override
-            protected void draw(Canvas canvas, float position, float dt) {
-                int x = probot.posx*cw + cw/2;
-                int y = probot.posy*ch + ch/2;
-                int angStart=0, sweepAng=270;
-                float dx=0, dy=0;
-                if (position < 0.5f) {
-                    angStart = Math.round(position * 2 * 45);
-                } else {
-                    angStart = Math.round((1.0f - position) * 2 * 45);
-                }
-                sweepAng = 360 - angStart*2;
-
-                switch (probot.dir) {
-
-                    case Right:
-                        dx = cw;
-                        break;
-                    case Down:
-                        angStart+=90;
-                        dy = ch;
-                        break;
-                    case Left:
-                        angStart+=180;
-                        dx = -cw;
-                        break;
-                    case Up:
-                        angStart+=270;
-                        dy = -ch;
-                        break;
-                }
-                rf.set(x-radius+Math.round(dx * position), y-radius+Math.round(dy * position),
-                        x+radius+Math.round(dx * position), y+radius+Math.round(dy * position));
-                canvas.drawArc(rf, angStart, sweepAng, true, p);
-            }
-
-            @Override
-            protected void onDone() {
-                animation = null;
-                synchronized (probot) {
-                    probot.notify();
-                }
-
-            }
-        }.start();*/
         postInvalidate();
     }
 
@@ -656,8 +625,10 @@ public class ProbotView extends View {
     }
 
     void nextLevel() {
-        setLevel(probot.level+1);
+        setLevel(probot.getLevelNum()+1);
     }
+
+    List<Probot.Level> levels = null;
 
     void setLevel(int level) {
         this.maxLevel = Math.max(maxLevel, level);
@@ -665,7 +636,10 @@ public class ProbotView extends View {
                 .putInt("Level", level)
                 .putInt("MaxLevel", maxLevel)
                 .apply();
-        probot.setLevel(level);
+        if (level >= levels.size())
+            level = 0;
+        probot.setLevel(level, levels.get(level));
+        probot.start();
         postInvalidate();
         setProgramLine(-1);
     }

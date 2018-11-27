@@ -6,6 +6,7 @@ import android.view.View;
 import android.widget.TextView;
 
 import cc.lib.android.CCActivityBase;
+import cc.lib.probot.Probot;
 
 /**
  * Created by chriscaron on 12/7/17.
@@ -25,6 +26,7 @@ public class ProbotActivity extends CCActivityBase implements View.OnClickListen
     View bNext;
     View bPrevious;
     TextView tvLevel;
+    TextView tvLevelName;
 
     View [] actions;
 
@@ -36,6 +38,7 @@ public class ProbotActivity extends CCActivityBase implements View.OnClickListen
         lv = (ProbotListView)findViewById(R.id.lvProgram);
         lv.setProbot(pv.probot);
         tvLevel = (TextView)findViewById(R.id.tvLevel);
+        tvLevelName = (TextView)findViewById(R.id.tvLevelName);
         actionForward = findViewById(R.id.ivArrowForward);
         actionRight = findViewById(R.id.ivArrowRight);
         actionLeft = findViewById(R.id.ivArrowLeft);
@@ -70,8 +73,12 @@ public class ProbotActivity extends CCActivityBase implements View.OnClickListen
         int level = getPrefs().getInt("Level", 0);
         pv.maxLevel = getPrefs().getInt("MaxLevel", 0);
 
+        setLevel(level);
+    }
+
+    private void setLevel(int level) {
         pv.setLevel(level);
-        refresh();
+        tvLevelName.setText(pv.probot.level.label);
     }
 
     @Override
@@ -86,7 +93,7 @@ public class ProbotActivity extends CCActivityBase implements View.OnClickListen
 
     @Override
     public void run() {
-        tvLevel.setText(String.valueOf(pv.probot.level+1));
+        tvLevel.setText(String.valueOf(pv.probot.getLevelNum()+1));
         if (pv.probot.isRunning()) {
             bPrevious.setEnabled(false);
             bNext.setEnabled(false);
@@ -94,7 +101,7 @@ public class ProbotActivity extends CCActivityBase implements View.OnClickListen
             bStop.setVisibility(View.VISIBLE);
         } else {
             bPrevious.setEnabled(true);
-            bNext.setEnabled(pv.probot.level < pv.maxLevel);
+            bNext.setEnabled(pv.probot.getLevelNum() < pv.maxLevel);
             bPlay.setVisibility(View.VISIBLE);
             bStop.setVisibility(View.GONE);
         }
@@ -135,13 +142,13 @@ public class ProbotActivity extends CCActivityBase implements View.OnClickListen
                 }
                 break;
             case R.id.ibPrevious:
-                if (pv.probot.level > 0) {
-                    pv.setLevel(pv.probot.level-1);
+                if (pv.probot.getLevelNum() > 0) {
+                    setLevel(pv.probot.getLevelNum()-1);
                 }
                 break;
             case R.id.ibNext:
-                if (pv.probot.level < pv.maxLevel) {
-                    pv.nextLevel();
+                if (pv.probot.getLevelNum() < pv.maxLevel) {
+                    setLevel(pv.probot.getLevelNum()+1);
                 }
                 break;
         }
