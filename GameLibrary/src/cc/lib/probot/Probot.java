@@ -523,13 +523,14 @@ public class Probot extends Reflector<Probot> {
     public boolean isCommandTypeAvailable(CommandType t) {
         switch (t) {
             case Jump:
-                return level.numJumps > 0;
+                return level.numJumps != 0;
             case LoopStart:
             case LoopEnd:
-                return level.numLoops > 0;
+                return level.numLoops != 0;
             case TurnRight:
             case TurnLeft:
-                return level.numTurns > 0;
+            case UTurn:
+                return level.numTurns != 0;
             case Advance:
             default:
                 return true;
@@ -653,38 +654,6 @@ public class Probot extends Reflector<Probot> {
 
             }
         }
-/*
-        // draw the pacman
-        radius = Math.round(0.4f * Math.min(cw, ch));
-        int x = probot.posx*cw + cw/2;
-        int y = probot.posy*ch + ch/2;
-        rf.set(x-radius, y-radius, x+radius, y+radius);
-
-        p.setColor(Color.YELLOW);
-        p.setStyle(Paint.Style.FILL);
-
-        if (animation != null) {
-            animation.update(canvas);
-            invalidate();
-        } else {
-            canvas.drawCircle(x, y, radius, p);
-            p.setColor(Color.BLACK);
-            p.setStyle(Paint.Style.STROKE);
-            switch (probot.dir) {
-                case Right:
-                    canvas.drawLine(x, y, x+radius, y, p);
-                    break;
-                case Down:
-                    canvas.drawLine(x, y, x, y+radius, p);
-                    break;
-                case Left:
-                    canvas.drawLine(x, y, x-radius, y, p);
-                    break;
-                case Up:
-                    canvas.drawLine(x, y, x, y-radius, p);
-                    break;
-            }
-        }*/
     }
 
     void drawLazer(AGraphics g, int cx, int cy, float rad, boolean horz, GColor color) {

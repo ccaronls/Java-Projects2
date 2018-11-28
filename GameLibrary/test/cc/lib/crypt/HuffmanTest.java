@@ -170,7 +170,7 @@ public class HuffmanTest extends SimpleCypherTest {
     public void testDominosFile() throws Exception {
         String txt = loadFile("dominos.save").toString();
         HuffmanEncoding encoding = new HuffmanEncoding();
-        encoding.importCounts(new File("dominos.save"));
+        encoding.importCounts(getClass().getClassLoader().getResourceAsStream("dominos.save"));
         //encoding.keepAllOccurances();
         encoding.generate();
         cypher = encoding;

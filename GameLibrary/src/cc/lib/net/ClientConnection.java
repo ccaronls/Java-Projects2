@@ -425,26 +425,24 @@ public class ClientConnection implements Runnable {
     /**
      *
      * @param objId
-     * @param waitLock
      * @param params
      * @param <T>
      * @return
      */
-    public final <T> T executeOnRemote(String objId, Object waitLock, Object ... params) {
+    public final <T> T executeDerivedOnRemote(String objId, boolean returnsResult, Object ... params) {
         StackTraceElement elem = new Exception().getStackTrace()[1];
-        return executeOnRemote(objId, elem.getMethodName(), waitLock, params);
+        return executeMethodOnRemote(objId, returnsResult, elem.getMethodName(), params);
     }
 
     /**
      *
      * @param targetId
      * @param method
-     * @param waitLock
      * @param params
      * @param <T>
      * @return
      */
-    public final <T> T executeOnRemote(String targetId, String method, Object waitLock, Object [] params) { // <-- need [] array to disambiguate from above method
+    public final <T> T executeMethodOnRemote(String targetId, boolean returnsResult, String method, Object ... params) { // <-- need [] array to disambiguate from above method
         if (Utils.isEmpty(targetId) || Utils.isEmpty(method))
             throw new NullPointerException();
 
@@ -459,15 +457,16 @@ public class ClientConnection implements Runnable {
             for (int i = 0; i < params.length; i++) {
                 cmd.setArg("param" + i, Reflector.serializeObject(params[i]));
             }
-            if (waitLock != null) {
+            if (returnsResult) {
+                Object lock = new Object();
                 String id = Utils.genRandomString(64);
                 cmd.setArg("responseId", id);
-                ResponseListener<T> listener = new ResponseListener<>(id, waitLock);
+                ResponseListener<T> listener = new ResponseListener<>(id, lock);
                 addListener(listener);
                 GameCommandType.CL_REMOTE_RETURNS.addListener(listener);
                 sendCommand(cmd);
-                synchronized (waitLock) {
-                    waitLock.wait();
+                synchronized (lock) {
+                    lock.wait();
                 }
                 GameCommandType.CL_REMOTE_RETURNS.removeListener(listener);
                 removeListener(listener);

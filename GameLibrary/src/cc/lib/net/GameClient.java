@@ -487,6 +487,7 @@ public class GameClient {
                 m.invoke(obj, params);
             }
         } catch (Exception e) {
+            e.printStackTrace();
             throw new IOException(e);
         }
     }

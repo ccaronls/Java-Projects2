@@ -118,37 +118,39 @@ public class GameServerTest extends TestCase {
                     ClientConnection conn = server.getClientConnection("XX");
                     /////////////////
 
-                    conn.executeOnRemote(CLIENT_ID, "testMethod_int", false, new Integer(10));
+                    Object waitLock = new Object();
+
+                    conn.executeMethodOnRemote(CLIENT_ID, false, "testMethod_int", new Integer(10));
                     Thread.sleep(1000);
                     assertEquals(cl.argLong, 10);
                     /////////////////
-                    conn.executeOnRemote(CLIENT_ID,"testMethod_Int", false, 11);
+                    conn.executeMethodOnRemote(CLIENT_ID, false, "testMethod_Int", 11);
                     Thread.sleep(1000);
                     assertEquals(cl.argLong, 11);
                     /////////////////
-                    conn.executeOnRemote(CLIENT_ID,"testMethod_float", false, new Float(12.0f));
+                    conn.executeMethodOnRemote(CLIENT_ID, false, "testMethod_float", new Float(12.0f));
                     Thread.sleep(1000);
                     assertEquals(cl.argFloat, 12.0);
                     /////////////////
-                    conn.executeOnRemote(CLIENT_ID,"testMethod_Float", false, 13.0f);
+                    conn.executeMethodOnRemote(CLIENT_ID, false, "testMethod_Float", 13.0f);
                     Thread.sleep(1000);
                     assertEquals(cl.argFloat, 13.0);
                     /////////////////
                     Map map = new HashMap();
                     map.put("hello", 1);
                     map.put("goodbyte", 2);
-                    conn.executeOnRemote(CLIENT_ID,"testMethod_Map", false, map);
+                    conn.executeMethodOnRemote(CLIENT_ID,false, "testMethod_Map", map);
                     Thread.sleep(1000);
                     assertTrue(Utils.isEquals(cl.argMap, map));
 
                     Collection c = new LinkedList();
                     c.add("a");
                     c.add("b");
-                    conn.executeOnRemote(CLIENT_ID,"testMethod_Collection", false, c);
+                    conn.executeMethodOnRemote(CLIENT_ID,false, "testMethod_Collection", c);
                     Thread.sleep(1000);
                     assertTrue(Utils.isEquals(cl.argCollection, c));
 
-                    String [] result = conn.executeOnRemote(CLIENT_ID,"testMethod", true, 15, "Hello", new HashMap<>());
+                    String [] result = conn.executeMethodOnRemote(CLIENT_ID,true, "testMethod", 15, "Hello", new HashMap<>());
                     Thread.sleep(1000);
                     assertEquals(15, cl.argLong);
                     assertEquals("Hello", cl.argString);
@@ -418,7 +420,7 @@ public class GameServerTest extends TestCase {
                     assertTrue(cl.isConnected());
                     assertTrue(conn.isConnected());
                     cl.sendCommand(new GameCommand(TEST));
-                    Thread.sleep(10000000);
+                    Thread.sleep(3000);
                     assertNotNull(listener2.lastCommand);
                     assertEquals(listener2.lastCommand.getType(), TEST);
                     assertNotNull(conn);
@@ -555,7 +557,7 @@ public class GameServerTest extends TestCase {
 
         @Override
         public void onCommand(ClientConnection c, GameCommand cmd) {
-
+            lastCommand=cmd;
         }
 
         @Override

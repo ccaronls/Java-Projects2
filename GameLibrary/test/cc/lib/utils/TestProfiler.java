@@ -13,6 +13,8 @@ public class TestProfiler extends TestCase {
         Thread.sleep(300);
         Profiler.push("C");
         Thread.sleep(300);
+        Profiler.pop("C");
+        Profiler.pop("B");
         Profiler.pop("A");
         Profiler.dumpTimes(System.out);
         

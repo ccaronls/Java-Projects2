@@ -28,25 +28,25 @@ java.util.ArrayList {
    cc.lib.probot.Probot.Level {
       coins=cc.lib.probot.Probot.Type[] 6 {
          cc.lib.probot.Probot.Type 6 {
+            EM EM EM EM EM EM 
+         }
+         cc.lib.probot.Probot.Type 6 {
             EM EM SS EM EM EM 
          }
          cc.lib.probot.Probot.Type 6 {
-            EM EM DD EM EM EM 
+            EM DD DD DD DD EM 
          }
          cc.lib.probot.Probot.Type 6 {
-            DD DD DD DD DD EM 
+            EM DD EM EM DD EM 
          }
          cc.lib.probot.Probot.Type 6 {
-            DD EM EM EM DD EM 
-         }
-         cc.lib.probot.Probot.Type 6 {
-            DD DD DD DD DD EM 
+            EM DD DD DD DD EM 
          }
          cc.lib.probot.Probot.Type 6 {
             EM EM EM EM EM EM 
          }
       }
-      label="%3CUNNAMED%3E"
+      label="Try+Turning"
       lazers=boolean 3 {
          true true true 
       }
@@ -55,17 +55,29 @@ java.util.ArrayList {
       numTurns=-1
    }
    cc.lib.probot.Probot.Level {
-      coins=cc.lib.probot.Probot.Type[] 1 {
-         cc.lib.probot.Probot.Type 1 {
-            EM 
+      coins=cc.lib.probot.Probot.Type[] 5 {
+         cc.lib.probot.Probot.Type 5 {
+            EM EM EM EM EM 
+         }
+         cc.lib.probot.Probot.Type 5 {
+            SE DD DD DD EM 
+         }
+         cc.lib.probot.Probot.Type 5 {
+            EM EM EM DD EM 
+         }
+         cc.lib.probot.Probot.Type 5 {
+            EM EM EM DD EM 
+         }
+         cc.lib.probot.Probot.Type 5 {
+            DD DD DD DD EM 
          }
       }
-      label="%3CUNNAMED%3E"
+      label="Learning+Loops"
       lazers=boolean 3 {
          true true true 
       }
       numJumps=0
-      numLoops=-1
-      numTurns=-1
+      numLoops=1
+      numTurns=1
    }
 }

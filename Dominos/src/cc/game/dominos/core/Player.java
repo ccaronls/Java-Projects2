@@ -111,7 +111,7 @@ public class Player extends Reflector<Player> {
     @Keep
     public Move chooseMove(Dominos game, List<Move> moves) {
         if (connection != null && connection.isConnected()) {
-            return connection.executeOnRemote(MPConstants.USER_ID, game, moves);
+            return connection.executeDerivedOnRemote(MPConstants.USER_ID, true, moves);
         }
         if (smart) {
             Move best = null;

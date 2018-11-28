@@ -258,7 +258,7 @@ public class UIPlayer extends PlayerBot implements ClientConnection.Listener {
 	public Integer chooseVertex(SOC soc, Collection<Integer> vertexIndices, VertexChoice mode, Integer knightToMove) {
 		Integer vIndex = null;
 		if (connection != null && connection.isConnected()) {
-		    vIndex = connection.executeOnRemote(NetCommon.USER_ID, soc, vertexIndices, mode, knightToMove);
+		    vIndex = connection.executeDerivedOnRemote(NetCommon.USER_ID, true, vertexIndices, mode, knightToMove);
         } else {
 		    vIndex = super.chooseVertex(soc, vertexIndices, mode, knightToMove);
         }
@@ -273,7 +273,7 @@ public class UIPlayer extends PlayerBot implements ClientConnection.Listener {
     public MoveType chooseMove(SOC soc, Collection<MoveType> moves) {
 	    MoveType mv = null;
 	    if (connection != null && connection.isConnected()) {
-	        mv = connection.executeOnRemote(NetCommon.USER_ID,soc, moves);
+	        mv = connection.executeDerivedOnRemote(NetCommon.USER_ID, true, moves);
         } else {
             mv = super.chooseMove(soc, moves);
         }
@@ -285,7 +285,7 @@ public class UIPlayer extends PlayerBot implements ClientConnection.Listener {
     public RouteChoiceType chooseRouteType(SOC soc) {
 	    RouteChoiceType rt = null;
         if (connection != null && connection.isConnected()) {
-            rt = connection.executeOnRemote(NetCommon.USER_ID, soc);
+            rt = connection.executeDerivedOnRemote(NetCommon.USER_ID, true);
         } else {
             rt = super.chooseRouteType(soc);
         }
@@ -297,7 +297,7 @@ public class UIPlayer extends PlayerBot implements ClientConnection.Listener {
     public Integer chooseTile(SOC soc, Collection<Integer> tileIndices, TileChoice mode) {
 	    Integer tIndex = null;
         if (connection != null && connection.isConnected()) {
-            tIndex = connection.executeOnRemote(NetCommon.USER_ID, soc, tileIndices, mode);
+            tIndex = connection.executeDerivedOnRemote(NetCommon.USER_ID, true, tileIndices, mode);
         } else {
             tIndex = super.chooseTile(soc, tileIndices, mode);
         }
@@ -309,7 +309,7 @@ public class UIPlayer extends PlayerBot implements ClientConnection.Listener {
     public Trade chooseTradeOption(SOC soc, Collection<Trade> trades) {
 	    Trade trade = null;
         if (connection != null && connection.isConnected()) {
-            trade = connection.executeOnRemote(NetCommon.USER_ID, soc, trades);
+            trade = connection.executeDerivedOnRemote(NetCommon.USER_ID, true, trades);
         } else {
             trade = super.chooseTradeOption(soc, trades);
         }
@@ -321,7 +321,7 @@ public class UIPlayer extends PlayerBot implements ClientConnection.Listener {
     public Integer choosePlayer(SOC soc, Collection<Integer> playerOptions, PlayerChoice mode) {
 	    Integer player = null;
         if (connection != null && connection.isConnected()) {
-            player = connection.executeOnRemote(NetCommon.USER_ID, soc, playerOptions, mode);
+            player = connection.executeDerivedOnRemote(NetCommon.USER_ID, true, playerOptions, mode);
         } else {
             player = super.choosePlayer(soc, playerOptions, mode);
         }
@@ -333,7 +333,7 @@ public class UIPlayer extends PlayerBot implements ClientConnection.Listener {
     public Card chooseCard(SOC soc, Collection<Card> cards, CardChoice mode) {
 	    Card card = null;
         if (connection != null && connection.isConnected()) {
-            card = connection.executeOnRemote(NetCommon.USER_ID, soc, cards, mode);
+            card = connection.executeDerivedOnRemote(NetCommon.USER_ID, true, cards, mode);
         } else {
             card = super.chooseCard(soc, cards, mode);
         }
@@ -345,7 +345,7 @@ public class UIPlayer extends PlayerBot implements ClientConnection.Listener {
     public <T extends Enum<T>> T chooseEnum(SOC soc, EnumChoice mode, T[] values) {
 	    T e = null;
         if (connection != null && connection.isConnected()) {
-            e = connection.executeOnRemote(NetCommon.USER_ID, soc, mode, values);
+            e = connection.executeDerivedOnRemote(NetCommon.USER_ID, true, mode, values);
         } else {
             e = super.chooseEnum(soc, mode, values);
         }
@@ -356,7 +356,7 @@ public class UIPlayer extends PlayerBot implements ClientConnection.Listener {
     @Keep
     public boolean setDice(SOC soc, Dice[] die, int num) {
 	    if (connection != null && connection.isConnected()) {
-	        Dice [] result = connection.executeOnRemote(NetCommon.USER_ID, soc, die, num);
+	        Dice [] result = connection.executeDerivedOnRemote(NetCommon.USER_ID, true, die, num);
 	        if (result != null) {
 	            Utils.copyElems(die, result);
 	            return true;
@@ -418,7 +418,7 @@ public class UIPlayer extends PlayerBot implements ClientConnection.Listener {
 	public Integer chooseRoute(SOC soc, Collection<Integer> routeIndices, RouteChoice mode, Integer shipToMove) {
 	    Integer route = null;
 	    if (connection != null && connection.isConnected()) {
-	        route = connection.executeOnRemote(NetCommon.USER_ID, soc, routeIndices, mode, shipToMove);
+	        route = connection.executeDerivedOnRemote(NetCommon.USER_ID, true, routeIndices, mode, shipToMove);
         } else {
             route = super.chooseRoute(soc, routeIndices, mode, shipToMove);
         }

@@ -1434,7 +1434,7 @@ public class GUI implements ActionListener, MenuItem.Action {
 
 	    JPanel choiceButtons = new JPanel();
         choiceButtons.setLayout(new BoxLayout(choiceButtons, BoxLayout.Y_AXIS));
-        MyRadioButtonGroup<DebugPick> pickChoice = new MyRadioButtonGroup<DebugPick>(choiceButtons) {
+        AWTRadioButtonGroup<DebugPick> pickChoice = new AWTRadioButtonGroup<DebugPick>(choiceButtons) {
             protected void onChange(final DebugPick mode) {
             	boardRenderer.setPickHandler(new PickHandler() {
 					

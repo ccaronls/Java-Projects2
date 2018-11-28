@@ -598,15 +598,7 @@ public class EZFrame extends JFrame implements WindowListener, ComponentListener
      * @return index of the chosen item or -1 if cancelled
      */
     public int showItemChooserDialog(String title, String message, String ... items) {
-
-        String input = (String) JOptionPane.showInputDialog(null, message,
-                title, JOptionPane.QUESTION_MESSAGE, null, // Use
-                // default
-                // icon
-                items, // Array of choices
-                items[0]); // Initial choice
-
-        return Utils.linearSearch(items, input);
+        return JOptionPane.showOptionDialog(null, message, title, JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, items, items[0]);
     }
 
     /**
