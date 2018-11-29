@@ -63,7 +63,7 @@ public class ProbotLevelBuilder extends AWTComponent {
             @Override
             protected void onWindowClosing() {
                 try {
-                    Reflector.serializeToFile(levels, levelsFile);
+                    Reflector.serializeToFile(levels, new File("levels_backup.txt"));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -82,7 +82,7 @@ public class ProbotLevelBuilder extends AWTComponent {
             }
         };
         for (Probot.Type t : Probot.Type.values()) {
-            cellType.addButton(t.name(), t);
+            cellType.addButton(t.displayName, t);
         }
 
         frame.add(rhs, BorderLayout.EAST);
@@ -107,6 +107,15 @@ public class ProbotLevelBuilder extends AWTComponent {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
+            }
+        });
+        lhs.add(new AWTButton("Insert\nBefore") {
+            @Override
+            protected void onAction() {
+                levels.add(curLevel, new Probot.Level());
+                probot.setLevel(curLevel, levels.get(curLevel));
+                updateAll();
+                ProbotLevelBuilder.this.repaint();
             }
         });
 
@@ -134,6 +143,7 @@ public class ProbotLevelBuilder extends AWTComponent {
             @Override
             protected void onToggle(boolean on) {
                 getLevel().lazers[0] = on;
+                probot.setLazerEnabled(0, on);
                 ProbotLevelBuilder.this.repaint();
             }
         });
@@ -141,6 +151,7 @@ public class ProbotLevelBuilder extends AWTComponent {
             @Override
             protected void onToggle(boolean on) {
                 getLevel().lazers[1] = on;
+                probot.setLazerEnabled(1, on);
                 ProbotLevelBuilder.this.repaint();
             }
         });
@@ -148,6 +159,7 @@ public class ProbotLevelBuilder extends AWTComponent {
             @Override
             protected void onToggle(boolean on) {
                 getLevel().lazers[2] = on;
+                probot.setLazerEnabled(2, on);
                 ProbotLevelBuilder.this.repaint();
             }
         });
@@ -192,7 +204,6 @@ public class ProbotLevelBuilder extends AWTComponent {
             protected void onAction() {
                 if (curLevel < levels.size()-1) {
                     curLevel = Math.min(curLevel+10, levels.size()-1);
-                    levels.add(new Probot.Level());
                     probot.setLevel(curLevel, levels.get(curLevel));
                     updateAll();
                     ProbotLevelBuilder.this.repaint();
@@ -254,7 +265,7 @@ public class ProbotLevelBuilder extends AWTComponent {
         final int viewWidth = g.getViewportWidth();
         final int viewHeight = g.getViewportHeight();
 
-        probot.setLevel(curLevel, getLevel());
+        probot.init(getLevel());
         probot.draw(g, grid.getCols()*cellDim, grid.getRows()*cellDim);
         g.setColor(GColor.WHITE);
 
@@ -334,11 +345,7 @@ public class ProbotLevelBuilder extends AWTComponent {
         getLevel().coins = grid.getGrid();
 
         Probot.Type t = this.cellType.getChecked();
-        if (t == Probot.Type.EM || (t=grid.get(pickRow, pickCol)) == Probot.Type.EM) {
-            grid.set(pickRow, pickCol, t = this.cellType.getChecked());
-        } else {
-            grid.set(pickRow, pickCol, t = Utils.incrementValue(t, Probot.Type.values()));
-        }
+        grid.set(pickRow, pickCol, t);
 
         switch (t) {
             case SE:

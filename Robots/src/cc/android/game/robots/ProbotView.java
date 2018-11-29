@@ -90,8 +90,8 @@ public class ProbotView extends View {
         }
 
         @Override
-        protected void onLazered() {
-            startLazeredAnim();
+        protected void onLazered(boolean instantaneous) {
+            startLazeredAnim(instantaneous);
             Utils.waitNoThrow(this, -1);
             postInvalidate();
         }
@@ -327,65 +327,32 @@ public class ProbotView extends View {
         c.drawCircle(cx, cy, radius/2, p);
     }
 
-    void startLazeredAnim() {
-        animation = new AdvanceAnim(600, 0.6f) {
-            @Override
-            protected void onDone() {
-                final Paint pp = new Paint();
-                pp.setStyle(Paint.Style.FILL);
-                pp.setColor(p.getColor());
-
-                final AdvanceAnim advAnim = this;
-
-                animation = new BaseAnim(1000) {
-
-                    @Override
-                    protected void draw(Canvas g, float position, float dt) {
-
-                        int [] colors = { Color.YELLOW, Color.GRAY, Color.GRAY };
-                        float [] stops = { 0, 1f-position, 1 };
-
-//                        float rad = Math.max(advAnim.rect.width(), advAnim.rect.height())/2;
-                        float rad = (1f-position)*radius*2;
-                        pp.setColor(Color.GRAY);
-                        if (rad > 0)
-                            pp.setShader(new RadialGradient(advAnim.rect.centerX(), advAnim.rect.centerY(), radius, colors, stops, Shader.TileMode.CLAMP));
-                        else
-                            pp.setShader(null);
-
-                        advAnim.drawPM(g, pp);
-
-                    }
-
-                    @Override
-                    protected void onDone() {
-                        animation = new BaseAnim(2000) {
-                            @Override
-                            protected void draw(Canvas g, float position, float dt) {
-                                pp.setShader(null);
-                                pp.setColor(Color.argb(Math.round(255*(1f-position)), Color.red(Color.GRAY), Color.green(Color.GRAY), Color.blue(Color.GRAY)));
-                                pp.setStyle(Paint.Style.FILL_AND_STROKE);
-                                pp.setStrokeWidth(10f-position*10);
-                                g.save();
-                                float cx = advAnim.rect.centerX();
-                                float cy = advAnim.rect.centerY();
-                                g.translate(cx, cy);
-                                g.scale(1f+position*5, 1f+position*5);
-                                // draw a circle with just dots
-                                for (float i=1; i<=radius; i+=radius/10) {
-                                    for (int rad=0; rad<360; rad+=10) {
-                                        g.rotate(10);
-                                        g.drawPoint(i,0,pp);
-                                    }
-                                    g.rotate(5);
-                                }
-                                g.restore();
-                            }
-                        }.start();
-                    }
-                }.start();
-            }
-        }.start();
+    void startLazeredAnim(boolean instantaneous) {
+        if (!instantaneous) {
+            animation = new AdvanceAnim(600, 0.6f) {
+                @Override
+                protected void onDone() {
+                    animation = new LazeredAnim(rect) {
+                        @Override
+                        void drawMan(Canvas g, Paint p) {
+                            drawPM(g, p);
+                        }
+                    }.start();
+                }
+            }.start();
+        } else {
+            RectF rect = new RectF();
+            final float x = probot.posx*cw + cw/2;
+            final float y = probot.posy*ch + ch/2;
+            rect.set(x-radius, y-radius,
+                    x+radius, y+radius);
+            animation = new LazeredAnim(rect) {
+                @Override
+                void drawMan(Canvas g, Paint p) {
+                    g.drawArc(rect, 0, 360, true, p);
+                }
+            }.start();
+        }
         postInvalidate();
     }
 
@@ -416,6 +383,64 @@ public class ProbotView extends View {
 
         }
     };
+
+    abstract class LazeredAnim extends BaseAnim {
+
+        final Paint pp;
+        final RectF rect;
+
+        LazeredAnim(RectF rect) {
+            super(1000);
+            pp = new Paint();
+            pp.setStyle(Paint.Style.FILL);
+            pp.setColor(p.getColor());
+            this.rect = rect;
+        }
+
+        @Override
+        protected void draw(Canvas g, float position, float dt) {
+
+            int [] colors = { Color.YELLOW, Color.GRAY, Color.GRAY };
+            float [] stops = { 0, 1f-position, 1 };
+            float rad = (1f-position)*radius*2;
+            pp.setColor(Color.GRAY);
+            if (rad > 0)
+                pp.setShader(new RadialGradient(rect.centerX(), rect.centerY(), radius, colors, stops, Shader.TileMode.CLAMP));
+            else
+                pp.setShader(null);
+
+            drawMan(g, pp);
+        }
+
+        abstract void drawMan(Canvas g, Paint p);
+
+        @Override
+        protected void onDone() {
+            animation = new BaseAnim(2000) {
+                @Override
+                protected void draw(Canvas g, float position, float dt) {
+                    pp.setShader(null);
+                    pp.setColor(Color.argb(Math.round(255*(1f-position)), Color.red(Color.GRAY), Color.green(Color.GRAY), Color.blue(Color.GRAY)));
+                    pp.setStyle(Paint.Style.FILL_AND_STROKE);
+                    pp.setStrokeWidth(10f-position*10);
+                    g.save();
+                    float cx = rect.centerX();
+                    float cy = rect.centerY();
+                    g.translate(cx, cy);
+                    g.scale(1f+position*5, 1f+position*5);
+                    // draw a circle with just dots
+                    for (float i=1; i<=radius; i+=radius/10) {
+                        for (int rad=0; rad<360; rad+=10) {
+                            g.rotate(10);
+                            g.drawPoint(i,0,pp);
+                        }
+                        g.rotate(5);
+                    }
+                    g.restore();
+                }
+            }.start();
+        }
+    }
 
     class AdvanceAnim extends BaseAnim {
 
@@ -499,7 +524,7 @@ public class ProbotView extends View {
                         case Left:
                             b.addPoint(x-cw*2/3, y-ch/2);
                             b.addPoint(x-cw*4/3, y-ch/2);
-                            b.addPoint(x+cw*2, y);
+                            b.addPoint(x-cw*2, y);
                             break;
                         case Up:
                             b.addPoint(x+cw, y-ch*2/3);
@@ -638,7 +663,7 @@ public class ProbotView extends View {
                 .apply();
         if (level >= levels.size())
             level = 0;
-        probot.setLevel(level, levels.get(level));
+        probot.setLevel(level, levels.get(level).deepCopy());
         probot.start();
         postInvalidate();
         setProgramLine(-1);

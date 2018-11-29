@@ -28,7 +28,14 @@ public class ProbotActivity extends CCActivityBase implements View.OnClickListen
     TextView tvLevel;
     TextView tvLevelName;
 
+    TextView tvForwardCount;
+    TextView tvTurnRightCount;
+    TextView tvTurnLeftCount;
+    TextView tvUTurnCount;
+    TextView tvJumpCount;
+
     View [] actions;
+    TextView [] actionCounts;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,7 +59,22 @@ public class ProbotActivity extends CCActivityBase implements View.OnClickListen
         actionJump.setTag(Probot.CommandType.Jump);
 
         actions = new View[] {
-                actionJump, actionLeft, actionRight, actionForward
+                actionJump, actionLeft, actionRight, actionForward, actionUTurn
+        };
+
+        tvForwardCount = (TextView)findViewById(R.id.tvArrowForwardCount);
+        tvTurnRightCount = (TextView)findViewById(R.id.tvArrowRightCount);
+        tvTurnLeftCount = (TextView)findViewById(R.id.tvArrowLeftCount);
+        tvUTurnCount = (TextView)findViewById(R.id.tvUTurnCount);
+        tvJumpCount = (TextView)findViewById(R.id.tvJumpCount);
+        tvForwardCount.setTag(Probot.CommandType.Advance);
+        tvTurnRightCount.setTag(Probot.CommandType.TurnRight);
+        tvTurnLeftCount.setTag(Probot.CommandType.TurnLeft);
+        tvUTurnCount.setTag(Probot.CommandType.UTurn);
+        tvJumpCount.setTag(Probot.CommandType.Jump);
+
+        actionCounts = new TextView[] {
+                tvForwardCount, tvJumpCount, tvTurnLeftCount, tvTurnRightCount, tvUTurnCount
         };
 
         actionForward.setOnTouchListener(this);
@@ -74,11 +96,12 @@ public class ProbotActivity extends CCActivityBase implements View.OnClickListen
         pv.maxLevel = getPrefs().getInt("MaxLevel", 0);
 
         setLevel(level);
+        refresh();
     }
 
     private void setLevel(int level) {
         pv.setLevel(level);
-        tvLevelName.setText(pv.probot.level.label);
+        refresh();
     }
 
     @Override
@@ -94,20 +117,36 @@ public class ProbotActivity extends CCActivityBase implements View.OnClickListen
     @Override
     public void run() {
         tvLevel.setText(String.valueOf(pv.probot.getLevelNum()+1));
+        tvLevelName.setText(pv.probot.level.label);
         if (pv.probot.isRunning()) {
             bPrevious.setEnabled(false);
             bNext.setEnabled(false);
             bPlay.setVisibility(View.GONE);
             bStop.setVisibility(View.VISIBLE);
         } else {
-            bPrevious.setEnabled(true);
-            bNext.setEnabled(pv.probot.getLevelNum() < pv.maxLevel);
+            bPrevious.setEnabled(pv.probot.getLevelNum() > 0);
+            bNext.setEnabled(BuildConfig.DEBUG || pv.probot.getLevelNum() < pv.maxLevel);
             bPlay.setVisibility(View.VISIBLE);
             bStop.setVisibility(View.GONE);
         }
         for (View a : actions) {
             Probot.CommandType c = (Probot.CommandType)a.getTag();
-            a.setVisibility(pv.probot.isCommandTypeAvailable(c) ? View.VISIBLE : View.GONE);
+            a.setVisibility(pv.probot.isCommandTypeVisible(c) ? View.VISIBLE : View.GONE);
+            a.setEnabled(pv.probot.getCommandTypeNumAvaialable(c) != 0);
+        }
+        for (TextView tv : actionCounts) {
+            Probot.CommandType c = (Probot.CommandType)tv.getTag();
+            if (pv.probot.isCommandTypeVisible(c)) {
+                int count = pv.probot.getCommandTypeNumAvaialable(c);
+                if (count < 0) {
+                    tv.setVisibility(View.GONE);
+                } else {
+                    tv.setVisibility(View.VISIBLE);
+                    tv.setText(String.valueOf(count));
+                }
+            } else {
+                tv.setVisibility(View.GONE);
+            }
         }
     }
 

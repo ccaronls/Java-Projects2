@@ -73,14 +73,6 @@ public class ProbotListView extends ListView implements View.OnDragListener, Vie
                 boolean isInLoop = cmd.nesting > 0;
                 boolean isLoop = cmd.type == Probot.CommandType.LoopEnd || cmd.type == Probot.CommandType.LoopStart;
 
-                View vIndent = convertView.findViewById(R.id.vIndent);
-                float indent = getResources().getDimension(R.dimen.item_command_indent_width);
-                ViewGroup.LayoutParams lp = vIndent.getLayoutParams();
-                lp.width = Math.round(indent * cmd.nesting);
-//                vIndent.setLayoutParams(Math.round(indent * cmd.nesting), 0, 0, 0);
-                vIndent.setLayoutParams(lp);
-
-
                 TextView tvLineNum = (TextView) convertView.findViewById(R.id.tvLineNum);
                 tvLineNum.setText(String.valueOf(position + 1));
                 if (position == programLineNum) {
@@ -101,10 +93,20 @@ public class ProbotListView extends ListView implements View.OnDragListener, Vie
                     v.setOnClickListener(ProbotListView.this);
                 }
 
+                TextView tvLoopCount = (TextView)convertView.findViewById(R.id.tvLoopCount);
                 v = convertView.findViewById(R.id.ibLoop);
                 if (isLoop || isInLoop) {
                     v.setVisibility(View.GONE);
+                    tvLoopCount.setVisibility(View.GONE);
                 } else {
+                    if (probot.level.numLoops < 0) {
+                        // infinite loops
+                        tvLoopCount.setVisibility(View.GONE);
+                    } else {
+                        tvLoopCount.setVisibility(View.VISIBLE);
+                        tvLoopCount.setText(String.valueOf(probot.level.numLoops));
+                        v.setEnabled(probot.level.numLoops > 0);
+                    }
                     v.setTag(position);
                     v.setVisibility(View.VISIBLE);
                     v.setOnClickListener(ProbotListView.this);
@@ -158,6 +160,12 @@ public class ProbotListView extends ListView implements View.OnDragListener, Vie
                 }
 
                 return convertView;
+            }
+
+            @Override
+            public void notifyDataSetChanged() {
+                super.notifyDataSetChanged();
+                ((ProbotActivity)getContext()).refresh();
             }
         };
     }

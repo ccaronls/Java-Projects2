@@ -1,10 +1,13 @@
 package cc.lib.probot;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 
 import cc.lib.game.AGraphics;
 import cc.lib.game.GColor;
+import cc.lib.game.Utils;
 import cc.lib.utils.Reflector;
 
 /**
@@ -18,7 +21,7 @@ import cc.lib.utils.Reflector;
  * The robot must advance to a coin or the level fails
  *
  */
-public class Probot extends Reflector<Probot> {
+public class Probot extends Reflector<Probot> implements Comparator<Integer> {
 
     static {
         addAllFields(Probot.class);
@@ -26,28 +29,34 @@ public class Probot extends Reflector<Probot> {
     }
 
     public enum Type {
-        EM,  // EMPTY
-        DD,  // DOT
-        SE,  // Start facing east
-        SS,  // Start facing south
-        SW,  // Start facing west
-        SN,  // Start facing north
-        LH0, // horz lazer on by default
-        LV0, // vert lazer on by default
-        LB0, // lazer0 toggle
-        LH1, // horz lazer on by default
-        LV1, // vert lazer on by default
-        LB1, // lazer1 toggle
-        LH2, // horz lazer on by default
-        LV2, // vert lazer on by default
-        LB2, // lazer2 toggle
-        LB   // universal lazer toggle
+        EM("Empty"),  // EMPTY
+        DD("Coin"),  // DOT
+        SE("Start East"),  // Start facing east
+        SS("Start South"),  // Start facing south
+        SW("Start West"),  // Start facing west
+        SN("Start North"),  // Start facing north
+        LH0("Horz Lazer Red"), // horz lazer on by default
+        LV0("Vert Lazer Red"), // vert lazer on by default
+        LB0("Button Red"), // lazer0 toggle
+        LH1("Horz Lazer Blue"), // horz lazer on by default
+        LV1("Vert Lazer Blue"), // vert lazer on by default
+        LB1("Button Blue"), // lazer1 toggle
+        LH2("Horz Lazer Green"), // horz lazer on by default
+        LV2("Vert Lazer Green"), // vert lazer on by default
+        LB2("Button Green"), // lazer2 toggle
+        LB("Button All");   // universal lazer toggle
+
+        public final String displayName;
+
+        Type(String nm) {
+            displayName = nm;
+        }
     };
 
     public static class Level extends Reflector<Level> {
         public String label = "<UNNAMED>";
         public Type [][] coins = { { Type.EM } };
-        public boolean [] lazers = { true, true, true };
+        public Boolean [] lazers = { true, true, true };
         public int numJumps = 0;
         public int numTurns = -1;
         public int numLoops = -1;
@@ -134,6 +143,16 @@ public class Probot extends Reflector<Probot> {
                 reset();
         }
         running = false;
+    }
+
+    public int getCommandCount(CommandType ... types) {
+        int count = 0;
+        for (Command c : program) {
+            if (Utils.linearSearch(types, c.type) >= 0) {
+                count++;
+            }
+        }
+        return count;
     }
 
     public final boolean isRunning() {
@@ -304,7 +323,7 @@ public class Probot extends Reflector<Probot> {
             onAdvanceFailed();
             return false;
         } else if (lazer[ny][nx] != 0) {
-            onLazered();
+            onLazered(false);
             return false;
         } else {
             if (amt == 1) {
@@ -331,7 +350,10 @@ public class Probot extends Reflector<Probot> {
                     toggleLazers(0, 1, 2);
                     break;
             }
-            //coins[posy][posx] = 0;
+            if (lazer[ny][nx] != 0) {
+                onLazered(true);
+                return false;
+            }
         }
         return true;
     }
@@ -357,7 +379,7 @@ public class Probot extends Reflector<Probot> {
     private void initVertLazer(int y, int x) {
         for (int i=y-1; i>=0; i--) {
             if (lazer[i][x] != 0) {
-                lazer[i][x] |= LAZER_NORTH;
+                lazer[i][x] |= LAZER_SOUTH;
                 break; // cannot lazer past another lazer
             }
             lazer[i][x] |= LAZER_NORTH | LAZER_SOUTH;
@@ -365,62 +387,63 @@ public class Probot extends Reflector<Probot> {
 
         for (int i=y+1; i<lazer.length; i++) {
             if (lazer[i][x] != 0) {
-                lazer[i][x] |= LAZER_SOUTH;
+                lazer[i][x] |= LAZER_NORTH;
                 break; // cannot lazer past another lazer
             }
             lazer[i][x] |= LAZER_NORTH | LAZER_SOUTH;
         }
     }
 
+    @Override
+    public int compare(Integer i1, Integer i2) {
+        boolean o1 = level.lazers[i1];
+        boolean o2 = level.lazers[i2];
+        if (o1 && !o2)
+            return -1;
+        if (!o1 && o2)
+            return 1;
+        return 0;
+    }
+
     private void initLazers() {
+        Arrays.sort(lazerOrdering, this);
         lazer = new int[level.coins.length][level.coins[0].length];
-        for (int i=0; i<lazer.length; i++) {
-            for (int ii=0; ii<lazer[i].length; ii++) {
-                for (int iii=0; iii<lazerOrdering.length; iii++) {
-                    switch (lazerOrdering[iii]) {
-                        case 0:
-                            switch (level.coins[i][ii]) {
-                                case LH0:
-                                    if (level.lazers[0]) {
-                                        initHorzLazer(i, ii);
-                                    }
-                                    break;
-                                case LV0:
-                                    if (level.lazers[0]) {
-                                        initVertLazer(i, ii);
-                                    }
-                                    break;
+        for (int laz : lazerOrdering) {
+            if (!level.lazers[laz])
+                continue;
+            for (int i=0; i<level.coins.length; i++) {
+                for (int ii=0; ii<level.coins[0].length; ii++) {
+                    switch (level.coins[i][ii]) {
+                        case LH0:
+                            if (laz == 0) {
+                                initHorzLazer(i, ii);
                             }
                             break;
-                        case 1:
-                            switch (level.coins[i][ii]) {
-                                case LH1:
-                                    if (level.lazers[1]) {
-                                        initHorzLazer(i, ii);
-                                    }
-                                    break;
-                                case LV1:
-                                    if (level.lazers[1]) {
-                                        initVertLazer(i, ii);
-                                    }
-                                    break;
+                        case LV0:
+                            if (laz == 0) {
+                                initVertLazer(i, ii);
                             }
                             break;
-                        case 2:
-                            switch (level.coins[i][ii]) {
-                                case LH2:
-                                    if (level.lazers[2]) {
-                                        initHorzLazer(i, ii);
-                                    }
-                                    break;
-                                case LV2:
-                                    if (level.lazers[2]) {
-                                        initVertLazer(i, ii);
-                                    }
-                                    break;
+                        case LH1:
+                            if (laz == 1) {
+                                initHorzLazer(i, ii);
                             }
-
-
+                            break;
+                        case LV1:
+                            if (laz == 1) {
+                                initVertLazer(i, ii);
+                            }
+                            break;
+                        case LH2:
+                            if (laz == 2) {
+                                initHorzLazer(i, ii);
+                            }
+                            break;
+                        case LV2:
+                            if (laz == 2) {
+                                initVertLazer(i, ii);
+                            }
+                            break;
                     }
                 }
             }
@@ -428,7 +451,7 @@ public class Probot extends Reflector<Probot> {
     }
 
     // ordering the lazer initialilzation makes possible for any lazer to block any other depending on whose state has changed
-    int [] lazerOrdering = { 0, 1, 2 };
+    Integer [] lazerOrdering = { 0, 1, 2 };
 
     private void toggleLazers(int ... nums) {
         for (int n : nums) {
@@ -437,18 +460,11 @@ public class Probot extends Reflector<Probot> {
         initLazers();
     }
 
-    private void toggleLazer(int num) {
-        level.lazers[num] = !level.lazers[num];
-        // adjust the ordering so that 'num' is made last. This makes it possible for any lazer to block another
-
-        for (int i=0; i<lazerOrdering.length-1; i++) {
-            if (lazerOrdering[i] == num) {
-                lazerOrdering[i] = lazerOrdering[i+1];
-                lazerOrdering[i+1] = num;
-            }
-        }
-
+    public void setLazerEnabled(int num, boolean on) {
+        System.out.println("lazerOrdering num = " + num + " ordering: " + Arrays.toString(lazerOrdering));
+        level.lazers[num] = on;
         initLazers();
+        System.out.println("lazerOrdering = " + Arrays.toString(lazerOrdering));
     }
 
     private boolean canMoveToPos(int y, int x) {
@@ -461,43 +477,6 @@ public class Probot extends Reflector<Probot> {
                 return true;
         }
         return false;
-    }
-
-    private void moveToPos(int y, int x) {
-        switch (level.coins[y][x]) {
-            case EM:
-                break;
-            case DD:
-                break;
-            case SE:
-                break;
-            case SS:
-                break;
-            case SW:
-                break;
-            case SN:
-                break;
-            case LH0:
-                break;
-            case LV0:
-                break;
-            case LB0:
-                break;
-            case LH1:
-                break;
-            case LV1:
-                break;
-            case LB1:
-                break;
-            case LH2:
-                break;
-            case LV2:
-                break;
-            case LB2:
-                break;
-            case LB:
-                break;
-        }
     }
 
     private void turn(int d) {
@@ -517,10 +496,32 @@ public class Probot extends Reflector<Probot> {
     public void setLevel(int num, Level level) {
         this.levelNum = num;
         program.clear();
+        Arrays.sort(lazerOrdering);
         init(level);
     }
 
-    public boolean isCommandTypeAvailable(CommandType t) {
+    /**
+     * Return -1 for infinte available.
+     * Otherwise a number >= 0 of num available.
+     *
+     * @param t
+     * @return
+     */
+    public int getCommandTypeNumAvaialable(CommandType t) {
+        switch (t) {
+            case Jump:
+                return level.numJumps < 0 ? -1 : level.numJumps - getCommandCount(t);
+            case LoopStart:
+                return level.numLoops < 0 ? -1 : level.numLoops - getCommandCount(CommandType.LoopStart);
+            case TurnLeft:
+            case TurnRight:
+            case UTurn:
+                return level.numTurns < 0 ? -1 : level.numTurns - getCommandCount(CommandType.TurnLeft, CommandType.TurnRight, CommandType.UTurn);
+        }
+        return -1;
+    }
+
+    public boolean isCommandTypeVisible(CommandType t) {
         switch (t) {
             case Jump:
                 return level.numJumps != 0;
@@ -724,7 +725,7 @@ public class Probot extends Reflector<Probot> {
 
     protected void onSuccess() {}
 
-    protected void onLazered() {}
+    protected void onLazered(boolean instantaneous) {}
 
     protected void onDotsRemaining() {}
 }
