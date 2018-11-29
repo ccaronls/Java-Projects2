@@ -372,7 +372,8 @@ public class ClientConnection implements Runnable {
             if (listeners.size() > 0) {
                 Listener [] arr = listeners.toArray(new Listener[listeners.size()]);
                 for (Listener l : arr) {
-                    l.onCommand(this, cmd);
+                    if (l != null)
+                        l.onCommand(this, cmd);
                 }
             }
         }

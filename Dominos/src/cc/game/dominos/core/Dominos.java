@@ -262,7 +262,10 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
         return true;
     }
 
-    public final void startGameThread() {
+    public final synchronized void startGameThread() {
+	    if (gameRunning)
+	        return;
+	    gameRunning = true;
         if (players.length < 2)
             throw new AssertionError("Game not initialized");
         log.debug("startGameThread, currently running=" + gameRunning);

@@ -285,7 +285,7 @@ public class GameServer {
             for (ClientConnection c : clients.values()) {
                 if (c.isConnected())
                     try {
-                        c.executeMethodOnRemote(objId, false, method, null, params);
+                        c.executeMethodOnRemote(objId, false, method, params);
                     } catch (Exception e) {
                         e.printStackTrace();
                         log.error("ERROR Sending to client '" + c.getName() + "' " + e.getClass() + " " + e.getMessage());
