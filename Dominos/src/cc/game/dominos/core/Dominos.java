@@ -953,19 +953,29 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
         if (anims.get("POOL") != null) {
             infoStr = getString(R.string.button_skip);
         }
+        int menuButtonPadding = 10;
         g.setColor(GColor.WHITE);
-        g.setName(1);
-        g.begin();
-        float tw = g.drawJustifiedString(w, 0, Justify.RIGHT, infoStr).width;
-        int picked = g.pickRects(pickX, pickY);
-        tw += tw/4;
+        float tw = g.drawJustifiedString(w-menuButtonPadding, menuButtonPadding, Justify.RIGHT, infoStr).width;
+        final float rx = w-tw-menuButtonPadding*2;
+        final float ry = 0;
+        final float rw = tw+menuButtonPadding*2;
+        final float rh = g.getTextHeight()+menuButtonPadding*2;
+        g.drawRoundedRect(rx, ry, rw, rh, 5, menuButtonPadding/2);
         menuHighlighted = false;
-        if (picked == 1) {
-            menuHighlighted = true;
-            g.setColor(GColor.DARK_GRAY);
-            g.drawJustifiedString(w, 0, Justify.RIGHT, infoStr);
+        if (pickX >= 0 && pickY >= 0) {
+            g.begin();
+            g.setName(1);
+            g.vertex(rx, ry);
+            g.vertex(rx + rw, ry + rh);
+            int picked = g.pickRects(pickX, pickY);
+            tw += tw / 4;
+            if (picked == 1) {
+                menuHighlighted = true;
+                g.setColor(GColor.DARK_GRAY);
+                g.drawJustifiedString(w, 0, Justify.RIGHT, infoStr);
+            }
+            g.end();
         }
-        g.end();
         g.pushMatrix();
         for (int i=0; i<players.length; i++) {
             if (players[i].isPiecesVisible()) {

@@ -532,20 +532,19 @@ public class DroidGraphics extends APGraphics {
     @Override
     public void drawFilledRoundedRect(float x, float y, float w, float h, float radius) {
         paint.setStyle(Paint.Style.FILL);
+        float oldWidth = setLineWidth(0);
         renderRoundRect(x, y, w, h, radius);
+        setLineWidth(oldWidth);
     }
 
     private void renderRoundRect(float x, float y, float w, float h, float radius) {
         Matrix m = new Matrix();
         float [] arr = r.getCurrentTransform().transpose().toFloatArray();
         m.setValues(arr);
-        float width = paint.getStrokeWidth();
-        paint.setStrokeWidth(0);
         canvas.save();
         canvas.concat(m);
         canvas.drawRoundRect(x, y, x+w, y+h, radius, radius,paint);
         canvas.restore();
-        paint.setStrokeWidth(width);
     }
 
     @Override

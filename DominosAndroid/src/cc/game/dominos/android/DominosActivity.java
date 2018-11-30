@@ -420,7 +420,7 @@ public class DominosActivity extends DroidActivity {
             dominos.trySaveToFile(saveFile);
     }
 
-    int tx, ty;
+    int tx=-1, ty=-1;
     boolean dragging = false;
 
     @Override
