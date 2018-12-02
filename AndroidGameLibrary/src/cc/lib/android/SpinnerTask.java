@@ -44,7 +44,11 @@ public abstract class SpinnerTask extends AsyncTask<String, Integer, Object> imp
 
     @Override
     protected void onPreExecute() {
-        dialog = ProgressDialog.show(context.get(), null, null, true, isCancellable(), this);
+        dialog = ProgressDialog.show(context.get(), getProgressMessage(), null, true, isCancellable(), this);
+    }
+
+    protected String getProgressMessage() {
+        return null;
     }
 
     @Override

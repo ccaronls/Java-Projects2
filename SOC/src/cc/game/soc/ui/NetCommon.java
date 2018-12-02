@@ -2,6 +2,7 @@ package cc.game.soc.ui;
 
 import cc.lib.crypt.Cypher;
 import cc.lib.crypt.HuffmanEncoding;
+import cc.lib.net.GameCommandType;
 
 /**
  * Created by chriscaron on 3/12/18.
@@ -31,4 +32,7 @@ public class NetCommon {
         }
     }
 
+    public final static GameCommandType SVR_TO_CL_CHOOSE_COLOR = new GameCommandType("SVR_TO_CL_CHOOSE_COLOR");
+
+    public final static GameCommandType CL_TO_SVR_SET_COLOR = new GameCommandType("CL_TO_SVR_SET_COLOR");
 }

@@ -22,6 +22,7 @@ import cc.lib.game.Utils;
 import cc.lib.math.Vector2D;
 import cc.lib.net.ClientConnection;
 import cc.lib.net.GameCommand;
+import cc.lib.utils.Reflector;
 
 /**
  * 
@@ -471,7 +472,14 @@ public class UIPlayer extends PlayerBot implements ClientConnection.Listener {
 
     @Override
     public void onCommand(ClientConnection c, GameCommand cmd) {
+        try {
+            if (cmd.getType().equals(NetCommon.CL_TO_SVR_SET_COLOR.name())) {
+                setColor(GColor.fromString(cmd.getArg("color")));
+            }
 
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -481,6 +489,11 @@ public class UIPlayer extends PlayerBot implements ClientConnection.Listener {
 
     @Override
     public void onConnected(ClientConnection c) {
-
+        try {
+            String colors = Reflector.serializeObject(UISOC.getInstance().getAvailableColors());
+            c.sendCommand(new GameCommand(NetCommon.SVR_TO_CL_CHOOSE_COLOR).setArg("colors", colors));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

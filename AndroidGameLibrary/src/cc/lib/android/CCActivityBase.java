@@ -1,6 +1,7 @@
 package cc.lib.android;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
@@ -153,4 +154,7 @@ public class CCActivityBase extends Activity {
         }
     }
 
+    public AlertDialog.Builder newDialogBuilder() {
+	    return new AlertDialog.Builder(this);
+    }
 }

@@ -160,7 +160,7 @@ public abstract class BillingActivity extends CCActivityBase {
 	
 	protected abstract void finalizePurchase(String sku, long purchaseTime);
 	
-	protected abstract AlertDialog.Builder newDialogBuilder();
+	public abstract AlertDialog.Builder newDialogBuilder();
 	
 	private static AlertDialog settingsDialog = null;
 	

@@ -1,8 +1,10 @@
 package cc.game.soc.ui;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import cc.game.soc.android.R;
 import cc.game.soc.core.Board;
@@ -970,6 +972,8 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
      */
     protected abstract void showOkPopup(String title, String message);
 
+    protected abstract String showChoicePopup(String title, List<String> choices);
+
     @Override
     @Keep
     protected void onPlayerConqueredPirateFortress(int p, int v) {
@@ -1239,5 +1243,22 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
 
     public boolean isAITuningEnabled() {
         return false;
+    }
+
+    public Map<GColor, String> getAvailableColors() {
+        HashMap<GColor, String> colors = new HashMap<>();
+        colors.put(GColor.RED, "RED");
+        colors.put(GColor.GREEN, "GREEN");
+        colors.put(GColor.BLUE.lightened(.2f), "BLUE");
+        colors.put(GColor.YELLOW, "YELLOW");
+        colors.put(GColor.ORANGE, "ORANGE");
+        colors.put(GColor.PINK, "PINK");
+
+        for (int i=0; i<getNumPlayers(); i++) {
+            GColor color = getPlayerColor(i);
+            colors.remove(color);
+        }
+
+        return colors;
     }
 }

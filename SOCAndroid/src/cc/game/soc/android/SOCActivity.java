@@ -253,6 +253,25 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
             }
 
             @Override
+            protected String showChoicePopup(final String title, final List<String> choices) {
+                final String [] choice = new String[1];
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        final String [] items = choices.toArray(new String[choices.size()]);
+                        newDialog(false).setTitle(title).setItems(items, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                choice[0] = items[which];
+                            }
+                        });
+                    }
+                });
+                Utils.waitNoThrow(this, -1);
+                return choice[0];
+            }
+
+            @Override
             protected String getServerName() {
                 return Build.BRAND + "." + Build.PRODUCT;
             }
@@ -481,9 +500,60 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
                 .setItems(mpItems, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-
+                        switch (which) {
+                            case 0: // host
+                                showHostMultiPlayerDialog();
+                                break;
+                            case 1: // join
+                                showJoinMultiPlayerDialog();
+                                break;
+                        }
                     }
                 }).show();
+    }
+
+    MPGameManager mpGame = null;
+
+    void showJoinMultiPlayerDialog() {
+        mpGame = new MPGameManager(this, user.client, NetCommon.PORT, "soc") {
+            @Override
+            public void onAllClientsJoined() {
+            }
+        };
+        mpGame.showJoinGameDialog();
+    }
+
+    void showHostMultiPlayerDialog() {
+        final String [] items = { "2", "3", "4", "5", "6" };
+        newDialog(true).setTitle("Num Players").setItems(items, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                final int numPlayers = which+2;
+                final String [] colorStrings = {
+                        "Red", "Green", "Blue", "Yellow", "Orange", "Pink"
+                };
+                final GColor[]  colors = {
+                        GColor.RED, GColor.GREEN, GColor.BLUE.lightened(.2f), GColor.YELLOW, GColor.ORANGE, GColor.PINK
+                };
+                newDialog(true).setTitle("Pick Color").setItems(colorStrings, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(final DialogInterface dialog, int which) {
+                        user.setColor(colors[which]);
+                        soc.clear();
+                        soc.addPlayer(user);
+                        mpGame = new MPGameManager(SOCActivity.this, soc.server, numPlayers-1) {
+                            @Override
+                            public void onAllClientsJoined() {
+                                dialog.dismiss();
+                                soc.initGame();
+                                initGame();
+                            }
+                        };
+                        mpGame.startHostMultiplayer();
+                    }
+                }).show();
+            }
+        }).setNegativeButton("Cancel", null).show();
     }
 
     void showSinglePlayerDialog() {
@@ -586,7 +656,7 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
         lvMenu.setVisibility(View.VISIBLE);
         soc.clearMenu();
         soc.addMenuItem(SINGLE_PLAYER);
-        //soc.addMenuItem(MULTI_PLAYER);
+        soc.addMenuItem(MULTI_PLAYER);
         soc.addMenuItem(RESUME);
         if (cc.game.soc.android.BuildConfig.DEBUG) {
             soc.addMenuItem(LOADSAVED);

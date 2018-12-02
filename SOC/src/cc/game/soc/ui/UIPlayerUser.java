@@ -1,9 +1,10 @@
 package cc.game.soc.ui;
 
-import java.io.IOException;
-import java.net.InetAddress;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 import cc.game.soc.core.Card;
 import cc.game.soc.core.Dice;
@@ -11,8 +12,10 @@ import cc.game.soc.core.MoveType;
 import cc.game.soc.core.SOC;
 import cc.game.soc.core.Trade;
 import cc.lib.annotation.Keep;
+import cc.lib.game.GColor;
 import cc.lib.net.GameClient;
 import cc.lib.net.GameCommand;
+import cc.lib.utils.Reflector;
 
 /**
  * A UI Plauer User is a player that required user feedback for choice callabcks. On any individual
@@ -145,6 +148,23 @@ public final class UIPlayerUser extends UIPlayer implements GameClient.Listener 
 
     @Override
     public void onCommand(GameCommand cmd) {
+        try {
+
+            if (cmd.getType().equals(NetCommon.SVR_TO_CL_CHOOSE_COLOR)) {
+                Map<GColor, String> _colors = Reflector.deserializeFromString(cmd.getArg("color"));
+                final Map<String, GColor> colors = new HashMap<>();
+                for (Map.Entry<GColor, String> e : _colors.entrySet()) {
+                    colors.put(e.getValue(), e.getKey());
+                }
+                String choice = UISOC.getInstance().showChoicePopup("Choose Color", new ArrayList<String>(colors.keySet()));
+                GColor color = colors.get(choice);
+                setColor(color);
+                client.sendCommand(new GameCommand(NetCommon.CL_TO_SVR_SET_COLOR).setArg("color", color.toString()));
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
     }
 
