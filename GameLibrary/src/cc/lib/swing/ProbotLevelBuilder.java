@@ -5,6 +5,7 @@ import java.io.File;
 import cc.lib.game.GColor;
 import cc.lib.game.Utils;
 import cc.lib.probot.Probot;
+import cc.lib.utils.FileUtils;
 import cc.lib.utils.Grid;
 import cc.lib.utils.Reflector;
 
@@ -30,7 +31,9 @@ public class ProbotLevelBuilder extends AWTComponent {
     NumberPicker npTurns, npJumps, npLoops;
     AWTEditText levelLabel;
 
-    File levelsFile = new File("Robots/assets/levels.txt");
+    File levelsFile = new File("levels_backup.txt");
+    File robotsFile = new File("Robots/assets/levels.txt");
+
     Probot probot = new Probot() {
         @Override
         protected float getStrokeWidth() {
@@ -44,10 +47,12 @@ public class ProbotLevelBuilder extends AWTComponent {
 
         try {
             if (!levelsFile.isFile()) {
-                levelsFile.createNewFile();
-            } else {
-                levels = Reflector.deserializeFromFile(levelsFile);
+                if (robotsFile.isFile())
+                    FileUtils.copyFile(robotsFile, levelsFile);
+                else
+                    levelsFile.createNewFile();
             }
+            levels = Reflector.deserializeFromFile(levelsFile);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -103,7 +108,7 @@ public class ProbotLevelBuilder extends AWTComponent {
             @Override
             protected void onAction() {
                 try {
-                    Reflector.serializeToFile(levels, levelsFile);
+                    Reflector.serializeToFile(levels, new File("Robots/assets/levels.txt"));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

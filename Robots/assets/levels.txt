@@ -316,4 +316,36 @@ java.util.ArrayList {
       numLoops=-1
       numTurns=-1
    }
+   cc.lib.probot.Probot.Level {
+      coins=cc.lib.probot.Probot.Type[] 7 {
+         cc.lib.probot.Probot.Type 7 {
+            EM LV0 EM LV1 EM LV2 EM 
+         }
+         cc.lib.probot.Probot.Type 7 {
+            EM EM EM EM EM EM EM 
+         }
+         cc.lib.probot.Probot.Type 7 {
+            EM EM EM EM EM EM EM 
+         }
+         cc.lib.probot.Probot.Type 7 {
+            SE DD LB DD LB DD LB 
+         }
+         cc.lib.probot.Probot.Type 7 {
+            EM EM EM EM EM EM EM 
+         }
+         cc.lib.probot.Probot.Type 7 {
+            EM EM EM EM EM EM EM 
+         }
+         cc.lib.probot.Probot.Type 7 {
+            EM EM EM EM EM EM EM 
+         }
+      }
+      label="%3CUNNAMED%3E"
+      lazers=java.lang.Boolean 3 {
+         true false true 
+      }
+      numJumps=1
+      numLoops=1
+      numTurns=2
+   }
 }
