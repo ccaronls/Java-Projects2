@@ -39,13 +39,15 @@ import cc.game.soc.ui.*;
 import cc.lib.android.*;
 import cc.lib.game.GColor;
 import cc.lib.game.Utils;
+import cc.lib.net.ClientConnection;
+import cc.lib.net.GameServer;
 import cc.lib.utils.FileUtils;
 
 /**
  * Created by chriscaron on 2/15/18.
  */
 
-public class SOCActivity extends CCActivityBase implements MenuItem.Action, View.OnClickListener {
+public class SOCActivity extends CCActivityBase implements MenuItem.Action, View.OnClickListener, GameServer.Listener {
 
     UISOC soc = null;
     File rulesFile;
@@ -544,6 +546,7 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
                         mpGame = new MPGameManager(SOCActivity.this, soc.server, numPlayers-1) {
                             @Override
                             public void onAllClientsJoined() {
+                                log.info("All client joined");
                                 dialog.dismiss();
                                 soc.initGame();
                                 initGame();
@@ -1046,5 +1049,20 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
         switch (v.getId()) {
 
         }
+    }
+
+    @Override
+    public void onConnected(ClientConnection conn) {
+        log.info("Clinet connected: " + conn.getDisplayName());
+    }
+
+    @Override
+    public void onReconnection(ClientConnection conn) {
+        log.info("Clinet reconnected: " + conn.getDisplayName());
+    }
+
+    @Override
+    public void onClientDisconnected(ClientConnection conn) {
+        log.info("Clinet disconnected: " + conn.getDisplayName());
     }
 }

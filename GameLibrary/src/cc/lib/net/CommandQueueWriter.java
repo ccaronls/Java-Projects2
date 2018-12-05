@@ -37,6 +37,7 @@ class CommandQueueWriter {
             new Thread(new Runnable() {
                 public void run() {
                     log.debug("thread starting");
+                    int errors = 0;
                     while (running || !queue.isEmpty()) {
                         GameCommand cmd = null;
                         try {
@@ -67,9 +68,12 @@ class CommandQueueWriter {
                                     queue.remove();
                                 }
                             }
+                            errors = 0;
                         } catch (Exception e) {
-                            System.err.println("Problem sending command: " + cmd);
-                            e.printStackTrace();
+                            if (errors++ < 3) {
+                                System.err.println("Problem sending command: " + cmd);
+                                e.printStackTrace();
+                            }
                         }
                     }
                     // signal waiting stop() call that we done.

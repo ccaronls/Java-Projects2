@@ -1261,4 +1261,265 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
 
         return colors;
     }
+
+    private long getAnimTime() {
+        return 1500;
+    }
+
+    void startStructureAnimation(final int playerNum, final Vertex vertex, final VertexType type) {
+        if (vertex == null)
+            return;
+        final UIBoardRenderer board = UISOC.getInstance().getUIBoard();
+        vertex.setOpen();
+        board.addAnimation(new UIAnimation(getAnimTime()) {
+
+            @Override
+            public void draw(AGraphics g, float position, float dt) {
+                g.setColor(getPlayerColor(playerNum));
+                g.pushMatrix();
+                g.translate(vertex);
+                g.translate(0, (1-position)*board.getStructureRadius()*5);
+                g.scale(1, position);
+                switch (type) {
+                    case SETTLEMENT:
+                        board.drawSettlement(g, Vector2D.ZERO, playerNum, false);
+                        break;
+                    case CITY:
+                        board.drawCity(g, Vector2D.ZERO, playerNum, false);
+                        break;
+                    case WALLED_CITY:
+                        board.drawWalledCity(g, Vector2D.ZERO, playerNum, false);
+                        break;
+                    case METROPOLIS_POLITICS:
+                        board.drawMetropolisPolitics(g, Vector2D.ZERO, playerNum, false);
+                        break;
+                    case METROPOLIS_SCIENCE:
+                        board.drawMetropolisScience(g, Vector2D.ZERO, playerNum, false);
+                        break;
+                    case METROPOLIS_TRADE:
+                        board.drawMetropolisTrade(g, Vector2D.ZERO, playerNum, false);
+                        break;
+                }
+                g.popMatrix();
+            }
+        }, true);
+
+    }
+
+    void startMoveShipAnimation(final int playerNum, final Route source, final Route target, final SOC soc) {
+        if (source == null || target == null || soc == null)
+            return;
+        final RouteType shipType = source.getType();
+        source.setType(RouteType.OPEN);
+        final UIBoardRenderer comp = ((UISOC)soc).getUIBoard();
+        comp.addAnimation(new UIAnimation(getAnimTime()) {
+
+            @Override
+            public void draw(AGraphics g, float position, float dt) {
+                g.setColor(getPlayerColor(playerNum));
+                g.pushMatrix();
+                //render.translate(mp);
+                //render.scale(1, position);
+                Vector2D startV = soc.getBoard().getRouteMidpoint(source);
+                Vector2D endV   = soc.getBoard().getRouteMidpoint(target);
+                Vector2D curV   = startV.add(endV.sub(startV).scaledBy(position));
+
+                float startAng  = comp.getEdgeAngle(source);
+                float endAng    = comp.getEdgeAngle(target);
+                float curAng    = startAng + (endAng - startAng) * position;
+
+                comp.drawVessel(g, shipType, curV, Math.round(curAng), false);
+                g.popMatrix();
+            }
+        }, true);
+    }
+
+    void startBuildShipAnimation(final int playerNum, final Route edge, final SOC soc) {
+        if (edge == null || soc == null)
+            return;
+
+        final UIBoardRenderer comp = ((UISOC)soc).getUIBoard();
+        comp.addAnimation(new UIAnimation(getAnimTime()) {
+
+            @Override
+            public void draw(AGraphics g, float position, float dt) {
+                g.setColor(getPlayerColor(playerNum));
+                g.pushMatrix();
+                //render.translate(mp);
+                g.scale(1, position);
+                comp.drawShip(g, edge, false);
+                g.popMatrix();
+            }
+        }, true);
+    }
+
+    void startUpgradeShipAnimation(final int playerNum, final Route ship) {
+        if (ship == null)
+            return;
+        final UIBoardRenderer comp = UISOC.getInstance().getUIBoard();
+        ship.setType(RouteType.OPEN);
+        comp.addAnimation(new UIAnimation(2000) {
+
+            @Override
+            public void draw(AGraphics g, float position, float dt) {
+                g.setColor(getPlayerColor(playerNum));
+                g.pushMatrix();
+                //render.translate(mp);
+                g.scale(1, 1.0f - position);
+                comp.drawShip(g, ship, false);
+                g.popMatrix();
+
+                g.pushMatrix();
+                //render.translate(mp);
+                g.scale(1, position);
+                comp.drawWarShip(g, ship, false);
+                g.popMatrix();
+            }
+        }, true);
+    }
+
+    void startRoadAnimation(final int playerNum, final Route edge, final SOC soc) {
+        if (edge == null || soc == null)
+            return;
+        final UIBoardRenderer comp = UISOC.getInstance().getUIBoard();
+        if (edge != null) {
+            comp.addAnimation(new UIAnimation(getAnimTime()) {
+
+                final Vertex A = soc.getBoard().getVertex(edge.getFrom());
+                final Vertex B = soc.getBoard().getVertex(edge.getTo());
+
+                @Override
+                public void draw(AGraphics g, float position, float dt) {
+                    Vertex from, to;
+                    if (A.getPlayer() == playerNum || soc.getBoard().isVertexAdjacentToPlayerRoad(edge.getFrom(), playerNum)) {
+                        from=A; to=B;
+                    } else {
+                        from=B; to=A;
+                    }
+                    float dx = (to.getX() - from.getX()) * position;
+                    float dy = (to.getY() - from.getY()) * position;
+                    g.begin();
+                    g.vertex(from);
+                    g.vertex(from.getX() + dx, from.getY() + dy);
+                    g.setColor(getPlayerColor(playerNum));
+                    g.drawLines(RenderConstants.thickLineThickness);
+                }
+            }, true);
+        }
+    }
+
+    void startKnightAnimation(final int playerNum, final Vertex vertex) {
+        final UIBoardRenderer comp = UISOC.getInstance().getUIBoard();
+        comp.addAnimation(new UIAnimation(getAnimTime()) {
+
+            @Override
+            public void draw(AGraphics g, float position, float dt) {
+                g.setColor(getPlayerColor(playerNum));
+                g.pushMatrix();
+                g.translate(vertex.getX(), position * (vertex.getY()));
+                g.scale((2f-position) * (float)Math.cos((1-position)*20), (2f-position));
+                comp.drawKnight(g, Vector2D.ZERO, playerNum, 1, false, false);
+                g.popMatrix();
+            }
+        }, true);
+    }
+
+    void startMoveKnightAnimation(final int playerNum, final Vertex fromVertex, final Vertex toVertex) {
+        final UIBoardRenderer comp = UISOC.getInstance().getUIBoard();
+        final VertexType knightType = fromVertex.getType();
+        fromVertex.setOpen();
+        comp.addAnimation(new UIAnimation(getAnimTime()) {
+
+            @Override
+            public void draw(AGraphics g, float position, float dt) {
+                g.setColor(getPlayerColor(playerNum));
+                g.pushMatrix();
+                IVector2D pos = Vector2D.newTemp(fromVertex).add(Vector2D.newTemp(toVertex).sub(fromVertex).scaledBy(position));
+                g.translate(pos);
+                comp.drawKnight(g, Vector2D.ZERO, playerNum, knightType.getKnightLevel(), knightType.isKnightActive(), false);
+                g.popMatrix();
+            }
+        }, true);
+    }
+
+    @Override
+    protected final void onVertexChosen(int playerNum, Player.VertexChoice mode, Integer vIndex, Integer v2) {
+        server.broadcastExecuteOnRemote(NetCommon.SOC_ID, playerNum, mode, vIndex, v2);
+        Vertex v = getBoard().getVertex(vIndex);
+        if (v == null)
+            return;
+        switch (mode) {
+            case CITY:
+                startStructureAnimation(playerNum, v, VertexType.CITY);
+                break;
+            case CITY_WALL:
+                startStructureAnimation(playerNum, v, VertexType.WALLED_CITY);
+                break;
+            case KNIGHT_DESERTER:
+                break;
+            case KNIGHT_DISPLACED:
+            case KNIGHT_MOVE_POSITION:
+                if (v2 != null)
+                    startMoveKnightAnimation(playerNum, getBoard().getVertex(v2), v);
+                break;
+            case NEW_KNIGHT:
+                startKnightAnimation(playerNum, v);
+                break;
+            case KNIGHT_TO_ACTIVATE:
+                break;
+            case KNIGHT_TO_MOVE:
+                break;
+            case KNIGHT_TO_PROMOTE:
+                break;
+            case OPPONENT_KNIGHT_TO_DISPLACE:
+                break;
+            case POLITICS_METROPOLIS:
+                startStructureAnimation(playerNum, v, VertexType.METROPOLIS_POLITICS);
+                break;
+            case SCIENCE_METROPOLIS:
+                startStructureAnimation(playerNum, v, VertexType.METROPOLIS_SCIENCE);
+                break;
+            case SETTLEMENT:
+                startStructureAnimation(playerNum, v, VertexType.SETTLEMENT);
+                break;
+            case TRADE_METROPOLIS:
+                startStructureAnimation(playerNum, v, VertexType.METROPOLIS_TRADE);
+                break;
+            case PIRATE_FORTRESS:
+                break;
+            case OPPONENT_STRUCTURE_TO_ATTACK:
+                break;
+        }
+    }
+
+    @Override
+    protected final void onRouteChosen(int playerNum, Player.RouteChoice mode, Integer routeIndex, Integer shipToMove) {
+        server.broadcastExecuteOnRemote(NetCommon.SOC_ID, playerNum, mode, routeIndex, shipToMove);
+        Route route = getBoard().getRoute(routeIndex);
+        switch (mode)
+        {
+            case ROAD:
+                startRoadAnimation(playerNum, route, this);
+                break;
+            case ROUTE_DIPLOMAT:
+                break;
+            case SHIP:
+                if (shipToMove != null) {
+                    startMoveShipAnimation(playerNum, getBoard().getRoute(shipToMove), route, this);
+                } else {
+                    startBuildShipAnimation(playerNum, route, this);
+                }
+                break;
+            case SHIP_TO_MOVE:
+                break;
+            case UPGRADE_SHIP:
+                startUpgradeShipAnimation(playerNum, route);
+                break;
+            case OPPONENT_ROAD_TO_ATTACK:
+            case OPPONENT_SHIP_TO_ATTACK:
+                break;
+        }
+    }
+
+
 }

@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.Queue;
 
-import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
 
@@ -57,7 +56,7 @@ abstract class CommandQueueReader {
                         e.printStackTrace();
                     }
 
-                    log.debug("queue waking: size=%d", queue.size());
+                    //log.debug("queue waking: size=%d", queue.size());
                     GameCommand cmd = null;
                     synchronized (queue) {
                         if (!queue.isEmpty()) {
