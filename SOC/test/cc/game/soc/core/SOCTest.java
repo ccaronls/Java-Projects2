@@ -5,8 +5,11 @@ import junit.framework.TestCase;
 import java.io.File;
 import java.io.FileWriter;
 
+import cc.game.soc.ui.UIPlayer;
+import cc.lib.game.GColor;
 import cc.lib.game.Utils;
 import cc.lib.utils.Profiler;
+import cc.lib.utils.Reflector;
 
 public class SOCTest extends TestCase {
 
@@ -17,6 +20,8 @@ public class SOCTest extends TestCase {
 		} catch (Throwable t) {}
 	}
 
+	private long startTimeMs = 0;
+
 	@Override
     protected void setUp() throws Exception {
 	    System.out.println("Begin TEST: " + getName());
@@ -24,6 +29,7 @@ public class SOCTest extends TestCase {
         Profiler.ENABLED = true;
         PlayerBot.DEBUG_ENABLED = true;
         Utils.DEBUG_ENABLED = true;
+        startTimeMs = System.currentTimeMillis();
     }
 
 
@@ -31,23 +37,22 @@ public class SOCTest extends TestCase {
     @Override
     protected void tearDown() throws Exception {
         System.out.println("----------------------------------------------");
-        System.out.println("End TEST: " + getName());
+        System.out.println("End TEST: " + getName() + " in " + (0.001f * (System.currentTimeMillis()-startTimeMs)) + " secs");
         Profiler.dumpTimes(System.out);
 
     }
 
-
+    static class TSOC extends SOC {
+        @Override
+        public String getString(int resourceId, Object... args) {
+            return "";
+        }
+    }
 
     public void testSOC() throws Exception
 	{
 		final FileWriter log = new FileWriter("testresult/soctestlog.txt");
-		SOC soc = new SOC() {
-            @Override
-            public String getString(int resourceId, Object... args) {
-                //return super.getString(resourceId, args);
-                return "";
-            }
-        };
+		SOC soc = new TSOC();
 		Board b = soc.getBoard();
 		b.generateHexBoard(4, TileType.WATER);
 		for (int i=0; i<b.getNumTiles(); i++) {
@@ -64,9 +69,9 @@ public class SOCTest extends TestCase {
 		//soc.serialize(System.out);
 		File file = new File("soctest.sav");
 		soc.saveToFile(file);
-		SOC s = new SOC();
+		SOC s = new TSOC();
 		s.loadFromFile(file);
-		assertEquals(soc, s);
+		assertTrue(soc.deepEquals(s));
 		for (int i=0; i<100 && !s.isGameOver(); i++)
 			s.runGame();
 		
@@ -106,12 +111,15 @@ public class SOCTest extends TestCase {
             }
         };
 
-        for (File scenario : new File("SOC/assets/scenarios/").listFiles()) {
+        File dir = new File("../SOCAndroid/assets/scenarios");
+        File [] files = dir.listFiles();
+        for (File scenario : files) {
             soc.loadFromFile(scenario);
 
             for (int i=0; i<3; i++)
                 soc.addPlayer(new PlayerBot());
 
+            soc.initGame();
             for (int i=0; i<100000 && !soc.isGameOver(); i++)
                 soc.runGame();
 
@@ -151,5 +159,149 @@ public class SOCTest extends TestCase {
         }
 	}
 	
-	
+	public void testDiff() throws Exception {
+
+        Reflector.KEEP_INSTANCES = true;
+        SOC a = new SOC();
+        SOC b = new SOC();
+        assertTrue(a.deepEquals(b));
+
+
+        String diff = a.diff(b);
+        System.out.println("diff:\n" + diff);
+
+        b.addPlayer(new PlayerTemp());
+        diff = a.diff(b);
+        System.out.println("diff:\n" + diff);
+        a.deserialize(diff);
+        assertTrue(a.deepEquals(b));
+
+
+        b.getPlayerByPlayerNum(1).adjustResourcesForBuildable(BuildableType.City, 1);
+        diff = a.diff(b);
+        System.out.println("diff:\n" + diff);
+        a.deserialize(diff);
+        assertTrue(a.deepEquals(b));
+
+
+        b.getPlayerByPlayerNum(1).adjustResourcesForBuildable(BuildableType.City, -1);
+        diff = a.diff(b);
+        System.out.println("diff:\n" + diff);
+        a.deserialize(diff);
+        assertTrue(a.deepEquals(b));
+
+
+        b.addPlayer(new UIPlayer());
+//        b.getPlayerByPlayerNum(1).adjustResourcesForBuildable(BuildableType.City, 1);
+        diff = a.diff(b);
+        System.out.println("diff:\n" + diff);
+        a.deserialize(diff);
+        assertTrue(a.deepEquals(b));
+
+
+        b.getPlayerByPlayerNum(2).setCityDevelopment(DevelopmentArea.Politics, 1);
+//        b.getPlayerByPlayerNum(1).adjustResourcesForBuildable(BuildableType.City, 1);
+        diff = a.diff(b);
+        System.out.println("diff:\n" + diff);
+        a.deserialize(diff);
+        assertTrue(a.deepEquals(b));
+
+
+        ((UIPlayer)b.getPlayerByPlayerNum(2)).setColor(new GColor(128, 0, 0, 128));
+        diff = a.diff(b);
+        System.out.println("diff:\n"+diff);
+        a.deserialize(diff);
+        assertTrue(a.deepEquals(b));
+
+    }
+
+    public void testDiffUIPlayer() throws Exception {
+	    UIPlayer p1 = new UIPlayer();
+	    UIPlayer p2 = new UIPlayer();
+
+	    String diff = p1.diff(p2);
+        System.out.println("diff:\n" + diff);
+
+        p2.setColor(new GColor(128, 255, 0, 0));
+        diff = p1.diff(p2);
+        System.out.println("diff:\n" + diff);
+        p1.deserialize(diff);
+        assertTrue(p1.deepEquals(p2));
+    }
+
+    public void testDiffBoard() throws Exception {
+	    Reflector.KEEP_INSTANCES = true;
+	    SOC a = new SOC();
+	    SOC b = new SOC();
+	    assertTrue(a.deepEquals(b));
+	    assertEquals(a.toString(), b.toString());
+
+	    b.addPlayer(new PlayerTemp());
+	    b.addPlayer(new PlayerTemp());
+	    b.addPlayer(new PlayerTemp());
+
+	    String diff = a.diff(b);
+	    a.deserialize(diff);
+        assertTrue(a.deepEquals(b));
+	    assertEquals(3, a.getNumPlayers());
+
+	    Board x = b.getBoard();
+	    int vIndex = x.getNumVerts()/2;
+	    x.getVertex(vIndex).setPlayerAndType(1, VertexType.CITY);
+
+        diff = a.diff(b);
+        System.out.println("diff:\n" + diff);
+        a.deserialize(diff);
+        assertTrue(a.deepEquals(b));
+        assertEquals(a.getBoard().getVertex(vIndex).getPlayer(), 1);
+        assertEquals(a.getBoard().getVertex(vIndex).getType(), VertexType.CITY);
+
+        int eIndex = x.getNumRoutes()/2;
+        x.setPlayerForRoute(x.getRoute(eIndex), 1, RouteType.ROAD);
+        diff = a.diff(b);
+        System.out.println("diff:\n" + diff);
+        a.deserialize(diff);
+        assertTrue(a.deepEquals(b));
+        assertEquals(a.getBoard().getRoute(eIndex).getPlayer(), 1);
+        assertEquals(a.getBoard().getRoute(eIndex).getType(), RouteType.ROAD);
+
+        int tIndex = x.getNumTiles()/2;
+        x.getTile(tIndex).setType(TileType.RANDOM_PORT_OR_WATER);
+        diff = a.diff(b);
+        System.out.println("diff:\n" + diff);
+        a.deserialize(diff);
+        assertTrue(a.deepEquals(b));
+        assertEquals(a.getBoard().getTile(tIndex).getType(), TileType.RANDOM_PORT_OR_WATER);
+    }
+
+    public void testSOCDiff() throws Exception {
+
+	    SOC soc = new SOC();
+	    soc.addPlayer(new PlayerRandom());
+        soc.addPlayer(new PlayerRandom());
+        soc.addPlayer(new PlayerRandom());
+        SOC copy = new SOC();
+        soc.initGame();
+        copy.copyFrom(soc);
+
+        long bytesDiffed = 0;
+        int packets = 0;
+        for (int i=0; i<10000; i++) {
+            if (soc.isGameOver())
+                break;
+
+            soc.runGame();
+            packets++;
+            //bytesDiffed += soc.toString().length(); <--- This way averages 70K!!!
+
+            String diff = copy.diff(soc);
+            bytesDiffed += diff.length(); // <--- This way averages 4K. We can get that down if we can omit state/dice state etc.
+            copy.mergeDiff(diff);
+            //assertEquals(copy.toString(), soc.toString());
+            //assertTrue(copy.deepEquals(soc));
+        }
+
+        System.out.println("num packets=" + packets + " Avg packet size: " + ((double)bytesDiffed/packets));
+
+    }
 }

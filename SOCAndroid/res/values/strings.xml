@@ -654,5 +654,6 @@
     <string name="mp_info_game_full">Game Full</string>
     <string name="mp_info_player_has_joined">Player %s has joined</string>
     <string name="mp_info_player_has_disconnected">Player %s has disconnected</string>
+    <string name="popup_title_choose_color">Choose Color</string>
 
 </resources>

@@ -191,7 +191,7 @@ public final class Route extends Reflector<Route> implements Comparable<Route> {
 	
 	/**
 	 * 
-	 * @param lock
+	 * @param closed
 	 */
 	public final void setClosed(boolean closed) {
 		setFlag(EDGE_FLAG_CLOSED, closed);
@@ -231,7 +231,7 @@ public final class Route extends Reflector<Route> implements Comparable<Route> {
 		Route r = (Route)o;
 		return r.from == from && r.to == to;
 	}
-	
+
 	public RouteType getType() {
 		return type;
 	}

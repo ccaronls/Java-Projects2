@@ -1,21 +1,17 @@
 package cc.game.soc.ui;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 
 import cc.game.soc.core.Card;
 import cc.game.soc.core.Dice;
 import cc.game.soc.core.MoveType;
+import cc.game.soc.core.Player;
 import cc.game.soc.core.SOC;
 import cc.game.soc.core.Trade;
 import cc.lib.annotation.Keep;
-import cc.lib.game.GColor;
 import cc.lib.net.GameClient;
 import cc.lib.net.GameCommand;
-import cc.lib.utils.Reflector;
 
 /**
  * A UI Plauer User is a player that required user feedback for choice callabcks. On any individual
@@ -29,7 +25,7 @@ public final class UIPlayerUser extends UIPlayer implements GameClient.Listener 
     public final GameClient client = new GameClient(getName(), NetCommon.VERSION, NetCommon.getCypher());
 
 	public UIPlayerUser() {
-	    client.addListener(this);
+        client.addListener(this);
     }
 
 	@Override
@@ -54,11 +50,7 @@ public final class UIPlayerUser extends UIPlayer implements GameClient.Listener 
 
 	@Override
 	public Integer chooseVertex(SOC soc, Collection<Integer> vertexIndices, VertexChoice mode, Integer knightToMove) {
-		Integer v = ((UISOC)soc).chooseVertex(vertexIndices, mode, knightToMove);
-		if (v != null) {
-            doVertexAnimation(soc, mode, soc.getBoard().getVertex(v), knightToMove);
-        }
-		return v;
+		return ((UISOC)soc).chooseVertex(vertexIndices, mode, knightToMove);
 	}
     // private versions of overloaded methods are called by remote server so as not to need to include the large SOC object
     @Keep
@@ -68,11 +60,7 @@ public final class UIPlayerUser extends UIPlayer implements GameClient.Listener 
 
 	@Override
 	public Integer chooseRoute(SOC soc, Collection<Integer> routeIndices, RouteChoice mode, Integer shipToMove) {
-		Integer r = ((UISOC)soc).chooseRoute(routeIndices, mode, shipToMove == null ? null : soc.getBoard().getRoute(shipToMove));
-		if (r != null) {
-            doRouteAnimation(soc, mode, soc.getBoard().getRoute(r), shipToMove);
-        }
-		return r;
+		return ((UISOC)soc).chooseRoute(routeIndices, mode, shipToMove == null ? null : soc.getBoard().getRoute(shipToMove));
 	}
     // private versions of overloaded methods are called by remote server so as not to need to include the large SOC object
     @Keep
@@ -150,16 +138,18 @@ public final class UIPlayerUser extends UIPlayer implements GameClient.Listener 
     public void onCommand(GameCommand cmd) {
         try {
 
-            if (cmd.getType().equals(NetCommon.SVR_TO_CL_CHOOSE_COLOR)) {
-                Map<GColor, String> _colors = Reflector.deserializeFromString(cmd.getArg("color"));
-                final Map<String, GColor> colors = new HashMap<>();
-                for (Map.Entry<GColor, String> e : _colors.entrySet()) {
-                    colors.put(e.getValue(), e.getKey());
-                }
-                String choice = UISOC.getInstance().showChoicePopup("Choose Color", new ArrayList<String>(colors.keySet()));
-                GColor color = colors.get(choice);
-                setColor(color);
-                client.sendCommand(new GameCommand(NetCommon.CL_TO_SVR_SET_COLOR).setArg("color", color.toString()));
+            if (cmd.getType().equals(NetCommon.SVR_TO_CL_INIT)) {
+                UISOC soc = UISOC.getInstance();
+                soc.deserialize(cmd.getArg("soc"));
+                int playerNum = cmd.getInt("playerNum");
+                Player p = soc.getPlayerByPlayerNum(playerNum);
+                //KEEP_INSTANCES = true;
+                copyFrom(p);
+                soc.setPlayer(this, playerNum);
+                soc.redraw();
+            } else if (cmd.getType().equals(NetCommon.SVR_TO_CL_UPDATE)) {
+                UISOC.getInstance().mergeDiff(cmd.getArg("soc"));
+                UISOC.getInstance().redraw();
             }
 
         } catch (Exception e) {

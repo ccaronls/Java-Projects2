@@ -198,7 +198,7 @@ public final class GColor extends Reflector<GColor> {
         if (o == this)
         	return true;
         GColor c = (GColor)o;
-        return c.toARGB() == toARGB();
+        return argb == c.argb;
     }
 
     /**

@@ -1268,6 +1268,10 @@ public class Board extends Reflector<Board> {
 		return tiles.get(index);
 	}
 
+	void setTile(int index, Tile tile) {
+	    tiles.set(index, tile);
+    }
+
 	/**
 	 * Get the number of vertices
 	 * @return
@@ -1304,6 +1308,10 @@ public class Board extends Reflector<Board> {
 		return verts.get(index);
 	}
 
+	void setVertex(int index, Vertex v) {
+	    verts.set(index, v);
+    }
+
 	/**
 	 * Get the number of edges.
 	 * @return
@@ -1320,6 +1328,10 @@ public class Board extends Reflector<Board> {
 	public Route getRoute(int index) {
 		return routes.get(index);
 	}
+
+	void setRoute(int index, Route r) {
+	    routes.set(index, r);
+    }
 	
 	/**
 	 * 

@@ -32,7 +32,7 @@ public class NetCommon {
         }
     }
 
-    public final static GameCommandType SVR_TO_CL_CHOOSE_COLOR = new GameCommandType("SVR_TO_CL_CHOOSE_COLOR");
+    public final static GameCommandType SVR_TO_CL_INIT = new GameCommandType("SVR_TO_CL_INIT");
 
-    public final static GameCommandType CL_TO_SVR_SET_COLOR = new GameCommandType("CL_TO_SVR_SET_COLOR");
+    public final static GameCommandType SVR_TO_CL_UPDATE = new GameCommandType("SVR_TO_CL_UPDATE");
 }

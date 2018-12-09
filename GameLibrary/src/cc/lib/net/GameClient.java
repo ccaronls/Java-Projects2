@@ -21,7 +21,6 @@ import cc.lib.crypt.EncryptionInputStream;
 import cc.lib.crypt.EncryptionOutputStream;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
-import cc.lib.utils.NoDupesMap;
 import cc.lib.utils.Reflector;
 
 /**
@@ -61,7 +60,7 @@ public class GameClient {
     private final Cypher cypher;
     private final Set<Listener> listeners = new HashSet<>();
     private String serverName = null;
-    private Map<String, Object> executorObjects = new NoDupesMap<>(new HashMap<String, Object>());
+    private Map<String, Object> executorObjects = new HashMap<>();
     private String passPhrase = null;
 
 

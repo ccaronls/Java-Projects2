@@ -83,15 +83,15 @@ public class SOC extends Reflector<SOC> implements StringResource {
         addAllFields(SOC.class);
     }
 
-    private final Player[] mPlayers = new Player[MAX_PLAYERS];
+    private final Player[] mPlayers;
     private int mCurrentPlayer;
     private int mNumPlayers;
-    private LinkedList<Integer> mDice = new LinkedList<Integer>(); // compute the next 100 die rolls to support rewind with consistent die rolls
-    private Stack<DiceType[]> mDiceConfigStack = new Stack<DiceType[]>();
-    private Stack<StackItem> mStateStack = new Stack<StackItem>();
-    private List<Card> mDevelopmentCards = new ArrayList<Card>();
+    private final LinkedList<Integer> mDice; // compute the next 100 die rolls to support rewind with consistent die rolls
+    private final Stack<DiceType[]> mDiceConfigStack;
+    private final Stack<StackItem> mStateStack;
+    private final List<Card> mDevelopmentCards;
     private List<Card>[] mProgressCards;
-    private final List<EventCard> mEventCards = new ArrayList<EventCard>();
+    private final List<EventCard> mEventCards;
     private Board mBoard;
     private Rules mRules;
     private int mBarbarianDistance = -1; // CAK
@@ -288,9 +288,37 @@ public class SOC extends Reflector<SOC> implements StringResource {
      *
      */
     public SOC() {
+        mPlayers = new Player[MAX_PLAYERS];
+        mDice = new LinkedList<>(); // compute the next 100 die rolls to support rewind with consistent die rolls
+        mDiceConfigStack = new Stack<>();
+        mStateStack = new Stack<>();
+        mDevelopmentCards = new ArrayList<>();
+        mEventCards = new ArrayList<>();
+        mBarbarianDistance = -1; // CAK
+        mMetropolisPlayer = new int[NUM_DEVELOPMENT_AREA_TYPES];
+        mBarbarianAttackCount = 0;
         mBoard = new Board();
         mBoard.generateDefaultBoard();
         mRules = new Rules();
+    }
+
+    public SOC(SOC other) {
+        mPlayers = other.mPlayers;
+        Utils.copyElems(mPlayers, other.mPlayers);
+        mDice = new LinkedList<>();
+        mDice.addAll(other.mDice);
+        mDiceConfigStack = new Stack<>();
+        mDiceConfigStack.addAll(other.mDiceConfigStack);
+        mStateStack = new Stack<>();
+        mStateStack.addAll(other.mStateStack);
+        mDevelopmentCards = new ArrayList<>(other.mDevelopmentCards);
+        mEventCards = new ArrayList<>(other.mEventCards);
+        mBarbarianDistance = other.mBarbarianDistance;
+        mMetropolisPlayer = new int[NUM_DEVELOPMENT_AREA_TYPES];
+        Utils.copyElems(mMetropolisPlayer, other.mMetropolisPlayer);
+        mBarbarianAttackCount = other.mBarbarianAttackCount;
+        mBoard = other.mBoard.shallowCopy();
+        mRules = other.mRules;
     }
 
     /**
@@ -429,7 +457,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
         return mPlayers[playerNum - 1];
     }
 
-    void setPlayer(Player p, int playerNum) {
+    public final void setPlayer(Player p, int playerNum) {
         assert (playerNum > 0 && playerNum <= MAX_PLAYERS);
         mPlayers[playerNum - 1] = p;
         p.setPlayerNum(playerNum);
@@ -468,7 +496,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
     /**
      * @param player
      */
-    public void addPlayer(Player player) {
+    public final void addPlayer(Player player) {
         if (mNumPlayers == MAX_PLAYERS)
             throw new RuntimeException("Too many players");
 
@@ -5480,7 +5508,8 @@ public class SOC extends Reflector<SOC> implements StringResource {
 
     @Override
     public String getString(int resourceId, Object... args) {
-        throw new AssertionError("Not implemented");
+        //throw new AssertionError("Not implemented");
+        return "";
     }
 
     protected void onVertexChosen(int playerNum, Player.VertexChoice mode, Integer vertexIndex, Integer v2) {
@@ -5488,4 +5517,12 @@ public class SOC extends Reflector<SOC> implements StringResource {
 
     protected void onRouteChosen(int playerNum, Player.RouteChoice mode, Integer routeIndex, Integer shipToMove) {
     }
+
+    protected void onPlayerChanging(int playerNum) {}
+
+    protected void onRouteChanging(int routeIndex) {}
+
+    protected void onVertexChanging(int vIndex) {}
+
+    protected void onTileChanging(int tIndex) {}
 }

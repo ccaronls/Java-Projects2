@@ -1,9 +1,5 @@
 package cc.game.soc.core;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.PrintWriter;
-
 import cc.lib.utils.Reflector;
 
 public class Card extends Reflector<Card> implements Comparable <Card> {
@@ -15,7 +11,7 @@ public class Card extends Reflector<Card> implements Comparable <Card> {
 	private CardType type;
 	private int typeOrdinal;
 	private CardStatus status;
-
+/*
 	@Override
 	public void serialize(PrintWriter out) throws IOException {
 		out.println(type);
@@ -50,7 +46,7 @@ public class Card extends Reflector<Card> implements Comparable <Card> {
 				throw new AssertionError("Unhandled case");
 			
 		}
-	}
+	}*/
 
 	/**
 	 * Needed for Reflector

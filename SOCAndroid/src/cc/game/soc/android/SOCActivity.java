@@ -517,9 +517,13 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
     MPGameManager mpGame = null;
 
     void showJoinMultiPlayerDialog() {
+        user.client.register(NetCommon.SOC_ID, UISOC.getInstance());
+        user.client.register(NetCommon.USER_ID, this);
+
         mpGame = new MPGameManager(this, user.client, NetCommon.PORT, "soc") {
             @Override
             public void onAllClientsJoined() {
+                initGame();
             }
         };
         mpGame.showJoinGameDialog();

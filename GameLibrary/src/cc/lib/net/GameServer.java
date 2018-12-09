@@ -251,15 +251,17 @@ public class GameServer {
      * @param cmd
      */
     public final void broadcastCommand(GameCommand cmd) {
-        synchronized (clients) {
-            for (ClientConnection c : clients.values()) {
-                if (c.isConnected())
-                    try {
-                        c.sendCommand(cmd);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        log.error("ERROR Sending to client '" + c.getName() + "' " + e.getClass() + " " + e.getMessage());
-                    }
+        if (isConnected()) {
+            synchronized (clients) {
+                for (ClientConnection c : clients.values()) {
+                    if (c.isConnected())
+                        try {
+                            c.sendCommand(cmd);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            log.error("ERROR Sending to client '" + c.getName() + "' " + e.getClass() + " " + e.getMessage());
+                        }
+                }
             }
         }
     }
@@ -270,8 +272,10 @@ public class GameServer {
      * @param params
      */
     public final <T> void broadcastExecuteOnRemote(String objId, T ... params) {
-        StackTraceElement elem = new Exception().getStackTrace()[1];
-        broadcastExecuteOnRemote(objId, elem.getMethodName(), params);
+        if (isConnected()) {
+            StackTraceElement elem = new Exception().getStackTrace()[1];
+            broadcastExecuteOnRemote(objId, elem.getMethodName(), params);
+        }
     }
 
     /**
@@ -281,15 +285,17 @@ public class GameServer {
      * @param params
      */
     public final void broadcastExecuteOnRemote(String objId, String method, Object ... params) {
-        synchronized (clients) {
-            for (ClientConnection c : clients.values()) {
-                if (c.isConnected())
-                    try {
-                        c.executeMethodOnRemote(objId, false, method, params);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        log.error("ERROR Sending to client '" + c.getName() + "' " + e.getClass() + " " + e.getMessage());
-                    }
+        if (isConnected()) {
+            synchronized (clients) {
+                for (ClientConnection c : clients.values()) {
+                    if (c.isConnected())
+                        try {
+                            c.executeMethodOnRemote(objId, false, method, params);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            log.error("ERROR Sending to client '" + c.getName() + "' " + e.getClass() + " " + e.getMessage());
+                        }
+                }
             }
         }
     }
@@ -303,7 +309,9 @@ public class GameServer {
      * @param message
      */
     public final void broadcastMessage(String message) {
-        broadcastCommand(new GameCommand(GameCommandType.MESSAGE).setMessage(message));
+        if (isConnected()) {
+            broadcastCommand(new GameCommand(GameCommandType.MESSAGE).setMessage(message));
+        }
     }
 
     private class SocketListener implements Runnable {

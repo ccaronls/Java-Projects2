@@ -287,7 +287,7 @@ public final class Vertex extends Reflector<Vertex> implements IVector2D {
 		float dy = Math.abs(v.getY() - getY());
 		return dx < 0.001 && dy < 0.001;
 	}
-	
+
 	@Override
 	public String toString() {
 		String r = type.name();

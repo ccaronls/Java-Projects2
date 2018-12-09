@@ -15,6 +15,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeSet;
+import java.util.Vector;
 
 public class ReflectorTest extends TestCase {
 
@@ -243,7 +244,7 @@ public class ReflectorTest extends TestCase {
         */
     }
     
-    public static class BaseClass extends Reflector {
+    public static class BaseClass extends Reflector<BaseClass> {
         int baseInt = 0;
         
         static {
@@ -457,7 +458,223 @@ public class ReflectorTest extends TestCase {
         List l = new ArrayList();
         l.addAll(Arrays.asList(1, 2, 3, 4));
         System.out.println("l=" + Reflector.serializeObject(l));
+    }
 
+    public void testDiff() throws Exception {
+        BaseClass a = new BaseClass();
+        BaseClass b = new BaseClass();
+        SuperClass c = new SuperClass();
+
+        a.baseInt = 10;
+        b.baseInt = 10;
+        c.baseInt = 5;
+        c.superString = null;
+
+        String diff = a.diff(b);
+        System.out.println("diff = " + diff);
+        assertEquals(diff, "");
+
+        a.baseInt = 10;
+        b.baseInt = 11;
+
+        diff = a.diff(b);
+        System.out.println("diff:\n" + diff);
+        assertEquals(diff, "baseInt=11\n");
+
+        a.deserialize(diff);
+        assertEquals(a.baseInt, 11);
+
+        diff = c.diff(a);
+        System.out.println("diff:\n" + diff);
+    }
+
+    public void testDiffSimpleObject() throws Exception {
+
+        SimpleObject sa = new SimpleObject();
+        SimpleObject sb = new SimpleObject();
+
+        String diff = sa.diff(sb);
+        System.out.println("diff:\n" + diff);
+
+        sb.myInt = 8345;
+        sb.myDouble = -0.234;
+        sb.myObj = new SimpleObject();
+
+        diff = sa.diff(sb);
+        System.out.println("diff:\n" + diff);
+        sa.deserialize(diff);
+        assertNotNull(sa.myObj);
+        assertEquals(sa.myInt, sb.myInt);
+
+        sb = new SimpleObject();
+        sa = new SimpleObject();
+
+        sb.myEnum = SomeEnum.ENUM1;
+        diff = sa.diff(sb);
+        System.out.println("diff:\n" + diff);
+        sa.deserialize(diff);
+        assertEquals(sa.myEnum, sb.myEnum);
+
+        sb.myEnum = null;
+        diff = sa.diff(sb);
+        System.out.println("diff:\n" + diff);
+        sa.deserialize(diff);
+        assertNull(sa.myEnum);
+
+        sa = new SimpleObject();
+        sb = new SimpleObject();
+
+        sb.myEnumArray = new SomeEnum[] { SomeEnum.ENUM1, SomeEnum.ENUM3 };
+        diff = sa.diff(sb);
+        System.out.println("diff:\n" + diff);
+        sa.deserialize(diff);
+        assertTrue(Arrays.deepEquals(sa.myEnumArray, sb.myEnumArray));
+
+        System.out.println("sa:\n" + sa);
+
+        sb.myObjArray = new SimpleObject[] {
+                null, null,
+                new SimpleObject(), null, new SimpleObject(),
+                null, null
+
+        };
+
+        diff = sa.diff(sb);
+        System.out.println("diff:\n" + diff);
+        sa.deserialize(diff);
+        assertTrue(Arrays.deepEquals(sa.myObjArray, sb.myObjArray));
+
+        sb.myObjArray[2].myInt = -100;
+        diff = sa.diff(sb);
+        System.out.println("diff:\n" + diff);
+        sa.deserialize(diff);
+        assertTrue(Arrays.deepEquals(sa.myObjArray, sb.myObjArray));
+        assertTrue(sa.equals(sb));
+        assertTrue(sa.toString().equals(sb.toString()));
+
+        System.out.println("sa:\n" + sa);
 
     }
+    public void testDiffSimpleObject2() throws Exception {
+
+        SimpleObject sa = new SimpleObject();
+        SimpleObject sb = new SimpleObject();
+        assertEquals(sa, sb);
+
+        sb.myIntArray = new int[] {
+                1, 2, 3
+        };
+
+        String diff = sa.diff(sb);
+        System.out.println("diff:\n" + diff);
+        sa.deserialize(diff);
+        assertEquals(sa, sb);
+
+        sb.myObjList = new Vector();
+        SimpleObject so = new SimpleObject();
+        sb.myObjList.add(so);
+        diff = sa.diff(sb);
+        System.out.println("diff:\n" + diff);
+        sa.deserialize(diff);
+        assertEquals(sa, sb);
+
+        so.myIntArray = new int[] {
+                1,2,3,4,5
+        };
+        diff = sa.diff(sb);
+        System.out.println("diff:\n" + diff);
+        sa.deserialize(diff);
+        assertEquals(sa, sb);
+
+        sb.myEnumArray = new SomeEnum[] { null, null, null };
+        diff = sa.diff(sb);
+        System.out.println("diff:\n" + diff);
+        sa.deserialize(diff);
+        assertEquals(sa, sb);
+    }
+
+    public void testDiffSimpleObject3() throws Exception {
+
+        SimpleObject sa = new SimpleObject();
+        SimpleObject sb = new SimpleObject();
+
+        sb.myIntList = new ArrayList<>(Arrays.asList(1, 2, 3, 4, 5));
+        String diff = sa.diff(sb);
+        System.out.println("diff:\n" + diff);
+        sa.deserialize(diff);
+        //System.out.println("sa:\n"+sa.toString());
+        //System.out.println("sb:\n"+sb.toString());
+        //assertTrue(sa.toString().equals(sb.toString()));
+        //assertTrue(sa.equals(sb));
+        assertEquals(sa, sb);
+
+        sb.myObjList = new Vector<>();
+        diff = sa.diff(sb);
+        System.out.println("diff:\n" + diff);
+        sa.deserialize(diff);
+        assertEquals(sa, sb);
+
+        sb.myObjList.add(null);
+        sb.myObjList.add(new SimpleObject());
+        sb.myObjList.add(null);
+        diff = sa.diff(sb);
+        System.out.println("diff:\n" + diff);
+        sa.deserialize(diff);
+        assertEquals(sa, sb);
+
+        sb.myObjList.get(1).myEnum = SomeEnum.ENUM1;
+        diff = sa.diff(sb);
+        System.out.println("diff:\n" + diff);
+        sa.deserialize(diff);
+        assertEquals(sa, sb);
+
+        sb.myEnum = SomeEnum.ENUM2;
+        sb.myObjList.get(1).myEnumArray = SomeEnum.values();
+        diff = sa.diff(sb);
+        System.out.println("diff:\n" + diff);
+        Reflector.KEEP_INSTANCES = true;
+        sa.deserialize(diff);
+        System.out.println("sa:\n" + sa);
+        System.out.println("sb:\n" + sb);
+        assertEquals(sa.toString(), sb.toString());
+    }
+
+    public void testDiffIntList() throws Exception {
+        SimpleObject a = new SimpleObject();
+        SimpleObject b = new SimpleObject();
+
+        a.myIntList = new LinkedList<>();
+        a.myIntList.addAll(Arrays.asList(10, 20, 30, 40, 60));
+
+        b.myIntList = new LinkedList<>();
+        b.myIntList.addAll(Arrays.asList(10, 20, 30, 40, 50));
+
+        String diff = a.diff(b);
+        System.out.println("diff=\n"+diff);
+        a.mergeDiff(diff);
+        assertEquals(a, b);
+    }
+
+
+    static class SimpleObject extends Reflector<SimpleObject> {
+
+        static {
+            addAllFields(SimpleObject.class);
+        }
+
+        int myInt = 10;
+        float myFloat = 2.5f;
+        long myLong = 24738504127385701L;
+        double myDouble = 0.23498752083475;
+        SomeEnum myEnum;
+        SomeEnum [] myEnumArray;
+        List<Integer> myIntList = null;
+
+        SimpleObject myObj = null;
+        SimpleObject [] myObjArray = null;
+        int [] myIntArray = null;
+
+        Vector<SimpleObject> myObjList = null;
+    }
+
 }

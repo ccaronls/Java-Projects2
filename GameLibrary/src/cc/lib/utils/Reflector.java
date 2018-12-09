@@ -440,8 +440,11 @@ public class Reflector<T> {
             if (len > 0) {
                 StringBuffer buf = new StringBuffer();
                 for (int i=0; i<len; i++) {
-                    Object o = Array.get(arr, i); 
-                    buf.append(((Enum<?>)o).name()).append(" ");
+                    Object o = Array.get(arr, i);
+                    if (o == null)
+                        buf.append("null ");
+                    else
+                        buf.append(((Enum<?>)o).name()).append(" ");
                 }
                 out.println(buf.toString());
             }
@@ -1179,7 +1182,7 @@ public class Reflector<T> {
 
     /**
      *
-     * @param r
+     * @param o
      * @param file
      * @throws IOException
      */
@@ -1266,6 +1269,10 @@ public class Reflector<T> {
             		int len = Array.getLength(o);
             		out.println(o.getClass().getComponentType().getName() + " " + len + " {");
             	} else {
+            	    if (o == null) {
+            	        out.println("null");
+            	        continue;
+                    }
             		out.println(getCanonicalName(o.getClass()) + " {");
             	}
                 serializeObject(o, out, true);
@@ -1400,15 +1407,23 @@ public class Reflector<T> {
         } catch (NoSuchMethodException e) {}
         throw new Exception("Dont know how to parse class " + clazz);
     }
-    
+
+    private static boolean isImmutable(Object o) {
+        if (o instanceof String || o instanceof Number)
+            return true;
+        return false;
+    }
+
     @SuppressWarnings({ "unchecked", "rawtypes" })
     private static void deserializeCollection(Collection c, MyBufferedReader in) throws Exception {
     	final int startDepth = in.depth;
         Iterator it = null;
-        if (!KEEP_INSTANCES)
+
+        if (!KEEP_INSTANCES || c.size() == 0 || isImmutable(c.iterator().next()))
             c.clear();
-        else
+        else {
             it = c.iterator();
+        }
     	while (true) {
     		String line = readLineOrEOF(in);
     		if (line == null)
@@ -1487,7 +1502,19 @@ public class Reflector<T> {
      * @throws Exception
      */
     public synchronized final void deserialize(String text) throws Exception {
-        deserialize(new MyBufferedReader(new StringReader(text)));
+        MyBufferedReader reader = new MyBufferedReader(new StringReader(text));
+        try {
+            deserialize(reader);
+        } catch (Exception e) {
+            throw new Exception("Error on line " + reader.lineNum + ": " + e.getMessage(), e);
+        }
+    }
+
+    public synchronized final void mergeDiff(String diff) throws Exception {
+        boolean prev = KEEP_INSTANCES;
+        KEEP_INSTANCES = true;
+        deserialize(diff);
+        KEEP_INSTANCES = prev;
     }
 
     /**
@@ -1602,32 +1629,30 @@ public class Reflector<T> {
     }
     
     private static boolean isEqual(Object a, Object b) {
-        if (a == null && b == null)
+        if (a == b)
             return true;
         if (a == null || b == null)
             return false;
-        if (a == b)
-            return true;
-        if (!a.getClass().equals(b.getClass()))
-            return false;
+        if (a instanceof Reflector && b instanceof Reflector) {
+            return ((Reflector) a).deepEquals((Reflector)b);
+        }
         if (a.getClass().isArray() && b.getClass().isArray())
             return isArraysEqual(a, b);
         if ((a instanceof Collection) && (b instanceof Collection)) {
             return isCollectionsEqual((Collection)a, (Collection)b);
         }
+        if (!a.getClass().equals(b.getClass()))
+            return false;
         return a.equals(b);
     }
     
-    @SuppressWarnings("unchecked")
-	@Override
-    public boolean equals(Object o) {
-        if (o == this)
+    public final boolean deepEquals(Reflector<T> a) {
+        if (a == this)
             return true;
-        if (o == null)
+        if (a == null)
             return false;
         try {
             Map<Field, Archiver> values = getValues(getClass(), false);
-            Reflector<T> a = (Reflector<T>)o;
             for (Field f : values.keySet()) {
                 try {
                     if (!isEqual(f.get(this), f.get(a)))
@@ -1638,8 +1663,13 @@ public class Reflector<T> {
             }
             return true;
         } catch (Exception e) {
-        	return super.equals(o);
+        	return super.equals(a);
         }
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return isEqual(this, obj);
     }
 
     @Override
@@ -1701,20 +1731,73 @@ public class Reflector<T> {
      * @return
      */
     @SuppressWarnings("unchecked")
-    public T deepCopy() {
+    public <T extends Reflector> T deepCopy() {
         try {
-            T a = (T)getClass().newInstance();
+            Object copy = getClass().newInstance();
             Map<Field, Archiver> values = getValues(getClass(), false);
             
             for (Field f: values.keySet()) {
             	f.setAccessible(true);
-                f.set(a, deepCopy(f.get(this)));
+                f.set(copy, deepCopy(f.get(this)));
             }
             
-            return a;
+            return (T)copy;
         } catch (Exception e) {
             throw new RuntimeException("Failed to deep copy", e);
         }
+    }
+
+    /**
+     * Collections, Arrays and Maps are shallow copied from this into a new instance
+     * @param <T>
+     * @return
+     */
+    public <T extends Reflector> T shallowCopy() {
+        try {
+            Object copy = getClass().newInstance();
+            Map<Field, Archiver> values = getValues(getClass(), false);
+
+            for (Field f: values.keySet()) {
+                f.setAccessible(true);
+                f.set(copy, shallowCopy(f.get(this)));
+            }
+
+            return (T)copy;
+
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to shallow copy");
+        }
+    }
+
+    public static Object shallowCopy(Object o) throws Exception {
+        if (o == null) {
+            return null;
+        }
+        if (o instanceof Collection) {
+            Collection copy = (Collection)o.getClass().newInstance();
+            Iterator it = ((Collection)o).iterator();
+            while (it.hasNext()) {
+                copy.add(it.next());
+            }
+            return copy;
+        }
+        if (o instanceof Map) {
+            Map copy = (Map)o.getClass().newInstance();
+            Iterator<Map.Entry> it = ((Map)o).entrySet().iterator();
+            while (it.hasNext()) {
+                Map.Entry e = it.next();
+                copy.put(e.getKey(), e.getValue());
+            }
+            return copy;
+        }
+        if (o.getClass().isArray()) {
+            int len = Array.getLength(o);
+            Object copy = Array.newInstance(o.getClass(), len);
+            for (int i=0; i<len; i++) {
+                Array.set(copy, i, Array.get(o, i));
+            }
+        }
+        return o;
     }
 
     /**
@@ -1810,6 +1893,148 @@ public class Reflector<T> {
             e.printStackTrace();
         }
         return false;
+    }
+
+    /**
+     * Return a string that represenrts the differences in other compared to this.
+     * The resulting strings can be deserialized back into this with KEEP_INSTANCES to merge in changes.
+     *
+     * Purpose is to allow for situations where we want to transmit changes in the objects instead of whole object
+     *
+     * @param other
+     * @return
+     * @throws Exception
+     */
+    public final String diff(Reflector<T> other) throws Exception {
+        if (other == null)
+            throw new NullPointerException("Reflector.diff - other cannot be null");
+        if (!getClass().equals(other.getClass()))
+            if (isSubclassOf(other.getClass(), getClass()))
+                throw new Exception("Cannot diff a subclass of another class");
+
+        StringWriter out = new StringWriter();
+        MyPrintWriter writer = new MyPrintWriter(out);
+        diff(other, writer);
+        writer.flush();
+        return out.getBuffer().toString();
+    }
+
+    private final void diff(Reflector<T> other, MyPrintWriter writer) throws Exception {
+
+        if (other.getMinVersion() < getMinVersion())
+            throw new VersionTooOldException(getMinVersion(), other.getMinVersion());
+
+
+        Map<Field, Archiver> values = getValues(getClass(), false);
+
+        for (Field field : values.keySet()) {
+            Archiver archiver = values.get(field);
+            field.setAccessible(true);
+
+            Object mine = field.get(this);
+            Object thrs = null;
+            try {
+                thrs = field.get(other);
+            } catch (IllegalArgumentException e) {
+                continue;
+            }
+
+            if (isEqual(mine, thrs))
+                continue; // no difference
+
+            if (mine == null) {
+                // difference is entire contents of them
+                writer.println(field.getName()+"="+archiver.get(field, other));
+                serializeObject(thrs, writer, false);
+            } else if (thrs == null) {
+                writer.println(field.getName()+"=null");
+            } else if (isSubclassOf(mine.getClass(), thrs.getClass())) {
+                if (mine instanceof Reflector) {
+                    writer.println(field.getName() + "=" + getCanonicalName(thrs.getClass()) + " {");
+                    writer.push();
+                    ((Reflector) mine).diff((Reflector) thrs, writer);
+                    writer.pop();
+                    writer.println("}");
+                } else if (mine instanceof Collection) {
+                    diffCollections(field.getName(), (Collection)mine, (Collection)thrs, writer);
+                } else if (mine.getClass().isArray()) {
+                    diffArrays(field.getName(), mine, thrs, writer);
+                } else {
+                    String themStr = archiver.get(field, other);
+                    writer.println(field.getName() + "=" + themStr);
+                }
+            } else {
+                throw new Exception("Cannot diff object that are not related");
+            }
+        }
+    }
+
+    private void diffCollections(String name, Collection mine, Collection thrs, MyPrintWriter writer) throws Exception {
+        //if (isCollectionsEqual(mine, thrs))
+        //    return;
+
+        writer.println(name+"="+getCanonicalName(thrs.getClass()) + " {");
+        writer.push();
+
+        Iterator i1 = mine.iterator();
+        Iterator i2 = thrs.iterator();
+
+        while (i2.hasNext()) {
+            Object o1 = i1.hasNext() ? i1.next() : null;
+            Object o2 = i2.next();
+
+            if (o2 == null) {
+                writer.println("null");
+            } else if (o1 == null) {
+                serializeObject(o2, writer);
+            } else if (o2.getClass().isArray()) {
+                diffArrays(null, o1, o2, writer);
+            } else if (o2 instanceof Reflector) {
+                writer.println(getCanonicalName(o2.getClass()) + " {");
+                writer.push();
+                ((Reflector) o1).diff((Reflector)o2, writer);
+                writer.pop();
+                writer.println("}");
+            } else {
+                serializeObject(o2, writer);
+            }
+        }
+
+        writer.pop();
+        writer.println("}");
+    }
+
+    private static final void diffArrays(String name, Object array1, Object array2, MyPrintWriter writer) throws Exception {
+        if (isArraysEqual(array1, array2))
+            return;
+        int len1 = Array.getLength(array1);
+        int len2 = Array.getLength(array2);
+        writer.println((name != null ? (name+"=") : "")+array2.getClass().getComponentType().getName().replace('$', '.') + " " + len2 + " {");
+        writer.push();
+        for (int i=0; i<len2; i++) {
+            Object o1 = i<len1 ? Array.get(array1, i) : null;
+            Object o2 = Array.get(array2, i);
+            if (o2 == null) {
+                writer.println("null");
+            } else if (o2 instanceof Reflector) {
+                writer.println(getCanonicalName(o2.getClass()) + " {");
+                if (o1 == null)
+                    serializeObject(o2, writer, true);
+                else {
+                    writer.push();
+                    ((Reflector) o1).diff((Reflector) o2, writer);
+                    writer.pop();
+                    writer.println("}");
+                }
+            } else {
+                Archiver a = getArchiverForType(o2.getClass());
+                a.serializeArray(array2, writer);
+                break;
+            }
+        }
+        writer.pop();
+        writer.println("}");
+
     }
 
     private int __reflector_version = getMinVersion();

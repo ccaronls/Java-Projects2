@@ -376,7 +376,7 @@ public class GUI implements ActionListener, MenuItem.Action {
 
     private final Map<Integer, String> stringTable;
 
-	public GUI(EZFrame frame, final UIProperties props) throws IOException {
+	public GUI(final EZFrame frame, final UIProperties props) throws IOException {
 		this.frame = frame;
 		this.props = props;
 		this.stringTable = Utils.buildStringsTable(R.string.class, "../SOCAndroid/res/values/strings.xml");
@@ -726,6 +726,14 @@ public class GUI implements ActionListener, MenuItem.Action {
                 return getProps().getBooleanProperty(PROP_AI_TUNING_ENABLED, false);
             }
 
+            @Override
+            protected String showChoicePopup(String title, List<String> choices) {
+                int index = frame.showItemChooserDialog(title, "If you cancel from this dialog you will be disconnected from game", choices.toArray(new String[choices.size()]));
+                if (index >= 0) {
+                    return choices.get(index);
+                }
+                return null;
+            }
         };
 		
 		String boardFilename = props.getProperty("gui.defaultBoardFilename", "soc_def_board.txt");
@@ -1685,6 +1693,9 @@ public class GUI implements ActionListener, MenuItem.Action {
         } else if (op == RESET_BOARD_ISLANDS) {
             getBoard().clearIslands();
         } else if (op == NEW_GAME) {
+            Board b = soc.getBoard();
+            b.tryRefreshFromFile();
+            soc.initGame();
             menuStack.push(MenuState.MENU_GAME_SETUP);
             menuStack.push(MenuState.MENU_CHOOSE_COLOR);
             menuStack.push(MenuState.MENU_CHOOSE_NUM_PLAYERS);
@@ -1712,9 +1723,6 @@ public class GUI implements ActionListener, MenuItem.Action {
             initMenu();
         } else if (op == CHOOSE_COLOR) {
             // reload the board
-            Board b = soc.getBoard();
-            b.tryRefreshFromFile();
-            soc.initGame();
             setPlayerColor((GColor) extra);
             menuStack.pop();
             initMenu();

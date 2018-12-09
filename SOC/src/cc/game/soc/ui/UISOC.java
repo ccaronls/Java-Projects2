@@ -1,5 +1,6 @@
 package cc.game.soc.ui;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -42,13 +43,14 @@ import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
 import cc.lib.math.Vector2D;
 import cc.lib.net.ClientConnection;
+import cc.lib.net.GameCommand;
 import cc.lib.net.GameServer;
 
 /**
  * Created by chriscaron on 2/22/18.
  */
 
-public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.Listener {
+public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.Listener, ClientConnection.Listener {
 
     private static Logger log = LoggerFactory.getLogger(UISOC.class);
 
@@ -106,6 +108,30 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
 
     public final boolean isRunning() {
         return running;
+    }
+
+    private SOC copy = null;
+
+    @Override
+    public void runGame() {
+        if (server.isConnected()) {
+            if (copy == null) {
+                SOC copy = new SOC();
+                copy.copyFrom(this);
+            }
+            super.runGame();
+            try {
+                String diff = copy.diff(this);
+                if (!diff.isEmpty()) {
+                    server.broadcastCommand(new GameCommand(NetCommon.SVR_TO_CL_UPDATE).setArg("soc", diff));
+                    copy.deserialize(diff);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } else {
+            super.runGame();
+        }
     }
 
     public final MoveType chooseMoveMenu(Collection<MoveType> moves) {
@@ -579,6 +605,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
         log.debug("Entering thread");
         assert(!running);
         running = true;
+        copy = null;
         UIDiceRenderer r = getDiceRenderer();
         r.setDice(getDice());
         eventCardRenderer.setEventCard(getTopEventCard());
@@ -1200,24 +1227,44 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
 
     @Override
     public void onConnected(ClientConnection conn) {
+        UIPlayer player = null;
         for (Player p : getPlayers()) {
             if (!(p instanceof UIPlayerUser)) {
                 UIPlayer uip = (UIPlayer)p;
                 if (uip.connection == null) {
                     uip.connect(conn);
-                    return;
+                    player = uip;
+                    break;
                 }
             }
         }
-        if (isRunning()) {
-            conn.disconnect(getString(R.string.mp_info_game_full));
-        } else if (getNumPlayers() >= getRules().getMaxPlayers()) {
-            conn.disconnect(getString(R.string.mp_info_game_full));
-        } else {
-            // made it here so it means we were not able to assign, so add a new player!
-            UIPlayer player = new UIPlayer();
-            player.connect(conn);
-            addPlayer(player);
+        if (player == null) {
+            if (isRunning()) {
+                conn.disconnect(getString(R.string.mp_info_game_full));
+            } else if (getNumPlayers() >= getRules().getMaxPlayers()) {
+                conn.disconnect(getString(R.string.mp_info_game_full));
+            } else {
+                // made it here so it means we were not able to assign, so add a new player!
+                player = new UIPlayer();
+                player.setColor(getAvailableColors().values().iterator().next());
+                player.connect(conn);
+                addPlayer(player);
+            }
+        }
+
+        if (player != null) {
+            conn.addListener(this);
+
+            List<String> colors = new ArrayList<>();
+            colors.addAll(getAvailableColors().keySet());
+            try {
+                conn.sendCommand(new GameCommand(NetCommon.SVR_TO_CL_INIT)
+                        .setArg("playerNum", player.getPlayerNum())
+                        .setArg("soc", toString()))
+                        ;
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
             printinfo(0, getString(R.string.mp_info_player_has_joined, conn.getName()));
         }
     }
@@ -1230,6 +1277,15 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
     @Override
     public void onClientDisconnected(ClientConnection conn) {
         printinfo(0, getString(R.string.mp_info_player_has_disconnected, conn.getName()));
+    }
+
+    @Override
+    public void onCommand(ClientConnection c, GameCommand cmd) {
+    }
+
+    @Override
+    public void onDisconnected(ClientConnection c, String reason) {
+
     }
 
     /**
@@ -1245,18 +1301,28 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
         return false;
     }
 
-    public Map<GColor, String> getAvailableColors() {
-        HashMap<GColor, String> colors = new HashMap<>();
-        colors.put(GColor.RED, "RED");
-        colors.put(GColor.GREEN, "GREEN");
-        colors.put(GColor.BLUE.lightened(.2f), "BLUE");
-        colors.put(GColor.YELLOW, "YELLOW");
-        colors.put(GColor.ORANGE, "ORANGE");
-        colors.put(GColor.PINK, "PINK");
+    public Map<String, GColor> getAllColors() {
+        HashMap<String, GColor> colors = new HashMap<>();
+        colors.put("RED", GColor.RED);
+        colors.put("GREEN", GColor.GREEN);
+        colors.put("BLUE", GColor.BLUE.lightened(.2f));
+        colors.put("YELLOW", GColor.YELLOW);
+        colors.put("ORANGE", GColor.ORANGE);
+        colors.put("PINK", GColor.PINK);
+        return colors;
+    }
+
+    public Map<String, GColor> getAvailableColors() {
+        Map<String, GColor> colors = getAllColors();
 
         for (int i=0; i<getNumPlayers(); i++) {
             GColor color = getPlayerColor(i);
-            colors.remove(color);
+            for (Map.Entry<String, GColor> e : colors.entrySet()) {
+                if (e.getValue().equals(color)) {
+                    colors.remove(e.getKey());
+                    break;
+                }
+            }
         }
 
         return colors;
