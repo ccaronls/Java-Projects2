@@ -6,7 +6,6 @@ import java.util.Collection;
 import cc.game.soc.core.Card;
 import cc.game.soc.core.Dice;
 import cc.game.soc.core.MoveType;
-import cc.game.soc.core.Player;
 import cc.game.soc.core.SOC;
 import cc.game.soc.core.Trade;
 import cc.lib.annotation.Keep;
@@ -136,25 +135,6 @@ public final class UIPlayerUser extends UIPlayer implements GameClient.Listener 
 
     @Override
     public void onCommand(GameCommand cmd) {
-        try {
-
-            if (cmd.getType().equals(NetCommon.SVR_TO_CL_INIT)) {
-                UISOC soc = UISOC.getInstance();
-                soc.deserialize(cmd.getArg("soc"));
-                int playerNum = cmd.getInt("playerNum");
-                Player p = soc.getPlayerByPlayerNum(playerNum);
-                //KEEP_INSTANCES = true;
-                copyFrom(p);
-                soc.setPlayer(this, playerNum);
-                soc.redraw();
-            } else if (cmd.getType().equals(NetCommon.SVR_TO_CL_UPDATE)) {
-                UISOC.getInstance().mergeDiff(cmd.getArg("soc"));
-                UISOC.getInstance().redraw();
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
 
     }
 

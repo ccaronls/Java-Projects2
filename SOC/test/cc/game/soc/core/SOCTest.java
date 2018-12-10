@@ -4,10 +4,12 @@ import junit.framework.TestCase;
 
 import java.io.File;
 import java.io.FileWriter;
+import java.lang.reflect.Method;
 
 import cc.game.soc.ui.UIPlayer;
 import cc.lib.game.GColor;
 import cc.lib.game.Utils;
+import cc.lib.net.GameClient;
 import cc.lib.utils.Profiler;
 import cc.lib.utils.Reflector;
 
@@ -303,5 +305,37 @@ public class SOCTest extends TestCase {
 
         System.out.println("num packets=" + packets + " Avg packet size: " + ((double)bytesDiffed/packets));
 
+    }
+
+    public void testMethodMatching() throws Exception {
+
+	    SOC soc = new SOC();
+
+	    Method m = GameClient.searchMethods(soc, "onVertexChosen",
+                new Class[] { Integer.class, Player.VertexChoice.class, Integer.class, null},
+                new Object[] { new Integer(0), Player.VertexChoice.CITY, null }
+        );
+
+	    Dice [] dice = {
+	            new Dice(1, DiceType.WhiteBlack),
+                new Dice(2, DiceType.RedYellow)
+        };
+	    m = GameClient.searchMethods(soc, "onDiceRolled", new Class[] {
+	            Dice[].class }, new Object[] { dice }
+        );
+    }
+
+    public void testIsSubclassAnnonymos() throws Exception {
+	    SOC soc = new SOC();
+
+	    SOC annon = new SOC() {
+            @Override
+            public String getString(int resourceId, Object... args) {
+                return "";
+            }
+        };
+
+	    boolean isSubclass = Reflector.isSubclassOf(annon.getClass(), soc.getClass()
+        );
     }
 }

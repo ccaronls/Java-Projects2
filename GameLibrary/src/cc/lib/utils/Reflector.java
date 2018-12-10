@@ -476,6 +476,9 @@ public class Reflector<T> {
         if ((name = caconicalNameCash.get(clazz)) != null) {
             return name;
         }
+        if (clazz.isAnonymousClass()) {
+            clazz = clazz.getSuperclass();
+        }
         name = clazz.getCanonicalName();
         caconicalNameCash.put(clazz, name);
         return name;
@@ -969,6 +972,8 @@ public class Reflector<T> {
     	String nm = clazz.getName();
     	if (classMap.containsKey(nm))
     		return;
+    	classMap.put(nm, clazz);
+    	classMap.put(nm.replace('$', '.'), clazz);
     	String nm2 = nm;
     	int lBrack = nm.lastIndexOf('[');
     	if (lBrack > 0) {
@@ -1105,6 +1110,9 @@ public class Reflector<T> {
                     continue;
                 if (!Modifier.isStatic(f.getModifiers()))
                     addField(clazz, f.getName());
+            }
+            for (Class e : clazz.getClasses()) {
+                addArrayTypes(e); // add enclosed classes
             }
         } catch (Exception e) {
             throw new RuntimeException("Failed to add all fields", e);
@@ -2053,4 +2061,10 @@ public class Reflector<T> {
         return 0;
     }
 
+    public static void dump() {
+        log.info("classMap=" + classMap.toString().replace(',', '\n'));
+        log.info("classValues=" + classValues.toString().replace(',', '\n'));
+        log.info("canonicalNameCash=" + caconicalNameCash.toString().replace(',', '\n'));
+
+    }
 }

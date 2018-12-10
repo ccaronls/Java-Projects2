@@ -655,8 +655,23 @@ public class ReflectorTest extends TestCase {
         assertEquals(a, b);
     }
 
+    public void testDeserializeEnclosedEnum() throws Exception {
+
+        SimpleObject a = new SimpleObject();
+        a.myEnum2 = SimpleObject.MyEnum.A;
+        String s = a.toString();
+        System.out.println("s="+s);
+
+
+        SimpleObject b = new SimpleObject();
+        b.deserialize(s);
+    }
 
     static class SimpleObject extends Reflector<SimpleObject> {
+
+        public enum MyEnum {
+            A, B, C
+        }
 
         static {
             addAllFields(SimpleObject.class);
@@ -668,6 +683,7 @@ public class ReflectorTest extends TestCase {
         double myDouble = 0.23498752083475;
         SomeEnum myEnum;
         SomeEnum [] myEnumArray;
+        MyEnum myEnum2;
         List<Integer> myIntList = null;
 
         SimpleObject myObj = null;

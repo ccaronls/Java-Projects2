@@ -31,7 +31,7 @@ import cc.lib.utils.Reflector;
  */
 public class GameClient {
 
-    protected final Logger log = LoggerFactory.getLogger(getClass());
+    protected final static Logger log = LoggerFactory.getLogger(GameClient.class);
 
     private enum State {
         READY, // connect not called
@@ -509,13 +509,14 @@ public class GameClient {
 
     private final Map<String, Method> methodMap = new HashMap<>();
 
-    private Method searchMethods(Object execObj, String method, Class [] types, Object [] params) throws Exception {
+    public static Method searchMethods(Object execObj, String method, Class [] types, Object [] params) throws Exception {
         Class clazz = execObj.getClass();
         while (clazz!= null && !clazz.equals(Object.class)) {
             for (Method m : clazz.getDeclaredMethods()) {
                 m.setAccessible(true);
                 if (!m.getName().equals(method))
                     continue;
+                log.debug("testMethod:" + m.getName() + " with params:" + Arrays.toString(m.getParameterTypes()));
                 Class[] paramTypes = m.getParameterTypes();
                 if (paramTypes.length != types.length)
                     continue;
@@ -531,7 +532,7 @@ public class GameClient {
             }
             clazz = clazz.getSuperclass();
         }
-        throw new Exception("Failed to match method '" + method + "'");
+        throw new Exception("Failed to match method '" + method + "' types: " + Arrays.toString(types));
     }
 
     private final static Map<Class, List> primitiveCompatibilityMap = new HashMap<>();
@@ -553,9 +554,9 @@ public class GameClient {
 
     }
 
-    private boolean isCompatiblePrimitives(Class a, Class b) {
+    private static boolean isCompatiblePrimitives(Class a, Class b) {
         if (primitiveCompatibilityMap.containsKey(a))
-            return primitiveCompatibilityMap.get(a).contains(b);
+            return b ==null || primitiveCompatibilityMap.get(a).contains(b);
         return false;
     }
 

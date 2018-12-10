@@ -40,6 +40,8 @@ import cc.lib.android.*;
 import cc.lib.game.GColor;
 import cc.lib.game.Utils;
 import cc.lib.net.ClientConnection;
+import cc.lib.net.GameClient;
+import cc.lib.net.GameCommand;
 import cc.lib.net.GameServer;
 import cc.lib.utils.FileUtils;
 
@@ -47,7 +49,7 @@ import cc.lib.utils.FileUtils;
  * Created by chriscaron on 2/15/18.
  */
 
-public class SOCActivity extends CCActivityBase implements MenuItem.Action, View.OnClickListener, GameServer.Listener {
+public class SOCActivity extends CCActivityBase implements MenuItem.Action, View.OnClickListener, GameServer.Listener, GameClient.Listener {
 
     UISOC soc = null;
     File rulesFile;
@@ -518,15 +520,60 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
 
     void showJoinMultiPlayerDialog() {
         user.client.register(NetCommon.SOC_ID, UISOC.getInstance());
-        user.client.register(NetCommon.USER_ID, this);
+        user.client.register(NetCommon.USER_ID, user);
 
         mpGame = new MPGameManager(this, user.client, NetCommon.PORT, "soc") {
             @Override
             public void onAllClientsJoined() {
-                initGame();
+//                initGame();
             }
         };
         mpGame.showJoinGameDialog();
+        user.client.addListener(this);
+    }
+
+    @Override
+    public void onCommand(GameCommand cmd) {
+        try {
+
+            if (cmd.getType().equals(NetCommon.SVR_TO_CL_INIT)) {
+                final UISOC soc = UISOC.getInstance();
+                soc.deserialize(cmd.getArg("soc"));
+                int playerNum = cmd.getInt("playerNum");
+                Player p = soc.getPlayerByPlayerNum(playerNum);
+                //KEEP_INSTANCES = true;
+                user.copyFrom(p);
+                soc.setPlayer(user, playerNum);
+                runOnUiThread(new Runnable() {
+                    public void run() {
+                        initGame();
+                        soc.redraw();
+                    }
+                });
+            } else if (cmd.getType().equals(NetCommon.SVR_TO_CL_UPDATE)) {
+                UISOC.getInstance().mergeDiff(cmd.getArg("soc"));
+                UISOC.getInstance().redraw();
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    @Override
+    public void onMessage(String msg) {
+
+    }
+
+    @Override
+    public void onDisconnected(String reason) {
+
+    }
+
+    @Override
+    public void onConnected() {
+
     }
 
     void showHostMultiPlayerDialog() {
@@ -693,7 +740,11 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
         }
 
         soc.clearMenu();
-        soc.addMenuItem(START);
+        if (user.client.isConnected()) {
+            soc.clearMenu();
+            vBoard.renderer.clearCached();
+        } else
+            soc.addMenuItem(START);
         soc.completeMenu();
         vBarbarian.setVisibility(soc.getRules().isEnableCitiesAndKnightsExpansion() ? View.VISIBLE  : View.GONE);
         if (soc.getRules().isEnableEventCards()) {
