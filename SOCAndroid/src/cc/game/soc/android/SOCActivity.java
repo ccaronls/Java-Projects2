@@ -594,6 +594,11 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
                         user.setColor(colors[which]);
                         soc.clear();
                         soc.addPlayer(user);
+                        while (soc.getNumPlayers() < numPlayers) {
+                            UIPlayer p = new UIPlayer();
+                            p.setColor(soc.getAvailableColors().entrySet().iterator().next().getValue());
+                            soc.addPlayer(p);
+                        }
                         mpGame = new MPGameManager(SOCActivity.this, soc.server, numPlayers-1) {
                             @Override
                             public void onAllClientsJoined() {

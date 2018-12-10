@@ -217,8 +217,12 @@ public abstract class MPGameManager {
 
                 if (server.getNumConnectedClients() == maxClients) {
                     server.removeListener(this);
-                    d.dismiss();
-                    onAllClientsJoined();
+                    activity.runOnUiThread(new Runnable() {
+                        public void run() {
+                            d.dismiss();
+                            onAllClientsJoined();
+                        }
+                    });
                 } else {
                     int num = maxClients - server.getNumConnectedClients();
                     server.broadcastMessage("Waiting for " + num + " more players");//getString(R.string.server_broadcast_waiting_for_n_more_players, num));

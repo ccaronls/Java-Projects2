@@ -1,6 +1,5 @@
 package cc.game.soc.ui;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -116,7 +115,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
     public void runGame() {
         if (server.isConnected()) {
             if (copy == null) {
-                SOC copy = new SOC();
+                copy = new SOC();
                 copy.copyFrom(this);
             }
             super.runGame();
@@ -1234,7 +1233,9 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
                 if (uip.connection == null) {
                     uip.connect(conn);
                     player = uip;
-                    break;
+                } else {
+                    if (uip.connection.isConnected() && uip.connection.getName().equals(conn.getName()))
+                        return; // already connected
                 }
             }
         }
@@ -1254,9 +1255,6 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
 
         if (player != null) {
             conn.addListener(this);
-
-            List<String> colors = new ArrayList<>();
-            colors.addAll(getAvailableColors().keySet());
             try {
                 conn.sendCommand(new GameCommand(NetCommon.SVR_TO_CL_INIT)
                         .setArg("playerNum", player.getPlayerNum())
@@ -1267,6 +1265,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
             }
             printinfo(0, getString(R.string.mp_info_player_has_joined, conn.getName()));
         }
+
     }
 
     @Override
