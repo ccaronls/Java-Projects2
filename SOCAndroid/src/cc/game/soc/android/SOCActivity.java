@@ -226,13 +226,14 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
                             svPlayers.smoothScrollTo(0, vPlayers[soc.getCurPlayerNum() - 1].getTop());
                             //content.invalidate();
                             //vConsole.requestLayout();
-                            vConsole.invalidate();
+                            vConsole.redraw();
                             for (final SOCView v : vPlayers) {
                                 //v.requestLayout();
-                                v.invalidate();
+                                v.redraw();
                             }
-                            vBarbarian.invalidate();
+                            vBarbarian.redraw();
                             tvHelpText.setText(getHelpText());
+                            vBoard.redraw();
                         }
                     });
                 }
@@ -538,12 +539,18 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
 
             if (cmd.getType().equals(NetCommon.SVR_TO_CL_INIT)) {
                 final UISOC soc = UISOC.getInstance();
-                soc.deserialize(cmd.getArg("soc"));
+                soc.clear();
+                int num = cmd.getInt("numPlayers");
                 int playerNum = cmd.getInt("playerNum");
-                Player p = soc.getPlayerByPlayerNum(playerNum);
-                //KEEP_INSTANCES = true;
-                user.copyFrom(p);
-                soc.setPlayer(user, playerNum);
+                for (int i=0; i<playerNum-1; i++) {
+                    soc.addPlayer(new UIPlayer());
+                }
+                soc.addPlayer(user);
+                for (int i=playerNum; i<num; i++) {
+                    soc.addPlayer(new UIPlayer());
+                }
+
+                soc.mergeDiff(cmd.getArg("soc"));
                 runOnUiThread(new Runnable() {
                     public void run() {
                         initGame();

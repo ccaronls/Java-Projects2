@@ -1257,6 +1257,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
             conn.addListener(this);
             try {
                 conn.sendCommand(new GameCommand(NetCommon.SVR_TO_CL_INIT)
+                        .setArg("numPlayers", getNumPlayers())
                         .setArg("playerNum", player.getPlayerNum())
                         .setArg("soc", toString()))
                         ;
