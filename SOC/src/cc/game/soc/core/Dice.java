@@ -11,6 +11,7 @@ public final class Dice extends Reflector<Dice> {
 	
 	private int num = 0;
 	private DiceType type = DiceType.WhiteBlack;
+	private boolean userSet = false;
 	
 	public Dice() {}
 
@@ -27,11 +28,16 @@ public final class Dice extends Reflector<Dice> {
 		return num;
 	}
 	
-	public final void setNum(int num) {
+	public final void setNum(int num, boolean userSet) {
 		this.num = num;
+		this.userSet = userSet;
 	}
-	
-	public final DiceType getType() {
+
+    public boolean isUserSet() {
+        return userSet;
+    }
+
+    public final DiceType getType() {
 		return type;
 	}
 	

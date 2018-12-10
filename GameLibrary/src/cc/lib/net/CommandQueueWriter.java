@@ -4,6 +4,7 @@ import java.io.DataOutputStream;
 import java.util.LinkedList;
 import java.util.Queue;
 
+import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
 
@@ -51,7 +52,7 @@ class CommandQueueWriter {
                                         queue.wait();
                                 }
                             }
-                            log.debug("Wake up");
+                            //log.debug("Wake up");
                             
                             if (queue.isEmpty()) {
                                 log.debug("Q empty");
@@ -74,6 +75,7 @@ class CommandQueueWriter {
                                 System.err.println("Problem sending command: " + cmd);
                                 e.printStackTrace();
                             }
+                            Utils.waitNoThrow(this, 500);
                         }
                     }
                     // signal waiting stop() call that we done.

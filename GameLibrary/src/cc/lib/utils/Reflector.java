@@ -1916,9 +1916,6 @@ public class Reflector<T> {
     public final String diff(Reflector<T> other) throws Exception {
         if (other == null)
             throw new NullPointerException("Reflector.diff - other cannot be null");
-        if (!getClass().equals(other.getClass()))
-            if (isSubclassOf(other.getClass(), getClass()))
-                throw new Exception("Cannot diff a subclass of another class");
 
         StringWriter out = new StringWriter();
         MyPrintWriter writer = new MyPrintWriter(out);
@@ -1932,8 +1929,13 @@ public class Reflector<T> {
         if (other.getMinVersion() < getMinVersion())
             throw new VersionTooOldException(getMinVersion(), other.getMinVersion());
 
-
-        Map<Field, Archiver> values = getValues(getClass(), false);
+        Map<Field, Archiver> values = null;
+        if (isSubclassOf(other.getClass(), getClass()))
+            values = getValues(other.getClass(), false);
+        else if (isSubclassOf(getClass(), other.getClass()))
+            values = getValues(getClass(), false);
+        else
+            throw new Exception("Classes " + getClass() + " and " + other.getClass() + " are not related");
 
         for (Field field : values.keySet()) {
             Archiver archiver = values.get(field);

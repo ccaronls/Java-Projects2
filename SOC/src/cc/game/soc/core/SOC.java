@@ -1016,8 +1016,8 @@ public class SOC extends Reflector<SOC> implements StringResource {
         }
     }
 
-    private void onDiceRolledPrivate(Dice... dice) {
-        onDiceRolled(dice);
+    private void onDiceRolledPrivate(Dice ... dice) {
+        onDiceRolled(Arrays.asList(dice));
         String rolled = "";
         for (Dice d : dice) {
             if (d == null)
@@ -1045,7 +1045,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
      *
      * @param dice
      */
-    protected void onDiceRolled(Dice... dice) {
+    protected void onDiceRolled(List<Dice> dice) {
     }
 
     /**
@@ -3115,7 +3115,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
                     yr.setNum(Utils.clamp(yr.getNum(), 1, 6));
                     ev.roll();
                     popState();
-                    onDiceRolledPrivate(null, null, ev);
+                    onDiceRolledPrivate(ry, yr, ev);
                     printinfo(getString(R.string.info_player_applied_alchemist_on_die_n_n_x, getCurPlayer().getName(), ry.getNum(), yr.getNum(), DiceEvent.fromDieNum(ev.getNum()).getName(this)));
                     processDice();
                 }
