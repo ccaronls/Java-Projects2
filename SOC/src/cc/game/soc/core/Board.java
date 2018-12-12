@@ -925,11 +925,17 @@ public class Board extends Reflector<Board> {
 		verts.clear();
 		tiles.clear();
 		islands.clear();
-		name = "";
 		robberTile = -1;
 		pirateTile = -1;
 		cw = ch = 0;
 		clearRoutes();
+		displayName = "";
+		distancesCache.clear();
+		merchantPlayer = -1;
+		merchantTile = -1;
+		name = "";
+		numAvaialbleVerts = -1;
+		pirateRouteStartTile = -1;
 	}
 	
 	/**
@@ -1214,6 +1220,7 @@ public class Board extends Reflector<Board> {
     			case HILLS:
     			case MOUNTAINS:
     				if (cell.getDieNum() == 0) {
+    				    Utils.assertTrue(dieRolls[curDieRoll] > 0);
     					cell.setDieNum(dieRolls[curDieRoll]);
     					curDieRoll = (curDieRoll + 1) % dieRolls.length;
     				}
@@ -2630,8 +2637,7 @@ public class Board extends Reflector<Board> {
 		for (int k=0; k<numV; k++) {
 			for (int i=0; i<numV; i++) {
 				for (int j=0; j<numV; j++) {
-					int sum = distLand[i][k] + distLand[k][j];
-					Utils.assertTrue(sum < IDistances.DISTANCE_INFINITY);
+					int sum = Math.max(IDistances.DISTANCE_INFINITY, distLand[i][k] + distLand[k][j]);
 					if (sum < distLand[i][j]) {
 						distLand[i][j] = (byte)sum;
 						nextLand[i][j] = nextLand[i][k];

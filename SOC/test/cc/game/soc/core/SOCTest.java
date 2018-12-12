@@ -2,11 +2,17 @@ package cc.game.soc.core;
 
 import junit.framework.TestCase;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileWriter;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 
+import cc.game.soc.ui.NetCommon;
 import cc.game.soc.ui.UIPlayer;
+import cc.lib.crypt.EncryptionOutputStream;
+import cc.lib.crypt.HuffmanEncoding;
 import cc.lib.game.GColor;
 import cc.lib.game.Utils;
 import cc.lib.net.GameClient;
@@ -26,11 +32,12 @@ public class SOCTest extends TestCase {
 
 	@Override
     protected void setUp() throws Exception {
-	    System.out.println("Begin TEST: " + getName());
+	    System.out.println("Begin TEST: " + getName() + " working dir=" + new File(".").getAbsolutePath());
         System.out.println("----------------------------------------------");
         Profiler.ENABLED = true;
         PlayerBot.DEBUG_ENABLED = true;
         Utils.DEBUG_ENABLED = true;
+        Utils.setRandomSeed(999);
         startTimeMs = System.currentTimeMillis();
     }
 
@@ -113,22 +120,44 @@ public class SOCTest extends TestCase {
             }
         };
 
-        File dir = new File("../SOCAndroid/assets/scenarios");
+        File dir = new File("assets/scenarios");
         File [] files = dir.listFiles();
-        for (File scenario : files) {
-            soc.loadFromFile(scenario);
 
-            for (int i=0; i<3; i++)
-                soc.addPlayer(new PlayerBot());
+        List<String> passedFiles = new ArrayList<>();
 
-            soc.initGame();
-            for (int i=0; i<100000 && !soc.isGameOver(); i++)
-                soc.runGame();
+        try {
+            int iteration = 0;
+            for (File scenario : files) {
+                try {
+                    //if (!scenario.getName().toLowerCase().equals("the fog islands 4 players.txt"))
+                    //    continue;
+                    soc.loadFromFile(scenario);
 
-            assertTrue(soc.isGameOver());
-            soc.clear();
+                    for (int i = 0; i < 3; i++)
+                        soc.addPlayer(new PlayerBot());
+
+                    soc.initGame();
+                    for (iteration = 0; iteration < 20000 && !soc.isGameOver(); iteration++) {
+                        System.out.print("ITER(" + iteration + ")");
+                        soc.runGame();
+                    }
+
+                    System.out.println("Player 1: " + soc.getPlayerByPlayerNum(1));
+                    System.out.println("Player 2: " + soc.getPlayerByPlayerNum(2));
+                    System.out.println("Player 3: " + soc.getPlayerByPlayerNum(3));
+
+                    assertTrue(soc.isGameOver());
+                    soc.clear();
+                    soc.getBoard().clear();
+                    passedFiles.add(scenario.getAbsolutePath());
+                } catch (Throwable t) {
+                    System.err.println("TEST Failed iteration (" + iteration + ") in file: " + scenario);
+                    throw t;
+                }
+            }
+        } finally {
+            System.out.println("Passed Files:\n" + passedFiles);
         }
-
     }
     
 	public void testRestoreGame() throws Exception {
@@ -286,8 +315,15 @@ public class SOCTest extends TestCase {
         soc.initGame();
         copy.copyFrom(soc);
 
+        long undiffedBytes = 0;
         long bytesDiffed = 0;
+        long compressBytesDiffed = 0;
         int packets = 0;
+
+        ByteArrayOutputStream b = new ByteArrayOutputStream();
+        EncryptionOutputStream out = new EncryptionOutputStream(b, NetCommon.getCypher());
+        HuffmanEncoding enc = new HuffmanEncoding();
+
         for (int i=0; i<10000; i++) {
             if (soc.isGameOver())
                 break;
@@ -296,14 +332,21 @@ public class SOCTest extends TestCase {
             packets++;
             //bytesDiffed += soc.toString().length(); <--- This way averages 70K!!!
 
+            undiffedBytes += soc.toString().length();
             String diff = copy.diff(soc);
+            enc.importCounts(diff);
             bytesDiffed += diff.length(); // <--- This way averages 4K. We can get that down if we can omit state/dice state etc.
+            out.write(diff.getBytes());
+            compressBytesDiffed += b.size();
+            b.reset();
             copy.mergeDiff(diff);
             //assertEquals(copy.toString(), soc.toString());
             //assertTrue(copy.deepEquals(soc));
         }
 
-        System.out.println("num packets=" + packets + " Avg packet size: " + ((double)bytesDiffed/packets));
+        enc.printEncodingAsCode(System.out);
+
+        System.out.println("num packets=" + packets + "\n  Avg undiffed packet size: " + ((double)undiffedBytes/packets) + "\n  Avg diff packet size: " + ((double)bytesDiffed/packets) + "\n  Avg diff compress size: " + ((double)compressBytesDiffed/packets));
 
     }
 
@@ -338,4 +381,5 @@ public class SOCTest extends TestCase {
 	    boolean isSubclass = Reflector.isSubclassOf(annon.getClass(), soc.getClass()
         );
     }
+
 }

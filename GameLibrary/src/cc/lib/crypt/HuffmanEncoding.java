@@ -34,7 +34,7 @@ public class HuffmanEncoding implements Cypher {
     private class ByteCode implements Comparable<ByteCode> {
         
         private int c;
-        private int occurances = 0;
+        private long occurances = 0;
         private ByteCode left, right, parent;
         
         ByteCode(int c) {
@@ -101,7 +101,7 @@ public class HuffmanEncoding implements Cypher {
             occurances = occurance;
         }
         
-        int getOccurances() {
+        long getOccurances() {
             return occurances;
         }
         
@@ -174,8 +174,8 @@ public class HuffmanEncoding implements Cypher {
         }
     }
 
-    int [] getCounts() {
-        int [] out = new int[COUNTS_ARRAY_SIZE];
+    long [] getCounts() {
+        long [] out = new long[COUNTS_ARRAY_SIZE];
         for (int i=0; i<this.counts.length; i++) {
             out[i] = counts[i].occurances;
         }

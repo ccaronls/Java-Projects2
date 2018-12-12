@@ -2,6 +2,12 @@ package cc.lib.utils;
 
 import cc.lib.game.Utils;
 
+/**
+ * A grid is a 2D array of generic type with methods to perform operations
+ * On its elements as well as the size of the grid
+ *
+ * @param <T>
+ */
 public abstract class Grid<T extends Comparable<T>> {
 
     // row major
@@ -17,7 +23,7 @@ public abstract class Grid<T extends Comparable<T>> {
 
     public void ensureCapacity(int rows, int cols, T fillValue) {
         if (rows<=0 || cols<=0)
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("Grid cannot have 0 rows or columns");
         if (getRows() >= rows && getCols() >= cols)
             return;
         T [][] newGrid = build(Math.max(getRows(), rows), Math.max(getCols(), cols));
@@ -89,6 +95,9 @@ public abstract class Grid<T extends Comparable<T>> {
     }
 
     public void setGrid(T [][] grid) {
+        if (grid != null && (grid.length == 0 || grid[0].length == 0)) {
+            throw new IllegalArgumentException("Supplied grid has 0 length rows or columns");
+        }
         this.grid = grid;
     }
 
@@ -96,6 +105,13 @@ public abstract class Grid<T extends Comparable<T>> {
         grid = null;
     }
 
+    /**
+     * Rebuild the brid with the given size and with the given initial value
+     *
+     * @param rows
+     * @param cols
+     * @param filler
+     */
     public void init(int rows, int cols, T filler) {
         grid = build(rows, cols);
         fill(grid, filler);

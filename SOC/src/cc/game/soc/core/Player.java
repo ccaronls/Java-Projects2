@@ -34,7 +34,7 @@ public abstract class Player extends Reflector<Player> {
 	Player(int playerNum) {
 	    setPlayerNum(playerNum);
 	}
-	
+	/*
 	@Override
     public final String toString() {
         StringBuffer buf = new StringBuffer();
@@ -45,7 +45,7 @@ public abstract class Player extends Reflector<Player> {
         buf.append(" roadLen:").append(roadLength);
         buf.append(" points:").append(points);
         buf.append(" harbor pts:").append(harborPoints);
-        buf.append(" num discovered territories").append(numDiscoveredTerritories);
+        buf.append(" num discovered territories:").append(numDiscoveredTerritories);
         for (DevelopmentArea area : DevelopmentArea.values()) {
         	if (cityDevelopment[area.ordinal()] > 0) {
         		buf.append(" " + area.name() + ":").append(cityDevelopment[area.ordinal()]);
@@ -55,7 +55,7 @@ public abstract class Player extends Reflector<Player> {
         	buf.append(" merchantFleet:" + merchantFleetTradable);
         }
         return buf.toString();
-    }
+    }*/
     
 	/**
 	 * set all un-usable cards to usable or usabel cards to unusable 
@@ -155,7 +155,7 @@ public abstract class Player extends Reflector<Player> {
 	/**
 	 * 
 	 */
-	public final void reset() {
+	public void reset() {
 	    synchronized (cards) {
             cards.clear();
         }
@@ -304,6 +304,15 @@ public abstract class Player extends Reflector<Player> {
         }
 		return num;
 	}
+
+	public List<Card> getGiftableCards() {
+	    List<Card> giftable = new ArrayList<>();
+	    giftable.addAll(getCards(CardType.Commodity));
+        giftable.addAll(getCards(CardType.Progress));
+        giftable.addAll(getCards(CardType.Resource));
+        giftable.addAll(getCards(CardType.Development));
+        return giftable;
+    }
 
 	/**
 	 * 

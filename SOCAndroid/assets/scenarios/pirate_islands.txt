@@ -7148,30 +7148,3 @@ mRules=cc.game.soc.core.Rules {
    pointsPerMetropolis=4
    pointsPerSettlement=1
 }
-mMetropolisPlayer=int 3 {
-   0 0 0 
-}
-mPlayers=cc.game.soc.core.Player 8 {
-   null
-   null
-   null
-   null
-   null
-   null
-   null
-   null
-}
-mProgressCards=null
-mDevelopmentCards=java.util.ArrayList {
-}
-mDice=java.util.LinkedList {
-}
-mDiceConfigStack=java.util.Stack {
-   cc.game.soc.core.DiceType 2 {
-      RedYellow Event 
-   }
-}
-mEventCards=java.util.ArrayList {
-}
-mStateStack=java.util.Stack {
-}

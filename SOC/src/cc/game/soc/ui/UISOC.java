@@ -590,7 +590,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
         int [] result = (int[])waitForReturnValue(null);
         if (result != null) {
             for (int i=0; i<result.length; i++) {
-                die[i].setNum(result[i]);
+                die[i].setNum(result[i], true);
             }
             r.setPickableDice(0);
             return true;

@@ -1,7 +1,5 @@
 package cc.game.soc.core;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.Map;
 
 import cc.lib.utils.Reflector;
@@ -23,7 +21,7 @@ public class Scenario extends Reflector<Scenario> {
         this.aiTuning = aituing;
     }
 
-    //members mirro those in SOC so we can save a scenario and load into an SOC without all the other
+    //members mirror those in SOC so we can save a scenario and load into an SOC without all the other
     // crap associated with SOC
     Board mBoard;
     Rules mRules;

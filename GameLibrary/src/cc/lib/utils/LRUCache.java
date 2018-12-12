@@ -147,13 +147,15 @@ public final class LRUCache<K, V> implements Map<K, V> {
     @Override
     public V put(K key, V value) {
 
-        if (map.containsKey(key)) {
-            DList<K,V> e = map.get(key);
+        DList<K,V> e = map.get(key);
+        if (e != null) {
             e.val = value;
-            listRemove(e);
-            listAddFirst(e);
+            if (e != first) {
+                listRemove(e);
+                listAddFirst(e);
+            }
         } else {
-            DList<K,V> e = new DList<>(key, value);
+            e = new DList<>(key, value);
             if (map.size() == max) {
                 if (map.remove(last.key)==null)
                     throw new AssertionError();
@@ -195,7 +197,7 @@ public final class LRUCache<K, V> implements Map<K, V> {
 
     @Override
     public Collection<V> values() {
-        List<V> values = new ArrayList<>();
+        List<V> values = new ArrayList<>(map.size());
         for (DList<K,V> e = first; e != null; e=e.next) {
             values.add(e.val);
         }

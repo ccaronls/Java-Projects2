@@ -56,7 +56,7 @@ public enum VertexType {
 			case STRONG_KNIGHT_INACTIVE:
 				return MIGHTY_KNIGHT_INACTIVE;
 			default:
-				throw new RuntimeException("type not suitable to promote: " + name());
+				throw new SOCException("type not suitable to promote: " + name());
 		}
 	}
 
@@ -71,7 +71,7 @@ public enum VertexType {
 			case MIGHTY_KNIGHT_INACTIVE:
 				return STRONG_KNIGHT_INACTIVE;
 			default:
-				throw new RuntimeException("type not suitable to demote: " + name());
+				throw new SOCException("type not suitable to demote: " + name());
 		}
 	}
 
@@ -84,7 +84,7 @@ public enum VertexType {
 			case STRONG_KNIGHT_INACTIVE:
 				return STRONG_KNIGHT_ACTIVE;
 			default:
-				throw new RuntimeException("type not suitable to activeate: " + name());
+				throw new SOCException("type not suitable to activeate: " + name());
 		}
 	}
 
@@ -97,7 +97,7 @@ public enum VertexType {
 			case STRONG_KNIGHT_ACTIVE:
 				return STRONG_KNIGHT_INACTIVE;
 			default:
-				throw new RuntimeException("type not suitable to deactiveate: " + name());
+				throw new SOCException("type not suitable to deactiveate: " + name());
 		}
 	}
 

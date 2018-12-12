@@ -1329,6 +1329,7 @@ public class Reflector<T> {
     
     protected synchronized void serialize(PrintWriter out_) throws IOException {
 //        Utils.println("Serializing %s", getClass().getName());
+        if (Profiler.ENABLED) Profiler.push("Reflector.serialize");
         MyPrintWriter out;
         if (out_ instanceof MyPrintWriter)
             out = (MyPrintWriter)out_;
@@ -1354,6 +1355,8 @@ public class Reflector<T> {
             throw e;
         } catch (Exception e) {
             throw new IOException(e.getMessage(), e);
+        } finally {
+            if (Profiler.ENABLED) Profiler.pop("Reflector.serialize");
         }
     }
 
@@ -1549,63 +1552,68 @@ public class Reflector<T> {
      * @throws Exception
      */
     protected synchronized void deserialize(BufferedReader _in) throws Exception {
-    	MyBufferedReader in = null;
-    	if (_in instanceof MyBufferedReader)
-    		in = (MyBufferedReader)_in;
-    	else
-    		in = new MyBufferedReader(_in);
-        Map<Field, Archiver> values = getValues(getClass(), false);
-    	final int depth = in.depth;
-        while (true) {
-            if (in.depth > depth)
-            	if (in.readLine() != null)
-            		throw new Exception("Line: " + in.lineNum + " Expected closing '}'");
-            String line = readLineOrEOF(in);
-            if (line == null)
-                break;
-            String [] parts = line.split("=");
-            if (parts.length < 2)
-                throw new Exception("Line '" + line + "' not of form 'name=value'");
-            String name = parts[0].trim();
-            for (Field field : values.keySet()) {
-                if (field.getName().equals(name)) {
-                    Archiver archiver = values.get(field);
-                    Object instance = field.get(this);
-                    archiver.set(instance, field, parts[1], this);
-                    if (field.get(Reflector.this) instanceof Reflector) {
-                        Reflector<T> ref = (Reflector<T>)field.get(Reflector.this);
-                        ref.deserialize(in);
-                    } else if (field.getType().isArray()) {
-                        Object obj = field.get(this);
-                        if (obj != null) {
-                            Archiver arrayArchiver = getArchiverForType(obj.getClass().getComponentType());
-                            arrayArchiver.deserializeArray(obj, in);
-                        }
-                    } else if (isSubclassOf(field.getType(), Collection.class)) {
-                        Collection<?> collection = (Collection<?>)field.get(this);
-                        if (collection != null)
-                            deserializeCollection(collection, in);
-                    } else if (isSubclassOf(field.getType(), Map.class)) {
-                    	Map<?,?> map = (Map<?,?>)field.get(this);
-                    	if (map != null) 
-                    		deserializeMap(map, in);
-                    }
-                    parts = null;
+        if (Profiler.ENABLED) Profiler.push("Reflector.deserialize");
+        try {
+            MyBufferedReader in = null;
+            if (_in instanceof MyBufferedReader)
+                in = (MyBufferedReader) _in;
+            else
+                in = new MyBufferedReader(_in);
+            Map<Field, Archiver> values = getValues(getClass(), false);
+            final int depth = in.depth;
+            while (true) {
+                if (in.depth > depth)
+                    if (in.readLine() != null)
+                        throw new Exception("Line: " + in.lineNum + " Expected closing '}'");
+                String line = readLineOrEOF(in);
+                if (line == null)
                     break;
+                String[] parts = line.split("=");
+                if (parts.length < 2)
+                    throw new Exception("Line '" + line + "' not of form 'name=value'");
+                String name = parts[0].trim();
+                for (Field field : values.keySet()) {
+                    if (field.getName().equals(name)) {
+                        Archiver archiver = values.get(field);
+                        Object instance = field.get(this);
+                        archiver.set(instance, field, parts[1], this);
+                        if (field.get(Reflector.this) instanceof Reflector) {
+                            Reflector<T> ref = (Reflector<T>) field.get(Reflector.this);
+                            ref.deserialize(in);
+                        } else if (field.getType().isArray()) {
+                            Object obj = field.get(this);
+                            if (obj != null) {
+                                Archiver arrayArchiver = getArchiverForType(obj.getClass().getComponentType());
+                                arrayArchiver.deserializeArray(obj, in);
+                            }
+                        } else if (isSubclassOf(field.getType(), Collection.class)) {
+                            Collection<?> collection = (Collection<?>) field.get(this);
+                            if (collection != null)
+                                deserializeCollection(collection, in);
+                        } else if (isSubclassOf(field.getType(), Map.class)) {
+                            Map<?, ?> map = (Map<?, ?>) field.get(this);
+                            if (map != null)
+                                deserializeMap(map, in);
+                        }
+                        parts = null;
+                        break;
+                    }
+                }
+                if (parts != null) {
+                    if (THROW_ON_UNKNOWN)
+                        throw new Exception("Unknown field: " + name + " not in fields: " + values.keySet());
+                    log.error("Unknown field: " + name + " not found in class: " + getClass());// + " not in fields: " + values.keySet());
+                    // skip ahead until depth matches current depth
+                    while (in.depth > depth) {
+                        readLineOrEOF(in);
+                    }
                 }
             }
-            if (parts != null) {
-                if (THROW_ON_UNKNOWN)
-                    throw new Exception("Unknown field: " + name + " not in fields: " + values.keySet());
-                log.error("Unknown field: " + name + " not found in class: " + getClass());// + " not in fields: " + values.keySet());
-                // skip ahead until depth matches current depth
-                while (in.depth > depth) {
-                    readLineOrEOF(in);
-                }
+            if (__reflector_version < getMinVersion()) {
+                throw new VersionTooOldException(__reflector_version, getMinVersion());
             }
-        }
-        if (__reflector_version < getMinVersion()) {
-            throw new VersionTooOldException(__reflector_version, getMinVersion());
+        } finally {
+            if (Profiler.ENABLED) Profiler.pop("Reflector.deserialize");
         }
     }
     
@@ -1739,7 +1747,7 @@ public class Reflector<T> {
      * @return
      */
     @SuppressWarnings("unchecked")
-    public <T extends Reflector> T deepCopy() {
+    public T deepCopy() {
         try {
             Object copy = getClass().newInstance();
             Map<Field, Archiver> values = getValues(getClass(), false);
@@ -1813,10 +1821,10 @@ public class Reflector<T> {
      * @param other
      */
     @SuppressWarnings({ "unchecked", "rawtypes" })
-	public final Reflector<T> copyFrom(Reflector<T> other) {
+	public final T copyFrom(Reflector<T> other) {
         if (other == this) {
             log.error("Copying from self?");
-            return this;
+            return (T)this;
         }
 
     	try {
@@ -1841,7 +1849,7 @@ public class Reflector<T> {
             	}
             }
 
-            return this;
+            return (T)this;
     		
     	} catch (Exception e) {
             throw new RuntimeException("Failed to deep copy", e);

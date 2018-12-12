@@ -69,7 +69,7 @@ public final class UIDiceRenderer extends UIRenderer {
 
                 for (Dice d : which) {
                     if (d != null)
-                        d.setNum(1 + Utils.rand()%6);
+                        d.setNum(1 + Utils.rand()%6, false);
                 }
                 drawPrivate(g, 0, 0, which);
 
@@ -193,7 +193,7 @@ public final class UIDiceRenderer extends UIRenderer {
 	        if (++num > 6) {
 	            num = 1;
             }
-            dice[picked].setNum(num);
+            dice[picked].setNum(num, true);
         }
         getComponent().redraw();
 	}

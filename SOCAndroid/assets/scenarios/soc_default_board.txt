@@ -6480,21 +6480,6 @@ mBoard=cc.game.soc.core.Board {
    ch=0.125
    merchantPlayer=0
 }
-mCurrentPlayer=0
-mProgressCards=null
-mDiceConfigStack=java.util.Stack {
-   cc.game.soc.core.DiceType 2 {
-      RedYellow Event 
-   }
-}
-mStateStack=java.util.Stack {
-}
-mEventCards=java.util.ArrayList {
-}
-mBarbarianDistance=-1
-mMetropolisPlayer=int 3 {
-   0 0 0 
-}
 mRules=cc.game.soc.core.Rules {
    pointsPerSettlement=1
    knightScoreToDestroyWalledCity=6
@@ -6533,8 +6518,4 @@ mRules=cc.game.soc.core.Rules {
    enableSeafarersExpansion=true
    enableCitiesAndKnightsExpansion=false
    enableRoadBlock=false
-}
-mDevelopmentCards=java.util.ArrayList {
-}
-mDice=java.util.LinkedList {
 }

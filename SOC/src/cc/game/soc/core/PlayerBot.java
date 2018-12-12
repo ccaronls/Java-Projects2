@@ -13,10 +13,14 @@ import java.util.List;
 import java.util.Set;
 
 import cc.lib.game.Utils;
+import cc.lib.logger.Logger;
+import cc.lib.logger.LoggerFactory;
 import cc.lib.math.CMath;
 import cc.lib.utils.FileUtils;
 
 public class PlayerBot extends Player {
+
+    static final Logger log = LoggerFactory.getLogger(PlayerBot.class);
 
 	public static boolean DEBUG_ENABLED = false;
 	
@@ -26,8 +30,14 @@ public class PlayerBot extends Player {
 	private Set<Integer> usedShipRoutes = new HashSet<Integer>();
 	private Set<MoveType> usedMoves = new HashSet<MoveType>();
 	private int numLeafs = 0;
-	
-	private BotNode createNewTree(String desc) {
+
+    @Override
+    public void reset() {
+        super.reset();
+        movesPath = null;
+    }
+
+    private BotNode createNewTree(String desc) {
 		BotNode node = new BotNodeRoot(desc);
 		
 	//	leafNodes.clear();
@@ -268,13 +278,14 @@ public class PlayerBot extends Player {
 
 		movesPath = child;
 
-		Utils.print("Path: ");
+		StringBuffer buf = new StringBuffer();
+		buf.append(getName()).append(" Path: ");
 		for (BotNode n = movesPath; n!=null; n=n.next) {
-			Utils.print(n.getDescription());
+			buf.append(n.getDescription());
 			if (n.next != null)
-				Utils.print("==>>");
+				buf.append("==>>");
 		}
-		Utils.println();
+		log.debug(buf.toString());
 		
 		/*
 		if (Utils.DEBUG_ENABLED) {
@@ -1198,11 +1209,13 @@ public class PlayerBot extends Player {
     						// compute permutations
     						for (int i=0; i<promotableKnights.size()-1; i++) {
         						for (int ii=i+1; ii<promotableKnights.size(); ii++) {
-        							Vertex v0 = b.getVertex(promotableKnights.get(i));
-        							Vertex v1 = b.getVertex(promotableKnights.get(ii));
+        						    int k0 = promotableKnights.get(i);
+        						    int k1 = promotableKnights.get(ii);
+        							Vertex v0 = b.getVertex(k0);
+        							Vertex v1 = b.getVertex(k1);
         							v0.promoteKnight();
         							v1.promoteKnight();
-        							buildChooseMoveTreeR(soc, p, b, root.attach(new BotNodeVertex(v0, i)).attach(new BotNodeVertex(v1, ii)), SOC.computeMoves(p, b, soc));
+        							buildChooseMoveTreeR(soc, p, b, root.attach(new BotNodeVertex(v0, k0)).attach(new BotNodeVertex(v1, k1)), SOC.computeMoves(p, b, soc));
         							v1.demoteKnight();
         							v0.demoteKnight();
         						}
@@ -1271,7 +1284,11 @@ public class PlayerBot extends Player {
 						Vertex v = b.getVertex(vIndex);
 						assert(v.getType() == VertexType.PIRATE_FORTRESS);
 						assert(v.getPlayer() == 0);
-                        int score = b.getRoutesOfType(getPlayerNum(), RouteType.WARSHIP).size();
+                        float playerHealth = b.getRoutesOfType(getPlayerNum(), RouteType.WARSHIP).size();
+                        BotNode node = root.attach(new BotNodeVertex(v, vIndex));
+                        node.chance = playerHealth/6;
+                        doEvaluateAll(node, soc, p, b);
+                        /*
                         if (soc.nextDie() >= score)
                             continue;
                         int health = v.getPirateHealth();
@@ -1283,19 +1300,25 @@ public class PlayerBot extends Player {
 						doEvaluateAll(node, soc, p, b);
 						v.setPirateFortress();
 						v.setPirateHealth(health);
+							*/
 					}
 					break;
 				}
 				case KNIGHT_ATTACK_ROAD: {
 					for (int rIndex : SOC.computeAttackableRoads(soc, getPlayerNum(), b)) {
 						SOC.AttackInfo<RouteType> info = SOC.computeAttackRoad(rIndex, soc, b, getPlayerNum());
+                        Route route = b.getRoute(rIndex);
+                        BotNode node = root.attach(new BotNodeRoute(route, rIndex));
+                        node.chance = (float)(info.knightStrength-info.minScore)/6;
+                        doEvaluateAll(node, soc, p, b);
+                        /*
 						Route route = b.getRoute(rIndex);
 						Route copy = route.deepCopy();
-						if (soc.nextDie() < info.minScore+info.knightStrength)
-						    continue;
-						BotNode node = root.attach(new BotNodeRoute(route, rIndex));
-						doEvaluateAll(node, soc, p, b);
-						route.copyFrom(copy);
+						if (soc.nextDie() >= info.minScore+info.knightStrength) {
+                            BotNode node = root.attach(new BotNodeRoute(route, rIndex));
+                            doEvaluateAll(node, soc, p, b);
+                            route.copyFrom(copy);
+                        }*/
 						for (int k : info.attackingKnights) {
 							b.getVertex(k).activateKnight();
 						}
@@ -1306,13 +1329,17 @@ public class PlayerBot extends Player {
 					for (int vIndex : SOC.computeAttackableStructures(soc, getPlayerNum(), b)) {
 						SOC.AttackInfo<VertexType> info = SOC.computeStructureAttack(vIndex, soc, b, getPlayerNum());
 						Vertex v = b.getVertex(vIndex);
-                        if (soc.nextDie() < info.minScore+info.knightStrength)
-                            continue;
-						BotNode node = root.attach(new BotNodeVertex(v, vIndex));
-						Vertex copy = v.deepCopy();
-						v.setType(info.destroyedType);
-						doEvaluateAll(node, soc, p, b);
-						v.copyFrom(copy);
+                        BotNode node = root.attach(new BotNodeVertex(v, vIndex));
+                        node.chance = (float)(info.knightStrength-info.minScore)/6;
+                        doEvaluateAll(node, soc, p, b);
+                        /*
+                        if (soc.nextDie() >= info.minScore+info.knightStrength) {
+                            BotNode node = root.attach(new BotNodeVertex(v, vIndex));
+                            Vertex copy = v.deepCopy();
+                            v.setType(info.destroyedType);
+                            doEvaluateAll(node, soc, p, b);
+                            v.copyFrom(copy);
+                        }*/
 						for (int k : info.attackingKnights) {
 							b.getVertex(k).activateKnight();
 						}
@@ -1412,7 +1439,7 @@ public class PlayerBot extends Player {
 //		evalu
 		//Player t = new PlayerTemp(this);
 //		setCardsUsable(CardType.Development, false); // prevent generating development card moves on subsequent calls
-		buildChooseMoveTreeR(soc, this, soc.getBoard(), root, moves);
+		buildChooseMoveTreeR(soc, new PlayerTemp().copyFrom(this), soc.getBoard(), root, moves);
 //		copyFrom(t);
 		/*
 		if (DEBUG_ENABLED) {
@@ -1669,7 +1696,7 @@ public class PlayerBot extends Player {
 
 	@Override
 	public Card chooseCard(SOC soc, Collection<Card> cards, CardChoice mode) {
-		if (movesPath != null) {
+		if (movesPath != null && movesPath.getData() instanceof Card) {
 			return detatchMove();
 		}
 
@@ -1736,7 +1763,7 @@ public class PlayerBot extends Player {
 	public boolean setDice(SOC soc, Dice [] die, int num) {
 		Integer [] dice = detatchMove();
 		for (int i=0; i<num; i++) {
-			die[i].setNum(dice[i]);
+			die[i].setNum(dice[i], true);
 		}
 		return true;
 	}
@@ -2071,11 +2098,30 @@ public class PlayerBot extends Player {
 		
 		Set<Integer> tiles = new HashSet<Integer>();
 		Set<Integer> routes = new HashSet<Integer>();
+		int routeValue = 0;
 		
 		for (Route r : b.getRoutesForPlayer(p.getPlayerNum())) {
 
 		    Vertex v0 = b.getVertex(r.getFrom());
 		    Vertex v1 = b.getVertex(r.getTo());
+
+		    switch (r.getType()) {
+
+                case OPEN:
+                    break;
+                case ROAD:
+                    routeValue ++;
+                    break;
+                case DAMAGED_ROAD:
+                    routeValue -= 2;
+                    break;
+                case SHIP:
+                    routeValue += 1;
+                    break;
+                case WARSHIP:
+                    routeValue += 2;
+                    break;
+            }
 
 		    if (!v0.getType().isStructure && !v1.getType().isStructure) {
                 tiles.addAll(v0.getTiles());
@@ -2102,6 +2148,7 @@ public class PlayerBot extends Player {
 		
 		node.addValue("routeTileResourceProb", routeTileResourceProb);
 		node.addValue("routeExpandability", 0.1 * routeExpabability);
+		node.addValue("routeValue", 1f * routeValue);
 		
 		/*		
 		// evaluate potential settlements
