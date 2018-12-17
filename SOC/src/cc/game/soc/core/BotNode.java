@@ -1,12 +1,15 @@
 package cc.game.soc.core;
 
 import java.io.PrintStream;
-import java.util.*;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 
 import cc.lib.game.IVector2D;
-import cc.lib.game.Utils;
 import cc.lib.math.Vector2D;
-import cc.lib.utils.Reflector;
 
 public abstract class BotNode implements Comparable<BotNode> {
 
@@ -181,7 +184,7 @@ public abstract class BotNode implements Comparable<BotNode> {
     public final void addValue(String name, double value) {
     	name = name.replace(' ', '_').trim();
     	if (value != 0) {
-    		properties.put(name, value*Utils.clamp(chance, 0, 1));
+    		properties.put(name, value*chance);
     	} else {
     		properties.remove(name);
     	}

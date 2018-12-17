@@ -1,9 +1,10 @@
+gameOver=false
 mBarbarianAttackCount=0
 mBarbarianDistance=-1
 mBoard=cc.game.soc.core.Board {
    ch=0.14285716
    cw=0.18181819
-   displayName=null
+   displayName=""
    islands=java.util.Vector {
    }
    merchantPlayer=-1
@@ -13,9 +14,9 @@ mBoard=cc.game.soc.core.Board {
    pirateRouteStartTile=-1
    pirateTile=-1
    playerRoadLenCache=int 16 {
-      -1 2 2 2 1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 
+      -1 1 2 1 1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 
    }
-   robberTile=-1
+   robberTile=1
    routes=java.util.Vector {
       cc.game.soc.core.Route {
          flags=1
@@ -28,14 +29,14 @@ mBoard=cc.game.soc.core.Board {
          type=OPEN
       }
       cc.game.soc.core.Route {
-         flags=1
+         flags=17
          from=0
-         player=0
+         player=3
          tiles=int 2 {
             0 16 
          }
          to=5
-         type=OPEN
+         type=ROAD
       }
       cc.game.soc.core.Route {
          flags=1
@@ -78,14 +79,14 @@ mBoard=cc.game.soc.core.Board {
          type=OPEN
       }
       cc.game.soc.core.Route {
-         flags=17
+         flags=1
          from=2
-         player=4
+         player=0
          tiles=int 2 {
             1 19 
          }
          to=6
-         type=ROAD
+         type=OPEN
       }
       cc.game.soc.core.Route {
          flags=1
@@ -170,12 +171,12 @@ mBoard=cc.game.soc.core.Board {
       cc.game.soc.core.Route {
          flags=1
          from=7
-         player=2
+         player=0
          tiles=int 2 {
             2 24 
          }
          to=10
-         type=ROAD
+         type=OPEN
       }
       cc.game.soc.core.Route {
          flags=1
@@ -198,14 +199,14 @@ mBoard=cc.game.soc.core.Board {
          type=OPEN
       }
       cc.game.soc.core.Route {
-         flags=1
+         flags=17
          from=9
-         player=0
+         player=2
          tiles=int 2 {
             5 7 
          }
          to=16
-         type=OPEN
+         type=ROAD
       }
       cc.game.soc.core.Route {
          flags=1
@@ -218,14 +219,14 @@ mBoard=cc.game.soc.core.Board {
          type=OPEN
       }
       cc.game.soc.core.Route {
-         flags=17
+         flags=1
          from=10
-         player=2
+         player=0
          tiles=int 2 {
             24 25 
          }
          to=44
-         type=ROAD
+         type=OPEN
       }
       cc.game.soc.core.Route {
          flags=1
@@ -288,34 +289,34 @@ mBoard=cc.game.soc.core.Board {
          type=OPEN
       }
       cc.game.soc.core.Route {
-         flags=1
+         flags=17
          from=16
-         player=0
+         player=2
          tiles=int 2 {
             7 8 
          }
          to=18
-         type=OPEN
+         type=ROAD
       }
       cc.game.soc.core.Route {
-         flags=1
+         flags=17
          from=17
-         player=0
+         player=1
          tiles=int 2 {
             8 9 
          }
          to=20
-         type=OPEN
+         type=ROAD
       }
       cc.game.soc.core.Route {
          flags=1
          from=18
-         player=0
+         player=4
          tiles=int 2 {
             7 33 
          }
          to=19
-         type=OPEN
+         type=ROAD
       }
       cc.game.soc.core.Route {
          flags=1
@@ -338,14 +339,14 @@ mBoard=cc.game.soc.core.Board {
          type=OPEN
       }
       cc.game.soc.core.Route {
-         flags=17
+         flags=1
          from=20
-         player=4
+         player=0
          tiles=int 2 {
             8 34 
          }
          to=21
-         type=ROAD
+         type=OPEN
       }
       cc.game.soc.core.Route {
          flags=1
@@ -358,24 +359,24 @@ mBoard=cc.game.soc.core.Board {
          type=OPEN
       }
       cc.game.soc.core.Route {
-         flags=17
+         flags=1
          from=22
-         player=3
+         player=0
          tiles=int 2 {
             10 11 
          }
          to=23
-         type=ROAD
+         type=OPEN
       }
       cc.game.soc.core.Route {
          flags=1
          from=22
-         player=3
+         player=0
          tiles=int 2 {
             10 14 
          }
          to=25
-         type=ROAD
+         type=OPEN
       }
       cc.game.soc.core.Route {
          flags=1
@@ -428,14 +429,14 @@ mBoard=cc.game.soc.core.Board {
          type=OPEN
       }
       cc.game.soc.core.Route {
-         flags=1
+         flags=17
          from=26
-         player=0
+         player=1
          tiles=int 2 {
             11 12 
          }
          to=27
-         type=OPEN
+         type=ROAD
       }
       cc.game.soc.core.Route {
          flags=1
@@ -518,14 +519,14 @@ mBoard=cc.game.soc.core.Board {
          type=OPEN
       }
       cc.game.soc.core.Route {
-         flags=1
+         flags=17
          from=33
-         player=0
+         player=3
          tiles=int 2 {
             17 18 
          }
          to=37
-         type=OPEN
+         type=ROAD
       }
       cc.game.soc.core.Route {
          flags=1
@@ -630,12 +631,12 @@ mBoard=cc.game.soc.core.Board {
       cc.game.soc.core.Route {
          flags=1
          from=41
-         player=0
+         player=4
          tiles=int 2 {
             20 21 
          }
          to=42
-         type=OPEN
+         type=ROAD
       }
       cc.game.soc.core.Route {
          flags=1
@@ -708,24 +709,24 @@ mBoard=cc.game.soc.core.Board {
          type=OPEN
       }
       cc.game.soc.core.Route {
-         flags=17
+         flags=1
          from=49
-         player=1
+         player=0
          tiles=int 2 {
             29 31 
          }
          to=50
-         type=ROAD
+         type=OPEN
       }
       cc.game.soc.core.Route {
-         flags=17
+         flags=1
          from=49
-         player=1
+         player=0
          tiles=int 2 {
             31 33 
          }
          to=52
-         type=ROAD
+         type=OPEN
       }
       cc.game.soc.core.Route {
          flags=1
@@ -743,11 +744,11 @@ mBoard=cc.game.soc.core.Board {
          adjVerts=int 6 {
             0 1 2 3 4 5 
          }
-         dieNum=10
+         dieNum=11
          islandNum=0
          numAdj=6
          pirateRouteNext=-1
-         type=FOREST
+         type=HILLS
          x=0.49999994
          y=0.5
       }
@@ -755,11 +756,11 @@ mBoard=cc.game.soc.core.Board {
          adjVerts=int 6 {
             2 6 7 8 9 3 
          }
-         dieNum=6
+         dieNum=9
          islandNum=0
          numAdj=6
          pirateRouteNext=-1
-         type=FIELDS
+         type=FOREST
          x=0.63636357
          y=0.42857146
       }
@@ -771,7 +772,7 @@ mBoard=cc.game.soc.core.Board {
          islandNum=0
          numAdj=6
          pirateRouteNext=-1
-         type=MOUNTAINS
+         type=FIELDS
          x=0.7727272
          y=0.35714293
       }
@@ -779,7 +780,7 @@ mBoard=cc.game.soc.core.Board {
          adjVerts=int 6 {
             11 95 94 93 92 12 
          }
-         dieNum=5
+         dieNum=9
          islandNum=0
          numAdj=6
          pirateRouteNext=-1
@@ -791,11 +792,11 @@ mBoard=cc.game.soc.core.Board {
          adjVerts=int 6 {
             13 12 92 91 90 14 
          }
-         dieNum=5
+         dieNum=3
          islandNum=0
          numAdj=6
          pirateRouteNext=-1
-         type=HILLS
+         type=MOUNTAINS
          x=0.90909094
          y=0.42857146
       }
@@ -803,11 +804,11 @@ mBoard=cc.game.soc.core.Board {
          adjVerts=int 6 {
             9 8 13 14 15 16 
          }
-         dieNum=6
+         dieNum=8
          islandNum=0
          numAdj=6
          pirateRouteNext=-1
-         type=FOREST
+         type=HILLS
          x=0.7727272
          y=0.5
       }
@@ -815,11 +816,11 @@ mBoard=cc.game.soc.core.Board {
          adjVerts=int 6 {
             15 14 90 89 88 17 
          }
-         dieNum=4
+         dieNum=5
          islandNum=0
          numAdj=6
          pirateRouteNext=-1
-         type=FIELDS
+         type=FOREST
          x=0.90909094
          y=0.57142866
       }
@@ -831,7 +832,7 @@ mBoard=cc.game.soc.core.Board {
          islandNum=0
          numAdj=6
          pirateRouteNext=-1
-         type=MOUNTAINS
+         type=FIELDS
          x=0.63636357
          y=0.57142866
       }
@@ -839,7 +840,7 @@ mBoard=cc.game.soc.core.Board {
          adjVerts=int 6 {
             18 16 15 17 20 21 
          }
-         dieNum=3
+         dieNum=10
          islandNum=0
          numAdj=6
          pirateRouteNext=-1
@@ -851,11 +852,11 @@ mBoard=cc.game.soc.core.Board {
          adjVerts=int 6 {
             20 17 88 87 86 85 
          }
-         dieNum=10
+         dieNum=9
          islandNum=0
          numAdj=6
          pirateRouteNext=-1
-         type=HILLS
+         type=MOUNTAINS
          x=0.90909094
          y=0.71428585
       }
@@ -863,11 +864,11 @@ mBoard=cc.game.soc.core.Board {
          adjVerts=int 6 {
             22 23 24 1 0 25 
          }
-         dieNum=11
+         dieNum=9
          islandNum=0
          numAdj=6
          pirateRouteNext=-1
-         type=FOREST
+         type=HILLS
          x=0.36363634
          y=0.42857146
       }
@@ -875,11 +876,11 @@ mBoard=cc.game.soc.core.Board {
          adjVerts=int 6 {
             26 27 28 23 22 29 
          }
-         dieNum=0
+         dieNum=4
          islandNum=0
          numAdj=6
          pirateRouteNext=-1
-         type=DESERT
+         type=FOREST
          x=0.22727272
          y=0.35714293
       }
@@ -891,7 +892,7 @@ mBoard=cc.game.soc.core.Board {
          islandNum=0
          numAdj=6
          pirateRouteNext=-1
-         type=MOUNTAINS
+         type=FIELDS
          x=0.09090909
          y=0.2857144
       }
@@ -899,11 +900,11 @@ mBoard=cc.game.soc.core.Board {
          adjVerts=int 6 {
             80 81 26 29 30 79 
          }
-         dieNum=11
+         dieNum=0
          islandNum=0
          numAdj=6
          pirateRouteNext=-1
-         type=PASTURE
+         type=DESERT
          x=0.09090909
          y=0.42857146
       }
@@ -911,11 +912,11 @@ mBoard=cc.game.soc.core.Board {
          adjVerts=int 6 {
             30 29 22 25 31 32 
          }
-         dieNum=8
+         dieNum=6
          islandNum=0
          numAdj=6
          pirateRouteNext=-1
-         type=HILLS
+         type=MOUNTAINS
          x=0.22727272
          y=0.5
       }
@@ -923,11 +924,11 @@ mBoard=cc.game.soc.core.Board {
          adjVerts=int 6 {
             78 79 30 32 33 77 
          }
-         dieNum=9
+         dieNum=2
          islandNum=0
          numAdj=6
          pirateRouteNext=-1
-         type=FOREST
+         type=HILLS
          x=0.09090909
          y=0.57142866
       }
@@ -935,11 +936,11 @@ mBoard=cc.game.soc.core.Board {
          adjVerts=int 6 {
             31 25 0 5 34 35 
          }
-         dieNum=2
+         dieNum=4
          islandNum=0
          numAdj=6
          pirateRouteNext=-1
-         type=FIELDS
+         type=FOREST
          x=0.36363634
          y=0.57142866
       }
@@ -947,11 +948,11 @@ mBoard=cc.game.soc.core.Board {
          adjVerts=int 6 {
             33 32 31 35 36 37 
          }
-         dieNum=6
+         dieNum=5
          islandNum=0
          numAdj=6
          pirateRouteNext=-1
-         type=MOUNTAINS
+         type=FIELDS
          x=0.22727272
          y=0.6428573
       }
@@ -959,7 +960,7 @@ mBoard=cc.game.soc.core.Board {
          adjVerts=int 6 {
             76 77 33 37 75 74 
          }
-         dieNum=8
+         dieNum=3
          islandNum=0
          numAdj=6
          pirateRouteNext=-1
@@ -971,11 +972,11 @@ mBoard=cc.game.soc.core.Board {
          adjVerts=int 6 {
             24 38 39 6 2 1 
          }
-         dieNum=12
+         dieNum=10
          islandNum=0
          numAdj=6
          pirateRouteNext=-1
-         type=HILLS
+         type=MOUNTAINS
          x=0.49999994
          y=0.35714293
       }
@@ -983,11 +984,11 @@ mBoard=cc.game.soc.core.Board {
          adjVerts=int 6 {
             40 41 42 43 39 38 
          }
-         dieNum=10
+         dieNum=5
          islandNum=0
          numAdj=6
          pirateRouteNext=-1
-         type=FOREST
+         type=HILLS
          x=0.49999994
          y=0.21428572
       }
@@ -995,11 +996,11 @@ mBoard=cc.game.soc.core.Board {
          adjVerts=int 6 {
             73 72 71 70 42 41 
          }
-         dieNum=3
+         dieNum=8
          islandNum=0
          numAdj=6
          pirateRouteNext=-1
-         type=FIELDS
+         type=FOREST
          x=0.49999994
          y=0.07142858
       }
@@ -1007,11 +1008,11 @@ mBoard=cc.game.soc.core.Board {
          adjVerts=int 6 {
             42 70 69 68 44 43 
          }
-         dieNum=4
+         dieNum=11
          islandNum=0
          numAdj=6
          pirateRouteNext=-1
-         type=MOUNTAINS
+         type=FIELDS
          x=0.63636357
          y=0.14285712
       }
@@ -1019,7 +1020,7 @@ mBoard=cc.game.soc.core.Board {
          adjVerts=int 6 {
             67 66 73 41 40 45 
          }
-         dieNum=9
+         dieNum=12
          islandNum=0
          numAdj=6
          pirateRouteNext=-1
@@ -1031,11 +1032,11 @@ mBoard=cc.game.soc.core.Board {
          adjVerts=int 6 {
             39 43 44 10 7 6 
          }
-         dieNum=5
+         dieNum=6
          islandNum=0
          numAdj=6
          pirateRouteNext=-1
-         type=HILLS
+         type=MOUNTAINS
          x=0.63636357
          y=0.2857144
       }
@@ -1043,11 +1044,11 @@ mBoard=cc.game.soc.core.Board {
          adjVerts=int 6 {
             44 68 65 95 11 10 
          }
-         dieNum=9
+         dieNum=5
          islandNum=0
          numAdj=6
          pirateRouteNext=-1
-         type=FOREST
+         type=HILLS
          x=0.7727272
          y=0.21428572
       }
@@ -1055,11 +1056,11 @@ mBoard=cc.game.soc.core.Board {
          adjVerts=int 6 {
             28 45 40 38 24 23 
          }
-         dieNum=5
+         dieNum=8
          islandNum=0
          numAdj=6
          pirateRouteNext=-1
-         type=FIELDS
+         type=FOREST
          x=0.36363634
          y=0.2857144
       }
@@ -1067,11 +1068,11 @@ mBoard=cc.game.soc.core.Board {
          adjVerts=int 6 {
             82 64 67 45 28 27 
          }
-         dieNum=9
+         dieNum=10
          islandNum=0
          numAdj=6
          pirateRouteNext=-1
-         type=MOUNTAINS
+         type=FIELDS
          x=0.22727272
          y=0.21428572
       }
@@ -1079,7 +1080,7 @@ mBoard=cc.game.soc.core.Board {
          adjVerts=int 6 {
             34 5 4 19 46 47 
          }
-         dieNum=10
+         dieNum=11
          islandNum=0
          numAdj=6
          pirateRouteNext=-1
@@ -1091,11 +1092,11 @@ mBoard=cc.game.soc.core.Board {
          adjVerts=int 6 {
             48 47 46 49 50 51 
          }
-         dieNum=6
+         dieNum=9
          islandNum=0
          numAdj=6
          pirateRouteNext=-1
-         type=HILLS
+         type=MOUNTAINS
          x=0.49999994
          y=0.7857144
       }
@@ -1107,7 +1108,7 @@ mBoard=cc.game.soc.core.Board {
          islandNum=0
          numAdj=6
          pirateRouteNext=-1
-         type=FOREST
+         type=HILLS
          x=0.49999994
          y=0.92857146
       }
@@ -1115,11 +1116,11 @@ mBoard=cc.game.soc.core.Board {
          adjVerts=int 6 {
             50 49 52 59 58 62 
          }
-         dieNum=5
+         dieNum=9
          islandNum=0
          numAdj=6
          pirateRouteNext=-1
-         type=FIELDS
+         type=FOREST
          x=0.63636357
          y=0.8571429
       }
@@ -1127,11 +1128,11 @@ mBoard=cc.game.soc.core.Board {
          adjVerts=int 6 {
             57 53 48 51 63 56 
          }
-         dieNum=5
+         dieNum=3
          islandNum=0
          numAdj=6
          pirateRouteNext=-1
-         type=MOUNTAINS
+         type=FIELDS
          x=0.36363634
          y=0.8571429
       }
@@ -1139,7 +1140,7 @@ mBoard=cc.game.soc.core.Board {
          adjVerts=int 6 {
             46 19 18 21 52 49 
          }
-         dieNum=6
+         dieNum=8
          islandNum=0
          numAdj=6
          pirateRouteNext=-1
@@ -1151,11 +1152,11 @@ mBoard=cc.game.soc.core.Board {
          adjVerts=int 6 {
             52 21 20 85 55 59 
          }
-         dieNum=4
+         dieNum=5
          islandNum=0
          numAdj=6
          pirateRouteNext=-1
-         type=HILLS
+         type=MOUNTAINS
          x=0.7727272
          y=0.7857144
       }
@@ -1167,7 +1168,7 @@ mBoard=cc.game.soc.core.Board {
          islandNum=0
          numAdj=6
          pirateRouteNext=-1
-         type=FOREST
+         type=HILLS
          x=0.36363634
          y=0.71428585
       }
@@ -1175,11 +1176,11 @@ mBoard=cc.game.soc.core.Board {
          adjVerts=int 6 {
             75 37 36 53 57 54 
          }
-         dieNum=3
+         dieNum=10
          islandNum=0
          numAdj=6
          pirateRouteNext=-1
-         type=FIELDS
+         type=FOREST
          x=0.22727272
          y=0.7857144
       }
@@ -1196,8 +1197,8 @@ mBoard=cc.game.soc.core.Board {
          numAdj=3
          numCells=3
          pirateHealth=0
-         player=0
-         type=OPEN
+         player=3
+         type=SETTLEMENT
          x=0.40909094
          y=0.5
       }
@@ -1292,8 +1293,8 @@ mBoard=cc.game.soc.core.Board {
          numAdj=3
          numCells=3
          pirateHealth=0
-         player=4
-         type=SETTLEMENT
+         player=0
+         type=OPEN
          x=0.59090906
          y=0.35714293
       }
@@ -1420,8 +1421,8 @@ mBoard=cc.game.soc.core.Board {
          numAdj=2
          numCells=3
          pirateHealth=0
-         player=2
-         type=SETTLEMENT
+         player=0
+         type=OPEN
          x=0.86363643
          y=0.5
       }
@@ -1452,8 +1453,8 @@ mBoard=cc.game.soc.core.Board {
          numAdj=3
          numCells=3
          pirateHealth=0
-         player=0
-         type=OPEN
+         player=2
+         type=SETTLEMENT
          x=0.7272727
          y=0.57142866
       }
@@ -1468,8 +1469,8 @@ mBoard=cc.game.soc.core.Board {
          numAdj=2
          numCells=3
          pirateHealth=0
-         player=1
-         type=SETTLEMENT
+         player=0
+         type=OPEN
          x=0.86363643
          y=0.6428573
       }
@@ -1500,8 +1501,8 @@ mBoard=cc.game.soc.core.Board {
          numAdj=3
          numCells=3
          pirateHealth=0
-         player=0
-         type=OPEN
+         player=4
+         type=SETTLEMENT
          x=0.59090906
          y=0.6428573
       }
@@ -1516,8 +1517,8 @@ mBoard=cc.game.soc.core.Board {
          numAdj=2
          numCells=3
          pirateHealth=0
-         player=0
-         type=OPEN
+         player=1
+         type=SETTLEMENT
          x=0.8181817
          y=0.71428585
       }
@@ -1532,8 +1533,8 @@ mBoard=cc.game.soc.core.Board {
          numAdj=3
          numCells=3
          pirateHealth=0
-         player=4
-         type=SETTLEMENT
+         player=0
+         type=OPEN
          x=0.7272727
          y=0.71428585
       }
@@ -1564,8 +1565,8 @@ mBoard=cc.game.soc.core.Board {
          numAdj=3
          numCells=3
          pirateHealth=0
-         player=3
-         type=SETTLEMENT
+         player=0
+         type=OPEN
          x=0.31818184
          y=0.35714293
       }
@@ -1612,8 +1613,8 @@ mBoard=cc.game.soc.core.Board {
          numAdj=2
          numCells=3
          pirateHealth=0
-         player=0
-         type=OPEN
+         player=1
+         type=SETTLEMENT
          x=0.13636366
          y=0.35714293
       }
@@ -1740,8 +1741,8 @@ mBoard=cc.game.soc.core.Board {
          numAdj=3
          numCells=3
          pirateHealth=0
-         player=3
-         type=SETTLEMENT
+         player=0
+         type=OPEN
          x=0.40909094
          y=0.6428573
       }
@@ -1788,8 +1789,8 @@ mBoard=cc.game.soc.core.Board {
          numAdj=2
          numCells=3
          pirateHealth=0
-         player=0
-         type=OPEN
+         player=3
+         type=SETTLEMENT
          x=0.18181822
          y=0.71428585
       }
@@ -1868,8 +1869,8 @@ mBoard=cc.game.soc.core.Board {
          numAdj=2
          numCells=3
          pirateHealth=0
-         player=0
-         type=OPEN
+         player=4
+         type=SETTLEMENT
          x=0.54545456
          y=0.14285712
       }
@@ -1980,8 +1981,8 @@ mBoard=cc.game.soc.core.Board {
          numAdj=3
          numCells=3
          pirateHealth=0
-         player=1
-         type=SETTLEMENT
+         player=0
+         type=OPEN
          x=0.59090906
          y=0.7857144
       }
@@ -2728,72 +2729,7 @@ mDevelopmentCards=java.util.ArrayList {
    cc.game.soc.core.Card {
       status=USABLE
       type=Development
-      typeOrdinal=4
-   }
-   cc.game.soc.core.Card {
-      status=USABLE
-      type=Development
-      typeOrdinal=4
-   }
-   cc.game.soc.core.Card {
-      status=USABLE
-      type=Development
-      typeOrdinal=4
-   }
-   cc.game.soc.core.Card {
-      status=USABLE
-      type=Development
-      typeOrdinal=4
-   }
-   cc.game.soc.core.Card {
-      status=USABLE
-      type=Development
-      typeOrdinal=4
-   }
-   cc.game.soc.core.Card {
-      status=USABLE
-      type=Development
-      typeOrdinal=4
-   }
-   cc.game.soc.core.Card {
-      status=USABLE
-      type=Development
-      typeOrdinal=1
-   }
-   cc.game.soc.core.Card {
-      status=USABLE
-      type=Development
-      typeOrdinal=4
-   }
-   cc.game.soc.core.Card {
-      status=USABLE
-      type=Development
-      typeOrdinal=4
-   }
-   cc.game.soc.core.Card {
-      status=USABLE
-      type=Development
-      typeOrdinal=4
-   }
-   cc.game.soc.core.Card {
-      status=USABLE
-      type=Development
-      typeOrdinal=4
-   }
-   cc.game.soc.core.Card {
-      status=USABLE
-      type=Development
-      typeOrdinal=4
-   }
-   cc.game.soc.core.Card {
-      status=USABLE
-      type=Development
       typeOrdinal=2
-   }
-   cc.game.soc.core.Card {
-      status=USABLE
-      type=Development
-      typeOrdinal=4
    }
    cc.game.soc.core.Card {
       status=USABLE
@@ -2818,16 +2754,6 @@ mDevelopmentCards=java.util.ArrayList {
    cc.game.soc.core.Card {
       status=USABLE
       type=Development
-      typeOrdinal=2
-   }
-   cc.game.soc.core.Card {
-      status=USABLE
-      type=Development
-      typeOrdinal=2
-   }
-   cc.game.soc.core.Card {
-      status=USABLE
-      type=Development
       typeOrdinal=4
    }
    cc.game.soc.core.Card {
@@ -2853,22 +2779,37 @@ mDevelopmentCards=java.util.ArrayList {
    cc.game.soc.core.Card {
       status=USABLE
       type=Development
-      typeOrdinal=4
-   }
-   cc.game.soc.core.Card {
-      status=USABLE
-      type=Development
-      typeOrdinal=4
-   }
-   cc.game.soc.core.Card {
-      status=USABLE
-      type=Development
-      typeOrdinal=4
+      typeOrdinal=3
    }
    cc.game.soc.core.Card {
       status=USABLE
       type=Development
       typeOrdinal=2
+   }
+   cc.game.soc.core.Card {
+      status=USABLE
+      type=Development
+      typeOrdinal=4
+   }
+   cc.game.soc.core.Card {
+      status=USABLE
+      type=Development
+      typeOrdinal=4
+   }
+   cc.game.soc.core.Card {
+      status=USABLE
+      type=Development
+      typeOrdinal=4
+   }
+   cc.game.soc.core.Card {
+      status=USABLE
+      type=Development
+      typeOrdinal=4
+   }
+   cc.game.soc.core.Card {
+      status=USABLE
+      type=Development
+      typeOrdinal=4
    }
    cc.game.soc.core.Card {
       status=USABLE
@@ -2888,62 +2829,12 @@ mDevelopmentCards=java.util.ArrayList {
    cc.game.soc.core.Card {
       status=USABLE
       type=Development
-      typeOrdinal=3
-   }
-   cc.game.soc.core.Card {
-      status=USABLE
-      type=Development
-      typeOrdinal=2
-   }
-   cc.game.soc.core.Card {
-      status=USABLE
-      type=Development
-      typeOrdinal=4
-   }
-   cc.game.soc.core.Card {
-      status=USABLE
-      type=Development
-      typeOrdinal=2
-   }
-   cc.game.soc.core.Card {
-      status=USABLE
-      type=Development
-      typeOrdinal=2
-   }
-   cc.game.soc.core.Card {
-      status=USABLE
-      type=Development
-      typeOrdinal=2
-   }
-   cc.game.soc.core.Card {
-      status=USABLE
-      type=Development
       typeOrdinal=4
    }
    cc.game.soc.core.Card {
       status=USABLE
       type=Development
       typeOrdinal=4
-   }
-   cc.game.soc.core.Card {
-      status=USABLE
-      type=Development
-      typeOrdinal=2
-   }
-   cc.game.soc.core.Card {
-      status=USABLE
-      type=Development
-      typeOrdinal=2
-   }
-   cc.game.soc.core.Card {
-      status=USABLE
-      type=Development
-      typeOrdinal=4
-   }
-   cc.game.soc.core.Card {
-      status=USABLE
-      type=Development
-      typeOrdinal=2
    }
    cc.game.soc.core.Card {
       status=USABLE
@@ -2958,7 +2849,7 @@ mDevelopmentCards=java.util.ArrayList {
    cc.game.soc.core.Card {
       status=USABLE
       type=Development
-      typeOrdinal=4
+      typeOrdinal=2
    }
    cc.game.soc.core.Card {
       status=USABLE
@@ -2978,6 +2869,51 @@ mDevelopmentCards=java.util.ArrayList {
    cc.game.soc.core.Card {
       status=USABLE
       type=Development
+      typeOrdinal=2
+   }
+   cc.game.soc.core.Card {
+      status=USABLE
+      type=Development
+      typeOrdinal=4
+   }
+   cc.game.soc.core.Card {
+      status=USABLE
+      type=Development
+      typeOrdinal=4
+   }
+   cc.game.soc.core.Card {
+      status=USABLE
+      type=Development
+      typeOrdinal=1
+   }
+   cc.game.soc.core.Card {
+      status=USABLE
+      type=Development
+      typeOrdinal=4
+   }
+   cc.game.soc.core.Card {
+      status=USABLE
+      type=Development
+      typeOrdinal=2
+   }
+   cc.game.soc.core.Card {
+      status=USABLE
+      type=Development
+      typeOrdinal=2
+   }
+   cc.game.soc.core.Card {
+      status=USABLE
+      type=Development
+      typeOrdinal=2
+   }
+   cc.game.soc.core.Card {
+      status=USABLE
+      type=Development
+      typeOrdinal=4
+   }
+   cc.game.soc.core.Card {
+      status=USABLE
+      type=Development
       typeOrdinal=4
    }
    cc.game.soc.core.Card {
@@ -2998,57 +2934,7 @@ mDevelopmentCards=java.util.ArrayList {
    cc.game.soc.core.Card {
       status=USABLE
       type=Development
-      typeOrdinal=4
-   }
-   cc.game.soc.core.Card {
-      status=USABLE
-      type=Development
       typeOrdinal=2
-   }
-   cc.game.soc.core.Card {
-      status=USABLE
-      type=Development
-      typeOrdinal=2
-   }
-   cc.game.soc.core.Card {
-      status=USABLE
-      type=Development
-      typeOrdinal=4
-   }
-   cc.game.soc.core.Card {
-      status=USABLE
-      type=Development
-      typeOrdinal=4
-   }
-   cc.game.soc.core.Card {
-      status=USABLE
-      type=Development
-      typeOrdinal=4
-   }
-   cc.game.soc.core.Card {
-      status=USABLE
-      type=Development
-      typeOrdinal=4
-   }
-   cc.game.soc.core.Card {
-      status=USABLE
-      type=Development
-      typeOrdinal=4
-   }
-   cc.game.soc.core.Card {
-      status=USABLE
-      type=Development
-      typeOrdinal=4
-   }
-   cc.game.soc.core.Card {
-      status=USABLE
-      type=Development
-      typeOrdinal=3
-   }
-   cc.game.soc.core.Card {
-      status=USABLE
-      type=Development
-      typeOrdinal=4
    }
    cc.game.soc.core.Card {
       status=USABLE
@@ -3078,31 +2964,6 @@ mDevelopmentCards=java.util.ArrayList {
    cc.game.soc.core.Card {
       status=USABLE
       type=Development
-      typeOrdinal=2
-   }
-   cc.game.soc.core.Card {
-      status=USABLE
-      type=Development
-      typeOrdinal=1
-   }
-   cc.game.soc.core.Card {
-      status=USABLE
-      type=Development
-      typeOrdinal=4
-   }
-   cc.game.soc.core.Card {
-      status=USABLE
-      type=Development
-      typeOrdinal=2
-   }
-   cc.game.soc.core.Card {
-      status=USABLE
-      type=Development
-      typeOrdinal=4
-   }
-   cc.game.soc.core.Card {
-      status=USABLE
-      type=Development
       typeOrdinal=4
    }
    cc.game.soc.core.Card {
@@ -3114,170 +2975,181 @@ mDevelopmentCards=java.util.ArrayList {
       status=USABLE
       type=Development
       typeOrdinal=4
-   }
-   cc.game.soc.core.Card {
-      status=USABLE
-      type=Development
-      typeOrdinal=2
-   }
-   cc.game.soc.core.Card {
-      status=USABLE
-      type=Development
-      typeOrdinal=2
    }
    cc.game.soc.core.Card {
       status=USABLE
       type=Development
       typeOrdinal=3
+   }
+   cc.game.soc.core.Card {
+      status=USABLE
+      type=Development
+      typeOrdinal=4
+   }
+   cc.game.soc.core.Card {
+      status=USABLE
+      type=Development
+      typeOrdinal=4
+   }
+   cc.game.soc.core.Card {
+      status=USABLE
+      type=Development
+      typeOrdinal=4
+   }
+   cc.game.soc.core.Card {
+      status=USABLE
+      type=Development
+      typeOrdinal=2
+   }
+   cc.game.soc.core.Card {
+      status=USABLE
+      type=Development
+      typeOrdinal=4
+   }
+   cc.game.soc.core.Card {
+      status=USABLE
+      type=Development
+      typeOrdinal=4
+   }
+   cc.game.soc.core.Card {
+      status=USABLE
+      type=Development
+      typeOrdinal=3
+   }
+   cc.game.soc.core.Card {
+      status=USABLE
+      type=Development
+      typeOrdinal=4
+   }
+   cc.game.soc.core.Card {
+      status=USABLE
+      type=Development
+      typeOrdinal=2
+   }
+   cc.game.soc.core.Card {
+      status=USABLE
+      type=Development
+      typeOrdinal=4
+   }
+   cc.game.soc.core.Card {
+      status=USABLE
+      type=Development
+      typeOrdinal=2
+   }
+   cc.game.soc.core.Card {
+      status=USABLE
+      type=Development
+      typeOrdinal=2
+   }
+   cc.game.soc.core.Card {
+      status=USABLE
+      type=Development
+      typeOrdinal=2
+   }
+   cc.game.soc.core.Card {
+      status=USABLE
+      type=Development
+      typeOrdinal=4
+   }
+   cc.game.soc.core.Card {
+      status=USABLE
+      type=Development
+      typeOrdinal=4
+   }
+   cc.game.soc.core.Card {
+      status=USABLE
+      type=Development
+      typeOrdinal=4
+   }
+   cc.game.soc.core.Card {
+      status=USABLE
+      type=Development
+      typeOrdinal=2
+   }
+   cc.game.soc.core.Card {
+      status=USABLE
+      type=Development
+      typeOrdinal=4
+   }
+   cc.game.soc.core.Card {
+      status=USABLE
+      type=Development
+      typeOrdinal=4
+   }
+   cc.game.soc.core.Card {
+      status=USABLE
+      type=Development
+      typeOrdinal=4
+   }
+   cc.game.soc.core.Card {
+      status=USABLE
+      type=Development
+      typeOrdinal=4
+   }
+   cc.game.soc.core.Card {
+      status=USABLE
+      type=Development
+      typeOrdinal=4
+   }
+   cc.game.soc.core.Card {
+      status=USABLE
+      type=Development
+      typeOrdinal=1
+   }
+   cc.game.soc.core.Card {
+      status=USABLE
+      type=Development
+      typeOrdinal=4
+   }
+   cc.game.soc.core.Card {
+      status=USABLE
+      type=Development
+      typeOrdinal=4
+   }
+   cc.game.soc.core.Card {
+      status=USABLE
+      type=Development
+      typeOrdinal=2
+   }
+   cc.game.soc.core.Card {
+      status=USABLE
+      type=Development
+      typeOrdinal=4
+   }
+   cc.game.soc.core.Card {
+      status=USABLE
+      type=Development
+      typeOrdinal=4
+   }
+   cc.game.soc.core.Card {
+      status=USABLE
+      type=Development
+      typeOrdinal=2
+   }
+   cc.game.soc.core.Card {
+      status=USABLE
+      type=Development
+      typeOrdinal=2
    }
 }
 mDice=java.util.LinkedList {
    java.lang.Integer {
-      4
-   }
-   java.lang.Integer {
-      4
-   }
-   java.lang.Integer {
       5
    }
    java.lang.Integer {
-      4
+      3
    }
    java.lang.Integer {
-      1
+      3
    }
    java.lang.Integer {
       2
    }
    java.lang.Integer {
-      4
-   }
-   java.lang.Integer {
-      6
-   }
-   java.lang.Integer {
-      5
-   }
-   java.lang.Integer {
-      3
-   }
-   java.lang.Integer {
-      4
-   }
-   java.lang.Integer {
-      5
-   }
-   java.lang.Integer {
-      6
-   }
-   java.lang.Integer {
-      5
-   }
-   java.lang.Integer {
-      6
-   }
-   java.lang.Integer {
-      2
-   }
-   java.lang.Integer {
-      6
-   }
-   java.lang.Integer {
-      3
-   }
-   java.lang.Integer {
-      4
-   }
-   java.lang.Integer {
-      6
-   }
-   java.lang.Integer {
-      2
-   }
-   java.lang.Integer {
-      6
-   }
-   java.lang.Integer {
-      3
-   }
-   java.lang.Integer {
-      4
-   }
-   java.lang.Integer {
-      4
-   }
-   java.lang.Integer {
       3
    }
    java.lang.Integer {
       1
-   }
-   java.lang.Integer {
-      5
-   }
-   java.lang.Integer {
-      5
-   }
-   java.lang.Integer {
-      5
-   }
-   java.lang.Integer {
-      2
-   }
-   java.lang.Integer {
-      1
-   }
-   java.lang.Integer {
-      4
-   }
-   java.lang.Integer {
-      5
-   }
-   java.lang.Integer {
-      1
-   }
-   java.lang.Integer {
-      3
-   }
-   java.lang.Integer {
-      5
-   }
-   java.lang.Integer {
-      6
-   }
-   java.lang.Integer {
-      6
-   }
-   java.lang.Integer {
-      2
-   }
-   java.lang.Integer {
-      5
-   }
-   java.lang.Integer {
-      1
-   }
-   java.lang.Integer {
-      4
-   }
-   java.lang.Integer {
-      5
-   }
-   java.lang.Integer {
-      3
-   }
-   java.lang.Integer {
-      5
-   }
-   java.lang.Integer {
-      4
-   }
-   java.lang.Integer {
-      1
-   }
-   java.lang.Integer {
-      3
    }
    java.lang.Integer {
       4
@@ -3289,67 +3161,25 @@ mDice=java.util.LinkedList {
       3
    }
    java.lang.Integer {
-      4
-   }
-   java.lang.Integer {
-      4
-   }
-   java.lang.Integer {
-      6
-   }
-   java.lang.Integer {
       1
-   }
-   java.lang.Integer {
-      1
-   }
-   java.lang.Integer {
-      6
-   }
-   java.lang.Integer {
-      1
-   }
-   java.lang.Integer {
-      2
-   }
-   java.lang.Integer {
-      2
-   }
-   java.lang.Integer {
-      3
-   }
-   java.lang.Integer {
-      6
-   }
-   java.lang.Integer {
-      6
-   }
-   java.lang.Integer {
-      4
-   }
-   java.lang.Integer {
-      3
    }
    java.lang.Integer {
       5
    }
    java.lang.Integer {
+      3
+   }
+   java.lang.Integer {
       4
    }
    java.lang.Integer {
-      3
+      1
    }
    java.lang.Integer {
       5
    }
    java.lang.Integer {
-      1
-   }
-   java.lang.Integer {
-      6
-   }
-   java.lang.Integer {
-      1
+      5
    }
    java.lang.Integer {
       2
@@ -3358,58 +3188,7 @@ mDice=java.util.LinkedList {
       5
    }
    java.lang.Integer {
-      1
-   }
-   java.lang.Integer {
-      1
-   }
-   java.lang.Integer {
-      4
-   }
-   java.lang.Integer {
-      4
-   }
-   java.lang.Integer {
-      4
-   }
-   java.lang.Integer {
       6
-   }
-   java.lang.Integer {
-      5
-   }
-   java.lang.Integer {
-      3
-   }
-   java.lang.Integer {
-      4
-   }
-   java.lang.Integer {
-      1
-   }
-   java.lang.Integer {
-      6
-   }
-   java.lang.Integer {
-      4
-   }
-   java.lang.Integer {
-      6
-   }
-   java.lang.Integer {
-      5
-   }
-   java.lang.Integer {
-      1
-   }
-   java.lang.Integer {
-      4
-   }
-   java.lang.Integer {
-      5
-   }
-   java.lang.Integer {
-      3
    }
    java.lang.Integer {
       4
@@ -3421,7 +3200,25 @@ mDice=java.util.LinkedList {
       2
    }
    java.lang.Integer {
+      3
+   }
+   java.lang.Integer {
+      3
+   }
+   java.lang.Integer {
       6
+   }
+   java.lang.Integer {
+      2
+   }
+   java.lang.Integer {
+      5
+   }
+   java.lang.Integer {
+      6
+   }
+   java.lang.Integer {
+      1
    }
    java.lang.Integer {
       3
@@ -3430,7 +3227,211 @@ mDice=java.util.LinkedList {
       5
    }
    java.lang.Integer {
+      2
+   }
+   java.lang.Integer {
       1
+   }
+   java.lang.Integer {
+      5
+   }
+   java.lang.Integer {
+      6
+   }
+   java.lang.Integer {
+      4
+   }
+   java.lang.Integer {
+      2
+   }
+   java.lang.Integer {
+      3
+   }
+   java.lang.Integer {
+      3
+   }
+   java.lang.Integer {
+      3
+   }
+   java.lang.Integer {
+      3
+   }
+   java.lang.Integer {
+      5
+   }
+   java.lang.Integer {
+      4
+   }
+   java.lang.Integer {
+      3
+   }
+   java.lang.Integer {
+      1
+   }
+   java.lang.Integer {
+      5
+   }
+   java.lang.Integer {
+      2
+   }
+   java.lang.Integer {
+      4
+   }
+   java.lang.Integer {
+      5
+   }
+   java.lang.Integer {
+      1
+   }
+   java.lang.Integer {
+      2
+   }
+   java.lang.Integer {
+      2
+   }
+   java.lang.Integer {
+      5
+   }
+   java.lang.Integer {
+      1
+   }
+   java.lang.Integer {
+      6
+   }
+   java.lang.Integer {
+      2
+   }
+   java.lang.Integer {
+      5
+   }
+   java.lang.Integer {
+      3
+   }
+   java.lang.Integer {
+      4
+   }
+   java.lang.Integer {
+      5
+   }
+   java.lang.Integer {
+      4
+   }
+   java.lang.Integer {
+      1
+   }
+   java.lang.Integer {
+      6
+   }
+   java.lang.Integer {
+      6
+   }
+   java.lang.Integer {
+      2
+   }
+   java.lang.Integer {
+      6
+   }
+   java.lang.Integer {
+      5
+   }
+   java.lang.Integer {
+      5
+   }
+   java.lang.Integer {
+      6
+   }
+   java.lang.Integer {
+      4
+   }
+   java.lang.Integer {
+      6
+   }
+   java.lang.Integer {
+      3
+   }
+   java.lang.Integer {
+      1
+   }
+   java.lang.Integer {
+      1
+   }
+   java.lang.Integer {
+      5
+   }
+   java.lang.Integer {
+      2
+   }
+   java.lang.Integer {
+      4
+   }
+   java.lang.Integer {
+      3
+   }
+   java.lang.Integer {
+      1
+   }
+   java.lang.Integer {
+      3
+   }
+   java.lang.Integer {
+      5
+   }
+   java.lang.Integer {
+      3
+   }
+   java.lang.Integer {
+      3
+   }
+   java.lang.Integer {
+      4
+   }
+   java.lang.Integer {
+      1
+   }
+   java.lang.Integer {
+      5
+   }
+   java.lang.Integer {
+      2
+   }
+   java.lang.Integer {
+      2
+   }
+   java.lang.Integer {
+      4
+   }
+   java.lang.Integer {
+      3
+   }
+   java.lang.Integer {
+      6
+   }
+   java.lang.Integer {
+      2
+   }
+   java.lang.Integer {
+      1
+   }
+   java.lang.Integer {
+      6
+   }
+   java.lang.Integer {
+      2
+   }
+   java.lang.Integer {
+      2
+   }
+   java.lang.Integer {
+      2
+   }
+   java.lang.Integer {
+      4
+   }
+   java.lang.Integer {
+      1
+   }
+   java.lang.Integer {
+      5
    }
 }
 mDiceConfigStack=java.util.Stack {
@@ -3450,7 +3451,7 @@ mPlayers=cc.game.soc.core.Player 6 {
          cc.game.soc.core.Card {
             status=USABLE
             type=Resource
-            typeOrdinal=1
+            typeOrdinal=0
          }
          cc.game.soc.core.Card {
             status=USABLE
@@ -3460,37 +3461,22 @@ mPlayers=cc.game.soc.core.Player 6 {
          cc.game.soc.core.Card {
             status=USABLE
             type=Resource
-            typeOrdinal=1
+            typeOrdinal=2
+         }
+         cc.game.soc.core.Card {
+            status=USABLE
+            type=Resource
+            typeOrdinal=2
+         }
+         cc.game.soc.core.Card {
+            status=USABLE
+            type=Resource
+            typeOrdinal=2
          }
          cc.game.soc.core.Card {
             status=USABLE
             type=Resource
             typeOrdinal=3
-         }
-         cc.game.soc.core.Card {
-            status=USABLE
-            type=Resource
-            typeOrdinal=3
-         }
-         cc.game.soc.core.Card {
-            status=USABLE
-            type=Resource
-            typeOrdinal=3
-         }
-         cc.game.soc.core.Card {
-            status=USABLE
-            type=Resource
-            typeOrdinal=3
-         }
-         cc.game.soc.core.Card {
-            status=USABLE
-            type=Resource
-            typeOrdinal=4
-         }
-         cc.game.soc.core.Card {
-            status=USABLE
-            type=Resource
-            typeOrdinal=4
          }
       }
       cityDevelopment=int 3 {
@@ -3501,29 +3487,14 @@ mPlayers=cc.game.soc.core.Player 6 {
       numDiscoveredTerritories=0
       playerNum=1
       points=2
-      roadLength=2
+      roadLength=1
    }
    cc.game.soc.core.PlayerRandom {
       cards=java.util.Vector {
          cc.game.soc.core.Card {
             status=USABLE
             type=Resource
-            typeOrdinal=0
-         }
-         cc.game.soc.core.Card {
-            status=USABLE
-            type=Resource
-            typeOrdinal=0
-         }
-         cc.game.soc.core.Card {
-            status=USABLE
-            type=Resource
-            typeOrdinal=2
-         }
-         cc.game.soc.core.Card {
-            status=USABLE
-            type=Resource
-            typeOrdinal=2
+            typeOrdinal=3
          }
          cc.game.soc.core.Card {
             status=USABLE
@@ -3539,6 +3510,26 @@ mPlayers=cc.game.soc.core.Player 6 {
             status=USABLE
             type=Resource
             typeOrdinal=3
+         }
+         cc.game.soc.core.Card {
+            status=USABLE
+            type=Resource
+            typeOrdinal=4
+         }
+         cc.game.soc.core.Card {
+            status=USABLE
+            type=Resource
+            typeOrdinal=4
+         }
+         cc.game.soc.core.Card {
+            status=USABLE
+            type=Resource
+            typeOrdinal=4
+         }
+         cc.game.soc.core.Card {
+            status=USABLE
+            type=Resource
+            typeOrdinal=4
          }
       }
       cityDevelopment=int 3 {
@@ -3566,16 +3557,6 @@ mPlayers=cc.game.soc.core.Player 6 {
          cc.game.soc.core.Card {
             status=USABLE
             type=Resource
-            typeOrdinal=0
-         }
-         cc.game.soc.core.Card {
-            status=USABLE
-            type=Resource
-            typeOrdinal=0
-         }
-         cc.game.soc.core.Card {
-            status=USABLE
-            type=Resource
             typeOrdinal=1
          }
          cc.game.soc.core.Card {
@@ -3586,12 +3567,17 @@ mPlayers=cc.game.soc.core.Player 6 {
          cc.game.soc.core.Card {
             status=USABLE
             type=Resource
-            typeOrdinal=3
+            typeOrdinal=4
          }
          cc.game.soc.core.Card {
             status=USABLE
             type=Resource
-            typeOrdinal=3
+            typeOrdinal=4
+         }
+         cc.game.soc.core.Card {
+            status=USABLE
+            type=Resource
+            typeOrdinal=4
          }
       }
       cityDevelopment=int 3 {
@@ -3602,10 +3588,20 @@ mPlayers=cc.game.soc.core.Player 6 {
       numDiscoveredTerritories=0
       playerNum=3
       points=2
-      roadLength=2
+      roadLength=1
    }
    cc.game.soc.core.PlayerRandom {
       cards=java.util.Vector {
+         cc.game.soc.core.Card {
+            status=USABLE
+            type=Resource
+            typeOrdinal=0
+         }
+         cc.game.soc.core.Card {
+            status=USABLE
+            type=Resource
+            typeOrdinal=0
+         }
          cc.game.soc.core.Card {
             status=USABLE
             type=Resource
@@ -3629,22 +3625,7 @@ mPlayers=cc.game.soc.core.Player 6 {
          cc.game.soc.core.Card {
             status=USABLE
             type=Resource
-            typeOrdinal=4
-         }
-         cc.game.soc.core.Card {
-            status=USABLE
-            type=Resource
-            typeOrdinal=4
-         }
-         cc.game.soc.core.Card {
-            status=USABLE
-            type=Resource
-            typeOrdinal=4
-         }
-         cc.game.soc.core.Card {
-            status=USABLE
-            type=Resource
-            typeOrdinal=4
+            typeOrdinal=3
          }
          cc.game.soc.core.Card {
             status=USABLE
@@ -3713,5 +3694,20 @@ mRules=cc.game.soc.core.Rules {
 mStateStack=java.util.Stack {
    cc.game.soc.core.SOC.StackItem {
       state=START_ROUND
+   }
+   cc.game.soc.core.SOC.StackItem {
+      state=NEXT_PLAYER
+   }
+   cc.game.soc.core.SOC.StackItem {
+      state=NEXT_PLAYER
+   }
+   cc.game.soc.core.SOC.StackItem {
+      state=PLAYER_TURN_NOCANCEL
+   }
+   cc.game.soc.core.SOC.StackItem {
+      state=NEXT_PLAYER
+   }
+   cc.game.soc.core.SOC.StackItem {
+      state=PLAYER_TURN_NOCANCEL
    }
 }

@@ -189,6 +189,8 @@ public class UIPlayer extends PlayerBot implements ClientConnection.Listener {
 	
 	@Override
 	protected void onBoardChanged() {
+        if (UISOC.getInstance() == null)
+            return;
         final UIBoardRenderer bc = UISOC.getInstance().getUIBoard();
 		bc.getComponent().redraw();
         Utils.waitNoThrow(bc, 100);
@@ -199,6 +201,9 @@ public class UIPlayer extends PlayerBot implements ClientConnection.Listener {
 
 	@Override
 	protected BotNode onOptimalPath(BotNode optimal, List<BotNode> leafs) {
+        if (UISOC.getInstance() == null) {
+            return super.onOptimalPath(optimal, leafs);
+        }
 		return UISOC.getInstance().chooseOptimalPath(optimal, leafs);
 	}
 

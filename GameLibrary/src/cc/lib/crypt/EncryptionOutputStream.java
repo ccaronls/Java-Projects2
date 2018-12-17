@@ -55,7 +55,7 @@ public final class EncryptionOutputStream extends OutputStream {
 
     private void writeChunk() throws IOException {
         try {
-            if (Profiler.ENABLED) Profiler.push("EncryptionOutputStream::writeChunk");
+            if (Profiler.ENABLED) Profiler.push("EncryptionOutputStream.writeChunk");
             int numBits = Math.min(data.getLen(), chunkSizeBits);
             data.getBits(chunk);
             out.writeInt(chunk.length); // write the size of the chunk
@@ -64,13 +64,13 @@ public final class EncryptionOutputStream extends OutputStream {
             data.shiftRight(numBits);
             //System.out.println("writeChunk numBits=" + numBits + ", chunkLen=" + chunk.length + ", data.len=" + data.getLen());
         } finally {
-            if (Profiler.ENABLED) Profiler.pop("EncryptionOutputStream::writeChunk");
+            if (Profiler.ENABLED) Profiler.pop("EncryptionOutputStream.writeChunk");
         }
     }
 
     @Override
     public void write(int b) throws IOException {
-        if (Profiler.ENABLED) Profiler.push("EncryptionOutputStream.write()");
+        if (Profiler.ENABLED) Profiler.push("EncryptionOutputStream.write");
         try {
             int [] e = cypher.encrypt(b);
             //BitVector encrypted = new BitVector();
@@ -83,7 +83,7 @@ public final class EncryptionOutputStream extends OutputStream {
             if (data.getLen() >= chunkSizeBits - cypher.getMaxEncodedBitLength())
                 writeChunk();
         } finally {
-            if (Profiler.ENABLED) Profiler.pop("EncryptionOutputStream.write()");
+            if (Profiler.ENABLED) Profiler.pop("EncryptionOutputStream.write");
         }
     }
 

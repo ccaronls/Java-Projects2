@@ -97,6 +97,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
     private int mBarbarianDistance = -1; // CAK
     private final int[] mMetropolisPlayer = new int[NUM_DEVELOPMENT_AREA_TYPES];
     private int mBarbarianAttackCount = 0;
+    private boolean gameOver = false;
 
     public final State getState() {
         return mStateStack.peek().state;
@@ -342,6 +343,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
         mBoard.reset();
         Arrays.fill(mMetropolisPlayer, 0);
         mBarbarianAttackCount = 0;
+        gameOver = false;
     }
 
     @Override
@@ -1179,6 +1181,12 @@ public class SOC extends Reflector<SOC> implements StringResource {
      * @return
      */
     public boolean isGameOver() {
+        return gameOver;
+    }
+
+    private boolean checkGameOver() {
+        if (gameOver)
+            return true;
         for (int i = 1; i <= getNumPlayers(); i++) {
             Player player = getPlayerByPlayerNum(i);
             int pts = player.getPoints();
@@ -1186,6 +1194,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
             if (mBoard.getNumVertsOfType(0, VertexType.PIRATE_FORTRESS) == 0 || player.getCardCount(SpecialVictoryType.CapturePirateFortress) > 0) {
                 if (player.getPoints() >= getRules().getPointsForWinGame()) {
                     onGameOver(player.getPlayerNum());
+                    gameOver = true;
                     return true;
                 }
             }
@@ -1205,9 +1214,8 @@ public class SOC extends Reflector<SOC> implements StringResource {
         List<Integer> players = new ArrayList<Integer>();
         if (trader.getCardCount(CardType.Resource) == 0)
             return players;
-        for (Player p : soc.getPlayers()) {
-            if (p == trader)
-                continue;
+        for (int pNum : players) {
+            Player p = soc.getPlayerByPlayerNum(pNum);
             int numCommodity = p.getCardCount(CardType.Commodity);
             if (numCommodity > 0) {
                 players.add(p.getPlayerNum());
@@ -1299,7 +1307,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
         assert (!mStateStack.isEmpty());
 
         updatePlayerPoints();
-        if (isGameOver()) {
+        if (checkGameOver()) {
             return false;
         }
 
@@ -1360,6 +1368,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
                     printinfo(getString(R.string.info_player_choose_fortress_to_attack, getCurPlayer().getName()));
                     Integer v = getCurPlayer().chooseVertex(this, options, VertexChoice.PIRATE_FORTRESS, null);
                     if (v != null) {
+                        Utils.assertContains(v, options);
                         onVertexChosen(getCurPlayerNum(), VertexChoice.PIRATE_FORTRESS, v, null);
                         popState();
                         if (getRules().isAttackPirateFortressEndsTurn())
@@ -1381,6 +1390,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
                     Integer vIndex = getCurPlayer().chooseVertex(this, options, VertexChoice.SETTLEMENT, null);
 
                     if (vIndex != null) {
+                        Utils.assertContains(vIndex, options);
                         onVertexChosen(getCurPlayerNum(), VertexChoice.SETTLEMENT, vIndex, null);
                         popState();
 
@@ -1499,6 +1509,8 @@ public class SOC extends Reflector<SOC> implements StringResource {
                     Integer edgeIndex = getCurPlayer().chooseRoute(this, options, RouteChoice.ROAD, null);
 
                     if (edgeIndex != null) {
+                        Utils.assertContains(edgeIndex, options);
+
                         onRouteChosen(getCurPlayerNum(), RouteChoice.ROAD, edgeIndex, null);
                         Route edge = getBoard().getRoute(edgeIndex);
                         assert (edge.getType() == RouteType.OPEN);
@@ -1525,6 +1537,8 @@ public class SOC extends Reflector<SOC> implements StringResource {
                     assert (!Utils.isEmpty(options));
                     Integer edgeIndex = getCurPlayer().chooseRoute(this, options, RouteChoice.SHIP, shipToMove);
                     if (edgeIndex != null) {
+                        Utils.assertContains(edgeIndex, options);
+
                         onRouteChosen(getCurPlayerNum(), RouteChoice.SHIP, edgeIndex, shipToMove);
                         popState();
                         Route edge = getBoard().getRoute(edgeIndex);
@@ -1554,6 +1568,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
                     assert (!Utils.isEmpty(options));
                     Integer edgeIndex = getCurPlayer().chooseRoute(this, options, RouteChoice.UPGRADE_SHIP, null);
                     if (edgeIndex != null) {
+                        Utils.assertContains(edgeIndex, options);
                         onRouteChosen(getCurPlayerNum(), RouteChoice.UPGRADE_SHIP, edgeIndex, null);
                         Route edge = getBoard().getRoute(edgeIndex);
                         assert (edge.getPlayer() == getCurPlayerNum());
@@ -1580,6 +1595,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
                     assert (!Utils.isEmpty(options));
                     final Integer shipIndex = getCurPlayer().chooseRoute(this, options, RouteChoice.SHIP_TO_MOVE, null);
                     if (shipIndex != null) {
+                        Utils.assertContains(shipIndex, options);
                         onRouteChosen(getCurPlayerNum(), RouteChoice.SHIP_TO_MOVE, shipIndex, null);
                         final Route ship = getBoard().getRoute(shipIndex);
                         assert (ship.getType().isVessel);
@@ -1613,6 +1629,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
                     Integer vIndex = getCurPlayer().chooseVertex(this, options, VertexChoice.CITY, null);
 
                     if (vIndex != null) {
+                        Utils.assertContains(vIndex, options);
                         onVertexChosen(getCurPlayerNum(), VertexChoice.CITY, vIndex, null);
                         popState();
                         Vertex v = getBoard().getVertex(vIndex);
@@ -1647,6 +1664,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
                     Integer vIndex = getCurPlayer().chooseVertex(this, options, VertexChoice.CITY_WALL, null);
 
                     if (vIndex != null) {
+                        Utils.assertContains(vIndex, options);
                         onVertexChosen(getCurPlayerNum(), VertexChoice.CITY_WALL, vIndex, null);
                         popState();
 
@@ -1673,6 +1691,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
                     else
                         vIndex = getCurPlayer().chooseVertex(this, options, area.choice, null);
                     if (vIndex != null) {
+                        Utils.assertContains(vIndex, options);
                         onVertexChosen(getCurPlayerNum(), area.choice, vIndex, null);
                         popState();
                         Vertex v = getBoard().getVertex(vIndex);
@@ -1750,6 +1769,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
                     assert (!Utils.isEmpty(moves));
                     MoveType move = getCurPlayer().chooseMove(this, moves);
                     if (move != null) {
+                        Utils.assertContains(move, moves);
                         processMove(move);
                     }
                     break;
@@ -1764,6 +1784,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
                     assert (!Utils.isEmpty(trades));
                     final Trade trade = getCurPlayer().chooseTradeOption(this, trades);
                     if (trade != null) {
+                        Utils.assertContains(trade, trades);
                         printinfo(getString(R.string.info_player_trade_x_for_n, getCurPlayer().getName(), trade.getType(), trade.getAmount()));
                         getCurPlayer().incrementResource(trade.getType(), -trade.getAmount());
                         onCardsTraded(getCurPlayerNum(), trade);
@@ -1803,6 +1824,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
                         Integer cellIndex = getCurPlayer().chooseTile(this, options, TileChoice.ROBBER);
 
                         if (cellIndex != null) {
+                            Utils.assertContains(cellIndex, options);
                             popState();
                             Tile cell = getBoard().getTile(cellIndex);
                             if (cell.isWater()) {
@@ -1828,6 +1850,8 @@ public class SOC extends Reflector<SOC> implements StringResource {
                     Integer cellIndex = getCurPlayer().chooseTile(this, options, TileChoice.PIRATE);
 
                     if (cellIndex != null) {
+                        Utils.assertContains(cellIndex, options);
+
                         popState();
                         Tile cell = getBoard().getTile(cellIndex);
                         if (cell.isWater()) {
@@ -1851,6 +1875,8 @@ public class SOC extends Reflector<SOC> implements StringResource {
                     } else {
                         Integer playerNum = getCurPlayer().choosePlayer(this, options, PlayerChoice.PLAYER_TO_TAKE_CARD_FROM);
                         if (playerNum != null) {
+                            Utils.assertContains(playerNum, options);
+
                             Player player = getPlayerByPlayerNum(playerNum);
                             assert (player != getCurPlayer());
                             assert (player.getPlayerNum() > 0);
@@ -1864,6 +1890,8 @@ public class SOC extends Reflector<SOC> implements StringResource {
                     printinfo(getString(R.string.info_player_choose_opponent_for_gift, getCurPlayer().getName()));
                     Integer playerNum = getCurPlayer().choosePlayer(this, getStateOptions(), PlayerChoice.PLAYER_TO_GIFT_CARD);
                     if (playerNum != null) {
+                        Utils.assertContains(playerNum, getStateOptions());
+
                         Player player = getPlayerByPlayerNum(playerNum);
                         cards = getStateExtraOptions();
                         assert (!Utils.isEmpty(cards));
@@ -1911,6 +1939,8 @@ public class SOC extends Reflector<SOC> implements StringResource {
                     printinfo(getString(R.string.info_player_giveup_one_of_n_cards, getCurPlayer().getName(), numToGiveUp));
                     Card card = getCurPlayer().chooseCard(this, cards, CardChoice.GIVEUP_CARD);
                     if (card != null) {
+                        Utils.assertContains(card, cards);
+
                         getCurPlayer().removeCard(card);
                         popState();
                     }
@@ -1941,6 +1971,8 @@ public class SOC extends Reflector<SOC> implements StringResource {
                     }
                     Card card = getCurPlayer().chooseCard(this, cards, CardChoice.RESOURCE_OR_COMMODITY);
                     if (card != null) {
+                        Utils.assertContains(card, cards);
+
                         printinfo(getString(R.string.info_player_draws_a_x_card, getCurPlayer().getName(), card.getName(this)));
                         onCardPicked(getCurPlayerNum(), card);
                         getCurPlayer().addCard(card);
@@ -1974,6 +2006,8 @@ public class SOC extends Reflector<SOC> implements StringResource {
                     assert (!Utils.isEmpty(options));
                     Integer vIndex = getCurPlayer().chooseVertex(this, options, VertexChoice.KNIGHT_TO_ACTIVATE, null);
                     if (vIndex != null) {
+                        Utils.assertContains(vIndex, options);
+
                         onVertexChosen(getCurPlayerNum(), VertexChoice.KNIGHT_TO_ACTIVATE, vIndex, null);
                         Vertex v = getBoard().getVertex(vIndex);
                         getCurPlayer().adjustResourcesForBuildable(BuildableType.ActivateKnight, -1);
@@ -1990,6 +2024,8 @@ public class SOC extends Reflector<SOC> implements StringResource {
                     }
                     Integer vIndex = getCurPlayer().chooseVertex(this, options, VertexChoice.KNIGHT_TO_PROMOTE, null);
                     if (vIndex != null) {
+                        Utils.assertContains(vIndex, options);
+
                         onVertexChosen(getCurPlayerNum(), VertexChoice.KNIGHT_TO_PROMOTE, vIndex, null);
                         Vertex v = getBoard().getVertex(vIndex);
                         assert (v.isKnight());
@@ -2005,6 +2041,8 @@ public class SOC extends Reflector<SOC> implements StringResource {
                     assert (!Utils.isEmpty(options));
                     final Integer vIndex = getCurPlayer().chooseVertex(this, options, VertexChoice.KNIGHT_TO_MOVE, null);
                     if (vIndex != null) {
+                        Utils.assertContains(vIndex, options);
+
                         onVertexChosen(getCurPlayerNum(), VertexChoice.KNIGHT_TO_MOVE, vIndex, null);
                         popState();
                         pushStateFront(State.POSITION_KNIGHT_CANCEL, vIndex, computeKnightMoveVertexIndices(this, vIndex, mBoard));
@@ -2021,6 +2059,8 @@ public class SOC extends Reflector<SOC> implements StringResource {
                     assert (!Utils.isEmpty(options));
                     Integer vIndex = getCurPlayer().chooseVertex(this, options, VertexChoice.KNIGHT_DISPLACED, knightIndex);
                     if (vIndex != null) {
+                        Utils.assertContains(vIndex, options);
+
                         onVertexChosen(getCurPlayerNum(), VertexChoice.KNIGHT_DISPLACED, vIndex, knightIndex);
                         Vertex v = getBoard().getVertex(vIndex);
                         knight.setOpen();
@@ -2045,6 +2085,8 @@ public class SOC extends Reflector<SOC> implements StringResource {
                     VertexChoice choice = state == State.POSITION_NEW_KNIGHT_CANCEL ? VertexChoice.NEW_KNIGHT : VertexChoice.KNIGHT_MOVE_POSITION;
                     Integer vIndex = getCurPlayer().chooseVertex(this, options, choice, sourceKnight);
                     if (vIndex != null) {
+                        Utils.assertContains(vIndex, options);
+
                         onVertexChosen(getCurPlayerNum(), choice, vIndex, sourceKnight);
                         if (sourceKnight != null) {
                             getBoard().getVertex(sourceKnight).setOpen();
@@ -2106,6 +2148,8 @@ public class SOC extends Reflector<SOC> implements StringResource {
                     DevelopmentArea[] areas = ops.toArray(new DevelopmentArea[ops.size()]);
                     DevelopmentArea area = getCurPlayer().chooseEnum(this, EnumChoice.CRANE_CARD_DEVELOPEMENT, areas);
                     if (area != null) {
+                        Utils.assertContains(area, Arrays.asList(areas));
+
                         popState();
                         processCityImprovement(getCurPlayer(), area, 1);
                     }
@@ -2117,6 +2161,8 @@ public class SOC extends Reflector<SOC> implements StringResource {
                     assert (!Utils.isEmpty(options));
                     Integer vIndex = getCurPlayer().chooseVertex(this, options, VertexChoice.KNIGHT_DESERTER, null);
                     if (vIndex != null) {
+                        Utils.assertContains(vIndex, options);
+
                         onVertexChosen(getCurPlayerNum(), VertexChoice.KNIGHT_DESERTER, vIndex, null);
                         int newPlayerNum = getStateData();
                         popState();
@@ -2134,6 +2180,8 @@ public class SOC extends Reflector<SOC> implements StringResource {
                     assert (!Utils.isEmpty(options));
                     Integer playerNum = getCurPlayer().choosePlayer(this, options, PlayerChoice.PLAYER_FOR_DESERTION);
                     if (playerNum != null) {
+                        Utils.assertContains(playerNum, options);
+
                         popState();
                         List<Integer> knights = getBoard().getKnightsForPlayer(playerNum);
                         assert (knights.size() > 0);
@@ -2149,6 +2197,8 @@ public class SOC extends Reflector<SOC> implements StringResource {
                     assert (!Utils.isEmpty(options));
                     final Integer rIndex = getCurPlayer().chooseRoute(this, options, RouteChoice.ROUTE_DIPLOMAT, null);
                     if (rIndex != null) {
+                        Utils.assertContains(rIndex, options);
+
                         onRouteChosen(getCurPlayerNum(), RouteChoice.ROUTE_DIPLOMAT, rIndex, null);
                         final Route r = getBoard().getRoute(rIndex);
                         popState();
@@ -2184,6 +2234,8 @@ public class SOC extends Reflector<SOC> implements StringResource {
                     printinfo(getString(R.string.info_player_choose_player_for_harbor_trade, getCurPlayer().getName()));
                     final Integer playerNum = getCurPlayer().choosePlayer(this, options, PlayerChoice.PLAYER_TO_FORCE_HARBOR_TRADE);
                     if (playerNum != null) {
+                        Utils.assertContains(playerNum, options);
+
                         Player p = getPlayerByPlayerNum(playerNum);
                         Card card = getStateData();
                         if (card != null) {
@@ -2200,8 +2252,10 @@ public class SOC extends Reflector<SOC> implements StringResource {
 
                 case CHOOSE_HARBOR_RESOURCE: {
                     printinfo(getString(R.string.info_player_choose_harbor_resource, getCurPlayer().getName()));
-                    Card card = getCurPlayer().chooseCard(this, getCurPlayer().getCards(CardType.Resource), CardChoice.EXCHANGE_CARD);
+                    List<Card> resourceCards = getCurPlayer().getCards(CardType.Resource);
+                    Card card = getCurPlayer().chooseCard(this, resourceCards, CardChoice.EXCHANGE_CARD);
                     if (card != null) {
+                        Utils.assertContains(card, resourceCards);
                         Player exchanging = getStateData();
                         popState();
                         printinfo(getString(R.string.info_player_gives_card_to_player, getCurPlayer().getName(), card.getName(this), exchanging.getName()));
@@ -2224,6 +2278,8 @@ public class SOC extends Reflector<SOC> implements StringResource {
                     assert (!Utils.isEmpty(cards));
                     Card card = getCurPlayer().chooseCard(this, cards, CardChoice.EXCHANGE_CARD);
                     if (card != null) {
+                        Utils.assertContains(card, cards);
+
                         getCurPlayer().removeCard(card);
                         onCardLost(getCurPlayerNum(), card);
                         Player exchanging = getStateData();
@@ -2239,6 +2295,8 @@ public class SOC extends Reflector<SOC> implements StringResource {
                     assert (!Utils.isEmpty(options));
                     Integer vIndex = getCurPlayer().chooseVertex(this, options, VertexChoice.OPPONENT_KNIGHT_TO_DISPLACE, null);
                     if (vIndex != null) {
+                        Utils.assertContains(vIndex, options);
+
                         onVertexChosen(getCurPlayerNum(), VertexChoice.OPPONENT_KNIGHT_TO_DISPLACE, vIndex, null);
                         Vertex v = getBoard().getVertex(vIndex);
                         options = computeDisplacedKnightVertexIndices(this, vIndex, mBoard);
@@ -2261,6 +2319,8 @@ public class SOC extends Reflector<SOC> implements StringResource {
                     assert (!Utils.isEmpty(options));
                     Integer tileIndex = getCurPlayer().chooseTile(this, options, TileChoice.INVENTOR);
                     if (tileIndex != null) {
+                        Utils.assertContains(tileIndex, options);
+
                         Integer firstTileIndex = getStateData();
                         popState();
                         if (firstTileIndex == null) {
@@ -2285,6 +2345,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
                     assert (!Utils.isEmpty(options));
                     Integer playerNum = getCurPlayer().choosePlayer(this, options, PlayerChoice.PLAYER_TO_TAKE_CARD_FROM);
                     if (playerNum != null) {
+                        Utils.assertContains(playerNum, options);
                         Player p = getPlayerByPlayerNum(playerNum);
                         putCardBackInDeck(getCurPlayer().removeCard(ProgressCardType.MasterMerchant));
                         cards = p.getCards(CardType.Commodity);
@@ -2308,6 +2369,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
                     }
                     Card c = getCurPlayer().chooseCard(this, cards, CardChoice.OPPONENT_CARD);
                     if (c != null) {
+                        Utils.assertContains(c, cards);
                         p.removeCard(c);
                         getCurPlayer().addCard(c);
                         onTakeOpponentCard(getCurPlayerNum(), p.getPlayerNum(), c);
@@ -2324,6 +2386,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
                     assert (!Utils.isEmpty(options));
                     Integer tIndex = getCurPlayer().chooseTile(this, options, TileChoice.MERCHANT);
                     if (tIndex != null) {
+                        Utils.assertContains(tIndex, options);
                         if (mBoard.getMerchantPlayer() > 0) {
                             Player p = getPlayerByPlayerNum(mBoard.getMerchantPlayer());
                             Card c = p.removeCard(SpecialVictoryType.Merchant);
@@ -2345,6 +2408,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
                     assert (!Utils.isEmpty(cards));
                     Card c = getCurPlayer().chooseCard(this, cards, CardChoice.FLEET_TRADE);
                     if (c != null) {
+                        Utils.assertContains(c, cards);
                         getCurPlayer().getCard(ProgressCardType.MerchantFleet).setUsed();
                         getCurPlayer().setMerchantFleetTradable(c);
                         popState();
@@ -2357,6 +2421,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
                     assert (!Utils.isEmpty(options));
                     Integer playerNum = getCurPlayer().choosePlayer(this, options, PlayerChoice.PLAYER_TO_SPY_ON);
                     if (playerNum != null) {
+                        Utils.assertContains(playerNum, options);
                         Player p = getPlayerByPlayerNum(playerNum);
                         putCardBackInDeck(getCurPlayer().removeCard(ProgressCardType.Spy));
                         popState();
@@ -2396,6 +2461,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
                     }
                     Card c = getCurPlayer().chooseCard(this, cards, CardChoice.GIVEUP_CARD);
                     if (c != null) {
+                        Utils.assertContains(c, cards);
                         Player taker = getStateData();
                         getCurPlayer().removeCard(c);
                         taker.addCard(c);
@@ -2415,6 +2481,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
                     assert (!Utils.isEmpty(options));
                     Integer rIndex = getCurPlayer().chooseRoute(this, options, RouteChoice.OPPONENT_ROAD_TO_ATTACK, null);
                     if (rIndex != null) {
+                        Utils.assertContains(rIndex, options);
                         onRouteChosen(getCurPlayerNum(), RouteChoice.OPPONENT_ROAD_TO_ATTACK, rIndex, null);
                         Route r = getBoard().getRoute(rIndex);
                         assert (r.getPlayer() > 0);
@@ -2468,6 +2535,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
                     }
                     Integer vIndex = getCurPlayer().chooseVertex(this, options, VertexChoice.OPPONENT_STRUCTURE_TO_ATTACK, null);
                     if (vIndex != null) {
+                        Utils.assertContains(vIndex, options);
                         onVertexChosen(getCurPlayerNum(), VertexChoice.OPPONENT_STRUCTURE_TO_ATTACK, vIndex, null);
                         Vertex v = getBoard().getVertex(vIndex);
                         popState();
@@ -2539,6 +2607,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
                     Integer rIndex = getCurPlayer().chooseRoute(this, options, RouteChoice.OPPONENT_SHIP_TO_ATTACK, null);
                     onRouteChosen(getCurPlayerNum(), RouteChoice.OPPONENT_SHIP_TO_ATTACK, rIndex, null);
                     if (rIndex != null) {
+                        Utils.assertContains(rIndex, options);
                         Route r = getBoard().getRoute(rIndex);
                         popState();
                         pushStateFront(State.ROLL_DICE_ATTACK_SHIP, r);
@@ -4526,7 +4595,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
             }
 
         });
-        log.debug("Moves: %s", moves);
+        //log.debug("Moves: %s", moves);
         return moves;
     }
 
@@ -4623,7 +4692,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
         for (Player player : soc.getPlayers()) {
             if (player.getPlayerNum() == playerNum)
                 continue;
-            if (player.getPoints() >= pts)
+            if (player.getPoints() >= pts && player.getUnusedCardCount()>1)
                 players.add(player.getPlayerNum());
         }
         return players;

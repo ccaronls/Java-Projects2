@@ -66,27 +66,40 @@ public abstract class LoggerFactory {
     }
 
     public static void setFileLogger(final File outFile) {
-        if (!outFile.exists()) {
-            try {
-                if (!outFile.createNewFile())
-                    throw new AssertionError("Cannot create file '" + outFile + "'");
-            } catch (IOException e) {
-                throw new AssertionError(e);
-            }
-        }
+        setFileLogger(outFile, true);
+    }
+
+    public static void setFileLogger(final File outFile, final boolean includeConsole) {
         factory = new LoggerFactory() {
 
             PrintWriter out = null;
 
             void write(String txt, PrintStream o2) {
-                o2.println(txt);
+                if (includeConsole)
+                    o2.println(txt);
                 try {
                     if (out == null) {
+                        if (!outFile.exists()) {
+                            try {
+                                if (!outFile.createNewFile())
+                                    throw new RuntimeException("Cannot create file '" + outFile + "'");
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
+                            }
+                        }
                         out = new PrintWriter(new FileWriter(outFile));
                     }
 
                     out.println(txt);
                     out.flush();
+                    if (outFile.length() > 5*1024*1024) {
+                        File newFile = new File(outFile.getParent(), outFile.getName()+".0");
+                        newFile.delete();
+                        if (!outFile.renameTo(newFile))
+                            throw new RuntimeException("Failed to rename " + outFile + " to " + newFile);
+                        if (!outFile.createNewFile())
+                            throw new RuntimeException("Failed to create file: " + outFile);
+                    }
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

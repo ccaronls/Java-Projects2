@@ -17,6 +17,9 @@ import java.util.Map;
 import java.util.TreeSet;
 import java.util.Vector;
 
+import cc.lib.game.GColor;
+import cc.lib.game.Utils;
+
 public class ReflectorTest extends TestCase {
 
     @Override
@@ -655,6 +658,24 @@ public class ReflectorTest extends TestCase {
         assertEquals(a, b);
     }
 
+    public void testDiffImmutableList() throws Exception {
+        SimpleObject a = new SimpleObject();
+
+        a.myColorList = Utils.toList(GColor.RED, GColor.BLACK, GColor.GREEN);
+        SimpleObject b = a.deepCopy();
+
+        String diff = a.diff(b);
+        System.out.println("diff=\n"+diff);
+        a.mergeDiff(diff);
+        assertEquals(a, b);
+
+        a.myColorList.set(0, GColor.BLUE);
+        diff = a.diff(b);
+        System.out.println("diff=\n"+diff);
+        a.mergeDiff(diff);
+        assertEquals(a, b);
+    }
+
     public void testDeserializeEnclosedEnum() throws Exception {
 
         SimpleObject a = new SimpleObject();
@@ -691,6 +712,7 @@ public class ReflectorTest extends TestCase {
         int [] myIntArray = null;
 
         Vector<SimpleObject> myObjList = null;
+        List<GColor> myColorList = null;
     }
 
 }

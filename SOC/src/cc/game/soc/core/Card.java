@@ -201,4 +201,6 @@ public class Card extends Reflector<Card> implements Comparable <Card> {
 		// we want usable cards to appear earliest in the list, then unusable, then used
 		return status.compareTo(o.status);
 	}
+
+
 }

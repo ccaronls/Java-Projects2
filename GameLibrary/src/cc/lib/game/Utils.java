@@ -56,6 +56,12 @@ public class Utils {
         assertTrue(!expr, "Expression is true");
     }
 
+    public static void assertContains(Object o, Collection c) {
+        if (DEBUG_ENABLED && !c.contains(o)) {
+            throw new AssertionError("Object '" + o + "' is not contained by: " + c);
+        }
+    }
+
     /**
      * @param expr
      * @param msg
@@ -2221,6 +2227,10 @@ public class Utils {
                 i++;
             }
         }
+    }
+
+    public static <T> List<T> toList(T ... array) {
+        return toList(0, array.length, array);
     }
 
     /**

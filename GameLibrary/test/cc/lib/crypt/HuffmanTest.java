@@ -192,9 +192,9 @@ public class HuffmanTest extends SimpleCypherTest {
         enc.importCounts(kb);
         enc.generateRandomCountsFromExisitngOccurances(System.currentTimeMillis());
         enc.generate();
-        int [] c0 = enc.getCounts();
+        long [] c0 = enc.getCounts();
         enc.generate();
-        int [] c1 = enc.getCounts();
+        long [] c1 = enc.getCounts();
         assertTrue(Arrays.equals(c0, c1));
         enc.printEncodingAsCode(System.out);
 

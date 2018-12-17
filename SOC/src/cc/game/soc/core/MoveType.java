@@ -64,10 +64,10 @@ public enum MoveType implements ILocalized {
         }
     },
     
-    ATTACK_SHIP(true, 0, R.string.move_type_attack_ship, R.string.move_type_attack_ship_help),
+    ATTACK_SHIP(false, 0, R.string.move_type_attack_ship, R.string.move_type_attack_ship_help),
     
     // Roll dice and take a chance at converting the fortress to a settlement.  Must have a ship adjacent to the settlement.
-    ATTACK_PIRATE_FORTRESS(true, 50, R.string.move_type_attack_fortress, R.string.move_type_attack_fortress_help),
+    ATTACK_PIRATE_FORTRESS(false, 50, R.string.move_type_attack_fortress, R.string.move_type_attack_fortress_help),
     
     // Build a Road
     BUILD_ROAD(false, 5, R.string.move_type_build_road, R.string.move_type_build_road_help_cost) {
@@ -173,12 +173,12 @@ public enum MoveType implements ILocalized {
     },
     MOVE_KNIGHT(false, 5, R.string.move_type_move_knight, R.string.move_type_move_knight_help),
 
-    KNIGHT_ATTACK_ROAD(true, 50, R.string.move_type_attack_road, R.string.move_type_attack_road_help_die) {
+    KNIGHT_ATTACK_ROAD(false, 50, R.string.move_type_attack_road, R.string.move_type_attack_road_help_die) {
     	public String getHelpText(Rules rules, StringResource sr) {
     		return sr.getString(this.helpTextId, rules.getKnightScoreToDestroyRoad());
     	}
     },
-    KNIGHT_ATTACK_STRUCTURE(true, 50, R.string.move_type_attack_structure, 0) {
+    KNIGHT_ATTACK_STRUCTURE(false, 50, R.string.move_type_attack_structure, 0) {
     	public String getHelpText(Rules rules, StringResource sr) {
     		if (rules.getKnightScoreToDestroySettlement() > 0) {
     			return sr.getString(R.string.move_type_attack_settlement_help_knight_level, rules.getKnightScoreToDestroySettlement());

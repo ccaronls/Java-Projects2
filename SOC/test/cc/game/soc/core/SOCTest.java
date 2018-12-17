@@ -7,6 +7,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import cc.game.soc.ui.NetCommon;
@@ -32,12 +33,12 @@ public class SOCTest extends TestCase {
 
 	@Override
     protected void setUp() throws Exception {
+        //LoggerFactory.setFileLogger(new File("testresult/" + getName() + "log.txt"), false);
 	    System.out.println("Begin TEST: " + getName() + " working dir=" + new File(".").getAbsolutePath());
         System.out.println("----------------------------------------------");
         Profiler.ENABLED = true;
         PlayerBot.DEBUG_ENABLED = true;
         Utils.DEBUG_ENABLED = true;
-        Utils.setRandomSeed(999);
         startTimeMs = System.currentTimeMillis();
     }
 
@@ -110,8 +111,40 @@ public class SOCTest extends TestCase {
         soc.save("testresult/soctestresult.txt");
     }
 
-    public void testScenarios() throws Exception {
+    public void testScenarios2() throws Exception {
 
+	    for (int i=101; i<200; i++) {
+	        Utils.setRandomSeed(i);
+	        try {
+                testScenarios();
+            } finally {
+	            System.out.println("RANDOM SEED = " + i);
+            }
+        }
+
+
+    }
+
+    public void testFailedGame() throws Exception {
+	    SOC soc = new SOC();
+	    soc.loadFromFile(new File("testresult/failedgame.txt"));
+
+	    int iter = 0;
+	    try {
+	        for (iter=0; iter<10000 && !soc.isGameOver(); iter++) {
+	            soc.runGame();
+            }
+
+            assertTrue(soc.isGameOver());
+
+        } catch (Exception e) {
+            System.err.println("TEST Failed iteration (" + iter + ")");
+            throw e;
+        }
+    }
+
+    public void testScenarios() throws Exception {
+        //Utils.setRandomSeed(126);
         SOC soc = new SOC() {
             @Override
             public String getString(int resourceId, Object... args) {
@@ -129,15 +162,16 @@ public class SOCTest extends TestCase {
             int iteration = 0;
             for (File scenario : files) {
                 try {
-                    //if (!scenario.getName().toLowerCase().equals("the fog islands 4 players.txt"))
+                    //if (!scenario.getName().toLowerCase().equals("battle for the middle.txt"))
                     //    continue;
                     soc.loadFromFile(scenario);
 
-                    for (int i = 0; i < 3; i++)
-                        soc.addPlayer(new PlayerBot());
+                    soc.addPlayer(new UIPlayer(GColor.RED));
+                    soc.addPlayer(new UIPlayer(GColor.GREEN));
+                    soc.addPlayer(new UIPlayer(GColor.BLUE));
 
                     soc.initGame();
-                    for (iteration = 0; iteration < 20000 && !soc.isGameOver(); iteration++) {
+                    for (iteration = 0; iteration < 10000 && !soc.isGameOver(); iteration++) {
                         System.out.print("ITER(" + iteration + ")");
                         soc.runGame();
                     }
@@ -149,9 +183,10 @@ public class SOCTest extends TestCase {
                     assertTrue(soc.isGameOver());
                     soc.clear();
                     soc.getBoard().clear();
-                    passedFiles.add(scenario.getAbsolutePath());
+                    passedFiles.add(scenario.getAbsolutePath() + " in " + iteration + " iterations");
                 } catch (Throwable t) {
                     System.err.println("TEST Failed iteration (" + iteration + ") in file: " + scenario);
+                    soc.saveToFile(new File("testresult/failedgame.txt"));
                     throw t;
                 }
             }
@@ -359,12 +394,8 @@ public class SOCTest extends TestCase {
                 new Object[] { new Integer(0), Player.VertexChoice.CITY, null }
         );
 
-	    Dice [] dice = {
-	            new Dice(1, DiceType.WhiteBlack),
-                new Dice(2, DiceType.RedYellow)
-        };
-	    m = GameClient.searchMethods(soc, "onDiceRolled", new Class[] {
-	            Dice[].class }, new Object[] { dice }
+	    List<Dice> dice = Arrays.asList(new Dice(1, DiceType.WhiteBlack), new Dice(2, DiceType.RedYellow));
+	    m = GameClient.searchMethods(soc, "onDiceRolled", new Class[] { List.class }, new Object[] { dice }
         );
     }
 
@@ -380,6 +411,38 @@ public class SOCTest extends TestCase {
 
 	    boolean isSubclass = Reflector.isSubclassOf(annon.getClass(), soc.getClass()
         );
+    }
+
+    public void testUIPlayerDiffColors() throws Exception {
+
+	    SOC soc = new SOC();
+	    soc.addPlayer(new UIPlayer());
+        soc.addPlayer(new UIPlayer());
+        soc.addPlayer(new UIPlayer());
+
+        SOC b = soc.deepCopy();
+
+        assertFalse(b.getPlayerByPlayerNum(1) == soc.getPlayerByPlayerNum(1));
+        assertFalse(b.getPlayerByPlayerNum(2) == soc.getPlayerByPlayerNum(2));
+        assertFalse(b.getPlayerByPlayerNum(3) == soc.getPlayerByPlayerNum(3));
+
+        assertEquals(b.getPlayerByPlayerNum(1), soc.getPlayerByPlayerNum(1));
+        assertEquals(b.getPlayerByPlayerNum(2), soc.getPlayerByPlayerNum(2));
+        assertEquals(b.getPlayerByPlayerNum(3), soc.getPlayerByPlayerNum(3));
+
+        String diff = soc.diff(b);
+        System.out.println("diff:\n" + diff);
+
+        ((UIPlayer)b.getPlayerByPlayerNum(1)).setColor(GColor.TRANSPARENT);
+
+        diff = soc.diff(b);
+        System.out.println("diff:\n" + diff);
+
+        soc.mergeDiff(diff);
+        diff = soc.diff(b);
+        System.out.println("diff:\n" + diff);
+        //assertEquals(soc, b);
+
     }
 
 }

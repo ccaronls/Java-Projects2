@@ -507,7 +507,7 @@ public class Reflector<T> {
                 value = value.split(" ")[0];
                 field.setAccessible(true);
                 try {
-                    if (!KEEP_INSTANCES || o == null)
+                    if (!KEEP_INSTANCES || o == null || isImmutable(o))
                 	    field.set(a, getClassForName(value).newInstance());
                 } catch (ClassNotFoundException e) {
                 	int dot = value.lastIndexOf('.');
@@ -552,7 +552,7 @@ public class Reflector<T> {
                     continue;
                 Object o = Array.get(arr, i);
                 Reflector<?> a;
-                if (!KEEP_INSTANCES || o == null || !(o instanceof Reflector)) {
+                if (!KEEP_INSTANCES || o == null || !(o instanceof Reflector) || ((Reflector)o).isImmutable()) {
                     a = (Reflector<?>)getClassForName(line).newInstance();
                 } else {
                     a = (Reflector)o;
@@ -1422,6 +1422,8 @@ public class Reflector<T> {
     private static boolean isImmutable(Object o) {
         if (o instanceof String || o instanceof Number)
             return true;
+        if (o instanceof Reflector && ((Reflector)o).isImmutable())
+            return true;
         return false;
     }
 
@@ -2010,7 +2012,11 @@ public class Reflector<T> {
             } else if (o2 instanceof Reflector) {
                 writer.println(getCanonicalName(o2.getClass()) + " {");
                 writer.push();
-                ((Reflector) o1).diff((Reflector)o2, writer);
+                if (((Reflector) o2).isImmutable()) {
+                    ((Reflector)o2).serialize(writer);
+                } else {
+                    ((Reflector) o1).diff((Reflector) o2, writer);
+                }
                 writer.pop();
                 writer.println("}");
             } else {
@@ -2069,6 +2075,14 @@ public class Reflector<T> {
      */
     protected int getMinVersion() {
         return 0;
+    }
+
+    /**
+     * Override this for some classes that should be considered immutable
+     * @return
+     */
+    protected boolean isImmutable() {
+        return false;
     }
 
     public static void dump() {

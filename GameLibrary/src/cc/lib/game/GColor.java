@@ -254,4 +254,9 @@ public final class GColor extends Reflector<GColor> {
     		Math.min(1, getBlue() + other.getBlue()),
     		Math.min(1, getAlpha() + other.getAlpha()));
 	}
+
+    @Override
+    protected boolean isImmutable() {
+        return true;
+    }
 }

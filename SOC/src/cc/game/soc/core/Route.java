@@ -116,7 +116,7 @@ public final class Route extends Reflector<Route> implements Comparable<Route> {
 	void reset() {
 		player = 0;
 		setType(RouteType.OPEN);
-		setFlag(EDGE_FLAG_ATTACKED, false);
+		//setFlag(EDGE_FLAG_ATTACKED, false);
 		setFlag(EDGE_FLAG_LOCKED, false);
 	}
 
