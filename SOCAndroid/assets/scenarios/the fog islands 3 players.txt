@@ -10,9 +10,6 @@ mBoard=cc.game.soc.core.Board {
    ch=0.09090909
    cw=0.09090909
    name="the fog islands 3 players"
-   playerRoadLenCache=int 16 {
-      -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 
-   }
    islands=java.util.Vector {
    }
    pirateFortresses=java.util.ArrayList {

@@ -83,7 +83,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
         addAllFields(SOC.class);
     }
 
-    private final Player[] mPlayers;
+    private final Player[] mPlayers = new Player[MAX_PLAYERS];
     private int mCurrentPlayer;
     private int mNumPlayers;
     private final LinkedList<Integer> mDice = new LinkedList<>(); // compute the next 100 die rolls to support rewind with consistent die rolls
@@ -289,7 +289,6 @@ public class SOC extends Reflector<SOC> implements StringResource {
      *
      */
     public SOC() {
-        mPlayers = new Player[MAX_PLAYERS];
         mBarbarianDistance = -1; // CAK
         mBarbarianAttackCount = 0;
         mBoard = new Board();
@@ -298,7 +297,9 @@ public class SOC extends Reflector<SOC> implements StringResource {
     }
 
     public SOC(SOC other) {
-        mPlayers = other.mPlayers;
+        for (int i=0; i<other.mNumPlayers; i++) {
+            mPlayers[i] = other.mPlayers[i].shallowCopy();
+        }
         Utils.copyElems(mPlayers, other.mPlayers);
         mDice.addAll(other.mDice);
         mDiceConfigStack.addAll(other.mDiceConfigStack);
@@ -1687,7 +1688,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
                     assert (area != null);
                     Integer vIndex = null;
                     if (options.size() == 1)
-                        vIndex = (Integer) options.iterator().next();
+                        vIndex = options.iterator().next();
                     else
                         vIndex = getCurPlayer().chooseVertex(this, options, area.choice, null);
                     if (vIndex != null) {
@@ -5591,11 +5592,4 @@ public class SOC extends Reflector<SOC> implements StringResource {
     protected void onRouteChosen(int playerNum, Player.RouteChoice mode, Integer routeIndex, Integer shipToMove) {
     }
 
-    protected void onPlayerChanging(int playerNum) {}
-
-    protected void onRouteChanging(int routeIndex) {}
-
-    protected void onVertexChanging(int vIndex) {}
-
-    protected void onTileChanging(int tIndex) {}
 }

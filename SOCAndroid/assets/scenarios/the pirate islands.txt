@@ -10,9 +10,6 @@ mBoard=cc.game.soc.core.Board {
    ch=0.090909086
    cw=0.14285715
    name="the pirate islands"
-   playerRoadLenCache=int 16 {
-      -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 
-   }
    islands=java.util.Vector {
       cc.game.soc.core.Island {
          num=1

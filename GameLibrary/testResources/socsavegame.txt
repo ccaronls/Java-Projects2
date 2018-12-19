@@ -60,9 +60,6 @@ mPlayers=cc.game.soc.core.Player 8 {
 }
 mNumPlayers=2
 mBoard=cc.game.soc.core.Board {
-   playerRoadLenCache=int 16 {
-      -1 1 2 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 
-   }
    pirateRouteStartTile=-1
    pirateTile=-1
    name="soc_def_board.txt"

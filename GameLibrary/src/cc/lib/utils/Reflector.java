@@ -1793,19 +1793,12 @@ public class Reflector<T> {
         }
         if (o instanceof Collection) {
             Collection copy = (Collection)o.getClass().newInstance();
-            Iterator it = ((Collection)o).iterator();
-            while (it.hasNext()) {
-                copy.add(it.next());
-            }
+            copy.addAll((Collection)o);
             return copy;
         }
         if (o instanceof Map) {
             Map copy = (Map)o.getClass().newInstance();
-            Iterator<Map.Entry> it = ((Map)o).entrySet().iterator();
-            while (it.hasNext()) {
-                Map.Entry e = it.next();
-                copy.put(e.getKey(), e.getValue());
-            }
+            copy.putAll((Map)o);
             return copy;
         }
         if (o.getClass().isArray()) {
@@ -1814,6 +1807,10 @@ public class Reflector<T> {
             for (int i=0; i<len; i++) {
                 Array.set(copy, i, Array.get(o, i));
             }
+            return copy;
+        }
+        if (o instanceof Reflector) {
+            return ((Reflector)o).shallowCopy();
         }
         return o;
     }

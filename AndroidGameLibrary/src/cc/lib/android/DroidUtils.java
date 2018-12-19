@@ -1,8 +1,12 @@
 package cc.lib.android;
 
+import android.graphics.Bitmap;
+import android.graphics.BlurMaskFilter;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 
 import cc.lib.game.AGraphics;
@@ -131,4 +135,33 @@ public class DroidUtils extends Utils {
 
         c.drawText(txt, 0, txt.length(), tx, ty, p);
     }
+
+    public static Bitmap addShadowToBitmap(final Bitmap bm, int color, int size, int dx, int dy) {
+
+        int dstWidth = bm.getWidth() + dx + size/2;
+        int dstHeight = bm.getHeight() + dy + size/2;
+
+        final Bitmap mask = Bitmap.createBitmap(dstWidth, dstHeight, Bitmap.Config.ALPHA_8);
+
+        final Canvas maskCanvas = new Canvas(mask);
+        final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        maskCanvas.drawBitmap(bm, 0, 0, paint);
+        paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_OUT));
+        maskCanvas.drawBitmap(bm, dx, dy, paint);
+
+        final BlurMaskFilter filter = new BlurMaskFilter(size, BlurMaskFilter.Blur.NORMAL);
+        paint.reset();
+        paint.setAntiAlias(true);
+        paint.setColor(color);
+        paint.setMaskFilter(filter);
+        paint.setFilterBitmap(true);
+
+        final Bitmap ret = Bitmap.createBitmap(dstWidth, dstHeight, Bitmap.Config.ARGB_8888);
+        final Canvas retCanvas = new Canvas(ret);
+        retCanvas.drawBitmap(mask, 0,  0, paint);
+        retCanvas.drawBitmap(bm, 0, 0, null);
+        mask.recycle();
+        return ret;
+    }
+
 }

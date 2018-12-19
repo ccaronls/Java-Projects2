@@ -10,9 +10,6 @@ mBoard=cc.game.soc.core.Board {
    ch=0.11111111
    cw=0.14285712
    name="the four islands 4 players"
-   playerRoadLenCache=int 16 {
-      -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 
-   }
    islands=java.util.Vector {
       cc.game.soc.core.Island {
          num=1

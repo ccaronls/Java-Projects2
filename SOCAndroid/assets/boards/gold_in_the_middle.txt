@@ -6,9 +6,6 @@ robberTile=-1
 ch=0.11111111
 cw=0.14285712
 name="/Users/chriscaron/Documents/workspace2/MyStuff/Java/SOC/boards/gold_in_the_middle.txt"
-playerRoadLenCache=int 16 {
-   -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 
-}
 islands=java.util.Vector {
 }
 routes=java.util.Vector {

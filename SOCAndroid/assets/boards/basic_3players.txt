@@ -6,9 +6,6 @@ robberTile=-1
 ch=0.14285716
 cw=0.18181819
 name="/Users/chriscaron/Documents/workspace2/MyStuff/Java/SOC/boards/basic_3players.txt"
-playerRoadLenCache=int 16 {
-   -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 
-}
 islands=java.util.Vector {
 }
 routes=java.util.Vector {

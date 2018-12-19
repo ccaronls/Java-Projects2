@@ -6,9 +6,6 @@ robberTile=-1
 ch=0.125
 cw=0.12903225
 name="/Users/chriscaron/Documents/workspace2/MyStuff/Java/SOC/boards/mex_rect_4_gold.txt"
-playerRoadLenCache=int 16 {
-   -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 
-}
 islands=java.util.Vector {
 }
 pirateFortresses=java.util.ArrayList {

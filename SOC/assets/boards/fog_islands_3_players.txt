@@ -8,9 +8,6 @@ name="%2FUsers%2Fchriscaron%2FDocuments%2FJava-Projects2%2FSOC%2Fassets%2Fboards
 numAvaialbleVerts=112
 pirateRouteStartTile=-1
 pirateTile=-1
-playerRoadLenCache=int 16 {
-   -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 
-}
 robberTile=-1
 routes=java.util.Vector {
    cc.game.soc.core.Route {

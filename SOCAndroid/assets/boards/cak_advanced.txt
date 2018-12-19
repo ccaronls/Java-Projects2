@@ -6,8 +6,6 @@ merchantPlayer=0
 merchantTile=-1
 name="/Users/chriscaron/Documents/workspace2/MyStuff/Java/SOC/boards/cak_advanced.txt"
 pirateTile=-1
-playerRoadLenCache=int 16
-   -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 
 robberTile=-1
 routes=java.util.Vector {
    cc.game.soc.core.Route {

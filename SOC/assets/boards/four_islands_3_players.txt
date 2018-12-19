@@ -300,9 +300,6 @@ name="four_islands_3_players.txt"
 numAvaialbleVerts=96
 pirateRouteStartTile=-1
 pirateTile=-1
-playerRoadLenCache=int 16 {
-   -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 
-}
 robberTile=-1
 routes=java.util.Vector {
    cc.game.soc.core.Route {

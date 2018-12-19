@@ -22,9 +22,19 @@ public abstract class Player extends Reflector<Player> {
 	private int						points = 0;
 	private int						harborPoints = 0;
 	private int						numDiscoveredTerritories = 0;
-	private int []					cityDevelopment = new int[DevelopmentArea.values().length];
+	private final int []	        cityDevelopment = new int[DevelopmentArea.values().length];
 	private Card					merchantFleetTradable;
-	
+
+	protected Player(Player other) {
+	    cards.addAll(other.cards);
+	    playerNum = other.playerNum;
+	    roadLength = other.roadLength;
+	    points = other.points;
+	    harborPoints = other.harborPoints;
+	    numDiscoveredTerritories = other.numDiscoveredTerritories;
+	    System.arraycopy(other.cityDevelopment, 0, cityDevelopment, 0, cityDevelopment.length);
+    }
+
 	/**
 	 * 
 	 */

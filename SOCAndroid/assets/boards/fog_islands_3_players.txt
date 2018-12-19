@@ -5,9 +5,6 @@ robberTile=-1
 ch=0.09999999
 cw=0.14285715
 name="/Users/chriscaron/Documents/workspace2/MyStuff/Java/SOC/boards/fog_islands_3_players.txt"
-playerRoadLenCache=int 16 {
-   -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 
-}
 islands=java.util.Vector {
 }
 routes=java.util.Vector {

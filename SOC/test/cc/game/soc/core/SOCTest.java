@@ -52,17 +52,10 @@ public class SOCTest extends TestCase {
 
     }
 
-    static class TSOC extends SOC {
-        @Override
-        public String getString(int resourceId, Object... args) {
-            return "";
-        }
-    }
-
     public void testSOC() throws Exception
 	{
 		final FileWriter log = new FileWriter("testresult/soctestlog.txt");
-		SOC soc = new TSOC();
+		SOC soc = new SOC();
 		Board b = soc.getBoard();
 		b.generateHexBoard(4, TileType.WATER);
 		for (int i=0; i<b.getNumTiles(); i++) {
@@ -79,7 +72,7 @@ public class SOCTest extends TestCase {
 		//soc.serialize(System.out);
 		File file = new File("soctest.sav");
 		soc.saveToFile(file);
-		SOC s = new TSOC();
+		SOC s = new SOC();
 		s.loadFromFile(file);
 		assertTrue(soc.deepEquals(s));
 		for (int i=0; i<100 && !s.isGameOver(); i++)
@@ -89,13 +82,7 @@ public class SOCTest extends TestCase {
 	
     public void testAIGame() throws Exception
     {
-        SOC soc = new SOC() {
-            @Override
-            public String getString(int resourceId, Object... args) {
-                //return super.getString(resourceId, args);
-                return "";
-            }
-        };
+        SOC soc = new SOC();
         Board b = soc.getBoard();
         b.generateHexBoard(4, TileType.WATER);
         for (int i=0; i<b.getNumTiles(); i++) {
@@ -144,14 +131,8 @@ public class SOCTest extends TestCase {
     }
 
     public void testScenarios() throws Exception {
-        //Utils.setRandomSeed(126);
-        SOC soc = new SOC() {
-            @Override
-            public String getString(int resourceId, Object... args) {
-                //return super.getString(resourceId, args);
-                return "";
-            }
-        };
+//        Utils.setRandomSeed(101);
+        SOC soc = new SOC();
 
         File dir = new File("assets/scenarios");
         File [] files = dir.listFiles();
@@ -162,7 +143,7 @@ public class SOCTest extends TestCase {
             int iteration = 0;
             for (File scenario : files) {
                 try {
-                    //if (!scenario.getName().toLowerCase().equals("battle for the middle.txt"))
+                    //if (!scenario.getName().toLowerCase().equals("cak_advanced.txt"))
                     //    continue;
                     soc.loadFromFile(scenario);
 
@@ -170,17 +151,19 @@ public class SOCTest extends TestCase {
                     soc.addPlayer(new UIPlayer(GColor.GREEN));
                     soc.addPlayer(new UIPlayer(GColor.BLUE));
 
-                    soc.initGame();
-                    for (iteration = 0; iteration < 10000 && !soc.isGameOver(); iteration++) {
-                        System.out.print("ITER(" + iteration + ")");
-                        soc.runGame();
+                    for (int i=0; i<10; i++) {
+                        soc.initGame();
+                        for (iteration = 0; iteration < 10000 && !soc.isGameOver(); iteration++) {
+                            System.out.print("ITER(" + iteration + ")");
+                            soc.runGame();
+                        }
+
+                        System.out.println("Player 1: " + soc.getPlayerByPlayerNum(1));
+                        System.out.println("Player 2: " + soc.getPlayerByPlayerNum(2));
+                        System.out.println("Player 3: " + soc.getPlayerByPlayerNum(3));
+
+                        assertTrue(soc.isGameOver());
                     }
-
-                    System.out.println("Player 1: " + soc.getPlayerByPlayerNum(1));
-                    System.out.println("Player 2: " + soc.getPlayerByPlayerNum(2));
-                    System.out.println("Player 3: " + soc.getPlayerByPlayerNum(3));
-
-                    assertTrue(soc.isGameOver());
                     soc.clear();
                     soc.getBoard().clear();
                     passedFiles.add(scenario.getAbsolutePath() + " in " + iteration + " iterations");

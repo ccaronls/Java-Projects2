@@ -47,6 +47,8 @@ public class Board extends Reflector<Board> {
 	private final static int GD_NW		= 32;
 
 	// optimization - To prevent excessive execution of the road len algorithm O(2^n) , we cache the result here.
+
+    @Omit
 	private final int [] playerRoadLenCache = new int[16];
 	private int pirateRouteStartTile = -1; // when >= 0, then the pirate route starts at this tile.  each tile has a next index to form a route.
 	private int numAvaialbleVerts = -1;

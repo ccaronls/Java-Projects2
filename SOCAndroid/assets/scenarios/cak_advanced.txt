@@ -10,9 +10,6 @@ mBoard=cc.game.soc.core.Board {
    ch=0.11111109
    cw=0.18181819
    name="Cities and Knights advanced"
-   playerRoadLenCache=int 16 {
-      -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 
-   }
    islands=java.util.Vector {
    }
    pirateFortresses=java.util.ArrayList {
