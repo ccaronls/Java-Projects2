@@ -357,7 +357,7 @@ public class ClientConnection implements Runnable {
             if (listeners.size() > 0) {
                 Listener [] arr = listeners.toArray(new Listener[listeners.size()]);
                 for (Listener l : arr) {
-                    l.onDisconnected(this, cmd.getArg("reason"));
+                    l.onDisconnected(this, cmd.getString("reason"));
                 }
             }
             server.removeClient(this);
@@ -365,7 +365,7 @@ public class ClientConnection implements Runnable {
             // client should do this at regular intervals to prevent getting dropped
             log.debug("ClientConnection: KeepAlive from client: " + getName());
         } else if (cmd.getType() == GameCommandType.CL_ERROR) {
-            System.err.println("ERROR From client '" + getName() + "'\n" + cmd.getArg("msg") + "\n" + cmd.getArg("stack"));
+            System.err.println("ERROR From client '" + getName() + "'\n" + cmd.getString("msg") + "\n" + cmd.getString("stack"));
         } else if (cmd.getType() == GameCommandType.CL_HANDLE) {
             this.handle = cmd.getName();
         } else {
@@ -399,9 +399,9 @@ public class ClientConnection implements Runnable {
 
         @Override
         public void onCommand(GameCommand cmd) {
-            if (id.equals(cmd.getArg("target"))) {
+            if (id.equals(cmd.getString("target"))) {
                 try {
-                    T resp = Reflector.deserializeFromString(cmd.getArg("returns"));
+                    T resp = Reflector.deserializeFromString(cmd.getString("returns"));
                     setResponse(resp);
                 } catch (Exception e) {
                     e.printStackTrace();

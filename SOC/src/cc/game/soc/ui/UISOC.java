@@ -122,7 +122,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
             try {
                 String diff = copy.diff(this);
                 if (!diff.isEmpty()) {
-                    server.broadcastCommand(new GameCommand(NetCommon.SVR_TO_CL_UPDATE).setArg("soc", diff));
+                    server.broadcastCommand(new GameCommand(NetCommon.SVR_TO_CL_UPDATE).setArg("diff", diff));
                     copy.deserialize(diff);
                 }
             } catch (Exception e) {
@@ -1259,7 +1259,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
                 conn.sendCommand(new GameCommand(NetCommon.SVR_TO_CL_INIT)
                         .setArg("numPlayers", getNumPlayers())
                         .setArg("playerNum", player.getPlayerNum())
-                        .setArg("soc", toString()))
+                        .setArg("soc", this))
                         ;
             } catch (Exception e) {
                 e.printStackTrace();

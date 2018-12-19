@@ -317,7 +317,7 @@ public class GameClient {
 
                     if (cmd.getType() == GameCommandType.SVR_CONNECTED) {
                         serverName = cmd.getName();
-                        int keepAliveFreqMS = Integer.parseInt(cmd.getArg("keepAlive"));
+                        int keepAliveFreqMS = cmd.getInt("keepAlive");
                         outQueue.setTimeout(keepAliveFreqMS);
                         state = State.CONNECTED;
                         for (Listener l :  larray) {
@@ -452,26 +452,26 @@ public class GameClient {
      * @throws IOException
      */
     private void handleExecuteRemote(GameCommand cmd) throws IOException {
-        String method = cmd.getArg("method");
+        String method = cmd.getString("method");
         int numParams = cmd.getInt("numParams");
         Class [] paramsTypes = new Class[numParams];
         final Object [] params = new Object[numParams];
         for (int i=0; i<numParams; i++) {
-            String param = cmd.getArg("param" + i);
+            String param = cmd.getString("param" + i);
             Object o = Reflector.deserializeFromString(param);
             if (o != null) {
                 paramsTypes[i] = o.getClass();
                 params[i] = o;
             }
         }
-        String id = cmd.getArg("target");
+        String id = cmd.getString("target");
         final Object obj = executorObjects.get(id);
         if (obj == null)
             throw new IOException("Unknown object id: " + id);
         log.debug("id=%s -> %s", id, obj.getClass());
         try {
             final Method m = findMethod(method, obj, paramsTypes, params);
-            final String responseId = cmd.getArg("responseId");
+            final String responseId = cmd.getString("responseId");
             if (responseId != null) {
                 Object result = m.invoke(obj, params);
                 log.debug("responseId=%s", responseId);

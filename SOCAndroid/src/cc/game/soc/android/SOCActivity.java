@@ -550,7 +550,7 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
                     soc.addPlayer(new UIPlayer());
                 }
 
-                soc.mergeDiff(cmd.getArg("soc"));
+                cmd.parseReflector("soc", soc);
                 runOnUiThread(new Runnable() {
                     public void run() {
                         initGame();
@@ -558,7 +558,7 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
                     }
                 });
             } else if (cmd.getType().equals(NetCommon.SVR_TO_CL_UPDATE)) {
-                UISOC.getInstance().mergeDiff(cmd.getArg("soc"));
+                UISOC.getInstance().mergeDiff(cmd.getString("diff"));
                 UISOC.getInstance().redraw();
             }
 

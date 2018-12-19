@@ -1,9 +1,9 @@
 package cc.lib.net;
 
+import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 import cc.lib.utils.NoDupesMap;
+import cc.lib.utils.Reflector;
 
 /**
  * <pre>
@@ -60,8 +61,8 @@ import cc.lib.utils.NoDupesMap;
 public class GameCommand {
 
     private final GameCommandType type;
-    private final Map<String, String> arguments = new NoDupesMap<>(new HashMap<String,String>());
-    
+    private final Map<String, Object> arguments = new NoDupesMap<>(new HashMap<String,Object>());
+
     /**
      * 
      * @param commandType
@@ -83,8 +84,8 @@ public class GameCommand {
      * @param key
      * @return
      */
-    public final String getArg(String key) {
-        return arguments.get(key);
+    public final String getString(String key) {
+        return (String)arguments.get(key);
     }
     
     /**
@@ -93,38 +94,31 @@ public class GameCommand {
      * @return
      */
     public final int getInt(String key) {
-        return Integer.parseInt(getArg(key));
-    }
-    
-    /**
-     * 
-     * @return
-     */
-    public final Iterable<String> getArguments() {
-        return arguments.values();
-    }
-    
-    Map<String,String> getProperties() {
-        return this.arguments;
+        return (Integer)arguments.get(key);
     }
 
-    static GameCommand parse(DataInputStream din) throws Exception {
-        String cmd = din.readUTF();
-        GameCommandType type = GameCommandType.valueOf(cmd);
-        GameCommand command = new GameCommand(type);
-        int numArgs = din.readInt();
-        for (int i=0; i<numArgs; i++) {
-            command.arguments.put(din.readUTF(), din.readUTF());
-        }
-        return command;
+    public final long getLong(String key) {
+        return (Long)arguments.get(key);
     }
-    
+
+    public final float getFloat(String key) {
+        return (Float)arguments.get(key);
+    }
+
+    public final void parseReflector(String key, Reflector r) {
+        try (InputStream in = new ByteArrayInputStream((byte[]) arguments.get(key))) {
+            r.deserialize(in);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     /**
      * 
      * @return
      */
     String getVersion() {
-        return arguments.get("version");
+        return getString("version");
     }
 
     /**
@@ -132,7 +126,7 @@ public class GameCommand {
      * @return
      */
     public final String getName() {
-        return arguments.get("name");
+        return getString("name");
     }
     
     /**
@@ -140,7 +134,7 @@ public class GameCommand {
      * @return
      */
     public final String getMessage() {
-        return arguments.get("message");
+        return getString("message");
     }
     
     /**
@@ -148,7 +142,7 @@ public class GameCommand {
      * @return
      */
     public final String getFilter() {
-        return arguments.get("filter");
+        return getString("filter");
     }
 
     /**
@@ -161,7 +155,7 @@ public class GameCommand {
         if (val == null)
             arguments.remove(nm);
         else
-            arguments.put(nm,  val.toString());
+            arguments.put(nm,  val);
         return this;
     }
     
@@ -223,7 +217,7 @@ public class GameCommand {
      * @return
      */
     public final <T extends Enum<T>> List<T> getEnumList(String arg, Class<T> enumType) {
-        String s = getArg(arg);
+        String s = getString(arg);
         if (s == null)
             return null;
         String [] ss = s.split("[, ]+");
@@ -262,7 +256,7 @@ public class GameCommand {
      * @return
      */
     public final List<Integer> getIntList(String arg) {
-        String s = getArg(arg);
+        String s = getString(arg);
         if (s == null)
             return null;
         String [] ss = s.split("[, ]+");
@@ -275,6 +269,43 @@ public class GameCommand {
         return list;
     }
 
+    static GameCommand parse(DataInputStream din) throws Exception {
+        String cmd = din.readUTF();
+        GameCommandType type = GameCommandType.valueOf(cmd);
+        GameCommand command = new GameCommand(type);
+        int numArgs = din.readInt();
+        for (int i=0; i<numArgs; i++) {
+            String key = din.readUTF();
+            int itype = din.readUnsignedByte();
+            switch (itype) {
+                case TYPE_NULL:
+                    break;
+                case TYPE_INT:
+                    command.arguments.put(key, din.readInt());
+                    break;
+                case TYPE_LONG:
+                    command.arguments.put(key, din.readLong());
+                    break;
+                case TYPE_FLOAT:
+                    command.arguments.put(key, din.readFloat());
+                    break;
+                case TYPE_DOUBLE:
+                    command.arguments.put(key, din.readDouble());
+                    break;
+                case TYPE_STRING:
+                    command.arguments.put(key, din.readUTF());
+                    break;
+                case TYPE_BYTE_ARRAY:
+                    byte [] arr = new byte[din.readInt()];
+                    din.read(arr);
+                    command.arguments.put(key, arr);
+                    break;
+            }
+            command.arguments.put(din.readUTF(), din.readUTF());
+        }
+        return command;
+    }
+
     /**
      * 
      * @param dout
@@ -285,11 +316,45 @@ public class GameCommand {
         dout.writeInt(arguments.size());
         for (String key : arguments.keySet()) {
             dout.writeUTF(key);
-            dout.writeUTF(arguments.get(key));
+            Object o = arguments.get(key);
+            if (o == null) {
+                dout.writeByte(TYPE_NULL);
+            } else if (o instanceof Integer) {
+                dout.writeByte(TYPE_INT);
+                dout.writeInt((Integer)o);
+            } else if (o instanceof Long) {
+                dout.writeByte(TYPE_LONG);
+                dout.writeLong((Long)o);
+            } else if (o instanceof Float) {
+                dout.writeByte(TYPE_FLOAT);
+                dout.writeFloat((Float)o);
+            } else if (o instanceof Double) {
+                dout.writeByte(TYPE_DOUBLE);
+                dout.writeDouble((Double)o);
+            } else if (o instanceof String) {
+                dout.writeByte(TYPE_STRING);
+                dout.writeUTF((String)o);
+            } else if (o instanceof Reflector) {
+                String s = ((Reflector)o).toString();
+                dout.writeByte(TYPE_BYTE_ARRAY);
+                dout.writeInt(s.length());
+                dout.write(s.getBytes());
+            } else {
+                dout.writeByte(TYPE_STRING);
+                dout.writeUTF(o.toString());
+            }
         }
         dout.flush();
     }
-    
+
+    private final static int TYPE_NULL = 0;
+    private final static int TYPE_INT = 1;
+    private final static int TYPE_LONG = 2;
+    private final static int TYPE_FLOAT = 3;
+    private final static int TYPE_DOUBLE = 4;
+    private final static int TYPE_STRING = 5;
+    private final static int TYPE_BYTE_ARRAY = 6;
+
     public String toString() {
         return type + ": " + arguments;
     }

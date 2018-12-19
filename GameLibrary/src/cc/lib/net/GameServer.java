@@ -428,7 +428,7 @@ public class GameServer {
                 if (!Utils.isEmpty(password)) {
                     new GameCommand(GameCommandType.PASSWORD).write(out);
                     GameCommand pswd = GameCommand.parse(in);
-                    if (!password.equals(pswd.getArg("password")))
+                    if (!password.equals(pswd.getString("password")))
                         throw new ProtocolException("Bad Password");
                 }
 

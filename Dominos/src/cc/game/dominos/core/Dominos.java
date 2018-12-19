@@ -766,7 +766,7 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
         }
         board.clear();
         initPool();
-        server.broadcastCommand(new GameCommand(MPConstants.SVR_TO_CL_INIT_ROUND).setArg("dominos", this.toString()));
+        server.broadcastCommand(new GameCommand(MPConstants.SVR_TO_CL_INIT_ROUND).setArg("dominos", this));
         startShuffleAnimation();
         newRound();
     }

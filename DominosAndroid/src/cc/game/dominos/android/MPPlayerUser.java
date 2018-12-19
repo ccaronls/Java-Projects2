@@ -69,9 +69,8 @@ public class MPPlayerUser extends PlayerUser implements GameClient.Listener {
         } else if (cmd.getType() == MPConstants.SVR_TO_CL_INIT_ROUND) {
             Reflector.KEEP_INSTANCES = true;
             try {
-                String str = cmd.getArg("dominos");
                 dominos.reset();
-                dominos.deserialize(str);
+                cmd.parseReflector("dominos", dominos);
                 activity.dismissCurrentDialog();
                 if (dominos.getBoard().getRoot() == null) {
                     dominos.startShuffleAnimation();
