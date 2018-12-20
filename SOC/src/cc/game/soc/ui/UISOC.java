@@ -123,7 +123,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
                 String diff = copy.diff(this);
                 if (!diff.isEmpty()) {
                     server.broadcastCommand(new GameCommand(NetCommon.SVR_TO_CL_UPDATE).setArg("diff", diff));
-                    copy.deserialize(diff);
+                    copy.mergeDiff(diff);
                 }
             } catch (Exception e) {
                 e.printStackTrace();

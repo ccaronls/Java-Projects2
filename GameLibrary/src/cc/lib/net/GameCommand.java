@@ -300,8 +300,9 @@ public class GameCommand {
                     din.read(arr);
                     command.arguments.put(key, arr);
                     break;
+                default:
+                    throw new AssertionError("Unhandled type " + itype);
             }
-            command.arguments.put(din.readUTF(), din.readUTF());
         }
         return command;
     }

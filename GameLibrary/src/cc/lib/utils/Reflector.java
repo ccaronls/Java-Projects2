@@ -1920,7 +1920,7 @@ public class Reflector<T> {
      * @return
      * @throws Exception
      */
-    public final String diff(Reflector<T> other) throws Exception {
+    public String diff(Reflector<T> other) throws Exception {
         if (other == null)
             throw new NullPointerException("Reflector.diff - other cannot be null");
 

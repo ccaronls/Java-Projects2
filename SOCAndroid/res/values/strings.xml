@@ -529,6 +529,7 @@
     <string name="card_type_commodity">Commodity</string>
     <string name="card_type_development">Development</string>
     <string name="card_type_progress">Progress</string>
+    <string name="card_type_event">Event</string>
 
     <string name="anim_aqueduct_ability">Aqueduct Ability!</string>
     <string name="anim_territory_discovered">Territory\nDiscovered</string>

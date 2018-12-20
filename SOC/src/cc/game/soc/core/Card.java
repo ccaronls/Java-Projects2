@@ -1,5 +1,9 @@
 package cc.game.soc.core;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.PrintWriter;
+
 import cc.lib.utils.Reflector;
 
 public class Card extends Reflector<Card> implements Comparable <Card> {
@@ -11,44 +15,48 @@ public class Card extends Reflector<Card> implements Comparable <Card> {
 	private CardType type;
 	private int typeOrdinal;
 	private CardStatus status;
-/*
+
 	@Override
 	public void serialize(PrintWriter out) throws IOException {
-		out.println(type);
-		out.println(status);
-		out.println(type.dereferenceOrdinal(typeOrdinal).name());
+		out.println(type+","+status+","+type.dereferenceOrdinal(typeOrdinal).name());
 	}
 
 	@Override
 	protected void deserialize(BufferedReader in) throws Exception {
-		type = CardType.valueOf(in.readLine());
-		status = CardStatus.valueOf(in.readLine());
+	    String [] parts = in.readLine().split(",");
+		type = CardType.valueOf(parts[0]);
+		status = CardStatus.valueOf(parts[1]);
 		switch (type) {
 			case Commodity:
-				typeOrdinal = CommodityType.valueOf(in.readLine()).ordinal();
+				typeOrdinal = CommodityType.valueOf(parts[2]).ordinal();
 				break;
 			case Development:
-				typeOrdinal = DevelopmentCardType.valueOf(in.readLine()).ordinal();
+				typeOrdinal = DevelopmentCardType.valueOf(parts[2]).ordinal();
 				break;
 			case Event:
-				typeOrdinal = EventCardType.valueOf(in.readLine()).ordinal();
+				typeOrdinal = EventCardType.valueOf(parts[2]).ordinal();
 				break;
 			case Progress:
-				typeOrdinal = ProgressCardType.valueOf(in.readLine()).ordinal();
+				typeOrdinal = ProgressCardType.valueOf(parts[2]).ordinal();
 				break;
 			case Resource:
-				typeOrdinal = ResourceType.valueOf(in.readLine()).ordinal();
+				typeOrdinal = ResourceType.valueOf(parts[2]).ordinal();
 				break;
 			case SpecialVictory:
-				typeOrdinal = SpecialVictoryType.valueOf(in.readLine()).ordinal();
+				typeOrdinal = SpecialVictoryType.valueOf(parts[2]).ordinal();
 				break;
 			default:
 				throw new AssertionError("Unhandled case");
 			
 		}
-	}*/
+	}
 
-	/**
+    @Override
+    protected boolean isImmutable() {
+        return true;
+    }
+
+    /**
 	 * Needed for Reflector
 	 */
 	public Card() {

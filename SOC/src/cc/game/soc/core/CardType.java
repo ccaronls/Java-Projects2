@@ -8,7 +8,7 @@ public enum CardType implements ILocalized{
 	Development(R.string.card_type_development, DevelopmentCardType.values()),		// SOC
 	Progress(R.string.card_type_progress, ProgressCardType.values()),			// CAK
 	SpecialVictory(0, SpecialVictoryType.values()),	// CAK
-	Event(0, EventCardType.values()),				// No dice variation
+	Event(R.string.card_type_event, EventCardType.values()),				// No dice variation
 	BarbarianAttackDevelopment(0, BarbarianAttackDevelopmentCardType.values()),
 	
 	;

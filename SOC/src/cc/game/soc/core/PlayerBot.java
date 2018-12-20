@@ -1801,7 +1801,7 @@ public class PlayerBot extends Player {
     	//doEvaluateDistances(node, soc, p, b);
     	doEvaluateTiles(node, soc, p, b);
     	doEvaluateVertices(node, soc, p, b);
-    	doEvaluateDifferentials(node, soc, p, b);
+    	//doEvaluateDifferentials(node, soc, p, b);
     	//node.addValue("randomness", Utils.randFloatX(1));
     	numLeafs ++;
     }
@@ -1859,26 +1859,24 @@ public class PlayerBot extends Player {
 			float scale = 0;
 			if (v.getPlayer() != playerNum)
 				continue;
+            if (b.isVertexAdjacentToPirateRoute(vIndex)) {
+                scale *= -1;
+            }
 			switch (v.getType()) {
 				case OPEN:
 					break;
 				case SETTLEMENT:
 					structureValue += 1;
-					scale = rules.getNumResourcesForSettlement();
-					if (b.isVertexAdjacentToPirateRoute(vIndex)) {
-					    scale *= -1;
-                    }
 					break;
 				case METROPOLIS_POLITICS:
 				case METROPOLIS_SCIENCE:
 				case METROPOLIS_TRADE:
-					structureValue += 2;
+					structureValue += 5;
 					break;
 				case WALLED_CITY:
-					structureValue += 1;
+					structureValue += 3;
 					break;
 				case CITY:
-					scale = rules.getNumResourcesForCity();
 					structureValue += 2;
 					break;
 				case MIGHTY_KNIGHT_ACTIVE:
@@ -2087,7 +2085,7 @@ public class PlayerBot extends Player {
 	}
 
 	private static void doEvaluateEdges(BotNode node, SOC soc, Player p, final Board b) {
-
+/*
 		float longestRoadValue = 0;
 		float len = b.computeMaxRouteLengthForPlayer(p.getPlayerNum(), soc.getRules().isEnableRoadBlock());
 		
@@ -2098,7 +2096,24 @@ public class PlayerBot extends Player {
 		node.addValue("longestRoad", longestRoadValue);
 		if (len > 0)
 			node.addValue("roadLength", 3f * Math.log(len)); // have value taper off at the length grows.  Factor of 3 chosen b/c: 3ln(5)==5  
-		
+*/
+
+        // Route length is a factor in that we should strive for longest road, so unless we have length shorter than the current longest or
+        // we are not at the minimum.
+
+        int minRoadLen =soc.getRules().getMinLongestLoadLen();
+        Player curLongest = soc.getLongestRoadPlayer();
+        if (curLongest != null && curLongest.getPlayerNum() != p.getPlayerNum()) {
+            minRoadLen = curLongest.getRoadLength()+1;
+        }
+
+        // road length is inverse of how far we are form the min
+        if (p.getRoadLength() >= minRoadLen) {
+            node.addValue("roadLength", 1);
+        } else {
+            node.addValue("roadLength", 1f / (minRoadLen-p.getRoadLength()));
+        }
+
 		double routeTileResourceProb=0;
 		double routeExpabability=0;
 		
@@ -2154,7 +2169,7 @@ public class PlayerBot extends Player {
 		
 		node.addValue("routeTileResourceProb", routeTileResourceProb);
 		node.addValue("routeExpandability", 0.1 * routeExpabability);
-		node.addValue("routeValue", 1f * routeValue);
+		//node.addValue("routeValue", 1f * routeValue);
 		
 	}
 	
@@ -2539,7 +2554,7 @@ public class PlayerBot extends Player {
         //}
 
         node.addValue("maxCards", 0.1 * maxCards);
-		node.addValue("cardsValue", 0.1 * cardsValue);
+		//node.addValue("cardsValue", 0.1 * cardsValue);
 		
 		// city development
 		float sum = 0;
