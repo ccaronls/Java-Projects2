@@ -570,17 +570,17 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
 
     @Override
     public void onMessage(String msg) {
-
+        log.info("onMessage: %s", msg);
     }
 
     @Override
     public void onDisconnected(String reason) {
-
+        log.info("onDisconnected: %s", reason);
     }
 
     @Override
     public void onConnected() {
-
+        log.info("onConnected");
     }
 
     void showHostMultiPlayerDialog() {

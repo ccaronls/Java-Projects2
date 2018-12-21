@@ -16,6 +16,7 @@ import java.awt.image.PixelGrabber;
 import java.awt.image.ReplicateScaleFilter;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
@@ -62,7 +63,10 @@ public class ImageMgr {
 			byte [] buffer = new byte[in.available()];
 			in.read(buffer);
 			return new ImageIcon(buffer).getImage();
-		} catch (Exception e) {
+		} catch (IOException e) {
+		    log.error("Error %s:%s", e.getClass().getSimpleName(), e.getMessage());
+		    return null;
+        } catch (Exception e) {
 			log.error(e);
 			return null;
 		} finally {

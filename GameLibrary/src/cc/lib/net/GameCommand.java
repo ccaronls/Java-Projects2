@@ -1,6 +1,7 @@
 package cc.lib.net;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.InputStream;
@@ -105,12 +106,21 @@ public class GameCommand {
         return (Float)arguments.get(key);
     }
 
-    public final void parseReflector(String key, Reflector r) {
+    public final double getDouble(String key) {
+        return (Double)arguments.get(key);
+    }
+
+    public final <T extends Reflector> T parseReflector(String key, T r) {
+        boolean oldKeep = Reflector.KEEP_INSTANCES;
         try (InputStream in = new ByteArrayInputStream((byte[]) arguments.get(key))) {
+            Reflector.KEEP_INSTANCES = true;
             r.deserialize(in);
         } catch (Exception e) {
             e.printStackTrace();
+        } finally {
+            Reflector.KEEP_INSTANCES = oldKeep;
         }
+        return r;
     }
 
     /**
@@ -312,7 +322,7 @@ public class GameCommand {
      * @param dout
      * @throws Exception
      */
-    public final void write(DataOutputStream dout) throws Exception {
+    final void write(DataOutputStream dout) throws Exception {
         dout.writeUTF(type.name());
         dout.writeInt(arguments.size());
         for (String key : arguments.keySet()) {
@@ -336,10 +346,12 @@ public class GameCommand {
                 dout.writeByte(TYPE_STRING);
                 dout.writeUTF((String)o);
             } else if (o instanceof Reflector) {
-                String s = ((Reflector)o).toString();
-                dout.writeByte(TYPE_BYTE_ARRAY);
-                dout.writeInt(s.length());
-                dout.write(s.getBytes());
+                try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+                    ((Reflector) o).serialize(out);
+                    dout.writeByte(TYPE_BYTE_ARRAY);
+                    dout.writeInt(out.size());
+                    dout.write(out.toByteArray());
+                }
             } else {
                 dout.writeByte(TYPE_STRING);
                 dout.writeUTF(o.toString());

@@ -704,8 +704,10 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
     protected void onDiceRolled(List<Dice> dice) {
         server.broadcastExecuteOnRemote(NetCommon.SOC_ID, dice);
         UIDiceRenderer dr = getDiceRenderer();
-        dr.spinDice(3000, dice.toArray(new Dice[dice.size()]));
-        dr.setDice(getDice());
+        Dice [] diceArr = dice.toArray(new Dice[dice.size()]);
+        dr.spinDice(3000, diceArr);
+        log.debug("Set dice: " + dice);
+        dr.setDice(diceArr);
         super.onDiceRolled(dice);
     }
 
@@ -1301,7 +1303,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
         return false;
     }
 
-    public Map<String, GColor> getAllColors() {
+    public static Map<String, GColor> getAllColors() {
         HashMap<String, GColor> colors = new HashMap<>();
         colors.put("RED", GColor.RED);
         colors.put("GREEN", GColor.GREEN);

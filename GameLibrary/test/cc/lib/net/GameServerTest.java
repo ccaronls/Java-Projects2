@@ -2,6 +2,10 @@ package cc.lib.net;
 
 import junit.framework.TestCase;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.net.InetAddress;
 import java.util.Arrays;
 import java.util.Collection;
@@ -11,6 +15,7 @@ import java.util.Map;
 
 import cc.lib.crypt.Cypher;
 import cc.lib.crypt.SimpleCypher;
+import cc.lib.game.GColor;
 import cc.lib.game.Utils;
 
 /**
@@ -70,7 +75,37 @@ public class GameServerTest extends TestCase {
             fail(result.getMessage());
         }
     }
-    
+
+    public void testGameCommand() throws  Exception {
+
+        GameCommandType t = new GameCommandType("A");
+        GameCommand c = new GameCommand(t);
+
+        c.setArg("int", 1);
+        c.setArg("float", 2f);
+        c.setArg("long", 3L);
+        c.setArg("double", 4.0);
+        c.setArg("string", "This is a string");
+        c.setArg("color", GColor.RED);
+
+        ByteArrayOutputStream bout = new ByteArrayOutputStream();
+        DataOutputStream dout = new DataOutputStream(bout);
+        c.write(dout);
+
+        DataInputStream din = new DataInputStream(new ByteArrayInputStream(bout.toByteArray()));
+
+        c = GameCommand.parse(din);
+
+        assertEquals(c.getType(), t);
+        assertEquals(c.getInt("int"), 1);
+        assertEquals(c.getFloat("float"), 2f);
+        assertEquals(c.getLong("long"), 3L);
+        assertEquals(c.getDouble("double"), 4.0);
+        assertEquals(c.parseReflector("color", new GColor()), GColor.RED);
+
+    }
+
+
     // test basic client connect and disconnect
     public void testclientConnect() throws Exception {
         

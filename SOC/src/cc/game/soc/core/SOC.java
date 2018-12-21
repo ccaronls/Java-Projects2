@@ -97,7 +97,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
     private int mBarbarianDistance = -1; // CAK
     private final int[] mMetropolisPlayer = new int[NUM_DEVELOPMENT_AREA_TYPES];
     private int mBarbarianAttackCount = 0;
-    private boolean gameOver = false;
+    private boolean mGameOver = false;
 
     public final State getState() {
         return mStateStack.peek().state;
@@ -344,7 +344,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
         mBoard.reset();
         Arrays.fill(mMetropolisPlayer, 0);
         mBarbarianAttackCount = 0;
-        gameOver = false;
+        mGameOver = false;
     }
 
     @Override
@@ -501,7 +501,10 @@ public class SOC extends Reflector<SOC> implements StringResource {
      */
     public final void addPlayer(Player player) {
         if (mNumPlayers == MAX_PLAYERS)
-            throw new RuntimeException("Too many players");
+            throw new SOCException("Too many players");
+
+        if (mNumPlayers == mRules.getMaxPlayers())
+            throw new SOCException("Max players already added.");
 
         mPlayers[mNumPlayers++] = player;
 
@@ -1182,11 +1185,11 @@ public class SOC extends Reflector<SOC> implements StringResource {
      * @return
      */
     public boolean isGameOver() {
-        return gameOver;
+        return mGameOver;
     }
 
     private boolean checkGameOver() {
-        if (gameOver)
+        if (mGameOver)
             return true;
         for (int i = 1; i <= getNumPlayers(); i++) {
             Player player = getPlayerByPlayerNum(i);
@@ -1195,7 +1198,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
             if (mBoard.getNumVertsOfType(0, VertexType.PIRATE_FORTRESS) == 0 || player.getCardCount(SpecialVictoryType.CapturePirateFortress) > 0) {
                 if (player.getPoints() >= getRules().getPointsForWinGame()) {
                     onGameOver(player.getPlayerNum());
-                    gameOver = true;
+                    mGameOver = true;
                     return true;
                 }
             }
@@ -1283,15 +1286,15 @@ public class SOC extends Reflector<SOC> implements StringResource {
 
     private boolean runGameCheck() {
         if (mBoard == null) {
-            throw new RuntimeException("No board, cannot run game");
+            throw new SOCException("No board, cannot run game");
         }
 
         if (!mBoard.isReady()) {
-            throw new RuntimeException("Board not initialized, cannot run game");
+            throw new SOCException("Board not initialized, cannot run game");
         }
 
         if (mNumPlayers < 2) {
-            throw new RuntimeException("Not enought players, cannot run game");
+            throw new SOCException("Not enought players, cannot run game");
         }
 
         int i;
@@ -1299,7 +1302,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
         // test that the players are numbered correctly
         for (i = 1; i <= mNumPlayers; i++) {
             if (getPlayerByPlayerNum(i) == null)
-                throw new RuntimeException("Cannot find player '" + i + "' of '" + mNumPlayers + "' cannot run game");
+                throw new SOCException("Cannot find player '" + i + "' of '" + mNumPlayers + "' cannot run game");
         }
 
         if (mStateStack.isEmpty())
@@ -3592,7 +3595,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
             case Resource: // ignore, these are infinite
                 break;
             default:
-                throw new RuntimeException("Should not happen");
+                throw new SOCException("Should not happen");
         }
     }
 
@@ -3612,7 +3615,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
                 success = true;
                 break;
             default:
-                throw new RuntimeException("Should not happen");
+                throw new SOCException("Should not happen");
         }
         assert (success);
     }
@@ -4419,7 +4422,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
      * @return
      */
     static public List<MoveType> computeMoves(Player p, Board b, SOC soc) {
-        LinkedHashSet<MoveType> types = new LinkedHashSet<MoveType>();
+        LinkedHashSet<MoveType> types = new LinkedHashSet<>();
         types.add(MoveType.CONTINUE);
 
         if (p.canBuild(BuildableType.City) && b.getNumSettlementsForPlayer(p.getPlayerNum()) > 0)
@@ -4754,7 +4757,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
                             resourcesFound[p.getMerchantFleetTradable().getTypeOrdinal()] = true;
                             break;
                         default:
-                            throw new RuntimeException("Unexpected case");
+                            throw new SOCException("Unexpected case");
 
                     }
                 }

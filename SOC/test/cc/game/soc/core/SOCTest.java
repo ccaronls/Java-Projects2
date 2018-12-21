@@ -100,7 +100,7 @@ public class SOCTest extends TestCase {
 
     public void testScenarios2() throws Exception {
 
-	    for (int i=101; i<200; i++) {
+	    for (int i=0; 1<100; i++) {
 	        Utils.setRandomSeed(i);
 	        try {
                 testScenarios();
@@ -131,7 +131,7 @@ public class SOCTest extends TestCase {
     }
 
     public void testScenarios() throws Exception {
-//        Utils.setRandomSeed(101);
+        //Utils.setRandomSeed(58);
         SOC soc = new SOC();
 
         File dir = new File("assets/scenarios");
@@ -139,36 +139,54 @@ public class SOCTest extends TestCase {
 
         List<String> passedFiles = new ArrayList<>();
 
+        String [] skipTests = {
+                "basic.txt",
+                "battle for the middle.txt",
+                "cak_advanced.txt",
+                "cak attacks and event cards.txt"
+        };
+
         try {
             int iteration = 0;
             for (File scenario : files) {
                 try {
-                    //if (!scenario.getName().toLowerCase().equals("cak_advanced.txt"))
+                    //if (!scenario.getName().toLowerCase().equals("cak attacks and event cards.txt"))
                     //    continue;
                     soc.loadFromFile(scenario);
 
-                    soc.addPlayer(new UIPlayer(GColor.RED));
-                    soc.addPlayer(new UIPlayer(GColor.GREEN));
-                    soc.addPlayer(new UIPlayer(GColor.BLUE));
+                    GColor [] colors = {
+                        GColor.RED,
+                        GColor.BLUE,
+                        GColor.GREEN,
+                        GColor.CYAN,
+                        GColor.YELLOW,
+                        GColor.MAGENTA
+                    };
 
-                    for (int i=0; i<10; i++) {
+                    for (int i=0; i<soc.getRules().getMaxPlayers(); i++) {
+                        soc.addPlayer(new UIPlayer(colors[i]));
+                    }
+
+                    for (int i=0; i<5; i++) {
                         soc.initGame();
-                        for (iteration = 0; iteration < 10000 && !soc.isGameOver(); iteration++) {
+                        for (iteration = 0; iteration < 5000 && !soc.isGameOver(); iteration++) {
                             System.out.print("ITER(" + iteration + ")");
                             soc.runGame();
                         }
 
-                        System.out.println("Player 1: " + soc.getPlayerByPlayerNum(1));
-                        System.out.println("Player 2: " + soc.getPlayerByPlayerNum(2));
-                        System.out.println("Player 3: " + soc.getPlayerByPlayerNum(3));
+                        for (int p=0; p<soc.getNumPlayers(); p++) {
+                            System.out.println("Player " + (p+1) + ": " + soc.getPlayerByPlayerNum(p+1));
+                        }
 
                         assertTrue(soc.isGameOver());
+                        passedFiles.add(scenario.getName() + " in " + iteration + " iterations");
+                        PlayerBot.clearStats();
                     }
                     soc.clear();
                     soc.getBoard().clear();
-                    passedFiles.add(scenario.getAbsolutePath() + " in " + iteration + " iterations");
                 } catch (Throwable t) {
                     System.err.println("TEST Failed iteration (" + iteration + ") in file: " + scenario);
+                    PlayerBot.dumpStats();
                     soc.saveToFile(new File("testresult/failedgame.txt"));
                     throw t;
                 }

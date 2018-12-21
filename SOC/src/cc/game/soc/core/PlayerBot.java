@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import cc.lib.game.Utils;
@@ -30,6 +31,36 @@ public class PlayerBot extends Player {
 //	private Set<Integer> usedShipRoutes = new HashSet<Integer>();
 	private Set<MoveType> usedMoves = new HashSet<MoveType>();
 	private int numLeafs = 0;
+
+	public static class Statistics {
+	    int numOccurances;
+	    double accumulatedValue;
+    }
+
+    public final static Map<String, Statistics> stats = new HashMap<>();
+
+	private static void addStat(String property, double value) {
+	    Statistics stat = stats.get(property);
+	    if (stat == null) {
+	        stat = new Statistics();
+	        stats.put(property, stat);
+        }
+
+        stat.numOccurances++;
+	    stat.accumulatedValue += value;
+    }
+
+    public static void dumpStats() {
+	    log.info("STAT: %-25s %5s %11s %11s", "KEY", "CNT", "TOTAL", "AVE");
+	    for (Map.Entry<String, Statistics> e : stats.entrySet()) {
+	        double ave = e.getValue().accumulatedValue / e.getValue().numOccurances;
+	        log.info("STAT: %-25s %5d %11.3f %11.3f", e.getKey(), e.getValue().numOccurances, e.getValue().accumulatedValue, ave);
+        }
+    }
+
+    public static void clearStats() {
+	    stats.clear();
+    }
 
     @Override
     public void reset() {
@@ -257,6 +288,12 @@ public class PlayerBot extends Player {
 		
 		assert(leafs.contains(child));
 		child.setOptimal(true);
+
+		if (DEBUG_ENABLED) {
+		    for (String property : child.getKeys()) {
+		        addStat(property, child.getValue(property));
+            }
+        }
 		
 		if(false && DEBUG_ENABLED) {
 //			root.printTree(System.out);
@@ -300,7 +337,7 @@ public class PlayerBot extends Player {
 		// we want to know what variable(s) contribute most to the descision
 		// track ave,stddev,min,max
 		//summarizeEvaluation();
-		
+
 	}
 	/*
 	
@@ -1111,17 +1148,15 @@ public class PlayerBot extends Player {
 					break;
 				}
 				case MERCHANT_FLEET_CARD: {
-					Card merchantFleetCard = p.getCard(ProgressCardType.MerchantFleet);
-					merchantFleetCard.setUsed();
-					for (ResourceType r : ResourceType.values()) {
-						if (p.getCardCount(r) >= 2) {
-							Card tradable = new Card(r, CardStatus.USABLE);
-							p.setMerchantFleetTradable(tradable);
-							buildChooseMoveTreeR(soc, p, b, root.attach(new BotNodeCard(tradable)), SOC.computeMoves(p, b, soc));
-						}
-					}
-					p.setMerchantFleetTradable(null);
-//					merchantFleetCard.setUsed(false);
+                    List<Card> opts = SOC.computeMerchantFleetCards(p);
+                    if (opts.size() > 0) {
+                        Player copy = p.deepCopy();
+                        copy.getCard(ProgressCardType.MerchantFleet).setUsed();
+                        for (Card c : opts) {
+                            copy.setMerchantFleetTradable(c);
+                            buildChooseMoveTreeR(soc, copy, b, root.attach(new BotNodeCard(c)), SOC.computeMoves(copy, b, soc));
+                        }
+                    }
 					break;
 				}
 				case MINING_CARD: {
@@ -1862,7 +1897,8 @@ public class PlayerBot extends Player {
             if (b.isVertexAdjacentToPirateRoute(vIndex)) {
                 scale *= -1;
             }
-			switch (v.getType()) {
+            pirateHealth += v.getPirateHealth();
+            switch (v.getType()) {
 				case OPEN:
 					break;
 				case SETTLEMENT:
@@ -1976,8 +2012,10 @@ public class PlayerBot extends Player {
 		node.addValue("Resource Prob", resourceProbValue);
 		node.addValue("Structures", structureValue);
 		node.addValue("tiles protected", covered);
-		node.addValue("knights", knightValue);
-        node.addValue("pirateHealth", 100f/(pirateHealth+1));
+		node.addValue("knights", 0.1f * knightValue);
+		if(pirateHealth > 0) {
+            node.addValue("pirateHealth", 10f / pirateHealth);
+        }
 
 		if (soc.getRules().isEnableCitiesAndKnightsExpansion()) {
 		    float barbResist = 0;
@@ -2591,7 +2629,7 @@ public class PlayerBot extends Player {
 	}
 	
 	private static void evaluateDice(BotNode node, int die1, int die2, SOC soc, Player p, Board b) {
-		// which die combe gives us the best results?
+		// which die combine gives us the best results?
 		
 		// if CAK enabled, then die2 should be a value that gives us the best opportunity for a progress card
 		if (soc.getRules().isEnableCitiesAndKnightsExpansion()) {

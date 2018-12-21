@@ -1624,9 +1624,6 @@ public class Utils {
 
     public static void setDebugEnabled(boolean enable) {
         DEBUG_ENABLED = enable;
-        if (enable) {
-            randGen.setSeed(0);
-        }
     }
 
     public static <T> T randItem(List<T> items) {
