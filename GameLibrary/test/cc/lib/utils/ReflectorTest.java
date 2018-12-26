@@ -676,6 +676,27 @@ public class ReflectorTest extends TestCase {
         assertEquals(a, b);
     }
 
+    public void testDiffMap() throws Exception {
+
+        SimpleObject a = new SimpleObject();
+        a.myStrStrMap = new HashMap<>();
+        SimpleObject b = a.deepCopy();
+
+        System.out.println("a=" + a.toString());
+        System.out.println("b=" + b.toString());
+
+        String diff = a.diff(b);
+        System.out.println("diff=" + diff);
+        assertEquals(a, b);
+
+        a.myStrStrMap.put("A", "B");
+        System.out.println("a=" + a.toString());
+        diff = a.diff(b);
+        System.out.println("diff=\n"+diff);
+
+        assertNotSame(a, b);
+    }
+
     public void testDeserializeEnclosedEnum() throws Exception {
 
         SimpleObject a = new SimpleObject();
@@ -713,6 +734,7 @@ public class ReflectorTest extends TestCase {
 
         Vector<SimpleObject> myObjList = null;
         List<GColor> myColorList = null;
+        Map<String, String> myStrStrMap = null;
     }
 
 }

@@ -1645,6 +1645,19 @@ public class Reflector<T> {
 
         return true;
     }
+
+    private static boolean isMapsEqual(Map m0, Map m1) {
+        if (m0.size() != m1.size())
+            return false;
+
+        for (Object key : m0.keySet()) {
+            if (!m1.containsKey(key))
+                return false;
+            if (!isEqual(m0.get(key), m1.get(key)))
+                return false;
+        }
+        return true;
+    }
     
     private static boolean isEqual(Object a, Object b) {
         if (a == b)
@@ -1658,6 +1671,9 @@ public class Reflector<T> {
             return isArraysEqual(a, b);
         if ((a instanceof Collection) && (b instanceof Collection)) {
             return isCollectionsEqual((Collection)a, (Collection)b);
+        }
+        if ((a instanceof Map) && (b instanceof Map)) {
+            return isMapsEqual((Map)a, (Map)b);
         }
         if (!a.getClass().equals(b.getClass()))
             return false;
@@ -1734,6 +1750,7 @@ public class Reflector<T> {
             		Map.Entry entry = (Map.Entry)it.next();
             		newMap.put(deepCopy(entry.getKey()), deepCopy(entry.getValue()));
             	}
+            	return newMap;
             }
             // TODO: Test that this is a primitive, enum otherwise error
             // Hopefully this is a primitive, enum 
@@ -1767,10 +1784,10 @@ public class Reflector<T> {
 
     /**
      * Collections, Arrays and Maps are shallow copied from this into a new instance
-     * @param <T>
+     *
      * @return
      */
-    public <T extends Reflector> T shallowCopy() {
+    public T shallowCopy() {
         try {
             Object copy = getClass().newInstance();
             Map<Field, Archiver> values = getValues(getClass(), false);
@@ -1973,7 +1990,9 @@ public class Reflector<T> {
                     writer.pop();
                     writer.println("}");
                 } else if (mine instanceof Collection) {
-                    diffCollections(field.getName(), (Collection)mine, (Collection)thrs, writer);
+                    diffCollections(field.getName(), (Collection) mine, (Collection) thrs, writer);
+                } else if (mine instanceof Map) {
+                    diffMaps(field.getName(), (Map)mine, (Map)thrs, writer);
                 } else if (mine.getClass().isArray()) {
                     diffArrays(field.getName(), mine, thrs, writer);
                 } else {
@@ -1986,39 +2005,67 @@ public class Reflector<T> {
         }
     }
 
-    private void diffCollections(String name, Collection mine, Collection thrs, MyPrintWriter writer) throws Exception {
-        //if (isCollectionsEqual(mine, thrs))
-        //    return;
+    private void diffMaps(String name, Map mine, Map thrs, MyPrintWriter writer) throws Exception {
+        writer.println(name+"="+getCanonicalName(thrs.getClass()) + " {");
+        writer.push();
 
+        for (Object key : mine.keySet()) {
+
+            serializeObject(key, writer);
+
+            Object mineVal = mine.get(key);
+            Object thrsVal = thrs.get(key);
+
+            diffObjects(mineVal, thrsVal, writer);
+        }
+
+        for (Object key : thrs.keySet()) {
+
+            if (mine.containsKey(key))
+                continue;
+
+            serializeObject(key, writer);
+            serializeObject(thrs.get(key), writer);
+        }
+
+        writer.pop();
+        writer.println("}");
+    }
+
+    private void diffObjects(Object o1, Object o2, MyPrintWriter writer) throws Exception {
+        if (o2 == null) {
+            writer.println("null");
+        } else if (o1 == null) {
+            serializeObject(o2, writer);
+        } else if (o2.getClass().isArray()) {
+            diffArrays(null, o1, o2, writer);
+        } else if (o2 instanceof Reflector) {
+            writer.println(getCanonicalName(o2.getClass()) + " {");
+            writer.push();
+            if (((Reflector) o2).isImmutable()) {
+                ((Reflector)o2).serialize(writer);
+            } else {
+                ((Reflector) o1).diff((Reflector) o2, writer);
+            }
+            writer.pop();
+            writer.println("}");
+        } else {
+            serializeObject(o2, writer);
+        }
+    }
+
+    private void diffCollections(String name, Collection mine, Collection thrs, MyPrintWriter writer) throws Exception {
         writer.println(name+"="+getCanonicalName(thrs.getClass()) + " {");
         writer.push();
 
         Iterator i1 = mine.iterator();
         Iterator i2 = thrs.iterator();
 
-        while (i2.hasNext()) {
+        while (i2.hasNext() || i2.hasNext()) {
             Object o1 = i1.hasNext() ? i1.next() : null;
-            Object o2 = i2.next();
+            Object o2 = i2.hasNext() ? i2.next() : null;
 
-            if (o2 == null) {
-                writer.println("null");
-            } else if (o1 == null) {
-                serializeObject(o2, writer);
-            } else if (o2.getClass().isArray()) {
-                diffArrays(null, o1, o2, writer);
-            } else if (o2 instanceof Reflector) {
-                writer.println(getCanonicalName(o2.getClass()) + " {");
-                writer.push();
-                if (((Reflector) o2).isImmutable()) {
-                    ((Reflector)o2).serialize(writer);
-                } else {
-                    ((Reflector) o1).diff((Reflector) o2, writer);
-                }
-                writer.pop();
-                writer.println("}");
-            } else {
-                serializeObject(o2, writer);
-            }
+            diffObjects(o1, o2, writer);
         }
 
         writer.pop();
