@@ -24,6 +24,7 @@ public abstract class Player extends Reflector<Player> {
 	private int						numDiscoveredTerritories = 0;
 	private final int []	        cityDevelopment = new int[DevelopmentArea.values().length];
 	private Card					merchantFleetTradable;
+    private boolean                 neutral = false;
 
 	protected Player(Player other) {
 	    cards.addAll(other.cards);
@@ -33,6 +34,8 @@ public abstract class Player extends Reflector<Player> {
 	    harborPoints = other.harborPoints;
 	    numDiscoveredTerritories = other.numDiscoveredTerritories;
 	    System.arraycopy(other.cityDevelopment, 0, cityDevelopment, 0, cityDevelopment.length);
+	    merchantFleetTradable = other.merchantFleetTradable;
+	    this.neutral = other.neutral;
     }
 
 	/**
@@ -811,17 +814,30 @@ public abstract class Player extends Reflector<Player> {
     /**
      * Special case player type when Rules.isCatanForTwo enabled
      *
-     * Neutral players dont get a turn, instead the other playres take turns for them.
-     * When another player places a road, they do so also for the neutral player (for free)
-     * When another player places a settlement, they do so also for the neutral player if possible, a road otherwise
+     * Neutral players don't get a turn, instead the other players take turns for them.
+     * When a player places a road, they do so also for the neutral player (for free)
+     * When a player places a settlement, they do so also for the neutral player if possible, a road otherwise
+     * When a player upgrades a settlement, the neutral player is unaffected
+     * When a player places a knight then a knight is also placed for the neutral player
+     *   the neutral knights cannot be activated or have a bearing on the barbarian attack
+     * When a player promotes a knight then a neutral knight is also promoted, but not past a strong knight
+     * When a neutral player is present, then the other players can collect tokens by doing one of the following:
+     *   - Place a settlement by the desert collects 2 tokens
+     *   - Place a settlement on the coast yields 1 token
+     *   - Exchange a used Soldier gets 1 token
+     *   - Exchange a knight collects the level of the knight back in tokens
      * The non-neutral players roll the dice twice and collect all resources from the 2 rolls. The die rolls must be different values.
      *
      * @return
      */
 	public boolean isNeutralPlayer() {
-	    return false;
+	    return neutral;
     }
-	
+
+    void setNeutral(boolean neutral) {
+	    this.neutral = neutral;
+    }
+
 	/**
 	 * Return a move or null for not yet chosen.
 	 * Method will get called continuously until non-null value returned.

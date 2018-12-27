@@ -100,7 +100,7 @@ public class SOCTest extends TestCase {
 
     public void testScenarios2() throws Exception {
 
-	    for (int i=0; 1<100; i++) {
+	    for (int i=28; 1<100; i++) {
 	        Utils.setRandomSeed(i);
 	        try {
                 testScenarios();
@@ -139,13 +139,6 @@ public class SOCTest extends TestCase {
 
         List<String> passedFiles = new ArrayList<>();
 
-        String [] skipTests = {
-                "basic.txt",
-                "battle for the middle.txt",
-                "cak_advanced.txt",
-                "cak attacks and event cards.txt"
-        };
-
         try {
             int iteration = 0;
             for (File scenario : files) {
@@ -169,8 +162,9 @@ public class SOCTest extends TestCase {
 
                     for (int i=0; i<5; i++) {
                         soc.initGame();
-                        for (iteration = 0; iteration < 5000 && !soc.isGameOver(); iteration++) {
+                        for (iteration = 0; iteration < 10000 && !soc.isGameOver(); iteration++) {
                             System.out.print("ITER(" + iteration + ")");
+
                             soc.runGame();
                         }
 

@@ -9,12 +9,14 @@ enum State {
     POSITION_NEUTRAL_SETTLEMENT_NOCANCEL(false, R.string.state_position_settlement_neutral_player),
 	POSITION_ROAD_CANCEL(true, R.string.state_position_road),
 	POSITION_ROAD_NOCANCEL(false, R.string.state_position_road),
+    POSITION_NEUTRAL_ROAD_NOCANCEL(false, R.string.state_position_road_neutral_player),
 	POSITION_ROAD_OR_SHIP_CANCEL(true, R.string.state_position_road_or_ship),
 	POSITION_ROAD_OR_SHIP_NOCANCEL(false, R.string.state_position_road_or_ship),
 	POSITION_CITY_CANCEL(true, R.string.state_position_city),
 	POSITION_CITY_NOCANCEL(false, R.string.state_position_city),
 	CHOOSE_CITY_FOR_WALL(true, R.string.state_choose_city_for_wall),
 	POSITION_SHIP_CANCEL(true, R.string.state_position_ship),
+    POSITION_NEUTRAL_SHIP_NOCANCEL(false, R.string.state_position_ship_neutral_player),
 	// Player is position a moved ship.  Only one allowed per turn
 	POSITION_SHIP_AND_LOCK_CANCEL(true, R.string.state_choose_ship_to_move),
 	UPGRADE_SHIP_CANCEL(true, R.string.state_upgrade_ship),
@@ -45,11 +47,13 @@ enum State {
 	SET_VERTEX_TYPE(false, 0),
 	CHOOSE_KNIGHT_TO_ACTIVATE(true, R.string.state_choose_knight_to_activate),
 	POSITION_NEW_KNIGHT_CANCEL(true, R.string.state_position_new_knight),
+    POSITION_NEW_NEUTRAL_KNIGHT_NOCANCEL(false, R.string.state_position_new_neutral_knight),
 	POSITION_KNIGHT_CANCEL(true, R.string.state_position_knight),
 	POSITION_KNIGHT_NOCANCEL(false, R.string.state_position_deserter_knight),
 	POSITION_DISPLACED_KNIGHT(false, R.string.state_position_displaced_knight), // player's knight has been displaced
 	CHOOSE_KNIGHT_TO_MOVE(true, R.string.state_choose_knight_to_move),
 	CHOOSE_KNIGHT_TO_PROMOTE(true, R.string.state_choose_knight_to_move),
+    CHOOS_ENEUTRAL_KNIGHT_TO_PROMOTE(false, R.string.state_choose_neutral_knight_to_promote),
 	CHOOSE_PROGRESS_CARD_TYPE(false, R.string.state_choose_progress_card_type), // player chooses from one Science, Trade or Politics
 	CHOOSE_METROPOLIS(false, R.string.state_choose_metro),
 	CHOOSE_CITY_IMPROVEMENT(true, R.string.state_choose_city_improvement),

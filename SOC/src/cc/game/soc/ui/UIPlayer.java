@@ -62,7 +62,7 @@ public class UIPlayer extends PlayerBot implements ClientConnection.Listener {
     }
 
     public boolean isInfoVisible() {
-        return UISOC.getInstance().isAITuningEnabled();
+        return isNeutralPlayer() || UISOC.getInstance().isAITuningEnabled();
     }
 
 	@Override

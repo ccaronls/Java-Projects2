@@ -561,6 +561,32 @@ public class PlayerBot extends Player {
 //		usedRoadRoutes.removeAll(roads);
 //		usedShipRoutes.removeAll(ships);
 	}
+
+	private void processMetropolis(Player p, SOC soc, Board _b, BotNode root, DevelopmentArea area, int craneAdjust) {
+        int devel = p.getCityDevelopment(area);
+        devel++;
+        int numCards = devel- craneAdjust;
+        p.removeCards(area.commodity, numCards);
+        p.setCityDevelopment(area, devel);
+        Board b = _b.deepCopy();
+        if (SOC.checkMetropolis(soc, b, devel, p.getPlayerNum(), area)) {
+            for (int vIndex: SOC.computeMetropolisVertexIndices(p.getPlayerNum(), b)) {
+                Vertex v = b.getVertex(vIndex);
+                Vertex save = v.deepCopy();
+                v.setType(area.vertexType);
+                BotNode n = root.attach(new BotNodeVertex(v, vIndex));
+                int oldNum = soc.getMetropolisPlayer(area);
+                soc.setMetropolisPlayer(area, p.getPlayerNum());
+                buildChooseMoveTreeR(soc, p, b, n, SOC.computeMoves(p, b, soc));
+                v.copyFrom(save);
+                soc.setMetropolisPlayer(area, oldNum);
+            }
+        } else {
+            buildChooseMoveTreeR(soc, p, b, root, SOC.computeMoves(p, b, soc));
+        }
+        p.setCityDevelopment(area, --devel);
+        p.addCards(area.commodity, numCards);
+    }
 	
 	private void buildChooseMoveTreeR(SOC soc, Player p, Board b, BotNode _root, Collection<MoveType> moves) {
 		for (MoveType move : moves) {
@@ -810,40 +836,19 @@ public class PlayerBot extends Player {
 					break;
 				}
 				case IMPROVE_CITY_POLITICS: {
-					DevelopmentArea area = DevelopmentArea.Politics;
-					int commodity = p.getCityDevelopment(area);
-					p.setCityDevelopment(area, commodity+1);
-					p.incrementResource(area.commodity, -(commodity+1));
-					//evaluatePlayer(root, soc, p, b);
-					buildChooseMoveTreeR(soc, p, b, root, SOC.computeMoves(p, b, soc));
-					p.setCityDevelopment(area, commodity);
-					p.incrementResource(area.commodity, commodity+1);
+				    processMetropolis(p, soc, b, root, DevelopmentArea.Politics, 0);
 					break;
 				}
 				case IMPROVE_CITY_SCIENCE: {
-					DevelopmentArea area = DevelopmentArea.Science;
-					int commodity = p.getCityDevelopment(area);
-					p.setCityDevelopment(area, commodity+1);
-					p.incrementResource(area.commodity, -(commodity+1));
-					//evaluatePlayer(root, soc, p, b);
-					buildChooseMoveTreeR(soc, p, b, root, SOC.computeMoves(p, b, soc));
-					p.setCityDevelopment(area, commodity);
-					p.incrementResource(area.commodity, commodity+1);
+                    processMetropolis(p, soc, b, root, DevelopmentArea.Science, 0);
 					break;
 				}
 				case IMPROVE_CITY_TRADE: {
-					DevelopmentArea area = DevelopmentArea.Trade;
-					int commodity = p.getCityDevelopment(area);
-					p.setCityDevelopment(area, commodity+1);
-					p.incrementResource(area.commodity, -(commodity+1));
-					//evaluatePlayer(root, soc, p, b);
-					buildChooseMoveTreeR(soc, p, b, root, SOC.computeMoves(p, b, soc));
-					p.setCityDevelopment(area, commodity);
-					p.incrementResource(area.commodity, commodity+1);
+                    processMetropolis(p, soc, b, root, DevelopmentArea.Trade, 0);
 					break;
 				}
 				case MOVE_KNIGHT: {
-					List<Integer> knights = SOC.computeMovableKnightVertexIndices(soc, p.getPlayerNum(), b);//b.getVertsOfType(p.getPlayerNum(), VertexType.BASIC_KNIGHT_ACTIVE, VertexType.STRONG_KNIGHT_ACTIVE, VertexType.MIGHTY_KNIGHT_ACTIVE);
+					List<Integer> knights = SOC.computeMovableKnightVertexIndices(soc, p.getPlayerNum(), b);
 					for (int knightIndex : knights) {
 						Vertex knight = b.getVertex(knightIndex);
 						Vertex knightCopy = knight.deepCopy();
@@ -933,6 +938,8 @@ public class PlayerBot extends Player {
 				case CRANE_CARD: {
 					p.removeCard(ProgressCardType.Crane);
 					for (DevelopmentArea area : SOC.computeCraneCardImprovements(p)) {
+					    processMetropolis(p, soc, b, root.attach(new BotNodeEnum(area)), area, 1);
+					    /*
 						int level = p.getCityDevelopment(area);
 						p.incrementResource(area.commodity, -level);
 						p.setCityDevelopment(area, level+1);
@@ -941,6 +948,7 @@ public class PlayerBot extends Player {
 						buildChooseMoveTreeR(soc, p, b, node, SOC.computeMoves(p, b, soc));
 						p.setCityDevelopment(area, level);
 						p.incrementResource(area.commodity, level);
+						*/
 					}
 					//p.addCard(ProgressCardType.Crane);
 					break;
@@ -1496,7 +1504,10 @@ public class PlayerBot extends Player {
 
 	@Override
 	public Integer chooseVertex(SOC soc, Collection<Integer> vertexIndices, VertexChoice mode, Integer knightIndexToMove) {
-		
+        if (movesPath != null) {
+            return detatchMove();
+        }
+
 		// TODO: OMG not true
 		switch (mode) {
 			case POLITICS_METROPOLIS:
@@ -1507,9 +1518,6 @@ public class PlayerBot extends Player {
 			default:
 		}
 		
-		if (movesPath != null) {
-			return detatchMove();
-		}
 		Board b = soc.getBoard();
 		Player p = this;
 		BotNode root = createNewTree("Choose Vertex");

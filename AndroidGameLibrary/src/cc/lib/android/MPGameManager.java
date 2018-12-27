@@ -1,6 +1,8 @@
 package cc.lib.android;
 
+import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Application;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.graphics.Color;
@@ -8,6 +10,7 @@ import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pGroup;
 import android.net.wifi.p2p.WifiP2pInfo;
 import android.os.Build;
+import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -29,7 +32,7 @@ import cc.lib.net.GameClient;
 import cc.lib.net.GameCommand;
 import cc.lib.net.GameServer;
 
-public abstract class MPGameManager {
+public abstract class MPGameManager implements Application.ActivityLifecycleCallbacks {
 
     private static Logger log = LoggerFactory.getLogger(MPGameManager.class);
 
@@ -55,6 +58,7 @@ public abstract class MPGameManager {
         this.maxClients = 0;
         this.server = null;
         this.bonjourName = bonjourName;
+        activity.getApplication().registerActivityLifecycleCallbacks(this);
     }
 
     /**
@@ -220,6 +224,8 @@ public abstract class MPGameManager {
                     activity.runOnUiThread(new Runnable() {
                         public void run() {
                             d.dismiss();
+                            helper.destroy();
+                            helper = null;
                             onAllClientsJoined();
                         }
                     });
@@ -261,7 +267,14 @@ public abstract class MPGameManager {
     // *********************************************************************************
 
     private Dialog clientDialog = null;
-    
+    private final int CONNECT_STATE_WAITING_ON_USER = 0;
+    private final int CONNECT_STATE_CONNECTING = 1;
+    private final int CONNECT_STATE_CONNECTED = 2;
+
+    private int connectState = CONNECT_STATE_WAITING_ON_USER;
+
+
+
     public void showJoinGameDialog() {
         final ListView lvHost = new ListView(activity);
         final List<WifiP2pDevice> p2pDevices = new ArrayList<>();
@@ -319,7 +332,7 @@ public abstract class MPGameManager {
                 p2pDevices.clear();
                 for (WifiP2pDevice p : peers) {
                     if (p.isGroupOwner())
-                        p2pDevices.add(p); // we only want to connect to dominos servers
+                        p2pDevices.add(p); // we only want to connect to host servers
                 }
                 synchronized (devices) {
                     devices.clear();
@@ -335,17 +348,10 @@ public abstract class MPGameManager {
 
             }
 
-            boolean connecting = false;
-
             @Override
             public void onConnectionAvailable(final WifiP2pInfo info) {
-                if (connecting || client.isConnected()) {
+                if (connectState != CONNECT_STATE_CONNECTING || client.isConnected()) {
                     return;
-                }
-                connecting = true;
-                if (clientDialog != null) {
-                    clientDialog.dismiss();
-                    clientDialog = null;
                 }
                 new SpinnerTask(activity) {
                     @Override
@@ -356,7 +362,7 @@ public abstract class MPGameManager {
 
                     @Override
                     protected void onSuccess() {
-                        connecting = false;
+                        connectState = CONNECT_STATE_CONNECTED;
                         synchronized (helper) {
                             helper.notify();
                         }
@@ -364,7 +370,7 @@ public abstract class MPGameManager {
 
                     @Override
                     protected void onError(Exception e) {
-                        connecting = false;
+                        connectState = CONNECT_STATE_WAITING_ON_USER;
                         activity.newDialogBuilder().setTitle(R.string.popup_title_error)
                                 .setMessage("Failed to connect to server " + e.getMessage())
                                 .setNegativeButton(R.string.popup_button_ok, new DialogInterface.OnClickListener() {
@@ -425,6 +431,7 @@ public abstract class MPGameManager {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 final WifiP2pDevice d = (WifiP2pDevice)view.getTag();
+                connectState = CONNECT_STATE_CONNECTING;
                 new SpinnerTask(activity) {
 
                     @Override
@@ -467,8 +474,11 @@ public abstract class MPGameManager {
                         if (client.isConnected()) {
                             //showWaitingForPlayersDialogClient(canceleble);
                             Toast.makeText(activity, R.string.toast_connect_success, Toast.LENGTH_LONG).show();
+                            helper.destroy();
+                            helper = null;
                             onAllClientsJoined();
                         } else if (!isCancelled()) {
+                            connectState = CONNECT_STATE_WAITING_ON_USER;
                             activity.newDialogBuilder().setTitle(R.string.popup_title_error)
                                     .setMessage(R.string.popup_msg_failed_connect_host)
                                     .setNegativeButton(R.string.popup_button_ok, new DialogInterface.OnClickListener() {
@@ -553,4 +563,40 @@ public abstract class MPGameManager {
         });
     }
 
+    @Override
+    public void onActivityCreated(Activity activity, Bundle bundle) {
+
+    }
+
+    @Override
+    public void onActivityStarted(Activity activity) {
+
+    }
+
+    @Override
+    public void onActivityResumed(Activity activity) {
+        if(helper != null)
+            helper.resume();
+    }
+
+    @Override
+    public void onActivityPaused(Activity activity) {
+        if (helper != null)
+            helper.pause();
+    }
+
+    @Override
+    public void onActivityStopped(Activity activity) {
+
+    }
+
+    @Override
+    public void onActivitySaveInstanceState(Activity activity, Bundle bundle) {
+
+    }
+
+    @Override
+    public void onActivityDestroyed(Activity activity) {
+        killMPGame();
+    }
 }

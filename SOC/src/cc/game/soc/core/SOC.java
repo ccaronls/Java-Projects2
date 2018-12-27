@@ -258,6 +258,10 @@ public class SOC extends Reflector<SOC> implements StringResource {
      * @return
      */
     public Board getBoard() {
+        if (mBoard == null) {
+            mBoard = new Board();
+            mBoard.generateDefaultBoard();
+        }
         return mBoard;
     }
 
@@ -278,6 +282,10 @@ public class SOC extends Reflector<SOC> implements StringResource {
         return mMetropolisPlayer[area.ordinal()];
     }
 
+    void setMetropolisPlayer(DevelopmentArea area, int playerNum) {
+        mMetropolisPlayer[area.ordinal()] = playerNum;
+    }
+
     /**
      * @return
      */
@@ -291,9 +299,6 @@ public class SOC extends Reflector<SOC> implements StringResource {
     public SOC() {
         mBarbarianDistance = -1; // CAK
         mBarbarianAttackCount = 0;
-        mBoard = new Board();
-        mBoard.generateDefaultBoard();
-        mRules = new Rules();
     }
 
     public SOC(SOC other) {
@@ -319,6 +324,9 @@ public class SOC extends Reflector<SOC> implements StringResource {
      * @return
      */
     public final Rules getRules() {
+        if (mRules == null) {
+            mRules = new Rules();
+        }
         return mRules;
     }
 
@@ -409,7 +417,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
                         break;
                     }
                     default:
-                        throw new AssertionError("Unhandled case " + d);
+                        throw new SOCException("Unhandled case " + d);
                 }
             }
             Utils.shuffle(mDevelopmentCards);
@@ -482,6 +490,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
         pushStateFront(state, data, options, null, action);
     }
 
+    // states are managed in a FIFO stack
     private void pushStateFront(State state, Object data, Collection<Integer> options, Collection<?> xtraOptions, UndoAction action) {
         log.debug("Push state: " + state);
         mStateStack.add(new StackItem(state, action, options, xtraOptions, data));
@@ -550,6 +559,10 @@ public class SOC extends Reflector<SOC> implements StringResource {
         while (mDice.size() < 100) {
             mDice.addLast(Utils.rand() % 6 + 1);
         }
+    }
+
+    void clearDiceStack() {
+        mDice.clear();
     }
 
     private Dice[] nextDice() {
@@ -1099,6 +1112,10 @@ public class SOC extends Reflector<SOC> implements StringResource {
     protected void onTakeOpponentCard(int takerNum, int giverNum, Card card) {
     }
 
+    protected Player newNeutralPlayer() {
+        throw new SOCException("Not implemented");
+    }
+
     private void takeOpponentCard(Player taker, Player giver) {
         assert (giver != taker);
         Card taken = giver.removeRandomUnusedCard();
@@ -1109,10 +1126,16 @@ public class SOC extends Reflector<SOC> implements StringResource {
 
     public void initGame() {
         // setup
-        assert (mNumPlayers > 1);
-        assert (mPlayers != null);
-        assert (mBoard != null);
+        if (mNumPlayers < getRules().getMinPlayers())
+            throw new SOCException("Too few players");
 
+        if (getRules().isCatanForTwo()) {
+            if (getNeutralPlayer() == null) {
+                addPlayer(newNeutralPlayer());
+            }
+        }
+
+        clearDiceStack();
         getBoard().reset();
         getBoard().assignRandom();
         reset();
@@ -1140,7 +1163,6 @@ public class SOC extends Reflector<SOC> implements StringResource {
             getBoard().setPirate(getBoard().getPirateRouteStartTile());
         }
 
-
         for (int vIndex : getBoard().getVertIndicesOfType(0, VertexType.PIRATE_FORTRESS)) {
             getBoard().getVertex(vIndex).setPirateHealth(getRules().getPirateFortressHealth());
         }
@@ -1159,6 +1181,11 @@ public class SOC extends Reflector<SOC> implements StringResource {
 
         // player picks in reverse order
         for (int i = mNumPlayers - 1; i > 0; i--) {
+            if (getRules().isCatanForTwo()) {
+                pushStateFront(State.POSITION_NEUTRAL_ROAD_NOCANCEL);
+                pushStateFront(State.POSITION_NEUTRAL_SETTLEMENT_NOCANCEL);
+            }
+
             pushStateFront(State.PREV_PLAYER);
             pushStateFront(State.POSITION_ROAD_OR_SHIP_NOCANCEL);
             if (getRules().isEnableCitiesAndKnightsExpansion())
@@ -1175,6 +1202,11 @@ public class SOC extends Reflector<SOC> implements StringResource {
 
         // players pick in order
         for (int i = 0; i < mNumPlayers - 1; i++) {
+            if (getRules().isCatanForTwo()) {
+                pushStateFront(State.POSITION_NEUTRAL_ROAD_NOCANCEL);
+                pushStateFront(State.POSITION_NEUTRAL_SETTLEMENT_NOCANCEL);
+            }
+
             pushStateFront(State.NEXT_PLAYER);
             pushStateFront(State.POSITION_ROAD_OR_SHIP_NOCANCEL);
             pushStateFront(State.POSITION_SETTLEMENT_NOCANCEL);
@@ -1384,10 +1416,11 @@ public class SOC extends Reflector<SOC> implements StringResource {
 
                 case POSITION_NEUTRAL_SETTLEMENT_NOCANCEL:
                     options = computeSettlementVertexIndices(this, getNeutralPlayer().getPlayerNum(), mBoard);
+                    printinfo(getString(R.string.info_player_place_settlement, getCurPlayer().getName()));
                 case POSITION_SETTLEMENT_CANCEL: // wait state
                 case POSITION_SETTLEMENT_NOCANCEL: { // wait state
-                    printinfo(getString(R.string.info_player_place_settlement, getCurPlayer().getName()));
                     if (options == null) {
+                        printinfo(getString(R.string.info_player_place_settlement, getCurPlayer().getName()));
                         options = computeSettlementVertexIndices(this, getCurPlayerNum(), mBoard);
                     }
                     assert (!Utils.isEmpty(options));
@@ -1501,12 +1534,15 @@ public class SOC extends Reflector<SOC> implements StringResource {
                     break;
                 }
 
+                case POSITION_NEUTRAL_ROAD_NOCANCEL:
+                    options = computeRoadRouteIndices(getNeutralPlayer().getPlayerNum(), getBoard());
+                    printinfo(getString(R.string.info_player_place_road, getCurPlayer().getName()));
                 case POSITION_ROAD_NOCANCEL: // wait state
                 case POSITION_ROAD_CANCEL: {// wait state
 
-                    printinfo(getString(R.string.info_player_place_road, getCurPlayer().getName()));
                     if (options == null) {
                         options = computeRoadRouteIndices(getCurPlayerNum(), mBoard);
+                        printinfo(getString(R.string.info_player_place_road, getCurPlayer().getName()));
                     }
                     assert (!Utils.isEmpty(options));
 
@@ -1690,16 +1726,13 @@ public class SOC extends Reflector<SOC> implements StringResource {
                     DevelopmentArea area = getStateData();
                     assert (area != null);
                     Integer vIndex = null;
-                    if (options.size() == 1)
-                        vIndex = options.iterator().next();
-                    else
-                        vIndex = getCurPlayer().chooseVertex(this, options, area.choice, null);
+                    vIndex = getCurPlayer().chooseVertex(this, options, area.choice, null);
                     if (vIndex != null) {
                         Utils.assertContains(vIndex, options);
                         onVertexChosen(getCurPlayerNum(), area.choice, vIndex, null);
                         popState();
                         Vertex v = getBoard().getVertex(vIndex);
-                        mMetropolisPlayer[area.ordinal()] = getCurPlayerNum();
+                        setMetropolisPlayer(area, getCurPlayerNum());
                         printinfo(getString(R.string.info_player_building_metro, getCurPlayer().getName(), area));
                         v.setPlayerAndType(getCurPlayerNum(), area.vertexType);
                     }
@@ -2153,7 +2186,6 @@ public class SOC extends Reflector<SOC> implements StringResource {
                     DevelopmentArea area = getCurPlayer().chooseEnum(this, EnumChoice.CRANE_CARD_DEVELOPEMENT, areas);
                     if (area != null) {
                         Utils.assertContains(area, Arrays.asList(areas));
-
                         popState();
                         processCityImprovement(getCurPlayer(), area, 1);
                     }
@@ -2981,7 +3013,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
      * @param move
      */
     public final void processMove(MoveType move) {
-
+        log.debug("processMove: %s", move);
         printinfo(getString(R.string.info_player_chosen_move_m, getCurPlayer().getName(), move.getName(this)));
         switch (move) {
             case ROLL_DICE:
@@ -4571,8 +4603,8 @@ public class SOC extends Reflector<SOC> implements StringResource {
                         continue;
                     }
 
-                    if (soc.mMetropolisPlayer[area.ordinal()] > 0) {
-                        Player o = soc.getPlayerByPlayerNum(soc.mMetropolisPlayer[area.ordinal()]);
+                    if (soc.getMetropolisPlayer(area) > 0) {
+                        Player o = soc.getPlayerByPlayerNum(soc.getMetropolisPlayer(area));
                         if (o.getCityDevelopment(area) >= DevelopmentArea.MAX_CITY_IMPROVEMENT)
                             continue; // cant advance to max if someone else already has (TODO: confirm this rule or make config)
                     }
@@ -5127,7 +5159,9 @@ public class SOC extends Reflector<SOC> implements StringResource {
         p.removeCards(area.commodity, devel - craneAdjust);
         p.setCityDevelopment(area, devel);
         onPlayerCityDeveloped(p.getPlayerNum(), area);
-        checkMetropolis(devel, getCurPlayerNum(), area);
+        if (checkMetropolis(this, mBoard, devel, getCurPlayerNum(), area)) {
+            pushStateFront(State.CHOOSE_METROPOLIS, area);
+        }
     }
 
     /**
@@ -5279,33 +5313,34 @@ public class SOC extends Reflector<SOC> implements StringResource {
     protected void onMetropolisStolen(int loserNum, int stealerNum, DevelopmentArea area) {
     }
 
-    private void checkMetropolis(int devel, int playerNum, DevelopmentArea area) {
+    static boolean checkMetropolis(SOC soc, Board b, int devel, int playerNum, DevelopmentArea area) {
         if (devel >= DevelopmentArea.MIN_METROPOLIS_IMPROVEMENT) {
             //List<Integer> metropolis = mBoard.getVertsOfType(0, area.vertexType);
-            final int metroPlayer = mMetropolisPlayer[area.ordinal()];
-            if (metroPlayer != playerNum && mBoard.getNumVertsOfType(playerNum, VertexType.CITY, VertexType.WALLED_CITY) > 0) { // if we dont already own this metropolis
+            final int metroPlayer = soc.getMetropolisPlayer(area);
+            if (metroPlayer != playerNum && b.getNumVertsOfType(playerNum, VertexType.CITY, VertexType.WALLED_CITY) > 0) { // if we dont already own this metropolis
                 if (metroPlayer == 0) { // if it is unowned
-                    pushStateFront(State.CHOOSE_METROPOLIS, area);
+                    return true;
                 } else {
                     //assert(metropolis.size() == 1);
-                    List<Integer> verts = mBoard.getVertIndicesOfType(metroPlayer, area.vertexType);
+                    List<Integer> verts = b.getVertIndicesOfType(metroPlayer, area.vertexType);
                     assert (verts.size() == 1);
-                    Vertex v = mBoard.getVertex(verts.get(0));
+                    Vertex v = b.getVertex(verts.get(0));
                     assert (v.getPlayer() == metroPlayer);
-                    if (v.getPlayer() != getCurPlayerNum()) {
-                        Player other = getPlayerByPlayerNum(metroPlayer);
+                    if (v.getPlayer() != soc.getCurPlayerNum()) {
+                        Player other = soc.getPlayerByPlayerNum(metroPlayer);
                         final int otherDevel = other.getCityDevelopment(area);
                         assert (otherDevel >= DevelopmentArea.MIN_METROPOLIS_IMPROVEMENT);
                         if (otherDevel < devel) {
-                            printinfo(getString(R.string.info_player_loses_metro_area_to_player, other.getName(), area.getName(this), getCurPlayer().getName()));
+                            soc.printinfo(soc.getString(R.string.info_player_loses_metro_area_to_player, other.getName(), area.getName(soc), soc.getCurPlayer().getName()));
                             v.setPlayerAndType(other.getPlayerNum(), VertexType.CITY);
-                            onMetropolisStolen(v.getPlayer(), playerNum, area);
-                            pushStateFront(State.CHOOSE_METROPOLIS, area);
+                            soc.onMetropolisStolen(v.getPlayer(), playerNum, area);
+                            return true;
                         }
                     }
                 }
             }
         }
+        return false;
     }
 
     /**
@@ -5327,7 +5362,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
             if (d.getType() == type)
                 return d;
         }
-        throw new AssertionError("No dice of type '" + type + "' in: " + Arrays.toString(dice));
+        throw new SOCException("No dice of type '" + type + "' in: " + Arrays.toString(dice));
     }
 
     private void distributeProgressCard(DevelopmentArea area) {
@@ -5585,7 +5620,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
 
     @Override
     public String getString(int resourceId, Object... args) {
-        //throw new AssertionError("Not implemented");
+        //throw new SOCException("Not implemented");
         return "";
     }
 

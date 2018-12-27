@@ -587,6 +587,8 @@
     <string name="state_deal_cards">Dealing cards&#8230;</string>
     <string name="state_position_settlement">Place a Settlement on the board.</string>
     <string name="state_position_settlement_neutral_player">Place a Settlement on the board for the neutral player.</string>
+    <string name="state_position_road_neutral_player">Place a Road on the board for the neutral player.</string>
+    <string name="state_position_ship_neutral_player">Place a Ship on the board for the neutral player.</string>
     <string name="state_position_road">Place a road on the board.</string>
     <string name="state_position_road_or_ship">Choose to place a road or ship.</string>
     <string name="state_position_city">Upgrade one of your settlements to a City.</string>
@@ -609,11 +611,13 @@
     <string name="state_show_trade_options">Display your trade options.</string>
     <string name="state_choose_knight_to_activate">Choose from one of your knight to Activate.  This makes it possible to defend against Barbarians or reposition.</string>
     <string name="state_position_new_knight">Place your new knight on the board.</string>
+    <string name="state_position_new_neutral_knight">Place your a new knight on the board for the neutral player.</string>
     <string name="state_position_knight">Place your knight on the board.  Active knights can displace an opponents knight or chase the Robber.</string>
     <string name="state_position_deserter_knight">Place the deserted knight on the board.</string>
     <string name="state_position_displaced_knight">Place your displaced knight on the board.</string>
     <string name="state_choose_knight_to_move">Pick an Active knight to move.</string>
     <string name="state_choose_knight_to_promote">Choose from one of your knights to Promote.</string>
+    <string name="state_choose_neutral_knight_to_promote">Choose a neutral knight to Promote.</string>
     <string name="state_choose_progress_card_type">Choose from one of the Development Areas to pick a Progress Card.</string>
     <string name="state_choose_metro">Choose from one of your Cities to upgrade to a Metropolis.  Metropolis cannot be pillaged by Barbarians.</string>
     <string name="state_choose_city_improvement">Choose from one of the City Improvement options.</string>
