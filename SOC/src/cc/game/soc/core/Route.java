@@ -91,22 +91,22 @@ public final class Route extends Reflector<Route> implements Comparable<Route> {
 	}
 
 	public String toString() {
-	    return "Route " + from + "->" + to + " player (" + player + ") Flags[" + getFlagsString() + "] Tiles: " + tiles[0]+"/"+tiles[1];//Arrays.toString(tiles);
+	    return "Route " + from + "->" + to + " player(" + player + ") INFO[" + getFlagsString() + "] Tiles: " + tiles[0]+"/"+tiles[1];//Arrays.toString(tiles);
 	}
 	
 	public String getFlagsString() {
 		StringBuffer buf = new StringBuffer();
 		buf.append(type.name());
 		if (isAdjacentToLand())
-			buf.append("+RD ");
+			buf.append("+RD");
 		if (isAdjacentToWater())
-			buf.append("+SH  ");
+			buf.append("+SH");
 		if (isAttacked())
-			buf.append("ATT ");
+			buf.append("+ATT");
 		if (isLocked())
-			buf.append("LCK ");
+			buf.append("+LCK");
 		if (isClosed())
-			buf.append("CLSD");
+			buf.append("+CLSD");
 		return buf.toString();
 	}
 

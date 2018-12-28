@@ -715,7 +715,7 @@ public class PlayerBot extends Player {
 							b.setRobber(tIndex);
 						onBoardChanged();
 						BotNode node = root.attach(new BotNodeTile(t, tIndex));
-						//doEvaluateAll(node, soc, p, b);
+						doEvaluateAll(node, soc, p, b);
                         b.setRobber(saveRobber);
                         b.setPirate(savePirate);
 					}
@@ -784,9 +784,9 @@ public class PlayerBot extends Player {
                         BotNode node = root.attach(new BotNodeRoute(r, rIndex));
                         node.chance = .7f + 1f/dieToWin;
                         int savedPlayer = r.getPlayer();
-                        soc.getBoard().setPlayerForRoute(r, getPlayerNum(), r.getType());
+                        b.setPlayerForRoute(r, getPlayerNum(), r.getType());
                         buildChooseMoveTreeR(soc, p, b, node, SOC.computeMoves(p, b, soc));
-                        soc.getBoard().setPlayerForRoute(r, savedPlayer, r.getType());
+                        b.setPlayerForRoute(r, savedPlayer, r.getType());
                     }
 					break;
 				}
@@ -877,7 +877,7 @@ public class PlayerBot extends Player {
 					break;
 				}
 				case MOVE_SHIP: {
-					List<Integer> shipVerts = SOC.computeOpenRouteIndices(p.getPlayerNum(), b, false, true);
+					List<Integer> shipVerts = SOC.computeMovableShips(soc, p, b);
 					for (int shipIndex : shipVerts) {
 						Route shipToMove = b.getRoute(shipIndex);
 						RouteType shipType = shipToMove.getType();
@@ -1186,7 +1186,7 @@ public class PlayerBot extends Player {
                     for (ResourceType t : ResourceType.values()) {
                         BotNode n = root.attach(new BotNodeEnum(t));
                         copy.incrementResource(t, soc.getNumPlayers() - 1);
-                        n.chance = computeChanceForResource(soc, copy);
+                        n.chance = computeChanceForResource(soc, b, copy);
                         doEvaluateAll(n, soc, copy, b);
                         // for random things we need to add some extra randomness
                         //n.addValue("randomness", Utils.randFloatX(1));
@@ -1345,11 +1345,11 @@ public class PlayerBot extends Player {
                         RouteType savedType = route.getType();
                         route.setType(info.destroyedType);
                         if (info.destroyedType == RouteType.OPEN)
-                            soc.getBoard().clearRouteLenCache();
+                            b.clearRouteLenCache();
                         doEvaluateAll(node, soc, p, b);
                         route.setType(savedType);
                         if (info.destroyedType == RouteType.OPEN)
-                            soc.getBoard().clearRouteLenCache();
+                            b.clearRouteLenCache();
 						for (int k : info.attackingKnights) {
 							b.getVertex(k).activateKnight();
 						}
@@ -1417,7 +1417,7 @@ public class PlayerBot extends Player {
 		return Utils.sum(likelyhood);
 	}
 
-	private float computeChanceForResource(SOC soc, Player player) {
+	private float computeChanceForResource(SOC soc, Board b, Player player) {
 		
 		// scale the chance but likelyhood of getting the resource
 		// - players with more cards are more likely to have a commodity
@@ -1430,9 +1430,9 @@ public class PlayerBot extends Player {
 				for (ResourceType r : ResourceType.values()) {
 					likelyhood[r.ordinal()] += 0.1f * p.getTotalCardsLeftInHand();
 				}
-				for (int vIndex : soc.getBoard().getStructuresForPlayer(p.getPlayerNum())) {
-					Vertex v = soc.getBoard().getVertex(vIndex);
-					for (Tile t : soc.getBoard().getVertexTiles(v)) {
+				for (int vIndex : b.getStructuresForPlayer(p.getPlayerNum())) {
+					Vertex v = b.getVertex(vIndex);
+					for (Tile t : b.getVertexTiles(v)) {
 						if (t.isDistributionTile() && t.getResource() != null) {
 							likelyhood[t.getResource().ordinal()] *= getDiePossibility(t.getDieNum(), soc.getRules()) * (v.isCity() ?
 									soc.getRules().getNumResourcesForCity() : soc.getRules().getNumResourcesForSettlement());
@@ -1457,11 +1457,11 @@ public class PlayerBot extends Player {
 			return moves.iterator().next();
 
 		BotNode root = createNewTree("Choose Move");
-//		evaluateEdges(root, soc, this, soc.getBoard());
-//		evaluatePlayer(root, soc, this, soc.getBoard());
-//		evaluateTiles(root, soc, this, soc.getBoard());
-//		evaluateVertices(root, soc, this, soc.getBoard());
-//		evaluateSeafarers(root, soc,this, soc.getBoard());
+//		evaluateEdges(root, soc, this, b);
+//		evaluatePlayer(root, soc, this, b);
+//		evaluateTiles(root, soc, this, b);
+//		evaluateVertices(root, soc, this, b);
+//		evaluateSeafarers(root, soc,this, b);
 //		evalu
 		//Player t = new PlayerTemp(this);
 //		setCardsUsable(CardType.Development, false); // prevent generating development card moves on subsequent calls
@@ -1528,7 +1528,7 @@ public class PlayerBot extends Player {
 			Vertex save2 = null;
 			Vertex knightToMove = null;
 			if (knightIndexToMove != null) {
-			    knightToMove = soc.getBoard().getVertex(knightIndexToMove);
+			    knightToMove = b.getVertex(knightIndexToMove);
 				save2 = knightToMove.deepCopy();
 			}
 			int islandNum = b.getIslandAdjacentToVertex(v);

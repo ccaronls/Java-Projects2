@@ -114,18 +114,29 @@ public class SOCTest extends TestCase {
 
     public void testFailedGame() throws Exception {
 	    SOC soc = new SOC();
-	    soc.loadFromFile(new File("testresult/failedgame.txt"));
 
 	    int iter = 0;
+	    int seed = 10;
 	    try {
-	        for (iter=0; iter<10000 && !soc.isGameOver(); iter++) {
-	            soc.runGame();
+
+	        for ( ; seed<100; seed++) {
+                soc.loadFromFile(new File("testresult/failedgame2.txt"));
+                Utils.setRandomSeed(seed);
+                for (iter = 0; iter < 10000 && !soc.isGameOver(); iter++) {
+                    System.out.print(String.format("ITER %5d ", iter));
+                    soc.runGame();
+                }
+
+                break;
             }
 
             assertTrue(soc.isGameOver());
 
-        } catch (Exception e) {
-            System.err.println("TEST Failed iteration (" + iter + ")");
+        } catch (Throwable e) {
+	        PlayerBot.dumpStats();
+
+//	        soc.saveToFile(new File("testresult/failedgame2.txt"));
+            System.out.println("TEST Failed iteration (" + iter + ") seed = " + seed);
             throw e;
         }
     }
@@ -143,8 +154,8 @@ public class SOCTest extends TestCase {
             int iteration = 0;
             for (File scenario : files) {
                 try {
-                    //if (!scenario.getName().toLowerCase().equals("cak attacks and event cards.txt"))
-                    //    continue;
+                    if (scenario.getName().toLowerCase().equals("catan for two.txt"))
+                        continue;
                     soc.loadFromFile(scenario);
 
                     GColor [] colors = {
