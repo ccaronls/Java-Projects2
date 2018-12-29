@@ -63,10 +63,13 @@ public class WifiP2pHelper implements
                     NetworkInfo networkInfo = (NetworkInfo) intent.getParcelableExtra(WifiP2pManager.EXTRA_NETWORK_INFO);
 
                     if (networkInfo.isConnected()) {
+                        log.info("BR:RCV = WIFI_P2P_CONNECTION_CHANGED_ACTION - network Connected - requestConnectionInfo");
 
                         // We are connected with the other device, request connection
                         // info to find group owner IP
                         p2p.requestConnectionInfo(channel, WifiP2pHelper.this);
+                    } else {
+                        log.info("BR:RCV = WIFI_P2P_CONNECTION_CHANGED_ACTION - network not Connected - ignore");
                     }
                     break;
                 }
@@ -74,38 +77,48 @@ public class WifiP2pHelper implements
                     int state = intent.getIntExtra(WifiP2pManager.EXTRA_DISCOVERY_STATE, -1);
                     switch (state) {
                         case WifiP2pManager.WIFI_P2P_DISCOVERY_STARTED:
-                            log.info("BR:RCV = WIFI P2P DISCOVERY STARTED");
+                            log.info("BR:RCV = WIFI_P2P_DISCOVERY_CHANGED_ACTION - STARTED - not handled");
                             break;
 
                         case WifiP2pManager.WIFI_P2P_DISCOVERY_STOPPED:
-                            log.info("BR:RCV = WIFI P2P DISCOVERY STOPPED");
+                            log.info("BR:RCV = WIFI_P2P_DISCOVERY_CHANGED_ACTION - STOPPED - not handled");
                             break;
+
+                        default:
+                            log.info("BR:RCV = WIFI_P2P_DISCOVERY_CHANGED_ACTION - UNKNOWN(%d) - not handled", state);
+
                     }
                     break;
                 }
                 case WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION: {
+                    log.info("BR:RCV = WIFI_P2P_PEERS_CHANGED_ACTION - requestPeers");
                     //WifiP2pDeviceList list = intent.getParcelableExtra(WifiP2pManager.EXTRA_P2P_DEVICE_LIST);
                     //onPeersAvailable(list);
                     requestPeers();
                     break;
                 }
                 case WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION: {
-
+                    log.info("BR:RCV = WIFI_P2P_THIS_DEVICE_CHANGES_ACTION - not handled");
                     break;
                 }
                 case WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION: {
                     int state = intent.getIntExtra(WifiP2pManager.EXTRA_WIFI_STATE, -1);
                     switch (state) {
                         case WifiP2pManager.WIFI_P2P_STATE_DISABLED:
-                            log.info("BR:RCV = WIFI P2P STATE DISABLED");
+                            log.info("BR:RCV = WIFI_P2P_STATE_CHANGED_ACTION - WIFI P2P STATE DISABLED - destroy");
                             destroy();
                             break;
                         case WifiP2pManager.WIFI_P2P_STATE_ENABLED:
-                            log.info("BR:RCV = WIFI P2P STATE ENABLED");
+                            log.info("BR:RCV = WIFI_P2P_STATE_CHANGED_ACTION - WIFI P2P STATE ENABLED - ignore");
                             break;
+                        default:
+                            log.info("BR:RCV = WIFI_P2P_STATE_CHANGED_ACTION - UNKNOWN(%d) - ignore", state);
                     }
                     break;
                 }
+
+                default:
+                    log.info("BR:RCV = UNKNOWN ACTION(%s) - ignore", intent.getAction());
             }
         }
     };
@@ -631,9 +644,13 @@ public class WifiP2pHelper implements
      * @param group
      */
     protected void onGroupInfo(WifiP2pGroup group) {
-
+        log.debug("onGroupInfo: " + group);
     }
 
+    /**
+     * Call to join a host. onConnected will be called omn success. onConnectionInfo will be called asyncronously
+     * @param another
+     */
     public final void connect(final WifiP2pDevice another) {
         final WifiP2pConfig config = new WifiP2pConfig();
         config.deviceAddress = another.deviceAddress;

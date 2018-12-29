@@ -38,6 +38,7 @@ public abstract class SpinnerTask extends AsyncTask<String, Integer, Object> imp
     }
 
     protected void onError(Exception e) {
+        e.printStackTrace();
         new AlertDialog.Builder(context.get()).setTitle("Error").setMessage("An error occured: " + e.getClass().getSimpleName() + "\n" + e.getMessage())
                 .setNegativeButton("Ok", null).show();
     }

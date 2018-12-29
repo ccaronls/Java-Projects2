@@ -24,7 +24,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
 import cc.lib.net.ClientConnection;
@@ -267,13 +266,6 @@ public abstract class MPGameManager implements Application.ActivityLifecycleCall
     // *********************************************************************************
 
     private Dialog clientDialog = null;
-    private final int CONNECT_STATE_WAITING_ON_USER = 0;
-    private final int CONNECT_STATE_CONNECTING = 1;
-    private final int CONNECT_STATE_CONNECTED = 2;
-
-    private int connectState = CONNECT_STATE_WAITING_ON_USER;
-
-
 
     public void showJoinGameDialog() {
         final ListView lvHost = new ListView(activity);
@@ -348,9 +340,11 @@ public abstract class MPGameManager implements Application.ActivityLifecycleCall
 
             }
 
+            boolean connecting = false;
+
             @Override
             public void onConnectionAvailable(final WifiP2pInfo info) {
-                if (connectState != CONNECT_STATE_CONNECTING || client.isConnected()) {
+                if (connecting || client.isConnected()) {
                     return;
                 }
                 new SpinnerTask(activity) {
@@ -362,7 +356,7 @@ public abstract class MPGameManager implements Application.ActivityLifecycleCall
 
                     @Override
                     protected void onSuccess() {
-                        connectState = CONNECT_STATE_CONNECTED;
+                        connecting = false;
                         synchronized (helper) {
                             helper.notify();
                         }
@@ -370,7 +364,7 @@ public abstract class MPGameManager implements Application.ActivityLifecycleCall
 
                     @Override
                     protected void onError(Exception e) {
-                        connectState = CONNECT_STATE_WAITING_ON_USER;
+                        connecting = false;
                         activity.newDialogBuilder().setTitle(R.string.popup_title_error)
                                 .setMessage("Failed to connect to server " + e.getMessage())
                                 .setNegativeButton(R.string.popup_button_ok, new DialogInterface.OnClickListener() {
@@ -431,7 +425,6 @@ public abstract class MPGameManager implements Application.ActivityLifecycleCall
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 final WifiP2pDevice d = (WifiP2pDevice)view.getTag();
-                connectState = CONNECT_STATE_CONNECTING;
                 new SpinnerTask(activity) {
 
                     @Override
@@ -461,12 +454,14 @@ public abstract class MPGameManager implements Application.ActivityLifecycleCall
                     }
 
                     @Override
-                    protected void doIt(String ... args) {
+                    protected void doIt(String ... args) throws Exception {
                         clientDialog.dismiss();
                         if (d.status == WifiP2pDevice.CONNECTED)
                             return;
                         helper.connect(d);
-                        Utils.waitNoThrow(helper, -1);
+                        synchronized (helper) {
+                            helper.wait();
+                        }
                     }
 
                     @Override
@@ -478,7 +473,6 @@ public abstract class MPGameManager implements Application.ActivityLifecycleCall
                             helper = null;
                             onAllClientsJoined();
                         } else if (!isCancelled()) {
-                            connectState = CONNECT_STATE_WAITING_ON_USER;
                             activity.newDialogBuilder().setTitle(R.string.popup_title_error)
                                     .setMessage(R.string.popup_msg_failed_connect_host)
                                     .setNegativeButton(R.string.popup_button_ok, new DialogInterface.OnClickListener() {
