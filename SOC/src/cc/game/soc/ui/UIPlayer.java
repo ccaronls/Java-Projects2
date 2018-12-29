@@ -163,11 +163,10 @@ public class UIPlayer extends PlayerBot implements ClientConnection.Listener {
 
     @Override
     @Keep
-    public boolean setDice(SOC soc, Dice[] die, int num) {
+    public boolean setDice(SOC soc, List<Dice> die, int num) {
 	    if (connection != null && connection.isConnected()) {
-	        Dice [] result = connection.executeDerivedOnRemote(NetCommon.USER_ID, true, die, num);
-	        if (result != null) {
-	            Utils.copyElems(die, result);
+	        Boolean result = connection.executeDerivedOnRemote(NetCommon.USER_ID, true, die, num);
+	        if (result != null && result) {
 	            return true;
             }
             return false;

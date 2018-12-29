@@ -1806,10 +1806,10 @@ public class PlayerBot extends Player {
 	}
 
 	@Override
-	public boolean setDice(SOC soc, Dice [] die, int num) {
+	public boolean setDice(SOC soc, List<Dice> die, int num) {
 		Integer [] dice = detatchMove();
 		for (int i=0; i<num; i++) {
-			die[i].setNum(dice[i], true);
+			die.get(i).setNum(dice[i], true);
 		}
 		return true;
 	}

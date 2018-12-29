@@ -2,6 +2,7 @@ package cc.game.soc.core;
 
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 
 import cc.lib.game.Utils;
 
@@ -70,9 +71,9 @@ public class PlayerRandom extends Player {
 	}
 
 	@Override
-	public boolean setDice(SOC soc, Dice [] die, int num) {
+	public boolean setDice(SOC soc, List<Dice> die, int num) {
 		for (int i=0; i<num; i++) {
-			die[i].roll();
+			die.get(i).roll();
 		}
 		return true;
 	}

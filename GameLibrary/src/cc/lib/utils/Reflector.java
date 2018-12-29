@@ -1718,12 +1718,12 @@ public class Reflector<T> {
     }
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
-    public static Object deepCopy(Object o) {
+    public static <T> T deepCopy(T o) {
         try {
             if (o == null)
                 return null;
             if (o instanceof Reflector)
-                return ((Reflector)o).deepCopy();
+                return (T)((Reflector)o).deepCopy();
             
             if (o.getClass().isArray()) {
                 int len = Array.getLength(o);
@@ -1732,7 +1732,7 @@ public class Reflector<T> {
                     Object oo = deepCopy(Array.get(o, i));
                     Array.set(arr, i, oo);
                 }
-                return arr;
+                return (T)arr;
             }
             if (o instanceof Collection) {
                 Collection oldCollection = (Collection)o;
@@ -1740,7 +1740,7 @@ public class Reflector<T> {
                 for (Object oo: oldCollection) {
                     newCollection.add(deepCopy(oo));
                 }
-                return newCollection;
+                return (T)newCollection;
             }
             if (o instanceof Map) {
             	Map map = (Map)o;
@@ -1750,7 +1750,7 @@ public class Reflector<T> {
             		Map.Entry entry = (Map.Entry)it.next();
             		newMap.put(deepCopy(entry.getKey()), deepCopy(entry.getValue()));
             	}
-            	return newMap;
+            	return (T)newMap;
             }
             // TODO: Test that this is a primitive, enum otherwise error
             // Hopefully this is a primitive, enum 

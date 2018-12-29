@@ -988,7 +988,7 @@ public abstract class Player extends Reflector<Player> {
 	 * @param num length of array to set
 	 * @return true when player completed
 	 */
-	public abstract boolean setDice(SOC soc, Dice [] dice, int num);
+	public abstract boolean setDice(SOC soc, List<Dice> dice, int num);
 
 
 }

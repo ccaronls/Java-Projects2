@@ -499,7 +499,8 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
     void showMultiPlayerDialog() {
         String [] mpItems = {
                 "Host",
-                "Join"
+                "Join",
+                "Resume"
         };
         newDialog(true).setTitle("MULTIPLAYER")
                 .setItems(mpItems, new DialogInterface.OnClickListener() {
@@ -511,6 +512,9 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
                                 break;
                             case 1: // join
                                 showJoinMultiPlayerDialog();
+                                break;
+                            case 2:
+                                showResumeMultiPlayerDialog();
                                 break;
                         }
                     }
@@ -583,21 +587,58 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
         log.info("onConnected");
     }
 
-    void showHostMultiPlayerDialog() {
-        final String [] items = { "2", "3", "4", "5", "6" };
-        newDialog(true).setTitle("Num Players").setItems(items, new DialogInterface.OnClickListener() {
+    interface Callback<T> {
+        void onComplete(T argument);
+    }
+
+    final String [] colorStrings = {
+            "Red", "Green", "Blue", "Yellow", "Orange", "Pink"
+    };
+    final GColor[]  colors = {
+            GColor.RED, GColor.GREEN, GColor.BLUE.lightened(.2f), GColor.YELLOW, GColor.ORANGE, GColor.PINK
+    };
+
+    void showChooseColorDialog(final Callback<Integer> andThen) {
+        newDialog(true).setTitle("Pick Color").setItems(colorStrings, new DialogInterface.OnClickListener() {
             @Override
-            public void onClick(DialogInterface dialog, int which) {
-                final int numPlayers = which+2;
-                final String [] colorStrings = {
-                        "Red", "Green", "Blue", "Yellow", "Orange", "Pink"
-                };
-                final GColor[]  colors = {
-                        GColor.RED, GColor.GREEN, GColor.BLUE.lightened(.2f), GColor.YELLOW, GColor.ORANGE, GColor.PINK
-                };
-                newDialog(true).setTitle("Pick Color").setItems(colorStrings, new DialogInterface.OnClickListener() {
+            public void onClick(final DialogInterface dialog, int which) {
+                andThen.onComplete(which);
+            }
+        }).show();
+
+    }
+
+    void showResumeMultiPlayerDialog() {
+        new SpinnerTask(this) {
+
+            @Override
+            protected void doIt(String... args) throws Exception {
+                soc.loadFromFile(gameFile);
+            }
+
+            @Override
+            protected void onSuccess() {
+                soc.redraw();
+                mpGame = new MPGameManager(SOCActivity.this, soc.server, soc.getNumPlayers()-1) {
                     @Override
-                    public void onClick(final DialogInterface dialog, int which) {
+                    public void onAllClientsJoined() {
+                        log.info("All client joined");
+                        initGame();
+                    }
+                };
+                mpGame.startHostMultiplayer();
+            }
+
+        }.execute();
+    }
+
+    void showHostMultiPlayerDialog() {
+        showChooseNumPlayersDialog(new Callback<Integer>() {
+            @Override
+            public void onComplete(final Integer numPlayers) {
+                showChooseColorDialog(new Callback<Integer>() {
+                    @Override
+                    public void onComplete(Integer which) {
                         user.setColor(colors[which]);
                         soc.clear();
                         soc.addPlayer(user);
@@ -610,46 +651,60 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
                             @Override
                             public void onAllClientsJoined() {
                                 log.info("All client joined");
-                                dialog.dismiss();
                                 soc.initGame();
                                 initGame();
                             }
                         };
                         mpGame.startHostMultiplayer();
                     }
-                }).show();
+                });
             }
-        }).setNegativeButton("Cancel", null).show();
+        });
+
+    }
+
+    void showChooseNumPlayersDialog(final Callback<Integer> andThen) {
+        final int minPlayers = soc.getRules().getMinPlayers();
+        final int maxPlayers = soc.getRules().getMaxPlayers();
+
+        if (minPlayers >=  maxPlayers) {
+            andThen.onComplete(minPlayers);
+        } else {
+            final String [] items = new String[maxPlayers-minPlayers];
+            int index = 0;
+            for (int i=minPlayers; i<maxPlayers; i++) {
+                items[index++] = String.valueOf(i);
+            }
+            newDialog(true).setTitle("Num Players").setItems(items, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    final int numPlayers = which + minPlayers;
+                    andThen.onComplete(numPlayers);
+                }
+            }).setNegativeButton("Cancel", null).show();
+        }
     }
 
     void showSinglePlayerDialog() {
-        final String [] items = { "2", "3", "4", "5", "6" };
-        newDialog(true).setTitle("Num Players").setItems(items, new DialogInterface.OnClickListener() {
+        showChooseNumPlayersDialog(new Callback<Integer>() {
             @Override
-            public void onClick(DialogInterface dialog, int which) {
-                final int numPlayers = which+2;
-                final String [] colorStrings = {
-                        "Red", "Green", "Blue", "Yellow", "Orange", "Pink"
-                };
-                final GColor[]  colors = {
-                        GColor.RED, GColor.GREEN, GColor.BLUE.lightened(.2f), GColor.YELLOW, GColor.ORANGE, GColor.PINK
-                };
-                newDialog(true).setTitle("Pick Color").setItems(colorStrings, new DialogInterface.OnClickListener() {
+            public void onComplete(final Integer numPlayers) {
+                showChooseColorDialog(new Callback<Integer>() {
                     @Override
-                    public void onClick(DialogInterface dialog, int which) {
+                    public void onComplete(Integer which) {
                         user.setColor(colors[which]);
                         soc.clear();
                         soc.addPlayer(user);
-                        for (int i=1; i<numPlayers; i++) {
-                            int nextColor = (which+i)%colors.length;
+                        for (int i = 1; i < numPlayers; i++) {
+                            int nextColor = (which + i) % colors.length;
                             soc.addPlayer(new UIPlayer(colors[nextColor]));
                         }
                         soc.initGame();
                         initGame();
                     }
-                }).show();
+                });
             }
-        }).setNegativeButton("Cancel", null).show();
+        });
     }
 
     void showScenariosDialog() {

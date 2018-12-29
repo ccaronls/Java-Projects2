@@ -2,6 +2,7 @@ package cc.game.soc.ui;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 
 import cc.game.soc.core.Card;
 import cc.game.soc.core.Dice;
@@ -118,14 +119,13 @@ public final class UIPlayerUser extends UIPlayer implements GameClient.Listener 
     }
 
     @Override
-	public boolean setDice(SOC soc, Dice [] die, int num) {
+	public boolean setDice(SOC soc, List<Dice> die, int num) {
 		return ((UISOC)soc).getSetDiceMenu(die, num);
 	}
     // private versions of overloaded methods are called by remote server so as not to need to include the large SOC object
     @Keep
-	private Dice [] setDice(Dice [] die, int num) {
-	    setDice(UISOC.getInstance(), die, num);
-	    return die;
+	private boolean setDice(List<Dice> die, int num) {
+	    return setDice(UISOC.getInstance(), die, num);
     }
 
 	@Override

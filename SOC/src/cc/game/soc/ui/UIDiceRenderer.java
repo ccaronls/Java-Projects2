@@ -1,5 +1,8 @@
 package cc.game.soc.ui;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import cc.game.soc.core.Dice;
 import cc.game.soc.core.DiceEvent;
 import cc.game.soc.core.DiceType;
@@ -21,12 +24,7 @@ public final class UIDiceRenderer extends UIRenderer {
 	private static int blueCityImageId = -1;
 	private GDimension diceRect = null;
 
-	private Dice [] dice = new Dice[] {
-            new Dice(3, DiceType.WhiteBlack),
-            new Dice(4, DiceType.WhiteBlack),
-            //new Dice(5, DiceType.RedYellow),
-            //new Dice(4, DiceType.YellowRed)
-    };
+	private List<Dice> dice = new ArrayList<>();
     private int picked = -1;
     private int pickable = 0;
 
@@ -41,7 +39,7 @@ public final class UIDiceRenderer extends UIRenderer {
         super(component, attach);
 	}
 
-	public void setDice(Dice ... dice) {
+	public void setDice(List<Dice > dice) {
 	    this.dice = dice;
 	    getComponent().redraw();
     }
@@ -54,12 +52,12 @@ public final class UIDiceRenderer extends UIRenderer {
     public int [] getPickedDiceNums() {
 	    int [] nums = new int[pickable];
 	    for (int i=0; i<pickable; i++) {
-	        nums[i] = dice[i].getNum();
+	        nums[i] = dice.get(i).getNum();
         }
         return nums;
     }
 
-	public void spinDice(long spinTimeMs, final Dice ... which) {
+	public void spinDice(long spinTimeMs, final List<Dice> which) {
 	    spinAnim = new AAnimation<APGraphics>(spinTimeMs) {
 
 	        long delay = 10;
@@ -124,25 +122,26 @@ public final class UIDiceRenderer extends UIRenderer {
         //g.drawRect(0, 0, diceRect.width, diceRect.height, 3);
     }
 
-    private void drawPrivate(APGraphics g, int pickX, int pickY, Dice [] dice) {
+    private void drawPrivate(APGraphics g, int pickX, int pickY, List<Dice> dice) {
 
 	    g.pushMatrix();
         {
             GDimension dim = getDim();
 
             float dieDim = dim.height;
-            if (dieDim*dice.length + (dieDim/4*(dice.length-1)) > dim.width) {
-                dieDim = 4 * dim.width / (5 * dice.length - 1);
+            int len = dice.size();
+            if (dieDim*len + (dieDim/4*(len-1)) > dim.width) {
+                dieDim = 4 * dim.width / (5 * len - 1);
                 g.translate(0, dim.height/2 - dieDim/2);
             }
             float spacing = dieDim/4;
-            float dw = dieDim*dice.length + spacing*(dice.length-1);
+            float dw = dieDim*len + spacing*(len-1);
             g.translate(dim.width/2 - dw/2, 0);
 
             g.pushMatrix();
             {
                 g.begin();
-                for (int index = 0; index<dice.length; index++) {
+                for (int index = 0; index<len; index++) {
                     g.setName(index);
                     g.vertex(0, 0);
                     g.vertex(dieDim, dieDim);
@@ -188,12 +187,12 @@ public final class UIDiceRenderer extends UIRenderer {
 	}
 
     public void doClick() {
-	    if (dice != null && picked >= 0 && picked < dice.length) {
-	        int num = dice[picked].getNum();
+	    if (dice != null && picked >= 0 && picked < dice.size()) {
+	        int num = dice.get(picked).getNum();
 	        if (++num > 6) {
 	            num = 1;
             }
-            dice[picked].setNum(num, true);
+            dice.get(picked).setNum(num, true);
         }
         getComponent().redraw();
 	}

@@ -44,6 +44,7 @@ import cc.lib.math.Vector2D;
 import cc.lib.net.ClientConnection;
 import cc.lib.net.GameCommand;
 import cc.lib.net.GameServer;
+import cc.lib.utils.Reflector;
 
 /**
  * Created by chriscaron on 2/22/18.
@@ -580,7 +581,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
         return getRules().isEnableEventCards() ? eventCardRenderer.diceComps :diceRenderer;
     }
 
-    public boolean getSetDiceMenu(Dice[] die, int num) {
+    public boolean getSetDiceMenu(List<Dice> die, int num) {
         clearMenu();
         UIDiceRenderer r = getDiceRenderer();
         r.setDice(die);
@@ -590,7 +591,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
         int [] result = (int[])waitForReturnValue(null);
         if (result != null) {
             for (int i=0; i<result.length; i++) {
-                die[i].setNum(result[i], true);
+                die.get(i).setNum(result[i], true);
             }
             r.setPickableDice(0);
             return true;
@@ -705,13 +706,10 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
         log.debug("onDiceRolled: " + dice);
         server.broadcastExecuteOnRemote(NetCommon.SOC_ID, dice);
         UIDiceRenderer dr = getDiceRenderer();
-        Dice [] diceArr = new Dice[dice.size()];
-        for (int i=0; i<diceArr.length; i++) {
-            diceArr[i] = dice.get(i).deepCopy();
-        }
-        dr.spinDice(3000, diceArr);
+        List<Dice> copy = Reflector.deepCopy(dice);
+        dr.spinDice(3000, copy);
         log.debug("Set dice: " + dice);
-        dr.setDice(diceArr);
+        dr.setDice(dice);
         super.onDiceRolled(dice);
     }
 

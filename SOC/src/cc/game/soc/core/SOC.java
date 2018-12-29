@@ -200,17 +200,21 @@ public class SOC extends Reflector<SOC> implements StringResource {
         }
     }
 
+    private Dice getDie(int index) {
+        return getDice().get(index);
+    }
+
     /**
      * Get the dice.
      *
      * @return
      */
-    public Dice[] getDice() {
+    public List<Dice> getDice() {
         initDice();
         DiceType[] types = getDiceConfig();
-        Dice[] die = new Dice[types.length];
-        for (int i = 0; i < die.length; i++) {
-            die[i] = new Dice(mDice.get(i), types[i]);
+        List<Dice> die = new ArrayList<>();
+        for (int i = 0; i < types.length; i++) {
+            die.add(new Dice(mDice.get(i), types[i]));
         }
         return die;
     }
@@ -237,7 +241,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
         if (card != null) {
             return card.getProduction();
         }
-        Dice[] dice = getDice();
+        List<Dice> dice = getDice();
         int num = 0;
         for (Dice d : dice) {
             switch (d.getType()) {
@@ -551,9 +555,8 @@ public class SOC extends Reflector<SOC> implements StringResource {
     }
 
     // package access for unit tests
-    void setDice(Dice[] dice) {
-        Utils.copyElems(getDice(), dice);
-    }
+    //void setDice(List<Dice> dice) {
+    //    this.di
 
     private void initDice() {
         while (mDice.size() < 100) {
@@ -565,7 +568,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
         mDice.clear();
     }
 
-    private Dice[] nextDice() {
+    private List<Dice> nextDice() {
         if (mDice.size() > 0)
             mDice.removeFirst();
         initDice();
@@ -581,7 +584,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
      *
      */
     public void rollDice() {
-        Dice[] dice = nextDice();
+        List<Dice> dice = nextDice();
         onDiceRolledPrivate(dice);
     }
 
@@ -1043,8 +1046,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
         }
     }
 
-    private void onDiceRolledPrivate(Dice ... dice) {
-        onDiceRolled(Arrays.asList(dice));
+    private void onDiceRolledPrivate(List<Dice> dice) {
         String rolled = "";
         for (Dice d : dice) {
             if (d == null)
@@ -1065,6 +1067,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
             }
         }
         printinfo(getString(R.string.info_rolled_n, rolled));
+        onDiceRolled(dice);
     }
 
     /**
@@ -2542,8 +2545,8 @@ public class SOC extends Reflector<SOC> implements StringResource {
                     int routeIndex = mBoard.getRouteIndex(r);
                     AttackInfo<RouteType> info = computeAttackRoad(routeIndex, this, mBoard, getCurPlayerNum());
                     //score += computeAttackerScoreAgainstRoad(r, getCurPlayerNum(), getBoard());
-                    onPlayerAttackingOpponent(getCurPlayerNum(), victim.getPlayerNum(), getString(R.string.attacking_what_road), info.knightStrength + getDice()[0].getNum(), info.minScore);
-                    if (getDice()[0].getNum() > info.minScore - info.knightStrength) {
+                    onPlayerAttackingOpponent(getCurPlayerNum(), victim.getPlayerNum(), getString(R.string.attacking_what_road), info.knightStrength + getDie(0).getNum(), info.minScore);
+                    if (getDie(0).getNum() > info.minScore - info.knightStrength) {
                         switch (info.destroyedType) {
                             case DAMAGED_ROAD:
                                 printinfo(getString(R.string.info_player_has_damaged_road, getCurPlayer().getName()));
@@ -2596,9 +2599,9 @@ public class SOC extends Reflector<SOC> implements StringResource {
                     printinfo(getString(R.string.info_player_is_attacking_victim_structure_with_knight, getCurPlayer().getName(), victim.getName(), v.getType().getName(this), info.knightStrength));
                     pushDiceConfig(DiceType.WhiteBlack);
                     rollDice();
-                    onPlayerAttackingOpponent(getCurPlayerNum(), victim.getPlayerNum(), v.getType().getName(this), info.knightStrength + getDice()[0].getNum(), info.minScore);
+                    onPlayerAttackingOpponent(getCurPlayerNum(), victim.getPlayerNum(), v.getType().getName(this), info.knightStrength + getDie(0).getNum(), info.minScore);
 
-                    int diff = getDice()[0].getNum() + info.knightStrength - info.minScore;
+                    int diff = getDie(0).getNum() + info.knightStrength - info.minScore;
                     if (diff > 0) {
                         // knights win
                         if (info.destroyedType == VertexType.OPEN) {
@@ -2663,7 +2666,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
                     int dieToWin = computeDiceToWinAttackShip(mBoard, getCurPlayerNum(), attacking.getPlayer());
                     printinfo(getString(R.string.info_player_needs_die_n_to_win, getCurPlayer().getName(), dieToWin));
                     rollDice();
-                    int score = getDice()[0].getNum();
+                    int score = getDie(0).getNum();
                     onPlayerAttackingOpponent(getCurPlayerNum(), victim.getPlayerNum(), getString(R.string.attacking_what_ship), score, dieToWin - 1);
                     if (score >= dieToWin) {
                         printinfo(getString(R.string.info_player_has_attacked_player_and_commandeered_ship, getCurPlayer().getName(), getPlayerByPlayerNum(attacking.getPlayer()).getName()));
@@ -2978,9 +2981,9 @@ public class SOC extends Reflector<SOC> implements StringResource {
         printinfo(getString(R.string.info_player_attacking_pirate_fortress, p.getName()));
         int playerHealth = getBoard().getRoutesOfType(getCurPlayerNum(), RouteType.WARSHIP).size();
         pushDiceConfig(DiceType.WhiteBlack);
-        Dice pirateHealth = getDice()[0];
+        Dice pirateHealth = getDie(0);
         pirateHealth.roll();
-        onDiceRolledPrivate(pirateHealth);
+        onDiceRolledPrivate(Utils.asList(pirateHealth));
         onPlayerAttacksPirateFortress(p.getPlayerNum(), playerHealth, pirateHealth.getNum());
         if (playerHealth > pirateHealth.getNum()) {
             // player wins
@@ -3045,8 +3048,8 @@ public class SOC extends Reflector<SOC> implements StringResource {
                 }
                 onEventCardDealt(getTopEventCard());
                 if (getRules().isEnableCitiesAndKnightsExpansion()) {
-                    Dice[] dice = nextDice();
-                    for (Dice d : dice) {
+                    List<Dice> dice = nextDice();
+                    for (Dice d : nextDice()) {
                         d.roll();
                     }
                     onDiceRolledPrivate(dice);
@@ -3220,7 +3223,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
             }
 
             case ALCHEMIST_CARD: {
-                Dice[] dice = nextDice();
+                List<Dice> dice = nextDice();
                 if (getCurPlayer().setDice(this, dice, 2)) {
                     putCardBackInDeck(getCurPlayer().removeCard(ProgressCardType.Alchemist));
                     Dice ry = getDiceOfType(DiceType.YellowRed, dice);
@@ -3228,7 +3231,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
                     Dice ev = getDiceOfType(DiceType.Event, dice);
                     ev.roll();
                     popState();
-                    onDiceRolledPrivate(ry, yr, ev);
+                    onDiceRolledPrivate(Utils.asList(ry, yr, ev));
                     printinfo(getString(R.string.info_player_applied_alchemist_on_die_n_n_x, getCurPlayer().getName(), ry.getNum(), yr.getNum(), DiceEvent.fromDieNum(ev.getNum()).getName(this)));
                     processDice();
                 }
@@ -5210,7 +5213,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
     }
 
     private void processPirateAttack() {
-        Dice[] dice = getDice();
+        List<Dice> dice = getDice();
         int min = 7;
         for (Dice d : dice) {
             switch (d.getType()) {
@@ -5380,17 +5383,17 @@ public class SOC extends Reflector<SOC> implements StringResource {
     protected void onSpecialVictoryCard(int playerNum, SpecialVictoryType type) {
     }
 
-    private static Dice getDiceOfType(DiceType type, Dice... dice) {
+    private static Dice getDiceOfType(DiceType type, Collection<Dice> dice) {
         for (Dice d : dice) {
             if (d.getType() == type)
                 return d;
         }
-        throw new SOCException("No dice of type '" + type + "' in: " + Arrays.toString(dice));
+        throw new SOCException("No dice of type '" + type + "' in: " + dice);
     }
 
     private void distributeProgressCard(DevelopmentArea area) {
         for (Player p : getPlayers()) {
-            Dice[] dice = getDice();
+            List<Dice> dice = getDice();
             if (mProgressCards[area.ordinal()].size() > 0
                     && p.getCardCount(CardType.Progress) < getRules().getMaxProgressCards()
                     && p.getCityDevelopment(area) > 0

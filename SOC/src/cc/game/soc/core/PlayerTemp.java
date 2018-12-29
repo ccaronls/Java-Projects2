@@ -1,6 +1,7 @@
 package cc.game.soc.core;
 
 import java.util.Collection;
+import java.util.List;
 
 public class PlayerTemp extends Player {
 
@@ -60,7 +61,7 @@ public class PlayerTemp extends Player {
 	}
 
 	@Override
-	public boolean setDice(SOC soc, Dice [] die, int num) {
+	public boolean setDice(SOC soc, List<Dice> die, int num) {
         throw new AssertionError("This should never get called");
 	}
 

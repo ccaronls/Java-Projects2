@@ -1695,7 +1695,6 @@ public class GUI implements ActionListener, MenuItem.Action {
         } else if (op == NEW_GAME) {
             Board b = soc.getBoard();
             b.tryRefreshFromFile();
-            soc.initGame();
             menuStack.push(MenuState.MENU_GAME_SETUP);
             menuStack.push(MenuState.MENU_CHOOSE_COLOR);
             menuStack.push(MenuState.MENU_CHOOSE_NUM_PLAYERS);
@@ -1734,6 +1733,7 @@ public class GUI implements ActionListener, MenuItem.Action {
                 menuStack.push(MenuState.MENU_PLAY_GAME);
                 initMenu();
                 clearSaves();
+                soc.initGame();
                 soc.startGameThread();
             } else {
                 log.error("Board not ready");
