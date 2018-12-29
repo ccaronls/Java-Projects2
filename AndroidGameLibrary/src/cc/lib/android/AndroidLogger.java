@@ -58,21 +58,21 @@ public class AndroidLogger implements Logger {
 
     @Override
     public void debug(String msg, Object... args) {
-        String str = String.format(msg, args);
+        String str = Utils.formatNoThrow(msg, args);
         Log.d(name, Utils.truncate(str, maxLen, maxLines, Utils.EllipsisStyle.INFO));
         writeFile("D", str);
     }
 
     @Override
     public void info(String msg, Object... args) {
-        String str = String.format(msg, args);
+        String str = Utils.formatNoThrow(msg, args);
         Log.i(name, Utils.truncate(str, maxLen, maxLines, Utils.EllipsisStyle.INFO));
         writeFile("I", str);
     }
 
     @Override
     public void error(String msg, Object... args) {
-        String str = String.format(msg, args);
+        String str = Utils.formatNoThrow(msg, args);
         Log.e(name, Utils.truncate(str, maxLen, maxLines, Utils.EllipsisStyle.INFO));
         writeFile("E", str);
     }

@@ -2193,6 +2193,9 @@ public class Utils {
     public static String formatNoThrow(String msg, Object ... args) {
         try {
             return String.format(msg, args);
+        } catch (MissingFormatArgumentException e) {
+            e.printStackTrace();
+            return msg + " ERR: " + e.getMessage();
         } catch (Exception e) {
             return e.getClass().getSimpleName() + ":" + e.getMessage();
         }
