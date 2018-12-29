@@ -360,6 +360,9 @@ public abstract class MPGameManager implements Application.ActivityLifecycleCall
                         synchronized (helper) {
                             helper.notify();
                         }
+                        if (clientDialog != null) {
+                            clientDialog.dismiss();
+                        }
                     }
 
                     @Override
@@ -497,16 +500,17 @@ public abstract class MPGameManager implements Application.ActivityLifecycleCall
 
             @Override
             protected void onSuccess() {
-                clientDialog = activity.newDialogBuilder().setTitle("Hosts")
-                        .setView(lvHost)
-                        .setNegativeButton(R.string.popup_button_cancel, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                killMPGame();
-                                onMPGameKilled();
-                            }
-                        }).setCancelable(false).show();
-
+                if (!client.isConnected()) {
+                    clientDialog = activity.newDialogBuilder().setTitle("Hosts")
+                            .setView(lvHost)
+                            .setNegativeButton(R.string.popup_button_cancel, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    killMPGame();
+                                    onMPGameKilled();
+                                }
+                            }).setCancelable(false).show();
+                }
             }
         }.execute();
 

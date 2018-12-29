@@ -14,7 +14,7 @@
         android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen"
         >
         
-        <activity android:name=".TicTacToeActivity" android:launchMode="singleTask">
+        <activity android:name=".TicTacToeActivity" android:launchMode="singleTask" android:configChanges="orientation">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

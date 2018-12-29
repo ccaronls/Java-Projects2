@@ -743,9 +743,18 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
         boardRenderer.getComponent().redraw();
     }
 
+    private UIPlayerRenderer getRendererForPlayerNum(int playerNum) {
+        for (UIPlayerRenderer pr : playerComponents) {
+            if (pr.playerNum == playerNum)
+                return pr;
+        }
+        log.error("No player component for playerNum: %d", playerNum);
+        return playerComponents[0];
+    }
+
     protected final void addCardAnimation(final int playerNum, final String text) {
 
-        final UIPlayerRenderer comp = playerComponents[playerNum-1];
+        final UIPlayerRenderer comp = getRendererForPlayerNum(playerNum);
 
         final float cardHeight = boardRenderer.getComponent().getHeight()/5;
         final float cardWidth = cardHeight*2/3;

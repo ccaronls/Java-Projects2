@@ -220,9 +220,9 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
 
             @Override
             public void redraw() {
-                if (soc.getCurPlayerNum() > 0) {
-                    runOnUiThread(new Runnable() {
-                        public void run() {
+                runOnUiThread(new Runnable() {
+                    public void run() {
+                        if (soc.getCurPlayerNum() > 0) {
                             svPlayers.smoothScrollTo(0, vPlayers[soc.getCurPlayerNum() - 1].getTop());
                             //content.invalidate();
                             //vConsole.requestLayout();
@@ -234,9 +234,10 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
                             vBarbarian.redraw();
                             tvHelpText.setText(getHelpText());
                             vBoard.redraw();
+                            vDice.redraw();
                         }
-                    });
-                }
+                    }
+                });
             }
 
             @Override
@@ -405,6 +406,16 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
     MenuItem BOARDS;
     MenuItem SCENARIOS;
 
+    void quitGame() {
+        soc.server.stop();
+        soc.clear();
+        vBoard.renderer.setPickHandler(null);
+        soc.stopRunning();
+        user.client.disconnect("player quit");
+        soc.clearMenu();
+        showStartMenu();
+    }
+
     @Override
     public void onAction(MenuItem item, Object extra) {
         if (item == QUIT) {
@@ -412,13 +423,7 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
                     .setPositiveButton("Quit", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            soc.server.stop();
-                            soc.clear();
-                            vBoard.renderer.setPickHandler(null);
-                            soc.stopRunning();
-                            user.client.disconnect("player quit");
-                            soc.clearMenu();
-                            showStartMenu();
+                            quitGame();
                         }
                     }).show();
         } else if (item == BUILDABLES) {
@@ -1186,5 +1191,17 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
     @Override
     public void onClientDisconnected(ClientConnection conn) {
         log.info("Clinet disconnected: " + conn.getDisplayName());
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                newDialog(false).setTitle("ERROR").setMessage("You have been disconnected")
+                        .setPositiveButton("Exit", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                quitGame();
+                            }
+                        }).show();
+            }
+        });
     }
 }
