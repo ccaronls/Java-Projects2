@@ -57,7 +57,7 @@ public abstract class MPGameManager implements Application.ActivityLifecycleCall
         this.maxClients = 0;
         this.server = null;
         this.bonjourName = bonjourName;
-        activity.getApplication().registerActivityLifecycleCallbacks(this);
+        //activity.getApplication().registerActivityLifecycleCallbacks(this);
     }
 
     /**
@@ -223,8 +223,8 @@ public abstract class MPGameManager implements Application.ActivityLifecycleCall
                     activity.runOnUiThread(new Runnable() {
                         public void run() {
                             d.dismiss();
-                            helper.destroy();
-                            helper = null;
+                            //helper.destroy();
+                            //helper = null;
                             onAllClientsJoined();
                         }
                     });
@@ -347,6 +347,11 @@ public abstract class MPGameManager implements Application.ActivityLifecycleCall
                 if (connecting || client.isConnected()) {
                     return;
                 }
+                connecting = true;
+                if (clientDialog != null) {
+                    clientDialog.dismiss();
+                    clientDialog = null;
+                }
                 new SpinnerTask(activity) {
                     @Override
                     protected void doIt(String ... args) throws Exception {
@@ -462,9 +467,9 @@ public abstract class MPGameManager implements Application.ActivityLifecycleCall
                         if (d.status == WifiP2pDevice.CONNECTED)
                             return;
                         helper.connect(d);
-                        synchronized (helper) {
-                            helper.wait();
-                        }
+                        //synchronized (helper) {
+                        //    helper.wait();
+                        //}
                     }
 
                     @Override
@@ -472,8 +477,8 @@ public abstract class MPGameManager implements Application.ActivityLifecycleCall
                         if (client.isConnected()) {
                             //showWaitingForPlayersDialogClient(canceleble);
                             Toast.makeText(activity, R.string.toast_connect_success, Toast.LENGTH_LONG).show();
-                            helper.destroy();
-                            helper = null;
+                            //helper.destroy();
+                            //helper = null;
                             onAllClientsJoined();
                         } else if (!isCancelled()) {
                             activity.newDialogBuilder().setTitle(R.string.popup_title_error)

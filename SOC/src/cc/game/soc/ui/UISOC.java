@@ -559,6 +559,13 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
 
     public abstract void redraw();
 
+    public void refreshComponents() {
+        UIDiceRenderer r = getDiceRenderer();
+        r.setDice(getDice());
+        eventCardRenderer.setEventCard(getTopEventCard());
+        barbarianRenderer.setDistance(getBarbarianDistance());
+    }
+
     public BotNode chooseOptimalPath(BotNode optimal, List<BotNode> leafs) {
         return optimal;
     }
@@ -606,10 +613,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
         assert(!running);
         running = true;
         copy = null;
-        UIDiceRenderer r = getDiceRenderer();
-        r.setDice(getDice());
-        eventCardRenderer.setEventCard(getTopEventCard());
-        barbarianRenderer.setDistance(getBarbarianDistance());
+        refreshComponents();
         new Thread() {
             @Override
             public void run() {

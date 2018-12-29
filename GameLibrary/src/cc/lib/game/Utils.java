@@ -2194,10 +2194,10 @@ public class Utils {
         try {
             return String.format(msg, args);
         } catch (MissingFormatArgumentException e) {
-            e.printStackTrace();
             return msg + " ERR: " + e.getMessage();
         } catch (Exception e) {
-                return e.getClass().getSimpleName() + ":" + e.getMessage();
+            e.printStackTrace();
+            return e.getClass().getSimpleName() + ":" + e.getMessage();
         }
     }
 

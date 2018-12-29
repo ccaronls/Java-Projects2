@@ -371,9 +371,18 @@ public class WifiP2pHelper implements
 
     @Override
     public final void onPeersAvailable(WifiP2pDeviceList peers) {
-        if (state == State.PEERS) {
+        log.debug("onPeersAvailable state = " + state);
+        if (state == State.PEERS || state == State.INITIALIZED) {
             p2p.requestGroupInfo(channel, this);
-            onPeersAvailable(peers.getDeviceList());
+            Collection<WifiP2pDevice> list = peers.getDeviceList();
+            int index = 0;
+            for (WifiP2pDevice d : list) {
+                log.debug("onPeersAvailable peer[%d]=%s", index, d);
+                index++;
+            }
+            onPeersAvailable(list);
+        } else {
+            log.warn("Ignoring");
         }
     }
 

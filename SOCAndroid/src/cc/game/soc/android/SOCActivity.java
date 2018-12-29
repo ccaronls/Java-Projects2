@@ -568,6 +568,7 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
                 });
             } else if (cmd.getType().equals(NetCommon.SVR_TO_CL_UPDATE)) {
                 UISOC.getInstance().mergeDiff(cmd.getString("diff"));
+                UISOC.getInstance().refreshComponents();
                 UISOC.getInstance().redraw();
             }
 
