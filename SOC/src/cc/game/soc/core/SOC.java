@@ -512,7 +512,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
         if (mNumPlayers == MAX_PLAYERS)
             throw new SOCException("Too many players");
 
-        if (mNumPlayers == mRules.getMaxPlayers())
+        if (mNumPlayers == getRules().getMaxPlayers())
             throw new SOCException("Max players already added.");
 
         mPlayers[mNumPlayers++] = player;
@@ -971,10 +971,13 @@ public class SOC extends Reflector<SOC> implements StringResource {
     public void printinfo(int playerNum, String txt) {
         if (!Utils.isEmpty(txt)) {
             if (playerNum > 0) {
-                log.info("%s: %s", getPlayerByPlayerNum(playerNum).getName(), txt);
-            } else {
-                log.info(txt);
+                Player p = getPlayerByPlayerNum(playerNum);
+                if (p != null) {
+                    log.info("%s: %s", p.getName(), txt);
+                    return;
+                }
             }
+            log.info(txt);
         }
     }
 
@@ -1127,7 +1130,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
     public void initGame() {
         // setup
         if (mNumPlayers < getRules().getMinPlayers())
-            throw new SOCException("Too few players");
+            throw new SOCException("Too few players " + mNumPlayers + " is too few of " + getRules().getMinPlayers());
 
         if (getRules().isCatanForTwo()) {
             if (getNeutralPlayer() == null) {
@@ -1956,7 +1959,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
                     for (int ii = 0; ii < mNumPlayers; ii++) {
                         Player cur = mPlayers[(ii + mCurrentPlayer) % mNumPlayers];
                         int numCards = cur.getTotalCardsLeftInHand();
-                        if (numCards > mRules.getMaxSafeCardsForPlayer(cur.getPlayerNum(), mBoard)) {
+                        if (numCards > getRules().getMaxSafeCardsForPlayer(cur.getPlayerNum(), mBoard)) {
                             int numCardsToSurrender = numCards / 2;
                             printinfo(getString(R.string.info_player_must_give_up_n_of_n_cards, cur.getName(), numCardsToSurrender, numCards));
                             for (int i = 0; i < numCardsToSurrender; i++)// (numCardsToSurrender > 0)
@@ -3018,7 +3021,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
         printinfo(getString(R.string.info_player_chosen_move_m, getCurPlayer().getName(), move.getName(this)));
         switch (move) {
             case ROLL_DICE:
-                if (mRules.isCatanForTwo()) {
+                if (getRules().isCatanForTwo()) {
                     pushStateFront(State.PROCESS_NEUTRAL_PLAYER);
                 }
             case ROLL_DICE_NEUTRAL_PLAYER:
@@ -3031,7 +3034,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
                 break;
 
             case DEAL_EVENT_CARD:
-                if (mRules.isCatanForTwo()) {
+                if (getRules().isCatanForTwo()) {
                     pushStateFront(State.PROCESS_NEUTRAL_PLAYER);
                 }
             case DEAL_EVENT_CARD_NEUTRAL_PLAYER:
@@ -5274,7 +5277,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
         if (getProductionNum() == 7) {
             printinfo(getString(R.string.info_player_rolled_seven, getCurPlayer().getName()));
             pushStateFront(State.SETUP_GIVEUP_CARDS);
-            if (getRules().isEnableCitiesAndKnightsExpansion() && mBarbarianAttackCount < mRules.getMinBarbarianAttackstoEnableRobberAndPirate()) {
+            if (getRules().isEnableCitiesAndKnightsExpansion() && mBarbarianAttackCount < getRules().getMinBarbarianAttackstoEnableRobberAndPirate()) {
                 pushStateFront(State.CHOOSE_OPPONENT_TO_TAKE_RESOURCE_FROM, null, computeOpponentsWithCardsInHand(this, getCurPlayerNum()), null);
             } else if (getRules().isEnableRobber()) {
                 if (getRules().isEnableSeafarersExpansion())
