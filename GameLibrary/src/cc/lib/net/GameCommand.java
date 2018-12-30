@@ -88,7 +88,15 @@ public class GameCommand {
     public final String getString(String key) {
         return (String)arguments.get(key);
     }
-    
+
+    public final boolean getBoolean(String key, boolean defaultValue) {
+        Object o = arguments.get(key);
+        if (o != null) {
+            return (Boolean)o;
+        }
+        return defaultValue;
+    }
+
     /**
      * 
      * @param key
@@ -290,6 +298,8 @@ public class GameCommand {
             switch (itype) {
                 case TYPE_NULL:
                     break;
+                case TYPE_BOOL:
+                    command.arguments.put(key, din.readBoolean());
                 case TYPE_INT:
                     command.arguments.put(key, din.readInt());
                     break;
@@ -330,6 +340,9 @@ public class GameCommand {
             Object o = arguments.get(key);
             if (o == null) {
                 dout.writeByte(TYPE_NULL);
+            } else if (o instanceof Boolean) {
+                dout.write(TYPE_BOOL);
+                dout.writeBoolean((Boolean)o);
             } else if (o instanceof Integer) {
                 dout.writeByte(TYPE_INT);
                 dout.writeInt((Integer)o);
@@ -361,12 +374,13 @@ public class GameCommand {
     }
 
     private final static int TYPE_NULL = 0;
-    private final static int TYPE_INT = 1;
-    private final static int TYPE_LONG = 2;
-    private final static int TYPE_FLOAT = 3;
-    private final static int TYPE_DOUBLE = 4;
-    private final static int TYPE_STRING = 5;
-    private final static int TYPE_BYTE_ARRAY = 6;
+    private final static int TYPE_BOOL = 1;
+    private final static int TYPE_INT = 2;
+    private final static int TYPE_LONG = 3;
+    private final static int TYPE_FLOAT = 4;
+    private final static int TYPE_DOUBLE = 5;
+    private final static int TYPE_STRING = 6;
+    private final static int TYPE_BYTE_ARRAY = 7;
 
     public String toString() {
         return type + ": " + arguments;

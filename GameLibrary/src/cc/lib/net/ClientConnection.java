@@ -87,6 +87,7 @@ public class ClientConnection implements Runnable {
         void onCommand(ClientConnection c, GameCommand cmd);
         void onDisconnected(ClientConnection c, String reason);
         void onConnected(ClientConnection c);
+        void onCancelled(ClientConnection c, String id);
     };
 
     private Socket socket;
@@ -384,6 +385,7 @@ public class ClientConnection implements Runnable {
         private T response;
         private final Object waitLock;
         private final String id;
+        private boolean cancelled;
 
         ResponseListener(String id, Object waitLock) {
             this.id = id;
@@ -401,8 +403,12 @@ public class ClientConnection implements Runnable {
         public void onCommand(GameCommand cmd) {
             if (id.equals(cmd.getString("target"))) {
                 try {
-                    T resp = Reflector.deserializeFromString(cmd.getString("returns"));
-                    setResponse(resp);
+                    if (cmd.getBoolean("cancelled", false))
+                        cancelled = true;
+                    else {
+                        T resp = Reflector.deserializeFromString(cmd.getString("returns"));
+                        setResponse(resp);
+                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -421,6 +427,9 @@ public class ClientConnection implements Runnable {
 
         @Override
         public void onCommand(ClientConnection c, GameCommand cmd) {}
+
+        @Override
+        public void onCancelled(ClientConnection c, String id) {}
     };
 
     /**
@@ -471,6 +480,8 @@ public class ClientConnection implements Runnable {
                 }
                 GameCommandType.CL_REMOTE_RETURNS.removeListener(listener);
                 removeListener(listener);
+                if (listener.cancelled)
+                    onCancelled(id);
                 return listener.response;
             } else {
                 sendCommand(cmd);
@@ -479,6 +490,11 @@ public class ClientConnection implements Runnable {
             e.printStackTrace();
         }
         return null;
+    }
+
+    protected void onCancelled(String id) {
+        for (Listener l : listeners)
+            l.onCancelled(this, id);
     }
 
 }

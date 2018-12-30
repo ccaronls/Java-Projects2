@@ -119,6 +119,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
                 copy = new SOC();
                 copy.copyFrom(this);
             }
+            completeMenu();
             super.runGame();
             try {
                 String diff = copy.diff(this);
@@ -1303,6 +1304,11 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
     @Override
     public void onDisconnected(ClientConnection c, String reason) {
 
+    }
+
+    @Override
+    public void onCancelled(ClientConnection c, String id) {
+        cancel();
     }
 
     /**

@@ -355,6 +355,14 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
                 vConsole.scrollTo(0, 0);
                 super.printinfo(playerNum, txt);
             }
+
+            @Override
+            public void cancel() {
+                if (user.client.isConnected()) {
+                    user.client.cancelRemote();
+                }
+                super.cancel();
+            }
         };
         soc.setBoard(vBoard.getRenderer().getBoard());
         Rules rules = new Rules();
@@ -386,6 +394,7 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
                 return Double.valueOf(aiTuning.getProperty(property));
             }
         });
+
     }
 
 
@@ -571,6 +580,8 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
                 UISOC.getInstance().refreshComponents();
                 UISOC.getInstance().redraw();
             }
+
+            soc.completeMenu();
 
         } catch (Exception e) {
             e.printStackTrace();

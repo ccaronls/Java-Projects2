@@ -218,4 +218,8 @@ public class UIPlayer extends PlayerBot implements ClientConnection.Listener {
     @Override
     public void onConnected(ClientConnection c) {
     }
+
+    @Override
+    public void onCancelled(ClientConnection c, String id) {
+    }
 }

@@ -475,13 +475,14 @@ public class GameClient {
             if (responseId != null) {
                 Object result = m.invoke(obj, params);
                 log.debug("responseId=%s", responseId);
-                if (responseId != null) {
-                    GameCommand resp = new GameCommand(GameCommandType.CL_REMOTE_RETURNS);
-                    resp.setArg("target", responseId);
-                    if (result != null)
-                        resp.setArg("returns", Reflector.serializeObject(result));
-                    sendCommand(resp);
-                }
+                GameCommand resp = new GameCommand(GameCommandType.CL_REMOTE_RETURNS);
+                resp.setArg("target", responseId);
+                if (result != null)
+                    resp.setArg("returns", Reflector.serializeObject(result));
+                else
+                    resp.setArg("cancelled", cancelled);
+                cancelled = false;
+                sendCommand(resp);
             } else {
                 m.invoke(obj, params);
             }
@@ -489,6 +490,12 @@ public class GameClient {
             e.printStackTrace();
             throw new IOException(e);
         }
+    }
+
+    private boolean cancelled = false;
+
+    public void cancelRemote() {
+        cancelled = true;
     }
 
     private Method findMethod(String method, Object obj, Class [] paramsTypes, Object [] params) throws Exception {
