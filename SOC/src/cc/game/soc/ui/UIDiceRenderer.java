@@ -19,20 +19,20 @@ public final class UIDiceRenderer extends UIRenderer {
     // There are 2 dice renderers, one with and without an associated event card renderer. hmmmmm
     // I dont want to init twice since the event card renderer is a bit hidden. Hmmmm.
 	private static int shipImageId = -1;
-	private static int redCityImageId = -1;
-	private static int greenCityImageId = -1;
-	private static int blueCityImageId = -1;
+	private static int tradeCityImageId = -1;
+	private static int scienceCityImageId = -1;
+	private static int politicsCityImageId = -1;
 	private GDimension diceRect = null;
 
 	private List<Dice> dice = new ArrayList<>();
     private int picked = -1;
     private int pickable = 0;
 
-	public void initImages(int shipImageId, int redcityImageId, int greenCityImageId, int blueCityImageId) {
+	public void initImages(int shipImageId, int redTradeCityImageId, int greenSciCityImageId, int bluePoliCityImageId) {
 	    this.shipImageId = shipImageId;
-	    this.redCityImageId = redcityImageId;
-	    this.greenCityImageId = greenCityImageId;
-	    this.blueCityImageId = blueCityImageId;
+	    this.tradeCityImageId = redTradeCityImageId;
+	    this.scienceCityImageId = greenSciCityImageId;
+	    this.politicsCityImageId = bluePoliCityImageId;
     }
     
 	public UIDiceRenderer(UIComponent component, boolean attach) {
@@ -206,13 +206,13 @@ public final class UIDiceRenderer extends UIRenderer {
 	    		g.drawImage(shipImageId, 0, 0, dim, dim);
 				break;
 			case PoliticsCard:
-				g.drawImage(blueCityImageId, 0, 0, dim, dim);
+				g.drawImage(politicsCityImageId, 0, 0, dim, dim);
 				break;
 			case ScienceCard:
-				g.drawImage(greenCityImageId, 0, 0, dim, dim);
+				g.drawImage(scienceCityImageId, 0, 0, dim, dim);
 				break;
 			case TradeCard:
-	    		g.drawImage(redCityImageId, 0, 0, dim, dim);
+	    		g.drawImage(tradeCityImageId, 0, 0, dim, dim);
 				break;
 	    }
 	}

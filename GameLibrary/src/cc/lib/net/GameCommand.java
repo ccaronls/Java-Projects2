@@ -300,6 +300,7 @@ public class GameCommand {
                     break;
                 case TYPE_BOOL:
                     command.arguments.put(key, din.readBoolean());
+                    break;
                 case TYPE_INT:
                     command.arguments.put(key, din.readInt());
                     break;

@@ -581,6 +581,7 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
                 UISOC.getInstance().redraw();
             }
 
+            soc.clearMenu();
             soc.completeMenu();
 
         } catch (Exception e) {

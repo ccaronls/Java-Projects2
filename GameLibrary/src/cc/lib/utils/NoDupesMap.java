@@ -46,7 +46,7 @@ public class NoDupesMap<K,V> implements Map<K,V> {
     @Override
     public V put(K key, V value) {
         if (backingMap.containsKey(key) && backingMap.get(key) != value)
-            throw new IllegalArgumentException("Key '" + key + " is already mapped to a value");
+            throw new IllegalArgumentException("Key '" + key + "' is already mapped to a value");
         return backingMap.put(key, value);
     }
 
