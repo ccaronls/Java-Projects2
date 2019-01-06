@@ -304,7 +304,7 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
 
         @Override
         protected void onPiecesCaptured(final List<int[]> pieces) {
-            if (pieces.size() > 1) {
+            if (pieces.size() > 0) {
                 final Object lock = new Object();
                 Runnable whenDone = new Runnable() {
                     @Override
