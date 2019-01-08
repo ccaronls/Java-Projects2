@@ -1,4 +1,11 @@
 package cc.lib.monopoly;
 
-public class SquareType {
+public enum SquareType {
+    PROPERTY,
+    COMMUNITY_CHEST,
+    TAX,
+    RAIL_ROAD,
+    CHANCE,
+    UTILITY,
+    OTHER
 }

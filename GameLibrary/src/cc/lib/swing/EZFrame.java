@@ -617,4 +617,38 @@ public class EZFrame extends JFrame implements WindowListener, ComponentListener
         return n == JOptionPane.YES_OPTION;
     }
 
+    public interface OnListItemChoosen {
+        void itemChoose(int index);
+    }
+
+    /**
+     * Show chooser with list of items
+     *
+     * @param title
+     * @param items
+     * @return
+     */
+    public void showListChooserDialog(final OnListItemChoosen itemListener, String title, final String ... items) {
+        final EZFrame popup = new EZFrame();
+        final ActionListener listener = new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                int index = Utils.linearSearch(items, e.getActionCommand());
+                if (index >= 0)
+                    itemListener.itemChoose(index);
+                popup.setVisible(false);
+            }
+        };
+        EZPanel frame = new EZPanel(new BorderLayout());
+        EZPanel list = new EZPanel(0, 1);
+        for (String item : items) {
+            list.add(new EZButton(item, listener));
+        }
+        if (title != null) {
+            frame.add(new EZLabel(title, 1, 20, true), BorderLayout.NORTH);
+        }
+        frame.add(list, BorderLayout.CENTER);
+        frame.add(new EZButton("CANCEL", listener), BorderLayout.SOUTH);
+        popup.setContentPane(frame);
+        popup.showAsPopup(this);
+    }
 }

@@ -1,18 +1,24 @@
 package cc.lib.monopoly;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Stack;
 
 import cc.lib.game.Utils;
+import cc.lib.utils.Reflector;
 
-public class Monopoly {
+public class Monopoly extends Reflector<Monopoly> {
 
-    public final int NUM_SQUARES = Square.values().length;
+    static {
+        addAllFields(Monopoly.class);
+    }
+
+    public final static int NUM_SQUARES = Square.values().length;
+    public final static int MAX_PLAYERS = 4;
 
     final List<Player> players = new ArrayList<>();
-    final Board board = new Board();
     int currentPlayer;
     final Stack<State> state = new Stack<>();
     int die1, die2;
@@ -33,11 +39,21 @@ public class Monopoly {
         CHOOSE_PROPERTY_FOR_UNIT
     }
 
-    public void newGame() {
+    public final void newGame() {
         state.clear();
     }
 
-    public void runGame() {
+    public final void clear() {
+        players.clear();
+        currentPlayer = -1;
+        state.clear();
+        die1=die2=0;
+        kitty=0;
+        chance.clear();
+        communityChest.clear();
+    }
+
+    public final void runGame() {
         Player cur = getCurrentPlayer();
         if (state.isEmpty())
             state.push(State.INIT);
@@ -198,6 +214,9 @@ public class Monopoly {
             }
             case GAME_OVER:
                 break;
+
+            default:
+                Utils.unhandledCase(state.peek());
         }
     }
 
@@ -257,14 +276,7 @@ public class Monopoly {
                 break;
 
             case PAY_RENT: {
-                Utils.assertTrue(cur.debt > 0);
-                int owner = getOwner(cur.square);
-                Utils.assertFalse(owner == currentPlayer);
-                onPlayerPaysRent(currentPlayer, owner, cur.debt);
-                cur.money -= cur.debt;
-                Utils.assertTrue(cur.money >= 0);
-                getPlayer(owner).money += cur.debt;
-                cur.debt = 0;
+                payRent(cur.debt);
                 break;
             }
 
@@ -301,7 +313,23 @@ public class Monopoly {
         }
     }
 
-    public Player getCurrentPlayer() {
+    public final void addPlayer(Player player) {
+        Utils.assertTrue(players.size() < MAX_PLAYERS);
+        this.players.add(player);
+        if (player.piece == null) {
+            player.piece = Utils.randItem(getUnusedPiece());
+        }
+    }
+
+    public final List<Piece> getUnusedPiece() {
+        List<Piece> pieces = new ArrayList<>(Arrays.asList(Piece.values()));
+        for (Player p : players) {
+            pieces.remove(p.piece);
+        }
+        return pieces;
+    }
+
+    public final Player getCurrentPlayer() {
         return players.get(currentPlayer);
     }
 
@@ -311,17 +339,15 @@ public class Monopoly {
         onDiceRolled();
     }
 
-    protected void onDiceRolled() {}
-
     private int getDice() {
         return die1+die2;
     }
 
-    public int getDie1() {
+    public final int getDie1() {
         return die1;
     }
 
-    public int getDie2() {
+    public final int getDie2() {
         return die2;
     }
 
@@ -405,19 +431,25 @@ public class Monopoly {
         } else if (cur.money >= amount) {
             switch (payState) {
                 case PAY_KITTY:
-                    onPlayerPayMoneyToKitty(currentPlayer, amount);
+                    payToKitty(amount);
                     break;
                 case PAY_RENT:
-                    onPlayerPaysRent(currentPlayer, renter, amount);
+                    payRent(amount);
                     break;
                 case PAY_PLAYERS:
-                    int amt = amount / (players.size()-1);
-                    for (int i=1; i<players.size(); i++) {
-                        int pnum = (currentPlayer+i) % players.size();
-                        onPlayerReceiveMoney(pnum, amt);
-                        getPlayer(pnum).money += amt;
+                    int amt = amount / (getNumActivePlayers()-1);
+                    for (int i=0; i<players.size(); i++) {
+                        if (i == currentPlayer)
+                            continue;
+                        Player p = getPlayer(i);
+                        if (p.isEliminated())
+                            continue;
+                        onPlayerReceiveMoney(i, amt);
+                        p.money += amt;
                     }
                     break;
+                default:
+                    Utils.unhandledCase(payState);
             }
             cur.money -= amount;
             nextPlayer();
@@ -589,6 +621,8 @@ public class Monopoly {
                 cur.cards.add(Card.newGetOutOfJailFreeCard());
                 nextPlayer();
                 break;
+            default:
+                Utils.unhandledCase(type);
         }
     }
 
@@ -680,10 +714,13 @@ public class Monopoly {
                 nextPlayer();
                 break;
             }
+
+            default:
+                Utils.unhandledCase(square);
         }
     }
 
-    public int getWinner() {
+    public final int getWinner() {
         int num = 0;
         int winner = -1;
         for (int i=0; i<players.size(); i++) {
@@ -722,6 +759,19 @@ public class Monopoly {
         }
     }
 
+    private void payRent(int amount) {
+        Player cur = getCurrentPlayer();
+        Utils.assertTrue(cur.debt > 0);
+        int owner = getOwner(cur.square);
+        Utils.assertFalse(owner == currentPlayer);
+        onPlayerPaysRent(currentPlayer, owner, cur.debt);
+        cur.money -= cur.debt;
+        Utils.assertTrue(cur.money >= 0);
+        getPlayer(owner).money += cur.debt;
+        cur.debt = 0;
+
+    }
+
     private void payToKitty(int amt) {
         Utils.assertTrue(amt > 0);
         Player cur = getCurrentPlayer();
@@ -747,7 +797,11 @@ public class Monopoly {
         return -1;
     }
 
-    public int getNumActivePlayers() {
+    public final int getNumPlayers() {
+        return players.size();
+    }
+
+    public final int getNumActivePlayers() {
         int num = 0;
         for (Player p : players) {
             if (p.isEliminated())
@@ -757,11 +811,13 @@ public class Monopoly {
         return num;
     }
 
-    public Player getPlayer(int index) {
+    public final Player getPlayer(int index) {
         return players.get(index);
     }
 
     // CALLBACKS CAN BE OVERRIDDEN TO HANDLE EVENTS
+
+    protected void onDiceRolled() {}
 
     /**
      * numSquares can be negative

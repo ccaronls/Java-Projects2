@@ -28,6 +28,14 @@ public class Player extends Reflector<Player> {
         return Utils.randItem(cards);
     }
 
+    public Piece getPiece() {
+        return piece;
+    }
+
+    public void setPiece(Piece piece) {
+        this.piece = piece;
+    }
+
     public final boolean ownsProperty(Square square) {
         for (Card card : cards) {
             if (card.property == square)
