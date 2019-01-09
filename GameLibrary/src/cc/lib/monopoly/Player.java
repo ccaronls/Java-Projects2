@@ -59,7 +59,7 @@ public class Player extends Reflector<Player> {
     public Map<GColor, List<Card>> getPropertySets() {
         Map<GColor, List<Card>> sets = new HashMap<>();
         for (Card c : cards) {
-            if (c.property == null)
+            if (c.property == null || !c.property.isProperty())
                 continue;
             List<Card> list = sets.get(c.property.color);
             if (list == null) {
@@ -102,6 +102,15 @@ public class Player extends Reflector<Player> {
         int num = 0;
         for (Card c : cards) {
             if (c.property != null && c.property.isRailroad())
+                num++;
+        }
+        return num;
+    }
+
+    public final int getNumGetOutOfJailFreeCards() {
+        int num = 0;
+        for (Card c : this.cards) {
+            if (c.isGetOutOfJail())
                 num++;
         }
         return num;
@@ -218,7 +227,7 @@ public class Player extends Reflector<Player> {
     public final List<Card> getCardsForNewHouse() {
         List<Card> cards = new ArrayList<>();
         for (Card c : this.cards) {
-            if (c.property != null && c.property.getHousePrice() <= money && hasSet(c.property))
+            if (c.property != null && c.property.isProperty() && c.property.getHousePrice() <= money && hasSet(c.property))
                 cards.add(c);
         }
         return cards;

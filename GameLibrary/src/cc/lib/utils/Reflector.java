@@ -835,10 +835,9 @@ public class Reflector<T> {
     }
 
     /**
-     * This method should never be neccessary
+     * This method is usefull for inner classes
      * @param clazz
      */
-    @Deprecated
     public static void registerClass(Class<?> clazz) {
     	String sClazz = getCanonicalName(clazz);
         addArrayTypes(clazz);

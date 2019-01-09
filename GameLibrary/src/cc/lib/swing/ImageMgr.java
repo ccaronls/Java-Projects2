@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Vector;
 
@@ -34,8 +35,29 @@ public class ImageMgr {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-	private Vector<Image>	sourceImages = new Vector<Image>(); // loaded images
-	private Vector<Image>	scaledImages = new Vector<Image>(); // scaled images
+    static class ScaledImage {
+        final Image image;
+        final int w, h;
+
+        public ScaledImage(Image image, int w, int h) {
+            this.image = image;
+            this.w = w;
+            this.h = h;
+        }
+    }
+
+    static class Meta {
+        Image source;
+        int maxSubsets = 2;
+
+        final LinkedList<ScaledImage> scaledVersion = new LinkedList<>();
+
+        Meta(Image source) {
+            this.source = source;
+        }
+    }
+
+	private List<Meta> images = new ArrayList<>(); // loaded images
 
 	/**
 	 * 
@@ -137,12 +159,12 @@ public class ImageMgr {
 
 	/**
 	 * 
-	 * @param name
+	 * @param fileOrResourceName
 	 * @param transparent
 	 * @return
 	 */
 	public synchronized int loadImage(String fileOrResourceName, Color transparent) {
-        int id = sourceImages.size();
+        int id = images.size();
 		Image image = null;
 		log.debug("Loading image %d : %s ...", id, fileOrResourceName);
 		if ((image = this.loadImageFromFile(fileOrResourceName))!=null) {
@@ -162,11 +184,9 @@ public class ImageMgr {
 		}			
 
 		log.debug("SUCCESS");
-		sourceImages.add(image);
-		scaledImages.add(image);
-		return id;
+		return addImage(image);
 	}
-	
+
 	/**
 	 * Return an array 'num_cells' in length that is filled with ids to subimages
 	 * of source where each subimage is width x height in dimension.  When
@@ -249,10 +269,10 @@ public class ImageMgr {
 	 * @param color
 	 */
 	public void setTransparent(int id, Color color) {
-		Image image = sourceImages.get(id);
-		image = transform(image, new TransparencyFilter(color)); 
-		sourceImages.set(id, image);
-		scaledImages.set(id, image);
+	    Meta meta = images.get(id);
+		Image image = meta.source;
+		image = transform(image, new TransparencyFilter(color));
+		meta.source = image;
 	}
 	
 	/**
@@ -264,17 +284,26 @@ public class ImageMgr {
 	 * @return
 	 */
 	public synchronized Image getImage(int id, int width, int height, Component comp) {
-		Image image = scaledImages.get(id);
+	    Meta meta = images.get(id);
+	    for (ScaledImage si : meta.scaledVersion) {
+	        int dw = Math.abs(width-si.w);
+	        int dh = Math.abs(height-si.h);
+	        if (dw <= 1 && dh <= 1) {
+	            return si.image;
+            }
+        }
+		Image image = meta.source;
 		int curW = image.getWidth(comp);
 		int curH = image.getHeight(comp);
-		if (width >= 8 && width <= 1024*8 && height >= 8 && height <= 1024*8 && (Math.abs(curW - width) > 1 || Math.abs(curH - height) > 1)) {
+		if (width >= 8 && width <= 1024*8 && height >= 8 && height <= 1024*8) {
 			//log.debug("Resizing image [" + id + "] from " + curW + ", " + curH + " too " + width + ", " + height);
 		    log.debug("Resizing image [%d] from %d, %d too %d, %d", id, curW, curH, width, height);
 
-			image = sourceImages.get(id);
 			image = transform(image, new ReplicateScaleFilter(width,height));
-			Image toDelete = scaledImages.get(id);
-			scaledImages.set(id, image); // make this our new scaled images
+			meta.scaledVersion.addFirst(new ScaledImage(image, width, height));
+			if (meta.scaledVersion.size() > meta.maxSubsets) {
+			    meta.scaledVersion.removeLast();
+            }
 		}
 		return image;
 	}
@@ -285,11 +314,10 @@ public class ImageMgr {
 	 * @return
 	 */
 	public Image getImage(int id) {
-		Image image = scaledImages.get(id);
-		if (image == null)
-			image = sourceImages.get(id);
-		Utils.assertTrue(image != null);
-		return image;
+	    Meta meta = images.get(id);
+	    if (meta.scaledVersion.size() == 0)
+	        return meta.source;
+	    return meta.scaledVersion.getFirst().image;
 	}
 	
 	/**
@@ -316,7 +344,7 @@ public class ImageMgr {
 	 * @return
 	 */
 	public final Image getSourceImage(int id) {
-		return sourceImages.get(id);
+		return images.get(id).source;
 	}
 	
 	/**
@@ -339,7 +367,11 @@ public class ImageMgr {
 	 * @return
 	 */
 	public int getWidth(int id) {
-		return this.scaledImages.get(id).getWidth(null);
+	    Meta meta = images.get(id);
+	    if (meta.scaledVersion.size() > 0) {
+	        return meta.scaledVersion.getFirst().w;
+        }
+		return meta.source.getWidth(null);
 	}
 
 	/**
@@ -348,7 +380,11 @@ public class ImageMgr {
 	 * @return
 	 */
 	public int getHeight(int id) {
-		return this.scaledImages.get(id).getHeight(null);
+        Meta meta = images.get(id);
+        if (meta.scaledVersion.size() > 0) {
+            return meta.scaledVersion.getFirst().h;
+        }
+        return meta.source.getHeight(null);
 	}
 
 	/**
@@ -358,15 +394,13 @@ public class ImageMgr {
 	 */
 	public int addImage(Image image) {
 		int id = 0;
-		for ( ; id<sourceImages.size(); id++) {
-			if (sourceImages.get(id) == null) {
-				sourceImages.set(id, image);
-				scaledImages.set(id, image);
+		for ( ; id<images.size(); id++) {
+			if (images.get(id).source == null) {
+			    images.get(id).source = image;
 				return id;
 			}
 		}
-		sourceImages.add(image);
-		scaledImages.add(image);
+		images.add(new Meta(image));
 		return id;
 	}
 	
@@ -375,14 +409,14 @@ public class ImageMgr {
 	 * @param id
 	 */
 	public void deleteImage(int id) {
-		sourceImages.set(id, null);
-		scaledImages.set(id, null);
+	    Meta meta = images.get(id);
+	    meta.source = null;
+	    meta.scaledVersion.clear();
 	}
 	
 	
 	public void deleteAll() {
-		scaledImages.clear();
-		sourceImages.clear();
+	    images.clear();
 	}
 	
 

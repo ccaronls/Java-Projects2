@@ -131,4 +131,8 @@ public enum Square {
         }
         return false;
     }
+
+    public GColor getColor() {
+        return color;
+    }
 }

@@ -175,6 +175,7 @@ public class Monopoly extends Reflector<Monopoly> {
                     int mortgageAmt = card.property.getMortgageValue();
                     onPlayerMortgaged(currentPlayer, card.property, mortgageAmt);
                     cur.money += mortgageAmt;
+                    card.mortgaged = true;
                     state.pop();
                 }
                 break;
@@ -187,6 +188,7 @@ public class Monopoly extends Reflector<Monopoly> {
                     int buyBackAmt = card.property.getMortgageBuybackPrice();
                     onPlayerUnMortgaged(currentPlayer, card.property, buyBackAmt);
                     cur.money -= buyBackAmt;
+                    card.mortgaged = false;
                     state.pop();
                 }
                 break;
@@ -353,7 +355,7 @@ public class Monopoly extends Reflector<Monopoly> {
         return die2;
     }
 
-    void initChance() {
+    private void initChance() {
         chance.clear();
         for (CardActionType c : CardActionType.values()) {
             if (c.isChance())
@@ -362,7 +364,7 @@ public class Monopoly extends Reflector<Monopoly> {
         Utils.shuffle(chance);
     }
 
-    void initCommunityChest() {
+    private void initCommunityChest() {
         communityChest.clear();
         for (CardActionType c : CardActionType.values()) {
             if (!c.isChance())
@@ -371,7 +373,7 @@ public class Monopoly extends Reflector<Monopoly> {
         Utils.shuffle(communityChest);
     }
 
-    void processCommunityChest() {
+    private void processCommunityChest() {
         CardActionType c = communityChest.removeLast();
         if (communityChest.size() == 0)
             initCommunityChest();
@@ -379,7 +381,7 @@ public class Monopoly extends Reflector<Monopoly> {
         processAction(c);
     }
 
-    void processChance() {
+    private void processChance() {
         CardActionType c = chance.removeLast();
         if (chance.size() == 0)
             initChance();
@@ -387,7 +389,7 @@ public class Monopoly extends Reflector<Monopoly> {
         processAction(c);
     }
 
-    int getRent(int square) {
+    private int getRent(int square) {
         Square sq = Square.values()[square];
         int owner = getOwner(sq);
         if (owner >= 0) {
@@ -396,7 +398,7 @@ public class Monopoly extends Reflector<Monopoly> {
         return 0;
     }
 
-    void advanceToSquare(Square square, int rentScale) {
+    private void advanceToSquare(Square square, int rentScale) {
         Player cur = getCurrentPlayer();
 
         if (square.canPurchase()) {
@@ -414,7 +416,7 @@ public class Monopoly extends Reflector<Monopoly> {
         }
     }
 
-    int getMovesTo(Square s) {
+    private int getMovesTo(Square s) {
         Player cur = getCurrentPlayer();
         int moves = 1;
         for ( ; moves<NUM_SQUARES; moves++) {
@@ -426,7 +428,7 @@ public class Monopoly extends Reflector<Monopoly> {
         return moves;
     }
 
-    void payMoneyOrElse(int amount, State payState) {
+    private void payMoneyOrElse(int amount, State payState) {
         Player cur = getCurrentPlayer();
         if (amount <= 0) {
             nextPlayer();
@@ -464,12 +466,12 @@ public class Monopoly extends Reflector<Monopoly> {
         }
     }
 
-    void getPaid(int amount) {
+    private void getPaid(int amount) {
         onPlayerReceiveMoney(currentPlayer, amount);
         getCurrentPlayer().money += amount;
     }
 
-    void processAction(CardActionType type) {
+    private void processAction(CardActionType type) {
         Player cur = getCurrentPlayer();
         switch (type) {
             case CH_GO_BACK:
@@ -628,7 +630,7 @@ public class Monopoly extends Reflector<Monopoly> {
         }
     }
 
-    void gotoJail() {
+    private void gotoJail() {
         Player cur = getCurrentPlayer();
         cur.square = Square.VISITING_JAIL.ordinal();
         cur.inJail = true;
@@ -817,6 +819,12 @@ public class Monopoly extends Reflector<Monopoly> {
         return players.get(index);
     }
 
+    public final void cancel() {
+        if (state.size() > 1) {
+            state.pop();
+        }
+    }
+
     // CALLBACKS CAN BE OVERRIDDEN TO HANDLE EVENTS
 
     protected void onDiceRolled() {}
@@ -855,7 +863,7 @@ public class Monopoly extends Reflector<Monopoly> {
     }
 
     protected void onPlayerPaysRent(int playerNum, int renterPlayer, int amt) {
-        log.info("Player %d pays $%d too player %d", playerNum, amt, renterPlayer);
+        log.info("Player %d pays $%d rent too player %d", playerNum, amt, renterPlayer);
     }
 
     protected void onPlayerMortgaged(int playerNum, Square property, int amt) {
@@ -871,10 +879,10 @@ public class Monopoly extends Reflector<Monopoly> {
     }
 
     protected void onPlayerBoughtHouse(int playerNum, Square property, int amt) {
-        log.info("Player %d bought a HOUSE for property %d for $%d", playerNum, property.name(), amt);
+        log.info("Player %d bought a HOUSE for property %s for $%d", playerNum, property.name(), amt);
     }
 
     protected void onPlayerBoughtHotel(int playerNum, Square property, int amt) {
-        log.info("Player %d bought a HOTEL for property %d for $%d", playerNum, property.name(), amt);
+        log.info("Player %d bought a HOTEL for property %s for $%d", playerNum, property.name(), amt);
     }
 }

@@ -2,10 +2,14 @@ package cc.lib.swing;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import cc.lib.game.AAnimation;
 import cc.lib.game.AGraphics;
+import cc.lib.game.APGraphics;
 import cc.lib.game.GColor;
 import cc.lib.game.GDimension;
 import cc.lib.game.GRectangle;
@@ -16,10 +20,12 @@ import cc.lib.logger.LoggerFactory;
 import cc.lib.math.Vector2D;
 import cc.lib.monopoly.Board;
 import cc.lib.monopoly.Card;
+import cc.lib.monopoly.CardActionType;
 import cc.lib.monopoly.Monopoly;
 import cc.lib.monopoly.MoveType;
 import cc.lib.monopoly.Piece;
 import cc.lib.monopoly.Player;
+import cc.lib.monopoly.Square;
 import cc.lib.utils.Reflector;
 
 public class AWTMonopoly extends AWTComponent {
@@ -33,9 +39,114 @@ public class AWTMonopoly extends AWTComponent {
     }
 
     final EZFrame frame;
-    final Monopoly monopoly = new Monopoly();
+    final Monopoly monopoly = new Monopoly() {
+        @Override
+        protected void onDiceRolled() {
+            addAnimation(new AAnimation<AGraphics>(2000) {
+
+                long delay = 10;
+
+                @Override
+                protected void draw(AGraphics g, float position, float dt) {
+
+                    drawDice(g, 1+Utils.rand()%6, 1+Utils.rand()%6);
+
+                    new Thread() {
+                        public void run() {
+                            Utils.waitNoThrow(this, delay);
+                            delay += 20;
+                            repaint();
+                        }
+                    }.start();
+                }
+
+                @Override
+                public void onDone() {
+                    synchronized (monopoly) {
+                        monopoly.notifyAll();
+                    }
+                }
+            });
+            Utils.waitNoThrow(monopoly, 3000);
+            super.onDiceRolled();
+        }
+
+        @Override
+        protected void onPlayerMove(int playerNum, int numSquares) {
+            super.onPlayerMove(playerNum, numSquares);
+        }
+
+        @Override
+        protected void onPlayerDrawsChance(int playerNum, CardActionType chance) {
+            super.onPlayerDrawsChance(playerNum, chance);
+        }
+
+        @Override
+        protected void onPlayerDrawsCommunityChest(int playerNum, CardActionType commChest) {
+            super.onPlayerDrawsCommunityChest(playerNum, commChest);
+        }
+
+        @Override
+        protected void onPlayerReceiveMoney(int playerNum, int amt) {
+            super.onPlayerReceiveMoney(playerNum, amt);
+        }
+
+        @Override
+        protected void onPlayerPayMoneyToKitty(int playerNum, int amt) {
+            super.onPlayerPayMoneyToKitty(playerNum, amt);
+        }
+
+        @Override
+        protected void onPlayerGoesToJail(int playerNum) {
+            super.onPlayerGoesToJail(playerNum);
+        }
+
+        @Override
+        protected void onPlayerOutOfJail(int playerNum) {
+            super.onPlayerOutOfJail(playerNum);
+        }
+
+        @Override
+        protected void onPlayerPaysRent(int playerNum, int renterPlayer, int amt) {
+            super.onPlayerPaysRent(playerNum, renterPlayer, amt);
+        }
+
+        @Override
+        protected void onPlayerMortgaged(int playerNum, Square property, int amt) {
+            super.onPlayerMortgaged(playerNum, property, amt);
+        }
+
+        @Override
+        protected void onPlayerUnMortgaged(int playerNum, Square property, int amt) {
+            super.onPlayerUnMortgaged(playerNum, property, amt);
+        }
+
+        @Override
+        protected void onPlayerPurchaseProperty(int playerNum, Square property) {
+            super.onPlayerPurchaseProperty(playerNum, property);
+        }
+
+        @Override
+        protected void onPlayerBoughtHouse(int playerNum, Square property, int amt) {
+            super.onPlayerBoughtHouse(playerNum, property, amt);
+        }
+
+        @Override
+        protected void onPlayerBoughtHotel(int playerNum, Square property, int amt) {
+            super.onPlayerBoughtHotel(playerNum, property, amt);
+        }
+    };
     File saveFile = new File("monopoly.save");
     static AWTMonopoly instance;
+    LinkedList<AAnimation> animations = new LinkedList<>();
+
+    void addAnimation(AAnimation a) {
+        synchronized (animations) {
+            animations.add(a);
+        }
+        a.start();
+        repaint();
+    }
 
     AWTMonopoly() {
         setMouseEnabled(true);
@@ -126,19 +237,20 @@ public class AWTMonopoly extends AWTComponent {
                 @Override
                 public void itemChoose(int index) {
                     result[0] = cards.get(index);
-                    synchronized (User.this) {
-                        User.this.notify();
+                    synchronized (instance.monopoly) {
+                        instance.monopoly.notify();
                     }
                 }
 
                 @Override
                 public void cancelled() {
-                    synchronized (User.this) {
-                        User.this.notify();
+                    instance.monopoly.cancel();
+                    synchronized (instance.monopoly) {
+                        instance.monopoly.notify();
                     }
                 }
             }, "Choose Card " + getPiece(), Utils.toStringArray(cards));
-            Utils.waitNoThrow(User.this, -1);
+            Utils.waitNoThrow(instance.monopoly, -1);
             return result[0];
         }
 
@@ -149,19 +261,20 @@ public class AWTMonopoly extends AWTComponent {
                 @Override
                 public void itemChoose(int index) {
                     result[0] = options.get(index);
-                    synchronized (User.this) {
-                        User.this.notify();
+                    synchronized (instance.monopoly) {
+                        instance.monopoly.notify();
                     }
                 }
 
                 @Override
                 public void cancelled() {
-                    synchronized (User.this) {
-                        User.this.notify();
+                    instance.monopoly.cancel();
+                    synchronized (instance.monopoly) {
+                        instance.monopoly.notify();
                     }
                 }
             }, "Choose Move " + getPiece(), Utils.toStringArray(options.toArray(new MoveType[options.size()])));
-            Utils.waitNoThrow(User.this, -1);
+            Utils.waitNoThrow(instance.monopoly, -1);
             return result[0];
         }
     }
@@ -204,115 +317,161 @@ public class AWTMonopoly extends AWTComponent {
         W = g.getViewportWidth();
         H = g.getViewportHeight();
         DIM = Math.min(W, H);
+        g.setTextHeight(16);
+        if (W > H) {
+            drawLandscape(g, mouseX, mouseY);
+        } else {
+            drawPortrait(g, mouseX, mouseY);
+        }
+    }
 
-        g.drawImage(ids[Images.board.ordinal()], W/2-DIM/2, H/2-DIM/2, DIM, DIM);
-        Board b = new Board(DIM);
+    private void drawPlayerInfo(APGraphics g, Player p, float w, float h) {
+        int pcId = pieceMap.get(p.getPiece());
+        float dim = w/2;
+        float border = 5;
+        g.drawImage(pcId, 0, 0, dim, dim);
+        g.setColor(GColor.BLACK);
+        g.drawJustifiedString(w, dim/2, Justify.RIGHT, Justify.CENTER, "$"+p.getMoney());
+        if (p.isEliminated()) {
+            g.setColor(GColor.TRANSLUSCENT_BLACK);
+            g.drawFilledRect(0, 0, w, h);
+            g.setColor(GColor.RED);
+            g.drawWrapString(w/2, h/2, w, Justify.CENTER, Justify.CENTER, "ELIMINATED");
+        } else {
+            float sy = dim;
+            GColor bkColor = GColor.TRANSPARENT;
+            GColor txtColor = GColor.BLACK;
+            if (p.getSquare().canPurchase()) {
+                bkColor = p.getSquare().getColor();
+                txtColor = chooseContrastColor(bkColor);
+            }
+            sy += drawWrapStringOnBackground(g, 0, sy, w, Utils.getPrettyString(p.getSquare().name()), bkColor, txtColor, border);
+            int num;
+            if ((num = p.getNumGetOutOfJailFreeCards()) > 0) {
+                g.setColor(GColor.BLACK);
+                sy += drawWrapStringOnBackground(g, 0, sy, w,"Get out of Jail FREE x " + num, GColor.WHITE, GColor.BLACK, border);
+            }
+            if ((num = p.getNumRailroads()) > 0) {
+                g.setColor(GColor.BLACK);
+                sy += drawWrapStringOnBackground(g, 0, sy, w,"Railroads x " + num, GColor.BLACK, GColor.WHITE, border);
+            }
+            if ((num = p.getNumUtilities()) > 0) {
+                g.setColor(GColor.BLACK);
+                sy += drawWrapStringOnBackground(g, 0, sy, w,"Utilities x " + num, GColor.WHITE, GColor.BLACK, border);
+            }
+            Map<GColor, List<Card>> map = p.getPropertySets();
+            for (Map.Entry<GColor, List<Card>> e : map.entrySet()) {
+                String txt = String.format("%d of %d", e.getValue().size(), e.getValue().get(0).getProperty().getNumForSet());
+                bkColor = e.getKey();
+                txtColor = chooseContrastColor(bkColor);
+                sy += drawWrapStringOnBackground(g, 0, sy, w,txt, bkColor, txtColor, border);
+            }
+        }
+    }
 
-        /*
+    private float drawWrapStringOnBackground(AGraphics g, float x, float y, float width, String txt, GColor bkColor, GColor txtColor, float border) {
+        GDimension d = g.drawWrapString(x+border, y, width-border*2, txt);
+        g.setColor(bkColor);
+        g.drawFilledRect(x, y, width, d.height+2*border);
+        g.setColor(txtColor);
+        g.drawWrapString(x+border, y+border, width, txt);
+        return d.height + 2*border;
+    }
+
+    private GColor chooseContrastColor(GColor c) {
+        float amt = c.getRed()+c.getBlue()+c.getGreen();
+        amt *= c.getAlpha();
+        if (amt > 1.5f)
+            return GColor.BLACK;
+        return GColor.WHITE;
+    }
+
+    private void drawPortrait(APGraphics g, int mx, int my) {
+        drawBoard(g);
+        drawDice(g, monopoly.getDie1(), monopoly.getDie2());
+        float w = W/3;
+        for (int i=0; i<monopoly.getNumPlayers(); i++) {
+            g.pushMatrix();
+            g.translate(w*i, DIM);
+            drawPlayerInfo(g, monopoly.getPlayer(i), w, H-DIM);
+            g.popMatrix();
+        }
+    }
+
+    private void drawLandscape(APGraphics g, int mx, int my) {
+
         g.pushMatrix();
         g.translate(W/2-DIM/2, H/2-DIM/2);
-        g.setTextHeight(8);
-        g.setTextStyles(AGraphics.TextStyle.BOLD);
-        for (Square sq : Square.values()) {
-            GRectangle rect = b.getSqaureBounds(sq);
-            g.setColor(GColor.YELLOW);
-            g.drawRect(rect, 3);
-            g.setColor(GColor.RED);
-            g.drawString(sq.name(), rect.getCenter().X(), rect.getCenter().Y());
-        }
+        drawBoard(g);
         g.popMatrix();
-*/
         // draw dice in center of board
         drawDice(g, monopoly.getDie1(), monopoly.getDie2());
+        float w = (W-DIM)/2;
+        for (int i=0; i<monopoly.getNumPlayers(); i++) {
+            g.pushMatrix();
+            switch (i) {
+                case 0: break;
+                case 1: g.translate(W-w, 0); break;
+                case 2: g.translate(0, H/2); break;
+                case 3: g.translate(W-w, H/2); break;
+            }
+            drawPlayerInfo(g, monopoly.getPlayer(i), w, H/2);
+            g.popMatrix();
+        }
+
+        synchronized (animations) {
+            Iterator<AAnimation> it = animations.iterator();
+            while (it.hasNext()) {
+                AAnimation<AGraphics> a = it.next();
+                a.update(g);
+                if (a.isDone())
+                    it.remove();
+            }
+        }
+    }
+
+    public void drawBoard(AGraphics g) {
+        g.drawImage(ids[Images.board.ordinal()], 0, 0, DIM, DIM);
+        Board b = new Board(DIM);
 
         for (int i=0; i<monopoly.getNumPlayers(); i++) {
             Player p = monopoly.getPlayer(i);
-            float sx=0, sy=0;
-            Justify justify = Justify.LEFT;
+            if (p.isEliminated())
+                continue;
             int pcId = pieceMap.get(p.getPiece());
-            float targetHeight = b.getPieceDimension();
-            float targetWidth = targetHeight;
-            switch (i) {
-                case 0:
-                    g.drawImage(pcId, W/2-DIM/2-targetWidth, 0, targetWidth, targetHeight);
-                    break;
-                case 1:
-                    g.drawImage(pcId, W/2+DIM/2, 0, targetWidth, targetHeight);
-                    sx = W;
-                    justify = Justify.RIGHT;
-                    break;
-                case 2:
-                    g.drawImage(pcId, W/2-DIM/2-targetWidth, H/2, targetWidth, targetHeight);
-                    sy = H/2;
-                    break;
-                case 3:
-                    g.drawImage(pcId, W/2+DIM/2, H/2, targetWidth, targetHeight);
-                    sy = H/2;
-                    sx = W;
-                    justify = Justify.RIGHT;
-                    break;
-            }
-            String txt = "$" + p.getMoney() + "\n" + Utils.getPrettyString(p.getSquare().name());
-            if (p.isInJail()) {
-                txt += "\nJAILED";
-            }
-            int border = 5;
-            GDimension d = g.drawJustifiedString(sx, sy, justify, txt);
-            sy += d.height+border;
-            Map<GColor, List<Card>> sets = p.getPropertySets();
-            for (Map.Entry<GColor, List<Card>> e : sets.entrySet()) {
-                txt = String.format("%d of %d", e.getValue().size(), e.getValue().get(0).getProperty().getNumForSet());
-                d = g.drawJustifiedStringOnBackground(sx, sy, justify, Justify.TOP, txt, e.getKey(), 3);
-                sy += d.height;
-            }
-            // Draw the players piece of the board
+            float targetDim = b.getPieceDimension();
             for (Card c : p.getCards()) {
-                if (c.isGetOutOfJail()) {
-                    txt = "Get out\nof Jail";
-                    g.setColor(GColor.BLACK);
-                    d = g.drawJustifiedStringOnBackground(sx, sy, justify, Justify.TOP, txt, GColor.WHITE, 3);
-                    sy += d.height;
-                }
                 if (c.getProperty() == null)
                     continue;
-                g.pushMatrix();
-                g.translate(W/2-DIM/2, H/2-DIM/2);
                 GRectangle r = b.getSqaureBounds(c.getProperty());
-                Vector2D cntr = b.getInnerEdge(c.getProperty());
-                Justify vert = Justify.CENTER;
-                Justify horz = Justify.CENTER;
-                switch (c.getProperty().ordinal()/Monopoly.NUM_SQUARES) {
-                    case 0: // bottom
-                        vert = Justify.BOTTOM; break;
-                    case 1: // left
-                        horz = Justify.LEFT; break;
-                    case 2: // top
-                        vert = Justify.TOP; break;
-                    case 3: // right
-                        horz = Justify.RIGHT; break;
+                switch (b.getsQuarePosition(c.getProperty())) {
+                    case TOP:
+                        g.drawImage(pcId, r.x+r.w-targetDim/2, r.y+r.h, targetDim, targetDim);
+                        break;
+                    case RIGHT:
+                        g.drawImage(pcId, r.x-targetDim, r.y+r.h/2-targetDim/2, targetDim, targetDim);
+                        break;
+                    case BOTTOM:
+                        g.drawImage(pcId, r.x+r.w-targetDim/2, r.y-targetDim, targetDim, targetDim);
+                        break;
+                    case LEFT:
+                        g.drawImage(pcId, r.x+r.w, r.y+r.h/2-targetDim/2, targetDim, targetDim);
+                        break;
                 }
-                g.setTextHeight(14);
-                g.setColor(GColor.BLUE);
-                g.drawJustifiedStringOnBackground(cntr.X(), cntr.Y(), horz, vert, p.getPiece().name(), GColor.TRANSLUSCENT_BLACK, 5);
                 if (c.isMortgaged()) {
                     g.setColor(GColor.TRANSLUSCENT_BLACK);
                     g.drawFilledRect(r);
                     g.setColor(GColor.RED);
-                    g.setTextHeight(14);
                     Vector2D v = r.getCenter();
-                    g.drawJustifiedString(v.getX(), v.getY(), Justify.CENTER, Justify.CENTER,
+                    g.drawWrapString(v.getX(), v.getY(), r.w, Justify.CENTER, Justify.CENTER,
                             "MORTGAGED");
                 }
-                g.popMatrix();
             }
             // draw player piece of the board
-            g.pushMatrix();
-            g.translate(W/2-DIM/2, H/2-DIM/2);
             GRectangle r = b.getPiecePlacement(i, p.getSquare());
             g.drawImage(pcId, r);
-            g.popMatrix();
-
         }
+
     }
 
     public void drawDice(AGraphics g, int die1, int die2) {

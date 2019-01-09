@@ -2,6 +2,7 @@ package cc.lib.monopoly;
 
 import cc.lib.game.GColor;
 import cc.lib.game.GRectangle;
+import cc.lib.game.Utils;
 import cc.lib.math.Vector2D;
 
 public class Board {
@@ -108,7 +109,7 @@ public class Board {
     }
 
     public float getPieceDimension() {
-        return cellDim/2;
+        return cellDim*2/3;
     }
 
     // TODO: Special case for when a player is in JAIL
@@ -126,6 +127,73 @@ public class Board {
                 return new GRectangle(cntr.X(), cntr.Y()-dim, dim, dim);
         }
         return new GRectangle(cntr.X()-dim, cntr.Y(), dim, dim);
+    }
+
+    public enum Position {
+        CORNER_TL,
+        TOP,
+        CORNER_TR,
+        RIGHT,
+        CORNER_BR,
+        BOTTOM,
+        CORNER_BL,
+        LEFT
+    }
+
+    public Position getsQuarePosition(Square sq) {
+        switch (sq) {
+
+            case GO:
+                return Position.CORNER_BR;
+            case MEDITERRANEAN_AVE:
+            case COMM_CHEST1:
+            case BALTIC_AVE:
+            case INCOME_TAX:
+            case READING_RR:
+            case ORIENTAL_AVE:
+            case CHANCE1:
+            case VERMONT_AVE:
+            case CONNECTICUT_AVE:
+                return Position.BOTTOM;
+            case VISITING_JAIL:
+                return Position.CORNER_BL;
+            case ST_CHARLES_PLACE:
+            case ELECTRIC_COMPANY:
+            case STATES_AVE:
+            case VIRGINIA_AVE:
+            case PENNSYLVANIA_RR:
+            case ST_JAMES_PLACE:
+            case COMM_CHEST2:
+            case TENNESSEE_AVE:
+            case NEW_YORK_AVE:
+                return Position.LEFT;
+            case FREE_PARKING:
+                return Position.CORNER_TL;
+            case KENTUCKY_AVE:
+            case CHANCE2:
+            case INDIANA_AVE:
+            case ILLINOIS_AVE:
+            case B_AND_O_RR:
+            case ATLANTIC_AVE:
+            case VENTNOR_AVE:
+            case WATER_WORKS:
+            case MARVIN_GARDINS:
+                return Position.TOP;
+            case GOTO_JAIL:
+                return Position.CORNER_TR;
+            case PACIFIC_AVE:
+            case NORTH_CAROLINA_AVE:
+            case COMM_CHEST3:
+            case PENNSYLVANIA_AVE:
+            case SHORT_LINE_RR:
+            case CHANCE3:
+            case PARK_PLACE:
+            case LUXURY_TAX:
+            case BOARDWALK:
+                return Position.RIGHT;
+        }
+        Utils.unhandledCase(sq);
+        return null;
     }
 
 }
