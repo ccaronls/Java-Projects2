@@ -57,37 +57,47 @@ public enum Square {
     final GColor color;
     private final int [] costs;
 
-    int getTax() {
+    public int getTax() {
         return costs[0];
     }
 
-    int getPrice() {
+    public int getPrice() {
         return costs[0];
     }
 
-    int getHousePrice() {
+    public int getHousePrice() {
         return costs[1];
     }
 
-    boolean isProperty() {
+    public boolean isProperty() {
         return type == SquareType.PROPERTY;
     }
 
-    int getMortgageValue() {
+    public boolean canPurchase() {
+        switch (type) {
+            case PROPERTY:
+            case UTILITY:
+            case RAIL_ROAD:
+                return true;
+        }
+        return false;
+    }
+
+    public int getMortgageValue() {
         return getPrice()/2;
     }
 
-    int getMortgageBuybackPrice() {
+    public int getMortgageBuybackPrice() {
         return getMortgageValue()+getPrice()/10;
     }
 
     // return rent given number of houses on the property.
     // 1 Hotel = 5 houses
-    int getRent(int houses) {
+    public int getRent(int houses) {
         return costs[2+houses];
     }
 
-    int getNumForSet() {
+    public int getNumForSet() {
         switch (this) {
             case BALTIC_AVE:
             case MEDITERRANEAN_AVE:
@@ -102,7 +112,7 @@ public enum Square {
         return 0;
     }
 
-    boolean isRailroad() {
+    public boolean isRailroad() {
         switch (this) {
             case READING_RR:
             case B_AND_O_RR:
@@ -113,7 +123,7 @@ public enum Square {
         return false;
     }
 
-    boolean isUtility() {
+    public boolean isUtility() {
         switch (this) {
             case ELECTRIC_COMPANY:
             case WATER_WORKS:

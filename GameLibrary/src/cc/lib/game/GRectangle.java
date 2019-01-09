@@ -145,4 +145,8 @@ public final class GRectangle extends Reflector<GRectangle> {
         w = nw;
         h = nh;
     }
+
+    public GDimension getDimension() {
+        return new GDimension(w, h);
+    }
 }

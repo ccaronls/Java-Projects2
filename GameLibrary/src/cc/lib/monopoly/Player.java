@@ -1,9 +1,13 @@
 package cc.lib.monopoly;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
+import cc.lib.game.GColor;
 import cc.lib.game.Utils;
 import cc.lib.utils.Reflector;
 
@@ -15,7 +19,7 @@ public class Player extends Reflector<Player> {
 
     int money;
     int square;
-    List<Card> cards;
+    final List<Card> cards = new ArrayList<>();
     boolean inJail;
     int debt;
     Piece piece;
@@ -34,6 +38,37 @@ public class Player extends Reflector<Player> {
 
     public void setPiece(Piece piece) {
         this.piece = piece;
+    }
+
+    public Square getSquare() {
+        return Square.values()[square];
+    }
+
+    public int getMoney() {
+        return money;
+    }
+
+    public List<Card> getCards() {
+        return Collections.unmodifiableList(cards);
+    }
+
+    public boolean isInJail() {
+        return inJail;
+    }
+
+    public Map<GColor, List<Card>> getPropertySets() {
+        Map<GColor, List<Card>> sets = new HashMap<>();
+        for (Card c : cards) {
+            if (c.property == null)
+                continue;
+            List<Card> list = sets.get(c.property.color);
+            if (list == null) {
+                list = new ArrayList<>();
+                sets.put(c.property.color, list);
+            }
+            list.add(c);
+        }
+        return sets;
     }
 
     public final boolean ownsProperty(Square square) {
@@ -151,7 +186,7 @@ public class Player extends Reflector<Player> {
 
     public final List<Card> getCardsForUnMortgage() {
         List<Card> cards = new ArrayList<>();
-        for (Card c : cards) {
+        for (Card c : this.cards) {
             if (c.property != null && c.mortgaged && c.property.getMortgageBuybackPrice() <= money) {
                 cards.add(c);
             }
@@ -161,7 +196,7 @@ public class Player extends Reflector<Player> {
 
     public final List<Card> getCardsForMortgage() {
         List<Card> cards = new ArrayList<>();
-        for (Card c : cards) {
+        for (Card c : this.cards) {
             if (c.property != null && !c.mortgaged) {
                 cards.add(c);
             }
@@ -169,9 +204,20 @@ public class Player extends Reflector<Player> {
         return cards;
     }
 
+    public final List<Card> getCardsOfType(SquareType type) {
+        List<Card> cards = new ArrayList<>();
+        for (Card c : this.cards) {
+            if (c.getProperty() == null)
+                continue;
+            if (c.getProperty().type == type)
+                cards.add(c);
+        }
+        return cards;
+    }
+
     public final List<Card> getCardsForNewHouse() {
         List<Card> cards = new ArrayList<>();
-        for (Card c : cards) {
+        for (Card c : this.cards) {
             if (c.property != null && c.property.getHousePrice() <= money && hasSet(c.property))
                 cards.add(c);
         }

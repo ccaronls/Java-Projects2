@@ -1745,6 +1745,15 @@ public class Utils {
         return result;
     }
 
+    public static String [] toStringArray(Collection items) {
+        String [] result = new String[items.size()];
+        int index=0;
+        for (Object o : items) {
+            result[index++] = o == null ? "null" : o.toString();
+        }
+        return result;
+    }
+
     /**
      * Sort a secondary array based on a primary array
      *
@@ -1974,15 +1983,15 @@ public class Utils {
      * @param msecs
      */
     public static void waitNoThrow(Object lock, long msecs) {
-        synchronized (lock) {
-            try {
+        try {
+            synchronized (lock) {
                 if (msecs < 0)
                     lock.wait();
                 else
                     lock.wait(msecs);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
             }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
 

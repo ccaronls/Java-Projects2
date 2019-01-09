@@ -619,6 +619,8 @@ public class EZFrame extends JFrame implements WindowListener, ComponentListener
 
     public interface OnListItemChoosen {
         void itemChoose(int index);
+
+        void cancelled();
     }
 
     /**
@@ -635,6 +637,8 @@ public class EZFrame extends JFrame implements WindowListener, ComponentListener
                 int index = Utils.linearSearch(items, e.getActionCommand());
                 if (index >= 0)
                     itemListener.itemChoose(index);
+                else
+                    itemListener.cancelled();
                 popup.setVisible(false);
             }
         };

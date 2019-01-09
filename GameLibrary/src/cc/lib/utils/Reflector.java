@@ -842,6 +842,7 @@ public class Reflector<T> {
     public static void registerClass(Class<?> clazz) {
     	String sClazz = getCanonicalName(clazz);
         addArrayTypes(clazz);
+        classMap.put(sClazz, clazz);
     }
 
     private static Class<?> getClassForName(String forName) throws ClassNotFoundException {

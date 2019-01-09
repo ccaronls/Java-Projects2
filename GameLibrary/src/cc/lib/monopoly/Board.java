@@ -1,6 +1,7 @@
 package cc.lib.monopoly;
 
 import cc.lib.game.GColor;
+import cc.lib.game.GRectangle;
 import cc.lib.math.Vector2D;
 
 public class Board {
@@ -26,5 +27,105 @@ public class Board {
             new Vector2D(1236, 1059),
             new Vector2D(1057, 1239)
     };
+
+    private final float dim;
+    private final float scale;
+    private final float borderDim;
+    private final float cellDim;
+
+    public Board(float dim) {
+        this.dim = dim;
+        scale = dim / BOARD_DIMENSION;
+        borderDim = BOARD_CORRNER_DIMENSION * scale;
+        cellDim = (dim - borderDim*2) / 9;
+    }
+
+    public GRectangle getSqaureBounds(Square sq) {
+        int index = sq.ordinal();
+        switch (sq) {
+            case FREE_PARKING:
+                return new GRectangle(0, 0, borderDim, borderDim);
+            case GOTO_JAIL:
+                return new GRectangle(dim-borderDim, 0, borderDim, borderDim);
+            case GO:
+                return new GRectangle(dim-borderDim, dim-borderDim, borderDim, borderDim);
+            case VISITING_JAIL:
+                return new GRectangle(0, dim-borderDim, borderDim, borderDim);
+        }
+
+        if (index < Square.VISITING_JAIL.ordinal()) {
+            return new GRectangle(dim - borderDim - cellDim*(index), dim-borderDim, cellDim, borderDim);
+        }
+
+        if (index < Square.FREE_PARKING.ordinal()) {
+            index -= Square.VISITING_JAIL.ordinal();
+            return new GRectangle(0, dim-borderDim - cellDim*(index), borderDim, cellDim);
+        }
+
+        if (index < Square.GOTO_JAIL.ordinal()) {
+            index -= Square.FREE_PARKING.ordinal();
+            return new GRectangle(borderDim + (index-1) * cellDim, 0, cellDim, borderDim);
+        }
+
+        index -= Square.GOTO_JAIL.ordinal();
+        return new GRectangle(dim-borderDim, borderDim + (index-1)*cellDim, borderDim, cellDim);
+    }
+
+    /**
+     * Gives the center of the inner edge of the square unless sq is a corner then it gives the inner corner
+     * @param sq
+     * @return
+     */
+    public Vector2D getInnerEdge(Square sq) {
+        int index = sq.ordinal();
+        switch (sq) {
+            case FREE_PARKING:
+                return new Vector2D(borderDim, borderDim);
+            case GOTO_JAIL:
+                return new Vector2D(dim-borderDim, borderDim);
+            case GO:
+                return new Vector2D(dim-borderDim, dim-borderDim);
+            case VISITING_JAIL:
+                return new Vector2D(borderDim, dim-borderDim);
+        }
+
+        if (index < Square.VISITING_JAIL.ordinal()) {
+            return new Vector2D(dim - borderDim - cellDim*(index)+cellDim/2, dim-borderDim);
+        }
+
+        if (index < Square.FREE_PARKING.ordinal()) {
+            index -= Square.VISITING_JAIL.ordinal();
+            return new Vector2D(borderDim, dim-borderDim - cellDim*(index)+cellDim/2);
+        }
+
+        if (index < Square.GOTO_JAIL.ordinal()) {
+            index -= Square.FREE_PARKING.ordinal();
+            return new Vector2D(borderDim + (index-1) * cellDim+cellDim/2, borderDim);
+        }
+
+        index -= Square.GOTO_JAIL.ordinal();
+        return new Vector2D(dim-borderDim, borderDim + (index-1)*cellDim+cellDim/2);
+    }
+
+    public float getPieceDimension() {
+        return cellDim/2;
+    }
+
+    // TODO: Special case for when a player is in JAIL
+    public GRectangle getPiecePlacement(int player, Square sq) {
+        int index = sq.ordinal();
+        GRectangle rect = getSqaureBounds(sq);
+        Vector2D cntr = rect.getCenter();
+        float dim = getPieceDimension();
+        switch (player) {
+            case 0:
+                return new GRectangle(cntr.X()-dim, cntr.Y()-dim, dim, dim);
+            case 1:
+                return new GRectangle(cntr.X(), cntr.Y(), dim, dim);
+            case 2:
+                return new GRectangle(cntr.X(), cntr.Y()-dim, dim, dim);
+        }
+        return new GRectangle(cntr.X()-dim, cntr.Y(), dim, dim);
+    }
 
 }

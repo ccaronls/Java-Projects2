@@ -392,7 +392,8 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
         r.drawFilled(this);
         setColor(saveColor);
         popMatrix();
-        return drawJustifiedString(x, y, hJust, vJust, text);
+        drawJustifiedString(x, y, hJust, vJust, text);
+        return r.getDimension();
     }
 
 
@@ -1159,6 +1160,10 @@ GRectangle r = drawJustifiedStringR(x, y, hJust, vJust, text);
 
     public final void drawFilledRect(float x, float y, float w, float h) {
         drawQuad(x, y, x+w, y+h);
+    }
+
+    public final void drawFilledRect(GRectangle rect) {
+        drawQuad(rect.x, rect.y, rect.x+rect.w, rect.y+rect.h);
     }
 
     // return whether points added for quads or lines (true == quads)
