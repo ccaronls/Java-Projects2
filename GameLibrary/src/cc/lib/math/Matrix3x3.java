@@ -12,7 +12,11 @@ public final class Matrix3x3 extends Reflector<Matrix3x3>  {
 	static {
 		addAllFields(Matrix3x3.class);
 	}
-	
+
+	public final static Matrix3x3 newIdentity() {
+	    return new Matrix3x3(1,0,0,0,1,0,0,0,1);
+    }
+
 	private double a11, a12, a13;
 	private double a21, a22, a23;
 	private double a31, a32, a33;

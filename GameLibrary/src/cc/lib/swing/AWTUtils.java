@@ -948,7 +948,7 @@ public class AWTUtils {
     
     /**
      * Return a when aWeight == 1.0
-     * Return b when aWeight == 0.0
+     * Return board when aWeight == 0.0
      * @param a
      * @param b
      * @param aWeight

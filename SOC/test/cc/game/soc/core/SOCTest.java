@@ -116,18 +116,18 @@ public class SOCTest extends TestCase {
 	    SOC soc = new SOC();
 
 	    int iter = 0;
-	    int seed = 10;
+	    int seed = 101;
 	    try {
 
-	        for ( ; seed<100; seed++) {
-                soc.loadFromFile(new File("testresult/failedgame2.txt"));
+	        for ( ; seed<1000; seed++) {
+                soc.loadFromFile(new File("testresult/failedgame.txt"));
                 Utils.setRandomSeed(seed);
-                for (iter = 0; iter < 10000 && !soc.isGameOver(); iter++) {
+                for (iter = 0; iter < 100 && !soc.isGameOver(); iter++) {
                     System.out.print(String.format("ITER %5d ", iter));
                     soc.runGame();
                 }
 
-                break;
+                //break;
             }
 
             assertTrue(soc.isGameOver());

@@ -242,13 +242,13 @@ public class Monopoly extends Reflector<Monopoly> {
     }
 
     private void advance(int squares) {
+        onPlayerMove(currentPlayer, squares);
         Player cur = getCurrentPlayer();
         cur.square += squares;
         if (cur.square >= NUM_SQUARES) {
-            getPaid(200);
             cur.square %= NUM_SQUARES;
+            getPaid(200);
         }
-        onPlayerMove(currentPlayer, squares);
     }
 
     private void processMove(MoveType move) {
@@ -360,6 +360,10 @@ public class Monopoly extends Reflector<Monopoly> {
         return players.get(currentPlayer);
     }
 
+    public final int getCurrentPlayerNum() {
+        return currentPlayer;
+    }
+
     private void rollDice() {
         die1 = 1+Utils.rand()%6;
         die2 = 1+Utils.rand()%6;
@@ -430,7 +434,10 @@ public class Monopoly extends Reflector<Monopoly> {
                 state.push(State.PURCHASE_OR_SKIP);
             } else if (owner >= 0 && owner != currentPlayer) {
                 int rent = getPlayer(owner).getRent(square, getDice()) * rentScale;
-                payMoneyOrMortgage(rent, State.PAY_RENT);
+                if (rent > 0)
+                    payMoneyOrMortgage(rent, State.PAY_RENT);
+                else
+                    nextPlayer();
             } else {
                 nextPlayer();
             }
@@ -439,12 +446,12 @@ public class Monopoly extends Reflector<Monopoly> {
         }
     }
 
-    private int getMovesTo(Square s) {
+    private int getMovesTo(Square target) {
         Player cur = getCurrentPlayer();
         int moves = 1;
         for ( ; moves<NUM_SQUARES; moves++) {
-            s = Square.values()[(cur.square + moves) % NUM_SQUARES];
-            if (s == Square.READING_RR) {
+            Square s = Square.values()[(cur.square + moves) % NUM_SQUARES];
+            if (s == target) {
                 break;
             }
         }
@@ -503,8 +510,8 @@ public class Monopoly extends Reflector<Monopoly> {
         Player cur = getCurrentPlayer();
         switch (type) {
             case CH_GO_BACK:
-                cur.square = (cur.square+NUM_SQUARES-3) % NUM_SQUARES;
                 onPlayerMove(currentPlayer, -3);
+                cur.square = (cur.square+NUM_SQUARES-3) % NUM_SQUARES;
                 processSquare();
                 break;
             case CH_LOAN_MATURES:
@@ -513,7 +520,10 @@ public class Monopoly extends Reflector<Monopoly> {
                 break;
             case CH_MAKE_REPAIRS: {
                 int repairs = cur.getNumHouses() * 25 + cur.getNumHotels() * 150;
-                payMoneyOrMortgage(repairs, State.PAY_KITTY);
+                if (repairs > 0)
+                    payMoneyOrMortgage(repairs, State.PAY_KITTY);
+                else
+                    nextPlayer();
                 break;
             }
             case CH_GET_OUT_OF_JAIL:
@@ -521,7 +531,7 @@ public class Monopoly extends Reflector<Monopoly> {
                 nextPlayer();
                 break;
             case CH_ELECTED_CHAIRMAN:
-                payMoneyOrMortgage(players.size()-1*50, State.PAY_PLAYERS);
+                payMoneyOrMortgage(50*(players.size()-1), State.PAY_PLAYERS);
                 break;
             case CH_ADVANCE_RR:
             case CH_ADVANCE_RR2: {
@@ -572,7 +582,7 @@ public class Monopoly extends Reflector<Monopoly> {
                 gotoJail();
                 break;
             case CH_SPEEDING_TICKET:
-                payMoneyOrMortgage(50, State.PAY_KITTY);
+                payMoneyOrMortgage(15, State.PAY_KITTY);
                 break;
             case CH_ADVANCE_BOARDWALK: {
                 int moves = getMovesTo(Square.BOARDWALK);
@@ -606,7 +616,10 @@ public class Monopoly extends Reflector<Monopoly> {
                 break;
             case CC_ASSESSED_REPAIRS: {
                 int repairs = cur.getNumHouses()*40 + cur.getNumHotels()*115;
-                payMoneyOrMortgage(repairs, State.PAY_KITTY);
+                if (repairs > 0)
+                    payMoneyOrMortgage(repairs, State.PAY_KITTY);
+                else
+                    nextPlayer();
                 break;
             }
             case CC_HOSPITAL_FEES:
@@ -672,10 +685,10 @@ public class Monopoly extends Reflector<Monopoly> {
     }
 
     private void gotoJail() {
+        onPlayerGoesToJail(currentPlayer);
         Player cur = getCurrentPlayer();
         cur.square = Square.VISITING_JAIL.ordinal();
         cur.inJail = true;
-        onPlayerGoesToJail(currentPlayer);
         nextPlayer();
     }
 
@@ -867,6 +880,10 @@ public class Monopoly extends Reflector<Monopoly> {
         if (state.size() > 1) {
             state.pop();
         }
+    }
+
+    public final boolean canCancel() {
+        return state.size() > 1;
     }
 
     public final int getKitty() {

@@ -639,7 +639,7 @@ public class EZFrame extends JFrame implements WindowListener, ComponentListener
                     itemListener.itemChoose(index);
                 else
                     itemListener.cancelled();
-                popup.setVisible(false);
+                popup.closePopup(EZFrame.this);
             }
         };
         EZPanel frame = new EZPanel(new BorderLayout());

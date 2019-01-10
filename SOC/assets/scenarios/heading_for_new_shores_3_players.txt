@@ -1,8 +1,495 @@
+aiTuning=java.util.HashMap {
+   java.lang.String {
+      "opponent_progress"
+   }
+   java.lang.Double {
+      1.0
+   }
+   java.lang.String {
+      "robberTile"
+   }
+   java.lang.Double {
+      8.0
+   }
+   java.lang.String {
+      "Resource_distribution"
+   }
+   java.lang.Double {
+      2.0
+   }
+   java.lang.String {
+      "minDistToUndiscoveredTile"
+   }
+   java.lang.Double {
+      1.0
+   }
+   java.lang.String {
+      "opponent_points"
+   }
+   java.lang.Double {
+      1.0
+   }
+   java.lang.String {
+      "tiles_protected"
+   }
+   java.lang.Double {
+      3.0
+   }
+   java.lang.String {
+      "points"
+   }
+   java.lang.Double {
+      1.0
+   }
+   java.lang.String {
+      "buildability"
+   }
+   java.lang.Double {
+      0.0
+   }
+   java.lang.String {
+      "Resource_Prob"
+   }
+   java.lang.Double {
+      0.4
+   }
+   java.lang.String {
+      "cardsInHand"
+   }
+   java.lang.Double {
+      0.6
+   }
+   java.lang.String {
+      "armySize"
+   }
+   java.lang.Double {
+      4.0
+   }
+   java.lang.String {
+      "shipCount"
+   }
+   java.lang.Double {
+      2.0
+   }
+   java.lang.String {
+      "warShipValue"
+   }
+   java.lang.Double {
+      4.0
+   }
+   java.lang.String {
+      "maxCards"
+   }
+   java.lang.Double {
+      1.0
+   }
+   java.lang.String {
+      "minDistToFortress"
+   }
+   java.lang.Double {
+      20.0
+   }
+   java.lang.String {
+      "potentialSettlements"
+   }
+   java.lang.Double {
+      0.0
+   }
+   java.lang.String {
+      "progressCardCount"
+   }
+   java.lang.Double {
+      1.0
+   }
+   java.lang.String {
+      "roadCount"
+   }
+   java.lang.Double {
+      1.0
+   }
+   java.lang.String {
+      "roadLength"
+   }
+   java.lang.Double {
+      4.0
+   }
+   java.lang.String {
+      "distValue"
+   }
+   java.lang.Double {
+      1.0
+   }
+   java.lang.String {
+      "specialVictoryCards"
+   }
+   java.lang.Double {
+      1.0
+   }
+   java.lang.String {
+      "pirateDefence"
+   }
+   java.lang.Double {
+      4.0
+   }
+   java.lang.String {
+      "warships"
+   }
+   java.lang.Double {
+      1.0
+   }
+   java.lang.String {
+      "longestRoad"
+   }
+   java.lang.Double {
+      1.1
+   }
+   java.lang.String {
+      "city_development"
+   }
+   java.lang.Double {
+      1.0
+   }
+   java.lang.String {
+      "opponent_cards"
+   }
+   java.lang.Double {
+      1.0
+   }
+   java.lang.String {
+      "cards_buildability"
+   }
+   java.lang.Double {
+      1.0
+   }
+   java.lang.String {
+      "minDistToAPirateFortress"
+   }
+   java.lang.Double {
+      1.0
+   }
+   java.lang.String {
+      "discoveredTiles"
+   }
+   java.lang.Double {
+      20.0
+   }
+   java.lang.String {
+      "cityDevelValue"
+   }
+   java.lang.Double {
+      0.0
+   }
+   java.lang.String {
+      "warshipCount"
+   }
+   java.lang.Double {
+      2.0
+   }
+   java.lang.String {
+      "Port_value"
+   }
+   java.lang.Double {
+      1.2
+   }
+   java.lang.String {
+      "minDistToIsland"
+   }
+   java.lang.Double {
+      1.0
+   }
+   java.lang.String {
+      "Structures"
+   }
+   java.lang.Double {
+      0.1
+   }
+   java.lang.String {
+      "wedding"
+   }
+   java.lang.Double {
+      4.0
+   }
+   java.lang.String {
+      "aveDistToNewIslands"
+   }
+   java.lang.Double {
+      4.0
+   }
+   java.lang.String {
+      "potentialResourceProb"
+   }
+   java.lang.Double {
+      0.1
+   }
+   java.lang.String {
+      "barbResist"
+   }
+   java.lang.Double {
+      3.0
+   }
+   java.lang.String {
+      "knights"
+   }
+   java.lang.Double {
+      0.30000000000000004
+   }
+   java.lang.String {
+      "minDistPirate"
+   }
+   java.lang.Double {
+      15.0
+   }
+   java.lang.String {
+      "randomness"
+   }
+   java.lang.Double {
+      1.5
+   }
+   java.lang.String {
+      "numDiscoveredTerritories"
+   }
+   java.lang.Double {
+      3.0
+   }
+   java.lang.String {
+      "minDistNewTile"
+   }
+   java.lang.Double {
+      1.0
+   }
+   java.lang.String {
+      "minDistToNewIslands"
+   }
+   java.lang.Double {
+      0.0
+   }
+   java.lang.String {
+      "minDistToUndiscov"
+   }
+   java.lang.Double {
+      1.0
+   }
+   java.lang.String {
+      "routeValue"
+   }
+   java.lang.Double {
+      0.1
+   }
+   java.lang.String {
+      "pirateTile"
+   }
+   java.lang.Double {
+      1.5
+   }
+   java.lang.String {
+      "aveDistToIsland"
+   }
+   java.lang.Double {
+      1.0
+   }
+   java.lang.String {
+      "cityDevelopment"
+   }
+   java.lang.Double {
+      3.0
+   }
+   java.lang.String {
+      "routeExpandability"
+   }
+   java.lang.Double {
+      2.0
+   }
+   java.lang.String {
+      "cardsValue"
+   }
+   java.lang.Double {
+      4.0
+   }
+   java.lang.String {
+      "routeTileResourceProb"
+   }
+   java.lang.Double {
+      4.0
+   }
+}
 mBoard=cc.game.soc.core.Board {
    ch=0.11111111
    cw=0.14285713
-   name="heading+for+new+shores+3+players"
+   displayName="Heading for New Shores"
+   islands=java.util.Vector {
+      cc.game.soc.core.Island {
+         borderRoute=java.util.ArrayList {
+            java.lang.Integer {
+               23
+            }
+            java.lang.Integer {
+               30
+            }
+            java.lang.Integer {
+               31
+            }
+            java.lang.Integer {
+               32
+            }
+            java.lang.Integer {
+               25
+            }
+            java.lang.Integer {
+               22
+            }
+            java.lang.Integer {
+               26
+            }
+            java.lang.Integer {
+               28
+            }
+            java.lang.Integer {
+               29
+            }
+            java.lang.Integer {
+               21
+            }
+         }
+         discovered=boolean 16 {
+            false false false false false false false false false false false false false false false false 
+         }
+         num=1
+         tiles=java.util.ArrayList {
+            java.lang.Integer {
+               6
+            }
+            java.lang.Integer {
+               3
+            }
+         }
+      }
+      cc.game.soc.core.Island {
+         borderRoute=java.util.ArrayList {
+            java.lang.Integer {
+               45
+            }
+            java.lang.Integer {
+               43
+            }
+            java.lang.Integer {
+               113
+            }
+            java.lang.Integer {
+               111
+            }
+            java.lang.Integer {
+               118
+            }
+            java.lang.Integer {
+               114
+            }
+            java.lang.Integer {
+               126
+            }
+            java.lang.Integer {
+               124
+            }
+            java.lang.Integer {
+               119
+            }
+            java.lang.Integer {
+               47
+            }
+            java.lang.Integer {
+               50
+            }
+            java.lang.Integer {
+               129
+            }
+            java.lang.Integer {
+               38
+            }
+            java.lang.Integer {
+               36
+            }
+            java.lang.Integer {
+               37
+            }
+            java.lang.Integer {
+               41
+            }
+         }
+         discovered=boolean 16 {
+            false false false false false false false false false false false false false false false false 
+         }
+         num=2
+         tiles=java.util.ArrayList {
+            java.lang.Integer {
+               55
+            }
+            java.lang.Integer {
+               46
+            }
+            java.lang.Integer {
+               51
+            }
+            java.lang.Integer {
+               56
+            }
+            java.lang.Integer {
+               12
+            }
+         }
+      }
+      cc.game.soc.core.Island {
+         borderRoute=java.util.ArrayList {
+            java.lang.Integer {
+               85
+            }
+            java.lang.Integer {
+               86
+            }
+            java.lang.Integer {
+               130
+            }
+            java.lang.Integer {
+               131
+            }
+            java.lang.Integer {
+               89
+            }
+            java.lang.Integer {
+               80
+            }
+            java.lang.Integer {
+               78
+            }
+            java.lang.Integer {
+               79
+            }
+            java.lang.Integer {
+               88
+            }
+            java.lang.Integer {
+               81
+            }
+         }
+         discovered=boolean 16 {
+            false false false false false false false false false false false false false false false false 
+         }
+         num=3
+         tiles=java.util.ArrayList {
+            java.lang.Integer {
+               59
+            }
+            java.lang.Integer {
+               27
+            }
+         }
+      }
+   }
+   merchantPlayer=0
+   merchantTile=-1
+   name="heading_for_new_shores_3_players"
    numAvaialbleVerts=96
+   pirateRouteStartTile=-1
+   pirateTile=-1
+   robberTile=-1
    routes=java.util.Vector {
       cc.game.soc.core.Route {
          flags=1
@@ -1367,7 +1854,7 @@ mBoard=cc.game.soc.core.Board {
             11 14 15 16 17 12 
          }
          dieNum=0
-         islandNum=0
+         islandNum=1
          numAdj=6
          pirateRouteNext=-1
          type=RANDOM_RESOURCE
@@ -1403,7 +1890,7 @@ mBoard=cc.game.soc.core.Board {
             13 12 17 18 19 20 
          }
          dieNum=0
-         islandNum=0
+         islandNum=1
          numAdj=6
          pirateRouteNext=-1
          type=GOLD
@@ -1475,7 +1962,7 @@ mBoard=cc.game.soc.core.Board {
             27 23 22 25 29 30 
          }
          dieNum=0
-         islandNum=0
+         islandNum=2
          numAdj=6
          pirateRouteNext=-1
          type=RANDOM_RESOURCE
@@ -1655,7 +2142,7 @@ mBoard=cc.game.soc.core.Board {
             53 52 51 57 58 59 
          }
          dieNum=0
-         islandNum=0
+         islandNum=3
          numAdj=6
          pirateRouteNext=-1
          type=RANDOM_RESOURCE
@@ -1883,7 +2370,7 @@ mBoard=cc.game.soc.core.Board {
             80 79 78 81 82 83 
          }
          dieNum=0
-         islandNum=0
+         islandNum=2
          numAdj=6
          pirateRouteNext=-1
          type=RANDOM_RESOURCE
@@ -1943,7 +2430,7 @@ mBoard=cc.game.soc.core.Board {
             82 81 90 91 88 85 
          }
          dieNum=0
-         islandNum=0
+         islandNum=2
          numAdj=6
          pirateRouteNext=-1
          type=RANDOM_RESOURCE
@@ -1991,7 +2478,7 @@ mBoard=cc.game.soc.core.Board {
             78 28 27 30 90 81 
          }
          dieNum=0
-         islandNum=0
+         islandNum=2
          numAdj=6
          pirateRouteNext=-1
          type=RANDOM_RESOURCE
@@ -2003,7 +2490,7 @@ mBoard=cc.game.soc.core.Board {
             90 30 29 32 92 91 
          }
          dieNum=0
-         islandNum=0
+         islandNum=2
          numAdj=6
          pirateRouteNext=-1
          type=RANDOM_RESOURCE
@@ -2039,7 +2526,7 @@ mBoard=cc.game.soc.core.Board {
             58 57 56 94 93 95 
          }
          dieNum=0
-         islandNum=0
+         islandNum=3
          numAdj=6
          pirateRouteNext=-1
          type=GOLD
@@ -4464,7 +4951,11 @@ mBoard=cc.game.soc.core.Board {
 }
 mRules=cc.game.soc.core.Rules {
    attackPirateFortressEndsTurn=true
+   barbarianPointsPerCity=1
+   barbarianPointsPerMetro=1
+   barbarianPointsPerSettlement=0
    barbarianStepsToAttack=7
+   catanForTwo=false
    enableBuildShipsFromPort=false
    enableCitiesAndKnightsExpansion=false
    enableEventCards=false
@@ -4483,6 +4974,7 @@ mRules=cc.game.soc.core.Rules {
    maxPlayers=3
    maxProgressCards=4
    maxSafeCards=7
+   minBarbarianAttackstoEnableRobberAndPirate=1
    minLargestArmySize=3
    minLongestLoadLen=5
    minMostDiscoveredTerritories=0

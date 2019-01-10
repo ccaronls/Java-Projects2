@@ -47,4 +47,8 @@ public enum CardActionType {
     public boolean isChance() {
         return name().startsWith("CH");
     }
+
+    public String getDescription() {
+        return desc;
+    }
 }
