@@ -87,8 +87,13 @@ public class AWTMonopoly extends AWTComponent {
         }
 
         @Override
-        protected void onPlayerReceiveMoney(int playerNum, int amt) {
-            super.onPlayerReceiveMoney(playerNum, amt);
+        protected void onPlayerGotPaid(int playerNum, int amt) {
+            super.onPlayerGotPaid(playerNum, amt);
+        }
+
+        @Override
+        protected void onPlayerReceiveMoneyFromAnother(int playerNum, int giverNum, int amt) {
+            super.onPlayerReceiveMoneyFromAnother(playerNum, giverNum, amt);
         }
 
         @Override
@@ -170,6 +175,7 @@ public class AWTMonopoly extends AWTComponent {
                                         frame.showListChooserDialog(new OnListItemChoosen() {
                                             @Override
                                             public void itemChoose(int pc) {
+                                                stopGameThread();
                                                 initPlayers(item + 2, Piece.values()[pc]);
                                                 startGameThread();
                                             }
@@ -199,14 +205,19 @@ public class AWTMonopoly extends AWTComponent {
         if (!frame.loadFromFile(new File("monopoly.properties")))
             frame.centerToScreen(800, 600);
 
+        if (monopoly.tryLoadFromFile(saveFile))
+            startGameThread();
+
     }
 
     boolean gameRunning = false;
+    boolean gameStopped = true;
 
     synchronized void startGameThread() {
         if (gameRunning)
             return;
         gameRunning = true;
+        gameStopped = false;
         new Thread() {
             public void run() {
                 while (gameRunning && monopoly.getWinner() < 0) {
@@ -214,9 +225,22 @@ public class AWTMonopoly extends AWTComponent {
                     repaint();
                 }
                 gameRunning = false;
+                gameStopped = true;
             }
         }.start();
 
+    }
+
+    void stopGameThread() {
+        if (gameStopped)
+            return;
+        gameRunning = false;
+        synchronized (monopoly) {
+            monopoly.notifyAll();
+        }
+        while (!gameStopped) {
+            Utils.waitNoThrow(this, 50);
+        }
     }
 
     void initPlayers(int num, Piece pc) {
@@ -318,6 +342,7 @@ public class AWTMonopoly extends AWTComponent {
         H = g.getViewportHeight();
         DIM = Math.min(W, H);
         g.setTextHeight(16);
+        g.setTextStyles(AGraphics.TextStyle.BOLD);
         if (W > H) {
             drawLandscape(g, mouseX, mouseY);
         } else {
@@ -370,11 +395,11 @@ public class AWTMonopoly extends AWTComponent {
     }
 
     private float drawWrapStringOnBackground(AGraphics g, float x, float y, float width, String txt, GColor bkColor, GColor txtColor, float border) {
-        GDimension d = g.drawWrapString(x+border, y, width-border*2, txt);
+        GDimension d = g.drawWrapString(x+border, y+border, width-border*2, txt);
         g.setColor(bkColor);
         g.drawFilledRect(x, y, width, d.height+2*border);
         g.setColor(txtColor);
-        g.drawWrapString(x+border, y+border, width, txt);
+        g.drawWrapString(x+border, y+border, width-border*2, txt);
         return d.height + 2*border;
     }
 
@@ -430,10 +455,51 @@ public class AWTMonopoly extends AWTComponent {
         }
     }
 
+    // draw house with center at 0,0.
+    public void drawHouse(AGraphics g) {
+        GColor front = g.getColor();
+        GColor roof = front.lightened(0.5f);
+        GColor side = front.darkened(0.2f);
+
+        Vector2D [] pts = {
+                new Vector2D(-1, -2),
+                new Vector2D(1, -2),
+                new Vector2D(-2, 0),
+                new Vector2D(.5f, 0),
+                new Vector2D(-2, 2),
+                new Vector2D(.5f, 2),
+                new Vector2D(2, 1),
+                new Vector2D(2, -1),
+        };
+
+        g.setColor(front);
+        g.begin();
+        g.vertexArray(pts[2], pts[3], pts[4], pts[5]);
+        g.drawQuadStrip();
+        g.begin();
+        g.setColor(side);
+        g.vertexArray(pts[1], pts[3], pts[5], pts[6], pts[7]);
+        g.drawTriangleFan();
+        g.begin();
+        g.setColor(roof);
+        g.vertexArray(pts[0], pts[1], pts[2], pts[3]);
+        g.drawQuadStrip();
+        g.setColor(front); // restore color
+    }
+
     public void drawBoard(AGraphics g) {
         g.drawImage(ids[Images.board.ordinal()], 0, 0, DIM, DIM);
         Board b = new Board(DIM);
-
+        if (monopoly.getKitty() > 0) {
+            GRectangle r = b.getSqaureBounds(Square.FREE_PARKING);
+            Vector2D cntr = r.getCenter();
+            g.setColor(GColor.GREEN);
+            GDimension dim = g.drawWrapString(cntr.X(), cntr.Y(), r.w, Justify.CENTER, Justify.CENTER, "Kitty\n$" + monopoly.getKitty());
+            g.setColor(GColor.TRANSLUSCENT_BLACK);
+            g.drawFilledRect(cntr.X() - dim.width/2 - 5, cntr.Y() - dim.height/2 - 5, dim.width + 10, dim.height + 10);
+            g.setColor(GColor.GREEN);
+            g.drawWrapString(cntr.X(), cntr.Y(), r.w, Justify.CENTER, Justify.CENTER, "Kitty\n$" + monopoly.getKitty());
+        }
         for (int i=0; i<monopoly.getNumPlayers(); i++) {
             Player p = monopoly.getPlayer(i);
             if (p.isEliminated())
@@ -444,18 +510,23 @@ public class AWTMonopoly extends AWTComponent {
                 if (c.getProperty() == null)
                     continue;
                 GRectangle r = b.getSqaureBounds(c.getProperty());
+                float houseScale = Math.min(r.w, r.h)/10;
                 switch (b.getsQuarePosition(c.getProperty())) {
                     case TOP:
-                        g.drawImage(pcId, r.x+r.w-targetDim/2, r.y+r.h, targetDim, targetDim);
+                        g.drawImage(pcId, r.x+r.w/2-targetDim/2, r.y+r.h, targetDim, targetDim);
+                        drawHouses(g, new Vector2D(r.x+r.w/2, r.y+r.h-houseScale), 0, houseScale, c.getHouses());
                         break;
                     case RIGHT:
                         g.drawImage(pcId, r.x-targetDim, r.y+r.h/2-targetDim/2, targetDim, targetDim);
+                        drawHouses(g, new Vector2D(r.x+houseScale, r.y+r.h/2), 270, houseScale, c.getHouses());
                         break;
                     case BOTTOM:
-                        g.drawImage(pcId, r.x+r.w-targetDim/2, r.y-targetDim, targetDim, targetDim);
+                        g.drawImage(pcId, r.x+r.w/2-targetDim/2, r.y-targetDim, targetDim, targetDim);
+                        drawHouses(g, new Vector2D(r.x+r.w/2, r.y+houseScale), 0, houseScale, c.getHouses());
                         break;
                     case LEFT:
                         g.drawImage(pcId, r.x+r.w, r.y+r.h/2-targetDim/2, targetDim, targetDim);
+                        drawHouses(g, new Vector2D(r.x+r.w-houseScale, r.y+r.h/2), 90, houseScale, c.getHouses());
                         break;
                 }
                 if (c.isMortgaged()) {
@@ -472,6 +543,26 @@ public class AWTMonopoly extends AWTComponent {
             g.drawImage(pcId, r);
         }
 
+    }
+
+    private void drawHouses(AGraphics g, Vector2D cntr, float angle, float scale, int num) {
+        g.pushMatrix();
+        g.translate(cntr);
+        g.rotate(angle);
+        if (num == 5) {
+            g.scale(scale * 1.5f);
+            g.setColor(GColor.RED);
+            drawHouse(g);
+        } else {
+            g.setColor(GColor.GREEN);
+            g.scale(scale);
+            g.translate(-1.25f*(num-1), 0);
+            for (int i=0; i<num; i++) {
+                drawHouse(g);
+                g.translate(2.5f, 0);
+            }
+        }
+        g.popMatrix();
     }
 
     public void drawDice(AGraphics g, int die1, int die2) {
