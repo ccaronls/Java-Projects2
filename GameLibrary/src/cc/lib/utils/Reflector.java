@@ -419,6 +419,7 @@ public class Reflector<T> {
             if (e.name().equals(value)) {
                 return e;
             }
+            // TODO : Is there a way to use variation annotation on emum?
         }
         throw new Exception("Failed to find enum value: '" + value + "' in available constants: " + Arrays.asList(constants));
     }
@@ -1016,6 +1017,12 @@ public class Reflector<T> {
     @Retention(value = RetentionPolicy.RUNTIME)
     public @interface Omit {}
 
+    @Target(value = ElementType.FIELD)
+    @Retention(value = RetentionPolicy.RUNTIME)
+    public @interface Alternate {
+        String [] variations();
+    }
+
     /**
      * Add a field of a specific class to be included in the archivable handler.
      * Supported Type:
@@ -1547,7 +1554,22 @@ public class Reflector<T> {
             throw new IOException("Error on line " + reader.lineNum + ": " + e.getMessage(), e);
         }
     }
-    
+
+    private boolean fieldMatches(Field field, String name) throws Exception {
+        if (field.getName().equals(name))
+            return true;
+
+        Alternate alt = field.getAnnotation(Alternate.class);
+        if (alt != null) {
+            for (String variation : alt.variations()) {
+                if (name.equals(variation))
+                    return true;
+            }
+        }
+
+        return false;
+    }
+
     /**
      * initialize fields of this object there are explicitly added by addField for this class type.
      * @param _in
@@ -1575,7 +1597,7 @@ public class Reflector<T> {
                     throw new Exception("Line '" + line + "' not of form 'name=value'");
                 String name = parts[0].trim();
                 for (Field field : values.keySet()) {
-                    if (field.getName().equals(name)) {
+                    if (fieldMatches(field, name)) {
                         Archiver archiver = values.get(field);
                         Object instance = field.get(this);
                         archiver.set(instance, field, parts[1], this);
