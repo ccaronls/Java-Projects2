@@ -99,7 +99,7 @@ public class Monopoly extends Reflector<Monopoly> {
                 if (cur.getCardsForUnMortgage().size() > 0) {
                     moves.add(MoveType.UNMORTGAGE);
                 }
-                MoveType move = cur.chooseMove(moves);
+                MoveType move = cur.chooseMove(this, moves);
                 if (move != null) {
                     processMove(move);
                 }
@@ -117,7 +117,7 @@ public class Monopoly extends Reflector<Monopoly> {
                     moves.add(MoveType.MORTGAGE);
                 }
                 moves.add(MoveType.SKIP);
-                MoveType move = cur.chooseMove(moves);
+                MoveType move = cur.chooseMove(this, moves);
                 if (move != null) {
                     processMove(move);
                 }
@@ -133,7 +133,7 @@ public class Monopoly extends Reflector<Monopoly> {
                 if (cur.getCardsForMortgage().size() > 0) {
                     moves.add(MoveType.MORTGAGE);
                 }
-                MoveType move = cur.chooseMove(moves);
+                MoveType move = cur.chooseMove(this, moves);
                 if (move != null) {
                     processMove(move);
                 }
@@ -148,7 +148,7 @@ public class Monopoly extends Reflector<Monopoly> {
                 if (cur.getCardsForMortgage().size() > 0) {
                     moves.add(MoveType.MORTGAGE);
                 }
-                MoveType move = cur.chooseMove(moves);
+                MoveType move = cur.chooseMove(this, moves);
                 if (move != null) {
                     processMove(move);
                 }
@@ -163,7 +163,7 @@ public class Monopoly extends Reflector<Monopoly> {
                 if (cur.getCardsForMortgage().size() > 0) {
                     moves.add(MoveType.MORTGAGE);
                 }
-                MoveType move = cur.chooseMove(moves);
+                MoveType move = cur.chooseMove(this, moves);
                 if (move != null) {
                     processMove(move);
                 }
@@ -192,7 +192,7 @@ public class Monopoly extends Reflector<Monopoly> {
             case CHOOSE_MORTGAGE_PROPERTY: {
                 Player cur = getCurrentPlayer();
                 List<Card> cards = cur.getCardsForMortgage();
-                Card card = cur.chooseCard(cards);
+                Card card = cur.chooseCard(this, cards);
                 if (card != null) {
                     int mortgageAmt = card.property.getMortgageValue();
                     onPlayerMortgaged(currentPlayer, card.property, mortgageAmt);
@@ -205,7 +205,7 @@ public class Monopoly extends Reflector<Monopoly> {
             case CHOOSE_UNMORTGAGE_PROPERTY: {
                 Player cur = getCurrentPlayer();
                 List<Card> cards = cur.getCardsForUnMortgage();
-                Card card = cur.chooseCard(cards);
+                Card card = cur.chooseCard(this, cards);
                 if (card != null) {
                     int buyBackAmt = card.property.getMortgageBuybackPrice();
                     onPlayerUnMortgaged(currentPlayer, card.property, buyBackAmt);
@@ -218,7 +218,7 @@ public class Monopoly extends Reflector<Monopoly> {
             case CHOOSE_PROPERTY_FOR_UNIT: {
                 Player cur = getCurrentPlayer();
                 List<Card> cards = cur.getCardsForNewHouse();
-                Card card = cur.chooseCard(cards);
+                Card card = cur.chooseCard(this, cards);
                 if (card != null) {
                     int houseCost = card.property.getHousePrice();
                     if (card.houses < 4) {
@@ -533,8 +533,8 @@ public class Monopoly extends Reflector<Monopoly> {
             case CH_ELECTED_CHAIRMAN:
                 payMoneyOrMortgage(50*(players.size()-1), State.PAY_PLAYERS);
                 break;
-            case CH_ADVANCE_RR:
-            case CH_ADVANCE_RR2: {
+            case CH_ADVANCE_RAILROAD:
+            case CH_ADVANCE_RAILROAD2: {
                 int moves = 1;
                 Square s = null;
                 for ( ; moves<NUM_SQUARES; moves++) {
@@ -568,10 +568,10 @@ public class Monopoly extends Reflector<Monopoly> {
                 advanceToSquare(s, 2);
                 break;
             }
-            case CH_ADVANCE_READING_RR: {
-                int moves = getMovesTo(Square.READING_RR);
+            case CH_ADVANCE_READING_RAILROAD: {
+                int moves = getMovesTo(Square.READING_RAILROAD);
                 advance(moves);
-                advanceToSquare(Square.READING_RR, 1);
+                advanceToSquare(Square.READING_RAILROAD, 1);
                 break;
             }
             case CH_BANK_DIVIDEND:
@@ -738,10 +738,10 @@ public class Monopoly extends Reflector<Monopoly> {
             case ELECTRIC_COMPANY:
             case STATES_AVE:
             case VIRGINIA_AVE:
-            case READING_RR:
-            case B_AND_O_RR:
-            case SHORT_LINE_RR:
-            case PENNSYLVANIA_RR:
+            case READING_RAILROAD:
+            case B_AND_O_RAILROAD:
+            case SHORT_LINE_RAILROAD:
+            case PENNSYLVANIA_RAILROAD:
             case ST_JAMES_PLACE:
             case TENNESSEE_AVE:
             case NEW_YORK_AVE:
@@ -894,64 +894,71 @@ public class Monopoly extends Reflector<Monopoly> {
 
     protected void onDiceRolled() {}
 
+    private String getPlayerName(int num) {
+        Player p = getPlayer(num);
+        if (p.getPiece() != null)
+            return p.getPiece().name();
+        return "Player " + num;
+    }
+
     /**
      * numSquares can be negative
      * @param playerNum
      * @param numSquares
      */
     protected void onPlayerMove(int playerNum, int numSquares) {
-        log.info("Player %d moved %d squares", playerNum, numSquares);
+        log.info("%s moved %d squares", getPlayerName(playerNum), numSquares);
     }
 
     protected void onPlayerDrawsChance(int playerNum, CardActionType chance) {
-        log.info("Player %d draws chance card:\n%s", playerNum, chance.desc);
+        log.info("%s draws chance card:\n%s", getPlayerName(playerNum), chance.desc);
     }
 
     protected void onPlayerDrawsCommunityChest(int playerNum, CardActionType commChest) {
-        log.info("Player %d draws community chest card:\n%s", playerNum, commChest.desc);
+        log.info("%s draws community chest card:\n%s", getPlayerName(playerNum), commChest.desc);
     }
 
     protected void onPlayerReceiveMoneyFromAnother(int playerNum, int giverNum, int amt) {
-        log.info("Player %d recievd $%d from %d", playerNum, amt, giverNum);
+        log.info("%s recievd $%d from %s", getPlayerName(playerNum), amt, getPlayerName(giverNum));
     }
 
     protected void onPlayerGotPaid(int playerNum, int amt) {
-        log.info("Player %d got PAAAID $%d", playerNum, amt);
+        log.info("%s got PAAAID $%d", getPlayerName(playerNum), amt);
     }
 
     protected void onPlayerPayMoneyToKitty(int playerNum, int amt) {
-        log.info("Player %d pays $%d to kitty", playerNum, amt);
+        log.info("%s pays $%d to kitty", getPlayerName(playerNum), amt);
     }
 
     protected void onPlayerGoesToJail(int playerNum) {
-        log.info("Player %d goes to JAIL!", playerNum);
+        log.info("%s goes to JAIL!", getPlayerName(playerNum));
     }
 
     protected void onPlayerOutOfJail(int playerNum) {
-        log.info("Player %d got out of JAIL!", playerNum);
+        log.info("%s got out of JAIL!", getPlayerName(playerNum));
     }
 
-    protected void onPlayerPaysRent(int playerNum, int renterPlayer, int amt) {
-        log.info("Player %d pays $%d rent too player %d", playerNum, amt, renterPlayer);
+    protected void onPlayerPaysRent(int playerNum, int renterNum, int amt) {
+        log.info("%s pays $%d rent too %s", getPlayerName(playerNum), amt, getPlayerName(renterNum));
     }
 
     protected void onPlayerMortgaged(int playerNum, Square property, int amt) {
-        log.info("Player %d mortgaged property %s for $%d", playerNum, property.name(), amt);
+        log.info("%s mortgaged property %s for $%d", getPlayerName(playerNum), property.name(), amt);
     }
 
     protected void onPlayerUnMortgaged(int playerNum, Square property, int amt) {
-        log.info("Player %d unmortaged %s for $%d", playerNum, property.name(), amt);
+        log.info("%s unmortaged %s for $%d", getPlayerName(playerNum), property.name(), amt);
     }
 
     protected void onPlayerPurchaseProperty(int playerNum, Square property) {
-        log.info("Player %d purchased %s for $%d", playerNum, property.name(), property.getPrice());
+        log.info("%s purchased %s for $%d", getPlayerName(playerNum), property.name(), property.getPrice());
     }
 
     protected void onPlayerBoughtHouse(int playerNum, Square property, int amt) {
-        log.info("Player %d bought a HOUSE for property %s for $%d", playerNum, property.name(), amt);
+        log.info("%s bought a HOUSE for property %s for $%d", getPlayerName(playerNum), property.name(), amt);
     }
 
     protected void onPlayerBoughtHotel(int playerNum, Square property, int amt) {
-        log.info("Player %d bought a HOTEL for property %s for $%d", playerNum, property.name(), amt);
+        log.info("%s bought a HOTEL for property %s for $%d", getPlayerName(playerNum), property.name(), amt);
     }
 }

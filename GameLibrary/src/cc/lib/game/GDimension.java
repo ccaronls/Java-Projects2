@@ -30,5 +30,9 @@ public class GDimension extends Reflector<GDimension> {
         GDimension og = (GDimension)o;
         return og.width == width && og.height == height;
     }
-	
+
+    @Override
+    protected boolean isImmutable() {
+        return true;
+    }
 }

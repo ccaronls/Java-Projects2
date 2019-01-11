@@ -23,11 +23,11 @@ public final class Bezier {
 	}
 	
 	public void addPoint(float x, float y) {
-        addPoint(new Vector2D(x, y));
+        ctrl[numCtrl++] = new Vector2D(x, y);
 	}
 
 	public void addPoint(IVector2D v) {
-        ctrl[numCtrl++] = v;
+        ctrl[numCtrl++] = new Vector2D(v);
     }
 
     public void reset() {

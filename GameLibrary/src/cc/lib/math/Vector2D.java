@@ -445,4 +445,8 @@ public class Vector2D extends Reflector<Vector2D> implements IVector2D, Serializ
         x=y=0;
     }
 
+    @Override
+    protected boolean isImmutable() {
+        return true;
+    }
 }

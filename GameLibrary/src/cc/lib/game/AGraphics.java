@@ -800,6 +800,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      *
      */
     public abstract void drawFilledRects();
+
     /**
      * 
      * @param assetPath file location to load the image

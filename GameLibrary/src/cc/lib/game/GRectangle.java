@@ -1,7 +1,6 @@
 package cc.lib.game;
 
 import cc.lib.math.MutableVector2D;
-import cc.lib.math.Vector2D;
 import cc.lib.utils.Reflector;
 
 public final class GRectangle extends Reflector<GRectangle> {
@@ -50,8 +49,40 @@ public final class GRectangle extends Reflector<GRectangle> {
      *
      * @return
      */
-    public final Vector2D getCenter() {
-        return new Vector2D(x+w/2, y+h/2);
+    public final MutableVector2D getCenter() {
+        return new MutableVector2D(x+w/2, y+h/2);
+    }
+
+    /**
+     *
+     * @return
+     */
+    public final MutableVector2D getTopLeft() {
+        return new MutableVector2D(x, y);
+    }
+
+    /**
+     *
+     * @return
+     */
+    public final MutableVector2D getTopRight() {
+        return new MutableVector2D(x+w, y);
+    }
+
+    /**
+     *
+     * @return
+     */
+    public final MutableVector2D getBottomLeft() {
+        return new MutableVector2D(x, y+h);
+    }
+
+    /**
+     *
+     * @return
+     */
+    public final MutableVector2D getBottomRight() {
+        return new MutableVector2D(x+w, y+h);
     }
 
     /**

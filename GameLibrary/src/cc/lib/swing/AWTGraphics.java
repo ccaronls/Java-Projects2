@@ -313,6 +313,10 @@ public class AWTGraphics extends APGraphics {
         images.addSearchPath(path);
     }
 
+    public final int loadImage(String assetPath, GColor transparent, int maxCopies) {
+        return images.loadImage(assetPath, transparent == null ? null : AWTUtils.toColor(transparent), maxCopies);
+    }
+
     @Override
     public final  int loadImage(String assetPath, GColor transparent) {
         return images.loadImage(assetPath, transparent == null ? null : AWTUtils.toColor(transparent));

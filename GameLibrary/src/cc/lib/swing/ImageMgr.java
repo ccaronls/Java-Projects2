@@ -22,7 +22,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Vector;
 
 import javax.swing.ImageIcon;
 
@@ -31,7 +30,7 @@ import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
 import cc.lib.math.CMath;
 
-public class ImageMgr {
+public final class ImageMgr {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -47,13 +46,19 @@ public class ImageMgr {
     }
 
     static class Meta {
-        Image source;
-        int maxSubsets = 2;
+        private Image source;
+        private final int copies;
 
         final LinkedList<ScaledImage> scaledVersion = new LinkedList<>();
 
-        Meta(Image source) {
+        void setSource(Image source) {
             this.source = source;
+            scaledVersion.clear();
+        }
+
+        Meta(Image source, int maxCopies) {
+            this.source = source;
+            this.copies = maxCopies;
         }
     }
 
@@ -157,13 +162,17 @@ public class ImageMgr {
         paths.add(s);
     }
 
-	/**
-	 * 
-	 * @param fileOrResourceName
-	 * @param transparent
-	 * @return
-	 */
-	public synchronized int loadImage(String fileOrResourceName, Color transparent) {
+    public synchronized int loadImage(String fileOrResourceName, Color transparent) {
+        return loadImage(fileOrResourceName, transparent, 2);
+    }
+
+    /**
+     *
+     * @param fileOrResourceName
+     * @param transparent
+     * @return
+     */
+	public synchronized int loadImage(String fileOrResourceName, Color transparent, int maxCopies) {
         int id = images.size();
 		Image image = null;
 		log.debug("Loading image %d : %s ...", id, fileOrResourceName);
@@ -184,7 +193,7 @@ public class ImageMgr {
 		}			
 
 		log.debug("SUCCESS");
-		return addImage(image);
+		return addImage(image, maxCopies);
 	}
 
 	/**
@@ -272,7 +281,7 @@ public class ImageMgr {
 	    Meta meta = images.get(id);
 		Image image = meta.source;
 		image = transform(image, new TransparencyFilter(color));
-		meta.source = image;
+		meta.setSource(image);
 	}
 	
 	/**
@@ -301,7 +310,7 @@ public class ImageMgr {
 
 			image = transform(image, new ReplicateScaleFilter(width,height));
 			meta.scaledVersion.addFirst(new ScaledImage(image, width, height));
-			if (meta.scaledVersion.size() > meta.maxSubsets) {
+			if (meta.scaledVersion.size() > meta.copies) {
 			    meta.scaledVersion.removeLast();
             }
 		}
@@ -387,12 +396,16 @@ public class ImageMgr {
         return meta.source.getHeight(null);
 	}
 
-	/**
-	 * 
-	 * @param image
-	 * @return
-	 */
-	public int addImage(Image image) {
+    public int addImage(Image image) {
+	    return addImage(image, 2);
+    }
+
+    /**
+     *
+     * @param image
+     * @return
+     */
+	public int addImage(Image image, int maxCopies) {
 		int id = 0;
 		for ( ; id<images.size(); id++) {
 			if (images.get(id).source == null) {
@@ -400,7 +413,7 @@ public class ImageMgr {
 				return id;
 			}
 		}
-		images.add(new Meta(image));
+		images.add(new Meta(image, maxCopies));
 		return id;
 	}
 	

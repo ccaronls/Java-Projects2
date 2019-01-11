@@ -10,7 +10,7 @@ public enum Square {
     COMM_CHEST1(SquareType.COMMUNITY_CHEST, GColor.WHITE),
     BALTIC_AVE(SquareType.PROPERTY, GColor.BROWN, 60, 50, 4, 20, 60, 180, 320, 450),
     INCOME_TAX(SquareType.TAX, GColor.WHITE, 200),
-    READING_RR(SquareType.RAIL_ROAD, GColor.WHITE, 200),
+    READING_RAILROAD(SquareType.RAIL_ROAD, GColor.WHITE, 200),
     ORIENTAL_AVE(SquareType.PROPERTY, Board.LIGHT_BLUE, 100, 50, 6, 30, 90, 270, 400, 550),
     CHANCE1(SquareType.CHANCE, GColor.WHITE),
     VERMONT_AVE(SquareType.PROPERTY, Board.LIGHT_BLUE, 100, 50, 6, 30, 90, 270, 400, 550),
@@ -20,7 +20,7 @@ public enum Square {
     ELECTRIC_COMPANY(SquareType.UTILITY, GColor.WHITE, 150),
     STATES_AVE(SquareType.PROPERTY, Board.PURPLE, 140, 100, 10, 50, 150, 450, 625, 750),
     VIRGINIA_AVE(SquareType.PROPERTY, Board.PURPLE, 160, 100, 12, 60, 180, 500, 700, 900),
-    PENNSYLVANIA_RR(SquareType.RAIL_ROAD, GColor.WHITE, 200),
+    PENNSYLVANIA_RAILROAD(SquareType.RAIL_ROAD, GColor.WHITE, 200),
     ST_JAMES_PLACE(SquareType.PROPERTY, Board.ORANGE, 180, 100, 14, 70, 200, 550, 750, 950),
     COMM_CHEST2(SquareType.COMMUNITY_CHEST, GColor.WHITE),
     TENNESSEE_AVE(SquareType.PROPERTY, Board.ORANGE, 180, 100, 14, 70, 200, 550, 750, 950),
@@ -30,7 +30,7 @@ public enum Square {
     CHANCE2(SquareType.CHANCE, GColor.WHITE),
     INDIANA_AVE(SquareType.PROPERTY, GColor.RED, 220, 150, 18, 90, 250, 700, 875, 1050),
     ILLINOIS_AVE(SquareType.PROPERTY, GColor.RED, 240, 150, 20, 100, 300, 750, 925, 1100),
-    B_AND_O_RR(SquareType.RAIL_ROAD, GColor.WHITE, 200),
+    B_AND_O_RAILROAD(SquareType.RAIL_ROAD, GColor.WHITE, 200),
     ATLANTIC_AVE(SquareType.PROPERTY, GColor.YELLOW, 260, 150, 22, 110, 330, 800, 975, 1150),
     VENTNOR_AVE(SquareType.PROPERTY, GColor.YELLOW, 260, 150, 22, 110, 330, 800, 975, 1150),
     WATER_WORKS(SquareType.UTILITY, GColor.WHITE, 150),
@@ -40,7 +40,7 @@ public enum Square {
     NORTH_CAROLINA_AVE(SquareType.PROPERTY, GColor.GREEN, 300, 200, 26, 130, 390, 900, 1100, 1300),
     COMM_CHEST3(SquareType.COMMUNITY_CHEST, GColor.WHITE),
     PENNSYLVANIA_AVE(SquareType.PROPERTY, GColor.GREEN, 320, 200, 28, 150, 450, 1000, 1200, 1400),
-    SHORT_LINE_RR(SquareType.RAIL_ROAD, GColor.WHITE, 200),
+    SHORT_LINE_RAILROAD(SquareType.RAIL_ROAD, GColor.WHITE, 200),
     CHANCE3(SquareType.CHANCE, GColor.WHITE),
     PARK_PLACE(SquareType.PROPERTY, GColor.BLUE, 350, 200, 35, 175, 500, 1100, 1300, 1500),
     LUXURY_TAX(SquareType.TAX, GColor.WHITE, 100),
@@ -114,10 +114,10 @@ public enum Square {
 
     public boolean isRailroad() {
         switch (this) {
-            case READING_RR:
-            case B_AND_O_RR:
-            case PENNSYLVANIA_RR:
-            case SHORT_LINE_RR:
+            case READING_RAILROAD:
+            case B_AND_O_RAILROAD:
+            case PENNSYLVANIA_RAILROAD:
+            case SHORT_LINE_RAILROAD:
                 return true;
         }
         return false;

@@ -24,39 +24,39 @@ public class Player extends Reflector<Player> {
     int debt;
     Piece piece;
 
-    public MoveType chooseMove(List<MoveType> options) {
+    public MoveType chooseMove(Monopoly game, List<MoveType> options) {
         return Utils.randItem(options);
     }
 
-    public Card chooseCard(List<Card> cards) {
+    public Card chooseCard(Monopoly game, List<Card> cards) {
         return Utils.randItem(cards);
     }
 
-    public Piece getPiece() {
+    public final Piece getPiece() {
         return piece;
     }
 
-    public void setPiece(Piece piece) {
+    public final void setPiece(Piece piece) {
         this.piece = piece;
     }
 
-    public Square getSquare() {
+    public final Square getSquare() {
         return Square.values()[square];
     }
 
-    public int getMoney() {
+    public final int getMoney() {
         return money;
     }
 
-    public List<Card> getCards() {
+    public final List<Card> getCards() {
         return Collections.unmodifiableList(cards);
     }
 
-    public boolean isInJail() {
+    public final boolean isInJail() {
         return inJail;
     }
 
-    public Map<GColor, List<Card>> getPropertySets() {
+    public final Map<GColor, List<Card>> getPropertySets() {
         Map<GColor, List<Card>> sets = new HashMap<>();
         for (Card c : cards) {
             if (c.property == null || !c.property.isProperty())

@@ -29,10 +29,10 @@ public class Board {
             new Vector2D(1057, 1239)
     };
 
-    private final float dim;
+    private final float dim; // dimension of whole board
     private final float scale;
-    private final float borderDim;
-    private final float cellDim;
+    private final float borderDim; // dimension of a corner square
+    private final float cellDim; // width of a narrow square
 
     public Board(float dim) {
         this.dim = dim;
@@ -109,15 +109,26 @@ public class Board {
     }
 
     public float getPieceDimension() {
-        return cellDim*2/3;
+        return cellDim/2;
     }
 
-    // TODO: Special case for when a player is in JAIL
     public GRectangle getPiecePlacement(int player, Square sq) {
-        int index = sq.ordinal();
+        float dim = getPieceDimension();
         GRectangle rect = getSqaureBounds(sq);
         Vector2D cntr = rect.getCenter();
-        float dim = getPieceDimension();
+        if (sq == Square.VISITING_JAIL) {
+            // special case to place around the outer edge
+            switch (player) {
+                case 0: // left middle
+                    return new GRectangle(rect.x, cntr.Y(), dim, dim);
+                case 1: // bottom middle
+                    return new GRectangle(rect.x+dim, rect.y+rect.h-dim, dim, dim);
+                case 2: // left top
+                    return new GRectangle(rect.x, cntr.getY()-dim, dim, dim);
+            }
+            // bottom right
+            return new GRectangle(rect.x-rect.w-dim, rect.y+rect.h-dim, dim, dim);
+        }
         switch (player) {
             case 0:
                 return new GRectangle(cntr.X()-dim, cntr.Y()-dim, dim, dim);
@@ -127,6 +138,27 @@ public class Board {
                 return new GRectangle(cntr.X(), cntr.Y()-dim, dim, dim);
         }
         return new GRectangle(cntr.X()-dim, cntr.Y(), dim, dim);
+    }
+
+    public GRectangle getPiecePlacementJail(int playerNum) {
+        GRectangle rect = getSqaureBounds(Square.VISITING_JAIL);
+        float dim = rect.w/4;
+        rect.x += dim;
+        rect.w -= dim;
+        rect.h -= dim;
+        dim = getPieceDimension();
+        rect.w = dim;
+        rect.h = dim;
+        switch (playerNum) {
+            case 3:
+                rect.y += dim;
+                break;
+            case 1:
+                rect.x += dim; rect.y += dim; break;
+            case 2:
+                rect.x += dim; break;
+        }
+        return rect;
     }
 
     public enum Position {
@@ -149,7 +181,7 @@ public class Board {
             case COMM_CHEST1:
             case BALTIC_AVE:
             case INCOME_TAX:
-            case READING_RR:
+            case READING_RAILROAD:
             case ORIENTAL_AVE:
             case CHANCE1:
             case VERMONT_AVE:
@@ -161,7 +193,7 @@ public class Board {
             case ELECTRIC_COMPANY:
             case STATES_AVE:
             case VIRGINIA_AVE:
-            case PENNSYLVANIA_RR:
+            case PENNSYLVANIA_RAILROAD:
             case ST_JAMES_PLACE:
             case COMM_CHEST2:
             case TENNESSEE_AVE:
@@ -173,7 +205,7 @@ public class Board {
             case CHANCE2:
             case INDIANA_AVE:
             case ILLINOIS_AVE:
-            case B_AND_O_RR:
+            case B_AND_O_RAILROAD:
             case ATLANTIC_AVE:
             case VENTNOR_AVE:
             case WATER_WORKS:
@@ -185,7 +217,7 @@ public class Board {
             case NORTH_CAROLINA_AVE:
             case COMM_CHEST3:
             case PENNSYLVANIA_AVE:
-            case SHORT_LINE_RR:
+            case SHORT_LINE_RAILROAD:
             case CHANCE3:
             case PARK_PLACE:
             case LUXURY_TAX:
