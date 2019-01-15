@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+              android:orientation="vertical"
+    android:background="#fff"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent">
+    <TextView
+        android:id="@+id/tvLeft"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Live Players"
+        app:layout_constraintWidth_percent=".5"
+        app:layout_constraintStart_toStartOf="parent"
+        android:gravity="center"
+        android:textColor="#000"
+        android:textSize="20sp"
+        />
+
+    <TextView
+        android:id="@+id/tvRight"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:textColor="#000"
+        android:textSize="20sp"
+        android:gravity="center"
+        app:layout_constraintWidth_percent=".5"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:text="Computer Players"/>
+
+    <cc.lib.android.CCNumberPicker
+        android:id="@+id/npLivePlayers"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@id/tvLeft"
+        app:layout_constraintStart_toStartOf="@id/tvLeft"
+        app:layout_constraintEnd_toEndOf="@id/tvLeft"/>
+
+    <cc.lib.android.CCNumberPicker
+        android:id="@+id/npCompPlayers"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@id/tvRight"
+        app:layout_constraintStart_toStartOf="@id/tvRight"
+        app:layout_constraintEnd_toEndOf="@id/tvRight"/>
+
+</android.support.constraint.ConstraintLayout>

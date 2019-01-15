@@ -227,7 +227,7 @@ public class Player extends Reflector<Player> {
     public final List<Card> getCardsForNewHouse() {
         List<Card> cards = new ArrayList<>();
         for (Card c : this.cards) {
-            if (c.property != null && c.property.isProperty() && c.property.getHousePrice() <= money && hasSet(c.property))
+            if (c.property != null && c.property.isProperty() && c.property.getHousePrice() <= money && hasSet(c.property) && c.houses < Monopoly.MAX_HOUSES)
                 cards.add(c);
         }
         return cards;

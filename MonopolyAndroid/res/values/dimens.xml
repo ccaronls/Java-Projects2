@@ -1,0 +1,5 @@
+<resources>
+    <dimen name="border_padding">8dp</dimen>
+    <dimen name="element_spacing">5dp</dimen>
+    <dimen name="info_txt_size">20sp</dimen>
+</resources>

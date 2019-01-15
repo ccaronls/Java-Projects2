@@ -144,9 +144,13 @@ public abstract class DroidActivity extends CCActivityBase {
 
     private AlertDialog currentDialog = null;
 
+    protected int getDialogTheme() {
+        return R.style.DialogTheme;
+    }
+
     public final AlertDialog.Builder newDialogBuilder() {
         final AlertDialog previous = currentDialog;
-        AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.DialogTheme) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this, getDialogTheme()) {
             @Override
             public AlertDialog show() {
                 if (currentDialog != null) {

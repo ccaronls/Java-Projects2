@@ -21,6 +21,9 @@ public final class Matrix3x3 extends Reflector<Matrix3x3>  {
 	private double a21, a22, a23;
 	private double a31, a32, a33;
 
+    /**
+     * Builds a zero matrix
+     */
 	public Matrix3x3() {
 		a11=0; a12=0; a13=0;
 		a21=0; a22=0; a23=0;

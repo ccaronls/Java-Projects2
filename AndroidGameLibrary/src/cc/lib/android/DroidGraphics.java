@@ -163,7 +163,7 @@ public class DroidGraphics extends APGraphics {
 
     @Override
     public final void drawPoints() {
-        paint.setStyle(Paint.Style.FILL);
+        paint.setStyle(Paint.Style.FILL_AND_STROKE);
         for (int i = 0; i < r.getNumVerts(); i++) {
             Vector2D v = r.getVertex(i);
             canvas.drawCircle(v.getX(), v.getY(), pointSize / 2, paint);
@@ -223,7 +223,7 @@ public class DroidGraphics extends APGraphics {
 
     @Override
     public final void drawTriangles() {
-        paint.setStyle(Paint.Style.FILL);
+        paint.setStyle(Paint.Style.FILL_AND_STROKE);
         int num = r.getNumVerts();
         for (int i = 0; i <= num - 3; i += 3) {
             Vector2D v0 = r.getVertex(i);
@@ -235,7 +235,7 @@ public class DroidGraphics extends APGraphics {
 
     @Override
     public final void drawTriangleFan() {
-        paint.setStyle(Paint.Style.FILL);
+        paint.setStyle(Paint.Style.FILL_AND_STROKE);
         int num = r.getNumVerts();
         if (num < 3)
             return;
@@ -250,7 +250,7 @@ public class DroidGraphics extends APGraphics {
 
     @Override
     public final void drawTriangleStrip() {
-        paint.setStyle(Paint.Style.FILL);
+        paint.setStyle(Paint.Style.FILL_AND_STROKE);
         int num = r.getNumVerts();
         if (num < 3)
             return;
@@ -266,7 +266,7 @@ public class DroidGraphics extends APGraphics {
 
     @Override
     public final void drawQuadStrip() {
-        paint.setStyle(Paint.Style.FILL);
+        paint.setStyle(Paint.Style.FILL_AND_STROKE);
         int num = r.getNumVerts();
         if (num < 4)
             return;
@@ -301,7 +301,7 @@ public class DroidGraphics extends APGraphics {
 
     @Override
     public void drawFilledRects() {
-        paint.setStyle(Paint.Style.FILL);
+        paint.setStyle(Paint.Style.FILL_AND_STROKE);
         for (int i = 0; i <= r.getNumVerts() - 2; i += 2) {
             Vector2D v0 = r.getVertex(i);
             Vector2D v1 = r.getVertex(i + 1);
@@ -509,7 +509,7 @@ public class DroidGraphics extends APGraphics {
 
     @Override
     public final void clearScreen(GColor color) {
-        paint.setStyle(Paint.Style.FILL);
+        paint.setStyle(Paint.Style.FILL_AND_STROKE);
         int savecolor = paint.getColor();
         paint.setColor(color.toARGB());
         canvas.save();
@@ -531,7 +531,7 @@ public class DroidGraphics extends APGraphics {
 
     @Override
     public void drawFilledRoundedRect(float x, float y, float w, float h, float radius) {
-        paint.setStyle(Paint.Style.FILL);
+        paint.setStyle(Paint.Style.FILL_AND_STROKE);
         float oldWidth = setLineWidth(0);
         renderRoundRect(x, y, w, h, radius);
         setLineWidth(oldWidth);

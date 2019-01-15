@@ -1738,18 +1738,26 @@ public class Utils {
      * @return
      */
     public static <T extends Enum<T>> String[] toStringArray(T[] values) {
+        return toStringArray(values, true);
+    }
+
+    public static <T extends Enum<T>> String[] toStringArray(T[] values, boolean pretty) {
         String[] result = new String[values.length];
         for (int i = 0; i < values.length; i++) {
-            result[i] = values[i].name();
+            result[i] = pretty ? getPrettyString(values[i].name()) : values[i].name();
         }
         return result;
     }
 
     public static String [] toStringArray(Collection items) {
+        return toStringArray(items, false);
+    }
+
+    public static String [] toStringArray(Collection items, boolean pretty) {
         String [] result = new String[items.size()];
         int index=0;
         for (Object o : items) {
-            result[index++] = o == null ? "null" : o.toString();
+            result[index++] = o == null ? "null" : (pretty ? getPrettyString(o.toString()) : o.toString());
         }
         return result;
     }
@@ -1875,6 +1883,48 @@ public class Utils {
                 return i;
         }
         return -1;
+    }
+
+    /**
+     * Shift all array elements to the left and return item shifted off the front (zeroth element)
+     * @param arr
+     * @param <T>
+     * @return
+     */
+    public static <T> T shiftLeft(T [] arr) {
+        T top = arr[0];
+        for (int i=0; i<arr.length-1; i++) {
+            arr[i] = arr[i+1];
+        }
+        return top;
+    }
+
+    /**
+     * Shift all array elements to the left and return item shifted off the front (zeroth element)
+     * @param arr
+     * @return
+     */
+    public static int shiftLeft(int [] arr) {
+        int top = arr[0];
+        for (int i=0; i<arr.length-1; i++) {
+            arr[i] = arr[i+1];
+        }
+        return top;
+    }
+
+    /**
+     * Shift all array elements to the right and return the item shift aff the back (nth-1 element)
+     *
+     * @param arr
+     * @param <T>
+     * @return
+     */
+    public static <T> T shiftRight(T [] arr) {
+        T last = arr[arr.length-1];
+        for (int i=arr.length-1; i>0; i--) {
+            arr[i] = arr[i-1];
+        }
+        return last;
     }
 
     /**

@@ -22,20 +22,37 @@ import cc.lib.math.Vector2D;
 
 public abstract class UIMonopoly extends Monopoly {
 
+    private final static float HOUSE_RADIUS = 1;
     private final int MONEY_PAUSE = 1000;
     private final Object LOCK = this;
     private boolean gameRunning = false;
     private boolean gameStopped = true;
+    private int W, H, DIM;
+    private Board board;
+    private float playerInfoWidth, playerInfoHeight;
+    private final Map<String, LinkedList<AAnimation>> animations = new HashMap<>();
+    private final Map<String, Sprite> spriteMap = new HashMap<>();
+    private final GColor BOARD_COLOR = new GColor(0xFFD2E5D2);
+    private final float PADDING = 5;
 
-    protected abstract void repaint();
+    public UIMonopoly() {
+        initSprites();
+    }
+
+    public abstract void repaint();
 
     protected abstract int getImageId(Piece p);
 
     protected abstract int getBoardImageId();
 
+    protected abstract MoveType showChooseMoveMenu(Player player, List<MoveType> moves);
+
+    protected abstract Card showChooseCardMenu(Player player, List<Card> cards);
+
+
     @Override
     protected void onDiceRolled() {
-        addAnimation(LOCK, new AAnimation<AGraphics>(2000) {
+        addAnimation("GAME", new AAnimation<AGraphics>(2000) {
 
             long delay = 10;
             int die1 = 1+ Utils.rand()%6;
@@ -73,17 +90,17 @@ public abstract class UIMonopoly extends Monopoly {
 
     @Override
     protected void onPlayerMove(int playerNum, int numSquares) {
-        setSpriteAnim(getPlayer(playerNum).getPiece(), new JumpAnimation(playerNum, numSquares).start());
+        setSpriteAnim(getPlayer(playerNum).getPiece().name(), new JumpAnimation(playerNum, numSquares).start());
         Utils.waitNoThrow(LOCK, numSquares*600);
         super.onPlayerMove(playerNum, numSquares);
     }
 
     private void showMessage(final String title, final String txt) {
-        addAnimation(board, new AAnimation<AGraphics>(4000) {
+        addAnimation("BOARD", new AAnimation<AGraphics>(4000) {
             @Override
             protected void draw(AGraphics g, float position, float dt) {
                 final float border = 5;
-                float width = Math.max(DIM/3, g.getTextWidth(txt) + border*2);
+                float width = DIM/3 + border*2;
                 String [] lines = g.generateWrappedLines(txt, width-border*2);
                 //GDimension dim = //g.drawWrapStringOnBackground(DIM/2, DIM/2, DIM/3, Justify.CENTER, Justify.CENTER, txt, GColor.WHITE, 5);
                 float txtHgt = g.getTextHeight();
@@ -108,7 +125,15 @@ public abstract class UIMonopoly extends Monopoly {
                     y += txtHgt;
                 }
             }
-        });
+
+            @Override
+            protected void onDone() {
+                synchronized (LOCK) {
+                    LOCK.notify();
+                }
+            }
+        }.start());
+        Utils.waitNoThrow(LOCK, 5000);
     }
 
     @Override
@@ -125,23 +150,23 @@ public abstract class UIMonopoly extends Monopoly {
 
     @Override
     protected void onPlayerGotPaid(int playerNum, int amt) {
-        setSpriteAnim(playerNum, new MoneyAnim(getPlayer(playerNum).getMoney(), amt).start());
+        setSpriteAnim("PLAYER"+playerNum, new MoneyAnim(getPlayer(playerNum).getMoney(), amt).start());
         Utils.waitNoThrow(LOCK, MONEY_PAUSE);
         super.onPlayerGotPaid(playerNum, amt);
     }
 
     @Override
     protected void onPlayerReceiveMoneyFromAnother(int playerNum, int giverNum, int amt) {
-        setSpriteAnim(playerNum, new MoneyAnim(getPlayer(playerNum).getMoney(), amt).start());
-        setSpriteAnim(giverNum, new MoneyAnim(getPlayer(giverNum).getMoney(), -amt).start());
+        setSpriteAnim("PLAYER"+playerNum, new MoneyAnim(getPlayer(playerNum).getMoney(), amt).start());
+        setSpriteAnim("PLAYER"+giverNum, new MoneyAnim(getPlayer(giverNum).getMoney(), -amt).start());
         Utils.waitNoThrow(LOCK, MONEY_PAUSE);
         super.onPlayerReceiveMoneyFromAnother(playerNum, giverNum, amt);
     }
 
     @Override
     protected void onPlayerPayMoneyToKitty(int playerNum, int amt) {
-        setSpriteAnim(playerNum, new MoneyAnim(getPlayer(playerNum).getMoney(), -amt).start());
-        setSpriteAnim(Square.FREE_PARKING, new MoneyAnim(getKitty(), amt).start());
+        setSpriteAnim("PLAYER"+playerNum, new MoneyAnim(getPlayer(playerNum).getMoney(), -amt).start());
+        setSpriteAnim(Square.FREE_PARKING.name(), new MoneyAnim(getKitty(), amt).start());
         Utils.waitNoThrow(LOCK, MONEY_PAUSE);
         super.onPlayerPayMoneyToKitty(playerNum, amt);
     }
@@ -151,7 +176,7 @@ public abstract class UIMonopoly extends Monopoly {
         final Player p = getPlayer(playerNum);
         final GRectangle start = board.getPiecePlacement(playerNum, p.getSquare());
         final GRectangle end   = board.getPiecePlacementJail(playerNum);
-        setSpriteAnim(getPlayer(playerNum).getPiece(), new AAnimation<Sprite>(2000) {
+        setSpriteAnim(getPlayer(playerNum).getPiece().name(), new AAnimation<Sprite>(2000) {
 
             final Bezier curve = new Bezier();
 
@@ -181,64 +206,84 @@ public abstract class UIMonopoly extends Monopoly {
             }
         }.start());
         Utils.waitNoThrow(LOCK, 5000);
-        addAnimation(p, new JailedAnim(playerInfoWidth, playerInfoHeight).start());
+        addAnimation("PLAYER"+playerNum, new JailedAnim(playerInfoWidth, playerInfoHeight).start());
+//        Utils.waitNoThrow(LOCK, 5000);
         super.onPlayerGoesToJail(playerNum);
     }
 
     @Override
     protected void onPlayerOutOfJail(int playerNum) {
-        addAnimation(getPlayer(playerNum), new JailedAnim(playerInfoWidth, playerInfoHeight).startReverse());
+        addAnimation("PLAYER"+playerNum, new JailedAnim(playerInfoWidth, playerInfoHeight).startReverse());
+        Utils.waitNoThrow(LOCK, 5000);
         super.onPlayerOutOfJail(playerNum);
     }
 
     @Override
     protected void onPlayerPaysRent(int playerNum, int renterNum, int amt) {
-        spriteMap.get(playerNum).animation = new MoneyAnim(getPlayer(playerNum).getMoney(), -amt).start();
-        spriteMap.get(renterNum).animation = new MoneyAnim(getPlayer(renterNum).getMoney(), amt).start();
+        setSpriteAnim("PLAYER"+playerNum, new MoneyAnim(getPlayer(playerNum).getMoney(), -amt).start());
+        setSpriteAnim("PLAYER"+renterNum, new MoneyAnim(getPlayer(renterNum).getMoney(), amt).start());
         Utils.waitNoThrow(LOCK, MONEY_PAUSE);
         super.onPlayerPaysRent(playerNum, renterNum, amt);
     }
 
     @Override
     protected void onPlayerMortgaged(int playerNum, Square property, int amt) {
-        spriteMap.get(playerNum).animation = new MoneyAnim(getPlayer(playerNum).getMoney(), amt).start();
+        setSpriteAnim("PLAYER"+playerNum, new MoneyAnim(getPlayer(playerNum).getMoney(), amt).start());
         Utils.waitNoThrow(LOCK, MONEY_PAUSE);
         super.onPlayerMortgaged(playerNum, property, amt);
     }
 
     @Override
     protected void onPlayerUnMortgaged(int playerNum, Square property, int amt) {
-        spriteMap.get(playerNum).animation = new MoneyAnim(getPlayer(playerNum).getMoney(), -amt).start();
+        setSpriteAnim("PLAYER"+playerNum, new MoneyAnim(getPlayer(playerNum).getMoney(), -amt).start());
         Utils.waitNoThrow(LOCK, MONEY_PAUSE);
         super.onPlayerUnMortgaged(playerNum, property, amt);
     }
 
     @Override
-    protected void onPlayerPurchaseProperty(int playerNum, Square property) {
-        spriteMap.get(playerNum).animation = new MoneyAnim(getPlayer(playerNum).getMoney(), -property.getPrice()).start();
+    protected void onPlayerPurchaseProperty(final int playerNum, final Square property) {
+        setSpriteAnim("PLAYER"+playerNum, new MoneyAnim(getPlayer(playerNum).getMoney(), -property.getPrice()).start());
+        addAnimation("BOARD", new AAnimation<AGraphics>(2000) {
+            @Override
+            protected void draw(AGraphics g, float position, float dt) {
+                GRectangle d = board.getSqaureBounds(property);
+                g.setColor(GColor.RED.withAlpha(1f-position));
+                g.drawWrapString(d.x+d.w/2, d.y+d.h/2, d.w * 3/4, Justify.CENTER, Justify.CENTER, "SOLD");
+            }
+
+            @Override
+            protected void onDone() {
+                synchronized (LOCK) {
+                    LOCK.notify();
+                }
+            }
+        }.start());
+        Utils.waitNoThrow(LOCK, 3000);
         super.onPlayerPurchaseProperty(playerNum, property);
     }
 
     @Override
     protected void onPlayerBoughtHouse(int playerNum, Square property, int amt) {
-        spriteMap.get(playerNum).animation = new MoneyAnim(getPlayer(playerNum).getMoney(), -amt).start();
+        setSpriteAnim("PLAYER"+playerNum, new MoneyAnim(getPlayer(playerNum).getMoney(), -amt).start());
+        Utils.waitNoThrow(LOCK, MONEY_PAUSE);
         super.onPlayerBoughtHouse(playerNum, property, amt);
     }
 
     @Override
     protected void onPlayerBoughtHotel(int playerNum, Square property, int amt) {
-        spriteMap.get(playerNum).animation = new MoneyAnim(getPlayer(playerNum).getMoney(), -amt).start();
+        setSpriteAnim("PLAYER"+playerNum, new MoneyAnim(getPlayer(playerNum).getMoney(), -amt).start());
+        Utils.waitNoThrow(LOCK, MONEY_PAUSE);
         super.onPlayerBoughtHotel(playerNum, property, amt);
     }
 
-    final Map<Object, LinkedList<AAnimation>> animations = new HashMap<>();
-
-    void addAnimation(Object where, AAnimation a) {
+    void addAnimation(String key, AAnimation a) {
+        if (!isGameRunning())
+            return;
         synchronized (animations) {
-            LinkedList<AAnimation> list = animations.get(where);
+            LinkedList<AAnimation> list = animations.get(key);
             if (list == null) {
                 list = new LinkedList<>();
-                animations.put(where, list);
+                animations.put(key, list);
             }
             list.add(a);
         }
@@ -257,10 +302,23 @@ public abstract class UIMonopoly extends Monopoly {
         }
     }
 
-    void setSpriteAnim(Object sprite, AAnimation<Sprite> anim) {
-        Sprite s = spriteMap.get(sprite);
+    void setSpriteAnim(String key, AAnimation<Sprite> anim) {
+        if (!isGameRunning())
+            return;
+        Sprite s = spriteMap.get(key);
         s.animation = anim;
         repaint();
+    }
+
+    public void onClick() {
+    }
+
+    public void startDrag() {
+
+    }
+
+    public void stopDrag() {
+
     }
 
     /**
@@ -295,12 +353,10 @@ public abstract class UIMonopoly extends Monopoly {
         abstract void draw(AGraphics g, float w, float h);
     }
 
-    final Map<Object, Sprite> spriteMap = new HashMap<>();
-
     void initSprites() {
         // the pieces on the board can be animated
         for (final Piece p : Piece.values()) {
-            spriteMap.put(p, new Sprite() {
+            spriteMap.put(p.name(), new Sprite() {
                 @Override
                 void draw(AGraphics g, float w, float h) {
                     g.drawImage(getImageId(p), 0, 0, w, h);
@@ -311,7 +367,7 @@ public abstract class UIMonopoly extends Monopoly {
         // a players current money can be animated
         for (int i=0; i<Monopoly.MAX_PLAYERS; i++) {
             final int pNum = i;
-            spriteMap.put(i, new Sprite() {
+            spriteMap.put("PLAYER"+i, new Sprite() {
                 @Override
                 void draw(AGraphics g, float w, float h) {
                     final Player p = getPlayer(pNum);
@@ -337,7 +393,7 @@ public abstract class UIMonopoly extends Monopoly {
         }
 
         // The kitty can be animated
-        spriteMap.put(Square.FREE_PARKING, new Sprite() {
+        spriteMap.put(Square.FREE_PARKING.name(), new Sprite() {
             @Override
             void draw(AGraphics g, float w, float h) {
                 if (getKitty() > 0 || isAnimating()) {
@@ -426,6 +482,7 @@ public abstract class UIMonopoly extends Monopoly {
         Square start;
         int jumps;
         int playerNum;
+        int dir;
         Bezier curve;
 
         JumpAnimation(int playerNum, int jumps) {
@@ -433,13 +490,15 @@ public abstract class UIMonopoly extends Monopoly {
             this.playerNum = playerNum;
             this.start = getPlayer(playerNum).getSquare();
             this.jumps = jumps;
+            this.dir = CMath.signOf(jumps);
             curve = new Bezier();
             init();
         }
 
         void init() {
             GRectangle r0 = board.getPiecePlacement(playerNum, start);
-            start = Utils.incrementValue(start, Square.values());
+            start = jumps > 0 ? Utils.incrementValue(start, Square.values()) :
+                    Utils.decrementValue(start, Square.values());
             GRectangle r1 = board.getPiecePlacement(playerNum, start);
             curve.reset();
             curve.addPoint(r0.x, r0.y);
@@ -448,7 +507,7 @@ public abstract class UIMonopoly extends Monopoly {
             curve.addPoint(r0.x + dx/3, r0.y + dx/6);
             curve.addPoint(r0.x + dx*2/3, r0.y + dx/6);
             curve.addPoint(r1.x, r1.y);
-            jumps--;
+            jumps-=dir;
         }
 
         @Override
@@ -458,7 +517,7 @@ public abstract class UIMonopoly extends Monopoly {
 
         @Override
         protected void onDone() {
-            if (jumps > 0) {
+            if (jumps != 0) {
                 init();
                 start();
             } else {
@@ -479,6 +538,7 @@ public abstract class UIMonopoly extends Monopoly {
                 while (gameRunning && getWinner() < 0) {
                     runGame();
                     repaint();
+                    Utils.waitNoThrow(this, 100);
                 }
                 gameRunning = false;
                 gameStopped = true;
@@ -487,10 +547,11 @@ public abstract class UIMonopoly extends Monopoly {
 
     }
 
-    void stopGameThread() {
+    public final void stopGameThread() {
         if (gameStopped)
             return;
         gameRunning = false;
+        stopAnimations();
         synchronized (LOCK) {
             LOCK.notifyAll();
         }
@@ -499,7 +560,7 @@ public abstract class UIMonopoly extends Monopoly {
         }
     }
 
-    void initPlayers(int num, Piece pc) {
+    public final void initPlayers(int num, Piece pc) {
         clear();
         PlayerUser user = new PlayerUser();
         user.setPiece(pc);
@@ -508,11 +569,8 @@ public abstract class UIMonopoly extends Monopoly {
             addPlayer(new Player());
     }
 
-    int W, H, DIM;
-    Board board;
-    float playerInfoWidth, playerInfoHeight;
-
     public void paint(APGraphics g, int mouseX, int mouseY) {
+        g.clearScreen(GColor.BLACK);
         W = g.getViewportWidth();
         H = g.getViewportHeight();
         DIM = Math.min(W, H);
@@ -527,10 +585,12 @@ public abstract class UIMonopoly extends Monopoly {
     }
 
     private void drawPlayerInfo(APGraphics g, int playerNum, float w, float h) {
+        g.setColor(BOARD_COLOR);
+        g.drawFilledRect(0, 0, w, h);
         playerInfoWidth = w;
         Player p = getPlayer(playerNum);
         int pcId = getImageId(p.getPiece());
-        float dim = w/2;
+        float dim = Math.min(w/2, h/4);
         playerInfoHeight = dim;
         float border = 5;
         g.drawImage(pcId, 0, 0, dim, dim);
@@ -538,7 +598,7 @@ public abstract class UIMonopoly extends Monopoly {
             g.setColor(GColor.CYAN);
             g.drawRect(0, 0, dim, dim, 2);
         }
-        Sprite sp = spriteMap.get(playerNum);
+        Sprite sp = spriteMap.get("PLAYER"+playerNum);
         sp.M.setTranslate(w, dim/2);
         sp.color = GColor.BLACK;
         sp.animateAndDraw(g, 0, 0);
@@ -583,7 +643,7 @@ public abstract class UIMonopoly extends Monopoly {
                 sy += drawWrapStringOnBackground(g, 0, sy, w,txt, bkColor, txtColor, border);
             }
         }
-        drawAnimations(g, p);
+        drawAnimations(g, "PLAYER"+playerNum);
     }
 
     private float drawWrapStringOnBackground(AGraphics g, float x, float y, float width, String txt, GColor bkColor, GColor txtColor, float border) {
@@ -606,14 +666,14 @@ public abstract class UIMonopoly extends Monopoly {
     private void drawPortrait(APGraphics g, int mx, int my) {
         drawBoard(g);
         drawDice(g, getDie1(), getDie2());
-        float w = W/3;
+        float w = W/getNumPlayers();
         for (int i=0; i<getNumPlayers(); i++) {
             g.pushMatrix();
-            g.translate(w*i, DIM);
-            drawPlayerInfo(g, i, w, H-DIM);
+            g.translate(PADDING+w*i, DIM+PADDING);
+            drawPlayerInfo(g, i, w-PADDING, H-DIM-PADDING);
             g.popMatrix();
         }
-        drawAnimations(g, this);
+        drawAnimations(g, "GAME");
     }
 
     private void drawLandscape(APGraphics g, int mx, int my) {
@@ -625,23 +685,27 @@ public abstract class UIMonopoly extends Monopoly {
         // draw dice in center of board
         drawDice(g, getDie1(), getDie2());
         float w = (W-DIM)/2;
+        float h1 = H;
+        float h2 = H/2-PADDING/2;
+        int numP = getNumPlayers();
         for (int i=0; i<getNumPlayers(); i++) {
+            float h = h1;
             g.pushMatrix();
             switch (i) {
-                case 0: break;
-                case 1: g.translate(W-w, 0); break;
-                case 2: g.translate(0, H/2); break;
-                case 3: g.translate(W-w, H/2); break;
+                case 0: if (numP == 4) h = h2; break; // top-left
+                case 1: if (numP >= 3) h = h2; g.translate(W-w+PADDING, 0); break; // top-right
+                case 2: h = h2; g.translate(W-w+PADDING, H/2+PADDING/2); break; // bottom-right
+                case 3: h = h2; g.translate(0, H/2+PADDING); break; // bottom-left
             }
-            drawPlayerInfo(g, i, w, H/2);
+            drawPlayerInfo(g, i, w-PADDING, h);
             g.popMatrix();
         }
-        drawAnimations(g, this);
+        drawAnimations(g, "GAME");
     }
 
-    private void drawAnimations(AGraphics g, Object where) {
+    private void drawAnimations(AGraphics g, String key) {
         synchronized (animations) {
-            LinkedList<AAnimation> list = animations.get(where);
+            LinkedList<AAnimation> list = animations.get(key);
             if (list == null)
                 return;
             Iterator<AAnimation> it = list.iterator();
@@ -657,8 +721,6 @@ public abstract class UIMonopoly extends Monopoly {
                 repaint();
         }
     }
-
-    final static float HOUSE_RADIUS = 1;
 
     // draw house with center at 0,0.
     public void drawHouse(AGraphics g) {
@@ -698,7 +760,7 @@ public abstract class UIMonopoly extends Monopoly {
     public void drawBoard(AGraphics g) {
         g.drawImage(getBoardImageId(), 0, 0, DIM, DIM);
         {
-            Sprite kitty = spriteMap.get(Square.FREE_PARKING);
+            Sprite kitty = spriteMap.get(Square.FREE_PARKING.name());
             GRectangle r = board.getSqaureBounds(Square.FREE_PARKING);
             kitty.M.setTranslate(r.getCenter());
             kitty.color = GColor.GREEN;
@@ -718,6 +780,8 @@ public abstract class UIMonopoly extends Monopoly {
         for (int i=0; i<getNumPlayers(); i++) {
             Player p = getPlayer(i);
             if (p.isEliminated())
+                continue;
+            if (p.getPiece() == null)
                 continue;
             int pcId = getImageId(p.getPiece());
             float targetDim = board.getPieceDimension();
@@ -755,12 +819,12 @@ public abstract class UIMonopoly extends Monopoly {
             }
             // draw player piece of the board
             GRectangle r = p.isInJail() ? board.getPiecePlacementJail(i) : board.getPiecePlacement(i, p.getSquare());
-            Sprite sp = spriteMap.get(p.getPiece());
+            Sprite sp = spriteMap.get(p.getPiece().name());
             sp.M.setTranslate(r.x, r.y);
             sp.animateAndDraw(g, r.w, r.h);
             //g.drawImage(pcId, r);
         }
-        drawAnimations(g, board);
+        drawAnimations(g, "BOARD");
     }
 
     private void drawHouses(AGraphics g, Vector2D cntr, float angle, float scale, int num) {
@@ -851,4 +915,7 @@ public abstract class UIMonopoly extends Monopoly {
         g.setPointSize(oldDotSize);
     }
 
+    public final boolean isGameRunning() {
+        return gameRunning;
+    }
 }

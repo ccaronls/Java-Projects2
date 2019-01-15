@@ -10,8 +10,8 @@ import cc.lib.game.IVector2D;
  */
 public final class Bezier {
 	
-	final IVector2D [] ctrl;
-	int numCtrl = 0;
+	private final IVector2D [] ctrl;
+    private int numCtrl = 0;
 	
 	public Bezier() {
 		ctrl = new IVector2D[4];

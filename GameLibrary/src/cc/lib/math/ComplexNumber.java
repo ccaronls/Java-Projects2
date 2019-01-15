@@ -1,5 +1,7 @@
 package cc.lib.math;
 
+import cc.lib.utils.Reflector;
+
 /**
  * Complex arithmetic.  Most functions are accounted for and gotten from web.
  * Some effort made to speed up computations, specifically 
@@ -9,7 +11,7 @@ package cc.lib.math;
  * @author chriscaron
  *
  */
-public final class ComplexNumber {
+public final class ComplexNumber extends Reflector<ComplexNumber> {
 
     private double real, imag;
     
@@ -35,7 +37,7 @@ public final class ComplexNumber {
      * @return
      */
     public ComplexNumber add(ComplexNumber rhs) {
-        return getTemp().set(real + rhs.real, imag + rhs.imag);
+        return new ComplexNumber(real + rhs.real, imag + rhs.imag);
     }
 
     
@@ -54,7 +56,7 @@ public final class ComplexNumber {
      * @return
      */
     public ComplexNumber sub(ComplexNumber rhs) {
-        return getTemp().set(real - rhs.real, imag - rhs.imag);
+        return new ComplexNumber(real - rhs.real, imag - rhs.imag);
     }
 
     /**
@@ -76,7 +78,7 @@ public final class ComplexNumber {
     }
 
     public ComplexNumber negate() {
-        return getTemp().set(-real, -imag);
+        return new ComplexNumber(-real, -imag);
     }
 
     /**
@@ -93,7 +95,7 @@ public final class ComplexNumber {
      * @return
      */
     public ComplexNumber scale(double scalar) {
-        return getTemp().set(real * scalar, imag * scalar);
+        return new ComplexNumber(real * scalar, imag * scalar);
     }
 
     /**
@@ -111,7 +113,7 @@ public final class ComplexNumber {
      * @return
      */
     public ComplexNumber multiply(ComplexNumber rhs) {
-        return getTemp().set(real*rhs.real - imag*rhs.imag, imag*rhs.real + real*rhs.imag);
+        return new ComplexNumber(real*rhs.real - imag*rhs.imag, imag*rhs.real + real*rhs.imag);
     }
 
     /**
@@ -130,7 +132,7 @@ public final class ComplexNumber {
      */
     public ComplexNumber divide(ComplexNumber denom) {
         double den=Math.pow(denom.mod(),2);
-        return getTemp().set((real*denom.real+imag*denom.imag)/den,(imag*denom.real-real*denom.imag)/den);    
+        return new ComplexNumber((real*denom.real+imag*denom.imag)/den,(imag*denom.real-real*denom.imag)/den);    
     }
 
     /**
@@ -172,7 +174,7 @@ public final class ComplexNumber {
      * @return
      */
     public ComplexNumber conj() {
-        return getTemp().set(-imag, real);
+        return new ComplexNumber(-imag, real);
     }
 
     /**
@@ -182,7 +184,7 @@ public final class ComplexNumber {
     public ComplexNumber sqrt() {
         double r=Math.sqrt(mod());
         double theta=arg()/2;
-        return getTemp().set(r*Math.cos(theta),r*Math.sin(theta));
+        return new ComplexNumber(r*Math.cos(theta),r*Math.sin(theta));
     }
     
     /**
@@ -191,7 +193,7 @@ public final class ComplexNumber {
      * @return
      */
     public ComplexNumber powi(int power) {
-    	ComplexNumber result = getTemp();
+    	ComplexNumber result = new ComplexNumber();
         result.set(1,0);
         for (int i=0; i<power; i++) {
             multiply(result);
@@ -205,7 +207,7 @@ public final class ComplexNumber {
      * @return
      */
     public ComplexNumber powd(double n) {
-    	ComplexNumber result = getTemp();
+    	ComplexNumber result = new ComplexNumber();
         double real = n * Math.log(abs());
         double imag = n * arg();
         double scalar = Math.exp(real);
@@ -238,7 +240,7 @@ public final class ComplexNumber {
      * @return
      */
     public ComplexNumber sine() {
-        return getTemp().set(cosh(imag)*Math.sin(real),sinh(imag)*Math.cos(real));
+        return new ComplexNumber(cosh(imag)*Math.sin(real),sinh(imag)*Math.cos(real));
     }
 
     /**
@@ -248,7 +250,7 @@ public final class ComplexNumber {
      * @return
      */
     public ComplexNumber sineh() {
-        return getTemp().set(sinh(real)*Math.cos(imag),cosh(real)*Math.sin(imag));
+        return new ComplexNumber(sinh(real)*Math.cos(imag),cosh(real)*Math.sin(imag));
     }
 
     /**
@@ -257,11 +259,11 @@ public final class ComplexNumber {
      */
     public ComplexNumber asine() {
         //return -I * ((this*I) + (1 - (this * this)).Sqrt()).Log();
-        ComplexNumber negI = getTemp().set(0, -1);
+        ComplexNumber negI = new ComplexNumber(0, -1);
         ComplexNumber ttI = this.multiply(negI);
         ComplexNumber lhs = negI.multiply(ttI);
         ComplexNumber ttt = this.multiply(this);
-        ComplexNumber omttt = getTemp().set(1, 0).sub(ttt);
+        ComplexNumber omttt = new ComplexNumber(1, 0).sub(ttt);
         ComplexNumber  rhs = omttt.sqrt().ln();
         return lhs.add(rhs);
     }
@@ -280,7 +282,7 @@ public final class ComplexNumber {
     }
     
     public ComplexNumber cosine() {
-        return getTemp().set(cosh(imag)*Math.cos(real),-sinh(imag)*Math.sin(real));
+        return new ComplexNumber(cosh(imag)*Math.cos(real),-sinh(imag)*Math.sin(real));
     }
 
     /**
@@ -288,7 +290,7 @@ public final class ComplexNumber {
      * @return
      */
     public ComplexNumber cosineh() {
-        return getTemp().set(cosh(real)*Math.cos(imag),sinh(real)*Math.sin(imag));
+        return new ComplexNumber(cosh(real)*Math.cos(imag),sinh(real)*Math.sin(imag));
     }
     
     /**
@@ -297,10 +299,10 @@ public final class ComplexNumber {
      */
     public ComplexNumber acosine() {
         // return -I * (this + I * (1 - (this*this)).Sqrt()).Log();
-        ComplexNumber negI = getTemp().set(0, -1);
+        ComplexNumber negI = new ComplexNumber(0, -1);
         ComplexNumber ttt = this.multiply(this);
-        ComplexNumber omttt = getTemp().set(1, 0).subEq(ttt);
-        ComplexNumber rhs = add(getTemp().set(0, 1).multiply(omttt.sqrt().ln()));
+        ComplexNumber omttt = new ComplexNumber(1, 0).subEq(ttt);
+        ComplexNumber rhs = add(new ComplexNumber(0, 1).multiply(omttt.sqrt().ln()));
         return negI.multiply(rhs);
     }
     
@@ -310,8 +312,8 @@ public final class ComplexNumber {
      */
     public ComplexNumber acosineh() {
         //return 2d * (((this+1d) / 2d).Sqrt() + ((this-1) / 2d).Sqrt()).Log();
-        ComplexNumber tp1d2 = getTemp().set((real+1)/2, imag/2);
-        ComplexNumber tm1d2 = getTemp().set((real-1)/2, imag/2);
+        ComplexNumber tp1d2 = new ComplexNumber((real+1)/2, imag/2);
+        ComplexNumber tm1d2 = new ComplexNumber((real-1)/2, imag/2);
         ComplexNumber lhs = tp1d2.sqrt().scaleEq(2);
         ComplexNumber rhs = tm1d2.sqrt().ln();
         return lhs.add(rhs);
@@ -335,27 +337,27 @@ public final class ComplexNumber {
     
     public ComplexNumber atangent() {
         //return -I/2 * ((I - this)/(I + this)).Log();
-        ComplexNumber negI2 = getTemp().set(0, -0.5);
-        ComplexNumber Imt = getTemp().set(0-real, 1-imag);
-        ComplexNumber Ipt = getTemp().set(0+real, 1+imag);
+        ComplexNumber negI2 = new ComplexNumber(0, -0.5);
+        ComplexNumber Imt = new ComplexNumber(0-real, 1-imag);
+        ComplexNumber Ipt = new ComplexNumber(0+real, 1+imag);
         ComplexNumber rhs = Imt.divide(Ipt).ln();
         return negI2.multiply(rhs);
     }
     
     public ComplexNumber atangenth() {
         // return ((1+this) / (1-this)).Log() / 2d;
-        ComplexNumber opt = getTemp().set(real + 1, imag);
-        ComplexNumber omt = getTemp().set(1 - real, imag);
+        ComplexNumber opt = new ComplexNumber(real + 1, imag);
+        ComplexNumber omt = new ComplexNumber(1 - real, imag);
         return opt.divide(omt).ln().scaleEq(0.5);
     }
     
     public ComplexNumber ln() {
-        return getTemp().set(Math.log(mod()),arg());
+        return new ComplexNumber(Math.log(mod()),arg());
     }
 
     public ComplexNumber exp() {
         double ex = Math.exp(real);
-        return getTemp().set(ex*Math.cos(imag),ex*Math.sin(imag));
+        return new ComplexNumber(ex*Math.cos(imag),ex*Math.sin(imag));
     }
 
     public ComplexNumber set(double a, double b) {
@@ -395,6 +397,11 @@ public final class ComplexNumber {
         return Math.abs(imag) <= 0.0000001;
     }
 
+    @Override
+    protected boolean isImmutable() {
+        return true;
+    }
+
     // TODO: Move to Utils
     public static String formatDouble(double d) {
     	 String opt1 = String.valueOf(d);
@@ -417,21 +424,6 @@ public final class ComplexNumber {
         if (isReal())
             return formatDouble(real);
         return "[" + formatDouble(real) + "," + formatDouble(imag) + "]";
-    }
-
-    static ComplexNumber [] pool = new ComplexNumber[256];    
-    static int current = 0;
-    
-    static {
-        for (int i=0; i<pool.length; i++) {
-            pool[i] = new ComplexNumber();
-        }
-    }
-    
-    static ComplexNumber getTemp() {
-        ComplexNumber n = pool[current].set(0,0);
-        current = (current+1) % pool.length;
-        return n;
     }
     
 }// end ComplexNumber class

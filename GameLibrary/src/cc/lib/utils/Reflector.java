@@ -40,7 +40,7 @@ import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
 
 /**
- * Derive from this class to handle copying, equals, serializing, deserializing.
+ * Derive from this class to handle copying, equals, serializing, deserializing, diffing and more.
  * 
  * Serialization of primitives, arrays and subclasses of Reflector are supported.
  * Also collections are supported if their data types are one of the afore mentioned
@@ -1530,11 +1530,19 @@ public class Reflector<T> {
         }
     }
 
+    /**
+     * Same as deserialize with KEEP_INSTANCES enabled.
+     * @param diff
+     * @throws Exception
+     */
     public synchronized final void mergeDiff(String diff) throws Exception {
         boolean prev = KEEP_INSTANCES;
         KEEP_INSTANCES = true;
-        deserialize(diff);
-        KEEP_INSTANCES = prev;
+        try {
+            deserialize(diff);
+        } finally {
+            KEEP_INSTANCES = prev;
+        }
     }
 
     /**

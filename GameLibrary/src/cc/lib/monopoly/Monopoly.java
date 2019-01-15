@@ -21,15 +21,17 @@ public class Monopoly extends Reflector<Monopoly> {
 
     public final static int NUM_SQUARES = Square.values().length;
     public final static int MAX_PLAYERS = 4;
+    public final static int MAX_HOUSES  = 5;
 
-    final List<Player> players = new ArrayList<>();
-    int currentPlayer;
-    final Stack<State> state = new Stack<>();
-    int die1, die2;
-    int kitty;
-    int birthdayPlayer;
-    final LinkedList<CardActionType> chance = new LinkedList<>();
-    final LinkedList<CardActionType> communityChest = new LinkedList<>();
+    private final List<Player> players = new ArrayList<>();
+    private int currentPlayer;
+    private final Stack<State> state = new Stack<>();
+    private int die1, die2;
+    private int kitty;
+    private int birthdayPlayer;
+    private final LinkedList<CardActionType> chance = new LinkedList<>();
+    private final LinkedList<CardActionType> communityChest = new LinkedList<>();
+    private int [] dice;
 
     public enum State {
         INIT,
@@ -70,6 +72,9 @@ public class Monopoly extends Reflector<Monopoly> {
                     p.square = 0;
                     p.cards.clear();
                     p.money = 5*1 + 5*5 + 5*10 + 5*20 + 5*50 + 5*100 + 500; // TODO: Config
+                    if (p.piece == null) {
+                        p.piece = Utils.randItem(getUnusedPieces());
+                    }
                 }
                 currentPlayer = Utils.rand() % players.size();
                 kitty = 0;
@@ -261,11 +266,14 @@ public class Monopoly extends Reflector<Monopoly> {
                 rollDice();
                 if (cur.inJail) {
                     if (die1 == die2) {
+                        cur.inJail = false;
                         onPlayerOutOfJail(currentPlayer);
                     }
-                } else
+                    nextPlayer();
+                } else {
                     advance(getDice());
-                processSquare();
+                    processSquare();
+                }
                 break;
 
             case MORTGAGE:
@@ -286,17 +294,17 @@ public class Monopoly extends Reflector<Monopoly> {
 
             case PAY_BOND:
                 Utils.assertTrue(cur.inJail);
-                onPlayerOutOfJail(currentPlayer);
                 cur.inJail = false;
+                onPlayerOutOfJail(currentPlayer);
                 payToKitty(50);
                 nextPlayer();
                 break;
 
             case GET_OUT_OF_JAIL_FREE:
                 Utils.assertTrue(cur.inJail);
+                cur.inJail = false;
                 onPlayerOutOfJail(currentPlayer);
                 cur.useGetOutOfJailCard();
-                cur.inJail = false;
                 nextPlayer();
                 break;
 
@@ -343,12 +351,9 @@ public class Monopoly extends Reflector<Monopoly> {
     public final void addPlayer(Player player) {
         Utils.assertTrue(players.size() < MAX_PLAYERS);
         this.players.add(player);
-        if (player.piece == null) {
-            player.piece = Utils.randItem(getUnusedPiece());
-        }
     }
 
-    public final List<Piece> getUnusedPiece() {
+    public final List<Piece> getUnusedPieces() {
         List<Piece> pieces = new ArrayList<>(Arrays.asList(Piece.values()));
         for (Player p : players) {
             pieces.remove(p.piece);
@@ -365,8 +370,16 @@ public class Monopoly extends Reflector<Monopoly> {
     }
 
     private void rollDice() {
-        die1 = 1+Utils.rand()%6;
-        die2 = 1+Utils.rand()%6;
+        if (dice == null) {
+            dice = new int[30];
+            for (int i = 0; i < dice.length; i++) {
+                dice[i] = 1 + Utils.rand() % 6;
+            }
+        }
+        die1 = Utils.shiftLeft(dice);
+        die2 = Utils.shiftLeft(dice);
+        dice[dice.length-2] = 1+Utils.rand()%6;
+        dice[dice.length-1] = 1+Utils.rand()%6;
         onDiceRolled();
     }
 
@@ -698,15 +711,17 @@ public class Monopoly extends Reflector<Monopoly> {
         switch (square) {
 
             case GO:
-                break;
             case VISITING_JAIL:
+                nextPlayer();
                 break;
+
             case FREE_PARKING:
                 if (kitty > 0) {
                     onPlayerGotPaid(currentPlayer, kitty);
                     getCurrentPlayer().money += kitty;
                     kitty = 0;
                 }
+                nextPlayer();
                 break;
             case GOTO_JAIL:
                 gotoJail();

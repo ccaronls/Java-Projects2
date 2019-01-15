@@ -6,11 +6,11 @@ public class PlayerUser extends Player {
 
     @Override
     public MoveType chooseMove(Monopoly game, List<MoveType> options) {
-        return super.chooseMove((UIMonopoly)game, options);
+        return ((UIMonopoly)game).showChooseMoveMenu(this, options);
     }
 
     @Override
     public Card chooseCard(Monopoly game, List<Card> cards) {
-        return super.chooseCard(game, cards);
+        return ((UIMonopoly)game).showChooseCardMenu(this, cards);
     }
 }
