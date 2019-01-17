@@ -41,13 +41,13 @@ public abstract class UIMonopoly extends Monopoly {
 
     public abstract void repaint();
 
-    protected abstract int getImageId(Piece p);
+    public abstract int getImageId(Piece p);
 
-    protected abstract int getBoardImageId();
+    public abstract int getBoardImageId();
 
     protected abstract MoveType showChooseMoveMenu(Player player, List<MoveType> moves);
 
-    protected abstract Card showChooseCardMenu(Player player, List<Card> cards);
+    protected abstract Card showChooseCardMenu(Player player, List<Card> cards, Player.CardChoiceType type);
 
 
     @Override
@@ -176,7 +176,7 @@ public abstract class UIMonopoly extends Monopoly {
         final Player p = getPlayer(playerNum);
         final GRectangle start = board.getPiecePlacement(playerNum, p.getSquare());
         final GRectangle end   = board.getPiecePlacementJail(playerNum);
-        setSpriteAnim(getPlayer(playerNum).getPiece().name(), new AAnimation<Sprite>(2000) {
+        setSpriteAnim("PLAYER"+playerNum, new AAnimation<Sprite>(2000) {
 
             final Bezier curve = new Bezier();
 
@@ -212,7 +212,22 @@ public abstract class UIMonopoly extends Monopoly {
     }
 
     @Override
-    protected void onPlayerOutOfJail(int playerNum) {
+    protected void onPlayerOutOfJail(final int playerNum) {
+        setSpriteAnim("PLAYER"+playerNum, new AAnimation<Sprite>(500) {
+
+            Vector2D start, end;
+
+            @Override
+            protected void onStarted() {
+                start = board.getPiecePlacementJail(playerNum).getTopLeft();
+                end   = board.getPiecePlacement(playerNum, Square.VISITING_JAIL).getTopLeft();
+            }
+
+            @Override
+            protected void draw(Sprite g, float position, float dt) {
+                g.M.translate(start.add(end.sub(start).scaledBy(position)));
+            }
+        }.start());
         addAnimation("PLAYER"+playerNum, new JailedAnim(playerInfoWidth, playerInfoHeight).startReverse());
         Utils.waitNoThrow(LOCK, 5000);
         super.onPlayerOutOfJail(playerNum);
@@ -536,7 +551,12 @@ public abstract class UIMonopoly extends Monopoly {
         new Thread() {
             public void run() {
                 while (gameRunning && getWinner() < 0) {
-                    runGame();
+                    try {
+                        runGame();
+                    } catch (Throwable t) {
+                        onError(t);
+                        break;
+                    }
                     repaint();
                     Utils.waitNoThrow(this, 100);
                 }
@@ -545,6 +565,10 @@ public abstract class UIMonopoly extends Monopoly {
             }
         }.start();
 
+    }
+
+    protected void onError(Throwable t) {
+        throw new RuntimeException(t);
     }
 
     public final void stopGameThread() {
@@ -589,6 +613,8 @@ public abstract class UIMonopoly extends Monopoly {
         g.drawFilledRect(0, 0, w, h);
         playerInfoWidth = w;
         Player p = getPlayer(playerNum);
+        if (p.getPiece() == null)
+            return;
         int pcId = getImageId(p.getPiece());
         float dim = Math.min(w/2, h/4);
         playerInfoHeight = dim;
@@ -599,7 +625,7 @@ public abstract class UIMonopoly extends Monopoly {
             g.drawRect(0, 0, dim, dim, 2);
         }
         Sprite sp = spriteMap.get("PLAYER"+playerNum);
-        sp.M.setTranslate(w, dim/2);
+        sp.M.setTranslate(w-PADDING, dim/2);
         sp.color = GColor.BLACK;
         sp.animateAndDraw(g, 0, 0);
 
@@ -620,7 +646,11 @@ public abstract class UIMonopoly extends Monopoly {
                     bkColor = p.getSquare().getColor();
                     txtColor = chooseContrastColor(bkColor);
                 }
-                sy += drawWrapStringOnBackground(g, 0, sy, w, Utils.getPrettyString(p.getSquare().name()), bkColor, txtColor, border);
+                String sqStr = Utils.getPrettyString(p.getSquare().name());
+                while (Character.isDigit(sqStr.charAt(sqStr.length()-1))) {
+                    sqStr = sqStr.substring(0, sqStr.length()-1);
+                }
+                sy += drawWrapStringOnBackground(g, 0, sy, w, sqStr, bkColor, txtColor, border);
             }
             int num;
             if ((num = p.getNumGetOutOfJailFreeCards()) > 0) {
@@ -666,11 +696,11 @@ public abstract class UIMonopoly extends Monopoly {
     private void drawPortrait(APGraphics g, int mx, int my) {
         drawBoard(g);
         drawDice(g, getDie1(), getDie2());
-        float w = W/getNumPlayers();
+        float w = (W - (PADDING*(getNumPlayers()-1))) / getNumPlayers();
         for (int i=0; i<getNumPlayers(); i++) {
             g.pushMatrix();
-            g.translate(PADDING+w*i, DIM+PADDING);
-            drawPlayerInfo(g, i, w-PADDING, H-DIM-PADDING);
+            g.translate((w+PADDING)*i, DIM+PADDING);
+            drawPlayerInfo(g, i, w, H-DIM-PADDING);
             g.popMatrix();
         }
         drawAnimations(g, "GAME");
@@ -837,7 +867,7 @@ public abstract class UIMonopoly extends Monopoly {
             drawHouse(g);
         } else {
             g.setColor(GColor.GREEN);
-            g.scale(scale);
+            g.scale(scale*2);
             g.translate(-HOUSE_RADIUS*(num-1), 0);
             for (int i=0; i<num; i++) {
                 drawHouse(g);

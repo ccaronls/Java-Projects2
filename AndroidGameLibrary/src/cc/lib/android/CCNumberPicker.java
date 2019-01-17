@@ -2,6 +2,7 @@ package cc.lib.android;
 
 import android.annotation.TargetApi;
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.os.Build;
 import android.text.InputFilter;
 import android.util.AttributeSet;
@@ -36,15 +37,22 @@ public class CCNumberPicker extends NumberPicker {
 		if (Build.VERSION.SDK_INT >= 11)
 			setDescendantFocusability(NumberPicker.FOCUS_BLOCK_DESCENDANTS);
 	}
-	
+
+	private void init(Context c, AttributeSet attrs) {
+        TypedArray a = c.obtainStyledAttributes(attrs, R.styleable.CCNumberPicker);
+        setWrapSelectorWheel(a.getBoolean(R.styleable.CCNumberPicker_wrap, true));
+        a.recycle();
+        init();
+    }
+
 	public CCNumberPicker(Context context, AttributeSet attrs, int defStyle) {
 		super(context, attrs, defStyle);
-		init();
+		init(context, attrs);
 	}
 
 	public CCNumberPicker(Context context, AttributeSet attrs) {
 		super(context, attrs);
-		init();
+		init(context, attrs);
 	}
 
 	public CCNumberPicker(Context context) {
@@ -70,6 +78,20 @@ public class CCNumberPicker extends NumberPicker {
             }
         }
         np.setDisplayedValues(values);
+	    np.setOnValueChangedListener(listener);
 	    return np;
+    }
+
+    public void init(final int [] values, int startValue, OnValueChangeListener listener) {
+	    setOnValueChangedListener(listener);
+	    setMinValue(0);
+	    setMaxValue(values.length-1);
+        String [] display = new String[values.length];
+        for (int i=0; i<values.length; i++) {
+            if (startValue <= values[i])
+                setValue(i);
+            display[i] = String.valueOf(values[i]);
+        }
+        setDisplayedValues(display);
     }
 }

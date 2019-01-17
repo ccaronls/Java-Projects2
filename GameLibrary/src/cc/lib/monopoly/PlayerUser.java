@@ -10,7 +10,7 @@ public class PlayerUser extends Player {
     }
 
     @Override
-    public Card chooseCard(Monopoly game, List<Card> cards) {
-        return ((UIMonopoly)game).showChooseCardMenu(this, cards);
+    public Card chooseCard(Monopoly game, List<Card> cards, CardChoiceType type) {
+        return ((UIMonopoly)game).showChooseCardMenu(this, cards, type);
     }
 }

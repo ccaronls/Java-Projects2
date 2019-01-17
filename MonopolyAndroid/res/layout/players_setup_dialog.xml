@@ -2,11 +2,13 @@
 <android.support.constraint.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-              android:orientation="vertical"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
     android:background="#fff"
               android:layout_width="match_parent"
               android:layout_height="match_parent">
     <TextView
+        style="@style/TextView"
         android:id="@+id/tvLeft"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -14,16 +16,13 @@
         app:layout_constraintWidth_percent=".5"
         app:layout_constraintStart_toStartOf="parent"
         android:gravity="center"
-        android:textColor="#000"
-        android:textSize="20sp"
         />
 
     <TextView
+        style="@style/TextView"
         android:id="@+id/tvRight"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:textColor="#000"
-        android:textSize="20sp"
         android:gravity="center"
         app:layout_constraintWidth_percent=".5"
         app:layout_constraintEnd_toEndOf="parent"
@@ -33,7 +32,9 @@
         android:id="@+id/npLivePlayers"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        app:wrap="false"
         app:layout_constraintTop_toBottomOf="@id/tvLeft"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="@id/tvLeft"
         app:layout_constraintEnd_toEndOf="@id/tvLeft"/>
 
@@ -41,7 +42,9 @@
         android:id="@+id/npCompPlayers"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        app:wrap="false"
         app:layout_constraintTop_toBottomOf="@id/tvRight"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="@id/tvRight"
         app:layout_constraintEnd_toEndOf="@id/tvRight"/>
 

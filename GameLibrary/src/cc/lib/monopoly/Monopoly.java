@@ -32,6 +32,7 @@ public class Monopoly extends Reflector<Monopoly> {
     private final LinkedList<CardActionType> chance = new LinkedList<>();
     private final LinkedList<CardActionType> communityChest = new LinkedList<>();
     private int [] dice;
+    private final Rules rules = new Rules();
 
     public enum State {
         INIT,
@@ -61,17 +62,19 @@ public class Monopoly extends Reflector<Monopoly> {
         communityChest.clear();
     }
 
-    public final void runGame() {
+    public void runGame() {
         if (state.isEmpty())
             state.push(State.INIT);
         switch (state.peek()) {
             case INIT: {
                 if (players.size() < 2)
                     throw new RuntimeException("Not enough players");
-                for (Player p : players) {
+                for (int i = 0; i<getNumPlayers(); i++) {
+                    Player p = getPlayer(i);
                     p.square = 0;
                     p.cards.clear();
-                    p.money = 5*1 + 5*5 + 5*10 + 5*20 + 5*50 + 5*100 + 500; // TODO: Config
+                    onPlayerGotPaid(i, rules.startMoney);
+                    p.money = rules.startMoney; // TODO: Config
                     if (p.piece == null) {
                         p.piece = Utils.randItem(getUnusedPieces());
                     }
@@ -104,6 +107,7 @@ public class Monopoly extends Reflector<Monopoly> {
                 if (cur.getCardsForUnMortgage().size() > 0) {
                     moves.add(MoveType.UNMORTGAGE);
                 }
+//                moves.add(MoveType.FORFEIT);
                 MoveType move = cur.chooseMove(this, moves);
                 if (move != null) {
                     processMove(move);
@@ -197,7 +201,7 @@ public class Monopoly extends Reflector<Monopoly> {
             case CHOOSE_MORTGAGE_PROPERTY: {
                 Player cur = getCurrentPlayer();
                 List<Card> cards = cur.getCardsForMortgage();
-                Card card = cur.chooseCard(this, cards);
+                Card card = cur.chooseCard(this, cards, Player.CardChoiceType.CHOOSE_CARD_TO_MORTGAGE);
                 if (card != null) {
                     int mortgageAmt = card.property.getMortgageValue();
                     onPlayerMortgaged(currentPlayer, card.property, mortgageAmt);
@@ -210,7 +214,7 @@ public class Monopoly extends Reflector<Monopoly> {
             case CHOOSE_UNMORTGAGE_PROPERTY: {
                 Player cur = getCurrentPlayer();
                 List<Card> cards = cur.getCardsForUnMortgage();
-                Card card = cur.chooseCard(this, cards);
+                Card card = cur.chooseCard(this, cards, Player.CardChoiceType.CHOOSE_CARD_TO_UNMORTGAGE);
                 if (card != null) {
                     int buyBackAmt = card.property.getMortgageBuybackPrice();
                     onPlayerUnMortgaged(currentPlayer, card.property, buyBackAmt);
@@ -223,7 +227,7 @@ public class Monopoly extends Reflector<Monopoly> {
             case CHOOSE_PROPERTY_FOR_UNIT: {
                 Player cur = getCurrentPlayer();
                 List<Card> cards = cur.getCardsForNewHouse();
-                Card card = cur.chooseCard(this, cards);
+                Card card = cur.chooseCard(this, cards, Player.CardChoiceType.CHOOSE_CARD_FOR_NEW_UNIT);
                 if (card != null) {
                     int houseCost = card.property.getHousePrice();
                     if (card.houses < 4) {
@@ -436,6 +440,10 @@ public class Monopoly extends Reflector<Monopoly> {
             return getPlayer(owner).getRent(sq, getDice());
         }
         return 0;
+    }
+
+    public Rules getRules() {
+        return rules;
     }
 
     private void advanceToSquare(Square square, int rentScale) {
@@ -699,6 +707,15 @@ public class Monopoly extends Reflector<Monopoly> {
 
     private void gotoJail() {
         onPlayerGoesToJail(currentPlayer);
+        if (rules.jailBumpEnabled) {
+            for (int i=0; i<getNumPlayers(); i++) {
+                Player p = getPlayer(i);
+                if (p.inJail) {
+                    onPlayerOutOfJail(i);
+                    p.inJail = false;
+                }
+            }
+        }
         Player cur = getCurrentPlayer();
         cur.square = Square.VISITING_JAIL.ordinal();
         cur.inJail = true;
@@ -857,11 +874,11 @@ public class Monopoly extends Reflector<Monopoly> {
         kitty += amt;
     }
 
-    private int getOwner(int sq) {
+    public final int getOwner(int sq) {
         return getOwner(Square.values()[sq]);
     }
 
-    private int getOwner(Square square) {
+    public final int getOwner(Square square) {
         if (!square.canPurchase())
             return -1;
         for (int i=0; i<players.size(); i++) {
@@ -909,7 +926,7 @@ public class Monopoly extends Reflector<Monopoly> {
 
     protected void onDiceRolled() {}
 
-    private String getPlayerName(int num) {
+    public final String getPlayerName(int num) {
         Player p = getPlayer(num);
         if (p.getPiece() != null)
             return p.getPiece().name();

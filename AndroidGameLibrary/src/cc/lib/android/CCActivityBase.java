@@ -4,18 +4,21 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.Toast;
 
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
 
@@ -41,7 +44,11 @@ public class CCActivityBase extends Activity {
 
 	@Override
 	protected void onCreate(Bundle bundle) {
-		super.onCreate(bundle);
+        if (BuildConfig.DEBUG) {
+            Utils.DEBUG_ENABLED = true;
+            requestExternalWritePermission();
+        }
+	    super.onCreate(bundle);
 	}
 	
 	@Override
@@ -156,5 +163,38 @@ public class CCActivityBase extends Activity {
 
     public AlertDialog.Builder newDialogBuilder() {
 	    return new AlertDialog.Builder(this);
+    }
+
+    final int PERMISSION_REQUEST_CODE = 1001;
+
+    public final void requestExternalWritePermission() {
+
+        int code = checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        if (code != PackageManager.PERMISSION_GRANTED) {
+            if (shouldShowRequestPermissionRationale(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+                Toast.makeText(this, R.string.toast_allow_write_external_storage, Toast.LENGTH_LONG).show();
+            } else {
+                requestPermissions(new String[]{android.Manifest.permission.WRITE_EXTERNAL_STORAGE}, PERMISSION_REQUEST_CODE);
+            }
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case PERMISSION_REQUEST_CODE:
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    runOnUiThread(new Runnable() {
+                        public void run() {
+                            onWritePermissionGranted();
+                        }
+                    });
+                }
+                break;
+        }
+    }
+
+    protected void onWritePermissionGranted() {
+        Toast.makeText(this, "Write Permission Granted", Toast.LENGTH_SHORT).show();
     }
 }

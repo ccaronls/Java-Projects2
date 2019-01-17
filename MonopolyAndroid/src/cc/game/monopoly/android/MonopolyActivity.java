@@ -1,18 +1,23 @@
 package cc.game.monopoly.android;
 
+import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
+import android.graphics.Rect;
 import android.os.Bundle;
 import android.os.Environment;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.view.View;
+import android.view.Window;
+import android.widget.CompoundButton;
+import android.widget.GridLayout;
+import android.widget.ImageButton;
 import android.widget.NumberPicker;
-import android.widget.Toast;
 
 import java.io.File;
 import java.util.List;
 
+import cc.lib.android.CCNumberPicker;
 import cc.lib.android.DroidActivity;
 import cc.lib.android.DroidGraphics;
 import cc.lib.game.Utils;
@@ -22,6 +27,7 @@ import cc.lib.monopoly.MoveType;
 import cc.lib.monopoly.Piece;
 import cc.lib.monopoly.Player;
 import cc.lib.monopoly.PlayerUser;
+import cc.lib.monopoly.Rules;
 import cc.lib.monopoly.UIMonopoly;
 import cc.lib.utils.FileUtils;
 
@@ -42,7 +48,13 @@ public class MonopolyActivity extends DroidActivity {
         }
 
         @Override
-        protected int getImageId(Piece p) {
+        public void runGame() {
+            monopoly.trySaveToFile(saveFile);
+            super.runGame();
+        }
+
+        @Override
+        public int getImageId(Piece p) {
             switch (p) {
 
                 case CAR:
@@ -66,19 +78,19 @@ public class MonopolyActivity extends DroidActivity {
         }
 
         @Override
-        protected int getBoardImageId() {
+        public int getBoardImageId() {
             return R.drawable.board;
         }
 
         @Override
         protected MoveType showChooseMoveMenu(final Player player, final List<MoveType> moves) {
 
-            final String [] items = Utils.toStringArray(moves);
+            final String [] items = Utils.toStringArray(moves, true);
             final MoveType [] result = new MoveType[1];
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    newDialogBuilder().setTitle(player.getPiece() + " CHOOSE MOVE")
+                    newDialogBuilder().setTitle(player.getPiece() + " Choose Move ")
                             .setItems(items, new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
@@ -87,13 +99,12 @@ public class MonopolyActivity extends DroidActivity {
                                         monopoly.notify();
                                     }
                                 }
-                            }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                            }).setNegativeButton("Exit", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             if (monopoly.canCancel()) {
                                 monopoly.cancel();
                             } else {
-                                monopoly.trySaveToFile(saveFile);
                                 monopoly.stopGameThread();
                             }
                             synchronized (monopoly) {
@@ -108,13 +119,13 @@ public class MonopolyActivity extends DroidActivity {
         }
 
         @Override
-        protected Card showChooseCardMenu(final Player player, final List<Card> cards) {
-            final String [] items = Utils.toStringArray(cards);
+        protected Card showChooseCardMenu(final Player player, final List<Card> cards, final Player.CardChoiceType type) {
+            final String [] items = Utils.toStringArray(cards, true);
             final Card [] result = new Card[1];
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    newDialogBuilder().setTitle(player.getPiece() + " CHOOSE CARD")
+                    newDialogBuilder().setTitle(player.getPiece() + Utils.getPrettyString(type.name()))
                             .setItems(items, new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
@@ -141,23 +152,19 @@ public class MonopolyActivity extends DroidActivity {
             Utils.waitNoThrow(monopoly, -1);
             return result[0];
         }
+
+        @Override
+        protected void onError(Throwable t) {
+            FileUtils.tryCopyFile(saveFile, new File(Environment.getExternalStorageDirectory(), "monopoly_error.txt"));
+            newDialogBuilder().setTitle("ERROR").setMessage(t.toString()).setNegativeButton("Ok", null).show();
+        }
     };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         //AndroidLogger.setLogFile(new File(Environment.getExternalStorageDirectory(), "monopoly.log"));
-        int padding = getResources().getDimensionPixelSize(R.dimen.border_padding);
-        setMargin(padding);
         saveFile = new File(getFilesDir(),"monopoly.save");
-    }
-
-    void copyFileToExt() {
-        try {
-            FileUtils.copyFile(saveFile, Environment.getExternalStorageDirectory());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
     @Override
@@ -167,11 +174,9 @@ public class MonopolyActivity extends DroidActivity {
         if (saveFile.exists()) {
             showOptionsMenu();
         } else {
-            showNewGameMenu();
+            showPlayerSetupMenu();
         }
     }
-
-    final int PERMISSION_REQUEST_CODE = 1001;
 
     private boolean checkPermission() {
         int result = ContextCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE);
@@ -182,38 +187,11 @@ public class MonopolyActivity extends DroidActivity {
         }
     }
 
-    private void requestPermission() {
-
-        if (ActivityCompat.shouldShowRequestPermissionRationale(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-            Toast.makeText(this, R.string.toast_allow_write_external_storage, Toast.LENGTH_LONG).show();
-        } else {
-            ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.WRITE_EXTERNAL_STORAGE}, PERMISSION_REQUEST_CODE);
-        }
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
-        switch (requestCode) {
-            case PERMISSION_REQUEST_CODE:
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    copyFileToExt();
-                } else {
-                    runOnUiThread(new Runnable() {
-                        public void run() {
-                            Toast.makeText(MonopolyActivity.this, "Permission Denied, You cannot use local drive .", Toast.LENGTH_LONG);
-                        }
-                    });
-                }
-                break;
-        }
-    }
-
     @Override
     protected void onPause() {
         super.onPause();
         if (monopoly.isGameRunning()) {
             monopoly.stopGameThread();
-            monopoly.trySaveToFile(saveFile);
         }
     }
 
@@ -272,7 +250,7 @@ public class MonopolyActivity extends DroidActivity {
             if (saveFile.exists()) {
                 showOptionsMenu();
             } else {
-                showNewGameMenu();
+                showPlayerSetupMenu();
             }
         } else {
             for (int i=0; i<monopoly.getNumPlayers(); i++) {
@@ -284,13 +262,19 @@ public class MonopolyActivity extends DroidActivity {
     }
 
     void showOptionsMenu() {
+        File fixed = new File(Environment.getExternalStorageDirectory(), "monopoly_fixed.txt");
+        if (fixed.exists()) {
+            FileUtils.tryCopyFile(fixed, saveFile);
+            fixed.delete();
+        }
+
         newDialogBuilder().setTitle("OPTIONS")
                 .setItems(new String[]{"New Game", "Resume"}, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         switch (which) {
                             case 0:
-                                showNewGameMenu();
+                                showGameSetupDialog();
                                 break;
                             case 1:
                                 if (monopoly.tryLoadFromFile(saveFile)) {
@@ -301,7 +285,7 @@ public class MonopolyActivity extends DroidActivity {
                                             .setNegativeButton("Ok", new DialogInterface.OnClickListener() {
                                                 @Override
                                                 public void onClick(DialogInterface dialog, int which) {
-                                                    showNewGameMenu();
+                                                    showGameSetupDialog();
                                                 }
                                             }).show();
                                 }
@@ -311,8 +295,8 @@ public class MonopolyActivity extends DroidActivity {
 
     }
 
-    void showNewGameMenu() {
-        final View v = View.inflate(this, R.layout.new_game_dialog, null);
+    void showPlayerSetupMenu() {
+        final View v = View.inflate(this, R.layout.players_setup_dialog, null);
         final NumberPicker realPlayers = (NumberPicker)v.findViewById(R.id.npLivePlayers);
         final NumberPicker compPlayers = (NumberPicker)v.findViewById(R.id.npCompPlayers);
 
@@ -368,19 +352,64 @@ public class MonopolyActivity extends DroidActivity {
             }).show();
     }
 
+    void showGameSetupDialog() {
+        final int [] startMoneyValues = getResources().getIntArray(R.array.start_money_values);
+        final View v = View.inflate(this, R.layout.game_config_dialog, null);
+        final CCNumberPicker npStartMoney = (CCNumberPicker)v.findViewById(R.id.npStartMoney);
+        final CompoundButton cbJailBumpEnabled = (CompoundButton)v.findViewById(R.id.cbJailBumpEnabled);
+        final Rules rules = monopoly.getRules();
+        npStartMoney.init(startMoneyValues, rules.startMoney, null);
+        cbJailBumpEnabled.setChecked(rules.jailBumpEnabled);
+        newDialogBuilder().setTitle("Configure").setView(v).setNegativeButton("Cancel", null)
+                .setPositiveButton("Setup Players", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        rules.startMoney = startMoneyValues[npStartMoney.getValue()];
+                        rules.jailBumpEnabled = cbJailBumpEnabled.isChecked();
+                        showPlayerSetupMenu();
+                    }
+                }).show();
+    }
+
     void showPieceChooser(final Runnable andThen) {
         for (int i=0; i<monopoly.getNumPlayers(); i++) {
             final Player p = monopoly.getPlayer(i);
             if (p instanceof PlayerUser && p.getPiece() == null) {
+                View.OnClickListener listener = new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        dismissCurrentDialog();
+                        p.setPiece((Piece)v.getTag());
+                        showPieceChooser(andThen);
+                    }
+                };
                 final List<Piece> pieces = monopoly.getUnusedPieces();
-                String [] items = Utils.toStringArray(pieces);
-                newDialogBuilder().setTitle("CHOOSE PIECE " + (i+1)).setItems(items, new DialogInterface.OnClickListener() {
+                GridLayout gl = new GridLayout(MonopolyActivity.this);
+                gl.setColumnCount(4);
+                gl.setRowCount(2);
+                for (Piece pc : pieces) {
+                    ImageButton iv = new ImageButton(MonopolyActivity.this);
+                    iv.setTag(pc);
+                    iv.setImageResource(monopoly.getImageId(pc));
+                    gl.addView(iv);
+                    iv.setOnClickListener(listener);
+                }
+
+                String [] items = Utils.toStringArray(pieces, true);
+                newDialogBuilder().setTitle("CHOOSE PIECE " + (i+1))
+                    .setView(gl)
+                        /*.setItems(items, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         p.setPiece(pieces.get(which));
                         showPieceChooser(andThen);
                     }
-                }).setNegativeButton("Cancel", null).show();
+                })*/.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        monopoly.clear();
+                    }
+                }).show();
                 return;
             }
         }
@@ -389,6 +418,21 @@ public class MonopolyActivity extends DroidActivity {
 
     @Override
     protected int getDialogTheme() {
-        return R.style.MonopolyDialogTheme;//android.R.style.Theme_Holo_Dialog_NoActionBar_MinWidth;
+        return R.style.MonopolyDialogTheme;
+    }
+
+    @Override
+    protected void onDialogShown(Dialog d) {
+
+        // Creating Dynamic
+        Rect displayRectangle = new Rect();
+
+        Window window = getWindow();
+        window.getDecorView().getWindowVisibleDisplayFrame(displayRectangle);
+        float DIM = Math.min(displayRectangle.width(), displayRectangle.height());
+        d.getWindow().setLayout((int) (DIM/2), d.getWindow().getAttributes().height);
+
+        //d.getWindow().setLayout(getResources().getDimension(R.dimen.dialog_width), getResources().getDimension(R.dimen.dialog_height));
+        //d.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
     }
 }

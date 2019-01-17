@@ -260,6 +260,14 @@ public class FileUtils {
         }
     }
 
+    public static void tryCopyFile(File source, File dest) {
+       try {
+           copyFile(source, dest);
+       } catch (Exception e) {
+           e.printStackTrace();
+       }
+    }
+
     public static void copyFile(File source, File dest) throws IOException {
     	InputStream in = new FileInputStream(source);
     	if (dest.isDirectory()) {

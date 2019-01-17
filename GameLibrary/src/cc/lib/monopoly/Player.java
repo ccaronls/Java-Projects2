@@ -25,10 +25,115 @@ public class Player extends Reflector<Player> {
     Piece piece;
 
     public MoveType chooseMove(Monopoly game, List<MoveType> options) {
+        if (options.size() == 1)
+            return options.get(0);
+
+        int [] weights = new int[options.size()];
+
+
+        int index = 0;
+        Map<GColor, List<Card>> sets = getPropertySets();
+        for (MoveType mt : options) {
+            switch (mt) {
+                case SKIP:
+                case ROLL_DICE:
+                    weights[index] = 1;
+                    break;
+                case PURCHASE: {
+                    Square sq = getSquare();
+                    if (sets.containsKey(sq.getColor())) {
+                        return mt; // always want to purchase from a set we already own
+                    }
+                    weights[index] = Math.max(1, 4-sets.size()); // reduce likelyhood of buying as our
+                    break;
+                }
+                case PAY_BOND:
+                    weights[index] = 2;
+                    break;
+                case MORTGAGE: {
+                    Square sq = getSquare();
+                    if (sq.canPurchase() && getMoney() < sq.getPrice()) {
+                        int owner = game.getOwner(sq);
+                        if (owner < 0 && owner != game.getCurrentPlayerNum() && getValue() >= getSquare().getPrice()) {
+                            weights[index] = Math.max(1, 2 - sets.size());
+                        } else if (getMoney() < 200) {
+                            weights[index] = 1;
+                        }
+                    }
+                    break;
+                }
+                case UNMORTGAGE:
+                    weights[index] = getCardsForMortgage().size();
+                    break;
+                case BUY_UNIT:
+                case PAY_RENT:
+                case PAY_KITTY:
+                case PAY_PLAYERS:
+                case GET_OUT_OF_JAIL_FREE:
+                    return mt;
+
+                case FORFEIT:
+                    break;
+            }
+            index++;
+        }
+
         return Utils.randItem(options);
+
     }
 
-    public Card chooseCard(Monopoly game, List<Card> cards) {
+    public enum CardChoiceType {
+        CHOOSE_CARD_TO_MORTGAGE,
+        CHOOSE_CARD_TO_UNMORTGAGE,
+        CHOOSE_CARD_FOR_NEW_UNIT
+    }
+
+    public Card chooseCard(Monopoly game, List<Card> cards, CardChoiceType choiceType) {
+        if (cards.size() == 1)
+            return cards.get(0);
+        int bestD = 0;
+        Card best = null;
+        switch (choiceType) {
+            case CHOOSE_CARD_TO_UNMORTGAGE: {
+                // choose card that will reduce money the least while increasing rent the most
+                for (Card c : cards) {
+                    int dMoney = c.getProperty().getMortgageBuybackPrice();
+                    int dRent = c.getProperty().getRent(c.houses);
+                    int delta = dMoney - dRent;
+                    if (best == null || delta > bestD) {
+                        best = c;
+                        bestD = delta;
+                    }
+                }
+                break;
+            }
+            case CHOOSE_CARD_FOR_NEW_UNIT: {
+                // choose card that will reduce money the least while increasing rent the most
+                for (Card c : cards) {
+                    int dCost = c.getProperty().getHousePrice();
+                    int dRent = c.getProperty().getRent(c.houses + 1) - c.getProperty().getRent(c.houses);
+                    int delta = dRent-dCost;
+                    if (best == null || delta > bestD) {
+                        best = c;
+                        bestD = delta;
+                    }
+                }
+                break;
+            }
+            case CHOOSE_CARD_TO_MORTGAGE: {
+                // choose card that will increase money the most while reducing loss to rent the most
+                for (Card c : cards) {
+                    int dMoney = c.getProperty().getMortgageValue();
+                    int dRent = c.getProperty().getRent(c.houses);
+                    int delta = dMoney - dRent;
+                    if (best == null || delta > bestD) {
+                        best = c;
+                        bestD = delta;
+                    }
+                }
+                break;
+            }
+        }
         return Utils.randItem(cards);
     }
 

@@ -57,5 +57,8 @@
     <declare-styleable name="MyScrollView">
         <attr name="scrollY" format="integer"/>
     </declare-styleable>
-    
+
+    <declare-styleable name="CCNumberPicker">
+        <attr name="wrap" format="boolean"/>
+    </declare-styleable>
 </resources>

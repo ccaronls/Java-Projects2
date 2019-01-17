@@ -789,6 +789,18 @@ public class Utils {
     }
 
     /**
+     *
+     * @param items
+     * @param weights
+     * @param <T>
+     * @return
+     */
+    public static <T> T chooseRandomWeightedItem(List<T> items, int [] weights) {
+        int index = chooseRandomFromSet(weights);
+        return items.get(index);
+    }
+
+    /**
      * @param elems
      * @return
      */

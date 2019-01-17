@@ -1,6 +1,7 @@
 package cc.lib.android;
 
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.DialogInterface;
 import android.graphics.Canvas;
 import android.os.Bundle;
@@ -156,7 +157,9 @@ public abstract class DroidActivity extends CCActivityBase {
                 if (currentDialog != null) {
                     currentDialog.dismiss();
                 }
-                return currentDialog = super.show();
+                currentDialog = super.show();
+                onDialogShown(currentDialog);
+                return currentDialog;
             }
         }.setCancelable(false);
         if (currentDialog != null && currentDialog.isShowing()) {
@@ -170,6 +173,8 @@ public abstract class DroidActivity extends CCActivityBase {
         }
         return builder;
     }
+
+    protected void onDialogShown(Dialog d) {}
 
     public void dismissCurrentDialog() {
         if (currentDialog != null) {
