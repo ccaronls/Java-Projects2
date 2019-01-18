@@ -451,6 +451,19 @@ public class AWTGraphics extends APGraphics {
     }
 
     @Override
+    public GRectangle getClipRect() {
+        Rectangle r = g.getClipBounds();
+        if (r == null) {
+            Vector2D v0 = screenToViewport(0, 0);
+            Vector2D v1 = screenToViewport(getViewportWidth(), getViewportHeight());
+            return new GRectangle(v0, v1);
+        }
+        Vector2D v0 = screenToViewport(r.x, r.y);
+        Vector2D v1 = screenToViewport(r.x+r.width, r.y+r.height);
+        return new GRectangle(v0, v1);
+    }
+
+    @Override
     public void clearClip() {
         g.setClip(null);
     }

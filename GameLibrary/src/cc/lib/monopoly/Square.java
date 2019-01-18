@@ -53,8 +53,8 @@ public enum Square {
         Utils.assertTrue(costs.length == 0 || costs.length == 1 || costs.length == 8);
     }
 
-    final SquareType type;
-    final GColor color;
+    private final SquareType type;
+    private final GColor color;
     private final int [] costs;
 
     public int getTax() {
@@ -94,6 +94,8 @@ public enum Square {
     // return rent given number of houses on the property.
     // 1 Hotel = 5 houses
     public int getRent(int houses) {
+        if (2+houses >= costs.length)
+            throw new IndexOutOfBoundsException("Cannot determine cost for " + houses + " houses of square " + name());
         return costs[2+houses];
     }
 
@@ -134,5 +136,9 @@ public enum Square {
 
     public GColor getColor() {
         return color;
+    }
+
+    public SquareType getType() {
+        return type;
     }
 }

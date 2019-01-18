@@ -32,12 +32,12 @@ public class AWTMonopoly extends AWTComponent {
         }
 
         @Override
-        protected int getImageId(Piece p) {
+        public int getImageId(Piece p) {
             return pieceMap.get(p);
         }
 
         @Override
-        protected int getBoardImageId() {
+        public int getBoardImageId() {
             return ids[Images.board.ordinal()];
         }
 
@@ -69,7 +69,7 @@ public class AWTMonopoly extends AWTComponent {
         }
 
         @Override
-        protected Card showChooseCardMenu(final Player player, final List<Card> cards) {
+        protected Card showChooseCardMenu(final Player player, final List<Card> cards, final Player.CardChoiceType type) {
             final Card [] result = new Card[1];
             frame.showListChooserDialog(new EZFrame.OnListItemChoosen() {
                 @Override
@@ -90,7 +90,7 @@ public class AWTMonopoly extends AWTComponent {
                         monopoly.notify();
                     }
                 }
-            }, "Choose Card " + player.getPiece(), Utils.toStringArray(cards));
+            }, player.getPiece() +  " " + Utils.getPrettyString(type.name()), Utils.toStringArray(cards));
             Utils.waitNoThrow(monopoly, -1);
             return result[0];
         }
@@ -139,12 +139,30 @@ public class AWTMonopoly extends AWTComponent {
                                     monopoly.startGameThread();
                                 }
                                 break;
+                            case "Rules": {
+                                /*
+                                Rules rules = monopoly.getRules();
+                                final EZFrame popup = new EZFrame();
+                                EZPanel buttons = new EZPanel();
+                                buttons.addTop(new EZLabel("RULES", 1, 20, true));
+                                buttons.addLeft(new NumberPicker.Builder().setLabel("Start $").setMin(500).setMax(1500).setStep(100).setValue(rules.startMoney).build(new NumberPicker.Listener() {
+                                    @Override
+                                    public void onValueChanged(int oldValue, int newValue) {
+
+                                    }
+                                }));
+                                buttons.addBottom(new EZButton("CANCEL") {
+                                    popup.closePopup(frame);
+                                });
+                                popup.showAsPopup(frame);*/
+                                break;
+                            }
                         }
                 }
             }
         };
 
-        frame.addMenuBarMenu("File", "New Game", "Resume");
+        frame.addMenuBarMenu("File", "New Game", "Resume", "Rules");
         frame.add(this);
 
         if (!frame.loadFromFile(new File("monopoly.properties")))

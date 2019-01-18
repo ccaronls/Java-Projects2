@@ -1626,4 +1626,11 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * Clears out any clipping bounds applied
      */
     public abstract void clearClip();
+
+    /**
+     * Return the most recent clip or the whole screen if not set.
+     *
+     * @return
+     */
+    public abstract GRectangle getClipRect();
 }

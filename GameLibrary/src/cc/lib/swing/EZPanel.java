@@ -23,5 +23,16 @@ public class EZPanel extends JPanel {
 		}
 	}
 	
-	
+	public void addTop(Component comp) {
+        add(comp, BorderLayout.NORTH);
+    }
+    public void addBottom(Component comp) {
+        add(comp, BorderLayout.SOUTH);
+    }
+    public void addLeft(Component comp) {
+        add(comp, BorderLayout.WEST);
+    }
+    public void addRight(Component comp) {
+        add(comp, BorderLayout.WEST);
+    }
 }

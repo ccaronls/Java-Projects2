@@ -545,6 +545,11 @@ public class DominosActivity extends DroidActivity {
         }
 
         @Override
+        public void onCancelled(ClientConnection c, String id) {
+
+        }
+
+        @Override
         public void onCommand(ClientConnection c, GameCommand cmd) {
             if (cmd.getType() == MPConstants.CL_TO_SVR_FORFEIT) {
                 c.getServer().broadcastMessage(getString(R.string.server_broadcast_player_forfieted, c.getName()));

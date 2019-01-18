@@ -1,12 +1,11 @@
 package cc.game.monopoly.android;
 
+import android.Manifest;
 import android.app.Dialog;
 import android.content.DialogInterface;
-import android.content.pm.PackageManager;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.os.Environment;
-import android.support.v4.content.ContextCompat;
 import android.view.View;
 import android.view.Window;
 import android.widget.CompoundButton;
@@ -155,7 +154,13 @@ public class MonopolyActivity extends DroidActivity {
 
         @Override
         protected void onError(Throwable t) {
-            FileUtils.tryCopyFile(saveFile, new File(Environment.getExternalStorageDirectory(), "monopoly_error.txt"));
+            checkPermissionAndThen(new Runnable() {
+                @Override
+                public void run() {
+                    FileUtils.tryCopyFile(saveFile, new File(Environment.getExternalStorageDirectory(), "monopoly_error.txt"));
+                }
+            }, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+
             newDialogBuilder().setTitle("ERROR").setMessage(t.toString()).setNegativeButton("Ok", null).show();
         }
     };
@@ -175,15 +180,6 @@ public class MonopolyActivity extends DroidActivity {
             showOptionsMenu();
         } else {
             showPlayerSetupMenu();
-        }
-    }
-
-    private boolean checkPermission() {
-        int result = ContextCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE);
-        if (result == PackageManager.PERMISSION_GRANTED) {
-            return true;
-        } else {
-            return false;
         }
     }
 
@@ -262,11 +258,16 @@ public class MonopolyActivity extends DroidActivity {
     }
 
     void showOptionsMenu() {
-        File fixed = new File(Environment.getExternalStorageDirectory(), "monopoly_fixed.txt");
-        if (fixed.exists()) {
-            FileUtils.tryCopyFile(fixed, saveFile);
-            fixed.delete();
-        }
+        checkPermissionAndThen(new Runnable() {
+            @Override
+            public void run() {
+                File fixed = new File(Environment.getExternalStorageDirectory(), "monopoly_fixed.txt");
+                if (fixed.exists()) {
+                    FileUtils.tryCopyFile(fixed, saveFile);
+                    fixed.delete();
+                }
+            }
+        }, android.Manifest.permission.WRITE_EXTERNAL_STORAGE);
 
         newDialogBuilder().setTitle("OPTIONS")
                 .setItems(new String[]{"New Game", "Resume"}, new DialogInterface.OnClickListener() {

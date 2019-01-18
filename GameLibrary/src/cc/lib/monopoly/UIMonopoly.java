@@ -89,10 +89,10 @@ public abstract class UIMonopoly extends Monopoly {
     }
 
     @Override
-    protected void onPlayerMove(int playerNum, int numSquares) {
+    protected void onPlayerMove(int playerNum, int numSquares, Square next) {
         setSpriteAnim(getPlayer(playerNum).getPiece().name(), new JumpAnimation(playerNum, numSquares).start());
         Utils.waitNoThrow(LOCK, numSquares*600);
-        super.onPlayerMove(playerNum, numSquares);
+        super.onPlayerMove(playerNum, numSquares, next);
     }
 
     private void showMessage(final String title, final String txt) {
@@ -185,9 +185,9 @@ public abstract class UIMonopoly extends Monopoly {
                 MutableVector2D s = start.getTopLeft();
                 MutableVector2D e = end.getTopLeft();
                 curve.addPoint(s);
-                MutableVector2D dv = e.min(s);
-                MutableVector2D n = dv.norm();
-                n.scaleEq(.3f);
+                MutableVector2D dv = e.sub(s);
+                float len = dv.mag();
+                MutableVector2D n = new MutableVector2D(0, len/3);
                 curve.addPoint(s.add(dv.scaledBy(.33f)).add(n));
                 curve.addPoint(s.add(dv.scaledBy(.66f)).add(n));
                 curve.addPoint(e);
@@ -291,7 +291,42 @@ public abstract class UIMonopoly extends Monopoly {
         super.onPlayerBoughtHotel(playerNum, property, amt);
     }
 
-    void addAnimation(String key, AAnimation a) {
+    @Override
+    protected void onPlayerBankrupt(int playerNum) {
+        addAnimation("PLAYER" + playerNum, new AAnimation<AGraphics>(1000) {
+            @Override
+            protected void draw(AGraphics g, float position, float dt) {
+                GRectangle rect = g.getClipRect();
+                g.setColor(GColor.TRANSLUSCENT_BLACK);
+                g.drawFilledRect(rect.x+((1-position)*rect.w/2), rect.y, rect.w*position, rect.h);
+            }
+
+            @Override
+            protected void onDone() {
+                synchronized (LOCK) {
+                    LOCK.notify();
+                }
+            }
+        }.start());
+        Utils.waitNoThrow(LOCK, 2000);
+        super.onPlayerBankrupt(playerNum);
+    }
+
+    @Override
+    protected void onPlayerWins(int playerNum) {
+        showMessage("WINNER", getPlayerName(playerNum) + " IS THE WINNER!");
+        addAnimation("PLAYER" + playerNum, new AAnimation<AGraphics>(500, -1) {
+            @Override
+            protected void draw(AGraphics g, float position, float dt) {
+                GRectangle r = g.getClipRect();
+                g.setColor(Utils.rand()%256, Utils.rand()%256, Utils.rand()%256, 255);
+                g.drawRect(r, 3);
+            }
+        }.start());
+        super.onPlayerWins(playerNum);
+    }
+
+    void addAnimation(String key, AAnimation<AGraphics> a) {
         if (!isGameRunning())
             return;
         synchronized (animations) {
@@ -512,8 +547,15 @@ public abstract class UIMonopoly extends Monopoly {
 
         void init() {
             GRectangle r0 = board.getPiecePlacement(playerNum, start);
-            start = jumps > 0 ? Utils.incrementValue(start, Square.values()) :
-                    Utils.decrementValue(start, Square.values());
+            int steps = 1;
+            if (jumps > 5) {
+                steps = 5;
+                start = Square.values()[(start.ordinal()+5) % NUM_SQUARES]; // make bigger steps when a long way to jump
+            } else if (jumps < 0) {
+                start = Utils.decrementValue(start, Square.values());
+            } else {
+                start = Utils.incrementValue(start, Square.values());
+            }
             GRectangle r1 = board.getPiecePlacement(playerNum, start);
             curve.reset();
             curve.addPoint(r0.x, r0.y);
@@ -522,7 +564,7 @@ public abstract class UIMonopoly extends Monopoly {
             curve.addPoint(r0.x + dx/3, r0.y + dx/6);
             curve.addPoint(r0.x + dx*2/3, r0.y + dx/6);
             curve.addPoint(r1.x, r1.y);
-            jumps-=dir;
+            jumps-=dir*steps;
         }
 
         @Override
@@ -611,6 +653,7 @@ public abstract class UIMonopoly extends Monopoly {
     private void drawPlayerInfo(APGraphics g, int playerNum, float w, float h) {
         g.setColor(BOARD_COLOR);
         g.drawFilledRect(0, 0, w, h);
+        g.setClipRect(0, 0, w, h);
         playerInfoWidth = w;
         Player p = getPlayer(playerNum);
         if (p.getPiece() == null)
@@ -629,11 +672,11 @@ public abstract class UIMonopoly extends Monopoly {
         sp.color = GColor.BLACK;
         sp.animateAndDraw(g, 0, 0);
 
-        if (p.isEliminated()) {
+        if (p.isBankrupt()) {
             g.setColor(GColor.TRANSLUSCENT_BLACK);
             g.drawFilledRect(0, 0, w, h);
             g.setColor(GColor.RED);
-            g.drawWrapString(w/2, h/2, w, Justify.CENTER, Justify.CENTER, "ELIMINATED");
+            g.drawWrapString(w/2, h/2, w, Justify.CENTER, Justify.CENTER, "BANKRUPT");
         } else {
             float sy = dim;
             GColor bkColor = GColor.TRANSPARENT;
@@ -674,6 +717,7 @@ public abstract class UIMonopoly extends Monopoly {
             }
         }
         drawAnimations(g, "PLAYER"+playerNum);
+        g.clearClip();
     }
 
     private float drawWrapStringOnBackground(AGraphics g, float x, float y, float width, String txt, GColor bkColor, GColor txtColor, float border) {
@@ -809,7 +853,7 @@ public abstract class UIMonopoly extends Monopoly {
         }*/
         for (int i=0; i<getNumPlayers(); i++) {
             Player p = getPlayer(i);
-            if (p.isEliminated())
+            if (p.isBankrupt())
                 continue;
             if (p.getPiece() == null)
                 continue;

@@ -6,7 +6,7 @@ public enum CardActionType {
     CH_LOAN_MATURES("Your building loan matures. Collect $150"),
     CH_MAKE_REPAIRS("Make general repairs on all your property. For each house pay $25, for each hotel pay $150"),
     CH_GET_OUT_OF_JAIL("GET OUT OF JAIL FREE. This card may be kept until needed or traded."),
-    CH_ELECTED_CHAIRMAN("You have been elected chairman of the board. Pay eash player $50"),
+    CH_ELECTED_CHAIRMAN("You have been elected chairman of the board. Pay each player $50"),
     CH_ADVANCE_RAILROAD("ADVANCE TO THE NEAREST RAILROAD. If UNOWNED, you may buy from the bank. If OWNED, pay owner twice the rental to which they are otherwise entitled."),
     CH_ADVANCE_RAILROAD2("ADVANCE TO THE NEAREST RAILROAD. If UNOWNED, you may buy from the bank. If OWNED, pay owner twice the rental to which they are otherwise entitled."),
     CH_ADVANCE_ILLINOIS("ADVANCE TO ILLINOIS AVE. If you pass go collect $200."),

@@ -557,6 +557,18 @@ public class DroidGraphics extends APGraphics {
     }
 
     @Override
+    public GRectangle getClipRect() {
+        Rect r = new Rect();
+        if (canvas.getClipBounds(r)) {
+            Vector2D v0 = screenToViewport(r.top, r.left);
+            Vector2D v1 = screenToViewport(r.right, r.bottom);
+            return new GRectangle(v0, v1);
+        }
+
+        return new GRectangle(screenToViewport(0, 0), screenToViewport(getViewportWidth(), getViewportHeight()));
+    }
+
+    @Override
     public void clearClip() {
         canvas.restore();
     }

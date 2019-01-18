@@ -88,6 +88,7 @@ public class Monopoly extends Reflector<Monopoly> {
             }
             case TURN: {
                 Player cur = getCurrentPlayer();
+                Utils.assertTrue(cur.getValue() > 0);
                 List<MoveType> moves = new ArrayList<>();
                 moves.add(MoveType.ROLL_DICE);
                 if (cur.inJail) {
@@ -135,8 +136,8 @@ public class Monopoly extends Reflector<Monopoly> {
             case PAY_RENT: {
                 Player cur = getCurrentPlayer();
                 List<MoveType> moves = new ArrayList<>();
-                int rent = getRent(cur.square);
-                if (cur.money >= rent) {
+                Utils.assertTrue(cur.debt > 0);
+                if (cur.money >= cur.debt) {
                     moves.add(MoveType.PAY_RENT);
                 }
                 if (cur.getCardsForMortgage().size() > 0) {
@@ -151,6 +152,7 @@ public class Monopoly extends Reflector<Monopoly> {
             case PAY_KITTY: {
                 Player cur = getCurrentPlayer();
                 List<MoveType> moves = new ArrayList<>();
+                Utils.assertTrue(cur.debt > 0);
                 if (cur.money >= cur.debt) {
                     moves.add(MoveType.PAY_KITTY);
                 }
@@ -166,8 +168,9 @@ public class Monopoly extends Reflector<Monopoly> {
             case PAY_PLAYERS: {
                 Player cur = getCurrentPlayer();
                 List<MoveType> moves = new ArrayList<>();
+                Utils.assertTrue(cur.debt > 0);
                 if (cur.money >= cur.debt) {
-                    moves.add(MoveType.PAY_KITTY);
+                    moves.add(MoveType.PAY_PLAYERS);
                 }
                 if (cur.getCardsForMortgage().size() > 0) {
                     moves.add(MoveType.MORTGAGE);
@@ -179,20 +182,33 @@ public class Monopoly extends Reflector<Monopoly> {
                 break;
             }
             case PAY_BIRTHDAY: {
-                boolean allDone = true;
                 for (int i=0; i<players.size(); i++) {
                     if (i == birthdayPlayer)
                         continue;
                     Player p = getPlayer(i);
                     if (p.debt > 0) {
-                        state.pop();
-                        payMoneyOrMortgage(p.debt, State.PAY_BIRTHDAY);
-                        allDone = false;
+                        currentPlayer = i;
+                        if (p.money >= p.debt) {
+                            state.pop();
+                            payMoneyOrMortgage(p.debt, State.PAY_BIRTHDAY);
+                            if (p.getValue() == 0) {
+                                if (!playerBankrupt())
+                                    return;
+                            }
+                        } else if (p.getValue() > p.debt){
+                            state.push(State.CHOOSE_MORTGAGE_PROPERTY);
+                        } else {
+                            onPlayerReceiveMoneyFromAnother(birthdayPlayer, i, p.getValue());
+                            getPlayer(birthdayPlayer).money += p.getValue();
+                            playerBankrupt();
+                            state.pop();
+                        }
                         break;
                     }
                 }
-                if (allDone) {
+                if (state.size() == 1) {
                     currentPlayer = birthdayPlayer;
+                    birthdayPlayer = -1;
                     nextPlayer();
                 }
 
@@ -251,7 +267,8 @@ public class Monopoly extends Reflector<Monopoly> {
     }
 
     private void advance(int squares) {
-        onPlayerMove(currentPlayer, squares);
+        int next = (getCurrentPlayer().square + NUM_SQUARES + squares) % NUM_SQUARES;
+        onPlayerMove(currentPlayer, squares, Square.values()[next]);
         Player cur = getCurrentPlayer();
         cur.square += squares;
         if (cur.square >= NUM_SQUARES) {
@@ -262,6 +279,7 @@ public class Monopoly extends Reflector<Monopoly> {
 
     private void processMove(MoveType move) {
         Player cur = getCurrentPlayer();
+        Utils.assertFalse(cur.isBankrupt());
         switch (move) {
             case SKIP:
                 nextPlayer();
@@ -293,7 +311,8 @@ public class Monopoly extends Reflector<Monopoly> {
                 break;
 
             case FORFEIT:
-                playerEliminated();
+                if (playerBankrupt())
+                    nextPlayer();
                 break;
 
             case PAY_BOND:
@@ -314,12 +333,14 @@ public class Monopoly extends Reflector<Monopoly> {
 
             case PAY_RENT: {
                 payRent();
+                nextPlayer();
                 break;
             }
 
             case PAY_KITTY: {
                 payToKitty(cur.debt);
                 cur.debt = 0;
+                nextPlayer();
                 break;
             }
 
@@ -329,12 +350,13 @@ public class Monopoly extends Reflector<Monopoly> {
                     if (i == currentPlayer)
                         continue;
                     Player p = getPlayer(i);
-                    if (p.isEliminated())
+                    if (p.isBankrupt())
                         continue;
                     onPlayerReceiveMoneyFromAnother(i, currentPlayer, amt);
                     p.money += amt;
                 }
                 cur.debt = 0;
+                nextPlayer();
                 break;
             }
 
@@ -399,6 +421,10 @@ public class Monopoly extends Reflector<Monopoly> {
         return die2;
     }
 
+    public final boolean isGameOver() {
+        return getWinner() >= 0;
+    }
+
     private void initChance() {
         chance.clear();
         for (CardActionType c : CardActionType.values()) {
@@ -442,7 +468,7 @@ public class Monopoly extends Reflector<Monopoly> {
         return 0;
     }
 
-    public Rules getRules() {
+    public final Rules getRules() {
         return rules;
     }
 
@@ -481,7 +507,11 @@ public class Monopoly extends Reflector<Monopoly> {
 
     private void payMoneyOrMortgage(int amount, State payState) {
         Player cur = getCurrentPlayer();
-        Utils.assertTrue(amount > 0);
+        Utils.assertTrue(amount >= 0);
+        if (amount == 0) {
+            nextPlayer();
+            return;
+        }
         if (cur.money >= amount) {
             switch (payState) {
                 case PAY_KITTY:
@@ -497,28 +527,67 @@ public class Monopoly extends Reflector<Monopoly> {
                         if (i == currentPlayer)
                             continue;
                         Player p = getPlayer(i);
-                        if (p.isEliminated())
+                        if (p.isBankrupt())
                             continue;
                         onPlayerReceiveMoneyFromAnother(i, currentPlayer, amt);
                         p.money += amt;
                     }
                     cur.money -= amount;
+                    if (cur.getValue()==0) {
+                        if (!playerBankrupt())
+                            return;
+                    }
                     break;
                 case PAY_BIRTHDAY:
+                    Utils.assertTrue(cur.debt > 0);
                     onPlayerReceiveMoneyFromAnother(birthdayPlayer, currentPlayer, cur.debt);
                     getPlayer(birthdayPlayer).money += cur.debt;
                     cur.money -= cur.debt;
                     cur.debt = 0;
-                    break;
+                    return;
                 default:
                     Utils.unhandledCase(payState);
             }
             nextPlayer();
-        } else if (cur.getValue() >= amount) {
+        } else if (cur.getValue() > amount) {
             cur.debt = amount;
-            state.push(payState);
+            state.push(State.CHOOSE_MORTGAGE_PROPERTY);
         } else {
-            playerEliminated();
+            // player is bankrupt, mortgage everything and pay remaining out
+            amount = cur.getValue();
+            cur.money = amount;
+            cur.debt = amount;
+            switch (payState) {
+                case PAY_KITTY:
+                    payToKitty(amount);
+                    break;
+                case PAY_RENT:
+                    cur.debt = amount;
+                    payRent();
+                    break;
+                case PAY_PLAYERS:
+                    int amt = amount / (getNumActivePlayers() - 1);
+                    for (int i = 0; i < players.size(); i++) {
+                        if (i == currentPlayer)
+                            continue;
+                        Player p = getPlayer(i);
+                        if (p.isBankrupt())
+                            continue;
+                        onPlayerReceiveMoneyFromAnother(i, currentPlayer, amt);
+                        p.money += amt;
+                    }
+                    break;
+                case PAY_BIRTHDAY:
+                    Utils.assertTrue(cur.debt > 0);
+                    onPlayerReceiveMoneyFromAnother(birthdayPlayer, currentPlayer, cur.debt);
+                    getPlayer(birthdayPlayer).money += cur.debt;
+                    playerBankrupt();
+                    return;
+                default:
+                    Utils.unhandledCase(payState);
+            }
+            if (playerBankrupt())
+                nextPlayer();
         }
     }
 
@@ -530,11 +599,13 @@ public class Monopoly extends Reflector<Monopoly> {
     private void processAction(CardActionType type) {
         Player cur = getCurrentPlayer();
         switch (type) {
-            case CH_GO_BACK:
-                onPlayerMove(currentPlayer, -3);
-                cur.square = (cur.square+NUM_SQUARES-3) % NUM_SQUARES;
+            case CH_GO_BACK: {
+                int next = (cur.square + NUM_SQUARES - 3) % NUM_SQUARES;
+                onPlayerMove(currentPlayer, -3, Square.values()[next]);
+                cur.square = next;
                 processSquare();
                 break;
+            }
             case CH_LOAN_MATURES:
                 getPaid(150);
                 nextPlayer();
@@ -552,7 +623,7 @@ public class Monopoly extends Reflector<Monopoly> {
                 nextPlayer();
                 break;
             case CH_ELECTED_CHAIRMAN:
-                payMoneyOrMortgage(50*(players.size()-1), State.PAY_PLAYERS);
+                payMoneyOrMortgage(50*(getNumActivePlayers()-1), State.PAY_PLAYERS);
                 break;
             case CH_ADVANCE_RAILROAD:
             case CH_ADVANCE_RAILROAD2: {
@@ -665,7 +736,7 @@ public class Monopoly extends Reflector<Monopoly> {
                     if (i == birthdayPlayer)
                         continue;
                     Player p = getPlayer(i);
-                    if (p.isEliminated())
+                    if (p.isBankrupt())
                         continue;
                     p.debt = 10;
                     state.push(State.PAY_BIRTHDAY);
@@ -703,6 +774,10 @@ public class Monopoly extends Reflector<Monopoly> {
             default:
                 Utils.unhandledCase(type);
         }
+    }
+
+    public final List<Player> getPlayersCopy() {
+        return Reflector.deepCopy(players);
     }
 
     private void gotoJail() {
@@ -746,7 +821,7 @@ public class Monopoly extends Reflector<Monopoly> {
 
             case INCOME_TAX:
             case LUXURY_TAX:
-                payMoneyOrMortgage(square.getTax(), State.PAY_KITTY);
+                payMoneyOrMortgage(Math.round(rules.taxScale * square.getTax()), State.PAY_KITTY);
                 break;
 
             case COMM_CHEST1:
@@ -816,34 +891,41 @@ public class Monopoly extends Reflector<Monopoly> {
     public final int getWinner() {
         int num = 0;
         int winner = -1;
+        if (getCurrentPlayer().getValue() >= rules.valueToWin) {
+            return currentPlayer;
+        }
         for (int i=0; i<players.size(); i++) {
             Player p = players.get(i);
-            if (p.isEliminated())
+            if (p.isBankrupt())
                 continue;
             winner = i;
             num++;
         }
-        if (num == 1)
+        if (num == 1) {
+            onPlayerWins(winner);
             return winner;
+        }
         return -1;
     }
 
-    // player eliminated means all their mortgaged property goes back to bank and they have zero money
-    private void playerEliminated() {
-        getCurrentPlayer().eliminated();
-        if (getWinner() >= 0) {
+    // player bankrupt means all their mortgaged property goes back to bank and they have zero money
+    private boolean playerBankrupt() {
+        onPlayerBankrupt(currentPlayer);
+        getCurrentPlayer().clear();
+        int winner = getWinner();
+        if (winner >= 0) {
             state.clear();
             state.push(State.GAME_OVER);
-        } else {
-            nextPlayer();
+            return false;
         }
+        return true;
     }
 
     private void nextPlayer() {
         if (getWinner() < 0) {
             do {
                 currentPlayer = (currentPlayer + 1) % players.size();
-            } while (getCurrentPlayer().isEliminated());
+            } while (getCurrentPlayer().isBankrupt());
             state.clear();
             state.push(State.TURN);
         } else {
@@ -862,7 +944,8 @@ public class Monopoly extends Reflector<Monopoly> {
         Utils.assertTrue(cur.money >= 0);
         getPlayer(owner).money += cur.debt;
         cur.debt = 0;
-
+        if (cur.getValue() == 0)
+            playerBankrupt();
     }
 
     private void payToKitty(int amt) {
@@ -872,6 +955,8 @@ public class Monopoly extends Reflector<Monopoly> {
         onPlayerPayMoneyToKitty(currentPlayer, amt);
         cur.money -= amt;
         kitty += amt;
+        if (cur.getValue() == 0)
+            playerBankrupt();
     }
 
     public final int getOwner(int sq) {
@@ -897,7 +982,7 @@ public class Monopoly extends Reflector<Monopoly> {
     public final int getNumActivePlayers() {
         int num = 0;
         for (Player p : players) {
-            if (p.isEliminated())
+            if (p.isBankrupt())
                 continue;
             num++;
         }
@@ -938,8 +1023,8 @@ public class Monopoly extends Reflector<Monopoly> {
      * @param playerNum
      * @param numSquares
      */
-    protected void onPlayerMove(int playerNum, int numSquares) {
-        log.info("%s moved %d squares", getPlayerName(playerNum), numSquares);
+    protected void onPlayerMove(int playerNum, int numSquares, Square nextSquare) {
+        log.info("%s moved %d squares to %s", getPlayerName(playerNum), numSquares, nextSquare);
     }
 
     protected void onPlayerDrawsChance(int playerNum, CardActionType chance) {
@@ -992,5 +1077,13 @@ public class Monopoly extends Reflector<Monopoly> {
 
     protected void onPlayerBoughtHotel(int playerNum, Square property, int amt) {
         log.info("%s bought a HOTEL for property %s for $%d", getPlayerName(playerNum), property.name(), amt);
+    }
+
+    protected void onPlayerBankrupt(int playerNum) {
+        log.info("%s IS BANKRUPT!", getPlayerName(playerNum));
+    }
+
+    protected void onPlayerWins(int playerNum) {
+        log.info("%s IS THE WINNER!", getPlayerName(playerNum));
     }
 }

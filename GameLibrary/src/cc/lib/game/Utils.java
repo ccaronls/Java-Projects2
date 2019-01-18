@@ -68,8 +68,11 @@ public class Utils {
      * @param args
      */
     public static void assertTrue(boolean expr, String msg, Object... args) {
-        if (DEBUG_ENABLED && !expr) {
-            throw new AssertionError("ASSERT FAILED " + String.format(msg, args));
+        if (!expr) {
+            if (DEBUG_ENABLED)
+                throw new AssertionError("ASSERT FAILED " + String.format(msg, args));
+            else
+                System.err.println(formatNoThrow(msg, args));
         }
     }
 

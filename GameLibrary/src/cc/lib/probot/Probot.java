@@ -107,7 +107,7 @@ public class Probot extends Reflector<Probot> implements Comparator<Integer> {
     public Level level = new Level();
     int levelNum = 0;
 
-    // the lazer matrix is same size as the coins. Eash elem is a bit flag of LAZER_N/S/E/W values
+    // the lazer matrix is same size as the coins. Each elem is a bit flag of LAZER_N/S/E/W values
 
     public int [][] lazer = {};
 

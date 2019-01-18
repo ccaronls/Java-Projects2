@@ -196,6 +196,11 @@ public class TestGraphics extends APGraphics {
     }
 
     @Override
+    public GRectangle getClipRect() {
+        return null;
+    }
+
+    @Override
     public void clearClip() {
 
     }

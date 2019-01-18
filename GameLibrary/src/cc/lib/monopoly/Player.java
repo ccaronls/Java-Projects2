@@ -37,20 +37,33 @@ public class Player extends Reflector<Player> {
             switch (mt) {
                 case SKIP:
                 case ROLL_DICE:
-                    weights[index] = 1;
+                    weights[index] = 2;
                     break;
                 case PURCHASE: {
                     Square sq = getSquare();
-                    if (sets.containsKey(sq.getColor())) {
-                        return mt; // always want to purchase from a set we already own
+                    switch (sq.getType()) {
+                        case PROPERTY:
+                            if (sets.containsKey(sq.getColor())) {
+                                return mt; // always want to purchase from a set we already own
+                            }
+                            weights[index] = Math.max(1, 4-sets.size()); // reduce likelyhood of buying as our sets go up
+                            break;
+                        case UTILITY:
+                            if (getNumUtilities() > 0)
+                                return mt;
+                            weights[index] = 1;
+                            break;
+                        case RAIL_ROAD:
+                            weights[index] = 2 + getNumRailroads()*2;
+                            break;
                     }
-                    weights[index] = Math.max(1, 4-sets.size()); // reduce likelyhood of buying as our
                     break;
                 }
                 case PAY_BOND:
                     weights[index] = 2;
                     break;
                 case MORTGAGE: {
+                    /*
                     Square sq = getSquare();
                     if (sq.canPurchase() && getMoney() < sq.getPrice()) {
                         int owner = game.getOwner(sq);
@@ -59,18 +72,21 @@ public class Player extends Reflector<Player> {
                         } else if (getMoney() < 200) {
                             weights[index] = 1;
                         }
-                    }
+                    }*/
                     break;
                 }
                 case UNMORTGAGE:
                     weights[index] = getCardsForMortgage().size();
                     break;
-                case BUY_UNIT:
                 case PAY_RENT:
                 case PAY_KITTY:
                 case PAY_PLAYERS:
                 case GET_OUT_OF_JAIL_FREE:
                     return mt;
+
+                case BUY_UNIT:
+                    weights[index] = 1+getMoney()/100;
+                    break;
 
                 case FORFEIT:
                     break;
@@ -78,7 +94,7 @@ public class Player extends Reflector<Player> {
             index++;
         }
 
-        return Utils.randItem(options);
+        return Utils.chooseRandomWeightedItem(options, weights);
 
     }
 
@@ -89,6 +105,7 @@ public class Player extends Reflector<Player> {
     }
 
     public Card chooseCard(Monopoly game, List<Card> cards, CardChoiceType choiceType) {
+        Utils.assertTrue(cards.size() > 0);
         if (cards.size() == 1)
             return cards.get(0);
         int bestD = 0;
@@ -98,7 +115,7 @@ public class Player extends Reflector<Player> {
                 // choose card that will reduce money the least while increasing rent the most
                 for (Card c : cards) {
                     int dMoney = c.getProperty().getMortgageBuybackPrice();
-                    int dRent = c.getProperty().getRent(c.houses);
+                    int dRent = getRent(c.getProperty(), 7);
                     int delta = dMoney - dRent;
                     if (best == null || delta > bestD) {
                         best = c;
@@ -111,7 +128,7 @@ public class Player extends Reflector<Player> {
                 // choose card that will reduce money the least while increasing rent the most
                 for (Card c : cards) {
                     int dCost = c.getProperty().getHousePrice();
-                    int dRent = c.getProperty().getRent(c.houses + 1) - c.getProperty().getRent(c.houses);
+                    int dRent = getRent(c.getProperty(), 7);
                     int delta = dRent-dCost;
                     if (best == null || delta > bestD) {
                         best = c;
@@ -124,9 +141,9 @@ public class Player extends Reflector<Player> {
                 // choose card that will increase money the most while reducing loss to rent the most
                 for (Card c : cards) {
                     int dMoney = c.getProperty().getMortgageValue();
-                    int dRent = c.getProperty().getRent(c.houses);
+                    int dRent = getRent(c.getProperty(), 7);
                     int delta = dMoney - dRent;
-                    if (best == null || delta > bestD) {
+                    if (best == null || (money + dMoney > delta && delta > bestD)) {
                         best = c;
                         bestD = delta;
                     }
@@ -166,14 +183,26 @@ public class Player extends Reflector<Player> {
         for (Card c : cards) {
             if (c.property == null || !c.property.isProperty())
                 continue;
-            List<Card> list = sets.get(c.property.color);
+            List<Card> list = sets.get(c.property.getColor());
             if (list == null) {
                 list = new ArrayList<>();
-                sets.put(c.property.color, list);
+                sets.put(c.property.getColor(), list);
             }
             list.add(c);
         }
         return sets;
+    }
+
+    public final int getNumCompletePropertySets() {
+        int num = 0;
+        Map<GColor, List<Card>> sets = getPropertySets();
+        for (List<Card> l : sets.values()) {
+            Card c = l.get(0);
+            Utils.assertTrue(c.getProperty().getNumForSet() >= l.size());
+            if (l.size() == c.getProperty().getNumForSet())
+                num++;
+        }
+        return num;
     }
 
     public final boolean ownsProperty(Square square) {
@@ -270,15 +299,17 @@ public class Player extends Reflector<Player> {
         int count = 0;
         int min = property.getNumForSet();
         for (Card c : cards) {
-            if (c.property != null && c.property.color.equals(property.color)) {
+            if (c.property != null && c.property.getColor().equals(property.getColor())) {
                 count++;
             }
         }
         return count == min;
     }
 
-    final void eliminated() {
+    final void clear() {
         money = 0;
+        debt = 0;
+        inJail = false;
         cards.clear();
         square = -1;
     }
@@ -294,7 +325,7 @@ public class Player extends Reflector<Player> {
         Utils.assertTrue(false, "Cannot find get out of jail card in cards: %s", cards);
     }
 
-    public final boolean isEliminated() {
+    public final boolean isBankrupt() {
         return square < 0;
     }
 
@@ -323,7 +354,7 @@ public class Player extends Reflector<Player> {
         for (Card c : this.cards) {
             if (c.getProperty() == null)
                 continue;
-            if (c.getProperty().type == type)
+            if (c.getProperty().getType() == type)
                 cards.add(c);
         }
         return cards;
@@ -362,5 +393,48 @@ public class Player extends Reflector<Player> {
                 return true;
         }
         return false;
+    }
+
+    public int getTotalUnits() {
+        int num = 0;
+        for (Card c : cards) {
+            num += c.houses;
+        }
+        return num;
+    }
+
+    public int getNumMortgaged() {
+        int num = 0;
+        for (Card c : cards) {
+            if (c.mortgaged)
+                num++;
+        }
+        return num;
+    }
+
+    public int getNumUnmortgaged() {
+        int num = 0;
+        for (Card c : cards) {
+            if (c.getProperty() != null && !c.mortgaged)
+                num++;
+        }
+        return num;
+    }
+
+    public String toString() {
+        return "\n" + piece.name()
+                + "\n  bankrupt=" + isBankrupt()
+                + "\n  injail=" + isInJail()
+                + "\n  money=" + money
+                + "\n  cards=" + cards.size()
+                + "\n  mortgaged=" + getNumMortgaged()
+                + "\n  unmortgaged=" + getNumUnmortgaged()
+                + "\n  value=" + getValue()
+                + "\n  sets =" + getPropertySets().size()
+                + "\n  complete sets=" + getNumCompletePropertySets()
+                + "\n  units=" + getTotalUnits()
+                + "\n  rroads=" + getNumRailroads()
+                + "\n  utils =" + getNumUtilities()
+                ;
     }
 }

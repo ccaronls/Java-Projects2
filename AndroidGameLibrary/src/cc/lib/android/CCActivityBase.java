@@ -13,7 +13,9 @@ import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Toast;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -46,7 +48,6 @@ public class CCActivityBase extends Activity {
 	protected void onCreate(Bundle bundle) {
         if (BuildConfig.DEBUG) {
             Utils.DEBUG_ENABLED = true;
-            requestExternalWritePermission();
         }
 	    super.onCreate(bundle);
 	}
@@ -165,36 +166,59 @@ public class CCActivityBase extends Activity {
 	    return new AlertDialog.Builder(this);
     }
 
-    final int PERMISSION_REQUEST_CODE = 1001;
+    private Runnable grantedRunnable;
 
-    public final void requestExternalWritePermission() {
+    public synchronized void checkPermissionAndThen(Runnable ifGrantedRunOnUiThread, String ... permissions) {
+        List<String> permissionsNotGranted = new ArrayList<>();
+        for (String p : permissions) {
+            if (PackageManager.PERMISSION_GRANTED != checkSelfPermission(p)) {
+                permissionsNotGranted.add(p);
+            }
+        }
 
-        int code = checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE);
-        if (code != PackageManager.PERMISSION_GRANTED) {
-            if (shouldShowRequestPermissionRationale(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-                Toast.makeText(this, R.string.toast_allow_write_external_storage, Toast.LENGTH_LONG).show();
-            } else {
-                requestPermissions(new String[]{android.Manifest.permission.WRITE_EXTERNAL_STORAGE}, PERMISSION_REQUEST_CODE);
+        if (permissionsNotGranted.size() == 0) {
+            runOnUiThread(ifGrantedRunOnUiThread);
+        } else {
+            grantedRunnable = ifGrantedRunOnUiThread;
+            requestPermissions(permissionsNotGranted.toArray(new String[permissionsNotGranted.size()]), PERMISSION_REQUEST_CODE);
+        }
+    }
+
+
+    private final int PERMISSION_REQUEST_CODE = 1001;
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permissions[], final int[] grantResults) {
+        switch (requestCode) {
+            case PERMISSION_REQUEST_CODE: {
+                final List<String> permissionsNotGranted = new ArrayList<>();
+                for (int i=0; i<permissions.length; i++) {
+                    if (grantResults[i] != PackageManager.PERMISSION_GRANTED) {
+                        permissionsNotGranted.add(permissions[i]);
+                    }
+                }
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (permissionsNotGranted.size() > 0) {
+                            onPermissionNotGranted(permissionsNotGranted.toArray(new String[permissionsNotGranted.size()]));
+                        } else {
+                            try {
+                                grantedRunnable.run();
+                                grantedRunnable = null;
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                });
+                break;
             }
         }
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
-        switch (requestCode) {
-            case PERMISSION_REQUEST_CODE:
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    runOnUiThread(new Runnable() {
-                        public void run() {
-                            onWritePermissionGranted();
-                        }
-                    });
-                }
-                break;
-        }
+    protected void onPermissionNotGranted(String ... permissions) {
+        Toast.makeText(this, "The following permissions are not granted: " + Arrays.toString(permissions), Toast.LENGTH_LONG).show();
     }
 
-    protected void onWritePermissionGranted() {
-        Toast.makeText(this, "Write Permission Granted", Toast.LENGTH_SHORT).show();
-    }
 }

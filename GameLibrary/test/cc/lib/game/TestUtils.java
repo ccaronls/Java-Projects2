@@ -1,12 +1,10 @@
 package cc.lib.game;
 
-import java.awt.Rectangle;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.Arrays;
-
 import junit.framework.TestCase;
+
+import java.awt.Rectangle;
+import java.util.Arrays;
+import java.util.List;
 
 public class TestUtils extends TestCase {
 
@@ -74,5 +72,12 @@ public class TestUtils extends TestCase {
     	System.out.println(Arrays.toString(sortable));
     	System.out.println(Arrays.toString(letters));
     }
-    
+
+    public void testWeightedRandomGet() {
+        List<String> items = Arrays.asList("A", "B", "C");
+        int [] weights = { 1, 0, 1 };
+
+        for (int i=0; i<10000; i++)
+            assertFalse(Utils.chooseRandomWeightedItem(items, weights).equals("B"));
+    }
 }
