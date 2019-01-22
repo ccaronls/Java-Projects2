@@ -29,6 +29,7 @@ import cc.lib.game.AGraphics;
 import cc.lib.game.AImage;
 import cc.lib.game.GColor;
 import cc.lib.game.GDimension;
+import cc.lib.game.GRectangle;
 import cc.lib.game.IImageFilter;
 import cc.lib.game.Justify;
 import cc.lib.math.Matrix3x3;
@@ -1235,5 +1236,10 @@ for (int pix : pixels) {
     @Override
     public void clearClip() {
         throw new RuntimeException("not implemented: clearClip");
+    }
+
+    @Override
+    public GRectangle getClipRect() {
+        throw new RuntimeException("not implemented: getClipRect");
     }
 }

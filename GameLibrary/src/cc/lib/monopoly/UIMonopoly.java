@@ -176,6 +176,7 @@ public abstract class UIMonopoly extends Monopoly {
         final Player p = getPlayer(playerNum);
         final GRectangle start = board.getPiecePlacement(playerNum, p.getSquare());
         final GRectangle end   = board.getPiecePlacementJail(playerNum);
+        addAnimation("PLAYER"+playerNum, new JailedAnim(playerInfoWidth, playerInfoHeight).start());
         setSpriteAnim("PLAYER"+playerNum, new AAnimation<Sprite>(2000) {
 
             final Bezier curve = new Bezier();
@@ -206,7 +207,6 @@ public abstract class UIMonopoly extends Monopoly {
             }
         }.start());
         Utils.waitNoThrow(LOCK, 5000);
-        addAnimation("PLAYER"+playerNum, new JailedAnim(playerInfoWidth, playerInfoHeight).start());
 //        Utils.waitNoThrow(LOCK, 5000);
         super.onPlayerGoesToJail(playerNum);
     }
@@ -636,7 +636,7 @@ public abstract class UIMonopoly extends Monopoly {
     }
 
     public void paint(APGraphics g, int mouseX, int mouseY) {
-        g.clearScreen(GColor.BLACK);
+        g.clearScreen(BOARD_COLOR);
         W = g.getViewportWidth();
         H = g.getViewportHeight();
         DIM = Math.min(W, H);
@@ -650,9 +650,47 @@ public abstract class UIMonopoly extends Monopoly {
         }
     }
 
+    void drawCard(APGraphics g, Square card, Player p, int w, int h) {
+        float oldH = g.getTextHeight();
+        g.setTextHeight(h/16);
+        g.setColor(GColor.WHITE);
+        g.drawFilledRect(0, 0, w, h);
+        g.setColor(card.getColor());
+        g.drawFilledRect(0, 0, w, h/5);
+        g.setColor(chooseContrastColor(card.getColor()));
+        g.drawWrapString(w/2, h/2, w-PADDING*2, Justify.CENTER, Justify.CENTER, Utils.getPrettyString(card.name()));
+
+        g.setColor(GColor.BLACK);
+        float sy = h/5 + PADDING;
+        String left= "RENT\n"
+                + "\nWITH SET"
+                + "\n1 House"
+                + "\n2 Houses"
+                + "\n3 Houses"
+                + "\n4 Houses"
+                + "\nHotel";
+
+        String right = String.valueOf(card.getRent(0))
+                + "\n$" + card.getRent(0) * 2;
+        for (int i=1; i<=MAX_HOUSES; i++)
+            right += "\n$" + card.getRent(i);
+
+        g.drawJustifiedString(PADDING, sy, Justify.LEFT, Justify.TOP, left);
+        g.drawJustifiedString(w-PADDING, sy, Justify.RIGHT, Justify.TOP, right);
+
+        //sy += g.getTextHeight()*8;
+        g.drawJustifiedString(w/2, h-PADDING, Justify.CENTER, Justify.BOTTOM, "$" + card.getPrice());
+
+        g.setColor(GColor.BLACK);
+        g.drawRect(0, 0, w, h);
+        g.setTextHeight(oldH);
+    }
+
     private void drawPlayerInfo(APGraphics g, int playerNum, float w, float h) {
         g.setColor(BOARD_COLOR);
         g.drawFilledRect(0, 0, w, h);
+        g.setColor(GColor.BLACK);
+        g.drawRect(0, 0, w, h);
         g.setClipRect(0, 0, w, h);
         playerInfoWidth = w;
         Player p = getPlayer(playerNum);
@@ -796,6 +834,21 @@ public abstract class UIMonopoly extends Monopoly {
         }
     }
 
+    private final static Vector2D [] HOUSE_PTS = {
+            new Vector2D(-1, -0.8f),
+            new Vector2D(-1, .6f),
+            new Vector2D(0, -1),
+            new Vector2D(0, .2f),
+            new Vector2D(1, -0.8f),
+            new Vector2D(1, .6f),
+            new Vector2D(-0.8f, 1),
+            new Vector2D(.8f, 1),
+            new Vector2D(-.8f, 0),
+            new Vector2D(.8f, 0),
+    };
+
+
+
     // draw house with center at 0,0.
     public void drawHouse(AGraphics g) {
         GColor color = g.getColor();
@@ -803,30 +856,17 @@ public abstract class UIMonopoly extends Monopoly {
         GColor roofR = color.darkened(0.2f);
         GColor front = color.darkened(0.5f);
 
-        Vector2D [] pts = {
-                new Vector2D(-1, -0.8f),
-                new Vector2D(-1, .6f),
-                new Vector2D(0, -1),
-                new Vector2D(0, .2f),
-                new Vector2D(1, -0.8f),
-                new Vector2D(1, .6f),
-                new Vector2D(-0.8f, 1),
-                new Vector2D(.8f, 1),
-                new Vector2D(-.8f, 0),
-                new Vector2D(.8f, 0),
-        };
-
         g.setColor(front);
         g.begin();
-        g.vertexArray(pts[8], pts[9], pts[6], pts[7]);
+        g.vertexArray(HOUSE_PTS[8], HOUSE_PTS[9], HOUSE_PTS[6], HOUSE_PTS[7]);
         g.drawQuadStrip();
         g.begin();
         g.setColor(roofL);
-        g.vertexArray(pts[0], pts[1], pts[2], pts[3]);
+        g.vertexArray(HOUSE_PTS[0], HOUSE_PTS[1], HOUSE_PTS[2], HOUSE_PTS[3]);
         g.drawQuadStrip();
         g.begin();
         g.setColor(roofR);
-        g.vertexArray(pts[2], pts[3], pts[4], pts[5]);
+        g.vertexArray(HOUSE_PTS[2], HOUSE_PTS[3], HOUSE_PTS[4], HOUSE_PTS[5]);
         g.drawQuadStrip();
         g.setColor(color); // restore color
     }
@@ -863,7 +903,7 @@ public abstract class UIMonopoly extends Monopoly {
                 if (c.getProperty() == null)
                     continue;
                 GRectangle r = board.getSqaureBounds(c.getProperty());
-                float houseScale = Math.min(r.w, r.h)/10;
+                float houseScale = Math.min(r.w, r.h)/15;
                 switch (board.getsQuarePosition(c.getProperty())) {
                     case TOP:
                         g.drawImage(pcId, r.x+r.w/2-targetDim/2, r.y+r.h-targetDim/3, targetDim, targetDim);

@@ -116,7 +116,6 @@ public class Monopoly extends Reflector<Monopoly> {
                 break;
             }
 
-
             case PURCHASE_OR_SKIP: {
                 Player cur = getCurrentPlayer();
                 List<MoveType> moves = new ArrayList<>();
@@ -133,6 +132,7 @@ public class Monopoly extends Reflector<Monopoly> {
                 }
                 break;
             }
+
             case PAY_RENT: {
                 Player cur = getCurrentPlayer();
                 List<MoveType> moves = new ArrayList<>();
@@ -149,6 +149,7 @@ public class Monopoly extends Reflector<Monopoly> {
                 }
                 break;
             }
+
             case PAY_KITTY: {
                 Player cur = getCurrentPlayer();
                 List<MoveType> moves = new ArrayList<>();
@@ -165,6 +166,7 @@ public class Monopoly extends Reflector<Monopoly> {
                 }
                 break;
             }
+
             case PAY_PLAYERS: {
                 Player cur = getCurrentPlayer();
                 List<MoveType> moves = new ArrayList<>();
@@ -181,6 +183,7 @@ public class Monopoly extends Reflector<Monopoly> {
                 }
                 break;
             }
+
             case PAY_BIRTHDAY: {
                 for (int i=0; i<players.size(); i++) {
                     if (i == birthdayPlayer)
@@ -214,6 +217,7 @@ public class Monopoly extends Reflector<Monopoly> {
 
                 break;
             }
+
             case CHOOSE_MORTGAGE_PROPERTY: {
                 Player cur = getCurrentPlayer();
                 List<Card> cards = cur.getCardsForMortgage();
@@ -227,6 +231,7 @@ public class Monopoly extends Reflector<Monopoly> {
                 }
                 break;
             }
+
             case CHOOSE_UNMORTGAGE_PROPERTY: {
                 Player cur = getCurrentPlayer();
                 List<Card> cards = cur.getCardsForUnMortgage();
@@ -240,6 +245,7 @@ public class Monopoly extends Reflector<Monopoly> {
                 }
                 break;
             }
+
             case CHOOSE_PROPERTY_FOR_UNIT: {
                 Player cur = getCurrentPlayer();
                 List<Card> cards = cur.getCardsForNewHouse();
@@ -258,6 +264,7 @@ public class Monopoly extends Reflector<Monopoly> {
                 }
                 break;
             }
+
             case GAME_OVER:
                 break;
 
@@ -891,13 +898,12 @@ public class Monopoly extends Reflector<Monopoly> {
     public final int getWinner() {
         int num = 0;
         int winner = -1;
-        if (getCurrentPlayer().getValue() >= rules.valueToWin) {
-            return currentPlayer;
-        }
         for (int i=0; i<players.size(); i++) {
             Player p = players.get(i);
             if (p.isBankrupt())
                 continue;
+            if (p.getValue() >= rules.valueToWin)
+                return i;
             winner = i;
             num++;
         }

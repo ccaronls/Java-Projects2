@@ -13,7 +13,10 @@ import cc.lib.monopoly.Card;
 import cc.lib.monopoly.MoveType;
 import cc.lib.monopoly.Piece;
 import cc.lib.monopoly.Player;
+import cc.lib.monopoly.Rules;
 import cc.lib.monopoly.UIMonopoly;
+
+import java.awt.*;
 
 public class AWTMonopoly extends AWTComponent {
     private final static Logger log = LoggerFactory.getLogger(AWTMonopoly.class);
@@ -140,21 +143,40 @@ public class AWTMonopoly extends AWTComponent {
                                 }
                                 break;
                             case "Rules": {
-                                /*
                                 Rules rules = monopoly.getRules();
                                 final EZFrame popup = new EZFrame();
-                                EZPanel buttons = new EZPanel();
-                                buttons.addTop(new EZLabel("RULES", 1, 20, true));
-                                buttons.addLeft(new NumberPicker.Builder().setLabel("Start $").setMin(500).setMax(1500).setStep(100).setValue(rules.startMoney).build(new NumberPicker.Listener() {
+                                EZPanel content= new EZPanel(new BorderLayout());
+                                NumberPicker npStart = new NumberPicker.Builder().setLabel("Start $").setMin(500).setMax(1500).setStep(100).setValue(rules.startMoney).build(null);
+                                NumberPicker npWin   = new NumberPicker.Builder().setLabel("Win $").setMin(2000).setMax(5000).setStep(500).setValue(rules.valueToWin).build(null);
+                                NumberPicker npTaxScale = new NumberPicker.Builder().setLabel("Tax Scale").setMin(0).setMax(200).setStep(50).setValue(Math.round(100f * rules.taxScale)).build(null);
+                                content.addTop(new EZLabel("RULES", 1, 20, true));
+                                EZPanel buttons = new EZPanel(0, 1);
+                                EZPanel pickers = new EZPanel(1, 0);
+                                pickers.add(npStart);
+                                pickers.add(npWin);
+                                pickers.add(npTaxScale);
+                                content.add(pickers);
+                                content.addRight(buttons);
+                                buttons.add(new AWTButton("Jail Bump") {
                                     @Override
-                                    public void onValueChanged(int oldValue, int newValue) {
+                                    protected void onAction() {
+                                        toggleSelected();
+                                    }
+                                });
+                                buttons.add(new AWTButton("Start") {
+                                    @Override
+                                    protected void onAction() {
 
                                     }
-                                }));
-                                buttons.addBottom(new EZButton("CANCEL") {
-                                    popup.closePopup(frame);
                                 });
-                                popup.showAsPopup(frame);*/
+                                content.addBottom(new AWTButton("Cancel") {
+                                    @Override
+                                    protected void onAction() {
+                                        popup.closePopup(frame);
+                                    }
+                                });
+                                popup.setContentPane(content);
+                                popup.showAsPopup(frame);
                                 break;
                             }
                         }

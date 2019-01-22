@@ -82,15 +82,16 @@ public class CCNumberPicker extends NumberPicker {
 	    return np;
     }
 
-    public void init(final int [] values, int startValue, OnValueChangeListener listener) {
+    public void init(final int [] values, int startValue, Formatter formatter, OnValueChangeListener listener) {
 	    setOnValueChangedListener(listener);
 	    setMinValue(0);
 	    setMaxValue(values.length-1);
         String [] display = new String[values.length];
         for (int i=0; i<values.length; i++) {
-            if (startValue <= values[i])
+            if (startValue >= values[i])
                 setValue(i);
-            display[i] = String.valueOf(values[i]);
+            display[i] = formatter == null ? String.valueOf(values[i]) :
+                    formatter.format(values[i]);
         }
         setDisplayedValues(display);
     }

@@ -9,24 +9,36 @@
     <TextView
         android:id="@+id/tvStartMoney"
         style="@style/TextView"
-        android:layout_width="0dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Start Money"
         android:layout_margin="5dp"
         android:gravity="center"
-        app:layout_constraintWidth_percent=".5"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"/>
+        app:layout_constraintEnd_toStartOf="@+id/tvWinMoney"/>
 
     <TextView
-        android:id="@+id/tvJailBump"
+        android:id="@+id/tvWinMoney"
         style="@style/TextView"
-        android:layout_width="0dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Jail Bump"
+        android:text="Win Money"
         android:layout_margin="5dp"
         android:gravity="center"
-        app:layout_constraintWidth_percent=".5"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toEndOf="@id/tvStartMoney"
+        app:layout_constraintEnd_toStartOf="@+id/tvTaxScale"/>
+
+    <TextView
+        android:id="@+id/tvTaxScale"
+        style="@style/TextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Tax Scale"
+        android:layout_margin="5dp"
+        android:gravity="center"
+        app:layout_constraintStart_toEndOf="@+id/tvWinMoney"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
 
@@ -39,15 +51,32 @@
         app:layout_constraintStart_toStartOf="@id/tvStartMoney"
         app:layout_constraintEnd_toEndOf="@id/tvStartMoney"/>
 
-    <ToggleButton
+    <cc.lib.android.CCNumberPicker
+        android:id="@+id/npWinMoney"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        app:layout_constraintTop_toBottomOf="@id/tvWinMoney"
+        app:layout_constraintStart_toStartOf="@id/tvWinMoney"
+        app:layout_constraintEnd_toEndOf="@id/tvWinMoney"/>
+
+    <cc.lib.android.CCNumberPicker
+        android:id="@+id/npTaxScale"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        app:layout_constraintTop_toBottomOf="@id/tvTaxScale"
+        app:layout_constraintStart_toStartOf="@id/tvTaxScale"
+        app:layout_constraintEnd_toEndOf="@id/tvTaxScale"/>
+
+    <CheckBox
+        android:text="Jail Bump Enabled"
         android:id="@+id/cbJailBumpEnabled"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:layout_constraintTop_toBottomOf="@id/tvJailBump"
-        app:layout_constraintEnd_toEndOf="@id/tvJailBump"
-        app:layout_constraintStart_toStartOf="@id/tvJailBump"
-        app:layout_constraintTop_toTopOf="@id/npStartMoney"
-        app:layout_constraintBottom_toBottomOf="@id/npStartMoney"/>
-
+        android:layout_marginTop="20dp"
+        app:layout_constraintTop_toBottomOf="@id/npStartMoney"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"/>
 
 </android.support.constraint.ConstraintLayout>

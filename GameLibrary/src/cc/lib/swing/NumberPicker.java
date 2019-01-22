@@ -36,7 +36,7 @@ public class NumberPicker extends EZPanel implements ChangeListener {
     private boolean ignore = false;
 
     public final void stateChanged(ChangeEvent e) {
-        if (!ignore)
+        if (!ignore && listener != null)
             listener.onValueChanged(0, (Integer)model.getValue());
     }
 

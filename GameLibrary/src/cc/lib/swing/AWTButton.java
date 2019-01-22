@@ -16,4 +16,8 @@ public abstract class AWTButton extends JButton implements ActionListener {
     }
 
     protected abstract void onAction();
+
+    public void toggleSelected() {
+        setSelected(!isSelected());
+    }
 }

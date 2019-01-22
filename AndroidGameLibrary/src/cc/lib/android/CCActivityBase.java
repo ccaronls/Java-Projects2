@@ -169,18 +169,22 @@ public class CCActivityBase extends Activity {
     private Runnable grantedRunnable;
 
     public synchronized void checkPermissionAndThen(Runnable ifGrantedRunOnUiThread, String ... permissions) {
-        List<String> permissionsNotGranted = new ArrayList<>();
-        for (String p : permissions) {
-            if (PackageManager.PERMISSION_GRANTED != checkSelfPermission(p)) {
-                permissionsNotGranted.add(p);
+        if (BuildConfig.VERSION_CODE >= 23) {
+            List<String> permissionsNotGranted = new ArrayList<>();
+            for (String p : permissions) {
+                if (PackageManager.PERMISSION_GRANTED != checkSelfPermission(p)) {
+                    permissionsNotGranted.add(p);
+                }
             }
-        }
 
-        if (permissionsNotGranted.size() == 0) {
-            runOnUiThread(ifGrantedRunOnUiThread);
+            if (permissionsNotGranted.size() == 0) {
+                runOnUiThread(ifGrantedRunOnUiThread);
+            } else {
+                grantedRunnable = ifGrantedRunOnUiThread;
+                requestPermissions(permissionsNotGranted.toArray(new String[permissionsNotGranted.size()]), PERMISSION_REQUEST_CODE);
+            }
         } else {
-            grantedRunnable = ifGrantedRunOnUiThread;
-            requestPermissions(permissionsNotGranted.toArray(new String[permissionsNotGranted.size()]), PERMISSION_REQUEST_CODE);
+            ifGrantedRunOnUiThread.run();
         }
     }
 
