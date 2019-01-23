@@ -6,17 +6,17 @@ import cc.lib.game.*;
 import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
 import cc.lib.swing.AWTGraphics;
-import cc.lib.swing.EZFrame;
-import cc.lib.swing.KeyboardAnimationApplet;
+import cc.lib.swing.AWTFrame;
+import cc.lib.swing.AWTKeyboardAnimationApplet;
 
-public class BSplineExample extends KeyboardAnimationApplet {
+public class BSplineExample extends AWTKeyboardAnimationApplet {
     
     public static void main(String [] args) {
         //Utils.DEBUG_ENABLED = true;
         //Golf.DEBUG_ENABLED = true;
         //PlayerBot.DEBUG_ENABLED = true;
-        EZFrame frame = new EZFrame("BSpline test");
-        KeyboardAnimationApplet app = new BSplineExample();
+        AWTFrame frame = new AWTFrame("BSpline test");
+        AWTKeyboardAnimationApplet app = new BSplineExample();
         frame.add(app);
         app.init();
         frame.centerToScreen(800, 600);

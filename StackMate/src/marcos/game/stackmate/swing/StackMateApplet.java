@@ -15,14 +15,14 @@ import marcos.game.stackmate.core.*;
 import cc.lib.game.*;
 import cc.lib.swing.*;
 
-public class StackMateApplet extends KeyboardAnimationApplet implements ActionListener {
+public class StackMateApplet extends AWTKeyboardAnimationApplet implements ActionListener {
 
 	public static void main(String [] args) {
         Utils.DEBUG_ENABLED = true;
         StackMatePlayerAI.ENABLE_LOGGING = true;
         Utils.setRandomSeed(0);
-        EZFrame frame = new EZFrame("StackMate Debug Mode");
-        KeyboardAnimationApplet app = new StackMateApplet(frame);
+        AWTFrame frame = new AWTFrame("StackMate Debug Mode");
+        AWTKeyboardAnimationApplet app = new StackMateApplet(frame);
         frame.add(app);
         frame.centerToScreen(640, 480);
         app.init();
@@ -58,7 +58,7 @@ public class StackMateApplet extends KeyboardAnimationApplet implements ActionLi
 	final File restoreFile = new File("stackMate.txt");
 	final LinkedList<String> messages = new LinkedList<String>();
 	
-    public StackMateApplet(final EZFrame frame) {
+    public StackMateApplet(final AWTFrame frame) {
     	instance = this;
     	this.frame = frame;
     	frame.add(buttons, BorderLayout.SOUTH);

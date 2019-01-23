@@ -1,7 +1,7 @@
 package cc.jroids;
 
-import cc.lib.swing.EZFrame;
-import cc.lib.swing.KeyboardAnimationApplet;
+import cc.lib.swing.AWTFrame;
+import cc.lib.swing.AWTKeyboardAnimationApplet;
 import cc.lib.swing.Renderer;
 import cc.lib.game.Justify;
 import cc.lib.game.Polygon2D;
@@ -12,14 +12,14 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.util.Arrays;
 
-public class JavaRoids2 extends KeyboardAnimationApplet 
+public class JavaRoids2 extends AWTKeyboardAnimationApplet
 {
 	static final long serialVersionUID = 0;
 
 	public static void main(String [] args) {
 		Utils.DEBUG_ENABLED = true;
-		EZFrame frame = new EZFrame("JavaRoids Debug Mode");
-		KeyboardAnimationApplet app = new JavaRoids2();
+		AWTFrame frame = new AWTFrame("JavaRoids Debug Mode");
+		AWTKeyboardAnimationApplet app = new JavaRoids2();
 		frame.add(app);
 		frame.centerToScreen(640, 640);
 		app.init();

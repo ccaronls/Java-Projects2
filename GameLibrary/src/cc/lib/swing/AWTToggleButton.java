@@ -4,11 +4,11 @@ import java.awt.*;
 import javax.swing.*;
 import java.awt.event.*;
 
-public abstract class EZToggleButton extends JToggleButton implements ActionListener {
+public abstract class AWTToggleButton extends JToggleButton implements ActionListener {
 
     private boolean ignore = false;
 
-    public EZToggleButton(String text) {
+    public AWTToggleButton(String text) {
         super(text);
         addActionListener(this);
     }

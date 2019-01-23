@@ -11,23 +11,23 @@ import cc.game.golf.core.Rules.KnockerPenaltyType;
 import cc.game.golf.core.Rules.WildCard;
 import cc.lib.game.*;
 import cc.lib.swing.AWTGraphics;
-import cc.lib.swing.EZFrame;
-import cc.lib.swing.KeyboardAnimationApplet;
+import cc.lib.swing.AWTFrame;
+import cc.lib.swing.AWTKeyboardAnimationApplet;
 
 /**
  * GolfSwing (get it?)
  * @author ccaron
  *
  */
-public class GolfSwing extends KeyboardAnimationApplet {
+public class GolfSwing extends AWTKeyboardAnimationApplet {
 
     public static void main(String [] args) {
         AGraphics.DEBUG_ENABLED = true;
         Utils.DEBUG_ENABLED = true;
         Golf.DEBUG_ENABLED = true;
         PlayerBot.DEBUG_ENABLED = true;
-        EZFrame frame = new EZFrame("Golf Card Game");
-        KeyboardAnimationApplet app = new GolfSwing();
+        AWTFrame frame = new AWTFrame("Golf Card Game");
+        AWTKeyboardAnimationApplet app = new GolfSwing();
         frame.add(app);
         frame.centerToScreen(800, 600);
         app.init();

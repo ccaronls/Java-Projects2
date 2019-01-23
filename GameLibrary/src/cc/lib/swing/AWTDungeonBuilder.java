@@ -8,10 +8,10 @@ import cc.lib.dungeondice.DBoard;
 import cc.lib.dungeondice.DCell;
 import cc.lib.game.Utils;
 
-public class DDungeonBuilder extends BoardBuilder {
+public class AWTDungeonBuilder extends AWTBoardBuilder {
 
     public static void main(String [] args) {
-        new DDungeonBuilder();
+        new AWTDungeonBuilder();
     }
 
     @Override
@@ -23,7 +23,7 @@ public class DDungeonBuilder extends BoardBuilder {
     CellType cellType = CellType.EMPTY;
 
     @Override
-    protected void initFrame(EZFrame frame) {
+    protected void initFrame(AWTFrame frame) {
         super.initFrame(frame);
         frame.addMenuBarMenu("CELL", Utils.toStringArray(CellType.values()));
     }

@@ -10,18 +10,18 @@ import cc.lib.game.AGraphics;
 import cc.lib.game.Justify;
 import cc.lib.game.Utils;
 import cc.lib.swing.AWTGraphics;
-import cc.lib.swing.EZFrame;
-import cc.lib.swing.KeyboardAnimationApplet;
+import cc.lib.swing.AWTFrame;
+import cc.lib.swing.AWTKeyboardAnimationApplet;
 
-public class RobotronApplet extends KeyboardAnimationApplet implements ILocalization {
+public class RobotronApplet extends AWTKeyboardAnimationApplet implements ILocalization {
 
     public static void main(String [] args) {
         AGraphics.DEBUG_ENABLED = true;
         //Utils.DEBUG_ENABLED = true;
         //Golf.DEBUG_ENABLED = true;
         //PlayerBot.DEBUG_ENABLED = true;
-        EZFrame frame = new EZFrame("Kaiser");
-        KeyboardAnimationApplet app = new RobotronApplet();
+        AWTFrame frame = new AWTFrame("Kaiser");
+        AWTKeyboardAnimationApplet app = new RobotronApplet();
         frame.add(app);
         app.init();
         frame.centerToScreen(800, 600);

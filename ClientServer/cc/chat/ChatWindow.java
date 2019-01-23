@@ -8,9 +8,9 @@ import java.awt.event.WindowEvent;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
-import cc.lib.swing.EZFrame;
+import cc.lib.swing.AWTFrame;
 
-public abstract class ChatWindow extends EZFrame implements ActionListener {
+public abstract class ChatWindow extends AWTFrame implements ActionListener {
 
 	private JTextArea area = new JTextArea(20,30);
 	private JTextField field = new JTextField(30);

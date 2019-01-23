@@ -70,17 +70,15 @@ import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
 import cc.lib.math.MutableVector2D;
-import cc.lib.net.GameServer;
 import cc.lib.swing.AWTGraphics;
+import cc.lib.swing.AWTImageColorFilter;
 import cc.lib.swing.AWTRadioButtonGroup;
-import cc.lib.swing.AWTUtils;
-import cc.lib.swing.ButtonLayout;
-import cc.lib.swing.EZFrame;
-import cc.lib.swing.EZPanel;
-import cc.lib.swing.ImageColorFilter;
-import cc.lib.swing.ImageMgr;
-import cc.lib.swing.JPanelStack;
-import cc.lib.swing.JWrapLabel;
+import cc.lib.swing.AWTButtonLayout;
+import cc.lib.swing.AWTFrame;
+import cc.lib.swing.AWTPanel;
+import cc.lib.swing.AWTImageMgr;
+import cc.lib.swing.AWTPanelStack;
+import cc.lib.swing.AWTWrapLabel;
 import cc.lib.utils.FileUtils;
 
 import static java.awt.GridBagConstraints.HORIZONTAL;
@@ -149,7 +147,7 @@ public class GUI implements ActionListener, MenuItem.Action {
             lafs.put(all[i].getName(), all[i].getClassName());
         }
         UIManager.setLookAndFeel(lafs.get("Metal"));
-        EZFrame frame = new EZFrame();
+        AWTFrame frame = new AWTFrame();
         frame.setTitle("Senators of Coran");
 		try {
 			PlayerBot.DEBUG_ENABLED = true;
@@ -282,13 +280,13 @@ public class GUI implements ActionListener, MenuItem.Action {
                     ids[0] = g.loadImage("dicesideship2.GIF");
                     progress = 0.25f;
                     int cityId = g.loadImage("dicesidecity2.GIF");
-                    ImageMgr mgr = g.getImageMgr();
+                    AWTImageMgr mgr = g.getImageMgr();
                     Image i = mgr.getImage(cityId);
-                    ids[1] = mgr.addImage(mgr.transform(i, new ImageColorFilter(Color.WHITE, Color.RED)));
+                    ids[1] = mgr.addImage(mgr.transform(i, new AWTImageColorFilter(Color.WHITE, Color.RED)));
                     progress = 0.5f;
-                    ids[2] = mgr.addImage(mgr.transform(i, new ImageColorFilter(Color.WHITE, Color.GREEN)));
+                    ids[2] = mgr.addImage(mgr.transform(i, new AWTImageColorFilter(Color.WHITE, Color.GREEN)));
                     progress = 0.75f;
-                    ids[3] = mgr.addImage(mgr.transform(i, new ImageColorFilter(Color.WHITE, Color.BLUE)));
+                    ids[3] = mgr.addImage(mgr.transform(i, new AWTImageColorFilter(Color.WHITE, Color.BLUE)));
 
                     mgr.deleteImage(cityId);
 
@@ -330,7 +328,7 @@ public class GUI implements ActionListener, MenuItem.Action {
 
 	private final Stack<MenuState> menuStack = new Stack<>();
 	private UIPlayerUser localPlayer;
-	private final EZFrame frame;
+	private final AWTFrame frame;
 	private JFrame popup;
 	private final JPanel westBorderPanel = new JPanel();
 	private final JPanel cntrBorderPanel = new JPanel();
@@ -338,8 +336,8 @@ public class GUI implements ActionListener, MenuItem.Action {
 	private final JPanel eastGridPanel = new JPanel();
 	private final JPanel westGridPanel = new JPanel();
 	private JSpinner playerChooser;
-	private final JPanelStack middleLeftPanel = new JPanelStack();
-	private final JWrapLabel helpText = new JWrapLabel();
+	private final AWTPanelStack middleLeftPanel = new AWTPanelStack();
+	private final AWTWrapLabel helpText = new AWTWrapLabel();
     private final Properties aiTuning = new Properties();
 	
 	final static class ColorString {
@@ -376,7 +374,7 @@ public class GUI implements ActionListener, MenuItem.Action {
 
     private final Map<Integer, String> stringTable;
 
-	public GUI(final EZFrame frame, final UIProperties props) throws IOException {
+	public GUI(final AWTFrame frame, final UIProperties props) throws IOException {
 		this.frame = frame;
 		this.props = props;
 		this.stringTable = Utils.buildStringsTable(R.string.class, "../SOCAndroid/res/values/strings.xml");
@@ -810,7 +808,7 @@ public class GUI implements ActionListener, MenuItem.Action {
 		});
         
         // menu
-        menu.setLayout(new ButtonLayout());
+        menu.setLayout(new AWTButtonLayout());
 
         cntrBorderPanel.setLayout(new BorderLayout());
         westBorderPanel.setLayout(new BorderLayout());
@@ -1657,7 +1655,7 @@ public class GUI implements ActionListener, MenuItem.Action {
         	pickChoice.addButton(pm.name(), pm);
         }
 	    
-        choiceButtons.add(new EZPanel(new JLabel("Player:"), playerChooser));
+        choiceButtons.add(new AWTPanel(new JLabel("Player:"), playerChooser));
         choiceButtons.add(getMenuOpButton(RESET_BOARD));
         choiceButtons.add(getMenuOpButton(RESET_BOARD_ISLANDS));
         choiceButtons.add(getMenuOpButton(COMPUTE_DISTANCES));
@@ -1907,7 +1905,7 @@ public class GUI implements ActionListener, MenuItem.Action {
             if (txt.length() == 0)
                 txt = "MyScenario";
             final JTextField nameField = new JTextField(txt);
-            EZPanel panel = new EZPanel(new GridLayout(0, 1), new JLabel("Enter Scenario name"), nameField);
+            AWTPanel panel = new AWTPanel(new GridLayout(0, 1), new JLabel("Enter Scenario name"), nameField);
             showPopup("Save Current Board and Rules as Scenario", panel, new PopupButton[]{
                     new PopupButton("Cancel"),
                     new PopupButton("Save") {

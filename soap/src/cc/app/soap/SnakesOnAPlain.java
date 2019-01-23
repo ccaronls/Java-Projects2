@@ -6,20 +6,20 @@ import cc.lib.game.AGraphics;
 import cc.lib.game.GColor;
 import cc.lib.game.Utils;
 import cc.lib.swing.AWTGraphics;
-import cc.lib.swing.EZFrame;
-import cc.lib.swing.KeyboardAnimationApplet;
+import cc.lib.swing.AWTFrame;
+import cc.lib.swing.AWTKeyboardAnimationApplet;
 
 /**
  * Snakes writhing on the desert plain (not plane!)
  * @author ccaron
  *
  */
-public class SnakesOnAPlain extends KeyboardAnimationApplet {
+public class SnakesOnAPlain extends AWTKeyboardAnimationApplet {
 
     public static void main(String [] args) {
         Utils.DEBUG_ENABLED = true;
-        EZFrame frame = new EZFrame("Snakes on a Plain?");
-        KeyboardAnimationApplet app = new SnakesOnAPlain();
+        AWTFrame frame = new AWTFrame("Snakes on a Plain?");
+        AWTKeyboardAnimationApplet app = new SnakesOnAPlain();
         frame.add(app);
         app.init();
         frame.centerToScreen(500, 500);

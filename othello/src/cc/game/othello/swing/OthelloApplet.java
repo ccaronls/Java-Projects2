@@ -21,16 +21,16 @@ import cc.lib.game.AAnimation;
 import cc.lib.game.AGraphics;
 import cc.lib.game.Utils;
 import cc.lib.swing.AWTGraphics;
-import cc.lib.swing.EZFrame;
-import cc.lib.swing.KeyboardAnimationApplet;
+import cc.lib.swing.AWTFrame;
+import cc.lib.swing.AWTKeyboardAnimationApplet;
 
-public class OthelloApplet extends KeyboardAnimationApplet implements ActionListener {
+public class OthelloApplet extends AWTKeyboardAnimationApplet implements ActionListener {
 
     public static void main(String [] args) {
         Utils.DEBUG_ENABLED = true;
         Utils.setRandomSeed(0);
-        EZFrame frame = new EZFrame("JavaRoids Debug Mode");
-        KeyboardAnimationApplet app = new OthelloApplet(frame);
+        AWTFrame frame = new AWTFrame("JavaRoids Debug Mode");
+        AWTKeyboardAnimationApplet app = new OthelloApplet(frame);
         frame.add(app);
         frame.centerToScreen(640, 480);
         app.init();

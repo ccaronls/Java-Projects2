@@ -17,6 +17,7 @@ import cc.lib.monopoly.Rules;
 import cc.lib.monopoly.UIMonopoly;
 
 import java.awt.*;
+import javax.swing.*;
 
 public class AWTMonopoly extends AWTComponent {
     private final static Logger log = LoggerFactory.getLogger(AWTMonopoly.class);
@@ -27,7 +28,7 @@ public class AWTMonopoly extends AWTComponent {
         new AWTMonopoly();
     }
 
-    final EZFrame frame;
+    final AWTFrame frame;
     final UIMonopoly monopoly = new UIMonopoly() {
         @Override
         public void repaint() {
@@ -47,7 +48,7 @@ public class AWTMonopoly extends AWTComponent {
         @Override
         protected MoveType showChooseMoveMenu(final Player player, final List<MoveType> moves) {
             final MoveType [] result = new MoveType[1];
-            frame.showListChooserDialog(new EZFrame.OnListItemChoosen() {
+            frame.showListChooserDialog(new AWTFrame.OnListItemChoosen() {
                 @Override
                 public void itemChoose(int index) {
                     result[0] = moves.get(index);
@@ -74,7 +75,7 @@ public class AWTMonopoly extends AWTComponent {
         @Override
         protected Card showChooseCardMenu(final Player player, final List<Card> cards, final Player.CardChoiceType type) {
             final Card [] result = new Card[1];
-            frame.showListChooserDialog(new EZFrame.OnListItemChoosen() {
+            frame.showListChooserDialog(new AWTFrame.OnListItemChoosen() {
                 @Override
                 public void itemChoose(int index) {
                     result[0] = cards.get(index);
@@ -104,7 +105,7 @@ public class AWTMonopoly extends AWTComponent {
     AWTMonopoly() {
         setMouseEnabled(true);
         setPadding(5);
-        frame = new EZFrame("Monopoly") {
+        frame = new AWTFrame("Monopoly") {
             @Override
             protected void onWindowClosing() {
                 if (monopoly.isGameRunning())
@@ -143,30 +144,35 @@ public class AWTMonopoly extends AWTComponent {
                                 }
                                 break;
                             case "Rules": {
-                                Rules rules = monopoly.getRules();
-                                final EZFrame popup = new EZFrame();
-                                EZPanel content= new EZPanel(new BorderLayout());
-                                NumberPicker npStart = new NumberPicker.Builder().setLabel("Start $").setMin(500).setMax(1500).setStep(100).setValue(rules.startMoney).build(null);
-                                NumberPicker npWin   = new NumberPicker.Builder().setLabel("Win $").setMin(2000).setMax(5000).setStep(500).setValue(rules.valueToWin).build(null);
-                                NumberPicker npTaxScale = new NumberPicker.Builder().setLabel("Tax Scale").setMin(0).setMax(200).setStep(50).setValue(Math.round(100f * rules.taxScale)).build(null);
-                                content.addTop(new EZLabel("RULES", 1, 20, true));
-                                EZPanel buttons = new EZPanel(0, 1);
-                                EZPanel pickers = new EZPanel(1, 0);
+                                final Rules rules = monopoly.getRules();
+                                final AWTFrame popup = new AWTFrame();
+                                AWTPanel content= new AWTPanel(new BorderLayout());
+                                final AWTNumberPicker npStart = new AWTNumberPicker.Builder().setLabel("Start $").setMin(500).setMax(1500).setStep(100).setValue(rules.startMoney).build(null);
+                                final AWTNumberPicker npWin   = new AWTNumberPicker.Builder().setLabel("Win $").setMin(2000).setMax(5000).setStep(500).setValue(rules.valueToWin).build(null);
+                                final AWTNumberPicker npTaxScale = new AWTNumberPicker.Builder().setLabel("Tax Scale").setMin(0).setMax(200).setStep(50).setValue(Math.round(100f * rules.taxScale)).build(null);
+                                final AWTButton jailBump = new AWTButton("Jail Bump", rules.jailBumpEnabled) {
+                                    @Override
+                                    protected void onAction() {
+                                        toggleSelected();
+                                    }
+                                };
+                                content.addTop(new AWTLabel("RULES", 1, 20, true));
+                                AWTPanel buttons = new AWTPanel(0, 1);
+                                AWTPanel pickers = new AWTPanel(1, 0);
                                 pickers.add(npStart);
                                 pickers.add(npWin);
                                 pickers.add(npTaxScale);
                                 content.add(pickers);
                                 content.addRight(buttons);
-                                buttons.add(new AWTButton("Jail Bump") {
+                                buttons.add(jailBump);
+                                buttons.add(new AWTButton("Apply") {
                                     @Override
                                     protected void onAction() {
-                                        toggleSelected();
-                                    }
-                                });
-                                buttons.add(new AWTButton("Start") {
-                                    @Override
-                                    protected void onAction() {
-
+                                        rules.valueToWin = npWin.getValue();
+                                        rules.taxScale = 0.01f * npTaxScale.getValue();
+                                        rules.startMoney = npStart.getValue();
+                                        rules.jailBumpEnabled = jailBump.isSelected();
+                                        popup.closePopup(frame);
                                     }
                                 });
                                 content.addBottom(new AWTButton("Cancel") {

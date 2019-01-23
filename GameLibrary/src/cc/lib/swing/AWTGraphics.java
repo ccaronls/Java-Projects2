@@ -10,7 +10,7 @@ import cc.lib.math.Vector2D;
 public class AWTGraphics extends APGraphics {
 
     private Graphics g;
-    private final static ImageMgr images = new ImageMgr();
+    private final static AWTImageMgr images = new AWTImageMgr();
     private final Component comp;
     //private int textureId = -1;
     private float mLineThickness = 1;
@@ -18,7 +18,7 @@ public class AWTGraphics extends APGraphics {
     protected int [] x = new int[32];
     protected int [] y = new int[32];
 
-    public static ImageMgr getImages() {
+    public static AWTImageMgr getImages() {
         return images;
     }
 
@@ -62,7 +62,7 @@ public class AWTGraphics extends APGraphics {
         this.g = g;
     }
 
-    public final ImageMgr getImageMgr() {
+    public final AWTImageMgr getImageMgr() {
         return images;
     }
 

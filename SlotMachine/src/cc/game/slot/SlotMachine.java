@@ -2,18 +2,18 @@ package cc.game.slot;
 
 import cc.lib.game.GColor;
 import cc.lib.swing.AWTGraphics;
-import cc.lib.swing.EZFrame;
-import cc.lib.swing.KeyboardAnimationApplet;
+import cc.lib.swing.AWTFrame;
+import cc.lib.swing.AWTKeyboardAnimationApplet;
 import cc.lib.game.AGraphics;
 import cc.lib.game.Justify;
 import cc.lib.game.Utils;
 
-public class SlotMachine extends KeyboardAnimationApplet {
+public class SlotMachine extends AWTKeyboardAnimationApplet {
 
     public static void main(String[] args) {
         Utils.DEBUG_ENABLED = true;
-        EZFrame frame = new EZFrame("SlotMachine DEBUG");
-        KeyboardAnimationApplet app = new SlotMachine();
+        AWTKeyboardAnimationApplet app = new SlotMachine();
+        AWTFrame frame = new AWTFrame("SlotMachine DEBUG");
         frame.add(app);
         frame.centerToScreen(600, 400);
         app.init();

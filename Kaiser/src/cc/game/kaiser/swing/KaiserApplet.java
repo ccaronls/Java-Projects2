@@ -14,18 +14,18 @@ import cc.lib.game.AImage;
 import cc.lib.game.Justify;
 import cc.lib.game.Utils;
 import cc.lib.swing.AWTGraphics;
-import cc.lib.swing.EZFrame;
-import cc.lib.swing.KeyboardAnimationApplet;
+import cc.lib.swing.AWTFrame;
+import cc.lib.swing.AWTKeyboardAnimationApplet;
 import cc.lib.utils.Reflector;
 
-public class KaiserApplet extends KeyboardAnimationApplet {
+public class KaiserApplet extends AWTKeyboardAnimationApplet {
 
     public static void main(String [] args) {
         //Utils.DEBUG_ENABLED = true;
         //Golf.DEBUG_ENABLED = true;
         //PlayerBot.DEBUG_ENABLED = true;
-        EZFrame frame = new EZFrame("Kaiser");
-        KeyboardAnimationApplet app = new KaiserApplet();
+        AWTFrame frame = new AWTFrame("Kaiser");
+        AWTKeyboardAnimationApplet app = new KaiserApplet();
         frame.add(app);
         app.init();
         frame.centerToScreen(800, 600);

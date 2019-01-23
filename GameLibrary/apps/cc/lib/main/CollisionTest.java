@@ -5,15 +5,15 @@ import java.awt.Graphics;
 import cc.lib.game.AGraphics;
 import cc.lib.game.Utils;
 import cc.lib.swing.AWTGraphics;
-import cc.lib.swing.EZFrame;
-import cc.lib.swing.KeyboardAnimationApplet;
+import cc.lib.swing.AWTFrame;
+import cc.lib.swing.AWTKeyboardAnimationApplet;
 
-public class CollisionTest extends KeyboardAnimationApplet {
+public class CollisionTest extends AWTKeyboardAnimationApplet {
 
     public static void main(String[] args) {
         Utils.DEBUG_ENABLED = true;
-        EZFrame frame = new EZFrame("Collision Test");
-        KeyboardAnimationApplet app = new CollisionTest();
+        AWTFrame frame = new AWTFrame("Collision Test");
+        AWTKeyboardAnimationApplet app = new CollisionTest();
         frame.add(app);
         frame.centerToScreen(600, 400);
         app.init();

@@ -6,7 +6,7 @@ import java.awt.*;
  * Created by chriscaron on 4/18/18.
  */
 
-public class ButtonLayout implements LayoutManager2 {
+public class AWTButtonLayout implements LayoutManager2 {
 
     @Override
     public synchronized void invalidateLayout(Container target) {
@@ -25,9 +25,9 @@ public class ButtonLayout implements LayoutManager2 {
     public void addLayoutComponent(Component comp, Object constraints) {
     }
 
-    public ButtonLayout() {}
+    public AWTButtonLayout() {}
 
-    public ButtonLayout(Container target) {
+    public AWTButtonLayout(Container target) {
         layoutContainer(target);
     }
 

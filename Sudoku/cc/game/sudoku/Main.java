@@ -5,13 +5,13 @@ import java.awt.event.*;
 import java.util.*;
 
 import cc.lib.swing.AWTGraphics;
-import cc.lib.swing.EZButton;
-import cc.lib.swing.EZFrame;
-import cc.lib.swing.KeyboardAnimationApplet;
+import cc.lib.swing.AWTButton;
+import cc.lib.swing.AWTFrame;
+import cc.lib.swing.AWTKeyboardAnimationApplet;
 import cc.lib.game.AGraphics;
 import cc.lib.game.Utils;
 
-public class Main extends KeyboardAnimationApplet implements ActionListener {
+public class Main extends AWTKeyboardAnimationApplet implements ActionListener {
 
 	
 	Sudoku sudoku = new Sudoku(new Random(System.currentTimeMillis()));
@@ -189,7 +189,7 @@ public class Main extends KeyboardAnimationApplet implements ActionListener {
 	}
 	
 	public void showNewMenu() {
-		final EZFrame frame = new EZFrame("NEW") {
+		final AWTFrame frame = new AWTFrame("NEW") {
 			public void onClosing() { hide(); }
 		};
 		frame.setLayout(new GridLayout(3,1));
@@ -209,9 +209,9 @@ public class Main extends KeyboardAnimationApplet implements ActionListener {
 				frame.hide();
 			}
 		};
-		frame.add(new EZButton("EASY", listener));
-		frame.add(new EZButton("MEDIUM", listener));
-		frame.add(new EZButton("HARD", listener));
+		frame.add(new AWTButton("EASY", listener));
+		frame.add(new AWTButton("MEDIUM", listener));
+		frame.add(new AWTButton("HARD", listener));
 		frame.centerToScreen();
 	}
 	
@@ -231,7 +231,7 @@ public class Main extends KeyboardAnimationApplet implements ActionListener {
 
 	public static void main(String [] args) {
 		Utils.DEBUG_ENABLED = true;
-		EZFrame frame = new EZFrame();
+		AWTFrame frame = new AWTFrame();
 		
 		Main main = new Main();
 		MenuBar menuBar = new MenuBar();

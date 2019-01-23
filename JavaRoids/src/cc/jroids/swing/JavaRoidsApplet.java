@@ -5,14 +5,14 @@ import java.awt.event.KeyEvent;
 import cc.jroids.JavaRoids;
 import cc.lib.game.AGraphics;
 import cc.lib.game.Utils;
-import cc.lib.swing.EZFrame;
-import cc.lib.swing.KeyboardAnimationApplet;
+import cc.lib.swing.AWTFrame;
+import cc.lib.swing.AWTKeyboardAnimationApplet;
 
 /**
  * Created by chriscaron on 10/30/17.
  */
 
-public class JavaRoidsApplet extends KeyboardAnimationApplet {
+public class JavaRoidsApplet extends AWTKeyboardAnimationApplet {
 
     JavaRoids jr = new JavaRoids() {
         @Override
@@ -33,8 +33,8 @@ public class JavaRoidsApplet extends KeyboardAnimationApplet {
 
     public static void main(String [] args) {
         Utils.DEBUG_ENABLED = true;
-        EZFrame frame = new EZFrame("JavaRoids Debug Mode");
-        KeyboardAnimationApplet app = new JavaRoidsApplet();
+        AWTFrame frame = new AWTFrame("JavaRoids Debug Mode");
+        AWTKeyboardAnimationApplet app = new JavaRoidsApplet();
         frame.add(app);
         app.init();
         //frame.centerToScreen(620, 620);

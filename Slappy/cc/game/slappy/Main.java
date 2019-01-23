@@ -7,15 +7,15 @@ import cc.lib.game.IImageFilter;
 import cc.lib.game.Justify;
 import cc.lib.game.Utils;
 import cc.lib.swing.AWTGraphics;
-import cc.lib.swing.EZFrame;
-import cc.lib.swing.KeyboardAnimationApplet;
+import cc.lib.swing.AWTFrame;
+import cc.lib.swing.AWTKeyboardAnimationApplet;
 
-public class Main extends KeyboardAnimationApplet {
+public class Main extends AWTKeyboardAnimationApplet {
 
     public static void main(String [] args) {
         Utils.DEBUG_ENABLED = true;
-        EZFrame frame = new EZFrame("Golf Card Game");
-        KeyboardAnimationApplet app = new Main();
+        AWTFrame frame = new AWTFrame("Golf Card Game");
+        AWTKeyboardAnimationApplet app = new Main();
         frame.add(app);
         app.init();
         frame.centerToScreen(800, 600);

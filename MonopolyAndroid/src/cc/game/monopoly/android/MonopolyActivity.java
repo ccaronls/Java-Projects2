@@ -3,11 +3,9 @@ package cc.game.monopoly.android;
 import android.Manifest;
 import android.app.Dialog;
 import android.content.DialogInterface;
-import android.graphics.Rect;
 import android.os.Bundle;
 import android.os.Environment;
 import android.view.View;
-import android.view.Window;
 import android.widget.CompoundButton;
 import android.widget.GridLayout;
 import android.widget.ImageButton;
@@ -355,17 +353,43 @@ public class MonopolyActivity extends DroidActivity {
 
     void showGameSetupDialog() {
         final int [] startMoneyValues = getResources().getIntArray(R.array.start_money_values);
+        final int [] winMoneyValues = getResources().getIntArray(R.array.win_money_values);
+        final int [] taxPercents = getResources().getIntArray(R.array.tax_scale_percent_values);
         final View v = View.inflate(this, R.layout.game_config_dialog, null);
         final CCNumberPicker npStartMoney = (CCNumberPicker)v.findViewById(R.id.npStartMoney);
+        final CCNumberPicker npWinMoney = (CCNumberPicker)v.findViewById(R.id.npWinMoney);
+        final CCNumberPicker npTaxScale = (CCNumberPicker)v.findViewById(R.id.npTaxScale);
         final CompoundButton cbJailBumpEnabled = (CompoundButton)v.findViewById(R.id.cbJailBumpEnabled);
         final Rules rules = monopoly.getRules();
-        npStartMoney.init(startMoneyValues, rules.startMoney, null);
+        npStartMoney.init(startMoneyValues, rules.startMoney, new NumberPicker.Formatter() {
+            @Override
+            public String format(int value) {
+                return "$" + String.valueOf(value);
+            }
+        }, null);
+        npWinMoney.init(winMoneyValues, rules.valueToWin, new NumberPicker.Formatter() {
+            @Override
+            public String format(int value) {
+                return "$" + String.valueOf(value);
+            }
+        }, null);
+        npTaxScale.init(taxPercents, Math.round(rules.taxScale * 100), new NumberPicker.Formatter() {
+            @Override
+            public String format(int value) {
+                return String.valueOf(value) + "%";
+            }
+        }, null);
+
+
+
         cbJailBumpEnabled.setChecked(rules.jailBumpEnabled);
         newDialogBuilder().setTitle("Configure").setView(v).setNegativeButton("Cancel", null)
                 .setPositiveButton("Setup Players", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         rules.startMoney = startMoneyValues[npStartMoney.getValue()];
+                        rules.valueToWin = winMoneyValues[npWinMoney.getValue()];
+                        rules.taxScale = 0.01f * taxPercents[npTaxScale.getValue()];
                         rules.jailBumpEnabled = cbJailBumpEnabled.isChecked();
                         showPlayerSetupMenu();
                     }
@@ -399,13 +423,7 @@ public class MonopolyActivity extends DroidActivity {
                 String [] items = Utils.toStringArray(pieces, true);
                 newDialogBuilder().setTitle("CHOOSE PIECE " + (i+1))
                     .setView(gl)
-                        /*.setItems(items, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        p.setPiece(pieces.get(which));
-                        showPieceChooser(andThen);
-                    }
-                })*/.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         monopoly.clear();
@@ -426,13 +444,13 @@ public class MonopolyActivity extends DroidActivity {
     protected void onDialogShown(Dialog d) {
 
         // Creating Dynamic
-        Rect displayRectangle = new Rect();
+        /*Rect displayRectangle = new Rect();
 
         Window window = getWindow();
         window.getDecorView().getWindowVisibleDisplayFrame(displayRectangle);
         float DIM = Math.min(displayRectangle.width(), displayRectangle.height());
         d.getWindow().setLayout((int) (DIM/2), d.getWindow().getAttributes().height);
-
+*/
         //d.getWindow().setLayout(getResources().getDimension(R.dimen.dialog_width), getResources().getDimension(R.dimen.dialog_height));
         //d.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
     }

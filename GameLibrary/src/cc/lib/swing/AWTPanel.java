@@ -4,20 +4,20 @@ import java.awt.*;
 
 import javax.swing.*;
 
-public class EZPanel extends JPanel {
+public class AWTPanel extends JPanel {
 
-    public EZPanel(int rows, int cols, Component ... components) {
+    public AWTPanel(int rows, int cols, Component ... components) {
         this(new GridLayout(rows, cols), components);
     }
 
-	public EZPanel(LayoutManager lm, Component ... components) {
+	public AWTPanel(LayoutManager lm, Component ... components) {
 		super(lm);
 		for (Component c : components) {
 			add(c);
 		}
 	}
 
-	public EZPanel(Component ... components) {
+	public AWTPanel(Component ... components) {
 		for (Component c : components) {
 			add(c);
 		}

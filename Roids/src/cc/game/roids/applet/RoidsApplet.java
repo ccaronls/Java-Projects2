@@ -11,17 +11,17 @@ import cc.lib.game.GColor;
 import cc.lib.game.Justify;
 import cc.lib.game.Utils;
 import cc.lib.swing.AWTGraphics;
-import cc.lib.swing.EZFrame;
-import cc.lib.swing.KeyboardAnimationApplet;
+import cc.lib.swing.AWTFrame;
+import cc.lib.swing.AWTKeyboardAnimationApplet;
 import cc.lib.utils.StopWatch;
 
-public class RoidsApplet extends KeyboardAnimationApplet {
+public class RoidsApplet extends AWTKeyboardAnimationApplet {
 
     public static void main(String [] args) {
         Utils.DEBUG_ENABLED = true;
         Utils.setRandomSeed(0);
-        EZFrame frame = new EZFrame("JavaRoids Debug Mode");
-        KeyboardAnimationApplet app = new RoidsApplet();
+        AWTFrame frame = new AWTFrame("JavaRoids Debug Mode");
+        AWTKeyboardAnimationApplet app = new RoidsApplet();
         frame.add(app);
         frame.centerToScreen(640, 480);
         app.init();

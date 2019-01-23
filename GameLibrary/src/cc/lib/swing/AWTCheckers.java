@@ -27,7 +27,7 @@ public class AWTCheckers extends AWTComponent {
     }
 
     ACheckboardGame game = null;
-    EZFrame frame;
+    AWTFrame frame;
     File SAVE_FILE = new File("checkers.save");
     Robot robot;
 
@@ -45,7 +45,7 @@ public class AWTCheckers extends AWTComponent {
     }
 
     AWTCheckers() {
-        frame = new EZFrame() {
+        frame = new AWTFrame() {
             @Override
             protected void onMenuItemSelected(String menu, String subMenu) {
                 switch (menu) {

@@ -1,6 +1,5 @@
 package cc.game.dominos.swing;
 
-import java.io.BufferedReader;
 import java.io.File;
 
 import cc.game.dominos.android.R;
@@ -13,22 +12,13 @@ import cc.lib.net.ClientConnection;
 import cc.lib.net.GameServer;
 import cc.lib.swing.AWTComponent;
 import cc.lib.swing.AWTGraphics;
-import cc.lib.swing.EZButton;
-import cc.lib.swing.EZFrame;
-import cc.lib.swing.EZPanel;
+import cc.lib.swing.AWTButton;
+import cc.lib.swing.AWTFrame;
+import cc.lib.swing.AWTPanel;
 
 import java.awt.*;
 import java.awt.event.*;
-import java.io.FileInputStream;
-import java.io.FileReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.lang.reflect.Field;
-import java.net.InetAddress;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.swing.*;
 import javax.jmdns.*;
@@ -44,7 +34,7 @@ public class DominosApplet extends AWTComponent implements GameServer.Listener {
         new DominosApplet();
     }
 
-    final EZFrame frame;
+    final AWTFrame frame;
     final Map<Integer, String> stringTable;
 
 
@@ -52,7 +42,7 @@ public class DominosApplet extends AWTComponent implements GameServer.Listener {
         stringTable = Utils.buildStringsTable(R.string.class, "../DominosAndroid/res/values/strings.xml");
         setMouseEnabled(true);
         setPadding(5);
-        frame = new EZFrame("Dominos") {
+        frame = new AWTFrame("Dominos") {
             protected void onWindowClosing() {
                 if (dominos.isGameRunning())
                     dominos.trySaveToFile(saveFile);
@@ -97,7 +87,7 @@ public class DominosApplet extends AWTComponent implements GameServer.Listener {
     }
 
     JPanel makeRadioGroup(int choice, final OnChoiceListener listener, int ... buttons) {
-        EZPanel panel = new EZPanel(new GridLayout(1, 0));
+        AWTPanel panel = new AWTPanel(new GridLayout(1, 0));
         ActionListener al = new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 listener.choiceMade(Integer.parseInt(e.getActionCommand()));
@@ -118,7 +108,7 @@ public class DominosApplet extends AWTComponent implements GameServer.Listener {
     }
 
     JPanel makeRadioGroup(int choice, final OnChoiceListener listener, String ... buttons) {
-        EZPanel panel = new EZPanel(new GridLayout(1, 0));
+        AWTPanel panel = new AWTPanel(new GridLayout(1, 0));
         ActionListener al = new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 listener.choiceMade(Integer.parseInt(e.getActionCommand()));
@@ -168,20 +158,20 @@ public class DominosApplet extends AWTComponent implements GameServer.Listener {
                     difficultyChoice = choice;
                 }
             }, "Easy", "Medium", "Hard");
-        final EZFrame popup = new EZFrame();
-        EZPanel panel = new EZPanel(new GridLayout(0, 1),
+        final AWTFrame popup = new AWTFrame();
+        AWTPanel panel = new AWTPanel(new GridLayout(0, 1),
                 numPlayers,
                 numPips,
                 maxPts,
                 difficulty
                 );
-        EZPanel buttons = new EZPanel(new FlowLayout(),
-                new EZButton("Cancel", new ActionListener() {
+        AWTPanel buttons = new AWTPanel(new FlowLayout(),
+                new AWTButton("Cancel", new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
                         popup.closePopup(frame);
                     }
                 }),
-                new EZButton("Start", new ActionListener() {
+                new AWTButton("Start", new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
                         dominos.stopGameThread();
                         dominos.initGame(numPipsChoice, maxScoreChoice, difficultyChoice);
@@ -191,7 +181,7 @@ public class DominosApplet extends AWTComponent implements GameServer.Listener {
                         popup.closePopup(frame);
                     }
                 }),
-                new EZButton("Resume", new ActionListener() {
+                new AWTButton("Resume", new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
                         dominos.stopGameThread();
                         if (!dominos.tryLoadFromFile(saveFile) || !dominos.isInitialized()) {
@@ -204,7 +194,7 @@ public class DominosApplet extends AWTComponent implements GameServer.Listener {
                     }
                 })
                 );
-        EZPanel root = new EZPanel(new BorderLayout());
+        AWTPanel root = new AWTPanel(new BorderLayout());
         root.add(new JLabel("Game Setup"), BorderLayout.NORTH);
         root.add(panel, BorderLayout.CENTER);
         root.add(buttons, BorderLayout.SOUTH);

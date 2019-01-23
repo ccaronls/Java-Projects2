@@ -5,7 +5,7 @@ import java.awt.*;
 
 import cc.lib.game.Utils;
 
-public class EZLabel extends JLabel {
+public class AWTLabel extends JLabel {
 
     /**
      *
@@ -14,7 +14,7 @@ public class EZLabel extends JLabel {
      * @param size
      * @param bold
      */
-    public EZLabel(String text, int justify, float size, boolean bold) {
+    public AWTLabel(String text, int justify, float size, boolean bold) {
         super(text);
         switch (justify) {
             case 0:

@@ -11,17 +11,17 @@ import cc.lib.game.Utils;
 import cc.lib.game.Figure2.Part;
 import cc.lib.math.Vector2D;
 import cc.lib.swing.AWTGraphics;
-import cc.lib.swing.EZFrame;
-import cc.lib.swing.KeyboardAnimationApplet;
+import cc.lib.swing.AWTFrame;
+import cc.lib.swing.AWTKeyboardAnimationApplet;
 import cc.lib.utils.StopWatch;
 
 @SuppressWarnings("serial")
-public class AnimationMaker extends KeyboardAnimationApplet {
+public class AnimationMaker extends AWTKeyboardAnimationApplet {
 
     public static void main(String[] args) {
         Utils.DEBUG_ENABLED = true;
         final AnimationMaker app = new AnimationMaker();
-        EZFrame frame = new EZFrame("Animation Maker") {
+        AWTFrame frame = new AWTFrame("Animation Maker") {
         	
         	@Override
 			protected void onWindowClosing() {

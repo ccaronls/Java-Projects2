@@ -9,15 +9,15 @@ import cc.lib.game.AGraphics;
 import cc.lib.game.Utils;
 import cc.lib.math.Vector2D;
 import cc.lib.swing.AWTGraphics;
-import cc.lib.swing.EZFrame;
-import cc.lib.swing.KeyboardAnimationApplet;
+import cc.lib.swing.AWTFrame;
+import cc.lib.swing.AWTKeyboardAnimationApplet;
 
-public class LevelBuilder extends KeyboardAnimationApplet {
+public class LevelBuilder extends AWTKeyboardAnimationApplet {
 
 	public static void main(String[] args) {
         Utils.DEBUG_ENABLED = true;
         final LevelBuilder app = new LevelBuilder();
-        EZFrame frame = new EZFrame("Animation Maker") {
+        AWTFrame frame = new AWTFrame("Animation Maker") {
         	
         	@Override
 			protected void onWindowClosing() {

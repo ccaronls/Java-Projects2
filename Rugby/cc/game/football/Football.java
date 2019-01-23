@@ -8,15 +8,15 @@ import cc.lib.game.AGraphics;
 import cc.lib.game.Justify;
 import cc.lib.game.Utils;
 import cc.lib.swing.AWTGraphics;
-import cc.lib.swing.EZFrame;
-import cc.lib.swing.KeyboardAnimationApplet;
+import cc.lib.swing.AWTFrame;
+import cc.lib.swing.AWTKeyboardAnimationApplet;
 
-public class Football extends KeyboardAnimationApplet implements ActionListener {
+public class Football extends AWTKeyboardAnimationApplet implements ActionListener {
 
     public static void main(String[] args) {
         Utils.DEBUG_ENABLED = true;
-        EZFrame frame = new EZFrame("Football DEBUG");
-        KeyboardAnimationApplet app = new Football();
+        AWTFrame frame = new AWTFrame("Football DEBUG");
+        AWTKeyboardAnimationApplet app = new Football();
         frame.add(app);
         frame.centerToScreen(600, 400);
         app.init();

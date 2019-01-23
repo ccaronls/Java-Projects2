@@ -19,18 +19,18 @@ import cc.lib.logger.LoggerFactory;
 import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
 
-public class BoardBuilder extends AWTComponent {
+public class AWTBoardBuilder extends AWTComponent {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     public static void main(String [] args) {
-        new BoardBuilder();
+        new AWTBoardBuilder();
     }
 
-    final EZFrame frame = new EZFrame() {
+    final AWTFrame frame = new AWTFrame() {
         @Override
         protected void onMenuItemSelected(String menu, String subMenu) {
-            BoardBuilder.this.onMenuItemSelected(menu, subMenu);
+            AWTBoardBuilder.this.onMenuItemSelected(menu, subMenu);
         }
 
         @Override
@@ -57,7 +57,7 @@ public class BoardBuilder extends AWTComponent {
         VERTEX, EDGE, CELL
     }
 
-    BoardBuilder() {
+    AWTBoardBuilder() {
         board = newBoard();
         setMouseEnabled(true);
         setPadding(10);
@@ -86,7 +86,7 @@ public class BoardBuilder extends AWTComponent {
      * This is a good place to add top bar menus
      * @param frame
      */
-    protected void initFrame(EZFrame frame) {
+    protected void initFrame(AWTFrame frame) {
         frame.addMenuBarMenu("File", "New Board", "Load Board", "Load Image", "Clear Image", "Save As...", "Save");
         frame.addMenuBarMenu("Mode", Utils.toStringArray(PickMode.values()));
         frame.addMenuBarMenu("Action", "Compute", "Undo");

@@ -6,11 +6,11 @@ import java.util.Stack;
 
 import javax.swing.JPanel;
 
-public class JPanelStack extends JPanel {
+public class AWTPanelStack extends JPanel {
 
 	private final Stack<JPanel> stack = new Stack<JPanel>();
 	
-	public JPanelStack() {
+	public AWTPanelStack() {
 		super(new BorderLayout());
 	}
 	

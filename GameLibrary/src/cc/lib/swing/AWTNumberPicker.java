@@ -1,12 +1,11 @@
 package cc.lib.swing;
 
-import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.event.*;
 
 
-public class NumberPicker extends EZPanel implements ChangeListener {
+public class AWTNumberPicker extends AWTPanel implements ChangeListener {
 
     public interface Listener {
         void onValueChanged(int oldValue, int newValue);
@@ -15,11 +14,11 @@ public class NumberPicker extends EZPanel implements ChangeListener {
     private SpinnerNumberModel model;
     private Listener listener;
 
-    public NumberPicker(int rows, int cols) {
+    public AWTNumberPicker(int rows, int cols) {
         super(rows, cols);
     }
 
-    public NumberPicker() {
+    public AWTNumberPicker() {
         super();
     }
 
@@ -48,13 +47,13 @@ public class NumberPicker extends EZPanel implements ChangeListener {
         int step = 1;
         String label = null;
 
-        public NumberPicker build(Listener listener) {
-            NumberPicker panel;
+        public AWTNumberPicker build(Listener listener) {
+            AWTNumberPicker panel;
             if (label != null) {
-                panel = new NumberPicker(0, 1);
+                panel = new AWTNumberPicker(0, 1);
                 panel.add(new JLabel(label));
             } else {
-                panel = new NumberPicker();
+                panel = new AWTNumberPicker();
             }
             panel.model = new SpinnerNumberModel(value, min, max, step);
             JSpinner spinner = new JSpinner(panel.model);

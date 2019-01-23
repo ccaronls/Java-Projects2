@@ -3,18 +3,18 @@ package cc.app.umleditor.swing;
 import cc.app.umleditor.api.UMLEditor;
 import cc.lib.game.AGraphics;
 import cc.lib.swing.AWTGraphics;
-import cc.lib.swing.EZFrame;
-import cc.lib.swing.KeyboardAnimationApplet;
+import cc.lib.swing.AWTFrame;
+import cc.lib.swing.AWTKeyboardAnimationApplet;
 
-public class Main extends KeyboardAnimationApplet {
+public class Main extends AWTKeyboardAnimationApplet {
 
 	public static void main(String [] args) {
 		//AGraphics.DEBUG_ENABLED = true;
         //Utils.DEBUG_ENABLED = true;
         //Golf.DEBUG_ENABLED = true;
         //PlayerBot.DEBUG_ENABLED = true;
-        EZFrame frame = new EZFrame("Kaiser");
-        KeyboardAnimationApplet app = new Main();
+        AWTFrame frame = new AWTFrame("Kaiser");
+        AWTKeyboardAnimationApplet app = new Main();
         frame.add(app);
         app.init();
         frame.centerToScreen(800, 600);

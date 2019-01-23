@@ -8,26 +8,26 @@ import cc.lib.probot.Probot;
 import cc.lib.utils.Grid;
 import cc.lib.utils.Reflector;
 
-import javax.swing.*;
 import java.awt.*;
+import javax.swing.*;
 
 import java.util.ArrayList;
 
-public class ProbotLevelBuilder extends AWTComponent {
+public class AWTProbotLevelBuilder extends AWTComponent {
 
     public static void main(String [] args) {
         Utils.DEBUG_ENABLED=true;
-        new ProbotLevelBuilder();
+        new AWTProbotLevelBuilder();
     }
 
-    EZFrame frame;
+    AWTFrame frame;
     AWTRadioButtonGroup<Probot.Type> cellType;
     AWTButton prev1, next1, prev10, next10;
     final JLabel levelNumLabel = new JLabel();
-    EZToggleButton lazer0;
-    EZToggleButton lazer1;
-    EZToggleButton lazer2;
-    NumberPicker npTurns, npJumps, npLoops;
+    AWTToggleButton lazer0;
+    AWTToggleButton lazer1;
+    AWTToggleButton lazer2;
+    AWTNumberPicker npTurns, npJumps, npLoops;
     AWTEditText levelLabel;
 
     File levelsFile = new File("Robots/assets/levels.txt");
@@ -40,7 +40,7 @@ public class ProbotLevelBuilder extends AWTComponent {
     ArrayList<Probot.Level> levels = new ArrayList<>();
     int curLevel = 0;
 
-    ProbotLevelBuilder() {
+    AWTProbotLevelBuilder() {
 
         try {
             if (!levelsFile.isFile()) {
@@ -58,7 +58,7 @@ public class ProbotLevelBuilder extends AWTComponent {
 
         grid.setGrid(getLevel().coins);
 
-        frame = new EZFrame() {
+        frame = new AWTFrame() {
 
             @Override
             protected void onWindowClosing() {
@@ -74,7 +74,7 @@ public class ProbotLevelBuilder extends AWTComponent {
 
         frame.add(this);
 
-        EZPanel rhs = new EZPanel(0, 1);
+        AWTPanel rhs = new AWTPanel(0, 1);
         cellType = new AWTRadioButtonGroup<Probot.Type>(rhs) {
             @Override
             protected void onChange(Probot.Type extra) {
@@ -87,8 +87,8 @@ public class ProbotLevelBuilder extends AWTComponent {
 
         frame.add(rhs, BorderLayout.EAST);
 
-        EZPanel lhs = new EZPanel();
-        lhs.setLayout(new ButtonLayout(lhs));
+        AWTPanel lhs = new AWTPanel();
+        lhs.setLayout(new AWTButtonLayout(lhs));
         frame.add(lhs, BorderLayout.WEST);
 
         lhs.add(new AWTButton("Clear") {
@@ -96,7 +96,7 @@ public class ProbotLevelBuilder extends AWTComponent {
             protected void onAction() {
                 grid.init(1, 1, Probot.Type.EM);
                 getLevel().coins = grid.getGrid();
-                ProbotLevelBuilder.this.repaint();
+                AWTProbotLevelBuilder.this.repaint();
             }
         });
         lhs.add(new AWTButton("Save") {
@@ -115,52 +115,52 @@ public class ProbotLevelBuilder extends AWTComponent {
                 levels.add(curLevel, new Probot.Level());
                 probot.setLevel(curLevel, levels.get(curLevel));
                 updateAll();
-                ProbotLevelBuilder.this.repaint();
+                AWTProbotLevelBuilder.this.repaint();
             }
         });
 
-        lhs.add(npTurns = new NumberPicker.Builder().setMin(-1).setMax(10).setValue(-1).setLabel("Turns").build(new NumberPicker.Listener() {
+        lhs.add(npTurns = new AWTNumberPicker.Builder().setMin(-1).setMax(10).setValue(-1).setLabel("Turns").build(new AWTNumberPicker.Listener() {
             @Override
             public void onValueChanged(int oldValue, int newValue) {
                 getLevel().numTurns = newValue;
             }
         }));
 
-        lhs.add(npLoops = new NumberPicker.Builder().setMin(-1).setMax(10).setValue(-1).setLabel("Loops").build(new NumberPicker.Listener() {
+        lhs.add(npLoops = new AWTNumberPicker.Builder().setMin(-1).setMax(10).setValue(-1).setLabel("Loops").build(new AWTNumberPicker.Listener() {
             @Override
             public void onValueChanged(int oldValue, int newValue) {
                 getLevel().numLoops = newValue;
             }
         }));
-        lhs.add(npJumps = new NumberPicker.Builder().setMin(-1).setMax(10).setValue(-1).setLabel("Jumps").build(new NumberPicker.Listener() {
+        lhs.add(npJumps = new AWTNumberPicker.Builder().setMin(-1).setMax(10).setValue(-1).setLabel("Jumps").build(new AWTNumberPicker.Listener() {
             @Override
             public void onValueChanged(int oldValue, int newValue) {
                 getLevel().numJumps = newValue;
             }
         }));
 
-        lhs.add(lazer0 = new EZToggleButton("Lazer 0") {
+        lhs.add(lazer0 = new AWTToggleButton("Lazer 0") {
             @Override
             protected void onToggle(boolean on) {
                 getLevel().lazers[0] = on;
                 probot.setLazerEnabled(0, on);
-                ProbotLevelBuilder.this.repaint();
+                AWTProbotLevelBuilder.this.repaint();
             }
         });
-        lhs.add(lazer1 = new EZToggleButton("Lazer 1") {
+        lhs.add(lazer1 = new AWTToggleButton("Lazer 1") {
             @Override
             protected void onToggle(boolean on) {
                 getLevel().lazers[1] = on;
                 probot.setLazerEnabled(1, on);
-                ProbotLevelBuilder.this.repaint();
+                AWTProbotLevelBuilder.this.repaint();
             }
         });
-        lhs.add(lazer2 = new EZToggleButton("Lazer 2") {
+        lhs.add(lazer2 = new AWTToggleButton("Lazer 2") {
             @Override
             protected void onToggle(boolean on) {
                 getLevel().lazers[2] = on;
                 probot.setLazerEnabled(2, on);
-                ProbotLevelBuilder.this.repaint();
+                AWTProbotLevelBuilder.this.repaint();
             }
         });
 
@@ -170,7 +170,7 @@ public class ProbotLevelBuilder extends AWTComponent {
                 if (curLevel > 0) {
                     probot.setLevel(--curLevel, levels.get(curLevel));
                     updateAll();
-                    ProbotLevelBuilder.this.repaint();
+                    AWTProbotLevelBuilder.this.repaint();
                 }
             }
         };
@@ -183,7 +183,7 @@ public class ProbotLevelBuilder extends AWTComponent {
                 }
                 probot.setLevel(++curLevel, levels.get(curLevel));
                 updateAll();
-                ProbotLevelBuilder.this.repaint();
+                AWTProbotLevelBuilder.this.repaint();
             }
         };
 
@@ -194,7 +194,7 @@ public class ProbotLevelBuilder extends AWTComponent {
                     curLevel = Math.max(0, curLevel-10);
                     probot.setLevel(curLevel, levels.get(curLevel));
                     updateAll();
-                    ProbotLevelBuilder.this.repaint();
+                    AWTProbotLevelBuilder.this.repaint();
                 }
             }
         };
@@ -206,7 +206,7 @@ public class ProbotLevelBuilder extends AWTComponent {
                     curLevel = Math.min(curLevel+10, levels.size()-1);
                     probot.setLevel(curLevel, levels.get(curLevel));
                     updateAll();
-                    ProbotLevelBuilder.this.repaint();
+                    AWTProbotLevelBuilder.this.repaint();
                 }
             }
         };
@@ -218,7 +218,7 @@ public class ProbotLevelBuilder extends AWTComponent {
             }
         };
 
-        EZPanel top = new EZPanel(levelLabel, prev10, prev1, levelNumLabel, next1, next10);
+        AWTPanel top = new AWTPanel(levelLabel, prev10, prev1, levelNumLabel, next1, next10);
         frame.add(top, BorderLayout.NORTH);
         updateAll();
 

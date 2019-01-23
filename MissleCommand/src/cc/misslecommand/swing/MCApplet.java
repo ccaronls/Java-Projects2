@@ -4,15 +4,15 @@ import java.awt.event.KeyEvent;
 
 import cc.lib.game.AGraphics;
 import cc.lib.game.Utils;
-import cc.lib.swing.EZFrame;
-import cc.lib.swing.KeyboardAnimationApplet;
+import cc.lib.swing.AWTFrame;
+import cc.lib.swing.AWTKeyboardAnimationApplet;
 import cc.misslecommand.MissleCommand;
 
 /**
  * Created by chriscaron on 10/26/17.
  */
 
-public class MCApplet extends KeyboardAnimationApplet {
+public class MCApplet extends AWTKeyboardAnimationApplet {
 
     MissleCommand mc = new MissleCommand() {
         @Override
@@ -73,7 +73,7 @@ public class MCApplet extends KeyboardAnimationApplet {
 
     public static void main(String [] args) {
         Utils.DEBUG_ENABLED = true;
-        EZFrame frame = new EZFrame("Missle Command DEBUG MODE");
+        AWTFrame frame = new AWTFrame("Missle Command DEBUG MODE");
         MCApplet applet = new MCApplet();
         frame.add(applet);
         frame.centerToScreen(820, 620);

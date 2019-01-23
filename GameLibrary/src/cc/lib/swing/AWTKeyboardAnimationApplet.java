@@ -16,7 +16,7 @@ package cc.lib.swing;
     arcade game, such as Space Invaders.  (Except that the preformance
     won't be so good.)
     
-    To use this framework, define a subclass of KeyboardAnimationApplet and
+    To use this framework, define a subclass of AWTAWTKeyboardAnimationApplet and
     override the drawFrame() method.  This method is responsible for drawing
     one frame of the animation.  If you need to some initialization at the
     time the applet is created, override the doInitialization() method.
@@ -64,7 +64,7 @@ import cc.lib.game.AGraphics;
 import cc.lib.game.Justify;
 import cc.lib.game.Renderable;
 
-public abstract class KeyboardAnimationApplet extends JApplet implements
+public abstract class AWTKeyboardAnimationApplet extends JApplet implements
 		KeyListener, FocusListener, MouseListener,
 		MouseMotionListener, MouseWheelListener, Renderable {
 	static final long serialVersionUID = 20003;
@@ -82,7 +82,7 @@ public abstract class KeyboardAnimationApplet extends JApplet implements
 	protected abstract void doInitialization();
 
 	/**
-	 * This routine should be overridden in any subclass of KeyboardAnimationApplet.
+	 * This routine should be overridden in any subclass of AWTAWTKeyboardAnimationApplet.
 	 * It is responsible for drawing one frame of the animation.  The frame
 	 * is drawn to the graphics context g.  The parameters width and height
 	 * give the size of the drawing area.  drawFrame() should begin by
@@ -732,7 +732,7 @@ public abstract class KeyboardAnimationApplet extends JApplet implements
 		this.keyRepeat = repeat;
 	}
 
-	protected KeyboardAnimationApplet() {
+	protected AWTKeyboardAnimationApplet() {
 		Arrays.fill(keyboard, 0);
 	}
 	

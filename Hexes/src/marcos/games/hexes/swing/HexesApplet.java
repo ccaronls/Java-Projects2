@@ -30,19 +30,19 @@ import cc.lib.game.AGraphics;
 import cc.lib.game.Justify;
 import cc.lib.game.Utils;
 import cc.lib.swing.AWTGraphics;
-import cc.lib.swing.EZButton;
-import cc.lib.swing.EZFrame;
-import cc.lib.swing.KeyboardAnimationApplet;
+import cc.lib.swing.AWTButton;
+import cc.lib.swing.AWTFrame;
+import cc.lib.swing.AWTKeyboardAnimationApplet;
 
-public class HexesApplet extends KeyboardAnimationApplet implements MultiPlayerClient.Listener {
+public class HexesApplet extends AWTKeyboardAnimationApplet implements MultiPlayerClient.Listener {
 
 	static HexesApplet instance = null;
 
 	public static void main(String [] args) {
         Utils.DEBUG_ENABLED = true;
         Utils.setRandomSeed(0);
-        EZFrame frame = new EZFrame("Hexes Debug Mode");
-        KeyboardAnimationApplet app = new HexesApplet(frame);
+        AWTFrame frame = new AWTFrame("Hexes Debug Mode");
+        AWTKeyboardAnimationApplet app = new HexesApplet(frame);
         frame.add(app);
         frame.centerToScreen(640, 480);
         app.init();
@@ -107,7 +107,7 @@ public class HexesApplet extends KeyboardAnimationApplet implements MultiPlayerC
 		}
 	}
 	
-	public HexesApplet(EZFrame frame) {
+	public HexesApplet(AWTFrame frame) {
 		instance = this;
 		this.frame = frame;
 		try {
@@ -290,7 +290,7 @@ public class HexesApplet extends KeyboardAnimationApplet implements MultiPlayerC
 				d.add(userName);
 				d.add(new JLabel("Password"));
 				d.add(passWord);
-				d.add(new EZButton("Cancel", new ActionListener() {
+				d.add(new AWTButton("Cancel", new ActionListener() {
 					
 					@Override
 					public void actionPerformed(ActionEvent arg0) {
@@ -298,7 +298,7 @@ public class HexesApplet extends KeyboardAnimationApplet implements MultiPlayerC
 						endMultiplayer();
 					}
 				}));
-				d.add(new EZButton("Connect", new ActionListener() {
+				d.add(new AWTButton("Connect", new ActionListener() {
 					
 					@Override
 					public void actionPerformed(ActionEvent e) {

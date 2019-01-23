@@ -17,9 +17,9 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import cc.app.fractal.FractalComponent.FractalImage;
 import cc.app.fractal.evaluator.*;
 import cc.lib.math.ComplexNumber;
-import cc.lib.swing.EZFrame;
+import cc.lib.swing.AWTFrame;
 
-public class FractalViewer extends EZFrame implements FractalComponent.FractalListener, ActionListener{ 
+public class FractalViewer extends AWTFrame implements FractalComponent.FractalListener, ActionListener{
 
     static final String PROP_CURRENT_DIR = "CURRENT_DIRECTORY";
     static final String PROP_ANIM_START_FIELD = "ANIM_START_FIELD";
