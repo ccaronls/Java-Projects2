@@ -1,11 +1,13 @@
 apply plugin: 'com.android.application'
 
 repositories {
-    mavenCentral();
+    mavenCentral()
+    mavenLocal()
 }
 
 dependencies {
     implementation project(':AndroidGameLibrary')
+    implementation 'cc.lib:gamelib-android:1.0'
     implementation 'com.android.support:support-v4:23+'
     implementation 'com.android.support.constraint:constraint-layout:1.1.2'
 }

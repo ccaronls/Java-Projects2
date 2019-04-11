@@ -372,7 +372,13 @@ public abstract class UIMonopoly extends Monopoly {
     }
 
     /**
-     * Sprites solve the problem of rendering something that can be animated or static
+     * Sprites solve the problem of rendering something that can be animated or static.
+     * Transforms:
+     * - position
+     * - orientation
+     * - scale
+     * - color
+     *
      */
     abstract class Sprite {
 
@@ -400,6 +406,12 @@ public abstract class UIMonopoly extends Monopoly {
             return animation != null && !animation.isDone();
         }
 
+        /**
+         * Draw the sprite at origin facing at angle 0. Translations will orient and move according
+         * @param g
+         * @param w
+         * @param h
+         */
         abstract void draw(AGraphics g, float w, float h);
     }
 

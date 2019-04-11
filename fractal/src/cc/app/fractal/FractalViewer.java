@@ -18,6 +18,7 @@ import cc.app.fractal.FractalComponent.FractalImage;
 import cc.app.fractal.evaluator.*;
 import cc.lib.math.ComplexNumber;
 import cc.lib.swing.AWTFrame;
+import cc.lib.swing.AWTUtils;
 
 public class FractalViewer extends AWTFrame implements FractalComponent.FractalListener, ActionListener{
 
@@ -101,9 +102,7 @@ public class FractalViewer extends AWTFrame implements FractalComponent.FractalL
     
     Vector<String> formulas = new Vector<String>();
 
-    final String USER_HOME = System.getProperty("user.home");
-    final String PROPS_FILE =  USER_HOME + "/fractal.properties";
-    final String FORMULAS_FILE = USER_HOME + "/formulas.txt";
+    final File FORMULAS_FILE;
     
     FractalViewer() {
         /*
@@ -113,6 +112,9 @@ public class FractalViewer extends AWTFrame implements FractalComponent.FractalL
         vars.put("B", new ComplexNumber());
         vars.put("C", new ComplexNumber());
         */
+        File settings = AWTUtils.getOrCreateSettingsDirectory(getClass());
+        loadFromFile(new File(settings, "fractal.properties"));
+        FORMULAS_FILE = new File(settings, "formulas.txt");
         listScreens();
         addWindowListener(this);
         
@@ -629,7 +631,7 @@ public class FractalViewer extends AWTFrame implements FractalComponent.FractalL
     void loadFormulas() {
         BufferedReader in = null;
         try {
-            File file = new File(FORMULAS_FILE);
+            File file = FORMULAS_FILE;
             if (file.exists()) {
                 System.out.println("Loading file " + file.getAbsolutePath());
                 in = new BufferedReader(new InputStreamReader(new FileInputStream(file)));

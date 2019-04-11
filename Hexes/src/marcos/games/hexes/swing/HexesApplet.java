@@ -20,6 +20,7 @@ import javax.swing.JProgressBar;
 import javax.swing.JTextField;
 
 import cc.lib.game.GColor;
+import cc.lib.swing.AWTUtils;
 import marcos.games.hexes.core.Board;
 import marcos.games.hexes.core.Hexes;
 import marcos.games.hexes.core.Piece;
@@ -93,9 +94,8 @@ public class HexesApplet extends AWTKeyboardAnimationApplet implements MultiPlay
 		}
 		
 	};
-	final Frame frame;
-	final File restoreFile = new File("hexes.txt");
-	final Properties props = new Properties();
+	final AWTFrame frame;
+	final File restoreFile;
 	int highlightedPiece = -1;
 	final LinkedList<String> messages = new LinkedList<String>();
 	
@@ -110,19 +110,10 @@ public class HexesApplet extends AWTKeyboardAnimationApplet implements MultiPlay
 	public HexesApplet(AWTFrame frame) {
 		instance = this;
 		this.frame = frame;
-		try {
-			FileInputStream in = new FileInputStream("hexes.properties");
-			try {
-				props.load(in);
-			} catch (IOException e) {
-				e.printStackTrace();
-			} finally {
-				in.close();
-			}
-		} catch (IOException e) {
-			System.err.println(e.getMessage());
-		}
+		File settings = AWTUtils.getOrCreateSettingsDirectory(getClass());
+		frame.loadFromFile(new File(settings, "hexes.properties"));
 		showMainMenu();
+		restoreFile = new File(settings, "hexes.txt");
 		if (restoreFile.exists()) {
         	new Thread() {
         		public void run() {
@@ -224,7 +215,7 @@ public class HexesApplet extends AWTKeyboardAnimationApplet implements MultiPlay
 	}
 	
 	private void connectMultiplayer() {
-		if (props.getProperty("username") == null) {
+		if (frame.getStringProperty("username", null) == null) {
 			showUsernamePasswordDialog("Enter User name and Password");
 			return;
 		}
@@ -276,7 +267,8 @@ public class HexesApplet extends AWTKeyboardAnimationApplet implements MultiPlay
 				}
 			}
 		};
-		mpClient.connect(props.getProperty("username"), props.getProperty("password"), connectCB);
+		mpClient.connect(frame.getStringProperty("username", null),
+                frame.getStringProperty("password", null), connectCB);
 	}
 	
 	private void showUsernamePasswordDialog(final String message) {
@@ -284,8 +276,8 @@ public class HexesApplet extends AWTKeyboardAnimationApplet implements MultiPlay
 			public void run() {
 				final JDialog d = new JDialog(frame, message, true);
 				d.setLayout(new GridLayout(0, 3));
-				final JTextField userName = new JTextField(props.getProperty("username"), 32);
-				final JTextField passWord = new JPasswordField(props.getProperty("password"), 32);
+				final JTextField userName = new JTextField(frame.getStringProperty("username", null), 32);
+				final JTextField passWord = new JPasswordField(frame.getStringProperty("password", null), 32);
 				d.add(new JLabel("User Name"));
 				d.add(userName);
 				d.add(new JLabel("Password"));
@@ -302,8 +294,8 @@ public class HexesApplet extends AWTKeyboardAnimationApplet implements MultiPlay
 					
 					@Override
 					public void actionPerformed(ActionEvent e) {
-						props.setProperty("username", userName.getText());
-						props.setProperty("password", passWord.getText());
+						frame.setProperty("username", userName.getText());
+						frame.setProperty("password", passWord.getText());
 					}
 				}));
 			}

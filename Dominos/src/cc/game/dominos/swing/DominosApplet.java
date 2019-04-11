@@ -10,11 +10,7 @@ import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
 import cc.lib.net.ClientConnection;
 import cc.lib.net.GameServer;
-import cc.lib.swing.AWTComponent;
-import cc.lib.swing.AWTGraphics;
-import cc.lib.swing.AWTButton;
-import cc.lib.swing.AWTFrame;
-import cc.lib.swing.AWTPanel;
+import cc.lib.swing.*;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -60,8 +56,10 @@ public class DominosApplet extends AWTComponent implements GameServer.Listener {
         frame.addMenuBarMenu("File", "New Game");
         frame.add(this);
 
-        if (!frame.loadFromFile(new File("dominos.properties")))
+        File settings = AWTUtils.getOrCreateSettingsDirectory(getClass());
+        if (!frame.loadFromFile(new File(settings, "dominos.properties")))
             frame.centerToScreen(800, 600);
+        saveFile = new File(settings, "dominos.save");
 //        dominos.startGameThread();
         //dominos.initGame(9, 150, 0);
         //dominos.startIntroAnim();
@@ -202,7 +200,7 @@ public class DominosApplet extends AWTComponent implements GameServer.Listener {
         popup.showAsPopup(frame);
     }
 
-    final File saveFile = new File("dominos.save");
+    final File saveFile;
     final Dominos dominos = new Dominos() {
 
         @Override

@@ -27,8 +27,8 @@ public class AWTCheckers extends AWTComponent {
     }
 
     ACheckboardGame game = null;
-    AWTFrame frame;
-    File SAVE_FILE = new File("checkers.save");
+    final AWTFrame frame;
+    final File SAVE_FILE;
     Robot robot;
 
     class AWTRobot extends Robot {
@@ -70,9 +70,10 @@ public class AWTCheckers extends AWTComponent {
         setPadding(10);
         frame.addMenuBarMenu("File", "New Game", "Load Game", "Save as");
         frame.add(this);
-        if (!frame.loadFromFile(new File("checkers.properties")))
+        File settings = AWTUtils.getOrCreateSettingsDirectory(getClass());
+        if (!frame.loadFromFile(new File(settings, "checkers.properties")))
             frame.centerToScreen(640, 640);
-
+        SAVE_FILE = new File(settings,"checkers.save");
         try {
             if (SAVE_FILE.exists()) {
                 game = Reflector.deserializeFromFile(SAVE_FILE);

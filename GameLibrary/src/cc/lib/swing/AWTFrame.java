@@ -116,11 +116,13 @@ public class AWTFrame extends JFrame implements WindowListener, ComponentListene
 	protected void saveToFile() {
 	    if (propertiesFile != null) {
             Properties p = new Properties();
-            try (InputStream in = new FileInputStream(propertiesFile)) {
-                p.load(in);
-            } catch (Exception e) {
-                e.printStackTrace();
-                // oh well!
+            if (propertiesFile.isFile()) {
+                try (InputStream in = new FileInputStream(propertiesFile)) {
+                    p.load(in);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    // oh well!
+                }
             }
             p.setProperty("gui.x", String.valueOf(getX()));
             p.setProperty("gui.y", String.valueOf(getY()));
@@ -157,8 +159,6 @@ public class AWTFrame extends JFrame implements WindowListener, ComponentListene
 	    p.setProperty(name, value);
 	    setProperties(p);
     }
-
-
 
     public boolean loadFromFile(File propertiesFile) {
 	    this.propertiesFile = propertiesFile;
@@ -391,7 +391,7 @@ public class AWTFrame extends JFrame implements WindowListener, ComponentListene
      */
     public Properties getProperties() {
         Properties p = new Properties();
-        if (propertiesFile != null) {
+        if (propertiesFile != null && propertiesFile.isFile()) {
             try (InputStream in = new FileInputStream(propertiesFile)) {
                 p.load(in);
             } catch (Exception e) {

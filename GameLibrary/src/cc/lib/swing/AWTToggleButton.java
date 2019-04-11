@@ -4,18 +4,24 @@ import java.awt.*;
 import javax.swing.*;
 import java.awt.event.*;
 
-public abstract class AWTToggleButton extends JToggleButton implements ActionListener {
+public class AWTToggleButton extends JCheckBox implements ActionListener {
 
     private boolean ignore = false;
 
     public AWTToggleButton(String text) {
+        this(text, false);
+    }
+
+    public AWTToggleButton(String text, boolean selected) {
         super(text);
+        setSelected(selected);
         addActionListener(this);
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
         if (!ignore) {
+            updateUI();
             onToggle(isSelected());
         }
     }
@@ -27,5 +33,5 @@ public abstract class AWTToggleButton extends JToggleButton implements ActionLis
         ignore = false;
     }
 
-    protected abstract void onToggle(boolean on);
+    protected void onToggle(boolean on) {}
 }

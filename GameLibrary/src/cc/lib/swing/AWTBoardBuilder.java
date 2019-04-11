@@ -63,9 +63,10 @@ public class AWTBoardBuilder extends AWTComponent {
         setPadding(10);
         initFrame(frame);
         frame.add(this);
-        if (!frame.loadFromFile(new File(getPropertiesFileName())))
+        File settings = AWTUtils.getOrCreateSettingsDirectory(getClass());
+        if (!frame.loadFromFile(new File(settings, getPropertiesFileName())))
             frame.centerToScreen(640, 480);
-        DEFAULT_FILE = new File(getDefaultBoardFileName());
+        DEFAULT_FILE = new File(settings, getDefaultBoardFileName());
     }
 
     float progress = 0;

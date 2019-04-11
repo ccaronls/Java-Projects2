@@ -1,7 +1,12 @@
 apply plugin: 'com.android.application'
 
+repositories {
+    mavenLocal()
+}
+
 dependencies {
     implementation project(':AndroidGameLibrary')
+    implementation 'cc.lib:gamelib-android:1.0'
     implementation 'com.android.support:support-v4:23+'
 }
 
@@ -63,7 +68,7 @@ android {
         }
 
         release {
-            minifyEnabled false // Enables code shrinking for the release build type.
+            minifyEnabled true // Enables code shrinking for the release build type.
             proguardFiles getDefaultProguardFile('proguard-android.txt'), '../common/proguard.txt'
             signingConfig signingConfigs.general
         }

@@ -139,12 +139,12 @@ public class UIProperties extends Properties {
         }
     }
     
-    public void save() {
+    public synchronized void save() {
         log.debug("Saving properties '" + fileName + "'");
         PrintWriter out = null;
         try {
             out = new PrintWriter(new FileWriter(fileName));
-            out.println("# Properties file for SOC GUI");
+            out.println("# Application settings properties");
             out.println("# " + new Date());
             String [] keys = keySet().toArray(new String[size()]);
             Arrays.sort(keys);

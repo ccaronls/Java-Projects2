@@ -30,7 +30,7 @@ public class AWTProbotLevelBuilder extends AWTComponent {
     AWTNumberPicker npTurns, npJumps, npLoops;
     AWTEditText levelLabel;
 
-    File levelsFile = new File("Robots/assets/levels.txt");
+    final File levelsFile = new File("Robots/assets/levels.txt");
     Probot probot = new Probot() {
         @Override
         protected float getStrokeWidth() {
@@ -41,7 +41,7 @@ public class AWTProbotLevelBuilder extends AWTComponent {
     int curLevel = 0;
 
     AWTProbotLevelBuilder() {
-
+        final File settings = AWTUtils.getOrCreateSettingsDirectory(getClass());
         try {
             if (!levelsFile.isFile()) {
                 levelsFile.createNewFile();
@@ -63,7 +63,7 @@ public class AWTProbotLevelBuilder extends AWTComponent {
             @Override
             protected void onWindowClosing() {
                 try {
-                    Reflector.serializeToFile(levels, new File("levels_backup.txt"));
+                    Reflector.serializeToFile(levels, new File(settings, "levels_backup.txt"));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -222,7 +222,7 @@ public class AWTProbotLevelBuilder extends AWTComponent {
         frame.add(top, BorderLayout.NORTH);
         updateAll();
 
-        if (!frame.loadFromFile(new File("probotlevelbuilder.properties")))
+        if (!frame.loadFromFile(new File(settings, "probotlevelbuilder.properties")))
             frame.centerToScreen(800, 640);
     }
 

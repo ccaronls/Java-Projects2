@@ -100,7 +100,7 @@ public class AWTMonopoly extends AWTComponent {
         }
     };
 
-    final File saveFile = new File("monopoly.save");
+    final File saveFile;
 
     AWTMonopoly() {
         setMouseEnabled(true);
@@ -149,13 +149,15 @@ public class AWTMonopoly extends AWTComponent {
                                 AWTPanel content= new AWTPanel(new BorderLayout());
                                 final AWTNumberPicker npStart = new AWTNumberPicker.Builder().setLabel("Start $").setMin(500).setMax(1500).setStep(100).setValue(rules.startMoney).build(null);
                                 final AWTNumberPicker npWin   = new AWTNumberPicker.Builder().setLabel("Win $").setMin(2000).setMax(5000).setStep(500).setValue(rules.valueToWin).build(null);
-                                final AWTNumberPicker npTaxScale = new AWTNumberPicker.Builder().setLabel("Tax Scale").setMin(0).setMax(200).setStep(50).setValue(Math.round(100f * rules.taxScale)).build(null);
-                                final AWTButton jailBump = new AWTButton("Jail Bump", rules.jailBumpEnabled) {
+                                final AWTNumberPicker npTaxScale = new AWTNumberPicker.Builder().setLabel("Tax Scale %").setMin(0).setMax(200).setStep(50).setValue(Math.round(100f * rules.taxScale)).build(null);
+                                /*final AWTButton jailBump = new AWTButton("Jail Bump", rules.jailBumpEnabled) {
                                     @Override
                                     protected void onAction() {
                                         toggleSelected();
                                     }
                                 };
+                                */
+                                final AWTToggleButton jailBump = new AWTToggleButton("Jail Bump", rules.jailBumpEnabled);
                                 content.addTop(new AWTLabel("RULES", 1, 20, true));
                                 AWTPanel buttons = new AWTPanel(0, 1);
                                 AWTPanel pickers = new AWTPanel(1, 0);
@@ -193,7 +195,9 @@ public class AWTMonopoly extends AWTComponent {
         frame.addMenuBarMenu("File", "New Game", "Resume", "Rules");
         frame.add(this);
 
-        if (!frame.loadFromFile(new File("monopoly.properties")))
+        File settings = AWTUtils.getOrCreateSettingsDirectory(getClass());
+         saveFile = new File(settings, "monopoly.save");
+        if (!frame.loadFromFile(new File(settings, "monopoly.properties")))
             frame.centerToScreen(800, 600);
 
         if (monopoly.tryLoadFromFile(saveFile))

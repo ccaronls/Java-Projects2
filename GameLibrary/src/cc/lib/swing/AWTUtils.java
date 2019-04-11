@@ -1,5 +1,6 @@
 package cc.lib.swing;
 
+import java.io.File;
 import java.util.List;
 import java.awt.*;
 import java.awt.font.GlyphVector;
@@ -1050,5 +1051,22 @@ public class AWTUtils {
 
     public static Color toColor(GColor c) {
 	    return new Color(c.red(), c.green(), c.blue(), c.alpha());
+    }
+
+    public static File getOrCreateSettingsDirectory(Class<?> clazz) {
+        File homeDir = new File(System.getProperty("user.home"));
+        if (!homeDir.isDirectory()) {
+            System.err.println("Failed to find users home dir: '" + homeDir);
+            homeDir = new File(".");
+        }
+        String pkg = clazz.getCanonicalName().replace('.', '/');
+        File settingsDir = new File(homeDir, "settings/" + pkg);
+        if (!settingsDir.isDirectory()) {
+            if (!settingsDir.mkdirs())
+                throw new RuntimeException("Failed to create settings directory: " + settingsDir.getAbsolutePath());
+            else
+                System.out.println("Created settings directory: " + settingsDir.getAbsolutePath());
+        }
+        return settingsDir;
     }
 }
