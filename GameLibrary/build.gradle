@@ -66,16 +66,25 @@ task runCheckers(type: JavaExec) {
 
 task runBoardBuilder(type: JavaExec) {
     group = 'Application' // <-- change the name as per your need
-    description = 'Run the Dungeon Builder Applet Applet'
+    description = 'Run the Custum Board Builder App'
 
     classpath sourceSets.main.runtimeClasspath // <-- Don't change this
     main = "cc.lib.swing.AWTBoardBuilder"
 //    args "arg1", "arg2"
 }
 
+task runDungeonBuilder(type: JavaExec) {
+    group = 'Application' // <-- change the name as per your need
+    description = 'Run the Dungeon Builder Applet App'
+
+    classpath sourceSets.main.runtimeClasspath // <-- Don't change this
+    main = "cc.lib.swing.AWTDungeonBuilder"
+//    args "arg1", "arg2"
+}
+
 task runMonopoly(type: JavaExec) {
     group = 'Application' // <-- change the name as per your need
-    description = 'Small description what this run will do'
+    description = 'Run Monopoly App'
 
     classpath sourceSets.main.runtimeClasspath // <-- Don't change this
     main = "cc.lib.swing.AWTMonopoly"
@@ -84,7 +93,7 @@ task runMonopoly(type: JavaExec) {
 
 task runProbotLevelBuilder(type: JavaExec) {
     group = 'Application' // <-- change the name as per your need
-    description = 'Small description what this run will do'
+    description = 'Run Probot Level Editor App'
 
     classpath sourceSets.main.runtimeClasspath // <-- Don't change this
     main = "cc.lib.swing.AWTProbotLevelBuilder"

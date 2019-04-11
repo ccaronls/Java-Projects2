@@ -90,7 +90,7 @@ public class AWTBoardBuilder extends AWTComponent {
      */
     protected void initFrame(AWTFrame frame) {
         frame.addMenuBarMenu("File", "New Board", "Load Board", "Load Image", "Clear Image", "Save As...", "Save");
-        frame.addMenuBarMenu("Mode", Utils.toStringArray(PickMode.values()));
+        frame.addMenuBarMenu("Mode", Utils.toStringArray(PickMode.values(), false));
         frame.addMenuBarMenu("Action", "Compute", "Undo");
     }
 
@@ -122,7 +122,7 @@ public class AWTBoardBuilder extends AWTComponent {
     @Override
     protected void init(AWTGraphics g) {
         Properties p = frame.getProperties();
-        boardFile = new File(p.getProperty("boardFile", getDefaultBoardFileName()));
+        boardFile = new File(p.getProperty("boardFile", DEFAULT_FILE.getPath()));
         pickMode = PickMode.valueOf(p.getProperty("pickMode", pickMode.name()));
         progress += 0.1f;
         String image = p.getProperty("image");

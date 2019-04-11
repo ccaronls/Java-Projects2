@@ -68,7 +68,7 @@ public class AWTMonopoly extends AWTComponent {
                         monopoly.notify();
                     }
                 }
-            }, "Choose Move " + player.getPiece(), Utils.toStringArray(moves.toArray(new MoveType[moves.size()])));
+            }, "Choose Move " + player.getPiece(), Utils.toStringArray(moves.toArray(new MoveType[moves.size()]), true));
             Utils.waitNoThrow(monopoly, -1);
             return result[0];
         }
@@ -132,7 +132,7 @@ public class AWTMonopoly extends AWTComponent {
 
                                             @Override
                                             public void cancelled() {}
-                                        }, "Choose Piece", Utils.toStringArray(Piece.values()));
+                                        }, "Choose Piece", Utils.toStringArray(Piece.values(), true));
 
                                     }
                                     @Override
