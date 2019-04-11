@@ -1753,7 +1753,7 @@ public class Utils {
      * @return
      */
     public static <T extends Enum<T>> String[] toStringArray(T[] values) {
-        return toStringArray(values, true);
+        return toStringArray(values, false);
     }
 
     public static <T extends Enum<T>> String[] toStringArray(T[] values, boolean pretty) {

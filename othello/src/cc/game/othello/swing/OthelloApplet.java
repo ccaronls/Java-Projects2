@@ -19,10 +19,12 @@ import cc.game.othello.core.Othello;
 import cc.game.othello.core.OthelloBoard;
 import cc.lib.game.AAnimation;
 import cc.lib.game.AGraphics;
+import cc.lib.game.GColor;
 import cc.lib.game.Utils;
 import cc.lib.swing.AWTGraphics;
 import cc.lib.swing.AWTFrame;
 import cc.lib.swing.AWTKeyboardAnimationApplet;
+import cc.lib.utils.FileUtils;
 
 public class OthelloApplet extends AWTKeyboardAnimationApplet implements ActionListener {
 
@@ -32,7 +34,9 @@ public class OthelloApplet extends AWTKeyboardAnimationApplet implements ActionL
         AWTFrame frame = new AWTFrame("JavaRoids Debug Mode");
         AWTKeyboardAnimationApplet app = new OthelloApplet(frame);
         frame.add(app);
-        frame.centerToScreen(640, 480);
+        File settings = FileUtils.getOrCreateSettingsDirectory(OthelloApplet.class);
+        if (!frame.loadFromFile(new File(settings, "gui.properties")))
+            frame.centerToScreen(640, 480);
         app.init();
         app.start();
 //        app.setMillisecondsPerFrame(20);
@@ -42,7 +46,7 @@ public class OthelloApplet extends AWTKeyboardAnimationApplet implements ActionL
 		return instance;
 	}
 
-	class FlipAnimation extends AAnimation {
+	class FlipAnimation extends AAnimation<AGraphics> {
 
 		final int row, col, fromColor, toColor;
 		
@@ -58,10 +62,10 @@ public class OthelloApplet extends AWTKeyboardAnimationApplet implements ActionL
 		public void draw(AGraphics g, float position, float dt) {
 			float scale = 0;
 			if (position < 0.5f) {
-				g.setColor(fromColor == OthelloBoard.CELL_WHITE ? g.WHITE : g.BLACK);
+				g.setColor(fromColor == OthelloBoard.CELL_WHITE ? GColor.WHITE : GColor.BLACK);
 				scale = 1f - (position*2);
 			} else {
-				g.setColor(toColor == OthelloBoard.CELL_WHITE ? g.WHITE : g.BLACK);
+				g.setColor(toColor == OthelloBoard.CELL_WHITE ? GColor.WHITE : GColor.BLACK);
 				scale = (position-0.5f) * 2;
 			}
 			g.pushMatrix();
@@ -86,7 +90,7 @@ public class OthelloApplet extends AWTKeyboardAnimationApplet implements ActionL
 		}
     	
     };
-    final File gameFile = new File("othello.txt");
+    final File gameFile = new File(FileUtils.getOrCreateSettingsDirectory(getClass()), "othello.txt");;
     final List<FlipAnimation> anims = new LinkedList<FlipAnimation>();
     
     OthelloApplet(Container frame) {
@@ -173,7 +177,7 @@ public class OthelloApplet extends AWTKeyboardAnimationApplet implements ActionL
 	}
 
 	@Override
-	protected void drawFrame(AWTGraphics g) {
+	protected void drawFrame(AGraphics g) {
 		{		
 			float w = g.getViewportWidth();
 			float h = g.getViewportHeight();
@@ -181,10 +185,10 @@ public class OthelloApplet extends AWTKeyboardAnimationApplet implements ActionL
 			float padding = 10;
 			float thickness = 5;
 			
-			g.setColor(g.GREEN);
+			g.setColor(GColor.GREEN);
 			g.drawFilledRoundedRect(padding, padding, w-2*padding, h-padding*2, radius);
 		
-			g.setColor(g.WHITE);
+			g.setColor(GColor.WHITE);
 			g.drawRoundedRect(padding, padding, w-2*padding, h-padding*2, thickness, radius);
 			
 			OthelloBoard b = game.getBoard();
@@ -212,11 +216,11 @@ public class OthelloApplet extends AWTKeyboardAnimationApplet implements ActionL
 	
 					float pcRad = Math.min(cw, ch)/2-3;
 					
-					g.setColor(g.WHITE);
+					g.setColor(GColor.WHITE);
 					switch (cell) {
 					case OthelloBoard.CELL_AVAILABLE:
 						if (Utils.isPointInsideRect(getMouseX(), getMouseY(), cx0, cy0, cw-2, ch-2)) {
-							g.setColor(g.RED);
+							g.setColor(GColor.RED);
 							pickedRow = r;
 							pickedCol = c;
 						}
@@ -225,7 +229,7 @@ public class OthelloApplet extends AWTKeyboardAnimationApplet implements ActionL
 						continue;
 					}
 	
-					g.setColor(g.WHITE);
+					g.setColor(GColor.WHITE);
 					g.drawRect(cx-cw/2+1, cy-ch/2+1, cw-2, ch-2, 2);
 	
 					FlipAnimation f= getAnimationAt(r, c);
@@ -239,7 +243,7 @@ public class OthelloApplet extends AWTKeyboardAnimationApplet implements ActionL
 							anims.remove(f);
 						g.popMatrix();
 					} else {
-						g.setColor(b.get(r, c) == OthelloBoard.CELL_BLACK ? g.BLACK : g.WHITE);
+						g.setColor(b.get(r, c) == OthelloBoard.CELL_BLACK ? GColor.BLACK : GColor.WHITE);
 						g.drawDisk(cx, cy, pcRad);
 					}
 				}

@@ -16,7 +16,7 @@ sourceSets {
     }
 }
 
-mainClassName = 'cc.game.slot.SlotMachine'
+mainClassName = 'cc.game.othello.swing.OthelloApplet'
 
 repositories {
     mavenCentral()

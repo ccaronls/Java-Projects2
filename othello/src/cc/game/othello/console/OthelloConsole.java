@@ -8,6 +8,7 @@ import cc.game.othello.ai.AiOthelloPlayer;
 import cc.game.othello.core.Othello;
 import cc.game.othello.core.OthelloBoard;
 import cc.game.othello.core.OthelloPlayer;
+import cc.lib.utils.FileUtils;
 
 public class OthelloConsole {
 
@@ -59,7 +60,7 @@ public class OthelloConsole {
 		}).start();
 		
 		try {
-			File file = new File("othello.txt");
+			File file = new File(FileUtils.getOrCreateSettingsDirectory(OthelloConsole.class), "othello.txt");
 			if (file.exists())
 				game.loadFromFile(file);
 			else {
