@@ -85,9 +85,4 @@ public class CustomBoardTest extends TestCase {
         assertEquals(3, b.getNumCells());
     }
 
-    public void testSavedBoard() throws Exception {
-        CustomBoard b = new CustomBoard();
-        b.loadFromFile(new File("bb.backup.board"));
-        b.compute();
-    }
 }

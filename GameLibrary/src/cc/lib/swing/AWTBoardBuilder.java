@@ -18,6 +18,7 @@ import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
 import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
+import cc.lib.utils.FileUtils;
 
 public class AWTBoardBuilder extends AWTComponent {
 
@@ -63,7 +64,7 @@ public class AWTBoardBuilder extends AWTComponent {
         setPadding(10);
         initFrame(frame);
         frame.add(this);
-        File settings = AWTUtils.getOrCreateSettingsDirectory(getClass());
+        File settings = FileUtils.getOrCreateSettingsDirectory(getClass());
         if (!frame.loadFromFile(new File(settings, getPropertiesFileName())))
             frame.centerToScreen(640, 480);
         DEFAULT_FILE = new File(settings, getDefaultBoardFileName());

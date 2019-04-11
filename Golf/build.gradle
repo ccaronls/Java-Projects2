@@ -1,7 +1,36 @@
 apply plugin: 'java'
+apply plugin: 'application'
+
+dependencies {
+    implementation project(':GameLibrary')
+}
+
 sourceSets {
-    main.java.srcDirs = ['src','test','png']
-    main.resources.srcDirs = ['src','test','png']
-    test.java.srcDirs = ['tests/java']
-    test.resources.srcDirs = ['tests/resources']
+    main {
+        java {
+            srcDirs = ['src']
+            //, '../GameLibrary/src']
+            //exclude '**/swing/**'
+            //exclude '**/skunkworks/**'
+        }
+
+        resources {
+            srcDirs = ['png']
+        }
+    }
+}
+
+mainClassName = 'cc.game.golf.swing.GolfSwing'
+
+repositories {
+    mavenCentral()
+}
+
+task runConsole(type: JavaExec) {
+    group = 'Application' // <-- change the name as per your need
+    description = 'Run golf in the console'
+
+    classpath sourceSets.main.runtimeClasspath // <-- Don't change this
+    main = "cc.game.golf.console.GolfConsole"
+//    args "arg1", "arg2"
 }

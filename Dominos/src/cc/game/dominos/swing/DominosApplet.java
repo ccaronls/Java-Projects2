@@ -11,6 +11,7 @@ import cc.lib.logger.LoggerFactory;
 import cc.lib.net.ClientConnection;
 import cc.lib.net.GameServer;
 import cc.lib.swing.*;
+import cc.lib.utils.FileUtils;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -33,6 +34,17 @@ public class DominosApplet extends AWTComponent implements GameServer.Listener {
     final AWTFrame frame;
     final Map<Integer, String> stringTable;
 
+    int numPlayersChoice;
+    int numPipsChoice;
+    int maxScoreChoice;
+    int difficultyChoice;
+
+    void saveSettings() {
+        frame.setProperty("numPlayersChoice", numPlayersChoice);
+        frame.setProperty("numPipsChoice", numPipsChoice);
+        frame.setProperty("maxScoreChoice", maxScoreChoice);
+        frame.setProperty("difficultyChoice", difficultyChoice);
+    }
 
     DominosApplet() {
         stringTable = Utils.buildStringsTable(R.string.class, "../DominosAndroid/res/values/strings.xml");
@@ -56,10 +68,20 @@ public class DominosApplet extends AWTComponent implements GameServer.Listener {
         frame.addMenuBarMenu("File", "New Game");
         frame.add(this);
 
-        File settings = AWTUtils.getOrCreateSettingsDirectory(getClass());
+        File settings = FileUtils.getOrCreateSettingsDirectory(getClass());
         if (!frame.loadFromFile(new File(settings, "dominos.properties")))
             frame.centerToScreen(800, 600);
         saveFile = new File(settings, "dominos.save");
+        numPlayersChoice = frame.getIntProperty("numPlayersChoice", 3);
+        numPipsChoice = frame.getIntProperty("numPipsChoice", 6);
+        maxScoreChoice = frame.getIntProperty("maxScoreChoice", 150);
+        difficultyChoice = frame.getIntProperty("difficultyChoice", 0);
+        log.debug("loaded from properties:");
+        log.debug("  numPlayersChoice:"+numPlayersChoice);
+        log.debug("  numPipsChoice:"+numPipsChoice);
+        log.debug("  maxScoreChoice:"+maxScoreChoice);
+        log.debug("  difficultyChoice:"+difficultyChoice);
+
 //        dominos.startGameThread();
         //dominos.initGame(9, 150, 0);
         //dominos.startIntroAnim();
@@ -84,8 +106,9 @@ public class DominosApplet extends AWTComponent implements GameServer.Listener {
         void choiceMade(int choice);
     }
 
-    JPanel makeRadioGroup(int choice, final OnChoiceListener listener, int ... buttons) {
+    JPanel makeRadioGroup(String label, int choice, final OnChoiceListener listener, int ... buttons) {
         AWTPanel panel = new AWTPanel(new GridLayout(1, 0));
+        panel.add(new JLabel(label));
         ActionListener al = new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 listener.choiceMade(Integer.parseInt(e.getActionCommand()));
@@ -125,26 +148,21 @@ public class DominosApplet extends AWTComponent implements GameServer.Listener {
         return panel;
     }
 
-    int numPlayersChoice = 3;
-    int numPipsChoice = 9;
-    int maxScoreChoice = 200;
-    int difficultyChoice = 0;
-
     void showNewGamePopup() {
 
-        final JPanel numPlayers = makeRadioGroup(numPlayersChoice, new OnChoiceListener() {
+        final JPanel numPlayers = makeRadioGroup("Num Players:", numPlayersChoice, new OnChoiceListener() {
                 @Override
                 public void choiceMade(int choice) {
                     numPlayersChoice = choice;
                 }
             }, 2, 3, 4);
-        JPanel numPips = makeRadioGroup(numPipsChoice, new OnChoiceListener() {
+        JPanel numPips = makeRadioGroup("Num Pips:", numPipsChoice, new OnChoiceListener() {
                 @Override
                 public void choiceMade(int choice) {
                     numPipsChoice = choice;
                 }
             }, 6, 9, 12);
-        JPanel maxPts = makeRadioGroup(maxScoreChoice, new OnChoiceListener() {
+        JPanel maxPts = makeRadioGroup("Max Score:", maxScoreChoice, new OnChoiceListener() {
                 @Override
                 public void choiceMade(int choice) {
                     maxScoreChoice = choice;
@@ -157,6 +175,7 @@ public class DominosApplet extends AWTComponent implements GameServer.Listener {
                 }
             }, "Easy", "Medium", "Hard");
         final AWTFrame popup = new AWTFrame();
+
         AWTPanel panel = new AWTPanel(new GridLayout(0, 1),
                 numPlayers,
                 numPips,
@@ -177,6 +196,7 @@ public class DominosApplet extends AWTComponent implements GameServer.Listener {
                         dominos.startNewGame();
                         dominos.startGameThread();
                         popup.closePopup(frame);
+                        saveSettings();
                     }
                 }),
                 new AWTButton("Resume", new ActionListener() {

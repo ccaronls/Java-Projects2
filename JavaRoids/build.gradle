@@ -16,7 +16,7 @@ sourceSets {
     }
 }
 
-mainClassName = 'cc.jroids.JavaRoids'
+mainClassName = 'cc.jroids.swing.JavaRoidsApplet'
 
 repositories {
     mavenCentral()

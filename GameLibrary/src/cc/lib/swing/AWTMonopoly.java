@@ -15,6 +15,7 @@ import cc.lib.monopoly.Piece;
 import cc.lib.monopoly.Player;
 import cc.lib.monopoly.Rules;
 import cc.lib.monopoly.UIMonopoly;
+import cc.lib.utils.FileUtils;
 
 import java.awt.*;
 import javax.swing.*;
@@ -195,7 +196,7 @@ public class AWTMonopoly extends AWTComponent {
         frame.addMenuBarMenu("File", "New Game", "Resume", "Rules");
         frame.add(this);
 
-        File settings = AWTUtils.getOrCreateSettingsDirectory(getClass());
+        File settings = FileUtils.getOrCreateSettingsDirectory(getClass());
          saveFile = new File(settings, "monopoly.save");
         if (!frame.loadFromFile(new File(settings, "monopoly.properties")))
             frame.centerToScreen(800, 600);

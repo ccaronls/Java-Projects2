@@ -27,6 +27,7 @@ public class AWTFrame extends JFrame implements WindowListener, ComponentListene
 	public final Logger log = LoggerFactory.getLogger(getClass());
 
 	private File propertiesFile = null;
+	private Properties properties = null;
 
 	public AWTFrame() {
 		super();
@@ -113,17 +114,9 @@ public class AWTFrame extends JFrame implements WindowListener, ComponentListene
 
 	protected void onWindowResized(int w, int h) {}
 
-	protected void saveToFile() {
+	protected synchronized void saveToFile() {
 	    if (propertiesFile != null) {
-            Properties p = new Properties();
-            if (propertiesFile.isFile()) {
-                try (InputStream in = new FileInputStream(propertiesFile)) {
-                    p.load(in);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    // oh well!
-                }
-            }
+            Properties p = getProperties();
             p.setProperty("gui.x", String.valueOf(getX()));
             p.setProperty("gui.y", String.valueOf(getY()));
             p.setProperty("gui.w", String.valueOf(getWidth()));
@@ -152,11 +145,15 @@ public class AWTFrame extends JFrame implements WindowListener, ComponentListene
         } catch (Exception e) {
             e.printStackTrace();
         }
+        properties = props;
     }
 
-    public synchronized void setProperty(String name, String value) {
+    public synchronized void setProperty(String name, Object value) {
 	    Properties p = getProperties();
-	    p.setProperty(name, value);
+	    if (value == null)
+	        p.remove(name);
+	    else
+	        p.setProperty(name, value.toString());
 	    setProperties(p);
     }
 
@@ -173,6 +170,7 @@ public class AWTFrame extends JFrame implements WindowListener, ComponentListene
                 int h = Integer.parseInt(p.getProperty("gui.h"));
                 setBounds(x, y, w, h);
                 this.setVisible(true);
+                properties = p;
                 return true;
             } finally {
                 in.close();
@@ -389,7 +387,10 @@ public class AWTFrame extends JFrame implements WindowListener, ComponentListene
      *
      * @return
      */
-    public Properties getProperties() {
+    public synchronized Properties getProperties() {
+        if (properties != null) {
+            return properties;
+        }
         Properties p = new Properties();
         if (propertiesFile != null && propertiesFile.isFile()) {
             try (InputStream in = new FileInputStream(propertiesFile)) {
@@ -399,6 +400,7 @@ public class AWTFrame extends JFrame implements WindowListener, ComponentListene
                 // oh well!
             }
         }
+        properties = p;
         return p;
     }
 
@@ -426,9 +428,13 @@ public class AWTFrame extends JFrame implements WindowListener, ComponentListene
      * @return
      */
     public final int getIntProperty(String name, int defaultValue) {
+        String value = getProperties().getProperty(name);
         try {
-            return Integer.parseInt(getProperties().getProperty(name));
-        } catch (Exception e) {}
+            if (value != null)
+                return Integer.parseInt(value);
+        } catch (Exception e) {
+            log.error("Cannot convert value '" + value + "' to integer");
+        }
         return defaultValue;
     }
 
@@ -439,9 +445,13 @@ public class AWTFrame extends JFrame implements WindowListener, ComponentListene
      * @return
      */
     public final double getDoubleProperty(String name, double defaultValue) {
+        String value = getProperties().getProperty(name);
         try {
-            return Double.parseDouble(getProperties().getProperty(name));
-        } catch (Exception e) {}
+            if (value != null)
+                return Double.parseDouble(value);
+        } catch (Exception e) {
+            log.error("Cannot convert value '" + value + "' to double");
+        }
         return defaultValue;
     }
 

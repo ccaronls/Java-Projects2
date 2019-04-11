@@ -1,5 +1,4 @@
 apply plugin: 'java'
-apply plugin: 'application'
 
 dependencies {
     implementation project(':GameLibrary')
@@ -16,7 +15,14 @@ sourceSets {
     }
 }
 
-mainClassName = 'cc.game.slot.SlotMachine'
+task runConsole(type: JavaExec) {
+    group = 'Application' // <-- change the name as per your need
+    description = 'Run the Console App'
+    standardInput = System.in
+    classpath sourceSets.main.runtimeClasspath // <-- Don't change this
+    main = "cc.game.yahtzee.console.YahtzeeConsole"
+//    args "arg1", "arg2"
+}
 
 repositories {
     mavenCentral()

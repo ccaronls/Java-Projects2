@@ -18,7 +18,7 @@ import cc.app.fractal.FractalComponent.FractalImage;
 import cc.app.fractal.evaluator.*;
 import cc.lib.math.ComplexNumber;
 import cc.lib.swing.AWTFrame;
-import cc.lib.swing.AWTUtils;
+import cc.lib.utils.FileUtils;
 
 public class FractalViewer extends AWTFrame implements FractalComponent.FractalListener, ActionListener{
 
@@ -112,7 +112,7 @@ public class FractalViewer extends AWTFrame implements FractalComponent.FractalL
         vars.put("B", new ComplexNumber());
         vars.put("C", new ComplexNumber());
         */
-        File settings = AWTUtils.getOrCreateSettingsDirectory(getClass());
+        File settings = FileUtils.getOrCreateSettingsDirectory(getClass());
         loadFromFile(new File(settings, "fractal.properties"));
         FORMULAS_FILE = new File(settings, "formulas.txt");
         listScreens();

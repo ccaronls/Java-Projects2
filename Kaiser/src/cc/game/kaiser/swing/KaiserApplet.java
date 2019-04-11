@@ -16,6 +16,7 @@ import cc.lib.game.Utils;
 import cc.lib.swing.AWTGraphics;
 import cc.lib.swing.AWTFrame;
 import cc.lib.swing.AWTKeyboardAnimationApplet;
+import cc.lib.utils.FileUtils;
 import cc.lib.utils.Reflector;
 
 public class KaiserApplet extends AWTKeyboardAnimationApplet {
@@ -24,11 +25,14 @@ public class KaiserApplet extends AWTKeyboardAnimationApplet {
         //Utils.DEBUG_ENABLED = true;
         //Golf.DEBUG_ENABLED = true;
         //PlayerBot.DEBUG_ENABLED = true;
+        File settings = FileUtils.getOrCreateSettingsDirectory(KaiserApplet.class);
         AWTFrame frame = new AWTFrame("Kaiser");
         AWTKeyboardAnimationApplet app = new KaiserApplet();
         frame.add(app);
         app.init();
-        frame.centerToScreen(800, 600);
+        if (!frame.loadFromFile(new File(settings, "gui.properties"))) {
+            frame.centerToScreen(800, 600);
+        }
         app.start();
         app.setMillisecondsPerFrame(20);
     }   
@@ -106,7 +110,7 @@ public class KaiserApplet extends AWTKeyboardAnimationApplet {
     private int cardWidth = 0;
     private int cardHeight = 0;
     
-    final File SAVE_FILE = new File("../savegame.txt");
+    final File SAVE_FILE = new File(FileUtils.getOrCreateSettingsDirectory(getClass()), "game.save");
     
     @Override
     protected void doInitialization() {

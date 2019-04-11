@@ -10,14 +10,14 @@ import cc.game.yahtzee.core.Yahtzee;
 import cc.game.yahtzee.core.YahtzeeRules;
 import cc.game.yahtzee.core.YahtzeeSlot;
 import cc.lib.game.Utils;
+import cc.lib.utils.FileUtils;
 
 public class YahtzeeConsole extends Yahtzee {
 
 	public static void main(String [] args) {
 
 		Utils.DEBUG_ENABLED = true;
-		
-		final File restoreFile = new File("yahtzee.sav");
+		final File restoreFile = new File(FileUtils.getOrCreateSettingsDirectory(YahtzeeConsole.class), "yahtzee.sav");
 		try {
 			
 			YahtzeeConsole yc = new YahtzeeConsole();

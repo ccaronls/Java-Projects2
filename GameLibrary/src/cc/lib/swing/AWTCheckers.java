@@ -17,6 +17,7 @@ import cc.lib.game.GColor;
 import cc.lib.game.Justify;
 import cc.lib.game.MiniMaxTree;
 import cc.lib.game.Utils;
+import cc.lib.utils.FileUtils;
 import cc.lib.utils.Reflector;
 
 public class AWTCheckers extends AWTComponent {
@@ -70,7 +71,7 @@ public class AWTCheckers extends AWTComponent {
         setPadding(10);
         frame.addMenuBarMenu("File", "New Game", "Load Game", "Save as");
         frame.add(this);
-        File settings = AWTUtils.getOrCreateSettingsDirectory(getClass());
+        File settings = FileUtils.getOrCreateSettingsDirectory(getClass());
         if (!frame.loadFromFile(new File(settings, "checkers.properties")))
             frame.centerToScreen(640, 640);
         SAVE_FILE = new File(settings,"checkers.save");

@@ -1,12 +1,15 @@
 package cc.jroids.swing;
 
 import java.awt.event.KeyEvent;
+import java.io.File;
 
 import cc.jroids.JavaRoids;
 import cc.lib.game.AGraphics;
 import cc.lib.game.Utils;
 import cc.lib.swing.AWTFrame;
 import cc.lib.swing.AWTKeyboardAnimationApplet;
+import cc.lib.swing.AWTUtils;
+import cc.lib.utils.FileUtils;
 
 /**
  * Created by chriscaron on 10/30/17.
@@ -37,8 +40,10 @@ public class JavaRoidsApplet extends AWTKeyboardAnimationApplet {
         AWTKeyboardAnimationApplet app = new JavaRoidsApplet();
         frame.add(app);
         app.init();
-        //frame.centerToScreen(620, 620);
-        frame.finalizeToBounds(2244, 301, 620, 620);
+        File settings = FileUtils.getOrCreateSettingsDirectory(JavaRoidsApplet.class);
+        if (!frame.loadFromFile(new File(settings, "gui.properties"))) {
+            frame.centerToScreen(620, 620);
+        }
         app.start();
         app.setMillisecondsPerFrame(33);
     }

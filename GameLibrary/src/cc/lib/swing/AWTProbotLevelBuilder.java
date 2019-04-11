@@ -5,6 +5,7 @@ import java.io.File;
 import cc.lib.game.GColor;
 import cc.lib.game.Utils;
 import cc.lib.probot.Probot;
+import cc.lib.utils.FileUtils;
 import cc.lib.utils.Grid;
 import cc.lib.utils.Reflector;
 
@@ -41,7 +42,7 @@ public class AWTProbotLevelBuilder extends AWTComponent {
     int curLevel = 0;
 
     AWTProbotLevelBuilder() {
-        final File settings = AWTUtils.getOrCreateSettingsDirectory(getClass());
+        final File settings = FileUtils.getOrCreateSettingsDirectory(getClass());
         try {
             if (!levelsFile.isFile()) {
                 levelsFile.createNewFile();

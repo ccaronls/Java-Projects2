@@ -21,6 +21,7 @@ import javax.swing.JTextField;
 
 import cc.lib.game.GColor;
 import cc.lib.swing.AWTUtils;
+import cc.lib.utils.FileUtils;
 import marcos.games.hexes.core.Board;
 import marcos.games.hexes.core.Hexes;
 import marcos.games.hexes.core.Piece;
@@ -110,7 +111,7 @@ public class HexesApplet extends AWTKeyboardAnimationApplet implements MultiPlay
 	public HexesApplet(AWTFrame frame) {
 		instance = this;
 		this.frame = frame;
-		File settings = AWTUtils.getOrCreateSettingsDirectory(getClass());
+		File settings = FileUtils.getOrCreateSettingsDirectory(getClass());
 		frame.loadFromFile(new File(settings, "hexes.properties"));
 		showMainMenu();
 		restoreFile = new File(settings, "hexes.txt");

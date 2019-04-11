@@ -1,6 +1,7 @@
 package cc.game.golf.swing;
 
 import java.awt.Font;
+import java.io.File;
 import java.util.*;
 
 import cc.game.golf.ai.PlayerBot;
@@ -13,6 +14,8 @@ import cc.lib.game.*;
 import cc.lib.swing.AWTGraphics;
 import cc.lib.swing.AWTFrame;
 import cc.lib.swing.AWTKeyboardAnimationApplet;
+import cc.lib.swing.AWTUtils;
+import cc.lib.utils.FileUtils;
 
 /**
  * GolfSwing (get it?)
@@ -29,7 +32,9 @@ public class GolfSwing extends AWTKeyboardAnimationApplet {
         AWTFrame frame = new AWTFrame("Golf Card Game");
         AWTKeyboardAnimationApplet app = new GolfSwing();
         frame.add(app);
-        frame.centerToScreen(800, 600);
+        if (!frame.loadFromFile(new File(FileUtils.getOrCreateSettingsDirectory(GolfSwing.class), "gui.properties"))) {
+            frame.centerToScreen(800, 600);
+        }
         app.init();
         app.start();
         app.setTargetFPS(30);
@@ -222,7 +227,7 @@ public class GolfSwing extends AWTKeyboardAnimationApplet {
     }
 
     @Override
-    protected void drawFrame(AWTGraphics g) {
+    protected void drawFrame(AGraphics g) {
         try {
             clearScreen();
             g.drawImage(tableImageId, 0, 0, screenHeight-5, screenHeight-5);
@@ -284,13 +289,14 @@ public class GolfSwing extends AWTKeyboardAnimationApplet {
 
         buttonY += buttonDY;
         if (drawPickButton(g, buttonX, buttonY, buttonWidth, "JOIN MULTIPLAYER")) {
+            /*
             try {
                 IGolfGame multiplayerGame = new MultiPlayerGolfGame(this, "Chris");
                 multiplayerGame.startNewGame();
                 game = multiplayerGame;
             } catch (Exception e) {
                 setMessage("Failed to connect to server");
-            }
+            }*/
         }
 
         final int buttonWidth2 = buttonWidth / 3;
@@ -299,16 +305,16 @@ public class GolfSwing extends AWTKeyboardAnimationApplet {
         Rules rules = game.getRules();
         
         buttonY += buttonDY;
-        g.setColor(g.WHITE);
+        g.setColor(GColor.WHITE);
         buttonY += buttonDY;
-        g.setColor(g.WHITE);
+        g.setColor(GColor.WHITE);
         g.drawJustifiedString(buttonX, buttonY+5, Justify.LEFT, Justify.TOP, "Game Type");
         if (drawPickButton(g, buttonX2, buttonY, buttonWidth2, rules.getGameType().name())) {
             rules.setGameType(incrementRule(rules.getGameType(), GameType.values()));
             game.updateRules();
         }
         buttonY += buttonDY;
-        g.setColor(g.WHITE);
+        g.setColor(GColor.WHITE);
         g.drawJustifiedString(buttonX, buttonY+5, Justify.LEFT, Justify.TOP, "Num Holes");
         if (drawPickButton(g, buttonX2, buttonY, buttonWidth2, " " + rules.getNumHoles() + " ")) {
             rules.setNumHoles(incrementRule(rules.getNumHoles(), 18, 9));
@@ -316,7 +322,7 @@ public class GolfSwing extends AWTKeyboardAnimationApplet {
         }
         if (rules.getGameType() != GameType.NineCard && rules.getGameType() != GameType.FourCard) {
             buttonY += buttonDY;
-            g.setColor(g.WHITE);
+            g.setColor(GColor.WHITE);
             g.drawJustifiedString(buttonX, buttonY+5, Justify.LEFT, Justify.TOP, "Num Decks");
             if (drawPickButton(g, buttonX2, buttonY, buttonWidth2, " " + rules.getNumDecks() + " ")) {
                 rules.setNumDecks(incrementRule(rules.getNumDecks(), 1, 2));
@@ -324,7 +330,7 @@ public class GolfSwing extends AWTKeyboardAnimationApplet {
             }
         }
         buttonY += buttonDY;
-        g.setColor(g.WHITE);
+        g.setColor(GColor.WHITE);
         g.drawJustifiedString(buttonX, buttonY+5, Justify.LEFT, Justify.TOP, "Wild Card");
         if (drawPickButton(g, buttonX2, buttonY, buttonWidth2, rules.getWildcard().name())) {
             rules.setWildcard(incrementRule(rules.getWildcard(), WildCard.values()));
@@ -332,21 +338,21 @@ public class GolfSwing extends AWTKeyboardAnimationApplet {
         }
         if (rules.getGameType() != GameType.NineCard) {
             buttonY += buttonDY;
-            g.setColor(g.WHITE);
+            g.setColor(GColor.WHITE);
             g.drawJustifiedString(buttonX, buttonY+5, Justify.LEFT, Justify.TOP, "Num Jokers");
             if (drawPickButton(g, buttonX2, buttonY, buttonWidth2, " " + rules.getNumJokers() + " ")) {
                 rules.setNumJokers(incrementRule(rules.getNumJokers(), 0, 2, 4, 8));
                 game.updateRules();
             }
             buttonY += buttonDY;
-            g.setColor(g.WHITE);
+            g.setColor(GColor.WHITE);
             g.drawJustifiedString(buttonX, buttonY+5, Justify.LEFT, Justify.TOP, "Jokers Paired");
             if (drawPickButton(g, buttonX2, buttonY, buttonWidth2, " " + rules.getJokerValuePaired()+ " ")) {
                 rules.setJokerValuePaired(incrementRule(rules.getJokerValuePaired(), -5, -4));
                 game.updateRules();
             }
             buttonY += buttonDY;
-            g.setColor(g.WHITE);
+            g.setColor(GColor.WHITE);
             g.drawJustifiedString(buttonX, buttonY+5, Justify.LEFT, Justify.TOP, "Jokers Unpaired");
             if (drawPickButton(g, buttonX2, buttonY, buttonWidth2, " " + rules.getJokerValueUnpaired() + " ")) {
                 rules.setJokerValueUnpaired(incrementRule(rules.getJokerValueUnpaired(), 15, 0));
@@ -354,21 +360,21 @@ public class GolfSwing extends AWTKeyboardAnimationApplet {
             }
         }
         buttonY += buttonDY;
-        g.setColor(g.WHITE);
+        g.setColor(GColor.WHITE);
         g.drawJustifiedString(buttonX, buttonY+5, Justify.LEFT, Justify.TOP, "Knocker penalty");
         if (drawPickButton(g, buttonX2, buttonY, buttonWidth2, rules.getKnockerPenaltyType().name())) {
             rules.setKnockerPenaltyType(incrementRule(rules.getKnockerPenaltyType(), KnockerPenaltyType.values()));
             game.updateRules();
         }
         buttonY += buttonDY;
-        g.setColor(g.WHITE);
+        g.setColor(GColor.WHITE);
         g.drawJustifiedString(buttonX, buttonY+5, Justify.LEFT, Justify.TOP, "Knocker bonus");
         if (drawPickButton(g, buttonX2, buttonY, buttonWidth2, rules.getKnockerBonusType().name())) {
             rules.setKnockerBonusType(incrementRule(rules.getKnockerBonusType(), KnockerBonusType.values()));
             game.updateRules();
         }
         buttonY += buttonDY;
-        g.setColor(g.WHITE);
+        g.setColor(GColor.WHITE);
         g.drawJustifiedString(buttonX, buttonY+5, Justify.LEFT, Justify.TOP, "Four of a Kind Bonus");
         if (drawPickButton(g, buttonX2, buttonY, buttonWidth2, " " + rules.getFourOfAKindBonus() + " ")) {
             rules.setFourOfAKindBonus(incrementRule(rules.getFourOfAKindBonus(), -50, -40, -30, -20, -10, 0));
@@ -380,7 +386,7 @@ public class GolfSwing extends AWTKeyboardAnimationApplet {
         final int ty = g.getTextHeight();
         y += ty;
         String [] lines = g.generateWrappedLines(msg, width);
-        g.setColor(g.GRAY);
+        g.setColor(GColor.GRAY);
         for (String l : lines) {
             y += ty;
             g.drawJustifiedString(x, y, Justify.LEFT, Justify.TOP, l);
@@ -389,7 +395,7 @@ public class GolfSwing extends AWTKeyboardAnimationApplet {
     }
     
     private void drawPlayersStatus(AGraphics g) {
-        g.setColor(g.WHITE);
+        g.setColor(GColor.WHITE);
         final int statusWidth = screenWidth - screenHeight - 20;
         final int lx = screenHeight + 10;
         final int rx = screenWidth -  20;
@@ -421,7 +427,7 @@ public class GolfSwing extends AWTKeyboardAnimationApplet {
         y += by;
 
         String playerName = game.getPlayerName(game.getCurrentPlayer());
-        g.setColor(g.WHITE);
+        g.setColor(GColor.WHITE);
         switch (game.getState()) {
         
             case INIT:
@@ -546,7 +552,7 @@ public class GolfSwing extends AWTKeyboardAnimationApplet {
             String text = game.getPlayerName(playerIndex) + " Showing:" + game.getHandPoints(playerIndex);
             if (playerIndex == game.getKnocker())
                 text += " KNOCKED";
-            g.setColor(g.WHITE);
+            g.setColor(GColor.WHITE);
             g.drawJustifiedString(xTxt[i], yTxt[i], Justify.CENTER, vTxt[i], text);
         }
         
@@ -563,7 +569,7 @@ public class GolfSwing extends AWTKeyboardAnimationApplet {
         processAnimations(g);
         
         if (AGraphics.DEBUG_ENABLED) {
-            g.setColor(g.WHITE);
+            g.setColor(GColor.WHITE);
             g.drawCircle(getMouseX(), getMouseY(), 5);
         }
     }
@@ -634,7 +640,7 @@ public class GolfSwing extends AWTKeyboardAnimationApplet {
     private void drawCards(AGraphics g, CardLayout layout, Card [][] cards) {
         
         if (AGraphics.DEBUG_ENABLED) {
-            g.setColor(g.RED);
+            g.setColor(GColor.RED);
             for (int i=0; i<layout.x.length; i++)
                 g.drawRect(layout.x[i][0], layout.y[i][0], layout.width, layout.height);
         }
@@ -662,7 +668,7 @@ public class GolfSwing extends AWTKeyboardAnimationApplet {
                 //    dy = 20;
                 this.drawCard(g, card, layout.x[r][c], layout.y[r][c]-dy, layout.angle);
                 if (highlighted != null && card.equals(highlighted)) {
-                    g.setColor(g.RED);
+                    g.setColor(GColor.RED);
                     g.drawRect(layout.x[r][c]-2, layout.y[r][c]-2, cardWidth+4, cardHeight+4, 3);
                 }
             }
@@ -684,7 +690,7 @@ public class GolfSwing extends AWTKeyboardAnimationApplet {
     // handles picking of cards as well.
     private void drawCards_old(AGraphics g, Card [] cards, int offset, int len, int x, int y, Angle angle, int maxLenPixels) {
         if (AGraphics.DEBUG_ENABLED) {
-            g.setColor(g.RED);
+            g.setColor(GColor.RED);
             if (angle == Angle.ANG_0 || angle == Angle.ANG_180)
                 g.drawRect(x, y, maxLenPixels, cardHeight);
             else
@@ -768,13 +774,13 @@ public class GolfSwing extends AWTKeyboardAnimationApplet {
 
         g.drawImage(getCardImage(card, angle), x, y, cw, ch);
         if (card.isShowing() && game.getRules().getWildcard().isWild(card)) {
-            g.setColor(g.makeColor(0,0,0,64));
+            g.setColor(new GColor(0,0,0,64));
             g.drawFilledRect(x, y, cw, ch);
             int cx = x + cw/2;
             int cy = y + ch/2;
-            g.setColor(g.BLACK);
+            g.setColor(GColor.BLACK);
             g.drawJustifiedString(cx+2, cy+2, Justify.CENTER, Justify.CENTER, "WILD");
-            g.setColor(g.YELLOW);            
+            g.setColor(GColor.YELLOW);
             g.drawJustifiedString(cx, cy, Justify.CENTER, Justify.CENTER, "WILD");
         }
     }
@@ -807,11 +813,11 @@ public class GolfSwing extends AWTKeyboardAnimationApplet {
         if (wid < minWidth)
             wid = minWidth;
         int hgt = g.getTextHeight();
-        AColor fontColor = g.WHITE;
-        AColor rectColor = g.CYAN;
+        GColor fontColor = GColor.WHITE;
+        GColor rectColor = GColor.CYAN;
         boolean highlighted = false;
         if (Utils.isPointInsideRect(getMouseX(), getMouseY(), x, y, wid+padding*2, hgt+padding*2)) {
-            rectColor = g.YELLOW;
+            rectColor = GColor.YELLOW;
             highlighted = true;
         }
         g.setColor(fontColor);
@@ -850,7 +856,7 @@ public class GolfSwing extends AWTKeyboardAnimationApplet {
         }
     }
 
-    class MoveCardAnimation extends AAnimation {
+    class MoveCardAnimation extends AAnimation<AGraphics> {
 
         final float sx, sy, ex, ey;
         final Angle angle;
@@ -900,7 +906,7 @@ public class GolfSwing extends AWTKeyboardAnimationApplet {
         }
     }
     
-    class TurnOverCardAnimation extends AAnimation {
+    class TurnOverCardAnimation extends AAnimation<AGraphics> {
         final int x, y, w, h;
         final Card card;
         final Angle angle;
