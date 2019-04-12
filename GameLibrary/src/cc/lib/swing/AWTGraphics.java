@@ -245,6 +245,7 @@ public class AWTGraphics extends APGraphics {
                 float y0 = getY(getNumVerts()-1);
                 float x1 = getX(0);
                 float y1 = getY(0);
+                AWTUtils.drawLine(g, x0, y0, x1, y1, thickness);
             }
         }
     }

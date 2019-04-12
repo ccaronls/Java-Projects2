@@ -178,79 +178,77 @@ public class OthelloApplet extends AWTKeyboardAnimationApplet implements ActionL
 
 	@Override
 	protected void drawFrame(AGraphics g) {
-		{		
-			float w = g.getViewportWidth();
-			float h = g.getViewportHeight();
-			float radius = 10;
-			float padding = 10;
-			float thickness = 5;
-			
-			g.setColor(GColor.GREEN);
-			g.drawFilledRoundedRect(padding, padding, w-2*padding, h-padding*2, radius);
-		
-			g.setColor(GColor.WHITE);
-			g.drawRoundedRect(padding, padding, w-2*padding, h-padding*2, thickness, radius);
-			
-			OthelloBoard b = game.getBoard();
-	
-			float bw = g.getViewportWidth() - padding*2 - radius*2;
-			float bh = g.getViewportHeight() - padding*2 - radius*2;
-			
-			float cw = bw/b.getNumCols();
-			float ch = bh/b.getNumRows();
-			
-			float x0 = radius+padding;
-			float y0 = radius+padding;
-			
-			pickedRow = pickedCol = -1;
-			
-			for (int r=0; r<b.getNumRows(); r++) {
-				for (int c=0; c<b.getNumCols(); c++) {
-					float cx = x0 + cw/2 + cw*c;
-					float cy = y0 + ch/2 + ch*r;
-					
-					int cell = b.get(r, c);
-					
-					float cx0 = cx-cw/2+1;
-					float cy0 = cy-ch/2+1;
-	
-					float pcRad = Math.min(cw, ch)/2-3;
-					
-					g.setColor(GColor.WHITE);
-					switch (cell) {
-					case OthelloBoard.CELL_AVAILABLE:
-						if (Utils.isPointInsideRect(getMouseX(), getMouseY(), cx0, cy0, cw-2, ch-2)) {
-							g.setColor(GColor.RED);
-							pickedRow = r;
-							pickedCol = c;
-						}
-					case OthelloBoard.CELL_UNUSED:
-						g.drawRect(cx-cw/2+1, cy-ch/2+1, cw-2, ch-2, 2);
-						continue;
-					}
-	
-					g.setColor(GColor.WHITE);
-					g.drawRect(cx-cw/2+1, cy-ch/2+1, cw-2, ch-2, 2);
-	
-					FlipAnimation f= getAnimationAt(r, c);
-					
-					if (f != null) {
-						g.pushMatrix();
-						g.translate(cx, cy);
-						g.scale(pcRad,pcRad);
-						f.update(g);
-						if (f.isDone())
-							anims.remove(f);
-						g.popMatrix();
-					} else {
-						g.setColor(b.get(r, c) == OthelloBoard.CELL_BLACK ? GColor.BLACK : GColor.WHITE);
-						g.drawDisk(cx, cy, pcRad);
-					}
-				}
-			}
-		}
-	}
-	
+        float w = g.getViewportWidth();
+        float h = g.getViewportHeight();
+        float radius = 10;
+        float padding = 10;
+        float thickness = 5;
+
+        g.setColor(GColor.GREEN);
+        g.drawFilledRoundedRect(padding, padding, w-2*padding, h-padding*2, radius);
+
+        g.setColor(GColor.WHITE);
+        g.drawRoundedRect(padding, padding, w-2*padding, h-padding*2, thickness, radius);
+
+        OthelloBoard b = game.getBoard();
+
+        float bw = g.getViewportWidth() - padding*2 - radius*2;
+        float bh = g.getViewportHeight() - padding*2 - radius*2;
+
+        float cw = bw/b.getNumCols();
+        float ch = bh/b.getNumRows();
+
+        float x0 = radius+padding;
+        float y0 = radius+padding;
+
+        pickedRow = pickedCol = -1;
+
+        for (int r=0; r<b.getNumRows(); r++) {
+            for (int c=0; c<b.getNumCols(); c++) {
+                float cx = x0 + cw/2 + cw*c;
+                float cy = y0 + ch/2 + ch*r;
+
+                int cell = b.get(r, c);
+
+                float cx0 = cx-cw/2+1;
+                float cy0 = cy-ch/2+1;
+
+                float pcRad = Math.min(cw, ch)/2-3;
+
+                g.setColor(GColor.WHITE);
+                switch (cell) {
+                case OthelloBoard.CELL_AVAILABLE:
+                    if (Utils.isPointInsideRect(getMouseX(), getMouseY(), cx0, cy0, cw-2, ch-2)) {
+                        g.setColor(GColor.RED);
+                        pickedRow = r;
+                        pickedCol = c;
+                    }
+                case OthelloBoard.CELL_UNUSED:
+                    g.drawRect(cx-cw/2+1, cy-ch/2+1, cw-2, ch-2, 2);
+                    continue;
+                }
+
+                g.setColor(GColor.WHITE);
+                g.drawRect(cx-cw/2+1, cy-ch/2+1, cw-2, ch-2, 2);
+
+                FlipAnimation f= getAnimationAt(r, c);
+
+                if (f != null) {
+                    g.pushMatrix();
+                    g.translate(cx, cy);
+                    g.scale(pcRad,pcRad);
+                    f.update(g);
+                    if (f.isDone())
+                        anims.remove(f);
+                    g.popMatrix();
+                } else {
+                    g.setColor(b.get(r, c) == OthelloBoard.CELL_BLACK ? GColor.BLACK : GColor.WHITE);
+                    g.drawDisk(cx, cy, pcRad);
+                }
+            }
+        }
+    }
+
 	FlipAnimation getAnimationAt(int r, int c) {
 		for (FlipAnimation f : anims) {
 			if (f.row == r && f.col == c)
