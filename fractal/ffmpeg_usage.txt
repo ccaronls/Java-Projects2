@@ -1,0 +1,28 @@
+If you dont have FFMPEG
+
+Install FFMEPG {
+   git clone https://git.ffmpeg.org/ffmpeg.git ffmpeg
+
+   If you dont have homebrew
+
+   Install Homebrew {
+    `ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" < /dev/null 2> /dev/null`
+   }
+
+   brew install yasm
+
+   cd ffmpeg
+
+   ./configure
+
+   make
+
+   sudo make install
+}
+
+Using FFMPEG to generate a mp4 movie out of the animations files:
+
+/usr/local/bin/ffmpeg -r 30 -i ${ANIMS_DIR}/anim%03d.png -pix_fmt rgb0 test.mp4
+
+-r option if framerate
+-i option is where to find the images
