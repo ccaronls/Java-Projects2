@@ -157,9 +157,9 @@ public class AWTFrame extends JFrame implements WindowListener, ComponentListene
 	    setProperties(p);
     }
 
-    public boolean loadFromFile(File propertiesFile) {
-	    this.propertiesFile = propertiesFile;
-	    try {
+    public void setPropertiesFile(File file) {
+        this.propertiesFile = file;
+        try {
             Properties p = new Properties();
             InputStream in = new FileInputStream(propertiesFile);
             try {
@@ -171,16 +171,36 @@ public class AWTFrame extends JFrame implements WindowListener, ComponentListene
                 setBounds(x, y, w, h);
                 this.setVisible(true);
                 properties = p;
-                return true;
             } finally {
                 in.close();
             }
         } catch (FileNotFoundException e) {
             System.err.println("File Not Found: " + propertiesFile);
         } catch (Exception e) {
-	        e.printStackTrace();
+            e.printStackTrace();
         }
+    }
 
+    public boolean loadFromFile(File propertiesFile) {
+	    setPropertiesFile(propertiesFile);
+	    return restoreFromProperties();
+    }
+
+    public boolean restoreFromProperties() {
+	    Properties p = getProperties();
+        try {
+            int x = Integer.parseInt(p.getProperty("gui.x"));
+            int y = Integer.parseInt(p.getProperty("gui.y"));
+            int w = Integer.parseInt(p.getProperty("gui.w"));
+            int h = Integer.parseInt(p.getProperty("gui.h"));
+            setBounds(x, y, w, h);
+            this.setVisible(true);
+            return true;
+        } catch (NullPointerException e) {
+            // ignore
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return false;
     }
 

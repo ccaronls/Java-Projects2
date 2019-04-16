@@ -13,7 +13,8 @@ public class AnimateThread implements Runnable {
     private final JTextField currentField;
     private final FractalViewer viewer;
     private int frames= 100;
-    
+    private boolean cancelled = false;
+
     AnimateThread (FractalComponent fractal, FractalViewer viewer, JTextField currentField) {
         this.fractal = fractal;
         this.viewer = viewer;
@@ -98,6 +99,7 @@ public class AnimateThread implements Runnable {
             state = ANIMATING;
             this.start = start;
             this.end = end;
+            cancelled = false;
             new Thread(this).start();
         }
     }
@@ -133,9 +135,14 @@ public class AnimateThread implements Runnable {
     
     public void stop() {
         state = READY;;
+        cancelled = true;
         synchronized (this) {
             notify();
         }
         fractal.cancel();
+    }
+
+    public boolean isCancelled() {
+        return cancelled;
     }
 }

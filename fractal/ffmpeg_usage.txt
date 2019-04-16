@@ -1,28 +1,37 @@
-If you dont have FFMPEG
+Get BREW {
+   `ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" < /dev/null 2> /dev/null`
+}
 
-Install FFMEPG {
-   git clone https://git.ffmpeg.org/ffmpeg.git ffmpeg
 
-   If you dont have homebrew
+Get x264 {
+    https://www.videolan.org/developers/x264.html
 
-   Install Homebrew {
-    `ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" < /dev/null 2> /dev/null`
-   }
+    cd x264
+    ./configure --enable-shared
+    make
+    make install
+    ldconfig
 
+    NOTE: This will make the resulting video incompatible with Quicktime. You will also need to install VLC player
+}
+
+
+Get YASM {
    brew install yasm
+}
 
+Get FFMPEG {
+   git clone https://git.ffmpeg.org/ffmpeg.git ffmpeg
    cd ffmpeg
-
-   ./configure
-
+   ./configure --enable-x264 --enable-gpl --enable-shared
    make
-
    sudo make install
 }
 
 Using FFMPEG to generate a mp4 movie out of the animations files:
 
-/usr/local/bin/ffmpeg -r 30 -i ${ANIMS_DIR}/anim%03d.png -pix_fmt rgb0 test.mp4
+/usr/local/bin/ffmpeg -r 30 -i ${ANIMS_DIR}/anim%03d.png -pix_fmt rgb24 -vcodec x264 -crf 10 test.mp4
 
 -r option if framerate
 -i option is where to find the images
+-crf is param to x264 for quality; lower is better

@@ -3,12 +3,8 @@ package cc.app.fractal;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.io.*;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 import javax.swing.*;
@@ -32,12 +28,12 @@ public class FractalViewer extends AWTFrame implements FractalComponent.FractalL
     static final String PROP_ZOOM_TOP = "ZOOM_TOP";
     static final String PROP_ZOOM_BOTTOM = "ZOOM_BOTTOM";
     static final String PROP_FRACTAL_SET = "FRACTAL_SET";
-    static final String PROP_WINDOW_X = "WINDOW_X";
-    static final String PROP_WINDOW_Y = "WINDOW_Y";
     static final String PROP_ANIM_NUM_FRAMES = "ANIM_NUM_FRAMES";
     static final String PROP_SHOW_WATERMARK_BOOLEAN = "SHOW_WATERMARK";
-    
-    
+
+    static final String [] frameOptions = { "100", "150", "200", "250", "300", "400", "500"};
+
+
     public static void main(String [] args) {
         new FractalViewer();       
     }
@@ -66,6 +62,7 @@ public class FractalViewer extends AWTFrame implements FractalComponent.FractalL
         ANIMATE("Animate"),
         CANCEL("Cancel"),  
         SHOW_WATERMARK("Water Mark"),
+        MAKE_MOVIE("Make Movie"),
         ;
         
         private Action(String label) {
@@ -103,6 +100,8 @@ public class FractalViewer extends AWTFrame implements FractalComponent.FractalL
     Vector<String> formulas = new Vector<String>();
 
     final File FORMULAS_FILE;
+    final File ANIMS_DIR;
+    final File MOVIES_DIR;
     
     FractalViewer() {
         /*
@@ -113,8 +112,19 @@ public class FractalViewer extends AWTFrame implements FractalComponent.FractalL
         vars.put("C", new ComplexNumber());
         */
         File settings = FileUtils.getOrCreateSettingsDirectory(getClass());
-        loadFromFile(new File(settings, "fractal.properties"));
+        setPropertiesFile(new File(settings, "fractal.properties"));
         FORMULAS_FILE = new File(settings, "formulas.txt");
+        ANIMS_DIR = new File(settings, "/anims");
+        if (!ANIMS_DIR.isDirectory()) {
+            if (!ANIMS_DIR.mkdir())
+                throw new RuntimeException("Failed to create ANIMS_DIR: " + ANIMS_DIR);
+        }
+        MOVIES_DIR = new File(System.getProperty("user.home") + "/Documents/Movies");
+        if (!MOVIES_DIR.isDirectory()) {
+            if (!MOVIES_DIR.mkdir()) {
+                throw new RuntimeException("Failed to create MOVIES_DIR: " + MOVIES_DIR);
+            }
+        }
         listScreens();
         addWindowListener(this);
         
@@ -178,17 +188,9 @@ public class FractalViewer extends AWTFrame implements FractalComponent.FractalL
         animateButton = addButton(Action.ANIMATE, leftButtons, false);
         cancelButton = addButton(Action.CANCEL, leftButtons);
         
-        String [] frameOptions = { "100", "150", "200", "250", "300", "400", "500"};
         animationNumFrames = new JComboBox(frameOptions);
         animationNumFrames.setSelectedItem(getStringProperty(PROP_ANIM_NUM_FRAMES, frameOptions[0]));
-        animationNumFrames.addItemListener(new ItemListener() {
 
-            @Override
-            public void itemStateChanged(ItemEvent arg0) {
-                setProperty(PROP_ANIM_NUM_FRAMES, animationNumFrames.getSelectedItem().toString());
-            }
-            
-        });
         panel = new JPanel();
         panel.add(new JLabel("Animation num frames"));
         panel.add(animationNumFrames);
@@ -220,8 +222,8 @@ public class FractalViewer extends AWTFrame implements FractalComponent.FractalL
 			});
             rightButtons.add(b, null);
         }
-        
-        
+        addButton(Action.MAKE_MOVIE, rightButtons);
+
         fractalComponent = new FractalComponent(colorTable, 2);
         fractalComponent.setShowWatermark(showWatermarkButton.isSelected());
         
@@ -281,12 +283,15 @@ public class FractalViewer extends AWTFrame implements FractalComponent.FractalL
         progressBar.setStringPainted(true);
         progressLayout.add(progressBar);
         add(progressLayout, BorderLayout.SOUTH);
-        
+
+        if (!restoreFromProperties()) {
+            centerToScreen(640, 480);
+        }
         //centerToScreen();
-        Rectangle rect = getBounds();
-        int x = getIntProperty(PROP_WINDOW_X, rect.x);
-        int y = getIntProperty(PROP_WINDOW_Y, rect.x);
-        this.finalizeToPosition(x, y);
+        //Rectangle rect = getBounds();
+        //int x = getIntProperty(PROP_WINDOW_X, rect.x);
+        //int y = getIntProperty(PROP_WINDOW_Y, rect.x);
+        //this.finalizeToPosition(x, y);
         //showOnScreen(1);
         
         /*
@@ -317,7 +322,6 @@ public class FractalViewer extends AWTFrame implements FractalComponent.FractalL
         System.out.println("onDone");
         undoButton.setEnabled(fractalComponent.canUndo());
         redoButton.setEnabled(fractalComponent.canRedo());
-        saveZoomRect();
         setProperty(PROP_CONSTANT_EXPRESSION, constantExpression.getText());
     }
     
@@ -325,6 +329,28 @@ public class FractalViewer extends AWTFrame implements FractalComponent.FractalL
         setProperty(PROP_CONSTANT_EXPRESSION, constantExpression.getText());
         this.animateButton.setText(Action.ANIMATE.getLabel());
         this.animateButton.setEnabled(true);
+        if (!animateThread.isCancelled()) {
+            makeMovie();
+        }
+    }
+
+    public void makeMovie() {
+        String movieName = "fractalAnim" + new SimpleDateFormat("yyyyMMddHHmm").format(new Date()) + ".mp4";
+        File movieFile = new File(MOVIES_DIR, movieName);
+        String cmd = "/usr/local/bin/ffmpeg -y -r 30 -i " + ANIMS_DIR.getAbsolutePath() + "/anim%03d.png -vcodec libx264 -crf 10  -pix_fmt rgb24 " + movieFile;
+//        String cmd = "/usr/local/bin/ffmpeg -y -r 30 -i " + ANIMS_DIR.getAbsolutePath() + "/anim%03d.png -pix_fmt rgb24 " + movieFile;
+        System.out.println("Making movie with CMD: " + cmd);
+        try {
+            Process p = Runtime.getRuntime().exec(cmd);
+            if (p.waitFor() == 0) {
+                Runtime.getRuntime().exec("/usr/bin/open " + movieFile.getAbsolutePath());
+            } else {
+                System.err.println(FileUtils.inputStreamToString(p.getErrorStream()));
+                System.out.println(FileUtils.inputStreamToString(p.getInputStream()));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public void showError(Exception e) {
@@ -392,15 +418,17 @@ public class FractalViewer extends AWTFrame implements FractalComponent.FractalL
             return formulas.get(0);
         return (String)select;
     }
-    
-    
-    
-    void saveZoomRect() {
+
+    void saveSettings() {
         FractalImage i = fractalComponent.getLastFractalImage();
         setProperty(PROP_ZOOM_LEFT, String.valueOf(i.left));
         setProperty(PROP_ZOOM_RIGHT, String.valueOf(i.right));
         setProperty(PROP_ZOOM_TOP, String.valueOf(i.top));
         setProperty(PROP_ZOOM_BOTTOM, String.valueOf(i.bottom));
+        setProperty(PROP_ANIM_START_FIELD, animStartField.getText());
+        setProperty(PROP_ANIM_END_FIELD, animEndField.getText());
+        setProperty(PROP_ANIM_NUM_FRAMES, animationNumFrames.getSelectedItem().toString());
+        setProperty(PROP_CONSTANT_EXPRESSION, constantExpression.getText());
     }
     
     @Override
@@ -472,12 +500,13 @@ public class FractalViewer extends AWTFrame implements FractalComponent.FractalL
                             animation.pause();
                         }
                     } else {
+                        saveSettings();
                         evaluator.parse(this.animStartField.getText());
                         ComplexNumber start = new ComplexNumber(evaluator.evaluate());
                         evaluator.parse(this.animEndField.getText());
                         ComplexNumber end   = new ComplexNumber(evaluator.evaluate());
                         animateButton.setText("Pause");
-                        File dir = new File(getStringProperty(PROP_CURRENT_DIR, ".") + "/anims");
+                        File dir = ANIMS_DIR;
                         if (!dir.isDirectory()) {
                             if (dir.exists()) {
                                 System.err.println("anims dir: " + dir.getAbsolutePath() + " is not a directory");
@@ -487,7 +516,7 @@ public class FractalViewer extends AWTFrame implements FractalComponent.FractalL
                                 dir = null;
                             }
                         } else {
-                        	// purse directory
+                        	// purge directory
                         	File [] files = dir.listFiles();
                         	for (File f : files) {
                         		f.delete();
@@ -618,7 +647,10 @@ public class FractalViewer extends AWTFrame implements FractalComponent.FractalL
                     setProperty(PROP_SHOW_WATERMARK_BOOLEAN, String.valueOf(selected));
                     break;
                 }
-    
+
+                case MAKE_MOVIE: {
+                    makeMovie();
+                }
             }
         } catch (TokenMgrError e) {
             showError(e.getClass().getSimpleName() +  ":" + e.getMessage());
