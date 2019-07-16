@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+  <LinearLayout android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+    <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="0dp"
+      android:layout_weight="1">
+
+      <RelativeLayout
+        android:id="@+id/vgTL"
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:background="#f00">
+        <android.support.v4.view.ViewPager
+          android:id="@+id/vpTL"
+          android:layout_width="match_parent"
+          android:layout_height="match_parent"/>
+        <LinearLayout
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_alignParentTop="true"
+          android:layout_alignParentLeft="true"
+          android:layout_margin="5dp"
+          >
+          <ImageButton
+            android:id="@+id/ibRemoveTL"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@android:drawable/ic_menu_close_clear_cancel"
+            android:background="@null"/>
+          <ImageButton
+            android:id="@+id/ibToggleTL"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@android:drawable/ic_menu_view"
+            android:background="@null"/>
+          <ImageButton
+            android:id="@+id/ibAddTL"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@android:drawable/ic_menu_add"
+            android:background="@null"/>
+
+        </LinearLayout>
+      </RelativeLayout>
+
+      <RelativeLayout
+        android:id="@+id/vgTR"
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:background="#000">
+        <android.support.v4.view.ViewPager
+          android:id="@+id/vpTR"
+          android:layout_width="match_parent"
+          android:layout_height="match_parent"/>
+        <LinearLayout
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_alignParentTop="true"
+          android:layout_alignParentRight="true"
+          android:layout_margin="5dp"
+          >
+          <ImageButton
+            android:id="@+id/ibAddTR"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@android:drawable/ic_menu_add"
+            android:background="@null"/>
+          <ImageButton
+            android:id="@+id/ibToggleTR"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@android:drawable/ic_menu_view"
+            android:background="@null"/>
+          <ImageButton
+            android:id="@+id/ibRemoveTR"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@android:drawable/ic_menu_close_clear_cancel"
+            android:background="@null"/>
+
+        </LinearLayout>
+      </RelativeLayout>
+
+    </LinearLayout>
+
+    <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="0dp"
+      android:layout_weight="1">
+
+      <RelativeLayout
+        android:id="@+id/vgBL"
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:background="#0f0">
+        <android.support.v4.view.ViewPager
+          android:id="@+id/vpBL"
+          android:layout_width="match_parent"
+          android:layout_height="match_parent"/>
+        <LinearLayout
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_alignParentBottom="true"
+          android:layout_alignParentLeft="true"
+          android:layout_margin="5dp"
+          >
+          <ImageButton
+            android:id="@+id/ibRemoveBL"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@android:drawable/ic_menu_close_clear_cancel"
+            android:background="@null"/>
+          <ImageButton
+            android:id="@+id/ibToggleBL"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@android:drawable/ic_menu_view"
+            android:background="@null"/>
+          <ImageButton
+            android:id="@+id/ibAddBL"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@android:drawable/ic_menu_add"
+            android:background="@null"/>
+
+
+        </LinearLayout>
+      </RelativeLayout>
+
+      <RelativeLayout
+        android:id="@+id/vgBR"
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:background="#fff">
+        <android.support.v4.view.ViewPager
+          android:id="@+id/vpBR"
+          android:layout_width="match_parent"
+          android:layout_height="match_parent"/>
+        <LinearLayout
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_alignParentBottom="true"
+          android:layout_alignParentRight="true"
+          android:layout_margin="5dp"
+          >
+          <ImageButton
+            android:id="@+id/ibAddBR"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@android:drawable/ic_menu_add"
+            android:background="@null"/>
+          <ImageButton
+            android:id="@+id/ibToggleBR"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@android:drawable/ic_menu_view"
+            android:background="@null"/>
+
+          <ImageButton
+            android:id="@+id/ibRemoveBR"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@android:drawable/ic_menu_close_clear_cancel"
+            android:background="@null"/>
+
+        </LinearLayout>
+      </RelativeLayout>
+
+    </LinearLayout>
+
+  </LinearLayout>
+  <ImageButton
+    android:id="@+id/ibAdd"
+    android:layout_width="40dp"
+    android:layout_height="40dp"
+    android:layout_centerInParent="true"
+    android:background="@drawable/filled_circle_black_alpha"
+    android:src="@android:drawable/ic_menu_add"/>
+</RelativeLayout>

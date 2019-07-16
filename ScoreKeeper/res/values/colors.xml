@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <color name="red_bk">#f00</color>
+  <color name="green_bk">#0f0</color>
+  <color name="black_bk">#000</color>
+  <color name="white_bk">#fff</color>
+  <color name="red_fore">#fff</color>
+  <color name="green_fore">#000</color>
+  <color name="black_fore">#fff</color>
+  <color name="white_fore">#000</color>
+</resources>
