@@ -25,6 +25,10 @@ public class Card extends Reflector<Card> {
         return c;
     }
 
+    public boolean isSellable() {
+        return !getOutOfJail && !mortgaged;
+    }
+
     public int getHouses() {
         return houses;
     }
@@ -62,8 +66,18 @@ public class Card extends Reflector<Card> {
         if (mortgaged) {
             s += "\nMORTGAGED\nBuy Back $" + property.getMortgageBuybackPrice();
         } else {
-            s += "\nMorgage\nValue $" + property.getMortgageValue();
+            s += "\nMortgage\nValue $" + property.getMortgageValue();
         }
         return s;
+    }
+
+    @Override
+    public int hashCode() {
+        return property.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return ((Card)obj).property == property;
     }
 }

@@ -93,8 +93,8 @@ import cc.lib.logger.LoggerFactory;
  * Known Limitations:
  *
  * - Reflector cannot handle an Object array. Use a Collection if you want serialize unrelated types.
- * - Use caution when hasing reflector objects. If you rely on Object.hashCode, then objects can get
- *   lost after new instances are created for seialization. Consider implementing hashCodein reflector
+ * - Use caution when hashing reflector objects. If you rely on Object.hashCode, then objects can get
+ *   lost after new instances are created for serialization. Consider implementing hashCode in reflector
  *   objects you intend to be hashed.
  *
  *
@@ -1498,9 +1498,9 @@ public class Reflector<T> {
 	    	Object key = parse(null, clazz, in);
 	    	if (key == null)
 	    		throw new Exception("null key in map");
-        	line = readLineOrEOF(in);
-            if (line != null)
-                throw new Exception("unexpected line '"+ line + "'");
+        	//line = readLineOrEOF(in);
+            //if (line != null)
+            //    throw new Exception("unexpected line '"+ line + "'");
         	line = readLineOrEOF(in);
             if (line == null)
                 throw new Exception("Missing value from key/value pair in map");

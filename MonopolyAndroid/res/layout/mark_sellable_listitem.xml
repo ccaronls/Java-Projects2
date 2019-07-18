@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  android:layout_width="match_parent"
+  android:layout_height="40dp"
+  android:padding="5dp"
+  xmlns:app="http://schemas.android.com/apk/res-auto">
+
+  <TextView
+    android:id="@+id/tvLabel"
+    android:text="Some Card"
+    android:textSize="20dp"
+    android:layout_width="wrap_content"
+    android:layout_height="match_parent"/>
+
+  <TextView
+    android:id="@+id/tvCost"
+    android:text="Cost"
+    android:textSize="20dp"
+    android:layout_width="wrap_content"
+    android:layout_height="match_parent"
+    app:layout_constraintEnd_toEndOf="parent">
+
+  </TextView>
+
+</android.support.constraint.ConstraintLayout>

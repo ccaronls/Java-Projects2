@@ -155,6 +155,15 @@ public final class GRectangle extends Reflector<GRectangle> {
     /**
      *
      * @param g
+     * @param radius
+     */
+    public void drawRounded(AGraphics g, float radius) {
+        g.drawFilledRoundedRect(x, y, w, h, radius);
+    }
+
+    /**
+     *
+     * @param g
      * @param thickness
      */
     public void drawOutlined(AGraphics g, int thickness) {

@@ -100,6 +100,12 @@ public enum Square {
     }
 
     public int getNumForSet() {
+        if (isRailroad())
+            return 4;
+
+        if (isUtility())
+            return 2;
+
         switch (this) {
             case BALTIC_AVE:
             case MEDITERRANEAN_AVE:

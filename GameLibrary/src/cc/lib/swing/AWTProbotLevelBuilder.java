@@ -13,10 +13,11 @@ import java.awt.*;
 import javax.swing.*;
 
 import java.util.ArrayList;
+import java.util.Properties;
 
 public class AWTProbotLevelBuilder extends AWTComponent {
 
-    public static void main(String [] args) {
+    public static void main(String [] args) throws Exception {
         Utils.DEBUG_ENABLED=true;
         new AWTProbotLevelBuilder();
     }
@@ -31,7 +32,7 @@ public class AWTProbotLevelBuilder extends AWTComponent {
     AWTNumberPicker npTurns, npJumps, npLoops;
     AWTEditText levelLabel;
 
-    final File levelsFile = new File("Robots/assets/levels.txt");
+    final File levelsFile;
     Probot probot = new Probot() {
         @Override
         protected float getStrokeWidth() {
@@ -41,23 +42,8 @@ public class AWTProbotLevelBuilder extends AWTComponent {
     ArrayList<Probot.Level> levels = new ArrayList<>();
     int curLevel = 0;
 
-    AWTProbotLevelBuilder() {
+    AWTProbotLevelBuilder() throws Exception {
         final File settings = FileUtils.getOrCreateSettingsDirectory(getClass());
-        try {
-            if (!levelsFile.isFile()) {
-                levelsFile.createNewFile();
-            } else {
-                levels = Reflector.deserializeFromFile(levelsFile);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        if (levels.size() == 0) {
-            levels.add(new Probot.Level());
-        }
-
-        grid.setGrid(getLevel().coins);
 
         frame = new AWTFrame() {
 
@@ -221,10 +207,52 @@ public class AWTProbotLevelBuilder extends AWTComponent {
 
         AWTPanel top = new AWTPanel(levelLabel, prev10, prev1, levelNumLabel, next1, next10);
         frame.add(top, BorderLayout.NORTH);
-        updateAll();
 
         if (!frame.loadFromFile(new File(settings, "probotlevelbuilder.properties")))
             frame.centerToScreen(800, 640);
+
+        String level = frame.getStringProperty("levelFile", null);
+        File levelsFile = null;
+        if (level != null) {
+            levelsFile = new File(level);
+            if (levelsFile.isFile()) {
+                try {
+                    levels = Reflector.deserializeFromFile(levelsFile);
+                } catch (Exception e) {
+                    level = null;
+                }
+            }
+        }
+
+        if (level == null) {
+            // find the robots/res/levels.txt file
+            File cur = new File(".").getCanonicalFile();
+            while (!cur.getName().equals("Java-Projects2")) {
+                cur = cur.getParentFile();
+            }
+            levelsFile = new File(cur, "/Robots/assets/levels.txt");
+            if (!levelsFile.isFile()) {
+                throw new RuntimeException("Failed to find levels.txt");
+            }
+
+            try {
+                levels = Reflector.deserializeFromFile(levelsFile);
+                Properties p = frame.getProperties();
+                p.setProperty("levelFile", levelsFile.getAbsolutePath());
+                frame.setProperties(p);
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to load levels from: " + levelsFile.getAbsolutePath(), e);
+            }
+        }
+        this.levelsFile = levelsFile;
+
+        if (levels.size() == 0) {
+            levels.add(new Probot.Level());
+        }
+
+        grid.setGrid(getLevel().coins);
+        updateAll();
+
     }
 
     private Probot.Level getLevel() {
@@ -260,6 +288,8 @@ public class AWTProbotLevelBuilder extends AWTComponent {
     @Override
     protected void paint(AWTGraphics g, int mouseX, int mouseY) {
 
+        if (levels.size() == 0)
+            return;
         // draw a grid
 
         final int cellDim = Math.min(g.getViewportWidth(), g.getViewportHeight()) / 20;

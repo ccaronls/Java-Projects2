@@ -661,15 +661,13 @@ public class AWTFrame extends JFrame implements WindowListener, ComponentListene
      */
     public void showListChooserDialog(final OnListItemChoosen itemListener, String title, final String ... items) {
         final AWTFrame popup = new AWTFrame();
-        final ActionListener listener = new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                int index = Utils.linearSearch(items, e.getActionCommand());
-                if (index >= 0)
-                    itemListener.itemChoose(index);
-                else
-                    itemListener.cancelled();
-                popup.closePopup(AWTFrame.this);
-            }
+        final ActionListener listener = (ActionEvent e) -> {
+            int index = Utils.linearSearch(items, e.getActionCommand());
+            if (index >= 0)
+                itemListener.itemChoose(index);
+            else
+                itemListener.cancelled();
+            popup.closePopup(AWTFrame.this);
         };
         AWTPanel frame = new AWTPanel(new BorderLayout());
         AWTPanel list = new AWTPanel(0, 1);

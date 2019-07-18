@@ -6,10 +6,15 @@ import android.content.DialogInterface;
 import android.os.Bundle;
 import android.os.Environment;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.BaseAdapter;
 import android.widget.CompoundButton;
 import android.widget.GridLayout;
 import android.widget.ImageButton;
+import android.widget.ListView;
 import android.widget.NumberPicker;
+import android.widget.TextView;
 
 import java.io.File;
 import java.util.List;
@@ -25,6 +30,7 @@ import cc.lib.monopoly.Piece;
 import cc.lib.monopoly.Player;
 import cc.lib.monopoly.PlayerUser;
 import cc.lib.monopoly.Rules;
+import cc.lib.monopoly.Trade;
 import cc.lib.monopoly.UIMonopoly;
 import cc.lib.utils.FileUtils;
 
@@ -151,7 +157,108 @@ public class MonopolyActivity extends DroidActivity {
         }
 
         @Override
-        protected void onError(Throwable t) {
+        protected Trade showChooseTradeMenu(final Player player, final List<Trade> list) {
+            final String [] items = Utils.toStringArray(list, true);
+            final Trade [] result = new Trade[1];
+            runOnUiThread(new Runnable() {
+                public void run() {
+                    newDialogBuilder().setTitle(player.getPiece() + " Choose Trade")
+                            .setItems(items, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    result[0] = list.get(which);
+                                    synchronized (monopoly) {
+                                        monopoly.notify();
+                                    }
+                                }
+                            }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            if (monopoly.canCancel()) {
+                                monopoly.cancel();
+                            } else {
+                                monopoly.stopGameThread();
+                            }
+                            synchronized (monopoly) {
+                                monopoly.notify();
+                            }
+                        }
+                    }).show();
+                }
+            });
+            Utils.waitNoThrow(monopoly, -1);
+            return result[0];
+        }
+
+        @Override
+        protected boolean showMarkSellableMenu(final PlayerUser playerUser, final List<Card> list) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    ListView view = new ListView(MonopolyActivity.this);
+                    view.setAdapter(new BaseAdapter() {
+                        @Override
+                        public int getCount() {
+                            return list.size();
+                        }
+
+                        @Override
+                        public Object getItem(int position) {
+                            return list.get(position);
+                        }
+
+                        @Override
+                        public long getItemId(int position) {
+                            return position;
+                        }
+
+                        @Override
+                        public View getView(int position, View v, ViewGroup parent) {
+                            if (v == null) {
+                                v = View.inflate(MonopolyActivity.this, R.layout.mark_sellable_listitem, null);
+                            }
+                            Card card = list.get(position);
+                            TextView tvLabel = (TextView)v.findViewById(R.id.tvLabel);
+                            TextView tvCost  = (TextView)v.findViewById(R.id.tvCost);
+                            tvLabel.setText(Utils.getPrettyString(card.getProperty().name()));
+                            int cost = playerUser.getSellableCardCost(card);
+                            tvCost.setText(cost <= 0 ? "Not For Sale" : String.valueOf(cost));
+                            return v;
+                        }
+                    });
+                    view.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                        @Override
+                        public void onItemClick(AdapterView<?> parent, View view, final int position, long id) {
+                            final Card card = list.get(position);
+                            int cost = playerUser.getSellableCardCost(card);
+                            final int STEP = 50;
+                            final NumberPicker np = CCNumberPicker.newPicker(MonopolyActivity.this, cost, 0, 5000, STEP, null);
+                            newDialogBuilder().setTitle("Set Cost for " + card.getProperty().name())
+                                    .setView(np).setNegativeButton("Done", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    playerUser.setSellableCard(card, np.getValue()*STEP);
+                                }
+                            }).show();
+                        }
+                    });
+                    newDialogBuilder().setTitle(playerUser.getPiece() + " Mark Sellable").setView(view).setNegativeButton("DONE", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            synchronized (monopoly) {
+                                monopoly.notify();
+                            }
+                        }
+                    }).show();
+                }
+            });
+            Utils.waitNoThrow(monopoly, -1);
+            return true;
+        }
+
+        @Override
+        protected void onError(final Throwable t) {
+            t.printStackTrace();
             checkPermissionAndThen(new Runnable() {
                 @Override
                 public void run() {
@@ -159,7 +266,11 @@ public class MonopolyActivity extends DroidActivity {
                 }
             }, Manifest.permission.WRITE_EXTERNAL_STORAGE);
 
-            newDialogBuilder().setTitle("ERROR").setMessage(t.toString()).setNegativeButton("Ok", null).show();
+            runOnUiThread(new Runnable() {
+                public void run() {
+                    newDialogBuilder().setTitle("ERROR").setMessage(t.toString()).setNegativeButton("Ok", null).show();
+                }
+            });
         }
     };
 

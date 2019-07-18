@@ -16,3 +16,4 @@ captures
 ./*.txt
 *.save
 **/android.jks
+local.properties

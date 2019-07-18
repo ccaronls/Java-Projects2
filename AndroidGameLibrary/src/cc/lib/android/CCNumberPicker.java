@@ -59,6 +59,18 @@ public class CCNumberPicker extends NumberPicker {
 		super(context);
 		init();
 	}
+    public static NumberPicker newPicker(Context c, int num, int min, int max, int step, OnValueChangeListener listener) {
+	    if (step < 1)
+	        throw new AssertionError("Invalid value for step : " +step);
+	    if (step == 1)
+	        return newPicker(c, num, min, max, listener);
+	    int count = (max-min)/step+1;
+	    String [] values = new String[count];
+	    for (int i=0; i<values.length; i++) {
+	        values[i] = String.valueOf(min + step*i);
+        }
+	    return newPicker(c, "" + num, values, listener);
+    }
 
 	public static NumberPicker newPicker(Context c, int num, int min, int max, OnValueChangeListener listener) {
         CCNumberPicker np = new CCNumberPicker(c);

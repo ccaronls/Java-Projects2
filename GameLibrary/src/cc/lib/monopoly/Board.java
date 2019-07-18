@@ -13,7 +13,7 @@ public class Board {
 
     // values based on the board asset. rendered image will be scaled
     public final static float BOARD_DIMENSION = 1500;
-    public final static float BOARD_CORRNER_DIMENSION = 200;
+    public final static float BOARD_CORNER_DIMENSION = 200;
 
     public final static Vector2D [] COMM_CHEST_RECT = {
             new Vector2D(265, 447),
@@ -37,7 +37,7 @@ public class Board {
     public Board(float dim) {
         this.dim = dim;
         scale = dim / BOARD_DIMENSION;
-        borderDim = BOARD_CORRNER_DIMENSION * scale;
+        borderDim = BOARD_CORNER_DIMENSION * scale;
         cellDim = (dim - borderDim*2) / 9;
     }
 
@@ -154,9 +154,11 @@ public class Board {
                 rect.y += dim;
                 break;
             case 1:
-                rect.x += dim; rect.y += dim; break;
+                rect.x += dim; rect.y += dim;
+                break;
             case 2:
-                rect.x += dim; break;
+                rect.x += dim;
+                break;
         }
         return rect;
     }
@@ -172,6 +174,7 @@ public class Board {
         LEFT
     }
 
+    // TODO: Make this apart of Square enum
     public Position getsQuarePosition(Square sq) {
         switch (sq) {
 

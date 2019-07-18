@@ -14,6 +14,8 @@ import cc.lib.game.GDimension;
 import cc.lib.game.GRectangle;
 import cc.lib.game.Justify;
 import cc.lib.game.Utils;
+import cc.lib.logger.Logger;
+import cc.lib.logger.LoggerFactory;
 import cc.lib.math.Bezier;
 import cc.lib.math.CMath;
 import cc.lib.math.Matrix3x3;
@@ -22,6 +24,7 @@ import cc.lib.math.Vector2D;
 
 public abstract class UIMonopoly extends Monopoly {
 
+    private final Logger log = LoggerFactory.getLogger(getClass());
     private final static float HOUSE_RADIUS = 1;
     private final int MONEY_PAUSE = 1000;
     private final Object LOCK = this;
@@ -39,16 +42,56 @@ public abstract class UIMonopoly extends Monopoly {
         initSprites();
     }
 
+    /**
+     *
+     */
     public abstract void repaint();
 
+    /**
+     *
+     * @param p
+     * @return
+     */
     public abstract int getImageId(Piece p);
 
+    /**
+     *
+     * @return
+     */
     public abstract int getBoardImageId();
 
+    /**
+     *
+     * @param player
+     * @param moves
+     * @return
+     */
     protected abstract MoveType showChooseMoveMenu(Player player, List<MoveType> moves);
 
+    /**
+     *
+     * @param player
+     * @param cards
+     * @param type
+     * @return
+     */
     protected abstract Card showChooseCardMenu(Player player, List<Card> cards, Player.CardChoiceType type);
 
+    /**
+     *
+     * @param player
+     * @param trades
+     * @return
+     */
+    protected abstract Trade showChooseTradeMenu(Player player, List<Trade> trades);
+
+    /**
+     *
+     * @param user
+     * @param sellable
+     * @return
+     */
+    protected abstract boolean showMarkSellableMenu(PlayerUser user, List<Card> sellable);
 
     @Override
     protected void onDiceRolled() {
@@ -275,6 +318,13 @@ public abstract class UIMonopoly extends Monopoly {
         }.start());
         Utils.waitNoThrow(LOCK, 3000);
         super.onPlayerPurchaseProperty(playerNum, property);
+    }
+
+    @Override
+    protected void onPlayerTrades(int buyer, int seller, Square property, int amount) {
+        setSpriteAnim("PLAYER"+buyer, new MoneyAnim(getPlayer(buyer).getMoney(), -amount).start());
+        setSpriteAnim("PLAYER"+seller, new MoneyAnim(getPlayer(seller).getMoney(), amount).start());
+        super.onPlayerTrades(buyer, seller, property, amount);
     }
 
     @Override
@@ -600,10 +650,12 @@ public abstract class UIMonopoly extends Monopoly {
     public synchronized void startGameThread() {
         if (gameRunning)
             return;
+        log.debug("startGameThread");
         gameRunning = true;
         gameStopped = false;
         new Thread() {
             public void run() {
+                log.debug("ENTER game thread");
                 while (gameRunning && getWinner() < 0) {
                     try {
                         runGame();
@@ -614,6 +666,7 @@ public abstract class UIMonopoly extends Monopoly {
                     repaint();
                     Utils.waitNoThrow(this, 100);
                 }
+                log.debug("EXIT game thread");
                 gameRunning = false;
                 gameStopped = true;
             }
@@ -628,6 +681,7 @@ public abstract class UIMonopoly extends Monopoly {
     public final void stopGameThread() {
         if (gameStopped)
             return;
+        log.debug("stopGameThread");
         gameRunning = false;
         stopAnimations();
         synchronized (LOCK) {
@@ -636,6 +690,7 @@ public abstract class UIMonopoly extends Monopoly {
         while (!gameStopped) {
             Utils.waitNoThrow(this, 50);
         }
+        log.debug("GAME THREAD STOPPED");
     }
 
     public final void initPlayers(int num, Piece pc) {
@@ -943,12 +998,39 @@ public abstract class UIMonopoly extends Monopoly {
                             "MORTGAGED");
                 }
             }
-            // draw player piece of the board
-            GRectangle r = p.isInJail() ? board.getPiecePlacementJail(i) : board.getPiecePlacement(i, p.getSquare());
-            Sprite sp = spriteMap.get(p.getPiece().name());
-            sp.M.setTranslate(r.x, r.y);
-            sp.animateAndDraw(g, r.w, r.h);
-            //g.drawImage(pcId, r);
+            {
+                // draw player piece on the board
+                GRectangle r = p.isInJail() ? board.getPiecePlacementJail(i) : board.getPiecePlacement(i, p.getSquare());
+                Sprite sp = spriteMap.get(p.getPiece().name());
+                sp.M.setTranslate(r.x, r.y);
+                sp.animateAndDraw(g, r.w, r.h);
+                //g.drawImage(pcId, r);
+            }
+
+            // Mark all sellable properties
+            for (Trade t : p.getTrades()) {
+                Vector2D v = board.getInnerEdge(t.getCard().property);
+                float offset = board.getPieceDimension();
+                //GRectangle r = board.getPiecePlacement(getPlayerNum(t.getTrader()), t.getCard().property);
+                Board.Position pos = board.getsQuarePosition(t.getCard().property);
+                g.setColor(GColor.YELLOW);
+                switch (pos) {
+                    case TOP:
+                        g.drawJustifiedStringOnBackground(v.X(), v.Y() + offset, Justify.CENTER, Justify.TOP, "$" + t.getPrice(), GColor.TRANSLUSCENT_BLACK, 5, 5);
+                        break;
+                    case RIGHT:
+                        g.drawJustifiedStringOnBackground(v.X()-offset, v.Y(), Justify.RIGHT, Justify.CENTER, "$" + t.getPrice(), GColor.TRANSLUSCENT_BLACK, 5, 5);
+                        break;
+                    case BOTTOM:
+                        g.drawJustifiedStringOnBackground(v.X(), v.Y()-offset, Justify.CENTER, Justify.BOTTOM, "$" + t.getPrice(), GColor.TRANSLUSCENT_BLACK, 5, 5);
+                        break;
+                    case LEFT:
+                        g.drawJustifiedStringOnBackground(v.X()+offset, v.Y(), Justify.LEFT, Justify.CENTER, "$" + t.getPrice(), GColor.TRANSLUSCENT_BLACK, 5, 5);
+                        break;
+                    default:
+                        Utils.unhandledCase(pos);
+                }
+            }
         }
         drawAnimations(g, "BOARD");
     }
@@ -1034,7 +1116,7 @@ public abstract class UIMonopoly extends Monopoly {
                 g.vertex(dd34, dd2);
                 break;
             default:
-                assert(false);// && "Invalid die");
+                Utils.unhandledCase(numDots);// && "Invalid die");
                 break;
         }
         g.drawPoints();

@@ -45,7 +45,9 @@ public class Monopoly extends Reflector<Monopoly> {
         GAME_OVER,
         CHOOSE_MORTGAGE_PROPERTY,
         CHOOSE_UNMORTGAGE_PROPERTY,
-        CHOOSE_PROPERTY_FOR_UNIT
+        CHOOSE_PROPERTY_FOR_UNIT,
+        CHOOSE_TRADE,
+        CHOOSE_SELLABLE
     }
 
     public final void newGame() {
@@ -108,7 +110,18 @@ public class Monopoly extends Reflector<Monopoly> {
                 if (cur.getCardsForUnMortgage().size() > 0) {
                     moves.add(MoveType.UNMORTGAGE);
                 }
-//                moves.add(MoveType.FORFEIT);
+                if (getTradeOptions(cur).size() > 0)
+                    moves.add(MoveType.TRADE);
+                if (cur instanceof PlayerUser) {
+                    for (Card c : cur.getCards()) {
+                        if (c.isSellable()) {
+                            moves.add(MoveType.MARK_SELLABLE);
+                            break;
+                        }
+                    }
+                    moves.add(MoveType.FORFEIT);
+                }
+
                 MoveType move = cur.chooseMove(this, moves);
                 if (move != null) {
                     processMove(move);
@@ -265,12 +278,52 @@ public class Monopoly extends Reflector<Monopoly> {
                 break;
             }
 
+            case CHOOSE_TRADE: {
+                Player cur = getCurrentPlayer();
+                List<Trade> trades = getTradeOptions(cur);
+                Utils.assertTrue(trades.size() > 0);
+                Trade trade = cur.chooseTrade(this, trades);
+                if (trade != null) {
+                    onPlayerTrades(getCurrentPlayerNum(), getPlayerNum(trade.getTrader()), trade.getCard().property, trade.getPrice());
+                    cur.money -= trade.getPrice();
+                    Utils.assertTrue(cur.money >= 0);
+                    trade.getTrader().money += trade.getPrice();
+                    trade.getTrader().removeCard(trade.getCard());
+                    cur.addCard(trade.getCard());
+                    state.pop();
+                }
+                break;
+            }
+
+            case CHOOSE_SELLABLE: {
+                Player cur = getCurrentPlayer();
+                List<Card> sellable = cur.getSellableCards();
+                Utils.assertTrue(sellable.size()>0);
+                if (cur.markSellable(this, sellable)) {
+                    state.pop();
+                }
+            }
+
             case GAME_OVER:
                 break;
 
             default:
                 Utils.unhandledCase(state.peek());
         }
+    }
+
+    private List<Trade> getTradeOptions(Player p) {
+        List<Trade> trades = new ArrayList<>();
+        for (Player pp : players) {
+            if (pp == p)
+                continue;
+            for (Trade t : pp.getTrades()) {
+                if (p.getMoney() >= t.getPrice()) {
+                    trades.add(t);
+                }
+            }
+        }
+        return trades;
     }
 
     private void advance(int squares) {
@@ -317,9 +370,17 @@ public class Monopoly extends Reflector<Monopoly> {
                 state.push(State.CHOOSE_PROPERTY_FOR_UNIT);
                 break;
 
+            case TRADE:
+                state.push(State.CHOOSE_TRADE);
+                break;
+
             case FORFEIT:
                 if (playerBankrupt())
                     nextPlayer();
+                break;
+
+            case MARK_SELLABLE:
+                state.push(State.CHOOSE_SELLABLE);
                 break;
 
             case PAY_BOND:
@@ -378,6 +439,7 @@ public class Monopoly extends Reflector<Monopoly> {
                 nextPlayer();
                 break;
             }
+
         }
     }
 
@@ -999,29 +1061,57 @@ public class Monopoly extends Reflector<Monopoly> {
         return players.get(index);
     }
 
+    public final int getPlayerNum(Player p) {
+        int index = 0;
+        for (Player pp : players) {
+            if (pp == p)
+                return index;
+            index++;
+        }
+        throw new RuntimeException("Player object not apart of players list");
+    }
+
     public final void cancel() {
         if (state.size() > 1) {
             state.pop();
         }
     }
 
+    /**
+     *
+     * @return
+     */
     public final boolean canCancel() {
         return state.size() > 1;
     }
 
+    /**
+     *
+     * @return
+     */
     public final int getKitty() {
         return kitty;
     }
 
-    // CALLBACKS CAN BE OVERRIDDEN TO HANDLE EVENTS
-
-    protected void onDiceRolled() {}
-
+    /**
+     *
+     * @param num
+     * @return
+     */
     public final String getPlayerName(int num) {
         Player p = getPlayer(num);
         if (p.getPiece() != null)
             return p.getPiece().name();
         return "Player " + num;
+    }
+
+    // CALLBACKS CAN BE OVERRIDDEN TO HANDLE EVENTS
+
+    /**
+     *
+     */
+    protected void onDiceRolled() {
+        log.info("Dice Rolled: " + getDie1() + "," + getDie2());
     }
 
     /**
@@ -1033,63 +1123,151 @@ public class Monopoly extends Reflector<Monopoly> {
         log.info("%s moved %d squares to %s", getPlayerName(playerNum), numSquares, nextSquare);
     }
 
+    /**
+     *
+     * @param playerNum
+     * @param chance
+     */
     protected void onPlayerDrawsChance(int playerNum, CardActionType chance) {
         log.info("%s draws chance card:\n%s", getPlayerName(playerNum), chance.desc);
     }
 
+    /**
+     *
+     * @param playerNum
+     * @param commChest
+     */
     protected void onPlayerDrawsCommunityChest(int playerNum, CardActionType commChest) {
         log.info("%s draws community chest card:\n%s", getPlayerName(playerNum), commChest.desc);
     }
 
+    /**
+     *
+     * @param playerNum
+     * @param giverNum
+     * @param amt
+     */
     protected void onPlayerReceiveMoneyFromAnother(int playerNum, int giverNum, int amt) {
         log.info("%s recievd $%d from %s", getPlayerName(playerNum), amt, getPlayerName(giverNum));
     }
 
+    /**
+     *
+     * @param playerNum
+     * @param amt
+     */
     protected void onPlayerGotPaid(int playerNum, int amt) {
         log.info("%s got PAAAID $%d", getPlayerName(playerNum), amt);
     }
 
+    /**
+     *
+     * @param playerNum
+     * @param amt
+     */
     protected void onPlayerPayMoneyToKitty(int playerNum, int amt) {
         log.info("%s pays $%d to kitty", getPlayerName(playerNum), amt);
     }
 
+    /**
+     *
+     * @param playerNum
+     */
     protected void onPlayerGoesToJail(int playerNum) {
         log.info("%s goes to JAIL!", getPlayerName(playerNum));
     }
 
+    /**
+     *
+     * @param playerNum
+     */
     protected void onPlayerOutOfJail(int playerNum) {
         log.info("%s got out of JAIL!", getPlayerName(playerNum));
     }
 
+    /**
+     *
+     * @param playerNum
+     * @param renterNum
+     * @param amt
+     */
     protected void onPlayerPaysRent(int playerNum, int renterNum, int amt) {
         log.info("%s pays $%d rent too %s", getPlayerName(playerNum), amt, getPlayerName(renterNum));
     }
 
+    /**
+     *
+     * @param playerNum
+     * @param property
+     * @param amt
+     */
     protected void onPlayerMortgaged(int playerNum, Square property, int amt) {
         log.info("%s mortgaged property %s for $%d", getPlayerName(playerNum), property.name(), amt);
     }
 
+    /**
+     *
+     * @param playerNum
+     * @param property
+     * @param amt
+     */
     protected void onPlayerUnMortgaged(int playerNum, Square property, int amt) {
         log.info("%s unmortaged %s for $%d", getPlayerName(playerNum), property.name(), amt);
     }
 
+    /**
+     *
+     * @param playerNum
+     * @param property
+     */
     protected void onPlayerPurchaseProperty(int playerNum, Square property) {
         log.info("%s purchased %s for $%d", getPlayerName(playerNum), property.name(), property.getPrice());
     }
 
+    /**
+     *
+     * @param playerNum
+     * @param property
+     * @param amt
+     */
     protected void onPlayerBoughtHouse(int playerNum, Square property, int amt) {
         log.info("%s bought a HOUSE for property %s for $%d", getPlayerName(playerNum), property.name(), amt);
     }
 
+    /**
+     *
+     * @param playerNum
+     * @param property
+     * @param amt
+     */
     protected void onPlayerBoughtHotel(int playerNum, Square property, int amt) {
         log.info("%s bought a HOTEL for property %s for $%d", getPlayerName(playerNum), property.name(), amt);
     }
 
+    /**
+     *
+     * @param playerNum
+     */
     protected void onPlayerBankrupt(int playerNum) {
         log.info("%s IS BANKRUPT!", getPlayerName(playerNum));
     }
 
+    /**
+     *
+     * @param playerNum
+     */
     protected void onPlayerWins(int playerNum) {
         log.info("%s IS THE WINNER!", getPlayerName(playerNum));
+    }
+
+    /**
+     *
+     * @param buyer
+     * @param seller
+     * @param property
+     * @param amount
+     */
+    protected void onPlayerTrades(int buyer, int seller, Square property, int amount) {
+        log.info("%s buys %s from %s for $%d", getPlayerName(buyer), property.name(), getPlayerName(seller), amount);
     }
 }

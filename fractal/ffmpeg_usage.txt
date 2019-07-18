@@ -2,6 +2,10 @@ Get BREW {
    `ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" < /dev/null 2> /dev/null`
 }
 
+Get ASM {
+   brew install yasm
+   brew install nasm
+}
 
 Get x264 {
     https://www.videolan.org/developers/x264.html
@@ -12,12 +16,8 @@ Get x264 {
     make install
     ldconfig
 
-    NOTE: This will make the resulting video incompatible with Quicktime. You will also need to install VLC player
-}
-
-
-Get YASM {
-   brew install yasm
+    NOTE: This will make the resulting video incompatible with Quicktime. You will also need to
+    install VLC player, then make it the default video player for mp4 (and prob others)
 }
 
 Get FFMPEG {

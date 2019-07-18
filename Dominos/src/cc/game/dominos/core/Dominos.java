@@ -719,7 +719,8 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
             g.setColor(GColor.BLACK);
             g.drawFilledRoundedRect(0, 0, 1, 1, 0.25f);
             g.setColor(GColor.WHITE.interpolateTo(GColor.YELLOW, position));
-            g.drawRoundedRect(0, 0, 1, 1, 2/*1+Math.round(position*3)*/, 0.25f);
+            // On Android the stroke width gets scaled by the current transform which makes this look huge so remove it
+//            g.drawRoundedRect(0, 0, 1, 1, 2/*1+Math.round(position*3)*/, 0.25f);
             Board.drawDie(g, 0, 0, pips);
             boundingRect[0] = g.getMinBoundingRect();
             boundingRect[1] = g.getMaxBoundingRect();

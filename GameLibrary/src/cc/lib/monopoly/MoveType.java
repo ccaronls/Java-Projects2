@@ -12,6 +12,8 @@ public enum MoveType {
     MORTGAGE,
     UNMORTGAGE,
     GET_OUT_OF_JAIL_FREE,
-    FORFEIT;
+    FORFEIT,
+    TRADE,
+    MARK_SELLABLE;
 
 }

@@ -89,6 +89,7 @@ public class Player extends Reflector<Player> {
                     break;
 
                 case FORFEIT:
+                case TRADE:
                     break;
             }
             index++;
@@ -154,6 +155,14 @@ public class Player extends Reflector<Player> {
         return Utils.randItem(cards);
     }
 
+    public Trade chooseTrade(Monopoly game, List<Trade> trades) {
+        return trades.get(0);
+    }
+
+    public boolean markSellable(Monopoly game, List<Card> sellable) {
+        return true;
+    }
+
     public final Piece getPiece() {
         return piece;
     }
@@ -172,6 +181,14 @@ public class Player extends Reflector<Player> {
 
     public final List<Card> getCards() {
         return Collections.unmodifiableList(cards);
+    }
+
+    protected void addCard(Card card) {
+        cards.add(card);
+    }
+
+    protected void removeCard(Card card) {
+        cards.remove(card);
     }
 
     public final boolean isInJail() {
@@ -295,14 +312,19 @@ public class Player extends Reflector<Player> {
         return property.getRent(card.houses);
     }
 
-    public final boolean hasSet(Square property) {
+    public final int getNumOfSet(Square property) {
         int count = 0;
-        int min = property.getNumForSet();
         for (Card c : cards) {
             if (c.property != null && c.property.getColor().equals(property.getColor())) {
                 count++;
             }
         }
+        return count;
+    }
+
+    public final boolean hasSet(Square property) {
+        int count = getNumOfSet(property);
+        int min = property.getNumForSet();
         return count == min;
     }
 
@@ -419,6 +441,29 @@ public class Player extends Reflector<Player> {
                 num++;
         }
         return num;
+    }
+
+    public final List<Card> getSellableCards() {
+        List<Card> sellable = new ArrayList<>();
+        for (Card c : cards) {
+            if (c.isSellable())
+                sellable.add(c);
+        }
+        return sellable;
+    }
+
+    public List<Trade> getTrades() {
+        List<Trade> trades = new ArrayList<>();
+        for (Card card : cards) {
+            if (card.isSellable()) {
+                if (hasSet(card.property))
+                    continue;
+                int num = getNumOfSet(card.property);
+                int price = card.property.getPrice() * (1+num) + (2*card.getHouses()*card.property.getHousePrice());
+                trades.add(new Trade(card, price, this));
+            }
+        }
+        return trades;
     }
 
     public String toString() {

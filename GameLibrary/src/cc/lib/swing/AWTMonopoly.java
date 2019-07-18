@@ -1,5 +1,7 @@
 package cc.lib.swing;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.HashMap;
 import java.util.List;
@@ -13,12 +15,15 @@ import cc.lib.monopoly.Card;
 import cc.lib.monopoly.MoveType;
 import cc.lib.monopoly.Piece;
 import cc.lib.monopoly.Player;
+import cc.lib.monopoly.PlayerUser;
 import cc.lib.monopoly.Rules;
+import cc.lib.monopoly.Trade;
 import cc.lib.monopoly.UIMonopoly;
 import cc.lib.utils.FileUtils;
 
 import java.awt.*;
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
 
 public class AWTMonopoly extends AWTComponent {
     private final static Logger log = LoggerFactory.getLogger(AWTMonopoly.class);
@@ -49,6 +54,7 @@ public class AWTMonopoly extends AWTComponent {
         @Override
         protected MoveType showChooseMoveMenu(final Player player, final List<MoveType> moves) {
             final MoveType [] result = new MoveType[1];
+            monopoly.trySaveToFile(saveFile);
             frame.showListChooserDialog(new AWTFrame.OnListItemChoosen() {
                 @Override
                 public void itemChoose(int index) {
@@ -99,6 +105,62 @@ public class AWTMonopoly extends AWTComponent {
             Utils.waitNoThrow(monopoly, -1);
             return result[0];
         }
+
+        @Override
+        protected Trade showChooseTradeMenu(Player player, List<Trade> trades) {
+            final Trade [] result = new Trade[1];
+            frame.showListChooserDialog(new AWTFrame.OnListItemChoosen() {
+                @Override
+                public void itemChoose(int index) {
+                    result[0] = trades.get(index);
+                    synchronized (monopoly) {
+                        monopoly.notify();
+                    }
+                }
+
+                @Override
+                public void cancelled() {
+                    if (monopoly.canCancel())
+                        monopoly.cancel();
+                    else
+                        monopoly.stopGameThread();
+                    synchronized (monopoly) {
+                        monopoly.notify();
+                    }
+                }
+            }, "Choose Trade" + player.getPiece(), Utils.toStringArray(trades));
+            Utils.waitNoThrow(monopoly, -1);
+            return result[0];
+        }
+
+        @Override
+        protected boolean showMarkSellableMenu(PlayerUser user, List<Card> sellable) {
+            final AWTFrame popup = new AWTFrame();
+            final ActionListener listener = (ActionEvent e) -> {
+                synchronized (monopoly) {
+                    monopoly.notify();
+                }
+                popup.closePopup(frame);
+            };
+            AWTPanel content = new AWTPanel(new BorderLayout());
+            AWTPanel list = new AWTPanel(0, 2);
+            for (final Card card : sellable) {
+                int price = user.getSellableCardCost(card);
+                list.add(new JLabel(card.getProperty().name()));
+                final JSpinner spinner = new JSpinner(new SpinnerNumberModel(price, 0, 2000, 50));
+                spinner.addChangeListener((ChangeEvent e) -> {
+                    user.setSellableCard(card, (Integer)spinner.getValue());
+                });
+                list.add(spinner);
+            }
+            content.add(new AWTLabel("Mark Sellable " + user.getPiece().name(), 1, 20, true), BorderLayout.NORTH);
+            content.add(list, BorderLayout.CENTER);
+            content.add(new AWTButton("DONE", listener), BorderLayout.SOUTH);
+            popup.setContentPane(content);
+            popup.showAsPopup(frame);
+            Utils.waitNoThrow(monopoly, -1);
+            return true;
+        }
     };
 
     final File saveFile;
@@ -107,11 +169,12 @@ public class AWTMonopoly extends AWTComponent {
         setMouseEnabled(true);
         setPadding(5);
         frame = new AWTFrame("Monopoly") {
+            /*
             @Override
             protected void onWindowClosing() {
                 if (monopoly.isGameRunning())
                     monopoly.trySaveToFile(saveFile);
-            }
+            }*/
 
             @Override
             protected void onMenuItemSelected(String menu, String subMenu) {
@@ -197,13 +260,9 @@ public class AWTMonopoly extends AWTComponent {
         frame.add(this);
 
         File settings = FileUtils.getOrCreateSettingsDirectory(getClass());
-         saveFile = new File(settings, "monopoly.save");
+        saveFile = new File(settings, "monopoly.save");
         if (!frame.loadFromFile(new File(settings, "monopoly.properties")))
             frame.centerToScreen(800, 600);
-
-        if (monopoly.tryLoadFromFile(saveFile))
-            monopoly.startGameThread();
-
     }
 
 

@@ -7,17 +7,22 @@ import java.io.PrintWriter;
 
 import cc.game.golf.ai.PlayerBot;
 import cc.game.golf.core.*;
+import cc.lib.swing.AWTUtils;
+import cc.lib.utils.FileUtils;
 
-public class SinglePlayerGolfGame extends Golf implements IGolfGame, Runnable {
+public class SinglePlayerGolfGame  extends Golf implements IGolfGame, Runnable {
 
-    private final File SAVE_FILE = new File("savegame.txt");
-    private final File RULES_FILE = new File("savedrules.txt");
+    private final File SAVE_FILE;// = new File("savegame.txt");
+    private final File RULES_FILE;// = new File("savedrules.txt");
     
     final GolfSwing g;
     boolean running = false;
     
     SinglePlayerGolfGame(GolfSwing g) {
         this.g = g;
+        File settings = FileUtils.getOrCreateSettingsDirectory(GolfSwing.class);
+        SAVE_FILE = new File(settings, "savegame.txt");
+        RULES_FILE = new File(settings, "savedrules.txt");
         loadRules();
     }
     
@@ -166,19 +171,7 @@ public class SinglePlayerGolfGame extends Golf implements IGolfGame, Runnable {
     }
 
     void saveRules() {
-        PrintWriter printer = null;
-        try {
-            printer = new PrintWriter(new FileWriter(RULES_FILE));
-            //rules.save(printer);
-            getRules().serialize(printer);
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            if (printer != null)
-                try {
-                    printer.close();
-                } catch (Exception e) {}
-        }
+        getRules().trySaveToFile(RULES_FILE);
         clear();
     }
 
@@ -222,6 +215,5 @@ public class SinglePlayerGolfGame extends Golf implements IGolfGame, Runnable {
         addPlayer(new PlayerBot("Tom"));
         startThread();
     }
-    
     
 }

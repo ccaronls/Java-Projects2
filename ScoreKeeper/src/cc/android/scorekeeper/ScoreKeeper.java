@@ -17,22 +17,23 @@ public class ScoreKeeper extends CCActivityBase {
 
     final int MAX_POINTS = 50;
 
-    private static int TL = 0;
-    private static int TR = 1;
-    private static int BL = 2;
-    private static int BR = 3;
+    final int TL = 0;
+    final int TR = 1;
+    final int BL = 2;
+    final int BR = 3;
 
-    int [] points = new int[4];
-    int [] colorBk = new int[4];
-    int [] colorFore = new int[4];
+    final int [] points = new int[4];
+    final int [] colorBk = new int[4];
+    final int [] colorFore = new int[4];
 
-    ViewGroup [] vg = new ViewGroup[4];
-    ViewPager [] vp = new ViewPager[4];
-    ImageButton [] ibRemove = new ImageButton[4];
-    ImageButton [] ibToggle = new ImageButton[4];
+    final ViewGroup [] vg = new ViewGroup[4];
+    final ViewPager [] vp = new ViewPager[4];
+    final ImageButton [] ibRemove = new ImageButton[4];
+    final ImageButton [] ibToggle = new ImageButton[4];
     ImageButton ibAdd;
+    ViewGroup topRow, bottomRow;
 
-    boolean [] visible = new boolean[4];
+    final boolean [] visible = new boolean[4];
 
     class ItemPagerAdapter extends PagerAdapter implements ViewPager.OnPageChangeListener {
 
@@ -127,6 +128,9 @@ public class ScoreKeeper extends CCActivityBase {
         ibPlus5[BL] = (ImageButton)findViewById(R.id.ibAddBL);
         ibPlus5[BR] = (ImageButton)findViewById(R.id.ibAddBR);
 
+        topRow = (ViewGroup)findViewById(R.id.vgTopRow);
+        bottomRow = (ViewGroup)findViewById(R.id.vgBottomRow);
+
         for (int i=0; i<4; i++) {
             final int index = i;
             ItemPagerAdapter ap = new ItemPagerAdapter(i);
@@ -138,6 +142,7 @@ public class ScoreKeeper extends CCActivityBase {
                     vg[index].setVisibility(View.GONE);
                     visible[index] = false;
                     ibAdd.setVisibility(View.VISIBLE);
+                    updateTopBottomRow();
                 }
             });
             ibToggle[i].setOnClickListener(new View.OnClickListener() {
@@ -180,8 +185,18 @@ public class ScoreKeeper extends CCActivityBase {
                         break;
                     }
                 }
+                updateTopBottomRow();
             }
         });
+
+    }
+
+    private void updateTopBottomRow() {
+        boolean topVisible = visible[TL] || visible[TR];
+        boolean bottomVisible = visible[BL] || visible[BR];
+
+        topRow.setVisibility(topVisible ? View.VISIBLE : View.GONE);
+        bottomRow.setVisibility(bottomVisible ? View.VISIBLE : View.GONE);
     }
 
     @Override
@@ -215,6 +230,7 @@ public class ScoreKeeper extends CCActivityBase {
             if (!visible[i])
                 ibAdd.setVisibility(View.VISIBLE);
         }
+        updateTopBottomRow();
     }
 
     @Override

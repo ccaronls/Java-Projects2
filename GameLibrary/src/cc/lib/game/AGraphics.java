@@ -382,20 +382,37 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param border
      * @return
      */
-    public GDimension drawJustifiedStringOnBackground(float x, float y, Justify hJust, Justify vJust, String text, GColor bkColor, float border) {
+    public GDimension drawJustifiedStringOnBackground(float x, float y, Justify hJust, Justify vJust, String text, GColor bkColor, float border, float cornerRadius) {
         GRectangle r = drawJustifiedStringR(x, y, hJust, vJust, text);
         pushMatrix();
         setIdentity();
         r.grow(border);
         GColor saveColor = getColor();
         setColor(bkColor);
-        r.drawFilled(this);
+        if (cornerRadius > 0)
+            r.drawRounded(this, cornerRadius);
+        else
+            r.drawFilled(this);
         setColor(saveColor);
         popMatrix();
         drawJustifiedString(x, y, hJust, vJust, text);
         return r.getDimension();
     }
 
+    /**
+     *
+     * @param x
+     * @param y
+     * @param hJust
+     * @param vJust
+     * @param text
+     * @param bkColor
+     * @param border
+     * @return
+     */
+    public GDimension drawJustifiedStringOnBackground(float x, float y, Justify hJust, Justify vJust, String text, GColor bkColor, float border) {
+        return drawJustifiedStringOnBackground(x, y, hJust, vJust, text, bkColor, border, 0);
+    }
 
     
     /**
