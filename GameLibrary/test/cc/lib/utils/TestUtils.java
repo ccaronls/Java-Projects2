@@ -137,4 +137,17 @@ public class TestUtils extends TestCase {
         System.out.println("Elems: " + elems);
     }
 
+    String quoteMe(String s) {
+        return "\"" + s + "\"";
+    }
+
+    public void testPrettyString() {
+        System.out.println(quoteMe(Utils.getPrettyString(";asihfva.kjvnakwhv")));
+        System.out.println(quoteMe(Utils.getPrettyString("12324 hgjt $90")));
+        System.out.println(quoteMe(Utils.getPrettyString("THIS_IS_A_TYPICAL_EXAMPLE")));
+        System.out.println(quoteMe(Utils.getPrettyString("the quick br0wn fox jumped over the lazy brown dog")));
+        System.out.println(quoteMe(Utils.getPrettyString("PLAYER1")));
+        System.out.println(quoteMe(Utils.getPrettyString("00 001HELLO100 This is 10101010 test 0001")));
+    }
+
 }

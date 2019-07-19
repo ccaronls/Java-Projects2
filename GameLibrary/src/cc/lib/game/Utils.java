@@ -917,6 +917,8 @@ public class Utils {
         return buf.toString();
     }
 
+    private static Pattern PRETTY_STRING_PATTERN = null;
+
     /**
      * 1. Strip extension if any
      * 2. Replace [_]+ (underscores) with a space
@@ -928,13 +930,26 @@ public class Utils {
     public static String getPrettyString(String str) {
         if (str == null)
             return null;
-        Matcher us = Pattern.compile("[a-zA-Z0-9]+").matcher(FileUtils.stripExtension(str.trim()));
+        str = FileUtils.stripExtension(str.replaceAll("[_]+", " ").trim());
+        if (PRETTY_STRING_PATTERN == null)
+            PRETTY_STRING_PATTERN = Pattern.compile("([A-Za-z][a-zA-Z]+)|([IiAa])");
+        Matcher us = PRETTY_STRING_PATTERN.matcher(str);
         StringBuffer result = new StringBuffer();
+        int begin = 0;
         while (us.find()) {
             String s = us.group().toLowerCase();
-            if (result.length() > 0)
+            if (result.length() > 0 && result.charAt(result.length()-1) != ' ' && str.charAt(begin) != ' ' )
+                result.append(" ");
+            result.append(str.substring(begin, us.start()));
+            begin = us.end();
+            if (result.length() > 0 && result.charAt(result.length()-1) != ' ')
                 result.append(" ");
             result.append(Character.toUpperCase(s.charAt(0))).append(s.substring(1));
+        }
+        if (begin >= 0 && begin < str.length()) {
+            if (result.length() > 0 && result.charAt(result.length()-1) != ' ' && str.charAt(begin) != ' ')
+                result.append(" ");
+            result.append(str.substring(begin));
         }
         return result.toString();
     }

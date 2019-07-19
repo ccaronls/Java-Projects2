@@ -29,7 +29,7 @@
           android:layout_height="wrap_content"
           android:layout_alignParentTop="true"
           android:layout_alignParentLeft="true"
-          android:layout_margin="5dp"
+          android:layout_margin="@dimen/button_padding"
           >
           <ImageButton
             android:id="@+id/ibRemoveTL"
@@ -69,7 +69,7 @@
           android:layout_height="wrap_content"
           android:layout_alignParentTop="true"
           android:layout_alignParentRight="true"
-          android:layout_margin="5dp"
+          android:layout_margin="@dimen/button_padding"
           >
           <ImageButton
             android:id="@+id/ibAddTR"
@@ -117,7 +117,7 @@
           android:layout_height="wrap_content"
           android:layout_alignParentBottom="true"
           android:layout_alignParentLeft="true"
-          android:layout_margin="5dp"
+          android:layout_margin="@dimen/button_padding"
           >
           <ImageButton
             android:id="@+id/ibRemoveBL"
@@ -158,7 +158,7 @@
           android:layout_height="wrap_content"
           android:layout_alignParentBottom="true"
           android:layout_alignParentRight="true"
-          android:layout_margin="5dp"
+          android:layout_margin="@dimen/button_padding"
           >
           <ImageButton
             android:id="@+id/ibAddBR"

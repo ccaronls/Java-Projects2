@@ -2,12 +2,14 @@ package cc.android.scorekeeper;
 
 
 import android.content.SharedPreferences;
+import android.graphics.PorterDuff;
 import android.os.Bundle;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import cc.lib.android.CCActivityBase;
@@ -22,9 +24,26 @@ public class ScoreKeeper extends CCActivityBase {
     final int BL = 2;
     final int BR = 3;
 
+    enum Cell {
+        WATER(R.color.blue_fore, R.color.blue_bk, R.drawable.water_icon),
+        FIRE(R.color.red_fore, R.color.red_bk, R.drawable.fire_icon),
+        TREE(R.color.green_fore, R.color.green_bk, R.drawable.tree_icon),
+        SKULL(R.color.black_fore, R.color.black_bk, R.drawable.skull_icon),
+        SUN(R.color.white_fore, R.color.white_bk, R.drawable.sun_icon);
+
+        Cell(int foreColor, int backColor, int iconResource) {
+            this.foreColor = foreColor;
+            this.backColor = backColor;
+            this.iconResource = iconResource;
+        }
+
+        final int foreColor;
+        final int backColor;
+        final int iconResource;
+    }
+
     final int [] points = new int[4];
-    final int [] colorBk = new int[4];
-    final int [] colorFore = new int[4];
+    final Cell [] cells = new Cell[4];
 
     final ViewGroup [] vg = new ViewGroup[4];
     final ViewPager [] vp = new ViewPager[4];
@@ -54,12 +73,16 @@ public class ScoreKeeper extends CCActivityBase {
 
         @Override
         public Object instantiateItem(ViewGroup container, int position) {
-            TextView tv= (TextView)View.inflate(ScoreKeeper.this, R.layout.tv_points, null);
+            View v = View.inflate(ScoreKeeper.this, R.layout.tv_points, null);
+            TextView tv = (TextView)v.findViewById(R.id.tvScore);
+            ImageView iv = (ImageView)v.findViewById(R.id.ivIcon);
             tv.setText(String.valueOf(position));
-            tv.setTextColor(colorFore[index]);
-            tv.setBackgroundColor(colorBk[index]);
-            container.addView(tv);
-            return tv;
+            tv.setTextColor(getResources().getColor(cells[index].foreColor));
+            v.setBackgroundColor(getResources().getColor(cells[index].backColor));
+            iv.setImageResource(cells[index].iconResource);
+            iv.setColorFilter(getResources().getColor(cells[index].foreColor), PorterDuff.Mode.MULTIPLY);
+            container.addView(v);
+            return v;
         }
 
         @Override
@@ -108,20 +131,6 @@ public class ScoreKeeper extends CCActivityBase {
         ibToggle[BL] = (ImageButton)findViewById(R.id.ibToggleBL);
         ibToggle[BR] = (ImageButton)findViewById(R.id.ibToggleBR);
 
-        final int [] allBkColors = {
-                getResources().getColor(R.color.red_bk),
-                getResources().getColor(R.color.white_bk),
-                getResources().getColor(R.color.green_bk),
-                getResources().getColor(R.color.black_bk),
-        };
-
-        final int [] allForeColors = {
-                getResources().getColor(R.color.red_fore),
-                getResources().getColor(R.color.white_fore),
-                getResources().getColor(R.color.green_fore),
-                getResources().getColor(R.color.black_fore),
-        };
-
         ImageButton [] ibPlus5 = new ImageButton[4];
         ibPlus5[TL] = (ImageButton)findViewById(R.id.ibAddTL);
         ibPlus5[TR] = (ImageButton)findViewById(R.id.ibAddTR);
@@ -148,14 +157,9 @@ public class ScoreKeeper extends CCActivityBase {
             ibToggle[i].setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    int ii;
-                    for (ii=0; ii<4; ii++) {
-                        if (colorBk[index] == allBkColors[ii])
-                            break;
-                    }
-                    int nxtColorIndex = (ii+1)%4;
-                    colorBk[index] = allBkColors[nxtColorIndex];
-                    colorFore[index] = allForeColors[nxtColorIndex];
+                    Cell cell = (Cell)vg[index].getTag();
+                    Cell nxtCell = Utils.incrementValue(cell, Cell.values());
+                    vg[index].setTag(cells[index] = nxtCell);
                     vp[index].setAdapter(new ItemPagerAdapter(index));
                     vp[index].setCurrentItem(points[index]);
                 }
@@ -213,15 +217,10 @@ public class ScoreKeeper extends CCActivityBase {
         visible[BL] = p.getBoolean("visibleBL", true);
         visible[BR] = p.getBoolean("visibleBR", true);
 
-        colorBk[TL] = p.getInt("colorBkTL", getResources().getColor(R.color.red_bk));
-        colorBk[TR] = p.getInt("colorBkTR", getResources().getColor(R.color.white_bk));
-        colorBk[BL] = p.getInt("colorBkBL", getResources().getColor(R.color.green_bk));
-        colorBk[BR] = p.getInt("colorBkBR", getResources().getColor(R.color.black_bk));
-
-        colorFore[TL] = p.getInt("colorForeTL", getResources().getColor(R.color.red_fore));
-        colorFore[TR] = p.getInt("colorForeTR", getResources().getColor(R.color.white_fore));
-        colorFore[BL] = p.getInt("colorForeBL", getResources().getColor(R.color.green_fore));
-        colorFore[BR] = p.getInt("colorForeBR", getResources().getColor(R.color.black_fore));
+        vg[TL].setTag(cells[TL] = Cell.valueOf(p.getString("cellTL", Cell.FIRE.name())));
+        vg[TR].setTag(cells[TR] = Cell.valueOf(p.getString("cellTR", Cell.WATER.name())));
+        vg[BL].setTag(cells[BL] = Cell.valueOf(p.getString("cellBL", Cell.TREE.name())));
+        vg[BR].setTag(cells[BR] = Cell.valueOf(p.getString("cellBR", Cell.SKULL.name())));
 
         ibAdd.setVisibility(View.GONE);
         for (int i=0; i<4; i++) {
@@ -244,14 +243,10 @@ public class ScoreKeeper extends CCActivityBase {
                 .putBoolean("visibleTR", visible[TR])
                 .putBoolean("visibleBL", visible[BL])
                 .putBoolean("visibleBR", visible[BR])
-                .putInt("colorBkTL", colorBk[TL])
-                .putInt("colorBkTR", colorBk[TR])
-                .putInt("colorBkBL", colorBk[BL])
-                .putInt("colorBkBR", colorBk[BR])
-                .putInt("colorForeTL", colorFore[TL])
-                .putInt("colorForeTR", colorFore[TR])
-                .putInt("colorForeBL", colorFore[BL])
-                .putInt("colorForeBR", colorFore[BR])
+                .putString("cellTL", cells[TL].name())
+                .putString("cellTR", cells[TR].name())
+                .putString("cellBL", cells[BL].name())
+                .putString("cellBR", cells[BR].name())
                 .apply();
         super.onPause();
     }

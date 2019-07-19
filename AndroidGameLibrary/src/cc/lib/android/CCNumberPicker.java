@@ -83,13 +83,15 @@ public class CCNumberPicker extends NumberPicker {
 
     public static NumberPicker newPicker(Context c, String value, String [] values, OnValueChangeListener listener) {
         CCNumberPicker np = new CCNumberPicker(c);
-	    for (int i=0; i<values.length; i++) {
-	        if (value.equals(values[i])) {
-	            np.setValue(i);
-	            break;
+        np.setDisplayedValues(values);
+	    np.setMinValue(0);
+	    np.setMaxValue(values.length-1);
+        for (int i=0; i<values.length; i++) {
+            if (value.equals(values[i])) {
+                np.setValue(i);
+                break;
             }
         }
-        np.setDisplayedValues(values);
 	    np.setOnValueChangedListener(listener);
 	    return np;
     }

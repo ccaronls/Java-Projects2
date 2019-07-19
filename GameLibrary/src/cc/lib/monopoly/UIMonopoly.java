@@ -220,7 +220,7 @@ public abstract class UIMonopoly extends Monopoly {
         final GRectangle start = board.getPiecePlacement(playerNum, p.getSquare());
         final GRectangle end   = board.getPiecePlacementJail(playerNum);
         addAnimation("PLAYER"+playerNum, new JailedAnim(playerInfoWidth, playerInfoHeight).start());
-        setSpriteAnim("PLAYER"+playerNum, new AAnimation<Sprite>(2000) {
+        setSpriteAnim(p.piece.name(), new AAnimation<Sprite>(2000) {
 
             final Bezier curve = new Bezier();
 

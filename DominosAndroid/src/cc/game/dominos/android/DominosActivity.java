@@ -1202,7 +1202,13 @@ public class DominosActivity extends DroidActivity {
         final RadioGroup rgDifficulty = (RadioGroup)v.findViewById(R.id.rgDifficulty);
         final RadioGroup rgTiles      = (RadioGroup)v.findViewById(R.id.rgTiles);
         final RadioGroup rgMaxPoints  = (RadioGroup)v.findViewById(R.id.rgMaxPoints);
-        switch (dominos.getNumPlayers()) {
+
+        final int numPlayer = getPrefs().getInt("numPlayers", 0);
+        int difficulty = getPrefs().getInt("difficulty", 0);
+        int maxPips = getPrefs().getInt("maxPips", 0);
+        final int maxScore = getPrefs().getInt("maxScore", 0);
+
+        switch (numPlayer) {
             case 2:
                 rgNumPlayers.check(R.id.rbPlayersTwo); break;
             case 3:
@@ -1210,7 +1216,7 @@ public class DominosActivity extends DroidActivity {
             case 4:
                 rgNumPlayers.check(R.id.rbPlayersFour); break;
         }
-        switch (dominos.getDifficulty()) {
+        switch (difficulty) {
             case 0:
                 rgDifficulty.check(R.id.rbDifficultyEasy); break;
             case 1:
@@ -1218,7 +1224,7 @@ public class DominosActivity extends DroidActivity {
             case 2:
                 rgDifficulty.check(R.id.rbDifficultyHard); break;
         }
-        switch (dominos.getMaxPips()) {
+        switch (maxPips) {
             case 6:
                 rgTiles.check(R.id.rbTiles6x6); break;
             case 9:
@@ -1226,7 +1232,7 @@ public class DominosActivity extends DroidActivity {
             case 12:
                 rgTiles.check(R.id.rbTiles12x12); break;
         }
-        switch (dominos.getMaxScore()) {
+        switch (maxScore) {
             case 150:
                 rgMaxPoints.check(R.id.rbMaxPoints150); break;
             case 200:
@@ -1280,6 +1286,12 @@ public class DominosActivity extends DroidActivity {
                             case R.id.rbTiles12x12:
                                 maxPips = 12; break;
                         }
+                        getPrefs().edit()
+                                .putInt("numPlayers", numPlayers)
+                                .putInt("difficulty", difficulty)
+                                .putInt("maxPips", maxPips)
+                                .putInt("maxScore", maxScore)
+                                .apply();
                         dominos.stopGameThread();
                         dominos.initGame(maxPips, maxPoints, difficulty);
                         dominos.setNumPlayers(numPlayers);

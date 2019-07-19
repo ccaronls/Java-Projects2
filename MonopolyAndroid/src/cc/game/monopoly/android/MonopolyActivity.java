@@ -3,10 +3,19 @@ package cc.game.monopoly.android;
 import android.Manifest;
 import android.app.Dialog;
 import android.content.DialogInterface;
+import android.graphics.Point;
 import android.os.Bundle;
 import android.os.Environment;
+import android.text.Html;
+import android.text.Layout;
+import android.text.Spannable;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.AlignmentSpan;
+import android.view.Display;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.CompoundButton;
@@ -53,6 +62,18 @@ public class MonopolyActivity extends DroidActivity {
         @Override
         public void runGame() {
             monopoly.trySaveToFile(saveFile);
+            if (BuildConfig.DEBUG) {
+                checkPermissionAndThen(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            FileUtils.copyFile(saveFile, Environment.getExternalStorageDirectory());
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+            }
             super.runGame();
         }
 
@@ -190,66 +211,71 @@ public class MonopolyActivity extends DroidActivity {
             return result[0];
         }
 
+        private void openMarkSellableMenu(final PlayerUser playerUser, final List<Card> list) {
+            ListView view = new ListView(MonopolyActivity.this);
+            view.setAdapter(new BaseAdapter() {
+                @Override
+                public int getCount() {
+                    return list.size();
+                }
+
+                @Override
+                public Object getItem(int position) {
+                    return list.get(position);
+                }
+
+                @Override
+                public long getItemId(int position) {
+                    return position;
+                }
+
+                @Override
+                public View getView(int position, View v, ViewGroup parent) {
+                    if (v == null) {
+                        v = View.inflate(MonopolyActivity.this, R.layout.mark_sellable_listitem, null);
+                    }
+                    Card card = list.get(position);
+                    TextView tvLabel = (TextView)v.findViewById(R.id.tvLabel);
+                    TextView tvCost  = (TextView)v.findViewById(R.id.tvCost);
+                    tvLabel.setText(Utils.getPrettyString(card.getProperty().name()));
+                    int cost = playerUser.getSellableCardCost(card);
+                    tvCost.setText(cost <= 0 ? "Not For Sale" : String.valueOf(cost));
+                    return v;
+                }
+            });
+            view.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> parent, View view, final int position, long id) {
+                    final Card card = list.get(position);
+                    int cost = playerUser.getSellableCardCost(card);
+                    final int STEP = 50;
+                    final NumberPicker np = CCNumberPicker.newPicker(MonopolyActivity.this, cost, 0, 5000, STEP, null);
+                    newDialogBuilder().setTitle("Set Cost for " + card.getProperty().name())
+                            .setView(np).setNeutralButton("Done", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            playerUser.setSellableCard(card, np.getValue()*STEP);
+                            openMarkSellableMenu(playerUser, list);
+                        }
+                    }).show();
+                }
+            });
+            newDialogBuilder().setTitle(playerUser.getPiece() + " Mark Sellable").setView(view).setNeutralButton("Done", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    synchronized (monopoly) {
+                        monopoly.notify();
+                    }
+                }
+            }).show();
+        }
+
         @Override
         protected boolean showMarkSellableMenu(final PlayerUser playerUser, final List<Card> list) {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    ListView view = new ListView(MonopolyActivity.this);
-                    view.setAdapter(new BaseAdapter() {
-                        @Override
-                        public int getCount() {
-                            return list.size();
-                        }
-
-                        @Override
-                        public Object getItem(int position) {
-                            return list.get(position);
-                        }
-
-                        @Override
-                        public long getItemId(int position) {
-                            return position;
-                        }
-
-                        @Override
-                        public View getView(int position, View v, ViewGroup parent) {
-                            if (v == null) {
-                                v = View.inflate(MonopolyActivity.this, R.layout.mark_sellable_listitem, null);
-                            }
-                            Card card = list.get(position);
-                            TextView tvLabel = (TextView)v.findViewById(R.id.tvLabel);
-                            TextView tvCost  = (TextView)v.findViewById(R.id.tvCost);
-                            tvLabel.setText(Utils.getPrettyString(card.getProperty().name()));
-                            int cost = playerUser.getSellableCardCost(card);
-                            tvCost.setText(cost <= 0 ? "Not For Sale" : String.valueOf(cost));
-                            return v;
-                        }
-                    });
-                    view.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                        @Override
-                        public void onItemClick(AdapterView<?> parent, View view, final int position, long id) {
-                            final Card card = list.get(position);
-                            int cost = playerUser.getSellableCardCost(card);
-                            final int STEP = 50;
-                            final NumberPicker np = CCNumberPicker.newPicker(MonopolyActivity.this, cost, 0, 5000, STEP, null);
-                            newDialogBuilder().setTitle("Set Cost for " + card.getProperty().name())
-                                    .setView(np).setNegativeButton("Done", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    playerUser.setSellableCard(card, np.getValue()*STEP);
-                                }
-                            }).show();
-                        }
-                    });
-                    newDialogBuilder().setTitle(playerUser.getPiece() + " Mark Sellable").setView(view).setNegativeButton("DONE", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            synchronized (monopoly) {
-                                monopoly.notify();
-                            }
-                        }
-                    }).show();
+                    openMarkSellableMenu(playerUser, list);
                 }
             });
             Utils.waitNoThrow(monopoly, -1);
@@ -388,6 +414,7 @@ public class MonopolyActivity extends DroidActivity {
                                 break;
                             case 1:
                                 if (monopoly.tryLoadFromFile(saveFile)) {
+                                    monopoly.repaint();
                                     monopoly.startGameThread();
                                 } else {
                                     saveFile.delete();
@@ -554,15 +581,17 @@ public class MonopolyActivity extends DroidActivity {
     @Override
     protected void onDialogShown(Dialog d) {
 
-        // Creating Dynamic
-        /*Rect displayRectangle = new Rect();
-
-        Window window = getWindow();
-        window.getDecorView().getWindowVisibleDisplayFrame(displayRectangle);
-        float DIM = Math.min(displayRectangle.width(), displayRectangle.height());
-        d.getWindow().setLayout((int) (DIM/2), d.getWindow().getAttributes().height);
-*/
-        //d.getWindow().setLayout(getResources().getDimension(R.dimen.dialog_width), getResources().getDimension(R.dimen.dialog_height));
-        //d.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
+        Display display = getWindowManager().getDefaultDisplay();
+        WindowManager.LayoutParams lp = d.getWindow().getAttributes();
+        Point size = new Point();
+        display.getSize(size);
+        if (isPortrait()) {
+            //lp.gravity = Gravity.TOP;
+            lp.y = size.y  - size.y/5;
+            lp.width = size.x/2;
+        } else {
+            lp.width = size.x/3;
+        }
+        d.getWindow().setAttributes(lp);
     }
 }

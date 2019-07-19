@@ -805,6 +805,7 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
             if (board.draw(g, boardDim, boardDim, pickX, pickY, dragging) >= 0)
                 drawDragged = false;
         }
+        drawMenuButton(g, boardDim, boardDim, pickX, pickY);
         //g.clearClip();
 
         g.pushMatrix();
@@ -950,13 +951,32 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
     }
 
     private void drawPlayer(APGraphics g, float w, float h, int pickX, int pickY, boolean drawDragged) {
-        String infoStr = getString(R.string.button_menu); // TODO: know when in shuffle so we can skip it
+        g.pushMatrix();
+        for (int i=0; i<players.length; i++) {
+            if (players[i].isPiecesVisible()) {
+                Player p = players[i];
+                p.outlineRect.set(g.transform(0, 0), g.transform(w, h));
+                float dy = drawPlayerInfo(g, p, w);
+                dy += SPACING;
+                g.translate(0, dy);
+                h -= dy;
+                drawPlayerTiles(g, p, w, h, pickX, pickY, drawDragged);
+                break;
+            }
+        }
+        g.popMatrix();
+    }
+
+    private void drawMenuButton(APGraphics g, float w, float h, int pickX, int pickY) {
+        String infoStr = getString(R.string.button_menu);
         if (anims.get("POOL") != null) {
             infoStr = getString(R.string.button_skip);
         }
         int menuButtonPadding = 10;
         g.setColor(GColor.WHITE);
-        float tw = g.drawJustifiedString(w-menuButtonPadding, menuButtonPadding, Justify.RIGHT, infoStr).width;
+        float x = w-menuButtonPadding;
+        float y = menuButtonPadding;
+        float tw = g.drawJustifiedString(x, y, Justify.RIGHT, infoStr).width;
         final float rx = w-tw-menuButtonPadding*2;
         final float ry = 0;
         final float rw = tw+menuButtonPadding*2;
@@ -973,24 +993,10 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
             if (picked == 1) {
                 menuHighlighted = true;
                 g.setColor(GColor.DARK_GRAY);
-                g.drawJustifiedString(w, 0, Justify.RIGHT, infoStr);
+                g.drawJustifiedString(x, y, Justify.RIGHT, infoStr);
             }
             g.end();
         }
-        g.pushMatrix();
-        for (int i=0; i<players.length; i++) {
-            if (players[i].isPiecesVisible()) {
-                Player p = players[i];
-                p.outlineRect.set(g.transform(0, 0), g.transform(w, h));
-                float dy = drawPlayerInfo(g, p, w-tw);
-                dy += SPACING;
-                g.translate(0, dy);
-                h -= dy;
-                drawPlayerTiles(g, p, w, h, pickX, pickY, drawDragged);
-                break;
-            }
-        }
-        g.popMatrix();
     }
 
     @Omit
