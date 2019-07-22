@@ -1,15 +1,26 @@
 package cc.lib.swing;
 
-import java.awt.*;
-import java.awt.event.*;
-import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 
-import javax.swing.*;
+import javax.swing.JComponent;
 
-import cc.lib.game.*;
+import cc.lib.game.APGraphics;
+import cc.lib.game.GColor;
+import cc.lib.game.GDimension;
+import cc.lib.game.IVector2D;
+import cc.lib.game.Renderable;
+import cc.lib.game.Utils;
 
 
 /**
@@ -259,63 +270,75 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
 
     @Override
     public final synchronized void paint(Graphics g) {
-        if (getWidth() > 0 && getHeight() > 0) {
-            Color c = g.getColor();
-            g.setColor(getBackground());//AWTUtils.toColor(GColor.TRANSPARENT));
-            g.fillRect(0, 0, super.getWidth(), super.getHeight());
-            g.setColor(c);
-            //g.setClip(padding,padding, getWidth()+1, getHeight()+1);
-            if (G == null) {
-                if (g instanceof Graphics2D)
-                    G = new AWTGraphics2(((Graphics2D)g), this);
-                else
-                    G = new AWTGraphics(g, this);
-                init(G);
-                repaint();
-            } else {
-                float progress = getInitProgress();
-                G.setGraphics(g);
-                G.initViewport(getWidth(), getHeight());
-                G.ortho();
-                if (progress >= 1) {
-                    if (scrollAmount < 0)
-                        scrollAmount = G.getTextHeight();
-                    if (scrollStartY != 0) {
-                        G.pushMatrix();
-                        G.translate(0, scrollStartY);
-                        paint(G, mouseX, mouseY);
-                        G.popMatrix();
-                    } else {
-                        paint(G, mouseX, mouseY);
-                    }
-                } else {
-                    Font f = g.getFont();
-                    G.clearScreen(GColor.CYAN);
-                    G.setColor(GColor.WHITE);
-                    G.setTextHeight(getHeight()/10);
-                    float x = getWidth()/2;
-                    float y = getHeight()/3;
-                    String txt = "INITIALIZING";
-                    float tw = G.getTextWidth(txt);
-                    float th = G.getTextHeight();
-                    while (tw > getWidth() && G.getTextHeight() > 8) {
-                        G.setTextHeight(G.getTextHeight()-2);
-                    }
-                    G.drawJustifiedString(x-tw/2, y,txt);
-                    y += th;
-                    G.drawFilledRect(x-tw/2, y, tw*progress, th);
-                    g.setFont(f);
+        try {
+            if (getWidth() > 0 && getHeight() > 0) {
+                Color c = g.getColor();
+                g.setColor(getBackground());//AWTUtils.toColor(GColor.TRANSPARENT));
+                g.fillRect(0, 0, super.getWidth(), super.getHeight());
+                g.setColor(c);
+                //g.setClip(padding,padding, getWidth()+1, getHeight()+1);
+                if (G == null) {
+                    if (g instanceof Graphics2D)
+                        G = new AWTGraphics2(((Graphics2D) g), this);
+                    else
+                        G = new AWTGraphics(g, this);
+                    init(G);
                     repaint();
+                } else {
+                    float progress = getInitProgress();
+                    G.setGraphics(g);
+                    G.initViewport(getWidth(), getHeight());
+                    G.ortho();
+                    if (progress >= 1) {
+                        int matStack = G.getMatrixStackSize();
+                        if (scrollAmount < 0)
+                            scrollAmount = G.getTextHeight();
+                        if (scrollStartY != 0) {
+                            G.pushMatrix();
+                            G.translate(0, scrollStartY);
+                            paint(G, mouseX, mouseY);
+                            G.popMatrix();
+                        } else {
+                            try {
+                                paint(G, mouseX, mouseY);
+                            } catch (Exception e) {
+                                throw new RuntimeException(e);
+                            }
+                        }
+                        if (G.getMatrixStackSize() != matStack) {
+                            throw new AssertionError("Matrix stack not zero");
+                        }
+                    } else {
+                        Font f = g.getFont();
+                        G.clearScreen(GColor.CYAN);
+                        G.setColor(GColor.WHITE);
+                        G.setTextHeight(getHeight() / 10);
+                        float x = getWidth() / 2;
+                        float y = getHeight() / 3;
+                        String txt = "INITIALIZING";
+                        float tw = G.getTextWidth(txt);
+                        float th = G.getTextHeight();
+                        while (tw > getWidth() && G.getTextHeight() > 8) {
+                            G.setTextHeight(G.getTextHeight() - 2);
+                        }
+                        G.drawJustifiedString(x - tw / 2, y, txt);
+                        y += th;
+                        G.drawFilledRect(x - tw / 2, y, tw * progress, th);
+                        g.setFont(f);
+                        repaint();
+                    }
                 }
+                //g.setClip(0, 0, super.getWidth(), super.getHeight());
+                if (focused) {
+                    //                System.out.println("AWT " + toString() + " has focus!");
+                    g.setColor(Color.BLUE);
+                    g.drawRect(0, 0, super.getWidth() - 2, super.getHeight() - 2);
+                }
+            } else {
+                repaint();
             }
-            //g.setClip(0, 0, super.getWidth(), super.getHeight());
-            if (focused) {
-//                System.out.println("AWT " + toString() + " has focus!");
-                g.setColor(Color.BLUE);
-                g.drawRect(0, 0, super.getWidth()-2, super.getHeight()-2);
-            }
-        } else {
-            repaint();
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
         }
     }
 

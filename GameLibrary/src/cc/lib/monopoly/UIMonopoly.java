@@ -1040,7 +1040,7 @@ public abstract class UIMonopoly extends Monopoly {
         g.translate(cntr);
         g.rotate(angle);
         if (num == 5) {
-            g.scale(scale * 1.5f);
+            g.scale(scale * 4);
             g.setColor(GColor.RED);
             drawHouse(g);
         } else {

@@ -14,6 +14,6 @@ public enum MoveType {
     GET_OUT_OF_JAIL_FREE,
     FORFEIT,
     TRADE,
-    MARK_SELLABLE;
+    MARK_CARDS_FOR_SALE;
 
 }

@@ -47,7 +47,7 @@ public class Monopoly extends Reflector<Monopoly> {
         CHOOSE_UNMORTGAGE_PROPERTY,
         CHOOSE_PROPERTY_FOR_UNIT,
         CHOOSE_TRADE,
-        CHOOSE_SELLABLE
+        CHOOSE_CARDS_FOR_SALE
     }
 
     public final void newGame() {
@@ -115,7 +115,7 @@ public class Monopoly extends Reflector<Monopoly> {
                 if (cur instanceof PlayerUser) {
                     for (Card c : cur.getCards()) {
                         if (c.isSellable()) {
-                            moves.add(MoveType.MARK_SELLABLE);
+                            moves.add(MoveType.MARK_CARDS_FOR_SALE);
                             break;
                         }
                     }
@@ -208,7 +208,7 @@ public class Monopoly extends Reflector<Monopoly> {
                             state.pop();
                             payMoneyOrMortgage(p.debt, State.PAY_BIRTHDAY);
                             if (p.getValue() == 0) {
-                                if (!playerBankrupt())
+                                if (!playerBankrupt(currentPlayer))
                                     return;
                             }
                         } else if (p.getValue() > p.debt){
@@ -216,7 +216,7 @@ public class Monopoly extends Reflector<Monopoly> {
                         } else {
                             onPlayerReceiveMoneyFromAnother(birthdayPlayer, i, p.getValue());
                             getPlayer(birthdayPlayer).money += p.getValue();
-                            playerBankrupt();
+                            playerBankrupt(currentPlayer);
                             state.pop();
                         }
                         break;
@@ -295,11 +295,11 @@ public class Monopoly extends Reflector<Monopoly> {
                 break;
             }
 
-            case CHOOSE_SELLABLE: {
+            case CHOOSE_CARDS_FOR_SALE: {
                 Player cur = getCurrentPlayer();
-                List<Card> sellable = cur.getSellableCards();
+                List<Card> sellable = cur.getCardsForSale();
                 Utils.assertTrue(sellable.size()>0);
-                if (cur.markSellable(this, sellable)) {
+                if (cur.markCardsForSale(this, sellable)) {
                     state.pop();
                 }
             }
@@ -375,12 +375,12 @@ public class Monopoly extends Reflector<Monopoly> {
                 break;
 
             case FORFEIT:
-                if (playerBankrupt())
+                if (playerBankrupt(currentPlayer))
                     nextPlayer();
                 break;
 
-            case MARK_SELLABLE:
-                state.push(State.CHOOSE_SELLABLE);
+            case MARK_CARDS_FOR_SALE:
+                state.push(State.CHOOSE_CARDS_FOR_SALE);
                 break;
 
             case PAY_BOND:
@@ -603,7 +603,7 @@ public class Monopoly extends Reflector<Monopoly> {
                     }
                     cur.money -= amount;
                     if (cur.getValue()==0) {
-                        if (!playerBankrupt())
+                        if (!playerBankrupt(currentPlayer))
                             return;
                     }
                     break;
@@ -650,12 +650,12 @@ public class Monopoly extends Reflector<Monopoly> {
                     Utils.assertTrue(cur.debt > 0);
                     onPlayerReceiveMoneyFromAnother(birthdayPlayer, currentPlayer, cur.debt);
                     getPlayer(birthdayPlayer).money += cur.debt;
-                    playerBankrupt();
+                    playerBankrupt(currentPlayer);
                     return;
                 default:
                     Utils.unhandledCase(payState);
             }
-            if (playerBankrupt())
+            if (playerBankrupt(currentPlayer))
                 nextPlayer();
         }
     }
@@ -977,8 +977,8 @@ public class Monopoly extends Reflector<Monopoly> {
     }
 
     // player bankrupt means all their mortgaged property goes back to bank and they have zero money
-    private boolean playerBankrupt() {
-        onPlayerBankrupt(currentPlayer);
+    private boolean playerBankrupt(int playerNum) {
+        onPlayerBankrupt(playerNum);
         getCurrentPlayer().clear();
         int winner = getWinner();
         if (winner >= 0) {
@@ -1013,7 +1013,7 @@ public class Monopoly extends Reflector<Monopoly> {
         getPlayer(owner).money += cur.debt;
         cur.debt = 0;
         if (cur.getValue() == 0)
-            playerBankrupt();
+            playerBankrupt(currentPlayer);
     }
 
     private void payToKitty(int amt) {
@@ -1024,7 +1024,7 @@ public class Monopoly extends Reflector<Monopoly> {
         cur.money -= amt;
         kitty += amt;
         if (cur.getValue() == 0)
-            playerBankrupt();
+            playerBankrupt(currentPlayer);
     }
 
     public final int getOwner(int sq) {

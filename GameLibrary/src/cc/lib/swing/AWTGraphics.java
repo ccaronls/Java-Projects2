@@ -485,4 +485,9 @@ public class AWTGraphics extends APGraphics {
     public int captureScreen(int x, int y, int w, int h) {
         return super.captureScreen(x, y, w, h);
     }
+
+    public int getMatrixStackSize() {
+        return r.getStackSize();
+    }
+
 }

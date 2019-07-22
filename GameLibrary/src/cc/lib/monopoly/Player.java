@@ -159,7 +159,7 @@ public class Player extends Reflector<Player> {
         return trades.get(0);
     }
 
-    public boolean markSellable(Monopoly game, List<Card> sellable) {
+    public boolean markCardsForSale(Monopoly game, List<Card> sellable) {
         return true;
     }
 
@@ -443,7 +443,7 @@ public class Player extends Reflector<Player> {
         return num;
     }
 
-    public final List<Card> getSellableCards() {
+    public final List<Card> getCardsForSale() {
         List<Card> sellable = new ArrayList<>();
         for (Card c : cards) {
             if (c.isSellable())

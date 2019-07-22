@@ -66,7 +66,9 @@ public enum Square {
     }
 
     public int getHousePrice() {
-        return costs[1];
+        if (costs.length > 1)
+            return costs[1];
+        return 0;
     }
 
     public boolean isProperty() {

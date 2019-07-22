@@ -273,7 +273,7 @@ public class Renderer {
 	public final void popMatrix() {
 		if (m_stack_size > 1) {
 		    m_stack_size -= 1;
-			cur_mat = m_stack[m_stack_size-1];
+            cur_mat = m_stack[m_stack_size-1];
 		}
 		else
 			throw new RuntimeException("too many pops");
@@ -377,7 +377,11 @@ public class Renderer {
     	min.set(Float.MAX_VALUE, Float.MAX_VALUE);
     	max.set(-Float.MAX_VALUE, -Float.MAX_VALUE);
     }
-    
+
+    public int getStackSize() {
+        return m_stack_size;
+    }
+
 	////////////////////////////////////////////////////
 	// PRIVATE STUFF ///////////////////////////////////
 	////////////////////////////////////////////////////
@@ -393,6 +397,7 @@ public class Renderer {
 	private Matrix3x3 []	m_stack;
 	private Matrix3x3		cur_mat;
 	private int			m_stack_size;
+	private Exception []    m_stack_trace;
 	private Matrix3x3		s_mat; // working matrix
 	private Matrix3x3		t_mat; // working matrix
 	private float       left, right, top, bottom;

@@ -29,7 +29,7 @@ public class PlayerUser extends Player {
     }
 
     @Override
-    public boolean markSellable(Monopoly game, List<Card> sellable) {
+    public boolean markCardsForSale(Monopoly game, List<Card> sellable) {
         return ((UIMonopoly)game).showMarkSellableMenu(this, sellable);
     }
 

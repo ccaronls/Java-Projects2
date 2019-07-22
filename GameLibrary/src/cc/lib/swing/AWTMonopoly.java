@@ -1,11 +1,17 @@
 package cc.lib.swing;
 
+import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import javax.swing.JLabel;
+import javax.swing.JSpinner;
+import javax.swing.SpinnerNumberModel;
+import javax.swing.event.ChangeEvent;
 
 import cc.lib.game.AGraphics;
 import cc.lib.game.Utils;
@@ -20,10 +26,6 @@ import cc.lib.monopoly.Rules;
 import cc.lib.monopoly.Trade;
 import cc.lib.monopoly.UIMonopoly;
 import cc.lib.utils.FileUtils;
-
-import java.awt.*;
-import javax.swing.*;
-import javax.swing.event.ChangeEvent;
 
 public class AWTMonopoly extends AWTComponent {
     private final static Logger log = LoggerFactory.getLogger(AWTMonopoly.class);
