@@ -1,5 +1,6 @@
 package cc.lib.monopoly;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -27,6 +28,7 @@ public abstract class UIMonopoly extends Monopoly {
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final static float HOUSE_RADIUS = 1;
     private final int MONEY_PAUSE = 1000;
+    private final int HOUSE_PAUSE = 2000;
     private final Object LOCK = this;
     private boolean gameRunning = false;
     private boolean gameStopped = true;
@@ -37,6 +39,8 @@ public abstract class UIMonopoly extends Monopoly {
     private final Map<String, Sprite> spriteMap = new HashMap<>();
     private final GColor BOARD_COLOR = new GColor(0xFFD2E5D2);
     private final float PADDING = 5;
+    private GColor HOUSE_COLOR = GColor.GREEN.darkened(.6f);
+    private GColor HOTEL_COLOR = GColor.RED;
 
     public UIMonopoly() {
         initSprites();
@@ -330,14 +334,16 @@ public abstract class UIMonopoly extends Monopoly {
     @Override
     protected void onPlayerBoughtHouse(int playerNum, Square property, int amt) {
         setSpriteAnim("PLAYER"+playerNum, new MoneyAnim(getPlayer(playerNum).getMoney(), -amt).start());
-        Utils.waitNoThrow(LOCK, MONEY_PAUSE);
+        setSpriteAnim(property.name(), new ErectHouseAnim().start());
+        Utils.waitNoThrow(LOCK, HOUSE_PAUSE);
         super.onPlayerBoughtHouse(playerNum, property, amt);
     }
 
     @Override
     protected void onPlayerBoughtHotel(int playerNum, Square property, int amt) {
         setSpriteAnim("PLAYER"+playerNum, new MoneyAnim(getPlayer(playerNum).getMoney(), -amt).start());
-        Utils.waitNoThrow(LOCK, MONEY_PAUSE);
+        setSpriteAnim(property.name(), new ErectHouseAnim().start());
+        Utils.waitNoThrow(LOCK, HOUSE_PAUSE);
         super.onPlayerBoughtHotel(playerNum, property, amt);
     }
 
@@ -536,6 +542,108 @@ public abstract class UIMonopoly extends Monopoly {
 
             }
         });
+
+        // the property squares them selves can animate building houses
+        for (final Square sq : Square.values()) {
+            if (sq.isProperty()) {
+                spriteMap.put(sq.name(), new Sprite() {
+                    @Override
+                    void draw(AGraphics g, float w, float h) {
+                        GRectangle r = board.getSqaureBounds(sq);
+                        final float houseScale = Math.min(r.w, r.h)/15;
+                        g.pushMatrix();
+                        int houses = data1;
+                        Vector2D v = null;
+                        int angle = 0;
+                        switch (board.getsQuarePosition(sq)) {
+                            case TOP:
+                                v = new Vector2D(r.x+r.w/2, r.y+r.h-houseScale);
+                                angle = 0;//, houseScale, houses);
+                                break;
+                            case RIGHT:
+                                v = new Vector2D(r.x+houseScale, r.y+r.h/2);
+                                angle = 270;//, houseScale, houses);
+                                break;
+                            case BOTTOM:
+                                v = new Vector2D(r.x+r.w/2, r.y+houseScale);
+                                angle = 0;//, houseScale, houses);
+                                break;
+                            case LEFT:
+                                v = new Vector2D(r.x+r.w-houseScale, r.y+r.h/2);
+                                angle = 90;//, houseScale, houses);
+                                break;
+                        }
+                        g.translate(v);
+                        g.rotate(angle);
+                        if (isAnimating()) {
+                            switch (houses) {
+                                case 0: // draw one growing house
+                                    g.setColor(HOUSE_COLOR);
+                                    g.scale(houseScale * 2 * animation.getPosition());
+                                    drawHouse(g);
+                                    break;
+                                case 1:
+                                case 2:
+                                case 3: // existing houses slide over while last one grows up
+                                    g.scale(houseScale * 2);
+                                    g.setColor(HOUSE_COLOR);
+                                    g.translate(-HOUSE_RADIUS * (houses - 1) -HOUSE_RADIUS*animation.getPosition(), 0);
+                                    for (int i = 0; i < houses; i++) {
+                                        drawHouse(g);
+                                        g.translate(HOUSE_RADIUS * 2, 0);
+                                    }
+                                    g.scale(animation.getPosition());
+                                    drawHouse(g);
+                                    break;
+
+                                case 4: // existing houses dissovle/shrink while hotel is erected
+                                    g.pushMatrix();
+                                    g.scale(houseScale * 2, houseScale * 2 * (1.0f - animation.getPosition()));
+                                    g.setColor(HOUSE_COLOR);
+                                    g.translate(-HOUSE_RADIUS * (houses - 1), 0);
+                                    for (int i = 0; i < houses; i++) {
+                                        drawHouse(g);
+                                        g.translate(HOUSE_RADIUS * 2, 0);
+                                    }
+                                    g.popMatrix();
+                                    g.scale(animation.getPosition() * houseScale * 4);
+                                    g.setColor(HOTEL_COLOR);
+                                    drawHouse(g);
+                                    break;
+                            }
+                        } else {
+                            if (houses == 5) {
+                                g.scale(houseScale * 4);
+                                g.setColor(HOTEL_COLOR);
+                                drawHouse(g);
+                            } else if (houses < 5) {
+                                g.setColor(HOUSE_COLOR);
+                                g.scale(houseScale * 2);
+                                g.translate(-HOUSE_RADIUS * (houses - 1), 0);
+                                for (int i = 0; i < houses; i++) {
+                                    drawHouse(g);
+                                    g.translate(HOUSE_RADIUS * 2, 0);
+                                }
+                            } else {
+                                Utils.unhandledCase(houses);
+                            }
+                        }
+                        g.popMatrix();
+                    }
+                });
+            }
+        }
+    }
+
+    class ErectHouseAnim extends AAnimation<Sprite> {
+        public ErectHouseAnim() {
+            super(HOUSE_PAUSE);
+        }
+
+        @Override
+        protected void draw(Sprite g, float position, float dt) {
+
+        }
     }
 
     class JailedAnim extends AAnimation<AGraphics> {
@@ -623,8 +731,8 @@ public abstract class UIMonopoly extends Monopoly {
             curve.addPoint(r0.x, r0.y);
             float dx = r1.x-r0.x;
             float dy = r1.y-r0.y;
-            curve.addPoint(r0.x + dx/3, r0.y + dx/6);
-            curve.addPoint(r0.x + dx*2/3, r0.y + dx/6);
+            curve.addPoint(r0.x + dx/3, Utils.clamp(r0.y + dy*0.33f - dx/6, 0, DIM));
+            curve.addPoint(r0.x + dx*2/3, Utils.clamp(r0.y + dy*0.66f - dx/6, 0, DIM));
             curve.addPoint(r1.x, r1.y);
             jumps-=dir*steps;
         }
@@ -966,29 +1074,36 @@ public abstract class UIMonopoly extends Monopoly {
                 continue;
             int pcId = getImageId(p.getPiece());
             float targetDim = board.getPieceDimension();
-            for (Card c : p.getCards()) {
+            for (Card c : new ArrayList<>(p.getCards())) {
                 if (c.getProperty() == null)
                     continue;
                 GRectangle r = board.getSqaureBounds(c.getProperty());
-                float houseScale = Math.min(r.w, r.h)/15;
+                //float houseScale = Math.min(r.w, r.h)/15;
                 switch (board.getsQuarePosition(c.getProperty())) {
                     case TOP:
                         g.drawImage(pcId, r.x+r.w/2-targetDim/2, r.y+r.h-targetDim/3, targetDim, targetDim);
-                        drawHouses(g, new Vector2D(r.x+r.w/2, r.y+r.h-houseScale), 0, houseScale, c.getHouses());
+//                        drawHouses(g, new Vector2D(r.x+r.w/2, r.y+r.h-houseScale), 0, houseScale, c.getHouses());
                         break;
                     case RIGHT:
                         g.drawImage(pcId, r.x-targetDim*2/3, r.y+r.h/2-targetDim/2, targetDim, targetDim);
-                        drawHouses(g, new Vector2D(r.x+houseScale, r.y+r.h/2), 270, houseScale, c.getHouses());
+//                        drawHouses(g, new Vector2D(r.x+houseScale, r.y+r.h/2), 270, houseScale, c.getHouses());
                         break;
                     case BOTTOM:
                         g.drawImage(pcId, r.x+r.w/2-targetDim/2, r.y-targetDim*2/3, targetDim, targetDim);
-                        drawHouses(g, new Vector2D(r.x+r.w/2, r.y+houseScale), 0, houseScale, c.getHouses());
+//                        drawHouses(g, new Vector2D(r.x+r.w/2, r.y+houseScale), 0, houseScale, c.getHouses());
                         break;
                     case LEFT:
                         g.drawImage(pcId, r.x+r.w-targetDim/3, r.y+r.h/2-targetDim/2, targetDim, targetDim);
-                        drawHouses(g, new Vector2D(r.x+r.w-houseScale, r.y+r.h/2), 90, houseScale, c.getHouses());
+//                        drawHouses(g, new Vector2D(r.x+r.w-houseScale, r.y+r.h/2), 90, houseScale, c.getHouses());
                         break;
                 }
+                Sprite sp = spriteMap.get(c.property.name());
+                if (sp != null) {
+                    sp.data1 = c.getHouses();
+                    //sp.M.setTranslate(r.x, r.y);
+                    sp.animateAndDraw(g, r.w, r.h);
+                }
+
                 if (c.isMortgaged()) {
                     g.setColor(GColor.TRANSLUSCENT_BLACK);
                     g.drawFilledRect(r);
@@ -1043,7 +1158,7 @@ public abstract class UIMonopoly extends Monopoly {
             g.scale(scale * 4);
             g.setColor(GColor.RED);
             drawHouse(g);
-        } else {
+        } else if (num < 5) {
             g.setColor(GColor.GREEN);
             g.scale(scale*2);
             g.translate(-HOUSE_RADIUS*(num-1), 0);
@@ -1051,6 +1166,8 @@ public abstract class UIMonopoly extends Monopoly {
                 drawHouse(g);
                 g.translate(HOUSE_RADIUS*2, 0);
             }
+        } else {
+            Utils.unhandledCase(num);
         }
         g.popMatrix();
     }

@@ -10,6 +10,7 @@ public class Board {
     public static final GColor LIGHT_BLUE  = new GColor(161, 216, 250);
     public static final GColor PURPLE      = new GColor(207, 40, 137);
     public static final GColor ORANGE      = new GColor(243, 133, 33);
+    public static final GColor GREEN       = GColor.GREEN.darkened(.4f);
 
     // values based on the board asset. rendered image will be scaled
     public final static float BOARD_DIMENSION = 1500;

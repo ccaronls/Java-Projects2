@@ -33,14 +33,20 @@ public class Player extends Reflector<Player> {
 
         int index = 0;
         Map<GColor, List<Card>> sets = getPropertySets();
+
+        Square sq = null;
         for (MoveType mt : options) {
             switch (mt) {
-                case SKIP:
+                case DONT_PURCHASE:
+                case END_TURN:
                 case ROLL_DICE:
                     weights[index] = 2;
                     break;
+                case PURCHASE_UNBOUGHT:
+                    sq = game.getPurchasePropertySquare();
                 case PURCHASE: {
-                    Square sq = getSquare();
+                    if (sq == null)
+                        sq = getSquare();
                     switch (sq.getType()) {
                         case PROPERTY:
                             if (sets.containsKey(sq.getColor())) {
@@ -88,8 +94,16 @@ public class Player extends Reflector<Player> {
                     weights[index] = 1+getMoney()/100;
                     break;
 
+                case TRADE: {
+                    for (Trade t : game.getTradeOptions(this)) {
+                        weights[index] += getNumOfSet(t.getCard().property);
+                        //Utils.assertTrue(t.getPrice() > 0);
+                        //float weight = (num * 100) / t.getPrice();
+                        //weights[index] += weight;
+                    }
+                    break;
+                }
                 case FORFEIT:
-                case TRADE:
                     break;
             }
             index++;
@@ -128,7 +142,7 @@ public class Player extends Reflector<Player> {
             case CHOOSE_CARD_FOR_NEW_UNIT: {
                 // choose card that will reduce money the least while increasing rent the most
                 for (Card c : cards) {
-                    int dCost = c.getProperty().getHousePrice();
+                    int dCost = c.getProperty().getUnitPrice();
                     int dRent = getRent(c.getProperty(), 7);
                     int delta = dRent-dCost;
                     if (best == null || delta > bestD) {
@@ -156,7 +170,21 @@ public class Player extends Reflector<Player> {
     }
 
     public Trade chooseTrade(Monopoly game, List<Trade> trades) {
-        return trades.get(0);
+        Trade best = null;
+        float bestRatio = 0;
+        for (Trade t : trades) {
+            cards.add(t.getCard());
+            float rent = game.getRent(t.getCard().property);
+            float cost = t.getPrice();
+            float ratio = rent / cost;
+            if (ratio > bestRatio) {
+                bestRatio = ratio;
+                best = t;
+            }
+            cards.remove(t.getCard());
+
+        }
+        return best;
     }
 
     public boolean markCardsForSale(Monopoly game, List<Card> sellable) {
@@ -385,7 +413,7 @@ public class Player extends Reflector<Player> {
     public final List<Card> getCardsForNewHouse() {
         List<Card> cards = new ArrayList<>();
         for (Card c : this.cards) {
-            if (c.property != null && c.property.isProperty() && c.property.getHousePrice() <= money && hasSet(c.property) && c.houses < Monopoly.MAX_HOUSES)
+            if (c.property != null && c.property.isProperty() && c.property.getUnitPrice() <= money && hasSet(c.property) && c.houses < Monopoly.MAX_HOUSES)
                 cards.add(c);
         }
         return cards;
@@ -459,7 +487,7 @@ public class Player extends Reflector<Player> {
                 if (hasSet(card.property))
                     continue;
                 int num = getNumOfSet(card.property);
-                int price = card.property.getPrice() * (1+num) + (2*card.getHouses()*card.property.getHousePrice());
+                int price = card.property.getPrice() * (1+num) + (2*card.getHouses()*card.property.getUnitPrice());
                 trades.add(new Trade(card, price, this));
             }
         }

@@ -23,6 +23,7 @@ import cc.lib.monopoly.Piece;
 import cc.lib.monopoly.Player;
 import cc.lib.monopoly.PlayerUser;
 import cc.lib.monopoly.Rules;
+import cc.lib.monopoly.Square;
 import cc.lib.monopoly.Trade;
 import cc.lib.monopoly.UIMonopoly;
 import cc.lib.utils.FileUtils;
@@ -56,6 +57,20 @@ public class AWTMonopoly extends AWTComponent {
         @Override
         protected MoveType showChooseMoveMenu(final Player player, final List<MoveType> moves) {
             final MoveType [] result = new MoveType[1];
+            final String [] strings = new String[moves.size()];
+            int index = 0;
+            for (MoveType mt : moves) {
+                switch (mt) {
+                    case PURCHASE_UNBOUGHT: {
+                        Square sq = getPurchasePropertySquare();
+                        strings[index++] = "Purchase " + sq.name() + " for $" + sq.getPrice();
+                        break;
+                    }
+                    default:
+                        strings[index++] = Utils.getPrettyString(mt.name());
+                        break;
+                }
+            }
             monopoly.trySaveToFile(saveFile);
             frame.showListChooserDialog(new AWTFrame.OnListItemChoosen() {
                 @Override
@@ -76,7 +91,7 @@ public class AWTMonopoly extends AWTComponent {
                         monopoly.notify();
                     }
                 }
-            }, "Choose Move " + player.getPiece(), Utils.toStringArray(moves.toArray(new MoveType[moves.size()]), true));
+            }, "Choose Move " + player.getPiece(), strings);
             Utils.waitNoThrow(monopoly, -1);
             return result[0];
         }
@@ -84,6 +99,22 @@ public class AWTMonopoly extends AWTComponent {
         @Override
         protected Card showChooseCardMenu(final Player player, final List<Card> cards, final Player.CardChoiceType type) {
             final Card [] result = new Card[1];
+            final String [] items = new String[cards.size()];
+            int index = 0;
+            for (Card c : cards) {
+                switch (type) {
+
+                    case CHOOSE_CARD_TO_MORTGAGE:
+                        items[index++] = Utils.getPrettyString(c.getProperty().name()) + " Mortgage $" + c.getProperty().getMortgageValue();
+                        break;
+                    case CHOOSE_CARD_TO_UNMORTGAGE:
+                        items[index++] = Utils.getPrettyString(c.getProperty().name()) + " Buyback $" + c.getProperty().getMortgageBuybackPrice();
+                        break;
+                    case CHOOSE_CARD_FOR_NEW_UNIT:
+                        items[index++] = Utils.getPrettyString(c.getProperty().name()) + " Unit $" + c.getProperty().getUnitPrice();
+                        break;
+                }
+            }
             frame.showListChooserDialog(new AWTFrame.OnListItemChoosen() {
                 @Override
                 public void itemChoose(int index) {
@@ -103,7 +134,7 @@ public class AWTMonopoly extends AWTComponent {
                         monopoly.notify();
                     }
                 }
-            }, player.getPiece() +  " " + Utils.getPrettyString(type.name()), Utils.toStringArray(cards));
+            }, player.getPiece() +  " " + Utils.getPrettyString(type.name()), items);
             Utils.waitNoThrow(monopoly, -1);
             return result[0];
         }
@@ -130,7 +161,7 @@ public class AWTMonopoly extends AWTComponent {
                         monopoly.notify();
                     }
                 }
-            }, "Choose Trade" + player.getPiece(), Utils.toStringArray(trades));
+            }, "Choose Trade" + player.getPiece(), Utils.toStringArray(trades, true));
             Utils.waitNoThrow(monopoly, -1);
             return result[0];
         }
@@ -192,6 +223,7 @@ public class AWTMonopoly extends AWTComponent {
                                             public void itemChoose(int pc) {
                                                 monopoly.stopGameThread();
                                                 monopoly.initPlayers(item + 2, Piece.values()[pc]);
+                                                monopoly.newGame();
                                                 monopoly.startGameThread();
                                             }
 
