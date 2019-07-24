@@ -305,7 +305,7 @@ public abstract class UIMonopoly extends Monopoly {
 
     @Override
     protected void onPlayerPurchaseProperty(final int playerNum, final Square property) {
-        addAnimation("BOARD", new AAnimation<AGraphics>(3000) {
+        addAnimation("GAME", new AAnimation<AGraphics>(5000) {
             @Override
             protected void draw(AGraphics g, float position, float dt) {
                 float w = DIM/4;
@@ -316,11 +316,11 @@ public abstract class UIMonopoly extends Monopoly {
                 g.translate(x, y);
                 drawPropertyCard(g, property, w, h);
                 g.popMatrix();
-                if (getDuration() > 1000) {
+                if (getElapsedTime() > 1000) {
                     g.setColor(GColor.RED);
                     int oldHgt = g.getTextHeight();
                     g.setTextHeight(h/20);
-                    g.drawJustifiedString(DIM/2, DIM/2, Justify.CENTER, Justify.CENTER, "SOLD");
+                    g.drawJustifiedString(DIM/2, h-10, Justify.CENTER, Justify.BOTTOM, "SOLD TO " + getPlayerName(playerNum));
                     g.setTextHeight(oldHgt);
                 }
             }
@@ -359,7 +359,7 @@ public abstract class UIMonopoly extends Monopoly {
 
     @Override
     protected void onPlayerBoughtHouse(int playerNum, Square property, int amt) {
-        addAnimation("BOARD", new AAnimation<AGraphics>(HOUSE_PAUSE) {
+        addAnimation("GAME", new AAnimation<AGraphics>(HOUSE_PAUSE) {
 
             Vector2D v0, v1;
 
@@ -396,7 +396,7 @@ public abstract class UIMonopoly extends Monopoly {
 
     @Override
     protected void onPlayerBoughtHotel(int playerNum, final Square property, int amt) {
-        addAnimation("BOARD", new AAnimation<AGraphics>(HOUSE_PAUSE) {
+        addAnimation("GAME", new AAnimation<AGraphics>(HOUSE_PAUSE) {
 
             Vector2D v0, v1;
 
@@ -578,12 +578,10 @@ public abstract class UIMonopoly extends Monopoly {
                         money = data1;
                         float textHeight = g.getTextHeight();
                         String amt = data2 < 0 ? String.valueOf(data2) : "+" + data2;
-                        final int dir = -1; // CMath.signOf(-data2);
-                        Vector2D delta = new Vector2D(0, textHeight * animation.getPosition() * dir);
+                        Vector2D delta = new Vector2D(0, textHeight * animation.getPosition());
                         g.pushMatrix();
-                        g.translate(0, textHeight*dir);
                         g.translate(delta);
-                        g.setColor((data2 > 0 ? GColor.GREEN : GColor.RED).withAlpha(animation.getPosition()));
+                        g.setColor((data2 > 0 ? Board.GREEN : Board.RED).withAlpha(animation.getPosition()));
                         g.drawJustifiedString(0, 0, Justify.RIGHT, Justify.CENTER, amt);
                         g.popMatrix();
                     }
@@ -907,42 +905,6 @@ public abstract class UIMonopoly extends Monopoly {
         } else {
             drawPortrait(g, mouseX, mouseY);
         }
-    }
-
-    void drawCard(APGraphics g, Square card, Player p, int w, int h) {
-        float oldH = g.getTextHeight();
-        g.setTextHeight(h/16);
-        g.setColor(GColor.WHITE);
-        g.drawFilledRect(0, 0, w, h);
-        g.setColor(card.getColor());
-        g.drawFilledRect(0, 0, w, h/5);
-        g.setColor(chooseContrastColor(card.getColor()));
-        g.drawWrapString(w/2, h/2, w-PADDING*2, Justify.CENTER, Justify.CENTER, Utils.getPrettyString(card.name()));
-
-        g.setColor(GColor.BLACK);
-        float sy = h/5 + PADDING;
-        String left= "RENT\n"
-                + "\nWITH SET"
-                + "\n1 House"
-                + "\n2 Houses"
-                + "\n3 Houses"
-                + "\n4 Houses"
-                + "\nHotel";
-
-        String right = String.valueOf(card.getRent(0))
-                + "\n$" + card.getRent(0) * 2;
-        for (int i=1; i<=MAX_HOUSES; i++)
-            right += "\n$" + card.getRent(i);
-
-        g.drawJustifiedString(PADDING, sy, Justify.LEFT, Justify.TOP, left);
-        g.drawJustifiedString(w-PADDING, sy, Justify.RIGHT, Justify.TOP, right);
-
-        //sy += g.getTextHeight()*8;
-        g.drawJustifiedString(w/2, h-PADDING, Justify.CENTER, Justify.BOTTOM, "$" + card.getPrice());
-
-        g.setColor(GColor.BLACK);
-        g.drawRect(0, 0, w, h);
-        g.setTextHeight(oldH);
     }
 
     private void drawPlayerInfo(APGraphics g, int playerNum, float w, float h) {
