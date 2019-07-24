@@ -7,10 +7,15 @@ import cc.lib.math.Vector2D;
 
 public class Board {
 
+    public static GColor WHITE = GColor.WHITE;
+    public static GColor BROWN = GColor.BROWN;
     public static final GColor LIGHT_BLUE  = new GColor(161, 216, 250);
     public static final GColor PURPLE      = new GColor(207, 40, 137);
     public static final GColor ORANGE      = new GColor(243, 133, 33);
+    public static GColor RED = GColor.RED;
+    public static GColor YELLOW = GColor.YELLOW;
     public static final GColor GREEN       = GColor.GREEN.darkened(.4f);
+    public static GColor BLUE = GColor.BLUE;
 
     // values based on the board asset. rendered image will be scaled
     public final static float BOARD_DIMENSION = 1500;

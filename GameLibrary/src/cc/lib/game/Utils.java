@@ -1921,7 +1921,7 @@ public class Utils {
      * @param <T>
      * @return
      */
-    public static <T> T shiftLeft(T [] arr) {
+    public static <T> T popFirst(T [] arr) {
         T top = arr[0];
         for (int i=0; i<arr.length-1; i++) {
             arr[i] = arr[i+1];
@@ -1934,7 +1934,7 @@ public class Utils {
      * @param arr
      * @return
      */
-    public static int shiftLeft(int [] arr) {
+    public static int popFirst(int [] arr) {
         int top = arr[0];
         for (int i=0; i<arr.length-1; i++) {
             arr[i] = arr[i+1];
@@ -1944,16 +1944,18 @@ public class Utils {
 
     /**
      * Shift all array elements to the right and return the item shift aff the back (nth-1 element)
+     * The zeroth element will be item.
      *
      * @param arr
      * @param <T>
      * @return
      */
-    public static <T> T shiftRight(T [] arr) {
+    public static <T> T pushFirst(T item, T [] arr) {
         T last = arr[arr.length-1];
         for (int i=arr.length-1; i>0; i--) {
             arr[i] = arr[i-1];
         }
+        arr[0] = item;
         return last;
     }
 

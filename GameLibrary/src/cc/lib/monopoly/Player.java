@@ -21,7 +21,6 @@ public class Player extends Reflector<Player> {
     int square;
     final List<Card> cards = new ArrayList<>();
     boolean inJail;
-    int debt;
     Piece piece;
 
     public MoveType chooseMove(Monopoly game, List<MoveType> options) {
@@ -84,13 +83,10 @@ public class Player extends Reflector<Player> {
                 case UNMORTGAGE:
                     weights[index] = getCardsForMortgage().size();
                     break;
-                case PAY_RENT:
-                case PAY_KITTY:
-                case PAY_PLAYERS:
                 case GET_OUT_OF_JAIL_FREE:
                     return mt;
 
-                case BUY_UNIT:
+                case UPGRADE:
                     weights[index] = 1+getMoney()/100;
                     break;
 
@@ -155,7 +151,7 @@ public class Player extends Reflector<Player> {
             case CHOOSE_CARD_TO_MORTGAGE: {
                 // choose card that will increase money the most while reducing loss to rent the most
                 for (Card c : cards) {
-                    int dMoney = c.getProperty().getMortgageValue();
+                    int dMoney = c.getProperty().getMortgageValue(c.getHouses());
                     int dRent = getRent(c.getProperty(), 7);
                     int delta = dMoney - dRent;
                     if (best == null || (money + dMoney > delta && delta > bestD)) {
@@ -262,7 +258,7 @@ public class Player extends Reflector<Player> {
         int value = money;
         for (Card c : cards) {
             if (c.property != null && !c.mortgaged) {
-                value += c.property.getMortgageValue();
+                value += c.property.getMortgageValue(c.houses);
             }
         }
         return value;
@@ -309,19 +305,8 @@ public class Player extends Reflector<Player> {
         if (card.mortgaged)
             return 0;
         if (property.isRailroad()) {
-            switch (getNumRailroads()) {
-                case 1:
-                    return 25;
-                case 2:
-                    return 50;
-                case 3:
-                    return 100;
-                case 4:
-                    return 200;
-                default:
-                    Utils.assertTrue(false, "Unvalid value for number of railroads %d", getNumRailroads());
-                    return 0;
-            }
+            int [] rentScale = { 0, 1, 2, 4, 8 };
+            return Monopoly.RAILROAD_RENT * rentScale[getNumRailroads()];
         } else if (property.isUtility()) {
             switch (getNumUtilities()) {
                 case 1:
@@ -358,7 +343,6 @@ public class Player extends Reflector<Player> {
 
     final void clear() {
         money = 0;
-        debt = 0;
         inJail = false;
         cards.clear();
         square = -1;
@@ -417,6 +401,14 @@ public class Player extends Reflector<Player> {
                 cards.add(c);
         }
         return cards;
+    }
+
+    public final int getNumHouses(Square sq) {
+        for (Card c : cards) {
+            if (c.getProperty() == sq)
+                return c.getHouses();
+        }
+        return 0;
     }
 
     public final int getNumHouses() {

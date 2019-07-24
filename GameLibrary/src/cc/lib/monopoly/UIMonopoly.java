@@ -25,22 +25,23 @@ import cc.lib.math.Vector2D;
 
 public abstract class UIMonopoly extends Monopoly {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
-    private final static float HOUSE_RADIUS = 1;
-    private final int MONEY_PAUSE = 1000;
-    private final int HOUSE_PAUSE = 2000;
+    private final static Logger log = LoggerFactory.getLogger(UIMonopoly.class);
+    public final static float HOUSE_RADIUS = 1;
+    public final static int MONEY_PAUSE = 1000;
+    public final static int HOUSE_PAUSE = 2000;
+    public final static float PADDING = 5;
+    public final static GColor BOARD_COLOR = new GColor(0xFFD2E5D2);
+    public final static GColor HOUSE_COLOR = GColor.GREEN.darkened(.6f);
+    public final static GColor HOTEL_COLOR = GColor.RED;
+
     private final Object LOCK = this;
     private boolean gameRunning = false;
     private boolean gameStopped = true;
-    private int W, H, DIM;
+    public int W, H, DIM;
     private Board board;
     private float playerInfoWidth, playerInfoHeight;
     private final Map<String, LinkedList<AAnimation>> animations = new HashMap<>();
     private final Map<String, Sprite> spriteMap = new HashMap<>();
-    private final GColor BOARD_COLOR = new GColor(0xFFD2E5D2);
-    private final float PADDING = 5;
-    private GColor HOUSE_COLOR = GColor.GREEN.darkened(.6f);
-    private GColor HOTEL_COLOR = GColor.RED;
 
     public UIMonopoly() {
         initSprites();
@@ -304,23 +305,48 @@ public abstract class UIMonopoly extends Monopoly {
 
     @Override
     protected void onPlayerPurchaseProperty(final int playerNum, final Square property) {
-        setSpriteAnim("PLAYER"+playerNum, new MoneyAnim(getPlayer(playerNum).getMoney(), -property.getPrice()).start());
-        addAnimation("BOARD", new AAnimation<AGraphics>(2000) {
+        addAnimation("BOARD", new AAnimation<AGraphics>(3000) {
             @Override
             protected void draw(AGraphics g, float position, float dt) {
-                GRectangle d = board.getSqaureBounds(property);
-                g.setColor(GColor.RED.withAlpha(1f-position));
-                g.drawWrapString(d.x+d.w/2, d.y+d.h/2, d.w * 3/4, Justify.CENTER, Justify.CENTER, "SOLD");
+                float w = DIM/4;
+                float h = w*3/2;
+                float x = DIM/2-w/2;
+                float y = DIM/2-h/2;
+                g.pushMatrix();
+                g.translate(x, y);
+                drawPropertyCard(g, property, w, h);
+                g.popMatrix();
+                if (getDuration() > 1000) {
+                    g.setColor(GColor.RED);
+                    int oldHgt = g.getTextHeight();
+                    g.setTextHeight(h/20);
+                    g.drawJustifiedString(DIM/2, DIM/2, Justify.CENTER, Justify.CENTER, "SOLD");
+                    g.setTextHeight(oldHgt);
+                }
             }
 
             @Override
             protected void onDone() {
-                synchronized (LOCK) {
-                    LOCK.notify();
-                }
+                setSpriteAnim("PLAYER"+playerNum, new MoneyAnim(getPlayer(playerNum).getMoney(), -property.getPrice()).start());
+                /*
+                addAnimation("BOARD", new AAnimation<AGraphics>(2000) {
+                    @Override
+                    protected void draw(AGraphics g, float position, float dt) {
+                        GRectangle d = board.getSqaureBounds(property);
+                        g.setColor(GColor.RED.withAlpha(1f-position));
+                        g.drawWrapString(d.x+d.w/2, d.y+d.h/2, d.w * 3/4, Justify.CENTER, Justify.CENTER, "SOLD");
+                    }
+
+                    @Override
+                    protected void onDone() {
+                        synchronized (LOCK) {
+                            LOCK.notify();
+                        }
+                    }
+                }.start());*/
             }
         }.start());
-        Utils.waitNoThrow(LOCK, 3000);
+        Utils.waitNoThrow(LOCK, 5000);
         super.onPlayerPurchaseProperty(playerNum, property);
     }
 
@@ -333,17 +359,75 @@ public abstract class UIMonopoly extends Monopoly {
 
     @Override
     protected void onPlayerBoughtHouse(int playerNum, Square property, int amt) {
-        setSpriteAnim("PLAYER"+playerNum, new MoneyAnim(getPlayer(playerNum).getMoney(), -amt).start());
-        setSpriteAnim(property.name(), new ErectHouseAnim().start());
-        Utils.waitNoThrow(LOCK, HOUSE_PAUSE);
+        addAnimation("BOARD", new AAnimation<AGraphics>(HOUSE_PAUSE) {
+
+            Vector2D v0, v1;
+
+            @Override
+            protected void onStarted() {
+                super.onStarted();
+                v0 = new Vector2D(DIM/2, DIM/2);
+                v1 = board.getInnerEdge(property);
+            }
+
+            @Override
+            protected void draw(AGraphics g, float position, float dt) {
+                float x0 = DIM/2;
+                float y0 = DIM/2;
+                Vector2D v = v0.add(v1.sub(v0).scaledBy(position));
+                float s = DIM/20;
+                g.pushMatrix();
+                g.translate(v);
+                g.setColor(HOUSE_COLOR);
+                g.scale(s*(1.0f-position));
+                drawHouse(g);
+                g.popMatrix();
+            }
+
+            @Override
+            protected void onDone() {
+                setSpriteAnim("PLAYER"+playerNum, new MoneyAnim(getPlayer(playerNum).getMoney(), -amt).start());
+                setSpriteAnim(property.name(), new ErectHouseAnim().start());
+            }
+        }.start());
+        Utils.waitNoThrow(LOCK, HOUSE_PAUSE*2);
         super.onPlayerBoughtHouse(playerNum, property, amt);
     }
 
     @Override
-    protected void onPlayerBoughtHotel(int playerNum, Square property, int amt) {
-        setSpriteAnim("PLAYER"+playerNum, new MoneyAnim(getPlayer(playerNum).getMoney(), -amt).start());
-        setSpriteAnim(property.name(), new ErectHouseAnim().start());
-        Utils.waitNoThrow(LOCK, HOUSE_PAUSE);
+    protected void onPlayerBoughtHotel(int playerNum, final Square property, int amt) {
+        addAnimation("BOARD", new AAnimation<AGraphics>(HOUSE_PAUSE) {
+
+            Vector2D v0, v1;
+
+            @Override
+            protected void onStarted() {
+                super.onStarted();
+                v0 = new Vector2D(DIM/2, DIM/2);
+                v1 = board.getInnerEdge(property);
+            }
+
+            @Override
+            protected void draw(AGraphics g, float position, float dt) {
+                Vector2D v = v0.add(v1.sub(v0).scaledBy(position));
+                float sx = DIM/12;
+                float sy = DIM/10;
+                g.pushMatrix();
+                g.translate(v);
+                g.setColor(HOTEL_COLOR);
+                g.scale(sx, sy);
+                g.scale(1.0f-position);
+                drawHouse(g);
+                g.popMatrix();
+            }
+
+            @Override
+            protected void onDone() {
+                setSpriteAnim("PLAYER"+playerNum, new MoneyAnim(getPlayer(playerNum).getMoney(), -amt).start());
+                setSpriteAnim(property.name(), new ErectHouseAnim().start());
+            }
+        }.start());
+        Utils.waitNoThrow(LOCK, HOUSE_PAUSE*2);
         super.onPlayerBoughtHotel(playerNum, property, amt);
     }
 
@@ -490,17 +574,16 @@ public abstract class UIMonopoly extends Monopoly {
                 void draw(AGraphics g, float w, float h) {
                     final Player p = getPlayer(pNum);
                     int money = p.getMoney();
-                    if (isAnimating()) {
+                    if (animation != null) {
                         money = data1;
                         float textHeight = g.getTextHeight();
                         String amt = data2 < 0 ? String.valueOf(data2) : "+" + data2;
-                        animation.getPosition();
-                        int dir = CMath.signOf(-data2);
+                        final int dir = -1; // CMath.signOf(-data2);
                         Vector2D delta = new Vector2D(0, textHeight * animation.getPosition() * dir);
                         g.pushMatrix();
                         g.translate(0, textHeight*dir);
                         g.translate(delta);
-                        g.setColor((data2 > 0 ? GColor.GREEN : GColor.RED).withAlpha(1f-animation.getPosition()));
+                        g.setColor((data2 > 0 ? GColor.GREEN : GColor.RED).withAlpha(animation.getPosition()));
                         g.drawJustifiedString(0, 0, Justify.RIGHT, Justify.CENTER, amt);
                         g.popMatrix();
                     }
@@ -575,6 +658,7 @@ public abstract class UIMonopoly extends Monopoly {
                         }
                         g.translate(v);
                         g.rotate(angle);
+                        g.multMatrix(M);
                         if (isAnimating()) {
                             switch (houses) {
                                 case 0: // draw one growing house
@@ -933,7 +1017,7 @@ public abstract class UIMonopoly extends Monopoly {
         g.clearClip();
     }
 
-    private float drawWrapStringOnBackground(AGraphics g, float x, float y, float width, String txt, GColor bkColor, GColor txtColor, float border) {
+    public float drawWrapStringOnBackground(AGraphics g, float x, float y, float width, String txt, GColor bkColor, GColor txtColor, float border) {
         GDimension d = g.drawWrapString(x+border, y+border, width-border*2, txt);
         g.setColor(bkColor);
         g.drawFilledRect(x, y, width, d.height+2*border);
@@ -942,7 +1026,68 @@ public abstract class UIMonopoly extends Monopoly {
         return d.height + 2*border;
     }
 
-    private GColor chooseContrastColor(GColor c) {
+    public void drawPropertyCard(AGraphics g, Square property, float w, float h) {
+        final float padding = w/15;
+        g.setColor(GColor.WHITE);
+        g.drawFilledRect(0, 0, w, h);
+        g.setColor(property.getColor());
+        final float BANNER_HEIGHT = h/5;
+        int oldTextHeight = g.getTextHeight();
+        g.setTextHeight(BANNER_HEIGHT/3);
+        g.drawFilledRect(0, 0, w, BANNER_HEIGHT);
+        g.translate(padding, padding);
+        w -= padding*2;
+        g.setColor(chooseContrastColor(property.getColor()));
+        g.drawWrapString(w/2, 0, w, Justify.CENTER, Justify.TOP, Utils.getPrettyString(property.name()));
+        g.setTextHeight(oldTextHeight);
+        g.translate(0, BANNER_HEIGHT);
+        h -= padding*2 - BANNER_HEIGHT;
+        g.setColor(GColor.BLACK);
+        if (property.isProperty()) {
+            g.drawWrapString(0, 0, w, String.format(
+                    "PRICE $%d RENT $%d"
+                    +"\n\nRent With:"
+                    +"\n1 House $%d"
+                    +"\n2 Houses $%d"
+                    +"\n3 Houses $%d"
+                    +"\n4 Houses $%d"
+                    +"\nHotel $%d"
+                    +"\n\nUpgrade $%d"
+                    +"\nMORTGAGE: $%d"
+                    ,property.getPrice(), property.getRent(0)
+                    ,property.getRent(1)
+                    ,property.getRent(2)
+                    ,property.getRent(3)
+                    ,property.getRent(4)
+                    ,property.getRent(5)
+                    ,property.getUnitPrice()
+                    ,property.getMortgageValue(0)
+            ));
+        } else if (property.isUtility()) {
+            g.drawWrapString(0, 0, w, String.format(
+                    "PRICE $%d"
+                    +"\n\nIf One Utility is owned then 4 times the amount shown on dice.\nIf two Utilities owned then 10 times the amount shown on Dice\n\nMortgage $%d", property.getPrice(), property.getMortgageValue(0)));
+        } else if (property.isRailroad()) {
+            g.drawWrapString(0, 0, w, String.format(
+                    "PRICE $%d"
+                    +"\n\nRENT $%d"
+                    +"\nIf 2 R.R. Owned $%d"
+                    +"\nIf 3 R.R. Owned $%d"
+                    +"\nIf 4 R.R. Owned $%d"
+                    +"\n\nMORTGAGE $%d"
+                    ,property.getPrice()
+                    ,Monopoly.RAILROAD_RENT * (1<<0)
+                    ,Monopoly.RAILROAD_RENT * (1<<1)
+                    ,Monopoly.RAILROAD_RENT * (1<<2)
+                    ,Monopoly.RAILROAD_RENT * (1<<3)
+                    ,property.getMortgageValue(0)
+            ));
+        } else {
+            throw new AssertionError("Dont know how to draw: " + property);
+        }
+    }
+
+    public GColor chooseContrastColor(GColor c) {
         float amt = c.getRed()+c.getBlue()+c.getGreen();
         amt *= c.getAlpha();
         if (amt > 1.5f)
@@ -1046,7 +1191,7 @@ public abstract class UIMonopoly extends Monopoly {
         g.setColor(color); // restore color
     }
 
-    public void drawBoard(AGraphics g) {
+    private void drawBoard(AGraphics g) {
         g.drawImage(getBoardImageId(), 0, 0, DIM, DIM);
         {
             Sprite kitty = spriteMap.get(Square.FREE_PARKING.name());
@@ -1148,28 +1293,6 @@ public abstract class UIMonopoly extends Monopoly {
             }
         }
         drawAnimations(g, "BOARD");
-    }
-
-    private void drawHouses(AGraphics g, Vector2D cntr, float angle, float scale, int num) {
-        g.pushMatrix();
-        g.translate(cntr);
-        g.rotate(angle);
-        if (num == 5) {
-            g.scale(scale * 4);
-            g.setColor(GColor.RED);
-            drawHouse(g);
-        } else if (num < 5) {
-            g.setColor(GColor.GREEN);
-            g.scale(scale*2);
-            g.translate(-HOUSE_RADIUS*(num-1), 0);
-            for (int i=0; i<num; i++) {
-                drawHouse(g);
-                g.translate(HOUSE_RADIUS*2, 0);
-            }
-        } else {
-            Utils.unhandledCase(num);
-        }
-        g.popMatrix();
     }
 
     public void drawDice(AGraphics g, int die1, int die2) {

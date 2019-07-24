@@ -63,7 +63,7 @@ public class AWTMonopoly extends AWTComponent {
                 switch (mt) {
                     case PURCHASE_UNBOUGHT: {
                         Square sq = getPurchasePropertySquare();
-                        strings[index++] = "Purchase " + sq.name() + " for $" + sq.getPrice();
+                        strings[index++] = "Purchase " + Utils.getPrettyString(sq.name()) + " $" + sq.getPrice();
                         break;
                     }
                     default:
@@ -76,8 +76,43 @@ public class AWTMonopoly extends AWTComponent {
                 @Override
                 public void itemChoose(int index) {
                     result[0] = moves.get(index);
-                    synchronized (monopoly) {
-                        monopoly.notify();
+                    switch (result[0]) {
+                        case PURCHASE_UNBOUGHT:{
+                            showPropertyPopup("Purchase?",
+                                    getPurchasePropertySquare(), () -> {
+                                        synchronized (monopoly) {
+                                            monopoly.notify();
+                                        }
+                                    }, () -> {
+                                        result[0] = null;
+                                        synchronized (monopoly) {
+                                            monopoly.notify();
+                                        }
+
+                                    }
+                            );
+                            break;
+                        }
+                        case PURCHASE: {
+                            showPropertyPopup("Purchase?",
+                                    player.getSquare(), () -> {
+                                        synchronized (monopoly) {
+                                            monopoly.notify();
+                                        }
+                                    }, () -> {
+                                        result[0] = null;
+                                        synchronized (monopoly) {
+                                            monopoly.notify();
+                                        }
+
+                                    }
+                            );
+                            break;
+                        }
+                        default:
+                            synchronized (monopoly) {
+                                monopoly.notify();
+                            }
                     }
                 }
 
@@ -105,7 +140,7 @@ public class AWTMonopoly extends AWTComponent {
                 switch (type) {
 
                     case CHOOSE_CARD_TO_MORTGAGE:
-                        items[index++] = Utils.getPrettyString(c.getProperty().name()) + " Mortgage $" + c.getProperty().getMortgageValue();
+                        items[index++] = Utils.getPrettyString(c.getProperty().name()) + " Mortgage $" + c.getProperty().getMortgageValue(c.getHouses());
                         break;
                     case CHOOSE_CARD_TO_UNMORTGAGE:
                         items[index++] = Utils.getPrettyString(c.getProperty().name()) + " Buyback $" + c.getProperty().getMortgageBuybackPrice();
@@ -173,7 +208,7 @@ public class AWTMonopoly extends AWTComponent {
                 synchronized (monopoly) {
                     monopoly.notify();
                 }
-                popup.closePopup(frame);
+                popup.closePopup();
             };
             AWTPanel content = new AWTPanel(new BorderLayout());
             AWTPanel list = new AWTPanel(0, 2);
@@ -195,6 +230,36 @@ public class AWTMonopoly extends AWTComponent {
             return true;
         }
     };
+
+    public AWTFrame showPropertyPopup(String title, final Square sq, final Runnable onBuyRunnable, final Runnable onDontBuyRunnble) {
+        final AWTFrame popup = new AWTFrame();
+        AWTPanel content = new AWTPanel(new BorderLayout());
+        content.add(new AWTLabel(title, 1, 20, true), BorderLayout.NORTH);
+        AWTComponent sqPanel = new AWTComponent() {
+            @Override
+            protected void paint(AWTGraphics g, int mouseX, int mouseY) {
+                monopoly.drawPropertyCard(g, sq, g.getViewportWidth(), g.getViewportHeight());
+            }
+        };
+        sqPanel.setPreferredSize(monopoly.DIM/3, monopoly.DIM/4*2);
+        content.add(sqPanel);
+        content.add(new AWTPanel(1, 2, new AWTButton("Buy") {
+            @Override
+            protected void onAction() {
+                popup.closePopup();
+                onBuyRunnable.run();
+            }
+        }, new AWTButton("Dont Buy") {
+            @Override
+            protected void onAction() {
+                popup.closePopup();
+                onDontBuyRunnble.run();
+            }
+        }), BorderLayout.SOUTH);
+        popup.setContentPane(content);
+        popup.showAsPopup(frame);
+        return popup;
+    }
 
     final File saveFile;
 
@@ -272,13 +337,13 @@ public class AWTMonopoly extends AWTComponent {
                                         rules.taxScale = 0.01f * npTaxScale.getValue();
                                         rules.startMoney = npStart.getValue();
                                         rules.jailBumpEnabled = jailBump.isSelected();
-                                        popup.closePopup(frame);
+                                        popup.closePopup();
                                     }
                                 });
                                 content.addBottom(new AWTButton("Cancel") {
                                     @Override
                                     protected void onAction() {
-                                        popup.closePopup(frame);
+                                        popup.closePopup();
                                     }
                                 });
                                 popup.setContentPane(content);

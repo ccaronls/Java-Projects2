@@ -5,11 +5,8 @@ public enum MoveType {
     PURCHASE,
     PURCHASE_UNBOUGHT,
     DONT_PURCHASE,
-    PAY_RENT,
-    PAY_KITTY,
-    PAY_PLAYERS,
     END_TURN,
-    BUY_UNIT, // house or hotel
+    UPGRADE, // house or hotel
     PAY_BOND,
     MORTGAGE,
     UNMORTGAGE,

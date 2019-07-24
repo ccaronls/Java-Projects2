@@ -66,7 +66,7 @@ public class Card extends Reflector<Card> {
         if (mortgaged) {
             s += "\nMORTGAGED\nBuy Back $" + property.getMortgageBuybackPrice();
         } else {
-            s += "\nMortgage\nValue $" + property.getMortgageValue();
+            s += "\nMortgage\nValue $" + property.getMortgageValue(houses);
         }
         return s;
     }

@@ -68,9 +68,12 @@ public class AWTFrame extends JFrame implements WindowListener, ComponentListene
         setResizable(false);
         setVisible(true);
         setAlwaysOnTop(true);
+        this.parent = parent;
     }
 
-    public void closePopup(JFrame parent) {
+    private JFrame parent;
+
+    public void closePopup() {
         synchronized (this) {
             this.notify();
         }
@@ -667,7 +670,7 @@ public class AWTFrame extends JFrame implements WindowListener, ComponentListene
                 itemListener.itemChoose(index);
             else
                 itemListener.cancelled();
-            popup.closePopup(AWTFrame.this);
+            popup.closePopup();
         };
         AWTPanel frame = new AWTPanel(new BorderLayout());
         AWTPanel list = new AWTPanel(0, 1);

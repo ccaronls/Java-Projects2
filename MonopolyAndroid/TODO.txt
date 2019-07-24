@@ -1,0 +1,4 @@
+- Pull card images from asset
+- Mortgage property sells back all houses to bank for half
+- Fix payOrMortgage to work correctly
+- Leave the last money in/out showing after the animation
