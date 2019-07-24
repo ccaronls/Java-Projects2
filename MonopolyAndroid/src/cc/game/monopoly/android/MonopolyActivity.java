@@ -21,6 +21,7 @@ import android.widget.BaseAdapter;
 import android.widget.CompoundButton;
 import android.widget.GridLayout;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.NumberPicker;
 import android.widget.TextView;
@@ -39,6 +40,7 @@ import cc.lib.monopoly.Piece;
 import cc.lib.monopoly.Player;
 import cc.lib.monopoly.PlayerUser;
 import cc.lib.monopoly.Rules;
+import cc.lib.monopoly.Square;
 import cc.lib.monopoly.Trade;
 import cc.lib.monopoly.UIMonopoly;
 import cc.lib.utils.FileUtils;
@@ -109,12 +111,25 @@ public class MonopolyActivity extends DroidActivity {
         @Override
         protected MoveType showChooseMoveMenu(final Player player, final List<MoveType> moves) {
 
-            final String [] items = Utils.toStringArray(moves, true);
+            final String [] items = new String[moves.size()];
+            int index=0;
+            for (MoveType mt : moves) {
+                switch (mt) {
+                    case PURCHASE_UNBOUGHT: {
+                        Square sq = getPurchasePropertySquare();
+                        items[index++] = "Purchase " + Utils.getPrettyString(sq.name()) + " for $" + sq.getPrice();
+                        break;
+                    }
+                    default:
+                        items[index++] = Utils.getPrettyString(mt.name());
+                        break;
+                }
+            }
             final MoveType [] result = new MoveType[1];
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    newDialogBuilder().setTitle(player.getPiece() + " Choose Move ")
+                    newDialogBuilder().setTitle(Utils.getPrettyString(player.getPiece().name()) + " Choose Move ")
                             .setItems(items, new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
@@ -482,6 +497,7 @@ public class MonopolyActivity extends DroidActivity {
                     showPieceChooser(new Runnable() {
                         @Override
                         public void run() {
+                            monopoly.newGame();
                             monopoly.startGameThread();
                         }
                     });
@@ -581,16 +597,18 @@ public class MonopolyActivity extends DroidActivity {
     @Override
     protected void onDialogShown(Dialog d) {
 
+//        d.getWindow().setLayout(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+
         Display display = getWindowManager().getDefaultDisplay();
         WindowManager.LayoutParams lp = d.getWindow().getAttributes();
         Point size = new Point();
         display.getSize(size);
         if (isPortrait()) {
             //lp.gravity = Gravity.TOP;
-            lp.y = size.y  - size.y/5;
+            lp.y = size.y/5;
             lp.width = size.x/2;
         } else {
-            lp.width = size.x/3;
+            lp.width = size.y/2;
         }
         d.getWindow().setAttributes(lp);
     }

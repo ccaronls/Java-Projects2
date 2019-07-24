@@ -555,7 +555,7 @@ public abstract class UIMonopoly extends Monopoly {
                         int houses = data1;
                         Vector2D v = null;
                         int angle = 0;
-                        switch (board.getsQuarePosition(sq)) {
+                        switch (board.getSquarePosition(sq)) {
                             case TOP:
                                 v = new Vector2D(r.x+r.w/2, r.y+r.h-houseScale);
                                 angle = 0;//, houseScale, houses);
@@ -731,8 +731,8 @@ public abstract class UIMonopoly extends Monopoly {
             curve.addPoint(r0.x, r0.y);
             float dx = r1.x-r0.x;
             float dy = r1.y-r0.y;
-            curve.addPoint(r0.x + dx/3, Utils.clamp(r0.y + dy*0.33f - dx/6, 0, DIM));
-            curve.addPoint(r0.x + dx*2/3, Utils.clamp(r0.y + dy*0.66f - dx/6, 0, DIM));
+            curve.addPoint(r0.x + dx/3, Utils.clamp(r0.y + dy*0.33f + dx/6, 0, DIM));
+            curve.addPoint(r0.x + dx*2/3, Utils.clamp(r0.y + dy*0.66f + dx/6, 0, DIM));
             curve.addPoint(r1.x, r1.y);
             jumps-=dir*steps;
         }
@@ -1079,7 +1079,7 @@ public abstract class UIMonopoly extends Monopoly {
                     continue;
                 GRectangle r = board.getSqaureBounds(c.getProperty());
                 //float houseScale = Math.min(r.w, r.h)/15;
-                switch (board.getsQuarePosition(c.getProperty())) {
+                switch (board.getSquarePosition(c.getProperty())) {
                     case TOP:
                         g.drawImage(pcId, r.x+r.w/2-targetDim/2, r.y+r.h-targetDim/3, targetDim, targetDim);
 //                        drawHouses(g, new Vector2D(r.x+r.w/2, r.y+r.h-houseScale), 0, houseScale, c.getHouses());
@@ -1127,7 +1127,7 @@ public abstract class UIMonopoly extends Monopoly {
                 Vector2D v = board.getInnerEdge(t.getCard().property);
                 float offset = board.getPieceDimension();
                 //GRectangle r = board.getPiecePlacement(getPlayerNum(t.getTrader()), t.getCard().property);
-                Board.Position pos = board.getsQuarePosition(t.getCard().property);
+                Board.Position pos = board.getSquarePosition(t.getCard().property);
                 g.setColor(GColor.YELLOW);
                 switch (pos) {
                     case TOP:

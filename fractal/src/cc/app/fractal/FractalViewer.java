@@ -14,6 +14,7 @@ import cc.app.fractal.FractalComponent.FractalImage;
 import cc.app.fractal.evaluator.*;
 import cc.lib.math.ComplexNumber;
 import cc.lib.swing.AWTFrame;
+import cc.lib.swing.AWTPanel;
 import cc.lib.utils.FileUtils;
 
 public class FractalViewer extends AWTFrame implements FractalComponent.FractalListener, ActionListener{
@@ -63,6 +64,7 @@ public class FractalViewer extends AWTFrame implements FractalComponent.FractalL
         CANCEL("Cancel"),  
         SHOW_WATERMARK("Water Mark"),
         MAKE_MOVIE("Make Movie"),
+        POSITION("Position"),
         ;
         
         private Action(String label) {
@@ -94,6 +96,7 @@ public class FractalViewer extends AWTFrame implements FractalComponent.FractalL
     JTextField animStartField;
     JTextField animEndField;
     AnimateThread animation;
+    JTextField zoomLeft, zoomRight, zoomTop, zoomBottom;
 //    final HashMap<String, ComplexNumber> vars = new HashMap<String, ComplexNumber>();
     final AEvaluator evaluator = new Evaluator();
     
@@ -142,10 +145,19 @@ public class FractalViewer extends AWTFrame implements FractalComponent.FractalL
         redoButton = addButton(Action.REDO, leftButtons, false);
         zoomInButton = addButton(Action.ZOOMIN, leftButtons);
         zoomOutButton = addButton(Action.ZOOMOUT, leftButtons);
-        
+
         addButton(Action.SAVE, leftButtons);
         addButton(Action.CENTER, leftButtons);
-        
+
+        JPanel mv1 = new AWTPanel(0, 1);
+        zoomLeft = addTextField(Action.POSITION, "LEFT", mv1, getStringProperty(PROP_ZOOM_LEFT, "-2"));
+        zoomRight = addTextField(Action.POSITION, "RIGHT", mv1, getStringProperty(PROP_ZOOM_RIGHT, "2"));
+        leftButtons.add(mv1);
+        mv1 = new AWTPanel(0, 1);
+        zoomTop = addTextField(Action.POSITION, "TOP", mv1, getStringProperty(PROP_ZOOM_TOP, "-2"));
+        zoomBottom = addTextField(Action.POSITION, "BOTTOM", mv1, getStringProperty(PROP_ZOOM_BOTTOM, "2"));
+        leftButtons.add(mv1);
+
         group = new ButtonGroup();
         
         String fractalSetString = getStringProperty(PROP_FRACTAL_SET, Action.MANDELBROT_SET.name());
@@ -222,6 +234,7 @@ public class FractalViewer extends AWTFrame implements FractalComponent.FractalL
 			});
             rightButtons.add(b, null);
         }
+
         addButton(Action.MAKE_MOVIE, rightButtons);
 
         fractalComponent = new FractalComponent(colorTable, 2);
@@ -287,25 +300,6 @@ public class FractalViewer extends AWTFrame implements FractalComponent.FractalL
         if (!restoreFromProperties()) {
             centerToScreen(640, 480);
         }
-        //centerToScreen();
-        //Rectangle rect = getBounds();
-        //int x = getIntProperty(PROP_WINDOW_X, rect.x);
-        //int y = getIntProperty(PROP_WINDOW_Y, rect.x);
-        //this.finalizeToPosition(x, y);
-        //showOnScreen(1);
-        
-        /*
-        pack();
-        
-        // center on the screen
-        Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-        int x,y;
-        x = dim.width / 2 - getWidth() / 2;
-        y = dim.height / 2 - getHeight() / 2;
-        setLocation(x, y);
-        setVisible(true);
-        //setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-         */
     }
     
     @Override
@@ -399,14 +393,17 @@ public class FractalViewer extends AWTFrame implements FractalComponent.FractalL
             panel.add(button);
         return button;
     }
-
     JTextField addTextField(Action fAction, JPanel panel, String defaultText) {
+        return addTextField(fAction, fAction.getLabel(), panel, defaultText);
+    }
+
+    JTextField addTextField(Action fAction, String label, JPanel panel, String defaultText) {
         JTextField input = new JTextField(10);
         JPanel container = new JPanel();
         input.setText(defaultText);
         input.setActionCommand(fAction.name());
         input.addActionListener(this);
-        container.add(new JLabel(fAction.getLabel()));
+        container.add(new JLabel(label));
         container.add(input);
         panel.add(container);
         return input;
@@ -461,6 +458,15 @@ public class FractalViewer extends AWTFrame implements FractalComponent.FractalL
                 case CENTER:
                     fractalComponent.zoomRect(-DEFAULT_ZOOM, DEFAULT_ZOOM, DEFAULT_ZOOM, -DEFAULT_ZOOM);
                     break;
+
+                case POSITION: {
+                    double left = Double.parseDouble(zoomLeft.getText());
+                    double right = Double.parseDouble(zoomRight.getText());
+                    double top = Double.parseDouble(zoomTop.getText());
+                    double bottom = Double.parseDouble(zoomBottom.getText());
+                    fractalComponent.zoomRect(left, right, top, bottom);
+                    break;
+                }
                     
                 case SAVE: {
 

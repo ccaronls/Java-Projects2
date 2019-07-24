@@ -33,7 +33,7 @@ public class Board {
     private final float dim; // dimension of whole board
     private final float scale;
     private final float borderDim; // dimension of a corner square
-    private final float cellDim; // width of a narrow square
+    private final float cellDim; // width of short side of a rect
 
     public Board(float dim) {
         this.dim = dim;
@@ -176,7 +176,7 @@ public class Board {
     }
 
     // TODO: Make this apart of Square enum
-    public Position getsQuarePosition(Square sq) {
+    public Position getSquarePosition(Square sq) {
         switch (sq) {
 
             case GO:
