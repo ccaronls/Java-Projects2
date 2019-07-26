@@ -174,17 +174,26 @@ public abstract class AAnimation<T> {
         draw(g, position, dt);
         lastTime = t;
         if (state == State.STOPPED) {
-            state = State.DONE;
+            kill();
             onDone();
         }
-        boolean done = isDone();
-        reset();
-        return done;
+        return isDone();
     }
-    
+
+    /**
+     * If animation is running will stop where it is and call onDone on next call to update
+     */
     public synchronized void stop() {
         if (state != State.DONE)
             state = state.STOPPED;
+    }
+
+    /**
+     * Animation state set to DONE
+     */
+    public synchronized void kill() {
+        state = State.DONE;
+        this.position = reverse ? 0 : 1;
     }
 
     /**
@@ -263,11 +272,4 @@ public abstract class AAnimation<T> {
         return state == State.STARTED;
     }
 
-    /**
-     * Reset the animation to the prestart state. Must call start(...) afterward before the next update.
-     * Called automatically after onDone(). Calling this before onDone will cause onDone to not get called
-     * for current animation cycle.
-     */
-    public final void reset() {
-    }
 }

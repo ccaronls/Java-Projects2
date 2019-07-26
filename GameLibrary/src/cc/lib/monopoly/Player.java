@@ -17,11 +17,11 @@ public class Player extends Reflector<Player> {
         addAllFields(Player.class);
     }
 
-    int money;
-    int square;
-    final List<Card> cards = new ArrayList<>();
-    boolean inJail;
-    Piece piece;
+    private int money;
+    private int square;
+    private final List<Card> cards = new ArrayList<>();
+    private boolean inJail;
+    private Piece piece;
 
     public MoveType chooseMove(Monopoly game, List<MoveType> options) {
         if (options.size() == 1)
@@ -199,8 +199,17 @@ public class Player extends Reflector<Player> {
         return Square.values()[square];
     }
 
+    public final void setSquare(Square sq) {
+        square = sq.ordinal();
+    }
+
     public final int getMoney() {
         return money;
+    }
+
+    public final void addMoney(int amt) {
+        money += amt;
+        Utils.assertTrue(money >= 0);
     }
 
     public final List<Card> getCards() {
@@ -217,6 +226,10 @@ public class Player extends Reflector<Player> {
 
     public final boolean isInJail() {
         return inJail;
+    }
+
+    public final void setInJail(boolean inJail) {
+        this.inJail = inJail;
     }
 
     public final Map<GColor, List<Card>> getPropertySets() {
@@ -345,7 +358,7 @@ public class Player extends Reflector<Player> {
         money = 0;
         inJail = false;
         cards.clear();
-        square = -1;
+        square = 0;
     }
 
     final void useGetOutOfJailCard() {

@@ -29,6 +29,8 @@ public abstract class UIMonopoly extends Monopoly {
     public final static float HOUSE_RADIUS = 1;
     public final static int MONEY_PAUSE = 1000;
     public final static int HOUSE_PAUSE = 2000;
+    public final static int PURCHASE_PAUSE = 10000;
+    public final static int MESSAGE_PAUSE = 6000;
     public final static float PADDING = 5;
     public final static GColor BOARD_COLOR = new GColor(0xFFD2E5D2);
     public final static GColor HOUSE_COLOR = GColor.GREEN.darkened(.6f);
@@ -122,7 +124,10 @@ public abstract class UIMonopoly extends Monopoly {
 
             @Override
             protected void draw(AGraphics g, float position, float dt) {
-                drawDice(g, die1, die2);
+                g.pushMatrix();
+                g.translate(W/2, H/4);
+                drawDice(g, die1, die2, DIM/10);
+                g.popMatrix();
             }
 
             @Override
@@ -225,7 +230,7 @@ public abstract class UIMonopoly extends Monopoly {
         final GRectangle start = board.getPiecePlacement(playerNum, p.getSquare());
         final GRectangle end   = board.getPiecePlacementJail(playerNum);
         addAnimation("PLAYER"+playerNum, new JailedAnim(playerInfoWidth, playerInfoHeight).start());
-        setSpriteAnim(p.piece.name(), new AAnimation<Sprite>(2000) {
+        setSpriteAnim(p.getPiece().name(), new AAnimation<Sprite>(2000) {
 
             final Bezier curve = new Bezier();
 
@@ -303,63 +308,56 @@ public abstract class UIMonopoly extends Monopoly {
         super.onPlayerUnMortgaged(playerNum, property, amt);
     }
 
+    class PropertyAnimation extends AAnimation<AGraphics> {
+
+        final Square property;
+        final int buyerNum;
+
+        PropertyAnimation(Square property, int buyerNum) {
+            super(6000);
+            this.property = property;
+            this.buyerNum = buyerNum;
+        }
+        @Override
+        protected void draw(AGraphics g, float position, float dt) {
+            float w = DIM/4;
+            float h = w*3/2;
+            float x = DIM/2-w/2;
+            float y = DIM/2-h/2;
+            g.pushMatrix();
+            g.translate(x, y);
+            drawPropertyCard(g, property, w, h);
+            if (getElapsedTime() > 1000) {
+                g.setColor(GColor.RED);
+                int oldHgt = g.getTextHeight();
+                g.setTextHeight(h/20);
+                g.drawJustifiedString(w/2, h-10, Justify.CENTER, Justify.BOTTOM, "SOLD TO " + getPlayerName(buyerNum));
+                g.setTextHeight(oldHgt);
+            }
+            g.popMatrix();
+        }
+    }
+
     @Override
     protected void onPlayerPurchaseProperty(final int playerNum, final Square property) {
-        addAnimation("GAME", new AAnimation<AGraphics>(5000) {
-            @Override
-            protected void draw(AGraphics g, float position, float dt) {
-                float w = DIM/4;
-                float h = w*3/2;
-                float x = DIM/2-w/2;
-                float y = DIM/2-h/2;
-                g.pushMatrix();
-                g.translate(x, y);
-                drawPropertyCard(g, property, w, h);
-                g.popMatrix();
-                if (getElapsedTime() > 1000) {
-                    g.setColor(GColor.RED);
-                    int oldHgt = g.getTextHeight();
-                    g.setTextHeight(h/20);
-                    g.drawJustifiedString(DIM/2, h-10, Justify.CENTER, Justify.BOTTOM, "SOLD TO " + getPlayerName(playerNum));
-                    g.setTextHeight(oldHgt);
-                }
-            }
-
-            @Override
-            protected void onDone() {
-                setSpriteAnim("PLAYER"+playerNum, new MoneyAnim(getPlayer(playerNum).getMoney(), -property.getPrice()).start());
-                /*
-                addAnimation("BOARD", new AAnimation<AGraphics>(2000) {
-                    @Override
-                    protected void draw(AGraphics g, float position, float dt) {
-                        GRectangle d = board.getSqaureBounds(property);
-                        g.setColor(GColor.RED.withAlpha(1f-position));
-                        g.drawWrapString(d.x+d.w/2, d.y+d.h/2, d.w * 3/4, Justify.CENTER, Justify.CENTER, "SOLD");
-                    }
-
-                    @Override
-                    protected void onDone() {
-                        synchronized (LOCK) {
-                            LOCK.notify();
-                        }
-                    }
-                }.start());*/
-            }
-        }.start());
+        setSpriteAnim("PLAYER"+playerNum, new MoneyAnim(getPlayer(playerNum).getMoney(), -property.getPrice()).start());
+        addAnimation("BOARD", new PropertyAnimation(property, playerNum).start());
         Utils.waitNoThrow(LOCK, 5000);
         super.onPlayerPurchaseProperty(playerNum, property);
     }
 
     @Override
     protected void onPlayerTrades(int buyer, int seller, Square property, int amount) {
-        setSpriteAnim("PLAYER"+buyer, new MoneyAnim(getPlayer(buyer).getMoney(), -amount).start());
         setSpriteAnim("PLAYER"+seller, new MoneyAnim(getPlayer(seller).getMoney(), amount).start());
+        addAnimation("BOARD", new PropertyAnimation(property, buyer).start());
+        //onPlayerPurchaseProperty(buyer, property);
+        setSpriteAnim("PLAYER"+buyer, new MoneyAnim(getPlayer(buyer).getMoney(), -amount).start());
         super.onPlayerTrades(buyer, seller, property, amount);
     }
 
     @Override
     protected void onPlayerBoughtHouse(int playerNum, Square property, int amt) {
-        addAnimation("GAME", new AAnimation<AGraphics>(HOUSE_PAUSE) {
+        addAnimation("BOARD", new AAnimation<AGraphics>(HOUSE_PAUSE) {
 
             Vector2D v0, v1;
 
@@ -372,8 +370,6 @@ public abstract class UIMonopoly extends Monopoly {
 
             @Override
             protected void draw(AGraphics g, float position, float dt) {
-                float x0 = DIM/2;
-                float y0 = DIM/2;
                 Vector2D v = v0.add(v1.sub(v0).scaledBy(position));
                 float s = DIM/20;
                 g.pushMatrix();
@@ -396,7 +392,7 @@ public abstract class UIMonopoly extends Monopoly {
 
     @Override
     protected void onPlayerBoughtHotel(int playerNum, final Square property, int amt) {
-        addAnimation("GAME", new AAnimation<AGraphics>(HOUSE_PAUSE) {
+        addAnimation("BOARD", new AAnimation<AGraphics>(HOUSE_PAUSE) {
 
             Vector2D v0, v1;
 
@@ -480,14 +476,32 @@ public abstract class UIMonopoly extends Monopoly {
         repaint();
     }
 
+    void startAnimationAndWait(String key, AAnimation<AGraphics> a) {
+        if (!isGameRunning())
+            return;
+        synchronized (animations) {
+            LinkedList<AAnimation> list = animations.get(key);
+            if (list == null) {
+                list = new LinkedList<>();
+                animations.put(key, list);
+            }
+            list.add(a);
+        }
+        repaint();
+        while (!a.isDone()) {
+            synchronized (LOCK) {
+                Utils.waitNoThrow(LOCK, 500);
+            }
+        }
+    }
+
     void stopAnimations() {
         synchronized (animations) {
             animations.clear();
         }
         for (Sprite sprite : spriteMap.values()) {
             if (sprite.animation != null) {
-                sprite.animation.stop();
-                sprite.animation = null;
+                sprite.animation.kill();
             }
         }
     }
@@ -501,14 +515,16 @@ public abstract class UIMonopoly extends Monopoly {
     }
 
     public void onClick() {
+        stopAnimations();
+        synchronized (LOCK) {
+            LOCK.notify();
+        }
     }
 
     public void startDrag() {
-
     }
 
     public void stopDrag() {
-
     }
 
     /**
@@ -918,13 +934,23 @@ public abstract class UIMonopoly extends Monopoly {
         if (p.getPiece() == null)
             return;
         int pcId = getImageId(p.getPiece());
-        float dim = Math.min(w/2, h/4);
+        final float dim = Math.min(w/2, h/4);
         playerInfoHeight = dim;
         float border = 5;
         g.drawImage(pcId, 0, 0, dim, dim);
         if (getCurrentPlayerNum()==playerNum) {
             g.setColor(GColor.CYAN);
             g.drawRect(0, 0, dim, dim, 2);
+            List anim = animations.get("GAME");
+            if (anim != null && anim.size() == 0) {
+                g.pushMatrix();
+                float dieDim = dim/2 - g.getTextHeight()/2;
+                g.translate(w-dieDim, 0);
+                drawDice(g, getDie1(), getDie2(), dieDim);
+                g.popMatrix();
+
+            }
+
         }
         Sprite sp = spriteMap.get("PLAYER"+playerNum);
         sp.M.setTranslate(w-PADDING, dim/2);
@@ -990,6 +1016,7 @@ public abstract class UIMonopoly extends Monopoly {
 
     public void drawPropertyCard(AGraphics g, Square property, float w, float h) {
         final float padding = w/15;
+        g.pushMatrix();
         g.setColor(GColor.WHITE);
         g.drawFilledRect(0, 0, w, h);
         g.setColor(property.getColor());
@@ -1047,6 +1074,7 @@ public abstract class UIMonopoly extends Monopoly {
         } else {
             throw new AssertionError("Dont know how to draw: " + property);
         }
+        g.popMatrix();
     }
 
     public GColor chooseContrastColor(GColor c) {
@@ -1059,7 +1087,10 @@ public abstract class UIMonopoly extends Monopoly {
 
     private void drawPortrait(APGraphics g, int mx, int my) {
         drawBoard(g);
-        drawDice(g, getDie1(), getDie2());
+        g.pushMatrix();
+        g.translate(W/2, H/4);
+        drawDice(g, getDie1(), getDie2(), DIM/10);
+        g.popMatrix();
         float w = (W - (PADDING*(getNumPlayers()-1))) / getNumPlayers();
         for (int i=0; i<getNumPlayers(); i++) {
             g.pushMatrix();
@@ -1076,8 +1107,6 @@ public abstract class UIMonopoly extends Monopoly {
         g.translate(W/2-DIM/2, H/2-DIM/2);
         drawBoard(g);
         g.popMatrix();
-        // draw dice in center of board
-        drawDice(g, getDie1(), getDie2());
         float w = (W-DIM)/2;
         float h1 = H;
         float h2 = H/2-PADDING/2;
@@ -1257,19 +1286,26 @@ public abstract class UIMonopoly extends Monopoly {
         drawAnimations(g, "BOARD");
     }
 
-    public void drawDice(AGraphics g, int die1, int die2) {
-        int dieDim = DIM / 10;
-        int padding = dieDim/4;
+
+    /**
+     * Draw dice vert centered TOP and horz centered at ORIGIN with maxheight=dim and maxWidth<dim*2
+     * @param g
+     * @param die1
+     * @param die2
+     * @param dieDim
+     */
+    public void drawDice(AGraphics g, int die1, int die2, float dieDim) {
+        int padding = (int)(dieDim/4)+1;
         if (die1 > 0 && die2 > 0) {
             g.pushMatrix();
-            g.translate(W/2-padding/2-dieDim, H/4);
-            drawDie(g, dieDim, GColor.WHITE, GColor.BLACK, die1);
+            g.translate(-dieDim+padding/2, padding/2);
+            drawDie(g, dieDim-padding, GColor.WHITE, GColor.BLACK, die1);
             g.popMatrix();
             g.pushMatrix();
-            g.translate(W/2+padding/2, H/4);
-            drawDie(g, dieDim, GColor.WHITE, GColor.BLACK, die2);
-            g.popMatrix();
+            g.translate(+padding/2, padding/2);
+            drawDie(g, dieDim-padding, GColor.WHITE, GColor.BLACK, die2);
         }
+        g.popMatrix();
     }
 
     public void drawDie(AGraphics g, float dim, GColor dieColor, GColor dotColor, int numDots) {

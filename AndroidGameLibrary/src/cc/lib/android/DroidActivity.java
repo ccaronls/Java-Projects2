@@ -9,6 +9,10 @@ import android.os.SystemClock;
 import android.view.MotionEvent;
 import android.view.View;
 
+import java.util.Stack;
+
+import cc.lib.game.Utils;
+
 /**
  * Created by chriscaron on 2/13/18.
  *
@@ -162,16 +166,20 @@ public abstract class DroidActivity extends CCActivityBase {
                 return currentDialog;
             }
         }.setCancelable(false);
-        if (currentDialog != null && currentDialog.isShowing()) {
-            builder.setNeutralButton(R.string.popup_button_back, new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
+        if (shouldDialogAddBackButton() && currentDialog != null && currentDialog.isShowing()) {
+                builder.setNeutralButton(R.string.popup_button_back, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
                     currentDialog = previous;
                     previous.show();
-                }
-            });
-        }
+                    }
+                });
+            }
         return builder;
+    }
+
+    protected boolean shouldDialogAddBackButton() {
+        return true;
     }
 
     protected void onDialogShown(Dialog d) {}

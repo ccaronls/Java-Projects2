@@ -6,7 +6,8 @@ repositories {
 
 dependencies {
     implementation files('../DnsAndroid/mdnsjava-2.1.6-SNAPSHOT.jar', '../DnsAndroid/dnsjava-2.1.7.jar')
-    implementation 'cc.lib:gamelib-android:1.0'
+    compile project(path: ':GameLibrary', configuration: 'android')
+//    implementation 'cc.lib:gamelib-android:1.0'
 //    implementation project (':GameLibrary')
 //    compile project (':DnsAndroid')
 }

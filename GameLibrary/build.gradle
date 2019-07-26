@@ -2,7 +2,7 @@ apply plugin: 'java'
 apply plugin: 'application'
 apply plugin: 'org.junit.platform.gradle.plugin'
 apply plugin: 'java-library'
-apply plugin: 'maven-publish'
+//apply plugin: 'maven-publish'
 
 buildscript {
 
@@ -18,7 +18,10 @@ repositories {
     jcenter()
     mavenCentral()
 }
+
 dependencies {
+    // https://mvnrepository.com/artifact/org.json/json
+    implementation group: 'org.json', name: 'json', version: '20090211'
     testImplementation 'junit:junit:4.12'
     implementation 'junit:junit:4.12'
 }
@@ -56,10 +59,10 @@ application {
 }
 
 task runCheckers(type: JavaExec) {
-    group = 'Application' // <-- change the name as per your need
+    group = 'Application' 
     description = 'Run the Checkers Applet'
 
-    classpath sourceSets.main.runtimeClasspath // <-- Don't change this
+    classpath sourceSets.main.runtimeClasspath 
     main = "cc.lib.swing.AWTCheckers"
 //    args "arg1", "arg2"
 }
@@ -100,17 +103,19 @@ task runProbotLevelBuilder(type: JavaExec) {
 //    args "arg1", "arg2"
 }
 
-dependencies {
-    // https://mvnrepository.com/artifact/org.json/json
-    implementation group: 'org.json', name: 'json', version: '20090211'
-    testImplementation 'junit:junit:4.12'
-}
-
-task compiledJar(type: Jar) {
+task compiledJar(dependsOn: 'assemble', type: Jar) {
     from sourceSets.find {'android'}.output
     //archiveClassifier = 'sources'
 }
 
+configurations {
+    android
+}
+
+artifacts {
+    android compiledJar
+}
+/*
 publishing {
     publications {
         myLibrary(MavenPublication) {
@@ -129,4 +134,4 @@ publishing {
         }
 
     }
-}
+}*/

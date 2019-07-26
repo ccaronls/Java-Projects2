@@ -6,7 +6,8 @@ repositories {
 
 dependencies {
     implementation project(':AndroidGameLibrary')
-    implementation 'cc.lib:gamelib-android:1.0'
+    //implementation 'cc.lib:gamelib-android:1.0'
+    compile project(path: ':GameLibrary', configuration: 'android')
     implementation 'com.google.android.gms:play-services:4.0.30'
 }
 

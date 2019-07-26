@@ -100,6 +100,7 @@ public class CCNumberPicker extends NumberPicker {
 	    setOnValueChangedListener(listener);
 	    setMinValue(0);
 	    setMaxValue(values.length-1);
+	    setValue(0);
         String [] display = new String[values.length];
         for (int i=0; i<values.length; i++) {
             if (startValue >= values[i])

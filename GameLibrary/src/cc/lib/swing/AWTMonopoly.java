@@ -78,7 +78,7 @@ public class AWTMonopoly extends AWTComponent {
                     result[0] = moves.get(index);
                     switch (result[0]) {
                         case PURCHASE_UNBOUGHT:{
-                            showPropertyPopup("Purchase?",
+                            showPropertyPopup("Purchase?", "Buy",
                                     getPurchasePropertySquare(), () -> {
                                         synchronized (monopoly) {
                                             monopoly.notify();
@@ -94,7 +94,7 @@ public class AWTMonopoly extends AWTComponent {
                             break;
                         }
                         case PURCHASE: {
-                            showPropertyPopup("Purchase?",
+                            showPropertyPopup("Purchase?", "Buy", 
                                     player.getSquare(), () -> {
                                         synchronized (monopoly) {
                                             monopoly.notify();
@@ -180,10 +180,18 @@ public class AWTMonopoly extends AWTComponent {
             frame.showListChooserDialog(new AWTFrame.OnListItemChoosen() {
                 @Override
                 public void itemChoose(int index) {
-                    result[0] = trades.get(index);
-                    synchronized (monopoly) {
-                        monopoly.notify();
-                    }
+                    final Trade t = trades.get(index);
+                    String title = "Buy " + Utils.getPrettyString(t.getCard().getProperty().name()) + " from " + Utils.getPrettyString(t.getTrader().getPiece().name());
+                    showPropertyPopup(title, "Buy for $" +t.getPrice(), t.getCard().getProperty(), () -> {
+                        result[0] = t;
+                        synchronized (monopoly) {
+                            monopoly.notify();
+                        }
+                    }, ()->{
+                        synchronized (monopoly) {
+                            monopoly.notify();
+                        }
+                    });
                 }
 
                 @Override
@@ -231,7 +239,7 @@ public class AWTMonopoly extends AWTComponent {
         }
     };
 
-    public AWTFrame showPropertyPopup(String title, final Square sq, final Runnable onBuyRunnable, final Runnable onDontBuyRunnble) {
+    public AWTFrame showPropertyPopup(String title, String yesLabel, final Square sq, final Runnable onBuyRunnable, final Runnable onDontBuyRunnble) {
         final AWTFrame popup = new AWTFrame();
         AWTPanel content = new AWTPanel(new BorderLayout());
         content.add(new AWTLabel(title, 1, 20, true), BorderLayout.NORTH);
@@ -243,7 +251,7 @@ public class AWTMonopoly extends AWTComponent {
         };
         sqPanel.setPreferredSize(monopoly.DIM/3, monopoly.DIM/4*2);
         content.add(sqPanel);
-        content.add(new AWTPanel(1, 2, new AWTButton("Buy") {
+        content.add(new AWTPanel(1, 2, new AWTButton(yesLabel) {
             @Override
             protected void onAction() {
                 popup.closePopup();
