@@ -12,6 +12,12 @@ dependencies {
 }
 
 android {
+
+    compileOptions {
+        sourceCompatibility project.sourceCompatibility
+        targetCompatibility project.targetCompatibility
+    }
+
     compileSdkVersion project.myCompileSdkVersion.toInteger()
     buildToolsVersion project.myBuildToolsVersion
 

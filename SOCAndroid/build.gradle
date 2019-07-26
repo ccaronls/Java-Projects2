@@ -12,8 +12,16 @@ dependencies {
 }
 
 android {
-    compileSdkVersion 24
-    buildToolsVersion '27.0.3'
+
+    compileOptions {
+        sourceCompatibility project.sourceCompatibility
+        targetCompatibility project.targetCompatibility
+    }
+
+    compileSdkVersion project.myCompileSdkVersion.toInteger()
+    buildToolsVersion project.myBuildToolsVersion
+//    compileSdkVersion 24
+//    buildToolsVersion '27.0.3'
 
     sourceSets {
         main {

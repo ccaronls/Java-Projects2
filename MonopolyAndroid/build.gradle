@@ -14,10 +14,9 @@ dependencies {
 }
 
 android {
-
     compileOptions {
-        sourceCompatibility project.sourceCompatibility // for example
-        targetCompatibility project.targetCompatibility // defaults to sourceCompatibility
+        sourceCompatibility project.sourceCompatibility 
+        targetCompatibility project.targetCompatibility 
     }
 
     compileSdkVersion project.myCompileSdkVersion.toInteger()
