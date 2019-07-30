@@ -125,15 +125,15 @@ public class Board {
         if (sq == Square.VISITING_JAIL) {
             // special case to place around the outer edge
             switch (player) {
-                case 0: // left middle
-                    return new GRectangle(rect.x, cntr.Y(), dim, dim);
+                case 0: // left middle/top
+                    return new GRectangle(rect.x, cntr.Y()-dim, dim, dim);
                 case 1: // bottom middle
-                    return new GRectangle(rect.x+dim, rect.y+rect.h-dim, dim, dim);
-                case 2: // left top
-                    return new GRectangle(rect.x, cntr.getY()-dim, dim, dim);
+                    return new GRectangle(cntr.X()-dim, rect.y+rect.h-dim, dim, dim);
+                case 2: // left middle/bottom
+                    return new GRectangle(rect.x, cntr.getY(), dim, dim);
             }
             // bottom right
-            return new GRectangle(rect.x-rect.w-dim, rect.y+rect.h-dim, dim, dim);
+            return new GRectangle(cntr.X(), rect.y+rect.h-dim, dim, dim);
         }
         switch (player) {
             case 0:

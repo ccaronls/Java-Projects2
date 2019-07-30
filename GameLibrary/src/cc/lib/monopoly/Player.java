@@ -47,12 +47,35 @@ public class Player extends Reflector<Player> {
                     if (sq == null)
                         sq = getSquare();
                     switch (sq.getType()) {
-                        case PROPERTY:
+                        case PROPERTY: {
+                            /*
+                        }
+                            //if (sets.containsKey(sq.getColor())) {
+                            //    return mt; // always want to purchase from a set we already own
+                            //}
+
+                            // should we buy a property?
+                            // variables:
+                            //  - do we already own one of this color (multiplier *= 1+howmany we own
+                            //  - how valuable according to rating?
+                            //  - how expensive vs. potential rent?
+                            //  - how expensive vs. our value?
+
+                            float multiplier = 1;
+
+                            multiplier *=
+
+
+                            List<Card> owned = sets.get(sq.getColor());
+                            if (owned != null) {
+                                multiplier *= (1+owned.size());
+                            }*/
                             if (sets.containsKey(sq.getColor())) {
                                 return mt; // always want to purchase from a set we already own
                             }
-                            weights[index] = Math.max(1, 4-sets.size()); // reduce likelyhood of buying as our sets go up
+                            weights[index] = Math.max(1, 4 - sets.size()); // reduce likelyhood of buying as our sets go up
                             break;
+                        }
                         case UTILITY:
                             if (getNumUtilities() > 0)
                                 return mt;
@@ -359,6 +382,12 @@ public class Player extends Reflector<Player> {
         inJail = false;
         cards.clear();
         square = 0;
+    }
+
+    final void bankrupt() {
+        money = 0;
+        cards.clear();
+        square = -1;
     }
 
     final void useGetOutOfJailCard() {

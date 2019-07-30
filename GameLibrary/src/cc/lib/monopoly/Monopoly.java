@@ -192,11 +192,19 @@ public class Monopoly extends Reflector<Monopoly> {
                     cur.addMoney(-rent);
                     getPlayer(toWhom).addMoney(rent);
                     nextPlayer(true);
-                } else if (cur.getValue() >= rent) {
+                } else if (cur.getValue() > rent) {
                     pushState(State.CHOOSE_MORTGAGE_PROPERTY);
                 } else {
-                    playerBankrupt(currentPlayer);
-                    nextPlayer(true);
+                    // transfer all property and money the the renter
+                    if (cur.getMoney() > 0) {
+                        onPlayerGotPaid(toWhom, cur.getMoney() / (getNumActivePlayers()-1));
+                    }
+                    for (Card c : cur.getCards()) {
+                        cur.removeCard(c);
+                        getPlayer(toWhom).addCard(c);
+                    }
+                    if (playerBankrupt(currentPlayer))
+                        nextPlayer(true);
                 }
                 break;
             }
@@ -209,9 +217,12 @@ public class Monopoly extends Reflector<Monopoly> {
                     cur.addMoney(-amt);
                     kitty += amt;
                     nextPlayer(true);
-                } else if (cur.getValue() >= amt) {
+                } else if (cur.getValue() > amt) {
                     pushState(State.CHOOSE_MORTGAGE_PROPERTY);
                 } else {
+                    if (cur.getMoney() > 0) {
+                        onPlayerPayMoneyToKitty(currentPlayer, cur.getMoney());
+                    }
                     if (playerBankrupt(currentPlayer))
                         nextPlayer(true);
                 }
@@ -234,9 +245,22 @@ public class Monopoly extends Reflector<Monopoly> {
                         p.addMoney(amt);
                     }
                     nextPlayer(true);
-                } else if (cur.getValue() >= total) {
+                } else if (cur.getValue() > total) {
                     pushState(State.CHOOSE_MORTGAGE_PROPERTY);
                 } else {
+                    // split the money up for the remaining players
+                    if (cur.getMoney() > 0 && getNumActivePlayers() > 2) {
+                        total = cur.getMoney() / (getNumActivePlayers()-1);
+                        for (int i=0; i<getNumPlayers(); i++) {
+                            if (i==currentPlayer)
+                                continue;
+                            Player p = getPlayer(i);
+                            if (p.isBankrupt())
+                                continue;
+                            onPlayerGotPaid(i, total);
+                            p.addMoney(total);
+                        }
+                    }
                     if (playerBankrupt(currentPlayer))
                         nextPlayer(true);
                 }
@@ -254,7 +278,7 @@ public class Monopoly extends Reflector<Monopoly> {
                     onPlayerGotPaid(toWhom, amt);
                     getPlayer(toWhom).addMoney(amt);
                     popState();
-                } else if (cur.getValue() >= amt) {
+                } else if (cur.getValue() > amt) {
                     pushState(State.CHOOSE_MORTGAGE_PROPERTY);
                 } else {
                     if (playerBankrupt(currentPlayer))
@@ -953,7 +977,7 @@ public class Monopoly extends Reflector<Monopoly> {
     // player bankrupt means all their mortgaged property goes back to bank and they have zero money
     private boolean playerBankrupt(int playerNum) {
         onPlayerBankrupt(playerNum);
-        getCurrentPlayer().clear();
+        getCurrentPlayer().bankrupt();
         int winner = getWinner();
         if (winner >= 0) {
             state.clear();
