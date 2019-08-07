@@ -1,19 +1,31 @@
 apply plugin: 'java'
 apply plugin: 'application'
 
+mainClassName = 'cc.game.soc.swing2.GUI'
+
+configurations {
+    androidLib.extendsFrom api
+}
+
 dependencies {
     implementation project(':GameLibrary')
-    implementation fileTree(dir: 'lib', include: '*.jar')
+    //implementation project(':GameLibrary')
     implementation project(':jmdns')
-
     testImplementation 'junit:junit:4.12'
-    implementation 'junit:junit:4.12'
+    //implementation 'junit:junit:4.12'
+//    androidLib files('../GameLibrary/build/libs/AndroidGameLibrary.jar')//project(path: ':GameLibrary', configuration: 'androidLib')
+    androidLib project(path: ':GameLibrary', configuration: 'androidLib')
+    //androidLib project(path: ':GameLibrary', configuration: ':androidLib')
+    //compile project(pa) ':GameLibrary' //project(path: ':GameLibrary', configuration: ':androidLib')
+//    apiElements project(path: ':GameLibrary', configuration: 'androidLib')
+    //androidLib files('../GameLibrary/build/libs/AndroidGameLibrary.jar')
 }
+
 sourceSets {
+
     main {
         java {
             srcDirs = ['src', '../SOCAndroid/build/generated/source/r/debug' ]
-            excludes = [ '**/swing/**', '**/applet/**' ]
         }
         resources {
             srcDirs = ['images', 'resources'];
@@ -21,18 +33,36 @@ sourceSets {
         //output.resourcesDir = 'build/resources';
     }
 
+    androidLib {
+        java {
+            srcDirs = [ 'src', '../SOCAndroid/build/generated/source/r/debug' ]
+            excludes = ['**/skunkworks/**', '**/swing*/**']
+        }
+    }
+
     test {
         java {
             srcDirs = ['test']
             excludes = ['**/jmdns/src/test/**']
         }
+        resources {
+            srcDirs = ['testResources']
+        }
     }
 
-    test.resources.srcDirs = ['testResources']
 }
 
-mainClassName = 'cc.game.soc.swing2.GUI'
+compileAndroidLibJava.dependsOn project(':GameLibrary').getTasksByName('androidLibJar', false)
+compileAndroidLibJava.classpath += files('../GameLibrary/build/libs/AndroidGameLibrary.jar')
 
-repositories {
-    mavenCentral()
+
+compileAndroidLibJava.dependsOn project(':SOCAndroid').getTasksByName('generateDebugSources', false)
+
+task androidLibJar(type: Jar) {
+    archiveBaseName = 'AndroidSOC'
+    from sourceSets.androidLib.output.classesDirs
+}
+
+artifacts {
+    androidLib androidLibJar
 }

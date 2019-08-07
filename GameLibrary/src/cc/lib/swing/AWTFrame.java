@@ -19,6 +19,7 @@ import cc.lib.game.GColor;
 import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
+import cc.lib.utils.FileUtils;
 
 public class AWTFrame extends JFrame implements WindowListener, ComponentListener, MenuListener, MenuKeyListener {
 

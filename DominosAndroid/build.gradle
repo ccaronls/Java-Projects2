@@ -8,7 +8,7 @@ dependencies {
     implementation project(':AndroidGameLibrary')
     implementation 'com.android.support:support-v4:23+'
     //implementation 'cc.lib:gamelib-android:1.0'
-    compile project(path: ':GameLibrary', configuration: 'android')
+    implementation project(path: ':GameLibrary', configuration: 'androidLib')
 }
 
 android {

@@ -5,11 +5,15 @@ repositories {
 }
 
 dependencies {
-    implementation files('../DnsAndroid/mdnsjava-2.1.6-SNAPSHOT.jar', '../DnsAndroid/dnsjava-2.1.7.jar')
-    compile project(path: ':GameLibrary', configuration: 'android')
-//    implementation 'cc.lib:gamelib-android:1.0'
-//    implementation project (':GameLibrary')
+    implementation files('../DnsAndroid/mdnsjava-2.1.6-SNAPSHOT.jar', '../DnsAndroid/dnsjava-2.1.7.jar')//, '../GameLibrary/build/libs/GameLibrary.jar')
+//    compileOnly project(path: ':GameLibrary', configuration: 'androidLib')
+//    implementation ('cc.lib:gamelib-android:1.0') {
+
+//    }
+    compileOnly project (path: ':GameLibrary', configuration: 'androidLib')
+//    implementation files('../GameLibrary/build/libs/AndroidGameLibrary.jar')
 //    compile project (':DnsAndroid')
+//    apiElements project(path: ':GameLibrary', configuration: 'androidLib')
 }
 
 android {
@@ -32,8 +36,7 @@ android {
         	main {
            		manifest.srcFile 'AndroidManifest.xml'
            		java {
-                    srcDirs = ['src']//, '../GameLibrary/src']
-                    excludes = ['**/swing/**', '**/skunkworks/**']
+                    srcDirs = ['src']
                 }
          		res.srcDirs = ['res']
            		assets.srcDirs = ['assets']
@@ -41,6 +44,4 @@ android {
         	}
 	    }
     }
-
-
 }

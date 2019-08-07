@@ -7,8 +7,7 @@ repositories {
 
 dependencies {
     implementation project(':AndroidGameLibrary')
-    compile project(path: ':GameLibrary', configuration: 'android')
-    //implementation 'cc.lib:gamelib-android:1.0'
+    implementation project(path: ':GameLibrary', configuration: 'androidLib')
     implementation 'com.android.support:support-v4:23+'
     implementation 'com.android.support.constraint:constraint-layout:1.1.2'
 }

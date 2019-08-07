@@ -6,8 +6,9 @@ repositories {
 
 dependencies {
     implementation project(':AndroidGameLibrary')
-    //implementation 'cc.lib:gamelib-android:1.0'
-    compile project(path: ':GameLibrary', configuration: 'android')
+    //api project(path: ':GameLibrary', configuration: 'androidLib')
+    compileOnly project(path: ':SOC', configuration: 'androidLib')
+    //implementation files('../GameLibrary/build/libs/AndroidGameLibrary.jar', '../SOC/build/libs/AndroidSOC.jar')
     implementation 'com.android.support:support-v4:23+'
 }
 
@@ -27,8 +28,7 @@ android {
         main {
             manifest.srcFile 'AndroidManifest.xml'
             java {
-                srcDirs = ['src', '../SOC/src']
-                excludes = ['**/swing*/**', '**/applet/**' ]
+                srcDirs = ['src']
             }
             resources.srcDirs = ['src']
             aidl.srcDirs = ['src']
@@ -83,3 +83,4 @@ android {
         }
     }
 }
+

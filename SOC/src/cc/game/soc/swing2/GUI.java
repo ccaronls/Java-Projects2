@@ -14,8 +14,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.awt.event.MouseWheelEvent;
-import java.awt.event.MouseWheelListener;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -28,7 +26,6 @@ import java.util.*;
 
 import javax.swing.ToolTipManager;
 import javax.swing.BorderFactory;
-import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -47,7 +44,6 @@ import javax.swing.JTextField;
 import javax.swing.JToggleButton;
 import javax.swing.ScrollPaneLayout;
 import javax.swing.SpinnerNumberModel;
-import javax.swing.SwingConstants;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.UIManager;
 import javax.swing.event.ChangeEvent;
@@ -92,7 +88,7 @@ public class GUI implements ActionListener, MenuItem.Action {
 	
     final Logger log = LoggerFactory.getLogger(GUI.class);
     
-    static final File HOME_FOLDER = new File(System.getProperty("user.home") + "/.soc");
+    static final File SETTINGS_FOLDER = FileUtils.getOrCreateSettingsDirectory(GUI.class);
     static final File AI_TUNING_FILE = new File("assets/aituning.properties");
 
     public final MenuItem QUIT = new MenuItem("Quit", "Quit current game", this);
@@ -154,14 +150,7 @@ public class GUI implements ActionListener, MenuItem.Action {
 			Utils.setDebugEnabled(true);
             AGraphics.DEBUG_ENABLED = true;
 			UIProperties props = new UIProperties();
-			if (!HOME_FOLDER.exists()) {
-				if (!HOME_FOLDER.mkdir()) {
-					throw new RuntimeException("Cannot create home folder: " + HOME_FOLDER);
-				}
-			} else if (!HOME_FOLDER.isDirectory()) {
-				throw new RuntimeException("Not a directory: " + HOME_FOLDER);
-			}
-			File propsFile = new File(HOME_FOLDER, "gui.properties");
+			File propsFile = new File(SETTINGS_FOLDER, "gui.properties");
             props.load(propsFile.getAbsolutePath());
             new GUI(frame, props);
             System.out.println(props.toString().replace(",", "\n"));
@@ -241,8 +230,7 @@ public class GUI implements ActionListener, MenuItem.Action {
         protected void onImagesLoaded(int [] ids) {
             boardRenderer.initImages(ids[0], ids[1], ids[2], ids[3],
                     ids[4], ids[5], ids[6], ids[7], ids[8], ids[9],
-                    ids[10], ids[11], ids[12], ids[13], ids[14], ids[15]);
-
+                    ids[10], ids[11], ids[12], ids[13], ids[14]);
         }
 
         @Override
@@ -735,12 +723,12 @@ public class GUI implements ActionListener, MenuItem.Action {
         };
 		
 		String boardFilename = props.getProperty("gui.defaultBoardFilename", "soc_def_board.txt");
-        defaultBoardFile = new File(HOME_FOLDER, boardFilename);
+        defaultBoardFile = new File(SETTINGS_FOLDER, boardFilename);
         if (!defaultBoardFile.exists()) {
         	defaultBoardFile = new File(boardFilename);
         }
-        saveGameFile = new File(HOME_FOLDER, props.getProperty("gui.saveGameFileName", "socsavegame.txt"));
-        saveRulesFile = new File(HOME_FOLDER, props.getProperty("gui.saveRulesFileName", "socrules.txt"));
+        saveGameFile = new File(SETTINGS_FOLDER, props.getProperty("gui.saveGameFileName", "socsavegame.txt"));
+        saveRulesFile = new File(SETTINGS_FOLDER, props.getProperty("gui.saveRulesFileName", "socrules.txt"));
         debugBoard = new File("boards/debug_board.txt");
         
         if (saveRulesFile.exists()) {
@@ -2512,8 +2500,8 @@ public class GUI implements ActionListener, MenuItem.Action {
 
 	private void clearSaves() {
 		try {
-    		FileUtils.deleteDirContents(HOME_FOLDER, "playerAI*");
-    		FileUtils.deleteDirContents(HOME_FOLDER, "socsave*");
+    		FileUtils.deleteDirContents(SETTINGS_FOLDER, "playerAI*");
+    		FileUtils.deleteDirContents(SETTINGS_FOLDER, "socsave*");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

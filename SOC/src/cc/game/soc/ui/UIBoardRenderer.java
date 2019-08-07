@@ -30,7 +30,6 @@ import cc.lib.ui.UIComponent;
 public class UIBoardRenderer extends UIRenderer {
 
     public Board board = null;
-    private AGraphics lastG;
 
     public UIBoardRenderer(UIComponent component) {
         super(component);
@@ -50,7 +49,6 @@ public class UIBoardRenderer extends UIRenderer {
     private int pastureshexImage;
     private int fieldshexImage;
     private int [] knightImages;
-    private int cardFrameImage;
 
     private GColor outlineColorDark = GColor.BLACK;
     private GColor outlineColorLight = GColor.WHITE;
@@ -68,7 +66,7 @@ public class UIBoardRenderer extends UIRenderer {
     private int vertexInfoIndex = -1;
 
     public void initImages(int desertImage, int waterImage, int goldImage, int undiscoveredImage, int foresthexImage, int hillshexImage, int mountainshexImage, int pastureshexImage, int fieldshexImage,
-                           int knightBasicInactive, int knightBasicActive, int knightStrongInactive, int knightStrongActive, int knightMightlyInactive, int knightMightlyActive, int cardFrameImage) {
+                           int knightBasicInactive, int knightBasicActive, int knightStrongInactive, int knightStrongActive, int knightMightlyInactive, int knightMightlyActive) {
         this.desertImage = desertImage;
         this.waterImage = waterImage;
         this.goldImage = goldImage;
@@ -86,7 +84,6 @@ public class UIBoardRenderer extends UIRenderer {
                 knightMightlyInactive,
                 knightMightlyActive
         };
-        this.cardFrameImage = cardFrameImage;
     }
 
     public final PickHandler getPickHandler() {
@@ -1017,7 +1014,6 @@ public class UIBoardRenderer extends UIRenderer {
         if (width <= 10 || height <= 10 || board == null)
             return; // avoid images getting resized excessively if the window is getting resized
 
-        lastG = g;
         g.ortho();
 	    g.pushMatrix();
 	    g.setIdentity();

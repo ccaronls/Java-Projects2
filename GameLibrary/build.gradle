@@ -1,8 +1,11 @@
 apply plugin: 'java'
 apply plugin: 'application'
-apply plugin: 'org.junit.platform.gradle.plugin'
-apply plugin: 'java-library'
+//apply plugin: 'org.junit.platform.gradle.plugin'
 //apply plugin: 'maven-publish'
+
+configurations {
+    androidLib.extendsFrom api
+}
 
 buildscript {
 
@@ -35,7 +38,7 @@ sourceSets {
 
     }
 
-    android {
+    androidLib {
         java {
             srcDirs = [ 'src' ]
             excludes = ['**/skunkworks/**', '**/swing/**']
@@ -56,6 +59,16 @@ sourceSets {
 
 application {
     mainClassName = 'cc.game.swing.AWTBoardBuilder'
+}
+
+task androidLibJar(type: Jar) {
+    archivesBaseName = 'AndroidGameLibrary'
+    //from sourceSets.find {'androidLib'}.output
+    from sourceSets.androidLib.output.classesDirs
+}
+
+artifacts {
+    androidLib androidLibJar
 }
 
 task runCheckers(type: JavaExec) {
@@ -103,35 +116,3 @@ task runProbotLevelBuilder(type: JavaExec) {
 //    args "arg1", "arg2"
 }
 
-task compiledJar(dependsOn: 'assemble', type: Jar) {
-    from sourceSets.find {'android'}.output
-    //archiveClassifier = 'sources'
-}
-
-configurations {
-    android
-}
-
-artifacts {
-    android compiledJar
-}
-/*
-publishing {
-    publications {
-        myLibrary(MavenPublication) {
-            groupId = 'cc.lib'
-            artifactId = 'gamelib-android'
-            version = '1.0'
-
-            artifact compiledJar
-        }
-    }
-
-    repositories {
-        maven {
-            name = 'myRepo'
-            url = "file://${buildDir}/repo"
-        }
-
-    }
-}*/
