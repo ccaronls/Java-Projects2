@@ -185,7 +185,7 @@ public class DominosApplet extends AWTComponent implements GameServer.Listener {
         AWTPanel buttons = new AWTPanel(new FlowLayout(),
                 new AWTButton("Cancel", new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
-                        popup.closePopup(frame);
+                        popup.closePopup();
                     }
                 }),
                 new AWTButton("Start", new ActionListener() {
@@ -195,7 +195,7 @@ public class DominosApplet extends AWTComponent implements GameServer.Listener {
                         dominos.setNumPlayers(numPlayersChoice);
                         dominos.startNewGame();
                         dominos.startGameThread();
-                        popup.closePopup(frame);
+                        popup.closePopup();
                         saveSettings();
                     }
                 }),
@@ -207,7 +207,7 @@ public class DominosApplet extends AWTComponent implements GameServer.Listener {
                             setEnabled(false);
                         } else {
                             dominos.startGameThread();
-                            popup.closePopup(frame);
+                            popup.closePopup();
                         }
                     }
                 })

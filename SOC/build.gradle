@@ -8,9 +8,10 @@ configurations {
 }
 
 dependencies {
+    implementation project(':GameLibrary')
     implementation project(':jmdns')
     testImplementation 'junit:junit:4.12'
-    implementation project(path: ':GameLibrary', configuration: 'androidLib')
+    androidLib project(path: ':GameLibrary', configuration: 'androidLib')
 }
 
 sourceSets {
@@ -18,12 +19,10 @@ sourceSets {
     main {
         java {
             srcDirs = ['src', '../SOCAndroid/build/generated/source/r/debug' ]
-            excludes = ['**/skunkworks/**', '**/swing*/**']
         }
         resources {
             srcDirs = ['images', 'resources'];
         }
-        //output.resourcesDir = 'build/resources';
     }
 
     androidLib {
@@ -47,6 +46,7 @@ sourceSets {
 
 compileAndroidLibJava.dependsOn project(':GameLibrary').getTasksByName('androidLibJar', false)
 compileAndroidLibJava.classpath += project(':GameLibrary').sourceSets.androidLib.output.classesDirs
+compileJava.dependsOn project(':SOCAndroid').getTasksByName('generateDebugSources', false)
 compileAndroidLibJava.dependsOn project(':SOCAndroid').getTasksByName('generateDebugSources', false)
 
 task androidLibJar(type: Jar) {

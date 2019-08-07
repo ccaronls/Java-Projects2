@@ -1,32 +1,30 @@
 apply plugin: 'java'
 apply plugin: 'application'
-apply plugin: 'org.junit.platform.gradle.plugin'
 
-buildscript {
-    repositories {
-        mavenCentral()
-    }
-    dependencies {
-        classpath 'org.junit.platform:junit-platform-gradle-plugin:1.0.1'
-    }
-}
+mainClassName = 'cc.game.dominos.swing.DominosApplet'
 
-repositories {
-    jcenter()
+configurations {
+    androidLib.extendsFrom compileOnly
 }
 
 dependencies {
     implementation project(':GameLibrary')
-    implementation fileTree(dir: 'lib', include: '*.jar')
-    testImplementation 'junit:junit:4.12'
-    implementation 'junit:junit:4.12'
     implementation project(':jmdns')
+    testImplementation 'junit:junit:4.12'
+    androidLib project(path: ':GameLibrary', configuration: 'androidLib')
 }
 
 sourceSets {
     main {
         java {
             srcDirs = ['src', '../DominosAndroid/build/generated/source/r/debug' ]
+        }
+    }
+
+    androidLib {
+        java {
+            srcDirs = [ 'src', '../DominosAndroid/build/generated/source/r/debug' ]
+            excludes = ['**/skunkworks/**', '**/swing*/**']
         }
     }
 
@@ -37,8 +35,17 @@ sourceSets {
     }
 }
 
-mainClassName = 'cc.game.dominos.swing.DominosApplet'
+compileAndroidLibJava.dependsOn project(':GameLibrary').getTasksByName('androidLibJar', false)
+compileAndroidLibJava.classpath += project(':GameLibrary').sourceSets.androidLib.output.classesDirs
+compileAndroidLibJava.dependsOn project(':DominosAndroid').getTasksByName('generateDebugSources', false)
+compileJava.dependsOn project(':DominosAndroid').getTasksByName('generateDebugSources', false)
 
-repositories {
-    mavenCentral()
+task androidLibJar(type: Jar) {
+    from sourceSets.androidLib.output.classesDirs.filter {
+        excludes = ['**/R.class', '**/R$*.class' ]
+    }
+}
+
+artifacts {
+    androidLib androidLibJar
 }
