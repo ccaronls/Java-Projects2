@@ -4,21 +4,13 @@ apply plugin: 'application'
 mainClassName = 'cc.game.soc.swing2.GUI'
 
 configurations {
-    androidLib.extendsFrom api
+    androidLib.extendsFrom compileOnly
 }
 
 dependencies {
-    implementation project(':GameLibrary')
-    //implementation project(':GameLibrary')
     implementation project(':jmdns')
     testImplementation 'junit:junit:4.12'
-    //implementation 'junit:junit:4.12'
-//    androidLib files('../GameLibrary/build/libs/AndroidGameLibrary.jar')//project(path: ':GameLibrary', configuration: 'androidLib')
-    androidLib project(path: ':GameLibrary', configuration: 'androidLib')
-    //androidLib project(path: ':GameLibrary', configuration: ':androidLib')
-    //compile project(pa) ':GameLibrary' //project(path: ':GameLibrary', configuration: ':androidLib')
-//    apiElements project(path: ':GameLibrary', configuration: 'androidLib')
-    //androidLib files('../GameLibrary/build/libs/AndroidGameLibrary.jar')
+    implementation project(path: ':GameLibrary', configuration: 'androidLib')
 }
 
 sourceSets {
@@ -26,6 +18,7 @@ sourceSets {
     main {
         java {
             srcDirs = ['src', '../SOCAndroid/build/generated/source/r/debug' ]
+            excludes = ['**/skunkworks/**', '**/swing*/**']
         }
         resources {
             srcDirs = ['images', 'resources'];
@@ -53,14 +46,13 @@ sourceSets {
 }
 
 compileAndroidLibJava.dependsOn project(':GameLibrary').getTasksByName('androidLibJar', false)
-compileAndroidLibJava.classpath += files('../GameLibrary/build/libs/AndroidGameLibrary.jar')
-
-
+compileAndroidLibJava.classpath += project(':GameLibrary').sourceSets.androidLib.output.classesDirs
 compileAndroidLibJava.dependsOn project(':SOCAndroid').getTasksByName('generateDebugSources', false)
 
 task androidLibJar(type: Jar) {
-    archiveBaseName = 'AndroidSOC'
-    from sourceSets.androidLib.output.classesDirs
+    from sourceSets.androidLib.output.classesDirs.filter {
+        excludes = ['**/R.class', '**/R$*.class' ]
+    }
 }
 
 artifacts {

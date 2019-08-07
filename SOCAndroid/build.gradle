@@ -6,9 +6,9 @@ repositories {
 
 dependencies {
     implementation project(':AndroidGameLibrary')
-    //api project(path: ':GameLibrary', configuration: 'androidLib')
-    compileOnly project(path: ':SOC', configuration: 'androidLib')
-    //implementation files('../GameLibrary/build/libs/AndroidGameLibrary.jar', '../SOC/build/libs/AndroidSOC.jar')
+    implementation project(path: ':GameLibrary', configuration: 'androidLib')
+    implementation project(path: ':SOC', configuration: 'androidLib')
+
     implementation 'com.android.support:support-v4:23+'
 }
 
@@ -21,14 +21,15 @@ android {
 
     compileSdkVersion project.myCompileSdkVersion.toInteger()
     buildToolsVersion project.myBuildToolsVersion
-//    compileSdkVersion 24
-//    buildToolsVersion '27.0.3'
 
     sourceSets {
         main {
             manifest.srcFile 'AndroidManifest.xml'
             java {
                 srcDirs = ['src']
+                // old way works but makes IDE misbehave
+                //srcDirs = ['src', '../SOC/src']
+                //excludes = ['**/swing*/**', '**/applet/**' ]
             }
             resources.srcDirs = ['src']
             aidl.srcDirs = ['src']
@@ -61,6 +62,7 @@ android {
     }
 
     defaultConfig {
+        multiDexEnabled false
         versionCode 1       // increment with every release
         versionName '1.0.0'
     }
@@ -83,4 +85,3 @@ android {
         }
     }
 }
-
