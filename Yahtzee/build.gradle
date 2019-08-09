@@ -1,4 +1,7 @@
 apply plugin: 'java'
+apply plugin: 'application'
+
+mainClassName = 'cc.game.yahtzee.console.YahtzeeConsole'
 
 dependencies {
     implementation project(':GameLibrary')
@@ -8,9 +11,6 @@ sourceSets {
     main {
         java {
             srcDirs = ['src']
-            //, '../GameLibrary/src']
-            //exclude '**/swing/**'
-            //exclude '**/skunkworks/**'
         }
     }
 }
@@ -22,8 +22,4 @@ task runConsole(type: JavaExec) {
     classpath sourceSets.main.runtimeClasspath // <-- Don't change this
     main = "cc.game.yahtzee.console.YahtzeeConsole"
 //    args "arg1", "arg2"
-}
-
-repositories {
-    mavenCentral()
 }

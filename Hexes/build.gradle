@@ -1,6 +1,8 @@
 apply plugin: 'java'
 apply plugin: 'application'
 
+mainClassName = 'marcos.games.hexes.swing.HexesApplet'
+
 dependencies {
     implementation project(':GameLibrary')
 }
@@ -18,10 +20,4 @@ sourceSets {
             srcDirs = ['png']
         }
     }
-}
-
-mainClassName = 'marcos.games.hexes.swing.HexesApplet'
-
-repositories {
-    mavenCentral()
 }

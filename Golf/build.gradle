@@ -1,6 +1,8 @@
 apply plugin: 'java'
 apply plugin: 'application'
 
+mainClassName = 'cc.game.golf.swing.GolfSwing'
+
 dependencies {
     implementation project(':GameLibrary')
 }
@@ -18,12 +20,6 @@ sourceSets {
             srcDirs = ['png']
         }
     }
-}
-
-mainClassName = 'cc.game.golf.swing.GolfSwing'
-
-repositories {
-    mavenCentral()
 }
 
 task runConsole(type: JavaExec) {

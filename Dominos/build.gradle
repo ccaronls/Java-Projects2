@@ -4,7 +4,7 @@ apply plugin: 'application'
 mainClassName = 'cc.game.dominos.swing.DominosApplet'
 
 configurations {
-    androidLib.extendsFrom compileOnly
+    androidLib
 }
 
 dependencies {
@@ -35,8 +35,11 @@ sourceSets {
     }
 }
 
+// Why is this necessary? Doesn't the dependency imply this?
+// I cant tell if I am doing something wring or it is a bug
 compileAndroidLibJava.dependsOn project(':GameLibrary').getTasksByName('androidLibJar', false)
 compileAndroidLibJava.classpath += project(':GameLibrary').sourceSets.androidLib.output.classesDirs
+// These call are required since we need the R.string class from android project
 compileAndroidLibJava.dependsOn project(':DominosAndroid').getTasksByName('generateDebugSources', false)
 compileJava.dependsOn project(':DominosAndroid').getTasksByName('generateDebugSources', false)
 

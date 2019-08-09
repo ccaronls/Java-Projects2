@@ -1,6 +1,8 @@
 apply plugin: 'java'
 apply plugin: 'application'
 
+mainClassName = 'cc.game.slot.SlotMachine'
+
 dependencies {
     implementation project(':GameLibrary')
 }
@@ -9,15 +11,6 @@ sourceSets {
     main {
         java {
             srcDirs = ['src']
-            //, '../GameLibrary/src']
-            //exclude '**/swing/**'
-            //exclude '**/skunkworks/**'
         }
     }
-}
-
-mainClassName = 'cc.game.slot.SlotMachine'
-
-repositories {
-    mavenCentral()
 }

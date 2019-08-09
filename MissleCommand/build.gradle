@@ -1,6 +1,8 @@
 apply plugin: 'java'
 apply plugin: 'application'
 
+mainClassName = 'cc.misslecommand.swing.MCApplet'
+
 dependencies {
     implementation project(':GameLibrary')
 }
@@ -20,8 +22,3 @@ sourceSets {
     }
 }
 
-mainClassName = 'cc.misslecommand.swing.MCApplet'
-
-repositories {
-    mavenCentral()
-}

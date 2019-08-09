@@ -1,6 +1,8 @@
 apply plugin: 'java'
 apply plugin: 'application'
 
+mainClassName = 'cc.game.kaiser.swing.KaiserApplet'
+
 dependencies {
     implementation project(':GameLibrary')
 }
@@ -16,13 +18,7 @@ sourceSets {
 
         resources {
             srcDirs = ['png']
-            excludes = [ '**/net/**' ]
+            excludes = ['**/net/**']
         }
     }
-}
-
-mainClassName = 'cc.game.kaiser.swing.KaiserApplet'
-
-repositories {
-    mavenCentral()
 }

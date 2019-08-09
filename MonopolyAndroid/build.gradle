@@ -1,10 +1,5 @@
 apply plugin: 'com.android.application'
 
-repositories {
-    mavenCentral()
-    mavenLocal()
-}
-
 dependencies {
     implementation project(':AndroidGameLibrary')
     implementation project(path: ':GameLibrary', configuration: 'androidLib')

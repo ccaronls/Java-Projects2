@@ -1,6 +1,8 @@
 apply plugin: 'java'
 apply plugin: 'application'
 
+mainClassName = 'cc.game.othello.swing.OthelloApplet'
+
 dependencies {
     implementation project(':GameLibrary')
 }
@@ -14,10 +16,4 @@ sourceSets {
             //exclude '**/skunkworks/**'
         }
     }
-}
-
-mainClassName = 'cc.game.othello.swing.OthelloApplet'
-
-repositories {
-    mavenCentral()
 }

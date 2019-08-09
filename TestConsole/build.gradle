@@ -1,6 +1,8 @@
 apply plugin: 'java'
 apply plugin: 'application'
 
+mainClassName = 'cc.app.test.console.TestService'
+
 dependencies {
     implementation project(':GameLibrary')
     implementation project(':jmdns')
@@ -12,11 +14,4 @@ sourceSets {
             srcDirs = ['src']
         }
     }
-}
-
-//mainClassName = 'cc.game.dominos.swing'
-mainClassName = 'cc.app.test.console.TestService'
-
-repositories {
-    mavenCentral()
 }
