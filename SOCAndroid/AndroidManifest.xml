@@ -25,15 +25,20 @@
 <!--
         <provider android:name="cc.lib.android.EmailHelper" android:authorities="@string/cached_file_provider_authority" android:exported="true"/>
 -->
+        <activity android:name=".SOCSplash"
+                  android:theme="@style/CustomSplashTheme"
+                  android:screenOrientation="sensorLandscape">
+          <intent-filter>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+          </intent-filter>
+
+        </activity>
+
         <activity
             android:name=".SOCActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
-            android:screenOrientation="sensorLandscape">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
+            android:screenOrientation="sensorLandscape"/>
     </application>
 
 </manifest>
