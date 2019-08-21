@@ -6,11 +6,11 @@ import java.io.File;
 import cc.lib.game.AGraphics;
 import cc.lib.game.Figure2;
 import cc.lib.game.Figures;
+import cc.lib.game.GColor;
 import cc.lib.game.Justify;
 import cc.lib.game.Utils;
 import cc.lib.game.Figure2.Part;
 import cc.lib.math.Vector2D;
-import cc.lib.swing.AWTGraphics;
 import cc.lib.swing.AWTFrame;
 import cc.lib.swing.AWTKeyboardAnimationApplet;
 import cc.lib.utils.StopWatch;
@@ -75,9 +75,9 @@ public class AnimationMaker extends AWTKeyboardAnimationApplet {
 		@Override
 		public void drawPart(AGraphics g, Part part, float length, float thickness, float radius, boolean farSide) {
 			if (!farSide)
-				g.setColor(g.LIGHT_GRAY.setAlpha(alpha));
+				g.setColor(GColor.LIGHT_GRAY.withAlpha(alpha));
 			else
-				g.setColor(g.LIGHT_GRAY.darkened(0.2f));
+				g.setColor(GColor.LIGHT_GRAY.darkened(0.2f));
 			g.begin();
 			switch (part) {
 			case BODY: {
@@ -121,7 +121,7 @@ public class AnimationMaker extends AWTKeyboardAnimationApplet {
 				break;
 			}
 			
-			g.setColor(g.RED);
+			g.setColor(GColor.RED);
 			g.setLineWidth(3);
 			switch (selectedValue) {
 			case ARM_THICKNESS:
@@ -256,20 +256,20 @@ public class AnimationMaker extends AWTKeyboardAnimationApplet {
 	};
     
     int menuWidth = 0;
-    
+
     @Override
-    protected void drawFrame(AWTGraphics g) {
+    protected void drawFrame(AGraphics g) {
     	final int dom = 15;
     	alpha = 1;
     	g.ortho(-dom, dom, -dom, dom);
-    	g.clearScreen(g.BLACK.lightened(0.1f));
+    	g.clearScreen(GColor.BLACK.lightened(0.1f));
     	
     	g.clearMinMax();
     	current.draw(g, figureRender);
     	Vector2D min = g.getMinBoundingRect();
     	Vector2D max = g.getMaxBoundingRect();
     	
-    	g.setColor(g.WHITE);
+    	g.setColor(GColor.WHITE);
     	g.drawRect(min.X(), min.Y(), max.X()-min.X(), max.Y()-min.Y());
     	
     	g.ortho();
@@ -282,21 +282,21 @@ public class AnimationMaker extends AWTKeyboardAnimationApplet {
     		if (wid > menuWidth)
     			menuWidth = Math.round(wid);
     		if (value == selectedValue) {
-    			g.setColor(g.BLUE);
+    			g.setColor(GColor.BLUE);
     			g.drawFilledRect(x, y, menuWidth, g.getTextHeight());
     		}
-    		g.setColor(g.WHITE);
+    		g.setColor(GColor.WHITE);
     		g.drawJustifiedString(x, y, value.name());
     		y += g.getTextHeight();
     	}
     	
     	
     	if (menu == 0) {
-    		g.setColor(g.BLUE);
+    		g.setColor(GColor.BLUE);
     		g.drawRect(10, 10, menuWidth, y-10);
     	}
     	
-    	g.setColor(g.RED);
+    	g.setColor(GColor.RED);
     	String instructions = "+/- : Adjust Limb\n"
     						+ "a/z : Adjust Limb\n"
     						+ "W   : Write\n"
@@ -320,19 +320,19 @@ public class AnimationMaker extends AWTKeyboardAnimationApplet {
 		
     	for (int i=0; i<figures.getCount(); i++) {
     		if (i == transitionTarget) {
-    			g.setColor(g.BLUE);
+    			g.setColor(GColor.BLUE);
     			g.drawFilledRect(x-40, y, 40, g.getTextHeight());
     		}
-    		g.setColor(g.WHITE);
+    		g.setColor(GColor.WHITE);
     		g.drawJustifiedString(x, y, Justify.RIGHT, figures.get(i).getName());
     		y += g.getTextHeight();
     	}
     	
-    	g.setColor(g.WHITE);
+    	g.setColor(GColor.WHITE);
     	g.drawJustifiedString(this.getWidth()/2, 10, Justify.CENTER, current.getName());
     	
     	if (menu == 1) {
-    		g.setColor(g.BLUE);
+    		g.setColor(GColor.BLUE);
     		g.drawRect(g.getViewportWidth()-60, 10, 40, y-10);
     	}
     	

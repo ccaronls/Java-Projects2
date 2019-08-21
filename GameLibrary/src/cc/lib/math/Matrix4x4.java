@@ -240,7 +240,7 @@ public class Matrix4x4
    * @param i  Row of element to get (first row is 0).
    * @param j  Column of element to get (first column is 0).
    * @return   Element at specified position.
-   * @throws   ArrayOutOfBoundsException
+   * @throws   ArrayIndexOutOfBoundsException
    */
   public double getElement (int i, int j)
   {
@@ -255,7 +255,7 @@ public class Matrix4x4
    * @param i      Row of element to set (first row is 0).
    * @param j      Column of element to set (first column is 0).
    * @param value  New element value.
-   * @throws       ArrayOutOfBoundsException
+   * @throws       ArrayIndexOutOfBoundsException
    */
   public void setElement (int i, int j, double value)
   {
@@ -386,7 +386,7 @@ public class Matrix4x4
    * Transform a set of 3D coordinates using this 4x4 matrix.
    * The result of the operation is put back in the original array.
    * 
-   * @param point  Points to transform [x0,y0,z0,x1,y1,z1,...]
+   * @param points  Points to transform [x0,y0,z0,x1,y1,z1,...]
    */
   public void transformPoints (double[] points)
   {

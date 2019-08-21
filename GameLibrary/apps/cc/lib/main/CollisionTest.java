@@ -77,7 +77,7 @@ public class CollisionTest extends AWTKeyboardAnimationApplet {
 	protected void onDimensionsChanged(AGraphics g, int width, int height) {}
 	
 	@Override
-	protected void drawFrame(AWTGraphics g) {
+	protected void drawFrame(AGraphics g) {
 		for (int i=0; i<numShapes; i++) {
 			Shape shape = shapes[i];
 			switch (shape.type) {

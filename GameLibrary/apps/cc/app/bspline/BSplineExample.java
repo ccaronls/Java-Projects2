@@ -53,7 +53,7 @@ public class BSplineExample extends AWTKeyboardAnimationApplet {
     
     Mode mode = Mode.CUSTOM;
     void drawHelp(AGraphics g) {
-        g.setColor(g.BLACK);
+        g.setColor(GColor.BLACK);
         String txt = null;
         switch (mode) {
             case BSPLINE:
@@ -99,7 +99,7 @@ public class BSplineExample extends AWTKeyboardAnimationApplet {
     }
     
     void drawBSpline(AGraphics g) {
-        g.setColor(g.RED);
+        g.setColor(GColor.RED);
         for (int i=0; i<numPts; i++) {
             g.drawDisk(xPoints[i], yPoints[i], 3);
             g.drawString("" + i, xPoints[i], yPoints[i]);
@@ -117,7 +117,7 @@ public class BSplineExample extends AWTKeyboardAnimationApplet {
             //float [] Px = { xPoints[0], xPoints[1], xPoints[2], xPoints[3] };
             //float [] Py = { yPoints[0], yPoints[1], yPoints[2], yPoints[3] };
             
-            g.setColor(g.BLUE);
+            g.setColor(GColor.BLUE);
             g.begin();
             int i = 3;
             while (true) {
@@ -147,7 +147,7 @@ public class BSplineExample extends AWTKeyboardAnimationApplet {
     
     void drawGraph(AGraphics g) {
 
-        g.setColor(g.RED);
+        g.setColor(GColor.RED);
         
         g.begin();
         for (int i=0; i<graph.length; i++) {
@@ -157,7 +157,7 @@ public class BSplineExample extends AWTKeyboardAnimationApplet {
 
         int gr = 0;
         int boxWidth = graph.length/graphMinMaxBoxCount;
-        g.setColor(g.CYAN);
+        g.setColor(GColor.CYAN);
         numPts=0;
         boolean toggle = false;
         for (int i=0; i<graphMinMaxBoxCount; i++) {
@@ -199,7 +199,7 @@ public class BSplineExample extends AWTKeyboardAnimationApplet {
         	mode = Mode.CUSTOM;
         
         if (dragging) {
-            g.setColor(g.BLUE);
+            g.setColor(GColor.BLUE);
             drawRect(g, boxStart, boxEnd, 2);
         }
         
@@ -209,22 +209,22 @@ public class BSplineExample extends AWTKeyboardAnimationApplet {
     
     void drawBeizer(AGraphics g) {
         g.setLineWidth(3);
-        g.setColor(g.BLUE);
+        g.setColor(GColor.BLUE);
         if (numPts >= 4) {
             g.drawBeizerCurve(xPoints[0], yPoints[0], xPoints[1], yPoints[1], xPoints[2], yPoints[2], xPoints[3], yPoints[3], 100);
         }
         for (int i=0; i<this.numPts && i<4; i++) {
-            g.setColor(g.YELLOW);
+            g.setColor(GColor.YELLOW);
             if (dragging) {
                 if (i == pickedPoint) {
-                    g.setColor(g.GREEN);
+                    g.setColor(GColor.GREEN);
                     xPoints[i] = getMouseX();
                     yPoints[i] = getMouseY();
                 }
             } else {
                 pickedPoint = -1;
                 if (Utils.isPointInsideCircle(getMouseX(), getMouseY(), xPoints[i], yPoints[i], 5)) {
-                    g.setColor(g.RED);
+                    g.setColor(GColor.RED);
                     pickedPoint = i;
                 }
             }
@@ -241,7 +241,7 @@ public class BSplineExample extends AWTKeyboardAnimationApplet {
     
     void drawCustom(AGraphics g) {
     	g.setLineWidth(3);
-    	g.setColor(g.BLUE);
+    	g.setColor(GColor.BLUE);
     	
     	distActual = 0;
     	distCurve = 0;
@@ -263,17 +263,17 @@ public class BSplineExample extends AWTKeyboardAnimationApplet {
     		distVariance = Math.round((distCurve-distActual) / distActual * iterations);
     	
     	for (int i=0; i<numPts; i++) {
-            g.setColor(g.ORANGE);
+            g.setColor(GColor.ORANGE);
             if (dragging) {
                 if (i == pickedPoint) {
-                    g.setColor(g.GREEN);
+                    g.setColor(GColor.GREEN);
                     xPoints[i] = getMouseX();
                     yPoints[i] = getMouseY();
                 }
             } else {
                 pickedPoint = -1;
                 if (Utils.isPointInsideCircle(getMouseX(), getMouseY(), xPoints[i], yPoints[i], 5)) {
-                    g.setColor(g.RED);
+                    g.setColor(GColor.RED);
                     pickedPoint = i;
                 }
             }
@@ -345,9 +345,9 @@ public class BSplineExample extends AWTKeyboardAnimationApplet {
     }
     
     @Override
-    protected void drawFrame(AWTGraphics g) {
+    protected void drawFrame(AGraphics g) {
         g.ortho();
-        g.clearScreen(g.WHITE);
+        g.clearScreen(GColor.WHITE);
         switch (mode) {
             case BSPLINE:
                 drawBSpline(g); break;
@@ -408,7 +408,7 @@ public class BSplineExample extends AWTKeyboardAnimationApplet {
             //float x = t0*V0.X() + t1*V1.X() + t2*V2.X() + t3*V3.X();
             //float y = t0*V0.Y() + t1*V1.Y() + t2*V2.Y() + t3*V3.Y();
             
-            Vector2D V = V0.scale(t).add(V1).scale(t).add(V2).scale(t).add(V3); 
+            Vector2D V = V0.scaledBy(t).add(V1).scaledBy(t).add(V2).scaledBy(t).add(V3);
                     
                     
                     //V2.add(V1.add(V0.scale(t)).scale(t)).scale(t)).add(V3);
@@ -474,11 +474,10 @@ public class BSplineExample extends AWTKeyboardAnimationApplet {
     boolean dragging = false;
     MutableVector2D boxStart = new MutableVector2D();
     MutableVector2D boxEnd   = new MutableVector2D();
-    
+
     @Override
-    public void mousePressed(MouseEvent evt) {
-        super.mousePressed(evt);
-        Vector2D P = new Vector2D(evt.getX(), evt.getY());
+    protected void onMousePressed(MouseEvent ev) {
+        Vector2D P = new Vector2D(ev.getX(), ev.getY());
         boxStart.set(P);
         boxEnd.set(P);
     }
