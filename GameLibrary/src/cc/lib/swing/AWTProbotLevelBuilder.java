@@ -1,6 +1,11 @@
 package cc.lib.swing;
 
+import java.awt.BorderLayout;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Properties;
+
+import javax.swing.JLabel;
 
 import cc.lib.game.GColor;
 import cc.lib.game.Utils;
@@ -8,12 +13,6 @@ import cc.lib.probot.Probot;
 import cc.lib.utils.FileUtils;
 import cc.lib.utils.Grid;
 import cc.lib.utils.Reflector;
-
-import java.awt.*;
-import javax.swing.*;
-
-import java.util.ArrayList;
-import java.util.Properties;
 
 public class AWTProbotLevelBuilder extends AWTComponent {
 
@@ -319,10 +318,10 @@ public class AWTProbotLevelBuilder extends AWTComponent {
 
     @Override
     protected void onKeyPressed(VKKey key) {
-        if (pickCol < 0 || pickRow < 0)
+        if (!grid.isValid(pickCol, pickRow))
             return;
 
-        Probot.Type t = grid.get(pickCol, pickRow);
+        Probot.Type t = grid.get(pickRow, pickRow);
         Probot.Type [] values = {};
 
         switch (t) {
@@ -377,28 +376,6 @@ public class AWTProbotLevelBuilder extends AWTComponent {
 
         Probot.Type t = this.cellType.getChecked();
         grid.set(pickRow, pickCol, t);
-
-        switch (t) {
-            case SE:
-            case SN:
-            case SW:
-            case SS:
-                // make sure only 1 instance of a start point
-                for (int i=0; i<grid.getRows(); i++) {
-                    for (int ii=0; ii<grid.getCols(); ii++) {
-                        if (i==pickRow && ii==pickCol)
-                            continue;
-                        switch (grid.get(i, ii)) {
-                            case SE:
-                            case SN:
-                            case SW:
-                            case SS:
-                                grid.set(i, ii, Probot.Type.EM);
-                        }
-                    }
-                }
-        }
-
 
         repaint();
     }

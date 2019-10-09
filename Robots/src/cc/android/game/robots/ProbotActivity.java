@@ -96,7 +96,6 @@ public class ProbotActivity extends CCActivityBase implements View.OnClickListen
         pv.maxLevel = getPrefs().getInt("MaxLevel", 0);
 
         setLevel(level);
-        refresh();
     }
 
     private void setLevel(int level) {

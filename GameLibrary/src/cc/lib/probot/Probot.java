@@ -26,80 +26,15 @@ public class Probot extends Reflector<Probot> implements Comparator<Integer> {
     static {
         addAllFields(Probot.class);
         addAllFields(Level.class);
+        addAllFields(Guy.class);
     }
 
-    public enum Type {
-        EM("Empty"),  // EMPTY
-        DD("Coin"),  // DOT
-        SE("Start East"),  // Start facing east
-        SS("Start South"),  // Start facing south
-        SW("Start West"),  // Start facing west
-        SN("Start North"),  // Start facing north
-        LH0("Horz Lazer Red"), // horz lazer on by default
-        LV0("Vert Lazer Red"), // vert lazer on by default
-        LB0("Button Red"), // lazer0 toggle
-        LH1("Horz Lazer Blue"), // horz lazer on by default
-        LV1("Vert Lazer Blue"), // vert lazer on by default
-        LB1("Button Blue"), // lazer1 toggle
-        LH2("Horz Lazer Green"), // horz lazer on by default
-        LV2("Vert Lazer Green"), // vert lazer on by default
-        LB2("Button Green"), // lazer2 toggle
-        LB("Button All");   // universal lazer toggle
-
-        public final String displayName;
-
-        Type(String nm) {
-            displayName = nm;
-        }
+    public final static GColor [] manColors = {
+            GColor.YELLOW,
+            GColor.GREEN,
+            GColor.ORANGE,
+            GColor.PINK
     };
-
-    public static class Level extends Reflector<Level> {
-        public String label = "<UNNAMED>";
-        public Type [][] coins = { { Type.EM } };
-        public Boolean [] lazers = { true, true, true };
-        public int numJumps = 0;
-        public int numTurns = -1;
-        public int numLoops = -1;
-    }
-
-    public static class Command {
-        public final CommandType type;
-        public int count;
-        public int nesting=0;
-
-        public Command(CommandType type, int count) {
-            this.type = type;
-            this.count = count;
-        }
-    }
-
-    public enum CommandType {
-        Advance,
-        TurnRight,
-        TurnLeft,
-        UTurn,
-        LoopStart,
-        LoopEnd,
-        Jump,
-        IfThen,
-        IfElse,
-        IfEnd
-    }
-
-    public enum Direction {
-        Right(1, 0),
-        Down(0, 1),
-        Left(-1, 0),
-        Up(0, -1),
-        ;
-
-        Direction(int dx, int dy) {
-            this.dx = dx;
-            this.dy = dy;
-        }
-
-        final int dx, dy;
-    }
 
     @Omit
     private List<Command> program = new ArrayList<>();
@@ -116,8 +51,7 @@ public class Probot extends Reflector<Probot> implements Comparator<Integer> {
     public final static int LAZER_WEST  = 1<<2;
     public final static int LAZER_NORTH = 1<<3;
 
-    public int posx=0, posy=2;
-    public Direction dir= Direction.Right;
+    public final List<Guy> guys = new ArrayList<>();
 
     @Omit
     private Probot copy;
@@ -145,6 +79,11 @@ public class Probot extends Reflector<Probot> implements Comparator<Integer> {
         running = false;
     }
 
+    /**
+     *
+     * @param types
+     * @return
+     */
     public int getCommandCount(CommandType ... types) {
         int count = 0;
         for (Command c : program) {
@@ -155,10 +94,17 @@ public class Probot extends Reflector<Probot> implements Comparator<Integer> {
         return count;
     }
 
+    /**
+     *
+     * @return
+     */
     public final boolean isRunning() {
         return running;
     }
 
+    /**
+     *
+     */
     public void stop() {
         running = false;
         synchronized (this) {
@@ -166,6 +112,10 @@ public class Probot extends Reflector<Probot> implements Comparator<Integer> {
         }
     }
 
+    /**
+     *
+     * @param cmd
+     */
     public void add(Command cmd) {
         add(size(), cmd);
     }
@@ -185,77 +135,126 @@ public class Probot extends Reflector<Probot> implements Comparator<Integer> {
         }
     }
 
+    /**
+     *
+     * @param index
+     * @param cmd
+     */
     public void add(int index, Command cmd) {
         program.add(index, cmd);
         updateNesting();
     }
 
+    /**
+     *
+     * @param index
+     * @return
+     */
     public Command remove(int index) {
         Command cmd = program.remove(index);
         updateNesting();
         return cmd;
     }
 
+    /**
+     *
+     * @return
+     */
     public int getLevelNum() {
         return levelNum;
     }
 
+    /**
+     *
+     * @return
+     */
     public int size() {
         return program.size();
     }
 
+    /**
+     *
+     * @param index
+     * @return
+     */
     public Command get(int index) {
         return program.get(index);
+    }
+
+    /**
+     *
+     * @return
+     */
+    public final int getMaxGuys() {
+        return manColors.length;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public final int getNumGuys() {
+        return guys.size();
+    }
+
+    /**
+     *
+     * @return
+     */
+    public final Iterable<Guy> getGuys() {
+        return guys;
     }
 
     private int runProgram(int [] linePtr) {
         while (linePtr[0] < program.size()) {
             if (!running)
                 return -1;
-            onCommand(linePtr[0]);
-            Command c = program.get(linePtr[0]);
-            switch (c.type) {
-                case LoopStart: {
-                    int lineStart = ++linePtr[0];
-                    for (int i=0; i<c.count; i++) {
-                        if (!running)
-                            return -1;
-                        linePtr[0] = lineStart;
-                        int r;
-                        if ((r = runProgram(linePtr)) != 1)
-                            return r;
+            final Command c = program.get(linePtr[0]);
+            for (Guy guy : guys) {
+                onCommand(guy, linePtr[0]);
+                switch (c.type) {
+                    case LoopStart: {
+                        int lineStart = ++linePtr[0];
+                        for (int i = 0; i < c.count; i++) {
+                            if (!running)
+                                return -1;
+                            linePtr[0] = lineStart;
+                            int r;
+                            if ((r = runProgram(linePtr)) != 1)
+                                return r;
+                        }
+                        break;
                     }
-                    break;
+                    case LoopEnd: {
+                        return 1;
+                    }
+                    case Advance:
+                        if (!advance(guy, 1)) {
+                            return running ? 0 : -1;
+                        }
+                        break;
+                    case TurnRight:
+                        turn(guy, 1);
+                        break;
+                    case TurnLeft:
+                        turn(guy, -1);
+                        break;
+                    case UTurn:
+                        turn(guy, 2);
+                        break;
+                    case Jump:
+                        if (!advance(guy, 2)) {
+                            return running ? 0 : -1;
+                        }
+                        break;
                 }
-                case LoopEnd: {
-                    return 1;
-                }
-                case Advance:
-                    if (!advance(1)) {
-                        return running ? 0 : -1;
-                    }
-                    break;
-                case TurnRight:
-                    turn(1);
-                    break;
-                case TurnLeft:
-                    turn(-1);
-                    break;
-                case UTurn:
-                    turn(2);
-                    break;
-                case Jump:
-                    if (!advance(2)) {
-                        return running ? 0 : -1;
-                    }
-                    break;
             }
             linePtr[0]++;
         }
         for (int i=0; running && i<level.coins.length; i++) {
             for (int ii=0; running && ii<level.coins[i].length; ii++) {
                 if (level.coins[i][ii] == Type.DD) {
-                    onDotsRemaining();
+                    onDotsLeftUneaten();
                     return running ? 0 : -1;
                 }
             }
@@ -267,6 +266,7 @@ public class Probot extends Reflector<Probot> implements Comparator<Integer> {
         this.level = level;
         initLazers();
         program.clear();
+        guys.clear();
     }
 
     public void start() {
@@ -281,9 +281,7 @@ public class Probot extends Reflector<Probot> implements Comparator<Integer> {
                     case SS:
                     case SW:
                     case SN:
-                        posx = ii;
-                        posy = i;
-                        dir = Direction.values()[level.coins[i][ii].ordinal()-2];
+                        guys.add(new Guy(i, ii, Direction.values()[level.coins[i][ii].ordinal()-2], manColors[guys.size()]));
                         level.coins[i][ii] = Type.EM;
                         break;
                     case LH0:
@@ -312,30 +310,30 @@ public class Probot extends Reflector<Probot> implements Comparator<Integer> {
     }
 
     // return false if failed
-    private boolean advance(int amt) {
-        int nx = posx + dir.dx*amt;
-        int ny = posy + dir.dy*amt;
+    private boolean advance(Guy guy, int amt) {
+        int nx = guy.posx + guy.dir.dx*amt;
+        int ny = guy.posy + guy.dir.dy*amt;
 
         if (nx < 0 || ny < 0 || ny >= level.coins.length || nx >= level.coins[ny].length) {
-            onAdvanceFailed();
+            onAdvanceFailed(guy);
             return false;
         } else if (!canMoveToPos(ny, nx)) {
-            onAdvanceFailed();
+            onAdvanceFailed(guy);
             return false;
         } else if (lazer[ny][nx] != 0) {
-            onLazered(false);
+            onLazered(guy,false);
             return false;
         } else {
             if (amt == 1) {
-                onAdvanced();
+                onAdvanced(guy);
             } else {
-                onJumped();
+                onJumped(guy);
             }
-            posx = nx;
-            posy = ny;
-            switch (level.coins[posy][posx]) {
+            guy.posx = nx;
+            guy.posy = ny;
+            switch (level.coins[guy.posy][guy.posx]) {
                 case DD:
-                    level.coins[posy][posx] = Type.EM;
+                    level.coins[guy.posy][guy.posx] = Type.EM;
                     break;
                 case LB0:
                     toggleLazers(0);
@@ -351,7 +349,7 @@ public class Probot extends Reflector<Probot> implements Comparator<Integer> {
                     break;
             }
             if (lazer[ny][nx] != 0) {
-                onLazered(true);
+                onLazered(guy,true);
                 return false;
             }
         }
@@ -479,12 +477,12 @@ public class Probot extends Reflector<Probot> implements Comparator<Integer> {
         return false;
     }
 
-    private void turn(int d) {
-        onTurned(d);
-        int nd = dir.ordinal() + d;
+    private void turn(Guy guy, int d) {
+        onTurned(guy, d);
+        int nd = guy.dir.ordinal() + d;
         nd += Direction.values().length;
         nd %= Direction.values().length;
-        dir = Direction.values()[nd];
+        guy.dir = Direction.values()[nd];
     }
 
     private void reset() {
@@ -563,11 +561,13 @@ public class Probot extends Reflector<Probot> implements Comparator<Integer> {
         int ch = height / rows;
         float radius = Math.round(0.2f * Math.min(cw, ch));
 
+        int curColor = 0;
         for (int i=0; i<rows; i++) {
             for (int ii=0; ii<cols; ii++) {
-                int x = ii*cw + cw/2;
-                int y = i*ch + ch/2;
-                switch (l.coins[i][ii]) {
+                final int x = ii*cw + cw/2;
+                final int y = i*ch + ch/2;
+                final Type t = l.coins[i][ii];
+                switch (t) {
                     case EM:
                         break;
                     case DD:
@@ -575,16 +575,13 @@ public class Probot extends Reflector<Probot> implements Comparator<Integer> {
                         g.drawFilledCircle(x, y, radius);
                         break;
                     case SE:
-                        drawGuy(g,x, y, radius, Direction.Right);
-                        break;
                     case SS:
-                        drawGuy(g,x, y, radius, Direction.Down);
-                        break;
                     case SW:
-                        drawGuy(g,x, y, radius, Direction.Left);
-                        break;
                     case SN:
-                        drawGuy(g,x, y, radius, Direction.Up);
+                        if (curColor < getMaxGuys())
+                            drawGuy(g, new Guy(x, y, Direction.values()[t.ordinal()-2], manColors[curColor++]), radius);
+                        else
+                            l.coins[i][ii] = Type.EM;
                         break;
                     case LH0:
                         drawLazer(g, x, y, radius, true, GColor.RED);
@@ -624,6 +621,11 @@ public class Probot extends Reflector<Probot> implements Comparator<Integer> {
                         break;
                 }
             }
+        }
+
+        // draw guys
+        for (Guy guy : guys) {
+            drawGuy(g, guy, radius);
         }
 
         // draw lazers
@@ -689,11 +691,13 @@ public class Probot extends Reflector<Probot> implements Comparator<Integer> {
         }
     }
 
-    void drawGuy(AGraphics g, int x, int y, float radius, Direction dir) {
-        g.setColor(GColor.YELLOW);
+    void drawGuy(AGraphics g, Guy guy, float radius) {
+        g.setColor(guy.color);
+        final int x = guy.posx;
+        final int y = guy.posy;
         g.drawFilledCircle(x, y, radius);
         g.setColor(GColor.BLACK);
-        switch (dir) {
+        switch (guy.dir) {
             case Right:
                 g.drawLine(x, y, x+radius, y, getStrokeWidth());
                 break;
@@ -711,21 +715,52 @@ public class Probot extends Reflector<Probot> implements Comparator<Integer> {
 
     // Overrides to handle important events.
 
-    protected void onCommand(int line) {}
+    protected void onCommand(Guy guy, int line) {}
 
+    /**
+     * Called at the end of program if some FAILED action occured.
+     */
     protected void onFailed() {}
 
-    protected void onAdvanceFailed() {}
+    /**
+     * Guy a walked off board or onto an unavailable square
+     * @param guy
+     */
+    protected void onAdvanceFailed(Guy guy) {}
 
-    protected void onAdvanced() {}
+    /**
+     * A guy has advanced
+     * @param guy
+     */
+    protected void onAdvanced(Guy guy) {}
 
-    protected void onJumped() {}
+    /**
+     * A guy has jumped
+     * @param guy
+     */
+    protected void onJumped(Guy guy) {}
 
-    protected void onTurned(int dir) {}
+    /**
+     * A Guy has execute a right, left or U turn
+     * @param guy
+     * @param dir
+     */
+    protected void onTurned(Guy guy, int dir) {}
 
+    /**
+     * Called at end of program if no FAILED events occured.
+     */
     protected void onSuccess() {}
 
-    protected void onLazered(boolean instantaneous) {}
+    /**
+     * Guy has walked into a lazer or a lazer activated on them. FAILED.
+     * @param guy
+     * @param instantaneous
+     */
+    protected void onLazered(Guy guy, boolean instantaneous) {}
 
-    protected void onDotsRemaining() {}
+    /**
+     * The program has finished but not all dots eaten. FAILED.
+     */
+    protected void onDotsLeftUneaten() {}
 }

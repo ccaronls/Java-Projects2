@@ -287,6 +287,13 @@ public class AWTFrame extends JFrame implements WindowListener, ComponentListene
         setBounds(rect);
         setVisible(true);
     }
+
+    public void fullscreenMode() {
+        pack();
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
+        setUndecorated(true);
+        setVisible(true);
+    }
 	
 	/*
 	 * 

@@ -1297,6 +1297,25 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     }
 
     /**
+     *
+     * @param x
+     * @param y
+     * @param radius
+     * @param startDegrees
+     * @param sweepDegrees
+     * @param sections
+     */
+    public final void drawFilledArc(float x, float y, float radius, float startDegrees, float sweepDegrees, int sections) {
+        pushMatrix();
+        translate(x, y);
+        begin();
+        vertex(0, 0);
+        circlePoints(radius, startDegrees, sweepDegrees, sections);
+        drawTriangleFan();
+        popMatrix();
+    }
+
+    /**
      * 
      * @param x
      * @param y

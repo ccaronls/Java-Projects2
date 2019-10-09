@@ -50,6 +50,10 @@ public abstract class Grid<T extends Comparable<T>> {
         return grid[row][col];
     }
 
+    public boolean isValid(int row, int col) {
+        return row >= 0 && col >= 0 && row < grid.length && col < grid[row].length;
+    }
+
     public void set(int row, int col, T value) {
         grid[row][col] = value;
     }
