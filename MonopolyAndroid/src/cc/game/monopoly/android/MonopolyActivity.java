@@ -28,6 +28,7 @@ import cc.lib.android.CCNumberPicker;
 import cc.lib.android.DroidActivity;
 import cc.lib.android.DroidGraphics;
 import cc.lib.android.DroidView;
+import cc.lib.android.WifiP2pHelper;
 import cc.lib.game.AGraphics;
 import cc.lib.game.Utils;
 import cc.lib.monopoly.Card;
@@ -40,6 +41,8 @@ import cc.lib.monopoly.Rules;
 import cc.lib.monopoly.Square;
 import cc.lib.monopoly.Trade;
 import cc.lib.monopoly.UIMonopoly;
+import cc.lib.net.GameClient;
+import cc.lib.net.GameServer;
 import cc.lib.utils.FileUtils;
 
 /**
@@ -52,6 +55,11 @@ public class MonopolyActivity extends DroidActivity {
 
     private File saveFile=null;
 
+    WifiP2pHelper wifiHelper;
+    GameServer server;
+    GameClient client;
+    Monopoly copy = null;
+
     private UIMonopoly monopoly = new UIMonopoly() {
         @Override
         public void repaint() {
@@ -60,6 +68,14 @@ public class MonopolyActivity extends DroidActivity {
 
         @Override
         public void runGame() {
+            if (server.isConnected()) {
+                if (copy == null) {
+                    copy = new Monopoly();
+                    copy.copyFrom(this);
+                } else {
+
+                }
+            }
             monopoly.trySaveToFile(saveFile);
             if (BuildConfig.DEBUG) {
                 checkPermissionAndThen(() -> {

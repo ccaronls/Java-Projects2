@@ -58,6 +58,7 @@ public enum Square {
     private final int rank; // rank according to: https://www.ranker.com/list/all-monopoly-properties/steve-wright
     private final GColor color;
     private final int [] costs;
+    static int maxRank = 0;
 
     public int getTax() {
         return costs[0];
@@ -154,5 +155,14 @@ public enum Square {
 
     public int getRank() {
         return rank;
+    }
+
+    public static int getMaxRank() {
+        if (maxRank <= 0) {
+            for (Square sq : values()) {
+                maxRank = Math.max(maxRank, sq.rank);
+            }
+        }
+        return maxRank;
     }
 }
