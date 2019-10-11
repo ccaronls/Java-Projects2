@@ -6,7 +6,8 @@ import android.view.View;
 import android.widget.TextView;
 
 import cc.lib.android.CCActivityBase;
-import cc.lib.probot.Probot;
+import cc.lib.probot.Command;
+import cc.lib.probot.CommandType;
 
 /**
  * Created by chriscaron on 12/7/17.
@@ -52,11 +53,11 @@ public class ProbotActivity extends CCActivityBase implements View.OnClickListen
         actionUTurn = findViewById(R.id.ivUTurn);
         actionJump = findViewById(R.id.ivArrowJump);
 
-        actionForward.setTag(Probot.CommandType.Advance);
-        actionRight.setTag(Probot.CommandType.TurnRight);
-        actionLeft.setTag(Probot.CommandType.TurnLeft);
-        actionUTurn.setTag(Probot.CommandType.UTurn);
-        actionJump.setTag(Probot.CommandType.Jump);
+        actionForward.setTag(CommandType.Advance);
+        actionRight.setTag(CommandType.TurnRight);
+        actionLeft.setTag(CommandType.TurnLeft);
+        actionUTurn.setTag(CommandType.UTurn);
+        actionJump.setTag(CommandType.Jump);
 
         actions = new View[] {
                 actionJump, actionLeft, actionRight, actionForward, actionUTurn
@@ -67,11 +68,11 @@ public class ProbotActivity extends CCActivityBase implements View.OnClickListen
         tvTurnLeftCount = (TextView)findViewById(R.id.tvArrowLeftCount);
         tvUTurnCount = (TextView)findViewById(R.id.tvUTurnCount);
         tvJumpCount = (TextView)findViewById(R.id.tvJumpCount);
-        tvForwardCount.setTag(Probot.CommandType.Advance);
-        tvTurnRightCount.setTag(Probot.CommandType.TurnRight);
-        tvTurnLeftCount.setTag(Probot.CommandType.TurnLeft);
-        tvUTurnCount.setTag(Probot.CommandType.UTurn);
-        tvJumpCount.setTag(Probot.CommandType.Jump);
+        tvForwardCount.setTag(CommandType.Advance);
+        tvTurnRightCount.setTag(CommandType.TurnRight);
+        tvTurnLeftCount.setTag(CommandType.TurnLeft);
+        tvUTurnCount.setTag(CommandType.UTurn);
+        tvJumpCount.setTag(CommandType.Jump);
 
         actionCounts = new TextView[] {
                 tvForwardCount, tvJumpCount, tvTurnLeftCount, tvTurnRightCount, tvUTurnCount
@@ -106,8 +107,8 @@ public class ProbotActivity extends CCActivityBase implements View.OnClickListen
     @Override
     public boolean onTouch(View v, MotionEvent event) {
         if (!pv.probot.isRunning()) {
-            Probot.CommandType type = (Probot.CommandType) v.getTag();
-            Probot.Command cmd = new Probot.Command(type, 0);
+            CommandType type = (CommandType) v.getTag();
+            Command cmd = new Command(type, 0);
             lv.startDrag(v, cmd);
         }
         return true;
@@ -129,12 +130,12 @@ public class ProbotActivity extends CCActivityBase implements View.OnClickListen
             bStop.setVisibility(View.GONE);
         }
         for (View a : actions) {
-            Probot.CommandType c = (Probot.CommandType)a.getTag();
+            CommandType c = (CommandType)a.getTag();
             a.setVisibility(pv.probot.isCommandTypeVisible(c) ? View.VISIBLE : View.GONE);
             a.setEnabled(pv.probot.getCommandTypeNumAvaialable(c) != 0);
         }
         for (TextView tv : actionCounts) {
-            Probot.CommandType c = (Probot.CommandType)tv.getTag();
+            CommandType c = (CommandType)tv.getTag();
             if (pv.probot.isCommandTypeVisible(c)) {
                 int count = pv.probot.getCommandTypeNumAvaialable(c);
                 if (count < 0) {

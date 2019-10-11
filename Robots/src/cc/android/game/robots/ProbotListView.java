@@ -14,6 +14,8 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import cc.lib.game.Utils;
+import cc.lib.probot.Command;
+import cc.lib.probot.CommandType;
 import cc.lib.probot.Probot;
 
 /**
@@ -69,9 +71,9 @@ public class ProbotListView extends ListView implements View.OnDragListener, Vie
                     }
                 }
 
-                final Probot.Command cmd = probot.get(position);
+                final Command cmd = probot.get(position);
                 boolean isInLoop = cmd.nesting > 0;
-                boolean isLoop = cmd.type == Probot.CommandType.LoopEnd || cmd.type == Probot.CommandType.LoopStart;
+                boolean isLoop = cmd.type == CommandType.LoopEnd || cmd.type == CommandType.LoopStart;
 
                 TextView tvLineNum = (TextView) convertView.findViewById(R.id.tvLineNum);
                 tvLineNum.setText(String.valueOf(position + 1));
@@ -85,7 +87,7 @@ public class ProbotListView extends ListView implements View.OnDragListener, Vie
                 //tvLineNum.setVisibility(View.GONE);
 
                 View v = convertView.findViewById(R.id.ibDelete);
-                if (cmd.type == Probot.CommandType.LoopEnd) {
+                if (cmd.type == CommandType.LoopEnd) {
                     v.setVisibility(View.GONE);
                 } else {
                     v.setVisibility(View.VISIBLE);
@@ -144,7 +146,7 @@ public class ProbotListView extends ListView implements View.OnDragListener, Vie
                 View bMinus = convertView.findViewById(R.id.ibMinus);
                 TextView tvCount = (TextView) convertView.findViewById(R.id.tvCount);
 
-                if (cmd.type == Probot.CommandType.LoopStart) {
+                if (cmd.type == CommandType.LoopStart) {
                     bPlus.setVisibility(View.VISIBLE);
                     bPlus.setOnClickListener(ProbotListView.this);
                     bPlus.setTag(cmd);
@@ -221,7 +223,7 @@ public class ProbotListView extends ListView implements View.OnDragListener, Vie
         Object [] state = (Object []) event.getLocalState();
         if (state == null)
             return false;
-        Probot.Command cmd = (Probot.Command)state[0];
+        Command cmd = (Command)state[0];
         int originatingLine = (Integer)state[1];
         if (v instanceof ProbotListView) {
             obj = "ListView";
@@ -380,15 +382,15 @@ public class ProbotListView extends ListView implements View.OnDragListener, Vie
         switch (v.getId()) {
             case R.id.ibLoop: {
                 int position = (Integer) v.getTag();
-                probot.add(position, new Probot.Command(Probot.CommandType.LoopStart, 1));
-                probot.add(position + 2, new Probot.Command(Probot.CommandType.LoopEnd, 0));
+                probot.add(position, new Command(CommandType.LoopStart, 1));
+                probot.add(position + 2, new Command(CommandType.LoopEnd, 0));
                 break;
             }
             case R.id.ibDelete: {
                 int position = (Integer) v.getTag();
-                Probot.Command cmd = probot.remove(position);
-                if (cmd.type == Probot.CommandType.LoopStart) {
-                    while (probot.get(position).type != Probot.CommandType.LoopEnd) {
+                Command cmd = probot.remove(position);
+                if (cmd.type == CommandType.LoopStart) {
+                    while (probot.get(position).type != CommandType.LoopEnd) {
                         //probot.remove(position);
                         position++;
                     }
@@ -398,13 +400,13 @@ public class ProbotListView extends ListView implements View.OnDragListener, Vie
             }
 
             case R.id.ibPlus: {
-                Probot.Command cmd = (Probot.Command) v.getTag();
+                Command cmd = (Command) v.getTag();
                 if (cmd.count < 5)
                     cmd.count++;
                 break;
             }
             case R.id.ibMinus: {
-                Probot.Command cmd = (Probot.Command) v.getTag();
+                Command cmd = (Command) v.getTag();
                 if (cmd.count > 1)
                     cmd.count--;
                 break;
@@ -417,30 +419,30 @@ public class ProbotListView extends ListView implements View.OnDragListener, Vie
     public boolean onLongClick(View v) {
         if (probot.size() > 1) {
             int position = (Integer) v.getTag();
-            Probot.Command cmd = probot.remove(position);
+            Command cmd = probot.remove(position);
             startDrag(v, cmd, position);
             adapter.notifyDataSetChanged();
         }
         return true;
     }
 
-    public final void startDrag(View v, Probot.Command cmd) {
+    public final void startDrag(View v, Command cmd) {
         startDrag(v, cmd, -1);
     }
 
-    private final void startDrag(View v, Probot.Command cmd, int originatingLine) {
+    private final void startDrag(View v, Command cmd, int originatingLine) {
         v.startDrag(ClipData.newPlainText(cmd.type.name(), cmd.type.name()), new View.DragShadowBuilder(v),
                 new Object[] {
                     cmd, originatingLine
                 }, 0);
         dragMinInsertPos = -1;
         dragMaxInsertPos = probot.size();
-        if (cmd.type == Probot.CommandType.LoopStart) {
+        if (cmd.type == CommandType.LoopStart) {
             final int position = (Integer)v.getTag();
             int pos = position;
             dragMaxInsertPos = dragMinInsertPos = pos;
             while (pos > 0) {
-                if (probot.get(pos-1).type == Probot.CommandType.LoopEnd) {
+                if (probot.get(pos-1).type == CommandType.LoopEnd) {
                     break;
                 }
                 dragMinInsertPos--;
@@ -448,20 +450,20 @@ public class ProbotListView extends ListView implements View.OnDragListener, Vie
             }
             pos = position;
             while (pos < probot.size()-1) {
-                if (probot.get(pos+1).type == Probot.CommandType.LoopEnd) {
+                if (probot.get(pos+1).type == CommandType.LoopEnd) {
                     break;
                 }
                 dragMaxInsertPos++;
                 pos++;
             }
             Log.d("ProbotListView", "dragMin=" + dragMinInsertPos + " dragMax=" + dragMaxInsertPos + " pos=" + position);
-        } else if (cmd.type == Probot.CommandType.LoopEnd) {
+        } else if (cmd.type == CommandType.LoopEnd) {
             final int position = (Integer)v.getTag();
             // scan forward and back to make sure
             int pos = position;
             dragMaxInsertPos = dragMinInsertPos = pos;
             while (pos > 1) {
-                if (probot.get(pos-2).type == Probot.CommandType.LoopStart) {
+                if (probot.get(pos-2).type == CommandType.LoopStart) {
                     break;
                 }
                 dragMinInsertPos--;
@@ -469,7 +471,7 @@ public class ProbotListView extends ListView implements View.OnDragListener, Vie
             }
             pos = position;
             while (pos < probot.size()) {
-                if (probot.get(pos).type == Probot.CommandType.LoopStart) {
+                if (probot.get(pos).type == CommandType.LoopStart) {
                     break;
                 }
                 dragMaxInsertPos++;

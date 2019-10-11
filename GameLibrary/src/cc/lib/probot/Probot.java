@@ -691,7 +691,7 @@ public class Probot extends Reflector<Probot> implements Comparator<Integer> {
         }
     }
 
-    void drawGuy(AGraphics g, Guy guy, float radius) {
+    public void drawGuy(AGraphics g, Guy guy, float radius) {
         g.setColor(guy.color);
         final int x = guy.posx;
         final int y = guy.posy;

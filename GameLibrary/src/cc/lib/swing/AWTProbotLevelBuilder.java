@@ -9,7 +9,7 @@ import javax.swing.JLabel;
 
 import cc.lib.game.GColor;
 import cc.lib.game.Utils;
-import cc.lib.probot.Probot;
+import cc.lib.probot.*;
 import cc.lib.utils.FileUtils;
 import cc.lib.utils.Grid;
 import cc.lib.utils.Reflector;
@@ -21,24 +21,24 @@ public class AWTProbotLevelBuilder extends AWTComponent {
         new AWTProbotLevelBuilder();
     }
 
-    AWTFrame frame;
-    AWTRadioButtonGroup<Probot.Type> cellType;
-    AWTButton prev1, next1, prev10, next10;
+    final AWTFrame frame;
+    final AWTRadioButtonGroup<Type> cellType;
+    final AWTButton prev1, next1, prev10, next10;
     final JLabel levelNumLabel = new JLabel();
-    AWTToggleButton lazer0;
-    AWTToggleButton lazer1;
-    AWTToggleButton lazer2;
-    AWTNumberPicker npTurns, npJumps, npLoops;
-    AWTEditText levelLabel;
+    final AWTToggleButton lazer0;
+    final AWTToggleButton lazer1;
+    final AWTToggleButton lazer2;
+    final AWTNumberPicker npTurns, npJumps, npLoops;
+    final AWTEditText levelLabel;
 
     final File levelsFile;
-    Probot probot = new Probot() {
+    final Probot probot = new Probot() {
         @Override
         protected float getStrokeWidth() {
             return 5;
         }
     };
-    ArrayList<Probot.Level> levels = new ArrayList<>();
+    final ArrayList<Level> levels = new ArrayList<>();
     int curLevel = 0;
 
     AWTProbotLevelBuilder() throws Exception {
@@ -61,13 +61,13 @@ public class AWTProbotLevelBuilder extends AWTComponent {
         frame.add(this);
 
         AWTPanel rhs = new AWTPanel(0, 1);
-        cellType = new AWTRadioButtonGroup<Probot.Type>(rhs) {
+        cellType = new AWTRadioButtonGroup<Type>(rhs) {
             @Override
-            protected void onChange(Probot.Type extra) {
+            protected void onChange(Type extra) {
 
             }
         };
-        for (Probot.Type t : Probot.Type.values()) {
+        for (Type t : Type.values()) {
             cellType.addButton(t.displayName, t);
         }
 
@@ -80,7 +80,7 @@ public class AWTProbotLevelBuilder extends AWTComponent {
         lhs.add(new AWTButton("Clear") {
             @Override
             protected void onAction() {
-                grid.init(1, 1, Probot.Type.EM);
+                grid.init(1, 1, Type.EM);
                 getLevel().coins = grid.getGrid();
                 AWTProbotLevelBuilder.this.repaint();
             }
@@ -98,7 +98,7 @@ public class AWTProbotLevelBuilder extends AWTComponent {
         lhs.add(new AWTButton("Insert\nBefore") {
             @Override
             protected void onAction() {
-                levels.add(curLevel, new Probot.Level());
+                levels.add(curLevel, new Level());
                 probot.setLevel(curLevel, levels.get(curLevel));
                 updateAll();
                 AWTProbotLevelBuilder.this.repaint();
@@ -165,7 +165,7 @@ public class AWTProbotLevelBuilder extends AWTComponent {
             @Override
             protected void onAction() {
                 if (curLevel == levels.size()-1) {
-                    levels.add(new Probot.Level());
+                    levels.add(new Level());
                 }
                 probot.setLevel(++curLevel, levels.get(curLevel));
                 updateAll();
@@ -216,7 +216,8 @@ public class AWTProbotLevelBuilder extends AWTComponent {
             levelsFile = new File(level);
             if (levelsFile.isFile()) {
                 try {
-                    levels = Reflector.deserializeFromFile(levelsFile);
+                    levels.clear();
+                    levels.addAll(Reflector.deserializeFromFile(levelsFile));
                 } catch (Exception e) {
                     level = null;
                 }
@@ -235,7 +236,8 @@ public class AWTProbotLevelBuilder extends AWTComponent {
             }
 
             try {
-                levels = Reflector.deserializeFromFile(levelsFile);
+                levels.clear();
+                levels.addAll( Reflector.deserializeFromFile(levelsFile));
                 Properties p = frame.getProperties();
                 p.setProperty("levelFile", levelsFile.getAbsolutePath());
                 frame.setProperties(p);
@@ -246,7 +248,7 @@ public class AWTProbotLevelBuilder extends AWTComponent {
         this.levelsFile = levelsFile;
 
         if (levels.size() == 0) {
-            levels.add(new Probot.Level());
+            levels.add(new Level());
         }
 
         grid.setGrid(getLevel().coins);
@@ -254,13 +256,13 @@ public class AWTProbotLevelBuilder extends AWTComponent {
 
     }
 
-    private Probot.Level getLevel() {
+    private Level getLevel() {
         return levels.get(curLevel);
     }
 
     private void updateAll() {
         levelNumLabel.setText("Level " + (curLevel+1) + " of " + levels.size());
-        Probot.Level level = getLevel();
+        Level level = getLevel();
         grid.setGrid(level.coins);
         lazer0.setSelected(level.lazers[0]);
         lazer1.setSelected(level.lazers[1]);
@@ -277,10 +279,10 @@ public class AWTProbotLevelBuilder extends AWTComponent {
     int pickCol = -1;
     int pickRow = -1;
 
-    Grid<Probot.Type> grid = new Grid() {
+    Grid<Type> grid = new Grid() {
         @Override
-        protected Probot.Type[][] build(int rows, int cols) {
-            return new Probot.Type[rows][cols];
+        protected Type[][] build(int rows, int cols) {
+            return new Type[rows][cols];
         }
     };
 
@@ -321,20 +323,20 @@ public class AWTProbotLevelBuilder extends AWTComponent {
         if (!grid.isValid(pickCol, pickRow))
             return;
 
-        Probot.Type t = grid.get(pickRow, pickRow);
-        Probot.Type [] values = {};
+        Type t = grid.get(pickRow, pickRow);
+        Type [] values = {};
 
         switch (t) {
 
             case EM:
             case DD:
-                values = Utils.toArray(Probot.Type.EM, Probot.Type.DD);
+                values = Utils.toArray(Type.EM, Type.DD);
                 break;
             case SE:
             case SS:
             case SW:
             case SN:
-                values = Utils.toArray(Probot.Type.SE, Probot.Type.SS, Probot.Type.SW, Probot.Type.SN);
+                values = Utils.toArray(Type.SE, Type.SS, Type.SW, Type.SN);
                 break;
             case LH0:
             case LV0:
@@ -342,13 +344,13 @@ public class AWTProbotLevelBuilder extends AWTComponent {
             case LV1:
             case LH2:
             case LV2:
-                values = Utils.toArray(Probot.Type.LH0, Probot.Type.LV0, Probot.Type.LH1, Probot.Type.LV1, Probot.Type.LH2, Probot.Type.LV2);
+                values = Utils.toArray(Type.LH0, Type.LV0, Type.LH1, Type.LV1, Type.LH2, Type.LV2);
                 break;
             case LB0:
             case LB1:
             case LB2:
             case LB:
-                values = Utils.toArray(Probot.Type.LB0, Probot.Type.LB1, Probot.Type.LB2, Probot.Type.LB);
+                values = Utils.toArray(Type.LB0, Type.LB1, Type.LB2, Type.LB);
                 break;
         }
 
@@ -371,16 +373,16 @@ public class AWTProbotLevelBuilder extends AWTComponent {
             return;
         }
 
-        grid.ensureCapacity(pickRow+1, pickCol+1, Probot.Type.EM);
+        grid.ensureCapacity(pickRow+1, pickCol+1, Type.EM);
         getLevel().coins = grid.getGrid();
 
-        Probot.Type t = this.cellType.getChecked();
+        Type t = this.cellType.getChecked();
         grid.set(pickRow, pickCol, t);
 
         repaint();
     }
 
-    void drawGuy(AWTGraphics g, int x, int y, int radius, Probot.Direction dir) {
+    void drawGuy(AWTGraphics g, int x, int y, int radius, Direction dir) {
         g.drawFilledCircle(x, y, radius);
         g.setColor(GColor.BLACK);
         switch (dir) {
