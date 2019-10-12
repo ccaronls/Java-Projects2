@@ -53,6 +53,20 @@ public class FileUtils {
 		}
 		
 	}
+
+    /**
+     *
+     * @param fileName
+     * @return
+     * @throws IOException
+     */
+	public static InputStream openFileOrResource(String fileName) throws IOException {
+	    InputStream in = FileUtils.class.getClassLoader().getResourceAsStream(fileName);
+	    if (in == null) {
+	        in = new FileInputStream(new File(fileName));
+        }
+	    return in;
+    }
 	
 	/**
 	 * 

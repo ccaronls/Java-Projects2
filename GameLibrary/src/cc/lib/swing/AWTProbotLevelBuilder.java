@@ -3,6 +3,7 @@ package cc.lib.swing;
 import java.awt.BorderLayout;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 import javax.swing.JLabel;
@@ -40,21 +41,78 @@ public class AWTProbotLevelBuilder extends AWTComponent {
     };
     final ArrayList<Level> levels = new ArrayList<>();
     int curLevel = 0;
+    final File BACKUP_FILE;
 
     AWTProbotLevelBuilder() throws Exception {
         final File settings = FileUtils.getOrCreateSettingsDirectory(getClass());
-
+        BACKUP_FILE = new File(settings, "levels_backup.txt");
         frame = new AWTFrame() {
 
             @Override
             protected void onWindowClosing() {
                 try {
-                    Reflector.serializeToFile(levels, new File(settings, "levels_backup.txt"));
+                    Reflector.serializeToFile(levels, BACKUP_FILE);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
         };
+
+        if (BACKUP_FILE.isFile()) {
+            try {
+                levels.addAll(Reflector.deserializeFromFile(BACKUP_FILE));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        String level = frame.getStringProperty("levelFile", null);
+        {
+            File levelsFile = null;
+            if (level != null) {
+                levelsFile = new File(level);
+                if (levelsFile.isFile()) {
+                    try {
+                        List<Level> newLevels = Reflector.deserializeFromFile(levelsFile);
+                        levels.clear();
+                        levels.addAll(newLevels);
+                    } catch (Exception e) {
+                        level = null;
+                        levelsFile = null;
+                    }
+                }
+            }
+
+
+            if (level == null) {
+                // find the robots/res/levels.txt file
+                File cur = new File(".").getCanonicalFile();
+                while (!cur.getName().equals("Java-Projects2")) {
+                    cur = cur.getParentFile();
+                }
+                levelsFile = new File(cur, "/Robots/assets/levels.txt");
+                if (!levelsFile.isFile()) {
+                    throw new RuntimeException("Failed to find levels.txt");
+                }
+
+                try {
+                    List<Level> newLevels = Reflector.deserializeFromFile(levelsFile);
+                    levels.clear();
+                    levels.addAll(newLevels);
+                    Properties p = frame.getProperties();
+                    p.setProperty("levelFile", levelsFile.getAbsolutePath());
+                    frame.setProperties(p);
+                } catch (Exception e) {
+                    System.err.println("Failed to load levels from: " + levelsFile.getAbsolutePath());
+                    e.printStackTrace();
+                }
+            }
+            this.levelsFile = levelsFile;
+        }
+
+        if (levels.size() == 0) {
+            levels.add(new Level());
+        }
 
         setMouseEnabled(true);
 
@@ -210,46 +268,7 @@ public class AWTProbotLevelBuilder extends AWTComponent {
         if (!frame.loadFromFile(new File(settings, "probotlevelbuilder.properties")))
             frame.centerToScreen(800, 640);
 
-        String level = frame.getStringProperty("levelFile", null);
-        File levelsFile = null;
-        if (level != null) {
-            levelsFile = new File(level);
-            if (levelsFile.isFile()) {
-                try {
-                    levels.clear();
-                    levels.addAll(Reflector.deserializeFromFile(levelsFile));
-                } catch (Exception e) {
-                    level = null;
-                }
-            }
-        }
 
-        if (level == null) {
-            // find the robots/res/levels.txt file
-            File cur = new File(".").getCanonicalFile();
-            while (!cur.getName().equals("Java-Projects2")) {
-                cur = cur.getParentFile();
-            }
-            levelsFile = new File(cur, "/Robots/assets/levels.txt");
-            if (!levelsFile.isFile()) {
-                throw new RuntimeException("Failed to find levels.txt");
-            }
-
-            try {
-                levels.clear();
-                levels.addAll( Reflector.deserializeFromFile(levelsFile));
-                Properties p = frame.getProperties();
-                p.setProperty("levelFile", levelsFile.getAbsolutePath());
-                frame.setProperties(p);
-            } catch (Exception e) {
-                throw new RuntimeException("Failed to load levels from: " + levelsFile.getAbsolutePath(), e);
-            }
-        }
-        this.levelsFile = levelsFile;
-
-        if (levels.size() == 0) {
-            levels.add(new Level());
-        }
 
         grid.setGrid(getLevel().coins);
         updateAll();

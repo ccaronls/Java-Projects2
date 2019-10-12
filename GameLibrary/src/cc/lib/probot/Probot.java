@@ -25,8 +25,6 @@ public class Probot extends Reflector<Probot> implements Comparator<Integer> {
 
     static {
         addAllFields(Probot.class);
-        addAllFields(Level.class);
-        addAllFields(Guy.class);
     }
 
     public final static GColor [] manColors = {
@@ -281,7 +279,7 @@ public class Probot extends Reflector<Probot> implements Comparator<Integer> {
                     case SS:
                     case SW:
                     case SN:
-                        guys.add(new Guy(i, ii, Direction.values()[level.coins[i][ii].ordinal()-2], manColors[guys.size()]));
+                        guys.add(new Guy(i, ii, level.coins[i][ii].direction, manColors[guys.size()]));
                         level.coins[i][ii] = Type.EM;
                         break;
                     case LH0:

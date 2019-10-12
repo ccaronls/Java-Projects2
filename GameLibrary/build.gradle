@@ -19,7 +19,9 @@ sourceSets {
         java {
             srcDirs = [ 'src', 'apps' ]
         }
-
+        resources {
+            srcDirs = [ 'resources' ]
+        }
     }
 
     androidLib {
