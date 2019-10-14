@@ -235,6 +235,18 @@ public abstract class UIProbot extends Probot {
         g.popMatrix();
     }
 
+    @Override
+    public void clear() {
+        super.clear();
+    }
+
+    @Override
+    public void setLevel(int num, Level level) {
+        super.setLevel(num, level);
+        animations.clear();
+        repaint();
+    }
+
     final Map<Guy, AAnimation<AGraphics>> animations = new HashMap<>();
 
     abstract class BaseAnim extends AAnimation<AGraphics> {
@@ -501,7 +513,7 @@ public abstract class UIProbot extends Probot {
     }
 
     @Override
-    protected void onCommand(Guy guy, int line) {
+    protected void onCommand(int line) {
         // wait for any animations to finish
         while (animations.size() > 0) {
             Utils.waitNoThrow(this, 1000);
@@ -520,11 +532,12 @@ public abstract class UIProbot extends Probot {
         synchronized (animations) {
             animations.put(guy, anim.start(guy));
         }
+        repaint();
     }
 
     @Override
     protected void onFailed() {
-        super.onFailed();
+        System.out.println("FAILED");
     }
 
     @Override
@@ -548,12 +561,6 @@ public abstract class UIProbot extends Probot {
     }
 
     @Override
-    final protected void onSuccess() {
-        // advance to the next level
-        super.onSuccess();
-    }
-
-    @Override
     final protected void onLazered(final Guy guy, boolean instantaneous) {
         if (instantaneous) {
             int x = guy.posx*cw + cw/2;
@@ -572,7 +579,7 @@ public abstract class UIProbot extends Probot {
     @Override
     final protected void onDotsLeftUneaten() {
         for (Guy guy : guys) {
-            animations.put(guy, new FailedAnim(guy).start(guy));
+            addAnimation(guy, new FailedAnim(guy));
         }
     }
 

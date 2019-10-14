@@ -154,6 +154,11 @@ public class Probot extends Reflector<Probot> implements Comparator<Integer> {
         return cmd;
     }
 
+    public void clear() {
+        program.clear();
+        updateNesting();
+    }
+
     /**
      *
      * @return
@@ -208,8 +213,8 @@ public class Probot extends Reflector<Probot> implements Comparator<Integer> {
             if (!running)
                 return -1;
             final Command c = program.get(linePtr[0]);
+            onCommand(linePtr[0]);
             for (Guy guy : guys) {
-                onCommand(guy, linePtr[0]);
                 switch (c.type) {
                     case LoopStart: {
                         int lineStart = ++linePtr[0];
@@ -260,7 +265,7 @@ public class Probot extends Reflector<Probot> implements Comparator<Integer> {
         return running ? 1 : -1;
     }
 
-    public final void init(Level level) {
+    private final void init(Level level) {
         this.level = level;
         initLazers();
         program.clear();
@@ -279,7 +284,7 @@ public class Probot extends Reflector<Probot> implements Comparator<Integer> {
                     case SS:
                     case SW:
                     case SN:
-                        guys.add(new Guy(i, ii, level.coins[i][ii].direction, manColors[guys.size()]));
+                        guys.add(new Guy(ii, i, level.coins[i][ii].direction, manColors[guys.size()]));
                         level.coins[i][ii] = Type.EM;
                         break;
                     case LH0:
@@ -713,7 +718,7 @@ public class Probot extends Reflector<Probot> implements Comparator<Integer> {
 
     // Overrides to handle important events.
 
-    protected void onCommand(Guy guy, int line) {}
+    protected void onCommand(int line) {}
 
     /**
      * Called at the end of program if some FAILED action occured.

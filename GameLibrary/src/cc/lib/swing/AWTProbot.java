@@ -2,12 +2,15 @@ package cc.lib.swing;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Cursor;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.io.File;
+import java.io.FileReader;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -20,7 +23,9 @@ import javax.swing.InputMap;
 import javax.swing.JTextPane;
 import javax.swing.KeyStroke;
 import javax.swing.text.BadLocationException;
+import javax.swing.text.Caret;
 import javax.swing.text.DefaultCaret;
+import javax.swing.text.Document;
 import javax.swing.text.JTextComponent;
 import javax.swing.text.html.HTML;
 import javax.swing.text.html.HTMLDocument;
@@ -51,6 +56,17 @@ public class AWTProbot extends AWTComponent {
         @Override
         protected void setProgramLine(int line) {
 
+        }
+
+        @Override
+        protected void onSuccess() {
+            curLevel += 1;
+            if (curLevel >= levels.size())
+                curLevel = 0;
+            clear();
+            setLevel(curLevel+1, levels.get(curLevel));
+            txtEditor.setText(getTemplateHTML());
+            start();
         }
     };
 
@@ -137,8 +153,8 @@ public class AWTProbot extends AWTComponent {
     }
 
     boolean compileProgram() {
-        String txt = txtEditor.getText();
-        Pattern li = Pattern.compile("<li");
+        String txt = txtEditor.getText().replaceAll("[\n ]+", " ");
+        Pattern li = Pattern.compile("<li[^<]*</li>");
         Matcher m = li.matcher(txt);
         boolean success = true;
         String html = getTemplateHTML();
@@ -147,11 +163,17 @@ public class AWTProbot extends AWTComponent {
         String htmlLast  = html.substring(html.indexOf("</ol>"));
         String htmlList = "";
 
+        probot.clear();
         try {
+            int nesting = 0;
             while (m.find()) {
-                String cmd = m.group().replaceAll("<[^>]+>", "").trim().toLowerCase();
+                String group = m.group();
+                String cmdStr = group.replaceAll("<[^>]+>", "").trim().toLowerCase();
+                if (cmdStr.length() == 0)
+                    continue;
+                String [] cmd = cmdStr.split("[ ]+");
                 String color = "good";
-                switch (cmd) {
+                switch (cmd[0]) {
                     case "chomp":
                         probot.add(new Command(CommandType.Advance, 1));
                         break;
@@ -164,13 +186,27 @@ public class AWTProbot extends AWTComponent {
                     case "jump":
                         probot.add(new Command(CommandType.Jump, 2));
                         break;
+                    case "done":
+                        if (nesting > 0) {
+                            probot.add(new Command(CommandType.LoopEnd, 1));
+                            break;
+                        }
+                    case "repeat":
+                        try {
+                            probot.add(new Command(CommandType.LoopStart, Integer.parseInt(cmd[1])));
+                            break;
+                        } catch (Exception e) {
+                            // fallthrough
+                        }
                     default:
                         color = "bad";
                         success = false;
                         break;
                 }
-                htmlList += "<li class=\"" + color + "\">" + cmd + "</li><br/>";
+                htmlList += "<li class=\"" + color + "\">" + cmdStr + "</li><br/>";
             }
+            if (nesting > 0)
+                success = false;
         } finally {
             txtEditor.setText(htmlFirst + htmlList + htmlLast);
         }
@@ -180,6 +216,7 @@ public class AWTProbot extends AWTComponent {
     AWTProbot() throws Exception {
         final File settingsDir = FileUtils.getOrCreateSettingsDirectory(getClass());
         final File lbSettingsDir = FileUtils.getOrCreateSettingsDirectory(AWTProbotLevelBuilder.class);
+        final File propertiesFile = new File(settingsDir, "awtprobot.properties");
 
         setMouseEnabled(false);
 
@@ -188,61 +225,30 @@ public class AWTProbot extends AWTComponent {
         final JTextPane txtArea = new JTextPane();
         txtArea.setEditable(true);
         txtArea.setBorder(BorderFactory.createLineBorder(new Color(0, 0, 0, 0), 5));
+
         txtArea.setContentType("text/html");
         txtArea.setText(getTemplateHTML());
+/*
+        HTMLEditorKit editorKit = new HTMLEditorKit();
+        Document document = (HTMLDocument)editorKit.createDefaultDocument();
+        try (InputStream in = FileUtils.openFileOrResource("pr_template.html")) {
+            editorKit.read(in, document, 0);
+        }
+        //document.addUndoableEditListener(undoHandler);
+        txtArea.setDocument(document);
+*/
+
+
         InputMap iMap = txtArea.getInputMap();
         ActionMap aMap = txtArea.getActionMap();
         iMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "enter");
-        aMap.put("enter", new AbstractAction() {
-
-            @Override
-            public void actionPerformed(ActionEvent arg0) {
-//                txtArea.replaceSelection("</li><br/>\n   <li>");
-//                txtArea.setText(txtArea.getText());
-
-                HTMLDocument doc = (HTMLDocument)txtArea.getDocument();
-                HTMLEditorKit kit = (HTMLEditorKit)txtArea.getEditorKit();
-                int caret = txtArea.getCaretPosition();
-                HTMLEditorKit.InsertHTMLTextAction ac = new HTMLEditorKit.InsertHTMLTextAction();
-
-
-                try {
-                    kit.insertHTML(doc, caret, "", 1, 1, HTML.Tag.LI);
-                    FileUtils.stringToFile(txtArea.getText(), new File("/tmp/x.html"));
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-/*
-
-
-
-                HTMLDocument doc = (HTMLDocument)txtArea.getDocument();
-                HTMLEditorKit kit = (HTMLEditorKit)txtArea.getEditorKit();
-                int pos = txtArea.getCaretPosition();
-                Element ol = doc.getElement("list");
-                int st = ol.getStartOffset();
-                try {
-                    kit.insertHTML(doc, pos, "</li><br/><li>", 1, 1, null);
-                    FileUtils.stringToFile(txtArea.getText(), new File("/tmp/x.html"));
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                /*
-                Element elem = doc.getElement("caret");
-                elem.getStartOffset();
-                String txt = txtArea.getText();
-                int pos = txtArea.getCaretPosition();
-                String newTxt = txt.substring(0, pos) + "</li><br/>\n   <li>";
-                String remainingTxt = txt.substring(pos);
-                txtArea.setText(newTxt + remainingTxt);*/
-            }
-        });
-        txtArea.setCaret(new MyCaret());
-        String curText = txtArea.getText();
-        //int caretPos = curText.lastIndexOf("</li>");
-        txtArea.setCaretPosition(1);
+        aMap.put("enter", new HTMLEditorKit.InsertHTMLTextAction("Bullets", "<li></li>",HTML.Tag.OL,HTML.Tag.LI));
 
         txtEditor = txtArea;
+        HTMLDocument doc = (HTMLDocument)txtArea.getDocument();
+        HTMLEditorKit kit = (HTMLEditorKit)txtArea.getEditorKit();
+
+        kit.setDefaultCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
 
         clear = new AWTButton("CLEAR") {
             @Override
@@ -298,15 +304,12 @@ public class AWTProbot extends AWTComponent {
         if (saveFile.isFile()) {
             probot.tryLoadFromFile(saveFile);
         } else {
-            probot.init(levels.get(0));
+            probot.setLevel(1, levels.get(0));
             probot.start();
         }
 
         frame.centerToScreen(640, 480);
-    }
-
-    void setProgramLine(int line) {
-
+        txtArea.grabFocus();
     }
 
 }

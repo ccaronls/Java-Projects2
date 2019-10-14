@@ -316,7 +316,7 @@ public class AWTProbotLevelBuilder extends AWTComponent {
         final int viewWidth = g.getViewportWidth();
         final int viewHeight = g.getViewportHeight();
 
-        probot.init(getLevel());
+        probot.setLevel(curLevel, getLevel());
         probot.draw(g, grid.getCols()*cellDim, grid.getRows()*cellDim);
         g.setColor(GColor.WHITE);
 

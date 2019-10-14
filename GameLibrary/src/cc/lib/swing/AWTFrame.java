@@ -139,15 +139,12 @@ public class AWTFrame extends JFrame implements WindowListener, ComponentListene
     }
 
     public synchronized void setProperties(Properties props) {
-        try {
-            OutputStream out = new FileOutputStream(propertiesFile);
-            try {
+        if (propertiesFile != null) {
+            try (OutputStream out = new FileOutputStream(propertiesFile)) {
                 props.store(out, "");
-            } finally {
-                out.close();
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-        } catch (Exception e) {
-            e.printStackTrace();
         }
         properties = props;
     }
@@ -289,10 +286,11 @@ public class AWTFrame extends JFrame implements WindowListener, ComponentListene
     }
 
     public void fullscreenMode() {
-        pack();
-        setExtendedState(JFrame.MAXIMIZED_BOTH);
+        //pack();
         setUndecorated(true);
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
         setVisible(true);
+        pack();
     }
 	
 	/*
