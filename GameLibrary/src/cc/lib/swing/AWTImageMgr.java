@@ -16,6 +16,7 @@ import java.awt.image.PixelGrabber;
 import java.awt.image.ReplicateScaleFilter;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -83,63 +84,38 @@ public final class AWTImageMgr {
 	}*/
 
 	/* */
-	private Image loadImageFromFile(String name) {
-		InputStream in = null;
-		try {
-			in = new FileInputStream(new File(name));
+	private Image loadImageFromFile(String name) throws Exception {
+		try (InputStream in = new FileInputStream(new File(name))) {
 			byte [] buffer = new byte[in.available()];
 			in.read(buffer);
 			return new ImageIcon(buffer).getImage();
-		} catch (IOException e) {
-		    log.error("Error %s:%s", e.getClass().getSimpleName(), e.getMessage());
-		    return null;
-        } catch (Exception e) {
-			log.error(e);
-			return null;
-		} finally {
-			try {
-				if (in != null)
-					in.close();
-			} catch (Exception e) {}
 		}
 	}
 
-    private Image loadImageFromSearchPaths(String name) {
+    private Image loadImageFromSearchPaths(String name) throws Exception {
 	    for (String path : paths) {
-            InputStream in = null;
-            try {
-                in = new FileInputStream(new File(path, name));
+
+            try (InputStream in = new FileInputStream(new File(path, name))) {
                 byte[] buffer = new byte[in.available()];
                 in.read(buffer);
                 return new ImageIcon(buffer).getImage();
-            } catch (Exception e) {
+            } catch (FileNotFoundException e) {
                 log.debug("Not found in search path '" + path + "':" + e.getMessage());
-            } finally {
-                try {
-                    if (in != null)
-                        in.close();
-                } catch (Exception e) {
-                }
+            } catch (IOException e) {
+                throw e;
             }
         }
-        return null;
+        throw new FileNotFoundException(name);
     }
 
     /* */
-	private Image loadImageFromResource(String name) {
-		InputStream in = null;
-		try {
-			in = getClass().getClassLoader().getResourceAsStream(name);
+	private Image loadImageFromResource(String name) throws Exception {
+		try (InputStream in = getClass().getClassLoader().getResourceAsStream(name)) {
 			byte [] buffer = new byte[in.available()];
 			in.read(buffer);
 			return new ImageIcon(buffer).getImage();
-		} catch (Exception e) {
-			System.err.println("Not found in resource: " + e.getMessage());
-			return null;
-		} finally {
-			try {
-				in.close();
-			} catch (Exception e) {}
+		} catch (NullPointerException e) {
+			throw new FileNotFoundException(name);
 		}
 	}
 
@@ -176,23 +152,29 @@ public final class AWTImageMgr {
         int id = images.size();
 		Image image = null;
 		log.debug("Loading image %d : %s ...", id, fileOrResourceName);
-		if ((image = this.loadImageFromFile(fileOrResourceName))!=null) {
-            log.debug("From File...");
-        } else if ((image = this.loadImageFromSearchPaths(fileOrResourceName))!=null) {
-            log.debug("From search paths...");
-		} else if ((image = this.loadImageFromResource(fileOrResourceName))!=null) {
-            log.debug("From Resource...");
-//		} else if ((image = this.loadImageFromApplet(fileOrResourceName))!=null) {
-  //          Utils.print("From Applet...");
-		} else {
-			throw new RuntimeException("Cannot load image '" + fileOrResourceName + "'");
-		}		
-		
+		try {
+            try {
+                image = this.loadImageFromFile(fileOrResourceName);
+                log.debug("Image '" + fileOrResourceName + "' loaded from file");
+            } catch (FileNotFoundException e) {
+                try {
+                    image = this.loadImageFromSearchPaths(fileOrResourceName);
+                    log.debug("Image '" + fileOrResourceName + "' loaded from search paths");
+                } catch (FileNotFoundException ee) {
+                    image = this.loadImageFromResource(fileOrResourceName);
+                    log.debug("Image '" + fileOrResourceName + "' loaded from resources");
+                }
+            }
+        } catch (FileNotFoundException e) {
+		    log.error("File '" + fileOrResourceName + "' Not found on file paths or resources");
+        } catch (Exception e) {
+		    log.error(e.getClass().getSimpleName() + ":" + e.getMessage());
+            throw new RuntimeException("Cannot load image '" + fileOrResourceName + "'");
+        }
+
 		if (transparent != null) {
 			image = transform(image, new AWTTransparencyFilter(transparent));
 		}			
-
-		log.debug("SUCCESS");
 		return addImage(image, maxCopies);
 	}
 
@@ -442,13 +424,15 @@ public final class AWTImageMgr {
 		waitForIt(newImage);
 		return newImage;
 	}
-	
-	/**
-	 * Only 0, 90, 180 and 270 supported at this time
-	 * 
-	 * @param id
-	 * @param degrees
-	 */
+
+    /**
+     * Only 0, 90, 180 and 270 supported at this time
+     *
+     * @param sourceId
+     * @param degrees
+     * @param comp
+     * @return
+     */
 	public int newRotatedImage(int sourceId, int degrees, Component comp) {
 	    
 	    Image image = getImage(sourceId);

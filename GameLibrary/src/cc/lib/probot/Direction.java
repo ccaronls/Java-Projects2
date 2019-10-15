@@ -13,4 +13,8 @@ public enum Direction {
     }
 
     final int dx, dy;
+
+    Direction turn(int amt) {
+        return Direction.values()[(ordinal()+amt+values().length)%values().length];
+    }
 }

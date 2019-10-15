@@ -61,6 +61,7 @@ public class Probot extends Reflector<Probot> implements Comparator<Integer> {
      * Called in separate thread. callbacks made to events should be handled to show on ui
      */
     public final void runProgram() {
+        Utils.assertFalse(running);
         running = true;
         copy = new Probot();
         copy.copyFrom(this);
@@ -216,6 +217,37 @@ public class Probot extends Reflector<Probot> implements Comparator<Integer> {
             onCommand(linePtr[0]);
             for (Guy guy : guys) {
                 switch (c.type) {
+
+                    case Advance:
+                        advance(guy, 1, true);
+                        break;
+                    case TurnRight:
+                        onTurned(guy, 1);
+                        break;
+                    case TurnLeft:
+                        onTurned(guy, -1);
+                        break;
+                    case UTurn:
+                        onTurned(guy, 2);
+                        break;
+                    case LoopStart:
+                        break;
+                    case LoopEnd:
+                        break;
+                    case Jump:
+                        advance(guy, 2, true);
+                        break;
+                    case IfThen:
+                        break;
+                    case IfElse:
+                        break;
+                    case IfEnd:
+                        break;
+                }
+            }
+            onCommand(linePtr[0]);
+            for (Guy guy : guys) {
+                switch (c.type) {
                     case LoopStart: {
                         int lineStart = ++linePtr[0];
                         for (int i = 0; i < c.count; i++) {
@@ -232,7 +264,7 @@ public class Probot extends Reflector<Probot> implements Comparator<Integer> {
                         return 1;
                     }
                     case Advance:
-                        if (!advance(guy, 1)) {
+                        if (!advance(guy, 1, false)) {
                             return running ? 0 : -1;
                         }
                         break;
@@ -246,7 +278,7 @@ public class Probot extends Reflector<Probot> implements Comparator<Integer> {
                         turn(guy, 2);
                         break;
                     case Jump:
-                        if (!advance(guy, 2)) {
+                        if (!advance(guy, 2, false)) {
                             return running ? 0 : -1;
                         }
                         break;
@@ -313,50 +345,81 @@ public class Probot extends Reflector<Probot> implements Comparator<Integer> {
     }
 
     // return false if failed
-    private boolean advance(Guy guy, int amt) {
+    private boolean advance(Guy guy, int amt, boolean useCB) {
         int nx = guy.posx + guy.dir.dx*amt;
         int ny = guy.posy + guy.dir.dy*amt;
 
         if (nx < 0 || ny < 0 || ny >= level.coins.length || nx >= level.coins[ny].length) {
-            onAdvanceFailed(guy);
+            if (useCB)
+                onAdvanceFailed(guy);
             return false;
         } else if (!canMoveToPos(ny, nx)) {
-            onAdvanceFailed(guy);
+            if (useCB)
+                onAdvanceFailed(guy);
             return false;
         } else if (lazer[ny][nx] != 0) {
-            onLazered(guy,false);
+            if (useCB)
+                onLazered(guy,false); // walking into a lazer
             return false;
         } else {
-            if (amt == 1) {
-                onAdvanced(guy);
+            if (useCB) {
+                if (amt == 1) {
+                    onAdvanced(guy);
+                } else {
+                    onJumped(guy);
+                }
+                int [][] lazersCopy = Reflector.deepCopy(lazer);
+                testLazers(ny, nx);
+                if (lazer[ny][nx] != 0) {
+                    onLazered(guy, true); // lazer activated on guy
+                }
+                lazer = Reflector.deepCopy(lazersCopy);
             } else {
-                onJumped(guy);
-            }
-            guy.posx = nx;
-            guy.posy = ny;
-            switch (level.coins[guy.posy][guy.posx]) {
-                case DD:
-                    level.coins[guy.posy][guy.posx] = Type.EM;
-                    break;
-                case LB0:
-                    toggleLazers(0);
-                    break;
-                case LB1:
-                    toggleLazers(1);
-                    break;
-                case LB2:
-                    toggleLazers(2);
-                    break;
-                case LB:
-                    toggleLazers(0, 1, 2);
-                    break;
-            }
-            if (lazer[ny][nx] != 0) {
-                onLazered(guy,true);
-                return false;
+                guy.posx = nx;
+                guy.posy = ny;
+                switch (level.coins[guy.posy][guy.posx]) {
+                    case DD:
+                        level.coins[guy.posy][guy.posx] = Type.EM;
+                        break;
+                    case LB0:
+                        toggleLazers(0);
+                        break;
+                    case LB1:
+                        toggleLazers(1);
+                        break;
+                    case LB2:
+                        toggleLazers(2);
+                        break;
+                    case LB:
+                        toggleLazers(0, 1, 2);
+                        break;
+                }
+                if (lazer[ny][nx] != 0) {
+                    onLazered(guy, true); // lazer activated on guy
+                    return false;
+                }
             }
         }
         return true;
+    }
+
+    private void testLazers(int row, int col) {
+        switch (level.coins[row][col]) {
+            case DD:
+                break;
+            case LB0:
+                toggleLazers(0);
+                break;
+            case LB1:
+                toggleLazers(1);
+                break;
+            case LB2:
+                toggleLazers(2);
+                break;
+            case LB:
+                toggleLazers(0, 1, 2);
+                break;
+        }
     }
 
     private void initHorzLazer(int y, int x) {
@@ -395,8 +458,11 @@ public class Probot extends Reflector<Probot> implements Comparator<Integer> {
         }
     }
 
+    /*
+    INTERNAL USE ONLY
+     */
     @Override
-    public int compare(Integer i1, Integer i2) {
+    public final int compare(Integer i1, Integer i2) {
         boolean o1 = level.lazers[i1];
         boolean o2 = level.lazers[i2];
         if (o1 && !o2)
@@ -481,14 +547,14 @@ public class Probot extends Reflector<Probot> implements Comparator<Integer> {
     }
 
     private void turn(Guy guy, int d) {
-        onTurned(guy, d);
         int nd = guy.dir.ordinal() + d;
         nd += Direction.values().length;
         nd %= Direction.values().length;
         guy.dir = Direction.values()[nd];
     }
 
-    private void reset() {
+    public void reset() {
+        stop();
         if (copy != null) {
             copyFrom(copy);
         }
@@ -498,7 +564,7 @@ public class Probot extends Reflector<Probot> implements Comparator<Integer> {
         this.levelNum = num;
         program.clear();
         Arrays.sort(lazerOrdering);
-        init(level);
+        init(level.deepCopy());
     }
 
     /**

@@ -1,6 +1,8 @@
 package cc.lib.probot;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import cc.lib.game.AAnimation;
@@ -9,12 +11,18 @@ import cc.lib.game.GColor;
 import cc.lib.game.Utils;
 import cc.lib.math.Bezier;
 import cc.lib.math.Vector2D;
+import cc.lib.utils.StopWatch;
 
 public abstract class UIProbot extends Probot {
 
     private int radius = 0;
     private int cw, ch;
     private int rows, cols;
+    private final StopWatch sw = new StopWatch();
+
+    public UIProbot() {
+        sw.start();
+    }
 
     protected abstract void repaint();
 
@@ -35,6 +43,18 @@ public abstract class UIProbot extends Probot {
 
         drawLazerBeams(g);
         drawChompers(g);
+    }
+
+    public void setPaused(boolean paused) {
+        if (paused) {
+            sw.pause();
+        } else {
+            sw.unpause();
+        }
+    }
+
+    public boolean isPaused() {
+        return sw.isPaused();
     }
 
     void drawGrid(AGraphics g) {
@@ -188,19 +208,26 @@ public abstract class UIProbot extends Probot {
     synchronized void drawChompers(AGraphics g) {
         // draw the pacman
         radius = Math.round(0.4f * Math.min(cw, ch));
+        synchronized (animations) {
+            if (isRunning()) {
+                if (!animations.isEmpty()) {
+                    for (AAnimation<AGraphics> a : animations.values()) {
+                        a.update(g);
+                    }
+                    repaint();
+                    return;
+                }
+            } else {
+                animations.clear();
+            }
+        }
         for (Guy guy : getGuys()) {
             int x = guy.posx * cw + cw / 2;
             int y = guy.posy * ch + ch / 2;
 
             g.setColor(guy.color);
 
-            AAnimation<AGraphics> animation = animations.get(guy);
-            if (animation != null && !animation.isDone()) {
-                animation.update(g);
-                repaint();
-            } else {
-                drawGuy(g, x, y, guy.dir, 0);
-            }
+            drawGuy(g, x, y, guy.dir, 0);
         }
 
     }
@@ -264,14 +291,6 @@ public abstract class UIProbot extends Probot {
 
         @Override
         protected void onDone() {
-            synchronized (animations) {
-                for (Map.Entry<Guy, AAnimation<AGraphics>> e : animations.entrySet()) {
-                    if (this == e.getValue()) {
-                        animations.remove(e.getKey());
-                        break;
-                    }
-                }
-            }
             synchronized (UIProbot.this) {
                 UIProbot.this.notify();
             }
@@ -292,6 +311,11 @@ public abstract class UIProbot extends Probot {
             startedCorrectly = true;
             repaint();
             return start();
+        }
+
+        @Override
+        protected long getCurrentTimeMSecs() {
+            return sw.capture();
         }
     };
 
@@ -335,6 +359,7 @@ public abstract class UIProbot extends Probot {
                 }
             }
             Vector2D v = b.getPointAt(position);
+            g.setColor(guy.color);
             drawGuy(g, v.getX(), v.getY(), guy.dir, position);
         }
 
@@ -377,6 +402,7 @@ public abstract class UIProbot extends Probot {
             x = guy.posx*cw + cw/2 +dx*position*advanceAmt;
             y = guy.posy*ch + ch/2 +dy*position*advanceAmt;
 
+            g.setColor(guy.color);
             drawGuy(g, x, y, guy.dir, position);
         }
 
@@ -400,6 +426,7 @@ public abstract class UIProbot extends Probot {
             g.pushMatrix();
             g.translate(x, y);
             g.rotate(Math.round(position * 90 * dir));
+            g.setColor(guy.color);
             drawGuy(g, 0, 0, guy.dir, 0);
             g.popMatrix();
         }
@@ -415,7 +442,7 @@ public abstract class UIProbot extends Probot {
 
         @Override
         protected void draw(AGraphics g, float position, float dt) {
-            g.setColor(GColor.YELLOW.interpolateTo(GColor.RED, position));
+            g.setColor(guy.color.interpolateTo(GColor.RED, position));
             int x = guy.posx * cw + cw / 2;
             int y = guy.posy * ch + ch / 2;
             drawGuy(g, x, y, guy.dir, 0);
@@ -462,6 +489,16 @@ public abstract class UIProbot extends Probot {
         }
 
         @Override
+        public synchronized void stop() {
+            super.stop();
+            synchronized (animations) {
+                animations.clear();
+            }
+            setPaused(false);
+            repaint();
+        }
+
+        @Override
         protected void onDone() {
             animations.put(guy, new BaseAnim(2000) {
                 @Override
@@ -502,6 +539,7 @@ public abstract class UIProbot extends Probot {
 
 
     public void startProgramThread() {
+        animations.clear();
         new Thread() {
             @Override
             public void run() {
@@ -515,7 +553,7 @@ public abstract class UIProbot extends Probot {
     @Override
     protected void onCommand(int line) {
         // wait for any animations to finish
-        while (animations.size() > 0) {
+        while (!isAnimationsDone()) {
             Utils.waitNoThrow(this, 1000);
         }
         setProgramLine(line);
@@ -524,8 +562,21 @@ public abstract class UIProbot extends Probot {
         switch (get(line).type) {
             case LoopStart:
             case LoopEnd:
+            case IfElse:
+            case IfEnd:
+            case IfThen:
                 Utils.waitNoThrow(this, 500);
         }
+    }
+
+    boolean isAnimationsDone() {
+        synchronized (animations) {
+            for (AAnimation<AGraphics> a : animations.values()) {
+                if (!a.isDone())
+                    return false;
+            }
+        }
+        return true;
     }
 
     void addAnimation(Guy guy, BaseAnim anim) {
@@ -537,7 +588,8 @@ public abstract class UIProbot extends Probot {
 
     @Override
     protected void onFailed() {
-        System.out.println("FAILED");
+        reset();
+        repaint();
     }
 
     @Override
@@ -548,6 +600,32 @@ public abstract class UIProbot extends Probot {
     @Override
     final protected void onAdvanced(Guy guy) {
         addAnimation(guy, new ChompAnim(guy));
+    }
+
+    protected abstract int [] getFaceImageIds(AGraphics g);
+
+
+    @Override
+    protected void onSuccess() {
+        for (Guy guy : guys) {
+            addAnimation(guy, new BaseAnim(3000) {
+                @Override
+                protected void draw(AGraphics g, float position, float dt) {
+
+                    int [] faces = getFaceImageIds(g);
+
+                    float parts = 1.0f / faces.length;
+                    int x = guy.posx*cw;
+                    int y = guy.posy*ch;
+                    for (int i=faces.length-1; i>=0; i--) {
+                        if (position >= parts*i) {
+                            g.drawImage(faces[i], x, y, cw, ch);
+                            break;
+                        }
+                    }
+                }
+            });
+        }
     }
 
     @Override
