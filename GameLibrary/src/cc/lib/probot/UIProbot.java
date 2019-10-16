@@ -432,23 +432,6 @@ public abstract class UIProbot extends Probot {
         }
     }
 
-    class BlinkingAnim extends BaseAnim {
-        final Guy guy;
-
-        BlinkingAnim(Guy guy) {
-            super(500, 6, true);
-            this.guy = guy;
-        }
-
-        @Override
-        protected void draw(AGraphics g, float position, float dt) {
-            g.setColor(guy.color.interpolateTo(GColor.RED, position));
-            int x = guy.posx * cw + cw / 2;
-            int y = guy.posy * ch + ch / 2;
-            drawGuy(g, x, y, guy.dir, 0);
-        }
-    }
-
     /**
      * 2 Part animation: Guy turns gray then shatters.
      */
@@ -594,7 +577,7 @@ public abstract class UIProbot extends Probot {
 
     @Override
     protected void onAdvanceFailed(Guy guy) {
-        addAnimation(guy, new BlinkingAnim(guy));
+        addAnimation(guy, new FailedAnim(guy));
     }
 
     @Override

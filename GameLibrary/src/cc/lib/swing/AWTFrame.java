@@ -627,6 +627,30 @@ public class AWTFrame extends JFrame implements WindowListener, ComponentListene
         showMessageDialog(title, message, MessageIconType.PLAIN);
     }
 
+    public void showMessageDialogWithHTMLContent(String titleStr, String html) {
+        final AWTFrame dialog = new AWTFrame();
+        JPanel content = new JPanel();
+        content.setLayout(new BorderLayout());
+        JTextPane txt = new JTextPane();
+        txt.setEditable(false);
+        txt.setContentType("text/html");
+        txt.setText(html);
+        content.add(txt, BorderLayout.CENTER);
+        JLabel title = new AWTLabel(titleStr, 1, 16, true);
+        content.add(title, BorderLayout.NORTH);
+        JButton close = new AWTButton("Close") {
+            @Override
+            protected void onAction() {
+                dialog.closePopup();
+            }
+        };
+        content.add(close, BorderLayout.SOUTH);
+        dialog.add(content, BorderLayout.CENTER);
+        dialog.showAsPopup(this);
+//        dialog.pack();
+  //      dialog.setVisible(true);
+    }
+
     /**
      * Show drop down menu with options
      *

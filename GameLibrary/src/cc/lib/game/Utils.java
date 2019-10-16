@@ -1999,7 +1999,7 @@ public class Utils {
      * @param length
      * @return
      */
-    public static Object getRepeatingChars(char c, int length) {
+    public static String getRepeatingChars(char c, int length) {
         String s = "";
         for (int i = 0; i < length; i++)
             s += c;
