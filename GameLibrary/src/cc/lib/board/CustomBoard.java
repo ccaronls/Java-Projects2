@@ -577,8 +577,14 @@ public class CustomBoard extends Reflector<CustomBoard> {
         for (BCell c : getAdjacentCells(verts.get(vIndex))) {
             c.adjVerts.remove((Object)vIndex);
         }
-        verts.set(vIndex, null);
+        if (vIndex == verts.size()-1) {
+            verts.remove(vIndex);
+        } else {
+            verts.set(vIndex, NULL_VERTEX);
+        }
     }
+
+    public final static BVertex NULL_VERTEX = new BVertex();
 
     /**
      *
