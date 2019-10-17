@@ -2338,4 +2338,36 @@ public class Utils {
         }
         return l;
     }
+
+    public static String [] wrapText(String txt, int maxChars) {
+        if (txt == null)
+            return null;
+        String [] parts = txt.split("\n");
+        List<String> lines = new ArrayList<>();
+        for (String str : parts) {
+            str = str.trim();
+            while (str.length() > maxChars) {
+                int spc = str.indexOf(' ');
+                if (spc < 0 || spc > maxChars) {
+                    lines.add(str.substring(0, maxChars));
+                    str = str.substring(maxChars);
+                } else {
+                    while (true) {
+                        int nxt = str.indexOf(' ', spc+1);
+                        if (nxt < 0 || nxt > maxChars) {
+                            break;
+                        }
+                        spc = nxt;
+                    }
+                    lines.add(str.substring(0, spc));
+                    str = str.substring(spc+1);
+                }
+            }
+            lines.add(str);
+        }
+
+        return lines.toArray(new String[lines.size()]);
+
+    }
+
 }

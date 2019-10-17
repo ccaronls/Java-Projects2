@@ -182,7 +182,7 @@ public class AWTMonopoly extends AWTComponent {
                 @Override
                 public void itemChoose(int index) {
                     final Trade t = trades.get(index);
-                    final Player trader = getPlayer(t.getTraderNum());
+                    final Player trader = t.getTrader();
                     String title = "Buy " + Utils.getPrettyString(t.getCard().getProperty().name()) + " from " + Utils.getPrettyString(trader.getPiece().name());
                     showPropertyPopup(title, "Buy for $" +t.getPrice(), t.getCard().getProperty(), () -> {
                         result[0] = t;

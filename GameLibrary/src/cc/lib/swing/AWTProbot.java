@@ -21,7 +21,6 @@ import javax.swing.JButton;
 import javax.swing.JEditorPane;
 import javax.swing.JLabel;
 import javax.swing.JScrollPane;
-import javax.swing.JTextPane;
 import javax.swing.KeyStroke;
 import javax.swing.text.html.HTML;
 import javax.swing.text.html.HTMLDocument;
@@ -314,8 +313,13 @@ public class AWTProbot extends AWTComponent {
 
     String [] getProgram(boolean includeEmptyLines) {
         String txt = txtEditor.getText().replaceAll("[\n ]+", " ");
+        Pattern ol = Pattern.compile("<ol.*</ol>");
         Pattern li = Pattern.compile("<li[^<]*</li>");
-        Matcher m = li.matcher(txt);
+        Matcher olm = ol.matcher(txt);
+        if (!olm.find()) {
+            throw new RuntimeException("WTF!");
+        }
+        Matcher m = li.matcher(olm.group());
         List<String> lines = new ArrayList<>();
         while (m.find()) {
             String group = m.group();
@@ -334,49 +338,80 @@ public class AWTProbot extends AWTComponent {
         String html = getTemplateHTML();
 
         String htmlFirst = html.substring(0, html.indexOf("<ol>")+4);
-        String htmlLast  = html.substring(html.indexOf("</ol>"));
+        String htmlLast  = html.substring(html.indexOf("</body>"));
         String htmlList = "";
         probot.clear();
+        List<String> errors = new ArrayList<>();
         try {
             int nesting = 0;
+            int lineNum = 0;
             for (String cmdStr : program) {
+                lineNum++;
                 String [] cmd = cmdStr.split("[ ]+");
                 String color = "good";
                 switch (cmd[0]) {
+                    case "c":
                     case "chomp":
                         probot.add(new Command(CommandType.Advance, 1));
                         break;
+                    case "r":
                     case "right":
                         probot.add(new Command(CommandType.TurnRight, 1));
                         break;
+                    case "l":
                     case "left":
                         probot.add(new Command(CommandType.TurnLeft, 1));
                         break;
+                    case "u":
+                    case "uturn":
+                        probot.add(new Command(CommandType.UTurn, 1));
+                        break;
+                    case "j":
                     case "jump":
                         probot.add(new Command(CommandType.Jump, 2));
                         break;
                     case "loopend":
-                        if (nesting > 0) {
+                    case "done":
+                        if (nesting-- > 0) {
                             probot.add(new Command(CommandType.LoopEnd, 1));
-                            break;
+                        } else {
+                            color = "bad";
+                            success = false;
+                            errors.add("[" + lineNum + "] Cannot end loop");
                         }
+                        break;
+                    case "repeat":
                     case "loop":
                         try {
                             probot.add(new Command(CommandType.LoopStart, Integer.parseInt(cmd[1])));
-                            break;
+                            nesting ++;
                         } catch (Exception e) {
-                            // fallthrough
+                            errors.add("[" + lineNum + "] " + cmd[1] + " is not a number");
+                            color = "bad";
+                            success = false;
                         }
+                        break;
                     default:
                         color = "bad";
                         success = false;
+                        errors.add("[" + lineNum + "] " + cmd[0] + " is not a command");
                         break;
                 }
                 htmlList += "<li class=\"" + color + "\">" + cmdStr + "</li>";
             }
-            if (nesting > 0)
+            if (nesting > 0) {
                 success = false;
+                errors.add("[" + lineNum + "] Loop not closed");
+            }
         } finally {
+            htmlList += "</ol>";
+            if (errors.size() > 0) {
+                htmlList += "<ul>";
+                for (String err : errors) {
+                    htmlList += "<li class=\"err\">" + err + "</li>";
+                }
+                htmlList += "</ul>";
+            }
             txtEditor.setText(htmlFirst + htmlList + htmlLast);
         }
         return success;
@@ -386,11 +421,14 @@ public class AWTProbot extends AWTComponent {
         if (levelNum > levels.size()-1)
             levelNum = 0;
         Level level = levels.get(levelNum);
-        int maxLevel = frame.getIntProperty("maxLevel", 0);
+        int maxLevel = frame.getIntProperty("maxLevel", -1);
         if (maxLevel < levelNum) {
             maxLevel = levelNum;
             if (!Utils.isEmpty(level.info)) {
-                frame.showMessageDialog(level.label, level.info);
+                new Thread(() -> {
+                    Utils.waitNoThrow(this, 2000);
+                    frame.showMessageDialog(level.label, level.info);
+                }).start();
             }
         }
         currentLevelTitle.setText(level.label);

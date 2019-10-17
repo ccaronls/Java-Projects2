@@ -548,7 +548,7 @@ public abstract class UIProbot extends Probot {
             case IfElse:
             case IfEnd:
             case IfThen:
-                Utils.waitNoThrow(this, 500);
+                //Utils.waitNoThrow(this, 500);
         }
     }
 

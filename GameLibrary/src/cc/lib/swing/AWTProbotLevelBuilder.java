@@ -1,12 +1,22 @@
 package cc.lib.swing;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
+import javax.swing.InputMap;
 import javax.swing.JLabel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextPane;
+import javax.swing.KeyStroke;
+import javax.swing.text.Keymap;
 
 import cc.lib.game.GColor;
 import cc.lib.game.Utils;
@@ -31,6 +41,7 @@ public class AWTProbotLevelBuilder extends AWTComponent {
     final AWTToggleButton lazer2;
     final AWTNumberPicker npTurns, npJumps, npLoops;
     final AWTEditText levelLabel;
+    final JTextPane info = new JTextPane();
 
     final File levelsFile;
     final Probot probot = new Probot() {
@@ -71,7 +82,7 @@ public class AWTProbotLevelBuilder extends AWTComponent {
             File levelsFile = null;
             if (level != null) {
                 levelsFile = new File(level);
-                if (levelsFile.isFile()) {
+                if (levelsFile.isFile() && levelsFile.lastModified() > BACKUP_FILE.lastModified()) {
                     try {
                         List<Level> newLevels = Reflector.deserializeFromFile(levelsFile);
                         levels.clear();
@@ -80,6 +91,8 @@ public class AWTProbotLevelBuilder extends AWTComponent {
                         level = null;
                         levelsFile = null;
                     }
+                } else {
+                    System.err.println("WARNING: Not loading from " + levelsFile + " b/c is older then " + BACKUP_FILE);
                 }
             }
 
@@ -95,16 +108,20 @@ public class AWTProbotLevelBuilder extends AWTComponent {
                     throw new RuntimeException("Failed to find levels.txt");
                 }
 
-                try {
-                    List<Level> newLevels = Reflector.deserializeFromFile(levelsFile);
-                    levels.clear();
-                    levels.addAll(newLevels);
-                    Properties p = frame.getProperties();
-                    p.setProperty("levelFile", levelsFile.getAbsolutePath());
-                    frame.setProperties(p);
-                } catch (Exception e) {
-                    System.err.println("Failed to load levels from: " + levelsFile.getAbsolutePath());
-                    e.printStackTrace();
+                if (levelsFile.lastModified() > BACKUP_FILE.lastModified()) {
+                    try {
+                        List<Level> newLevels = Reflector.deserializeFromFile(levelsFile);
+                        levels.clear();
+                        levels.addAll(newLevels);
+                        Properties p = frame.getProperties();
+                        p.setProperty("levelFile", levelsFile.getAbsolutePath());
+                        frame.setProperties(p);
+                    } catch (Exception e) {
+                        System.err.println("Failed to load levels from: " + levelsFile.getAbsolutePath());
+                        e.printStackTrace();
+                    }
+                } else {
+                    System.err.println("WARNING: Not loading from " + levelsFile + " b/c is older then " + BACKUP_FILE);
                 }
             }
             this.levelsFile = levelsFile;
@@ -131,10 +148,19 @@ public class AWTProbotLevelBuilder extends AWTComponent {
 
         frame.add(rhs, BorderLayout.EAST);
 
+
         AWTPanel lhs = new AWTPanel();
         lhs.setLayout(new AWTButtonLayout(lhs));
         frame.add(lhs, BorderLayout.WEST);
-
+        InputMap inputMap = info.getInputMap();
+        ActionMap actionMap = info.getActionMap();
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "enter");
+        actionMap.put("enter", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                levels.get(curLevel).info = info.getText();
+            }
+        });
         lhs.add(new AWTButton("Clear") {
             @Override
             protected void onAction() {
@@ -207,6 +233,8 @@ public class AWTProbotLevelBuilder extends AWTComponent {
                 AWTProbotLevelBuilder.this.repaint();
             }
         });
+        info.setPreferredSize(new Dimension(100, 300));
+        lhs.add(new JScrollPane(info));
 
         prev1 = new AWTButton("<") {
             @Override
@@ -268,8 +296,6 @@ public class AWTProbotLevelBuilder extends AWTComponent {
         if (!frame.loadFromFile(new File(settings, "probotlevelbuilder.properties")))
             frame.centerToScreen(800, 640);
 
-
-
         grid.setGrid(getLevel().coins);
         updateAll();
 
@@ -293,6 +319,7 @@ public class AWTProbotLevelBuilder extends AWTComponent {
         npLoops.setValue(level.numLoops);
         npTurns.setValue(level.numTurns);
         levelLabel.setText(level.label);
+        info.setText(level.info);
     }
 
     int pickCol = -1;
