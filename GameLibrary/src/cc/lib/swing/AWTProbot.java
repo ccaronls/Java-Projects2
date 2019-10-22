@@ -47,7 +47,6 @@ public class AWTProbot extends AWTComponent {
 
     AWTProbot() throws Exception {
         final File settingsDir = FileUtils.getOrCreateSettingsDirectory(getClass());
-        final File lbSettingsDir = FileUtils.getOrCreateSettingsDirectory(AWTProbotLevelBuilder.class);
         final File propertiesFile = new File(settingsDir, "awtprobot.properties");
 
         setMouseEnabled(false);
@@ -64,6 +63,12 @@ public class AWTProbot extends AWTComponent {
         aMap.put("enter", new HTMLEditorKit.InsertHTMLTextAction("Bullets", "<li></li>",HTML.Tag.OL,HTML.Tag.LI) {
             @Override
             public void actionPerformed(ActionEvent ae) {
+
+                // *****************************************************************************************
+                // Annoying Hack: for some reason the editor adds 2 list items, so remove the extra one made
+                // *****************************************************************************************
+
+
                 // get the position of the cursor
                 String [] lines = getProgram(true);
                 int cursor = txtEditor.getCaretPosition();
@@ -81,9 +86,6 @@ public class AWTProbot extends AWTComponent {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-                // *****************************************************************************************
-                // Annoying Hack: for some reason the editor adds 2 list items, so remove the extra one made
-                // *****************************************************************************************
 
                 String html = txtEditor.getText();
                 System.out.println("Cursor is on lineNum: " + lineNum);
@@ -211,9 +213,9 @@ public class AWTProbot extends AWTComponent {
         cntr.add(this, BorderLayout.CENTER);
         frame.add(cntr, BorderLayout.CENTER);
         frame.add(left, BorderLayout.WEST);
-        File lbLevelsFile = new File(lbSettingsDir, "levels_backup.txt");
+        //File lbLevelsFile = FileUtilsnew File(lbSettingsDir, "levels_backup.txt");
 
-        levels.addAll(Reflector.deserializeFromFile(lbLevelsFile));
+        levels.addAll(Reflector.deserializeFromInputStream(FileUtils.openFileOrResource("awtprobot_levels.txt")));
         frame.setPropertiesFile(propertiesFile);
         int curLevel = frame.getIntProperty("curLevel", 0);
 
@@ -345,6 +347,8 @@ public class AWTProbot extends AWTComponent {
         try {
             int nesting = 0;
             int lineNum = 0;
+            int maxNum = -1;
+            int cmdCnt = 0;
             for (String cmdStr : program) {
                 lineNum++;
                 String [] cmd = cmdStr.split("[ ]+");
@@ -353,25 +357,37 @@ public class AWTProbot extends AWTComponent {
                     case "c":
                     case "chomp":
                         probot.add(new Command(CommandType.Advance, 1));
+                        maxNum = probot.getCommandTypeMaxAvailable(CommandType.Advance);
+                        cmdCnt = probot.getCommandCount(CommandType.Advance);
                         break;
                     case "r":
                     case "right":
                         probot.add(new Command(CommandType.TurnRight, 1));
+                        maxNum = probot.getCommandTypeMaxAvailable(CommandType.TurnRight);
+                        cmdCnt = probot.getCommandCount(CommandType.TurnRight);
                         break;
                     case "l":
                     case "left":
                         probot.add(new Command(CommandType.TurnLeft, 1));
+                        maxNum = probot.getCommandTypeMaxAvailable(CommandType.TurnLeft);
+                        cmdCnt = probot.getCommandCount(CommandType.TurnLeft);
                         break;
                     case "u":
                     case "uturn":
                         probot.add(new Command(CommandType.UTurn, 1));
+                        maxNum = probot.getCommandTypeMaxAvailable(CommandType.UTurn);
+                        cmdCnt = probot.getCommandCount(CommandType.UTurn);
                         break;
                     case "j":
                     case "jump":
                         probot.add(new Command(CommandType.Jump, 2));
+                        maxNum = probot.getCommandTypeMaxAvailable(CommandType.Jump);
+                        cmdCnt = probot.getCommandCount(CommandType.Jump);
                         break;
                     case "loopend":
                     case "done":
+                    case "end":
+                    case "e":
                         if (nesting-- > 0) {
                             probot.add(new Command(CommandType.LoopEnd, 1));
                         } else {
@@ -380,6 +396,8 @@ public class AWTProbot extends AWTComponent {
                             errors.add("[" + lineNum + "] Cannot end loop");
                         }
                         break;
+                    case "b":
+                    case "begin":
                     case "repeat":
                     case "loop":
                         try {
@@ -396,6 +414,19 @@ public class AWTProbot extends AWTComponent {
                         success = false;
                         errors.add("[" + lineNum + "] " + cmd[0] + " is not a command");
                         break;
+                }
+                if (maxNum >= 0) {
+                    if (cmdCnt > maxNum) {
+                        color = "bad";
+                        success = false;
+                        if (maxNum == 0) {
+                            errors.add("[" + lineNum + "] " + cmd[0] + " cannot be used");
+                        } else {
+                            errors.add("[" + lineNum + "] " + cmd[0] + " can only be used " + maxNum + " times");
+                        }
+                    } else {
+                        //cmdStr += " (" + cmdCnt + " of " + maxNum + ")";
+                    }
                 }
                 htmlList += "<li class=\"" + color + "\">" + cmdStr + "</li>";
             }
@@ -424,6 +455,7 @@ public class AWTProbot extends AWTComponent {
         int maxLevel = frame.getIntProperty("maxLevel", -1);
         if (maxLevel < levelNum) {
             maxLevel = levelNum;
+            frame.setProperty("maxLevel", maxLevel);
             if (!Utils.isEmpty(level.info)) {
                 new Thread(() -> {
                     Utils.waitNoThrow(this, 2000);

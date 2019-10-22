@@ -1223,6 +1223,17 @@ public class Reflector<T> {
     }
 
     /**
+     *
+     * @param in
+     * @param <T>
+     * @return
+     * @throws IOException
+     */
+    public static <T> T deserializeFromInputStream(InputStream in) throws IOException {
+        return deserializeObject(new MyBufferedReader(new InputStreamReader(in)));
+    }
+
+    /**
      * Get a non reflector object from serialized output (see serializeObject)
      * @param in
      * @param <T>

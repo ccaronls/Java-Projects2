@@ -150,4 +150,18 @@ public class TestUtils extends TestCase {
         System.out.println(quoteMe(Utils.getPrettyString("00 001HELLO100 This is 10101010 test 0001")));
     }
 
+    public void testWrapString() {
+
+        String [] str = {
+                "\nhello\n\ngoodbye\n", "","a", Utils.getRepeatingChars('a', 100), "the quick brown fox jumped over the lazy brown dog"
+        };
+
+        for (String s : str) {
+            String wrapped = Utils.wrapTextWithNewlines(s, 10);
+            System.out.println(s + "->\n'" + wrapped + "'");
+        }
+
+
+
+    }
 }

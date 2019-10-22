@@ -588,6 +588,26 @@ public class Probot extends Reflector<Probot> implements Comparator<Integer> {
         return -1;
     }
 
+    /**
+     *
+     * @param t
+     * @return
+     */
+    public int getCommandTypeMaxAvailable(CommandType t) {
+        switch (t) {
+            case Jump:
+                return level.numJumps < 0 ? -1 : level.numJumps;
+            case LoopStart:
+                return level.numLoops < 0 ? -1 : level.numLoops;
+            case TurnLeft:
+            case TurnRight:
+            case UTurn:
+                return level.numTurns < 0 ? -1 : level.numTurns;
+        }
+        return -1;
+
+    }
+
     public boolean isCommandTypeVisible(CommandType t) {
         switch (t) {
             case Jump:

@@ -17,7 +17,7 @@ java.util.ArrayList {
             EM EM EM EM EM 
          }
       }
-      info="%3CEMPTY%3E"
+      info="Your+first+program%21+A+program+is+simply+a+series+of+commands+you+give+a+computer+to+do+something.+Try+the+command+%27chomp%27.+Press+the%27HELP%27+button+to+see+all+the+commands."
       label="Hello+World%21"
       lazers=java.lang.Boolean 3 {
          true true true 
@@ -27,27 +27,24 @@ java.util.ArrayList {
       numTurns=0
    }
    cc.lib.probot.Level {
-      coins=cc.lib.probot.Type[] 6 {
-         cc.lib.probot.Type 6 {
-            EM EM EM EM EM EM 
+      coins=cc.lib.probot.Type[] 5 {
+         cc.lib.probot.Type 5 {
+            EM EM EM EM EM 
          }
-         cc.lib.probot.Type 6 {
-            EM EM SS EM EM EM 
+         cc.lib.probot.Type 5 {
+            SE DD EM EM EM 
          }
-         cc.lib.probot.Type 6 {
-            EM DD DD DD DD EM 
+         cc.lib.probot.Type 5 {
+            EM DD DD EM EM 
          }
-         cc.lib.probot.Type 6 {
-            EM DD EM EM DD EM 
+         cc.lib.probot.Type 5 {
+            EM EM DD DD EM 
          }
-         cc.lib.probot.Type 6 {
-            EM DD DD DD DD EM 
-         }
-         cc.lib.probot.Type 6 {
-            EM EM EM EM EM EM 
+         cc.lib.probot.Type 5 {
+            EM EM EM EM EM 
          }
       }
-      info="%3CEMPTY%3E"
+      info="You+made+it+to+level+2%21+Great+job%21+Now+time+to+try+turning.+The+commands+%27right%27+and+%27left%27+are+used+to+rotate+the+chomper.+Try+it%21"
       label="Try+Turning"
       lazers=java.lang.Boolean 3 {
          true true true 
@@ -57,27 +54,21 @@ java.util.ArrayList {
       numTurns=-1
    }
    cc.lib.probot.Level {
-      coins=cc.lib.probot.Type[] 6 {
-         cc.lib.probot.Type 6 {
-            EM EM EM EM EM EM 
+      coins=cc.lib.probot.Type[] 4 {
+         cc.lib.probot.Type 4 {
+            EM EM EM EM 
          }
-         cc.lib.probot.Type 6 {
-            EM SE DD DD DD EM 
+         cc.lib.probot.Type 4 {
+            EM SE DD EM 
          }
-         cc.lib.probot.Type 6 {
-            EM EM EM EM DD EM 
+         cc.lib.probot.Type 4 {
+            EM DD DD EM 
          }
-         cc.lib.probot.Type 6 {
-            EM EM EM EM DD EM 
-         }
-         cc.lib.probot.Type 6 {
-            EM DD DD DD DD EM 
-         }
-         cc.lib.probot.Type 6 {
-            EM EM EM EM EM EM 
+         cc.lib.probot.Type 4 {
+            EM EM EM EM 
          }
       }
-      info="%3CEMPTY%3E"
+      info="Great+you+learned+3+commands%21+Now+to+try+loops%21+This+puzzle+requires+you+eat+all+dots+using+1+%27chomp%27+and+1+%27right%27+command+inside+a+loop.+Begin+a+loop+with+the+command%3A+%27loop%27+followed+by+how+many+time+to+loop.+End+the+loop+by+calling+%27loopend%27."
       label="Learning+Loops"
       lazers=java.lang.Boolean 3 {
          true true true 

@@ -2339,32 +2339,56 @@ public class Utils {
         return l;
     }
 
+    public static String wrapTextWithNewlines(String txt, int maxChars) {
+        String [] lines = wrapText(txt, maxChars);
+        if (lines == null || lines.length==0)
+            return "";
+        if (lines.length == 1)
+            return lines[0];
+        StringBuffer out = new StringBuffer();
+        for (int i=0; i<lines.length; i++) {
+            out.append(lines[i]);
+            if (i < lines.length-1)
+                out.append("\n");
+        }
+        return out.toString();
+    }
+
+    /**
+     *
+     * @param txt
+     * @param maxChars
+     * @return
+     */
     public static String [] wrapText(String txt, int maxChars) {
         if (txt == null)
             return null;
-        String [] parts = txt.split("\n");
         List<String> lines = new ArrayList<>();
-        for (String str : parts) {
-            str = str.trim();
-            while (str.length() > maxChars) {
-                int spc = str.indexOf(' ');
-                if (spc < 0 || spc > maxChars) {
-                    lines.add(str.substring(0, maxChars));
-                    str = str.substring(maxChars);
-                } else {
-                    while (true) {
-                        int nxt = str.indexOf(' ', spc+1);
-                        if (nxt < 0 || nxt > maxChars) {
-                            break;
-                        }
-                        spc = nxt;
-                    }
-                    lines.add(str.substring(0, spc));
-                    str = str.substring(spc+1);
-                }
+        String str = new String(txt);
+        while (str.length() > maxChars) {
+            int endl = str.indexOf('\n');
+            if (endl >= 0 && endl <= maxChars) {
+                lines.add(str.substring(0, endl));
+                str = str.substring(endl+1);
+                continue;
             }
-            lines.add(str);
+            int spc = str.indexOf(' ');
+            if (spc < 0 || spc > maxChars) {
+                lines.add(str.substring(0, maxChars));
+                str = str.substring(maxChars);
+            } else {
+                while (true) {
+                    int nxt = str.indexOf(' ', spc+1);
+                    if (nxt < 0 || nxt > maxChars) {
+                        break;
+                    }
+                    spc = nxt;
+                }
+                lines.add(str.substring(0, spc));
+                str = str.substring(spc+1);
+            }
         }
+        lines.add(str);
 
         return lines.toArray(new String[lines.size()]);
 

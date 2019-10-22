@@ -615,15 +615,8 @@ public class AWTFrame extends JFrame implements WindowListener, ComponentListene
      * @param icon
      */
     public void showMessageDialog(String title, String message, MessageIconType icon) {
-        if (message.length() > 64) {
-            String [] wrap = Utils.wrapText(message, 64);
-            StringBuffer buf = new StringBuffer();
-            for (String s : wrap) {
-                if (buf.length() > 0)
-                    buf.append("\n");
-                buf.append(s);
-            }
-            message = buf.toString();
+        if (message.length() > 32) {
+            message = Utils.wrapTextWithNewlines(message, 64);
         }
         JOptionPane.showMessageDialog(this, message, title, icon.type);
     }

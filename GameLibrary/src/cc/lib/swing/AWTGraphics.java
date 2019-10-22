@@ -161,12 +161,8 @@ public class AWTGraphics extends APGraphics {
 
     @Override
     public final float setPointSize(float newSize) {
-        if (newSize < 1) {
-            error("Invalid parameter to setPointSize " + newSize + ". Clamped to 1");
-            newSize = 1;
-        }
         float oldSize = mPointSize;
-        mPointSize = newSize;
+        mPointSize = Math.max(1, newSize);
         return oldSize;
     }
 

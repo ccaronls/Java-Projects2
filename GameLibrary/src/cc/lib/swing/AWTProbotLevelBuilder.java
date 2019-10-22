@@ -3,6 +3,7 @@ package cc.lib.swing;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.util.ArrayList;
@@ -12,6 +13,7 @@ import java.util.Properties;
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
 import javax.swing.InputMap;
+import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
@@ -43,7 +45,6 @@ public class AWTProbotLevelBuilder extends AWTComponent {
     final AWTEditText levelLabel;
     final JTextPane info = new JTextPane();
 
-    final File levelsFile;
     final Probot probot = new Probot() {
         @Override
         protected float getStrokeWidth() {
@@ -53,6 +54,8 @@ public class AWTProbotLevelBuilder extends AWTComponent {
     final ArrayList<Level> levels = new ArrayList<>();
     int curLevel = 0;
     final File BACKUP_FILE;
+
+    final String LEVEL_FILE = "levelsFile";
 
     AWTProbotLevelBuilder() throws Exception {
         final File settings = FileUtils.getOrCreateSettingsDirectory(getClass());
@@ -69,71 +72,87 @@ public class AWTProbotLevelBuilder extends AWTComponent {
             }
         };
 
-        if (BACKUP_FILE.isFile()) {
-            try {
-                levels.addAll(Reflector.deserializeFromFile(BACKUP_FILE));
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-
-        String level = frame.getStringProperty("levelFile", null);
         {
-            File levelsFile = null;
-            if (level != null) {
-                levelsFile = new File(level);
-                if (levelsFile.isFile() && levelsFile.lastModified() > BACKUP_FILE.lastModified()) {
-                    try {
-                        List<Level> newLevels = Reflector.deserializeFromFile(levelsFile);
-                        levels.clear();
-                        levels.addAll(newLevels);
-                    } catch (Exception e) {
-                        level = null;
-                        levelsFile = null;
-                    }
-                } else {
-                    System.err.println("WARNING: Not loading from " + levelsFile + " b/c is older then " + BACKUP_FILE);
+            if (BACKUP_FILE.isFile()) {
+                try {
+                    levels.addAll(Reflector.deserializeFromFile(BACKUP_FILE));
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
             }
 
-
-            if (level == null) {
-                // find the robots/res/levels.txt file
-                File cur = new File(".").getCanonicalFile();
-                while (!cur.getName().equals("Java-Projects2")) {
-                    cur = cur.getParentFile();
-                }
-                levelsFile = new File(cur, "/Robots/assets/levels.txt");
-                if (!levelsFile.isFile()) {
-                    throw new RuntimeException("Failed to find levels.txt");
-                }
-
-                if (levelsFile.lastModified() > BACKUP_FILE.lastModified()) {
-                    try {
-                        List<Level> newLevels = Reflector.deserializeFromFile(levelsFile);
-                        levels.clear();
-                        levels.addAll(newLevels);
-                        Properties p = frame.getProperties();
-                        p.setProperty("levelFile", levelsFile.getAbsolutePath());
-                        frame.setProperties(p);
-                    } catch (Exception e) {
-                        System.err.println("Failed to load levels from: " + levelsFile.getAbsolutePath());
-                        e.printStackTrace();
-                    }
-                } else {
-                    System.err.println("WARNING: Not loading from " + levelsFile + " b/c is older then " + BACKUP_FILE);
-                }
+            if (levels.size() == 0) {
+                levels.add(new Level());
             }
-            this.levelsFile = levelsFile;
-        }
-
-        if (levels.size() == 0) {
-            levels.add(new Level());
         }
 
         setMouseEnabled(true);
 
         frame.add(this);
+        frame.addMenuBarMenu("File", new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent ev) {
+                switch (ev.getActionCommand()) {
+                    case "New":
+                        frame.setProperty(LEVEL_FILE, null);
+                        levels.clear();
+                        levels.add(new Level());
+                        updateAll();
+                        break;
+                    case "Open": {
+                        File toOpen = frame.showFileOpenChooser("Open Levels File", null);
+                        if (toOpen != null) {
+                            try {
+                                List<Level> newLevels = Reflector.deserializeFromFile(toOpen);
+                                frame.setProperty(LEVEL_FILE, toOpen.getAbsolutePath());
+                                levels.clear();
+                                levels.addAll(newLevels);
+                                updateAll();
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
+                        break;
+                    }
+                    case "Save":
+                        try {
+                            String levelsStr  = frame.getProperties().getProperty(LEVEL_FILE);
+                            if (levelsStr  == null) {
+                                File levelsFile = frame.showFileSaveChooser("Choose File to save", null, null);
+                                if (levelsFile != null) {
+                                    Reflector.serializeToFile(levels, levelsFile);
+                                    frame.setProperty(LEVEL_FILE, levelsFile.getAbsolutePath());
+                                }
+                            } else {
+                                Reflector.serializeToFile(levels, new File(levelsStr));
+                            }
+                            updateAll();
+                        } catch (Exception e) {
+                            frame.setProperty(LEVEL_FILE, null);
+                            e.printStackTrace();
+                        }
+                        break;
+                    case "Save as": {
+                        File levelsFile = null;
+                        String str = frame.getProperties().getProperty(LEVEL_FILE);
+                        if (str != null) {
+                            levelsFile = new File(str);
+                        }
+                        File newFile = frame.showFileSaveChooser("Choose File to save", null, levelsFile);
+                        if (newFile != null) {
+                            try {
+                                Reflector.serializeToFile(levels, newFile);
+                                frame.setProperty(LEVEL_FILE, newFile.getAbsolutePath());
+                                updateAll();
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
+        }, "New", "Open", "Save", "Save as");
 
         AWTPanel rhs = new AWTPanel(0, 1);
         cellType = new AWTRadioButtonGroup<Type>(rhs) {
@@ -169,13 +188,18 @@ public class AWTProbotLevelBuilder extends AWTComponent {
                 AWTProbotLevelBuilder.this.repaint();
             }
         });
-        lhs.add(new AWTButton("Save") {
+
+        lhs.add(new AWTButton("Reload"){
             @Override
             protected void onAction() {
-                try {
-                    Reflector.serializeToFile(levels, levelsFile);
-                } catch (Exception e) {
-                    e.printStackTrace();
+                if (BACKUP_FILE.isFile()) {
+                    try {
+                        levels.clear();
+                        levels.addAll(Reflector.deserializeFromFile(BACKUP_FILE));
+                        updateAll();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         });
@@ -189,25 +213,9 @@ public class AWTProbotLevelBuilder extends AWTComponent {
             }
         });
 
-        lhs.add(npTurns = new AWTNumberPicker.Builder().setMin(-1).setMax(10).setValue(-1).setLabel("Turns").build(new AWTNumberPicker.Listener() {
-            @Override
-            public void onValueChanged(int oldValue, int newValue) {
-                getLevel().numTurns = newValue;
-            }
-        }));
-
-        lhs.add(npLoops = new AWTNumberPicker.Builder().setMin(-1).setMax(10).setValue(-1).setLabel("Loops").build(new AWTNumberPicker.Listener() {
-            @Override
-            public void onValueChanged(int oldValue, int newValue) {
-                getLevel().numLoops = newValue;
-            }
-        }));
-        lhs.add(npJumps = new AWTNumberPicker.Builder().setMin(-1).setMax(10).setValue(-1).setLabel("Jumps").build(new AWTNumberPicker.Listener() {
-            @Override
-            public void onValueChanged(int oldValue, int newValue) {
-                getLevel().numJumps = newValue;
-            }
-        }));
+        lhs.add(npTurns = new AWTNumberPicker.Builder().setMin(-1).setMax(10).setValue(-1).setLabel("Turns").build((int oldValue, int newValue) -> getLevel().numTurns = newValue ));
+        lhs.add(npLoops = new AWTNumberPicker.Builder().setMin(-1).setMax(10).setValue(-1).setLabel("Loops").build((int oldValue, int newValue) -> getLevel().numLoops = newValue ));
+        lhs.add(npJumps = new AWTNumberPicker.Builder().setMin(-1).setMax(10).setValue(-1).setLabel("Jumps").build((int oldValue, int newValue) -> getLevel().numJumps = newValue ));
 
         lhs.add(lazer0 = new AWTToggleButton("Lazer 0") {
             @Override
@@ -320,6 +328,8 @@ public class AWTProbotLevelBuilder extends AWTComponent {
         npTurns.setValue(level.numTurns);
         levelLabel.setText(level.label);
         info.setText(level.info);
+        String fileName = frame.getStringProperty(LEVEL_FILE, null);
+        frame.setTitle(fileName == null ? "<UNNAMED>" : fileName);
     }
 
     int pickCol = -1;
