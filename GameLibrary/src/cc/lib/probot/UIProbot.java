@@ -258,7 +258,7 @@ public abstract class UIProbot extends Probot {
         g.vertex(0, -radius/2);
         g.vertex(radius, 0);
         g.vertex(0, radius/2);
-        g.drawFilledRects();
+        g.drawTriangleFan();
         g.popMatrix();
     }
 
@@ -321,12 +321,19 @@ public abstract class UIProbot extends Probot {
 
     class JumpAnim extends BaseAnim {
         JumpAnim(Guy guy) {
-            super(1000);
+            this(guy, 1, 1000);
+        }
+
+        JumpAnim(Guy guy, float advanceAmt, long durMs) {
+            super(durMs);
             this.guy = guy;
+            this.advanceAmt = advanceAmt;
         }
 
         Bezier b = null;
         final Guy guy;
+        float x, y;
+        final float advanceAmt;
 
         @Override
         protected void draw(AGraphics g, float position, float dt) {
@@ -358,9 +365,11 @@ public abstract class UIProbot extends Probot {
                         break;
                 }
             }
-            Vector2D v = b.getPointAt(position);
+            Vector2D v = b.getPointAt(position*advanceAmt);
             g.setColor(guy.color);
-            drawGuy(g, v.getX(), v.getY(), guy.dir, position);
+            x = v.getX();
+            y = v.getY();
+            drawGuy(g, v.getX(), v.getY(), guy.dir, position*advanceAmt);
         }
 
     }
@@ -403,7 +412,7 @@ public abstract class UIProbot extends Probot {
             y = guy.posy*ch + ch/2 +dy*position*advanceAmt;
 
             g.setColor(guy.color);
-            drawGuy(g, x, y, guy.dir, position);
+            drawGuy(g, x, y, guy.dir, position*advanceAmt);
         }
 
     }
@@ -486,6 +495,7 @@ public abstract class UIProbot extends Probot {
             animations.put(guy, new BaseAnim(2000) {
                 @Override
                 protected void draw(AGraphics g, float position, float dt) {
+                    System.out.println("position = " + position);
                     g.setColor(GColor.GRAY.darkened(position/2));
                     float lw = 10f-position*10;
                     g.pushMatrix();
@@ -622,18 +632,33 @@ public abstract class UIProbot extends Probot {
     }
 
     @Override
-    final protected void onLazered(final Guy guy, boolean instantaneous) {
-        if (instantaneous) {
-            int x = guy.posx*cw + cw/2;
-            int y = guy.posy*ch + ch/2;
-            addAnimation(guy, new LazeredAnim(x, y, guy, 0));
-        } else {
-            addAnimation(guy, new ChompAnim(guy) {
-                @Override
-                protected void onDone() {
-                    addAnimation(guy, new LazeredAnim(x, y, guy, advanceAmt));
-                }
-            });
+    final protected void onLazered(final Guy guy, int type) {
+        switch (type) {
+            case 0: {
+                int x = guy.posx * cw + cw / 2;
+                int y = guy.posy * ch + ch / 2;
+                addAnimation(guy, new LazeredAnim(x, y, guy, 0));
+                break;
+            }
+
+            case 1: {
+                addAnimation(guy, new ChompAnim(guy, .6f, 500) {
+                    @Override
+                    protected void onDone() {
+                        addAnimation(guy, new LazeredAnim(x, y, guy, advanceAmt));
+                    }
+                });
+                break;
+            }
+            case 2: {
+                addAnimation(guy, new JumpAnim(guy, .8f, 800) {
+                    @Override
+                    protected void onDone() {
+                        addAnimation(guy, new LazeredAnim(x, y, guy, advanceAmt));
+                    }
+                });
+                break;
+            }
         }
     }
 

@@ -349,17 +349,13 @@ public class Probot extends Reflector<Probot> implements Comparator<Integer> {
         int nx = guy.posx + guy.dir.dx*amt;
         int ny = guy.posy + guy.dir.dy*amt;
 
-        if (nx < 0 || ny < 0 || ny >= level.coins.length || nx >= level.coins[ny].length) {
-            if (useCB)
-                onAdvanceFailed(guy);
-            return false;
-        } else if (!canMoveToPos(ny, nx)) {
+        if (!canMoveToPos(ny, nx)) {
             if (useCB)
                 onAdvanceFailed(guy);
             return false;
         } else if (lazer[ny][nx] != 0) {
             if (useCB)
-                onLazered(guy,false); // walking into a lazer
+                onLazered(guy,amt); // walking into a lazer
             return false;
         } else {
             if (useCB) {
@@ -368,12 +364,6 @@ public class Probot extends Reflector<Probot> implements Comparator<Integer> {
                 } else {
                     onJumped(guy);
                 }
-                int [][] lazersCopy = Reflector.deepCopy(lazer);
-                testLazers(ny, nx);
-                if (lazer[ny][nx] != 0) {
-                    onLazered(guy, true); // lazer activated on guy
-                }
-                lazer = Reflector.deepCopy(lazersCopy);
             } else {
                 guy.posx = nx;
                 guy.posy = ny;
@@ -395,7 +385,7 @@ public class Probot extends Reflector<Probot> implements Comparator<Integer> {
                         break;
                 }
                 if (lazer[ny][nx] != 0) {
-                    onLazered(guy, true); // lazer activated on guy
+                    onLazered(guy, 0); // lazer activated on guy
                     return false;
                 }
             }
@@ -535,6 +525,8 @@ public class Probot extends Reflector<Probot> implements Comparator<Integer> {
     }
 
     private boolean canMoveToPos(int y, int x) {
+        if (x < 0 || y < 0 || y >= level.coins.length || x >= level.coins[y].length)
+            return false;
         switch (level.coins[y][x]) {
             case DD:
             case LB0:
@@ -844,9 +836,9 @@ public class Probot extends Reflector<Probot> implements Comparator<Integer> {
     /**
      * Guy has walked into a lazer or a lazer activated on them. FAILED.
      * @param guy
-     * @param instantaneous
+     * @param type 0 == instantaneous, 1 == walked into, 2 == jumped into
      */
-    protected void onLazered(Guy guy, boolean instantaneous) {}
+    protected void onLazered(Guy guy, int type) {}
 
     /**
      * The program has finished but not all dots eaten. FAILED.
