@@ -158,6 +158,14 @@ public abstract class UIProbot extends Probot {
         }
     }
 
+    /**
+     *
+     * @param g
+     * @param x
+     * @param y
+     * @param dir
+     * @param chompPosition 0-1 value. 0 is full open and 1 is full closed
+     */
     public void drawGuy(AGraphics g, float x, float y, Direction dir, float chompPosition) {
 
         int angStart=0;
@@ -271,6 +279,16 @@ public abstract class UIProbot extends Probot {
     public void setLevel(int num, Level level) {
         super.setLevel(num, level);
         animations.clear();
+        repaint();
+    }
+
+    @Override
+    public synchronized void stop() {
+        super.stop();
+        synchronized (animations) {
+            animations.clear();
+        }
+        setPaused(false);
         repaint();
     }
 
@@ -391,23 +409,8 @@ public abstract class UIProbot extends Probot {
 
         @Override
         protected void draw(AGraphics g, float position, float dt) {
-            float dx=0, dy=0;
-
-            switch (guy.dir) {
-
-                case Right:
-                    dx = cw;
-                    break;
-                case Down:
-                    dy = ch;
-                    break;
-                case Left:
-                    dx = -cw;
-                    break;
-                case Up:
-                    dy = -ch;
-                    break;
-            }
+            final float dx = guy.dir.dx * cw;
+            final float dy = guy.dir.dy * ch;
             x = guy.posx*cw + cw/2 +dx*position*advanceAmt;
             y = guy.posy*ch + ch/2 +dy*position*advanceAmt;
 
@@ -458,18 +461,6 @@ public abstract class UIProbot extends Probot {
 
         @Override
         protected void draw(AGraphics g, float position, float dt) {
-
-            /*
-            int [] colors = { Color.YELLOW, Color.GRAY, Color.GRAY };
-            float [] stops = { 0, 1f-position, 1 };
-            float rad = (1f-position)*radius*2;
-            pp.setColor(Color.GRAY);
-            if (rad > 0)
-                pp.setShader(new RadialGradient(rect.centerX(), rect.centerY(), radius, colors, stops, Shader.TileMode.CLAMP));
-            else
-                pp.setShader(null);
-*/
-
             g.pushMatrix();
             g.translate(sx, sy);
             g.setColor(GColor.YELLOW);
@@ -481,24 +472,14 @@ public abstract class UIProbot extends Probot {
         }
 
         @Override
-        public synchronized void stop() {
-            super.stop();
-            synchronized (animations) {
-                animations.clear();
-            }
-            setPaused(false);
-            repaint();
-        }
-
-        @Override
         protected void onDone() {
             animations.put(guy, new BaseAnim(2000) {
                 @Override
                 protected void draw(AGraphics g, float position, float dt) {
-                    System.out.println("position = " + position);
-                    g.setColor(GColor.GRAY.darkened(position/2));
+                    g.setColor(GColor.GRAY.darkened(position));
                     float lw = 10f-position*10;
                     g.pushMatrix();
+                    g.begin();
                     g.translate(sx, sy);
                     g.scale(1f+position*5, 1f+position*5);
                     // draw a circle with just dots
@@ -516,17 +497,40 @@ public abstract class UIProbot extends Probot {
         }
     }
 
-    class FailedAnim extends BaseAnim {
+    class GlowAnim extends BaseAnim {
         final Guy guy;
-        FailedAnim(Guy guy) {
+        final GColor glow;
+        GlowAnim(Guy guy) {
             super(500, 6, true);
             this.guy = guy;
+            this.glow = guy.color.inverted();
         }
         protected void draw(AGraphics g, float position, float dt) {
             g.setColor(guy.color.interpolateTo(GColor.RED, position));
             int x = guy.posx*cw + cw/2;
             int y = guy.posy*ch + ch/2;
             drawGuy(g, x, y, guy.dir, 0);
+        }
+    }
+
+    class FallingAnim extends BaseAnim {
+        final Guy guy;
+        FallingAnim(Guy guy ) {
+            super(1500);
+            this.guy = guy;
+        }
+
+        @Override
+        protected void draw(AGraphics g, float position, float dt) {
+            g.setColor(guy.color);
+            float x = (guy.dir.dx*position + guy.posx)*cw + cw/2;
+            float y = (guy.dir.dy*position + guy.posy)*ch + ch/2;
+            g.pushMatrix();
+            g.translate(x, y);
+            g.rotate(1000f*position);
+            g.scale(1f-position);
+            drawGuy(g, 0, 0, guy.dir, .5f);
+            g.popMatrix();
         }
     }
 
@@ -587,7 +591,7 @@ public abstract class UIProbot extends Probot {
 
     @Override
     protected void onAdvanceFailed(Guy guy) {
-        addAnimation(guy, new FailedAnim(guy));
+        addAnimation(guy, new FallingAnim(guy));
     }
 
     @Override
@@ -665,7 +669,7 @@ public abstract class UIProbot extends Probot {
     @Override
     final protected void onDotsLeftUneaten() {
         for (Guy guy : guys) {
-            addAnimation(guy, new FailedAnim(guy));
+            addAnimation(guy, new GlowAnim(guy));
         }
     }
 

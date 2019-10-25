@@ -5,6 +5,7 @@ import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -93,15 +94,17 @@ public class AWTProbotLevelBuilder extends AWTComponent {
             @Override
             public void actionPerformed(ActionEvent ev) {
                 switch (ev.getActionCommand()) {
-                    case "New":
+                    case "New": {
                         frame.setProperty(LEVEL_FILE, null);
                         levels.clear();
                         levels.add(new Level());
                         updateAll();
                         break;
+                    }
                     case "Open": {
                         File toOpen = frame.showFileOpenChooser("Open Levels File", null);
                         if (toOpen != null) {
+                            frame.log.info("Opening '%s'", toOpen);
                             try {
                                 List<Level> newLevels = Reflector.deserializeFromFile(toOpen);
                                 frame.setProperty(LEVEL_FILE, toOpen.getAbsolutePath());
@@ -117,6 +120,7 @@ public class AWTProbotLevelBuilder extends AWTComponent {
                     case "Save":
                         try {
                             String levelsStr  = frame.getProperties().getProperty(LEVEL_FILE);
+                            frame.log.info("Saving to '%s'",levelsStr);
                             if (levelsStr  == null) {
                                 File levelsFile = frame.showFileSaveChooser("Choose File to save", null, null);
                                 if (levelsFile != null) {
@@ -140,6 +144,7 @@ public class AWTProbotLevelBuilder extends AWTComponent {
                         }
                         File newFile = frame.showFileSaveChooser("Choose File to save", null, levelsFile);
                         if (newFile != null) {
+                           frame.log.info("Saving to '%d'", newFile);
                             try {
                                 Reflector.serializeToFile(levels, newFile);
                                 frame.setProperty(LEVEL_FILE, newFile.getAbsolutePath());
@@ -171,12 +176,19 @@ public class AWTProbotLevelBuilder extends AWTComponent {
         AWTPanel lhs = new AWTPanel();
         lhs.setLayout(new AWTButtonLayout(lhs));
         frame.add(lhs, BorderLayout.WEST);
-        InputMap inputMap = info.getInputMap();
-        ActionMap actionMap = info.getActionMap();
-        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "enter");
-        actionMap.put("enter", new AbstractAction() {
+        info.addKeyListener(new KeyListener() {
             @Override
-            public void actionPerformed(ActionEvent e) {
+            public void keyTyped(KeyEvent e) {
+                levels.get(curLevel).info = info.getText();
+            }
+
+            @Override
+            public void keyPressed(KeyEvent e) {
+                levels.get(curLevel).info = info.getText();
+            }
+
+            @Override
+            public void keyReleased(KeyEvent e) {
                 levels.get(curLevel).info = info.getText();
             }
         });

@@ -191,7 +191,7 @@ public abstract class AAnimation<T> {
     }
 
     /**
-     * Animation state set to DONE
+     * Animation state set to DONE. onDone will not be called.
      */
     public synchronized void kill() {
         state = State.DONE;

@@ -147,6 +147,81 @@ java.util.ArrayList {
       numTurns=0
    }
    cc.lib.probot.Level {
+      coins=cc.lib.probot.Type[] 6 {
+         cc.lib.probot.Type 6 {
+            SE DD EM DD EM EM 
+         }
+         cc.lib.probot.Type 6 {
+            EM EM EM EM EM EM 
+         }
+         cc.lib.probot.Type 6 {
+            SE DD EM DD EM EM 
+         }
+         cc.lib.probot.Type 6 {
+            EM EM DD EM DD SW 
+         }
+         cc.lib.probot.Type 6 {
+            EM EM EM EM EM EM 
+         }
+         cc.lib.probot.Type 6 {
+            EM EM DD EM DD SW 
+         }
+      }
+      info="Four+Chompers%21+Yes%2C+your+program+will+run+%27concurrently%27+on+each+chomper+at+the+same+time.+This+is+sometimes+called+multi-threading."
+      label="Group+Therapy"
+      lazers=java.lang.Boolean 3 {
+         true true true 
+      }
+      numJumps=0
+      numLoops=-1
+      numTurns=-1
+   }
+   cc.lib.probot.Level {
+      coins=cc.lib.probot.Type[] 11 {
+         cc.lib.probot.Type 7 {
+            EM EM LV0 EM EM SS EM 
+         }
+         cc.lib.probot.Type 7 {
+            SE DD DD EM EM DD EM 
+         }
+         cc.lib.probot.Type 7 {
+            EM EM EM EM EM DD LH1 
+         }
+         cc.lib.probot.Type 7 {
+            EM EM EM EM EM EM EM 
+         }
+         cc.lib.probot.Type 7 {
+            LH1 DD EM EM EM EM EM 
+         }
+         cc.lib.probot.Type 7 {
+            EM DD EM EM DD DD SW 
+         }
+         cc.lib.probot.Type 7 {
+            EM SN EM EM LV1 EM EM 
+         }
+         cc.lib.probot.Type 7 {
+            EM EM EM EM EM EM EM 
+         }
+         cc.lib.probot.Type 7 {
+            EM EM EM EM EM EM EM 
+         }
+         cc.lib.probot.Type 7 {
+            EM EM EM EM EM EM EM 
+         }
+         cc.lib.probot.Type 7 {
+            EM EM EM LH1 EM EM EM 
+         }
+      }
+      info="%3CEMPTY%3E"
+      label="Test"
+      lazers=java.lang.Boolean 3 {
+         true true false 
+      }
+      numJumps=0
+      numLoops=-1
+      numTurns=-1
+   }
+   cc.lib.probot.Level {
       coins=cc.lib.probot.Type[] 7 {
          cc.lib.probot.Type 7 {
             EM EM EM LV2 EM EM EM 

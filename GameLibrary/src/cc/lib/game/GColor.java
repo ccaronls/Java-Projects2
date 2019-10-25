@@ -259,4 +259,12 @@ public final class GColor extends Reflector<GColor> {
     protected boolean isImmutable() {
         return true;
     }
+
+    /**
+     * Return color with RGB components equal to 1-RGB. [.5,.5,.5] will be unchanged.
+     * @return
+     */
+    public final GColor inverted() {
+	    return new GColor(1f-getRed(), 1f-getGreen(), 1f-getBlue(), getAlpha());
+    }
 }
