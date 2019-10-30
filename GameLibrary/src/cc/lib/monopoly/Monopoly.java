@@ -401,12 +401,12 @@ public class Monopoly extends Reflector<Monopoly> {
     private void advance(int squares) {
         final Player cur = getCurrentPlayer();
         int next = (cur.getSquare().ordinal() + NUM_SQUARES + squares) % NUM_SQUARES;
-        onPlayerMove(currentPlayer, squares, Square.values()[next]);
         int nxt = cur.getSquare().ordinal() + squares;
         if (nxt >= NUM_SQUARES) {
             nxt %= NUM_SQUARES;
             getPaid(200);
         }
+        onPlayerMove(currentPlayer, squares, Square.values()[next]);
         cur.setSquare(Square.values()[nxt]);
     }
     
@@ -468,10 +468,10 @@ public class Monopoly extends Reflector<Monopoly> {
 
             case PAY_BOND: {
                 Utils.assertTrue(cur.isInJail());
-                cur.setInJail(false, rules);
-                onPlayerOutOfJail(currentPlayer);
                 int bond = cur.getJailBond();
                 Utils.assertTrue(bond > 0);
+                cur.setInJail(false, rules);
+                onPlayerOutOfJail(currentPlayer);
                 onPlayerGotPaid(currentPlayer, -bond);
                 onPlayerPayMoneyToKitty(currentPlayer, bond);
                 cur.addMoney(-bond);
@@ -967,10 +967,11 @@ public class Monopoly extends Reflector<Monopoly> {
             Player p = players.get(i);
             if (p.isBankrupt())
                 continue;
-            if (p.getValue() >= rules.valueToWin)
-                return i;
             winner = i;
             num++;
+            if (p.getMoney() >= rules.valueToWin) {
+                break;
+            }
         }
         if (num == 1) {
             onPlayerWins(winner);
