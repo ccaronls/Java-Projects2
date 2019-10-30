@@ -114,6 +114,10 @@ public class MonopolyActivity extends DroidActivity {
                         items[index++] = "Purchase " + Utils.getPrettyString(sq.name()) + " for $" + sq.getPrice();
                         break;
                     }
+                    case PAY_BOND: {
+                        items[index++] = String.format("%s $%d", Utils.getPrettyString(mt.name()), player.getJailBond());
+                        break;
+                    }
                     default:
                         items[index++] = Utils.getPrettyString(mt.name());
                         break;

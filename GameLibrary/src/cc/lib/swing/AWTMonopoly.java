@@ -27,6 +27,7 @@ import cc.lib.monopoly.Square;
 import cc.lib.monopoly.Trade;
 import cc.lib.monopoly.UIMonopoly;
 import cc.lib.utils.FileUtils;
+import cc.lib.utils.Reflector;
 
 public class AWTMonopoly extends AWTComponent {
     private final static Logger log = LoggerFactory.getLogger(AWTMonopoly.class);
@@ -36,6 +37,9 @@ public class AWTMonopoly extends AWTComponent {
         Utils.DEBUG_ENABLED = true;
         new AWTMonopoly();
     }
+
+    final File SAVE_FILE;
+    final File RULES_FILE;
 
     final AWTFrame frame;
     final UIMonopoly monopoly = new UIMonopoly() {
@@ -66,12 +70,16 @@ public class AWTMonopoly extends AWTComponent {
                         strings[index++] = "Purchase " + Utils.getPrettyString(sq.name()) + " $" + sq.getPrice();
                         break;
                     }
+                    case PAY_BOND: {
+                        strings[index++] = String.format("%s $%d", Utils.getPrettyString(mt.name()), player.getJailBond());
+                        break;
+                    }
                     default:
                         strings[index++] = Utils.getPrettyString(mt.name());
                         break;
                 }
             }
-            monopoly.trySaveToFile(saveFile);
+            monopoly.trySaveToFile(SAVE_FILE);
             frame.showListChooserDialog(new AWTFrame.OnListItemChoosen() {
                 @Override
                 public void itemChoose(int index) {
@@ -269,8 +277,6 @@ public class AWTMonopoly extends AWTComponent {
         return popup;
     }
 
-    final File saveFile;
-
     AWTMonopoly() {
         setMouseEnabled(true);
         setPadding(5);
@@ -279,7 +285,7 @@ public class AWTMonopoly extends AWTComponent {
             @Override
             protected void onWindowClosing() {
                 if (monopoly.isGameRunning())
-                    monopoly.trySaveToFile(saveFile);
+                    monopoly.trySaveToFile(SAVE_FILE);
             }*/
 
             @Override
@@ -310,7 +316,7 @@ public class AWTMonopoly extends AWTComponent {
                                 }, "How Many Players?", "2", "3", "4");
                                 break;
                             case "Resume":
-                                if (monopoly.tryLoadFromFile(saveFile)) {
+                                if (monopoly.tryLoadFromFile(SAVE_FILE)) {
                                     monopoly.startGameThread();
                                 }
                                 break;
@@ -321,14 +327,8 @@ public class AWTMonopoly extends AWTComponent {
                                 final AWTNumberPicker npStart = new AWTNumberPicker.Builder().setLabel("Start $").setMin(500).setMax(1500).setStep(100).setValue(rules.startMoney).build(null);
                                 final AWTNumberPicker npWin   = new AWTNumberPicker.Builder().setLabel("Win $").setMin(2000).setMax(5000).setStep(500).setValue(rules.valueToWin).build(null);
                                 final AWTNumberPicker npTaxScale = new AWTNumberPicker.Builder().setLabel("Tax Scale %").setMin(0).setMax(200).setStep(50).setValue(Math.round(100f * rules.taxScale)).build(null);
-                                /*final AWTButton jailBump = new AWTButton("Jail Bump", rules.jailBumpEnabled) {
-                                    @Override
-                                    protected void onAction() {
-                                        toggleSelected();
-                                    }
-                                };
-                                */
                                 final AWTToggleButton jailBump = new AWTToggleButton("Jail Bump", rules.jailBumpEnabled);
+                                final AWTToggleButton jailMulti = new AWTToggleButton("Jail Multiplier", rules.jailMultiplier);
                                 content.addTop(new AWTLabel("RULES", 1, 20, true));
                                 AWTPanel buttons = new AWTPanel(0, 1);
                                 AWTPanel pickers = new AWTPanel(1, 0);
@@ -338,6 +338,7 @@ public class AWTMonopoly extends AWTComponent {
                                 content.add(pickers);
                                 content.addRight(buttons);
                                 buttons.add(jailBump);
+                                buttons.add(jailMulti);
                                 buttons.add(new AWTButton("Apply") {
                                     @Override
                                     protected void onAction() {
@@ -345,7 +346,13 @@ public class AWTMonopoly extends AWTComponent {
                                         rules.taxScale = 0.01f * npTaxScale.getValue();
                                         rules.startMoney = npStart.getValue();
                                         rules.jailBumpEnabled = jailBump.isSelected();
+                                        rules.jailBumpEnabled = jailMulti.isSelected();
                                         popup.closePopup();
+                                        try {
+                                            Reflector.serializeToFile(rules, RULES_FILE);
+                                        } catch (Exception e) {
+                                            frame.showMessageDialog("ERROR", "Error save rules to file " + RULES_FILE + "\n" + e.getClass().getSimpleName() + " " + e.getMessage());
+                                        }
                                     }
                                 });
                                 content.addBottom(new AWTButton("Cancel") {
@@ -367,9 +374,18 @@ public class AWTMonopoly extends AWTComponent {
         frame.add(this);
 
         File settings = FileUtils.getOrCreateSettingsDirectory(getClass());
-        saveFile = new File(settings, "monopoly.save");
+        SAVE_FILE = new File(settings, "game.save");
+        RULES_FILE = new File(settings, "rules.save");
         if (!frame.loadFromFile(new File(settings, "monopoly.properties")))
             frame.centerToScreen(800, 600);
+        if (RULES_FILE.isFile()) {
+            try {
+                Rules rules = Reflector.deserializeFromFile(RULES_FILE);
+                monopoly.getRules().copyFrom(rules);
+            } catch (Exception e) {
+                frame.showMessageDialog("ERROR", "Failed to load rules from " + RULES_FILE + "\n " + e.getClass().getSimpleName() + " " + e.getMessage());
+            }
+        }
     }
 
 

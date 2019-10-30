@@ -131,7 +131,7 @@ public class Monopoly extends Reflector<Monopoly> {
                 List<MoveType> moves = new ArrayList<>();
                 moves.add(MoveType.ROLL_DICE);
                 if (cur.isInJail()) {
-                    if (cur.getMoney() >= 50) {
+                    if (cur.getMoney() >= cur.getJailBond()) {
                         moves.add(MoveType.PAY_BOND);
                     }
                     if (cur.hasGetOutOfJailFreeCard())
@@ -431,7 +431,7 @@ public class Monopoly extends Reflector<Monopoly> {
                 rollDice();
                 if (cur.isInJail()) {
                     if (die1 == die2) {
-                        cur.setInJail(false);
+                        cur.setInJail(false, rules);
                         onPlayerOutOfJail(currentPlayer);
                     }
                     nextPlayer(true);
@@ -468,7 +468,7 @@ public class Monopoly extends Reflector<Monopoly> {
 
             case PAY_BOND:
                 Utils.assertTrue(cur.isInJail());
-                cur.setInJail(false);
+                cur.setInJail(false, rules);
                 onPlayerOutOfJail(currentPlayer);
                 onPlayerGotPaid(currentPlayer, -50);
                 onPlayerPayMoneyToKitty(currentPlayer, 50);
@@ -477,7 +477,7 @@ public class Monopoly extends Reflector<Monopoly> {
 
             case GET_OUT_OF_JAIL_FREE:
                 Utils.assertTrue(cur.isInJail());
-                cur.setInJail(false);
+                cur.setInJail(false, rules);
                 onPlayerOutOfJail(currentPlayer);
                 cur.useGetOutOfJailCard();
                 nextPlayer(true);
@@ -854,13 +854,13 @@ public class Monopoly extends Reflector<Monopoly> {
                 Player p = getPlayer(i);
                 if (p.isInJail()) {
                     onPlayerOutOfJail(i);
-                    p.setInJail(false);
+                    p.setInJail(false, rules);
                 }
             }
         }
         Player cur = getCurrentPlayer();
         cur.setSquare(Square.VISITING_JAIL);
-        cur.setInJail(true);
+        cur.setInJail(true, rules);
         nextPlayer(true);
     }
 

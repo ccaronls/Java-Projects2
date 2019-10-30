@@ -20,7 +20,8 @@ public class Player extends Reflector<Player> {
     private int money;
     private int square;
     private final List<Card> cards = new ArrayList<>();
-    private boolean inJail;
+    private int jailBond;
+    private int jailedTimes = 0;
     private Piece piece;
 
     public MoveType chooseMove(Monopoly game, List<MoveType> options) {
@@ -248,11 +249,24 @@ public class Player extends Reflector<Player> {
     }
 
     public final boolean isInJail() {
-        return inJail;
+        return jailBond > 0;
     }
 
-    public final void setInJail(boolean inJail) {
-        this.inJail = inJail;
+    final void setInJail(boolean inJail, Rules rules) {
+        if (inJail) {
+            if (rules.jailMultiplier) {
+                jailedTimes++;
+                jailBond = 50 * jailedTimes;
+            } else {
+                jailBond = 50;
+            }
+        } else {
+            jailBond = 0;
+        }
+    }
+
+    public final int getJailBond() {
+        return jailBond;
     }
 
     public final Map<GColor, List<Card>> getPropertySets() {
@@ -379,7 +393,8 @@ public class Player extends Reflector<Player> {
 
     final void clear() {
         money = 0;
-        inJail = false;
+        jailedTimes = 0;
+        jailBond = 0;
         cards.clear();
         square = 0;
     }
