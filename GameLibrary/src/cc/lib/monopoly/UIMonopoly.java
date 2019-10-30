@@ -189,14 +189,53 @@ public abstract class UIMonopoly extends Monopoly {
         Utils.waitNoThrow(LOCK, 5000);
     }
 
+    class TurnOverCardAnim extends AAnimation<AGraphics> {
+        final Vector2D [] start;
+        final Vector2D [] dest;
+        final GColor color;
+        TurnOverCardAnim(Vector2D [] start, Vector2D [] end, GColor color) {
+            super(1500);
+            this.start = start;
+            this.dest = end;
+            this.color = color;
+        }
+        @Override
+        protected void draw(AGraphics g, float position, float dt) {
+            g.pushMatrix();
+            g.scale(board.getScale());
+            if (position < 0.5f)
+                g.setColor(color);
+            else
+                g.setColor(GColor.WHITE);
+
+            g.begin();
+            for (int i=0; i<4; i++) {
+                g.vertex(start[i].add(dest[i].sub(start[i]).scaledBy(position)));
+            }
+            g.drawTriangleFan();
+            g.popMatrix();
+        }
+
+        @Override
+        protected void onDone() {
+            synchronized (LOCK) {
+                LOCK.notify();
+            }
+        }
+    }
+
     @Override
     protected void onPlayerDrawsChance(int playerNum, final CardActionType chance) {
+        addAnimation("BOARD", new TurnOverCardAnim(Board.CHANCE_RECT, Board.CENTER_RECT, Board.CHANCE_ORANGE).start());
+        Utils.waitNoThrow(LOCK, 3000);
         showMessage("Chance", chance.getDescription());
         super.onPlayerDrawsChance(playerNum, chance);
     }
 
     @Override
     protected void onPlayerDrawsCommunityChest(int playerNum, CardActionType commChest) {
+        addAnimation("BOARD", new TurnOverCardAnim(Board.COMM_CHEST_RECT, Board.CENTER_RECT, Board.COMM_CHEST_BLUE).start());
+        Utils.waitNoThrow(LOCK, 3000);
         showMessage("Community Chest", commChest.getDescription());
         super.onPlayerDrawsCommunityChest(playerNum, commChest);
     }
@@ -1157,8 +1196,6 @@ public abstract class UIMonopoly extends Monopoly {
             new Vector2D(-.8f, 0),
             new Vector2D(.8f, 0),
     };
-
-
 
     // draw house with center at 0,0.
     public void drawHouse(AGraphics g) {

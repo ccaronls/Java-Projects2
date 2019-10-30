@@ -7,15 +7,17 @@ import cc.lib.math.Vector2D;
 
 public class Board {
 
-    public static GColor WHITE = GColor.WHITE;
-    public static GColor BROWN = GColor.BROWN;
-    public static final GColor LIGHT_BLUE  = new GColor(161, 216, 250);
-    public static final GColor PURPLE      = new GColor(207, 40, 137);
-    public static final GColor ORANGE      = new GColor(243, 133, 33);
-    public static GColor RED = GColor.RED;
-    public static GColor YELLOW = GColor.YELLOW;
-    public static final GColor GREEN       = GColor.GREEN.darkened(.4f);
-    public static GColor BLUE = GColor.BLUE;
+    public static final GColor WHITE                = GColor.WHITE;
+    public static final GColor BROWN                = GColor.BROWN;
+    public static final GColor LIGHT_BLUE           = new GColor(161, 216, 250);
+    public static final GColor PURPLE               = new GColor(207, 40, 137);
+    public static final GColor ORANGE               = new GColor(243, 133, 33);
+    public static final GColor RED                  = GColor.RED;
+    public static final GColor YELLOW               = GColor.YELLOW;
+    public static final GColor GREEN                = GColor.GREEN.darkened(.4f);
+    public static final GColor BLUE                 = GColor.BLUE;
+    public static final GColor CHANCE_ORANGE        = new GColor(0xFFF67A20);
+    public static final GColor COMM_CHEST_BLUE      = new GColor(0xFF86D5F6);
 
     // values based on the board asset. rendered image will be scaled
     public final static float BOARD_DIMENSION = 1500;
@@ -33,6 +35,13 @@ public class Board {
             new Vector2D(1122, 943),
             new Vector2D(1236, 1059),
             new Vector2D(1057, 1239)
+    };
+
+    public final static Vector2D [] CENTER_RECT = {
+            new Vector2D(1500/2-150, 1500/2+100),
+            new Vector2D(1500/2+150, 1500/2+100),
+            new Vector2D(1500/2+150, 1500/2-100),
+            new Vector2D(1500/2-150, 1500/2-100),
     };
 
     private final float dim; // dimension of whole board
@@ -235,6 +244,10 @@ public class Board {
         }
         Utils.unhandledCase(sq);
         return null;
+    }
+
+    public float getScale() {
+        return scale;
     }
 
 }
