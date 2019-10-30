@@ -346,7 +346,7 @@ public class AWTMonopoly extends AWTComponent {
                                         rules.taxScale = 0.01f * npTaxScale.getValue();
                                         rules.startMoney = npStart.getValue();
                                         rules.jailBumpEnabled = jailBump.isSelected();
-                                        rules.jailBumpEnabled = jailMulti.isSelected();
+                                        rules.jailMultiplier = jailMulti.isSelected();
                                         popup.closePopup();
                                         try {
                                             Reflector.serializeToFile(rules, RULES_FILE);

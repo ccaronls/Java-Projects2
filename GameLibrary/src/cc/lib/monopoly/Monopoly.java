@@ -466,14 +466,19 @@ public class Monopoly extends Reflector<Monopoly> {
                 pushState(State.CHOOSE_CARDS_FOR_SALE);
                 break;
 
-            case PAY_BOND:
+            case PAY_BOND: {
                 Utils.assertTrue(cur.isInJail());
                 cur.setInJail(false, rules);
                 onPlayerOutOfJail(currentPlayer);
-                onPlayerGotPaid(currentPlayer, -50);
-                onPlayerPayMoneyToKitty(currentPlayer, 50);
+                int bond = cur.getJailBond();
+                Utils.assertTrue(bond > 0);
+                onPlayerGotPaid(currentPlayer, -bond);
+                onPlayerPayMoneyToKitty(currentPlayer, bond);
+                cur.addMoney(-bond);
+                kitty += bond;
                 nextPlayer(true);
                 break;
+            }
 
             case GET_OUT_OF_JAIL_FREE:
                 Utils.assertTrue(cur.isInJail());
@@ -491,7 +496,7 @@ public class Monopoly extends Reflector<Monopoly> {
                 onPlayerPurchaseProperty(currentPlayer, sq);
                 cur.addCard(Card.newPropertyCard(sq));
                 cur.addMoney(-sq.getPrice());
-                nextPlayer(true);
+                nextPlayer(true); // TODO: Need another state to allow player to make moves after purchase
                 break;
             }
 
@@ -1002,29 +1007,6 @@ public class Monopoly extends Reflector<Monopoly> {
             pushState(State.GAME_OVER);
         }
     }
-/*
-    private void payRent(int amount, int owner) {
-        Player cur = getCurrentPlayer();
-        Utils.assertTrue(amount> 0);
-        Utils.assertFalse(owner == currentPlayer);
-        onPlayerPaysRent(currentPlayer, owner, amount);
-        cur.money -= amount;
-        Utils.assertTrue(cur.money >= 0);
-        getPlayer(owner).money += amount;
-        if (cur.getValue() == 0)
-            playerBankrupt(currentPlayer);
-    }
-
-    private void payToKitty(int amt) {
-        Utils.assertTrue(amt > 0);
-        Player cur = getCurrentPlayer();
-        Utils.assertTrue(cur.money >= 0);
-        onPlayerPayMoneyToKitty(currentPlayer, amt);
-        cur.money -= amt;
-        kitty += amt;
-        if (cur.getValue() == 0)
-            playerBankrupt(currentPlayer);
-    }*/
 
     public final int getOwner(int sq) {
         return getOwner(Square.values()[sq]);
@@ -1171,7 +1153,7 @@ public class Monopoly extends Reflector<Monopoly> {
      * @param amt
      */
     protected void onPlayerPayMoneyToKitty(int playerNum, int amt) {
-        log.info("%s pays $%d to kitty", getPlayerName(playerNum), amt);
+        log.info("%s pays $%d to kitty (%d)", getPlayerName(playerNum), amt, getKitty());
     }
 
     /**
