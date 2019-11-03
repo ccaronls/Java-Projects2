@@ -48,6 +48,10 @@ public class DroidGraphics extends APGraphics {
         r.setOrtho(0, width, 0, height);
     }
 
+    public final Canvas getCanvas() {
+        return canvas;
+    }
+
     /**
      * @return
      */

@@ -6,7 +6,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -1166,18 +1165,6 @@ public class Reflector<T> {
             throw e;
         } catch (Exception e) {
             throw new IOException(e);
-        }
-    }
-
-    /**
-     * This version will write the object name at top level element.
-     *
-     * @param file
-     * @throws IOException
-     */
-    public static void serializeToFile(File file) throws IOException {
-        try (FileWriter out = new FileWriter(file)) {
-            serializeObject(new MyPrintWriter(out));
         }
     }
 

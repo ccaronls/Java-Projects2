@@ -18,6 +18,8 @@ public class Board {
     public static final GColor BLUE                 = GColor.BLUE;
     public static final GColor CHANCE_ORANGE        = new GColor(0xFFF67A20);
     public static final GColor COMM_CHEST_BLUE      = new GColor(0xFF86D5F6);
+    public static final GColor BOARD_COLOR          = new GColor(0xFFD2E5D2);
+
 
     // values based on the board asset. rendered image will be scaled
     public final static float BOARD_DIMENSION = 1500;

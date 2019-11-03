@@ -32,17 +32,16 @@ public abstract class UIMonopoly extends Monopoly {
     public final static int PURCHASE_PAUSE = 10000;
     public final static int MESSAGE_PAUSE = 6000;
     public final static float PADDING = 5;
-    public final static GColor BOARD_COLOR = new GColor(0xFFD2E5D2);
     public final static GColor HOUSE_COLOR = GColor.GREEN.darkened(.6f);
     public final static GColor HOTEL_COLOR = GColor.RED;
 
-    private final Object LOCK = this;
+    private final Object LOCK = new Object();
     private boolean gameRunning = false;
     private boolean gameStopped = true;
     public int W, H, DIM;
     private Board board;
     private float playerInfoWidth, playerInfoHeight;
-    private final Map<String, LinkedList<AAnimation>> animations = new HashMap<>();
+    private final Map<String, List<AAnimation>> animations = new HashMap<>();
     private final Map<String, Sprite> spriteMap = new HashMap<>();
 
     public UIMonopoly() {
@@ -148,35 +147,42 @@ public abstract class UIMonopoly extends Monopoly {
         super.onPlayerMove(playerNum, numSquares, next);
     }
 
+    private GRectangle renderMessage(AGraphics g, String title, String txt, boolean render) {
+        final float border = 5;
+        float width = DIM/3 + border*2;
+        String [] lines = g.generateWrappedLines(txt, width-border*2);
+        //GDimension dim = //g.drawWrapStringOnBackground(DIM/2, DIM/2, DIM/3, Justify.CENTER, Justify.CENTER, txt, GColor.WHITE, 5);
+        float txtHgt = g.getTextHeight();
+        float height = txtHgt * lines.length;
+        height += txtHgt + 4 * border;
+        float x = DIM/2 - width/2;
+        float y = DIM/2 - height/2;
+        if (render) {
+            g.setColor(GColor.BLACK);
+            g.drawFilledRect(x - border, y - border, width + border * 2, height + border * 2);
+            g.setColor(GColor.WHITE);
+            g.drawFilledRect(x, y, width, height);
+            g.setColor(GColor.BLACK);
+            y += border;
+            x = DIM / 2; // center
+            g.drawJustifiedString(x, y, Justify.CENTER, Justify.TOP, title);
+            y += txtHgt;
+            y += border;
+            g.drawLine(x - width / 2, y, x + width / 2, y, 4);
+            y += border;
+            for (String line : lines) {
+                g.drawJustifiedString(x, y, Justify.CENTER, Justify.TOP, line);
+                y += txtHgt;
+            }
+        }
+        return new GRectangle(x, y, width, height);
+    }
+
     private void showMessage(final String title, final String txt) {
         addAnimation("BOARD", new AAnimation<AGraphics>(4000) {
             @Override
             protected void draw(AGraphics g, float position, float dt) {
-                final float border = 5;
-                float width = DIM/3 + border*2;
-                String [] lines = g.generateWrappedLines(txt, width-border*2);
-                //GDimension dim = //g.drawWrapStringOnBackground(DIM/2, DIM/2, DIM/3, Justify.CENTER, Justify.CENTER, txt, GColor.WHITE, 5);
-                float txtHgt = g.getTextHeight();
-                float height = txtHgt * lines.length;
-                height += txtHgt + 4 * border;
-                float x = DIM/2 - width/2;
-                float y = DIM/2 - height/2;
-                g.setColor(GColor.BLACK);
-                g.drawFilledRect(x-border, y-border, width+border*2, height+border*2);
-                g.setColor(GColor.WHITE);
-                g.drawFilledRect(x, y, width, height);
-                g.setColor(GColor.BLACK);
-                y += border;
-                x = DIM/2; // center
-                g.drawJustifiedString(x, y, Justify.CENTER, Justify.TOP, title);
-                y += txtHgt;
-                y += border;
-                g.drawLine(x-width/2, y, x+width/2, y, 4);
-                y += border;
-                for (String line : lines) {
-                    g.drawJustifiedString(x, y, Justify.CENTER, Justify.TOP, line);
-                    y += txtHgt;
-                }
+                renderMessage(g, title, txt, true);
             }
 
             @Override
@@ -191,18 +197,29 @@ public abstract class UIMonopoly extends Monopoly {
 
     class TurnOverCardAnim extends AAnimation<AGraphics> {
         final Vector2D [] start;
-        final Vector2D [] dest;
+        Vector2D [] dest = null;
         final GColor color;
-        TurnOverCardAnim(Vector2D [] start, Vector2D [] end, GColor color) {
+        final String title, msg;
+
+        TurnOverCardAnim(Vector2D [] start, GColor color, String title, String msg) {
             super(1500);
             this.start = start;
-            this.dest = end;
             this.color = color;
+            this.title = title;
+            this.msg = msg;
         }
         @Override
         protected void draw(AGraphics g, float position, float dt) {
+            if (dest == null) {
+                GRectangle r = renderMessage(g, title, msg, false);
+                dest = new Vector2D[] {
+                        new Vector2D(r.x, r.y+r.h),
+                        new Vector2D(r.x+r.w, r.y+r.h),
+                        new Vector2D(r.x+r.w, r.y),
+                        new Vector2D(r.x, r.y)
+                };
+            }
             g.pushMatrix();
-            g.scale(board.getScale());
             if (position < 0.5f)
                 g.setColor(color);
             else
@@ -210,7 +227,8 @@ public abstract class UIMonopoly extends Monopoly {
 
             g.begin();
             for (int i=0; i<4; i++) {
-                g.vertex(start[i].add(dest[i].sub(start[i]).scaledBy(position)));
+                Vector2D s = start[i].scaledBy(board.getScale());
+                g.vertex(s.add(dest[i].sub(s).scaledBy(position)));
             }
             g.drawTriangleFan();
             g.popMatrix();
@@ -226,7 +244,7 @@ public abstract class UIMonopoly extends Monopoly {
 
     @Override
     protected void onPlayerDrawsChance(int playerNum, final CardActionType chance) {
-        addAnimation("BOARD", new TurnOverCardAnim(Board.CHANCE_RECT, Board.CENTER_RECT, Board.CHANCE_ORANGE).start());
+        addAnimation("BOARD", new TurnOverCardAnim(Board.CHANCE_RECT, Board.CHANCE_ORANGE, "Chance", chance.getDescription()).start());
         Utils.waitNoThrow(LOCK, 3000);
         showMessage("Chance", chance.getDescription());
         super.onPlayerDrawsChance(playerNum, chance);
@@ -234,7 +252,7 @@ public abstract class UIMonopoly extends Monopoly {
 
     @Override
     protected void onPlayerDrawsCommunityChest(int playerNum, CardActionType commChest) {
-        addAnimation("BOARD", new TurnOverCardAnim(Board.COMM_CHEST_RECT, Board.CENTER_RECT, Board.COMM_CHEST_BLUE).start());
+        addAnimation("BOARD", new TurnOverCardAnim(Board.COMM_CHEST_RECT, Board.COMM_CHEST_BLUE, "Community Chest", commChest.getDescription()).start());
         Utils.waitNoThrow(LOCK, 3000);
         showMessage("Community Chest", commChest.getDescription());
         super.onPlayerDrawsCommunityChest(playerNum, commChest);
@@ -505,7 +523,7 @@ public abstract class UIMonopoly extends Monopoly {
         if (!isGameRunning())
             return;
         synchronized (animations) {
-            LinkedList<AAnimation> list = animations.get(key);
+            List<AAnimation> list = animations.get(key);
             if (list == null) {
                 list = new LinkedList<>();
                 animations.put(key, list);
@@ -513,25 +531,6 @@ public abstract class UIMonopoly extends Monopoly {
             list.add(a);
         }
         repaint();
-    }
-
-    void startAnimationAndWait(String key, AAnimation<AGraphics> a) {
-        if (!isGameRunning())
-            return;
-        synchronized (animations) {
-            LinkedList<AAnimation> list = animations.get(key);
-            if (list == null) {
-                list = new LinkedList<>();
-                animations.put(key, list);
-            }
-            list.add(a);
-        }
-        repaint();
-        while (!a.isDone()) {
-            synchronized (LOCK) {
-                Utils.waitNoThrow(LOCK, 500);
-            }
-        }
     }
 
     void stopAnimations() {
@@ -929,8 +928,8 @@ public abstract class UIMonopoly extends Monopoly {
         log.debug("stopGameThread");
         gameRunning = false;
         stopAnimations();
-        synchronized (LOCK) {
-            LOCK.notifyAll();
+        synchronized (this) {
+            this.notifyAll();
         }
         while (!gameStopped) {
             Utils.waitNoThrow(this, 50);
@@ -948,7 +947,7 @@ public abstract class UIMonopoly extends Monopoly {
     }
 
     public void paint(APGraphics g, int mouseX, int mouseY) {
-        g.clearScreen(BOARD_COLOR);
+        g.clearScreen(Board.BOARD_COLOR);
         W = g.getViewportWidth();
         H = g.getViewportHeight();
         DIM = Math.min(W, H);
@@ -963,7 +962,7 @@ public abstract class UIMonopoly extends Monopoly {
     }
 
     private void drawPlayerInfo(APGraphics g, int playerNum, float w, float h) {
-        g.setColor(BOARD_COLOR);
+        g.setColor(Board.BOARD_COLOR);
         g.drawFilledRect(0, 0, w, h);
         g.setColor(GColor.BLACK);
         g.drawRect(0, 0, w, h);
@@ -1167,7 +1166,7 @@ public abstract class UIMonopoly extends Monopoly {
 
     private void drawAnimations(AGraphics g, String key) {
         synchronized (animations) {
-            LinkedList<AAnimation> list = animations.get(key);
+            List<AAnimation> list = animations.get(key);
             if (list == null)
                 return;
             Iterator<AAnimation> it = list.iterator();

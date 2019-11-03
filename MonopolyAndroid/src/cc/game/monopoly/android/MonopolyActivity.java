@@ -41,6 +41,7 @@ import cc.lib.monopoly.Square;
 import cc.lib.monopoly.Trade;
 import cc.lib.monopoly.UIMonopoly;
 import cc.lib.utils.FileUtils;
+import cc.lib.utils.Reflector;
 
 /**
  * Created by chriscaron on 2/15/18.
@@ -51,6 +52,7 @@ public class MonopolyActivity extends DroidActivity {
     private final static String TAG = MonopolyActivity.class.getSimpleName();
 
     private File saveFile=null;
+    private File rulesFile=null;
 
     private UIMonopoly monopoly = new UIMonopoly() {
         @Override
@@ -109,6 +111,11 @@ public class MonopolyActivity extends DroidActivity {
             int index=0;
             for (MoveType mt : moves) {
                 switch (mt) {
+                    case PURCHASE: {
+                        Square sq = player.getSquare();
+                        items[index++] = "Purchase " + Utils.getPrettyString(sq.name()) + " for $" + sq.getPrice();
+                        break;
+                    }
                     case PURCHASE_UNBOUGHT: {
                         Square sq = getPurchasePropertySquare();
                         items[index++] = "Purchase " + Utils.getPrettyString(sq.name()) + " for $" + sq.getPrice();
@@ -150,9 +157,6 @@ public class MonopolyActivity extends DroidActivity {
                                 monopoly.cancel();
                             } else {
                                 monopoly.stopGameThread();
-                            }
-                            synchronized (monopoly) {
-                                monopoly.notify();
                             }
                     }).show();
 
@@ -332,6 +336,14 @@ public class MonopolyActivity extends DroidActivity {
         super.onCreate(savedInstanceState);
         //AndroidLogger.setLogFile(new File(Environment.getExternalStorageDirectory(), "monopoly.log"));
         saveFile = new File(getFilesDir(),"monopoly.save");
+        rulesFile = new File(getFilesDir(), "rules.save");
+        try {
+            if (rulesFile.exists())
+                monopoly.getRules().copyFrom(Reflector.deserializeFromFile(rulesFile));
+        } catch (Exception e) {
+            rulesFile.delete();
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -502,6 +514,7 @@ public class MonopolyActivity extends DroidActivity {
     }
 
     void showGameSetupDialog() {
+        final Rules rules = monopoly.getRules();
         final int [] startMoneyValues = getResources().getIntArray(R.array.start_money_values);
         final int [] winMoneyValues = getResources().getIntArray(R.array.win_money_values);
         final int [] taxPercentValues = getResources().getIntArray(R.array.tax_scale_percent_values);
@@ -510,21 +523,18 @@ public class MonopolyActivity extends DroidActivity {
         final CCNumberPicker npWinMoney = (CCNumberPicker)v.findViewById(R.id.npWinMoney);
         final CCNumberPicker npTaxScale = (CCNumberPicker)v.findViewById(R.id.npTaxScale);
         final CompoundButton cbJailBumpEnabled = (CompoundButton)v.findViewById(R.id.cbJailBumpEnabled);
-        int startMoney = getPrefs().getInt("startMoney", 1000);
-        int winMoney = getPrefs().getInt("winMoney", 5000);
-        int taxPercent = getPrefs().getInt("taxPercent", 100);
-        boolean jailBump = getPrefs().getBoolean("jailBump", false);
-        final Rules rules = monopoly.getRules();
-        npStartMoney.init(startMoneyValues, startMoney, (int value) -> "$" + value, (picker, oldVal, newVal) -> {
+        final CompoundButton cbJailMultiplierEnabled = (CompoundButton)v.findViewById(R.id.cbJailMultiplierEnabled);
+        npStartMoney.init(startMoneyValues, rules.startMoney, (int value) -> "$" + value, (picker, oldVal, newVal) -> {
             getPrefs().edit().putInt("startMoney", startMoneyValues[newVal]).apply();
         });
-        npWinMoney.init(winMoneyValues, winMoney, (int value) -> "$" + value, (picker, oldVal, newVal) -> {
+        npWinMoney.init(winMoneyValues, rules.valueToWin, (int value) -> "$" + value, (picker, oldVal, newVal) -> {
             getPrefs().edit().putInt("winMoney", winMoneyValues[newVal]).apply();
         });
-        npTaxScale.init(taxPercentValues, taxPercent, (int value) -> value + "%", (picker, oldVal, newVal) -> {
+        npTaxScale.init(taxPercentValues, Math.round(100f * rules.taxScale), (int value) -> value + "%", (picker, oldVal, newVal) -> {
             getPrefs().edit().putInt("taxPercent", taxPercentValues[newVal]).apply();
         });
-        cbJailBumpEnabled.setChecked(jailBump);
+        cbJailBumpEnabled.setChecked(rules.jailBumpEnabled);
+        cbJailMultiplierEnabled.setChecked(rules.jailMultiplier);
         cbJailBumpEnabled.setOnCheckedChangeListener((buttonView, isChecked) -> { getPrefs().edit().putBoolean("jailBump", isChecked).apply(); });
         newDialogBuilder().setTitle("Configure").setView(v)
                 .setPositiveButton("Setup Players", (DialogInterface dialog, int which) -> {
@@ -532,6 +542,12 @@ public class MonopolyActivity extends DroidActivity {
                         rules.valueToWin = winMoneyValues[npWinMoney.getValue()];
                         rules.taxScale = 0.01f * taxPercentValues[npTaxScale.getValue()];
                         rules.jailBumpEnabled = cbJailBumpEnabled.isChecked();
+                        rules.jailMultiplier = cbJailMultiplierEnabled.isChecked();
+                        try {
+                            Reflector.serializeToFile(rules, rulesFile);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                         showPlayerSetupMenu();
                 }).show();
     }
