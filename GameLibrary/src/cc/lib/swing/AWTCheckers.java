@@ -10,6 +10,7 @@ import cc.lib.checkers.Draughts;
 import cc.lib.checkers.Move;
 import cc.lib.checkers.MoveType;
 import cc.lib.checkers.Piece;
+import cc.lib.checkers.PieceType;
 import cc.lib.checkers.Robot;
 import cc.lib.game.AAnimation;
 import cc.lib.game.AGraphics;
@@ -169,14 +170,14 @@ public class AWTCheckers extends AWTComponent {
 
     final float CHECKER_HEIGHT = 0.2f;
 
-    private void drawCheckerKing(AGraphics g, boolean outlined) {
-        if (outlined) {
+    private void drawCheckerKing(AGraphics g, GColor outlineColor) {
+        if (outlineColor != null) {
             GColor c = g.getColor();
-            g.setColor(GColor.CYAN);
+            g.setColor(outlineColor);
             g.pushMatrix();
-            drawChecker(g, outlined);
+            drawChecker(g, outlineColor != null);
             g.translate(0, -CHECKER_HEIGHT);
-            drawChecker(g, outlined);
+            drawChecker(g, outlineColor != null);
             g.popMatrix();
             g.setColor(c);
         }
@@ -214,7 +215,7 @@ public class AWTCheckers extends AWTComponent {
 
     @Override
     protected synchronized void paint(AWTGraphics g, int mouseX, int mouseY) {
-        Utils.println("RENDER");
+        //Utils.println("RENDER");
         g.pushMatrix();
         if (game != null) try {
             int dim = Math.min(getWidth(), getHeight());
@@ -282,7 +283,7 @@ public class AWTCheckers extends AWTComponent {
 
                     Piece p = game.getPiece(r, c);
                     if (p.getPlayerNum() >= 0)
-                        drawPiece(g, p, x, y, false);
+                        drawPiece(g, p, x, y, null);
 
                     if (Utils.isPointInsideRect(mouseX, mouseY, x, y, cellWidth, cellHeight)) {
                         highlightedCol = c;
@@ -326,8 +327,8 @@ public class AWTCheckers extends AWTComponent {
                                 p.a = null;
                         }
                         else {
-                            drawPiece(g, p, x, y, true);
-                            drawPiece(g, p, x, y, false);
+                            drawPiece(g, p, x, y, GColor.CYAN);
+                            drawPiece(g, p, x, y, null);
                         }
                     }
                 }
@@ -336,7 +337,7 @@ public class AWTCheckers extends AWTComponent {
             if (highlightedPiece != null) {
                 float x = cellWidth*highlightedCol;
                 float y = cellHeight*highlightedRank;
-                drawPiece(g, highlightedPiece, x, y, false);
+                drawPiece(g, highlightedPiece, x, y, null);
             }
 /*
             for (int r=0; r<game.RANKS; r++) {
@@ -386,16 +387,18 @@ public class AWTCheckers extends AWTComponent {
         throw new AssertionError("Unhandled Case");
     }
 
-    void drawPiece(AGraphics g, Piece p, float x, float y, boolean outlined) {
+    void drawPiece(AGraphics g, Piece p, float x, float y, GColor outlineColor) {
+        if (outlineColor == null && p.isCaptured()) {
+            drawPiece(g, p, x, y, GColor.PINK);
+        }
         g.pushMatrix();
         float w = cellWidth;
         float h = cellHeight;
         g.translate(x+w/2, y+h/2);
         g.scale(Math.min(w,h)*1/3);
-        if (!outlined)
-            g.setColor(getColor(p.getPlayerNum()));
-        else {
-            g.setColor(GColor.CYAN);
+        g.setColor(getColor(p.getPlayerNum()));
+        if (outlineColor != null) {
+            g.setColor(outlineColor);
             g.scale(1.2f);
         }
 
@@ -432,11 +435,11 @@ public class AWTCheckers extends AWTComponent {
             case KING:
             case FLYING_KING:
             case DAMA_KING:
-                drawCheckerKing(g, outlined);
+                drawCheckerKing(g, outlineColor);
                 break;
             case CHECKER:
             case DAMA_MAN:
-                drawChecker(g, outlined);
+                drawChecker(g, outlineColor != null);
                 break;
             case UNAVAILABLE:
                 break;
@@ -483,7 +486,7 @@ public class AWTCheckers extends AWTComponent {
                         float y = (ey-sy) * position;
                         g.pushMatrix();
                         g.translate(x, y);
-                        drawPiece(g, p, x, y, false);
+                        drawPiece(g, p, x, y, null);
                     }
 
                     @Override
@@ -511,8 +514,11 @@ public class AWTCheckers extends AWTComponent {
         } else if (selectedRank>=0 && selectedCol>=0){
             selectedRank=selectedCol=-1;
         } else {
-            selectedRank=highlightedRank;
-            selectedCol=highlightedCol;
+            Piece p = game.getPiece(highlightedRank, highlightedCol);
+            if (p != null && p.getPlayerNum() == game.getTurn()) {
+                selectedRank = highlightedRank;
+                selectedCol = highlightedCol;
+            }
         }
         repaint();
     }

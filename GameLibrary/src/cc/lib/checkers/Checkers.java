@@ -352,14 +352,22 @@ public class Checkers extends ACheckboardGame  {
                     } else {
                         clearPiece(move.getCaptured());
                     }
-                }
-                if (isKinged) {
-                    p.addMove(new Move(MoveType.STACK, move.getPlayerNum()).setStart(move.getEnd()[0], move.getEnd()[1], p.getType()).setEnd(move.getEnd()[0], move.getEnd()[1], isFlyingKings() ? PieceType.FLYING_KING : PieceType.KING));
-                    lock = p;
-                }
-                if (isDamaKing) {
-                    p.addMove(new Move(MoveType.STACK, move.getPlayerNum()).setStart(move.getEnd()[0], move.getEnd()[1], p.getType()).setEnd(move.getEnd()[0], move.getEnd()[1], PieceType.DAMA_KING));
-                    lock = p;
+                    if ((isKinged || isDamaKing) && isJumpsMandatory()) {
+                        // we cannot king if we can still jump.
+                        computeMovesForSquare(move.getEnd()[0], move.getEnd()[1], move);
+                        Piece pp = getPiece(move.getEnd());
+                        if (pp.getNumMoves() > 0) {
+                            break;
+                        }
+                    }
+                    if (isKinged) {
+                        p.addMove(new Move(MoveType.STACK, move.getPlayerNum()).setStart(move.getEnd()[0], move.getEnd()[1], p.getType()).setEnd(move.getEnd()[0], move.getEnd()[1], isFlyingKings() ? PieceType.FLYING_KING : PieceType.KING));
+                        lock = p;
+                    }
+                    if (isDamaKing) {
+                        p.addMove(new Move(MoveType.STACK, move.getPlayerNum()).setStart(move.getEnd()[0], move.getEnd()[1], p.getType()).setEnd(move.getEnd()[0], move.getEnd()[1], PieceType.DAMA_KING));
+                        lock = p;
+                    }
                 }
                 break;
             case STACK:
@@ -440,7 +448,7 @@ public class Checkers extends ACheckboardGame  {
         return false;
     }
 
-    protected boolean isCaptureAtEndEnabled() {
+    public boolean isCaptureAtEndEnabled() {
         return false;
     }
 }

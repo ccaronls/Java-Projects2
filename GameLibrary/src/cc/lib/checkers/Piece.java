@@ -30,7 +30,7 @@ public class Piece extends Reflector<Piece> {
         type = PieceType.EMPTY;
     }
 
-    Piece(int playerNum, PieceType type) {
+    public Piece(int playerNum, PieceType type) {
         if (type == null)
             throw new AssertionError("type cannot be null");
         this.playerNum = playerNum;

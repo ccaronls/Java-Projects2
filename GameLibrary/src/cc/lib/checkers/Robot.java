@@ -31,6 +31,10 @@ public class Robot extends Reflector<Robot> {
         return type;
     }
 
+    public RobotType getType() {
+        return type;
+    }
+
     final MiniMaxTree mmtCheckers = new MiniMaxTree<Checkers>() {
 
         @Override
