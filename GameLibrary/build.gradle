@@ -58,6 +58,15 @@ task runCheckers(type: JavaExec) {
 //    args "arg1", "arg2"
 }
 
+task runCheckerboard(type: JavaExec) {
+    group = 'Application'
+    description = 'Run the Checkers Applet'
+
+    classpath sourceSets.main.runtimeClasspath
+    main = "cc.lib.swing.AWTCheckerboard"
+//    args "arg1", "arg2"
+}
+
 task runBoardBuilder(type: JavaExec) {
     group = 'Application' // <-- change the name as per your need
     description = 'Run the Custum Board Builder App'

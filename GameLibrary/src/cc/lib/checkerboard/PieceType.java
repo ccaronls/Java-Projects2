@@ -1,4 +1,4 @@
-package cc.android.checkerboard;
+package cc.lib.checkerboard;
 
 /**
  * Created by chriscaron on 10/10/17.

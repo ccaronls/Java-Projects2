@@ -1,11 +1,7 @@
-package cc.android.checkerboard;
+package cc.lib.checkerboard;
 
 import cc.lib.game.IMove;
 import cc.lib.utils.Reflector;
-
-/**
- * Created by chriscaron on 9/14/17.
- */
 
 public class Move extends Reflector<Move> implements IMove {
 

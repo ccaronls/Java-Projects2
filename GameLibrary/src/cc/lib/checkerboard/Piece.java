@@ -1,15 +1,10 @@
-package cc.android.checkerboard;
+package cc.lib.checkerboard;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import cc.lib.game.AAnimation;
 import cc.lib.utils.Reflector;
-
-/**
- * Created by chriscaron on 9/14/17.
- */
 
 public class Piece extends Reflector<Piece> {
 
@@ -21,20 +16,25 @@ public class Piece extends Reflector<Piece> {
     private PieceType type;
     private final List<Move> moves = new ArrayList<>();
     private boolean captured = false;
-
-    @Omit
-    public AAnimation a;
+    private int rank, col;
 
     public Piece() {
         playerNum = -1;
         type = PieceType.EMPTY;
+        rank = col = -1;
     }
 
-    Piece(int playerNum, PieceType type) {
+    public Piece(int rank, int col, int playerNum, PieceType type) {
         if (type == null)
             throw new AssertionError("type cannot be null");
         this.playerNum = playerNum;
         this.type = type;
+        this.rank = rank;
+        this.col = col;
+    }
+
+    public Piece(int [] pos, int playerNum, PieceType type) {
+        this(pos[0], pos[1], playerNum, type);
     }
 
     public int getPlayerNum() {
@@ -87,6 +87,31 @@ public class Piece extends Reflector<Piece> {
         return numRemoved;
     }
 
+    public int getRank() {
+        return rank;
+    }
+
+    public void setRank(int rank) {
+        this.rank = rank;
+    }
+
+    public int getCol() {
+        return col;
+    }
+
+    public void setCol(int col) {
+        this.col = col;
+    }
+
+    public int [] getRankCol() {
+        return new int[] { rank, col };
+    }
+
+    public void setRankCol(int [] rankCol) {
+        this.rank = rankCol[0];
+        this.col  = rankCol[1];
+    }
+
     public Iterator<Move> getMovesIterator() {
         return moves.iterator();
     }
@@ -111,4 +136,6 @@ public class Piece extends Reflector<Piece> {
     public void setCaptured(boolean captured) {
         this.captured = captured;
     }
+
+
 }
