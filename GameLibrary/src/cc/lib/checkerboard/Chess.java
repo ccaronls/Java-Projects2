@@ -372,20 +372,20 @@ public class Chess extends Rules {
                 dr = NSEW_DELTAS[0];
                 dc = NSEW_DELTAS[1];
                 break;
-            case CHECKED_KING_IDLE:
             case UNCHECKED_KING_IDLE:
+                checkForCastle(game, rank, col, 0);
+                checkForCastle(game, rank, col, game.cols-1);
+            case CHECKED_KING_IDLE:
                 nextType = UNCHECKED_KING;
             case UNCHECKED_KING:
             case CHECKED_KING:
-                checkForCastle(game, rank, col, 0);
-                checkForCastle(game, rank, col, game.cols-1);
                 d=1;
             case QUEEN:
                 dr = NSEW_DIAG_DELTAS[0];
                 dc = NSEW_DIAG_DELTAS[1];
                 break;
             default:
-                throw new AssertionError();
+                throw new AssertionError("Unknown pieceType " + p.getType());
         }
 
         if (dr != null) {
@@ -395,6 +395,8 @@ public class Chess extends Rules {
                 for (int ii=1; ii<=d; ii++) {
                     tr=rank+dr[i]*ii;
                     tc=col +dc[i]*ii;
+                    if (!game.isOnBoard(tr, tc))
+                        continue;
                     tp = game.getPiece(tr, tc);
                     if (tp.getPlayerNum() == opponent) { // look for capture
                         p.addMove(new Move(mt, p.getPlayerNum()).setStart(rank, col, p.getType()).setEnd(tr, tc, nextType).setCaptured(tr, tc, tp.getType()));
@@ -518,9 +520,9 @@ public class Chess extends Rules {
     };
 
     @Override
-    public GColor getPlayerColor(int side) {
+    public Color getPlayerColor(int side) {
         if (whiteSide == side)
-            return GColor.WHITE;
-        return GColor.BLACK;
+            return Color.WHITE;
+        return Color.BLACK;
     }
 }

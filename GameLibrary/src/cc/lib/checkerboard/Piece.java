@@ -37,6 +37,10 @@ public class Piece extends Reflector<Piece> {
         this(pos[0], pos[1], playerNum, type);
     }
 
+    public int [] getPosition() {
+        return new int[] { rank, col };
+    }
+
     public int getPlayerNum() {
         return playerNum;
     }

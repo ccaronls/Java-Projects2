@@ -143,9 +143,12 @@ public class Checkers extends Rules {
     flying kings move any distance along unblocked diagonals, and may capture an opposing man any distance away
     by jumping to any of the unoccupied squares immediately beyond it.
 
-    Since jumped pieces remain on the board until the turn is complete, it is possible to reach a position in a multi-jump move
-    where the flying king is blocked from capturing further by a piece already jumped. (TODO)
-     */
+    There are 2 cases to consider determined by: isCaptureAtEndEnabled()
+    1> (Simple) Pieces are removed from the board as they are jumped or
+    2> (Complex) Jumped pieces remain on the board until the turn is complete, in which case,
+       it is possible to reach a position in a multi-jump move where the flying king is blocked
+       from capturing further by a piece already jumped.
+    */
     void computeFlyingKingMoves(Game game, Piece p, int rank, int col, Move parent) {
         final int d = Math.max(game.ranks, game.cols);
 
@@ -372,20 +375,38 @@ public class Checkers extends Rules {
     }
 
     void endTurnPrivate(Game game) {
+        List<int[]> captured = new ArrayList<>();
+        for (int i=0; i<game.ranks; i++) {
+            for (int ii=0; ii<game.cols; ii++) {
+                Piece p = game.getPiece(i, ii);
+                if (p.isCaptured()) {
+                    captured.add(new int[] { i, ii });
+                }
+            }
+        }
+        if (captured.size() > 0) {
+            synchronized (game.undoStack) {
+                game.undoStack.peek().setGroupCapture(true);
+            }
+            game.onPiecesCaptured(captured);
+            for (int[] pos : captured) {
+                game.clearPiece(pos);
+            }
+        }
         game.nextTurn();
         lock = null;
         game.clearMoves();
     }
 
     @Override
-    public GColor getPlayerColor(int side) {
+    public Color getPlayerColor(int side) {
         switch (side) {
             case FAR:
-                return GColor.RED;
+                return Color.RED;
             case NEAR:
-                return GColor.BLACK;
+                return Color.BLACK;
         }
-        return GColor.WHITE;
+        return Color.WHITE;
     }
 
     public boolean canJumpSelf() {

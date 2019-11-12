@@ -23,8 +23,10 @@ public class Game extends Reflector<Game> implements IGame<Move> {
     int [] selectedPiece = null;
     Stack<Move> undoStack = new Stack<>();
     Rules rules;
+    boolean initialized = false;
 
-    void init(int ranks, int columns) {
+    synchronized void init(int ranks, int columns) {
+        initialized = false;
         this.ranks = ranks;
         this.cols = columns;
         board = new Piece[ranks][cols];
@@ -40,6 +42,8 @@ public class Game extends Reflector<Game> implements IGame<Move> {
                     break;
             }
         }
+        if (rank == board.length-1)
+            initialized = true;
     }
 
 
@@ -69,30 +73,40 @@ public class Game extends Reflector<Game> implements IGame<Move> {
         undoStack.clear();
         selectedPiece = null;
         rules.init(this);
+        int num = 0;
         for (Player p : players) {
+            p.playerNum = num++;
+            p.color = rules.getPlayerColor(p.playerNum);
             p.newGame();
         }
     }
 
     public void runGame() {
-        if (selectedPiece == null) {
-            if (rules.computeMoves(this, true) == 0) {
-                onGameOver(rules.getWinner(this));
-                return;
+        synchronized (this) {
+            if (selectedPiece == null) {
+                List<Piece> movable = getMovablePieces();
+                if (movable.size() == 1) {
+                    selectedPiece = movable.get(0).getPosition();
+                }
             }
-            List<Piece> movable = getMovablePieces();
-            Piece p = players[turn].choosePieceToMove(this, movable);
-            if (p != null) {
-                selectedPiece = p.getRankCol();
-                onPieceSelected(p);
+            if (selectedPiece == null) {
+                if (rules.computeMoves(this, true) == 0) {
+                    onGameOver(rules.getWinner(this));
+                    return;
+                }
+                Piece p = players[turn].choosePieceToMove(this, getMovablePieces());
+                if (p != null) {
+                    selectedPiece = p.getRankCol();
+                    onPieceSelected(p);
+                }
+            } else {
+                Move m = players[turn].chooseMoveForPiece(this, getPiece(selectedPiece).getMovesList());
+                if (m != null) {
+                    onMoveChosen(m);
+                    executeMove(m);
+                }
+                selectedPiece = null;
             }
-        } else {
-            Move m = players[turn].chooseMoveForPiece(this, getPiece(selectedPiece).getMovesList());
-            if (m != null) {
-                onMoveChosen(m);
-                executeMove(m);
-            }
-            selectedPiece = null;
         }
     }
 
@@ -100,7 +114,11 @@ public class Game extends Reflector<Game> implements IGame<Move> {
         return board[pos[0]][pos[1]];
     }
 
+    final static Piece NOPIECE = new Piece();
+
     public final Piece getPiece(int rank, int col) {
+        if (!isOnBoard(rank, col))
+            return NOPIECE;
         return board[rank][col];
     }
 
@@ -125,6 +143,10 @@ public class Game extends Reflector<Game> implements IGame<Move> {
         return pieces;
     }
 
+    public Player getWinner() {
+        return rules.getWinner(this);
+    }
+
     public final Player getPlayer(int side) {
         return players[side];
     }
@@ -143,6 +165,8 @@ public class Game extends Reflector<Game> implements IGame<Move> {
 
     protected void onGameOver(Player winner) {}
 
+    public void onPiecesCaptured(List<int[]> pieces) {}
+
     public void onPieceCaptured(int [] pos, PieceType type) {}
 
     public void onPieceUncaptured(int [] pos, PieceType type) {}
@@ -157,12 +181,9 @@ public class Game extends Reflector<Game> implements IGame<Move> {
     }
 
     @Override
-    public final Move undo() {
+    public Move undo() {
         if (undoStack.size() > 0) {
-            Move m = null;
-            synchronized (undoStack) {
-                m = undoStack.pop();
-            }
+            Move m = undoStack.pop();
             rules.reverseMove(this, m, true);
             return m;
         }

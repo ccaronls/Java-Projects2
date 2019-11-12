@@ -14,7 +14,7 @@ public class Player extends Reflector<Player> {
     }
 
     int playerNum;
-    GColor color;
+    Color color;
     final List<Piece> captured = new ArrayList<>();
     boolean forfeited = false;
 
@@ -57,7 +57,7 @@ public class Player extends Reflector<Player> {
      *
      * @return
      */
-    public final GColor getColor() {
+    public final Color getColor() {
         return color;
     }
 

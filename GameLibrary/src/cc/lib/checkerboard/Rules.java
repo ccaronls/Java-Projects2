@@ -1,6 +1,5 @@
 package cc.lib.checkerboard;
 
-import cc.lib.game.GColor;
 import cc.lib.game.Utils;
 import cc.lib.utils.Reflector;
 
@@ -19,7 +18,7 @@ public abstract class Rules extends Reflector<Rules> {
         return game.getOpponentPlayer();
     }
 
-    abstract GColor getPlayerColor(int side);
+    abstract Color getPlayerColor(int side);
 
     abstract void executeMove(Game game, Move move);
 
@@ -49,34 +48,33 @@ public abstract class Rules extends Reflector<Rules> {
                 }
                 //fallthrough
             case SWAP:
-            case STACK:
-                game.getPiece(m.getStart()).setType(m.getStartType());
+            case STACK: {
+                game.setBoard(m.getStart(), new Piece(m.getStart(), m.getPlayerNum(), m.getStartType()));
                 break;
+            }
         }
 
         if (!recompute)
             return;
 
-        game.setTurn(m.getPlayerNum());
-        computedMoves = recomputeMoves(game);
         Move parent = null;
-        if (game.undoStack.size() > 0) {
+        game.clearMoves();
+        if (game.getTurn() == m.getPlayerNum() && game.undoStack.size() > 0) {
             parent = game.undoStack.peek();
-            if (parent.getPlayerNum() != m.getPlayerNum()) {
+            if (parent.getPlayerNum() != game.getTurn())
                 parent = null;
-            }
         }
+        game.setTurn(m.getPlayerNum());
+
         if (parent == null) {
             lock = null;
-            computeMoves(game,true);
+            computedMoves = recomputeMoves(game);
         } else {
+            lock = game.getPiece(parent.getStart());
             computedMoves = -1;
-            game.clearMoves();
-            p = game.getPiece(m.getStart());
-            computeMovesForSquare(game, m.getStart()[0], m.getStart()[1], parent);
+            computeMovesForSquare(game, lock.getRank(), lock.getCol(), parent);
             if (!isJumpsMandatory())
-                p.addMove(new Move(MoveType.END, m.getPlayerNum()).setStart(m.getStart()[0], m.getStart()[1], m.getStartType()));
-            lock = p;
+                lock.addMove(new Move(MoveType.END, m.getPlayerNum()).setStart(m.getStart()[0], m.getStart()[1], m.getStartType()));
         }
     }
 
