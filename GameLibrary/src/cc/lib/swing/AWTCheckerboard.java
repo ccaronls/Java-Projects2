@@ -13,6 +13,7 @@ import cc.lib.checkerboard.Draughts;
 import cc.lib.checkerboard.PieceType;
 import cc.lib.checkerboard.Suicide;
 import cc.lib.checkerboard.UIGame;
+import cc.lib.checkerboard.Ugolki;
 import cc.lib.game.AGraphics;
 import cc.lib.game.Utils;
 import cc.lib.utils.FileUtils;
@@ -27,7 +28,6 @@ public class AWTCheckerboard extends AWTComponent {
 
     final AWTFrame frame;
     final UIGame game;
-    final Map<String, Integer> pieceImages = new HashMap<>();
 
     int loadImage(AGraphics g, String path) {
         int id = g.loadImage(path);
@@ -36,25 +36,48 @@ public class AWTCheckerboard extends AWTComponent {
         return id;
     }
 
-    String getId(Color color, PieceType type) {
-        return color.name() + " " + type.name();
+    int numImagesLoaded = 0;
+
+    enum Images {
+        wood_checkboard_8x8(null, null),
+        bk_bishop   (Color.BLACK, PieceType.BISHOP),
+        bk_king     (Color.BLACK, PieceType.KING),
+        bk_knight   (Color.BLACK, PieceType.KNIGHT),
+        bk_pawn     (Color.BLACK, PieceType.PAWN),
+        bk_queen    (Color.BLACK, PieceType.QUEEN),
+        bk_rook     (Color.BLACK, PieceType.ROOK),
+        blk_checker (Color.BLACK, PieceType.CHECKER),
+        wt_bishop   (Color.WHITE, PieceType.BISHOP),
+        wt_king     (Color.WHITE, PieceType.KING),
+        wt_knight   (Color.WHITE, PieceType.KNIGHT),
+        wt_pawn     (Color.WHITE, PieceType.PAWN),
+        wt_queen    (Color.WHITE, PieceType.QUEEN),
+        wt_rook     (Color.WHITE, PieceType.ROOK),
+        red_checker (Color.RED,   PieceType.CHECKER);
+
+        Images(Color color, PieceType pt) {
+            this.color = color;
+            this.pt = pt;
+        }
+
+        final Color color;
+        final PieceType pt;
     }
 
-    void loadImages(AGraphics g) {
-        pieceImages.put(getId(Color.BLACK, PieceType.BISHOP), loadImage(g, "images/bk_bishop.png"));
-        pieceImages.put(getId(Color.BLACK, PieceType.KING), loadImage(g, "images/bk_king.png"));
-        pieceImages.put(getId(Color.BLACK, PieceType.KNIGHT), loadImage(g, "images/bk_knight.png"));
-        pieceImages.put(getId(Color.BLACK, PieceType.PAWN), loadImage(g, "images/bk_pawn.png"));
-        pieceImages.put(getId(Color.BLACK, PieceType.QUEEN), loadImage(g, "images/bk_queen.png"));
-        pieceImages.put(getId(Color.BLACK, PieceType.ROOK), loadImage(g, "images/bk_rook.png"));
-        pieceImages.put(getId(Color.BLACK, PieceType.CHECKER), loadImage(g, "images/blk_checker.png"));
-        pieceImages.put(getId(Color.WHITE, PieceType.BISHOP), loadImage(g, "images/wt_bishop.png"));
-        pieceImages.put(getId(Color.WHITE, PieceType.KING), loadImage(g, "images/wt_king.png"));
-        pieceImages.put(getId(Color.WHITE, PieceType.KNIGHT), loadImage(g, "images/wt_knight.png"));
-        pieceImages.put(getId(Color.WHITE, PieceType.PAWN), loadImage(g, "images/wt_pawn.png"));
-        pieceImages.put(getId(Color.WHITE, PieceType.QUEEN), loadImage(g, "images/wt_queen.png"));
-        pieceImages.put(getId(Color.WHITE, PieceType.ROOK), loadImage(g, "images/wt_rook.png"));
-        pieceImages.put(getId(Color.RED  , PieceType.CHECKER), loadImage(g, "images/red_checker.png"));
+    int [] ids = new int[Images.values().length];
+
+    @Override
+    protected void init(AWTGraphics g) {
+        for (int i=0; i<ids.length; i++) {
+            ids[i] = loadImage(g, "images/" + Images.values()[i].name() + ".png");
+            numImagesLoaded++;
+            repaint();
+        }
+    }
+
+    @Override
+    protected float getInitProgress() {
+        return (float)numImagesLoaded / ids.length;
     }
 
     AWTCheckerboard() {
@@ -85,6 +108,9 @@ public class AWTCheckerboard extends AWTComponent {
                             case "Chess":
                                 game.setRules(new Chess());
                                 break;
+                            case "Ugolki":
+                                game.setRules(new Ugolki());
+                                break;
                         }
                         game.newGame();
                         game.startGameThread();
@@ -101,19 +127,23 @@ public class AWTCheckerboard extends AWTComponent {
 
             @Override
             public int getPieceImageId(PieceType p, Color color) {
-                try {
-                    String id = getId(color, p);
-                    //Utils.println("id = " + id);
-                    return pieceImages.get(id);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    return -1;
+                for (Images i : Images.values()) {
+                    if (i.color == color && i.pt == p)
+                        return ids[i.ordinal()];
                 }
+                return -1;
+            }
+
+            @Override
+            protected int getCheckerboardImageId() {
+                return ids[Images.wood_checkboard_8x8.ordinal()];
             }
         };
         frame.add(this);
-        frame.addMenuBarMenu("New Game", "Checkers", "Suicide", "Draughts", "Canadian Draughts", "Dama", "Chess");
-        frame.centerToScreen(640, 640);
+        frame.addMenuBarMenu("New Game", "Checkers", "Suicide", "Draughts", "Canadian Draughts", "Dama", "Chess", "Ugolki");
+        frame.setPropertiesFile(new File(settings, "gui.properties"));
+        if (!frame.restoreFromProperties())
+            frame.centerToScreen(640, 640);
         game.startGameThread();
     }
 
@@ -124,9 +154,6 @@ public class AWTCheckerboard extends AWTComponent {
 
     @Override
     protected void paint(AWTGraphics g, int mouseX, int mouseY) {
-        if (pieceImages.size() == 0) {
-            loadImages(g);
-        }
         game.draw(g, mouseX, mouseY);
     }
 

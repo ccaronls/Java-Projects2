@@ -55,7 +55,7 @@ public class AWTMonopoly extends AWTComponent {
 
         @Override
         public int getBoardImageId() {
-            return ids[Images.board.ordinal()];
+            return ids[Images.monopoly_board.ordinal()];
         }
 
         @Override
@@ -392,7 +392,7 @@ public class AWTMonopoly extends AWTComponent {
     int numImagesLoaded = 0;
 
     enum Images {
-        board, car, dog, iron, ship, shoe, thimble, tophat, wheelbarrow;
+        monopoly_board, car, dog, iron, ship, shoe, thimble, tophat, wheelbarrow;
     }
 
     int [] ids = new int[Images.values().length];

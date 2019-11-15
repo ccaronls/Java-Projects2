@@ -108,4 +108,15 @@ public abstract class Rules extends Reflector<Rules> {
     }
 
     public boolean isJumpsMandatory() { return false; }
+
+    public enum BoardType {
+        CHECKERBOARD,
+        DAMABOARD,
+        OTHER
+    }
+
+    public boolean isWinner(Game game, int side) {
+        return false;
+    }
+
 }

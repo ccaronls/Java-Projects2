@@ -92,44 +92,45 @@ public class Chess extends Rules {
         lock = null;
         Piece p = null;
         game.clearMoves();
-        {
-            switch (move.getMoveType()) {
-                case END:
-                    if (game.getCurrentPlayer().isForfeited()) {
-                        game.onGameOver(getWinner(game));
-                        return;
-                    }
-                    break;
-                case JUMP:
-                case SLIDE:
-                    if (move.getCaptured() != null) {
-                        game.clearPiece(move.getCaptured());
-                    }
-                    p = game.movePiece(move);
-                    // check for pawn advancing
-                    if (p.getType() == PAWN_TOSWAP) {
-                        computeMovesForSquare(game, move.getEnd()[0], move.getEnd()[1], null);
-                        lock = p;
-                    }
-                    // see if this move result
-                    break;
-                case SWAP:
-                    game.getPiece(move.getStart()).setType(move.getEndType());
-                    break;
-                case CASTLE: {
-                    game.movePiece(move);
-                    p = game.getPiece(move.getCastleRookStart());
-                    Utils.assertTrue(p.getType() == ROOK_IDLE);
-                    p.setType(ROOK);
-                    game.setBoard(move.getCastleRookEnd(), p);
-                    game.clearPiece(move.getCastleRookStart());
-                    break;
-                }
-                default:
-                    throw new AssertionError();
-            }
-            updateOpponentKingCheckedState(game);
+        synchronized (game.undoStack) {
+            game.undoStack.push(move);
         }
+        switch (move.getMoveType()) {
+            case END:
+                if (game.getCurrentPlayer().isForfeited()) {
+                    game.onGameOver(getWinner(game));
+                    return;
+                }
+                break;
+            case JUMP:
+            case SLIDE:
+                if (move.getCaptured() != null) {
+                    game.clearPiece(move.getCaptured());
+                }
+                p = game.movePiece(move);
+                // check for pawn advancing
+                if (p.getType() == PAWN_TOSWAP) {
+                    computeMovesForSquare(game, move.getEnd()[0], move.getEnd()[1], null);
+                    lock = p;
+                }
+                // see if this move result
+                break;
+            case SWAP:
+                game.getPiece(move.getStart()).setType(move.getEndType());
+                break;
+            case CASTLE: {
+                game.movePiece(move);
+                p = game.getPiece(move.getCastleRookStart());
+                Utils.assertTrue(p.getType() == ROOK_IDLE);
+                p.setType(ROOK);
+                game.setBoard(move.getCastleRookEnd(), p);
+                game.clearPiece(move.getCastleRookStart());
+                break;
+            }
+            default:
+                throw new AssertionError();
+        }
+        updateOpponentKingCheckedState(game);
 
         if (p != null && timerLength > 0) {
             lock = p;
@@ -196,11 +197,6 @@ public class Chess extends Rules {
      * @return
      */
     final boolean isSquareAttacked(Game game, int rank, int col, int playerNum) {
-        boolean b = isSquareAttackedP(game, rank, col, playerNum);
-        return b;
-    }
-
-    final private boolean isSquareAttackedP(Game game, int rank, int col, int playerNum) {
 
         // search in the eight directions and knights whom can
         int [][] kd = getKnightDeltas(game, rank, col);
@@ -431,7 +427,7 @@ public class Chess extends Rules {
         game.getPiece(rank, col).setMovesList(moves);
     }
 
-    int[] findPiecePosition(Game game, int playerNum, PieceType ... types) {
+    private int[] findPiecePosition(Game game, int playerNum, PieceType ... types) {
         for (int rank=0; rank<game.ranks; rank++) {
             for (int col =0; col<game.cols; col++) {
                 if (game.board[rank][col].getPlayerNum() == playerNum) {
@@ -451,26 +447,23 @@ public class Chess extends Rules {
         }
         return null;
     }
+
     public final static int [][] DIAGONAL_DELTAS = {
             {-1, -1, 1, 1},
             {-1, 1, -1, 1}
     };
-    //public final static int [][] KNIGHT_DELTAS = {
-    //        {-2, -2, -1, 1, 2,  2,  1, -1},
-    //        {-1,  1,  2, 2, 1, -1, -2, -2}
-    //};
 
     // precompute knight deltas for each square
 
     @Omit
     private static int[][][][] knightDeltas = null;
 
-    public final static int [][] ALL_KNIGHT_DELTAS = {
-            {-2, -2, -1, 1, 2,  2,  1, -1},
-            {-1,  1,  2, 2, 1, -1, -2, -2}
-    };
+    private int [][] computeKnightDeltaFor(Game game, int rank, int col) {
+        int [][] ALL_KNIGHT_DELTAS = {
+                {-2, -2, -1, 1, 2,  2,  1, -1},
+                {-1,  1,  2, 2, 1, -1, -2, -2}
+        };
 
-    int [][] computeKnightDeltaFor(Game game, int rank, int col) {
         int [][] d = new int[2][8];
         int n = 0;
         for (int i=0; i<8; i++) {

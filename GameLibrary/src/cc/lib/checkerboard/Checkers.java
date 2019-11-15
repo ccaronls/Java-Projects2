@@ -12,7 +12,8 @@ import static cc.lib.checkerboard.PieceType.*;
 
 public class Checkers extends Rules {
 
-    public void init(Game game) {
+    @Override
+    void init(Game game) {
         game.init(8, 8);
         game.initRank(0, FAR, CHECKER, EMPTY, CHECKER, EMPTY, CHECKER, EMPTY, CHECKER, EMPTY);
         game.initRank(1, FAR, EMPTY, CHECKER, EMPTY, CHECKER, EMPTY, CHECKER, EMPTY, CHECKER);
@@ -113,7 +114,7 @@ public class Checkers extends Rules {
             if (t.getType() != EMPTY)
                 continue;
 
-            if (canJumpSelf() && cap.getPlayerNum() == game.getTurn()) {
+            if (isNoCaptures() || (canJumpSelf() && cap.getPlayerNum() == game.getTurn())) {
                 p.addMove(new Move(MoveType.JUMP, game.getTurn()).setStart(rank, col, p.getType()).setEnd(rdr2, cdc2, p.getType()));
             } else if (!cap.isCaptured() && cap.getPlayerNum() == game.getOpponent()) {
                 p.addMove(new Move(MoveType.JUMP, game.getTurn()).setStart(rank, col, p.getType()).setEnd(rdr2, cdc2, p.getType()).setCaptured(rdr, cdc, cap.getType()));
@@ -250,12 +251,10 @@ public class Checkers extends Rules {
     @Override
     void reverseMove(Game game, Move m, boolean recompute) {
         if (m.isGroupCapture()) {
-            if (m.hasCaptured()) {
-                game.onPieceUncaptured(m.getCaptured(), m.getCapturedType());
-            }
             List<Move> uncap = new ArrayList<>();
             synchronized (game.undoStack) {
-                for (Move um : game.undoStack) {
+                for (int i=game.undoStack.size()-1; i>=0; i--) {
+                    Move um = game.undoStack.get(i);
                     if (um.getPlayerNum()!=m.getPlayerNum())
                         break;
                     if (um.hasCaptured()) {
@@ -281,7 +280,7 @@ public class Checkers extends Rules {
         Piece p = game.getPiece(move.getStart());
         // clear everyone all moves
         game.clearMoves();
-        if (move.hasEnd()) {
+        if (isKingPieces() && move.hasEnd()) {
             int rank = move.getEnd()[0];
             if (move.getMoveType() != MoveType.STACK){
                 isKinged = (p.getType() == CHECKER && game.getStartRank(game.getOpponent()) == rank);
@@ -439,5 +438,13 @@ public class Checkers extends Rules {
 
     public boolean isFlyingKings() {
         return false;
+    }
+
+    public boolean isNoCaptures() {
+        return false;
+    }
+
+    public boolean isKingPieces() {
+        return true;
     }
 }

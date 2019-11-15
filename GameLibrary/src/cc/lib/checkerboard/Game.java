@@ -25,7 +25,7 @@ public class Game extends Reflector<Game> implements IGame<Move> {
     Rules rules;
     boolean initialized = false;
 
-    synchronized void init(int ranks, int columns) {
+    void init(int ranks, int columns) {
         initialized = false;
         this.ranks = ranks;
         this.cols = columns;
@@ -71,6 +71,7 @@ public class Game extends Reflector<Game> implements IGame<Move> {
 
     public void newGame() {
         undoStack.clear();
+        initialized = false;
         selectedPiece = null;
         rules.init(this);
         int num = 0;
@@ -82,31 +83,29 @@ public class Game extends Reflector<Game> implements IGame<Move> {
     }
 
     public void runGame() {
-        synchronized (this) {
-            if (selectedPiece == null) {
-                List<Piece> movable = getMovablePieces();
-                if (movable.size() == 1) {
-                    selectedPiece = movable.get(0).getPosition();
-                }
+        if (selectedPiece == null) {
+            List<Piece> movable = getMovablePieces();
+            if (movable.size() == 1) {
+                selectedPiece = movable.get(0).getPosition();
             }
-            if (selectedPiece == null) {
-                if (rules.computeMoves(this, true) == 0) {
-                    onGameOver(rules.getWinner(this));
-                    return;
-                }
-                Piece p = players[turn].choosePieceToMove(this, getMovablePieces());
-                if (p != null) {
-                    selectedPiece = p.getRankCol();
-                    onPieceSelected(p);
-                }
-            } else {
-                Move m = players[turn].chooseMoveForPiece(this, getPiece(selectedPiece).getMovesList());
-                if (m != null) {
-                    onMoveChosen(m);
-                    executeMove(m);
-                }
-                selectedPiece = null;
+        }
+        if (selectedPiece == null) {
+            if (rules.computeMoves(this, true) == 0) {
+                onGameOver(rules.getWinner(this));
+                return;
             }
+            Piece p = players[turn].choosePieceToMove(this, getMovablePieces());
+            if (p != null) {
+                selectedPiece = p.getRankCol();
+                onPieceSelected(p);
+            }
+        } else {
+            Move m = players[turn].chooseMoveForPiece(this, getPiece(selectedPiece).getMovesList());
+            if (m != null) {
+                onMoveChosen(m);
+                executeMove(m);
+            }
+            selectedPiece = null;
         }
     }
 

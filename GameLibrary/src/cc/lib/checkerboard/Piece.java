@@ -1,6 +1,7 @@
 package cc.lib.checkerboard;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -17,6 +18,7 @@ public class Piece extends Reflector<Piece> {
     private final List<Move> moves = new ArrayList<>();
     private boolean captured = false;
     private int rank, col;
+    private int value = 0;
 
     public Piece() {
         playerNum = -1;
@@ -121,7 +123,7 @@ public class Piece extends Reflector<Piece> {
     }
 
     public List<Move> getMovesList() {
-        return new ArrayList<>(moves);
+        return Collections.unmodifiableList(moves);
     }
 
     public void setMovesList(List<Move> m) {
@@ -141,5 +143,11 @@ public class Piece extends Reflector<Piece> {
         this.captured = captured;
     }
 
+    public int getValue() {
+        return value;
+    }
 
+    public void setValue(int value) {
+        this.value = value;
+    }
 }
