@@ -316,6 +316,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
             mv.addEq(0, textHeight);
         }
         float maxHeight = textHeight * lines.length;
+        begin();
         vertex(x, y);
         switch (hJust) {
             case RIGHT:
@@ -355,6 +356,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
             mv.addEq(0, textHeight);
         }
         float maxHeight = textHeight * lines.length;
+        begin();
         vertex(x, y);
         float left = 0;
         switch (hJust) {

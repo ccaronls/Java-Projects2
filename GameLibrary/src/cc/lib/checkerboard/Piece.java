@@ -15,9 +15,9 @@ public class Piece extends Reflector<Piece> {
 
     private int playerNum;
     private PieceType type;
-    private final List<Move> moves = new ArrayList<>();
+    int numMoves = 0;
     private boolean captured = false;
-    private int rank, col;
+    private final int rank, col;
     private int value = 0;
 
     public Piece() {
@@ -61,78 +61,16 @@ public class Piece extends Reflector<Piece> {
         this.type = type;
     }
 
-    public Iterable<Move> getMoves() {
-        return new ArrayList<>(moves);
-    }
-
-    public void clearMoves() {
-        moves.clear();
-    }
-
-    public int getNumMoves() {
-        return moves.size();
-    }
-
-    public void addMove(Move m) {
-        moves.add(m);
-    }
-
-    public int removeNonJumps() {
-        int numRemoved = 0;
-        Iterator<Move> it = moves.iterator();
-        while (it.hasNext()) {
-            Move m = it.next();
-            switch (m.getMoveType()) {
-                case JUMP:
-                case FLYING_JUMP:
-                    continue;
-            }
-            it.remove();
-            numRemoved++;
-        }
-        return numRemoved;
-    }
-
     public int getRank() {
         return rank;
-    }
-
-    public void setRank(int rank) {
-        this.rank = rank;
     }
 
     public int getCol() {
         return col;
     }
 
-    public void setCol(int col) {
-        this.col = col;
-    }
-
     public int [] getRankCol() {
         return new int[] { rank, col };
-    }
-
-    public void setRankCol(int [] rankCol) {
-        this.rank = rankCol[0];
-        this.col  = rankCol[1];
-    }
-
-    public Iterator<Move> getMovesIterator() {
-        return moves.iterator();
-    }
-
-    public List<Move> getMovesList() {
-        return Collections.unmodifiableList(moves);
-    }
-
-    public void setMovesList(List<Move> m) {
-        moves.clear();
-        moves.addAll(m);
-    }
-
-    public Move getMove(int index) {
-        return moves.get(index);
     }
 
     public boolean isCaptured() {
@@ -149,5 +87,9 @@ public class Piece extends Reflector<Piece> {
 
     public void setValue(int value) {
         this.value = value;
+    }
+
+    public final int getNumMoves() {
+        return numMoves;
     }
 }

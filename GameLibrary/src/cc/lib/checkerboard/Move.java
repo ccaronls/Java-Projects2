@@ -1,5 +1,8 @@
 package cc.lib.checkerboard;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import cc.lib.game.IMove;
 import cc.lib.utils.Reflector;
 
@@ -16,10 +19,9 @@ public class Move extends Reflector<Move> implements IMove {
     private int [] end;
     private int [] castleRookStart;
     private int [] castleRookEnd;
-    private int [] captured;
-    private boolean groupCapture = false;
+    private List<int []> captured = null;
 
-    private PieceType startType, endType, capturedType;
+    private PieceType startType, endType;
 
     public Move(MoveType t, int playerNum) { //}, Piece captured, PieceType nextType, int ... positions) {
         this.moveType = t;
@@ -42,9 +44,11 @@ public class Move extends Reflector<Move> implements IMove {
         return this;
     }
 
-    public Move setCaptured(int capturedRank, int capturedCol, PieceType type) {
-        captured = new int[] { capturedRank, capturedCol };
-        capturedType = type;
+    public Move addCaptured(int capturedRank, int capturedCol, PieceType type) {
+        if (captured == null) {
+            captured = new ArrayList<>();
+        }
+        captured.add(new int[] { capturedRank, capturedCol, type.ordinal() });
         return this;
     }
 
@@ -82,16 +86,28 @@ public class Move extends Reflector<Move> implements IMove {
         return end != null;
     }
 
-    public final int [] getCaptured() {
+    public final int getNumCaptured() {
+        return captured != null ? captured.size() : 0;
+    }
+
+    public final int [] getCaptured(int index) {
+        return captured.get(index);
+    }
+
+    public final PieceType getCapturedType(int index) {
+        return PieceType.values()[captured.get(index)[2]];
+    }
+
+    public final List<int[]> getCapturedList() {
         return captured;
     }
 
-    public final PieceType getCapturedType() {
-        return capturedType;
+    public final int [] getLastCaptured() {
+        return captured.get(captured.size()-1);
     }
 
     public final boolean hasCaptured() {
-        return captured != null && capturedType != null;
+        return captured != null && captured.size() > 0;
     }
 
     public final int [] getCastleRookStart() {
@@ -103,7 +119,7 @@ public class Move extends Reflector<Move> implements IMove {
     }
 
     String toStr(int [] pos) {
-        return "{" + pos[0] + "," + pos[1] + "}";
+        return "{" + pos[0] + "," + pos[1] + "," + PieceType.values()[pos[2]] + "}";
     }
 
     @Override
@@ -116,10 +132,12 @@ public class Move extends Reflector<Move> implements IMove {
             s += " epos: " + toStr(end) + " et: " + endType;
         }
         if (captured != null) {
-            s += " cap:" + toStr(captured) + " ct: " + capturedType;
-        }
-        if (groupCapture) {
-            s += " group capture";
+            s += " cap:";
+            for (int i=0; i<captured.size(); i++) {
+                if (i > 0)
+                    s += ",";
+                s += toStr(captured.get(i));
+            }
         }
         if (castleRookStart != null) {
             s += " castle st: " + toStr(castleRookStart) + " end: " + toStr(castleRookEnd);
@@ -132,11 +150,4 @@ public class Move extends Reflector<Move> implements IMove {
         return playerNum;
     }
 
-    public boolean isGroupCapture() {
-        return groupCapture;
-    }
-
-    public void setGroupCapture(boolean groupCapture) {
-        this.groupCapture = groupCapture;
-    }
 }

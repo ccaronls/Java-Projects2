@@ -27,20 +27,20 @@ public class Checkers extends Rules {
     }
 
     @Override
-    void computeMovesForSquare(Game game, int rank, int col, Move parent) {
+    boolean computeMovesForSquare(Game game, int rank, int col, Move parent, List<Move> moves) {
         Piece p = game.getPiece(rank, col);
         if (p.getPlayerNum() != game.getTurn())
             throw new AssertionError();
 
         if (p.getType()== FLYING_KING || p.getType()== DAMA_KING) {
-            computeFlyingKingMoves(game, p, rank, col, parent);
+            return computeFlyingKingMoves(game, p, rank, col, parent, moves);
         } else {
-            computeMenKingMoves(game, p, rank, col, parent);
+            return computeMenKingMoves(game, p, rank, col, parent, moves);
         }
     }
 
-    void computeMenKingMoves(Game game, Piece p, int rank, int col, Move parent) {
-
+    boolean computeMenKingMoves(Game game, Piece p, int rank, int col, Move parent, List<Move> moves) {
+        boolean hasJump = false;
         int [] jdr=null, jdc=null, dr=null, dc=null;
         switch (p.getType()) {
             case KING:
@@ -115,9 +115,11 @@ public class Checkers extends Rules {
                 continue;
 
             if (isNoCaptures() || (canJumpSelf() && cap.getPlayerNum() == game.getTurn())) {
-                p.addMove(new Move(MoveType.JUMP, game.getTurn()).setStart(rank, col, p.getType()).setEnd(rdr2, cdc2, p.getType()));
+                moves.add(new Move(MoveType.JUMP, game.getTurn()).setStart(rank, col, p.getType()).setEnd(rdr2, cdc2, p.getType()));
+                hasJump = true;
             } else if (!cap.isCaptured() && cap.getPlayerNum() == game.getOpponent()) {
-                p.addMove(new Move(MoveType.JUMP, game.getTurn()).setStart(rank, col, p.getType()).setEnd(rdr2, cdc2, p.getType()).setCaptured(rdr, cdc, cap.getType()));
+                moves.add(new Move(MoveType.JUMP, game.getTurn()).setStart(rank, col, p.getType()).setEnd(rdr2, cdc2, p.getType()).addCaptured(rdr, cdc, cap.getType()));
+                hasJump = true;
             }
 
         }
@@ -133,11 +135,12 @@ public class Checkers extends Rules {
                 // t is piece one unit away in this direction
                 Piece t = game.getPiece(rdr, cdc);
                 if (t.getType() == EMPTY) {
-                    p.addMove(new Move(MoveType.SLIDE, game.getTurn()).setStart(rank, col, p.getType()).setEnd(rdr, cdc, p.getType()));
+                    moves.add(new Move(MoveType.SLIDE, game.getTurn()).setStart(rank, col, p.getType()).setEnd(rdr, cdc, p.getType()));
                     //new Move(MoveType.SLIDE, rank, col, rdr, cdc, getTurn()));
                 }
             }
         }
+        return hasJump;
     }
 
     /*
@@ -150,8 +153,9 @@ public class Checkers extends Rules {
        it is possible to reach a position in a multi-jump move where the flying king is blocked
        from capturing further by a piece already jumped.
     */
-    void computeFlyingKingMoves(Game game, Piece p, int rank, int col, Move parent) {
-        final int d = Math.max(game.ranks, game.cols);
+    boolean computeFlyingKingMoves(Game game, Piece p, int rank, int col, Move parent, List<Move> moves) {
+        boolean hasJump = false;
+        final int d = Math.max(game.getRanks(), game.getColumns());
 
         int [] dr, dc;
         switch (p.getType()) {
@@ -226,10 +230,11 @@ public class Checkers extends Rules {
 
                 if (t.getType() == EMPTY) {
                     if (captured == null)
-                        p.addMove(new Move(mt, game.getTurn()).setStart(rank, col, p.getType()).setEnd(rdr, cdc, p.getType()));
+                        moves.add(new Move(mt, game.getTurn()).setStart(rank, col, p.getType()).setEnd(rdr, cdc, p.getType()));
                     else
-                        p.addMove(new Move(mt, game.getTurn()).setStart(rank, col, p.getType()).setEnd(rdr, cdc, p.getType()).setCaptured(capturedRank, capturedCol, captured.getType()));
-
+                        moves.add(new Move(mt, game.getTurn()).setStart(rank, col, p.getType()).setEnd(rdr, cdc, p.getType()).addCaptured(capturedRank, capturedCol, captured.getType()));
+                    if (mt == MoveType.FLYING_JUMP)
+                        hasJump = true;
                     continue;
                 }
 
@@ -246,62 +251,37 @@ public class Checkers extends Rules {
 
             }
         }
-    }
-
-    @Override
-    void reverseMove(Game game, Move m, boolean recompute) {
-        if (m.isGroupCapture()) {
-            List<Move> uncap = new ArrayList<>();
-            synchronized (game.undoStack) {
-                for (int i=game.undoStack.size()-1; i>=0; i--) {
-                    Move um = game.undoStack.get(i);
-                    if (um.getPlayerNum()!=m.getPlayerNum())
-                        break;
-                    if (um.hasCaptured()) {
-                        uncap.add(um);
-                    }
-                }
-            }
-            for (Move um : uncap) {
-                game.onPieceUncaptured(um.getCaptured(), um.getCapturedType());
-            }
-        }
-
-        super.reverseMove(game, m, recompute);
+        return hasJump;
     }
 
     @Override
     void executeMove(Game game, Move move) {
         if (move.getPlayerNum() != game.getTurn())
             throw new AssertionError();
-        lock = null;
         boolean isKinged = false;
         boolean isDamaKing = false;
         Piece p = game.getPiece(move.getStart());
         // clear everyone all moves
-        game.clearMoves();
         if (isKingPieces() && move.hasEnd()) {
             int rank = move.getEnd()[0];
             if (move.getMoveType() != MoveType.STACK){
                 isKinged = (p.getType() == CHECKER && game.getStartRank(game.getOpponent()) == rank);
                 isDamaKing = (p.getType() == DAMA_MAN && game.getStartRank(game.getOpponent()) == rank);
             }
-            p = game.movePiece(move);
+            game.movePiece(move);
+            if (move.getEnd() != null) {
+                p = game.getPiece(move.getEnd());
+            }
         }
 
-        synchronized (game.undoStack) {
-            game.undoStack.push(move);
-        }
         switch (move.getMoveType()) {
             case SLIDE:
                 if (isKinged) {
-                    p.addMove(new Move(MoveType.STACK, move.getPlayerNum()).setStart(move.getEnd()[0], move.getEnd()[1], p.getType()).setEnd(move.getEnd()[0], move.getEnd()[1], isFlyingKings() ? PieceType.FLYING_KING : PieceType.KING));
-                    lock = p;
+                    game.addMove(new Move(MoveType.STACK, move.getPlayerNum()).setStart(move.getEnd()[0], move.getEnd()[1], p.getType()).setEnd(move.getEnd()[0], move.getEnd()[1], isFlyingKings() ? PieceType.FLYING_KING : PieceType.KING));
                     break;
                 }
                 if (isDamaKing) {
-                    p.addMove(new Move(MoveType.STACK, move.getPlayerNum()).setStart(move.getEnd()[0], move.getEnd()[1], p.getType()).setEnd(move.getEnd()[0], move.getEnd()[1],  PieceType.DAMA_KING));
-                    lock = p;
+                    game.addMove(new Move(MoveType.STACK, move.getPlayerNum()).setStart(move.getEnd()[0], move.getEnd()[1], p.getType()).setEnd(move.getEnd()[0], move.getEnd()[1],  PieceType.DAMA_KING));
                     break;
                 }
             case END:
@@ -309,27 +289,25 @@ public class Checkers extends Rules {
                 return;
             case FLYING_JUMP:
             case JUMP:
-                if (move.getCaptured() != null) {
+                if (move.hasCaptured()) {
                     if (isCaptureAtEndEnabled()) {
-                        game.getPiece(move.getCaptured()).setCaptured(true);
+                        game.getPiece(move.getLastCaptured()).setCaptured(true);
                     } else {
-                        game.clearPiece(move.getCaptured());
+                        game.clearPiece(move.getLastCaptured());
                     }
                     if ((isKinged || isDamaKing) && isJumpsMandatory()) {
                         // we cannot king if we can still jump.
-                        computeMovesForSquare(game, move.getEnd()[0], move.getEnd()[1], move);
+                        computeMovesForSquare(game, move.getEnd()[0], move.getEnd()[1], move, game.getMoves());
                         Piece pp = game.getPiece(move.getEnd());
                         if (pp.getNumMoves() > 0) {
                             break;
                         }
                     }
                     if (isKinged) {
-                        p.addMove(new Move(MoveType.STACK, move.getPlayerNum()).setStart(move.getEnd()[0], move.getEnd()[1], p.getType()).setEnd(move.getEnd()[0], move.getEnd()[1], isFlyingKings() ? PieceType.FLYING_KING : PieceType.KING));
-                        lock = p;
+                        game.addMove(new Move(MoveType.STACK, move.getPlayerNum()).setStart(move.getEnd()[0], move.getEnd()[1], p.getType()).setEnd(move.getEnd()[0], move.getEnd()[1], isFlyingKings() ? PieceType.FLYING_KING : PieceType.KING));
                     }
                     if (isDamaKing) {
-                        p.addMove(new Move(MoveType.STACK, move.getPlayerNum()).setStart(move.getEnd()[0], move.getEnd()[1], p.getType()).setEnd(move.getEnd()[0], move.getEnd()[1], PieceType.DAMA_KING));
-                        lock = p;
+                        game.addMove(new Move(MoveType.STACK, move.getPlayerNum()).setStart(move.getEnd()[0], move.getEnd()[1], p.getType()).setEnd(move.getEnd()[0], move.getEnd()[1], PieceType.DAMA_KING));
                     }
                 }
                 break;
@@ -341,60 +319,31 @@ public class Checkers extends Rules {
         if (!isKinged && !isDamaKing) {
             // recursive compute next move if possible after a jump
             if (move.hasEnd())
-                computeMovesForSquare(game, move.getEnd()[0], move.getEnd()[1], move);
+                computeMovesForSquare(game, move.getEnd()[0], move.getEnd()[1], move, game.getMoves());
             if (p.getNumMoves() == 0) {
                 endTurnPrivate(game);
             } else if (!isJumpsMandatory()) {
-                p.addMove(new Move(MoveType.END, move.getPlayerNum()).setStart(move.getEnd()[0], move.getEnd()[1], p.getType()));
-                lock = p;
+                game.addMove(new Move(MoveType.END, move.getPlayerNum()).setStart(move.getEnd()[0], move.getEnd()[1], p.getType()));
             }
         }
-    }
-
-    @Override
-    int recomputeMoves(Game game) {
-        int num = super.recomputeMoves(game);
-        if (isJumpsMandatory()) {
-            boolean hasJumps = false;
-            for (Move m : game.getMoves()) {
-                if (m.getMoveType() == MoveType.JUMP || m.getMoveType() == MoveType.FLYING_JUMP) {
-                    hasJumps = true;
-                    break;
-                }
-            }
-            if (hasJumps) {
-                for (int rank = 0; rank < game.ranks; rank++) {
-                    for (int col = 0; col < game.cols; col++) {
-                        num -= game.getPiece(rank, col).removeNonJumps();
-                    }
-                }
-            }
-        }
-        return num;
     }
 
     void endTurnPrivate(Game game) {
         List<int[]> captured = new ArrayList<>();
-        for (int i=0; i<game.ranks; i++) {
-            for (int ii=0; ii<game.cols; ii++) {
+        for (int i=0; i<game.getRanks(); i++) {
+            for (int ii=0; ii<game.getColumns(); ii++) {
                 Piece p = game.getPiece(i, ii);
                 if (p.isCaptured()) {
                     captured.add(new int[] { i, ii });
                 }
             }
         }
-        if (captured.size() > 0) {
-            synchronized (game.undoStack) {
-                game.undoStack.peek().setGroupCapture(true);
-            }
-            game.onPiecesCaptured(captured);
+        if (isCaptureAtEndEnabled() && captured.size() > 0) {
             for (int[] pos : captured) {
                 game.clearPiece(pos);
             }
         }
         game.nextTurn();
-        lock = null;
-        game.clearMoves();
     }
 
     @Override

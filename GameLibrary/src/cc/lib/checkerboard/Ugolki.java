@@ -1,6 +1,6 @@
 package cc.lib.checkerboard;
 
-import sun.jvm.hotspot.utilities.AssertionFailure;
+import cc.lib.game.Utils;
 
 import static cc.lib.checkerboard.Game.FAR;
 import static cc.lib.checkerboard.Game.NEAR;
@@ -17,6 +17,7 @@ public class Ugolki extends Checkers {
         game.initRank(3, -1, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY);
         game.initRank(4, NEAR, DAMA_MAN, DAMA_MAN, DAMA_MAN, EMPTY, EMPTY, EMPTY);
         game.initRank(5, NEAR, DAMA_MAN, DAMA_MAN, DAMA_MAN, EMPTY, EMPTY, EMPTY);
+        game.setTurn(Utils.flipCoin() ? NEAR : FAR);
     }
 
     @Override
@@ -35,6 +36,16 @@ public class Ugolki extends Checkers {
     }
 
     @Override
+    Player getWinner(Game game) {
+        if (isWinner(game, NEAR)) {
+            game.getPlayer(NEAR).winner = true;
+        }
+        if (isWinner(game, FAR)) {
+            game.getPlayer(FAR).winner = true;
+        }
+        return super.getWinner(game);
+    }
+
     public boolean isWinner(Game game, int side) {
         switch (side) {
             case FAR: {

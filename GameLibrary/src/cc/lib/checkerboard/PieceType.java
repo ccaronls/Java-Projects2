@@ -25,7 +25,6 @@ public enum PieceType {
     CHECKER("Ch"),
     DAMA_MAN("Da"), // dama pieces move horz and vertically
     DAMA_KING("KDa"),
-    UNAVAILABLE("x"), // this means off board
     ;
 
     public final String abbrev;

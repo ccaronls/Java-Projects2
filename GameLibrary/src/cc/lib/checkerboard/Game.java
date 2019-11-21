@@ -1,6 +1,7 @@
 package cc.lib.checkerboard;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Stack;
 
@@ -12,18 +13,38 @@ public class Game extends Reflector<Game> implements IGame<Move> {
 
     static {
         addAllFields(Game.class);
+        addAllFields(State.class);
+    }
+
+    public final static class State {
+        final int index;
+        final List<Move> moves;
+
+        public State() {
+            this(-1, null);
+        }
+
+        public State(int index, List<Move> moves) {
+            this.index = index;
+            this.moves = moves;
+        }
+
+        Move getMove() {
+            return moves.get(index);
+        }
     }
 
     public final static int NEAR = 0;
     public final static int FAR  = 1;
 
-    final Player [] players = new Player[2];
-    Piece [][] board;
-    int ranks, cols, turn;
+    private final Player [] players = new Player[2];
+    private Piece [][] board;
+    private int ranks, cols, turn;
     int [] selectedPiece = null;
-    Stack<Move> undoStack = new Stack<>();
-    Rules rules;
-    boolean initialized = false;
+    private List<Move> moves = null;
+    private Stack<State> undoStack = new Stack<>();
+    private Rules rules;
+    private boolean initialized = false;
 
     void init(int ranks, int columns) {
         initialized = false;
@@ -35,11 +56,8 @@ public class Game extends Reflector<Game> implements IGame<Move> {
     protected void initRank(int rank, int player, PieceType...pieces) {
         for (int i=0; i<pieces.length; i++) {
             Piece p = board[rank][i] = new Piece(rank, i, player, pieces[i]);
-            switch (p.getType()) {
-                case EMPTY:
-                case UNAVAILABLE:
-                    p.setPlayerNum(-1);
-                    break;
+            if (p.getType() == PieceType.EMPTY) {
+                p.setPlayerNum(-1);
             }
         }
         if (rank == board.length-1)
@@ -83,6 +101,25 @@ public class Game extends Reflector<Game> implements IGame<Move> {
     }
 
     public void runGame() {
+        Player winner = getWinner();
+        if (winner != null) {
+            onGameOver(winner);
+            return;
+        }
+
+        if ((winner = rules.getWinner(this)) != null) {
+            onGameOver(winner);
+            return;
+        }
+
+        if (moves == null) {
+            moves = rules.computeMoves(this);
+        }
+        if (moves.size() == 0) {
+            getOpponentPlayer().winner = true;
+            onGameOver(getWinner());
+            return;
+        }
         if (selectedPiece == null) {
             List<Piece> movable = getMovablePieces();
             if (movable.size() == 1) {
@@ -90,17 +127,13 @@ public class Game extends Reflector<Game> implements IGame<Move> {
             }
         }
         if (selectedPiece == null) {
-            if (rules.computeMoves(this, true) == 0) {
-                onGameOver(rules.getWinner(this));
-                return;
-            }
             Piece p = players[turn].choosePieceToMove(this, getMovablePieces());
             if (p != null) {
                 selectedPiece = p.getRankCol();
                 onPieceSelected(p);
             }
         } else {
-            Move m = players[turn].chooseMoveForPiece(this, getPiece(selectedPiece).getMovesList());
+            Move m = players[turn].chooseMoveForPiece(this, getMovesforPiece(selectedPiece));
             if (m != null) {
                 onMoveChosen(m);
                 executeMove(m);
@@ -113,11 +146,9 @@ public class Game extends Reflector<Game> implements IGame<Move> {
         return board[pos[0]][pos[1]];
     }
 
-    final static Piece NOPIECE = new Piece();
-
     public final Piece getPiece(int rank, int col) {
         if (!isOnBoard(rank, col))
-            return NOPIECE;
+            throw new AssertionError();
         return board[rank][col];
     }
 
@@ -142,8 +173,14 @@ public class Game extends Reflector<Game> implements IGame<Move> {
         return pieces;
     }
 
-    public Player getWinner() {
-        return rules.getWinner(this);
+    private List<Move> getMovesforPiece(int [] pos) {
+        List<Move> pm = new ArrayList<>();
+        for (Move m : moves) {
+            if (m.getStart() != null && m.getStart()[0] == pos[0] && m.getStart()[1] == pos[1]) {
+                pm.add(m);
+            }
+        }
+        return pm;
     }
 
     public final Player getPlayer(int side) {
@@ -164,14 +201,10 @@ public class Game extends Reflector<Game> implements IGame<Move> {
 
     protected void onGameOver(Player winner) {}
 
-    public void onPiecesCaptured(List<int[]> pieces) {}
-
-    public void onPieceCaptured(int [] pos, PieceType type) {}
-
-    public void onPieceUncaptured(int [] pos, PieceType type) {}
-
     @Override
     public final void executeMove(Move move) {
+        undoStack.push(new State(moves.indexOf(move), moves));
+        moves = null;
         rules.executeMove(this, move);
     }
 
@@ -182,20 +215,32 @@ public class Game extends Reflector<Game> implements IGame<Move> {
     @Override
     public Move undo() {
         if (undoStack.size() > 0) {
-            Move m = undoStack.pop();
-            rules.reverseMove(this, m, true);
+            State state = undoStack.pop();
+            Move m = state.getMove();
+            moves = state.moves;
+            rules.reverseMove(this, m);
+            selectedPiece = null;
             return m;
         }
         return null;
     }
 
-    @Override
-    public final Iterable<Move> getMoves() {
-        List<Move> moves = new ArrayList<>();
-        for (Piece p : getMovablePieces()) {
-            moves.addAll(p.getMovesList());
+    Move getPreviousMove() {
+        if (undoStack.size() > 0) {
+            return undoStack.peek().getMove();
         }
+        return null;
+    }
+
+    @Override
+    public final List<Move> getMoves() {
         return moves;
+    }
+
+    void addMove(Move m) {
+        if (moves == null)
+            moves = new ArrayList<>();
+        moves.add(m);
     }
 
     @Override
@@ -205,15 +250,7 @@ public class Game extends Reflector<Game> implements IGame<Move> {
 
     void nextTurn() {
         turn = (turn+1) % players.length;
-        clearMoves();
-    }
-
-    public final void clearMoves() {
-        for (int i = 0; i < board.length; i++) {
-            for (int ii = 0; ii < board[0].length; ii++) {
-                board[i][ii].clearMoves();
-            }
-        }
+        moves = null;
     }
 
     /**
@@ -261,23 +298,44 @@ public class Game extends Reflector<Game> implements IGame<Move> {
     }
 
     public Piece movePiece(Move m) {
-        Piece p = getPiece(m.getStart());
-        setBoard(m.getEnd(), p);
+        setPiece(m.getEnd(), m.getPlayerNum(), m.getEndType());
         clearPiece(m.getStart());
-        return p;
-    }
-
-    final void setBoard(int [] pos, Piece p) {
-        board[pos[0]][pos[1]] = p;
-        p.setRankCol(pos);
+        return getPiece(m.getEnd());
     }
 
     final void clearPiece(int [] pos ) {
-        board[pos[0]][pos[1]] = new Piece(pos, -1, PieceType.EMPTY);
+        board[pos[0]][pos[1]].setPlayerNum(-1);
+        board[pos[0]][pos[1]].setType(PieceType.EMPTY);
     }
 
     final void setPiece(int [] pos, int playerNum, PieceType p) {
         board[pos[0]][pos[1]].setType(p);
         board[pos[0]][pos[1]].setPlayerNum(playerNum);
     }
+
+    public final int getRanks() {
+        return ranks;
+    }
+
+    public final int getColumns() {
+        return cols;
+    }
+
+    public final boolean isInitialized() {
+        return initialized;
+    }
+
+    public final Rules getRules() {
+        return rules;
+    }
+
+    public Player getWinner() {
+        for (int i=0; i<players.length; i++) {
+            if (players[i].isWinner())
+                return players[i];
+        }
+        return null;
+    }
+
+
 }

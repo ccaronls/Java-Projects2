@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import cc.lib.game.GColor;
 import cc.lib.game.Utils;
 import cc.lib.utils.Reflector;
 
@@ -15,12 +14,12 @@ public class Player extends Reflector<Player> {
 
     int playerNum;
     Color color;
-    final List<Piece> captured = new ArrayList<>();
-    boolean forfeited = false;
+    final List<PieceType> captured = new ArrayList<>();
+    boolean winner = false;
 
     void newGame() {
         captured.clear();
-        forfeited = false;
+        winner = false;
     }
 
     /**
@@ -49,8 +48,17 @@ public class Player extends Reflector<Player> {
      *
      * @return
      */
-    public final List<Piece> getCaptured() {
+    public final List<PieceType> getCaptured() {
         return Collections.unmodifiableList(captured);
+    }
+
+    public final void removeCaptured(PieceType pt) {
+        for (int i=captured.size()-1; i>=0; i--) {
+            if (captured.get(i) == pt) {
+                captured.remove(i);
+                break;
+            }
+        }
     }
 
     /**
@@ -73,7 +81,7 @@ public class Player extends Reflector<Player> {
      *
      * @return
      */
-    public final boolean isForfeited() {
-        return forfeited;
+    public final boolean isWinner() {
+        return winner;
     }
 }

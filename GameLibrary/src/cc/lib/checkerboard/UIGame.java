@@ -15,21 +15,26 @@ public abstract class UIGame extends Game {
 
     static Logger log = LoggerFactory.getLogger(UIGame.class);
 
-    private final File saveFile;
+    private File saveFile;
     private boolean gameRunning = false;
     private final Object RUNGAME_MONITOR = new Object();
     private boolean clicked = false;
 
-    public UIGame(File saveFile) {
+    public UIGame() {
+    }
+
+    public boolean init(File saveFile) {
         this.saveFile = saveFile;
         try {
             loadFromFile(saveFile);
+            return true;
         } catch (Exception e) {
             setRules(new Chess());
             setPlayer(NEAR, new UIPlayer());
             setPlayer(FAR, new UIPlayer());
             newGame();
         }
+        return false;
     }
 
     @Override
@@ -54,7 +59,7 @@ public abstract class UIGame extends Game {
                     log.debug("run game");
                     runGame();
                     if (gameRunning) {
-                        if (isGameOver())
+                        if (getWinner() != null)
                             break;
                         trySaveToFile(saveFile);
                         repaint();
@@ -81,11 +86,11 @@ public abstract class UIGame extends Game {
     final List<Move>  pickableMoves  = new ArrayList<>();
 
     int WIDTH, HEIGHT;
-    float PIECEDIM;
+    float PIECE_RADIUS;
 
     public final void draw(AGraphics g, int mx, int my) {
         g.clearScreen(GColor.GRAY);
-        if (!initialized)
+        if (!isInitialized())
             return;
 
         WIDTH = g.getViewportWidth();
@@ -105,37 +110,37 @@ public abstract class UIGame extends Game {
         g.translate(0, HEIGHT/2-WIDTH/2);
         drawBoard(g, WIDTH, mx, my);
         g.popMatrix();
-        drawCapturedPieces(g, WIDTH, HEIGHT/2-WIDTH/2, getPlayer(FAR).captured);
+        drawCapturedPieces(g, WIDTH, HEIGHT/2-WIDTH/2, FAR, getPlayer(FAR).captured);
         g.translate(0, HEIGHT/2+WIDTH/2);
-        drawCapturedPieces(g, WIDTH, HEIGHT/2-WIDTH/2, getPlayer(NEAR).captured);
+        drawCapturedPieces(g, WIDTH, HEIGHT/2-WIDTH/2, NEAR, getPlayer(NEAR).captured);
     }
 
     private void drawLandscape(AGraphics g, int mx, int my) {
         drawBoard(g, HEIGHT, mx, my);
-        drawCapturedPieces(g, WIDTH-HEIGHT, HEIGHT/2, getPlayer(FAR).captured);
+        drawCapturedPieces(g, WIDTH-HEIGHT, HEIGHT/2, FAR, getPlayer(FAR).captured);
         g.pushMatrix();
         g.translate(HEIGHT, HEIGHT/2+WIDTH/2);
-        drawCapturedPieces(g, WIDTH, HEIGHT/2-WIDTH/2, getPlayer(NEAR).captured);
+        drawCapturedPieces(g, WIDTH, HEIGHT/2-WIDTH/2, NEAR, getPlayer(NEAR).captured);
         g.popMatrix();
     }
 
     int BORDER = 5;
 
-    private void drawCapturedPieces(AGraphics g, int width, int height, List<Piece> pieces) {
+    private void drawCapturedPieces(AGraphics g, int width, int height, int playerNum, List<PieceType> pieces) {
         g.setClipRect(0, 0, width, height);
         g.pushMatrix();
         g.translate(BORDER, BORDER);
         width -= BORDER*2;
         int x = 0, y = 0;
-        for (Piece p :pieces) {
+        for (PieceType p :pieces) {
             g.pushMatrix();
             g.translate(x, y);
-            drawPiece(g, p, PIECEDIM, PIECEDIM);
+            drawPiece(g, p, playerNum, PIECE_RADIUS, PIECE_RADIUS);
             g.popMatrix();
-            x += PIECEDIM * 2 / 3;
+            x += PIECE_RADIUS * 2 / 3;
             if (x >= width) {
                 x = 0;
-                y += PIECEDIM;
+                y += PIECE_RADIUS;
             }
         }
 
@@ -145,32 +150,34 @@ public abstract class UIGame extends Game {
 
     protected abstract int getCheckerboardImageId();
 
-    private void drawBoard(AGraphics g, float dim, int mx, int my) {
+    private void drawBoard(AGraphics g, float boarddim, int mx, int my) {
+
+        g.pushMatrix();
 
         float boardImageDim = 545;
         float boardImageBorder = 24;
         float ratio = boardImageBorder / boardImageDim;
 
-        g.drawImage(getCheckerboardImageId(), 0, 0, dim, dim);
-        g.pushMatrix();
-        float t = ratio * dim;
+        g.drawImage(getCheckerboardImageId(), 0, 0, boarddim, boarddim);
+        float t = ratio * boarddim;
         g.translate(t, t);
-        dim -= t*2;
+        boarddim -= t*2;
 
         //log.debug("draw ...");
-        float cw = dim / cols;
-        float ch = dim / ranks;
+        float cw = boarddim / getColumns();
+        float ch = boarddim / getRanks();
 
-        PIECEDIM = Math.min(cw, ch)/3;
+        PIECE_RADIUS = Math.min(cw, ch)/3;
         highlightedRank = highlightedCol = -1;
+/*
         g.setColor(GColor.BLACK);
-        for (int x=0; x<=cols; x++) {
+        for (int x=0; x<=getColumns(); x++) {
             g.drawLine(x* cw, 0, x* cw, g.getViewportHeight());
         }
-        for (int y=0; y<=ranks; y++) {
+        for (int y=0; y<=getRanks(); y++) {
             g.drawLine(0, y* ch, g.getViewportWidth(), y* ch);
         }
-
+*/
         int [] _selectedPiece;
         List<Piece> _pickablePieces = new ArrayList<>();
         List<Move> _pickableMoves = new ArrayList<>();
@@ -185,14 +192,12 @@ public abstract class UIGame extends Game {
             g.setColor(GColor.GREEN);
             float x = _selectedPiece[1]* cw + cw /2;
             float y = _selectedPiece[0]* ch + ch /2;
-            g.drawFilledCircle(x, y, dim+5);
+            g.drawFilledCircle(x, y, PIECE_RADIUS +5);
         }
 
-        for (int r=0; r<ranks; r++) {
-            for (int c=0; c<cols; c++) {
+        for (int r=0; r<getRanks(); r++) {
+            for (int c=0; c<getColumns(); c++) {
                 Piece p = getPiece(r, c);
-                if (p == null)
-                    continue;
                 float x = c * cw + cw / 2;
                 float y = r * ch + ch / 2;
                 if (Utils.isPointInsideRect(mx, my, c* cw, r* ch, cw, ch)) {
@@ -205,7 +210,7 @@ public abstract class UIGame extends Game {
                 for (Piece pp : _pickablePieces) {
                     if (pp.getRank() == r && pp.getCol() == c) {
                         g.setColor(GColor.CYAN);
-                        g.drawFilledCircle(x, y, dim+5);
+                        g.drawFilledCircle(x, y, PIECE_RADIUS +5);
                         break;
                     }
                 }
@@ -213,14 +218,15 @@ public abstract class UIGame extends Game {
                 for (Move m : _pickableMoves) {
                     if (m.getEnd() != null && m.getEnd()[0] == r && m.getEnd()[1] == c) {
                         g.setColor(GColor.CYAN);
-                        g.drawCircle(x, y, dim);
+                        g.drawCircle(x, y, PIECE_RADIUS);
                         break;
                     }
                 }
 
                 g.pushMatrix();
                 g.translate(x, y);
-                drawPiece(g, p, dim*2, dim*2);
+                if (p.getType() != PieceType.EMPTY)
+                    drawPiece(g, p.getType(), p.getPlayerNum(), PIECE_RADIUS *2, PIECE_RADIUS *2);
                 g.popMatrix();
             }
         }
@@ -234,18 +240,19 @@ public abstract class UIGame extends Game {
                 }
                 float x = _selectedPiece[1]* cw + cw /2;
                 float y = _selectedPiece[0]* ch + ch /2;
-                g.setTextHeight(dim/2);
+                g.setTextHeight(PIECE_RADIUS/2);
                 g.drawJustifiedString(x, y, Justify.CENTER, Justify.CENTER, "END");
             }
         }
 
-        if (isGameOver()) {
+        if (getWinner() != null) {
             int x = g.getViewportWidth()/2;
             int y = g.getViewportHeight()/2;
             String txt = "G A M E   O V E R\nPlayer " + getWinner().getColor() + " Wins!";
             g.setColor(GColor.CYAN);
             g.drawJustifiedString(x, y, Justify.CENTER, Justify.CENTER, txt);
         }
+        g.popMatrix();
     }
 
     public void doClick() {
@@ -253,10 +260,6 @@ public abstract class UIGame extends Game {
         synchronized (RUNGAME_MONITOR) {
             RUNGAME_MONITOR.notifyAll();
         }
-    }
-
-    public final boolean isGameOver() {
-        return rules.computeMoves(this, false) == 0;
     }
 
     Piece choosePieceToMove(List<Piece> pieces) {
@@ -300,51 +303,49 @@ public abstract class UIGame extends Game {
         return null;
     }
 
-    private void drawPiece(AGraphics g, Piece p, float w, float h) {
-        if (p == null || p.getPlayerNum() < 0)
-            return;
+    private void drawPiece(AGraphics g, PieceType p, int playerNum, float w, float h) {
+        Color color = getPlayer(playerNum).getColor();
         g.pushMatrix();
-        switch (p.getType()) {
-            case UNAVAILABLE:
+        switch (p) {
             case EMPTY:
                 break;
             case PAWN:
             case PAWN_IDLE:
             case PAWN_ENPASSANT:
             case PAWN_TOSWAP:
-                drawPiece(g, PieceType.PAWN, p.getPlayerNum(), getPlayer(p.getPlayerNum()).color, w, h);
+                drawPiece(g, PieceType.PAWN, color, w, h);
                 break;
             case BISHOP:
             case KNIGHT:
             case QUEEN:
-                drawPiece(g, p.getType(), p.getPlayerNum(), getPlayer(p.getPlayerNum()).color, w, h);
+                drawPiece(g, p, color, w, h);
                 break;
             case ROOK:
             case ROOK_IDLE:
-                drawPiece(g, PieceType.ROOK, p.getPlayerNum(), getPlayer(p.getPlayerNum()).color, w, h);
+                drawPiece(g, PieceType.ROOK, color, w, h);
                 break;
             case CHECKED_KING:
             case CHECKED_KING_IDLE:
             case UNCHECKED_KING:
             case UNCHECKED_KING_IDLE:
-                drawPiece(g, PieceType.KING, p.getPlayerNum(), getPlayer(p.getPlayerNum()).color, w, h);
+                drawPiece(g, PieceType.KING, color, w, h);
                 break;
             case KING:
             case FLYING_KING:
             case DAMA_KING:
-                drawPiece(g, PieceType.CHECKER, p.getPlayerNum(), getPlayer(p.getPlayerNum()).color, w, h);
+                drawPiece(g, PieceType.CHECKER, color, w, h);
                 g.translate(0, h/5);
-                drawPiece(g, PieceType.CHECKER, p.getPlayerNum(), getPlayer(p.getPlayerNum()).color, w, h);
+                drawPiece(g, PieceType.CHECKER, color, w, h);
                 break;
             case DAMA_MAN:
             case CHECKER:
-                drawPiece(g, PieceType.CHECKER, p.getPlayerNum(), getPlayer(p.getPlayerNum()).color, w, h);
+                drawPiece(g, PieceType.CHECKER, color, w, h);
                 break;
         }
         g.popMatrix();
     }
 
-    public void drawPiece(AGraphics g, PieceType p, int playerNum, Color color, float w, float h) {
+    public void drawPiece(AGraphics g, PieceType p, Color color, float w, float h) {
         int id = getPieceImageId(p, color);
         if (id >= 0) {
             g.drawImage(id, -w/2, -h/2, w, h);

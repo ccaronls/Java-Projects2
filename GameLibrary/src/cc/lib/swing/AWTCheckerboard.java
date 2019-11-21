@@ -39,7 +39,7 @@ public class AWTCheckerboard extends AWTComponent {
     int numImagesLoaded = 0;
 
     enum Images {
-        wood_checkboard_8x8(null, null),
+        wood_checkerboard_8x8(null, null),
         bk_bishop   (Color.BLACK, PieceType.BISHOP),
         bk_king     (Color.BLACK, PieceType.KING),
         bk_knight   (Color.BLACK, PieceType.KNIGHT),
@@ -68,11 +68,16 @@ public class AWTCheckerboard extends AWTComponent {
 
     @Override
     protected void init(AWTGraphics g) {
-        for (int i=0; i<ids.length; i++) {
-            ids[i] = loadImage(g, "images/" + Images.values()[i].name() + ".png");
-            numImagesLoaded++;
-            repaint();
-        }
+        new Thread() {
+            public void run() {
+                for (int i = 0; i < ids.length; i++) {
+                    ids[i] = loadImage(g, "images/" + Images.values()[i].name() + ".png");
+                    numImagesLoaded++;
+                    repaint();
+                    yield();
+                }
+            }
+        }.start();
     }
 
     @Override
@@ -117,9 +122,7 @@ public class AWTCheckerboard extends AWTComponent {
                 }
             }
         };
-        File settings = FileUtils.getOrCreateSettingsDirectory(getClass());
-        File saveFile = new File(settings, "game.save");
-        game = new UIGame(saveFile) {
+        game = new UIGame() {
             @Override
             public void repaint() {
                 AWTCheckerboard.this.repaint();
@@ -136,14 +139,18 @@ public class AWTCheckerboard extends AWTComponent {
 
             @Override
             protected int getCheckerboardImageId() {
-                return ids[Images.wood_checkboard_8x8.ordinal()];
+                return ids[Images.wood_checkerboard_8x8.ordinal()];
             }
         };
+        File settings = FileUtils.getOrCreateSettingsDirectory(getClass());
+        File saveFile = new File(settings, "game.save");
         frame.add(this);
-        frame.addMenuBarMenu("New Game", "Checkers", "Suicide", "Draughts", "Canadian Draughts", "Dama", "Chess", "Ugolki");
+        String [] items = { "New Game", "Checkers", "Suicide", "Draughts", "Canadian Draughts", "Dama", "Chess", "Ugolki" };
+        frame.addMenuBarMenu("New Game", items);
         frame.setPropertiesFile(new File(settings, "gui.properties"));
         if (!frame.restoreFromProperties())
             frame.centerToScreen(640, 640);
+        game.init(saveFile);
         game.startGameThread();
     }
 
