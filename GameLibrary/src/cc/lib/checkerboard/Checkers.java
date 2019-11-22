@@ -277,11 +277,11 @@ public class Checkers extends Rules {
         switch (move.getMoveType()) {
             case SLIDE:
                 if (isKinged) {
-                    game.addMove(new Move(MoveType.STACK, move.getPlayerNum()).setStart(move.getEnd()[0], move.getEnd()[1], p.getType()).setEnd(move.getEnd()[0], move.getEnd()[1], isFlyingKings() ? PieceType.FLYING_KING : PieceType.KING));
+                    game.getMovesInternal().add(new Move(MoveType.STACK, move.getPlayerNum()).setStart(move.getEnd()[0], move.getEnd()[1], p.getType()).setEnd(move.getEnd()[0], move.getEnd()[1], isFlyingKings() ? PieceType.FLYING_KING : PieceType.KING));
                     break;
                 }
                 if (isDamaKing) {
-                    game.addMove(new Move(MoveType.STACK, move.getPlayerNum()).setStart(move.getEnd()[0], move.getEnd()[1], p.getType()).setEnd(move.getEnd()[0], move.getEnd()[1],  PieceType.DAMA_KING));
+                    game.getMovesInternal().add(new Move(MoveType.STACK, move.getPlayerNum()).setStart(move.getEnd()[0], move.getEnd()[1], p.getType()).setEnd(move.getEnd()[0], move.getEnd()[1],  PieceType.DAMA_KING));
                     break;
                 }
             case END:
@@ -297,17 +297,17 @@ public class Checkers extends Rules {
                     }
                     if ((isKinged || isDamaKing) && isJumpsMandatory()) {
                         // we cannot king if we can still jump.
-                        computeMovesForSquare(game, move.getEnd()[0], move.getEnd()[1], move, game.getMoves());
+                        computeMovesForSquare(game, move.getEnd()[0], move.getEnd()[1], move, game.getMovesInternal());
                         Piece pp = game.getPiece(move.getEnd());
                         if (pp.getNumMoves() > 0) {
                             break;
                         }
                     }
                     if (isKinged) {
-                        game.addMove(new Move(MoveType.STACK, move.getPlayerNum()).setStart(move.getEnd()[0], move.getEnd()[1], p.getType()).setEnd(move.getEnd()[0], move.getEnd()[1], isFlyingKings() ? PieceType.FLYING_KING : PieceType.KING));
+                        game.getMovesInternal().add(new Move(MoveType.STACK, move.getPlayerNum()).setStart(move.getEnd()[0], move.getEnd()[1], p.getType()).setEnd(move.getEnd()[0], move.getEnd()[1], isFlyingKings() ? PieceType.FLYING_KING : PieceType.KING));
                     }
                     if (isDamaKing) {
-                        game.addMove(new Move(MoveType.STACK, move.getPlayerNum()).setStart(move.getEnd()[0], move.getEnd()[1], p.getType()).setEnd(move.getEnd()[0], move.getEnd()[1], PieceType.DAMA_KING));
+                        game.getMovesInternal().add(new Move(MoveType.STACK, move.getPlayerNum()).setStart(move.getEnd()[0], move.getEnd()[1], p.getType()).setEnd(move.getEnd()[0], move.getEnd()[1], PieceType.DAMA_KING));
                     }
                 }
                 break;
@@ -319,11 +319,11 @@ public class Checkers extends Rules {
         if (!isKinged && !isDamaKing) {
             // recursive compute next move if possible after a jump
             if (move.hasEnd())
-                computeMovesForSquare(game, move.getEnd()[0], move.getEnd()[1], move, game.getMoves());
+                computeMovesForSquare(game, move.getEnd()[0], move.getEnd()[1], move, game.getMovesInternal());
             if (p.getNumMoves() == 0) {
                 endTurnPrivate(game);
             } else if (!isJumpsMandatory()) {
-                game.addMove(new Move(MoveType.END, move.getPlayerNum()).setStart(move.getEnd()[0], move.getEnd()[1], p.getType()));
+                game.getMovesInternal().add(new Move(MoveType.END, move.getPlayerNum()).setStart(move.getEnd()[0], move.getEnd()[1], p.getType()));
             }
         }
     }

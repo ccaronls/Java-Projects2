@@ -1,6 +1,7 @@
 package cc.lib.game;
 
 import java.io.PrintWriter;
+import java.util.Iterator;
 
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
@@ -9,20 +10,9 @@ import cc.lib.logger.LoggerFactory;
  * Created by chriscaron on 10/7/17.
  */
 
-public abstract class MiniMaxTree<G extends IGame> {
+public abstract class MiniMaxTree {
 
     final static Logger log = LoggerFactory.getLogger(MiniMaxTree.class);
-
-    public static class MMTreeNode<M extends IMove, G extends IGame<M>> extends DescisionTree<G, M> {
-        public MMTreeNode(G game) {
-            super(game);
-        }
-
-        public MMTreeNode(G game, M move) {
-            super(game, move);
-        }
-
-    };
 
     /**
      * Does DFS game evaluation to some number of iterations. In that case when a game has chained moves (like in checkers double jump)
@@ -32,9 +22,9 @@ public abstract class MiniMaxTree<G extends IGame> {
      * @param depth
      * @return
      */
-    public void buildTree(IGame game, MMTreeNode root, int depth) {
+    public void buildTree(IGame game, DescisionTree<IMove> root, int depth) {
         try {
-            double d = buildTree(game, root, depth, 1);
+            buildTreeR(game, root, depth, 1, 10);
         } catch (Throwable e) {
             log.error(e);
             root.dumpTree(new PrintWriter(System.err));
@@ -58,28 +48,23 @@ public abstract class MiniMaxTree<G extends IGame> {
         this.kill = true;
     }
 
-    private <M extends IMove> long buildTree(IGame<M> game, MMTreeNode root, int depth, int scale) {
+    private void buildTreeR(IGame<IMove> game, DescisionTree<IMove> root, int depth, int scale, int max) {
 
-        long d = getZeroMovesValue((G)game) * scale;// < 0 ? Long.MAX_VALUE : Long.MIN_VALUE;
-        for (M m : game.getMoves()) {
+        if (kill || depth < 0)
+            return;
+
+        long d = getZeroMovesValue(game) * scale;// < 0 ? Long.MAX_VALUE : Long.MIN_VALUE;
+        for (IMove m : game.getMoves()) {
             if (m.getPlayerNum() < 0)
                 throw new AssertionError();
             game.executeMove(m);
-            MMTreeNode next = new MMTreeNode(game, m);
+            DescisionTree<IMove> next = new DescisionTree<IMove>(m);
             //next.appendMeta("playerNum=%d, scale=%d, depth=%d", m.playerNum, scale, depth);
             next.appendMeta("pn(%d) move(%s)scale(%d)", m.getPlayerNum(), m.toString(), scale);
-            onNewNode(next);
-            root.addChild(next);
-            long v;
-            if (game.getTurn() == m.getPlayerNum() && !kill) {
-                // this means we have more move options
-                v = buildTree(game, next, depth, scale);
-            } else if (depth > 0 && !kill) {
-                v = buildTree(game, next, depth - 1, scale * -1);
-            } else {
-                v = evaluate((G) game, next, m.getPlayerNum()) * scale;
-            }
+            onNewNode(game, next);
+            long v = evaluate(game, next, m.getPlayerNum()) * scale;
             next.setValue(v);
+            root.addChild(next);
             if (scale < 0) {
                 d = Math.min(d, v);
             } else {
@@ -87,10 +72,16 @@ public abstract class MiniMaxTree<G extends IGame> {
             }
             game.undo();
             if (kill)
-                break;
+                return;
         }
-        root.sortChildren();
-        return d;
+        for (DescisionTree<IMove> dt : root.getChildren()) {
+            if (max-- <= 0)
+                break;
+            game.executeMove(dt.getMove());
+            boolean sameTurn = game.getTurn() != dt.getMove().getPlayerNum();
+            buildTreeR(game, dt, sameTurn ? depth : depth-1, sameTurn ? scale : scale * -1, Math.max(3, max/2));
+            game.undo();
+        }
     }
 
     /**
@@ -104,15 +95,15 @@ public abstract class MiniMaxTree<G extends IGame> {
      * @param playerNum the player for whom the evaluation is considered.
      * @return
      */
-    protected abstract long evaluate(G game, MMTreeNode t, int playerNum);
+    protected abstract long evaluate(IGame game, DescisionTree<IMove> t, int playerNum);
 
     /**
      * Callback for this event. base method does nothing.
      * @param node
      */
-    protected void onNewNode(MMTreeNode node) {}
+    protected void onNewNode(IGame game, DescisionTree<IMove> node) {}
 
-    protected long getZeroMovesValue(G game) {
+    protected long getZeroMovesValue(IGame game) {
         return Long.MIN_VALUE;
     }
 }

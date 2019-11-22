@@ -14,118 +14,103 @@ import cc.lib.logger.LoggerFactory;
  * Created by chriscaron on 10/5/17.
  */
 
-public class DescisionTree<G,M> implements Comparable<DescisionTree> {
+public class DescisionTree<M> {
 
     private final static Logger log = LoggerFactory.getLogger(DescisionTree.class);
 
-    private DescisionTree<G,M> parent, first, last, next, prev;
+    private DescisionTree<M> parent, first, last, next, prev;
     private double value = 0;
+    private boolean valueSet = false;
 
-    public final G game;
     private M move = null;
     private String meta = ""; // anything extra to display to the user
 
-    public DescisionTree(G game) {
-        this(game, null);
-        meta += "ROOT";
+    public DescisionTree() {
+        this(null);
     }
 
-    protected DescisionTree(G game, M move) {
-        this.game = game;
+    protected DescisionTree(M move) {
         this.move = move;
     }
 
-    @Override
-    public int compareTo(DescisionTree o) {
-        if (value < o.value)
-            return 1; // descending order
-        if (value == o.value)
-            return 0;
-        return -1;
-    }
-
-    public void addChild(DescisionTree<G,M> child) {
+    /**
+     * Called AFTER the value of child is set so that we can add
+     * @param child
+     */
+    public void addChild(DescisionTree<M> child) {
+        if (!child.valueSet)
+            throw new AssertionError("Value not set!!!");
         child.next = child.prev = null;
         if (first == null) {
             // nodes == 0
             first = last = child;
         } else {
+            DescisionTree<M> dt = first;
+            for ( ; dt != null; dt = dt.next) {
+                if (child.value > dt.value) {
+                    // insert in front of dt
+                    dt.prev = prev;
+                    dt.next = this;
+                    prev = dt;
+                    break;
+                }
+            }
+            if (dt == null) {
+                last.next = child;
+                child.prev = last;
+                last = child;
+            }
             child.prev = last;
             last.next = child;
             last = child;
-            // make circular list for items > 1
-//            child.next = first;
-//            first.prev = child;
         }
         child.parent=this;
     }
 
-    public void addChildFront(DescisionTree<G,M> child) {
-        child.next = child.prev = null;
-        if (first == null) {
-            // nodes == 0
-            first = last = child;
-        } else {
-            child.next = first;
-            first.prev = child;
-            first = child;
-        }
-        child.parent=this;
-    }
-
-    public void clear() {
+    public void clearChildren() {
         first=last=null;
     }
 
     public Iterable<DescisionTree> getChildren() {
-        return new Iterable<DescisionTree>() {
+        return () -> new Iterator<DescisionTree>() {
+            DescisionTree d = first;
+
             @Override
-            public Iterator<DescisionTree> iterator() {
-                return new Iterator<DescisionTree>() {
-                    DescisionTree d = first;
+            public boolean hasNext() {
+                return d != null ;
+            }
 
-                    @Override
-                    public boolean hasNext() {
-                        return d != null ;
-                    }
-
-                    @Override
-                    public DescisionTree next() {
-                        DescisionTree dd = d;
-                        if (d == last) {
-                            d = null;
-                        } else {
-                            d = d.next;
-                        }
-                        return dd;
-                    }
-                };
+            @Override
+            public DescisionTree next() {
+                DescisionTree dd = d;
+                if (d == last) {
+                    d = null;
+                } else {
+                    d = d.next;
+                }
+                return dd;
             }
         };
     }
 
-    public final <T extends DescisionTree<G,M>> T  getParent() {
+    public final <T extends DescisionTree<M>> T  getParent() {
         return (T)parent;
     }
 
-    public final <T extends DescisionTree<G,M>> T getFirst() {
+    public final <T extends DescisionTree<M>> T getFirst() {
         return (T)first;
     }
 
-    public final <T extends DescisionTree<G,M>> T  getLast() {
+    public final <T extends DescisionTree<M>> T  getLast() {
         return (T)last;
     }
 
-    public final <T extends DescisionTree<G,M>> T  getNext() {
+    public final <T extends DescisionTree<M>> T  getNext() {
         return (T)next;
     }
 
-    public final <T extends DescisionTree<G,M>> T  getPrev() {
+    public final <T extends DescisionTree<M>> T  getPrev() {
         return (T)prev;
-    }
-
-    public final G getGame() {
-        return game;
     }
 
     public final M getMove() {
@@ -152,39 +137,17 @@ public class DescisionTree<G,M> implements Comparable<DescisionTree> {
 
     public final void setValue(double value) {
         this.value = value;
+        valueSet = true;
     }
 
     public final void setMove(M move) { this.move = move; }
-
-    public final void sortChildren() {
-        sortChildren(Integer.MAX_VALUE);
-    }
-
-    public final void sortChildren(int maxChildren) {
-        if (first == null || first.next == null)
-            return; // 0 or 1 items. no sort
-        List<DescisionTree> list = new ArrayList<>();
-        for (DescisionTree t = first; t != null; t = t.next) {
-            list.add(t);
-            if (t == last)
-                break;
-        }
-        Collections.sort(list);
-        first = last = null;
-        for (DescisionTree t : list) {
-            t.prev = t.next = null;
-            if (maxChildren-- < 0)
-                break;
-            addChild(t);
-        }
-    }
 
     /**
      * Return the root fo this tree (non-recursive)
      * @param <T>
      * @return
      */
-    public final <T extends DescisionTree<G,M>> T getRoot() {
+    public final <T extends DescisionTree<M>> T getRoot() {
         T root = (T)this;
         while (root.getParent() != null)
             root = root.getParent();
@@ -197,7 +160,7 @@ public class DescisionTree<G,M> implements Comparable<DescisionTree> {
         } catch (Exception e) {}
     }
 
-    private static void dumpTree(Writer out, DescisionTree<?,?> root, String indent) throws IOException {
+    private static void dumpTree(Writer out, DescisionTree<?> root, String indent) {
         if (root == null)
             return;
         //out.write("DTREE " + indent + root.getMeta().replace('\n', ',') + "\n");
@@ -207,16 +170,16 @@ public class DescisionTree<G,M> implements Comparable<DescisionTree> {
         }
     }
 
-    public <T extends DescisionTree<G,M>> T findDominantChild() {
-        DescisionTree<G,M> [] result = new DescisionTree [] { this };
+    public <T extends DescisionTree<M>> T findDominantChild() {
+        DescisionTree<M> [] result = new DescisionTree [] { this };
         double [] best = new double[] { Double.NEGATIVE_INFINITY };
         findDominantChildR(this, best, result);
         return (T)result[0];
     }
 
-    private static <G,M> void findDominantChildR(DescisionTree<G,M> root, double [] highest, DescisionTree<G,M> [] result) {
+    private static <M> void findDominantChildR(DescisionTree<M> root, double [] highest, DescisionTree<M> [] result) {
         if (root.getFirst() != null) {
-            findDominantChildR(root.<DescisionTree<G,M>>getFirst(), highest, result);
+            findDominantChildR(root.getFirst(), highest, result);
         } else {
             if (root.getValue() > highest[0]) {
                 highest[0] = root.getValue();
@@ -224,7 +187,7 @@ public class DescisionTree<G,M> implements Comparable<DescisionTree> {
             }
         }
         if (root.getNext() != null) {
-            findDominantChildR(root.<DescisionTree<G,M>>getNext(), highest, result);
+            findDominantChildR(root.getNext(), highest, result);
         }
     }
 

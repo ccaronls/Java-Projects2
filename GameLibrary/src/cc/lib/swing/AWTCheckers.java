@@ -14,6 +14,7 @@ import cc.lib.checkers.PieceType;
 import cc.lib.checkers.Robot;
 import cc.lib.game.AAnimation;
 import cc.lib.game.AGraphics;
+import cc.lib.game.DescisionTree;
 import cc.lib.game.GColor;
 import cc.lib.game.Justify;
 import cc.lib.game.MiniMaxTree;
@@ -452,7 +453,7 @@ public class AWTCheckers extends AWTComponent {
             new Thread() {
                 public void run() {
                     ACheckboardGame g = game.deepCopy();
-                    MiniMaxTree.MMTreeNode<Move, ACheckboardGame> root = new MiniMaxTree.MMTreeNode(g);
+                    DescisionTree root = new DescisionTree();
                     robot.doRobot(g, root);
                     root.dumpTree(new PrintWriter(System.out));
                     /*

@@ -105,7 +105,7 @@ public class Chess extends Rules {
                 p = game.movePiece(move);
                 // check for pawn advancing
                 if (p.getType() == PAWN_TOSWAP) {
-                    computeMovesForSquare(game, move.getEnd()[0], move.getEnd()[1], null, game.getMoves());
+                    computeMovesForSquare(game, move.getEnd()[0], move.getEnd()[1], null, game.getMovesInternal());
                 }
                 // see if this move result
                 break;
@@ -126,7 +126,7 @@ public class Chess extends Rules {
         updateOpponentKingCheckedState(game);
 
         if (p != null && timerLength > 0) {
-            game.addMove(new Move(MoveType.END, p.getPlayerNum()));//, null, null, move.getEnd()));
+            game.getMovesInternal().add(new Move(MoveType.END, p.getPlayerNum()));//, null, null, move.getEnd()));
         }
 
     }
@@ -275,7 +275,7 @@ public class Chess extends Rules {
             kingEndCol=kingCol-2;
             rookEndCol=kingEndCol+1;
         }
-        game.addMove(new Move(MoveType.CASTLE, king.getPlayerNum()).setStart(rank, kingCol, UNCHECKED_KING_IDLE).setEnd(rank, kingEndCol, UNCHECKED_KING).setCastle(rank, rookCol, rank, rookEndCol));
+        game.getMovesInternal().add(new Move(MoveType.CASTLE, king.getPlayerNum()).setStart(rank, kingCol, UNCHECKED_KING_IDLE).setEnd(rank, kingEndCol, UNCHECKED_KING).setCastle(rank, rookCol, rank, rookEndCol));
     }
 
     @Override
@@ -312,22 +312,30 @@ public class Chess extends Rules {
 
                     }
                 }
-                // check if we can capture to upper right or upper left
-                if ((tp=game.getPiece(tr, (tc=col+1))).getPlayerNum() == opponent) {
-                    // if this opponent is the king, then we will be 'checking' him
-                    moves.add(new Move(MoveType.SLIDE, p.getPlayerNum()).setStart(rank, col, p.getType()).addCaptured(tr, tc, tp.getType()).setEnd(tr, tc, nextPawn));
+                if (game.isOnBoard(tr, (tc=col+1))) {
+                    // check if we can capture to upper right or upper left
+                    if ((tp = game.getPiece(tr, tc)).getPlayerNum() == opponent) {
+                        // if this opponent is the king, then we will be 'checking' him
+                        moves.add(new Move(MoveType.SLIDE, p.getPlayerNum()).setStart(rank, col, p.getType()).addCaptured(tr, tc, tp.getType()).setEnd(tr, tc, nextPawn));
+                    }
                 }
-                // check if we can capture to upper right or upper left
-                if ((tp=game.getPiece(tr, (tc=col-1))).getPlayerNum() == opponent) {
-                    moves.add(new Move(MoveType.SLIDE, p.getPlayerNum()).setStart(rank, col, p.getType()).addCaptured(tr, tc, tp.getType()).setEnd(tr, tc, nextPawn));
+                if (game.isOnBoard(tr, tc=col-1)) {
+                    // check if we can capture to upper right or upper left
+                    if ((tp = game.getPiece(tr, tc)).getPlayerNum() == opponent) {
+                        moves.add(new Move(MoveType.SLIDE, p.getPlayerNum()).setStart(rank, col, p.getType()).addCaptured(tr, tc, tp.getType()).setEnd(tr, tc, nextPawn));
+                    }
                 }
                 // check en passant
                 tr = rank;
-                if ((tp=game.getPiece(tr, (tc=col+1))).getPlayerNum() == opponent && tp.getType() == PAWN_ENPASSANT) {
-                    moves.add(new Move(MoveType.SLIDE, p.getPlayerNum()).setStart(rank, col, p.getType()).addCaptured(rank, tc, tp.getType()).setEnd(tr+game.getAdvanceDir(p.getPlayerNum()), tc, nextPawn));
+                if (game.isOnBoard(tr, tc=col+1)) {
+                    if ((tp = game.getPiece(tr, tc)).getPlayerNum() == opponent && tp.getType() == PAWN_ENPASSANT) {
+                        moves.add(new Move(MoveType.SLIDE, p.getPlayerNum()).setStart(rank, col, p.getType()).addCaptured(rank, tc, tp.getType()).setEnd(tr + game.getAdvanceDir(p.getPlayerNum()), tc, nextPawn));
+                    }
                 }
-                if ((tp=game.getPiece(tr, (tc=col-1))).getPlayerNum() == opponent && tp.getType() == PAWN_ENPASSANT) {
-                    moves.add(new Move(MoveType.SLIDE, p.getPlayerNum()).setStart(rank, col, p.getType()).addCaptured(rank, tc, tp.getType()).setEnd(tr+game.getAdvanceDir(p.getPlayerNum()), tc, nextPawn));
+                if (game.isOnBoard(tr, tc=col-1)) {
+                    if ((tp = game.getPiece(tr, tc)).getPlayerNum() == opponent && tp.getType() == PAWN_ENPASSANT) {
+                        moves.add(new Move(MoveType.SLIDE, p.getPlayerNum()).setStart(rank, col, p.getType()).addCaptured(rank, tc, tp.getType()).setEnd(tr + game.getAdvanceDir(p.getPlayerNum()), tc, nextPawn));
+                    }
                 }
                 break;
             }
@@ -413,7 +421,7 @@ public class Chess extends Rules {
                 it.remove();
             reverseMove(game, m);
         }
-        game.getMoves().addAll(moves);
+        game.getMovesInternal().addAll(moves);
         return false;
     }
 

@@ -2,6 +2,7 @@ package cc.lib.checkerboard;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Stack;
 
@@ -234,13 +235,15 @@ public class Game extends Reflector<Game> implements IGame<Move> {
 
     @Override
     public final List<Move> getMoves() {
-        return moves;
+        if (moves == null)
+            throw new AssertionError();
+        return Collections.unmodifiableList(moves);
     }
 
-    void addMove(Move m) {
+    final List<Move> getMovesInternal() {
         if (moves == null)
             moves = new ArrayList<>();
-        moves.add(m);
+        return moves;
     }
 
     @Override

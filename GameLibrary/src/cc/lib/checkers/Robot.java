@@ -1,7 +1,9 @@
 package cc.lib.checkers;
 
+import cc.lib.game.DescisionTree;
+import cc.lib.game.IGame;
+import cc.lib.game.IMove;
 import cc.lib.game.MiniMaxTree;
-import cc.lib.game.MiniMaxTree.MMTreeNode;
 import cc.lib.game.Utils;
 import cc.lib.utils.Reflector;
 
@@ -35,25 +37,24 @@ public class Robot extends Reflector<Robot> {
         return type;
     }
 
-    final MiniMaxTree mmtCheckers = new MiniMaxTree<Checkers>() {
-
+    final MiniMaxTree mmtCheckers = new MiniMaxTree() {
         @Override
-        protected long evaluate(Checkers game, MMTreeNode t, int playerNum) {
-            return Robot.this.evaluateCheckersBoard(game, t, playerNum);
+        protected long evaluate(IGame game, DescisionTree t, int playerNum) {
+            return Robot.this.evaluateCheckersBoard((Checkers)game, t, playerNum);
         }
 
         @Override
-        protected void onNewNode(MMTreeNode node) {
+        protected void onNewNode(IGame game, DescisionTree node) {
             onNewMove((Move)node.getMove());
         }
     };
 
-    final MiniMaxTree mmtChess = new MiniMaxTree<Chess>() {
+    final MiniMaxTree mmtChess = new MiniMaxTree() {
 
         @Override
-        protected void onNewNode(MMTreeNode node) {
+        protected void onNewNode(IGame game, DescisionTree node) {
             Move m = (Move)node.getMove();
-            Piece p = ((Chess) node.getGame()).getPiece(m.getStart());
+            Piece p = ((Chess)game).getPiece(m.getStart());
             if (m.hasEnd()) {
                 node.appendMeta("%s->%dx%d", p.getType().abbrev, m.getEnd()[0], m.getEnd()[1]);
             } else {
@@ -63,13 +64,13 @@ public class Robot extends Reflector<Robot> {
         }
 
         @Override
-        protected long evaluate(Chess game, MMTreeNode t, int playerNum) {
-            return Robot.this.evaluateChessBoard(game, t, playerNum);
+        protected long evaluate(IGame game, DescisionTree t, int playerNum) {
+            return Robot.this.evaluateChessBoard((Chess)game, t, playerNum);
         }
 
         @Override
-        protected long getZeroMovesValue(Chess game) {
-            if (null != game.findPiece(game.getTurn(), PieceType.CHECKED_KING_IDLE, PieceType.CHECKED_KING))
+        protected long getZeroMovesValue(IGame game) {
+            if (null != ((Chess)game).findPiece(game.getTurn(), PieceType.CHECKED_KING_IDLE, PieceType.CHECKED_KING))
                 return super.getZeroMovesValue(game);
             return 0; // if we have no moves and our king is not in check then this is a draw
         }
@@ -77,7 +78,7 @@ public class Robot extends Reflector<Robot> {
 
     protected void onNewMove(Move m) {}
 
-    public void doRobot(ACheckboardGame game, MMTreeNode<Move, ACheckboardGame> root) {
+    public void doRobot(ACheckboardGame game, DescisionTree root) {
         MiniMaxTree mmt;
         if (game instanceof Checkers)
             mmt = mmtCheckers;
@@ -87,14 +88,14 @@ public class Robot extends Reflector<Robot> {
         startMethodTracing();
         switch (type) {
             case EASY:
-                doRandomRobot(root);
+                doRandomRobot(game, root);
                 break;
             case MEDIUM: {
-                mmt.buildTree(game, root, 1);
+                mmt.buildTree(game, root, 3);
                 break;
             }
             case HARD: {
-                mmt.buildTree(game, root, 3);
+                mmt.buildTree(game, root, 5);
                 break;
             }
         }
@@ -106,7 +107,7 @@ public class Robot extends Reflector<Robot> {
     protected void stopMethodTracing() {}
 
 
-    protected long evaluateChessBoard(Chess game, MMTreeNode node, int playerNum) {
+    protected long evaluateChessBoard(Chess game, DescisionTree node, int playerNum) {
 
         int dPcCount = 0;
         int dPcValue = 0;
@@ -225,7 +226,7 @@ public class Robot extends Reflector<Robot> {
      *
      * @return
      */
-    protected long evaluateCheckersBoard(Checkers game, MMTreeNode node, int playerNum) {
+    protected long evaluateCheckersBoard(Checkers game, DescisionTree node, int playerNum) {
 
         int dPc=0;
         int dKing=0;
@@ -291,8 +292,7 @@ public class Robot extends Reflector<Robot> {
         return d;
     }
 
-    private void doRandomRobot(MMTreeNode<Move, ACheckboardGame> tree) {
-        ACheckboardGame game = tree.getGame();
+    private void doRandomRobot(ACheckboardGame game, DescisionTree<Move> tree) {
         int n = game.computeMoves();
         if (n > 0) {
             int mvNum = Utils.rand() % n;
