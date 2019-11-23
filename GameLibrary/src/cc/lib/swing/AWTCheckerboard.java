@@ -1,8 +1,6 @@
 package cc.lib.swing;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
 
 import cc.lib.checkerboard.CanadianDraughts;
 import cc.lib.checkerboard.Checkers;
@@ -145,7 +143,7 @@ public class AWTCheckerboard extends AWTComponent {
         File settings = FileUtils.getOrCreateSettingsDirectory(getClass());
         File saveFile = new File(settings, "game.save");
         frame.add(this);
-        String [] items = { "New Game", "Checkers", "Suicide", "Draughts", "Canadian Draughts", "Dama", "Chess", "Ugolki" };
+        String [] items = { "Checkers", "Suicide", "Draughts", "Canadian Draughts", "Dama", "Chess", "Ugolki" };
         frame.addMenuBarMenu("New Game", items);
         frame.setPropertiesFile(new File(settings, "gui.properties"));
         if (!frame.restoreFromProperties())
@@ -168,7 +166,7 @@ public class AWTCheckerboard extends AWTComponent {
     protected void onKeyReleased(VKKey key) {
         switch (key) {
             case VK_U:
-                game.undo();
+                game.undoAndRefresh();
                 break;
             default:
                 super.onKeyReleased(key);

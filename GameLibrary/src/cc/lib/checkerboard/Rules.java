@@ -23,7 +23,7 @@ public abstract class Rules extends Reflector<Rules> {
         return game.getWinner();
     }
 
-    void reverseMove(Game game, Move m) {
+    final void reverseMove(Game game, Move m) {
         Piece p;
         switch (m.getMoveType()) {
             case END:
@@ -51,6 +51,9 @@ public abstract class Rules extends Reflector<Rules> {
                 break;
             }
         }
+        if (m.hasOpponentKing()) {
+            game.getPiece(m.getOpponentKingPos()).setType(m.getOpponentKingTypeStart());
+        }
         game.setTurn(m.getPlayerNum());
     }
 
@@ -75,7 +78,6 @@ public abstract class Rules extends Reflector<Rules> {
                 Piece p = game.getPiece(rank, col);
                 if (p.getPlayerNum() == game.getTurn())
                     hasJumps |= computeMovesForSquare(game, rank, col, null, moves);
-                game.getPiece(rank, col).numMoves = moves.size() - num;
             }
         }
         if (hasJumps && isJumpsMandatory()) {
@@ -88,9 +90,6 @@ public abstract class Rules extends Reflector<Rules> {
                     case FLYING_JUMP:
                         continue;
                 }
-                int num = --game.getPiece(m.getStart()).numMoves;
-                if (num < 0)
-                    throw new AssertionError();
                 it.remove();
             }
         }

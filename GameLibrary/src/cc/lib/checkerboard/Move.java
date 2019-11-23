@@ -19,6 +19,7 @@ public class Move extends Reflector<Move> implements IMove {
     private int [] end;
     private int [] castleRookStart;
     private int [] castleRookEnd;
+    private int [] opponentKing; // 4 elem array
     private List<int []> captured = null;
 
     private PieceType startType, endType;
@@ -119,7 +120,13 @@ public class Move extends Reflector<Move> implements IMove {
     }
 
     String toStr(int [] pos) {
-        return "{" + pos[0] + "," + pos[1] + "," + PieceType.values()[pos[2]] + "}";
+        String s = "{" + pos[0] + "," + pos[1];
+        if (pos.length > 2)
+            s += "," + PieceType.values()[pos[2]];
+        if (pos.length > 3)
+            s += "," + PieceType.values()[pos[3]];
+        s += "}";
+        return s;
     }
 
     @Override
@@ -142,6 +149,9 @@ public class Move extends Reflector<Move> implements IMove {
         if (castleRookStart != null) {
             s += " castle st: " + toStr(castleRookStart) + " end: " + toStr(castleRookEnd);
         }
+        if (opponentKing != null) {
+            s += " oppKing: " + toStr(opponentKing);
+        }
         return s;
     }
 
@@ -150,4 +160,23 @@ public class Move extends Reflector<Move> implements IMove {
         return playerNum;
     }
 
+    public PieceType getOpponentKingTypeStart() {
+        return PieceType.values()[opponentKing[2]];
+    }
+
+    public PieceType getOpponentKingTypeEnd() {
+        return PieceType.values()[opponentKing[3]];
+    }
+
+    public int [] getOpponentKingPos() {
+        return opponentKing;
+    }
+
+    void setOpponentKingType(int rank, int col, PieceType opponentKingTypeStart, PieceType opponentKingTypeEnd) {
+        this.opponentKing = new int[] { rank, col, opponentKingTypeStart.ordinal(), opponentKingTypeEnd.ordinal() };
+    }
+
+    boolean hasOpponentKing() {
+        return opponentKing != null;
+    }
 }

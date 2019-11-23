@@ -29,6 +29,7 @@ public abstract class UIGame extends Game {
             loadFromFile(saveFile);
             return true;
         } catch (Exception e) {
+            e.printStackTrace();
             setRules(new Chess());
             setPlayer(NEAR, new UIPlayer());
             setPlayer(FAR, new UIPlayer());
@@ -37,10 +38,11 @@ public abstract class UIGame extends Game {
         return false;
     }
 
-    @Override
-    public final Move undo() {
-        Move m;
-        m = super.undo();
+    public final Move undoAndRefresh() {
+        Move m = super.undo();
+        selectedPiece = null;
+        pickablePieces.clear();
+        pickableMoves.clear();
         synchronized (RUNGAME_MONITOR) {
             RUNGAME_MONITOR.notifyAll();
         }
@@ -122,6 +124,8 @@ public abstract class UIGame extends Game {
         g.translate(HEIGHT, HEIGHT/2+WIDTH/2);
         drawCapturedPieces(g, WIDTH, HEIGHT/2-WIDTH/2, NEAR, getPlayer(NEAR).captured);
         g.popMatrix();
+        g.setColor(GColor.WHITE);
+        g.drawJustifiedString(WIDTH-10, 10, Justify.RIGHT, "Turn: " + getPlayer(getTurn()).getColor());
     }
 
     int BORDER = 5;
@@ -225,7 +229,7 @@ public abstract class UIGame extends Game {
 
                 g.pushMatrix();
                 g.translate(x, y);
-                if (p.getType() != PieceType.EMPTY)
+                if (p.getType() != PieceType.EMPTY && p.getPlayerNum() >= 0)
                     drawPiece(g, p.getType(), p.getPlayerNum(), PIECE_RADIUS *2, PIECE_RADIUS *2);
                 g.popMatrix();
             }
@@ -263,6 +267,8 @@ public abstract class UIGame extends Game {
     }
 
     Piece choosePieceToMove(List<Piece> pieces) {
+        Utils.println("choosePieceToMove: " + pieces);
+        clicked = false;
         synchronized (this) {
             pickableMoves.clear();
             pickablePieces.clear();
@@ -271,7 +277,6 @@ public abstract class UIGame extends Game {
         repaint();
         Utils.waitNoThrow(RUNGAME_MONITOR, -1);
         if (clicked) {
-            clicked = false;
             for (Piece p : pieces) {
                 if (p.getRank() == highlightedRank && p.getCol() == highlightedCol) {
                     return p;
@@ -282,6 +287,8 @@ public abstract class UIGame extends Game {
     }
 
     Move chooseMoveForPiece(List<Move> moves) {
+        Utils.println("chooseMoveForPiece: " + moves);
+        clicked = false;
         synchronized (this) {
             pickableMoves.clear();
             pickablePieces.clear();
@@ -290,7 +297,6 @@ public abstract class UIGame extends Game {
         repaint();
         Utils.waitNoThrow(RUNGAME_MONITOR, -1);
         if (clicked) {
-            clicked = false;
             for (Move m : moves) {
                 if (m.getMoveType() == MoveType.END && selectedPiece[0] == highlightedRank && selectedPiece[1] == highlightedCol) {
                     return m;
@@ -326,6 +332,8 @@ public abstract class UIGame extends Game {
                 break;
             case CHECKED_KING:
             case CHECKED_KING_IDLE:
+                g.setColor(GColor.RED);
+                g.drawCircleWithThickness(0, 0, w*3, 3);
             case UNCHECKED_KING:
             case UNCHECKED_KING_IDLE:
                 drawPiece(g, PieceType.KING, color, w, h);
@@ -334,7 +342,7 @@ public abstract class UIGame extends Game {
             case FLYING_KING:
             case DAMA_KING:
                 drawPiece(g, PieceType.CHECKER, color, w, h);
-                g.translate(0, h/5);
+                g.translate(0, -h/5);
                 drawPiece(g, PieceType.CHECKER, color, w, h);
                 break;
             case DAMA_MAN:

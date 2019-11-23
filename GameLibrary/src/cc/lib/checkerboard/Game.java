@@ -1,7 +1,6 @@
 package cc.lib.checkerboard;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Stack;
@@ -14,25 +13,6 @@ public class Game extends Reflector<Game> implements IGame<Move> {
 
     static {
         addAllFields(Game.class);
-        addAllFields(State.class);
-    }
-
-    public final static class State {
-        final int index;
-        final List<Move> moves;
-
-        public State() {
-            this(-1, null);
-        }
-
-        public State(int index, List<Move> moves) {
-            this.index = index;
-            this.moves = moves;
-        }
-
-        Move getMove() {
-            return moves.get(index);
-        }
     }
 
     public final static int NEAR = 0;
@@ -92,6 +72,7 @@ public class Game extends Reflector<Game> implements IGame<Move> {
         undoStack.clear();
         initialized = false;
         selectedPiece = null;
+        moves = null;
         rules.init(this);
         int num = 0;
         for (Player p : players) {
@@ -114,7 +95,9 @@ public class Game extends Reflector<Game> implements IGame<Move> {
         }
 
         if (moves == null) {
+            Utils.print("Computing moves ...");
             moves = rules.computeMoves(this);
+            countPieceMoves();
         }
         if (moves.size() == 0) {
             getOpponentPlayer().winner = true;
@@ -206,29 +189,45 @@ public class Game extends Reflector<Game> implements IGame<Move> {
     public final void executeMove(Move move) {
         undoStack.push(new State(moves.indexOf(move), moves));
         moves = null;
+        clearPieceMoves();
         rules.executeMove(this, move);
+        if (moves != null) {
+            countPieceMoves();
+        }
     }
 
     public final boolean canUndo() {
         return undoStack.size() > 0;
     }
 
+    private void clearPieceMoves() {
+        for (int rank = 0; rank < ranks; rank++) {
+            for (int col = 0; col < cols; col++) {
+                board[rank][col].numMoves = 0;
+            }
+        }
+    }
+
+    private void countPieceMoves() {
+        clearPieceMoves();
+        for (Move m : moves) {
+            if (m.getStart() != null) {
+                getPiece(m.getStart()).numMoves++;
+            }
+        }
+    }
+
     @Override
-    public Move undo() {
+    public final Move undo() {
         if (undoStack.size() > 0) {
             State state = undoStack.pop();
             Move m = state.getMove();
             moves = state.moves;
             rules.reverseMove(this, m);
             selectedPiece = null;
+            turn = moves.get(0).getPlayerNum();
+            countPieceMoves();
             return m;
-        }
-        return null;
-    }
-
-    Move getPreviousMove() {
-        if (undoStack.size() > 0) {
-            return undoStack.peek().getMove();
         }
         return null;
     }

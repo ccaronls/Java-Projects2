@@ -123,44 +123,13 @@ public class Chess extends Rules {
             default:
                 throw new AssertionError();
         }
-        updateOpponentKingCheckedState(game);
+        game.getPiece(move.getOpponentKingPos()).setType(move.getOpponentKingTypeEnd());
 
         if (p != null && timerLength > 0) {
             game.getMovesInternal().add(new Move(MoveType.END, p.getPlayerNum()));//, null, null, move.getEnd()));
         }
 
-    }
-
-    private void updateOpponentKingCheckedState(Game game) {
-        // see if we are checking the opponent
-        int [] opponentKing = findPiecePosition(game, game.getOpponent(), CHECKED_KING, CHECKED_KING_IDLE, UNCHECKED_KING, UNCHECKED_KING_IDLE);
-        Piece king = game.getPiece(opponentKing);
-        boolean checked = isSquareAttacked(game, opponentKing[0], opponentKing[1], game.getTurn());
-        switch (king.getType()) {
-            case CHECKED_KING_IDLE:
-                if (!checked)
-                    king.setType(UNCHECKED_KING_IDLE);
-                break;
-            case CHECKED_KING:
-                if (!checked)
-                    king.setType(UNCHECKED_KING);
-                break;
-            case UNCHECKED_KING_IDLE:
-                if (checked)
-                    king.setType(CHECKED_KING_IDLE);
-                break;
-            case UNCHECKED_KING:
-                if (checked)
-                    king.setType(CHECKED_KING);
-                break;
-        }
-
-    }
-
-    @Override
-    protected void reverseMove(Game game, Move m) {
-        super.reverseMove(game, m);
-        updateOpponentKingCheckedState(game); // TODO: Save this in the move so we dont need to recompute it
+        game.nextTurn();
     }
 
     // Return true if p.getType() is on set of types and p.getPlayerNum() equals playerNum
@@ -257,7 +226,8 @@ public class Chess extends Rules {
         int opponent = game.getOpponent(game.getTurn());
         if (rookCol > kingCol) {
             for (int i=kingCol+1; i<rookCol; i++) {
-                if (game.getPiece(rank, i).getType() != EMPTY)
+                Piece p;
+                if ((p=game.getPiece(rank, i)).getType() != EMPTY)
                     return;
                 if (isSquareAttacked(game, rank, i, opponent))
                     return;
@@ -402,26 +372,58 @@ public class Chess extends Rules {
         }
 
         // now search moves and remove any that cause our king to be checked
-        Iterator<Move> it = moves.iterator();
-        int num = 0;
-        while (it.hasNext()) {
-            Move m = it.next();
-            if (num++ < startNumMoves)
-                continue;
-            switch (m.getMoveType()) {
-                case CASTLE:
-                case SWAP:
+        if (moves.size() > startNumMoves) {
+            int [] opponentKingPos = findPiecePosition(game, opponent, CHECKED_KING, CHECKED_KING_IDLE, UNCHECKED_KING, UNCHECKED_KING_IDLE);
+            if (opponentKingPos == null)
+                throw new NullPointerException();
+            PieceType opponentKingStartType = game.getPiece(opponentKingPos).getType();
+
+            Iterator<Move> it = moves.iterator();
+            int num = 0;
+            while (it.hasNext()) {
+                Move m = it.next();
+                if (num++ < startNumMoves)
                     continue;
+                if (!m.hasEnd())
+                    continue;
+                game.movePiece(m);
+                do {
+                    if (m.getMoveType() != MoveType.SWAP) {
+                        int[] kingPos = findPiecePosition(game, game.getTurn(), UNCHECKED_KING_IDLE, UNCHECKED_KING, CHECKED_KING, CHECKED_KING_IDLE);
+                        if (isSquareAttacked(game, kingPos[0], kingPos[1], opponent)) {
+                            it.remove();
+                            break;
+                        }
+                    }
+                    PieceType opponentKingEndType = opponentKingStartType;
+                    boolean attacked = isSquareAttacked(game, opponentKingPos[0], opponentKingPos[1], m.getPlayerNum());
+
+                    switch (opponentKingStartType) {
+                        case CHECKED_KING:
+                            if (!attacked)
+                                opponentKingEndType = UNCHECKED_KING;
+                            break;
+                        case CHECKED_KING_IDLE:
+                            if (!attacked)
+                                opponentKingEndType = UNCHECKED_KING_IDLE;
+                            break;
+                        case UNCHECKED_KING:
+                            if (attacked)
+                                opponentKingEndType = CHECKED_KING;
+                            break;
+                        case UNCHECKED_KING_IDLE:
+                            if (attacked)
+                                opponentKingEndType = CHECKED_KING_IDLE;
+                            break;
+                        default:
+                            throw new AssertionError("Unhandled case:" + opponentKingStartType);
+                    }
+                    m.setOpponentKingType(opponentKingPos[0], opponentKingPos[1], opponentKingStartType, opponentKingEndType);
+
+                } while (false);
+                reverseMove(game, m);
             }
-            if (!m.hasEnd())
-                continue;
-            game.movePiece(m);
-            int [] kingPos = findPiecePosition(game, game.getTurn(), UNCHECKED_KING_IDLE, UNCHECKED_KING, CHECKED_KING, CHECKED_KING_IDLE);
-            if (isSquareAttacked(game, kingPos[0], kingPos[1], opponent))
-                it.remove();
-            reverseMove(game, m);
         }
-        game.getMovesInternal().addAll(moves);
         return false;
     }
 

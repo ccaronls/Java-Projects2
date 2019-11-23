@@ -32,10 +32,15 @@ public class Checkers extends Rules {
         if (p.getPlayerNum() != game.getTurn())
             throw new AssertionError();
 
-        if (p.getType()== FLYING_KING || p.getType()== DAMA_KING) {
-            return computeFlyingKingMoves(game, p, rank, col, parent, moves);
-        } else {
-            return computeMenKingMoves(game, p, rank, col, parent, moves);
+        int startSize = moves.size();
+        try {
+            if (p.getType() == FLYING_KING || p.getType() == DAMA_KING) {
+                return computeFlyingKingMoves(game, p, rank, col, parent, moves);
+            } else {
+                return computeMenKingMoves(game, p, rank, col, parent, moves);
+            }
+        } finally {
+            p.numMoves = moves.size() - startSize;
         }
     }
 
