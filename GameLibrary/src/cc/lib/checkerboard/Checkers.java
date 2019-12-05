@@ -43,6 +43,44 @@ public class Checkers extends Rules {
         }
     }
 
+    @Override
+    int getWinner(Game game) {
+        if (game.getMoves().size() == 0)
+            return game.getOpponent();
+        return -1;
+    }
+
+    @Override
+    boolean isDraw(Game game) {
+        // if down to onlyt 2 kings, one of each color, then game is a draw
+        int numNear=0;
+        int numFar=0;
+        for (int r = 0; r < game.getRanks(); r++) {
+            for (int c = 0; c < game.getColumns(); c++) {
+                Piece p;
+                switch ((p = game.getPiece(r, c)).getType()) {
+
+                    case EMPTY:
+                        break;
+                    case KING:
+                    case FLYING_KING:
+                    case DAMA_KING:
+                        if (p.getPlayerNum() == NEAR && ++numNear > 1)
+                            return false;
+                        else if (p.getPlayerNum() == FAR && ++numFar > 1)
+                            return false;
+                        break;
+                    case CHECKER:
+                    case DAMA_MAN:
+                        return false;
+                    default:
+                        throw new AssertionError("Unhandled case: " + p.getType());
+                }
+            }
+        }
+        return true;
+    }
+
     boolean computeMenKingMoves(Game game, Piece p, int rank, int col, Move parent, List<Move> moves) {
         boolean hasJump = false;
         int [] jdr=null, jdc=null, dr=null, dc=null;
@@ -272,10 +310,8 @@ public class Checkers extends Rules {
         if (move.hasEnd()) {
             if (isKingPieces()) {
                 int rank = move.getEnd()[0];
-                if (move.getMoveType() != MoveType.STACK) {
-                    isKinged = (p.getType() == CHECKER && game.getStartRank(game.getOpponent()) == rank);
-                    isDamaKing = (p.getType() == DAMA_MAN && game.getStartRank(game.getOpponent()) == rank);
-                }
+                isKinged = (p.getType() == CHECKER && game.getStartRank(game.getOpponent()) == rank);
+                isDamaKing = (p.getType() == DAMA_MAN && game.getStartRank(game.getOpponent()) == rank);
             }
             game.movePiece(move);
             if (move.getEnd() != null) {
@@ -312,12 +348,12 @@ public class Checkers extends Rules {
                             break;
                         }
                     }
-                    if (isKinged) {
-                        game.getMovesInternal().add(new Move(MoveType.STACK, move.getPlayerNum()).setStart(move.getEnd()[0], move.getEnd()[1], p.getType()).setEnd(move.getEnd()[0], move.getEnd()[1], isFlyingKings() ? PieceType.FLYING_KING : PieceType.KING));
-                    }
-                    if (isDamaKing) {
-                        game.getMovesInternal().add(new Move(MoveType.STACK, move.getPlayerNum()).setStart(move.getEnd()[0], move.getEnd()[1], p.getType()).setEnd(move.getEnd()[0], move.getEnd()[1], PieceType.DAMA_KING));
-                    }
+                }
+                if (isKinged) {
+                    game.getMovesInternal().add(new Move(MoveType.STACK, move.getPlayerNum()).setStart(move.getEnd()[0], move.getEnd()[1], p.getType()).setEnd(move.getEnd()[0], move.getEnd()[1], isFlyingKings() ? PieceType.FLYING_KING : PieceType.KING));
+                }
+                if (isDamaKing) {
+                    game.getMovesInternal().add(new Move(MoveType.STACK, move.getPlayerNum()).setStart(move.getEnd()[0], move.getEnd()[1], p.getType()).setEnd(move.getEnd()[0], move.getEnd()[1], PieceType.DAMA_KING));
                 }
                 break;
             case STACK:
@@ -371,30 +407,31 @@ public class Checkers extends Rules {
     @Override
     public long evaluate(Game game, Move move) {
         if (game.getMoves().size() == 0) {
-            // having no moves is bad
-            return Long.MIN_VALUE;
+            return move.getPlayerNum() == game.getTurn() ? Long.MIN_VALUE : Long.MAX_VALUE;
         }
         long value = 0; // no its not game.getMoves().size(); // move options is good
-        if (move.hasCaptured())
-            value += 1000;
+        //if (move.hasCaptured())
+        //    value += 1000;
         for (int r = 0; r<game.getRanks(); r++) {
             for (int c = 0; c<game.getColumns(); c++) {
                 Piece p = game.getPiece(r, c);
+                final int scale = p.getPlayerNum() == move.getPlayerNum() ? 1 : -1;
                 switch (p.getType()) {
 
                     case EMPTY:
+                        value += 10;
                         break;
                     case CHECKER:
                     case DAMA_MAN:
-                        value += p.getPlayerNum() == move.getPlayerNum() ? 1 : -1;
+                        value += 1 * scale;
                         break;
 
                     case KING:
-                        value += p.getPlayerNum() == move.getPlayerNum() ? 10 : -10;
+                        value += 10 * scale;
                         break;
                     case FLYING_KING:
                     case DAMA_KING:
-                        value += p.getPlayerNum() == move.getPlayerNum() ? 50 : -50;
+                        value += 50 * scale;
                         break;
 
                     default:
@@ -402,7 +439,7 @@ public class Checkers extends Rules {
                 }
             }
         }
-        return value*100 + Utils.randRange(-99, 99); // add some randomness to resolve duplicates
+        return value*100 + Utils.randRange(-49, 49); // add some randomness to resolve duplicates
     }
 
     public boolean canJumpSelf() {

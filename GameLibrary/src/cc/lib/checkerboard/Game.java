@@ -1,7 +1,6 @@
 package cc.lib.checkerboard;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Stack;
 
@@ -15,6 +14,15 @@ public class Game extends Reflector<Game> implements IGame<Move> {
         addAllFields(Game.class);
     }
 
+    public enum GameState {
+        PLAYING(false), NEAR_WINS(true), FAR_WINS(true), DRAW(true);
+
+        final boolean gameOver;
+        GameState(boolean gameOver) {
+            this.gameOver = gameOver;
+        }
+    }
+
     public final static int NEAR = 0;
     public final static int FAR  = 1;
 
@@ -26,6 +34,7 @@ public class Game extends Reflector<Game> implements IGame<Move> {
     private Stack<State> undoStack = new Stack<>();
     private Rules rules;
     private boolean initialized = false;
+    private GameState gameState = GameState.PLAYING;
 
     void init(int ranks, int columns) {
         initialized = false;
@@ -97,20 +106,35 @@ public class Game extends Reflector<Game> implements IGame<Move> {
     }
 
     public void runGame() {
-        Player winner = getWinner();
-        if (winner != null) {
-            onGameOver(winner);
+        switch (gameState) {
+            case DRAW:
+                onGameOver(null);
+                return;
+            case FAR_WINS:
+                onGameOver(players[FAR]);
+                return;
+            case NEAR_WINS:
+                onGameOver(players[NEAR]);
+                return;
+        }
+        if (rules.isDraw(this)) {
+            gameState = GameState.DRAW;
+            onGameOver(null);
             return;
         }
-
-        if ((winner = rules.getWinner(this)) != null) {
-            onGameOver(winner);
-            return;
+        switch (rules.getWinner(this)) {
+            case NEAR:
+                gameState = GameState.NEAR_WINS;
+                onGameOver(getPlayer(NEAR));
+                return;
+            case FAR:
+                gameState = GameState.FAR_WINS;
+                onGameOver(getPlayer(FAR));
+                return;
         }
 
         List<Move> moves = getMoves();
         if (moves.size() == 0) {
-            getOpponentPlayer().winner = true;
             onGameOver(getWinner());
             return;
         }
@@ -189,10 +213,17 @@ public class Game extends Reflector<Game> implements IGame<Move> {
         return players[getOpponent()];
     }
 
+    public final boolean isGameOver() {
+        return gameState.gameOver;
+    }
+
     protected void onPieceSelected(Piece p) {}
 
     protected void onMoveChosen(Move m) {}
 
+    /**
+     * @param winner draw game if null
+     */
     protected void onGameOver(Player winner) {}
 
     @Override
@@ -239,8 +270,7 @@ public class Game extends Reflector<Game> implements IGame<Move> {
             selectedPiece = null;
             turn = moves.get(0).getPlayerNum();
             countPieceMoves();
-            getPlayer(NEAR).winner = false;
-            getPlayer(FAR).winner = false;
+            gameState = GameState.PLAYING;
             return m;
         }
         return null;
@@ -249,8 +279,6 @@ public class Game extends Reflector<Game> implements IGame<Move> {
     @Override
     public final List<Move> getMoves() {
         if (moves == null) {
-            if (rules.getWinner(this) != null)
-                return Collections.emptyList();
             moves = rules.computeMoves(this);
             countPieceMoves();
         }
@@ -271,6 +299,22 @@ public class Game extends Reflector<Game> implements IGame<Move> {
     void nextTurn() {
         turn = (turn+1) % players.length;
         moves = null;
+    }
+
+    /**
+     *
+     */
+    public final void forfeit(int playerNum) {
+        switch (playerNum) {
+            case NEAR:
+                gameState = GameState.NEAR_WINS;
+                break;
+            case FAR:
+                gameState = GameState.FAR_WINS;
+                break;
+            default:
+                throw new IllegalArgumentException("Invalid parameter " + playerNum);
+        }
     }
 
     /**
@@ -350,9 +394,16 @@ public class Game extends Reflector<Game> implements IGame<Move> {
     }
 
     public Player getWinner() {
-        for (int i=0; i<players.length; i++) {
-            if (players[i].isWinner())
-                return players[i];
+        switch (gameState) {
+
+            case PLAYING:
+                break;
+            case NEAR_WINS:
+                return players[NEAR];
+            case FAR_WINS:
+                return players[FAR];
+            case DRAW:
+                break;
         }
         return null;
     }

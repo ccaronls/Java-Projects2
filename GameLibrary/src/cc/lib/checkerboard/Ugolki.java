@@ -49,14 +49,19 @@ public class Ugolki extends Checkers {
     }
 
     @Override
-    Player getWinner(Game game) {
+    boolean isDraw(Game game) {
+        return false; // draw game not possible in Ukogli
+    }
+
+    @Override
+    int getWinner(Game game) {
         if (isWinner(game, NEAR)) {
-            game.getPlayer(NEAR).winner = true;
+            return NEAR;
         }
         if (isWinner(game, FAR)) {
-            game.getPlayer(FAR).winner = true;
+            return FAR;
         }
-        return super.getWinner(game);
+        return -1;
     }
 
     public boolean isWinner(Game game, int side) {

@@ -56,11 +56,12 @@ public abstract class UIGame extends Game {
         if (gameRunning)
             return;
         new Thread(() -> {
+            Thread.currentThread().setName("runGame");
             while (gameRunning) {
                 log.debug("run game");
                 runGame();
                 if (gameRunning) {
-                    if (getWinner() != null)
+                    if (isGameOver())
                         break;
                     trySaveToFile(saveFile);
                     repaint();
@@ -79,6 +80,7 @@ public abstract class UIGame extends Game {
         synchronized (RUNGAME_MONITOR) {
             RUNGAME_MONITOR.notifyAll();
         }
+        Thread.yield();
     }
 
     int highlightedRank, highlightedCol;
@@ -264,12 +266,20 @@ public abstract class UIGame extends Game {
             }
         }
 
-        if (getWinner() != null) {
-            int x = g.getViewportWidth()/2;
-            int y = g.getViewportHeight()/2;
-            String txt = "G A M E   O V E R\nPlayer " + getWinner().getColor() + " Wins!";
-            g.setColor(GColor.CYAN);
-            g.drawJustifiedString(x, y, Justify.CENTER, Justify.CENTER, txt);
+        if (isGameOver()) {
+            if (getWinner() != null) {
+                int x = g.getViewportWidth() / 2;
+                int y = g.getViewportHeight() / 2;
+                String txt = "G A M E   O V E R\nPlayer " + getWinner().getColor() + " Wins!";
+                g.setColor(GColor.CYAN);
+                g.drawJustifiedString(x, y, Justify.CENTER, Justify.CENTER, txt);
+            } else {
+                int x = g.getViewportWidth() / 2;
+                int y = g.getViewportHeight() / 2;
+                String txt = "D R A W   G A M E";
+                g.setColor(GColor.CYAN);
+                g.drawJustifiedString(x, y, Justify.CENTER, Justify.CENTER, txt);
+            }
         }
         g.popMatrix();
     }

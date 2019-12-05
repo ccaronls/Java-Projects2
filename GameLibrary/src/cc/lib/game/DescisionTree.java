@@ -1,5 +1,6 @@
 package cc.lib.game;
 
+import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -17,26 +18,25 @@ public class DescisionTree implements Comparable<DescisionTree> {
     private final static Logger log = LoggerFactory.getLogger(DescisionTree.class);
 
     private DescisionTree parent;
-    private final List<DescisionTree> children = new ArrayList<>();
-    private long value = 0;
-    private boolean valueSet = false;
+    private final ArrayList<DescisionTree> children = new ArrayList<>();
+    private final long value;
     boolean sorted = true;
+    boolean dominant = false;
 
-    private IMove move = null;
+    private final IMove move;
     private String meta = ""; // anything extra to display to the user
 
     public DescisionTree() {
-        this(null);
+        this(null, 0);
     }
 
-    DescisionTree(IMove move) {
+    DescisionTree(IMove move, long value) {
+        this.value = value;
         this.move = move;
     }
 
     @Override
     public int compareTo(DescisionTree o) {
-        if (!valueSet || !o.valueSet)
-            throw new AssertionError("Invalid value");
         if (o.value < value)
             return -1;
         if (o.value == value)
@@ -50,8 +50,6 @@ public class DescisionTree implements Comparable<DescisionTree> {
      */
     void addChild(DescisionTree child) {
         // TODO: Use binary insert not linear
-        if (!child.valueSet)
-            throw new AssertionError("Value not set!!!");
         if (child.getParent() != null)
             throw new AssertionError("Child already has a parent");
         children.add(child);
@@ -65,10 +63,15 @@ public class DescisionTree implements Comparable<DescisionTree> {
         sorted = true;
     }
 
-    public Iterable<DescisionTree> getChildren() {
+    public Iterable<DescisionTree> getChildren(int max) {
         if (!sorted) {
             Collections.sort(children);
             sorted = true;
+        }
+        if (max > 0) {
+            while (children.size() > max) {
+                children.remove(children.size() - 1);
+            }
         }
         return children;
     }
@@ -85,6 +88,14 @@ public class DescisionTree implements Comparable<DescisionTree> {
         return meta;
     }
 
+    public final String getStartTag() {
+        return dominant ? "<dominant>" : "<move>";
+    }
+
+    public final String getEndTag() {
+        return dominant ? "</dominant>" : "</move>";
+    }
+
     public final void setMeta(String txt) {
         this.meta = txt;
     }
@@ -99,16 +110,9 @@ public class DescisionTree implements Comparable<DescisionTree> {
         return value;
     }
 
-    public final void setValue(long value) {
-        this.value = value;
-        valueSet = true;
-    }
-
     public final int getNumChildren() {
         return children.size();
     }
-
-    public final void setMove(IMove move) { this.move = move; }
 
     /**
      * Return the root fo this tree (non-recursive)
@@ -121,32 +125,39 @@ public class DescisionTree implements Comparable<DescisionTree> {
         return root;
     }
 
-    public void dumpTree(Writer out) {
+    public void dumpTreeXML(Writer out) {
         try {
             dumpTree(out, this, "");
         } catch (Exception e) {}
     }
 
-    private static void dumpTree(Writer out, DescisionTree root, String indent) {
+    private static void dumpTree(Writer out, DescisionTree root, String indent) throws IOException {
         if (root == null)
             return;
-        //out.write("DTREE " + indent + root.getMeta().replace('\n', ',') + "\n");
-        log.info("%s%s", indent, root.getMeta().replace('\n', ','));
-        for (DescisionTree t : root.getChildren()) {
-            dumpTree(out, t, indent + "   ");
+        out.write(indent + root.getStartTag() + (root.getParent() == null ? "" : "[" + root.getValue() + "] ") + root.getMeta().replace('\n', ','));
+        //log.info("%s%s", indent, root.getMeta().replace('\n', ','));
+        String endTag = root.getEndTag();
+        if  (root.getNumChildren() > 0) {
+            out.write("\n");
+            endTag = indent + endTag;
+            for (DescisionTree t : root.getChildren(0)) {
+                dumpTree(out, t, indent + "  ");
+            }
         }
+        out.write(endTag+"\n");
     }
 
     public DescisionTree findDominantChild() {
         DescisionTree [] result = new DescisionTree [] { this };
         long [] best = { Long.MIN_VALUE };
         findDominantChildR(this, best, result);
+        result[0].dominant = true;
         return result[0];
     }
 
-    private static  void findDominantChildR(DescisionTree root, long [] highest, DescisionTree [] result) {
+    private static void findDominantChildR(DescisionTree root, long [] highest, DescisionTree [] result) {
         if (root.getNumChildren() > 0) {
-            for (DescisionTree dt : root.getChildren()) {
+            for (DescisionTree dt : root.getChildren(0)) {
                 findDominantChildR(dt, highest, result);
             }
         } else {

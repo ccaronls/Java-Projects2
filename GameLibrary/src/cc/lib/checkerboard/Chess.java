@@ -88,14 +88,39 @@ public class Chess extends Rules {
     }
 
     @Override
+    boolean isDraw(Game game) {
+        // in chess, draw game if only 2 kings left or current player cannot move but is not in check
+        // if down to onlyt 2 kings, one of each color, then game is a draw
+        for (int r = 0; r < game.getRanks(); r++) {
+            for (int c = 0; c < game.getColumns(); c++) {
+                switch (game.getPiece(r, c).getType()) {
+                    case CHECKED_KING:
+                    case CHECKED_KING_IDLE:
+                        return false;
+                    case UNCHECKED_KING:
+                    case UNCHECKED_KING_IDLE:
+                    case EMPTY:
+                        break;
+                    default:
+                        return false;
+                }
+            }
+        }
+        return game.getMoves().size() == 0; // if current player cannot move and not in check then draw
+    }
+
+    @Override
+    int getWinner(Game game) {
+        return 0;
+    }
+
+    @Override
     public void executeMove(Game game, Move move) {
         Piece p = null;
         switch (move.getMoveType()) {
             case END:
-                if (game.getCurrentPlayer().isWinner()) {
-                    game.onGameOver(getWinner(game));
-                    return;
-                }
+                // does this ever get called?
+                System.out.println("!!!!!! I GOT CALLED !!!!!!!!!!!!!!!");
                 break;
             case JUMP:
             case SLIDE:

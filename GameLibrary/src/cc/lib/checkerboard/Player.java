@@ -15,11 +15,9 @@ public class Player extends Reflector<Player> {
     int playerNum;
     Color color;
     final List<PieceType> captured = new ArrayList<>();
-    boolean winner = false;
 
     void newGame() {
         captured.clear();
-        winner = false;
     }
 
     /**
@@ -77,11 +75,4 @@ public class Player extends Reflector<Player> {
         return playerNum;
     }
 
-    /**
-     *
-     * @return
-     */
-    public final boolean isWinner() {
-        return winner;
-    }
 }

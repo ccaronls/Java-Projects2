@@ -40,8 +40,8 @@ public class Robot extends Reflector<Robot> {
     final MiniMaxTree mmtCheckers = new MiniMaxTree() {
 
         @Override
-        protected long evaluate(IGame game, DescisionTree t) {
-            return Robot.this.evaluateCheckersBoard((Checkers)game, t);
+        protected long evaluate(IGame game, IMove move) {
+            return Robot.this.evaluateCheckersBoard((Checkers)game, (Move)move);
         }
 
         @Override
@@ -70,8 +70,8 @@ public class Robot extends Reflector<Robot> {
         }
 
         @Override
-        protected long evaluate(IGame game, DescisionTree t) {
-            return Robot.this.evaluateChessBoard((Chess)game, t, t.getMove().getPlayerNum());
+        protected long evaluate(IGame game, IMove move) {
+            return Robot.this.evaluateChessBoard((Chess)game, (Move)move);
         }
 
         @Override
@@ -113,7 +113,7 @@ public class Robot extends Reflector<Robot> {
     protected void stopMethodTracing() {}
 
 
-    protected long evaluateChessBoard(Chess game, DescisionTree node, int playerNum) {
+    protected long evaluateChessBoard(Chess game, Move move) {
 
         int dPcCount = 0;
         int dPcValue = 0;
@@ -128,7 +128,7 @@ public class Robot extends Reflector<Robot> {
                 if (p.getPlayerNum() < 0)
                     continue;
 
-                final int scale = p.getPlayerNum() == playerNum ? 1 : -1;
+                final int scale = p.getPlayerNum() == move.getPlayerNum() ? 1 : -1;
 
                 int value = 0;
 
@@ -204,6 +204,7 @@ public class Robot extends Reflector<Robot> {
                  +dPcValue * 10000
                  //+dAttackMatrix * 10
                 ;
+        /*
         if (node != null) {
             node.appendMeta(String.format(
                     //"%1$20s:%2$d
@@ -220,7 +221,7 @@ public class Robot extends Reflector<Robot> {
                     ,"dPawnAdv ", dPawnAdv
                     ,"dAttackMatrix", dAttackMatrix
             ));
-        }
+        }*/
         return d + (Utils.rand() % 10 - 5); // add some noise to resolve dups
     }
 
@@ -232,7 +233,7 @@ public class Robot extends Reflector<Robot> {
      *
      * @return
      */
-    protected long evaluateCheckersBoard(Checkers game, DescisionTree node) {
+    protected long evaluateCheckersBoard(Checkers game, Move move) {
 
         int dPc=0;
         int dKing=0;
@@ -245,7 +246,7 @@ public class Robot extends Reflector<Robot> {
                 Piece p = game.board[rank][col];//getPiece(rank, col);
                 Utils.assertTrue(p != null && p.getType() != null);
 
-                if (p.getPlayerNum() == node.getMove().getPlayerNum()) {
+                if (p.getPlayerNum() == move.getPlayerNum()) {
                     switch (p.getType()) {
                         case CHECKER:
                             dPc++;
@@ -272,7 +273,7 @@ public class Robot extends Reflector<Robot> {
 
         moves = game.computeMoves();
         long d = 100*dPc + 1000*dKing + 10*dAdv + moves;
-
+/*
         if (node != null) {
             node.appendMeta(String.format(
                               //"%1$20s:%2$d
@@ -290,7 +291,7 @@ public class Robot extends Reflector<Robot> {
                     "dAdv  ", dAdv,
                     "moves ", moves
             ));
-        }
+        }*/
 
         d += (Utils.rand() % 10 - 5); // add a fudge factor to keep AI from doing same move over and over
 
@@ -300,20 +301,6 @@ public class Robot extends Reflector<Robot> {
 
     private void doRandomRobot(ACheckboardGame game, DescisionTree tree) {
         int n = game.computeMoves();
-        if (n > 0) {
-            int mvNum = Utils.rand() % n;
-            Piece p;
-            for (int i = 0; i < game.RANKS; i++) {
-                for (int ii = 0; ii < game.COLUMNS; ii++) {
-                    if ((p = game.board[i][ii]).getNumMoves() > mvNum) {
-                        Move m = p.getMove(mvNum);
-                        tree.setMove(m);
-                    } else {
-                        mvNum -= p.getNumMoves();
-                    }
-                }
-            }
-        }
     }
 
 }

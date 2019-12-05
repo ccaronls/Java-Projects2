@@ -1,7 +1,6 @@
 package cc.lib.game;
 
 import java.io.PrintWriter;
-import java.util.Iterator;
 
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
@@ -28,7 +27,7 @@ public abstract class MiniMaxTree {
             buildTreeR(0, game, root, depth, 1, 10);
         } catch (Throwable e) {
             log.error(e);
-            root.dumpTree(new PrintWriter(System.err));
+            root.dumpTreeXML(new PrintWriter(System.err));
             throw e;
         }
         synchronized (this) {
@@ -54,29 +53,22 @@ public abstract class MiniMaxTree {
         if (kill || depth < 0 || curDepth > 10)
             return;
 
-        long d = getZeroMovesValue(game) * scale;// < 0 ? Long.MAX_VALUE : Long.MIN_VALUE;
         for (IMove m : game.getMoves()) {
             if (m.getPlayerNum() < 0)
                 throw new AssertionError();
             game.executeMove(m);
-            DescisionTree next = new DescisionTree(m);
             //next.appendMeta("playerNum=%d, scale=%d, depth=%d", m.playerNum, scale, depth);
+            long v = evaluate(game, m) * scale;
+            DescisionTree next = new DescisionTree(m, v);
             next.appendMeta("pn(%d) move(%s)scale(%d)", m.getPlayerNum(), m.toString(), scale);
             onNewNode(game, next);
-            long v = evaluate(game, next) * scale;
-            next.setValue(v);
             root.addChild(next);
-            if (scale < 0) {
-                d = Math.min(d, v);
-            } else {
-                d = Math.max(d, v);
-            }
             game.undo();
             if (kill)
                 return;
         }
-        for (DescisionTree dt : root.getChildren()) {
-            if (kill || max-- <= 0)
+        for (DescisionTree dt : root.getChildren(max)) {
+            if (kill)
                 break;
             game.executeMove(dt.getMove());
             boolean sameTurn = game.getTurn() == dt.getMove().getPlayerNum();
@@ -92,10 +84,10 @@ public abstract class MiniMaxTree {
      * If moves re zero then value is automatically (+/-) INF
      *
      * @param game
-     * @param t
+     * @param move
      * @return
      */
-    protected abstract long evaluate(IGame game, DescisionTree t);
+    protected abstract long evaluate(IGame game, IMove move);
 
     /**
      * Callback for this event. base method does nothing.

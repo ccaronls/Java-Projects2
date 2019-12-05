@@ -35,18 +35,27 @@ public class MiniMaxTest extends TestCase {
         gm.setPlayer(Game.FAR, new AIPlayer());
         gm.setPlayer(Game.NEAR, new AIPlayer());
         gm.newGame();
-        int i = 0;
+        int i;
         for (i=0; i<500; i++) {
             if (gm.getSelectedPiece() == null)
                 System.out.println("********* Frame: " + i + " " + gm);
             gm.runGame();
-            if (gm.getWinner() != null)
+            gm.trySaveToFile(new File("minimaxtest_testcheckrs.game"));
+            if (gm.isGameOver())
                 break;
         }
-        gm.trySaveToFile(new File("minimaxtest_testcheckrs.game"));
-        System.out.println(gm);
-        assertNotNull("No winner!", gm.getWinner());
-        System.out.println("Winner: " + gm.getWinner().getColor() + " in " + i + " runGameCalls");
+        if (gm.isGameOver()) {
+            Player p = gm.getWinner();
+            if (p == null) {
+                System.out.println("D R A W      G A M E");
+            } else {
+                System.out.println("Player " + p.getColor() + " WINS!");
+            }
+        } else {
+            gm.trySaveToFile(new File("minimaxtest_testcheckrs.game"));
+            System.out.println(gm);
+            assertTrue("game failed to end", false);
+        }
     }
 
     public void testChess() throws Exception {

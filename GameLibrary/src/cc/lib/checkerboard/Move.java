@@ -85,7 +85,7 @@ public class Move extends Reflector<Move> implements IMove {
     }
 
     public final boolean hasEnd() {
-        return end != null;
+        return end != null && moveType != MoveType.STACK;
     }
 
     public final int getNumCaptured() {

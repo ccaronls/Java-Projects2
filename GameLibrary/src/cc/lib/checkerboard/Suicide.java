@@ -5,7 +5,13 @@ package cc.lib.checkerboard;
  */
 public class Suicide extends Checkers {
     @Override
-    Player getWinner(Game game) {
-        return game.getCurrentPlayer();
+    int getWinner(Game game) {
+        switch (super.getWinner(game)) {
+            case Game.NEAR:
+                return Game.FAR;
+            case Game.FAR:
+                return Game.NEAR;
+        }
+        return -1;
     }
 }

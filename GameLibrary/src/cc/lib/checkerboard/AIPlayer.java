@@ -1,11 +1,15 @@
 package cc.lib.checkerboard;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.Writer;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
 import cc.lib.game.DescisionTree;
 import cc.lib.game.IGame;
+import cc.lib.game.IMove;
 import cc.lib.game.MiniMaxTree;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
@@ -23,8 +27,8 @@ public class AIPlayer extends Player {
     @Omit
     private MiniMaxTree mmt = new MiniMaxTree() {
         @Override
-        protected long evaluate(IGame game, DescisionTree t) {
-            return ((Game)game).getRules().evaluate(((Game)game), (Move)t.getMove());
+        protected long evaluate(IGame game, IMove move) {
+            return ((Game)game).getRules().evaluate(((Game)game), (Move)move);
         }
 
         @Override
@@ -49,7 +53,7 @@ public class AIPlayer extends Player {
     synchronized void buildMovesList(Game game) {
 
         // see if opponent followed our desc tree. If they did, then no need to rebuild
-        if (!moveList.isEmpty() && moveList.getFirst().getPlayerNum() != game.getTurn()) {
+        if (false && !moveList.isEmpty() && moveList.getFirst().getPlayerNum() != game.getTurn()) {
             List<Move> history = game.getMoveHistory();
             for (Move m : history) {
                 if (m.equals(moveList.peek())) {
@@ -73,6 +77,11 @@ public class AIPlayer extends Player {
             float buildTimeSecs = (float)(System.currentTimeMillis() - startTime) / 1000;
             log.debug(String.format("%d moves evaluated in %5.2f seconds", numNodes, buildTimeSecs));
             DescisionTree dt = root.findDominantChild();
+            try (Writer out = new FileWriter(new File("mmax_tree.xml"))) {
+                root.dumpTreeXML(out);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
             while (dt.getParent() != null) {
                 if (dt.getParent()==null)
                     throw new NullPointerException();

@@ -19,9 +19,9 @@ public abstract class Rules extends Reflector<Rules> {
 
     abstract void executeMove(Game game, Move move);
 
-    Player getWinner(Game game) {
-        return game.getWinner();
-    }
+    abstract int getWinner(Game game);
+
+    abstract boolean isDraw(Game game);
 
     final void reverseMove(Game game, Move m) {
         Piece p;

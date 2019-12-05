@@ -10,14 +10,12 @@ import cc.lib.checkers.Draughts;
 import cc.lib.checkers.Move;
 import cc.lib.checkers.MoveType;
 import cc.lib.checkers.Piece;
-import cc.lib.checkers.PieceType;
 import cc.lib.checkers.Robot;
 import cc.lib.game.AAnimation;
 import cc.lib.game.AGraphics;
 import cc.lib.game.DescisionTree;
 import cc.lib.game.GColor;
 import cc.lib.game.Justify;
-import cc.lib.game.MiniMaxTree;
 import cc.lib.game.Utils;
 import cc.lib.utils.FileUtils;
 import cc.lib.utils.Reflector;
@@ -455,7 +453,7 @@ public class AWTCheckers extends AWTComponent {
                     ACheckboardGame g = game.deepCopy();
                     DescisionTree root = new DescisionTree();
                     robot.doRobot(g, root);
-                    root.dumpTree(new PrintWriter(System.out));
+                    root.dumpTreeXML(new PrintWriter(System.out));
                     /*
                     for (Move m : root.getPath()) {
                         animateMove(m);

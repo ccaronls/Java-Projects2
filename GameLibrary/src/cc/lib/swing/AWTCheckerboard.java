@@ -17,6 +17,7 @@ import cc.lib.checkerboard.Ugolki;
 import cc.lib.game.AGraphics;
 import cc.lib.game.Utils;
 import cc.lib.utils.FileUtils;
+import cc.lib.utils.Reflector;
 
 public class AWTCheckerboard extends AWTComponent {
 
@@ -94,6 +95,20 @@ public class AWTCheckerboard extends AWTComponent {
             @Override
             protected void onMenuItemSelected(String menu, String subMenu) {
                 switch (menu) {
+                    case "Load Game": {
+                        File file = frame.showFileOpenChooser("Load Game", ".game");
+                        if (file != null) {
+                            Game tmp = new Game();
+                            if (tmp.tryLoadFromFile(file)) {
+                                game.stopGameThread();
+                                game.tryLoadFromFile(file);
+                                game.startGameThread();
+                            } else {
+                                System.err.println("Cannot load " + file);
+                            }
+                        }
+                        break;
+                    }
                     case "New Game":
                         game.stopGameThread();
                         switch (subMenu) {
@@ -164,6 +179,7 @@ public class AWTCheckerboard extends AWTComponent {
         frame.add(this);
         String [] items = { "Checkers", "Suicide", "Draughts", "Canadian Draughts", "Dama", "Chess", "Ugolki" };
         frame.addMenuBarMenu("New Game", items);
+        frame.addMenuBarMenu("Load Game", "From File");
         frame.setPropertiesFile(new File(settings, "gui.properties"));
         if (!frame.restoreFromProperties())
             frame.centerToScreen(640, 640);
