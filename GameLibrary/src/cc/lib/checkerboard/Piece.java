@@ -20,6 +20,19 @@ public class Piece extends Reflector<Piece> {
     private final int rank, col;
     private int value = 0;
 
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null)
+            return false;
+        if (obj == this)
+            return true;
+        Piece p = (Piece)obj;
+        return playerNum == p.playerNum
+                && rank == p.rank
+                && col == p.col
+                && type == p.type;
+    }
+
     public Piece() {
         playerNum = -1;
         type = PieceType.EMPTY;

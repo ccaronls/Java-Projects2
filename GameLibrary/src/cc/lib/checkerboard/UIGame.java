@@ -31,8 +31,8 @@ public abstract class UIGame extends Game {
         } catch (Exception e) {
             e.printStackTrace();
             setRules(new Chess());
-            setPlayer(NEAR, new UIPlayer());
-            setPlayer(FAR, new UIPlayer());
+            setPlayer(NEAR, new UIPlayer(UIPlayer.Type.USER));
+            setPlayer(FAR, new UIPlayer(UIPlayer.Type.AI));
             newGame();
         }
         return false;
@@ -55,24 +55,22 @@ public abstract class UIGame extends Game {
     public void startGameThread() {
         if (gameRunning)
             return;
-        new Thread() {
-            public void run() {
-                while (gameRunning) {
-                    log.debug("run game");
-                    runGame();
-                    if (gameRunning) {
-                        if (getWinner() != null)
-                            break;
-                        trySaveToFile(saveFile);
-                        repaint();
-                    } else {
-                        log.debug("leaving");
-                    }
+        new Thread(() -> {
+            while (gameRunning) {
+                log.debug("run game");
+                runGame();
+                if (gameRunning) {
+                    if (getWinner() != null)
+                        break;
+                    trySaveToFile(saveFile);
+                    repaint();
+                } else {
+                    log.debug("leaving");
                 }
-                gameRunning = false;
-                log.debug("game thread stopped");
             }
-        }.start();
+            gameRunning = false;
+            log.debug("game thread stopped");
+        }).start();
         gameRunning = true;
     }
 
@@ -115,6 +113,12 @@ public abstract class UIGame extends Game {
         drawCapturedPieces(g, WIDTH, HEIGHT/2-WIDTH/2, FAR, getPlayer(FAR).captured);
         g.translate(0, HEIGHT/2+WIDTH/2);
         drawCapturedPieces(g, WIDTH, HEIGHT/2-WIDTH/2, NEAR, getPlayer(NEAR).captured);
+        if (getWinner() != null) {
+            g.setColor(getWinner().getColor().color);
+            g.drawJustifiedString(WIDTH - 10, 10, Justify.RIGHT, "Winner: " + getWinner().getColor());
+        } else {
+            g.drawJustifiedString(WIDTH - 10, 10, Justify.RIGHT, "Turn: " + getPlayer(getTurn()).getColor());
+        }
     }
 
     private void drawLandscape(AGraphics g, int mx, int my) {
@@ -125,10 +129,14 @@ public abstract class UIGame extends Game {
         drawCapturedPieces(g, WIDTH, HEIGHT/2-WIDTH/2, NEAR, getPlayer(NEAR).captured);
         g.popMatrix();
         g.setColor(GColor.WHITE);
-        g.drawJustifiedString(WIDTH-10, 10, Justify.RIGHT, "Turn: " + getPlayer(getTurn()).getColor());
+        if (getWinner() != null) {
+            g.drawJustifiedString(WIDTH - 10, 10, Justify.RIGHT, "Winner: " + getWinner().getColor());
+        } else {
+            g.drawJustifiedString(WIDTH - 10, 10, Justify.RIGHT, "Turn: " + getPlayer(getTurn()).getColor());
+        }
     }
 
-    int BORDER = 5;
+    final int BORDER = 5;
 
     private void drawCapturedPieces(AGraphics g, int width, int height, int playerNum, List<PieceType> pieces) {
         g.setClipRect(0, 0, width, height);
@@ -158,30 +166,37 @@ public abstract class UIGame extends Game {
 
         g.pushMatrix();
 
-        float boardImageDim = 545;
-        float boardImageBorder = 24;
-        float ratio = boardImageBorder / boardImageDim;
-
-        g.drawImage(getCheckerboardImageId(), 0, 0, boarddim, boarddim);
-        float t = ratio * boarddim;
-        g.translate(t, t);
-        boarddim -= t*2;
-
-        //log.debug("draw ...");
         float cw = boarddim / getColumns();
         float ch = boarddim / getRanks();
 
+        if (getRanks() == 8 && getColumns() == 8) {
+            float boardImageDim = 545;
+            float boardImageBorder = 24;
+            float ratio = boardImageBorder / boardImageDim;
+
+            g.drawImage(getCheckerboardImageId(), 0, 0, boarddim, boarddim);
+            float t = ratio * boarddim;
+            g.translate(t, t);
+            boarddim -= t*2;
+            cw = boarddim / getColumns();
+            ch = boarddim / getRanks();
+
+            //log.debug("draw ...");
+
+        } else {
+            g.setLineWidth(2);
+            g.setColor(GColor.BLACK);
+            for (int x=0; x<=getColumns(); x++) {
+                g.drawLine(x* cw, 0, x* cw, boarddim);
+            }
+            for (int y=0; y<=getRanks(); y++) {
+                g.drawLine(0, y* ch, boarddim, y* ch);
+            }
+        }
+
         PIECE_RADIUS = Math.min(cw, ch)/3;
+
         highlightedRank = highlightedCol = -1;
-/*
-        g.setColor(GColor.BLACK);
-        for (int x=0; x<=getColumns(); x++) {
-            g.drawLine(x* cw, 0, x* cw, g.getViewportHeight());
-        }
-        for (int y=0; y<=getRanks(); y++) {
-            g.drawLine(0, y* ch, g.getViewportWidth(), y* ch);
-        }
-*/
         int [] _selectedPiece;
         List<Piece> _pickablePieces = new ArrayList<>();
         List<Move> _pickableMoves = new ArrayList<>();
@@ -267,7 +282,7 @@ public abstract class UIGame extends Game {
     }
 
     Piece choosePieceToMove(List<Piece> pieces) {
-        Utils.println("choosePieceToMove: " + pieces);
+        //Utils.println("choosePieceToMove: " + pieces);
         clicked = false;
         synchronized (this) {
             pickableMoves.clear();
@@ -286,9 +301,7 @@ public abstract class UIGame extends Game {
         return null;
     }
 
-    Move chooseMoveForPiece(List<Move> moves) {
-        Utils.println("chooseMoveForPiece: " + moves);
-        clicked = false;
+    Move chooseMoveForPiece(List<Move> moves) { clicked = false;
         synchronized (this) {
             pickableMoves.clear();
             pickablePieces.clear();
@@ -298,18 +311,33 @@ public abstract class UIGame extends Game {
         Utils.waitNoThrow(RUNGAME_MONITOR, -1);
         if (clicked) {
             for (Move m : moves) {
-                if (m.getMoveType() == MoveType.END && selectedPiece[0] == highlightedRank && selectedPiece[1] == highlightedCol) {
-                    return m;
+                switch (m.getMoveType()) {
+                    case END:
+                        if (selectedPiece[0] == highlightedRank && selectedPiece[1] == highlightedCol) {
+                            return m;
+                        }
+                        break;
+                    case SLIDE:
+                    case FLYING_JUMP:
+                    case JUMP:
+                    case CASTLE:
+                    case STACK:
+                        if (m.getEnd()[0] == highlightedRank && m.getEnd()[1] == highlightedCol) {
+                            return m;
+                        }
+                        break;
+                    case SWAP:
+                        break;
                 }
-                if (m.getEnd() != null && m.getEnd()[0] == highlightedRank && m.getEnd()[1] == highlightedCol) {
-                    return m;
-                }
+
             }
         }
         return null;
     }
 
     private void drawPiece(AGraphics g, PieceType p, int playerNum, float w, float h) {
+        if (playerNum < 0)
+            return;
         Color color = getPlayer(playerNum).getColor();
         g.pushMatrix();
         switch (p) {
@@ -319,47 +347,85 @@ public abstract class UIGame extends Game {
             case PAWN_IDLE:
             case PAWN_ENPASSANT:
             case PAWN_TOSWAP:
-                drawPiece(g, PieceType.PAWN, color, w, h);
+                drawPiece(g, PieceType.PAWN, color, w, h, null);
                 break;
             case BISHOP:
             case KNIGHT:
             case QUEEN:
-                drawPiece(g, p, color, w, h);
+                drawPiece(g, p, color, w, h, null);
                 break;
             case ROOK:
             case ROOK_IDLE:
-                drawPiece(g, PieceType.ROOK, color, w, h);
+                drawPiece(g, PieceType.ROOK, color, w, h, null);
                 break;
             case CHECKED_KING:
             case CHECKED_KING_IDLE:
-                g.setColor(GColor.RED);
-                g.drawCircleWithThickness(0, 0, w*3, 3);
+                drawPiece(g, PieceType.KING, color, w, h, GColor.RED);
+                break;
             case UNCHECKED_KING:
             case UNCHECKED_KING_IDLE:
-                drawPiece(g, PieceType.KING, color, w, h);
+                drawPiece(g, PieceType.KING, color, w, h, null);
                 break;
             case KING:
             case FLYING_KING:
             case DAMA_KING:
-                drawPiece(g, PieceType.CHECKER, color, w, h);
+                drawPiece(g, PieceType.CHECKER, color, w, h, null);
                 g.translate(0, -h/5);
-                drawPiece(g, PieceType.CHECKER, color, w, h);
+                drawPiece(g, PieceType.CHECKER, color, w, h, null);
                 break;
             case DAMA_MAN:
             case CHECKER:
-                drawPiece(g, PieceType.CHECKER, color, w, h);
+                drawPiece(g, PieceType.CHECKER, color, w, h, null);
                 break;
         }
         g.popMatrix();
     }
 
-    public void drawPiece(AGraphics g, PieceType p, Color color, float w, float h) {
+    public void drawPiece(AGraphics g, PieceType p, Color color, float w, float h, GColor outlineColor) {
+        if (outlineColor != null) {
+            g.setColor(outlineColor);
+            g.drawCircleWithThickness(0, 0, w/2, 3);
+        }
         int id = getPieceImageId(p, color);
         if (id >= 0) {
             g.drawImage(id, -w/2, -h/2, w, h);
         } else {
             g.drawJustifiedString(0, 0, Justify.CENTER, Justify.CENTER, color.name() + "\n" + p.abbrev);
         }
+    }
+
+    @Override
+    protected void onGameOver(Player winner) {
+        super.onGameOver(winner);
+    }
+
+    @Override
+    protected void onMoveChosen(Move m) {
+        switch (m.getMoveType()) {
+
+            case END:
+                break;
+            case SLIDE: {
+
+                break;
+            }
+            case FLYING_JUMP:
+                break;
+            case JUMP:
+                break;
+            case STACK:
+                break;
+            case SWAP:
+                break;
+            case CASTLE:
+                break;
+        }
+    }
+
+    @Override
+    protected void onPieceSelected(Piece p) {
+        // TODO: Animation
+        super.onPieceSelected(p);
     }
 
     /**

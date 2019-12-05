@@ -34,6 +34,14 @@ public class Game extends Reflector<Game> implements IGame<Move> {
         board = new Piece[ranks][cols];
     }
 
+    void clear() {
+        for (int r=0; r<getRanks(); r++) {
+            for (int c=0; c<getColumns(); c++) {
+                board[r][c] = new Piece(r, c, -1, PieceType.EMPTY);
+            }
+        }
+    }
+
     protected void initRank(int rank, int player, PieceType...pieces) {
         for (int i=0; i<pieces.length; i++) {
             Piece p = board[rank][i] = new Piece(rank, i, player, pieces[i]);
@@ -54,6 +62,12 @@ public class Game extends Reflector<Game> implements IGame<Move> {
 
     public final int getOpponent() {
         return getOpponent(getTurn());
+    }
+
+    public Piece getSelectedPiece() {
+        if (selectedPiece == null)
+            return null;
+        return getPiece(selectedPiece);
     }
 
     public final int getOpponent(int player) {
@@ -94,11 +108,7 @@ public class Game extends Reflector<Game> implements IGame<Move> {
             return;
         }
 
-        if (moves == null) {
-            Utils.print("Computing moves ...");
-            moves = rules.computeMoves(this);
-            countPieceMoves();
-        }
+        List<Move> moves = getMoves();
         if (moves.size() == 0) {
             getOpponentPlayer().winner = true;
             onGameOver(getWinner());
@@ -119,8 +129,8 @@ public class Game extends Reflector<Game> implements IGame<Move> {
         } else {
             Move m = players[turn].chooseMoveForPiece(this, getMovesforPiece(selectedPiece));
             if (m != null) {
-                onMoveChosen(m);
                 executeMove(m);
+                onMoveChosen(m);
             }
             selectedPiece = null;
         }
@@ -187,6 +197,8 @@ public class Game extends Reflector<Game> implements IGame<Move> {
 
     @Override
     public final void executeMove(Move move) {
+        if (move.getPlayerNum() != getTurn())
+            throw new AssertionError("Invalid move to execute");
         undoStack.push(new State(moves.indexOf(move), moves));
         moves = null;
         clearPieceMoves();
@@ -227,6 +239,8 @@ public class Game extends Reflector<Game> implements IGame<Move> {
             selectedPiece = null;
             turn = moves.get(0).getPlayerNum();
             countPieceMoves();
+            getPlayer(NEAR).winner = false;
+            getPlayer(FAR).winner = false;
             return m;
         }
         return null;
@@ -234,9 +248,13 @@ public class Game extends Reflector<Game> implements IGame<Move> {
 
     @Override
     public final List<Move> getMoves() {
-        if (moves == null)
-            throw new AssertionError();
-        return Collections.unmodifiableList(moves);
+        if (moves == null) {
+            if (rules.getWinner(this) != null)
+                return Collections.emptyList();
+            moves = rules.computeMoves(this);
+            countPieceMoves();
+        }
+        return moves;
     }
 
     final List<Move> getMovesInternal() {
@@ -339,5 +357,73 @@ public class Game extends Reflector<Game> implements IGame<Move> {
         return null;
     }
 
+    /**
+     * Returns history of moves with most recent move (last move) in the first list position.
+     * In other words, iterating over the history in order will rewind the game.
+     * @return
+     */
+    public final List<Move> getMoveHistory() {
+        List<Move> history = new ArrayList<>();
+        for (State st : undoStack) {
+            history.add(st.getMove());
+        }
+        return history;
+    }
+
+    String getTurnStr(int turn) {
+        if (turn == NEAR)
+            return "NEAR";
+        if (turn == FAR)
+            return "FAR";
+        return "UNKNOWN(" + turn + ")";
+    }
+
+    public String toString() {
+        StringBuffer s = new StringBuffer();
+        s.append(getTurnStr(getTurn())).append(":");
+        Player pl = getPlayer(getTurn());
+        if (pl != null)
+            s.append(pl.getColor());
+        s.append("(").append(getTurn()).append(")");
+        s.append("\n   ");
+        for (int c=0; c<getColumns(); c++) {
+            s.append(String.format("%3d ", c));
+        }
+        s.append("\n   ");
+        for (int r=0; r<getRanks(); r++) {
+            for (int c=0; c<getColumns(); c++) {
+                s.append("+---");
+            }
+            s.append(String.format("+\n%-3d", r));
+            for (int c=0; c<getColumns(); c++) {
+                s.append("|");
+                Piece p = getPiece(r, c);
+                if (p == null) {
+                    s.append("nil");
+                } else if (p.getPlayerNum() < 0) {
+                    if (p.getType() != PieceType.EMPTY) {
+                        s.append(" X ");
+                    } else {
+                        s.append("   ");
+                    }
+                } else {
+                    pl = getPlayer(p.getPlayerNum());
+                    if (pl == null) {
+                        s.append(p.getPlayerNum());
+                    } else {
+                        s.append(pl.getColor().name().charAt(0));
+                    }
+                    s.append(p.getType().abbrev);
+                }
+
+            }
+            s.append("|\n   ");
+        }
+        for (int c=0; c<getColumns(); c++) {
+            s.append("+---");
+        }
+        s.append("+\n");
+        return s.toString();
+    }
 
 }

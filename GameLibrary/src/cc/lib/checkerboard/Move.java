@@ -1,6 +1,7 @@
 package cc.lib.checkerboard;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import cc.lib.game.IMove;
@@ -119,7 +120,7 @@ public class Move extends Reflector<Move> implements IMove {
         return castleRookEnd;
     }
 
-    String toStr(int [] pos) {
+    static String toStr(int [] pos) {
         String s = "{" + pos[0] + "," + pos[1];
         if (pos.length > 2)
             s += "," + PieceType.values()[pos[2]];
@@ -131,28 +132,31 @@ public class Move extends Reflector<Move> implements IMove {
 
     @Override
     public final String toString() {
-        String s = moveType.name() + " pn:" + playerNum;
+        StringBuffer str = new StringBuffer(64);
+        str.append(playerNum).append(":").append(moveType);
         if (start != null) {
-            s += " spos: " + toStr(start) + " st: " + startType;
+            str.append(" ").append(startType).append(hasEnd() ? " from:" : " at:").append(toStr(start));
         }
         if (end != null) {
-            s += " epos: " + toStr(end) + " et: " + endType;
+            str.append(" to:").append(toStr(end));
+            if (endType != startType)
+                str.append(" becomes:").append(endType);
         }
         if (captured != null) {
-            s += " cap:";
+            str.append(" cap:");
             for (int i=0; i<captured.size(); i++) {
                 if (i > 0)
-                    s += ",";
-                s += toStr(captured.get(i));
+                    str.append(",");
+                str.append(toStr(captured.get(i)));
             }
         }
         if (castleRookStart != null) {
-            s += " castle st: " + toStr(castleRookStart) + " end: " + toStr(castleRookEnd);
+            str.append(" castle st: ").append(toStr(castleRookStart)).append(" end: ").append(toStr(castleRookEnd));
         }
         if (opponentKing != null) {
-            s += " oppKing: " + toStr(opponentKing);
+            str.append(" oppKing: ").append(toStr(opponentKing));
         }
-        return s;
+        return str.toString();
     }
 
     @Override
@@ -179,4 +183,21 @@ public class Move extends Reflector<Move> implements IMove {
     boolean hasOpponentKing() {
         return opponentKing != null;
     }
+/*
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null)
+            return false;
+        if (obj == this)
+            return true;
+        if (!(obj instanceof Move))
+            return false;
+        Move mv = (Move)obj;
+        return playerNum == mv.playerNum
+                && moveType == mv.moveType
+                && Arrays.equals(start, mv.start)
+                && Arrays.equals(end, mv.end)
+                && hasCaptured() == mv.hasCaptured()
+                && hasOpponentKing() == mv.hasOpponentKing();
+    }*/
 }

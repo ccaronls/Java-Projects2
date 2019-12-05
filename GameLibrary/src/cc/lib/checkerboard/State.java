@@ -18,6 +18,9 @@ public final class State extends Reflector<State> {
     }
 
     public State(int index, List<Move> moves) {
+        if (moves != null)
+            if (index < 0 || index >= moves.size())
+                throw new AssertionError();
         this.index = index;
         this.moves = moves;
     }

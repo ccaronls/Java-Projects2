@@ -5,7 +5,7 @@ package cc.lib.checkerboard;
  */
 
 public enum PieceType {
-    EMPTY("emp"),
+    EMPTY("EM"),
     PAWN("Pn"),
     PAWN_IDLE("Pn"), // this type of pawn has option to move forward 2 spaces
     PAWN_ENPASSANT("Pn"), // this pawn is available for en-passant capture for 1 turn
@@ -14,17 +14,17 @@ public enum PieceType {
     KNIGHT("Kn"),
     ROOK("Ro"),
     ROOK_IDLE("Ro"), // only an idle rook can castle
-    QUEEN("Q"),
-    CHECKED_KING("K"), // chess only, flag the king as checked
-    CHECKED_KING_IDLE("K"), // a king that has not moved and so is
-    UNCHECKED_KING("K"), // chess only
-    UNCHECKED_KING_IDLE("K"), // only an unchecked idle king can castle
+    QUEEN("Qu"),
+    CHECKED_KING("KI"), // chess only, flag the king as checked
+    CHECKED_KING_IDLE("KI"), // a king that has not moved and so is
+    UNCHECKED_KING("Ki"), // chess only
+    UNCHECKED_KING_IDLE("Ki"), // only an unchecked idle king can castle
 
-    KING("K"), // checkers king, not chess
-    FLYING_KING("K"),
+    KING("CK"), // checkers king, not chess
+    FLYING_KING("CK"),
     CHECKER("Ch"),
     DAMA_MAN("Da"), // dama pieces move horz and vertically
-    DAMA_KING("KDa"),
+    DAMA_KING("DK"),
     ;
 
     public final String abbrev;
@@ -39,6 +39,8 @@ public enum PieceType {
     }
 
     PieceType(String abbrev) {
+        if (abbrev.length() != 2)
+            throw new AssertionError("Abbrev must be 2 chars");
         this.abbrev = abbrev;
     }
 

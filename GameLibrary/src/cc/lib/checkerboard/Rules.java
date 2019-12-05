@@ -98,10 +98,15 @@ public abstract class Rules extends Reflector<Rules> {
 
     public boolean isJumpsMandatory() { return false; }
 
+    public long getZeroMovesValue(Game game) {
+        return Long.MIN_VALUE;
+    }
+
     public enum BoardType {
         CHECKERBOARD,
         DAMABOARD,
         OTHER
     }
 
+    public abstract long evaluate(Game game, Move move);
 }

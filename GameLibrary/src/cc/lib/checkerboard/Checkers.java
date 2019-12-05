@@ -3,7 +3,6 @@ package cc.lib.checkerboard;
 import java.util.ArrayList;
 import java.util.List;
 
-import cc.lib.game.GColor;
 import cc.lib.game.Utils;
 import cc.lib.math.CMath;
 
@@ -119,11 +118,14 @@ public class Checkers extends Rules {
             if (t.getType() != EMPTY)
                 continue;
 
-            if (isNoCaptures() || (canJumpSelf() && cap.getPlayerNum() == game.getTurn())) {
+            if (canJumpSelf() && cap.getPlayerNum() == game.getTurn()) {
                 moves.add(new Move(MoveType.JUMP, game.getTurn()).setStart(rank, col, p.getType()).setEnd(rdr2, cdc2, p.getType()));
                 hasJump = true;
             } else if (!cap.isCaptured() && cap.getPlayerNum() == game.getOpponent()) {
-                moves.add(new Move(MoveType.JUMP, game.getTurn()).setStart(rank, col, p.getType()).setEnd(rdr2, cdc2, p.getType()).addCaptured(rdr, cdc, cap.getType()));
+                Move mv = new Move(MoveType.JUMP, game.getTurn()).setStart(rank, col, p.getType()).setEnd(rdr2, cdc2, p.getType());
+                if (!isNoCaptures())
+                    mv.addCaptured(rdr, cdc, cap.getType());
+                moves.add(mv);
                 hasJump = true;
             }
 
@@ -267,11 +269,13 @@ public class Checkers extends Rules {
         boolean isDamaKing = false;
         Piece p = game.getPiece(move.getStart());
         // clear everyone all moves
-        if (isKingPieces() && move.hasEnd()) {
-            int rank = move.getEnd()[0];
-            if (move.getMoveType() != MoveType.STACK){
-                isKinged = (p.getType() == CHECKER && game.getStartRank(game.getOpponent()) == rank);
-                isDamaKing = (p.getType() == DAMA_MAN && game.getStartRank(game.getOpponent()) == rank);
+        if (move.hasEnd()) {
+            if (isKingPieces()) {
+                int rank = move.getEnd()[0];
+                if (move.getMoveType() != MoveType.STACK) {
+                    isKinged = (p.getType() == CHECKER && game.getStartRank(game.getOpponent()) == rank);
+                    isDamaKing = (p.getType() == DAMA_MAN && game.getStartRank(game.getOpponent()) == rank);
+                }
             }
             game.movePiece(move);
             if (move.getEnd() != null) {
@@ -335,17 +339,19 @@ public class Checkers extends Rules {
 
     void endTurnPrivate(Game game) {
         List<int[]> captured = new ArrayList<>();
-        for (int i=0; i<game.getRanks(); i++) {
-            for (int ii=0; ii<game.getColumns(); ii++) {
-                Piece p = game.getPiece(i, ii);
-                if (p.isCaptured()) {
-                    captured.add(new int[] { i, ii });
+        if (!isNoCaptures()) {
+            for (int i = 0; i < game.getRanks(); i++) {
+                for (int ii = 0; ii < game.getColumns(); ii++) {
+                    Piece p = game.getPiece(i, ii);
+                    if (p.isCaptured()) {
+                        captured.add(new int[]{i, ii});
+                    }
                 }
             }
-        }
-        if (isCaptureAtEndEnabled() && captured.size() > 0) {
-            for (int[] pos : captured) {
-                game.clearPiece(pos);
+            if (isCaptureAtEndEnabled() && captured.size() > 0) {
+                for (int[] pos : captured) {
+                    game.clearPiece(pos);
+                }
             }
         }
         game.nextTurn();
@@ -360,6 +366,43 @@ public class Checkers extends Rules {
                 return Color.BLACK;
         }
         return Color.WHITE;
+    }
+
+    @Override
+    public long evaluate(Game game, Move move) {
+        if (game.getMoves().size() == 0) {
+            // having no moves is bad
+            return Long.MIN_VALUE;
+        }
+        long value = 0; // no its not game.getMoves().size(); // move options is good
+        if (move.hasCaptured())
+            value += 1000;
+        for (int r = 0; r<game.getRanks(); r++) {
+            for (int c = 0; c<game.getColumns(); c++) {
+                Piece p = game.getPiece(r, c);
+                switch (p.getType()) {
+
+                    case EMPTY:
+                        break;
+                    case CHECKER:
+                    case DAMA_MAN:
+                        value += p.getPlayerNum() == move.getPlayerNum() ? 1 : -1;
+                        break;
+
+                    case KING:
+                        value += p.getPlayerNum() == move.getPlayerNum() ? 10 : -10;
+                        break;
+                    case FLYING_KING:
+                    case DAMA_KING:
+                        value += p.getPlayerNum() == move.getPlayerNum() ? 50 : -50;
+                        break;
+
+                    default:
+                        throw new AssertionError("Unhandled case '" + p.getType() + "'");
+                }
+            }
+        }
+        return value*100 + Utils.randRange(-99, 99); // add some randomness to resolve duplicates
     }
 
     public boolean canJumpSelf() {

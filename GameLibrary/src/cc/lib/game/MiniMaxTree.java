@@ -22,9 +22,10 @@ public abstract class MiniMaxTree {
      * @param depth
      * @return
      */
-    public void buildTree(IGame game, DescisionTree<IMove> root, int depth) {
+    public final void buildTree(IGame game, DescisionTree root, int depth) {
+        kill = false;
         try {
-            buildTreeR(game, root, depth, 1, 10);
+            buildTreeR(0, game, root, depth, 1, 10);
         } catch (Throwable e) {
             log.error(e);
             root.dumpTree(new PrintWriter(System.err));
@@ -48,9 +49,9 @@ public abstract class MiniMaxTree {
         this.kill = true;
     }
 
-    private void buildTreeR(IGame<IMove> game, DescisionTree<IMove> root, int depth, int scale, int max) {
+    private void buildTreeR(int curDepth, IGame<IMove> game, DescisionTree root, int depth, int scale, int max) {
 
-        if (kill || depth < 0)
+        if (kill || depth < 0 || curDepth > 10)
             return;
 
         long d = getZeroMovesValue(game) * scale;// < 0 ? Long.MAX_VALUE : Long.MIN_VALUE;
@@ -58,11 +59,11 @@ public abstract class MiniMaxTree {
             if (m.getPlayerNum() < 0)
                 throw new AssertionError();
             game.executeMove(m);
-            DescisionTree<IMove> next = new DescisionTree<IMove>(m);
+            DescisionTree next = new DescisionTree(m);
             //next.appendMeta("playerNum=%d, scale=%d, depth=%d", m.playerNum, scale, depth);
             next.appendMeta("pn(%d) move(%s)scale(%d)", m.getPlayerNum(), m.toString(), scale);
             onNewNode(game, next);
-            long v = evaluate(game, next, m.getPlayerNum()) * scale;
+            long v = evaluate(game, next) * scale;
             next.setValue(v);
             root.addChild(next);
             if (scale < 0) {
@@ -74,12 +75,12 @@ public abstract class MiniMaxTree {
             if (kill)
                 return;
         }
-        for (DescisionTree<IMove> dt : root.getChildren()) {
-            if (max-- <= 0)
+        for (DescisionTree dt : root.getChildren()) {
+            if (kill || max-- <= 0)
                 break;
             game.executeMove(dt.getMove());
-            boolean sameTurn = game.getTurn() != dt.getMove().getPlayerNum();
-            buildTreeR(game, dt, sameTurn ? depth : depth-1, sameTurn ? scale : scale * -1, Math.max(3, max/2));
+            boolean sameTurn = game.getTurn() == dt.getMove().getPlayerNum();
+            buildTreeR(sameTurn ? curDepth+1 : 0, game, dt, sameTurn ? depth : depth-1, sameTurn ? scale : scale * -1, Math.max(3, max/2));
             game.undo();
         }
     }
@@ -92,18 +93,15 @@ public abstract class MiniMaxTree {
      *
      * @param game
      * @param t
-     * @param playerNum the player for whom the evaluation is considered.
      * @return
      */
-    protected abstract long evaluate(IGame game, DescisionTree<IMove> t, int playerNum);
+    protected abstract long evaluate(IGame game, DescisionTree t);
 
     /**
      * Callback for this event. base method does nothing.
      * @param node
      */
-    protected void onNewNode(IGame game, DescisionTree<IMove> node) {}
+    protected void onNewNode(IGame game, DescisionTree node) {}
 
-    protected long getZeroMovesValue(IGame game) {
-        return Long.MIN_VALUE;
-    }
+    protected abstract long getZeroMovesValue(IGame game);
 }

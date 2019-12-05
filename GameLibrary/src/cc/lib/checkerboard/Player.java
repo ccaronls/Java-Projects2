@@ -40,7 +40,7 @@ public class Player extends Reflector<Player> {
      * @param moves
      * @return
      */
-    public Move  chooseMoveForPiece(Game game, List<Move> moves) {
+    public Move chooseMoveForPiece(Game game, List<Move> moves) {
         return moves.get(Utils.rand() % moves.size());
     }
 

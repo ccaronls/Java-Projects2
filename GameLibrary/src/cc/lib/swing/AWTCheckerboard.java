@@ -8,9 +8,11 @@ import cc.lib.checkerboard.Chess;
 import cc.lib.checkerboard.Color;
 import cc.lib.checkerboard.Dama;
 import cc.lib.checkerboard.Draughts;
+import cc.lib.checkerboard.Game;
 import cc.lib.checkerboard.PieceType;
 import cc.lib.checkerboard.Suicide;
 import cc.lib.checkerboard.UIGame;
+import cc.lib.checkerboard.UIPlayer;
 import cc.lib.checkerboard.Ugolki;
 import cc.lib.game.AGraphics;
 import cc.lib.game.Utils;
@@ -26,6 +28,7 @@ public class AWTCheckerboard extends AWTComponent {
 
     final AWTFrame frame;
     final UIGame game;
+    final File saveFile;
 
     int loadImage(AGraphics g, String path) {
         int id = g.loadImage(path);
@@ -51,7 +54,8 @@ public class AWTCheckerboard extends AWTComponent {
         wt_pawn     (Color.WHITE, PieceType.PAWN),
         wt_queen    (Color.WHITE, PieceType.QUEEN),
         wt_rook     (Color.WHITE, PieceType.ROOK),
-        red_checker (Color.RED,   PieceType.CHECKER);
+        red_checker (Color.RED,   PieceType.CHECKER),
+        wt_checker  (Color.WHITE, PieceType.CHECKER);
 
         Images(Color color, PieceType pt) {
             this.color = color;
@@ -115,8 +119,23 @@ public class AWTCheckerboard extends AWTComponent {
                                 game.setRules(new Ugolki());
                                 break;
                         }
-                        game.newGame();
-                        game.startGameThread();
+                        new Thread(() -> {
+                            int num = frame.showItemChooserDialog("PLAYERS", "Choose Number of Players", "ONE PLAYER", "TWO PLAYERS");
+                            switch (num) {
+                                case 0:
+                                    game.setPlayer(Game.NEAR, new UIPlayer(UIPlayer.Type.USER));
+                                    game.setPlayer(Game.FAR,  new UIPlayer(UIPlayer.Type.AI));
+                                    game.newGame();
+                                    break;
+                                case 1:
+                                    game.setPlayer(Game.NEAR, new UIPlayer(UIPlayer.Type.USER));
+                                    game.setPlayer(Game.FAR,  new UIPlayer(UIPlayer.Type.USER));
+                                    game.newGame();
+                                    break;
+                            }
+                            game.trySaveToFile(saveFile);
+                            game.startGameThread();
+                        }).start();
                 }
             }
         };
@@ -141,13 +160,14 @@ public class AWTCheckerboard extends AWTComponent {
             }
         };
         File settings = FileUtils.getOrCreateSettingsDirectory(getClass());
-        File saveFile = new File(settings, "game.save");
+        saveFile = new File(settings, "game.save");
         frame.add(this);
         String [] items = { "Checkers", "Suicide", "Draughts", "Canadian Draughts", "Dama", "Chess", "Ugolki" };
         frame.addMenuBarMenu("New Game", items);
         frame.setPropertiesFile(new File(settings, "gui.properties"));
         if (!frame.restoreFromProperties())
             frame.centerToScreen(640, 640);
+
         game.init(saveFile);
         game.startGameThread();
     }

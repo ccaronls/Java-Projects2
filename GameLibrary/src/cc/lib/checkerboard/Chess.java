@@ -311,7 +311,7 @@ public class Chess extends Rules {
             }
 
             case PAWN_TOSWAP:
-                for (PieceType np : Utils.toArray(ROOK, KNIGHT, BISHOP, QUEEN)) {
+                for (PieceType np : Utils.toArray(ROOK, KNIGHT, BISHOP, QUEEN)) { // TODO: Have option to only allow from pieces already captured
                     moves.add(new Move(MoveType.SWAP, p.getPlayerNum()).setStart(rank, col, p.getType()).setEnd(rank, col, np));
                 }
                 break;
@@ -509,5 +509,72 @@ public class Chess extends Rules {
         if (whiteSide == side)
             return Color.WHITE;
         return Color.BLACK;
+    }
+
+    @Override
+    public long evaluate(Game game, Move move) {
+        if (game.getMoves().size() == 0) {
+            // having no moves is bad
+            return Long.MIN_VALUE;
+        }
+        long value = game.getMoves().size(); // move options is good
+        switch (move.getMoveType()) {
+            case SWAP:
+            case CASTLE:
+                value += 100; // give preference to these move types
+                break;
+        }
+        for (int r = 0; r<game.getRanks(); r++) {
+            for (int c = 0; c<game.getColumns(); c++) {
+                Piece p = game.getPiece(r, c);
+                int scale = p.getPlayerNum() == move.getPlayerNum() ? 1 : -1;
+                switch (p.getType()) {
+                    case EMPTY:
+                        break;
+                    case PAWN:
+                        value += 11*scale;
+                        break;
+                    case PAWN_IDLE:
+                        value += 10*scale;
+                        break;
+                    case PAWN_ENPASSANT:
+                        value += 12*scale;
+                        break;
+                    case PAWN_TOSWAP:
+                        value += 1000*scale;
+                        break;
+                    case BISHOP:
+                        value += 30*scale;
+                        break;
+                    case KNIGHT:
+                        value += 31*scale;
+                        break;
+                    case ROOK:
+                        value += 50*scale;
+                        break;
+                    case ROOK_IDLE:
+                        value += 51*scale;
+                        break;
+                    case QUEEN:
+                        value += 80*scale;
+                        break;
+                    case CHECKED_KING:
+                        value -= 10;
+                        break;
+                    case CHECKED_KING_IDLE:
+                        value -= 9;
+                        break;
+                    case UNCHECKED_KING:
+                        break;
+                    case UNCHECKED_KING_IDLE:
+                        value += 1; // we want avoid moving
+                        break;
+                    default:
+                        throw new AssertionError("Unhandled case '" + p.getType() + "'");
+                }
+            }
+        }
+        return value*100 + Utils.randRange(-99, 99); // add some randomness to resolve duplicates
+
     }
 }

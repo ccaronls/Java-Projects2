@@ -38,14 +38,20 @@ public class Robot extends Reflector<Robot> {
     }
 
     final MiniMaxTree mmtCheckers = new MiniMaxTree() {
+
         @Override
-        protected long evaluate(IGame game, DescisionTree t, int playerNum) {
-            return Robot.this.evaluateCheckersBoard((Checkers)game, t, playerNum);
+        protected long evaluate(IGame game, DescisionTree t) {
+            return Robot.this.evaluateCheckersBoard((Checkers)game, t);
         }
 
         @Override
         protected void onNewNode(IGame game, DescisionTree node) {
             onNewMove((Move)node.getMove());
+        }
+
+        @Override
+        protected long getZeroMovesValue(IGame game) {
+            return Long.MIN_VALUE;
         }
     };
 
@@ -64,14 +70,14 @@ public class Robot extends Reflector<Robot> {
         }
 
         @Override
-        protected long evaluate(IGame game, DescisionTree t, int playerNum) {
-            return Robot.this.evaluateChessBoard((Chess)game, t, playerNum);
+        protected long evaluate(IGame game, DescisionTree t) {
+            return Robot.this.evaluateChessBoard((Chess)game, t, t.getMove().getPlayerNum());
         }
 
         @Override
         protected long getZeroMovesValue(IGame game) {
             if (null != ((Chess)game).findPiece(game.getTurn(), PieceType.CHECKED_KING_IDLE, PieceType.CHECKED_KING))
-                return super.getZeroMovesValue(game);
+                return Long.MIN_VALUE;
             return 0; // if we have no moves and our king is not in check then this is a draw
         }
     };
@@ -226,7 +232,7 @@ public class Robot extends Reflector<Robot> {
      *
      * @return
      */
-    protected long evaluateCheckersBoard(Checkers game, DescisionTree node, int playerNum) {
+    protected long evaluateCheckersBoard(Checkers game, DescisionTree node) {
 
         int dPc=0;
         int dKing=0;
@@ -239,7 +245,7 @@ public class Robot extends Reflector<Robot> {
                 Piece p = game.board[rank][col];//getPiece(rank, col);
                 Utils.assertTrue(p != null && p.getType() != null);
 
-                if (p.getPlayerNum() == playerNum) {
+                if (p.getPlayerNum() == node.getMove().getPlayerNum()) {
                     switch (p.getType()) {
                         case CHECKER:
                             dPc++;
@@ -292,7 +298,7 @@ public class Robot extends Reflector<Robot> {
         return d;
     }
 
-    private void doRandomRobot(ACheckboardGame game, DescisionTree<Move> tree) {
+    private void doRandomRobot(ACheckboardGame game, DescisionTree tree) {
         int n = game.computeMoves();
         if (n > 0) {
             int mvNum = Utils.rand() % n;
