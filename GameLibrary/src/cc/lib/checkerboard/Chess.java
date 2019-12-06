@@ -90,7 +90,7 @@ public class Chess extends Rules {
     @Override
     boolean isDraw(Game game) {
         // in chess, draw game if only 2 kings left or current player cannot move but is not in check
-        // if down to onlyt 2 kings, one of each color, then game is a draw
+        // if down to only 2 kings, one of each color, then game is a draw
         for (int r = 0; r < game.getRanks(); r++) {
             for (int c = 0; c < game.getColumns(); c++) {
                 switch (game.getPiece(r, c).getType()) {
@@ -111,7 +111,19 @@ public class Chess extends Rules {
 
     @Override
     int getWinner(Game game) {
-        return 0;
+        if (game.getMoves().size() == 0) {
+            for (int r = 0; r < game.getRanks(); r++) {
+                for (int c = 0; c < game.getColumns(); c++) {
+                    Piece p;
+                    switch ((p=game.getPiece(r, c)).getType()) {
+                        case CHECKED_KING:
+                        case CHECKED_KING_IDLE:
+                            return game.getOpponent(p.getPlayerNum());
+                    }
+                }
+            }
+        }
+        return -1;
     }
 
     @Override

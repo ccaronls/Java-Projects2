@@ -1,17 +1,11 @@
 package cc.lib.checkerboard;
 
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
-import cc.lib.game.DescisionTree;
-import cc.lib.game.IGame;
-import cc.lib.game.IMove;
-import cc.lib.game.MiniMaxTree;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
 
@@ -19,29 +13,24 @@ public class AIPlayer extends Player {
 
     private final static Logger log = LoggerFactory.getLogger(AIPlayer.class);
 
-    @Omit
-    private int numNodes = 0;
+    static {
+        addAllFields(AIPlayer.class);
+    }
+
+    private int maxSearchDepth = 4;
+
     @Omit
     private long startTime = 0;
     @Omit
     private LinkedList<Move> moveList = new LinkedList<>();
-    @Omit
-    private MiniMaxTree mmt = new MiniMaxTree() {
-        @Override
-        protected long evaluate(IGame game, IMove move) {
-            return ((Game)game).getRules().evaluate(((Game)game), (Move)move);
-        }
 
-        @Override
-        protected void onNewNode(IGame game, DescisionTree node) {
-            onMoveEvaluated((Game)game, (Move)node.getMove());
-        }
+    private static boolean kill = false;
 
-        @Override
-        protected long getZeroMovesValue(IGame game) {
-            return ((Game)game).getRules().getZeroMovesValue((Game)game);
-        }
-    };
+    public AIPlayer() {}
+
+    public AIPlayer(int maxSearchDepth) {
+        this.maxSearchDepth = maxSearchDepth;
+    }
 
     boolean isThinking() {
         return startTime > 0;
@@ -61,14 +50,15 @@ public class AIPlayer extends Player {
         if (moveList.size() > 0 && moveList.getFirst().getPlayerNum() == game.getTurn())
             return;
 
+        kill = false;
         moveList.clear();
         log.debug("perform minimax search on game");
         // minmax search moves
-        long startTime = System.currentTimeMillis();
+        startTime = System.currentTimeMillis();
         Move root = new Move(null, game.getTurn());
         try (Writer out = new FileWriter("minimax_tree.xml")) {
             out.write("<root>\n");
-            long minimaxvalue = miniMaxR(out, game, root, 5, true, 0);
+            long minimaxvalue = miniMaxR(out, game, root, maxSearchDepth, true, 0);
             //out.write(INDENT_LEVELS[0] + "<value>"+minimaxvalue+"</value>\n");
             out.write("</root>\n");
             log.debug("MiniMax serach result: " + minimaxvalue);
@@ -76,6 +66,7 @@ public class AIPlayer extends Player {
             e.printStackTrace();
         }
         float evalTimeMS = (int)(System.currentTimeMillis() - startTime);
+        startTime = 0;
         log.debug("Minimax ran in %3.2f seconds", evalTimeMS/1000);
         Move m = root.path;
         while (m != null) {
@@ -103,14 +94,17 @@ public class AIPlayer extends Player {
     static long miniMaxR(Writer out, Game game, Move root, int depth, boolean maximizePlayer, int indent) throws IOException {
         if (root == null || root.getPlayerNum() < 0)
             throw new AssertionError();
+        if (kill)
+            return 0;
         if (indent >= INDENT_LEVELS.length || depth == 0 || game.isGameOver()) {
             return game.getRules().evaluate(game, game.getMostRecentMove());
         }
         if (maximizePlayer) {
             long value = Long.MIN_VALUE;
             Move path = null;
+            out.write(INDENT_LEVELS[indent] + "<max>\n");
             for (Move m : game.getMoves()) {
-                out.write(INDENT_LEVELS[indent] + "<max>" + m + "</max>\n");
+                out.write(INDENT_LEVELS[indent] + "<move>" + m + "</move>\n");
                 game.executeMove(m);
                 boolean sameTurn = game.getTurn() == m.getPlayerNum();
                 long v = miniMaxR(out, game, m, sameTurn ? depth : depth-1, sameTurn, indent+1);
@@ -121,15 +115,15 @@ public class AIPlayer extends Player {
                 }
                 game.undo();
             }
-            //out.write(INDENT_LEVELS[indent] + "<value>" + value + "</value>\n");
+            out.write(INDENT_LEVELS[indent] + "</max>\n");
             root.path = path;
             return value;
         } else { /* minimizing */
             long value = Long.MAX_VALUE;
             Move path = null;
-            //out.write(INDENT_LEVELS[indent] + "<min>\n");
+            out.write(INDENT_LEVELS[indent] + "<min>\n");
             for (Move m : game.getMoves()) {
-                out.write(INDENT_LEVELS[indent] + "<min>" + m + "</min>\n");
+                out.write(INDENT_LEVELS[indent + 1] + "<move>" + m + "</move>\n");
                 game.executeMove(m);
                 boolean sameTurn = game.getTurn() == m.getPlayerNum();
                 long v = miniMaxR(out, game, m, sameTurn ? depth : depth-1, !sameTurn, indent+1);
@@ -140,8 +134,7 @@ public class AIPlayer extends Player {
                 }
                 game.undo();
             }
-            //out.write(INDENT_LEVELS[indent+1] + "<value>" + value + "</value>\n");
-            //out.write(INDENT_LEVELS[indent] + "</min>\n");
+            out.write(INDENT_LEVELS[indent] + "</min>\n");
             root.path = path;
             return value;
         }
@@ -158,53 +151,6 @@ public class AIPlayer extends Player {
         }
     }
 
-    void buildMovesList_old(Game game) {
-
-        // see if opponent followed our desc tree. If they did, then no need to rebuild
-        if (false && !moveList.isEmpty() && moveList.getFirst().getPlayerNum() != game.getTurn()) {
-            List<Move> history = game.getMoveHistory();
-            for (Move m : history) {
-                if (m.equals(moveList.peek())) {
-                    Move popped = moveList.pop();
-                    log.debug("Popping:" + popped);
-                    if (moveList.isEmpty())
-                        break;
-                } else {
-                    break;
-                }
-            }
-        }
-
-        if (moveList.isEmpty() || moveList.getFirst().getPlayerNum() != game.getTurn()) {
-            log.debug("Building decision tree");
-            startTime = System.currentTimeMillis();
-            moveList.clear();
-            numNodes = 0;
-            DescisionTree root = new DescisionTree(game.getTurn());
-            mmt.buildTree(game, root, 4); // TODO: Difficulty
-            float buildTimeSecs = (float)(System.currentTimeMillis() - startTime) / 1000;
-            log.debug(String.format("%d moves evaluated in %5.2f seconds", numNodes, buildTimeSecs));
-            moveList.addAll(root.searchMiniMaxPath());
-            try (Writer out = new FileWriter(new File("mmax_tree.xml"))) {
-                log.debug("Writing mmax_tree.xml");
-                root.dumpTreeXML(out);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            if (moveList.size() == 0)
-                throw new AssertionError("Failed to create a move list");
-            //log.debug("MoveList:" + moveList);
-            StringBuffer str = new StringBuffer();
-            int curTurn = -1;//game.getTurn();
-            printMovesListToLog();
-            log.debug("Moves: " + str);
-            onMoveListGenerated(Collections.unmodifiableList(moveList));
-            startTime = 0;
-        } else {
-            log.debug("Skipping rebuild");
-        }
-        log.debug("Next Move:" + moveList.getFirst());
-    }
 
     void printMovesListToLog() {
         StringBuffer str = new StringBuffer();
@@ -239,7 +185,8 @@ public class AIPlayer extends Player {
     }
 
     public void cancel() {
-        mmt.killNoBlock();
+        kill = true;
+        Thread.yield();
     }
 
     /**
@@ -248,7 +195,6 @@ public class AIPlayer extends Player {
      * @param move
      */
     protected void onMoveEvaluated(Game game, Move move) {
-        numNodes++;
         //if (numNodes % 1000 == 0)
         //    System.out.print('.');
     }

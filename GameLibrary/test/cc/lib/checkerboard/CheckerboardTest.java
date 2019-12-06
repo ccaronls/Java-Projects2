@@ -52,6 +52,16 @@ public class CheckerboardTest extends TestCase {
         runGame(gm);
     }
 
+    public void testChess() {
+        Game gm = new Game();
+        gm.setRules(new Chess());
+        gm.setPlayer(Game.FAR, new AIPlayer(3));
+        gm.setPlayer(Game.NEAR, new AIPlayer(3));
+        gm.newGame();
+        runGame(gm);
+
+    }
+
     private void runGame(Game gm) {
         int i;
         for (i=0; i<500; i++) {
@@ -73,47 +83,6 @@ public class CheckerboardTest extends TestCase {
         } else {
             assertTrue("game failed to end", false);
         }
-    }
-
-    public void testChess() throws Exception {
-        Game gm = new Game();
-        gm.setRules(new Chess());
-        gm.setPlayer(Game.FAR, new AIPlayer());
-        gm.setPlayer(Game.NEAR, new AIPlayer());
-        gm.newGame();
-        Game copy = new Game();
-        copy.copyFrom(gm);
-        System.out.println(gm);
-        assertTrue(boardsEqual(gm, copy));
-        long num = 0;
-        for (Move m : gm.getMoves()) {
-            num++;
-            gm.executeMove(m);
-            for (Move m2 : gm.getMoves()) {
-                num++;
-                gm.executeMove(m2);
-                for (Move m3 : gm.getMoves()) {
-                    num ++;
-                    gm.executeMove(m3);
-                    for (Move m4 : gm.getMoves()) {
-                        num++;
-                        gm.executeMove(m4);
-                        for (Move m5 : gm.getMoves()) {
-                            num++;
-                            gm.executeMove(m5);
-                            gm.undo();
-                        }
-                        gm.undo();
-                    }
-                    gm.undo();
-                }
-                gm.undo();
-            }
-            gm.undo();
-            assertTrue(boardsEqual(gm, copy));
-        }
-        System.out.println("Evaluated " + num + " moves");
-
     }
 
     boolean boardsEqual(Game g0, Game g1) {
