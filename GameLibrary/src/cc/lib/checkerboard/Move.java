@@ -25,6 +25,20 @@ public class Move extends Reflector<Move> implements IMove {
 
     private PieceType startType, endType;
 
+    @Omit
+    long minimaxValue = 0;
+    @Omit
+    Move path = null;
+
+    public final long getMinimaxValue() {
+        return minimaxValue;
+    }
+
+    public final Move getPath() {
+        return path;
+    }
+
+
     public Move(MoveType t, int playerNum) { //}, Piece captured, PieceType nextType, int ... positions) {
         this.moveType = t;
         this.playerNum = playerNum;

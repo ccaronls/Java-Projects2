@@ -451,7 +451,7 @@ public class AWTCheckers extends AWTComponent {
             new Thread() {
                 public void run() {
                     ACheckboardGame g = game.deepCopy();
-                    DescisionTree root = new DescisionTree();
+                    DescisionTree root = new DescisionTree(0);
                     robot.doRobot(g, root);
                     root.dumpTreeXML(new PrintWriter(System.out));
                     /*

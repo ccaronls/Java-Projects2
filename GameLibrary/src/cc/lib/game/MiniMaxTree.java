@@ -59,7 +59,7 @@ public abstract class MiniMaxTree {
             game.executeMove(m);
             //next.appendMeta("playerNum=%d, scale=%d, depth=%d", m.playerNum, scale, depth);
             long v = evaluate(game, m) * scale;
-            DescisionTree next = new DescisionTree(m, v);
+            DescisionTree next = new DescisionTree(m, v, scale);
             next.appendMeta("pn(%d) move(%s)scale(%d)", m.getPlayerNum(), m.toString(), scale);
             onNewNode(game, next);
             root.addChild(next);

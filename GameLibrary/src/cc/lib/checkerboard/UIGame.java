@@ -46,6 +46,7 @@ public abstract class UIGame extends Game {
         synchronized (RUNGAME_MONITOR) {
             RUNGAME_MONITOR.notifyAll();
         }
+        startGameThread();
         repaint();
         return m;
     }

@@ -1,6 +1,7 @@
 package cc.lib.checkerboard;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Stack;
 
@@ -103,6 +104,7 @@ public class Game extends Reflector<Game> implements IGame<Move> {
             p.color = rules.getPlayerColor(p.playerNum);
             p.newGame();
         }
+        gameState = GameState.PLAYING;
     }
 
     public void runGame() {
@@ -372,9 +374,13 @@ public class Game extends Reflector<Game> implements IGame<Move> {
         board[pos[0]][pos[1]].setType(PieceType.EMPTY);
     }
 
+    final void setPiece(int rank, int col, int playerNum, PieceType p) {
+        board[rank][col].setType(p);
+        board[rank][col].setPlayerNum(playerNum);
+    }
+
     final void setPiece(int [] pos, int playerNum, PieceType p) {
-        board[pos[0]][pos[1]].setType(p);
-        board[pos[0]][pos[1]].setPlayerNum(playerNum);
+        setPiece(pos[0], pos[1], playerNum, p);
     }
 
     public final int getRanks() {
@@ -418,7 +424,18 @@ public class Game extends Reflector<Game> implements IGame<Move> {
         for (State st : undoStack) {
             history.add(st.getMove());
         }
+        Collections.reverse(history);
         return history;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public final Move getMostRecentMove() {
+        if (undoStack.size() > 0)
+            return undoStack.peek().getMove();
+        return null;
     }
 
     String getTurnStr(int turn) {

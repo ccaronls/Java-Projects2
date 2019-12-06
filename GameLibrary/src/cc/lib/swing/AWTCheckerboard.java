@@ -9,6 +9,7 @@ import cc.lib.checkerboard.Color;
 import cc.lib.checkerboard.Dama;
 import cc.lib.checkerboard.Draughts;
 import cc.lib.checkerboard.Game;
+import cc.lib.checkerboard.Move;
 import cc.lib.checkerboard.PieceType;
 import cc.lib.checkerboard.Suicide;
 import cc.lib.checkerboard.UIGame;
@@ -101,7 +102,9 @@ public class AWTCheckerboard extends AWTComponent {
                             Game tmp = new Game();
                             if (tmp.tryLoadFromFile(file)) {
                                 game.stopGameThread();
+                                Reflector.KEEP_INSTANCES = true;
                                 game.tryLoadFromFile(file);
+                                Reflector.KEEP_INSTANCES = false;
                                 game.startGameThread();
                             } else {
                                 System.err.println("Cannot load " + file);
@@ -204,6 +207,13 @@ public class AWTCheckerboard extends AWTComponent {
             case VK_U:
                 game.undoAndRefresh();
                 break;
+            case VK_E: {
+                Move m = game.getMoveHistory().get(0);
+                long value = game.getRules().evaluate(game, m);
+                System.out.println("EVALUATION [" + value + "] for move:" + m);
+                ((UIPlayer)game.getCurrentPlayer()).forceRebuildMovesList(game);
+                break;
+            }
             default:
                 super.onKeyReleased(key);
         }

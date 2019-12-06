@@ -19,29 +19,35 @@ public class DescisionTree implements Comparable<DescisionTree> {
 
     private DescisionTree parent;
     private final ArrayList<DescisionTree> children = new ArrayList<>();
-    private final long value;
+    private long value;
+    private final int maxTreeScale;
     boolean sorted = true;
-    boolean dominant = false;
+    private DescisionTree path = null;
+    private int startPlayerNum = -1;
 
     private final IMove move;
     private String meta = ""; // anything extra to display to the user
 
-    public DescisionTree() {
-        this(null, 0);
+    public DescisionTree(int startPlayerNum) {
+        this(null, 0, 0);
+        this.startPlayerNum = startPlayerNum;
     }
 
-    DescisionTree(IMove move, long value) {
+    DescisionTree(IMove move, long value, int maxTreeScale) {
         this.value = value;
         this.move = move;
+        this.maxTreeScale = maxTreeScale;
     }
 
     @Override
     public int compareTo(DescisionTree o) {
+        if (maxTreeScale == 0)
+            throw new AssertionError();
         if (o.value < value)
-            return -1;
+            return -maxTreeScale;
         if (o.value == value)
             return 0;
-        return 1;
+        return maxTreeScale;
     }
 
     /**
@@ -89,11 +95,19 @@ public class DescisionTree implements Comparable<DescisionTree> {
     }
 
     public final String getStartTag() {
-        return dominant ? "<dominant>" : "<move>";
+        if (parent == null)
+            return "<root startPlayer=\"" + startPlayerNum + "\">";
+        if (parent.path == this)
+            return "<path>";
+        return "<move>";
     }
 
     public final String getEndTag() {
-        return dominant ? "</dominant>" : "</move>";
+        if (parent == null)
+            return "</root>";
+        if (parent.path == this)
+            return "</path>";
+        return "</move>";
     }
 
     public final void setMeta(String txt) {
@@ -147,26 +161,94 @@ public class DescisionTree implements Comparable<DescisionTree> {
         out.write(endTag+"\n");
     }
 
+    public final List searchMiniMaxPath() {
+        if (startPlayerNum < 0)
+            throw new AssertionError();
+        miniMax(this, true, startPlayerNum);
+        List moves = new ArrayList();
+        DescisionTree dt = path;
+        long min = Long.MAX_VALUE;
+        long max = Long.MIN_VALUE;
+        while (dt != null) {
+            if (dt.getMove().getPlayerNum() == startPlayerNum)
+                max = Math.max(max, dt.getValue());
+            else
+                min = Math.min(min, dt.getValue());
+            moves.add(dt.getMove());
+            dt = dt.path;
+        }
+        log.debug("MiniMax Vector [" + max + "," + min + "]");
+        return moves;
+    }
+
+    private static DescisionTree miniMax(DescisionTree root, boolean maximizingPlayer, int playerNum) {
+        if (root.getNumChildren() == 0)
+            return root;
+        if (maximizingPlayer) {
+            DescisionTree max = null;
+            for (DescisionTree child : root.getChildren(0)) {
+                DescisionTree dt = miniMax(child, child.getMove().getPlayerNum() == playerNum, child.getMove().getPlayerNum());
+                if (max == null || dt.getValue() > max.getValue()) {
+                    max = child;
+                }
+            }
+            root.path = max;
+            root.value = max.getValue();
+            return max;
+        } else {
+            DescisionTree min = null;
+            for (DescisionTree child : root.getChildren(0)) {
+                DescisionTree dt = miniMax(child, child.getMove().getPlayerNum() != playerNum, child.getMove().getPlayerNum());
+                if (min == null || dt.getValue() < min.getValue()) {
+                    min = child;
+                }
+            }
+            root.path = min;
+            root.value = min.getValue();
+            return min;
+        }
+    }
+
+    /*
+    function minimax(node, depth, maximizingPlayer) is
+    if depth = 0 or node is a terminal node then
+        return the heuristic value of node
+    if maximizingPlayer then
+        value := −∞
+        for each child of node do
+            value := max(value, minimax(child, depth − 1, FALSE))
+        return value
+    else (* minimizing player *)
+        value := +∞
+        for each child of node do
+            value := min(value, minimax(child, depth − 1, TRUE))
+        return value
+     */
+
+    /*
     public DescisionTree findDominantChild() {
         DescisionTree [] result = new DescisionTree [] { this };
-        long [] best = { Long.MIN_VALUE };
-        findDominantChildR(this, best, result);
+        long [] miniMax = { Long.MIN_VALUE, Long.MAX_VALUE };
+        findDominantChildR(this, miniMax, result, true);
         result[0].dominant = true;
         return result[0];
     }
 
-    private static void findDominantChildR(DescisionTree root, long [] highest, DescisionTree [] result) {
-        if (root.getNumChildren() > 0) {
-            for (DescisionTree dt : root.getChildren(0)) {
-                findDominantChildR(dt, highest, result);
-            }
+    private static long findDominantChildR(DescisionTree root, long [] highest, DescisionTree [] result, boolean maximizingPlayer) {
+        if (root.getNumChildren() == 0) {
+            return root.getValue();
         } else {
+            if (maximizingPlayer) {
+                for (DescisionTree child : root.getChildren(0)) {
+
+                }
+            }
             if (root.getValue() > highest[0]) {
                 highest[0] = root.getValue();
                 result[0] = root;
             }
         }
-    }
+    }*/
 
 
 }

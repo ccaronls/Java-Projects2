@@ -406,8 +406,12 @@ public class Checkers extends Rules {
 
     @Override
     public long evaluate(Game game, Move move) {
-        if (game.getMoves().size() == 0) {
-            return move.getPlayerNum() == game.getTurn() ? Long.MIN_VALUE : Long.MAX_VALUE;
+        if (game.isGameOver()) {
+            if (game.getRules().isDraw(game))
+                return 0;
+            if (game.getWinner().getPlayerNum() == move.getPlayerNum())
+                return Long.MAX_VALUE;
+            return Long.MIN_VALUE;
         }
         long value = 0; // no its not game.getMoves().size(); // move options is good
         //if (move.hasCaptured())
@@ -419,11 +423,11 @@ public class Checkers extends Rules {
                 switch (p.getType()) {
 
                     case EMPTY:
-                        value += 10;
+                        value += 1 * scale;
                         break;
                     case CHECKER:
                     case DAMA_MAN:
-                        value += 1 * scale;
+                        value += 2 * scale;
                         break;
 
                     case KING:
@@ -439,7 +443,7 @@ public class Checkers extends Rules {
                 }
             }
         }
-        return value*100 + Utils.randRange(-49, 49); // add some randomness to resolve duplicates
+        return value*100 + value < 0 ? Utils.randRange(-99, 0) : Utils.randRange(0, 99); // add some randomness to resolve duplicates
     }
 
     public boolean canJumpSelf() {

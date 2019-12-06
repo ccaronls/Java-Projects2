@@ -1,12 +1,12 @@
-package cc.lib.game;
+package cc.lib.checkerboard;
 
 import junit.framework.TestCase;
 
 import java.io.File;
 
-import cc.lib.checkerboard.*;
+import cc.lib.game.Utils;
 
-public class MiniMaxTest extends TestCase {
+public class CheckerboardTest extends TestCase {
 
     @Override
     protected void setUp() throws Exception {
@@ -28,6 +28,20 @@ public class MiniMaxTest extends TestCase {
         System.out.println(gm);
     }
 
+    public void testSimpleBoardAI() {
+        Game gm = new Game();
+        gm.setRules(new Checkers());
+        gm.setPlayer(Game.FAR, new AIPlayer());
+        gm.setPlayer(Game.NEAR, new AIPlayer());
+        gm.init(8, 8);
+        gm.clear();
+        gm.setPiece(0, 0, Game.NEAR, PieceType.KING);
+        gm.setPiece(4, 2, Game.FAR, PieceType.KING);
+        gm.setPiece(4, 4, Game.FAR, PieceType.KING);
+        gm.setTurn(Game.FAR);
+        runGame(gm);
+    }
+
     public void testCheckers() {
 
         Game gm = new Game();
@@ -35,13 +49,17 @@ public class MiniMaxTest extends TestCase {
         gm.setPlayer(Game.FAR, new AIPlayer());
         gm.setPlayer(Game.NEAR, new AIPlayer());
         gm.newGame();
+        runGame(gm);
+    }
+
+    private void runGame(Game gm) {
         int i;
         for (i=0; i<500; i++) {
             if (gm.getSelectedPiece() == null)
                 System.out.println("********* Frame: " + i + " " + gm);
             gm.runGame();
             gm.trySaveToFile(new File("minimaxtest_testcheckrs.game"));
-            if (i == 6) break;
+            //if (i == 0) break;
             if (gm.isGameOver())
                 break;
         }
