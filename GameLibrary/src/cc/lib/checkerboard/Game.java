@@ -270,7 +270,7 @@ public class Game extends Reflector<Game> implements IGame<Move> {
             moves = state.moves;
             rules.reverseMove(this, m);
             selectedPiece = null;
-            turn = moves.get(0).getPlayerNum();
+            //turn = moves.get(0).getPlayerNum();
             countPieceMoves();
             gameState = GameState.PLAYING;
             return m;
@@ -369,9 +369,13 @@ public class Game extends Reflector<Game> implements IGame<Move> {
         return getPiece(m.getEnd());
     }
 
+    final void clearPiece(int rank, int col) {
+        board[rank][col].setPlayerNum(-1);
+        board[rank][col].setType(PieceType.EMPTY);
+    }
+
     final void clearPiece(int [] pos ) {
-        board[pos[0]][pos[1]].setPlayerNum(-1);
-        board[pos[0]][pos[1]].setType(PieceType.EMPTY);
+        clearPiece(pos[0], pos[1]);
     }
 
     final void setPiece(int rank, int col, int playerNum, PieceType p) {
@@ -412,6 +416,14 @@ public class Game extends Reflector<Game> implements IGame<Move> {
                 break;
         }
         return null;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public final boolean isDraw() {
+        return rules.isDraw(this);
     }
 
     /**

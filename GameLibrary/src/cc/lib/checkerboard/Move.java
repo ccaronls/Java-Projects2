@@ -1,7 +1,6 @@
 package cc.lib.checkerboard;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import cc.lib.game.IMove;
@@ -26,12 +25,16 @@ public class Move extends Reflector<Move> implements IMove {
     private PieceType startType, endType;
 
     @Omit
-    long minimaxValue = 0;
+    long bestValue = 0;
     @Omit
     Move path = null;
+    @Omit
+    int maximize = 0;
+    @Omit
+    List<Move> children;
 
-    public final long getMinimaxValue() {
-        return minimaxValue;
+    public final long getBestValue() {
+        return bestValue;
     }
 
     public final Move getPath() {
@@ -167,7 +170,7 @@ public class Move extends Reflector<Move> implements IMove {
         if (castleRookStart != null) {
             str.append(" castle st: ").append(toStr(castleRookStart)).append(" end: ").append(toStr(castleRookEnd));
         }
-        if (opponentKing != null) {
+        if (opponentKing != null && opponentKing[2] != opponentKing[3]) {
             str.append(" oppKing: ").append(toStr(opponentKing));
         }
         return str.toString();

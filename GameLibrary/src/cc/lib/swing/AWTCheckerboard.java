@@ -102,9 +102,9 @@ public class AWTCheckerboard extends AWTComponent {
                             Game tmp = new Game();
                             if (tmp.tryLoadFromFile(file)) {
                                 game.stopGameThread();
-                                Reflector.KEEP_INSTANCES = true;
                                 game.tryLoadFromFile(file);
-                                Reflector.KEEP_INSTANCES = false;
+                                game.setPlayer(Game.NEAR, new UIPlayer(UIPlayer.Type.USER));
+                                game.setPlayer(Game.FAR, new UIPlayer(UIPlayer.Type.USER));
                                 game.startGameThread();
                             } else {
                                 System.err.println("Cannot load " + file);

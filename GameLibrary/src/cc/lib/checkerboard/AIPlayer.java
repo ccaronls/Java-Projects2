@@ -3,6 +3,8 @@ package cc.lib.checkerboard;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -45,6 +47,28 @@ public class AIPlayer extends Player {
         buildMovesList(game);
     }
 
+    static void dumpTree(Writer out, Move root, int indent) throws IOException {
+
+        if (indent >= INDENT_LEVELS.length)
+            return;
+        if (root.children == null)
+            return;
+        if (root.maximize < 0)
+            out.write(INDENT_LEVELS[indent] + "<min>\n");
+        else if (root.maximize > 0)
+            out.write(INDENT_LEVELS[indent] + "<max>\n");
+        out.write(INDENT_LEVELS[indent] + INDENT_LEVELS[0] + "<move>[" + root.bestValue + "] " + root + "</move>\n");
+        for (Move child : root.children) {
+            if (child.maximize == 0)
+                throw new AssertionError();
+            dumpTree(out, child, indent+1);
+        }
+        if (root.maximize < 0)
+            out.write(INDENT_LEVELS[indent] + "</min>\n");
+        else if (root.maximize > 0)
+            out.write(INDENT_LEVELS[indent] + "</max>\n");
+    }
+
     void buildMovesList(Game game) {
 
         if (moveList.size() > 0 && moveList.getFirst().getPlayerNum() == game.getTurn())
@@ -56,12 +80,13 @@ public class AIPlayer extends Player {
         // minmax search moves
         startTime = System.currentTimeMillis();
         Move root = new Move(null, game.getTurn());
+        root.bestValue = miniMaxR(game, root, maxSearchDepth, true, 0);
+                //negamaxR(game, root, 1, maxSearchDepth);
+        log.debug("MiniMax serach result: " + root.bestValue);
         try (Writer out = new FileWriter("minimax_tree.xml")) {
-            out.write("<root>\n");
-            long minimaxvalue = miniMaxR(out, game, root, maxSearchDepth, true, 0);
-            //out.write(INDENT_LEVELS[0] + "<value>"+minimaxvalue+"</value>\n");
+            out.write("<root minimax=\"" + root.bestValue + "\">\n");
+            dumpTree(out, root, 0);
             out.write("</root>\n");
-            log.debug("MiniMax serach result: " + minimaxvalue);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -91,54 +116,156 @@ public class AIPlayer extends Player {
             value := min(value, minimax(child, depth − 1, TRUE))
         return value
      */
-    static long miniMaxR(Writer out, Game game, Move root, int depth, boolean maximizePlayer, int indent) throws IOException {
+    static long miniMaxR(Game game, Move root, int depth, boolean maximizePlayer, int actualDepth) {
         if (root == null || root.getPlayerNum() < 0)
             throw new AssertionError();
         if (kill)
             return 0;
-        if (indent >= INDENT_LEVELS.length || depth == 0 || game.isGameOver()) {
+        int winner;
+        switch (winner=game.getRules().getWinner(game)) {
+            case Game.NEAR:
+            case Game.FAR:
+                return root.getPlayerNum()==winner ? Long.MAX_VALUE - actualDepth : Long.MIN_VALUE + actualDepth;
+        }
+        boolean isDraw = game.getRules().isDraw(game);
+        if (depth == 0 || isDraw) {
             return game.getRules().evaluate(game, game.getMostRecentMove());
         }
+        root.children = Collections.unmodifiableList(game.getMoves());
         if (maximizePlayer) {
             long value = Long.MIN_VALUE;
             Move path = null;
-            out.write(INDENT_LEVELS[indent] + "<max>\n");
             for (Move m : game.getMoves()) {
-                out.write(INDENT_LEVELS[indent] + "<move>" + m + "</move>\n");
                 game.executeMove(m);
                 boolean sameTurn = game.getTurn() == m.getPlayerNum();
-                long v = miniMaxR(out, game, m, sameTurn ? depth : depth-1, sameTurn, indent+1);
-                m.minimaxValue = v;
+                long v = miniMaxR(game, m, sameTurn ? depth : depth-1, sameTurn, actualDepth+1);
+                //v -= 100*actualDepth;
+                m.bestValue = v;
+                m.maximize = 1;
                 if (v >= value) {
                     path = m;
                     value = v;
                 }
                 game.undo();
             }
-            out.write(INDENT_LEVELS[indent] + "</max>\n");
             root.path = path;
             return value;
         } else { /* minimizing */
             long value = Long.MAX_VALUE;
             Move path = null;
-            out.write(INDENT_LEVELS[indent] + "<min>\n");
             for (Move m : game.getMoves()) {
-                out.write(INDENT_LEVELS[indent + 1] + "<move>" + m + "</move>\n");
                 game.executeMove(m);
                 boolean sameTurn = game.getTurn() == m.getPlayerNum();
-                long v = miniMaxR(out, game, m, sameTurn ? depth : depth-1, !sameTurn, indent+1);
-                m.minimaxValue = v;
+                long v = miniMaxR(game, m, sameTurn ? depth : depth-1, !sameTurn, actualDepth+1);
+                //v += 100*actualDepth;
+                m.bestValue = v;
+                m.maximize = -1;
                 if (v <= value) {
                     path = m;
                     value = v;
                 }
                 game.undo();
             }
-            out.write(INDENT_LEVELS[indent] + "</min>\n");
             root.path = path;
             return value;
         }
     }
+
+    /*
+    function negamax(node, depth, color) is
+    if depth = 0 or node is a terminal node then
+        return color × the heuristic value of node
+    value := −∞
+    for each child of node do
+        value := max(value, −negamax(child, depth − 1, −color))
+    return value
+(* Initial call for Player A's root node *)
+negamax(rootNode, depth, 1)
+(* Initial call for Player B's root node *)
+negamax(rootNode, depth, −1)
+     */
+
+    private static long negamaxR(Game game, Move root, long scale, int depth) {
+        if (scale == 0)
+            throw new AssertionError();
+        if (root == null || root.getPlayerNum() < 0)
+            throw new AssertionError();
+        if (kill)
+            return 0;
+        int winner;
+        switch (winner=game.getRules().getWinner(game)) {
+            case Game.NEAR:
+            case Game.FAR:
+                return scale * root.getPlayerNum()==winner ? Long.MAX_VALUE : Long.MIN_VALUE;
+        }
+        boolean isDraw = game.getRules().isDraw(game);
+        if (depth == 0 || isDraw) {
+            return scale * game.getRules().evaluate(game, game.getMostRecentMove());
+        }
+        root.children = new ArrayList<>(game.getMoves());
+        long value = Long.MIN_VALUE;
+        Move path=null;
+        for (Move child : root.children) {
+            game.executeMove(child);
+            boolean sameTurn = game.getTurn() == child.getPlayerNum();
+            long v = -negamaxR(game, child, sameTurn ? scale : scale * -1, sameTurn ? depth : depth-1);
+            child.bestValue = v;
+            child.maximize = (int)scale;
+            if (v >= value) {
+                path = child;
+                value = v;
+            }
+            game.undo();
+        }
+        root.path = path;
+        return value;
+    }
+
+    // TODO: negimax with alpha - beta pruning
+    /*
+    function negamax(node, depth, α, β, color) is
+    alphaOrig := α
+
+    (* Transposition Table Lookup; node is the lookup key for ttEntry *)
+    ttEntry := transpositionTableLookup(node)
+    if ttEntry is valid and ttEntry.depth ≥ depth then
+        if ttEntry.flag = EXACT then
+            return ttEntry.value
+        else if ttEntry.flag = LOWERBOUND then
+            α := max(α, ttEntry.value)
+        else if ttEntry.flag = UPPERBOUND then
+            β := min(β, ttEntry.value)
+
+        if α ≥ β then
+            return ttEntry.value
+
+    if depth = 0 or node is a terminal node then
+        return color × the heuristic value of node
+
+    childNodes := generateMoves(node)
+    childNodes := orderMoves(childNodes)
+    value := −∞
+    for each child in childNodes do
+        value := max(value, −negamax(child, depth − 1, −β, −α, −color))
+        α := max(α, value)
+        if α ≥ β then
+            break
+
+    (* Transposition Table Store; node is the lookup key for ttEntry *)
+    ttEntry.value := value
+    if value ≤ alphaOrig then
+        ttEntry.flag := UPPERBOUND
+    else if value ≥ β then
+        ttEntry.flag := LOWERBOUND
+    else
+        ttEntry.flag := EXACT
+    ttEntry.depth := depth
+    transpositionTableStore(node, ttEntry)
+
+    return value
+(* Initial call for Player A's root node *)
+negamax(rootNode, depth, −∞, +∞, 1)
+     */
 
     private final static String [] INDENT_LEVELS;
 

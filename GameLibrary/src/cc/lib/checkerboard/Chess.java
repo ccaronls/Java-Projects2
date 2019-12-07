@@ -90,23 +90,39 @@ public class Chess extends Rules {
     @Override
     boolean isDraw(Game game) {
         // in chess, draw game if only 2 kings left or current player cannot move but is not in check
-        // if down to only 2 kings, one of each color, then game is a draw
+        // if down to only 2 kings, one of each color, then game is a draw. Also a king and bishop alone cannot checkmate
+        int numBishops = 0;
+        int numPieces = 0;
+        final boolean noMoves = game.getMoves().size() == 0;
+        boolean inCheck = false;
         for (int r = 0; r < game.getRanks(); r++) {
             for (int c = 0; c < game.getColumns(); c++) {
-                switch (game.getPiece(r, c).getType()) {
+                Piece p;
+                switch ((p=game.getPiece(r, c)).getType()) {
                     case CHECKED_KING:
                     case CHECKED_KING_IDLE:
-                        return false;
+                        if (p.getPlayerNum() == game.getTurn())
+                            inCheck = true;
+                        break;
+                    case BISHOP:
+                        numBishops++;
+                        break;
                     case UNCHECKED_KING:
                     case UNCHECKED_KING_IDLE:
                     case EMPTY:
                         break;
                     default:
-                        return false;
+                        numPieces++;
                 }
             }
         }
-        return game.getMoves().size() == 0; // if current player cannot move and not in check then draw
+        if (noMoves && !inCheck)
+            return true;
+        if (noMoves)
+            return false;
+        if (numPieces > 0)
+            return false;
+        return numBishops < 2;
     }
 
     @Override
@@ -143,6 +159,7 @@ public class Chess extends Rules {
                 // check for pawn advancing
                 if (p.getType() == PAWN_TOSWAP) {
                     computeMovesForSquare(game, move.getEnd()[0], move.getEnd()[1], null, game.getMovesInternal());
+                    return;
                 }
                 // see if this move result
                 break;
@@ -163,7 +180,8 @@ public class Chess extends Rules {
         game.getPiece(move.getOpponentKingPos()).setType(move.getOpponentKingTypeEnd());
 
         if (p != null && timerLength > 0) {
-            game.getMovesInternal().add(new Move(MoveType.END, p.getPlayerNum()));//, null, null, move.getEnd()));
+            throw new AssertionError("I dont understand this logic");
+            //game.getMovesInternal().add(new Move(MoveType.END, p.getPlayerNum()));
         }
 
         game.nextTurn();
@@ -550,68 +568,74 @@ public class Chess extends Rules {
 
     @Override
     public long evaluate(Game game, Move move) {
-        if (game.getMoves().size() == 0) {
-            // having no moves is bad
-            return Long.MIN_VALUE;
-        }
-        long value = game.getMoves().size(); // move options is good
-        switch (move.getMoveType()) {
-            case SWAP:
-            case CASTLE:
-                value += 100; // give preference to these move types
-                break;
-        }
-        for (int r = 0; r<game.getRanks(); r++) {
-            for (int c = 0; c<game.getColumns(); c++) {
-                Piece p = game.getPiece(r, c);
-                int scale = p.getPlayerNum() == move.getPlayerNum() ? 1 : -1;
-                switch (p.getType()) {
-                    case EMPTY:
-                        break;
-                    case PAWN:
-                        value += 11*scale;
-                        break;
-                    case PAWN_IDLE:
-                        value += 10*scale;
-                        break;
-                    case PAWN_ENPASSANT:
-                        value += 12*scale;
-                        break;
-                    case PAWN_TOSWAP:
-                        value += 1000*scale;
-                        break;
-                    case BISHOP:
-                        value += 30*scale;
-                        break;
-                    case KNIGHT:
-                        value += 31*scale;
-                        break;
-                    case ROOK:
-                        value += 50*scale;
-                        break;
-                    case ROOK_IDLE:
-                        value += 51*scale;
-                        break;
-                    case QUEEN:
-                        value += 80*scale;
-                        break;
-                    case CHECKED_KING:
-                        value -= 10;
-                        break;
-                    case CHECKED_KING_IDLE:
-                        value -= 9;
-                        break;
-                    case UNCHECKED_KING:
-                        break;
-                    case UNCHECKED_KING_IDLE:
-                        value += 1; // we want avoid moving
-                        break;
-                    default:
-                        throw new AssertionError("Unhandled case '" + p.getType() + "'");
+        long value=0;
+        try {
+            if (isDraw(game))
+                return value=0;
+            if (game.getMoves().size() == 0) {
+                return value=Long.MIN_VALUE;
+            }
+            value = game.getMoves().size(); // move options is good
+            switch (move.getMoveType()) {
+                //case SWAP:
+                case CASTLE:
+                    value += 100; // give preference to these move types
+                    break;
+            }
+            for (int r = 0; r < game.getRanks(); r++) {
+                for (int c = 0; c < game.getColumns(); c++) {
+                    Piece p = game.getPiece(r, c);
+                    int scale = p.getPlayerNum() == move.getPlayerNum() ? 1 : -1;
+                    switch (p.getType()) {
+                        case EMPTY:
+                            break;
+                        case PAWN:
+                            value += 11 * scale;
+                            break;
+                        case PAWN_IDLE:
+                            value += 10 * scale;
+                            break;
+                        case PAWN_ENPASSANT:
+                            value += 12 * scale;
+                            break;
+                        case PAWN_TOSWAP:
+                            value += 1000 * scale;
+                            break;
+                        case BISHOP:
+                            value += 30 * scale;
+                            break;
+                        case KNIGHT:
+                            value += 31 * scale;
+                            break;
+                        case ROOK:
+                            value += 50 * scale;
+                            break;
+                        case ROOK_IDLE:
+                            value += 51 * scale;
+                            break;
+                        case QUEEN:
+                            value += 80 * scale;
+                            break;
+                        case CHECKED_KING:
+                            value -= 5 * scale;
+                            break;
+                        case CHECKED_KING_IDLE:
+                            value -= 3 * scale;
+                            break;
+                        case UNCHECKED_KING:
+                            break;
+                        case UNCHECKED_KING_IDLE:
+                            value += 1; // we want avoid moving
+                            break;
+                        default:
+                            throw new AssertionError("Unhandled case '" + p.getType() + "'");
+                    }
                 }
             }
+            value = value * 100 + value < 0 ? Utils.randRange(-99, 0) : value > 0 ? Utils.randRange(0, 99) : Utils.randRange(-99, 99); // add some randomness to resolve duplicates
+            return value;
+        } finally {
+            //System.out.println("[" + value + "] " + move);
         }
-        return value*100 + Utils.randRange(-99, 99); // add some randomness to resolve duplicates
-
     }
 }
