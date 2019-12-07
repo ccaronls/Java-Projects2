@@ -338,6 +338,7 @@ public class Checkers extends Rules {
                     if (isCaptureAtEndEnabled()) {
                         game.getPiece(move.getLastCaptured()).setCaptured(true);
                     } else {
+                        game.getPlayer(move.getPlayerNum()).addCaptured(move.getLastCapturedType());
                         game.clearPiece(move.getLastCaptured());
                     }
                     if ((isKinged || isDamaKing) && isJumpsMandatory()) {
@@ -386,6 +387,7 @@ public class Checkers extends Rules {
             }
             if (isCaptureAtEndEnabled() && captured.size() > 0) {
                 for (int[] pos : captured) {
+                    game.getCurrentPlayer().addCaptured(game.getPiece(pos).getType());
                     game.clearPiece(pos);
                 }
             }

@@ -10,6 +10,7 @@ import cc.lib.game.Justify;
 import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
+import cc.lib.math.Vector2D;
 
 public abstract class UIGame extends Game {
 
@@ -113,9 +114,9 @@ public abstract class UIGame extends Game {
         g.translate(0, HEIGHT/2-WIDTH/2);
         drawBoard(g, WIDTH, mx, my);
         g.popMatrix();
-        drawCapturedPieces(g, WIDTH, HEIGHT/2-WIDTH/2, FAR, getPlayer(FAR).captured);
+        drawCapturedPieces(g, WIDTH, HEIGHT/2-WIDTH/2, FAR, getPlayer(FAR).getCaptured());
         g.translate(0, HEIGHT/2+WIDTH/2);
-        drawCapturedPieces(g, WIDTH, HEIGHT/2-WIDTH/2, NEAR, getPlayer(NEAR).captured);
+        drawCapturedPieces(g, WIDTH, HEIGHT/2-WIDTH/2, NEAR, getPlayer(NEAR).getCaptured());
         if (getWinner() != null) {
             g.setColor(getWinner().getColor().color);
             g.drawJustifiedString(WIDTH - 10, 10, Justify.RIGHT, "Winner: " + getWinner().getColor());
@@ -126,10 +127,11 @@ public abstract class UIGame extends Game {
 
     private void drawLandscape(AGraphics g, int mx, int my) {
         drawBoard(g, HEIGHT, mx, my);
-        drawCapturedPieces(g, WIDTH-HEIGHT, HEIGHT/2, FAR, getPlayer(FAR).captured);
         g.pushMatrix();
-        g.translate(HEIGHT, HEIGHT/2+WIDTH/2);
-        drawCapturedPieces(g, WIDTH, HEIGHT/2-WIDTH/2, NEAR, getPlayer(NEAR).captured);
+        g.translate(HEIGHT, 0);
+        drawCapturedPieces(g, WIDTH-HEIGHT, HEIGHT/2, FAR, getPlayer(FAR).getCaptured());
+        g.translate(0, HEIGHT/2);
+        drawCapturedPieces(g, WIDTH, HEIGHT/2-WIDTH/2, NEAR, getPlayer(NEAR).getCaptured());
         g.popMatrix();
         g.setColor(GColor.WHITE);
         if (getWinner() != null) {
@@ -142,30 +144,32 @@ public abstract class UIGame extends Game {
     final int BORDER = 5;
 
     private void drawCapturedPieces(AGraphics g, int width, int height, int playerNum, List<PieceType> pieces) {
-        g.setClipRect(0, 0, width, height);
+        if (pieces == null)
+            return;
+//        g.setClipRect(0, 0, width, height);
         g.pushMatrix();
         g.translate(BORDER, BORDER);
         width -= BORDER*2;
-        int x = 0, y = 0;
+        float x = PIECE_RADIUS, y = PIECE_RADIUS;
         for (PieceType p :pieces) {
             g.pushMatrix();
             g.translate(x, y);
-            drawPiece(g, p, playerNum, PIECE_RADIUS, PIECE_RADIUS);
+            drawPiece(g, p, playerNum, PIECE_RADIUS*2, PIECE_RADIUS*2);
             g.popMatrix();
-            x += PIECE_RADIUS * 2 / 3;
+            x += PIECE_RADIUS * 2;
             if (x >= width) {
-                x = 0;
-                y += PIECE_RADIUS;
+                x = PIECE_RADIUS;
+                y += PIECE_RADIUS*2;
             }
         }
 
         g.popMatrix();
-        g.clearClip();
+//        g.clearClip();
     }
 
     protected abstract int getCheckerboardImageId();
 
-    private void drawBoard(AGraphics g, float boarddim, int mx, int my) {
+    private void drawBoard(AGraphics g, float boarddim, int _mx, int _my) {
 
         g.pushMatrix();
 
@@ -216,6 +220,10 @@ public abstract class UIGame extends Game {
             float y = _selectedPiece[0]* ch + ch /2;
             g.drawFilledCircle(x, y, PIECE_RADIUS +5);
         }
+
+        Vector2D mv = g.screenToViewport(_mx, _my);
+        final float mx = mv.getX();
+        final float my = mv.getY();
 
         for (int r=0; r<getRanks(); r++) {
             for (int c=0; c<getColumns(); c++) {

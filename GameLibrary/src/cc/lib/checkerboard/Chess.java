@@ -153,6 +153,7 @@ public class Chess extends Rules {
             case JUMP:
             case SLIDE:
                 if (move.hasCaptured()) {
+                    game.getCurrentPlayer().addCaptured(move.getLastCapturedType());
                     game.clearPiece(move.getLastCaptured());
                 }
                 p = game.movePiece(move);

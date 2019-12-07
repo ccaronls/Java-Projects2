@@ -125,6 +125,10 @@ public class Move extends Reflector<Move> implements IMove {
         return captured.get(captured.size()-1);
     }
 
+    public final PieceType getLastCapturedType() {
+        return PieceType.values()[captured.get(captured.size()-1)[2]];
+    }
+
     public final boolean hasCaptured() {
         return captured != null && captured.size() > 0;
     }
