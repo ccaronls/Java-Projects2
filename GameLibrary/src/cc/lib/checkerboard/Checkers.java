@@ -445,7 +445,7 @@ public class Checkers extends Rules {
                 }
             }
         }
-        return value*100 + value < 0 ? Utils.randRange(-99, 0) : Utils.randRange(0, 99); // add some randomness to resolve duplicates
+        return value*100 + (value < 0 ? Utils.randRange(-99, 0) : value > 0 ? Utils.randRange(0, 99) : Utils.randRange(-99, 99)); // add some randomness to resolve duplicates
     }
 
     public boolean canJumpSelf() {

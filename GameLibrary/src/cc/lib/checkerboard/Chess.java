@@ -3,7 +3,6 @@ package cc.lib.checkerboard;
 import java.util.Iterator;
 import java.util.List;
 
-import cc.lib.game.GColor;
 import cc.lib.game.Utils;
 
 import static cc.lib.checkerboard.PieceType.*;
@@ -393,9 +392,9 @@ public class Chess extends Rules {
                 checkForCastle(game, rank, col, 0);
                 checkForCastle(game, rank, col, game.getColumns()-1);
             case CHECKED_KING_IDLE:
-                nextType = UNCHECKED_KING;
             case UNCHECKED_KING:
             case CHECKED_KING:
+                nextType = UNCHECKED_KING;
                 d=1;
             case QUEEN:
                 dr = NSEW_DIAG_DELTAS[0];
@@ -573,67 +572,87 @@ public class Chess extends Rules {
         try {
             if (isDraw(game))
                 return value=0;
+            int side;
+            switch(side=getWinner(game)) {
+                case NEAR:
+                case FAR:
+                    return side == move.getPlayerNum() ? Long.MAX_VALUE : Long.MIN_VALUE;
+            }
             if (game.getMoves().size() == 0) {
                 return value=Long.MIN_VALUE;
             }
-            value = game.getMoves().size(); // move options is good
+            value = 10 * game.getMoves().size(); // move options is good
             switch (move.getMoveType()) {
                 //case SWAP:
                 case CASTLE:
                     value += 100; // give preference to these move types
                     break;
+                case SLIDE:
+                    //if (move.getStartType()==PieceType.UNCHECKED_KING)
+                    //    value += 1;
             }
             for (int r = 0; r < game.getRanks(); r++) {
                 for (int c = 0; c < game.getColumns(); c++) {
                     Piece p = game.getPiece(r, c);
-                    int scale = p.getPlayerNum() == move.getPlayerNum() ? 1 : -1;
+                    int scale = p.getPlayerNum() != move.getPlayerNum() ? 1 : -1;
+                    //if (p.getType() == EMPTY)
+                    //    continue;
+                    //System.out.println("scale=" + scale);
                     switch (p.getType()) {
                         case EMPTY:
                             break;
                         case PAWN:
-                            value += 11 * scale;
+                            value += 110 * scale;
                             break;
                         case PAWN_IDLE:
-                            value += 10 * scale;
+                            value += 100 * scale;
                             break;
                         case PAWN_ENPASSANT:
-                            value += 12 * scale;
+                            value += 120 * scale;
                             break;
                         case PAWN_TOSWAP:
                             value += 1000 * scale;
                             break;
                         case BISHOP:
-                            value += 30 * scale;
+                            value += 300 * scale;
                             break;
                         case KNIGHT:
-                            value += 31 * scale;
+                            value += 310 * scale;
                             break;
                         case ROOK:
-                            value += 50 * scale;
+                            value += 500 * scale;
                             break;
                         case ROOK_IDLE:
-                            value += 51 * scale;
+                            value += 510 * scale;
                             break;
                         case QUEEN:
-                            value += 80 * scale;
+                            value += 800 * scale;
                             break;
                         case CHECKED_KING:
-                            value -= 5 * scale;
+                            value -= 500 * scale;
                             break;
                         case CHECKED_KING_IDLE:
-                            value -= 3 * scale;
+                            value -= 300 * scale;
                             break;
                         case UNCHECKED_KING:
+                            if (p.getPlayerNum() == move.getPlayerNum()) {
+                                int dist = Utils.fastLen(r-move.getOpponentKingPos()[0], c-move.getOpponentKingPos()[1]);
+                                //System.out.println("dist:"+  dist);
+                                value += 10 - dist;
+                            }
                             break;
                         case UNCHECKED_KING_IDLE:
-                            value += 1; // we want avoid moving
+                            value += 10 * scale; // we want avoid moving
                             break;
                         default:
                             throw new AssertionError("Unhandled case '" + p.getType() + "'");
                     }
                 }
             }
-            value = value * 100 + value < 0 ? Utils.randRange(-99, 0) : value > 0 ? Utils.randRange(0, 99) : Utils.randRange(-99, 99); // add some randomness to resolve duplicates
+            long before = value;
+            value *= 100;
+            value += value < 0 ? Utils.randRange(-99, 0) : value > 0 ? Utils.randRange(0, 99) : Utils.randRange(-99, 99); // add some randomness to resolve duplicates
+            //System.out.println("value: " + before + " -> " + value);
             return value;
         } finally {
             //System.out.println("[" + value + "] " + move);

@@ -18,7 +18,6 @@ import cc.lib.checkerboard.Ugolki;
 import cc.lib.game.AGraphics;
 import cc.lib.game.Utils;
 import cc.lib.utils.FileUtils;
-import cc.lib.utils.Reflector;
 
 public class AWTCheckerboard extends AWTComponent {
 

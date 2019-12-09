@@ -305,6 +305,7 @@ public class Game extends Reflector<Game> implements IGame<Move> {
 
     /**
      *
+     * @param playerNum NEAR, FAR or -1 for DRAWGAME
      */
     public final void forfeit(int playerNum) {
         switch (playerNum) {
@@ -315,7 +316,8 @@ public class Game extends Reflector<Game> implements IGame<Move> {
                 gameState = GameState.FAR_WINS;
                 break;
             default:
-                throw new IllegalArgumentException("Invalid parameter " + playerNum);
+                gameState = GameState.DRAW;
+                break;
         }
     }
 
@@ -399,6 +401,10 @@ public class Game extends Reflector<Game> implements IGame<Move> {
         return initialized;
     }
 
+    public final void setInitialized(boolean initialized) {
+        this.initialized = initialized;
+    }
+
     public final Rules getRules() {
         return rules;
     }
@@ -458,8 +464,8 @@ public class Game extends Reflector<Game> implements IGame<Move> {
         return "UNKNOWN(" + turn + ")";
     }
 
-    public String toString() {
-        StringBuffer s = new StringBuffer();
+    public String getInfoString() {
+        StringBuffer s = new StringBuffer(gameState.name());
         s.append(getTurnStr(getTurn())).append(":");
         Player pl = getPlayer(getTurn());
         if (pl != null)

@@ -1,7 +1,6 @@
 package cc.lib.checkerboard;
 
 import cc.lib.game.Utils;
-import cc.lib.utils.Reflector;
 
 import static cc.lib.checkerboard.Game.FAR;
 import static cc.lib.checkerboard.Game.NEAR;
@@ -31,6 +30,7 @@ public class Ugolki extends Checkers {
             game.setPiece(pos, NEAR, DAMA_MAN);
         }
         game.setTurn(Utils.flipCoin() ? NEAR : FAR);
+        game.setInitialized(true);
     }
 
     @Override
@@ -67,7 +67,7 @@ public class Ugolki extends Checkers {
     public boolean isWinner(Game game, int side) {
         switch (side) {
             case FAR: {
-                for (int [] pos : FAR_POSITIONS) {
+                for (int [] pos : NEAR_POSITIONS) {
                     Piece p = game.getPiece(pos);
                     if (p.getPlayerNum() != side)
                         return false;
@@ -75,7 +75,7 @@ public class Ugolki extends Checkers {
                 break;
             }
             case NEAR: {
-                for (int [] pos : NEAR_POSITIONS) {
+                for (int [] pos : FAR_POSITIONS) {
                     Piece p = game.getPiece(pos);
                     if (p.getPlayerNum() != side)
                         return false;
@@ -109,7 +109,7 @@ public class Ugolki extends Checkers {
         int numNearPositions = 0;
         int numFarPositions = 0;
         switch (game.getTurn()) {
-            case FAR: {
+            case NEAR: {
                 for (int [] pos : FAR_POSITIONS) {
                     Piece p = game.getPiece(pos);
                     if (p.getPlayerNum() == NEAR)
@@ -120,7 +120,7 @@ public class Ugolki extends Checkers {
                 }
                 break;
             }
-            case NEAR: {
+            case FAR: {
                 for (int [] pos : NEAR_POSITIONS) {
                     Piece p = game.getPiece(pos);
                     if (p.getPlayerNum() == FAR)

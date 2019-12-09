@@ -18,6 +18,7 @@ public abstract class UIGame extends Game {
 
     private File saveFile;
     private boolean gameRunning = false;
+    private boolean threadExitted = false;
     private final Object RUNGAME_MONITOR = new Object();
     private boolean clicked = false;
 
@@ -54,9 +55,14 @@ public abstract class UIGame extends Game {
 
     public abstract void repaint();
 
-    public void startGameThread() {
+    @Omit
+    private final Object EXIT_THREAD_MONITOR = new Object();
+
+    public synchronized void startGameThread() {
         if (gameRunning)
             return;
+        gameRunning = true;
+        threadExitted = false;
         new Thread(() -> {
             Thread.currentThread().setName("runGame");
             while (gameRunning) {
@@ -72,17 +78,23 @@ public abstract class UIGame extends Game {
                 }
             }
             gameRunning = false;
+            threadExitted = true;
+            synchronized (EXIT_THREAD_MONITOR) {
+                EXIT_THREAD_MONITOR.notify();
+            }
             log.debug("game thread stopped");
         }).start();
-        gameRunning = true;
     }
 
-    public void stopGameThread() {
-        gameRunning = false;
-        synchronized (RUNGAME_MONITOR) {
-            RUNGAME_MONITOR.notifyAll();
+    public synchronized void stopGameThread() {
+        if (!threadExitted) {
+            gameRunning = false;
+            synchronized (RUNGAME_MONITOR) {
+                RUNGAME_MONITOR.notifyAll();
+            }
+            for (int i=0; i<10 && !threadExitted; i++)
+                Utils.waitNoThrow(EXIT_THREAD_MONITOR, 1000);
         }
-        Thread.yield();
     }
 
     int highlightedRank, highlightedCol;
@@ -129,9 +141,9 @@ public abstract class UIGame extends Game {
         drawBoard(g, HEIGHT, mx, my);
         g.pushMatrix();
         g.translate(HEIGHT, 0);
-        drawCapturedPieces(g, WIDTH-HEIGHT, HEIGHT/2, FAR, getPlayer(FAR).getCaptured());
+        drawPlayer((UIPlayer)getPlayer(FAR), g, WIDTH-HEIGHT, HEIGHT/2);
         g.translate(0, HEIGHT/2);
-        drawCapturedPieces(g, WIDTH, HEIGHT/2-WIDTH/2, NEAR, getPlayer(NEAR).getCaptured());
+        drawPlayer((UIPlayer)getPlayer(NEAR), g, WIDTH-HEIGHT, HEIGHT/2);
         g.popMatrix();
         g.setColor(GColor.WHITE);
         if (getWinner() != null) {
@@ -143,13 +155,33 @@ public abstract class UIGame extends Game {
 
     final int BORDER = 5;
 
+    private void drawPlayer(UIPlayer player, AGraphics g, int width, int height) {
+        if (player == null)
+            return;
+        g.pushMatrix();
+        g.translate(BORDER, BORDER);
+        width -= BORDER*2;
+        height -= BORDER*2;
+
+        // draw player info
+        String info = player.getType().name();
+        if (player.getThinkingTimeSecs() > 0) {
+            int secs = player.getThinkingTimeSecs();
+            int mins = secs / 60;
+            secs -= mins * 60;
+            info += String.format(" Thinking %d:%0d", mins, secs);
+        }
+        g.setColor(GColor.WHITE);
+        float th = g.drawWrapString(0, 0, width, info).height;
+        g.translate(0, th + BORDER);
+        drawCapturedPieces(g, width, height, getOpponent(player.getPlayerNum()), player.getCaptured());
+        g.popMatrix();
+    }
+
     private void drawCapturedPieces(AGraphics g, int width, int height, int playerNum, List<PieceType> pieces) {
         if (pieces == null)
             return;
 //        g.setClipRect(0, 0, width, height);
-        g.pushMatrix();
-        g.translate(BORDER, BORDER);
-        width -= BORDER*2;
         float x = PIECE_RADIUS, y = PIECE_RADIUS;
         for (PieceType p :pieces) {
             g.pushMatrix();
@@ -163,7 +195,6 @@ public abstract class UIGame extends Game {
             }
         }
 
-        g.popMatrix();
 //        g.clearClip();
     }
 
@@ -204,14 +235,17 @@ public abstract class UIGame extends Game {
         PIECE_RADIUS = Math.min(cw, ch)/3;
 
         highlightedRank = highlightedCol = -1;
-        int [] _selectedPiece;
+        int [] _selectedPiece = null;
         List<Piece> _pickablePieces = new ArrayList<>();
         List<Move> _pickableMoves = new ArrayList<>();
+        final boolean isUser = isCurrentPlayerUser();
 
-        synchronized (this) {
-            _selectedPiece = selectedPiece;
-            _pickablePieces.addAll(pickablePieces);
-            _pickableMoves.addAll(pickableMoves);
+        if (isUser && !isGameOver()) {
+            synchronized (this) {
+                _selectedPiece = selectedPiece;
+                _pickablePieces.addAll(pickablePieces);
+                _pickableMoves.addAll(pickableMoves);
+            }
         }
 
         if (_selectedPiece != null) {
@@ -230,7 +264,7 @@ public abstract class UIGame extends Game {
                 Piece p = getPiece(r, c);
                 float x = c * cw + cw / 2;
                 float y = r * ch + ch / 2;
-                if (Utils.isPointInsideRect(mx, my, c* cw, r* ch, cw, ch)) {
+                if (isUser && Utils.isPointInsideRect(mx, my, c* cw, r* ch, cw, ch)) {
                     g.setColor(GColor.CYAN);
                     g.drawRect(c* cw +1, r* ch +1, cw -2, ch -2);
                     highlightedRank = r;
@@ -298,6 +332,10 @@ public abstract class UIGame extends Game {
         synchronized (RUNGAME_MONITOR) {
             RUNGAME_MONITOR.notifyAll();
         }
+    }
+
+    public boolean isCurrentPlayerUser() {
+        return ((UIPlayer)getCurrentPlayer()).getType() == UIPlayer.Type.USER;
     }
 
     Piece choosePieceToMove(List<Piece> pieces) {

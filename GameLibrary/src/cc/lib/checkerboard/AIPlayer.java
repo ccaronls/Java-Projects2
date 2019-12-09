@@ -38,8 +38,8 @@ public class AIPlayer extends Player {
         return startTime > 0;
     }
 
-    long getThinkingTime() {
-        return Math.max(0, System.currentTimeMillis() - startTime);
+    int getThinkingTimeSecs() {
+        return (int)(Math.max(0, System.currentTimeMillis() - startTime)) / 1000;
     }
 
     public void forceRebuildMovesList(Game game) {
@@ -53,32 +53,41 @@ public class AIPlayer extends Player {
             return;
         if (root.children == null)
             return;
-        if (root.maximize < 0)
-            out.write(INDENT_LEVELS[indent] + "<min>\n");
-        else if (root.maximize > 0)
-            out.write(INDENT_LEVELS[indent] + "<max>\n");
-        out.write(INDENT_LEVELS[indent] + INDENT_LEVELS[0] + "<move>[" + root.bestValue + "] " + root + "</move>\n");
-        for (Move child : root.children) {
-            if (child.maximize == 0)
-                throw new AssertionError();
-            dumpTree(out, child, indent+1);
+        String endTag = "";
+        if (root.maximize < 0) {
+            out.write(INDENT_LEVELS[indent] + "<min>");
+            endTag = "</min>\n";
         }
-        if (root.maximize < 0)
-            out.write(INDENT_LEVELS[indent] + "</min>\n");
-        else if (root.maximize > 0)
-            out.write(INDENT_LEVELS[indent] + "</max>\n");
+        else if (root.maximize > 0) {
+            out.write(INDENT_LEVELS[indent] + "<max>");
+            endTag = "</max>\n";
+        }
+        out.write("[" + root.bestValue + "]"+root);
+        //out.write(INDENT_LEVELS[indent] + INDENT_LEVELS[0] + "<move>[" + root.bestValue + "] " + root + "</move>\n");
+        if (root.children.size() > 0) {
+            out.write("\n");
+            endTag = INDENT_LEVELS[indent] + endTag;
+            for (Move child : root.children) {
+                dumpTree(out, child, indent + 1);
+            }
+        }
+        out.write(endTag);
     }
 
-    void buildMovesList(Game game) {
+    void buildMovesList(Game _game) {
 
-        if (moveList.size() > 0 && moveList.getFirst().getPlayerNum() == game.getTurn())
+        if (moveList.size() > 0 && moveList.getFirst().getPlayerNum() == _game.getTurn())
             return;
 
         kill = false;
         moveList.clear();
-        log.debug("perform minimax search on game");
+        Game game = _game.deepCopy();
+        game.copyFrom(_game);
+
+        log.debug("perform minimax search on game\n" + game.getInfoString());
         // minmax search moves
         startTime = System.currentTimeMillis();
+
         Move root = new Move(null, game.getTurn());
         root.bestValue = miniMaxR(game, root, maxSearchDepth, true, 0);
                 //negamaxR(game, root, 1, maxSearchDepth);
@@ -135,13 +144,13 @@ public class AIPlayer extends Player {
         if (maximizePlayer) {
             long value = Long.MIN_VALUE;
             Move path = null;
-            for (Move m : game.getMoves()) {
+            root.maximize = 1;
+            for (Move m : root.children) {
                 game.executeMove(m);
                 boolean sameTurn = game.getTurn() == m.getPlayerNum();
                 long v = miniMaxR(game, m, sameTurn ? depth : depth-1, sameTurn, actualDepth+1);
                 //v -= 100*actualDepth;
                 m.bestValue = v;
-                m.maximize = 1;
                 if (v >= value) {
                     path = m;
                     value = v;
@@ -153,13 +162,13 @@ public class AIPlayer extends Player {
         } else { /* minimizing */
             long value = Long.MAX_VALUE;
             Move path = null;
-            for (Move m : game.getMoves()) {
+            root.maximize = -1;
+            for (Move m : root.children) {
                 game.executeMove(m);
                 boolean sameTurn = game.getTurn() == m.getPlayerNum();
                 long v = miniMaxR(game, m, sameTurn ? depth : depth-1, !sameTurn, actualDepth+1);
                 //v += 100*actualDepth;
                 m.bestValue = v;
-                m.maximize = -1;
                 if (v <= value) {
                     path = m;
                     value = v;

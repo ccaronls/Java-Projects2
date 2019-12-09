@@ -51,7 +51,7 @@ public class CheckerboardTest extends TestCase {
         gm.clear();
         gm.setPiece(0, 7, Game.FAR, PieceType.UNCHECKED_KING);
         gm.setPiece(0, 0, Game.NEAR, PieceType.QUEEN);
-        gm.setPiece(0, 1, Game.NEAR, PieceType.UNCHECKED_KING);
+        gm.setPiece(0, 3, Game.NEAR, PieceType.UNCHECKED_KING);
         gm.setTurn(Game.NEAR);
         runGame(gm, true);
     }
@@ -104,6 +104,15 @@ public class CheckerboardTest extends TestCase {
         runGame(gm);
     }
 
+    public void testUgolki() {
+        Game gm = new Game();
+        gm.setRules(new Ugolki());
+        gm.setPlayer(Game.FAR, new AIPlayer());
+        gm.setPlayer(Game.NEAR, new AIPlayer());
+        gm.newGame();
+        runGame(gm);
+    }
+
     public void testChess() {
         Game gm = new Game();
         gm.setRules(new Chess());
@@ -140,12 +149,12 @@ public class CheckerboardTest extends TestCase {
                 System.out.println("********* Frame: " + i + " " + gm);
             gm.runGame();
             gm.trySaveToFile(new File("minimaxtest_testcheckrs.game"));
-            if (i == 249) break;
+            //if (i == 3) break;
             if (gm.isGameOver())
                 break;
         }
         assertTrue("No winner!", !expectWinner || gm.getWinner() != null);
-        if (gm.isGameOver()) {
+        /*assertNotN(gm.isGameOver()) {
             Player p = gm.getWinner();
             if (p == null) {
                 System.out.println("   D R A W   G A M E");
@@ -154,7 +163,7 @@ public class CheckerboardTest extends TestCase {
             }
         } else {
             assertTrue("game failed to find winner", false);
-        }
+        }*/
     }
 
     boolean boardsEqual(Game g0, Game g1) {

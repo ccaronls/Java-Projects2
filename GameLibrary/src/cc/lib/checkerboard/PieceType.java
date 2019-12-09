@@ -15,10 +15,10 @@ public enum PieceType {
     ROOK("Ro"),
     ROOK_IDLE("Ro"), // only an idle rook can castle
     QUEEN("Qu"),
-    CHECKED_KING("KI"), // chess only, flag the king as checked
-    CHECKED_KING_IDLE("KI"), // a king that has not moved and so is
+    CHECKED_KING("Kc"), // chess only, flag the king as checked
+    CHECKED_KING_IDLE("KC"), // a king that has not moved and so is
     UNCHECKED_KING("Ki"), // chess only
-    UNCHECKED_KING_IDLE("Ki"), // only an unchecked idle king can castle
+    UNCHECKED_KING_IDLE("KI"), // only an unchecked idle king can castle
 
     KING("CK"), // checkers king, not chess
     FLYING_KING("CK"),

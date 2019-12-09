@@ -1,7 +1,6 @@
 package cc.lib.checkerboard;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import cc.lib.game.Utils;
@@ -17,7 +16,7 @@ public class Player extends Reflector<Player> {
     private List<PieceType> captured = null;
 
     void newGame() {
-        captured.clear();
+        captured = null;
     }
 
     /**
@@ -46,11 +45,13 @@ public class Player extends Reflector<Player> {
      *
      * @return
      */
-    public final List<PieceType> getCaptured() {
-        return Collections.unmodifiableList(captured);
+    public synchronized final List<PieceType> getCaptured() {
+        if (captured == null)
+            return null;
+        return new ArrayList<>(captured);
     }
 
-    public final void removeCaptured(PieceType pt) {
+    public synchronized final void removeCaptured(PieceType pt) {
         if (captured != null) {
             for (int i = captured.size() - 1; i >= 0; i--) {
                 if (captured.get(i) == pt) {
@@ -61,7 +62,7 @@ public class Player extends Reflector<Player> {
         }
     }
 
-    public final void addCaptured(PieceType pt) {
+    public synchronized final void addCaptured(PieceType pt) {
         if (captured == null)
             captured = new ArrayList<>();
         captured.add(pt);
