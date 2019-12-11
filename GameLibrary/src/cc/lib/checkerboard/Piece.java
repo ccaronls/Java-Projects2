@@ -15,6 +15,7 @@ public class Piece extends Reflector<Piece> {
 
     private int playerNum;
     private PieceType type;
+    @Omit
     int numMoves = 0;
     private boolean captured = false;
     private final int rank, col;

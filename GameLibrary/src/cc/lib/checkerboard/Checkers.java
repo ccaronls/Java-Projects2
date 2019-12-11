@@ -408,12 +408,13 @@ public class Checkers extends Rules {
 
     @Override
     public long evaluate(Game game, Move move) {
-        if (game.isGameOver()) {
-            if (game.getRules().isDraw(game))
-                return 0;
-            if (game.getWinner().getPlayerNum() == move.getPlayerNum())
-                return Long.MAX_VALUE;
-            return Long.MIN_VALUE;
+        if (game.isDraw())
+            return 0;
+        int winner;
+        switch (winner=game.getWinnerNum()) {
+            case NEAR:
+            case FAR:
+                return (winner == move.getPlayerNum() ? Long.MAX_VALUE : Long.MIN_VALUE);
         }
         long value = 0; // no its not game.getMoves().size(); // move options is good
         //if (move.hasCaptured())
@@ -445,7 +446,7 @@ public class Checkers extends Rules {
                 }
             }
         }
-        return value*100 + (value < 0 ? Utils.randRange(-99, 0) : value > 0 ? Utils.randRange(0, 99) : Utils.randRange(-99, 99)); // add some randomness to resolve duplicates
+        return value;
     }
 
     public boolean canJumpSelf() {

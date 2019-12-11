@@ -40,7 +40,7 @@ public class MiniMaxTest extends TestCase {
             if (gm.getSelectedPiece() == null)
                 System.out.println("********* Frame: " + i + " " + gm);
             gm.runGame();
-            gm.trySaveToFile(new File("minimaxtest_testcheckrs.game"));
+            gm.trySaveToFile(new File("outputs/minimaxtest_testcheckrs.game"));
             if (i == 6) break;
             if (gm.isGameOver())
                 break;

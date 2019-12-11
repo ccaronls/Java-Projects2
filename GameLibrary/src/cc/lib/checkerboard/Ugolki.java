@@ -1,5 +1,9 @@
 package cc.lib.checkerboard;
 
+import java.time.OffsetTime;
+import java.util.ArrayList;
+import java.util.List;
+
 import cc.lib.game.Utils;
 
 import static cc.lib.checkerboard.Game.FAR;
@@ -18,6 +22,31 @@ public class Ugolki extends Checkers {
             { 4,0 }, { 4,1 }, { 4,2 },
             { 5,0 }, { 5,1 }, { 5,2 }
     };
+
+    private final static int [][] OTHER_POSITIONS;
+
+    static {
+        OTHER_POSITIONS = new int[6*6-FAR_POSITIONS.length-NEAR_POSITIONS.length][];
+        int index=0;
+        for (int i=0; i<6; i++) {
+            for (int ii=0; ii<6; ii++) {
+                if (!isInArray(i, ii, FAR_POSITIONS) && !isInArray(i, ii, NEAR_POSITIONS)) {
+                    OTHER_POSITIONS[index++] = new int[] { i, ii };
+                }
+            }
+        }
+        if (index != OTHER_POSITIONS.length) {
+            throw new AssertionError();
+        }
+    }
+
+    static boolean isInArray(int i0, int i1, int [][] arr) {
+        for (int i=0; i<arr.length; i++) {
+            if (arr[i][0] == i0 && arr[i][1] == i1)
+                return true;
+        }
+        return false;
+    }
 
     @Override
     void init(Game game) {
@@ -95,48 +124,22 @@ public class Ugolki extends Checkers {
 
     @Override
     public long evaluate(Game game, Move move) {
-        if (isWinner(game, game.getTurn())) {
-            // having no moves is good!
-            return Long.MAX_VALUE;
+        int winner;
+        switch (winner=game.getWinnerNum()) {
+            case NEAR:
+            case FAR:
+                return (winner == move.getPlayerNum() ? Long.MAX_VALUE : Long.MIN_VALUE);
         }
-        if (isWinner(game, game.getOpponent())) {
-            return Long.MIN_VALUE;
-        }
-        long value = game.getMoves().size(); // move options is good
-        int numPiecesInPlace = 0;
+        int numNearPiecesInPlace = 0;
+        int numFarPiecesInPlace = 0;
         int [][] nearPositions = new int[NEAR_POSITIONS.length][];
         int [][] farPositions = new int[FAR_POSITIONS.length][];
+        List<Piece> farPiecesNotInPlace = new ArrayList<>();
+        List<Piece> nearPiecesNotInPlace = new ArrayList<>();
         int numNearPositions = 0;
         int numFarPositions = 0;
-        switch (game.getTurn()) {
-            case NEAR: {
-                for (int [] pos : FAR_POSITIONS) {
-                    Piece p = game.getPiece(pos);
-                    if (p.getPlayerNum() == NEAR)
-                        numPiecesInPlace ++;
-                    else if (p.getType() == EMPTY) {
-                        farPositions[numFarPositions++] = pos;
-                    }
-                }
-                break;
-            }
-            case FAR: {
-                for (int [] pos : NEAR_POSITIONS) {
-                    Piece p = game.getPiece(pos);
-                    if (p.getPlayerNum() == FAR)
-                        numPiecesInPlace ++;
-                    else if (p.getType() == EMPTY) {
-                        nearPositions[numNearPositions++] = pos;
-                    }
-                }
-                break;
-            }
-            default:
-                throw new AssertionError("Unhandled case " + game.getTurn());
-        }
 
-        value += 1000 * numPiecesInPlace;
-        for (int r = 0; r<game.getRanks(); r++) {
+        for (int r=0; r<game.getRanks(); r++) {
             for (int c = 0; c < game.getColumns(); c++) {
                 Piece p = game.getPiece(r, c);
                 if (p.getType() == EMPTY)
@@ -144,16 +147,73 @@ public class Ugolki extends Checkers {
                 if (p.getType() != DAMA_MAN)
                     throw new AssertionError("Invalid piece");
                 switch (p.getPlayerNum()) {
-                    case FAR:
-                        value -= distBetween(p.getPosition(), nearPositions, numNearPositions);
-                        break;
                     case NEAR:
-                        value -= distBetween(p.getPosition(), farPositions, numFarPositions);
-                        break;
+                    case FAR:
                 }
             }
         }
-        return value;
+
+        for (int [] pos : NEAR_POSITIONS) {
+            Piece p = game.getPiece(pos);
+            if (p.getType() == EMPTY)
+                continue;
+            if (p.getType() != DAMA_MAN)
+                throw new AssertionError("Invalid piece");
+            switch (p.getPlayerNum()) {
+                case FAR:
+                    numFarPiecesInPlace++;
+                    break;
+                case NEAR:
+                    nearPiecesNotInPlace.add(p);
+                    nearPositions[numNearPositions++] = pos;
+            }
+        }
+
+        for (int [] pos : FAR_POSITIONS) {
+            Piece p = game.getPiece(pos);
+            if (p.getType() == EMPTY)
+                continue;
+            if (p.getType() != DAMA_MAN)
+                throw new AssertionError("Invalid piece");
+            switch (p.getPlayerNum()) {
+                case NEAR:
+                    numNearPiecesInPlace++;
+                    break;
+                case FAR:
+                    farPiecesNotInPlace.add(p);
+                    farPositions[numFarPositions++] = pos;
+            }
+        }
+
+        for (int [] pos : OTHER_POSITIONS) {
+            Piece p = game.getPiece(pos);
+            if (p.getType() == EMPTY)
+                continue;
+            if (p.getType() != DAMA_MAN)
+                throw new AssertionError("Invalid piece");
+            switch (p.getPlayerNum()) {
+                case NEAR:
+                    nearPiecesNotInPlace.add(p);
+                    break;
+                case FAR:
+                    farPiecesNotInPlace.add(p);
+                    break;
+            }
+        }
+
+        long nearValue=1000*numNearPiecesInPlace, farValue=1000*numFarPiecesInPlace;
+        for (Piece p :nearPiecesNotInPlace) {
+            nearValue -= distBetween(p.getPosition(), farPositions, numFarPositions);
+        }
+        for (Piece p : farPiecesNotInPlace) {
+            farValue -= distBetween(p.getPosition(), nearPositions, numNearPositions);
+        }
+
+        if (move.getPlayerNum() == NEAR) {
+            return nearValue - farValue;
+        } else {
+            return farValue - nearValue;
+        }
     }
 
     int distBetween(int [] p0, int [][] positions, int num) {
@@ -164,8 +224,6 @@ public class Ugolki extends Checkers {
             int [] p1 = positions[i];
             int d = Math.abs(p0[0] - p1[0]) + Math.abs(p1[0] - p1[1]);
             minD = Math.min(minD, d);
-            if (minD == 0)
-                return 0;
         }
         return minD;
     }

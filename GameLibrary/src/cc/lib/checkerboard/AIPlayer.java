@@ -5,9 +5,11 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 
+import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
 
@@ -28,6 +30,19 @@ public class AIPlayer extends Player {
 
     private static boolean kill = false;
 
+    public static Move lastSearchResult = null;
+
+    static int evalCount = 0;
+    static long evalTimeTotalMSecs = 0;
+
+    enum Algorithm {
+        minimax,
+        negamax,
+        negamaxAB
+    }
+
+    public static Algorithm algorithm = Algorithm.minimax;
+
     public AIPlayer() {}
 
     public AIPlayer(int maxSearchDepth) {
@@ -47,67 +62,102 @@ public class AIPlayer extends Player {
         buildMovesList(game);
     }
 
-    static void dumpTree(Writer out, Move root, int indent) throws IOException {
+    static void dumpTree(Writer out, Move root) throws IOException {
+        dumpTreeR(out, root, "", null);
+    }
 
-        if (indent >= INDENT_LEVELS.length)
+    private static void dumpTreeR(Writer out, Move root, String indent, Move parent) throws IOException {
+
+        if (root == null)
             return;
-        if (root.children == null)
-            return;
-        String endTag = "";
-        if (root.maximize < 0) {
-            out.write(INDENT_LEVELS[indent] + "<min>");
-            endTag = "</min>\n";
-        }
-        else if (root.maximize > 0) {
-            out.write(INDENT_LEVELS[indent] + "<max>");
-            endTag = "</max>\n";
-        }
-        out.write("[" + root.bestValue + "]"+root);
+        out.write(indent + root.getXmlStartTag(parent));
+        String endTag = root.getXmlEndTag(parent);
+        //if (parent != null && parent.path == root)
+          //  out.write("== PATH ==");
+        if (root.getMoveType() != null)
+            out.write(root.toString());
         //out.write(INDENT_LEVELS[indent] + INDENT_LEVELS[0] + "<move>[" + root.bestValue + "] " + root + "</move>\n");
-        if (root.children.size() > 0) {
+        if (root.children != null) {
             out.write("\n");
-            endTag = INDENT_LEVELS[indent] + endTag;
+            endTag = indent + endTag;
             for (Move child : root.children) {
-                dumpTree(out, child, indent + 1);
+                dumpTreeR(out, child, indent + "  ", root);
             }
         }
-        out.write(endTag);
+        out.write(endTag+"\n");
     }
 
     void buildMovesList(Game _game) {
 
         if (moveList.size() > 0 && moveList.getFirst().getPlayerNum() == _game.getTurn())
             return;
-
+        evalCount = 0;
+        evalTimeTotalMSecs = 0;
         kill = false;
         moveList.clear();
         Game game = _game.deepCopy();
         game.copyFrom(_game);
 
-        log.debug("perform minimax search on game\n" + game.getInfoString());
+        //log.debug("perform minimax search on game\n" + game.getInfoString());
         // minmax search moves
         startTime = System.currentTimeMillis();
 
-        Move root = new Move(null, game.getTurn());
-        root.bestValue = miniMaxR(game, root, maxSearchDepth, true, 0);
-                //negamaxR(game, root, 1, maxSearchDepth);
-        log.debug("MiniMax serach result: " + root.bestValue);
-        try (Writer out = new FileWriter("minimax_tree.xml")) {
-            out.write("<root minimax=\"" + root.bestValue + "\">\n");
-            dumpTree(out, root, 0);
-            out.write("</root>\n");
-        } catch (IOException e) {
-            e.printStackTrace();
+        Move root = lastSearchResult = new Move(null, game.getTurn());
+        switch (algorithm) {
+            case minimax:
+                root.bestValue = miniMaxR(game, root, true, maxSearchDepth, 0);
+                break;
+            case negamax:
+                root.bestValue = negamaxR(game, root, -1, maxSearchDepth, 0);
+                break;
+            case negamaxAB:
+                root.bestValue = negamaxABR(game, root, 1, maxSearchDepth, 0, Long.MIN_VALUE, Long.MAX_VALUE);
+                break;
         }
+
         float evalTimeMS = (int)(System.currentTimeMillis() - startTime);
         startTime = 0;
-        log.debug("Minimax ran in %3.2f seconds", evalTimeMS/1000);
+        log.debug(algorithm + " ran in %3.2f seconds with best value of %s", evalTimeMS/1000, root.bestValue);
+        log.debug("Time spent in eval %3.4f seconds", ((float)(evalTimeTotalMSecs))/1000);
         Move m = root.path;
         while (m != null) {
+            // move the 'path' node to front so that it appears first in the xml
+            if (root.children != null) {
+                if (!root.children.remove(m))
+                    throw new AssertionError();
+                //m.children.remove(m);
+                root.children.add(0, m);
+            }
             moveList.add(m);
+            root = m;
             m = m.path;
         }
         printMovesListToLog();
+    }
+
+    static long evaluate(Game game, int actualDepth) {
+        long startTime = System.currentTimeMillis();
+        long value = game.getRules().evaluate(game, game.getMostRecentMove());
+        if (value > Long.MIN_VALUE) {
+            value -= actualDepth; // shorter paths that lead to the same value are scored higher.
+        }
+        if (value != 0 && value > Long.MIN_VALUE / 1000 && value < Long.MAX_VALUE / 1000) {
+            // add randomness to boards with same value
+            value *= 100;
+            if (value < 0) {
+                value += Utils.randRange(-99, 0);
+            } else if (value > 0) {
+                value += Utils.randRange(0, 99);
+            }
+        }
+        evalTimeTotalMSecs += (System.currentTimeMillis() - startTime);
+        /*
+        if (++evalCount % 200 == 0) {
+            System.out.print('.');
+            if (evalCount % (200*50) == 0)
+                System.out.println();
+        }*/
+        return value;
     }
 
     /*
@@ -125,7 +175,7 @@ public class AIPlayer extends Player {
             value := min(value, minimax(child, depth − 1, TRUE))
         return value
      */
-    static long miniMaxR(Game game, Move root, int depth, boolean maximizePlayer, int actualDepth) {
+    static long miniMaxR(Game game, Move root, boolean maximizePlayer, int depth, int actualDepth) {
         if (root == null || root.getPlayerNum() < 0)
             throw new AssertionError();
         if (kill)
@@ -137,19 +187,20 @@ public class AIPlayer extends Player {
                 return root.getPlayerNum()==winner ? Long.MAX_VALUE - actualDepth : Long.MIN_VALUE + actualDepth;
         }
         boolean isDraw = game.getRules().isDraw(game);
-        if (depth == 0 || isDraw) {
-            return game.getRules().evaluate(game, game.getMostRecentMove());
+        if (isDraw)
+            return 0;
+        if (depth <= 0) {
+            return evaluate(game, actualDepth);
         }
-        root.children = Collections.unmodifiableList(game.getMoves());
+        root.children = new ArrayList<>(game.getMoves());
         if (maximizePlayer) {
             long value = Long.MIN_VALUE;
             Move path = null;
             root.maximize = 1;
             for (Move m : root.children) {
                 game.executeMove(m);
-                boolean sameTurn = game.getTurn() == m.getPlayerNum();
-                long v = miniMaxR(game, m, sameTurn ? depth : depth-1, sameTurn, actualDepth+1);
-                //v -= 100*actualDepth;
+                boolean sameTurn = m.getPlayerNum() == game.getTurn(); // if turn has not changed
+                long v = miniMaxR(game, m, sameTurn, sameTurn ? depth : depth-1, actualDepth+1);
                 m.bestValue = v;
                 if (v >= value) {
                     path = m;
@@ -165,8 +216,8 @@ public class AIPlayer extends Player {
             root.maximize = -1;
             for (Move m : root.children) {
                 game.executeMove(m);
-                boolean sameTurn = game.getTurn() == m.getPlayerNum();
-                long v = miniMaxR(game, m, sameTurn ? depth : depth-1, !sameTurn, actualDepth+1);
+                boolean sameTurn = m.getPlayerNum() == game.getTurn();
+                long v = miniMaxR(game, m, !sameTurn, !sameTurn ? depth : depth-1, actualDepth+1);
                 //v += 100*actualDepth;
                 m.bestValue = v;
                 if (v <= value) {
@@ -178,6 +229,26 @@ public class AIPlayer extends Player {
             root.path = path;
             return value;
         }
+    }
+
+    private static long ccmaxR(Game game, int startPlayer, Move root, int maxDepth, int actualDepth) {
+        if (root == null || root.getPlayerNum() < 0)
+            throw new AssertionError();
+        if (kill)
+            return 0;
+        int winner;
+        switch (winner=game.getRules().getWinner(game)) {
+            case Game.NEAR:
+            case Game.FAR:
+                return root.getPlayerNum()==winner ? Long.MAX_VALUE - actualDepth : Long.MIN_VALUE + actualDepth;
+        }
+        boolean isDraw = game.getRules().isDraw(game);
+        if (isDraw)
+            return 0;
+        if (maxDepth <= 0) {
+            return evaluate(game, actualDepth);
+        }
+        return 0;
     }
 
     /*
@@ -194,8 +265,8 @@ negamax(rootNode, depth, 1)
 negamax(rootNode, depth, −1)
      */
 
-    private static long negamaxR(Game game, Move root, long scale, int depth) {
-        if (scale == 0)
+    private static long negamaxR(Game game, Move root, int color, int depth, int actualDepth) {
+        if (color == 0)
             throw new AssertionError();
         if (root == null || root.getPlayerNum() < 0)
             throw new AssertionError();
@@ -205,11 +276,13 @@ negamax(rootNode, depth, −1)
         switch (winner=game.getRules().getWinner(game)) {
             case Game.NEAR:
             case Game.FAR:
-                return scale * root.getPlayerNum()==winner ? Long.MAX_VALUE : Long.MIN_VALUE;
+                return (root.getPlayerNum()==winner ? Long.MAX_VALUE - actualDepth : Long.MIN_VALUE + actualDepth) * color;
         }
         boolean isDraw = game.getRules().isDraw(game);
-        if (depth == 0 || isDraw) {
-            return scale * game.getRules().evaluate(game, game.getMostRecentMove());
+        if (isDraw)
+            return 0;
+        if (depth <= 0) {
+            return evaluate(game, actualDepth) * color;
         }
         root.children = new ArrayList<>(game.getMoves());
         long value = Long.MIN_VALUE;
@@ -217,9 +290,9 @@ negamax(rootNode, depth, −1)
         for (Move child : root.children) {
             game.executeMove(child);
             boolean sameTurn = game.getTurn() == child.getPlayerNum();
-            long v = -negamaxR(game, child, sameTurn ? scale : scale * -1, sameTurn ? depth : depth-1);
+            long v = -negamaxR(game, child, sameTurn ? color : color * -1, sameTurn ? depth : depth-1, actualDepth+1);
             child.bestValue = v;
-            child.maximize = (int)scale;
+            child.maximize = color;
             if (v >= value) {
                 path = child;
                 value = v;
@@ -230,7 +303,104 @@ negamax(rootNode, depth, −1)
         return value;
     }
 
-    // TODO: negimax with alpha - beta pruning
+
+    // Negamax with alpha - beta pruning simple
+    /*
+    function negamax(node, depth, α, β, color) is
+    if depth = 0 or node is a terminal node then
+        return color × the heuristic value of node
+
+    childNodes := generateMoves(node)
+    childNodes := orderMoves(childNodes)
+    value := −∞
+    foreach child in childNodes do
+        value := max(value, −negamax(child, depth − 1, −β, −α, −color))
+        α := max(α, value)
+        if α ≥ β then
+            break (* cut-off *)
+    return value
+(* Initial call for Player A's root node *)
+negamax(rootNode, depth, −∞, +∞, 1)
+     */
+
+    private final static Comparator<Move> MOVE_COMPARATOR = new Comparator<Move>() {
+        @Override
+        public int compare(Move o1, Move o2) {
+            int value1 = o1.hasCaptured() ? 1000 : 0;
+            int value2 = o2.hasCaptured() ? 1000 : 0;
+            if (o1.hasEnd() && (o1.getEndType() == PieceType.CHECKED_KING || o1.getEndType() == PieceType.CHECKED_KING_IDLE || o1.getEndType() == PieceType.PAWN_TOSWAP))
+                value1 += 1000;
+
+            if (o2.hasEnd() && (o2.getEndType() == PieceType.CHECKED_KING || o2.getEndType() == PieceType.CHECKED_KING_IDLE))
+                value2 += 1000;
+
+            switch (o1.getMoveType()) {
+                case SWAP:
+                    value1 += 1000;
+                    break;
+                case CASTLE:
+                    value1 += 100;
+                    break;
+                case JUMP:
+                case FLYING_JUMP:
+                    value1 += 10;
+                    break;
+            }
+
+            return 0;
+        }
+    };
+
+    long negamaxABR(Game game, Move root, final int color, int depth, int actualDepth, long alpha, long beta) {
+        if (kill)
+            return 0;
+        if (depth <= 0) {
+            return evaluate(game, actualDepth) * color;
+        }
+        root.children = new ArrayList<>(game.getMoves());
+        for (Move child : root.children) {
+            game.executeMove(child);
+            child.bestValue = evaluate(game, actualDepth+1);
+            game.undo();
+        }
+        Collections.sort(root.children, (Move o1, Move o2) -> {
+            if (o1.getBestValue() < o2.getBestValue())
+                return -color;
+            if (o1.getBestValue() > o2.getBestValue())
+                return color;
+            return 0;
+        });
+        long value = Long.MIN_VALUE;
+        Move path=null;
+        root.maximize = color;
+        for (Move child : root.children) {
+            game.executeMove(child);
+            boolean sameTurn = root.getPlayerNum() == child.getPlayerNum();
+            long v;
+            if (sameTurn) {
+                v = negamaxABR(game, child, color, depth, actualDepth+1, alpha, beta);
+            } else {
+                v = -negamaxABR(game, child, color*-1, depth-1, actualDepth+1, -beta, -alpha);
+            }
+            //if (sameTurn)
+            //    v *= -1;
+            child.bestValue = v;
+            //child.maximize = color;
+            if (v >= value) {
+                path = child;
+                value = v;
+            }
+            game.undo();
+            alpha = Math.max(alpha, value);
+            if (alpha > beta)
+                break;
+
+        }
+        root.path = path;
+        return value;
+    }
+
+    // TODO: negimax with alpha - beta pruning version 2
     /*
     function negamax(node, depth, α, β, color) is
     alphaOrig := α
@@ -276,18 +446,6 @@ negamax(rootNode, depth, −1)
 negamax(rootNode, depth, −∞, +∞, 1)
      */
 
-    private final static String [] INDENT_LEVELS;
-
-    static {
-        INDENT_LEVELS = new String[64];
-        String indent = "  ";
-        for (int i=0; i<64; i++) {
-            INDENT_LEVELS[i] = indent;
-            indent += "  ";
-        }
-    }
-
-
     void printMovesListToLog() {
         StringBuffer str = new StringBuffer();
         int curTurn = -1;//game.getTurn();
@@ -303,6 +461,8 @@ negamax(rootNode, depth, −∞, +∞, 1)
                     str.append(" ").append(Move.toStr(m.getEnd()));
                 if (m.hasCaptured())
                     str.append(" cap:").append(Move.toStr(m.getCaptured(0)));
+                if (m.getEndType() != null && m.getEndType() != m.getStartType())
+                    str.append(" becomes:").append(m.getEndType());
             }
         }
         log.debug("Moves: " + str);

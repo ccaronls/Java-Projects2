@@ -7,21 +7,68 @@ import java.util.List;
 import cc.lib.game.Utils;
 import cc.lib.utils.Reflector;
 
+/**
+ * Base class for logical rules to govern a checkerboard style game.
+ */
 public abstract class Rules extends Reflector<Rules> {
 
     static {
         addAllFields(Rules.class);
     }
 
+    /**
+     * setup pieces and choose side.
+     * @param game
+     */
     abstract void init(Game game);
 
+    /**
+     * Return a color for the side
+     * @param side
+     * @return
+     */
     abstract Color getPlayerColor(int side);
 
+    /**
+     * Perform the logical move
+     * @param game
+     * @param move
+     */
     abstract void executeMove(Game game, Move move);
 
+    /**
+     * return the playerNum >= 0 is there is a winner, < 0 otherwise.
+     * @param game
+     * @return
+     */
     abstract int getWinner(Game game);
 
+    /**
+     * Return true if the current state of the game is a tie
+     * @param game
+     * @return
+     */
     abstract boolean isDraw(Game game);
+
+    /**
+     *
+     * @param game
+     * @param move
+     * @return
+     */
+    public abstract long evaluate(Game game, Move move);
+
+    /**
+     * Return true if any of the moves are a jump
+     *
+     * @param game
+     * @param rank
+     * @param col
+     * @param parent
+     * @param moves
+     * @return
+     */
+    abstract boolean computeMovesForSquare(Game game, int rank, int col, Move parent, List<Move> moves);
 
     final void reverseMove(Game game, Move m) {
         Piece p;
@@ -57,18 +104,6 @@ public abstract class Rules extends Reflector<Rules> {
         game.setTurn(m.getPlayerNum());
     }
 
-    /**
-     * Return true if any of the moves are a jump
-     *
-     * @param game
-     * @param rank
-     * @param col
-     * @param parent
-     * @param moves
-     * @return
-     */
-    abstract boolean computeMovesForSquare(Game game, int rank, int col, Move parent, List<Move> moves);
-
     final List<Move> computeMoves(Game game) {
         List<Move> moves = new ArrayList<>();
         boolean hasJumps = false;
@@ -97,16 +132,4 @@ public abstract class Rules extends Reflector<Rules> {
     }
 
     public boolean isJumpsMandatory() { return false; }
-
-    public long getZeroMovesValue(Game game) {
-        return Long.MIN_VALUE;
-    }
-
-    public enum BoardType {
-        CHECKERBOARD,
-        DAMABOARD,
-        OTHER
-    }
-
-    public abstract long evaluate(Game game, Move move);
 }

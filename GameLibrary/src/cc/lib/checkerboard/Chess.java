@@ -570,17 +570,17 @@ public class Chess extends Rules {
     public long evaluate(Game game, Move move) {
         long value=0;
         try {
-            if (isDraw(game))
+            if (game.isDraw())
                 return value=0;
             int side;
-            switch(side=getWinner(game)) {
+            switch(side=game.getWinnerNum()) {
                 case NEAR:
                 case FAR:
                     return side == move.getPlayerNum() ? Long.MAX_VALUE : Long.MIN_VALUE;
             }
-            if (game.getMoves().size() == 0) {
-                return value=Long.MIN_VALUE;
-            }
+//            if (game.getMoves().size() == 0) {
+//                return value=Long.MIN_VALUE;
+//            }
             value = 10 * game.getMoves().size(); // move options is good
             switch (move.getMoveType()) {
                 //case SWAP:
@@ -594,7 +594,7 @@ public class Chess extends Rules {
             for (int r = 0; r < game.getRanks(); r++) {
                 for (int c = 0; c < game.getColumns(); c++) {
                     Piece p = game.getPiece(r, c);
-                    int scale = p.getPlayerNum() != move.getPlayerNum() ? 1 : -1;
+                    int scale = p.getPlayerNum() == move.getPlayerNum() ? 1 : -1;
                     //if (p.getType() == EMPTY)
                     //    continue;
                     //System.out.println("scale=" + scale);
@@ -611,7 +611,7 @@ public class Chess extends Rules {
                             value += 120 * scale;
                             break;
                         case PAWN_TOSWAP:
-                            value += 1000 * scale;
+                            value += 5000 * scale;
                             break;
                         case BISHOP:
                             value += 300 * scale;
@@ -623,7 +623,7 @@ public class Chess extends Rules {
                             value += 500 * scale;
                             break;
                         case ROOK_IDLE:
-                            value += 510 * scale;
+                            value += 550 * scale;
                             break;
                         case QUEEN:
                             value += 800 * scale;
@@ -634,25 +634,22 @@ public class Chess extends Rules {
                         case CHECKED_KING_IDLE:
                             value -= 300 * scale;
                             break;
-                        case UNCHECKED_KING:
+                        case UNCHECKED_KING: // once lost idle state we want to chase the other king
+                            value -= 100 * scale;
                             if (p.getPlayerNum() == move.getPlayerNum()) {
-                                int dist = Utils.fastLen(r-move.getOpponentKingPos()[0], c-move.getOpponentKingPos()[1]);
+                                int dist = Math.max(Math.abs(r-move.getOpponentKingPos()[0]), Math.abs(c-move.getOpponentKingPos()[1]));
                                 //System.out.println("dist:"+  dist);
-                                value += 10 - dist;
+                                value -= (dist-2); // 2 units away is best
                             }
                             break;
                         case UNCHECKED_KING_IDLE:
-                            value += 10 * scale; // we want avoid moving
+                            value += 1000 * scale; // we want avoid moving this piece
                             break;
                         default:
                             throw new AssertionError("Unhandled case '" + p.getType() + "'");
                     }
                 }
             }
-            long before = value;
-            value *= 100;
-            value += value < 0 ? Utils.randRange(-99, 0) : value > 0 ? Utils.randRange(0, 99) : Utils.randRange(-99, 99); // add some randomness to resolve duplicates
-            //System.out.println("value: " + before + " -> " + value);
             return value;
         } finally {
             //System.out.println("[" + value + "] " + move);

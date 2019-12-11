@@ -177,11 +177,13 @@ public class FileUtils {
 	}
 
 	public static void deleteDirContents(File dir, Pattern pattern) throws IOException {
+	    if (!dir.isDirectory())
+	        throw new IOException("Not a directory " + dir.getAbsolutePath());
 		for (File f : dir.listFiles()) {
 			if (f.isDirectory()) {
 				deleteDirContents(f, pattern);
 			} else if (pattern.matcher(f.getName()).matches()) {
-				System.out.println("Deleting '" + f.getAbsolutePath() + "'");
+			    log.debug("Deleting '" + f.getAbsolutePath() + "'");
     			if (!f.delete())
     				throw new IOException("Failed to delete file '" + f.getAbsolutePath() + "'");
 			}
@@ -297,7 +299,7 @@ public class FileUtils {
             if (!settingsDir.mkdirs())
                 throw new RuntimeException("Failed to create settings directory: " + settingsDir.getAbsolutePath());
             else
-                System.out.println("Created settings directory: " + settingsDir.getAbsolutePath());
+                log.info("Created settings directory: " + settingsDir.getAbsolutePath());
         }
         return settingsDir;
     }

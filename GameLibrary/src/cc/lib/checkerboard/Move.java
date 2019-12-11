@@ -41,6 +41,28 @@ public class Move extends Reflector<Move> implements IMove {
         return path;
     }
 
+    String getXmlStartTag(Move parent) {
+        if (parent == null) {
+            return "<root value=\"" + bestValue + "\" turn=\"" + playerNum + "\">";
+        }
+        boolean isPath = parent.path == this;
+        if (maximize == 0)
+            return "<leaf" + (isPath ? " path=\"true\"" : "") + " value=\"" + bestValue + "\">";
+        else if (maximize < 0)
+            return "<min" + (isPath ? " path=\"true\"" : "") + " value=\"" + bestValue + "\">";
+        return "<max" + (isPath ? " path=\"true\"" : "") + " value=\"" + bestValue + "\">";
+    }
+
+    String getXmlEndTag(Move parent) {
+        if (parent == null) {
+            return "</root>";
+        }
+        if (maximize == 0)
+            return "</leaf>";
+        else if (maximize < 0)
+            return "</min>";
+        return "</max>";
+    }
 
     public Move(MoveType t, int playerNum) { //}, Piece captured, PieceType nextType, int ... positions) {
         this.moveType = t;
