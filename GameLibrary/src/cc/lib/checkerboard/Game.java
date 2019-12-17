@@ -493,8 +493,21 @@ public class Game extends Reflector<Game> implements IGame<Move> {
 
     public String getInfoString() {
         StringBuffer s = new StringBuffer(gameState.name());
-        s.append(" ").append(getTurnStr(getTurn())).append(":");
-        Player pl = getPlayer(getTurn());
+        int turn = getTurn();
+        switch (gameState) {
+            case PLAYING:
+                break;
+            case NEAR_WINS:
+                turn = NEAR;
+                break;
+            case FAR_WINS:
+                turn = FAR;
+                break;
+            case DRAW:
+                break;
+        }
+        s.append(" ").append(getTurnStr(turn)).append(":");
+        Player pl = getPlayer(turn);
         if (pl != null)
             s.append(pl.getColor());
         else
