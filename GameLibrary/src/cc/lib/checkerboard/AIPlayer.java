@@ -35,6 +35,7 @@ public class AIPlayer extends Player {
 
     enum Algorithm {
         minimax,
+        miniMaxAB,
         negamax,
         negamaxAB
     }
@@ -105,6 +106,9 @@ public class AIPlayer extends Player {
             case minimax:
                 root.bestValue = miniMaxR(game, root, true, maxSearchDepth, 0);
                 break;
+            case miniMaxAB:
+                root.bestValue = miniMaxABR(game, root, true, maxSearchDepth, 0, Long.MIN_VALUE, Long.MAX_VALUE);
+                break;
             case negamax:
 //                root.bestValue = negamaxR(game, root, -1, maxSearchDepth, 0);
                 root.bestValue = negamaxR(game, root, 1, maxSearchDepth, 0);
@@ -121,10 +125,9 @@ public class AIPlayer extends Player {
         Move m = root.path;
         while (m != null) {
             // move the 'path' node to front so that it appears first in the xml
-            if (root.children != null) {
+            if (movePathNodeToFront && root.children != null) {
                 if (!root.children.remove(m))
                     throw new AssertionError();
-                //m.children.remove(m);
                 root.children.add(0, m);
             }
             moveList.add(m);
@@ -134,6 +137,7 @@ public class AIPlayer extends Player {
         printMovesListToLog();
     }
 
+    public static boolean movePathNodeToFront = true;
     public static boolean randomizeDuplicates = true;
 
     static long evaluate(Game game, int actualDepth) {
@@ -202,7 +206,7 @@ public class AIPlayer extends Player {
                 boolean sameTurn = m.getPlayerNum() == game.getTurn(); // if turn has not changed
                 long v = miniMaxR(game, m, sameTurn, sameTurn ? depth : depth-1, actualDepth+1);
                 m.bestValue = v;
-                if (v >= value) {
+                if (v > value) {
                     path = m;
                     value = v;
                 }
@@ -220,7 +224,7 @@ public class AIPlayer extends Player {
                 long v = miniMaxR(game, m, !sameTurn, !sameTurn ? depth : depth-1, actualDepth+1);
                 //v += 100*actualDepth;
                 m.bestValue = v;
-                if (v <= value) {
+                if (v < value) {
                     path = m;
                     value = v;
                 }
@@ -231,6 +235,56 @@ public class AIPlayer extends Player {
         }
     }
 
+    static long miniMaxABR(Game game, Move root, boolean maximizePlayer, int depth, int actualDepth, long alpha, long beta) {
+        if (root == null || root.getPlayerNum() < 0)
+            throw new AssertionError();
+        if (kill)
+            return 0;
+        int winner;
+        switch (winner=game.getWinnerNum()) {
+            case Game.NEAR:
+            case Game.FAR:
+                return root.getPlayerNum()==winner ? Long.MAX_VALUE - actualDepth : Long.MIN_VALUE + actualDepth;
+        }
+        if (game.isDraw())
+            return 0;
+        if (depth <= 0) {
+            return evaluate(game, actualDepth);
+        }
+        root.children = new ArrayList<>(game.getMoves());
+
+        long value = maximizePlayer ? Long.MIN_VALUE : Long.MAX_VALUE;
+        Move path = null;
+        root.maximize = maximizePlayer ? 1 : -1;
+        for (Move m : root.children) {
+            game.executeMove(m);
+            boolean sameTurn = m.getPlayerNum() == game.getTurn(); // if turn has not changed
+            long v;
+            if (maximizePlayer) {
+                v = miniMaxABR(game, m, sameTurn, sameTurn ? depth : depth-1, actualDepth+1, alpha, beta);
+            } else {
+                v = miniMaxABR(game, m, !sameTurn, !sameTurn ? depth : depth-1, actualDepth+1, -beta, -alpha);
+            }
+            m.bestValue = v;
+            if (maximizePlayer) {
+                if (v > value) {
+                    path = m;
+                    value = v;
+                }
+            } else {
+                if (v < value) {
+                    path = m;
+                    value = v;
+                }
+            }
+            game.undo();
+            alpha = Math.max(alpha, value);
+            //if (alpha > beta)
+              //  break;
+        }
+        root.path = path;
+        return value;
+    }
     /*
     function negamax(node, depth, color) is
     if depth = 0 or node is a terminal node then
