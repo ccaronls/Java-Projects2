@@ -37,7 +37,7 @@ public class CheckerboardTest extends TestCase {
         System.out.println(gm);
     }
 
-    public void testAIFindsWinningMoveCheckers() {
+    public void testAIFindsWinningMoveCheckers() throws Exception {
         Game gm = new Game();
         gm.setRules(new Checkers());
         gm.setPlayer(Game.FAR, new AIPlayer());
@@ -48,7 +48,15 @@ public class CheckerboardTest extends TestCase {
         gm.setPiece(4, 2, Game.FAR, PieceType.KING);
         gm.setPiece(4, 4, Game.FAR, PieceType.KING);
         gm.setTurn(Game.FAR);
+
+        Game gm2 = gm.deepCopy();
+
         runGame(gm, true, 10);
+
+        AIPlayer.algorithm = AIPlayer.Algorithm.miniMaxAB;
+        runGame(gm2, true, 10);
+
+        assertEquals(gm2.getInfoString(), gm.getInfoString());
     }
 
     public void testAIFindsWinningMoveChess() {
@@ -105,12 +113,26 @@ public class CheckerboardTest extends TestCase {
 
     public void testCheckers() {
 
+        AIPlayer.randomizeDuplicates = false;
+        AIPlayer.movePathNodeToFront = false;
+
+        Game gm1 = new Game();
+        gm1.setRules(new Checkers());
+        gm1.setPlayer(Game.FAR, new AIPlayer(3));
+        gm1.setPlayer(Game.NEAR, new AIPlayer(3));
+        gm1.newGame();
+        runGame(gm1);
+
+        AIPlayer.algorithm = AIPlayer.Algorithm.miniMaxAB;
         Game gm = new Game();
         gm.setRules(new Checkers());
         gm.setPlayer(Game.FAR, new AIPlayer(3));
         gm.setPlayer(Game.NEAR, new AIPlayer(3));
         gm.newGame();
         runGame(gm);
+
+        assertEquals(gm.getInfoString(), gm1.getInfoString());
+
     }
 
     public void testUgolki() {
@@ -123,6 +145,7 @@ public class CheckerboardTest extends TestCase {
     }
 
     public void testChess() {
+        AIPlayer.algorithm = AIPlayer.Algorithm.miniMaxAB;
         Game gm = new Game();
         gm.setRules(new Chess());
         gm.setPlayer(Game.FAR, new AIPlayer(3));
@@ -152,12 +175,15 @@ public class CheckerboardTest extends TestCase {
 
     private void runGame(Game gm, boolean expectWinner, final int maxIterations) {
 
+        long totalNodesEvaluated = 0;
+        long t = System.currentTimeMillis();
         int i;
         for (i=0; i<maxIterations; i++) {
             if (gm.getSelectedPiece() == null)
                 System.out.println("********* Frame: " + i + " " + gm.getInfoString());
             gm.runGame();
-            gm.trySaveToFile(new File("minimaxtest_testcheckrs.game"));
+            totalNodesEvaluated += AIPlayer.evalCount;
+            //gm.trySaveToFile(new File("minimaxtest_testcheckrs.game"));
             if (AIPlayer.lastSearchResult != null) {
                 try (Writer out = new FileWriter("outputs/" + AIPlayer.algorithm + "_tree." + i + ".xml")) {
                     //out.write("<root minimax=\"" + root.bestValue + "\">\n");
@@ -172,6 +198,8 @@ public class CheckerboardTest extends TestCase {
             if (gm.isGameOver())
                 break;
         }
+        long dt = System.currentTimeMillis()-t;
+        System.out.println(String.format("runGame time = %3.2f seconds, total nodes evaluated = %d", ((float)dt)/1000, totalNodesEvaluated));
         assertTrue("No winner!", !expectWinner || gm.getWinner() != null);
         System.out.println("GAME OVER\n" + gm.getInfoString());
         /*assertNotN(gm.isGameOver()) {

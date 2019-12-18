@@ -3,25 +3,25 @@ board=cc.lib.checkerboard.Piece[] 8 {
       cc.lib.checkerboard.Piece {
          captured=false
          col=0
+         playerNum=-1
+         rank=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=1
+         playerNum=-1
+         rank=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=2
          playerNum=1
          rank=0
-         type=KING
-         value=0
-      }
-      cc.lib.checkerboard.Piece {
-         captured=false
-         col=1
-         playerNum=-1
-         rank=0
-         type=EMPTY
-         value=0
-      }
-      cc.lib.checkerboard.Piece {
-         captured=false
-         col=2
-         playerNum=-1
-         rank=0
-         type=EMPTY
+         type=CHECKER
          value=0
       }
       cc.lib.checkerboard.Piece {
@@ -77,9 +77,9 @@ board=cc.lib.checkerboard.Piece[] 8 {
       cc.lib.checkerboard.Piece {
          captured=false
          col=1
-         playerNum=-1
+         playerNum=1
          rank=1
-         type=EMPTY
+         type=CHECKER
          value=0
       }
       cc.lib.checkerboard.Piece {
@@ -87,138 +87,6 @@ board=cc.lib.checkerboard.Piece[] 8 {
          col=2
          playerNum=-1
          rank=1
-         type=EMPTY
-         value=0
-      }
-      cc.lib.checkerboard.Piece {
-         captured=false
-         col=3
-         playerNum=-1
-         rank=1
-         type=EMPTY
-         value=0
-      }
-      cc.lib.checkerboard.Piece {
-         captured=false
-         col=4
-         playerNum=-1
-         rank=1
-         type=EMPTY
-         value=0
-      }
-      cc.lib.checkerboard.Piece {
-         captured=false
-         col=5
-         playerNum=-1
-         rank=1
-         type=EMPTY
-         value=0
-      }
-      cc.lib.checkerboard.Piece {
-         captured=false
-         col=6
-         playerNum=-1
-         rank=1
-         type=EMPTY
-         value=0
-      }
-      cc.lib.checkerboard.Piece {
-         captured=false
-         col=7
-         playerNum=-1
-         rank=1
-         type=EMPTY
-         value=0
-      }
-   }
-   cc.lib.checkerboard.Piece 8 {
-      cc.lib.checkerboard.Piece {
-         captured=false
-         col=0
-         playerNum=-1
-         rank=2
-         type=EMPTY
-         value=0
-      }
-      cc.lib.checkerboard.Piece {
-         captured=false
-         col=1
-         playerNum=-1
-         rank=2
-         type=EMPTY
-         value=0
-      }
-      cc.lib.checkerboard.Piece {
-         captured=false
-         col=2
-         playerNum=-1
-         rank=2
-         type=EMPTY
-         value=0
-      }
-      cc.lib.checkerboard.Piece {
-         captured=false
-         col=3
-         playerNum=-1
-         rank=2
-         type=EMPTY
-         value=0
-      }
-      cc.lib.checkerboard.Piece {
-         captured=false
-         col=4
-         playerNum=-1
-         rank=2
-         type=EMPTY
-         value=0
-      }
-      cc.lib.checkerboard.Piece {
-         captured=false
-         col=5
-         playerNum=-1
-         rank=2
-         type=EMPTY
-         value=0
-      }
-      cc.lib.checkerboard.Piece {
-         captured=false
-         col=6
-         playerNum=-1
-         rank=2
-         type=EMPTY
-         value=0
-      }
-      cc.lib.checkerboard.Piece {
-         captured=false
-         col=7
-         playerNum=-1
-         rank=2
-         type=EMPTY
-         value=0
-      }
-   }
-   cc.lib.checkerboard.Piece 8 {
-      cc.lib.checkerboard.Piece {
-         captured=false
-         col=0
-         playerNum=-1
-         rank=3
-         type=EMPTY
-         value=0
-      }
-      cc.lib.checkerboard.Piece {
-         captured=false
-         col=1
-         playerNum=-1
-         rank=3
-         type=EMPTY
-         value=0
-      }
-      cc.lib.checkerboard.Piece {
-         captured=false
-         col=2
-         playerNum=-1
-         rank=3
          type=EMPTY
          value=0
       }
@@ -226,218 +94,350 @@ board=cc.lib.checkerboard.Piece[] 8 {
          captured=false
          col=3
          playerNum=1
+         rank=1
+         type=CHECKER
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=4
+         playerNum=-1
+         rank=1
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=5
+         playerNum=-1
+         rank=1
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=6
+         playerNum=-1
+         rank=1
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=7
+         playerNum=-1
+         rank=1
+         type=EMPTY
+         value=0
+      }
+   }
+   cc.lib.checkerboard.Piece 8 {
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=0
+         playerNum=1
+         rank=2
+         type=CHECKER
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=1
+         playerNum=-1
+         rank=2
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=2
+         playerNum=1
+         rank=2
+         type=CHECKER
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=3
+         playerNum=-1
+         rank=2
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=4
+         playerNum=1
+         rank=2
+         type=CHECKER
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=5
+         playerNum=-1
+         rank=2
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=6
+         playerNum=1
+         rank=2
+         type=CHECKER
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=7
+         playerNum=-1
+         rank=2
+         type=EMPTY
+         value=0
+      }
+   }
+   cc.lib.checkerboard.Piece 8 {
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=0
+         playerNum=-1
          rank=3
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=1
+         playerNum=0
+         rank=3
+         type=CHECKER
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=2
+         playerNum=-1
+         rank=3
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=3
+         playerNum=1
+         rank=3
+         type=CHECKER
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=4
+         playerNum=-1
+         rank=3
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=5
+         playerNum=1
+         rank=3
+         type=CHECKER
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=6
+         playerNum=-1
+         rank=3
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=7
+         playerNum=1
+         rank=3
+         type=CHECKER
+         value=0
+      }
+   }
+   cc.lib.checkerboard.Piece 8 {
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=0
+         playerNum=0
+         rank=4
+         type=CHECKER
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=1
+         playerNum=-1
+         rank=4
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=2
+         playerNum=1
+         rank=4
+         type=CHECKER
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=3
+         playerNum=-1
+         rank=4
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=4
+         playerNum=0
+         rank=4
+         type=CHECKER
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=5
+         playerNum=-1
+         rank=4
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=6
+         playerNum=0
+         rank=4
+         type=CHECKER
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=7
+         playerNum=-1
+         rank=4
+         type=EMPTY
+         value=0
+      }
+   }
+   cc.lib.checkerboard.Piece 8 {
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=0
+         playerNum=-1
+         rank=5
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=1
+         playerNum=0
+         rank=5
+         type=CHECKER
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=2
+         playerNum=-1
+         rank=5
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=3
+         playerNum=-1
+         rank=5
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=4
+         playerNum=-1
+         rank=5
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=5
+         playerNum=0
+         rank=5
+         type=CHECKER
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=6
+         playerNum=-1
+         rank=5
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=7
+         playerNum=0
+         rank=5
+         type=CHECKER
+         value=0
+      }
+   }
+   cc.lib.checkerboard.Piece 8 {
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=0
+         playerNum=0
+         rank=6
+         type=CHECKER
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=1
+         playerNum=-1
+         rank=6
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=2
+         playerNum=-1
+         rank=6
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=3
+         playerNum=-1
+         rank=6
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=4
+         playerNum=1
+         rank=6
          type=KING
          value=0
       }
       cc.lib.checkerboard.Piece {
          captured=false
-         col=4
-         playerNum=-1
-         rank=3
-         type=EMPTY
-         value=0
-      }
-      cc.lib.checkerboard.Piece {
-         captured=false
-         col=5
-         playerNum=-1
-         rank=3
-         type=EMPTY
-         value=0
-      }
-      cc.lib.checkerboard.Piece {
-         captured=false
-         col=6
-         playerNum=-1
-         rank=3
-         type=EMPTY
-         value=0
-      }
-      cc.lib.checkerboard.Piece {
-         captured=false
-         col=7
-         playerNum=-1
-         rank=3
-         type=EMPTY
-         value=0
-      }
-   }
-   cc.lib.checkerboard.Piece 8 {
-      cc.lib.checkerboard.Piece {
-         captured=false
-         col=0
-         playerNum=-1
-         rank=4
-         type=EMPTY
-         value=0
-      }
-      cc.lib.checkerboard.Piece {
-         captured=false
-         col=1
-         playerNum=-1
-         rank=4
-         type=EMPTY
-         value=0
-      }
-      cc.lib.checkerboard.Piece {
-         captured=false
-         col=2
-         playerNum=-1
-         rank=4
-         type=EMPTY
-         value=0
-      }
-      cc.lib.checkerboard.Piece {
-         captured=false
-         col=3
-         playerNum=-1
-         rank=4
-         type=EMPTY
-         value=0
-      }
-      cc.lib.checkerboard.Piece {
-         captured=false
-         col=4
-         playerNum=-1
-         rank=4
-         type=EMPTY
-         value=0
-      }
-      cc.lib.checkerboard.Piece {
-         captured=false
-         col=5
-         playerNum=-1
-         rank=4
-         type=EMPTY
-         value=0
-      }
-      cc.lib.checkerboard.Piece {
-         captured=false
-         col=6
-         playerNum=-1
-         rank=4
-         type=EMPTY
-         value=0
-      }
-      cc.lib.checkerboard.Piece {
-         captured=false
-         col=7
-         playerNum=-1
-         rank=4
-         type=EMPTY
-         value=0
-      }
-   }
-   cc.lib.checkerboard.Piece 8 {
-      cc.lib.checkerboard.Piece {
-         captured=false
-         col=0
-         playerNum=-1
-         rank=5
-         type=EMPTY
-         value=0
-      }
-      cc.lib.checkerboard.Piece {
-         captured=false
-         col=1
-         playerNum=-1
-         rank=5
-         type=EMPTY
-         value=0
-      }
-      cc.lib.checkerboard.Piece {
-         captured=false
-         col=2
-         playerNum=-1
-         rank=5
-         type=EMPTY
-         value=0
-      }
-      cc.lib.checkerboard.Piece {
-         captured=false
-         col=3
-         playerNum=-1
-         rank=5
-         type=EMPTY
-         value=0
-      }
-      cc.lib.checkerboard.Piece {
-         captured=false
-         col=4
-         playerNum=-1
-         rank=5
-         type=EMPTY
-         value=0
-      }
-      cc.lib.checkerboard.Piece {
-         captured=false
-         col=5
-         playerNum=-1
-         rank=5
-         type=EMPTY
-         value=0
-      }
-      cc.lib.checkerboard.Piece {
-         captured=false
-         col=6
-         playerNum=-1
-         rank=5
-         type=EMPTY
-         value=0
-      }
-      cc.lib.checkerboard.Piece {
-         captured=false
-         col=7
-         playerNum=-1
-         rank=5
-         type=EMPTY
-         value=0
-      }
-   }
-   cc.lib.checkerboard.Piece 8 {
-      cc.lib.checkerboard.Piece {
-         captured=false
-         col=0
-         playerNum=-1
-         rank=6
-         type=EMPTY
-         value=0
-      }
-      cc.lib.checkerboard.Piece {
-         captured=false
-         col=1
-         playerNum=-1
-         rank=6
-         type=EMPTY
-         value=0
-      }
-      cc.lib.checkerboard.Piece {
-         captured=false
-         col=2
-         playerNum=-1
-         rank=6
-         type=EMPTY
-         value=0
-      }
-      cc.lib.checkerboard.Piece {
-         captured=false
-         col=3
-         playerNum=-1
-         rank=6
-         type=EMPTY
-         value=0
-      }
-      cc.lib.checkerboard.Piece {
-         captured=false
-         col=4
-         playerNum=-1
-         rank=6
-         type=EMPTY
-         value=0
-      }
-      cc.lib.checkerboard.Piece {
-         captured=false
          col=5
          playerNum=-1
          rank=6
@@ -447,9 +447,9 @@ board=cc.lib.checkerboard.Piece[] 8 {
       cc.lib.checkerboard.Piece {
          captured=false
          col=6
-         playerNum=-1
+         playerNum=0
          rank=6
-         type=EMPTY
+         type=CHECKER
          value=0
       }
       cc.lib.checkerboard.Piece {
@@ -530,24 +530,30 @@ board=cc.lib.checkerboard.Piece[] 8 {
 }
 cols=8
 gameState=FAR_WINS
-initialized=false
+initialized=true
 moves=java.util.ArrayList {
 }
 players=cc.lib.checkerboard.Player 2 {
    cc.lib.checkerboard.AIPlayer {
       captured=null
       color=BLACK
-      maxSearchDepth=4
+      maxSearchDepth=3
       playerNum=0
    }
    cc.lib.checkerboard.AIPlayer {
       captured=java.util.ArrayList {
          cc.lib.checkerboard.PieceType {
-            KING
+            CHECKER
+         }
+         cc.lib.checkerboard.PieceType {
+            CHECKER
+         }
+         cc.lib.checkerboard.PieceType {
+            CHECKER
          }
       }
       color=RED
-      maxSearchDepth=4
+      maxSearchDepth=3
       playerNum=1
    }
 }
@@ -558,39 +564,236 @@ selectedPiece=null
 turn=0
 undoStack=java.util.Stack {
    cc.lib.checkerboard.State {
-      index=3
+      index=12
       moves=java.util.ArrayList {
          cc.lib.checkerboard.Move {
             captured=null
             castleRookEnd=null
             castleRookStart=null
             end=int 2 {
-               5 1 
+               4 0 
             }
-            endType=KING
+            endType=CHECKER
             moveType=SLIDE
             opponentKing=null
-            playerNum=1
+            playerNum=0
             start=int 2 {
-               4 2 
+               5 1 
             }
-            startType=KING
+            startType=CHECKER
          }
          cc.lib.checkerboard.Move {
             captured=null
             castleRookEnd=null
             castleRookStart=null
             end=int 2 {
+               4 2 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               5 1 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 2 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
                5 3 
             }
-            endType=KING
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 4 
+            }
+            endType=CHECKER
             moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               5 3 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 4 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               5 5 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 6 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               5 5 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 6 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               5 7 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 2 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               6 0 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 0 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               6 2 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 4 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               6 2 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 2 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               6 4 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 6 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               6 4 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 4 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               6 6 
+            }
+            startType=CHECKER
+         }
+      }
+   }
+   cc.lib.checkerboard.State {
+      index=12
+      moves=java.util.ArrayList {
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 3 
+            }
+            endType=CHECKER
+            moveType=JUMP
             opponentKing=null
             playerNum=1
             start=int 2 {
-               4 2 
+               1 1 
             }
-            startType=KING
+            startType=CHECKER
          }
          cc.lib.checkerboard.Move {
             captured=null
@@ -599,78 +802,14 @@ undoStack=java.util.Stack {
             end=int 2 {
                3 1 
             }
-            endType=KING
-            moveType=SLIDE
+            endType=CHECKER
+            moveType=JUMP
             opponentKing=null
             playerNum=1
             start=int 2 {
-               4 2 
+               1 3 
             }
-            startType=KING
-         }
-         cc.lib.checkerboard.Move {
-            captured=null
-            castleRookEnd=null
-            castleRookStart=null
-            end=int 2 {
-               3 3 
-            }
-            endType=KING
-            moveType=SLIDE
-            opponentKing=null
-            playerNum=1
-            start=int 2 {
-               4 2 
-            }
-            startType=KING
-         }
-         cc.lib.checkerboard.Move {
-            captured=null
-            castleRookEnd=null
-            castleRookStart=null
-            end=int 2 {
-               5 3 
-            }
-            endType=KING
-            moveType=SLIDE
-            opponentKing=null
-            playerNum=1
-            start=int 2 {
-               4 4 
-            }
-            startType=KING
-         }
-         cc.lib.checkerboard.Move {
-            captured=null
-            castleRookEnd=null
-            castleRookStart=null
-            end=int 2 {
-               5 5 
-            }
-            endType=KING
-            moveType=SLIDE
-            opponentKing=null
-            playerNum=1
-            start=int 2 {
-               4 4 
-            }
-            startType=KING
-         }
-         cc.lib.checkerboard.Move {
-            captured=null
-            castleRookEnd=null
-            castleRookStart=null
-            end=int 2 {
-               3 3 
-            }
-            endType=KING
-            moveType=SLIDE
-            opponentKing=null
-            playerNum=1
-            start=int 2 {
-               4 4 
-            }
-            startType=KING
+            startType=CHECKER
          }
          cc.lib.checkerboard.Move {
             captured=null
@@ -679,14 +818,1441 @@ undoStack=java.util.Stack {
             end=int 2 {
                3 5 
             }
-            endType=KING
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               1 3 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 3 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               1 5 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 7 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               1 5 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 5 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               1 7 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 1 
+            }
+            endType=CHECKER
             moveType=SLIDE
             opponentKing=null
             playerNum=1
             start=int 2 {
+               2 0 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 1 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               2 2 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 3 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               2 2 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 3 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               2 4 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 5 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               2 4 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 5 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               2 6 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 7 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               2 6 
+            }
+            startType=CHECKER
+         }
+      }
+   }
+   cc.lib.checkerboard.State {
+      index=12
+      moves=java.util.ArrayList {
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 3 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
                4 4 
             }
-            startType=KING
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 5 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               4 4 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 0 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               5 1 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 2 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               5 1 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 5 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               5 3 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 2 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               5 3 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 3 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               5 5 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 6 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               5 5 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 6 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               5 7 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 2 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               6 0 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 0 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               6 2 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 2 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               6 4 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 6 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               6 4 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               6 6 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               7 5 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               6 6 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               7 7 
+            }
+            startType=CHECKER
+         }
+      }
+   }
+   cc.lib.checkerboard.State {
+      index=1
+      moves=java.util.ArrayList {
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               2 6 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               0 4 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 3 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               1 1 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 1 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               1 3 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 5 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               1 3 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 3 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               1 5 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               2 6 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               1 5 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               2 6 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               1 7 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 1 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               2 0 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 1 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               2 2 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 3 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               2 2 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 3 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               2 4 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 5 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               2 4 
+            }
+            startType=CHECKER
+         }
+      }
+   }
+   cc.lib.checkerboard.State {
+      index=4
+      moves=java.util.ArrayList {
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 5 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               4 4 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 5 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               4 6 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 0 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               5 1 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 2 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               5 1 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 5 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               5 3 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 2 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               5 3 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 5 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               5 7 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 2 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               6 0 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 0 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               6 2 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               6 4 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               7 3 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               6 4 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               7 5 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               6 6 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               7 5 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               6 6 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               7 7 
+            }
+            startType=CHECKER
+         }
+      }
+   }
+   cc.lib.checkerboard.State {
+      index=4
+      moves=java.util.ArrayList {
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               1 1 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               0 0 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               1 1 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               0 2 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               2 6 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               0 4 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 1 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               1 3 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               2 6 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               1 5 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               2 6 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               1 7 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 1 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               2 0 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 1 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               2 2 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 2 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               2 4 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 2 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               3 3 
+            }
+            startType=CHECKER
+         }
+      }
+   }
+   cc.lib.checkerboard.State {
+      index=9
+      moves=java.util.ArrayList {
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 0 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               5 1 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 2 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               5 1 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 2 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               6 0 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 0 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               6 2 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               5 3 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               6 2 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               5 3 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               7 1 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               6 4 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               7 3 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               6 4 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               7 5 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               6 6 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               7 5 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               6 6 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               7 7 
+            }
+            startType=CHECKER
+         }
+      }
+   }
+   cc.lib.checkerboard.State {
+      index=3
+      moves=java.util.ArrayList {
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               1 1 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               0 0 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               1 1 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               0 2 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               1 5 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               0 4 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               1 5 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               0 6 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 1 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               1 3 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 1 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               2 0 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 1 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               2 2 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 2 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               2 4 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 2 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               3 3 
+            }
+            startType=CHECKER
+         }
+      }
+   }
+   cc.lib.checkerboard.State {
+      index=7
+      moves=java.util.ArrayList {
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 0 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               5 1 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 2 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               5 1 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 2 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               6 0 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 0 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               6 2 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               5 3 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               6 2 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               5 3 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               7 1 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               6 4 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               7 3 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               6 4 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               7 5 
+            }
+            startType=CHECKER
          }
       }
    }
@@ -700,35 +2266,78 @@ undoStack=java.util.Stack {
             end=int 2 {
                1 1 
             }
-            endType=KING
+            endType=CHECKER
             moveType=SLIDE
             opponentKing=null
-            playerNum=0
+            playerNum=1
             start=int 2 {
                0 0 
             }
-            startType=KING
+            startType=CHECKER
          }
-      }
-   }
-   cc.lib.checkerboard.State {
-      index=4
-      moves=java.util.ArrayList {
          cc.lib.checkerboard.Move {
             captured=null
             castleRookEnd=null
             castleRookStart=null
             end=int 2 {
-               5 5 
+               1 1 
             }
-            endType=KING
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               0 2 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 1 
+            }
+            endType=CHECKER
             moveType=JUMP
             opponentKing=null
             playerNum=1
             start=int 2 {
-               3 3 
+               1 3 
             }
-            startType=KING
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 1 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               2 0 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 1 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               2 2 
+            }
+            startType=CHECKER
          }
          cc.lib.checkerboard.Move {
             captured=null
@@ -737,62 +2346,99 @@ undoStack=java.util.Stack {
             end=int 2 {
                4 2 
             }
-            endType=KING
-            moveType=SLIDE
-            opponentKing=null
-            playerNum=1
-            start=int 2 {
-               3 3 
-            }
-            startType=KING
-         }
-         cc.lib.checkerboard.Move {
-            captured=null
-            castleRookEnd=null
-            castleRookStart=null
-            end=int 2 {
-               2 2 
-            }
-            endType=KING
-            moveType=SLIDE
-            opponentKing=null
-            playerNum=1
-            start=int 2 {
-               3 3 
-            }
-            startType=KING
-         }
-         cc.lib.checkerboard.Move {
-            captured=null
-            castleRookEnd=null
-            castleRookStart=null
-            end=int 2 {
-               2 4 
-            }
-            endType=KING
-            moveType=SLIDE
-            opponentKing=null
-            playerNum=1
-            start=int 2 {
-               3 3 
-            }
-            startType=KING
-         }
-         cc.lib.checkerboard.Move {
-            captured=null
-            castleRookEnd=null
-            castleRookStart=null
-            end=int 2 {
-               2 2 
-            }
-            endType=KING
+            endType=CHECKER
             moveType=JUMP
             opponentKing=null
             playerNum=1
             start=int 2 {
-               4 4 
+               2 4 
             }
-            startType=KING
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 2 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               3 3 
+            }
+            startType=CHECKER
+         }
+      }
+   }
+   cc.lib.checkerboard.State {
+      index=3
+      moves=java.util.ArrayList {
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 0 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               5 1 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 2 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               5 1 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 2 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               6 0 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 0 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               6 2 
+            }
+            startType=CHECKER
          }
          cc.lib.checkerboard.Move {
             captured=null
@@ -801,30 +2447,273 @@ undoStack=java.util.Stack {
             end=int 2 {
                5 3 
             }
-            endType=KING
+            endType=CHECKER
             moveType=SLIDE
             opponentKing=null
-            playerNum=1
+            playerNum=0
             start=int 2 {
-               4 4 
+               6 2 
             }
-            startType=KING
+            startType=CHECKER
          }
          cc.lib.checkerboard.Move {
             captured=null
             castleRookEnd=null
             castleRookStart=null
             end=int 2 {
-               5 5 
+               5 3 
             }
-            endType=KING
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               6 4 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               5 3 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               7 1 
+            }
+            startType=CHECKER
+         }
+      }
+   }
+   cc.lib.checkerboard.State {
+      index=3
+      moves=java.util.ArrayList {
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 1 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               1 3 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 1 
+            }
+            endType=CHECKER
             moveType=SLIDE
             opponentKing=null
             playerNum=1
             start=int 2 {
-               4 4 
+               2 0 
             }
-            startType=KING
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 1 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               2 2 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 2 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               2 4 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 2 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               3 3 
+            }
+            startType=CHECKER
+         }
+      }
+   }
+   cc.lib.checkerboard.State {
+      index=0
+      moves=java.util.ArrayList {
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               2 4 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               3 5 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 1 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               4 0 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               2 4 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               4 6 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               5 3 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               6 4 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               6 2 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               7 1 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               6 2 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               7 3 
+            }
+            startType=CHECKER
+         }
+      }
+   }
+   cc.lib.checkerboard.State {
+      index=1
+      moves=java.util.ArrayList {
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 1 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               1 3 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=java.util.ArrayList {
+               int 3 {
+                  2 4 16 
+               }
+            }
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 5 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               1 3 
+            }
+            startType=CHECKER
          }
          cc.lib.checkerboard.Move {
             captured=null
@@ -833,14 +2722,78 @@ undoStack=java.util.Stack {
             end=int 2 {
                3 5 
             }
-            endType=KING
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               1 7 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 1 
+            }
+            endType=CHECKER
             moveType=SLIDE
             opponentKing=null
             playerNum=1
             start=int 2 {
-               4 4 
+               2 0 
             }
-            startType=KING
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 1 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               2 2 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 5 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               2 6 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               5 3 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               4 2 
+            }
+            startType=CHECKER
          }
       }
    }
@@ -850,22 +2803,22 @@ undoStack=java.util.Stack {
          cc.lib.checkerboard.Move {
             captured=java.util.ArrayList {
                int 3 {
-                  1 1 14 
+                  4 4 16 
                }
             }
             castleRookEnd=null
             castleRookStart=null
             end=int 2 {
-               0 0 
+               5 3 
             }
-            endType=KING
+            endType=CHECKER
             moveType=JUMP
             opponentKing=null
             playerNum=1
             start=int 2 {
-               2 2 
+               3 5 
             }
-            startType=KING
+            startType=CHECKER
          }
          cc.lib.checkerboard.Move {
             captured=null
@@ -877,7 +2830,1682 @@ undoStack=java.util.Stack {
             opponentKing=null
             playerNum=1
             start=int 2 {
+               3 5 
+            }
+            startType=CHECKER
+         }
+      }
+   }
+   cc.lib.checkerboard.State {
+      index=0
+      moves=java.util.ArrayList {
+         cc.lib.checkerboard.Move {
+            captured=java.util.ArrayList {
+               int 3 {
+                  6 4 16 
+               }
+            }
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               7 5 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               5 3 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=null
+            endType=null
+            moveType=END
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               5 3 
+            }
+            startType=CHECKER
+         }
+      }
+   }
+   cc.lib.checkerboard.State {
+      index=0
+      moves=java.util.ArrayList {
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               7 5 
+            }
+            endType=KING
+            moveType=STACK
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               7 5 
+            }
+            startType=CHECKER
+         }
+      }
+   }
+   cc.lib.checkerboard.State {
+      index=0
+      moves=java.util.ArrayList {
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 1 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               4 0 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 5 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               4 6 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 4 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               5 5 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 5 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               5 7 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 4 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               6 6 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               6 2 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               7 1 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               6 2 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               7 3 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               6 4 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               7 3 
+            }
+            startType=CHECKER
+         }
+      }
+   }
+   cc.lib.checkerboard.State {
+      index=1
+      moves=java.util.ArrayList {
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               1 3 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               0 2 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               1 3 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               0 4 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               2 4 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               1 5 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 5 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               1 7 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=java.util.ArrayList {
+               int 3 {
+                  3 1 16 
+               }
+            }
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 0 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
                2 2 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 4 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               2 2 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 5 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               2 6 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 4 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               3 3 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               5 3 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               4 2 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               6 4 
+            }
+            endType=KING
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               7 5 
+            }
+            startType=KING
+         }
+      }
+   }
+   cc.lib.checkerboard.State {
+      index=6
+      moves=java.util.ArrayList {
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 5 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               4 6 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 0 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               5 1 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 4 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               5 5 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 5 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               5 7 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 4 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               6 6 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               6 2 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               7 1 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               6 2 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               7 3 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               6 4 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               7 3 
+            }
+            startType=CHECKER
+         }
+      }
+   }
+   cc.lib.checkerboard.State {
+      index=9
+      moves=java.util.ArrayList {
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               2 4 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               0 2 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               2 4 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               1 3 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               2 4 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               1 5 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 5 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               1 7 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=java.util.ArrayList {
+               int 3 {
+                  3 1 16 
+               }
+            }
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 0 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               2 2 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 4 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               2 2 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 5 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               2 6 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 4 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               3 3 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               5 3 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               4 2 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               6 4 
+            }
+            endType=KING
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               7 5 
+            }
+            startType=KING
+         }
+      }
+   }
+   cc.lib.checkerboard.State {
+      index=5
+      moves=java.util.ArrayList {
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 5 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               4 6 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 0 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               5 1 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 4 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               5 5 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 5 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               5 7 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 0 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               6 2 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               5 3 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               6 2 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 4 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               6 6 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               5 3 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               7 1 
+            }
+            startType=CHECKER
+         }
+      }
+   }
+   cc.lib.checkerboard.State {
+      index=8
+      moves=java.util.ArrayList {
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               2 4 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               0 2 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               2 4 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               1 3 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               2 4 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               1 5 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 5 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               1 7 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=java.util.ArrayList {
+               int 3 {
+                  3 1 16 
+               }
+            }
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 0 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               2 2 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 4 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               2 2 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 5 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               2 6 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 4 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               3 3 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               7 3 
+            }
+            endType=KING
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               6 4 
+            }
+            startType=KING
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               7 5 
+            }
+            endType=KING
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               6 4 
+            }
+            startType=KING
+         }
+      }
+   }
+   cc.lib.checkerboard.State {
+      index=6
+      moves=java.util.ArrayList {
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 5 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               4 6 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 0 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               5 1 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 4 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               5 3 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 4 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               5 5 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 5 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               5 7 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 4 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               6 6 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               6 2 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               7 1 
+            }
+            startType=CHECKER
+         }
+      }
+   }
+   cc.lib.checkerboard.State {
+      index=2
+      moves=java.util.ArrayList {
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               2 4 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               0 2 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               2 4 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               1 3 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               2 4 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               1 5 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 5 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               1 7 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=java.util.ArrayList {
+               int 3 {
+                  3 1 16 
+               }
+            }
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 0 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               2 2 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 4 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               2 2 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 5 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               2 6 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 4 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               3 3 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=java.util.ArrayList {
+               int 3 {
+                  5 3 16 
+               }
+            }
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               6 4 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               4 2 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               6 4 
+            }
+            endType=KING
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               7 3 
+            }
+            startType=KING
+         }
+      }
+   }
+   cc.lib.checkerboard.State {
+      index=2
+      moves=java.util.ArrayList {
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 5 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               4 6 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 0 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               5 1 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 4 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               5 3 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 4 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               5 5 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 5 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               5 7 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 0 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               6 2 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 4 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               6 2 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 4 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               6 6 
+            }
+            startType=CHECKER
+         }
+      }
+   }
+   cc.lib.checkerboard.State {
+      index=1
+      moves=java.util.ArrayList {
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 5 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               1 3 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 5 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               1 7 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=java.util.ArrayList {
+               int 3 {
+                  3 1 16 
+               }
+            }
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 0 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               2 2 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 5 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               2 4 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 5 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               2 6 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               5 3 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               4 2 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               6 4 
+            }
+            endType=KING
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               7 3 
+            }
+            startType=KING
+         }
+      }
+   }
+   cc.lib.checkerboard.State {
+      index=1
+      moves=java.util.ArrayList {
+         cc.lib.checkerboard.Move {
+            captured=java.util.ArrayList {
+               int 3 {
+                  4 4 16 
+               }
+            }
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               5 3 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               3 5 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=null
+            endType=null
+            moveType=END
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               3 5 
+            }
+            startType=CHECKER
+         }
+      }
+   }
+   cc.lib.checkerboard.State {
+      index=1
+      moves=java.util.ArrayList {
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 0 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               5 1 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 0 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               6 2 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               5 3 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               6 2 
+            }
+            startType=CHECKER
+         }
+      }
+   }
+   cc.lib.checkerboard.State {
+      index=3
+      moves=java.util.ArrayList {
+         cc.lib.checkerboard.Move {
+            captured=java.util.ArrayList {
+               int 3 {
+                  4 4 16 
+               }
+            }
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               5 3 
+            }
+            endType=CHECKER
+            moveType=JUMP
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               3 5 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               5 3 
+            }
+            endType=CHECKER
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               4 2 
+            }
+            startType=CHECKER
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               6 2 
+            }
+            endType=KING
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               7 3 
+            }
+            startType=KING
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               6 4 
+            }
+            endType=KING
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               7 3 
             }
             startType=KING
          }

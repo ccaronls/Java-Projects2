@@ -4,6 +4,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
 
+import cc.lib.game.GColor;
 import cc.lib.swing.AWTGraphics;
 import cc.lib.swing.AWTButton;
 import cc.lib.swing.AWTFrame;
@@ -45,13 +46,13 @@ public class Main extends AWTKeyboardAnimationApplet implements ActionListener {
 	}
 	
 	@Override
-	protected void drawFrame(AWTGraphics g) {
+	protected void drawFrame(AGraphics g) {
 		
 		final int width = getScreenWidth();
 		final int height = getScreenHeight();
 		
         // clear screen
-        g.setColor(g.BLACK);
+        g.setColor(GColor.BLACK);
         g.drawFilledRect(0,0,width,height);
 
 		curRow = curCol = curNum -1;
@@ -62,18 +63,16 @@ public class Main extends AWTKeyboardAnimationApplet implements ActionListener {
 		
 		// draw the grid
 		if (solved)
-			g.setColor(g.makeColor(sudoku.rand()%256,
-								 sudoku.rand()%256, 
-								 sudoku.rand()%256));
+			g.setColor(new GColor(sudoku.rand()%256,sudoku.rand()%256,sudoku.rand()%256));
 		else
-			g.setColor(g.LIGHT_GRAY);
+			g.setColor(GColor.LIGHT_GRAY);
 		for (int i=0; i<=Sudoku.SUDOKU_DIM; i++) {
 			g.drawLine(dw*i, 0, dw*i, height);
 			g.drawLine(0, dh*i, width, dh*i);
 		}
 		
 		// draw the sub-cells
-		g.setColor(g.CYAN);
+		g.setColor(GColor.CYAN);
 		for (int i=0; i<=Sudoku.SUDOKU_DIM/3; i++) {
 			for (int t=-1; t<=1; t++) {
 				g.drawLine(dw*3*i+t, 0, dw*3*i+t, height);
@@ -94,7 +93,7 @@ public class Main extends AWTKeyboardAnimationApplet implements ActionListener {
 				
 				if (inside && canEdit) {
 					// highlight this square in red
-					g.setColor(g.RED);
+					g.setColor(GColor.RED);
 					drawRect(g,x,y,dw,dh,3);
 					curRow = i;
 					curCol = j;
@@ -102,9 +101,9 @@ public class Main extends AWTKeyboardAnimationApplet implements ActionListener {
 				
 				if (num > 0) {
 					if (canEdit) {
-						g.setColor(g.YELLOW);
+						g.setColor(GColor.YELLOW);
 					} else {
-						g.setColor(g.WHITE);
+						g.setColor(GColor.WHITE);
 					}
 					drawNumber(g, num, x, y, dw, dh);
 					if (inside && leftPressed && canEdit) {
@@ -148,9 +147,9 @@ public class Main extends AWTKeyboardAnimationApplet implements ActionListener {
 			if (sudoku.canSetSquare(i, curRow, curCol)) {
 				if (numHints == 1 || isMouseInside(x,y,dw,dh)) {
 					curNum = i;
-					g.setColor(g.YELLOW);			
+					g.setColor(GColor.YELLOW);
 				} else {
-					g.setColor(g.GREEN);
+					g.setColor(GColor.GREEN);
 				}
 				drawNumber(g, i, x, y, dw, dh);
 				if (++numDrawn >= 3) {

@@ -513,6 +513,12 @@ public class Game extends Reflector<Game> implements IGame<Move> {
         else
             s.append("<INVESTIGATE: NULL COLOR>");
         s.append("(").append(turn).append(")");
+        if (pl.getCaptured() != null) {
+            s.append(" cap:");
+            for (PieceType pt : pl.getCaptured()) {
+                s.append(pt.abbrev).append(" ");
+            }
+        }
         s.append("\n   ");
         for (int c=0; c<getColumns(); c++) {
             s.append(String.format("%3d ", c));

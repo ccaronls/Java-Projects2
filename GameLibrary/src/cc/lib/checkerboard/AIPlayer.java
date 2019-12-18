@@ -134,6 +134,7 @@ public class AIPlayer extends Player {
             root = m;
             m = m.path;
         }
+        onMoveListGenerated(moveList);
         printMovesListToLog();
     }
 
@@ -141,7 +142,7 @@ public class AIPlayer extends Player {
     public static boolean randomizeDuplicates = true;
 
     static long evaluate(Game game, int actualDepth) {
-        long startTime = System.currentTimeMillis();
+        final long startTime = System.currentTimeMillis();
         long value = game.getRules().evaluate(game, game.getMostRecentMove());
         if (value > Long.MIN_VALUE) {
             value -= actualDepth; // shorter paths that lead to the same value are scored higher.
@@ -156,6 +157,7 @@ public class AIPlayer extends Player {
             }
         }
         evalTimeTotalMSecs += (System.currentTimeMillis() - startTime);
+        ++evalCount;
         /*
         if (++evalCount % 200 == 0) {
             System.out.print('.');
@@ -263,24 +265,27 @@ public class AIPlayer extends Player {
             if (maximizePlayer) {
                 v = miniMaxABR(game, m, sameTurn, sameTurn ? depth : depth-1, actualDepth+1, alpha, beta);
             } else {
-                v = miniMaxABR(game, m, !sameTurn, !sameTurn ? depth : depth-1, actualDepth+1, -beta, -alpha);
+                v = miniMaxABR(game, m, !sameTurn, !sameTurn ? depth : depth-1, actualDepth+1, alpha, beta);
             }
+            game.undo();
             m.bestValue = v;
             if (maximizePlayer) {
                 if (v > value) {
                     path = m;
                     value = v;
                 }
+                alpha = Math.max(alpha, value);
+                if (alpha > beta)
+                    break;
             } else {
                 if (v < value) {
                     path = m;
                     value = v;
                 }
+                beta = Math.min(beta, value);
+                if (beta < alpha)
+                    break;
             }
-            game.undo();
-            alpha = Math.max(alpha, value);
-            //if (alpha > beta)
-              //  break;
         }
         root.path = path;
         return value;
@@ -519,5 +524,7 @@ negamax(rootNode, depth, −∞, +∞, 1)
         //    System.out.print('.');
     }
 
-    protected void onMoveListGenerated(List<Move> moveList) {}
+    protected void onMoveListGenerated(List<Move> moveList) {
+        log.debug("nodes evaluated = " + evalCount);
+    }
 }
