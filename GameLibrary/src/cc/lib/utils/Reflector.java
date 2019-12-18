@@ -1954,14 +1954,17 @@ public class Reflector<T> {
      * @return
      * @throws Exception
      */
-    public synchronized String diff(Reflector<T> other) throws Exception {
+    public synchronized String diff(Reflector<T> other) {
         if (other == null)
             throw new NullPointerException("Reflector.diff - other cannot be null");
 
         StringWriter out = new StringWriter();
-        MyPrintWriter writer = new MyPrintWriter(out);
-        diff(other, writer);
-        writer.flush();
+        try (MyPrintWriter writer = new MyPrintWriter(out)) {
+            diff(other, writer);
+            writer.flush();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
         return out.getBuffer().toString();
     }
 

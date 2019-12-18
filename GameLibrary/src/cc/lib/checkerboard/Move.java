@@ -1,12 +1,13 @@
 package cc.lib.checkerboard;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import cc.lib.game.IMove;
 import cc.lib.utils.Reflector;
 
-public class Move extends Reflector<Move> implements IMove {
+public class Move extends Reflector<Move> implements IMove, Comparable<Move> {
 
     static {
         addAllFields(Move.class);
@@ -32,6 +33,8 @@ public class Move extends Reflector<Move> implements IMove {
     int maximize = 0;
     @Omit
     List<Move> children;
+    @Omit
+    private int compareValue = 0;
 
     public final long getBestValue() {
         return bestValue;
@@ -39,6 +42,11 @@ public class Move extends Reflector<Move> implements IMove {
 
     public final Move getPath() {
         return path;
+    }
+
+    @Override
+    public int compareTo(Move o) {
+        return o.compareValue - compareValue;
     }
 
     String getXmlStartTag(Move parent) {
@@ -67,6 +75,7 @@ public class Move extends Reflector<Move> implements IMove {
     public Move(MoveType t, int playerNum) { //}, Piece captured, PieceType nextType, int ... positions) {
         this.moveType = t;
         this.playerNum = playerNum;
+        this.compareValue = t == null ? 0 : t.value;
     }
 
     public Move setStart(int startRank, int startCol, PieceType type) {
@@ -74,6 +83,7 @@ public class Move extends Reflector<Move> implements IMove {
             throw new AssertionError("start type cannot be empty");
         start = new int[]{startRank, startCol};
         startType = type;
+        compareValue += type.value;
         return this;
     }
 
@@ -90,6 +100,7 @@ public class Move extends Reflector<Move> implements IMove {
             captured = new ArrayList<>();
         }
         captured.add(new int[] { capturedRank, capturedCol, type.ordinal() });
+        compareValue += 100;
         return this;
     }
 
@@ -221,20 +232,19 @@ public class Move extends Reflector<Move> implements IMove {
 
     void setOpponentKingType(int rank, int col, PieceType opponentKingTypeStart, PieceType opponentKingTypeEnd) {
         this.opponentKing = new int[] { rank, col, opponentKingTypeStart.ordinal(), opponentKingTypeEnd.ordinal() };
+        compareValue += opponentKingTypeEnd.value;
     }
 
     boolean hasOpponentKing() {
         return opponentKing != null;
     }
-/*
+
     @Override
     public boolean equals(Object obj) {
         if (obj == null)
             return false;
         if (obj == this)
             return true;
-        if (!(obj instanceof Move))
-            return false;
         Move mv = (Move)obj;
         return playerNum == mv.playerNum
                 && moveType == mv.moveType
@@ -242,5 +252,9 @@ public class Move extends Reflector<Move> implements IMove {
                 && Arrays.equals(end, mv.end)
                 && hasCaptured() == mv.hasCaptured()
                 && hasOpponentKing() == mv.hasOpponentKing();
-    }*/
+    }
+
+    public final int getCompareValue() {
+        return compareValue;
+    }
 }
