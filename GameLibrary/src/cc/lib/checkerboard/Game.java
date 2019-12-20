@@ -55,6 +55,12 @@ public class Game extends Reflector<Game> implements IGame<Move> {
         }
     }
 
+    /**
+     *
+     * @param rank
+     * @param player
+     * @param pieces
+     */
     protected void initRank(int rank, int player, PieceType...pieces) {
         for (int i=0; i<pieces.length; i++) {
             Piece p = board[rank][i] = new Piece(rank, i, player, pieces[i]);
@@ -66,24 +72,41 @@ public class Game extends Reflector<Game> implements IGame<Move> {
             initialized = true;
     }
 
-
+    /**
+     *
+     * @param position
+     * @param p
+     */
     public void setPlayer(int position, Player p) {
         players[position] = p;
         p.color = rules.getPlayerColor(position);
         p.playerNum = position;
     }
 
+    /**
+     *
+     * @return
+     */
     public final int getOpponent() {
         return getOpponent(getTurn());
     }
 
+    /**
+     *
+     * @return
+     */
     public Piece getSelectedPiece() {
         if (selectedPiece == null)
             return null;
         return getPiece(selectedPiece);
     }
 
-    public final int getOpponent(int player) {
+    /**
+     *
+     * @param player
+     * @return
+     */
+    public static int getOpponent(int player) {
         if (player == NEAR)
             return FAR;
         if (player == FAR)
@@ -95,6 +118,9 @@ public class Game extends Reflector<Game> implements IGame<Move> {
         this.rules = rules;
     }
 
+    /**
+     * Called after players have been assigned
+     */
     public void newGame() {
         undoStack.clear();
         initialized = false;
@@ -107,9 +133,12 @@ public class Game extends Reflector<Game> implements IGame<Move> {
             p.color = rules.getPlayerColor(p.playerNum);
             p.newGame();
         }
-        gameState = GameState.PLAYING;
+        refreshGameState();
     }
 
+    /**
+     * Called repeatedly after newGame
+     */
     public void runGame() {
         switch (gameState) {
             case DRAW:
@@ -165,20 +194,41 @@ public class Game extends Reflector<Game> implements IGame<Move> {
         }
     }
 
-    public Piece getPiece(int [] pos) {
+    /**
+     *
+     * @param pos
+     * @return
+     */
+    public final Piece getPiece(int [] pos) {
         return board[pos[0]][pos[1]];
     }
 
+    /**
+     *
+     * @param rank
+     * @param col
+     * @return
+     */
     public final Piece getPiece(int rank, int col) {
-        if (!isOnBoard(rank, col))
-            throw new AssertionError();
+        //if (!isOnBoard(rank, col))
+        //    throw new AssertionError();
         return board[rank][col];
     }
 
-    final void setTurn(int turn) {
+    /**
+     *
+     * @param turn
+     */
+    public final void setTurn(int turn) {
         this.turn = turn;
     }
 
+    /**
+     *
+     * @param rank
+     * @param col
+     * @return
+     */
     public final boolean isOnBoard(int rank, int col) {
         return rank >= 0 && col >= 0 && rank < ranks && col < cols;
     }
@@ -206,24 +256,49 @@ public class Game extends Reflector<Game> implements IGame<Move> {
         return pm;
     }
 
+    /**
+     *
+     * @param side
+     * @return
+     */
     public final Player getPlayer(int side) {
         return players[side];
     }
 
+    /**
+     *
+     * @return
+     */
     public final Player getCurrentPlayer() {
         return players[turn];
     }
 
+    /**
+     *
+     * @return
+     */
     public final Player getOpponentPlayer() {
         return players[getOpponent()];
     }
 
+    /**
+     *
+     * @return
+     */
     public final boolean isGameOver() {
         return gameState.gameOver;
     }
 
+    /**
+     *
+     * @param p
+     */
     protected void onPieceSelected(Piece p) {}
 
+    /**
+     *
+     * @param m
+     */
     protected void onMoveChosen(Move m) {}
 
     /**
@@ -245,7 +320,7 @@ public class Game extends Reflector<Game> implements IGame<Move> {
         refreshGameState();
     }
 
-    private void refreshGameState() {
+    public final void refreshGameState() {
         int winner;
         if (rules.isDraw(this)) {
             gameState = GameState.DRAW;
@@ -261,6 +336,10 @@ public class Game extends Reflector<Game> implements IGame<Move> {
         }
     }
 
+    /**
+     *
+     * @return
+     */
     public final boolean canUndo() {
         return undoStack.size() > 0;
     }
@@ -273,13 +352,16 @@ public class Game extends Reflector<Game> implements IGame<Move> {
         }
     }
 
-    private void countPieceMoves() {
+    private int countPieceMoves() {
+        int totalMoves = 0;
         clearPieceMoves();
         for (Move m : moves) {
             if (m.getStart() != null) {
                 getPiece(m.getStart()).numMoves++;
+                totalMoves++;
             }
         }
+        return totalMoves;
     }
 
     @Override
@@ -456,7 +538,7 @@ public class Game extends Reflector<Game> implements IGame<Move> {
      * @return
      */
     public final boolean isDraw() {
-        return rules.isDraw(this);
+        return gameState == GameState.DRAW;
     }
 
     /**
@@ -506,17 +588,29 @@ public class Game extends Reflector<Game> implements IGame<Move> {
             case DRAW:
                 break;
         }
-        s.append(" ").append(getTurnStr(turn)).append(":");
-        Player pl = getPlayer(turn);
-        if (pl != null)
-            s.append(pl.getColor());
-        else
-            s.append("<INVESTIGATE: NULL COLOR>");
         s.append("(").append(turn).append(")");
-        if (pl.getCaptured() != null) {
-            s.append(" cap:");
-            for (PieceType pt : pl.getCaptured()) {
-                s.append(pt.abbrev).append(" ");
+        for (int ii=0; ii<2; ii++, turn = getOpponent(turn)) {
+            Player pl = getPlayer(turn);
+            s.append("\n");
+            if (pl != null)
+                s.append(pl.getColor());
+            else
+                s.append("<INVESTIGATE: NULL COLOR>");
+            s.append("(").append(turn).append(")");
+            if (pl.getCaptured() != null) {
+                s.append(" cap:");
+                int[] counts = new int[PieceType.values().length];
+                for (PieceType pt : pl.getCaptured()) {
+                    counts[pt.ordinal()]++;
+                }
+                for (int i = 0; i < counts.length; i++) {
+                    if (counts[i] == 0)
+                        continue;
+                    if (counts[i] == 1)
+                        s.append(PieceType.values()[i].abbrev).append(" ");
+                    else
+                        s.append(PieceType.values()[i].abbrev).append(" X ").append(counts[i]).append(" ");
+                }
             }
         }
         s.append("\n   ");
@@ -541,7 +635,7 @@ public class Game extends Reflector<Game> implements IGame<Move> {
                         s.append("   ");
                     }
                 } else {
-                    pl = getPlayer(p.getPlayerNum());
+                    Player pl = getPlayer(p.getPlayerNum());
                     if (pl == null) {
                         s.append(p.getPlayerNum());
                     } else {

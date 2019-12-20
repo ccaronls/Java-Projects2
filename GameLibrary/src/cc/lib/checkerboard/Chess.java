@@ -188,15 +188,11 @@ public class Chess extends Rules {
     }
 
     // Return true if p.getType() is on set of types and p.getPlayerNum() equals playerNum
-    private boolean testPiece(Game game, int rank, int col, int playerNum, PieceType ... types) {
+    private final boolean testPiece(Game game, int rank, int col, int playerNum, int flag) {
         if (!game.isOnBoard(rank, col))
             return false;
         Piece p = game.getPiece(rank, col);
-        for (PieceType t : types) {
-            if (p.getPlayerNum() == playerNum && p.getType() == t)
-                return true;
-        }
-        return false;
+        return p.getPlayerNum() == playerNum && (p.getType().flag & flag) != 0;
     }
 
     /**
@@ -214,16 +210,16 @@ public class Chess extends Rules {
         int [] dc = kd[1];
 
         for (int i=0; i<dr.length; i++) {
-            if (testPiece(game, rank +dr[i], col +dc[i], playerNum, KNIGHT)) {
+            if (testPiece(game, rank +dr[i], col +dc[i], playerNum, FLAG_KNIGHT)) {
                 return true;
             }
         }
 
         final int adv = game.getAdvanceDir(game.getOpponent(playerNum));
         // look for pawns
-        if (testPiece(game, rank +adv, col +1, playerNum, PAWN, PAWN_ENPASSANT, PAWN_IDLE))
+        if (testPiece(game, rank +adv, col +1, playerNum, FLAG_PAWN))
             return true;
-        if (testPiece(game, rank +adv, col -1, playerNum, PAWN, PAWN_ENPASSANT, PAWN_IDLE))
+        if (testPiece(game, rank +adv, col -1, playerNum, FLAG_PAWN))
             return true;
 
         // fan out in all eight directions looking for a opponent king
@@ -231,7 +227,7 @@ public class Chess extends Rules {
         dc = NSEW_DIAG_DELTAS[1];
 
         for (int i=0; i<8; i++) {
-            if (testPiece(game, rank +dr[i], col +dc[i], playerNum, CHECKED_KING, UNCHECKED_KING, UNCHECKED_KING_IDLE))
+            if (testPiece(game, rank +dr[i], col +dc[i], playerNum, FLAG_KING))
                 return true;
         }
 
@@ -242,7 +238,7 @@ public class Chess extends Rules {
             for (int ii=1; ii<8; ii++) {
                 int rr = rank +dr[i]*ii;
                 int cc = col +dc[i]*ii;
-                if (testPiece(game, rr, cc, playerNum, ROOK, ROOK_IDLE, QUEEN))
+                if (testPiece(game, rr, cc, playerNum, FLAG_ROOK_OR_QUEEN))
                     return true;
                 if (game.isOnBoard(rr, cc) && game.getPiece(rr, cc).getType() != EMPTY)
                     break;
@@ -257,7 +253,7 @@ public class Chess extends Rules {
                 int rr = rank +dr[i]*ii;
                 int cc = col +dc[i]*ii;
                 if (game.isOnBoard(rr, cc)) {
-                    if (testPiece(game, rr, cc, playerNum, BISHOP, QUEEN))
+                    if (testPiece(game, rr, cc, playerNum, FLAG_BISHOP_OR_QUEEN))
                         return true;
                     if (game.getPiece(rr, cc).getType() != EMPTY)
                         break;
@@ -428,7 +424,7 @@ public class Chess extends Rules {
 
         // now search moves and remove any that cause our king to be checked
         if (moves.size() > startNumMoves) {
-            int [] opponentKingPos = findPiecePosition(game, opponent, CHECKED_KING, CHECKED_KING_IDLE, UNCHECKED_KING, UNCHECKED_KING_IDLE);
+            int [] opponentKingPos = findKing(game, opponent);
             if (opponentKingPos == null)
                 throw new NullPointerException();
             PieceType opponentKingStartType = game.getPiece(opponentKingPos).getType();
@@ -444,7 +440,7 @@ public class Chess extends Rules {
                 game.movePiece(m);
                 do {
                     if (m.getMoveType() != MoveType.SWAP) {
-                        int[] kingPos = findPiecePosition(game, game.getTurn(), UNCHECKED_KING_IDLE, UNCHECKED_KING, CHECKED_KING, CHECKED_KING_IDLE);
+                        int[] kingPos = findKing(game, game.getTurn());
                         if (isSquareAttacked(game, kingPos[0], kingPos[1], opponent)) {
                             it.remove();
                             break;
@@ -482,13 +478,12 @@ public class Chess extends Rules {
         return false;
     }
 
-    private int[] findPiecePosition(Game game, int playerNum, PieceType ... types) {
+    private int[] findKing(Game game, int playerNum) {
+        Piece p;
         for (int rank=0; rank<game.getRanks(); rank++) {
             for (int col =0; col<game.getColumns(); col++) {
-                if (game.getPiece(rank, col).getPlayerNum() == playerNum) {
-                    if (Utils.linearSearch(types, game.getPiece(rank, col).getType()) >= 0) {
-                        return new int[]{rank, col};
-                    }
+                if (((p=game.getPiece(rank, col)).getPlayerNum() == playerNum) && (p.getType().flag & FLAG_KING) != 0) {
+                    return new int[]{rank, col};
                 }
             }
         }
@@ -503,9 +498,20 @@ public class Chess extends Rules {
     // precompute knight deltas for each square
 
     @Omit
-    private static int[][][][] knightDeltas = null;
+    private static final int[][][][] knightDeltas;
 
-    private int [][] computeKnightDeltaFor(Game game, int rank, int col) {
+    static {
+        knightDeltas = new int[8][8][][];
+        for (int i=0; i<8; i++) {
+            for (int ii=0; ii<8; ii++) {
+                knightDeltas[i][ii] = computeKnightDeltaFor(i, ii);
+            }
+        }
+    }
+
+
+
+    private static int [][] computeKnightDeltaFor(int rank, int col) {
         int [][] ALL_KNIGHT_DELTAS = {
                 {-2, -2, -1, 1, 2,  2,  1, -1},
                 {-1,  1,  2, 2, 1, -1, -2, -2}
@@ -514,11 +520,14 @@ public class Chess extends Rules {
         int [][] d = new int[2][8];
         int n = 0;
         for (int i=0; i<8; i++) {
-            if (game.isOnBoard(rank+ALL_KNIGHT_DELTAS[0][i], col+ALL_KNIGHT_DELTAS[1][i])) {
-                d[0][n] = ALL_KNIGHT_DELTAS[0][i];
-                d[1][n] = ALL_KNIGHT_DELTAS[1][i];
-                n++;
-            }
+            final int r = rank+ALL_KNIGHT_DELTAS[0][i];
+            final int c = col+ALL_KNIGHT_DELTAS[1][i];
+            if (r < 0 || c < 0 || r >= 8 || c >= 8)
+                continue;
+
+            d[0][n] = ALL_KNIGHT_DELTAS[0][i];
+            d[1][n] = ALL_KNIGHT_DELTAS[1][i];
+            n++;
         }
         if (n < 8) {
             int[] t = d[0];
@@ -533,19 +542,7 @@ public class Chess extends Rules {
         return d;
     }
 
-    private void buildKnightDeltas(Game game) {
-        knightDeltas = new int[8][8][][];
-        for (int i=0; i<8; i++) {
-            for (int ii=0; ii<8; ii++) {
-                knightDeltas[i][ii] = computeKnightDeltaFor(game, i, ii);
-            }
-        }
-    }
-
     public int [][] getKnightDeltas(Game game, int rank, int col) {
-        if (knightDeltas == null) {
-            buildKnightDeltas(game);
-        }
         return knightDeltas[rank][col];
     }
 

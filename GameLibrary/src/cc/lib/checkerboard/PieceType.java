@@ -5,30 +5,31 @@ package cc.lib.checkerboard;
  */
 
 public enum PieceType {
-    EMPTY("EM", 0),
-    PAWN("Pn", 1),
-    PAWN_IDLE("Pn", 2), // this type of pawn has option to move forward 2 spaces
-    PAWN_ENPASSANT("Pn", 1), // this pawn is available for en-passant capture for 1 turn
-    PAWN_TOSWAP("Pn", 100), // This pawn is to be swapped for another piece
-    BISHOP("Bi", 3),
-    KNIGHT("Kn", 3),
-    ROOK("Ro", 5),
-    ROOK_IDLE("Ro", 5), // only an idle rook can castle
-    QUEEN("Qu", 8),
-    CHECKED_KING("Kc", 10), // chess only, flag the king as checked
-    CHECKED_KING_IDLE("KC", 9), // a king that has not moved and so is
-    UNCHECKED_KING("Ki", 1), // chess only
-    UNCHECKED_KING_IDLE("KI", 0), // only an unchecked idle king can castle
+    EMPTY("EM", 0, 0),
+    PAWN("Pn", 1, 2),
+    PAWN_IDLE("Pn", 2, 2), // this type of pawn has option to move forward 2 spaces
+    PAWN_ENPASSANT("Pn", 1, 2), // this pawn is available for en-passant capture for 1 turn
+    PAWN_TOSWAP("Pn", 100, 2), // This pawn is to be swapped for another piece
+    BISHOP("Bi", 3, 8),
+    KNIGHT("Kn", 3, 16),
+    ROOK("Ro", 5, 4),
+    ROOK_IDLE("RI", 5, 4), // only an idle rook can castle
+    QUEEN("Qu", 8, 4 + 8),
+    CHECKED_KING("Kc", 0, 1), // chess only, flag the king as checked
+    CHECKED_KING_IDLE("KC", 1, 1), // a king that has not moved
+    UNCHECKED_KING("Ki", 9, 1), // chess only
+    UNCHECKED_KING_IDLE("KI", 10, 1), // only an unchecked idle king can castle
 
-    KING("CK", 5), // checkers king, not chess
-    FLYING_KING("CK", 10),
-    CHECKER("Ch", 1),
-    DAMA_MAN("Da", 1), // dama pieces move horz and vertically
-    DAMA_KING("DK", 5),
+    KING("CK", 5, 0), // checkers king, not chess
+    FLYING_KING("CK", 10, 0),
+    CHECKER("Ch", 1, 0),
+    DAMA_MAN("Da", 1, 0), // dama pieces move horz and vertically
+    DAMA_KING("DK", 5, 0),
     ;
 
     public final String abbrev;
     final int value;
+    final int flag;
 
     public boolean isFlying() {
         switch (this) {
@@ -39,11 +40,18 @@ public enum PieceType {
         return false;
     }
 
-    PieceType(String abbrev, int value) {
+    PieceType(String abbrev, int value, int flag) {
         if (abbrev.length() != 2)
             throw new AssertionError("Abbrev must be 2 chars");
         this.abbrev = abbrev;
         this.value = value;
+        this.flag = flag;
     }
+
+    public final static int FLAG_KING = 1;
+    public final static int FLAG_PAWN = 2;
+    public final static int FLAG_ROOK_OR_QUEEN = 4;
+    public final static int FLAG_BISHOP_OR_QUEEN = 8;
+    public final static int FLAG_KNIGHT = 16;
 
 };

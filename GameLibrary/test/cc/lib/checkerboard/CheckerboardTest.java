@@ -99,14 +99,17 @@ public class CheckerboardTest extends TestCase {
         gm.setPiece(0, 7, Game.FAR, PieceType.UNCHECKED_KING);
         gm.setPiece(0, 1, Game.NEAR, PieceType.UNCHECKED_KING);
         gm.setTurn(Game.FAR);
-        System.out.println(gm);
+        gm.refreshGameState();
+        System.out.println(gm.getInfoString());
         assertTrue(gm.isDraw());
         gm.setPiece(0, 2, Game.NEAR, PieceType.BISHOP);
-        System.out.println(gm);
+        gm.refreshGameState();
+        System.out.println(gm.getInfoString());
         assertTrue(gm.isDraw());
         gm.clearPiece(0, 2);
         gm.setPiece(0, 2, Game.FAR, PieceType.BISHOP);
-        System.out.println(gm);
+        gm.refreshGameState();
+        System.out.println(gm.getInfoString());
         assertTrue(gm.isDraw());
     }
 
@@ -124,6 +127,31 @@ public class CheckerboardTest extends TestCase {
         runGame(gm1);
 
         AIPlayer.algorithm = AIPlayer.Algorithm.miniMaxAB;
+        Game gm = new Game();
+        gm.setRules(new Checkers());
+        gm.setPlayer(Game.FAR, new AIPlayer(3));
+        gm.setPlayer(Game.NEAR, new AIPlayer(3));
+        gm.newGame();
+        runGame(gm);
+
+        assertEquals(gm.getInfoString(), gm1.getInfoString());
+
+    }
+
+    public void testCheckersMiniMaxABvsNegimax() {
+
+        AIPlayer.randomizeDuplicates = false;
+        AIPlayer.movePathNodeToFront = false;
+
+        AIPlayer.algorithm = AIPlayer.Algorithm.minimax;
+        Game gm1 = new Game();
+        gm1.setRules(new Checkers());
+        gm1.setPlayer(Game.FAR, new AIPlayer(3));
+        gm1.setPlayer(Game.NEAR, new AIPlayer(3));
+        gm1.newGame();
+        runGame(gm1);
+
+        AIPlayer.algorithm = AIPlayer.Algorithm.negamax;
         Game gm = new Game();
         gm.setRules(new Checkers());
         gm.setPlayer(Game.FAR, new AIPlayer(3));
@@ -180,11 +208,11 @@ public class CheckerboardTest extends TestCase {
         int i;
         for (i=0; i<maxIterations; i++) {
             if (gm.getSelectedPiece() == null)
-                System.out.println("********* Frame: " + i + " " + gm.getInfoString());
+                System.out.println("********* Frame: " + i + "\n" + gm.getInfoString());
             gm.runGame();
             totalNodesEvaluated += AIPlayer.evalCount;
             //gm.trySaveToFile(new File("minimaxtest_testcheckrs.game"));
-            if (AIPlayer.lastSearchResult != null) {
+            if (false && AIPlayer.lastSearchResult != null) {
                 try (Writer out = new FileWriter("outputs/" + AIPlayer.algorithm + "_tree." + i + ".xml")) {
                     //out.write("<root minimax=\"" + root.bestValue + "\">\n");
                     AIPlayer.dumpTree(out, AIPlayer.lastSearchResult);
