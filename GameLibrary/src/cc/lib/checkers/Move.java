@@ -136,6 +136,11 @@ public class Move extends Reflector<Move> implements IMove {
         return playerNum;
     }
 
+    @Override
+    public int getCompareValue() {
+        return 0;
+    }
+
     public boolean isGroupCapture() {
         return groupCapture;
     }

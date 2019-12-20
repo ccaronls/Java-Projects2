@@ -399,7 +399,7 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
     }
 
     @Override
-    public final Iterable<Move> getMoves() {
+    public final List<Move> getMoves() {
         if (lock != null)
             lock.getMoves();
 

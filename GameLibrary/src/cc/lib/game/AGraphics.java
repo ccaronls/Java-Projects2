@@ -645,7 +645,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param text
      * @return the width of the line in pixels
      */
-    protected abstract float drawStringLine(float x, float y, Justify hJust, String text);
+    public abstract float drawStringLine(float x, float y, Justify hJust, String text);
     
     /**
      * 

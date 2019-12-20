@@ -389,6 +389,16 @@ public class Checkers extends ACheckboardGame  {
 	}
 
     @Override
+    public int getWinnerNum() {
+        return 0;
+    }
+
+    @Override
+    public boolean isDraw() {
+        return false;
+    }
+
+    @Override
     protected int recomputeMoves() {
         int num = super.recomputeMoves();
         if (isJumpsMandatory()) {

@@ -1,5 +1,7 @@
 package cc.lib.checkers;
 
+import java.util.LinkedList;
+
 import cc.lib.game.DescisionTree;
 import cc.lib.game.IGame;
 import cc.lib.game.IMove;
@@ -40,6 +42,16 @@ public class Robot extends Reflector<Robot> {
     final MiniMaxTree mmtCheckers = new MiniMaxTree() {
 
         @Override
+        protected void onMoveListGenerated(LinkedList<IMove> moveList) {
+
+        }
+
+        @Override
+        protected IMove makeEmptyMove(IGame game) {
+            return null;
+        }
+
+        @Override
         protected long evaluate(IGame game, IMove move) {
             return Robot.this.evaluateCheckersBoard((Checkers)game, (Move)move);
         }
@@ -70,6 +82,16 @@ public class Robot extends Reflector<Robot> {
         }
 
         @Override
+        protected void onMoveListGenerated(LinkedList<IMove> moveList) {
+
+        }
+
+        @Override
+        protected IMove makeEmptyMove(IGame game) {
+            return null;
+        }
+
+        @Override
         protected long evaluate(IGame game, IMove move) {
             return Robot.this.evaluateChessBoard((Chess)game, (Move)move);
         }
@@ -97,11 +119,11 @@ public class Robot extends Reflector<Robot> {
                 doRandomRobot(game, root);
                 break;
             case MEDIUM: {
-                mmt.buildTree(game, root, 3);
+                mmt.buildMovesList(game);
                 break;
             }
             case HARD: {
-                mmt.buildTree(game, root, 5);
+                mmt.buildMovesList(game);
                 break;
             }
         }
