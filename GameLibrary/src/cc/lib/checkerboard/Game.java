@@ -352,7 +352,7 @@ public class Game extends Reflector<Game> implements IGame<Move> {
         }
     }
 
-    private int countPieceMoves() {
+    int countPieceMoves() {
         int totalMoves = 0;
         clearPieceMoves();
         for (Move m : moves) {
@@ -468,14 +468,13 @@ public class Game extends Reflector<Game> implements IGame<Move> {
     }
 
     public Piece movePiece(Move m) {
-        setPiece(m.getEnd(), m.getPlayerNum(), m.getEndType());
+        copyPiece(m.getStart(), m.getEnd());
         clearPiece(m.getStart());
         return getPiece(m.getEnd());
     }
 
     final void clearPiece(int rank, int col) {
-        board[rank][col].setPlayerNum(-1);
-        board[rank][col].setType(PieceType.EMPTY);
+        board[rank][col].clear();
     }
 
     final void clearPiece(int [] pos ) {
@@ -489,6 +488,15 @@ public class Game extends Reflector<Game> implements IGame<Move> {
 
     final void setPiece(int [] pos, int playerNum, PieceType p) {
         setPiece(pos[0], pos[1], playerNum, p);
+    }
+    final void copyPiece(Piece from, Piece to) {
+        to.copyFrom(from);
+    }
+
+    final void copyPiece(int [] fromPos, int [] toPos) {
+        Piece from = getPiece(fromPos);
+        Piece to   = getPiece(toPos);
+        copyPiece(from, to);
     }
 
     public final int getRanks() {

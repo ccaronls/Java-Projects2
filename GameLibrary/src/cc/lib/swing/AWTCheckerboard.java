@@ -2,6 +2,7 @@ package cc.lib.swing;
 
 import java.io.File;
 
+import cc.lib.checkerboard.Bashni;
 import cc.lib.checkerboard.CanadianDraughts;
 import cc.lib.checkerboard.Checkers;
 import cc.lib.checkerboard.Chess;
@@ -135,6 +136,8 @@ public class AWTCheckerboard extends AWTComponent {
                             case "Ugolki":
                                 game.setRules(new Ugolki());
                                 break;
+                            case "Bashni":
+                                game.setRules(new Bashni());
                         }
                         new Thread(() -> {
                             int num = frame.showItemChooserDialog("PLAYERS", "Choose Number of Players", "ONE PLAYER", "TWO PLAYERS");
@@ -179,7 +182,7 @@ public class AWTCheckerboard extends AWTComponent {
         File settings = FileUtils.getOrCreateSettingsDirectory(getClass());
         saveFile = new File(settings, "game.save");
         frame.add(this);
-        String [] items = { "Checkers", "Suicide", "Draughts", "Canadian Draughts", "Dama", "Chess", "Ugolki" };
+        String [] items = { "Checkers", "Suicide", "Draughts", "Canadian Draughts", "Dama", "Chess", "Ugolki", "Bashni" };
         frame.addMenuBarMenu("New Game", items);
         frame.addMenuBarMenu("Load Game", "From File");
         frame.setPropertiesFile(new File(settings, "gui.properties"));

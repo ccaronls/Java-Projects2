@@ -1,6 +1,8 @@
 package cc.lib.checkerboard;
 
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 
 import cc.lib.game.Utils;
@@ -25,8 +27,35 @@ public class Checkers extends Rules {
         game.setTurn(Utils.flipCoin() ? FAR : NEAR);
     }
 
-    @Override
-    boolean computeMovesForSquare(Game game, int rank, int col, Move parent, List<Move> moves) {
+    final List<Move> computeMoves(Game game) {
+        List<Move> moves = new ArrayList<>();
+        boolean hasJumps = false;
+        for (int rank = 0; rank < game.getRanks(); rank++) {
+            for (int col = 0; col < game.getColumns(); col++) {
+                int num = moves.size();
+                Piece p = game.getPiece(rank, col);
+                if (p.getPlayerNum() == game.getTurn())
+                    hasJumps |= computeMovesForSquare(game, rank, col, null, moves);
+            }
+        }
+        if (hasJumps && isJumpsMandatory()) {
+            // remove non-jumps
+            Iterator<Move> it = moves.iterator();
+            while (it.hasNext()) {
+                Move m = it.next();
+                switch (m.getMoveType()) {
+                    case JUMP:
+                    case FLYING_JUMP:
+                        continue;
+                }
+                it.remove();
+            }
+        }
+        return moves;
+    }
+
+
+    private final boolean computeMovesForSquare(Game game, int rank, int col, Move parent, List<Move> moves) {
         Piece p = game.getPiece(rank, col);
         if (p.getPlayerNum() != game.getTurn())
             throw new AssertionError();
@@ -335,7 +364,17 @@ public class Checkers extends Rules {
             case FLYING_JUMP:
             case JUMP:
                 if (move.hasCaptured()) {
-                    if (isCaptureAtEndEnabled()) {
+                    if (isStackingCaptures()) {
+                        Piece captured = game.getPiece(move.getCaptured(0));
+                        Piece capturing = game.getPiece(move.getEnd());
+                        // capturing end stack becomes start stack
+                        capturing.addStackLast(captured.getPlayerNum());
+                        if (captured.isStacked()) {
+                            captured.setPlayerNum(captured.removeStackFirst());
+                        } else {
+                            game.clearPiece(move.getCaptured(0));
+                        }
+                    } else if (isCaptureAtEndEnabled()) {
                         game.getPiece(move.getLastCaptured()).setCaptured(true);
                     } else {
                         game.getPlayer(move.getPlayerNum()).addCaptured(move.getLastCapturedType());
@@ -465,6 +504,7 @@ public class Checkers extends Rules {
         return false;
     }
 
+
     /**
      * Men/King must take moves that lead to most jumps
      * @return
@@ -488,4 +528,10 @@ public class Checkers extends Rules {
     public boolean isKingPieces() {
         return true;
     }
+
+    public boolean isStackingCaptures() {
+        return false;
+    }
+
+
 }

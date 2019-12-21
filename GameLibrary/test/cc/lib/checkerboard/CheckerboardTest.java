@@ -226,8 +226,11 @@ public class CheckerboardTest extends TestCase {
             if (gm.isGameOver())
                 break;
         }
-        long dt = System.currentTimeMillis()-t;
-        System.out.println(String.format("runGame time = %3.2f seconds, total nodes evaluated = %d", ((float)dt)/1000, totalNodesEvaluated));
+        float dtSecs = 0.001f * (System.currentTimeMillis()-t);
+        System.out.println(String.format("runGame time = %3.2f seconds\ntotal nodes evaluated = %d\naverage time per turn = %3.2f seconds",
+                dtSecs,
+                totalNodesEvaluated,
+                dtSecs/i));
         assertTrue("No winner!", !expectWinner || gm.getWinner() != null);
         System.out.println("GAME OVER\n" + gm.getInfoString());
         /*assertNotN(gm.isGameOver()) {

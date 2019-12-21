@@ -29,6 +29,7 @@ public abstract class UIGame extends Game {
         this.saveFile = saveFile;
         try {
             loadFromFile(saveFile);
+            countPieceMoves();
             return true;
         } catch (Exception e) {
             e.printStackTrace();
@@ -165,11 +166,11 @@ public abstract class UIGame extends Game {
 
         // draw player info
         String info = player.getType().name();
-        if (player.getThinkingTimeSecs() > 0) {
+        if (player.isThinking()) {
             int secs = player.getThinkingTimeSecs();
             int mins = secs / 60;
             secs -= mins * 60;
-            info += String.format(" Thinking %d:%0d", mins, secs);
+            info += String.format(" Thinking %d:%0$2d", mins, secs);
         }
         g.setColor(GColor.WHITE);
         float th = g.drawWrapString(0, 0, width, info).height;
@@ -186,7 +187,8 @@ public abstract class UIGame extends Game {
         for (PieceType p :pieces) {
             g.pushMatrix();
             g.translate(x, y);
-            drawPiece(g, p, playerNum, PIECE_RADIUS*2, PIECE_RADIUS*2);
+            Color color = getPlayer(playerNum).getColor();
+            drawPiece(g, p, color, PIECE_RADIUS*2, PIECE_RADIUS*2, null);
             g.popMatrix();
             x += PIECE_RADIUS * 2;
             if (x >= width) {
@@ -290,7 +292,7 @@ public abstract class UIGame extends Game {
                 g.pushMatrix();
                 g.translate(x, y);
                 if (p.getType() != PieceType.EMPTY && p.getPlayerNum() >= 0)
-                    drawPiece(g, p.getType(), p.getPlayerNum(), PIECE_RADIUS *2, PIECE_RADIUS *2);
+                    drawPiece(g, p, PIECE_RADIUS *2, PIECE_RADIUS *2);
                 g.popMatrix();
             }
         }
@@ -392,12 +394,12 @@ public abstract class UIGame extends Game {
         return null;
     }
 
-    private void drawPiece(AGraphics g, PieceType p, int playerNum, float w, float h) {
-        if (playerNum < 0)
+    private void drawPiece(AGraphics g, Piece pc, float w, float h) {
+        if (pc.getPlayerNum() < 0)
             return;
-        Color color = getPlayer(playerNum).getColor();
+        Color color = getPlayer(pc.getPlayerNum()).getColor();
         g.pushMatrix();
-        switch (p) {
+        switch (pc.getType()) {
             case EMPTY:
                 break;
             case PAWN:
@@ -409,7 +411,7 @@ public abstract class UIGame extends Game {
             case BISHOP:
             case KNIGHT:
             case QUEEN:
-                drawPiece(g, p, color, w, h, null);
+                drawPiece(g, pc.getType(), color, w, h, null);
                 break;
             case ROOK:
             case ROOK_IDLE:
@@ -432,6 +434,12 @@ public abstract class UIGame extends Game {
                 break;
             case DAMA_MAN:
             case CHECKER:
+                if (pc.isStacked()) {
+                    for (int s=pc.getStackSize()-1; s>=0; s--) {
+                        drawPiece(g, PieceType.CHECKER, getPlayer(pc.getStackAt(s)).color, w, h, null);
+                        g.translate(0, -h/5);
+                    }
+                }
                 drawPiece(g, PieceType.CHECKER, color, w, h, null);
                 break;
         }

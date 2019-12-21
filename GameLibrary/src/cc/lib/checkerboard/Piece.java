@@ -1,9 +1,6 @@
 package cc.lib.checkerboard;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 import cc.lib.utils.Reflector;
 
@@ -20,6 +17,20 @@ public class Piece extends Reflector<Piece> {
     private boolean captured = false;
     private final int rank, col;
     private int value = 0;
+    // pos 0 is closest to the top.
+    private LinkedList<Integer> stack = null; // list of player nums (Bashki support)
+
+    void clear() {
+        setPlayerNum(-1);
+        setType(PieceType.EMPTY);
+        stack = null;
+    }
+
+    void copyFrom(Piece from) {
+        setPlayerNum(from.getPlayerNum());
+        setType(from.getType());
+        stack = from.stack;
+    }
 
     @Override
     public boolean equals(Object obj) {
@@ -105,5 +116,43 @@ public class Piece extends Reflector<Piece> {
 
     public final int getNumMoves() {
         return numMoves;
+    }
+
+    public boolean isStacked() {
+        return stack != null && stack.size() > 0;
+    }
+
+    public void addStackFirst(int n) {
+        if (stack == null)
+            stack = new LinkedList<>();
+        stack.addFirst(n);
+    }
+
+    public void addStackLast(int n) {
+        if (stack == null)
+            stack = new LinkedList<>();
+        stack.addLast(n);
+    }
+
+    public int removeStackFirst() {
+        int n = stack.removeFirst();
+        if (stack.size() == 0)
+            stack = null;
+        return n;
+    }
+
+    public int removeStackLast() {
+        int n = stack.removeLast();
+        if (stack.size() == 0)
+            stack = null;
+        return n;
+    }
+
+    public int getStackSize() {
+        return stack.size();
+    }
+
+    public int getStackAt(int index) {
+        return stack.get(index);
     }
 }

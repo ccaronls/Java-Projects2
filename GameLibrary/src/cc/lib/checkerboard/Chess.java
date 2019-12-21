@@ -1,5 +1,7 @@
 package cc.lib.checkerboard;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
@@ -205,7 +207,7 @@ public class Chess extends Rules {
     final boolean isSquareAttacked(Game game, int rank, int col, int playerNum) {
 
         // search in the eight directions and knights whom can
-        int [][] kd = getKnightDeltas(game, rank, col);
+        int [][] kd = knightDeltas[rank][col];
         int [] dr = kd[0];
         int [] dc = kd[1];
 
@@ -299,8 +301,21 @@ public class Chess extends Rules {
         game.getMovesInternal().add(new Move(MoveType.CASTLE, king.getPlayerNum()).setStart(rank, kingCol, UNCHECKED_KING_IDLE).setEnd(rank, kingEndCol, UNCHECKED_KING).setCastle(rank, rookCol, rank, rookEndCol));
     }
 
-    @Override
-    protected boolean computeMovesForSquare(Game game, int rank, int col, Move parent, List<Move> moves) {
+    final List<Move> computeMoves(Game game) {
+        List<Move> moves = new ArrayList<>();
+        for (int rank = 0; rank < game.getRanks(); rank++) {
+            for (int col = 0; col < game.getColumns(); col++) {
+                int num = moves.size();
+                Piece p = game.getPiece(rank, col);
+                if (p.getPlayerNum() == game.getTurn())
+                    computeMovesForSquare(game, rank, col, null, moves);
+            }
+        }
+        return moves;
+    }
+
+
+    private void computeMovesForSquare(Game game, int rank, int col, Move parent, List<Move> moves) {
         int startNumMoves = moves.size();
         final Piece p = game.getPiece(rank, col);
         int tr, tc;
@@ -362,7 +377,7 @@ public class Chess extends Rules {
             }
 
             case PAWN_TOSWAP:
-                for (PieceType np : Utils.toArray(ROOK, KNIGHT, BISHOP, QUEEN)) { // TODO: Have option to only allow from pieces already captured
+                for (PieceType np : Arrays.asList(ROOK, KNIGHT, BISHOP, QUEEN)) { // TODO: Have option to only allow from pieces already captured
                     moves.add(new Move(MoveType.SWAP, p.getPlayerNum()).setStart(rank, col, p.getType()).setEnd(rank, col, np));
                 }
                 break;
@@ -371,9 +386,9 @@ public class Chess extends Rules {
                 dc = DIAGONAL_DELTAS[1];
                 break;
             case KNIGHT: {
-                int [][] kd = getKnightDeltas(game, rank, col);
-                dr = kd[0];//KNIGHT_DELTAS[0];
-                dc = kd[1];//KNIGHT_DELTAS[1];
+                int [][] kd = knightDeltas[rank][col];
+                dr = kd[0];
+                dc = kd[1];
                 d = 1;
                 mt = MoveType.JUMP;
                 break;
@@ -424,10 +439,10 @@ public class Chess extends Rules {
 
         // now search moves and remove any that cause our king to be checked
         if (moves.size() > startNumMoves) {
-            int [] opponentKingPos = findKing(game, opponent);
-            if (opponentKingPos == null)
+            Piece opponentKing = findKing(game, opponent);
+            if (opponentKing == null)
                 throw new NullPointerException();
-            PieceType opponentKingStartType = game.getPiece(opponentKingPos).getType();
+            PieceType opponentKingStartType = opponentKing.getType();
 
             Iterator<Move> it = moves.iterator();
             int num = 0;
@@ -440,14 +455,14 @@ public class Chess extends Rules {
                 game.movePiece(m);
                 do {
                     if (m.getMoveType() != MoveType.SWAP) {
-                        int[] kingPos = findKing(game, game.getTurn());
-                        if (isSquareAttacked(game, kingPos[0], kingPos[1], opponent)) {
+                        Piece king = findKing(game, game.getTurn());
+                        if (isSquareAttacked(game, king.getRank(), king.getCol(), opponent)) {
                             it.remove();
                             break;
                         }
                     }
                     PieceType opponentKingEndType = opponentKingStartType;
-                    boolean attacked = isSquareAttacked(game, opponentKingPos[0], opponentKingPos[1], m.getPlayerNum());
+                    boolean attacked = isSquareAttacked(game, opponentKing.getRank(), opponentKing.getCol(), m.getPlayerNum());
 
                     switch (opponentKingStartType) {
                         case CHECKED_KING:
@@ -469,28 +484,27 @@ public class Chess extends Rules {
                         default:
                             throw new AssertionError("Unhandled case:" + opponentKingStartType);
                     }
-                    m.setOpponentKingType(opponentKingPos[0], opponentKingPos[1], opponentKingStartType, opponentKingEndType);
+                    m.setOpponentKingType(opponentKing.getRank(), opponentKing.getCol(), opponentKingStartType, opponentKingEndType);
 
                 } while (false);
                 reverseMove(game, m);
             }
         }
-        return false;
     }
 
-    private int[] findKing(Game game, int playerNum) {
+    private Piece findKing(Game game, int playerNum) {
         Piece p;
         for (int rank=0; rank<game.getRanks(); rank++) {
             for (int col =0; col<game.getColumns(); col++) {
                 if (((p=game.getPiece(rank, col)).getPlayerNum() == playerNum) && (p.getType().flag & FLAG_KING) != 0) {
-                    return new int[]{rank, col};
+                    return p;
                 }
             }
         }
         return null;
     }
 
-    public final static int [][] DIAGONAL_DELTAS = {
+    private final static int [][] DIAGONAL_DELTAS = {
             {-1, -1, 1, 1},
             {-1, 1, -1, 1}
     };
@@ -542,16 +556,12 @@ public class Chess extends Rules {
         return d;
     }
 
-    public int [][] getKnightDeltas(Game game, int rank, int col) {
-        return knightDeltas[rank][col];
-    }
-
-    public final static int [][] NSEW_DELTAS = {
+    private final static int [][] NSEW_DELTAS = {
             {1, 0, -1, 0},
             {0, 1, 0, -1}
     };
 
-    public final static int [][] NSEW_DIAG_DELTAS = {
+    private final static int [][] NSEW_DIAG_DELTAS = {
             {1, 0, -1, 0, -1, -1, 1, 1},
             {0, 1, 0, -1, -1, 1, -1, 1}
     };

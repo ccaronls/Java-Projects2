@@ -2,6 +2,7 @@ package cc.lib.checkerboard;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 
 import cc.lib.game.Utils;
@@ -59,17 +60,17 @@ public abstract class Rules extends Reflector<Rules> {
     public abstract long evaluate(Game game, Move move);
 
     /**
-     * Return true if any of the moves are a jump
      *
      * @param game
-     * @param rank
-     * @param col
-     * @param parent
-     * @param moves
      * @return
      */
-    abstract boolean computeMovesForSquare(Game game, int rank, int col, Move parent, List<Move> moves);
+    abstract List<Move> computeMoves(Game game);
 
+    /**
+     *
+     * @param game
+     * @param m
+     */
     final void reverseMove(Game game, Move m) {
         Piece p;
         switch (m.getMoveType()) {
@@ -84,17 +85,28 @@ public abstract class Rules extends Reflector<Rules> {
             case SLIDE:
             case FLYING_JUMP:
             case JUMP:
-                game.clearPiece(m.getEnd());
-                if (m.hasCaptured()) {
-                    for (int i=0; i<m.getNumCaptured(); i++) {
-                        game.getPlayer(m.getPlayerNum()).removeCaptured(m.getCapturedType(i));
-                        game.setPiece(m.getCaptured(i), game.getOpponent(m.getPlayerNum()), m.getCapturedType(i));
+                p = game.getPiece(m.getEnd());
+                if (p.isStacked()) {
+                    Piece captured = game.getPiece(m.getCaptured(0));
+                    if (captured.getType() != PieceType.EMPTY) {
+                        captured.addStackFirst(captured.getPlayerNum());
+                    } else {
+                        captured.setType(m.getCapturedType(0));
+                    }
+                    captured.setPlayerNum(p.removeStackLast());
+                } else {
+                    if (m.hasCaptured()) {
+                        for (int i = 0; i < m.getNumCaptured(); i++) {
+                            game.getPlayer(m.getPlayerNum()).removeCaptured(m.getCapturedType(i));
+                            game.setPiece(m.getCaptured(i), game.getOpponent(m.getPlayerNum()), m.getCapturedType(i));
+                        }
                     }
                 }
                 //fallthrough
             case SWAP:
             case STACK: {
-                game.setPiece(m.getStart(), m.getPlayerNum(), m.getStartType());
+                game.copyPiece(m.getEnd(), m.getStart());//setPiece(m.getStart(), m.getPlayerNum(), m.getStartType());
+                game.clearPiece(m.getEnd());
                 break;
             }
         }
@@ -104,32 +116,5 @@ public abstract class Rules extends Reflector<Rules> {
         game.setTurn(m.getPlayerNum());
     }
 
-    final List<Move> computeMoves(Game game) {
-        List<Move> moves = new ArrayList<>();
-        boolean hasJumps = false;
-        for (int rank = 0; rank < game.getRanks(); rank++) {
-            for (int col = 0; col < game.getColumns(); col++) {
-                int num = moves.size();
-                Piece p = game.getPiece(rank, col);
-                if (p.getPlayerNum() == game.getTurn())
-                    hasJumps |= computeMovesForSquare(game, rank, col, null, moves);
-            }
-        }
-        if (hasJumps && isJumpsMandatory()) {
-            // remove non-jumps
-            Iterator<Move> it = moves.iterator();
-            while (it.hasNext()) {
-                Move m = it.next();
-                switch (m.getMoveType()) {
-                    case JUMP:
-                    case FLYING_JUMP:
-                        continue;
-                }
-                it.remove();
-            }
-        }
-        return moves;
-    }
 
-    public boolean isJumpsMandatory() { return false; }
 }
