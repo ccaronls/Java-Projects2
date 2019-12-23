@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
+import java.util.List;
 
 import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
@@ -19,7 +20,11 @@ public class CheckerboardTest extends TestCase {
     @Override
     protected void setUp() throws Exception {
         Utils.setRandomSeed(0);
-        FileUtils.deleteDirContents(new File("outputs"));
+        File dir = new File("outputs");
+        if (!dir.exists())
+            assertTrue(dir.mkdir());
+        else
+            FileUtils.deleteDirContents(dir);
     }
 
     public void test() {
@@ -233,29 +238,28 @@ public class CheckerboardTest extends TestCase {
                 dtSecs/i));
         assertTrue("No winner!", !expectWinner || gm.getWinner() != null);
         System.out.println("GAME OVER\n" + gm.getInfoString());
-        /*assertNotN(gm.isGameOver()) {
-            Player p = gm.getWinner();
-            if (p == null) {
-                System.out.println("   D R A W   G A M E");
-            } else {
-                System.out.println("Player " + p.getColor() + " WINS!");
-            }
-        } else {
-            assertTrue("game failed to find winner", false);
-        }*/
     }
 
-    boolean boardsEqual(Game g0, Game g1) {
-        for (int r = 0; r<g0.getRanks(); r++) {
-            for (int c = 0; c<g0.getColumns(); c++) {
-                Piece p0, p1;
-                if (!(p0=g0.getPiece(r, c)).equals((p1=g1.getPiece(r, c)))) {
-                    System.out.println("Piece at position " + r + "," + c + " differ: " + p0 + "\n" + p1);
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
+    public void testShashki() throws Exception {
 
+        Game gm = new Game();
+        gm.setRules(new Shashki());
+        gm.setPlayer(0, new Player());
+        gm.setPlayer(1, new Player());
+        gm.newGame();
+        gm.clear();
+        gm.setTurn(Game.NEAR);
+        gm.setPiece(0, 0, Game.NEAR, PieceType.KING);
+        gm.setPiece(1, 1, Game.FAR, PieceType.CHECKER);
+        gm.setPiece(3, 1, Game.FAR, PieceType.CHECKER);
+        gm.setPiece(1, 3, Game.FAR, PieceType.CHECKER);
+        gm.setPiece(5, 1, Game.FAR, PieceType.CHECKER);
+        System.out.println(gm.getInfoString());
+        List<Move> moves = gm.getMoves();
+        assertTrue(moves.size() == 1);
+        gm.executeMove(moves.get(0));
+        System.out.println(gm.getInfoString());
+        moves = gm.getMoves();
+        assertTrue(moves.size() == 1);
+    }
 }

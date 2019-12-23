@@ -2,7 +2,6 @@ package cc.lib.checkerboard;
 
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 
 import cc.lib.game.Utils;
@@ -12,6 +11,24 @@ import static cc.lib.checkerboard.Game.*;
 import static cc.lib.checkerboard.PieceType.*;
 
 public class Checkers extends Rules {
+
+    private final static int [] PIECE_DELTAS_DIAGONALS_R = new int[] { 1, 1, -1, -1 };
+    private final static int [] PIECE_DELTAS_DIAGONALS_C = new int[] { -1, 1, -1, 1 };
+
+    private final static int [] PIECE_DELTAS_DIAGONALS_NEAR_R = new int[] { -1, -1 };
+    private final static int [] PIECE_DELTAS_DIAGONALS_NEAR_C = new int[] { -1,  1 };
+
+    private final static int [] PIECE_DELTAS_DIAGONALS_FAR_R = new int[] {  1, 1 };
+    private final static int [] PIECE_DELTAS_DIAGONALS_FAR_C = new int[] { -1,  1 };
+
+    private final static int [] PIECE_DELTAS_4WAY_R = new int[] { 1, -1,  0, 0 };
+    private final static int [] PIECE_DELTAS_4WAY_C = new int[] { 0,  0, -1, 1 };
+
+    private final static int [] PIECE_DELTAS_3WAY_NEAR_R = new int[] { -1,  0, 0 };
+    private final static int [] PIECE_DELTAS_3WAY_NEAR_C = new int[] {  0,  -1, 1 };
+
+    private final static int [] PIECE_DELTAS_3WAY_FAR_R = new int[] { 1,  0, 0 };
+    private final static int [] PIECE_DELTAS_3WAY_FAR_C = new int[] { 0, -1, 1 };
 
     @Override
     void init(Game game) {
@@ -27,49 +44,83 @@ public class Checkers extends Rules {
         game.setTurn(Utils.flipCoin() ? FAR : NEAR);
     }
 
-    final List<Move> computeMoves(Game game) {
+    List<Move> computeMoves(Game game) {
         List<Move> moves = new ArrayList<>();
-        boolean hasJumps = false;
+        int numJumps = 0;
         for (int rank = 0; rank < game.getRanks(); rank++) {
             for (int col = 0; col < game.getColumns(); col++) {
                 int num = moves.size();
                 Piece p = game.getPiece(rank, col);
                 if (p.getPlayerNum() == game.getTurn())
-                    hasJumps |= computeMovesForSquare(game, rank, col, null, moves);
+                    numJumps += computeMovesForSquare(game, rank, col, null, moves);
             }
         }
-        if (hasJumps && isJumpsMandatory()) {
+        if (numJumps > 0 && (isJumpsMandatory() || isMaxJumpsMandatory())) {
             // remove non-jumps
             Iterator<Move> it = moves.iterator();
+            int maxDepth = 0;
             while (it.hasNext()) {
                 Move m = it.next();
                 switch (m.getMoveType()) {
                     case JUMP:
                     case FLYING_JUMP:
+                        if (isMaxJumpsMandatory()) {
+                            m.jumpDepth = findMaxDepth(game.getTurn(), game, m);
+                            maxDepth = Math.max(maxDepth, m.jumpDepth);
+                        }
                         continue;
                 }
                 it.remove();
+            }
+            if (isMaxJumpsMandatory()) {
+                it = moves.iterator();
+                while (it.hasNext()) {
+                    Move m = it.next();
+                    if (m.jumpDepth < maxDepth) {
+                        it.remove();
+                    }
+                }
             }
         }
         return moves;
     }
 
+    private int findMaxDepth(int playerNum, Game game, Move m) {
+        if (m.getPlayerNum() != playerNum)
+            return 0;
+        game.movePiece(m);
+        game.clearPiece(m.getCaptured(0));
+        //executeMove(game, m);
+        int max = 0;
+        List<Move> moves = new ArrayList<>();
+        int numJumps = computeMovesForSquare(game, m.getEnd()[0], m.getEnd()[1], m, moves);
+        if (numJumps > 0) {
+            for (Move m2 : moves) {
+                switch (m2.getMoveType()) {
+                    case JUMP:
+                    case FLYING_JUMP:
+                        max = Math.max(max, 1 + findMaxDepth(playerNum, game, m2));
+                }
+            }
+        }
+        reverseMove(game, m);
+        return max;
+    }
 
-    private final boolean computeMovesForSquare(Game game, int rank, int col, Move parent, List<Move> moves) {
+    private final int computeMovesForSquare(Game game, int rank, int col, Move parent, List<Move> moves) {
         Piece p = game.getPiece(rank, col);
         if (p.getPlayerNum() != game.getTurn())
             throw new AssertionError();
 
         int startSize = moves.size();
-        try {
-            if (p.getType() == FLYING_KING || p.getType() == DAMA_KING) {
-                return computeFlyingKingMoves(game, p, rank, col, parent, moves);
-            } else {
-                return computeMenKingMoves(game, p, rank, col, parent, moves);
-            }
-        } finally {
-            p.numMoves = moves.size() - startSize;
+        int numJumps = 0;
+        if (p.getType().isFlying()) {
+            numJumps = computeFlyingKingMoves(game, p, rank, col, parent, moves);
+        } else {
+            numJumps = computeMenKingMoves(game, p, rank, col, parent, moves);
         }
+        p.numMoves = moves.size() - startSize;
+        return numJumps;
     }
 
     @Override
@@ -101,6 +152,7 @@ public class Checkers extends Rules {
                         break;
                     case CHECKER:
                     case DAMA_MAN:
+                    case CHIP_4WAY:
                         return false;
                     default:
                         throw new AssertionError("Unhandled case: " + p.getType());
@@ -110,27 +162,27 @@ public class Checkers extends Rules {
         return true;
     }
 
-    boolean computeMenKingMoves(Game game, Piece p, int rank, int col, Move parent, List<Move> moves) {
-        boolean hasJump = false;
+    int computeMenKingMoves(Game game, Piece p, int rank, int col, Move parent, List<Move> moves) {
+        int numJumps = 0;
         int [] jdr=null, jdc=null, dr=null, dc=null;
         switch (p.getType()) {
             case KING:
-                jdr = dr = new int[] { 1, 1, -1, -1 };
-                jdc = dc = new int[] { -1, 1, -1, 1 };
+                jdr = dr = PIECE_DELTAS_DIAGONALS_R;
+                jdc = dc = PIECE_DELTAS_DIAGONALS_C;
                 break;
             case CHECKER:
                 if (p.getPlayerNum() == NEAR) {
                     // negative
-                    dr = new int [] { -1, -1 };
-                    dc = new int [] { -1, 1 };
+                    dr = PIECE_DELTAS_DIAGONALS_NEAR_R;
+                    dc = PIECE_DELTAS_DIAGONALS_NEAR_C;
                 } else { // red
                     // positive
-                    dr = new int [] { 1, 1 };
-                    dc = new int [] { -1, 1 };
+                    dr = PIECE_DELTAS_DIAGONALS_FAR_R;
+                    dc = PIECE_DELTAS_DIAGONALS_FAR_C;
                 }
                 if (canMenJumpBackwards()) {
-                    jdr = new int[]{1, 1, -1, -1};
-                    jdc = new int[]{-1, 1, -1, 1};
+                    jdr = PIECE_DELTAS_DIAGONALS_R;
+                    jdc = PIECE_DELTAS_DIAGONALS_C;
                 } else {
                     jdr = dr;
                     jdc = dc;
@@ -139,24 +191,25 @@ public class Checkers extends Rules {
             case DAMA_MAN:
                 if (p.getPlayerNum() == NEAR) {
                     // negative
-                    dr = new int [] { -1, 0, 0 };
-                    dc = new int [] {  0, 1, -1 };
+                    dr = PIECE_DELTAS_3WAY_NEAR_R;
+                    dc = PIECE_DELTAS_3WAY_NEAR_C;
                 } else { // red
                     // positive
-                    dr = new int [] { 1, 0, 0 };
-                    dc = new int [] { 0, 1, -1 };
+                    dr = PIECE_DELTAS_3WAY_FAR_R;
+                    dc = PIECE_DELTAS_3WAY_FAR_C;
                 }
                 if (canMenJumpBackwards()) {
-                    jdr = new int[] { 1, -1, 0, 0};
-                    jdc = new int[] { 0,  0, -1, 1};
+                    jdr = PIECE_DELTAS_4WAY_R;
+                    jdc = PIECE_DELTAS_4WAY_C;
                 } else {
                     jdr = dr;
                     jdc = dc;
                 }
                 break;
+            case CHIP_4WAY:
             case DAMA_KING:
-                jdr = dr = new int[] { 1, -1, 0, 0};
-                jdc = dc = new int[] { 0,  0, -1, 1};
+                jdr = dr = PIECE_DELTAS_4WAY_R;
+                jdc = dc = PIECE_DELTAS_4WAY_C;
                 break;
             default:
                 Utils.unhandledCase(p.getType());
@@ -187,13 +240,13 @@ public class Checkers extends Rules {
 
             if (canJumpSelf() && cap.getPlayerNum() == game.getTurn()) {
                 moves.add(new Move(MoveType.JUMP, game.getTurn()).setStart(rank, col, p.getType()).setEnd(rdr2, cdc2, p.getType()));
-                hasJump = true;
+                numJumps++;
             } else if (!cap.isCaptured() && cap.getPlayerNum() == game.getOpponent()) {
                 Move mv = new Move(MoveType.JUMP, game.getTurn()).setStart(rank, col, p.getType()).setEnd(rdr2, cdc2, p.getType());
                 if (!isNoCaptures())
                     mv.addCaptured(rdr, cdc, cap.getType());
                 moves.add(mv);
-                hasJump = true;
+                numJumps++;
             }
 
         }
@@ -214,7 +267,7 @@ public class Checkers extends Rules {
                 }
             }
         }
-        return hasJump;
+        return numJumps;
     }
 
     /*
@@ -227,19 +280,19 @@ public class Checkers extends Rules {
        it is possible to reach a position in a multi-jump move where the flying king is blocked
        from capturing further by a piece already jumped.
     */
-    boolean computeFlyingKingMoves(Game game, Piece p, int rank, int col, Move parent, List<Move> moves) {
-        boolean hasJump = false;
+    int computeFlyingKingMoves(Game game, Piece p, int rank, int col, Move parent, List<Move> moves) {
+        int numJumps = 0;
         final int d = Math.max(game.getRanks(), game.getColumns());
 
         int [] dr, dc;
         switch (p.getType()) {
             case FLYING_KING:
-                dr = new int[] { 1, 1, -1, -1 };
-                dc = new int[] { -1, 1, -1, 1 };
+                dr = PIECE_DELTAS_DIAGONALS_R;
+                dc = PIECE_DELTAS_DIAGONALS_C;
                 break;
             case DAMA_KING:
-                dr = new int[] { 1, -1, 0, 0 };
-                dc = new int[] { 0,  0, -1, 1 };
+                dr = PIECE_DELTAS_4WAY_R;
+                dc = PIECE_DELTAS_4WAY_C;
                 break;
             default:
                 throw new AssertionError("Unhandled case");
@@ -308,7 +361,7 @@ public class Checkers extends Rules {
                     else
                         moves.add(new Move(mt, game.getTurn()).setStart(rank, col, p.getType()).setEnd(rdr, cdc, p.getType()).addCaptured(capturedRank, capturedCol, captured.getType()));
                     if (mt == MoveType.FLYING_JUMP)
-                        hasJump = true;
+                        numJumps++;
                     continue;
                 }
 
@@ -325,7 +378,7 @@ public class Checkers extends Rules {
 
             }
         }
-        return hasJump;
+        return numJumps;
     }
 
     @Override
@@ -397,7 +450,7 @@ public class Checkers extends Rules {
                 }
                 break;
             case STACK:
-                game.setPiece(move.getStart(), move.getPlayerNum(), move.getEndType());
+                game.getPiece(move.getStart()).setType(move.getEndType());
                 break;
         }
 
@@ -532,6 +585,5 @@ public class Checkers extends Rules {
     public boolean isStackingCaptures() {
         return false;
     }
-
 
 }

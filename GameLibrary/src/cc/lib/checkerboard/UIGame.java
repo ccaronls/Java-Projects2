@@ -200,40 +200,78 @@ public abstract class UIGame extends Game {
 //        g.clearClip();
     }
 
+    private float drawCheckerboardImage(AGraphics g, int id, float boarddim, float [] cwh, float boardImageDim, float boardImageBorder) {
+        float ratio = boardImageBorder / boardImageDim;
+
+        g.drawImage(id, 0, 0, boarddim, boarddim);
+        float t = ratio * boarddim;
+        g.translate(t, t);
+        boarddim -= t*2;
+        cwh[0] = boarddim / getColumns();
+        cwh[1] = boarddim / getRanks();
+        return boarddim;
+
+    }
+
     protected abstract int getCheckerboardImageId();
+
+    private float drawCheckerboard8x8(AGraphics g, float boarddim, float [] cwh) {
+        return drawCheckerboardImage(g, getCheckerboardImageId(), boarddim, cwh, 545, 24);
+    }
+
+    private float drawSimpleBoard(AGraphics g, float boarddim, float [] cwh) {
+        g.setLineWidth(2);
+        g.setColor(GColor.BLACK);
+        float cw = cwh[0];
+        float ch = cwh[1];
+        for (int x=0; x<=getColumns(); x++) {
+            g.drawLine(x* cw, 0, x* cw, boarddim);
+        }
+        for (int y=0; y<=getRanks(); y++) {
+            g.drawLine(0, y* ch, boarddim, y* ch);
+        }
+        return boarddim;
+    }
+
+    protected abstract int getKingsCourtBoardId();
+
+    private float drawKingsCourtBoard(AGraphics g, float boarddim, float [] cwh) {
+        return drawCheckerboardImage(g, getKingsCourtBoardId(), boarddim, cwh, 206, 8);
+    }
+
+    private final GColor DAMA_BACKGROUND_COLOR = new GColor(0xfffde9a9);
+
+    private float drawDamaBoard(AGraphics g, float boarddim, float [] cwh) {
+        g.setColor(DAMA_BACKGROUND_COLOR);
+        g.drawFilledRect(0, 0, boarddim, boarddim);
+        g.setColor(GColor.BLACK);
+        for (int i=0; i<=getRanks(); i++) {
+            g.drawLine(i*cwh[0], 0, i*cwh[0], boarddim, 3);
+        }
+        for (int i=0; i<=getColumns(); i++) {
+            g.drawLine(0, i*cwh[1], boarddim, i*cwh[1], 3);
+        }
+        return boarddim;
+    }
 
     private void drawBoard(AGraphics g, float boarddim, int _mx, int _my) {
 
         g.pushMatrix();
 
-        float cw = boarddim / getColumns();
-        float ch = boarddim / getRanks();
+        float [] cwh = { boarddim / getColumns(),  boarddim / getRanks() };
 
-        if (getRanks() == 8 && getColumns() == 8) {
-            float boardImageDim = 545;
-            float boardImageBorder = 24;
-            float ratio = boardImageBorder / boardImageDim;
-
-            g.drawImage(getCheckerboardImageId(), 0, 0, boarddim, boarddim);
-            float t = ratio * boarddim;
-            g.translate(t, t);
-            boarddim -= t*2;
-            cw = boarddim / getColumns();
-            ch = boarddim / getRanks();
-
-            //log.debug("draw ...");
-
+        if (getRules() instanceof KingsCourt) {
+            boarddim = drawKingsCourtBoard(g, boarddim, cwh);
+        } else if (getRules() instanceof Dama) {
+            boarddim = drawDamaBoard(g, boarddim, cwh);
+        }else if (getRanks() == 8 && getColumns() == 8) {
+            boarddim = drawCheckerboard8x8(g, boarddim, cwh);
         } else {
-            g.setLineWidth(2);
-            g.setColor(GColor.BLACK);
-            for (int x=0; x<=getColumns(); x++) {
-                g.drawLine(x* cw, 0, x* cw, boarddim);
-            }
-            for (int y=0; y<=getRanks(); y++) {
-                g.drawLine(0, y* ch, boarddim, y* ch);
-            }
+            boarddim = drawSimpleBoard(g, boarddim, cwh);
         }
 
+        final float cw = cwh[0];
+        final float ch = cwh[1];
         PIECE_RADIUS = Math.min(cw, ch)/3;
 
         highlightedRank = highlightedCol = -1;
@@ -315,15 +353,15 @@ public abstract class UIGame extends Game {
             if (getWinner() != null) {
                 int x = g.getViewportWidth() / 2;
                 int y = g.getViewportHeight() / 2;
-                String txt = "G A M E   O V E R\nPlayer " + getWinner().getColor() + " Wins!";
+                String txt = "G A M E   O V E R\n" + getWinner().getColor() + " Wins!";
                 g.setColor(GColor.CYAN);
-                g.drawJustifiedString(x, y, Justify.CENTER, Justify.CENTER, txt);
+                g.drawJustifiedStringOnBackground(x, y, Justify.CENTER, Justify.CENTER, txt, GColor.TRANSLUSCENT_BLACK, 3);
             } else {
                 int x = g.getViewportWidth() / 2;
                 int y = g.getViewportHeight() / 2;
                 String txt = "D R A W   G A M E";
                 g.setColor(GColor.CYAN);
-                g.drawJustifiedString(x, y, Justify.CENTER, Justify.CENTER, txt);
+                g.drawJustifiedStringOnBackground(x, y, Justify.CENTER, Justify.CENTER, txt, GColor.TRANSLUSCENT_BLACK, 3);
             }
         }
         g.popMatrix();
@@ -428,10 +466,17 @@ public abstract class UIGame extends Game {
             case KING:
             case FLYING_KING:
             case DAMA_KING:
+                if (pc.isStacked()) {
+                    for (int s=pc.getStackSize()-1; s>=0; s--) {
+                        drawPiece(g, PieceType.CHECKER, getPlayer(pc.getStackAt(s)).color, w, h, null);
+                        g.translate(0, -h/5);
+                    }
+                }
                 drawPiece(g, PieceType.CHECKER, color, w, h, null);
                 g.translate(0, -h/5);
                 drawPiece(g, PieceType.CHECKER, color, w, h, null);
                 break;
+            case CHIP_4WAY:
             case DAMA_MAN:
             case CHECKER:
                 if (pc.isStacked()) {
@@ -455,7 +500,9 @@ public abstract class UIGame extends Game {
         if (id >= 0) {
             g.drawImage(id, -w/2, -h/2, w, h);
         } else {
-            g.drawJustifiedString(0, 0, Justify.CENTER, Justify.CENTER, color.name() + "\n" + p.abbrev);
+            //g.drawJustifiedString(0, 0, Justify.CENTER, Justify.CENTER, color.name() + "\n" + p.abbrev);
+            g.setColor(color.color);
+            g.drawFilledCircle(0, 0, w/2);
         }
     }
 

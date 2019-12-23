@@ -2,7 +2,8 @@ package cc.lib.swing;
 
 import java.io.File;
 
-import cc.lib.checkerboard.Bashni;
+import cc.lib.checkerboard.AIPlayer;
+import cc.lib.checkerboard.Columns;
 import cc.lib.checkerboard.CanadianDraughts;
 import cc.lib.checkerboard.Checkers;
 import cc.lib.checkerboard.Chess;
@@ -10,8 +11,10 @@ import cc.lib.checkerboard.Color;
 import cc.lib.checkerboard.Dama;
 import cc.lib.checkerboard.Draughts;
 import cc.lib.checkerboard.Game;
+import cc.lib.checkerboard.KingsCourt;
 import cc.lib.checkerboard.Move;
 import cc.lib.checkerboard.PieceType;
+import cc.lib.checkerboard.Player;
 import cc.lib.checkerboard.Suicide;
 import cc.lib.checkerboard.UIGame;
 import cc.lib.checkerboard.UIPlayer;
@@ -43,29 +46,30 @@ public class AWTCheckerboard extends AWTComponent {
 
     enum Images {
         wood_checkerboard_8x8(null, null),
+        kings_court_board_8x8(null, null),
         bk_bishop   (Color.BLACK, PieceType.BISHOP),
         bk_king     (Color.BLACK, PieceType.KING),
         bk_knight   (Color.BLACK, PieceType.KNIGHT),
         bk_pawn     (Color.BLACK, PieceType.PAWN),
         bk_queen    (Color.BLACK, PieceType.QUEEN),
         bk_rook     (Color.BLACK, PieceType.ROOK),
-        blk_checker (Color.BLACK, PieceType.CHECKER),
         wt_bishop   (Color.WHITE, PieceType.BISHOP),
         wt_king     (Color.WHITE, PieceType.KING),
         wt_knight   (Color.WHITE, PieceType.KNIGHT),
         wt_pawn     (Color.WHITE, PieceType.PAWN),
         wt_queen    (Color.WHITE, PieceType.QUEEN),
         wt_rook     (Color.WHITE, PieceType.ROOK),
-        red_checker (Color.RED,   PieceType.CHECKER),
+        blk_checker (Color.BLACK, PieceType.CHECKER, PieceType.CHIP_4WAY),
+        red_checker (Color.RED,   PieceType.CHECKER, PieceType.CHIP_4WAY),
         wt_checker  (Color.WHITE, PieceType.CHECKER);
 
-        Images(Color color, PieceType pt) {
+        Images(Color color, PieceType ... pt) {
             this.color = color;
             this.pt = pt;
         }
 
         final Color color;
-        final PieceType pt;
+        final PieceType [] pt;
     }
 
     int [] ids = new int[Images.values().length];
@@ -136,8 +140,12 @@ public class AWTCheckerboard extends AWTComponent {
                             case "Ugolki":
                                 game.setRules(new Ugolki());
                                 break;
-                            case "Bashni":
-                                game.setRules(new Bashni());
+                            case "Columns":
+                                game.setRules(new Columns());
+                                break;
+                            case "Kings Court":
+                                game.setRules(new KingsCourt());
+                                break;
                         }
                         new Thread(() -> {
                             int num = frame.showItemChooserDialog("PLAYERS", "Choose Number of Players", "ONE PLAYER", "TWO PLAYERS");
@@ -156,6 +164,17 @@ public class AWTCheckerboard extends AWTComponent {
                             game.trySaveToFile(saveFile);
                             game.startGameThread();
                         }).start();
+                        break;
+                    case "Game":
+                        switch (subMenu) {
+                            case "Stop Thinking": {
+                                Player pl = game.getCurrentPlayer();
+                                if ((pl instanceof AIPlayer)) {
+                                    ((AIPlayer) pl).cancel();
+                                }
+                            }
+                        }
+
                 }
             }
         };
@@ -168,7 +187,7 @@ public class AWTCheckerboard extends AWTComponent {
             @Override
             public int getPieceImageId(PieceType p, Color color) {
                 for (Images i : Images.values()) {
-                    if (i.color == color && i.pt == p)
+                    if (i.color == color && Utils.linearSearch(i.pt, p) >= 0)
                         return ids[i.ordinal()];
                 }
                 return -1;
@@ -178,13 +197,19 @@ public class AWTCheckerboard extends AWTComponent {
             protected int getCheckerboardImageId() {
                 return ids[Images.wood_checkerboard_8x8.ordinal()];
             }
+
+            @Override
+            protected int getKingsCourtBoardId() {
+                return ids[Images.kings_court_board_8x8.ordinal()];
+            }
         };
         File settings = FileUtils.getOrCreateSettingsDirectory(getClass());
         saveFile = new File(settings, "game.save");
         frame.add(this);
-        String [] items = { "Checkers", "Suicide", "Draughts", "Canadian Draughts", "Dama", "Chess", "Ugolki", "Bashni" };
+        String [] items = { "Checkers", "Suicide", "Draughts", "Canadian Draughts", "Dama", "Chess", "Ugolki", "Columns", "Kings Court" };
         frame.addMenuBarMenu("New Game", items);
         frame.addMenuBarMenu("Load Game", "From File");
+        frame.addMenuBarMenu("Game", "Stop Thinking");
         frame.setPropertiesFile(new File(settings, "gui.properties"));
         if (!frame.restoreFromProperties())
             frame.centerToScreen(640, 640);

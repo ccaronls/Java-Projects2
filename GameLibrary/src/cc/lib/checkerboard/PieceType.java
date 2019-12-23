@@ -20,11 +20,13 @@ public enum PieceType {
     UNCHECKED_KING("Ki", 9, 1), // chess only
     UNCHECKED_KING_IDLE("KI", 10, 1), // only an unchecked idle king can castle
 
-    KING("CK", 5, 0), // checkers king, not chess
+    KING("Ck", 5, 0), // checkers king, not chess
     FLYING_KING("CK", 10, 0),
-    CHECKER("Ch", 1, 0),
-    DAMA_MAN("Da", 1, 0), // dama pieces move horz and vertically
-    DAMA_KING("DK", 5, 0),
+    CHECKER("Cm", 1, 0), // checkers, king move along the diagonals
+    DAMA_MAN("Dm", 1, 0), // dama pieces move horz and vertically
+    DAMA_KING("Dk", 5, 0),
+
+    CHIP_4WAY("C4", 1, 0), // used for KingsCourt - a piece that can move in all four directions
     ;
 
     public final String abbrev;
@@ -48,10 +50,10 @@ public enum PieceType {
         this.flag = flag;
     }
 
-    public final static int FLAG_KING = 1;
-    public final static int FLAG_PAWN = 2;
-    public final static int FLAG_ROOK_OR_QUEEN = 4;
-    public final static int FLAG_BISHOP_OR_QUEEN = 8;
-    public final static int FLAG_KNIGHT = 16;
+    public final static int FLAG_KING = 1; // all piece types that move like a king
+    public final static int FLAG_PAWN = 2; // all piece types that move like a pawn
+    public final static int FLAG_ROOK_OR_QUEEN = 4; // all piece types that move along horizonal or vertical
+    public final static int FLAG_BISHOP_OR_QUEEN = 8; // all piece types that can move along the diagonals
+    public final static int FLAG_KNIGHT = 16; // all piece types that move like a knight
 
 };

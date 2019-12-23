@@ -49,7 +49,7 @@ public class AIPlayer extends Player {
         this.maxSearchDepth = maxSearchDepth;
     }
 
-    boolean isThinking() {
+    public final boolean isThinking() {
         return startTime > 0;
     }
 
@@ -95,7 +95,7 @@ public class AIPlayer extends Player {
         evalTimeTotalMSecs = 0;
         kill = false;
         moveList.clear();
-        Game game = _game.deepCopy();
+        Game game = new Game();
         game.copyFrom(_game);
 
         //log.debug("perform minimax search on game\n" + game.getInfoString());

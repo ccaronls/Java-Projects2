@@ -1,7 +1,7 @@
 apply plugin: 'java'
 apply plugin: 'application'
 
-mainClassName = 'cc.game.slot.SlotMachine'
+mainClassName = 'cc.game.sudoku.Main'
 
 dependencies {
     implementation project(':GameLibrary')

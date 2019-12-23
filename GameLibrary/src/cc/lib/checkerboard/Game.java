@@ -34,7 +34,7 @@ public class Game extends Reflector<Game> implements IGame<Move> {
     private Piece [][] board;
     private int ranks, cols, turn;
     int [] selectedPiece = null;
-    private List<Move> moves = null;
+    List<Move> moves = null;
     private Stack<State> undoStack = new Stack<>();
     private Rules rules;
     private boolean initialized = false;
@@ -53,6 +53,11 @@ public class Game extends Reflector<Game> implements IGame<Move> {
                 board[r][c] = new Piece(r, c, -1, PieceType.EMPTY);
             }
         }
+        gameState = GameState.DRAW;
+        moves = null;
+        selectedPiece = null;
+        undoStack.clear();
+        initialized = false;
     }
 
     /**
@@ -307,10 +312,11 @@ public class Game extends Reflector<Game> implements IGame<Move> {
     protected void onGameOver(Player winner) {}
 
     @Override
-    public final void executeMove(Move move) {
+    public final synchronized void executeMove(Move move) {
         if (move.getPlayerNum() != getTurn())
             throw new AssertionError("Invalid move to execute");
-        undoStack.push(new State(moves.indexOf(move), moves));
+        undoStack.push(new State(moves.indexOf(move) // <-- TODO: Make this faster
+                , moves));
         moves = null;
         clearPieceMoves();
         rules.executeMove(this, move);
@@ -354,18 +360,20 @@ public class Game extends Reflector<Game> implements IGame<Move> {
 
     int countPieceMoves() {
         int totalMoves = 0;
-        clearPieceMoves();
-        for (Move m : moves) {
-            if (m.getStart() != null) {
-                getPiece(m.getStart()).numMoves++;
-                totalMoves++;
+        if (moves != null) {
+            clearPieceMoves();
+            for (Move m : moves) {
+                if (m.getStart() != null) {
+                    getPiece(m.getStart()).numMoves++;
+                    totalMoves++;
+                }
             }
         }
         return totalMoves;
     }
 
     @Override
-    public final Move undo() {
+    public final synchronized Move undo() {
         if (undoStack.size() > 0) {
             State state = undoStack.pop();
             Move m = state.getMove();
@@ -561,6 +569,14 @@ public class Game extends Reflector<Game> implements IGame<Move> {
         }
         Collections.reverse(history);
         return history;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public final int getMoveHistoryCount() {
+        return undoStack.size();
     }
 
     /**

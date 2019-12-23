@@ -85,6 +85,7 @@ public final class SortButton extends RadioButton implements View.OnClickListene
 
 	@Override
 	protected void onAttachedToWindow() {
+	    super.onAttachedToWindow();
 		if (!(getParent() instanceof SortButtonGroup)) {
 			throw new RuntimeException("SortButton can only be a child of SortButtonGroup");
 		}

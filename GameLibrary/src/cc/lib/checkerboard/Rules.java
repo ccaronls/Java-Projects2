@@ -1,8 +1,5 @@
 package cc.lib.checkerboard;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 
 import cc.lib.game.Utils;
@@ -105,7 +102,7 @@ public abstract class Rules extends Reflector<Rules> {
                 //fallthrough
             case SWAP:
             case STACK: {
-                game.copyPiece(m.getEnd(), m.getStart());//setPiece(m.getStart(), m.getPlayerNum(), m.getStartType());
+                game.copyPiece(m.getEnd(), m.getStart());
                 game.clearPiece(m.getEnd());
                 break;
             }

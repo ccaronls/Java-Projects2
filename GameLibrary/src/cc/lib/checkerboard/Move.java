@@ -35,6 +35,8 @@ public class Move extends Reflector<Move> implements IMove, Comparable<Move> {
     List<Move> children;
     @Omit
     private int compareValue = 0;
+    @Omit
+    int jumpDepth = 0;
 
     public final long getBestValue() {
         return bestValue;
