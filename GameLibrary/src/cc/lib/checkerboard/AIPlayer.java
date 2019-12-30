@@ -1,5 +1,7 @@
 package cc.lib.checkerboard;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
@@ -14,13 +16,18 @@ import cc.lib.logger.LoggerFactory;
 
 public class AIPlayer extends Player {
 
+    public static Algorithm algorithm = Algorithm.miniMaxAB;
+    public static Move lastSearchResult = null;
+    public static boolean movePathNodeToFront = true;
+    public static boolean randomizeDuplicates = true;
+
+    private int maxSearchDepth = 3;
+
     private final static Logger log = LoggerFactory.getLogger(AIPlayer.class);
 
     static {
         addAllFields(AIPlayer.class);
     }
-
-    private int maxSearchDepth = 4;
 
     @Omit
     private long startTime = 0;
@@ -28,8 +35,6 @@ public class AIPlayer extends Player {
     private LinkedList<Move> moveList = new LinkedList<>();
 
     private static boolean kill = false;
-
-    public static Move lastSearchResult = null;
 
     static int evalCount = 0;
     static long evalTimeTotalMSecs = 0;
@@ -40,8 +45,6 @@ public class AIPlayer extends Player {
         negamax,
         negamaxAB
     }
-
-    public static Algorithm algorithm = Algorithm.miniMaxAB;
 
     public AIPlayer() {}
 
@@ -103,22 +106,33 @@ public class AIPlayer extends Player {
         startTime = System.currentTimeMillis();
 
         Move root = lastSearchResult = new Move(null, game.getTurn());
-        switch (algorithm) {
-            case minimax:
-                root.bestValue = miniMaxR(game, root, true, maxSearchDepth, 0);
-                break;
-            case miniMaxAB:
-                root.bestValue = miniMaxABR(game, root, true, maxSearchDepth, 0, Long.MIN_VALUE, Long.MAX_VALUE);
-                break;
-            case negamax:
-//                root.bestValue = negamaxR(game, root, -1, maxSearchDepth, 0);
-                root.bestValue = negamaxR(game, root, game.getTurn() != 0 ? 1 : -1, maxSearchDepth, 0);
-                break;
-            case negamaxAB:
-                root.bestValue = negamaxABR(game, root, 1, maxSearchDepth, 0, Long.MIN_VALUE, Long.MAX_VALUE);
-                break;
+        try {
+            switch (algorithm) {
+                case minimax:
+                    root.bestValue = miniMaxR(game, root, true, maxSearchDepth, 0);
+                    break;
+                case miniMaxAB:
+                    root.bestValue = miniMaxABR(game, root, true, maxSearchDepth, 0, Long.MIN_VALUE, Long.MAX_VALUE);
+                    break;
+                case negamax:
+                    //                root.bestValue = negamaxR(game, root, -1, maxSearchDepth, 0);
+                    root.bestValue = negamaxR(game, root, game.getTurn() != 0 ? 1 : -1, maxSearchDepth, 0);
+                    break;
+                case negamaxAB:
+                    root.bestValue = negamaxABR(game, root, 1, maxSearchDepth, 0, Long.MIN_VALUE, Long.MAX_VALUE);
+                    break;
+            }
+        } catch (Throwable e) {
+            String fname = algorithm.name() + "_error.xml";
+            File file = new File(fname);
+            try (Writer out = new FileWriter(file)) {
+                dumpTree(out, root);
+                log.error(e);
+                log.error("Write descision tree state to file '" + file.getCanonicalPath() + "'");
+            } catch (IOException e2) {
+                e2.printStackTrace();
+            }
         }
-
         float evalTimeMS = (int)(System.currentTimeMillis() - startTime);
         startTime = 0;
         log.debug(algorithm + " ran in %3.2f seconds with best value of %s", evalTimeMS/1000, root.bestValue);
@@ -138,9 +152,6 @@ public class AIPlayer extends Player {
         onMoveListGenerated(moveList);
         printMovesListToLog();
     }
-
-    public static boolean movePathNodeToFront = true;
-    public static boolean randomizeDuplicates = true;
 
     static long evaluate(Game game, int actualDepth) {
         final long startTime = System.currentTimeMillis();

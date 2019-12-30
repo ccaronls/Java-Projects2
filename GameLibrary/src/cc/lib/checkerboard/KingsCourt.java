@@ -20,7 +20,7 @@ public class KingsCourt extends Checkers {
         int pnum = Game.NEAR;
         for (int r = 0; r < 8; r++) {
             for (int c = 0; c < 8; c++) {
-                if (r >= 2 && r <= 5 && c >= 2 && c <= 5)
+                if (isInCourt(r, c))
                     continue; // no pieces on the court
                 game.setPiece(r, c, pnum, PieceType.CHIP_4WAY);
                 pnum = (pnum + 1) % 2;
@@ -31,35 +31,39 @@ public class KingsCourt extends Checkers {
         game.setInitialized(true);
     }
 
+    int numNear=0;
+    int numFar=0;
+
     @Override
     int getWinner(Game game) {
-        if (game.getMoveHistoryCount() < 2)
-            return -1;
-
         // if a player has no pieces in the court, they are a loser
-        int numNear = 0;
-        int numFar = 0;
+        numNear = 0;
+        numFar = 0;
         for (int r = 2; r < 6; r++) {
             for (int c = 2; c < 6; c++) {
                 Piece p = game.getPiece(r, c);
                 if (p.getType() != PieceType.EMPTY) {
                     if (p.getPlayerNum() == Game.NEAR) {
-                        if (numFar > 0)
-                            return -1;
                         numNear++;
                     } else {
-                        if (numNear > 0)
-                            return -1;
                         numFar++;
                     }
                 }
             }
         }
+        if (game.getMoveHistoryCount() < 3)
+            return -1;
         if (numNear == 0 && numFar == 0)
+            return -1;
+        if (numNear > 0 && numFar > 0)
             return -1;
         if (numNear > 0)
             return Game.NEAR;
         return Game.FAR;
+    }
+
+    public static boolean isInCourt(int r, int c) {
+        return r>=2 && c>=2 && r<=5 && c<=5;
     }
 
     @Override
@@ -77,9 +81,32 @@ public class KingsCourt extends Checkers {
             if (moves.size() < 1)
                 throw new AssertionError("Bad state");
         }
+        // visit moves and remove any that cause us to lose
+        getWinner(game);
+        switch (game.getTurn()) {
+            case NEAR:
+                if (numNear > 1) {
+                    return moves;
+                }
+                break;
+            case FAR:
+                if (numFar > 1 ) {
+                    return moves;
+                }
+                break;
+        }
+        Iterator<Move> it = moves.iterator();
+        while (it.hasNext()) {
+            Move m = it.next();
+            if (m.hasEnd() && !isInCourt(m.getEnd()[0], m.getEnd()[1])) {
+                it.remove();
+            }
+        }
+
         return moves;
     }
 
+    // table that gives the number of slides neccessary to get to the court from a current [r.c]
     static int [][] distToCourtTable = {
             { 4, 3, 2, 2, 2, 2, 3, 4 },
             { 3, 2, 1, 1, 1, 1, 2, 3 },
