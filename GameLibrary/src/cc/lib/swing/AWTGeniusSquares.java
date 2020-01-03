@@ -31,11 +31,19 @@ public class AWTGeniusSquares extends AWTComponent {
 
             @Override
             protected void onMenuItemSelected(String menu, String subMenu) {
-                game.newGame();
+                switch (subMenu) {
+                    case "New Game":
+                        game.newGame();
+                        break;
+                    case "Reset Pieces":
+                        game.resetPieces();
+                        break;
+                }
+
                 repaint();
             }
         };
-        frame.addMenuBarMenu("GeniusSquares", "New Game");
+        frame.addMenuBarMenu("GeniusSquares", "New Game", "Reset Pieces");
 
         game = new UIGeniusSquare() {
             @Override

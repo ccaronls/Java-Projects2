@@ -3,6 +3,7 @@ package cc.lib.geniussqaure;
 import cc.lib.game.AGraphics;
 import cc.lib.game.APGraphics;
 import cc.lib.game.GColor;
+import cc.lib.game.Justify;
 import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
 
@@ -47,20 +48,53 @@ public abstract class UIGeniusSquare extends GeniusSquare {
                 highlighted = drawPieces(g, mx, my);
             drawPiecesBeveled(g);
 
+            if (highlighted == null && dragging && pickedCell != null) {
+                int color = board[pickedCell[1]][pickedCell[0]];
+                if (color > PieceType.PIECE_0.ordinal() && color < PieceType.PIECE_CHIT.ordinal()) {
+                    highlighted = pieces.get(color-1);
+                }
+            }
+
             if (highlighted != null) {
                 //System.out.println("highlighted = " + highlighted);
                 g.pushMatrix();
-                g.setColor(GColor.WHITE);
 
-                g.pushMatrix();
-                g.translate(highlighted.getCenter());
-                g.scale(1.05f);
-                g.translate(-highlighted.getWidth()/2, -highlighted.getHeight()/2);
-                renderPiece(g, highlighted);
-                g.drawFilledRects();
-                g.popMatrix();
-                g.end();
-                drawPieceBeveled(g, highlighted);
+                g.setColor(GColor.WHITE);
+                boolean useFind = true;
+
+                if (dragging) {
+                    liftPiece(highlighted);
+                    if (pickedCell != null) {
+                        int [] result;
+                        if (useFind && (result = findDropForPiece(highlighted, pickedCell[0], pickedCell[1]))!= null) {
+                            System.out.println("Droppable at: " + result[1] + "," + result[2] + " index:"+ result[0]);
+                            highlighted.setIndex(result[0]);
+                            dropPiece(highlighted, result[1], result[2]);
+                            //dropShape(highlighted.pieceType.orientations[result[0]], result[1], result[2]);
+                            //highlighted.dropped = true;
+                        } else if (!useFind && canDropPiece(highlighted, pickedCell[0], pickedCell[1])) {
+                            //g.setColor(GColor.GREEN);
+                            dropPiece(highlighted, pickedCell[0], pickedCell[1]);
+                        } else {
+                            g.setColor(GColor.RED);
+                        }
+                    } else {
+                        Vector2D pt = g.screenToViewport(mx, my);
+                        highlighted.setCenter(pt);
+                    }
+                }
+
+                if (!highlighted.dropped) {
+                    g.pushMatrix();
+                    g.translate(highlighted.getCenter());
+                    g.scale(1.03f);
+                    g.translate(-highlighted.getWidth() / 2, -highlighted.getHeight() / 2);
+                    renderPiece(g, highlighted);
+                    g.drawFilledRects();
+                    g.popMatrix();
+                    g.end();
+                    drawPieceBeveled(g, highlighted);
+                }
                 //g.pushMatrix();
                 //g.translate(highlighted.topLeft);
                 //g.setColor(highlighted.pieceType.color);
@@ -68,18 +102,16 @@ public abstract class UIGeniusSquare extends GeniusSquare {
                 //g.drawFilledRects();
                 //g.popMatrix();
 
-                if (dragging) {
-                    Vector2D pt = g.screenToViewport(mx, my);
-                    highlighted.setCenter(pt);
-                }
-
-
                 g.popMatrix();
             }
             g.popMatrix();
             if (pickedCell != null) {
                 g.setColor(GColor.WHITE);
-                g.drawString("pickedCell: " + pickedCell[0] + "," + pickedCell[1], 10, 10);
+                String hl = "";
+                if (highlighted != null) {
+                    hl = highlighted.pieceType.name()+" " + (highlighted.dropped ? "v" : "^") + " ";
+                }
+                g.drawJustifiedString(WIDTH-10, 10, Justify.RIGHT, Justify.TOP, hl+"pickedCell: " + pickedCell[0] + "," + pickedCell[1]);
             }
 
         } else {
@@ -101,14 +133,13 @@ public abstract class UIGeniusSquare extends GeniusSquare {
         for (int y=0; y<BOARD_DIM_CELLS; y++) {
             for (int x=0; x<BOARD_DIM_CELLS; x++) {
                 g.pushMatrix();
-                g.translate(x, y);
                 if (picked == null) {
                     g.begin();
                     g.setName(1);
-                    g.vertex(0, 0);
-                    g.vertex(1, 1);
+                    g.vertex(x, y);
+                    g.vertex(x+1, y+1);
                     if (1 == g.pickRects(mx, my)) {
-                        picked = new int[] { y, x };
+                        picked = new int[] { x, y };
                     }
                 }
                 PieceType pt = PieceType.values()[board[y][x]];
@@ -117,11 +148,12 @@ public abstract class UIGeniusSquare extends GeniusSquare {
                         break;
                     case PIECE_CHIT: {
                         g.setColor(pt.color);
-                        g.drawFilledCircle(0.5f, 0.5f, 0.4f);
+                        g.drawFilledCircle(x+0.5f, y+0.5f, 0.4f);
                         break;
                     }
 
                     default: {
+                        drawCellBeveled(g, board, new Vector2D(0, 0), x, y);
                         //g.setColor(pt.color);
                         //g.drawFilledRect(0, 0, 1, 1);
                     }
@@ -192,106 +224,204 @@ public abstract class UIGeniusSquare extends GeniusSquare {
         return rowMajorMatrix[row][col];
     }
 
-    public void drawPieceBeveled(AGraphics g, Piece p) {
-        final float BEVEL_INSET = 0.25f;
-        final float PADDING = 0.05f;
+    final float BEVEL_INSET = 0.25f;
+    final float BEVEL_PADDING = 0.05f;
+
+    public void drawPieceBeveled(AGraphics g, Piece p) { //int [][] shape, Vector2D _topLeft, GColor color) {
 
         int [][] shape = p.getShape();
+
         for (int y=0; y<shape.length; y++) {
             for (int x = 0; x < shape[y].length; x++) {
                 if (shape[y][x] == 0)
                     continue;
                 g.pushMatrix();
-                final int cell = shape[y][x];
-                MutableVector2D topLeft = new MutableVector2D(p.getTopLeft()).addEq(x, y);
-                MutableVector2D topRight = new MutableVector2D(topLeft).addEq(1, 0);
-                MutableVector2D bottomLeft  = new MutableVector2D(topLeft).addEq(0, 1);
-                MutableVector2D bottomRight = new MutableVector2D(topLeft).addEq(1, 1);
-                MutableVector2D topLeftBevel = new MutableVector2D(p.getTopLeft()).add(x, y);
-                MutableVector2D topRightBevel = new MutableVector2D(topLeftBevel).addEq(1, 0);
-                MutableVector2D bottomLeftBevel = new MutableVector2D(topLeftBevel).addEq(0, 1);
-                MutableVector2D bottomRightBevel = new MutableVector2D(topLeftBevel).addEq(1, 1);
-                if (getCellAt(y - 1, x, shape) != cell) {
-                    // draw 'top' for this cell with beveled
-                    topLeft.addEq(0, PADDING);
-                    topRight.addEq(0, PADDING);
-                    topLeftBevel.addEq(0, BEVEL_INSET);
-                    topRightBevel.addEq(0, BEVEL_INSET);
-                }
-                if (getCellAt(y + 1, x, shape) != cell) {
-                    // draw 'bottom' for this cell with beveled
-                    bottomLeft.subEq(0, PADDING);
-                    bottomRight.subEq(0, PADDING);
-                    bottomLeftBevel.subEq(0, BEVEL_INSET);
-                    bottomRightBevel.subEq(0, BEVEL_INSET);
-                }
-                if (getCellAt(y, x-1, shape) != cell) {
-                    // draw 'left' for this cell with beveled
-                    topLeft.addEq(PADDING, 0);
-                    bottomLeft.addEq(PADDING, 0);
-                    topLeftBevel.addEq(BEVEL_INSET, 0);
-                    bottomLeftBevel.addEq(BEVEL_INSET, 0);
-                }
-                if (getCellAt(y, x+1, shape) != cell) {
-                    // draw 'right' for this cell with beveled
-                    topRight.subEq(PADDING, 0);
-                    bottomRight.subEq(PADDING, 0);
-                    topRightBevel.subEq(BEVEL_INSET, 0);
-                    bottomRightBevel.subEq(BEVEL_INSET, 0);
-                }
-                GColor cntrColor = p.pieceType.color;
-                GColor leftColor = cntrColor.lightened(.2f);
-                GColor rightColor = cntrColor.darkened(.2f);
-                GColor topColor = cntrColor.lightened(.4f);
-                GColor bottomColor = cntrColor.darkened(.4f);
-                // top
-                g.begin();
-                g.setColor(topColor);
-                g.vertex(topLeft);
-                g.vertex(topRight);
-                g.vertex(bottomLeftBevel);
-                g.vertex(topRightBevel);
-                g.drawQuadStrip();
-                // right
-                g.begin();
-                g.setColor(rightColor);
-                g.vertex(topRight);
-                g.vertex(bottomRight);
-                g.vertex(topRightBevel);
-                g.vertex(bottomRightBevel);
-                g.drawQuadStrip();
-                // bottom
-                g.begin();
-                g.setColor(bottomColor);
-                g.vertex(bottomRight);
-                g.vertex(bottomLeft);
-                g.vertex(bottomRightBevel);
-                g.vertex(bottomLeftBevel);
-                g.drawQuadStrip();
-                // left
-                g.begin();
-                g.setColor(leftColor);
-                g.vertex(bottomLeft);
-                g.vertex(topLeft);
-                g.vertex(bottomLeftBevel);
-                g.vertex(topLeftBevel);
-                g.drawQuadStrip();
-                // center
-                g.begin();
-                g.setColor(cntrColor);
-                g.vertex(topLeftBevel);
-                g.vertex(topRightBevel);
-                g.vertex(bottomLeftBevel);
-                g.vertex(bottomRightBevel);
-                g.drawQuadStrip();
-                g.end();
+                drawCellBeveled(g, shape, p.getTopLeft(), x, y);
                 g.popMatrix();
             }
         }
     }
 
+    final int BEVEL_TOP = 1;
+    final int BEVEL_RIGHT = 1<<1;
+    final int BEVEL_BOTTOM = 1<<2;
+    final int BEVEL_LEFT = 1<<3;
+    final int BEVEL_LEFT_TOP = BEVEL_LEFT|BEVEL_TOP;
+    final int BEVEL_RIGHT_TOP = BEVEL_RIGHT|BEVEL_TOP;
+    final int BEVEL_RIGHT_BOTTOM = BEVEL_RIGHT|BEVEL_BOTTOM;
+    final int BEVEL_LEFT_BOTTOM = BEVEL_BOTTOM|BEVEL_LEFT;
+
+    public void drawCellBeveled(AGraphics g, int [][] matrix, Vector2D _topLeft, int x, int y) {
+        int cell = matrix[y][x];
+        MutableVector2D topLeft = new MutableVector2D(_topLeft).addEq(x, y);
+        MutableVector2D topRight = new MutableVector2D(topLeft).addEq(1, 0);
+        MutableVector2D bottomLeft  = new MutableVector2D(topLeft).addEq(0, 1);
+        MutableVector2D bottomRight = new MutableVector2D(topLeft).addEq(1, 1);
+        MutableVector2D topLeftBevel = new MutableVector2D(_topLeft).add(x, y);
+        MutableVector2D topRightBevel = new MutableVector2D(topLeftBevel).addEq(1, 0);
+        MutableVector2D bottomLeftBevel = new MutableVector2D(topLeftBevel).addEq(0, 1);
+        MutableVector2D bottomRightBevel = new MutableVector2D(topLeftBevel).addEq(1, 1);
+        int bevel = 0;
+        if (getCellAt(y - 1, x, matrix) != cell) {
+            // draw 'top' for this cell with beveled
+            topLeft.addEq(0, BEVEL_PADDING);
+            topRight.addEq(0, BEVEL_PADDING);
+            topLeftBevel.addEq(0, BEVEL_INSET);
+            topRightBevel.addEq(0, BEVEL_INSET);
+        } else {
+            bevel |= BEVEL_TOP;
+        }
+        if (getCellAt(y + 1, x, matrix) != cell) {
+            // draw 'bottom' for this cell with beveled
+            bottomLeft.subEq(0, BEVEL_PADDING);
+            bottomRight.subEq(0, BEVEL_PADDING);
+            bottomLeftBevel.subEq(0, BEVEL_INSET);
+            bottomRightBevel.subEq(0, BEVEL_INSET);
+        } else {
+            bevel |= BEVEL_BOTTOM;
+        }
+        if (getCellAt(y, x-1, matrix) != cell) {
+            // draw 'left' for this cell with beveled
+            topLeft.addEq(BEVEL_PADDING, 0);
+            bottomLeft.addEq(BEVEL_PADDING, 0);
+            topLeftBevel.addEq(BEVEL_INSET, 0);
+            bottomLeftBevel.addEq(BEVEL_INSET, 0);
+        } else {
+            bevel |= BEVEL_LEFT;
+        }
+        if (getCellAt(y, x+1, matrix) != cell) {
+            // draw 'right' for this cell with beveled
+            topRight.subEq(BEVEL_PADDING, 0);
+            bottomRight.subEq(BEVEL_PADDING, 0);
+            topRightBevel.subEq(BEVEL_INSET, 0);
+            bottomRightBevel.subEq(BEVEL_INSET, 0);
+        } else {
+            bevel |= BEVEL_RIGHT;
+        }
+
+        GColor topColor = PieceType.values()[cell].color.lightened(.3f);
+        GColor leftColor = topColor.darkened(.2f);//cntrColor.lightened(.2f);
+        GColor rightColor = topColor.darkened(.4f);//cntrColor.darkened(.2f);
+        GColor cntrColor = topColor.lightened(.3f);
+        GColor bottomColor = topColor.darkened(.5f);
+        // top
+        g.begin();
+        g.setColor(topColor);
+        g.vertex(topLeft);
+        g.vertex(topRight);
+        g.vertex(bottomLeftBevel);
+        g.vertex(topRightBevel);
+        g.drawQuadStrip();
+        // right
+        g.begin();
+        g.setColor(rightColor);
+        g.vertex(topRight);
+        g.vertex(bottomRight);
+        g.vertex(topRightBevel);
+        g.vertex(bottomRightBevel);
+        g.drawQuadStrip();
+        // bottom
+        g.begin();
+        g.setColor(bottomColor);
+        g.vertex(bottomRight);
+        g.vertex(bottomLeft);
+        g.vertex(bottomRightBevel);
+        g.vertex(bottomLeftBevel);
+        g.drawQuadStrip();
+        // left
+        g.begin();
+        g.setColor(leftColor);
+        g.vertex(bottomLeft);
+        g.vertex(topLeft);
+        g.vertex(bottomLeftBevel);
+        g.vertex(topLeftBevel);
+        g.drawQuadStrip();
+        // center
+        g.begin();
+        g.setColor(cntrColor);
+        g.vertex(topLeftBevel);
+        g.vertex(topRightBevel);
+        g.vertex(bottomLeftBevel);
+        g.vertex(bottomRightBevel);
+        g.drawQuadStrip();
+        // check the corners
+        // top/left corner
+        if ((bevel & BEVEL_LEFT_TOP) == BEVEL_LEFT_TOP  && getCellAt(y-1, x-1, matrix) != cell) {
+            topLeftBevel = topLeft.add(BEVEL_INSET, BEVEL_INSET);
+            //topLeft = topLeft.add(BEVEL_PADDING, BEVEL_PADDING);
+            g.begin();
+            g.setColor(topColor);
+            g.vertex(topLeft);
+            g.vertex(topLeftBevel);
+            g.vertex(topLeft.getX(), topLeftBevel.getY());
+            g.drawTriangles();
+            g.begin();
+            g.setColor(leftColor);
+            g.vertex(topLeft);
+            g.vertex(topLeftBevel);
+            g.vertex(topLeftBevel.getX(), topLeft.getY());
+            g.drawTriangles();
+        }
+        // top/right corner
+        if ((bevel & BEVEL_RIGHT_TOP) == BEVEL_RIGHT_TOP  && getCellAt(y-1, x+1, matrix) != cell) {
+            topRightBevel = topRight.add(-BEVEL_INSET, BEVEL_INSET);
+            //topRight.add(-BEVEL_PADDING, BEVEL_PADDING);
+            g.begin();
+            g.setColor(topColor);
+            g.vertex(topRight);
+            g.vertex(topRightBevel);
+            g.vertex(topRight.getX(), topRightBevel.getY());
+            g.drawTriangles();
+            g.begin();
+            g.setColor(rightColor);
+            g.vertex(topRight);
+            g.vertex(topRightBevel);
+            g.vertex(topRightBevel.getX(), topRight.getY());
+            g.drawTriangles();
+        }
+        // bottom/right corner
+        if ((bevel & BEVEL_RIGHT_BOTTOM) == BEVEL_RIGHT_BOTTOM && getCellAt(y+1, x+1, matrix) != cell) {
+            bottomRightBevel = bottomRight.add(-BEVEL_INSET, -BEVEL_INSET);
+            //bottomRight = bottomRight.add(-BEVEL_PADDING, -BEVEL_PADDING);
+            g.begin();
+            g.setColor(bottomColor);
+            g.vertex(bottomRight);
+            g.vertex(bottomRightBevel);
+            g.vertex(bottomRight.getX(), bottomRightBevel.getY());
+            g.drawTriangles();
+            g.begin();
+            g.setColor(rightColor);
+            g.vertex(bottomRight);
+            g.vertex(bottomRightBevel);
+            g.vertex(bottomRightBevel.getX(), bottomRight.getY());
+            g.drawTriangles();
+        }
+        // bottom/left corner
+        if ((bevel & BEVEL_LEFT_BOTTOM) == BEVEL_LEFT_BOTTOM && getCellAt(y+1, x-1, matrix) != cell) {
+            bottomLeftBevel = bottomLeft.add(BEVEL_INSET, -BEVEL_INSET);
+            //bottomLeft = bottomLeft.add(BEVEL_PADDING, -BEVEL_PADDING);
+            g.begin();
+            g.setColor(bottomColor);
+            g.vertex(bottomLeft);
+            g.vertex(bottomLeftBevel);
+            g.vertex(bottomLeft.getX(), bottomLeftBevel.getY());
+            g.drawTriangles();
+            g.begin();
+            g.setColor(leftColor);
+            g.vertex(bottomLeft);
+            g.vertex(bottomLeftBevel);
+            g.vertex(bottomLeftBevel.getX(), bottomLeft.getY());
+            g.drawTriangles();
+        }
+
+
+        g.end();
+    }
+
     public void drawPiecesBeveled(AGraphics g) {
         for (Piece p : pieces) {
+            if (p.dropped)
+                continue;
             drawPieceBeveled(g, p);
         }
     }

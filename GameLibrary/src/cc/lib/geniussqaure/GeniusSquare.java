@@ -81,6 +81,7 @@ public class GeniusSquare extends Reflector<GeniusSquare> { // GeniusSquare. 6x6
         private int index = 0;
         final MutableVector2D topLeft = new MutableVector2D();
         final MutableVector2D bottomRight = new MutableVector2D();
+        boolean dropped = false;
 
         public Piece() {
             this(null);
@@ -99,7 +100,11 @@ public class GeniusSquare extends Reflector<GeniusSquare> { // GeniusSquare. 6x6
         }
 
         void increment(int amt) {
-            index = (index+amt+pieceType.orientations.length)%pieceType.orientations.length;
+            setIndex((index + amt + pieceType.orientations.length) % pieceType.orientations.length);
+        }
+
+        void setIndex(int idx) {
+            index = idx;
             Vector2D center = topLeft.add(bottomRight).scaledBy(0.5f);
             topLeft.set(center).subEq(getWidth()/2, getHeight()/2);
             bottomRight.set(topLeft).addEq(getWidth(), getHeight());
@@ -149,17 +154,23 @@ public class GeniusSquare extends Reflector<GeniusSquare> { // GeniusSquare. 6x6
 
     public void newGame() {
         board = new int[BOARD_DIM_CELLS][BOARD_DIM_CELLS];
-        for (int i=0; i<NUM_BLOCKERS; ) {
-            int r = Utils.randRange(0, BOARD_DIM_CELLS-1);
-            int c = Utils.randRange(0, BOARD_DIM_CELLS-1);
+        for (int i = 0; i < NUM_BLOCKERS; ) {
+            int r = Utils.randRange(0, BOARD_DIM_CELLS - 1);
+            int c = Utils.randRange(0, BOARD_DIM_CELLS - 1);
             if (board[r][c] != 0)
                 continue;
             board[r][c] = PieceType.PIECE_CHIT.ordinal();
             i++;
         }
+        resetPieces();
+    }
+
+    public void resetPieces() {
         pieces.clear();
         for (int i=1; i<=9; i++) {
-            pieces.add(new Piece(PieceType.values()[i]));
+            Piece p = new Piece(PieceType.values()[i]);
+            pieces.add(p);
+            liftPiece(p);
         }
     }
 
@@ -167,9 +178,9 @@ public class GeniusSquare extends Reflector<GeniusSquare> { // GeniusSquare. 6x6
         if (cellX < 0 || cellY < 0)
             return false;
         int [][] shape = p.getShape();
-        if (cellY + shape.length >= BOARD_DIM_CELLS)
+        if (cellY + shape.length > BOARD_DIM_CELLS)
             return false;
-        if (cellX + shape[0].length >= BOARD_DIM_CELLS)
+        if (cellX + shape[0].length > BOARD_DIM_CELLS)
             return false;
         for (int y=0; y<shape.length; y++) {
             for (int x=0; x<shape[y].length; x++) {
@@ -180,18 +191,75 @@ public class GeniusSquare extends Reflector<GeniusSquare> { // GeniusSquare. 6x6
         return true;
     }
 
+    /**
+     * search through all the possible orientations to fit the piece at cx, cy
+     * @param p
+     * @param cellX
+     * @param cellY
+     * @return 3 ints: orientation, y and x or null if not possible to fit
+     *   if not result != null then can call dropPiece(p, result[0], result[1], result[2])
+     */
+    public final int [] findDropForPiece(Piece p, int cellX, int cellY) {
+        final int cell = board[cellY][cellX];
+        for (int s=0; s<p.pieceType.orientations.length; s++) {
+            final int shapeIndex = (p.index+s) % p.pieceType.orientations.length;
+            final int [][] shape = p.pieceType.orientations[shapeIndex];
+            for (int y=0; y<shape.length; y++) {
+                for (int x=0; x<shape[y].length; x++) {
+                    int [][] tested = new int[shape.length][shape[0].length];
+                    if (searchDropPieceR(shape, x, y, cellX, cellY, tested)) {
+                        return new int [] { shapeIndex, cellX-x, cellY-y };
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    private boolean searchDropPieceR(final int [][] shape, int px, int py, int cellX, int cellY, final int [][] tested) {
+        if (px < 0 || py < 0 || py >= shape.length || px >= shape[0].length)
+            return true;
+        if (tested[py][px] != 0)
+            return true;
+        tested[py][px] = 1;
+        if (cellX < 0 || cellY < 0 || cellX >= BOARD_DIM_CELLS || cellY >= BOARD_DIM_CELLS)
+            return false;
+        if (shape[py][px] != 0 && board[cellY][cellX] != 0)
+            return false;
+        return searchDropPieceR(shape, px-1, py, cellX-1, cellY, tested) &&
+                searchDropPieceR(shape, px+1, py, cellX+1, cellY, tested) &&
+                searchDropPieceR(shape, px, py-1, cellX, cellY-1, tested) &&
+                searchDropPieceR(shape, px, py+1, cellX, cellY+1, tested);
+    }
+
     void dropPiece(Piece p, int cellX, int cellY) {
-        if (!canDropPiece(p, cellX, cellY))
-            throw new AssertionError("Logic Error: Cannot drop piece");
-        final int [][] shape = p.getShape();
+        if (canDropPiece(p, cellX, cellY)) {
+            //throw new AssertionError("Logic Error: Cannot drop piece");
+            final int[][] shape = p.getShape();
+            dropShape(shape, cellX, cellY);
+            p.dropped = true;
+        } else {
+            System.err.println("Cannot drop piece at: " + cellX + ", " + cellY);
+        }
+    }
+
+    void dropShape(int [][] shape, int cellX, int cellY) {
         for (int y=0; y<shape.length; y++) {
             for (int x=0; x<shape[y].length; x++) {
                 if (shape[y][x] != 0)
                     board[cellY+y][cellX+x] = shape[y][x];
             }
         }
+    }
 
-
+    void liftPiece(Piece p) {
+        for (int y=0; y<BOARD_DIM_CELLS; y++) {
+            for (int x=0; x<BOARD_DIM_CELLS; x++) {
+                if (board[y][x] == p.pieceType.ordinal())
+                    board[y][x] = 0;
+            }
+        }
+        p.dropped = false;
     }
 
 }
