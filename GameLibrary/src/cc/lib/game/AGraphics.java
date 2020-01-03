@@ -1044,10 +1044,14 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
         float oldWidth = setLineWidth(thickness);
         begin();
         vertex(x, y);
-        vertex(x+w, y);
+        //vertex(x+w, y);
         vertex(x+w, y+h);
-        vertex(x, y+h);
-        drawLineLoop();
+        //vertex(x, y+h);
+        //drawLineLoop();
+        drawLine(x, y, x+w, y);
+        drawLine(x+w, y, x+w, y+h);
+        drawLine(x, y, x, y+h);
+        drawLine(x, y+h, x+w, y+h);
         setLineWidth(oldWidth);
     }
 
@@ -1172,6 +1176,12 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
 
     public final void drawFilledRect(GRectangle rect) {
         drawQuad(rect.x, rect.y, rect.x+rect.w, rect.y+rect.h);
+    }
+
+    private void drawFilledRectP(float x, float y, float w, float h) {
+        vertex(x, y);
+        vertex(x+w, y+h);
+        drawFilledRects();
     }
 
     // return whether points added for quads or lines (true == quads)

@@ -1,6 +1,13 @@
 package cc.lib.geniussqaure;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import cc.lib.game.GColor;
+import cc.lib.game.IVector2D;
+import cc.lib.game.Utils;
+import cc.lib.math.MutableVector2D;
+import cc.lib.math.Vector2D;
 import cc.lib.utils.Reflector;
 
 public class GeniusSquare extends Reflector<GeniusSquare> { // GeniusSquare. 6x6 board
@@ -10,56 +17,181 @@ public class GeniusSquare extends Reflector<GeniusSquare> { // GeniusSquare. 6x6
         addAllFields(Piece.class);
     }
 
-    public static class Piece extends Reflector<Piece> {
-        @Omit
-        final GColor color;
-        @Omit
-        final int [][][] shape; // first index is the shape. next 2 are the matrix
+    public enum PieceType {
+        PIECE_0(null, 0, 0, null), // this way the matrix value aligns with ordinal()
+        PIECE_1x1(GColor.BLUE, 0, 0, new int [][][] {
+                {{ 1 }}
+        }), // matrices are row major
+        PIECE_2x2(GColor.GREEN, 1, 0, new int [][][] {
+                {{ 2, 2 }, { 2, 2 }}
+        }),
+        PIECE_1x2(GColor.BROWN, 0, 2, new int [][][] {
+                {{ 3, 3 }}, {{ 3 }, { 3 }}
+        }),
+        PIECE_1x3(GColor.ORANGE, 0, 3, new int [][][] {
+                {{ 4, 4, 4 }}, {{ 4 }, { 4 }, { 4 }}
+        }),
+        PIECE_1x4(GColor.GRAY, 0, 7, new int [][][] {
+                {{ 5, 5, 5, 5 }},
+                {{ 5 }, { 5 }, { 5 }, { 5 }}
+        }),
+        PIECE_EL(GColor.CYAN, 2, 0, new int [][][] {
+                {{ 0, 6 }, { 0, 6 }, { 6, 6 }},
+                {{ 6, 6 }, { 0, 6 }, { 0, 6 }},
+                {{ 6, 6 }, { 6, 0 }, { 6, 0 }},
+                {{ 6, 0 }, { 6, 0 }, { 6, 6 }},
+                {{ 6, 0, 0 }, { 6, 6, 6 }},
+                {{ 0, 0, 6 }, { 6, 6, 6 }},
+                {{ 6, 6, 6 }, { 6, 0, 0 }},
+                {{ 6, 6, 6 }, { 0, 0, 6 }}
+        }),
+        PIECE_BEND(GColor.MAGENTA, 2, 3, new int [][][] {
+                {{ 0, 7 }, { 7, 7 }},
+                {{ 7, 0 }, { 7, 7 }},
+                {{ 7, 7 }, { 0, 7 }},
+                {{ 7, 7 }, { 7, 0 }}}),
+        PIECE_TEE(GColor.YELLOW, 0, 4, new int [][][] {
+                {{ 8, 0 }, { 8, 8 }, { 8, 0 }},
+                {{ 0, 8 }, { 8, 8 }, { 0, 8 }},
+                {{ 8, 8, 8 }, { 0, 8, 0 }},
+                {{ 0, 8, 0 }, { 8, 8, 8 }},
+        }),
 
-        int index;
-        float x, y;
+        PIECE_STEP(GColor.RED, 1, 5, new int [][][]  {{{ 0, 9, 9 }, { 9, 9, 0 }},
+                {{ 9, 9, 0 }, { 0, 9, 9 }},
+                {{ 9, 0 }, { 9, 9 }, { 0, 9 }},
+                {{ 0, 9 }, { 9, 9 }, { 9, 0 }}}),
+        PIECE_CHIT(new GColor(0xFFDBB584), 0, 0, new int [][][] {{{ 10 }}}),
+        ;
 
-        public Piece(GColor color, int [][][] shape) {
+        PieceType(GColor color, int startX, int startY, int [][][] orientations) {
             this.color = color;
-            this.shape = shape;
+            this.orientations = orientations;
+            this.startX = startX;
+            this.startY = startY;
         }
 
-        void rotate(int degrees) {}
-
-        void flipVertical() {}
-
-        void flipHorizontal() {}
+        final GColor color;
+        final int [][][] orientations;
+        final float startX, startY;
     }
 
-    Piece p1x1 = new Piece(GColor.BLUE, new int [][][] {{{ 1 }}});
-    Piece p2x2 = new Piece(GColor.GREEN, new int [][][] {{{ 2, 2 }, { 2, 2 }}});
-    Piece p1x2 = new Piece(GColor.BROWN, new int [][][] {{{ 3, 3 }}, {{ 3 },{ 3 }}});
-    Piece p1x3 = new Piece(GColor.ORANGE, new int [][][] {{{ 4, 4, 4 }}, {{ 4 }, { 4 }, { 4 }}});
-    Piece p1x4 = new Piece(GColor.GRAY, new int [][][] {{{ 5, 5, 5, 5 }}, {{ 5 }, { 5 }, { 5 }, { 5 }}});
-    Piece pEl  = new Piece(GColor.CYAN, new int [][][] {{{ 6, 0, 0 }, { 6, 6, 6 }},
-                                                        {{ 0, 0, 6 }, { 6, 6, 6 }},
-                                                        {{ 6, 6, 6 }, { 6, 0, 0 }},
-                                                        {{ 6, 6, 6 }, { 0, 0, 6 }},
-                                                        {{ 6, 6 }, { 0, 6 }, { 0, 6 }},
-                                                        {{ 6, 6 }, { 6, 0 }, { 6, 0 }},
-                                                        {{ 0, 6 }, { 0, 6 }, { 6, 6 }},
-                                                        {{ 1, 0 }, { 6, 0 }, { 6, 6 }}});
-    Piece pBend = new Piece(GColor.MAGENTA, new int [][][] {{{ 7, 0 }, { 7, 7 }},
-                                                            {{ 0, 7 }, { 7, 7 }},
-                                                            {{ 7, 7 }, { 0, 7 }},
-                                                            {{ 7, 7 }, { 7, 0 }}});
-    Piece pTee = new Piece(GColor.YELLOW, new int [][][] {{{ 8, 8, 8 }, { 0, 8, 0 }},
-                                                          {{ 0, 8, 0 }, { 8, 8, 8 }},
-                                                          {{ 8, 0 }, { 8, 8 }, { 8, 0 }},
-                                                          {{ 0, 8 }, { 8, 8 }, { 0, 8 }}});
+    public static class Piece extends Reflector<Piece> {
+        final PieceType pieceType;
+        private int index = 0;
+        final MutableVector2D topLeft = new MutableVector2D();
+        final MutableVector2D bottomRight = new MutableVector2D();
 
-    Piece pStep= new Piece(GColor.RED, new int [][][]  {{{ 0, 9, 9 }, { 9, 9, 0 }},
-                                                        {{ 9, 9, 0 }, { 0, 9, 9 }},
-                                                        {{ 9, 0 }, { 9, 9 }, { 0, 9 }},
-                                                        {{ 0, 9 }, { 9, 9 }, { 9, 0 }}});
+        public Piece() {
+            this(null);
+        }
 
-    int [][] board = new int[6][6];
+        public Piece(PieceType pt) {
+            this.pieceType = pt;
+            if (pt != null) {
+                this.topLeft.set(pt.startX, pt.startY);//.add(0.5f * getWidth(), 0.5f * getHeight());
+                this.bottomRight.set(topLeft).addEq(getWidth(), getHeight());
+            }
+        }
 
+        int [][] getShape() {
+            return pieceType.orientations[index];
+        }
+
+        void increment(int amt) {
+            index = (index+amt+pieceType.orientations.length)%pieceType.orientations.length;
+            Vector2D center = topLeft.add(bottomRight).scaledBy(0.5f);
+            topLeft.set(center).subEq(getWidth()/2, getHeight()/2);
+            bottomRight.set(topLeft).addEq(getWidth(), getHeight());
+        }
+
+        public float getWidth() {
+            return getShape()[0].length;
+        }
+
+        public float getHeight() {
+            return getShape().length;
+        }
+
+        public Vector2D getCenter() {
+            return topLeft.add(bottomRight).scaledBy(0.5f);
+        }
+
+        public void setCenter(IVector2D cntr) {
+            topLeft.set(cntr).subEq(getWidth()/2, getHeight()/2);
+            bottomRight.set(cntr).addEq(getWidth()/2, getHeight()/2);
+        }
+
+        public Vector2D getTopLeft() {
+            return topLeft;
+        }
+
+        public Vector2D getTopRight() {
+            return new Vector2D(bottomRight.X(), topLeft.Y());
+        }
+        public Vector2D getBottomRight() {
+            return bottomRight;
+        }
+
+        public Vector2D getBottomLeft() {
+            return new Vector2D(topLeft.X(), bottomRight.Y());
+        }
+    }
+
+    final List<Piece> pieces = new ArrayList<>();
+    int [][] board = new int[BOARD_DIM_CELLS][BOARD_DIM_CELLS]; // row major
+
+    static int BOARD_DIM_CELLS = 6;
     static int NUM_BLOCKERS = 7;
-    static int BLOCKER_ID   = 10;
+
+    public GeniusSquare() {
+    }
+
+    public void newGame() {
+        board = new int[BOARD_DIM_CELLS][BOARD_DIM_CELLS];
+        for (int i=0; i<NUM_BLOCKERS; ) {
+            int r = Utils.randRange(0, BOARD_DIM_CELLS-1);
+            int c = Utils.randRange(0, BOARD_DIM_CELLS-1);
+            if (board[r][c] != 0)
+                continue;
+            board[r][c] = PieceType.PIECE_CHIT.ordinal();
+            i++;
+        }
+        pieces.clear();
+        for (int i=1; i<=9; i++) {
+            pieces.add(new Piece(PieceType.values()[i]));
+        }
+    }
+
+    public final boolean canDropPiece(Piece p, int cellX, int cellY) {
+        if (cellX < 0 || cellY < 0)
+            return false;
+        int [][] shape = p.getShape();
+        if (cellY + shape.length >= BOARD_DIM_CELLS)
+            return false;
+        if (cellX + shape[0].length >= BOARD_DIM_CELLS)
+            return false;
+        for (int y=0; y<shape.length; y++) {
+            for (int x=0; x<shape[y].length; x++) {
+                if (shape[y][x] != 0 && board[cellY+y][cellX+x] != 0)
+                    return false;
+            }
+        }
+        return true;
+    }
+
+    void dropPiece(Piece p, int cellX, int cellY) {
+        if (!canDropPiece(p, cellX, cellY))
+            throw new AssertionError("Logic Error: Cannot drop piece");
+        final int [][] shape = p.getShape();
+        for (int y=0; y<shape.length; y++) {
+            for (int x=0; x<shape[y].length; x++) {
+                if (shape[y][x] != 0)
+                    board[cellY+y][cellX+x] = shape[y][x];
+            }
+        }
+
+
+    }
+
 }

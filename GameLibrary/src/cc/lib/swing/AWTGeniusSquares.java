@@ -1,0 +1,75 @@
+package cc.lib.swing;
+
+import java.io.File;
+
+import cc.lib.dungeondice.UI;
+import cc.lib.game.AGraphics;
+import cc.lib.game.Utils;
+import cc.lib.geniussqaure.UIGeniusSquare;
+import cc.lib.utils.FileUtils;
+
+public class AWTGeniusSquares extends AWTComponent {
+
+    public static void main(String[] args) {
+        AGraphics.DEBUG_ENABLED = true;
+        Utils.DEBUG_ENABLED = true;
+        new AWTGeniusSquares();
+    }
+
+    final AWTFrame frame;
+    final UIGeniusSquare game;
+
+    AWTGeniusSquares() {
+        setMouseEnabled(true);
+        final File settings = FileUtils.getOrCreateSettingsDirectory(getClass());
+        final File saveFile = new File(settings, "gs.save");
+        frame = new AWTFrame("Genius Squares") {
+            @Override
+            protected void onWindowClosing() {
+                game.trySaveToFile(saveFile);
+            }
+
+            @Override
+            protected void onMenuItemSelected(String menu, String subMenu) {
+                game.newGame();
+                repaint();
+            }
+        };
+        frame.addMenuBarMenu("GeniusSquares", "New Game");
+
+        game = new UIGeniusSquare() {
+            @Override
+            protected void repaint() {
+                AWTGeniusSquares.this.repaint();
+
+            }
+        };
+        if (!game.tryLoadFromFile(saveFile))
+            game.newGame();
+        frame.add(this);
+        frame.setPropertiesFile(new File(settings, "gui.properties"));
+        if (!frame.restoreFromProperties()) {
+            frame.centerToScreen(640, 480);
+        }
+    }
+
+    @Override
+    protected void paint(AWTGraphics g, int mouseX, int mouseY) {
+        game.paint(g, mouseX, mouseY);
+    }
+
+    @Override
+    protected void onClick() {
+        game.doClick();
+    }
+
+    @Override
+    protected void onDragStarted(int x, int y) {
+        game.startDrag();
+    }
+
+    @Override
+    protected void onDragStopped() {
+        game.stopDrag();
+    }
+}

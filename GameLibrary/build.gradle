@@ -103,3 +103,11 @@ task runProbotLevelBuilder(type: JavaExec) {
 //    args "arg1", "arg2"
 }
 
+task runGeniusSquares(type: JavaExec) {
+    group = 'Application' // <-- change the name as per your need
+    description = 'Run Genius Squares App'
+
+    classpath sourceSets.main.runtimeClasspath // <-- Don't change this
+    main = "cc.lib.swing.AWTGeniusSquares"
+//    args "arg1", "arg2"
+}
