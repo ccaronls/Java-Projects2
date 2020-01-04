@@ -306,6 +306,7 @@ public abstract class UIGeniusSquares extends GeniusSquares {
     final int BEVEL_RIGHT_BOTTOM = BEVEL_RIGHT|BEVEL_BOTTOM;
     final int BEVEL_LEFT_BOTTOM = BEVEL_BOTTOM|BEVEL_LEFT;
 
+    // wow programmatic beveling harder than I expected
     public void drawCellBeveled(AGraphics g, int [][] matrix, Vector2D _topLeft, int x, int y) {
         int cell = matrix[y][x];
         MutableVector2D topLeft = new MutableVector2D(_topLeft).addEq(x, y);
@@ -355,8 +356,8 @@ public abstract class UIGeniusSquares extends GeniusSquares {
         }
 
         GColor topColor = PieceType.values()[cell].color.lightened(.3f);
-        GColor leftColor = topColor.darkened(.2f);//cntrColor.lightened(.2f);
-        GColor rightColor = topColor.darkened(.4f);//cntrColor.darkened(.2f);
+        GColor leftColor = topColor.darkened(.2f);
+        GColor rightColor = topColor.darkened(.4f);
         GColor cntrColor = topColor.lightened(.3f);
         GColor bottomColor = topColor.darkened(.5f);
         // top
@@ -364,7 +365,7 @@ public abstract class UIGeniusSquares extends GeniusSquares {
         g.setColor(topColor);
         g.vertex(topLeft);
         g.vertex(topRight);
-        g.vertex(bottomLeftBevel);
+        g.vertex(topLeftBevel);
         g.vertex(topRightBevel);
         g.drawQuadStrip();
         // right
@@ -399,11 +400,12 @@ public abstract class UIGeniusSquares extends GeniusSquares {
         g.vertex(bottomLeftBevel);
         g.vertex(bottomRightBevel);
         g.drawQuadStrip();
+
         // check the corners
         // top/left corner
         if ((bevel & BEVEL_LEFT_TOP) == BEVEL_LEFT_TOP  && getCellAt(y-1, x-1, matrix) != cell) {
             topLeftBevel = topLeft.add(BEVEL_INSET, BEVEL_INSET);
-            //topLeft = topLeft.add(BEVEL_PADDING, BEVEL_PADDING);
+            //topLeft.addEq(BEVEL_PADDING, BEVEL_PADDING);
             g.begin();
             g.setColor(topColor);
             g.vertex(topLeft);
@@ -420,7 +422,7 @@ public abstract class UIGeniusSquares extends GeniusSquares {
         // top/right corner
         if ((bevel & BEVEL_RIGHT_TOP) == BEVEL_RIGHT_TOP  && getCellAt(y-1, x+1, matrix) != cell) {
             topRightBevel = topRight.add(-BEVEL_INSET, BEVEL_INSET);
-            //topRight.add(-BEVEL_PADDING, BEVEL_PADDING);
+            //topRight.addEq(-BEVEL_PADDING, BEVEL_PADDING);
             g.begin();
             g.setColor(topColor);
             g.vertex(topRight);
@@ -437,7 +439,7 @@ public abstract class UIGeniusSquares extends GeniusSquares {
         // bottom/right corner
         if ((bevel & BEVEL_RIGHT_BOTTOM) == BEVEL_RIGHT_BOTTOM && getCellAt(y+1, x+1, matrix) != cell) {
             bottomRightBevel = bottomRight.add(-BEVEL_INSET, -BEVEL_INSET);
-            //bottomRight = bottomRight.add(-BEVEL_PADDING, -BEVEL_PADDING);
+            //bottomRight.addEq(-BEVEL_PADDING, -BEVEL_PADDING);
             g.begin();
             g.setColor(bottomColor);
             g.vertex(bottomRight);
@@ -454,7 +456,7 @@ public abstract class UIGeniusSquares extends GeniusSquares {
         // bottom/left corner
         if ((bevel & BEVEL_LEFT_BOTTOM) == BEVEL_LEFT_BOTTOM && getCellAt(y+1, x-1, matrix) != cell) {
             bottomLeftBevel = bottomLeft.add(BEVEL_INSET, -BEVEL_INSET);
-            //bottomLeft = bottomLeft.add(BEVEL_PADDING, -BEVEL_PADDING);
+            //bottomLeft.addEq(BEVEL_PADDING, -BEVEL_PADDING);
             g.begin();
             g.setColor(bottomColor);
             g.vertex(bottomLeft);
@@ -468,7 +470,6 @@ public abstract class UIGeniusSquares extends GeniusSquares {
             g.vertex(bottomLeftBevel.getX(), bottomLeft.getY());
             g.drawTriangles();
         }
-
 
         g.end();
     }
