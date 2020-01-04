@@ -9,6 +9,7 @@ import cc.lib.game.Utils;
 import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
 import cc.lib.utils.Reflector;
+import cc.lib.utils.StopWatch;
 
 public class GeniusSquare extends Reflector<GeniusSquare> { // GeniusSquare. 6x6 board
 
@@ -90,9 +91,15 @@ public class GeniusSquare extends Reflector<GeniusSquare> { // GeniusSquare. 6x6
         public Piece(PieceType pt) {
             this.pieceType = pt;
             if (pt != null) {
-                this.topLeft.set(pt.startX, pt.startY);//.add(0.5f * getWidth(), 0.5f * getHeight());
-                this.bottomRight.set(topLeft).addEq(getWidth(), getHeight());
+                reset();
             }
+        }
+
+        void reset() {
+            this.topLeft.set(pieceType.startX, pieceType.startY);
+            this.bottomRight.set(topLeft).addEq(getWidth(), getHeight());
+            index = 0;
+            dropped = false;
         }
 
         int [][] getShape() {
@@ -131,20 +138,12 @@ public class GeniusSquare extends Reflector<GeniusSquare> { // GeniusSquare. 6x6
             return topLeft;
         }
 
-        public Vector2D getTopRight() {
-            return new Vector2D(bottomRight.X(), topLeft.Y());
-        }
-        public Vector2D getBottomRight() {
-            return bottomRight;
-        }
-
-        public Vector2D getBottomLeft() {
-            return new Vector2D(topLeft.X(), bottomRight.Y());
-        }
     }
 
     final List<Piece> pieces = new ArrayList<>();
     int [][] board = new int[BOARD_DIM_CELLS][BOARD_DIM_CELLS]; // row major
+    final StopWatch timer = new StopWatch();
+    long bestTime = 99*60*60*1000;
 
     static int BOARD_DIM_CELLS = 6;
     static int NUM_BLOCKERS = 7;
@@ -163,9 +162,10 @@ public class GeniusSquare extends Reflector<GeniusSquare> { // GeniusSquare. 6x6
             i++;
         }
         resetPieces();
+        timer.start();
     }
 
-    public void resetPieces() {
+    public synchronized void resetPieces() {
         pieces.clear();
         for (int i=1; i<=9; i++) {
             Piece p = new Piece(PieceType.values()[i]);
@@ -232,27 +232,23 @@ public class GeniusSquare extends Reflector<GeniusSquare> { // GeniusSquare. 6x6
                 searchDropPieceR(shape, px, py+1, cellX, cellY+1, tested);
     }
 
-    void dropPiece(Piece p, int cellX, int cellY) {
+    synchronized void dropPiece(Piece p, int cellX, int cellY) {
         if (canDropPiece(p, cellX, cellY)) {
             //throw new AssertionError("Logic Error: Cannot drop piece");
             final int[][] shape = p.getShape();
-            dropShape(shape, cellX, cellY);
+            for (int y=0; y<shape.length; y++) {
+                for (int x=0; x<shape[y].length; x++) {
+                    if (shape[y][x] != 0)
+                        board[cellY+y][cellX+x] = shape[y][x];
+                }
+            }
             p.dropped = true;
         } else {
             System.err.println("Cannot drop piece at: " + cellX + ", " + cellY);
         }
     }
 
-    void dropShape(int [][] shape, int cellX, int cellY) {
-        for (int y=0; y<shape.length; y++) {
-            for (int x=0; x<shape[y].length; x++) {
-                if (shape[y][x] != 0)
-                    board[cellY+y][cellX+x] = shape[y][x];
-            }
-        }
-    }
-
-    void liftPiece(Piece p) {
+    synchronized void liftPiece(Piece p) {
         for (int y=0; y<BOARD_DIM_CELLS; y++) {
             for (int x=0; x<BOARD_DIM_CELLS; x++) {
                 if (board[y][x] == p.pieceType.ordinal())
@@ -260,6 +256,20 @@ public class GeniusSquare extends Reflector<GeniusSquare> { // GeniusSquare. 6x6
             }
         }
         p.dropped = false;
+    }
+
+    public boolean isCompleted() {
+        for (int y=0; y<BOARD_DIM_CELLS; y++) {
+            for (int x=0; x<BOARD_DIM_CELLS; x++) {
+                if (board[y][x] == 0)
+                    return false;
+            }
+        }
+        timer.pause();
+        if (timer.getTime() < bestTime) {
+            bestTime = timer.getTime();
+        }
+        return true;
     }
 
 }

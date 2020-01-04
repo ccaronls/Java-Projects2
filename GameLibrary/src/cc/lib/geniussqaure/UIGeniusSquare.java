@@ -1,5 +1,6 @@
 package cc.lib.geniussqaure;
 
+import cc.lib.game.AAnimation;
 import cc.lib.game.AGraphics;
 import cc.lib.game.APGraphics;
 import cc.lib.game.GColor;
@@ -12,22 +13,22 @@ public abstract class UIGeniusSquare extends GeniusSquare {
     int WIDTH = 0;
     int HEIGHT = 0;
     int DIM = 0;
-    //int CELL_DIM = 0;
-    //int BOARD_DIM = 0;
+    int CELL_DIM = 0;
+    int BOARD_DIM = 0;
 
     Piece highlighted = null;
     boolean dragging = false;
     boolean clicked = false;
 
-    protected abstract void repaint();
+    public abstract void repaint();
 
     public synchronized void paint(APGraphics g, final int mx, final int my) {
         //System.out.println("draw mx=" + mx + " my=" + my);
         WIDTH = g.getViewportWidth();
         HEIGHT = g.getViewportHeight();
         DIM = Math.min(WIDTH, HEIGHT);
-        int CELL_DIM = DIM / (BOARD_DIM_CELLS+2);
-        int BOARD_DIM = CELL_DIM * BOARD_DIM_CELLS;
+        CELL_DIM = DIM / (BOARD_DIM_CELLS+2);
+        BOARD_DIM = CELL_DIM * BOARD_DIM_CELLS;
 
         g.clearScreen(GColor.DARK_GRAY);
 
@@ -48,8 +49,10 @@ public abstract class UIGeniusSquare extends GeniusSquare {
                 highlighted = drawPieces(g, mx, my);
             drawPiecesBeveled(g);
 
-            if (highlighted == null && dragging && pickedCell != null) {
+            if (highlighted == null && pickedCell != null) {
                 int color = board[pickedCell[1]][pickedCell[0]];
+                //System.out.println("color = " + color);
+
                 if (color > PieceType.PIECE_0.ordinal() && color < PieceType.PIECE_CHIT.ordinal()) {
                     highlighted = pieces.get(color-1);
                 }
@@ -67,7 +70,7 @@ public abstract class UIGeniusSquare extends GeniusSquare {
                     if (pickedCell != null) {
                         int [] result;
                         if (useFind && (result = findDropForPiece(highlighted, pickedCell[0], pickedCell[1]))!= null) {
-                            System.out.println("Droppable at: " + result[1] + "," + result[2] + " index:"+ result[0]);
+                            //System.out.println("Droppable at: " + result[1] + "," + result[2] + " index:"+ result[0]);
                             highlighted.setIndex(result[0]);
                             dropPiece(highlighted, result[1], result[2]);
                             //dropShape(highlighted.pieceType.orientations[result[0]], result[1], result[2]);
@@ -77,6 +80,8 @@ public abstract class UIGeniusSquare extends GeniusSquare {
                             dropPiece(highlighted, pickedCell[0], pickedCell[1]);
                         } else {
                             g.setColor(GColor.RED);
+                            //highlighted.reset();
+                            //highlighted = null;
                         }
                     } else {
                         Vector2D pt = g.screenToViewport(mx, my);
@@ -85,15 +90,20 @@ public abstract class UIGeniusSquare extends GeniusSquare {
                 }
 
                 if (!highlighted.dropped) {
-                    g.pushMatrix();
-                    g.translate(highlighted.getCenter());
-                    g.scale(1.03f);
-                    g.translate(-highlighted.getWidth() / 2, -highlighted.getHeight() / 2);
-                    renderPiece(g, highlighted);
-                    g.drawFilledRects();
-                    g.popMatrix();
-                    g.end();
-                    drawPieceBeveled(g, highlighted);
+                    if (dragging || pickedCell == null) {
+                        g.pushMatrix();
+                        g.translate(highlighted.getCenter());
+                        g.scale(1.03f);
+                        g.translate(-highlighted.getWidth() / 2, -highlighted.getHeight() / 2);
+                        renderPiece(g, highlighted);
+                        g.drawFilledRects();
+                        g.popMatrix();
+                        g.end();
+                        drawPieceBeveled(g, highlighted);
+                    } else {
+                        highlighted.reset();
+                        highlighted = null;
+                    }
                 }
                 //g.pushMatrix();
                 //g.translate(highlighted.topLeft);
@@ -105,7 +115,19 @@ public abstract class UIGeniusSquare extends GeniusSquare {
                 g.popMatrix();
             }
             g.popMatrix();
-            if (pickedCell != null) {
+            g.setTextHeight(CELL_DIM/2);
+            timer.capture();
+            int timeSecs = (int)(timer.getTime()/1000);
+            int timeMins = timeSecs / 60;
+            timeSecs -= timeMins*60;
+            int bestTimeSecs = (int)(bestTime/1000);
+            int bestTimeMins = bestTimeSecs/60;
+            bestTimeSecs -= bestTimeMins*60;
+            GColor timeColor = timer.getTime() < bestTime ? GColor.GREEN : GColor.RED;
+            g.drawAnnotatedString(String.format("%sTIME %02d:%02d   %sBEST %02d:%02d", timeColor.toString(), timeMins, timeSecs, GColor.WHITE.toString(), bestTimeMins, bestTimeSecs), WIDTH-BOARD_DIM-CELL_DIM, CELL_DIM/5);
+
+
+            if (false && pickedCell != null) {
                 g.setColor(GColor.WHITE);
                 String hl = "";
                 if (highlighted != null) {
@@ -117,6 +139,33 @@ public abstract class UIGeniusSquare extends GeniusSquare {
         } else {
 
         }
+
+        if (isCompleted()) {
+            if (!endgameAnim.isStarted())
+                endgameAnim.start();
+        } else {
+            endgameAnim.kill();
+        }
+
+        if (endgameAnim.isStarted()) {
+            endgameAnim.update(g);
+            repaint();
+        }
+    }
+
+    AAnimation<AGraphics> endgameAnim = new AAnimation<AGraphics>(2000, -1, true) {
+        @Override
+        protected void draw(AGraphics g, float position, float dt) {
+            g.setTextHeight(20f+position*20f);
+            g.setColor(GColor.MAGENTA);
+            g.drawJustifiedString((WIDTH-BOARD_DIM)/2, HEIGHT/2, Justify.CENTER, Justify.CENTER, "COMPLETED");
+        }
+    };
+
+    @Override
+    public synchronized void newGame() {
+        super.newGame();
+        endgameAnim.kill();
     }
 
     // return row/col for mx, my
@@ -179,17 +228,23 @@ public abstract class UIGeniusSquare extends GeniusSquare {
             //g.drawFilledRects();
             g.end();
             g.popMatrix();
-            g.begin();
-            g.vertex(p.getCenter());
-            g.setColor(GColor.RED);
-            g.drawPoints(5);
-            g.end();
-            //g.setColor(GColor.WHITE);
-            //g.setLineWidth(1);
-            //g.vertex(p.topLeft);
-            //g.vertex(p.bottomRight);
-            //g.drawRects();
-            //g.end();
+            if (false) {
+                // draw centers of pieces
+                g.begin();
+                g.vertex(p.getCenter());
+                g.setColor(GColor.RED);
+                g.drawPoints(5);
+                g.end();
+            }
+            if (false) {
+                // highlight the piece bounding rect
+                g.setColor(GColor.WHITE);
+                g.setLineWidth(1);
+                g.vertex(p.topLeft);
+                g.vertex(p.bottomRight);
+                g.drawRects();
+                g.end();
+            }
         }
         return picked;
     }

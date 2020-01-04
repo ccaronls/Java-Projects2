@@ -269,7 +269,7 @@ public abstract class AAnimation<T> {
     public final int getRepeat() { return (int)((System.currentTimeMillis() - startTime) / duration); }
 
     public final boolean isStarted() {
-        return state == State.STARTED;
+        return state == State.STARTED || state == State.RUNNING;
     }
 
 }

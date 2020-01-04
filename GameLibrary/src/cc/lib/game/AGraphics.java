@@ -114,7 +114,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     }
 
    /**
-    * Annotated string can have annotations in the string (alal html) to control color, underline etc.
+    * Annotated string can have annotations in the string (ala html) to control color, underline etc.
     *
     * annotated color pattern:
     * [(a,)?r,g,b]

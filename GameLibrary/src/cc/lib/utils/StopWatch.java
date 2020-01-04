@@ -1,21 +1,28 @@
 package cc.lib.utils;
 
-public class StopWatch {
+public class StopWatch extends Reflector<StopWatch> {
 
-    long startTime = 0;
-    long pauseTime = 0;
-    long curTime = 0;
-    long deltaTime = 0;
-    long lastCaptureTime = 0;
-    boolean started = false;
+    static {
+        addAllFields(StopWatch.class);
+    }
+
+    private long startTime = 0;
+    private long pauseTime = 0;
+    private long curTime = 0;
+    private long deltaTime = 0;
+    private long lastCaptureTime = 0;
+    private boolean started = false;
     
     /**
      * Start the stopwatch.  MUST be the first call
      */
     public void start() {
         startTime = getClockMiliseconds();
+        pauseTime = 0;
+        curTime = 0;
+        deltaTime = 0;
+        lastCaptureTime = 0;
         started = true;
-        unpause();
     }
     
     public boolean isPaused() {
