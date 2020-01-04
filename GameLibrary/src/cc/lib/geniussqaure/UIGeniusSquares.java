@@ -18,7 +18,6 @@ public abstract class UIGeniusSquares extends GeniusSquares {
 
     Piece highlighted = null;
     boolean dragging = false;
-    boolean clicked = false;
 
     public abstract void repaint();
 
@@ -105,12 +104,14 @@ public abstract class UIGeniusSquares extends GeniusSquares {
                         highlighted = null;
                     }
                 }
-                //g.pushMatrix();
-                //g.translate(highlighted.topLeft);
-                //g.setColor(highlighted.pieceType.color);
-                //renderPiece(g, highlighted);
-                //g.drawFilledRects();
-                //g.popMatrix();
+                if (false) {
+                    g.pushMatrix();
+                    g.translate(highlighted.topLeft);
+                    g.setColor(highlighted.pieceType.color);
+                    renderPiece(g, highlighted);
+                    g.drawFilledRects();
+                    g.popMatrix();
+                }
 
                 g.popMatrix();
             }
@@ -297,14 +298,14 @@ public abstract class UIGeniusSquares extends GeniusSquares {
         }
     }
 
-    final int BEVEL_TOP = 1;
-    final int BEVEL_RIGHT = 1<<1;
-    final int BEVEL_BOTTOM = 1<<2;
-    final int BEVEL_LEFT = 1<<3;
-    final int BEVEL_LEFT_TOP = BEVEL_LEFT|BEVEL_TOP;
-    final int BEVEL_RIGHT_TOP = BEVEL_RIGHT|BEVEL_TOP;
-    final int BEVEL_RIGHT_BOTTOM = BEVEL_RIGHT|BEVEL_BOTTOM;
-    final int BEVEL_LEFT_BOTTOM = BEVEL_BOTTOM|BEVEL_LEFT;
+    private static final int BEVEL_TOP = 1;
+    private static final int BEVEL_RIGHT = 1<<1;
+    private static final int BEVEL_BOTTOM = 1<<2;
+    private static final int BEVEL_LEFT = 1<<3;
+    private static final int BEVEL_LEFT_TOP = BEVEL_LEFT|BEVEL_TOP;
+    private static final int BEVEL_RIGHT_TOP = BEVEL_RIGHT|BEVEL_TOP;
+    private static final int BEVEL_RIGHT_BOTTOM = BEVEL_RIGHT|BEVEL_BOTTOM;
+    private static final int BEVEL_LEFT_BOTTOM = BEVEL_BOTTOM|BEVEL_LEFT;
 
     // wow programmatic beveling harder than I expected
     public void drawCellBeveled(AGraphics g, int [][] matrix, Vector2D _topLeft, int x, int y) {
@@ -356,10 +357,10 @@ public abstract class UIGeniusSquares extends GeniusSquares {
         }
 
         GColor topColor = PieceType.values()[cell].color.lightened(.3f);
+        GColor cntrColor = topColor.darkened(.1f);
         GColor leftColor = topColor.darkened(.2f);
-        GColor rightColor = topColor.darkened(.4f);
-        GColor cntrColor = topColor.lightened(.3f);
-        GColor bottomColor = topColor.darkened(.5f);
+        GColor rightColor = topColor.darkened(.3f);
+        GColor bottomColor = topColor.darkened(.4f);
         // top
         g.begin();
         g.setColor(topColor);
@@ -392,9 +393,53 @@ public abstract class UIGeniusSquares extends GeniusSquares {
         g.vertex(bottomLeftBevel);
         g.vertex(topLeftBevel);
         g.drawQuadStrip();
-        // center
+
+        final boolean bevelTopLeft     = (bevel & BEVEL_LEFT_TOP) == BEVEL_LEFT_TOP && getCellAt(y-1, x-1, matrix) != cell;
+        final boolean bevelTopRight    = (bevel & BEVEL_RIGHT_TOP) == BEVEL_RIGHT_TOP && getCellAt(y-1, x+1, matrix) != cell;
+        final boolean bevelBottomLeft  = (bevel & BEVEL_LEFT_BOTTOM) == BEVEL_LEFT_BOTTOM && getCellAt(y+1, x-1, matrix) != cell;
+        final boolean bevelBottomRight = (bevel & BEVEL_RIGHT_BOTTOM) == BEVEL_RIGHT_BOTTOM && getCellAt(y+1, x+1, matrix) != cell;
+
         g.begin();
+        if (bevelTopLeft) {
+            topLeftBevel.addEq(BEVEL_INSET, BEVEL_INSET);
+            // top
+            g.vertex(topLeftBevel);
+            g.vertex(topRightBevel.getX(), topRight.getY());
+            // left
+            g.vertex(topLeftBevel);
+            g.vertex(bottomLeft.getX(), bottomLeftBevel.getY());
+        }
+        if (bevelTopRight) {
+            topRightBevel.addEq(-BEVEL_INSET, BEVEL_INSET);
+            // top
+            g.vertex(topRightBevel);
+            g.vertex(topLeftBevel.getX(), topLeft.getY());
+            // right
+            g.vertex(topRightBevel);
+            g.vertex(bottomRight.getX(), bottomRightBevel.getY());
+        }
+        if (bevelBottomRight) {
+            bottomRightBevel.addEq(-BEVEL_INSET, -BEVEL_INSET);
+            // bottom
+            g.vertex(bottomRightBevel);
+            g.vertex(bottomLeftBevel.getX(), bottomLeft.getY());
+            // right
+            g.vertex(bottomRightBevel);
+            g.vertex(topRight.getX(), topRightBevel.getY());
+        }
+        if (bevelBottomLeft) {
+            bottomLeftBevel.addEq(BEVEL_INSET, -BEVEL_INSET);
+            // bottom
+            g.vertex(bottomLeftBevel);
+            g.vertex(bottomRightBevel.getX(), bottomRight.getY());
+            // left
+            g.vertex(bottomLeftBevel);
+            g.vertex(topLeft.getX(), topLeftBevel.getY());
+        }
         g.setColor(cntrColor);
+        g.drawFilledRects();
+        g.begin();
+        // center
         g.vertex(topLeftBevel);
         g.vertex(topRightBevel);
         g.vertex(bottomLeftBevel);
@@ -403,72 +448,74 @@ public abstract class UIGeniusSquares extends GeniusSquares {
 
         // check the corners
         // top/left corner
-        if ((bevel & BEVEL_LEFT_TOP) == BEVEL_LEFT_TOP  && getCellAt(y-1, x-1, matrix) != cell) {
-            topLeftBevel = topLeft.add(BEVEL_INSET, BEVEL_INSET);
+        if (bevelTopLeft) {
+            //topLeftBevel = topLeft.add(BEVEL_INSET, BEVEL_INSET);
             //topLeft.addEq(BEVEL_PADDING, BEVEL_PADDING);
             g.begin();
             g.setColor(topColor);
-            g.vertex(topLeft);
-            g.vertex(topLeftBevel);
-            g.vertex(topLeft.getX(), topLeftBevel.getY());
-            g.drawTriangles();
+            g.vertex(topLeft.getX(), topLeft.getY()+BEVEL_PADDING);
+            g.vertex(topLeft.getX(), topLeft.getY()+BEVEL_INSET);
+            g.vertex(topLeft.getX()+BEVEL_PADDING, topLeft.getY()+BEVEL_PADDING);
+            g.vertex(topLeft.getX()+BEVEL_INSET, topLeft.getY()+BEVEL_INSET);
+            g.drawQuadStrip();
             g.begin();
             g.setColor(leftColor);
-            g.vertex(topLeft);
-            g.vertex(topLeftBevel);
-            g.vertex(topLeftBevel.getX(), topLeft.getY());
-            g.drawTriangles();
+            g.vertex(topLeft.getX()+BEVEL_PADDING, topLeft.getY());
+            g.vertex(topLeft.getX()+BEVEL_INSET, topLeft.getY());
+            g.vertex(topLeft.getX()+BEVEL_PADDING, topLeft.getY()+BEVEL_PADDING);
+            g.vertex(topLeft.getX()+BEVEL_INSET, topLeft.getY()+BEVEL_INSET);
+            g.drawQuadStrip();
         }
         // top/right corner
-        if ((bevel & BEVEL_RIGHT_TOP) == BEVEL_RIGHT_TOP  && getCellAt(y-1, x+1, matrix) != cell) {
-            topRightBevel = topRight.add(-BEVEL_INSET, BEVEL_INSET);
-            //topRight.addEq(-BEVEL_PADDING, BEVEL_PADDING);
+        if (bevelTopRight) {
             g.begin();
             g.setColor(topColor);
-            g.vertex(topRight);
-            g.vertex(topRightBevel);
-            g.vertex(topRight.getX(), topRightBevel.getY());
-            g.drawTriangles();
+            g.vertex(topRight.getX(), topRight.getY()+BEVEL_PADDING);
+            g.vertex(topRight.getX(), topRight.getY()+BEVEL_INSET);
+            g.vertex(topRight.getX()-BEVEL_PADDING, topRight.getY()+BEVEL_PADDING);
+            g.vertex(topRight.getX()-BEVEL_INSET, topRight.getY()+BEVEL_INSET);
+            g.drawQuadStrip();
             g.begin();
             g.setColor(rightColor);
-            g.vertex(topRight);
-            g.vertex(topRightBevel);
-            g.vertex(topRightBevel.getX(), topRight.getY());
-            g.drawTriangles();
+            g.vertex(topRight.getX()-BEVEL_PADDING, topRight.getY());
+            g.vertex(topRight.getX()-BEVEL_INSET, topRight.getY());
+            g.vertex(topRight.getX()-BEVEL_PADDING, topRight.getY()+BEVEL_PADDING);
+            g.vertex(topRight.getX()-BEVEL_INSET, topRight.getY()+BEVEL_INSET);
+            g.drawQuadStrip();
         }
         // bottom/right corner
-        if ((bevel & BEVEL_RIGHT_BOTTOM) == BEVEL_RIGHT_BOTTOM && getCellAt(y+1, x+1, matrix) != cell) {
-            bottomRightBevel = bottomRight.add(-BEVEL_INSET, -BEVEL_INSET);
-            //bottomRight.addEq(-BEVEL_PADDING, -BEVEL_PADDING);
+        if (bevelBottomRight) {
             g.begin();
             g.setColor(bottomColor);
-            g.vertex(bottomRight);
-            g.vertex(bottomRightBevel);
-            g.vertex(bottomRight.getX(), bottomRightBevel.getY());
-            g.drawTriangles();
+            g.vertex(bottomRight.getX(), bottomRight.getY()-BEVEL_PADDING);
+            g.vertex(bottomRight.getX(), bottomRight.getY()-BEVEL_INSET);
+            g.vertex(bottomRight.getX()-BEVEL_PADDING, bottomRight.getY()-BEVEL_PADDING);
+            g.vertex(bottomRight.getX()-BEVEL_INSET, bottomRight.getY()-BEVEL_INSET);
+            g.drawQuadStrip();
             g.begin();
             g.setColor(rightColor);
-            g.vertex(bottomRight);
-            g.vertex(bottomRightBevel);
-            g.vertex(bottomRightBevel.getX(), bottomRight.getY());
-            g.drawTriangles();
+            g.vertex(bottomRight.getX()-BEVEL_PADDING, bottomRight.getY());
+            g.vertex(bottomRight.getX()-BEVEL_INSET, bottomRight.getY());
+            g.vertex(bottomRight.getX()-BEVEL_PADDING, bottomRight.getY()-BEVEL_PADDING);
+            g.vertex(bottomRight.getX()-BEVEL_INSET, bottomRight.getY()-BEVEL_INSET);
+            g.drawQuadStrip();
         }
         // bottom/left corner
-        if ((bevel & BEVEL_LEFT_BOTTOM) == BEVEL_LEFT_BOTTOM && getCellAt(y+1, x-1, matrix) != cell) {
-            bottomLeftBevel = bottomLeft.add(BEVEL_INSET, -BEVEL_INSET);
-            //bottomLeft.addEq(BEVEL_PADDING, -BEVEL_PADDING);
+        if (bevelBottomLeft) {
             g.begin();
             g.setColor(bottomColor);
-            g.vertex(bottomLeft);
-            g.vertex(bottomLeftBevel);
-            g.vertex(bottomLeft.getX(), bottomLeftBevel.getY());
-            g.drawTriangles();
+            g.vertex(bottomLeft.getX(), bottomLeft.getY()-BEVEL_PADDING);
+            g.vertex(bottomLeft.getX(), bottomLeft.getY()-BEVEL_INSET);
+            g.vertex(bottomLeft.getX()+BEVEL_PADDING, bottomLeft.getY()-BEVEL_PADDING);
+            g.vertex(bottomLeft.getX()+BEVEL_INSET, bottomLeft.getY()-BEVEL_INSET);
+            g.drawQuadStrip();
             g.begin();
             g.setColor(leftColor);
-            g.vertex(bottomLeft);
-            g.vertex(bottomLeftBevel);
-            g.vertex(bottomLeftBevel.getX(), bottomLeft.getY());
-            g.drawTriangles();
+            g.vertex(bottomLeft.getX()+BEVEL_PADDING, bottomLeft.getY());
+            g.vertex(bottomLeft.getX()+BEVEL_INSET, bottomLeft.getY());
+            g.vertex(bottomLeft.getX()+BEVEL_PADDING, bottomLeft.getY()-BEVEL_PADDING);
+            g.vertex(bottomLeft.getX()+BEVEL_INSET, bottomLeft.getY()-BEVEL_INSET);
+            g.drawQuadStrip();
         }
 
         g.end();
