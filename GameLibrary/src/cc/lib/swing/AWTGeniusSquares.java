@@ -2,10 +2,9 @@ package cc.lib.swing;
 
 import java.io.File;
 
-import cc.lib.dungeondice.UI;
 import cc.lib.game.AGraphics;
 import cc.lib.game.Utils;
-import cc.lib.geniussqaure.UIGeniusSquare;
+import cc.lib.geniussqaure.UIGeniusSquares;
 import cc.lib.utils.FileUtils;
 
 public class AWTGeniusSquares extends AWTComponent {
@@ -17,7 +16,7 @@ public class AWTGeniusSquares extends AWTComponent {
     }
 
     final AWTFrame frame;
-    final UIGeniusSquare game;
+    final UIGeniusSquares game;
 
     AWTGeniusSquares() {
         setMouseEnabled(true);
@@ -45,9 +44,9 @@ public class AWTGeniusSquares extends AWTComponent {
         };
         frame.addMenuBarMenu("GeniusSquares", "New Game", "Reset Pieces");
 
-        game = new UIGeniusSquare() {
+        game = new UIGeniusSquares() {
             @Override
-            protected void repaint() {
+            public void repaint() {
                 AWTGeniusSquares.this.repaint();
 
             }

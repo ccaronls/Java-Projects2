@@ -8,7 +8,7 @@ import java.io.File;
 
 import cc.lib.android.DroidActivity;
 import cc.lib.android.DroidGraphics;
-import cc.lib.geniussqaure.UIGeniusSquare;
+import cc.lib.geniussqaure.UIGeniusSquares;
 
 /**
  * Created by chriscaron on 2/15/18.
@@ -18,7 +18,7 @@ public class GeniusSquaresActivity extends DroidActivity {
 
     private final static String TAG = GeniusSquaresActivity.class.getSimpleName();
 
-    final UIGeniusSquare gs = new UIGeniusSquare() {
+    final UIGeniusSquares gs = new UIGeniusSquares() {
         @Override
         public void repaint() {
             getContent().postInvalidate();

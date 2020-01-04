@@ -11,10 +11,10 @@ import cc.lib.math.Vector2D;
 import cc.lib.utils.Reflector;
 import cc.lib.utils.StopWatch;
 
-public class GeniusSquare extends Reflector<GeniusSquare> { // GeniusSquare. 6x6 board
+public class GeniusSquares extends Reflector<GeniusSquares> { // GeniusSquare. 6x6 board
 
     static {
-        addAllFields(GeniusSquare.class);
+        addAllFields(GeniusSquares.class);
         addAllFields(Piece.class);
     }
 
@@ -148,7 +148,7 @@ public class GeniusSquare extends Reflector<GeniusSquare> { // GeniusSquare. 6x6
     static int BOARD_DIM_CELLS = 6;
     static int NUM_BLOCKERS = 7;
 
-    public GeniusSquare() {
+    public GeniusSquares() {
     }
 
     public void newGame() {
@@ -200,7 +200,6 @@ public class GeniusSquare extends Reflector<GeniusSquare> { // GeniusSquare. 6x6
      *   if not result != null then can call dropPiece(p, result[0], result[1], result[2])
      */
     public final int [] findDropForPiece(Piece p, int cellX, int cellY) {
-        final int cell = board[cellY][cellX];
         for (int s=0; s<p.pieceType.orientations.length; s++) {
             final int shapeIndex = (p.index+s) % p.pieceType.orientations.length;
             final int [][] shape = p.pieceType.orientations[shapeIndex];

@@ -8,7 +8,7 @@ import cc.lib.game.Justify;
 import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
 
-public abstract class UIGeniusSquare extends GeniusSquare {
+public abstract class UIGeniusSquares extends GeniusSquares {
 
     int WIDTH = 0;
     int HEIGHT = 0;
