@@ -23,6 +23,7 @@
 
         <activity
             android:name=".GeniusSquaresActivity"
+            android:screenOrientation="sensorLandscape"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/app_name">
             <intent-filter>

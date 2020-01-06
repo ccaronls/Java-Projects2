@@ -96,9 +96,9 @@ public class GeniusSquares extends Reflector<GeniusSquares> { // GeniusSquare. 6
         }
 
         void reset() {
+            index = 0;
             this.topLeft.set(pieceType.startX, pieceType.startY);
             this.bottomRight.set(topLeft).addEq(getWidth(), getHeight());
-            index = 0;
             dropped = false;
         }
 
@@ -215,6 +215,27 @@ public class GeniusSquares extends Reflector<GeniusSquares> { // GeniusSquare. 6
         return null;
     }
 
+    /**
+     * This version will fit the piece using its current orientation only
+     *
+     * @param p
+     * @param cellX
+     * @param cellY
+     * @return
+     */
+    public final int [] findDropForPiece2(Piece p, int cellX, int cellY) {
+        final int [][] shape = p.getShape();
+        for (int y=0; y<shape.length; y++) {
+            for (int x=0; x<shape[y].length; x++) {
+                int [][] tested = new int[shape.length][shape[0].length];
+                if (searchDropPieceR(shape, x, y, cellX, cellY, tested)) {
+                    return new int [] { p.index, cellX-x, cellY-y };
+                }
+            }
+        }
+        return null;
+    }
+
     private boolean searchDropPieceR(final int [][] shape, int px, int py, int cellX, int cellY, final int [][] tested) {
         if (px < 0 || py < 0 || py >= shape.length || px >= shape[0].length)
             return true;
@@ -237,6 +258,8 @@ public class GeniusSquares extends Reflector<GeniusSquares> { // GeniusSquare. 6
             final int[][] shape = p.getShape();
             for (int y=0; y<shape.length; y++) {
                 for (int x=0; x<shape[y].length; x++) {
+                    if (board[cellY+y][cellX+x] != 0)
+                        System.err.println("Logic Error: should not be able to drop piece");
                     if (shape[y][x] != 0)
                         board[cellY+y][cellX+x] = shape[y][x];
                 }
@@ -269,6 +292,18 @@ public class GeniusSquares extends Reflector<GeniusSquares> { // GeniusSquare. 6
             bestTime = timer.getTime();
         }
         return true;
+    }
+
+    public void pauseTimer() {
+        synchronized (timer) {
+            timer.pause();
+        }
+    }
+
+    public void resumeTimer() {
+        synchronized (timer) {
+            timer.unpause();
+        }
     }
 
 }

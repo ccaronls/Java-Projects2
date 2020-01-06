@@ -3,13 +3,26 @@ package cc.lib.android;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.os.SystemClock;
+import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
 
-public abstract class DroidView extends View {
+public class DroidView extends View {
 
     public DroidView(Context context) {
         super(context);
+    }
+
+    public DroidView(Context context, AttributeSet attrs) {
+        super(context, attrs);
+    }
+
+    public DroidView(Context context, AttributeSet attrs, int defStyleAttr) {
+        super(context, attrs, defStyleAttr);
+    }
+
+    public DroidView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
+        super(context, attrs, defStyleAttr, defStyleRes);
     }
 
     private DroidGraphics g = null;
@@ -93,7 +106,9 @@ public abstract class DroidView extends View {
 
     protected void onDrag(float x, float y) {}
 
-    protected abstract void onPaint(DroidGraphics g);
+    protected void onPaint(DroidGraphics g) {
+        ((DroidActivity)getContext()).onDraw(g);
+    }
 
 
 }

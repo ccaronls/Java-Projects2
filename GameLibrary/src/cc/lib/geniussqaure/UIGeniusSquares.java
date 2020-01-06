@@ -18,6 +18,7 @@ public abstract class UIGeniusSquares extends GeniusSquares {
 
     Piece highlighted = null;
     boolean dragging = false;
+    boolean autoFitPieces = true;
 
     public abstract void repaint();
 
@@ -68,7 +69,7 @@ public abstract class UIGeniusSquares extends GeniusSquares {
                     liftPiece(highlighted);
                     if (pickedCell != null) {
                         int [] result;
-                        if (useFind && (result = findDropForPiece(highlighted, pickedCell[0], pickedCell[1]))!= null) {
+                        if (useFind && (result = findDropForPiece2(highlighted, pickedCell[0], pickedCell[1]))!= null) {
                             //System.out.println("Droppable at: " + result[1] + "," + result[2] + " index:"+ result[0]);
                             highlighted.setIndex(result[0]);
                             dropPiece(highlighted, result[1], result[2]);
@@ -100,8 +101,8 @@ public abstract class UIGeniusSquares extends GeniusSquares {
                         g.end();
                         drawPieceBeveled(g, highlighted);
                     } else {
-                        highlighted.reset();
-                        highlighted = null;
+                        //highlighted.reset();
+                        //highlighted = null;
                     }
                 }
                 if (false) {
@@ -124,7 +125,7 @@ public abstract class UIGeniusSquares extends GeniusSquares {
             int bestTimeSecs = (int)(bestTime/1000);
             int bestTimeMins = bestTimeSecs/60;
             bestTimeSecs -= bestTimeMins*60;
-            GColor timeColor = timer.getTime() < bestTime ? GColor.GREEN : GColor.RED;
+            GColor timeColor = timer.getTime() <= bestTime ? GColor.GREEN : GColor.RED;
             g.drawAnnotatedString(String.format("%sTIME %02d:%02d   %sBEST %02d:%02d", timeColor.toString(), timeMins, timeSecs, GColor.WHITE.toString(), bestTimeMins, bestTimeSecs), WIDTH-BOARD_DIM-CELL_DIM, CELL_DIM/5);
 
 
@@ -138,7 +139,7 @@ public abstract class UIGeniusSquares extends GeniusSquares {
             }
 
         } else {
-
+            g.drawJustifiedString(WIDTH/2, HEIGHT/2, Justify.CENTER, Justify.CENTER, "Portrait not supported");
         }
 
         if (isCompleted()) {
@@ -159,7 +160,7 @@ public abstract class UIGeniusSquares extends GeniusSquares {
         protected void draw(AGraphics g, float position, float dt) {
             g.setTextHeight(20f+position*20f);
             g.setColor(GColor.MAGENTA);
-            g.drawJustifiedString((WIDTH-BOARD_DIM)/2, HEIGHT/2, Justify.CENTER, Justify.CENTER, "COMPLETED");
+            g.drawJustifiedString((WIDTH-BOARD_DIM-CELL_DIM)/2, HEIGHT/2, Justify.CENTER, Justify.CENTER, "COMPLETED");
         }
     };
 
@@ -402,6 +403,9 @@ public abstract class UIGeniusSquares extends GeniusSquares {
         g.begin();
         if (bevelTopLeft) {
             topLeftBevel.addEq(BEVEL_INSET, BEVEL_INSET);
+            //topLeft.addEq(BEVEL_PADDING, BEVEL_PADDING);
+        }
+        if (false) {
             // top
             g.vertex(topLeftBevel);
             g.vertex(topRightBevel.getX(), topRight.getY());
@@ -411,6 +415,9 @@ public abstract class UIGeniusSquares extends GeniusSquares {
         }
         if (bevelTopRight) {
             topRightBevel.addEq(-BEVEL_INSET, BEVEL_INSET);
+            //topRight.addEq(-BEVEL_PADDING, BEVEL_PADDING);
+        }
+        if (false) {
             // top
             g.vertex(topRightBevel);
             g.vertex(topLeftBevel.getX(), topLeft.getY());
@@ -420,6 +427,9 @@ public abstract class UIGeniusSquares extends GeniusSquares {
         }
         if (bevelBottomRight) {
             bottomRightBevel.addEq(-BEVEL_INSET, -BEVEL_INSET);
+            //bottomRight.addEq(-BEVEL_PADDING, -BEVEL_PADDING);
+        }
+        if (false) {
             // bottom
             g.vertex(bottomRightBevel);
             g.vertex(bottomLeftBevel.getX(), bottomLeft.getY());
@@ -429,6 +439,9 @@ public abstract class UIGeniusSquares extends GeniusSquares {
         }
         if (bevelBottomLeft) {
             bottomLeftBevel.addEq(BEVEL_INSET, -BEVEL_INSET);
+            //bottomLeft.addEq(BEVEL_PADDING, -BEVEL_PADDING);
+        }
+        if (false) {
             // bottom
             g.vertex(bottomLeftBevel);
             g.vertex(bottomRightBevel.getX(), bottomRight.getY());
@@ -436,7 +449,31 @@ public abstract class UIGeniusSquares extends GeniusSquares {
             g.vertex(bottomLeftBevel);
             g.vertex(topLeft.getX(), topLeftBevel.getY());
         }
+        g.begin();
         g.setColor(cntrColor);
+        if (bevelTopLeft || bevelTopRight) {
+            // top
+            //g.vertex(Math.max(topLeft.getX(), topLeftBevel.getX()), Math.min(topLeft.getY(), topLeftBevel.getY()));
+            //g.vertex(Math.min(topRight.getX(), topRightBevel.getX()), Math.max(topRight.getY(), topRightBevel.getY()));
+            g.vertex(topLeftBevel.min(topRightBevel).setY(topLeft.getY()));
+            g.vertex(topLeftBevel.max(topRightBevel));
+        }
+        if (bevelTopLeft || bevelBottomLeft) {
+            // left
+            g.vertex(topLeftBevel.min(bottomLeftBevel).setX(topLeft.getX()));
+            g.vertex(topLeftBevel.max(bottomLeftBevel));
+        }
+        if (bevelTopRight || bevelBottomRight) {
+            // right
+            g.vertex(topRightBevel.min(bottomRightBevel));
+            g.vertex(topRightBevel.max(bottomRightBevel).setX(bottomRight.getX()));
+        }
+        if (bevelBottomLeft || bevelBottomRight) {
+            // bottom
+            g.vertex(bottomLeftBevel.min(bottomRightBevel));
+            g.vertex(bottomLeftBevel.max(bottomRightBevel).setY(bottomRight.getY()));
+        }
+
         g.drawFilledRects();
         g.begin();
         // center
@@ -466,6 +503,7 @@ public abstract class UIGeniusSquares extends GeniusSquares {
             g.vertex(topLeft.getX()+BEVEL_INSET, topLeft.getY()+BEVEL_INSET);
             g.drawQuadStrip();
         }
+
         // top/right corner
         if (bevelTopRight) {
             g.begin();
@@ -546,6 +584,14 @@ public abstract class UIGeniusSquares extends GeniusSquares {
     public synchronized void stopDrag() {
         dragging = false;
         repaint();
+    }
+
+    public boolean isAutoFitPieces() {
+        return autoFitPieces;
+    }
+
+    public void setAutoFitPieces(boolean enabled) {
+        this.autoFitPieces = enabled;
     }
 
 }

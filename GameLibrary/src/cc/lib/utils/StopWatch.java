@@ -16,7 +16,7 @@ public class StopWatch extends Reflector<StopWatch> {
     /**
      * Start the stopwatch.  MUST be the first call
      */
-    public void start() {
+    public synchronized void start() {
         startTime = getClockMiliseconds();
         pauseTime = 0;
         curTime = 0;
@@ -32,7 +32,7 @@ public class StopWatch extends Reflector<StopWatch> {
     /**
      * Pause the stop watch.  getTime/getDeltaTime will not advance until unpause called.
      */
-    public void pause() {
+    public synchronized void pause() {
         if (!isPaused())
             pauseTime = getClockMiliseconds();
     }
@@ -40,7 +40,7 @@ public class StopWatch extends Reflector<StopWatch> {
     /**
      * Capture the current time and delta time.  Must be called before calling getTme, getDeltaTiime
      */
-    public void capture() {
+    public synchronized void capture() {
         if (started && pauseTime == 0) {
             long t = this.getClockMiliseconds();
             curTime = t - startTime;
@@ -52,7 +52,7 @@ public class StopWatch extends Reflector<StopWatch> {
     /**
      * Resume the stop watch if paused
      */
-    public void unpause() {
+    public synchronized void unpause() {
         if (pauseTime > 0) {
             startTime += (getClockMiliseconds() - pauseTime);
             pauseTime = 0;
@@ -63,7 +63,7 @@ public class StopWatch extends Reflector<StopWatch> {
      * Get the time as of last call to capture()
      * @return
      */
-    public long getTime() {
+    public synchronized long getTime() {
         if (started)
             return curTime;
         return 0;
@@ -73,7 +73,7 @@ public class StopWatch extends Reflector<StopWatch> {
      * Get the delta time as of last call to capture()
      * @return
      */
-    public long getDeltaTime() {
+    public synchronized long getDeltaTime() {
         if (started)
             return this.deltaTime;
         return 0;

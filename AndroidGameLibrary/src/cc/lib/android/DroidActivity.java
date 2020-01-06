@@ -3,15 +3,10 @@ package cc.lib.android;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
-import android.graphics.Canvas;
 import android.os.Bundle;
-import android.os.SystemClock;
 import android.view.MotionEvent;
 import android.view.View;
-
-import java.util.Stack;
-
-import cc.lib.game.Utils;
+import android.view.ViewGroup;
 
 /**
  * Created by chriscaron on 2/13/18.
@@ -25,7 +20,8 @@ import cc.lib.game.Utils;
 public abstract class DroidActivity extends CCActivityBase {
 
     DroidGraphics g = null;
-    View content = null;
+    DroidView content = null;
+    ViewGroup topBar = null;
 
     private class DelayedTouchDown implements Runnable {
 
@@ -58,6 +54,10 @@ public abstract class DroidActivity extends CCActivityBase {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.droid_activity);
+        DroidView dv = content = (DroidView)findViewById(R.id.droid_view);
+        topBar = (ViewGroup)findViewById(R.id.top_bar_layout);
+        /*
         content = new View(this) {
             @Override
             protected void onDraw(Canvas canvas) {
@@ -110,6 +110,15 @@ public abstract class DroidActivity extends CCActivityBase {
 
         };
         setContentView(content);
+        */
+    }
+
+    /**
+     * Called after onCreate
+     * @return
+     */
+    public ViewGroup getTopBar() {
+        return topBar;
     }
 
     public View getContent() {

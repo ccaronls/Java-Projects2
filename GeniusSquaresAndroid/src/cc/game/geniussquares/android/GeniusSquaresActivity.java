@@ -1,8 +1,11 @@
 package cc.game.geniussquares.android;
 
 
+import android.content.DialogInterface;
+import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 
 import java.io.File;
 
@@ -28,18 +31,48 @@ public class GeniusSquaresActivity extends DroidActivity {
     File saveFile = null;
 
     @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        View topBar = View.inflate(this, R.layout.menu_bar, null);
+        getTopBar().addView(topBar);
+        findViewById(R.id.buttonMenu).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String [] options = {
+                        "New Game",
+                        "Reset Pieces",
+                };
+                gs.pauseTimer();
+                newDialogBuilder().setTitle("Options").setItems(options, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        switch (which) {
+                            case 0:
+                                gs.newGame();
+                                break;
+                            case 1:
+                                gs.resetPieces();
+                        }
+                        gs.resumeTimer();
+                    }
+                }).show();
+            }
+        });
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
         saveFile = new File(getFilesDir(), "gs.save");
         if (!gs.tryLoadFromFile(saveFile))
             gs.newGame();
+        gs.resumeTimer();
     }
-
-    final int PERMISSION_REQUEST_CODE = 1001;
 
     @Override
     protected void onPause() {
         super.onPause();
+        gs.pauseTimer();
         gs.trySaveToFile(saveFile);
     }
 
@@ -48,9 +81,9 @@ public class GeniusSquaresActivity extends DroidActivity {
 
     @Override
     protected void onDraw(DroidGraphics g) {
-        synchronized (this) {
-            gs.paint(g, tx, ty);
-        }
+        g.getPaint().setAntiAlias(false);
+        gs.paint(g, tx, ty);
+        getContent().postInvalidateDelayed(500);
     }
 
     @Override
@@ -110,8 +143,14 @@ public class GeniusSquaresActivity extends DroidActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        menu.add("New Game");
-        menu.add("Reset Pieces");
-        return true;
+        menu.add("Options");
+        menu.addSubMenu("New Game");
+        menu.addSubMenu("Reset Pieces");
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        return super.onPrepareOptionsMenu(menu);
     }
 }

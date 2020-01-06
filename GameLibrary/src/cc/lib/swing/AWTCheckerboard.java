@@ -28,6 +28,7 @@ public class AWTCheckerboard extends AWTComponent {
     public static void main(String[] args) {
         AGraphics.DEBUG_ENABLED = true;
         Utils.DEBUG_ENABLED = true;
+
         new AWTCheckerboard();
     }
 

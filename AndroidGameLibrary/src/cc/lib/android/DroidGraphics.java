@@ -276,7 +276,7 @@ public class DroidGraphics extends APGraphics {
             return;
         Vector2D v0 = r.getVertex(0);
         Vector2D v1 = r.getVertex(1);
-        for (int i = 2; i <= num - 2; i += 2) {
+        for (int i = 2; i <= num - 1; i += 2) {
             Vector2D v3 = r.getVertex(i);
             Vector2D v2 = r.getVertex(i + 1);
             drawPolygon(v0, v1, v2, v3);
@@ -306,7 +306,7 @@ public class DroidGraphics extends APGraphics {
     @Override
     public void drawFilledRects() {
         paint.setStyle(Paint.Style.FILL_AND_STROKE);
-        for (int i = 0; i <= r.getNumVerts() - 2; i += 2) {
+        for (int i = 0; i <= r.getNumVerts()-1; i += 2) {
             Vector2D v0 = r.getVertex(i);
             Vector2D v1 = r.getVertex(i + 1);
             float x = Math.min(v0.X(), v1.X());

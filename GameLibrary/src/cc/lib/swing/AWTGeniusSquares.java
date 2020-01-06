@@ -25,6 +25,7 @@ public class AWTGeniusSquares extends AWTComponent {
         frame = new AWTFrame("Genius Squares") {
             @Override
             protected void onWindowClosing() {
+                game.pauseTimer();
                 game.trySaveToFile(saveFile);
             }
 
@@ -58,6 +59,7 @@ public class AWTGeniusSquares extends AWTComponent {
         if (!frame.restoreFromProperties()) {
             frame.centerToScreen(640, 480);
         }
+        game.resumeTimer();
     }
 
     @Override
