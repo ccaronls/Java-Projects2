@@ -6,12 +6,16 @@ import java.util.List;
 import cc.lib.game.GColor;
 import cc.lib.game.IVector2D;
 import cc.lib.game.Utils;
+import cc.lib.logger.Logger;
+import cc.lib.logger.LoggerFactory;
 import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
 import cc.lib.utils.Reflector;
 import cc.lib.utils.StopWatch;
 
 public class GeniusSquares extends Reflector<GeniusSquares> { // GeniusSquare. 6x6 board
+
+    public final static Logger log = LoggerFactory.getLogger(GeniusSquares.class);
 
     static {
         addAllFields(GeniusSquares.class);
@@ -143,7 +147,7 @@ public class GeniusSquares extends Reflector<GeniusSquares> { // GeniusSquare. 6
     final List<Piece> pieces = new ArrayList<>();
     int [][] board = new int[BOARD_DIM_CELLS][BOARD_DIM_CELLS]; // row major
     final StopWatch timer = new StopWatch();
-    long bestTime = 99*60*60*1000;
+    long bestTime = 0;
 
     static int BOARD_DIM_CELLS = 6;
     static int NUM_BLOCKERS = 7;
@@ -253,6 +257,7 @@ public class GeniusSquares extends Reflector<GeniusSquares> { // GeniusSquare. 6
     }
 
     synchronized void dropPiece(Piece p, int cellX, int cellY) {
+        log.info("Dropping Piece");
         if (canDropPiece(p, cellX, cellY)) {
             //throw new AssertionError("Logic Error: Cannot drop piece");
             final int[][] shape = p.getShape();
@@ -266,11 +271,12 @@ public class GeniusSquares extends Reflector<GeniusSquares> { // GeniusSquare. 6
             }
             p.dropped = true;
         } else {
-            System.err.println("Cannot drop piece at: " + cellX + ", " + cellY);
+            log.error("Cannot drop piece at: " + cellX + ", " + cellY);
         }
     }
 
     synchronized void liftPiece(Piece p) {
+        log.info("Lifting Piece");
         for (int y=0; y<BOARD_DIM_CELLS; y++) {
             for (int x=0; x<BOARD_DIM_CELLS; x++) {
                 if (board[y][x] == p.pieceType.ordinal())
@@ -288,7 +294,7 @@ public class GeniusSquares extends Reflector<GeniusSquares> { // GeniusSquare. 6
             }
         }
         timer.pause();
-        if (timer.getTime() < bestTime) {
+        if (bestTime == 0 || timer.getTime() < bestTime) {
             bestTime = timer.getTime();
         }
         return true;

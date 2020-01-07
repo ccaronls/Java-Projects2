@@ -1,5 +1,7 @@
 package cc.lib.geniussqaure;
 
+import java.util.Arrays;
+
 import cc.lib.game.AAnimation;
 import cc.lib.game.AGraphics;
 import cc.lib.game.APGraphics;
@@ -23,14 +25,12 @@ public abstract class UIGeniusSquares extends GeniusSquares {
     public abstract void repaint();
 
     public synchronized void paint(APGraphics g, final int mx, final int my) {
-        //System.out.println("draw mx=" + mx + " my=" + my);
+        log.info("paint x=" + mx + " y=" + my);
         WIDTH = g.getViewportWidth();
         HEIGHT = g.getViewportHeight();
         DIM = Math.min(WIDTH, HEIGHT);
         CELL_DIM = DIM / (BOARD_DIM_CELLS+2);
         BOARD_DIM = CELL_DIM * BOARD_DIM_CELLS;
-
-        g.clearScreen(GColor.DARK_GRAY);
 
         if (dragging && highlighted != null) {
             //highlighted.center.set(mx,my);
@@ -42,11 +42,12 @@ public abstract class UIGeniusSquares extends GeniusSquares {
             g.translate(WIDTH-DIM+CELL_DIM, CELL_DIM);
             g.scale(CELL_DIM);
             final int [] pickedCell = drawBoard(g, mx, my);
+            log.debug("pickedCell: " + Arrays.toString(pickedCell));
             g.popMatrix();
             g.pushMatrix();
             g.scale(CELL_DIM);
             if (highlighted == null || !dragging)
-                highlighted = drawPieces(g, mx, my);
+                highlighted = pickPieces(g, mx, my);
             drawPiecesBeveled(g);
 
             if (highlighted == null && pickedCell != null) {
@@ -67,6 +68,8 @@ public abstract class UIGeniusSquares extends GeniusSquares {
 
                 if (dragging) {
                     liftPiece(highlighted);
+                    Vector2D pt = g.screenToViewport(mx, my);
+                    highlighted.setCenter(pt);
                     if (pickedCell != null) {
                         int [] result;
                         if (useFind && (result = findDropForPiece2(highlighted, pickedCell[0], pickedCell[1]))!= null) {
@@ -77,20 +80,18 @@ public abstract class UIGeniusSquares extends GeniusSquares {
                             //highlighted.dropped = true;
                         } else if (!useFind && canDropPiece(highlighted, pickedCell[0], pickedCell[1])) {
                             //g.setColor(GColor.GREEN);
+
                             dropPiece(highlighted, pickedCell[0], pickedCell[1]);
                         } else {
                             g.setColor(GColor.RED);
                             //highlighted.reset();
                             //highlighted = null;
                         }
-                    } else {
-                        Vector2D pt = g.screenToViewport(mx, my);
-                        highlighted.setCenter(pt);
                     }
                 }
 
                 if (!highlighted.dropped) {
-                    if (dragging || pickedCell == null) {
+                    if (true) { //dragging || pickedCell == null) {
                         g.pushMatrix();
                         g.translate(highlighted.getCenter());
                         g.scale(1.03f);
@@ -105,14 +106,6 @@ public abstract class UIGeniusSquares extends GeniusSquares {
                         //highlighted = null;
                     }
                 }
-                if (false) {
-                    g.pushMatrix();
-                    g.translate(highlighted.topLeft);
-                    g.setColor(highlighted.pieceType.color);
-                    renderPiece(g, highlighted);
-                    g.drawFilledRects();
-                    g.popMatrix();
-                }
 
                 g.popMatrix();
             }
@@ -122,12 +115,18 @@ public abstract class UIGeniusSquares extends GeniusSquares {
             int timeSecs = (int)(timer.getTime()/1000);
             int timeMins = timeSecs / 60;
             timeSecs -= timeMins*60;
-            int bestTimeSecs = (int)(bestTime/1000);
-            int bestTimeMins = bestTimeSecs/60;
-            bestTimeSecs -= bestTimeMins*60;
-            GColor timeColor = timer.getTime() <= bestTime ? GColor.GREEN : GColor.RED;
-            g.drawAnnotatedString(String.format("%sTIME %02d:%02d   %sBEST %02d:%02d", timeColor.toString(), timeMins, timeSecs, GColor.WHITE.toString(), bestTimeMins, bestTimeSecs), WIDTH-BOARD_DIM-CELL_DIM, CELL_DIM/5);
-
+            String bestTimeStr = "";
+            if (this.bestTime > 0) {
+                int bestTimeSecs = (int)(bestTime/1000);
+                int bestTimeMins = bestTimeSecs/60;
+                bestTimeSecs -= bestTimeMins*60;
+                bestTimeStr = String.format("   %sBEST %02d:%02d", GColor.WHITE.toString(), bestTimeMins, bestTimeSecs);
+            }
+            GColor timeColor = GColor.GREEN;
+            if (bestTime > 0 && timer.getTime() > bestTime)
+                timeColor = GColor.RED;
+            String curTimeStr = String.format("%sTIME %02d:%02d", timeColor.toString(), timeMins, timeSecs);
+            g.drawAnnotatedString(curTimeStr + bestTimeStr, WIDTH-BOARD_DIM-CELL_DIM, CELL_DIM/5);
 
             if (false && pickedCell != null) {
                 g.setColor(GColor.WHITE);
@@ -215,7 +214,7 @@ public abstract class UIGeniusSquares extends GeniusSquares {
         return picked;
     }
 
-    private Piece drawPieces(APGraphics g, final int mx, final int my) {
+    private Piece pickPieces(APGraphics g, final int mx, final int my) {
         Piece picked = null;
         for (Piece p : pieces) {
             g.setColor(p.pieceType.color);
@@ -227,26 +226,8 @@ public abstract class UIGeniusSquares extends GeniusSquares {
             if (g.pickRects(mx, my) == 1) {
                 picked = p;
             }
-            //g.drawFilledRects();
             g.end();
             g.popMatrix();
-            if (false) {
-                // draw centers of pieces
-                g.begin();
-                g.vertex(p.getCenter());
-                g.setColor(GColor.RED);
-                g.drawPoints(5);
-                g.end();
-            }
-            if (false) {
-                // highlight the piece bounding rect
-                g.setColor(GColor.WHITE);
-                g.setLineWidth(1);
-                g.vertex(p.topLeft);
-                g.vertex(p.bottomRight);
-                g.drawRects();
-                g.end();
-            }
         }
         return picked;
     }
@@ -403,58 +384,20 @@ public abstract class UIGeniusSquares extends GeniusSquares {
         g.begin();
         if (bevelTopLeft) {
             topLeftBevel.addEq(BEVEL_INSET, BEVEL_INSET);
-            //topLeft.addEq(BEVEL_PADDING, BEVEL_PADDING);
-        }
-        if (false) {
-            // top
-            g.vertex(topLeftBevel);
-            g.vertex(topRightBevel.getX(), topRight.getY());
-            // left
-            g.vertex(topLeftBevel);
-            g.vertex(bottomLeft.getX(), bottomLeftBevel.getY());
         }
         if (bevelTopRight) {
             topRightBevel.addEq(-BEVEL_INSET, BEVEL_INSET);
-            //topRight.addEq(-BEVEL_PADDING, BEVEL_PADDING);
-        }
-        if (false) {
-            // top
-            g.vertex(topRightBevel);
-            g.vertex(topLeftBevel.getX(), topLeft.getY());
-            // right
-            g.vertex(topRightBevel);
-            g.vertex(bottomRight.getX(), bottomRightBevel.getY());
         }
         if (bevelBottomRight) {
             bottomRightBevel.addEq(-BEVEL_INSET, -BEVEL_INSET);
-            //bottomRight.addEq(-BEVEL_PADDING, -BEVEL_PADDING);
-        }
-        if (false) {
-            // bottom
-            g.vertex(bottomRightBevel);
-            g.vertex(bottomLeftBevel.getX(), bottomLeft.getY());
-            // right
-            g.vertex(bottomRightBevel);
-            g.vertex(topRight.getX(), topRightBevel.getY());
         }
         if (bevelBottomLeft) {
             bottomLeftBevel.addEq(BEVEL_INSET, -BEVEL_INSET);
-            //bottomLeft.addEq(BEVEL_PADDING, -BEVEL_PADDING);
-        }
-        if (false) {
-            // bottom
-            g.vertex(bottomLeftBevel);
-            g.vertex(bottomRightBevel.getX(), bottomRight.getY());
-            // left
-            g.vertex(bottomLeftBevel);
-            g.vertex(topLeft.getX(), topLeftBevel.getY());
         }
         g.begin();
         g.setColor(cntrColor);
         if (bevelTopLeft || bevelTopRight) {
             // top
-            //g.vertex(Math.max(topLeft.getX(), topLeftBevel.getX()), Math.min(topLeft.getY(), topLeftBevel.getY()));
-            //g.vertex(Math.min(topRight.getX(), topRightBevel.getX()), Math.max(topRight.getY(), topRightBevel.getY()));
             g.vertex(topLeftBevel.min(topRightBevel).setY(topLeft.getY()));
             g.vertex(topLeftBevel.max(topRightBevel));
         }
@@ -483,11 +426,9 @@ public abstract class UIGeniusSquares extends GeniusSquares {
         g.vertex(bottomRightBevel);
         g.drawQuadStrip();
 
-        // check the corners
+        // check the corners. This draws the little 'L' in the corner(s)
         // top/left corner
         if (bevelTopLeft) {
-            //topLeftBevel = topLeft.add(BEVEL_INSET, BEVEL_INSET);
-            //topLeft.addEq(BEVEL_PADDING, BEVEL_PADDING);
             g.begin();
             g.setColor(topColor);
             g.vertex(topLeft.getX(), topLeft.getY()+BEVEL_PADDING);
@@ -561,7 +502,7 @@ public abstract class UIGeniusSquares extends GeniusSquares {
 
     public void drawPiecesBeveled(AGraphics g) {
         for (Piece p : pieces) {
-            if (p.dropped)
+            if (p.dropped || p == highlighted)
                 continue;
             drawPieceBeveled(g, p);
         }

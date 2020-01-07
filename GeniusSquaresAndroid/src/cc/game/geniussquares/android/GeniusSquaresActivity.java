@@ -2,7 +2,9 @@ package cc.game.geniussquares.android;
 
 
 import android.content.DialogInterface;
+import android.graphics.Color;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -33,30 +35,25 @@ public class GeniusSquaresActivity extends DroidActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        getContent().setBackgroundColor(Color.GRAY);
         View topBar = View.inflate(this, R.layout.menu_bar, null);
         getTopBar().addView(topBar);
-        findViewById(R.id.buttonMenu).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String [] options = {
-                        "New Game",
-                        "Reset Pieces",
-                };
-                gs.pauseTimer();
-                newDialogBuilder().setTitle("Options").setItems(options, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        switch (which) {
-                            case 0:
-                                gs.newGame();
-                                break;
-                            case 1:
-                                gs.resetPieces();
-                        }
-                        gs.resumeTimer();
-                    }
-                }).show();
-            }
+        findViewById(R.id.buttonMenu).setOnClickListener((View v) -> {
+            String [] options = {
+                    "New Game",
+                    "Reset Pieces",
+            };
+            gs.pauseTimer();
+            newDialogBuilder().setTitle("Options").setItems(options, (DialogInterface dialog, int which) -> {
+                switch (which) {
+                    case 0:
+                        gs.newGame();
+                        break;
+                    case 1:
+                        gs.resetPieces();
+                }
+                gs.resumeTimer();
+            }).setNegativeButton("Cancel", null).show();
         });
     }
 
@@ -88,6 +85,7 @@ public class GeniusSquaresActivity extends DroidActivity {
 
     @Override
     protected void onTouchDown(float x, float y) {
+        Log.i(TAG, "onTouchDown");
         tx = Math.round(x);
         ty = Math.round(y);
         getContent().postInvalidate();
@@ -95,6 +93,7 @@ public class GeniusSquaresActivity extends DroidActivity {
 
     @Override
     protected void onTouchUp(float x, float y) {
+        Log.i(TAG, "onTouchUp");
         if (dragging) {
             gs.stopDrag();
             dragging = false;
@@ -106,6 +105,7 @@ public class GeniusSquaresActivity extends DroidActivity {
 
     @Override
     protected void onDrag(float x, float y) {
+        Log.i(TAG, "onDrag");
         if (!dragging) {
             gs.startDrag();
             dragging = true;
@@ -117,6 +117,7 @@ public class GeniusSquaresActivity extends DroidActivity {
 
     @Override
     protected void onTap(float x, float y) {
+        Log.i(TAG, "onTap");
         tx = Math.round(x);
         ty = Math.round(y);
         getContent().postInvalidate();
@@ -128,29 +129,4 @@ public class GeniusSquaresActivity extends DroidActivity {
         }, 100);
     }
 
-    @Override
-    public boolean onMenuItemSelected(int featureId, MenuItem item) {
-        switch (item.getTitle().toString()) {
-            case "New Game":
-                gs.newGame();
-                break;
-            default:
-                gs.resetPieces();
-        }
-        getContent().postInvalidate();
-        return true;
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        menu.add("Options");
-        menu.addSubMenu("New Game");
-        menu.addSubMenu("Reset Pieces");
-        return super.onCreateOptionsMenu(menu);
-    }
-
-    @Override
-    public boolean onPrepareOptionsMenu(Menu menu) {
-        return super.onPrepareOptionsMenu(menu);
-    }
 }

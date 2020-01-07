@@ -23,31 +23,9 @@ public abstract class DroidActivity extends CCActivityBase {
     DroidView content = null;
     ViewGroup topBar = null;
 
-    private class DelayedTouchDown implements Runnable {
-
-        final float x, y;
-        DelayedTouchDown(MotionEvent ev) {
-            this.x = ev.getX();
-            this.y = ev.getY();
-        }
-        public void run() {
-            onTouchDown(x, y);
-            touchDownRunnable = null;
-        }
-    }
-
-    private final int CLICK_TIME = 700;
-
-    private long downTime = 0;
-
-    private Runnable touchDownRunnable = null;
-
     private int margin = 0;
     public void setMargin(int margin) {
         this.margin = margin;
-        //FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams)content.getLayoutParams();
-        //lp.setMargins(margin, margin, margin, margin);
-        //content.setLayoutParams(lp);
         content.postInvalidate();
     }
 
@@ -57,60 +35,6 @@ public abstract class DroidActivity extends CCActivityBase {
         setContentView(R.layout.droid_activity);
         DroidView dv = content = (DroidView)findViewById(R.id.droid_view);
         topBar = (ViewGroup)findViewById(R.id.top_bar_layout);
-        /*
-        content = new View(this) {
-            @Override
-            protected void onDraw(Canvas canvas) {
-                int width = canvas.getWidth()-margin*2;
-                int height = canvas.getHeight()-margin*2;
-                if (g == null) {
-                    g = new DroidGraphics(getContext(), canvas, width, height);
-                } else {
-                    g.setCanvas(canvas, width, height);
-                }
-                canvas.save();
-                canvas.translate(margin, margin);
-                canvas.save();
-                DroidActivity.this.onDraw(g);
-                canvas.restore();
-                canvas.restore();
-            }
-
-            @Override
-            public boolean onTouchEvent(MotionEvent event) {
-
-                switch (event.getAction()) {
-                    case MotionEvent.ACTION_DOWN:
-                        downTime = SystemClock.uptimeMillis();
-                        onTouchDown(event.getX(), event.getY());
-                        postDelayed(touchDownRunnable=new DelayedTouchDown(event), CLICK_TIME);
-                        break;
-                    case MotionEvent.ACTION_UP:
-                        if (SystemClock.uptimeMillis() - downTime < CLICK_TIME) {
-                            removeCallbacks(touchDownRunnable);
-                            touchDownRunnable = null;
-                            onTap(event.getX(), event.getY());
-                        } else {
-                            onTouchUp(event.getX(), event.getY());
-                        }
-                        break;
-                    case MotionEvent.ACTION_MOVE:
-                        //if (touchDownRunnable != null) {
-                        //    removeCallbacks(touchDownRunnable);
-                        //    touchDownRunnable = null;
-                        //    onTouchDown(event.getX(), event.getY());
-                        if (touchDownRunnable == null) {
-                            onDrag(event.getX(), event.getY());
-                        }
-                        break;
-                }
-
-                return true;
-            }
-
-        };
-        setContentView(content);
-        */
     }
 
     /**
@@ -137,8 +61,9 @@ public abstract class DroidActivity extends CCActivityBase {
 
     @Override
     protected void onDestroy() {
+        if (g != null)
+            g.shutDown();
         super.onDestroy();
-        g.shutDown();
     }
 
     @Override

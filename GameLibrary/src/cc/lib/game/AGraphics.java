@@ -1407,7 +1407,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param w
      * @param h
      */
-    public final void drawFilledOval(float x, float y, float w, float h) {
+    public void drawFilledOval(float x, float y, float w, float h) {
         pushMatrix();
         MutableVector2D mv0 = transform(x, y);
         MutableVector2D mv2 = transform(x+w, y+h);
