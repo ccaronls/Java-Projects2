@@ -89,7 +89,6 @@ public class DroidView extends View {
                 float d = dx*dx + dy*dy;
                 if (dragging || d > 100) {
                     dragging = true;
-                //if (touchDownRunnable == null) {
                     onDrag(event.getX(), event.getY());
                 }
                 break;

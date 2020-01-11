@@ -19,35 +19,43 @@ public abstract class UIGeniusSquares extends GeniusSquares {
     int BOARD_DIM = 0;
 
     Piece highlighted = null;
+    int [] pickedCell = null;
     boolean dragging = false;
     boolean autoFitPieces = true;
 
     public abstract void repaint();
 
     public synchronized void paint(APGraphics g, final int mx, final int my) {
-        log.info("paint x=" + mx + " y=" + my);
+        final String PREFIX = "paint(" + mx + "," + my + ")";
+        //log.info("paint x=" + mx + " y=" + my);
         WIDTH = g.getViewportWidth();
         HEIGHT = g.getViewportHeight();
         DIM = Math.min(WIDTH, HEIGHT);
         CELL_DIM = DIM / (BOARD_DIM_CELLS+2);
         BOARD_DIM = CELL_DIM * BOARD_DIM_CELLS;
 
-        if (dragging && highlighted != null) {
-            //highlighted.center.set(mx,my);
-            //g.transform(highlighted.center);
-        }
-
         if (WIDTH > HEIGHT) {
             g.pushMatrix();
             g.translate(WIDTH-DIM+CELL_DIM, CELL_DIM);
             g.scale(CELL_DIM);
-            final int [] pickedCell = drawBoard(g, mx, my);
-            log.debug("pickedCell: " + Arrays.toString(pickedCell));
+
+            if (highlighted != null && pickedCell != null && !dragging) {
+                liftPiece(highlighted);
+                int [] drop = findDropForPiece2(highlighted, pickedCell[0], pickedCell[1]);
+                if (drop != null) {
+                    dropPiece(highlighted, drop[1], drop[2]);
+                }
+            }
+
+            pickedCell = drawBoard(g, mx, my);
+            //log.info(PREFIX + "pickedCell: " + Arrays.toString(pickedCell));
             g.popMatrix();
             g.pushMatrix();
             g.scale(CELL_DIM);
-            if (highlighted == null || !dragging)
+
+            if (highlighted == null || !dragging) {
                 highlighted = pickPieces(g, mx, my);
+            }
             drawPiecesBeveled(g);
 
             if (highlighted == null && pickedCell != null) {
@@ -60,7 +68,7 @@ public abstract class UIGeniusSquares extends GeniusSquares {
             }
 
             if (highlighted != null) {
-                //System.out.println("highlighted = " + highlighted);
+                log.info(PREFIX + "highlighted = " + highlighted);
                 g.pushMatrix();
 
                 g.setColor(GColor.WHITE);
@@ -71,40 +79,29 @@ public abstract class UIGeniusSquares extends GeniusSquares {
                     Vector2D pt = g.screenToViewport(mx, my);
                     highlighted.setCenter(pt);
                     if (pickedCell != null) {
-                        int [] result;
-                        if (useFind && (result = findDropForPiece2(highlighted, pickedCell[0], pickedCell[1]))!= null) {
-                            //System.out.println("Droppable at: " + result[1] + "," + result[2] + " index:"+ result[0]);
+                        int[] result;
+                        if (useFind && (result = findDropForPiece2(highlighted, pickedCell[0], pickedCell[1])) != null) {
+                            log.info(PREFIX + "Droppable at: " + result[1] + "," + result[2] + " index:" + result[0]);
                             highlighted.setIndex(result[0]);
                             dropPiece(highlighted, result[1], result[2]);
-                            //dropShape(highlighted.pieceType.orientations[result[0]], result[1], result[2]);
-                            //highlighted.dropped = true;
                         } else if (!useFind && canDropPiece(highlighted, pickedCell[0], pickedCell[1])) {
-                            //g.setColor(GColor.GREEN);
-
                             dropPiece(highlighted, pickedCell[0], pickedCell[1]);
                         } else {
                             g.setColor(GColor.RED);
-                            //highlighted.reset();
-                            //highlighted = null;
                         }
                     }
                 }
 
                 if (!highlighted.dropped) {
-                    if (true) { //dragging || pickedCell == null) {
-                        g.pushMatrix();
-                        g.translate(highlighted.getCenter());
-                        g.scale(1.03f);
-                        g.translate(-highlighted.getWidth() / 2, -highlighted.getHeight() / 2);
-                        renderPiece(g, highlighted);
-                        g.drawFilledRects();
-                        g.popMatrix();
-                        g.end();
-                        drawPieceBeveled(g, highlighted);
-                    } else {
-                        //highlighted.reset();
-                        //highlighted = null;
-                    }
+                    g.pushMatrix();
+                    g.translate(highlighted.getCenter());
+                    g.scale(1.03f);
+                    g.translate(-highlighted.getWidth() / 2, -highlighted.getHeight() / 2);
+                    renderPiece(g, highlighted);
+                    g.drawFilledRects();
+                    g.popMatrix();
+                    g.end();
+                    drawPieceBeveled(g, highlighted);
                 }
 
                 g.popMatrix();
@@ -509,13 +506,16 @@ public abstract class UIGeniusSquares extends GeniusSquares {
     }
 
     public synchronized void doClick() {
+        log.info("doClick highlighted=" + highlighted);
         if (highlighted != null) {
             highlighted.increment(1);
+            log.info("doClick: incremented:" + highlighted);
             repaint();
         }
     }
 
     public synchronized void startDrag() {
+        log.info("Stop Drag");
         if (highlighted != null) {
             dragging = true;
             repaint();
@@ -523,6 +523,7 @@ public abstract class UIGeniusSquares extends GeniusSquares {
     }
 
     public synchronized void stopDrag() {
+        log.info("Stop Drag");
         dragging = false;
         repaint();
     }

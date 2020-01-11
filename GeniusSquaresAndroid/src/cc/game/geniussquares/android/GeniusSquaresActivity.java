@@ -120,13 +120,11 @@ public class GeniusSquaresActivity extends DroidActivity {
         Log.i(TAG, "onTap");
         tx = Math.round(x);
         ty = Math.round(y);
-        getContent().postInvalidate();
-        getContent().postDelayed(new Runnable() {
-            public void run() {
-                tx = ty = -1;
-                gs.doClick();
-            }
-        }, 100);
+        getContent().invalidate();
+        getContent().postDelayed(() -> {
+            tx = ty = -1;
+            gs.doClick();
+        }, 1);
     }
 
 }
