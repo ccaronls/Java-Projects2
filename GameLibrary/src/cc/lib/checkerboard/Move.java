@@ -209,7 +209,7 @@ public class Move extends Reflector<Move> implements IMove, Comparable<Move> {
         if (castleRookStart != null) {
             str.append(" castle st: ").append(toStr(castleRookStart)).append(" end: ").append(toStr(castleRookEnd));
         }
-        if (opponentKing != null && opponentKing[2] != opponentKing[3]) {
+        if (opponentKing != null) { // && opponentKing[2] != opponentKing[3]) {
             str.append(" oppKing: ").append(toStr(opponentKing));
         }
         return str.toString();
@@ -259,4 +259,6 @@ public class Move extends Reflector<Move> implements IMove, Comparable<Move> {
     public final int getCompareValue() {
         return compareValue;
     }
+
+
 }

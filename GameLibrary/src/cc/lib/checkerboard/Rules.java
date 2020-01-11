@@ -49,7 +49,7 @@ public abstract class Rules extends Reflector<Rules> {
     abstract boolean isDraw(Game game);
 
     /**
-     *
+     * Return the heuristic value of the board for the current move
      * @param game
      * @param move
      * @return
@@ -57,61 +57,16 @@ public abstract class Rules extends Reflector<Rules> {
     public abstract long evaluate(Game game, Move move);
 
     /**
-     *
+     * return a list of available moves
      * @param game
      * @return
      */
     abstract List<Move> computeMoves(Game game);
 
     /**
-     *
+     * perform the inverse of executeMove. Use state stored in the move itself to speed the operation.
      * @param game
      * @param m
      */
-    final void reverseMove(Game game, Move m) {
-        Piece p;
-        switch (m.getMoveType()) {
-            case END:
-                break;
-            case CASTLE:
-                p = game.getPiece(m.getCastleRookEnd());
-                Utils.assertTrue(p.getType() == PieceType.ROOK, "Expected ROOK was " + p.getType());
-                game.setPiece(m.getCastleRookStart(), m.getPlayerNum(), PieceType.ROOK_IDLE);
-                game.clearPiece(m.getCastleRookEnd());
-                // fallthrough
-            case SLIDE:
-            case FLYING_JUMP:
-            case JUMP:
-                p = game.getPiece(m.getEnd());
-                if (p.isStacked()) {
-                    Piece captured = game.getPiece(m.getCaptured(0));
-                    if (captured.getType() != PieceType.EMPTY) {
-                        captured.addStackFirst(captured.getPlayerNum());
-                    } else {
-                        captured.setType(m.getCapturedType(0));
-                    }
-                    captured.setPlayerNum(p.removeStackLast());
-                } else {
-                    if (m.hasCaptured()) {
-                        for (int i = 0; i < m.getNumCaptured(); i++) {
-                            game.getPlayer(m.getPlayerNum()).removeCaptured(m.getCapturedType(i));
-                            game.setPiece(m.getCaptured(i), game.getOpponent(m.getPlayerNum()), m.getCapturedType(i));
-                        }
-                    }
-                }
-                //fallthrough
-            case SWAP:
-            case STACK: {
-                game.copyPiece(m.getEnd(), m.getStart());
-                game.clearPiece(m.getEnd());
-                break;
-            }
-        }
-        if (m.hasOpponentKing()) {
-            game.getPiece(m.getOpponentKingPos()).setType(m.getOpponentKingTypeStart());
-        }
-        game.setTurn(m.getPlayerNum());
-    }
-
-
+    abstract void reverseMove(Game game, Move m);
 }

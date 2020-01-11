@@ -127,9 +127,9 @@ public abstract class UIGame extends Game {
         g.translate(0, HEIGHT/2-WIDTH/2);
         drawBoard(g, WIDTH, mx, my);
         g.popMatrix();
-        drawCapturedPieces(g, WIDTH, HEIGHT/2-WIDTH/2, FAR, getPlayer(FAR).getCaptured());
+        drawCapturedPieces(g, WIDTH, HEIGHT/2-WIDTH/2, FAR, getCapturedPieces(FAR));
         g.translate(0, HEIGHT/2+WIDTH/2);
-        drawCapturedPieces(g, WIDTH, HEIGHT/2-WIDTH/2, NEAR, getPlayer(NEAR).getCaptured());
+        drawCapturedPieces(g, WIDTH, HEIGHT/2-WIDTH/2, NEAR, getCapturedPieces(NEAR));
         if (getWinner() != null) {
             g.setColor(getWinner().getColor().color);
             g.drawJustifiedString(WIDTH - 10, 10, Justify.RIGHT, "Winner: " + getWinner().getColor());
@@ -175,7 +175,7 @@ public abstract class UIGame extends Game {
         g.setColor(GColor.WHITE);
         float th = g.drawWrapString(0, 0, width, info).height;
         g.translate(0, th + BORDER);
-        drawCapturedPieces(g, width, height, getOpponent(player.getPlayerNum()), player.getCaptured());
+        drawCapturedPieces(g, width, height, getOpponent(player.getPlayerNum()), getCapturedPieces(player.getPlayerNum()));
         g.popMatrix();
     }
 

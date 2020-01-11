@@ -22,8 +22,10 @@ public class Piece extends Reflector<Piece> {
 
     void clear() {
         setPlayerNum(-1);
-        setType(PieceType.EMPTY);
+        type = PieceType.EMPTY;
         stack = null;
+        captured = false;
+        numMoves = 0;
     }
 
     void copyFrom(Piece from) {
@@ -81,8 +83,8 @@ public class Piece extends Reflector<Piece> {
     }
 
     public void setType(PieceType type) {
-        if (type == null)
-            throw new AssertionError("type cannot be null");
+        if (type == null || type == PieceType.EMPTY)
+            throw new AssertionError("cannot set type to empty");
         this.type = type;
     }
 

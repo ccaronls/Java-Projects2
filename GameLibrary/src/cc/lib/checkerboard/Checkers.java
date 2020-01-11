@@ -110,7 +110,7 @@ public class Checkers extends Rules {
     private final int computeMovesForSquare(Game game, int rank, int col, Move parent, List<Move> moves) {
         Piece p = game.getPiece(rank, col);
         if (p.getPlayerNum() != game.getTurn())
-            throw new AssertionError();
+            throw new AssertionError("Logic Error: Should not be able to move opponent piece");
 
         int startSize = moves.size();
         int numJumps = 0;
@@ -395,10 +395,7 @@ public class Checkers extends Rules {
                 isKinged = (p.getType() == CHECKER && game.getStartRank(game.getOpponent()) == rank);
                 isDamaKing = (p.getType() == DAMA_MAN && game.getStartRank(game.getOpponent()) == rank);
             }
-            game.movePiece(move);
-            if (move.getEnd() != null) {
-                p = game.getPiece(move.getEnd());
-            }
+            p = game.movePiece(move);
         }
 
         switch (move.getMoveType()) {
@@ -430,7 +427,6 @@ public class Checkers extends Rules {
                     } else if (isCaptureAtEndEnabled()) {
                         game.getPiece(move.getLastCaptured()).setCaptured(true);
                     } else {
-                        game.getPlayer(move.getPlayerNum()).addCaptured(move.getLastCapturedType());
                         game.clearPiece(move.getLastCaptured());
                     }
                     if ((isKinged || isDamaKing) && isJumpsMandatory()) {
@@ -479,7 +475,6 @@ public class Checkers extends Rules {
             }
             if (isCaptureAtEndEnabled() && captured.size() > 0) {
                 for (int[] pos : captured) {
-                    game.getCurrentPlayer().addCaptured(game.getPiece(pos).getType());
                     game.clearPiece(pos);
                 }
             }
@@ -539,6 +534,45 @@ public class Checkers extends Rules {
             }
         }
         return value;
+    }
+
+    @Override
+    final void reverseMove(Game game, Move m) {
+        Piece p;
+        switch (m.getMoveType()) {
+            case END:
+                break;
+            case SLIDE:
+            case FLYING_JUMP:
+            case JUMP:
+                p = game.getPiece(m.getEnd());
+                if (m.hasCaptured()) {
+                    if (isStackingCaptures()) {
+                        Piece captured = game.getPiece(m.getCaptured(0));
+                        if (!p.isStacked())
+                            throw new AssertionError("Logic Error: Capture must result in stacked piece");
+                        if (captured.getType() != EMPTY) {
+                            captured.addStackFirst(captured.getPlayerNum());
+                        } else {
+                            captured.setType(m.getCapturedType(0));
+                        }
+                        captured.setPlayerNum(p.removeStackLast());
+                    } else {
+                        for (int i = 0; i < m.getNumCaptured(); i++) {
+                            game.setPiece(m.getCaptured(i), game.getOpponent(m.getPlayerNum()), m.getCapturedType(i));
+                        }
+                    }
+                }
+                game.copyPiece(m.getEnd(), m.getStart());
+                game.clearPiece(m.getEnd());
+                break;
+            case STACK:
+                game.getPiece(m.getStart()).setType(m.getStartType());
+                break;
+            default:
+                throw new AssertionError("Unhandled case '" + m.getMoveType() + "'");
+        }
+        game.setTurn(m.getPlayerNum());
     }
 
     public boolean canJumpSelf() {

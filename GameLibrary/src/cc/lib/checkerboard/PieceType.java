@@ -7,9 +7,9 @@ package cc.lib.checkerboard;
 public enum PieceType {
     EMPTY("EM", 0, 0),
     PAWN("Pn", 1, 2),
-    PAWN_IDLE("Pn", 2, 2), // this type of pawn has option to move forward 2 spaces
-    PAWN_ENPASSANT("Pn", 1, 2), // this pawn is available for en-passant capture for 1 turn
-    PAWN_TOSWAP("Pn", 100, 2), // This pawn is to be swapped for another piece
+    PAWN_IDLE("PI", 1, 2), // this type of pawn has option to move forward 2 spaces
+    PAWN_ENPASSANT("PE", 2, 2), // this pawn is available for en-passant capture for 1 turn
+    PAWN_TOSWAP("PS", 100, 2), // This pawn is to be swapped for another piece
     BISHOP("Bi", 3, 8),
     KNIGHT("Kn", 3, 16),
     ROOK("Ro", 5, 4),

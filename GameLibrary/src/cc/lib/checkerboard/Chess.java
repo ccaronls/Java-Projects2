@@ -146,40 +146,42 @@ public class Chess extends Rules {
     @Override
     public void executeMove(Game game, Move move) {
         Piece p = null;
-        switch (move.getMoveType()) {
-            case END:
-                // does this ever get called?
-                System.out.println("!!!!!! I GOT CALLED !!!!!!!!!!!!!!!");
-                break;
-            case JUMP:
-            case SLIDE:
-                if (move.hasCaptured()) {
-                    game.getCurrentPlayer().addCaptured(move.getLastCapturedType());
-                    game.clearPiece(move.getLastCaptured());
+        try {
+            switch (move.getMoveType()) {
+                case END:
+                    // does this ever get called?
+                    System.out.println("!!!!!! I GOT CALLED !!!!!!!!!!!!!!!");
+                    break;
+                case JUMP:
+                case SLIDE:
+                    if (move.hasCaptured()) {
+                        game.clearPiece(move.getLastCaptured());
+                    }
+                    p = game.movePiece(move);
+                    // check for pawn advancing
+                    if (p.getType() == PAWN_TOSWAP) {
+                        computeMovesForSquare(game, move.getEnd()[0], move.getEnd()[1], null, game.getMovesInternal());
+                        return;
+                    }
+                    // see if this move result
+                    break;
+                case SWAP:
+                    game.getPiece(move.getStart()).setType(move.getEndType());
+                    break;
+                case CASTLE: {
+                    game.movePiece(move);
+                    p = game.getPiece(move.getCastleRookStart());
+                    Utils.assertTrue(p.getType() == ROOK_IDLE);
+                    game.setPiece(move.getCastleRookEnd(), move.getPlayerNum(), ROOK);
+                    game.clearPiece(move.getCastleRookStart());
+                    break;
                 }
-                p = game.movePiece(move);
-                // check for pawn advancing
-                if (p.getType() == PAWN_TOSWAP) {
-                    computeMovesForSquare(game, move.getEnd()[0], move.getEnd()[1], null, game.getMovesInternal());
-                    return;
-                }
-                // see if this move result
-                break;
-            case SWAP:
-                game.getPiece(move.getStart()).setType(move.getEndType());
-                break;
-            case CASTLE: {
-                game.movePiece(move);
-                p = game.getPiece(move.getCastleRookStart());
-                Utils.assertTrue(p.getType() == ROOK_IDLE);
-                game.setPiece(move.getCastleRookEnd(), move.getPlayerNum(), ROOK);
-                game.clearPiece(move.getCastleRookStart());
-                break;
+                default:
+                    throw new AssertionError();
             }
-            default:
-                throw new AssertionError();
+        } finally {
+            game.getPiece(move.getOpponentKingPos()).setType(move.getOpponentKingTypeEnd());
         }
-        game.getPiece(move.getOpponentKingPos()).setType(move.getOpponentKingTypeEnd());
 
         if (p != null && timerLength > 0) {
             throw new AssertionError("I dont understand this logic");
@@ -307,8 +309,9 @@ public class Chess extends Rules {
             for (int col = 0; col < game.getColumns(); col++) {
                 int num = moves.size();
                 Piece p = game.getPiece(rank, col);
-                if (p.getPlayerNum() == game.getTurn())
+                if (p.getPlayerNum() == game.getTurn()) {
                     computeMovesForSquare(game, rank, col, null, moves);
+                }
             }
         }
         return moves;
@@ -328,17 +331,14 @@ public class Chess extends Rules {
         PieceType nextType = p.getType();
         switch (p.getType()) {
             case PAWN_ENPASSANT:
-                p.setType(PAWN);
             case PAWN_IDLE:
             case PAWN: {
                 // check in front of us 1 space
                 tr=rank + game.getAdvanceDir(p.getPlayerNum());
                 tc=col;
-                PieceType nextPawn = PAWN;
-                if (tr == game.getStartRank(game.getOpponent(p.getPlayerNum())))
-                    nextPawn = PAWN_TOSWAP;
                 if (game.getPiece(tr, col).getType() == EMPTY) {
-                    moves.add(new Move(MoveType.SLIDE, p.getPlayerNum()).setStart(rank, col, p.getType()).setEnd(tr, tc, nextPawn));
+                    boolean atEnd = tr == game.getStartRank(game.getOpponent(p.getPlayerNum()));
+                    moves.add(new Move(MoveType.SLIDE, p.getPlayerNum()).setStart(rank, col, p.getType()).setEnd(tr, tc, atEnd ? PAWN_TOSWAP : PAWN));
                     if (p.getType() == PAWN_IDLE) {
                         int tr2 = rank + game.getAdvanceDir(p.getPlayerNum())*2;
                         // if we have not moved yet then we may be able move 2 squares
@@ -348,29 +348,29 @@ public class Chess extends Rules {
 
                     }
                 }
+                // check if we can capture to upper right
                 if (game.isOnBoard(tr, (tc=col+1))) {
-                    // check if we can capture to upper right or upper left
                     if ((tp = game.getPiece(tr, tc)).getPlayerNum() == opponent) {
                         // if this opponent is the king, then we will be 'checking' him
-                        moves.add(new Move(MoveType.SLIDE, p.getPlayerNum()).setStart(rank, col, p.getType()).addCaptured(tr, tc, tp.getType()).setEnd(tr, tc, nextPawn));
+                        moves.add(new Move(MoveType.SLIDE, p.getPlayerNum()).setStart(rank, col, p.getType()).addCaptured(tr, tc, tp.getType()).setEnd(tr, tc, PAWN));
                     }
                 }
+                // check if we can capture to upper left
                 if (game.isOnBoard(tr, tc=col-1)) {
-                    // check if we can capture to upper right or upper left
                     if ((tp = game.getPiece(tr, tc)).getPlayerNum() == opponent) {
-                        moves.add(new Move(MoveType.SLIDE, p.getPlayerNum()).setStart(rank, col, p.getType()).addCaptured(tr, tc, tp.getType()).setEnd(tr, tc, nextPawn));
+                        moves.add(new Move(MoveType.SLIDE, p.getPlayerNum()).setStart(rank, col, p.getType()).addCaptured(tr, tc, tp.getType()).setEnd(tr, tc, PAWN));
                     }
                 }
                 // check en passant
                 tr = rank;
                 if (game.isOnBoard(tr, tc=col+1)) {
                     if ((tp = game.getPiece(tr, tc)).getPlayerNum() == opponent && tp.getType() == PAWN_ENPASSANT) {
-                        moves.add(new Move(MoveType.SLIDE, p.getPlayerNum()).setStart(rank, col, p.getType()).addCaptured(rank, tc, tp.getType()).setEnd(tr + game.getAdvanceDir(p.getPlayerNum()), tc, nextPawn));
+                        moves.add(new Move(MoveType.SLIDE, p.getPlayerNum()).setStart(rank, col, p.getType()).addCaptured(rank, tc, tp.getType()).setEnd(tr + game.getAdvanceDir(p.getPlayerNum()), tc, PAWN));
                     }
                 }
                 if (game.isOnBoard(tr, tc=col-1)) {
                     if ((tp = game.getPiece(tr, tc)).getPlayerNum() == opponent && tp.getType() == PAWN_ENPASSANT) {
-                        moves.add(new Move(MoveType.SLIDE, p.getPlayerNum()).setStart(rank, col, p.getType()).addCaptured(rank, tc, tp.getType()).setEnd(tr + game.getAdvanceDir(p.getPlayerNum()), tc, nextPawn));
+                        moves.add(new Move(MoveType.SLIDE, p.getPlayerNum()).setStart(rank, col, p.getType()).addCaptured(rank, tc, tp.getType()).setEnd(tr + game.getAdvanceDir(p.getPlayerNum()), tc, PAWN));
                     }
                 }
                 break;
@@ -501,7 +501,7 @@ public class Chess extends Rules {
                 }
             }
         }
-        return null;
+        throw new AssertionError("Logic Error: Cannot find king for player " + playerNum);
     }
 
     private final static int [][] DIAGONAL_DELTAS = {
@@ -522,8 +522,6 @@ public class Chess extends Rules {
             }
         }
     }
-
-
 
     private static int [][] computeKnightDeltaFor(int rank, int col) {
         int [][] ALL_KNIGHT_DELTAS = {
@@ -661,5 +659,35 @@ public class Chess extends Rules {
         } finally {
             //System.out.println("[" + value + "] " + move);
         }
+    }
+
+    @Override
+    void reverseMove(Game game, Move m) {
+        Piece p;
+        switch (m.getMoveType()) {
+            case END:
+                break;
+            case CASTLE:
+                p = game.getPiece(m.getCastleRookEnd());
+                Utils.assertTrue(p.getType() == PieceType.ROOK, "Expected ROOK was " + p.getType());
+                game.setPiece(m.getCastleRookStart(), m.getPlayerNum(), PieceType.ROOK_IDLE);
+                game.clearPiece(m.getCastleRookEnd());
+                // fallthrough
+            case SLIDE:
+            case JUMP:
+                game.clearPiece(m.getEnd());
+                if (m.hasCaptured()) {
+                    if (m.getNumCaptured() != 1)
+                        throw new AssertionError("Logic Error: cannot have more than one captured piece in chess");
+                    game.setPiece(m.getCaptured(0), game.getOpponent(m.getPlayerNum()), m.getCapturedType(0));
+                }
+                //fallthrough
+            case SWAP:
+                game.setPiece(m.getStart(), m.getPlayerNum(), m.getStartType());
+                break;
+            default:
+                throw new AssertionError("Unhandled Case " + m.getMoveType());
+        }
+        game.setTurn(m.getPlayerNum());
     }
 }

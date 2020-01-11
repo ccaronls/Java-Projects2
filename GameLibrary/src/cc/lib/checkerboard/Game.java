@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Stack;
 
 import cc.lib.game.IGame;
-import cc.lib.game.Utils;
 import cc.lib.utils.Reflector;
 
 public class Game extends Reflector<Game> implements IGame<Move> {
@@ -53,7 +52,7 @@ public class Game extends Reflector<Game> implements IGame<Move> {
                 board[r][c] = new Piece(r, c, -1, PieceType.EMPTY);
             }
         }
-        gameState = GameState.DRAW;
+        gameState = GameState.PLAYING;
         moves = null;
         selectedPiece = null;
         undoStack.clear();
@@ -156,22 +155,6 @@ public class Game extends Reflector<Game> implements IGame<Move> {
                 onGameOver(players[NEAR]);
                 return;
         }
-/*        if (rules.isDraw(this)) {
-            gameState = GameState.DRAW;
-            onGameOver(null);
-            return;
-        }
-        switch (rules.getWinner(this)) {
-            case NEAR:
-                gameState = GameState.NEAR_WINS;
-                onGameOver(getPlayer(NEAR));
-                return;
-            case FAR:
-                gameState = GameState.FAR_WINS;
-                onGameOver(getPlayer(FAR));
-                return;
-        }
-*/
         List<Move> moves = getMoves();
         if (moves.size() == 0) {
             onGameOver(getWinner());
@@ -215,8 +198,9 @@ public class Game extends Reflector<Game> implements IGame<Move> {
      * @return
      */
     public final Piece getPiece(int rank, int col) {
-        //if (!isOnBoard(rank, col))
-        //    throw new AssertionError();
+        if (!isOnBoard(rank, col)) {
+            throw new AssertionError("Not on board [" + rank + "," + col + "]");
+        }
         return board[rank][col];
     }
 
@@ -311,23 +295,59 @@ public class Game extends Reflector<Game> implements IGame<Move> {
      */
     protected void onGameOver(Player winner) {}
 
+    static int counter = 0;
+
+    final static boolean DEBUG = false;
+
     @Override
     public final synchronized void executeMove(Move move) {
         if (move.getPlayerNum() != getTurn())
             throw new AssertionError("Invalid move to execute");
-        undoStack.push(new State(moves.indexOf(move) // <-- TODO: Make this faster
-                , moves));
+        State state = new State(moves.indexOf(move) // <-- TODO: Make this faster
+                , moves);
+        if (rules instanceof Chess) {
+            state.enpassants = new ArrayList<>();
+            for (int rank=0; rank<getRanks(); rank++) {
+                for (int col=0; col<getColumns(); col++) {
+                    if (move.getStart()[0] != rank && move.getStart()[1] != col) {
+                        Piece p = getPiece(rank, col);
+                        if (p.getPlayerNum() == getTurn() && p.getType() == PieceType.PAWN_ENPASSANT) {
+                            state.enpassants.add(new int[]{rank, col});
+                        }
+                    }
+                }
+            }
+        }
+        undoStack.push(state);
+        //
         moves = null;
         clearPieceMoves();
+        if (DEBUG)
+            System.out.println("COUNTER:" + (counter++) + "\nGAME BEFORE MOVE: " + move + "\n" + this);
         rules.executeMove(this, move);
+        if (state.enpassants != null) {
+            for (int [] pos : state.enpassants) {
+                getPiece(pos).setType(PieceType.PAWN);
+            }
+        }
         if (moves != null) {
             countPieceMoves();
         }
+        String gameAfter = null;
+        if (DEBUG) {
+            gameAfter = toString();
+            System.out.println("GAME AFTER:\n" + gameAfter);
+        }
         refreshGameState();
+        if (DEBUG) {
+            String gameAfter2 = toString();
+            System.out.println("GAME STATE AFTER REFRESH:\n" + gameAfter2);
+            if (!gameAfter.equals(gameAfter2))
+                throw new AssertionError("Logic Error: Game State changed after refresh");
+        }
     }
 
     public final void refreshGameState() {
-        int winner;
         if (rules.isDraw(this)) {
             gameState = GameState.DRAW;
         } else switch (rules.getWinner(this)) {
@@ -382,6 +402,14 @@ public class Game extends Reflector<Game> implements IGame<Move> {
             selectedPiece = null;
             //turn = moves.get(0).getPlayerNum();
             countPieceMoves();
+            if (state.enpassants != null) {
+                for (int [] pos : state.enpassants) {
+                    Piece p = getPiece(pos);
+                    if (p.getType() != PieceType.PAWN)
+                        throw new AssertionError("Logic Error: Not a pawn: " + p);
+                    getPiece(pos).setType(PieceType.PAWN_ENPASSANT);
+                }
+            }
             gameState = GameState.PLAYING;
             return m;
         }
@@ -444,8 +472,7 @@ public class Game extends Reflector<Game> implements IGame<Move> {
             case NEAR:
                 return ranks-1;
         }
-        Utils.assertTrue(false, "Unexpected side " + side);
-        return -1;
+        throw new AssertionError("Logic Error: not a valid side: " + side);
     }
 
     /**
@@ -471,14 +498,15 @@ public class Game extends Reflector<Game> implements IGame<Move> {
             case NEAR:
                 return -1;
         }
-        Utils.assertTrue(false, "Unexpected side " + side);
-        return 0;
+        throw new AssertionError("Logic Error: not a valid side: " + side);
     }
 
     public Piece movePiece(Move m) {
         copyPiece(m.getStart(), m.getEnd());
         clearPiece(m.getStart());
-        return getPiece(m.getEnd());
+        Piece p = getPiece(m.getEnd());
+        p.setType(m.getEndType());
+        return p;
     }
 
     final void clearPiece(int rank, int col) {
@@ -597,7 +625,22 @@ public class Game extends Reflector<Game> implements IGame<Move> {
         return "UNKNOWN(" + turn + ")";
     }
 
-    public String getInfoString() {
+    public final List<PieceType> getCapturedPieces(int playerNum) {
+        List<PieceType> captured = new ArrayList<>();
+        synchronized (undoStack) {
+            for (State s : undoStack) {
+                Move m = s.getMove();
+                if (m.hasCaptured() && m.getPlayerNum() == playerNum) {
+                    for (int i=0; i<m.getNumCaptured(); i++) {
+                        captured.add(m.getCapturedType(i));
+                    }
+                }
+            }
+        }
+        return captured;
+    }
+    @Override
+    public final String toString() {
         StringBuffer s = new StringBuffer(gameState.name());
         int turn = getTurn();
         switch (gameState) {
@@ -613,6 +656,14 @@ public class Game extends Reflector<Game> implements IGame<Move> {
                 break;
         }
         s.append("(").append(turn).append(")");
+        if (undoStack.size() > 0) {
+            State state = undoStack.peek();
+            if (state.enpassants != null) {
+                for (int [] pos : state.enpassants) {
+                    s.append("[").append(pos[0]).append(",").append(pos[1]).append("] ");
+                }
+            }
+        }
         for (int ii=0; ii<2; ii++, turn = getOpponent(turn)) {
             Player pl = getPlayer(turn);
             s.append("\n");
@@ -621,10 +672,11 @@ public class Game extends Reflector<Game> implements IGame<Move> {
             else
                 s.append("<INVESTIGATE: NULL COLOR>");
             s.append("(").append(turn).append(")");
-            if (pl.getCaptured() != null) {
+            List<PieceType> captured = getCapturedPieces(turn);
+            if (captured.size() > 0) {
                 s.append(" cap:");
                 int[] counts = new int[PieceType.values().length];
-                for (PieceType pt : pl.getCaptured()) {
+                for (PieceType pt : captured) {
                     counts[pt.ordinal()]++;
                 }
                 for (int i = 0; i < counts.length; i++) {

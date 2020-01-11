@@ -13,10 +13,9 @@ public class Player extends Reflector<Player> {
 
     int playerNum;
     Color color;
-    private List<PieceType> captured = null;
 
     void newGame() {
-        captured = null;
+
     }
 
     /**
@@ -39,33 +38,6 @@ public class Player extends Reflector<Player> {
      */
     public Move chooseMoveForPiece(Game game, List<Move> moves) {
         return moves.get(Utils.rand() % moves.size());
-    }
-
-    /**
-     *
-     * @return
-     */
-    public synchronized final List<PieceType> getCaptured() {
-        if (captured == null)
-            return null;
-        return new ArrayList<>(captured);
-    }
-
-    public synchronized final void removeCaptured(PieceType pt) {
-        if (captured != null) {
-            for (int i = captured.size() - 1; i >= 0; i--) {
-                if (captured.get(i) == pt) {
-                    captured.remove(i);
-                    break;
-                }
-            }
-        }
-    }
-
-    public synchronized final void addCaptured(PieceType pt) {
-        if (captured == null)
-            captured = new ArrayList<>();
-        captured.add(pt);
     }
 
     /**

@@ -218,7 +218,6 @@ public class CheckerboardTest extends TestCase {
     }
 
     public void testChess() {
-        AIPlayer.algorithm = AIPlayer.Algorithm.miniMaxAB;
         Game gm = new Game();
         gm.setRules(new Chess());
         gm.setPlayer(Game.FAR, new AIPlayer(3));
@@ -228,7 +227,7 @@ public class CheckerboardTest extends TestCase {
 
     }
 
-    public void testChess_creashfix() throws Exception {
+    public void testChess_crashfix() throws Exception {
         Game gm = new Game();
         gm.loadFromFile(new File("inputs/chess_18.txt"));
         runGame(gm);
@@ -270,5 +269,14 @@ public class CheckerboardTest extends TestCase {
         System.out.println(gm.toString());
         moves = gm.getMoves();
         assertTrue(moves.size() == 1);
+    }
+
+    public void test_x() throws Exception {
+        Game game = new Game();
+        game.loadFromFile(new File("inputs/Chess_18.txt"));
+        System.out.println(game);
+        game.loadFromFile(new File("game_miniMaxAB_error.txt"));
+
+        System.out.println(game);
     }
 }

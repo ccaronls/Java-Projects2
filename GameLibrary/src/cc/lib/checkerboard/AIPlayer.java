@@ -132,6 +132,8 @@ public class AIPlayer extends Player {
             } catch (IOException e2) {
                 e2.printStackTrace();
             }
+            System.out.println("Game state at error:\n" + game.toString());
+            game.trySaveToFile(new File("game_" + algorithm.name() + "_error.txt"));
         }
         float evalTimeMS = (int)(System.currentTimeMillis() - startTime);
         startTime = 0;

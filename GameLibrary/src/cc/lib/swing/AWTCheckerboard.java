@@ -46,8 +46,8 @@ public class AWTCheckerboard extends AWTComponent {
     int numImagesLoaded = 0;
 
     enum Images {
-        wood_checkerboard_8x8(null, null),
-        kings_court_board_8x8(null, null),
+        wood_checkerboard_8x8(null),
+        kings_court_board_8x8(null),
         bk_bishop   (Color.BLACK, PieceType.BISHOP),
         bk_king     (Color.BLACK, PieceType.KING),
         bk_knight   (Color.BLACK, PieceType.KNIGHT),
