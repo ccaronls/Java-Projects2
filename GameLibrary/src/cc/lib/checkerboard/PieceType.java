@@ -50,10 +50,48 @@ public enum PieceType {
         this.flag = flag;
     }
 
+    /**
+     * Returns the logic type from the subtypes. Like all PAWN Variations lead to PAWN.
+     * All Rook variations lead to ROOK
+     * All King variations lead to KING
+     * All Checker variatiosn lead to CHECKER
+     * etc.
+     * @return the logical type
+     */
+    public PieceType getDisplayType() {
+        switch (this) {
+            case PAWN:
+            case PAWN_IDLE:
+            case PAWN_ENPASSANT:
+            case PAWN_TOSWAP:
+                return PAWN;
+
+            case ROOK:
+            case ROOK_IDLE:
+                return ROOK;
+
+            case CHECKED_KING:
+            case CHECKED_KING_IDLE:
+            case UNCHECKED_KING:
+            case UNCHECKED_KING_IDLE:
+            case KING:
+            case FLYING_KING:
+            case DAMA_KING:
+                return KING;
+
+            case CHECKER:
+            case DAMA_MAN:
+            case CHIP_4WAY:
+                return CHECKER;
+
+        }
+        return this;
+    }
+
     public final static int FLAG_KING = 1; // all piece types that move like a king
     public final static int FLAG_PAWN = 2; // all piece types that move like a pawn
     public final static int FLAG_ROOK_OR_QUEEN = 4; // all piece types that move along horizonal or vertical
     public final static int FLAG_BISHOP_OR_QUEEN = 8; // all piece types that can move along the diagonals
     public final static int FLAG_KNIGHT = 16; // all piece types that move like a knight
 
-};
+}

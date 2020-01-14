@@ -123,14 +123,17 @@ public class AIPlayer extends Player {
                     break;
             }
         } catch (Throwable e) {
-            String fname = algorithm.name() + "_error.xml";
-            File file = new File(fname);
-            try (Writer out = new FileWriter(file)) {
-                dumpTree(out, root);
-                log.error(e);
-                log.error("Write descision tree state to file '" + file.getCanonicalPath() + "'");
-            } catch (IOException e2) {
-                e2.printStackTrace();
+            e.printStackTrace();
+            if (false) {
+                String fname = algorithm.name() + "_error.xml";
+                File file = new File(fname);
+                try (Writer out = new FileWriter(file)) {
+                    dumpTree(out, root);
+                    log.error(e);
+                    log.error("Write decision tree state to file '" + file.getCanonicalPath() + "'");
+                } catch (IOException e2) {
+                    e2.printStackTrace();
+                }
             }
             System.out.println("Game state at error:\n" + game.toString());
             game.trySaveToFile(new File("game_" + algorithm.name() + "_error.txt"));

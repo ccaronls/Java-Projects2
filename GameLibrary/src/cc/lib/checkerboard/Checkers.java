@@ -51,6 +51,8 @@ public class Checkers extends Rules {
             for (int col = 0; col < game.getColumns(); col++) {
                 int num = moves.size();
                 Piece p = game.getPiece(rank, col);
+                if (p == null)
+                    throw new AssertionError("Null piece at [" + rank + "," + col + "]");
                 if (p.getPlayerNum() == game.getTurn())
                     numJumps += computeMovesForSquare(game, rank, col, null, moves);
             }
@@ -261,6 +263,8 @@ public class Checkers extends Rules {
                     continue;
                 // t is piece one unit away in this direction
                 Piece t = game.getPiece(rdr, cdc);
+                if (t == null)
+                    throw new AssertionError("Null piece at [" + rdr + "," + cdc + "]");
                 if (t.getType() == EMPTY) {
                     moves.add(new Move(MoveType.SLIDE, game.getTurn()).setStart(rank, col, p.getType()).setEnd(rdr, cdc, p.getType()));
                     //new Move(MoveType.SLIDE, rank, col, rdr, cdc, getTurn()));

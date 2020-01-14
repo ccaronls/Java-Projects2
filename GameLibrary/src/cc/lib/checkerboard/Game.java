@@ -655,7 +655,7 @@ public class Game extends Reflector<Game> implements IGame<Move> {
             case DRAW:
                 break;
         }
-        s.append("(").append(turn).append(")");
+        s.append("(").append(turn).append(") ").append(getTurnStr(turn));
         if (undoStack.size() > 0) {
             State state = undoStack.peek();
             if (state.enpassants != null) {
@@ -677,7 +677,7 @@ public class Game extends Reflector<Game> implements IGame<Move> {
                 s.append(" cap:");
                 int[] counts = new int[PieceType.values().length];
                 for (PieceType pt : captured) {
-                    counts[pt.ordinal()]++;
+                    counts[pt.getDisplayType().ordinal()]++;
                 }
                 for (int i = 0; i < counts.length; i++) {
                     if (counts[i] == 0)

@@ -6,12 +6,23 @@ package cc.lib.checkerboard;
 public class Suicide extends Checkers {
     @Override
     int getWinner(Game game) {
-        switch (super.getWinner(game)) {
+        int winner;
+        switch (winner=super.getWinner(game)) {
             case Game.NEAR:
                 return Game.FAR;
             case Game.FAR:
                 return Game.NEAR;
         }
-        return -1;
+        return winner;
+    }
+
+    @Override
+    public long evaluate(Game game, Move move) {
+        return -1L * super.evaluate(game, move);
+    }
+
+    @Override
+    public boolean isJumpsMandatory() {
+        return true;
     }
 }

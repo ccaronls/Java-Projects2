@@ -34,7 +34,7 @@ public class CheckerboardTest extends TestCase {
             gm.runGame();
             totalNodesEvaluated += AIPlayer.evalCount;
             //gm.trySaveToFile(new File("minimaxtest_testcheckrs.game"));
-            if (false && AIPlayer.lastSearchResult != null) {
+            if (AIPlayer.lastSearchResult != null) {
                 try (Writer out = new FileWriter("outputs/" + AIPlayer.algorithm + "_tree." + i + ".xml")) {
                     //out.write("<root minimax=\"" + root.bestValue + "\">\n");
                     AIPlayer.dumpTree(out, AIPlayer.lastSearchResult);
@@ -98,7 +98,6 @@ public class CheckerboardTest extends TestCase {
 
         runGame(gm, true, 10);
 
-        AIPlayer.algorithm = AIPlayer.Algorithm.miniMaxAB;
         runGame(gm2, true, 10);
 
         assertEquals(gm2.toString(), gm.toString());
@@ -159,10 +158,7 @@ public class CheckerboardTest extends TestCase {
     }
 
 
-    public void testCheckers() {
-
-        AIPlayer.randomizeDuplicates = false;
-        AIPlayer.movePathNodeToFront = false;
+    public void x_testCheckers_deterministic() {
 
         Game gm1 = new Game();
         gm1.setRules(new Checkers());
@@ -171,7 +167,6 @@ public class CheckerboardTest extends TestCase {
         gm1.newGame();
         runGame(gm1);
 
-        AIPlayer.algorithm = AIPlayer.Algorithm.miniMaxAB;
         Game gm = new Game();
         gm.setRules(new Checkers());
         gm.setPlayer(Game.FAR, new AIPlayer(3));
@@ -183,7 +178,34 @@ public class CheckerboardTest extends TestCase {
 
     }
 
-    public void testCheckersMiniMaxABvsNegimax() {
+    public void testCheckers() {
+        Game gm = new Game();
+        gm.setRules(new Checkers());
+        gm.setPlayer(Game.FAR, new AIPlayer(3));
+        gm.setPlayer(Game.NEAR, new AIPlayer(3));
+        gm.newGame();
+        runGame(gm);
+    }
+
+    public void testCanadianDraughts() {
+        Game gm = new Game();
+        gm.setRules(new CanadianDraughts());
+        gm.setPlayer(Game.FAR, new AIPlayer());
+        gm.setPlayer(Game.NEAR, new AIPlayer());
+        gm.newGame();
+        runGame(gm);
+    }
+
+    public void testSuicide() {
+        Game gm = new Game();
+        gm.setRules(new Suicide());
+        gm.setPlayer(Game.FAR, new AIPlayer());
+        gm.setPlayer(Game.NEAR, new AIPlayer());
+        gm.newGame();
+        runGame(gm);
+    }
+
+    public void x_testCheckersMiniMaxABvsNegimax() {
 
         AIPlayer.randomizeDuplicates = false;
         AIPlayer.movePathNodeToFront = false;
@@ -227,9 +249,9 @@ public class CheckerboardTest extends TestCase {
 
     }
 
-    public void testChess_crashfix() throws Exception {
+    public void x_testChess_crashfix() throws Exception {
         Game gm = new Game();
-        gm.loadFromFile(new File("inputs/chess_18.txt"));
+        gm.loadFromFile(new File("inputs/Chess_60.txt"));
         runGame(gm);
 
     }
@@ -271,7 +293,7 @@ public class CheckerboardTest extends TestCase {
         assertTrue(moves.size() == 1);
     }
 
-    public void test_x() throws Exception {
+    public void x_test_x() throws Exception {
         Game game = new Game();
         game.loadFromFile(new File("inputs/Chess_18.txt"));
         System.out.println(game);

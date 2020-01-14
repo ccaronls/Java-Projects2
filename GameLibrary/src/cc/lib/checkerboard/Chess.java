@@ -336,7 +336,7 @@ public class Chess extends Rules {
                 // check in front of us 1 space
                 tr=rank + game.getAdvanceDir(p.getPlayerNum());
                 tc=col;
-                if (game.getPiece(tr, col).getType() == EMPTY) {
+                if (game.isOnBoard(tr, col) && game.getPiece(tr, col).getType() == EMPTY) {
                     boolean atEnd = tr == game.getStartRank(game.getOpponent(p.getPlayerNum()));
                     moves.add(new Move(MoveType.SLIDE, p.getPlayerNum()).setStart(rank, col, p.getType()).setEnd(tr, tc, atEnd ? PAWN_TOSWAP : PAWN));
                     if (p.getType() == PAWN_IDLE) {
