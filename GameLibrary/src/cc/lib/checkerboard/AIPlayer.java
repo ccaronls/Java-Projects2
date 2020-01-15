@@ -271,7 +271,7 @@ public class AIPlayer extends Player {
         }
         if (game.isDraw())
             return 0;
-        if (depth <= 0) {
+        if (depth <= 0 || actualDepth > 30) {
             return evaluate(game, actualDepth);
         }
         root.children = new ArrayList<>(game.getMoves());

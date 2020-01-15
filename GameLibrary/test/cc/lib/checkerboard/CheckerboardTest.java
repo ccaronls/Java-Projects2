@@ -82,6 +82,27 @@ public class CheckerboardTest extends TestCase {
         System.out.println(gm);
     }
 
+    public void testInfiniteSelfJumps() {
+
+        Game gm = new Game();
+        gm.setRules(new Checkers());
+        gm.setPlayer(Game.FAR, new AIPlayer());
+        gm.setPlayer(Game.NEAR, new AIPlayer());
+        gm.newGame();
+        gm.clear();
+        gm.setPiece(0, 0, Game.FAR, PieceType.CHECKER);
+        gm.setPiece(5, 4, Game.NEAR, PieceType.KING);
+        gm.setPiece(4, 3, Game.NEAR, PieceType.CHECKER);
+        gm.setPiece(2, 3, Game.NEAR, PieceType.CHECKER);
+        gm.setPiece(2, 5, Game.NEAR, PieceType.CHECKER);
+        gm.setPiece(4, 5, Game.NEAR, PieceType.CHECKER);
+        gm.setTurn(Game.NEAR);
+
+        System.out.println(gm);
+        gm.runGame();
+        System.out.println(gm);
+    }
+
     public void testAIFindsWinningMoveCheckers() throws Exception {
         Game gm = new Game();
         gm.setRules(new Checkers());
