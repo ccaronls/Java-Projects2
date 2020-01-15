@@ -502,9 +502,14 @@ public class Game extends Reflector<Game> implements IGame<Move> {
     }
 
     public Piece movePiece(Move m) {
+        Piece p;
+        if ((p=getPiece(m.getStart())).getPlayerNum() != getTurn())
+            throw new AssertionError("Logic Error: Not player " + p.getPlayerNum() + "'s turn: " + getTurn() + "'s turn" );
+        if (p.getType()==PieceType.EMPTY)
+            throw new AssertionError("Logic Error: Moving an empty piece");
         copyPiece(m.getStart(), m.getEnd());
         clearPiece(m.getStart());
-        Piece p = getPiece(m.getEnd());
+        p = getPiece(m.getEnd());
         p.setType(m.getEndType());
         return p;
     }
@@ -698,7 +703,7 @@ public class Game extends Reflector<Game> implements IGame<Move> {
             for (int c=0; c<getColumns(); c++) {
                 s.append("+---");
             }
-            s.append(String.format("+\n%-3d", r));
+            s.append(String.format("+\n%2d ", r));
             for (int c=0; c<getColumns(); c++) {
                 s.append("|");
                 Piece p = getPiece(r, c);
@@ -717,7 +722,11 @@ public class Game extends Reflector<Game> implements IGame<Move> {
                     } else {
                         s.append(pl.getColor().name().charAt(0));
                     }
-                    s.append(p.getType().abbrev);
+                    if (p.isCaptured()) {
+                        s.append(p.getType().abbrev.charAt(0) + "*");
+                    } else {
+                        s.append(p.getType().abbrev);
+                    }
                 }
 
             }

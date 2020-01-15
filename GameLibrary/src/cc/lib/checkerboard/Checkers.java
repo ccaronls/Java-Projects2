@@ -563,7 +563,14 @@ public class Checkers extends Rules {
                         captured.setPlayerNum(p.removeStackLast());
                     } else {
                         for (int i = 0; i < m.getNumCaptured(); i++) {
-                            game.setPiece(m.getCaptured(i), game.getOpponent(m.getPlayerNum()), m.getCapturedType(i));
+                            Piece cp = game.getPiece(m.getCaptured(i));
+                            cp.setPlayerNum(game.getOpponent(m.getPlayerNum()));
+                            cp.setType(m.getCapturedType(i));
+                            cp.setCaptured(isCaptureAtEndEnabled());
+//                            game.setPiece(m.getCaptured(i), game.getOpponent(m.getPlayerNum()), m.getCapturedType(i));
+                        }
+                        if (isCaptureAtEndEnabled()) {
+                            game.getPiece(m.getLastCaptured()).setCaptured(false);
                         }
                     }
                 }

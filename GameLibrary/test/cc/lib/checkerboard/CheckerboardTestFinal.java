@@ -135,7 +135,7 @@ public class CheckerboardTestFinal extends TestCase {
         runGame(gm);
     }
 
-    public void x_testChess() {
+    public void testChess() {
         Game gm = new Game();
         gm.setRules(new Chess());
         gm.setPlayer(Game.FAR, new AIPlayer());
