@@ -58,41 +58,44 @@ public class Checkers extends Rules {
             }
         }
         if (numJumps > 0 && (isJumpsMandatory() || isMaxJumpsMandatory())) {
-            // remove non-jumps
-            Iterator<Move> it = moves.iterator();
-            int maxDepth = 0;
+            reduceMovesToJumps(game, moves);
+        }
+        return moves;
+    }
+
+    private void reduceMovesToJumps(Game game, List<Move> moves) {
+        // remove non-jumps
+        Iterator<Move> it = moves.iterator();
+        int maxDepth = 0;
+        while (it.hasNext()) {
+            Move m = it.next();
+            switch (m.getMoveType()) {
+                case JUMP:
+                case FLYING_JUMP:
+                    if (isMaxJumpsMandatory()) {
+                        m.jumpDepth = findMaxDepth(game.getTurn(), game, m);
+                        maxDepth = Math.max(maxDepth, m.jumpDepth);
+                    }
+                    continue;
+            }
+            it.remove();
+        }
+        if (isMaxJumpsMandatory()) {
+            it = moves.iterator();
             while (it.hasNext()) {
                 Move m = it.next();
-                switch (m.getMoveType()) {
-                    case JUMP:
-                    case FLYING_JUMP:
-                        if (isMaxJumpsMandatory()) {
-                            m.jumpDepth = findMaxDepth(game.getTurn(), game, m);
-                            maxDepth = Math.max(maxDepth, m.jumpDepth);
-                        }
-                        continue;
-                }
-                it.remove();
-            }
-            if (isMaxJumpsMandatory()) {
-                it = moves.iterator();
-                while (it.hasNext()) {
-                    Move m = it.next();
-                    if (m.jumpDepth < maxDepth) {
-                        it.remove();
-                    }
+                if (m.jumpDepth < maxDepth) {
+                    it.remove();
                 }
             }
         }
-        return moves;
     }
 
     private int findMaxDepth(int playerNum, Game game, Move m) {
         if (m.getPlayerNum() != playerNum)
             return 0;
         game.movePiece(m);
-        game.clearPiece(m.getCaptured(0));
-        //executeMove(game, m);
+        game.getPiece(m.getLastCaptured()).setCaptured(true);
         int max = 0;
         List<Move> moves = new ArrayList<>();
         int numJumps = computeMovesForSquare(game, m.getEnd()[0], m.getEnd()[1], m, moves);
@@ -105,6 +108,7 @@ public class Checkers extends Rules {
                 }
             }
         }
+        game.getPiece(m.getLastCaptured()).setCaptured(true);
         reverseMove(game, m);
         return max;
     }
@@ -456,8 +460,13 @@ public class Checkers extends Rules {
 
         if (!isKinged && !isDamaKing) {
             // recursive compute next move if possible after a jump
-            if (move.hasEnd())
-                computeMovesForSquare(game, move.getEnd()[0], move.getEnd()[1], move, game.getMovesInternal());
+            if (move.hasEnd()) {
+                int numJumps = computeMovesForSquare(game, move.getEnd()[0], move.getEnd()[1], move, game.getMovesInternal());
+                if (numJumps > 1 && isMaxJumpsMandatory()) {
+                    reduceMovesToJumps(game, game.getMovesInternal());
+                }
+                p.numMoves = game.getMovesInternal().size();
+            }
             if (p.getNumMoves() == 0) {
                 endTurnPrivate(game);
             } else if (!isJumpsMandatory()) {
