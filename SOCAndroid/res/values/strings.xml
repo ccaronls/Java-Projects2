@@ -565,7 +565,7 @@
     <string name="popup_content_player_attack_fortress_result_player_won">Player damages the fortress</string>
     <string name="popup_content_player_attack_fortress_result_player_lost">Player loses battle and 2 ships</string>
     <string name="popup_content_player_attack_fortress_result_draw">Battle is a draw.  Player lost a ship</string>
-    <string name="popup_content_player_attack_opponent_summary">%1$s is attacking %2$s\'s %3$s\n%4$s\'s score : %5$d\n%6$s's score : %7$d</string>
+    <string name="popup_content_player_attack_opponent_summary">%1$s is attacking %2$s\'s %3$s\n%4$s\'s score : %5$d\n%6$s\'s score : %7$d</string>
     <string name="popup_title_player_attack">Player Attack!</string>
     <string name="popup_title_barbarian_attack">Barbarian Attack</string>
     <string name="popup_content_barbarian_attack_summary">Barbarian Attack!\n\nBarbarian Strength %1$d\nCatan Strength %2$d\n</string>
@@ -579,7 +579,7 @@
     <string name="player_info_knights_count_strength">Knights %1$d/%2$d</string>
     <string name="player_info_road_length">Road Length %d</string>
     <string name="player_info_merchantfleet_tradable">Merchant Fleet %s</string>
-    <string name="player_info_discoveredislands_count_pts">Discovered Islands X %d %s</string>
+    <string name="player_info_discoveredislands_count_pts">Discovered Islands X %$1d %$2s</string>
     <string name="player_info_discoveredtiles_count">Discovered Tiles X %d</string>
 
     <!-- states -->

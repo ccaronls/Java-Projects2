@@ -41,7 +41,7 @@ public class ProbotView extends View {
     Probot probot = new Probot() {
 
         @Override
-        protected void onCommand(Guy guy, int line) {
+        protected void onCommand(int line) {
             Log.d("ProbotView", "onCommand: " + line);
             setProgramLine(line);
             switch (get(line).type) {

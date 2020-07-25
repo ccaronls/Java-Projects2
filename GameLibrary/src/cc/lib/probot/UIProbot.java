@@ -1,8 +1,6 @@
 package cc.lib.probot;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import cc.lib.game.AAnimation;
@@ -333,7 +331,8 @@ public abstract class UIProbot extends Probot {
 
         @Override
         protected long getCurrentTimeMSecs() {
-            return sw.capture();
+            sw.capture();
+            return sw.getTime();
         }
     };
 
