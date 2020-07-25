@@ -1865,7 +1865,7 @@ public class Reflector<T> {
      * @param other
      */
     @SuppressWarnings({ "unchecked", "rawtypes" })
-	public final T copyFrom(Reflector<T> other) {
+	public synchronized final T copyFrom(Reflector<T> other) {
         if (other == this) {
             log.error("Copying from self?");
             return (T)this;
@@ -1906,7 +1906,7 @@ public class Reflector<T> {
      * @param file
      * @throws IOException
      */
-    public final void saveToFile(File file) throws IOException {
+    public final synchronized void saveToFile(File file) throws IOException {
         log.debug("saving to file %s", file.getAbsolutePath());
         try (FileOutputStream out = new FileOutputStream(file)) {
             serialize(out);
@@ -1931,7 +1931,7 @@ public class Reflector<T> {
      * @param file
      * @throws IOException
      */
-    public void loadFromFile(File file) throws IOException {
+    public synchronized void loadFromFile(File file) throws IOException {
         log.debug("Loading from file %s", file.getAbsolutePath());
         try (InputStream in = new FileInputStream(file)) {
             deserialize(in);
@@ -1965,14 +1965,17 @@ public class Reflector<T> {
      * @return
      * @throws Exception
      */
-    public String diff(Reflector<T> other) throws Exception {
+    public synchronized String diff(Reflector<T> other) {
         if (other == null)
             throw new NullPointerException("Reflector.diff - other cannot be null");
 
         StringWriter out = new StringWriter();
-        MyPrintWriter writer = new MyPrintWriter(out);
-        diff(other, writer);
-        writer.flush();
+        try (MyPrintWriter writer = new MyPrintWriter(out)) {
+            diff(other, writer);
+            writer.flush();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
         return out.getBuffer().toString();
     }
 

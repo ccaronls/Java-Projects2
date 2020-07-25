@@ -1,21 +1,28 @@
 package cc.lib.utils;
 
-public class StopWatch {
+public class StopWatch extends Reflector<StopWatch> {
 
-    long startTime = 0;
-    long pauseTime = 0;
-    long curTime = 0;
-    long deltaTime = 0;
-    long lastCaptureTime = 0;
-    boolean started = false;
+    static {
+        addAllFields(StopWatch.class);
+    }
+
+    private long startTime = 0;
+    private long pauseTime = 0;
+    private long curTime = 0;
+    private long deltaTime = 0;
+    private long lastCaptureTime = 0;
+    private boolean started = false;
     
     /**
      * Start the stopwatch.  MUST be the first call
      */
-    public void start() {
+    public synchronized void start() {
         startTime = getClockMiliseconds();
+        pauseTime = 0;
+        curTime = 0;
+        deltaTime = 0;
+        lastCaptureTime = 0;
         started = true;
-        unpause();
     }
     
     public boolean isPaused() {
@@ -25,7 +32,7 @@ public class StopWatch {
     /**
      * Pause the stop watch.  getTime/getDeltaTime will not advance until unpause called.
      */
-    public void pause() {
+    public synchronized void pause() {
         if (!isPaused())
             pauseTime = getClockMiliseconds();
     }
@@ -33,20 +40,19 @@ public class StopWatch {
     /**
      * Capture the current time and delta time.  Must be called before calling getTme, getDeltaTiime
      */
-    public long capture() {
+    public synchronized void capture() {
         if (started && pauseTime == 0) {
             long t = this.getClockMiliseconds();
-            this.curTime = t - startTime;
+            curTime = t - startTime;
             this.deltaTime = curTime - lastCaptureTime;
             this.lastCaptureTime = curTime;
         }
-        return getTime();
     }
     
     /**
      * Resume the stop watch if paused
      */
-    public void unpause() {
+    public synchronized void unpause() {
         if (pauseTime > 0) {
             startTime += (getClockMiliseconds() - pauseTime);
             pauseTime = 0;
@@ -57,7 +63,7 @@ public class StopWatch {
      * Get the time as of last call to capture()
      * @return
      */
-    public long getTime() {
+    public synchronized long getTime() {
         if (started)
             return curTime;
         return 0;
@@ -67,7 +73,7 @@ public class StopWatch {
      * Get the delta time as of last call to capture()
      * @return
      */
-    public long getDeltaTime() {
+    public synchronized long getDeltaTime() {
         if (started)
             return this.deltaTime;
         return 0;

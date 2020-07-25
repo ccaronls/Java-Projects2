@@ -1,0 +1,990 @@
+<root minimax="9223372036854775806">
+  <max>[9223372036854775806]1:null
+    <min>[83270]1:SLIDE ROOK from:{0,6} to:{1,6}
+      <max>[9223372036854775804]0:SLIDE PAWN from:{3,1} to:{2,1}
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN from:{5,3} to:{4,3}
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN from:{5,4} to:{4,4}
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN_IDLE from:{6,0} to:{5,0} becomes:PAWN
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN_IDLE from:{6,0} to:{4,0} becomes:PAWN_ENPASSANT
+      </max>
+      <max>[83270]0:SLIDE ROOK from:{7,3} to:{6,3}
+      </max>
+      <max>[9223372036854775804]0:SLIDE ROOK from:{7,3} to:{7,2}
+      </max>
+      <max>[9223372036854775804]0:SLIDE ROOK from:{7,3} to:{7,1}
+      </max>
+      <max>[9223372036854775804]0:SLIDE ROOK from:{7,3} to:{7,0}
+      </max>
+      <max>[102101]0:SLIDE UNCHECKED_KING_IDLE from:{7,4} to:{7,5} becomes:UNCHECKED_KING
+      </max>
+    </min>
+    <min>[83206]1:SLIDE ROOK from:{0,6} to:{2,6}
+      <max>[9223372036854775804]0:SLIDE PAWN from:{3,1} to:{2,1}
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN from:{5,3} to:{4,3}
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN from:{5,4} to:{4,4}
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN_IDLE from:{6,0} to:{5,0} becomes:PAWN
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN_IDLE from:{6,0} to:{4,0} becomes:PAWN_ENPASSANT
+      </max>
+      <max>[83206]0:SLIDE ROOK from:{7,3} to:{6,3}
+      </max>
+      <max>[9223372036854775804]0:SLIDE ROOK from:{7,3} to:{7,2}
+      </max>
+      <max>[9223372036854775804]0:SLIDE ROOK from:{7,3} to:{7,1}
+      </max>
+      <max>[9223372036854775804]0:SLIDE ROOK from:{7,3} to:{7,0}
+      </max>
+      <max>[102194]0:SLIDE UNCHECKED_KING_IDLE from:{7,4} to:{7,5} becomes:UNCHECKED_KING
+      </max>
+    </min>
+    <min>[83244]1:SLIDE ROOK from:{0,6} to:{3,6}
+      <max>[9223372036854775804]0:SLIDE PAWN from:{3,1} to:{2,1}
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN from:{5,3} to:{4,3}
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN from:{5,4} to:{4,4}
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN_IDLE from:{6,0} to:{5,0} becomes:PAWN
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN_IDLE from:{6,0} to:{4,0} becomes:PAWN_ENPASSANT
+      </max>
+      <max>[83244]0:SLIDE ROOK from:{7,3} to:{6,3}
+      </max>
+      <max>[9223372036854775804]0:SLIDE ROOK from:{7,3} to:{7,2}
+      </max>
+      <max>[9223372036854775804]0:SLIDE ROOK from:{7,3} to:{7,1}
+      </max>
+      <max>[9223372036854775804]0:SLIDE ROOK from:{7,3} to:{7,0}
+      </max>
+      <max>[102199]0:SLIDE UNCHECKED_KING_IDLE from:{7,4} to:{7,5} becomes:UNCHECKED_KING
+      </max>
+    </min>
+    <min>[83265]1:SLIDE ROOK from:{0,6} to:{4,6}
+      <max>[9223372036854775804]0:SLIDE PAWN from:{3,1} to:{2,1}
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN from:{5,3} to:{4,3}
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN from:{5,4} to:{4,4}
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN_IDLE from:{6,0} to:{5,0} becomes:PAWN
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN_IDLE from:{6,0} to:{4,0} becomes:PAWN_ENPASSANT
+      </max>
+      <max>[83265]0:SLIDE ROOK from:{7,3} to:{6,3}
+      </max>
+      <max>[9223372036854775804]0:SLIDE ROOK from:{7,3} to:{7,2}
+      </max>
+      <max>[9223372036854775804]0:SLIDE ROOK from:{7,3} to:{7,1}
+      </max>
+      <max>[9223372036854775804]0:SLIDE ROOK from:{7,3} to:{7,0}
+      </max>
+      <max>[103120]0:SLIDE UNCHECKED_KING_IDLE from:{7,4} to:{7,5} becomes:UNCHECKED_KING
+      </max>
+    </min>
+    <min>[95270]1:SLIDE ROOK from:{0,6} to:{5,6}
+      <max>[9223372036854775804]0:SLIDE PAWN from:{3,1} to:{2,1}
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN from:{5,3} to:{4,3}
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN from:{5,4} to:{4,4}
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN_IDLE from:{6,0} to:{5,0} becomes:PAWN
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN_IDLE from:{6,0} to:{4,0} becomes:PAWN_ENPASSANT
+      </max>
+      <max>[95270]0:SLIDE ROOK from:{7,3} to:{6,3}
+      </max>
+      <max>[9223372036854775804]0:SLIDE ROOK from:{7,3} to:{7,2}
+      </max>
+      <max>[9223372036854775804]0:SLIDE ROOK from:{7,3} to:{7,1}
+      </max>
+      <max>[9223372036854775804]0:SLIDE ROOK from:{7,3} to:{7,0}
+      </max>
+      <max>[102139]0:SLIDE UNCHECKED_KING_IDLE from:{7,4} to:{7,5} becomes:UNCHECKED_KING
+      </max>
+    </min>
+    <min>[84232]1:SLIDE ROOK from:{0,6} to:{6,6}
+      <max>[9223372036854775804]0:SLIDE PAWN from:{3,1} to:{2,1}
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN from:{5,3} to:{4,3}
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN from:{5,4} to:{4,4}
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN_IDLE from:{6,0} to:{5,0} becomes:PAWN
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN_IDLE from:{6,0} to:{4,0} becomes:PAWN_ENPASSANT
+      </max>
+      <max>[84232]0:SLIDE ROOK from:{7,3} to:{6,3}
+      </max>
+      <max>[9223372036854775804]0:SLIDE ROOK from:{7,3} to:{7,2}
+      </max>
+      <max>[9223372036854775804]0:SLIDE ROOK from:{7,3} to:{7,1}
+      </max>
+      <max>[9223372036854775804]0:SLIDE ROOK from:{7,3} to:{7,0}
+      </max>
+      <max>[102117]0:SLIDE UNCHECKED_KING_IDLE from:{7,4} to:{7,5} becomes:UNCHECKED_KING
+      </max>
+    </min>
+    <min>[81214]1:SLIDE ROOK from:{0,6} to:{0,7}
+      <max>[82222]0:SLIDE PAWN from:{3,1} to:{2,1}
+      </max>
+      <max>[82224]0:SLIDE PAWN from:{5,3} to:{4,3}
+      </max>
+      <max>[82214]0:SLIDE PAWN from:{5,4} to:{4,4}
+      </max>
+      <max>[81296]0:SLIDE PAWN_IDLE from:{6,0} to:{5,0} becomes:PAWN
+      </max>
+      <max>[81214]0:SLIDE PAWN_IDLE from:{6,0} to:{4,0} becomes:PAWN_ENPASSANT
+      </max>
+      <max>[83234]0:SLIDE ROOK from:{7,3} to:{6,3}
+      </max>
+      <max>[133296]0:SLIDE ROOK from:{7,3} to:{7,2}
+      </max>
+      <max>[84256]0:SLIDE ROOK from:{7,3} to:{7,1}
+      </max>
+      <max>[84209]0:SLIDE ROOK from:{7,3} to:{7,0}
+      </max>
+      <max>[103196]0:SLIDE UNCHECKED_KING_IDLE from:{7,4} to:{7,5} becomes:UNCHECKED_KING
+      </max>
+    </min>
+    <min>[81233]1:SLIDE ROOK from:{0,6} to:{0,5}
+      <max>[82267]0:SLIDE PAWN from:{3,1} to:{2,1}
+      </max>
+      <max>[82262]0:SLIDE PAWN from:{5,3} to:{4,3}
+      </max>
+      <max>[82203]0:SLIDE PAWN from:{5,4} to:{4,4}
+      </max>
+      <max>[81253]0:SLIDE PAWN_IDLE from:{6,0} to:{5,0} becomes:PAWN
+      </max>
+      <max>[81233]0:SLIDE PAWN_IDLE from:{6,0} to:{4,0} becomes:PAWN_ENPASSANT
+      </max>
+      <max>[83269]0:SLIDE ROOK from:{7,3} to:{6,3}
+      </max>
+      <max>[133236]0:SLIDE ROOK from:{7,3} to:{7,2}
+      </max>
+      <max>[84279]0:SLIDE ROOK from:{7,3} to:{7,1}
+      </max>
+      <max>[84299]0:SLIDE ROOK from:{7,3} to:{7,0}
+      </max>
+      <max>[103151]0:SLIDE UNCHECKED_KING_IDLE from:{7,4} to:{7,5} becomes:UNCHECKED_KING
+      </max>
+    </min>
+    <min>[81248]1:SLIDE ROOK from:{0,6} to:{0,4}
+      <max>[82276]0:SLIDE PAWN from:{3,1} to:{2,1}
+      </max>
+      <max>[82242]0:SLIDE PAWN from:{5,3} to:{4,3}
+      </max>
+      <max>[82250]0:SLIDE PAWN from:{5,4} to:{4,4}
+      </max>
+      <max>[81248]0:SLIDE PAWN_IDLE from:{6,0} to:{5,0} becomes:PAWN
+      </max>
+      <max>[81248]0:SLIDE PAWN_IDLE from:{6,0} to:{4,0} becomes:PAWN_ENPASSANT
+      </max>
+      <max>[83262]0:SLIDE ROOK from:{7,3} to:{6,3}
+      </max>
+      <max>[133259]0:SLIDE ROOK from:{7,3} to:{7,2}
+      </max>
+      <max>[84262]0:SLIDE ROOK from:{7,3} to:{7,1}
+      </max>
+      <max>[84273]0:SLIDE ROOK from:{7,3} to:{7,0}
+      </max>
+      <max>[103154]0:SLIDE UNCHECKED_KING_IDLE from:{7,4} to:{7,5} becomes:UNCHECKED_KING
+      </max>
+    </min>
+    <min>[81217]1:SLIDE ROOK from:{0,6} to:{0,3}
+      <max>[82227]0:SLIDE PAWN from:{3,1} to:{2,1}
+      </max>
+      <max>[82239]0:SLIDE PAWN from:{5,3} to:{4,3}
+      </max>
+      <max>[82280]0:SLIDE PAWN from:{5,4} to:{4,4}
+      </max>
+      <max>[81248]0:SLIDE PAWN_IDLE from:{6,0} to:{5,0} becomes:PAWN
+      </max>
+      <max>[81217]0:SLIDE PAWN_IDLE from:{6,0} to:{4,0} becomes:PAWN_ENPASSANT
+      </max>
+      <max>[83289]0:SLIDE ROOK from:{7,3} to:{6,3}
+      </max>
+      <max>[133244]0:SLIDE ROOK from:{7,3} to:{7,2}
+      </max>
+      <max>[84273]0:SLIDE ROOK from:{7,3} to:{7,1}
+      </max>
+      <max>[84271]0:SLIDE ROOK from:{7,3} to:{7,0}
+      </max>
+      <max>[103192]0:SLIDE UNCHECKED_KING_IDLE from:{7,4} to:{7,5} becomes:UNCHECKED_KING
+      </max>
+    </min>
+    <min>[81218]1:SLIDE ROOK from:{0,6} to:{0,2}
+      <max>[82296]0:SLIDE PAWN from:{3,1} to:{2,1}
+      </max>
+      <max>[82254]0:SLIDE PAWN from:{5,3} to:{4,3}
+      </max>
+      <max>[82217]0:SLIDE PAWN from:{5,4} to:{4,4}
+      </max>
+      <max>[81218]0:SLIDE PAWN_IDLE from:{6,0} to:{5,0} becomes:PAWN
+      </max>
+      <max>[81267]0:SLIDE PAWN_IDLE from:{6,0} to:{4,0} becomes:PAWN_ENPASSANT
+      </max>
+      <max>[83263]0:SLIDE ROOK from:{7,3} to:{6,3}
+      </max>
+      <max>[133247]0:SLIDE ROOK from:{7,3} to:{7,2}
+      </max>
+      <max>[84266]0:SLIDE ROOK from:{7,3} to:{7,1}
+      </max>
+      <max>[84227]0:SLIDE ROOK from:{7,3} to:{7,0}
+      </max>
+      <max>[103165]0:SLIDE UNCHECKED_KING_IDLE from:{7,4} to:{7,5} becomes:UNCHECKED_KING
+      </max>
+    </min>
+    <min>[81223]1:SLIDE ROOK from:{0,6} to:{0,1}
+      <max>[82285]0:SLIDE PAWN from:{3,1} to:{2,1}
+      </max>
+      <max>[82273]0:SLIDE PAWN from:{5,3} to:{4,3}
+      </max>
+      <max>[82263]0:SLIDE PAWN from:{5,4} to:{4,4}
+      </max>
+      <max>[81238]0:SLIDE PAWN_IDLE from:{6,0} to:{5,0} becomes:PAWN
+      </max>
+      <max>[81223]0:SLIDE PAWN_IDLE from:{6,0} to:{4,0} becomes:PAWN_ENPASSANT
+      </max>
+      <max>[83299]0:SLIDE ROOK from:{7,3} to:{6,3}
+      </max>
+      <max>[133298]0:SLIDE ROOK from:{7,3} to:{7,2}
+      </max>
+      <max>[84288]0:SLIDE ROOK from:{7,3} to:{7,1}
+      </max>
+      <max>[84269]0:SLIDE ROOK from:{7,3} to:{7,0}
+      </max>
+      <max>[103119]0:SLIDE UNCHECKED_KING_IDLE from:{7,4} to:{7,5} becomes:UNCHECKED_KING
+      </max>
+    </min>
+    <min>[81220]1:SLIDE ROOK from:{0,6} to:{0,0}
+      <max>[82238]0:SLIDE PAWN from:{3,1} to:{2,1}
+      </max>
+      <max>[82202]0:SLIDE PAWN from:{5,3} to:{4,3}
+      </max>
+      <max>[82294]0:SLIDE PAWN from:{5,4} to:{4,4}
+      </max>
+      <max>[81263]0:SLIDE PAWN_IDLE from:{6,0} to:{5,0} becomes:PAWN
+      </max>
+      <max>[81220]0:SLIDE PAWN_IDLE from:{6,0} to:{4,0} becomes:PAWN_ENPASSANT
+      </max>
+      <max>[83241]0:SLIDE ROOK from:{7,3} to:{6,3}
+      </max>
+      <max>[133235]0:SLIDE ROOK from:{7,3} to:{7,2}
+      </max>
+      <max>[84211]0:SLIDE ROOK from:{7,3} to:{7,1}
+      </max>
+      <max>[84244]0:SLIDE ROOK from:{7,3} to:{7,0}
+      </max>
+      <max>[103153]0:SLIDE UNCHECKED_KING_IDLE from:{7,4} to:{7,5} becomes:UNCHECKED_KING
+      </max>
+    </min>
+    <min>[-38841]1:SLIDE UNCHECKED_KING from:{2,4} to:{3,4}
+      <max>[9223372036854775804]0:SLIDE PAWN from:{3,1} to:{2,1}
+      </max>
+      <max>[-38841]0:SLIDE PAWN from:{5,3} to:{4,3} oppKing: {3,4,UNCHECKED_KING,CHECKED_KING}
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN from:{5,4} to:{4,4}
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN_IDLE from:{6,0} to:{5,0} becomes:PAWN
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN_IDLE from:{6,0} to:{4,0} becomes:PAWN_ENPASSANT
+      </max>
+      <max>[83355]0:SLIDE ROOK from:{7,3} to:{6,3}
+      </max>
+      <max>[9223372036854775804]0:SLIDE ROOK from:{7,3} to:{7,2}
+      </max>
+      <max>[9223372036854775804]0:SLIDE ROOK from:{7,3} to:{7,1}
+      </max>
+      <max>[9223372036854775804]0:SLIDE ROOK from:{7,3} to:{7,0}
+      </max>
+      <max>[102296]0:SLIDE UNCHECKED_KING_IDLE from:{7,4} to:{7,5} becomes:UNCHECKED_KING
+      </max>
+    </min>
+    <min>[83127]1:SLIDE UNCHECKED_KING from:{2,4} to:{1,4}
+      <max>[9223372036854775804]0:SLIDE PAWN from:{3,1} to:{2,1}
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN from:{5,3} to:{4,3}
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN from:{5,4} to:{4,4}
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN_IDLE from:{6,0} to:{5,0} becomes:PAWN
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN_IDLE from:{6,0} to:{4,0} becomes:PAWN_ENPASSANT
+      </max>
+      <max>[83127]0:SLIDE ROOK from:{7,3} to:{6,3}
+      </max>
+      <max>[9223372036854775804]0:SLIDE ROOK from:{7,3} to:{7,2}
+      </max>
+      <max>[9223372036854775804]0:SLIDE ROOK from:{7,3} to:{7,1}
+      </max>
+      <max>[9223372036854775804]0:SLIDE ROOK from:{7,3} to:{7,0}
+      </max>
+      <max>[102031]0:SLIDE UNCHECKED_KING_IDLE from:{7,4} to:{7,5} becomes:UNCHECKED_KING
+      </max>
+    </min>
+    <min>[83166]1:SLIDE UNCHECKED_KING from:{2,4} to:{2,3}
+      <max>[9223372036854775804]0:SLIDE PAWN from:{3,1} to:{2,1}
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN from:{5,3} to:{4,3}
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN from:{5,4} to:{4,4}
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN_IDLE from:{6,0} to:{5,0} becomes:PAWN
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN_IDLE from:{6,0} to:{4,0} becomes:PAWN_ENPASSANT
+      </max>
+      <max>[83166]0:SLIDE ROOK from:{7,3} to:{6,3}
+      </max>
+      <max>[9223372036854775804]0:SLIDE ROOK from:{7,3} to:{7,2}
+      </max>
+      <max>[9223372036854775804]0:SLIDE ROOK from:{7,3} to:{7,1}
+      </max>
+      <max>[9223372036854775804]0:SLIDE ROOK from:{7,3} to:{7,0}
+      </max>
+      <max>[102148]0:SLIDE UNCHECKED_KING_IDLE from:{7,4} to:{7,5} becomes:UNCHECKED_KING
+      </max>
+    </min>
+    <min>[83008]1:SLIDE UNCHECKED_KING from:{2,4} to:{1,3}
+      <max>[9223372036854775804]0:SLIDE PAWN from:{3,1} to:{2,1}
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN from:{5,3} to:{4,3}
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN from:{5,4} to:{4,4}
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN_IDLE from:{6,0} to:{5,0} becomes:PAWN
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN_IDLE from:{6,0} to:{4,0} becomes:PAWN_ENPASSANT
+      </max>
+      <max>[83008]0:SLIDE ROOK from:{7,3} to:{6,3}
+      </max>
+      <max>[9223372036854775804]0:SLIDE ROOK from:{7,3} to:{7,2}
+      </max>
+      <max>[9223372036854775804]0:SLIDE ROOK from:{7,3} to:{7,1}
+      </max>
+      <max>[9223372036854775804]0:SLIDE ROOK from:{7,3} to:{7,0}
+      </max>
+      <max>[102092]0:SLIDE UNCHECKED_KING_IDLE from:{7,4} to:{7,5} becomes:UNCHECKED_KING
+      </max>
+    </min>
+    <min>[83088]1:SLIDE UNCHECKED_KING from:{2,4} to:{1,5}
+      <max>[9223372036854775804]0:SLIDE PAWN from:{3,1} to:{2,1}
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN from:{5,3} to:{4,3}
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN from:{5,4} to:{4,4}
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN_IDLE from:{6,0} to:{5,0} becomes:PAWN
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN_IDLE from:{6,0} to:{4,0} becomes:PAWN_ENPASSANT
+      </max>
+      <max>[83088]0:SLIDE ROOK from:{7,3} to:{6,3}
+      </max>
+      <max>[9223372036854775804]0:SLIDE ROOK from:{7,3} to:{7,2}
+      </max>
+      <max>[9223372036854775804]0:SLIDE ROOK from:{7,3} to:{7,1}
+      </max>
+      <max>[9223372036854775804]0:SLIDE ROOK from:{7,3} to:{7,0}
+      </max>
+      <max>[102149]0:SLIDE UNCHECKED_KING_IDLE from:{7,4} to:{7,5} becomes:UNCHECKED_KING
+      </max>
+    </min>
+    <min>[-39861]1:SLIDE UNCHECKED_KING from:{2,4} to:{3,3}
+      <max>[9223372036854775804]0:SLIDE PAWN from:{3,1} to:{2,1}
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN from:{5,3} to:{4,3}
+      </max>
+      <max>[-39861]0:SLIDE PAWN from:{5,4} to:{4,4} oppKing: {3,3,UNCHECKED_KING,CHECKED_KING}
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN_IDLE from:{6,0} to:{5,0} becomes:PAWN
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN_IDLE from:{6,0} to:{4,0} becomes:PAWN_ENPASSANT
+      </max>
+      <max>[83264]0:SLIDE ROOK from:{7,3} to:{6,3}
+      </max>
+      <max>[9223372036854775804]0:SLIDE ROOK from:{7,3} to:{7,2}
+      </max>
+      <max>[9223372036854775804]0:SLIDE ROOK from:{7,3} to:{7,1}
+      </max>
+      <max>[9223372036854775804]0:SLIDE ROOK from:{7,3} to:{7,0}
+      </max>
+      <max>[102238]0:SLIDE UNCHECKED_KING_IDLE from:{7,4} to:{7,5} becomes:UNCHECKED_KING
+      </max>
+    </min>
+    <min>[-39775]1:SLIDE UNCHECKED_KING from:{2,4} to:{3,5}
+      <max>[9223372036854775804]0:SLIDE PAWN from:{3,1} to:{2,1}
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN from:{5,3} to:{4,3}
+      </max>
+      <max>[-39775]0:SLIDE PAWN from:{5,4} to:{4,4} oppKing: {3,5,UNCHECKED_KING,CHECKED_KING}
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN_IDLE from:{6,0} to:{5,0} becomes:PAWN
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN_IDLE from:{6,0} to:{4,0} becomes:PAWN_ENPASSANT
+      </max>
+      <max>[83246]0:SLIDE ROOK from:{7,3} to:{6,3}
+      </max>
+      <max>[9223372036854775804]0:SLIDE ROOK from:{7,3} to:{7,2}
+      </max>
+      <max>[9223372036854775804]0:SLIDE ROOK from:{7,3} to:{7,1}
+      </max>
+      <max>[9223372036854775804]0:SLIDE ROOK from:{7,3} to:{7,0}
+      </max>
+      <max>[102346]0:SLIDE UNCHECKED_KING_IDLE from:{7,4} to:{7,5} becomes:UNCHECKED_KING
+      </max>
+    </min>
+    <min>[83207]1:JUMP KNIGHT from:{2,5} to:{0,4}
+      <max>[9223372036854775804]0:SLIDE PAWN from:{3,1} to:{2,1}
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN from:{5,3} to:{4,3}
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN from:{5,4} to:{4,4}
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN_IDLE from:{6,0} to:{5,0} becomes:PAWN
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN_IDLE from:{6,0} to:{4,0} becomes:PAWN_ENPASSANT
+      </max>
+      <max>[83207]0:SLIDE ROOK from:{7,3} to:{6,3}
+      </max>
+      <max>[9223372036854775804]0:SLIDE ROOK from:{7,3} to:{7,2}
+      </max>
+      <max>[9223372036854775804]0:SLIDE ROOK from:{7,3} to:{7,1}
+      </max>
+      <max>[9223372036854775804]0:SLIDE ROOK from:{7,3} to:{7,0}
+      </max>
+      <max>[102187]0:SLIDE UNCHECKED_KING_IDLE from:{7,4} to:{7,5} becomes:UNCHECKED_KING
+      </max>
+    </min>
+    <min>[83296]1:JUMP KNIGHT from:{2,5} to:{1,7}
+      <max>[9223372036854775804]0:SLIDE PAWN from:{3,1} to:{2,1}
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN from:{5,3} to:{4,3}
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN from:{5,4} to:{4,4}
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN_IDLE from:{6,0} to:{5,0} becomes:PAWN
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN_IDLE from:{6,0} to:{4,0} becomes:PAWN_ENPASSANT
+      </max>
+      <max>[83296]0:SLIDE ROOK from:{7,3} to:{6,3}
+      </max>
+      <max>[9223372036854775804]0:SLIDE ROOK from:{7,3} to:{7,2}
+      </max>
+      <max>[9223372036854775804]0:SLIDE ROOK from:{7,3} to:{7,1}
+      </max>
+      <max>[9223372036854775804]0:SLIDE ROOK from:{7,3} to:{7,0}
+      </max>
+      <max>[102191]0:SLIDE UNCHECKED_KING_IDLE from:{7,4} to:{7,5} becomes:UNCHECKED_KING
+      </max>
+    </min>
+    <min>[83269]1:JUMP KNIGHT from:{2,5} to:{3,7}
+      <max>[9223372036854775804]0:SLIDE PAWN from:{3,1} to:{2,1}
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN from:{5,3} to:{4,3}
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN from:{5,4} to:{4,4}
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN_IDLE from:{6,0} to:{5,0} becomes:PAWN
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN_IDLE from:{6,0} to:{4,0} becomes:PAWN_ENPASSANT
+      </max>
+      <max>[83269]0:SLIDE ROOK from:{7,3} to:{6,3}
+      </max>
+      <max>[9223372036854775804]0:SLIDE ROOK from:{7,3} to:{7,2}
+      </max>
+      <max>[9223372036854775804]0:SLIDE ROOK from:{7,3} to:{7,1}
+      </max>
+      <max>[9223372036854775804]0:SLIDE ROOK from:{7,3} to:{7,0}
+      </max>
+      <max>[102155]0:SLIDE UNCHECKED_KING_IDLE from:{7,4} to:{7,5} becomes:UNCHECKED_KING
+      </max>
+    </min>
+    <min>[81271]1:JUMP KNIGHT from:{2,5} to:{4,6}
+      <max>[82205]0:SLIDE PAWN from:{3,1} to:{2,1}
+      </max>
+      <max>[82289]0:SLIDE PAWN from:{5,3} to:{4,3}
+      </max>
+      <max>[82299]0:SLIDE PAWN from:{5,4} to:{4,4}
+      </max>
+      <max>[81271]0:SLIDE PAWN_IDLE from:{6,0} to:{5,0} becomes:PAWN
+      </max>
+      <max>[81283]0:SLIDE PAWN_IDLE from:{6,0} to:{4,0} becomes:PAWN_ENPASSANT
+      </max>
+      <max>[82280]0:SLIDE ROOK from:{7,3} to:{6,3}
+      </max>
+      <max>[132226]0:SLIDE ROOK from:{7,3} to:{7,2}
+      </max>
+      <max>[83239]0:SLIDE ROOK from:{7,3} to:{7,1}
+      </max>
+      <max>[83229]0:SLIDE ROOK from:{7,3} to:{7,0}
+      </max>
+      <max>[112177]0:SLIDE UNCHECKED_KING_IDLE from:{7,4} to:{7,5} becomes:UNCHECKED_KING
+      </max>
+    </min>
+    <min>[82241]1:JUMP KNIGHT from:{2,5} to:{4,4}
+      <max>[9223372036854775804]0:SLIDE PAWN from:{3,1} to:{2,1}
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN from:{5,3} to:{4,3}
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN from:{5,3} to:{4,4} cap:{4,4,KNIGHT}
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN_IDLE from:{6,0} to:{5,0} becomes:PAWN
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN_IDLE from:{6,0} to:{4,0} becomes:PAWN_ENPASSANT
+      </max>
+      <max>[82241]0:SLIDE ROOK from:{7,3} to:{6,3}
+      </max>
+      <max>[9223372036854775804]0:SLIDE ROOK from:{7,3} to:{7,2}
+      </max>
+      <max>[9223372036854775804]0:SLIDE ROOK from:{7,3} to:{7,1}
+      </max>
+      <max>[9223372036854775804]0:SLIDE ROOK from:{7,3} to:{7,0}
+      </max>
+      <max>[104116]0:SLIDE UNCHECKED_KING_IDLE from:{7,4} to:{7,5} becomes:UNCHECKED_KING
+      </max>
+    </min>
+    <min>[83294]1:JUMP KNIGHT from:{2,5} to:{3,3}
+      <max>[9223372036854775804]0:SLIDE PAWN from:{3,1} to:{2,1}
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN from:{5,3} to:{4,3}
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN from:{5,4} to:{4,4}
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN_IDLE from:{6,0} to:{5,0} becomes:PAWN
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN_IDLE from:{6,0} to:{4,0} becomes:PAWN_ENPASSANT
+      </max>
+      <max>[83294]0:SLIDE ROOK from:{7,3} to:{6,3}
+      </max>
+      <max>[9223372036854775804]0:SLIDE ROOK from:{7,3} to:{7,2}
+      </max>
+      <max>[9223372036854775804]0:SLIDE ROOK from:{7,3} to:{7,1}
+      </max>
+      <max>[9223372036854775804]0:SLIDE ROOK from:{7,3} to:{7,0}
+      </max>
+      <max>[112119]0:SLIDE UNCHECKED_KING_IDLE from:{7,4} to:{7,5} becomes:UNCHECKED_KING
+      </max>
+    </min>
+    <min>[83215]1:JUMP KNIGHT from:{2,5} to:{1,3}
+      <max>[9223372036854775804]0:SLIDE PAWN from:{3,1} to:{2,1}
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN from:{5,3} to:{4,3}
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN from:{5,4} to:{4,4}
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN_IDLE from:{6,0} to:{5,0} becomes:PAWN
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN_IDLE from:{6,0} to:{4,0} becomes:PAWN_ENPASSANT
+      </max>
+      <max>[83215]0:SLIDE ROOK from:{7,3} to:{6,3}
+      </max>
+      <max>[9223372036854775804]0:SLIDE ROOK from:{7,3} to:{7,2}
+      </max>
+      <max>[9223372036854775804]0:SLIDE ROOK from:{7,3} to:{7,1}
+      </max>
+      <max>[9223372036854775804]0:SLIDE ROOK from:{7,3} to:{7,0}
+      </max>
+      <max>[102133]0:SLIDE UNCHECKED_KING_IDLE from:{7,4} to:{7,5} becomes:UNCHECKED_KING
+      </max>
+    </min>
+    <min>[83282]1:SLIDE PAWN from:{3,0} to:{4,0}
+      <max>[9223372036854775804]0:SLIDE PAWN from:{3,1} to:{2,1}
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN from:{5,3} to:{4,3}
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN from:{5,4} to:{4,4}
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN_IDLE from:{6,0} to:{5,0} becomes:PAWN
+      </max>
+      <max>[83282]0:SLIDE ROOK from:{7,3} to:{6,3}
+      </max>
+      <max>[9223372036854775804]0:SLIDE ROOK from:{7,3} to:{7,2}
+      </max>
+      <max>[9223372036854775804]0:SLIDE ROOK from:{7,3} to:{7,1}
+      </max>
+      <max>[9223372036854775804]0:SLIDE ROOK from:{7,3} to:{7,0}
+      </max>
+      <max>[102197]0:SLIDE UNCHECKED_KING_IDLE from:{7,4} to:{7,5} becomes:UNCHECKED_KING
+      </max>
+    </min>
+    <min>[83269]1:SLIDE PAWN from:{5,7} to:{6,7}
+      <max>[9223372036854775804]0:SLIDE PAWN from:{3,1} to:{2,1}
+        <max>[0]1:SLIDE PAWN from:{6,7} to:{7,7} becomes:PAWN_TOSWAP
+        </max>
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN from:{5,3} to:{4,3}
+        <max>[0]1:SLIDE PAWN from:{6,7} to:{7,7} becomes:PAWN_TOSWAP
+        </max>
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN from:{5,4} to:{4,4}
+        <max>[0]1:SLIDE PAWN from:{6,7} to:{7,7} becomes:PAWN_TOSWAP
+        </max>
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN_IDLE from:{6,0} to:{5,0} becomes:PAWN
+        <max>[0]1:SLIDE PAWN from:{6,7} to:{7,7} becomes:PAWN_TOSWAP
+        </max>
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN_IDLE from:{6,0} to:{4,0} becomes:PAWN_ENPASSANT
+        <max>[0]1:SLIDE PAWN from:{6,7} to:{7,7} becomes:PAWN_TOSWAP
+        </max>
+      </max>
+      <max>[83269]0:SLIDE ROOK from:{7,3} to:{6,3}
+        <max>[21168]1:SLIDE PAWN from:{6,7} to:{7,7} becomes:PAWN_TOSWAP
+        </max>
+      </max>
+      <max>[9223372036854775804]0:SLIDE ROOK from:{7,3} to:{7,2}
+        <max>[0]1:SLIDE PAWN from:{6,7} to:{7,7} becomes:PAWN_TOSWAP
+        </max>
+      </max>
+      <max>[9223372036854775804]0:SLIDE ROOK from:{7,3} to:{7,1}
+        <max>[0]1:SLIDE PAWN from:{6,7} to:{7,7} becomes:PAWN_TOSWAP
+        </max>
+      </max>
+      <max>[9223372036854775804]0:SLIDE ROOK from:{7,3} to:{7,0}
+        <max>[0]1:SLIDE PAWN from:{6,7} to:{7,7} becomes:PAWN_TOSWAP
+        </max>
+      </max>
+      <max>[9223372036854775804]0:SLIDE UNCHECKED_KING_IDLE from:{7,4} to:{7,5} becomes:UNCHECKED_KING
+        <max>[91052]1:SLIDE PAWN from:{6,7} to:{7,7} becomes:PAWN_TOSWAP
+        </max>
+      </max>
+    </min>
+    <min>[33269]1:SLIDE ROOK from:{6,2} to:{7,2}
+      <max>[133252]0:SLIDE PAWN from:{3,1} to:{2,1}
+      </max>
+      <max>[133282]0:SLIDE PAWN from:{5,3} to:{4,3}
+      </max>
+      <max>[133257]0:SLIDE PAWN from:{5,4} to:{4,4}
+      </max>
+      <max>[132223]0:SLIDE PAWN_IDLE from:{6,0} to:{5,0} becomes:PAWN
+      </max>
+      <max>[132287]0:SLIDE PAWN_IDLE from:{6,0} to:{4,0} becomes:PAWN_ENPASSANT
+      </max>
+      <max>[33269]0:SLIDE ROOK from:{7,3} to:{7,2} cap:{7,2,ROOK}
+      </max>
+      <max>[152102]0:SLIDE UNCHECKED_KING_IDLE from:{7,4} to:{7,5} becomes:UNCHECKED_KING
+      </max>
+      <max>[118346]0:SLIDE UNCHECKED_KING_IDLE from:{7,4} to:{6,4} becomes:UNCHECKED_KING
+      </max>
+      <max>[154209]0:SLIDE UNCHECKED_KING_IDLE from:{7,4} to:{6,3} becomes:UNCHECKED_KING
+      </max>
+      <max>[117250]0:SLIDE UNCHECKED_KING_IDLE from:{7,4} to:{6,5} becomes:UNCHECKED_KING
+      </max>
+    </min>
+    <min>[32243]1:SLIDE ROOK from:{6,2} to:{6,3}
+      <max>[133280]0:SLIDE PAWN from:{3,1} to:{2,1}
+      </max>
+      <max>[133290]0:SLIDE PAWN from:{5,3} to:{4,3}
+      </max>
+      <max>[133249]0:SLIDE PAWN from:{5,4} to:{4,4}
+      </max>
+      <max>[132295]0:SLIDE PAWN_IDLE from:{6,0} to:{5,0} becomes:PAWN
+      </max>
+      <max>[132256]0:SLIDE PAWN_IDLE from:{6,0} to:{4,0} becomes:PAWN_ENPASSANT
+      </max>
+      <max>[32243]0:SLIDE ROOK from:{7,3} to:{6,3} cap:{6,3,ROOK}
+      </max>
+      <max>[84274]0:SLIDE ROOK from:{7,3} to:{7,2}
+      </max>
+      <max>[84201]0:SLIDE ROOK from:{7,3} to:{7,1}
+      </max>
+      <max>[84273]0:SLIDE ROOK from:{7,3} to:{7,0}
+      </max>
+      <max>[152176]0:SLIDE UNCHECKED_KING_IDLE from:{7,4} to:{7,5} becomes:UNCHECKED_KING
+      </max>
+      <max>[55264]0:SLIDE UNCHECKED_KING_IDLE from:{7,4} to:{6,3} becomes:UNCHECKED_KING cap:{6,3,ROOK}
+      </max>
+    </min>
+    <min>[53305]1:SLIDE ROOK from:{6,2} to:{6,4} oppKing: {7,4,UNCHECKED_KING_IDLE,CHECKED_KING_IDLE}
+      <max>[103163]0:SLIDE CHECKED_KING_IDLE from:{7,4} to:{7,5} becomes:UNCHECKED_KING
+      </max>
+      <max>[53305]0:SLIDE CHECKED_KING_IDLE from:{7,4} to:{6,4} becomes:UNCHECKED_KING cap:{6,4,ROOK}
+      </max>
+    </min>
+    <min>[56214]1:SLIDE ROOK from:{6,2} to:{6,5}
+      <max>[83272]0:SLIDE PAWN from:{3,1} to:{2,1}
+      </max>
+      <max>[83225]0:SLIDE PAWN from:{5,3} to:{4,3}
+      </max>
+      <max>[83205]0:SLIDE PAWN from:{5,4} to:{4,4}
+      </max>
+      <max>[82225]0:SLIDE PAWN_IDLE from:{6,0} to:{5,0} becomes:PAWN
+      </max>
+      <max>[82282]0:SLIDE PAWN_IDLE from:{6,0} to:{4,0} becomes:PAWN_ENPASSANT
+      </max>
+      <max>[84249]0:SLIDE ROOK from:{7,3} to:{6,3}
+      </max>
+      <max>[83238]0:SLIDE ROOK from:{7,3} to:{7,2}
+      </max>
+      <max>[83296]0:SLIDE ROOK from:{7,3} to:{7,1}
+      </max>
+      <max>[83225]0:SLIDE ROOK from:{7,3} to:{7,0}
+      </max>
+      <max>[56214]0:SLIDE UNCHECKED_KING_IDLE from:{7,4} to:{6,5} becomes:UNCHECKED_KING cap:{6,5,ROOK}
+      </max>
+    </min>
+    <min>[82202]1:SLIDE ROOK from:{6,2} to:{6,6}
+      <max>[83252]0:SLIDE PAWN from:{3,1} to:{2,1}
+      </max>
+      <max>[83208]0:SLIDE PAWN from:{5,3} to:{4,3}
+      </max>
+      <max>[83290]0:SLIDE PAWN from:{5,4} to:{4,4}
+      </max>
+      <max>[82202]0:SLIDE PAWN_IDLE from:{6,0} to:{5,0} becomes:PAWN
+      </max>
+      <max>[82250]0:SLIDE PAWN_IDLE from:{6,0} to:{4,0} becomes:PAWN_ENPASSANT
+      </max>
+      <max>[84253]0:SLIDE ROOK from:{7,3} to:{6,3}
+      </max>
+      <max>[83291]0:SLIDE ROOK from:{7,3} to:{7,2}
+      </max>
+      <max>[83259]0:SLIDE ROOK from:{7,3} to:{7,1}
+      </max>
+      <max>[83218]0:SLIDE ROOK from:{7,3} to:{7,0}
+      </max>
+      <max>[102136]0:SLIDE UNCHECKED_KING_IDLE from:{7,4} to:{7,5} becomes:UNCHECKED_KING
+      </max>
+    </min>
+    <min>[102183]1:SLIDE ROOK from:{6,2} to:{6,7}
+      <max>[9223372036854775804]0:SLIDE PAWN from:{3,1} to:{2,1}
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN from:{5,3} to:{4,3}
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN from:{5,4} to:{4,4}
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN_IDLE from:{6,0} to:{5,0} becomes:PAWN
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN_IDLE from:{6,0} to:{4,0} becomes:PAWN_ENPASSANT
+      </max>
+      <max>[9223372036854775804]0:SLIDE ROOK from:{7,3} to:{6,3}
+      </max>
+      <max>[9223372036854775804]0:SLIDE ROOK from:{7,3} to:{7,2}
+      </max>
+      <max>[9223372036854775804]0:SLIDE ROOK from:{7,3} to:{7,1}
+      </max>
+      <max>[9223372036854775804]0:SLIDE ROOK from:{7,3} to:{7,0}
+      </max>
+      <max>[102183]0:SLIDE UNCHECKED_KING_IDLE from:{7,4} to:{7,5} becomes:UNCHECKED_KING
+      </max>
+    </min>
+    <min>[82238]1:SLIDE ROOK from:{6,2} to:{5,2}
+      <max>[83225]0:SLIDE PAWN from:{3,1} to:{2,1}
+      </max>
+      <max>[94276]0:SLIDE PAWN from:{5,3} to:{4,3}
+      </max>
+      <max>[83289]0:SLIDE PAWN from:{5,4} to:{4,4}
+      </max>
+      <max>[82252]0:SLIDE PAWN_IDLE from:{6,0} to:{5,0} becomes:PAWN
+      </max>
+      <max>[82238]0:SLIDE PAWN_IDLE from:{6,0} to:{4,0} becomes:PAWN_ENPASSANT
+      </max>
+      <max>[83246]0:SLIDE ROOK from:{7,3} to:{6,3}
+      </max>
+      <max>[133279]0:SLIDE ROOK from:{7,3} to:{7,2}
+      </max>
+      <max>[84229]0:SLIDE ROOK from:{7,3} to:{7,1}
+      </max>
+      <max>[84273]0:SLIDE ROOK from:{7,3} to:{7,0}
+      </max>
+      <max>[103177]0:SLIDE UNCHECKED_KING_IDLE from:{7,4} to:{7,5} becomes:UNCHECKED_KING
+      </max>
+      <max>[104355]0:SLIDE UNCHECKED_KING_IDLE from:{7,4} to:{6,4} becomes:UNCHECKED_KING
+      </max>
+      <max>[116235]0:SLIDE UNCHECKED_KING_IDLE from:{7,4} to:{6,3} becomes:UNCHECKED_KING
+      </max>
+      <max>[106269]0:SLIDE UNCHECKED_KING_IDLE from:{7,4} to:{6,5} becomes:UNCHECKED_KING
+      </max>
+    </min>
+    <min>[33264]1:SLIDE ROOK from:{6,2} to:{4,2}
+      <max>[83210]0:SLIDE PAWN from:{3,1} to:{2,1}
+      </max>
+      <max>[83277]0:SLIDE PAWN from:{5,3} to:{4,3}
+      </max>
+      <max>[33264]0:SLIDE PAWN from:{5,3} to:{4,2} cap:{4,2,ROOK}
+      </max>
+      <max>[95282]0:SLIDE PAWN from:{5,4} to:{4,4}
+      </max>
+      <max>[82223]0:SLIDE PAWN_IDLE from:{6,0} to:{5,0} becomes:PAWN
+      </max>
+      <max>[82248]0:SLIDE PAWN_IDLE from:{6,0} to:{4,0} becomes:PAWN_ENPASSANT
+      </max>
+      <max>[83204]0:SLIDE ROOK from:{7,3} to:{6,3}
+      </max>
+      <max>[133250]0:SLIDE ROOK from:{7,3} to:{7,2}
+      </max>
+      <max>[84202]0:SLIDE ROOK from:{7,3} to:{7,1}
+      </max>
+      <max>[84258]0:SLIDE ROOK from:{7,3} to:{7,0}
+      </max>
+      <max>[103174]0:SLIDE UNCHECKED_KING_IDLE from:{7,4} to:{7,5} becomes:UNCHECKED_KING
+      </max>
+      <max>[104363]0:SLIDE UNCHECKED_KING_IDLE from:{7,4} to:{6,4} becomes:UNCHECKED_KING
+      </max>
+      <max>[103278]0:SLIDE UNCHECKED_KING_IDLE from:{7,4} to:{6,3} becomes:UNCHECKED_KING
+      </max>
+      <max>[106247]0:SLIDE UNCHECKED_KING_IDLE from:{7,4} to:{6,5} becomes:UNCHECKED_KING
+      </max>
+    </min>
+    <min>[82203]1:SLIDE ROOK from:{6,2} to:{3,2}
+      <max>[83258]0:SLIDE PAWN from:{3,1} to:{2,1}
+      </max>
+      <max>[83228]0:SLIDE PAWN from:{5,3} to:{4,3}
+      </max>
+      <max>[83266]0:SLIDE PAWN from:{5,4} to:{4,4}
+      </max>
+      <max>[82224]0:SLIDE PAWN_IDLE from:{6,0} to:{5,0} becomes:PAWN
+      </max>
+      <max>[82203]0:SLIDE PAWN_IDLE from:{6,0} to:{4,0} becomes:PAWN_ENPASSANT
+      </max>
+      <max>[83220]0:SLIDE ROOK from:{7,3} to:{6,3}
+      </max>
+      <max>[133217]0:SLIDE ROOK from:{7,3} to:{7,2}
+      </max>
+      <max>[84296]0:SLIDE ROOK from:{7,3} to:{7,1}
+      </max>
+      <max>[84206]0:SLIDE ROOK from:{7,3} to:{7,0}
+      </max>
+      <max>[103112]0:SLIDE UNCHECKED_KING_IDLE from:{7,4} to:{7,5} becomes:UNCHECKED_KING
+      </max>
+      <max>[104383]0:SLIDE UNCHECKED_KING_IDLE from:{7,4} to:{6,4} becomes:UNCHECKED_KING
+      </max>
+      <max>[103271]0:SLIDE UNCHECKED_KING_IDLE from:{7,4} to:{6,3} becomes:UNCHECKED_KING
+      </max>
+      <max>[106224]0:SLIDE UNCHECKED_KING_IDLE from:{7,4} to:{6,5} becomes:UNCHECKED_KING
+      </max>
+    </min>
+    <min>[33258]1:SLIDE ROOK from:{6,2} to:{2,2}
+      <max>[83237]0:SLIDE PAWN from:{3,1} to:{2,1}
+      </max>
+      <max>[33258]0:SLIDE PAWN from:{3,1} to:{2,2} cap:{2,2,ROOK}
+      </max>
+      <max>[83291]0:SLIDE PAWN from:{5,3} to:{4,3}
+      </max>
+      <max>[83223]0:SLIDE PAWN from:{5,4} to:{4,4}
+      </max>
+      <max>[82254]0:SLIDE PAWN_IDLE from:{6,0} to:{5,0} becomes:PAWN
+      </max>
+      <max>[82217]0:SLIDE PAWN_IDLE from:{6,0} to:{4,0} becomes:PAWN_ENPASSANT
+      </max>
+      <max>[83257]0:SLIDE ROOK from:{7,3} to:{6,3}
+      </max>
+      <max>[133216]0:SLIDE ROOK from:{7,3} to:{7,2}
+      </max>
+      <max>[84299]0:SLIDE ROOK from:{7,3} to:{7,1}
+      </max>
+      <max>[84226]0:SLIDE ROOK from:{7,3} to:{7,0}
+      </max>
+      <max>[103180]0:SLIDE UNCHECKED_KING_IDLE from:{7,4} to:{7,5} becomes:UNCHECKED_KING
+      </max>
+      <max>[104337]0:SLIDE UNCHECKED_KING_IDLE from:{7,4} to:{6,4} becomes:UNCHECKED_KING
+      </max>
+      <max>[103272]0:SLIDE UNCHECKED_KING_IDLE from:{7,4} to:{6,3} becomes:UNCHECKED_KING
+      </max>
+      <max>[106253]0:SLIDE UNCHECKED_KING_IDLE from:{7,4} to:{6,5} becomes:UNCHECKED_KING
+      </max>
+    </min>
+    <min>[82231]1:SLIDE ROOK from:{6,2} to:{1,2}
+      <max>[83233]0:SLIDE PAWN from:{3,1} to:{2,1}
+      </max>
+      <max>[83288]0:SLIDE PAWN from:{5,3} to:{4,3}
+      </max>
+      <max>[83281]0:SLIDE PAWN from:{5,4} to:{4,4}
+      </max>
+      <max>[82231]0:SLIDE PAWN_IDLE from:{6,0} to:{5,0} becomes:PAWN
+      </max>
+      <max>[82267]0:SLIDE PAWN_IDLE from:{6,0} to:{4,0} becomes:PAWN_ENPASSANT
+      </max>
+      <max>[83282]0:SLIDE ROOK from:{7,3} to:{6,3}
+      </max>
+      <max>[133297]0:SLIDE ROOK from:{7,3} to:{7,2}
+      </max>
+      <max>[84270]0:SLIDE ROOK from:{7,3} to:{7,1}
+      </max>
+      <max>[84272]0:SLIDE ROOK from:{7,3} to:{7,0}
+      </max>
+      <max>[103143]0:SLIDE UNCHECKED_KING_IDLE from:{7,4} to:{7,5} becomes:UNCHECKED_KING
+      </max>
+      <max>[104358]0:SLIDE UNCHECKED_KING_IDLE from:{7,4} to:{6,4} becomes:UNCHECKED_KING
+      </max>
+      <max>[103228]0:SLIDE UNCHECKED_KING_IDLE from:{7,4} to:{6,3} becomes:UNCHECKED_KING
+      </max>
+      <max>[106242]0:SLIDE UNCHECKED_KING_IDLE from:{7,4} to:{6,5} becomes:UNCHECKED_KING
+      </max>
+    </min>
+    <min>[82231]1:SLIDE ROOK from:{6,2} to:{0,2}
+      <max>[83252]0:SLIDE PAWN from:{3,1} to:{2,1}
+      </max>
+      <max>[83261]0:SLIDE PAWN from:{5,3} to:{4,3}
+      </max>
+      <max>[83230]0:SLIDE PAWN from:{5,4} to:{4,4}
+      </max>
+      <max>[82247]0:SLIDE PAWN_IDLE from:{6,0} to:{5,0} becomes:PAWN
+      </max>
+      <max>[82231]0:SLIDE PAWN_IDLE from:{6,0} to:{4,0} becomes:PAWN_ENPASSANT
+      </max>
+      <max>[83246]0:SLIDE ROOK from:{7,3} to:{6,3}
+      </max>
+      <max>[133237]0:SLIDE ROOK from:{7,3} to:{7,2}
+      </max>
+      <max>[84280]0:SLIDE ROOK from:{7,3} to:{7,1}
+      </max>
+      <max>[84273]0:SLIDE ROOK from:{7,3} to:{7,0}
+      </max>
+      <max>[103189]0:SLIDE UNCHECKED_KING_IDLE from:{7,4} to:{7,5} becomes:UNCHECKED_KING
+      </max>
+      <max>[104346]0:SLIDE UNCHECKED_KING_IDLE from:{7,4} to:{6,4} becomes:UNCHECKED_KING
+      </max>
+      <max>[103216]0:SLIDE UNCHECKED_KING_IDLE from:{7,4} to:{6,3} becomes:UNCHECKED_KING
+      </max>
+      <max>[106258]0:SLIDE UNCHECKED_KING_IDLE from:{7,4} to:{6,5} becomes:UNCHECKED_KING
+      </max>
+    </min>
+    <min>[83283]1:SLIDE ROOK from:{6,2} to:{6,1}
+      <max>[9223372036854775804]0:SLIDE PAWN from:{3,1} to:{2,1}
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN from:{5,3} to:{4,3}
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN from:{5,4} to:{4,4}
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN_IDLE from:{6,0} to:{5,0} becomes:PAWN
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN_IDLE from:{6,0} to:{4,0} becomes:PAWN_ENPASSANT
+      </max>
+      <max>[83283]0:SLIDE ROOK from:{7,3} to:{6,3}
+      </max>
+      <max>[9223372036854775804]0:SLIDE ROOK from:{7,3} to:{7,2}
+      </max>
+      <max>[9223372036854775804]0:SLIDE ROOK from:{7,3} to:{7,1}
+      </max>
+      <max>[9223372036854775804]0:SLIDE ROOK from:{7,3} to:{7,0}
+      </max>
+      <max>[102175]0:SLIDE UNCHECKED_KING_IDLE from:{7,4} to:{7,5} becomes:UNCHECKED_KING
+      </max>
+    </min>
+    <min>[93208]1:SLIDE ROOK from:{6,2} to:{6,0} cap:{6,0,PAWN_IDLE}
+      <max>[9223372036854775804]0:SLIDE PAWN from:{3,1} to:{2,1}
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN from:{5,3} to:{4,3}
+      </max>
+      <max>[9223372036854775804]0:SLIDE PAWN from:{5,4} to:{4,4}
+      </max>
+      <max>[93208]0:SLIDE ROOK from:{7,3} to:{6,3}
+      </max>
+      <max>[9223372036854775804]0:SLIDE ROOK from:{7,3} to:{7,2}
+      </max>
+      <max>[9223372036854775804]0:SLIDE ROOK from:{7,3} to:{7,1}
+      </max>
+      <max>[9223372036854775804]0:SLIDE ROOK from:{7,3} to:{7,0}
+      </max>
+      <max>[112193]0:SLIDE UNCHECKED_KING_IDLE from:{7,4} to:{7,5} becomes:UNCHECKED_KING
+      </max>
+    </min>
+  </max>
+</root>

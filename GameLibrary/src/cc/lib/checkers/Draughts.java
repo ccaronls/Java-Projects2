@@ -46,7 +46,12 @@ public class Draughts extends Checkers {
     }
 
     @Override
-    protected boolean isCaptureAtEndEnabled() {
+    public boolean isCaptureAtEndEnabled() {
         return true;
+    }
+
+    @Override
+    public String getDescription() {
+        return "";
     }
 }

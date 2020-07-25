@@ -38,7 +38,7 @@ public class UIPlayerRenderer extends UIRenderer {
 
         if (player.hasKey()) {
             if (keyAsset < 0) {
-                keyAsset = g.loadImage("key.png", GColor.BLACK);
+                keyAsset = g.loadImage("images/key.png", GColor.BLACK);
             }
             g.drawImage(keyAsset, g.getViewportWidth()-30, 5, 25, 25);
         }

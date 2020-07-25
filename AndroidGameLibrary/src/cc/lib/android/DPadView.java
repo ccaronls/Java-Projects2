@@ -1,7 +1,5 @@
 package cc.lib.android;
 
-import cc.lib.game.GColor;
-import cc.lib.game.Utils;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
@@ -9,24 +7,27 @@ import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.widget.ImageView;
 
+import cc.lib.game.GColor;
+import cc.lib.game.Utils;
+
 public class DPadView extends ImageView {
 
     public interface OnDpadListener {
-        public void dpadPressed(DPadView view, PadDir dir);
-        public void dpadReleased(DPadView view, PadDir dir);
+        void dpadPressed(DPadView view, PadDir dir);
+        void dpadReleased(DPadView view, PadDir dir);
     }
     
     private float cx, cy, tx, ty, dx, dy;
     
     private boolean touched = false;
     
-    public static enum PadDir {
+    public enum PadDir {
         LEFT(1), 
         RIGHT(2), 
         UP(4), 
         DOWN(8);
         
-        private PadDir (int flag) {
+        PadDir (int flag) {
             this.flag = flag;
         }
         
@@ -67,8 +68,6 @@ public class DPadView extends ImageView {
     public void setOnDpadListener(OnDpadListener listener) {
         this.listener = listener;
     }
-    
-    
     
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {

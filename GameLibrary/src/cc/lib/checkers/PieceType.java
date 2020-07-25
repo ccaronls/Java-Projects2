@@ -30,15 +30,6 @@ public enum PieceType {
 
     public final String abbrev;
 
-    public boolean isFlying() {
-        switch (this) {
-            case FLYING_KING:
-            case DAMA_KING:
-                return true;
-        }
-        return false;
-    }
-
     PieceType(String abbrev) {
         this.abbrev = abbrev;
     }

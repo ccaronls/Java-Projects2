@@ -270,13 +270,13 @@ public class DroidGraphics extends APGraphics {
 
     @Override
     public final void drawQuadStrip() {
-        paint.setStyle(Paint.Style.FILL_AND_STROKE);
+        paint.setStyle(Paint.Style.FILL);
         int num = r.getNumVerts();
         if (num < 4)
             return;
         Vector2D v0 = r.getVertex(0);
         Vector2D v1 = r.getVertex(1);
-        for (int i = 2; i <= num - 2; i += 2) {
+        for (int i = 2; i <= num - 1; i += 2) {
             Vector2D v3 = r.getVertex(i);
             Vector2D v2 = r.getVertex(i + 1);
             drawPolygon(v0, v1, v2, v3);
@@ -304,16 +304,22 @@ public class DroidGraphics extends APGraphics {
     }
 
     @Override
+    public final void drawFilledOval(float x, float y, float w, float h) {
+        paint.setStyle(Paint.Style.FILL);
+        Vector2D mv0 = transform(x, y);
+        Vector2D mv1 = transform(x + w, y + h);
+        canvas.drawOval(mv0.getX(), mv0.getY(), mv1.getX(), mv1.getY(), paint);
+    }
+
+    @Override
     public void drawFilledRects() {
-        paint.setStyle(Paint.Style.FILL_AND_STROKE);
-        for (int i = 0; i <= r.getNumVerts() - 2; i += 2) {
+        paint.setStyle(Paint.Style.FILL);
+        for (int i = 0; i <= r.getNumVerts()-1; i += 2) {
             Vector2D v0 = r.getVertex(i);
             Vector2D v1 = r.getVertex(i + 1);
-            float x = Math.min(v0.X(), v1.X());
-            float y = Math.min(v0.Y(), v1.Y());
-            float w = Math.abs(v0.X() - v1.X());
-            float h = Math.abs(v0.Y() - v1.Y());
-            canvas.drawRect(x, y, w, h, paint);
+            Vector2D min = v0.min(v1);
+            Vector2D max = v0.max(v1);
+            canvas.drawRect(min.X(), min.Y(), max.X(), max.Y(), paint);
         }
 
     }

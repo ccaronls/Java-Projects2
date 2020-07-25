@@ -28,4 +28,9 @@ public class DMove extends Reflector<DMove> implements IMove {
         return playerNum;
     }
 
+    @Override
+    public int getCompareValue() {
+        return 0;
+    }
+
 }

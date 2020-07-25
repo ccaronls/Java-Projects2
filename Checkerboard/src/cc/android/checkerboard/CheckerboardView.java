@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Set;
 
 import cc.lib.android.DroidUtils;
+import cc.lib.checkers.*;
 import cc.lib.game.AAnimation;
 import cc.lib.game.IVector2D;
 import cc.lib.game.Utils;
@@ -778,7 +779,7 @@ public class CheckerboardView extends RelativeLayout implements View.OnClickList
         if (!(game instanceof Chess))
             return;
         Chess chess = (Chess)game;
-        chess.timerTick();
+        chess.timerTick(SystemClock.uptimeMillis());
         bFar.setText(timerText(chess.getTimerFar()));
         bNear.setText(timerText(chess.getTimerNear()));
         Move m;

@@ -310,7 +310,7 @@ public class MonopolyActivity extends DroidActivity {
     }
 
     void showPurchasePropertyDialog(String title, String buyLabel, final Square property, final Runnable onBuyRunnable) {
-        newDialogBuilder().setTitle(title).setView(new DroidView(this) {
+        newDialogBuilder().setTitle(title).setView(new DroidView(this, false) {
             @Override
             protected void onPaint(DroidGraphics g) {
                 monopoly.drawPropertyCard(g, property, g.getViewportWidth(), g.getViewportHeight());

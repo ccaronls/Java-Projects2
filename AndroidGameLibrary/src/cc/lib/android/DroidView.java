@@ -3,13 +3,27 @@ package cc.lib.android;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.os.SystemClock;
+import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
 
-public abstract class DroidView extends View {
+public class DroidView extends View {
 
-    public DroidView(Context context) {
+    public DroidView(Context context, boolean touchEnabled) {
         super(context);
+        setClickable(touchEnabled);
+    }
+
+    public DroidView(Context context, AttributeSet attrs) {
+        super(context, attrs);
+    }
+
+    public DroidView(Context context, AttributeSet attrs, int defStyleAttr) {
+        super(context, attrs, defStyleAttr);
+    }
+
+    public DroidView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
+        super(context, attrs, defStyleAttr, defStyleRes);
     }
 
     private DroidGraphics g = null;
@@ -44,29 +58,41 @@ public abstract class DroidView extends View {
         canvas.restore();
     }
 
+    float tx=-1, ty=-1;
+    boolean dragging = false;
+
     @Override
     public boolean onTouchEvent(MotionEvent event) {
 
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
                 downTime = SystemClock.uptimeMillis();
+                tx = event.getX();
+                ty = event.getY();
                 onTouchDown(event.getX(), event.getY());
-                postDelayed(touchDownRunnable=new DelayedTouchDown(event), CLICK_TIME);
+                //postDelayed(touchDownRunnable=new DelayedTouchDown(event), CLICK_TIME);
                 break;
             case MotionEvent.ACTION_UP:
-                if (SystemClock.uptimeMillis() - downTime < CLICK_TIME) {
-                    removeCallbacks(touchDownRunnable);
-                    touchDownRunnable = null;
+                if (!dragging && (SystemClock.uptimeMillis() - downTime < CLICK_TIME)) {
+                    //removeCallbacks(touchDownRunnable);
+                    //touchDownRunnable = null;
                     onTap(event.getX(), event.getY());
                 } else {
                     onTouchUp(event.getX(), event.getY());
                 }
+                dragging = false;
+                tx = ty = -1;
                 break;
-            case MotionEvent.ACTION_MOVE:
-                if (touchDownRunnable == null) {
+            case MotionEvent.ACTION_MOVE: {
+                float dx = event.getX() - tx;
+                float dy = event.getY() - ty;
+                float d = dx*dx + dy*dy;
+                if (dragging || d > 100) {
+                    dragging = true;
                     onDrag(event.getX(), event.getY());
                 }
                 break;
+            }
         }
 
         return true;
@@ -85,15 +111,17 @@ public abstract class DroidView extends View {
         postInvalidate();
     }
 
-    protected void onTap(float x, float y) {}
+    protected void onTap(float x, float y) { ((DroidActivity)getContext()).onTap(x, y); }
 
-    protected void onTouchDown(float x, float y) {}
+    protected void onTouchDown(float x, float y) { ((DroidActivity)getContext()).onTouchDown(x, y); }
 
-    protected void onTouchUp(float x, float y) {}
+    protected void onTouchUp(float x, float y) { ((DroidActivity)getContext()).onTouchUp(x, y); }
 
-    protected void onDrag(float x, float y) {}
+    protected void onDrag(float x, float y) { ((DroidActivity)getContext()).onDrag(x, y); }
 
-    protected abstract void onPaint(DroidGraphics g);
+    protected void onPaint(DroidGraphics g) {
+        ((DroidActivity)getContext()).onDraw(g);
+    }
 
 
 }

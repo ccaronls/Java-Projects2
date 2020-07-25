@@ -159,6 +159,16 @@ public class Chess extends ACheckboardGame {
         // check for game over
     }
 
+    @Override
+    public int getWinnerNum() {
+        return 0;
+    }
+
+    @Override
+    public boolean isDraw() {
+        return false;
+    }
+
     private void updateOpponentKingCheckedState() {
         // see if we are checking the opponent
         int [] opponentKing = findPiecePosition(getOpponent(), CHECKED_KING, CHECKED_KING_IDLE, UNCHECKED_KING, UNCHECKED_KING_IDLE);

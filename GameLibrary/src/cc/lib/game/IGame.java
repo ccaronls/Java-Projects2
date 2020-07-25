@@ -1,5 +1,7 @@
 package cc.lib.game;
 
+import java.util.List;
+
 /**
  * Interface for a MiniMaxDescision Tree
  * @param <M>
@@ -21,7 +23,7 @@ public interface IGame<M extends IMove> {
      * Get all the moves available for this state
      * @return
      */
-    Iterable<M> getMoves();
+    List<M> getMoves();
 
     /**
      * Get the current player turn
@@ -29,5 +31,8 @@ public interface IGame<M extends IMove> {
      */
     int getTurn();
 
+    int getWinnerNum();
+
+    boolean isDraw();
 }
 

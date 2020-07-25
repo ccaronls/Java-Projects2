@@ -399,7 +399,7 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
     }
 
     @Override
-    public final Iterable<Move> getMoves() {
+    public final List<Move> getMoves() {
         if (lock != null)
             lock.getMoves();
 
@@ -410,12 +410,7 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
             if (p.getNumMoves() > 0)
                 pieces.add(p);
         }
-        Collections.sort(pieces, new Comparator<Piece>() {
-            @Override
-            public int compare(Piece p0, Piece p1) {
-                return p0.getNumMoves() - p1.getNumMoves();
-            }
-        });
+        Collections.sort(pieces, (Piece p0, Piece p1) -> p0.getNumMoves() - p1.getNumMoves());
         for (Piece p : pieces) {
             for (Move m : p.getMoves())
                 moves.add(m);
@@ -449,7 +444,7 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
 
     public void onGameOver() {}
 
-    enum Color {
+    public enum Color {
         RED, WHITE, BLACK
     };
 
@@ -515,8 +510,9 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
         return false;
     }
 
-    protected boolean isCaptureAtEndEnabled() {
+    public boolean isCaptureAtEndEnabled() {
         return false;
     }
 
+    public String getDescription() { return ""; }
 }

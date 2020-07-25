@@ -114,7 +114,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     }
 
    /**
-    * Annotated string can have annotations in the string (alal html) to control color, underline etc.
+    * Annotated string can have annotations in the string (ala html) to control color, underline etc.
     *
     * annotated color pattern:
     * [(a,)?r,g,b]
@@ -316,6 +316,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
             mv.addEq(0, textHeight);
         }
         float maxHeight = textHeight * lines.length;
+        begin();
         vertex(x, y);
         switch (hJust) {
             case RIGHT:
@@ -355,6 +356,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
             mv.addEq(0, textHeight);
         }
         float maxHeight = textHeight * lines.length;
+        begin();
         vertex(x, y);
         float left = 0;
         switch (hJust) {
@@ -643,7 +645,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param text
      * @return the width of the line in pixels
      */
-    protected abstract float drawStringLine(float x, float y, Justify hJust, String text);
+    public abstract float drawStringLine(float x, float y, Justify hJust, String text);
     
     /**
      * 
@@ -1042,10 +1044,14 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
         float oldWidth = setLineWidth(thickness);
         begin();
         vertex(x, y);
-        vertex(x+w, y);
+        //vertex(x+w, y);
         vertex(x+w, y+h);
-        vertex(x, y+h);
-        drawLineLoop();
+        //vertex(x, y+h);
+        //drawLineLoop();
+        drawLine(x, y, x+w, y);
+        drawLine(x+w, y, x+w, y+h);
+        drawLine(x, y, x, y+h);
+        drawLine(x, y+h, x+w, y+h);
         setLineWidth(oldWidth);
     }
 
@@ -1170,6 +1176,12 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
 
     public final void drawFilledRect(GRectangle rect) {
         drawQuad(rect.x, rect.y, rect.x+rect.w, rect.y+rect.h);
+    }
+
+    private void drawFilledRectP(float x, float y, float w, float h) {
+        vertex(x, y);
+        vertex(x+w, y+h);
+        drawFilledRects();
     }
 
     // return whether points added for quads or lines (true == quads)
@@ -1414,7 +1426,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param w
      * @param h
      */
-    public final void drawFilledOval(float x, float y, float w, float h) {
+    public void drawFilledOval(float x, float y, float w, float h) {
         pushMatrix();
         MutableVector2D mv0 = transform(x, y);
         MutableVector2D mv2 = transform(x+w, y+h);
