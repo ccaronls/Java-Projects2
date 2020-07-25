@@ -89,5 +89,8 @@ public class MutableVector2D extends Vector2D {
         return max(v, this);
     }
 
+    public final MutableVector2D reflectEq(Vector2D normalToWall) {
+        return set(reflect(normalToWall));
+    }
 }
 

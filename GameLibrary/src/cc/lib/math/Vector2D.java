@@ -364,6 +364,45 @@ public class Vector2D extends Reflector<Vector2D> implements IVector2D, Serializ
         return (x < 0 ? 180 + r : r < 0 ? 360 + r : r);
     }
 
+    /**
+     * Return this reflected off the wall defined by normal
+     *
+     *
+     * |W  /
+     * |  /
+     * | /
+     * |v
+     * |------> N
+     * | \
+     * |  \
+     * |   \
+     *      v
+     *
+     * W = Wall
+     * N = normalToWall
+     * V = this
+     * R = result
+     *
+     * @param normalToWall
+     * @return
+     */
+    public Vector2D reflect(Vector2D normalToWall) {
+        if (normalToWall.isZero())
+            return ZERO;
+        if (normalToWall.isNaN())
+            return ZERO;
+        if (normalToWall.isInfinite())
+            return ZERO;
+        float ndotv = normalToWall.dot(this);
+        if (ndotv > 0)
+            normalToWall = normalToWall.scaledBy(-1);
+        ndotv = Math.abs(ndotv);
+        float ndotn = normalToWall.dot(normalToWall);
+        // projection vector
+        Vector2D p = normalToWall.scaledBy(2 * ndotv / ndotn);
+        return add(p);
+    }
+
     @Override
     public final String toString() {
         return String.format("<%6f, %6f>", x, y);

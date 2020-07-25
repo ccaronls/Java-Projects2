@@ -406,4 +406,68 @@ public class CMath {
             System.err.println("NOT ENOUGH PRIMES!!!! value " + n + " is larger than number of known primes");
         return primes[Utils.clamp(n, 0, primes.length-1)];
     }
+
+    public interface PermuteCallback<T> {
+        void onPermutation(T [] array);
+    }
+
+    public static <T> void permute(T [] array, PermuteCallback<T> callback) {
+        permuteR(array, 0, callback);
+    }
+
+    private static <T> void permuteR(T [] array, int index, PermuteCallback<T> callback) {
+        int r = array.length-1;
+        if (r == index) {
+            callback.onPermutation(array);
+            return;
+        }
+
+        for (int i=index; i<=r; i++) {
+            Utils.swapElems(array, i, index);
+            permuteR(array, index+1, callback);
+            Utils.swapElems(array, i, index);
+        }
+
+    }
+
+    public static <T> void combinations(T [] array, T [] data, PermuteCallback<T> callback) {
+        //combinationsR(array, data, 0, 0, callback);
+        combinationUtil(array, data, 0, 0, callback);
+    }
+
+    private static <T> void combinationUtil(T arr[], T data[], int start, int index, PermuteCallback<T> callback)
+    {
+
+        // Current combination is ready
+        // to be printed, print it
+        if (index == data.length)
+        {
+            callback.onPermutation(data);
+            return;
+        }
+
+        // replace index with all possible
+        // elements. The condition "end-i+1 >= r-index"
+        // makes sure that including one element
+        // at index will make a combination with
+        // remaining elements at remaining positions
+        for (int i = start; i < arr.length /* && end - i + 1 >= data.length - index*/; i++)
+        {
+            data[index] = arr[i];
+            combinationUtil(arr, data, i+1, index+1, callback);
+        }
+    }
+
+    private static <T> void combinationsR(T [] array, Object [] data, int start, int index, PermuteCallback<T> callback) {
+        if (index == data.length) {
+            callback.onPermutation((T[])data);
+            return;
+        }
+
+        for (int i=start; i<array.length; i++) {
+            data[index]=array[i];
+            combinationsR(array, data, i+1, index+1, callback);
+        }
+    }
+
 }

@@ -201,6 +201,22 @@ public final class GColor extends Reflector<GColor> {
         return argb == c.argb;
     }
 
+    public final boolean equalsWithinThreshold(GColor c, int threshold) {
+        if (c == null)
+            return false;
+        if (c == this)
+            return true;
+        if (Math.abs(alpha()-c.alpha())>threshold)
+            return false;
+        if (Math.abs(red()-c.red())>threshold)
+            return false;
+        if (Math.abs(green()-c.green())>threshold)
+            return false;
+        if (Math.abs(blue()-c.blue())>threshold)
+            return false;
+        return true;
+    }
+
     /**
      * Return new color that is interpolation between this and parameter
      * @param target

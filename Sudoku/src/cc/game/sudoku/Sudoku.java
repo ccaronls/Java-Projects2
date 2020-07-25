@@ -283,4 +283,5 @@ public class Sudoku  {
 		hide(difficulty);
 		setFixed();
 	}
+
 }
