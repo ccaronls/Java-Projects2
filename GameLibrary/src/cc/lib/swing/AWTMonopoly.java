@@ -14,6 +14,7 @@ import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeEvent;
 
 import cc.lib.game.AGraphics;
+import cc.lib.game.GColor;
 import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
@@ -189,7 +190,8 @@ public class AWTMonopoly extends AWTComponent {
                 @Override
                 public void itemChoose(int index) {
                     final Trade t = trades.get(index);
-                    String title = "Buy " + Utils.getPrettyString(t.getCard().getProperty().name()) + " from " + Utils.getPrettyString(t.getTrader().getPiece().name());
+                    final Player trader = t.getTrader();
+                    String title = "Buy " + Utils.getPrettyString(t.getCard().getProperty().name()) + " from " + Utils.getPrettyString(trader.getPiece().name());
                     showPropertyPopup(title, "Buy for $" +t.getPrice(), t.getCard().getProperty(), () -> {
                         result[0] = t;
                         synchronized (monopoly) {

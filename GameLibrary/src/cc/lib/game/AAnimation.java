@@ -170,8 +170,10 @@ public abstract class AAnimation<T> {
                 }
             }
             dt = (float)(t-lastTime)/duration;
+            draw(g, position, dt);
+        } else {
+            draw(g, position, dt);
         }
-        draw(g, position, dt);
         lastTime = t;
         if (state == State.STOPPED) {
             kill();
@@ -189,7 +191,7 @@ public abstract class AAnimation<T> {
     }
 
     /**
-     * Animation state set to DONE
+     * Animation state set to DONE. onDone will not be called.
      */
     public synchronized void kill() {
         state = State.DONE;

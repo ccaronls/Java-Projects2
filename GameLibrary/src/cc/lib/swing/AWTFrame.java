@@ -139,15 +139,12 @@ public class AWTFrame extends JFrame implements WindowListener, ComponentListene
     }
 
     public synchronized void setProperties(Properties props) {
-        try {
-            OutputStream out = new FileOutputStream(propertiesFile);
-            try {
+        if (propertiesFile != null) {
+            try (OutputStream out = new FileOutputStream(propertiesFile)) {
                 props.store(out, "");
-            } finally {
-                out.close();
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-        } catch (Exception e) {
-            e.printStackTrace();
         }
         properties = props;
     }
@@ -286,6 +283,14 @@ public class AWTFrame extends JFrame implements WindowListener, ComponentListene
         pack();
         setBounds(rect);
         setVisible(true);
+    }
+
+    public void fullscreenMode() {
+        //pack();
+        setUndecorated(true);
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
+        setVisible(true);
+        pack();
     }
 	
 	/*
@@ -610,6 +615,9 @@ public class AWTFrame extends JFrame implements WindowListener, ComponentListene
      * @param icon
      */
     public void showMessageDialog(String title, String message, MessageIconType icon) {
+        if (message.length() > 32) {
+            message = Utils.wrapTextWithNewlines(message, 64);
+        }
         JOptionPane.showMessageDialog(this, message, title, icon.type);
     }
 
@@ -620,6 +628,30 @@ public class AWTFrame extends JFrame implements WindowListener, ComponentListene
      */
     public void showMessageDialog(String title, String message) {
         showMessageDialog(title, message, MessageIconType.PLAIN);
+    }
+
+    public void showMessageDialogWithHTMLContent(String titleStr, String html) {
+        final AWTFrame dialog = new AWTFrame();
+        JPanel content = new JPanel();
+        content.setLayout(new BorderLayout());
+        JTextPane txt = new JTextPane();
+        txt.setEditable(false);
+        txt.setContentType("text/html");
+        txt.setText(html);
+        content.add(txt, BorderLayout.CENTER);
+        JLabel title = new AWTLabel(titleStr, 1, 16, true);
+        content.add(title, BorderLayout.NORTH);
+        JButton close = new AWTButton("Close") {
+            @Override
+            protected void onAction() {
+                dialog.closePopup();
+            }
+        };
+        content.add(close, BorderLayout.SOUTH);
+        dialog.add(content, BorderLayout.CENTER);
+        dialog.showAsPopup(this);
+//        dialog.pack();
+  //      dialog.setVisible(true);
     }
 
     /**

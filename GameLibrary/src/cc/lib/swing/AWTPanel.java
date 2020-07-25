@@ -33,6 +33,6 @@ public class AWTPanel extends JPanel {
         add(comp, BorderLayout.WEST);
     }
     public void addRight(Component comp) {
-        add(comp, BorderLayout.WEST);
+        add(comp, BorderLayout.EAST);
     }
 }

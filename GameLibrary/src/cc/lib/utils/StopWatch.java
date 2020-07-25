@@ -33,13 +33,14 @@ public class StopWatch {
     /**
      * Capture the current time and delta time.  Must be called before calling getTme, getDeltaTiime
      */
-    public void capture() {
+    public long capture() {
         if (started && pauseTime == 0) {
             long t = this.getClockMiliseconds();
-            curTime = t - startTime;
+            this.curTime = t - startTime;
             this.deltaTime = curTime - lastCaptureTime;
             this.lastCaptureTime = curTime;
         }
+        return getTime();
     }
     
     /**

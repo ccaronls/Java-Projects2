@@ -24,6 +24,9 @@ import cc.lib.game.AAnimation;
 import cc.lib.game.Utils;
 import cc.lib.math.Bezier;
 import cc.lib.math.Vector2D;
+import cc.lib.probot.Direction;
+import cc.lib.probot.Guy;
+import cc.lib.probot.Level;
 import cc.lib.probot.Probot;
 import cc.lib.utils.Reflector;
 
@@ -38,7 +41,7 @@ public class ProbotView extends View {
     Probot probot = new Probot() {
 
         @Override
-        protected void onCommand(int line) {
+        protected void onCommand(Guy guy, int line) {
             Log.d("ProbotView", "onCommand: " + line);
             setProgramLine(line);
             switch (get(line).type) {
@@ -55,50 +58,53 @@ public class ProbotView extends View {
         }
 
         @Override
-        protected void onDotsRemaining() {
-            startFailedAnim();
+        protected void onDotsLeftUneaten() {
+            for (Guy guy : probot.getGuys())
+                startFailedAnim(guy);
             Utils.waitNoThrow(this, -1);
             postInvalidate();
         }
 
         @Override
-        protected void onAdvanced() {
-            startAdvanceAnim();
+        protected void onAdvanced(Guy guy) {
+            super.onAdvanced(guy);
+            startAdvanceAnim(guy);
             Utils.waitNoThrow(this, -1);
             postInvalidate();
         }
 
         @Override
-        protected void onAdvanceFailed() {
-            startFailedAnim();
+        protected void onAdvanceFailed(Guy guy) {
+            startFailedAnim(guy);
             Utils.waitNoThrow(this, -1);
             postInvalidate();
         }
 
         @Override
-        protected void onJumped() {
-            startJumpAnim();
+        protected void onJumped(Guy guy) {
+            startJumpAnim(guy);
             Utils.waitNoThrow(this, -1);
             postInvalidate();
         }
 
         @Override
-        protected void onTurned(int dir) {
-            startTurnAnim(dir);
+        protected void onTurned(Guy guy, int dir) {
+            startTurnAnim(guy, dir);
             Utils.waitNoThrow(this, -1);
             postInvalidate();
         }
 
         @Override
-        protected void onLazered(boolean instantaneous) {
-            startLazeredAnim(instantaneous);
+        protected void onLazered(Guy guy, boolean instantaneous) {
+            startLazeredAnim(guy, instantaneous);
             Utils.waitNoThrow(this, -1);
             postInvalidate();
         }
 
         @Override
         protected void onSuccess() {
-            startSuccessAnim();
+            for (Guy guy : probot.getGuys())
+                startSuccessAnim(guy);
             Utils.waitNoThrow(this, -1);
             ProbotView.this.nextLevel();
             postInvalidate();
@@ -265,36 +271,61 @@ public class ProbotView extends View {
 
         // draw the pacman
         radius = Math.round(0.4f * Math.min(cw, ch));
-        int x = probot.posx*cw + cw/2;
-        int y = probot.posy*ch + ch/2;
-        rf.set(x-radius, y-radius, x+radius, y+radius);
+        for (Guy guy : probot.getGuys()) {
+            int x = guy.posx * cw + cw / 2;
+            int y = guy.posy * ch + ch / 2;
+            rf.set(x - radius, y - radius, x + radius, y + radius);
 
-        p.setColor(Color.YELLOW);
-        p.setStyle(Paint.Style.FILL);
+            p.setColor(Color.YELLOW);
+            p.setStyle(Paint.Style.FILL);
 
-        if (animation != null) {
-            animation.update(canvas);
-            invalidate();
-        } else {
-            canvas.drawCircle(x, y, radius, p);
-            p.setColor(Color.BLACK);
-            p.setStyle(Paint.Style.STROKE);
-            switch (probot.dir) {
-                case Right:
-                    canvas.drawLine(x, y, x+radius, y, p);
-                    break;
-                case Down:
-                    canvas.drawLine(x, y, x, y+radius, p);
-                    break;
-                case Left:
-                    canvas.drawLine(x, y, x-radius, y, p);
-                    break;
-                case Up:
-                    canvas.drawLine(x, y, x, y-radius, p);
-                    break;
+            if (animation != null) {
+                animation.update(canvas);
+                invalidate();
+            } else {
+                canvas.drawCircle(x, y, radius, p);
+                p.setColor(Color.BLACK);
+                p.setStyle(Paint.Style.STROKE);
+                switch (guy.dir) {
+                    case Right:
+                        canvas.drawLine(x, y, x + radius, y, p);
+                        break;
+                    case Down:
+                        canvas.drawLine(x, y, x, y + radius, p);
+                        break;
+                    case Left:
+                        canvas.drawLine(x, y, x - radius, y, p);
+                        break;
+                    case Up:
+                        canvas.drawLine(x, y, x, y - radius, p);
+                        break;
+                }
             }
         }
     }
+
+    abstract class BaseAnim extends AAnimation<Canvas> {
+        public BaseAnim(long durationMSecs) {
+            super(durationMSecs);
+        }
+
+        public BaseAnim(long durationMSecs, int repeats) {
+            super(durationMSecs, repeats);
+        }
+
+        public BaseAnim(long durationMSecs, int repeats, boolean oscilateOnRepeat) {
+            super(durationMSecs, repeats, oscilateOnRepeat);
+        }
+
+        @Override
+        protected void onDone() {
+            animation = null;
+            synchronized (probot) {
+                probot.notify();
+            }
+
+        }
+    };
 
     Path lazerPath = new Path();
     void drawLazer(Canvas c, int cx, int cy, boolean horz, int color) {
@@ -327,9 +358,9 @@ public class ProbotView extends View {
         c.drawCircle(cx, cy, radius/2, p);
     }
 
-    void startLazeredAnim(boolean instantaneous) {
+    void startLazeredAnim(final Guy guy, boolean instantaneous) {
         if (!instantaneous) {
-            animation = new AdvanceAnim(600, 0.6f) {
+            animation = new AdvanceAnim(guy,600, 0.6f) {
                 @Override
                 protected void onDone() {
                     animation = new LazeredAnim(rect) {
@@ -342,8 +373,8 @@ public class ProbotView extends View {
             }.start();
         } else {
             RectF rect = new RectF();
-            final float x = probot.posx*cw + cw/2;
-            final float y = probot.posy*ch + ch/2;
+            final float x = guy.posx*cw + cw/2;
+            final float y = guy.posy*ch + ch/2;
             rect.set(x-radius, y-radius,
                     x+radius, y+radius);
             animation = new LazeredAnim(rect) {
@@ -356,33 +387,11 @@ public class ProbotView extends View {
         postInvalidate();
     }
 
-    void startAdvanceAnim() {
-        animation = new AdvanceAnim(1000, 1).start();
+    void startAdvanceAnim(Guy guy) {
+        animation = new AdvanceAnim(guy, 1000, 1).start();
         postInvalidate();
     }
 
-    abstract class BaseAnim extends AAnimation<Canvas> {
-        public BaseAnim(long durationMSecs) {
-            super(durationMSecs);
-        }
-
-        public BaseAnim(long durationMSecs, int repeats) {
-            super(durationMSecs, repeats);
-        }
-
-        public BaseAnim(long durationMSecs, int repeats, boolean oscilateOnRepeat) {
-            super(durationMSecs, repeats, oscilateOnRepeat);
-        }
-
-        @Override
-        protected void onDone() {
-            animation = null;
-            synchronized (probot) {
-                probot.notify();
-            }
-
-        }
-    };
 
     abstract class LazeredAnim extends BaseAnim {
 
@@ -446,17 +455,19 @@ public class ProbotView extends View {
 
         final float advanceAmt;
         int x=0,y=0,angStart=0, sweepAng=0;
-        RectF rect = new RectF();
+        final RectF rect = new RectF();
+        final Guy guy;
 
-        AdvanceAnim(int dur, float advanceAmt) {
+        AdvanceAnim(Guy guy, int dur, float advanceAmt) {
             super(dur);
+            this.guy = guy;
             this.advanceAmt = advanceAmt;
         }
 
         @Override
         protected void draw(Canvas canvas, float position, float dt) {
-            x = probot.posx*cw + cw/2;
-            y = probot.posy*ch + ch/2;
+            x = guy.posx*cw + cw/2;
+            y = guy.posy*ch + ch/2;
             angStart=0;
             sweepAng=270;
             float dx=0, dy=0;
@@ -467,7 +478,7 @@ public class ProbotView extends View {
             }
             sweepAng = 360 - angStart*2;
 
-            switch (probot.dir) {
+            switch (guy.dir) {
 
                 case Right:
                     dx = advanceAmt * cw;
@@ -498,7 +509,7 @@ public class ProbotView extends View {
 
     }
 
-    void startJumpAnim() {
+    void startJumpAnim(final Guy guy) {
         animation = new BaseAnim(1000) {
 
             Bezier b = null;
@@ -507,10 +518,10 @@ public class ProbotView extends View {
             protected void draw(Canvas canvas, float position, float dt) {
                 if (b == null) {
                     b = new Bezier();
-                    int x = probot.posx*cw + cw/2;
-                    int y = probot.posy*ch + ch/2;
+                    int x = guy.posx*cw + cw/2;
+                    int y = guy.posy*ch + ch/2;
                     b.addPoint(x, y);
-                    switch (probot.dir) {
+                    switch (guy.dir) {
                         case Right:
                             b.addPoint(x+cw*2/3, y-ch/2);
                             b.addPoint(x+cw*4/3, y-ch/2);
@@ -542,7 +553,7 @@ public class ProbotView extends View {
                 }
                 sweepAng = 360 - angStart*2;
 
-                switch (probot.dir) {
+                switch (guy.dir) {
 
                     case Right:
                         break;
@@ -570,38 +581,38 @@ public class ProbotView extends View {
         postInvalidate();
     }
 
-    void startFailedAnim() {
+    void startFailedAnim(final Guy guy) {
         animation = new BaseAnim(500, 6, true) {
             @Override
             protected void draw(Canvas canvas, float position, float dt) {
                 p.setColor(DroidUtils.interpolateColor(Color.YELLOW, Color.RED, position));
-                int x = probot.posx*cw + cw/2;
-                int y = probot.posy*ch + ch/2;
-                drawGuy(canvas, x, y);
+                int x = guy.posx*cw + cw/2;
+                int y = guy.posy*ch + ch/2;
+                drawGuy(canvas, x, y, guy.dir);
             }
 
         }.start();
         postInvalidate();
     }
 
-    void startTurnAnim(final int dir) {
+    void startTurnAnim(final Guy guy, final int dir) {
         animation = new BaseAnim(500) {
             @Override
             protected void draw(Canvas g, float position, float dt) {
-                int x = probot.posx*cw + cw/2;
-                int y = probot.posy*ch + ch/2;
+                int x = guy.posx*cw + cw/2;
+                int y = guy.posy*ch + ch/2;
 
                 g.save();
                 g.translate(x, y);
                 g.rotate(Math.round(position * 90 * dir));
-                drawGuy(g, 0, 0);
+                drawGuy(g, 0, 0, guy.dir);
                 g.restore();
             }
         }.start();
         postInvalidate();
     }
 
-    void startSuccessAnim() {
+    void startSuccessAnim(final Guy guy) {
         animation = new BaseAnim(3000) {
 
             final int [] faces = new int [] {
@@ -613,8 +624,8 @@ public class ProbotView extends View {
             @Override
             protected void draw(Canvas g, float position, float dt) {
                 float parts = 1.0f / faces.length;
-                int x = probot.posx*cw + cw/2;
-                int y = probot.posy*ch + ch/2;
+                int x = guy.posx*cw + cw/2;
+                int y = guy.posy*ch + ch/2;
                 for (int i=faces.length-1; i>=0; i--) {
                     if (position >= parts*i) {
                         Drawable d = getContext().getResources().getDrawable(faces[i]);
@@ -629,11 +640,11 @@ public class ProbotView extends View {
         postInvalidate();
     }
 
-    void drawGuy(Canvas canvas, int x, int y) {
+    void drawGuy(Canvas canvas, int x, int y, Direction dir) {
         canvas.drawCircle(x, y, radius, p);
         p.setColor(Color.BLACK);
         p.setStyle(Paint.Style.STROKE);
-        switch (probot.dir) {
+        switch (dir) {
             case Right:
                 canvas.drawLine(x, y, x+radius, y, p);
                 break;
@@ -653,7 +664,7 @@ public class ProbotView extends View {
         setLevel(probot.getLevelNum()+1);
     }
 
-    List<Probot.Level> levels = null;
+    List<Level> levels = null;
 
     void setLevel(int level) {
         this.maxLevel = Math.max(maxLevel, level);

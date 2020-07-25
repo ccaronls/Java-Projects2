@@ -516,6 +516,21 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
         super.setPreferredSize(new Dimension(w, h));
     }
 
+    @Override
+    public Dimension getMinimumSize() {
+        return super.getMinimumSize();
+    }
+
+    @Override
+    public Dimension getMaximumSize() {
+        return super.getMaximumSize();
+    }
+
+    @Override
+    public Dimension getPreferredSize() {
+        return super.getPreferredSize();
+    }
+
     public final APGraphics getAPGraphics() {
         return G;
     }

@@ -19,7 +19,9 @@ sourceSets {
         java {
             srcDirs = [ 'src', 'apps' ]
         }
-
+        resources {
+            srcDirs = [ 'resources' ]
+        }
     }
 
     androidLib {
@@ -94,3 +96,11 @@ task runProbotLevelBuilder(type: JavaExec) {
 //    args "arg1", "arg2"
 }
 
+task runProbot(type: JavaExec) {
+    group = 'Application' // <-- change the name as per your need
+    description = 'Run Probot Desktop App'
+
+    classpath sourceSets.main.runtimeClasspath // <-- Don't change this
+    main = "cc.lib.swing.AWTProbot"
+//    args "arg1", "arg2"
+}
