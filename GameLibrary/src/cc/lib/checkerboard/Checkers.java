@@ -422,9 +422,9 @@ public class Checkers extends Rules {
                         Piece captured = game.getPiece(move.getCaptured(0));
                         Piece capturing = game.getPiece(move.getEnd());
                         // capturing end stack becomes start stack
-                        capturing.addStackLast(captured.getPlayerNum());
+                        //capturing.addStackLast(captured.getPlayerNum());
                         if (captured.isStacked()) {
-                            captured.setPlayerNum(captured.removeStackFirst());
+                          //  captured.setPlayerNum(captured.removeStackFirst());
                         } else {
                             game.clearPiece(move.getCaptured(0));
                         }
@@ -556,11 +556,11 @@ public class Checkers extends Rules {
                         if (!p.isStacked())
                             throw new AssertionError("Logic Error: Capture must result in stacked piece");
                         if (captured.getType() != EMPTY) {
-                            captured.addStackFirst(captured.getPlayerNum());
+                            //captured.addStackFirst(captured.getPlayerNum());
                         } else {
                             captured.setType(m.getCapturedType(0));
                         }
-                        captured.setPlayerNum(p.removeStackLast());
+//                        captured.setPlayerNum(p.removeStackLast());
                     } else {
                         for (int i = 0; i < m.getNumCaptured(); i++) {
                             Piece cp = game.getPiece(m.getCaptured(i));

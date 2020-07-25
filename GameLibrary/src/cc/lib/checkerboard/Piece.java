@@ -124,26 +124,26 @@ public class Piece extends Reflector<Piece> {
         return stack != null && stack.size() > 0;
     }
 
-    public void addStackFirst(int n) {
+    public void addStackTop(int n) {
         if (stack == null)
             stack = new LinkedList<>();
         stack.addFirst(n);
     }
 
-    public void addStackLast(int n) {
+    public void addStackBottom(int n) {
         if (stack == null)
             stack = new LinkedList<>();
         stack.addLast(n);
     }
 
-    public int removeStackFirst() {
+    public int removeStackTop() {
         int n = stack.removeFirst();
         if (stack.size() == 0)
             stack = null;
         return n;
     }
 
-    public int removeStackLast() {
+    public int removeStackBottom() {
         int n = stack.removeLast();
         if (stack.size() == 0)
             stack = null;
@@ -154,6 +154,7 @@ public class Piece extends Reflector<Piece> {
         return stack.size();
     }
 
+    // 0 is the top of the stack (closest to top piece)
     public int getStackAt(int index) {
         return stack.get(index);
     }
