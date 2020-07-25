@@ -24,6 +24,51 @@ public class Player extends Reflector<Player> {
     private int jailedTimes = 0;
     private Piece piece;
 
+    private float getPropertyValue(Square sq, int cost) {
+        switch (sq.getType()) {
+            case PROPERTY: {
+                // should we buy a property?
+                // variables:
+                //  - do we already own one of this color (multiplier *= 1+howmany we own
+                //  - how valuable according to rating?
+                //  - how expensive vs. potential rent?
+                //  - how expensive vs. our value?
+
+                float multiplier = 1;
+                Map<GColor, List<Card>> sets = getPropertySets();
+                List<Card> owned = sets.get(sq.getColor());
+                if (owned != null) {
+                    multiplier *= (1+owned.size());
+                }
+                // y = mx+b
+                float b = 0.5f;
+                final float m = (1.0f-b)/Square.getMaxRank();
+                multiplier *= m*sq.getRank() + b;
+                float rentCostRatio = 1.0f - sq.getRent(1) / cost;
+                float costMoneyRatio = 1.0f - (float)cost / getMoney();
+                multiplier += rentCostRatio + costMoneyRatio;
+                return multiplier;
+
+
+/*
+                            if (sets.containsKey(sq.getColor())) {
+                                return mt; // always want to purchase from a set we already own
+                            }
+                            weights[index] = Math.max(1, 4 - sets.size()); // reduce likelyhood of buying as our sets go up*/
+                //break;
+            }
+            case UTILITY:
+                if (getNumUtilities() > 0)
+                    return 10;
+                return 1;
+                //break;
+            case RAIL_ROAD:
+                return 1 + getNumRailroads()*2;
+                //break;
+        }
+        return 0;
+    }
+
     public MoveType chooseMove(Monopoly game, List<MoveType> options) {
         if (options.size() == 1)
             return options.get(0);
@@ -35,6 +80,7 @@ public class Player extends Reflector<Player> {
         Map<GColor, List<Card>> sets = getPropertySets();
 
         Square sq = null;
+        int sqCost = 0;
         for (MoveType mt : options) {
             switch (mt) {
                 case DONT_PURCHASE:
@@ -44,17 +90,12 @@ public class Player extends Reflector<Player> {
                     break;
                 case PURCHASE_UNBOUGHT:
                     sq = game.getPurchasePropertySquare();
+                    //sqCost = game.get
                 case PURCHASE: {
                     if (sq == null)
                         sq = getSquare();
                     switch (sq.getType()) {
                         case PROPERTY: {
-                            /*
-                        }
-                            //if (sets.containsKey(sq.getColor())) {
-                            //    return mt; // always want to purchase from a set we already own
-                            //}
-
                             // should we buy a property?
                             // variables:
                             //  - do we already own one of this color (multiplier *= 1+howmany we own
@@ -64,17 +105,24 @@ public class Player extends Reflector<Player> {
 
                             float multiplier = 1;
 
-                            multiplier *=
 
 
                             List<Card> owned = sets.get(sq.getColor());
                             if (owned != null) {
                                 multiplier *= (1+owned.size());
-                            }*/
+                            }
+                            // y = mx+b
+                            float b = 0.5f;
+                            final float m = (1.0f-b)/Square.getMaxRank();
+                            multiplier *= m*sq.getRank() + b;
+                            //float rentCostRatio = sq.getRent(1) / sq.
+
+
+/*
                             if (sets.containsKey(sq.getColor())) {
                                 return mt; // always want to purchase from a set we already own
                             }
-                            weights[index] = Math.max(1, 4 - sets.size()); // reduce likelyhood of buying as our sets go up
+                            weights[index] = Math.max(1, 4 - sets.size()); // reduce likelyhood of buying as our sets go up*/
                             break;
                         }
                         case UTILITY:

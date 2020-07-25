@@ -20,24 +20,20 @@ import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.NumberPicker;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.io.File;
 import java.util.List;
-import java.util.TooManyListenersException;
 
 import cc.lib.android.CCNumberPicker;
 import cc.lib.android.DroidActivity;
 import cc.lib.android.DroidGraphics;
 import cc.lib.android.DroidView;
-import cc.lib.android.MPGameManager;
 import cc.lib.android.WifiP2pHelper;
 import cc.lib.game.AGraphics;
 import cc.lib.game.Utils;
 import cc.lib.monopoly.Card;
 import cc.lib.monopoly.Monopoly;
 import cc.lib.monopoly.MoveType;
-import cc.lib.monopoly.NetCommon;
 import cc.lib.monopoly.Piece;
 import cc.lib.monopoly.Player;
 import cc.lib.monopoly.PlayerUser;
@@ -46,22 +42,23 @@ import cc.lib.monopoly.Square;
 import cc.lib.monopoly.Trade;
 import cc.lib.monopoly.UIMonopoly;
 import cc.lib.net.GameClient;
-import cc.lib.net.GameCommand;
+import cc.lib.net.GameServer;
 import cc.lib.utils.FileUtils;
-import cc.lib.utils.Reflector;
 
 /**
  * Created by chriscaron on 2/15/18.
  */
 
-public class MonopolyActivity extends DroidActivity implements GameClient.Listener {
+public class MonopolyActivity extends DroidActivity {
 
     private final static String TAG = MonopolyActivity.class.getSimpleName();
 
     private File saveFile=null;
-    private File rulesFile=null;
 
-    MPGameManager mpMgr = null;
+    WifiP2pHelper wifiHelper;
+    GameServer server;
+    GameClient client;
+    Monopoly copy = null;
 
     private UIMonopoly monopoly = new UIMonopoly() {
         @Override
@@ -71,6 +68,14 @@ public class MonopolyActivity extends DroidActivity implements GameClient.Listen
 
         @Override
         public void runGame() {
+            if (server.isConnected()) {
+                if (copy == null) {
+                    copy = new Monopoly();
+                    copy.copyFrom(this);
+                } else {
+
+                }
+            }
             monopoly.trySaveToFile(saveFile);
             if (BuildConfig.DEBUG) {
                 checkPermissionAndThen(() -> {
@@ -120,18 +125,9 @@ public class MonopolyActivity extends DroidActivity implements GameClient.Listen
             int index=0;
             for (MoveType mt : moves) {
                 switch (mt) {
-                    case PURCHASE: {
-                        Square sq = player.getSquare();
-                        items[index++] = "Purchase " + Utils.getPrettyString(sq.name()) + " for $" + sq.getPrice();
-                        break;
-                    }
                     case PURCHASE_UNBOUGHT: {
                         Square sq = getPurchasePropertySquare();
                         items[index++] = "Purchase " + Utils.getPrettyString(sq.name()) + " for $" + sq.getPrice();
-                        break;
-                    }
-                    case PAY_BOND: {
-                        items[index++] = String.format("%s $%d", Utils.getPrettyString(mt.name()), player.getJailBond());
                         break;
                     }
                     default:
@@ -214,8 +210,7 @@ public class MonopolyActivity extends DroidActivity implements GameClient.Listen
                     newDialogBuilderINGAME().setTitle(player.getPiece() + " Choose Trade")
                             .setItems(items, (DialogInterface dialog, int which) -> {
                                     final Trade t = list.get(which);
-                                    final Player trader = getPlayer(t.getTraderNum());
-                                    showPurchasePropertyDialog("Buy " + Utils.getPrettyString(t.getCard().getProperty().name()) + " from " + Utils.getPrettyString(trader.getPiece().name()),
+                                    showPurchasePropertyDialog("Buy " + Utils.getPrettyString(t.getCard().getProperty().name()) + " from " + Utils.getPrettyString(t.getTrader().getPiece().name()),
                                             "Buy for $" + t.getPrice(), t.getCard().getProperty(), () -> { result[0] = t; });
 
                             }).show();
@@ -349,14 +344,6 @@ public class MonopolyActivity extends DroidActivity implements GameClient.Listen
         super.onCreate(savedInstanceState);
         //AndroidLogger.setLogFile(new File(Environment.getExternalStorageDirectory(), "monopoly.log"));
         saveFile = new File(getFilesDir(),"monopoly.save");
-        rulesFile = new File(getFilesDir(), "rules.save");
-        try {
-            if (rulesFile.exists())
-                monopoly.getRules().copyFrom(Reflector.deserializeFromFile(rulesFile));
-        } catch (Exception e) {
-            rulesFile.delete();
-            e.printStackTrace();
-        }
     }
 
     @Override
@@ -450,41 +437,6 @@ public class MonopolyActivity extends DroidActivity implements GameClient.Listen
         }
     }
 
-    void startJoinGame() {
-        monopoly.getClient().client.addListener(this);
-        mpMgr = new MPGameManager(this,monopoly.getClient().client, NetCommon.PORT, NetCommon.DNS_SERVICE_ID) {
-            @Override
-            public void onAllClientsJoined() {
-
-            }
-        };
-
-        mpMgr.showJoinGameDialog();
-    }
-
-    @Override
-    public void onCommand(GameCommand cmd) {
-        if (cmd.getType().equals(NetCommon.SVR_TO_CL_CHOOSE_PIECE)) {
-            showPieceChooser(() -> {
-            });
-        }
-    }
-
-    @Override
-    public void onMessage(String msg) {
-
-    }
-
-    @Override
-    public void onDisconnected(String reason) {
-
-    }
-
-    @Override
-    public void onConnected() {
-
-    }
-
     void showOptionsMenu() {
         checkPermissionAndThen(() -> {
                 File fixed = new File(Environment.getExternalStorageDirectory(), "monopoly_fixed.txt");
@@ -495,15 +447,12 @@ public class MonopolyActivity extends DroidActivity implements GameClient.Listen
         }, android.Manifest.permission.WRITE_EXTERNAL_STORAGE);
 
         newDialogBuilder().setTitle("OPTIONS")
-                .setItems(new String[]{"New Game", "Join Game", "Resume"}, (DialogInterface dialog, int which) -> {
+                .setItems(new String[]{"New Game", "Resume"}, (DialogInterface dialog, int which) -> {
                         switch (which) {
                             case 0:
                                 showGameSetupDialog();
                                 break;
                             case 1:
-                                startJoinGame();
-                                break;
-                            case 2:
                                 if (monopoly.tryLoadFromFile(saveFile)) {
                                     monopoly.repaint();
                                     monopoly.startGameThread();
@@ -517,28 +466,6 @@ public class MonopolyActivity extends DroidActivity implements GameClient.Listen
                 }).show();
 
     }
-
-    void showHostSetupMenu() {
-        final NumberPicker npPlayers = CCNumberPicker.newPicker(this, 2, 2, 4, null);
-        newDialogBuilder().setTitle("Choose number of players")
-                .setView(npPlayers).setNegativeButton("Cancel", null)
-                .setPositiveButton("Start",(DialogInterface dialog, int which) -> {
-                    monopoly.clear();
-                    monopoly.addPlayer(new PlayerUser());
-                    for (int i=0; i<npPlayers.getValue()-1; i++) {
-                        monopoly.addPlayer(new Player());
-                    }
-                    mpMgr = new MPGameManager(this, monopoly.server, NetCommon.MAX_CONNECTIONS) {
-                        @Override
-                        public void onAllClientsJoined() {
-                            monopoly.server.broadcastCommand(new GameCommand(NetCommon.SVR_TO_CL_CHOOSE_PIECE).setEnumList("pieces", monopoly.getUnusedPieces()));
-                        }
-                    };
-                    mpMgr.startHostMultiplayer();
-                });
-    }
-
-
 
     void showPlayerSetupMenu() {
         final View v = View.inflate(this, R.layout.players_setup_dialog, null);
@@ -587,7 +514,6 @@ public class MonopolyActivity extends DroidActivity implements GameClient.Listen
     }
 
     void showGameSetupDialog() {
-        final Rules rules = monopoly.getRules();
         final int [] startMoneyValues = getResources().getIntArray(R.array.start_money_values);
         final int [] winMoneyValues = getResources().getIntArray(R.array.win_money_values);
         final int [] taxPercentValues = getResources().getIntArray(R.array.tax_scale_percent_values);
@@ -600,7 +526,7 @@ public class MonopolyActivity extends DroidActivity implements GameClient.Listen
         int winMoney = getPrefs().getInt("winMoney", 5000);
         int taxPercent = getPrefs().getInt("taxPercent", 100);
         boolean jailBump = getPrefs().getBoolean("jailBump", false);
-        final CompoundButton cbJailMultiplierEnabled = (CompoundButton)v.findViewById(R.id.cbJailMultiplierEnabled);
+        final Rules rules = monopoly.getRules();
         npStartMoney.init(startMoneyValues, startMoney, (int value) -> "$" + value, (picker, oldVal, newVal) -> {
             getPrefs().edit().putInt("startMoney", startMoneyValues[newVal]).apply();
         });
@@ -611,29 +537,14 @@ public class MonopolyActivity extends DroidActivity implements GameClient.Listen
             getPrefs().edit().putInt("taxPercent", taxPercentValues[newVal]).apply();
         });
         cbJailBumpEnabled.setChecked(jailBump);
-        cbJailMultiplierEnabled.setChecked(rules.jailMultiplier);
         cbJailBumpEnabled.setOnCheckedChangeListener((buttonView, isChecked) -> { getPrefs().edit().putBoolean("jailBump", isChecked).apply(); });
         newDialogBuilder().setTitle("Configure").setView(v)
-                .setPositiveButton("Single Player", (DialogInterface dialog, int which) -> {
-                    rules.startMoney = startMoneyValues[npStartMoney.getValue()];
-                    rules.valueToWin = winMoneyValues[npWinMoney.getValue()];
-                    rules.taxScale = 0.01f * taxPercentValues[npTaxScale.getValue()];
-                    rules.jailBumpEnabled = cbJailBumpEnabled.isChecked();
-                    rules.jailMultiplier = cbJailMultiplierEnabled.isChecked();
-                    try {
-                        Reflector.serializeToFile(rules, rulesFile);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    showPlayerSetupMenu();
-                })
-                .setNegativeButton("Multi Player", (DialogInterface dialog, int which) -> {
-                    rules.startMoney = startMoneyValues[npStartMoney.getValue()];
-                    rules.valueToWin = winMoneyValues[npWinMoney.getValue()];
-                    rules.taxScale = 0.01f * taxPercentValues[npTaxScale.getValue()];
-                    rules.jailBumpEnabled = cbJailBumpEnabled.isChecked();
-                    rules.jailMultiplier = cbJailMultiplierEnabled.isChecked();
-                    showHostSetupMenu();
+                .setPositiveButton("Setup Players", (DialogInterface dialog, int which) -> {
+                        rules.startMoney = startMoneyValues[npStartMoney.getValue()];
+                        rules.valueToWin = winMoneyValues[npWinMoney.getValue()];
+                        rules.taxScale = 0.01f * taxPercentValues[npTaxScale.getValue()];
+                        rules.jailBumpEnabled = cbJailBumpEnabled.isChecked();
+                        showPlayerSetupMenu();
                 }).show();
     }
 
