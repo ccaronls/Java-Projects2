@@ -1,8 +1,8 @@
 package cc.android.learningcalc;
 
-import java.math.BigInteger;
-
 import android.content.Context;
+
+import java.math.BigInteger;
 
 enum Op {
 	ADD,SUB,MULT,DIV;

@@ -9,6 +9,12 @@ dependencies {
 }
 
 android {
+
+    defaultConfig {
+        minSdkVersion 11
+        targetSdkVersion 26
+    }
+
     compileOptions {
         sourceCompatibility project.sourceCompatibility
         targetCompatibility project.targetCompatibility

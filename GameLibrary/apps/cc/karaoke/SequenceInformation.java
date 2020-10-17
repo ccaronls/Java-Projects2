@@ -108,8 +108,23 @@ public class SequenceInformation {
     }
 
     public static void dumpLyrics() {
+        Debug.lprintln("[");
+        Debug.lprintln("\"Here we go!\\n3 2 1\"");
         for (LyricLine lyric : lyricLines) {
-            System.out.println(lyric.line);
+            Debug.lprintln(",\"" + lyric.line + "\"");
+        }
+        Debug.lprintln("]");
+        int line = 0;
+        for (LyricLine lyric : lyricLines) {
+            line++;
+            float start = (float)((double)lyric.startTick/1000);
+            float end   = (float)((double)lyric.endTick/1000);
+            Debug.println(String.format("Line: %3d start: %3.2f)end:%3.2f", line, start, end));
+            for (DurationNote l : lyric.notes) {
+                start = (float)((double)l.startTick/1000);
+                end = (float)((double)l.endTick/1000);
+                Debug.println(String.format("    Note: %2d  start: %3.2f  end: %3.2f", l.note, start, end));
+            }
         }
     }
 
@@ -191,9 +206,7 @@ public class SequenceInformation {
                 buff.delete(0, buff.length());
             }
         }
-        if (Debug.DEBUG) {
-            dumpLyrics();
-        }
+        dumpLyrics();
         return lyricLines;
     }
 

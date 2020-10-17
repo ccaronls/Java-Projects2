@@ -4,11 +4,13 @@ import android.graphics.Color;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.style.ForegroundColorSpan;
+
 import cc.lib.game.Utils;
 
 public class Quiz {
-	private final int [] buttons = new int[10];
+	private final char [] buttons = new char[10];
 	private int numButtons = 0;
+	private int numTypes = 0;
 	private Spannable question;
 	private int qmarkStart, qmarkEnd, answerStart;
 	private final long start = System.currentTimeMillis();
@@ -23,10 +25,20 @@ public class Quiz {
 	}
 
 	Quiz(String question, int solution) {
+	    boolean isNeg = false;
+	    if (solution < 0) {
+	        solution = -solution;
+	        isNeg = true;
+        }
 		while (solution > 0) {
-			buttons[numButtons++] = solution % 10;
+            Utils.pushFirst(Character.forDigit(solution % 10, 10), buttons);
+            numButtons ++;
 			solution = solution/10;
 		}
+		if (isNeg) {
+		    Utils.pushFirst('-', buttons);
+		    numButtons++;
+        }
 		if (numButtons == 0) {
 			buttons[numButtons++] = 0;
 		}
@@ -40,7 +52,7 @@ public class Quiz {
 		answerStart = qmarkStart;
 	}
 	
-	Spannable getSpanned() {
+	synchronized Spannable getSpanned() {
 		long dt = System.currentTimeMillis() - start;
 		long pulseSpeed = 3000;
 		float scale = 0;
@@ -72,39 +84,41 @@ public class Quiz {
 		
 		return question;
 	}
-	
-	static final int numbers[] = {
-			R.id.button0,
-			R.id.button1,
-			R.id.button2,
-			R.id.button3,
-			R.id.button4,
-			R.id.button5,
-			R.id.button6,
-			R.id.button7,
-			R.id.button8,
-			R.id.button9,
+
+	static final int buttonMap[][] = {
+            { R.id.button_minus, '-' },
+            { R.id.button0, '0' },
+            { R.id.button1, '1' },
+            { R.id.button2, '2' },
+            { R.id.button3, '3' },
+            { R.id.button4, '4' },
+            { R.id.button5, '5' },
+            { R.id.button6, '6' },
+            { R.id.button7, '7' },
+            { R.id.button8, '8' },
+            { R.id.button9, '9' },
 	};
 
-	static final int operations[] = {
-			R.id.button_plus,
-			R.id.button_minus,
-			R.id.button_mult,
-			R.id.button_div,
-	};
-	
+	char getCharFromButton(int buttonId) {
+	    for (int i=0; i<buttonMap.length; i++) {
+	        if (buttonId == buttonMap[i][0])
+	            return (char)buttonMap[i][1];
+        }
+	    return 0;
+    }
+
 	enum TestResult {
 		GOOD,
 		WRONG,
 		KEEP_GOING,
 		TRY_AGAIN
 	}
-	
-	TestResult test(int buttonId) {
-		int button = buttons[numButtons-1];
-		if (buttonId == numbers[button]) {
-			numButtons--;
-			if (numButtons <= 0) {
+
+	synchronized TestResult test(int buttonId) {
+		char button = buttons[numTypes];
+		if (button == getCharFromButton(buttonId)) {
+			numTypes++;
+			if (numTypes == numButtons) {
 				return TestResult.GOOD;
 			}
 			//html = html.replaceFirst("[\\?]", String.valueOf(button));

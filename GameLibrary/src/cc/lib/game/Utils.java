@@ -1960,6 +1960,96 @@ public class Utils {
     }
 
     /**
+     *
+     * @param item
+     * @param arr
+     * @return
+     */
+    public static char pushFirst(char item, char [] arr) {
+        char last = arr[arr.length-1];
+        for (int i=arr.length-1; i>0; i--) {
+            arr[i] = arr[i-1];
+        }
+        arr[0] = item;
+        return last;
+    }
+
+    /**
+     *
+     * @param item
+     * @param arr
+     * @return
+     */
+    public static byte pushFirst(byte item, byte [] arr) {
+        byte last = arr[arr.length-1];
+        for (int i=arr.length-1; i>0; i--) {
+            arr[i] = arr[i-1];
+        }
+        arr[0] = item;
+        return last;
+    }
+
+    /**
+     *
+     * @param item
+     * @param arr
+     * @return
+     */
+    public static int pushFirst(int item, int [] arr) {
+        int last = arr[arr.length-1];
+        for (int i=arr.length-1; i>0; i--) {
+            arr[i] = arr[i-1];
+        }
+        arr[0] = item;
+        return last;
+    }
+
+    /**
+     *
+     * @param item
+     * @param arr
+     * @return
+     */
+    public static long pushFirst(long item, long [] arr) {
+        long last = arr[arr.length-1];
+        for (int i=arr.length-1; i>0; i--) {
+            arr[i] = arr[i-1];
+        }
+        arr[0] = item;
+        return last;
+    }
+
+    /**
+     *
+     * @param item
+     * @param arr
+     * @return
+     */
+    public static float pushFirst(float item, float [] arr) {
+        float last = arr[arr.length-1];
+        for (int i=arr.length-1; i>0; i--) {
+            arr[i] = arr[i-1];
+        }
+        arr[0] = item;
+        return last;
+    }
+
+    /**
+     *
+     * @param item
+     * @param arr
+     * @return
+     */
+    public static double pushFirst(double item, double [] arr) {
+        double last = arr[arr.length-1];
+        for (int i=arr.length-1; i>0; i--) {
+            arr[i] = arr[i-1];
+        }
+        arr[0] = item;
+        return last;
+    }
+
+    /**
      * Return var args list as an array
      *
      * @param arr
@@ -1989,6 +2079,8 @@ public class Utils {
             return ((Collection) o).size() == 0;
         if (o.getClass().isArray())
             return Array.getLength(o) == 0;
+        if (DEBUG_ENABLED)
+            throw new IllegalArgumentException("isEmpty not compatible of object of type: " + o.getClass());
         System.err.println("isEmpty does not know about class " + o.getClass());
         return false;
     }
@@ -2339,6 +2431,12 @@ public class Utils {
         return l;
     }
 
+    /**
+     * Same as wrapText except it appends newlines as well
+     * @param txt
+     * @param maxChars
+     * @return
+     */
     public static String wrapTextWithNewlines(String txt, int maxChars) {
         String [] lines = wrapText(txt, maxChars);
         if (lines == null || lines.length==0)

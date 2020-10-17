@@ -124,7 +124,7 @@ public abstract class UIMonopoly extends Monopoly {
             @Override
             protected void draw(AGraphics g, float position, float dt) {
                 g.pushMatrix();
-                g.translate(W/2, H/4);
+                g.translate(W/2, H/8);
                 drawDice(g, die1, die2, DIM/10);
                 g.popMatrix();
             }
@@ -413,7 +413,7 @@ public abstract class UIMonopoly extends Monopoly {
     }
 
     @Override
-    protected void onPlayerBoughtHouse(int playerNum, Square property, int amt) {
+    protected void onPlayerBoughtHouse(final int playerNum, final Square property, final int amt) {
         addAnimation("BOARD", new AAnimation<AGraphics>(HOUSE_PAUSE) {
 
             Vector2D v0, v1;
@@ -448,7 +448,7 @@ public abstract class UIMonopoly extends Monopoly {
     }
 
     @Override
-    protected void onPlayerBoughtHotel(int playerNum, final Square property, int amt) {
+    protected void onPlayerBoughtHotel(final int playerNum, final Square property, final int amt) {
         addAnimation("BOARD", new AAnimation<AGraphics>(HOUSE_PAUSE) {
 
             Vector2D v0, v1;
@@ -1126,7 +1126,7 @@ public abstract class UIMonopoly extends Monopoly {
     private void drawPortrait(APGraphics g, int mx, int my) {
         drawBoard(g);
         g.pushMatrix();
-        g.translate(W/2, H/4);
+        g.translate(W/2, H/8);
         drawDice(g, getDie1(), getDie2(), DIM/10);
         g.popMatrix();
         float w = (W - (PADDING*(getNumPlayers()-1))) / getNumPlayers();
@@ -1340,8 +1340,8 @@ public abstract class UIMonopoly extends Monopoly {
             g.pushMatrix();
             g.translate(+padding/2, padding/2);
             drawDie(g, dieDim-padding, GColor.WHITE, GColor.BLACK, die2);
+            g.popMatrix();
         }
-        g.popMatrix();
     }
 
     public void drawDie(AGraphics g, float dim, GColor dieColor, GColor dotColor, int numDots) {

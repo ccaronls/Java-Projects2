@@ -29,6 +29,7 @@ public class DisplayReceiver implements Receiver,
     }
 
     public void close() {
+        Debug.println("Closing");
     }
 
     /**
@@ -47,12 +48,12 @@ public class DisplayReceiver implements Receiver,
 
             switch (smsg.getCommand()) {
                 case Constants.MIDI_NOTE_OFF:
-                    strMessage += "note Off " +
+                    strMessage += "note Off [" + smsg.getData1() + "] " +
                             getKeyName(smsg.getData1()) + " " + timeStamp;
                     break;
 
                 case Constants.MIDI_NOTE_ON:
-                    strMessage += "note On " +
+                    strMessage += "note On [" + smsg.getData1() + "] " +
                             getKeyName(smsg.getData1()) + " " + timeStamp;
                     break;
             }
@@ -70,6 +71,9 @@ public class DisplayReceiver implements Receiver,
         if (((MetaMessage) msg).getType() == Constants.MIDI_TEXT_TYPE) {
             setLyric((MetaMessage) msg);
         } else if (((MetaMessage) msg).getType() == Constants.MIDI_END_OF_TRACK) {
+            Debug.SCRIPT_WRITER.flush();
+            Debug.SCRIPT_WRITER.close();
+            Debug.LYRICS_WRITER.close();
             System.exit(0);
         }
     }
@@ -78,7 +82,7 @@ public class DisplayReceiver implements Receiver,
         byte[] data = message.getData();
         String str = new String(data);
         Debug.println("Lyric +\"" + str + "\" at " + sequencer.getTickPosition());
-        gui.setLyric(str);
+        gui.setLyric(str, sequencer.getMicrosecondPosition()/1000);
 
     }
 

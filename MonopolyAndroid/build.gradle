@@ -8,9 +8,14 @@ dependencies {
 }
 
 android {
+    defaultConfig {
+        minSdkVersion 14
+    }
+
     compileOptions {
         sourceCompatibility project.sourceCompatibility 
-        targetCompatibility project.targetCompatibility 
+        targetCompatibility project.targetCompatibility
+
     }
 
     compileSdkVersion project.myCompileSdkVersion.toInteger()

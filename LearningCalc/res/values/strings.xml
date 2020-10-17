@@ -2,5 +2,24 @@
 
     <string name="app_name">Learning\nCalculator</string>
     <string name="div_symbol">&#xf7;</string>
-    
+    <string name="about_msg">\n\n
+        Learning Calc version %1$s\n\n
+        Written by Chris Caron\n\n
+        Please report bugs or suggestions to sebisoftware@gmail.com\n\n
+        Thanks for using!\n\n
+    </string>
+    <string name="customize_greeting">Customize Greeting</string>
+    <string name="default_greeting">Welcome Earthling</string>
+    <string name="cancel">Cancel</string>
+    <string name="apply">Apply</string>
+
+    <string-array name="options_dialog">
+        <item>About</item>
+        <item>Custom Greeting</item>
+        <item>Quiz</item>
+    </string-array>
+
+    <string name="quiz_dialog_msg">Quiz will trigger periodically after some inactivity. Do you wish to disable this feature?</string>
+    <string name="enable">Enable</string>
+    <string name="disable">Disable</string>
 </resources>

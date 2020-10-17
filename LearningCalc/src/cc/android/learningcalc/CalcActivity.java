@@ -1,7 +1,7 @@
 package cc.android.learningcalc;
 
-import android.app.Activity;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.graphics.Color;
 import android.media.AudioManager;
 import android.os.Bundle;
@@ -26,9 +26,10 @@ import android.widget.TextView;
 
 import java.math.BigInteger;
 
+import cc.lib.android.CCActivityBase;
 import cc.lib.game.Utils;
 
-public class CalcActivity extends Activity implements OnClickListener, OnInitListener {
+public class CalcActivity extends CCActivityBase implements OnClickListener, OnInitListener {
 
 	static final int TRIGGER_NUMBERS_ANIM 		= -100;
 	static final int TRIGGER_OPERATIONS_ANIM 	= -101;
@@ -64,16 +65,24 @@ public class CalcActivity extends Activity implements OnClickListener, OnInitLis
 					sendEmptyMessageDelayed(TRIGGER_OPERATIONS_ANIM, Utils.randRange(8, 16)*1000);
 					break;
 				case TRIGGER_QUIZ:
-					//say("I'm the Quiz! I the Quiz and nobody beats me!");
-					sayNow("pop quiz hot shot");
-					// sayNow("quiz time")
+				    switch (Utils.rand() % 3) {
+                        case 0:
+                            sayNow("I'm the Quiz! I'm the Quiz and nobody beats me!");
+                            break;
+                        case 1:
+                            sayNow("pop quiz hot shot");
+                            break;
+                        case 2:
+                            sayNow("quiz time");
+                            break;
+                    }
 					generate();
-					handler2.sendEmptyMessage(TRIGGER_QUIZ_PULSE);
+					handler.sendEmptyMessage(TRIGGER_QUIZ_PULSE);
 					break;
 				case TRIGGER_QUIZ_PULSE: {
 					if (quiz != null) {
 						et.setText(quiz.getSpanned());//Html.fromHtml(quiz.getHtml()));
-						sendEmptyMessageDelayed(TRIGGER_QUIZ_PULSE, 30);
+						handler.sendEmptyMessageDelayed(TRIGGER_QUIZ_PULSE, 30);
 					}
 					break;
 				}
@@ -83,11 +92,11 @@ public class CalcActivity extends Activity implements OnClickListener, OnInitLis
 					break;
 				}
 				case TRIGGER_INACTIVITY: {
-					int sol = Utils.randRange(10, 99*score);
+					int sol = Utils.randRange(-100, -10);//Utils.randRange(10, 99*score);
 					sayNow("Can you type the number " + sol);
 					quizGoodSay = "Great job!";
 					quiz = new Quiz(String.format("%d", sol), sol, 0, String.valueOf(sol).length());
-					handler2.sendEmptyMessage(TRIGGER_QUIZ_PULSE);
+					handler.sendEmptyMessage(TRIGGER_QUIZ_PULSE);
 					break;
 				}
 				default:
@@ -99,7 +108,6 @@ public class CalcActivity extends Activity implements OnClickListener, OnInitLis
 	};
 	
 	private Handler handler = new MyHandler();
-	private Handler handler2 = new MyHandler();
 
 	int buttons[] = {
 			R.id.button1,
@@ -142,15 +150,31 @@ public class CalcActivity extends Activity implements OnClickListener, OnInitLis
 		}
 		
 		findViewById(R.id.buttonInfo).setOnClickListener(this);
+        tts = new TextToSpeech(this, this);
+        tts.setLanguage(getResources().getConfiguration().locale);
 	}
-	
-	@Override
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        handler.sendEmptyMessage(TRIGGER_NUMBERS_ANIM);
+        handler.sendEmptyMessage(TRIGGER_OPERATIONS_ANIM);
+    }
+
+    @Override
 	protected void onSaveInstanceState(Bundle outState) {
 		super.onSaveInstanceState(outState);
 		outState.putString("text", et.getText().toString());
 	}
-	
-	protected void onDestroy() {
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        handler.removeCallbacksAndMessages(null);
+    }
+
+    @Override
+    protected void onDestroy() {
 		super.onDestroy();
 		if (tts != null) {
 			tts.shutdown();
@@ -201,16 +225,7 @@ public class CalcActivity extends Activity implements OnClickListener, OnInitLis
 			tts.speak(txt, TextToSpeech.QUEUE_ADD, null);
 		}
 	}
-	
-	@Override
-	public void onResume() {
-		super.onResume();
-		tts = new TextToSpeech(this, this);
-		tts.setLanguage(getResources().getConfiguration().locale);
-		handler.sendEmptyMessage(TRIGGER_NUMBERS_ANIM);
-		handler.sendEmptyMessage(TRIGGER_OPERATIONS_ANIM);
-	}
-	
+
 	void triggerPulseAnimNumbersAnim() {
 		handler.sendEmptyMessageDelayed(R.id.button1, 200);
 		handler.sendEmptyMessageDelayed(R.id.button2, 200);
@@ -234,7 +249,6 @@ public class CalcActivity extends Activity implements OnClickListener, OnInitLis
 	void endQuiz() {
 		quiz = null;
 		handler.removeCallbacksAndMessages(null);
-		handler2.removeCallbacksAndMessages(null);
 		handler.sendEmptyMessageDelayed(TRIGGER_INACTIVITY, 20*1000);
 		
 		et.setText("");
@@ -248,8 +262,6 @@ public class CalcActivity extends Activity implements OnClickListener, OnInitLis
 			return;
 		}
 		
-		handler.removeCallbacksAndMessages(null);
-		handler.sendEmptyMessageDelayed(TRIGGER_INACTIVITY, 20*1000);
 		if (v instanceof TextView) {
 			TextView tv = (TextView)v;
 			tv.setText(new AnimatingSpannableString(tv, 1000, 1, true));
@@ -257,19 +269,19 @@ public class CalcActivity extends Activity implements OnClickListener, OnInitLis
 		
 		if (quiz != null) {
 			switch (quiz.test(v.getId())) {
-				case GOOD:
-					et.setText(quizGoodET);
-					sayNow(quizGoodSay);
-					incrementScore(1);
-					nextQuizScore += QUIZ_SCORE_STEP;
-					endQuiz();
-					break;
 				case KEEP_GOING:
 					sayNow("Keep going");
 					break;
 				case TRY_AGAIN:
 					sayNow("Try again");
 					break;
+                case GOOD:
+                    et.setText(quizGoodET);
+                    sayNow(quizGoodSay);
+                    incrementScore(1);
+                    nextQuizScore += QUIZ_SCORE_STEP;
+                    endQuiz();
+                    break;
 				case WRONG:
 					sayNow("incorrect");
 					incrementScore(-3);
@@ -278,8 +290,8 @@ public class CalcActivity extends Activity implements OnClickListener, OnInitLis
 			}
 			return;
 		}
-		
-		switch (v.getId()) {
+
+        switch (v.getId()) {
 			case R.id.button1:
 				tryAddNumber(1); break;
 			case R.id.button2:
@@ -296,7 +308,13 @@ public class CalcActivity extends Activity implements OnClickListener, OnInitLis
 			case R.id.button6:
 				tryAddNumber(6); break;
 			case R.id.button_minus:
-				trySetOp(Op.SUB); break;
+			    if (num1 != null)
+				    trySetOp(Op.SUB);
+			    else if (et.getText().toString().trim().isEmpty()) {
+                    sayNow("negative");
+                    et.setText("-");
+                }
+			    break;
 
 			case R.id.button7:
 				tryAddNumber(7); break;
@@ -330,6 +348,8 @@ public class CalcActivity extends Activity implements OnClickListener, OnInitLis
                 num1 = BigInteger.valueOf(0);
                 clearOnNumber = false;
             }
+            if (et.getText().toString().startsWith("-") && et.getText().toString().length() == 1)
+                num = -num;
 			num1 = addNumber(num, num1);
 		} else {
 			num2 = addNumber(num, num2);
@@ -423,12 +443,20 @@ public class CalcActivity extends Activity implements OnClickListener, OnInitLis
 		num1=num2=null;
 		op = null;
 	}
-	
+
+	String getGreetings() {
+	    String greetings = getPrefs().getString("GREETINGS", null);
+	    if (greetings == null) {
+	        return getString(R.string.default_greeting);
+        }
+	    return greetings;
+    }
+
 	@Override
 	public void onInit(int status) {
 		switch (status) {
 			case TextToSpeech.SUCCESS:
-				sayNow("Hi Sebastian!");
+				sayNow(getGreetings());
 				break;
 				
 			default:
@@ -470,26 +498,29 @@ public class CalcActivity extends Activity implements OnClickListener, OnInitLis
 			generateBasic(Utils.randRange(2,5), Utils.randRange(2,5), Op.ADD);
 		} else if (score < 40) {
 			// (2-4) - (1-3) = ?
-			generateBasic(Utils.randRange(3,4), Utils.randRange(1,2), Op.SUB);
+			generateBasic(Utils.randRange(3,12), Utils.randRange(5,20), Op.ADD);
 		} else if (score < 50) {
 			// (3-6) - (2-6) = ?
-			generateBasic(Utils.randRange(3,6), Utils.randRange(2,6), Op.SUB);
+			generateBasic(Utils.randRange(3,5), Utils.randRange(1,3), Op.SUB);
 		} else if (score < 60) {
 			// (2-8) +/- (2-8) = ?
-			generateBasic(Utils.randRange(2,8), Utils.randRange(2,8), Utils.flipCoin() ? Op.SUB : Op.ADD);
+            generateBasic(Utils.randRange(5,10), Utils.randRange(3,5), Op.SUB);
 		} else if (score < 70) {
 			// (1-3) * (1-3) = ?
-			generateBasic(Utils.randRange(1,3), Utils.randRange(1,3), Op.MULT);
+            generateBasic(Utils.randRange(10,20), Utils.randRange(5,9), Op.SUB);
 		} else if (score < 80) {
 			// (2-5) * (2-5) = ?
-			generateBasic(Utils.randRange(2,5), Utils.randRange(2,5), Op.MULT);
+            generateBasic(Utils.randRange(5,20), Utils.randRange(5,20), Utils.flipCoin() ? Op.SUB : Op.ADD);
 		} else if (score < 90) {
+            generateBasic(Utils.randRange(10,100), Utils.randRange(10,100), Utils.flipCoin() ? Op.SUB : Op.ADD);
 			// ? + (1-3) = (3-5)
 		} else if (score < 100) {
+            generateBasic(Utils.randRange(1,100), Utils.randRange(1,100), Utils.flipCoin() ? Op.SUB : Op.ADD);
 			// (1-3) + ? = (3-5)
 		} else if (score < 110) {
 			// (3-5) - ? = (1-5)
 		} else if (score < 120) {
+            generateBasic(Utils.randRange(2,5), Utils.randRange(2,5), Op.MULT);
 			// (1-3) ? (1-3) = (1-9)
 		} else if (score < 130) {
 			// (3-5) / (1-3) = ?
@@ -500,9 +531,9 @@ public class CalcActivity extends Activity implements OnClickListener, OnInitLis
 		} else if (score < 160) {
 			// ?(0-9) ? (1-9) = (1-108)
 		} else {
-			
-		}
-		generateBasic(Utils.randRange(5, 10), Utils.randRange(5, 10), Utils.randItem(Op.values()));
+            generateBasic(Utils.randRange(0,1000), Utils.randRange(0,1000), Utils.randItem(Op.values()));
+        }
+        et.setText(quiz.getSpanned());
 	}
 	
 	private void incrementScore(int amt) {
@@ -520,12 +551,61 @@ public class CalcActivity extends Activity implements OnClickListener, OnInitLis
 			tvScore.setText("");
 		}
 	}
-	
+
+	boolean isQuizEnabled() {
+	    return getPrefs().getBoolean("QUIZ_ENABLED", true);
+    }
+
+    void setQuizEnabled(boolean enabled) {
+	    getPrefs().edit().putBoolean("QUIZ_ENABLED", enabled).apply();
+    }
+
 	void showInfoDialog() {
-		// open tts settings
-		
-		// app description/features
-		
+        newDialogBuilder().setItems(R.array.options_dialog, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                switch (which) {
+                    case 0:
+                        newDialogBuilder().setMessage(getString(R.string.about_msg, getAppVersionFromManifest()))
+                                .setNeutralButton(R.string.cancel, null).show();
+                        break;
+
+                    case 1:
+                        final View v = View.inflate(CalcActivity.this, R.layout.edit_greetings_view, null);
+                        final EditText et = (EditText)v.findViewById(R.id.edit_greetings);
+                        et.setText(getPrefs().getString("GREETINGS", ""), TextView.BufferType.NORMAL);
+                        et.selectAll();
+                        newDialogBuilder().setView(v)
+                                .setNegativeButton(R.string.cancel, null)
+                                .setPositiveButton(R.string.apply, new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        String text = et.getText().toString();
+                                        if (text.isEmpty()) {
+                                            getPrefs().edit().remove("GREETINGS").apply();
+                                        } else {
+                                            getPrefs().edit().putString("GREETINGS", text).apply();
+                                        }
+                                    }
+                                }).show();
+                        break;
+                    case 2:
+                        newDialogBuilder().setMessage(R.string.quiz_dialog_msg)
+                                .setNegativeButton(R.string.disable, new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        setQuizEnabled(false);
+                                    }
+                                }).setPositiveButton(R.string.enable, new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        setQuizEnabled(true);
+                                    }
+                                }).show();
+                        break;
+                }
+            }
+        }).show();
 		
 	}
 

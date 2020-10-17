@@ -225,4 +225,16 @@ public class CCActivityBase extends Activity {
         Toast.makeText(this, "The following permissions are not granted: " + Arrays.toString(permissions), Toast.LENGTH_LONG).show();
     }
 
+    public String getAppVersionFromManifest() {
+        try {
+            String version = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
+            if (BuildConfig.DEBUG) {
+                version += " DEBUG";
+            }
+            return version;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return "Unknown";
+    }
 }

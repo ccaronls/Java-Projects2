@@ -1339,5 +1339,83 @@ public class TestUtils extends TestCase {
             r += x;
         return r;
     }
-}
 
+    long fib(int n) {
+        int r=0, n0=0, n1=1;
+        for (int i=0; i<n; i++) {
+            r = n1;
+            int t0 = n0;
+            int t1 = n1;
+            n0=n1;
+            n1=t0+t1;
+        }
+        return r;
+    }
+
+    public void testFib() {
+
+        assertTrue(fib(0) == 0);
+        assertTrue(fib(1) == 1);
+        assertTrue(fib(2) == 1);
+        assertTrue(fib(3) == 2);
+        assertTrue(fib(4) == 3);
+        assertTrue(fib(5) == 5);
+        assertTrue(fib(6) == 8);
+        assertTrue(fib(7) == 13);
+
+    }
+
+
+    // merge an array of sorted arrays
+    List<Integer> mergeArrays(int [][] _input) {
+        ArrayList<Integer> [] input = new ArrayList[_input.length];
+        for (int i=0; i<_input.length; i++) {
+            input[i] = new ArrayList<>();
+            for (int ii=0; ii<_input[i].length; ii++) {
+                input[i].add(_input[i][ii]);
+            }
+        }
+
+        List<Integer> output = new ArrayList<>();
+        while (true) {
+            int index = findLowest(input);
+            if (index < 0)
+                break;
+            output.add(input[index].remove(0));
+        }
+
+        return output;
+    }
+
+    static int findLowest(List<Integer> [] input) {
+        int index = -1;
+        int min = Integer.MAX_VALUE;
+        for (int i=0; i<input.length; i++) {
+            if (input[i].size() == 0)
+                continue;
+            if (input[i].get(0) < min) {
+                index = i;
+                min = input[i].get(0);
+            }
+
+        }
+        return index;
+    }
+
+    public void testMergeArrays() {
+
+        List<Integer> result = mergeArrays(new int[][] {
+                {1,2,3},
+                {4,5,6,7,8},
+                {1,3,9,10},
+                {0,0,1,1,1000}
+        });
+
+        System.out.println(result);
+
+
+
+    }
+
+
+}
