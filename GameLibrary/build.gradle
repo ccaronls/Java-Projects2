@@ -5,7 +5,6 @@ mainClassName = 'cc.game.swing.AWTBoardBuilder'
 
 configurations {
     androidLib
-    learnToTypeApplet
 }
 
 dependencies {
@@ -30,17 +29,6 @@ sourceSets {
         java {
             srcDirs = [ 'src' ]
             excludes = ['**/skunkworks/**', '**/swing/**']
-        }
-    }
-
-    learnToTypeApplet {
-        java {
-            srcDirs = [ 'src' ]
-            includes = [ '**/swing/applet/**', '**/game/**', '**/utils/**' ]
-        }
-        resources {
-            srcDirs = [ 'resources' ]
-            includes = [ '**/small_keyboard.png', '**/keyboard_keys.txt' ]
         }
     }
 
@@ -127,9 +115,11 @@ task runAudioClient(type: JavaExec) {
 //    args "arg1", "arg2"
 }
 
-task deployLearnToTypeApplet(type: JavaExec) {
+task deployLearnToTypeApplet(type: Copy) {
+    dependsOn tasks.withType(Jar)
     group = 'Distribution'
     description = 'Deply the Learn to Type Applet to Sites'
-    def sites = file('~/Sites/')
-    outputs.dir sites
+    from 'build/libs/GameLibrary.jar'
+    def homePath = System.properties['user.home']
+    into homePath + '/Sites/learnToType/'
 }
