@@ -1,0 +1,20 @@
+apply plugin: 'application'
+
+mainClassName = 'cc.karaoke.KaraokePlayer'
+
+configurations {
+}
+
+dependencies {
+    // https://mvnrepository.com/artifact/org.json/json
+    //implementation group: 'org.json', name: 'json', version: '20090211'
+    //testImplementation 'junit:junit:4.12'
+    //implementation 'junit:junit:4.12'
+    //implementation group: 'net.sourceforge.jaadec', name: 'jaad', version: '0.8.5'
+    implementation project(':GameLibrary')
+}
+
+sourceSets {
+
+}
+

@@ -7,5 +7,9 @@ public abstract class AImage {
     public abstract int getHeight();
 
     public abstract int[] getPixels();
+
+    public float getAspect() {
+        return (float)getWidth() / (float)getHeight();
+    }
     
 }

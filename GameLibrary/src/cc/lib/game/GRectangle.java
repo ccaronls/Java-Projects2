@@ -45,6 +45,13 @@ public final class GRectangle extends Reflector<GRectangle> {
         h = Math.abs(v0.getY()-v1.getY());
     }
 
+    public void setEnd(IVector2D v) {
+        x = Math.min(x, v.getX());
+        y = Math.min(y, v.getY());
+        w = Math.abs(x-v.getX());
+        h = Math.abs(y-v.getY());
+    }
+
     public void set(float left, float top, float right, float bottom) {
         x = left;
         y = top;

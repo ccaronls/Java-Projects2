@@ -1177,7 +1177,15 @@ public class Reflector<T> {
      * @throws IOException
      */
     public static <T> T deserializeFromFile(File file) throws IOException {
-        try (FileInputStream in = new FileInputStream(file)) {
+        if (file.exists()) {
+            try (FileInputStream in = new FileInputStream(file)) {
+                return deserializeObject(new MyBufferedReader(new InputStreamReader(in)));
+            }
+        } else {
+            InputStream in = Reflector.class.getClassLoader().getResourceAsStream(file.getName());
+            if (in == null) {
+                throw new FileNotFoundException(file.getAbsolutePath());
+            }
             return deserializeObject(new MyBufferedReader(new InputStreamReader(in)));
         }
     }
@@ -1390,6 +1398,8 @@ public class Reflector<T> {
             return Double.parseDouble(readLineOrEOF(in));
         if (isSubclassOf(clazz, Boolean.class))
             return Boolean.parseBoolean(readLineOrEOF(in));
+        if (isSubclassOf(clazz, Character.class))
+            return new Character(readLineOrEOF(in).trim().charAt(0));
         if (isSubclassOf(clazz, Reflector.class)) {
             Reflector<?> a;
             if (!KEEP_INSTANCES || current == null)
@@ -1496,9 +1506,9 @@ public class Reflector<T> {
 	    	Object key = parse(null, clazz, in);
 	    	if (key == null)
 	    		throw new Exception("null key in map");
-        	//line = readLineOrEOF(in);
-            //if (line != null)
-            //    throw new Exception("unexpected line '"+ line + "'");
+        	line = readLineOrEOF(in);
+            if (line != null)
+                throw new Exception("unexpected line '"+ line + "'");
         	line = readLineOrEOF(in);
             if (line == null)
                 throw new Exception("Missing value from key/value pair in map");
@@ -1506,9 +1516,9 @@ public class Reflector<T> {
             if (line != null && !line.equals("null")) {
 	            clazz = getClassForName(line);
 	            value = parse(null, clazz, in);
-	            line = readLineOrEOF(in);
-	            if (line != null)
-	                throw new Exception("Expected '}' to end the value");
+	            //line = readLineOrEOF(in);
+	            //if (line != null)
+	              //  throw new Exception("Expected '}' to end the value");
             }
 	    	c.put(key, value);
     	}

@@ -80,6 +80,16 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     }
 
     /**
+     *
+     * @param pos
+     * @param text
+     * @return
+     */
+    public final GDimension drawJustifiedString(IVector2D pos, String text) {
+        return drawJustifiedString(pos.getX(), pos.getY(), text);
+    }
+
+    /**
      * Convenience to draw with TOP Justification
      * @param x
      * @param y
@@ -89,6 +99,17 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      */
     public final GDimension drawJustifiedString(float x, float y, Justify hJust, String text) {
         return drawJustifiedString(x, y, hJust, Justify.TOP, text);
+    }
+
+    /**
+     *
+     * @param pos
+     * @param hJust
+     * @param text
+     * @return
+     */
+    public final GDimension drawJustifiedString(IVector2D pos, Justify hJust, String text) {
+        return drawJustifiedString(pos.getX(), pos.getY(), hJust, text);
     }
 
     /**
@@ -371,6 +392,18 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
                 vertex(x+maxWidth/2, y+maxHeight); break;
         }
         return new GRectangle(left, top, maxWidth, maxHeight);
+    }
+
+    /**
+     *
+     * @param pos
+     * @param hJust
+     * @param vJust
+     * @param text
+     * @return
+     */
+    public final GDimension drawJustifiedString(IVector2D pos, Justify hJust, Justify vJust, String text) {
+        return drawJustifiedString(pos.getX(), pos.getY(), hJust, vJust, text);
     }
 
     /**
@@ -1107,6 +1140,16 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     }
 
     /**
+     *
+     * @param rect
+     * @param thickness
+     * @param radius
+     */
+    public final void drawRoundedRect(GRectangle rect, float thickness, float radius) {
+        drawRoundedRect(rect.x, rect.y, rect.w, rect.h, thickness, radius);
+    }
+
+    /**
      * 
      * @param x
      * @param y
@@ -1122,6 +1165,15 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     	drawFilledWedge(x+w-radius,y+h-radius,radius,0,90, 6);
     	drawFilledRect(x+radius,y+h-radius,w-r2,radius);
     	drawFilledWedge(x+radius,y+h-radius,radius,90f,90f, 6);
+    }
+
+    /**
+     *
+     * @param rect
+     * @param radius
+     */
+    public void drawFilledRoundedRect(GRectangle rect, float radius) {
+        drawFilledRoundedRect(rect.x, rect.y, rect.w, rect.h, radius);
     }
     
     /**
@@ -1463,6 +1515,15 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
 	public final void drawFilledCircle(int x, int y, int r) {
 		drawFilledOval(x-r, y-r, r*2, r*2);
 	}
+
+    /**
+     *
+     * @param center
+     * @param radius
+     */
+	public final void drawFilledCircle(IVector2D center, float radius) {
+	    drawFilledCircle(center.getX(), center.getY(), radius);
+    }
 
     /**
      *
