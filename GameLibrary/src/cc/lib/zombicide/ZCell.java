@@ -26,4 +26,8 @@ public class ZCell {
     int zoneIndex;
     CellType cellType = CellType.NONE;
     GRectangle rect;
+
+    public GRectangle getRect() {
+        return rect;
+    }
 }

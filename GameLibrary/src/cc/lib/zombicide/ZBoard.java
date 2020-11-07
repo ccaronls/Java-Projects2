@@ -13,7 +13,7 @@ import cc.lib.game.AGraphics;
 import cc.lib.game.GColor;
 import cc.lib.game.GRectangle;
 import cc.lib.game.Justify;
-import cc.lib.game.Utils;
+import cc.lib.math.Vector2D;
 
 public class ZBoard {
 
@@ -237,13 +237,16 @@ blacks are outside streets
     }
 
     public boolean canSeeCell(int [] fromCell, int [] toCell) {
-        int fromCellX = fromCell[1];
-        int fromCellY = fromCell[0];
-        int toCellX = toCell[1];
-        int toCellY = toCell[0];
+        int fromCellX = fromCell[0];
+        int fromCellY = fromCell[1];
+        int toCellX = toCell[0];
+        int toCellY = toCell[1];
 
         if (fromCellX != toCellX && fromCellY != toCellY)
             return false; // can only see horz and vertically
+
+        if (fromCellX == toCellX && fromCellY == toCellY)
+            return true; // TODO: Should we be able to see inside our own?
 
         int dir = getDirFrom(fromCell, toCell);
 
@@ -253,7 +256,7 @@ blacks are outside streets
         int tx = fromCellX;
         int ty = fromCellY;
 
-        while (tx != toCellX && ty != toCellY) {
+        while (tx != toCellX || ty != toCellY) {
             ZCell cell = grid[ty][tx];
             // can only see 1 one zone difference
             if (cell.isInside && cell.zoneIndex != curZoneId) {
@@ -276,13 +279,13 @@ blacks are outside streets
     }
 
     private int getDirFrom(int [] fromCell, int [] toCell) {
-        int fromCellX = fromCell[1];
-        int fromCellY = fromCell[0];
-        int toCellX = toCell[1];
-        int toCellY = toCell[0];
+        int fromCellX = fromCell[0];
+        int fromCellY = fromCell[1];
+        int toCellX = toCell[0];
+        int toCellY = toCell[1];
 
-        int dx = toCellX > fromCellX ? 1 : (fromCellX < toCellX ? -1 : 0);
-        int dy = toCellY > fromCellY ? 1 : (fromCellY < toCellY ? -1 : 0);
+        int dx = toCellX > fromCellX ? 1 : (fromCellX > toCellX ? -1 : 0);
+        int dy = toCellY > fromCellY ? 1 : (fromCellY > toCellY ? -1 : 0);
 
         if (dx != 0 && dy != 0) {
             throw new AssertionError("No direction for diagonals");
@@ -359,7 +362,7 @@ blacks are outside streets
         }
     }
 
-    ZCell getCell(int [] pos) {
+    public ZCell getCell(int[] pos) {
         return grid[pos[1]][pos[0]];
     }
 
@@ -387,56 +390,47 @@ blacks are outside streets
 
     public int [] drawDebug(AGraphics g, int mouseX, int mouseY) {
         g.clearScreen(GColor.LIGHT_GRAY);
-        int width = g.getViewportWidth()-5;
-        int height = g.getViewportHeight()-5;
-
+        int [] returnCell = null;
         int rows = getRows();
         int cols = getColumns();
-
-        int dim = Math.max(width/cols, height/cols);
-        int [] returnCell = null;
 
         for (int row=0; row<rows; row++) {
             for (int col=0; col<cols; col++) {
                 ZCell cell = grid[row][col];
-                int cx = col*dim + dim/2;
-                int cy = row*dim + dim/2;
                 if (cell.isInside) {
                     g.setColor(GColor.YELLOW);
-                    g.drawFilledRect(col*dim, row*dim, dim, dim);
+                    g.drawFilledRect(cell.rect);
                 } else {
                     g.setColor(GColor.WHITE);
-                    g.drawFilledRect(col*dim, row*dim, dim, dim);
+                    g.drawFilledRect(cell.rect);
                 }
                 g.pushMatrix();
-                g.translate(cx, cy);
-                int x0=-dim/2;
-                int y0=-dim/2;
-                int x1=dim/2;
-                int y1=-dim/2;
+                Vector2D center = cell.rect.getCenter();
+                g.translate(center);
+                Vector2D v0 = cell.rect.getTopLeft().subEq(center);
+                Vector2D v1 = cell.rect.getTopRight().subEq(center);
                 g.scale(.97f);
 
                 for (int d=0; d<4; d++) {
-                    int dx0 = x0 + (x1-x0)/3;
-                    int dy0 = y0 + (y1-y0)/3;
-                    int dx1 = dx0 + (x1-x0)/3;
-                    int dy1 = dy0 + (y1-y0)/3;
+                    Vector2D dv = v1.sub(v0).scaleEq(.33f);
+                    Vector2D dv0 = v0.add(dv);
+                    Vector2D dv1 = dv0.add(dv);
 
                     g.pushMatrix();
                     g.rotate(DIR_ROTATION[d]);
                     g.setColor(GColor.BLACK);
                     switch (cell.walls[d]) {
                         case WALL:
-                            g.drawLine(x0, y0, x1, y1, 3);
+                            g.drawLine(v0, v1, 3);
                             break;
                         case OPEN:
-                            g.drawLine(x0, y0, dx0, dy0, 3);
-                            g.drawLine(dx1, dy1, x1, y1, 3);
+                            g.drawLine(v0, dv0, 3);
+                            g.drawLine(dv1, v1, 3);
                             break;
                         case CLOSED:
-                            g.drawLine(x0, y0, x1, y1, 3);
+                            g.drawLine(v0, v1, 3);
                             g.setColor(GColor.GREEN);
-                            g.drawLine(dx0, dy0, dx1, dy1, 1);
+                            g.drawLine(dv0, dv1, 1);
                             break;
                     }
                     g.popMatrix();
@@ -446,19 +440,24 @@ blacks are outside streets
                 if (cell.cellType != ZCell.CellType.NONE) {
                     text += "\n" + cell.cellType;
                 }
-                if (Utils.isPointInsideRect(mouseX, mouseY, cx-dim/2, cy-dim/2, dim, dim)) {
+                if (cell.rect.contains(mouseX, mouseY)) {
                     List<Integer> accessible = getAccessableZones(cell.zoneIndex, 1);
                     text = "Can Walk to:\n" + accessible;
                     returnCell = new int[] { col, row };
                 }
                 g.setColor(GColor.CYAN);
-                g.drawJustifiedStringOnBackground(cx, cy, Justify.CENTER, Justify.CENTER, text, GColor.TRANSLUSCENT_BLACK, 3);
+                g.drawJustifiedStringOnBackground(center.getX(), center.getY(), Justify.CENTER, Justify.CENTER, text, GColor.TRANSLUSCENT_BLACK, 3);
             }
         }
         return returnCell;
     }
 
-    public void initCellRects(int dim) {
+    public void initCellRects(AGraphics g, int width, int height) {
+        int rows = getRows();
+        int cols = getColumns();
+
+        int dim = Math.max(width/cols, height/rows);
+
         for (int row=0; row<getRows(); row++) {
             for (int col=0; col<getColumns(); col++) {
                 grid[row][col].rect = new GRectangle(col*dim, row*dim, dim, dim);

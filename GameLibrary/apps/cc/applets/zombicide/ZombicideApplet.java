@@ -4,6 +4,7 @@ import java.io.File;
 
 import cc.applets.typing.LearnToType;
 import cc.lib.game.AGraphics;
+import cc.lib.game.GColor;
 import cc.lib.swing.AWTFrame;
 import cc.lib.swing.AWTKeyboardAnimationApplet;
 import cc.lib.utils.FileUtils;
@@ -56,15 +57,17 @@ public class ZombicideApplet extends AWTKeyboardAnimationApplet {
             if (getMouseButtonClicked(0)) {
                 selected = highlighted;
             } else if (selected != null) {
-                if (board.canSeeCell(highlighted, selected)) {
-                    System.out.println("Can see");
+                g.setColor(GColor.RED);
+                if (board.canSeeCell(selected, highlighted)) {
+                    g.setColor(GColor.GREEN);
                 }
+                g.drawRect(board.getCell(selected).getRect());
             }
         }
     }
 
     @Override
     protected void onDimensionsChanged(AGraphics g, int width, int height) {
-
+        board.initCellRects(g, g.getViewportWidth()-5, g.getViewportHeight()-5);
     }
 }
