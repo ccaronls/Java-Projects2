@@ -24,9 +24,4 @@ public enum ZArmor implements ZEquipment {
         }
         return ZEquipSlot.BODY;
     }
-
-    @Override
-    public boolean canOpenDoor() {
-        return false;
-    }
 }

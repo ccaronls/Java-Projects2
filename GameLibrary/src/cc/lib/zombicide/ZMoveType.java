@@ -8,8 +8,13 @@ public enum ZMoveType {
     WALK,
     MELEE_ATTACK,
     RANGED_ATTACK,
+    RELOAD,
     OPEN_DOOR,
     SEARCH,
     DROP_DRAGON_BILE,
-    IGNITE;
+    IGNITE,
+    EQUIP,
+    UNEQUIP,
+    DISPOSE,
+    CONSUME;
 }

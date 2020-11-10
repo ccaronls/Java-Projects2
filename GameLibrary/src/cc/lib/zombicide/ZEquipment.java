@@ -4,5 +4,13 @@ public interface ZEquipment {
 
     ZEquipSlot getSlot();
 
-    boolean canOpenDoor();
+    default boolean canOpenDoor() {
+        return false;
+    }
+
+    default boolean canConsume() {
+        return false;
+    }
+
+    String name();
 }

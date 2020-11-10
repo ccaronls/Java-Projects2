@@ -24,9 +24,4 @@ public enum ZEnchantment implements ZEquipment {
     public ZEquipSlot getSlot() {
         return ZEquipSlot.HAND;
     }
-
-    @Override
-    public boolean canOpenDoor() {
-        return false;
-    }
 }

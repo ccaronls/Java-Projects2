@@ -39,13 +39,6 @@ public class ZBoard {
         return grid[0].length;
     }
 
-    // 6x3
-    public final static String [][] quest1 = {
-            { "z0:i:wn:ww:ws", "z0:i::wn:ws:de:ds", "z1:wn:dw:fatty", "z2:i:wn:ws:we", "z3:sp:ww:wn:de", "z4:dw:wn:we:ws:exit" },
-            { "z5:sp:wn:ww:ws", "z6:dn:we:walker", "z7:ww:ds:we", "z8:obj:wn:ww:ws", "z9",               "z10:obj:wn:we:ws" },
-            { "z11:obj:i:wn:ww:ws:ode", "z12:start:ws:odw:we", "z13:i:ww:ws:dn:walker", "z13:i:wn:we:ws:v", "z14:ws:ww:de", "z15:i:dw:ws:we:wn:v" },
-    };
-
     public void load(String [][] map) {
         int rows = map.length;
         int cols = map[0].length;
@@ -78,64 +71,112 @@ public class ZBoard {
                             cell.isInside = true;
                             break;
                         case "v":
-                            cell.cellType = ZCell.CellType.VAULT;
+                            cell.cellType = ZCellType.VAULT;
                             break;
                         case "wn":
-                            cell.walls[DIR_NORTH] = ZCell.WallFlag.WALL;
+                            cell.walls[DIR_NORTH] = ZWallFlag.WALL;
                             break;
                         case "ws":
-                            cell.walls[DIR_SOUTH] = ZCell.WallFlag.WALL;
+                            cell.walls[DIR_SOUTH] = ZWallFlag.WALL;
                             break;
                         case "we":
-                            cell.walls[DIR_EAST] = ZCell.WallFlag.WALL;
+                            cell.walls[DIR_EAST] = ZWallFlag.WALL;
                             break;
                         case "ww":
-                            cell.walls[DIR_WEST] = ZCell.WallFlag.WALL;
+                            cell.walls[DIR_WEST] = ZWallFlag.WALL;
                             break;
                         case "dn":
-                            cell.walls[DIR_NORTH] = ZCell.WallFlag.CLOSED;
+                            cell.walls[DIR_NORTH] = ZWallFlag.CLOSED;
                             break;
                         case "ds":
-                            cell.walls[DIR_SOUTH] = ZCell.WallFlag.CLOSED;
+                            cell.walls[DIR_SOUTH] = ZWallFlag.CLOSED;
                             break;
                         case "de":
-                            cell.walls[DIR_EAST] = ZCell.WallFlag.CLOSED;
+                            cell.walls[DIR_EAST] = ZWallFlag.CLOSED;
                             break;
                         case "dw":
-                            cell.walls[DIR_WEST] = ZCell.WallFlag.CLOSED;
+                            cell.walls[DIR_WEST] = ZWallFlag.CLOSED;
+                            break;
+                        case "ldn0":
+                            cell.walls[DIR_NORTH] = ZWallFlag.LOCKED0;
+                            break;
+                        case "lds0":
+                            cell.walls[DIR_SOUTH] = ZWallFlag.LOCKED0;
+                            break;
+                        case "lde0":
+                            cell.walls[DIR_EAST] = ZWallFlag.LOCKED0;
+                            break;
+                        case "ldw0":
+                            cell.walls[DIR_WEST] = ZWallFlag.LOCKED0;
+                            break;
+                        case "ldn1":
+                            cell.walls[DIR_NORTH] = ZWallFlag.LOCKED1;
+                            break;
+                        case "lds1":
+                            cell.walls[DIR_SOUTH] = ZWallFlag.LOCKED1;
+                            break;
+                        case "lde1":
+                            cell.walls[DIR_EAST] = ZWallFlag.LOCKED1;
+                            break;
+                        case "ldw1":
+                            cell.walls[DIR_WEST] = ZWallFlag.LOCKED1;
+                            break;
+                        case "ldn2":
+                            cell.walls[DIR_NORTH] = ZWallFlag.LOCKED2;
+                            break;
+                        case "lds2":
+                            cell.walls[DIR_SOUTH] = ZWallFlag.LOCKED2;
+                            break;
+                        case "lde2":
+                            cell.walls[DIR_EAST] = ZWallFlag.LOCKED2;
+                            break;
+                        case "ldw2":
+                            cell.walls[DIR_WEST] = ZWallFlag.LOCKED2;
                             break;
                         case "odn":
-                            cell.walls[DIR_NORTH] = ZCell.WallFlag.OPEN;
+                            cell.walls[DIR_NORTH] = ZWallFlag.OPEN;
                             break;
                         case "ods":
-                            cell.walls[DIR_SOUTH] = ZCell.WallFlag.OPEN;
+                            cell.walls[DIR_SOUTH] = ZWallFlag.OPEN;
                             break;
                         case "ode":
-                            cell.walls[DIR_EAST] = ZCell.WallFlag.OPEN;
+                            cell.walls[DIR_EAST] = ZWallFlag.OPEN;
                             break;
                         case "odw":
-                            cell.walls[DIR_WEST] = ZCell.WallFlag.OPEN;
+                            cell.walls[DIR_WEST] = ZWallFlag.OPEN;
                             break;
                         case "obj":
-                            cell.cellType = ZCell.CellType.OBJECTIVE;
+                            cell.cellType = ZCellType.OBJECTIVE;
+                            break;
+                        case "key0":
+                            cell.cellType = ZCellType.KEY0;
+                            break;
+                        case "key1":
+                            cell.cellType = ZCellType.KEY1;
+                            break;
+                        case "key2":
+                            cell.cellType = ZCellType.KEY2;
                             break;
                         case "sp":
-                            cell.cellType = ZCell.CellType.SPAWN;
+                            cell.cellType = ZCellType.SPAWN;
                             break;
                         case "start":
-                            cell.cellType = ZCell.CellType.START;
+                            cell.cellType = ZCellType.START;
                             break;
                         case "exit":
-                            cell.cellType = ZCell.CellType.EXIT;
+                            cell.cellType = ZCellType.EXIT;
                             break;
                         case "walker":
-                            cell.cellType = ZCell.CellType.WALKER;
+                            cell.cellType = ZCellType.WALKER;
+                            break;
+                        case "runner":
+                            cell.cellType = ZCellType.RUNNER;
                             break;
                         case "fatty":
-                            cell.cellType = ZCell.CellType.FATTY;
+                            cell.cellType = ZCellType.FATTY;
                             break;
                         case "necro":
-                            cell.cellType = ZCell.CellType.NECRO;
+                            cell.cellType = ZCellType.NECRO;
                             break;
                         default:
                             throw new RuntimeException("Invalid command '" + cmd + "'");
@@ -149,45 +190,6 @@ public class ZBoard {
             zones.set(e.getKey(), e.getValue());
         }
     }
-
-    /*
-
-    EXAMPLE BOARD
-       0   1   2   3   4   5
-     + - + - + - + - + - + - +
-0    | o     = b |   | b   b |
-     + - +   + = + - + - + - +
-1    | b |   | b |         s |
-     +   +   + - +   + - + - +
-2    | b |           | b   b |
-     + = +           + - + = +
-3    | b =           | bv| b |
-     + = +   + - + - + - + - +
-4    | bv|   |       | b   b |
-     + - +   +       + - + - +
-5    | s     |       \ b   b |
-     + - + - + - + - + - + - +
-
-| - walls
-
-=   doors
-
-b   building
-
-t   treasure
-
-s   spawn
-
-o   player origin (starting position)
-
-v   vault
-
-blacks are outside streets
-
-
-
-
-     */
 
     ZZone getZone(int index) {
         return zones.get(index);
@@ -370,9 +372,9 @@ blacks are outside streets
         ZCell cell = getCell(cellPos);
         switch (cell.walls[dir]) {
             case CLOSED:
-                cell.walls[dir] = ZCell.WallFlag.OPEN; break;
+                cell.walls[dir] = ZWallFlag.OPEN; break;
             case OPEN:
-                cell.walls[dir] = ZCell.WallFlag.CLOSED; break;
+                cell.walls[dir] = ZWallFlag.CLOSED; break;
             default:
                 return;
         }
@@ -382,10 +384,25 @@ blacks are outside streets
         dir = DIR_OPPOSITE[dir];
         switch (cell.walls[dir]) {
             case CLOSED:
-                cell.walls[dir] = ZCell.WallFlag.OPEN; break;
+                cell.walls[dir] = ZWallFlag.OPEN; break;
             case OPEN:
-                cell.walls[dir] = ZCell.WallFlag.CLOSED; break;
+                cell.walls[dir] = ZWallFlag.CLOSED; break;
         }
+    }
+
+    public int pickZone(AGraphics g, int mouseX, int mouseY) {
+        for (int row=0; row<getRows(); row++) {
+            for (int col=0; col<getColumns(); col++) {
+                if (grid[row][col].getRect().contains(mouseX, mouseY)) {
+                    return grid[row][col].zoneIndex;
+                }
+            }
+        }
+        return -1;
+    }
+
+    public ZActor pickActor(AGraphics g, int mouseX, int mouseY) {
+        return null;
     }
 
     public int [] drawDebug(AGraphics g, int mouseX, int mouseY) {
@@ -437,13 +454,15 @@ blacks are outside streets
                 }
                 g.popMatrix();
                 String text = "Zone " + cell.zoneIndex;
-                if (cell.cellType != ZCell.CellType.NONE) {
+                if (cell.cellType != ZCellType.NONE) {
                     text += "\n" + cell.cellType;
                 }
                 if (cell.rect.contains(mouseX, mouseY)) {
                     List<Integer> accessible = getAccessableZones(cell.zoneIndex, 1);
-                    text = "Can Walk to:\n" + accessible;
+                    text = "1 Unit away:\n" + accessible;
                     returnCell = new int[] { col, row };
+                    List<Integer> accessible2 = getAccessableZones(cell.zoneIndex, 2);
+                    text += "\n2 Units away:\n" + accessible2;
                 }
                 g.setColor(GColor.CYAN);
                 g.drawJustifiedStringOnBackground(center.getX(), center.getY(), Justify.CENTER, Justify.CENTER, text, GColor.TRANSLUSCENT_BLACK, 3);
@@ -452,16 +471,40 @@ blacks are outside streets
         return returnCell;
     }
 
+    private void removeEmptyZones() {
+        Iterator<ZZone> it = zones.iterator();
+        while (it.hasNext()) {
+            ZZone z = it.next();
+            if (z == null)
+                it.remove();
+            if (z.cells.isEmpty()) {
+                it.remove();
+            }
+        }
+        // renumber the zones for the cells
+        for (int i=0; i<zones.size(); i++) {
+            for (int [] cellPos : zones.get(i).cells) {
+                getCell(cellPos).zoneIndex = i;
+            }
+        }
+    }
+
     public void initCellRects(AGraphics g, int width, int height) {
         int rows = getRows();
         int cols = getColumns();
 
-        int dim = Math.max(width/cols, height/rows);
+        int dim = Math.min(width/cols, height/rows);
 
         for (int row=0; row<getRows(); row++) {
             for (int col=0; col<getColumns(); col++) {
-                grid[row][col].rect = new GRectangle(col*dim, row*dim, dim, dim);
+                ZCell cell = grid[row][col];
+                cell.rect = new GRectangle(col*dim, row*dim, dim, dim);
+                zones.get(cell.zoneIndex).center.addEq(cell.rect.getCenter());
             }
+        }
+
+        for (ZZone zone : zones) {
+            zone.center.scaleEq(1.0f / zone.cells.size());
         }
     }
 }

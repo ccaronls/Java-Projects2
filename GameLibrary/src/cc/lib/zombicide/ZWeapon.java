@@ -1,19 +1,21 @@
 package cc.lib.zombicide;
 
 public enum ZWeapon implements ZEquipment {
-    // DAGGER get extra die roll when 2 handed with another weapon
-    DAGGER(true, false, true, new ZWeaponStat(4, 0, 0, 1, 4, 1), null, null),
-    AXE(true, false, true, new ZWeaponStat(1, 0, 0, 1, 4, 1), null, null),
-    HAMMER(false, false, true, new ZWeaponStat(4, 0, 0, 1, 3, 2), null, null),
-    MANA_BLAST(true, true, false, null, null, new ZWeaponStat(0, 0, 2, 1, 4, 1)),
-    SHORT_BOW(false, false, false, null, new ZWeaponStat(0, 0, 1, 1, 3, 1), null),
-    SHORT_SWORD(true, false, true, new ZWeaponStat(4, 0, 0, 1, 4, 1), null, null),
-    FIREBALL(true, true, false, null, null, new ZWeaponStat(0, 0, 1, 3, 4, 1)),
-    INFERNO(true, true, false, null, null, new ZWeaponStat(0 ,0 ,1, 4, 4, 2)),
-    CROSSBOW(false, false, false, null, new ZWeaponStat(0, 1, 2, 2, 4,2), null),
-    ORCISH_CROSSBOW(false, false, false, new ZWeaponStat(0, 0, 0, 2, 3, 3), new ZWeaponStat(0, 1, 2, 2, 3, 2), null);
 
-    ZWeapon(boolean canTwoHand, boolean attckIsNoisy, boolean openDoorsIsNoisy, ZWeaponStat meleeStats, ZWeaponStat rangedStats, ZWeaponStat magicStats) {
+    // DAGGER get extra die roll when 2 handed with another weapon
+    DAGGER(false, true, false, true, new ZWeaponStat(4, 0, 0, 1, 4, 1), null, null),
+    AXE(false, true, false, true, new ZWeaponStat(1, 0, 0, 1, 4, 1), null, null),
+    HAMMER(false, false, false, true, new ZWeaponStat(4, 0, 0, 1, 3, 2), null, null),
+    MANA_BLAST(false, true, true, false, null, null, new ZWeaponStat(0, 0, 2, 1, 4, 1)),
+    SHORT_BOW(false, false, false, false, null, new ZWeaponStat(0, 0, 1, 1, 3, 1), null),
+    SHORT_SWORD(false, true, false, true, new ZWeaponStat(4, 0, 0, 1, 4, 1), null, null),
+    FIREBALL(false, true, true, false, null, null, new ZWeaponStat(0, 0, 1, 3, 4, 1)),
+    INFERNO(false, true, true, false, null, null, new ZWeaponStat(0 ,0 ,1, 4, 4, 2)),
+    CROSSBOW(true, false, false, false, null, new ZWeaponStat(0, 1, 2, 2, 4,2), null),
+    ORCISH_CROSSBOW(true, false, false, false, new ZWeaponStat(0, 0, 0, 2, 3, 3), new ZWeaponStat(0, 1, 2, 2, 3, 2), null);
+
+    ZWeapon(boolean needsReload, boolean canTwoHand, boolean attckIsNoisy, boolean openDoorsIsNoisy, ZWeaponStat meleeStats, ZWeaponStat rangedStats, ZWeaponStat magicStats) {
+        this.needsReload = needsReload;
         this.canTwoHand = canTwoHand;
         this.attckIsNoisy = attckIsNoisy;
         this.openDoorsIsNoisy = openDoorsIsNoisy;
@@ -22,17 +24,13 @@ public enum ZWeapon implements ZEquipment {
         this.magicStats = magicStats;
     }
 
+    final boolean needsReload;
     final boolean canTwoHand;
     final boolean attckIsNoisy;
     final boolean openDoorsIsNoisy;
-    private final ZWeaponStat meleeStats;
-    private final ZWeaponStat rangedStats;
-    private final ZWeaponStat magicStats;
-
-    @Override
-    public ZEquipSlot getSlot() {
-        return ZEquipSlot.HAND;
-    }
+    final ZWeaponStat meleeStats;
+    final ZWeaponStat rangedStats;
+    final ZWeaponStat magicStats;
 
     @Override
     public boolean canOpenDoor() {
@@ -66,5 +64,22 @@ public enum ZWeapon implements ZEquipment {
             return magicStats.getDualWeildingStats();
         }
         return magicStats;
+    }
+
+    @Override
+    public ZEquipSlot getSlot() {
+        return ZEquipSlot.HAND;
+    }
+
+    boolean isMelee() {
+        return meleeStats != null;
+    }
+
+    boolean isRanged() {
+        return rangedStats != null;
+    }
+
+    boolean isMagic() {
+        return magicStats != null;
     }
 }
