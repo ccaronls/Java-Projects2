@@ -4,8 +4,9 @@ apply plugin: 'application'
 mainClassName = 'cc.game.swing.AWTBoardBuilder'
 
 configurations {
-    androidLib
+    androidLib.extendsFrom(main)
 }
+
 
 dependencies {
     // https://mvnrepository.com/artifact/org.json/json
@@ -13,6 +14,8 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     implementation 'junit:junit:4.12'
     implementation group: 'net.sourceforge.jaadec', name: 'jaad', version: '0.8.5'
+    // TextTable
+    //implementation group: 'com.massisframework', name: 'j-text-utils', version: '0.3.4'
 }
 
 sourceSets {
@@ -46,6 +49,7 @@ sourceSets {
 
 task androidLibJar(type: Jar) {
     from sourceSets.androidLib.output.classesDirs
+    archiveName("GameLibraryAndroid.jar")
 }
 
 artifacts {
@@ -115,11 +119,19 @@ task runAudioClient(type: JavaExec) {
 //    args "arg1", "arg2"
 }
 
-task deployLearnToTypeApplet(type: Copy) {
+task deployLearnToTypeApplet {
     dependsOn tasks.withType(Jar)
     group = 'Distribution'
     description = 'Deply the Learn to Type Applet to Sites'
-    from 'build/libs/GameLibrary.jar'
     def homePath = System.properties['user.home']
-    into homePath + '/Sites/learnToType/'
+    doLast {
+        copy {
+            from 'build/libs/GameLibrary.jar'
+            into homePath + '/Sites/learnToType/'
+        }
+        copy {
+            from 'html/TypingTeacher/'
+            into homePath + '/Sites/learnToType/'
+        }
+    }
 }

@@ -737,4 +737,24 @@ public class ReflectorTest extends TestCase {
         Map<String, String> myStrStrMap = null;
     }
 
+    public void testMaps() throws Exception {
+
+        Map<Integer, Integer> map = new HashMap<>();
+        String serialized = Reflector.serializeObject(map);
+        Map<Integer, Integer> map2 = Reflector.deserializeFromString(serialized);
+        assertEquals(0, map2.size());
+        map.put(0, 1);
+        serialized = Reflector.serializeObject(map);
+        map2 = Reflector.deserializeFromString(serialized);
+        assertEquals(1, map2.size());
+        assertEquals(1, map2.get(0).intValue());
+        map.put(1, 2);
+        serialized = Reflector.serializeObject(map);
+        map2 = Reflector.deserializeFromString(serialized);
+        assertEquals(2, map2.size());
+        assertEquals(1, map2.get(0).intValue());
+        assertEquals(2, map2.get(1).intValue());
+
+    }
+
 }

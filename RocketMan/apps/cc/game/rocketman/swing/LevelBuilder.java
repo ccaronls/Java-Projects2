@@ -6,6 +6,7 @@ import java.io.File;
 import cc.game.rocketman.core.RocketManLevel;
 import cc.game.rocketman.core.RocketManLevel.CellType;
 import cc.lib.game.AGraphics;
+import cc.lib.game.GColor;
 import cc.lib.game.Utils;
 import cc.lib.math.Vector2D;
 import cc.lib.swing.AWTGraphics;
@@ -49,7 +50,7 @@ public class LevelBuilder extends AWTKeyboardAnimationApplet {
 	}
 
 	@Override
-	protected void drawFrame(AWTGraphics g) {
+	protected void drawFrame(AGraphics g) {
 		final int cw = level.getCellWidth();
 		final int ch = level.getCellHeight(); 
 		
@@ -59,8 +60,8 @@ public class LevelBuilder extends AWTKeyboardAnimationApplet {
 		g.ortho(0, width+1, height+1, 0);
 		g.setIdentity();
 		
-		g.clearScreen(g.BLACK);
-		g.setColor(g.WHITE);
+		g.clearScreen(GColor.BLACK);
+		g.setColor(GColor.WHITE);
 		g.setLineWidth(1);
 		
 		for (int i=0; i<=level.getNumCellColumns(); i++) {
@@ -79,7 +80,7 @@ public class LevelBuilder extends AWTKeyboardAnimationApplet {
 				int y = ii*ch;
 				switch (level.getCellType(i, ii)) {
 				case BLOCK:
-					g.setColor(g.DARK_GRAY);
+					g.setColor(GColor.DARK_GRAY);
 					g.drawFilledRect(x, y, cw, ch);
 					break;
 				case NONE:
@@ -91,7 +92,7 @@ public class LevelBuilder extends AWTKeyboardAnimationApplet {
 		Vector2D v = g.screenToViewport(getMouseX(), getMouseY());
 		int col = (int)Math.floor(v.X() / 10);
 		int row = (int)Math.floor(v.Y() / 10);
-		g.setColor(g.RED);
+		g.setColor(GColor.RED);
 		g.drawRect(col*10, row*10, 10, 10);
 		
 		if (getKeyboard('b')) {

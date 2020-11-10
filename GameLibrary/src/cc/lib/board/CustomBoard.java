@@ -10,8 +10,10 @@ import java.util.Vector;
 
 import cc.lib.game.AGraphics;
 import cc.lib.game.APGraphics;
+import cc.lib.game.GColor;
 import cc.lib.game.GRectangle;
 import cc.lib.game.IVector2D;
+import cc.lib.game.Justify;
 import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
@@ -65,10 +67,15 @@ public class CustomBoard extends Reflector<CustomBoard> {
     public void drawVertsNumbered(AGraphics g) {
         g.begin();
         g.pushMatrix();
-        g.translate(-5, 0);
+        float radius = g.getTextHeight();
+        g.translate(radius, radius);
         int index = 0;
         for (BVertex v : verts) {
-            g.drawString(String.valueOf(index++), v.x, v.y);
+            IVector2D vv = clampToScreen(g, v, radius);
+            g.setColor(GColor.TRANSLUSCENT_BLACK);
+            g.drawFilledCircle(vv, radius);
+            g.setColor(GColor.CYAN);
+            g.drawJustifiedString(vv.getX(), vv.getY(), Justify.CENTER, Justify.CENTER, String.valueOf(index++));
         }
         g.popMatrix();
     }
@@ -82,11 +89,25 @@ public class CustomBoard extends Reflector<CustomBoard> {
         g.pushMatrix();
         g.translate(-5, 0);
         int index = 0;
+        float radius = g.getTextHeight();
         for (BEdge e : edges) {
-            Vector2D mp = getMidpoint(e);
-            g.drawString(String.valueOf(index++), mp.X(), mp.Y());
+            IVector2D mp = clampToScreen(g, getMidpoint(e), radius);
+            g.setColor(GColor.TRANSLUSCENT_BLACK);
+            g.drawFilledCircle(mp, radius);
+            g.setColor(GColor.CYAN);
+            g.drawJustifiedString(mp.getX(), mp.getY(), Justify.CENTER, Justify.CENTER, String.valueOf(index++));
         }
         g.popMatrix();
+    }
+
+    IVector2D clampToScreen(AGraphics g, IVector2D v, float radius) {
+        if (v.getX() >= radius && v.getY() >= radius && v.getX() <= g.getViewportWidth()-radius && v.getY() <= g.getViewportHeight()-radius)
+            return v;
+
+        float newX = Utils.clamp(v.getX(), radius, g.getViewportWidth()-radius);
+        float newY = Utils.clamp(v.getY(), radius, g.getViewportHeight()-radius);
+
+        return new Vector2D(newX, newY);
     }
 
     /**
@@ -266,6 +287,18 @@ public class CustomBoard extends Reflector<CustomBoard> {
             renderEdge(e, g);
         }
         return g.pickLines(mx, my, 5);
+    }
+
+    /**
+     * Add a cell and return its idex in the array
+     *
+     * @param verts
+     * @return
+     */
+    public int addCell(Integer ... verts) {
+        int index = cells.size();
+        cells.add(newCell(Arrays.asList(verts)));
+        return index;
     }
 
     /**
@@ -615,7 +648,7 @@ public class CustomBoard extends Reflector<CustomBoard> {
         BCell [] cells = new BCell[cell.adjCells.size()];
         for (int i=0; i<cells.length; i++) {
             cells[i] = getCell(cell.adjCells.get(i));
-        }
+            }
         return Arrays.asList(cells);
     }
 
@@ -788,4 +821,25 @@ public class CustomBoard extends Reflector<CustomBoard> {
         }
 
     }
+
+    public void generateGrid(int rows, int cols, float width, float height) {
+        float dx = (width-1)/cols;
+        float dy = (height-1)/rows;
+        for (int i=0; i<=rows; i++) {
+            for (int ii=0; ii<=cols; ii++) {
+                int index = addVertex(dx * ii, dy * i);
+                if (ii > 0) {
+                    addEdge(index-1, index);
+                }
+                if (i > 0) {
+                    addEdge(index-cols-1, index);
+                }
+                if (i > 0 && ii > 0) {
+                    addCell(index-cols-2, index-cols-1, index, index-1);
+                }
+            }
+        }
+    }
+
+
 }

@@ -451,4 +451,19 @@ public class SOCTest extends TestCase {
 
     }
 
+    public void testLoadScenarios() throws Exception {
+        File root = new File(".");
+        List<File> files = new ArrayList<>();
+        File path = new File(root, "SOC/assets/scenarios");
+        if (!path.exists()) {
+            throw new Exception("Failed to find path: " + path.getCanonicalPath());
+        }
+        files.addAll(Arrays.asList(new File(root, "SOC/assets/scenarios").listFiles()));
+
+        SOC soc = new SOC();
+        for (File file : files) {
+            soc.loadFromFile(file);
+        }
+    }
+
 }

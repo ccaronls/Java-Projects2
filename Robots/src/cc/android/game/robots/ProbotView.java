@@ -95,8 +95,8 @@ public class ProbotView extends View {
         }
 
         @Override
-        protected void onLazered(Guy guy, boolean instantaneous) {
-            startLazeredAnim(guy, instantaneous);
+        protected void onLazered(Guy guy, int type) {
+            startLazeredAnim(guy, type == 0);
             Utils.waitNoThrow(this, -1);
             postInvalidate();
         }

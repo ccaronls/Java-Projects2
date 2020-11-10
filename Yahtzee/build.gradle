@@ -1,16 +1,28 @@
-apply plugin: 'java'
+apply plugin: 'java-library'
 apply plugin: 'application'
 
 mainClassName = 'cc.game.yahtzee.console.YahtzeeConsole'
 
+configurations {
+    androidLib.extendsFrom(main)
+}
+
 dependencies {
     implementation project(':GameLibrary')
+    androidLib project(path: ':GameLibrary', configuration: 'androidLib')
 }
 
 sourceSets {
     main {
         java {
             srcDirs = ['src']
+        }
+    }
+
+    androidLib {
+        java {
+            srcDirs = [ 'src' ]
+            excludes = ['**/console/**']
         }
     }
 }
@@ -23,3 +35,15 @@ task runConsole(type: JavaExec) {
     main = "cc.game.yahtzee.console.YahtzeeConsole"
 //    args "arg1", "arg2"
 }
+
+task androidLibJar(type: Jar) {
+    from sourceSets.androidLib.output.classesDirs
+    archiveName("YahtzeeAndroid.jar")
+}
+
+artifacts {
+    androidLib androidLibJar
+}
+
+compileAndroidLibJava.dependsOn project(':GameLibrary').getTasksByName('androidLibJar', false)
+compileAndroidLibJava.classpath += project(':GameLibrary').sourceSets.androidLib.output.classesDirs

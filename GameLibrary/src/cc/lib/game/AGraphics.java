@@ -1042,6 +1042,25 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     }
 
     /**
+     *
+     * @param v0
+     * @param v1
+     */
+    public final void drawLine(IVector2D v0, IVector2D v1) {
+        drawLine(v0.getX(), v0.getY(), v1.getX(), v1.getY());
+    }
+
+    /**
+     *
+     * @param v0
+     * @param v1
+     * @param thickness
+     */
+    public final void drawLine(IVector2D v0, IVector2D v1, float thickness) {
+        drawLine(v0.getX(), v0.getY(), v1.getX(), v1.getY(), thickness);
+    }
+
+    /**
      * Convenience.  Thickness defaults to 1
      * @param x0
      * @param y0

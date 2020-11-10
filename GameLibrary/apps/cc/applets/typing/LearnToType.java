@@ -1,4 +1,4 @@
-package cc.applets;
+package cc.applets.typing;
 
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;

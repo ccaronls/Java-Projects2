@@ -1,4 +1,4 @@
-apply plugin: 'java'
+apply plugin: 'java-library'
 
 dependencies {
 //    compile files ('mdnsjava-2.1.6-SNAPSHOT.jar', 'dnsjava-2.1.7.jar')
@@ -10,8 +10,7 @@ sourceCompatibility = '1.8'
 sourceSets {
     main {
         java {
-            srcDirs = [ 'dnsjava-2.1.7/src',
-             'mdnsjava/src/main/java' ]
+//            srcDirs = ['dnsjava-2.1.7/src', 'mdnsjava/src/main/java']
         }
     }
 }

@@ -1,5 +1,6 @@
 package cc.lib.swing;
 
+import java.awt.BorderLayout;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -20,12 +21,27 @@ import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
 import cc.lib.utils.FileUtils;
 
-public class AWTBoardBuilder extends AWTComponent {
+public abstract class AWTBoardBuilder extends AWTComponent {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     public static void main(String [] args) {
-        new AWTBoardBuilder();
+        new AWTBoardBuilder() {
+            @Override
+            protected CustomBoard newBoard() {
+                return new CustomBoard();
+            }
+
+            @Override
+            protected String getPropertiesFileName() {
+                return "bb.properties";
+            }
+
+            @Override
+            protected String getDefaultBoardFileName() {
+                return "bb.backup.board";
+            }
+        };
     }
 
     final AWTFrame frame = new AWTFrame() {
@@ -72,17 +88,11 @@ public class AWTBoardBuilder extends AWTComponent {
 
     float progress = 0;
 
-    protected CustomBoard newBoard() {
-        return new CustomBoard();
-    }
+    protected abstract CustomBoard newBoard();
 
-    protected String getPropertiesFileName() {
-        return "bb.properties";
-    }
+    protected abstract String getPropertiesFileName();
 
-    protected String getDefaultBoardFileName() {
-        return "bb.backup.board";
-    }
+    protected abstract String getDefaultBoardFileName();
 
     /**
      * This is a good place to add top bar menus
@@ -91,7 +101,7 @@ public class AWTBoardBuilder extends AWTComponent {
     protected void initFrame(AWTFrame frame) {
         frame.addMenuBarMenu("File", "New Board", "Load Board", "Load Image", "Clear Image", "Save As...", "Save");
         frame.addMenuBarMenu("Mode", Utils.toStringArray(PickMode.values(), false));
-        frame.addMenuBarMenu("Action", "Compute", "Undo");
+        frame.addMenuBarMenu("Action", "Compute", "Clear", "Undo", "Generate Grid");
     }
 
     /**
@@ -311,6 +321,36 @@ public class AWTBoardBuilder extends AWTComponent {
                     undoList.removeLast().undo();
                 }
                 break;
+
+            case "Clear":
+                board.clear();
+                break;
+
+            case "Generate Grid": {
+                AWTNumberPicker rows = new AWTNumberPicker.Builder().setLabel("Rows").setMin(1).setMax(100)
+                        .setValue(frame.getIntProperty("gui.gridRows", 1)).build((int oldValue, int newValue)  -> frame.setProperty("gui.gridRows", newValue));
+                AWTNumberPicker cols = new AWTNumberPicker.Builder().setLabel("Columns").setMin(1).setMax(100)
+                        .setValue(frame.getIntProperty("gui.gridCols", 1)).build((int oldValue, int newValue)  -> frame.setProperty("gui.gridCols", newValue));
+                AWTPanel panel = new AWTPanel(rows, cols);
+
+                final AWTFrame popup = new AWTFrame("Generate Grid");
+                popup.add(panel);
+                AWTButton build = new AWTButton("Generate") {
+                    @Override
+                    protected void onAction() {
+                        board.generateGrid(rows.getValue(), cols.getValue(), getViewportWidth(), getViewportHeight());
+                        popup.closePopup();
+                    }
+                };
+                AWTButton cancel = new AWTButton("Cancel") {
+                    @Override
+                    protected void onAction() {
+                        popup.closePopup();
+                    }
+                };
+                popup.add(new AWTPanel(build, cancel), BorderLayout.SOUTH);
+                popup.showAsPopup(frame);
+            }
         }
         repaint();
     }

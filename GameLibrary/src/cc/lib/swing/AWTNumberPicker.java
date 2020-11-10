@@ -1,8 +1,12 @@
 package cc.lib.swing;
 
-import java.awt.event.*;
-import javax.swing.*;
-import javax.swing.event.*;
+import javax.swing.JLabel;
+import javax.swing.JSpinner;
+import javax.swing.SpinnerNumberModel;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+
+import cc.lib.game.Utils;
 
 
 public class AWTNumberPicker extends AWTPanel implements ChangeListener {
@@ -41,11 +45,11 @@ public class AWTNumberPicker extends AWTPanel implements ChangeListener {
 
     static class Builder {
 
-        int min=Integer.MIN_VALUE;
-        int max=Integer.MAX_VALUE;
-        int value = 0;
-        int step = 1;
-        String label = null;
+        private int min=Integer.MIN_VALUE;
+        private int max=Integer.MAX_VALUE;
+        private int value = 0;
+        private int step = 1;
+        private String label = null;
 
         public AWTNumberPicker build(Listener listener) {
             AWTNumberPicker panel;
@@ -55,6 +59,7 @@ public class AWTNumberPicker extends AWTPanel implements ChangeListener {
             } else {
                 panel = new AWTNumberPicker();
             }
+            value = Utils.clamp(value, min, max);
             panel.model = new SpinnerNumberModel(value, min, max, step);
             JSpinner spinner = new JSpinner(panel.model);
             spinner.addChangeListener(panel);

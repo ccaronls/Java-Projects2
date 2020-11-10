@@ -1,4 +1,4 @@
-package cc.applets;
+package cc.applets.typing;
 
 import java.awt.Graphics;
 import java.awt.Point;

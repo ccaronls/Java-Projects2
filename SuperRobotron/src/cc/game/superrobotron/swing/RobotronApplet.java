@@ -7,9 +7,9 @@ import java.awt.event.MouseEvent;
 import cc.game.superrobotron.ILocalization;
 import cc.game.superrobotron.Robotron;
 import cc.lib.game.AGraphics;
+import cc.lib.game.GColor;
 import cc.lib.game.Justify;
 import cc.lib.game.Utils;
-import cc.lib.swing.AWTGraphics;
 import cc.lib.swing.AWTFrame;
 import cc.lib.swing.AWTKeyboardAnimationApplet;
 
@@ -46,12 +46,12 @@ public class RobotronApplet extends AWTKeyboardAnimationApplet implements ILocal
     }
 
     @Override
-    protected void drawFrame(AWTGraphics g) {
+    protected void drawFrame(AGraphics g) {
 
         robotron.drawGame(g);
         
         if (showHelp) {
-            g.setColor(g.YELLOW);
+            g.setColor(GColor.YELLOW);
             String strHelp = "HELP:\n" 
                 + "M   - add snake missle\n" 
                 + "L   - add powerup\n" 
@@ -178,7 +178,7 @@ public class RobotronApplet extends AWTKeyboardAnimationApplet implements ILocal
     }
 
     @Override
-    public void mousePressed(MouseEvent evt) {
+    protected void onMousePressed(MouseEvent ev) {
         robotron.setCursorPressed(true);
     }
 

@@ -1254,7 +1254,7 @@ public class Utils {
      * @param dest
      * @param source
      */
-    public static <T> void copyElems(T[] dest, T[] source) {
+    public static <T> void copyElems(T[] dest, T ... source) {
         int min = Math.min(source.length, dest.length);
         for (int i = 0; i < min; i++) {
             dest[i] = source[i];
@@ -1906,10 +1906,9 @@ public class Utils {
      * @param <T>
      * @return
      */
-    public static <T extends Comparable<T>> int linearSearch(T[] arr, T key) {
+    public static <T> int linearSearch(T[] arr, T key) {
         for (int i = 0; i < arr.length; i++) {
-            int x = arr[i].compareTo(key);
-            if (x == 0)
+            if (Objects.equals(arr[i], key))
                 return i;
         }
         return -1;
@@ -2490,6 +2489,21 @@ public class Utils {
 
         return lines.toArray(new String[lines.size()]);
 
+    }
+
+    /**
+     *
+     * @param values
+     * @return
+     */
+    public static int getMaxStringLength(Object ... values) {
+        int max = 0;
+        for (Object e : values) {
+            if (e == null)
+                continue;
+            max = Math.max(e.toString().length(), max);
+        }
+        return max;
     }
 
 }

@@ -1,4 +1,12 @@
-apply plugin: 'java'
+apply plugin: 'java-library'
+apply plugin: 'application'
+
+mainClassName = 'cc.game.rocketman.swing.LevelBuilder'
+
+dependencies {
+    implementation project(':GameLibrary')
+}
+
 sourceSets {
     main.java.srcDirs = ['src','apps']
     main.resources.srcDirs = ['src','apps']

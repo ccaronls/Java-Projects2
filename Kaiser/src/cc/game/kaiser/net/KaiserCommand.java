@@ -107,11 +107,11 @@ public class KaiserCommand extends GameCommandType {
      */
     public static boolean clientDecode(Listener listener, GameCommand cmd) throws Exception {
         if (cmd.getType() == SET_PLAYER) {
-            String name = cmd.getArg("name");
-            int num = Integer.parseInt(cmd.getArg("num"));
+            String name = cmd.getString("name");
+            int num = Integer.parseInt(cmd.getString("num"));
             listener.onSetPlayer(num, name);
         } else if (cmd.getType() == PLAY_TRICK) {
-            List<Card> cards = fromString(cmd.getArg("options"), new IParser<Card>() {
+            List<Card> cards = fromString(cmd.getString("options"), new IParser<Card>() {
                 public Card parse(String s) {
                     return Card.parseCard(s);
                 }
@@ -119,7 +119,7 @@ public class KaiserCommand extends GameCommandType {
             Card [] options = cards.toArray(new Card[cards.size()]);
             listener.onPlayTrick(options);
         } else if (cmd.getType() == MAKE_BID) {
-            List<Bid> bids = fromString(cmd.getArg("options"), new IParser<Bid>() {
+            List<Bid> bids = fromString(cmd.getString("options"), new IParser<Bid>() {
                 public Bid parse(String s) {
                     return Bid.parseBid(s);
                 }
@@ -127,10 +127,10 @@ public class KaiserCommand extends GameCommandType {
             Bid [] options = bids.toArray(new Bid[bids.size()]);
             listener.onMakeBid(options);
         } else if (cmd.getType() == DEALT_CARD) {
-            Card card = Card.parseCard(cmd.getArg("card"));
+            Card card = Card.parseCard(cmd.getString("card"));
             listener.onDealtCard(card);
         } else if (cmd.getType() == UPDATE_GAME) {
-            ByteArrayInputStream in = new ByteArrayInputStream(cmd.getArg("game").getBytes());
+            ByteArrayInputStream in = new ByteArrayInputStream(cmd.getString("game").getBytes());
             try {
                 listener.onGameUpdate(in);
             } finally {
@@ -172,11 +172,11 @@ public class KaiserCommand extends GameCommandType {
     
     static boolean serverDecode(RemotePlayer player, KaiserServer server, GameCommand cmd) throws Exception {
         if (cmd.getType() == CL_PLAY_TRICK) {
-            Card card = Card.parseCard(cmd.getArg("card"));
+            Card card = Card.parseCard(cmd.getString("card"));
             if (player != null)
                 player.setResponse(card);
         } else if (cmd.getType() == CL_MAKE_BID) {
-            Bid bid = Bid.parseBid(cmd.getArg("bid"));
+            Bid bid = Bid.parseBid(cmd.getString("bid"));
             if (player != null)
                 player.setResponse(bid);
         }

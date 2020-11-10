@@ -1381,6 +1381,14 @@ public class Reflector<T> {
     public final void serialize(OutputStream out) throws IOException {
         serialize(new MyPrintWriter(out));
     }
+
+    private static String readLineAndClosedParen(MyBufferedReader in) throws IOException {
+        String value = readLineOrEOF(in);
+        String line = readLineOrEOF(in);
+        if (line != null)
+            throw new IOException("Expected closing paren } but found: " + line);
+        return value;
+    }
     
     private static Object parse(Object current, Class<?> clazz, MyBufferedReader in) throws Exception {
         if (clazz.isEnum())
@@ -1388,18 +1396,24 @@ public class Reflector<T> {
         if (clazz.isArray()) {
             throw new Exception("This method not to be called for array types");
         }
-        if (isSubclassOf(clazz, Integer.class))
-            return Integer.parseInt(readLineOrEOF(in));
-        if (isSubclassOf(clazz, Float.class))
-            return Float.parseFloat(readLineOrEOF(in));
-        if (isSubclassOf(clazz, Long.class))
-            return Long.parseLong(readLineOrEOF(in));
-        if (isSubclassOf(clazz, Double.class))
-            return Double.parseDouble(readLineOrEOF(in));
-        if (isSubclassOf(clazz, Boolean.class))
-            return Boolean.parseBoolean(readLineOrEOF(in));
-        if (isSubclassOf(clazz, Character.class))
-            return new Character(readLineOrEOF(in).trim().charAt(0));
+        if (isSubclassOf(clazz, Integer.class)) {
+            return Integer.parseInt(readLineAndClosedParen(in));
+        }
+        if (isSubclassOf(clazz, Float.class)) {
+            return Float.parseFloat(readLineAndClosedParen(in));
+        }
+        if (isSubclassOf(clazz, Long.class)) {
+            return Long.parseLong(readLineAndClosedParen(in));
+        }
+        if (isSubclassOf(clazz, Double.class)) {
+            return Double.parseDouble(readLineAndClosedParen(in));
+        }
+        if (isSubclassOf(clazz, Boolean.class)) {
+            return Boolean.parseBoolean(readLineAndClosedParen(in));
+        }
+        if (isSubclassOf(clazz, Character.class)) {
+            return new Character(readLineAndClosedParen(in).trim().charAt(0));
+        }
         if (isSubclassOf(clazz, Reflector.class)) {
             Reflector<?> a;
             if (!KEEP_INSTANCES || current == null)
@@ -1420,7 +1434,7 @@ public class Reflector<T> {
             return c;
         }
         if (isSubclassOf(clazz, String.class)) {
-            String sin = readLineOrEOF(in);
+            String sin = readLineAndClosedParen(in);
             if (sin == null)
                 return null;
             return decodeString(sin.substring(1, sin.length()-1));
@@ -1506,9 +1520,6 @@ public class Reflector<T> {
 	    	Object key = parse(null, clazz, in);
 	    	if (key == null)
 	    		throw new Exception("null key in map");
-        	line = readLineOrEOF(in);
-            if (line != null)
-                throw new Exception("unexpected line '"+ line + "'");
         	line = readLineOrEOF(in);
             if (line == null)
                 throw new Exception("Missing value from key/value pair in map");

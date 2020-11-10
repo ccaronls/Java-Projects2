@@ -76,8 +76,6 @@ public abstract class AWTKeyboardAnimationApplet extends JApplet implements
 	 * and setMillisecondsPerFrame(), if you want to customize these
 	 * values.  The parameters tell the size of the drawing area
 	 * at the time the applet is created.
-	 * @param width
-	 * @param height
 	 */
 	protected abstract void doInitialization();
 
@@ -432,7 +430,7 @@ public abstract class AWTKeyboardAnimationApplet extends JApplet implements
 			OSG = null;
 		}
 	}
-	
+
 	public final int getBorderThickness() {
 		return this.borderThickness;
 	}
@@ -655,7 +653,6 @@ public abstract class AWTKeyboardAnimationApplet extends JApplet implements
 	/**
 	 * 
 	 * @param button
-	 * @param reset
 	 * @return
 	 */
 	protected final boolean getMouseButtonPressed(int button) {

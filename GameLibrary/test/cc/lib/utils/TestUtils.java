@@ -10,6 +10,11 @@ import java.util.Stack;
 
 import cc.lib.game.Utils;
 import cc.lib.math.CMath;
+import cc.lib.zombicide.ZArmor;
+import cc.lib.zombicide.ZCharacter;
+import cc.lib.zombicide.ZItem;
+import cc.lib.zombicide.ZPlayerName;
+import cc.lib.zombicide.ZWeapon;
 
 /**
  * Created by chriscaron on 3/13/18.
@@ -1413,9 +1418,16 @@ public class TestUtils extends TestCase {
 
         System.out.println(result);
 
-
-
     }
 
+
+    public void testTable() {
+        ZCharacter c = ZPlayerName.Baldric.create();
+        c.equip(ZWeapon.CROSSBOW);
+        c.equip(ZArmor.SHIELD);
+        c.equip(ZItem.TORCH);
+        c.equip(ZItem.PLENTY_OF_ARROWS);
+        System.out.println(c.getDebugString());
+    }
 
 }

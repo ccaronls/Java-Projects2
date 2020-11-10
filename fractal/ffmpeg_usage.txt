@@ -32,6 +32,6 @@ Using FFMPEG to generate a mp4 movie out of the animations files:
 
 /usr/local/bin/ffmpeg -r 30 -i ${ANIMS_DIR}/anim%03d.png -pix_fmt rgb24 -vcodec x264 -crf 10 test.mp4
 
--r option if framerate
+-r option is framerate
 -i option is where to find the images
 -crf is param to x264 for quality; lower is better

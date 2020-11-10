@@ -26,7 +26,7 @@ import cc.lib.android.AndroidLogWriter;
 import cc.lib.android.CCActivityBase;
 import cc.lib.android.SwipeGestureListener;
 import cc.lib.checkerboard.*;
-import cc.lib.game.MiniMaxTree.MMTreeNode;
+import cc.lib.game.MiniMaxTree;
 import cc.lib.game.Utils;
 import cc.lib.utils.FileUtils;
 
@@ -36,7 +36,6 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
 
     private CheckerboardView pbv;
     private View bEndTurn;
-    private MMTreeNode<Move, Game> root = null;
     private TextView tvDebug;
     private View bUp, bDown, bLeft, bRight;
     private View bRobot;
