@@ -397,6 +397,16 @@ public class AWTGraphics extends APGraphics {
         g.setColor(c);
     }
 
+    /**
+     * clears screen with whatever the background color of this component is
+     */
+    public final void clearScreen() {
+        if (comp != null) {
+            g.setColor(comp.getBackground());
+            g.fillRect(0, 0, getViewportWidth(), getViewportHeight());
+        }
+    }
+
     public final  void setFont(Font font) {
         g.setFont(font);
     }

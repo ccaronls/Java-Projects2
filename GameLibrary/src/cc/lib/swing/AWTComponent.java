@@ -5,6 +5,7 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Rectangle;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
@@ -38,6 +39,7 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
     private int scrollStartY = 0;
 
     public AWTComponent() {
+
     }
 
     public void setMouseEnabled(boolean enabled) {
@@ -228,7 +230,6 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
 
     @Override
     public synchronized void keyTyped(KeyEvent evt) {
-
     }
 
     @Override
@@ -334,4 +335,16 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
         return getAPGraphics().screenToViewport(mx, my);
     }
 
+    @Override
+    public void setBounds(int x, int y, int width, int height) {
+        Rectangle rect = getBounds();
+        super.setBounds(x, y, width, height);
+        if (rect.width != width || rect.height != height) {
+            onDimensionChanged(G, width, height);
+        }
+    }
+
+    protected void onDimensionChanged(AWTGraphics g, int width, int height) {
+
+    }
 }

@@ -508,7 +508,7 @@ public class ZGame {
         return users[currentUser];
     }
 
-    ZCharacter getCurrentCharacter() {
+    public ZCharacter getCurrentCharacter() {
         return getCurrentUser().characters.get(currentCharacter);
     }
 

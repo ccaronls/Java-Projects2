@@ -1,14 +1,24 @@
 package cc.applets.zombicide;
 
+import java.awt.BorderLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.List;
 
-import cc.applets.typing.LearnToType;
+import javax.swing.JApplet;
+
 import cc.lib.game.AGraphics;
 import cc.lib.game.GColor;
 import cc.lib.game.GDimension;
+import cc.lib.logger.Logger;
+import cc.lib.logger.LoggerFactory;
+import cc.lib.swing.AWTButton;
+import cc.lib.swing.AWTButtonLayout;
+import cc.lib.swing.AWTComponent;
 import cc.lib.swing.AWTFrame;
-import cc.lib.swing.AWTKeyboardAnimationApplet;
+import cc.lib.swing.AWTGraphics;
+import cc.lib.swing.AWTPanel;
 import cc.lib.utils.FileUtils;
 import cc.lib.zombicide.ZActor;
 import cc.lib.zombicide.ZBoard;
@@ -21,7 +31,9 @@ import cc.lib.zombicide.ZSkill;
 import cc.lib.zombicide.ZUser;
 import cc.lib.zombicide.ZZombieType;
 
-public class ZombicideApplet extends AWTKeyboardAnimationApplet {
+public class ZombicideApplet extends JApplet implements ActionListener {
+
+    static final Logger log = LoggerFactory.getLogger(ZombicideApplet.class);
 
     public static void main(String [] args) {
         //Utils.DEBUG_ENABLED = true;
@@ -29,25 +41,15 @@ public class ZombicideApplet extends AWTKeyboardAnimationApplet {
         //PlayerBot.DEBUG_ENABLED = true;
         //mode = 0;
         AWTFrame frame = new AWTFrame("Zombicide");
-        AWTKeyboardAnimationApplet app = new ZombicideApplet();
+        JApplet app = new ZombicideApplet();
         frame.add(app);
         app.init();
         app.start();
-        app.setMillisecondsPerFrame(20);
-        File settings = FileUtils.getOrCreateSettingsDirectory(LearnToType.class);
+        File settings = FileUtils.getOrCreateSettingsDirectory(ZombicideApplet.class);
         frame.setPropertiesFile(new File(settings, "application.properties"));
         if (!frame.restoreFromProperties())
             frame.centerToScreen(800, 600);
-
-
     }
-
-    ZGame game = new ZGame();
-    List options;
-    String message = "";
-    Object monitor = new Object();
-    Object result = null;
-    UIMode uiMode = UIMode.NONE;
 
     enum UIMode {
         NONE,
@@ -57,8 +59,115 @@ public class ZombicideApplet extends AWTKeyboardAnimationApplet {
         PICK_ZOMBIE
     }
 
+    ZGame game = new ZGame();
+    List options;
+    String message = "";
+    Object monitor = new Object();
+    Object result = null;
+    UIMode uiMode = UIMode.NONE;
+    AWTPanel menu = new AWTPanel();
+
+    int [] highlightedCell = null;
+    ZActor highlightedActor = null;
+    BoardComponent boardComp;
+    CharacterComponent charComp;
+
+    class BoardComponent extends AWTComponent {
+
+        @Override
+        protected void init(AWTGraphics g) {
+            GDimension cellDim = game.board.initCellRects(g, g.getViewportWidth()-5, g.getViewportHeight()-5);
+            loadImages(g);
+            setMouseEnabled(true);
+        }
+
+        @Override
+        protected void onDimensionChanged(AWTGraphics g, int width, int height) {
+            game.board.initCellRects(g, g.getViewportWidth()-5, g.getViewportHeight()-5);
+        }
+
+        @Override
+        protected void paint(AWTGraphics g, int mouseX, int mouseY) {
+            if (game == null || game.board == null)
+                return;
+            ZBoard board = game.board;
+            highlightedCell = board.drawDebug(g, getMouseX(), getMouseY());
+            highlightedActor = board.drawActors(g, getMouseX(), getMouseY());
+            if (highlightedCell != null) {
+                g.setColor(GColor.RED);
+                g.drawRect(board.getCell(highlightedCell).getRect());
+            }
+            if (highlightedActor != null) {
+                g.setColor(GColor.YELLOW);
+                g.drawRect(highlightedActor.getRect());
+            }
+        }
+
+        /*
+            if (highlighted != null) {
+                if (getKeyboardReset('a')) {
+                    board.toggleDorOpen(highlighted, ZBoard.DIR_WEST);
+                } else if (getKeyboardReset('w')) {
+                    board.toggleDorOpen(highlighted, ZBoard.DIR_NORTH);
+                } else if (getKeyboardReset('s')) {
+                    board.toggleDorOpen(highlighted, ZBoard.DIR_SOUTH);
+                } else if (getKeyboardReset('d')) {
+                    board.toggleDorOpen(highlighted, ZBoard.DIR_EAST);
+                }
+
+                if (getMouseButtonClicked(0)) {
+                    selected = highlighted;
+                } else if (selected != null) {
+                    g.setColor(GColor.RED);
+                    if (board.canSeeCell(selected, highlighted)) {
+                        g.setColor(GColor.GREEN);
+                    }
+                    g.drawRect(board.getCell(selected).getRect());
+                }
+            }
+
+        }*/
+    }
+
+    class CharacterComponent extends AWTComponent {
+        @Override
+        protected void paint(AWTGraphics g, int mouseX, int mouseY) {
+            g.clearScreen();
+            if (game == null)
+                return;
+            if (game.getCurrentCharacter() != null) {
+                String txt = game.getCurrentCharacter().getDebugString();
+                g.setColor(GColor.BLACK);
+                g.drawString(txt, 0, 0);
+            }
+        }
+    }
+
+    ZombicideApplet() {
+        add(boardComp = new BoardComponent());
+        add(charComp = new CharacterComponent(), BorderLayout.SOUTH);
+        menu.setLayout(new AWTButtonLayout(menu));
+        add(menu, BorderLayout.WEST);
+        menu.add(new AWTButton("START", this));
+    }
+
     @Override
-    protected void doInitialization() {
+    public void actionPerformed(ActionEvent e) {
+        switch (e.getActionCommand()) {
+            case "START":
+                break;
+            default:
+                log.error("Unhandled action: " + e.getActionCommand());
+        }
+    }
+
+    void repaintAll() {
+        repaint();
+    }
+
+
+    @Override
+    public void init() {
         ZUser user = new ZUser() {
             @Override
             public Integer chooseCharacter(List<Integer> characters) {
@@ -116,37 +225,6 @@ public class ZombicideApplet extends AWTKeyboardAnimationApplet {
         }
     }
 
-    int [] selected = null;
-    int mode = 0; // 0 == debug, 1 == choose players / quest, 2 == in game
-
-    @Override
-    protected void drawFrame(AGraphics g) {
-        ZBoard board = game.board;
-        int [] highlighted = board.drawDebug(g, getMouseX(), getMouseY());
-        ZActor selectedActor = board.drawActors(g, getMouseX(), getMouseY());
-        if (highlighted != null) {
-            if (getKeyboardReset('a')) {
-                board.toggleDorOpen(highlighted, ZBoard.DIR_WEST);
-            } else if (getKeyboardReset('w')) {
-                board.toggleDorOpen(highlighted, ZBoard.DIR_NORTH);
-            } else if (getKeyboardReset('s')) {
-                board.toggleDorOpen(highlighted, ZBoard.DIR_SOUTH);
-            } else if (getKeyboardReset('d')) {
-                board.toggleDorOpen(highlighted, ZBoard.DIR_EAST);
-            }
-
-            if (getMouseButtonClicked(0)) {
-                selected = highlighted;
-            } else if (selected != null) {
-                g.setColor(GColor.RED);
-                if (board.canSeeCell(selected, highlighted)) {
-                    g.setColor(GColor.GREEN);
-                }
-                g.drawRect(board.getCell(selected).getRect());
-            }
-        }
-    }
-
     boolean loaded = false;
 
     void loadImages(AGraphics g) {
@@ -172,11 +250,4 @@ public class ZombicideApplet extends AWTKeyboardAnimationApplet {
         loaded = true;
     }
 
-
-    @Override
-    protected void onDimensionsChanged(AGraphics g, int width, int height) {
-        GDimension cellDim = game.board.initCellRects(g, g.getViewportWidth()-5, g.getViewportHeight()-5);
-        loadImages(g);
-        // now fit all the actors cell dimensions
-    }
 }

@@ -1,5 +1,6 @@
 package cc.lib.zombicide;
 
+import cc.lib.game.GRectangle;
 import cc.lib.utils.Reflector;
 
 public abstract class ZActor extends Reflector<ZActor> {
@@ -16,6 +17,8 @@ public abstract class ZActor extends Reflector<ZActor> {
     int [] occupiedCell;
     int occupiedQuadrant;
     private int actionsLeftThisTurn;
+    @Omit
+    GRectangle rect;
 
     void prepareTurn() {
         actionsLeftThisTurn = getActionsPerTurn();
@@ -35,4 +38,7 @@ public abstract class ZActor extends Reflector<ZActor> {
         return actionsLeftThisTurn;
     }
 
+    public final GRectangle getRect() {
+        return rect;
+    }
 }

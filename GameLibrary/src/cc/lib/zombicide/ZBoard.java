@@ -128,10 +128,8 @@ public class ZBoard extends Reflector<ZBoard> {
                 curZoneId = cell.zoneIndex;
             }
 
-            switch (cell.walls[dir]) {
-                case CLOSED:
-                case WALL:
-                    return false;
+            if (!cell.walls[dir].isOpen()) {
+                return false;
             }
 
             tx += DIR_DX[dir];
@@ -212,10 +210,8 @@ public class ZBoard extends Reflector<ZBoard> {
             return;
         ZCell fromCell = grid[start[0]][start[1]];
         for (int dir = 0; dir <4; dir++) { // todo: order the directions we search
-            switch (fromCell.walls[dir]) {
-                case WALL:
-                case CLOSED:
-                    continue;
+            if (!fromCell.walls[dir].isOpen()) {
+                continue;
             }
             int x = start[1] + DIR_DX[dir];
             int y = start[0] + DIR_DY[dir];
@@ -304,6 +300,11 @@ public class ZBoard extends Reflector<ZBoard> {
                         case OPEN:
                             g.drawLine(v0, dv0, 3);
                             g.drawLine(dv1, v1, 3);
+                            break;
+                        case LOCKED:
+                            g.drawLine(v0, v1, 3);
+                            g.setColor(GColor.RED);
+                            g.drawLine(dv0, dv1, 1);
                             break;
                         case CLOSED:
                             g.drawLine(v0, v1, 3);
@@ -437,6 +438,7 @@ public class ZBoard extends Reflector<ZBoard> {
                     if (rect.contains(mx, my))
                         picked = a;
                     g.drawImage(a.getImageId(), rect);
+                    a.rect = rect;
                 }
             }
         }
@@ -447,15 +449,16 @@ public class ZBoard extends Reflector<ZBoard> {
     public GRectangle drawActor(AGraphics g, ZActor actor, GColor outline) {
         AImage img = g.getImage(actor.getImageId());
         if (img != null) {
-            GRectangle rect = getCell(actor.occupiedCell).getQuadrant(actor.occupiedQuadrant).fit(img);
+            if (actor.rect == null)
+                actor.rect = getCell(actor.occupiedCell).getQuadrant(actor.occupiedQuadrant).fit(img);
             if (outline != null) {
                 GColor oldColor = g.getColor();
                 g.setColor(outline);
-                g.drawRect(rect, 2);
+                g.drawRect(actor.rect, 2);
                 g.setColor(oldColor);
             }
-            g.drawImage(actor.getImageId(), rect);
-            return rect;
+            g.drawImage(actor.getImageId(), actor.rect);
+            return actor.rect;
         }
         return null;
     }

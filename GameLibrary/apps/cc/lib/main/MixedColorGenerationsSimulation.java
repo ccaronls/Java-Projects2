@@ -43,7 +43,7 @@ public class MixedColorGenerationsSimulation extends AWTComponent {
 
     final float RADIUS = 20;
     final float SPACING = 100;
-    final float RATIO = .15f; // ratio of white to black
+    final float RATIO = .85f; // ratio of white to black
 
     @Override
     protected void init(AWTGraphics g) {
