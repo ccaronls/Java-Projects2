@@ -2,20 +2,24 @@ package cc.lib.zombicide;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Vector;
 
 import cc.lib.game.AGraphics;
+import cc.lib.game.AImage;
 import cc.lib.game.GColor;
+import cc.lib.game.GDimension;
 import cc.lib.game.GRectangle;
 import cc.lib.game.Justify;
 import cc.lib.math.Vector2D;
+import cc.lib.utils.Reflector;
 
-public class ZBoard {
+public class ZBoard extends Reflector<ZBoard> {
+
+    static {
+        addAllFields(ZBoard.class);
+    }
 
     public static final int DIR_NORTH = 0;
     public static final int DIR_SOUTH = 1;
@@ -29,7 +33,17 @@ public class ZBoard {
     public static final int [] DIR_OPPOSITE = { DIR_SOUTH, DIR_NORTH, DIR_WEST, DIR_EAST };
 
     ZCell [][] grid;
-    Vector<ZZone> zones;
+    List<ZZone> zones;
+
+    public ZBoard() {
+
+    }
+
+    public ZBoard(ZCell[][] grid, List<ZZone> zones) {
+        this.grid = grid;
+        this.zones = zones;
+        //removeEmptyZones();
+    }
 
     public int getRows() {
         return grid.length;
@@ -37,158 +51,6 @@ public class ZBoard {
 
     public int getColumns() {
         return grid[0].length;
-    }
-
-    public void load(String [][] map) {
-        int rows = map.length;
-        int cols = map[0].length;
-        grid = new ZCell[rows][cols];
-        Map<Integer, ZZone> zoneMap = new HashMap<>();
-        int maxZone = 0;
-        for (int row=0; row<map.length; row++) {
-            for (int col=0; col<map[row].length; col++) {
-                ZCell cell = grid[row][col] = new ZCell();
-                String [] parts = map[row][col].split("[:]");
-                ZZone zone = null;
-                for (String cmd:parts) {
-                    if (cmd.length() == 0)
-                        continue;
-                    if (cmd.startsWith("z")) {
-                        int index = Integer.parseInt(cmd.substring(1));
-                        maxZone = Math.max(maxZone, index);
-                        zone = zoneMap.get(index);
-                        if (zone == null) {
-                            zone = new ZZone();
-                            zoneMap.put(index, zone);
-                        }
-                        zone.cells.add(new int[] { row, col });
-                        cell.zoneIndex = index;
-                        continue;
-                    }
-
-                    switch (cmd) {
-                        case "i":
-                            cell.isInside = true;
-                            break;
-                        case "v":
-                            cell.cellType = ZCellType.VAULT;
-                            break;
-                        case "wn":
-                            cell.walls[DIR_NORTH] = ZWallFlag.WALL;
-                            break;
-                        case "ws":
-                            cell.walls[DIR_SOUTH] = ZWallFlag.WALL;
-                            break;
-                        case "we":
-                            cell.walls[DIR_EAST] = ZWallFlag.WALL;
-                            break;
-                        case "ww":
-                            cell.walls[DIR_WEST] = ZWallFlag.WALL;
-                            break;
-                        case "dn":
-                            cell.walls[DIR_NORTH] = ZWallFlag.CLOSED;
-                            break;
-                        case "ds":
-                            cell.walls[DIR_SOUTH] = ZWallFlag.CLOSED;
-                            break;
-                        case "de":
-                            cell.walls[DIR_EAST] = ZWallFlag.CLOSED;
-                            break;
-                        case "dw":
-                            cell.walls[DIR_WEST] = ZWallFlag.CLOSED;
-                            break;
-                        case "ldn0":
-                            cell.walls[DIR_NORTH] = ZWallFlag.LOCKED0;
-                            break;
-                        case "lds0":
-                            cell.walls[DIR_SOUTH] = ZWallFlag.LOCKED0;
-                            break;
-                        case "lde0":
-                            cell.walls[DIR_EAST] = ZWallFlag.LOCKED0;
-                            break;
-                        case "ldw0":
-                            cell.walls[DIR_WEST] = ZWallFlag.LOCKED0;
-                            break;
-                        case "ldn1":
-                            cell.walls[DIR_NORTH] = ZWallFlag.LOCKED1;
-                            break;
-                        case "lds1":
-                            cell.walls[DIR_SOUTH] = ZWallFlag.LOCKED1;
-                            break;
-                        case "lde1":
-                            cell.walls[DIR_EAST] = ZWallFlag.LOCKED1;
-                            break;
-                        case "ldw1":
-                            cell.walls[DIR_WEST] = ZWallFlag.LOCKED1;
-                            break;
-                        case "ldn2":
-                            cell.walls[DIR_NORTH] = ZWallFlag.LOCKED2;
-                            break;
-                        case "lds2":
-                            cell.walls[DIR_SOUTH] = ZWallFlag.LOCKED2;
-                            break;
-                        case "lde2":
-                            cell.walls[DIR_EAST] = ZWallFlag.LOCKED2;
-                            break;
-                        case "ldw2":
-                            cell.walls[DIR_WEST] = ZWallFlag.LOCKED2;
-                            break;
-                        case "odn":
-                            cell.walls[DIR_NORTH] = ZWallFlag.OPEN;
-                            break;
-                        case "ods":
-                            cell.walls[DIR_SOUTH] = ZWallFlag.OPEN;
-                            break;
-                        case "ode":
-                            cell.walls[DIR_EAST] = ZWallFlag.OPEN;
-                            break;
-                        case "odw":
-                            cell.walls[DIR_WEST] = ZWallFlag.OPEN;
-                            break;
-                        case "obj":
-                            cell.cellType = ZCellType.OBJECTIVE;
-                            break;
-                        case "key0":
-                            cell.cellType = ZCellType.KEY0;
-                            break;
-                        case "key1":
-                            cell.cellType = ZCellType.KEY1;
-                            break;
-                        case "key2":
-                            cell.cellType = ZCellType.KEY2;
-                            break;
-                        case "sp":
-                            cell.cellType = ZCellType.SPAWN;
-                            break;
-                        case "start":
-                            cell.cellType = ZCellType.START;
-                            break;
-                        case "exit":
-                            cell.cellType = ZCellType.EXIT;
-                            break;
-                        case "walker":
-                            cell.cellType = ZCellType.WALKER;
-                            break;
-                        case "runner":
-                            cell.cellType = ZCellType.RUNNER;
-                            break;
-                        case "fatty":
-                            cell.cellType = ZCellType.FATTY;
-                            break;
-                        case "necro":
-                            cell.cellType = ZCellType.NECRO;
-                            break;
-                        default:
-                            throw new RuntimeException("Invalid command '" + cmd + "'");
-                    }
-                }
-            }
-        }
-        zones = new Vector<>();
-        zones.setSize(maxZone+1);
-        for (Map.Entry<Integer, ZZone> e : zoneMap.entrySet()) {
-            zones.set(e.getKey(), e.getValue());
-        }
     }
 
     ZZone getZone(int index) {
@@ -200,7 +62,6 @@ public class ZBoard {
         return zones;
     }
 
-
     public List<Integer> getAccessableZones(int zoneIndex, int distance) {
         if (distance == 0)
             return Collections.singletonList(zoneIndex);
@@ -209,8 +70,8 @@ public class ZBoard {
         for (int [] cellPos : zones.get(zoneIndex).cells) {
             // fan out in all direction to given distance
             for (int dir = 0; dir <4; dir++) {
-                int x = cellPos[1];
-                int y = cellPos[0];
+                int x = cellPos[0];
+                int y = cellPos[1];
                 boolean open = true;
                 for (int dist = 0; dist <distance; dist++) {
                     if (!grid[y][x].walls[dir].isOpen()) {
@@ -465,6 +326,11 @@ public class ZBoard {
                     text += "\n2 Units away:\n" + accessible2;
                 }
                 g.setColor(GColor.CYAN);
+                for (ZActor a : cell.occupied) {
+                    if (a != null) {
+                        text += "\n" + a.name();
+                    }
+                }
                 g.drawJustifiedStringOnBackground(center.getX(), center.getY(), Justify.CENTER, Justify.CENTER, text, GColor.TRANSLUSCENT_BLACK, 3);
             }
         }
@@ -489,7 +355,7 @@ public class ZBoard {
         }
     }
 
-    public void initCellRects(AGraphics g, int width, int height) {
+    public GDimension initCellRects(AGraphics g, int width, int height) {
         int rows = getRows();
         int cols = getColumns();
 
@@ -506,5 +372,123 @@ public class ZBoard {
         for (ZZone zone : zones) {
             zone.center.scaleEq(1.0f / zone.cells.size());
         }
+
+        return new GDimension(dim, dim);
+    }
+
+    /**
+     *
+     * @param actor
+     * @param zoneIndex
+     */
+    public void addActor(ZActor actor, int zoneIndex) {
+        ZZone zone = zones.get(zoneIndex);
+        boolean added = false;
+        for (int c=0;!added && c < zone.cells.size(); c++) {
+            int [] cellPos = zone.cells.get(zone.nextCell);
+            ZCell cell = getCell(cellPos);
+            zone.nextCell = (zone.nextCell + 1) % zone.cells.size();
+            for (int i = 0; i < cell.occupied.length; i++) {
+                if (cell.occupied[i] == null) {
+                    cell.occupied[i] = actor;
+                    actor.occupiedZone = zoneIndex;
+                    actor.occupiedCell = cellPos;
+                    actor.occupiedQuadrant = i;
+                    added = true;
+                    break;
+                }
+            }
+        }
+        if (!added) {
+            throw new AssertionError("Failed to add Actor");
+        }
+    }
+
+    public void removeActor(ZActor actor) {
+        ZCell cell = getCell(actor.occupiedCell);
+        cell.occupied[actor.occupiedQuadrant] = null;
+        actor.occupiedZone = -1;
+        actor.occupiedQuadrant = -1;
+        actor.occupiedCell = null;
+    }
+
+    /**
+     * To be called after load game - will make sure actors asyncronized with cell quadrants
+     * @param actors
+     */
+    void syncActors(List<ZActor> actors) {
+        for (ZActor actor : actors) {
+            ZZone zone = zones.get(actor.occupiedZone);
+            ZCell cell = getCell(actor.occupiedCell);
+            cell.occupied[actor.occupiedQuadrant] = actor;
+        }
+    }
+
+    public ZActor drawActors(AGraphics g, int mx, int my) {
+        ZActor picked = null;
+        for (ZCell cell : getCells()) {
+            for (int i=0; i<cell.occupied.length; i++) {
+                ZActor a = cell.occupied[i];
+                if (a == null)
+                    continue;
+                AImage img = g.getImage(a.getImageId());
+                if (img != null) {
+                    GRectangle rect = cell.getQuadrant(i).fit(img);
+                    if (rect.contains(mx, my))
+                        picked = a;
+                    g.drawImage(a.getImageId(), rect);
+                }
+            }
+        }
+        return picked;
+    }
+
+    // TODO - Move this to the renderer so we can do better highlighting in android canvas
+    public GRectangle drawActor(AGraphics g, ZActor actor, GColor outline) {
+        AImage img = g.getImage(actor.getImageId());
+        if (img != null) {
+            GRectangle rect = getCell(actor.occupiedCell).getQuadrant(actor.occupiedQuadrant).fit(img);
+            if (outline != null) {
+                GColor oldColor = g.getColor();
+                g.setColor(outline);
+                g.drawRect(rect, 2);
+                g.setColor(oldColor);
+            }
+            g.drawImage(actor.getImageId(), rect);
+            return rect;
+        }
+        return null;
+    }
+
+    /**
+     * Iterate over all cells
+     * @return
+     */
+    public Iterable<ZCell> getCells() {
+        return () -> ZBoard.this.iterator();
+    }
+
+    public Iterator<ZCell> iterator() {
+        return new Iterator<ZCell>() {
+
+            int row=0;
+            int col=0;
+
+            @Override
+            public boolean hasNext() {
+                return row<getRows();
+            }
+
+            @Override
+            public ZCell next() {
+                ZCell cell = grid[row][col];
+                if (++col == getColumns()) {
+                    col=0;
+                    row++;
+                }
+                return cell;
+            }
+        };
+
     }
 }

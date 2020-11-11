@@ -8,6 +8,10 @@ import cc.lib.utils.Table;
 
 public class ZCharacter extends ZActor implements Table.Model {
 
+    static {
+        addAllFields(ZCharacter.class);
+    }
+
     public final static int MAX_BACKPACK_SIZE = 5;
 
     ZPlayerName name;
@@ -20,10 +24,37 @@ public class ZCharacter extends ZActor implements Table.Model {
     ZEquipment leftHand, rightHand, body;
     int numBackpackItems = 0;
 
+    public ZCharacter() {
+        super(-1);
+    }
+
     @Override
     void prepareTurn() {
         super.prepareTurn();
         movesDoneThisTurn.clear();
+    }
+
+    @Override
+    protected int getImageId() {
+        return name.imageId;
+    }
+
+    @Override
+    public String name() {
+        return name.name();
+    }
+
+    @Override
+    protected void performAction(ZActionType action) {
+        super.performAction(action);
+    }
+
+    @Override
+    protected int getActionsPerTurn() {
+        int actions = 3;
+        if (skills.contains(ZSkill.Plus1_Action))
+            actions++;
+        return actions;
     }
 
     public boolean canOpenDoor() {

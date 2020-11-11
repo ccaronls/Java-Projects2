@@ -114,7 +114,8 @@ public enum ZPlayerName {
         for (ZEquipment e : startingEquipment)
             c.equip(e);
         c.skills.addAll(Arrays.asList(blueSkillOptions));
-        c.actionsPerTurn = startingActionsPerTurn;
         return c;
     }
+
+    public int imageId = -1;
 }

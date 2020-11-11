@@ -1,14 +1,19 @@
 package cc.lib.zombicide;
 
 public enum ZWallFlag {
-    NONE, WALL, CLOSED, OPEN, LOCKED0, LOCKED1, LOCKED2;
+    NONE,
+    WALL,
+    CLOSED,
+    OPEN,
+    LOCKED;
 
     boolean isOpen() {
-        switch (this) {
-            case OPEN:
-            case NONE:
-                return true;
+        switch(this) {
+        case OPEN:
+        case NONE:
+            return true;
+        default:
+            return false;
         }
-        return false;
     }
 }

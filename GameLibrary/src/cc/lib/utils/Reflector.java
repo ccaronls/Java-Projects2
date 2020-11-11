@@ -103,6 +103,40 @@ import cc.lib.logger.LoggerFactory;
  */
 public class Reflector<T> {
 
+    /**
+     * Use this annotation to Omit field for usage by Reflector
+     *
+     * If a class extends Reflector, and that class has called:
+     * static {
+     *     addAllFields(...)
+     * }
+     *
+     * then this annotation is the same as:
+     *
+     * int myField;
+     *
+     * static {
+     *     omitField("myField");
+     * }
+     *
+     * @author chriscaron
+     *
+     */
+    @Target(value = ElementType.FIELD)
+    @Retention(value = RetentionPolicy.RUNTIME)
+    public @interface Omit {}
+
+    @Target(value = ElementType.FIELD)
+    @Retention(value = RetentionPolicy.RUNTIME)
+    public @interface Alternate {
+        String [] variations();
+    }
+
+    @Target(value = ElementType.TYPE)
+    @Retention(value = RetentionPolicy.RUNTIME)
+    public @interface EnumInterfcae {}
+
+
     private final static Logger log = LoggerFactory.getLogger(Reflector.class);
 
     /**
@@ -950,7 +984,7 @@ public class Reflector<T> {
             return floatArchiver;
         } else if (clazz.equals(String.class)) {
             return stringArchiver;
-        } else if (clazz.isEnum() || isSubclassOf(clazz, Enum.class)) {
+        } else if (clazz.isEnum() || isSubclassOf(clazz, Enum.class) || clazz.getAnnotation(EnumInterfcae.class) != null) {
             addArrayTypes(clazz);
             return enumArchiver;
         } else if (isSubclassOf(clazz, Reflector.class)) {
@@ -991,35 +1025,6 @@ public class Reflector<T> {
     	} catch (ClassNotFoundException e) {
     		e.printStackTrace();
     	}
-    }
-
-    /**
-     * Use this annotation to Omit field for usage by Reflector
-     *
-     * If a class extends Reflector, and that class has called:
-     * static {
-     *     addAllFields(...)
-     * }
-     *
-     * then this annotation is the same as:
-     *
-     * int myField;
-     *
-     * static {
-     *     omitField("myField");
-     * }
-     *
-     * @author chriscaron
-     *
-     */
-    @Target(value = ElementType.FIELD)
-    @Retention(value = RetentionPolicy.RUNTIME)
-    public @interface Omit {}
-
-    @Target(value = ElementType.FIELD)
-    @Retention(value = RetentionPolicy.RUNTIME)
-    public @interface Alternate {
-        String [] variations();
     }
 
     /**

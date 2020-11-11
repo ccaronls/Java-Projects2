@@ -6,17 +6,20 @@ import java.util.List;
 import cc.applets.typing.LearnToType;
 import cc.lib.game.AGraphics;
 import cc.lib.game.GColor;
+import cc.lib.game.GDimension;
 import cc.lib.swing.AWTFrame;
 import cc.lib.swing.AWTKeyboardAnimationApplet;
 import cc.lib.utils.FileUtils;
+import cc.lib.zombicide.ZActor;
 import cc.lib.zombicide.ZBoard;
 import cc.lib.zombicide.ZCharacter;
 import cc.lib.zombicide.ZGame;
 import cc.lib.zombicide.ZMove;
 import cc.lib.zombicide.ZPlayerName;
-import cc.lib.zombicide.ZQuest;
+import cc.lib.zombicide.ZQuests;
 import cc.lib.zombicide.ZSkill;
 import cc.lib.zombicide.ZUser;
+import cc.lib.zombicide.ZZombieType;
 
 public class ZombicideApplet extends AWTKeyboardAnimationApplet {
 
@@ -90,7 +93,8 @@ public class ZombicideApplet extends AWTKeyboardAnimationApplet {
         };
         user.addCharacter(ZPlayerName.Baldric.create());
         user.addCharacter(ZPlayerName.Clovis.create());
-        ZQuest.loadTutorial(game);
+        game.setUsers(user);
+        game.loadQuest(ZQuests.Tutorial);
     }
 
     <T> T waitForUser() {
@@ -116,19 +120,9 @@ public class ZombicideApplet extends AWTKeyboardAnimationApplet {
 
     @Override
     protected void drawFrame(AGraphics g) {
-
-
-
-    }
-
-    void drawMenu(AGraphics g, int width, int height) {
-
-    }
-
-    void drawFrameDebug(AGraphics g) {
-
         ZBoard board = game.board;
         int [] highlighted = board.drawDebug(g, getMouseX(), getMouseY());
+        ZActor selectedActor = board.drawActors(g, getMouseX(), getMouseY());
         if (highlighted != null) {
             if (getKeyboardReset('a')) {
                 board.toggleDorOpen(highlighted, ZBoard.DIR_WEST);
@@ -152,8 +146,36 @@ public class ZombicideApplet extends AWTKeyboardAnimationApplet {
         }
     }
 
+    boolean loaded = false;
+
+    void loadImages(AGraphics g) {
+        if (loaded)
+            return;
+        ZZombieType.Abomination.imageId = g.loadImage("zabomination.png");
+        ZZombieType.Necromancer.imageId = g.loadImage("znecro.png");
+        ZZombieType.Walker1.imageId = g.loadImage("zwalker1.png");
+        ZZombieType.Walker2.imageId = g.loadImage("zwalker2.png");
+        ZZombieType.Walker3.imageId = g.loadImage("zwalker3.png");
+        ZZombieType.Walker4.imageId = g.loadImage("zwalker4.png");
+        ZZombieType.Walker5.imageId = g.loadImage("zwalker5.png");
+        ZZombieType.Runner1.imageId = g.loadImage("zrunner1.png");
+        ZZombieType.Runner2.imageId = g.loadImage("zrunner1.png");
+        ZZombieType.Fatty1.imageId = g.loadImage("zfatty1.png");
+        ZZombieType.Fatty2.imageId = g.loadImage("zfatty2.png");
+        ZPlayerName.Clovis.imageId = g.loadImage("zchar_clovis.png");
+        ZPlayerName.Baldric.imageId = g.loadImage("zchar_baldric.png");
+        ZPlayerName.Ann.imageId = g.loadImage("zchar_ann.png");
+        ZPlayerName.Nelly.imageId = g.loadImage("zchar_nelly.png");
+        ZPlayerName.Samson.imageId = g.loadImage("zchar_samson.png");
+        ZPlayerName.Silas.imageId = g.loadImage("zchar_silas.png");
+        loaded = true;
+    }
+
+
     @Override
     protected void onDimensionsChanged(AGraphics g, int width, int height) {
-        game.board.initCellRects(g, g.getViewportWidth()-5, g.getViewportHeight()-5);
+        GDimension cellDim = game.board.initCellRects(g, g.getViewportWidth()-5, g.getViewportHeight()-5);
+        loadImages(g);
+        // now fit all the actors cell dimensions
     }
 }

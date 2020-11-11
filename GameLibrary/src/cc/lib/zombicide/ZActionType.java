@@ -1,10 +1,15 @@
 package cc.lib.zombicide;
 
 public enum ZActionType {
+    DO_NOTHING,
     MOVE,
     SEARCH,
     OPEN_DOOR,
-    COMBAT,
+    MELEE,
+    RANGED,
+    MAGIC,
     ENCHANTMENT,
-    ACTIVATE
+    ACTIVATE,
+    ORGANIZE,
+    CONSUME
 }

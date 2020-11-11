@@ -1,19 +1,38 @@
 package cc.lib.zombicide;
 
-import cc.lib.game.AGraphics;
-import cc.lib.game.GRectangle;
+import cc.lib.utils.Reflector;
 
-public class ZActor {
+public abstract class ZActor extends Reflector<ZActor> {
+
+    static {
+        addAllFields(ZActor.class);
+    }
+
+    ZActor(int zone) {
+        this.occupiedZone = zone;
+    }
+
     int occupiedZone;
-    int actionsPerTurn;
-    int actionsLeftThisTurn;
-    GRectangle boundingRectangle;
+    int [] occupiedCell;
+    int occupiedQuadrant;
+    private int actionsLeftThisTurn;
 
     void prepareTurn() {
-        actionsLeftThisTurn = actionsPerTurn;
+        actionsLeftThisTurn = getActionsPerTurn();
     }
 
-    public void draw(AGraphics g) {
+    protected abstract int getActionsPerTurn();
 
+    protected abstract int getImageId();
+
+    public abstract String name();
+
+    protected void performAction(ZActionType action) {
+        actionsLeftThisTurn--;
     }
+
+    public int getActionsLeftThisTurn() {
+        return actionsLeftThisTurn;
+    }
+
 }

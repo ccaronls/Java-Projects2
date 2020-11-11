@@ -2,7 +2,7 @@ package cc.lib.game;
 
 import cc.lib.utils.Reflector;
 
-public class GDimension extends Reflector<GDimension> {
+public class GDimension extends Reflector<GDimension> implements IDimension {
 
     public final static GDimension EMPTY = new GDimension();
 
@@ -11,7 +11,7 @@ public class GDimension extends Reflector<GDimension> {
     }
 
 	public final float width, height;
-	
+
 	public GDimension() {
 		this(0,0);
 	}
@@ -21,7 +21,17 @@ public class GDimension extends Reflector<GDimension> {
 		this.height = h;
 	}
 
-	@Override
+    @Override
+    public float getWidth() {
+        return width;
+    }
+
+    @Override
+    public float getHeight() {
+        return height;
+    }
+
+    @Override
     public final boolean equals(Object o) {
 	    if (o == this)
 	        return true;
@@ -34,5 +44,9 @@ public class GDimension extends Reflector<GDimension> {
     @Override
     protected boolean isImmutable() {
         return true;
+    }
+
+    public float getAspect() {
+	    return width/height;
     }
 }

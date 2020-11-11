@@ -18,12 +18,12 @@ class AWTImage extends AImage {
     }
     
     @Override
-    public final int getWidth() {
+    public final float getWidth() {
         return image.getWidth(comp);
     }
 
     @Override
-    public final int getHeight() {
+    public final float getHeight() {
         return image.getHeight(comp);
     }
 
@@ -31,8 +31,8 @@ class AWTImage extends AImage {
     public final int[] getPixels() {
         if (pixels != null)
             return pixels;
-        int w = getWidth();
-        int h = getHeight();
+        int w = image.getWidth(comp);
+        int h = image.getHeight(comp);
         pixels = new int[w * h];
         PixelGrabber pg = new PixelGrabber(image, 0, 0, w, h, pixels, 0, w);  
         try {

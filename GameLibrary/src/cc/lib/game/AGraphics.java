@@ -1676,6 +1676,18 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     }
 
     /**
+     * Draw image centered at center using its natural dimension
+     * @param imageKey
+     * @param center
+     */
+    public final void drawImage(int imageKey, IVector2D center) {
+        AImage img = getImage(imageKey);
+        if (img != null) {
+            drawImage(imageKey, center.getX()-img.getWidth()/2, center.getY()-img.getHeight()/2, img.getWidth(), img.getHeight());
+        }
+    }
+
+    /**
      * 
      * @param color
      */

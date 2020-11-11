@@ -1,5 +1,8 @@
 package cc.lib.zombicide;
 
+import cc.lib.utils.Reflector;
+
+@Reflector.EnumInterfcae
 public interface ZEquipment {
 
     ZEquipSlot getSlot();

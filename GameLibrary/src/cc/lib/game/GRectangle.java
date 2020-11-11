@@ -101,6 +101,39 @@ public final class GRectangle extends Reflector<GRectangle> {
 
     /**
      *
+     * @return
+     */
+    public final MutableVector2D getCenterLeft() {
+        return new MutableVector2D(x, y+h/2);
+    }
+
+    /**
+     *
+     * @return
+     */
+    public final MutableVector2D getCenterRight() {
+        return new MutableVector2D(x+w, y+h/2);
+    }
+
+    /**
+     *
+     * @return
+     */
+    public final MutableVector2D getCenterTop() {
+        return new MutableVector2D(x+w/2, y);
+    }
+
+    /**
+     *
+     * @return
+     */
+    public final MutableVector2D getCenterBottom() {
+        return new MutableVector2D(x+w/2, y+h);
+    }
+
+
+    /**
+     *
      * @param other
      * @return
      */
@@ -202,5 +235,35 @@ public final class GRectangle extends Reflector<GRectangle> {
 
     public GDimension getDimension() {
         return new GDimension(w, h);
+    }
+
+    public final float getAspect() {
+        return w/h;
+    }
+
+    /**
+     * Return a rectangle of dimension not to exceed this dimension and
+     * whose aspect ratio is that of rectToFit and is centered inside this.
+     *
+     * @param rectToFit
+     * @return
+     */
+    public final GRectangle fit(IDimension rectToFit) {
+        float targetAspect = rectToFit.getAspect();
+        float rectAspect = getAspect();
+        float tx, ty, tw, th;
+        if (targetAspect > rectAspect) {
+            // target is wider than rect, so fit lengthwise
+            tw = w;
+            th = w / targetAspect;
+            tx = x;
+            ty = y + h/2 - th/2;
+        } else {
+            th = h;
+            tw = h * targetAspect;
+            tx = x + w/2 - tw/2;
+            ty = y;
+        }
+        return new GRectangle(tx, ty, tw, th);
     }
 }

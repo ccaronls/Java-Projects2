@@ -424,19 +424,19 @@ public class DroidGraphics extends APGraphics {
         }
 
         @Override
-        public int getWidth() {
+        public float getWidth() {
             return bm.getWidth();
         }
 
         @Override
-        public int getHeight() {
+        public float getHeight() {
             return bm.getHeight();
         }
 
         @Override
         public int[] getPixels() {
-            int[] pixels = new int[getWidth() * getHeight()];
-            bm.getPixels(pixels, 0, getWidth(), 0, 0, getWidth(), getHeight());
+            int[] pixels = new int[bm.getWidth() * bm.getHeight()];
+            bm.getPixels(pixels, 0, bm.getWidth(), 0, 0, bm.getWidth(), bm.getHeight());
             return pixels;
         }
     }

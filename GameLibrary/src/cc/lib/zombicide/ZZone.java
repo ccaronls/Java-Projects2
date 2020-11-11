@@ -5,11 +5,16 @@ import java.util.List;
 
 import cc.lib.game.IVector2D;
 import cc.lib.math.MutableVector2D;
+import cc.lib.utils.Reflector;
 
 /**
  * Zones are sets of adjacent cells that comprise rooms or streets separated by doors and walls
  */
-public class ZZone {
+public class ZZone extends Reflector<ZZone> {
+
+    static {
+        addAllFields(ZZone.class);
+    }
 
     final List<int []> cells = new ArrayList<>();
     final MutableVector2D center = new MutableVector2D();
@@ -18,7 +23,9 @@ public class ZZone {
     boolean isSpawn;
     boolean searchable;
     boolean dragonBile;
+    int nextCell = 0;
 
+    @Omit
     public Object data = null;
 
     public ZZone() {

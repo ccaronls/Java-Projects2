@@ -6,6 +6,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Stack;
 
+import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
 
@@ -22,7 +23,6 @@ public class ZGame {
     List<ZZombie> zombies = new ArrayList<>();
     int currentUser;
     int currentCharacter;
-    int costToOrganize;
 
     public void setUsers(ZUser ... users) {
         this.users = users;
@@ -30,6 +30,51 @@ public class ZGame {
 
     public void setQuest(ZQuest quest) {
         this.quest = quest;
+    }
+
+    public void loadQuest(ZQuests quest) {
+        this.quest = quest.load();
+        board = this.quest.loadBoard();
+        for (ZCell cell : board.getCells()) {
+            switch (cell.cellType) {
+
+                case NONE:
+                    break;
+                case VAULT:
+                    break;
+                case OBJECTIVE:
+                    break;
+                case SPAWN:
+                    break;
+                case START:
+                    // position all the characters here
+                    for (ZCharacter c : getAllCharacters()) {
+                        c.occupiedZone = cell.zoneIndex;
+                        board.addActor(c, cell.zoneIndex);
+                    }
+                    break;
+                case EXIT:
+                    break;
+                case WALKER:
+                    spawnZombie(Utils.randItem(ZZombieType.WALKERS), cell.zoneIndex);
+                    break;
+                case RUNNER:
+                    spawnZombie(Utils.randItem(ZZombieType.RUNNERS), cell.zoneIndex);
+                    break;
+                case FATTY:
+                    spawnZombie(Utils.randItem(ZZombieType.FATTIES), cell.zoneIndex);
+                    break;
+                case NECRO:
+                    spawnZombie(Utils.randItem(ZZombieType.NECROMANCERS), cell.zoneIndex);
+                    break;
+            }
+        }
+    }
+
+    private void spawnZombie(ZZombieType type, int zone) {
+        ZZombie zombie = new ZZombie(type, zone);
+        zombies.add(zombie);
+        board.addActor(zombie, zone);
     }
 
     public ZState getState() {
@@ -83,7 +128,7 @@ public class ZGame {
                 List<Integer> options = new ArrayList<>();
                 for (int i = 0; i<user.characters.size(); i++) {
                     ZCharacter c = user.characters.get(i);
-                    if (c.actionsLeftThisTurn > 0) {
+                    if (c.getActionsLeftThisTurn() > 0) {
                         options.add(i);
                     }
                 }
@@ -266,10 +311,9 @@ public class ZGame {
     }
 
     private void endAction() {
-        if (getCurrentCharacter().actionsLeftThisTurn > 0) {
+        if (getCurrentCharacter().getActionsLeftThisTurn() > 0) {
             setState(ZState.PLAYER_STAGE_CHOOSE_CHARACTER_ACTION);
         } else {
-            costToOrganize = 1;
             setState(ZState.PLAYER_STAGE_CHOOSE_CHARACTER);
         }
     }
@@ -277,7 +321,7 @@ public class ZGame {
     private void performMove(ZCharacter c, ZMove move) {
         switch (move.type) {
             case DO_NOTHING:
-                c.actionsLeftThisTurn--;
+                c.performAction(ZActionType.DO_NOTHING);
                 break;
             case GO_BACK:
                 if (stateStack.size() > 1) {
@@ -309,23 +353,19 @@ public class ZGame {
 
             case EQUIP:
                 c.equip(move.equip);
-                c.actionsLeftThisTurn -= costToOrganize;
-                costToOrganize = 0;
+                c.performAction(ZActionType.ORGANIZE);
                 break;
             case UNEQUIP:
                 c.unequip(move.equip);
-                c.actionsLeftThisTurn -= costToOrganize;
-                costToOrganize = 0;
+                c.performAction(ZActionType.ORGANIZE);
                 break;
             case DISPOSE:
                 c.dispose(move.equip);
-                c.actionsLeftThisTurn -= costToOrganize;
-                costToOrganize = 0;
+                c.performAction(ZActionType.ORGANIZE);
                 break;
             case CONSUME:
                 performConsume(c, (ZItem)move.equip);
-                //c.equip(move.equip);
-                costToOrganize = 0;
+                c.performAction(ZActionType.CONSUME);
                 break;
         }
     }
@@ -383,7 +423,7 @@ public class ZGame {
     }
 
     private void resolveDragonBile(ZCharacter c, int zone) {
-        c.actionsLeftThisTurn-=1;
+        c.performAction(ZActionType.CONSUME);
         c.dispose(ZItem.TORCH);
         List<Integer> torched = getZombiesInZone(zone);
         int exp = 0;
@@ -416,7 +456,7 @@ public class ZGame {
             for (int i=stats.minRange; i<= stats.maxRange; i++) {
                 for (int zombieIndex : getZombiesInRange(zoneIndex, i)) {
                     ZZombie zombie = zombies.get(zombieIndex);
-                    if (zombie.minDamage <= stats.damagePerHit) {
+                    if (zombie.type.minDamageToDestroy <= stats.damagePerHit) {
                         if (melee)
                             options.add(ZMove.newMeleeAttackMove(zombieIndex, weapon));
                         else

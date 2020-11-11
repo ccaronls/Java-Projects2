@@ -331,6 +331,8 @@ public class AWTGraphics extends APGraphics {
 
 	@Override
     public final  AImage getImage(int id) {
+        if (id < 0)
+            return null;
         return new AWTImage(images.getImage(id), comp);
     }
     
