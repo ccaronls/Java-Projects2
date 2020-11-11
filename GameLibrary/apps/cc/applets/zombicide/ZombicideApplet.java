@@ -39,6 +39,7 @@ public class ZombicideApplet extends AWTKeyboardAnimationApplet {
         if (!frame.restoreFromProperties())
             frame.centerToScreen(800, 600);
 
+
     }
 
     ZGame game = new ZGame();

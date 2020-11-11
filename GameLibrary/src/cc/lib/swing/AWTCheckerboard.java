@@ -1,5 +1,6 @@
 package cc.lib.swing;
 
+import java.awt.event.KeyEvent;
 import java.io.File;
 
 import cc.lib.checkerboard.AIPlayer;
@@ -22,6 +23,8 @@ import cc.lib.checkerboard.Ugolki;
 import cc.lib.game.AGraphics;
 import cc.lib.game.Utils;
 import cc.lib.utils.FileUtils;
+
+import static java.awt.event.KeyEvent.*;
 
 public class AWTCheckerboard extends AWTComponent {
 
@@ -230,8 +233,8 @@ public class AWTCheckerboard extends AWTComponent {
     }
 
     @Override
-    protected void onKeyReleased(VKKey key) {
-        switch (key) {
+    public void keyReleased(KeyEvent e) {
+        switch (e.getKeyCode()) {
             case VK_U:
                 game.undoAndRefresh();
                 break;
@@ -242,8 +245,6 @@ public class AWTCheckerboard extends AWTComponent {
                 ((UIPlayer)game.getCurrentPlayer()).forceRebuildMovesList(game);
                 break;
             }
-            default:
-                super.onKeyReleased(key);
         }
     }
 }

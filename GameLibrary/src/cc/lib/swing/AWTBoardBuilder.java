@@ -1,6 +1,7 @@
 package cc.lib.swing;
 
 import java.awt.BorderLayout;
+import java.awt.event.KeyEvent;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -20,6 +21,8 @@ import cc.lib.logger.LoggerFactory;
 import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
 import cc.lib.utils.FileUtils;
+
+import static java.awt.event.KeyEvent.*;
 
 public abstract class AWTBoardBuilder extends AWTComponent {
 
@@ -521,8 +524,8 @@ public abstract class AWTBoardBuilder extends AWTComponent {
     }
 
     @Override
-    protected void onKeyTyped(VKKey key) {
-        switch (key) {
+    public synchronized void keyTyped(KeyEvent evt) {
+        switch (evt.getKeyCode()) {
             case VK_ESCAPE:
                 selectedIndex = -1;
                 break;
@@ -547,16 +550,14 @@ public abstract class AWTBoardBuilder extends AWTComponent {
                 selectedIndex = -1;
                 break;
 
-            default:
-                super.onKeyTyped(key);
         }
         frame.setProperty("pickMode", pickMode.name());
         repaint();
     }
 
     @Override
-    protected void onKeyPressed(VKKey key) {
-        switch (key) {
+    public synchronized void keyPressed(KeyEvent evt) {
+        switch (evt.getKeyCode()) {
             case VK_UP:
                 if (pickMode == PickMode.VERTEX && selectedIndex >= 0) {
                     BVertex bv = board.getVertex(selectedIndex);
@@ -590,8 +591,6 @@ public abstract class AWTBoardBuilder extends AWTComponent {
                 }
                 break;
 
-            default:
-                super.onKeyTyped(key);
         }
         repaint();
     }

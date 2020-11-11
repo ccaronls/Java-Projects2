@@ -75,12 +75,12 @@ public class GL10Graphics extends AGraphics {
     	}
     	
 		@Override
-		public int getWidth() {
+		public float getWidth() {
 			return width;
 		}
 
 		@Override
-		public int getHeight() {
+		public float getHeight() {
 			return height;
 		}
 

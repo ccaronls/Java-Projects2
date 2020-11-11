@@ -2,19 +2,29 @@ package cc.game.golf.swing;
 
 import java.awt.Font;
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
 
 import cc.game.golf.ai.PlayerBot;
-import cc.game.golf.core.*;
+import cc.game.golf.core.Card;
+import cc.game.golf.core.DrawType;
+import cc.game.golf.core.Golf;
+import cc.game.golf.core.Rank;
+import cc.game.golf.core.Rules;
 import cc.game.golf.core.Rules.GameType;
 import cc.game.golf.core.Rules.KnockerBonusType;
 import cc.game.golf.core.Rules.KnockerPenaltyType;
 import cc.game.golf.core.Rules.WildCard;
-import cc.lib.game.*;
-import cc.lib.swing.AWTGraphics;
+import cc.game.golf.core.Suit;
+import cc.lib.game.AAnimation;
+import cc.lib.game.AGraphics;
+import cc.lib.game.GColor;
+import cc.lib.game.Justify;
+import cc.lib.game.Utils;
 import cc.lib.swing.AWTFrame;
 import cc.lib.swing.AWTKeyboardAnimationApplet;
-import cc.lib.swing.AWTUtils;
 import cc.lib.utils.FileUtils;
 
 /**
@@ -193,8 +203,8 @@ public class GolfSwing extends AWTKeyboardAnimationApplet {
         tableImageId = g.loadImage("table.png");
         cardDownImage[0] = cardDownImage[2] = g.loadImage("b1fv.png");
         cardDownImage[1] = cardDownImage[3] = g.loadImage("b1fh.png");
-        cardWidth = g.getImage(cardImages[0].imageId[0]).getWidth();
-        cardHeight = g.getImage(cardImages[0].imageId[0]).getHeight();
+        cardWidth = (int)g.getImage(cardImages[0].imageId[0]).getWidth();
+        cardHeight = (int)g.getImage(cardImages[0].imageId[0]).getHeight();
         this.initTurnOverCardAnimations(g);
     }
 

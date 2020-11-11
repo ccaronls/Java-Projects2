@@ -9,24 +9,23 @@ import java.awt.event.KeyListener;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 
-import javax.swing.AbstractAction;
-import javax.swing.ActionMap;
-import javax.swing.InputMap;
-import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
-import javax.swing.KeyStroke;
-import javax.swing.text.Keymap;
 
 import cc.lib.game.GColor;
 import cc.lib.game.Utils;
-import cc.lib.probot.*;
+import cc.lib.probot.Direction;
+import cc.lib.probot.Level;
+import cc.lib.probot.Probot;
+import cc.lib.probot.Type;
 import cc.lib.utils.FileUtils;
 import cc.lib.utils.Grid;
 import cc.lib.utils.Reflector;
+
+import static java.awt.event.KeyEvent.VK_LEFT;
+import static java.awt.event.KeyEvent.VK_RIGHT;
 
 public class AWTProbotLevelBuilder extends AWTComponent {
 
@@ -387,7 +386,7 @@ public class AWTProbotLevelBuilder extends AWTComponent {
     }
 
     @Override
-    protected void onKeyPressed(VKKey key) {
+    public synchronized void keyPressed(KeyEvent evt) {
         if (!grid.isValid(pickCol, pickRow))
             return;
 
@@ -422,7 +421,7 @@ public class AWTProbotLevelBuilder extends AWTComponent {
                 break;
         }
 
-        switch (key) {
+        switch (evt.getKeyCode()) {
             case VK_LEFT:
                 t = Utils.decrementValue(t, values);
                 break;

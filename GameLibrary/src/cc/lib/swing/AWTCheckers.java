@@ -1,5 +1,6 @@
 package cc.lib.swing;
 
+import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.PrintWriter;
 
@@ -19,6 +20,8 @@ import cc.lib.game.Justify;
 import cc.lib.game.Utils;
 import cc.lib.utils.FileUtils;
 import cc.lib.utils.Reflector;
+
+import static java.awt.event.KeyEvent.*;
 
 public class AWTCheckers extends AWTComponent {
 
@@ -523,12 +526,12 @@ public class AWTCheckers extends AWTComponent {
     }
 
     @Override
-    protected void onKeyPressed(VKKey key) {
+    public void keyPressed(KeyEvent e) {
         if (game == null)
             return;
         if (game.getTurn() == 1 && robot != null)
             return;
-        switch (key) {
+        switch (e.getKeyCode()) {
             case VK_B:
                 if (game.canUndo())
                     game.undo();
@@ -564,9 +567,6 @@ public class AWTCheckers extends AWTComponent {
             case VK_ENTER:
                 onClick();
                 break;
-
-            default:
-                super.onKeyTyped(key);
         }
         repaint();
     }
