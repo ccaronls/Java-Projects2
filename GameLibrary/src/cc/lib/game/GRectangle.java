@@ -30,6 +30,14 @@ public final class GRectangle extends Reflector<GRectangle> {
         set(v0, v1);
     }
 
+    public GRectangle grow(int pixels) {
+        w += pixels;
+        h += pixels;
+        x -= pixels/2;
+        y -= pixels/2;
+        return this;
+    }
+
     public float x, y, w, h;
 
     /**

@@ -1907,7 +1907,19 @@ public class Utils {
      * @return
      */
     public static <T> int linearSearch(T[] arr, T key) {
-        for (int i = 0; i < arr.length; i++) {
+        return linearSearch(arr, key, arr.length);
+    }
+
+    /**
+     *
+     * @param arr
+     * @param key
+     * @param len
+     * @param <T>
+     * @return
+     */
+    public static <T> int linearSearch(T[] arr, T key, int len) {
+        for (int i = 0; i < len; i++) {
             if (Objects.equals(arr[i], key))
                 return i;
         }

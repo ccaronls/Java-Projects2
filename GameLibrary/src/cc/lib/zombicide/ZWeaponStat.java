@@ -2,12 +2,12 @@ package cc.lib.zombicide;
 
 public class ZWeaponStat {
 
-    final int dieRollToOpenDoor; // 0 means cannot open. 1 means can open without dice
-    final int minRange;
-    final int maxRange;
-    final int numDice;
-    final int dieRollToHit;
-    final int damagePerHit;
+    int dieRollToOpenDoor; // 0 means cannot open. 1 means can open without dice
+    int minRange;
+    int maxRange;
+    int numDice;
+    int dieRollToHit;
+    int damagePerHit;
 
     public ZWeaponStat() {
         this(0, 0, 0, 0, 0, 0);
@@ -22,7 +22,11 @@ public class ZWeaponStat {
         this.damagePerHit = damagePerHit;
     }
 
-    public ZWeaponStat getDualWeildingStats() {
-        return new ZWeaponStat(dieRollToOpenDoor, minRange, maxRange, numDice*2, dieRollToHit, damagePerHit);
+    ZWeaponStat copy() {
+        return new ZWeaponStat(dieRollToOpenDoor, minRange, maxRange, numDice, dieRollToHit, damagePerHit);
     }
+
+    //public ZWeaponStat getDualWeildingStats() {
+    //    return new ZWeaponStat(dieRollToOpenDoor, minRange, maxRange, numDice*2, dieRollToHit, damagePerHit);
+   // }
 }

@@ -12,7 +12,9 @@ import cc.lib.game.GColor;
 import cc.lib.game.GDimension;
 import cc.lib.game.GRectangle;
 import cc.lib.game.Justify;
+import cc.lib.game.Utils;
 import cc.lib.math.Vector2D;
+import cc.lib.swing.AWTGraphics;
 import cc.lib.utils.Reflector;
 
 public class ZBoard extends Reflector<ZBoard> {
@@ -32,7 +34,7 @@ public class ZBoard extends Reflector<ZBoard> {
     public static final int [] DIR_ROTATION = { 0, 180, 90, 270 };
     public static final int [] DIR_OPPOSITE = { DIR_SOUTH, DIR_NORTH, DIR_WEST, DIR_EAST };
 
-    ZCell [][] grid;
+    ZCell [][] grid; // TODO: Use Grid Container Type
     List<ZZone> zones;
 
     public ZBoard() {
@@ -408,9 +410,9 @@ public class ZBoard extends Reflector<ZBoard> {
     public void removeActor(ZActor actor) {
         ZCell cell = getCell(actor.occupiedCell);
         cell.occupied[actor.occupiedQuadrant] = null;
-        actor.occupiedZone = -1;
-        actor.occupiedQuadrant = -1;
-        actor.occupiedCell = null;
+        //actor.occupiedZone = -1;
+        //actor.occupiedQuadrant = -1;
+        //actor.occupiedCell = null;
     }
 
     /**
@@ -493,5 +495,37 @@ public class ZBoard extends Reflector<ZBoard> {
             }
         };
 
+    }
+
+    public void drawZoneOutline(AWTGraphics g, int zoneIndex) {
+        ZZone zone = getZone(zoneIndex);
+        for (int [] cellPos : zone.cells) {
+            g.drawFilledRect(getCell(cellPos).rect);
+        }
+    }
+
+    public List<ZZombie> getZombiesInZone(int occupiedZone) {
+        List<ZZombie> zombies = new ArrayList<>();
+        for (int [] cellPos : zones.get(occupiedZone).cells) {
+            for (ZActor a : getCell(cellPos).occupied) {
+                if (a != null && a instanceof ZZombie) {
+                    zombies.add((ZZombie)a);
+                }
+            }
+        }
+        return zombies;
+    }
+
+    public List<ZDoor> getDoorsForZone(int occupiedZone, ZWallFlag ... flags) {
+        List<ZDoor> doors = new ArrayList<>();
+        for (int [] cellPos : zones.get(occupiedZone).cells) {
+            ZCell cell = getCell(cellPos);
+            for (int i=0; i<4; i++) {
+                if (Utils.linearSearch(flags, cell.walls[i]) >= 0) {
+                    doors.add(new ZDoor(cellPos, i));
+                }
+            }
+        }
+        return doors;
     }
 }

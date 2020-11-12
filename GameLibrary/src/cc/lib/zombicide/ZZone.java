@@ -23,6 +23,7 @@ public class ZZone extends Reflector<ZZone> {
     boolean isSpawn;
     boolean searchable;
     boolean dragonBile;
+    boolean rotten;
     int nextCell = 0;
 
     @Omit

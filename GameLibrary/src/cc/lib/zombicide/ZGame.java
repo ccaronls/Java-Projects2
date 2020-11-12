@@ -2,13 +2,16 @@ package cc.lib.zombicide;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Stack;
 
 import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
+import cc.lib.utils.Reflector;
 
 public class ZGame {
 
@@ -20,9 +23,13 @@ public class ZGame {
 
     ZUser [] users;
     ZQuest quest;
-    List<ZZombie> zombies = new ArrayList<>();
     int currentUser;
     int currentCharacter;
+    ZEquipSlot selectedSlot = null;
+    ZEquipment selectedEquipment = null;
+    @Reflector.Omit
+    ZCharacter selectedCharacter = null;
+    LinkedList<ZEquipment> searchables = new LinkedList<>();
 
     public void setUsers(ZUser ... users) {
         this.users = users;
@@ -73,7 +80,6 @@ public class ZGame {
 
     private void spawnZombie(ZZombieType type, int zone) {
         ZZombie zombie = new ZZombie(type, zone);
-        zombies.add(zombie);
         board.addActor(zombie, zone);
     }
 
@@ -89,9 +95,13 @@ public class ZGame {
     }
 
     public void runGame() {
+        final ZCharacter cur = getCurrentCharacter();
+        final ZUser user = getCurrentUser();
+
         switch (getState()) {
             case INIT: {
                 users[0].prepareTurn();
+                initSearchables();
                 setState(ZState.BEGIN_ROUND);
                 break;
             }
@@ -124,12 +134,11 @@ public class ZGame {
             case  PLAYER_STAGE_CHOOSE_CHARACTER: {
                 // for each user, they choose each of their characters in any order and have them
                 // perform all of their actions
-                ZUser user = getCurrentUser();
-                List<Integer> options = new ArrayList<>();
+                List<ZCharacter> options = new ArrayList<>();
                 for (int i = 0; i<user.characters.size(); i++) {
                     ZCharacter c = user.characters.get(i);
                     if (c.getActionsLeftThisTurn() > 0) {
-                        options.add(i);
+                        options.add(c);
                     }
                 }
 
@@ -154,62 +163,59 @@ public class ZGame {
             case PLAYER_STAGE_CHOOSE_CHARACTER_ACTION: {
                 List<ZMove> options = new ArrayList<>();
                 options.add(ZMove.newDoNothing());
-                options.add(ZMove.newGoBack(ZState.PLAYER_STAGE_CHOOSE_CHARACTER));
                 // determine players available moves
-                ZCharacter cur = getCurrentCharacter();
+
                 // check for organize
-                for (ZEquipment e : cur.backpack) {
-                    if (e.getSlot() != ZEquipSlot.BACKPACK) {
-                        options.add(ZMove.newOrganizeMove());
-                        break;
-                    }
-                }
+                if (cur.numBackpackItems > 0)
+                    options.add(ZMove.newOrganizeMove());
 
                 int zoneIndex = cur.occupiedZone;
                 ZZone zone = board.getZone(zoneIndex);
 
                 // check for move up, down, right, left
                 List<Integer> accessableZones = board.getAccessableZones(zoneIndex, 1);
-                for (int  z : accessableZones) {
-                    options.add(ZMove.newWalkMove(z));
-                }
+                if (accessableZones.size() > 0)
+                    options.add(ZMove.newWalkMove(accessableZones));
 
                 // check for trade with another character in the same zone
-                for (ZCharacter c : getAllCharacters()) {
-                    if (c == cur)
-                        continue;
-                    if (c.occupiedZone == zoneIndex) {
-                        options.add(ZMove.newTradeMove(c));
+                if (cur.canTrade()) {
+                    List<ZCharacter> tradeOptions = new ArrayList<>();
+                    for (ZCharacter c : getAllCharacters()) {
+                        if (c == cur)
+                            continue;
+                        if (c.occupiedZone == zoneIndex) {
+                            tradeOptions.add(c);
+                        }
                     }
+                    if (tradeOptions.size() > 0)
+                        options.add(ZMove.newTradeMove(tradeOptions));
                 }
 
                 // check for search
-                if (!cur.movesDoneThisTurn.contains(ZMoveType.SEARCH) && isClearedOfZombies(zoneIndex)) {
-                    options.add(ZMove.newSearchMove(zoneIndex));
+                if (cur.canSearch() && isClearedOfZombies(cur.occupiedZone)) {
+                    options.add(ZMove.newSearchMove(cur.occupiedZone));
                 }
 
-
-                // check for walking / open doors
-                for (int zIndex : board.getAccessableZones(zoneIndex, 1)) {
-                    options.add(ZMove.newWalkMove(zIndex));
+                List<ZEquipSlot> slots = cur.getMeleeWeapons();
+                if (slots.size() > 0) {
+                    options.add(ZMove.newMeleeAttackMove(slots));
                 }
 
-                for (ZWeapon w : getCurrentCharacter().getWeapons()) {
-                    addAttackOptions(zoneIndex, w.getMeleeStats(cur), w, options, true);
-                    //if (w.loaded)
-                    //    addAttackOptions(zoneIndex, w.type.getRangedStats(cur), w, options, false);
-                    //else
-                        options.add(ZMove.newReloadMove(w));
-                    addAttackOptions(zoneIndex, w.getMagicStats(cur), w, options, false);
-                    if (cur.isDualWeilding())
-                        break;
+                slots = cur.getRangedWeapons();
+                if (slots.size() > 0) {
+                    options.add(ZMove.newRangedAttackMove(slots));
                 }
 
-                // check for enchanting self or another
-
-                // check for eating / backpack
+                slots = cur.getMagicWeapons();
+                if (slots.size() > 0) {
+                    options.add(ZMove.newMagicAttackMove(slots));
+                }
 
                 // check for open check /
+                List<ZDoor> doors = board.getDoorsForZone(cur.occupiedZone, ZWallFlag.CLOSED);
+                if (doors.size() > 0) {
+                    options.add(ZMove.newToggleDoor(doors));
+                }
 
                 ZMove move = getCurrentUser().chooseMove(this, cur, options);
                 if (move != null) {
@@ -219,45 +225,90 @@ public class ZGame {
                 break;
             }
 
-            case PLAYER_STAGE_ORGANIZE: {
-                ZCharacter cur = getCurrentCharacter();
+            case PLAYER_STAGE_ORGANIZE_CHOOSE_SLOT: {
+                // give options of which slot to organize
+                List<ZEquipSlot> slots = new ArrayList<>();
+                if (cur.leftHand != null)
+                    slots.add(ZEquipSlot.LHAND);
+                if (cur.rightHand != null)
+                    slots.add(ZEquipSlot.RHAND);
+                if (cur.body != null)
+                    slots.add(ZEquipSlot.BODY);
+                if (cur.numBackpackItems > 0)
+                    slots.add(ZEquipSlot.BACKPACK);
+                selectedSlot = getCurrentUser().chooseSlotToOrganize(this, cur, slots);
+                if (selectedSlot != null) {
+                    stateStack.push(ZState.PLAYER_STAGE_ORGANIZE_CHOOSE_ACTION);
+                }
+                break;
+            }
+
+            case PLAYER_STAGE_ORGANIZE_CHOOSE_ITEM: {
+                // choose which equipment form the slot to organize
+                switch (selectedSlot) {
+                    case BACKPACK:
+                        if (cur.numBackpackItems > 1) {
+                            // add
+                            selectedEquipment = getCurrentUser().chooseEquipment(this, cur, Utils.toList(0, cur.numBackpackItems, cur.backpack));
+                            if (selectedEquipment != null) {
+                                stateStack.push(ZState.PLAYER_STAGE_ORGANIZE_CHOOSE_ACTION);
+                            }
+                        } else {
+                            selectedEquipment = cur.backpack[0];
+                            stateStack.push(ZState.PLAYER_STAGE_ORGANIZE_CHOOSE_ACTION);
+                        }
+                        break;
+                    case BODY:
+                        selectedEquipment = cur.body;
+                        stateStack.push(ZState.PLAYER_STAGE_ORGANIZE_CHOOSE_ACTION);
+                        break;
+                    case LHAND:
+                        selectedEquipment = cur.leftHand;
+                        stateStack.push(ZState.PLAYER_STAGE_ORGANIZE_CHOOSE_ACTION);
+                        break;
+                    case RHAND:
+                        selectedEquipment = cur.rightHand;
+                        stateStack.push(ZState.PLAYER_STAGE_ORGANIZE_CHOOSE_ACTION);
+                        break;
+                }
+
+                break;
+            }
+
+            case PLAYER_STAGE_ORGANIZE_CHOOSE_ACTION: {
+                // we have a slot and an equipment from the slot to do something with
+                // we can:
+                //   dispose, unequip, equip to an empty slot or consume
                 List<ZMove> options = new ArrayList<>();
-                boolean backpackFull = cur.isBackpackFull();
-                if (cur.leftHand != null) {
-                    if (!backpackFull)
-                        options.add(ZMove.newUnequipMove(cur.leftHand));
-                    options.add(ZMove.newDisposeMove(cur.leftHand));
+                if (selectedEquipment.canConsume()) {
+                    options.add(ZMove.newConsumeMove(selectedEquipment, selectedSlot));
                 }
-
-                if (cur.rightHand != null) {
-                    if (!backpackFull)
-                        options.add(ZMove.newUnequipMove(cur.rightHand));
-                    options.add(ZMove.newDisposeMove(cur.rightHand));
-                }
-
-                if (cur.body != null) {
-                    if (!backpackFull)
-                        options.add(ZMove.newUnequipMove(cur.body));
-                    options.add(ZMove.newDisposeMove(cur.body));
-                }
-
-                for (int i=0; i<cur.numBackpackItems; i++) {
-                    ZEquipment equip = cur.backpack[i];
-                    switch (equip.getSlot()) {
-                        case BODY:
-                        case HAND:
-                            options.add(ZMove.newEquipMove(equip));
-                            break;
+                switch (selectedSlot) {
+                    case BACKPACK:
+                        if (selectedEquipment.canEquip()) {
+                            for (ZEquipSlot slot : cur.getEquipableSlots(selectedEquipment)) {
+                                options.add(ZMove.newEquipMove(selectedEquipment, selectedSlot, slot));
+                            }
+                        }
+                        break;
+                    case RHAND:
+                    case LHAND:
+                    case BODY: {
+                        if (!cur.isBackpackFull()) {
+                            options.add(ZMove.newUnequipMove(selectedEquipment, selectedSlot));
+                        }
                     }
-                    options.add(ZMove.newDisposeMove(equip));
-                    if (equip.canConsume())
-                        options.add(ZMove.newConsumeMove(equip));
+                }
+                options.add(ZMove.newDisposeMove(selectedEquipment, selectedSlot));
+                ZMove move = user.chooseMove(this, cur, options);
+                if (move != null) {
+                    performMove(cur, move);
+                    endAction();
                 }
                 break;
             }
 
             case PLAYER_STAGE_CHOOSE_NEW_SKILL: {
-                ZCharacter cur = getCurrentCharacter();
                 ZSkill skill = null;
                 switch (cur.getSkillLevel()) {
                     case BLUE:
@@ -274,29 +325,10 @@ public class ZGame {
                         break;
                 }
                 if (skill != null) {
-                    cur.skills.add(skill);
+                    cur.allSkills.add(skill);
+                    cur.availableSkills.add(skill);
                     endAction();
                 }
-
-                break;
-            }
-
-            case PLAYER_STAGE_CHOOSE_ZONE_FOR_BILE: {
-                ZCharacter cur = getCurrentCharacter();
-                List<Integer> accessable = board.getAccessableZones(cur.occupiedZone, 1);
-                if (accessable.size() == 1) {
-                    cur.dispose(ZItem.DRAGON_BILE);
-                    board.zones.get(accessable.get(0)).dragonBile = true;
-                    endAction();
-                } else if (accessable.size() > 1) {
-                    Integer zone = getCurrentUser().chooseZoneForBile(this, cur, accessable);
-                    if (zone != null) {
-                        cur.dispose(ZItem.DRAGON_BILE);
-                        board.zones.get(zone).dragonBile = true;
-                        endAction();
-                    }
-                }
-
 
                 break;
             }
@@ -319,74 +351,181 @@ public class ZGame {
     }
 
     private void performMove(ZCharacter c, ZMove move) {
+        ZUser user = getCurrentUser();
         switch (move.type) {
             case DO_NOTHING:
-                c.performAction(ZActionType.DO_NOTHING);
-                break;
-            case GO_BACK:
-                if (stateStack.size() > 1) {
-                    stateStack.pop();
-                }
+                c.performAction(ZActionType.DO_NOTHING, this);
+                endAction();
                 break;
             case ORGANNIZE: {
-                stateStack.push(ZState.PLAYER_STAGE_ORGANIZE);
+                stateStack.push(ZState.PLAYER_STAGE_ORGANIZE_CHOOSE_SLOT);
                 break;
             }
             case TRADE:
+                ZCharacter other = user.chooseTradeCharacter(this, c, move.list);
+                if (other != null) {
+                    // TODO
+                    endAction();
+                }
                 break;
-            case WALK:
+            case WALK: {
+                Integer zone = user.chooseZoneToWalk(this, c, move.list);
+                if (zone != null) {
+                    moveActor(c, zone);
+                    c.performAction(ZActionType.MOVE, this);
+                    endAction();
+                }
                 break;
-            case MELEE_ATTACK:
+            }
+            case MELEE_ATTACK: {
+                List<ZEquipSlot> weapons = move.list;
+                ZEquipSlot slot = null;
+                if (weapons.size() > 1) {
+                    slot = user.chooseWeaponSlot(this, c, weapons);
+                } else {
+                    slot = weapons.get(0);
+                }
+                if (slot != null) {
+                    List<ZZombie> zombies = board.getZombiesInZone(c.occupiedZone);
+                    ZWeaponStat stat = c.getWeaponStat(slot, ZActionType.MELEE, this);
+                    Collections.sort(zombies, (o1, o2) -> Integer.compare(o2.type.minDamageToDestroy, o1.type.minDamageToDestroy));
+                    while (zombies.size() > 0 && zombies.get(0).type.minDamageToDestroy > stat.damagePerHit) {
+                        zombies.remove(0);
+                    }
+                    int [] result = rollDice(stat.numDice);
+                    for (int i=0; i<result.length && zombies.size() > 0; i++) {
+                        if (result[i] >= stat.dieRollToHit) {
+                            ZZombie z = zombies.remove(0);
+                            board.removeActor(z);
+                            onZombieDestroyed(z);
+                        }
+                    }
+                    endAction();
+                }
                 break;
-            case RANGED_ATTACK:
+            }
+            case MAGIC_ATTACK:
+            case RANGED_ATTACK: {
+                // rules same for both kinda
+                ZActionType actionType = move.type == ZMoveType.RANGED_ATTACK ? ZActionType.RANGED : ZActionType.MAGIC;
+                List<ZEquipSlot> weapons = move.list;
+                ZEquipSlot slot = null;
+                if (weapons.size() > 1) {
+                    slot = user.chooseWeaponSlot(this, c, weapons);
+                } else {
+                    slot = weapons.get(0);
+                }
+                if (slot != null) {
+                    ZWeaponStat stat = c.getWeaponStat(slot, actionType, this);
+                    List<Integer> zones = new ArrayList<>();
+                    for (int range = stat.minRange; range <=stat.maxRange; range++) {
+                        zones.addAll(board.getAccessableZones(c.occupiedZone, range));
+                    }
+                    if (zones.size() > 0) {
+                        Integer zone = user.chooseZoneForAttack(this, c, zones);
+                        if (zone != null) {
+                            // process a ranged attack
+                            List<ZZombie> zombies = board.getZombiesInZone(c.occupiedZone);
+                            Collections.sort(zombies, (o1, o2) -> Integer.compare(o1.type.rangedPriority, o2.type.rangedPriority));
+                            int [] result = rollDice(stat.numDice);
+                            for (int i=0; i<result.length && zombies.size() > 0; i++) {
+                                if (result[i] >= stat.dieRollToHit) {
+                                    ZZombie zombie = zombies.get(0);
+                                    if (zombie.type.minDamageToDestroy <= stat.damagePerHit) {
+                                        board.removeActor(zombie);
+                                        onZombieDestroyed(zombie);
+                                    }
+                                }
+                            }
+                            endAction();
+                        }
+                    }
+                }
                 break;
+            }
             case RELOAD:
                 break;
-            case OPEN_DOOR:
+            case TOGGLE_DOOR: {
+                List<ZDoor> doors = move.list;
+                ZDoor door = user.chooseDoorToToggle(this, c, doors);
+                if (door != null) {
+                    board.toggleDorOpen(door.cellPos, door.dir);
+                    c.performAction(ZActionType.TOGGLE_DOOR, this);
+                    endAction();
+                }
                 break;
+            }
             case SEARCH:
                 break;
-            case DROP_DRAGON_BILE:
-                break;
-            case IGNITE:
-                break;
-
             case EQUIP:
-                c.equip(move.equip);
-                c.performAction(ZActionType.ORGANIZE);
+                if (move.fromSlot != null) {
+                    c.removeEquipment(move.equipment, move.fromSlot);
+                }
+                c.attachEquipment(move.equipment, move.toSlot);
+                c.performAction(ZActionType.ORGANIZE, this);
+                endAction();
                 break;
             case UNEQUIP:
-                c.unequip(move.equip);
-                c.performAction(ZActionType.ORGANIZE);
+                c.removeEquipment(move.equipment, move.fromSlot);
+                c.attachEquipment(move.equipment, ZEquipSlot.BACKPACK);
+                c.performAction(ZActionType.ORGANIZE, this);
+                endAction();
                 break;
             case DISPOSE:
-                c.dispose(move.equip);
-                c.performAction(ZActionType.ORGANIZE);
+                c.removeEquipment(move.equipment, move.fromSlot);
+                c.performAction(ZActionType.ORGANIZE, this);
+                endAction();
                 break;
             case CONSUME:
-                performConsume(c, (ZItem)move.equip);
-                c.performAction(ZActionType.CONSUME);
+                performConsume(c, move);
+                c.performAction(ZActionType.CONSUME, this);
                 break;
+            default:
+                log.error("Unhandled move: %s", move.type);
         }
     }
 
-    private void performConsume(ZCharacter c, ZItem consumable) {
-        switch (consumable) {
-            case DRAGON_BILE:
-                stateStack.push(ZState.PLAYER_STAGE_CHOOSE_ZONE_FOR_BILE);
+    private void performConsume(ZCharacter c, ZMove move) {
+        ZItem item  = (ZItem)move.equipment;
+        ZEquipSlot slot = move.fromSlot;
+        switch (item) {
+            case DRAGON_BILE: {
+                Integer zone = getCurrentUser().chooseZoneForBile(this, c, move.list);
+                if (zone != null) {
+                    c.removeEquipment(ZItem.DRAGON_BILE, selectedSlot);
+                    board.zones.get(zone).dragonBile = true;
+                    c.performAction(ZActionType.CONSUME, this);
+                    endAction();
+                }
                 break;
+            }
             case TORCH: {
-                performTorch(c);
+                Integer zone = getCurrentUser().chooseZoneToIgnite(this, c, move.list);
+                if (zone != null) {
+                    List<ZZombie> torched = board.getZombiesInZone(zone);
+                    int exp = 0;
+                    board.zones.get(zone).dragonBile = false;
+                    for (ZZombie zombie : torched) {
+                        onZombieDestroyed(zombie);
+                        exp += zombie.type.expProvided;
+                    }
+                    addExperience(c, exp);
+                    c.removeEquipment(ZItem.TORCH, selectedSlot);
+                    board.zones.get(zone).dragonBile = false;
+                    c.performAction(ZActionType.CONSUME, this);
+                    endAction();
+                }
                 break;
             }
             case WATER:
             case APPLES:
             case SALTED_MEAT:
-                c.dispose(consumable);
+                c.removeEquipment(item, slot);
                 addExperience(c, 1);
+                endAction();
                 break;
             default:
-                throw new AssertionError("Unhandled case: " + consumable);
+                throw new AssertionError("Unhandled case: " + item);
         }
     }
 
@@ -406,7 +545,53 @@ public class ZGame {
         log.info("%s gained %d experence!", c.name, points);
     }
 
+    /*
     private void performTorch(ZCharacter c) {
+        List<Integer> zones = getTorchableZones();
+        if (zones.size() == 0) {
+            getCurrentUser().showMessage("Now zones available to ignite.");
+            endAction();
+        } else {
+            stateStack.push(ZState.PLAYER_STAGE_CHOOSE_ZONE_TO_IGNITE);
+        }
+    }*/
+
+    int [] rollDice(int num) {
+        int [] result = new int[num];
+        for (int i=0; i<num; i++) {
+            result[i] = Utils.randRange(1,6);
+        }
+        return result;
+    }
+
+    protected void onRollDice(int [] roll) {
+
+    }
+
+    List<Integer> getZonesForDragonBile(ZCharacter c) {
+        List<Integer> accessable = board.getAccessableZones(c.occupiedZone, 1);
+        Iterator<Integer> it = accessable.iterator();
+        while (it.hasNext()) {
+            if (board.zones.get(it.next()).dragonBile) {
+                it.remove();
+            }
+        }
+        return accessable;
+    }
+
+    List<ZCharacter> getTradableCharacters(ZCharacter cur) {
+        List<ZCharacter> tradeOptions = new ArrayList<>();
+        for (ZCharacter c : getAllCharacters()) {
+            if (c == cur)
+                continue;
+            if (c.occupiedZone == cur.occupiedZone) {
+                tradeOptions.add(c);
+            }
+        }
+        return tradeOptions;
+    }
+
+    List<Integer> getTorchableZones(ZCharacter c) {
         List<Integer> zones = board.getAccessableZones(c.occupiedZone, 1);
         Iterator<Integer> it = zones.iterator();
         while (it.hasNext()) {
@@ -414,34 +599,15 @@ public class ZGame {
                 it.remove();
             }
         }
-        if (zones.size() == 1) {
-            // light the bile!
-            resolveDragonBile(c, zones.get(0));
-        } else {
-            stateStack.push(ZState.PLAYER_STAGE_CHOOSE_ZONE_TO_IGNITE);
-        }
-    }
-
-    private void resolveDragonBile(ZCharacter c, int zone) {
-        c.performAction(ZActionType.CONSUME);
-        c.dispose(ZItem.TORCH);
-        List<Integer> torched = getZombiesInZone(zone);
-        int exp = 0;
-        board.zones.get(zone).dragonBile = false;
-        for (int z : torched) {
-            ZZombie zombie = zombies.get(z);
-            onZombieDestroyed(zombie);
-            zombies.remove(zombie);
-            exp += zombie.type.expProvided;
-        }
-        addExperience(c, exp);
+        return zones;
     }
 
     protected void onZombieDestroyed(ZZombie zombie) {
+        getCurrentUser().showMessage("Zombie " + zombie.type + " destroyed");
         log.info("Zombie %s destroyed for %d experience", zombie.type.name(), zombie.type.expProvided);
     }
 
-    private Iterable<ZCharacter> getAllCharacters() {
+    public Iterable<ZCharacter> getAllCharacters() {
         if (users.length == 1)
             return users[0].characters;
         List<ZCharacter> all = new ArrayList<>();
@@ -450,7 +616,7 @@ public class ZGame {
         }
         return all;
     }
-
+/*
     private void addAttackOptions(int zoneIndex, ZWeaponStat stats, ZWeapon weapon, List<ZMove> options, boolean melee) {
         if (stats != null) {
             for (int i=stats.minRange; i<= stats.maxRange; i++) {
@@ -467,37 +633,22 @@ public class ZGame {
         }
 
     }
-
-    private List<Integer> getZombiesInRange(int zoneIndex, int distance) {
+*/
+    private List<ZZombie> getZombiesInRange(int zoneIndex, int distance) {
         if (distance == 0) {
-            return getZombiesInZone(zoneIndex);
+            return board.getZombiesInZone(zoneIndex);
         }
 
-        List<Integer> list = new ArrayList<>();
-        ZZone zone = board.getZone(zoneIndex);
-
+        List<ZZombie> list = new ArrayList<>();
         List<Integer> zones = board.getAccessableZones(zoneIndex, distance);
         for (int z : zones) {
-            list.addAll(getZombiesInZone(z));
+            list.addAll(board.getZombiesInZone(z));
         }
         return list;
     }
 
-    private List<Integer> getZombiesInZone(int zoneIndex) {
-        List<Integer> zz = new ArrayList<>();
-        for (int i=0; i<zombies.size(); i++) {
-            if (zombies.get(i).occupiedZone == zoneIndex)
-                zz.add(i);
-        }
-        return zz;
-    }
-
     private boolean isClearedOfZombies(int zoneIndex) {
-        for (ZZombie z : zombies) {
-            if (z.occupiedZone == zoneIndex)
-                return false;
-        }
-        return true;
+        return board.getZombiesInZone(zoneIndex).size() == 0;
     }
 
     private void spawnZombies(ZZone z, int highestSkill) {
@@ -509,7 +660,62 @@ public class ZGame {
     }
 
     public ZCharacter getCurrentCharacter() {
+        if (currentCharacter < 0)
+            return null;
         return getCurrentUser().characters.get(currentCharacter);
     }
 
+    void moveActor(ZActor actor, int toZone) {
+        board.removeActor(actor);
+        actor.occupiedZone = toZone;
+        board.addActor(actor, toZone);
+    }
+
+    public boolean canGoBack() {
+        return stateStack.size() > 1;
+    }
+
+    public void goBack() {
+        stateStack.pop();
+    }
+
+    void initSearchables() {
+        searchables.clear();
+        searchables.addAll(Arrays.asList(
+                ZItem.AAHHHH, ZItem.AAHHHH, ZItem.AAHHHH, ZItem.AAHHHH,
+                ZItem.APPLES, ZItem.APPLES,
+                ZWeapon.AXE, ZWeapon.AXE,
+                ZArmor.CHAIN, ZArmor.CHAIN,
+                ZWeapon.CROSSBOW, ZWeapon.CROSSBOW,
+                ZWeapon.DAGGER, ZWeapon.DAGGER, ZWeapon.DAGGER, ZWeapon.DAGGER,
+                ZWeapon.DEATH_STRIKE, ZWeapon.DEATH_STRIKE,
+                ZItem.DRAGON_BILE, ZItem.DRAGON_BILE, ZItem.DRAGON_BILE, ZItem.DRAGON_BILE,
+                ZWeapon.FIREBALL, ZWeapon.FIREBALL,
+                ZWeapon.GREAT_SWORD, ZWeapon.GREAT_SWORD,
+                ZWeapon.HAMMER,
+                ZWeapon.HAND_CROSSBOW, ZWeapon.HAND_CROSSBOW,
+                ZEnchantment.HEALING,
+                ZWeapon.INFERNO,
+                ZEnchantment.INVISIBILITY,
+                ZArmor.LEATHER, ZArmor.LEATHER,
+                ZWeapon.LIGHTNING_BOLT, ZWeapon.LIGHTNING_BOLT,
+                ZWeapon.LONG_BOW, ZWeapon.LONG_BOW,
+                ZWeapon.MANA_BLAST,
+                ZWeapon.ORCISH_CROSSBOW,
+                ZArmor.PLATE,
+                ZItem.PLENTY_OF_ARROWS,ZItem.PLENTY_OF_ARROWS, ZItem.PLENTY_OF_ARROWS,
+                ZItem.PLENTY_OF_BOLTS,ZItem.PLENTY_OF_BOLTS,ZItem.PLENTY_OF_BOLTS,
+                ZWeapon.REPEATING_CROSSBOW, ZWeapon.REPEATING_CROSSBOW,
+                ZEnchantment.REPULSE,
+                ZItem.SALTED_MEAT, ZItem.SALTED_MEAT,
+                ZArmor.SHIELD, ZArmor.SHIELD,
+                ZWeapon.SHORT_BOW,
+                ZWeapon.SHORT_SWORD,
+                ZEnchantment.SPEED,
+                ZWeapon.SWORD, ZWeapon.SWORD,
+                ZItem.TORCH, ZItem.TORCH, ZItem.TORCH, ZItem.TORCH,
+                ZItem.WATER, ZItem.WATER
+                ));
+        Utils.shuffle(searchables);
+    }
 }

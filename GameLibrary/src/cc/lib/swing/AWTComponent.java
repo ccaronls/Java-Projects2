@@ -96,6 +96,7 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
                             try {
                                 paint(G, mouseX, mouseY);
                             } catch (Exception e) {
+                                e.printStackTrace();
                                 throw new RuntimeException(e);
                             }
                         }
@@ -132,6 +133,7 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
                 repaint();
             }
         } catch (Throwable e) {
+            e.printStackTrace();
             throw new RuntimeException(e);
         }
     }
@@ -162,7 +164,10 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
         mouseX = e.getX()-padding;
         mouseY = e.getY()-padding;
         repaint();
+        onMousePressed(mouseX, mouseY);
     }
+
+    protected void onMousePressed(int mouseX, int mouseY) {}
 
     @Override
     public final synchronized void mouseReleased(MouseEvent e) {

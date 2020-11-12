@@ -69,8 +69,8 @@ public enum ZPlayerName {
             Utils.toArray(ZSkill.Search_plus1_card, ZSkill.Scavenger),
             Utils.toArray(ZSkill.Low_profile, ZSkill.Spellbook, ZSkill.Free_reload)),
     Annice("Healer",
-            Utils.toArray(ZSpell.HEALING),
-            Utils.toArray(ZSpell.HEALING),
+            Utils.toArray(ZEnchantment.HEALING),
+            Utils.toArray(ZEnchantment.HEALING),
             Utils.toArray(),
             Utils.toArray(ZSkill.Plus1_Action),
             Utils.toArray(ZSkill.Lifesaver, ZSkill.Spellcaster),
@@ -113,7 +113,7 @@ public enum ZPlayerName {
         c.name = this;
         for (ZEquipment e : startingEquipment)
             c.equip(e);
-        c.skills.addAll(Arrays.asList(blueSkillOptions));
+        c.allSkills.addAll(Arrays.asList(blueSkillOptions));
         return c;
     }
 

@@ -5,7 +5,7 @@ import cc.lib.utils.Reflector;
 @Reflector.EnumInterfcae
 public interface ZEquipment {
 
-    ZEquipSlot getSlot();
+    ZEquipSlotType getSlotType();
 
     default boolean canOpenDoor() {
         return false;
@@ -16,4 +16,22 @@ public interface ZEquipment {
     }
 
     String name();
+
+    boolean canEquip();
+
+    default boolean isMelee() {
+        return false;
+    }
+
+    default boolean isMagic() {
+        return false;
+    }
+
+    default boolean isRanged() {
+        return false;
+    }
+
+    default boolean isEnchantment() {
+        return false;
+    }
 }

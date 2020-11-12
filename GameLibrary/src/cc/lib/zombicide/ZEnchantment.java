@@ -19,9 +19,18 @@ public enum ZEnchantment implements ZEquipment {
 
     ;
 
+    @Override
+    public ZEquipSlotType getSlotType() {
+        return ZEquipSlotType.HAND;
+    }
 
     @Override
-    public ZEquipSlot getSlot() {
-        return ZEquipSlot.HAND;
+    public boolean canEquip() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnchantment() {
+        return true;
     }
 }

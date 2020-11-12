@@ -1,11 +1,13 @@
 package cc.lib.swing;
 
-import java.awt.*;
+import java.awt.Image;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.InputStream;
 
 import javax.imageio.ImageIO;
-import javax.swing.*;
-import java.awt.event.*;
-import java.io.InputStream;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
 
 import cc.lib.utils.FileUtils;
 
@@ -17,6 +19,8 @@ public class AWTButton extends JButton implements ActionListener {
             return new AWTButton(img);
         }
     }
+
+    private Object data;
 
     public AWTButton(Image icon) {
         super(new ImageIcon(icon));
@@ -38,6 +42,12 @@ public class AWTButton extends JButton implements ActionListener {
         addActionListener(listener);
     }
 
+    public AWTButton(String label, Object data, ActionListener listener) {
+        super(label);
+        addActionListener(listener);
+        this.data = data;
+    }
+
     public void actionPerformed(ActionEvent e) {
         onAction();
     }
@@ -52,5 +62,9 @@ public class AWTButton extends JButton implements ActionListener {
 
     public boolean isSelected() {
         return super.isSelected();
+    }
+
+    public <T> T getData() {
+        return (T)data;
     }
 }

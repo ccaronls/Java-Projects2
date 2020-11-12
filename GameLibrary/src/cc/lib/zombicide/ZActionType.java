@@ -4,7 +4,7 @@ public enum ZActionType {
     DO_NOTHING,
     MOVE,
     SEARCH,
-    OPEN_DOOR,
+    TOGGLE_DOOR,
     MELEE,
     RANGED,
     MAGIC,

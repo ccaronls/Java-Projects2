@@ -24,6 +24,24 @@ public class ZCell extends Reflector<ZCell> {
         return rect;
     }
 
+    public GRectangle getWallRect(int dir) {
+        switch (dir) {
+            case ZBoard.DIR_NORTH:
+                return new GRectangle(rect.getTopLeft(), rect.getTopRight());
+            case ZBoard.DIR_SOUTH:
+                return new GRectangle(rect.getBottomLeft(), rect.getBottomRight());
+            case ZBoard.DIR_EAST:
+                return new GRectangle(rect.getTopRight(), rect.getBottomRight());
+            case ZBoard.DIR_WEST:
+                return new GRectangle(rect.getTopLeft(), rect.getBottomLeft());
+        }
+        return null;
+    }
+
+    public int getZoneIndex() {
+        return zoneIndex;
+    }
+
     public GRectangle getQuadrant(int quadrant) {
         switch (quadrant) {
             case 0: // upperleft

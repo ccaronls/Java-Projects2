@@ -2,30 +2,190 @@ package cc.lib.zombicide;
 
 public enum ZSkill {
     Plus1_Action("The Survivor has an extra Action he may use as he pleases."),
-    Plus1_Damage_Melee("The Survivor gets a +1 Damage bonus with Melee weapons."),
-    Plus1_Damage_Ranged("The Survivor gets a +1 Damage bonus with Ranged weapons."),
-    Plus1_Damage_Magic("The Survivor gets a +1 Damage bonus with Magic weapons."),
+    Plus1_Damage_Melee("The Survivor gets a +1 Damage bonus with Melee weapons.") {
+        @Override
+        public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game) {
+            if (actionType == ZActionType.MELEE) {
+                stat.damagePerHit++;
+            }
+        }
+    },
+    Plus1_Damage_Ranged("The Survivor gets a +1 Damage bonus with Ranged weapons.") {
+        @Override
+        public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game) {
+            if (actionType == ZActionType.RANGED) {
+                stat.damagePerHit++;
+            }
+        }
+    },
+    Plus1_Damage_Magic("The Survivor gets a +1 Damage bonus with Magic weapons.") {
+        @Override
+        public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game) {
+            if (actionType == ZActionType.MAGIC) {
+                stat.damagePerHit++;
+            }
+        }
+    },
     //Plus1_Damage_with("[Equipment] – The Survivor gets a +1 Damage bonus with the specified Equipment."),
-    Plus1_to_dice_roll_Combat("The Survivor adds 1 to the result of each die he rolls on a Combat Action (Melee, Ranged or Magic). The maximum result is always 6."),
-    Plus1_to_dice_roll_Magic("The Survivor adds 1 to the result of each die he rolls on a Magic Action. The maximum result is always 6."),
-    Plus1_to_dice_roll_Melee("The Survivor adds 1 to the result of each die he rolls in Melee Actions. The maximum result is always 6."),
-    Plus1_to_dice_roll_Ranged("The Survivor adds 1 to the result of each die he rolls in Ranged Actions. The maximum result is always 6."),
-    Plus1_die_Combat("The Survivor’s weapons and Combat spells roll an extra die in Combat (Melee, Ranged or Magic). Dual weapons and spells gain a die each, for a total of +2 dice per Dual Combat Action."),
-    Plus1_die_Magic("The Survivor’s Combat spells roll an extra die for Magic Actions. Dual Combat spells gain a die each, for a total of +2 dice per Dual Magic Action."),
-    Plus1_die_Melee("The Survivor’s Melee weapons roll an extra die for Melee Actions. Dual Melee weapons gain a die each, for a total of +2 dice per Dual Melee Action."),
-    Plus1_die_Ranged("The Survivor’s Ranged weapons roll an extra die for Ranged Actions. Dual Ranged weapons gain a die each, for a total of +2 dice per Dual Ranged Action."),
-    Plus1_free_Combat_Action("The Survivor has one extra free Combat Action. This Action may only be used for Melee, Ranged or Magic Actions."),
-    Plus1_free_Enchantment_Action("The Survivor has one extra free Enchantment Action. This Action may only be used for Enchantment Actions."),
-    Plus1_free_Magic_Action("The Survivor has one extra free Magic Action. This Action may only be used for Magic Actions."),
-    Plus1_free_Melee_Action("The Survivor has one extra free Melee Action. This Action may only be used for a Melee Action."),
-    Plus1_free_Move_Action("The Survivor has one extra free Move Action. This Action may only be used as a Move Action."),
-    Plus1_free_Ranged_Action("The Survivor has one extra free Ranged Action. This Action may only be used as a Ranged Action."),
-    Plus1_free_Search_Action("The Survivor has one extra free Search Action. This Action may only be used to Search, and the Survivor can still only Search once per Turn."),
-    Plus1_max_Range("The Survivor’s Ranged weapons and Combat spells’ maximum Range is increased by 1."),
-    Plus1_Zone_per_Move("The Survivor can move through one extra Zone each time he performs a Move Action. This Skill stacks with other effects benefiting Move Actions. Entering a Zone containing Zombies ends the Survivor’s Move Action."),
+    Plus1_to_dice_roll_Combat("The Survivor adds 1 to the result of each die he rolls on a Combat Action (Melee, Ranged or Magic). The maximum result is always 6.") {
+        @Override
+        public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game) {
+            stat.dieRollToHit--;
+        }
+    },
+    Plus1_to_dice_roll_Magic("The Survivor adds 1 to the result of each die he rolls on a Magic Action. The maximum result is always 6.") {
+        @Override
+        public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game) {
+            if (actionType == ZActionType.MAGIC) {
+                stat.dieRollToHit--;
+            }
+        }
+    },
+    Plus1_to_dice_roll_Melee("The Survivor adds 1 to the result of each die he rolls in Melee Actions. The maximum result is always 6.") {
+        @Override
+        public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game) {
+            if (actionType == ZActionType.MELEE) {
+                stat.dieRollToHit--;
+            }
+        }
+    },
+    Plus1_to_dice_roll_Ranged("The Survivor adds 1 to the result of each die he rolls in Ranged Actions. The maximum result is always 6.") {
+        @Override
+        public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game) {
+            if (actionType == ZActionType.RANGED) {
+                stat.dieRollToHit--;
+            }
+        }
+    },
+    Plus1_die_Combat("The Survivor’s weapons and Combat spells roll an extra die in Combat (Melee, Ranged or Magic). Dual weapons and spells gain a die each, for a total of +2 dice per Dual Combat Action.") {
+        @Override
+        public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game) {
+            stat.numDice++;
+        }
+    },
+    Plus1_die_Magic("The Survivor’s Combat spells roll an extra die for Magic Actions. Dual Combat spells gain a die each, for a total of +2 dice per Dual Magic Action.") {
+        @Override
+        public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game) {
+            if (actionType == ZActionType.MAGIC) {
+                stat.numDice++;
+            }
+        }
+    },
+    Plus1_die_Melee("The Survivor’s Melee weapons roll an extra die for Melee Actions. Dual Melee weapons gain a die each, for a total of +2 dice per Dual Melee Action.") {
+        @Override
+        public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game) {
+            if (actionType == ZActionType.MELEE) {
+                stat.numDice++;
+            }
+        }
+    },
+    Plus1_die_Ranged("The Survivor’s Ranged weapons roll an extra die for Ranged Actions. Dual Ranged weapons gain a die each, for a total of +2 dice per Dual Ranged Action.") {
+        @Override
+        public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game) {
+            if (actionType == ZActionType.RANGED) {
+                stat.numDice++;
+            }
+        }
+    },
+    Plus1_free_Combat_Action("The Survivor has one extra free Combat Action. This Action may only be used for Melee, Ranged or Magic Actions.") {
+        @Override
+        public boolean modifyActionsRemaining(ZCharacter character, ZActionType type, ZGame game) {
+            switch (type) {
+                case MAGIC:
+                case RANGED:
+                case MELEE:
+                    return true;
+            }
+            return false;
+        }
+    },
+    Plus1_free_Enchantment_Action("The Survivor has one extra free Enchantment Action. This Action may only be used for Enchantment Actions.") {
+        @Override
+        public boolean modifyActionsRemaining(ZCharacter character, ZActionType type, ZGame game) {
+            switch (type) {
+                case ENCHANTMENT:
+                    return true;
+            }
+            return false;
+        }
+    },
+    Plus1_free_Magic_Action("The Survivor has one extra free Magic Action. This Action may only be used for Magic Actions.") {
+        @Override
+        public boolean modifyActionsRemaining(ZCharacter character, ZActionType type, ZGame game) {
+            switch (type) {
+                case MAGIC:
+                    return true;
+            }
+            return false;
+        }
+    },
+    Plus1_free_Melee_Action("The Survivor has one extra free Melee Action. This Action may only be used for a Melee Action.") {
+        @Override
+        public boolean modifyActionsRemaining(ZCharacter character, ZActionType type, ZGame game) {
+            switch (type) {
+                case MELEE:
+                    return true;
+            }
+            return false;
+        }
+    },
+    Plus1_free_Move_Action("The Survivor has one extra free Move Action. This Action may only be used as a Move Action.") {
+        @Override
+        public boolean modifyActionsRemaining(ZCharacter character, ZActionType type, ZGame game) {
+            switch (type) {
+                case MOVE:
+                    return true;
+            }
+            return false;
+        }
+    },
+    Plus1_free_Ranged_Action("The Survivor has one extra free Ranged Action. This Action may only be used as a Ranged Action.") {
+        @Override
+        public boolean modifyActionsRemaining(ZCharacter character, ZActionType type, ZGame game) {
+            switch (type) {
+                case RANGED:
+                    return true;
+            }
+            return false;
+        }
+    },
+    Plus1_free_Search_Action("The Survivor has one extra free Search Action. This Action may only be used to Search, and the Survivor can still only Search once per Turn.") {
+        @Override
+        public boolean modifyActionsRemaining(ZCharacter character, ZActionType type, ZGame game) {
+            switch (type) {
+                case SEARCH:
+                    return true;
+            }
+            return false;
+        }
+    },
+    Plus1_max_Range("The Survivor’s Ranged weapons and Combat spells’ maximum Range is increased by 1.") {
+        @Override
+        public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game) {
+            stat.maxRange++;
+        }
+    },
+    Plus1_Zone_per_Move("The Survivor can move through one extra Zone each time he performs a Move Action. This Skill stacks with other effects benefiting Move Actions. Entering a Zone containing Zombies ends the Survivor’s Move Action.") {
+        @Override
+        public boolean modifyActionsRemaining(ZCharacter character, ZActionType type, ZGame game) {
+            switch (type) {
+                case MOVE:
+                    return game.board.getZombiesInZone(character.occupiedZone).size() == 0;
+            }
+            return false;
+        }
+    },
     Two_Zones_per_Move_Action("When the Survivor spends one Action to Move, he can move one or two Zones instead of one. Entering a Zone containing Zombies ends the Survivor’s Move Action."),
     Ambidextrous("The Survivor treats all Combat spells, Melee and Ranged weapons as if they had the Dual symbol."),
-    Barbarian("When resolving a Melee Action, the Survivor may substitute the Dice number of the Melee weapon(s) he uses with the number of Zombies standing in the targeted Zone. Skills affecting the dice value, like +1 die: Melee, still apply."),
+    Barbarian("When resolving a Melee Action, the Survivor may substitute the Dice number of the Melee weapon(s) he uses with the number of Zombies standing in the targeted Zone. Skills affecting the dice value, like +1 die: Melee, still apply.") {
+        @Override
+        public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game) {
+            if (actionType == ZActionType.MELEE) {
+                int num = game.board.getZombiesInZone(character.occupiedZone).size();
+                stat.numDice = Math.max(num, stat.numDice);
+            }
+        }
+    },
     Blitz("Each time the Survivor kills the last Zombie in a Zone, he gets 1 free Move Action to use immediately."),
     Bloodlust("Spend one Action with the Survivor: He Moves up to two Zones to a Zone containing at least one Zombie. He then gains one free Combat Action (Melee, Ranged or Magic)."),
     Bloodlust_Magic("Spend one Action with the Survivor: He Moves up to two Zones to a Zone containing at least one Zombie. He then gains one free Magic Action, to use immediately."),
@@ -42,10 +202,36 @@ public enum ZSkill {
     Collector_Necromancer("The Survivor gains double the experience each time he kills a Necromancer."),
     Destiny("The Survivor can use this Skill once per Turn when he reveals an Equipment card he drew. You can ignore and discard that card, then draw another Equipment card."),
     Free_reload("The Survivor reloads reloadable weapons (Hand Crossbows, Orcish Crossbow, etc.) for free. "),
-    Frenzy_Combat("All weapons and Combat spells the Survivor carries gain +1 die per Wound the Survivor suffers. Dual weapons gain a die each, for a total of +2 dice per Wound and per Dual Combat Action (Melee, Ranged or Magic)."),
-    Frenzy_Magic("Combat spells the Survivor carries gain +1 die per Wound the Survivor suffers. Dual Combat spells gain a die each, for a total of +2 dice per Wound and per Dual Magic Action."),
-    Frenzy_Melee("Melee weapons the Survivor carries gain +1 die per Wound the Survivor suffers. Dual Melee weapons gain a die each, for a total of +2 dice per Wound and per Dual Melee Action."),
-    Frenzy_Ranged("Ranged weapons the Survivor carries gain +1 die per Wound the Survivor suffers. Dual Ranged weapons gain a die each, for a total of +2 dice per Wound and per Dual Ranged Action."),
+    Frenzy_Combat("All weapons and Combat spells the Survivor carries gain +1 die per Wound the Survivor suffers. Dual weapons gain a die each, for a total of +2 dice per Wound and per Dual Combat Action (Melee, Ranged or Magic).") {
+        @Override
+        public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game) {
+            stat.numDice += character.woundBar;
+        }
+    },
+    Frenzy_Magic("Combat spells the Survivor carries gain +1 die per Wound the Survivor suffers. Dual Combat spells gain a die each, for a total of +2 dice per Wound and per Dual Magic Action.") {
+        @Override
+        public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game) {
+            if (actionType == ZActionType.MAGIC) {
+                stat.numDice += character.woundBar;
+            }
+        }
+    },
+    Frenzy_Melee("Melee weapons the Survivor carries gain +1 die per Wound the Survivor suffers. Dual Melee weapons gain a die each, for a total of +2 dice per Wound and per Dual Melee Action.") {
+        @Override
+        public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game) {
+            if (actionType == ZActionType.MELEE) {
+                stat.numDice += character.woundBar;
+            }
+        }
+    },
+    Frenzy_Ranged("Ranged weapons the Survivor carries gain +1 die per Wound the Survivor suffers. Dual Ranged weapons gain a die each, for a total of +2 dice per Wound and per Dual Ranged Action.") {
+        @Override
+        public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game) {
+            if (actionType == ZActionType.RANGED) {
+                stat.numDice += character.woundBar;
+            }
+        }
+    },
     Hit_and_run("The Survivor can use this Skill for free, just after he resolved a Magic, Melee or Ranged Action resulting in at least a Zombie kill. He can then resolve a free Move Action. The Survivor does not spend extra Actions to perform this free Move Action if Zombies are standing in his Zone."),
     Hold_your_nose("This Skill can be used once per Turn. The Survivor gets a free Search Action in the Zone if he has eliminated a Zombie (even in a Vault or a street Zone) the same Game Round. This Action may only be used to Search, and the Survivor can still only Search once per Turn."),
     Ironclad("The Survivor ignores all Wounds coming from Zombies of any type"),
@@ -81,7 +267,14 @@ public enum ZSkill {
     Spellbook("All Combat spells and Enchantments in the Survivor’s Inventory are considered equipped in Hand. With this Skill, a Survivor could effectively be considered as having several Combat spells and Enchantments cards equipped in Hand. For obvious reasons, he can only use two identical dual Combat Spells at any given time. Choose any combination of two before resolving Actions or rolls involving the Survivor."),
     Spellcaster("The Survivor has one extra free Action. This Action may only be used for a Magic Action or an Enchantment Action."),
     Sprint("The Survivor can use this Skill once during each of his Turns. Spend one Move Action with the Survivor: He may move two or three Zones instead of one. Entering a Zone containing Zombies ends the Survivor’s Move Action."),
-    Super_strength("Consider the Damage value of Melee weapons used by the Survivor to be 3."),
+    Super_strength("Consider the Damage value of Melee weapons used by the Survivor to be 3.") {
+        @Override
+        public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game) {
+            if (actionType == ZActionType.MELEE) {
+                stat.damagePerHit = 3;
+            }
+        }
+    },
     //Starts_with_a("[Equipment] – The Survivor begins the game with the indicated Equipment; its card is automatically assigned to him during Setup."),
     //Starts_with_Healing("The Survivor begins the game with Healing Spell; its card is automatically assigned to him during Setup."),
     //Starts_with_GreatSword("The Survivor begins the game with Great Sword; its card is automatically assigned to him during Setup."),
@@ -100,4 +293,26 @@ public enum ZSkill {
     }
     
     public final String description;
+
+    /**
+     *
+     * @param stat
+     * @param actionType
+     * @param character
+     * @param game
+     */
+    public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game) {
+
+    }
+
+    /**
+     * Modify characters actions remaining based on the move. return true if applied
+     * @param character
+     * @param type
+     * @param game
+     * @return
+     */
+    public boolean  modifyActionsRemaining(ZCharacter character, ZActionType type, ZGame game) {
+        return false;
+    }
 }
