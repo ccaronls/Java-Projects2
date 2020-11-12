@@ -22,6 +22,8 @@ import cc.lib.game.GDimension;
 import cc.lib.game.IVector2D;
 import cc.lib.game.Renderable;
 import cc.lib.game.Utils;
+import cc.lib.logger.Logger;
+import cc.lib.logger.LoggerFactory;
 
 
 /**
@@ -29,6 +31,8 @@ import cc.lib.game.Utils;
  */
 
 public abstract class AWTComponent extends JComponent implements Renderable, MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
+
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
     private AWTGraphics G = null;
     private int mouseX = -1;
@@ -39,7 +43,6 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
     private int scrollStartY = 0;
 
     public AWTComponent() {
-
     }
 
     public void setMouseEnabled(boolean enabled) {
@@ -60,7 +63,7 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
     }
 
     @Override
-    public final synchronized void paint(Graphics g) {
+    public synchronized void paint(Graphics g) {
         try {
             if (getWidth() > 0 && getHeight() > 0) {
                 Color c = g.getColor();
@@ -222,6 +225,7 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
 
     @Override
     public final synchronized void mouseMoved(MouseEvent e) {
+        //log.info("mouse %d,%d", e.getX(), e.getY());
         //Utils.println("mouseMoved");
         mouseX = e.getX()-padding;
         mouseY = e.getY()-padding;
@@ -254,10 +258,6 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
 
     protected void onClick() {}
 
-    public final void repaint() {
-        super.repaint();
-    }
-
     public final int getX() {
         return super.getX() + padding;
     }
@@ -285,6 +285,7 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
     }
 
     public void setMinimumSize(int w, int h) {
+        log.debug("set min size: %d x %d", w, h);
         super.setMinimumSize(new Dimension(w, h));
     }
 
@@ -293,22 +294,13 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
     }
 
     public void setPreferredSize(int w, int h) {
+        log.debug("set pref size: %d x %d", w, h);
         super.setPreferredSize(new Dimension(w, h));
     }
 
-    @Override
-    public Dimension getMinimumSize() {
-        return super.getMinimumSize();
-    }
-
-    @Override
-    public Dimension getMaximumSize() {
-        return super.getMaximumSize();
-    }
-
-    @Override
-    public Dimension getPreferredSize() {
-        return super.getPreferredSize();
+    public void setMaximumSize(int w, int h) {
+        log.debug("set max size: %d x %d", w, h);
+        super.setMaximumSize(new Dimension(w, h));
     }
 
     public final APGraphics getAPGraphics() {
@@ -339,12 +331,12 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
     public void setBounds(int x, int y, int width, int height) {
         Rectangle rect = getBounds();
         super.setBounds(x, y, width, height);
-        if (rect.width != width || rect.height != height) {
+        if (G != null && (rect.width != width || rect.height != height)) {
             onDimensionChanged(G, width, height);
         }
     }
 
     protected void onDimensionChanged(AWTGraphics g, int width, int height) {
-
+        log.info("Dimension changed to %d x %d", width, height);
     }
 }

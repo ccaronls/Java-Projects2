@@ -1,5 +1,6 @@
 package cc.lib.zombicide;
 
+import cc.lib.game.AGraphics;
 import cc.lib.game.GRectangle;
 import cc.lib.utils.Reflector;
 
@@ -41,4 +42,6 @@ public abstract class ZActor extends Reflector<ZActor> {
     public final GRectangle getRect() {
         return rect;
     }
+
+    public abstract void drawInfo(AGraphics g, int width, int height);
 }

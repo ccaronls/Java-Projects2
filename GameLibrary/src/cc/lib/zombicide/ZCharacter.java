@@ -3,6 +3,7 @@ package cc.lib.zombicide;
 import java.util.ArrayList;
 import java.util.List;
 
+import cc.lib.game.AGraphics;
 import cc.lib.game.Utils;
 import cc.lib.utils.Table;
 
@@ -206,5 +207,10 @@ public class ZCharacter extends ZActor implements Table.Model {
 
     public boolean isBackpackFull() {
         return numBackpackItems == backpack.length;
+    }
+
+    @Override
+    public void drawInfo(AGraphics g, int width, int height) {
+        g.drawString(getDebugString(), 0, 0);
     }
 }

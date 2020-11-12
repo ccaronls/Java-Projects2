@@ -1,5 +1,7 @@
 package cc.lib.zombicide;
 
+import cc.lib.game.AGraphics;
+
 public class ZZombie extends ZActor {
 
     static {
@@ -30,6 +32,17 @@ public class ZZombie extends ZActor {
     @Override
     public String name() {
         return type.name();
+    }
+
+    @Override
+    public void drawInfo(AGraphics g, int width, int height) {
+        String txt = name()
+                + "\nMin Hits        : " + type.minDamageToDestroy
+                + "\nActions         : " + type.actionsPerTurn
+                + "\nExperience      : " + type.expProvided
+                + "\nIgnores Armor   : " + type.ignoresArmor
+                + "\nRanged Priority : " + type.rangedPriority;
+        g.drawString(txt, 0, 0);
     }
 }
 

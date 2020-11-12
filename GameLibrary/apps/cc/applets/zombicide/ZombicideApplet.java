@@ -1,12 +1,15 @@
 package cc.applets.zombicide;
 
 import java.awt.BorderLayout;
+import java.awt.Font;
+import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.List;
 
 import javax.swing.JApplet;
+import javax.swing.JPanel;
 
 import cc.lib.game.AGraphics;
 import cc.lib.game.GColor;
@@ -41,7 +44,7 @@ public class ZombicideApplet extends JApplet implements ActionListener {
         //PlayerBot.DEBUG_ENABLED = true;
         //mode = 0;
         AWTFrame frame = new AWTFrame("Zombicide");
-        JApplet app = new ZombicideApplet();
+        ZombicideApplet app = new ZombicideApplet();
         frame.add(app);
         app.init();
         app.start();
@@ -74,20 +77,31 @@ public class ZombicideApplet extends JApplet implements ActionListener {
 
     class BoardComponent extends AWTComponent {
 
+        BoardComponent() {
+            setPreferredSize(250, 250);
+        }
+
         @Override
         protected void init(AWTGraphics g) {
             GDimension cellDim = game.board.initCellRects(g, g.getViewportWidth()-5, g.getViewportHeight()-5);
             loadImages(g);
             setMouseEnabled(true);
+            //setMinimumSize(256, 256);
+            setPreferredSize( (int)cellDim.width * game.board.getColumns(), (int)cellDim.height * game.board.getRows());
+            //setMaximumSize( (int)cellDim.width * game.board.getColumns(), (int)cellDim.height * game.board.getRows());
         }
 
         @Override
         protected void onDimensionChanged(AWTGraphics g, int width, int height) {
-            game.board.initCellRects(g, g.getViewportWidth()-5, g.getViewportHeight()-5);
+            GDimension cellDim = game.board.initCellRects(g, width-5, height-5);
+            int newWidth = (int)cellDim.width * game.board.getColumns();
+            int newHeight = (int)cellDim.height * game.board.getRows();
+            setPreferredSize(newWidth, newHeight);
         }
 
         @Override
         protected void paint(AWTGraphics g, int mouseX, int mouseY) {
+            g.clearScreen(GColor.YELLOW);
             if (game == null || game.board == null)
                 return;
             ZBoard board = game.board;
@@ -100,6 +114,7 @@ public class ZombicideApplet extends JApplet implements ActionListener {
             if (highlightedActor != null) {
                 g.setColor(GColor.YELLOW);
                 g.drawRect(highlightedActor.getRect());
+                charComp.repaint();
             }
         }
 
@@ -130,24 +145,59 @@ public class ZombicideApplet extends JApplet implements ActionListener {
     }
 
     class CharacterComponent extends AWTComponent {
+
+        CharacterComponent() {
+            setPreferredSize(300, 200);
+        }
+
+        @Override
+        protected void init(AWTGraphics g) {
+            setMouseEnabled(true);
+            int minHeight = g.getTextHeight() * 12;
+            setPreferredSize(minHeight*2, minHeight);
+            setMinimumSize(minHeight*2, minHeight);
+        }
+
+        @Override
+        public synchronized void paint(Graphics g) {
+            super.paint(g);
+        }
+
         @Override
         protected void paint(AWTGraphics g, int mouseX, int mouseY) {
             g.clearScreen();
             if (game == null)
                 return;
-            if (game.getCurrentCharacter() != null) {
+            g.getGraphics().setFont(Font.decode(Font.MONOSPACED));
+            if (highlightedActor != null) {
+                g.setColor(GColor.BLACK);
+                highlightedActor.drawInfo(g, getWidth(), getHeight());
+            } else if (game.getCurrentCharacter() != null) {
                 String txt = game.getCurrentCharacter().getDebugString();
                 g.setColor(GColor.BLACK);
                 g.drawString(txt, 0, 0);
             }
         }
+
+        @Override
+        public void repaint() {
+            super.repaint();
+        }
+
     }
 
     ZombicideApplet() {
-        add(boardComp = new BoardComponent());
-        add(charComp = new CharacterComponent(), BorderLayout.SOUTH);
+        setLayout(new BorderLayout());
+        JPanel center = new JPanel();
+        //center.setLayout(new GridLayout(0, 1));
+        center.setLayout(new BorderLayout());
+        center.add(charComp = new CharacterComponent(), BorderLayout.SOUTH);
+        //center.add(new AWTButton("whatapp"), BorderLayout.SOUTH);
         menu.setLayout(new AWTButtonLayout(menu));
         add(menu, BorderLayout.WEST);
+        //add(new AWTPanel(0, 1, new AWTButton("Hello")), BorderLayout.EAST);
+        center.add(boardComp = new BoardComponent(), BorderLayout.CENTER);
+        add(center);
         menu.add(new AWTButton("START", this));
     }
 
@@ -160,11 +210,6 @@ public class ZombicideApplet extends JApplet implements ActionListener {
                 log.error("Unhandled action: " + e.getActionCommand());
         }
     }
-
-    void repaintAll() {
-        repaint();
-    }
-
 
     @Override
     public void init() {
