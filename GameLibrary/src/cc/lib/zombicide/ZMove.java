@@ -61,7 +61,7 @@ public class ZMove {
     }
 
     public static ZMove newMagicAttackMove(List<ZEquipSlot> weapons) {
-        return new ZMove(ZMoveType.RANGED_ATTACK, weapons);
+        return new ZMove(ZMoveType.MAGIC_ATTACK, weapons);
     }
 
     public static ZMove newOrganizeMove() {

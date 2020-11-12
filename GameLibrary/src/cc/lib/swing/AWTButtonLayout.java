@@ -114,7 +114,7 @@ public class AWTButtonLayout implements LayoutManager2 {
         // flush changes to the container
         int x = in.left;
         int y = in.top;
-        for (int i = 0; i < nChildren; i++) {
+        for (int i = 0; i < nChildren && i < heights.length; i++) {
             Component c = target.getComponent(i);
             int h = heights[i];
             c.setBounds(x, y, alloc.width, h);

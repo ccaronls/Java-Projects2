@@ -92,9 +92,9 @@ public class ZCharacter extends ZActor implements Table.Model {
         ZWeapon [] weapons = getWeapons();
         return weapons.length == 2 && weapons[0] == weapons[1] && weapons[0].canTwoHand;
     }
-/*
+
     public boolean canEquip(ZEquipment e) {
-        switch (e.getSlot()) {
+        switch (e.getSlotType()) {
             case HAND:
                 if (leftHand == null) {
                     return true;
@@ -119,8 +119,7 @@ public class ZCharacter extends ZActor implements Table.Model {
         }
 
         return false;
-
-    }*/
+    }
 
     public ZEquipSlot equip(ZEquipment e) {
         switch (e.getSlotType()) {
@@ -254,7 +253,7 @@ public class ZCharacter extends ZActor implements Table.Model {
     }
 
     public boolean canSearch() {
-        return !actionsDoneThisTurn.contains(ZActionType.SEARCH);
+        return !isBackpackFull() && !actionsDoneThisTurn.contains(ZActionType.SEARCH);
     }
 
     public List<ZEquipSlot> getEquipableSlots(ZEquipment equip) {
@@ -316,7 +315,18 @@ public class ZCharacter extends ZActor implements Table.Model {
 
     public ZWeaponStat getWeaponStat(ZEquipSlot slot, ZActionType attackType, ZGame game) {
         ZWeapon weapon = (ZWeapon)getSlot(slot);
-        ZWeaponStat stat = weapon.meleeStats.copy();
+        ZWeaponStat stat = null;
+        switch (attackType) {
+            case MELEE:
+                stat = weapon.meleeStats.copy();
+                break;
+            case RANGED:
+                stat = weapon.rangedStats.copy();
+                break;
+            case MAGIC:
+                stat = weapon.magicStats.copy();
+                break;
+        }
         for (ZSkill skill : availableSkills) {
             skill.modifyStat(stat, attackType, this, game);
         }

@@ -1,16 +1,21 @@
 package cc.applets.zombicide;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.util.LinkedList;
 import java.util.List;
 
+import javax.swing.BoxLayout;
 import javax.swing.JApplet;
 import javax.swing.JComponent;
+import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
+import javax.swing.ScrollPaneLayout;
 
 import cc.lib.game.AGraphics;
 import cc.lib.game.GColor;
@@ -20,7 +25,6 @@ import cc.lib.game.Justify;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
 import cc.lib.swing.AWTButton;
-import cc.lib.swing.AWTButtonLayout;
 import cc.lib.swing.AWTComponent;
 import cc.lib.swing.AWTFrame;
 import cc.lib.swing.AWTGraphics;
@@ -85,20 +89,24 @@ public class ZombicideApplet extends JApplet implements ActionListener {
     AWTPanel menu = new AWTPanel();
 
     int [] highlightedCell = null;
-    Integer highlightedResult = null;
+    Object highlightedResult = null;
     ZActor highlightedActor = null;
-    ZDoor highlightedDoor = null;
 
     BoardComponent boardComp;
     CharacterComponent charComp;
     boolean gameRunning = false;
+    LinkedList<String> messages = new LinkedList<>();
 
     ZombicideApplet() {
         setLayout(new BorderLayout());
         add(charComp = new CharacterComponent(), BorderLayout.SOUTH);
-        //menu.setPreferredSize(new Dimension(100, 300));
-        menu.setLayout(new AWTButtonLayout(menu));
-        add(menu, BorderLayout.WEST);
+        menu.setPreferredSize(new Dimension(200, 300));
+        //menu.setLayout(new AWTButtonLayout(menu));
+        menu.setLayout(new BoxLayout(menu, BoxLayout.Y_AXIS));
+        JScrollPane menuPanel = new JScrollPane();
+        menuPanel.setLayout(new ScrollPaneLayout());
+        menuPanel.getViewport().add(menu);
+        add(menuPanel, BorderLayout.WEST);
         add(boardComp = new BoardComponent(), BorderLayout.CENTER);
         setMenuItems(MenuItem.START);
     }
@@ -135,7 +143,6 @@ public class ZombicideApplet extends JApplet implements ActionListener {
             highlightedActor = null;
             highlightedCell = null;
             highlightedResult = null;
-            highlightedDoor = null;
 
             int [] cellPos = board.drawDebug(g, getMouseX(), getMouseY());
             ZActor actor = board.drawActors(g, getMouseX(), getMouseY());
@@ -150,7 +157,7 @@ public class ZombicideApplet extends JApplet implements ActionListener {
                             for (int i = 0; i < options.size(); i++) {
                                 if (actor == options.get(i)) {
                                     highlightedActor = actor;
-                                    highlightedResult = i;
+                                    highlightedResult = actor;
                                     break;
                                 }
                             }
@@ -163,7 +170,7 @@ public class ZombicideApplet extends JApplet implements ActionListener {
                             for (int i = 0; i < options.size(); i++) {
                                 if (cell.getZoneIndex() == (Integer)options.get(i)) {
                                     highlightedCell = cellPos;
-                                    highlightedResult = i;
+                                    highlightedResult = cell.getZoneIndex();
                                     break;
                                 }
                             }
@@ -171,19 +178,16 @@ public class ZombicideApplet extends JApplet implements ActionListener {
                         break;
                     }
                     case PICK_DOOR: {
-                        g.begin();
-                        int index = 0;
-                        g.setColor(GColor.CYAN);
                         for (ZDoor door : (List<ZDoor>)options) {
-                            g.setName(index++);
                             ZCell cell = board.getCell(door.cellPos);
                             GRectangle doorRect = cell.getWallRect(door.dir).grow(10);
+                            if (doorRect.contains(mouseX, mouseY)) {
+                                g.setColor(GColor.RED);
+                                highlightedResult = door;
+                            } else {
+                                g.setColor(GColor.CYAN);
+                            }
                             g.drawRect(doorRect, 1);
-                        }
-                        g.end();
-                        int picked = g.pickRects(mouseX, mouseY);
-                        if (picked >= 0) {
-                            highlightedDoor = (ZDoor)options.get(picked);
                         }
                         break;
                     }
@@ -281,6 +285,14 @@ public class ZombicideApplet extends JApplet implements ActionListener {
                 g.setColor(GColor.BLACK);
                 g.drawString(txt, 0, 0);
             }
+
+            g.setColor(GColor.BLACK);
+            int y = 0;
+            for (String msg : messages) {
+                g.drawJustifiedString(g.getViewportWidth(), y, Justify.RIGHT, Justify.TOP, msg);
+                g.setColor(GColor.TRANSLUSCENT_BLACK);
+                y += g.getTextHeight();
+            }
         }
 
     }
@@ -294,22 +306,20 @@ public class ZombicideApplet extends JApplet implements ActionListener {
             try {
                 while (gameRunning) {
                     game.runGame();
+                    charComp.repaint();
+                    boardComp.repaint();
                 }
             } catch (Exception e) {
                 e.printStackTrace();
             }
             gameRunning = false;
+            log.debug("Game thread stopped");
             setMenuItems(MenuItem.START);
+
         }).start();
     }
 
-    void stopGameThread() {
-        gameRunning = false;
-        setResult(null);
-        setMenuItems(MenuItem.START);
-    }
-
-    void setMenuItems(MenuItem ... items) {
+    synchronized void setMenuItems(MenuItem ... items) {
         menu.removeAll();
         for (MenuItem i : items) {
             menu.add(new AWTButton(i.name(), this));
@@ -323,7 +333,12 @@ public class ZombicideApplet extends JApplet implements ActionListener {
                 startGameThread();
                 break;
             case QUIT:
-                stopGameThread();
+                gameRunning = false;
+                setResult(null);
+                break;
+            case BACK:
+                game.goBack();
+                setResult(null);
                 break;
             default:
                 log.error("Unhandled action: " + e.getActionCommand());
@@ -336,11 +351,15 @@ public class ZombicideApplet extends JApplet implements ActionListener {
 
             @Override
             public void showMessage(String s) {
-                log.info(s);
+                messages.addFirst(s);
+                while (messages.size() > 32) {
+                    messages.removeLast();
+                }
+                charComp.repaint();
             }
 
             @Override
-            public Integer chooseCharacter(List<ZCharacter> characters) {
+            public ZCharacter chooseCharacter(List<ZCharacter> characters) {
                 message = "Pick character to play";
                 uiMode = UIMode.PICK_CHARACTER;
                 options = characters;
@@ -437,7 +456,10 @@ public class ZombicideApplet extends JApplet implements ActionListener {
 
             @Override
             public Integer chooseZoneForAttack(ZGame zGame, ZCharacter c, List<Integer> zones) {
-                return null;
+                message = "Choose Zone to Attack";
+                uiMode = UIMode.PICK_ZONE;
+                options = zones;
+                return waitForUser();
             }
         };
         user.addCharacter(ZPlayerName.Baldric.create());
@@ -490,6 +512,10 @@ public class ZombicideApplet extends JApplet implements ActionListener {
         }
 
         JComponent sep = new JSeparator();
+        menu.add(sep);
+        if (game.canGoBack()) {
+            menu.add(new AWTButton(MenuItem.BACK.name(), this));
+        }
         menu.add(new AWTButton(MenuItem.QUIT.name(), this));
         validate();
     }

@@ -18,7 +18,7 @@ public abstract class ZUser {
         characters.add(c);
     }
 
-    public abstract Integer chooseCharacter(List<ZCharacter> options);
+    public abstract ZCharacter chooseCharacter(List<ZCharacter> options);
 
     public abstract ZMove chooseMove(ZGame zGame, ZCharacter cur, List<ZMove> options);
 
