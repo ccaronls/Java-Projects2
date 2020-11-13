@@ -42,10 +42,11 @@ import cc.lib.zombicide.ZMove;
 import cc.lib.zombicide.ZPlayerName;
 import cc.lib.zombicide.ZQuests;
 import cc.lib.zombicide.ZSkill;
+import cc.lib.zombicide.ZTiles;
 import cc.lib.zombicide.ZUser;
 import cc.lib.zombicide.ZZombieType;
 
-public class ZombicideApplet extends JApplet implements ActionListener {
+public class ZombicideApplet extends JApplet implements ActionListener, ZTiles {
 
     static final Logger log = LoggerFactory.getLogger(ZombicideApplet.class);
 
@@ -145,10 +146,13 @@ public class ZombicideApplet extends JApplet implements ActionListener {
             highlightedResult = null;
 
             int [] cellPos = board.drawDebug(g, getMouseX(), getMouseY());
-            ZActor actor = board.drawActors(g, getMouseX(), getMouseY());
 
             if (gameRunning) {
-                g.setColor(GColor.CYAN);
+                game.getQuest().drawTiles(g, ZombicideApplet.this);
+
+                ZActor actor = board.drawActors(g, getMouseX(), getMouseY());
+
+                g.setColor(GColor.BLACK);
                 g.drawJustifiedString(getWidth()-10, getHeight()-10, Justify.RIGHT, Justify.BOTTOM, message);
                 switch (uiMode) {
                     case PICK_ZOMBIE:
@@ -202,6 +206,11 @@ public class ZombicideApplet extends JApplet implements ActionListener {
                     g.drawRect(highlightedActor.getRect());
                     charComp.repaint();
                 }
+                if (actor != null) {
+                    g.setColor(GColor.YELLOW);
+                    g.drawRect(actor.getRect());
+                    charComp.repaint();
+                }
 
             } else {
                 if (cellPos != null) {
@@ -210,11 +219,6 @@ public class ZombicideApplet extends JApplet implements ActionListener {
                     board.drawZoneOutline(g, cell.getZoneIndex());
                     g.setColor(GColor.RED);
                     g.drawRect(cell.getRect());
-                }
-                if (actor != null) {
-                    g.setColor(GColor.YELLOW);
-                    g.drawRect(actor.getRect());
-                    charComp.repaint();
                 }
             }
         }
@@ -529,7 +533,7 @@ public class ZombicideApplet extends JApplet implements ActionListener {
 
     boolean loaded = false;
 
-    void loadImages(AGraphics g) {
+    void loadImages(AWTGraphics g) {
         if (loaded)
             return;
         ZZombieType.Abomination.imageId = g.loadImage("zabomination.png");
@@ -552,4 +556,28 @@ public class ZombicideApplet extends JApplet implements ActionListener {
         loaded = true;
     }
 
+    int [] tiles = new int[0];
+
+    @Override
+    public int[] loadTiles(AGraphics _g, String[] names, int[] orientations) {
+        AWTGraphics g = (AWTGraphics)_g;
+        for (int t : tiles) {
+            g.deleteImage(t);
+        }
+
+        tiles = new int[names.length];
+
+        for (int i=0; i<names.length; i++) {
+            switch (names[i]) {
+                case "4V":
+                    tiles[i] = g.loadImage("ztile1.png", orientations[i]);
+                    break;
+                case "9R":
+                    tiles[i] = g.loadImage("ztile8.png", orientations[i]);
+                    break;
+            }
+
+        }
+        return tiles;
+    }
 }

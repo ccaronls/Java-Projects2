@@ -310,6 +310,13 @@ public class AWTGraphics extends APGraphics {
         images.addSearchPath(path);
     }
 
+    public final int loadImage(String assetPath, int degrees) {
+        int id = images.loadImage(assetPath);
+        if (id < 0)
+            return id;
+        return images.newRotatedImage(id, degrees, comp);
+    }
+
     public final int loadImage(String assetPath, GColor transparent, int maxCopies) {
         return images.loadImage(assetPath, transparent == null ? null : AWTUtils.toColor(transparent), maxCopies);
     }
@@ -381,6 +388,10 @@ public class AWTGraphics extends APGraphics {
     @Override
     protected final void drawImage(int imageKey, int x, int y, int w, int h) {
         images.drawImage(g, comp, imageKey, x, y, w, h);
+    }
+
+    void drawImageRotated() {
+
     }
 
     @Override

@@ -19,11 +19,13 @@ public class ZZone extends Reflector<ZZone> {
     final List<int []> cells = new ArrayList<>();
     final MutableVector2D center = new MutableVector2D();
 
-    int noiseLevel;
-    boolean isSpawn;
-    boolean searchable;
-    boolean dragonBile;
-    boolean rotten;
+    public int noiseLevel;
+    public boolean isSpawn;
+    public boolean searchable;
+    public boolean dragonBile;
+    public boolean rotten;
+    public boolean objective;
+    public boolean vault;
     int nextCell = 0;
 
     @Omit

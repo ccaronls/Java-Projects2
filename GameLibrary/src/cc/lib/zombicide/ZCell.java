@@ -14,7 +14,7 @@ public class ZCell extends Reflector<ZCell> {
     ZWallFlag[] walls = { ZWallFlag.NONE, ZWallFlag.NONE, ZWallFlag.NONE, ZWallFlag.NONE };
     boolean isInside;
     int zoneIndex;
-    ZCellType cellType = ZCellType.NONE;
+    public ZCellType cellType = ZCellType.NONE;
     GRectangle rect;
 
     @Omit

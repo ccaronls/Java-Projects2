@@ -10,7 +10,6 @@ import java.util.Stack;
 import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
-import cc.lib.utils.Reflector;
 
 public class ZGame {
 
@@ -26,8 +25,6 @@ public class ZGame {
     ZCharacter currentCharacter = null;
     ZEquipSlot selectedSlot = null;
     ZEquipment selectedEquipment = null;
-    @Reflector.Omit
-    ZCharacter selectedCharacter = null;
     LinkedList<ZEquipment> searchables = new LinkedList<>();
 
     public void setUsers(ZUser ... users) {
@@ -99,9 +96,41 @@ public class ZGame {
         stateStack.push(state);
     }
 
+    protected void onQuestComplete() {
+        getCurrentUser().showMessage("Quest Complete");
+    }
+
+    boolean isGameSetup() {
+        if(board == null || board.grid == null)
+            return false;
+        if (users == null || users.length == 0 || getCurrentUser() == null)
+            return false;
+        if (getAllCharacters().size() == 0)
+            return false;
+        if (quest == null)
+            return false;
+        return true;
+    }
+
+    public ZQuest getQuest() {
+        return quest;
+    }
+
     public void runGame() {
+
+        if (!isGameSetup()) {
+            log.error("Invalid Game");
+            assert(false);
+            return;
+        }
+
         final ZCharacter cur = getCurrentCharacter();
         final ZUser user = getCurrentUser();
+
+        if (quest.isQuestComplete(this)) {
+            onQuestComplete();
+            return;
+        }
 
         switch (getState()) {
             case INIT: {
@@ -166,7 +195,11 @@ public class ZGame {
             case PLAYER_STAGE_CHOOSE_CHARACTER_ACTION: {
                 List<ZMove> options = new ArrayList<>();
                 options.add(ZMove.newDoNothing());
+
                 // determine players available moves
+
+                // add any moves determined by the quest
+                quest.addMoves(this, cur, options);
 
                 // check for organize
                 if (cur.numBackpackItems > 0)
@@ -357,6 +390,10 @@ public class ZGame {
                 c.performAction(ZActionType.DO_NOTHING, this);
                 endAction();
                 break;
+            case OBJECTIVE: {
+                quest.processObjective(this, c, move);
+                break;
+            }
             case ORGANNIZE: {
                 stateStack.push(ZState.PLAYER_STAGE_ORGANIZE_CHOOSE_SLOT);
                 break;
@@ -459,7 +496,7 @@ public class ZGame {
                 List<ZDoor> doors = move.list;
                 ZDoor door = user.chooseDoorToToggle(this, c, doors);
                 if (door != null) {
-                    board.toggleDorOpen(door.cellPos, door.dir);
+                    board.toggleDoor(door);
                     c.performAction(ZActionType.TOGGLE_DOOR, this);
                     endAction();
                 }
@@ -552,7 +589,7 @@ public class ZGame {
         }
     }
 
-    private void addExperience(ZCharacter c, int pts) {
+    public void addExperience(ZCharacter c, int pts) {
         if (pts <= 0)
             return;
         ZSkillLevel sl = c.getSkillLevel();
@@ -619,7 +656,7 @@ public class ZGame {
         log.info("Zombie %s destroyed for %d experience", zombie.type.name(), zombie.type.expProvided);
     }
 
-    public Iterable<ZCharacter> getAllCharacters() {
+    public List<ZCharacter> getAllCharacters() {
         if (users.length == 1)
             return users[0].characters;
         List<ZCharacter> all = new ArrayList<>();
@@ -650,7 +687,7 @@ public class ZGame {
         //throw new RuntimeException("Not implemented");
     }
 
-    ZUser getCurrentUser() {
+    public ZUser getCurrentUser() {
         return users[currentUser];
     }
 

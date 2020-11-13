@@ -44,4 +44,8 @@ public abstract class ZActor extends Reflector<ZActor> {
     }
 
     public abstract void drawInfo(AGraphics g, int width, int height);
+
+    public int getOccupiedZone() {
+        return occupiedZone;
+    }
 }

@@ -55,7 +55,7 @@ public class ZBoard extends Reflector<ZBoard> {
         return grid[0].length;
     }
 
-    ZZone getZone(int index) {
+    public ZZone getZone(int index) {
         return zones.get(index);
     }
 
@@ -227,25 +227,30 @@ public class ZBoard extends Reflector<ZBoard> {
         return grid[pos[1]][pos[0]];
     }
 
-    public void toggleDorOpen(int [] cellPos, int dir) {
-        ZCell cell = getCell(cellPos);
-        switch (cell.walls[dir]) {
-            case CLOSED:
-                cell.walls[dir] = ZWallFlag.OPEN; break;
+    ZDoor getOtherSide(ZDoor door) {
+        return new ZDoor(door.cellPos[0] + DIR_DX[door.dir]
+                ,door.cellPos[1] + DIR_DY[door.dir],
+                DIR_OPPOSITE[door.dir]);
+    }
+
+    public ZWallFlag getDoor(ZDoor door) {
+        return getCell(door.cellPos).walls[door.dir];
+    }
+
+    public void setDoor(ZDoor door, ZWallFlag flag) {
+        getCell(door.cellPos).walls[door.dir] = flag;
+        door = getOtherSide(door);
+        getCell(door.cellPos).walls[door.dir] = flag;
+    }
+
+    public void toggleDoor(ZDoor door) {
+        switch (getDoor(door)) {
             case OPEN:
-                cell.walls[dir] = ZWallFlag.CLOSED; break;
-            default:
-                return;
-        }
-        cellPos[0] += DIR_DX[dir];
-        cellPos[1] += DIR_DY[dir];
-        cell = getCell(cellPos);
-        dir = DIR_OPPOSITE[dir];
-        switch (cell.walls[dir]) {
+                setDoor(door, ZWallFlag.CLOSED);
+                break;
             case CLOSED:
-                cell.walls[dir] = ZWallFlag.OPEN; break;
-            case OPEN:
-                cell.walls[dir] = ZWallFlag.CLOSED; break;
+                setDoor(door, ZWallFlag.OPEN);
+                break;
         }
     }
 
@@ -262,6 +267,18 @@ public class ZBoard extends Reflector<ZBoard> {
 
     public ZActor pickActor(AGraphics g, int mouseX, int mouseY) {
         return null;
+    }
+
+    /**
+     * return zone highlighted by mouseX, mouseY
+     *
+     * @param g
+     * @param mouseX
+     * @param mouseY
+     * @return
+     */
+    public int drawZones(AGraphics g, int mouseX, int mouseY) {
+        return -1;
     }
 
     public int [] drawDebug(AGraphics g, int mouseX, int mouseY) {

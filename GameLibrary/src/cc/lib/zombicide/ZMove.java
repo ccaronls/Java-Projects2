@@ -36,6 +36,18 @@ public class ZMove {
         this.list  = list;
     }
 
+    @Override
+    public String toString() {
+        return "ZMove{" +
+                "type=" + type +
+                ", integer=" + integer +
+                ", equipment=" + equipment +
+                ", fromSlot=" + fromSlot +
+                ", toSlot=" + toSlot +
+                ", list=" + list +
+                '}';
+    }
+
     static ZMove newDoNothing() {
         return new ZMove(ZMoveType.DO_NOTHING);
     }
@@ -88,4 +100,7 @@ public class ZMove {
         return new ZMove(ZMoveType.DISPOSE, equip, slot);
     }
 
+    public static ZMove newObjectiveMove(int data) {
+        return new ZMove(ZMoveType.OBJECTIVE, data);
+    }
 }

@@ -14,5 +14,6 @@ public enum ZMoveType {
     CONSUME,
     EQUIP,
     UNEQUIP,
-    DISPOSE;
+    DISPOSE,
+    OBJECTIVE;
 }

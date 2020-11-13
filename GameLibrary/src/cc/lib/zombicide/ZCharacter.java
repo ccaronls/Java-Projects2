@@ -199,23 +199,19 @@ public class ZCharacter extends ZActor implements Table.Model {
     }
 
     public ZSkillLevel getSkillLevel() {
-        if (dangerBar < 7)
-            return ZSkillLevel.BLUE;
-        if (dangerBar < 19)
-            return ZSkillLevel.YELOW;
-        if (dangerBar < 42)
-            return ZSkillLevel.ORANGE;
-        return ZSkillLevel.RED;
+        return ZSkillLevel.getLevel(dangerBar);
     }
 
     public String getDebugString() {
+        ZSkillLevel sl = getSkillLevel();
+        int ptsToNxt = sl.getPtsToNextLevel(dangerBar);
         String [] header = { "Left Hand", "Body", "Right Hand", "Backpack" };
         Object [][] data = {
                 { leftHand, body, rightHand, backpack[0]},
                 { null, null, null, backpack[1] },
                 { "Wounds", woundBar, null, backpack[2] },
                 { "Danger", dangerBar, null, backpack[3] },
-                { "Skill", getSkillLevel(), null, backpack[4] }
+                { "Skill", sl + (ptsToNxt > 0 ? (" (" + ptsToNxt + ")") : ""), null, backpack[4] }
         };
         Table table = new Table(header, data, this);
         String str = name + " (" + name.characterClass + ") Actions Left:" + getActionsLeftThisTurn() + "\n" + table.toString();
