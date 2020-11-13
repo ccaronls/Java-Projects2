@@ -28,4 +28,18 @@ public enum ZArmor implements ZEquipment {
         return true;
     }
 
+    @Override
+    public boolean isArmor() {
+        return true;
+    }
+
+    int getRating(ZZombieType type) {
+        switch (this) {
+            default:
+                if (type == ZZombieType.Abomination)
+                    return 0;
+            case DWARVEN_SHIELD:
+        }
+        return 6-dieRollToBlock;
+    }
 }

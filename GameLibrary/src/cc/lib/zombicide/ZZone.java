@@ -5,6 +5,7 @@ import java.util.List;
 
 import cc.lib.game.IVector2D;
 import cc.lib.math.MutableVector2D;
+import cc.lib.utils.Grid;
 import cc.lib.utils.Reflector;
 
 /**
@@ -16,7 +17,7 @@ public class ZZone extends Reflector<ZZone> {
         addAllFields(ZZone.class);
     }
 
-    final List<int []> cells = new ArrayList<>();
+    final List<Grid.Pos> cells = new ArrayList<>();
     final MutableVector2D center = new MutableVector2D();
 
     public int noiseLevel;
@@ -37,4 +38,5 @@ public class ZZone extends Reflector<ZZone> {
     public IVector2D getCenter() {
         return center;
     }
+
 }

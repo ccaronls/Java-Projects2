@@ -2518,4 +2518,28 @@ public class Utils {
         return max;
     }
 
+    /**
+     *
+     * @param <T>
+     */
+    public interface Filter<T> {
+        boolean keep(T object);
+    }
+
+    /**
+     *
+     * @param collection
+     * @param filter
+     * @param <T>
+     * @param <O>
+     * @return
+     */
+    public static <T extends Collection, O> T filter(T collection, Filter<O> filter) {
+        Iterator<O> it = collection.iterator();
+        while (it.hasNext()) {
+            if (!filter.keep(it.next()))
+                it.remove();
+        }
+        return collection;
+    }
 }

@@ -15,6 +15,7 @@ public class ZCharacter extends ZActor implements Table.Model {
     }
 
     public final static int MAX_BACKPACK_SIZE = 5;
+    public final static int MAX_WOUNDS = 4;
 
     ZPlayerName name;
     int woundBar;
@@ -341,8 +342,30 @@ public class ZCharacter extends ZActor implements Table.Model {
         return null;
     }
 
+    public int getArmorRating(ZZombieType type) {
+        int rating = 0;
+        if (body != null && body.isArmor()) {
+            rating += ((ZArmor)body).getRating(type);
+        }
+        if (leftHand != null && leftHand.isArmor()) {
+            rating += ((ZArmor)leftHand).getRating(type);
+        }
+        if (rightHand != null && rightHand.isArmor()) {
+            rating += ((ZArmor)rightHand).getRating(type);
+        }
+        return rating;
+    }
 
-/*
+    public boolean isDead() {
+        return woundBar >= MAX_WOUNDS;
+    }
+
+    @Override
+    public int getNoise() {
+        return 1;
+    }
+
+    /*
     public boolean canEnchant() {
         if (leftHand != null && leftHand.isEnchantment() && !)
             return true;

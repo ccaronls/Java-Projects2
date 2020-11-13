@@ -34,4 +34,8 @@ public interface ZEquipment {
     default boolean isEnchantment() {
         return false;
     }
+
+    default boolean isArmor() {
+        return false;
+    }
 }

@@ -30,14 +30,6 @@ public final class GRectangle extends Reflector<GRectangle> {
         set(v0, v1);
     }
 
-    public GRectangle grow(int pixels) {
-        w += pixels;
-        h += pixels;
-        x -= pixels/2;
-        y -= pixels/2;
-        return this;
-    }
-
     public float x, y, w, h;
 
     /**
@@ -201,6 +193,19 @@ public final class GRectangle extends Reflector<GRectangle> {
 
     /**
      *
+     * @param pixels
+     * @return
+     */
+    public GRectangle grownBy(int pixels) {
+        w += pixels;
+        h += pixels;
+        x -= pixels/2;
+        y -= pixels/2;
+        return this;
+    }
+
+    /**
+     *
      * @param g
      */
     public void drawFilled(AGraphics g) {
@@ -239,6 +244,20 @@ public final class GRectangle extends Reflector<GRectangle> {
         y -= dh/2;
         w = nw;
         h = nh;
+    }
+
+    /**
+     *
+     * @param sx
+     * @param sy
+     * @return
+     */
+    public GRectangle scaledBy(float sx, float sy) {
+        float nw = w * sx;
+        float nh = h * sy;
+        float dw = nw-w;
+        float dh = nh-h;
+        return new GRectangle(x-dw/2, y-dh/2, nw, nh);
     }
 
     public GDimension getDimension() {

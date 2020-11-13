@@ -436,6 +436,21 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
 
     /**
      *
+     * @param pos
+     * @param hJust
+     * @param vJust
+     * @param text
+     * @param bkColor
+     * @param border
+     * @param cornerRadius
+     * @return
+     */
+    public GDimension drawJustifiedStringOnBackground(IVector2D pos, Justify hJust, Justify vJust, String text, GColor bkColor, float border, float cornerRadius) {
+        return drawJustifiedStringOnBackground(pos.getX(), pos.getY(), hJust, vJust, text, bkColor, border, cornerRadius);
+    }
+
+    /**
+     *
      * @param x
      * @param y
      * @param hJust

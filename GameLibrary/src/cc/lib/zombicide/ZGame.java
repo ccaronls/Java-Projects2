@@ -15,17 +15,21 @@ public class ZGame {
 
     private final static Logger log = LoggerFactory.getLogger(ZGame.class);
 
-    private Stack<ZState> stateStack = new Stack<>();
+    final static int GAME_LOST = 2;
+    final static int GAME_WON  = 1;
 
-    public ZBoard board;
-
-    ZUser [] users;
-    ZQuest quest;
-    int currentUser;
+    private final Stack<ZState> stateStack = new Stack<>();
+    public ZBoard board=null;
+    ZUser [] users=null;
+    ZQuest quest=null;
+    int currentUser=0;
     ZCharacter currentCharacter = null;
     ZEquipSlot selectedSlot = null;
     ZEquipment selectedEquipment = null;
     LinkedList<ZEquipment> searchables = new LinkedList<>();
+    boolean doubleSpawn=false;
+    int roundNum=0;
+    int gameOverStatus=0; // 0 == in play, 1, == game won, 2 == game lost
 
     public void setUsers(ZUser ... users) {
         this.users = users;
@@ -33,6 +37,18 @@ public class ZGame {
 
     public void setQuest(ZQuest quest) {
         this.quest = quest;
+    }
+
+    public boolean isGameOver() {
+        return gameOverStatus != 0;
+    }
+
+    public boolean isGameWon() {
+        return gameOverStatus == GAME_WON;
+    }
+
+    public boolean isGameLost() {
+        return gameOverStatus == GAME_LOST;
     }
 
     public void loadQuest(ZQuests quest) {
@@ -75,9 +91,14 @@ public class ZGame {
     }
 
     private void spawnZombies(int count, ZZombieType [] options, int zone) {
+        if (doubleSpawn) {
+            count *= 2;
+            doubleSpawn = false;
+        }
         for (int i=0; i<count; i++) {
             ZZombie zombie = new ZZombie(Utils.randItem(options), zone);
             board.addActor(zombie, zone);
+            onZombieSpawned(zombie);
         }
     }
 
@@ -124,24 +145,34 @@ public class ZGame {
             return;
         }
 
+        if (isGameOver())
+            return;
+
         final ZCharacter cur = getCurrentCharacter();
         final ZUser user = getCurrentUser();
 
         if (quest.isQuestComplete(this)) {
-            onQuestComplete();
+            gameWon();
             return;
         }
+
+        log.debug("runGame %s", getState());
 
         switch (getState()) {
             case INIT: {
                 users[0].prepareTurn();
                 initSearchables();
                 setState(ZState.BEGIN_ROUND);
+                roundNum = 0;
                 break;
             }
 
             case BEGIN_ROUND: {
-                setState(ZState.SPAWN);
+                if (roundNum > 0)
+                    setState(ZState.SPAWN);
+                else
+                    setState(ZState.PLAYER_STAGE_CHOOSE_CHARACTER);
+                onStartRound(roundNum++);
                 currentUser = 0;
                 currentCharacter = null;
                 break;
@@ -150,15 +181,11 @@ public class ZGame {
             case SPAWN: {
                 // search cells and randomly decide on spawning depending on the
                 // highest skill level of any remaining players
-                int highestSkill = 0;
-                for (ZUser u : users) {
-                    for (ZCharacter c : u.characters) {
-                        highestSkill = Math.max(highestSkill, c.getSkillLevel().ordinal());
-                    }
-                }
-                for (ZZone z : board.getZones()) {
+                ZSkillLevel highestSkill = getHighestSkillLevel();
+                for (int zIdx=0; zIdx<board.zones.size(); zIdx++) {
+                    ZZone z = board.getZone(zIdx);
                     if (z.isSpawn) {
-                        spawnZombies(z, highestSkill);
+                        spawnZombies(zIdx, highestSkill);
                     }
                 }
                 setState(ZState.PLAYER_STAGE_CHOOSE_CHARACTER);
@@ -366,13 +393,121 @@ public class ZGame {
                 break;
             }
 
+            case ZOMBIE_STAGE: {
+                // any existing zombies take their actions
+                for (ZZombie zombie : board.getAllZombies()) {
+                    zombie.prepareTurn();
+                }
+                for (int zoneIdx=0; zoneIdx < board.zones.size(); zoneIdx++) {
+                    List<ZZombie> zombies = board.getZombiesInZone(zoneIdx);
+                    List<ZCharacter> victims = board.getCharactersInZone(zoneIdx);
+                    for (ZZombie zombie : zombies) {
+                        while (zombie.getActionsLeftThisTurn() > 0) {
+                            if (victims.size() > 1) {
+                                Collections.sort(victims, (o1, o2) -> {
+                                    int v0 = o1.woundBar + o1.getArmorRating(zombie.type);
+                                    int v1 = o2.woundBar + o2.getArmorRating(zombie.type);
+                                    return Integer.compare(v1, v0);
+                                });
+                            }
+                            if (victims.size() > 0) {
+                                ZCharacter victim = victims.get(0);
+                                victim.woundBar++;
+                                if (victim.isDead()) {
+                                    removeCharacter(victim);
+                                    onCharacterPerished(victim, zombie);
+                                    if (quest.isAllMustLive()) {
+                                        gameLost();
+                                    }
+                                } else {
+                                    onCharacterWounded(victim, zombie);
+                                }
+                                zombie.performAction(ZActionType.MELEE, this);
+                            } else {
+                                moveZombieToTowardVisibleCharactersOrLoudestZone(zombie);
+                                zombie.performAction(ZActionType.MOVE, this);
+                            }
+                        }
+                    }
+                }
+                setState(ZState.PLAYER_STAGE_CHOOSE_CHARACTER);
+                break;
+            }
+
             default:
                 throw new AssertionError("Unhandled state: " + getState());
         }
     }
 
+    void gameLost() {
+        gameOverStatus = GAME_LOST;
+        onGameLost();
+    }
+
+    void gameWon() {
+        gameOverStatus = GAME_WON;
+        onQuestComplete();
+    }
+
+    protected void onGameLost() {
+        getCurrentUser().showMessage("Game Lost");
+    }
+
+    protected void onCharacterPerished(ZCharacter character, ZZombie attacker) {
+        getCurrentUser().showMessage(character.name() + " has been killed by a " + attacker.name());
+    }
+
+    protected void onCharacterWounded(ZCharacter character, ZZombie attacker) {
+        getCurrentUser().showMessage(character.name() + " has been wounded by a " + attacker.name());
+    }
+
     protected void onDragonBilePlaced(ZCharacter c, int zone) {
         log.info("%s placed dragon bile in zone %d", c.name, zone);
+    }
+
+    private void removeCharacter(ZCharacter character) {
+        for (ZUser user : users) {
+            user.characters.remove(character);
+        }
+        board.removeActor(character);
+    }
+
+    private void moveZombieToTowardVisibleCharactersOrLoudestZone(ZZombie zombie) {
+        // zombie will move toward players it can see first and then noisy areas second
+        int maxNoise = 0;
+        int targetZone = -1;
+        for (ZCharacter c : getAllCharacters()) {
+            if (board.canSee(zombie.occupiedZone, c.occupiedZone)) {
+                int noiseLevel = board.getZone(c.occupiedZone).noiseLevel;
+                if (maxNoise < noiseLevel) {
+                    targetZone = c.occupiedZone;
+                    maxNoise = noiseLevel;
+                }
+            }
+        }
+
+        if (targetZone < 0) {
+            // move to noisiest zone
+            for (int zone=0; zone < board.zones.size(); zone++) {
+                int noiseLevel = board.zones.get(zone).noiseLevel;
+                if (noiseLevel > maxNoise) {
+                    maxNoise = noiseLevel;
+                    targetZone = zone;
+                }
+            }
+        }
+
+        if (targetZone >= 0) {
+            List<Integer> paths = board.getShortestPathOptions(zombie.occupiedZone, targetZone);
+            if (paths.size() > 0) {
+                int dir = Utils.randItem(paths); // TODO: Use Dir class instead of int
+                board.moveActorInDirection(zombie, dir);
+            }
+        }
+    }
+
+    protected void onStartRound(int roundNum) {
+        getCurrentUser().showMessage("Begin Round " + roundNum);
     }
 
     private void endAction() {
@@ -545,6 +680,16 @@ public class ZGame {
         }
     }
 
+    public ZSkillLevel getHighestSkillLevel() {
+        int highestSkill = 0;
+        for (ZUser u : users) {
+            for (ZCharacter c : u.characters) {
+                highestSkill = Math.max(highestSkill, c.getSkillLevel().ordinal());
+            }
+        }
+        return ZSkillLevel.values()[highestSkill];
+    }
+
     private void performConsume(ZCharacter c, ZMove move) {
         ZItem item  = (ZItem)move.equipment;
         ZEquipSlot slot = move.fromSlot;
@@ -683,7 +828,66 @@ public class ZGame {
         return board.getZombiesInZone(zoneIndex).size() == 0;
     }
 
-    private void spawnZombies(ZZone z, int highestSkill) {
+    protected void onDoubleSpawn() {
+        getCurrentUser().showMessage("DOUBLE SPAWN!");
+    }
+
+    private void spawnZombies(int zoneIdx, ZSkillLevel level) {
+        if (!doubleSpawn) {
+            if (Utils.rand() % 10 == 0) {
+                doubleSpawn = true;
+                onDoubleSpawn();
+                return;
+            }
+        }
+
+        // STANDARD INVASION
+        //   RED = Fatty x 2
+        //   ORANGE = Walker x 5
+        //   YELLOW = Runner x 2
+        //   BLUE = 0
+
+        switch (level) {
+            case BLUE:
+                switch (Utils.rand() % 3) {
+                    case 2:
+                        spawnZombies(1, ZZombieType.WALKERS, zoneIdx);
+                        break;
+                }
+                break;
+            case YELOW:
+                spawnZombies(Utils.randRange(2,3), ZZombieType.WALKERS, zoneIdx);
+                break;
+            case ORANGE:
+                switch (Utils.rand() % 3) {
+                    case 0:
+                        spawnZombies(Utils.randRange(3,4), ZZombieType.WALKERS, zoneIdx);
+                        break;
+                    case 1:
+                        spawnZombies(Utils.randRange(1,2), ZZombieType.FATTIES, zoneIdx);
+                        break;
+                    case 2:
+                        spawnZombies(1, ZZombieType.RUNNERS, zoneIdx);
+                        break;
+                }
+                break;
+            case RED:
+                switch (Utils.rand() % 4) {
+                    case 0:
+                        spawnZombies(5, ZZombieType.WALKERS, zoneIdx);
+                        break;
+                    case 1:
+                        spawnZombies(2, ZZombieType.FATTIES, zoneIdx);
+                        break;
+                    case 2:
+                        spawnZombies(2, ZZombieType.RUNNERS, zoneIdx);
+                        break;
+                    case 3:
+                        spawnZombies(1, ZZombieType.ABOMINATIONS, zoneIdx);
+                        break;
+                }
+                break;
+        }
         //throw new RuntimeException("Not implemented");
     }
 

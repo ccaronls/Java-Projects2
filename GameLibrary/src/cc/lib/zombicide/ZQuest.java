@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Vector;
 
 import cc.lib.game.AGraphics;
+import cc.lib.utils.Grid;
 import cc.lib.utils.Reflector;
 
 import static cc.lib.zombicide.ZBoard.DIR_EAST;
@@ -29,7 +30,7 @@ public abstract class ZQuest extends Reflector<ZQuest> {
     public abstract ZBoard loadBoard();
 
     protected void loadCmd(int row, int col, String cmd) {
-        ZCell cell = grid[row][col];
+        ZCell cell = grid.get(row, col);
         switch (cmd) {
             case "i":
                 cell.isInside = true;
@@ -115,51 +116,51 @@ public abstract class ZQuest extends Reflector<ZQuest> {
     }
 
     void setCellWall(int row, int col, int dir, ZWallFlag flag) {
-        grid[row][col].walls[dir] = flag;
+        grid.get(row, col).walls[dir] = flag;
         switch (dir) {
             case DIR_NORTH:
                 if (row > 0) {
-                    grid[row-1][col].walls[DIR_SOUTH] = flag;
+                    grid.get(row-1, col).walls[DIR_SOUTH] = flag;
                 }
                 break;
             case DIR_SOUTH:
-                if (row < grid.length-1) {
-                    grid[row+1][col].walls[DIR_NORTH] = flag;
+                if (row < grid.getRows()-1) {
+                    grid.get(row+1, col).walls[DIR_NORTH] = flag;
                 }
                 break;
             case DIR_EAST:
-                if (col < grid[row].length-1) {
-                    grid[row][col+1].walls[DIR_WEST] = flag;
+                if (col < grid.getCols()-1) {
+                    grid.get(row, col+1).walls[DIR_WEST] = flag;
                 }
                 break;
             case DIR_WEST:
                 if (col > 0) {
-                    grid[row][col-1].walls[DIR_EAST] = flag;
+                    grid.get(row, col-1).walls[DIR_EAST] = flag;
                 }
                 break;
         }
     }
 
-    private ZCell[][] grid;
+    private Grid<ZCell> grid;
 
     protected ZCell getCell(int row, int col) {
-        return grid[row][col];
+        return grid.get(row, col);
     }
 
     public ZBoard load(String [][] map) {
         int rows = map.length;
         int cols = map[0].length;
-        grid = new ZCell[rows][cols];
+        grid = new Grid(new ZCell[rows][cols]);
         Map<Integer, ZZone> zoneMap = new HashMap<>();
         int maxZone = 0;
         for (int row=0; row<map.length; row++) {
             for (int col = 0; col < map[row].length; col++) {
-                grid[row][col] = new ZCell();
+                grid.set(row, col, new ZCell());
             }
         }
         for (int row=0; row<map.length; row++) {
             for (int col = 0; col < map[row].length; col++) {
-                ZCell cell = grid[row][col];
+                ZCell cell = grid.get(row, col);
                 String [] parts = map[row][col].split("[:]");
                 ZZone zone = null;
                 for (String cmd:parts) {
@@ -173,7 +174,7 @@ public abstract class ZQuest extends Reflector<ZQuest> {
                             zone = new ZZone();
                             zoneMap.put(index, zone);
                         }
-                        zone.cells.add(new int[] { col, row });
+                        zone.cells.add(new Grid.Pos(row, col));
                         cell.zoneIndex = index;
                         continue;
                     }
@@ -238,4 +239,12 @@ public abstract class ZQuest extends Reflector<ZQuest> {
      * @param g
      */
     public abstract void drawTiles(AGraphics g, ZTiles tiles);
+
+    /**
+     * Determine if this quest requires all players must live
+     * @return
+     */
+    public boolean isAllMustLive() {
+        return true;
+    }
 }

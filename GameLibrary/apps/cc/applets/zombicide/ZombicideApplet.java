@@ -30,6 +30,7 @@ import cc.lib.swing.AWTFrame;
 import cc.lib.swing.AWTGraphics;
 import cc.lib.swing.AWTPanel;
 import cc.lib.utils.FileUtils;
+import cc.lib.utils.Grid;
 import cc.lib.zombicide.ZActor;
 import cc.lib.zombicide.ZBoard;
 import cc.lib.zombicide.ZCell;
@@ -89,7 +90,7 @@ public class ZombicideApplet extends JApplet implements ActionListener, ZTiles {
     UIMode uiMode = UIMode.NONE;
     AWTPanel menu = new AWTPanel();
 
-    int [] highlightedCell = null;
+    Grid.Pos highlightedCell = null;
     Object highlightedResult = null;
     ZActor highlightedActor = null;
 
@@ -145,11 +146,12 @@ public class ZombicideApplet extends JApplet implements ActionListener, ZTiles {
             highlightedCell = null;
             highlightedResult = null;
 
-            int [] cellPos = board.drawDebug(g, getMouseX(), getMouseY());
+            Grid.Pos cellPos = board.drawDebug(g, getMouseX(), getMouseY());
 
             if (gameRunning) {
-                game.getQuest().drawTiles(g, ZombicideApplet.this);
+                //game.getQuest().drawTiles(g, ZombicideApplet.this);
 
+                int highlightedZone = board.drawZones(g, getMouseX(), getMouseY());
                 ZActor actor = board.drawActors(g, getMouseX(), getMouseY());
 
                 g.setColor(GColor.BLACK);
@@ -169,7 +171,9 @@ public class ZombicideApplet extends JApplet implements ActionListener, ZTiles {
                         break;
                     }
                     case PICK_ZONE: {
-                        if (cellPos != null) {
+                        if (highlightedZone >= 0) {
+                            highlightedResult = highlightedZone;
+                        } else if (cellPos != null) {
                             ZCell cell = board.getCell(cellPos);
                             for (int i = 0; i < options.size(); i++) {
                                 if (cell.getZoneIndex() == (Integer)options.get(i)) {
@@ -184,7 +188,7 @@ public class ZombicideApplet extends JApplet implements ActionListener, ZTiles {
                     case PICK_DOOR: {
                         for (ZDoor door : (List<ZDoor>)options) {
                             ZCell cell = board.getCell(door.cellPos);
-                            GRectangle doorRect = cell.getWallRect(door.dir).grow(10);
+                            GRectangle doorRect = cell.getWallRect(door.dir).grownBy(10);
                             if (doorRect.contains(mouseX, mouseY)) {
                                 g.setColor(GColor.RED);
                                 highlightedResult = door;
@@ -331,7 +335,7 @@ public class ZombicideApplet extends JApplet implements ActionListener, ZTiles {
     }
 
     @Override
-    public void actionPerformed(ActionEvent e) {
+    public synchronized void actionPerformed(ActionEvent e) {
         switch (MenuItem.valueOf(e.getActionCommand())) {
             case START:
                 startGameThread();
@@ -524,7 +528,7 @@ public class ZombicideApplet extends JApplet implements ActionListener, ZTiles {
         validate();
     }
 
-    void setResult(Object result) {
+    synchronized void setResult(Object result) {
         this.result = result;
         synchronized (monitor) {
             monitor.notify();

@@ -2,6 +2,7 @@ package cc.lib.zombicide;
 
 import cc.lib.game.AGraphics;
 import cc.lib.game.GRectangle;
+import cc.lib.utils.Grid;
 import cc.lib.utils.Reflector;
 
 public abstract class ZActor extends Reflector<ZActor> {
@@ -15,7 +16,7 @@ public abstract class ZActor extends Reflector<ZActor> {
     }
 
     int occupiedZone;
-    int [] occupiedCell;
+    Grid.Pos occupiedCell;
     int occupiedQuadrant;
     private int actionsLeftThisTurn;
     @Omit
@@ -47,5 +48,9 @@ public abstract class ZActor extends Reflector<ZActor> {
 
     public int getOccupiedZone() {
         return occupiedZone;
+    }
+
+    public int getNoise() {
+        return 0;
     }
 }

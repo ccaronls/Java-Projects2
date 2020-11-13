@@ -8,7 +8,101 @@ import cc.lib.game.Utils;
  *
  * @param <T>
  */
-public abstract class Grid<T extends Comparable<T>> {
+public class Grid<T> extends Reflector<Grid<T>> {
+
+    static {
+        addAllFields(Grid.class);
+        addAllFields(Pos.class);
+    }
+
+    public static class Pos extends Reflector<Pos> {
+
+        private final int row, col;
+
+        Pos() {
+            this(0,0);
+        }
+
+        public Pos(int row, int col) {
+            this.row = row;
+            this.col = col;
+        }
+
+        public int getRow() {
+            return row;
+        }
+
+        public int getColumn() {
+            return col;
+        }
+
+        @Override
+        public String toString() {
+            return "Pos{" +
+                    "row=" + row +
+                    ", col=" + col +
+                    '}';
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            Pos pos = (Pos) o;
+            return row == pos.row &&
+                    col == pos.col;
+        }
+
+//        @Override
+//        public int hashCode() {
+//            return Objects.hash(row, col);
+//        }
+    }
+
+    public static class Iterator<T> implements java.util.Iterator<T> {
+        private int row=0, col=0;
+        private final Grid<T> grid;
+        private Pos pos;
+
+        Iterator(Grid<T> grid) {
+            this.grid = grid;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return row<grid.getRows();
+        }
+
+        @Override
+        public T next() {
+            pos = new Pos(row, col);
+            T next = grid.get(pos);
+            if (++col == grid.getCols()) {
+                col=0;
+                row++;
+            }
+            return next;
+        }
+
+        public Pos getPos() {
+            return pos;
+        }
+
+    }
+
+    public Iterable<T> getCells() {
+        return () -> iterator();
+    }
+
+    public Iterator<T> iterator() {
+        return new Iterator<>(this);
+    }
+
+    public Grid() {}
+
+    public Grid(T [][] grid) {
+        this.grid = grid;
+    }
 
     // row major
     private T [][] grid = null;
@@ -44,10 +138,16 @@ public abstract class Grid<T extends Comparable<T>> {
         }
     }
 
-    protected abstract T[][] build(int rows, int cols);
+    protected T[][] build(int rows, int cols) {
+        throw new RuntimeException("Not implemented");
+    }
 
     public T get(int row, int col) {
         return grid[row][col];
+    }
+
+    public T get(Pos pos) {
+        return grid[pos.row][pos.col];
     }
 
     public boolean isValid(int row, int col) {
