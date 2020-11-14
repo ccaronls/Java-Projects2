@@ -5,6 +5,7 @@ import java.util.List;
 import cc.lib.game.AGraphics;
 import cc.lib.game.GRectangle;
 import cc.lib.game.Utils;
+import cc.lib.utils.Grid;
 import cc.lib.zombicide.ZBoard;
 import cc.lib.zombicide.ZCell;
 import cc.lib.zombicide.ZCellType;
@@ -17,6 +18,11 @@ import cc.lib.zombicide.ZTiles;
 import cc.lib.zombicide.ZWallFlag;
 
 public class ZQuestTutorial extends ZQuest {
+
+    static {
+        addAllFields(ZQuestTutorial.class);
+    }
+
 
     public ZQuestTutorial() {
         super("Tutorial");
@@ -41,8 +47,8 @@ public class ZQuestTutorial extends ZQuest {
     int redKeyZone=-1;
 
     @Override
-    protected void loadCmd(int row, int col, String cmd) {
-        ZCell cell = getCell(row, col);
+    protected void loadCmd(Grid<ZCell> grid, int row, int col, String cmd) {
+        ZCell cell = grid.get(row, col);
         int zoneIndex = cell.getZoneIndex();
         switch (cmd) {
             case "green":
@@ -66,18 +72,18 @@ public class ZQuestTutorial extends ZQuest {
                 break;
             case "redde":
                 redDoor = new ZDoor(row, col, ZBoard.DIR_EAST);
-                super.loadCmd(row, col, "lde");
+                super.loadCmd(grid, row, col, "lde");
                 break;
             case "bluedn":
                 blueDoor = new ZDoor(row, col, ZBoard.DIR_NORTH);
-                super.loadCmd(row, col, "ldn");
+                super.loadCmd(grid, row, col, "ldn");
                 break;
             case "greende":
                 greenDoor = new ZDoor(row, col, ZBoard.DIR_WEST);
-                super.loadCmd(row, col, "lde");
+                super.loadCmd(grid, row, col, "lde");
                 break;
             default:
-                super.loadCmd(row, col, cmd);
+                super.loadCmd(grid, row, col, cmd);
         }
     }
 
@@ -114,10 +120,11 @@ public class ZQuestTutorial extends ZQuest {
         }
     }
 
+    @Omit
     int [] tileIds = null;
 
     @Override
-    public void drawTiles(AGraphics g, ZTiles tiles) {
+    public void drawTiles(AGraphics g, ZBoard board, ZTiles tiles) {
 
         if (tileIds == null) {
             tileIds = tiles.loadTiles(g, new String [] { "4V", "9R" }, new int [] { 90, 90 });
@@ -126,10 +133,10 @@ public class ZQuestTutorial extends ZQuest {
         if (tileIds.length == 0)
             return;
 
-        GRectangle quadrant1 = new GRectangle(getCell(0, 0).getRect().getTopLeft(),
-                getCell(2, 2).getRect().getBottomRight());
-        GRectangle quadrant2 = new GRectangle(getCell(0, 3).getRect().getTopLeft(),
-                getCell(2, 5).getRect().getBottomRight());
+        GRectangle quadrant1 = new GRectangle(board.getCell(0, 0).getRect().getTopLeft(),
+                board.getCell(2, 2).getRect().getBottomRight());
+        GRectangle quadrant2 = new GRectangle(board.getCell(0, 3).getRect().getTopLeft(),
+                board.getCell(2, 5).getRect().getBottomRight());
         g.drawImage(tileIds[0], quadrant1);
         g.drawImage(tileIds[1], quadrant2);
     }

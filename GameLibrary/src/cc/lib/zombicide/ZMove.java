@@ -81,7 +81,7 @@ public class ZMove {
     }
 
     public static ZMove newTradeMove(List<ZCharacter> tradeOptions) {
-        return new ZMove(ZMoveType.TRADE);
+        return new ZMove(ZMoveType.TRADE, tradeOptions);
     }
 
     public static ZMove newConsumeMove(ZEquipment equip, ZEquipSlot slot) {

@@ -1,5 +1,11 @@
 package cc.lib.utils;
 
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Vector;
+
 import cc.lib.game.Utils;
 
 /**
@@ -8,11 +14,16 @@ import cc.lib.game.Utils;
  *
  * @param <T>
  */
-public class Grid<T> extends Reflector<Grid<T>> {
+public final class Grid<T> extends Reflector<Grid<T>> {
 
     static {
         addAllFields(Grid.class);
         addAllFields(Pos.class);
+    }
+
+    @Override
+    protected synchronized void serialize(PrintWriter out_) throws IOException {
+        super.serialize(out_);
     }
 
     public static class Pos extends Reflector<Pos> {
@@ -88,6 +99,18 @@ public class Grid<T> extends Reflector<Grid<T>> {
             return pos;
         }
 
+        public void set(T value) {
+            grid.set(pos.row, pos.col, value);
+        }
+    }
+
+    @Generic
+    private List<List<T>> grid = null;
+
+    public Grid() {}
+
+    public Grid(int rows, int cols) {
+        this.grid = build(rows, cols);
     }
 
     public Iterable<T> getCells() {
@@ -98,21 +121,16 @@ public class Grid<T> extends Reflector<Grid<T>> {
         return new Iterator<>(this);
     }
 
-    public Grid() {}
-
-    public Grid(T [][] grid) {
-        this.grid = grid;
-    }
-
     // row major
-    private T [][] grid = null;
 
     public int getRows() {
-        return grid == null ? 0 : grid.length;
+        return grid == null ? 0 : grid.size();
     }
 
     public int getCols() {
-        return grid == null ? 0 : grid[0].length;
+        if (grid == null || grid.size() == 0)
+            return 0;
+        return grid.get(0).size();
     }
 
     public void ensureCapacity(int rows, int cols, T fillValue) {
@@ -120,47 +138,63 @@ public class Grid<T> extends Reflector<Grid<T>> {
             throw new IllegalArgumentException("Grid cannot have 0 rows or columns");
         if (getRows() >= rows && getCols() >= cols)
             return;
-        T [][] newGrid = build(Math.max(getRows(), rows), Math.max(getCols(), cols));
-        fill(newGrid, fillValue);
+
+        List<List<T>> newGrid = build(Math.max(getRows(), rows), Math.max(getCols(), cols));
         for (int i=0; i<getRows(); i++) {
             for (int ii=0; ii<getCols(); ii++) {
-                newGrid[i][ii] = grid[i][ii];
+                newGrid.get(i).set(ii, get(i, ii));
             }
         }
         grid = newGrid;
     }
 
-    private static <T> void fill(T [][] grid, T fillValue) {
-        for (int i=0; i<grid.length; i++) {
-            for (int ii=0; ii<grid[0].length; ii++) {
-                grid[i][ii] = fillValue;
+    private static <T> void fill(List<List<T>> grid, T fillValue) {
+        for (List<T> l : grid) {
+            for (int i=0; i<l.size(); i++) {
+                l.set(i, fillValue);
             }
         }
     }
 
-    protected T[][] build(int rows, int cols) {
-        throw new RuntimeException("Not implemented");
+    private static <T> List<List<T>> build(int rows, int cols) {
+        List<List<T>> grid = new ArrayList<>(rows);
+        for (int i=0; i<rows; i++) {
+            List l = new Vector(cols);
+            for (int ii=0; ii<cols; ii++) {
+                l.add(null);
+            }
+            grid.add(l);
+        }
+        return grid;
     }
 
     public T get(int row, int col) {
-        return grid[row][col];
+        return grid.get(row).get(col);
     }
 
     public T get(Pos pos) {
-        return grid[pos.row][pos.col];
+        return grid.get(pos.row).get(pos.col);
     }
 
     public boolean isValid(int row, int col) {
-        return row >= 0 && col >= 0 && row < grid.length && col < grid[row].length;
+        return row >= 0 && col >= 0 && row < getRows() && col < getCols();
     }
 
     public void set(int row, int col, T value) {
-        grid[row][col] = value;
+        grid.get(row).set(col, value);
     }
 
-    public T [][] getGrid() {
-        return grid;
+    public void assignTo(T [][] grid) {
+        for (int i=0; i<grid.length; i++) {
+            for (int ii=0; i<grid[0].length; ii++) {
+                grid[i][ii] = get(i, ii);
+            }
+        }
     }
+
+//    public T [][] getGrid() {
+//        return grid;
+//    }
 
     public void minimize(T ... empty) {
         if (grid == null)
@@ -172,7 +206,7 @@ public class Grid<T> extends Reflector<Grid<T>> {
 
         for (int i=0; i<getRows(); i++) {
             for (int ii=0; ii<getCols(); ii++) {
-                if (grid[i][ii] != null && Utils.linearSearch(empty, grid[i][ii]) < 0) {
+                if (get(i, ii) != null && Utils.linearSearch(empty, get(i, ii)) < 0) {
                     minRow = Math.min(minRow, i);
                     minCol = Math.min(minCol, ii);
                     maxRow = Math.max(maxRow, i+1);
@@ -189,10 +223,10 @@ public class Grid<T> extends Reflector<Grid<T>> {
         if (minRow == 0 && minCol == 0 && maxRow == getRows() && maxCol == getCols())
             return; // nothing to do
 
-        T [][] newGrid = build(maxRow-minRow, maxCol-minCol);
+        List<List<T>> newGrid = build(maxRow-minRow, maxCol-minCol);
         for (int i=minRow; i<maxRow; i++) {
             for (int ii=minCol; ii<maxCol; ii++) {
-                newGrid[i-minRow][ii-minCol] = grid[i][ii];
+                newGrid.get(i-minRow).set(ii-minCol, get(i, ii));
             }
         }
         grid = newGrid;
@@ -202,7 +236,12 @@ public class Grid<T> extends Reflector<Grid<T>> {
         if (grid != null && (grid.length == 0 || grid[0].length == 0)) {
             throw new IllegalArgumentException("Supplied grid has 0 length rows or columns");
         }
-        this.grid = grid;
+        this.grid = build(grid.length, grid[0].length);
+        for (int i=0; i<grid.length; i++) {
+            for (int ii=0; ii<grid[0].length; ii++) {
+                set(i, ii, grid[i][ii]);
+            }
+        }
     }
 
     public void clear() {
@@ -220,4 +259,12 @@ public class Grid<T> extends Reflector<Grid<T>> {
         grid = build(rows, cols);
         fill(grid, filler);
     }
+/*
+    @Override
+    protected Class<?> getTypeParameter() {
+        if (grid != null && grid.length > 0 && grid[0].length > 0 && grid[0][0] != null) {
+            return grid[0][0].getClass();
+        }
+        return null;
+    }*/
 }

@@ -7,6 +7,7 @@ import java.util.*;
 import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
+import cc.lib.utils.GException;
 import cc.lib.utils.Reflector;
 
 /**
@@ -289,7 +290,7 @@ public class ClientConnection implements Runnable {
     public synchronized final void sendCommand(GameCommand cmd) {
         log.debug("Sending command to client " + getName() + "\n    " + cmd);
         if (!isConnected())
-            throw new RuntimeException("Client " + getName() + " is not connected");
+            throw new GException("Client " + getName() + " is not connected");
         //log.debug("ClientConnection: " + getName() + "-> sendCommand: " + cmd);
         outQueue.add(cmd);
     }

@@ -2,6 +2,7 @@ package cc.lib.zombicide;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import cc.lib.game.AGraphics;
@@ -20,13 +21,14 @@ public class ZCharacter extends ZActor implements Table.Model {
     ZPlayerName name;
     int woundBar;
     int dangerBar;
+    boolean organizedThisTurn=false;
     private List<ZActionType> actionsDoneThisTurn = new ArrayList<>();
     final List<ZSkill> allSkills = new ArrayList<>();
     final List<ZSkill> availableSkills = new ArrayList<>();
 
-    ZEquipment [] backpack = new ZEquipment[MAX_BACKPACK_SIZE];
+    private final List<ZEquipment> backpack = new ArrayList<>();
     ZEquipment leftHand, rightHand, body;
-    int numBackpackItems = 0;
+    int userIndex=0;
 
     public ZCharacter() {
         super(-1);
@@ -38,6 +40,7 @@ public class ZCharacter extends ZActor implements Table.Model {
         actionsDoneThisTurn.clear();
         availableSkills.clear();
         availableSkills.addAll(allSkills);
+        organizedThisTurn = false;
     }
 
     @Override
@@ -51,14 +54,39 @@ public class ZCharacter extends ZActor implements Table.Model {
     }
 
     @Override
-    protected void performAction(ZActionType action, ZGame game) {
+    protected boolean performAction(ZActionType action, ZGame game) {
         for (ZSkill skill : availableSkills) {
             if (skill.modifyActionsRemaining(this, action, game)) {
                 availableSkills.remove(skill);
-                return;
+                return true;
             }
         }
-        super.performAction(action, game);
+        switch (action) {
+            case ORGANIZE:
+                if (organizedThisTurn)
+                    return false;
+                organizedThisTurn = true;
+                break;
+            case OPEN_DOOR: {
+                super.performAction(action, game);
+                for (ZWeapon w : getWeapons()) {
+                    if (w.canOpenDoor()) {
+                        if (w.openDoorsIsNoisy)
+                            game.addNoise(occupiedZone, 1);
+                        if (w.meleeStats.dieRollToOpenDoor>1) {
+                            int [] die = game.rollDice(1);
+                            if (die[0] > w.meleeStats.dieRollToOpenDoor) {
+                                return false;
+                            }
+                        }
+                        game.getCurrentUser().showMessage(name() + " Used their " + w + " to break open the door");
+                        return true;
+                    }
+                }
+                return false;
+            }
+        }
+        return super.performAction(action, game);
     }
 
     @Override
@@ -77,21 +105,49 @@ public class ZCharacter extends ZActor implements Table.Model {
         return false;
     }
 
-    public ZWeapon[] getWeapons() {
-        ZWeapon left = leftHand == null ? null : (leftHand instanceof ZWeapon ? (ZWeapon)leftHand : null);
-        ZWeapon right = rightHand == null ? null : (rightHand instanceof ZWeapon ? (ZWeapon)rightHand : null);
-        if (left == null && right == null)
-            return new ZWeapon[0];
-        if (left == null)
-            return new ZWeapon[] { right };
-        if (right == null)
-            return new ZWeapon[] { left };
-        return new ZWeapon[] { left, right };
+    /**
+     *
+     * @return
+     */
+    public List<ZWeapon> getWeapons() {
+        return Utils.filterItems(object -> object instanceof ZWeapon, leftHand, rightHand, body);
     }
 
+    /**
+     * Return any armor and / or shileds player has
+     * @return
+     */
+    public List<ZArmor> getArmor() {
+        return Utils.filterItems(object -> object instanceof ZArmor, leftHand, rightHand, body);
+    }
+
+    /**
+     *
+     * @return
+     */
     public boolean isDualWeilding() {
-        ZWeapon [] weapons = getWeapons();
-        return weapons.length == 2 && weapons[0] == weapons[1] && weapons[0].canTwoHand;
+        List<ZWeapon> weapons = Utils.filterItems(object -> object instanceof ZWeapon, leftHand, rightHand);
+        if (weapons.size() != 2)
+            return false;
+        if (!weapons.get(0).equals(weapons.get(1)))
+            return false;
+        if (weapons.get(0).canTwoHand)
+            return true;
+        if (weapons.get(0).isMelee() && availableSkills.contains(ZSkill.Swordmaster))
+            return true;
+        return false;
+    }
+
+    public int getNumBackpackItems() {
+        return backpack.size();
+    }
+
+    public ZEquipment getBackpackItem(int index) {
+        return backpack.get(index);
+    }
+
+    public List<ZEquipment> getBackpack() {
+        return Collections.unmodifiableList(backpack);
     }
 
     public boolean canEquip(ZEquipment e) {
@@ -110,7 +166,7 @@ public class ZCharacter extends ZActor implements Table.Model {
                 }
                 break;
             case BACKPACK:
-                if (numBackpackItems < backpack.length) {
+                if (backpack.size() < MAX_BACKPACK_SIZE) {
                     return true;
                 }
                 break;
@@ -140,18 +196,18 @@ public class ZCharacter extends ZActor implements Table.Model {
                     return ZEquipSlot.BODY;
                 }
                 break;
-            case BACKPACK:
-                if (numBackpackItems < backpack.length) {
-                    backpack[numBackpackItems++] = e;
-                    return ZEquipSlot.BACKPACK;
-                }
-                break;
         }
         if (body == null && Utils.linearSearch(name.alternateBodySlots, e) >= 0) {
             body = e;
             return ZEquipSlot.BODY;
         }
 
+        if (backpack.size() < MAX_BACKPACK_SIZE) {
+            backpack.add(e);
+            return ZEquipSlot.BACKPACK;
+        }
+
+        assert(false);
         return null;
     }
 
@@ -162,10 +218,9 @@ public class ZCharacter extends ZActor implements Table.Model {
                 body = null;
                 break;
             case BACKPACK: {
-                int idx = Utils.linearSearch(backpack, equipment, numBackpackItems);
+                int idx = backpack.indexOf(equipment);
                 assert(idx >= 0);
-                backpack[idx] = backpack[--numBackpackItems];
-                backpack[numBackpackItems] = null;
+                backpack.remove(idx);
                 break;
             }
             case LHAND:
@@ -193,7 +248,7 @@ public class ZCharacter extends ZActor implements Table.Model {
                 body = equipment;
                 break;
             case BACKPACK:
-                backpack[numBackpackItems++] = equipment;
+                backpack.add(equipment);
                 break;
         }
         return prev;
@@ -208,11 +263,11 @@ public class ZCharacter extends ZActor implements Table.Model {
         int ptsToNxt = sl.getPtsToNextLevel(dangerBar);
         String [] header = { "Left Hand", "Body", "Right Hand", "Backpack" };
         Object [][] data = {
-                { leftHand, body, rightHand, backpack[0]},
-                { null, null, null, backpack[1] },
-                { "Wounds", woundBar, null, backpack[2] },
-                { "Danger", dangerBar, null, backpack[3] },
-                { "Skill", sl + (ptsToNxt > 0 ? (" (" + ptsToNxt + ")") : ""), null, backpack[4] }
+                { leftHand, body, rightHand, backpack.size() > 0 ? backpack.get(0) : null },
+                { null, null, null, backpack.size() > 1 ? backpack.get(1) : null  },
+                { "Wounds", woundBar, null, backpack.size() > 2 ? backpack.get(2) : null  },
+                { "Danger", dangerBar, null, backpack.size() > 3 ? backpack.get(3) : null  },
+                { "Skill", sl + (ptsToNxt > 0 ? (" (" + ptsToNxt + ")") : ""), null, backpack.size() > 4 ? backpack.get(4) : null  }
         };
         Table table = new Table(header, data, this);
         String str = name + " (" + name.characterClass + ") Actions Left:" + getActionsLeftThisTurn() + "\n" + table.toString();
@@ -237,7 +292,7 @@ public class ZCharacter extends ZActor implements Table.Model {
     }
 
     public boolean isBackpackFull() {
-        return numBackpackItems == backpack.length;
+        return backpack.size() == MAX_BACKPACK_SIZE;
     }
 
     @Override
@@ -246,7 +301,7 @@ public class ZCharacter extends ZActor implements Table.Model {
     }
 
     public boolean canTrade() {
-        return leftHand != null && rightHand != null && body != null && numBackpackItems != 0;
+        return leftHand != null || rightHand != null || body != null || backpack.size() > 0;
     }
 
     public boolean canSearch() {
@@ -342,20 +397,23 @@ public class ZCharacter extends ZActor implements Table.Model {
         return null;
     }
 
+    /**
+     *
+     * @param type
+     * @return
+     */
     public int getArmorRating(ZZombieType type) {
         int rating = 0;
-        if (body != null && body.isArmor()) {
-            rating += ((ZArmor)body).getRating(type);
-        }
-        if (leftHand != null && leftHand.isArmor()) {
-            rating += ((ZArmor)leftHand).getRating(type);
-        }
-        if (rightHand != null && rightHand.isArmor()) {
-            rating += ((ZArmor)rightHand).getRating(type);
+        for (ZArmor armor : getArmor()) {
+            rating += armor.getRating(type);
         }
         return rating;
     }
 
+    /**
+     *
+     * @return
+     */
     public boolean isDead() {
         return woundBar >= MAX_WOUNDS;
     }
@@ -363,6 +421,18 @@ public class ZCharacter extends ZActor implements Table.Model {
     @Override
     public int getNoise() {
         return 1;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public boolean canShove() {
+        if (getArmor().contains(ZArmor.SHIELD_OF_AGES))
+            return true;
+        if (availableSkills.contains(ZSkill.Shove))
+            return true;
+        return false;
     }
 
     /*

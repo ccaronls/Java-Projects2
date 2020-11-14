@@ -29,7 +29,7 @@ public abstract class ZQuest extends Reflector<ZQuest> {
 
     public abstract ZBoard loadBoard();
 
-    protected void loadCmd(int row, int col, String cmd) {
+    protected void loadCmd(Grid<ZCell> grid, int row, int col, String cmd) {
         ZCell cell = grid.get(row, col);
         switch (cmd) {
             case "i":
@@ -39,52 +39,52 @@ public abstract class ZQuest extends Reflector<ZQuest> {
                 cell.cellType = ZCellType.VAULT;
                 break;
             case "wn":
-                setCellWall(row, col, DIR_NORTH, ZWallFlag.WALL);
+                setCellWall(grid, row, col, DIR_NORTH, ZWallFlag.WALL);
                 break;
             case "ws":
-                setCellWall(row, col, DIR_SOUTH, ZWallFlag.WALL);
+                setCellWall(grid, row, col, DIR_SOUTH, ZWallFlag.WALL);
                 break;
             case "we":
-                setCellWall(row, col, DIR_EAST, ZWallFlag.WALL);
+                setCellWall(grid, row, col, DIR_EAST, ZWallFlag.WALL);
                 break;
             case "ww":
-                setCellWall(row, col, DIR_WEST, ZWallFlag.WALL);
+                setCellWall(grid, row, col, DIR_WEST, ZWallFlag.WALL);
                 break;
             case "dn":
-                setCellWall(row, col, DIR_NORTH, ZWallFlag.CLOSED);
+                setCellWall(grid, row, col, DIR_NORTH, ZWallFlag.CLOSED);
                 break;
             case "ds":
-                setCellWall(row, col, DIR_SOUTH, ZWallFlag.CLOSED);
+                setCellWall(grid, row, col, DIR_SOUTH, ZWallFlag.CLOSED);
                 break;
             case "de":
-                setCellWall(row, col, DIR_EAST, ZWallFlag.CLOSED);
+                setCellWall(grid, row, col, DIR_EAST, ZWallFlag.CLOSED);
                 break;
             case "dw":
-                setCellWall(row, col, DIR_WEST, ZWallFlag.CLOSED);
+                setCellWall(grid, row, col, DIR_WEST, ZWallFlag.CLOSED);
                 break;
             case "ldn":
-                setCellWall(row, col, DIR_NORTH, ZWallFlag.LOCKED);
+                setCellWall(grid, row, col, DIR_NORTH, ZWallFlag.LOCKED);
                 break;
             case "lds":
-                setCellWall(row, col, DIR_SOUTH, ZWallFlag.LOCKED);
+                setCellWall(grid, row, col, DIR_SOUTH, ZWallFlag.LOCKED);
                 break;
             case "lde":
-                setCellWall(row, col, DIR_EAST, ZWallFlag.LOCKED);
+                setCellWall(grid, row, col, DIR_EAST, ZWallFlag.LOCKED);
                 break;
             case "ldw":
-                setCellWall(row, col, DIR_WEST, ZWallFlag.LOCKED);
+                setCellWall(grid, row, col, DIR_WEST, ZWallFlag.LOCKED);
                 break;
             case "odn":
-                setCellWall(row, col, DIR_NORTH, ZWallFlag.OPEN);
+                setCellWall(grid, row, col, DIR_NORTH, ZWallFlag.OPEN);
                 break;
             case "ods":
-                setCellWall(row, col, DIR_SOUTH, ZWallFlag.OPEN);
+                setCellWall(grid, row, col, DIR_SOUTH, ZWallFlag.OPEN);
                 break;
             case "ode":
-                setCellWall(row, col, DIR_EAST, ZWallFlag.OPEN);
+                setCellWall(grid, row, col, DIR_EAST, ZWallFlag.OPEN);
                 break;
             case "odw":
-                setCellWall(row, col, DIR_WEST, ZWallFlag.OPEN);
+                setCellWall(grid, row, col, DIR_WEST, ZWallFlag.OPEN);
                 break;
             case "obj":
                 cell.cellType = ZCellType.OBJECTIVE;
@@ -115,7 +115,7 @@ public abstract class ZQuest extends Reflector<ZQuest> {
         }
     }
 
-    void setCellWall(int row, int col, int dir, ZWallFlag flag) {
+    void setCellWall(Grid<ZCell> grid, int row, int col, int dir, ZWallFlag flag) {
         grid.get(row, col).walls[dir] = flag;
         switch (dir) {
             case DIR_NORTH:
@@ -141,16 +141,10 @@ public abstract class ZQuest extends Reflector<ZQuest> {
         }
     }
 
-    private Grid<ZCell> grid;
-
-    protected ZCell getCell(int row, int col) {
-        return grid.get(row, col);
-    }
-
     public ZBoard load(String [][] map) {
         int rows = map.length;
         int cols = map[0].length;
-        grid = new Grid(new ZCell[rows][cols]);
+        Grid<ZCell> grid = new Grid<ZCell>(rows, cols);
         Map<Integer, ZZone> zoneMap = new HashMap<>();
         int maxZone = 0;
         for (int row=0; row<map.length; row++) {
@@ -179,7 +173,7 @@ public abstract class ZQuest extends Reflector<ZQuest> {
                         continue;
                     }
                     assert(zone != null);
-                    loadCmd(row, col, cmd);
+                    loadCmd(grid, row, col, cmd);
                     zone.searchable = cell.isInside;
                     switch (cell.cellType) {
                         case VAULT:
@@ -238,7 +232,7 @@ public abstract class ZQuest extends Reflector<ZQuest> {
      *
      * @param g
      */
-    public abstract void drawTiles(AGraphics g, ZTiles tiles);
+    public abstract void drawTiles(AGraphics g, ZBoard board, ZTiles tiles);
 
     /**
      * Determine if this quest requires all players must live

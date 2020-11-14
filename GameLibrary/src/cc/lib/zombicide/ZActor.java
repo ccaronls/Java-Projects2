@@ -32,8 +32,9 @@ public abstract class ZActor extends Reflector<ZActor> {
 
     public abstract String name();
 
-    protected void performAction(ZActionType action, ZGame game) {
+    protected boolean performAction(ZActionType action, ZGame game) {
         actionsLeftThisTurn--;
+        return false;
     }
 
     public int getActionsLeftThisTurn() {

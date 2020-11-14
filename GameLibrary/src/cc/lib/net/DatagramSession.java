@@ -15,6 +15,8 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Queue;
 
+import cc.lib.utils.GException;
+
 /**
  * Manager class for optimizing a connectionless network (Datagram)
  * 
@@ -322,7 +324,7 @@ abstract public class DatagramSession {
             writeHeader(out, id, priority, size, packetIndex, num, userData);
             
             if (mBuffer.size() > mHeaderSize)
-                throw new RuntimeException("INTERNAL: Header size too small");
+                throw new GException("INTERNAL: Header size too small");
             
             // pad out the header to the headersize
             while (mBuffer.size() < mHeaderSize) {
@@ -353,7 +355,7 @@ abstract public class DatagramSession {
                 }
                 mBuffer.flush();
                 if (mBuffer.size() != mOptimalPacketSize)
-                    throw new RuntimeException("INTERNAL: Buffer not assembled properly");
+                    throw new GException("INTERNAL: Buffer not assembled properly");
                 
                 // DEBUG CODE
                 if (simulateOutOfOrderPackets) {

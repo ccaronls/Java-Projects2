@@ -8,6 +8,7 @@ import cc.lib.math.CMath;
 import cc.lib.math.Matrix3x3;
 import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
+import cc.lib.utils.GException;
 
 public abstract class AGraphics implements Utils.VertexList, Renderable {
     
@@ -223,7 +224,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * Start a screen capture operation. the next call to captureScreen will end the operation
      */
     public void beginScreenCapture() {
-        throw new RuntimeException("Not implemented");
+        throw new GException("Not implemented");
     }
 
     /**
@@ -237,7 +238,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @return image id of the captured image
      */
     public int captureScreen(int x, int y, int w, int h) {
-        throw new RuntimeException("Not implemented");
+        throw new GException("Not implemented");
     }
 
     /**
@@ -329,7 +330,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
             y -= (lines.length * (textHeight));
             break;
         default:
-            throw new RuntimeException("Unhandled case: " + vJust);
+            throw new GException("Unhandled case: " + vJust);
         }
         float maxWidth = 0;
         for (int i=0; i<lines.length; i++) {
@@ -368,7 +369,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
                 y -= (lines.length * (textHeight));
                 break;
             default:
-                throw new RuntimeException("Unhandled case: " + vJust);
+                throw new GException("Unhandled case: " + vJust);
         }
         float top = mv.getY();
         float maxWidth = 0;
@@ -637,7 +638,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
             case BOTTOM: y -= lines.length * getTextHeight(); break;
             case CENTER: y -= lines.length * getTextHeight() / 2; break;
             default: 
-                throw new RuntimeException("Unhandled case: " + vJust);
+                throw new GException("Unhandled case: " + vJust);
         }
         MutableVector2D tv = transform(x, y);
         float mw = 0;

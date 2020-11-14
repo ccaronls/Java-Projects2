@@ -31,7 +31,7 @@ public class ZZombie extends ZActor {
 
     @Override
     public String name() {
-        return type.name();
+        return type.commonName;
     }
 
     @Override

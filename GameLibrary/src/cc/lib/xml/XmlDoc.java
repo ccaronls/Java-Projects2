@@ -2,6 +2,8 @@ package cc.lib.xml;
 
 import java.util.Stack;
 
+import cc.lib.utils.GException;
+
 public class XmlDoc {
 
     /**
@@ -143,7 +145,7 @@ public class XmlDoc {
      */
     public void closeTag() {
         if (complexTagStack.empty()) {
-            throw new RuntimeException("Calling closeTag when stack is empty");
+            throw new GException("Calling closeTag when stack is empty");
         }
         buffer.append(XmlUtils.closeTag(getDepth()-1, pop()));
     }

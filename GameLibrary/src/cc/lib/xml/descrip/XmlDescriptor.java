@@ -4,6 +4,7 @@ import java.io.*;
 import java.util.Iterator;
 import java.util.Set;
 
+import cc.lib.utils.GException;
 import cc.lib.xml.XmlElement;
 
 
@@ -79,7 +80,7 @@ public class XmlDescriptor {
     private XmlInfo.ElemInfo getParentInfo(String id, XmlInfo info) {
     	int index = id.lastIndexOf(XmlInfo.DELIM);
     	if (index < 0)
-    		throw new RuntimeException("Illgal child elem id [" + id + "]");
+    		throw new GException("Illgal child elem id [" + id + "]");
     	String parentId = id.substring(0, index);
     	return info.getInfo(parentId);    	
     }
@@ -155,7 +156,7 @@ public class XmlDescriptor {
     		}
     	}
     	if (result == null)
-    		throw new RuntimeException("Failed to determine value from: " + items);
+    		throw new GException("Failed to determine value from: " + items);
     	//System.out.println("Returning [" + result + "] for: " + items);
     	return result;
     }

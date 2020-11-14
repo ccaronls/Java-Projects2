@@ -1,8 +1,10 @@
 package cc.lib.zombicide;
 
+import java.io.BufferedReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Stack;
@@ -10,8 +12,13 @@ import java.util.Stack;
 import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
+import cc.lib.utils.Reflector;
 
-public class ZGame {
+public class ZGame extends Reflector<ZGame>  {
+
+    static {
+        addAllFields(ZGame.class);
+    }
 
     private final static Logger log = LoggerFactory.getLogger(ZGame.class);
 
@@ -20,16 +27,28 @@ public class ZGame {
 
     private final Stack<ZState> stateStack = new Stack<>();
     public ZBoard board=null;
+    @Omit
     ZUser [] users=null;
     ZQuest quest=null;
     int currentUser=0;
+    @Omit
     ZCharacter currentCharacter = null;
+    @Omit
     ZEquipSlot selectedSlot = null;
+    @Omit
     ZEquipment selectedEquipment = null;
     LinkedList<ZEquipment> searchables = new LinkedList<>();
     boolean doubleSpawn=false;
     int roundNum=0;
     int gameOverStatus=0; // 0 == in play, 1, == game won, 2 == game lost
+
+    @Override
+    protected synchronized void deserialize(BufferedReader _in) throws Exception {
+        super.deserialize(_in);
+        for (ZCharacter c : board.getAllCharacters()) {
+            users[c.userIndex].addCharacter(c);
+        }
+    }
 
     public void setUsers(ZUser ... users) {
         this.users = users;
@@ -175,6 +194,7 @@ public class ZGame {
                 onStartRound(roundNum++);
                 currentUser = 0;
                 currentCharacter = null;
+                board.resetNoise();
                 break;
             }
 
@@ -229,7 +249,7 @@ public class ZGame {
                 quest.addMoves(this, cur, options);
 
                 // check for organize
-                if (cur.numBackpackItems > 0)
+                if (cur.getNumBackpackItems() > 0)
                     options.add(ZMove.newOrganizeMove());
 
                 // check for move up, down, right, left
@@ -272,7 +292,7 @@ public class ZGame {
                 }
 
                 // check for open check /
-                List<ZDoor> doors = board.getDoorsForZone(cur.occupiedZone, ZWallFlag.CLOSED, ZWallFlag.OPEN);
+                List<ZDoor> doors = board.getDoorsForZone(cur.occupiedZone, ZWallFlag.CLOSED);
                 if (doors.size() > 0) {
                     options.add(ZMove.newToggleDoor(doors));
                 }
@@ -294,11 +314,11 @@ public class ZGame {
                     slots.add(ZEquipSlot.RHAND);
                 if (cur.body != null)
                     slots.add(ZEquipSlot.BODY);
-                if (cur.numBackpackItems > 0)
+                if (cur.getNumBackpackItems() > 0)
                     slots.add(ZEquipSlot.BACKPACK);
                 selectedSlot = getCurrentUser().chooseSlotToOrganize(this, cur, slots);
                 if (selectedSlot != null) {
-                    stateStack.push(ZState.PLAYER_STAGE_ORGANIZE_CHOOSE_ACTION);
+                    stateStack.push(ZState.PLAYER_STAGE_ORGANIZE_CHOOSE_ITEM);
                 }
                 break;
             }
@@ -307,14 +327,14 @@ public class ZGame {
                 // choose which equipment form the slot to organize
                 switch (selectedSlot) {
                     case BACKPACK:
-                        if (cur.numBackpackItems > 1) {
+                        if (cur.getNumBackpackItems() > 1) {
                             // add
-                            selectedEquipment = getCurrentUser().chooseEquipment(this, cur, Utils.toList(0, cur.numBackpackItems, cur.backpack));
+                            selectedEquipment = getCurrentUser().chooseEquipment(this, cur, cur.getBackpack());
                             if (selectedEquipment != null) {
                                 stateStack.push(ZState.PLAYER_STAGE_ORGANIZE_CHOOSE_ACTION);
                             }
                         } else {
-                            selectedEquipment = cur.backpack[0];
+                            selectedEquipment = cur.getBackpackItem(0);
                             stateStack.push(ZState.PLAYER_STAGE_ORGANIZE_CHOOSE_ACTION);
                         }
                         break;
@@ -363,7 +383,8 @@ public class ZGame {
                 ZMove move = user.chooseMove(this, cur, options);
                 if (move != null) {
                     performMove(cur, move);
-                    endAction();
+                    while (stateStack.peek() != ZState.PLAYER_STAGE_ORGANIZE_CHOOSE_SLOT)
+                        stateStack.pop();
                 }
                 break;
             }
@@ -412,6 +433,10 @@ public class ZGame {
                             }
                             if (victims.size() > 0) {
                                 ZCharacter victim = victims.get(0);
+                                zombie.performAction(ZActionType.MELEE, this);
+                                if (playerDefends(cur, zombie)) {
+                                    onCharacterDefends(cur, zombie);
+                                }
                                 victim.woundBar++;
                                 if (victim.isDead()) {
                                     removeCharacter(victim);
@@ -422,7 +447,6 @@ public class ZGame {
                                 } else {
                                     onCharacterWounded(victim, zombie);
                                 }
-                                zombie.performAction(ZActionType.MELEE, this);
                             } else {
                                 moveZombieToTowardVisibleCharactersOrLoudestZone(zombie);
                                 zombie.performAction(ZActionType.MOVE, this);
@@ -430,13 +454,29 @@ public class ZGame {
                         }
                     }
                 }
-                setState(ZState.PLAYER_STAGE_CHOOSE_CHARACTER);
+                setState(ZState.SPAWN);
                 break;
             }
 
             default:
                 throw new AssertionError("Unhandled state: " + getState());
         }
+    }
+
+    protected void onCharacterDefends(ZCharacter cur, ZZombie zombie) {
+        getCurrentUser().showMessage(cur.name() + " defends against " + zombie.name());
+    }
+
+    boolean playerDefends(ZCharacter cur, ZZombie zombie) {
+        for (ZArmor armor : cur.getArmor()) {
+            int rating = armor.getRating(zombie.type);
+            if (rating > 0) {
+                int [] dice = rollDice(1);
+                if (dice[0] >= rating)
+                    return true;
+            }
+        }
+        return false;
     }
 
     void gameLost() {
@@ -527,6 +567,9 @@ public class ZGame {
                 break;
             case OBJECTIVE: {
                 quest.processObjective(this, c, move);
+                c.performAction(ZActionType.OBJECTIVE, this);
+                board.getZone(c.occupiedZone).objective = false;
+                endAction();
                 break;
             }
             case ORGANNIZE: {
@@ -611,6 +654,7 @@ public class ZGame {
                                 if (result[i] >= stat.dieRollToHit) {
                                     ZZombie zombie = zombies.get(0);
                                     if (zombie.type.minDamageToDestroy <= stat.damagePerHit) {
+                                        addExperience(c, zombie.type.expProvided);
                                         board.removeActor(zombie);
                                         onZombieDestroyed(zombie);
                                         hits++;
@@ -631,8 +675,25 @@ public class ZGame {
                 List<ZDoor> doors = move.list;
                 ZDoor door = user.chooseDoorToToggle(this, c, doors);
                 if (door != null) {
-                    board.toggleDoor(door);
-                    c.performAction(ZActionType.TOGGLE_DOOR, this);
+                    if (door.isClosed(board)) {
+                        if (c.performAction(ZActionType.OPEN_DOOR, this)) {
+                            board.toggleDoor(door);
+                            onDoorOpened(door);
+                            // spawn zombies in the newly exposed zone and any adjacent
+                            ZSkillLevel highest = getHighestSkillLevel();
+                            ZDoor otherSide = board.getOtherSide(door);
+                            HashSet<Integer> spawnZones = new HashSet<>();
+                            board.getUndiscoveredIndoorZones(otherSide.cellPos, spawnZones);
+                            log.debug("Zombie spawn zones: " + spawnZones);
+                            for (int zone : spawnZones) {
+                                spawnZombies(zone, highest);
+                            }
+                        }
+                    } else {
+                        c.performAction(ZActionType.CLOSE_DOOR, this);
+                        board.toggleDoor(door);
+                    }
+                    //c.performAction(ZActionType.TOGGLE_DOOR, this);
                     endAction();
                 }
                 break;
@@ -649,6 +710,8 @@ public class ZGame {
                         user.showMessage(currentCharacter.name() + " Found a " + equip.name());
                         currentCharacter.equip(equip);
                     }
+                    currentCharacter.performAction(ZActionType.SEARCH, this);
+                    endAction();
                 }
                 break;
             }
@@ -678,6 +741,10 @@ public class ZGame {
             default:
                 log.error("Unhandled move: %s", move.type);
         }
+    }
+
+    protected void onDoorOpened(ZDoor door) {
+        log.info(currentCharacter.name() + " has opened a door");
     }
 
     public ZSkillLevel getHighestSkillLevel() {
@@ -755,6 +822,7 @@ public class ZGame {
         for (int i=0; i<num; i++) {
             result[i] = Utils.randRange(1,6);
         }
+        onRollDice(result);
         return result;
     }
 
@@ -951,4 +1019,14 @@ public class ZGame {
                 ));
         Utils.shuffle(searchables);
     }
+
+    public void addNoise(int zoneIdx, int noise) {
+        board.getZone(zoneIdx).noiseLevel += noise;
+        onNoiseAdded(zoneIdx);
+    }
+
+    protected void onNoiseAdded(int zoneIndex) {
+        getCurrentUser().showMessage("Noise was made in zone " + zoneIndex);
+    }
+
 }

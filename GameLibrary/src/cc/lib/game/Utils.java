@@ -14,6 +14,8 @@ import java.util.regex.Pattern;
 import cc.lib.math.CMath;
 import cc.lib.math.Vector2D;
 import cc.lib.utils.FileUtils;
+import cc.lib.utils.GException;
+import cc.lib.utils.LRUCache;
 
 public class Utils {
 
@@ -37,7 +39,7 @@ public class Utils {
      * @param c
      */
     public static void unhandledCase(Object c) {
-        RuntimeException e = new RuntimeException("Unhandled case [" + c + "]");
+        GException e = new GException("Unhandled case [" + c + "]");
         e.printStackTrace();
         throw e;
     }
@@ -651,7 +653,7 @@ public class Utils {
         float nx = -(y1 - y0);
         float ny = (x1 - x0);
         if (Math.abs(nx) < CMath.EPSILON && Math.abs(ny) < CMath.EPSILON) {
-            throw new RuntimeException("Degenerate Vector");
+            throw new GException("Degenerate Vector");
             // TODO: treat this is a point?
         }
         // get the vector (L) from point to line
@@ -918,29 +920,33 @@ public class Utils {
     }
 
     private static Pattern PRETTY_STRING_PATTERN = null;
+    private static Map<String, String> prettyCache = new LRUCache<>(100);
 
     /**
      * 1. Strip extension if any
      * 2. Replace [_]+ (underscores) with a space
      * 3. Make whole strings lowercase with first letter capitalized
      *
-     * @param str
+     * @param _str
      * @return
      */
-    public static String getPrettyString(String str) {
-        if (str == null)
+    public static String getPrettyString(final String _str) {
+        if (_str == null)
             return null;
-        str = FileUtils.stripExtension(str.replaceAll("[_]+", " ").trim());
+        String s = prettyCache.get(_str);
+        if (s != null)
+            return s;
+        String str = FileUtils.stripExtension(_str.replaceAll("[_]+", " ").trim());
         if (PRETTY_STRING_PATTERN == null)
             PRETTY_STRING_PATTERN = Pattern.compile("([A-Za-z][a-zA-Z]+)|([IiAa])");
         Matcher us = PRETTY_STRING_PATTERN.matcher(str);
         StringBuffer result = new StringBuffer();
         int begin = 0;
         while (us.find()) {
-            String s = us.group().toLowerCase();
+            s = us.group().toLowerCase();
             if (result.length() > 0 && result.charAt(result.length()-1) != ' ' && str.charAt(begin) != ' ' )
                 result.append(" ");
-            result.append(str.substring(begin, us.start()));
+            result.append(str, begin, us.start());
             begin = us.end();
             if (result.length() > 0 && result.charAt(result.length()-1) != ' ')
                 result.append(" ");
@@ -951,7 +957,9 @@ public class Utils {
                 result.append(" ");
             result.append(str.substring(begin));
         }
-        return result.toString();
+        s = result.toString();
+        prettyCache.put(str, s);
+        return s;
     }
 
     public enum EllipsisStyle {
@@ -1436,7 +1444,7 @@ public class Utils {
                 table[i] = type.newInstance();
             }
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new GException(e);
         }
     }
 
@@ -1444,7 +1452,7 @@ public class Utils {
      * @param c
      */
     public static void unhandledCase(int c) {
-        RuntimeException e = new RuntimeException("Unhandled case [" + c + "]");
+        GException e = new GException("Unhandled case [" + c + "]");
         e.printStackTrace();
         throw e;
     }
@@ -1920,10 +1928,14 @@ public class Utils {
      */
     public static <T> int linearSearch(T[] arr, T key, int len) {
         for (int i = 0; i < len; i++) {
-            if (Objects.equals(arr[i], key))
+            if (isEquals(arr[i], key))
                 return i;
         }
         return -1;
+    }
+
+    public static boolean isEquals(Object a, Object b) {
+        return a == b || (a != null && a.equals(b));
     }
 
     /**
@@ -2541,5 +2553,21 @@ public class Utils {
                 it.remove();
         }
         return collection;
+    }
+
+    /**
+     *
+     * @param filter
+     * @param items
+     * @param <T>
+     * @return
+     */
+    public static <T> List filterItems(Filter<T> filter, T ... items) {
+        List list = new ArrayList();
+        for (T item : items) {
+            if (item != null && filter.keep(item))
+                list.add(item);
+        }
+        return list;
     }
 }

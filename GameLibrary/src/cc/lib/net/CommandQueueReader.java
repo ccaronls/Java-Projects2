@@ -6,6 +6,7 @@ import java.util.Queue;
 
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
+import cc.lib.utils.GException;
 
 /**
  * The purpose of this class is to never block the Network read
@@ -36,7 +37,7 @@ abstract class CommandQueueReader {
                 queue.notify();
             }
         } else {
-            throw new RuntimeException("Queuing a command when stopped");
+            throw new GException("Queuing a command when stopped");
         }
     }
     

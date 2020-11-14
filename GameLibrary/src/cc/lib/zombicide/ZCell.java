@@ -16,8 +16,7 @@ public class ZCell extends Reflector<ZCell> {
     int zoneIndex;
     public ZCellType cellType = ZCellType.NONE;
     GRectangle rect;
-
-    @Omit
+    boolean discovered=false;
     ZActor [] occupied = new ZActor[NUM_QUADRANTS];
 
     public GRectangle getRect() {

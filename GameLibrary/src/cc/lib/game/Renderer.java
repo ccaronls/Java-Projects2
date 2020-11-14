@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.List;
 
 import cc.lib.math.*;
+import cc.lib.utils.GException;
 
 /**
  * Provides mechanism to manipulate vectors in a OpenGL type way
@@ -264,7 +265,7 @@ public class Renderer {
 			cur_mat = m_stack[m_stack_size];
 			m_stack_size++;
 		} else
-			throw new RuntimeException("Fixed stack size of [" + m_stack.length + "] for pushMatrix()");
+			throw new cc.lib.utils.GException("Fixed stack size of [" + m_stack.length + "] for pushMatrix()");
 	}
 	
 	/**
@@ -276,7 +277,7 @@ public class Renderer {
             cur_mat = m_stack[m_stack_size-1];
 		}
 		else
-			throw new RuntimeException("too many pops");
+			throw new GException("too many pops");
 	}
 
 	/**

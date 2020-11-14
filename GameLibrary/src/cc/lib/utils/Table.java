@@ -143,8 +143,9 @@ public class Table {
                 return String.format("%-" + cellWidth + "s", s);
             case 1: {
                 int frontPadding = (cellWidth - s.length()) / 2;
-                int backPadding =  (cellWidth - s.length() - frontPadding);
-                return String.format("%" + (cellWidth - frontPadding) + "s", s) + Utils.getRepeatingChars(' ', backPadding);
+                int frontWidth = (cellWidth - frontPadding);
+                int backPadding = cellWidth - frontWidth;
+                return String.format("%" + frontWidth + "s", s) + Utils.getRepeatingChars(' ', backPadding);
             }
             case 2:
                 return String.format("%" + cellWidth + "s", s);

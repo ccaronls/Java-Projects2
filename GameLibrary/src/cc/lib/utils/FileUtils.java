@@ -311,7 +311,7 @@ public class FileUtils {
         File settingsDir = new File(homeDir, "settings/" + pkg);
         if (!settingsDir.isDirectory()) {
             if (!settingsDir.mkdirs())
-                throw new RuntimeException("Failed to create settings directory: " + settingsDir.getAbsolutePath());
+                throw new GException("Failed to create settings directory: " + settingsDir.getAbsolutePath());
             else
                 log.info("Created settings directory: " + settingsDir.getAbsolutePath());
         }

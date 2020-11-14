@@ -4,18 +4,18 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.GridBagLayout;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
 
-import javax.swing.BoxLayout;
 import javax.swing.JApplet;
 import javax.swing.JComponent;
-import javax.swing.JScrollPane;
+import javax.swing.JPanel;
 import javax.swing.JSeparator;
-import javax.swing.ScrollPaneLayout;
 
 import cc.lib.game.AGraphics;
 import cc.lib.game.GColor;
@@ -36,13 +36,10 @@ import cc.lib.zombicide.ZBoard;
 import cc.lib.zombicide.ZCell;
 import cc.lib.zombicide.ZCharacter;
 import cc.lib.zombicide.ZDoor;
-import cc.lib.zombicide.ZEquipSlot;
-import cc.lib.zombicide.ZEquipment;
 import cc.lib.zombicide.ZGame;
 import cc.lib.zombicide.ZMove;
 import cc.lib.zombicide.ZPlayerName;
 import cc.lib.zombicide.ZQuests;
-import cc.lib.zombicide.ZSkill;
 import cc.lib.zombicide.ZTiles;
 import cc.lib.zombicide.ZUser;
 import cc.lib.zombicide.ZZombieType;
@@ -51,13 +48,15 @@ public class ZombicideApplet extends JApplet implements ActionListener, ZTiles {
 
     static final Logger log = LoggerFactory.getLogger(ZombicideApplet.class);
 
+    static ZombicideApplet instance = null;
+
     public static void main(String [] args) {
         //Utils.DEBUG_ENABLED = true;
         //Golf.DEBUG_ENABLED = true;
         //PlayerBot.DEBUG_ENABLED = true;
         //mode = 0;
         AWTFrame frame = new AWTFrame("Zombicide");
-        ZombicideApplet app = new ZombicideApplet();
+        ZombicideApplet app = instance = new ZombicideApplet();
         frame.add(app);
         app.init();
         app.start();
@@ -78,6 +77,7 @@ public class ZombicideApplet extends JApplet implements ActionListener, ZTiles {
 
     enum MenuItem {
         START,
+        RESUME,
         QUIT,
         BACK
     }
@@ -98,19 +98,26 @@ public class ZombicideApplet extends JApplet implements ActionListener, ZTiles {
     CharacterComponent charComp;
     boolean gameRunning = false;
     LinkedList<String> messages = new LinkedList<>();
+    File gameFile = null;
 
     ZombicideApplet() {
         setLayout(new BorderLayout());
         add(charComp = new CharacterComponent(), BorderLayout.SOUTH);
-        menu.setPreferredSize(new Dimension(200, 300));
+        //menu.setMinimumSize(new Dimension(200, 0));
         //menu.setLayout(new AWTButtonLayout(menu));
-        menu.setLayout(new BoxLayout(menu, BoxLayout.Y_AXIS));
-        JScrollPane menuPanel = new JScrollPane();
-        menuPanel.setLayout(new ScrollPaneLayout());
-        menuPanel.getViewport().add(menu);
-        add(menuPanel, BorderLayout.WEST);
+        menu.setLayout(new GridLayout(0, 1));
+        JPanel menuContainer = new JPanel();
+        menuContainer.setLayout(new GridBagLayout());
+        menuContainer.setPreferredSize(new Dimension(150, 300));
+        menuContainer.add(menu);
+        add(menuContainer, BorderLayout.LINE_START);
         add(boardComp = new BoardComponent(), BorderLayout.CENTER);
-        setMenuItems(MenuItem.START);
+        File settings = FileUtils.getOrCreateSettingsDirectory(ZombicideApplet.class);
+        gameFile = new File(settings, "savegame.txt");
+        if (gameFile.exists())
+            setMenuItems(MenuItem.START, MenuItem.RESUME);
+        else
+            setMenuItems(MenuItem.START);
     }
 
     class BoardComponent extends AWTComponent {
@@ -152,27 +159,23 @@ public class ZombicideApplet extends JApplet implements ActionListener, ZTiles {
                 //game.getQuest().drawTiles(g, ZombicideApplet.this);
 
                 int highlightedZone = board.drawZones(g, getMouseX(), getMouseY());
-                ZActor actor = board.drawActors(g, getMouseX(), getMouseY());
+                highlightedActor = board.drawActors(g, getMouseX(), getMouseY());
 
                 g.setColor(GColor.BLACK);
                 g.drawJustifiedString(getWidth()-10, getHeight()-10, Justify.RIGHT, Justify.BOTTOM, message);
                 switch (uiMode) {
                     case PICK_ZOMBIE:
                     case PICK_CHARACTER: {
-                        if (actor != null) {
-                            for (int i = 0; i < options.size(); i++) {
-                                if (actor == options.get(i)) {
-                                    highlightedActor = actor;
-                                    highlightedResult = actor;
-                                    break;
-                                }
-                            }
+                        if (options.contains(highlightedActor)) {
+                            highlightedResult = highlightedActor;
                         }
                         break;
                     }
                     case PICK_ZONE: {
-                        if (highlightedZone >= 0) {
+                        if (highlightedZone >= 0 && options.contains(highlightedZone)) {
                             highlightedResult = highlightedZone;
+                            g.setColor(GColor.YELLOW);
+                            board.drawZoneOutline(g, highlightedZone);
                         } else if (cellPos != null) {
                             ZCell cell = board.getCell(cellPos);
                             for (int i = 0; i < options.size(); i++) {
@@ -210,11 +213,6 @@ public class ZombicideApplet extends JApplet implements ActionListener, ZTiles {
                     g.drawRect(highlightedActor.getRect());
                     charComp.repaint();
                 }
-                if (actor != null) {
-                    g.setColor(GColor.YELLOW);
-                    g.drawRect(actor.getRect());
-                    charComp.repaint();
-                }
 
             } else {
                 if (cellPos != null) {
@@ -228,36 +226,12 @@ public class ZombicideApplet extends JApplet implements ActionListener, ZTiles {
         }
 
         @Override
+
         protected void onMousePressed(int mouseX, int mouseY) {
             if (gameRunning) {
                 setResult(highlightedResult);
             }
         }
-
-        /*
-            if (highlighted != null) {
-                if (getKeyboardReset('a')) {
-                    board.toggleDorOpen(highlighted, ZBoard.DIR_WEST);
-                } else if (getKeyboardReset('w')) {
-                    board.toggleDorOpen(highlighted, ZBoard.DIR_NORTH);
-                } else if (getKeyboardReset('s')) {
-                    board.toggleDorOpen(highlighted, ZBoard.DIR_SOUTH);
-                } else if (getKeyboardReset('d')) {
-                    board.toggleDorOpen(highlighted, ZBoard.DIR_EAST);
-                }
-
-                if (getMouseButtonClicked(0)) {
-                    selected = highlighted;
-                } else if (selected != null) {
-                    g.setColor(GColor.RED);
-                    if (board.canSeeCell(selected, highlighted)) {
-                        g.setColor(GColor.GREEN);
-                    }
-                    g.drawRect(board.getCell(selected).getRect());
-                }
-            }
-
-        }*/
     }
 
     class CharacterComponent extends AWTComponent {
@@ -305,7 +279,9 @@ public class ZombicideApplet extends JApplet implements ActionListener, ZTiles {
 
     }
 
-    void startGameThread() {
+
+
+    synchronized void startGameThread() {
         if (gameRunning)
             return;
 
@@ -314,6 +290,8 @@ public class ZombicideApplet extends JApplet implements ActionListener, ZTiles {
             try {
                 while (gameRunning) {
                     game.runGame();
+                    if (gameFile != null)
+                        game.trySaveToFile(gameFile);
                     charComp.repaint();
                     boardComp.repaint();
                 }
@@ -340,6 +318,11 @@ public class ZombicideApplet extends JApplet implements ActionListener, ZTiles {
             case START:
                 startGameThread();
                 break;
+            case RESUME:
+                if(game.tryLoadFromFile(gameFile)) {
+                    startGameThread();
+                }
+                break;
             case QUIT:
                 gameRunning = false;
                 setResult(null);
@@ -355,121 +338,7 @@ public class ZombicideApplet extends JApplet implements ActionListener, ZTiles {
 
     @Override
     public void init() {
-        ZUser user = new ZUser() {
-
-            @Override
-            public void showMessage(String s) {
-                messages.addFirst(s);
-                while (messages.size() > 32) {
-                    messages.removeLast();
-                }
-                charComp.repaint();
-            }
-
-            @Override
-            public ZCharacter chooseCharacter(List<ZCharacter> characters) {
-                message = "Pick character to play";
-                uiMode = UIMode.PICK_CHARACTER;
-                options = characters;
-                return waitForUser();
-            }
-
-            @Override
-            public Integer chooseZoneForBile(ZGame zGame, ZCharacter cur, List<Integer> zones) {
-                message = "Pick a zone to place the Dragon Bile";
-                uiMode = UIMode.PICK_ZONE;
-                options = zones;
-                return waitForUser();
-            }
-
-            @Override
-            public ZMove chooseMove(ZGame zGame, ZCharacter cur, List<ZMove> moves) {
-                message = "Choose Move";
-                uiMode = UIMode.PICK_MENU;
-                options = moves;
-                return waitForUser();
-            }
-
-            @Override
-            public ZSkill chooseNewSkill(ZGame game, ZCharacter character, List<ZSkill> skillOptions) {
-                message = "Choose New Skill";
-                uiMode = UIMode.PICK_MENU;
-                options = skillOptions;
-                return waitForUser();
-            }
-
-            @Override
-            public ZEquipSlot chooseSlotToOrganize(ZGame zGame, ZCharacter cur, List<ZEquipSlot> slots) {
-                message = "Choose Slot to Organize";
-                uiMode = UIMode.PICK_MENU;
-                options = slots;
-                return waitForUser();
-            }
-
-            @Override
-            public ZEquipment chooseEquipment(ZGame zGame, ZCharacter cur, List<ZEquipment> equipOptions) {
-                message = "Choose Equipment to Organize";
-                uiMode = UIMode.PICK_MENU;
-                options = equipOptions;
-                return waitForUser();
-            }
-
-            @Override
-            public ZEquipSlot chooseSlotForEquip(ZGame zGame, ZCharacter cur, List<ZEquipSlot> equipableSlots) {
-                message = "Choose Slot to Equip Item";
-                uiMode = UIMode.PICK_MENU;
-                options = equipableSlots;
-                return waitForUser();
-            }
-
-            @Override
-            public Integer chooseZoneToIgnite(ZGame zGame, ZCharacter cur, List<Integer> zones) {
-                message = "Choose zone to Ignite";
-                uiMode = UIMode.PICK_ZONE;
-                options = zones;
-                return waitForUser();
-            }
-
-            @Override
-            public Integer chooseZoneToWalk(ZGame zGame, ZCharacter cur, List<Integer> zones) {
-                message = "Choose zone to Walk";
-                uiMode = UIMode.PICK_ZONE;
-                options = zones;
-                return waitForUser();
-            }
-
-            @Override
-            public ZDoor chooseDoorToToggle(ZGame zGame, ZCharacter cur, List<ZDoor> doors) {
-                message = "Choose door to open or close";
-                uiMode = UIMode.PICK_DOOR;
-                options = doors;
-                return waitForUser();
-            }
-
-            @Override
-            public ZEquipSlot chooseWeaponSlot(ZGame zGame, ZCharacter c, List<ZEquipSlot> weapons) {
-                message = "Choose weapon from slot";
-                uiMode = UIMode.PICK_MENU;
-                options = weapons;
-                return waitForUser();
-            }
-
-            @Override
-            public ZCharacter chooseTradeCharacter(ZGame zGame, ZCharacter c, List<ZCharacter> list) {
-                message = "Choose Character for Trade";
-                uiMode = UIMode.PICK_CHARACTER;
-                options = list;
-                return waitForUser();
-            }
-
-            @Override
-            public Integer chooseZoneForAttack(ZGame zGame, ZCharacter c, List<Integer> zones) {
-                message = "Choose Zone to Attack";
-                uiMode = UIMode.PICK_ZONE;
-                options = zones;
-                return waitForUser();
-            }
-        };
+        ZUser user = new ZAppletUser();
         user.addCharacter(ZPlayerName.Baldric.create());
         user.addCharacter(ZPlayerName.Clovis.create());
         game.setUsers(user);
@@ -497,11 +366,15 @@ public class ZombicideApplet extends JApplet implements ActionListener, ZTiles {
 
         @Override
         protected void onAction() {
-            setResult(obj);
+            new Thread() {
+                public void run() {
+                    setResult(obj);
+                }
+            }.start();
         }
     }
 
-    void initMenu() {
+    synchronized void initMenu() {
         menu.removeAll();
         switch (uiMode) {
             case NONE:
@@ -520,6 +393,9 @@ public class ZombicideApplet extends JApplet implements ActionListener, ZTiles {
         }
 
         JComponent sep = new JSeparator();
+        Dimension d = sep.getPreferredSize();
+        d.height = 32;
+        sep.setPreferredSize(d);
         menu.add(sep);
         if (game.canGoBack()) {
             menu.add(new AWTButton(MenuItem.BACK.name(), this));
@@ -584,4 +460,41 @@ public class ZombicideApplet extends JApplet implements ActionListener, ZTiles {
         }
         return tiles;
     }
+
+    void addMessage(String msg) {
+        messages.addFirst(msg);
+        while (messages.size() > 32) {
+            messages.removeLast();
+        }
+        charComp.repaint();
+    }
+
+    public ZCharacter pickCharacter(String message, List<ZCharacter> characters) {
+        this.message = message;
+        uiMode = ZombicideApplet.UIMode.PICK_CHARACTER;
+        options = characters;
+        return waitForUser();
+    }
+
+    public Integer pickZone(String message, List<Integer> zones) {
+        this.message = message;
+        uiMode = ZombicideApplet.UIMode.PICK_ZONE;
+        options = zones;
+        return waitForUser();
+    }
+
+    public <T> T pickMenu(String message, List<T> moves) {
+        this.message = message;
+        uiMode = ZombicideApplet.UIMode.PICK_MENU;
+        options = moves;
+        return waitForUser();
+    }
+
+    public ZDoor pickDoor(String message, List<ZDoor> doors) {
+        this.message = message;
+        uiMode = ZombicideApplet.UIMode.PICK_DOOR;
+        options = doors;
+        return waitForUser();
+    }
+
 }

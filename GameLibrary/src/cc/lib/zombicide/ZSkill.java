@@ -192,7 +192,15 @@ public enum ZSkill {
     Bloodlust_Melee("Spend one Action with the Survivor: He Moves up to two Zones to a Zone containing at least one Zombie. He then gains one free Melee Action, to use immediately."),
     Bloodlust_Ranged("Spend one Action with the Survivor: He Moves up to two Zones to a Zone containing at least one Zombie. He then gains one free Ranged Action, to use immediately."),
     Born_leader("During the Survivor’s Turn, he may give one free Action to another Survivor to use as he pleases. This Action must be used during the recipient’s next Turn or it is lost."),
-    Break_in("In order to open doors, the Survivor rolls no dice, and needs no equipment (but still spends an Action to do so). He doesn’t make Noise while using this Skill. However, other prerequisites still apply (such as taking a designated Objective before a door can be opened). Moreover, the Survivor gains one extra free Action that can only be used to open doors."),
+    Break_in("In order to open doors, the Survivor rolls no dice, and needs no equipment (but still spends an Action to do so). He doesn’t make Noise while using this Skill. However, other prerequisites still apply (such as taking a designated Objective before a door can be opened). Moreover, the Survivor gains one extra free Action that can only be used to open doors.") {
+        @Override
+        public boolean modifyActionsRemaining(ZCharacter character, ZActionType type, ZGame game) {
+            if (type == ZActionType.OPEN_DOOR) {
+                return true;
+            }
+            return super.modifyActionsRemaining(character, type, game);
+        }
+    },
     Charge("The Survivor can use this Skill for free, as often as he pleases, during each of his Turns: He moves up to two Zones to a Zone containing at least one Zombie. Normal Movement rules still apply. Entering a Zone containing Zombies ends the Survivor’s Move Action."),
     Collector("The Survivor gains double the experience each time he kills a Zombie of any type."),
     Collector_Walker("The Survivor gains double the experience each time he kills a Walker."),
@@ -315,4 +323,5 @@ public enum ZSkill {
     public boolean  modifyActionsRemaining(ZCharacter character, ZActionType type, ZGame game) {
         return false;
     }
+
 }

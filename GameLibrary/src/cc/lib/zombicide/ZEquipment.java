@@ -1,5 +1,6 @@
 package cc.lib.zombicide;
 
+import cc.lib.game.Utils;
 import cc.lib.utils.Reflector;
 
 @Reflector.EnumInterfcae
@@ -37,5 +38,9 @@ public interface ZEquipment {
 
     default boolean isArmor() {
         return false;
+    }
+
+    default String displayName() {
+        return Utils.getPrettyString(name());
     }
 }

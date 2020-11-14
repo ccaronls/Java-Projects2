@@ -7,6 +7,7 @@ import java.util.Queue;
 import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
+import cc.lib.utils.GException;
 
 /**
  * Allows for queueing of commands so we are never waiting for the network to write
@@ -125,7 +126,7 @@ class CommandQueueWriter {
     void add(GameCommand cmd) {
 //        log.debug("add command: " + cmd, 256, 32);
         if (!running)
-            throw new RuntimeException("commandQueue is not running");
+            throw new GException("commandQueue is not running");
         synchronized (queue) {
             queue.add(cmd);
             queue.notify();

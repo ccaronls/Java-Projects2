@@ -29,6 +29,9 @@ public enum ZWeapon implements ZEquipment {
     MANA_BLAST(false, true, true, false, null, null, new ZWeaponStat(0, 0, 2, 1, 4, 1)),
     INFERNO(false, true, true, false, null, null, new ZWeaponStat(0 ,0 ,1, 4, 4, 2)),
     LIGHTNING_BOLT(false, true, true, false, null, null, new ZWeaponStat(0 ,0 ,3, 1, 4, 1)),
+
+    // SPECIAL
+    BREAK_IN(false, false, false, false, new ZWeaponStat(1, 0, 0, 0, 0, 0), null, null),
     ;
 
 
@@ -54,35 +57,6 @@ public enum ZWeapon implements ZEquipment {
     public boolean canOpenDoor() {
         return meleeStats != null && meleeStats.dieRollToOpenDoor > 0;
     }
-/*
-    public ZWeaponStat getMeleeStats(ZCharacter c) {
-        if (meleeStats == null)
-            return null;
-        if (this == DAGGER && c.getWeapons().length == 2) {
-            return meleeStats.getDualWeildingStats();
-        } else if (c.isDualWeilding()) {
-            return meleeStats.getDualWeildingStats();
-        }
-        return meleeStats;
-    }
-
-    public ZWeaponStat getRangedStats(ZCharacter c) {
-        if (rangedStats == null)
-            return null;
-        if (c.isDualWeilding()) {
-            return rangedStats.getDualWeildingStats();
-        }
-        return rangedStats;
-    }
-
-    public ZWeaponStat getMagicStats(ZCharacter c) {
-        if (magicStats == null)
-            return null;
-        if (c.isDualWeilding()) {
-            return magicStats.getDualWeildingStats();
-        }
-        return magicStats;
-    }*/
 
     @Override
     public ZEquipSlotType getSlotType() {

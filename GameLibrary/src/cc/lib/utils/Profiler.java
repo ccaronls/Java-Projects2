@@ -33,19 +33,19 @@ public class Profiler {
     static Map<String, Long> times = new HashMap<String, Long>();
     
     /**
-     * Push a name to profiler.  If strict then will throw a RuntimeException if the same id is pushed twice without a pop inbetween.
+     * Push a name to profiler.  If strict then will throw a cc.lib.game.GException if the same id is pushed twice without a pop inbetween.
      * @param id
      */
     public static void push(String id) {
         if (ENABLED) {
             try {
                 if (STRICT && stack.size() > 0 && stack.peek().equals(id))
-                    throw new RuntimeException("Profiler::push called twice with the same id ");
+                    throw new GException("Profiler::push called twice with the same id ");
                 long startTime = System.currentTimeMillis();
                 stack.push(new Node(id, startTime));
             } catch (Exception e) {
                 if (STRICT)
-                    throw new RuntimeException(e);
+                    throw new GException(e);
             }
         }
     }
@@ -62,7 +62,7 @@ public class Profiler {
                 do {
                     top = stack.pop();
                     if (!top.name.equals(id)) {
-                        throw new RuntimeException("Profiler::pop(" + id + ") called but top of stack is: " + top);
+                        throw new GException("Profiler::pop(" + id + ") called but top of stack is: " + top);
                     }
                     if (times.containsKey(top.name)) {
                         long time = times.get(top.name);
@@ -75,7 +75,7 @@ public class Profiler {
         } catch (Exception e) {
             e.printStackTrace();
             if (STRICT)
-                throw new RuntimeException(e);
+                throw new GException(e);
         }
     }
     

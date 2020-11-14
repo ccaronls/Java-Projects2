@@ -21,6 +21,7 @@ import cc.lib.crypt.EncryptionInputStream;
 import cc.lib.crypt.EncryptionOutputStream;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
+import cc.lib.utils.GException;
 import cc.lib.utils.Reflector;
 
 /**
@@ -415,7 +416,7 @@ public class GameClient {
      * @return
      */
     protected String getPasswordFromUser() {
-        throw new RuntimeException("Client does not overide the getPasswordFromUser method");
+        throw new GException("Client does not overide the getPasswordFromUser method");
     }
 
     /**

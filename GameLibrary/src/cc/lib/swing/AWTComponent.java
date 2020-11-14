@@ -24,6 +24,7 @@ import cc.lib.game.Renderable;
 import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
+import cc.lib.utils.GException;
 
 
 /**
@@ -97,7 +98,7 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
                                 paint(G, mouseX, mouseY);
                             } catch (Exception e) {
                                 e.printStackTrace();
-                                throw new RuntimeException(e);
+                                throw new GException(e);
                             }
                         }
                         if (G.getMatrixStackSize() != matStack) {
@@ -134,7 +135,7 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
             }
         } catch (Throwable e) {
             e.printStackTrace();
-            throw new RuntimeException(e);
+            throw new GException(e);
         }
     }
 

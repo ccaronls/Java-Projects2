@@ -7,6 +7,7 @@ import java.io.PrintStream;
 import java.io.PrintWriter;
 
 import cc.lib.game.Utils;
+import cc.lib.utils.GException;
 
 /**
  * Created by chriscaron on 2/27/18.
@@ -82,9 +83,9 @@ public abstract class LoggerFactory {
                         if (!outFile.exists()) {
                             try {
                                 if (!outFile.createNewFile())
-                                    throw new RuntimeException("Cannot create file '" + outFile + "'");
+                                    throw new GException("Cannot create file '" + outFile + "'");
                             } catch (IOException e) {
-                                throw new RuntimeException(e);
+                                throw new GException(e);
                             }
                         }
                         out = new PrintWriter(new FileWriter(outFile));
@@ -96,9 +97,9 @@ public abstract class LoggerFactory {
                         File newFile = new File(outFile.getParent(), outFile.getName()+".0");
                         newFile.delete();
                         if (!outFile.renameTo(newFile))
-                            throw new RuntimeException("Failed to rename " + outFile + " to " + newFile);
+                            throw new GException("Failed to rename " + outFile + " to " + newFile);
                         if (!outFile.createNewFile())
-                            throw new RuntimeException("Failed to create file: " + outFile);
+                            throw new GException("Failed to create file: " + outFile);
                     }
                 } catch (IOException e) {
                     e.printStackTrace();

@@ -1,0 +1,4 @@
+More quests
+Display more stats on player info
+Move message to char component
+syncronize UI events better

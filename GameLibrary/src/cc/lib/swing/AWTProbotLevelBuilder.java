@@ -195,7 +195,8 @@ public class AWTProbotLevelBuilder extends AWTComponent {
             @Override
             protected void onAction() {
                 grid.init(1, 1, Type.EM);
-                getLevel().coins = grid.getGrid();
+                getLevel().coins = new Type[grid.getRows()][grid.getCols()];
+                grid.assignTo(getLevel().coins);
                 AWTProbotLevelBuilder.this.repaint();
             }
         });
@@ -346,12 +347,7 @@ public class AWTProbotLevelBuilder extends AWTComponent {
     int pickCol = -1;
     int pickRow = -1;
 
-    Grid<Type> grid = new Grid() {
-        @Override
-        protected Type[][] build(int rows, int cols) {
-            return new Type[rows][cols];
-        }
-    };
+    Grid<Type> grid = new Grid();
 
     @Override
     protected void paint(AWTGraphics g, int mouseX, int mouseY) {
@@ -441,7 +437,8 @@ public class AWTProbotLevelBuilder extends AWTComponent {
         }
 
         grid.ensureCapacity(pickRow+1, pickCol+1, Type.EM);
-        getLevel().coins = grid.getGrid();
+        getLevel().coins = new Type[grid.getRows()][grid.getCols()];
+        grid.assignTo(getLevel().coins);
 
         Type t = this.cellType.getChecked();
         grid.set(pickRow, pickCol, t);

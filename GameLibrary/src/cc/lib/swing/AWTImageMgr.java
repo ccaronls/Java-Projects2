@@ -5,7 +5,6 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.Image;
-import java.awt.MediaTracker;
 import java.awt.Toolkit;
 import java.awt.image.CropImageFilter;
 import java.awt.image.FilteredImageSource;
@@ -30,6 +29,7 @@ import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
 import cc.lib.math.CMath;
+import cc.lib.utils.GException;
 
 public final class AWTImageMgr {
 
@@ -169,7 +169,7 @@ public final class AWTImageMgr {
 		    log.error("File '" + fileOrResourceName + "' Not found on file paths or resources");
         } catch (Exception e) {
 		    log.error(e.getClass().getSimpleName() + ":" + e.getMessage());
-            throw new RuntimeException("Cannot load image '" + fileOrResourceName + "'");
+            throw new GException("Cannot load image '" + fileOrResourceName + "'");
         }
 
 		if (transparent != null) {
@@ -462,7 +462,7 @@ public final class AWTImageMgr {
 	    try {
 	        grabber.grabPixels();
 	    } catch (Exception e) {
-	        throw new RuntimeException("Failed to grab pixels");
+	        throw new GException("Failed to grab pixels");
 	    }
 
 	    int [] rotated = new int[dstWid * dstHgt];

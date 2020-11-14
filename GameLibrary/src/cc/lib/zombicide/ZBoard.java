@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import cc.lib.game.AGraphics;
 import cc.lib.game.AImage;
@@ -14,7 +15,6 @@ import cc.lib.game.GRectangle;
 import cc.lib.game.Justify;
 import cc.lib.game.Utils;
 import cc.lib.math.Vector2D;
-import cc.lib.swing.AWTGraphics;
 import cc.lib.utils.Grid;
 import cc.lib.utils.Reflector;
 
@@ -236,9 +236,13 @@ public class ZBoard extends Reflector<ZBoard> {
         return grid.get(pos);
     }
 
+    public ZCell getCell(int row, int col) {
+        return grid.get(row, col);
+    }
+
     ZDoor getOtherSide(ZDoor door) {
-        return new ZDoor(door.cellPos.getColumn() + DIR_DX[door.dir]
-                ,door.cellPos.getRow() + DIR_DY[door.dir],
+        return new ZDoor(door.cellPos.getRow() + DIR_DY[door.dir],
+                door.cellPos.getColumn() + DIR_DX[door.dir],
                 DIR_OPPOSITE[door.dir]);
     }
 
@@ -307,7 +311,7 @@ public class ZBoard extends Reflector<ZBoard> {
                     case OBJECTIVE:
                         if (zone.objective) {
                             // draw a big red X om the center of the cell
-                            GRectangle redX = cell.rect.scaledBy(.5f, .5f);
+                            GRectangle redX = cell.rect.scaledBy(.25f, .25f);
                             g.setColor(GColor.RED);
                             g.drawLine(redX.getTopLeft(), redX.getBottomRight(), 10);
                             g.drawLine(redX.getTopRight(), redX.getBottomLeft(), 10);
@@ -333,9 +337,8 @@ public class ZBoard extends Reflector<ZBoard> {
                 }
             }
             if (zone.noiseLevel > 0) {
-                g.setColor(GColor.BLUE);
-                g.drawJustifiedStringOnBackground(zone.getCenter(), Justify.CENTER, Justify.CENTER,
-                        String.valueOf(zone.noiseLevel), GColor.TRANSLUSCENT_BLACK, 10, 2);
+                g.setColor(GColor.CYAN);
+                g.drawJustifiedStringOnBackground(getCell(zone.cells.get(0)).rect.getTopLeft().addEq(10, 10), Justify.LEFT, Justify.TOP, String.valueOf(zone.noiseLevel), GColor.TRANSLUSCENT_BLACK, 10, 10);
             }
 
         }
@@ -396,45 +399,6 @@ public class ZBoard extends Reflector<ZBoard> {
                 g.setColor(GColor.WHITE);
                 g.drawFilledRect(cell.rect);
             }
-            /*
-            g.pushMatrix();
-            Vector2D center = cell.rect.getCenter();
-            g.translate(center);
-            Vector2D v0 = cell.rect.getTopLeft().subEq(center);
-            Vector2D v1 = cell.rect.getTopRight().subEq(center);
-            g.scale(.97f);
-
-            for (int d=0; d<4; d++) {
-                Vector2D dv = v1.sub(v0).scaleEq(.33f);
-                Vector2D dv0 = v0.add(dv);
-                Vector2D dv1 = dv0.add(dv);
-
-                g.pushMatrix();
-                g.rotate(DIR_ROTATION[d]);
-                g.setColor(GColor.BLACK);
-                switch (cell.walls[d]) {
-                    case WALL:
-                        g.drawLine(v0, v1, 3);
-                        break;
-                    case OPEN:
-                        g.drawLine(v0, dv0, 3);
-                        g.drawLine(dv1, v1, 3);
-                        break;
-                    case LOCKED:
-                        g.drawLine(v0, v1, 3);
-                        g.setColor(GColor.RED);
-                        g.drawLine(dv0, dv1, 1);
-                        break;
-                    case CLOSED:
-                        g.drawLine(v0, v1, 3);
-                        g.setColor(GColor.GREEN);
-                        g.drawLine(dv0, dv1, 1);
-                        break;
-                }
-                g.popMatrix();
-            }
-            g.popMatrix();
-            */
             drawCellWalls(g, cell, .97f);
             String text = "Zone " + cell.zoneIndex;
             if (cell.cellType != ZCellType.NONE) {
@@ -584,10 +548,10 @@ public class ZBoard extends Reflector<ZBoard> {
         return grid.getCells();
     }
 
-    public void drawZoneOutline(AWTGraphics g, int zoneIndex) {
+    public void drawZoneOutline(AGraphics g, int zoneIndex) {
         ZZone zone = getZone(zoneIndex);
         for (Grid.Pos cellPos : zone.cells) {
-            g.drawFilledRect(getCell(cellPos).rect);
+            g.drawRect(getCell(cellPos).rect, 1);
         }
     }
 
@@ -626,6 +590,10 @@ public class ZBoard extends Reflector<ZBoard> {
         return Utils.filter(getAllActors(), (Utils.Filter<ZActor>) object -> object instanceof ZZombie);
     }
 
+    public List<ZCharacter> getAllCharacters() {
+        return Utils.filter(getAllActors(), (Utils.Filter<ZActor>) object -> object instanceof ZCharacter);
+    }
+
     public List<ZDoor> getDoorsForZone(int occupiedZone, ZWallFlag ... flags) {
         List<ZDoor> doors = new ArrayList<>();
         for (Grid.Pos cellPos : zones.get(occupiedZone).cells) {
@@ -639,34 +607,41 @@ public class ZBoard extends Reflector<ZBoard> {
         return doors;
     }
 
-    public void moveActorInDirection(ZActor actor, int direction) {
-        Grid.Pos pos = actor.occupiedCell;
+    Grid.Pos getAdjacentPos(Grid.Pos pos, int direction) {
         int col = pos.getColumn();
         int row = pos.getRow();
         switch (direction) {
             case DIR_NORTH:
                 if (row <= 0)
-                    return;
+                    return null;
                 row--;
                 break;
             case DIR_SOUTH:
                 if (row >= getRows())
-                    return;
+                    return null;
                 row++;
                 break;
             case DIR_EAST:
                 if (col >= getColumns())
-                    return;
+                    return null;
                 col++;
                 break;
             case DIR_WEST:
                 if (col <= 0)
-                    return;
+                    return null;
                 col--;
                 break;
         }
-        removeActor(actor);
-        addActorToCell(actor, new Grid.Pos(row, col));
+        return new Grid.Pos(row, col);
+    }
+
+    public void moveActorInDirection(ZActor actor, int direction) {
+        Grid.Pos pos = actor.occupiedCell;
+        Grid.Pos adj = getAdjacentPos(pos, direction);
+        if (adj != null) {
+            removeActor(actor);
+            addActorToCell(actor, adj);
+        }
     }
 
     private boolean addActorToCell(ZActor actor, Grid.Pos pos) {
@@ -682,5 +657,37 @@ public class ZBoard extends Reflector<ZBoard> {
             }
         }
         return false;
+    }
+
+    public void getUndiscoveredIndoorZones(Grid.Pos startPos, Set<Integer> undiscovered) {
+        ZCell cell = getCell(startPos);
+        if (cell.discovered)
+            return;
+        cell.discovered = true;
+        ZZone zone = zones.get(cell.zoneIndex);
+        if (!zone.searchable)
+            return;
+        undiscovered.add(cell.zoneIndex);
+        for (int i=0; i<4; i++) {
+            switch (cell.walls[i]) {
+                case NONE:
+                case OPEN:
+                    getUndiscoveredIndoorZones(getAdjacentPos(startPos, i), undiscovered);
+                    break;
+            }
+        }
+    }
+
+    void resetNoise() {
+        for (ZZone zone : zones) {
+            zone.noiseLevel = 0;
+            for (Grid.Pos pos: zone.cells) {
+                for (ZActor a : getCell(pos).occupied) {
+                    if (a != null && a instanceof ZCharacter) {
+                        zone.noiseLevel ++;
+                    }
+                }
+            }
+        }
     }
 }
