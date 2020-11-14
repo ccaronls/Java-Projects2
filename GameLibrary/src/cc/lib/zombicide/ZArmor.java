@@ -1,26 +1,24 @@
 package cc.lib.zombicide;
 
-public enum ZArmor implements ZEquipment {
+public class ZArmor extends ZEquipment<ZArmorType> {
 
-    LEATHER(ZEquipSlotType.BODY,5),
-    CHAIN(ZEquipSlotType.BODY, 4),
-    PLATE(ZEquipSlotType.BODY, 3),
-    SHIELD(ZEquipSlotType.HAND, 3),
-    DWARVEN_SHIELD(ZEquipSlotType.HAND, 4), // protects against abomination TODO
-    SHIELD_OF_AGES(ZEquipSlotType.HAND, 4), // gain the shove skill TODO
-    ;
-
-    ZArmor(ZEquipSlotType slotType, int dieRollToBlock) {
-        this.slotType = slotType;
-        this.dieRollToBlock = dieRollToBlock;
+    static {
+        addAllFields(ZArmor.class);
     }
 
-    final int dieRollToBlock;
-    final ZEquipSlotType slotType;
+    public ZArmor() {
+        this(null);
+    }
+
+    ZArmor(ZArmorType type) {
+        this.type = type;
+    }
+
+    final ZArmorType type;
 
     @Override
     public ZEquipSlotType getSlotType() {
-        return slotType;
+        return type.slotType;
     }
 
     @Override
@@ -33,13 +31,18 @@ public enum ZArmor implements ZEquipment {
         return true;
     }
 
-    int getRating(ZZombieType type) {
-        switch (this) {
-            default:
-                if (type == ZZombieType.Abomination)
-                    return 0;
-            case DWARVEN_SHIELD:
-        }
-        return 6-dieRollToBlock;
+    @Override
+    public String name() {
+        return type.name();
     }
+
+    int getRating(ZZombieType type) {
+        return this.type.getRating(type);
+    }
+
+    @Override
+    public ZArmorType getType() {
+        return type;
+    }
+
 }

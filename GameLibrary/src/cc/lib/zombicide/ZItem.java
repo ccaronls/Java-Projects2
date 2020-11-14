@@ -1,39 +1,34 @@
 package cc.lib.zombicide;
 
-public enum ZItem implements ZEquipment {
-    AAHHHH(false, null, "Stop Searching and place a zombie in the room being searched."),
-    TORCH(false, ZEquipSlotType.HAND, "Draw 2 cards when searching. Spend an action, discard, and select a dragon bile at range 0-1 to ignite. Resolve dragon Fire."),
-    DRAGON_BILE(true, ZEquipSlotType.HAND, "Spend an action, discard and place a dragon bile token at range 0-1"),
-    WATER(true, ZEquipSlotType.BACKPACK, "Discard and gain 1 experience point"),
-    SALTED_MEAT(true, ZEquipSlotType.BACKPACK, "Discard and gain 1 experience point"),
-    APPLES(true, ZEquipSlotType.BACKPACK, "Discard and gain 1 experience point"),
-    PLENTY_OF_ARROWS(false, ZEquipSlotType.BACKPACK, "You may re-roll all ranged attacked involving bows. The new result takes place of old."), // user can reroll ranged arrow attacks if they want
-    PLENTY_OF_BOLTS(false, ZEquipSlotType.BACKPACK, "You may re-roll all ranged attacked involving bolts. The new result takes place of old."),
-    ;
+public class ZItem extends ZEquipment<ZItemType> {
 
-    ZItem(boolean canConsume, ZEquipSlotType slot, String description) {
-        this.canConsume = canConsume;
-        this.slot = slot;
-        this.description = description;
+    static {
+        addAllFields(ZItem.class);
     }
 
-    private final ZEquipSlotType slot;
-    private final boolean canConsume;
-    public final String description;
+    public ZItem() {
+        this(null);
+    }
+
+    ZItem(ZItemType type) {
+        this.type = type;
+    }
+
+    final ZItemType type;
 
     @Override
     public ZEquipSlotType getSlotType() {
-        return slot;
+        return type.slot;
     }
 
     @Override
     public boolean canConsume() {
-        return canConsume;
+        return type.canConsume;
     }
 
     @Override
     public boolean canEquip() {
-        return slot.canEquip();
+        return type.slot.canEquip();
     }
 
     @Override
@@ -51,5 +46,14 @@ public enum ZItem implements ZEquipment {
         return false;
     }
 
+    @Override
+    public String name() {
+        return type.name();
+    }
+
+    @Override
+    public ZItemType getType() {
+        return type;
+    }
 
 }

@@ -702,7 +702,7 @@ public class ZGame extends Reflector<ZGame>  {
                 // draw from top of the deck
                 if (searchables.size() > 0) {
                     ZEquipment equip = searchables.removeLast();
-                    if (equip == ZItem.AAHHHH) {
+                    if (equip.getType() == ZItemType.AAHHHH) {
                         // spawn zombie right here right now
                         spawnZombies(1, ZZombieType.WALKERS, currentCharacter.occupiedZone);
                         searchables.addFirst(equip);
@@ -760,11 +760,11 @@ public class ZGame extends Reflector<ZGame>  {
     private void performConsume(ZCharacter c, ZMove move) {
         ZItem item  = (ZItem)move.equipment;
         ZEquipSlot slot = move.fromSlot;
-        switch (item) {
+        switch ((ZItemType)item.getType()) {
             case DRAGON_BILE: {
                 Integer zone = getCurrentUser().chooseZoneForBile(this, c, move.list);
                 if (zone != null) {
-                    c.removeEquipment(ZItem.DRAGON_BILE, selectedSlot);
+                    c.removeEquipment(item, selectedSlot);
                     board.zones.get(zone).dragonBile = true;
                     c.performAction(ZActionType.CONSUME, this);
                     endAction();
@@ -782,7 +782,7 @@ public class ZGame extends Reflector<ZGame>  {
                         exp += zombie.type.expProvided;
                     }
                     addExperience(c, exp);
-                    c.removeEquipment(ZItem.TORCH, selectedSlot);
+                    c.removeEquipment(ZItemType.TORCH, selectedSlot);
                     board.zones.get(zone).dragonBile = false;
                     c.performAction(ZActionType.CONSUME, this);
                     endAction();
@@ -980,43 +980,56 @@ public class ZGame extends Reflector<ZGame>  {
         stateStack.pop();
     }
 
+    List<ZEquipment> make(int count, Enum e) {
+        List<ZEquipment> list = new ArrayList<>();
+        if (e instanceof ZWeaponType) {
+            for (int i=0; i<count; i++)
+                list.add(new ZWeapon((ZWeaponType)e));
+        } else if (e instanceof ZArmorType) {
+            for (int i=0; i<count; i++)
+                list.add(new ZArmor((ZArmorType)e));
+        } else if (e instanceof ZItemType) {
+            for (int i=0; i<count; i++)
+                list.add(new ZItem((ZItemType)e));
+        }
+        return list;
+    }
+
     void initSearchables() {
         searchables.clear();
-        searchables.addAll(Arrays.asList(
-                ZItem.AAHHHH, ZItem.AAHHHH, ZItem.AAHHHH, ZItem.AAHHHH,
-                ZItem.APPLES, ZItem.APPLES,
-                ZWeapon.AXE, ZWeapon.AXE,
-                ZArmor.CHAIN, ZArmor.CHAIN,
-                ZWeapon.CROSSBOW, ZWeapon.CROSSBOW,
-                ZWeapon.DAGGER, ZWeapon.DAGGER, ZWeapon.DAGGER, ZWeapon.DAGGER,
-                ZWeapon.DEATH_STRIKE, ZWeapon.DEATH_STRIKE,
-                ZItem.DRAGON_BILE, ZItem.DRAGON_BILE, ZItem.DRAGON_BILE, ZItem.DRAGON_BILE,
-                ZWeapon.FIREBALL, ZWeapon.FIREBALL,
-                ZWeapon.GREAT_SWORD, ZWeapon.GREAT_SWORD,
-                ZWeapon.HAMMER,
-                ZWeapon.HAND_CROSSBOW, ZWeapon.HAND_CROSSBOW,
-                ZEnchantment.HEALING,
-                ZWeapon.INFERNO,
-                ZEnchantment.INVISIBILITY,
-                ZArmor.LEATHER, ZArmor.LEATHER,
-                ZWeapon.LIGHTNING_BOLT, ZWeapon.LIGHTNING_BOLT,
-                ZWeapon.LONG_BOW, ZWeapon.LONG_BOW,
-                ZWeapon.MANA_BLAST,
-                ZWeapon.ORCISH_CROSSBOW,
-                ZArmor.PLATE,
-                ZItem.PLENTY_OF_ARROWS,ZItem.PLENTY_OF_ARROWS, ZItem.PLENTY_OF_ARROWS,
-                ZItem.PLENTY_OF_BOLTS,ZItem.PLENTY_OF_BOLTS,ZItem.PLENTY_OF_BOLTS,
-                ZWeapon.REPEATING_CROSSBOW, ZWeapon.REPEATING_CROSSBOW,
-                ZEnchantment.REPULSE,
-                ZItem.SALTED_MEAT, ZItem.SALTED_MEAT,
-                ZArmor.SHIELD, ZArmor.SHIELD,
-                ZWeapon.SHORT_BOW,
-                ZWeapon.SHORT_SWORD,
-                ZEnchantment.SPEED,
-                ZWeapon.SWORD, ZWeapon.SWORD,
-                ZItem.TORCH, ZItem.TORCH, ZItem.TORCH, ZItem.TORCH,
-                ZItem.WATER, ZItem.WATER
-                ));
+        searchables.addAll(make(4, ZItemType.AAHHHH));
+        searchables.addAll(make(2, ZItemType.APPLES));
+        searchables.addAll(make(2, ZWeaponType.AXE));
+        searchables.addAll(make(2, ZArmorType.CHAIN));
+        searchables.addAll(make(2, ZWeaponType.CROSSBOW));
+        searchables.addAll(make(4, ZWeaponType.DAGGER));
+        searchables.addAll(make(2, ZWeaponType.DEATH_STRIKE));
+        //searchables.addAll(make(4, ZItemType.DRAGON_BILE));
+        searchables.addAll(make(4, ZWeaponType.FIREBALL));
+        searchables.addAll(make(2, ZWeaponType.GREAT_SWORD));
+        searchables.addAll(make(1, ZWeaponType.HAMMER));
+        searchables.addAll(make(2, ZWeaponType.HAND_CROSSBOW));
+        searchables.addAll(make(1, ZSpellType.HEALING));
+        searchables.addAll(make(1, ZWeaponType.INFERNO));
+        searchables.addAll(make(1, ZSpellType.INVISIBILITY));
+        searchables.addAll(make(2, ZArmorType.LEATHER));
+        searchables.addAll(make(2, ZWeaponType.LIGHTNING_BOLT));
+        searchables.addAll(make(2, ZWeaponType.LONG_BOW));
+        searchables.addAll(make(1, ZWeaponType.MANA_BLAST));
+//        searchables.addAll(make(1, ZWeaponType.ORCISH_CROSSBOW));
+        searchables.addAll(make(1, ZArmorType.PLATE));
+        searchables.addAll(make(3, ZItemType.PLENTY_OF_ARROWS));
+        searchables.addAll(make(3, ZItemType.PLENTY_OF_BOLTS));
+        searchables.addAll(make(2, ZWeaponType.REPEATING_CROSSBOW));
+        searchables.addAll(make(1, ZSpellType.REPULSE));
+        searchables.addAll(make(2, ZItemType.SALTED_MEAT));
+        searchables.addAll(make(2, ZArmorType.SHIELD));
+        searchables.addAll(make(1, ZWeaponType.SHORT_BOW));
+        searchables.addAll(make(1, ZWeaponType.SHORT_SWORD));
+        searchables.addAll(make(1, ZSpellType.SPEED));
+        searchables.addAll(make(2, ZWeaponType.SWORD));
+//        searchables.addAll(make(4, ZItemType.TORCH));
+        searchables.addAll(make(2, ZItemType.WATER));
         Utils.shuffle(searchables);
     }
 

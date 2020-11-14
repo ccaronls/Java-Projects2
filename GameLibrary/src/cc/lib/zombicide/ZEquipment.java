@@ -1,46 +1,58 @@
 package cc.lib.zombicide;
 
-import cc.lib.game.Utils;
 import cc.lib.utils.Reflector;
 
-@Reflector.EnumInterfcae
-public interface ZEquipment {
+public abstract class ZEquipment<T extends Enum<T>> extends Reflector<ZEquipment<T>> {
 
-    ZEquipSlotType getSlotType();
+    public abstract ZEquipSlotType getSlotType();
 
-    default boolean canOpenDoor() {
+    public boolean canOpenDoor() {
         return false;
     }
 
-    default boolean canConsume() {
+    public boolean canConsume() {
         return false;
     }
 
-    String name();
+    public abstract String name();
 
-    boolean canEquip();
+    public abstract boolean canEquip();
 
-    default boolean isMelee() {
+    public boolean isMelee() {
         return false;
     }
 
-    default boolean isMagic() {
+    public boolean isMagic() {
         return false;
     }
 
-    default boolean isRanged() {
+    public boolean isRanged() {
         return false;
     }
 
-    default boolean isEnchantment() {
+    public boolean isEnchantment() {
         return false;
     }
 
-    default boolean isArmor() {
+    public boolean isArmor() {
         return false;
     }
 
-    default String displayName() {
-        return Utils.getPrettyString(name());
+    public abstract Enum<T> getType();
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o || getType() == o) return true;
+        if (o == null) return false;
+        if (!(o instanceof ZEquipment)) {
+            return false;
+        }
+        return getType().equals(((ZEquipment)o).getType());
     }
+
+    @Override
+    public int hashCode() {
+        return getType().ordinal();
+    }
+
 }

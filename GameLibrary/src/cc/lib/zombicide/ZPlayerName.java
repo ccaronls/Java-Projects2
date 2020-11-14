@@ -6,78 +6,78 @@ import cc.lib.game.Utils;
 
 public enum ZPlayerName {
     Ann("Angry Nun",
-            Utils.toArray(ZWeapon.DAGGER),
-            Utils.toArray(ZWeapon.DAGGER),
+            Utils.toArray(ZWeaponType.DAGGER),
+            Utils.toArray(ZWeaponType.DAGGER),
             Utils.toArray(ZSkill.Bloodlust),
             Utils.toArray(ZSkill.Plus1_Action),
             Utils.toArray(ZSkill.Plus1_free_Magic_Action, ZSkill.Plus1_free_Melee_Action),
             Utils.toArray(ZSkill.Plus1_free_Combat_Action, ZSkill.Plus1_to_dice_roll_Combat, ZSkill.Roll_6_plus1_die_Combat)),
     Baldric("Magician",
-            Utils.toArray(ZWeapon.MANA_BLAST),
-            Utils.toArray(ZWeapon.SHORT_SWORD),
+            Utils.toArray(ZWeaponType.MANA_BLAST),
+            Utils.toArray(ZWeaponType.SHORT_SWORD),
             Utils.toArray(ZSkill.Spellcaster),
             Utils.toArray(ZSkill.Plus1_Action),
             Utils.toArray(ZSkill.Plus1_free_Magic_Action, ZSkill.Spellbook),
             Utils.toArray(ZSkill.Plus1_die_Magic, ZSkill.Plus1_free_Combat_Action, ZSkill.Plus1_to_dice_roll_Melee)),
     Clovis("Warrior",
-            Utils.toArray(ZWeapon.SHORT_SWORD),
-            Utils.toArray(ZArmor.SHIELD),
+            Utils.toArray(ZWeaponType.SHORT_SWORD),
+            Utils.toArray(ZArmorType.SHIELD),
             Utils.toArray(ZSkill.Plus1_die_Melee),
             Utils.toArray(ZSkill.Plus1_Action),
             Utils.toArray(ZSkill.Plus1_free_Melee_Action, ZSkill.Swordmaster),
             Utils.toArray(ZSkill.Plus1_free_Combat_Action, ZSkill.Plus1_to_dice_roll_Combat, ZSkill.Hit_and_run)),
     Samson("Dwarf",
-            Utils.toArray(ZWeapon.AXE),
-            Utils.toArray(ZArmor.SHIELD),
+            Utils.toArray(ZWeaponType.AXE),
+            Utils.toArray(ZArmorType.SHIELD),
             Utils.toArray(ZSkill.Iron_hide),
             Utils.toArray(ZSkill.Plus1_Action),
             Utils.toArray(ZSkill.Plus1_die_Combat, ZSkill.Plus1_to_dice_roll_Melee),
             Utils.toArray(ZSkill.Plus1_Damage_Melee, ZSkill.Plus1_free_Combat_Action, ZSkill.Barbarian)),
     Nelly("Rogue",
-            Utils.toArray(ZWeapon.SHORT_SWORD),
-            Utils.toArray(ZWeapon.DAGGER),
+            Utils.toArray(ZWeaponType.SHORT_SWORD),
+            Utils.toArray(ZWeaponType.DAGGER),
             Utils.toArray(ZSkill.Plus1_free_Move_Action),
             Utils.toArray(ZSkill.Plus1_Action),
             Utils.toArray(ZSkill.Bloodlust_Melee, ZSkill.Slippery),
             Utils.toArray(ZSkill.Plus1_free_Combat_Action, ZSkill.Plus1_to_dice_roll_Combat, ZSkill.Hit_and_run)),
     Silas("Elven Ranger",
-            Utils.toArray(ZWeapon.SHORT_BOW),
-            Utils.toArray(ZWeapon.SHORT_SWORD),
+            Utils.toArray(ZWeaponType.SHORT_BOW),
+            Utils.toArray(ZWeaponType.SHORT_SWORD),
             Utils.toArray(ZSkill.Plus1_to_dice_roll_Ranged),
             Utils.toArray(ZSkill.Plus1_Action),
             Utils.toArray(ZSkill.Plus1_free_Ranged_Action, ZSkill.Point_blank),
             Utils.toArray(ZSkill.Plus1_die_Ranged, ZSkill.Plus1_free_Combat_Action, ZSkill.Iron_rain)),
     Tucker("Monk",
-            Utils.toArray(ZWeapon.CROSSBOW),
-            Utils.toArray(ZWeapon.AXE),
+            Utils.toArray(ZWeaponType.CROSSBOW),
+            Utils.toArray(ZWeaponType.AXE),
             Utils.toArray(ZSkill.Shove),
             Utils.toArray(ZSkill.Plus1_Action),
             Utils.toArray(ZSkill.Lucky, ZSkill.Spellcaster),
             Utils.toArray(ZSkill.Plus1_die_Combat, ZSkill.Plus1_free_Combat_Action, ZSkill.Free_reload)),
     Tyrion("Elitist",
-            Utils.toArray(ZWeapon.DAGGER),
-            Utils.toArray(ZWeapon.AXE),
+            Utils.toArray(ZWeaponType.DAGGER),
+            Utils.toArray(ZWeaponType.AXE),
             Utils.toArray(ZSkill.Born_leader, ZSkill.Low_profile),
             Utils.toArray(ZSkill.Plus1_Action),
             Utils.toArray(ZSkill.Plus1_free_Ranged_Action, ZSkill.Plus1_die_Combat),
             Utils.toArray(ZSkill.Plus1_die_Ranged, ZSkill.Plus1_free_Combat_Action, ZSkill.Marksman)),
     Damiel("Assasin",
-            Utils.toArray(ZWeapon.DEATH_STRIKE),
-            Utils.toArray(ZItem.DRAGON_BILE),
+            Utils.toArray(ZWeaponType.DEATH_STRIKE),
+            Utils.toArray(ZItemType.DRAGON_BILE),
             Utils.toArray(), //ZSkill.TwoDragonBilesIsBeterThanOne),
             Utils.toArray(ZSkill.Plus1_Action),
             Utils.toArray(ZSkill.Search_plus1_card, ZSkill.Scavenger),
             Utils.toArray(ZSkill.Low_profile, ZSkill.Spellbook, ZSkill.Free_reload)),
     Annice("Healer",
-            Utils.toArray(ZEnchantment.HEALING),
-            Utils.toArray(ZEnchantment.HEALING),
+            Utils.toArray(ZSpellType.HEALING),
+            Utils.toArray(ZSpellType.HEALING),
             Utils.toArray(),
             Utils.toArray(ZSkill.Plus1_Action),
             Utils.toArray(ZSkill.Lifesaver, ZSkill.Spellcaster),
             Utils.toArray(ZSkill.Born_leader, ZSkill.Regeneration, ZSkill.Plus1_free_Magic_Action)),
     Kabral("Barbarian",
-            Utils.toArray(ZWeapon.SWORD),
-            Utils.toArray(ZWeapon.DAGGER),
+            Utils.toArray(ZWeaponType.SWORD),
+            Utils.toArray(ZWeaponType.DAGGER),
             Utils.toArray(ZSkill.Shove),
             Utils.toArray(ZSkill.Plus1_Action),
             Utils.toArray(ZSkill.Barbarian, ZSkill.Bloodlust_Melee),
@@ -89,7 +89,7 @@ public enum ZPlayerName {
             )*/
     ;
 
-    ZPlayerName(String characterClass, ZEquipment [] startingEquipment, ZEquipment [] alternateBodySlots, ZSkill [] blueSkillOptions, ZSkill[] yellowSkillOptions, ZSkill[] orangeSkillOptions, ZSkill[] redSkillOptions) {
+    ZPlayerName(String characterClass, ZEquipmentType [] startingEquipment, ZEquipmentType [] alternateBodySlots, ZSkill [] blueSkillOptions, ZSkill[] yellowSkillOptions, ZSkill[] orangeSkillOptions, ZSkill[] redSkillOptions) {
         this.characterClass = characterClass;
         this.startingEquipment = startingEquipment;
         this.alternateBodySlots = alternateBodySlots;
@@ -100,8 +100,8 @@ public enum ZPlayerName {
     }
 
     public final String characterClass;
-    public final ZEquipment [] startingEquipment;
-    public final ZEquipment [] alternateBodySlots;
+    public final ZEquipmentType [] startingEquipment;
+    public final ZEquipmentType [] alternateBodySlots;
     public final ZSkill [] blueSkillOptions;
     public final ZSkill [] yellowSkillOptions;
     public final ZSkill [] orangeSkillOptions;
@@ -111,8 +111,8 @@ public enum ZPlayerName {
     public ZCharacter create() {
         ZCharacter c = new ZCharacter();
         c.name = this;
-        for (ZEquipment e : startingEquipment)
-            c.equip(e);
+        for (ZEquipmentType e : startingEquipment)
+            c.equip(e.create());
         c.allSkills.addAll(Arrays.asList(blueSkillOptions));
         return c;
     }

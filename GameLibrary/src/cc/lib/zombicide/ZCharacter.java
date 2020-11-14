@@ -71,11 +71,11 @@ public class ZCharacter extends ZActor implements Table.Model {
                 super.performAction(action, game);
                 for (ZWeapon w : getWeapons()) {
                     if (w.canOpenDoor()) {
-                        if (w.openDoorsIsNoisy)
+                        if (w.type.openDoorsIsNoisy)
                             game.addNoise(occupiedZone, 1);
-                        if (w.meleeStats.dieRollToOpenDoor>1) {
+                        if (w.type.meleeStats.dieRollToOpenDoor>1) {
                             int [] die = game.rollDice(1);
-                            if (die[0] > w.meleeStats.dieRollToOpenDoor) {
+                            if (die[0] > w.type.meleeStats.dieRollToOpenDoor) {
                                 return false;
                             }
                         }
@@ -131,7 +131,7 @@ public class ZCharacter extends ZActor implements Table.Model {
             return false;
         if (!weapons.get(0).equals(weapons.get(1)))
             return false;
-        if (weapons.get(0).canTwoHand)
+        if (weapons.get(0).type.canTwoHand)
             return true;
         if (weapons.get(0).isMelee() && availableSkills.contains(ZSkill.Swordmaster))
             return true;
@@ -211,14 +211,13 @@ public class ZCharacter extends ZActor implements Table.Model {
         return null;
     }
 
-
-    public void removeEquipment(ZEquipment equipment, ZEquipSlot slot) {
+    public void removeEquipment(Object type, ZEquipSlot slot) {
         switch (slot) {
             case BODY:
                 body = null;
                 break;
             case BACKPACK: {
-                int idx = backpack.indexOf(equipment);
+                int idx = backpack.indexOf(type);
                 assert(idx >= 0);
                 backpack.remove(idx);
                 break;
@@ -370,13 +369,13 @@ public class ZCharacter extends ZActor implements Table.Model {
         ZWeaponStat stat = null;
         switch (attackType) {
             case MELEE:
-                stat = weapon.meleeStats.copy();
+                stat = weapon.type.meleeStats.copy();
                 break;
             case RANGED:
-                stat = weapon.rangedStats.copy();
+                stat = weapon.type.rangedStats.copy();
                 break;
             case MAGIC:
-                stat = weapon.magicStats.copy();
+                stat = weapon.type.magicStats.copy();
                 break;
         }
         for (ZSkill skill : availableSkills) {
@@ -428,7 +427,7 @@ public class ZCharacter extends ZActor implements Table.Model {
      * @return
      */
     public boolean canShove() {
-        if (getArmor().contains(ZArmor.SHIELD_OF_AGES))
+        if (getArmor().contains(ZArmorType.SHIELD_OF_AGES))
             return true;
         if (availableSkills.contains(ZSkill.Shove))
             return true;

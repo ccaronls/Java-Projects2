@@ -132,11 +132,6 @@ public class Reflector<T> {
         String[] variations();
     }
 
-    @Target(value = ElementType.TYPE)
-    @Retention(value = RetentionPolicy.RUNTIME)
-    public @interface EnumInterfcae {
-    }
-
     @Target(value = ElementType.FIELD)
     @Retention(value = RetentionPolicy.RUNTIME)
     public @interface Generic {}
@@ -992,7 +987,7 @@ public class Reflector<T> {
             return floatArchiver;
         } else if (clazz.equals(String.class)) {
             return stringArchiver;
-        } else if (clazz.isEnum() || isSubclassOf(clazz, Enum.class) || clazz.getAnnotation(EnumInterfcae.class) != null) {
+        } else if (clazz.isEnum() || isSubclassOf(clazz, Enum.class)) {
             addArrayTypes(clazz);
             return enumArchiver;
         } else if (isSubclassOf(clazz, Reflector.class)) {
