@@ -64,7 +64,7 @@ public class ZCharacter extends ZActor {
         switch (action) {
             case ORGANIZE:
                 if (organizedThisTurn)
-                    return false;
+                    return true;
                 organizedThisTurn = true;
                 break;
             case OPEN_DOOR: {
@@ -74,7 +74,7 @@ public class ZCharacter extends ZActor {
                         if (w.type.openDoorsIsNoisy)
                             game.addNoise(occupiedZone, 1);
                         if (w.type.meleeStats.dieRollToOpenDoor>1) {
-                            int [] die = game.rollDice(1);
+                            Integer [] die = game.rollDice(1);
                             if (die[0] > w.type.meleeStats.dieRollToOpenDoor) {
                                 return false;
                             }
@@ -287,7 +287,11 @@ public class ZCharacter extends ZActor {
         info.addColumn("STATS", Arrays.asList(stats.toString()));
         info.addColumn("Skills", availableSkills);
 
-        return String.format("%s (%s) moves: %d/%d\n%s", name.name(), name.characterClass, getActionsLeftThisTurn(), getActionsPerTurn(), info.toString());
+        return String.format("%s (%s) moves: %d/%d Body:%s\n%s",
+                name.name(), name.characterClass,
+                getActionsLeftThisTurn(), getActionsPerTurn(),
+                Arrays.toString(name.alternateBodySlots),
+                info.toString());
     }
 
     public boolean isBackpackFull() {

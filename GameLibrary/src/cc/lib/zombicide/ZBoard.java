@@ -1,6 +1,7 @@
 package cc.lib.zombicide;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -136,20 +137,20 @@ public class ZBoard extends Reflector<ZBoard> {
      * @See DIR_NORTH, DIR_SOUTH, DIR_EAST, DIR_WEST
      *
      * @param fromPos
-     * @param toZone
+     * @param toZoneIndex
      * @return
      */
-    public List<ZDir> getShortestPathOptions(Grid.Pos fromPos, int toZone) {
-        ZZone b = zones.get(toZone);
+    public Collection<ZDir> getShortestPathOptions(Grid.Pos fromPos, int toZoneIndex) {
+        ZZone toZone = zones.get(toZoneIndex);
 
         List<List<ZDir>> allPaths = new ArrayList<>();
         int maxDist = grid.getRows() * grid.getCols();
 
-        for (Grid.Pos bCellPos : b.cells) {
+        for (Grid.Pos bCellPos : toZone.cells) {
             List<List<ZDir>> paths = getShortestPathOptions(fromPos, bCellPos, maxDist);
-            for (List l : paths) {
-                maxDist = Math.min(maxDist, l.size());
-            }
+            //for (List l : paths) {
+            //    maxDist = Math.min(maxDist, l.size());
+            //}
             allPaths.addAll(paths);
         }
 
@@ -159,7 +160,7 @@ public class ZBoard extends Reflector<ZBoard> {
                 it.remove();
         }
 
-        List<ZDir> dirs = new ArrayList<>();
+        Set<ZDir> dirs = new HashSet<>();
         for (List<ZDir> p : allPaths) {
             dirs.add(p.get(0));
         }
@@ -174,8 +175,8 @@ public class ZBoard extends Reflector<ZBoard> {
         return paths;
     }
 
-    private void searchPathsR(Grid.Pos start, Grid.Pos end, int [] maxDist, LinkedList<ZDir> curPath, List<List<ZDir>> paths, Set<Grid.Pos> visited) {
-        if (start.equals(end)) {
+    private void searchPathsR(Grid.Pos fromPos, Grid.Pos toPos, int [] maxDist, LinkedList<ZDir> curPath, List<List<ZDir>> paths, Set<Grid.Pos> visited) {
+        if (fromPos.equals(toPos)) {
             if (curPath.size() > 0) {
                 paths.add(new ArrayList<>(curPath));
                 maxDist[0] = Math.min(maxDist[0], curPath.size());
@@ -184,15 +185,15 @@ public class ZBoard extends Reflector<ZBoard> {
         }
         if (curPath.size() >= maxDist[0])
             return;
-        if (visited.contains(start))
+        if (visited.contains(fromPos))
             return;
-        visited.add(start);
-        ZCell fromCell = grid.get(start);
+        visited.add(fromPos);
+        ZCell fromCell = grid.get(fromPos);
 
         for (ZDir dir : ZDir.getCompassValues()) {
             if (fromCell.getWallFlag(dir) == ZWallFlag.NONE) {
                 curPath.addLast(dir);
-                searchPathsR(dir.getAdjacent(start), end, maxDist, curPath, paths, visited);
+                searchPathsR(dir.getAdjacent(fromPos), toPos, maxDist, curPath, paths, visited);
                 curPath.removeLast();
             }
         }
@@ -200,9 +201,9 @@ public class ZBoard extends Reflector<ZBoard> {
 
         ZZone fromZone = zones.get(fromCell.getZoneIndex());
         for (ZDoor door : fromZone.getDoors()) {
-            if (!door.isClosed(this)) {
+            if (door.getCellPos().equals(fromPos) && !door.isClosed(this)) {
                 curPath.addLast(door.getMoveDirection());
-                searchPathsR(door.getCellPosEnd(), end, maxDist, curPath, paths, visited);
+                searchPathsR(door.getCellPosEnd(), toPos, maxDist, curPath, paths, visited);
                 curPath.removeLast();
             }
         }

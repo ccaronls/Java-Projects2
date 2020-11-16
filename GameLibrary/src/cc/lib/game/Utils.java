@@ -1664,8 +1664,16 @@ public class Utils {
         DEBUG_ENABLED = enable;
     }
 
-    public static <T> T randItem(List<T> items) {
-        return items.get(rand() % items.size());
+    public static <T> T randItem(Collection<T> items) {
+        int which = rand() % items.size();
+        if (items instanceof List)
+            return ((List<T>)items).get(which);
+        Iterator<T> it = items.iterator();
+        T result = it.next();
+        for (int i=0; i<which; i++) {
+            result = it.next();
+        }
+        return result;
     }
 
     /**

@@ -4,6 +4,7 @@ import java.awt.Font;
 import java.util.LinkedList;
 
 import cc.lib.game.GColor;
+import cc.lib.game.GDimension;
 import cc.lib.game.Justify;
 import cc.lib.swing.AWTComponent;
 import cc.lib.swing.AWTGraphics;
@@ -56,9 +57,9 @@ class CharacterComponent extends AWTComponent {
         g.setColor(GColor.BLACK);
         int y = 0;
         for (String msg : messages) {
-            g.drawJustifiedString(g.getViewportWidth(), y, Justify.RIGHT, Justify.TOP, msg);
+            GDimension d = g.drawJustifiedString(g.getViewportWidth(), y, Justify.RIGHT, Justify.TOP, msg);
             g.setColor(GColor.TRANSLUSCENT_BLACK);
-            y += g.getTextHeight();
+            y += d.getHeight();
         }
     }
 

@@ -1,5 +1,6 @@
 package cc.applets.zombicide;
 
+import java.util.Collection;
 import java.util.List;
 
 import cc.lib.game.AGraphics;
@@ -72,6 +73,11 @@ class BoardComponent extends AWTComponent implements ZTiles {
             int highlightedZone = board.drawZones(g, getMouseX(), getMouseY());
             highlightedActor = board.drawActors(g, getMouseX(), getMouseY());
 
+            if (getGame().getCurrentCharacter() != null) {
+                g.setColor(GColor.GREEN);
+                g.drawRect(getGame().getCurrentCharacter().getRect(), 1);
+            }
+
             g.setColor(GColor.BLACK);
             g.drawJustifiedString(getWidth()-10, getHeight()-10, Justify.RIGHT, Justify.BOTTOM, message);
             switch (ZombicideApplet.instance.uiMode) {
@@ -112,8 +118,8 @@ class BoardComponent extends AWTComponent implements ZTiles {
             if (highlightedActor != null) {
                 g.setColor(GColor.YELLOW);
                 g.drawRect(highlightedActor.getRect());
-                ZombicideApplet.instance.charComp.repaint();
             }
+            ZombicideApplet.instance.charComp.repaint();
 
         } else {
             if (cellPos != null) {
@@ -135,7 +141,7 @@ class BoardComponent extends AWTComponent implements ZTiles {
                     g.setColor(GColor.MAGENTA);
                     selected.getRect().drawOutlined(g, 4);
                     ZCell highlighted = board.getCell(highlightedCell);
-                    List<ZDir> dirs = board.getShortestPathOptions(selectedCell, highlighted.getZoneIndex());
+                    Collection<ZDir> dirs = board.getShortestPathOptions(selectedCell, highlighted.getZoneIndex());
                     g.setColor(GColor.CYAN);
                     g.drawJustifiedStringOnBackground(mouseX, mouseY, Justify.CENTER, Justify.BOTTOM, dirs.toString(), GColor.TRANSLUSCENT_BLACK, 10, 10);
                 } else {
