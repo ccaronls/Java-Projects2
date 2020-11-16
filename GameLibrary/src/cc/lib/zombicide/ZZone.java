@@ -18,7 +18,6 @@ public class ZZone extends Reflector<ZZone> {
     }
 
     final List<Grid.Pos> cells = new ArrayList<>();
-    @Omit
     final MutableVector2D center = new MutableVector2D();
 
     final List<ZDoor> doors = new ArrayList<>();

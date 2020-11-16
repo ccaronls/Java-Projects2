@@ -19,7 +19,6 @@ public abstract class ZActor extends Reflector<ZActor> {
     Grid.Pos occupiedCell;
     int occupiedQuadrant;
     private int actionsLeftThisTurn;
-    @Omit
     GRectangle rect;
 
     void prepareTurn() {

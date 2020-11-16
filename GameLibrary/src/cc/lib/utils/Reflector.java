@@ -132,10 +132,6 @@ public class Reflector<T> {
         String[] variations();
     }
 
-    @Target(value = ElementType.FIELD)
-    @Retention(value = RetentionPolicy.RUNTIME)
-    public @interface Generic {}
-
     private final static Logger log = LoggerFactory.getLogger(Reflector.class);
 
     /**
@@ -162,8 +158,8 @@ public class Reflector<T> {
         }
     }
 
-    private final static Map<Class<?>, Map<Field, Archiver>> classValues = new HashMap<Class<?>, Map<Field, Archiver>>();
-    private final static Map<String, Class<?>> classMap = new HashMap<String, Class<?>>();
+    private final static Map<Class<?>, Map<Field, Archiver>> classValues = new HashMap<>();
+    private final static Map<String, Class<?>> classMap = new HashMap<>();
 
     public static class MyBufferedReader extends BufferedReader {
 
@@ -273,8 +269,6 @@ public class Reflector<T> {
         void deserializeArray(Object arr, MyBufferedReader in) throws Exception;
     }
 
-    ;
-
     private static String readLineOrEOF(BufferedReader in) throws IOException {
         while (true) {
             String line = in.readLine();
@@ -310,7 +304,7 @@ public class Reflector<T> {
         }
 
         @Override
-        public void serializeArray(Object arr, MyPrintWriter out) throws Exception {
+        public void serializeArray(Object arr, MyPrintWriter out) {
             int len = Array.getLength(arr);
             if (len > 0) {
                 StringBuffer buf = new StringBuffer();
@@ -325,20 +319,16 @@ public class Reflector<T> {
         public void deserializeArray(Object arr, MyBufferedReader in) throws Exception {
             int len = Array.getLength(arr);
             if (len > 0) {
-                while (true) {
-                    String line = readLineOrEOF(in);
-                    String[] parts = line.split(" ");
-                    if (parts.length != len)
-                        throw new Exception("Expected " + len + " parts but found " + parts.length);
-                    for (int i = 0; i < len; i++) {
-                        Array.set(arr, i, parse(parts[i]));
-                    }
-                    in.mark(256);
-                    if (readLineOrEOF(in) != null)
-                        in.reset();
-                    //throw new Exception("Line: " + in.lineNum +" expected closing '}'");
-                    break;
+                String line = readLineOrEOF(in);
+                String[] parts = line.split(" ");
+                if (parts.length != len)
+                    throw new Exception("Expected " + len + " parts but found " + parts.length);
+                for (int i = 0; i < len; i++) {
+                    Array.set(arr, i, parse(parts[i]));
                 }
+                in.mark(256);
+                if (readLineOrEOF(in) != null)
+                    in.reset();
             }
         }
     }
@@ -383,7 +373,7 @@ public class Reflector<T> {
             int len = Array.getLength(arr);
             for (int i = 0; i < len; i++) {
                 String line = readLineOrEOF(in);
-                if (!line.equals("null")) {
+                if (line != null && !line.equals("null")) {
                     String s = decodeString(line.substring(1, line.length() - 1));
                     Array.set(arr, i, s);
                 }
@@ -473,7 +463,7 @@ public class Reflector<T> {
         }
 
         @Override
-        public void serializeArray(Object arr, MyPrintWriter out) throws Exception {
+        public void serializeArray(Object arr, MyPrintWriter out) {
             int len = Array.getLength(arr);
             if (len > 0) {
                 StringBuffer buf = new StringBuffer();
@@ -491,7 +481,7 @@ public class Reflector<T> {
         @Override
         public void deserializeArray(Object arr, MyBufferedReader in) throws Exception {
             int len = Array.getLength(arr);
-            while (len > 0) {
+            if (len > 0) {
                 String line = readLineOrEOF(in);
                 String[] parts = line.split(" ");
                 if (parts.length != len)
@@ -502,14 +492,13 @@ public class Reflector<T> {
                 }
                 if (readLineOrEOF(in) != null)
                     throw new Exception("Line: " + in.lineNum + " expected closing '}'");
-                break;
             }
         }
     };
 
     private final static Map<Class, String> caconicalNameCash = new HashMap<>();
 
-    private final static String getCanonicalName(Class clazz) {
+    private static String getCanonicalName(Class clazz) {
         String name;
         if ((name = caconicalNameCash.get(clazz)) != null) {
             return name;
@@ -530,7 +519,7 @@ public class Reflector<T> {
             if (o == null)
                 return "null";
             Class<?> clazz = o.getClass();
-            String className = null;// = o.getClass().getCanonicalName();
+            String className;
             if (clazz.isAnonymousClass())
                 className = getCanonicalName(clazz.getSuperclass());
             else

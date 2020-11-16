@@ -13,6 +13,7 @@ import cc.lib.utils.Grid;
 import cc.lib.zombicide.ZActor;
 import cc.lib.zombicide.ZBoard;
 import cc.lib.zombicide.ZCell;
+import cc.lib.zombicide.ZDir;
 import cc.lib.zombicide.ZDoor;
 import cc.lib.zombicide.ZGame;
 import cc.lib.zombicide.ZPlayerName;
@@ -58,19 +59,16 @@ class BoardComponent extends AWTComponent implements ZTiles {
     protected void paint(AWTGraphics g, int mouseX, int mouseY) {
         if (getGame() == null || getGame().board == null)
             return;
-        ZBoard board = getGame().board;
+        final ZBoard board = getGame().board;
         highlightedActor = null;
         highlightedCell = null;
         highlightedResult = null;
         highlightedDoor = null;
 
-        List options = ZombicideApplet.instance.options;
-
-        Grid.Pos cellPos = board.drawDebug(g, getMouseX(), getMouseY());
+        final List options = ZombicideApplet.instance.options;
+        final Grid.Pos cellPos = board.drawDebug(g, getMouseX(), getMouseY());
 
         if (ZombicideApplet.instance.gameRunning) {
-            //game.getQuest().drawTiles(g, ZombicideApplet.this);
-
             int highlightedZone = board.drawZones(g, getMouseX(), getMouseY());
             highlightedActor = board.drawActors(g, getMouseX(), getMouseY());
 
@@ -128,15 +126,21 @@ class BoardComponent extends AWTComponent implements ZTiles {
 
                 List<ZDoor> doors = board.getZone(cell.getZoneIndex()).getDoors();
                 highlightedDoor = pickDoor(g, doors, mouseX, mouseY);
+                if (highlightedDoor != null) {
+                    highlightedDoor.draw(g, board);
+                }
 
                 if (selectedCell != null) {
                     ZCell selected = board.getCell(selectedCell);
                     g.setColor(GColor.MAGENTA);
-                    selected.getRect().drawOutlined(g, 5);
+                    selected.getRect().drawOutlined(g, 4);
                     ZCell highlighted = board.getCell(highlightedCell);
-                    List<Integer> dirs = board.getShortestPathOptions(selected.getZoneIndex(), highlighted.getZoneIndex());
+                    List<ZDir> dirs = board.getShortestPathOptions(selectedCell, highlighted.getZoneIndex());
                     g.setColor(GColor.CYAN);
-                    g.drawJustifiedStringOnBackground(mouseX, mouseY, Justify.CENTER, Justify.CENTER, dirs.toString(), GColor.TRANSLUSCENT_BLACK, 10, 10);
+                    g.drawJustifiedStringOnBackground(mouseX, mouseY, Justify.CENTER, Justify.BOTTOM, dirs.toString(), GColor.TRANSLUSCENT_BLACK, 10, 10);
+                } else {
+                    g.setColor(GColor.CYAN);
+                    g.drawJustifiedStringOnBackground(mouseX, mouseY, Justify.CENTER, Justify.BOTTOM, cellPos.toString(), GColor.TRANSLUSCENT_BLACK, 10, 10);
                 }
             }
 

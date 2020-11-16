@@ -10,11 +10,6 @@ import cc.lib.game.AGraphics;
 import cc.lib.utils.Grid;
 import cc.lib.utils.Reflector;
 
-import static cc.lib.zombicide.ZBoard.DIR_EAST;
-import static cc.lib.zombicide.ZBoard.DIR_NORTH;
-import static cc.lib.zombicide.ZBoard.DIR_SOUTH;
-import static cc.lib.zombicide.ZBoard.DIR_WEST;
-
 public abstract class ZQuest extends Reflector<ZQuest> {
 
     static {
@@ -31,8 +26,8 @@ public abstract class ZQuest extends Reflector<ZQuest> {
 
     public abstract ZBoard loadBoard();
 
-    protected void loadCmd(Grid<ZCell> grid, int row, int col, String cmd) {
-        ZCell cell = grid.get(row, col);
+    protected void loadCmd(Grid<ZCell> grid, Grid.Pos pos, String cmd) {
+        ZCell cell = grid.get(pos);
         switch (cmd) {
             case "i":
                 cell.environment=ZCell.ENV_BUILDING;
@@ -57,52 +52,52 @@ public abstract class ZQuest extends Reflector<ZQuest> {
                 cell.vaultFlag = 4;
                 break;
             case "wn":
-                setCellWall(grid, row, col, DIR_NORTH, ZWallFlag.WALL);
+                setCellWall(grid, pos, ZDir.NORTH, ZWallFlag.WALL);
                 break;
             case "ws":
-                setCellWall(grid, row, col, DIR_SOUTH, ZWallFlag.WALL);
+                setCellWall(grid, pos, ZDir.SOUTH, ZWallFlag.WALL);
                 break;
             case "we":
-                setCellWall(grid, row, col, DIR_EAST, ZWallFlag.WALL);
+                setCellWall(grid, pos, ZDir.EAST, ZWallFlag.WALL);
                 break;
             case "ww":
-                setCellWall(grid, row, col, DIR_WEST, ZWallFlag.WALL);
+                setCellWall(grid, pos, ZDir.WEST, ZWallFlag.WALL);
                 break;
             case "dn":
-                setCellWall(grid, row, col, DIR_NORTH, ZWallFlag.CLOSED);
+                setCellWall(grid, pos, ZDir.NORTH, ZWallFlag.CLOSED);
                 break;
             case "ds":
-                setCellWall(grid, row, col, DIR_SOUTH, ZWallFlag.CLOSED);
+                setCellWall(grid, pos, ZDir.SOUTH, ZWallFlag.CLOSED);
                 break;
             case "de":
-                setCellWall(grid, row, col, DIR_EAST, ZWallFlag.CLOSED);
+                setCellWall(grid, pos, ZDir.EAST, ZWallFlag.CLOSED);
                 break;
             case "dw":
-                setCellWall(grid, row, col, DIR_WEST, ZWallFlag.CLOSED);
+                setCellWall(grid, pos, ZDir.WEST, ZWallFlag.CLOSED);
                 break;
             case "ldn":
-                setCellWall(grid, row, col, DIR_NORTH, ZWallFlag.LOCKED);
+                setCellWall(grid, pos, ZDir.NORTH, ZWallFlag.LOCKED);
                 break;
             case "lds":
-                setCellWall(grid, row, col, DIR_SOUTH, ZWallFlag.LOCKED);
+                setCellWall(grid, pos, ZDir.SOUTH, ZWallFlag.LOCKED);
                 break;
             case "lde":
-                setCellWall(grid, row, col, DIR_EAST, ZWallFlag.LOCKED);
+                setCellWall(grid, pos, ZDir.EAST, ZWallFlag.LOCKED);
                 break;
             case "ldw":
-                setCellWall(grid, row, col, DIR_WEST, ZWallFlag.LOCKED);
+                setCellWall(grid, pos, ZDir.WEST, ZWallFlag.LOCKED);
                 break;
             case "odn":
-                setCellWall(grid, row, col, DIR_NORTH, ZWallFlag.OPEN);
+                setCellWall(grid, pos, ZDir.NORTH, ZWallFlag.OPEN);
                 break;
             case "ods":
-                setCellWall(grid, row, col, DIR_SOUTH, ZWallFlag.OPEN);
+                setCellWall(grid, pos, ZDir.SOUTH, ZWallFlag.OPEN);
                 break;
             case "ode":
-                setCellWall(grid, row, col, DIR_EAST, ZWallFlag.OPEN);
+                setCellWall(grid, pos, ZDir.EAST, ZWallFlag.OPEN);
                 break;
             case "odw":
-                setCellWall(grid, row, col, DIR_WEST, ZWallFlag.OPEN);
+                setCellWall(grid, pos, ZDir.WEST, ZWallFlag.OPEN);
                 break;
             case "obj":
                 cell.cellType = ZCellType.OBJECTIVE;
@@ -133,30 +128,11 @@ public abstract class ZQuest extends Reflector<ZQuest> {
         }
     }
 
-    void setCellWall(Grid<ZCell> grid, int row, int col, int dir, ZWallFlag flag) {
-        grid.get(row, col).walls[dir] = flag;
-        switch (dir) {
-            case DIR_NORTH:
-                if (row > 0) {
-                    grid.get(row-1, col).walls[DIR_SOUTH] = flag;
-                }
-                break;
-            case DIR_SOUTH:
-                if (row < grid.getRows()-1) {
-                    grid.get(row+1, col).walls[DIR_NORTH] = flag;
-                }
-                break;
-            case DIR_EAST:
-                if (col < grid.getCols()-1) {
-                    grid.get(row, col+1).walls[DIR_WEST] = flag;
-                }
-                break;
-            case DIR_WEST:
-                if (col > 0) {
-                    grid.get(row, col-1).walls[DIR_EAST] = flag;
-                }
-                break;
-        }
+    void setCellWall(Grid<ZCell> grid, Grid.Pos pos, ZDir dir, ZWallFlag flag) {
+        grid.get(pos).setWallFlag(dir, flag);
+        Grid.Pos adj = dir.getAdjacent(pos);
+        if (grid.isOnGrid(adj))
+            grid.get(adj).setWallFlag(dir.getOpposite(), flag);
     }
 
     public ZBoard load(String [][] map) {
@@ -192,7 +168,7 @@ public abstract class ZQuest extends Reflector<ZQuest> {
                         continue;
                     }
                     assert(zone != null);
-                    loadCmd(grid, row, col, cmd);
+                    loadCmd(grid, new Grid.Pos(row, col), cmd);
                     switch (cell.cellType) {
                         case EXIT:
                             exitZone = cell.zoneIndex;

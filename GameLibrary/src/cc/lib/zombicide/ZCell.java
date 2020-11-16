@@ -11,17 +11,16 @@ public class ZCell extends Reflector<ZCell> {
     public final static int ENV_BUILDING=1;
     public final static int ENV_VAULT=2;
 
-
     static {
         addAllFields(ZCell.class);
     }
 
-    ZWallFlag[] walls = { ZWallFlag.NONE, ZWallFlag.NONE, ZWallFlag.NONE, ZWallFlag.NONE };
+    private ZWallFlag[] walls = { ZWallFlag.NONE, ZWallFlag.NONE, ZWallFlag.NONE, ZWallFlag.NONE };
+
     int environment=ENV_OUTDOORS; // 0 == outdoors, 1 == building, 2 == vault
     int zoneIndex;
     int vaultFlag;
     public ZCellType cellType = ZCellType.EMPTY;
-    @Omit
     GRectangle rect;
     boolean discovered=false;
     ZActor [] occupied = new ZActor[NUM_QUADRANTS];
@@ -34,15 +33,23 @@ public class ZCell extends Reflector<ZCell> {
         return rect;
     }
 
-    public GRectangle getWallRect(int dir) {
+    public ZWallFlag getWallFlag(ZDir dir) {
+        return walls[dir.ordinal()];
+    }
+
+    public void setWallFlag(ZDir dir, ZWallFlag flag) {
+        walls[dir.ordinal()] = flag;
+    }
+
+    public GRectangle getWallRect(ZDir dir) {
         switch (dir) {
-            case ZBoard.DIR_NORTH:
+            case NORTH:
                 return new GRectangle(rect.getTopLeft(), rect.getTopRight());
-            case ZBoard.DIR_SOUTH:
+            case SOUTH:
                 return new GRectangle(rect.getBottomLeft(), rect.getBottomRight());
-            case ZBoard.DIR_EAST:
+            case EAST:
                 return new GRectangle(rect.getTopRight(), rect.getBottomRight());
-            case ZBoard.DIR_WEST:
+            case WEST:
                 return new GRectangle(rect.getTopLeft(), rect.getBottomLeft());
         }
         return null;
@@ -75,4 +82,5 @@ public class ZCell extends Reflector<ZCell> {
         }
         return null;
     }
+
 }

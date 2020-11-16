@@ -1,10 +1,17 @@
 package cc.lib.swing;
 
-import java.io.File;
-import java.util.List;
-import java.awt.*;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.GraphicsEnvironment;
+import java.awt.Rectangle;
+import java.awt.Shape;
 import java.awt.font.GlyphVector;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 import cc.lib.game.GColor;
 import cc.lib.game.Justify;
@@ -754,6 +761,12 @@ public class AWTUtils {
     }
     
     private static void drawThickLine(Graphics g, int x1, int y1, int x2, int y2, int thickness) {
+        if (g instanceof Graphics2D) {
+            ((Graphics2D)g).setStroke(new BasicStroke(thickness));
+            g.drawLine(x1, y1, x2, y2);
+            return;
+        }
+
         int dX = x2 - x1;
         int dY = y2 - y1;
         // line length

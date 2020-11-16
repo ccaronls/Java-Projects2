@@ -2,6 +2,7 @@ package cc.lib.zombicide;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -23,17 +24,6 @@ public class ZBoard extends Reflector<ZBoard> {
     static {
         addAllFields(ZBoard.class);
     }
-
-    public static final int DIR_NORTH = 0;
-    public static final int DIR_SOUTH = 1;
-    public static final int DIR_EAST  = 2;
-    public static final int DIR_WEST  = 3;
-
-    public static final int [] DIR_DX = {  0, 0, 1,-1 };
-    public static final int [] DIR_DY = { -1, 1, 0, 0 };
-
-    public static final int [] DIR_ROTATION = { 0, 180, 90, 270 };
-    public static final int [] DIR_OPPOSITE = { DIR_SOUTH, DIR_NORTH, DIR_WEST, DIR_EAST };
 
     Grid<ZCell> grid; // TODO: Use Grid Container Type
     List<ZZone> zones;
@@ -65,6 +55,13 @@ public class ZBoard extends Reflector<ZBoard> {
         return zones;
     }
 
+    /**
+     * Get list of accessable zones
+     *
+     * @param zoneIndex
+     * @param distance
+     * @return
+     */
     public List<Integer> getAccessableZones(int zoneIndex, int distance) {
         if (distance == 0)
             return Collections.singletonList(zoneIndex);
@@ -72,20 +69,19 @@ public class ZBoard extends Reflector<ZBoard> {
         List<Integer> result = new ArrayList<>();
         for (Grid.Pos cellPos : zones.get(zoneIndex).cells) {
             // fan out in all direction to given distance
-            for (int dir = 0; dir <4; dir++) {
-                int x = cellPos.getColumn();
-                int y = cellPos.getRow();
+            //for (int dir = 0; dir <4; dir++) {
+            for (ZDir dir : ZDir.values()) {
+                Grid.Pos pos = cellPos;
                 boolean open = true;
                 for (int dist = 0; dist <distance; dist++) {
-                    if (!grid.get(y,x).walls[dir].isOpen()) {
+                    if (!grid.get(pos).getWallFlag(dir).isOpen()) {
                         open = false;
                         break;
                     }
-                    x += DIR_DX[dir];
-                    y += DIR_DY[dir];
+                    pos = dir.getAdjacent(pos);
                 }
-                if (open && grid.get(y,x).zoneIndex != zoneIndex) {
-                    result.add(grid.get(y,x).zoneIndex);
+                if (open && grid.get(pos).zoneIndex != zoneIndex) {
+                    result.add(grid.get(pos).zoneIndex);
                 }
             }
         }
@@ -107,27 +103,15 @@ public class ZBoard extends Reflector<ZBoard> {
     }
 
     public boolean canSeeCell(Grid.Pos fromCell, Grid.Pos toCell) {
-        int fromCellX = fromCell.getColumn();
-        int fromCellY = fromCell.getRow();
-        int toCellX = toCell.getColumn();
-        int toCellY = toCell.getRow();
-
-        if (fromCellX != toCellX && fromCellY != toCellY)
-            return false; // can only see horz and vertically
-
-        if (fromCellX == toCellX && fromCellY == toCellY)
-            return true; // TODO: Should we be able to see inside our own?
-
-        int dir = getDirFrom(fromCell, toCell);
+        ZDir dir = ZDir.getDirFrom(fromCell, toCell);
+        if (dir == null)
+            return false;
 
         int zoneChanges = 0;
-        int curZoneId = grid.get(fromCellY, fromCellX).zoneIndex;
+        int curZoneId = grid.get(fromCell).zoneIndex;
 
-        int tx = fromCellX;
-        int ty = fromCellY;
-
-        while (tx != toCellX || ty != toCellY) {
-            ZCell cell = grid.get(ty, tx);
+        while (!fromCell.equals(toCell)) {
+            ZCell cell = grid.get(fromCell);
             // can only see 1 one zone difference
             if (cell.isInside() && cell.zoneIndex != curZoneId) {
                 if (++zoneChanges > 1)
@@ -135,85 +119,62 @@ public class ZBoard extends Reflector<ZBoard> {
                 curZoneId = cell.zoneIndex;
             }
 
-            if (!cell.walls[dir].isOpen()) {
+            if (!cell.getWallFlag(dir).isOpen()) {
                 return false;
             }
 
-            tx += DIR_DX[dir];
-            ty += DIR_DY[dir];
+            fromCell = dir.getAdjacent(fromCell);
         }
 
         return true;
     }
 
-    private int getDirFrom(Grid.Pos fromCell, Grid.Pos toCell) {
-        int fromCellX = fromCell.getColumn();
-        int fromCellY = fromCell.getRow();
-        int toCellX = toCell.getColumn();
-        int toCellY = toCell.getRow();
 
-        int dx = toCellX > fromCellX ? 1 : (fromCellX > toCellX ? -1 : 0);
-        int dy = toCellY > fromCellY ? 1 : (fromCellY > toCellY ? -1 : 0);
-
-        if (dx != 0 && dy != 0) {
-            throw new AssertionError("No direction for diagonals");
-        }
-
-        if (dx < 0)
-            return DIR_WEST;
-        else if (dx > 0)
-            return DIR_EAST;
-        else if (dy < 0)
-            return DIR_NORTH;
-        return DIR_SOUTH;
-    }
 
     /**
      * Returns a list of directions the zombie can move
      * @See DIR_NORTH, DIR_SOUTH, DIR_EAST, DIR_WEST
      *
-     * @param fromZone
+     * @param fromPos
      * @param toZone
      * @return
      */
-    public List<Integer> getShortestPathOptions(int fromZone, int toZone) {
-        ZZone a = zones.get(fromZone);
+    public List<ZDir> getShortestPathOptions(Grid.Pos fromPos, int toZone) {
         ZZone b = zones.get(toZone);
 
-        List<List<Integer>> allPaths = new ArrayList<>();
-        int maxDist = grid.getRows() +  grid.getCols();
+        List<List<ZDir>> allPaths = new ArrayList<>();
+        int maxDist = grid.getRows() * grid.getCols();
 
-        for (Grid.Pos aCellPos : a.cells) {
-            for (Grid.Pos bCellPos : b.cells) {
-                List<List<Integer>> paths = getShortestPathOptions(aCellPos, bCellPos, maxDist);
-                for (List l : paths) {
-                    maxDist = Math.min(maxDist, l.size());
-                }
-                allPaths.addAll(paths);
+        for (Grid.Pos bCellPos : b.cells) {
+            List<List<ZDir>> paths = getShortestPathOptions(fromPos, bCellPos, maxDist);
+            for (List l : paths) {
+                maxDist = Math.min(maxDist, l.size());
             }
+            allPaths.addAll(paths);
         }
 
-        Iterator<List<Integer>> it = allPaths.iterator();
+        Iterator<List<ZDir>> it = allPaths.iterator();
         while (it.hasNext()) {
             if (it.next().size() > maxDist)
                 it.remove();
         }
 
-        List<Integer> dirs = new ArrayList<>();
-        for (List<Integer> p : allPaths) {
+        List<ZDir> dirs = new ArrayList<>();
+        for (List<ZDir> p : allPaths) {
             dirs.add(p.get(0));
         }
 
         return dirs;
     }
 
-    private List<List<Integer>> getShortestPathOptions(Grid.Pos fromCell, Grid.Pos toCell, int maxDist) {
-        List<List<Integer>> paths = new ArrayList<>();
-        searchPathsR(fromCell, toCell, new int[] { maxDist }, new LinkedList<>(), paths);
+    private List<List<ZDir>> getShortestPathOptions(Grid.Pos fromCell, Grid.Pos toCell, int maxDist) {
+        List<List<ZDir>> paths = new ArrayList<>();
+        Set<Grid.Pos> visited = new HashSet<>();
+        searchPathsR(fromCell, toCell, new int[] { maxDist }, new LinkedList<>(), paths, visited);
         return paths;
     }
 
-    private void searchPathsR(Grid.Pos start, Grid.Pos end, int [] maxDist, LinkedList<Integer> curPath, List<List<Integer>> paths) {
+    private void searchPathsR(Grid.Pos start, Grid.Pos end, int [] maxDist, LinkedList<ZDir> curPath, List<List<ZDir>> paths, Set<Grid.Pos> visited) {
         if (start.equals(end)) {
             if (curPath.size() > 0) {
                 paths.add(new ArrayList<>(curPath));
@@ -223,16 +184,27 @@ public class ZBoard extends Reflector<ZBoard> {
         }
         if (curPath.size() >= maxDist[0])
             return;
+        if (visited.contains(start))
+            return;
+        visited.add(start);
         ZCell fromCell = grid.get(start);
-        for (int dir = 0; dir <4; dir++) { // todo: order the directions we search
-            if (!fromCell.walls[dir].isOpen()) {
-                continue;
+
+        for (ZDir dir : ZDir.getCompassValues()) {
+            if (fromCell.getWallFlag(dir) == ZWallFlag.NONE) {
+                curPath.addLast(dir);
+                searchPathsR(dir.getAdjacent(start), end, maxDist, curPath, paths, visited);
+                curPath.removeLast();
             }
-            int x = start.getColumn() + DIR_DX[dir];
-            int y = start.getRow() + DIR_DY[dir];
-            curPath.addLast(dir);
-            searchPathsR(new Grid.Pos(y, x), end, maxDist, curPath, paths);
-            curPath.removeLast();
+        }
+
+
+        ZZone fromZone = zones.get(fromCell.getZoneIndex());
+        for (ZDoor door : fromZone.getDoors()) {
+            if (!door.isClosed(this)) {
+                curPath.addLast(door.getMoveDirection());
+                searchPathsR(door.getCellPosEnd(), end, maxDist, curPath, paths, visited);
+                curPath.removeLast();
+            }
         }
     }
 
@@ -245,13 +217,13 @@ public class ZBoard extends Reflector<ZBoard> {
     }
 
     public ZWallFlag getDoor(ZCellDoor door) {
-        return getCell(door.cellPos).walls[door.dir];
+        return getCell(door.cellPos).getWallFlag(door.dir);
     }
 
     public void setDoor(ZCellDoor door, ZWallFlag flag) {
-        getCell(door.cellPos).walls[door.dir] = flag;
+        getCell(door.cellPos).setWallFlag(door.dir, flag);
         door = door.getOtherSide(this);
-        getCell(door.cellPos).walls[door.dir] = flag;
+        getCell(door.cellPos).setWallFlag(door.dir, flag);
     }
 
     public int pickZone(AGraphics g, int mouseX, int mouseY) {
@@ -346,15 +318,15 @@ public class ZBoard extends Reflector<ZBoard> {
         Vector2D v1 = cell.rect.getTopRight().subEq(center);
         g.scale(scale);
 
-        for (int d=0; d<4; d++) {
+        for (ZDir dir : ZDir.values()) {
             Vector2D dv = v1.sub(v0).scaleEq(.33f);
             Vector2D dv0 = v0.add(dv);
             Vector2D dv1 = dv0.add(dv);
 
             g.pushMatrix();
-            g.rotate(DIR_ROTATION[d]);
+            g.rotate(dir.rotation);
             g.setColor(GColor.BLACK);
-            switch (cell.walls[d]) {
+            switch (cell.getWallFlag(dir)) {
                 case WALL:
                     g.drawLine(v0, v1, 3);
                     break;
@@ -601,7 +573,7 @@ public class ZBoard extends Reflector<ZBoard> {
             }
         }
         return doors;
-    }*/
+    }
 
     Grid.Pos getAdjacentPos(Grid.Pos pos, int direction) {
         int col = pos.getColumn();
@@ -629,11 +601,11 @@ public class ZBoard extends Reflector<ZBoard> {
                 break;
         }
         return new Grid.Pos(row, col);
-    }
+    }*/
 
-    public void moveActorInDirection(ZActor actor, int direction) {
+    public void moveActorInDirection(ZActor actor, ZDir direction) {
         Grid.Pos pos = actor.occupiedCell;
-        Grid.Pos adj = getAdjacentPos(pos, direction);
+        Grid.Pos adj = direction.getAdjacent(pos);
         if (adj != null) {
             removeActor(actor);
             addActorToCell(actor, adj);
@@ -664,11 +636,11 @@ public class ZBoard extends Reflector<ZBoard> {
         if (!zone.isSearchable())
             return;
         undiscovered.add(cell.zoneIndex);
-        for (int i=0; i<4; i++) {
-            switch (cell.walls[i]) {
+        for (ZDir dir : ZDir.values()) {
+            switch (cell.getWallFlag(dir)) {
                 case NONE:
                 case OPEN:
-                    getUndiscoveredIndoorZones(getAdjacentPos(startPos, i), undiscovered);
+                    getUndiscoveredIndoorZones(dir.getAdjacent(startPos), undiscovered);
                     break;
             }
         }

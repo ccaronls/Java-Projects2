@@ -14,14 +14,16 @@ public class ZVaultDoor extends ZDoor {
 
     final Grid.Pos cellPosStart, cellPosExit;
     boolean opened = false;
+    final ZDir moveDirection;
 
     public ZVaultDoor() {
-        this(null, null);
+        this(null, null, null);
     }
 
-    public ZVaultDoor(Grid.Pos cellPosStart, Grid.Pos cellPosExit) {
+    public ZVaultDoor(Grid.Pos cellPosStart, Grid.Pos cellPosExit, ZDir moveDirection) {
         this.cellPosStart = cellPosStart;
         this.cellPosExit = cellPosExit;
+        this.moveDirection = moveDirection;
     }
 
     @Override
@@ -42,6 +44,16 @@ public class ZVaultDoor extends ZDoor {
     @Override
     public Grid.Pos getCellPos() {
         return cellPosStart;
+    }
+
+    @Override
+    public Grid.Pos getCellPosEnd() {
+        return cellPosExit;
+    }
+
+    @Override
+    public ZDir getMoveDirection() {
+        return moveDirection;
     }
 
     @Override
@@ -73,9 +85,9 @@ public class ZVaultDoor extends ZDoor {
             g.vertex(vaultRect.getTopRight());
             g.vertex(vaultRect.getTopLeft());
             float dh = vaultRect.h/3;
-            float dw = vaultRect.w/4;
-            g.moveTo(dw, -dh);
-            g.moveTo(vaultRect.w-dw*2, 0);
+            float dw = vaultRect.w/5;
+            g.moveTo(-dw, -dh);
+            g.moveTo(vaultRect.w+dw*2, 0);
             g.setColor(GColor.BROWN);
             g.drawTriangleFan();
             g.setColor(GColor.YELLOW);

@@ -11,18 +11,18 @@ public class ZCellDoor extends ZDoor {
     }
 
     public final Grid.Pos cellPos;
-    public final int dir;
+    public final ZDir dir;
     private boolean jammed = true;
 
     public ZCellDoor() {
-        this(0,0,0);
+        this(0,0,null);
     }
 
-    public ZCellDoor(int row, int col, int dir) {
+    public ZCellDoor(int row, int col, ZDir dir) {
         this(new Grid.Pos(row, col), dir);
     }
 
-    public ZCellDoor(Grid.Pos cellPos, int dir) {
+    public ZCellDoor(Grid.Pos cellPos, ZDir dir) {
         this.cellPos = cellPos;
         this.dir = dir;
     }
@@ -38,12 +38,22 @@ public class ZCellDoor extends ZDoor {
 
     @Override
     public boolean isClosed(ZBoard board) {
-        return board.grid.get(cellPos).walls[dir] == ZWallFlag.CLOSED;
+        return !board.grid.get(cellPos).getWallFlag(dir).isOpen();
     }
 
     @Override
     public Grid.Pos getCellPos() {
         return cellPos;
+    }
+
+    @Override
+    public Grid.Pos getCellPosEnd() {
+        return dir.getAdjacent(cellPos);
+    }
+
+    @Override
+    public ZDir getMoveDirection() {
+        return dir;
     }
 
     @Override
@@ -59,6 +69,7 @@ public class ZCellDoor extends ZDoor {
                 board.setDoor(this, ZWallFlag.CLOSED);
                 board.setDoor(otherSide, ZWallFlag.CLOSED);
                 break;
+            case LOCKED:
             case CLOSED:
                 board.setDoor(this, ZWallFlag.OPEN);
                 board.setDoor(otherSide, ZWallFlag.OPEN);
@@ -73,9 +84,7 @@ public class ZCellDoor extends ZDoor {
 
     @Override
     public ZCellDoor getOtherSide(ZBoard board) {
-        return new ZCellDoor(cellPos.getRow() + ZBoard.DIR_DY[dir],
-                cellPos.getColumn() + ZBoard.DIR_DX[dir],
-                ZBoard.DIR_OPPOSITE[dir]);
+        return new ZCellDoor(dir.getAdjacent(cellPos), dir.getOpposite());
     }
 
     @Override

@@ -2,17 +2,20 @@ package cc.applets.zombicide;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.EventQueue;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.util.Collections;
 import java.util.List;
 
 import javax.swing.JApplet;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
+import javax.swing.SwingUtilities;
 
 import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
@@ -68,11 +71,12 @@ public class ZombicideApplet extends JApplet implements ActionListener {
     }
 
     ZGame game = new ZGame();
-    List options;
+    List options = Collections.emptyList();
     Object monitor = new Object();
     Object result = null;
     UIMode uiMode = UIMode.NONE;
     AWTPanel menu = new AWTPanel();
+    JPanel menuContainer = new JPanel();
 
     BoardComponent boardComp;
     CharacterComponent charComp;
@@ -85,7 +89,6 @@ public class ZombicideApplet extends JApplet implements ActionListener {
         //menu.setMinimumSize(new Dimension(200, 0));
         //menu.setLayout(new AWTButtonLayout(menu));
         menu.setLayout(new GridLayout(0, 1));
-        JPanel menuContainer = new JPanel();
         menuContainer.setLayout(new GridBagLayout());
         menuContainer.setPreferredSize(new Dimension(150, 300));
         menuContainer.add(menu);
@@ -93,10 +96,7 @@ public class ZombicideApplet extends JApplet implements ActionListener {
         add(boardComp = new BoardComponent(), BorderLayout.CENTER);
         File settings = FileUtils.getOrCreateSettingsDirectory(ZombicideApplet.class);
         gameFile = new File(settings, "savegame.txt");
-        if (gameFile.exists())
-            setMenuItems(MenuItem.START, MenuItem.RESUME);
-        else
-            setMenuItems(MenuItem.START);
+        initHomeMenu();
     }
 
     synchronized void startGameThread() {
@@ -106,6 +106,8 @@ public class ZombicideApplet extends JApplet implements ActionListener {
         gameRunning = true;
         new Thread(()-> {
             try {
+                charComp.repaint();
+                boardComp.repaint();
                 while (gameRunning) {
                     game.runGame();
                     if (gameFile != null)
@@ -118,15 +120,28 @@ public class ZombicideApplet extends JApplet implements ActionListener {
             }
             gameRunning = false;
             log.debug("Game thread stopped");
-            setMenuItems(MenuItem.START);
+            initHomeMenu();
 
         }).start();
     }
 
+    void initHomeMenu() {
+        if (gameFile.exists())
+            setMenuItems(MenuItem.START, MenuItem.RESUME);
+        else
+            setMenuItems(MenuItem.START);
+
+    }
+
     synchronized void setMenuItems(MenuItem ... items) {
-        menu.removeAll();
-        for (MenuItem i : items) {
-            menu.add(new AWTButton(i.name(), this));
+        if (SwingUtilities.isEventDispatchThread()) {
+            menu.removeAll();
+            for (MenuItem i : items) {
+                menu.add(new AWTButton(i.name(), this));
+            }
+            menuContainer.validate();
+        } else {
+            EventQueue.invokeLater(() -> setMenuItems(items));
         }
     }
 
@@ -220,15 +235,13 @@ public class ZombicideApplet extends JApplet implements ActionListener {
             menu.add(new AWTButton(MenuItem.BACK.name(), this));
         }
         menu.add(new AWTButton(MenuItem.QUIT.name(), this));
-        validate();
+        menuContainer.validate();
     }
 
     void setResult(Object result) {
-        if (gameRunning) {
-            this.result = result;
-            synchronized (monitor) {
-                monitor.notify();
-            }
+        this.result = result;
+        synchronized (monitor) {
+            monitor.notify();
         }
     }
 

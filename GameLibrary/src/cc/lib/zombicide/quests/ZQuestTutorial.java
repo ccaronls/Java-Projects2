@@ -11,6 +11,7 @@ import cc.lib.zombicide.ZCell;
 import cc.lib.zombicide.ZCellDoor;
 import cc.lib.zombicide.ZCellType;
 import cc.lib.zombicide.ZCharacter;
+import cc.lib.zombicide.ZDir;
 import cc.lib.zombicide.ZGame;
 import cc.lib.zombicide.ZMove;
 import cc.lib.zombicide.ZQuest;
@@ -48,8 +49,8 @@ public class ZQuestTutorial extends ZQuest {
     int redKeyZone=-1;
 
     @Override
-    protected void loadCmd(Grid<ZCell> grid, int row, int col, String cmd) {
-        ZCell cell = grid.get(row, col);
+    protected void loadCmd(Grid<ZCell> grid, Grid.Pos pos, String cmd) {
+        ZCell cell = grid.get(pos);
         int zoneIndex = cell.getZoneIndex();
         switch (cmd) {
             case "green":
@@ -72,19 +73,19 @@ public class ZQuestTutorial extends ZQuest {
                 }
                 break;
             case "redde":
-                redDoor = new ZCellDoor(row, col, ZBoard.DIR_EAST);
-                super.loadCmd(grid, row, col, "lde");
+                redDoor = new ZCellDoor(pos, ZDir.EAST);
+                super.loadCmd(grid, pos, "lde");
                 break;
             case "bluedn":
-                blueDoor = new ZCellDoor(row, col, ZBoard.DIR_NORTH);
-                super.loadCmd(grid, row, col, "ldn");
+                blueDoor = new ZCellDoor(pos, ZDir.NORTH);
+                super.loadCmd(grid, pos, "ldn");
                 break;
             case "greende":
-                greenDoor = new ZCellDoor(row, col, ZBoard.DIR_WEST);
-                super.loadCmd(grid, row, col, "lde");
+                greenDoor = new ZCellDoor(pos, ZDir.WEST);
+                super.loadCmd(grid, pos, "lde");
                 break;
             default:
-                super.loadCmd(grid, row, col, cmd);
+                super.loadCmd(grid, pos, cmd);
         }
     }
 

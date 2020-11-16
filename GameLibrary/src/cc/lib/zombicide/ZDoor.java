@@ -7,21 +7,75 @@ import cc.lib.utils.Reflector;
 
 public abstract class ZDoor extends Reflector<ZDoor>  {
 
+    /**
+     * Human readable text
+     * @return
+     */
     public abstract String name();
 
+    /**
+     * Cell at entering part of the door
+     * @return
+     */
     public abstract Grid.Pos getCellPos();
 
+    /**
+     * Cell at the exiting part of the door
+     * @return
+     */
+    public abstract Grid.Pos getCellPosEnd();
+
+    /**
+     * Direction actor to move to enter the door
+     * @return
+     */
+    public abstract ZDir getMoveDirection();
+
+    /**
+     * Graphical rectable of this door
+     * @param board
+     * @return
+     */
     public abstract GRectangle getRect(ZBoard board);
 
+    /**
+     *
+     * @param board
+     * @return
+     */
     public abstract boolean isClosed(ZBoard board);
 
+    /**
+     * Oopen or close the door
+     * @param board
+     */
     public abstract void toggle(ZBoard board);
 
+    /**
+     * Render the door
+     * @param g
+     * @param b
+     */
     public abstract void draw(AGraphics g, ZBoard b);
 
+    /**
+     * Get the door representation of opposing cell
+     * @param b
+     * @param <T>
+     * @return
+     */
     public abstract <T extends ZDoor> T getOtherSide(ZBoard b);
 
+    /**
+     * return whether the player needs weapon with canOpenDoor status to open this door
+     * @return
+     */
     public abstract boolean isJammed();
 
+    /**
+     * return whether this door can be closed by a player
+     * @param c
+     * @return
+     */
     public abstract boolean canBeClosed(ZCharacter c);
 }

@@ -97,12 +97,12 @@ public class ZGame extends Reflector<ZGame>  {
                     break;
             }
             // add doors for the zone
-            for (int i=0;i<4; i++) {
-                switch (cell.walls[i]) {
+            for (ZDir dir : ZDir.values()) {
+                switch (cell.getWallFlag(dir)) {
                     case LOCKED:
                     case CLOSED:
                     case OPEN:
-                        zone.doors.add(new ZCellDoor(it.getPos(), i));
+                        zone.doors.add(new ZCellDoor(it.getPos(), dir));
                 }
             }
             switch (cell.cellType) {
@@ -139,7 +139,7 @@ public class ZGame extends Reflector<ZGame>  {
                         if (cell == cell2)
                             continue;
                         if (cell.vaultFlag == cell2.vaultFlag) {
-                            zone.doors.add(new ZVaultDoor(it.getPos(), it2.getPos()));
+                            zone.doors.add(new ZVaultDoor(it.getPos(), it2.getPos(), cell.environment == ZCell.ENV_VAULT ? ZDir.NORTH : ZDir.SOUTH));
                             break;
                         }
                     }
@@ -270,9 +270,11 @@ public class ZGame extends Reflector<ZGame>  {
                     }
                     getCurrentUser().prepareTurn();
                     break;
+                } else if (options.size() == 1) {
+                    currentCharacter = options.get(0);
+                } else {
+                    currentCharacter = getCurrentUser().chooseCharacter(options);
                 }
-
-                currentCharacter = getCurrentUser().chooseCharacter(options);
                 if (currentCharacter != null) {
                     stateStack.push(ZState.PLAYER_STAGE_CHOOSE_CHARACTER_ACTION);
                 }
@@ -588,9 +590,9 @@ public class ZGame extends Reflector<ZGame>  {
         }
 
         if (targetZone >= 0) {
-            List<Integer> paths = board.getShortestPathOptions(zombie.occupiedZone, targetZone);
+            List<ZDir> paths = board.getShortestPathOptions(zombie.occupiedCell, targetZone);
             if (paths.size() > 0) {
-                int dir = Utils.randItem(paths); // TODO: Use Dir class instead of int
+                ZDir dir = Utils.randItem(paths); // TODO: Use Dir class instead of int
                 board.moveActorInDirection(zombie, dir);
             }
         }
@@ -792,27 +794,6 @@ public class ZGame extends Reflector<ZGame>  {
                 c.performAction(ZActionType.CONSUME, this);
                 endAction();
                 break;
-                /*
-            case TOGGLE_VAULT: {
-                ZVaultDoor vaultDoor = getCurrentUser().chooseVaultDoorToToggle(this, c, move.list);
-                if (vaultDoor != null) {
-                    // open the opposing door also!
-                    ZVaultDoor otherSide = vaultDoor.getOtherSide(board);
-                    assert(vaultDoor.opened == otherSide.opened);
-                    otherSide.opened = vaultDoor.opened = !vaultDoor.opened;
-                    if (vaultDoor.opened) {
-                        // check for spawn when opening vault door from inside the vault
-                        switch (board.getZone(c.occupiedZone).type) {
-                            case VAULT:
-                                spawnZombies(board.grid.get(vaultDoor.cellPosExit).zoneIndex, getHighestSkillLevel());
-                        }
-
-                    }
-                    c.performAction(ZActionType.TOGGLE_VAULT, this);
-                    endAction();
-                }
-                break;
-            }*/
             default:
                 log.error("Unhandled move: %s", move.type);
         }

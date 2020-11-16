@@ -64,10 +64,13 @@ public final class Grid<T> extends Reflector<Grid<T>> {
                     col == pos.col;
         }
 
-//        @Override
-//        public int hashCode() {
-//            return Objects.hash(row, col);
-//        }
+        @Override
+        public int hashCode() {
+            int result = 1;
+            result = 31 * result + row;
+            result = 31 * result + col;
+            return result;
+        }
     }
 
     public static class Iterator<T> implements java.util.Iterator<T> {
@@ -104,35 +107,62 @@ public final class Grid<T> extends Reflector<Grid<T>> {
         }
     }
 
-    @Generic
     private List<List<T>> grid = null;
 
+    /**
+     *
+     */
     public Grid() {}
 
+    /**
+     *
+     * @param rows
+     * @param cols
+     */
     public Grid(int rows, int cols) {
         this.grid = build(rows, cols);
     }
 
+    /**
+     *
+     * @return
+     */
     public Iterable<T> getCells() {
         return () -> iterator();
     }
 
+    /**
+     *
+     * @return
+     */
     public Iterator<T> iterator() {
         return new Iterator<>(this);
     }
 
-    // row major
-
+    /**
+     *
+     * @return
+     */
     public int getRows() {
         return grid == null ? 0 : grid.size();
     }
 
+    /**
+     *
+     * @return
+     */
     public int getCols() {
         if (grid == null || grid.size() == 0)
             return 0;
         return grid.get(0).size();
     }
 
+    /**
+     *
+     * @param rows
+     * @param cols
+     * @param fillValue
+     */
     public void ensureCapacity(int rows, int cols, T fillValue) {
         if (rows<=0 || cols<=0)
             throw new IllegalArgumentException("Grid cannot have 0 rows or columns");
@@ -168,22 +198,49 @@ public final class Grid<T> extends Reflector<Grid<T>> {
         return grid;
     }
 
+    /**
+     *
+     * @param row
+     * @param col
+     * @return
+     */
     public T get(int row, int col) {
         return grid.get(row).get(col);
     }
 
+    /**
+     *
+     * @param pos
+     * @return
+     */
     public T get(Pos pos) {
         return grid.get(pos.row).get(pos.col);
     }
 
+    /**
+     *
+     * @param row
+     * @param col
+     * @return
+     */
     public boolean isValid(int row, int col) {
         return row >= 0 && col >= 0 && row < getRows() && col < getCols();
     }
 
+    /**
+     *
+     * @param row
+     * @param col
+     * @param value
+     */
     public void set(int row, int col, T value) {
         grid.get(row).set(col, value);
     }
 
+    /**
+     *
+     * @param grid
+     */
     public void assignTo(T [][] grid) {
         for (int i=0; i<grid.length; i++) {
             for (int ii=0; i<grid[0].length; ii++) {
@@ -192,10 +249,10 @@ public final class Grid<T> extends Reflector<Grid<T>> {
         }
     }
 
-//    public T [][] getGrid() {
-//        return grid;
-//    }
-
+    /**
+     *
+     * @param empty
+     */
     public void minimize(T ... empty) {
         if (grid == null)
             return;
@@ -232,6 +289,10 @@ public final class Grid<T> extends Reflector<Grid<T>> {
         grid = newGrid;
     }
 
+    /**
+     *
+     * @param grid
+     */
     public void setGrid(T [][] grid) {
         if (grid != null && (grid.length == 0 || grid[0].length == 0)) {
             throw new IllegalArgumentException("Supplied grid has 0 length rows or columns");
@@ -244,6 +305,9 @@ public final class Grid<T> extends Reflector<Grid<T>> {
         }
     }
 
+    /**
+     *
+     */
     public void clear() {
         grid = null;
     }
@@ -258,5 +322,14 @@ public final class Grid<T> extends Reflector<Grid<T>> {
     public void init(int rows, int cols, T filler) {
         grid = build(rows, cols);
         fill(grid, filler);
+    }
+
+    /**
+     *
+     * @param pos
+     * @return
+     */
+    public boolean isOnGrid(Pos pos) {
+        return pos.getRow() >= 0 && pos.getRow() < getRows() && pos.getColumn() >= 0 && pos.getColumn() < getCols();
     }
 }

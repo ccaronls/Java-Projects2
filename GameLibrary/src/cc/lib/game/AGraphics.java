@@ -707,7 +707,8 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     }
     
     /**
-     * 
+     * Return the old width
+     *
      * @param newWidth
      * @return
      */
@@ -1124,18 +1125,13 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * draw an empty rectangle 
      */
     public final void drawRect(float x, float y, float w, float h, float thickness) {
-        float oldWidth = setLineWidth(thickness);
         begin();
         vertex(x, y);
-        //vertex(x+w, y);
         vertex(x+w, y+h);
-        //vertex(x, y+h);
-        //drawLineLoop();
-        drawLine(x, y, x+w, y);
-        drawLine(x+w, y, x+w, y+h);
-        drawLine(x, y, x, y+h);
-        drawLine(x, y+h, x+w, y+h);
-        setLineWidth(oldWidth);
+        drawLine(x, y, x+w, y, thickness);
+        drawLine(x+w, y, x+w, y+h, thickness);
+        drawLine(x, y, x, y+h, thickness);
+        drawLine(x, y+h, x+w, y+h, thickness);
     }
 
     /**
