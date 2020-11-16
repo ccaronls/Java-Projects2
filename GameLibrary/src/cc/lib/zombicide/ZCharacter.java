@@ -9,7 +9,7 @@ import cc.lib.game.AGraphics;
 import cc.lib.game.Utils;
 import cc.lib.utils.Table;
 
-public class ZCharacter extends ZActor implements Table.Model {
+public class ZCharacter extends ZActor {
 
     static {
         addAllFields(ZCharacter.class);
@@ -97,7 +97,7 @@ public class ZCharacter extends ZActor implements Table.Model {
         return actions;
     }
 
-    public boolean canOpenDoor() {
+    public boolean canUnjamDoor() {
         if (leftHand != null && leftHand.canOpenDoor())
             return true;
         if (rightHand != null && rightHand.canOpenDoor())
@@ -183,11 +183,11 @@ public class ZCharacter extends ZActor implements Table.Model {
             case HAND:
                 if (leftHand == null) {
                     leftHand = e;
-                    return ZEquipSlot.LHAND;
+                    return ZEquipSlot.LEFT_HAND;
                 }
                 if (rightHand == null) {
                     rightHand = e;
-                    return ZEquipSlot.RHAND;
+                    return ZEquipSlot.RIGHT_HAND;
                 }
                 break;
             case BODY:
@@ -222,10 +222,10 @@ public class ZCharacter extends ZActor implements Table.Model {
                 backpack.remove(idx);
                 break;
             }
-            case LHAND:
+            case LEFT_HAND:
                 leftHand = null;
                 break;
-            case RHAND:
+            case RIGHT_HAND:
                 rightHand = null;
                 break;
         }
@@ -234,11 +234,11 @@ public class ZCharacter extends ZActor implements Table.Model {
     public ZEquipment attachEquipment(ZEquipment equipment, ZEquipSlot slot) {
         ZEquipment prev = null;
         switch (slot) {
-            case RHAND:
+            case RIGHT_HAND:
                 prev = rightHand;
                 rightHand = equipment;
                 break;
-            case LHAND:
+            case LEFT_HAND:
                 prev = leftHand;
                 leftHand = equipment;
                 break;
@@ -257,37 +257,37 @@ public class ZCharacter extends ZActor implements Table.Model {
         return ZSkillLevel.getLevel(dangerBar);
     }
 
-    public String getDebugString() {
+    public String getDebugString(ZGame game) {
+
+        /*
+
+        Left Hand    |   Body    |    Right Hand    |    Stats    |     Skills
+        -----------------------------------------------------------------------
+
+        <left hand card? | <body card> | <right hand card> | <stats card> | <skills[0]>
+
+
+         */
+
+        Table info = new Table().setNoBorder().setPadding(0);
+
+        for (ZEquipSlot slot : ZEquipSlot.values()) {
+            info.addColumn(slot.name(), Arrays.asList(getSlotInfo(slot, game)));
+        }
+
+        Table stats = new Table().setNoBorder().setPadding(0);
+        stats.addRow("Wounds", woundBar);
+        stats.addRow("Danger", dangerBar);
         ZSkillLevel sl = getSkillLevel();
         int ptsToNxt = sl.getPtsToNextLevel(dangerBar);
-        String [] header = { "Left Hand", "Body", "Right Hand", "Backpack" };
-        Object [][] data = {
-                { leftHand, body, rightHand, backpack.size() > 0 ? backpack.get(0) : null },
-                { null, null, null, backpack.size() > 1 ? backpack.get(1) : null  },
-                { "Wounds", woundBar, null, backpack.size() > 2 ? backpack.get(2) : null  },
-                { "Danger", dangerBar, null, backpack.size() > 3 ? backpack.get(3) : null  },
-                { "Skill", sl + (ptsToNxt > 0 ? (" (" + ptsToNxt + ")") : ""), null, backpack.size() > 4 ? backpack.get(4) : null  }
-        };
-        Table table = new Table(header, data, this);
-        String str = name + " (" + name.characterClass + ") Actions Left:" + getActionsLeftThisTurn() + "\n" + table.toString();
-        str += "\nSkills: ";
-        String delim = "";
-        for (ZSkill skill : allSkills) {
-            str += delim + skill.name();
-            if (!availableSkills.contains(skill)) {
-                str += "(Used)";
-            }
-            delim = ", ";
-        }
-        return str;
-    }
+        stats.addRow("Skill", sl);
+        stats.addRow("Pts to next level", ptsToNxt);
+        stats.addRow("Dual Wielding", isDualWeilding());
 
-    @Override
-    public int getTextAlignment(int row, int col) {
-        if (col == 1 && row > 1) {
-            return 2;
-        }
-        return 0;
+        info.addColumn("STATS", Arrays.asList(stats.toString()));
+        info.addColumn("Skills", availableSkills);
+
+        return String.format("%s (%s) moves: %d/%d\n%s", name.name(), name.characterClass, getActionsLeftThisTurn(), getActionsPerTurn(), info.toString());
     }
 
     public boolean isBackpackFull() {
@@ -295,8 +295,8 @@ public class ZCharacter extends ZActor implements Table.Model {
     }
 
     @Override
-    public void drawInfo(AGraphics g, int width, int height) {
-        g.drawString(getDebugString(), 0, 0);
+    public void drawInfo(AGraphics g, ZGame game, int width, int height) {
+        g.drawString(getDebugString(game), 0, 0);
     }
 
     public boolean canTrade() {
@@ -313,8 +313,8 @@ public class ZCharacter extends ZActor implements Table.Model {
             case BODY:
                 return Arrays.asList(ZEquipSlot.BODY);
             case HAND:
-                options.add(ZEquipSlot.LHAND);
-                options.add(ZEquipSlot.RHAND);
+                options.add(ZEquipSlot.LEFT_HAND);
+                options.add(ZEquipSlot.RIGHT_HAND);
                 if (Utils.linearSearch(name.alternateBodySlots, equip) >= 0) {
                     options.add(ZEquipSlot.BODY);
                 }
@@ -326,9 +326,9 @@ public class ZCharacter extends ZActor implements Table.Model {
     public List<ZEquipSlot> getMeleeWeapons() {
         List<ZEquipSlot> slots = new ArrayList<>();
         if (leftHand != null && leftHand.isMelee())
-            slots.add(ZEquipSlot.LHAND);
+            slots.add(ZEquipSlot.LEFT_HAND);
         if (rightHand != null && rightHand.isMelee())
-            slots.add(ZEquipSlot.RHAND);
+            slots.add(ZEquipSlot.RIGHT_HAND);
         if (body != null && body.isMelee())
             slots.add(ZEquipSlot.BODY);
         return slots;
@@ -337,9 +337,9 @@ public class ZCharacter extends ZActor implements Table.Model {
     public List<ZEquipSlot> getRangedWeapons() {
         List<ZEquipSlot> slots = new ArrayList<>();
         if (leftHand != null && leftHand.isRanged() && isLoaded(leftHand))
-            slots.add(ZEquipSlot.LHAND);
+            slots.add(ZEquipSlot.LEFT_HAND);
         if (rightHand != null && rightHand.isRanged() && isLoaded(rightHand))
-            slots.add(ZEquipSlot.RHAND);
+            slots.add(ZEquipSlot.RIGHT_HAND);
         if (body != null && body.isRanged() && isLoaded(body))
             slots.add(ZEquipSlot.BODY);
         return slots;
@@ -348,9 +348,9 @@ public class ZCharacter extends ZActor implements Table.Model {
     public List<ZEquipSlot> getMagicWeapons() {
         List<ZEquipSlot> slots = new ArrayList<>();
         if (leftHand != null && leftHand.isMagic())
-            slots.add(ZEquipSlot.LHAND);
+            slots.add(ZEquipSlot.LEFT_HAND);
         if (rightHand != null && rightHand.isMagic())
-            slots.add(ZEquipSlot.RHAND);
+            slots.add(ZEquipSlot.RIGHT_HAND);
         if (body != null && body.isMagic())
             slots.add(ZEquipSlot.BODY);
         return slots;
@@ -365,18 +365,29 @@ public class ZCharacter extends ZActor implements Table.Model {
     }
 
     public ZWeaponStat getWeaponStat(ZEquipSlot slot, ZActionType attackType, ZGame game) {
-        ZWeapon weapon = (ZWeapon)getSlot(slot);
+        return getWeaponStat((ZWeapon) getSlot(slot), attackType, game);
+    }
+
+    public ZWeaponStat getWeaponStat(ZWeapon weapon, ZActionType attackType, ZGame game) {
         ZWeaponStat stat = null;
         switch (attackType) {
             case MELEE:
+                if (!weapon.isMelee())
+                    return null;
                 stat = weapon.type.meleeStats.copy();
                 break;
             case RANGED:
+                if (!weapon.isRanged())
+                    return null;
                 stat = weapon.type.rangedStats.copy();
                 break;
             case MAGIC:
+                if (!weapon.isMagic())
+                    return null;
                 stat = weapon.type.magicStats.copy();
                 break;
+            default:
+                return null;
         }
         for (ZSkill skill : availableSkills) {
             skill.modifyStat(stat, attackType, this, game);
@@ -388,9 +399,9 @@ public class ZCharacter extends ZActor implements Table.Model {
         switch (slot) {
             case BODY:
                 return body;
-            case RHAND:
+            case RIGHT_HAND:
                 return rightHand;
-            case LHAND:
+            case LEFT_HAND:
                 return leftHand;
         }
         return null;
@@ -432,6 +443,32 @@ public class ZCharacter extends ZActor implements Table.Model {
         if (availableSkills.contains(ZSkill.Shove))
             return true;
         return false;
+    }
+
+    String getSlotInfo(ZEquipSlot slot, ZGame game) {
+        switch (slot) {
+            case RIGHT_HAND:
+                if (rightHand == null)
+                    return null;
+                return rightHand.getCardString(this, game);
+            case LEFT_HAND:
+                if (leftHand == null)
+                    return null;
+                return leftHand.getCardString(this, game);
+            case BODY:
+                if (body == null) {
+                    return null;
+                }
+                return body.getCardString(this, game);
+            case BACKPACK: {
+                Table table = new Table().setNoBorder();
+                for (ZEquipment e : backpack) {
+                    table.addRow(e);
+                }
+                return table.toString();
+            }
+        }
+        return null;
     }
 
     /*

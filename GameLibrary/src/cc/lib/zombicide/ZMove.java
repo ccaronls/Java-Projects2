@@ -100,7 +100,8 @@ public class ZMove {
         return new ZMove(ZMoveType.DISPOSE, equip, slot);
     }
 
-    public static ZMove newObjectiveMove(int data) {
-        return new ZMove(ZMoveType.OBJECTIVE, data);
+    public static ZMove newObjectiveMove(int zone) {
+        return new ZMove(ZMoveType.OBJECTIVE, zone);
     }
+
 }

@@ -1,38 +1,27 @@
 package cc.lib.zombicide;
 
-import cc.lib.game.GColor;
+import cc.lib.game.AGraphics;
+import cc.lib.game.GRectangle;
 import cc.lib.utils.Grid;
 import cc.lib.utils.Reflector;
 
-public class ZDoor extends Reflector<ZDoor> {
+public abstract class ZDoor extends Reflector<ZDoor>  {
 
-    static {
-        addAllFields(ZDoor.class);
-    }
+    public abstract String name();
 
-    public final Grid.Pos cellPos;
-    public final int dir;
-    public final GColor color;
+    public abstract Grid.Pos getCellPos();
 
-    public ZDoor() {
-        this(0,0,0);
-    }
+    public abstract GRectangle getRect(ZBoard board);
 
-    public ZDoor(int row, int col, int dir) {
-        this(new Grid.Pos(row, col), dir);
-    }
+    public abstract boolean isClosed(ZBoard board);
 
-    public ZDoor(Grid.Pos cellPos, int dir) {
-        this(cellPos, dir, GColor.RED);
-    }
+    public abstract void toggle(ZBoard board);
 
-    public ZDoor(Grid.Pos cellPos, int dir, GColor color) {
-        this.cellPos = cellPos;
-        this.dir = dir;
-        this.color = color;
-    }
+    public abstract void draw(AGraphics g, ZBoard b);
 
-    public boolean isClosed(ZBoard board) {
-        return board.grid.get(cellPos).walls[dir] == ZWallFlag.CLOSED;
-    }
+    public abstract <T extends ZDoor> T getOtherSide(ZBoard b);
+
+    public abstract boolean isJammed();
+
+    public abstract boolean canBeClosed(ZCharacter c);
 }

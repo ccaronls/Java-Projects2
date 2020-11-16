@@ -1009,6 +1009,8 @@ public class Reflector<T> {
         String nm = clazz.getName();
         if (classMap.containsKey(nm))
             return;
+        if (nm.indexOf("java.lang.Object") > 0)
+            throw new GException("Arrays of Objects not supported");
         classMap.put(nm, clazz);
         classMap.put(nm.replace('$', '.'), clazz);
         String nm2 = nm;

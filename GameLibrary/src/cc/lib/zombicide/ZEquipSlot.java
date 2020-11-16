@@ -1,5 +1,5 @@
 package cc.lib.zombicide;
 
 public enum ZEquipSlot {
-    LHAND, RHAND, BODY, BACKPACK
+    LEFT_HAND, BODY, RIGHT_HAND, BACKPACK
 }

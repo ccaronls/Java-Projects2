@@ -259,12 +259,4 @@ public final class Grid<T> extends Reflector<Grid<T>> {
         grid = build(rows, cols);
         fill(grid, filler);
     }
-/*
-    @Override
-    protected Class<?> getTypeParameter() {
-        if (grid != null && grid.length > 0 && grid[0].length > 0 && grid[0][0] != null) {
-            return grid[0][0].getClass();
-        }
-        return null;
-    }*/
 }

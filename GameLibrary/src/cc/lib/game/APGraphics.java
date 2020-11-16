@@ -88,6 +88,16 @@ public abstract class APGraphics extends AGraphics {
         r.addVertex(x, y);
     }
 
+    @Override
+    public void moveTo(float dx, float dy) {
+        if (r.getNumVerts() > 0) {
+            Vector2D last = r.getVertex(r.getNumVerts() - 1);
+            vertex(last.getX() + dx, last.getY() + dy);
+        } else {
+            vertex(dx, dy);
+        }
+    }
+
     /**
      *
      * @param x

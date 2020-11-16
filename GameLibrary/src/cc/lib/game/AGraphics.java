@@ -726,7 +726,22 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param y
      */
     public abstract void vertex(float x, float y);
-    
+
+    /**
+     * Add a vertex relative to previous vertex
+     * @param x
+     * @param y
+     */
+    public abstract void moveTo(float x, float y);
+
+    /**
+     * Add a vertex relative to previous vertex
+     * @param dv
+     */
+    public final void moveTo(IVector2D dv) {
+        moveTo(dv.getX(), dv.getY());
+    }
+
     /**
      * Convenience
      * 

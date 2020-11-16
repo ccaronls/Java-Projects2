@@ -2,3 +2,9 @@ More quests
 Display more stats on player info
 Move message to char component
 syncronize UI events better
+Allow for arrow keys to move. Characters should move to adjacent cells in a zone form wence they came (not snap)
+Merge ZBoard and ZQuest - These need not be separated
+Make Reflector an implementation (using default methods)
+Merge VaultDoor and CellDoor
+Manage directions with ZDir enum
+Doors should not require a weapon on the second opening (need JAMMED state for door)

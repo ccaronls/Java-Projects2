@@ -1,18 +1,21 @@
 package cc.lib.zombicide;
 
-public class ZEnchantment extends ZEquipment<ZSpellType> {
+import cc.lib.game.Utils;
+import cc.lib.utils.Table;
+
+public class ZSpell extends ZEquipment<ZSpellType> {
 
     static {
-        addAllFields(ZEnchantment.class);
+        addAllFields(ZSpell.class);
     }
 
     final ZSpellType type;
 
-    public ZEnchantment() {
+    public ZSpell() {
         this(null);
     }
 
-    ZEnchantment(ZSpellType type) {
+    ZSpell(ZSpellType type) {
         this.type = type;
     }
 
@@ -37,8 +40,10 @@ public class ZEnchantment extends ZEquipment<ZSpellType> {
     }
 
     @Override
-    public String name() {
-        return type.name();
+    public String getCardString(ZCharacter c, ZGame game) {
+        return new Table(new String [] { type.name() },
+                new Object [][] {
+                        {Utils.wrapText(type.description, 32)}
+                }).toString();
     }
-
 }

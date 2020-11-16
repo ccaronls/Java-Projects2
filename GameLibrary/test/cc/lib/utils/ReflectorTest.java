@@ -757,4 +757,22 @@ public class ReflectorTest extends TestCase {
 
     }
 
+    static class Generic<T> extends Reflector<Generic<T>> {
+        T [] array1d;
+        T [][] array2d;
+    }
+
+    public void testShouldFail() {
+        Generic<Integer> g = new Generic<Integer>();
+
+        g.array1d = new Integer[1];
+        g.array2d = new Integer[1][1];
+
+        try {
+            Reflector.addAllFields(Generic.class);
+            fail();
+        } catch (GException e) {
+        }
+    }
+
 }

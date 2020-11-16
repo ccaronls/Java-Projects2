@@ -14,7 +14,7 @@ import cc.lib.zombicide.ZUser;
 public class ZAppletUser extends ZUser {
     @Override
     public void showMessage(String s) {
-        ZombicideApplet.instance.addMessage(s);
+        ZombicideApplet.instance.charComp.addMessage(s);
     }
 
     @Override

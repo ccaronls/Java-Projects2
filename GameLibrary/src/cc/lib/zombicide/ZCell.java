@@ -7,17 +7,28 @@ public class ZCell extends Reflector<ZCell> {
 
     public final static int NUM_QUADRANTS = 9;
 
+    public final static int ENV_OUTDOORS=0;
+    public final static int ENV_BUILDING=1;
+    public final static int ENV_VAULT=2;
+
+
     static {
         addAllFields(ZCell.class);
     }
 
     ZWallFlag[] walls = { ZWallFlag.NONE, ZWallFlag.NONE, ZWallFlag.NONE, ZWallFlag.NONE };
-    boolean isInside;
+    int environment=ENV_OUTDOORS; // 0 == outdoors, 1 == building, 2 == vault
     int zoneIndex;
-    public ZCellType cellType = ZCellType.NONE;
+    int vaultFlag;
+    public ZCellType cellType = ZCellType.EMPTY;
+    @Omit
     GRectangle rect;
     boolean discovered=false;
     ZActor [] occupied = new ZActor[NUM_QUADRANTS];
+
+    boolean isInside() {
+        return environment==ENV_BUILDING;
+    }
 
     public GRectangle getRect() {
         return rect;

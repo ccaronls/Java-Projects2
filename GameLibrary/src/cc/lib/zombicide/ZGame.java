@@ -12,6 +12,7 @@ import java.util.Stack;
 import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
+import cc.lib.utils.Grid;
 import cc.lib.utils.Reflector;
 
 public class ZGame extends Reflector<ZGame>  {
@@ -45,9 +46,14 @@ public class ZGame extends Reflector<ZGame>  {
     @Override
     protected synchronized void deserialize(BufferedReader _in) throws Exception {
         super.deserialize(_in);
+        for (ZUser user : users) {
+            user.characters.clear();
+        }
         for (ZCharacter c : board.getAllCharacters()) {
             users[c.userIndex].addCharacter(c);
         }
+        // TODO: Figure out better way to avoid this?
+        setState(ZState.PLAYER_STAGE_CHOOSE_CHARACTER);
     }
 
     public void setUsers(ZUser ... users) {
@@ -73,25 +79,39 @@ public class ZGame extends Reflector<ZGame>  {
     public void loadQuest(ZQuests quest) {
         this.quest = quest.load();
         board = this.quest.loadBoard();
-        for (ZCell cell : board.getCells()) {
+        //for (ZCell cell : board.getCells()) {
+        for (Grid.Iterator<ZCell> it = board.grid.iterator(); it.hasNext(); ) {
+            ZCell cell=it.next();
+            if (cell.cellType == ZCellType.EMPTY)
+                continue;
+            ZZone zone = board.zones.get(cell.zoneIndex);
+            switch (cell.environment) {
+                case ZCell.ENV_OUTDOORS:
+                    zone.type = ZZoneType.OUTDOORS;
+                    break;
+                case ZCell.ENV_BUILDING:
+                    zone.type = ZZoneType.BUILDING;
+                    break;
+                case ZCell.ENV_VAULT:
+                    zone.type = ZZoneType.VAULT;
+                    break;
+            }
+            // add doors for the zone
+            for (int i=0;i<4; i++) {
+                switch (cell.walls[i]) {
+                    case LOCKED:
+                    case CLOSED:
+                    case OPEN:
+                        zone.doors.add(new ZCellDoor(it.getPos(), i));
+                }
+            }
             switch (cell.cellType) {
-
-                case NONE:
-                    break;
-                case VAULT:
-                    break;
-                case OBJECTIVE:
-                    break;
-                case SPAWN:
-                    break;
                 case START:
                     // position all the characters here
                     for (ZCharacter c : getAllCharacters()) {
                         c.occupiedZone = cell.zoneIndex;
                         board.addActor(c, cell.zoneIndex);
                     }
-                    break;
-                case EXIT:
                     break;
                 case WALKER:
                     spawnZombies(1, ZZombieType.WALKERS, cell.zoneIndex);
@@ -105,6 +125,26 @@ public class ZGame extends Reflector<ZGame>  {
                 case NECRO:
                     spawnZombies(1, ZZombieType.NECROMANCERS, cell.zoneIndex);
                     break;
+                case SPAWN:
+                    zone.isSpawn = true;
+                    break;
+                case OBJECTIVE:
+                    zone.objective = true;
+                    break;
+                case VAULT_DOOR: {
+                    // add a vault door leading to the cell specified by vaultFlag
+                    assert(cell.vaultFlag > 0);
+                    for (Grid.Iterator<ZCell> it2 = board.grid.iterator(); it2.hasNext(); ) {
+                        ZCell cell2 = it2.next();
+                        if (cell == cell2)
+                            continue;
+                        if (cell.vaultFlag == cell2.vaultFlag) {
+                            zone.doors.add(new ZVaultDoor(it.getPos(), it2.getPos()));
+                            break;
+                        }
+                    }
+                    break;
+                }
             }
         }
     }
@@ -252,18 +292,13 @@ public class ZGame extends Reflector<ZGame>  {
                 if (cur.getNumBackpackItems() > 0)
                     options.add(ZMove.newOrganizeMove());
 
-                // check for move up, down, right, left
-                List<Integer> accessableZones = board.getAccessableZones(cur.occupiedZone, 1);
-                if (accessableZones.size() > 0)
-                    options.add(ZMove.newWalkMove(accessableZones));
-
                 // check for trade with another character in the same zone
                 if (cur.canTrade()) {
                     List<ZCharacter> tradeOptions = new ArrayList<>();
                     for (ZCharacter c : getAllCharacters()) {
                         if (c == cur)
                             continue;
-                        if (c.occupiedZone == cur.occupiedZone) {
+                        if (c.occupiedZone == cur.occupiedZone && c.canTrade()) {
                             tradeOptions.add(c);
                         }
                     }
@@ -271,10 +306,18 @@ public class ZGame extends Reflector<ZGame>  {
                         options.add(ZMove.newTradeMove(tradeOptions));
                 }
 
+                ZZone zone = board.zones.get(cur.occupiedZone);
+
                 // check for search
-                if (board.zones.get(cur.occupiedZone).searchable && cur.canSearch() && isClearedOfZombies(cur.occupiedZone)) {
+                if (zone.isSearchable() && cur.canSearch() && isClearedOfZombies(cur.occupiedZone)) {
                     options.add(ZMove.newSearchMove(cur.occupiedZone));
                 }
+
+                // check for move up, down, right, left
+                List<Integer> accessableZones = board.getAccessableZones(cur.occupiedZone, 1);
+                if (accessableZones.size() > 0)
+                    options.add(ZMove.newWalkMove(accessableZones));
+
 
                 List<ZEquipSlot> slots = cur.getMeleeWeapons();
                 if (slots.size() > 0) {
@@ -291,8 +334,15 @@ public class ZGame extends Reflector<ZGame>  {
                     options.add(ZMove.newMagicAttackMove(slots));
                 }
 
-                // check for open check /
-                List<ZDoor> doors = board.getDoorsForZone(cur.occupiedZone, ZWallFlag.CLOSED);
+                List<ZDoor> doors = new ArrayList<>();
+                for (ZDoor door : zone.doors) {
+                    if (door.isJammed() && !cur.canUnjamDoor())
+                        continue;
+                    if (!door.isClosed(board) && !door.canBeClosed(cur))
+                        continue;
+                    doors.add(door);
+                }
+
                 if (doors.size() > 0) {
                     options.add(ZMove.newToggleDoor(doors));
                 }
@@ -309,9 +359,9 @@ public class ZGame extends Reflector<ZGame>  {
                 // give options of which slot to organize
                 List<ZEquipSlot> slots = new ArrayList<>();
                 if (cur.leftHand != null)
-                    slots.add(ZEquipSlot.LHAND);
+                    slots.add(ZEquipSlot.LEFT_HAND);
                 if (cur.rightHand != null)
-                    slots.add(ZEquipSlot.RHAND);
+                    slots.add(ZEquipSlot.RIGHT_HAND);
                 if (cur.body != null)
                     slots.add(ZEquipSlot.BODY);
                 if (cur.getNumBackpackItems() > 0)
@@ -342,11 +392,11 @@ public class ZGame extends Reflector<ZGame>  {
                         selectedEquipment = cur.body;
                         stateStack.push(ZState.PLAYER_STAGE_ORGANIZE_CHOOSE_ACTION);
                         break;
-                    case LHAND:
+                    case LEFT_HAND:
                         selectedEquipment = cur.leftHand;
                         stateStack.push(ZState.PLAYER_STAGE_ORGANIZE_CHOOSE_ACTION);
                         break;
-                    case RHAND:
+                    case RIGHT_HAND:
                         selectedEquipment = cur.rightHand;
                         stateStack.push(ZState.PLAYER_STAGE_ORGANIZE_CHOOSE_ACTION);
                         break;
@@ -371,8 +421,8 @@ public class ZGame extends Reflector<ZGame>  {
                             }
                         }
                         break;
-                    case RHAND:
-                    case LHAND:
+                    case RIGHT_HAND:
+                    case LEFT_HAND:
                     case BODY: {
                         if (!cur.isBackpackFull()) {
                             options.add(ZMove.newUnequipMove(selectedEquipment, selectedSlot));
@@ -676,22 +726,24 @@ public class ZGame extends Reflector<ZGame>  {
                 ZDoor door = user.chooseDoorToToggle(this, c, doors);
                 if (door != null) {
                     if (door.isClosed(board)) {
-                        if (c.performAction(ZActionType.OPEN_DOOR, this)) {
-                            board.toggleDoor(door);
+                        if (!door.isJammed() || c.performAction(ZActionType.OPEN_DOOR, this)) {
+                            door.toggle(board);
                             onDoorOpened(door);
                             // spawn zombies in the newly exposed zone and any adjacent
-                            ZSkillLevel highest = getHighestSkillLevel();
-                            ZDoor otherSide = board.getOtherSide(door);
-                            HashSet<Integer> spawnZones = new HashSet<>();
-                            board.getUndiscoveredIndoorZones(otherSide.cellPos, spawnZones);
-                            log.debug("Zombie spawn zones: " + spawnZones);
-                            for (int zone : spawnZones) {
-                                spawnZombies(zone, highest);
+                            ZDoor otherSide = door.getOtherSide(board);
+                            if (board.getZone(board.getCell(otherSide.getCellPos()).zoneIndex).canSpawn()) {
+                                ZSkillLevel highest = getHighestSkillLevel();
+                                HashSet<Integer> spawnZones = new HashSet<>();
+                                board.getUndiscoveredIndoorZones(otherSide.getCellPos(), spawnZones);
+                                log.debug("Zombie spawn zones: " + spawnZones);
+                                for (int zone : spawnZones) {
+                                    spawnZombies(zone, highest);
+                                }
                             }
                         }
                     } else {
                         c.performAction(ZActionType.CLOSE_DOOR, this);
-                        board.toggleDoor(door);
+                        door.toggle(board);
                     }
                     //c.performAction(ZActionType.TOGGLE_DOOR, this);
                     endAction();
@@ -703,11 +755,12 @@ public class ZGame extends Reflector<ZGame>  {
                 if (searchables.size() > 0) {
                     ZEquipment equip = searchables.removeLast();
                     if (equip.getType() == ZItemType.AAHHHH) {
+                        getCurrentUser().showMessage("Aaaahhhh!!!");
                         // spawn zombie right here right now
                         spawnZombies(1, ZZombieType.WALKERS, currentCharacter.occupiedZone);
                         searchables.addFirst(equip);
                     } else {
-                        user.showMessage(currentCharacter.name() + " Found a " + equip.name());
+                        user.showMessage(currentCharacter.name() + " Found a " + equip);
                         currentCharacter.equip(equip);
                     }
                     currentCharacter.performAction(ZActionType.SEARCH, this);
@@ -737,14 +790,36 @@ public class ZGame extends Reflector<ZGame>  {
             case CONSUME:
                 performConsume(c, move);
                 c.performAction(ZActionType.CONSUME, this);
+                endAction();
                 break;
+                /*
+            case TOGGLE_VAULT: {
+                ZVaultDoor vaultDoor = getCurrentUser().chooseVaultDoorToToggle(this, c, move.list);
+                if (vaultDoor != null) {
+                    // open the opposing door also!
+                    ZVaultDoor otherSide = vaultDoor.getOtherSide(board);
+                    assert(vaultDoor.opened == otherSide.opened);
+                    otherSide.opened = vaultDoor.opened = !vaultDoor.opened;
+                    if (vaultDoor.opened) {
+                        // check for spawn when opening vault door from inside the vault
+                        switch (board.getZone(c.occupiedZone).type) {
+                            case VAULT:
+                                spawnZombies(board.grid.get(vaultDoor.cellPosExit).zoneIndex, getHighestSkillLevel());
+                        }
+
+                    }
+                    c.performAction(ZActionType.TOGGLE_VAULT, this);
+                    endAction();
+                }
+                break;
+            }*/
             default:
                 log.error("Unhandled move: %s", move.type);
         }
     }
 
     protected void onDoorOpened(ZDoor door) {
-        log.info(currentCharacter.name() + " has opened a door");
+        log.info(currentCharacter.name() + " has opened a " + door.name());
     }
 
     public ZSkillLevel getHighestSkillLevel() {
@@ -901,6 +976,7 @@ public class ZGame extends Reflector<ZGame>  {
     }
 
     private void spawnZombies(int zoneIdx, ZSkillLevel level) {
+        log.info("Random zombie spawn for zone %d and level %s", zoneIdx, level);
         if (!doubleSpawn) {
             if (Utils.rand() % 10 == 0) {
                 doubleSpawn = true;

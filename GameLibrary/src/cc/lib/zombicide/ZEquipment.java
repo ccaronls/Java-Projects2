@@ -1,5 +1,6 @@
 package cc.lib.zombicide;
 
+import cc.lib.game.Utils;
 import cc.lib.utils.Reflector;
 
 public abstract class ZEquipment<T extends Enum<T>> extends Reflector<ZEquipment<T>> {
@@ -13,8 +14,6 @@ public abstract class ZEquipment<T extends Enum<T>> extends Reflector<ZEquipment
     public boolean canConsume() {
         return false;
     }
-
-    public abstract String name();
 
     public abstract boolean canEquip();
 
@@ -55,4 +54,10 @@ public abstract class ZEquipment<T extends Enum<T>> extends Reflector<ZEquipment
         return getType().ordinal();
     }
 
+    @Override
+    public String toString() {
+        return Utils.getPrettyString(getType().name());
+    }
+
+    public abstract String getCardString(ZCharacter c, ZGame game);
 }

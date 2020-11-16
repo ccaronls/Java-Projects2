@@ -1,5 +1,10 @@
 package cc.lib.zombicide;
 
+import java.util.Arrays;
+
+import cc.lib.game.Utils;
+import cc.lib.utils.Table;
+
 public class ZItem extends ZEquipment<ZItemType> {
 
     static {
@@ -47,13 +52,14 @@ public class ZItem extends ZEquipment<ZItemType> {
     }
 
     @Override
-    public String name() {
-        return type.name();
-    }
-
-    @Override
     public ZItemType getType() {
         return type;
     }
 
+    @Override
+    public String getCardString(ZCharacter c, ZGame game) {
+        Table card = new Table().setNoBorder();
+        card.addColumn(type.name(), Arrays.asList(Utils.wrapTextWithNewlines(type.description, 32)));
+        return card.toString();
+    }
 }

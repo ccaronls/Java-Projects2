@@ -1,5 +1,6 @@
 package cc.lib.zombicide;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,6 +23,7 @@ public abstract class ZQuest extends Reflector<ZQuest> {
 
     public final String name;
     private int exitZone = -1;
+    List<ZEquipmentType> vaultItems = new ArrayList<>();
 
     protected ZQuest(String name) {
         this.name = name;
@@ -33,10 +35,26 @@ public abstract class ZQuest extends Reflector<ZQuest> {
         ZCell cell = grid.get(row, col);
         switch (cmd) {
             case "i":
-                cell.isInside = true;
+                cell.environment=ZCell.ENV_BUILDING;
                 break;
             case "v":
-                cell.cellType = ZCellType.VAULT;
+                cell.environment=ZCell.ENV_VAULT;
+                break;
+            case "vd1":
+                cell.cellType = ZCellType.VAULT_DOOR;
+                cell.vaultFlag = 1;
+                break;
+            case "vd2":
+                cell.cellType = ZCellType.VAULT_DOOR;
+                cell.vaultFlag = 2;
+                break;
+            case "vd3":
+                cell.cellType = ZCellType.VAULT_DOOR;
+                cell.vaultFlag = 3;
+                break;
+            case "vd4":
+                cell.cellType = ZCellType.VAULT_DOOR;
+                cell.vaultFlag = 4;
                 break;
             case "wn":
                 setCellWall(grid, row, col, DIR_NORTH, ZWallFlag.WALL);
@@ -144,7 +162,7 @@ public abstract class ZQuest extends Reflector<ZQuest> {
     public ZBoard load(String [][] map) {
         int rows = map.length;
         int cols = map[0].length;
-        Grid<ZCell> grid = new Grid<ZCell>(rows, cols);
+        Grid<ZCell> grid = new Grid<>(rows, cols);
         Map<Integer, ZZone> zoneMap = new HashMap<>();
         int maxZone = 0;
         for (int row=0; row<map.length; row++) {
@@ -170,15 +188,12 @@ public abstract class ZQuest extends Reflector<ZQuest> {
                         }
                         zone.cells.add(new Grid.Pos(row, col));
                         cell.zoneIndex = index;
+                        cell.cellType = ZCellType.NONE;
                         continue;
                     }
                     assert(zone != null);
                     loadCmd(grid, row, col, cmd);
-                    zone.searchable = cell.isInside;
                     switch (cell.cellType) {
-                        case VAULT:
-                            zone.vault = true;
-                            break;
                         case EXIT:
                             exitZone = cell.zoneIndex;
                             break;
@@ -241,4 +256,13 @@ public abstract class ZQuest extends Reflector<ZQuest> {
     public boolean isAllMustLive() {
         return true;
     }
+
+    /**
+     *
+     * @return
+     */
+    public List<ZEquipmentType> getVaultItems() {
+        return vaultItems;
+    }
+
 }

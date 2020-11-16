@@ -1,12 +1,17 @@
 package cc.lib.utils;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Vector;
+
 import cc.lib.game.Utils;
 
 /**
  * Usefull for printing out tables of data
  *
  */
-public class Table {
+public final class Table {
 
     public interface Model {
         /**
@@ -22,44 +27,141 @@ public class Table {
         default String getStringValue(Object obj) {
             if (obj == null)
                 return "";
+            if (obj instanceof Boolean) {
+                return ((Boolean)obj).booleanValue() ? "yes" : "no";
+            }
             return obj.toString();
-        }
-
-        default boolean hasBorder() {
-            return true;
-        }
-
-        /**
-         * Return 0 for no divider
-         * @return
-         */
-        default int cellPadding() {
-            return 1;
         }
     }
 
-    final String [] header;
-    final Object [][] data;
-    final int [] maxWidth;
-    final int [] maxHeight;
-    final Model model;
+    private final List<String> header;
+    private final List<Vector<Object>> rows = new ArrayList<>();
+    private final Model model;
+    private int totalWidth=0;
+    private int totalHeight=0;
+    private int padding = 1;
+    private boolean border = true;
+
+    public Table() {
+        this(new Model() {});
+    }
+
+    public Table(Model model) {
+        header = new ArrayList<>();
+        this.model=model;
+    }
+
+    public Table(String [] header) {
+        this(header, new Model() {});
+    }
+
+    public Table(String [] header, Model model) {
+        this.header = new ArrayList<>(Arrays.asList(header));
+        this.model = model;
+    }
+
+    public Table(Object [][] data) {
+        this(data, new Model() {});
+    }
+    public Table(Object [][] data, Model model) {
+        this.header = new ArrayList<>();
+        for (Object [] d : data) {
+            addRow(d);
+        }
+        this.model = model;
+    }
+
+    public Table setPadding(int padding) {
+        this.padding = padding;
+        return this;
+    }
+
+    public Table setNoBorder() {
+        this.border = false;
+        return this;
+    }
 
     public Table(String [] header, Object [][] data) {
         this(header, data, new Model() {});
     }
 
     public Table(String [] header, Object [][] data, Model model) {
-        this.header = header;
-        this.data = data;
-        this.model = model;
-        maxWidth = new int [header.length];
-        maxHeight = new int[data.length];
-        for (int i=0; i<header.length; i++) {
-            maxWidth[i] = Math.max(maxWidth[i], header[i].length());
+        this.header = new ArrayList<>(Arrays.asList(header));
+        for (Object [] d : data) {
+            addRow(d);
         }
-        for (int r=0; r<data.length; r++) {
-            for (int c=0; c<data[r].length; c++) {
-                String entry =  model.getStringValue(data[r][c]);
+        this.model = model;
+    }
+
+    @Override
+    public String toString() {
+        return toString(0);
+    }
+
+    public int getColumns() {
+        int columns = header.size();
+        for (List row : rows) {
+            columns = Math.max(columns, row.size());
+        }
+        return columns;
+    }
+
+    public Table addRow(Object ... row) {
+        rows.add(new Vector(Arrays.asList(row)));
+        return this;
+    }
+
+    public Table addColumn(String header, Object ... items) {
+        return addColumn(header, Arrays.asList(items));
+    }
+
+    public Table addColumn(String header, List column) {
+
+        int col = this.header.size();
+        this.header.add(header);
+        for (int i=0; i<column.size(); i++) {
+            if (i>=rows.size()) {
+                // add a row with
+                rows.add(new Vector());
+            }
+            while (rows.get(i).size()<=col) {
+                rows.get(i).add(null);
+            }
+            rows.get(i).set(col, column.get(i));
+        }
+        return this;
+    }
+
+    public Table addColumnNoHeader(List column) {
+        int col = Math.max(header.size(), rows.size() > 0 ? rows.get(0).size() : 0);
+        for (int i=0; i<column.size(); i++) {
+            if (i>=rows.size()) {
+                // add a row with
+                rows.add(new Vector());
+            }
+            while (rows.get(i).size()<=col) {
+                rows.get(i).add(null);
+            }
+            rows.get(i).set(col, column.get(i));
+        }
+        return this;
+    }
+
+    public String toString(int indent) {
+        if (header.size() == 0 && rows.isEmpty())
+            return "";
+
+        final int columns = getColumns();
+        if (columns == 0)
+            return "";
+        final int [] maxWidth = new int [columns];
+        final int [] maxHeight = new int[rows.size()];
+        for (int i=0; i<columns && i<header.size(); i++) {
+            maxWidth[i] = Math.max(maxWidth[i], header.get(i).length());
+        }
+        for (int r=0; r<rows.size(); r++) {
+            for (int c=0; c<rows.get(r).size(); c++) {
+                String entry =  model.getStringValue(rows.get(r).get(c));
                 if (entry.indexOf("\n") >= 0) {
                     String [] parts = entry.split("[\n]+");
                     for (String s : parts) {
@@ -73,60 +175,57 @@ public class Table {
                 }
             }
         }
-    }
 
-    @Override
-    public String toString() {
-        return toString(0);
-    }
-
-    public String toString(int indent) {
-        final boolean border = model.hasBorder();
-        final String padding = Utils.getRepeatingChars(' ', model.cellPadding());
-        final String divider= padding + "|" + padding;
         final StringBuffer buf = new StringBuffer();
+        final String paddingChars = Utils.getRepeatingChars(' ', padding);
+        final String divider= paddingChars + (padding > 0 ? "|" : " ") + paddingChars;
         final String indentStr = Utils.getRepeatingChars(' ', indent);
-        final String borderStrFront = (border ? "|" : "") + padding;
-        final String borderStrEnd   = padding + (border ? "|" : "");
+        final String borderStrFront = (border ? "|" : "") + paddingChars;
+        final String borderStrEnd   = paddingChars + (border ? "|" : "");
 
         // Divider under header
-        final String headerPadding = Utils.getRepeatingChars('-', model.cellPadding());
+        final String headerPadding = Utils.getRepeatingChars('-', padding);
         final String headerDivFront = (border ? "+" : "") + headerPadding;
-        final String headerDivMid   = headerPadding + "+" + headerPadding;
-        final String headerDivEnd   = headerPadding + (border ? "+" : "");
+        final String headerDivMid = headerPadding + "+" + headerPadding;
+        final String headerDivEnd = headerPadding + (border ? "+" : "");
         buf.append(indentStr).append(headerDivFront);
-        for (int i=0; i<header.length-1; i++) {
+        for (int i = 0; i < columns - 1; i++) {
             buf.append(Utils.getRepeatingChars('-', maxWidth[i])).append(headerDivMid);
         }
-        final int last = header.length-1;
+        final int last = columns - 1;
         buf.append(Utils.getRepeatingChars('-', maxWidth[last])).append(headerDivEnd);
         final String horzDivider = buf.toString();
-
         if (border) {
             buf.append("\n");
         } else {
             buf.setLength(0);
         }
-        // Header
-        buf.append(indentStr).append(borderStrFront);
-        for (int i=0; i<header.length-1; i++) {
-            buf.append(getJustifiedString(header[i], 1, maxWidth[i]));
-            buf.append(divider);
-        }
-        buf.append(getJustifiedString(header[last], 1, maxWidth[last]))
-            .append(borderStrEnd)
-            .append("\n");
+        String delim = "";
+        if (header.size() > 0) {
+            // Header
+            buf.append(indentStr).append(borderStrFront);
+            for (int i = 0; i < columns - 1; i++) {
+                buf.append(getJustifiedString(header.get(i), 1, maxWidth[i]));
+                buf.append(divider);
+            }
+            buf.append(getJustifiedString(header.get(last), 1, maxWidth[last]))
+                    .append(borderStrEnd)
+                    .append("\n");
 
-        buf.append(horzDivider);
+            buf.append(horzDivider);
+            delim = "\n";
+        }
         // Cell
-        for (int r=0; r<data.length; r++) {
+        for (int r=0; r<rows.size(); r++) {
             for (int h=0; h<maxHeight[r]; h++) {
-                buf.append("\n").append(indentStr).append(borderStrFront);
-                for (int c = 0; c < data[r].length-1; c++) {
-                    buf.append(getJustifiedCellString(r, c, h));
+                buf.append(delim).append(indentStr).append(borderStrFront);
+                delim = "\n";
+                for (int c = 0; c < rows.get(r).size()-1; c++) {
+                    buf.append(getJustifiedCellString(r, c, h, maxWidth[c]));
                     buf.append(divider);
                 }
-                buf.append(getJustifiedCellString(r, data[r].length-1, h))
+                int col = rows.get(r).size()-1;
+                buf.append(getJustifiedCellString(r, col, h, maxWidth[col]))
                     .append(borderStrEnd);
             }
         }
@@ -134,7 +233,17 @@ public class Table {
             buf.append("\n").append(horzDivider);
         }
 
-        return buf.toString();
+        String str = buf.toString();
+
+        totalWidth = Utils.sum(maxWidth) + (getColumns()-1) * (padding*2+1) + (border ? 2 + padding*2 : 0);
+        totalHeight = 1;
+        int newline = str.indexOf('\n');
+        while (newline >= 0) {
+            totalHeight++;
+            newline = str.indexOf('\n', newline+1);
+        }
+
+        return str;
     }
 
     private String getJustifiedString(String s, int justify, int cellWidth) {
@@ -153,13 +262,13 @@ public class Table {
         throw new RuntimeException("Invalid justify: " + justify);
     }
 
-    private String getJustifiedCellString(int r, int c, int h) {
+    private String getJustifiedCellString(int r, int c, int h, int maxWidth) {
         String str = getCellString(r, c, h);
-        return getJustifiedString(str, model.getTextAlignment(r, c), maxWidth[c]);
+        return getJustifiedString(str, model.getTextAlignment(r, c), maxWidth);
     }
 
     private String getCellString(int r, int c, int h) {
-        Object o = data[r][c];
+        Object o = rows.get(r).get(c);
         String s = model.getStringValue(o);
         if (s.indexOf('\n') < 0) {
             if (h == 0)
@@ -170,5 +279,21 @@ public class Table {
         if (parts.length > h)
             return parts[h];
         return "";
+    }
+
+    /**
+     * Only valid after call to toString
+     * @return
+     */
+    public int getTotalWidth() {
+        return totalWidth;
+    }
+
+    /**
+     * Only valid after call to toString
+     * @return
+     */
+    public int getTotalHeight() {
+        return totalHeight;
     }
 }

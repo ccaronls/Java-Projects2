@@ -18,15 +18,16 @@ public class ZZone extends Reflector<ZZone> {
     }
 
     final List<Grid.Pos> cells = new ArrayList<>();
+    @Omit
     final MutableVector2D center = new MutableVector2D();
 
+    final List<ZDoor> doors = new ArrayList<>();
+    public ZZoneType type = ZZoneType.OUTDOORS;
     public int noiseLevel;
     public boolean isSpawn;
-    public boolean searchable;
     public boolean dragonBile;
     public boolean rotten;
     public boolean objective;
-    public boolean vault;
     int nextCell = 0;
 
     @Omit
@@ -35,8 +36,19 @@ public class ZZone extends Reflector<ZZone> {
     public ZZone() {
     }
 
+    public boolean canSpawn() {
+        return type == ZZoneType.BUILDING;
+    }
+
     public IVector2D getCenter() {
         return center;
     }
 
+    public boolean isSearchable() {
+        return type == ZZoneType.BUILDING;
+    }
+
+    public List<ZDoor> getDoors() {
+        return doors;
+    }
 }

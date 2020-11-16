@@ -45,7 +45,7 @@ public abstract class ZActor extends Reflector<ZActor> {
         return rect;
     }
 
-    public abstract void drawInfo(AGraphics g, int width, int height);
+    public abstract void drawInfo(AGraphics g,ZGame game, int width, int height);
 
     public int getOccupiedZone() {
         return occupiedZone;

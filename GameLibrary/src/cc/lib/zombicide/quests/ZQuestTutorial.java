@@ -8,9 +8,9 @@ import cc.lib.game.Utils;
 import cc.lib.utils.Grid;
 import cc.lib.zombicide.ZBoard;
 import cc.lib.zombicide.ZCell;
+import cc.lib.zombicide.ZCellDoor;
 import cc.lib.zombicide.ZCellType;
 import cc.lib.zombicide.ZCharacter;
-import cc.lib.zombicide.ZDoor;
 import cc.lib.zombicide.ZGame;
 import cc.lib.zombicide.ZMove;
 import cc.lib.zombicide.ZQuest;
@@ -34,13 +34,14 @@ public class ZQuestTutorial extends ZQuest {
         final String [][] map = {
                 { "z0:i:wn:ww", "z0:i:wn", "z1:wn:dw:fatty", "z2:i:wn:ws:we", "z3:green:greende:ww:wn", "z4:i:wn:we:ws:exit" },
                 { "z5:sp:wn:ww:ws", "z6:bluedn:we:walker", "z7:ww:ds:we", "z8:red:wn:ww:ws", "z9",               "z10:red:wn:we:ws" },
-                { "z11:blue:i:wn:ww:ws:ode", "z12:start:ws:odw:we", "z13:i:ww:ws:dn:runner", "z13:i:wn:we:ws:v", "z14:ws:ww:redde", "z15:i:dw:ws:we:wn:v" },
+                { "z11:blue:i:wn:ww:ws:ode", "z12:start:ws:odw:we", "z13:i:ww:ws:dn:runner", "z13:i:wn:we:ws:vd1", "z14:ws:ww:redde", "z15:i:dw:ws:we:wn:vd2" },
+                { "",                       "",                     "",                      "z16:v:wn:ws:ww:vd1", "z16:v:wn:ws", "z16:v:wn:ws:we:vd2" },
         };
 
         return load(map);
     }
 
-    ZDoor blueDoor=null, greenDoor=null, redDoor=null;
+    ZCellDoor blueDoor=null, greenDoor=null, redDoor=null;
     int greenSpawnZone=-1;
     int blueKeyZone=-1;
     int greenKeyZone=-1;
@@ -53,13 +54,13 @@ public class ZQuestTutorial extends ZQuest {
         switch (cmd) {
             case "green":
                 greenSpawnZone = zoneIndex;
-                cell.cellType = ZCellType.OBJECTIVE;
                 break;
             case "blue":
                 blueKeyZone = zoneIndex;
                 cell.cellType = ZCellType.OBJECTIVE;
                 break;
             case "red":
+                cell.cellType = ZCellType.OBJECTIVE;
                 if (greenKeyZone >= 0) {
                     redKeyZone = zoneIndex;
                 } else if (redKeyZone >= 0) {
@@ -71,15 +72,15 @@ public class ZQuestTutorial extends ZQuest {
                 }
                 break;
             case "redde":
-                redDoor = new ZDoor(row, col, ZBoard.DIR_EAST);
+                redDoor = new ZCellDoor(row, col, ZBoard.DIR_EAST);
                 super.loadCmd(grid, row, col, "lde");
                 break;
             case "bluedn":
-                blueDoor = new ZDoor(row, col, ZBoard.DIR_NORTH);
+                blueDoor = new ZCellDoor(row, col, ZBoard.DIR_NORTH);
                 super.loadCmd(grid, row, col, "ldn");
                 break;
             case "greende":
-                greenDoor = new ZDoor(row, col, ZBoard.DIR_WEST);
+                greenDoor = new ZCellDoor(row, col, ZBoard.DIR_WEST);
                 super.loadCmd(grid, row, col, "lde");
                 break;
             default:

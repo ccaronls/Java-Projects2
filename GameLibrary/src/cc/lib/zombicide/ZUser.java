@@ -20,27 +20,27 @@ public abstract class ZUser {
 
     public abstract ZCharacter chooseCharacter(List<ZCharacter> options);
 
-    public abstract ZMove chooseMove(ZGame zGame, ZCharacter cur, List<ZMove> options);
+    public abstract ZMove chooseMove(ZGame game, ZCharacter cur, List<ZMove> options);
 
     public abstract ZSkill chooseNewSkill(ZGame game, ZCharacter character, List<ZSkill> skillOptions);
 
-    public abstract Integer chooseZoneForBile(ZGame zGame, ZCharacter cur, List<Integer> accessable);
+    public abstract Integer chooseZoneForBile(ZGame game, ZCharacter cur, List<Integer> accessable);
 
-    public abstract ZEquipSlot chooseSlotToOrganize(ZGame zGame, ZCharacter cur, List<ZEquipSlot> slots);
+    public abstract ZEquipSlot chooseSlotToOrganize(ZGame game, ZCharacter cur, List<ZEquipSlot> slots);
 
-    public abstract ZEquipment chooseEquipment(ZGame zGame, ZCharacter cur, List<ZEquipment> equipOptions);
+    public abstract ZEquipment chooseEquipment(ZGame game, ZCharacter cur, List<ZEquipment> equipOptions);
 
-    public abstract ZEquipSlot chooseSlotForEquip(ZGame zGame, ZCharacter cur, List<ZEquipSlot> equipableSlots);
+    public abstract ZEquipSlot chooseSlotForEquip(ZGame game, ZCharacter cur, List<ZEquipSlot> equipableSlots);
 
-    public abstract Integer chooseZoneToIgnite(ZGame zGame, ZCharacter cur, List<Integer> zones);
+    public abstract Integer chooseZoneToIgnite(ZGame game, ZCharacter cur, List<Integer> zones);
 
-    public abstract Integer chooseZoneToWalk(ZGame zGame, ZCharacter cur, List<Integer> zones);
+    public abstract Integer chooseZoneToWalk(ZGame game, ZCharacter cur, List<Integer> zones);
 
-    public abstract ZDoor chooseDoorToToggle(ZGame zGame, ZCharacter cur, List<ZDoor> doors);
+    public abstract ZDoor chooseDoorToToggle(ZGame game, ZCharacter cur, List<ZDoor> doors);
 
-    public abstract ZEquipSlot chooseWeaponSlot(ZGame zGame, ZCharacter c, List<ZEquipSlot> weapons);
+    public abstract ZEquipSlot chooseWeaponSlot(ZGame game, ZCharacter c, List<ZEquipSlot> weapons);
 
-    public abstract ZCharacter chooseTradeCharacter(ZGame zGame, ZCharacter c, List<ZCharacter> list);
+    public abstract ZCharacter chooseTradeCharacter(ZGame game, ZCharacter c, List<ZCharacter> list);
 
-    public abstract Integer chooseZoneForAttack(ZGame zGame, ZCharacter c, List<Integer> zones);
+    public abstract Integer chooseZoneForAttack(ZGame game, ZCharacter c, List<Integer> zones);
 }
