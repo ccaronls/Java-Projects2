@@ -3,13 +3,14 @@ package cc.lib.zombicide;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import cc.lib.game.AGraphics;
 import cc.lib.game.Utils;
 import cc.lib.utils.Table;
 
-public class ZCharacter extends ZActor {
+public final class ZCharacter extends ZActor {
 
     static {
         addAllFields(ZCharacter.class);
@@ -67,26 +68,41 @@ public class ZCharacter extends ZActor {
                     return true;
                 organizedThisTurn = true;
                 break;
-            case OPEN_DOOR: {
-                super.performAction(action, game);
-                for (ZWeapon w : getWeapons()) {
-                    if (w.canOpenDoor()) {
-                        if (w.type.openDoorsIsNoisy)
-                            game.addNoise(occupiedZone, 1);
-                        if (w.type.meleeStats.dieRollToOpenDoor>1) {
-                            Integer [] die = game.rollDice(1);
-                            if (die[0] > w.type.meleeStats.dieRollToOpenDoor) {
-                                return false;
-                            }
-                        }
-                        game.getCurrentUser().showMessage(name() + " Used their " + w + " to break open the door");
-                        return true;
-                    }
-                }
-                return false;
-            }
+        }
+        if (action.oncePerTurn()) {
+            actionsDoneThisTurn.add(action);
         }
         return super.performAction(action, game);
+    }
+
+    boolean tryOpenDoor(ZGame game) {
+        List<ZWeapon> weapons = getWeapons();
+        // order the weapons so that the best choice for door is in the front
+        Collections.sort(weapons, new Comparator<ZWeapon>() {
+            @Override
+            public int compare(ZWeapon o1, ZWeapon o2) {
+                // first order by % to open
+                int v1 = o1.getOpenDoorValue();
+                int v2 = o2.getOpenDoorValue();
+                return Integer.compare(v2, v1);
+            }
+        });
+        for (ZWeapon w : weapons) {
+            if (w.canOpenDoor()) {
+                if (w.type.openDoorsIsNoisy)
+                    game.addNoise(occupiedZone, 1);
+                if (w.type.meleeStats.dieRollToOpenDoor>1) {
+                    Integer [] die = game.rollDice(1);
+                    if (die[0] < w.type.meleeStats.dieRollToOpenDoor) {
+                        game.getCurrentUser().showMessage(name() + " Failed to open the door with their " + w);
+                        return false;
+                    }
+                }
+                game.getCurrentUser().showMessage(name() + " Used their " + w + " to break open the door");
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
@@ -110,7 +126,7 @@ public class ZCharacter extends ZActor {
      * @return
      */
     public List<ZWeapon> getWeapons() {
-        return Utils.filterItems(object -> object instanceof ZWeapon, leftHand, rightHand, body);
+        return (List)Utils.filterItems(object -> object instanceof ZWeapon, leftHand, rightHand, body);
     }
 
     /**
@@ -118,7 +134,7 @@ public class ZCharacter extends ZActor {
      * @return
      */
     public List<ZArmor> getArmor() {
-        return Utils.filterItems(object -> object instanceof ZArmor, leftHand, rightHand, body);
+        return (List)Utils.filterItems(object -> object instanceof ZArmor, leftHand, rightHand, body);
     }
 
     /**
@@ -126,7 +142,7 @@ public class ZCharacter extends ZActor {
      * @return
      */
     public boolean isDualWeilding() {
-        List<ZWeapon> weapons = Utils.filterItems(object -> object instanceof ZWeapon, leftHand, rightHand);
+        List<ZWeapon> weapons = getWeapons();
         if (weapons.size() != 2)
             return false;
         if (!weapons.get(0).equals(weapons.get(1)))
@@ -211,24 +227,29 @@ public class ZCharacter extends ZActor {
         return null;
     }
 
-    public void removeEquipment(Object type, ZEquipSlot slot) {
+    public ZEquipment removeEquipment(Object type, ZEquipSlot slot) {
+        ZEquipment removed = null;
         switch (slot) {
             case BODY:
+                removed = body;
                 body = null;
                 break;
             case BACKPACK: {
                 int idx = backpack.indexOf(type);
                 assert(idx >= 0);
-                backpack.remove(idx);
+                removed = backpack.remove(idx);
                 break;
             }
             case LEFT_HAND:
+                removed = leftHand;
                 leftHand = null;
                 break;
             case RIGHT_HAND:
+                removed = rightHand;
                 rightHand = null;
                 break;
         }
+        return removed;
     }
 
     public ZEquipment attachEquipment(ZEquipment equipment, ZEquipSlot slot) {
@@ -277,20 +298,21 @@ public class ZCharacter extends ZActor {
 
         Table stats = new Table().setNoBorder().setPadding(0);
         stats.addRow("Wounds", woundBar);
-        stats.addRow("Danger", dangerBar);
         ZSkillLevel sl = getSkillLevel();
         int ptsToNxt = sl.getPtsToNextLevel(dangerBar);
         stats.addRow("Skill", sl);
-        stats.addRow("Pts to next level", ptsToNxt);
-        stats.addRow("Dual Wielding", isDualWeilding());
+        stats.addRow("Exp", dangerBar);
+        stats.addRow("Next level", ptsToNxt);
+        stats.addRow("Dual\nWielding", isDualWeilding());
 
         info.addColumn("STATS", Arrays.asList(stats.toString()));
         info.addColumn("Skills", availableSkills);
 
-        return String.format("%s (%s) moves: %d/%d Body:%s\n%s",
+        return String.format("%s (%s) moves: %d/%d Body:%s Actions:%s\n%s",
                 name.name(), name.characterClass,
                 getActionsLeftThisTurn(), getActionsPerTurn(),
                 Arrays.toString(name.alternateBodySlots),
+                actionsDoneThisTurn,
                 info.toString());
     }
 
@@ -304,7 +326,7 @@ public class ZCharacter extends ZActor {
     }
 
     public boolean canTrade() {
-        return leftHand != null || rightHand != null || body != null || backpack.size() > 0;
+        return backpack.size() > 0;
     }
 
     public boolean canSearch() {
@@ -360,6 +382,18 @@ public class ZCharacter extends ZActor {
         return slots;
     }
 
+    public List<ZEquipSlot> getThrowableItems() {
+        List<ZEquipSlot> slots = new ArrayList<>();
+        if (leftHand != null && leftHand.isThrowable())
+            slots.add(ZEquipSlot.LEFT_HAND);
+        if (rightHand != null && rightHand.isThrowable())
+            slots.add(ZEquipSlot.RIGHT_HAND);
+        if (body != null && body.isThrowable())
+            slots.add(ZEquipSlot.BODY);
+        return slots;
+    }
+
+
     public boolean canReload() {
         return false;
     }
@@ -369,7 +403,19 @@ public class ZCharacter extends ZActor {
     }
 
     public ZWeaponStat getWeaponStat(ZEquipSlot slot, ZActionType attackType, ZGame game) {
-        return getWeaponStat((ZWeapon) getSlot(slot), attackType, game);
+        return getWeaponStat(getSlot(slot), attackType, game);
+    }
+
+    public <T extends ZEquipment> T getSlot(ZEquipSlot slot) {
+        switch (slot) {
+            case BODY:
+                return (T)body;
+            case RIGHT_HAND:
+                return (T)rightHand;
+            case LEFT_HAND:
+                return (T)leftHand;
+        }
+        return null;
     }
 
     public ZWeaponStat getWeaponStat(ZWeapon weapon, ZActionType attackType, ZGame game) {
@@ -397,18 +443,6 @@ public class ZCharacter extends ZActor {
             skill.modifyStat(stat, attackType, this, game);
         }
         return stat;
-    }
-
-    public ZEquipment getSlot(ZEquipSlot slot) {
-        switch (slot) {
-            case BODY:
-                return body;
-            case RIGHT_HAND:
-                return rightHand;
-            case LEFT_HAND:
-                return leftHand;
-        }
-        return null;
     }
 
     /**
@@ -473,6 +507,24 @@ public class ZCharacter extends ZActor {
             }
         }
         return null;
+    }
+
+    public List<ZEquipment> getAllEquipment() {
+        List<ZEquipment> all = Utils.filterItems(object -> true, leftHand, body, rightHand);
+        all.addAll(backpack);
+        return all;
+    }
+
+    public void removeEquipment(ZEquipment equip) {
+        if (leftHand == equip) {
+            leftHand = null;
+        } else if (rightHand == null) {
+            rightHand = null;
+        } else if (body == equip) {
+            body = null;
+        } else {
+            backpack.remove(equip);
+        }
     }
 
     /*

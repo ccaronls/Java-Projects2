@@ -3,7 +3,7 @@ package cc.lib.zombicide;
 import cc.lib.game.AGraphics;
 import cc.lib.utils.Table;
 
-public class ZZombie extends ZActor {
+public final class ZZombie extends ZActor {
 
     static {
         addAllFields(ZZombie.class);

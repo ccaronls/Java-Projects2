@@ -2554,7 +2554,7 @@ public class Utils {
      * @param <O>
      * @return
      */
-    public static <T extends Collection, O> T filter(T collection, Filter<O> filter) {
+    public static <T extends Collection<O>, O> T filter(T collection, Filter<O> filter) {
         Iterator<O> it = collection.iterator();
         while (it.hasNext()) {
             if (!filter.keep(it.next()))
@@ -2570,7 +2570,7 @@ public class Utils {
      * @param <T>
      * @return
      */
-    public static <T> List filterItems(Filter<T> filter, T ... items) {
+    public static <T> List<T> filterItems(Filter<T> filter, T ... items) {
         List list = new ArrayList();
         for (T item : items) {
             if (item != null && filter.keep(item))

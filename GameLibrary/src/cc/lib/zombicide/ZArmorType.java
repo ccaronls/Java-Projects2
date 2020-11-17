@@ -2,7 +2,7 @@ package cc.lib.zombicide;
 
 public enum ZArmorType implements ZEquipmentType<ZArmor> {
     LEATHER(ZEquipSlotType.BODY,5, ""),
-    CHAIN(ZEquipSlotType.BODY, 4, ""),
+    CHAINMAIL(ZEquipSlotType.BODY, 4, ""),
     PLATE(ZEquipSlotType.BODY, 3, ""),
     SHIELD(ZEquipSlotType.HAND, 3, ""),
     DWARVEN_SHIELD(ZEquipSlotType.HAND, 4, "TODO: Protects against abomination"),

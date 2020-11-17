@@ -16,15 +16,19 @@ public abstract class ZQuest extends Reflector<ZQuest> {
         addAllFields(ZQuest.class);
     }
 
-    public final String name;
+    private final String name;
     private int exitZone = -1;
-    List<ZEquipmentType> vaultItems = new ArrayList<>();
+    private List<ZEquipment> vaultItems = new ArrayList<>();
 
     protected ZQuest(String name) {
         this.name = name;
     }
 
     public abstract ZBoard loadBoard();
+
+    public String getName() {
+        return name;
+    }
 
     protected void loadCmd(Grid<ZCell> grid, Grid.Pos pos, String cmd) {
         ZCell cell = grid.get(pos);
@@ -237,7 +241,7 @@ public abstract class ZQuest extends Reflector<ZQuest> {
      *
      * @return
      */
-    public List<ZEquipmentType> getVaultItems() {
+    public List<ZEquipment> getVaultItems() {
         return vaultItems;
     }
 

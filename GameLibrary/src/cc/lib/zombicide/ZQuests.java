@@ -6,7 +6,7 @@ public enum ZQuests {
     Tutorial
     ;
 
-    ZQuest load() {
+    final ZQuest load() {
         switch (this) {
             case Tutorial:
                 return new ZQuestTutorial();

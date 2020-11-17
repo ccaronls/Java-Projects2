@@ -57,6 +57,16 @@ public class ZItem extends ZEquipment<ZItemType> {
     }
 
     @Override
+    public boolean isThrowable() {
+        switch (type) {
+            case DRAGON_BILE:
+            case TORCH:
+                return true;
+        }
+        return false;
+    }
+
+    @Override
     public String getCardString(ZCharacter c, ZGame game) {
         Table card = new Table().setNoBorder();
         card.addColumn(type.name(), Arrays.asList(Utils.wrapTextWithNewlines(type.description, 32)));

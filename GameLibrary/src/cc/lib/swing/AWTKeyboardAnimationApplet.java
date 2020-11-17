@@ -114,9 +114,11 @@ public abstract class AWTKeyboardAnimationApplet extends JApplet implements
 	 g.drawString("Frame Number:  " + (getFrameNumber()),10,35);
 	 }*/
 
+	@Override
 	public void keyTyped(KeyEvent evt) {
 	}
- 
+
+	@Override
 	public void keyPressed(KeyEvent evt) {
 		int c = evt.getKeyChar();
 		assert(c >= 0);
@@ -126,6 +128,7 @@ public abstract class AWTKeyboardAnimationApplet extends JApplet implements
 		}
 	}
 
+	@Override
 	public void keyReleased(KeyEvent evt) {
         int c = evt.getKeyChar();
 		if (c >= 0 && c < keyboard.length)

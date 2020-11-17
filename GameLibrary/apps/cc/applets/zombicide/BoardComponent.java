@@ -1,5 +1,7 @@
 package cc.applets.zombicide;
 
+import java.awt.Font;
+import java.awt.event.KeyEvent;
 import java.util.Collection;
 import java.util.List;
 
@@ -14,9 +16,11 @@ import cc.lib.utils.Grid;
 import cc.lib.zombicide.ZActor;
 import cc.lib.zombicide.ZBoard;
 import cc.lib.zombicide.ZCell;
+import cc.lib.zombicide.ZCharacter;
 import cc.lib.zombicide.ZDir;
 import cc.lib.zombicide.ZDoor;
 import cc.lib.zombicide.ZGame;
+import cc.lib.zombicide.ZMove;
 import cc.lib.zombicide.ZPlayerName;
 import cc.lib.zombicide.ZTiles;
 import cc.lib.zombicide.ZZombieType;
@@ -29,6 +33,8 @@ class BoardComponent extends AWTComponent implements ZTiles {
     ZActor highlightedActor = null;
     ZDoor highlightedDoor = null;
     Grid.Pos selectedCell = null;
+    Font bigFont;
+    Font smallFont;
 
     BoardComponent() {
         setPreferredSize(250, 250);
@@ -46,6 +52,8 @@ class BoardComponent extends AWTComponent implements ZTiles {
         //setMinimumSize(256, 256);
         setPreferredSize( (int)cellDim.width * getGame().board.getColumns(), (int)cellDim.height * getGame().board.getRows());
         //setMaximumSize( (int)cellDim.width * getGame().board.getColumns(), (int)cellDim.height * getGame().board.getRows());
+        smallFont = g.getFont();
+        bigFont = g.getFont().deriveFont(24f).deriveFont(Font.BOLD).deriveFont(Font.ITALIC);
     }
 
     @Override
@@ -61,6 +69,7 @@ class BoardComponent extends AWTComponent implements ZTiles {
         if (getGame() == null || getGame().board == null)
             return;
         final ZBoard board = getGame().board;
+        board.loadCells(g);
         highlightedActor = null;
         highlightedCell = null;
         highlightedResult = null;
@@ -79,7 +88,12 @@ class BoardComponent extends AWTComponent implements ZTiles {
             }
 
             g.setColor(GColor.BLACK);
-            g.drawJustifiedString(getWidth()-10, getHeight()-10, Justify.RIGHT, Justify.BOTTOM, message);
+            if (getGame().getQuest()!=null) {
+                g.setFont(bigFont);
+                g.drawJustifiedString(10, getHeight()-10-g.getTextHeight(), Justify.LEFT, Justify.BOTTOM, getGame().getQuest().getName());
+            }
+            g.setFont(smallFont);
+            g.drawJustifiedString(10, getHeight()-10, Justify.LEFT, Justify.BOTTOM, message);
             switch (ZombicideApplet.instance.uiMode) {
                 case PICK_ZOMBIE:
                 case PICK_CHARACTER: {
@@ -234,6 +248,44 @@ class BoardComponent extends AWTComponent implements ZTiles {
 
         }
         return tiles;
+    }
+
+    @Override
+    public void keyTyped(KeyEvent e) {
+    }
+
+    @Override
+    public void keyPressed(KeyEvent e) {
+        ZGame game = getGame();
+        ZCharacter cur = game.getCurrentCharacter();
+        if (cur != null) {
+            switch (e.getKeyCode()) {
+                case KeyEvent.VK_LEFT:
+                    if (game.board.canMove(cur, ZDir.WEST)) {
+                        ZombicideApplet.instance.setResult(ZMove.newWalkDirMove(ZDir.WEST));
+                    }
+                    break;
+                case KeyEvent.VK_RIGHT:
+                    if (game.board.canMove(cur, ZDir.EAST)) {
+                        ZombicideApplet.instance.setResult(ZMove.newWalkDirMove(ZDir.EAST));
+                    }
+                    break;
+                case KeyEvent.VK_UP:
+                    if (game.board.canMove(cur, ZDir.NORTH)) {
+                        ZombicideApplet.instance.setResult(ZMove.newWalkDirMove(ZDir.NORTH));
+                    }
+                    break;
+                case KeyEvent.VK_DOWN:
+                    if (game.board.canMove(cur, ZDir.SOUTH)) {
+                        ZombicideApplet.instance.setResult(ZMove.newWalkDirMove(ZDir.SOUTH));
+                    }
+                    break;
+            }
+        }
+    }
+
+    @Override
+    public void keyReleased(KeyEvent e) {
     }
 
 }

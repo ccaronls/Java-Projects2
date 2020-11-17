@@ -97,6 +97,7 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
                             try {
                                 paint(G, mouseX, mouseY);
                             } catch (Exception e) {
+                                log.error("Error: %s", e);
                                 e.printStackTrace();
                                 throw new GException(e);
                             }

@@ -13,6 +13,7 @@ import cc.lib.zombicide.ZCellType;
 import cc.lib.zombicide.ZCharacter;
 import cc.lib.zombicide.ZDir;
 import cc.lib.zombicide.ZGame;
+import cc.lib.zombicide.ZItemType;
 import cc.lib.zombicide.ZMove;
 import cc.lib.zombicide.ZQuest;
 import cc.lib.zombicide.ZTiles;
@@ -38,6 +39,9 @@ public class ZQuestTutorial extends ZQuest {
                 { "z11:blue:i:wn:ww:ws:ode", "z12:start:ws:odw:we", "z13:i:ww:ws:dn:runner", "z13:i:wn:we:ws:vd1", "z14:ws:ww:redde", "z15:i:dw:ws:we:wn:vd2" },
                 { "",                       "",                     "",                      "z16:v:wn:ws:ww:vd1", "z16:v:wn:ws", "z16:v:wn:ws:we:vd2" },
         };
+
+        getVaultItems().add(ZItemType.DRAGON_BILE.create());
+        getVaultItems().add(ZItemType.TORCH.create());
 
         return load(map);
     }
@@ -142,4 +146,6 @@ public class ZQuestTutorial extends ZQuest {
         g.drawImage(tileIds[0], quadrant1);
         g.drawImage(tileIds[1], quadrant2);
     }
+
+
 }

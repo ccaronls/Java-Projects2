@@ -9,9 +9,25 @@ public enum ZActionType {
     MELEE,
     RANGED,
     MAGIC,
+    THROW_ITEM,
     ENCHANTMENT,
     ACTIVATE,
     ORGANIZE,
     CONSUME,
-    OBJECTIVE
+    OBJECTIVE,
+    RELOAD,
+    DROP_ITEM,
+    PICKUP_ITEM;
+
+    boolean oncePerTurn() {
+        switch (this) {
+            case SEARCH:
+                return true;
+        }
+        return false;
+    }
+
+    int costPerTurn() {
+        return 1;
+    }
 }

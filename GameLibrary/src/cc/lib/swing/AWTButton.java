@@ -33,7 +33,7 @@ public class AWTButton extends JButton implements ActionListener {
     }
 
     public AWTButton(String label) {
-        super(label);
+        super(label.indexOf('\n') >= 0 ? "<html>" + label.replaceAll("[\n]", "<br/>") + "</html>" : label);
         addActionListener(this);
     }
 

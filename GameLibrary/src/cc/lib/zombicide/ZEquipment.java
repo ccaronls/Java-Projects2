@@ -37,6 +37,8 @@ public abstract class ZEquipment<T extends Enum<T>> extends Reflector<ZEquipment
         return false;
     }
 
+    public boolean isThrowable() { return false; }
+
     public abstract Enum<T> getType();
 
     @Override

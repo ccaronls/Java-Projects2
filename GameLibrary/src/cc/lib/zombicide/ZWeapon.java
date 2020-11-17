@@ -11,7 +11,7 @@ public class ZWeapon extends ZEquipment<ZWeaponType> {
     }
 
     final ZWeaponType type;
-    boolean needsReload=false;
+    boolean isEmpty=false;
 
     public ZWeapon() {
         this(null);
@@ -19,6 +19,12 @@ public class ZWeapon extends ZEquipment<ZWeaponType> {
 
     ZWeapon(ZWeaponType type) {
         this.type = type;
+    }
+
+    int getOpenDoorValue() {
+        if (!canOpenDoor())
+            return 0;
+        return 7-type.meleeStats.dieRollToOpenDoor + (type.openDoorsIsNoisy ? 1 : 0);
     }
 
     @Override
@@ -51,8 +57,8 @@ public class ZWeapon extends ZEquipment<ZWeaponType> {
         return true;
     }
 
-    public boolean isNeedsReload() {
-        return needsReload;
+    public boolean isLoaded() {
+        return !isEmpty;
     }
 
     @Override
@@ -60,6 +66,14 @@ public class ZWeapon extends ZEquipment<ZWeaponType> {
         return type;
     }
 
+    public void fireWeapon() {
+        if (type.needsReload)
+            isEmpty = true;
+    }
+
+    public void reload() {
+        isEmpty = false;
+    }
 
     @Override
     public String getCardString(ZCharacter c, ZGame game) {
@@ -105,7 +119,7 @@ public class ZWeapon extends ZEquipment<ZWeaponType> {
                         String.format("%d%% x %d", (7 - stats.dieRollToHit) * 100 / 6, stats.numDice),
                         stats.minRange == stats.maxRange ? String.valueOf(stats.minRange) : String.format("%d-%d", stats.minRange, stats.maxRange),
                         doorInfo,
-                        type.needsReload ? String.format("yes (%s)", needsReload ? "empty" : "loaded") : "no"
+                        type.needsReload ? String.format("yes (%s)", isEmpty ? "empty" : "loaded") : "no"
                 ));
             }
         }

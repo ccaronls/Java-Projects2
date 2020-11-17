@@ -2,38 +2,48 @@ package cc.lib.zombicide;
 
 import java.util.List;
 
+import cc.lib.utils.GException;
+
 public class ZMove {
 
     public final ZMoveType type;
     public final int integer;
+    public final ZCharacter character;
     public final ZEquipment equipment;
     public final ZEquipSlot fromSlot;
     public final ZEquipSlot toSlot;
     public final List list;
+    public final ZDir dir;
 
     private ZMove(ZMoveType type) {
         this(type, 0);
     }
 
+    private ZMove(ZMoveType type, ZDir dir) {
+        this(type, 0, null, null, null, null, null, dir);
+    }
+
     private ZMove(ZMoveType type, int num) {
-        this(type, num, null, null, null, null);
+        this(type, num, null, null, null, null, null, null);
     }
 
     private ZMove(ZMoveType type, List list) {
-        this(type, 0, null, null, null, list);
+        this(type, 0, null, null, null, null, list, null);
     }
 
     private ZMove(ZMoveType type, ZEquipment equip, ZEquipSlot fromSlot) {
-        this(type, 0, equip, fromSlot, null, null);
+        this(type, 0, null, equip, fromSlot, null, null, null);
     }
 
-    private ZMove(ZMoveType type, int targetIndex, ZEquipment equip, ZEquipSlot fromSlot, ZEquipSlot toSlot, List list) {
+    private ZMove(ZMoveType type, int targetIndex, ZCharacter character, ZEquipment equip, ZEquipSlot fromSlot, ZEquipSlot toSlot, List list, ZDir dir) {
         this.type = type;
         this.integer = targetIndex;
+        this.character = character;
         this.equipment = equip;
         this.fromSlot = fromSlot;
         this.toSlot = toSlot;
         this.list  = list;
+        this.dir = dir;
     }
 
     @Override
@@ -48,11 +58,35 @@ public class ZMove {
                 '}';
     }
 
-    static ZMove newDoNothing() {
+    public String getButtonString() {
+        if (equipment != null) {
+            if (toSlot != null) {
+                return String.format("%s %s\n%s", type, toSlot.shorthand, equipment);
+            } else {
+                return String.format("%s %s", type, equipment);
+            }
+        } else if (dir != null) {
+            switch (dir) {
+                case EAST:
+                    return ">";
+                case WEST:
+                    return "<";
+                case NORTH:
+                    return "^";
+                case SOUTH:
+                    return "v";
+            }
+            throw new GException("Unhandled case: " + dir);
+        } else {
+            return type.name();
+        }
+    }
+
+    public static ZMove newDoNothing() {
         return new ZMove(ZMoveType.DO_NOTHING);
     }
 
-    static ZMove newWalkMove(List<Integer> zones) {
+    public static ZMove newWalkMove(List<Integer> zones) {
         return new ZMove(ZMoveType.WALK, zones);
     }
 
@@ -76,6 +110,10 @@ public class ZMove {
         return new ZMove(ZMoveType.MAGIC_ATTACK, weapons);
     }
 
+    public static ZMove newThrowItemMove(List<ZEquipSlot> slots) {
+        return new ZMove(ZMoveType.THROW_ITEM, slots);
+    }
+
     public static ZMove newOrganizeMove() {
         return new ZMove(ZMoveType.ORGANNIZE);
     }
@@ -89,7 +127,7 @@ public class ZMove {
     }
 
     public static ZMove newEquipMove(ZEquipment equip, ZEquipSlot fromSlot, ZEquipSlot toSlot) {
-        return new ZMove(ZMoveType.EQUIP, 0, equip, fromSlot, toSlot, null);
+        return new ZMove(ZMoveType.EQUIP, 0, null, equip, fromSlot, toSlot, null, null);
     }
 
     public static ZMove newUnequipMove(ZEquipment equip, ZEquipSlot slot) {
@@ -100,8 +138,33 @@ public class ZMove {
         return new ZMove(ZMoveType.DISPOSE, equip, slot);
     }
 
+    public static ZMove newGiveMove(ZCharacter taker, ZEquipment toGive) {
+        return new ZMove(ZMoveType.GIVE, 0, taker, toGive, null, null, null, null);
+    }
+
+    public static ZMove newTakeMove(ZCharacter giver, ZEquipment toTake) {
+        return new ZMove(ZMoveType.TAKE, 0, giver, toTake, null, null, null,  null);
+    }
+
     public static ZMove newObjectiveMove(int zone) {
         return new ZMove(ZMoveType.OBJECTIVE, zone);
     }
+
+    public static ZMove newReloadMove(ZEquipSlot slot) {
+        return new ZMove(ZMoveType.RELOAD, null, slot);
+    }
+
+    public static ZMove newPickupItemMove(List<ZEquipment> takables) {
+        return new ZMove(ZMoveType.PICKUP_ITEM, takables);
+    }
+
+    public static ZMove newDropItemMove(List<ZEquipment> items) {
+        return new ZMove(ZMoveType.DROP_ITEM, items);
+    }
+
+    public static Object newWalkDirMove(ZDir dir) {
+        return new ZMove(ZMoveType.WALK_DIR, dir);
+    }
+
 
 }

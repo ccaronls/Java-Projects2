@@ -420,6 +420,7 @@ public class AWTGraphics extends APGraphics {
 
     public final  void setFont(Font font) {
         g.setFont(font);
+        this.currentFontHeight = -1;
     }
 
 	public void setColor(Color c) {

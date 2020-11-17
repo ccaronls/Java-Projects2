@@ -93,19 +93,18 @@ public enum ZPlayerName {
         this.characterClass = characterClass;
         this.startingEquipment = startingEquipment;
         this.alternateBodySlots = alternateBodySlots;
-        this.blueSkillOptions = blueSkillOptions;
-        this.yellowSkillOptions = yellowSkillOptions;
-        this.orangeSkillOptions = orangeSkillOptions;
-        this.redSkillOptions = redSkillOptions;
+        this.skillOptions = new ZSkill[][] {
+                blueSkillOptions,
+                yellowSkillOptions,
+                orangeSkillOptions,
+                redSkillOptions
+        };
     }
 
     public final String characterClass;
     public final ZEquipmentType [] startingEquipment;
     public final ZEquipmentType [] alternateBodySlots;
-    public final ZSkill [] blueSkillOptions;
-    public final ZSkill [] yellowSkillOptions;
-    public final ZSkill [] orangeSkillOptions;
-    public final ZSkill [] redSkillOptions;
+    private final ZSkill [][] skillOptions;
     public final int startingActionsPerTurn = 3;
 
     public ZCharacter create() {
@@ -113,8 +112,12 @@ public enum ZPlayerName {
         c.name = this;
         for (ZEquipmentType e : startingEquipment)
             c.equip(e.create());
-        c.allSkills.addAll(Arrays.asList(blueSkillOptions));
+        c.allSkills.addAll(Arrays.asList(getSkillOptions(ZSkillLevel.BLUE)));
         return c;
+    }
+
+    public ZSkill [] getSkillOptions(ZSkillLevel level) {
+        return skillOptions[level.ordinal()];
     }
 
     public int imageId = -1;

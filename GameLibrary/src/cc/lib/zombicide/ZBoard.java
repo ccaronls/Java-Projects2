@@ -3,6 +3,7 @@ package cc.lib.zombicide;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -28,6 +29,8 @@ public class ZBoard extends Reflector<ZBoard> {
 
     Grid<ZCell> grid; // TODO: Use Grid Container Type
     List<ZZone> zones;
+    @Omit
+    boolean loaded = false;
 
     public ZBoard() {
 
@@ -50,7 +53,6 @@ public class ZBoard extends Reflector<ZBoard> {
     public ZZone getZone(int index) {
         return zones.get(index);
     }
-
 
     Iterable<ZZone> getZones() {
         return zones;
@@ -240,6 +242,12 @@ public class ZBoard extends Reflector<ZBoard> {
         return null;
     }
 
+    public synchronized void loadCells(AGraphics g) {
+        if (!loaded)
+            initCellRects(g, g.getViewportWidth(), g.getViewportHeight());
+        loaded = true;
+    }
+
     /**
      * return zone highlighted by mouseX, mouseY
      *
@@ -249,6 +257,7 @@ public class ZBoard extends Reflector<ZBoard> {
      * @return
      */
     public int drawZones(AGraphics g, int mouseX, int mouseY) {
+        loadCells(g);
         int result = -1;
         for (int i=0; i<zones.size(); i++) {
             ZZone zone = zones.get(i);
@@ -294,6 +303,10 @@ public class ZBoard extends Reflector<ZBoard> {
                         }
                         break;
                 }
+                if (zone.dragonBile) {
+                    g.setColor(GColor.DARK_OLIVE.withAlpha(.3f));
+                    cell.getRect().drawFilled(g);
+                }
                 if (text.length() > 0) {
                     g.setColor(GColor.YELLOW);
                     g.drawJustifiedStringOnBackground(cell.rect.getCenter(), Justify.CENTER, Justify.CENTER, text, GColor.TRANSLUSCENT_BLACK, 10, 2);
@@ -306,12 +319,12 @@ public class ZBoard extends Reflector<ZBoard> {
                 g.setColor(GColor.CYAN);
                 g.drawJustifiedStringOnBackground(getCell(zone.cells.get(0)).rect.getTopLeft().addEq(10, 10), Justify.LEFT, Justify.TOP, String.valueOf(zone.noiseLevel), GColor.TRANSLUSCENT_BLACK, 10, 10);
             }
-
         }
         return result;
     }
 
     public void drawCellWalls(AGraphics g, ZCell cell, float scale) {
+        loadCells(g);
         g.pushMatrix();
         Vector2D center = cell.rect.getCenter();
         g.translate(center);
@@ -353,6 +366,7 @@ public class ZBoard extends Reflector<ZBoard> {
     }
 
     public Grid.Pos drawDebug(AGraphics g, int mouseX, int mouseY) {
+        loadCells(g);
         g.clearScreen(GColor.LIGHT_GRAY);
         Grid.Pos returnCell = null;
 
@@ -445,7 +459,22 @@ public class ZBoard extends Reflector<ZBoard> {
             }
         }
         if (!added) {
-            throw new AssertionError("Failed to add Actor");
+            //throw new AssertionError("Failed to add Actor");
+            System.err.println("Zone " + zoneIndex + " is full!");
+            if (actor instanceof ZCharacter) {
+                // replace the lowest priority zombie withthe chararcter
+                List<ZZombie> zombies = getZombiesInZone(zoneIndex);
+                assert(zombies.size() > 0);
+                Collections.sort(zombies, new Comparator<ZZombie>() {
+                    @Override
+                    public int compare(ZZombie o1, ZZombie o2) {
+                        return Integer.compare(o1.type.ordinal(), o2.type.ordinal());
+                    }
+                });
+                ZZombie removed = zombies.get(0);
+                removeActor(removed);
+                addActorToCell(actor, removed.occupiedCell);
+            }
         }
     }
 
@@ -613,17 +642,19 @@ public class ZBoard extends Reflector<ZBoard> {
         }
     }
 
-    private boolean addActorToCell(ZActor actor, Grid.Pos pos) {
+    public boolean addActorToCell(ZActor actor, Grid.Pos pos) {
         ZCell cell = getCell(pos);
+        int qi = actor.occupiedQuadrant;
         for (int i = 0; i < cell.occupied.length; i++) {
-            if (cell.occupied[i] == null) {
-                cell.occupied[i] = actor;
+            if (cell.occupied[qi] == null) {
+                cell.occupied[qi] = actor;
                 actor.occupiedZone = cell.zoneIndex;
                 actor.occupiedCell = pos;
-                actor.occupiedQuadrant = i;
+                actor.occupiedQuadrant = qi;
                 zones.get(cell.zoneIndex).noiseLevel += actor.getNoise();
                 return true;
             }
+            qi = (qi+1)%cell.occupied.length;
         }
         return false;
     }
@@ -658,5 +689,9 @@ public class ZBoard extends Reflector<ZBoard> {
                 }
             }
         }
+    }
+
+    public boolean canMove(ZActor actor, ZDir dir) {
+        return getCell(actor.occupiedCell).getWallFlag(dir).isOpen();
     }
 }

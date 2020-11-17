@@ -92,6 +92,19 @@ public class FileUtils {
 		String extension = fileExtension(fileName);
 		return backupFileR(fileName, root, extension, maxNum);
 	}
+
+    /**
+     *
+     * @param file
+     * @param maxNum
+     * @return
+     */
+	public static boolean backupFile(File file, int maxNum) {
+	    if (file.exists()) {
+	        return backupFile(file.getAbsolutePath(), maxNum);
+        }
+	    return false;
+    }
 	
 	private static boolean backupFileR(String fileName, String root, String extension, int maxNum) {
 

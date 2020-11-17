@@ -2,7 +2,7 @@ package cc.lib.zombicide;
 
 public enum ZSkillLevel {
     BLUE(0, 7),
-    YELOW(8, 19),
+    YELLOW(8, 19),
     ORANGE(20, 42),
     RED(43, Integer.MAX_VALUE);
 
