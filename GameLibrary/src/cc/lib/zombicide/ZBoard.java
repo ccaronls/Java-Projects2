@@ -248,6 +248,12 @@ public class ZBoard extends Reflector<ZBoard> {
         loaded = true;
     }
 
+    public void setSpawnZone(int zoneIdx, boolean isSpawn) {
+        ZZone zone = zones.get(zoneIdx);
+        zone.isSpawn = true;
+        getCell(zone.cells.get(0)).cellType = ZCellType.SPAWN;
+    }
+
     /**
      * return zone highlighted by mouseX, mouseY
      *

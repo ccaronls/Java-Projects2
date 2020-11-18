@@ -36,7 +36,7 @@ public class ZQuestTutorial extends ZQuest {
         final String [][] map = {
                 { "z0:i:wn:ww", "z0:i:wn", "z1:wn:dw:fatty", "z2:i:wn:ws:we", "z3:green:greende:ww:wn", "z4:i:wn:we:ws:exit" },
                 { "z5:sp:wn:ww:ws", "z6:bluedn:we:walker", "z7:ww:ds:we", "z8:red:wn:ww:ws", "z9",               "z10:red:wn:we:ws" },
-                { "z11:blue:i:wn:ww:ws:ode", "z12:start:ws:odw:we", "z13:i:ww:ws:dn:runner", "z13:i:wn:we:ws:vd1", "z14:ws:ww:redde", "z15:i:dw:ws:we:wn:vd2" },
+                { "z11:blue:i:wn:ww:ws:ode", "z12:start:ws:odw:we", "z13:i:ww:ws:dn:runner", "z13:i:wn:we:ws:vd1", "z14:ws:ww:de", "z15:i:dw:ws:we:wn:vd2" },
                 { "",                       "",                     "",                      "z16:v:wn:ws:ww:vd1", "z16:v:wn:ws", "z16:v:wn:ws:we:vd2" },
         };
 
@@ -46,11 +46,12 @@ public class ZQuestTutorial extends ZQuest {
         return load(map);
     }
 
-    ZCellDoor blueDoor=null, greenDoor=null, redDoor=null;
+    ZCellDoor blueDoor=null, greenDoor=null;
+    int [] redZones = new int[2];
     int greenSpawnZone=-1;
     int blueKeyZone=-1;
     int greenKeyZone=-1;
-    int redKeyZone=-1;
+    int numRed=0;
 
     @Override
     protected void loadCmd(Grid<ZCell> grid, Grid.Pos pos, String cmd) {
@@ -66,26 +67,17 @@ public class ZQuestTutorial extends ZQuest {
                 break;
             case "red":
                 cell.cellType = ZCellType.OBJECTIVE;
-                if (greenKeyZone >= 0) {
-                    redKeyZone = zoneIndex;
-                } else if (redKeyZone >= 0) {
-                    greenKeyZone = zoneIndex;
-                } else if (Utils.flipCoin()) {
-                    greenKeyZone = zoneIndex;
-                } else {
-                    redKeyZone = zoneIndex;
+                redZones[numRed++] = zoneIndex;
+                if (numRed == 2) {
+                     greenKeyZone = redZones[Utils.rand()%numRed];
                 }
-                break;
-            case "redde":
-                redDoor = new ZCellDoor(pos, ZDir.EAST);
-                super.loadCmd(grid, pos, "lde");
                 break;
             case "bluedn":
                 blueDoor = new ZCellDoor(pos, ZDir.NORTH);
                 super.loadCmd(grid, pos, "ldn");
                 break;
             case "greende":
-                greenDoor = new ZCellDoor(pos, ZDir.WEST);
+                greenDoor = new ZCellDoor(pos, ZDir.EAST);
                 super.loadCmd(grid, pos, "lde");
                 break;
             default:
@@ -95,34 +87,30 @@ public class ZQuestTutorial extends ZQuest {
 
     @Override
     public void addMoves(ZGame zGame, ZCharacter cur, List<ZMove> options) {
+        for (int red: redZones) {
+            if (cur.getOccupiedZone() == red)
+                options.add(ZMove.newObjectiveMove(red));
+        }
         if (cur.getOccupiedZone() == blueKeyZone) {
             options.add(ZMove.newObjectiveMove(blueKeyZone));
-        } else if (cur.getOccupiedZone() == greenKeyZone) {
-            options.add(ZMove.newObjectiveMove(greenKeyZone));
-        } else if (cur.getOccupiedZone() == redKeyZone) {
-            options.add(ZMove.newObjectiveMove(redKeyZone));
         }
     }
 
     @Override
     public void processObjective(ZGame zGame, ZCharacter c, ZMove move) {
         zGame.addExperience(c, 5);
-        if (move.integer == redKeyZone) {
-            zGame.board.setDoor(redDoor, ZWallFlag.CLOSED);
-            zGame.getCurrentUser().showMessage(c.name() + " has unlocked the RED door");
-            redKeyZone = -1;
-        } else if (move.integer == blueKeyZone) {
+        if (move.integer == blueKeyZone) {
             zGame.board.setDoor(blueDoor, ZWallFlag.CLOSED);
             zGame.getCurrentUser().showMessage(c.name() + " has unlocked the BLUE door");
             blueKeyZone = -1;
         } else if (move.integer == greenKeyZone) {
             zGame.board.setDoor(greenDoor, ZWallFlag.CLOSED);
-            zGame.board.getZone(greenSpawnZone).isSpawn = true;
+            zGame.board.setSpawnZone(greenSpawnZone, true);
             zGame.getCurrentUser().showMessage(c.name() + " has unlocked the GREEN door");
             zGame.getCurrentUser().showMessage(c.name() + " has created a new spawn zone!");
             greenKeyZone = -1;
         } else {
-            throw new AssertionError("Invsalid move for objective: " + move);
+            //throw new AssertionError("Invalid move for objective: " + move);
         }
     }
 

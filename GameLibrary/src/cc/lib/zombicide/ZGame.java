@@ -207,7 +207,6 @@ public class ZGame extends Reflector<ZGame>  {
         if (isGameOver())
             return;
 
-        final ZCharacter cur = getCurrentCharacter();
         final ZUser user = getCurrentUser();
 
         if (quest.isQuestComplete(this)) {
@@ -285,6 +284,8 @@ public class ZGame extends Reflector<ZGame>  {
 
             case PLAYER_STAGE_CHOOSE_CHARACTER_ACTION: {
 
+                final ZCharacter cur = getCurrentCharacter();
+
                 if (getCurrentCharacter().getActionsLeftThisTurn() <= 0) {
                     setState(ZState.PLAYER_STAGE_CHOOSE_CHARACTER);
                     return;
@@ -353,7 +354,7 @@ public class ZGame extends Reflector<ZGame>  {
                 if (zone.type == ZZoneType.VAULT) {
                     List<ZEquipment> takables = new ArrayList<>();
                     for (ZEquipment e : quest.getVaultItems()) {
-                        if (cur.canEquip(e)) {
+                        if (cur.canEquip(e) || !cur.isBackpackFull()) {
                             takables.add(e);
                         }
                     }
@@ -390,6 +391,7 @@ public class ZGame extends Reflector<ZGame>  {
             }
 
             case PLAYER_STAGE_CHOOSE_NEW_SKILL: {
+                final ZCharacter cur = getCurrentCharacter();
                 ZSkill skill = null;
                 List<ZSkill> options = Arrays.asList(getCurrentCharacter().name.getSkillOptions(cur.getSkillLevel()));
                 if (options.size() == 1) {
@@ -410,9 +412,9 @@ public class ZGame extends Reflector<ZGame>  {
                 // any existing zombies take their actions
                 for (int zoneIdx=0; zoneIdx < board.zones.size(); zoneIdx++) {
                     List<ZZombie> zombies = board.getZombiesInZone(zoneIdx);
-                    List<ZCharacter> victims = board.getCharactersInZone(zoneIdx);
                     for (ZZombie zombie : zombies) {
                         while (zombie.getActionsLeftThisTurn() > 0) {
+                            List<ZCharacter> victims = board.getCharactersInZone(zombie.occupiedZone);
                             if (victims.size() > 1) {
                                 Collections.sort(victims, (o1, o2) -> {
                                     int v0 = o1.woundBar + o1.getArmorRating(zombie.type);
@@ -424,13 +426,13 @@ public class ZGame extends Reflector<ZGame>  {
                                 ZCharacter victim = victims.get(0);
                                 zombie.performAction(ZActionType.MELEE, this);
                                 if (playerDefends(victim, zombie)) {
-                                    getCurrentUser().showMessage(cur.name() + " defends against " + zombie.name());
-                                    onCharacterDefends(cur, zombie);
+                                    getCurrentUser().showMessage(victim.name() + " defends against " + zombie.name());
+                                    onCharacterDefends(victim, zombie);
                                 } else
                                     victim.woundBar++;
                                 if (victim.isDead()) {
                                     removeCharacter(victim);
-                                    getCurrentUser().showMessage(cur.name() + " has been killed by a " + cur.name());
+                                    getCurrentUser().showMessage(victim.name() + " has been killed by a " + zombie.name());
                                     onCharacterPerished(victim, zombie);
                                     if (quest.isAllMustLive()) {
                                         gameLost();
@@ -957,7 +959,7 @@ public class ZGame extends Reflector<ZGame>  {
         c.dangerBar += pts;
         onCharacterGainedExperience(c, pts);
         if (c.getSkillLevel() != sl) {
-            getCurrentUser().showMessage(c.name() + " has gained the " + sl + " skill level");
+            getCurrentUser().showMessage(c.name() + " has gained the " + c.getSkillLevel() + " skill level");
             stateStack.push(ZState.PLAYER_STAGE_CHOOSE_NEW_SKILL);
         }
     }
@@ -979,41 +981,7 @@ public class ZGame extends Reflector<ZGame>  {
     protected void onRollDice(Integer [] roll) {
         log.info("Rolling dice result is: %s", Arrays.toString(roll));
     }
-/*
-    List<Integer> getZonesForDragonBile(ZCharacter c) {
-        List<Integer> accessable = board.getAccessableZones(c.occupiedZone, 1);
-        Iterator<Integer> it = accessable.iterator();
-        while (it.hasNext()) {
-            if (board.zones.get(it.next()).dragonBile) {
-                it.remove();
-            }
-        }
-        return accessable;
-    }
 
-    List<ZCharacter> getTradableCharacters(ZCharacter cur) {
-        List<ZCharacter> tradeOptions = new ArrayList<>();
-        for (ZCharacter c : getAllCharacters()) {
-            if (c == cur)
-                continue;
-            if (c.occupiedZone == cur.occupiedZone) {
-                tradeOptions.add(c);
-            }
-        }
-        return tradeOptions;
-    }
-
-    List<Integer> getTorchableZones(ZCharacter c) {
-        List<Integer> zones = board.getAccessableZones(c.occupiedZone, 1);
-        Iterator<Integer> it = zones.iterator();
-        while (it.hasNext()) {
-            if (!board.zones.get(it.next()).dragonBile) {
-                it.remove();
-            }
-        }
-        return zones;
-    }
-*/
     protected void onZombieDestroyed(ZZombie zombie) {
         log.info("Zombie %s destroyed for %d experience", zombie.type.name(), zombie.type.expProvided);
     }

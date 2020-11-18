@@ -25,47 +25,47 @@ public class ZAppletUser extends ZUser {
 
     @Override
     public ZMove chooseMove(ZGame zGame, ZCharacter cur, List<ZMove> moves) {
-        return ZombicideApplet.instance.pickMenu("Choose Move", moves);
+        return ZombicideApplet.instance.pickMenu(cur.name() + " Choose Move", moves);
     }
 
     @Override
-    public ZSkill chooseNewSkill(ZGame game, ZCharacter character, List<ZSkill> skillOptions) {
-        return ZombicideApplet.instance.pickMenu("Choose New Skill", skillOptions);
+    public ZSkill chooseNewSkill(ZGame game, ZCharacter cur, List<ZSkill> skillOptions) {
+        return ZombicideApplet.instance.pickMenu(cur.name() + " Choose New Skill", skillOptions);
     }
 
     @Override
     public ZEquipSlot chooseSlotToOrganize(ZGame zGame, ZCharacter cur, List<ZEquipSlot> slots) {
-        return ZombicideApplet.instance.pickMenu("Choose Slot to Organize", slots);
+        return ZombicideApplet.instance.pickMenu(cur.name() + " Choose Slot to Organize", slots);
     }
 
     @Override
     public ZEquipment chooseEquipment(ZGame zGame, ZCharacter cur, List<ZEquipment> equipOptions) {
-        return ZombicideApplet.instance.pickMenu("Choose Equipment to Organize", equipOptions);
+        return ZombicideApplet.instance.pickMenu(cur.name() + " Choose Equipment to Organize", equipOptions);
     }
 
     @Override
     public ZEquipSlot chooseSlotForEquip(ZGame zGame, ZCharacter cur, List<ZEquipSlot> equipableSlots) {
-        return ZombicideApplet.instance.pickMenu("Choose Slot to Equip Item", equipableSlots);
+        return ZombicideApplet.instance.pickMenu(cur.name() + " Choose Slot to Equip Item", equipableSlots);
     }
 
     @Override
     public Integer chooseZoneToWalk(ZGame zGame, ZCharacter cur, List<Integer> zones) {
-        return ZombicideApplet.instance.pickZone("Choose zone to Walk", zones);
+        return ZombicideApplet.instance.pickZone(cur.name() + " Choose zone to Walk", zones);
     }
 
     @Override
     public ZDoor chooseDoorToToggle(ZGame zGame, ZCharacter cur, List<ZDoor> doors) {
-        return ZombicideApplet.instance.pickDoor("Choose door to open or close", doors);
+        return ZombicideApplet.instance.pickDoor(cur.name() + " Choose door to open or close", doors);
     }
 
     @Override
-    public ZEquipSlot chooseWeaponSlot(ZGame zGame, ZCharacter c, List<ZEquipSlot> weapons) {
-        return ZombicideApplet.instance.pickMenu("Choose weapon from slot", weapons);
+    public ZEquipSlot chooseWeaponSlot(ZGame zGame, ZCharacter cur, List<ZEquipSlot> weapons) {
+        return ZombicideApplet.instance.pickMenu(cur.name() + " Choose weapon from slot", weapons);
     }
 
     @Override
-    public ZCharacter chooseTradeCharacter(ZGame zGame, ZCharacter c, List<ZCharacter> list) {
-        return ZombicideApplet.instance.pickCharacter("Choose Character for Trade", list);
+    public ZCharacter chooseTradeCharacter(ZGame zGame, ZCharacter cur, List<ZCharacter> list) {
+        return ZombicideApplet.instance.pickCharacter(cur.name() + " Choose Character for Trade", list);
     }
 
     @Override

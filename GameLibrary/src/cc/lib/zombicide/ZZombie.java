@@ -1,6 +1,7 @@
 package cc.lib.zombicide;
 
 import cc.lib.game.AGraphics;
+import cc.lib.game.GDimension;
 import cc.lib.utils.Table;
 
 public final class ZZombie extends ZActor {
@@ -15,12 +16,14 @@ public final class ZZombie extends ZActor {
     }
 
     public ZZombie() {
-        this(null, -1);
+        super(-1);
+        type = null;
     }
 
     ZZombie(ZZombieType type, int zone) {
         super(zone);
         this.type = type;
+        prepareTurn();
     }
 
     final ZZombieType type;
@@ -36,7 +39,7 @@ public final class ZZombie extends ZActor {
     }
 
     @Override
-    public void drawInfo(AGraphics g, ZGame game, int width, int height) {
+    public GDimension drawInfo(AGraphics g, ZGame game, int width, int height) {
         Table info = new Table().setNoBorder();
         info.addRow("Min Hits", type.minDamageToDestroy);
         info.addRow("Actions", type.actionsPerTurn);
@@ -45,7 +48,7 @@ public final class ZZombie extends ZActor {
         info.addRow("Ranged Priority", type.rangedPriority);
         Table outer = new Table();
         outer.addColumn(name(), info.toString());
-        g.drawString(outer.toString(), 0, 0);
+        return g.drawString(outer.toString(), 0, 0);
     }
 }
 

@@ -7,6 +7,7 @@ import java.util.Comparator;
 import java.util.List;
 
 import cc.lib.game.AGraphics;
+import cc.lib.game.GDimension;
 import cc.lib.game.Utils;
 import cc.lib.utils.Table;
 
@@ -187,7 +188,7 @@ public final class ZCharacter extends ZActor {
                 }
                 break;
         }
-        if (body == null && Utils.linearSearch(name.alternateBodySlots, e) >= 0) {
+        if (body == null && Utils.linearSearch(name.alternateBodySlots, e.getType()) >= 0) {
             return true;
         }
 
@@ -306,7 +307,8 @@ public final class ZCharacter extends ZActor {
         stats.addRow("Dual\nWielding", isDualWeilding());
 
         info.addColumn("STATS", Arrays.asList(stats.toString()));
-        info.addColumn("Skills", availableSkills);
+        Table skills = new Table().setNoBorder().addColumnNoHeader(availableSkills);
+        info.addColumn("Skills", skills);
 
         return String.format("%s (%s) moves: %d/%d Body:%s Actions:%s\n%s",
                 name.name(), name.characterClass,
@@ -321,8 +323,8 @@ public final class ZCharacter extends ZActor {
     }
 
     @Override
-    public void drawInfo(AGraphics g, ZGame game, int width, int height) {
-        g.drawString(getDebugString(game), 0, 0);
+    public GDimension drawInfo(AGraphics g, ZGame game, int width, int height) {
+        return g.drawString(getDebugString(game), 0, 0);
     }
 
     public boolean canTrade() {
@@ -341,7 +343,7 @@ public final class ZCharacter extends ZActor {
             case HAND:
                 options.add(ZEquipSlot.LEFT_HAND);
                 options.add(ZEquipSlot.RIGHT_HAND);
-                if (Utils.linearSearch(name.alternateBodySlots, equip) >= 0) {
+                if (Utils.linearSearch(name.alternateBodySlots, equip.getType()) >= 0) {
                     options.add(ZEquipSlot.BODY);
                 }
                 break;
@@ -351,10 +353,14 @@ public final class ZCharacter extends ZActor {
 
     public List<ZEquipSlot> getMeleeWeapons() {
         List<ZEquipSlot> slots = new ArrayList<>();
-        if (leftHand != null && leftHand.isMelee())
+        if (isDualWeilding()) {
             slots.add(ZEquipSlot.LEFT_HAND);
-        if (rightHand != null && rightHand.isMelee())
-            slots.add(ZEquipSlot.RIGHT_HAND);
+        } else {
+            if (leftHand != null && leftHand.isMelee())
+                slots.add(ZEquipSlot.LEFT_HAND);
+            if (rightHand != null && rightHand.isMelee())
+                slots.add(ZEquipSlot.RIGHT_HAND);
+        }
         if (body != null && body.isMelee())
             slots.add(ZEquipSlot.BODY);
         return slots;
@@ -362,10 +368,14 @@ public final class ZCharacter extends ZActor {
 
     public List<ZEquipSlot> getRangedWeapons() {
         List<ZEquipSlot> slots = new ArrayList<>();
-        if (leftHand != null && leftHand.isRanged() && isLoaded(leftHand))
+        if (isDualWeilding()) {
             slots.add(ZEquipSlot.LEFT_HAND);
-        if (rightHand != null && rightHand.isRanged() && isLoaded(rightHand))
-            slots.add(ZEquipSlot.RIGHT_HAND);
+        } else {
+            if (leftHand != null && leftHand.isRanged() && isLoaded(leftHand))
+                slots.add(ZEquipSlot.LEFT_HAND);
+            if (rightHand != null && rightHand.isRanged() && isLoaded(rightHand))
+                slots.add(ZEquipSlot.RIGHT_HAND);
+        }
         if (body != null && body.isRanged() && isLoaded(body))
             slots.add(ZEquipSlot.BODY);
         return slots;
@@ -373,10 +383,14 @@ public final class ZCharacter extends ZActor {
 
     public List<ZEquipSlot> getMagicWeapons() {
         List<ZEquipSlot> slots = new ArrayList<>();
-        if (leftHand != null && leftHand.isMagic())
+        if (isDualWeilding()) {
             slots.add(ZEquipSlot.LEFT_HAND);
-        if (rightHand != null && rightHand.isMagic())
-            slots.add(ZEquipSlot.RIGHT_HAND);
+        } else {
+            if (leftHand != null && leftHand.isMagic())
+                slots.add(ZEquipSlot.LEFT_HAND);
+            if (rightHand != null && rightHand.isMagic())
+                slots.add(ZEquipSlot.RIGHT_HAND);
+        }
         if (body != null && body.isMagic())
             slots.add(ZEquipSlot.BODY);
         return slots;
@@ -438,6 +452,9 @@ public final class ZCharacter extends ZActor {
                 break;
             default:
                 return null;
+        }
+        if (isDualWeilding()) {
+            stat.numDice*=2;
         }
         for (ZSkill skill : availableSkills) {
             skill.modifyStat(stat, attackType, this, game);

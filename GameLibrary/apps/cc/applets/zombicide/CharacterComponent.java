@@ -22,7 +22,7 @@ class CharacterComponent extends AWTComponent {
         return ZombicideApplet.instance.game;
     }
 
-    void addMessage(String msg) {
+    synchronized void addMessage(String msg) {
         messages.addFirst(msg);
         while (messages.size() > 32) {
             messages.removeLast();
@@ -45,21 +45,25 @@ class CharacterComponent extends AWTComponent {
         if (getGame() == null)
             return;
         g.getGraphics().setFont(Font.decode(Font.MONOSPACED).deriveFont(Font.BOLD));
+        GDimension info = null;
         if (ZombicideApplet.instance.boardComp.highlightedActor != null) {
             g.setColor(GColor.BLACK);
-            ZombicideApplet.instance.boardComp.highlightedActor.drawInfo(g, getGame(), getWidth(), getHeight());
+            info = ZombicideApplet.instance.boardComp.highlightedActor.drawInfo(g, getGame(), getWidth(), getHeight());
         } else if (getGame().getCurrentCharacter() != null) {
             String txt = getGame().getCurrentCharacter().getDebugString(getGame());
             g.setColor(GColor.BLACK);
-            g.drawString(txt, 0, 0);
+            info = g.drawString(txt, 0, 0);
         }
 
         g.setColor(GColor.BLACK);
         int y = 0;
-        for (String msg : messages) {
-            GDimension d = g.drawJustifiedString(g.getViewportWidth(), y, Justify.RIGHT, Justify.TOP, msg);
-            g.setColor(GColor.TRANSLUSCENT_BLACK);
-            y += d.getHeight();
+        float maxWidth = g.getViewportWidth() - (info == null ? 0 : info.width);
+        synchronized (messages) {
+            for (String msg : messages) {
+                GDimension d = g.drawWrapString(g.getViewportWidth(), y, maxWidth, Justify.RIGHT, Justify.TOP, msg);
+                g.setColor(GColor.TRANSLUSCENT_BLACK);
+                y += d.getHeight();
+            }
         }
     }
 

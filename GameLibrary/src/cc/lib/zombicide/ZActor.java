@@ -1,6 +1,7 @@
 package cc.lib.zombicide;
 
 import cc.lib.game.AGraphics;
+import cc.lib.game.GDimension;
 import cc.lib.game.GRectangle;
 import cc.lib.utils.Grid;
 import cc.lib.utils.Reflector;
@@ -44,7 +45,7 @@ public abstract class ZActor extends Reflector<ZActor> {
         return rect;
     }
 
-    public abstract void drawInfo(AGraphics g,ZGame game, int width, int height);
+    public abstract GDimension drawInfo(AGraphics g, ZGame game, int width, int height);
 
     public int getOccupiedZone() {
         return occupiedZone;
