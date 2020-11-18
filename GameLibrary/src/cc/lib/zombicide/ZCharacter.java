@@ -138,6 +138,22 @@ public final class ZCharacter extends ZActor {
         return (List)Utils.filterItems(object -> object instanceof ZArmor, leftHand, rightHand, body);
     }
 
+    public List<ZArmor> getArmorForDefense() {
+        List<ZArmor> armor = getArmor();
+        if (availableSkills.contains(ZSkill.Iron_hide)) {
+            if (armor.size() == 0) {
+                armor.add(new ZArmor(ZArmorType.IRON_HIDE));
+            } else {
+                List<ZArmor> adjustedArmor = new ArrayList<>();
+                for (ZArmor ar : armor) {
+                    adjustedArmor.add(new ZArmor(ar.getType(), 1));
+                }
+                return adjustedArmor;
+            }
+        }
+        return armor;
+    }
+
     /**
      *
      * @return
@@ -193,6 +209,10 @@ public final class ZCharacter extends ZActor {
         }
 
         return false;
+    }
+
+    public boolean canAcceptTrade(ZEquipment e) {
+        return canEquip(e) || !isBackpackFull();
     }
 
     public ZEquipSlot equip(ZEquipment e) {
@@ -328,7 +348,7 @@ public final class ZCharacter extends ZActor {
     }
 
     public boolean canTrade() {
-        return backpack.size() > 0;
+        return getAllEquipment().size() > 0;//backpack.size() > 0;
     }
 
     public boolean canSearch() {
@@ -353,7 +373,7 @@ public final class ZCharacter extends ZActor {
 
     public List<ZEquipSlot> getMeleeWeapons() {
         List<ZEquipSlot> slots = new ArrayList<>();
-        if (isDualWeilding()) {
+        if (isDualWeilding() && leftHand.isMelee()) {
             slots.add(ZEquipSlot.LEFT_HAND);
         } else {
             if (leftHand != null && leftHand.isMelee())
@@ -368,7 +388,7 @@ public final class ZCharacter extends ZActor {
 
     public List<ZEquipSlot> getRangedWeapons() {
         List<ZEquipSlot> slots = new ArrayList<>();
-        if (isDualWeilding()) {
+        if (isDualWeilding() && leftHand.isRanged()) {
             slots.add(ZEquipSlot.LEFT_HAND);
         } else {
             if (leftHand != null && leftHand.isRanged() && isLoaded(leftHand))
@@ -383,7 +403,7 @@ public final class ZCharacter extends ZActor {
 
     public List<ZEquipSlot> getMagicWeapons() {
         List<ZEquipSlot> slots = new ArrayList<>();
-        if (isDualWeilding()) {
+        if (isDualWeilding() && leftHand.isMagic()) {
             slots.add(ZEquipSlot.LEFT_HAND);
         } else {
             if (leftHand != null && leftHand.isMagic())

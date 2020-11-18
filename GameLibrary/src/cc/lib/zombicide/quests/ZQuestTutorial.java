@@ -68,9 +68,6 @@ public class ZQuestTutorial extends ZQuest {
             case "red":
                 cell.cellType = ZCellType.OBJECTIVE;
                 redZones[numRed++] = zoneIndex;
-                if (numRed == 2) {
-                     greenKeyZone = redZones[Utils.rand()%numRed];
-                }
                 break;
             case "bluedn":
                 blueDoor = new ZCellDoor(pos, ZDir.NORTH);
@@ -136,4 +133,8 @@ public class ZQuestTutorial extends ZQuest {
     }
 
 
+    @Override
+    public void init(ZGame game) {
+        greenKeyZone = redZones[Utils.rand()%numRed];
+    }
 }

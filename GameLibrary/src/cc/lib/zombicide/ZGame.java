@@ -41,6 +41,7 @@ public class ZGame extends Reflector<ZGame>  {
     boolean doubleSpawn=false;
     int roundNum=0;
     int gameOverStatus=0; // 0 == in play, 1, == game won, 2 == game lost
+    ZQuests currentQuest;
 
     @Override
     protected synchronized void deserialize(BufferedReader _in) throws Exception {
@@ -75,7 +76,12 @@ public class ZGame extends Reflector<ZGame>  {
         return gameOverStatus == GAME_LOST;
     }
 
+    public void reload() {
+        loadQuest(currentQuest);
+    }
+
     public void loadQuest(ZQuests quest) {
+        this.currentQuest = quest;
         this.quest = quest.load();
         board = this.quest.loadBoard();
         setState(ZState.INIT);
@@ -219,8 +225,9 @@ public class ZGame extends Reflector<ZGame>  {
         switch (getState()) {
             case INIT: {
                 initSearchables();
-                setState(ZState.BEGIN_ROUND);
                 roundNum = 0;
+                quest.init(this);
+                setState(ZState.BEGIN_ROUND);
                 break;
             }
 
@@ -461,7 +468,7 @@ public class ZGame extends Reflector<ZGame>  {
     }
 
     boolean playerDefends(ZCharacter cur, ZZombie zombie) {
-        for (ZArmor armor : cur.getArmor()) {
+        for (ZArmor armor : cur.getArmorForDefense()) {
             int rating = armor.getRating(zombie.type);
             if (rating > 0) {
                 Integer [] dice = rollDice(1);
@@ -646,6 +653,19 @@ public class ZGame extends Reflector<ZGame>  {
                 if (other != null) {
                     List<ZMove> options = new ArrayList<>();
                     // we can take if our backpack is not full or give if their packpack is not full
+                    for (ZEquipment eq : cur.getAllEquipment()) {
+                        if (other.canAcceptTrade(eq)) {
+                            options.add(ZMove.newGiveMove(other, eq));
+                        }
+                    }
+
+                    for (ZEquipment eq : other.getAllEquipment()) {
+                        if (cur.canAcceptTrade(eq)) {
+                            options.add(ZMove.newTakeMove(other, eq));
+                        }
+                    }
+
+                    /*
                     if (!other.isBackpackFull()) {
                         for (ZEquipment e : cur.getBackpack()) {
                             options.add(ZMove.newGiveMove(other, e));
@@ -656,7 +676,7 @@ public class ZGame extends Reflector<ZGame>  {
                         for (ZEquipment e : other.getBackpack()) {
                             options.add(ZMove.newTakeMove(other, e));
                         }
-                    }
+                    }*/
 
                     move = user.chooseMove(this, cur, options);
                     if (move != null) {

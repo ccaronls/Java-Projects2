@@ -10,7 +10,9 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.Action;
 import javax.swing.InputMap;
@@ -27,6 +29,7 @@ import cc.lib.logger.LoggerFactory;
 import cc.lib.swing.AWTButton;
 import cc.lib.swing.AWTFrame;
 import cc.lib.swing.AWTPanel;
+import cc.lib.swing.AWTToggleButton;
 import cc.lib.utils.FileUtils;
 import cc.lib.zombicide.ZCharacter;
 import cc.lib.zombicide.ZDir;
@@ -73,7 +76,21 @@ public class ZombicideApplet extends JApplet implements ActionListener {
         START,
         RESUME,
         QUIT,
-        BACK
+        BACK,
+        LOAD,
+        ASSIGN;
+
+        boolean isHomeButton() {
+            switch (this) {
+                case LOAD:
+                case START:
+                case ASSIGN:
+                    return true;
+                case RESUME:
+                    return instance.gameFile != null && instance.gameFile.exists();
+            }
+            return false;
+        }
     }
 
     ZGame game = new ZGame();
@@ -121,14 +138,16 @@ public class ZombicideApplet extends JApplet implements ActionListener {
     }
 
     void initHomeMenu() {
-        if (gameFile != null && gameFile.exists())
-            setMenuItems(MenuItem.START, MenuItem.RESUME);
-        else
-            setMenuItems(MenuItem.START);
-
+        List<MenuItem> items = Utils.filterItems(new Utils.Filter<MenuItem>() {
+            @Override
+            public boolean keep(MenuItem object) {
+                return object.isHomeButton();
+            }
+        }, MenuItem.values());
+        setMenuItems(items);
     }
 
-    synchronized void setMenuItems(MenuItem ... items) {
+    synchronized void setMenuItems(List<MenuItem> items) {
         if (SwingUtilities.isEventDispatchThread()) {
             menu.removeAll();
             for (MenuItem i : items) {
@@ -144,7 +163,7 @@ public class ZombicideApplet extends JApplet implements ActionListener {
     public void actionPerformed(ActionEvent e) {
         switch (MenuItem.valueOf(e.getActionCommand())) {
             case START:
-                game.loadQuest(ZQuests.Tutorial);
+                game.reload();
                 startGameThread();
                 break;
             case RESUME:
@@ -157,13 +176,56 @@ public class ZombicideApplet extends JApplet implements ActionListener {
                 setResult(null);
                 break;
             case BACK:
-                game.goBack();
-                setResult(null);
+                if (gameRunning) {
+                    game.goBack();
+                    setResult(null);
+                } else {
+                    initHomeMenu();
+                }
                 break;
+            case LOAD: {
+                menu.removeAll();
+                for (ZQuests q : ZQuests.values()) {
+                    menu.add(new AWTButton(q.name(), questLoader));
+                }
+                menu.add(new AWTButton(MenuItem.BACK.name(), this));
+                menuContainer.validate();
+                break;
+            }
+            case ASSIGN: {
+                menu.removeAll();
+                Map<ZPlayerName, AWTToggleButton> buttons = new HashMap<>();
+                for (ZPlayerName name : ZPlayerName.values()) {
+                    AWTToggleButton btn = new AWTToggleButton(name.name());
+                    buttons.put(name, btn);
+                    menu.add(btn);
+                }
+                menu.add(new AWTButton("KEEP", e1 -> {
+                    ZUser user = new ZAppletUser();
+                    for (Map.Entry<ZPlayerName, AWTToggleButton> entry : buttons.entrySet()) {
+                        if (entry.getValue().isSelected())
+                            user.addCharacter(entry.getKey().create());
+                    }
+                    game.setUsers(user);
+                    game.reload();
+                    initHomeMenu();
+                    boardComp.repaint();
+                }));
+                menu.add(new AWTButton(MenuItem.BACK.name(), this));
+                menuContainer.validate();
+                break;
+            }
             default:
                 log.error("Unhandled action: " + e.getActionCommand());
         }
     }
+
+    ActionListener questLoader = e -> {
+        ZQuests qu = ZQuests.valueOf(e.getActionCommand());
+        game.loadQuest(qu);
+        boardComp.repaint();
+        initHomeMenu();
+    };
 
     @Override
     public void init() {

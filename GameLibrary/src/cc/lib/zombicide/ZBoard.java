@@ -391,7 +391,7 @@ public class ZBoard extends Reflector<ZBoard> {
             }
             g.drawFilledRect(cell.rect);
             drawCellWalls(g, cell, .97f);
-            String text = "Zone " + cell.zoneIndex;
+            String text = "Zone " + cell.zoneIndex + "\n" + cell.cellType;
             if (cell.rect.contains(mouseX, mouseY)) {
                 List<Integer> accessible = getAccessableZones(cell.zoneIndex, 1);
                 text = "1 Unit away:\n" + accessible;

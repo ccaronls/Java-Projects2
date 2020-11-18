@@ -14,10 +14,16 @@ public class ZArmor extends ZEquipment<ZArmorType> {
     }
 
     ZArmor(ZArmorType type) {
-        this.type = type;
+        this(type, 0);
     }
 
-    final ZArmorType type;
+    ZArmor(ZArmorType type, int adjustment) {
+        this.type = type;
+        this.adjustment = adjustment;
+    }
+
+    private final ZArmorType type;
+    private final int adjustment;
 
     @Override
     public ZEquipSlotType getSlotType() {
@@ -35,7 +41,7 @@ public class ZArmor extends ZEquipment<ZArmorType> {
     }
 
     int getRating(ZZombieType type) {
-        return this.type.getRating(type);
+        return this.type.getRating(type) + adjustment;
     }
 
     @Override

@@ -35,6 +35,7 @@ class BoardComponent extends AWTComponent implements ZTiles {
     Grid.Pos selectedCell = null;
     Font bigFont;
     Font smallFont;
+    boolean drawTiles = false;
 
     BoardComponent() {
         setPreferredSize(250, 250);
@@ -77,6 +78,10 @@ class BoardComponent extends AWTComponent implements ZTiles {
 
         final List options = ZombicideApplet.instance.options;
         final Grid.Pos cellPos = board.drawDebug(g, getMouseX(), getMouseY());
+
+        if (drawTiles) {
+            getGame().getQuest().drawTiles(g, board, this);
+        }
 
         if (ZombicideApplet.instance.gameRunning) {
             int highlightedZone = board.drawZones(g, getMouseX(), getMouseY());
@@ -244,14 +249,24 @@ class BoardComponent extends AWTComponent implements ZTiles {
                 case "9R":
                     tiles[i] = g.loadImage("ztile8.png", orientations[i]);
                     break;
+                case "2R":
+                    tiles[i] = g.loadImage("ztile9.png", orientations[i]);
+                    break;
+                case "8V":
+                    tiles[i] = g.loadImage("ztile7.png", orientations[i]);
+                    break;
+                case "9V":
+                    tiles[i] = g.loadImage("ztile6.png", orientations[i]);
+                    break;
+                case "1V":
+                    tiles[i] = g.loadImage("ztile3.png", orientations[i]);
+                    break;
+
+
             }
 
         }
         return tiles;
-    }
-
-    @Override
-    public void keyTyped(KeyEvent e) {
     }
 
     @Override
@@ -282,10 +297,13 @@ class BoardComponent extends AWTComponent implements ZTiles {
                     break;
             }
         }
-    }
 
-    @Override
-    public void keyReleased(KeyEvent e) {
+        switch (e.getKeyCode()) {
+            case KeyEvent.VK_T:
+                drawTiles = !drawTiles;
+                break;
+        }
+        repaint();
     }
 
 }

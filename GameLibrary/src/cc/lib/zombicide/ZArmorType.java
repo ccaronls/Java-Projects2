@@ -7,6 +7,7 @@ public enum ZArmorType implements ZEquipmentType<ZArmor> {
     SHIELD(ZEquipSlotType.HAND, 3, ""),
     DWARVEN_SHIELD(ZEquipSlotType.HAND, 4, "TODO: Protects against abomination"),
     SHIELD_OF_AGES(ZEquipSlotType.HAND, 4, "TODO: Gain the shove skill"),
+    IRON_HIDE(null, 5, ""),
     ;
 
     ZArmorType(ZEquipSlotType slotType, int dieRollToBlock, String specialAbilityDescription) {

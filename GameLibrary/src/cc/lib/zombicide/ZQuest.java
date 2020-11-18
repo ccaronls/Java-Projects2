@@ -245,4 +245,8 @@ public abstract class ZQuest extends Reflector<ZQuest> {
         return vaultItems;
     }
 
+    /**
+     * Called once during INIT stage of game
+     */
+    public abstract void init(ZGame game);
 }
