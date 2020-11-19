@@ -6,18 +6,22 @@ import cc.lib.game.AGraphics;
 import cc.lib.game.GRectangle;
 import cc.lib.game.Utils;
 import cc.lib.utils.Grid;
+import cc.lib.utils.Table;
 import cc.lib.zombicide.ZBoard;
 import cc.lib.zombicide.ZCell;
 import cc.lib.zombicide.ZCellDoor;
 import cc.lib.zombicide.ZCellType;
 import cc.lib.zombicide.ZCharacter;
 import cc.lib.zombicide.ZDir;
+import cc.lib.zombicide.ZEquipment;
+import cc.lib.zombicide.ZEquipmentType;
 import cc.lib.zombicide.ZGame;
 import cc.lib.zombicide.ZItemType;
 import cc.lib.zombicide.ZMove;
 import cc.lib.zombicide.ZQuest;
 import cc.lib.zombicide.ZTiles;
 import cc.lib.zombicide.ZWallFlag;
+import cc.lib.zombicide.ZWeaponType;
 
 public class ZQuestTutorial extends ZQuest {
 
@@ -39,9 +43,6 @@ public class ZQuestTutorial extends ZQuest {
                 { "z11:blue:i:wn:ww:ws:ode", "z12:start:ws:odw:we", "z13:i:ww:ws:dn:runner", "z13:i:wn:we:ws:vd1", "z14:ws:ww:de", "z15:i:dw:ws:we:wn:vd2" },
                 { "",                       "",                     "",                      "z16:v:wn:ws:ww:vd1", "z16:v:wn:ws", "z16:v:wn:ws:we:vd2" },
         };
-
-        getVaultItems().add(ZItemType.DRAGON_BILE.create());
-        getVaultItems().add(ZItemType.TORCH.create());
 
         return load(map);
     }
@@ -95,7 +96,7 @@ public class ZQuestTutorial extends ZQuest {
 
     @Override
     public void processObjective(ZGame zGame, ZCharacter c, ZMove move) {
-        zGame.addExperience(c, 5);
+        zGame.addExperience(c, OBJECTIVE_EXP);
         if (move.integer == blueKeyZone) {
             zGame.board.setDoor(blueDoor, ZWallFlag.CLOSED);
             zGame.getCurrentUser().showMessage(c.name() + " has unlocked the BLUE door");
@@ -136,5 +137,38 @@ public class ZQuestTutorial extends ZQuest {
     @Override
     public void init(ZGame game) {
         greenKeyZone = redZones[Utils.rand()%numRed];
+    }
+
+    @Override
+    public List<ZEquipmentType> getAllVaultOptions() {
+        return Utils.toList(ZItemType.DRAGON_BILE, ZItemType.TORCH, ZWeaponType.ORCISH_CROSSBOW, ZWeaponType.INFERNO);
+
+    }
+
+    @Override
+    public List<ZEquipment> getVaultItems(int vaultZone) {
+        return super.getVaultItems(vaultZone);
+    }
+
+    @Override
+    public Table getObjectivesOverlay() {
+        return new Table()
+                .addRow("1.", "Collect all Objectives for " + OBJECTIVE_EXP + " EXP Each")
+                .addRow("2.", "Get all player into the EXIT zone.")
+                .addRow("3.", "All Players must survive.");
+    }
+
+    @Override
+    public boolean isQuestComplete(ZGame game) {
+        for (ZCharacter c : game.getAllCharacters()) {
+            if (c.getOccupiedZone() != exitZone)
+                return false;
+        }
+        return true;
+    }
+
+    @Override
+    public boolean isQuestFailed(ZGame game) {
+        return Utils.filter(game.getAllCharacters(), object -> object.isDead()).size() > 0;
     }
 }

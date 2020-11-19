@@ -7,20 +7,19 @@ import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.io.File;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.swing.Action;
-import javax.swing.InputMap;
 import javax.swing.JApplet;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
-import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 
 import cc.lib.game.Utils;
@@ -30,12 +29,11 @@ import cc.lib.swing.AWTButton;
 import cc.lib.swing.AWTFrame;
 import cc.lib.swing.AWTPanel;
 import cc.lib.swing.AWTToggleButton;
+import cc.lib.ui.IButton;
 import cc.lib.utils.FileUtils;
 import cc.lib.zombicide.ZCharacter;
-import cc.lib.zombicide.ZDir;
 import cc.lib.zombicide.ZDoor;
 import cc.lib.zombicide.ZGame;
-import cc.lib.zombicide.ZMove;
 import cc.lib.zombicide.ZPlayerName;
 import cc.lib.zombicide.ZQuests;
 import cc.lib.zombicide.ZUser;
@@ -52,7 +50,27 @@ public class ZombicideApplet extends JApplet implements ActionListener {
         //PlayerBot.DEBUG_ENABLED = true;
         //mode = 0;
         AWTFrame frame = new AWTFrame("Zombicide");
-        ZombicideApplet app = instance = new ZombicideApplet();
+        ZombicideApplet app = instance = new ZombicideApplet() {
+            @Override
+            <T extends Enum<T>> List<T> getEnumListProperty(String property, Class className, List<T> defaultList) {
+                return frame.getEnumListProperty(property, className, defaultList);
+            }
+
+            @Override
+            String getStringProperty(String property, String defaultValue) {
+                return frame.getStringProperty(property, defaultValue);
+            }
+
+            @Override
+            void setStringProperty(String s, String v) {
+                frame.setProperty(s, v);
+            }
+
+            @Override
+            <T extends Enum<T>> void setEnumListProperty(String s, Collection<T> l) {
+                frame.setEnumListProperty(s, l);
+            }
+        };
         File settings = FileUtils.getOrCreateSettingsDirectory(ZombicideApplet.class);
         frame.setPropertiesFile(new File(settings, "application.properties"));
         app.gameFile = new File(settings, "savegame.txt");
@@ -78,7 +96,8 @@ public class ZombicideApplet extends JApplet implements ActionListener {
         QUIT,
         BACK,
         LOAD,
-        ASSIGN;
+        ASSIGN,
+        OBJECTIVES;
 
         boolean isHomeButton() {
             switch (this) {
@@ -183,6 +202,10 @@ public class ZombicideApplet extends JApplet implements ActionListener {
                     initHomeMenu();
                 }
                 break;
+            case OBJECTIVES: {
+                boardComp.setOverlay(game.getGameSummaryTable());
+                break;
+            }
             case LOAD: {
                 menu.removeAll();
                 for (ZQuests q : ZQuests.values()) {
@@ -199,6 +222,22 @@ public class ZombicideApplet extends JApplet implements ActionListener {
                     AWTToggleButton btn = new AWTToggleButton(name.name());
                     buttons.put(name, btn);
                     menu.add(btn);
+                    btn.addMouseListener(new MouseListener() {
+                        @Override
+                        public void mouseClicked(MouseEvent e) {}
+                        @Override
+                        public void mousePressed(MouseEvent e) {}
+                        @Override
+                        public void mouseReleased(MouseEvent e) {}
+                        @Override
+                        public void mouseEntered(MouseEvent e) {
+                            boardComp.setOverlay(name.name());
+                        }
+                        @Override
+                        public void mouseExited(MouseEvent e) {
+                            boardComp.setOverlay(null);
+                        }
+                    });
                 }
                 menu.add(new AWTButton("KEEP", e1 -> {
                     ZUser user = new ZAppletUser();
@@ -208,6 +247,7 @@ public class ZombicideApplet extends JApplet implements ActionListener {
                     }
                     game.setUsers(user);
                     game.reload();
+                    setEnumListProperty("players", Utils.filter(buttons.keySet(), object -> buttons.get(object).isSelected()));
                     initHomeMenu();
                     boardComp.repaint();
                 }));
@@ -223,6 +263,7 @@ public class ZombicideApplet extends JApplet implements ActionListener {
     ActionListener questLoader = e -> {
         ZQuests qu = ZQuests.valueOf(e.getActionCommand());
         game.loadQuest(qu);
+        setStringProperty("quest", qu.name());
         boardComp.repaint();
         initHomeMenu();
     };
@@ -231,8 +272,13 @@ public class ZombicideApplet extends JApplet implements ActionListener {
     public void init() {
         setLayout(new BorderLayout());
         add(charComp = new CharacterComponent(), BorderLayout.SOUTH);
-        //menu.setMinimumSize(new Dimension(200, 0));
-        //menu.setLayout(new AWTButtonLayout(menu));
+        ZUser user = new ZAppletUser();
+        List<ZPlayerName> players = getEnumListProperty("players", ZPlayerName.class, Utils.toList(ZPlayerName.Baldric, ZPlayerName.Clovis));
+        for (ZPlayerName pl : players) {
+            user.addCharacter(pl.create());
+        }
+        game.setUsers(user);
+        game.loadQuest(ZQuests.valueOf(getStringProperty("quest", ZQuests.Tutorial.name())));
         menu.setLayout(new GridLayout(0, 1));
         menuContainer.setLayout(new GridBagLayout());
         menuContainer.setPreferredSize(new Dimension(150, 300));
@@ -240,13 +286,18 @@ public class ZombicideApplet extends JApplet implements ActionListener {
         add(menuContainer, BorderLayout.LINE_START);
         add(boardComp = new BoardComponent(), BorderLayout.CENTER);
         initHomeMenu();
-
-        ZUser user = new ZAppletUser();
-        user.addCharacter(ZPlayerName.Baldric.create());
-        user.addCharacter(ZPlayerName.Clovis.create());
-        game.setUsers(user);
-        game.loadQuest(ZQuests.Tutorial);
     }
+
+    <T extends Enum<T>> List<T> getEnumListProperty(String property, Class enumClass, List<T> defaultList) {
+        return defaultList;
+    }
+
+    String getStringProperty(String property, String defaultValue) {
+        return defaultValue;
+    }
+
+    void setStringProperty(String s, String v) {}
+    <T extends Enum<T>> void setEnumListProperty(String s, Collection<T> l) {}
 
     <T> T waitForUser() {
         initMenu();
@@ -263,8 +314,8 @@ public class ZombicideApplet extends JApplet implements ActionListener {
 
     class ZButton extends AWTButton {
         Object obj;
-        ZButton(Object obj) {
-            super(obj instanceof ZMove ? ((ZMove) obj).getButtonString() : obj.toString());
+        ZButton(IButton obj) {
+            super(obj);//obj instanceof ZMove ? Utils.getPrettyString(((ZMove) obj).getButtonString()) : Utils.getPrettyString(obj.toString()));
             this.obj = obj;
         }
 
@@ -276,55 +327,6 @@ public class ZombicideApplet extends JApplet implements ActionListener {
                 }
             }.start();
         }
-
-        @Override
-        public Action getAction() {
-            return super.getAction();
-        }
-    }
-
-    void addDirectionArrowButtons() {
-        ZCharacter cur = game.getCurrentCharacter();
-        if (cur == null)
-            return;
-        JPanel top = new JPanel();
-        top.setLayout(new BorderLayout());
-        JPanel mid = new JPanel();
-        mid.setLayout(new GridLayout(0, 1));
-        top.add(mid, BorderLayout.CENTER);
-        ZButton button = new ZButton(ZMove.newWalkDirMove(ZDir.WEST));
-        top.add(button, BorderLayout.WEST);
-        if (game.board.canMove(cur, ZDir.WEST)) {
-            InputMap inputMap = top.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-            inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0), button.getAction());
-        } else {
-            button.setEnabled(false);
-        }
-        button = new ZButton(ZMove.newWalkDirMove(ZDir.NORTH));
-        mid.add(button);
-        if (game.board.canMove(cur, ZDir.NORTH)) {
-            InputMap inputMap = top.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-            inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0), button.getAction());
-        } else {
-            button.setEnabled(false);
-        }
-        button = new ZButton(ZMove.newWalkDirMove(ZDir.EAST));
-        top.add(button, BorderLayout.EAST);
-        if (game.board.canMove(cur, ZDir.EAST)) {
-            InputMap inputMap = top.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-            inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0), button.getAction());
-        } else {
-            button.setEnabled(false);
-        }
-        button = new ZButton(ZMove.newWalkDirMove(ZDir.SOUTH));
-        mid.add(button);
-        if (game.board.canMove(cur, ZDir.SOUTH)) {
-            InputMap inputMap = top.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-            inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0), button.getAction());
-        } else {
-            button.setEnabled(false);
-        }
-        menu.add(top);
     }
 
 
@@ -335,9 +337,8 @@ public class ZombicideApplet extends JApplet implements ActionListener {
                 break;
             case PICK_MENU: {
 
-
                 for (Object o : options) {
-                    menu.add(new ZButton(o));
+                    menu.add(new ZButton((IButton)o));
                 }
 
                 break;
@@ -356,6 +357,7 @@ public class ZombicideApplet extends JApplet implements ActionListener {
         if (game.canGoBack()) {
             menu.add(new AWTButton(MenuItem.BACK.name(), this));
         }
+        menu.add(new AWTButton(MenuItem.OBJECTIVES.name(), this));
         menu.add(new AWTButton(MenuItem.QUIT.name(), this));
         menuContainer.validate();
     }
@@ -365,6 +367,7 @@ public class ZombicideApplet extends JApplet implements ActionListener {
         synchronized (monitor) {
             monitor.notify();
         }
+        boardComp.requestFocus();
     }
 
     public ZCharacter pickCharacter(String message, List<ZCharacter> characters) {

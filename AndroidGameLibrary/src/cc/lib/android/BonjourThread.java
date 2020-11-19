@@ -277,7 +277,7 @@ public class BonjourThread {
                     //Log.i("WifiReciever", String.format("%20s : %s", "FREQUENCY", "" + wifi.getConnectionInfo().getFrequency() + WifiInfo.FREQUENCY_UNITS)); // API 21
                     Log.v("WifiReciever", String.format("%20s : %s", "IP ADDR", Utils.getIpAddressString(wifi.getConnectionInfo().getIpAddress())));
 
-                    state.set(Utils.trimQuotes(wifi.getConnectionInfo().getSSID()), wifi.getConnectionInfo().getLinkSpeed());
+                    state.set(Utils.trimEnclosure(wifi.getConnectionInfo().getSSID()), wifi.getConnectionInfo().getLinkSpeed());
                 }
             }
 

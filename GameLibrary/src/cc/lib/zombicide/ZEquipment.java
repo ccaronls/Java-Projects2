@@ -1,9 +1,10 @@
 package cc.lib.zombicide;
 
 import cc.lib.game.Utils;
+import cc.lib.ui.IButton;
 import cc.lib.utils.Reflector;
 
-public abstract class ZEquipment<T extends Enum<T>> extends Reflector<ZEquipment<T>> {
+public abstract class ZEquipment<T extends Enum<T>> extends Reflector<ZEquipment<T>> implements IButton {
 
     public abstract ZEquipSlotType getSlotType();
 
@@ -56,10 +57,23 @@ public abstract class ZEquipment<T extends Enum<T>> extends Reflector<ZEquipment
         return getType().ordinal();
     }
 
+    public abstract String getCardString(ZCharacter c, ZGame game);
+
+    @Override
+    public String getTooltipText() {
+        if (getType() instanceof IButton) {
+            return ((IButton)getType()).getTooltipText();
+        }
+        return null;
+    }
+
     @Override
     public String toString() {
         return Utils.getPrettyString(getType().name());
     }
 
-    public abstract String getCardString(ZCharacter c, ZGame game);
+    @Override
+    public String getLabel() {
+        return Utils.getPrettyString(getType().name());
+    }
 }

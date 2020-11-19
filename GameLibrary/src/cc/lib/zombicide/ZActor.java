@@ -6,7 +6,7 @@ import cc.lib.game.GRectangle;
 import cc.lib.utils.Grid;
 import cc.lib.utils.Reflector;
 
-public abstract class ZActor extends Reflector<ZActor> {
+public abstract class ZActor<E extends Enum<E>> extends Reflector<ZActor<E>> {
 
     static {
         addAllFields(ZActor.class);
@@ -27,8 +27,6 @@ public abstract class ZActor extends Reflector<ZActor> {
     }
 
     protected abstract int getActionsPerTurn();
-
-    protected abstract int getImageId();
 
     public abstract String name();
 
@@ -54,4 +52,6 @@ public abstract class ZActor extends Reflector<ZActor> {
     public int getNoise() {
         return 0;
     }
+    
+    public abstract E getType();
 }

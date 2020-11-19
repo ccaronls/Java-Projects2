@@ -43,6 +43,15 @@ public class ZGame extends Reflector<ZGame>  {
     int gameOverStatus=0; // 0 == in play, 1, == game won, 2 == game lost
     ZQuests currentQuest;
 
+    private void initGame() {
+        initSearchables();
+        roundNum = 0;
+        gameOverStatus = 0;
+        doubleSpawn = false;
+        quest.init(this);
+        setState(ZState.BEGIN_ROUND);
+    }
+
     @Override
     protected synchronized void deserialize(BufferedReader _in) throws Exception {
         super.deserialize(_in);
@@ -78,6 +87,14 @@ public class ZGame extends Reflector<ZGame>  {
 
     public void reload() {
         loadQuest(currentQuest);
+    }
+
+    public int getNumKills(ZZombieName name) {
+        int num=0;
+        for (ZCharacter c : getAllCharacters()) {
+            num += c.kills[name.ordinal()];
+        }
+        return num;
     }
 
     public void loadQuest(ZQuests quest) {
@@ -160,11 +177,40 @@ public class ZGame extends Reflector<ZGame>  {
             count *= 2;
             doubleSpawn = false;
         }
-        for (int i=0; i<count; i++) {
-            ZZombie zombie = new ZZombie(Utils.randItem(options), zone);
-            board.addActor(zombie, zone);
-            onZombieSpawned(zombie);
+        for (int i = 0; i < count; i++) {
+            spawnZombie(options, zone);
         }
+    }
+
+    public void spawnZombie(ZZombieType [] options, int zone) {
+
+        final ZZombieType type = Utils.randItem(options);
+        int num = Utils.filter(board.getAllZombies(), object -> object.type == type).size();
+
+        ZZombieType newType = type;
+        if (num > quest.getMaxNumZombiesOfType(type)) {
+            switch (type) {
+                case Necromancer:
+                    newType = ZZombieType.Abomination;
+                    break;
+                case Abomination:
+                    newType = Utils.randItem(ZZombieType.FATTIES);
+                    break;
+                case Fatty1:
+                case Fatty2:
+                case Runner1:
+                case Runner2:
+                    newType = Utils.randItem(ZZombieType.WALKERS);
+            }
+        }
+        ZZombie zombie = new ZZombie(newType , zone);
+
+        switch (zombie.type) {
+            case Necromancer:
+                board.setSpawnZone(zone, true);
+        }
+        board.addActor(zombie, zone);
+        onZombieSpawned(zombie);
     }
 
     protected void onZombieSpawned(ZZombie zombie) {
@@ -203,7 +249,7 @@ public class ZGame extends Reflector<ZGame>  {
     }
 
     public void runGame() {
-
+        log.debug("runGame %s", getState());
         if (!isGameSetup()) {
             log.error("Invalid Game");
             assert(false);
@@ -213,21 +259,26 @@ public class ZGame extends Reflector<ZGame>  {
         if (isGameOver())
             return;
 
-        final ZUser user = getCurrentUser();
+        if (getAllLivingCharacters().size() == 0) {
+            gameLost();
+            return;
+        }
+
+        if (quest.isQuestFailed(this)) {
+            gameLost();
+            return;
+        }
 
         if (quest.isQuestComplete(this)) {
             gameWon();
             return;
         }
 
-        log.debug("runGame %s", getState());
+        final ZUser user = getCurrentUser();
 
         switch (getState()) {
             case INIT: {
-                initSearchables();
-                roundNum = 0;
-                quest.init(this);
-                setState(ZState.BEGIN_ROUND);
+                initGame();
                 break;
             }
 
@@ -267,7 +318,7 @@ public class ZGame extends Reflector<ZGame>  {
                 List<ZCharacter> options = new ArrayList<>();
                 for (int i = 0; i<user.characters.size(); i++) {
                     ZCharacter c = user.characters.get(i);
-                    if (c.getActionsLeftThisTurn() > 0) {
+                    if (!c.isDead() && c.getActionsLeftThisTurn() > 0) {
                         options.add(c);
                     }
                 }
@@ -360,7 +411,7 @@ public class ZGame extends Reflector<ZGame>  {
 
                 if (zone.type == ZZoneType.VAULT) {
                     List<ZEquipment> takables = new ArrayList<>();
-                    for (ZEquipment e : quest.getVaultItems()) {
+                    for (ZEquipment e : quest.getVaultItems(cur.occupiedZone)) {
                         if (cur.canEquip(e) || !cur.isBackpackFull()) {
                             takables.add(e);
                         }
@@ -441,9 +492,6 @@ public class ZGame extends Reflector<ZGame>  {
                                     removeCharacter(victim);
                                     getCurrentUser().showMessage(victim.name() + " has been killed by a " + zombie.name());
                                     onCharacterPerished(victim, zombie);
-                                    if (quest.isAllMustLive()) {
-                                        gameLost();
-                                    }
                                 } else {
                                     getCurrentUser().showMessage(victim.name() + " has been wounded by a " + zombie.name());
                                     onCharacterWounded(victim, zombie);
@@ -718,8 +766,7 @@ public class ZGame extends Reflector<ZGame>  {
                         if (result[i] >= stat.dieRollToHit) {
                             ZZombie z = zombies.remove(0);
                             addExperience(cur, z.type.expProvided);
-                            board.removeActor(z);
-                            onZombieDestroyed(z);
+                            destroyZombie(z, cur);
                             hits ++;
                         }
                     }
@@ -765,8 +812,7 @@ public class ZGame extends Reflector<ZGame>  {
                                         ZZombie zombie = zombies.remove(0);
                                         if (zombie.type.minDamageToDestroy <= stat.damagePerHit) {
                                             addExperience(cur, zombie.type.expProvided);
-                                            board.removeActor(zombie);
-                                            onZombieDestroyed(zombie);
+                                            destroyZombie(zombie, cur);
                                             hits++;
                                         }
                                     }
@@ -809,9 +855,8 @@ public class ZGame extends Reflector<ZGame>  {
                                     int num=0;
                                     for (ZZombie z : board.getZombiesInZone(zoneIdx)) {
                                         exp += z.type.expProvided;
-                                        board.removeActor(z);
+                                        destroyZombie(z, cur);
                                         num++;
-                                        onZombieDestroyed(z);
                                     }
                                     getCurrentUser().showMessage(cur.name() + " threw the torch exploding the dragon bile and destroying " + num + " zombies for " + exp + " total experience pts!");
                                 }
@@ -919,7 +964,7 @@ public class ZGame extends Reflector<ZGame>  {
             case PICKUP_ITEM: {
                 ZEquipment equip = getCurrentUser().chooseItemToPickup(this, cur, move.list);
                 if (equip != null) {
-                    quest.getVaultItems().remove(equip);
+                    quest.getVaultItems(cur.occupiedZone).remove(equip);
                     cur.equip(equip);
                     cur.performAction(ZActionType.PICKUP_ITEM, this);
                 }
@@ -928,7 +973,7 @@ public class ZGame extends Reflector<ZGame>  {
             case DROP_ITEM: {
                 ZEquipment equip = getCurrentUser().chooseItemToDrop(this, cur, move.list);
                 if (equip != null) {
-                    quest.getVaultItems().add(equip);
+                    quest.getVaultItems(cur.occupiedZone).add(equip);
                     cur.removeEquipment(equip);
                     cur.performAction(ZActionType.DROP_ITEM, this);
                 }
@@ -965,7 +1010,7 @@ public class ZGame extends Reflector<ZGame>  {
             case APPLES:
             case SALTED_MEAT:
                 c.removeEquipment(item, slot);
-                addExperience(c, 1);
+                addExperience(c, item.getType().getExpWhenConsumed());
                 break;
             default:
                 throw new AssertionError("Unhandled case: " + item);
@@ -1002,8 +1047,14 @@ public class ZGame extends Reflector<ZGame>  {
         log.info("Rolling dice result is: %s", Arrays.toString(roll));
     }
 
-    protected void onZombieDestroyed(ZZombie zombie) {
-        log.info("Zombie %s destroyed for %d experience", zombie.type.name(), zombie.type.expProvided);
+    private void destroyZombie(ZZombie zombie, ZCharacter killer) {
+        board.removeActor(zombie);
+        killer.onKilledZombie(zombie);
+        onZombieDestroyed(killer, zombie);
+    }
+
+    protected void onZombieDestroyed(ZCharacter c, ZZombie zombie) {
+        log.info("%s Zombie %s destroyed for %d experience", c.name(), zombie.type.name(), zombie.type.expProvided);
     }
 
     public List<ZCharacter> getAllCharacters() {
@@ -1014,6 +1065,10 @@ public class ZGame extends Reflector<ZGame>  {
             all.addAll(user.characters);
         }
         return all;
+    }
+
+    public List<ZCharacter> getAllLivingCharacters() {
+        return Utils.filter(getAllCharacters(), object -> !object.isDead());
     }
 
     private List<ZZombie> getZombiesInRange(int zoneIndex, int distance) {
@@ -1161,7 +1216,7 @@ public class ZGame extends Reflector<ZGame>  {
         searchables.addAll(make(1, ZWeaponType.HAMMER));
         searchables.addAll(make(2, ZWeaponType.HAND_CROSSBOW));
         searchables.addAll(make(1, ZSpellType.HEALING));
-        searchables.addAll(make(1, ZWeaponType.INFERNO));
+//        searchables.addAll(make(1, ZWeaponType.INFERNO));
         searchables.addAll(make(1, ZSpellType.INVISIBILITY));
         searchables.addAll(make(2, ZArmorType.LEATHER));
         searchables.addAll(make(2, ZWeaponType.LIGHTNING_BOLT));
@@ -1193,4 +1248,13 @@ public class ZGame extends Reflector<ZGame>  {
     protected void onNoiseAdded(int zoneIndex) {
     }
 
+    public Table getGameSummaryTable() {
+        Table summary = new Table("PLAYER", "KILLS", "STATUS", "EXP").setNoBorder();
+        for (ZCharacter c : getAllCharacters()) {
+            summary.addRow(c.name, c.getKillsTable(), c.isDead() ? "KIA" : "Alive", c.dangerBar);
+        }
+        return new Table(quest.getName())
+                .addRow("STATUS", gameOverStatus == 1 ? "COMPLETED" : gameOverStatus == 2 ? "FAILED" : "IN PROGRESS")
+                .addRow("SUMMARY", summary);
+    }
 }

@@ -11,7 +11,7 @@ import cc.lib.game.GDimension;
 import cc.lib.game.Utils;
 import cc.lib.utils.Table;
 
-public final class ZCharacter extends ZActor {
+public final class ZCharacter extends ZActor<ZPlayerName> {
 
     static {
         addAllFields(ZCharacter.class);
@@ -31,6 +31,7 @@ public final class ZCharacter extends ZActor {
     private final List<ZEquipment> backpack = new ArrayList<>();
     ZEquipment leftHand, rightHand, body;
     int userIndex=0;
+    int [] kills = new int[ZZombieName.values().length];
 
     public ZCharacter() {
         super(-1);
@@ -45,9 +46,17 @@ public final class ZCharacter extends ZActor {
         organizedThisTurn = false;
     }
 
+    Table getKillsTable() {
+        Table tab = new Table().setNoBorder().setPadding(0);
+        for (ZZombieName nm : ZZombieName.values()) {
+            tab.addRow(nm, "x", kills[nm.ordinal()]);
+        }
+        return tab;
+    }
+
     @Override
-    protected int getImageId() {
-        return name.imageId;
+    public ZPlayerName getType() {
+        return name;
     }
 
     @Override
@@ -55,10 +64,15 @@ public final class ZCharacter extends ZActor {
         return name.name();
     }
 
+    void onKilledZombie(ZZombie zombie) {
+        kills[zombie.type.commonName.ordinal()]++;
+    }
+
     @Override
     protected boolean performAction(ZActionType action, ZGame game) {
         for (ZSkill skill : availableSkills) {
             if (skill.modifyActionsRemaining(this, action, game)) {
+                game.getCurrentUser().showMessage(name() + " used " + skill + " for a free action");
                 availableSkills.remove(skill);
                 return true;
             }
@@ -166,8 +180,10 @@ public final class ZCharacter extends ZActor {
             return false;
         if (weapons.get(0).type.canTwoHand)
             return true;
-        if (weapons.get(0).isMelee() && availableSkills.contains(ZSkill.Swordmaster))
-            return true;
+        for (ZSkill skill : this.availableSkills) {
+            if (skill.canTwoHand(weapons.get(0)))
+                return true;
+        }
         return false;
     }
 

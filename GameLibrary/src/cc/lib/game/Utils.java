@@ -2205,7 +2205,7 @@ public class Utils {
      * @param s
      * @return
      */
-    public static String trimQuotes(String s) {
+    public static String trimEnclosure(String s) {
         if (s == null) {
             return null;
         }
@@ -2214,6 +2214,18 @@ public class Utils {
                 return s.substring(1, s.length() - 1);
             }
             if (s.startsWith("'") && s.endsWith("'")) {
+                return s.substring(1, s.length() - 1);
+            }
+            if (s.startsWith("[") && s.endsWith("]")) {
+                return s.substring(1, s.length() - 1);
+            }
+            if (s.startsWith("{") && s.endsWith("}")) {
+                return s.substring(1, s.length() - 1);
+            }
+            if (s.startsWith("(") && s.endsWith(")")) {
+                return s.substring(1, s.length() - 1);
+            }
+            if (s.startsWith("<") && s.endsWith(">")) {
                 return s.substring(1, s.length() - 1);
             }
         }

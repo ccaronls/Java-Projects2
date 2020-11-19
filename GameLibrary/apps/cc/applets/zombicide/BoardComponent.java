@@ -3,16 +3,22 @@ package cc.applets.zombicide;
 import java.awt.Font;
 import java.awt.event.KeyEvent;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import cc.lib.game.AGraphics;
+import cc.lib.game.AImage;
 import cc.lib.game.GColor;
 import cc.lib.game.GDimension;
 import cc.lib.game.GRectangle;
 import cc.lib.game.Justify;
+import cc.lib.logger.Logger;
+import cc.lib.logger.LoggerFactory;
 import cc.lib.swing.AWTComponent;
 import cc.lib.swing.AWTGraphics;
 import cc.lib.utils.Grid;
+import cc.lib.utils.Table;
 import cc.lib.zombicide.ZActor;
 import cc.lib.zombicide.ZBoard;
 import cc.lib.zombicide.ZCell;
@@ -27,6 +33,8 @@ import cc.lib.zombicide.ZZombieType;
 
 class BoardComponent extends AWTComponent implements ZTiles {
 
+    final Logger log = LoggerFactory.getLogger(getClass());
+
     String message = "";
     Grid.Pos highlightedCell = null;
     Object highlightedResult = null;
@@ -36,6 +44,9 @@ class BoardComponent extends AWTComponent implements ZTiles {
     Font bigFont;
     Font smallFont;
     boolean drawTiles = false;
+    Map<Object, Integer> objectToImageMap = new HashMap<>();
+    private Integer overlayToDraw = null;
+    private Table overlayTable = null;
 
     BoardComponent() {
         setPreferredSize(250, 250);
@@ -48,13 +59,26 @@ class BoardComponent extends AWTComponent implements ZTiles {
     @Override
     protected void init(AWTGraphics g) {
         GDimension cellDim = getGame().board.initCellRects(g, g.getViewportWidth()-5, g.getViewportHeight()-5);
-        loadImages(g);
         setMouseEnabled(true);
         //setMinimumSize(256, 256);
         setPreferredSize( (int)cellDim.width * getGame().board.getColumns(), (int)cellDim.height * getGame().board.getRows());
         //setMaximumSize( (int)cellDim.width * getGame().board.getColumns(), (int)cellDim.height * getGame().board.getRows());
         smallFont = g.getFont();
         bigFont = g.getFont().deriveFont(24f).deriveFont(Font.BOLD).deriveFont(Font.ITALIC);
+        new Thread() {
+            @Override
+            public void run() {
+                loadImages(g);
+            }
+        }.start();
+    }
+
+    int numImagesLoaded=0;
+    int totalImagesToLoad=1000;
+
+    @Override
+    protected float getInitProgress() {
+        return (float)numImagesLoaded / totalImagesToLoad;
     }
 
     @Override
@@ -85,7 +109,7 @@ class BoardComponent extends AWTComponent implements ZTiles {
 
         if (ZombicideApplet.instance.gameRunning) {
             int highlightedZone = board.drawZones(g, getMouseX(), getMouseY());
-            highlightedActor = board.drawActors(g, getMouseX(), getMouseY());
+            highlightedActor = board.drawActors(g, this, getMouseX(), getMouseY());
 
             if (getGame().getCurrentCharacter() != null) {
                 g.setColor(GColor.GREEN);
@@ -170,6 +194,29 @@ class BoardComponent extends AWTComponent implements ZTiles {
             }
 
         }
+
+        // overlay
+        if (overlayToDraw != null && overlayToDraw >= 0) {
+            AImage img = g.getImage(overlayToDraw);
+            GRectangle rect = new GRectangle(0, 0, getWidth(), getHeight());
+            rect.scale(.9f, .9f);
+            rect = rect.fit(img, Justify.LEFT, Justify.CENTER);
+            g.drawImage(overlayToDraw, rect);
+        }
+
+        if (overlayTable != null) {
+            Font font = g.getFont();
+            Font fixedWidth = new Font("monospaced", Font.PLAIN, 16);
+            g.setFont(fixedWidth);
+            g.setColor(GColor.YELLOW);
+            g.drawJustifiedStringOnBackground(getWidth()/2, getHeight()/2, Justify.CENTER, Justify.CENTER, overlayTable.toString(), GColor.TRANSLUSCENT_BLACK, 10, 10);
+            g.setFont(font);
+        }
+    }
+
+    @Override
+    protected void onFocusGained() {
+        setOverlay(null);
     }
 
     @Override
@@ -210,23 +257,45 @@ class BoardComponent extends AWTComponent implements ZTiles {
     void loadImages(AWTGraphics g) {
         if (loaded)
             return;
-        ZZombieType.Abomination.imageId = g.loadImage("zabomination.png");
-        ZZombieType.Necromancer.imageId = g.loadImage("znecro.png");
-        ZZombieType.Walker1.imageId = g.loadImage("zwalker1.png");
-        ZZombieType.Walker2.imageId = g.loadImage("zwalker2.png");
-        ZZombieType.Walker3.imageId = g.loadImage("zwalker3.png");
-        ZZombieType.Walker4.imageId = g.loadImage("zwalker4.png");
-        ZZombieType.Walker5.imageId = g.loadImage("zwalker5.png");
-        ZZombieType.Runner1.imageId = g.loadImage("zrunner1.png");
-        ZZombieType.Runner2.imageId = g.loadImage("zrunner1.png");
-        ZZombieType.Fatty1.imageId = g.loadImage("zfatty1.png");
-        ZZombieType.Fatty2.imageId = g.loadImage("zfatty2.png");
-        ZPlayerName.Clovis.imageId = g.loadImage("zchar_clovis.png");
-        ZPlayerName.Baldric.imageId = g.loadImage("zchar_baldric.png");
-        ZPlayerName.Ann.imageId = g.loadImage("zchar_ann.png");
-        ZPlayerName.Nelly.imageId = g.loadImage("zchar_nelly.png");
-        ZPlayerName.Samson.imageId = g.loadImage("zchar_samson.png");
-        ZPlayerName.Silas.imageId = g.loadImage("zchar_silas.png");
+
+        Map<Object, String> fileMap = new HashMap<>();
+        fileMap.put(ZZombieType.Abomination,"zabomination.png");
+        fileMap.put(ZZombieType.Necromancer,"znecro.png");
+        fileMap.put(ZZombieType.Walker1,"zwalker1.png");
+        fileMap.put(ZZombieType.Walker2,"zwalker2.png");
+        fileMap.put(ZZombieType.Walker3,"zwalker3.png");
+        fileMap.put(ZZombieType.Walker4,"zwalker4.png");
+        fileMap.put(ZZombieType.Walker5,"zwalker5.png");
+        fileMap.put(ZZombieType.Runner1,"zrunner1.png");
+        fileMap.put(ZZombieType.Runner2,"zrunner1.png");
+        fileMap.put(ZZombieType.Fatty1,"zfatty1.png");
+        fileMap.put(ZZombieType.Fatty2,"zfatty2.png");
+        fileMap.put(ZPlayerName.Clovis,"zchar_clovis.png");
+        fileMap.put(ZPlayerName.Baldric,"zchar_baldric.png");
+        fileMap.put(ZPlayerName.Ann,"zchar_ann.png");
+        fileMap.put(ZPlayerName.Nelly,"zchar_nelly.png");
+        fileMap.put(ZPlayerName.Samson,"zchar_samson.png");
+        fileMap.put(ZPlayerName.Silas,"zchar_silas.png");
+        fileMap.put(ZPlayerName.Ann.name(), "zcard_ann.png");
+        fileMap.put(ZPlayerName.Baldric.name(), "zcard_baldric.png");
+        fileMap.put(ZPlayerName.Clovis.name(), "zcard_clovis.png");
+        fileMap.put(ZPlayerName.Nelly.name(), "zcard_nelly.png");
+        fileMap.put(ZPlayerName.Samson.name(), "zcard_samson.png");
+        fileMap.put(ZPlayerName.Silas.name(), "zcard_silas.png");
+
+        totalImagesToLoad = fileMap.size();
+        for (Map.Entry<Object, String> e : fileMap.entrySet()) {
+            int id = g.loadImage(e.getValue());
+            if (id >= 0)
+                objectToImageMap.put(e.getKey(), id);
+            numImagesLoaded++;
+            repaint();
+        }
+
+        log.debug("Images: " + objectToImageMap);
+
+        numImagesLoaded = totalImagesToLoad;
+        repaint();
         loaded = true;
     }
 
@@ -270,6 +339,15 @@ class BoardComponent extends AWTComponent implements ZTiles {
     }
 
     @Override
+    public int getImage(Object obj) {
+        log.debug("getImage: " + obj);
+        Integer id = objectToImageMap.get(obj);
+        if (id == null)
+            return -1;
+        return id;
+    }
+
+    @Override
     public void keyPressed(KeyEvent e) {
         ZGame game = getGame();
         ZCharacter cur = game.getCurrentCharacter();
@@ -306,4 +384,14 @@ class BoardComponent extends AWTComponent implements ZTiles {
         repaint();
     }
 
+    public void setOverlay(Object obj) {
+        if (obj == null) {
+            overlayToDraw = null;
+        } else if (obj instanceof Table) {
+            overlayTable = (Table)obj;
+        } else {
+            overlayToDraw = objectToImageMap.get(obj);
+        }
+        repaint();
+    }
 }

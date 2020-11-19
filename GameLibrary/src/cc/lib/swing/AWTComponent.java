@@ -46,6 +46,10 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
     public AWTComponent() {
     }
 
+    public AWTComponent(int width , int height) {
+        setPreferredSize(width, height);
+    }
+
     public void setMouseEnabled(boolean enabled) {
         if (enabled) {
             addMouseListener(this);
@@ -121,7 +125,7 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
                         G.drawJustifiedString(x - tw / 2, y, txt);
                         y += th;
                         G.drawFilledRect(x - tw / 2, y, tw * progress, th);
-                        g.setFont(f);
+                        G.setFont(f);
                         repaint();
                     }
                 }
@@ -188,12 +192,17 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
 //        grabFocus();
         focused = true;
         repaint();
+        onFocusGained();
     }
+
+    protected void onFocusGained() {}
+    protected void onFocusLost() {}
 
     @Override
     public final synchronized void mouseExited(MouseEvent e) {
         focused = false;
         repaint();
+        onFocusLost();
     }
 
     boolean dragging = false;

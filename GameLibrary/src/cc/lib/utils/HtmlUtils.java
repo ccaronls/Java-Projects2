@@ -53,6 +53,8 @@ public class HtmlUtils {
 	}
 	
 	public static String wrapTextForTD(String txt, int maxChars) {
+	    if (txt == null)
+	        return null;
 		StringBuffer buf = new StringBuffer();
 		String [] lines = HtmlUtils.wrapText(txt, maxChars);
 		for (int ii=0; ii<lines.length; ii++) {
@@ -62,5 +64,5 @@ public class HtmlUtils {
 		}
 		return buf.toString();
 	}
-	
+
 }

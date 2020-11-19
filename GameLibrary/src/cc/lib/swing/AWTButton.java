@@ -9,6 +9,8 @@ import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 
+import cc.lib.game.Utils;
+import cc.lib.ui.IButton;
 import cc.lib.utils.FileUtils;
 
 public class AWTButton extends JButton implements ActionListener {
@@ -25,6 +27,22 @@ public class AWTButton extends JButton implements ActionListener {
     public AWTButton(Image icon) {
         super(new ImageIcon(icon));
         addActionListener(this);
+    }
+
+    public AWTButton(IButton source) {
+        super(source.getLabel());
+        addActionListener(this);
+        setToolTipText(source.getTooltipText());
+    }
+
+    public AWTButton(IButton source, ActionListener listener) {
+        this(source.getLabel(), listener);
+        setToolTipText(source.getTooltipText());
+    }
+
+    public AWTButton setTooltip(String text, int maxChars) {
+        setToolTipText(Utils.wrapTextWithNewlines(text, maxChars));
+        return this;
     }
 
     public AWTButton(String label, boolean selected) {

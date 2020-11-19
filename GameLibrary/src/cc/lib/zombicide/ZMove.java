@@ -2,9 +2,10 @@ package cc.lib.zombicide;
 
 import java.util.List;
 
-import cc.lib.utils.GException;
+import cc.lib.game.Utils;
+import cc.lib.ui.IButton;
 
-public class ZMove {
+public class ZMove implements IButton {
 
     public final ZMoveType type;
     public final int integer;
@@ -35,6 +36,10 @@ public class ZMove {
         this(type, 0, null, equip, fromSlot, null, null, null);
     }
 
+    private ZMove(ZMoveType type, int targetIndex, ZCharacter character, ZEquipment equip, ZEquipSlot fromSlot, ZEquipSlot toSlot, List list) {
+        this(type, targetIndex, character, equip, fromSlot, toSlot, list, null);
+    }
+
     private ZMove(ZMoveType type, int targetIndex, ZCharacter character, ZEquipment equip, ZEquipSlot fromSlot, ZEquipSlot toSlot, List list, ZDir dir) {
         this.type = type;
         this.integer = targetIndex;
@@ -58,28 +63,23 @@ public class ZMove {
                 '}';
     }
 
-    public String getButtonString() {
+    @Override
+    public String getTooltipText() {
         if (equipment != null) {
             if (toSlot != null) {
-                return String.format("%s %s\n%s", type, toSlot.shorthand, equipment);
+                return String.format("equipment: %s\nfrom: %s\nto: %s", equipment, fromSlot, toSlot);
+            } else if (fromSlot != null) {
+                return String.format("equipment: %s\nto: %s", equipment, toSlot);
             } else {
-                return String.format("%s %s", type, equipment);
+                return equipment.getTooltipText();
             }
-        } else if (dir != null) {
-            switch (dir) {
-                case EAST:
-                    return ">";
-                case WEST:
-                    return "<";
-                case NORTH:
-                    return "^";
-                case SOUTH:
-                    return "v";
-            }
-            throw new GException("Unhandled case: " + dir);
-        } else {
-            return type.name();
         }
+        return null;
+    }
+
+    @Override
+    public String getLabel() {
+        return Utils.getPrettyString(type.name());
     }
 
     public static ZMove newDoNothing() {
@@ -127,7 +127,7 @@ public class ZMove {
     }
 
     public static ZMove newEquipMove(ZEquipment equip, ZEquipSlot fromSlot, ZEquipSlot toSlot) {
-        return new ZMove(ZMoveType.EQUIP, 0, null, equip, fromSlot, toSlot, null, null);
+        return new ZMove(ZMoveType.EQUIP, 0, null, equip, fromSlot, toSlot, null);
     }
 
     public static ZMove newUnequipMove(ZEquipment equip, ZEquipSlot slot) {
@@ -139,11 +139,11 @@ public class ZMove {
     }
 
     public static ZMove newGiveMove(ZCharacter taker, ZEquipment toGive) {
-        return new ZMove(ZMoveType.GIVE, 0, taker, toGive, null, null, null, null);
+        return new ZMove(ZMoveType.GIVE, 0, taker, toGive, null, null, null);
     }
 
     public static ZMove newTakeMove(ZCharacter giver, ZEquipment toTake) {
-        return new ZMove(ZMoveType.TAKE, 0, giver, toTake, null, null, null,  null);
+        return new ZMove(ZMoveType.TAKE, 0, giver, toTake, null, null, null);
     }
 
     public static ZMove newObjectiveMove(int zone) {
@@ -165,6 +165,5 @@ public class ZMove {
     public static Object newWalkDirMove(ZDir dir) {
         return new ZMove(ZMoveType.WALK_DIR, dir);
     }
-
 
 }

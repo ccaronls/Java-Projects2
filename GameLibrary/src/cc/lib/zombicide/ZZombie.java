@@ -4,7 +4,7 @@ import cc.lib.game.AGraphics;
 import cc.lib.game.GDimension;
 import cc.lib.utils.Table;
 
-public final class ZZombie extends ZActor {
+public final class ZZombie extends ZActor<ZZombieType> {
 
     static {
         addAllFields(ZZombie.class);
@@ -20,7 +20,7 @@ public final class ZZombie extends ZActor {
         type = null;
     }
 
-    ZZombie(ZZombieType type, int zone) {
+    public ZZombie(ZZombieType type, int zone) {
         super(zone);
         this.type = type;
         prepareTurn();
@@ -29,13 +29,8 @@ public final class ZZombie extends ZActor {
     final ZZombieType type;
 
     @Override
-    protected int getImageId() {
-        return type.imageId;
-    }
-
-    @Override
     public String name() {
-        return type.commonName;
+        return type.commonName.name();
     }
 
     @Override
@@ -49,6 +44,11 @@ public final class ZZombie extends ZActor {
         Table outer = new Table();
         outer.addColumn(name(), info.toString());
         return g.drawString(outer.toString(), 0, 0);
+    }
+
+    @Override
+    public ZZombieType getType() {
+        return type;
     }
 }
 

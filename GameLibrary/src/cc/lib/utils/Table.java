@@ -51,7 +51,7 @@ public final class Table {
         this.model=model;
     }
 
-    public Table(String [] header) {
+    public Table(String ... header) {
         this(header, new Model() {});
     }
 
@@ -108,6 +108,14 @@ public final class Table {
 
     public Table addRow(Object ... row) {
         rows.add(new Vector(Arrays.asList(row)));
+        return this;
+    }
+
+    public Table addRow(String label, Object ... items) {
+        Vector nv = new Vector();
+        nv.add(label);
+        nv.addAll(Utils.toList(items));
+        rows.add(nv);
         return this;
     }
 
@@ -205,12 +213,18 @@ public final class Table {
             // Header
             buf.append(indentStr).append(borderStrFront);
             for (int i = 0; i < columns - 1; i++) {
-                buf.append(getJustifiedString(header.get(i), 1, maxWidth[i]));
+                if (i < header.size())
+                    buf.append(getJustifiedString(header.get(i), 1, maxWidth[i]));
+                else
+                    buf.append(Utils.getRepeatingChars(' ', maxWidth[i]));
                 buf.append(divider);
             }
-            buf.append(getJustifiedString(header.get(last), 1, maxWidth[last]))
-                    .append(borderStrEnd)
-                    .append("\n");
+            if (last < header.size()) {
+                buf.append(getJustifiedString(header.get(last), 1, maxWidth[last]));
+            } else {
+                buf.append(Utils.getRepeatingChars(' ', maxWidth[last]));
+            }
+            buf.append(borderStrEnd).append("\n");
 
             buf.append(horzDivider);
             delim = "\n";

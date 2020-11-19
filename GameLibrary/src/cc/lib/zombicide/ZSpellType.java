@@ -1,6 +1,9 @@
 package cc.lib.zombicide;
 
-public enum  ZSpellType implements ZEquipmentType<ZSpell> {
+import cc.lib.game.Utils;
+import cc.lib.ui.IButton;
+
+public enum  ZSpellType implements ZEquipmentType<ZSpell>, IButton {
 
     HEALING("once per targeted survivor recovers a wound point"),
     INVISIBILITY("once per turn targeted survivor benefits from rotten skill effects until end of round. Making noise or attacking nullifys the effect"),
@@ -22,5 +25,15 @@ public enum  ZSpellType implements ZEquipmentType<ZSpell> {
     @Override
     public ZSpell create() {
         return new ZSpell(this);
+    }
+
+    @Override
+    public String getTooltipText() {
+        return Utils.wrapTextWithNewlines(description, 32);
+    }
+
+    @Override
+    public String getLabel() {
+        return Utils.getPrettyString(name());
     }
 }

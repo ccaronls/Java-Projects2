@@ -7,18 +7,23 @@ import java.util.Map;
 import java.util.Vector;
 
 import cc.lib.game.AGraphics;
+import cc.lib.game.Utils;
 import cc.lib.utils.Grid;
 import cc.lib.utils.Reflector;
+import cc.lib.utils.Table;
 
 public abstract class ZQuest extends Reflector<ZQuest> {
+
+    public final static int OBJECTIVE_EXP = 5;
 
     static {
         addAllFields(ZQuest.class);
     }
 
     private final String name;
-    private int exitZone = -1;
-    private List<ZEquipment> vaultItems = new ArrayList<>();
+    protected int exitZone = -1;
+    private Map<Integer, List<ZEquipment>> vaultMap = new HashMap<>();
+    private List<ZEquipmentType> allItems = null;
 
     protected ZQuest(String name) {
         this.name = name;
@@ -28,6 +33,12 @@ public abstract class ZQuest extends Reflector<ZQuest> {
 
     public String getName() {
         return name;
+    }
+
+    public List<ZEquipmentType> getAllVaultOptions() {
+        if (allItems == null)
+            allItems = Utils.asList(ZWeaponType.INFERNO, ZWeaponType.ORCISH_CROSSBOW);
+        return allItems;
     }
 
     protected void loadCmd(Grid<ZCell> grid, Grid.Pos pos, String cmd) {
@@ -215,13 +226,14 @@ public abstract class ZQuest extends Reflector<ZQuest> {
      * @param game
      * @return
      */
-    public boolean isQuestComplete(ZGame game) {
-        for (ZCharacter c : game.getAllCharacters()) {
-            if (c.getOccupiedZone() != exitZone)
-                return false;
-        }
-        return true;
-    }
+    public abstract boolean isQuestComplete(ZGame game);
+
+    /**
+     *
+     * @param game
+     * @return
+     */
+    public abstract boolean isQuestFailed(ZGame game);
 
     /**
      *
@@ -230,23 +242,37 @@ public abstract class ZQuest extends Reflector<ZQuest> {
     public abstract void drawTiles(AGraphics g, ZBoard board, ZTiles tiles);
 
     /**
-     * Determine if this quest requires all players must live
-     * @return
-     */
-    public boolean isAllMustLive() {
-        return true;
-    }
-
-    /**
      *
      * @return
      */
-    public List<ZEquipment> getVaultItems() {
-        return vaultItems;
+    public List<ZEquipment> getVaultItems(int vaultZone) {
+        List<ZEquipment> list = vaultMap.get(vaultZone);
+        if (list == null) {
+            list = new ArrayList<>();
+            List<ZEquipmentType> allItems = getAllVaultOptions();
+            if (allItems.size() > 0) {
+                int item = Utils.rand() % allItems.size();
+                ZEquipment equip = allItems.remove(item).create();
+                list.add(equip);
+            }
+            vaultMap.put(vaultZone, list);
+        }
+        return list;
     }
 
     /**
      * Called once during INIT stage of game
      */
     public abstract void init(ZGame game);
+
+    public int getMaxNumZombiesOfType(ZZombieType type) {
+        switch (type) {
+            case Abomination:
+            case Necromancer:
+                return 1;
+        }
+        return Integer.MAX_VALUE;
+    }
+
+    public abstract Table getObjectivesOverlay();
 }

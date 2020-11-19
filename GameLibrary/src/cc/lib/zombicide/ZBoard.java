@@ -3,7 +3,6 @@ package cc.lib.zombicide;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -467,16 +466,12 @@ public class ZBoard extends Reflector<ZBoard> {
         if (!added) {
             //throw new AssertionError("Failed to add Actor");
             System.err.println("Zone " + zoneIndex + " is full!");
+
             if (actor instanceof ZCharacter) {
                 // replace the lowest priority zombie withthe chararcter
                 List<ZZombie> zombies = getZombiesInZone(zoneIndex);
                 assert(zombies.size() > 0);
-                Collections.sort(zombies, new Comparator<ZZombie>() {
-                    @Override
-                    public int compare(ZZombie o1, ZZombie o2) {
-                        return Integer.compare(o1.type.ordinal(), o2.type.ordinal());
-                    }
-                });
+                Collections.sort(zombies, (o1, o2) -> Integer.compare(o1.type.ordinal(), o2.type.ordinal()));
                 ZZombie removed = zombies.get(0);
                 removeActor(removed);
                 addActorToCell(actor, removed.occupiedCell);
@@ -505,19 +500,19 @@ public class ZBoard extends Reflector<ZBoard> {
         }
     }
 
-    public ZActor drawActors(AGraphics g, int mx, int my) {
+    public ZActor drawActors(AGraphics g, ZTiles tiles, int mx, int my) {
         ZActor picked = null;
         for (ZCell cell : getCells()) {
             for (int i=0; i<cell.occupied.length; i++) {
                 ZActor a = cell.occupied[i];
                 if (a == null)
                     continue;
-                AImage img = g.getImage(a.getImageId());
+                AImage img = g.getImage(tiles.getImage(a.getType()));
                 if (img != null) {
                     GRectangle rect = cell.getQuadrant(i).fit(img);
                     if (rect.contains(mx, my))
                         picked = a;
-                    g.drawImage(a.getImageId(), rect);
+                    g.drawImage(tiles.getImage(a.getType()), rect);
                     a.rect = rect;
                 }
             }
@@ -526,8 +521,9 @@ public class ZBoard extends Reflector<ZBoard> {
     }
 
     // TODO - Move this to the renderer so we can do better highlighting in android canvas
-    public GRectangle drawActor(AGraphics g, ZActor actor, GColor outline) {
-        AImage img = g.getImage(actor.getImageId());
+    public GRectangle drawActor(AGraphics g, ZTiles tiles, ZActor actor, GColor outline) {
+        int id=tiles.getImage(actor.getType());
+        AImage img = g.getImage(id);
         if (img != null) {
             if (actor.rect == null)
                 actor.rect = getCell(actor.occupiedCell).getQuadrant(actor.occupiedQuadrant).fit(img);
@@ -537,7 +533,7 @@ public class ZBoard extends Reflector<ZBoard> {
                 g.drawRect(actor.rect, 2);
                 g.setColor(oldColor);
             }
-            g.drawImage(actor.getImageId(), actor.rect);
+            g.drawImage(id, actor.rect);
             return actor.rect;
         }
         return null;

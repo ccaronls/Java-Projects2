@@ -1,6 +1,11 @@
 package cc.lib.zombicide;
 
-public enum ZSkill {
+import java.util.List;
+
+import cc.lib.game.Utils;
+import cc.lib.ui.IButton;
+
+public enum ZSkill implements IButton {
     Plus1_Action("The Survivor has an extra Action he may use as he pleases."),
     Plus1_Damage_Melee("The Survivor gets a +1 Damage bonus with Melee weapons.") {
         @Override
@@ -278,7 +283,17 @@ public enum ZSkill {
     Shove("The Survivor can use this Skill, for free, once during each of his Turns. Select a Zone at Range 1 from your Survivor. All Zombies standing in your Survivor’s Zone are pushed to the selected Zone. This is not a Movement. Both Zones need to share a clear path. A Zombie can’t cross closed doors, ramparts (see the Wulfsburg expansion) or walls, but can be shoved in or out of a Vault."),
     Slippery("The Survivor does not spend extra Actions when he performs a Move Action out of a Zone containing Zombies. Entering a Zone containing Zombies ends the Survivor’s Move Action."),
     Spellbook("All Combat spells and Enchantments in the Survivor’s Inventory are considered equipped in Hand. With this Skill, a Survivor could effectively be considered as having several Combat spells and Enchantments cards equipped in Hand. For obvious reasons, he can only use two identical dual Combat Spells at any given time. Choose any combination of two before resolving Actions or rolls involving the Survivor."),
-    Spellcaster("The Survivor has one extra free Action. This Action may only be used for a Magic Action or an Enchantment Action."),
+    Spellcaster("The Survivor has one extra free Action. This Action may only be used for a Magic Action or an Enchantment Action.") {
+        @Override
+        public boolean modifyActionsRemaining(ZCharacter character, ZActionType type, ZGame game) {
+            switch (type) {
+                case MAGIC:
+                case ENCHANTMENT:
+                    return true;
+            }
+            return super.modifyActionsRemaining(character, type, game);
+        }
+    },
     Sprint("The Survivor can use this Skill once during each of his Turns. Spend one Move Action with the Survivor: He may move two or three Zones instead of one. Entering a Zone containing Zombies ends the Survivor’s Move Action."),
     Super_strength("Consider the Damage value of Melee weapons used by the Survivor to be 3.") {
         @Override
@@ -292,7 +307,13 @@ public enum ZSkill {
     //Starts_with_Healing("The Survivor begins the game with Healing Spell; its card is automatically assigned to him during Setup."),
     //Starts_with_GreatSword("The Survivor begins the game with Great Sword; its card is automatically assigned to him during Setup."),
     Steady_hand("The Survivor can ignore other Survivors of his choosing when missing with a Magic or Ranged Action. The Skill does not apply to game effects killing everything in the targeted Zone (such as a Dragon Fire, for example)."),
-    Swordmaster("The Survivor treats all Melee weapons as if they had the Dual symbol."),
+    Swordmaster("The Survivor treats all Melee weapons as if they had the Dual symbol.") {
+        @Override
+        public boolean canTwoHand(ZWeapon w) {
+            return w.isMelee();
+        }
+    },
+
     Tactician("The Survivor’s Turn can be resolved anytime during the Players’ Phase, before or after any other Survivor’s Turn. If several Survivors benefit from this Skill at the same time, choose their Turn order."),
     Taunt("The Survivor can use this Skill, for free, once during each of his Turns. Select a Zone your Survivor can see. All Zombies standing in the selected Zone immediately gain an extra Activation: They try to reach the taunting Survivor by any means available. Taunted Zombies ignore all other Survivors. They do not attack them and cross the Zone they stand in if needed to reach the taunting Survivor."),
     Tough("The Survivor ignores the first Wound he receives from a single Zombie every Zombies’ Phase."),
@@ -306,6 +327,17 @@ public enum ZSkill {
     }
     
     public final String description;
+
+
+    @Override
+    public String getTooltipText() {
+        return Utils.wrapTextWithNewlines(description, 64);
+    }
+
+    @Override
+    public String getLabel() {
+        return name().replace('_', ' ');
+    }
 
     /**
      *
@@ -332,4 +364,16 @@ public enum ZSkill {
     public boolean canCloseDoors() {
         return false;
     }
+
+    public boolean canTwoHand(ZWeapon w) { return false; }
+
+    /**
+     *
+     * @param game
+     * @param character
+     * @param moves
+     */
+    public void addSpecialMoves(ZGame game, ZCharacter character, List<ZMove> moves) {}
+
+
 }

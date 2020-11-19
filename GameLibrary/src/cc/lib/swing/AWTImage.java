@@ -1,12 +1,15 @@
 package cc.lib.swing;
 
 import java.awt.Component;
+import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.image.PixelGrabber;
 
+import javax.swing.Icon;
+
 import cc.lib.game.AImage;
 
-class AWTImage extends AImage {
+class AWTImage extends AImage implements Icon {
 
     final Image image;
     final Component comp;
@@ -47,4 +50,18 @@ class AWTImage extends AImage {
         return pixels;
     }
 
+    @Override
+    public void paintIcon(Component c, Graphics g, int x, int y) {
+        g.drawImage(image, x, y, null);
+    }
+
+    @Override
+    public int getIconWidth() {
+        return image.getWidth(null);
+    }
+
+    @Override
+    public int getIconHeight() {
+        return image.getHeight(null);
+    }
 }

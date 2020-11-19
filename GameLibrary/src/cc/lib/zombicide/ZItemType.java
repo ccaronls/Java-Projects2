@@ -25,4 +25,6 @@ public enum ZItemType implements ZEquipmentType<ZItem> {
     public ZItem create() {
         return new ZItem(this);
     }
+
+    public int getExpWhenConsumed() { return 1; }
 }

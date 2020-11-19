@@ -5,7 +5,9 @@ import java.util.List;
 
 import cc.lib.game.AGraphics;
 import cc.lib.game.GRectangle;
+import cc.lib.game.Utils;
 import cc.lib.utils.Grid;
+import cc.lib.utils.Table;
 import cc.lib.zombicide.ZBoard;
 import cc.lib.zombicide.ZCell;
 import cc.lib.zombicide.ZCellType;
@@ -14,18 +16,29 @@ import cc.lib.zombicide.ZGame;
 import cc.lib.zombicide.ZMove;
 import cc.lib.zombicide.ZQuest;
 import cc.lib.zombicide.ZTiles;
+import cc.lib.zombicide.ZZombieName;
+import cc.lib.zombicide.ZZombieType;
 
 public class ZQuestBigGameHunting extends ZQuest {
 
+    static {
+        addAllFields(ZQuestBigGameHunting.class);
+    }
+
+    @Omit
     String [][] map = {
-            { "z0:i:wn:ww:ds:vd1", "z0:i:wn:de:ws:red:odw", "z1:sp:wn:de",      "z2:i:wn:ode:ws",   "z3:i:wn:ode:ws",       "z4:i:red:wn:we", "z26:v:wn:we:vd2" },
-            { "z5:ww",              "z6",                   "z7",               "z8:we",            "z9:i:ods",             "z9:i:ods:we",        "z26:v:we" },
-            { "z10:ww:we:start",    "z11:i:ww:wn::ws:red:ode", "z12:i:wn:ds:ode",   "z13:i:wn:red:ds:we", "z14:i:ws:we:odn",    "z15:i:ds:we:odn",    "z26:v:we:ws:vd3" },
-            { "z16:ww:ds",          "z17",                  "z18",              "z19",              "z20",                  "z21:we:sp:dn:ds",    "z27:v:we:vd1" },
-            { "z22:i:ww:we:vd3",    "z23",                  "z24:i:wn:ww:we",   "z25:i:wn",         "z25:i:wn",             "z25:i:dn:we",        "z27:v:we" },
-            { "z22:i:ww:red:ws:de", "z26:ws:sp:de",         "z24:i:red:ww:we:ws:dw", "z25:i:ws",    "z25:i:red:ws",         "z25:i:ws:vd4:we", "z27:v:we:ws:vd4" }
+            { "z0:i:wn:ww:ds:vd1", "z0:i:wn:de:ws:red:odw", "z1:sp:wn:de",      "z2:i:wn:ode:ws",   "z3:i:vd2:wn:ode:ws",   "z4:i:red:wn:we",  "z28:v:wn:we:vd2" },
+            { "z5:ww",              "z6",                   "z7",               "z8:we",            "z9:i:ods",             "z9:i:ods:we",     "z28:v:we" },
+            { "z10:ww:we:start",    "z11:i:ww:wn::ws:red:ode", "z12:i:wn:ds:ode","z13:i:wn:red:ds:we","z14:i:ws:we:odn",    "z15:i:ds:we:odn", "z28:v:we:ws:vd3" },
+            { "z16:ww:ds",          "z17",                  "z18",              "z19",              "z20",                  "z21:we:sp:dn:ds", "z27:v:we:vd1" },
+            { "z22:i:ww:we:vd3",    "z23",                  "z24:i:wn:ww:we",   "z25:i:wn",         "z25:i:wn",             "z25:i:dn:we",     "z27:v:we" },
+            { "z22:i:ww:red:ws:de", "z26:ws:sp:de",         "z24:i:red:ww:we:ws:dw", "z25:i:ws",    "z25:i:blue:ws",        "z25:i:ws:vd4:we", "z27:v:we:ws:vd4" }
 
     };
+
+    List<Integer> redObjectives = new ArrayList<>();
+    int blueObjZone = -1;
+    int blueRevealZone = -1;
 
     public ZQuestBigGameHunting() {
         super("Big Game Hunting");
@@ -37,7 +50,7 @@ public class ZQuestBigGameHunting extends ZQuest {
     }
 
     @Override
-    public void addMoves(ZGame zGame, ZCharacter cur, List<ZMove> options) {
+    public void addMoves(ZGame game, ZCharacter cur, List<ZMove> options) {
         for (int red : redObjectives) {
             if (cur.getOccupiedZone() == red)
                 options.add(ZMove.newObjectiveMove(red));
@@ -45,13 +58,19 @@ public class ZQuestBigGameHunting extends ZQuest {
     }
 
     @Override
-    public void processObjective(ZGame zGame, ZCharacter c, ZMove move) {
-        zGame.addExperience(c, 5);
+    public void processObjective(ZGame game, ZCharacter c, ZMove move) {
+        game.addExperience(c, OBJECTIVE_EXP);
         // check for necro / abom in special spawn places
-
+        game.board.getZone(c.getOccupiedZone()).objective = false;
+        redObjectives.remove((Object)c.getOccupiedZone());
+        if (move.integer == blueRevealZone) {
+            redObjectives.add(blueObjZone);
+            game.getCurrentUser().showMessage("The Labratory objective is revealed!");
+            game.board.getZone(blueObjZone).objective = true;
+            game.spawnZombie(ZZombieType.NECROMANCERS, blueObjZone);
+            blueRevealZone = -1;
+        }
     }
-
-    List<Integer> redObjectives = new ArrayList<>();
 
     @Override
     protected void loadCmd(Grid<ZCell> grid, Grid.Pos pos, String cmd) {
@@ -61,6 +80,12 @@ public class ZQuestBigGameHunting extends ZQuest {
                 redObjectives.add(cell.getZoneIndex());
                 cell.cellType = ZCellType.OBJECTIVE;
                 break;
+
+            case "blue":
+                blueObjZone = cell.getZoneIndex();
+                cell.cellType = ZCellType.OBJECTIVE;
+                break;
+
             default:
                 super.loadCmd(grid, pos, cmd);
 
@@ -69,7 +94,8 @@ public class ZQuestBigGameHunting extends ZQuest {
 
     @Override
     public void init(ZGame game) {
-
+        blueRevealZone = Utils.randItem(redObjectives);
+        game.board.getZone(blueObjZone).objective = false; // this does not get revealed until the blueRevealZone found
     }
 
     @Omit
@@ -101,5 +127,23 @@ public class ZQuestBigGameHunting extends ZQuest {
         g.drawImage(tileIds[2], quadrant9V);
         g.drawImage(tileIds[3], quadrant1V);
 
+    }
+
+    @Override
+    public Table getObjectivesOverlay() {
+        return new Table()
+                .addRow("1.", "Collect all objectives. One of the objectives exposes the laboratory objective.")
+                .addRow("2.", "Kill at least 1 Abomination and 1 Necromancer.")
+                .addRow("3.", "Not all players need to survive.");
+    }
+
+    @Override
+    public boolean isQuestComplete(ZGame game) {
+        return redObjectives.size() == 0 && blueRevealZone < 0 && game.getNumKills(ZZombieName.Abomination) > 0 && game.getNumKills(ZZombieName.Necromancer) > 0;
+    }
+
+    @Override
+    public boolean isQuestFailed(ZGame game) {
+        return game.getAllLivingCharacters().size() == 0;
     }
 }

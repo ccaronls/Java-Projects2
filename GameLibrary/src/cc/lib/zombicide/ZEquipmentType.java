@@ -1,6 +1,6 @@
 package cc.lib.zombicide;
 
-interface ZEquipmentType<T extends ZEquipment> {
+public interface ZEquipmentType<T extends ZEquipment> {
 
     T create();
 }

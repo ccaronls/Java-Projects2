@@ -3,8 +3,9 @@ package cc.lib.zombicide;
 import java.util.Arrays;
 
 import cc.lib.game.Utils;
+import cc.lib.ui.IButton;
 
-public enum ZPlayerName {
+public enum ZPlayerName implements IButton {
     Ann("Angry Nun",
             Utils.toArray(ZWeaponType.DAGGER),
             Utils.toArray(ZWeaponType.DAGGER),
@@ -47,6 +48,7 @@ public enum ZPlayerName {
             Utils.toArray(ZSkill.Plus1_Action),
             Utils.toArray(ZSkill.Plus1_free_Ranged_Action, ZSkill.Point_blank),
             Utils.toArray(ZSkill.Plus1_die_Ranged, ZSkill.Plus1_free_Combat_Action, ZSkill.Iron_rain)),
+    /*
     Tucker("Monk",
             Utils.toArray(ZWeaponType.CROSSBOW),
             Utils.toArray(ZWeaponType.AXE),
@@ -120,5 +122,13 @@ public enum ZPlayerName {
         return skillOptions[level.ordinal()];
     }
 
-    public int imageId = -1;
+    @Override
+    public String getTooltipText() {
+        return characterClass;
+    }
+
+    @Override
+    public String getLabel() {
+        return name();
+    }
 }

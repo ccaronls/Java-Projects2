@@ -1,25 +1,50 @@
 package cc.lib.swing;
 
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
+import java.awt.Rectangle;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Properties;
 
-import javax.swing.*;
-import javax.swing.event.*;
-
-import javax.swing.filechooser.*;
+import javax.swing.JButton;
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTextPane;
+import javax.swing.event.MenuEvent;
+import javax.swing.event.MenuKeyEvent;
+import javax.swing.event.MenuKeyListener;
+import javax.swing.event.MenuListener;
+import javax.swing.filechooser.FileFilter;
 
 import cc.lib.game.GColor;
 import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
-import cc.lib.utils.FileUtils;
 
 public class AWTFrame extends JFrame implements WindowListener, ComponentListener, MenuListener, MenuKeyListener {
 
@@ -495,6 +520,25 @@ public class AWTFrame extends JFrame implements WindowListener, ComponentListene
         if (value != null)
             return value;
         return defaultValue;
+    }
+
+    public final <T extends Enum<T>> List<T> getEnumListProperty(String propertyName, Class enumClass, List<T> defaultList) {
+        String value = getStringProperty(propertyName, null);
+        if (value == null)
+            return defaultList;
+        List<T> list = new ArrayList<>();
+        String [] parts = value.split("[,]+");
+        for (String s : parts) {
+            s = s.trim();
+            if (s.isEmpty())
+                continue;
+            list.add((T)Enum.valueOf(enumClass, s));
+        }
+        return list;
+    }
+
+    public <T extends Enum<T>> void setEnumListProperty(String property, Collection<T> items) {
+        setProperty(property, Utils.trimEnclosure(items.toString()));
     }
 
     static FileFilter getExtensionFilter(final String ext, final boolean acceptDirectories) {

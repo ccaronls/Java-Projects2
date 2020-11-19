@@ -276,20 +276,51 @@ public final class GRectangle extends Reflector<GRectangle> {
      * @return
      */
     public final GRectangle fit(IDimension rectToFit) {
+        return fit (rectToFit, Justify.CENTER, Justify.CENTER);
+    }
+
+    /**
+     * Return a rectangle of dimension not to exceed this dimension and
+     * whose aspect ratio is that of rectToFit and is centered inside this.
+     *
+     * @param rectToFit
+     * @return
+     */
+    public final GRectangle fit(IDimension rectToFit, Justify horz, Justify vert) {
         float targetAspect = rectToFit.getAspect();
         float rectAspect = getAspect();
-        float tx, ty, tw, th;
+        float tx=0, ty=0, tw=0, th=0;
         if (targetAspect > rectAspect) {
             // target is wider than rect, so fit lengthwise
             tw = w;
             th = w / targetAspect;
             tx = x;
-            ty = y + h/2 - th/2;
+            switch (vert) {
+                case CENTER:
+                    ty = y + h/2 - th/2;
+                    break;
+                case TOP:
+                    ty = y;
+                    break;
+                case BOTTOM:
+                    ty = y + h-th;
+                    break;
+            }
         } else {
             th = h;
             tw = h * targetAspect;
-            tx = x + w/2 - tw/2;
             ty = y;
+            switch (horz) {
+                case CENTER:
+                    tx = x + w/2 - tw/2;
+                    break;
+                case LEFT:
+                    tx = x;
+                    break;
+                case RIGHT:
+                    tx = w + w - tw;
+                    break;
+            }
         }
         return new GRectangle(tx, ty, tw, th);
     }
