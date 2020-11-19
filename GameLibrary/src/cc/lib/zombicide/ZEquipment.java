@@ -69,11 +69,11 @@ public abstract class ZEquipment<T extends Enum<T>> extends Reflector<ZEquipment
 
     @Override
     public String toString() {
-        return Utils.getPrettyString(getType().name());
+        return Utils.toPrettyString(getType().name());
     }
 
     @Override
     public String getLabel() {
-        return Utils.getPrettyString(getType().name());
+        return Utils.toPrettyString(getType().name());
     }
 }

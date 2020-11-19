@@ -930,7 +930,7 @@ public class Utils {
      * @param _str
      * @return
      */
-    public static String getPrettyString(final String _str) {
+    public static String toPrettyString(final String _str) {
         if (_str == null)
             return null;
         String s = prettyCache.get(_str);
@@ -1790,7 +1790,7 @@ public class Utils {
     public static <T extends Enum<T>> String[] toStringArray(T[] values, boolean pretty) {
         String[] result = new String[values.length];
         for (int i = 0; i < values.length; i++) {
-            result[i] = pretty ? getPrettyString(values[i].name()) : values[i].name();
+            result[i] = pretty ? toPrettyString(values[i].name()) : values[i].name();
         }
         return result;
     }
@@ -1803,7 +1803,7 @@ public class Utils {
         String [] result = new String[items.size()];
         int index=0;
         for (Object o : items) {
-            result[index++] = o == null ? "null" : (pretty ? getPrettyString(o.toString()) : o.toString());
+            result[index++] = o == null ? "null" : (pretty ? toPrettyString(o.toString()) : o.toString());
         }
         return result;
     }

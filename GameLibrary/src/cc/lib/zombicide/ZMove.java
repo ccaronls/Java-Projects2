@@ -67,9 +67,9 @@ public class ZMove implements IButton {
     public String getTooltipText() {
         if (equipment != null) {
             if (toSlot != null) {
-                return String.format("equipment: %s\nfrom: %s\nto: %s", equipment, fromSlot, toSlot);
+                return String.format("%s\nfrom: %s\nto: %s", equipment, fromSlot, toSlot);
             } else if (fromSlot != null) {
-                return String.format("equipment: %s\nto: %s", equipment, toSlot);
+                return String.format("%s\nto: %s", equipment, toSlot);
             } else {
                 return equipment.getTooltipText();
             }
@@ -79,7 +79,7 @@ public class ZMove implements IButton {
 
     @Override
     public String getLabel() {
-        return Utils.getPrettyString(type.name());
+        return Utils.toPrettyString(type.name());
     }
 
     public static ZMove newDoNothing() {

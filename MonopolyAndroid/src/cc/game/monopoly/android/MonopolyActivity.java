@@ -113,17 +113,17 @@ public class MonopolyActivity extends DroidActivity {
                 switch (mt) {
                     case PURCHASE_UNBOUGHT: {
                         Square sq = getPurchasePropertySquare();
-                        items[index++] = "Purchase " + Utils.getPrettyString(sq.name()) + " for $" + sq.getPrice();
+                        items[index++] = "Purchase " + Utils.toPrettyString(sq.name()) + " for $" + sq.getPrice();
                         break;
                     }
                     default:
-                        items[index++] = Utils.getPrettyString(mt.name());
+                        items[index++] = Utils.toPrettyString(mt.name());
                         break;
                 }
             }
             final MoveType [] result = new MoveType[1];
             runOnUiThread(() ->{
-                    newDialogBuilderINGAME().setTitle(Utils.getPrettyString(player.getPiece().name()) + " Choose Move ")
+                    newDialogBuilderINGAME().setTitle(Utils.toPrettyString(player.getPiece().name()) + " Choose Move ")
                             .setItems(items, (DialogInterface dialog, int which) -> {
                                     final MoveType mt = moves.get(which);
                                     switch (mt) {
@@ -166,7 +166,7 @@ public class MonopolyActivity extends DroidActivity {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    newDialogBuilderINGAME().setTitle(player.getPiece() + Utils.getPrettyString(type.name()))
+                    newDialogBuilderINGAME().setTitle(player.getPiece() + Utils.toPrettyString(type.name()))
                             .setItems(items, (DialogInterface dialog, int which) -> {
                                     result[0] = cards.get(which);
                                     synchronized (monopoly) {
@@ -196,7 +196,7 @@ public class MonopolyActivity extends DroidActivity {
                     newDialogBuilderINGAME().setTitle(player.getPiece() + " Choose Trade")
                             .setItems(items, (DialogInterface dialog, int which) -> {
                                     final Trade t = list.get(which);
-                                    showPurchasePropertyDialog("Buy " + Utils.getPrettyString(t.getCard().getProperty().name()) + " from " + Utils.getPrettyString(t.getTrader().getPiece().name()),
+                                    showPurchasePropertyDialog("Buy " + Utils.toPrettyString(t.getCard().getProperty().name()) + " from " + Utils.toPrettyString(t.getTrader().getPiece().name()),
                                             "Buy for $" + t.getPrice(), t.getCard().getProperty(), () -> { result[0] = t; });
 
                             }).show();
@@ -231,7 +231,7 @@ public class MonopolyActivity extends DroidActivity {
                     Card card = list.get(position);
                     TextView tvLabel = (TextView)v.findViewById(R.id.tvLabel);
                     TextView tvCost  = (TextView)v.findViewById(R.id.tvCost);
-                    tvLabel.setText(Utils.getPrettyString(card.getProperty().name()));
+                    tvLabel.setText(Utils.toPrettyString(card.getProperty().name()));
                     int cost = playerUser.getSellableCardCost(card);
                     tvCost.setText(cost <= 0 ? "Not For Sale" : String.valueOf(cost));
                     return v;

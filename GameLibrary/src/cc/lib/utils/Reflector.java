@@ -103,6 +103,8 @@ import cc.lib.logger.LoggerFactory;
  */
 public class Reflector<T> {
 
+    public static boolean DISABLED = false;
+
     /**
      * Use this annotation to Omit field for usage by Reflector
      * <p>
@@ -1109,6 +1111,8 @@ public class Reflector<T> {
      * @param clazz
      */
     public static void addAllFields(Class<?> clazz) {
+        if (DISABLED)
+            return;
         addArrayTypes(clazz);
         try {
             Field[] fields = clazz.getDeclaredFields();

@@ -38,7 +38,6 @@ public class ZBoard extends Reflector<ZBoard> {
     public ZBoard(Grid<ZCell> grid, List<ZZone> zones) {
         this.grid = grid;
         this.zones = zones;
-        //removeEmptyZones();
     }
 
     public int getRows() {
@@ -410,26 +409,6 @@ public class ZBoard extends Reflector<ZBoard> {
         return returnCell;
     }
 
-    private void removeEmptyZones() {
-        Iterator<ZZone> it = zones.iterator();
-        while (it.hasNext()) {
-            ZZone z = it.next();
-            if (z == null) {
-                it.remove();
-                continue;
-            }
-            if (z.cells.isEmpty()) {
-                it.remove();
-            }
-        }
-        // renumber the zones for the cells
-        for (int i=0; i<zones.size(); i++) {
-            for (Grid.Pos cellPos : zones.get(i).cells) {
-                getCell(cellPos).zoneIndex = i;
-            }
-        }
-    }
-
     public GDimension initCellRects(AGraphics g, int width, int height) {
         int rows = getRows();
         int cols = getColumns();
@@ -441,8 +420,6 @@ public class ZBoard extends Reflector<ZBoard> {
             cell.rect = new GRectangle(it.getPos().getColumn()*dim, it.getPos().getRow()*dim, dim, dim);
             zones.get(cell.zoneIndex).center.addEq(cell.rect.getCenter());
         }
-
-        removeEmptyZones();
 
         for (ZZone zone : zones) {
             zone.center.scaleEq(1.0f / zone.cells.size());

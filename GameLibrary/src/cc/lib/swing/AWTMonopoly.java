@@ -14,7 +14,6 @@ import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeEvent;
 
 import cc.lib.game.AGraphics;
-import cc.lib.game.GColor;
 import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
@@ -68,15 +67,15 @@ public class AWTMonopoly extends AWTComponent {
                 switch (mt) {
                     case PURCHASE_UNBOUGHT: {
                         Square sq = getPurchasePropertySquare();
-                        strings[index++] = "Purchase " + Utils.getPrettyString(sq.name()) + " $" + sq.getPrice();
+                        strings[index++] = "Purchase " + Utils.toPrettyString(sq.name()) + " $" + sq.getPrice();
                         break;
                     }
                     case PAY_BOND: {
-                        strings[index++] = String.format("%s $%d", Utils.getPrettyString(mt.name()), player.getJailBond());
+                        strings[index++] = String.format("%s $%d", Utils.toPrettyString(mt.name()), player.getJailBond());
                         break;
                     }
                     default:
-                        strings[index++] = Utils.getPrettyString(mt.name());
+                        strings[index++] = Utils.toPrettyString(mt.name());
                         break;
                 }
             }
@@ -149,13 +148,13 @@ public class AWTMonopoly extends AWTComponent {
                 switch (type) {
 
                     case CHOOSE_CARD_TO_MORTGAGE:
-                        items[index++] = Utils.getPrettyString(c.getProperty().name()) + " Mortgage $" + c.getProperty().getMortgageValue(c.getHouses());
+                        items[index++] = Utils.toPrettyString(c.getProperty().name()) + " Mortgage $" + c.getProperty().getMortgageValue(c.getHouses());
                         break;
                     case CHOOSE_CARD_TO_UNMORTGAGE:
-                        items[index++] = Utils.getPrettyString(c.getProperty().name()) + " Buyback $" + c.getProperty().getMortgageBuybackPrice();
+                        items[index++] = Utils.toPrettyString(c.getProperty().name()) + " Buyback $" + c.getProperty().getMortgageBuybackPrice();
                         break;
                     case CHOOSE_CARD_FOR_NEW_UNIT:
-                        items[index++] = Utils.getPrettyString(c.getProperty().name()) + " Unit $" + c.getProperty().getUnitPrice();
+                        items[index++] = Utils.toPrettyString(c.getProperty().name()) + " Unit $" + c.getProperty().getUnitPrice();
                         break;
                 }
             }
@@ -178,7 +177,7 @@ public class AWTMonopoly extends AWTComponent {
                         monopoly.notify();
                     }
                 }
-            }, player.getPiece() +  " " + Utils.getPrettyString(type.name()), items);
+            }, player.getPiece() +  " " + Utils.toPrettyString(type.name()), items);
             Utils.waitNoThrow(monopoly, -1);
             return result[0];
         }
@@ -191,7 +190,7 @@ public class AWTMonopoly extends AWTComponent {
                 public void itemChoose(int index) {
                     final Trade t = trades.get(index);
                     final Player trader = t.getTrader();
-                    String title = "Buy " + Utils.getPrettyString(t.getCard().getProperty().name()) + " from " + Utils.getPrettyString(trader.getPiece().name());
+                    String title = "Buy " + Utils.toPrettyString(t.getCard().getProperty().name()) + " from " + Utils.toPrettyString(trader.getPiece().name());
                     showPropertyPopup(title, "Buy for $" +t.getPrice(), t.getCard().getProperty(), () -> {
                         result[0] = t;
                         synchronized (monopoly) {

@@ -22,6 +22,6 @@ public enum ZEquipSlot implements IButton {
 
     @Override
     public String getLabel() {
-        return Utils.getPrettyString(name());
+        return Utils.toPrettyString(name());
     }
 }

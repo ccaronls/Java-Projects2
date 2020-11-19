@@ -1012,7 +1012,7 @@ public abstract class UIMonopoly extends Monopoly {
                     bkColor = p.getSquare().getColor();
                     txtColor = chooseContrastColor(bkColor);
                 }
-                String sqStr = Utils.getPrettyString(p.getSquare().name());
+                String sqStr = Utils.toPrettyString(p.getSquare().name());
                 while (Character.isDigit(sqStr.charAt(sqStr.length()-1))) {
                     sqStr = sqStr.substring(0, sqStr.length()-1);
                 }
@@ -1065,7 +1065,7 @@ public abstract class UIMonopoly extends Monopoly {
         g.translate(padding, padding);
         w -= padding*2;
         g.setColor(chooseContrastColor(property.getColor()));
-        g.drawWrapString(w/2, 0, w, Justify.CENTER, Justify.TOP, Utils.getPrettyString(property.name()));
+        g.drawWrapString(w/2, 0, w, Justify.CENTER, Justify.TOP, Utils.toPrettyString(property.name()));
         g.setTextHeight(oldTextHeight);
         g.translate(0, BANNER_HEIGHT);
         h -= padding*2 - BANNER_HEIGHT;

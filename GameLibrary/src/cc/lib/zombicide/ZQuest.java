@@ -200,6 +200,11 @@ public abstract class ZQuest extends Reflector<ZQuest> {
         for (Map.Entry<Integer, ZZone> e : zoneMap.entrySet()) {
             zones.set(e.getKey(), e.getValue());
         }
+        // fill in null zones with empty ones
+        for (int i=0; i<zones.size(); i++) {
+            if (zones.get(i) == null)
+                zones.set(i, new ZZone());
+        }
 
         return new ZBoard(grid, zones);
 

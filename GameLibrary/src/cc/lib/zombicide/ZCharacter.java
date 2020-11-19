@@ -9,9 +9,13 @@ import java.util.List;
 import cc.lib.game.AGraphics;
 import cc.lib.game.GDimension;
 import cc.lib.game.Utils;
+import cc.lib.logger.Logger;
+import cc.lib.logger.LoggerFactory;
 import cc.lib.utils.Table;
 
 public final class ZCharacter extends ZActor<ZPlayerName> {
+
+    static final Logger log = LoggerFactory.getLogger(ZCharacter.class);
 
     static {
         addAllFields(ZCharacter.class);
@@ -199,36 +203,31 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
         return Collections.unmodifiableList(backpack);
     }
 
-    public boolean canEquip(ZEquipment e) {
+    public ZEquipSlot getEmptyEquipSlotFor(ZEquipment e) {
+        if (body == null && Utils.linearSearch(name.alternateBodySlots, e.getType()) >= 0) {
+            return ZEquipSlot.BODY;
+        }
         switch (e.getSlotType()) {
             case HAND:
                 if (leftHand == null) {
-                    return true;
+                    return ZEquipSlot.LEFT_HAND;
                 }
                 if (rightHand == null) {
-                    return true;
+                    return ZEquipSlot.RIGHT_HAND;
                 }
                 break;
             case BODY:
                 if (body == null) {
-                    return true;
+                    return ZEquipSlot.BODY;
                 }
                 break;
             case BACKPACK:
                 if (backpack.size() < MAX_BACKPACK_SIZE) {
-                    return true;
+                    return ZEquipSlot.BACKPACK;
                 }
                 break;
         }
-        if (body == null && Utils.linearSearch(name.alternateBodySlots, e.getType()) >= 0) {
-            return true;
-        }
-
-        return false;
-    }
-
-    public boolean canAcceptTrade(ZEquipment e) {
-        return canEquip(e) || !isBackpackFull();
+        return null;
     }
 
     public ZEquipSlot equip(ZEquipment e) {
@@ -288,8 +287,12 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
         }
         return removed;
     }
+    public ZEquipment attachEquipment(ZEquipment equipment) {
+        return attachEquipment(equipment, getEmptyEquipSlotFor(equipment));
+    }
 
     public ZEquipment attachEquipment(ZEquipment equipment, ZEquipSlot slot) {
+        assert(slot != null);
         ZEquipment prev = null;
         switch (slot) {
             case RIGHT_HAND:
@@ -569,14 +572,16 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
     }
 
     public void removeEquipment(ZEquipment equip) {
-        if (leftHand == equip) {
+        if (backpack.remove(equip))
+            return;
+        else if (leftHand == equip) {
             leftHand = null;
-        } else if (rightHand == null) {
+        } else if (rightHand == equip) {
             rightHand = null;
         } else if (body == equip) {
             body = null;
         } else {
-            backpack.remove(equip);
+            log.error("Cannot remove item %s from equipment:", equip, getAllEquipment());
         }
     }
 

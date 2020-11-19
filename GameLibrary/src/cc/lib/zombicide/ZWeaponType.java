@@ -56,4 +56,5 @@ public enum ZWeaponType implements ZEquipmentType<ZWeapon> {
     public ZWeapon create() {
         return new ZWeapon(this);
     }
+
 }

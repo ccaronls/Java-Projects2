@@ -1,6 +1,5 @@
 package cc.lib.swing;
 
-import java.applet.Applet;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Graphics;
@@ -108,8 +107,12 @@ public final class AWTImageMgr {
         throw new FileNotFoundException(name);
     }
 
+    public static AWTApplet applet = null;
+
     /* */
 	private Image loadImageFromResource(String name) throws Exception {
+	    if (applet != null)
+	        return loadImageFromApplet(name);
 		try (InputStream in = getClass().getClassLoader().getResourceAsStream(name)) {
 			byte [] buffer = new byte[in.available()];
 			in.read(buffer);
@@ -119,17 +122,14 @@ public final class AWTImageMgr {
 		}
 	}
 
-	private Image loadImageFromApplet(Component comp, String name) {
-		if (comp instanceof Applet) {
-			try {
-				URL url = new URL(name);
-				return ((Applet)comp).getImage(url);
-			} catch (Exception e) {
-				System.err.println("Not found via Applet: " + e.getMessage());
-				return null;
-			}
-		}
-		return null;
+	private Image loadImageFromApplet(String name) {
+        try {
+            URL url = applet.getAbsoluteURL(name);
+            return applet.getImage(url);
+        } catch (Exception e) {
+            System.err.println("Not found via Applet: " + e.getMessage());
+            return null;
+        }
 	}
 
 	private final List<String> paths = new ArrayList<>();

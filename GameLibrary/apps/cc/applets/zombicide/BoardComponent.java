@@ -247,9 +247,9 @@ class BoardComponent extends AWTComponent implements ZTiles {
                 g.setColor(GColor.RED);
                 picked = door;
             } else {
-                g.setColor(GColor.CYAN);
+                g.setColor(GColor.DARK_OLIVE);
             }
-            g.drawRect(doorRect, 1);
+            g.drawRect(doorRect, 2);
         }
         return picked;
     }
@@ -287,14 +287,14 @@ class BoardComponent extends AWTComponent implements ZTiles {
 
         totalImagesToLoad = fileMap.size();
         for (Map.Entry<Object, String> e : fileMap.entrySet()) {
-            int id = g.loadImage(e.getValue());
+            int id = g.loadImage(e.getValue(), null, 1);
             if (id >= 0)
                 objectToImageMap.put(e.getKey(), id);
             numImagesLoaded++;
             repaint();
         }
 
-//        log.debug("Images: " + objectToImageMap);
+        log.debug("Images: " + objectToImageMap);
 
         numImagesLoaded = totalImagesToLoad;
         repaint();
@@ -342,10 +342,11 @@ class BoardComponent extends AWTComponent implements ZTiles {
 
     @Override
     public int getImage(Object obj) {
-        log.debug("getImage: " + obj);
         Integer id = objectToImageMap.get(obj);
-        if (id == null)
+        if (id == null) {
+            log.error("getImage: missing id for " + obj);
             return -1;
+        }
         return id;
     }
 

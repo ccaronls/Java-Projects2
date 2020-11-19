@@ -34,6 +34,6 @@ public enum  ZSpellType implements ZEquipmentType<ZSpell>, IButton {
 
     @Override
     public String getLabel() {
-        return Utils.getPrettyString(name());
+        return Utils.toPrettyString(name());
     }
 }

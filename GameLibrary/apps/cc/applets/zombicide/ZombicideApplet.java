@@ -10,13 +10,14 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.swing.JApplet;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
@@ -25,6 +26,7 @@ import javax.swing.SwingUtilities;
 import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
+import cc.lib.swing.AWTApplet;
 import cc.lib.swing.AWTButton;
 import cc.lib.swing.AWTFrame;
 import cc.lib.swing.AWTPanel;
@@ -38,36 +40,38 @@ import cc.lib.zombicide.ZPlayerName;
 import cc.lib.zombicide.ZQuests;
 import cc.lib.zombicide.ZUser;
 
-public class ZombicideApplet extends JApplet implements ActionListener {
+public class ZombicideApplet extends AWTApplet implements ActionListener {
 
     static final Logger log = LoggerFactory.getLogger(ZombicideApplet.class);
 
     static ZombicideApplet instance = null;
 
+    @Override
+    public URL getAbsoluteURL(String imagePath) throws MalformedURLException {
+        return new URL("http://mac-book.local/~chriscaron/Zombicide/" + imagePath);
+    }
+
     public static void main(String [] args) {
         Utils.DEBUG_ENABLED = true;
-        //Golf.DEBUG_ENABLED = true;
-        //PlayerBot.DEBUG_ENABLED = true;
-        //mode = 0;
         AWTFrame frame = new AWTFrame("Zombicide");
-        ZombicideApplet app = instance = new ZombicideApplet() {
+        ZombicideApplet app = new ZombicideApplet() {
             @Override
-            <T extends Enum<T>> List<T> getEnumListProperty(String property, Class className, List<T> defaultList) {
+            protected <T extends Enum<T>> List<T> getEnumListProperty(String property, Class className, List<T> defaultList) {
                 return frame.getEnumListProperty(property, className, defaultList);
             }
 
             @Override
-            String getStringProperty(String property, String defaultValue) {
+            protected String getStringProperty(String property, String defaultValue) {
                 return frame.getStringProperty(property, defaultValue);
             }
 
             @Override
-            void setStringProperty(String s, String v) {
+            protected void setStringProperty(String s, String v) {
                 frame.setProperty(s, v);
             }
 
             @Override
-            <T extends Enum<T>> void setEnumListProperty(String s, Collection<T> l) {
+            protected <T extends Enum<T>> void setEnumListProperty(String s, Collection<T> l) {
                 frame.setEnumListProperty(s, l);
             }
         };
@@ -75,7 +79,7 @@ public class ZombicideApplet extends JApplet implements ActionListener {
         frame.setPropertiesFile(new File(settings, "application.properties"));
         app.gameFile = new File(settings, "savegame.txt");
         frame.add(app);
-        app.init();
+        app.initApp();
         app.start();
         if (!frame.restoreFromProperties())
             frame.centerToScreen(800, 600);
@@ -113,7 +117,11 @@ public class ZombicideApplet extends JApplet implements ActionListener {
         }
     }
 
-    ZGame game = new ZGame();
+    public ZombicideApplet() {
+        instance = this;
+    }
+
+    ZGame game;
     List options = Collections.emptyList();
     Object monitor = new Object();
     Object result = null;
@@ -125,9 +133,6 @@ public class ZombicideApplet extends JApplet implements ActionListener {
     CharacterComponent charComp;
     boolean gameRunning = false;
     File gameFile = null;
-
-    ZombicideApplet() {
-    }
 
     synchronized void startGameThread() {
         if (gameRunning)
@@ -158,12 +163,7 @@ public class ZombicideApplet extends JApplet implements ActionListener {
     }
 
     void initHomeMenu() {
-        List<MenuItem> items = Utils.filterItems(new Utils.Filter<MenuItem>() {
-            @Override
-            public boolean keep(MenuItem object) {
-                return object.isHomeButton();
-            }
-        }, MenuItem.values());
+        List<MenuItem> items = Utils.filterItems(object -> object.isHomeButton(), MenuItem.values());
         setMenuItems(items);
     }
 
@@ -274,7 +274,8 @@ public class ZombicideApplet extends JApplet implements ActionListener {
     };
 
     @Override
-    public void init() {
+    protected void initApp() {
+        game = new ZGame();
         setLayout(new BorderLayout());
         add(charComp = new CharacterComponent(), BorderLayout.SOUTH);
         ZUser user = new ZAppletUser();
@@ -293,17 +294,6 @@ public class ZombicideApplet extends JApplet implements ActionListener {
         initHomeMenu();
     }
 
-    <T extends Enum<T>> List<T> getEnumListProperty(String property, Class enumClass, List<T> defaultList) {
-        return defaultList;
-    }
-
-    String getStringProperty(String property, String defaultValue) {
-        return defaultValue;
-    }
-
-    void setStringProperty(String s, String v) {}
-    <T extends Enum<T>> void setEnumListProperty(String s, Collection<T> l) {}
-
     <T> T waitForUser() {
         initMenu();
         synchronized (monitor) {
@@ -320,7 +310,7 @@ public class ZombicideApplet extends JApplet implements ActionListener {
     class ZButton extends AWTButton {
         Object obj;
         ZButton(IButton obj) {
-            super(obj);//obj instanceof ZMove ? Utils.getPrettyString(((ZMove) obj).getButtonString()) : Utils.getPrettyString(obj.toString()));
+            super(obj);
             this.obj = obj;
         }
 

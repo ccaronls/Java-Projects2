@@ -412,7 +412,7 @@ public class ZGame extends Reflector<ZGame>  {
                 if (zone.type == ZZoneType.VAULT) {
                     List<ZEquipment> takables = new ArrayList<>();
                     for (ZEquipment e : quest.getVaultItems(cur.occupiedZone)) {
-                        if (cur.canEquip(e) || !cur.isBackpackFull()) {
+                        if (cur.getEquipableSlots(e) != null) {
                             takables.add(e);
                         }
                     }
@@ -702,13 +702,13 @@ public class ZGame extends Reflector<ZGame>  {
                     List<ZMove> options = new ArrayList<>();
                     // we can take if our backpack is not full or give if their packpack is not full
                     for (ZEquipment eq : cur.getAllEquipment()) {
-                        if (other.canAcceptTrade(eq)) {
+                        if (other.getEquipableSlots(eq) != null) {
                             options.add(ZMove.newGiveMove(other, eq));
                         }
                     }
 
                     for (ZEquipment eq : other.getAllEquipment()) {
-                        if (cur.canAcceptTrade(eq)) {
+                        if (cur.getEquipableSlots(eq) != null) {
                             options.add(ZMove.newTakeMove(other, eq));
                         }
                     }
@@ -944,13 +944,13 @@ public class ZGame extends Reflector<ZGame>  {
                 cur.performAction(ZActionType.ORGANIZE, this);
                 break;
             case TAKE:
-                move.character.removeEquipment(move.equipment, ZEquipSlot.BACKPACK);
-                cur.attachEquipment(move.equipment, ZEquipSlot.BACKPACK);
+                move.character.removeEquipment(move.equipment);
+                cur.attachEquipment(move.equipment);
                 cur.performAction(ZActionType.ORGANIZE, this);
                 break;
             case GIVE:
-                cur.removeEquipment(move.equipment, ZEquipSlot.BACKPACK);
-                move.character.attachEquipment(move.equipment, ZEquipSlot.BACKPACK);
+                cur.removeEquipment(move.equipment);
+                move.character.attachEquipment(move.equipment);
                 cur.performAction(ZActionType.ORGANIZE, this);
                 break;
             case DISPOSE:
@@ -1059,7 +1059,7 @@ public class ZGame extends Reflector<ZGame>  {
 
     public List<ZCharacter> getAllCharacters() {
         if (users.length == 1)
-            return users[0].characters;
+            return new ArrayList<>(users[0].characters);
         List<ZCharacter> all = new ArrayList<>();
         for (ZUser user : users) {
             all.addAll(user.characters);
@@ -1249,27 +1249,6 @@ public class ZGame extends Reflector<ZGame>  {
     }
 
     public Table getGameSummaryTable() {
-        /*
-        TITLE
-        -----------------
-        STATUS: COMPLETED
-        -----------------
-        SUMMARY
-
-
-
-
-
-
-         */
-
-
-
-
-
-
-
-
         Table summary = new Table("PLAYER", "KILLS", "STATUS", "EXP").setNoBorder();
         for (ZCharacter c : getAllCharacters()) {
             summary.addRow(c.name, c.getKillsTable(), c.isDead() ? "KIA" : "Alive", c.dangerBar);

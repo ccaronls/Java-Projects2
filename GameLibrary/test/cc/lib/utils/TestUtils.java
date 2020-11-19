@@ -144,12 +144,12 @@ public class TestUtils extends TestCase {
     }
 
     public void testPrettyString() {
-        System.out.println(quoteMe(Utils.getPrettyString(";asihfva.kjvnakwhv")));
-        System.out.println(quoteMe(Utils.getPrettyString("12324 hgjt $90")));
-        System.out.println(quoteMe(Utils.getPrettyString("THIS_IS_A_TYPICAL_EXAMPLE")));
-        System.out.println(quoteMe(Utils.getPrettyString("the quick br0wn fox jumped over the lazy brown dog")));
-        System.out.println(quoteMe(Utils.getPrettyString("PLAYER1")));
-        System.out.println(quoteMe(Utils.getPrettyString("00 001HELLO100 This is 10101010 test 0001")));
+        System.out.println(quoteMe(Utils.toPrettyString(";asihfva.kjvnakwhv")));
+        System.out.println(quoteMe(Utils.toPrettyString("12324 hgjt $90")));
+        System.out.println(quoteMe(Utils.toPrettyString("THIS_IS_A_TYPICAL_EXAMPLE")));
+        System.out.println(quoteMe(Utils.toPrettyString("the quick br0wn fox jumped over the lazy brown dog")));
+        System.out.println(quoteMe(Utils.toPrettyString("PLAYER1")));
+        System.out.println(quoteMe(Utils.toPrettyString("00 001HELLO100 This is 10101010 test 0001")));
     }
 
     public void testWrapString() {

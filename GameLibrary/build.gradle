@@ -5,8 +5,8 @@ mainClassName = 'cc.game.swing.AWTBoardBuilder'
 
 configurations {
     androidLib.extendsFrom(main)
+    appletLib.extendsFrom(main)
 }
-
 
 dependencies {
     // https://mvnrepository.com/artifact/org.json/json
@@ -35,6 +35,16 @@ sourceSets {
         }
     }
 
+    appletLib {
+        java {
+            srcDirs = [ 'src', 'apps' ]
+            excludes = [ '**/audio/**' ]
+        }
+        resources {
+            srcDirs = [ 'resources' ]
+        }
+    }
+
     test {
         java {
             srcDirs = ['test']
@@ -52,8 +62,9 @@ task androidLibJar(type: Jar) {
     archiveName("GameLibraryAndroid.jar")
 }
 
-artifacts {
-    androidLib androidLibJar
+task appletLibJar(type: Jar) {
+    from sourceSets.appletLib.output.classesDirs
+    archiveName("GameLibraryApplet.jar")
 }
 
 task runCheckers(type: JavaExec) {
@@ -135,3 +146,32 @@ task deployLearnToTypeApplet {
         }
     }
 }
+
+task deployLZombicideApplet {
+    dependsOn tasks.withType(Jar)
+    group = 'Distribution'
+    description = 'Deply the Zombicide Applet to Sites'
+    def homePath = System.properties['user.home']
+    def zPath = homePath + '/Sites/Zombicide/'
+    doLast {
+        //delete zPath
+        copy {
+            from 'images'
+            into zPath
+        }
+        copy {
+            from 'build/libs/GameLibraryApplet.jar'
+            into zPath
+        }
+        copy {
+            from 'html/Zombicide/'
+            into zPath
+        }
+    }
+}
+
+artifacts {
+    androidLib androidLibJar
+    appletLib appletLibJar
+}
+
