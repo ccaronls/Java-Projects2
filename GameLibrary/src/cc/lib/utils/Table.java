@@ -262,8 +262,11 @@ public final class Table {
 
     private String getJustifiedString(String s, int justify, int cellWidth) {
         switch (justify) {
-            case 0:
+            case 0: {
+                if (cellWidth == 0)
+                    return "";
                 return String.format("%-" + cellWidth + "s", s);
+            }
             case 1: {
                 int frontPadding = (cellWidth - s.length()) / 2;
                 int frontWidth = (cellWidth - frontPadding);

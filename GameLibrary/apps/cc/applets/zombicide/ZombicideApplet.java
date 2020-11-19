@@ -97,6 +97,7 @@ public class ZombicideApplet extends JApplet implements ActionListener {
         BACK,
         LOAD,
         ASSIGN,
+        SUMMARY,
         OBJECTIVES;
 
         boolean isHomeButton() {
@@ -203,6 +204,10 @@ public class ZombicideApplet extends JApplet implements ActionListener {
                 }
                 break;
             case OBJECTIVES: {
+                boardComp.setOverlay(game.getQuest().getObjectivesOverlay(game));
+                break;
+            }
+            case SUMMARY: {
                 boardComp.setOverlay(game.getGameSummaryTable());
                 break;
             }
@@ -357,6 +362,7 @@ public class ZombicideApplet extends JApplet implements ActionListener {
         if (game.canGoBack()) {
             menu.add(new AWTButton(MenuItem.BACK.name(), this));
         }
+        menu.add(new AWTButton(MenuItem.SUMMARY.name(), this));
         menu.add(new AWTButton(MenuItem.OBJECTIVES.name(), this));
         menu.add(new AWTButton(MenuItem.QUIT.name(), this));
         menuContainer.validate();

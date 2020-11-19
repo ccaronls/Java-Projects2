@@ -27,7 +27,7 @@ public class ZQuestBigGameHunting extends ZQuest {
 
     @Omit
     String [][] map = {
-            { "z0:i:wn:ww:ds:vd1", "z0:i:wn:de:ws:red:odw", "z1:sp:wn:de",      "z2:i:wn:ode:ws",   "z3:i:vd2:wn:ode:ws",   "z4:i:red:wn:we",  "z28:v:wn:we:vd2" },
+            { "z0:i:wn:ww:ds:vd1", "z0:i:wn:de:ws:red:odw", "z1:sp:wn:de",      "z2:i:wn:ode:ws",   "z3:i:red:wn:ode:ws",   "z9:i:vd2:wn:we",  "z28:v:wn:we:vd2" },
             { "z5:ww",              "z6",                   "z7",               "z8:we",            "z9:i:ods",             "z9:i:ods:we",     "z28:v:we" },
             { "z10:ww:we:start",    "z11:i:ww:wn::ws:red:ode", "z12:i:wn:ds:ode","z13:i:wn:red:ds:we","z14:i:ws:we:odn",    "z15:i:ds:we:odn", "z28:v:we:ws:vd3" },
             { "z16:ww:ds",          "z17",                  "z18",              "z19",              "z20",                  "z21:we:sp:dn:ds", "z27:v:we:vd1" },
@@ -130,11 +130,17 @@ public class ZQuestBigGameHunting extends ZQuest {
     }
 
     @Override
-    public Table getObjectivesOverlay() {
-        return new Table()
-                .addRow("1.", "Collect all objectives. One of the objectives exposes the laboratory objective.")
-                .addRow("2.", "Kill at least 1 Abomination and 1 Necromancer.")
-                .addRow("3.", "Not all players need to survive.");
+    public Table getObjectivesOverlay(ZGame game) {
+        boolean allObjCollected = redObjectives.size() == 0 && blueRevealZone < 0;
+        boolean necroKilled = game.getNumKills(ZZombieName.Necromancer) > 0;
+        boolean abimKilled = game.getNumKills(ZZombieName.Abomination) > 0;
+
+
+        return new Table(getName())
+                .addRow(new Table().setNoBorder()
+                    .addRow("1.", "Collect all objectives. One of the objectives\nexposes the laboratory objective.", allObjCollected ? "(x)" : "")
+                    .addRow("2.", "Kill at least 1 Abomination and 1 Necromancer.", necroKilled ? "(x)" : "")
+                    .addRow("3.", "Not all players need to survive.", abimKilled ? "(x)" : ""));
     }
 
     @Override

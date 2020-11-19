@@ -45,8 +45,7 @@ class BoardComponent extends AWTComponent implements ZTiles {
     Font smallFont;
     boolean drawTiles = false;
     Map<Object, Integer> objectToImageMap = new HashMap<>();
-    private Integer overlayToDraw = null;
-    private Table overlayTable = null;
+    private Object overlayToDraw = null;
 
     BoardComponent() {
         setPreferredSize(250, 250);
@@ -196,21 +195,24 @@ class BoardComponent extends AWTComponent implements ZTiles {
         }
 
         // overlay
-        if (overlayToDraw != null && overlayToDraw >= 0) {
-            AImage img = g.getImage(overlayToDraw);
-            GRectangle rect = new GRectangle(0, 0, getWidth(), getHeight());
-            rect.scale(.9f, .9f);
-            rect = rect.fit(img, Justify.LEFT, Justify.CENTER);
-            g.drawImage(overlayToDraw, rect);
-        }
-
-        if (overlayTable != null) {
-            Font font = g.getFont();
-            Font fixedWidth = new Font("monospaced", Font.PLAIN, 16);
-            g.setFont(fixedWidth);
-            g.setColor(GColor.YELLOW);
-            g.drawJustifiedStringOnBackground(getWidth()/2, getHeight()/2, Justify.CENTER, Justify.CENTER, overlayTable.toString(), GColor.TRANSLUSCENT_BLACK, 10, 10);
-            g.setFont(font);
+        if (overlayToDraw != null) {
+            if (overlayToDraw instanceof Integer) {
+                int id = ((Integer) overlayToDraw);
+                if (id >= 0) {
+                    AImage img = g.getImage(id);
+                    GRectangle rect = new GRectangle(0, 0, getWidth(), getHeight());
+                    rect.scale(.9f, .9f);
+                    rect = rect.fit(img, Justify.LEFT, Justify.CENTER);
+                    g.drawImage(id, rect);
+                }
+            } else if (overlayToDraw instanceof Table) {
+                Font font = g.getFont();
+                Font fixedWidth = new Font("monospaced", Font.PLAIN, 16);
+                g.setFont(fixedWidth);
+                g.setColor(GColor.YELLOW);
+                g.drawJustifiedStringOnBackground(getWidth() / 2, getHeight() / 2, Justify.CENTER, Justify.CENTER, overlayToDraw.toString(), GColor.TRANSLUSCENT_BLACK, 10, 10);
+                g.setFont(font);
+            }
         }
     }
 
@@ -292,7 +294,7 @@ class BoardComponent extends AWTComponent implements ZTiles {
             repaint();
         }
 
-        log.debug("Images: " + objectToImageMap);
+//        log.debug("Images: " + objectToImageMap);
 
         numImagesLoaded = totalImagesToLoad;
         repaint();
@@ -388,7 +390,7 @@ class BoardComponent extends AWTComponent implements ZTiles {
         if (obj == null) {
             overlayToDraw = null;
         } else if (obj instanceof Table) {
-            overlayTable = (Table)obj;
+            overlayToDraw = obj;
         } else {
             overlayToDraw = objectToImageMap.get(obj);
         }

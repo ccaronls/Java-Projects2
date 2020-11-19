@@ -1249,12 +1249,33 @@ public class ZGame extends Reflector<ZGame>  {
     }
 
     public Table getGameSummaryTable() {
+        /*
+        TITLE
+        -----------------
+        STATUS: COMPLETED
+        -----------------
+        SUMMARY
+
+
+
+
+
+
+         */
+
+
+
+
+
+
+
+
         Table summary = new Table("PLAYER", "KILLS", "STATUS", "EXP").setNoBorder();
         for (ZCharacter c : getAllCharacters()) {
             summary.addRow(c.name, c.getKillsTable(), c.isDead() ? "KIA" : "Alive", c.dangerBar);
         }
         return new Table(quest.getName())
-                .addRow("STATUS", gameOverStatus == 1 ? "COMPLETED" : gameOverStatus == 2 ? "FAILED" : "IN PROGRESS")
-                .addRow("SUMMARY", summary);
+                .addRow("STATUS:" +( gameOverStatus == 1 ? "COMPLETED" : gameOverStatus == 2 ? "FAILED" : "IN PROGRESS"))
+                .addRow(new Table("SUMMARY").addRow(summary));
     }
 }

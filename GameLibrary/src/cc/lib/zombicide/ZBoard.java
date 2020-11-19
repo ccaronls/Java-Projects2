@@ -414,8 +414,10 @@ public class ZBoard extends Reflector<ZBoard> {
         Iterator<ZZone> it = zones.iterator();
         while (it.hasNext()) {
             ZZone z = it.next();
-            if (z == null)
+            if (z == null) {
                 it.remove();
+                continue;
+            }
             if (z.cells.isEmpty()) {
                 it.remove();
             }
@@ -439,6 +441,8 @@ public class ZBoard extends Reflector<ZBoard> {
             cell.rect = new GRectangle(it.getPos().getColumn()*dim, it.getPos().getRow()*dim, dim, dim);
             zones.get(cell.zoneIndex).center.addEq(cell.rect.getCenter());
         }
+
+        removeEmptyZones();
 
         for (ZZone zone : zones) {
             zone.center.scaleEq(1.0f / zone.cells.size());

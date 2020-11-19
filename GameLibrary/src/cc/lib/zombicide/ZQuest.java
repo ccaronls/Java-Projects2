@@ -274,5 +274,5 @@ public abstract class ZQuest extends Reflector<ZQuest> {
         return Integer.MAX_VALUE;
     }
 
-    public abstract Table getObjectivesOverlay();
+    public abstract Table getObjectivesOverlay(ZGame game);
 }

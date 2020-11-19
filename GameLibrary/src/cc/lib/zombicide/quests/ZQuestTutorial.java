@@ -151,11 +151,12 @@ public class ZQuestTutorial extends ZQuest {
     }
 
     @Override
-    public Table getObjectivesOverlay() {
-        return new Table()
-                .addRow("1.", "Collect all Objectives for " + OBJECTIVE_EXP + " EXP Each")
-                .addRow("2.", "Get all player into the EXIT zone.")
-                .addRow("3.", "All Players must survive.");
+    public Table getObjectivesOverlay(ZGame game) {
+        return new Table(getName())
+                .addRow(new Table().setNoBorder()
+                    .addRow("1.", "Collect all Objectives for " + OBJECTIVE_EXP + " EXP Each")
+                    .addRow("2.", "Get all player into the EXIT zone.")
+                    .addRow("3.", "All Players must survive."));
     }
 
     @Override
