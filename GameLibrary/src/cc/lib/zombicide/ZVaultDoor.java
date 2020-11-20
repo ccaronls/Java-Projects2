@@ -88,14 +88,14 @@ public class ZVaultDoor extends ZDoor {
             float dw = vaultRect.w/5;
             g.moveTo(-dw, -dh);
             g.moveTo(vaultRect.w+dw*2, 0);
-            g.setColor(GColor.BROWN);
+            g.setColor(GColor.ORANGE);
             g.drawTriangleFan();
             g.setColor(GColor.YELLOW);
             g.end();
             vaultRect.drawOutlined(g, outline);
             g.drawLineLoop(outline);
         } else {
-            g.setColor(GColor.BROWN);
+            g.setColor(GColor.ORANGE);
             vaultRect.drawFilled(g);
             g.setColor(GColor.YELLOW);
             vaultRect.drawOutlined(g, outline);

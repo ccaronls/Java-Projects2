@@ -84,7 +84,7 @@ public class ZQuestTutorial extends ZQuest {
     }
 
     @Override
-    public void addMoves(ZGame zGame, ZCharacter cur, List<ZMove> options) {
+    public void addMoves(ZGame game, ZCharacter cur, List<ZMove> options) {
         for (int red: redZones) {
             if (cur.getOccupiedZone() == red)
                 options.add(ZMove.newObjectiveMove(red));
@@ -95,17 +95,17 @@ public class ZQuestTutorial extends ZQuest {
     }
 
     @Override
-    public void processObjective(ZGame zGame, ZCharacter c, ZMove move) {
-        zGame.addExperience(c, OBJECTIVE_EXP);
+    public void processObjective(ZGame game, ZCharacter c, ZMove move) {
+        game.addExperience(c, OBJECTIVE_EXP);
         if (move.integer == blueKeyZone) {
-            zGame.board.setDoor(blueDoor, ZWallFlag.CLOSED);
-            zGame.getCurrentUser().showMessage(c.name() + " has unlocked the BLUE door");
+            game.board.setDoor(blueDoor, ZWallFlag.CLOSED);
+            game.getCurrentUser().showMessage(c.name() + " has unlocked the BLUE door");
             blueKeyZone = -1;
         } else if (move.integer == greenKeyZone) {
-            zGame.board.setDoor(greenDoor, ZWallFlag.CLOSED);
-            zGame.board.setSpawnZone(greenSpawnZone, true);
-            zGame.getCurrentUser().showMessage(c.name() + " has unlocked the GREEN door");
-            zGame.getCurrentUser().showMessage(c.name() + " has created a new spawn zone!");
+            game.board.setDoor(greenDoor, ZWallFlag.CLOSED);
+            game.board.setSpawnZone(greenSpawnZone, true);
+            game.getCurrentUser().showMessage(c.name() + " has unlocked the GREEN door");
+            game.getCurrentUser().showMessage(c.name() + " has created a new spawn zone!");
             greenKeyZone = -1;
         } else {
             //throw new AssertionError("Invalid move for objective: " + move);

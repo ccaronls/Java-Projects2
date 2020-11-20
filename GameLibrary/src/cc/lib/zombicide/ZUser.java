@@ -35,11 +35,11 @@ public abstract class ZUser {
 
     public abstract Integer chooseZoneForAttack(ZGame game, ZCharacter c, List<Integer> zones);
 
-    public abstract ZEquipment chooseItemToPickup(ZGame zGame, ZCharacter cur, List<ZEquipment> list);
+    public abstract ZEquipment chooseItemToPickup(ZGame game, ZCharacter cur, List<ZEquipment> list);
 
-    public abstract ZEquipment chooseItemToDrop(ZGame zGame, ZCharacter cur, List<ZEquipment> list);
+    public abstract ZEquipment chooseItemToDrop(ZGame game, ZCharacter cur, List<ZEquipment> list);
 
-    public abstract ZEquipSlot chooseItemToThrow(ZGame zGame, ZCharacter cur, List<ZEquipSlot> slots);
+    public abstract ZEquipSlot chooseItemToThrow(ZGame game, ZCharacter cur, List<ZEquipSlot> slots);
 
-    public abstract Integer chooseZonetoThrowItem(ZGame zGame, ZCharacter cur, ZItem toThrow, List<Integer> zones);
+    public abstract Integer chooseZonetoThrowItem(ZGame game, ZCharacter cur, ZItem toThrow, List<Integer> zones);
 }

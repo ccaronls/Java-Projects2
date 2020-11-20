@@ -186,6 +186,7 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
         switch (MenuItem.valueOf(e.getActionCommand())) {
             case START:
                 game.reload();
+                boardComp.setOverlay(game.getQuest().getObjectivesOverlay(game));
                 startGameThread();
                 break;
             case RESUME:

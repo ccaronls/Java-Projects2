@@ -163,7 +163,7 @@ task deployLZombicideApplet {
     def homePath = System.properties['user.home']
     def zPath = homePath + '/Sites/Zombicide/'
     doLast {
-        //delete zPath
+        delete zPath
         copy {
             from 'images'
             into zPath

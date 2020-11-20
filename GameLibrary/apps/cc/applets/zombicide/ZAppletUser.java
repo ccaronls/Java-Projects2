@@ -24,7 +24,7 @@ public class ZAppletUser extends ZUser {
     }
 
     @Override
-    public ZMove chooseMove(ZGame zGame, ZCharacter cur, List<ZMove> moves) {
+    public ZMove chooseMove(ZGame game, ZCharacter cur, List<ZMove> moves) {
         return ZombicideApplet.instance.pickMenu(cur.name() + " Choose Move", moves);
     }
 
@@ -34,62 +34,62 @@ public class ZAppletUser extends ZUser {
     }
 
     @Override
-    public ZEquipSlot chooseSlotToOrganize(ZGame zGame, ZCharacter cur, List<ZEquipSlot> slots) {
+    public ZEquipSlot chooseSlotToOrganize(ZGame game, ZCharacter cur, List<ZEquipSlot> slots) {
         return ZombicideApplet.instance.pickMenu(cur.name() + " Choose Slot to Organize", slots);
     }
 
     @Override
-    public ZEquipment chooseEquipment(ZGame zGame, ZCharacter cur, List<ZEquipment> equipOptions) {
+    public ZEquipment chooseEquipment(ZGame game, ZCharacter cur, List<ZEquipment> equipOptions) {
         return ZombicideApplet.instance.pickMenu(cur.name() + " Choose Equipment to Organize", equipOptions);
     }
 
     @Override
-    public ZEquipSlot chooseSlotForEquip(ZGame zGame, ZCharacter cur, List<ZEquipSlot> equipableSlots) {
+    public ZEquipSlot chooseSlotForEquip(ZGame game, ZCharacter cur, List<ZEquipSlot> equipableSlots) {
         return ZombicideApplet.instance.pickMenu(cur.name() + " Choose Slot to Equip Item", equipableSlots);
     }
 
     @Override
-    public Integer chooseZoneToWalk(ZGame zGame, ZCharacter cur, List<Integer> zones) {
+    public Integer chooseZoneToWalk(ZGame game, ZCharacter cur, List<Integer> zones) {
         return ZombicideApplet.instance.pickZone(cur.name() + " Choose zone to Walk", zones);
     }
 
     @Override
-    public ZDoor chooseDoorToToggle(ZGame zGame, ZCharacter cur, List<ZDoor> doors) {
+    public ZDoor chooseDoorToToggle(ZGame game, ZCharacter cur, List<ZDoor> doors) {
         return ZombicideApplet.instance.pickDoor(cur.name() + " Choose door to open or close", doors);
     }
 
     @Override
-    public ZEquipSlot chooseWeaponSlot(ZGame zGame, ZCharacter cur, List<ZEquipSlot> weapons) {
+    public ZEquipSlot chooseWeaponSlot(ZGame game, ZCharacter cur, List<ZEquipSlot> weapons) {
         return ZombicideApplet.instance.pickMenu(cur.name() + " Choose weapon from slot", weapons);
     }
 
     @Override
-    public ZCharacter chooseTradeCharacter(ZGame zGame, ZCharacter cur, List<ZCharacter> list) {
+    public ZCharacter chooseTradeCharacter(ZGame game, ZCharacter cur, List<ZCharacter> list) {
         return ZombicideApplet.instance.pickCharacter(cur.name() + " Choose Character for Trade", list);
     }
 
     @Override
-    public Integer chooseZoneForAttack(ZGame zGame, ZCharacter c, List<Integer> zones) {
+    public Integer chooseZoneForAttack(ZGame game, ZCharacter c, List<Integer> zones) {
         return ZombicideApplet.instance.pickZone("Choose Zone to Attack", zones);
     }
 
     @Override
-    public ZEquipment chooseItemToPickup(ZGame zGame, ZCharacter cur, List<ZEquipment> list) {
+    public ZEquipment chooseItemToPickup(ZGame game, ZCharacter cur, List<ZEquipment> list) {
         return ZombicideApplet.instance.pickMenu("Choose Menu to Pickup", list);
     }
 
     @Override
-    public ZEquipment chooseItemToDrop(ZGame zGame, ZCharacter cur, List<ZEquipment> list) {
+    public ZEquipment chooseItemToDrop(ZGame game, ZCharacter cur, List<ZEquipment> list) {
         return ZombicideApplet.instance.pickMenu("Choose Menu to Drop", list);
     }
 
     @Override
-    public ZEquipSlot chooseItemToThrow(ZGame zGame, ZCharacter cur, List<ZEquipSlot> slots) {
+    public ZEquipSlot chooseItemToThrow(ZGame game, ZCharacter cur, List<ZEquipSlot> slots) {
         return ZombicideApplet.instance.pickMenu("Choose Item to Throw", slots);
     }
 
     @Override
-    public Integer chooseZonetoThrowItem(ZGame zGame, ZCharacter cur, ZItem toThrow, List<Integer> zones) {
+    public Integer chooseZonetoThrowItem(ZGame game, ZCharacter cur, ZItem toThrow, List<Integer> zones) {
         return ZombicideApplet.instance.pickZone("Choose Zone to throw the " + toThrow, zones);
     }
 }

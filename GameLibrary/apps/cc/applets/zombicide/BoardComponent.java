@@ -102,12 +102,11 @@ class BoardComponent extends AWTComponent implements ZTiles {
         final List options = ZombicideApplet.instance.options;
         final Grid.Pos cellPos = board.drawDebug(g, getMouseX(), getMouseY());
 
-        if (drawTiles) {
-            getGame().getQuest().drawTiles(g, board, this);
-        }
-
         if (ZombicideApplet.instance.gameRunning) {
             int highlightedZone = board.drawZones(g, getMouseX(), getMouseY());
+            if (drawTiles) {
+                getGame().getQuest().drawTiles(g, board, this);
+            }
             highlightedActor = board.drawActors(g, this, getMouseX(), getMouseY());
 
             if (getGame().getCurrentCharacter() != null) {
@@ -164,6 +163,10 @@ class BoardComponent extends AWTComponent implements ZTiles {
             ZombicideApplet.instance.charComp.repaint();
 
         } else {
+            if (drawTiles) {
+                getGame().getQuest().drawTiles(g, board, this);
+            }
+
             if (cellPos != null) {
                 highlightedCell = cellPos;
                 ZCell cell = board.getCell(cellPos);
@@ -313,29 +316,7 @@ class BoardComponent extends AWTComponent implements ZTiles {
         tiles = new int[names.length];
 
         for (int i=0; i<names.length; i++) {
-            switch (names[i]) {
-                case "4V":
-                    tiles[i] = g.loadImage("ztile1.png", orientations[i]);
-                    break;
-                case "9R":
-                    tiles[i] = g.loadImage("ztile8.png", orientations[i]);
-                    break;
-                case "2R":
-                    tiles[i] = g.loadImage("ztile9.png", orientations[i]);
-                    break;
-                case "8V":
-                    tiles[i] = g.loadImage("ztile7.png", orientations[i]);
-                    break;
-                case "9V":
-                    tiles[i] = g.loadImage("ztile6.png", orientations[i]);
-                    break;
-                case "1V":
-                    tiles[i] = g.loadImage("ztile3.png", orientations[i]);
-                    break;
-
-
-            }
-
+            tiles[i] = g.loadImage("ztile_" + names[i] + ".png", orientations[i]);
         }
         return tiles;
     }

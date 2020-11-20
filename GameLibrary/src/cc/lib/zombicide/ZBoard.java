@@ -384,13 +384,28 @@ public class ZBoard extends Reflector<ZBoard> {
             ZCell cell = it.next();
             if (cell.cellType == ZCellType.EMPTY)
                 continue;
+            /*
+                            /*
+                switch (zone.type) {
+                    case VAULT:
+                        g.setColor(GColor.BROWN);
+                        break;
+                    case BUILDING:
+                        g.setColor(GColor.ORANGE);
+                        break;
+                    case OUTDOORS:
+                        g.setColor(GColor.LIGHT_GRAY);
+                        break;
+                }
+
+             */
             switch (cell.environment) {
                 case ZCell.ENV_BUILDING:
-                    g.setColor(GColor.YELLOW); break;
-                case ZCell.ENV_OUTDOORS:
-                    g.setColor(GColor.WHITE); break;
-                case ZCell.ENV_VAULT:
                     g.setColor(GColor.ORANGE); break;
+                case ZCell.ENV_OUTDOORS:
+                    g.setColor(GColor.LIGHT_GRAY); break;
+                case ZCell.ENV_VAULT:
+                    g.setColor(GColor.BROWN); break;
             }
             g.drawFilledRect(cell.rect);
             drawCellWalls(g, cell, .97f);
@@ -581,48 +596,6 @@ public class ZBoard extends Reflector<ZBoard> {
     public List<ZCharacter> getAllCharacters() {
         return Utils.filter(getAllActors(), (Utils.Filter<ZActor>) object -> object instanceof ZCharacter);
     }
-
-    /*
-    public List<ZCellDoor> getDoorsForZone(int occupiedZone, ZWallFlag ... flags) {
-        List<ZCellDoor> doors = new ArrayList<>();
-        for (Grid.Pos cellPos : zones.get(occupiedZone).cells) {
-            ZCell cell = getCell(cellPos);
-            for (int i=0; i<4; i++) {
-                if (Utils.linearSearch(flags, cell.walls[i]) >= 0) {
-                    doors.add(new ZCellDoor(cellPos, i));
-                }
-            }
-        }
-        return doors;
-    }
-
-    Grid.Pos getAdjacentPos(Grid.Pos pos, int direction) {
-        int col = pos.getColumn();
-        int row = pos.getRow();
-        switch (direction) {
-            case DIR_NORTH:
-                if (row <= 0)
-                    return null;
-                row--;
-                break;
-            case DIR_SOUTH:
-                if (row >= getRows())
-                    return null;
-                row++;
-                break;
-            case DIR_EAST:
-                if (col >= getColumns())
-                    return null;
-                col++;
-                break;
-            case DIR_WEST:
-                if (col <= 0)
-                    return null;
-                col--;
-                break;
-        }
-        return new Grid.Pos(row, col);
-    }*/
 
     public void moveActorInDirection(ZActor actor, ZDir direction) {
         Grid.Pos pos = actor.occupiedCell;

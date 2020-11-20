@@ -1,6 +1,7 @@
 package cc.lib.zombicide;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -120,6 +121,7 @@ public abstract class ZQuest extends Reflector<ZQuest> {
             case "sp":
                 cell.cellType = ZCellType.SPAWN;
                 break;
+            case "st":
             case "start":
                 cell.cellType = ZCellType.START;
                 break;
@@ -166,6 +168,7 @@ public abstract class ZQuest extends Reflector<ZQuest> {
                 ZCell cell = grid.get(row, col);
                 String [] parts = map[row][col].split("[:]");
                 ZZone zone = null;
+                Grid.Pos pos = new Grid.Pos(row, col);
                 for (String cmd:parts) {
                     if (cmd.length() == 0)
                         continue;
@@ -183,7 +186,8 @@ public abstract class ZQuest extends Reflector<ZQuest> {
                         continue;
                     }
                     assert(zone != null);
-                    loadCmd(grid, new Grid.Pos(row, col), cmd);
+                    loadCmd(grid, pos, cmd);
+                    // make sure outer perimeter has walls
                     switch (cell.cellType) {
                         case EXIT:
                             exitZone = cell.zoneIndex;
@@ -193,6 +197,17 @@ public abstract class ZQuest extends Reflector<ZQuest> {
                             break;
                     }
                 }
+                if (row == 0) {
+                    loadCmd(grid, pos, "wn");
+                } else if (row == map.length-1) {
+                    loadCmd(grid, pos, "ws");
+                }
+                if (col == 0) {
+                    loadCmd(grid, pos, "ww");
+                } else if (col == map[0].length-1) {
+                    loadCmd(grid, pos, "we");
+                }
+
             }
         }
         Vector<ZZone> zones = new Vector<>();
@@ -212,19 +227,19 @@ public abstract class ZQuest extends Reflector<ZQuest> {
 
     /**
      *
-     * @param zGame
+     * @param game
      * @param cur
      * @param options
      */
-    public abstract void addMoves(ZGame zGame, ZCharacter cur, List<ZMove> options);
+    public abstract void addMoves(ZGame game, ZCharacter cur, List<ZMove> options);
 
     /**
      *
-     * @param zGame
+     * @param game
      * @param c
      * @param move
      */
-    public abstract void processObjective(ZGame zGame, ZCharacter c, ZMove move);
+    public abstract void processObjective(ZGame game, ZCharacter c, ZMove move);
 
     /**
      *
@@ -245,6 +260,18 @@ public abstract class ZQuest extends Reflector<ZQuest> {
      * @param g
      */
     public abstract void drawTiles(AGraphics g, ZBoard board, ZTiles tiles);
+
+    public Collection<Integer> getVaultZones() {
+        return vaultMap.keySet();
+    }
+
+    public List<ZEquipment> getRemainingVaultItems() {
+        List<ZEquipment> all = new ArrayList<>();
+        for (List l : vaultMap.values()) {
+            all.addAll(l);
+        }
+        return all;
+    }
 
     /**
      *

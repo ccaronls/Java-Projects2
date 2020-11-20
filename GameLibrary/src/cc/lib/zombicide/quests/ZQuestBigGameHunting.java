@@ -118,7 +118,7 @@ public class ZQuestBigGameHunting extends ZQuest {
                 board.getCell(2, 5).getRect().getBottomRight());
         GRectangle quadrant9V = new GRectangle(
                 board.getCell(3, 0).getRect().getTopLeft(),
-                board.getCell(5, 3).getRect().getBottomRight());
+                board.getCell(5, 2).getRect().getBottomRight());
         GRectangle quadrant1V = new GRectangle(
                 board.getCell(3, 3).getRect().getTopLeft(),
                 board.getCell(5, 5).getRect().getBottomRight());
@@ -135,7 +135,6 @@ public class ZQuestBigGameHunting extends ZQuest {
         boolean exposeLaboratory = blueObjZone < 0;
         boolean necroKilled = game.getNumKills(ZZombieName.Necromancer) > 0;
         boolean abimKilled = game.getNumKills(ZZombieName.Abomination) > 0;
-
 
         return new Table(getName())
                 .addRow(new Table().setNoBorder()

@@ -17,7 +17,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -122,10 +121,12 @@ public final class AWTImageMgr {
 		}
 	}
 
-	private Image loadImageFromApplet(String name) {
-        try {
-            URL url = applet.getAbsoluteURL(name);
-            return applet.getImage(url);
+	private Image loadImageFromApplet(String name) throws Exception {
+	    log.debug("load image from applet");
+        try (InputStream in = applet.getClass().getResourceAsStream(name)) {
+            byte [] buffer = new byte[in.available()];
+            in.read(buffer);
+            return new ImageIcon(buffer).getImage();
         } catch (Exception e) {
             System.err.println("Not found via Applet: " + e.getMessage());
             return null;
