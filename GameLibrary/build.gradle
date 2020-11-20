@@ -130,6 +130,15 @@ task runAudioClient(type: JavaExec) {
 //    args "arg1", "arg2"
 }
 
+task runZombicide(type: JavaExec) {
+    group = 'Application' // <-- change the name as per your need
+    description = 'Run the audio client'
+
+    classpath sourceSets.main.runtimeClasspath // <-- Don't change this
+    main = "cc.applets.zombicide.ZombicideApplet"
+//    args "arg1", "arg2"
+}
+
 task deployLearnToTypeApplet {
     dependsOn tasks.withType(Jar)
     group = 'Distribution'

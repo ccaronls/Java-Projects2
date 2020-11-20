@@ -132,6 +132,7 @@ public class ZQuestBigGameHunting extends ZQuest {
     @Override
     public Table getObjectivesOverlay(ZGame game) {
         boolean allObjCollected = redObjectives.size() == 0 && blueRevealZone < 0;
+        boolean exposeLaboratory = blueObjZone < 0;
         boolean necroKilled = game.getNumKills(ZZombieName.Necromancer) > 0;
         boolean abimKilled = game.getNumKills(ZZombieName.Abomination) > 0;
 
@@ -139,8 +140,11 @@ public class ZQuestBigGameHunting extends ZQuest {
         return new Table(getName())
                 .addRow(new Table().setNoBorder()
                     .addRow("1.", "Collect all objectives. One of the objectives\nexposes the laboratory objective.", allObjCollected ? "(x)" : "")
-                    .addRow("2.", "Kill at least 1 Abomination and 1 Necromancer.", necroKilled ? "(x)" : "")
-                    .addRow("3.", "Not all players need to survive.", abimKilled ? "(x)" : ""));
+                    .addRow("1.", "Find the Laroratory Objective", exposeLaboratory ? "(x)" : "")
+                    .addRow("2.", "Kill at least 1 Necromancer.", necroKilled ? "(x)" : "")
+                    .addRow("3.", "Kill at least 1 Abomination.", abimKilled ? "(x)" : "")
+                    .addRow("4.", "Not all players need to survive.")
+                );
     }
 
     @Override

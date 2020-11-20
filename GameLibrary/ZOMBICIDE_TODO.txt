@@ -23,3 +23,4 @@ Make sure all skills are accounted for in the default players list
 Precomute all direction options for zombies given their cell position and the zone of the loudest noise / visible players
 - Use Floyd - Marshall Algorithm
 Implement enchantments
+Implement 'Make Noise!'

@@ -475,8 +475,8 @@ public class ZGame extends Reflector<ZGame>  {
                             List<ZCharacter> victims = board.getCharactersInZone(zombie.occupiedZone);
                             if (victims.size() > 1) {
                                 Collections.sort(victims, (o1, o2) -> {
-                                    int v0 = o1.woundBar + o1.getArmorRating(zombie.type);
-                                    int v1 = o2.woundBar + o2.getArmorRating(zombie.type);
+                                    int v0 = o1.getArmorRating(zombie.type) - o1.woundBar;
+                                    int v1 = o2.getArmorRating(zombie.type) - o2.woundBar;
                                     return Integer.compare(v1, v0);
                                 });
                             }

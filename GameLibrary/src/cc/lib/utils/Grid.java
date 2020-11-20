@@ -1,7 +1,5 @@
 package cc.lib.utils;
 
-import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
@@ -21,16 +19,11 @@ public final class Grid<T> extends Reflector<Grid<T>> {
         addAllFields(Pos.class);
     }
 
-    @Override
-    protected synchronized void serialize(PrintWriter out_) throws IOException {
-        super.serialize(out_);
-    }
-
     public static class Pos extends Reflector<Pos> {
 
         private final int row, col;
 
-        Pos() {
+        public Pos() {
             this(0,0);
         }
 

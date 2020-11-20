@@ -222,6 +222,7 @@ public class AWTFrame extends JFrame implements WindowListener, ComponentListene
             setBounds(x, y, w, h);
             this.setVisible(true);
             return true;
+        } catch (NumberFormatException e) {
         } catch (NullPointerException e) {
             // ignore
         } catch (Exception e) {

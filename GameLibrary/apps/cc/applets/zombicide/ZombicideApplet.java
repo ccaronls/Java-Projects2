@@ -151,6 +151,8 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
                     }
                     charComp.repaint();
                     boardComp.repaint();
+                    if (gameRunning)
+                        Thread.sleep(500);
                 }
             } catch (Exception e) {
                 e.printStackTrace();

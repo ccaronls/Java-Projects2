@@ -75,7 +75,7 @@ public enum ZDir {
         int dx = end.getColumn() - start.getColumn();
         int dy = end.getRow() - start.getRow();
 
-        if (Math.abs(dx) > Math.abs(dy)) {
+        if (Math.abs(dx) < Math.abs(dy)) {
             // either north or south is primary
             if (dy < 0) {
                 dirs[0] = ZDir.NORTH;

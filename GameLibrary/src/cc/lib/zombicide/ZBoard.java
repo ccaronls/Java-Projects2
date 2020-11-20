@@ -130,8 +130,6 @@ public class ZBoard extends Reflector<ZBoard> {
         return true;
     }
 
-
-
     /**
      * Returns a list of directions the zombie can move
      * @See DIR_NORTH, DIR_SOUTH, DIR_EAST, DIR_WEST
@@ -141,16 +139,20 @@ public class ZBoard extends Reflector<ZBoard> {
      * @return
      */
     public Collection<ZDir> getShortestPathOptions(Grid.Pos fromPos, int toZoneIndex) {
+        if (grid.get(fromPos).zoneIndex == toZoneIndex)
+            return Collections.emptyList();
+
         ZZone toZone = zones.get(toZoneIndex);
 
         List<List<ZDir>> allPaths = new ArrayList<>();
-        int maxDist = grid.getRows() * grid.getCols();
+        int maxDist = (grid.getRows() + grid.getCols()) * 2;
 
+        Set<Grid.Pos> visited = new HashSet<>();
         for (Grid.Pos bCellPos : toZone.cells) {
-            List<List<ZDir>> paths = getShortestPathOptions(fromPos, bCellPos, maxDist);
-            //for (List l : paths) {
-            //    maxDist = Math.min(maxDist, l.size());
-            //}
+            List<List<ZDir>> paths = getShortestPathOptions(fromPos, bCellPos, visited, maxDist);
+            for (List l : paths) {
+                maxDist = Math.min(maxDist, l.size());
+            }
             allPaths.addAll(paths);
         }
 
@@ -168,9 +170,8 @@ public class ZBoard extends Reflector<ZBoard> {
         return dirs;
     }
 
-    private List<List<ZDir>> getShortestPathOptions(Grid.Pos fromCell, Grid.Pos toCell, int maxDist) {
+    private List<List<ZDir>> getShortestPathOptions(Grid.Pos fromCell, Grid.Pos toCell, Set<Grid.Pos> visited, int maxDist) {
         List<List<ZDir>> paths = new ArrayList<>();
-        Set<Grid.Pos> visited = new HashSet<>();
         searchPathsR(fromCell, toCell, new int[] { maxDist }, new LinkedList<>(), paths, visited);
         return paths;
     }
@@ -190,10 +191,14 @@ public class ZBoard extends Reflector<ZBoard> {
         visited.add(fromPos);
         ZCell fromCell = grid.get(fromPos);
 
-        for (ZDir dir : ZDir.getCompassValues()) {
+        for (ZDir dir : ZDir.valuesSorted(fromPos, toPos)) {
             if (fromCell.getWallFlag(dir) == ZWallFlag.NONE) {
+                Grid.Pos nextPos = dir.getAdjacent(fromPos);
+                if (visited.contains(nextPos))
+                    continue;
+
                 curPath.addLast(dir);
-                searchPathsR(dir.getAdjacent(fromPos), toPos, maxDist, curPath, paths, visited);
+                searchPathsR(nextPos, toPos, maxDist, curPath, paths, visited);
                 curPath.removeLast();
             }
         }
@@ -402,6 +407,9 @@ public class ZBoard extends Reflector<ZBoard> {
                 if (a != null) {
                     text += "\n" + a.name();
                 }
+            }
+            if (cell.vaultFlag > 0) {
+                text += "\nvaultFlag " + cell.vaultFlag;
             }
             g.drawJustifiedStringOnBackground(cell.rect.getCenter(), Justify.CENTER, Justify.CENTER, text, GColor.TRANSLUSCENT_BLACK, 10, 3);
 
