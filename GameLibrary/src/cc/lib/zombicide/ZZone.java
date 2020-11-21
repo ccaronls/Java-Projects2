@@ -29,9 +29,6 @@ public class ZZone extends Reflector<ZZone> {
     public boolean objective;
     int nextCell = 0;
 
-    @Omit
-    public Object data = null;
-
     public ZZone() {
     }
 

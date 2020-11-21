@@ -1,5 +1,7 @@
 package cc.lib.game;
 
+import java.util.Objects;
+
 import cc.lib.math.MutableVector2D;
 import cc.lib.utils.Reflector;
 
@@ -323,5 +325,22 @@ public final class GRectangle extends Reflector<GRectangle> {
             }
         }
         return new GRectangle(tx, ty, tw, th);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        GRectangle that = (GRectangle) o;
+        return Float.compare(that.x, x) == 0 &&
+                Float.compare(that.y, y) == 0 &&
+                Float.compare(that.w, w) == 0 &&
+                Float.compare(that.h, h) == 0;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(x, y, w, h);
     }
 }

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import cc.lib.game.AGraphics;
+import cc.lib.game.GColor;
 import cc.lib.game.GRectangle;
 import cc.lib.game.Utils;
 import cc.lib.utils.Grid;
@@ -32,7 +33,7 @@ public class ZQuestTheBlackBook extends ZQuest {
     int blueObjZone=-1;
     int greenObjZone=-1;
     int greenSpawnZone=-1;
-    List<Integer> redObjectives=new ArrayList<>();
+    List<Integer> allObjectives =new ArrayList<>();
     ZCellDoor blueDoor, greenDoor;
 
     public ZQuestTheBlackBook() {
@@ -54,8 +55,52 @@ public class ZQuestTheBlackBook extends ZQuest {
     }
 
     @Override
+    protected void loadCmd(Grid<ZCell> grid, Grid.Pos pos, String cmd) {
+        ZCell cell = grid.get(pos);
+        switch (cmd) {
+            case "blackbook":
+                blackBookZone = cell.getZoneIndex();
+                cell.cellType = ZCellType.OBJECTIVE_BLACK;
+                break;
+            case "red":
+                allObjectives.add(cell.getZoneIndex());
+                cell.cellType = ZCellType.OBJECTIVE_RED;
+                break;
+
+            case "green":
+                greenSpawnZone = cell.getZoneIndex();
+                break;
+
+            // these are locked until the theor respective objectives found
+            case "blds":
+                blueDoor = new ZCellDoor(pos, ZDir.SOUTH, GColor.BLUE);
+                break;
+            case "grds":
+                greenDoor = new ZCellDoor(pos, ZDir.SOUTH, GColor.GREEN);
+                break;
+
+            default:
+                super.loadCmd(grid, pos, cmd);
+
+        }
+    }
+
+
+    @Override
+    public void init(ZGame game) {
+        while (blueObjZone == greenObjZone) {
+            blueObjZone = Utils.randItem(allObjectives);
+            greenObjZone = Utils.randItem(allObjectives);
+        }
+        // do this after the above so it does not get mixed in with other objectives. Effect would be player could never access
+        allObjectives.add(blackBookZone);
+        game.board.setDoorLocked(blueDoor);
+        game.board.setDoorLocked(greenDoor);
+    }
+
+    @Override
     public void addMoves(ZGame game, ZCharacter cur, List<ZMove> options) {
-        for (int red : redObjectives) {
+        for (int red : allObjectives) {
             if (cur.getOccupiedZone() == red)
                 options.add(ZMove.newObjectiveMove(red));
         }
@@ -65,6 +110,7 @@ public class ZQuestTheBlackBook extends ZQuest {
     @Override
     public void processObjective(ZGame game, ZCharacter c, ZMove move) {
         game.addExperience(c, OBJECTIVE_EXP);
+        allObjectives.remove((Object)move.integer);
         if (move.integer == blueObjZone) {
             game.getCurrentUser().showMessage(c.name() + " has unlocked the Blue Door");
             game.board.setDoor(blueDoor, ZWallFlag.CLOSED);
@@ -78,38 +124,7 @@ public class ZQuestTheBlackBook extends ZQuest {
         if (move.integer == greenObjZone) {
             game.getCurrentUser().showMessage(c.name() + " has unlocked the Green Door. A New Spwn zone has appeared!");
             game.board.setDoor(greenDoor, ZWallFlag.CLOSED);
-            game.board.setSpawnZone(greenObjZone, true);
-        }
-    }
-
-    @Override
-    protected void loadCmd(Grid<ZCell> grid, Grid.Pos pos, String cmd) {
-        ZCell cell = grid.get(pos);
-        switch (cmd) {
-            case "blackbook":
-                blackBookZone = cell.getZoneIndex();
-            case "red":
-                redObjectives.add(cell.getZoneIndex());
-                cell.cellType = ZCellType.OBJECTIVE;
-                break;
-
-            case "green":
-                greenSpawnZone = cell.getZoneIndex();
-                break;
-
-            // these are locked until the theor respective objectives found
-            case "blds":
-                blueDoor = new ZCellDoor(pos, ZDir.SOUTH);
-                loadCmd(grid, pos, "lds");
-                break;
-            case "grds":
-                greenDoor = new ZCellDoor(pos, ZDir.SOUTH);
-                loadCmd(grid, pos, "lds");
-                break;
-
-            default:
-                super.loadCmd(grid, pos, cmd);
-
+            game.board.setSpawnZone(greenSpawnZone, true);
         }
     }
 
@@ -117,10 +132,9 @@ public class ZQuestTheBlackBook extends ZQuest {
     public boolean isQuestComplete(ZGame game) {
         boolean blackBookTaken = blackBookZone < 0;
         int allVaultItems = getAllVaultOptions().size();
-        int numVaultArtifactsTaken = allVaultItems - getRemainingVaultItems().size();
         ZSkillLevel lvl = game.getHighestSkillLevel();
 
-        return blackBookTaken && numVaultArtifactsTaken == allVaultItems && lvl == ZSkillLevel.RED;
+        return blackBookTaken && getNumFoundVaultItems() == allVaultItems && lvl == ZSkillLevel.RED;
     }
 
     @Override
@@ -161,25 +175,19 @@ public class ZQuestTheBlackBook extends ZQuest {
     }
 
     @Override
-    public void init(ZGame game) {
-        while (blueObjZone != greenObjZone) {
-            blueObjZone = Utils.randItem(redObjectives);
-            greenObjZone = Utils.randItem(redObjectives);
-        }
-    }
-
-    @Override
     public Table getObjectivesOverlay(ZGame game) {
         boolean blackBookTaken = blackBookZone < 0;
         int allVaultItems = getAllVaultOptions().size();
-        int numVaultArtifactsTaken = allVaultItems - getRemainingVaultItems().size();
+        int numVaultItemsTaken = getNumFoundVaultItems();
         ZSkillLevel lvl = game.getHighestSkillLevel();
 
         return new Table(getName())
                 .addRow(new Table().setNoBorder()
-                        .addRow("1.", "Steal the Black Book.\nTake objective in central building.", "", blackBookTaken ? "(x)" : "")
-                        .addRow("2.", "Claim the artifacts.\nTake all Vault artifacts.", String.format("%d of %d", numVaultArtifactsTaken, allVaultItems), numVaultArtifactsTaken == allVaultItems ? "(x)" : "")
-                        .addRow("3.", "Feel the Power.\nGet to RED Danger level with at least one survivor.", lvl, lvl == ZSkillLevel.RED ? "(x)" : "")
+                        .addRow("1.", "Unlock the GREEN Door.", "", game.board.getDoor(greenDoor) != ZWallFlag.LOCKED)
+                        .addRow("2.", "Unlock the BLUE Door.", "", game.board.getDoor(blueDoor) != ZWallFlag.LOCKED)
+                        .addRow("3.", "Steal the Black Book in central building.", "", blackBookTaken ? "(x)" : "")
+                        .addRow("4.", "Claim all Vault artifacts.", String.format("%d of %d", numVaultItemsTaken, allVaultItems), numVaultItemsTaken == allVaultItems ? "(x)" : "")
+                        .addRow("5.", "Get to RED Danger level with at least one survivor.", lvl, lvl == ZSkillLevel.RED ? "(x)" : "")
                 );
     }
 }

@@ -17,7 +17,8 @@ public enum ZActionType {
     OBJECTIVE,
     RELOAD,
     DROP_ITEM,
-    PICKUP_ITEM;
+    PICKUP_ITEM,
+    MAKE_NOISE;
 
     boolean oncePerTurn() {
         switch (this) {

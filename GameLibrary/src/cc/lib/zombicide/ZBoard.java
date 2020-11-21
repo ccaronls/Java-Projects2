@@ -232,6 +232,30 @@ public class ZBoard extends Reflector<ZBoard> {
         getCell(door.cellPos).setWallFlag(door.dir, flag);
     }
 
+    public void setDoorLocked(ZCellDoor door) {
+        addLockedDoor(door);
+        addLockedDoor(door.getOtherSide(this));
+    }
+
+    private void addLockedDoor(ZCellDoor door) {
+        ZCell cell = getCell(door.cellPos);
+        ZZone zone = zones.get(cell.zoneIndex);
+        if (zone.doors.contains(door))
+            throw new AssertionError("Already have a door like that.");
+        cell.setWallFlag(door.dir, ZWallFlag.LOCKED);
+        zone.doors.add(door);
+    }
+
+    private ZDoor findDoor(ZDoor door) {
+        List<ZDoor> doors = zones.get(getCell(door.getCellPos()).zoneIndex).doors;
+        for (ZDoor d : doors) {
+            if (d.equals(door))
+                return d;
+        }
+        assert(false);
+        return null;
+    }
+
     public int pickZone(AGraphics g, int mouseX, int mouseY) {
         for (ZCell cell : grid.getCells()) {
             if (cell.getRect().contains(mouseX, mouseY)) {
@@ -253,8 +277,20 @@ public class ZBoard extends Reflector<ZBoard> {
 
     public void setSpawnZone(int zoneIdx, boolean isSpawn) {
         ZZone zone = zones.get(zoneIdx);
-        zone.isSpawn = true;
+        zone.isSpawn = isSpawn;
         getCell(zone.cells.get(0)).cellType = ZCellType.SPAWN;
+    }
+
+    public ZZone getMaxNoiseLevelZone() {
+        int maxNoise = 0;
+        ZZone maxZone = null;
+        for (ZZone z : zones) {
+            if (maxZone == null || z.noiseLevel > maxNoise) {
+                maxZone = z;
+                maxNoise = z.noiseLevel;
+            }
+        }
+        return maxZone;
     }
 
     /**
@@ -286,7 +322,7 @@ public class ZBoard extends Reflector<ZBoard> {
                         break;
                 }
                 g.drawFilledRect(cell.rect);
-                drawCellWalls(g, cell, 1);
+                drawCellWalls(g, pos, 1);
                 if (cell.rect.contains(mouseX, mouseY)) {
                     result = i;
                     g.setColor(GColor.RED.withAlpha(32));
@@ -294,11 +330,14 @@ public class ZBoard extends Reflector<ZBoard> {
                 }
                 String text = "";
                 switch (cell.cellType) {
-                    case OBJECTIVE:
+                    case OBJECTIVE_BLACK:
+                    case OBJECTIVE_BLUE:
+                    case OBJECTIVE_GREEN:
+                    case OBJECTIVE_RED:
                         if (zone.objective) {
                             // draw a big red X om the center of the cell
                             GRectangle redX = cell.rect.scaledBy(.25f, .25f);
-                            g.setColor(GColor.RED);
+                            g.setColor(cell.cellType.getColor());
                             g.drawLine(redX.getTopLeft(), redX.getBottomRight(), 10);
                             g.drawLine(redX.getTopRight(), redX.getBottomLeft(), 10);
                         }
@@ -324,16 +363,27 @@ public class ZBoard extends Reflector<ZBoard> {
             for (ZDoor vd : zone.doors) {
                 vd.draw(g, this);
             }
-            if (zone.noiseLevel > 0) {
-                g.setColor(GColor.CYAN);
-                g.drawJustifiedStringOnBackground(getCell(zone.cells.get(0)).rect.getTopLeft().addEq(10, 10), Justify.LEFT, Justify.TOP, String.valueOf(zone.noiseLevel), GColor.TRANSLUSCENT_BLACK, 10, 10);
+
+        }
+        ZZone maxNoise = getMaxNoiseLevelZone();
+        if (maxNoise != null) {
+            GColor color = new GColor(GColor.BLACK);
+            float radius = getCell(maxNoise.cells.get(0)).rect.w / 2;
+            float dr = radius / 5;
+            radius = dr;
+            for (int i=0; i<5; i++) {
+                g.setColor(color);
+                g.drawCircle(maxNoise.center, radius);
+                color = color.lightened(.1f);
+                radius += dr;
             }
         }
         return result;
     }
 
-    public void drawCellWalls(AGraphics g, ZCell cell, float scale) {
+    public void drawCellWalls(AGraphics g, Grid.Pos cellPos, float scale) {
         loadCells(g);
+        ZCell cell = getCell(cellPos);
         g.pushMatrix();
         Vector2D center = cell.rect.getCenter();
         g.translate(center);
@@ -360,12 +410,12 @@ public class ZBoard extends Reflector<ZBoard> {
                 }
                 case LOCKED:
                     g.drawLine(v0, v1, 3);
-                    g.setColor(GColor.RED);
+                    g.setColor(findDoor(new ZCellDoor(cellPos, dir)).getLockedColor());
                     g.drawLine(dv0, dv1, 4);
                     break;
                 case CLOSED:
                     g.drawLine(v0, v1, 3);
-                    g.setColor(GColor.GREEN);
+                    g.setColor(GColor.YELLOW);
                     g.drawLine(dv0, dv1, 4);
                     break;
             }
@@ -408,7 +458,7 @@ public class ZBoard extends Reflector<ZBoard> {
                     g.setColor(GColor.BROWN); break;
             }
             g.drawFilledRect(cell.rect);
-            drawCellWalls(g, cell, .97f);
+            drawCellWalls(g, it.getPos(), .97f);
             String text = "Zone " + cell.zoneIndex + "\n" + cell.cellType;
             if (cell.rect.contains(mouseX, mouseY)) {
                 List<Integer> accessible = getAccessableZones(cell.zoneIndex, 1);
@@ -441,11 +491,16 @@ public class ZBoard extends Reflector<ZBoard> {
         for (Grid.Iterator<ZCell> it = grid.iterator(); it.hasNext(); ) {
             ZCell cell = it.next();
             cell.rect = new GRectangle(it.getPos().getColumn()*dim, it.getPos().getRow()*dim, dim, dim);
-            zones.get(cell.zoneIndex).center.addEq(cell.rect.getCenter());
         }
 
         for (ZZone zone : zones) {
-            zone.center.scaleEq(1.0f / zone.cells.size());
+            if (zone.cells.size() > 0) {
+                zone.center.zero();
+                for (Grid.Pos pos: zone.cells) {
+                    zone.center.addEq(getCell(pos).rect.getCenter());
+                }
+                zone.center.scaleEq(1.0f / zone.cells.size());
+            }
         }
 
         return new GDimension(dim, dim);
@@ -559,14 +614,14 @@ public class ZBoard extends Reflector<ZBoard> {
     }
 
     public List<ZZombie> getZombiesInZone(int zoneIdx) {
-        return Utils.filter(getActorsInZone(zoneIdx), (Utils.Filter<ZActor>) object -> object instanceof ZZombie);
+        return Utils.filter((List)getActorsInZone(zoneIdx), (Utils.Filter<ZActor>) object -> object instanceof ZZombie);
     }
 
     public List<ZCharacter> getCharactersInZone(int zoneIdx) {
-        return Utils.filter(getActorsInZone(zoneIdx), (Utils.Filter<ZActor>) object -> object instanceof ZCharacter);
+        return Utils.filter((List)getActorsInZone(zoneIdx), (Utils.Filter<ZActor>) object -> object instanceof ZCharacter);
     }
 
-    public List getActorsInZone(int zoneIndex) {
+    public List<ZActor> getActorsInZone(int zoneIndex) {
         List<ZActor> actors = new ArrayList<>();
         for (Grid.Pos cellPos : zones.get(zoneIndex).cells) {
             for (ZActor a : getCell(cellPos).occupied) {

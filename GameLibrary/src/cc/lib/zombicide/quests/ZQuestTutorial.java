@@ -1,8 +1,10 @@
 package cc.lib.zombicide.quests;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import cc.lib.game.AGraphics;
+import cc.lib.game.GColor;
 import cc.lib.game.GRectangle;
 import cc.lib.game.Utils;
 import cc.lib.utils.Grid;
@@ -38,21 +40,21 @@ public class ZQuestTutorial extends ZQuest {
     public ZBoard loadBoard() {
         // 6x3
         final String [][] map = {
-                { "z0:i:wn:ww", "z0:i:wn", "z1:wn:dw:fatty", "z2:i:wn:ws:we", "z3:green:greende:ww:wn", "z4:i:wn:we:ws:exit" },
-                { "z5:sp:wn:ww:ws", "z6:bluedn:we:walker", "z7:ww:ds:we", "z8:red:wn:ww:ws", "z9",               "z10:red:wn:we:ws" },
-                { "z11:blue:i:wn:ww:ws:ode", "z12:start:ws:odw:we", "z13:i:ww:ws:dn:runner", "z13:i:wn:we:ws:vd1", "z14:ws:ww:de", "z15:i:dw:ws:we:wn:vd2" },
-                { "",                       "",                     "",                      "z16:v:wn:ws:ww:vd1", "z16:v:wn:ws", "z16:v:wn:ws:we:vd2" },
+                { "z0:i",                   "z0:i", "z1:dw:fatty", "z2:i:ws:we", "z3:green:greende:ww", "z4:i:ws:exit" },
+                { "z5:sp:wn:ws",            "z6:bluedn:we:walker", "z7:ds:we", "z8:red:wn:ws", "z9",               "z10:red:wn:ws" },
+                { "z11:blue:i:wn:ws:ode",   "z12:start:ws:odw:we", "z13:i:ws:dn:runner", "z13:i:wn:we:ws:vd1", "z14:ws:ww:de", "z15:i:dw:ws:we:wn:vd2" },
+                { "",                       "",                     "",                      "z16:v:wn:ww:vd1", "z16:v:wn", "z16:v:wn:vd2" },
         };
 
         return load(map);
     }
 
     ZCellDoor blueDoor=null, greenDoor=null;
-    int [] redZones = new int[2];
+    List<Integer> objZones = new ArrayList<>();
+    int numRedZones = 0;
     int greenSpawnZone=-1;
     int blueKeyZone=-1;
     int greenKeyZone=-1;
-    int numRed=0;
 
     @Override
     protected void loadCmd(Grid<ZCell> grid, Grid.Pos pos, String cmd) {
@@ -64,19 +66,17 @@ public class ZQuestTutorial extends ZQuest {
                 break;
             case "blue":
                 blueKeyZone = zoneIndex;
-                cell.cellType = ZCellType.OBJECTIVE;
+                cell.cellType = ZCellType.OBJECTIVE_BLUE;
                 break;
             case "red":
-                cell.cellType = ZCellType.OBJECTIVE;
-                redZones[numRed++] = zoneIndex;
+                cell.cellType = ZCellType.OBJECTIVE_RED;
+                objZones.add(zoneIndex);
                 break;
             case "bluedn":
-                blueDoor = new ZCellDoor(pos, ZDir.NORTH);
-                super.loadCmd(grid, pos, "ldn");
+                blueDoor = new ZCellDoor(pos, ZDir.NORTH, GColor.BLUE);
                 break;
             case "greende":
-                greenDoor = new ZCellDoor(pos, ZDir.EAST);
-                super.loadCmd(grid, pos, "lde");
+                greenDoor = new ZCellDoor(pos, ZDir.EAST, GColor.GREEN);
                 break;
             default:
                 super.loadCmd(grid, pos, cmd);
@@ -85,18 +85,16 @@ public class ZQuestTutorial extends ZQuest {
 
     @Override
     public void addMoves(ZGame game, ZCharacter cur, List<ZMove> options) {
-        for (int red: redZones) {
+        for (int red: objZones) {
             if (cur.getOccupiedZone() == red)
                 options.add(ZMove.newObjectiveMove(red));
-        }
-        if (cur.getOccupiedZone() == blueKeyZone) {
-            options.add(ZMove.newObjectiveMove(blueKeyZone));
         }
     }
 
     @Override
     public void processObjective(ZGame game, ZCharacter c, ZMove move) {
         game.addExperience(c, OBJECTIVE_EXP);
+        objZones.remove((Object)move.integer);
         if (move.integer == blueKeyZone) {
             game.board.setDoor(blueDoor, ZWallFlag.CLOSED);
             game.getCurrentUser().showMessage(c.name() + " has unlocked the BLUE door");
@@ -136,7 +134,11 @@ public class ZQuestTutorial extends ZQuest {
 
     @Override
     public void init(ZGame game) {
-        greenKeyZone = redZones[Utils.rand()%numRed];
+        greenKeyZone = Utils.randItem(objZones);
+        game.board.setDoorLocked(blueDoor);
+        game.board.setDoorLocked(greenDoor);
+        objZones.add(blueKeyZone); // call this after putting the greenKeyRandomly amongst the red objectives
+        numRedZones = objZones.size();
     }
 
     @Override
@@ -145,18 +147,29 @@ public class ZQuestTutorial extends ZQuest {
 
     }
 
+    // for tutorial we want all the options in the only vault for testing
+    private List<ZEquipment> vaultItems = null;
+
     @Override
     public List<ZEquipment> getVaultItems(int vaultZone) {
-        return super.getVaultItems(vaultZone);
+        if (vaultItems == null) {
+            vaultItems = new ArrayList<>();
+            for (ZEquipmentType et : getAllVaultOptions())
+                vaultItems.add(et.create());
+        }
+        return vaultItems;
     }
 
     @Override
     public Table getObjectivesOverlay(ZGame game) {
         return new Table(getName())
                 .addRow(new Table().setNoBorder()
-                    .addRow("1.", "Collect all Objectives for " + OBJECTIVE_EXP + " EXP Each")
-                    .addRow("2.", "Get all player into the EXIT zone.")
-                    .addRow("3.", "All Players must survive."));
+                    .addRow("1.", "Unlock the BLUE Door.", game.board.getDoor(blueDoor) != ZWallFlag.LOCKED ? "(x)" : "")
+                    .addRow("2.", "Unlock the GREEN Door.", game.board.getDoor(greenDoor) != ZWallFlag.LOCKED ? "(x)" : "")
+                    .addRow("3.", String.format("Collect all Objectives for %d EXP Each", OBJECTIVE_EXP), String.format("%d of %d", numRedZones- objZones.size(), numRedZones))
+                    .addRow("4.", "Get all players into the EXIT zone.", isQuestComplete(game) ? "(x)" : "")
+                    .addRow("5.", "All Players must survive.")
+                );
     }
 
     @Override

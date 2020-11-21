@@ -13,6 +13,7 @@ import cc.lib.game.GColor;
 import cc.lib.game.GDimension;
 import cc.lib.game.GRectangle;
 import cc.lib.game.Justify;
+import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
 import cc.lib.swing.AWTComponent;
@@ -74,6 +75,82 @@ class BoardComponent extends AWTComponent implements ZTiles {
 
     int numImagesLoaded=0;
     int totalImagesToLoad=1000;
+    Map<GRectangle, List<ZMove>> rectMap = new HashMap<>();
+
+    void collectRects(List options) {
+        for (Object obj : options) {
+            if (obj instanceof ZMove) {
+
+            }
+        }
+    }
+
+    void collectMoveRects(ZMove move) {
+
+    }
+
+    void pickMove(AGraphics g, int mx, int my) {
+        for (Map.Entry<GRectangle, List<ZMove>> e : rectMap.entrySet()) {
+            if (e.getKey().contains(mx, my)) {
+                // show a context menu to the side of the rect with the move options
+
+            }
+        }
+    }
+
+    class ContextMenu {
+        final GRectangle sourceRect;
+        final List<ZMove> moves;
+
+        public ContextMenu(GRectangle sourceRect, List<ZMove> moves) {
+            this.sourceRect = sourceRect;
+            this.moves = moves;
+        }
+
+        ZMove pick(AGraphics g, int mx, int my) {
+            ZMove result = null;
+            String [] items = new String[moves.size()];
+            int index=0;
+            float maxWidth=0;
+            float border = 10;
+            for (ZMove m : moves) {
+                String label = m.getLabel();
+                items[index++] = label;
+                maxWidth = Math.max(maxWidth, g.getTextWidth(label));
+            }
+            // if there is space on the left of the sourceRect, then use that
+            float x=0;
+            float menuWidth = maxWidth + border*2;
+            if (menuWidth < sourceRect.x) {
+                x = sourceRect.x - menuWidth;
+            } else {
+                x = sourceRect.x + sourceRect.w;
+            }
+
+            float txtHeight = g.getTextHeight();
+            float menuHeight = txtHeight*items.length + border*2;
+            // try to top justify the menu
+            float y = sourceRect.y;
+            if (y + menuHeight > g.getViewportHeight()) {
+                y = g.getViewportHeight() - menuHeight;
+            }
+
+            g.setColor(GColor.TRANSLUSCENT_BLACK);
+            g.drawFilledRoundedRect(x, y, menuWidth, menuHeight, 10);
+            x += border;
+            y += border;
+            for (int i=0; i<items.length; i++) {
+                if (Utils.isPointInsideRect(mx, my, x, y, maxWidth, txtHeight)) {
+                    g.setColor(GColor.RED);
+                    result = moves.get(i);
+                } else {
+                    g.setColor(GColor.YELLOW);
+                }
+            }
+
+            return result;
+        }
+    }
 
     @Override
     protected float getInitProgress() {
@@ -195,6 +272,10 @@ class BoardComponent extends AWTComponent implements ZTiles {
                 }
             }
 
+        }
+
+        if (getGame().isGameOver() && overlayToDraw == null) {
+            setOverlay(getGame().getGameSummaryTable());
         }
 
         // overlay

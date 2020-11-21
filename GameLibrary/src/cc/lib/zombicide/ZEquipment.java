@@ -6,6 +6,12 @@ import cc.lib.utils.Reflector;
 
 public abstract class ZEquipment<T extends Enum<T>> extends Reflector<ZEquipment<T>> implements IButton {
 
+    static {
+        addAllFields(ZEquipment.class);
+    }
+
+    boolean vaultItem=false;
+
     public abstract ZEquipSlotType getSlotType();
 
     public boolean canOpenDoor() {
@@ -39,6 +45,8 @@ public abstract class ZEquipment<T extends Enum<T>> extends Reflector<ZEquipment
     }
 
     public boolean isThrowable() { return false; }
+
+    public boolean canDualWield() { return false; }
 
     public abstract Enum<T> getType();
 

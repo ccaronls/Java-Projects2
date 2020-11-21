@@ -1,10 +1,11 @@
-More quests
+More quests - Added The Black Book
+ - TODO: Make so objectives can have custom artwork
   (DONE) Allow for arrow keys to move. Characters should move to adjacent cells in a zone form wence they came (not snap)
 Merge ZBoard and ZQuest - These need not be separated
 Make Reflector an implementation (using default methods)
 Merge VaultDoor and CellDoor
   (DONE) Actions inside a vault : TAKE_ITEM / DROP_ITEM
-Zombies do not sem to be moving toward players after they enter the vault (whats up?)
+  (FIXED) Zombies do not seem to be moving toward players after they enter the vault (whats up?)
 Doors need work, should have 3 new diretions ASCEND / DESCENT to avoid conflicts (NORTH / SOUTH now work to go into and out of a vault)
 Should designate some part os board for Messages and Text (Lower left hand corner?)
 Have quest display quest specific instructions. Should be able to open any time form the side menu
@@ -24,3 +25,8 @@ Precomute all direction options for zombies given their cell position and the zo
 - Use Floyd - Marshall Algorithm
 Implement enchantments
 Implement 'Make Noise!'
+implement Colored doors
+Add draw() method to Table class
+Add Friendly fire
+Make sure opening doors, and using weapons makes noise
+when highlighting a vault door, highlight its other side

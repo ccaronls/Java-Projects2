@@ -24,7 +24,8 @@ public abstract class ZQuest extends Reflector<ZQuest> {
     private final String name;
     protected int exitZone = -1;
     private Map<Integer, List<ZEquipment>> vaultMap = new HashMap<>();
-    private List<ZEquipmentType> allItems = null;
+    private List<Integer> vaultZones = new ArrayList<>();
+    private int numFoundVaultItems = 0;
 
     protected ZQuest(String name) {
         this.name = name;
@@ -37,9 +38,11 @@ public abstract class ZQuest extends Reflector<ZQuest> {
     }
 
     public List<ZEquipmentType> getAllVaultOptions() {
-        if (allItems == null)
-            allItems = Utils.asList(ZWeaponType.INFERNO, ZWeaponType.ORCISH_CROSSBOW);
-        return allItems;
+        return Utils.asList(ZWeaponType.INFERNO, ZWeaponType.ORCISH_CROSSBOW);
+    }
+
+    public int getNumFoundVaultItems() {
+        return numFoundVaultItems;
     }
 
     protected void loadCmd(Grid<ZCell> grid, Grid.Pos pos, String cmd) {
@@ -91,18 +94,6 @@ public abstract class ZQuest extends Reflector<ZQuest> {
             case "dw":
                 setCellWall(grid, pos, ZDir.WEST, ZWallFlag.CLOSED);
                 break;
-            case "ldn":
-                setCellWall(grid, pos, ZDir.NORTH, ZWallFlag.LOCKED);
-                break;
-            case "lds":
-                setCellWall(grid, pos, ZDir.SOUTH, ZWallFlag.LOCKED);
-                break;
-            case "lde":
-                setCellWall(grid, pos, ZDir.EAST, ZWallFlag.LOCKED);
-                break;
-            case "ldw":
-                setCellWall(grid, pos, ZDir.WEST, ZWallFlag.LOCKED);
-                break;
             case "odn":
                 setCellWall(grid, pos, ZDir.NORTH, ZWallFlag.OPEN);
                 break;
@@ -115,9 +106,9 @@ public abstract class ZQuest extends Reflector<ZQuest> {
             case "odw":
                 setCellWall(grid, pos, ZDir.WEST, ZWallFlag.OPEN);
                 break;
-            case "obj":
-                cell.cellType = ZCellType.OBJECTIVE;
-                break;
+//            case "obj":
+//                cell.cellType = ZCellType.OBJECTIVE;
+//                break;
             case "sp":
                 cell.cellType = ZCellType.SPAWN;
                 break;
@@ -188,14 +179,11 @@ public abstract class ZQuest extends Reflector<ZQuest> {
                     assert(zone != null);
                     loadCmd(grid, pos, cmd);
                     // make sure outer perimeter has walls
-                    switch (cell.cellType) {
-                        case EXIT:
-                            exitZone = cell.zoneIndex;
-                            break;
-                        case OBJECTIVE:
-                            zone.objective = true;
-                            break;
-                    }
+                }
+                switch (cell.cellType) {
+                    case EXIT:
+                        exitZone = cell.zoneIndex;
+                        break;
                 }
                 if (row == 0) {
                     loadCmd(grid, pos, "wn");
@@ -265,12 +253,26 @@ public abstract class ZQuest extends Reflector<ZQuest> {
         return vaultMap.keySet();
     }
 
-    public List<ZEquipment> getRemainingVaultItems() {
-        List<ZEquipment> all = new ArrayList<>();
-        for (List l : vaultMap.values()) {
-            all.addAll(l);
+    /**
+     *
+     * @param zone
+     * @param equip
+     */
+    public final void pickupItem(int zone, ZEquipment equip) {
+        if (equip.vaultItem) {
+            numFoundVaultItems++;
+            equip.vaultItem = false;
         }
-        return all;
+        getVaultItems(zone).remove(equip);
+    }
+
+    /**
+     *
+     * @param zone
+     * @param equip
+     */
+    public final void dropItem(int zone, ZEquipment equip) {
+        getVaultItems(zone).add(equip);
     }
 
     /**
@@ -285,6 +287,7 @@ public abstract class ZQuest extends Reflector<ZQuest> {
             if (allItems.size() > 0) {
                 int item = Utils.rand() % allItems.size();
                 ZEquipment equip = allItems.remove(item).create();
+                equip.vaultItem = true;
                 list.add(equip);
             }
             vaultMap.put(vaultZone, list);

@@ -36,7 +36,7 @@ public class ZQuestBigGameHunting extends ZQuest {
 
     };
 
-    List<Integer> redObjectives = new ArrayList<>();
+    List<Integer> allObjectives = new ArrayList<>();
     int blueObjZone = -1;
     int blueRevealZone = -1;
 
@@ -51,7 +51,7 @@ public class ZQuestBigGameHunting extends ZQuest {
 
     @Override
     public void addMoves(ZGame game, ZCharacter cur, List<ZMove> options) {
-        for (int red : redObjectives) {
+        for (int red : allObjectives) {
             if (cur.getOccupiedZone() == red)
                 options.add(ZMove.newObjectiveMove(red));
         }
@@ -62,9 +62,9 @@ public class ZQuestBigGameHunting extends ZQuest {
         game.addExperience(c, OBJECTIVE_EXP);
         // check for necro / abom in special spawn places
         game.board.getZone(c.getOccupiedZone()).objective = false;
-        redObjectives.remove((Object)c.getOccupiedZone());
+        allObjectives.remove((Object)c.getOccupiedZone());
         if (move.integer == blueRevealZone) {
-            redObjectives.add(blueObjZone);
+            allObjectives.add(blueObjZone);
             game.getCurrentUser().showMessage("The Labratory objective is revealed!");
             game.board.getZone(blueObjZone).objective = true;
             game.spawnZombie(ZZombieType.NECROMANCERS, blueObjZone);
@@ -77,13 +77,13 @@ public class ZQuestBigGameHunting extends ZQuest {
         ZCell cell = grid.get(pos);
         switch (cmd) {
             case "red":
-                redObjectives.add(cell.getZoneIndex());
-                cell.cellType = ZCellType.OBJECTIVE;
+                allObjectives.add(cell.getZoneIndex());
+                cell.cellType = ZCellType.OBJECTIVE_RED;
                 break;
 
             case "blue":
                 blueObjZone = cell.getZoneIndex();
-                cell.cellType = ZCellType.OBJECTIVE;
+                cell.cellType = ZCellType.OBJECTIVE_BLUE;
                 break;
 
             default:
@@ -94,7 +94,7 @@ public class ZQuestBigGameHunting extends ZQuest {
 
     @Override
     public void init(ZGame game) {
-        blueRevealZone = Utils.randItem(redObjectives);
+        blueRevealZone = Utils.randItem(allObjectives);
         game.board.getZone(blueObjZone).objective = false; // this does not get revealed until the blueRevealZone found
     }
 
@@ -131,8 +131,8 @@ public class ZQuestBigGameHunting extends ZQuest {
 
     @Override
     public Table getObjectivesOverlay(ZGame game) {
-        boolean allObjCollected = redObjectives.size() == 0 && blueRevealZone < 0;
-        boolean exposeLaboratory = blueObjZone < 0;
+        boolean allObjCollected = allObjectives.size() == 0 && blueRevealZone < 0;
+        boolean exposeLaboratory = blueRevealZone < 0;
         boolean necroKilled = game.getNumKills(ZZombieName.Necromancer) > 0;
         boolean abimKilled = game.getNumKills(ZZombieName.Abomination) > 0;
 
@@ -148,7 +148,7 @@ public class ZQuestBigGameHunting extends ZQuest {
 
     @Override
     public boolean isQuestComplete(ZGame game) {
-        return redObjectives.size() == 0 && blueRevealZone < 0 && game.getNumKills(ZZombieName.Abomination) > 0 && game.getNumKills(ZZombieName.Necromancer) > 0;
+        return allObjectives.size() == 0 && blueRevealZone < 0 && game.getNumKills(ZZombieName.Abomination) > 0 && game.getNumKills(ZZombieName.Necromancer) > 0;
     }
 
     @Override

@@ -166,4 +166,9 @@ public class ZMove implements IButton {
         return new ZMove(ZMoveType.WALK_DIR, dir);
     }
 
+    public static ZMove newMakeNoiseMove(int occupiedZone) {
+        return new ZMove(ZMoveType.MAKE_NOISE, occupiedZone);
+    }
+
+
 }

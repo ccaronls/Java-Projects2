@@ -22,5 +22,6 @@ public enum ZMoveType {
     OBJECTIVE,
     // drop or collect items form vault
     DROP_ITEM,
-    PICKUP_ITEM;
+    PICKUP_ITEM,
+    MAKE_NOISE;
 }

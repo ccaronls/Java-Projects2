@@ -50,6 +50,10 @@ public final class GColor extends Reflector<GColor> {
         this.argb = argb;
     }
 
+    public GColor(GColor toCopy) {
+        this(toCopy.argb);
+    }
+
     public GColor(float r, float g, float b, float a) {
         set(Math.round(Utils.clamp(r, 0, 1)*255),
                 Math.round(Utils.clamp(g, 0, 1)*255),

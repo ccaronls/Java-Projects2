@@ -1,6 +1,7 @@
 package cc.lib.zombicide;
 
 import cc.lib.game.AGraphics;
+import cc.lib.game.GColor;
 import cc.lib.game.GRectangle;
 import cc.lib.utils.Grid;
 
@@ -13,6 +14,7 @@ public class ZCellDoor extends ZDoor {
     public final Grid.Pos cellPos;
     public final ZDir dir;
     private boolean jammed = true;
+    GColor lockedColor;
 
     public ZCellDoor() {
         this(0,0,null);
@@ -23,8 +25,13 @@ public class ZCellDoor extends ZDoor {
     }
 
     public ZCellDoor(Grid.Pos cellPos, ZDir dir) {
+        this(cellPos, dir, GColor.RED);
+    }
+
+    public ZCellDoor(Grid.Pos cellPos, ZDir dir, GColor lockedColor) {
         this.cellPos = cellPos;
         this.dir = dir;
+        this.lockedColor = lockedColor;
     }
 
     @Override
@@ -84,7 +91,7 @@ public class ZCellDoor extends ZDoor {
 
     @Override
     public ZCellDoor getOtherSide(ZBoard board) {
-        return new ZCellDoor(dir.getAdjacent(cellPos), dir.getOpposite());
+        return new ZCellDoor(dir.getAdjacent(cellPos), dir.getOpposite(), lockedColor);
     }
 
     @Override
@@ -99,5 +106,10 @@ public class ZCellDoor extends ZDoor {
                 return true;
         }
         return false;
+    }
+
+    @Override
+    public GColor getLockedColor() {
+        return lockedColor;
     }
 }

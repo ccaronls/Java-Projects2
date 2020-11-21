@@ -361,10 +361,19 @@ public enum ZSkill implements IButton {
         return false;
     }
 
+    /**
+     *
+     * @return
+     */
     public boolean canCloseDoors() {
         return false;
     }
 
+    /**
+     *
+     * @param w
+     * @return
+     */
     public boolean canTwoHand(ZWeapon w) { return false; }
 
     /**

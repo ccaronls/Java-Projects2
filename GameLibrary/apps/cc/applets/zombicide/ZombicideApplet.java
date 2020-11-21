@@ -33,12 +33,15 @@ import cc.lib.swing.AWTPanel;
 import cc.lib.swing.AWTToggleButton;
 import cc.lib.ui.IButton;
 import cc.lib.utils.FileUtils;
+import cc.lib.utils.Grid;
+import cc.lib.zombicide.ZActor;
 import cc.lib.zombicide.ZCharacter;
 import cc.lib.zombicide.ZDoor;
 import cc.lib.zombicide.ZGame;
 import cc.lib.zombicide.ZPlayerName;
 import cc.lib.zombicide.ZQuests;
 import cc.lib.zombicide.ZUser;
+import cc.lib.zombicide.ZZombie;
 
 public class ZombicideApplet extends AWTApplet implements ActionListener {
 
@@ -146,13 +149,13 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
                 while (gameRunning && !game.isGameOver()) {
                     game.runGame();
                     if (gameRunning && gameFile != null) {
-                        FileUtils.backupFile(gameFile, 5);
+                        FileUtils.backupFile(gameFile, 20);
                         game.trySaveToFile(gameFile);
                     }
                     charComp.repaint();
                     boardComp.repaint();
-                    if (gameRunning)
-                        Thread.sleep(500);
+//                    if (gameRunning)
+  //                      Thread.sleep(500);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -278,7 +281,17 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
 
     @Override
     protected void initApp() {
-        game = new ZGame();
+        game = new ZGame() {
+            @Override
+            protected void onActorMoved(ZActor actor, Grid.Pos from, Grid.Pos to) {
+                if (actor instanceof ZZombie) {
+                    boardComp.repaint();
+                    try {
+                        Thread.sleep(300);
+                    } catch (Exception e) {}
+                }
+            }
+        };
         setLayout(new BorderLayout());
         add(charComp = new CharacterComponent(), BorderLayout.SOUTH);
         ZUser user = new ZAppletUser();

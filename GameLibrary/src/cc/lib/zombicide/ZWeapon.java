@@ -71,6 +71,11 @@ public class ZWeapon extends ZEquipment<ZWeaponType> {
             isEmpty = true;
     }
 
+    @Override
+    public boolean canDualWield() {
+        return type.canTwoHand;
+    }
+
     public void reload() {
         isEmpty = false;
     }

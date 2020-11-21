@@ -50,6 +50,10 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
         organizedThisTurn = false;
     }
 
+    void reset() {
+        copyFrom(name.create());
+    }
+
     Table getKillsTable() {
         Table tab = new Table().setNoBorder().setPadding(0);
         for (ZZombieName nm : ZZombieName.values()) {
@@ -177,15 +181,14 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
      * @return
      */
     public boolean isDualWeilding() {
-        List<ZWeapon> weapons = getWeapons();
-        if (weapons.size() != 2)
+        if (leftHand == null || rightHand == null)
             return false;
-        if (!weapons.get(0).equals(weapons.get(1)))
+        if (!leftHand.getType().equals(rightHand.getType()))
             return false;
-        if (weapons.get(0).type.canTwoHand)
+        if (leftHand.canDualWield())
             return true;
         for (ZSkill skill : this.availableSkills) {
-            if (skill.canTwoHand(weapons.get(0)))
+            if (skill.canTwoHand((ZWeapon)leftHand))
                 return true;
         }
         return false;
@@ -221,16 +224,16 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
                     return ZEquipSlot.BODY;
                 }
                 break;
-            case BACKPACK:
-                if (backpack.size() < MAX_BACKPACK_SIZE) {
-                    return ZEquipSlot.BACKPACK;
-                }
-                break;
         }
-        return null;
+        assert(!isBackpackFull());
+        return ZEquipSlot.BACKPACK;
     }
 
     public ZEquipSlot equip(ZEquipment e) {
+        if (body == null && Utils.linearSearch(name.alternateBodySlots, e.getType()) >= 0) {
+            body = e;
+            return ZEquipSlot.BODY;
+        }
         switch (e.getSlotType()) {
             case HAND:
                 if (leftHand == null) {
@@ -249,11 +252,6 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
                 }
                 break;
         }
-        if (body == null && Utils.linearSearch(name.alternateBodySlots, e) >= 0) {
-            body = e;
-            return ZEquipSlot.BODY;
-        }
-
         if (backpack.size() < MAX_BACKPACK_SIZE) {
             backpack.add(e);
             return ZEquipSlot.BACKPACK;
@@ -492,11 +490,11 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
             default:
                 return null;
         }
-        if (isDualWeilding()) {
-            stat.numDice*=2;
-        }
         for (ZSkill skill : availableSkills) {
             skill.modifyStat(stat, attackType, this, game);
+        }
+        if (isDualWeilding()) {
+            stat.numDice*=2;
         }
         return stat;
     }
