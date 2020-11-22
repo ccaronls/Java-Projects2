@@ -48,6 +48,10 @@ public abstract class ZEquipment<T extends Enum<T>> extends Reflector<ZEquipment
 
     public boolean canDualWield() { return false; }
 
+    public boolean isAttackNoisy() { return false; }
+
+    public boolean isOpenDoorsNoisy() { return false; }
+
     public abstract Enum<T> getType();
 
     @Override

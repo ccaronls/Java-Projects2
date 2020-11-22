@@ -265,6 +265,26 @@ public class ZBoard extends Reflector<ZBoard> {
         return -1;
     }
 
+    public ZDoor pickDoor(AGraphics g, List<ZDoor> doors, int mouseX, int mouseY) {
+        ZDoor picked = null;
+        for (ZDoor door : doors) {
+            GRectangle doorRect = door.getRect(this).grownBy(10);
+            if (doorRect.contains(mouseX, mouseY)) {
+                g.setColor(GColor.RED);
+                picked = door;
+                // highlight the other side if this is a vault
+                if (door instanceof ZVaultDoor) {
+                    g.drawRect(door.getOtherSide(this).getRect(this).grownBy(10), 2);
+                }
+            } else {
+                g.setColor(GColor.DARK_OLIVE);
+            }
+            g.drawRect(doorRect, 2);
+        }
+        return picked;
+    }
+
+
     public ZActor pickActor(AGraphics g, int mouseX, int mouseY) {
         return null;
     }
@@ -363,7 +383,10 @@ public class ZBoard extends Reflector<ZBoard> {
             for (ZDoor vd : zone.doors) {
                 vd.draw(g, this);
             }
-
+            if (zone.noiseLevel > 0) {
+                g.setColor(GColor.BLACK);
+                g.drawJustifiedString(zone.center, Justify.CENTER, Justify.CENTER, String.valueOf(zone.noiseLevel));
+            }
         }
         ZZone maxNoise = getMaxNoiseLevelZone();
         if (maxNoise != null) {

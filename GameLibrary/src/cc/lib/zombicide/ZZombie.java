@@ -30,7 +30,7 @@ public final class ZZombie extends ZActor<ZZombieType> {
 
     @Override
     public String name() {
-        return type.commonName.name();
+        return type.getCommonName().name();
     }
 
     @Override

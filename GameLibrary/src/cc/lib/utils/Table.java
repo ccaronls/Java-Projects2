@@ -5,6 +5,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Vector;
 
+import cc.lib.game.AGraphics;
+import cc.lib.game.GDimension;
 import cc.lib.game.Utils;
 
 /**
@@ -312,5 +314,9 @@ public final class Table {
      */
     public int getTotalHeight() {
         return totalHeight;
+    }
+
+    public GDimension draw(AGraphics g) {
+        return null;
     }
 }

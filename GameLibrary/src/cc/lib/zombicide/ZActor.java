@@ -39,6 +39,11 @@ public abstract class ZActor<E extends Enum<E>> extends Reflector<ZActor<E>> {
         return actionsLeftThisTurn;
     }
 
+    void extraActivation() {
+        assert (actionsLeftThisTurn>0);
+        actionsLeftThisTurn++;
+    }
+
     public final GRectangle getRect() {
         return rect;
     }

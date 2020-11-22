@@ -24,7 +24,7 @@ public abstract class ZQuest extends Reflector<ZQuest> {
     private final String name;
     protected int exitZone = -1;
     private Map<Integer, List<ZEquipment>> vaultMap = new HashMap<>();
-    private List<Integer> vaultZones = new ArrayList<>();
+    private List<ZEquipment> vaultItemsRemaining = null;
     private int numFoundVaultItems = 0;
 
     protected ZQuest(String name) {
@@ -283,10 +283,10 @@ public abstract class ZQuest extends Reflector<ZQuest> {
         List<ZEquipment> list = vaultMap.get(vaultZone);
         if (list == null) {
             list = new ArrayList<>();
-            List<ZEquipmentType> allItems = getAllVaultOptions();
-            if (allItems.size() > 0) {
-                int item = Utils.rand() % allItems.size();
-                ZEquipment equip = allItems.remove(item).create();
+            List<ZEquipment> remainingItems = getVaultItemsRemaining();
+            if (remainingItems.size() > 0) {
+                int item = Utils.rand() % remainingItems.size();
+                ZEquipment equip = remainingItems.remove(item);
                 equip.vaultItem = true;
                 list.add(equip);
             }
@@ -295,12 +295,22 @@ public abstract class ZQuest extends Reflector<ZQuest> {
         return list;
     }
 
+    private List<ZEquipment> getVaultItemsRemaining() {
+        if (vaultItemsRemaining == null) {
+            vaultItemsRemaining = new ArrayList<>();
+            for (ZEquipmentType et : getAllVaultOptions()) {
+                vaultItemsRemaining.add(et.create());
+            }
+        }
+        return vaultItemsRemaining;
+    }
+
     /**
      * Called once during INIT stage of game
      */
     public abstract void init(ZGame game);
 
-    public int getMaxNumZombiesOfType(ZZombieType type) {
+    public int getMaxNumZombiesOfType(ZZombieName type) {
         switch (type) {
             case Abomination:
             case Necromancer:

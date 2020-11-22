@@ -644,7 +644,18 @@ for (int pix : pixels) {
         sVfb.put(x); sVfb.put(y);
         sVCount ++;
     }
-    
+
+    @Override
+    public void moveTo(float dx, float dy) {
+        if (sVCount > 0) {
+            float x = sVfb.get(sVCount-1);
+            float y = sVfb.get(sVCount-1);
+            dx = x + dx;
+            dy = y + dy;
+        }
+        vertex(dx, dy);
+    }
+
     /**
      * 
      */

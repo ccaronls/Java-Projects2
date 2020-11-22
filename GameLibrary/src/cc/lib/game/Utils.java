@@ -774,7 +774,7 @@ public class Utils {
      * @param weights
      * @return
      */
-    public static int chooseRandomFromSet(int[] weights) {
+    public static int chooseRandomFromSet(int ... weights) {
         int i, total = 0;
         for (i = 0; i < weights.length; i++)
             total += weights[i];

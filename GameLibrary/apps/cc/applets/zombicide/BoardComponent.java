@@ -224,7 +224,7 @@ class BoardComponent extends AWTComponent implements ZTiles {
                     break;
                 }
                 case PICK_DOOR: {
-                    highlightedResult = pickDoor(g, (List<ZDoor>)options, mouseX, mouseY);
+                    highlightedResult = getGame().board.pickDoor(g, (List<ZDoor>)options, mouseX, mouseY);
                     break;
                 }
             }
@@ -253,7 +253,7 @@ class BoardComponent extends AWTComponent implements ZTiles {
                 g.drawRect(cell.getRect());
 
                 List<ZDoor> doors = board.getZone(cell.getZoneIndex()).getDoors();
-                highlightedDoor = pickDoor(g, doors, mouseX, mouseY);
+                highlightedDoor = getGame().board.pickDoor(g, doors, mouseX, mouseY);
                 if (highlightedDoor != null) {
                     highlightedDoor.draw(g, board);
                 }
@@ -322,22 +322,6 @@ class BoardComponent extends AWTComponent implements ZTiles {
         }
     }
 
-    ZDoor pickDoor(AWTGraphics g, List<ZDoor> doors, int mouseX, int mouseY) {
-        ZDoor picked = null;
-        for (ZDoor door : doors) {
-            ZCell cell = getGame().board.getCell(door.getCellPos());
-            GRectangle doorRect = door.getRect(getGame().board).grownBy(10);
-            if (doorRect.contains(mouseX, mouseY)) {
-                g.setColor(GColor.RED);
-                picked = door;
-            } else {
-                g.setColor(GColor.DARK_OLIVE);
-            }
-            g.drawRect(doorRect, 2);
-        }
-        return picked;
-    }
-
     boolean loaded = false;
 
     void loadImages(AWTGraphics g) {
@@ -345,29 +329,29 @@ class BoardComponent extends AWTComponent implements ZTiles {
             return;
 
         Map<Object, String> fileMap = new HashMap<>();
-        fileMap.put(ZZombieType.Abomination,"zabomination.png");
-        fileMap.put(ZZombieType.Necromancer,"znecro.png");
-        fileMap.put(ZZombieType.Walker1,"zwalker1.png");
-        fileMap.put(ZZombieType.Walker2,"zwalker2.png");
-        fileMap.put(ZZombieType.Walker3,"zwalker3.png");
-        fileMap.put(ZZombieType.Walker4,"zwalker4.png");
-        fileMap.put(ZZombieType.Walker5,"zwalker5.png");
-        fileMap.put(ZZombieType.Runner1,"zrunner1.png");
-        fileMap.put(ZZombieType.Runner2,"zrunner1.png");
-        fileMap.put(ZZombieType.Fatty1,"zfatty1.png");
-        fileMap.put(ZZombieType.Fatty2,"zfatty2.png");
-        fileMap.put(ZPlayerName.Clovis,"zchar_clovis.png");
-        fileMap.put(ZPlayerName.Baldric,"zchar_baldric.png");
-        fileMap.put(ZPlayerName.Ann,"zchar_ann.png");
-        fileMap.put(ZPlayerName.Nelly,"zchar_nelly.png");
-        fileMap.put(ZPlayerName.Samson,"zchar_samson.png");
-        fileMap.put(ZPlayerName.Silas,"zchar_silas.png");
-        fileMap.put(ZPlayerName.Ann.name(), "zcard_ann.png");
-        fileMap.put(ZPlayerName.Baldric.name(), "zcard_baldric.png");
-        fileMap.put(ZPlayerName.Clovis.name(), "zcard_clovis.png");
-        fileMap.put(ZPlayerName.Nelly.name(), "zcard_nelly.png");
-        fileMap.put(ZPlayerName.Samson.name(), "zcard_samson.png");
-        fileMap.put(ZPlayerName.Silas.name(), "zcard_silas.png");
+        fileMap.put(ZZombieType.Abomination,"zabomination.gif");
+        fileMap.put(ZZombieType.Necromancer,"znecro.gif");
+        fileMap.put(ZZombieType.Walker1,"zwalker1.gif");
+        fileMap.put(ZZombieType.Walker2,"zwalker2.gif");
+        fileMap.put(ZZombieType.Walker3,"zwalker3.gif");
+        fileMap.put(ZZombieType.Walker4,"zwalker4.gif");
+        fileMap.put(ZZombieType.Walker5,"zwalker5.gif");
+        fileMap.put(ZZombieType.Runner1,"zrunner1.gif");
+        fileMap.put(ZZombieType.Runner2,"zrunner1.gif");
+        fileMap.put(ZZombieType.Fatty1,"zfatty1.gif");
+        fileMap.put(ZZombieType.Fatty2,"zfatty2.gif");
+        fileMap.put(ZPlayerName.Clovis,"zchar_clovis.gif");
+        fileMap.put(ZPlayerName.Baldric,"zchar_baldric.gif");
+        fileMap.put(ZPlayerName.Ann,"zchar_ann.gif");
+        fileMap.put(ZPlayerName.Nelly,"zchar_nelly.gif");
+        fileMap.put(ZPlayerName.Samson,"zchar_samson.gif");
+        fileMap.put(ZPlayerName.Silas,"zchar_silas.gif");
+        fileMap.put(ZPlayerName.Ann.name(), "zcard_ann.gif");
+        fileMap.put(ZPlayerName.Baldric.name(), "zcard_baldric.gif");
+        fileMap.put(ZPlayerName.Clovis.name(), "zcard_clovis.gif");
+        fileMap.put(ZPlayerName.Nelly.name(), "zcard_nelly.gif");
+        fileMap.put(ZPlayerName.Samson.name(), "zcard_samson.gif");
+        fileMap.put(ZPlayerName.Silas.name(), "zcard_silas.gif");
 
         totalImagesToLoad = fileMap.size();
         for (Map.Entry<Object, String> e : fileMap.entrySet()) {

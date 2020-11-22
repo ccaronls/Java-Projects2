@@ -331,7 +331,11 @@ public enum ZSkill implements IButton {
 
     @Override
     public String getTooltipText() {
-        return Utils.wrapTextWithNewlines(description, 64);
+        if (description.length() < 64)
+            return description;
+
+        String wrapped = Utils.wrapTextWithNewlines(description, 64);
+        return String.format("<html>%s</html>", wrapped.replaceAll("[\n]+", "<br/>"));
     }
 
     @Override

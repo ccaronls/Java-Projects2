@@ -17,7 +17,6 @@ import cc.lib.zombicide.ZMove;
 import cc.lib.zombicide.ZQuest;
 import cc.lib.zombicide.ZTiles;
 import cc.lib.zombicide.ZZombieName;
-import cc.lib.zombicide.ZZombieType;
 
 public class ZQuestBigGameHunting extends ZQuest {
 
@@ -67,7 +66,7 @@ public class ZQuestBigGameHunting extends ZQuest {
             allObjectives.add(blueObjZone);
             game.getCurrentUser().showMessage("The Labratory objective is revealed!");
             game.board.getZone(blueObjZone).objective = true;
-            game.spawnZombie(ZZombieType.NECROMANCERS, blueObjZone);
+            game.spawnZombies(1, ZZombieName.Necromancer, blueObjZone);
             blueRevealZone = -1;
         }
     }

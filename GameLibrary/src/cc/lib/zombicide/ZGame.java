@@ -38,7 +38,7 @@ public class ZGame extends Reflector<ZGame>  {
     @Omit
     ZCharacter currentCharacter = null;
     LinkedList<ZEquipment> searchables = new LinkedList<>();
-    boolean doubleSpawn=false;
+    int spawnMultiplier=1;
     int roundNum=0;
     int gameOverStatus=0; // 0 == in play, 1, == game won, 2 == game lost
     ZQuests currentQuest;
@@ -49,7 +49,7 @@ public class ZGame extends Reflector<ZGame>  {
             c.reset();
         roundNum = 0;
         gameOverStatus = 0;
-        doubleSpawn = false;
+        spawnMultiplier = 1;
         setState(ZState.BEGIN_ROUND);
     }
 
@@ -136,16 +136,19 @@ public class ZGame extends Reflector<ZGame>  {
                     }
                     break;
                 case WALKER:
-                    spawnZombies(1, ZZombieType.WALKERS, cell.zoneIndex);
+                    spawnZombies(1, ZZombieName.Walker, cell.zoneIndex);
                     break;
                 case RUNNER:
-                    spawnZombies(1, ZZombieType.RUNNERS, cell.zoneIndex);
+                    spawnZombies(1, ZZombieName.Runner, cell.zoneIndex);
                     break;
                 case FATTY:
-                    spawnZombies(1, ZZombieType.FATTIES, cell.zoneIndex);
+                    spawnZombies(1, ZZombieName.Fatty, cell.zoneIndex);
                     break;
                 case NECRO:
-                    spawnZombies(1, ZZombieType.NECROMANCERS, cell.zoneIndex);
+                    spawnZombies(1, ZZombieName.Necromancer, cell.zoneIndex);
+                    break;
+                case ABOMINATION:
+                    spawnZombies(1, ZZombieName.Abomination, cell.zoneIndex);
                     break;
                 case SPAWN:
                     zone.isSpawn = true;
@@ -175,45 +178,44 @@ public class ZGame extends Reflector<ZGame>  {
         this.quest.init(this);
     }
 
-    private void spawnZombies(int count, ZZombieType [] options, int zone) {
-        if (doubleSpawn) {
-            count *= 2;
-            doubleSpawn = false;
-        }
-        for (int i = 0; i < count; i++) {
-            spawnZombie(options, zone);
-        }
+    public void spawnZombies(int count, ZZombieName _name, int zone) {
+
+        count *= spawnMultiplier;
+        spawnMultiplier = 1;
+
+        do {
+            final ZZombieName name = _name;
+            int numOnBoard = Utils.filter(board.getAllZombies(), object -> object.type.getCommonName() == name).size();
+            log.debug("Num %s on board is %d and trying to spawn %d more", _name, numOnBoard, count);
+            if (numOnBoard + count > quest.getMaxNumZombiesOfType(name)) {
+                switch (name) {
+                    case Necromancer:
+                        _name = ZZombieName.Abomination;
+                        continue;
+                    case Abomination:
+                        _name = ZZombieName.Fatty;
+                        continue;
+                    case Fatty:
+                    case Runner:
+                        _name = ZZombieName.Walker;
+                        continue;
+                }
+            }
+            spawnZombies(name, count, zone);
+        } while (false);
     }
 
-    public void spawnZombie(ZZombieType [] options, int zone) {
-
-        final ZZombieType type = Utils.randItem(options);
-        int num = Utils.filter(board.getAllZombies(), object -> object.type == type).size();
-
-        ZZombieType newType = type;
-        if (num > quest.getMaxNumZombiesOfType(type)) {
-            switch (type) {
+    private void spawnZombies(ZZombieName name, int count, int zone) {
+        for (int i = 0; i < count; i++) {
+            final ZZombieType type = Utils.randItem(name.TYPES);
+            ZZombie zombie = new ZZombie(type, zone);
+            switch (zombie.type) {
                 case Necromancer:
-                    newType = ZZombieType.Abomination;
-                    break;
-                case Abomination:
-                    newType = Utils.randItem(ZZombieType.FATTIES);
-                    break;
-                case Fatty1:
-                case Fatty2:
-                case Runner1:
-                case Runner2:
-                    newType = Utils.randItem(ZZombieType.WALKERS);
+                    board.setSpawnZone(zone, true);
             }
+            board.addActor(zombie, zone);
+            onZombieSpawned(zombie);
         }
-        ZZombie zombie = new ZZombie(newType , zone);
-
-        switch (zombie.type) {
-            case Necromancer:
-                board.setSpawnZone(zone, true);
-        }
-        board.addActor(zombie, zone);
-        onZombieSpawned(zombie);
     }
 
     protected void onZombieSpawned(ZZombie zombie) {
@@ -384,31 +386,39 @@ public class ZGame extends Reflector<ZGame>  {
                 if (accessableZones.size() > 0)
                     options.add(ZMove.newWalkMove(accessableZones));
 
-                List<ZEquipSlot> slots = cur.getMeleeWeapons();
-                if (slots.size() > 0) {
-                    options.add(ZMove.newMeleeAttackMove(slots));
+                {
+                    List<ZWeapon> melee = cur.getMeleeWeapons();
+                    if (melee.size() > 0) {
+                        options.add(ZMove.newMeleeAttackMove(melee));
+                    }
                 }
 
-                slots = cur.getRangedWeapons();
-                if (slots.size() > 0) {
-                    options.add(ZMove.newRangedAttackMove(slots));
-                    for (ZEquipSlot slot : slots) {
-                        if (!((ZWeapon)cur.getSlot(slot)).isLoaded()) {
-                            options.add(ZMove.newReloadMove(slot));
-                            if (cur.isDualWeilding())
-                                break;
+                {
+                    List<ZWeapon> ranged = cur.getRangedWeapons();
+                    if (ranged.size() > 0) {
+                        options.add(ZMove.newRangedAttackMove(ranged));
+                        for (ZWeapon slot : ranged) {
+                            if (!slot.isLoaded()) {
+                                options.add(ZMove.newReloadMove(slot));
+                                if (cur.isDualWeilding())
+                                    break;
+                            }
                         }
                     }
                 }
 
-                slots = cur.getMagicWeapons();
-                if (slots.size() > 0) {
-                    options.add(ZMove.newMagicAttackMove(slots));
+                {
+                    List<ZWeapon> magic = cur.getMagicWeapons();
+                    if (magic.size() > 0) {
+                        options.add(ZMove.newMagicAttackMove(magic));
+                    }
                 }
 
-                slots = cur.getThrowableItems();
-                if (slots.size() > 0) {
-                    options.add(ZMove.newThrowItemMove(slots));
+                {
+                    List<ZItem> items = cur.getThrowableItems();
+                    if (items.size() > 0) {
+                        options.add(ZMove.newThrowItemMove(items));
+                    }
                 }
 
                 if (zone.type == ZZoneType.VAULT) {
@@ -434,6 +444,8 @@ public class ZGame extends Reflector<ZGame>  {
                     if (door.isJammed() && !cur.canUnjamDoor())
                         continue;
                     if (!door.isClosed(board) && !door.canBeClosed(cur))
+                        continue;
+                    if (door.isLocked(board))
                         continue;
                     doors.add(door);
                 }
@@ -485,11 +497,11 @@ public class ZGame extends Reflector<ZGame>  {
                             if (victims.size() > 0) {
                                 ZCharacter victim = victims.get(0);
                                 zombie.performAction(ZActionType.MELEE, this);
-                                if (playerDefends(victim, zombie)) {
+                                if (playerDefends(victim, zombie.type)) {
                                     getCurrentUser().showMessage(victim.name() + " defends against " + zombie.name());
                                     onCharacterDefends(victim, zombie);
                                 } else {
-                                    playerWounded(victim, zombie.type.commonName.name());
+                                    playerWounded(victim, 1, zombie.type.getCommonName().name());
                                 }
                             } else {
                                 moveZombieToTowardVisibleCharactersOrLoudestZone(zombie);
@@ -510,9 +522,9 @@ public class ZGame extends Reflector<ZGame>  {
 
     }
 
-    boolean playerDefends(ZCharacter cur, ZZombie zombie) {
+    private boolean playerDefends(ZCharacter cur, ZZombieType type) {
         for (ZArmor armor : cur.getArmorForDefense()) {
-            int rating = 6 - armor.getRating(zombie.type);
+            int rating = 6 - armor.getRating(type);
             if (rating > 0) {
                 Integer [] dice = rollDice(1);
                 if (dice[0] >= rating)
@@ -538,8 +550,8 @@ public class ZGame extends Reflector<ZGame>  {
 
     }
 
-    void playerWounded(ZCharacter victim, String reason) {
-        victim.woundBar++;
+    void playerWounded(ZCharacter victim, int amount, String reason) {
+        victim.woundBar += amount;
         if (victim.isDead()) {
             removeCharacter(victim);
             getCurrentUser().showMessage(victim.name() + " has been killed by a " + reason);
@@ -723,19 +735,6 @@ public class ZGame extends Reflector<ZGame>  {
                         }
                     }
 
-                    /*
-                    if (!other.isBackpackFull()) {
-                        for (ZEquipment e : cur.getBackpack()) {
-                            options.add(ZMove.newGiveMove(other, e));
-                        }
-                    }
-
-                    if (!cur.isBackpackFull()) {
-                        for (ZEquipment e : other.getBackpack()) {
-                            options.add(ZMove.newTakeMove(other, e));
-                        }
-                    }*/
-
                     move = user.chooseMove(this, cur, options);
                     if (move != null) {
                         performMove(cur, move);
@@ -755,8 +754,8 @@ public class ZGame extends Reflector<ZGame>  {
                 break;
             }
             case MELEE_ATTACK: {
-                List<ZEquipSlot> weapons = move.list;
-                ZEquipSlot slot = null;
+                List<ZWeapon> weapons = move.list;
+                ZWeapon slot = null;
                 if (weapons.size() > 1) {
                     slot = user.chooseWeaponSlot(this, cur, weapons);
                 } else {
@@ -780,6 +779,9 @@ public class ZGame extends Reflector<ZGame>  {
                             hits ++;
                         }
                     }
+                    if (slot.isAttackNoisy()) {
+                        addNoise(cur.occupiedZone, 1);
+                    }
                     cur.performAction( ZActionType.MELEE,this);
                     user.showMessage(currentCharacter.name() + " Scored " + hits + " hits");
                 }
@@ -789,8 +791,8 @@ public class ZGame extends Reflector<ZGame>  {
             case RANGED_ATTACK: {
                 // rules same for both kinda
                 ZActionType actionType = move.type == ZMoveType.RANGED_ATTACK ? ZActionType.RANGED : ZActionType.MAGIC;
-                List<ZEquipSlot> weapons = move.list;
-                ZEquipSlot slot = null;
+                List<ZWeapon> weapons = move.list;
+                ZWeapon slot = null;
                 if (weapons.size() > 1) {
                     slot = user.chooseWeaponSlot(this, cur, weapons);
                 } else {
@@ -806,16 +808,24 @@ public class ZGame extends Reflector<ZGame>  {
                         Integer zone = user.chooseZoneForAttack(this, cur, zones);
                         if (zone != null) {
                             // process a ranged attack
-                            ZWeapon weapon = (ZWeapon)cur.getSlot(slot);
-                            if (!weapon.isLoaded()) {
+                            if (!slot.isLoaded()) {
                                 getCurrentUser().showMessage("CLICK! Weapon not loaded!");
                                 onWeaponGoesClick(slot);
                             } else {
-                                weapon.fireWeapon();
+                                slot.fireWeapon();
                                 List<ZZombie> zombies = board.getZombiesInZone(zone);
                                 if (zombies.size() > 1)
                                     Collections.sort(zombies, (o1, o2) -> Integer.compare(o1.type.rangedPriority, o2.type.rangedPriority));
                                 Integer[] result = rollDice(stat.numDice);
+                                List<ZCharacter> friendlyFireOptions = Utils.filter(board.getCharactersInZone(zone), object -> object != cur);
+                                if (friendlyFireOptions.size() > 1) {
+                                    // sort them in same way we would sort zombie attacks
+                                    Collections.sort(friendlyFireOptions, (o1, o2) -> {
+                                        int v0 = o1.getArmorRating(ZZombieType.Walker1) - o1.woundBar;
+                                        int v1 = o2.getArmorRating(ZZombieType.Walker1) - o2.woundBar;
+                                        return Integer.compare(v1, v0);
+                                    });
+                                }
                                 int hits = 0;
                                 for (int i = 0; i < result.length && zombies.size() > 0; i++) {
                                     if (result[i] >= stat.dieRollToHit) {
@@ -824,6 +834,16 @@ public class ZGame extends Reflector<ZGame>  {
                                             addExperience(cur, zombie.type.expProvided);
                                             destroyZombie(zombie, cur);
                                             hits++;
+                                        }
+                                    } else if (friendlyFireOptions.size() > 0) {
+                                        // friendy fire!
+                                        ZCharacter victim = friendlyFireOptions.get(0);
+                                        if (playerDefends(victim, ZZombieType.Walker1)) {
+                                            getCurrentUser().showMessage(victim.name() + " defended themself from friendly fire!");
+                                        } else {
+                                            playerWounded(victim, stat.damagePerHit, "Freindly Fire!");
+                                            if (victim.isDualWeilding())
+                                                friendlyFireOptions.remove(0);
                                         }
                                     }
                                 }
@@ -837,19 +857,18 @@ public class ZGame extends Reflector<ZGame>  {
             }
 
             case THROW_ITEM: {
-                ZEquipSlot slot = null;
-                List<ZEquipSlot> slots = move.list;
+                ZItem slot = null;
+                List<ZItem> slots = move.list;
                 if (slots.size() == 1)
                     slot = slots.get(0);
                 else
                     slot = getCurrentUser().chooseItemToThrow(this, cur, slots);
                 if (slot != null) {
-                    ZItem toThrow = cur.getSlot(slot);
                     List<Integer> zones = board.getAccessableZones(cur.occupiedZone, 1);
                     zones.add(cur.occupiedZone);
-                    Integer zoneIdx = getCurrentUser().chooseZonetoThrowItem(this, cur, toThrow, zones);
+                    Integer zoneIdx = getCurrentUser().chooseZonetoThrowItem(this, cur, slot, zones);
                     if (zoneIdx != null) {
-                        switch (toThrow.type) {
+                        switch (slot.type) {
                             case DRAGON_BILE:
                                 board.getZone(zoneIdx).dragonBile = true;
                                 getCurrentUser().showMessage(cur.name() + " threw the drogon Bile!");
@@ -873,17 +892,18 @@ public class ZGame extends Reflector<ZGame>  {
                                         } else if (a instanceof ZCharacter) {
                                             // characters caught in the zone get wounded
                                             ZCharacter c = (ZCharacter)a;
-                                            playerWounded(c, "Exploding Dragon Bile");
+                                            playerWounded(c, 4, "Exploding Dragon Bile");
                                         }
                                     }
+                                    addExperience(cur, exp);
                                     getCurrentUser().showMessage(cur.name() + "Destroyed " + num + " zombies for " + exp + " total experience pts!");
                                 }
                                 break;
                             }
                             default:
-                                throw new GException("Unhandled case: " + toThrow.type);
+                                throw new GException("Unhandled case: " + slot.type);
                         }
-                        cur.removeEquipment(toThrow, slot);
+                        cur.removeEquipment(slot);//, slot);
                         cur.performAction(ZActionType.THROW_ITEM, this);
                     }
 
@@ -892,13 +912,13 @@ public class ZGame extends Reflector<ZGame>  {
             }
 
             case RELOAD: {
-                ZWeapon weapon = cur.getSlot(move.fromSlot);
+                ZWeapon weapon = (ZWeapon)move.equipment;
                 if (cur.isDualWeilding()) {
                     ((ZWeapon)cur.getSlot(ZEquipSlot.LEFT_HAND)).reload();
                     ((ZWeapon)cur.getSlot(ZEquipSlot.RIGHT_HAND)).reload();
                     user.showMessage(currentCharacter.name() + " Reloaded both their " + weapon.type + "s");
                 } else {
-                    ((ZWeapon)cur.getSlot(move.fromSlot)).reload();
+                    weapon.reload();
                     user.showMessage(currentCharacter.name() + " Reloaded their " + weapon.type);
                 }
                 cur.performAction(ZActionType.RELOAD, this);
@@ -925,6 +945,7 @@ public class ZGame extends Reflector<ZGame>  {
                                 }
                             }
                         }
+
                         cur.performAction(ZActionType.OPEN_DOOR, this);
                     } else {
                         cur.performAction(ZActionType.CLOSE_DOOR, this);
@@ -940,7 +961,7 @@ public class ZGame extends Reflector<ZGame>  {
                     if (equip.getType() == ZItemType.AAHHHH) {
                         getCurrentUser().showMessage("Aaaahhhh!!!");
                         // spawn zombie right here right now
-                        spawnZombies(1, ZZombieType.WALKERS, cur.occupiedZone);
+                        spawnZombies(1, ZZombieName.Walker, cur.occupiedZone);
                         searchables.addFirst(equip);
                     } else {
                         user.showMessage(cur.name() + " Found a " + equip);
@@ -1005,7 +1026,7 @@ public class ZGame extends Reflector<ZGame>  {
             }
             case MAKE_NOISE: {
                 int maxNoise = board.getMaxNoiseLevelZone().noiseLevel;
-                board.getZone(move.integer).noiseLevel = maxNoise+1;
+                addNoise(move.integer, maxNoise+1 - board.getZone(move.integer).noiseLevel);
                 getCurrentUser().showMessage(cur.name() + " made alot of noise to draw the zombies!");
                 cur.performAction(ZActionType.MAKE_NOISE, this);
                 break;
@@ -1015,7 +1036,7 @@ public class ZGame extends Reflector<ZGame>  {
         }
     }
 
-    protected void onWeaponGoesClick(ZEquipSlot slot) {
+    protected void onWeaponGoesClick(ZWeapon weapon) {
 
     }
 
@@ -1102,20 +1123,6 @@ public class ZGame extends Reflector<ZGame>  {
         return Utils.filter(getAllCharacters(), object -> !object.isDead());
     }
 
-    private List<ZZombie> getZombiesInRange(int zoneIndex, int distance) {
-        if (distance == 0) {
-            return board.getZombiesInZone(zoneIndex);
-        }
-
-        List<ZZombie> list = new ArrayList<>();
-        List<Integer> zones = board.getAccessableZones(zoneIndex, distance);
-        for (int z : zones) {
-            list.addAll(board.getZombiesInZone(z));
-
-        }
-        return list;
-    }
-
     private boolean isClearedOfZombies(int zoneIndex) {
         return board.getZombiesInZone(zoneIndex).size() == 0;
     }
@@ -1123,103 +1130,123 @@ public class ZGame extends Reflector<ZGame>  {
     protected void onDoubleSpawn() {
     }
 
+    private void extraActivation(ZZombieName name) {
+        getCurrentUser().showMessage("Extra Activation for " + name);
+        for (ZZombie z : Utils.filter(board.getAllZombies(), object -> object.type.getCommonName() == name)) {
+            z.extraActivation();
+        }
+    }
+
     private void spawnZombies(int zoneIdx, ZSkillLevel level) {
         log.info("Random zombie spawn for zone %d and level %s", zoneIdx, level);
-        if (!doubleSpawn) {
-            if (Utils.rand() % 10 == 0) {
-                doubleSpawn = true;
-                getCurrentUser().showMessage("DOUBLE SPAWN!");
-                onDoubleSpawn();
-                return;
+        if (Utils.rand() % (spawnMultiplier*10) == 0) {
+            spawnMultiplier *= 2;
+            getCurrentUser().showMessage("DOUBLE SPAWN!");
+            onDoubleSpawn();
+            return;
+        }
+        do {
+            switch (Utils.chooseRandomFromSet(2, 1, 1, 4, 3, 2)) {
+                case 0: // extra activation walker
+                    switch (level) {
+                        case BLUE:
+                            break; // do nothing
+                        default:
+                            // Extra Activation Walker
+                            if (Utils.filter(board.getAllZombies(), object -> object.type.getCommonName() == ZZombieName.Walker).size() == 0)
+                                continue;
+                            extraActivation(ZZombieName.Walker);
+                    }
+                    break;
+                case 1: // extra activation runner
+                    switch (level) {
+                        case BLUE:
+                            break; // do nothing
+                        default: // Extra Activation Runner x 1 (Except Blue)
+                            if (Utils.filter(board.getAllZombies(), object -> object.type.getCommonName() == ZZombieName.Runner).size() == 0)
+                                continue;
+                            extraActivation(ZZombieName.Runner);
+                    }
+                    break;
+                case 2: // extra activation fatty
+                    switch (level) {
+                        case BLUE:
+                            break; // do nothing
+                        default: // Extra Activation Fatty x 1 (Except Blue)
+                            if (Utils.filter(board.getAllZombies(), object -> object.type.getCommonName() == ZZombieName.Fatty).size() == 0)
+                                continue;
+                            extraActivation(ZZombieName.Fatty);
+                    }
+                    break;
+                case 3: // standard zombie invasion 1
+                    /*
+                  Standard Zombie Invasion 1 x 2
+                  Red - Abomination x 1
+                  Orange - Runner x 2
+                  Yellow - Walker x 3
+                  Blue - Walker x 1
+                     */
+                    switch (level) {
+                        case RED:
+                            spawnZombies(1, ZZombieName.Abomination, zoneIdx);
+                            break;
+                        case ORANGE:
+                            spawnZombies(2, ZZombieName.Runner, zoneIdx);
+                            break;
+                        case YELLOW:
+                            spawnZombies(3, ZZombieName.Walker, zoneIdx);
+                            break;
+                        case BLUE:
+                            spawnZombies(1, ZZombieName.Walker, zoneIdx);
+                            break;
+                    }
+                    break;
+                case 4: // standard zombie invasion 2
+                    /*
+                  Standard Zombie Invasion 2 x 2
+                  Red - Fatty x 2
+                  Orange - Walker x 5
+                  Yellow - Runner x 2
+                  Blue - Nothing
+                     */
+                    switch (level) {
+                        case RED:
+                            spawnZombies(2, ZZombieName.Fatty, zoneIdx);
+                            break;
+                        case ORANGE:
+                            spawnZombies(5, ZZombieName.Walker, zoneIdx);
+                            break;
+                        case YELLOW:
+                            spawnZombies(2, ZZombieName.Runner, zoneIdx);
+                            break;
+                        case BLUE:
+                    }
+                    break;
+                case 5: // standard zombie invasion 3
+                    /*
+                  Standard Zombie Invasion 3 x 2
+                  Red - Walker x 6
+                  Orange - Abomination x 1
+                  Yellow - Fatty x 1
+                  Blue - Walker x 2
+                     */
+                    switch (level) {
+                        case RED:
+                            spawnZombies(6, ZZombieName.Walker, zoneIdx);
+                            break;
+                        case ORANGE:
+                            spawnZombies(1, ZZombieName.Abomination, zoneIdx);
+                            break;
+                        case YELLOW:
+                            spawnZombies(1, ZZombieName.Fatty, zoneIdx);
+                            break;
+                        case BLUE:
+                            spawnZombies(2, ZZombieName.Walker, zoneIdx);
+                            break;
+                    }
+                    break;
             }
-        }
-
-        /*
-
-
-
-        Ahhhh x 4
-
-        Double Spawn x 8
-
-        Extra Activation Walker x 2 (Except Blue)
-
-        Extra Activation Runner x 1 (Except Blue)
-
-        Extra Activation Fatty x 1 (Except Blue)
-
-        Standard Zombie Invasion x 2
-          Red - Abomination x 1
-          Orange - Runner x 2
-          Yellow - Walker x 3
-          Blue - Walker x 1
-
-        Standard Zombie Invasion x 2
-          Red - Fatty x 2
-          Orange - Walker x 5
-          Yellow - Runner x 2
-          Blue - Nothing
-
-        Standard Zombie Invasion x 2
-          Red - Walker x 6
-          Orange - Abomination x 1
-          Yellow - Fatty x 1
-          Blue - Walker x 2
-
-         */
-
-
-
-
-
-        // STANDARD INVASION
-        //   RED = Fatty x 2
-        //   ORANGE = Walker x 5
-        //   YELLOW = Runner x 2
-        //   BLUE = 0
-
-        switch (level) {
-            case BLUE:
-                switch (Utils.rand() % 3) {
-                    case 2:
-                        spawnZombies(1, ZZombieType.WALKERS, zoneIdx);
-                        break;
-                }
-                break;
-            case YELLOW:
-                spawnZombies(Utils.randRange(2,3), ZZombieType.WALKERS, zoneIdx);
-                break;
-            case ORANGE:
-                switch (Utils.rand() % 3) {
-                    case 0:
-                        spawnZombies(Utils.randRange(3,4), ZZombieType.WALKERS, zoneIdx);
-                        break;
-                    case 1:
-                        spawnZombies(Utils.randRange(1,2), ZZombieType.FATTIES, zoneIdx);
-                        break;
-                    case 2:
-                        spawnZombies(1, ZZombieType.RUNNERS, zoneIdx);
-                        break;
-                }
-                break;
-            case RED:
-                switch (Utils.rand() % 4) {
-                    case 0:
-                        spawnZombies(5, ZZombieType.WALKERS, zoneIdx);
-                        break;
-                    case 1:
-                        spawnZombies(2, ZZombieType.FATTIES, zoneIdx);
-                        break;
-                    case 2:
-                        spawnZombies(2, ZZombieType.RUNNERS, zoneIdx);
-                        break;
-                    case 3:
-                        spawnZombies(1, ZZombieType.ABOMINATIONS, zoneIdx);
-                        break;
-                }
-                break;
-        }
-        //throw new RuntimeException("Not implemented");
+        } while (false);
     }
 
     public ZUser getCurrentUser() {
@@ -1315,7 +1342,7 @@ public class ZGame extends Reflector<ZGame>  {
 
     public void addNoise(int zoneIdx, int noise) {
         board.getZone(zoneIdx).noiseLevel += noise;
-        getCurrentUser().showMessage("Noise was made in zone " + zoneIdx);
+//        getCurrentUser().showMessage("Noise was made in zone " + zoneIdx);
         onNoiseAdded(zoneIdx);
     }
 

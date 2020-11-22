@@ -73,7 +73,7 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
     }
 
     void onKilledZombie(ZZombie zombie) {
-        kills[zombie.type.commonName.ordinal()]++;
+        kills[zombie.type.getCommonName().ordinal()]++;
     }
 
     @Override
@@ -388,59 +388,67 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
         return options;
     }
 
-    public List<ZEquipSlot> getMeleeWeapons() {
-        List<ZEquipSlot> slots = new ArrayList<>();
+    public List<ZWeapon> getMeleeWeapons() {
+        List<ZWeapon> slots = new ArrayList<>();
         if (isDualWeilding() && leftHand.isMelee()) {
-            slots.add(ZEquipSlot.LEFT_HAND);
+            slots.add((ZWeapon)leftHand);
         } else {
             if (leftHand != null && leftHand.isMelee())
-                slots.add(ZEquipSlot.LEFT_HAND);
+                slots.add((ZWeapon)leftHand);
             if (rightHand != null && rightHand.isMelee())
-                slots.add(ZEquipSlot.RIGHT_HAND);
+                slots.add((ZWeapon)rightHand);
         }
         if (body != null && body.isMelee())
-            slots.add(ZEquipSlot.BODY);
+            slots.add((ZWeapon)body);
         return slots;
     }
 
-    public List<ZEquipSlot> getRangedWeapons() {
-        List<ZEquipSlot> slots = new ArrayList<>();
+    public List<ZWeapon> getRangedWeapons() {
+        List<ZWeapon> slots = new ArrayList<>();
         if (isDualWeilding() && leftHand.isRanged()) {
-            slots.add(ZEquipSlot.LEFT_HAND);
+            slots.add((ZWeapon)leftHand);
         } else {
             if (leftHand != null && leftHand.isRanged() && isLoaded(leftHand))
-                slots.add(ZEquipSlot.LEFT_HAND);
+                slots.add((ZWeapon)leftHand);
             if (rightHand != null && rightHand.isRanged() && isLoaded(rightHand))
-                slots.add(ZEquipSlot.RIGHT_HAND);
+                slots.add((ZWeapon)rightHand);
         }
         if (body != null && body.isRanged() && isLoaded(body))
-            slots.add(ZEquipSlot.BODY);
+            slots.add((ZWeapon)body);
         return slots;
     }
 
-    public List<ZEquipSlot> getMagicWeapons() {
-        List<ZEquipSlot> slots = new ArrayList<>();
+    public List<ZWeapon> getMagicWeapons() {
+        List<ZWeapon> slots = new ArrayList<>();
         if (isDualWeilding() && leftHand.isMagic()) {
-            slots.add(ZEquipSlot.LEFT_HAND);
+            slots.add((ZWeapon)leftHand);
         } else {
             if (leftHand != null && leftHand.isMagic())
-                slots.add(ZEquipSlot.LEFT_HAND);
+                slots.add((ZWeapon)leftHand);
             if (rightHand != null && rightHand.isMagic())
-                slots.add(ZEquipSlot.RIGHT_HAND);
+                slots.add((ZWeapon)rightHand);
         }
         if (body != null && body.isMagic())
-            slots.add(ZEquipSlot.BODY);
+            slots.add((ZWeapon)body);
+        if (availableSkills.contains(ZSkill.Spellbook)) {
+            // add any backpack items as well
+            for (ZEquipment e : backpack) {
+                if (e.isMagic()) {
+                    slots.add((ZWeapon)e);
+                }
+            }
+        }
         return slots;
     }
 
-    public List<ZEquipSlot> getThrowableItems() {
-        List<ZEquipSlot> slots = new ArrayList<>();
+    public List<ZItem> getThrowableItems() {
+        List<ZItem> slots = new ArrayList<>();
         if (leftHand != null && leftHand.isThrowable())
-            slots.add(ZEquipSlot.LEFT_HAND);
+            slots.add((ZItem)leftHand);
         if (rightHand != null && rightHand.isThrowable())
-            slots.add(ZEquipSlot.RIGHT_HAND);
+            slots.add((ZItem)rightHand);
         if (body != null && body.isThrowable())
-            slots.add(ZEquipSlot.BODY);
+            slots.add((ZItem)body);
         return slots;
     }
 

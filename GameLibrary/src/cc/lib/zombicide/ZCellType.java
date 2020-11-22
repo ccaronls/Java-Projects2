@@ -16,7 +16,8 @@ public enum ZCellType {
     WALKER,
     RUNNER,
     FATTY,
-    NECRO;
+    NECRO,
+    ABOMINATION;
 
     GColor getColor() {
         switch (this) {

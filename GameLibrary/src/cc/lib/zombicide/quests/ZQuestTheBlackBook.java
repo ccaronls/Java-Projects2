@@ -183,8 +183,8 @@ public class ZQuestTheBlackBook extends ZQuest {
 
         return new Table(getName())
                 .addRow(new Table().setNoBorder()
-                        .addRow("1.", "Unlock the GREEN Door.", "", game.board.getDoor(greenDoor) != ZWallFlag.LOCKED)
-                        .addRow("2.", "Unlock the BLUE Door.", "", game.board.getDoor(blueDoor) != ZWallFlag.LOCKED)
+                        .addRow("1.", "Unlock the GREEN Door. GREEN Key hidden among the RED objectives.", "", game.board.getDoor(greenDoor) != ZWallFlag.LOCKED)
+                        .addRow("2.", "Unlock the BLUE Door. BLUE Key hidden among the RED objectives.", "", game.board.getDoor(blueDoor) != ZWallFlag.LOCKED)
                         .addRow("3.", "Steal the Black Book in central building.", "", blackBookTaken ? "(x)" : "")
                         .addRow("4.", "Claim all Vault artifacts.", String.format("%d of %d", numVaultItemsTaken, allVaultItems), numVaultItemsTaken == allVaultItems ? "(x)" : "")
                         .addRow("5.", "Get to RED Danger level with at least one survivor.", lvl, lvl == ZSkillLevel.RED ? "(x)" : "")

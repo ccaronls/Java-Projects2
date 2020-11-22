@@ -11,6 +11,7 @@ import cc.lib.zombicide.ZItem;
 import cc.lib.zombicide.ZMove;
 import cc.lib.zombicide.ZSkill;
 import cc.lib.zombicide.ZUser;
+import cc.lib.zombicide.ZWeapon;
 
 public class ZAppletUser extends ZUser {
     @Override
@@ -59,7 +60,7 @@ public class ZAppletUser extends ZUser {
     }
 
     @Override
-    public ZEquipSlot chooseWeaponSlot(ZGame game, ZCharacter cur, List<ZEquipSlot> weapons) {
+    public ZWeapon chooseWeaponSlot(ZGame game, ZCharacter cur, List<ZWeapon> weapons) {
         return ZombicideApplet.instance.pickMenu(cur.name() + " Choose weapon from slot", weapons);
     }
 
@@ -84,7 +85,7 @@ public class ZAppletUser extends ZUser {
     }
 
     @Override
-    public ZEquipSlot chooseItemToThrow(ZGame game, ZCharacter cur, List<ZEquipSlot> slots) {
+    public ZItem chooseItemToThrow(ZGame game, ZCharacter cur, List<ZItem> slots) {
         return ZombicideApplet.instance.pickMenu("Choose Item to Throw", slots);
     }
 

@@ -1,20 +1,20 @@
 package cc.lib.zombicide;
 
 public enum ZZombieType {
-    Walker1(ZZombieName.Walker, 1, 1, 1, false, 1),
-    Walker2(ZZombieName.Walker, 1, 1, 1, false, 1),
-    Walker3(ZZombieName.Walker, 1, 1, 1, false, 1),
-    Walker4(ZZombieName.Walker, 1, 1, 1, false, 1),
-    Walker5(ZZombieName.Walker, 1, 1, 1, false, 1),
-    Fatty1(ZZombieName.Fatty, 2, 1, 1, false, 2),
-    Fatty2(ZZombieName.Fatty,2, 1, 1, false, 2),
-    Runner1(ZZombieName.Runner, 1, 1, 2, false, 3),
-    Runner2(ZZombieName.Runner,1, 1, 2, false, 3),
-    Abomination(ZZombieName.Abomination, 3, 1, 1, true, 2),
-    Necromancer(ZZombieName.Necromancer, 1, 1, 0, false, 4);
+    // TODO: Dont break MVC. Here we make assumptions about assets for zombies.
+    Walker1(1, 1, 1, false, 1),
+    Walker2(1, 1, 1, false, 1),
+    Walker3(1, 1, 1, false, 1),
+    Walker4(1, 1, 1, false, 1),
+    Walker5(1, 1, 1, false, 1),
+    Fatty1(2, 1, 1, false, 2),
+    Fatty2(2, 1, 1, false, 2),
+    Runner1( 1, 1, 2, false, 3),
+    Runner2(1, 1, 2, false, 3),
+    Abomination( 3, 1, 1, true, 2),
+    Necromancer( 1, 1, 0, false, 4);
 
-    ZZombieType(ZZombieName commonName, int minDamageToDestroy, int expProvided, int actionsPerTurn, boolean ignoresArmor, int rangedPriority) {
-        this.commonName = commonName;
+    ZZombieType(int minDamageToDestroy, int expProvided, int actionsPerTurn, boolean ignoresArmor, int rangedPriority) {
         this.minDamageToDestroy = minDamageToDestroy;
         this.expProvided = expProvided;
         this.actionsPerTurn = actionsPerTurn;
@@ -27,26 +27,27 @@ public enum ZZombieType {
     final int actionsPerTurn;
     final boolean ignoresArmor;
     final int rangedPriority;
-    final ZZombieName commonName;
 
-    public final static ZZombieType [] WALKERS = {
-            Walker1, Walker2, Walker3, Walker4, Walker5
-    };
-
-    public final static ZZombieType [] FATTIES = {
-            Fatty1, Fatty2
-    };
-
-    public final static ZZombieType [] NECROMANCERS = {
-            Necromancer
-    };
-
-    public final static ZZombieType [] RUNNERS = {
-            Runner1, Runner2
-    };
-
-    public final static ZZombieType [] ABOMINATIONS = {
-            Abomination
-    };
-
+    ZZombieName getCommonName() {
+        switch (this) {
+            case Walker1:
+            case Walker2:
+            case Walker3:
+            case Walker4:
+            case Walker5:
+                return ZZombieName.Walker;
+            case Fatty1:
+            case Fatty2:
+                return ZZombieName.Fatty;
+            case Runner1:
+            case Runner2:
+                return ZZombieName.Runner;
+            case Abomination:
+                return ZZombieName.Abomination;
+            case Necromancer:
+                return ZZombieName.Necromancer;
+        }
+        assert(false);
+        return null;
+    }
 }

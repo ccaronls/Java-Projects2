@@ -65,6 +65,7 @@ class CharacterComponent extends AWTComponent {
                 y += d.getHeight();
             }
         }
+        setPreferredSize(getPreferredSize().width, y);
     }
 
 }

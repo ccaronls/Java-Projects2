@@ -12,6 +12,7 @@ import java.awt.image.ImageProducer;
 import java.awt.image.MemoryImageSource;
 import java.awt.image.PixelGrabber;
 import java.awt.image.ReplicateScaleFilter;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -110,12 +111,18 @@ public final class AWTImageMgr {
 
     /* */
 	private Image loadImageFromResource(String name) throws Exception {
-	    if (applet != null)
-	        return loadImageFromApplet(name);
+	    //if (applet != null)
+	      //  return loadImageFromApplet(name);
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
 		try (InputStream in = getClass().getClassLoader().getResourceAsStream(name)) {
-			byte [] buffer = new byte[in.available()];
-			in.read(buffer);
-			return new ImageIcon(buffer).getImage();
+		    byte [] buffer = new byte[1024];
+			while (true) {
+			    int len = in.read(buffer);
+			    if (len < 0)
+			        break;
+			    bytes.write(buffer, 0, len);
+            }
+			return new ImageIcon(bytes.toByteArray()).getImage();
 		} catch (NullPointerException e) {
 			throw new FileNotFoundException(name);
 		}
@@ -123,10 +130,8 @@ public final class AWTImageMgr {
 
 	private Image loadImageFromApplet(String name) throws Exception {
 	    log.debug("load image from applet");
-        try (InputStream in = applet.getClass().getResourceAsStream(name)) {
-            byte [] buffer = new byte[in.available()];
-            in.read(buffer);
-            return new ImageIcon(buffer).getImage();
+	    try {
+	        return new ImageIcon(AWTImageMgr.class.getResource(name)).getImage();
         } catch (Exception e) {
             System.err.println("Not found via Applet: " + e.getMessage());
             return null;

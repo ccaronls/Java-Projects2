@@ -98,19 +98,19 @@ public class ZMove implements IButton {
         return new ZMove(ZMoveType.SEARCH, zoneIndex);
     }
 
-    public static ZMove newMeleeAttackMove(List<ZEquipSlot> weapons) {
+    public static ZMove newMeleeAttackMove(List<ZWeapon> weapons) {
         return new ZMove(ZMoveType.MELEE_ATTACK, weapons);
     }
 
-    public static ZMove newRangedAttackMove(List<ZEquipSlot> weapons) {
+    public static ZMove newRangedAttackMove(List<ZWeapon> weapons) {
         return new ZMove(ZMoveType.RANGED_ATTACK, weapons);
     }
 
-    public static ZMove newMagicAttackMove(List<ZEquipSlot> weapons) {
+    public static ZMove newMagicAttackMove(List<ZWeapon> weapons) {
         return new ZMove(ZMoveType.MAGIC_ATTACK, weapons);
     }
 
-    public static ZMove newThrowItemMove(List<ZEquipSlot> slots) {
+    public static ZMove newThrowItemMove(List<ZItem> slots) {
         return new ZMove(ZMoveType.THROW_ITEM, slots);
     }
 
@@ -150,8 +150,8 @@ public class ZMove implements IButton {
         return new ZMove(ZMoveType.OBJECTIVE, zone);
     }
 
-    public static ZMove newReloadMove(ZEquipSlot slot) {
-        return new ZMove(ZMoveType.RELOAD, null, slot);
+    public static ZMove newReloadMove(ZWeapon slot) {
+        return new ZMove(ZMoveType.RELOAD, slot, null);
     }
 
     public static ZMove newPickupItemMove(List<ZEquipment> takables) {

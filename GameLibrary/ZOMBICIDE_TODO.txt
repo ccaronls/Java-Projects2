@@ -1,32 +1,45 @@
 More quests - Added The Black Book
  - TODO: Make so objectives can have custom artwork
-  (DONE) Allow for arrow keys to move. Characters should move to adjacent cells in a zone form wence they came (not snap)
+Allow for arrow keys to move. Characters should move to adjacent cells in a zone from wence they came (not snap) (DONE)
 Merge ZBoard and ZQuest - These need not be separated
 Make Reflector an implementation (using default methods)
-Merge VaultDoor and CellDoor
-  (DONE) Actions inside a vault : TAKE_ITEM / DROP_ITEM
-  (FIXED) Zombies do not seem to be moving toward players after they enter the vault (whats up?)
+Merge VaultDoor and CellDoor (Meh)
+Actions inside a vault : TAKE_ITEM / DROP_ITEM (DONE)
+Zombies do not seem to be moving toward players after they enter the vault (whats up?) (DONE NEEDS TESTING)
 Doors need work, should have 3 new diretions ASCEND / DESCENT to avoid conflicts (NORTH / SOUTH now work to go into and out of a vault)
-Should designate some part os board for Messages and Text (Lower left hand corner?)
-Have quest display quest specific instructions. Should be able to open any time form the side menu
-  (DONE) Make sure level up works
-  (DONE) Noise seems not working quite right
-Add colors to objectives and doors
-  (DONE) Get dragon puke and torch working
+Should designate some part of board for Messages and Text (Lower left hand corner?)
+Have quest display quest specific instructions. Should be able to open any time form the side menu (DONE)
+Make sure level up works (DONE)
+Noise seems not working quite right (DONE)
+Add colors to objectives and doors (DONE)
+Get dragon puke and torch working (DONE)
 dagger and short sword are exactly the same stats? Maybe dagger should have slighly lower open door %?
 Make sure plenty of arrows / bolts work
 Ability to view contents of backpack with details
-When hover over zombie show where they will walk to (player they can see of loudest noise)
-Highlight the loudest cell
+When hover over zombie show where they will walk to (player they can see or loudest noise)
+Highlight the loudest cell (DONE)
 Dont spawn new zombies in zones where there are no accessable (like all doors closed leading to players)
  - This is incompatible with Necromancer
 Make sure all skills are accounted for in the default players list
 Precomute all direction options for zombies given their cell position and the zone of the loudest noise / visible players
 - Use Floyd - Marshall Algorithm
 Implement enchantments
-Implement 'Make Noise!'
-implement Colored doors
+Implement 'Make Noise!' (DONE)
+implement Colored doors (DONE)
 Add draw() method to Table class
-Add Friendly fire
-Make sure opening doors, and using weapons makes noise
-when highlighting a vault door, highlight its other side
+Add Friendly fire (DONE NOT TESTED)
+Make sure opening doors, and using weapons makes noise (DONE)
+(DONE) when highlighting a vault door, highlight its other side
+implement spellbook (DONE NOT TESTED)
+beter job with the menu button
+- EQUIP (which hand)
+Animations!
+Enchantments!
+Shove!
+More Characters!
+Spawning should spawn Abominations at times and extra activations
+Players should not be able to shoot through vaults
+Make vault door that descend have open door that looks different than from 'below'
+Ability to zoom in and out of map for large maps
+Ability to assign startng weapons
+Abomination should render larger than other zombs

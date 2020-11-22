@@ -24,7 +24,7 @@ sourceSets {
             srcDirs = [ 'src', 'apps' ]
         }
         resources {
-            srcDirs = [ 'resources', 'images' ]
+            srcDirs = [ 'resources', 'images', 'gifs' ]
         }
     }
 
@@ -41,7 +41,7 @@ sourceSets {
             excludes = [ '**/audio/**' ]
         }
         resources {
-            srcDirs = [ 'resources' ]
+            srcDirs = [ 'resources', 'gifs' ]
         }
     }
 
@@ -163,11 +163,7 @@ task deployLZombicideApplet {
     def homePath = System.properties['user.home']
     def zPath = homePath + '/Sites/Zombicide/'
     doLast {
-        delete zPath
-        copy {
-            from 'images'
-            into zPath
-        }
+//        delete zPath
         copy {
             from 'build/libs/GameLibraryApplet.jar'
             into zPath

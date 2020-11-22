@@ -84,6 +84,14 @@ public abstract class ZDoor extends Reflector<ZDoor>  {
      *
      * @return
      */
+    public boolean isLocked(ZBoard board) {
+        return false;
+    }
+
+    /**
+     *
+     * @return
+     */
     public GColor getLockedColor() {
         return GColor.RED;
     }

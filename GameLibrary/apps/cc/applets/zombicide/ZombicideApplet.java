@@ -20,8 +20,10 @@ import java.util.Map;
 
 import javax.swing.JComponent;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.SwingUtilities;
+import javax.swing.ToolTipManager;
 
 import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
@@ -158,6 +160,7 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
   //                      Thread.sleep(500);
                 }
             } catch (Exception e) {
+                log.error(e.getClass().getSimpleName() + " " + e.getMessage());
                 e.printStackTrace();
             }
             gameRunning = false;
@@ -281,6 +284,8 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
 
     @Override
     protected void initApp() {
+        ToolTipManager.sharedInstance().setDismissDelay(30*1000);
+        ToolTipManager.sharedInstance().setInitialDelay(0);
         game = new ZGame() {
             @Override
             protected void onActorMoved(ZActor actor, Grid.Pos from, Grid.Pos to) {
@@ -293,7 +298,10 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
             }
         };
         setLayout(new BorderLayout());
-        add(charComp = new CharacterComponent(), BorderLayout.SOUTH);
+        JScrollPane charContainer = new JScrollPane();
+        charContainer.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        charContainer.getViewport().add(charComp = new CharacterComponent());
+        add(charContainer, BorderLayout.SOUTH);
         ZUser user = new ZAppletUser();
         List<ZPlayerName> players = getEnumListProperty("players", ZPlayerName.class, Utils.toList(ZPlayerName.Baldric, ZPlayerName.Clovis));
         for (ZPlayerName pl : players) {

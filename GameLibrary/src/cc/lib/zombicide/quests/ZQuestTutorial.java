@@ -168,12 +168,15 @@ public class ZQuestTutorial extends ZQuest {
                     .addRow("2.", "Unlock the GREEN Door.", game.board.getDoor(greenDoor) != ZWallFlag.LOCKED ? "(x)" : "")
                     .addRow("3.", String.format("Collect all Objectives for %d EXP Each", OBJECTIVE_EXP), String.format("%d of %d", numRedZones- objZones.size(), numRedZones))
                     .addRow("4.", "Get all players into the EXIT zone.", isQuestComplete(game) ? "(x)" : "")
+                    .addRow("5.", "Exit zone must be cleared of zombies.")
                     .addRow("5.", "All Players must survive.")
                 );
     }
 
     @Override
     public boolean isQuestComplete(ZGame game) {
+        if (game.board.getZombiesInZone(exitZone).size() > 0)
+            return false;
         for (ZCharacter c : game.getAllCharacters()) {
             if (c.getOccupiedZone() != exitZone)
                 return false;

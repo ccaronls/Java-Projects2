@@ -76,6 +76,16 @@ public class ZWeapon extends ZEquipment<ZWeaponType> {
         return type.canTwoHand;
     }
 
+    @Override
+    public boolean isAttackNoisy() {
+        return type.attckIsNoisy;
+    }
+
+    @Override
+    public boolean isOpenDoorsNoisy() {
+        return type.openDoorsIsNoisy;
+    }
+
     public void reload() {
         isEmpty = false;
     }

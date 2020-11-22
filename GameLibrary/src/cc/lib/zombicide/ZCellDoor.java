@@ -39,7 +39,7 @@ public class ZCellDoor extends ZDoor {
         return "Cell Door";
     }
 
-    boolean isLocked(ZBoard b) {
+    public boolean isLocked(ZBoard b) {
         return b.getDoor(this) == ZWallFlag.LOCKED;
     }
 
@@ -112,4 +112,5 @@ public class ZCellDoor extends ZDoor {
     public GColor getLockedColor() {
         return lockedColor;
     }
+
 }

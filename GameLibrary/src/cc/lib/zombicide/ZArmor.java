@@ -70,7 +70,7 @@ public class ZArmor extends ZEquipment<ZArmorType> {
 
         Table table = new Table().setNoBorder();
         for (ZZombieType type : Utils.asList(ZZombieType.Walker1, ZZombieType.Fatty1, ZZombieType.Runner1, ZZombieType.Necromancer, ZZombieType.Abomination)) {
-            table.addRow(type.commonName, getRating(type));
+            table.addRow(type.getCommonName(), getRating(type));
         }
         String card = table.toString();
         String info = type.name() + "\n";

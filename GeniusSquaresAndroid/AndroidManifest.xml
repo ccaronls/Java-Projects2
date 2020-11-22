@@ -12,9 +12,6 @@
     <uses-permission android:required="true" android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:required="true" android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE"/>
 -->
-    <uses-sdk
-        android:minSdkVersion="14"
-        android:targetSdkVersion="23" />
 
     <application
         android:allowBackup="true"
