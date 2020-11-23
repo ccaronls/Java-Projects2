@@ -35,10 +35,15 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
     private final List<ZEquipment> backpack = new ArrayList<>();
     ZEquipment leftHand, rightHand, body;
     int userIndex=0;
-    int [] kills = new int[ZZombieName.values().length];
+    int [] kills = new int[ZZombieType.values().length];
 
     public ZCharacter() {
         super(-1);
+    }
+
+    @Override
+    public int getImageId() {
+        return name.imageId;
     }
 
     @Override
@@ -56,7 +61,7 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
 
     Table getKillsTable() {
         Table tab = new Table().setNoBorder().setPadding(0);
-        for (ZZombieName nm : ZZombieName.values()) {
+        for (ZZombieType nm : ZZombieType.values()) {
             tab.addRow(nm, "x", kills[nm.ordinal()]);
         }
         return tab;
@@ -73,7 +78,7 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
     }
 
     void onKilledZombie(ZZombie zombie) {
-        kills[zombie.type.getCommonName().ordinal()]++;
+        kills[zombie.type.ordinal()]++;
     }
 
     @Override

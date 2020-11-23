@@ -35,15 +35,12 @@ import cc.lib.swing.AWTPanel;
 import cc.lib.swing.AWTToggleButton;
 import cc.lib.ui.IButton;
 import cc.lib.utils.FileUtils;
-import cc.lib.utils.Grid;
-import cc.lib.zombicide.ZActor;
 import cc.lib.zombicide.ZCharacter;
 import cc.lib.zombicide.ZDoor;
 import cc.lib.zombicide.ZGame;
 import cc.lib.zombicide.ZPlayerName;
 import cc.lib.zombicide.ZQuests;
 import cc.lib.zombicide.ZUser;
-import cc.lib.zombicide.ZZombie;
 
 public class ZombicideApplet extends AWTApplet implements ActionListener {
 
@@ -88,6 +85,18 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
         app.start();
         if (!frame.restoreFromProperties())
             frame.centerToScreen(800, 600);
+    }
+
+    public void onAllImagesLoaded() {
+        game = new UIZGame();
+        ZUser user = new ZAppletUser();
+        List<ZPlayerName> players = getEnumListProperty("players", ZPlayerName.class, Utils.toList(ZPlayerName.Baldric, ZPlayerName.Clovis));
+        for (ZPlayerName pl : players) {
+            user.addCharacter(pl.create());
+        }
+        game.setUsers(user);
+        game.loadQuest(ZQuests.valueOf(getStringProperty("quest", ZQuests.Tutorial.name())));
+        initHomeMenu();
     }
 
     enum UIMode {
@@ -232,9 +241,9 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
             case ASSIGN: {
                 menu.removeAll();
                 Map<ZPlayerName, AWTToggleButton> buttons = new HashMap<>();
-                for (ZPlayerName name : ZPlayerName.values()) {
-                    AWTToggleButton btn = new AWTToggleButton(name.name());
-                    buttons.put(name, btn);
+                for (ZPlayerName player : ZPlayerName.values()) {
+                    AWTToggleButton btn = new AWTToggleButton(player.name());
+                    buttons.put(player, btn);
                     menu.add(btn);
                     btn.addMouseListener(new MouseListener() {
                         @Override
@@ -245,7 +254,7 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
                         public void mouseReleased(MouseEvent e) {}
                         @Override
                         public void mouseEntered(MouseEvent e) {
-                            boardComp.setOverlay(name.name());
+                            boardComp.setOverlay(player.name());
                         }
                         @Override
                         public void mouseExited(MouseEvent e) {
@@ -286,36 +295,17 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
     protected void initApp() {
         ToolTipManager.sharedInstance().setDismissDelay(30*1000);
         ToolTipManager.sharedInstance().setInitialDelay(0);
-        game = new ZGame() {
-            @Override
-            protected void onActorMoved(ZActor actor, Grid.Pos from, Grid.Pos to) {
-                if (actor instanceof ZZombie) {
-                    boardComp.repaint();
-                    try {
-                        Thread.sleep(300);
-                    } catch (Exception e) {}
-                }
-            }
-        };
         setLayout(new BorderLayout());
         JScrollPane charContainer = new JScrollPane();
         charContainer.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         charContainer.getViewport().add(charComp = new CharacterComponent());
         add(charContainer, BorderLayout.SOUTH);
-        ZUser user = new ZAppletUser();
-        List<ZPlayerName> players = getEnumListProperty("players", ZPlayerName.class, Utils.toList(ZPlayerName.Baldric, ZPlayerName.Clovis));
-        for (ZPlayerName pl : players) {
-            user.addCharacter(pl.create());
-        }
-        game.setUsers(user);
-        game.loadQuest(ZQuests.valueOf(getStringProperty("quest", ZQuests.Tutorial.name())));
         menu.setLayout(new GridLayout(0, 1));
         menuContainer.setLayout(new GridBagLayout());
         menuContainer.setPreferredSize(new Dimension(150, 300));
         menuContainer.add(menu);
         add(menuContainer, BorderLayout.LINE_START);
         add(boardComp = new BoardComponent(), BorderLayout.CENTER);
-        initHomeMenu();
     }
 
     <T> T waitForUser() {

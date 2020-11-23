@@ -2,15 +2,9 @@ package cc.lib.zombicide;
 
 public enum ZZombieType {
     // TODO: Dont break MVC. Here we make assumptions about assets for zombies.
-    Walker1(1, 1, 1, false, 1),
-    Walker2(1, 1, 1, false, 1),
-    Walker3(1, 1, 1, false, 1),
-    Walker4(1, 1, 1, false, 1),
-    Walker5(1, 1, 1, false, 1),
-    Fatty1(2, 1, 1, false, 2),
-    Fatty2(2, 1, 1, false, 2),
-    Runner1( 1, 1, 2, false, 3),
-    Runner2(1, 1, 2, false, 3),
+    Walker(1, 1, 1, false, 1),
+    Fatty(2, 1, 1, false, 2),
+    Runner( 1, 1, 2, false, 3),
     Abomination( 3, 1, 1, true, 2),
     Necromancer( 1, 1, 0, false, 4);
 
@@ -28,26 +22,13 @@ public enum ZZombieType {
     final boolean ignoresArmor;
     final int rangedPriority;
 
-    ZZombieName getCommonName() {
+    public float getScale() {
         switch (this) {
-            case Walker1:
-            case Walker2:
-            case Walker3:
-            case Walker4:
-            case Walker5:
-                return ZZombieName.Walker;
-            case Fatty1:
-            case Fatty2:
-                return ZZombieName.Fatty;
-            case Runner1:
-            case Runner2:
-                return ZZombieName.Runner;
             case Abomination:
-                return ZZombieName.Abomination;
-            case Necromancer:
-                return ZZombieName.Necromancer;
+                return 1.8f;
         }
-        assert(false);
-        return null;
+        return 1;
     }
+
+    public int [] imageOptions=null;
 }

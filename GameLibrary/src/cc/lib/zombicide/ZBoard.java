@@ -589,12 +589,12 @@ public class ZBoard extends Reflector<ZBoard> {
                 ZActor a = cell.occupied[i];
                 if (a == null)
                     continue;
-                AImage img = g.getImage(tiles.getImage(a.getType()));
+                AImage img = g.getImage(a.getImageId());
                 if (img != null) {
                     GRectangle rect = cell.getQuadrant(i).fit(img);
                     if (rect.contains(mx, my))
                         picked = a;
-                    g.drawImage(tiles.getImage(a.getType()), rect);
+                    g.drawImage(a.getImageId(), rect);
                     a.rect = rect;
                 }
             }
@@ -604,7 +604,7 @@ public class ZBoard extends Reflector<ZBoard> {
 
     // TODO - Move this to the renderer so we can do better highlighting in android canvas
     public GRectangle drawActor(AGraphics g, ZTiles tiles, ZActor actor, GColor outline) {
-        int id=tiles.getImage(actor.getType());
+        int id=actor.getImageId();
         AImage img = g.getImage(id);
         if (img != null) {
             if (actor.rect == null)
@@ -656,7 +656,7 @@ public class ZBoard extends Reflector<ZBoard> {
         return actors;
     }
 
-    public List getAllActors() {
+    public List<ZActor> getAllActors() {
         List<ZActor> actors = new ArrayList<>();
         for (ZCell cell : grid.getCells()) {
             for (ZActor a : cell.occupied) {
@@ -668,13 +668,13 @@ public class ZBoard extends Reflector<ZBoard> {
     }
 
     public List<ZZombie> getAllZombies() {
-        return Utils.filter(getAllActors(), (Utils.Filter<ZActor>) object -> object instanceof ZZombie);
+        return Utils.filter((List)getAllActors(), (Utils.Filter<ZActor>) object -> object instanceof ZZombie);
     }
 
     public List<ZCharacter> getAllCharacters() {
-        return Utils.filter(getAllActors(), (Utils.Filter<ZActor>) object -> object instanceof ZCharacter);
+        return Utils.filter((List)getAllActors(), (Utils.Filter<ZActor>) object -> object instanceof ZCharacter);
     }
-
+/*
     public void moveActorInDirection(ZActor actor, ZDir direction) {
         Grid.Pos pos = actor.occupiedCell;
         Grid.Pos adj = direction.getAdjacent(pos);
@@ -683,7 +683,7 @@ public class ZBoard extends Reflector<ZBoard> {
             addActorToCell(actor, adj);
         }
     }
-
+*/
     public boolean addActorToCell(ZActor actor, Grid.Pos pos) {
         ZCell cell = getCell(pos);
         int qi = actor.occupiedQuadrant;

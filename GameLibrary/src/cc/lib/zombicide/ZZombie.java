@@ -2,6 +2,7 @@ package cc.lib.zombicide;
 
 import cc.lib.game.AGraphics;
 import cc.lib.game.GDimension;
+import cc.lib.game.Utils;
 import cc.lib.utils.Table;
 
 public final class ZZombie extends ZActor<ZZombieType> {
@@ -27,10 +28,12 @@ public final class ZZombie extends ZActor<ZZombieType> {
     }
 
     final ZZombieType type;
+    @Omit
+    private int imageId = -1;
 
     @Override
     public String name() {
-        return type.getCommonName().name();
+        return type.name();
     }
 
     @Override
@@ -49,6 +52,19 @@ public final class ZZombie extends ZActor<ZZombieType> {
     @Override
     public ZZombieType getType() {
         return type;
+    }
+
+
+    @Override
+    public float getScale() {
+        return type.getScale();
+    }
+
+    @Override
+    public int getImageId() {
+        if (imageId < 0)
+            imageId = type.imageOptions[Utils.rand() % type.imageOptions.length];
+        return imageId;
     }
 }
 

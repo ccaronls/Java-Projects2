@@ -1784,6 +1784,8 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     /**
      * Convenience
      *
+     * TODO: make push/pop clip is better
+     *
      * @param rect
      */
 	public final void setClipRect(GRectangle rect) {

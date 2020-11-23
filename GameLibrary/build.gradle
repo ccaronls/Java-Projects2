@@ -156,7 +156,7 @@ task deployLearnToTypeApplet {
     }
 }
 
-task deployLZombicideApplet {
+task deployZombicideApplet {
     dependsOn tasks.withType(Jar)
     group = 'Distribution'
     description = 'Deply the Zombicide Applet to Sites'

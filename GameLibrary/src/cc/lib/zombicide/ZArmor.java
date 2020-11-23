@@ -69,8 +69,8 @@ public class ZArmor extends ZEquipment<ZArmorType> {
 
 
         Table table = new Table().setNoBorder();
-        for (ZZombieType type : Utils.asList(ZZombieType.Walker1, ZZombieType.Fatty1, ZZombieType.Runner1, ZZombieType.Necromancer, ZZombieType.Abomination)) {
-            table.addRow(type.getCommonName(), getRating(type));
+        for (ZZombieType type : Utils.asList(ZZombieType.Walker, ZZombieType.Fatty, ZZombieType.Runner, ZZombieType.Necromancer, ZZombieType.Abomination)) {
+            table.addRow(type, getRating(type));
         }
         String card = table.toString();
         String info = type.name() + "\n";

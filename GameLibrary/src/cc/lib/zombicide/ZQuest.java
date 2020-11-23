@@ -310,7 +310,7 @@ public abstract class ZQuest extends Reflector<ZQuest> {
      */
     public abstract void init(ZGame game);
 
-    public int getMaxNumZombiesOfType(ZZombieName type) {
+    public int getMaxNumZombiesOfType(ZZombieType type) {
         switch (type) {
             case Abomination:
             case Necromancer:

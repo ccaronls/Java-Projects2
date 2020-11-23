@@ -1,7 +1,11 @@
 package cc.applets.zombicide;
 
+import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.Rectangle;
 import java.util.LinkedList;
+
+import javax.swing.Scrollable;
 
 import cc.lib.game.GColor;
 import cc.lib.game.GDimension;
@@ -10,10 +14,11 @@ import cc.lib.swing.AWTComponent;
 import cc.lib.swing.AWTGraphics;
 import cc.lib.zombicide.ZGame;
 
-class CharacterComponent extends AWTComponent {
+class CharacterComponent extends AWTComponent implements Scrollable {
 
     CharacterComponent() {
         setPreferredSize(300, 200);
+        setAutoscrolls(true);
     }
 
     LinkedList<String> messages = new LinkedList<>();
@@ -65,7 +70,33 @@ class CharacterComponent extends AWTComponent {
                 y += d.getHeight();
             }
         }
-        setPreferredSize(getPreferredSize().width, y);
+        maxY = 0;
     }
 
+    int maxY = 200;
+
+    @Override
+    public Dimension getPreferredScrollableViewportSize() {
+        return new Dimension(getWidth(), Math.max(getHeight(), maxY));
+    }
+
+    @Override
+    public int getScrollableUnitIncrement(Rectangle visibleRect, int orientation, int direction) {
+        return 10;
+    }
+
+    @Override
+    public int getScrollableBlockIncrement(Rectangle visibleRect, int orientation, int direction) {
+        return 10;
+    }
+
+    @Override
+    public boolean getScrollableTracksViewportWidth() {
+        return true;
+    }
+
+    @Override
+    public boolean getScrollableTracksViewportHeight() {
+        return false;
+    }
 }

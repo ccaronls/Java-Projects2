@@ -250,6 +250,15 @@ public final class GRectangle extends Reflector<GRectangle> {
 
     /**
      *
+     * @param s
+     * @return
+     */
+    public GRectangle scaledBy(float s) {
+        return scaledBy(s, s);
+    }
+
+    /**
+     *
      * @param sx
      * @param sy
      * @return

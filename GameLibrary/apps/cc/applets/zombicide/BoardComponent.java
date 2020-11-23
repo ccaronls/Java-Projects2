@@ -2,6 +2,7 @@ package cc.applets.zombicide;
 
 import java.awt.Font;
 import java.awt.event.KeyEvent;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -45,8 +46,8 @@ class BoardComponent extends AWTComponent implements ZTiles {
     Font bigFont;
     Font smallFont;
     boolean drawTiles = false;
-    Map<Object, Integer> objectToImageMap = new HashMap<>();
     private Object overlayToDraw = null;
+    private Map<String, Integer> cardImages = new HashMap<>();
 
     BoardComponent() {
         setPreferredSize(250, 250);
@@ -58,10 +59,10 @@ class BoardComponent extends AWTComponent implements ZTiles {
 
     @Override
     protected void init(AWTGraphics g) {
-        GDimension cellDim = getGame().board.initCellRects(g, g.getViewportWidth()-5, g.getViewportHeight()-5);
+//        GDimension cellDim = getGame().board.initCellRects(g, g.getViewportWidth()-5, g.getViewportHeight()-5);
         setMouseEnabled(true);
         //setMinimumSize(256, 256);
-        setPreferredSize( (int)cellDim.width * getGame().board.getColumns(), (int)cellDim.height * getGame().board.getRows());
+//        setPreferredSize( (int)cellDim.width * getGame().board.getColumns(), (int)cellDim.height * getGame().board.getRows());
         //setMaximumSize( (int)cellDim.width * getGame().board.getColumns(), (int)cellDim.height * getGame().board.getRows());
         smallFont = g.getFont();
         bigFont = g.getFont().deriveFont(24f).deriveFont(Font.BOLD).deriveFont(Font.ITALIC);
@@ -72,6 +73,8 @@ class BoardComponent extends AWTComponent implements ZTiles {
             }
         }.start();
     }
+
+
 
     int numImagesLoaded=0;
     int totalImagesToLoad=1000;
@@ -328,43 +331,67 @@ class BoardComponent extends AWTComponent implements ZTiles {
         if (loaded)
             return;
 
-        Map<Object, String> fileMap = new HashMap<>();
-        fileMap.put(ZZombieType.Abomination,"zabomination.gif");
-        fileMap.put(ZZombieType.Necromancer,"znecro.gif");
-        fileMap.put(ZZombieType.Walker1,"zwalker1.gif");
-        fileMap.put(ZZombieType.Walker2,"zwalker2.gif");
-        fileMap.put(ZZombieType.Walker3,"zwalker3.gif");
-        fileMap.put(ZZombieType.Walker4,"zwalker4.gif");
-        fileMap.put(ZZombieType.Walker5,"zwalker5.gif");
-        fileMap.put(ZZombieType.Runner1,"zrunner1.gif");
-        fileMap.put(ZZombieType.Runner2,"zrunner1.gif");
-        fileMap.put(ZZombieType.Fatty1,"zfatty1.gif");
-        fileMap.put(ZZombieType.Fatty2,"zfatty2.gif");
-        fileMap.put(ZPlayerName.Clovis,"zchar_clovis.gif");
-        fileMap.put(ZPlayerName.Baldric,"zchar_baldric.gif");
-        fileMap.put(ZPlayerName.Ann,"zchar_ann.gif");
-        fileMap.put(ZPlayerName.Nelly,"zchar_nelly.gif");
-        fileMap.put(ZPlayerName.Samson,"zchar_samson.gif");
-        fileMap.put(ZPlayerName.Silas,"zchar_silas.gif");
-        fileMap.put(ZPlayerName.Ann.name(), "zcard_ann.gif");
-        fileMap.put(ZPlayerName.Baldric.name(), "zcard_baldric.gif");
-        fileMap.put(ZPlayerName.Clovis.name(), "zcard_clovis.gif");
-        fileMap.put(ZPlayerName.Nelly.name(), "zcard_nelly.gif");
-        fileMap.put(ZPlayerName.Samson.name(), "zcard_samson.gif");
-        fileMap.put(ZPlayerName.Silas.name(), "zcard_silas.gif");
+        //Map<Object, String> fileMap = new HashMap<>();
+        Object [][] files = {
 
-        totalImagesToLoad = fileMap.size();
-        for (Map.Entry<Object, String> e : fileMap.entrySet()) {
-            int id = g.loadImage(e.getValue(), null, 1);
-            if (id >= 0)
-                objectToImageMap.put(e.getKey(), id);
+            { ZZombieType.Abomination, "zabomination.gif" },
+            { ZZombieType.Necromancer, "znecro.gif" },
+            { ZZombieType.Walker, "zwalker1.gif" },
+            { ZZombieType.Walker, "zwalker2.gif" },
+            { ZZombieType.Walker, "zwalker3.gif" },
+            { ZZombieType.Walker, "zwalker4.gif" },
+            { ZZombieType.Walker, "zwalker5.gif" },
+            { ZZombieType.Runner, "zrunner1.gif" },
+            { ZZombieType.Runner, "zrunner1.gif" },
+            { ZZombieType.Fatty, "zfatty1.gif" },
+            { ZZombieType.Fatty, "zfatty2.gif" },
+            { ZPlayerName.Clovis, "zchar_clovis.gif" },
+            { ZPlayerName.Baldric, "zchar_baldric.gif" },
+            { ZPlayerName.Ann, "zchar_ann.gif" },
+            { ZPlayerName.Nelly, "zchar_nelly.gif" },
+            { ZPlayerName.Samson, "zchar_samson.gif" },
+            { ZPlayerName.Silas, "zchar_silas.gif" },
+            { ZPlayerName.Ann.name(), "zcard_ann.gif" },
+            { ZPlayerName.Baldric.name(), "zcard_baldric.gif" },
+            { ZPlayerName.Clovis.name(), "zcard_clovis.gif" },
+            { ZPlayerName.Nelly.name(), "zcard_nelly.gif" },
+            { ZPlayerName.Samson.name(), "zcard_samson.gif" },
+            { ZPlayerName.Silas.name(), "zcard_silas.gif" }
+        };
+
+        Map<Object, List<Integer>> objectToImageMap = new HashMap<>();
+
+        totalImagesToLoad = files.length;
+        for (Object [] entry : files) {
+            Object key = entry[0];
+            String file = (String)entry[1];
+            int id = g.loadImage(file, null, 1);
+            if (id >= 0) {
+                if (!objectToImageMap.containsKey(key)) {
+                    objectToImageMap.put(key, new ArrayList<>());
+                }
+                objectToImageMap.get(key).add(id);
+            }
             numImagesLoaded++;
             repaint();
         }
 
-        log.debug("Images: " + objectToImageMap);
+        for (ZZombieType type : ZZombieType.values()) {
+            List<Integer> list = objectToImageMap.get(type);
+            int [] options = new int[list.size()];
+            for (int i=0; i<options.length; i++)
+                options[i] = list.get(i);
+            type.imageOptions = options;
+        }
 
+        for (ZPlayerName pl : ZPlayerName.values()) {
+            pl.imageId = objectToImageMap.get(pl).get(0);
+            cardImages.put(pl.name(), objectToImageMap.get(pl.name()).get(0));
+        }
+
+        log.debug("Images: " + objectToImageMap);
         numImagesLoaded = totalImagesToLoad;
+        ZombicideApplet.instance.onAllImagesLoaded();
         repaint();
         loaded = true;
     }
@@ -385,7 +412,7 @@ class BoardComponent extends AWTComponent implements ZTiles {
         }
         return tiles;
     }
-
+/*
     @Override
     public int getImage(Object obj) {
         Integer id = objectToImageMap.get(obj);
@@ -395,7 +422,7 @@ class BoardComponent extends AWTComponent implements ZTiles {
         }
         return id;
     }
-
+*/
     @Override
     public void keyPressed(KeyEvent e) {
         ZGame game = getGame();
@@ -438,8 +465,8 @@ class BoardComponent extends AWTComponent implements ZTiles {
             overlayToDraw = null;
         } else if (obj instanceof Table) {
             overlayToDraw = obj;
-        } else {
-            overlayToDraw = objectToImageMap.get(obj);
+        } else if (obj instanceof String){
+            overlayToDraw = cardImages.get((String)obj.toString());
         }
         repaint();
     }

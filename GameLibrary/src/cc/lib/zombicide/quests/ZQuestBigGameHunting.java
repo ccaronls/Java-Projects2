@@ -16,7 +16,7 @@ import cc.lib.zombicide.ZGame;
 import cc.lib.zombicide.ZMove;
 import cc.lib.zombicide.ZQuest;
 import cc.lib.zombicide.ZTiles;
-import cc.lib.zombicide.ZZombieName;
+import cc.lib.zombicide.ZZombieType;
 
 public class ZQuestBigGameHunting extends ZQuest {
 
@@ -66,7 +66,7 @@ public class ZQuestBigGameHunting extends ZQuest {
             allObjectives.add(blueObjZone);
             game.getCurrentUser().showMessage("The Labratory objective is revealed!");
             game.board.getZone(blueObjZone).objective = true;
-            game.spawnZombies(1, ZZombieName.Necromancer, blueObjZone);
+            game.spawnZombies(1, ZZombieType.Necromancer, blueObjZone);
             blueRevealZone = -1;
         }
     }
@@ -132,8 +132,8 @@ public class ZQuestBigGameHunting extends ZQuest {
     public Table getObjectivesOverlay(ZGame game) {
         boolean allObjCollected = allObjectives.size() == 0 && blueRevealZone < 0;
         boolean exposeLaboratory = blueRevealZone < 0;
-        boolean necroKilled = game.getNumKills(ZZombieName.Necromancer) > 0;
-        boolean abimKilled = game.getNumKills(ZZombieName.Abomination) > 0;
+        boolean necroKilled = game.getNumKills(ZZombieType.Necromancer) > 0;
+        boolean abimKilled = game.getNumKills(ZZombieType.Abomination) > 0;
 
         return new Table(getName())
                 .addRow(new Table().setNoBorder()
@@ -147,7 +147,7 @@ public class ZQuestBigGameHunting extends ZQuest {
 
     @Override
     public boolean isQuestComplete(ZGame game) {
-        return allObjectives.size() == 0 && blueRevealZone < 0 && game.getNumKills(ZZombieName.Abomination) > 0 && game.getNumKills(ZZombieName.Necromancer) > 0;
+        return allObjectives.size() == 0 && blueRevealZone < 0 && game.getNumKills(ZZombieType.Abomination) > 0 && game.getNumKills(ZZombieType.Necromancer) > 0;
     }
 
     @Override

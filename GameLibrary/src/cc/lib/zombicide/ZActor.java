@@ -59,4 +59,10 @@ public abstract class ZActor<E extends Enum<E>> extends Reflector<ZActor<E>> {
     }
     
     public abstract E getType();
+
+    public float getScale() {
+        return 1;
+    }
+
+    public abstract int getImageId();
 }

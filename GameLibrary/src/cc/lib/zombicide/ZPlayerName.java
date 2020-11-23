@@ -107,7 +107,8 @@ public enum ZPlayerName implements IButton {
     public final ZEquipmentType [] startingEquipment;
     public final ZEquipmentType [] alternateBodySlots;
     private final ZSkill [][] skillOptions;
-    public final int startingActionsPerTurn = 3;
+
+    public int imageId = -1;
 
     public ZCharacter create() {
         ZCharacter c = new ZCharacter();

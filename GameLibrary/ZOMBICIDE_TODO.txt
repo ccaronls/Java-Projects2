@@ -43,3 +43,5 @@ Make vault door that descend have open door that looks different than from 'belo
 Ability to zoom in and out of map for large maps
 Ability to assign startng weapons
 Abomination should render larger than other zombs
+Enemies that have multiple turns should have those mapped out in one phase otherwise problems
+When dual weilding, no need to display RIGHT and LEFT hand in character component.
