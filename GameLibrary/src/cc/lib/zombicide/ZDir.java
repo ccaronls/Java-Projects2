@@ -4,21 +4,22 @@ import cc.lib.game.Utils;
 import cc.lib.utils.Grid;
 
 public enum ZDir {
-    NORTH(0, -1, 0),
-    SOUTH(0, 1, 180),
-    EAST(1, 0, 90),
-    WEST(-1, 0, 270),
-//    ASCEND(0,0,0),
-//    DESCEND(0,0,0)
+    NORTH(0, -1, 0, 0),
+    SOUTH(0, 1, 0,180),
+    EAST(1, 0, 0,90),
+    WEST(-1, 0, 0,270),
+    ASCEND(0,0, 1,0),
+    DESCEND(0,0,-1,0)
     ;
 
-    ZDir(int dx, int dy, int rotation) {
+    ZDir(int dx, int dy, int dz, int rotation) {
         this.dx = dx;
         this.dy = dy;
+        this.dz = dz;
         this.rotation = rotation;
     }
 
-    final int dx, dy, rotation;
+    final int dx, dy, dz, rotation;
 
     ZDir getOpposite() {
         switch (this) {
@@ -30,17 +31,24 @@ public enum ZDir {
                 return WEST;
             case WEST:
                 return EAST;
-//            case ASCEND:
-//                return DESCEND;
-//            case DESCEND:
-//                return ASCEND;
+            case ASCEND:
+                return DESCEND;
+            case DESCEND:
+                return ASCEND;
         }
         assert(false);
         return null;
     }
 
-    Grid.Pos getAdjacent(Grid.Pos pos) {
-        return new Grid.Pos(pos.getRow() + dy, pos.getColumn() + dx);
+    public Grid.Pos getAdjacent(Grid.Pos pos) {
+        switch (this) {
+            case NORTH:
+            case WEST:
+            case EAST:
+            case SOUTH:
+                return new Grid.Pos(pos.getRow() + dy, pos.getColumn() + dx);
+        }
+        return null;
     }
 
     static ZDir getDirFrom(Grid.Pos from, Grid.Pos to) {
@@ -107,6 +115,7 @@ public enum ZDir {
                 dirs[3] = ZDir.NORTH;
             }
         }
+
         return dirs;
     }
 
@@ -114,7 +123,7 @@ public enum ZDir {
         return Utils.toArray(ZDir.NORTH, ZDir.SOUTH, ZDir.EAST, ZDir.WEST);
     }
 
-//    public static ZDir [] getElevationValues() {
-//        return Utils.toArray(ZDir.ASCEND, ZDir.DESCEND);
-//    }
+    public static ZDir [] getElevationValues() {
+        return Utils.toArray(ZDir.ASCEND, ZDir.DESCEND);
+    }
 }

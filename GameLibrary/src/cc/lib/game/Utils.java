@@ -2591,4 +2591,20 @@ public class Utils {
         return list;
     }
 
+    public static int hashCode(Object ... a) {
+        if (a == null)
+            return 0;
+
+        int result = 1;
+
+        for (Object element : a)
+            result = 31 * result + (element == null ? 0 : element.hashCode());
+
+        return result;
+    }
+
+    public static boolean equals(Object a, Object b) {
+        return (a == b) || (a != null && a.equals(b));
+    }
+
 }

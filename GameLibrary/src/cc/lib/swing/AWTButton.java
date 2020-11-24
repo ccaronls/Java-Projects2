@@ -32,7 +32,14 @@ public class AWTButton extends JButton implements ActionListener {
     public AWTButton(IButton source) {
         super(source.getLabel());
         addActionListener(this);
-        setToolTipText(source.getTooltipText());
+        String ttt = source.getTooltipText();
+        if (ttt != null) {
+            if (ttt.length() >= 64) {
+                ttt = Utils.wrapTextWithNewlines(ttt, 64);
+                ttt = String.format("<html>%s</html>", ttt.replaceAll("[\n]+", "<br/>"));
+            }
+            setToolTipText(ttt);
+        }
     }
 
     public AWTButton(IButton source, ActionListener listener) {

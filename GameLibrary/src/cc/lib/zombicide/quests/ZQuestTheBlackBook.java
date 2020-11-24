@@ -11,10 +11,10 @@ import cc.lib.utils.Grid;
 import cc.lib.utils.Table;
 import cc.lib.zombicide.ZBoard;
 import cc.lib.zombicide.ZCell;
-import cc.lib.zombicide.ZCellDoor;
 import cc.lib.zombicide.ZCellType;
 import cc.lib.zombicide.ZCharacter;
 import cc.lib.zombicide.ZDir;
+import cc.lib.zombicide.ZDoor;
 import cc.lib.zombicide.ZGame;
 import cc.lib.zombicide.ZMove;
 import cc.lib.zombicide.ZQuest;
@@ -34,7 +34,7 @@ public class ZQuestTheBlackBook extends ZQuest {
     int greenObjZone=-1;
     int greenSpawnZone=-1;
     List<Integer> allObjectives =new ArrayList<>();
-    ZCellDoor blueDoor, greenDoor;
+    ZDoor blueDoor, greenDoor;
 
     public ZQuestTheBlackBook() {
         super("The Black Book");
@@ -73,10 +73,10 @@ public class ZQuestTheBlackBook extends ZQuest {
 
             // these are locked until the theor respective objectives found
             case "blds":
-                blueDoor = new ZCellDoor(pos, ZDir.SOUTH, GColor.BLUE);
+                blueDoor = new ZDoor(pos, ZDir.SOUTH, GColor.BLUE);
                 break;
             case "grds":
-                greenDoor = new ZCellDoor(pos, ZDir.SOUTH, GColor.GREEN);
+                greenDoor = new ZDoor(pos, ZDir.SOUTH, GColor.GREEN);
                 break;
 
             default:

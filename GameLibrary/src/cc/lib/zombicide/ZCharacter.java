@@ -336,6 +336,14 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
         Table info = new Table().setNoBorder().setPadding(0);
 
         for (ZEquipSlot slot : ZEquipSlot.values()) {
+            switch (slot) {
+                case LEFT_HAND:
+                    if (isDualWeilding())
+                        info.addColumn("DUAL WIELDING",Arrays.asList(getSlotInfo(slot, game)));
+                case RIGHT_HAND:
+                    if (isDualWeilding())
+                        continue;
+            }
             info.addColumn(slot.name(), Arrays.asList(getSlotInfo(slot, game)));
         }
 

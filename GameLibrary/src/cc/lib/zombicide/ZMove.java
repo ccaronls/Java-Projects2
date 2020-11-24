@@ -79,7 +79,10 @@ public class ZMove implements IButton {
 
     @Override
     public String getLabel() {
-        return Utils.toPrettyString(type.name());
+        String label = Utils.toPrettyString(type.name());
+        if (equipment != null)
+            label += " " + equipment.getLabel();
+        return label;
     }
 
     public static ZMove newDoNothing() {

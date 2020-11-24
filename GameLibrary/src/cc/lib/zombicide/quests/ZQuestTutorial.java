@@ -11,10 +11,10 @@ import cc.lib.utils.Grid;
 import cc.lib.utils.Table;
 import cc.lib.zombicide.ZBoard;
 import cc.lib.zombicide.ZCell;
-import cc.lib.zombicide.ZCellDoor;
 import cc.lib.zombicide.ZCellType;
 import cc.lib.zombicide.ZCharacter;
 import cc.lib.zombicide.ZDir;
+import cc.lib.zombicide.ZDoor;
 import cc.lib.zombicide.ZEquipment;
 import cc.lib.zombicide.ZEquipmentType;
 import cc.lib.zombicide.ZGame;
@@ -49,7 +49,7 @@ public class ZQuestTutorial extends ZQuest {
         return load(map);
     }
 
-    ZCellDoor blueDoor=null, greenDoor=null;
+    ZDoor blueDoor=null, greenDoor=null;
     List<Integer> objZones = new ArrayList<>();
     int numRedZones = 0;
     int greenSpawnZone=-1;
@@ -73,10 +73,10 @@ public class ZQuestTutorial extends ZQuest {
                 objZones.add(zoneIndex);
                 break;
             case "bluedn":
-                blueDoor = new ZCellDoor(pos, ZDir.NORTH, GColor.BLUE);
+                blueDoor = new ZDoor(pos, ZDir.NORTH, GColor.BLUE);
                 break;
             case "greende":
-                greenDoor = new ZCellDoor(pos, ZDir.EAST, GColor.GREEN);
+                greenDoor = new ZDoor(pos, ZDir.EAST, GColor.GREEN);
                 break;
             default:
                 super.loadCmd(grid, pos, cmd);

@@ -179,6 +179,8 @@ class BoardComponent extends AWTComponent implements ZTiles {
         highlightedResult = null;
         highlightedDoor = null;
 
+        final int OUTLINE = 2;
+
         final List options = ZombicideApplet.instance.options;
         final Grid.Pos cellPos = board.drawDebug(g, getMouseX(), getMouseY());
 
@@ -190,8 +192,10 @@ class BoardComponent extends AWTComponent implements ZTiles {
             highlightedActor = board.drawActors(g, this, getMouseX(), getMouseY());
 
             if (getGame().getCurrentCharacter() != null) {
+                if (highlightedActor == getGame().getCurrentCharacter())
+                    highlightedActor = null; // prevent highlighting an already selected actor
                 g.setColor(GColor.GREEN);
-                g.drawRect(getGame().getCurrentCharacter().getRect(), 1);
+                g.drawRect(getGame().getCurrentCharacter().getRect(), OUTLINE);
             }
 
             g.setColor(GColor.BLACK);
@@ -238,7 +242,7 @@ class BoardComponent extends AWTComponent implements ZTiles {
             }
             if (highlightedActor != null) {
                 g.setColor(GColor.YELLOW);
-                g.drawRect(highlightedActor.getRect());
+                g.drawRect(highlightedActor.getRect(), OUTLINE);
             }
             ZombicideApplet.instance.charComp.repaint();
 
@@ -257,9 +261,6 @@ class BoardComponent extends AWTComponent implements ZTiles {
 
                 List<ZDoor> doors = board.getZone(cell.getZoneIndex()).getDoors();
                 highlightedDoor = getGame().board.pickDoor(g, doors, mouseX, mouseY);
-                if (highlightedDoor != null) {
-                    highlightedDoor.draw(g, board);
-                }
 
                 if (selectedCell != null) {
                     ZCell selected = board.getCell(selectedCell);

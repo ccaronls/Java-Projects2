@@ -45,6 +45,17 @@ public abstract class ZQuest extends Reflector<ZQuest> {
         return numFoundVaultItems;
     }
 
+    ZDir getDirectionForEnvironment(int env) {
+        switch (env) {
+            case ZCell.ENV_BUILDING:
+                return ZDir.DESCEND;
+            case ZCell.ENV_VAULT:
+                return ZDir.ASCEND;
+        }
+        assert(false);
+        return null;
+    }
+
     protected void loadCmd(Grid<ZCell> grid, Grid.Pos pos, String cmd) {
         ZCell cell = grid.get(pos);
         switch (cmd) {
@@ -57,18 +68,22 @@ public abstract class ZQuest extends Reflector<ZQuest> {
             case "vd1":
                 cell.cellType = ZCellType.VAULT_DOOR;
                 cell.vaultFlag = 1;
+                setCellWall(grid, pos, getDirectionForEnvironment(cell.environment), ZWallFlag.CLOSED);
                 break;
             case "vd2":
                 cell.cellType = ZCellType.VAULT_DOOR;
                 cell.vaultFlag = 2;
+                setCellWall(grid, pos, getDirectionForEnvironment(cell.environment), ZWallFlag.CLOSED);
                 break;
             case "vd3":
                 cell.cellType = ZCellType.VAULT_DOOR;
                 cell.vaultFlag = 3;
+                setCellWall(grid, pos, getDirectionForEnvironment(cell.environment), ZWallFlag.CLOSED);
                 break;
             case "vd4":
                 cell.cellType = ZCellType.VAULT_DOOR;
                 cell.vaultFlag = 4;
+                setCellWall(grid, pos, getDirectionForEnvironment(cell.environment), ZWallFlag.CLOSED);
                 break;
             case "wn":
                 setCellWall(grid, pos, ZDir.NORTH, ZWallFlag.WALL);
@@ -106,9 +121,6 @@ public abstract class ZQuest extends Reflector<ZQuest> {
             case "odw":
                 setCellWall(grid, pos, ZDir.WEST, ZWallFlag.OPEN);
                 break;
-//            case "obj":
-//                cell.cellType = ZCellType.OBJECTIVE;
-//                break;
             case "sp":
                 cell.cellType = ZCellType.SPAWN;
                 break;
@@ -131,6 +143,10 @@ public abstract class ZQuest extends Reflector<ZQuest> {
             case "necro":
                 cell.cellType = ZCellType.NECRO;
                 break;
+            case "abom":
+            case "abomination":
+                cell.cellType = ZCellType.ABOMINATION;
+                break;
             default:
                 throw new RuntimeException("Invalid command '" + cmd + "'");
         }
@@ -139,7 +155,7 @@ public abstract class ZQuest extends Reflector<ZQuest> {
     void setCellWall(Grid<ZCell> grid, Grid.Pos pos, ZDir dir, ZWallFlag flag) {
         grid.get(pos).setWallFlag(dir, flag);
         Grid.Pos adj = dir.getAdjacent(pos);
-        if (grid.isOnGrid(adj))
+        if (adj != null && grid.isOnGrid(adj))
             grid.get(adj).setWallFlag(dir.getOpposite(), flag);
     }
 

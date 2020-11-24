@@ -15,7 +15,7 @@ public class ZCell extends Reflector<ZCell> {
         addAllFields(ZCell.class);
     }
 
-    private ZWallFlag[] walls = { ZWallFlag.NONE, ZWallFlag.NONE, ZWallFlag.NONE, ZWallFlag.NONE };
+    private ZWallFlag[] walls = { ZWallFlag.NONE, ZWallFlag.NONE, ZWallFlag.NONE, ZWallFlag.NONE, ZWallFlag.WALL, ZWallFlag.WALL };
 
     int environment=ENV_OUTDOORS; // 0 == outdoors, 1 == building, 2 == vault
     int zoneIndex;
@@ -52,7 +52,7 @@ public class ZCell extends Reflector<ZCell> {
             case WEST:
                 return new GRectangle(rect.getTopLeft(), rect.getBottomLeft());
         }
-        return null;
+        return rect.scaledBy(.5f);
     }
 
     public int getZoneIndex() {
@@ -61,16 +61,16 @@ public class ZCell extends Reflector<ZCell> {
 
     public GRectangle getQuadrant(int quadrant) {
         switch (quadrant) {
-            case 0: // upperleft
-                return new GRectangle(rect.getTopLeft(), rect.getCenter());
-            case 1: // lowerright
-                return new GRectangle(rect.getCenter(), rect.getBottomRight());
-            case 2: // upperright
-                return new GRectangle(rect.getCenter(), rect.getTopRight());
-            case 3: // lowerleft
-                return new GRectangle(rect.getCenter(), rect.getBottomLeft());
-            case 4: // center
+            case 0: // center
                 return new GRectangle(rect.x+rect.w/4, rect.y+rect.h/4, rect.w/2, rect.h/2);
+            case 1: // upperleft
+                return new GRectangle(rect.getTopLeft(), rect.getCenter());
+            case 2: // lowerright
+                return new GRectangle(rect.getCenter(), rect.getBottomRight());
+            case 3: // upperright
+                return new GRectangle(rect.getCenter(), rect.getTopRight());
+            case 4: // lowerleft
+                return new GRectangle(rect.getCenter(), rect.getBottomLeft());
             case 5: // top
                 return new GRectangle(rect.x+rect.w/4, rect.y, rect.w/2, rect.h/2);
             case 6: // left

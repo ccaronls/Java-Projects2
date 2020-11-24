@@ -95,7 +95,12 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
             user.addCharacter(pl.create());
         }
         game.setUsers(user);
-        game.loadQuest(ZQuests.valueOf(getStringProperty("quest", ZQuests.Tutorial.name())));
+        try {
+            game.loadQuest(ZQuests.valueOf(getStringProperty("quest", ZQuests.Tutorial.name())));
+        } catch (Exception e) {
+            e.printStackTrace();
+            game.loadQuest(ZQuests.Tutorial);
+        }
         initHomeMenu();
     }
 
@@ -166,7 +171,7 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
                     charComp.repaint();
                     boardComp.repaint();
 //                    if (gameRunning)
-  //                      Thread.sleep(500);
+//                        Thread.sleep(5000);
                 }
             } catch (Exception e) {
                 log.error(e.getClass().getSimpleName() + " " + e.getMessage());

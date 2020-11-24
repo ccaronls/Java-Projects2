@@ -52,6 +52,18 @@ public enum ZWeaponType implements ZEquipmentType<ZWeapon> {
     final ZWeaponStat rangedStats;
     final ZWeaponStat magicStats;
 
+    ZWeaponStat getStat(ZActionType type) {
+        switch (type) {
+            case MELEE:
+                return meleeStats;
+            case MAGIC:
+                return magicStats;
+            case RANGED:
+                return rangedStats;
+        }
+        return null;
+    }
+
     @Override
     public ZWeapon create() {
         return new ZWeapon(this);

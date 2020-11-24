@@ -147,4 +147,38 @@ public class ZWeapon extends ZEquipment<ZWeaponType> {
 
         return card.toString();
     }
+
+    @Override
+    public String getTooltipText() {
+        Table cardLower = new Table().setNoBorder();
+        cardLower.addColumnNoHeader(Arrays.asList("",
+                "Dual Wield",
+                "Damage",
+                "Hit %",
+                "Range",
+                "Doors",
+                "Reloads"));
+
+        for (ZActionType at : ZActionType.values()) {
+            ZWeaponStat stats = type.getStat(at);
+            if (stats != null) {
+                String doorInfo = "";
+                if (stats.dieRollToOpenDoor > 0) {
+                    doorInfo = String.format("%s %d%%", type.openDoorsIsNoisy ? "noisy" : "quiet", (7-type.meleeStats.dieRollToOpenDoor)*100/6);
+                } else {
+                    doorInfo = "no";
+                }
+                cardLower.addColumnNoHeader(Arrays.asList(at.name(),
+                        type.canTwoHand ? "yes" : "no",
+                        String.format("%d %s", stats.damagePerHit, type.attckIsNoisy ? " loud" : " quiet"),
+                        String.format("%d%% x %d", (7 - stats.dieRollToHit) * 100 / 6, stats.numDice),
+                        stats.minRange == stats.maxRange ? String.valueOf(stats.minRange) : String.format("%d-%d", stats.minRange, stats.maxRange),
+                        doorInfo,
+                        type.needsReload ? String.format("yes (%s)", isEmpty ? "empty" : "loaded") : "no"
+                ));
+            }
+        }
+
+        return cardLower.toString();
+    }
 }

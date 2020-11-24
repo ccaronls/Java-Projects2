@@ -63,15 +63,25 @@ public class ZBoard extends Reflector<ZBoard> {
      * @param distance
      * @return
      */
-    public List<Integer> getAccessableZones(int zoneIndex, int distance) {
+    public List<Integer> getAccessableZones(int zoneIndex, int distance, ZActionType action) {
         if (distance == 0)
             return Collections.singletonList(zoneIndex);
 
         List<Integer> result = new ArrayList<>();
+
+        ZDir [] options = null;
+        switch (action) {
+            case MOVE:
+                options = ZDir.values();
+                break;
+            default:
+                options = ZDir.getCompassValues();
+        }
+
         for (Grid.Pos cellPos : zones.get(zoneIndex).cells) {
             // fan out in all direction to given distance
             //for (int dir = 0; dir <4; dir++) {
-            for (ZDir dir : ZDir.values()) {
+            for (ZDir dir : options) {
                 Grid.Pos pos = cellPos;
                 boolean open = true;
                 for (int dist = 0; dist <distance; dist++) {
@@ -79,18 +89,40 @@ public class ZBoard extends Reflector<ZBoard> {
                         open = false;
                         break;
                     }
-                    pos = dir.getAdjacent(pos);
+                    pos = getAdjacent(pos, dir);
                 }
                 if (open && grid.get(pos).zoneIndex != zoneIndex) {
                     result.add(grid.get(pos).zoneIndex);
                 }
             }
         }
-        for (ZDoor vd : zones.get(zoneIndex).doors) {
-            if (vd instanceof ZVaultDoor && !vd.isClosed(this))
-                result.add(grid.get(((ZVaultDoor)vd).cellPosExit).zoneIndex);
-        }
         return result;
+    }
+
+    Grid.Pos getAdjacent(Grid.Pos from, ZDir dir) {
+        switch (dir) {
+            case NORTH:
+            case SOUTH:
+            case EAST:
+            case WEST:
+                return new Grid.Pos(from.getRow() + dir.dy, from.getColumn() + dir.dx);
+
+            case ASCEND:
+            case DESCEND:
+                return findDoor(from, dir).getCellPosEnd();
+        }
+        assert(false);
+        return null;
+    }
+
+    ZDoor findDoor(Grid.Pos pos, ZDir dir) {
+        for (ZDoor door : zones.get(getCell(pos).zoneIndex).doors) {
+            if (door.getCellPosStart().equals(pos) && door.getMoveDirection()==dir) {
+                return door;
+            }
+        }
+        assert(false);
+        return null;
     }
 
     public boolean canSee(int fromZone, int toZone) {
@@ -124,7 +156,7 @@ public class ZBoard extends Reflector<ZBoard> {
                 return false;
             }
 
-            fromCell = dir.getAdjacent(fromCell);
+            fromCell = getAdjacent(fromCell, dir);
         }
 
         return true;
@@ -192,8 +224,8 @@ public class ZBoard extends Reflector<ZBoard> {
         ZCell fromCell = grid.get(fromPos);
 
         for (ZDir dir : ZDir.valuesSorted(fromPos, toPos)) {
-            if (fromCell.getWallFlag(dir) == ZWallFlag.NONE) {
-                Grid.Pos nextPos = dir.getAdjacent(fromPos);
+            if (fromCell.getWallFlag(dir).isOpen()) {
+                Grid.Pos nextPos = getAdjacent(fromPos, dir);
                 if (visited.contains(nextPos))
                     continue;
 
@@ -206,7 +238,7 @@ public class ZBoard extends Reflector<ZBoard> {
 
         ZZone fromZone = zones.get(fromCell.getZoneIndex());
         for (ZDoor door : fromZone.getDoors()) {
-            if (door.getCellPos().equals(fromPos) && !door.isClosed(this)) {
+            if (door.getCellPosStart().equals(fromPos) && !door.isClosed(this)) {
                 curPath.addLast(door.getMoveDirection());
                 searchPathsR(door.getCellPosEnd(), toPos, maxDist, curPath, paths, visited);
                 curPath.removeLast();
@@ -222,38 +254,28 @@ public class ZBoard extends Reflector<ZBoard> {
         return grid.get(row, col);
     }
 
-    public ZWallFlag getDoor(ZCellDoor door) {
-        return getCell(door.cellPos).getWallFlag(door.dir);
+    public ZWallFlag getDoor(ZDoor door) {
+        return getCell(door.getCellPosStart()).getWallFlag(door.getMoveDirection());
     }
 
-    public void setDoor(ZCellDoor door, ZWallFlag flag) {
-        getCell(door.cellPos).setWallFlag(door.dir, flag);
+    public void setDoor(ZDoor door, ZWallFlag flag) {
+        getCell(door.getCellPosStart()).setWallFlag(door.getMoveDirection(), flag);
         door = door.getOtherSide(this);
-        getCell(door.cellPos).setWallFlag(door.dir, flag);
+        getCell(door.getCellPosStart()).setWallFlag(door.getMoveDirection(), flag);
     }
 
-    public void setDoorLocked(ZCellDoor door) {
+    public void setDoorLocked(ZDoor door) {
         addLockedDoor(door);
         addLockedDoor(door.getOtherSide(this));
     }
 
-    private void addLockedDoor(ZCellDoor door) {
-        ZCell cell = getCell(door.cellPos);
+    private void addLockedDoor(ZDoor door) {
+        ZCell cell = getCell(door.getCellPosStart());
         ZZone zone = zones.get(cell.zoneIndex);
         if (zone.doors.contains(door))
             throw new AssertionError("Already have a door like that.");
-        cell.setWallFlag(door.dir, ZWallFlag.LOCKED);
+        cell.setWallFlag(door.getMoveDirection(), ZWallFlag.LOCKED);
         zone.doors.add(door);
-    }
-
-    private ZDoor findDoor(ZDoor door) {
-        List<ZDoor> doors = zones.get(getCell(door.getCellPos()).zoneIndex).doors;
-        for (ZDoor d : doors) {
-            if (d.equals(door))
-                return d;
-        }
-        assert(false);
-        return null;
     }
 
     public int pickZone(AGraphics g, int mouseX, int mouseY) {
@@ -273,9 +295,7 @@ public class ZBoard extends Reflector<ZBoard> {
                 g.setColor(GColor.RED);
                 picked = door;
                 // highlight the other side if this is a vault
-                if (door instanceof ZVaultDoor) {
-                    g.drawRect(door.getOtherSide(this).getRect(this).grownBy(10), 2);
-                }
+                g.drawRect(door.getOtherSide(this).getRect(this).grownBy(10), 2);
             } else {
                 g.setColor(GColor.DARK_OLIVE);
             }
@@ -380,9 +400,6 @@ public class ZBoard extends Reflector<ZBoard> {
                     g.drawJustifiedStringOnBackground(cell.rect.getCenter(), Justify.CENTER, Justify.CENTER, text, GColor.TRANSLUSCENT_BLACK, 10, 2);
                 }
             }
-            for (ZDoor vd : zone.doors) {
-                vd.draw(g, this);
-            }
             if (zone.noiseLevel > 0) {
                 g.setColor(GColor.BLACK);
                 g.drawJustifiedString(zone.center, Justify.CENTER, Justify.CENTER, String.valueOf(zone.noiseLevel));
@@ -414,7 +431,7 @@ public class ZBoard extends Reflector<ZBoard> {
         Vector2D v1 = cell.rect.getTopRight().subEq(center);
         g.scale(scale);
 
-        for (ZDir dir : ZDir.values()) {
+        for (ZDir dir : ZDir.getCompassValues()) {
             Vector2D dv = v1.sub(v0).scaleEq(.33f);
             Vector2D dv0 = v0.add(dv);
             Vector2D dv1 = dv0.add(dv);
@@ -433,7 +450,7 @@ public class ZBoard extends Reflector<ZBoard> {
                 }
                 case LOCKED:
                     g.drawLine(v0, v1, 3);
-                    g.setColor(findDoor(new ZCellDoor(cellPos, dir)).getLockedColor());
+                    g.setColor(findDoor(cellPos, dir).getLockedColor());
                     g.drawLine(dv0, dv1, 4);
                     break;
                 case CLOSED:
@@ -445,6 +462,49 @@ public class ZBoard extends Reflector<ZBoard> {
             g.popMatrix();
         }
         g.popMatrix();
+
+        for (ZDir dir : ZDir.getElevationValues()) {
+            switch (cell.getWallFlag(dir)) {
+                case CLOSED: {
+                    ZDoor door = findDoor(cellPos, dir);
+                    g.setColor(GColor.BLACK);
+                    GRectangle vaultRect = door.getRect(this);
+                    g.setColor(GColor.ORANGE);
+                    vaultRect.drawFilled(g);
+                    g.setColor(GColor.YELLOW);
+                    vaultRect.drawOutlined(g, 2);
+                    g.drawJustifiedString(vaultRect.getCenter(), Justify.CENTER, Justify.CENTER, "VAULT");
+                    break;
+                }
+                case OPEN: {
+                    ZDoor door = findDoor(cellPos, dir);
+                    g.setColor(GColor.BLACK);
+                    GRectangle vaultRect = door.getRect(this);
+                    vaultRect.drawFilled(g);
+                    // draw the 'lid' opened
+                    g.begin();
+                    g.vertex(vaultRect.getTopRight());
+                    g.vertex(vaultRect.getTopLeft());
+                    float dh = vaultRect.h/3;
+                    float dw = vaultRect.w/5;
+                    if (dir == ZDir.ASCEND) {
+                        // open 'up'
+                        g.moveTo(-dw, -dh);
+                        g.moveTo(vaultRect.w+dw*2, 0);
+                    } else {
+                        // open 'down
+                        g.moveTo(dw, dh);
+                        g.moveTo(vaultRect.w-dw*2, 0);
+                    }
+                    g.setColor(GColor.ORANGE);
+                    g.drawTriangleFan();
+                    g.setColor(GColor.YELLOW);
+                    g.end();
+                    vaultRect.drawOutlined(g, 2);
+                    g.drawLineLoop(2);
+                }
+            }
+        }
     }
 
     public Grid.Pos drawDebug(AGraphics g, int mouseX, int mouseY) {
@@ -484,10 +544,10 @@ public class ZBoard extends Reflector<ZBoard> {
             drawCellWalls(g, it.getPos(), .97f);
             String text = "Zone " + cell.zoneIndex + "\n" + cell.cellType;
             if (cell.rect.contains(mouseX, mouseY)) {
-                List<Integer> accessible = getAccessableZones(cell.zoneIndex, 1);
+                List<Integer> accessible = getAccessableZones(cell.zoneIndex, 1, ZActionType.MOVE);
                 text = "1 Unit away:\n" + accessible;
                 returnCell = it.getPos();//new int[] { col, row };
-                List<Integer> accessible2 = getAccessableZones(cell.zoneIndex, 2);
+                List<Integer> accessible2 = getAccessableZones(cell.zoneIndex, 2, ZActionType.RANGED);
                 text += "\n2 Units away:\n" + accessible2;
             }
             g.setColor(GColor.CYAN);
@@ -591,7 +651,7 @@ public class ZBoard extends Reflector<ZBoard> {
                     continue;
                 AImage img = g.getImage(a.getImageId());
                 if (img != null) {
-                    GRectangle rect = cell.getQuadrant(i).fit(img);
+                    GRectangle rect = cell.getQuadrant(i).fit(img).scaledBy(a.getScale());
                     if (rect.contains(mx, my))
                         picked = a;
                     g.drawImage(a.getImageId(), rect);
@@ -601,14 +661,14 @@ public class ZBoard extends Reflector<ZBoard> {
         }
         return picked;
     }
-
+/*
     // TODO - Move this to the renderer so we can do better highlighting in android canvas
     public GRectangle drawActor(AGraphics g, ZTiles tiles, ZActor actor, GColor outline) {
         int id=actor.getImageId();
         AImage img = g.getImage(id);
         if (img != null) {
             if (actor.rect == null)
-                actor.rect = getCell(actor.occupiedCell).getQuadrant(actor.occupiedQuadrant).fit(img);
+                actor.rect = getCell(actor.occupiedCell).getQuadrant(actor.occupiedQuadrant).fit(img).scaledBy(actor.getScale());
             if (outline != null) {
                 GColor oldColor = g.getColor();
                 g.setColor(outline);
@@ -619,7 +679,7 @@ public class ZBoard extends Reflector<ZBoard> {
             return actor.rect;
         }
         return null;
-    }
+    }*/
 
     /**
      * Iterate over all cells
@@ -632,7 +692,7 @@ public class ZBoard extends Reflector<ZBoard> {
     public void drawZoneOutline(AGraphics g, int zoneIndex) {
         ZZone zone = getZone(zoneIndex);
         for (Grid.Pos cellPos : zone.cells) {
-            g.drawRect(getCell(cellPos).rect, 1);
+            g.drawRect(getCell(cellPos).rect, 2);
         }
     }
 
@@ -711,12 +771,8 @@ public class ZBoard extends Reflector<ZBoard> {
             return;
         undiscovered.add(cell.zoneIndex);
         for (ZDir dir : ZDir.values()) {
-            switch (cell.getWallFlag(dir)) {
-                case NONE:
-                case OPEN:
-                    getUndiscoveredIndoorZones(dir.getAdjacent(startPos), undiscovered);
-                    break;
-            }
+            if (cell.getWallFlag(dir).isOpen())
+                getUndiscoveredIndoorZones(getAdjacent(startPos, dir), undiscovered);
         }
     }
 

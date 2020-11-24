@@ -2,7 +2,6 @@ package cc.lib.zombicide;
 
 import java.util.List;
 
-import cc.lib.game.Utils;
 import cc.lib.ui.IButton;
 
 public enum ZSkill implements IButton {
@@ -331,11 +330,7 @@ public enum ZSkill implements IButton {
 
     @Override
     public String getTooltipText() {
-        if (description.length() < 64)
-            return description;
-
-        String wrapped = Utils.wrapTextWithNewlines(description, 64);
-        return String.format("<html>%s</html>", wrapped.replaceAll("[\n]+", "<br/>"));
+        return description;
     }
 
     @Override

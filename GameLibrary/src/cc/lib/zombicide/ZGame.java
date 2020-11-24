@@ -10,6 +10,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Stack;
 
+import cc.lib.game.GColor;
 import cc.lib.game.GRectangle;
 import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
@@ -121,11 +122,14 @@ public class ZGame extends Reflector<ZGame>  {
                     break;
             }
             // add doors for the zone
-            for (ZDir dir : ZDir.values()) {
+            for (ZDir dir : ZDir.getCompassValues()) {
                 switch (cell.getWallFlag(dir)) {
                     case CLOSED:
-                    case OPEN:
-                        zone.doors.add(new ZCellDoor(it.getPos(), dir));
+                    case OPEN: {
+                        Grid.Pos pos = it.getPos();
+                        Grid.Pos next = board.getAdjacent(pos, dir);
+                        zone.doors.add(new ZDoor(pos, next, dir, GColor.RED));
+                    }
                 }
             }
             switch (cell.cellType) {
@@ -168,7 +172,7 @@ public class ZGame extends Reflector<ZGame>  {
                         if (cell == cell2)
                             continue;
                         if (cell.vaultFlag == cell2.vaultFlag) {
-                            zone.doors.add(new ZVaultDoor(it.getPos(), it2.getPos(), cell.environment == ZCell.ENV_VAULT ? ZDir.NORTH : ZDir.SOUTH));
+                            zone.doors.add(new ZDoor(it.getPos(), it2.getPos(), cell.environment == ZCell.ENV_VAULT ? ZDir.ASCEND : ZDir.DESCEND, GColor.RED));
                             break;
                         }
                     }
@@ -382,7 +386,7 @@ public class ZGame extends Reflector<ZGame>  {
                 options.add(ZMove.newMakeNoiseMove(cur.occupiedZone));
 
                 // check for move up, down, right, left
-                List<Integer> accessableZones = board.getAccessableZones(cur.occupiedZone, 1);
+                List<Integer> accessableZones = board.getAccessableZones(cur.occupiedZone, 1, ZActionType.MOVE);
                 if (accessableZones.size() > 0)
                     options.add(ZMove.newWalkMove(accessableZones));
 
@@ -615,7 +619,7 @@ public class ZGame extends Reflector<ZGame>  {
             Collection<ZDir> paths = board.getShortestPathOptions(zombie.occupiedCell, targetZone);
             if (paths.size() > 0) {
                 ZDir dir = Utils.randItem(paths); // TODO: Use Dir class instead of int
-                log.debug("$s moving in direction %s", zombie.name(), dir);
+                log.debug("%s moving in direction %s", zombie.name(), dir);
                 //board.moveActorInDirection(zombie, dir);
                 moveActorInDirection(zombie, dir);
                 return;
@@ -802,7 +806,7 @@ public class ZGame extends Reflector<ZGame>  {
                     ZWeaponStat stat = cur.getWeaponStat(slot, actionType, this);
                     List<Integer> zones = new ArrayList<>();
                     for (int range = stat.minRange; range <=stat.maxRange; range++) {
-                        zones.addAll(board.getAccessableZones(cur.occupiedZone, range));
+                        zones.addAll(board.getAccessableZones(cur.occupiedZone, range, actionType));
                     }
                     if (zones.size() > 0) {
                         Integer zone = user.chooseZoneForAttack(this, cur, zones);
@@ -864,7 +868,7 @@ public class ZGame extends Reflector<ZGame>  {
                 else
                     slot = getCurrentUser().chooseItemToThrow(this, cur, slots);
                 if (slot != null) {
-                    List<Integer> zones = board.getAccessableZones(cur.occupiedZone, 1);
+                    List<Integer> zones = board.getAccessableZones(cur.occupiedZone, 1, ZActionType.THROW_ITEM);
                     zones.add(cur.occupiedZone);
                     Integer zoneIdx = getCurrentUser().chooseZonetoThrowItem(this, cur, slot, zones);
                     if (zoneIdx != null) {
@@ -935,10 +939,10 @@ public class ZGame extends Reflector<ZGame>  {
                             onDoorOpened(door);
                             // spawn zombies in the newly exposed zone and any adjacent
                             ZDoor otherSide = door.getOtherSide(board);
-                            if (board.getZone(board.getCell(otherSide.getCellPos()).zoneIndex).canSpawn()) {
+                            if (board.getZone(board.getCell(otherSide.getCellPosStart()).zoneIndex).canSpawn()) {
                                 ZSkillLevel highest = getHighestSkillLevel();
                                 HashSet<Integer> spawnZones = new HashSet<>();
-                                board.getUndiscoveredIndoorZones(otherSide.getCellPos(), spawnZones);
+                                board.getUndiscoveredIndoorZones(otherSide.getCellPosStart(), spawnZones);
                                 log.debug("Zombie spawn zones: " + spawnZones);
                                 for (int zone : spawnZones) {
                                     spawnZombies(zone, highest);
@@ -1264,7 +1268,7 @@ public class ZGame extends Reflector<ZGame>  {
 
     void moveActorInDirection(ZActor actor, ZDir dir) {
         Grid.Pos pos = actor.occupiedCell;
-        Grid.Pos next = dir.getAdjacent(pos);
+        Grid.Pos next = board.getAdjacent(pos, dir);
         int curZone = actor.occupiedZone;
         int nxtZone = board.getCell(next).zoneIndex;
         GRectangle start = board.getCell(pos).getQuadrant(actor.occupiedQuadrant);

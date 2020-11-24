@@ -1,108 +1,124 @@
 package cc.lib.zombicide;
 
-import cc.lib.game.AGraphics;
 import cc.lib.game.GColor;
 import cc.lib.game.GRectangle;
+import cc.lib.game.Utils;
 import cc.lib.utils.Grid;
 import cc.lib.utils.Reflector;
 
-public abstract class ZDoor extends Reflector<ZDoor>  {
+public final class ZDoor extends Reflector<ZDoor>  {
 
-    /**
-     * Human readable text
-     * @return
-     */
-    public abstract String name();
+    static {
+        addAllFields(ZDoor.class);
+    }
 
-    /**
-     * Cell at entering part of the door
-     * @return
-     */
-    public abstract Grid.Pos getCellPos();
+    private final Grid.Pos cellPosStart, cellPosEnd;
+    private final ZDir dir;
+    private boolean jammed;
+    GColor lockedColor;
 
-    /**
-     * Cell at the exiting part of the door
-     * @return
-     */
-    public abstract Grid.Pos getCellPosEnd();
+    public ZDoor() {
+        this(null, null, null, null);
+    }
 
-    /**
-     * Direction actor to move to enter the door
-     * @return
-     */
-    public abstract ZDir getMoveDirection();
+    public ZDoor(Grid.Pos cellPosStart, ZDir dir, GColor lockedColor) {
+        this(cellPosStart, dir.getAdjacent(cellPosStart), dir, lockedColor);
+    }
 
-    /**
-     * Graphical rectable of this door
-     * @param board
-     * @return
-     */
-    public abstract GRectangle getRect(ZBoard board);
+    public ZDoor(Grid.Pos cellPosStart, Grid.Pos cellPosEnd, ZDir dir, GColor lockedColor) {
+        this.cellPosStart = cellPosStart;
+        this.cellPosEnd = cellPosEnd;
+        this.dir = dir;
+        this.lockedColor = lockedColor;
+        if (dir != null) {
+            switch (dir) {
+                case ASCEND:
+                case DESCEND:
+                    jammed = false;
+                    break;
+                default:
+                    jammed = true;
+            }
+        }
+    }
 
-    /**
-     *
-     * @param board
-     * @return
-     */
-    public abstract boolean isClosed(ZBoard board);
+    public boolean isLocked(ZBoard b) {
+        return b.getDoor(this) == ZWallFlag.LOCKED;
+    }
 
-    /**
-     * Oopen or close the door
-     * @param board
-     */
-    public abstract void toggle(ZBoard board);
+    public boolean isClosed(ZBoard board) {
+        return !board.grid.get(cellPosStart).getWallFlag(dir).isOpen();
+    }
 
-    /**
-     * Render the door
-     * @param g
-     * @param b
-     */
-    public abstract void draw(AGraphics g, ZBoard b);
+    public Grid.Pos getCellPosStart() {
+        return cellPosStart;
+    }
 
-    /**
-     * Get the door representation of opposing cell
-     * @param b
-     * @param <T>
-     * @return
-     */
-    public abstract <T extends ZDoor> T getOtherSide(ZBoard b);
+    public Grid.Pos getCellPosEnd() {
+        return cellPosEnd;
+    }
 
-    /**
-     * return whether the player needs weapon with canOpenDoor status to open this door
-     * @return
-     */
-    public abstract boolean isJammed();
+    public ZDir getMoveDirection() {
+        return dir;
+    }
 
-    /**
-     * return whether this door can be closed by a player
-     * @param c
-     * @return
-     */
-    public abstract boolean canBeClosed(ZCharacter c);
+    public GRectangle getRect(ZBoard board) {
+        return board.grid.get(cellPosStart).getWallRect(dir);
+    }
 
-    /**
-     *
-     * @return
-     */
-    public boolean isLocked(ZBoard board) {
+    public void toggle(ZBoard board) {
+        ZDoor otherSide = getOtherSide(board);
+        switch (board.getDoor(this)) {
+            case OPEN:
+                board.setDoor(this, ZWallFlag.CLOSED);
+                board.setDoor(otherSide, ZWallFlag.CLOSED);
+                break;
+            case LOCKED:
+            case CLOSED:
+                board.setDoor(this, ZWallFlag.OPEN);
+                board.setDoor(otherSide, ZWallFlag.OPEN);
+                break;
+        }
+        jammed = otherSide.jammed = false;
+    }
+
+    public ZDoor getOtherSide(ZBoard board) {
+        return new ZDoor(cellPosEnd, cellPosStart, dir.getOpposite(), lockedColor);
+    }
+
+    public boolean isJammed() {
+        return jammed;
+    }
+
+    public boolean canBeClosed(ZCharacter c) {
+        switch (dir) {
+            case DESCEND:
+            case ASCEND:
+                return true;
+        }
+        for (ZSkill sk : c.availableSkills) {
+            if (sk.canCloseDoors())
+                return true;
+        }
         return false;
     }
 
-    /**
-     *
-     * @return
-     */
     public GColor getLockedColor() {
-        return GColor.RED;
+        return lockedColor;
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null || !(obj instanceof ZDoor))
-            return false;
-        ZDoor o2 = (ZDoor)obj;
-        return (getCellPos().equals(o2.getCellPos()) && getCellPosEnd().equals(o2.getCellPosEnd()));
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        ZDoor zDoor = (ZDoor) o;
+        return Utils.equals(cellPosStart, zDoor.cellPosStart) &&
+                dir == zDoor.dir;
+    }
+
+    @Override
+    public int hashCode() {
+        return Utils.hashCode(cellPosStart, dir);
     }
 }
