@@ -3,13 +3,15 @@ package cc.lib.zombicide;
 import cc.lib.zombicide.quests.ZQuestBigGameHunting;
 import cc.lib.zombicide.quests.ZQuestTheAbomination;
 import cc.lib.zombicide.quests.ZQuestTheBlackBook;
+import cc.lib.zombicide.quests.ZQuestTheShepherds;
 import cc.lib.zombicide.quests.ZQuestTutorial;
 
 public enum ZQuests {
     Tutorial,
     Big_Game_Hunting,
     The_Black_Book,
-    The_Abomination
+    The_Abomination,
+    The_Shepherds,
     ;
 
     final ZQuest load() {
@@ -22,6 +24,8 @@ public enum ZQuests {
                 return new ZQuestTheBlackBook();
             case The_Abomination:
                 return new ZQuestTheAbomination();
+            case The_Shepherds:
+                return new ZQuestTheShepherds();
         }
         return null;
     }

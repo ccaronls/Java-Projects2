@@ -1317,7 +1317,7 @@ public class ZGame extends Reflector<ZGame>  {
         searchables.addAll(make(2, ZWeaponType.CROSSBOW));
         searchables.addAll(make(4, ZWeaponType.DAGGER));
         searchables.addAll(make(2, ZWeaponType.DEATH_STRIKE));
-        //searchables.addAll(make(4, ZItemType.DRAGON_BILE));
+        searchables.addAll(make(4, ZItemType.DRAGON_BILE));
         searchables.addAll(make(4, ZWeaponType.FIREBALL));
         searchables.addAll(make(2, ZWeaponType.GREAT_SWORD));
         searchables.addAll(make(1, ZWeaponType.HAMMER));
@@ -1341,7 +1341,7 @@ public class ZGame extends Reflector<ZGame>  {
         searchables.addAll(make(1, ZWeaponType.SHORT_SWORD));
         searchables.addAll(make(1, ZSpellType.SPEED));
         searchables.addAll(make(2, ZWeaponType.SWORD));
-//        searchables.addAll(make(4, ZItemType.TORCH));
+        searchables.addAll(make(4, ZItemType.TORCH));
         searchables.addAll(make(2, ZItemType.WATER));
         Utils.shuffle(searchables);
     }
