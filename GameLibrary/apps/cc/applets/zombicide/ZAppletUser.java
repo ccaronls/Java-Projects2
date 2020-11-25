@@ -93,4 +93,9 @@ public class ZAppletUser extends ZUser {
     public Integer chooseZonetoThrowItem(ZGame game, ZCharacter cur, ZItem toThrow, List<Integer> zones) {
         return ZombicideApplet.instance.pickZone("Choose Zone to throw the " + toThrow, zones);
     }
+
+    @Override
+    public Integer chooseZoneToShove(ZGame zGame, ZCharacter cur, List<Integer> zones) {
+        return ZombicideApplet.instance.pickZone("Choose Zone to shove zombies into", zones);
+    }
 }

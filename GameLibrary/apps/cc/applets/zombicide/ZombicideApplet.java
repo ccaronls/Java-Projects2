@@ -175,6 +175,9 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
                 }
             } catch (Exception e) {
                 log.error(e.getClass().getSimpleName() + " " + e.getMessage());
+                for (StackTraceElement st : e.getStackTrace()) {
+                    log.error(st.toString());
+                }
                 e.printStackTrace();
             }
             gameRunning = false;
@@ -313,7 +316,7 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
         add(boardComp = new BoardComponent(), BorderLayout.CENTER);
     }
 
-    <T> T waitForUser() {
+    <T> T waitForUser(Class<T> expectedType) {
         initMenu();
         synchronized (monitor) {
             try {
@@ -323,7 +326,9 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
             }
         }
         uiMode = UIMode.NONE;
-        return (T)result;
+        if (result != null && expectedType.isAssignableFrom(result.getClass()))
+            return (T)result;
+        return null;
     }
 
     class ZButton extends AWTButton {
@@ -389,28 +394,28 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
         boardComp.message = message;
         options = characters;
         uiMode = ZombicideApplet.UIMode.PICK_CHARACTER;
-        return waitForUser();
+        return waitForUser(ZCharacter.class);
     }
 
     public Integer pickZone(String message, List<Integer> zones) {
         boardComp.message = message;
         options = zones;
         uiMode = ZombicideApplet.UIMode.PICK_ZONE;
-        return waitForUser();
+        return waitForUser(Integer.class);
     }
 
-    public <T> T pickMenu(String message, List<T> moves) {
+    public <T extends IButton> T pickMenu(String message, List<T> moves) {
         boardComp.message = message;
         options = moves;
         uiMode = ZombicideApplet.UIMode.PICK_MENU;
-        return waitForUser();
+        return (T)waitForUser(IButton.class);
     }
 
     public ZDoor pickDoor(String message, List<ZDoor> doors) {
         boardComp.message = message;
         options = doors;
         uiMode = ZombicideApplet.UIMode.PICK_DOOR;
-        return waitForUser();
+        return waitForUser(ZDoor.class);
     }
 
 }

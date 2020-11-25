@@ -310,7 +310,7 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
     }
 
     public void setPreferredSize(int w, int h) {
-        log.debug("set pref size: %d x %d", w, h);
+        //log.debug("set pref size: %d x %d", w, h);
         super.setPreferredSize(new Dimension(w, h));
     }
 

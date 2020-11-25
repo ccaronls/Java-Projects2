@@ -76,10 +76,12 @@ public class ZQuestTheShepherds extends ZQuest {
         game.addExperience(c, OBJECTIVE_EXP);
         objectives.remove((Object)move.integer);
         if (move.integer == blueSpawnZone) {
-            game.board.setSpawnZone(blueSpawnZone, true);
+            game.spawnZombies(blueSpawnZone);
+//            game.board.setSpawnZone(blueSpawnZone, true);
             blueSpawnZone = -1;
         } else if (move.integer == greenSpawnZone) {
-            game.board.setSpawnZone(greenSpawnZone, true);
+            game.spawnZombies(greenSpawnZone);
+//            game.board.setSpawnZone(greenSpawnZone, true);
             greenSpawnZone = -1;
         }
     }

@@ -10,6 +10,7 @@ import cc.lib.utils.Grid;
 import cc.lib.utils.Table;
 import cc.lib.zombicide.ZBoard;
 import cc.lib.zombicide.ZCell;
+import cc.lib.zombicide.ZCellType;
 import cc.lib.zombicide.ZCharacter;
 import cc.lib.zombicide.ZDir;
 import cc.lib.zombicide.ZDoor;
@@ -44,11 +45,11 @@ public class ZQuestFamine extends ZQuest {
     public ZBoard loadBoard() {
 
         String [][] map = {
-                { "z0:i:ws", "z0:i:ws:ode", "z1:i:ds:ode", "z2:i:ws:ode", "z3:i:ws:we", "z4", "z5", "z6:sp", "z7:i:ww:ods" },
+                { "z0:i:ws", "z0:i:ws:ode", "z1:i:red:ds:ode", "z2:i:ws:ode", "z3:i:ws:we", "z4", "z5", "z6:sp", "z7:i:ww:ods" },
                 { "z8:sp", "z9", "z10", "z11", "z12", "z13", "z14:i:ww:wn:we", "z15", "z16:i:dw:ws:red:" },
                 { "z17:i:lvd1:wn:ode:ods", "z18:i:wn:ws", "z18:i:wn:de:ods", "z19", "z20:i:ww:wn:ws:ode", "z21:i:wn:ds:ode", "z14:i:de:ods", "z22", "z23" },
                 { "z24:i:ws:we", "z25", "z26:i:ws:ww:de", "z27", "z28", "z29", "z30:i:dw:ws:we", "z31", "z32:i:dn:ww:" },
-                { "z33:sp", "z34", "z35", "z36", "z37:i:lvd2:wn:we:ws:dw", "z38", "z39", "z40", "z32:i:ods:ww" },
+                { "z33:sp", "z34", "z35", "z36", "z37:i:lvd2:wn:we:ws:dw", "z38", "z39", "z40", "z32:i:red:ods:ww" },
                 { "z41:i:wn:ws:ode", "z42:i:red:wn:ws", "z42:i:wn:ws:de", "z43:ws", "z44:st:ws", "z45:ws", "z46:i:wn:we:dw:ws", "z47:sp:ws", "z48:i:ww:ws" },
                 { "", "", "", "z49:v:vd1:ww", "z49:v", "z49:v:vd2:we", "", "", "" }
         };
@@ -62,6 +63,7 @@ public class ZQuestFamine extends ZQuest {
         switch (cmd) {
             case "red":
                 objectives.add(cell.getZoneIndex());
+                cell.cellType = ZCellType.OBJECTIVE_RED;
                 break;
             case "lvd1":
             case "lvd2":
@@ -75,12 +77,17 @@ public class ZQuestFamine extends ZQuest {
 
     @Override
     public void addMoves(ZGame game, ZCharacter cur, List<ZMove> options) {
-
+        for (int obj : objectives) {
+            if (cur.getOccupiedZone() == obj) {
+                options.add(ZMove.newObjectiveMove(obj));
+            }
+        }
     }
 
     @Override
     public void processObjective(ZGame game, ZCharacter c, ZMove move) {
         game.addExperience(c, OBJECTIVE_EXP);
+        objectives.remove((Object)move.integer);
         if (move.integer == blueKeyZone) {
             game.getCurrentUser().showMessage("Blue key found. Vault unlocked");
             blueKeyZone = -1;
@@ -184,13 +191,13 @@ public class ZQuestFamine extends ZQuest {
     @Override
     public Table getObjectivesOverlay(ZGame game) {
         return new Table(getName())
-            .addRow(new Table().setNoBorder())
-                .addRow("Find enough Food.", "")
-                .addRow("Find BLUE key to unlock the Vault", blueKeyZone >= 0 ? "no" : "yes")
-                .addRow("Find 2 Apples", String.format("%d of %d", numApplesFound, 2))
-                .addRow("Find 2 Water", String.format("%d of %d", numWaterFound, 2))
-                .addRow("Find 2 Salted Meat", String.format("%d of %d", numSaltedMeatFound, 2))
-                .addRow("Lock youselves in the Vault with no zombies.", isAllLockedInVault(game) ? "yes" : "no");
+            .addRow(new Table().setNoBorder()
+                .addRow("1.", "Find BLUE key to unlock the Vault", blueKeyZone >= 0 ? "no" : "yes")
+                .addRow("2.", "Find 2 Apples", String.format("%d of %d", numApplesFound, 2))
+                .addRow("3.", "Find 2 Water", String.format("%d of %d", numWaterFound, 2))
+                .addRow("4.", "Find 2 Salted Meat", String.format("%d of %d", numSaltedMeatFound, 2))
+                .addRow("5.", "Lock youselves in the Vault with no zombies.", isAllLockedInVault(game) ? "yes" : "no")
+            );
 
     }
 }

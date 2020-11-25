@@ -60,6 +60,7 @@ public class ZMove implements IButton {
                 ", fromSlot=" + fromSlot +
                 ", toSlot=" + toSlot +
                 ", list=" + list +
+                ", dir=" + dir +
                 '}';
     }
 
@@ -171,6 +172,10 @@ public class ZMove implements IButton {
 
     public static ZMove newMakeNoiseMove(int occupiedZone) {
         return new ZMove(ZMoveType.MAKE_NOISE, occupiedZone);
+    }
+
+    public static ZMove newShoveMove(List<Integer> toZones) {
+        return new ZMove(ZMoveType.SHOVE, toZones);
     }
 
 

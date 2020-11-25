@@ -18,11 +18,13 @@ public enum ZActionType {
     RELOAD,
     DROP_ITEM,
     PICKUP_ITEM,
-    MAKE_NOISE;
+    MAKE_NOISE,
+    SHOVE;
 
     boolean oncePerTurn() {
         switch (this) {
             case SEARCH:
+            case SHOVE:
                 return true;
         }
         return false;

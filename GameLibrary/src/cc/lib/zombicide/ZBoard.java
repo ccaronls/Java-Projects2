@@ -465,6 +465,17 @@ public class ZBoard extends Reflector<ZBoard> {
 
         for (ZDir dir : ZDir.getElevationValues()) {
             switch (cell.getWallFlag(dir)) {
+                case LOCKED: {
+                    ZDoor door = findDoor(cellPos, dir);
+                    g.setColor(GColor.BLACK);
+                    GRectangle vaultRect = door.getRect(this);
+                    g.setColor(GColor.ORANGE);
+                    vaultRect.drawFilled(g);
+                    g.setColor(GColor.RED);
+                    vaultRect.drawOutlined(g, 2);
+                    g.drawJustifiedString(vaultRect.getCenter(), Justify.CENTER, Justify.CENTER, "LOCKED");
+                    break;
+                }
                 case CLOSED: {
                     ZDoor door = findDoor(cellPos, dir);
                     g.setColor(GColor.BLACK);

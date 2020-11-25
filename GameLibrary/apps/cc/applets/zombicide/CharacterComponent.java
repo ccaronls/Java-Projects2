@@ -44,12 +44,17 @@ class CharacterComponent extends AWTComponent implements Scrollable {
         setMinimumSize(minHeight*2, minHeight);
     }
 
+    Font courier = null;
+
     @Override
     protected void paint(AWTGraphics g, int mouseX, int mouseY) {
         g.clearScreen();
         if (getGame() == null)
             return;
-        g.getGraphics().setFont(Font.decode(Font.MONOSPACED).deriveFont(Font.BOLD));
+        if (courier == null) {
+            courier = new Font("courier", Font.BOLD, g.getTextHeight());
+        }
+        g.getGraphics().setFont(Font.decode(Font.MONOSPACED));//.deriveFont(Font.BOLD));
         GDimension info = null;
         if (ZombicideApplet.instance.boardComp.highlightedActor != null) {
             g.setColor(GColor.BLACK);

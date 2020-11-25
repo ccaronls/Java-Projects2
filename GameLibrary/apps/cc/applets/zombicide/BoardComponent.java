@@ -295,7 +295,7 @@ class BoardComponent extends AWTComponent implements ZTiles {
                 }
             } else if (overlayToDraw instanceof Table) {
                 Font font = g.getFont();
-                Font fixedWidth = new Font("monospaced", Font.PLAIN, 16);
+                Font fixedWidth = new Font("courier", Font.BOLD, 16);
                 g.setFont(fixedWidth);
                 g.setColor(GColor.YELLOW);
                 g.drawJustifiedStringOnBackground(getWidth() / 2, getHeight() / 2, Justify.CENTER, Justify.CENTER, overlayToDraw.toString(), GColor.TRANSLUSCENT_BLACK, 10, 10);
@@ -352,12 +352,15 @@ class BoardComponent extends AWTComponent implements ZTiles {
             { ZPlayerName.Nelly, "zchar_nelly.gif" },
             { ZPlayerName.Samson, "zchar_samson.gif" },
             { ZPlayerName.Silas, "zchar_silas.gif" },
+            { ZPlayerName.Tucker, "zchar_tucker.gif" },
             { ZPlayerName.Ann.name(), "zcard_ann.gif" },
+
             { ZPlayerName.Baldric.name(), "zcard_baldric.gif" },
             { ZPlayerName.Clovis.name(), "zcard_clovis.gif" },
             { ZPlayerName.Nelly.name(), "zcard_nelly.gif" },
             { ZPlayerName.Samson.name(), "zcard_samson.gif" },
-            { ZPlayerName.Silas.name(), "zcard_silas.gif" }
+            { ZPlayerName.Silas.name(), "zcard_silas.gif" },
+            { ZPlayerName.Tucker.name(), "zcard_tucker.gif" }
         };
 
         Map<Object, List<Integer>> objectToImageMap = new HashMap<>();

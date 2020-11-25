@@ -183,26 +183,26 @@ public class ZGame extends Reflector<ZGame>  {
         this.quest.init(this);
     }
 
-    public void spawnZombies(int count, ZZombieType _name, int zone) {
+    public void spawnZombies(int count, ZZombieType name, int zone) {
 
         count *= spawnMultiplier;
         spawnMultiplier = 1;
 
         do {
-            final ZZombieType name = _name;
-            int numOnBoard = Utils.filter(board.getAllZombies(), object -> object.type == name).size();
-            log.debug("Num %s on board is %d and trying to spawn %d more", _name, numOnBoard, count);
+            final ZZombieType _name = name;
+            int numOnBoard = Utils.filter(board.getAllZombies(), object -> object.type == _name).size();
+            log.debug("Num %s on board is %d and trying to spawn %d more", name, numOnBoard, count);
             if (numOnBoard + count > quest.getMaxNumZombiesOfType(name)) {
                 switch (name) {
                     case Necromancer:
-                        _name = ZZombieType.Abomination;
+                        name = ZZombieType.Abomination;
                         continue;
                     case Abomination:
-                        _name = ZZombieType.Fatty;
+                        name = ZZombieType.Fatty;
                         continue;
                     case Fatty:
                     case Runner:
-                        _name = ZZombieType.Walker;
+                        name = ZZombieType.Walker;
                         continue;
                 }
             }
@@ -295,7 +295,7 @@ public class ZGame extends Reflector<ZGame>  {
                 onStartRound(roundNum++);
                 currentUser = 0;
                 currentCharacter = null;
-                for (ZActor a : (List<ZActor>)board.getAllActors())
+                for (ZActor a : board.getAllActors())
                     a.prepareTurn();
                 board.resetNoise();
                 break;
@@ -425,10 +425,14 @@ public class ZGame extends Reflector<ZGame>  {
                     }
                 }
 
+                for (ZSkill skill : cur.availableSkills) {
+                    skill.addSpecialMoves(this, cur, options);
+                }
+
                 if (zone.type == ZZoneType.VAULT) {
                     List<ZEquipment> takables = new ArrayList<>();
                     for (ZEquipment e : quest.getVaultItems(cur.occupiedZone)) {
-                        if (cur.getEquipableSlots(e) != null) {
+                        if (cur.getEquipableSlots(e).size() > 0) {
                             takables.add(e);
                         }
                     }
@@ -468,7 +472,7 @@ public class ZGame extends Reflector<ZGame>  {
 
             case PLAYER_STAGE_CHOOSE_NEW_SKILL: {
                 final ZCharacter cur = getCurrentCharacter();
-                ZSkill skill = null;
+                ZSkill skill;
                 List<ZSkill> options = Arrays.asList(getCurrentCharacter().name.getSkillOptions(cur.getSkillLevel()));
                 if (options.size() == 1) {
                     skill = options.get(0);
@@ -634,6 +638,7 @@ public class ZGame extends Reflector<ZGame>  {
     }
 
     private void performMove(ZCharacter cur, ZMove move) {
+        log.debug("performMove:%s", move);
         ZUser user = getCurrentUser();
         switch (move.type) {
             case DO_NOTHING:
@@ -718,7 +723,7 @@ public class ZGame extends Reflector<ZGame>  {
                 break;
             }
             case TRADE:
-                ZCharacter other = null;
+                ZCharacter other;
                 if (move.list.size() == 1) {
                     other = (ZCharacter)move.list.get(0);
                 } else {
@@ -1036,9 +1041,46 @@ public class ZGame extends Reflector<ZGame>  {
                 cur.performAction(ZActionType.MAKE_NOISE, this);
                 break;
             }
+            case SHOVE: {
+                Integer targetZone = getCurrentUser().chooseZoneToShove(this, cur, move.list);
+                if (targetZone != null) {
+                    // shove all zombies in this zone into target zone
+                    for (ZZombie z : board.getZombiesInZone(cur.getOccupiedZone())) {
+                        board.removeActor(z);
+                        board.addActor(z, targetZone);
+                    }
+                    cur.performAction(ZActionType.SHOVE, this);
+                }
+                break;
+            }
             default:
                 log.error("Unhandled move: %s", move.type);
         }
+    }
+
+    ZDir getDirection(int fromZoneIdx, int toZoneIdx) {
+        assert(fromZoneIdx != toZoneIdx);
+
+        ZZone fromZone = board.getZone(fromZoneIdx);
+        ZZone toZone   = board.getZone(toZoneIdx);
+
+        if (fromZone.type == ZZoneType.VAULT) {
+            return ZDir.ASCEND;
+        }
+
+        if (toZone.type == ZZoneType.VAULT) {
+            return ZDir.DESCEND;
+        }
+
+        for (Grid.Pos fromPos : fromZone.cells) {
+            for (Grid.Pos toPos : toZone.cells) {
+                ZDir dir = ZDir.getDirFrom(fromPos, toPos);
+                if (dir != null)
+                    return dir;
+            }
+        }
+        assert(false);
+        return null;
     }
 
     protected void onWeaponGoesClick(ZWeapon weapon) {
@@ -1095,7 +1137,7 @@ public class ZGame extends Reflector<ZGame>  {
         for (int i=0; i<num; i++) {
             result[i] = Utils.randRange(1,6);
         }
-        getCurrentUser().showMessage("Rolled a " + new Table().addRow(result).toString());
+        getCurrentUser().showMessage("Rolled a " + new Table().addRow(Arrays.asList(result)).toString());
         onRollDice(result);
         return result;
     }
@@ -1140,6 +1182,10 @@ public class ZGame extends Reflector<ZGame>  {
         for (ZZombie z : Utils.filter(board.getAllZombies(), object -> object.type == name)) {
             z.extraActivation();
         }
+    }
+
+    public void spawnZombies(int zoneIdx) {
+        spawnZombies(zoneIdx, getHighestSkillLevel());
     }
 
     private void spawnZombies(int zoneIdx, ZSkillLevel level) {

@@ -62,7 +62,8 @@ public enum ZDir {
         int dy = to.getRow() > from.getRow() ? 1 : (from.getRow() > to.getRow() ? -1 : 0);
 
         if (dx != 0 && dy != 0) {
-            throw new AssertionError("No direction for diagonals");
+            //throw new AssertionError("No direction for diagonals");
+            return null;
         }
 
         if (dx < 0)

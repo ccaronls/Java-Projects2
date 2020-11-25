@@ -48,7 +48,6 @@ public enum ZPlayerName implements IButton {
             Utils.toArray(ZSkill.Plus1_Action),
             Utils.toArray(ZSkill.Plus1_free_Ranged_Action, ZSkill.Point_blank),
             Utils.toArray(ZSkill.Plus1_die_Ranged, ZSkill.Plus1_free_Combat_Action, ZSkill.Iron_rain)),
-    /*
     Tucker("Monk",
             Utils.toArray(ZWeaponType.CROSSBOW),
             Utils.toArray(ZWeaponType.AXE),
@@ -56,6 +55,7 @@ public enum ZPlayerName implements IButton {
             Utils.toArray(ZSkill.Plus1_Action),
             Utils.toArray(ZSkill.Lucky, ZSkill.Spellcaster),
             Utils.toArray(ZSkill.Plus1_die_Combat, ZSkill.Plus1_free_Combat_Action, ZSkill.Free_reload)),
+    /*
     Tyrion("Elitist",
             Utils.toArray(ZWeaponType.DAGGER),
             Utils.toArray(ZWeaponType.AXE),
