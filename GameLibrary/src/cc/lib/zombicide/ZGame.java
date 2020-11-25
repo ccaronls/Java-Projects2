@@ -962,6 +962,7 @@ public class ZGame extends Reflector<ZGame>  {
                 // draw from top of the deck
                 if (searchables.size() > 0) {
                     ZEquipment equip = searchables.removeLast();
+                    quest.onEquipmentFound(this, equip);
                     if (equip.getType() == ZItemType.AAHHHH) {
                         getCurrentUser().showMessage("Aaaahhhh!!!");
                         // spawn zombie right here right now

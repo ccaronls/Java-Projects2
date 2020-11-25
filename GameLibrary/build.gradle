@@ -64,6 +64,7 @@ task androidLibJar(type: Jar) {
 
 task appletLibJar(type: Jar) {
     from sourceSets.appletLib.output.classesDirs
+    from sourceSets.appletLib.resources
     archiveName("GameLibraryApplet.jar")
 }
 
@@ -163,7 +164,7 @@ task deployZombicideApplet {
     def homePath = System.properties['user.home']
     def zPath = homePath + '/Sites/Zombicide/'
     doLast {
-//        delete zPath
+        delete zPath
         copy {
             from 'build/libs/GameLibraryApplet.jar'
             into zPath

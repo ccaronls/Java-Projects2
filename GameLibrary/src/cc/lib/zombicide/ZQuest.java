@@ -152,7 +152,7 @@ public abstract class ZQuest extends Reflector<ZQuest> {
         }
     }
 
-    void setCellWall(Grid<ZCell> grid, Grid.Pos pos, ZDir dir, ZWallFlag flag) {
+    protected void setCellWall(Grid<ZCell> grid, Grid.Pos pos, ZDir dir, ZWallFlag flag) {
         grid.get(pos).setWallFlag(dir, flag);
         Grid.Pos adj = dir.getAdjacent(pos);
         if (adj != null && grid.isOnGrid(adj))
@@ -336,4 +336,8 @@ public abstract class ZQuest extends Reflector<ZQuest> {
     }
 
     public abstract Table getObjectivesOverlay(ZGame game);
+
+    public void onEquipmentFound(ZGame zGame, ZEquipment equip) {
+        //
+    }
 }

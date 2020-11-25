@@ -1,6 +1,7 @@
 package cc.lib.zombicide;
 
 import cc.lib.zombicide.quests.ZQuestBigGameHunting;
+import cc.lib.zombicide.quests.ZQuestFamine;
 import cc.lib.zombicide.quests.ZQuestTheAbomination;
 import cc.lib.zombicide.quests.ZQuestTheBlackBook;
 import cc.lib.zombicide.quests.ZQuestTheShepherds;
@@ -12,6 +13,7 @@ public enum ZQuests {
     The_Black_Book,
     The_Abomination,
     The_Shepherds,
+    Famine,
     ;
 
     final ZQuest load() {
@@ -26,6 +28,8 @@ public enum ZQuests {
                 return new ZQuestTheAbomination();
             case The_Shepherds:
                 return new ZQuestTheShepherds();
+            case Famine:
+                return new ZQuestFamine();
         }
         return null;
     }

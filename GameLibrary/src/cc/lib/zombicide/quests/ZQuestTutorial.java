@@ -164,10 +164,10 @@ public class ZQuestTutorial extends ZQuest {
     public Table getObjectivesOverlay(ZGame game) {
         return new Table(getName())
                 .addRow(new Table().setNoBorder()
-                    .addRow("1.", "Unlock the BLUE Door.", game.board.getDoor(blueDoor) != ZWallFlag.LOCKED ? "(x)" : "")
-                    .addRow("2.", "Unlock the GREEN Door.", game.board.getDoor(greenDoor) != ZWallFlag.LOCKED ? "(x)" : "")
+                    .addRow("1.", "Unlock the BLUE Door.", game.board.getDoor(blueDoor) != ZWallFlag.LOCKED ? "yes" : "no")
+                    .addRow("2.", "Unlock the GREEN Door.", game.board.getDoor(greenDoor) != ZWallFlag.LOCKED ? "yes" : "no")
                     .addRow("3.", String.format("Collect all Objectives for %d EXP Each", OBJECTIVE_EXP), String.format("%d of %d", numRedZones- objZones.size(), numRedZones))
-                    .addRow("4.", "Get all players into the EXIT zone.", isQuestComplete(game) ? "(x)" : "")
+                    .addRow("4.", "Get all players into the EXIT zone.", isQuestComplete(game) ? "yes" : "no")
                     .addRow("5.", "Exit zone must be cleared of zombies.")
                     .addRow("5.", "All Players must survive.")
                 );

@@ -137,10 +137,10 @@ public class ZQuestBigGameHunting extends ZQuest {
 
         return new Table(getName())
                 .addRow(new Table().setNoBorder()
-                    .addRow("1.", "Collect all objectives. One of the objectives\nexposes the laboratory objective.", allObjCollected ? "(x)" : "")
-                    .addRow("1.", "Find the Laroratory Objective", exposeLaboratory ? "(x)" : "")
-                    .addRow("2.", "Kill at least 1 Necromancer.", necroKilled ? "(x)" : "")
-                    .addRow("3.", "Kill at least 1 Abomination.", abimKilled ? "(x)" : "")
+                    .addRow("1.", "Collect all objectives. One of the objectives\nexposes the laboratory objective.", allObjCollected ? "yes" : "no")
+                    .addRow("1.", "Find the Laroratory Objective", exposeLaboratory ? "yes" : "no")
+                    .addRow("2.", "Kill at least 1 Necromancer.", necroKilled ? "yes" : "no")
+                    .addRow("3.", "Kill at least 1 Abomination.", abimKilled ? "yes" : "no")
                     .addRow("4.", "Not all players need to survive.")
                 );
     }

@@ -115,7 +115,7 @@ public class ZBoard extends Reflector<ZBoard> {
         return null;
     }
 
-    ZDoor findDoor(Grid.Pos pos, ZDir dir) {
+    public ZDoor findDoor(Grid.Pos pos, ZDir dir) {
         for (ZDoor door : zones.get(getCell(pos).zoneIndex).doors) {
             if (door.getCellPosStart().equals(pos) && door.getMoveDirection()==dir) {
                 return door;

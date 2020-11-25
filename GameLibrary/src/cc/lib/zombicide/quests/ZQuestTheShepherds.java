@@ -19,6 +19,10 @@ import cc.lib.zombicide.ZTiles;
 
 public class ZQuestTheShepherds extends ZQuest {
 
+    static {
+        addAllFields(ZQuestTheShepherds.class);
+    }
+
     public ZQuestTheShepherds() {
         super("The Shepherds");
     }
