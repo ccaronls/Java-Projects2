@@ -24,5 +24,7 @@ public enum ZMoveType {
     DROP_ITEM,
     PICKUP_ITEM,
     MAKE_NOISE,
-    SHOVE
+    SHOVE,
+    REROLL,
+    KEEP_ROLL
 }

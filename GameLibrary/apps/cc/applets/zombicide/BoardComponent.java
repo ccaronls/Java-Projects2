@@ -416,17 +416,7 @@ class BoardComponent extends AWTComponent implements ZTiles {
         }
         return tiles;
     }
-/*
-    @Override
-    public int getImage(Object obj) {
-        Integer id = objectToImageMap.get(obj);
-        if (id == null) {
-            log.error("getImage: missing id for " + obj);
-            return -1;
-        }
-        return id;
-    }
-*/
+
     @Override
     public void keyPressed(KeyEvent e) {
         ZGame game = getGame();

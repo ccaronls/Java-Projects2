@@ -558,7 +558,7 @@ public class ZBoard extends Reflector<ZBoard> {
                 List<Integer> accessible = getAccessableZones(cell.zoneIndex, 1, ZActionType.MOVE);
                 text = "1 Unit away:\n" + accessible;
                 returnCell = it.getPos();//new int[] { col, row };
-                List<Integer> accessible2 = getAccessableZones(cell.zoneIndex, 2, ZActionType.RANGED);
+                List<Integer> accessible2 = getAccessableZones(cell.zoneIndex, 2, ZActionType.MAGIC);
                 text += "\n2 Units away:\n" + accessible2;
             }
             g.setColor(GColor.CYAN);

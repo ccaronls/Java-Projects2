@@ -498,7 +498,8 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
                     return null;
                 stat = weapon.type.meleeStats.copy();
                 break;
-            case RANGED:
+            case RANGED_ARROWS:
+            case RANGED_BOLTS:
                 if (!weapon.isRanged())
                     return null;
                 stat = weapon.type.rangedStats.copy();
@@ -602,6 +603,35 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
         } else {
             log.error("Cannot remove item %s from equipment:", equip, getAllEquipment());
         }
+    }
+
+    boolean isHolding(ZEquipmentType type) {
+        for (ZEquipment e : getAllEquipment()) {
+            if (e.getType().equals(type))
+                return true;
+        }
+        return false;
+    }
+
+    boolean canReroll(ZActionType action) {
+        if (availableSkills.contains(ZSkill.Lucky))
+            return true;
+
+        switch (action) {
+            case RANGED_ARROWS:
+                return isHolding(ZItemType.PLENTY_OF_ARROWS);
+            case RANGED_BOLTS:
+                return isHolding(ZItemType.PLENTY_OF_BOLTS);
+        }
+        return false;
+    }
+
+    boolean isRoll6Plus1Die(ZActionType type) {
+        for (ZSkill skill : availableSkills) {
+            if (skill.isRoll6Plus1(type))
+                return true;
+        }
+        return false;
     }
 
     /*

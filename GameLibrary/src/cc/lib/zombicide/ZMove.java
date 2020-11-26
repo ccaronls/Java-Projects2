@@ -65,6 +65,21 @@ public class ZMove implements IButton {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null)
+            return false;
+        if (o instanceof ZMoveType) {
+            if (type == (ZMoveType)o)
+                return true;
+        }
+        if (!(o instanceof ZMove))
+            return false;
+        ZMove zMove = (ZMove) o;
+        return type == zMove.type;
+    }
+
+    @Override
     public String getTooltipText() {
         if (equipment != null) {
             if (toSlot != null) {
@@ -178,5 +193,12 @@ public class ZMove implements IButton {
         return new ZMove(ZMoveType.SHOVE, toZones);
     }
 
+    public static ZMove newReRollMove() {
+        return new ZMove(ZMoveType.REROLL);
+    }
+
+    public static ZMove newKeepRollMove() {
+        return new ZMove(ZMoveType.KEEP_ROLL);
+    }
 
 }

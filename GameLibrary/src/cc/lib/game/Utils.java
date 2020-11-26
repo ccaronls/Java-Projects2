@@ -31,7 +31,15 @@ public class Utils {
     // general working matricies, created once
     private final static float[] m_matrix_2x2 = new float[4];
     private final static float[] r_matrix_2x2 = new float[4];
-    private final static Random randGen = new Random(System.currentTimeMillis()); // random number generator
+    private final static Random randGen;
+
+    static {
+        if (DEBUG_ENABLED) {
+            randGen = new Random(0);
+        } else {
+            randGen = new Random(System.currentTimeMillis());
+        }
+    }
 
     // FUCNTIONS
 

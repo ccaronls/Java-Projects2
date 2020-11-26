@@ -61,23 +61,23 @@ public class ZCell extends Reflector<ZCell> {
 
     public GRectangle getQuadrant(int quadrant) {
         switch (quadrant) {
-            case 0: // center
-                return new GRectangle(rect.x+rect.w/4, rect.y+rect.h/4, rect.w/2, rect.h/2);
-            case 1: // upperleft
+            case 8: // upperleft
                 return new GRectangle(rect.getTopLeft(), rect.getCenter());
-            case 2: // lowerright
+            case 7: // lowerright
                 return new GRectangle(rect.getCenter(), rect.getBottomRight());
-            case 3: // upperright
+            case 6: // upperright
                 return new GRectangle(rect.getCenter(), rect.getTopRight());
-            case 4: // lowerleft
+            case 5: // lowerleft
                 return new GRectangle(rect.getCenter(), rect.getBottomLeft());
-            case 5: // top
+            case 4: // center
+                return new GRectangle(rect.x+rect.w/4, rect.y+rect.h/4, rect.w/2, rect.h/2);
+            case 3: // top
                 return new GRectangle(rect.x+rect.w/4, rect.y, rect.w/2, rect.h/2);
-            case 6: // left
+            case 2: // left
                 return new GRectangle(rect.x, rect.y+rect.h/4, rect.w/2, rect.h/2);
-            case 7: // right
+            case 1: // right
                 return new GRectangle(rect.x+rect.w/2, rect.y+rect.h/4, rect.w/2, rect.h/2);
-            case 8: // bottom
+            case 0: // bottom
                 return new GRectangle(rect.x+rect.w/4, rect.y+rect.h/2, rect.w/2, rect.h/2);
         }
         return null;

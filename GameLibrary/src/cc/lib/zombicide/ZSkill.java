@@ -17,7 +17,7 @@ public enum ZSkill implements IButton {
     Plus1_Damage_Ranged("The Survivor gets a +1 Damage bonus with Ranged weapons.") {
         @Override
         public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game) {
-            if (actionType == ZActionType.RANGED) {
+            if (actionType == ZActionType.RANGED_BOLTS || actionType == ZActionType.RANGED_ARROWS) {
                 stat.damagePerHit++;
             }
         }
@@ -56,7 +56,7 @@ public enum ZSkill implements IButton {
     Plus1_to_dice_roll_Ranged("The Survivor adds 1 to the result of each die he rolls in Ranged Actions. The maximum result is always 6.") {
         @Override
         public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game) {
-            if (actionType == ZActionType.RANGED) {
+            if (actionType == ZActionType.RANGED_BOLTS || actionType == ZActionType.RANGED_ARROWS) {
                 stat.dieRollToHit--;
             }
         }
@@ -86,7 +86,7 @@ public enum ZSkill implements IButton {
     Plus1_die_Ranged("The Survivor’s Ranged weapons roll an extra die for Ranged Actions. Dual Ranged weapons gain a die each, for a total of +2 dice per Dual Ranged Action.") {
         @Override
         public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game) {
-            if (actionType == ZActionType.RANGED) {
+            if (actionType == ZActionType.RANGED_BOLTS || actionType == ZActionType.RANGED_ARROWS) {
                 stat.numDice++;
             }
         }
@@ -96,7 +96,8 @@ public enum ZSkill implements IButton {
         public boolean modifyActionsRemaining(ZCharacter character, ZActionType type, ZGame game) {
             switch (type) {
                 case MAGIC:
-                case RANGED:
+                case RANGED_ARROWS:
+                case RANGED_BOLTS:
                 case MELEE:
                     return true;
             }
@@ -147,7 +148,8 @@ public enum ZSkill implements IButton {
         @Override
         public boolean modifyActionsRemaining(ZCharacter character, ZActionType type, ZGame game) {
             switch (type) {
-                case RANGED:
+                case RANGED_ARROWS:
+                case RANGED_BOLTS:
                     return true;
             }
             return false;
@@ -213,7 +215,15 @@ public enum ZSkill implements IButton {
     Collector_Abomination("The Survivor gains double the experience each time he kills a Abomination."),
     Collector_Necromancer("The Survivor gains double the experience each time he kills a Necromancer."),
     Destiny("The Survivor can use this Skill once per Turn when he reveals an Equipment card he drew. You can ignore and discard that card, then draw another Equipment card."),
-    Free_reload("The Survivor reloads reloadable weapons (Hand Crossbows, Orcish Crossbow, etc.) for free. "),
+    Free_reload("The Survivor reloads reloadable weapons (Hand Crossbows, Orcish Crossbow, etc.) for free. ") {
+        @Override
+        public void addSpecialMoves(ZGame game, ZCharacter character, List<ZMove> moves) {
+            for (ZWeapon w : character.getWeapons()) {
+                w.reload();
+            }
+            super.addSpecialMoves(game, character, moves);
+        }
+    },
     Frenzy_Combat("All weapons and Combat spells the Survivor carries gain +1 die per Wound the Survivor suffers. Dual weapons gain a die each, for a total of +2 dice per Wound and per Dual Combat Action (Melee, Ranged or Magic).") {
         @Override
         public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game) {
@@ -239,7 +249,7 @@ public enum ZSkill implements IButton {
     Frenzy_Ranged("Ranged weapons the Survivor carries gain +1 die per Wound the Survivor suffers. Dual Ranged weapons gain a die each, for a total of +2 dice per Wound and per Dual Ranged Action.") {
         @Override
         public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game) {
-            if (actionType == ZActionType.RANGED) {
+            if (actionType == ZActionType.RANGED_BOLTS || actionType == ZActionType.RANGED_ARROWS) {
                 stat.numDice += character.woundBar;
             }
         }
@@ -272,12 +282,61 @@ public enum ZSkill implements IButton {
     Reaper_Melee("Use this Skill when assigning hits while resolving a Melee Action. One of these hits can freely kill an additional identical Zombie in the same Zone. Only a single additional Zombie can be killed per Action when using this Skill. The Survivor gains the experience for the additional Zombie."),
     Reaper_Ranged("Use this Skill when assigning hits while resolving a Ranged Action. One of these hits can freely kill an additional identical Zombie in the same Zone. Only a single additional Zombie can be killed per Action when using this Skill. The Survivor gains the experience for the additional Zombie."),
     Regeneration("At the end of each Game Round, remove all Wounds the Survivor received. Regeneration doesn’t work if the Survivor has been eliminated."),
-    Roll_6_plus1_die_Combat("You may roll an additional die for each '6' rolled on any Combat Action (Melee, Ranged or Magic). Keep on rolling additional dice as long as you keep getting '6'. Game effects that allow re-rolls (the Plenty Of Arrows Equipment card, for example) must be used before rolling any additional dice for this Skill."),
-    Roll_6_plus1_die_Magic("You may roll an additional die for each '6' rolled on a Magic Action. Keep on rolling additional dice as long as you keep getting '6'. Game effects that allow rerolls must be used before rolling any additional dice for this Skill."),
-    Roll_6_plus1_die_Melee("You may roll an additional die for each '6' rolled on a Melee Action. Keep on rolling additional dice as long as you keep getting '6'. Game effects that allow rerolls must be used before rolling any additional dice for this Skill."),
-    Roll_6_plus1_dies_Ranged("You may roll an additional die for each '6' rolled on a Ranged Action. Keep on rolling additional dice as long as you keep getting '6'. Game effects that allow re-rolls (the Plenty Of Arrows Equipment card, for example) must be used before rolling any additional dice for this Skill."),
+    Roll_6_plus1_die_Combat("You may roll an additional die for each '6' rolled on any Combat Action (Melee, Ranged or Magic). Keep on rolling additional dice as long as you keep getting '6'. Game effects that allow re-rolls (the Plenty Of Arrows Equipment card, for example) must be used before rolling any additional dice for this Skill.") {
+        @Override
+        boolean isRoll6Plus1(ZActionType type) {
+            switch (type) {
+                case MAGIC:
+                case MELEE:
+                case RANGED_BOLTS:
+                case RANGED_ARROWS:
+                    return true;
+            }
+            return false;
+        }
+    },
+    Roll_6_plus1_die_Magic("You may roll an additional die for each '6' rolled on a Magic Action. Keep on rolling additional dice as long as you keep getting '6'. Game effects that allow rerolls must be used before rolling any additional dice for this Skill.") {
+        @Override
+        boolean isRoll6Plus1(ZActionType type) {
+            switch (type) {
+                case MAGIC:
+                    return true;
+            }
+            return false;
+        }
+    },
+    Roll_6_plus1_die_Melee("You may roll an additional die for each '6' rolled on a Melee Action. Keep on rolling additional dice as long as you keep getting '6'. Game effects that allow rerolls must be used before rolling any additional dice for this Skill.") {
+        @Override
+        boolean isRoll6Plus1(ZActionType type) {
+            switch (type) {
+                case MELEE:
+                    return true;
+            }
+            return false;
+        }
+    },
+    Roll_6_plus1_die_Ranged("You may roll an additional die for each '6' rolled on a Ranged Action. Keep on rolling additional dice as long as you keep getting '6'. Game effects that allow re-rolls (the Plenty Of Arrows Equipment card, for example) must be used before rolling any additional dice for this Skill.") {
+        @Override
+        boolean isRoll6Plus1(ZActionType type) {
+            switch (type) {
+                case RANGED_BOLTS:
+                case RANGED_ARROWS:
+                    return true;
+            }
+            return false;
+        }
+    },
     Rotten("At the end of his Turn, if the Survivor has not resolved a Combat Action (Melee, Ranged or Magic) and not produced a Noise token, place a Rotten token next to his base. As long as he has this token, he is totally ignored by all Zombies and is not considered a Noise token. Zombies don’t attack him and will even walk past him. The Survivor loses his Rotten token if he resolves any kind of Combat Action (Melee, Ranged or Magic) or makes noise. Even with the Rotten token, the Survivor still has to spend extra Actions to move out of a Zone crowded with Zombies."),
-    Scavenger("The Survivor can Search in any Zone. This includes street Zones, Vault Zones, etc."),
+    Scavenger("The Survivor can Search in any Zone. This includes street Zones, Vault Zones, etc.") {
+        @Override
+        public void addSpecialMoves(ZGame game, ZCharacter character, List<ZMove> moves) {
+            if (!moves.contains(ZMoveType.SEARCH)) {
+                if (game.board.getZombiesInZone(character.getOccupiedZone()).size() == 0) {
+                    moves.add(ZMove.newSearchMove(character.getOccupiedZone()));
+                }
+            }
+        }
+    },
     Search_plus1_card("Draw an extra card when Searching with the Survivor."),
     Shove("The Survivor can use this Skill, for free, once during each of his Turns. Select a Zone at Range 1 from your Survivor. All Zombies standing in your Survivor’s Zone are pushed to the selected Zone. This is not a Movement. Both Zones need to share a clear path. A Zombie can’t cross closed doors, ramparts (see the Wulfsburg expansion) or walls, but can be shoved in or out of a Vault.") {
         @Override
@@ -403,4 +462,7 @@ public enum ZSkill implements IButton {
     public void addSpecialMoves(ZGame game, ZCharacter character, List<ZMove> moves) {}
 
 
+    boolean isRoll6Plus1(ZActionType type) {
+        return false;
+    }
 }

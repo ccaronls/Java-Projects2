@@ -7,7 +7,8 @@ public enum ZActionType {
     OPEN_DOOR,
     CLOSE_DOOR,
     MELEE,
-    RANGED,
+    RANGED_BOLTS,
+    RANGED_ARROWS,
     MAGIC,
     THROW_ITEM,
     ENCHANTMENT,
@@ -19,7 +20,8 @@ public enum ZActionType {
     DROP_ITEM,
     PICKUP_ITEM,
     MAKE_NOISE,
-    SHOVE;
+    SHOVE,
+    DEFEND;
 
     boolean oncePerTurn() {
         switch (this) {
