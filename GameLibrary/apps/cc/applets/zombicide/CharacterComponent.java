@@ -65,7 +65,7 @@ class CharacterComponent extends AWTComponent implements Scrollable {
             g.setColor(GColor.BLACK);
             info = ZombicideApplet.instance.boardComp.highlightedActor.drawInfo(g, getGame(), getWidth(), getHeight());
         } else if (getGame().getCurrentCharacter() != null) {
-            getGame().getCurrentCharacter().getInfoTable(getGame()).draw(g);
+            info = getGame().getCurrentCharacter().getInfoTable(getGame()).draw(g);
         } else if (actorInfo != null) {
             g.setColor(GColor.BLACK);
             info = actorInfo.drawInfo(g, getGame(), getWidth(), getHeight());
@@ -81,7 +81,8 @@ class CharacterComponent extends AWTComponent implements Scrollable {
                 y += d.getHeight();
             }
         }
-        maxY = y;
+        if (info != null)
+            maxY = (int)Math.max(info.height, y);
     }
 
     int maxY = 200;

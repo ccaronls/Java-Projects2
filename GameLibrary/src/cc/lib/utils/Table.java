@@ -60,14 +60,13 @@ public final class Table {
 
     private final List<String> header;
     private final List<Vector<Object>> rows = new ArrayList<>();
-    private final Model model;
+    private Model model;
     private int totalWidth=0;
     private int totalHeight=0;
     private int padding = 1;
     private int borderWidth = 2;
     private float[] maxWidth;
     private float[] maxHeight;
-
 
     public Table() {
         this(new Model() {});
@@ -76,6 +75,11 @@ public final class Table {
     public Table(Model model) {
         header = new ArrayList<>();
         this.model=model;
+    }
+
+    public Table setModel(Model model) {
+        this.model = model;
+        return this;
     }
 
     public Table(String ... header) {
@@ -182,6 +186,10 @@ public final class Table {
         return this;
     }
 
+    private float getCellPadding(AGraphics g) {
+        return Math.max(4, padding*g.getTextHeight()/2);
+    }
+
     public GDimension getDimension(AGraphics g) {
         if (header.size() == 0 && rows.isEmpty())
             return GDimension.EMPTY;
@@ -192,7 +200,7 @@ public final class Table {
 
         maxWidth = new float[columns];
         maxHeight = new float[rows.size()];
-        float cellPadding = Math.max(4, padding*g.getTextHeight()/2);
+        float cellPadding = getCellPadding(g);
 
         float headrHeight = 0;
         if (header != null && header.size() > 0) {
@@ -249,7 +257,7 @@ public final class Table {
         g.pushMatrix();
         float outerPadding = 0;
         if (borderWidth > 0) {
-            g.translate(borderWidth, borderWidth);
+            outerPadding = getCellPadding(g) / 2;
             // if there is a border, then there is padding arounf between border and text
             GColor cur = g.getColor();
             g.setColor(model.getBackgroundColor());
@@ -264,6 +272,15 @@ public final class Table {
         }
 
         // TODO: Draw vertical divider lines
+        {
+            g.pushMatrix();
+            g.translate(-getCellPadding(g)/2, -borderWidth);
+            for (int i = 0; i < maxWidth.length - 1; i++) {
+                g.translate(maxWidth[i], 0);
+                g.drawLine(0, 0, 0, dim.height);
+            }
+            g.popMatrix();
+        }
 
         // check for header. if so render and draw a divider line
         float cellPadding = Math.max(4, padding*g.getTextHeight()/2);

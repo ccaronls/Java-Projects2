@@ -3,8 +3,6 @@ package cc.applets.zombicide;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.EventQueue;
-import java.awt.Font;
-import java.awt.GraphicsEnvironment;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
@@ -305,10 +303,10 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
     protected void initApp() {
         ToolTipManager.sharedInstance().setDismissDelay(30*1000);
         ToolTipManager.sharedInstance().setInitialDelay(0);
-        Font[] fonts = GraphicsEnvironment.getLocalGraphicsEnvironment().getAllFonts();
-        for (Font f : fonts) {
-            log.debug("Font: %s:%s", f.getName(), f.getAttributes());
-        }
+//        Font[] fonts = GraphicsEnvironment.getLocalGraphicsEnvironment().getAllFonts();
+//        for (Font f : fonts) {
+//            log.debug("Font: %s:%s", f.getName(), f.getAttributes());
+//        }
         //log.info("Fonts=" + Arrays.toString(fonts));
 
         // For applets:all fonts are: [Arial, Dialog, DialogInput, Monospaced, SansSerif, Serif]

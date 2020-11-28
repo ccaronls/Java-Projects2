@@ -55,6 +55,14 @@ public enum ZPlayerName implements IButton {
             Utils.toArray(ZSkill.Plus1_Action),
             Utils.toArray(ZSkill.Lucky, ZSkill.Spellcaster),
             Utils.toArray(ZSkill.Plus1_die_Combat, ZSkill.Plus1_free_Combat_Action, ZSkill.Free_reload)),
+    Jain("Valkerie",
+            Utils.toArray(ZWeaponType.LONG_BOW, (ZEquipmentType)ZItemType.PLENTY_OF_ARROWS),
+            Utils.toArray(ZItemType.TORCH),
+            Utils.toArray(ZSkill.Steady_hand),
+            Utils.toArray(ZSkill.Plus1_Action),
+            Utils.toArray(ZSkill.Plus1_die_Ranged, ZSkill.Plus1_max_Range),
+            Utils.toArray(ZSkill.Plus1_Damage_Ranged, ZSkill.Point_blank, ZSkill.Sprint)),
+
     /*
     Tyrion("Elitist",
             Utils.toArray(ZWeaponType.DAGGER),

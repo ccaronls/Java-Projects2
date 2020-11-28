@@ -516,8 +516,16 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
                 stat = weapon.type.meleeStats.copy();
                 break;
             case RANGED_ARROWS:
+                if (!weapon.isRanged())
+                    return null;
+                if (!weapon.type.usesArrows)
+                    return null;
+                stat = weapon.type.rangedStats.copy();
+                break;
             case RANGED_BOLTS:
                 if (!weapon.isRanged())
+                    return null;
+                if (!weapon.type.usesBolts)
                     return null;
                 stat = weapon.type.rangedStats.copy();
                 break;

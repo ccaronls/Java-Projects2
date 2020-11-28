@@ -390,14 +390,17 @@ class BoardComponent extends AWTComponent implements ZTiles {
             { ZPlayerName.Samson, "zchar_samson.gif" },
             { ZPlayerName.Silas, "zchar_silas.gif" },
             { ZPlayerName.Tucker, "zchar_tucker.gif" },
-            { ZPlayerName.Ann.name(), "zcard_ann.gif" },
+            { ZPlayerName.Jain, "zchar_jain.gif" },
 
+            { ZPlayerName.Ann.name(), "zcard_ann.gif" },
             { ZPlayerName.Baldric.name(), "zcard_baldric.gif" },
             { ZPlayerName.Clovis.name(), "zcard_clovis.gif" },
             { ZPlayerName.Nelly.name(), "zcard_nelly.gif" },
             { ZPlayerName.Samson.name(), "zcard_samson.gif" },
             { ZPlayerName.Silas.name(), "zcard_silas.gif" },
-            { ZPlayerName.Tucker.name(), "zcard_tucker.gif" }
+            { ZPlayerName.Tucker.name(), "zcard_tucker.gif" },
+            { ZPlayerName.Jain.name(), "zcard_jain.gif" },
+
         };
 
         Map<Object, List<Integer>> objectToImageMap = new HashMap<>();
