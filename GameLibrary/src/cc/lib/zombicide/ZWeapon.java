@@ -91,7 +91,7 @@ public class ZWeapon extends ZEquipment<ZWeaponType> {
     }
 
     @Override
-    public String getCardString(ZCharacter c, ZGame game) {
+    public Table getCardInfo(ZCharacter c, ZGame game) {
 
         /*
 
@@ -142,10 +142,10 @@ public class ZWeapon extends ZEquipment<ZWeaponType> {
         Table card = new Table(new String [] { type.name() + (type.canTwoHand ? " (DW)" : "" ) },
             new Object [][] {
 //                { cardUpper.toString() },
-                { cardLower.toString() }
+                { cardLower }
             }).setNoBorder();
 
-        return card.toString();
+        return card;
     }
 
     @Override

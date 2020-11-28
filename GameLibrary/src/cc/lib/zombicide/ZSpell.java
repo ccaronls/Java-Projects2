@@ -40,10 +40,9 @@ public class ZSpell extends ZEquipment<ZSpellType> {
     }
 
     @Override
-    public String getCardString(ZCharacter c, ZGame game) {
-        return new Table(new String [] { type.name() },
-                new Object [][] {
-                        {Utils.wrapText(type.description, 32)}
-                }).toString();
+    public Table getCardInfo(ZCharacter c, ZGame game) {
+        Table t = new Table(type.name()).setNoBorder();
+        return t.addRow(Utils.wrapTextWithNewlines(type.description, 20));
     }
+
 }

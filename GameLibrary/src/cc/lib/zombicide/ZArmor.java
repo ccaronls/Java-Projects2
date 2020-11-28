@@ -50,7 +50,7 @@ public class ZArmor extends ZEquipment<ZArmorType> {
     }
 
     @Override
-    public String getCardString(ZCharacter c, ZGame game) {
+    public Table getCardInfo(ZCharacter c, ZGame game) {
 
         /*
 
@@ -68,16 +68,14 @@ public class ZArmor extends ZEquipment<ZArmorType> {
 
 
 
-        Table table = new Table().setNoBorder();
+        Table ratings = new Table().setNoBorder();
         for (ZZombieType type : Utils.asList(ZZombieType.Walker, ZZombieType.Fatty, ZZombieType.Runner, ZZombieType.Necromancer, ZZombieType.Abomination)) {
-            table.addRow(type, getRating(type));
+            ratings.addRow(type, getRating(type));
         }
-        String card = table.toString();
-        String info = type.name() + "\n";
+        Table main = new Table(type.name()).setNoBorder().addRow(ratings);
         if (type.specialAbilityDescription != null) {
-            info += Utils.wrapTextWithNewlines(type.specialAbilityDescription, table.getTotalWidth()) + "\n";
+            main.addRow(Utils.wrapTextWithNewlines(type.specialAbilityDescription, 32));
         }
-        info += card;
-        return info;
+        return main;
     }
 }

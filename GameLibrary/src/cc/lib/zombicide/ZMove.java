@@ -201,4 +201,9 @@ public class ZMove implements IButton {
         return new ZMove(ZMoveType.KEEP_ROLL);
     }
 
+    public static ZMove newEnchantMove(List<ZSpell> spells) {
+        return new ZMove(ZMoveType.ENCHANT, spells);
+    }
+
+
 }

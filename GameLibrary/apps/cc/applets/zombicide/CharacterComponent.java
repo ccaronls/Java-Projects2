@@ -12,6 +12,7 @@ import cc.lib.game.GDimension;
 import cc.lib.game.Justify;
 import cc.lib.swing.AWTComponent;
 import cc.lib.swing.AWTGraphics;
+import cc.lib.zombicide.ZActor;
 import cc.lib.zombicide.ZGame;
 
 class CharacterComponent extends AWTComponent implements Scrollable {
@@ -45,6 +46,7 @@ class CharacterComponent extends AWTComponent implements Scrollable {
     }
 
     Font courier = null;
+    ZActor actorInfo = null;
 
     @Override
     protected void paint(AWTGraphics g, int mouseX, int mouseY) {
@@ -52,17 +54,21 @@ class CharacterComponent extends AWTComponent implements Scrollable {
         if (getGame() == null)
             return;
         if (courier == null) {
-            courier = new Font("courier", Font.BOLD, g.getTextHeight());
+            // this did not work
+            //((AWTGraphics2)g).getGraphics2D().setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
+            courier = new Font("Monospaced", Font.PLAIN, g.getTextHeight());
         }
-        g.getGraphics().setFont(Font.decode(Font.MONOSPACED));//.deriveFont(Font.BOLD));
+        g.getGraphics().setFont(courier);//Font.decode(Font.MONOSPACED));//.deriveFont(Font.BOLD));
         GDimension info = null;
         if (ZombicideApplet.instance.boardComp.highlightedActor != null) {
+            actorInfo = ZombicideApplet.instance.boardComp.highlightedActor;
             g.setColor(GColor.BLACK);
             info = ZombicideApplet.instance.boardComp.highlightedActor.drawInfo(g, getGame(), getWidth(), getHeight());
         } else if (getGame().getCurrentCharacter() != null) {
-            String txt = getGame().getCurrentCharacter().getDebugString(getGame());
+            getGame().getCurrentCharacter().getInfoTable(getGame()).draw(g);
+        } else if (actorInfo != null) {
             g.setColor(GColor.BLACK);
-            info = g.drawString(txt, 0, 0);
+            info = actorInfo.drawInfo(g, getGame(), getWidth(), getHeight());
         }
 
         g.setColor(GColor.BLACK);
@@ -75,7 +81,7 @@ class CharacterComponent extends AWTComponent implements Scrollable {
                 y += d.getHeight();
             }
         }
-        maxY = 0;
+        maxY = y;
     }
 
     int maxY = 200;

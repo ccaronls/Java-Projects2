@@ -26,5 +26,6 @@ public enum ZMoveType {
     MAKE_NOISE,
     SHOVE,
     REROLL,
-    KEEP_ROLL
+    KEEP_ROLL,
+    ENCHANT
 }

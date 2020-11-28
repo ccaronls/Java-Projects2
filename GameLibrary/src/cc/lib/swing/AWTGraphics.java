@@ -337,7 +337,7 @@ public class AWTGraphics extends APGraphics {
 	}
 
 	@Override
-    public final  AImage getImage(int id) {
+    public final AImage getImage(int id) {
         if (id < 0)
             return null;
         return new AWTImage(images.getImage(id), comp);
@@ -390,8 +390,8 @@ public class AWTGraphics extends APGraphics {
         images.drawImage(g, comp, imageKey, x, y, w, h);
     }
 
-    void drawImageRotated() {
-
+    public void drawImage(AWTImage image, int x, int y) {
+        g.drawImage(image.image, x, y, image.comp);
     }
 
     @Override

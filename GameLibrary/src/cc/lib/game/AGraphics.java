@@ -921,7 +921,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @return
      */
     public abstract AImage getImage(int id, int width, int height);
-    
+
     /**
      * 
      * @param assetPath
@@ -1136,6 +1136,15 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
 
     /**
      *
+     * @param dim
+     * @param thickness
+     */
+    public final void drawRect(GDimension dim, float thickness) {
+        drawRect(0, 0, dim.width, dim.height, thickness);
+    }
+
+    /**
+     *
      * @param rect
      */
     public final void drawRect(GRectangle rect) {
@@ -1175,6 +1184,11 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param radius
      */
     public void drawRoundedRect(float x, float y, float w, float h, float thickness, float radius) {
+        if (radius < 1) {
+            drawRect(x, y, w, h, thickness);
+            return;
+        }
+
     	drawArc(x+radius, y+radius, radius, thickness, 180f, 90f, 6);
     	drawLine(x+radius, y, x+w-radius, y, thickness);
     	drawArc(x+w-radius,y+radius,radius,thickness,270f,90f, 6);
@@ -1196,6 +1210,16 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     }
 
     /**
+     *
+     * @param dim
+     * @param thickness
+     * @param radius
+     */
+    public final void drawRoundedRect(GDimension dim, float thickness, float radius) {
+        drawRoundedRect(0, 0, dim.width, dim.height, thickness, radius);
+    }
+
+    /**
      * 
      * @param x
      * @param y
@@ -1203,6 +1227,10 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param radius
      */
     public void drawFilledRoundedRect(float x, float y, float w, float h, float radius) {
+        if (radius < 1) {
+            drawFilledRect(x, y, w, h);
+            return;
+        }
     	float r2 = radius*2;
     	drawFilledWedge(x+radius, y+radius, radius, 180f, 90f, 6);
     	drawFilledRect(x+radius,y,w-r2,radius);

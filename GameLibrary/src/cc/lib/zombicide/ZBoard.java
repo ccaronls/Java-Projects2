@@ -126,6 +126,8 @@ public class ZBoard extends Reflector<ZBoard> {
     }
 
     public boolean canSee(int fromZone, int toZone) {
+        if (fromZone == toZone)
+            return true;
         for (Grid.Pos pos0: zones.get(fromZone).cells) {
             for (Grid.Pos pos1: zones.get(toZone).cells) {
                 if (canSeeCell(pos0, pos1))
@@ -653,7 +655,7 @@ public class ZBoard extends Reflector<ZBoard> {
         }
     }
 
-    public ZActor drawActors(AGraphics g, ZTiles tiles, int mx, int my) {
+    public ZActor drawActors(AGraphics g, int mx, int my) {
         ZActor picked = null;
         for (ZCell cell : getCells()) {
             for (int i=0; i<cell.occupied.length; i++) {

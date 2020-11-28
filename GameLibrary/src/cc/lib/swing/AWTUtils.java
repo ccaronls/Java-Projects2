@@ -795,9 +795,10 @@ public class AWTUtils {
     }
 
     /**
-     * 
+     *
      * @param g
-     * @param points
+     * @param x_pts
+     * @param y_pts
      * @param thickness
      */
     public static void drawLineStrip(Graphics g, int [] x_pts, int [] y_pts, int thickness) {
@@ -852,15 +853,16 @@ public class AWTUtils {
         drawLine(g, x, y+h, x+w, y+h, thickness);
         drawLine(g, x, y, x, y+h, thickness);
     }
-    
+
     /**
-     * 
+     *
      * @param g
      * @param x
      * @param y
      * @param w
      * @param h
-     * @param thickness
+     * @param innerThickness
+     * @param outerThickness
      */
     public static void drawRect(Graphics g, int x, int y, int w, int h, int innerThickness, int outerThickness) {
     	final int thickness = innerThickness + outerThickness;
@@ -905,14 +907,14 @@ public class AWTUtils {
     
     /**
      * 
-     * @param c
+     * @param argb
      * @return
      */
-    public static Color intToColor(int c) {
-        int a = (c&0xff000000)>>24;
-        int r = (c&0x00ff0000)>>16;
-        int g = (c&0x0000ff00)>>8;
-        int b = (c&0x000000ff)>>0;
+    public static Color intToColor(int argb) {
+        int a = (argb >>> 24) & 0xff;
+        int r = (argb >> 16) & 0xff;
+        int g = (argb >> 8) & 0xff;
+        int b = (argb >> 0) & 0xff;
         return new Color(r,g,b,a);
     }
 
@@ -959,7 +961,7 @@ public class AWTUtils {
         B = Utils.clamp(color.getBlue() + B, 0, 255);
         return new Color(R,G,B,color.getAlpha());       
     }
-    
+
     /**
      * Return a when aWeight == 1.0
      * Return board when aWeight == 0.0

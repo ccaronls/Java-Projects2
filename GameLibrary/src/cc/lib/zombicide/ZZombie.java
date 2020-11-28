@@ -24,7 +24,7 @@ public final class ZZombie extends ZActor<ZZombieType> {
     public ZZombie(ZZombieType type, int zone) {
         super(zone);
         this.type = type;
-        prepareTurn();
+        onBeginRound();
     }
 
     final ZZombieType type;
@@ -45,8 +45,8 @@ public final class ZZombie extends ZActor<ZZombieType> {
         info.addRow("Ignores Armor", type.ignoresArmor);
         info.addRow("Ranged Priority", type.rangedPriority);
         Table outer = new Table();
-        outer.addColumn(name(), info.toString());
-        return g.drawString(outer.toString(), 0, 0);
+        outer.addColumn(name(), info);
+        return outer.draw(g);//g.drawString(outer.toString(), 0, 0);
     }
 
     @Override

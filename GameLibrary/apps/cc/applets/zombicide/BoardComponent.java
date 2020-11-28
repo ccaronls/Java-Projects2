@@ -19,6 +19,8 @@ import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
 import cc.lib.swing.AWTComponent;
 import cc.lib.swing.AWTGraphics;
+import cc.lib.swing.AWTGraphics2;
+import cc.lib.swing.AWTImage;
 import cc.lib.utils.Grid;
 import cc.lib.utils.Table;
 import cc.lib.zombicide.ZActor;
@@ -168,8 +170,32 @@ class BoardComponent extends AWTComponent implements ZTiles {
         setPreferredSize(newWidth, newHeight);
     }
 
+    public ZActor drawActors(AWTGraphics2 g, ZBoard b, int mx, int my) {
+        ZActor picked = null;
+        for (ZCell cell : b.getCells()) {
+            for (int i=0; i<ZCell.NUM_QUADRANTS; i++) {
+                ZActor a = cell.getOccupied(i);
+                if (a == null)
+                    continue;
+                AWTImage img = (AWTImage)g.getImage(a.getImageId());
+                if (img != null) {
+                    GRectangle rect = cell.getQuadrant(i).fit(img).scaledBy(a.getScale());
+                    if (rect.contains(mx, my))
+                        picked = a;
+                    if (a.isInvisible()) {
+                        g.setTransparentcyFilter(.5f);
+                    }
+                    g.drawImage(a.getImageId(), rect);
+                    g.removeComposite();
+                    a.setRect(rect);
+                }
+            }
+        }
+        return picked;
+    }
+
     @Override
-    protected void paint(AWTGraphics g, int mouseX, int mouseY) {
+    protected synchronized void paint(AWTGraphics g, int mouseX, int mouseY) {
         if (getGame() == null || getGame().board == null)
             return;
         final ZBoard board = getGame().board;
@@ -189,13 +215,14 @@ class BoardComponent extends AWTComponent implements ZTiles {
             if (drawTiles) {
                 getGame().getQuest().drawTiles(g, board, this);
             }
-            highlightedActor = board.drawActors(g, this, getMouseX(), getMouseY());
+            highlightedActor = //board.drawActors(g, getMouseX(), getMouseY());
+                    drawActors((AWTGraphics2)g, getGame().board, getMouseX(), getMouseY());
 
             if (getGame().getCurrentCharacter() != null) {
-                if (highlightedActor == getGame().getCurrentCharacter())
-                    highlightedActor = null; // prevent highlighting an already selected actor
+//                if (highlightedActor == getGame().getCurrentCharacter())
+  //                  highlightedActor = null; // prevent highlighting an already selected actor
                 g.setColor(GColor.GREEN);
-                g.drawRect(getGame().getCurrentCharacter().getRect(), OUTLINE);
+                g.drawRect(getGame().getCurrentCharacter().getRect().grownBy(4), OUTLINE);
             }
 
             g.setColor(GColor.BLACK);
@@ -208,6 +235,10 @@ class BoardComponent extends AWTComponent implements ZTiles {
             switch (ZombicideApplet.instance.uiMode) {
                 case PICK_ZOMBIE:
                 case PICK_CHARACTER: {
+                    g.setColor(GColor.YELLOW);
+                    for (ZActor a : (List<ZActor>)options) {
+                        a.getRect().drawOutlined(g, 1);
+                    }
                     if (options.contains(highlightedActor)) {
                         highlightedResult = highlightedActor;
                     }
@@ -241,8 +272,8 @@ class BoardComponent extends AWTComponent implements ZTiles {
                 board.drawZoneOutline(g, cell.getZoneIndex());
             }
             if (highlightedActor != null) {
-                g.setColor(GColor.YELLOW);
-                g.drawRect(highlightedActor.getRect(), OUTLINE);
+                g.setColor(GColor.RED);
+                g.drawRect(highlightedActor.getRect().grownBy(2), OUTLINE);
             }
             ZombicideApplet.instance.charComp.repaint();
 
@@ -298,7 +329,13 @@ class BoardComponent extends AWTComponent implements ZTiles {
                 Font fixedWidth = new Font("courier", Font.BOLD, 16);
                 g.setFont(fixedWidth);
                 g.setColor(GColor.YELLOW);
-                g.drawJustifiedStringOnBackground(getWidth() / 2, getHeight() / 2, Justify.CENTER, Justify.CENTER, overlayToDraw.toString(), GColor.TRANSLUSCENT_BLACK, 10, 10);
+                GDimension dim = ((Table)overlayToDraw).getDimension(g);
+                g.pushMatrix();
+                g.translate(getWidth()/2, getHeight()/2);
+                g.translate(-dim.width/2, -dim.height/2);
+                ((Table)overlayToDraw).draw(g);
+                g.popMatrix();
+                //g.drawJustifiedStringOnBackground(getWidth() / 2, getHeight() / 2, Justify.CENTER, Justify.CENTER, overlayToDraw.toString(), GColor.TRANSLUSCENT_BLACK, 10, 10);
                 g.setFont(font);
             }
         }

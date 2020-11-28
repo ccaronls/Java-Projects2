@@ -10,6 +10,7 @@ import cc.lib.zombicide.ZGame;
 import cc.lib.zombicide.ZItem;
 import cc.lib.zombicide.ZMove;
 import cc.lib.zombicide.ZSkill;
+import cc.lib.zombicide.ZSpell;
 import cc.lib.zombicide.ZUser;
 import cc.lib.zombicide.ZWeapon;
 
@@ -97,5 +98,15 @@ public class ZAppletUser extends ZUser {
     @Override
     public Integer chooseZoneToShove(ZGame zGame, ZCharacter cur, List<Integer> zones) {
         return ZombicideApplet.instance.pickZone("Choose Zone to shove zombies into", zones);
+    }
+
+    @Override
+    public ZSpell chooseSpell(ZGame zGame, ZCharacter cur, List<ZSpell> spells) {
+        return ZombicideApplet.instance.pickMenu("Choose Spell", spells);
+    }
+
+    @Override
+    public ZCharacter chooseCharacterForSpell(ZGame zGame, ZCharacter cur, ZSpell spell, List<ZCharacter> targets) {
+        return ZombicideApplet.instance.pickCharacter("Choose character to enchant with " + spell.getType(), targets);
     }
 }

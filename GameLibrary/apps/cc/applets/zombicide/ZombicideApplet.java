@@ -3,6 +3,8 @@ package cc.applets.zombicide;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.EventQueue;
+import java.awt.Font;
+import java.awt.GraphicsEnvironment;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
@@ -303,6 +305,14 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
     protected void initApp() {
         ToolTipManager.sharedInstance().setDismissDelay(30*1000);
         ToolTipManager.sharedInstance().setInitialDelay(0);
+        Font[] fonts = GraphicsEnvironment.getLocalGraphicsEnvironment().getAllFonts();
+        for (Font f : fonts) {
+            log.debug("Font: %s:%s", f.getName(), f.getAttributes());
+        }
+        //log.info("Fonts=" + Arrays.toString(fonts));
+
+        // For applets:all fonts are: [Arial, Dialog, DialogInput, Monospaced, SansSerif, Serif]
+
         setLayout(new BorderLayout());
         JScrollPane charContainer = new JScrollPane();
         charContainer.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
@@ -391,30 +401,41 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
     }
 
     public ZCharacter pickCharacter(String message, List<ZCharacter> characters) {
-        boardComp.message = message;
-        options = characters;
-        uiMode = ZombicideApplet.UIMode.PICK_CHARACTER;
+        synchronized (boardComp) {
+            boardComp.message = message;
+            options = characters;
+            uiMode = ZombicideApplet.UIMode.PICK_CHARACTER;
+            boardComp.repaint();
+        }
         return waitForUser(ZCharacter.class);
     }
 
     public Integer pickZone(String message, List<Integer> zones) {
-        boardComp.message = message;
-        options = zones;
-        uiMode = ZombicideApplet.UIMode.PICK_ZONE;
+        synchronized (boardComp) {
+            boardComp.message = message;
+            options = zones;
+            uiMode = ZombicideApplet.UIMode.PICK_ZONE;
+            boardComp.repaint();
+        }
         return waitForUser(Integer.class);
     }
 
     public <T extends IButton> T pickMenu(String message, List<T> moves) {
-        boardComp.message = message;
-        options = moves;
-        uiMode = ZombicideApplet.UIMode.PICK_MENU;
-        return (T)waitForUser(IButton.class);
+        synchronized (boardComp) {
+            boardComp.message = message;
+            options = moves;
+            uiMode = ZombicideApplet.UIMode.PICK_MENU;
+        }
+        return (T) waitForUser(IButton.class);
     }
 
     public ZDoor pickDoor(String message, List<ZDoor> doors) {
-        boardComp.message = message;
-        options = doors;
-        uiMode = ZombicideApplet.UIMode.PICK_DOOR;
+        synchronized (boardComp) {
+            boardComp.message = message;
+            options = doors;
+            uiMode = ZombicideApplet.UIMode.PICK_DOOR;
+            boardComp.repaint();
+        }
         return waitForUser(ZDoor.class);
     }
 

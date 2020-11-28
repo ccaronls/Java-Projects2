@@ -22,7 +22,7 @@ public abstract class ZActor<E extends Enum<E>> extends Reflector<ZActor<E>> {
     private int actionsLeftThisTurn;
     GRectangle rect;
 
-    void prepareTurn() {
+    void onBeginRound() {
         actionsLeftThisTurn = getActionsPerTurn();
     }
 
@@ -65,4 +65,12 @@ public abstract class ZActor<E extends Enum<E>> extends Reflector<ZActor<E>> {
     }
 
     public abstract int getImageId();
+
+    public boolean isInvisible() {
+        return false;
+    }
+
+    public void setRect(GRectangle rect) {
+        this.rect = rect;
+    }
 }

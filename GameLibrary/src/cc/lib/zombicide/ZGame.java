@@ -296,7 +296,7 @@ public class ZGame extends Reflector<ZGame>  {
                 currentUser = 0;
                 currentCharacter = null;
                 for (ZActor a : board.getAllActors())
-                    a.prepareTurn();
+                    a.onBeginRound();
                 board.resetNoise();
                 break;
             }
@@ -349,6 +349,7 @@ public class ZGame extends Reflector<ZGame>  {
                 final ZCharacter cur = getCurrentCharacter();
 
                 if (getCurrentCharacter().getActionsLeftThisTurn() <= 0) {
+                    getCurrentCharacter().onEndOfTurn(this);
                     setState(ZState.PLAYER_STAGE_CHOOSE_CHARACTER);
                     return;
                 }
@@ -426,6 +427,11 @@ public class ZGame extends Reflector<ZGame>  {
                     if (items.size() > 0) {
                         options.add(ZMove.newThrowItemMove(items));
                     }
+                }
+
+                List<ZSpell> spells = cur.getSpells();
+                if (spells.size() > 0) {
+                    options.add(ZMove.newEnchantMove(spells));
                 }
 
                 if (zone.type == ZZoneType.VAULT) {
@@ -596,7 +602,7 @@ public class ZGame extends Reflector<ZGame>  {
         // zombie will move toward players it can see first and then noisy areas second
         int maxNoise = 0;
         int targetZone = -1;
-        for (ZCharacter c : getAllCharacters()) {
+        for (ZCharacter c : Utils.filter(getAllLivingCharacters(), object -> !object.isInvisible())) {
             if (board.canSee(zombie.occupiedZone, c.occupiedZone)) {
                 int noiseLevel = board.getZone(c.occupiedZone).noiseLevel;
                 if (maxNoise < noiseLevel) {
@@ -853,7 +859,7 @@ public class ZGame extends Reflector<ZGame>  {
                                 }
 
                                 int hits = resolveHits(cur, zombies.size(), actionType, stat.numDice, stat.dieRollToHit, zombies.size()/2-1, zombies.size()/2+1);
-                                for (int i=0; i<hits; i++) {
+                                for (int i=0; i<hits && zombies.size() > 0; i++) {
                                     ZZombie zombie = zombies.remove(0);
                                     if (zombie.type.minDamageToDestroy <= stat.damagePerHit) {
                                         addExperience(cur, zombie.type.expProvided);
@@ -938,7 +944,7 @@ public class ZGame extends Reflector<ZGame>  {
                             default:
                                 throw new GException("Unhandled case: " + slot.type);
                         }
-                        cur.removeEquipment(slot);//, slot);
+                        cur.removeEquipment(slot);
                         cur.performAction(ZActionType.THROW_ITEM, this);
                     }
 
@@ -1076,6 +1082,19 @@ public class ZGame extends Reflector<ZGame>  {
                         board.addActor(z, targetZone);
                     }
                     cur.performAction(ZActionType.SHOVE, this);
+                }
+                break;
+            }
+            case ENCHANT: {
+                List<ZSpell> spells = cur.getSpells();
+                ZSpell spell = getCurrentUser().chooseSpell(this, cur, spells);
+                if (spell != null) {
+                    List<ZCharacter> targets = Utils.filter(getAllLivingCharacters(), object -> board.canSee(cur.getOccupiedZone(), object.getOccupiedZone()));
+                    ZCharacter target = getCurrentUser().chooseCharacterForSpell(this, cur, spell, targets);
+                    if (target != null) {
+                        target.availableSkills.add(spell.type.skill);
+                        cur.performAction(ZActionType.ENCHANTMENT, this);
+                    }
                 }
                 break;
             }
@@ -1462,7 +1481,7 @@ public class ZGame extends Reflector<ZGame>  {
         searchables.addAll(make(3, ZItemType.PLENTY_OF_ARROWS));
         searchables.addAll(make(3, ZItemType.PLENTY_OF_BOLTS));
         searchables.addAll(make(2, ZWeaponType.REPEATING_CROSSBOW));
-        searchables.addAll(make(1, ZSpellType.REPULSE));
+        //searchables.addAll(make(1, ZSpellType.REPULSE));
         searchables.addAll(make(2, ZItemType.SALTED_MEAT));
         searchables.addAll(make(2, ZArmorType.SHIELD));
         searchables.addAll(make(1, ZWeaponType.SHORT_BOW));

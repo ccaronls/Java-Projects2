@@ -27,6 +27,7 @@ public enum ZActionType {
         switch (this) {
             case SEARCH:
             case SHOVE:
+            case ENCHANTMENT:
                 return true;
         }
         return false;
@@ -34,5 +35,20 @@ public enum ZActionType {
 
     int costPerTurn() {
         return 1;
+    }
+
+    boolean breaksInvisibility() {
+        switch (this) {
+            case MELEE:
+            case RANGED_BOLTS:
+            case RANGED_ARROWS:
+            case MAGIC:
+            case SHOVE:
+            case OPEN_DOOR:
+            case CLOSE_DOOR:
+            case MAKE_NOISE:
+                return true;
+        }
+        return false;
     }
 }

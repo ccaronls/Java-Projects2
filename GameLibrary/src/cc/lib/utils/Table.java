@@ -6,7 +6,9 @@ import java.util.List;
 import java.util.Vector;
 
 import cc.lib.game.AGraphics;
+import cc.lib.game.GColor;
 import cc.lib.game.GDimension;
+import cc.lib.game.Justify;
 import cc.lib.game.Utils;
 
 /**
@@ -22,8 +24,8 @@ public final class Table {
          * @param col
          * @return
          */
-        default int getTextAlignment(int row, int col) {
-            return 0;
+        default Justify getTextAlignment(int row, int col) {
+            return Justify.LEFT;
         }
 
         default String getStringValue(Object obj) {
@@ -34,6 +36,26 @@ public final class Table {
             }
             return obj.toString();
         }
+
+        default float getCornerRadius() {
+            return 5;
+        }
+
+        default GColor getBorderColor(AGraphics g) {
+            return g.getColor();
+        }
+
+        default GColor getHeaderColor(AGraphics g) {
+            return g.getColor();
+        }
+
+        default GColor getCellColor(AGraphics g, int row, int col) {
+            return g.getColor();
+        }
+
+        default GColor getBackgroundColor() {
+            return GColor.TRANSLUSCENT_BLACK;
+        }
     }
 
     private final List<String> header;
@@ -42,7 +64,10 @@ public final class Table {
     private int totalWidth=0;
     private int totalHeight=0;
     private int padding = 1;
-    private boolean border = true;
+    private int borderWidth = 2;
+    private float[] maxWidth;
+    private float[] maxHeight;
+
 
     public Table() {
         this(new Model() {});
@@ -79,7 +104,7 @@ public final class Table {
     }
 
     public Table setNoBorder() {
-        this.border = false;
+        this.borderWidth = 0;
         return this;
     }
 
@@ -157,6 +182,133 @@ public final class Table {
         return this;
     }
 
+    public GDimension getDimension(AGraphics g) {
+        if (header.size() == 0 && rows.isEmpty())
+            return GDimension.EMPTY;
+
+        final int columns = getColumns();
+        if (columns == 0)
+            return GDimension.EMPTY;
+
+        maxWidth = new float[columns];
+        maxHeight = new float[rows.size()];
+        float cellPadding = Math.max(4, padding*g.getTextHeight()/2);
+
+        float headrHeight = 0;
+        if (header != null && header.size() > 0) {
+            for (int i = 0; i < columns && i < header.size(); i++) {
+                maxWidth[i] = Math.max(maxWidth[i], g.getTextWidth(header.get(i)));
+            }
+            headrHeight += g.getTextHeight() + cellPadding*2;
+        }
+        for (int r = 0; r < rows.size(); r++) {
+            for (int c = 0; c < rows.get(r).size(); c++) {
+                Object o = rows.get(r).get(c);
+                if (o instanceof Table) {
+                    GDimension d2 = ((Table)o).getDimension(g);
+                    maxHeight[r] = Math.max(maxHeight[r], d2.height);
+                    maxWidth[c] = Math.max(maxWidth[c], d2.width);
+                } else {
+                    String entry = model.getStringValue(o);
+                    if (entry.indexOf("\n") >= 0) {
+                        String[] parts = entry.split("[\n]+");
+                        for (String s : parts) {
+                            maxWidth[c] = Math.max(maxWidth[c], g.getTextWidth(s));
+                        }
+                        maxHeight[r] = Math.max(maxHeight[r], g.getTextHeight() * parts.length);
+                        // split up the string into lines for
+                    } else {
+                        maxWidth[c] = Math.max(maxWidth[c], g.getTextWidth(entry));
+                        maxHeight[r] = Math.max(maxHeight[r], g.getTextHeight());
+                    }
+                }
+            }
+        }
+        maxWidth[0] += cellPadding/2;
+        maxWidth[maxWidth.length-1] += cellPadding/2;
+        for (int i=1; i<maxWidth.length-1; i++) {
+            maxWidth[i] += cellPadding;
+        }
+        if (borderWidth > 0 && maxWidth.length > 1) {
+            maxWidth[0] += cellPadding/2;
+            maxWidth[maxWidth.length-1] += cellPadding/2;
+        }
+        float dimWidth = Utils.sum(maxWidth);
+        float dimHeight = Utils.sum(maxHeight) + headrHeight;
+        dimWidth += borderWidth*2;
+        dimHeight += borderWidth*2;
+
+        return new GDimension(dimWidth, dimHeight);
+    }
+
+    public GDimension draw(AGraphics g) {
+        GDimension dim = getDimension(g);
+        if (dim == GDimension.EMPTY)
+            return dim;
+
+        g.pushMatrix();
+        float outerPadding = 0;
+        if (borderWidth > 0) {
+            g.translate(borderWidth, borderWidth);
+            // if there is a border, then there is padding arounf between border and text
+            GColor cur = g.getColor();
+            g.setColor(model.getBackgroundColor());
+            float radius = model.getCornerRadius();
+            g.drawFilledRoundedRect(0, 0, dim.width, dim.height, radius);
+            g.setColor(cur);
+            g.setColor(model.getBorderColor(g));
+            g.drawRoundedRect(dim, borderWidth, radius);
+            g.translate(borderWidth, borderWidth);
+        } else {
+            // if there is no border then no padding
+        }
+
+        // TODO: Draw vertical divider lines
+
+        // check for header. if so render and draw a divider line
+        float cellPadding = Math.max(4, padding*g.getTextHeight()/2);
+        if (header != null && header.size() > 0) {
+            g.setColor(model.getHeaderColor(g));
+            float x=outerPadding;
+            for (int i=0; i<header.size(); i++) {
+                g.drawJustifiedString(x + maxWidth[i]/2, 0, Justify.CENTER, header.get(i));
+                x += maxWidth[i];
+            }
+            g.translate(0, g.getTextHeight() + cellPadding);
+            g.drawLine(0, 0, dim.width-borderWidth, 0, borderWidth);
+            g.translate(0, cellPadding);
+        }
+
+        // draw the rows
+        for (int i=0; i<rows.size(); i++) {
+            g.pushMatrix();
+            for (int ii=0; ii<rows.get(i).size(); ii++) {
+                Object o = rows.get(i).get(ii);
+                if (o != null) {
+                    if (o instanceof Table) {
+                        ((Table)o).draw(g);
+                    } else {
+                        String txt = model.getStringValue(o);
+                        Justify hJust = model.getTextAlignment(i, ii);
+                        g.setColor(model.getCellColor(g, i, ii));
+                        g.drawWrapString(0, 0, maxWidth[ii], hJust, Justify.TOP, txt);
+                    }
+                }
+                g.translate(maxWidth[ii], 0);
+            }
+            g.popMatrix();
+            g.translate(0, maxHeight[i]);
+        }
+
+        g.popMatrix();
+        return dim;
+    }
+
+    /**
+     *
+     * @param indent
+     * @return
+     */
     public String toString(int indent) {
         if (header.size() == 0 && rows.isEmpty())
             return "";
@@ -186,6 +338,7 @@ public final class Table {
             }
         }
 
+        final boolean border = borderWidth > 0;
         final StringBuffer buf = new StringBuffer();
         final String paddingChars = Utils.getRepeatingChars(' ', padding);
         final String divider= paddingChars + (padding > 0 ? "|" : " ") + paddingChars;
@@ -216,13 +369,13 @@ public final class Table {
             buf.append(indentStr).append(borderStrFront);
             for (int i = 0; i < columns - 1; i++) {
                 if (i < header.size())
-                    buf.append(getJustifiedString(header.get(i), 1, maxWidth[i]));
+                    buf.append(getJustifiedString(header.get(i), Justify.CENTER, maxWidth[i]));
                 else
                     buf.append(Utils.getRepeatingChars(' ', maxWidth[i]));
                 buf.append(divider);
             }
             if (last < header.size()) {
-                buf.append(getJustifiedString(header.get(last), 1, maxWidth[last]));
+                buf.append(getJustifiedString(header.get(last), Justify.CENTER, maxWidth[last]));
             } else {
                 buf.append(Utils.getRepeatingChars(' ', maxWidth[last]));
             }
@@ -262,20 +415,20 @@ public final class Table {
         return str;
     }
 
-    private String getJustifiedString(String s, int justify, int cellWidth) {
+    private String getJustifiedString(String s, Justify justify, int cellWidth) {
         switch (justify) {
-            case 0: {
+            case LEFT: {
                 if (cellWidth == 0)
                     return "";
                 return String.format("%-" + cellWidth + "s", s);
             }
-            case 1: {
+            case CENTER: {
                 int frontPadding = (cellWidth - s.length()) / 2;
                 int frontWidth = (cellWidth - frontPadding);
                 int backPadding = cellWidth - frontWidth;
                 return String.format("%" + frontWidth + "s", s) + Utils.getRepeatingChars(' ', backPadding);
             }
-            case 2:
+            case RIGHT:
                 return String.format("%" + cellWidth + "s", s);
         }
         throw new RuntimeException("Invalid justify: " + justify);
@@ -314,9 +467,5 @@ public final class Table {
      */
     public int getTotalHeight() {
         return totalHeight;
-    }
-
-    public GDimension draw(AGraphics g) {
-        return null;
     }
 }

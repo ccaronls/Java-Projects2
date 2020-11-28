@@ -67,9 +67,9 @@ public class ZItem extends ZEquipment<ZItemType> {
     }
 
     @Override
-    public String getCardString(ZCharacter c, ZGame game) {
+    public Table getCardInfo(ZCharacter c, ZGame game) {
         Table card = new Table().setNoBorder();
         card.addColumn(type.name(), Arrays.asList(Utils.wrapTextWithNewlines(type.description, 32)));
-        return card.toString();
+        return card;
     }
 }

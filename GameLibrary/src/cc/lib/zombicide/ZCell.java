@@ -25,6 +25,10 @@ public class ZCell extends Reflector<ZCell> {
     boolean discovered=false;
     ZActor [] occupied = new ZActor[NUM_QUADRANTS];
 
+    public ZActor getOccupied(int index) {
+        return occupied[index];
+    }
+
     boolean isInside() {
         return environment==ENV_BUILDING;
     }

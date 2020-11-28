@@ -3,13 +3,17 @@ package cc.lib.swing;
 import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.Image;
+import java.awt.Toolkit;
+import java.awt.image.FilteredImageSource;
+import java.awt.image.ImageFilter;
+import java.awt.image.ImageProducer;
 import java.awt.image.PixelGrabber;
 
 import javax.swing.Icon;
 
 import cc.lib.game.AImage;
 
-class AWTImage extends AImage implements Icon {
+public class AWTImage extends AImage implements Icon {
 
     final Image image;
     final Component comp;
@@ -63,5 +67,10 @@ class AWTImage extends AImage implements Icon {
     @Override
     public int getIconHeight() {
         return image.getHeight(null);
+    }
+
+    public AWTImage transform(ImageFilter filter) {
+        ImageProducer p = new FilteredImageSource(image.getSource(), filter);
+        return new AWTImage(Toolkit.getDefaultToolkit().createImage(p), comp);
     }
 }

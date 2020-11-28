@@ -215,6 +215,7 @@ public enum ZSkill implements IButton {
     Collector_Abomination("The Survivor gains double the experience each time he kills a Abomination."),
     Collector_Necromancer("The Survivor gains double the experience each time he kills a Necromancer."),
     Destiny("The Survivor can use this Skill once per Turn when he reveals an Equipment card he drew. You can ignore and discard that card, then draw another Equipment card."),
+    //Dragon_Aura("Gain +4 Armor till end of round."),
     Free_reload("The Survivor reloads reloadable weapons (Hand Crossbows, Orcish Crossbow, etc.) for free. ") {
         @Override
         public void addSpecialMoves(ZGame game, ZCharacter character, List<ZMove> moves) {
@@ -252,6 +253,17 @@ public enum ZSkill implements IButton {
             if (actionType == ZActionType.RANGED_BOLTS || actionType == ZActionType.RANGED_ARROWS) {
                 stat.numDice += character.woundBar;
             }
+        }
+    },
+    Healing("At end of turn you have a wound healed.") {
+        @Override
+        boolean onEndOfTurn(ZGame game, ZCharacter c) {
+            if (c.woundBar > 0) {
+                game.getCurrentUser().showMessage(c.name() + " has a wound healed.");
+                c.woundBar--;
+                return true;
+            }
+            return false;
         }
     },
     Hit_and_run("The Survivor can use this Skill for free, just after he resolved a Magic, Melee or Ranged Action resulting in at least a Zombie kill. He can then resolve a free Move Action. The Survivor does not spend extra Actions to perform this free Move Action if Zombies are standing in his Zone."),
@@ -326,7 +338,7 @@ public enum ZSkill implements IButton {
             return false;
         }
     },
-    Rotten("At the end of his Turn, if the Survivor has not resolved a Combat Action (Melee, Ranged or Magic) and not produced a Noise token, place a Rotten token next to his base. As long as he has this token, he is totally ignored by all Zombies and is not considered a Noise token. Zombies don’t attack him and will even walk past him. The Survivor loses his Rotten token if he resolves any kind of Combat Action (Melee, Ranged or Magic) or makes noise. Even with the Rotten token, the Survivor still has to spend extra Actions to move out of a Zone crowded with Zombies."),
+    Invisible("At the end of his Turn, if the Survivor has not resolved a Combat Action (Melee, Ranged or Magic) and not produced a Noise token, place a Rotten token next to his base. As long as he has this token, he is totally ignored by all Zombies and is not considered a Noise token. Zombies don’t attack him and will even walk past him. The Survivor loses his Rotten token if he resolves any kind of Combat Action (Melee, Ranged or Magic) or makes noise. Even with the Rotten token, the Survivor still has to spend extra Actions to move out of a Zone crowded with Zombies."),
     Scavenger("The Survivor can Search in any Zone. This includes street Zones, Vault Zones, etc.") {
         @Override
         public void addSpecialMoves(ZGame game, ZCharacter character, List<ZMove> moves) {
@@ -371,6 +383,7 @@ public enum ZSkill implements IButton {
             return super.modifyActionsRemaining(character, type, game);
         }
     },
+    Speed("Can move up to 2 unoccupied by zombie zones for free."),
     Sprint("The Survivor can use this Skill once during each of his Turns. Spend one Move Action with the Survivor: He may move two or three Zones instead of one. Entering a Zone containing Zombies ends the Survivor’s Move Action."),
     Super_strength("Consider the Damage value of Melee weapons used by the Survivor to be 3.") {
         @Override
@@ -463,6 +476,17 @@ public enum ZSkill implements IButton {
 
 
     boolean isRoll6Plus1(ZActionType type) {
+        return false;
+    }
+
+    /**
+     * Return true if skill was applied
+     *
+     * @param game
+     * @param c
+     * @return
+     */
+    boolean onEndOfTurn(ZGame game, ZCharacter c) {
         return false;
     }
 }

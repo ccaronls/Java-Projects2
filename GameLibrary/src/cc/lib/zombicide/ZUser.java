@@ -44,4 +44,8 @@ public abstract class ZUser {
     public abstract Integer chooseZonetoThrowItem(ZGame game, ZCharacter cur, ZItem toThrow, List<Integer> zones);
 
     public abstract Integer chooseZoneToShove(ZGame zGame, ZCharacter cur, List<Integer> list);
+
+    public abstract ZSpell chooseSpell(ZGame zGame, ZCharacter cur, List<ZSpell> spells);
+
+    public abstract ZCharacter chooseCharacterForSpell(ZGame zGame, ZCharacter cur, ZSpell spell, List<ZCharacter> targets);
 }

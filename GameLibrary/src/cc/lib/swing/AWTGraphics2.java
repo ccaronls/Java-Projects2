@@ -1,8 +1,11 @@
 package cc.lib.swing;
 
-import java.awt.*;
-
-import cc.lib.game.GColor;
+import java.awt.AlphaComposite;
+import java.awt.BasicStroke;
+import java.awt.Component;
+import java.awt.Composite;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
 
 /**
  * Created by chriscaron on 3/15/18.
@@ -19,11 +22,14 @@ public class AWTGraphics2 extends AWTGraphics {
         G2.setStroke(stroke);
     }
 
+    public Graphics2D getGraphics2D() {
+        return G2;
+    }
+
     public void setGraphics(Graphics g) {
         super.setGraphics(g);
         this.G2 = (Graphics2D)g;
     }
-
 
     @Override
     public float setLineWidth(float newWidth) {
@@ -45,4 +51,18 @@ public class AWTGraphics2 extends AWTGraphics {
         G2.drawPolygon(x, y, n);
     }
 
+    Composite old = null;
+
+    public void setTransparentcyFilter(float alpha) {
+        old = G2.getComposite();
+        Composite comp = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha);
+        G2.setComposite(comp);
+    }
+
+    public void removeComposite() {
+        if (old != null) {
+            G2.setComposite(old);
+            old = null;
+        }
+    }
 }

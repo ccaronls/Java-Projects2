@@ -3,6 +3,7 @@ package cc.lib.zombicide;
 import cc.lib.game.Utils;
 import cc.lib.ui.IButton;
 import cc.lib.utils.Reflector;
+import cc.lib.utils.Table;
 
 public abstract class ZEquipment<T extends Enum<T>> extends Reflector<ZEquipment<T>> implements IButton {
 
@@ -69,7 +70,7 @@ public abstract class ZEquipment<T extends Enum<T>> extends Reflector<ZEquipment
         return getType().ordinal();
     }
 
-    public abstract String getCardString(ZCharacter c, ZGame game);
+    public abstract Table getCardInfo(ZCharacter c, ZGame game);
 
     @Override
     public String getTooltipText() {

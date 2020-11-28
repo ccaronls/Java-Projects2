@@ -113,11 +113,20 @@ public enum ZPlayerName implements IButton {
     public ZCharacter create() {
         ZCharacter c = new ZCharacter();
         c.name = this;
+        character = c;
+        reset(c);
+        return c;
+    }
+
+    void reset(ZCharacter c) {
+        c.clear();
         for (ZEquipmentType e : startingEquipment)
             c.equip(e.create());
         c.allSkills.addAll(Arrays.asList(getSkillOptions(ZSkillLevel.BLUE)));
-        return c;
+
     }
+
+    ZCharacter character;
 
     public ZSkill [] getSkillOptions(ZSkillLevel level) {
         return skillOptions[level.ordinal()];
